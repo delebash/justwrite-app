@@ -4,7 +4,8 @@
       "Bash(npm run *)",
       "WebFetch(domain:v2.tauri.app)",
       "Bash(cargo check *)",
-      "Bash(Remove-Item *)"
+      "Bash(Remove-Item *)",
+      "Bash(curl -s http://localhost:1420)"
     ]
   }
 }

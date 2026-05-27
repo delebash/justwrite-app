@@ -8,6 +8,7 @@ import Icon from "../components/Icon.vue";
 import ImagesModal from "../components/ImagesModal.vue";
 import EventsModal from "../components/EventsModal.vue";
 import GroupsModal from "../components/GroupsModal.vue";
+import SceneRefList from "../components/SceneRefList.vue";
 import { promptDialog, confirmDialog } from "../services/dialog.js";
 
 const props = defineProps({ id: { type: String, default: "" } });
@@ -64,6 +65,12 @@ async function deleteLocation() {
             placeholder="Description"
             :value="loc.note" @input="update('note', $event.target.value)" />
         </div>
+      </div>
+
+      <div style="margin-top:22px">
+        <div class="t-eyebrow" style="margin-bottom:10px">Appears in</div>
+        <SceneRefList field="locations" :entity-id="loc.id"
+          empty-text="No scenes set in this location yet. Open a scene → Links → Locations to add one." />
       </div>
     </div>
   </div>

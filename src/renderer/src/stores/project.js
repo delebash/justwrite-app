@@ -125,6 +125,14 @@ if (loaded.trash && Array.isArray(loaded.trash.strands) && !Array.isArray(loaded
   delete loaded.trash.strands;
 }
 
+// "Storylines" was briefly added as a fifth architecture doc and then
+// removed. Strip it from any project that picked it up so it doesn't
+// linger in the sidebar list.
+if (loaded.architecture && loaded.architecture.storylines) {
+  const { storylines, ...rest } = loaded.architecture;
+  loaded.architecture = rest;
+}
+
 // Chapters now contain scenes instead of a single body. Migrate every
 // existing `chapterBody[id] = html` into a one-scene record so the user's
 // prose is preserved exactly; clear the old chapterBody and the persisted
@@ -778,9 +786,10 @@ export const useProjectStore = defineStore("project", {
       const id = uid("pl");
       this.plotlines.push({
         id,
-        name: "Untitled plotline",
+        name: "Untitled strand",
         color: "oklch(0.78 0.06 200)",
         blurb: "",
+        body: "",
         status: "open",
         beats: [],
         ...input,

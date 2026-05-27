@@ -135,9 +135,10 @@ export function buildIndex(project, speakers = null) {
     indexDoc({ id: `group:${g.id}`, kind: "group", title: g.name, sub: members, body: g.blurb, route: `/groups/${g.id}` });
   }
 
-  // Plotlines — name + blurb (for subplot search).
+  // Strands — name + blurb + body (for subplot search).
   for (const s of project.plotlines) {
-    indexDoc({ id: `plotline:${s.id}`, kind: "plotline", title: s.name, sub: "Plotline", body: s.blurb || "", route: `/plotlines` });
+    const body = [s.blurb || "", s.body || ""].filter(Boolean).join("\n");
+    indexDoc({ id: `plotline:${s.id}`, kind: "plotline", title: s.name, sub: "Strand", body, route: `/plotlines` });
   }
 
   // Worldbuilding — title + summary + body, grouped by category in UI.
@@ -299,6 +300,6 @@ export const KIND_META = {
   group:         { label: "Groups",         icon: "GroupIcon", order: 5 },
   worldbuilding: { label: "Worldbuilding",  icon: "Sparkle",   order: 6 },
   note:          { label: "Notes",          icon: "Note",      order: 7 },
-  plotline:      { label: "Plotlines",      icon: "Plotlines", order: 8 },
+  plotline:      { label: "Strands",        icon: "Plotlines", order: 8 },
   architecture:  { label: "Architecture",   icon: "Building",  order: 9 },
 };

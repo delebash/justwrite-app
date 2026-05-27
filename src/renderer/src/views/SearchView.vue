@@ -96,7 +96,7 @@ const KIND_ENTRIES = Object.entries(KIND_META).sort((a, b) => a[1].order - b[1].
   <div style="padding:14px 22px;border-bottom:1px solid var(--border);background:var(--surface-2);display:flex;flex-direction:column;gap:10px">
     <div style="display:flex;align-items:center;gap:8px;padding:0 12px;background:var(--surface);border:1px solid var(--border-strong);border-radius:8px;height:36px">
       <Icon name="Search" :size="14" />
-      <input ref="inputEl" v-model="q" placeholder="Find anywhere in the project — name, prose, note, group, plotline…"
+      <input ref="inputEl" v-model="q" placeholder="Find anywhere in the project — name, prose, note, group, strand…"
         style="flex:1;border:0;outline:0;background:transparent;font:inherit;font-size:13.5px" />
       <button v-if="q" class="btn ghost sm" @click="q = ''" style="padding:2px 6px" title="Clear">×</button>
       <span class="kbd-pill">⌘F</span>
@@ -127,7 +127,7 @@ const KIND_ENTRIES = Object.entries(KIND_META).sort((a, b) => a[1].order - b[1].
         </div>
         <h3 style="font-family:var(--font-serif);font-size:22px;font-weight:600;margin:0">Search the whole project</h3>
         <p style="font-size:13.5px;color:var(--ink-2);margin-top:8px;line-height:1.55">
-          Full-text across chapters, characters, locations, objects, plotlines, groups, notes, worldbuilding, and architecture.
+          Full-text across chapters, characters, locations, objects, strands, groups, notes, worldbuilding, and architecture.
         </p>
         <p class="t-muted" style="font-size:11.5px;margin-top:14px;font-family:var(--font-mono)">
           {{ index.docs.size }} documents indexed

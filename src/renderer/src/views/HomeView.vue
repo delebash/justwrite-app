@@ -150,9 +150,9 @@ const streakSquares = computed(() => history14.value.map((d) => d.words > 0));
         </div>
       </div>
 
-      <!-- Plotlines at a glance -->
+      <!-- Strands at a glance -->
       <div class="card">
-        <div class="card-title">Plotlines</div>
+        <div class="card-title">Strands</div>
         <div style="display:flex;flex-direction:column;gap:10px">
           <div v-for="s in project.plotlines" :key="s.id">
             <div style="display:flex;justify-content:space-between;font-size:12px;margin-bottom:4px">

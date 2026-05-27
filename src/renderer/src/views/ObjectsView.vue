@@ -8,6 +8,7 @@ import Icon from "../components/Icon.vue";
 import ImagesModal from "../components/ImagesModal.vue";
 import EventsModal from "../components/EventsModal.vue";
 import GroupsModal from "../components/GroupsModal.vue";
+import SceneRefList from "../components/SceneRefList.vue";
 import { promptDialog, confirmDialog } from "../services/dialog.js";
 
 const props = defineProps({ id: { type: String, default: "" } });
@@ -64,6 +65,12 @@ async function deleteObject() {
             placeholder="Description"
             :value="obj.note" @input="update('note', $event.target.value)" />
         </div>
+      </div>
+
+      <div style="margin-top:22px">
+        <div class="t-eyebrow" style="margin-bottom:10px">Appears in</div>
+        <SceneRefList field="objects" :entity-id="obj.id"
+          empty-text="No scenes feature this object yet. Open a scene → Links → Objects to add one." />
       </div>
     </div>
   </div>

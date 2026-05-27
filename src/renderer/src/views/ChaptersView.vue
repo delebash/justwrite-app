@@ -7,14 +7,18 @@ import { useRouter } from "vue-router";
 import PaneHeader from "../components/PaneHeader.vue";
 import Icon from "../components/Icon.vue";
 import RichEditor from "../components/RichEditor.vue";
-import PlotlinePicker from "../components/PlotlinePicker.vue";
+import SceneLinks from "../components/SceneLinks.vue";
 import { promptDialog, confirmDialog } from "../services/dialog.js";
 
-const props = defineProps({ id: { type: String, default: "" } });
+const props = defineProps({
+  id: { type: String, default: "" },
+  sceneId: { type: String, default: "" },
+});
 const project = useProjectStore();
 const studio = useStudioStore();
 const ui = useUiStore();
 const router = useRouter();
+
 
 // chapterId → [{ id, name }] of characters detected in the script.
 const speakersByChapter = computed(() => {
@@ -30,6 +34,7 @@ const speakersByChapter = computed(() => {
 });
 
 const mode = ref("edit"); // "edit" | "outline" | "read"
+const linksOpen = ref(false);
 const MODES = [
   { id: "edit",    label: "Edit",    icon: "Quote" },
   { id: "outline", label: "Outline", icon: "List" },
@@ -48,6 +53,28 @@ const next = computed(() => idx.value < project.allChapters.length - 1 ? project
 // just forwards to the store.
 const scenes = computed(() => ch.value ? project.scenesFor(ch.value.id) : []);
 
+// Sidebar links a scene via `/chapters/<chId>/<sceneId>`. When the
+// sceneId path param is present, we show the scene editor; otherwise
+// the pane shows a chapter overview (no scene strip / RichEditor).
+const activeScene = computed(() => {
+  if (!props.sceneId) return null;
+  return scenes.value.find((s) => s.id === props.sceneId) || null;
+});
+const activeSceneIdx = computed(() =>
+  activeScene.value ? scenes.value.findIndex((s) => s.id === activeScene.value.id) : -1);
+const prevScene = computed(() => activeSceneIdx.value > 0 ? scenes.value[activeSceneIdx.value - 1] : null);
+const nextScene = computed(() => activeSceneIdx.value >= 0 && activeSceneIdx.value < scenes.value.length - 1 ? scenes.value[activeSceneIdx.value + 1] : null);
+
+function goToScene(sceneId) {
+  if (!ch.value || !sceneId) return;
+  router.push(`/chapters/${ch.value.id}/${sceneId}`);
+}
+function addSceneHere() {
+  if (!ch.value) return;
+  const id = project.addScene(ch.value.id, {});
+  if (id) goToScene(id);
+}
+
 function onSceneBodyChange(sceneId, html) {
   if (!ch.value) return;
   project.setSceneBody(ch.value.id, sceneId, html);
@@ -56,12 +83,8 @@ function onSceneTitleInput(sceneId, title) {
   if (!ch.value) return;
   project.setSceneTitle(ch.value.id, sceneId, title);
 }
-function addScene() {
-  if (!ch.value) return;
-  project.addScene(ch.value.id, {});
-}
 async function removeScene(scene) {
-  if (!ch.value) return;
+  if (!ch.value || !scene) return;
   if (scenes.value.length <= 1) return;
   const yes = await confirmDialog({
     title: scene.title ? `Delete scene "${scene.title}"?` : "Delete this scene?",
@@ -70,68 +93,11 @@ async function removeScene(scene) {
     danger: true,
   });
   if (!yes) return;
+  // After delete, move to the next remaining scene (or the previous if
+  // we just deleted the last one).
+  const fallback = nextScene.value || prevScene.value;
   project.removeScene(ch.value.id, scene.id);
-}
-function moveScene(sceneId, dir) {
-  if (!ch.value) return;
-  project.moveScene(ch.value.id, sceneId, dir);
-}
-
-// ── Scene drag-and-drop reorder ─────────────────────────────────────
-// Direction-based positioning: hovering ANY non-self scene drops the
-// dragged scene to the *other side* of the target — because that's the
-// only side that actually moves it. Hovering a scene below the dragged
-// one → "after target" (move down past it); hovering a scene above →
-// "before target" (move up past it). This eliminates the no-op cases
-// you'd otherwise hit dropping in B's top half while A was already
-// directly above B.
-const sceneDrag = ref(null);
-const sceneDrop = ref(null);
-function onSceneDragStart(sceneId, e) {
-  sceneDrag.value = { id: sceneId };
-  e.dataTransfer.effectAllowed = "move";
-  try { e.dataTransfer.setData("text/plain", sceneId); } catch {}
-}
-function onSceneDragOver(sceneId, e) {
-  const d = sceneDrag.value;
-  if (!d || d.id === sceneId) return;
-  e.preventDefault();
-  e.dataTransfer.dropEffect = "move";
-  const draggedIdx = scenes.value.findIndex((s) => s.id === d.id);
-  const targetIdx  = scenes.value.findIndex((s) => s.id === sceneId);
-  if (draggedIdx < 0 || targetIdx < 0) return;
-  const position = draggedIdx < targetIdx ? "after" : "before";
-  if (sceneDrop.value?.id !== sceneId || sceneDrop.value?.position !== position) {
-    sceneDrop.value = { id: sceneId, position };
-  }
-}
-function onSceneDrop(targetId) {
-  const d = sceneDrag.value, t = sceneDrop.value;
-  sceneDrag.value = null; sceneDrop.value = null;
-  if (!ch.value || !d || d.id === targetId) return;
-  const original = scenes.value.map((s) => s.id);
-  const ids = original.filter((id) => id !== d.id);
-  let idx = ids.indexOf(targetId);
-  if (idx < 0) idx = ids.length;
-  if (t?.position === "after") idx += 1;
-  ids.splice(idx, 0, d.id);
-  // Skip the IPC roundtrip / history entry if the drop didn't actually
-  // change the order (e.g. "before B" while A is already right before B).
-  if (ids.length === original.length && ids.every((id, i) => id === original[i])) return;
-  project.reorderScenes(ch.value.id, ids);
-}
-function onSceneDragEnd() {
-  sceneDrag.value = null;
-  sceneDrop.value = null;
-}
-// Always light up the hovered scene as a drop target — gives instant
-// feedback the moment the OS cursor changes to "drop allowed". The
-// position bar (drop-before / drop-after) then shows where the dragged
-// scene would land. No-op drops are caught at drop time, not by hiding
-// the indicator, so the visual stays consistent with the cursor state.
-function sceneDropClass(sceneId) {
-  if (!sceneDrop.value || sceneDrop.value.id !== sceneId) return null;
-  return `scene-drop-target drop-${sceneDrop.value.position}`;
+  if (fallback) goToScene(fallback.id);
 }
 
 // ── CRUD ─────────────────────────────────────────────────────────────
@@ -172,7 +138,6 @@ const STATUS_LABEL = { todo: "To do", draft: "Draft", revise: "Revise", done: "D
 function updatePartTitle(id, v) { project.updatePart(id, { title: v }); }
 function moveChapterPart(chapterId, partId) { project.moveChapterToPart(chapterId, partId); }
 function movePart(id, dir) { project.movePart(id, dir); }
-function toggleChapterPlotline(chapterId, plotlineId) { project.toggleChapterPlotline(chapterId, plotlineId); }
 
 async function addPart() {
   const title = await promptDialog({
@@ -322,9 +287,6 @@ onBeforeUnmount(() => window.removeEventListener("keydown", onKey));
                 @click.stop
                 @input="updateTitle(c.id, $event.target.value)" />
               <div class="outline-meta">
-                <PlotlinePicker
-                  :model-value="c.plotlines || []"
-                  @toggle="(pid) => toggleChapterPlotline(c.id, pid)" />
                 <span class="t-muted" style="font-size:11px">{{ STATUS_LABEL[c.status] }} · {{ c.scenes }} scene{{ c.scenes === 1 ? '' : 's' }}</span>
                 <span v-if="speakersByChapter[c.id]?.length" class="speakers-chip"
                   :title="speakersByChapter[c.id].map(s => s.name).join(', ')">
@@ -394,70 +356,75 @@ onBeforeUnmount(() => window.removeEventListener("keydown", onKey));
       <select class="input" style="max-width:120px" :value="ch.status" @change="updateStatus($event.target.value)">
         <option v-for="s in STATUS_OPTIONS" :key="s" :value="s">{{ STATUS_LABEL[s] }}</option>
       </select>
-      <PlotlinePicker
-        :model-value="ch.plotlines || []"
-        @toggle="(pid) => toggleChapterPlotline(ch.id, pid)" />
       <span style="margin-left:auto;font-size:11.5px;color:var(--muted)">
         <b class="t-num" style="color:var(--ink-2)">{{ ch.words.toLocaleString() }}</b> words · {{ scenes.length }} scene{{ scenes.length === 1 ? "" : "s" }}
       </span>
     </div>
 
+    <!-- Single-scene editor: which scene shows is driven by the route
+         hash (#scene-<id>), set by the sidebar's scene list. -->
+    <div v-if="activeScene" class="scene-strip">
+      <button class="btn ghost sm"
+        :disabled="!prevScene"
+        :title="prevScene ? `Scene ${activeSceneIdx} — ${prevScene.title || 'Untitled'}` : 'Already the first scene'"
+        @click="prevScene && goToScene(prevScene.id)">
+        <Icon name="ChevRight" :size="12" style="transform:rotate(180deg)" /> Prev scene
+      </button>
+      <span class="scene-pill">Scene {{ activeSceneIdx + 1 }} of {{ scenes.length }}</span>
+      <button class="btn ghost sm"
+        :disabled="!nextScene"
+        :title="nextScene ? `Scene ${activeSceneIdx + 2} — ${nextScene.title || 'Untitled'}` : 'Already the last scene'"
+        @click="nextScene && goToScene(nextScene.id)">
+        Next scene <Icon name="ChevRight" :size="12" />
+      </button>
+      <input class="scene-title-input"
+        :value="activeScene.title"
+        :placeholder="`Scene ${activeSceneIdx + 1} title (optional)`"
+        @input="onSceneTitleInput(activeScene.id, $event.target.value)" />
+      <div class="scene-strip-actions">
+        <button class="btn scene-links-btn" title="Links — POV, characters, locations, objects, strands"
+          @click="linksOpen = true">
+          <Icon name="Network" :size="13" /> Links
+        </button>
+        <button class="btn ghost icon sm"
+          :disabled="scenes.length <= 1"
+          :title="scenes.length <= 1 ? 'A chapter needs at least one scene' : 'Delete scene'"
+          @click="removeScene(activeScene)">
+          <Icon name="Trash" :size="12" />
+        </button>
+      </div>
+    </div>
+
+    <SceneLinks v-if="linksOpen && activeScene"
+      :chapter-id="ch.id"
+      :scene-id="activeScene.id"
+      @close="linksOpen = false" />
+
     <div class="scrollarea" style="flex:1">
-      <div class="scene-stack">
-        <div v-for="(scene, sIdx) in scenes" :key="scene.id"
-          class="scene-block"
-          :class="[sceneDropClass(scene.id), { 'scene-dragging': sceneDrag?.id === scene.id }]">
-          <div class="scene-head"
-            draggable="true"
-            :title="'Drag to reorder this scene'"
-            @dragstart="onSceneDragStart(scene.id, $event)"
-            @dragend="onSceneDragEnd">
-            <Icon name="DragHandle" :size="12" class="scene-grab" />
-            <span class="scene-num">Scene {{ sIdx + 1 }}</span>
-            <input class="scene-title"
-              :value="scene.title"
-              :placeholder="`Scene ${sIdx + 1} title (optional)`"
-              draggable="false"
-              @dragstart.stop.prevent
-              @mousedown.stop
-              @input="onSceneTitleInput(scene.id, $event.target.value)" />
-            <div class="scene-actions">
-              <button class="btn ghost icon sm"
-                :disabled="sIdx === 0"
-                :title="sIdx === 0 ? 'Already the first scene' : 'Move scene up'"
-                @click="moveScene(scene.id, -1)">
-                <Icon name="ChevRight" :size="12" style="transform:rotate(-90deg)" />
-              </button>
-              <button class="btn ghost icon sm"
-                :disabled="sIdx === scenes.length - 1"
-                :title="sIdx === scenes.length - 1 ? 'Already the last scene' : 'Move scene down'"
-                @click="moveScene(scene.id, 1)">
-                <Icon name="ChevRight" :size="12" style="transform:rotate(90deg)" />
-              </button>
-              <button class="btn ghost icon sm"
-                :disabled="scenes.length <= 1"
-                :title="scenes.length <= 1 ? 'A chapter needs at least one scene' : 'Delete scene'"
-                @click="removeScene(scene)">
-                <Icon name="Trash" :size="12" />
-              </button>
-            </div>
-          </div>
-          <RichEditor
-            :model-value="scene.body"
-            :placeholder="`Write scene ${sIdx + 1}…`"
-            @change="(html) => onSceneBodyChange(scene.id, html)" />
-          <!-- Drop overlay: only rendered while ANOTHER scene is being
-               dragged, so it doesn't interfere with normal editing. It
-               sits above TipTap's editor area (which would otherwise eat
-               dragover/drop for its own internal drag handling) and turns
-               the whole scene block into a drop target. -->
-          <div v-if="sceneDrag && sceneDrag.id !== scene.id"
-            class="scene-drop-overlay"
-            @dragover="onSceneDragOver(scene.id, $event)"
-            @drop="onSceneDrop(scene.id)" />
+      <RichEditor v-if="activeScene"
+        :key="activeScene.id"
+        :model-value="activeScene.body"
+        :placeholder="`Write scene ${activeSceneIdx + 1}…`"
+        @change="(html) => onSceneBodyChange(activeScene.id, html)" />
+
+      <!-- Chapter overview: shown when no scene is picked yet. Lists
+           every scene as a clickable card so the user can drop into one. -->
+      <div v-else class="chapter-overview">
+        <h2 class="chapter-overview-title">{{ ch.title }}</h2>
+        <p class="chapter-overview-hint">
+          Pick a scene below (or from the sidebar) to start writing.
+        </p>
+        <div class="chapter-overview-scenes">
+          <button v-for="(scn, sIdx) in scenes" :key="scn.id"
+            class="overview-scene-card"
+            @click="goToScene(scn.id)">
+            <span class="overview-scene-num">Scene {{ sIdx + 1 }}</span>
+            <span class="overview-scene-title">{{ scn.title || `Untitled scene` }}</span>
+            <span class="overview-scene-snippet">{{ snippetFor(ch.id) && sIdx === 0 ? snippetFor(ch.id) : '' }}</span>
+          </button>
         </div>
-        <button class="btn ghost scene-add" @click="addScene">
-          <Icon name="Plus" :size="13" /> New scene
+        <button class="overview-add-scene" @click="addSceneHere">
+          <Icon name="Plus" :size="13" /> Add another scene
         </button>
       </div>
     </div>
@@ -550,184 +517,161 @@ onBeforeUnmount(() => window.removeEventListener("keydown", onKey));
 }
 .outline-add-part:hover { background: var(--surface-2); color: var(--ink); }
 
-/* ── Scene stack (Edit mode) ──────────────────────────────── */
-/* The stack fills the chapter pane width — no centering cap, just
-   breathing-room padding from the edges. Each scene's prose column
-   stays readable via the .manuscript-inner cap inherited from tokens. */
-.scene-stack {
-  display: flex; flex-direction: column;
-  gap: 20px;
-  padding: 22px 28px 80px;
-  width: 100%;
-}
-
-.scene-block {
-  display: flex; flex-direction: column;
-  position: relative;
-  background: var(--surface);
-  border: 1px solid var(--border);
-  border-radius: 14px;
-  overflow: hidden;
-  box-shadow: var(--shadow-1);
-  transition: border-color .15s ease, box-shadow .15s ease, transform .15s ease, opacity .15s ease;
-}
-.scene-block.scene-dragging { opacity: 0.4; }
-/* Target highlight — fires the instant the cursor enters this scene's
-   overlay (in lockstep with the OS "drop allowed" cursor). The position
-   bar (drop-before / drop-after) is layered on top to show *where* the
-   dragged scene will land. */
-.scene-block.scene-drop-target {
-  border-color: var(--accent);
-  box-shadow: var(--shadow-1), 0 0 0 3px var(--accent-soft);
-}
-.scene-block.drop-before::before,
-.scene-block.drop-after::after {
-  content: ""; position: absolute; left: 0; right: 0;
-  height: 3px; background: var(--accent);
-  pointer-events: none;
-  z-index: 12;
-}
-.scene-block.drop-before::before { top: 0; }
-.scene-block.drop-after::after  { bottom: 0; }
-
-/* Transparent drop catcher that floats above the editor while a scene
-   drag is in progress. Without this, TipTap's editor view swallows
-   dragover events over the prose area and only the (small) scene-head
-   strip and the editor's bottom padding ever receive drops. */
-.scene-drop-overlay {
-  position: absolute;
-  inset: 0;
-  z-index: 10;
-  background: transparent;
-  cursor: grabbing;
-}
-.scene-block:hover { border-color: var(--border-strong); }
-.scene-block:focus-within {
-  border-color: var(--accent);
-  box-shadow: var(--shadow-1), 0 0 0 3px var(--accent-soft);
-}
-/* Accent stripe down the left edge of the focused scene, matching the
-   plotline-card pattern so the editor feels consistent. */
-.scene-block::before {
-  content: "";
-  position: absolute; left: 0; top: 0; bottom: 0;
-  width: 3px;
-  background: transparent;
-  transition: background .15s ease;
-}
-.scene-block:focus-within::before { background: var(--accent); }
-
-.scene-head {
-  display: flex; align-items: center; gap: 12px;
-  padding: 12px 18px;
+/* ── Scene strip (Edit mode) ──────────────────────────────── */
+/* Thin top bar above the editor with prev/next nav, current scene
+   pill, inline title, and per-scene actions. Only one scene's prose
+   shows below at a time — driven by the route's #scene-<id> hash. */
+.scene-strip {
+  display: flex; align-items: center; gap: 10px;
+  padding: 8px 22px;
+  border-bottom: 1px solid var(--border);
   background: var(--surface-2);
-  border-bottom: 1px solid var(--border-soft);
-  cursor: grab;
-  user-select: none;
+  flex-wrap: wrap;
 }
-.scene-head:active { cursor: grabbing; }
-.scene-grab {
-  color: var(--subtle);
-  opacity: 0;
-  transition: opacity .12s ease;
-  flex-shrink: 0;
-}
-.scene-block:hover .scene-grab,
-.scene-block:focus-within .scene-grab { opacity: 0.7; }
-.scene-num {
+.scene-pill {
   display: inline-flex; align-items: center;
-  padding: 2px 8px;
+  padding: 2px 10px;
   background: var(--surface);
   border: 1px solid var(--border);
   border-radius: 999px;
-  font-size: 10px; font-weight: 600;
+  font-size: 10.5px; font-weight: 600;
   text-transform: uppercase; letter-spacing: 0.08em;
   color: var(--muted);
   flex-shrink: 0;
 }
-.scene-block:focus-within .scene-num {
-  background: var(--accent);
-  border-color: var(--accent);
-  color: var(--on-accent);
-}
-.scene-title {
-  flex: 1; min-width: 0;
+.scene-title-input {
+  flex: 1; min-width: 160px;
   appearance: none;
   border: 1px solid transparent;
   background: transparent;
   border-radius: 6px;
   padding: 4px 8px;
-  margin-left: -8px;
   font-family: var(--font-serif);
-  font-size: 16px;
+  font-size: 15px;
   font-weight: 600;
   color: var(--ink);
   letter-spacing: -0.01em;
   outline: none;
 }
-.scene-title:hover { border-color: var(--border-soft); }
-.scene-title:focus {
+.scene-title-input:hover { border-color: var(--border-soft); }
+.scene-title-input:focus {
   border-color: var(--accent);
   background: var(--surface);
   box-shadow: 0 0 0 2px var(--accent-soft);
 }
-.scene-title::placeholder {
+.scene-title-input::placeholder {
   color: var(--muted);
   font-weight: 400;
   font-style: italic;
 }
-.scene-actions {
-  display: flex; align-items: center; gap: 2px;
-  opacity: 0;
-  transition: opacity 0.12s ease;
+.scene-strip-actions {
+  display: flex; align-items: center; gap: 8px;
   flex-shrink: 0;
 }
-.scene-block:hover .scene-actions,
-.scene-block:focus-within .scene-actions { opacity: 1; }
-.scene-actions .btn:disabled { opacity: 0.3; cursor: not-allowed; }
+.scene-strip-actions .btn:disabled { opacity: 0.3; cursor: not-allowed; }
 
-/* The RichEditor inside a scene defaults to its `manuscript` variant
-   (paper background, internal scroll, 760px centered column).
-   Re-host it inside the scene block:
-     - drop its internal scroll so the outer .scrollarea handles it
-     - drop the paper gradient (the scene card supplies the surface)
-     - keep the readable prose column via .manuscript-inner's max-width
-       but tighten the vertical padding so the editor doesn't look
-       overstuffed at the top of every scene. */
-.scene-block :deep(.manuscript) {
-  flex: none;
-  overflow: visible;
-  background: transparent;
-  padding: 0;
+/* "Links" button — stands out from the muted scene-strip controls. */
+.scene-links-btn {
+  display: inline-flex; align-items: center; gap: 6px;
+  padding: 6px 12px;
+  background: var(--accent);
+  color: var(--on-accent);
+  border: 1px solid var(--accent);
+  border-radius: 7px;
+  font-size: 12.5px;
+  font-weight: 600;
+  letter-spacing: 0.01em;
+  cursor: pointer;
+  box-shadow: 0 1px 0 rgba(0,0,0,0.06), 0 0 0 0 var(--accent-soft);
+  transition: background .12s ease, box-shadow .12s ease, transform .08s ease;
 }
-.scene-block :deep(.manuscript-inner) {
-  padding: 28px 44px 36px;
+.scene-links-btn:hover {
+  background: color-mix(in oklab, var(--accent), black 8%);
+  box-shadow: 0 1px 0 rgba(0,0,0,0.06), 0 0 0 3px var(--accent-soft);
+}
+.scene-links-btn:active { transform: translateY(1px); }
+
+/* ── Chapter overview (no scene picked yet) ───────────────── */
+.chapter-overview {
+  padding: 32px 28px 60px;
   max-width: 720px;
+  margin: 0 auto;
 }
-.scene-block :deep(.editor-toolbar) {
-  border-radius: 0;
-  border-left: 0;
-  border-right: 0;
-  border-top: 0;
+.chapter-overview-title {
+  font-family: var(--font-serif);
+  font-size: 28px; font-weight: 600;
+  letter-spacing: -0.01em;
+  color: var(--ink);
+  margin: 0 0 8px;
+}
+.chapter-overview-hint {
+  font-size: 13.5px; color: var(--ink-2);
+  margin: 0 0 28px;
+  line-height: 1.55;
+}
+.chapter-overview-scenes {
+  display: flex; flex-direction: column;
+  gap: 10px;
+  margin-bottom: 16px;
+}
+.overview-scene-card {
+  appearance: none; border: 1px solid var(--border);
   background: var(--surface);
+  border-radius: 10px;
+  padding: 14px 18px;
+  display: grid;
+  grid-template-columns: auto 1fr;
+  column-gap: 14px;
+  row-gap: 4px;
+  text-align: left;
+  cursor: pointer;
+  transition: border-color .12s ease, box-shadow .12s ease, transform .08s ease;
 }
-
-.scene-add {
-  display: flex; align-items: center; gap: 6px;
-  margin-top: 4px;
-  padding: 14px 16px;
-  width: 100%;
-  justify-content: center;
-  border: 1.5px dashed var(--border-strong);
-  border-radius: 12px;
-  background: transparent;
+.overview-scene-card:hover {
+  border-color: var(--accent);
+  box-shadow: var(--shadow-1), 0 0 0 3px var(--accent-soft);
+}
+.overview-scene-card:active { transform: translateY(1px); }
+.overview-scene-num {
+  font-size: 10px; font-weight: 600;
+  text-transform: uppercase; letter-spacing: 0.08em;
   color: var(--muted);
+  align-self: center;
+  padding: 2px 8px;
+  background: var(--surface-2);
+  border-radius: 999px;
+  flex-shrink: 0;
+}
+.overview-scene-title {
+  font-family: var(--font-serif);
+  font-size: 16px; font-weight: 600;
+  color: var(--ink);
+}
+.overview-scene-snippet {
+  grid-column: 2;
   font-size: 13px;
-  font-weight: 500;
-  letter-spacing: -0.005em;
+  color: var(--ink-2);
+  font-style: italic;
+  line-height: 1.5;
+  overflow: hidden;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+}
+.overview-add-scene {
+  appearance: none; border: 1.5px dashed var(--border-strong);
+  background: transparent;
+  border-radius: 10px;
+  padding: 12px 16px;
+  width: 100%;
+  display: flex; align-items: center; justify-content: center; gap: 6px;
+  font: inherit;
+  font-size: 13px; font-weight: 500;
+  color: var(--muted);
+  cursor: pointer;
   transition: background .12s ease, color .12s ease, border-color .12s ease;
 }
-.scene-add:hover {
+.overview-add-scene:hover {
   background: var(--surface-2);
   color: var(--ink);
   border-color: var(--accent);

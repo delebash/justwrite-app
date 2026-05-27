@@ -39,7 +39,7 @@ onBeforeUnmount(() => document.removeEventListener("mousedown", onDocClick));
       <template v-if="selected.length === 0">
         <span class="plotline-picker-empty">
           <span class="dot empty-dot" />
-          <span>No plotline</span>
+          <span>No strand</span>
         </span>
       </template>
       <template v-else>
@@ -52,9 +52,9 @@ onBeforeUnmount(() => document.removeEventListener("mousedown", onDocClick));
     </button>
 
     <div v-if="open" class="plotline-picker-menu" role="listbox">
-      <div class="plotline-picker-head">Plotlines</div>
+      <div class="plotline-picker-head">Strands</div>
       <div v-if="!project.plotlines.length" class="plotline-picker-blank">
-        No plotlines yet. Add one in Planning → Plotlines.
+        No strands yet. Add one in Manuscript → Strands.
       </div>
       <label v-for="s in project.plotlines" :key="s.id"
         class="plotline-picker-row"

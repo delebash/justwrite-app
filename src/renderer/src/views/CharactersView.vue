@@ -9,6 +9,7 @@ import Icon from "../components/Icon.vue";
 import ImagesModal from "../components/ImagesModal.vue";
 import EventsModal from "../components/EventsModal.vue";
 import GroupsModal from "../components/GroupsModal.vue";
+import SceneRefList from "../components/SceneRefList.vue";
 import { promptDialog, confirmDialog } from "../services/dialog.js";
 import { saveImage } from "../services/imageStore.js";
 
@@ -29,7 +30,6 @@ const MOTIVATIONS = [
 ];
 const ARC_STEPS = [{ k: "start", label: "Beginning" }, { k: "midpoint", label: "Midpoint" }, { k: "end", label: "End" }];
 
-function jumpChapter(num) { window.location.hash = `#/chapters/ch${num}`; }
 async function addCharacter() {
   const name = await promptDialog({
     title: "New character",
@@ -232,11 +232,8 @@ function updateBackstory(v) { project.setCharacterExtras(ch.value.id, { backstor
 
       <div style="margin-top:22px">
         <div class="t-eyebrow" style="margin-bottom:10px">Appearances</div>
-        <div style="display:grid;grid-template-columns:repeat(7, 1fr);gap:6px">
-          <button v-for="c in project.allChapters" :key="c.id"
-            :title="`Ch. ${c.num} — ${c.title}`" @click="jumpChapter(c.num)"
-            :style="`height:36px;border-radius:6px;border:1px solid var(--border);background:${c.num <= 10 ? 'var(--accent-soft)' : 'var(--surface-2)'};color:${c.num <= 10 ? 'var(--accent-ink)' : 'var(--muted)'};display:grid;place-items:center;font-size:12px;font-weight:500;font-variant-numeric:tabular-nums`">{{ c.num }}</button>
-        </div>
+        <SceneRefList field="characters" :entity-id="ch.id"
+          empty-text="No scenes link this character yet. Open a scene → Links → Characters to add one." />
       </div>
     </div>
   </div>

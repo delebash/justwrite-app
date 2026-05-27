@@ -5,6 +5,8 @@ import { useProjectStore } from "../stores/project.js";
 import { useUiStore } from "../stores/ui.js";
 import PaneHeader from "../components/PaneHeader.vue";
 import Icon from "../components/Icon.vue";
+import RichEditor from "../components/RichEditor.vue";
+import SceneRefList from "../components/SceneRefList.vue";
 import { promptDialog, confirmDialog } from "../services/dialog.js";
 
 const props = defineProps({ id: { type: String, default: "" } });
@@ -12,19 +14,10 @@ const project = useProjectStore();
 const ui = useUiStore();
 const router = useRouter();
 
-// Show one plotline at a time — selected from the route param, falling
-// back to the sidebar selection, then the first plotline.
+// Show one strand at a time — selected from the route param, falling
+// back to the sidebar selection, then the first strand.
 const s = computed(() =>
   project.plotlineById(props.id || ui.selections.plotlines) || project.plotlines[0]);
-
-// Preset palette — same lightness/chroma family the seed plotlines use,
-// so picked colors blend with the existing ones.
-const COLOR_PALETTE = [
-  "oklch(0.82 0.08 75)",   "oklch(0.78 0.07 25)",   "oklch(0.78 0.07 5)",
-  "oklch(0.78 0.07 330)",  "oklch(0.74 0.07 270)",  "oklch(0.78 0.07 240)",
-  "oklch(0.78 0.06 200)",  "oklch(0.80 0.08 170)",  "oklch(0.78 0.06 120)",
-  "oklch(0.82 0.10 95)",
-];
 
 const STATUS_OPTIONS = [
   { value: "open",      label: "Open",      hint: "Active throughline" },
@@ -38,9 +31,28 @@ const BEAT_PRESETS = [
   "Setup", "Reveal", "Setback", "Refusal",
 ];
 
-const chaptersInPlotline = computed(() => {
+// Scenes whose Links → Strands selection includes this strand.
+// Each row also carries its parent chapter so we can label/navigate.
+const scenesInStrand = computed(() => {
   if (!s.value) return [];
-  return project.allChapters.filter((c) => (c.plotlines || []).includes(s.value.id));
+  const out = [];
+  for (const ch of project.allChapters) {
+    const list = project.scenesFor(ch.id);
+    list.forEach((scn, idx) => {
+      if ((scn.plotlines || []).includes(s.value.id)) {
+        out.push({
+          sceneId: scn.id,
+          sceneTitle: scn.title || `Scene ${idx + 1}`,
+          sceneIdx: idx + 1,
+          chapterId: ch.id,
+          chapterTitle: ch.title,
+          chapterNum: ch.num,
+          chapterStatus: ch.status,
+        });
+      }
+    });
+  }
+  return out;
 });
 
 function chapterById(id) { return project.chapterById(id); }
@@ -51,10 +63,10 @@ function goChapter(id) { ui.select("chapters", id); router.push(`/chapters/${id}
 
 async function addPlotline() {
   const name = await promptDialog({
-    title: "New plotline",
-    label: "Plotline name",
+    title: "New strand",
+    label: "Strand name",
     placeholder: "e.g. The Map Plot",
-    confirmLabel: "Create plotline",
+    confirmLabel: "Create strand",
   });
   if (!name) return;
   const id = project.addPlotline({ name });
@@ -63,14 +75,14 @@ async function addPlotline() {
 }
 
 async function deletePlotline() {
-  const used = chaptersInPlotline.value.length;
+  const used = scenesInStrand.value.length;
   const message = used
-    ? `${used} chapter${used === 1 ? " is" : "s are"} tagged with this plotline. They'll lose the tag (other plotline tags on those chapters are kept).`
+    ? `${used} scene${used === 1 ? " is" : "s are"} linked to this strand. They'll lose the link (other strand links on those scenes are kept).`
     : null;
   const yes = await confirmDialog({
-    title: `Delete plotline "${s.value.name}"?`,
+    title: `Delete strand "${s.value.name}"?`,
     message,
-    confirmLabel: "Delete plotline",
+    confirmLabel: "Delete strand",
     danger: true,
   });
   if (!yes) return;
@@ -131,26 +143,25 @@ const sortedBeats = computed(() => {
 </script>
 
 <template>
-  <PaneHeader eyebrow="Plotline" :title="s?.name || 'Plotlines'">
+  <PaneHeader eyebrow="Strand" :title="s?.name || 'Strands'">
     <button v-if="s" class="btn ghost" @click="deletePlotline">Delete</button>
-    <button class="btn primary" @click="addPlotline"><Icon name="Plus" :size="14" /> New plotline</button>
+    <button class="btn primary" @click="addPlotline"><Icon name="Plus" :size="14" /> New strand</button>
   </PaneHeader>
 
   <div v-if="!s" class="col-detail scrollarea">
     <div class="plotline-empty">
-      No plotlines yet. Click <strong>New plotline</strong> to add one.
+      No strands yet. Click <strong>New strand</strong> to add one.
     </div>
   </div>
 
   <div v-else class="col-detail scrollarea">
     <div class="plotline-wrap">
       <div class="plotline-card">
-        <div class="plotline-stripe" :style="`background:${s.color}`" />
         <div class="plotline-body">
           <div class="plotline-head">
             <input class="plotline-name"
               :value="s.name"
-              placeholder="Plotline name"
+              placeholder="Strand name"
               @input="update('name', $event.target.value)" />
             <div class="status-seg" role="radiogroup">
               <button v-for="opt in STATUS_OPTIONS" :key="opt.value"
@@ -166,25 +177,24 @@ const sortedBeats = computed(() => {
 
           <textarea class="plotline-blurb"
             :value="s.blurb || ''"
-            placeholder="What is this plotline about? (One or two sentences)"
+            placeholder="What is this strand about? (One or two sentences)"
             rows="2"
             @input="update('blurb', $event.target.value)" />
 
           <div class="plotline-meta-row">
-            <div class="plotline-swatches">
-              <span class="swatches-label">Color</span>
-              <button v-for="color in COLOR_PALETTE" :key="color"
-                type="button"
-                class="plotline-swatch"
-                :class="{ active: color === s.color }"
-                :style="`background:${color}`"
-                :title="`Use ${color}`"
-                @click="update('color', color)" />
-            </div>
             <span class="plotline-count">
-              {{ chaptersInPlotline.length }} chapter{{ chaptersInPlotline.length === 1 ? "" : "s" }}
+              {{ scenesInStrand.length }} scene{{ scenesInStrand.length === 1 ? "" : "s" }}
             </span>
           </div>
+
+          <RichEditor
+            :model-value="s.body || ''"
+            placeholder="Write the strand in detail — synopsis, character arcs, beats in prose, anything you want to remember…"
+            variant="inline"
+            :toolbar="['bold', 'italic', 'h2', 'quote', 'list', 'undo', 'redo']"
+            :min-height="220"
+            @change="(html) => update('body', html)"
+          />
 
           <!-- Beats — turning points pinned to chapters -->
           <div class="beats-section">
@@ -196,7 +206,7 @@ const sortedBeats = computed(() => {
             </div>
 
             <div v-if="(s.beats || []).length === 0" class="beats-empty">
-              No beats yet. Add Inciting / Midpoint / Climax-style turning points so you can see where this plotline pays off.
+              No beats yet. Add Inciting / Midpoint / Climax-style turning points so you can see where this strand pays off.
             </div>
             <div v-else class="beats-list">
               <div v-for="b in sortedBeats" :key="b.id" class="beat-row">
@@ -238,19 +248,9 @@ const sortedBeats = computed(() => {
             </div>
           </div>
 
-          <!-- Chapters using this plotline -->
-          <div v-if="chaptersInPlotline.length" class="plotline-chapters">
-            <span class="plotline-chapters-label">In:</span>
-            <button v-for="c in chaptersInPlotline" :key="c.id"
-              class="plotline-chap" @click="goChapter(c.id)" :title="c.title">
-              <span class="status-dot" :class="c.status" />
-              <span class="plotline-chap-num">{{ c.num }}</span>
-              <span class="plotline-chap-title">{{ c.title }}</span>
-            </button>
-          </div>
-          <div v-else class="plotline-chapters-empty">
-            Not tagged on any chapters yet.
-          </div>
+          <!-- Scenes linked to this strand (via the scene Links page) -->
+          <SceneRefList field="plotlines" :entity-id="s.id"
+            empty-text="No scenes linked to this strand yet. Open a scene → Links → Strands to add one." />
         </div>
       </div>
     </div>
@@ -285,11 +285,10 @@ const sortedBeats = computed(() => {
   box-shadow: var(--shadow-1);
   overflow: hidden;
 }
-.plotline-stripe { width: 6px; align-self: stretch; flex-shrink: 0; }
 .plotline-body {
   flex: 1; min-width: 0;
   display: flex; flex-direction: column; gap: 12px;
-  padding: 18px 20px 18px 22px;
+  padding: 18px 20px;
 }
 
 .plotline-head {
@@ -358,27 +357,6 @@ const sortedBeats = computed(() => {
 
 .plotline-meta-row {
   display: flex; align-items: center; gap: 14px;
-}
-.plotline-swatches {
-  display: flex; align-items: center; gap: 6px;
-}
-.swatches-label {
-  font-size: 10px; font-weight: 600;
-  text-transform: uppercase; letter-spacing: 0.08em;
-  color: var(--muted);
-  margin-right: 4px;
-}
-.plotline-swatch {
-  appearance: none; border: 0;
-  width: 18px; height: 18px;
-  border-radius: 5px;
-  cursor: default;
-  box-shadow: inset 0 0 0 1px rgba(0,0,0,0.08);
-  transition: transform .08s ease;
-}
-.plotline-swatch:hover { transform: scale(1.12); }
-.plotline-swatch.active {
-  box-shadow: inset 0 0 0 1px rgba(0,0,0,0.08), 0 0 0 2px var(--surface), 0 0 0 3px var(--accent);
 }
 .plotline-count { margin-left: auto; font-size: 11.5px; color: var(--muted); }
 

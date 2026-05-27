@@ -3,7 +3,7 @@ import { createRouter, createWebHashHistory } from "vue-router";
 const routes = [
   { path: "/",                   name: "Home",          component: () => import("../views/HomeView.vue") },
   { path: "/architecture/:id?",  name: "Architecture",  component: () => import("../views/ArchitectureView.vue"), props: true },
-  { path: "/chapters/:id?",      name: "Chapters",      component: () => import("../views/ChaptersView.vue"), props: true },
+  { path: "/chapters/:id?/:sceneId?", name: "Chapters",      component: () => import("../views/ChaptersView.vue"), props: true },
   { path: "/search",             name: "Search",        component: () => import("../views/SearchView.vue") },
   { path: "/characters/:id?",    name: "Characters",    component: () => import("../views/CharactersView.vue"), props: true },
   { path: "/locations/:id?",     name: "Locations",     component: () => import("../views/LocationsView.vue"), props: true },

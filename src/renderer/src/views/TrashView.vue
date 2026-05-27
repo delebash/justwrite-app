@@ -18,7 +18,7 @@ const KIND_META = {
   objects:       { label: "Objects",       icon: "Cube",      labelOne: "object" },
   groups:        { label: "Groups",        icon: "GroupIcon", labelOne: "group" },
   notes:         { label: "Notes",         icon: "Note",      labelOne: "note" },
-  plotlines:     { label: "Plotlines",     icon: "Plotlines", labelOne: "plotline" },
+  plotlines:     { label: "Strands",       icon: "Plotlines", labelOne: "strand" },
   worldbuilding: { label: "Worldbuilding", icon: "Sparkle",   labelOne: "article" },
 };
 
@@ -106,7 +106,7 @@ async function emptyAll() {
         </div>
         <h3 style="font-family:var(--font-serif);font-size:22px;font-weight:600;margin:0">Trash is empty</h3>
         <p style="font-size:13.5px;color:var(--ink-2);margin-top:8px;line-height:1.55">
-          Deleted chapters, characters, locations, objects, groups, notes, plotlines, and worldbuilding articles
+          Deleted chapters, characters, locations, objects, groups, notes, strands, and worldbuilding articles
           appear here. Restore or permanently delete from this view.
         </p>
       </div>

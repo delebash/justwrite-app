@@ -62,6 +62,7 @@ const NAV = [
   { section: "Manuscript" },
   { id: "home",          label: "Home",          icon: "Home" },
   { id: "architecture",  label: "Architecture",  icon: "Building", expandable: "architecture", fixed: true },
+  { id: "plotlines",     label: "Strands",       icon: "Plotlines", expandable: "plotlines" },
   { id: "chapters",      label: "Chapters",      icon: "Book",     expandable: "chapters" },
   { id: "search",        label: "Search",        icon: "Search",   kbd: "⌘F" },
 
@@ -73,7 +74,6 @@ const NAV = [
   { id: "worldbuilding", label: "Worldbuilding", icon: "Sparkle",   expandable: "worldbuilding" },
 
   { section: "Planning" },
-  { id: "plotlines", label: "Plotlines", icon: "Plotlines", expandable: "plotlines" },
   { id: "timeline",  label: "Timeline",  icon: "Timeline" },
   { id: "notes",     label: "Notes",     icon: "Note",     expandable: "notes" },
   { id: "relations", label: "Relations", icon: "Network" },
@@ -89,10 +89,10 @@ const NAV = [
 ];
 
 const expandableChildren = computed(() => ({
-  chapters: project.parts.map((p) => ({
+  chapters: (project.parts || []).filter(Boolean).map((p) => ({
     partId: p.id,
     group: p.title,
-    items: p.chapters.map((c) => ({ id: c.id, label: c.title, num: c.num, status: c.status, words: c.words, partId: p.id })),
+    items: (p.chapters || []).filter((c) => c && c.id).map((c) => ({ id: c.id, label: c.title, num: c.num, status: c.status, words: c.words, partId: p.id })),
   })),
   characters: [
     { subgroupId: "main",      group: "Main",      items: project.characters.filter((c) => c.main).map((c) => ({ id: c.id, label: c.name, sub: c.role, subgroupId: "main" })) },
@@ -100,10 +100,10 @@ const expandableChildren = computed(() => ({
   ],
   locations: [{ subgroupId: "all", items: project.locations.map((l) => ({ id: l.id, label: l.name, sub: l.kind, subgroupId: "all" })) }],
   objects:   [{ subgroupId: "all", items: project.objects.map((o) => ({ id: o.id, label: o.name, sub: o.kind, subgroupId: "all" })) }],
-  plotlines: [{ subgroupId: "all", items: project.plotlines.map((s) => ({ id: s.id, label: s.name, color: s.color, subgroupId: "all" })) }],
+  plotlines: [{ subgroupId: "all", items: project.plotlines.map((s) => ({ id: s.id, label: s.name, subgroupId: "all" })) }],
   groups:    [{ subgroupId: "all", items: project.groups.map((g) => ({ id: g.id, label: g.name, color: g.color, subgroupId: "all" })) }],
   notes:     [{ subgroupId: "all", items: project.notes.map((n) => ({ id: n.id, label: n.title, sub: n.tag, subgroupId: "all" })) }],
-  architecture: [{ subgroupId: "all", items: Object.values(project.architecture).map((d) => ({ id: d.id, label: d.title, sub: d.status, subgroupId: "all" })) }],
+  architecture: [{ subgroupId: "all", items: Object.values(project.architecture).filter(Boolean).map((d) => ({ id: d.id, label: d.title, sub: d.status, subgroupId: "all" })) }],
   worldbuilding: project.worldbuildingCategories.map((c) => ({
     subgroupId: c.id,
     group: c.label,
@@ -119,13 +119,12 @@ function clickChild(parentId, childId) { ui.select(parentId, childId); router.pu
 
 async function addItem(parentId) {
   const META = {
-    chapters:      { title: "New chapter",   label: "Chapter title",  confirmLabel: "Create chapter" },
     characters:    { title: "New character", label: "Character name", confirmLabel: "Create character" },
     locations:     { title: "New location",  label: "Location name",  confirmLabel: "Create location" },
     objects:       { title: "New object",    label: "Object name",    confirmLabel: "Create object" },
     groups:        { title: "New group",     label: "Group name",     confirmLabel: "Create group" },
     worldbuilding: { title: "New article",   label: "Article title",  confirmLabel: "Create article" },
-    plotlines:     { title: "New plotline",  label: "Plotline name",  confirmLabel: "Create plotline" },
+    plotlines:     { title: "New strand",    label: "Strand name",    confirmLabel: "Create strand" },
     notes:         { title: "New note",      label: "Note title",     confirmLabel: "Create note" },
   };
   const meta = META[parentId] || { title: "New item", label: "Name", confirmLabel: "Create" };
@@ -133,7 +132,6 @@ async function addItem(parentId) {
   if (!name) return;
   let id;
   switch (parentId) {
-    case "chapters":      id = project.addChapter({ title: name }); break;
     case "characters":    id = project.addCharacter({ name }); break;
     case "locations":     id = project.addLocation({ name }); break;
     case "objects":       id = project.addObject({ name }); break;
@@ -143,6 +141,171 @@ async function addItem(parentId) {
     case "notes":         id = project.addNote({ title: name }); break;
   }
   if (id) { ui.select(parentId, id); router.push(`/${parentId}/${id}`); }
+}
+
+// ── Parts & chapter creation ─────────────────────────────
+// Chapters can't be added at the section level any more — every chapter
+// belongs to a part. The chapters filter row's `+` button now creates a
+// new part, and each part header reveals per-part actions on hover for
+// adding a chapter and deleting the part. Renaming is inline.
+async function addPart() {
+  const title = await promptDialog({
+    title: "New part",
+    label: "Part title",
+    placeholder: `e.g. Part ${project.parts.length + 1} — The Reckoning`,
+    confirmLabel: "Create part",
+  });
+  if (!title) return;
+  project.addPart({ title });
+}
+async function addChapterInPart(partId) {
+  const title = await promptDialog({
+    title: "New chapter",
+    label: "Chapter title",
+    placeholder: "e.g. The first crossing",
+    confirmLabel: "Create chapter",
+  });
+  if (!title) return;
+  const id = project.addChapter({ title, partId });
+  if (id) { ui.select("chapters", id); router.push(`/chapters/${id}`); }
+}
+async function deletePart(partId, partTitle) {
+  if (project.parts.length <= 1) return;  // refuse to leave the project partless
+  const part = project.parts.find((p) => p.id === partId);
+  if (!part) return;
+  const count = part.chapters.length;
+  const neighborIdx = project.parts.findIndex((p) => p.id === partId);
+  const neighbor = neighborIdx > 0 ? project.parts[neighborIdx - 1] : project.parts[neighborIdx + 1];
+  const message = count
+    ? `Its ${count} chapter${count === 1 ? "" : "s"} will move to "${neighbor.title}".`
+    : "This part has no chapters.";
+  const yes = await confirmDialog({
+    title: `Delete "${partTitle}"?`,
+    message,
+    confirmLabel: "Delete part",
+    danger: true,
+  });
+  if (!yes) return;
+  project.removePart(partId);
+}
+function updatePartTitle(id, value) { project.updatePart(id, { title: value }); }
+
+// ── Scenes (under each chapter row) ─────────────────────
+function scenesForChapter(chapterId) {
+  // Filter out any undefined entries that could sneak in via a corrupted
+  // snapshot — they'd crash :key="scn.id" / @click="...scn.id" otherwise.
+  return (project.scenesFor(chapterId) || []).filter((s) => s && s.id);
+}
+function isChapterExpanded(chapterId) { return !!ui.expanded[`chapter:${chapterId}`]; }
+function toggleChapterExpand(chapterId) { ui.toggleSection(`chapter:${chapterId}`); }
+function clickScene(chapterId, sceneId) {
+  ui.select("chapters", chapterId);
+  router.push(`/chapters/${chapterId}/${sceneId}`);
+}
+async function addSceneToChapter(chapterId) {
+  const values = await promptDialog({
+    title: "New scene",
+    confirmLabel: "Add scene",
+    fields: [{
+      key: "title",
+      label: "Scene title",
+      placeholder: "Leave blank for an untitled scene",
+      optional: true,
+    }],
+  });
+  if (!values) return;
+  const title = (values.title || "").trim();
+  const sceneId = project.addScene(chapterId, title ? { title } : {});
+  ui.expanded = { ...ui.expanded, [`chapter:${chapterId}`]: true };
+  ui.select("chapters", chapterId);
+  router.push(`/chapters/${chapterId}/${sceneId}`);
+}
+// ── Resize handle ───────────────────────────────────────
+// Drag the 4px strip on the sidebar's right edge to resize. While
+// dragging we listen on window so the cursor can leave the strip without
+// losing the drag.
+function onResizeStart(e) {
+  if (ui.sidebarCollapsed) return;
+  e.preventDefault();
+  const startX = e.clientX;
+  const startW = ui.sidebarWidth;
+  document.body.style.cursor = "col-resize";
+  document.body.style.userSelect = "none";
+  // Drop the .app's grid-template-columns transition while dragging so
+  // each mousemove updates the layout immediately, not over 220ms.
+  document.documentElement.classList.add("sidebar-resizing");
+  function onMove(ev) { ui.setSidebarWidth(startW + (ev.clientX - startX)); }
+  function onUp() {
+    window.removeEventListener("mousemove", onMove);
+    window.removeEventListener("mouseup", onUp);
+    document.body.style.cursor = "";
+    document.body.style.userSelect = "";
+    document.documentElement.classList.remove("sidebar-resizing");
+  }
+  window.addEventListener("mousemove", onMove);
+  window.addEventListener("mouseup", onUp);
+}
+
+// Scene drag-and-drop reorder (within a single chapter). Direction-based
+// positioning: hovering ANY non-self scene drops the dragged scene to the
+// *other side* of the target — that's the only side that actually moves it.
+const sceneDrag = ref(null);   // { chapterId, id }
+const sceneDrop = ref(null);   // { chapterId, id }
+function onSceneDragStart(chapterId, sceneId, e) {
+  sceneDrag.value = { chapterId, id: sceneId };
+  e.dataTransfer.effectAllowed = "move";
+  try { e.dataTransfer.setData("text/plain", sceneId); } catch {}
+}
+function onSceneDragOver(chapterId, sceneId, e) {
+  const d = sceneDrag.value;
+  if (!d || d.id === sceneId || d.chapterId !== chapterId) return;
+  e.preventDefault();
+  e.dataTransfer.dropEffect = "move";
+  if (sceneDrop.value?.chapterId !== chapterId || sceneDrop.value?.id !== sceneId) {
+    sceneDrop.value = { chapterId, id: sceneId };
+  }
+}
+function onSceneDrop(chapterId, targetId) {
+  const d = sceneDrag.value;
+  sceneDrag.value = null;
+  sceneDrop.value = null;
+  if (!d || d.chapterId !== chapterId || d.id === targetId) return;
+  const list = project.scenesFor(chapterId);
+  const original = list.map((s) => s.id);
+  const draggedIdx = original.indexOf(d.id);
+  const targetIdx  = original.indexOf(targetId);
+  if (draggedIdx < 0 || targetIdx < 0) return;
+  const ids = original.filter((id) => id !== d.id);
+  const at = ids.indexOf(targetId);
+  // If dragged was above target in original order, dropping it AFTER the
+  // target is the only side that actually moves it; vice versa.
+  const insertAt = draggedIdx < targetIdx ? at + 1 : at;
+  ids.splice(insertAt, 0, d.id);
+  if (ids.every((id, i) => id === original[i])) return;  // no-op safeguard
+  project.reorderScenes(chapterId, ids);
+}
+function onSceneDragEnd() { sceneDrag.value = null; sceneDrop.value = null; }
+function sceneDropClass(chapterId, sceneId) {
+  if (!sceneDrop.value || sceneDrop.value.chapterId !== chapterId || sceneDrop.value.id !== sceneId) return null;
+  if (!sceneDrag.value) return null;
+  const list = project.scenesFor(chapterId);
+  const draggedIdx = list.findIndex((s) => s.id === sceneDrag.value.id);
+  const targetIdx  = list.findIndex((s) => s.id === sceneId);
+  if (draggedIdx < 0 || targetIdx < 0) return null;
+  return draggedIdx < targetIdx ? "drop-after" : "drop-before";
+}
+
+async function deleteScene(chapterId, scene) {
+  const list = project.scenesFor(chapterId);
+  if (list.length <= 1) return;
+  const yes = await confirmDialog({
+    title: scene.title ? `Delete scene "${scene.title}"?` : "Delete this scene?",
+    message: "The scene's prose will be discarded. The chapter keeps its other scenes.",
+    confirmLabel: "Delete scene",
+    danger: true,
+  });
+  if (!yes) return;
+  project.removeScene(chapterId, scene.id);
 }
 
 function filteredGroups(parentId) {
@@ -346,6 +509,7 @@ function itemDropClass(section, id) {
 
 <template>
   <aside class="sidebar" :class="{ collapsed: ui.sidebarCollapsed }" v-if="!ui.sidebarCollapsed">
+    <div class="sidebar-resize" title="Drag to resize" @mousedown="onResizeStart" />
     <div class="brand">
       <div class="brand-mark">J</div>
       <div style="flex:1;min-width:0">
@@ -405,7 +569,11 @@ function itemDropClass(section, id) {
                 :value="ui.filters[n.id] || ''"
                 @input="ui.setFilter(n.id, $event.target.value)"
                 @click.stop />
-              <button v-if="!n.fixed" class="nav-add" :title="`New ${n.label.toLowerCase().replace(/s$/, '')}`"
+              <button v-if="n.expandable === 'chapters'" class="nav-add" title="New part"
+                @click.stop="addPart">
+                <Icon name="Plus" :size="11" />
+              </button>
+              <button v-else-if="!n.fixed" class="nav-add" :title="`New ${n.label.toLowerCase().replace(/s$/, '')}`"
                 @click.stop="addItem(n.expandable)">
                 <Icon name="Plus" :size="11" />
               </button>
@@ -416,30 +584,79 @@ function itemDropClass(section, id) {
                 <div class="nav-subgroup nav-part-row"
                   :class="[dropClass('part', g.partId), dropClass('partHead', g.partId)]"
                   draggable="true"
-                  :title="`Drag to reorder · ${g.group}`"
                   @dragstart="onDragStart('part', g.partId, $event)"
                   @dragover="onDragOverPart(g.partId, $event)"
                   @drop="onDropPart(g.partId)"
                   @dragend="onDragEnd">
                   <Icon name="DragHandle" :size="11" class="drag-handle" />
-                  <span class="nav-part-title">{{ g.group }}</span>
+                  <input class="nav-part-title"
+                    :value="g.group"
+                    :title="`Rename ${g.group}`"
+                    placeholder="Untitled part"
+                    @input="updatePartTitle(g.partId, $event.target.value)"
+                    @mousedown.stop
+                    @click.stop
+                    @keydown.enter.prevent="$event.target.blur()" />
+                  <div class="part-actions">
+                    <button class="part-action" title="Add chapter to this part"
+                      @click.stop="addChapterInPart(g.partId)">
+                      <Icon name="Plus" :size="11" />
+                    </button>
+                    <button v-if="project.parts.length > 1" class="part-action part-action-danger" title="Delete this part"
+                      @click.stop="deletePart(g.partId, g.group)">
+                      <Icon name="Trash" :size="11" />
+                    </button>
+                  </div>
                 </div>
-                <div v-for="c in g.items" :key="c.id"
-                  class="nav-child"
-                  :class="[{ sel: ui.selections[n.id] === c.id && activeSection === n.id }, dropClass('chapter', c.id)]"
-                  style="grid-template-columns: auto auto auto 1fr auto"
-                  draggable="true"
-                  @click="clickChild(n.id, c.id)"
-                  @dragstart.stop="onDragStart('chapter', c.id, $event, { fromPartId: c.partId })"
-                  @dragover="onDragOverChapter(c.id, $event)"
-                  @drop="onDropChapter(c.id, c.partId)"
-                  @dragend="onDragEnd">
-                  <Icon name="DragHandle" :size="11" class="drag-handle" />
-                  <span class="status-dot" :class="c.status" style="width:6px;height:6px" />
-                  <span class="nav-child-num">{{ c.num }}</span>
-                  <span class="nav-child-label">{{ c.label }}</span>
-                  <span class="nav-child-sub t-num">{{ c.words ? c.words.toLocaleString() : '' }}</span>
-                </div>
+                <template v-for="c in g.items" :key="c.id">
+                  <div class="nav-child chapter-row"
+                    :class="[{ sel: ui.selections[n.id] === c.id && activeSection === n.id }, dropClass('chapter', c.id)]"
+                    style="grid-template-columns: auto auto 1fr auto auto"
+                    draggable="true"
+                    @click="clickChild(n.id, c.id)"
+                    @dragstart.stop="onDragStart('chapter', c.id, $event, { fromPartId: c.partId })"
+                    @dragover="onDragOverChapter(c.id, $event)"
+                    @drop="onDropChapter(c.id, c.partId)"
+                    @dragend="onDragEnd">
+                    <button class="chapter-chev" :class="{ open: isChapterExpanded(c.id) }"
+                      :title="isChapterExpanded(c.id) ? 'Collapse scenes' : 'Show scenes'"
+                      @mousedown.stop
+                      @click.stop="toggleChapterExpand(c.id)">
+                      <Icon name="ChevRight" :size="10" />
+                    </button>
+                    <span class="nav-child-num">{{ c.num }}</span>
+                    <span class="status-dot" :class="c.status" style="width:6px;height:6px" />
+                    <span class="nav-child-label">{{ c.label }}</span>
+                    <span class="nav-child-sub t-num">{{ c.words ? c.words.toLocaleString() : '' }}</span>
+                    <button class="chapter-add-scene" title="Add scene to this chapter"
+                      @click.stop="addSceneToChapter(c.id)">
+                      <Icon name="Plus" :size="11" />
+                    </button>
+                  </div>
+                  <template v-if="isChapterExpanded(c.id)">
+                    <div v-for="(scn, si) in scenesForChapter(c.id)" :key="scn.id"
+                      class="nav-scene"
+                      :class="[
+                        { sel: route.params.sceneId === scn.id && route.params.id === c.id && activeSection === 'chapters' },
+                        sceneDropClass(c.id, scn.id),
+                      ]"
+                      draggable="true"
+                      @click.stop="clickScene(c.id, scn.id)"
+                      @dragstart.stop="onSceneDragStart(c.id, scn.id, $event)"
+                      @dragover="onSceneDragOver(c.id, scn.id, $event)"
+                      @drop="onSceneDrop(c.id, scn.id)"
+                      @dragend="onSceneDragEnd">
+                      <span class="scene-bullet">{{ si + 1 }}</span>
+                      <span class="scene-label">{{ scn.title || `Scene ${si + 1}` }}</span>
+                      <button v-if="scenesForChapter(c.id).length > 1"
+                        class="scene-delete" title="Delete scene"
+                        @mousedown.stop
+                        @click.stop="deleteScene(c.id, scn)">
+                        <Icon name="Trash" :size="10" />
+                      </button>
+                    </div>
+                  </template>
+                </template>
               </template>
               <div v-if="filteredGroups(n.id).length === 0" class="nav-empty">No chapters match</div>
             </template>
@@ -452,14 +669,13 @@ function itemDropClass(section, id) {
                 <div v-if="g.group" class="nav-subgroup">{{ g.group }}</div>
                 <div v-for="c in g.items" :key="c.id"
                   class="nav-child"
-                  :class="[{ sel: ui.selections[n.id] === c.id && activeSection === n.id, 'nav-child-dnd': !n.fixed }, n.fixed ? null : itemDropClass(n.expandable, c.id)]"
+                  :class="[{ sel: ui.selections[n.id] === c.id && activeSection === n.id }, n.fixed ? null : itemDropClass(n.expandable, c.id)]"
                   :draggable="!n.fixed"
                   @click="clickChild(n.id, c.id)"
                   @dragstart.stop="!n.fixed && onItemDragStart(n.expandable, c.id, c.subgroupId, $event)"
                   @dragover="!n.fixed && onItemDragOver(n.expandable, c.id, c.subgroupId, $event)"
                   @drop="!n.fixed && onItemDrop(n.expandable, c.id)"
                   @dragend="!n.fixed && onItemDragEnd()">
-                  <Icon v-if="!n.fixed" name="DragHandle" :size="11" class="drag-handle" />
                   <span v-if="c.color"
                     class="nav-child-dot"
                     :style="`background:${c.color};border-radius:2px`" />

@@ -78,7 +78,8 @@ onBeforeUnmount(() => window.removeEventListener("keydown", onKey));
 <template>
   <div class="app-stage">
     <TitleBar :title="`JustWrite — ${ui.projectTitle}`" />
-    <div class="app" :class="{ collapsed: ui.sidebarCollapsed }">
+    <div class="app" :class="{ collapsed: ui.sidebarCollapsed }"
+      :style="ui.sidebarCollapsed ? null : `grid-template-columns: ${ui.sidebarWidth}px 1fr`">
       <Sidebar />
       <main class="main" :data-screen-label="screenLabel">
         <router-view v-slot="{ Component }">

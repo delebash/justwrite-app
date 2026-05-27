@@ -21,6 +21,7 @@ export const useUiStore = defineStore("ui", {
   state: () => ({
     projectTitle: "The Cartographer's Daughter",
     sidebarCollapsed: false,
+    sidebarWidth: 280,         // user-resizable; persisted
     expanded: { chapters: true },
     filters: {},  // per-section filter strings
     selections: {
@@ -43,6 +44,12 @@ export const useUiStore = defineStore("ui", {
   actions: {
     toggleSidebar() {
       this.sidebarCollapsed = !this.sidebarCollapsed;
+      this._persist();
+    },
+    setSidebarWidth(px) {
+      const n = Number(px);
+      if (!Number.isFinite(n)) return;
+      this.sidebarWidth = Math.max(180, Math.min(520, Math.round(n)));
       this._persist();
     },
     toggleSection(id) {
@@ -85,6 +92,7 @@ export const useUiStore = defineStore("ui", {
     _persist() {
       save({
         sidebarCollapsed: this.sidebarCollapsed,
+        sidebarWidth: this.sidebarWidth,
         expanded: this.expanded,
         selections: this.selections,
         theme: this.theme,
