@@ -1,0 +1,313 @@
+<script setup>
+import { computed, ref } from "vue";
+import { useRouter } from "vue-router";
+import { useProjectStore } from "../stores/project.js";
+import { useStudioStore } from "../stores/studio.js";
+import { useSessionsStore } from "../stores/sessions.js";
+import PaneHeader from "../components/PaneHeader.vue";
+import Icon from "../components/Icon.vue";
+import {
+  statusCounts, plotlineDistribution, characterPresence,
+  scenesPerChapter, projectKpis, paceSeries,
+} from "../services/analysis.js";
+
+const project = useProjectStore();
+const studio = useStudioStore();
+const sessions = useSessionsStore();
+const router = useRouter();
+
+const allCh = computed(() => project.allChapters);
+const kpis = computed(() => projectKpis(project, allCh.value));
+const status = computed(() => statusCounts(allCh.value));
+const plotlines = computed(() => plotlineDistribution(project.plotlines, allCh.value));
+const presence = computed(() => characterPresence(project.characters, project.characterExtras, allCh.value, project.chapterBody, studio.speakersByChapter));
+const scenes = computed(() => scenesPerChapter(allCh.value));
+
+// Pace — driven by the session log. Empty until the user writes
+// anything, but the chart still renders (all zeros).
+const windowDays = ref(30);
+const pace = computed(() => {
+  const series = sessions.historyFor(windowDays.value);
+  return paceSeries(series.map((d) => d.words));
+});
+
+// Donut geometry — single-pass through STATUS_KEYS so the legend
+// and arc share the same color/order.
+const STATUS_KEYS = [
+  { k: "done",   label: "Done",    color: "var(--status-done)" },
+  { k: "revise", label: "Revise",  color: "var(--status-revise)" },
+  { k: "draft",  label: "Draft",   color: "var(--status-draft)" },
+  { k: "todo",   label: "To do",   color: "var(--status-todo)" },
+];
+
+const donut = computed(() => {
+  const r = 46, w = 14;
+  const cx = 60, cy = 60;
+  const total = status.value.total || 1;
+  let start = -Math.PI / 2;
+  const segs = STATUS_KEYS.map((s) => {
+    const value = status.value[s.k] || 0;
+    const angle = (value / total) * Math.PI * 2;
+    const end = start + angle;
+    const large = angle > Math.PI ? 1 : 0;
+    const x1 = cx + r * Math.cos(start), y1 = cy + r * Math.sin(start);
+    const x2 = cx + r * Math.cos(end), y2 = cy + r * Math.sin(end);
+    // Use stroke arc to avoid path-fill artefacts for 100% segments.
+    const path = `M ${x1} ${y1} A ${r} ${r} 0 ${large} 1 ${x2} ${y2}`;
+    start = end;
+    return { ...s, value, path };
+  });
+  return { r, w, cx, cy, segs };
+});
+
+// Pace polyline — fits the chosen window into a 100×64 viewBox.
+const paceShape = computed(() => {
+  const pts = pace.value.points;
+  const w = 1000, h = 140;
+  if (pts.length === 0) return { line: "", area: "" };
+  const step = w / Math.max(1, pts.length - 1);
+  const max = Math.max(...pts.map((p) => p.words), 1);
+  const line = pts.map((p, i) => `${i * step},${h - (p.words / max) * (h - 8) - 4}`).join(" ");
+  return { line, area: `0,${h} ${line} ${w},${h}`, w, h };
+});
+
+// Plotline totals — for relative-width bars.
+const plotlineTotal = computed(() => plotlines.value.reduce((s, r) => s + r.words, 0) || 1);
+
+// Heatmap cell coloring.
+function cellStyle(weight) {
+  if (weight === 0) return { background: "var(--surface-3)", color: "transparent" };
+  if (weight === 1) return { background: "color-mix(in oklab, var(--accent) 30%, var(--surface))", color: "var(--accent-ink)" };
+  return { background: "var(--accent)", color: "white" };
+}
+
+const maxScenes = computed(() => Math.max(1, ...scenes.value.map((s) => s.scenes)));
+
+function jumpChapter(chId) { router.push(`/chapters/${chId}`); }
+</script>
+
+<template>
+  <PaneHeader eyebrow="Project" title="Analysis" />
+
+  <div class="scrollarea" style="flex:1;padding:22px 26px 60px">
+
+    <!-- KPI row -->
+    <div style="display:grid;grid-template-columns:repeat(4, 1fr);gap:14px;margin-bottom:18px">
+      <div class="card kpi">
+        <div class="t-eyebrow">Manuscript</div>
+        <div class="kpi-val">{{ kpis.totalWords.toLocaleString() }}</div>
+        <div class="kpi-sub">words · {{ kpis.goalPct }}% of goal</div>
+      </div>
+      <div class="card kpi">
+        <div class="t-eyebrow">Chapters</div>
+        <div class="kpi-val">{{ kpis.chaptersDone }} <span class="kpi-of">/ {{ kpis.chaptersTotal }}</span></div>
+        <div class="kpi-sub">marked done</div>
+      </div>
+      <div class="card kpi">
+        <div class="t-eyebrow">Avg chapter</div>
+        <div class="kpi-val">{{ kpis.avgChapterLength.toLocaleString() }}</div>
+        <div class="kpi-sub">words</div>
+      </div>
+      <div class="card kpi">
+        <div class="t-eyebrow">Pace ({{ windowDays }}d)</div>
+        <div class="kpi-val">{{ pace.avg.toLocaleString() }}</div>
+        <div class="kpi-sub">avg words / day</div>
+      </div>
+    </div>
+
+    <!-- Pace -->
+    <div class="card" style="margin-bottom:18px">
+      <div style="display:flex;align-items:center;gap:12px;margin-bottom:8px">
+        <div class="card-title" style="margin:0">Pace</div>
+        <span class="t-muted" style="font-size:11.5px">Daily words written</span>
+        <div style="margin-left:auto;display:flex;gap:4px">
+          <button v-for="d in [14, 30, 90]" :key="d"
+            class="seg-btn" :class="{ active: windowDays === d }"
+            @click="windowDays = d">{{ d }}d</button>
+        </div>
+      </div>
+      <svg :viewBox="`0 0 ${paceShape.w} ${paceShape.h}`" preserveAspectRatio="none"
+        style="width:100%;height:140px;display:block">
+        <polygon :points="paceShape.area" fill="var(--accent-soft)" />
+        <polyline :points="paceShape.line" fill="none" stroke="var(--accent)" stroke-width="1.6" vector-effect="non-scaling-stroke" />
+      </svg>
+      <div style="display:flex;gap:18px;margin-top:8px;font-size:11.5px;color:var(--muted)">
+        <span><b class="t-num" style="color:var(--ink)">{{ pace.total.toLocaleString() }}</b> total</span>
+        <span><b class="t-num" style="color:var(--ink)">{{ pace.avg.toLocaleString() }}</b> avg/day</span>
+        <span><b class="t-num" style="color:var(--ink)">{{ pace.max.toLocaleString() }}</b> peak day</span>
+      </div>
+    </div>
+
+    <!-- Status donut + Plotline distribution -->
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:18px;margin-bottom:18px">
+      <div class="card">
+        <div class="card-title">Status</div>
+        <div style="display:flex;gap:18px;align-items:center">
+          <svg viewBox="0 0 120 120" width="120" height="120">
+            <circle :cx="donut.cx" :cy="donut.cy" :r="donut.r" fill="none"
+              stroke="var(--surface-3)" :stroke-width="donut.w" />
+            <path v-for="s in donut.segs" :key="s.k"
+              :d="s.path" fill="none" :stroke="s.color"
+              :stroke-width="donut.w" stroke-linecap="butt" />
+            <text :x="donut.cx" :y="donut.cy + 4" text-anchor="middle"
+              font-size="20" font-family="var(--font-serif)" font-weight="600">
+              {{ status.total }}
+            </text>
+          </svg>
+          <div style="flex:1;display:flex;flex-direction:column;gap:8px">
+            <div v-for="s in donut.segs" :key="s.k"
+              style="display:grid;grid-template-columns:auto 1fr auto;gap:10px;font-size:12.5px;align-items:center">
+              <span :style="`width:10px;height:10px;border-radius:2px;background:${s.color}`" />
+              <span>{{ s.label }}</span>
+              <span class="t-num" style="color:var(--ink-2)">{{ s.value }}</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="card-title">Plotlines by word count</div>
+        <div style="display:flex;flex-direction:column;gap:10px;margin-top:6px">
+          <div v-for="s in plotlines" :key="s.plotlineId || 'none'">
+            <div style="display:flex;justify-content:space-between;font-size:12.5px;margin-bottom:4px">
+              <span style="display:inline-flex;align-items:center;gap:7px">
+                <span :style="`width:10px;height:10px;border-radius:2px;background:${s.color}`" />
+                {{ s.name }}
+              </span>
+              <span class="t-muted t-num">{{ s.words.toLocaleString() }} · {{ s.chapters }} ch</span>
+            </div>
+            <div style="height:6px;background:var(--surface-3);border-radius:999px;overflow:hidden">
+              <div :style="`width:${(s.words / plotlineTotal) * 100}%;height:100%;background:${s.color};border-radius:999px`" />
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Words per chapter -->
+    <div class="card" style="margin-bottom:18px">
+      <div class="card-title">Words per chapter</div>
+      <div style="margin-top:8px">
+        <div v-for="c in allCh" :key="c.id"
+          class="bar-row" style="cursor:default" @click="jumpChapter(c.id)">
+          <span class="name">{{ c.num }}. {{ c.title }}</span>
+          <div class="track">
+            <div class="fill" :style="`width:${(c.words / Math.max(1, ...allCh.map(x => x.words))) * 100}%;background:${project.plotlineById((c.plotlines || [])[0])?.color || 'var(--accent)'}`" />
+          </div>
+          <span class="val">{{ c.words.toLocaleString() }}</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Cast presence heatmap -->
+    <div class="card" style="margin-bottom:18px">
+      <div style="display:flex;align-items:center;gap:10px;margin-bottom:6px">
+        <div class="card-title" style="margin:0">Cast presence</div>
+        <span class="t-muted" style="font-size:11.5px">Filled cells = character appears in that chapter</span>
+        <div style="margin-left:auto;display:flex;gap:8px;font-size:11px;color:var(--muted)">
+          <span style="display:inline-flex;align-items:center;gap:5px">
+            <span style="width:10px;height:10px;border-radius:2px;background:var(--surface-3)" /> none
+          </span>
+          <span style="display:inline-flex;align-items:center;gap:5px">
+            <span style="width:10px;height:10px;border-radius:2px;background:color-mix(in oklab, var(--accent) 30%, var(--surface))" /> mention
+          </span>
+          <span style="display:inline-flex;align-items:center;gap:5px">
+            <span style="width:10px;height:10px;border-radius:2px;background:var(--accent)" /> featured
+          </span>
+        </div>
+      </div>
+      <div class="heatmap" :style="`--cells:${allCh.length}`">
+        <!-- header row of chapter numbers -->
+        <div class="heatmap-row heatmap-head">
+          <div class="heatmap-label" />
+          <div v-for="c in allCh" :key="c.id" class="heatmap-num" :title="c.title">{{ c.num }}</div>
+        </div>
+        <div v-for="row in presence" :key="row.character.id" class="heatmap-row">
+          <button class="heatmap-label" @click="router.push(`/characters/${row.character.id}`)">
+            {{ row.character.name }}
+          </button>
+          <div v-for="cell in row.cells" :key="cell.chapter.id"
+            class="heatmap-cell"
+            :style="cellStyle(cell.weight)"
+            :title="`${row.character.name} · Ch. ${cell.chapter.num} — ${cell.chapter.title}${cell.mentions ? ` · ${cell.mentions} mentions` : ''}`"
+            @click="jumpChapter(cell.chapter.id)" />
+        </div>
+      </div>
+    </div>
+
+    <!-- Scenes per chapter -->
+    <div class="card">
+      <div class="card-title">Scenes per chapter</div>
+      <div style="display:grid;grid-template-columns:repeat(auto-fill, minmax(80px, 1fr));gap:6px;margin-top:8px">
+        <button v-for="s in scenes" :key="s.num"
+          class="scene-cell" :title="`Ch. ${s.num} — ${s.title}`"
+          @click="jumpChapter(allCh.find(c => c.num === s.num)?.id)">
+          <div class="scene-bar">
+            <div :style="`height:${(s.scenes / maxScenes) * 100}%;background:var(--accent)`" />
+          </div>
+          <div class="scene-num">{{ s.num }}</div>
+          <div class="scene-val t-num">{{ s.scenes }}</div>
+        </button>
+      </div>
+    </div>
+  </div>
+</template>
+
+<style scoped>
+.kpi { padding: 14px 16px; }
+.kpi-val { font-family: var(--font-serif); font-weight: 600; font-size: 26px; letter-spacing: -0.01em; margin-top: 6px; }
+.kpi-of { color: var(--muted); font-weight: 400; font-size: 18px; }
+.kpi-sub { font-size: 11px; color: var(--muted); margin-top: 2px; }
+
+.seg-btn {
+  appearance: none;
+  border: 1px solid var(--border);
+  background: var(--surface);
+  border-radius: 6px;
+  padding: 3px 9px;
+  font-size: 11px;
+  color: var(--ink-2);
+  font-variant-numeric: tabular-nums;
+}
+.seg-btn.active { background: var(--ink); color: var(--surface); border-color: var(--ink); }
+
+.bar-row { display: grid; grid-template-columns: 200px 1fr 70px; gap: 14px; align-items: center; padding: 4px 0; font-size: 12.5px; }
+.bar-row .name { color: var(--ink-2); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.bar-row .track { height: 8px; background: var(--surface-3); border-radius: 999px; overflow: hidden; }
+.bar-row .fill { height: 100%; border-radius: 999px; transition: width .2s ease; }
+.bar-row .val { text-align: right; color: var(--muted); font-variant-numeric: tabular-nums; }
+.bar-row:hover { background: var(--surface-2); }
+
+.heatmap { display: flex; flex-direction: column; gap: 3px; margin-top: 10px; overflow-x: auto; }
+.heatmap-row { display: grid; grid-template-columns: 140px repeat(var(--cells, 14), minmax(20px, 1fr)); gap: 3px; align-items: center; min-width: 600px; }
+.heatmap-head { padding-bottom: 4px; }
+.heatmap-label {
+  font-size: 11.5px; color: var(--ink-2);
+  text-align: right; padding-right: 8px;
+  white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+  border: 0; background: transparent;
+}
+.heatmap-label:hover { color: var(--accent-ink); }
+.heatmap-num {
+  font-size: 10.5px; color: var(--muted);
+  text-align: center; font-variant-numeric: tabular-nums;
+}
+.heatmap-cell {
+  height: 20px; border-radius: 3px; border: 0;
+  font-size: 0;
+}
+.heatmap-cell:hover { outline: 2px solid var(--accent); outline-offset: 1px; }
+
+.scene-cell {
+  display: flex; flex-direction: column; align-items: center; gap: 4px;
+  padding: 8px 6px;
+  border: 1px solid var(--border-soft);
+  border-radius: 8px;
+  background: var(--surface);
+}
+.scene-cell:hover { background: var(--surface-2); }
+.scene-bar { width: 24px; height: 40px; background: var(--surface-3); border-radius: 4px; overflow: hidden; display: flex; align-items: flex-end; }
+.scene-bar > div { width: 100%; }
+.scene-num { font-size: 10.5px; color: var(--muted); font-variant-numeric: tabular-nums; }
+.scene-val { font-size: 12px; font-weight: 600; font-variant-numeric: tabular-nums; }
+</style>

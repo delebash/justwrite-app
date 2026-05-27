@@ -1,0 +1,10 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(npm run *)",
+      "WebFetch(domain:v2.tauri.app)",
+      "Bash(cargo check *)",
+      "Bash(Remove-Item *)"
+    ]
+  }
+}
