@@ -3,7 +3,6 @@ import { computed } from "vue";
 import { useProjectStore } from "../stores/project.js";
 import { useUiStore } from "../stores/ui.js";
 import { useRouter } from "vue-router";
-import PaneHeader from "../components/PaneHeader.vue";
 import Icon from "../components/Icon.vue";
 import RichEditor from "../components/RichEditor.vue";
 import { promptDialog, confirmDialog } from "../services/dialog.js";
@@ -40,22 +39,25 @@ async function deleteNote() {
 </script>
 
 <template>
-  <PaneHeader eyebrow="Note" :title="n?.title || 'No notes'">
-    <input v-if="n" class="input" placeholder="tag" style="max-width:120px"
-      :value="n.tag" @input="update('tag', $event.target.value)" />
-    <span v-if="n" class="t-muted" style="font-size:12px;padding:0 8px">Updated {{ n.updated }}</span>
-    <button v-if="n" class="btn ghost" @click="deleteNote">Delete</button>
-    <button class="btn primary" @click="addNote"><Icon name="Plus" :size="14" /> New note</button>
-  </PaneHeader>
+  <header class="pane-header note-pane-header">
+    <div class="pane-title">
+      <span class="pane-eyebrow">Note</span>
+      <input v-if="n" class="note-title"
+        :value="n.title"
+        placeholder="Note title"
+        @input="update('title', $event.target.value)" />
+      <h1 v-else class="pane-h1">No notes</h1>
+    </div>
+    <div class="pane-actions">
+      <input v-if="n" class="input" placeholder="tag" style="max-width:120px"
+        :value="n.tag" @input="update('tag', $event.target.value)" />
+      <span v-if="n" class="t-muted" style="font-size:12px;padding:0 8px">Updated {{ n.updated }}</span>
+      <button v-if="n" class="btn ghost" @click="deleteNote">Delete</button>
+      <button class="btn primary" @click="addNote"><Icon name="Plus" :size="14" /> New note</button>
+    </div>
+  </header>
 
   <div v-if="n" class="pane-body">
-    <!-- Title strip — mirrors ChaptersView pattern. -->
-    <div style="padding:10px 22px;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:12px;flex-wrap:wrap">
-      <input class="input" style="max-width:480px;font-family:var(--font-serif);font-weight:600;font-size:15px"
-        :value="n.title" @input="update('title', $event.target.value)" />
-      <span style="margin-left:auto;font-size:11.5px;color:var(--muted)">Updated {{ n.updated }}</span>
-    </div>
-
     <RichEditor
       :model-value="n.body"
       placeholder="Start writing the note…"
@@ -70,3 +72,23 @@ async function deleteNote() {
     </div>
   </div>
 </template>
+
+<style scoped>
+.note-pane-header .pane-title { gap: 2px; }
+.note-title {
+  appearance: none;
+  font-family: var(--font-serif);
+  font-size: 20px; font-weight: 600;
+  letter-spacing: -0.015em;
+  color: var(--ink);
+  border: 1px solid transparent;
+  background: transparent;
+  border-radius: 6px;
+  padding: 2px 6px;
+  margin-left: -6px;
+  outline: none;
+  min-width: 0;
+}
+.note-title:hover { border-color: var(--border-soft); }
+.note-title:focus { border-color: var(--accent); background: var(--surface); box-shadow: 0 0 0 3px var(--accent-soft); }
+</style>

@@ -2,7 +2,6 @@
 import { computed } from "vue";
 import { useProjectStore } from "../stores/project.js";
 import { useUiStore } from "../stores/ui.js";
-import PaneHeader from "../components/PaneHeader.vue";
 import RichEditor from "../components/RichEditor.vue";
 
 const props = defineProps({ id: { type: String, default: "" } });
@@ -21,19 +20,16 @@ function update(k, v) { project.updateArchitecture(doc.value.id, { [k]: v }); }
 </script>
 
 <template>
-  <PaneHeader eyebrow="Architecture" :title="doc?.title || 'Architecture'" />
+  <header class="pane-header arch-pane-header">
+    <div class="pane-title">
+      <span class="pane-eyebrow">Architecture document</span>
+      <input v-if="doc" class="input arch-title"
+        :value="doc.title" @input="update('title', $event.target.value)" />
+    </div>
+  </header>
 
   <div v-if="doc" class="col-detail scrollarea">
     <div class="arch-wrap">
-      <div class="arch-head">
-        <div class="arch-mark">{{ doc.title[0] }}</div>
-        <div style="flex:1;min-width:0">
-          <div class="t-eyebrow">Architecture document</div>
-          <input class="input arch-title"
-            :value="doc.title" @input="update('title', $event.target.value)" />
-        </div>
-      </div>
-
       <textarea class="input arch-blurb" rows="2"
         placeholder="Blurb"
         :value="doc.blurb" @input="update('blurb', $event.target.value)" />
@@ -58,21 +54,12 @@ function update(k, v) { project.updateArchitecture(doc.value.id, { [k]: v }); }
   flex-direction: column;
   gap: 14px;
 }
-.arch-head {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-}
-.arch-mark {
-  width: 38px; height: 38px;
-  border-radius: 10px;
-  background: var(--accent-soft);
-  color: var(--accent-ink);
-  display: grid; place-items: center;
-  font-family: var(--font-serif);
-  font-style: italic;
-  font-weight: 600;
-  font-size: 18px;
+.arch-pane-header .pane-title { gap: 4px; }
+.arch-pane-header .arch-title {
+  border: 0;
+  background: transparent;
+  padding: 0;
+  height: auto;
 }
 .arch-title {
   font-family: var(--font-serif);

@@ -119,7 +119,9 @@ if (Array.isArray(loaded.plotlines)) {
   // Backfill new fields on older records so the UI doesn't render `undefined`.
   loaded.plotlines = loaded.plotlines.map((s) => ({
     blurb: "", status: "open", beats: [], ...s,
-    beats: Array.isArray(s.beats) ? s.beats : [],
+    beats: Array.isArray(s.beats)
+      ? s.beats.map((b) => ({ sceneId: null, ...b }))
+      : [],
   }));
 }
 if (loaded.trash && Array.isArray(loaded.trash.strands) && !Array.isArray(loaded.trash.plotlines)) {
@@ -139,8 +141,11 @@ if (loaded.architecture && loaded.architecture.storylines) {
 // existing `chapterBody[id] = html` into a one-scene record so the user's
 // prose is preserved exactly; clear the old chapterBody and the persisted
 // history tail (old snapshots referenced the dead field).
+// Gate on boot.snapshot — on a fresh install there is nothing to migrate
+// AND running the migration would set scenes to {}, which would then beat
+// the SCENES seed in the state factory below.
 let _scenesMigrationRan = false;
-if (!loaded.scenes || typeof loaded.scenes !== "object") {
+if (boot.snapshot && (!loaded.scenes || typeof loaded.scenes !== "object")) {
   _scenesMigrationRan = true;
   loaded.scenes = {};
   const oldBody = (loaded.chapterBody && typeof loaded.chapterBody === "object") ? loaded.chapterBody : {};
@@ -232,13 +237,24 @@ export const useProjectStore = defineStore("project", {
     architecture: { ...ARCHITECTURE, ...(loaded.architecture || {}) },
     worldbuilding: loaded.worldbuilding || [...WORLDBUILDING],
     worldbuildingCategories: [...WORLDBUILDING_CATEGORIES],
-    // Scenes registry: { [chapterId]: [{ id, title, body }] }. Seeded
-    // from the SCENES map — chapters not listed there open empty so the
-    // writer can add their own scenes from the overview pane.
+    // Scenes registry: { [chapterId]: [{ id, title, body, ...links }] }.
+    // Seeded from the SCENES map — chapters not listed there open empty
+    // so the writer can add their own scenes from the overview pane.
+    // The optional Links arrays (characters/locations/objects/plotlines)
+    // are preserved when present in the seed so Relations / Strand /
+    // entity-detail views light up on a fresh workspace.
     scenes: loaded.scenes || Object.fromEntries(
       Object.entries(SCENES).map(([chId, list]) => [
         chId,
-        list.map((s, i) => ({ id: `scn_${chId}_${i + 1}`, title: s.title || "", body: s.body || "" })),
+        list.map((s, i) => ({
+          id: `scn_${chId}_${i + 1}`,
+          title: s.title || "",
+          body: s.body || "",
+          characters: Array.isArray(s.characters) ? [...s.characters] : [],
+          locations:  Array.isArray(s.locations)  ? [...s.locations]  : [],
+          objects:    Array.isArray(s.objects)    ? [...s.objects]    : [],
+          plotlines:  Array.isArray(s.plotlines)  ? [...s.plotlines]  : [],
+        })),
       ])
     ),
     images: loaded.images || {},
@@ -818,14 +834,16 @@ export const useProjectStore = defineStore("project", {
     updatePlotline(id, patch) { this._record("updatePlotline"); this.plotlines = this.plotlines.map((s) => s.id === id ? { ...s, ...patch } : s); this._persist(); },
 
     // ── Plotline beats ──────────────────────────────────────
-    // Beats are turning points on a plotline tied to a chapter:
-    //   { id, chapterId, label, note }
-    // E.g. { chapterId: "ch4", label: "Inciting", note: "..." }
+    // Beats are turning points on a plotline pinned to a specific
+    // scene within a chapter:
+    //   { id, chapterId, sceneId, label, note }
+    // E.g. { chapterId: "ch4", sceneId: "scn_ch4_1", label: "Inciting", note: "..." }
     addPlotlineBeat(plotlineId, input = {}) {
       this._record("addPlotlineBeat");
       const beat = {
         id: uid("b"),
         chapterId: null,
+        sceneId: null,
         label: "",
         note: "",
         ...input,

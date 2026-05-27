@@ -3,7 +3,6 @@ import { computed, ref } from "vue";
 import { useProjectStore } from "../stores/project.js";
 import { useUiStore } from "../stores/ui.js";
 import { useRouter } from "vue-router";
-import PaneHeader from "../components/PaneHeader.vue";
 import Avatar from "../components/Avatar.vue";
 import Icon from "../components/Icon.vue";
 import ImagesModal from "../components/ImagesModal.vue";
@@ -126,13 +125,22 @@ function updateBackstory(v) { project.setCharacterExtras(ch.value.id, { backstor
 </script>
 
 <template>
-  <PaneHeader :eyebrow="ch.main ? 'Main character' : 'Secondary character'" :title="ch.name">
-    <button class="btn ghost" @click="modal = 'images'"><Icon name="Image" :size="14" /> Images</button>
-    <button class="btn ghost" @click="modal = 'events'"><Icon name="Calendar" :size="14" /> Events</button>
-    <button class="btn ghost" @click="modal = 'groups'"><Icon name="GroupIcon" :size="14" /> Groups</button>
-    <button class="btn ghost" @click="deleteCharacter">Delete</button>
-    <button class="btn primary" @click="addCharacter"><Icon name="Plus" :size="14" /> New character</button>
-  </PaneHeader>
+  <header class="pane-header character-pane-header">
+    <div class="pane-title">
+      <span class="pane-eyebrow">{{ ch.main ? 'Main character' : 'Secondary character' }}</span>
+      <input class="character-name"
+        :value="ch.name"
+        placeholder="Character name"
+        @input="updateField('name', $event.target.value)" />
+    </div>
+    <div class="pane-actions">
+      <button class="btn ghost" @click="modal = 'images'"><Icon name="Image" :size="14" /> Images</button>
+      <button class="btn ghost" @click="modal = 'events'"><Icon name="Calendar" :size="14" /> Events</button>
+      <button class="btn ghost" @click="modal = 'groups'"><Icon name="GroupIcon" :size="14" /> Groups</button>
+      <button class="btn ghost" @click="deleteCharacter">Delete</button>
+      <button class="btn primary" @click="addCharacter"><Icon name="Plus" :size="14" /> New character</button>
+    </div>
+  </header>
 
   <div class="col-detail scrollarea" style="overflow:auto">
     <div style="padding:24px 28px 40px;max-width:980px">
@@ -153,8 +161,6 @@ function updateBackstory(v) { project.setCharacterExtras(ch.value.id, { backstor
           <div v-else-if="dropSaving > 0" class="avatar-drop-overlay saving">Saving…</div>
         </div>
         <div style="flex:1;min-width:0">
-          <input class="input" style="font-size:18px;font-weight:600;font-family:var(--font-serif);margin-bottom:6px"
-            :value="ch.name" @input="updateField('name', $event.target.value)" />
           <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap">
             <input class="input" style="max-width:200px" placeholder="Role"
               :value="ch.role" @input="updateField('role', $event.target.value)" />
@@ -231,7 +237,7 @@ function updateBackstory(v) { project.setCharacterExtras(ch.value.id, { backstor
       </div>
 
       <div style="margin-top:22px">
-        <div class="t-eyebrow" style="margin-bottom:10px">Appearances</div>
+        <div class="t-eyebrow" style="margin-bottom:10px">Appears in scenes</div>
         <SceneRefList field="characters" :entity-id="ch.id"
           empty-text="No scenes link this character yet. Open a scene → Links → Characters to add one." />
       </div>
@@ -244,6 +250,24 @@ function updateBackstory(v) { project.setCharacterExtras(ch.value.id, { backstor
 </template>
 
 <style scoped>
+.character-pane-header .pane-title { gap: 2px; }
+.character-name {
+  appearance: none;
+  font-family: var(--font-serif);
+  font-size: 20px; font-weight: 600;
+  letter-spacing: -0.015em;
+  color: var(--ink);
+  border: 1px solid transparent;
+  background: transparent;
+  border-radius: 6px;
+  padding: 2px 6px;
+  margin-left: -6px;
+  outline: none;
+  min-width: 0;
+}
+.character-name:hover { border-color: var(--border-soft); }
+.character-name:focus { border-color: var(--accent); background: var(--surface); box-shadow: 0 0 0 3px var(--accent-soft); }
+
 .avatar-drop {
   position: relative;
   border-radius: 14px;

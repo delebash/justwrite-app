@@ -247,20 +247,32 @@ onBeforeUnmount(() => window.removeEventListener("keydown", onKey));
 
 <template>
   <!-- ── Header (varies by mode) ─────────────────────────────── -->
-  <PaneHeader v-if="ch"
-    :eyebrow="mode === 'outline' ? 'Manuscript' : ch.partTitle"
-    :title="mode === 'outline' ? 'Outline' : `Chapter ${ch.num} · ${ch.title}`">
-
-    <div class="seg-toggle">
-      <button v-for="m in MODES" :key="m.id"
-        :class="{ active: mode === m.id }"
-        @click="mode = m.id" :title="m.label">
-        <Icon :name="m.icon" :size="13" />
-        <span>{{ m.label }}</span>
-      </button>
+  <header v-if="ch && mode === 'edit'" class="pane-header chapter-pane-header">
+    <div class="pane-title">
+      <template v-if="activeScene">
+        <span class="pane-eyebrow">Ch. {{ ch.num }} · {{ ch.title }} · Scene {{ activeSceneIdx + 1 }}</span>
+        <input class="chapter-name"
+          :value="activeScene.title"
+          :placeholder="`Scene ${activeSceneIdx + 1} title (optional)`"
+          @input="onSceneTitleInput(activeScene.id, $event.target.value)" />
+      </template>
+      <template v-else>
+        <span class="pane-eyebrow">Ch. {{ ch.num }} · {{ ch.partTitle }}</span>
+        <input class="chapter-name"
+          :value="ch.title"
+          placeholder="Chapter title"
+          @input="updateTitle(ch.id, $event.target.value)" />
+      </template>
     </div>
-
-    <template v-if="mode === 'edit'">
+    <div class="pane-actions">
+      <div class="seg-toggle">
+        <button v-for="m in MODES" :key="m.id"
+          :class="{ active: mode === m.id }"
+          @click="mode = m.id" :title="m.label">
+          <Icon :name="m.icon" :size="13" />
+          <span>{{ m.label }}</span>
+        </button>
+      </div>
       <router-link v-if="prev" :to="`/chapters/${prev.id}`" custom v-slot="{ navigate }">
         <button class="btn ghost sm" @click="navigate" :title="`Ch. ${prev.num} — ${prev.title}`">
           <Icon name="ChevRight" :size="12" style="transform:rotate(180deg)" /> Prev
@@ -272,7 +284,21 @@ onBeforeUnmount(() => window.removeEventListener("keydown", onKey));
         </button>
       </router-link>
       <button class="btn ghost" @click="deleteChapter">Delete</button>
-    </template>
+      <button class="btn primary" @click="addChapter"><Icon name="Plus" :size="14" /> New chapter</button>
+    </div>
+  </header>
+  <PaneHeader v-else-if="ch"
+    :eyebrow="mode === 'outline' ? 'Manuscript' : ch.partTitle"
+    :title="mode === 'outline' ? 'Outline' : `Chapter ${ch.num} · ${ch.title}`">
+
+    <div class="seg-toggle">
+      <button v-for="m in MODES" :key="m.id"
+        :class="{ active: mode === m.id }"
+        @click="mode = m.id" :title="m.label">
+        <Icon :name="m.icon" :size="13" />
+        <span>{{ m.label }}</span>
+      </button>
+    </div>
     <button class="btn primary" @click="addChapter"><Icon name="Plus" :size="14" /> New chapter</button>
   </PaneHeader>
   <PaneHeader v-else eyebrow="Manuscript" title="No chapters">
@@ -393,8 +419,6 @@ onBeforeUnmount(() => window.removeEventListener("keydown", onKey));
   <!-- ── EDIT MODE (default) ──────────────────────────────────── -->
   <div v-else-if="ch" class="pane-body">
     <div style="padding:10px 22px;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:12px;flex-wrap:wrap">
-      <input class="input" style="max-width:360px;font-family:var(--font-serif);font-weight:600"
-        :value="ch.title" @input="updateTitle(ch.id, $event.target.value)" />
       <select class="input" style="max-width:120px" :value="ch.status" @change="updateStatus($event.target.value)">
         <option v-for="s in STATUS_OPTIONS" :key="s" :value="s">{{ STATUS_LABEL[s] }}</option>
       </select>
@@ -419,11 +443,7 @@ onBeforeUnmount(() => window.removeEventListener("keydown", onKey));
         @click="nextScene && goToScene(nextScene.id)">
         Next scene <Icon name="ChevRight" :size="12" />
       </button>
-      <input class="scene-title-input"
-        :value="activeScene.title"
-        :placeholder="`Scene ${activeSceneIdx + 1} title (optional)`"
-        @input="onSceneTitleInput(activeScene.id, $event.target.value)" />
-      <div class="scene-strip-actions">
+      <div class="scene-strip-actions" style="margin-left:auto">
         <button class="btn scene-links-btn" title="Links — POV, characters, locations, objects, strands"
           @click="linksOpen = true">
           <Icon name="Network" :size="13" /> Links
@@ -488,6 +508,24 @@ onBeforeUnmount(() => window.removeEventListener("keydown", onKey));
 </template>
 
 <style scoped>
+.chapter-pane-header .pane-title { gap: 2px; }
+.chapter-name {
+  appearance: none;
+  font-family: var(--font-serif);
+  font-size: 20px; font-weight: 600;
+  letter-spacing: -0.015em;
+  color: var(--ink);
+  border: 1px solid transparent;
+  background: transparent;
+  border-radius: 6px;
+  padding: 2px 6px;
+  margin-left: -6px;
+  outline: none;
+  min-width: 0;
+}
+.chapter-name:hover { border-color: var(--border-soft); }
+.chapter-name:focus { border-color: var(--accent); background: var(--surface); box-shadow: 0 0 0 3px var(--accent-soft); }
+
 .seg-toggle {
   display: inline-flex;
   background: var(--surface-2);

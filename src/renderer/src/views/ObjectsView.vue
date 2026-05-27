@@ -3,7 +3,6 @@ import { computed, ref } from "vue";
 import { useProjectStore } from "../stores/project.js";
 import { useUiStore } from "../stores/ui.js";
 import { useRouter } from "vue-router";
-import PaneHeader from "../components/PaneHeader.vue";
 import Icon from "../components/Icon.vue";
 import ImagesModal from "../components/ImagesModal.vue";
 import EventsModal from "../components/EventsModal.vue";
@@ -43,32 +42,32 @@ async function deleteObject() {
 </script>
 
 <template>
-  <PaneHeader eyebrow="Object" :title="obj.name">
-    <button class="btn ghost" @click="modal = 'images'"><Icon name="Image" :size="14" /> Images</button>
-    <button class="btn ghost" @click="modal = 'events'"><Icon name="Calendar" :size="14" /> Events</button>
-    <button class="btn ghost" @click="modal = 'groups'"><Icon name="GroupIcon" :size="14" /> Groups</button>
-    <button class="btn ghost" @click="deleteObject">Delete</button>
-    <button class="btn primary" @click="addObject"><Icon name="Plus" :size="14" /> New object</button>
-  </PaneHeader>
+  <header class="pane-header object-pane-header">
+    <div class="pane-title">
+      <span class="pane-eyebrow">Object</span>
+      <input class="object-name"
+        :value="obj.name"
+        placeholder="Object name"
+        @input="update('name', $event.target.value)" />
+    </div>
+    <div class="pane-actions">
+      <button class="btn ghost" @click="modal = 'images'"><Icon name="Image" :size="14" /> Images</button>
+      <button class="btn ghost" @click="modal = 'events'"><Icon name="Calendar" :size="14" /> Events</button>
+      <button class="btn ghost" @click="modal = 'groups'"><Icon name="GroupIcon" :size="14" /> Groups</button>
+      <button class="btn ghost" @click="deleteObject">Delete</button>
+      <button class="btn primary" @click="addObject"><Icon name="Plus" :size="14" /> New object</button>
+    </div>
+  </header>
   <div class="col-detail scrollarea">
     <div style="padding:24px 28px 40px;max-width:980px">
-      <div style="display:flex;gap:22px;align-items:flex-start">
-        <div style="width:96px;height:96px;border-radius:16px;background:oklch(var(--tile-bg-l) var(--tile-bg-c) 270);color:oklch(var(--tile-ink-l) var(--tile-ink-c) 270);display:grid;place-items:center;flex-shrink:0">
-          <Icon name="Cube" :size="28" />
-        </div>
-        <div style="flex:1">
-          <input class="input" style="font-size:18px;font-weight:600;font-family:var(--font-serif);margin-bottom:6px"
-            :value="obj.name" @input="update('name', $event.target.value)" />
-          <input class="input" placeholder="Kind"
-            :value="obj.kind" @input="update('kind', $event.target.value)" />
-          <textarea class="input" rows="5" style="margin-top:14px;font-family:var(--font-serif);font-size:15px;line-height:1.55"
-            placeholder="Description"
-            :value="obj.note" @input="update('note', $event.target.value)" />
-        </div>
-      </div>
+      <input class="input" placeholder="Kind"
+        :value="obj.kind" @input="update('kind', $event.target.value)" />
+      <textarea class="input" rows="5" style="margin-top:14px;font-family:var(--font-serif);font-size:15px;line-height:1.55"
+        placeholder="Description"
+        :value="obj.note" @input="update('note', $event.target.value)" />
 
       <div style="margin-top:22px">
-        <div class="t-eyebrow" style="margin-bottom:10px">Appears in</div>
+        <div class="t-eyebrow" style="margin-bottom:10px">Appears in scenes</div>
         <SceneRefList field="objects" :entity-id="obj.id"
           empty-text="No scenes feature this object yet. Open a scene → Links → Objects to add one." />
       </div>
@@ -78,3 +77,23 @@ async function deleteObject() {
   <EventsModal v-if="modal === 'events'" :entity-id="obj.id" :entity-name="obj.name" @close="modal = null" />
   <GroupsModal v-if="modal === 'groups'" :entity-id="obj.id" :entity-name="obj.name" entity-kind="object" @close="modal = null" />
 </template>
+
+<style scoped>
+.object-pane-header .pane-title { gap: 2px; }
+.object-name {
+  appearance: none;
+  font-family: var(--font-serif);
+  font-size: 20px; font-weight: 600;
+  letter-spacing: -0.015em;
+  color: var(--ink);
+  border: 1px solid transparent;
+  background: transparent;
+  border-radius: 6px;
+  padding: 2px 6px;
+  margin-left: -6px;
+  outline: none;
+  min-width: 0;
+}
+.object-name:hover { border-color: var(--border-soft); }
+.object-name:focus { border-color: var(--accent); background: var(--surface); box-shadow: 0 0 0 3px var(--accent-soft); }
+</style>

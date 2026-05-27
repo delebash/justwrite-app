@@ -3,7 +3,6 @@ import { computed, ref } from "vue";
 import { useProjectStore } from "../stores/project.js";
 import { useUiStore } from "../stores/ui.js";
 import { useRouter } from "vue-router";
-import PaneHeader from "../components/PaneHeader.vue";
 import Icon from "../components/Icon.vue";
 import ImagesModal from "../components/ImagesModal.vue";
 import EventsModal from "../components/EventsModal.vue";
@@ -51,33 +50,36 @@ async function deleteGroup() {
 </script>
 
 <template>
-  <PaneHeader eyebrow="Group" :title="g.name">
-    <button class="btn ghost" @click="modal = 'images'"><Icon name="Image" :size="14" /> Images</button>
-    <button class="btn ghost" @click="modal = 'events'"><Icon name="Calendar" :size="14" /> Events</button>
-    <button class="btn ghost" @click="deleteGroup">Delete</button>
-    <button class="btn primary" @click="addGroup"><Icon name="Plus" :size="14" /> New group</button>
-  </PaneHeader>
+  <header class="pane-header group-pane-header">
+    <div class="pane-title">
+      <span class="pane-eyebrow">Group</span>
+      <input v-if="g" class="group-name"
+        :value="g.name"
+        placeholder="Group name"
+        @input="update('name', $event.target.value)" />
+      <h1 v-else class="pane-h1">Groups</h1>
+    </div>
+    <div class="pane-actions">
+      <button class="btn ghost" @click="modal = 'images'"><Icon name="Image" :size="14" /> Images</button>
+      <button class="btn ghost" @click="modal = 'events'"><Icon name="Calendar" :size="14" /> Events</button>
+      <button class="btn ghost" @click="deleteGroup">Delete</button>
+      <button class="btn primary" @click="addGroup"><Icon name="Plus" :size="14" /> New group</button>
+    </div>
+  </header>
   <div class="col-detail scrollarea">
     <div style="padding:24px 28px 40px;max-width:980px">
-      <div style="display:flex;gap:22px;align-items:flex-start">
-        <div :style="`width:96px;height:96px;border-radius:16px;background:linear-gradient(140deg, ${g.color} 0%, color-mix(in oklab, ${g.color}, black 22%) 100%);display:grid;place-items:center;color:white;font-family:var(--font-serif);font-style:italic;font-weight:600;font-size:34px`">{{ g.name[0] }}</div>
-        <div style="flex:1">
-          <input class="input" style="font-size:18px;font-weight:600;font-family:var(--font-serif);margin-bottom:6px"
-            :value="g.name" @input="update('name', $event.target.value)" />
-          <textarea class="input" rows="3" style="font-family:var(--font-serif);font-style:italic"
-            placeholder="Blurb"
-            :value="g.blurb" @input="update('blurb', $event.target.value)" />
-          <div class="group-swatches">
-            <span class="t-eyebrow" style="font-size:10px;color:var(--muted)">Color</span>
-            <button v-for="color in COLOR_PALETTE" :key="color"
-              type="button"
-              class="group-swatch"
-              :class="{ active: color === g.color }"
-              :style="`background:${color}`"
-              :title="`Use ${color}`"
-              @click="update('color', color)" />
-          </div>
-        </div>
+      <textarea class="input" rows="3" style="font-family:var(--font-serif);font-style:italic"
+        placeholder="Blurb"
+        :value="g.blurb" @input="update('blurb', $event.target.value)" />
+      <div class="group-swatches">
+        <span class="t-eyebrow" style="font-size:10px;color:var(--muted)">Color</span>
+        <button v-for="color in COLOR_PALETTE" :key="color"
+          type="button"
+          class="group-swatch"
+          :class="{ active: color === g.color }"
+          :style="`background:${color}`"
+          :title="`Use ${color}`"
+          @click="update('color', color)" />
       </div>
       <div style="margin-top:24px">
         <div class="t-eyebrow" style="margin-bottom:10px">Members ({{ (g.members || []).length }})</div>
@@ -104,6 +106,24 @@ async function deleteGroup() {
 </template>
 
 <style scoped>
+.group-pane-header .pane-title { gap: 2px; }
+.group-name {
+  appearance: none;
+  font-family: var(--font-serif);
+  font-size: 20px; font-weight: 600;
+  letter-spacing: -0.015em;
+  color: var(--ink);
+  border: 1px solid transparent;
+  background: transparent;
+  border-radius: 6px;
+  padding: 2px 6px;
+  margin-left: -6px;
+  outline: none;
+  min-width: 0;
+}
+.group-name:hover { border-color: var(--border-soft); }
+.group-name:focus { border-color: var(--accent); background: var(--surface); box-shadow: 0 0 0 3px var(--accent-soft); }
+
 .group-swatches {
   display: flex; align-items: center; gap: 6px;
   margin-top: 10px;

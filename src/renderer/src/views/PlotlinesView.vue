@@ -59,7 +59,48 @@ function chapterById(id) { return project.chapterById(id); }
 function update(k, v) { project.updatePlotline(s.value.id, { [k]: v }); }
 function updateBeat(beatId, k, v) { project.updatePlotlineBeat(s.value.id, beatId, { [k]: v }); }
 function removeBeat(beatId) { project.removePlotlineBeat(s.value.id, beatId); }
-function goChapter(id) { ui.select("chapters", id); router.push(`/chapters/${id}`); }
+
+// Each scene picker option encodes both chapter and scene in one string
+// ("chapterId::sceneId") so a flat <select> can drive both fields at once.
+const sceneOptions = computed(() => {
+  const out = [];
+  for (const c of project.allChapters) {
+    const scenes = project.scenesFor(c.id);
+    if (!scenes.length) continue;
+    scenes.forEach((scn, i) => {
+      out.push({
+        value: `${c.id}::${scn.id}`,
+        label: `Ch. ${c.num} · Scene ${i + 1}${scn.title ? ` — ${scn.title}` : ""}`,
+      });
+    });
+  }
+  return out;
+});
+function sceneRefLabel(b) {
+  const ch = chapterById(b.chapterId);
+  if (!ch) return "(no chapter)";
+  const scenes = project.scenesFor(b.chapterId);
+  const idx = scenes.findIndex((s) => s.id === b.sceneId);
+  if (idx < 0) return `Ch. ${ch.num} · ${ch.title}`;
+  const scn = scenes[idx];
+  return `Ch. ${ch.num} · Scene ${idx + 1}${scn.title ? ` — ${scn.title}` : ""}`;
+}
+function beatRefValue(b) {
+  return b.chapterId && b.sceneId ? `${b.chapterId}::${b.sceneId}` : "";
+}
+function setBeatRef(beatId, encoded) {
+  if (!encoded) {
+    project.updatePlotlineBeat(s.value.id, beatId, { chapterId: null, sceneId: null });
+    return;
+  }
+  const [chapterId, sceneId] = encoded.split("::");
+  project.updatePlotlineBeat(s.value.id, beatId, { chapterId, sceneId });
+}
+function goBeat(b) {
+  if (!b.chapterId) return;
+  ui.select("chapters", b.chapterId);
+  router.push(b.sceneId ? `/chapters/${b.chapterId}/${b.sceneId}` : `/chapters/${b.chapterId}`);
+}
 
 async function addPlotline() {
   const name = await promptDialog({
@@ -94,6 +135,7 @@ async function deletePlotline() {
 }
 
 async function addBeat() {
+  const opts = sceneOptions.value;
   const values = await promptDialog({
     title: `New beat — ${s.value.name}`,
     confirmLabel: "Add beat",
@@ -104,14 +146,11 @@ async function addBeat() {
         placeholder: "e.g. Inciting, Midpoint, Climax",
       },
       {
-        key: "chapterId",
-        label: "Chapter",
+        key: "ref",
+        label: "Scene",
         type: "select",
-        defaultValue: project.allChapters[0]?.id || "",
-        options: project.allChapters.map((c) => ({
-          value: c.id,
-          label: `Ch. ${c.num} · ${c.title}`,
-        })),
+        defaultValue: opts[0]?.value || "",
+        options: opts,
       },
       {
         key: "note",
@@ -122,31 +161,50 @@ async function addBeat() {
     ],
   });
   if (!values) return;
+  const [chapterId, sceneId] = (values.ref || "").split("::");
   project.addPlotlineBeat(s.value.id, {
     label: values.label,
-    chapterId: values.chapterId || null,
+    chapterId: chapterId || null,
+    sceneId: sceneId || null,
     note: values.note || "",
   });
 }
 
-// Sort beats by their chapter's order in the manuscript so the list
-// reads top-to-bottom in story order.
+// Sort beats by (chapter order, scene index) so the list reads
+// top-to-bottom in story order, finer-grained than chapter alone.
 const sortedBeats = computed(() => {
   if (!s.value) return [];
-  const order = new Map(project.allChapters.map((c, i) => [c.id, i]));
+  const chOrder = new Map(project.allChapters.map((c, i) => [c.id, i]));
+  const sceneIdx = (b) => {
+    if (!b.chapterId || !b.sceneId) return Number.POSITIVE_INFINITY;
+    const list = project.scenesFor(b.chapterId);
+    const i = list.findIndex((s) => s.id === b.sceneId);
+    return i < 0 ? Number.POSITIVE_INFINITY : i;
+  };
   return [...(s.value.beats || [])].sort((a, b) => {
-    const ai = order.has(a.chapterId) ? order.get(a.chapterId) : Number.POSITIVE_INFINITY;
-    const bi = order.has(b.chapterId) ? order.get(b.chapterId) : Number.POSITIVE_INFINITY;
-    return ai - bi;
+    const ai = chOrder.has(a.chapterId) ? chOrder.get(a.chapterId) : Number.POSITIVE_INFINITY;
+    const bi = chOrder.has(b.chapterId) ? chOrder.get(b.chapterId) : Number.POSITIVE_INFINITY;
+    if (ai !== bi) return ai - bi;
+    return sceneIdx(a) - sceneIdx(b);
   });
 });
 </script>
 
 <template>
-  <PaneHeader eyebrow="Strand" :title="s?.name || 'Strands'">
-    <button v-if="s" class="btn ghost" @click="deletePlotline">Delete</button>
-    <button class="btn primary" @click="addPlotline"><Icon name="Plus" :size="14" /> New strand</button>
-  </PaneHeader>
+  <header class="pane-header plotline-pane-header">
+    <div class="pane-title">
+      <span class="pane-eyebrow">Strand</span>
+      <input v-if="s" class="plotline-name"
+        :value="s.name"
+        placeholder="Strand name"
+        @input="update('name', $event.target.value)" />
+      <h1 v-else class="pane-h1">Strands</h1>
+    </div>
+    <div class="pane-actions">
+      <button v-if="s" class="btn ghost" @click="deletePlotline">Delete</button>
+      <button class="btn primary" @click="addPlotline"><Icon name="Plus" :size="14" /> New strand</button>
+    </div>
+  </header>
 
   <div v-if="!s" class="col-detail scrollarea">
     <div class="plotline-empty">
@@ -159,10 +217,6 @@ const sortedBeats = computed(() => {
       <div class="plotline-card">
         <div class="plotline-body">
           <div class="plotline-head">
-            <input class="plotline-name"
-              :value="s.name"
-              placeholder="Strand name"
-              @input="update('name', $event.target.value)" />
             <div class="status-seg" role="radiogroup">
               <button v-for="opt in STATUS_OPTIONS" :key="opt.value"
                 type="button"
@@ -212,14 +266,9 @@ const sortedBeats = computed(() => {
               <div v-for="b in sortedBeats" :key="b.id" class="beat-row">
                 <button class="beat-chapter"
                   :class="{ missing: !chapterById(b.chapterId) }"
-                  @click="b.chapterId && goChapter(b.chapterId)">
+                  @click="goBeat(b)">
                   <span v-if="chapterById(b.chapterId)" class="status-dot" :class="chapterById(b.chapterId).status" />
-                  <span class="beat-chapter-text">
-                    <template v-if="chapterById(b.chapterId)">
-                      Ch. {{ chapterById(b.chapterId).num }} · {{ chapterById(b.chapterId).title }}
-                    </template>
-                    <template v-else>(no chapter)</template>
-                  </span>
+                  <span class="beat-chapter-text">{{ sceneRefLabel(b) }}</span>
                 </button>
                 <div class="beat-body">
                   <input class="beat-label"
@@ -233,12 +282,12 @@ const sortedBeats = computed(() => {
                     @input="updateBeat(b.id, 'note', $event.target.value)" />
                 </div>
                 <select class="beat-rechapter"
-                  :value="b.chapterId || ''"
-                  :title="'Reassign to a different chapter'"
-                  @change="updateBeat(b.id, 'chapterId', $event.target.value || null)">
-                  <option value="">(no chapter)</option>
-                  <option v-for="c in project.allChapters" :key="c.id" :value="c.id">
-                    Ch. {{ c.num }} · {{ c.title }}
+                  :value="beatRefValue(b)"
+                  :title="'Reassign to a different scene'"
+                  @change="setBeatRef(b.id, $event.target.value)">
+                  <option value="">(no scene)</option>
+                  <option v-for="opt in sceneOptions" :key="opt.value" :value="opt.value">
+                    {{ opt.label }}
                   </option>
                 </select>
                 <button class="btn ghost icon beat-delete" title="Remove beat" @click="removeBeat(b.id)">
@@ -249,8 +298,11 @@ const sortedBeats = computed(() => {
           </div>
 
           <!-- Scenes linked to this strand (via the scene Links page) -->
-          <SceneRefList field="plotlines" :entity-id="s.id"
-            empty-text="No scenes linked to this strand yet. Open a scene → Links → Strands to add one." />
+          <div style="margin-top:22px">
+            <div class="t-eyebrow" style="margin-bottom:10px">Appears in scenes</div>
+            <SceneRefList field="plotlines" :entity-id="s.id"
+              empty-text="No scenes linked to this strand yet. Open a scene → Links → Strands to add one." />
+          </div>
         </div>
       </div>
     </div>
@@ -294,19 +346,21 @@ const sortedBeats = computed(() => {
 .plotline-head {
   display: flex; align-items: flex-start; gap: 14px;
 }
+
+.plotline-pane-header .pane-title { gap: 2px; }
 .plotline-name {
-  flex: 1; min-width: 0;
   appearance: none;
   font-family: var(--font-serif);
-  font-size: 22px; font-weight: 600;
-  letter-spacing: -0.01em;
+  font-size: 20px; font-weight: 600;
+  letter-spacing: -0.015em;
   color: var(--ink);
   border: 1px solid transparent;
   background: transparent;
   border-radius: 6px;
-  padding: 4px 8px;
-  margin-left: -8px;
+  padding: 2px 6px;
+  margin-left: -6px;
   outline: none;
+  min-width: 0;
 }
 .plotline-name:hover { border-color: var(--border-soft); }
 .plotline-name:focus { border-color: var(--accent); background: var(--surface); box-shadow: 0 0 0 3px var(--accent-soft); }

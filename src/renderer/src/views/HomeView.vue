@@ -2,7 +2,6 @@
 import { computed } from "vue";
 import { useProjectStore } from "../stores/project.js";
 import { useSessionsStore, DOW_LABELS_MONDAY_FIRST, reorderForMonday } from "../stores/sessions.js";
-import PaneHeader from "../components/PaneHeader.vue";
 import Icon from "../components/Icon.vue";
 
 const project = useProjectStore();
@@ -47,12 +46,21 @@ const streakSquares = computed(() => history14.value.map((d) => d.words > 0));
 </script>
 
 <template>
-  <PaneHeader eyebrow="Project" title="Home">
-    <button class="btn ghost"><Icon name="Calendar" :size="14" /> Today</button>
-    <router-link to="/chapters" custom v-slot="{ navigate }">
-      <button class="btn primary" @click="navigate"><Icon name="Plus" :size="14" /> Quick write</button>
-    </router-link>
-  </PaneHeader>
+  <header class="pane-header home-pane-header">
+    <div class="pane-title">
+      <span class="pane-eyebrow">Manuscript</span>
+      <input class="home-title"
+        :value="P.title"
+        placeholder="Untitled manuscript"
+        @input="project.updateProjectMeta({ title: $event.target.value })" />
+    </div>
+    <div class="pane-actions">
+      <button class="btn ghost"><Icon name="Calendar" :size="14" /> Today</button>
+      <router-link to="/chapters" custom v-slot="{ navigate }">
+        <button class="btn primary" @click="navigate"><Icon name="Plus" :size="14" /> Quick write</button>
+      </router-link>
+    </div>
+  </header>
 
   <div class="scrollarea" style="flex:1">
     <div class="card-grid" style="grid-template-columns:1.5fr 1fr 1fr;gap:16px">
@@ -61,9 +69,8 @@ const streakSquares = computed(() => history14.value.map((d) => d.words > 0));
       <div class="card" style="grid-column:1/-1;padding:22px">
         <div style="display:flex;align-items:flex-start;gap:24px;flex-wrap:wrap">
           <div style="flex:1;min-width:280px">
-            <div class="t-eyebrow">Manuscript</div>
-            <h2 style="font-family:var(--font-serif);font-weight:600;font-size:28px;margin:4px 0 2px;letter-spacing:-0.015em">{{ P.title }}</h2>
-            <div class="t-muted" style="font-size:13px">{{ P.subtitle }} · {{ P.genre }}</div>
+            <div class="t-eyebrow">Overview</div>
+            <div class="t-muted" style="font-size:13px;margin-top:6px">{{ P.subtitle }} · {{ P.genre }}</div>
             <p style="font-size:13.5px;color:var(--ink-2);margin-top:12px;max-width:560px;line-height:1.6">{{ P.premise }}</p>
           </div>
           <div style="min-width:220px;position:relative;width:140px;height:140px">
@@ -171,3 +178,23 @@ const streakSquares = computed(() => history14.value.map((d) => d.words > 0));
     </div>
   </div>
 </template>
+
+<style scoped>
+.home-pane-header .pane-title { gap: 2px; }
+.home-title {
+  appearance: none;
+  font-family: var(--font-serif);
+  font-size: 20px; font-weight: 600;
+  letter-spacing: -0.015em;
+  color: var(--ink);
+  border: 1px solid transparent;
+  background: transparent;
+  border-radius: 6px;
+  padding: 2px 6px;
+  margin-left: -6px;
+  outline: none;
+  min-width: 0;
+}
+.home-title:hover { border-color: var(--border-soft); }
+.home-title:focus { border-color: var(--accent); background: var(--surface); box-shadow: 0 0 0 3px var(--accent-soft); }
+</style>

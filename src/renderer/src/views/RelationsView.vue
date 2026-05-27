@@ -1,30 +1,252 @@
 <script setup>
-import { onBeforeUnmount, onMounted, ref } from "vue";
+import { computed, onBeforeUnmount, onMounted, ref } from "vue";
+import { useRouter } from "vue-router";
 import { useProjectStore } from "../stores/project.js";
 import PaneHeader from "../components/PaneHeader.vue";
 import Icon from "../components/Icon.vue";
 
 const project = useProjectStore();
+const router = useRouter();
 
-const nodes = [
-  { id: "elen",  label: "Elen Vael",   cls: "character", x: 380, y: 250, r: 38 },
-  { id: "idris", label: "Idris Vael",  cls: "character", x: 220, y: 130, r: 30 },
-  { id: "june",  label: "June Asari",  cls: "character", x: 560, y: 160, r: 30 },
-  { id: "renn",  label: "Renn",        cls: "character", x: 600, y: 360, r: 30 },
-  { id: "house", label: "Halden House", cls: "location", x: 100, y: 100, r: 26 },
-  { id: "cove",  label: "Brackish Cove", cls: "location", x: 670, y: 470, r: 28 },
-];
-const edges = [
-  ["elen", "idris"], ["elen", "june"], ["elen", "renn"],
-  ["elen", "house"], ["june", "cove"],
-];
-const find = (id) => nodes.find((n) => n.id === id);
+// ── Graph derivation ──────────────────────────────────────
+// Nodes are characters + locations + objects from the project store,
+// distributed across concentric rings:
+//   • Inner ring:   main characters
+//   • Middle ring:  secondary characters
+//   • Outer ring:   locations + objects (interleaved)
+// Edges come from two sources:
+//   1. Group co-membership — any two entities in the same group's
+//      member-list (groups can mix kinds, so character⇄location etc.).
+//   2. Scene co-occurrence — any two entities whose ids appear in the
+//      same scene's Links selection (characters, locations, or objects
+//      arrays).
+// The edge map dedups undirected pairs and records source labels so a
+// hover tooltip can explain *why* two nodes are connected.
+
+const CONTENT_W = 900;
+const CONTENT_H = 640;
+const CENTER_X = CONTENT_W / 2;
+const CENTER_Y = CONTENT_H / 2;
+const RING_MAIN     = 110;   // main characters
+const RING_SECOND   = 190;   // secondary characters
+const RING_OUTER    = 280;   // locations + objects
+const NODE_R_MAIN   = 36;
+const NODE_R_SECOND = 26;
+const NODE_R_OUTER  = 24;
+
+function ringPlace(items, ringRadius, mapFn) {
+  const out = [];
+  const n = items.length;
+  if (n === 0) return out;
+  for (let i = 0; i < n; i++) {
+    const t = (i / n) * Math.PI * 2 - Math.PI / 2;
+    out.push(mapFn(items[i], {
+      x: CENTER_X + Math.cos(t) * ringRadius,
+      y: CENTER_Y + Math.sin(t) * ringRadius,
+    }));
+  }
+  return out;
+}
+
+// Toggleable kind filters — checked kinds appear in the graph.
+const showCharacters = ref(true);
+const showLocations  = ref(true);
+const showObjects    = ref(true);
+
+const nodes = computed(() => {
+  const chars = showCharacters.value ? (project.characters || []) : [];
+  const main = chars.filter((c) => c.main);
+  const other = chars.filter((c) => !c.main);
+  const locs = showLocations.value ? (project.locations || []) : [];
+  const objs = showObjects.value   ? (project.objects   || []) : [];
+
+  // Inner: main characters
+  const mainNodes = ringPlace(main, RING_MAIN, (c, p) => ({
+    id: c.id, label: c.name, sub: c.role,
+    cls: "character", main: true,
+    x: p.x, y: p.y, r: NODE_R_MAIN,
+  }));
+
+  // Middle: secondary characters
+  const secondNodes = ringPlace(other, RING_SECOND, (c, p) => ({
+    id: c.id, label: c.name, sub: c.role,
+    cls: "character", main: false,
+    x: p.x, y: p.y, r: NODE_R_SECOND,
+  }));
+
+  // Outer: locations + objects interleaved. Interleaving keeps colours
+  // mixed around the ring instead of clustering all greens on one side.
+  const outer = [];
+  const maxLen = Math.max(locs.length, objs.length);
+  for (let i = 0; i < maxLen; i++) {
+    if (i < locs.length) outer.push({ kind: "location", entity: locs[i] });
+    if (i < objs.length) outer.push({ kind: "object",   entity: objs[i] });
+  }
+  const outerNodes = ringPlace(outer, RING_OUTER, (item, p) => ({
+    id: item.entity.id,
+    label: item.entity.name,
+    sub: item.entity.kind || "",
+    cls: item.kind,
+    main: false,
+    x: p.x, y: p.y, r: NODE_R_OUTER,
+  }));
+
+  return [...mainNodes, ...secondNodes, ...outerNodes];
+});
+
+const nodeById = computed(() => {
+  const m = new Map();
+  for (const n of nodes.value) m.set(n.id, n);
+  return m;
+});
+
+// Build the edge set restricted to a `known` ID set. Factored out so we
+// can compute both the live (filtered) graph AND an unfiltered total for
+// the legend counts without duplicating the rule logic below.
+function buildEdges(known) {
+  // Map<"id1|id2", { a, b, reasons: Set<string> }> where id1 < id2
+  // so an undirected pair only appears once regardless of input order.
+  const map = new Map();
+
+  function add(a, b, reason) {
+    if (!a || !b || a === b) return;
+    if (!known.has(a) || !known.has(b)) return;
+    const key = a < b ? `${a}|${b}` : `${b}|${a}`;
+    let edge = map.get(key);
+    if (!edge) {
+      edge = { a: a < b ? a : b, b: a < b ? b : a, reasons: new Set() };
+      map.set(key, edge);
+    }
+    edge.reasons.add(reason);
+  }
+
+  function addAllPairs(ids, reason) {
+    for (let i = 0; i < ids.length; i++) {
+      for (let j = i + 1; j < ids.length; j++) {
+        add(ids[i], ids[j], reason);
+      }
+    }
+  }
+
+  // 1. Group co-membership — connect every pair of members in the
+  //    group, regardless of kind (character/location/object).
+  for (const g of (project.groups || [])) {
+    const ids = (g.members || [])
+      .filter((m) => m.kind === "character" || m.kind === "location" || m.kind === "object")
+      .map((m) => m.id);
+    addAllPairs(ids, `Group: ${g.name}`);
+  }
+
+  // 2. Scene co-occurrence — the scene's Links page captures characters,
+  //    locations, and objects in separate arrays; connect every pair
+  //    across all three so a character ⇄ location edge appears when
+  //    they share a scene.
+  //    While we walk the scenes, also accumulate per-strand sets so
+  //    rule 3 below can connect everything that touches the same strand.
+  const strandMembers = new Map();   // strandId → Set<entityId>
+  for (const part of (project.parts || [])) {
+    for (const ch of (part.chapters || [])) {
+      const scenes = project.scenesFor(ch.id);
+      for (const scn of scenes) {
+        const ids = [
+          ...(Array.isArray(scn.characters) ? scn.characters : []),
+          ...(Array.isArray(scn.locations)  ? scn.locations  : []),
+          ...(Array.isArray(scn.objects)    ? scn.objects    : []),
+        ];
+        addAllPairs(ids, `Scene: ${scn.title || `Ch.${ch.num}`}`);
+        for (const strandId of (scn.plotlines || [])) {
+          let set = strandMembers.get(strandId);
+          if (!set) { set = new Set(); strandMembers.set(strandId, set); }
+          for (const id of ids) set.add(id);
+        }
+      }
+    }
+  }
+
+  // 3. Strand membership — every entity that appears in any scene
+  //    tagged with the same strand gets connected to every other
+  //    entity in that strand's set.
+  const strandsById = new Map((project.plotlines || []).map((s) => [s.id, s]));
+  for (const [strandId, set] of strandMembers) {
+    if (set.size < 2) continue;
+    const strand = strandsById.get(strandId);
+    addAllPairs([...set], `Strand: ${strand?.name || strandId}`);
+  }
+
+  return [...map.values()].map((e) => ({
+    ...e,
+    reasonList: [...e.reasons],
+  }));
+}
+
+// Live (filtered) edges — feeds the rendered graph.
+const edges = computed(() => buildEdges(nodeById.value));
+
+// Defensive: only emit edges whose both endpoints are still visible.
+// The add() guard inside buildEdges already enforces this, but keeping
+// an explicit filter makes the dependency on the visibility flags
+// obvious at the render site.
+const visibleEdges = computed(() =>
+  edges.value.filter((e) => nodeById.value.has(e.a) && nodeById.value.has(e.b))
+);
+
+// Unfiltered edges over every character/location/object — used to
+// label each legend row with its "total reachable" edge count so the
+// number is stable as the user toggles filters.
+const allEdges = computed(() => {
+  const all = new Set();
+  for (const c of (project.characters || [])) all.add(c.id);
+  for (const l of (project.locations  || [])) all.add(l.id);
+  for (const o of (project.objects    || [])) all.add(o.id);
+  return buildEdges(all);
+});
+
+const allEntityKind = computed(() => {
+  const m = new Map();
+  for (const c of (project.characters || [])) m.set(c.id, "character");
+  for (const l of (project.locations  || [])) m.set(l.id, "location");
+  for (const o of (project.objects    || [])) m.set(o.id, "object");
+  return m;
+});
+
+// An edge "touches" a kind when either endpoint is of that kind.
+const edgeCounts = computed(() => {
+  const out = { character: 0, location: 0, object: 0 };
+  const kindOf = allEntityKind.value;
+  for (const e of allEdges.value) {
+    const ka = kindOf.get(e.a);
+    const kb = kindOf.get(e.b);
+    if (ka && out[ka] !== undefined) out[ka]++;
+    if (kb && kb !== ka && out[kb] !== undefined) out[kb]++;
+  }
+  return out;
+});
+
+function nodeStroke(n) {
+  if (n.cls === "location") return "var(--mm-location-line)";
+  if (n.cls === "object")   return "var(--mm-object-line)";
+  return "var(--mm-character-line)";
+}
+function nodeFill(n) {
+  if (n.cls === "location") return "var(--mm-location-bg)";
+  if (n.cls === "object")   return "var(--mm-object-bg)";
+  return "var(--mm-character-bg)";
+}
+function edgeTitle(e) {
+  const a = nodeById.value.get(e.a)?.label || e.a;
+  const b = nodeById.value.get(e.b)?.label || e.b;
+  return `${a} ⇄ ${b}\n${e.reasonList.join("\n")}`;
+}
+function openNode(n) {
+  if (!n) return;
+  if (n.cls === "location") router.push(`/locations/${n.id}`);
+  else if (n.cls === "object") router.push(`/objects/${n.id}`);
+  else router.push(`/characters/${n.id}`);
+}
 
 // ── Pan / zoom ─────────────────────────────────────────────
 // Transform is applied to an inner <g> as translate(tx, ty) scale(z).
 // Wheel zooms cursor-anchored; left-click-drag on empty canvas pans.
-const CONTENT_W = 760;
-const CONTENT_H = 520;
 const MIN_ZOOM = 0.25;
 const MAX_ZOOM = 4;
 
@@ -110,8 +332,8 @@ function fitView() {
   if (!rect.width || !rect.height) { resetView(); return; }
   const ctm = svg.getScreenCTM();
   if (!ctm) { resetView(); return; }
-  // The viewBox already maps 0..760 / 0..520 to the rendered area, so
-  // a zoom of 1 with no translate IS the "fit" state. resetView covers it.
+  // The viewBox already maps 0..CONTENT_W / 0..CONTENT_H to the rendered
+  // area, so a zoom of 1 with no translate IS the "fit" state.
   resetView();
 }
 function centerSvgPoint() {
@@ -162,18 +384,63 @@ onBeforeUnmount(() => window.removeEventListener("keydown", onKey));
       @pointerup="onPointerUp"
       @pointercancel="onPointerUp">
       <g :transform="`translate(${tx} ${ty}) scale(${zoom})`">
-        <line v-for="([a, b], i) in edges" :key="i"
-          :x1="find(a).x" :y1="find(a).y" :x2="find(b).x" :y2="find(b).y"
-          style="stroke: var(--border-strong)" stroke-width="1.2" />
-        <g v-for="n in nodes" :key="n.id" data-node>
-          <circle :cx="n.x" :cy="n.y" :r="n.r"
-            :style="`fill: var(${n.cls === 'character' ? '--mm-character-bg' : '--mm-location-bg'}); stroke: var(${n.cls === 'character' ? '--mm-character-line' : '--mm-location-line'})`"
-            stroke-width="1.5" />
-          <text :x="n.x" :y="n.y + 4" :font-size="n.r > 28 ? 12 : 11"
-            text-anchor="middle" style="fill: var(--ink); pointer-events: none">{{ n.label }}</text>
+        <!-- Edges -->
+        <line v-for="e in visibleEdges" :key="`${e.a}|${e.b}`"
+          :x1="nodeById.get(e.a)?.x" :y1="nodeById.get(e.a)?.y"
+          :x2="nodeById.get(e.b)?.x" :y2="nodeById.get(e.b)?.y"
+          :stroke-width="Math.min(3, 1 + e.reasonList.length * 0.6)"
+          class="relations-edge">
+          <title>{{ edgeTitle(e) }}</title>
+        </line>
+
+        <!-- Nodes -->
+        <g v-for="n in nodes" :key="n.id" data-node class="relations-node"
+          :transform="`translate(${n.x} ${n.y})`"
+          @click="openNode(n)">
+          <title>{{ n.label }}{{ n.sub ? ` — ${n.sub}` : "" }}</title>
+          <circle :r="n.r"
+            :style="`fill: ${nodeFill(n)}; stroke: ${nodeStroke(n)}`"
+            :stroke-width="n.main ? 2 : 1.5" />
+          <text :y="4" :font-size="n.r > 30 ? 12 : 11"
+            text-anchor="middle"
+            style="fill: var(--ink); pointer-events: none; font-weight: 500;">
+            {{ n.label }}
+          </text>
         </g>
       </g>
     </svg>
+
+    <!-- Empty state -->
+    <div v-if="nodes.length === 0" class="relations-empty">
+      <p>Nothing to connect yet — add characters, locations, or objects to see relationships here.</p>
+    </div>
+
+    <!-- Legend — colored dots double as toggles; each row shows the
+         total edge count touching that kind. -->
+    <div class="relations-legend">
+      <div class="legend-head">
+        <span>Type</span>
+        <span class="legend-head-count">Edges</span>
+      </div>
+      <label>
+        <input type="checkbox" v-model="showCharacters" />
+        <i class="dot character" />
+        <span class="legend-label">Character</span>
+        <span class="legend-count">{{ edgeCounts.character }}</span>
+      </label>
+      <label>
+        <input type="checkbox" v-model="showLocations" />
+        <i class="dot location" />
+        <span class="legend-label">Location</span>
+        <span class="legend-count">{{ edgeCounts.location }}</span>
+      </label>
+      <label>
+        <input type="checkbox" v-model="showObjects" />
+        <i class="dot object" />
+        <span class="legend-label">Object</span>
+        <span class="legend-count">{{ edgeCounts.object }}</span>
+      </label>
+    </div>
 
     <div class="relations-hint">
       <kbd>Wheel</kbd> zoom · <kbd>Drag</kbd> pan · <kbd>+</kbd>/<kbd>−</kbd>/<kbd>0</kbd>
@@ -210,6 +477,116 @@ onBeforeUnmount(() => window.removeEventListener("keydown", onKey));
 }
 .relations-canvas.panning { cursor: grabbing; }
 .relations-canvas svg { display: block; touch-action: none; }
+
+.relations-edge {
+  stroke: var(--border-strong);
+  opacity: 0.6;
+  transition: opacity .12s ease, stroke .12s ease;
+}
+.relations-edge:hover { opacity: 1; stroke: var(--accent); }
+
+.relations-node { cursor: pointer; }
+.relations-node circle {
+  transition: filter .12s ease, transform .08s ease;
+}
+.relations-node:hover circle {
+  filter: drop-shadow(0 0 6px var(--accent-soft));
+}
+.relations-node:active circle { transform: scale(0.96); transform-box: fill-box; transform-origin: center; }
+
+.relations-empty {
+  position: absolute;
+  inset: 0;
+  display: grid;
+  place-items: center;
+  pointer-events: none;
+}
+.relations-empty p {
+  font-size: 13px;
+  color: var(--muted);
+  font-style: italic;
+  background: color-mix(in oklab, var(--surface), transparent 15%);
+  padding: 14px 20px;
+  border-radius: 10px;
+  border: 1px dashed var(--border-strong);
+  max-width: 360px;
+  text-align: center;
+}
+
+.relations-legend {
+  position: absolute;
+  top: 14px;
+  right: 14px;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  font-size: 11px;
+  color: var(--ink-2);
+  background: color-mix(in oklab, var(--surface), transparent 15%);
+  padding: 8px 12px;
+  border-radius: 8px;
+  border: 1px solid var(--border-soft);
+}
+.relations-legend label {
+  display: grid;
+  grid-template-columns: auto auto 1fr auto;
+  align-items: center;
+  gap: 8px;
+  cursor: pointer;
+  user-select: none;
+  padding: 2px 0;
+}
+.relations-legend input[type="checkbox"] {
+  margin: 0;
+  accent-color: var(--accent);
+  cursor: pointer;
+}
+.relations-legend .dot {
+  width: 18px; height: 18px;
+  border-radius: 4px;
+  border: 1px solid;
+  flex-shrink: 0;
+}
+.relations-legend .dot.character {
+  background: var(--mm-character-line);
+  border-color: var(--mm-character-line);
+}
+.relations-legend .dot.location {
+  background: var(--mm-location-line);
+  border-color: var(--mm-location-line);
+}
+.relations-legend .dot.object {
+  background: var(--mm-object-line);
+  border-color: var(--mm-object-line);
+}
+.relations-legend .legend-label { white-space: nowrap; }
+.relations-legend .legend-count {
+  font-variant-numeric: tabular-nums;
+  color: var(--muted);
+  font-size: 10.5px;
+  min-width: 24px;
+  text-align: right;
+}
+.relations-legend .legend-head {
+  display: grid;
+  grid-template-columns: auto auto 1fr auto;
+  gap: 8px;
+  align-items: center;
+  font-size: 9.5px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--muted);
+  padding-bottom: 4px;
+  margin-bottom: 4px;
+  border-bottom: 1px solid var(--border-soft);
+}
+.relations-legend .legend-head > span:first-child { grid-column: 3; }
+.relations-legend .legend-head-count {
+  grid-column: 4;
+  min-width: 24px;
+  text-align: right;
+}
 
 .relations-hint {
   position: absolute;

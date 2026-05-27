@@ -72,22 +72,27 @@ async function deleteArticle() {
   </template>
 
   <template v-else>
-    <PaneHeader :eyebrow="cat?.label || 'Worldbuilding'" :title="article.title">
-      <router-link to="/worldbuilding" custom v-slot="{ navigate }">
-        <button class="btn ghost sm" @click="navigate"><Icon name="ChevRight" :size="12" style="transform:rotate(180deg)" /> Back</button>
-      </router-link>
-      <button class="btn ghost" @click="deleteArticle">Delete</button>
-      <button class="btn primary" @click="addArticle"><Icon name="Plus" :size="14" /> New article</button>
-    </PaneHeader>
-
-    <div class="pane-body">
-      <!-- Title + summary strip above the manuscript editor. -->
-      <div style="padding:14px 22px;border-bottom:1px solid var(--border);display:flex;flex-direction:column;gap:6px">
-        <input class="input" style="font-family:var(--font-serif);font-weight:600;font-size:18px;border:0;background:transparent;padding:0"
+    <header class="pane-header wb-pane-header">
+      <div class="pane-title">
+        <span class="pane-eyebrow">{{ cat?.label || 'Worldbuilding' }}</span>
+        <input class="wb-title"
           placeholder="Article title"
           :value="article.title" @input="update('title', $event.target.value)" />
+      </div>
+      <div class="pane-actions">
+        <router-link to="/worldbuilding" custom v-slot="{ navigate }">
+          <button class="btn ghost sm" @click="navigate"><Icon name="ChevRight" :size="12" style="transform:rotate(180deg)" /> Back</button>
+        </router-link>
+        <button class="btn ghost" @click="deleteArticle">Delete</button>
+        <button class="btn primary" @click="addArticle"><Icon name="Plus" :size="14" /> New article</button>
+      </div>
+    </header>
+
+    <div class="pane-body">
+      <!-- Summary strip above the manuscript editor. -->
+      <div style="padding:14px 22px;border-bottom:1px solid var(--border)">
         <input class="input"
-          style="font-style:italic;color:var(--muted);font-size:13.5px;border:0;background:transparent;padding:0;font-family:var(--font-serif)"
+          style="font-style:italic;color:var(--muted);font-size:13.5px;border:0;background:transparent;padding:0;font-family:var(--font-serif);width:100%"
           placeholder="Summary"
           :value="article.summary" @input="update('summary', $event.target.value)" />
       </div>
@@ -100,3 +105,23 @@ async function deleteArticle() {
     </div>
   </template>
 </template>
+
+<style scoped>
+.wb-pane-header .pane-title { gap: 2px; }
+.wb-title {
+  appearance: none;
+  font-family: var(--font-serif);
+  font-size: 20px; font-weight: 600;
+  letter-spacing: -0.015em;
+  color: var(--ink);
+  border: 1px solid transparent;
+  background: transparent;
+  border-radius: 6px;
+  padding: 2px 6px;
+  margin-left: -6px;
+  outline: none;
+  min-width: 0;
+}
+.wb-title:hover { border-color: var(--border-soft); }
+.wb-title:focus { border-color: var(--accent); background: var(--surface); box-shadow: 0 0 0 3px var(--accent-soft); }
+</style>
