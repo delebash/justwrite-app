@@ -125,48 +125,103 @@ export const OBJECTS = [
 ];
 
 export const PARTS = [
-  { id: "p1", title: "Part One — The Inheritance", chapters: [
+  { id: "p1", title: "The Inheritance", chapters: [
     { id: "ch1", num: 1, title: "What the door remembers",       words: 3120, status: "done",   plotlines: ["s1"],       scenes: 3 },
     { id: "ch2", num: 2, title: "An inventory in two hands",     words: 2840, status: "done",   plotlines: ["s1", "s2"], scenes: 4 },
     { id: "ch3", num: 3, title: "June, with a printer's apron",  words: 2210, status: "revise", plotlines: ["s1", "s2"], scenes: 2 },
     { id: "ch4", num: 4, title: "A bearing no one recognizes",   words: 3640, status: "done",   plotlines: ["s2", "s3"], scenes: 4 },
   ]},
-  { id: "p2", title: "Part Two — The Ledger", chapters: [
+  { id: "p2", title: "The Ledger", chapters: [
     { id: "ch5", num: 5, title: "Old Harbor 7",                  words: 3010, status: "done",   plotlines: ["s3"],       scenes: 3 },
     { id: "ch6", num: 6, title: "Renn keeps a list",             words: 2480, status: "draft",  plotlines: ["s2"],       scenes: 3 },
     { id: "ch7", num: 7, title: "Brackish Cove, at low tide",    words: 3995, status: "draft",  plotlines: ["s3", "s5"], scenes: 5 },
     { id: "ch8", num: 8, title: "Petra refuses the chair",       words: 1820, status: "revise", plotlines: ["s4"],       scenes: 2 },
     { id: "ch9", num: 9, title: "The hand that wrote the last twelve pages", words: 2640, status: "draft", plotlines: ["s2"], scenes: 3 },
   ]},
-  { id: "p3", title: "Part Three — What Returns", chapters: [
+  { id: "p3", title: "What Returns", chapters: [
     { id: "ch10", num: 10, title: "St. Eira's, between tides",   words: 2380, status: "draft", plotlines: ["s5"],       scenes: 3 },
     { id: "ch11", num: 11, title: "Tomas, who is older than he is", words: 1840, status: "todo", plotlines: ["s5"],     scenes: 2 },
     { id: "ch12", num: 12, title: "The unsent letter",           words: 1640, status: "todo", plotlines: ["s4", "s5"], scenes: 2 },
     { id: "ch13", num: 13, title: "A bearing, taken twice",      words: 950,  status: "todo", plotlines: ["s5", "s3"], scenes: 1 },
-    { id: "ch14", num: 14, title: "[untitled]",                  words: 0,    status: "todo", plotlines: [],           scenes: 0 },
   ]},
 ];
 
-// Chapter bodies as HTML strings (TipTap-friendly).
-export const CHAPTER_BODY = {
-  ch7: `<h1>Brackish Cove, at low tide</h1>
-<p style="text-align:center;color:#888;letter-spacing:.4em">i</p>
-<p>The customs house at Old Harbor 7 had been condemned for nine years, which meant it was the most reliable building Elen knew. Condemned was a kind of inheritance. Nothing further could happen to it.</p>
+// Per-chapter scene records: { [chapterId]: [{ title, body }, ...] }.
+// Each entry becomes one scene at boot. Chapters not listed here open
+// with zero scenes — the user adds them via the chapter overview pane
+// or the sidebar's per-chapter "+" button. Bodies are HTML
+// (TipTap-friendly).
+export const SCENES = {
+  ch1: [
+    { title: "The key, after persuasion", body: `<p>The key turned, after some persuasion. The door swung open onto a room her father had not let her into for fifteen years.</p>
+<p>She stood in the doorway for the length of one breath, two. The kettle in the kitchen had begun to whistle, and she let it.</p>` },
+    { title: "Cedar and pipe ash", body: `<p>It smelled of cedar and pipe ash and a third thing she could not name. Later, she would decide it had been the smell of paper that had not been disturbed.</p>
+<p>The window faced east. The window had not been opened in a long time.</p>` },
+    { title: "The chair, the desk, the hands", body: `<p>His chair was pushed in. His desk was clear. The only thing out of place was a small brass weight he had used for keeping a page open against the wind.</p>
+<p>It was holding nothing down. She picked it up, and the weight of it was the weight of him.</p>` },
+  ],
+  ch2: [
+    { title: "What the room held", body: `<p>Three drawers. Two cabinets. A leather case she had never seen before, brass-cornered, with the initials I.V. tooled small at the throat.</p>
+<p>She made a list, because making a list was a thing her mother would have done, and because she was not yet ready to open the case.</p>` },
+    { title: "Petra, at the kitchen window", body: `<p>Petra had let herself in by the back door, the way she always had. She did not offer to help with the inventory. She set a loaf of bread on the table and said nothing about the case.</p>
+<p>"You'll want to be careful which papers you keep," she said, eventually. "Some of them are for keeping. Some are for not."</p>` },
+    { title: "What she would carry away", body: `<p>By dusk Elen had two stacks. A short one and a long one. The short one she put back where she had found it. The long one she put into a satchel and carried into the front room and did not look at again until morning.</p>` },
+  ],
+  ch3: [
+    { title: "The kettle", body: `<p>June was already there, because June was always already there. She had brought the small electric kettle she carried everywhere and the printer's apron she did not need.</p>
+<p>"You haven't slept," she said, without looking up.</p>
+<p>"No."</p>
+<p>"Tea. Then the case. In that order."</p>` },
+    { title: "Two readings, one ink", body: `<p>June opened the leather case at the table. She turned the pages slowly, the way one turns the pages of a book one already knows.</p>
+<p>"This is your father," she said, "to about page sixty. After that, it isn't. Whoever it is uses the same ink. They've gone to some trouble."</p>` },
+  ],
+  ch4: [
+    { title: "A bearing on a page", body: `<p>The bearing was written in a hand Elen did not recognize, in a column Idris had reserved for a footnote that had never been added.</p>
+<p>It read: <em>54° 11' N, 4° 09' W</em>. Below it, a single word: <em>almost</em>.</p>` },
+    { title: "A coast that should not be there", body: `<p>She unrolled the largest of her father's charts on the kitchen table. The bearing pointed to a stretch of water between two known headlands. There was no land there. There had never been land there.</p>
+<p>And yet someone had written it down as if there were.</p>` },
+  ],
+  ch5: [
+    { title: "Old Harbor 7", body: `<p>Old Harbor 7 had been numbered when there were still seven harbours. Now there were four. The number had outlived the use.</p>
+<p>She walked the length of the seawall in a wind that smelled of iron and rope.</p>` },
+    { title: "What the customs house wanted", body: `<p>The customs house had not been a customs house for nine years. Its windows had been boarded, then unboarded, then boarded again, in a sequence that suggested no one in particular was in charge of remembering whether it was a building or a ruin.</p>
+<p>She decided, for the time being, that it was both.</p>` },
+  ],
+  ch6: [
+    { title: "Renn's list", body: `<p>Halvard Renn kept his lists in a small green book. He let Elen see only the page she had asked about, and then only after she had agreed not to copy it.</p>
+<p>"Your father's name is on it," he said. "Twice. The second time was after his death."</p>` },
+    { title: "What lists do not say", body: `<p>"You catalogue what exists," she said. "What about what doesn't?"</p>
+<p>"That isn't my office."</p>
+<p>"Whose office is it?"</p>
+<p>Renn closed the green book. "I don't know," he said. "I have wondered."</p>` },
+  ],
+  ch7: [
+    { title: "The customs house, condemned", body: `<p>The customs house at Old Harbor 7 had been condemned for nine years, which meant it was the most reliable building Elen knew. Condemned was a kind of inheritance. Nothing further could happen to it.</p>
 <p>She climbed the iron stair on the seaward side, the one Renn had told her not to use, and let herself in through the door her father had once rehung.</p>
-<p><em>Almost closed</em>, she thought. <em>That is the whole house. That is the whole ledger.</em></p>
-<p style="text-align:center;color:#888;letter-spacing:.4em">ii</p>
-<p>June was already there. She had brought a printer's apron she did not need and the small electric kettle she carried everywhere.</p>
+<p><em>Almost closed</em>, she thought. <em>That is the whole house. That is the whole ledger.</em></p>` },
+    { title: "June's apron, June's kettle", body: `<p>June was already there. She had brought a printer's apron she did not need and the small electric kettle she carried everywhere.</p>
 <p>"I read the last twelve pages on the train," June said, without looking up. "Twice. And then once more on the platform."</p>
 <p>"And?"</p>
-<p>"It isn't your father. I'd know his hand the way I know my own."</p>
-<p style="text-align:center;color:#888;letter-spacing:.4em">iii</p>
-<p>"Tell me what you're going to do," June said.</p>
+<p>"It isn't your father. I'd know his hand the way I know my own."</p>` },
+    { title: "What she is going to do", body: `<p>"Tell me what you're going to do," June said.</p>
 <p>"I'm going to go and see if it's there," she said.</p>
 <p>"And if it isn't?"</p>
-<p>"Then I'll have to decide whether to put it back."</p>`,
-  ch1: `<h1>What the door remembers</h1>
-<p>The key turned, after some persuasion. The door swung open onto a room her father had not let her into for fifteen years.</p>
-<p>It smelled of cedar and pipe ash and a third thing she could not name.</p>`,
+<p>"Then I'll have to decide whether to put it back."</p>` },
+  ],
+  ch8: [
+    { title: "The question Elen finally asks", body: `<p>It was the first warm evening of the season, and Petra had been quiet for longer than Petra was ever quiet.</p>
+<p>"Was there a coast," Elen said. "Between the headlands. When you were a girl."</p>
+<p>Petra set down her cup. Petra did not look at her.</p>` },
+    { title: "Silence, leaving the room", body: `<p>Petra stood, smoothed her skirt, and walked out through the kitchen and into the garden and did not come back until the bread was cold.</p>
+<p>That, too, Elen decided, was an answer.</p>` },
+  ],
+  ch9: [
+    { title: "Twelve pages, eleven differences", body: `<p>She and June spread the last twelve pages out across the long table at the print shop, in order, and weighted each corner with the brass weights Idris had used.</p>
+<p>They counted differences. They counted eleven. The twelfth page, June said, was the one she could not yet make herself look at.</p>` },
+    { title: "The shape of the letter g", body: `<p>"It's the g," June said, finally. "Your father's g comes down in a straight line. This g loops."</p>
+<p>"That's all?"</p>
+<p>"It's enough. A person doesn't change the way they write a g."</p>` },
+  ],
 };
 
 export const NOTES = [

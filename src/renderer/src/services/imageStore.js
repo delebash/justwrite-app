@@ -1,6 +1,7 @@
 // ============================================================
 // imageStore.js — renderer-side facade over the image IPC bridge,
-// with a localStorage data-URL fallback when running in a browser.
+// with an inline data-URL fallback when running in a browser. The
+// data-URL records get stored in the project snapshot (IndexedDB-backed).
 //
 // The shape of a stored "image" record is:
 //   { id, addedAt, name, kind: "file" | "dataurl", path?, dataUrl? }

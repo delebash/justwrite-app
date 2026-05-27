@@ -1,5 +1,6 @@
 // Project store — entities + chapter bodies + full CRUD.
-// Everything persists to localStorage so reloads remember edits.
+// Everything persists via the IDB-backed storage adapter so reloads
+// remember edits without the 5MB localStorage ceiling.
 // Removals are SOFT — they push to `trash` keyed by kind; restore
 // from TrashView. Each soft-delete fires an Undo toast via uiStore.
 
@@ -8,10 +9,11 @@ import { markRaw } from "vue";
 import { useUiStore } from "./ui.js";
 import { useSessionsStore } from "./sessions.js";
 import { removeImage as removeImageFile } from "../services/imageStore.js";
+import { getItem, setItem, removeItem } from "../services/storage.js";
 import {
   PROJECT, PLOTLINES, CHARACTERS, CHARACTER_EXTRAS, LOCATIONS, OBJECTS,
   PARTS, NOTES, GROUPS, ARCHITECTURE, WORLDBUILDING, WORLDBUILDING_CATEGORIES,
-  CHAPTER_BODY,
+  SCENES,
 } from "../domain/seed.js";
 
 // Multi-project storage:
@@ -28,9 +30,9 @@ const LS_HISTORY_KEY   = "justwrite:project:history";
 
 const uid = (p) => `${p}_${Date.now().toString(36)}_${Math.random().toString(36).slice(2, 6)}`;
 
-function loadJSON(key) { try { return JSON.parse(localStorage.getItem(key) || "null"); } catch { return null; } }
-function saveJSON(key, val) { try { localStorage.setItem(key, JSON.stringify(val)); } catch {} }
-function removeKey(key) { try { localStorage.removeItem(key); } catch {} }
+function loadJSON(key) { try { return JSON.parse(getItem(key) || "null"); } catch { return null; } }
+function saveJSON(key, val) { try { setItem(key, JSON.stringify(val)); } catch {} }
+function removeKey(key) { try { removeItem(key); } catch {} }
 
 function loadRegistry() {
   const v = loadJSON(LS_REGISTRY_KEY);
@@ -173,9 +175,9 @@ export const TRASH_KINDS = Object.keys(EMPTY_TRASH);
 //
 // In-memory we keep up to HISTORY_LIMIT snapshots. On disk we keep at
 // most PERSIST_TAIL_SIZE so a recently-closed app can still recover
-// the last few changes without bloating localStorage. The persist is
-// debounced — a typing session writes once after the user pauses,
-// not on every keystroke.
+// the last few changes without bloating the persisted snapshot. The
+// persist is debounced — a typing session writes once after the user
+// pauses, not on every keystroke.
 const HISTORY_LIMIT = 100;
 const PERSIST_TAIL_SIZE = 10;
 const PERSIST_DEBOUNCE_MS = 1500;
@@ -230,14 +232,13 @@ export const useProjectStore = defineStore("project", {
     architecture: { ...ARCHITECTURE, ...(loaded.architecture || {}) },
     worldbuilding: loaded.worldbuilding || [...WORLDBUILDING],
     worldbuildingCategories: [...WORLDBUILDING_CATEGORIES],
-    // Scenes registry: { [chapterId]: [{ id, title, body }] }. The
-    // CHAPTER_BODY seed (single HTML per chapter) is migrated to a
-    // one-scene record per chapter so a fresh demo project starts the
-    // same as a long-time user reopening their workspace.
+    // Scenes registry: { [chapterId]: [{ id, title, body }] }. Seeded
+    // from the SCENES map — chapters not listed there open empty so the
+    // writer can add their own scenes from the overview pane.
     scenes: loaded.scenes || Object.fromEntries(
-      Object.entries(CHAPTER_BODY).map(([chId, html], i) => [
+      Object.entries(SCENES).map(([chId, list]) => [
         chId,
-        [{ id: `scn_${chId}_1`, title: "", body: html || "" }],
+        list.map((s, i) => ({ id: `scn_${chId}_${i + 1}`, title: s.title || "", body: s.body || "" })),
       ])
     ),
     images: loaded.images || {},
@@ -377,11 +378,11 @@ export const useProjectStore = defineStore("project", {
       const target = Math.max(0, this.parts.findIndex((p) => p.id === partId));
       const partIdx = target >= 0 && partId ? target : this.parts.length - 1;
       const num = this.allChapters.length + 1;
-      // chapter.scenes is now derived live from state.scenes; we don't
-      // persist the count on the chapter object, but a fresh chapter
-      // still gets one empty scene to write into.
+      // chapter.scenes is now derived live from state.scenes; new chapters
+      // start with no scenes — the user adds them via the chapter overview
+      // pane or the sidebar's per-chapter "+ scene" action.
       this.parts[partIdx].chapters.push({ id, num, title, words: 0, status, plotlines: [] });
-      this.scenes = { ...this.scenes, [id]: [{ id: uid("scn"), title: "", body: "" }] };
+      this.scenes = { ...this.scenes, [id]: [] };
       this._persist();
       return id;
     },

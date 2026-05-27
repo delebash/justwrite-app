@@ -3,18 +3,36 @@
 // stores find the IPC adapter the moment they spin up.
 
 import "./services/tauri-bridge.js";
-// Side-effect: reads localStorage and sets <html data-theme> before mount,
-// so a dark-preferring user doesn't see a flash of the light theme.
-import "./services/theme.js";
+// Apply the OS-default theme synchronously so we don't render with the
+// wrong colour scheme during the IDB hydration tick below. The real
+// persisted theme is reapplied after bootStorage resolves.
+import { applyTheme } from "./services/theme.js";
+applyTheme("system");
 
 import { createApp } from "vue";
 import { createPinia } from "pinia";
 import App from "./App.vue";
 import router from "./router/index.js";
+import { bootStorage, getItem } from "./services/storage.js";
 
 import "./assets/styles/tokens.css";
 
-const app = createApp(App);
-app.use(createPinia());
-app.use(router);
-app.mount("#app");
+// Hydrate the storage cache from IndexedDB (and one-shot migrate any
+// leftover localStorage:justwrite:* keys into IDB) BEFORE any Pinia
+// store initialises — stores read from the cache synchronously.
+// Wrapped in an async IIFE to keep the build target compatible with
+// engines that don't support top-level await (esbuild's safari13).
+(async () => {
+  await bootStorage();
+
+  // Now that the cache is populated, re-apply the persisted theme.
+  try {
+    const ui = JSON.parse(getItem("justwrite:ui") || "{}");
+    applyTheme(ui.theme || "system", ui.accentHue);
+  } catch {}
+
+  const app = createApp(App);
+  app.use(createPinia());
+  app.use(router);
+  app.mount("#app");
+})();

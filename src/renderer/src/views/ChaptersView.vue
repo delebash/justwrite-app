@@ -69,6 +69,12 @@ function goToScene(sceneId) {
   if (!ch.value || !sceneId) return;
   router.push(`/chapters/${ch.value.id}/${sceneId}`);
 }
+function openScene(chapterId, sceneId) {
+  if (!chapterId || !sceneId) return;
+  ui.select("chapters", chapterId);
+  router.push(`/chapters/${chapterId}/${sceneId}`);
+  mode.value = "edit";
+}
 function addSceneHere() {
   if (!ch.value) return;
   const id = project.addScene(ch.value.id, {});
@@ -148,6 +154,34 @@ async function addPart() {
   });
   if (!title) return;
   project.addPart({ title });
+}
+async function addChapterToPart(partId) {
+  const title = await promptDialog({
+    title: "New chapter",
+    label: "Chapter title",
+    placeholder: "e.g. The first crossing",
+    confirmLabel: "Create chapter",
+  });
+  if (!title) return;
+  const id = project.addChapter({ title, partId });
+  if (id) { ui.select("chapters", id); router.push(`/chapters/${id}`); mode.value = "outline"; }
+}
+async function addSceneToChapter(chapterId) {
+  const values = await promptDialog({
+    title: "New scene",
+    confirmLabel: "Add scene",
+    fields: [{
+      key: "title",
+      label: "Scene title",
+      placeholder: "Leave blank for an untitled scene",
+      optional: true,
+    }],
+  });
+  if (!values) return;
+  const t = (values.title || "").trim();
+  const id = project.addScene(chapterId, t ? { title: t } : {});
+  ui.expanded = { ...ui.expanded, [`chapter:${chapterId}`]: true };
+  // Stay in outline mode so the user sees the new scene appear in place.
 }
 
 async function deletePart(part) {
@@ -246,24 +280,25 @@ onBeforeUnmount(() => window.removeEventListener("keydown", onKey));
   </PaneHeader>
 
   <!-- ── OUTLINE MODE ─────────────────────────────────────────── -->
-  <div v-if="ch && mode === 'outline'" class="scrollarea" style="flex:1;padding:22px 28px 60px;background:var(--surface)">
-    <div style="max-width:820px;margin:0 auto">
-      <section v-for="(part, pi) in project.parts" :key="part.id" class="outline-section">
-        <div class="outline-part-row">
-          <input class="outline-part-input"
+  <div v-if="ch && mode === 'outline'" class="scrollarea outline-pane">
+    <div class="outline-tree">
+      <section v-for="(part, pi) in project.parts" :key="part.id" class="ol-part">
+        <div class="ol-part-row">
+          <span class="ol-part-eyebrow">Part {{ pi + 1 }}</span>
+          <input class="ol-part-title"
             :value="part.title"
-            placeholder="Part title"
+            placeholder="Untitled part"
             @input="updatePartTitle(part.id, $event.target.value)" />
-          <div class="outline-part-actions">
+          <div class="ol-row-actions">
             <button class="btn ghost icon sm"
               :disabled="pi === 0"
-              :title="pi === 0 ? 'Already the first part' : 'Move part up'"
+              title="Move part up"
               @click="movePart(part.id, -1)">
               <Icon name="ChevRight" :size="12" style="transform:rotate(-90deg)" />
             </button>
             <button class="btn ghost icon sm"
               :disabled="pi === project.parts.length - 1"
-              :title="pi === project.parts.length - 1 ? 'Already the last part' : 'Move part down'"
+              title="Move part down"
               @click="movePart(part.id, 1)">
               <Icon name="ChevRight" :size="12" style="transform:rotate(90deg)" />
             </button>
@@ -275,48 +310,55 @@ onBeforeUnmount(() => window.removeEventListener("keydown", onKey));
             </button>
           </div>
         </div>
-        <div class="outline-list">
-          <div v-for="c in part.chapters" :key="c.id"
-            class="outline-row" :class="{ current: c.id === ch.id }"
-            @click="goToEdit(c.id)">
-            <span class="status-dot" :class="c.status" style="margin-top:8px" />
-            <span class="outline-num">{{ c.num }}</span>
-            <div style="flex:1;min-width:0">
-              <input class="outline-ttl"
+
+        <div class="ol-chapter-list">
+          <div v-for="c in part.chapters" :key="c.id" class="ol-chapter">
+            <div class="ol-chapter-row" :class="{ current: c.id === ch.id }"
+              @click="goToEdit(c.id)">
+              <span class="status-dot" :class="c.status" />
+              <span class="ol-chapter-num">{{ c.num }}</span>
+              <input class="ol-chapter-title"
                 :value="c.title"
+                placeholder="Untitled chapter"
                 @click.stop
                 @input="updateTitle(c.id, $event.target.value)" />
-              <div class="outline-meta">
-                <span class="t-muted" style="font-size:11px">{{ STATUS_LABEL[c.status] }} · {{ c.scenes }} scene{{ c.scenes === 1 ? '' : 's' }}</span>
-                <span v-if="speakersByChapter[c.id]?.length" class="speakers-chip"
-                  :title="speakersByChapter[c.id].map(s => s.name).join(', ')">
-                  <Icon name="Comment" :size="10" />
-                  {{ speakersByChapter[c.id].length }} speaker{{ speakersByChapter[c.id].length === 1 ? "" : "s" }}
-                </span>
-                <label v-if="project.parts.length > 1" class="outline-move" @click.stop>
-                  <span class="t-muted" style="font-size:11px">Move to</span>
-                  <select class="outline-move-select"
+              <span class="ol-chapter-meta">
+                {{ c.scenes }} scene{{ c.scenes === 1 ? '' : 's' }} · {{ c.words.toLocaleString() }} words
+              </span>
+              <div class="ol-row-actions">
+                <label v-if="project.parts.length > 1" class="ol-move-to" @click.stop>
+                  <select class="ol-move-select"
                     :value="part.id"
                     @click.stop
                     @change="moveChapterPart(c.id, $event.target.value)">
-                    <option v-for="p in project.parts" :key="p.id" :value="p.id">{{ p.title }}</option>
+                    <option v-for="p in project.parts" :key="p.id" :value="p.id">Move to: {{ p.title }}</option>
                   </select>
                 </label>
               </div>
-              <p v-if="snippetFor(c.id)" class="outline-snip">{{ snippetFor(c.id) }}</p>
-              <p v-else class="outline-snip empty">No prose yet</p>
             </div>
-            <div class="outline-words">
-              <b class="t-num">{{ c.words.toLocaleString() }}</b>
-              <div class="t-muted" style="font-size:10.5px">words</div>
+
+            <div class="ol-scene-list">
+              <div v-for="(scn, si) in project.scenesFor(c.id)" :key="scn.id"
+                class="ol-scene-row"
+                @click="openScene(c.id, scn.id)">
+                <span class="ol-scene-bullet">{{ c.num }}.{{ si + 1 }}</span>
+                <input class="ol-scene-title"
+                  :value="scn.title"
+                  :placeholder="`Scene ${si + 1}`"
+                  @click.stop
+                  @input="project.setSceneTitle(c.id, scn.id, $event.target.value)" />
+              </div>
+              <button class="ol-add ol-add-scene" @click="addSceneToChapter(c.id)">
+                <Icon name="Plus" :size="11" /> Add scene
+              </button>
             </div>
           </div>
-          <div v-if="!part.chapters.length" class="outline-empty-part">
-            No chapters in this part yet.
-          </div>
+          <button class="ol-add ol-add-chapter" @click="addChapterToPart(part.id)">
+            <Icon name="Plus" :size="11" /> Add chapter
+          </button>
         </div>
       </section>
-      <button class="btn ghost outline-add-part" @click="addPart">
+      <button class="btn ghost ol-add-part" @click="addPart">
         <Icon name="Plus" :size="13" /> New part
       </button>
     </div>
@@ -412,9 +454,11 @@ onBeforeUnmount(() => window.removeEventListener("keydown", onKey));
       <div v-else class="chapter-overview">
         <h2 class="chapter-overview-title">{{ ch.title }}</h2>
         <p class="chapter-overview-hint">
-          Pick a scene below (or from the sidebar) to start writing.
+          {{ scenes.length
+              ? "Pick a scene below (or from the sidebar) to start writing."
+              : "This chapter has no scenes yet. Add one to start writing." }}
         </p>
-        <div class="chapter-overview-scenes">
+        <div v-if="scenes.length" class="chapter-overview-scenes">
           <button v-for="(scn, sIdx) in scenes" :key="scn.id"
             class="overview-scene-card"
             @click="goToScene(scn.id)">
@@ -424,7 +468,7 @@ onBeforeUnmount(() => window.removeEventListener("keydown", onKey));
           </button>
         </div>
         <button class="overview-add-scene" @click="addSceneHere">
-          <Icon name="Plus" :size="13" /> Add another scene
+          <Icon name="Plus" :size="13" /> {{ scenes.length ? "Add another scene" : "Add first scene" }}
         </button>
       </div>
     </div>
@@ -462,50 +506,187 @@ onBeforeUnmount(() => window.removeEventListener("keydown", onKey));
 .seg-toggle button:hover { background: var(--surface-3); color: var(--ink); }
 .seg-toggle button.active { background: var(--surface); color: var(--ink); box-shadow: var(--shadow-1), 0 0 0 1px var(--border); }
 
-/* ── Outline ───────────────────────────────────────────────── */
-.outline-section { margin-bottom: 36px; }
-.outline-part {
-  font-family: var(--font-serif);
-  font-weight: 600; font-size: 18px;
-  letter-spacing: -0.01em;
-  margin: 0 0 14px;
-  color: var(--ink);
-  padding-bottom: 10px;
-  border-bottom: 1px solid var(--border-soft);
+/* ── Outline (tree) ────────────────────────────────────────── */
+.outline-pane {
+  flex: 1;
+  padding: 22px 28px 60px;
+  background: var(--surface);
 }
-.outline-part-row {
-  display: flex; align-items: center; gap: 8px;
-  margin: 0 0 14px;
-  padding-bottom: 10px;
-  border-bottom: 1px solid var(--border-soft);
+.outline-tree {
+  max-width: 860px;
+  margin: 0 auto;
 }
-.outline-part-input {
+
+/* Part — level 0 */
+.ol-part { margin-bottom: 28px; }
+.ol-part-row {
+  display: flex; align-items: center; gap: 10px;
+  padding: 4px 6px 8px;
+  border-bottom: 1px solid var(--border);
+  margin-bottom: 6px;
+}
+.ol-part-eyebrow {
+  font-size: 10px; font-weight: 700;
+  text-transform: uppercase; letter-spacing: 0.1em;
+  color: var(--muted);
+  flex-shrink: 0;
+}
+.ol-part-title {
   flex: 1; min-width: 0;
   appearance: none;
   background: transparent;
   border: 1px solid transparent;
   border-radius: 6px;
   padding: 4px 8px;
-  margin-left: -8px;  /* keep optical left-edge alignment with chapter rows */
+  margin-left: -4px;
   font-family: var(--font-serif);
-  font-weight: 600; font-size: 18px;
+  font-weight: 600; font-size: 19px;
   letter-spacing: -0.01em;
   color: var(--ink);
+  outline: none;
 }
-.outline-part-input:hover { border-color: var(--border-soft); }
-.outline-part-input:focus { border-color: var(--accent); background: var(--surface); outline: none; box-shadow: 0 0 0 3px var(--accent-soft); }
-.outline-part-actions {
-  display: flex; align-items: center; gap: 2px;
-  opacity: 0.35;
-  transition: opacity 0.1s ease;
-}
-.outline-part-row:hover .outline-part-actions,
-.outline-part-input:focus + .outline-part-actions { opacity: 1; }
-.outline-part-actions .btn:disabled { opacity: 0.3; cursor: not-allowed; }
+.ol-part-title:hover { border-color: var(--border-soft); }
+.ol-part-title:focus { border-color: var(--accent); background: var(--surface-2); box-shadow: 0 0 0 2px var(--accent-soft); }
 
-.outline-add-part {
+/* Chapter list — level 1, indented under part */
+.ol-chapter-list {
+  display: flex; flex-direction: column;
+  gap: 2px;
+  padding-left: 22px;
+  border-left: 1px solid var(--border-soft);
+  margin-left: 6px;
+}
+.ol-chapter { display: flex; flex-direction: column; }
+.ol-chapter-row {
+  display: grid;
+  grid-template-columns: auto auto 1fr auto auto;
+  align-items: center;
+  gap: 10px;
+  padding: 6px 8px;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: background .12s ease;
+}
+.ol-chapter-row:hover { background: var(--surface-2); }
+.ol-chapter-row.current { background: var(--accent-soft); }
+.ol-chapter-num {
+  font-variant-numeric: tabular-nums;
+  font-family: var(--font-serif); font-style: italic;
+  color: var(--muted); font-size: 13px;
+  width: 22px; text-align: right;
+}
+.ol-chapter-title {
+  min-width: 0;
+  appearance: none;
+  background: transparent;
+  border: 1px solid transparent;
+  border-radius: 5px;
+  padding: 3px 6px;
+  font-family: var(--font-serif);
+  font-size: 15px; font-weight: 600;
+  letter-spacing: -0.005em;
+  color: var(--ink);
+  outline: none;
+}
+.ol-chapter-title:hover { border-color: var(--border-soft); }
+.ol-chapter-title:focus { border-color: var(--accent); background: var(--surface); box-shadow: 0 0 0 2px var(--accent-soft); }
+.ol-chapter-meta {
+  font-size: 11px;
+  color: var(--muted);
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+
+.ol-row-actions {
+  display: flex; align-items: center; gap: 4px;
+  opacity: 0.4;
+  transition: opacity .1s ease;
+}
+.ol-part-row:hover .ol-row-actions,
+.ol-chapter-row:hover .ol-row-actions { opacity: 1; }
+.ol-row-actions .btn:disabled { opacity: 0.3; cursor: not-allowed; }
+
+/* Move-to chapter→part dropdown */
+.ol-move-to { display: inline-flex; align-items: center; }
+.ol-move-select {
+  appearance: none;
+  border: 1px solid var(--border);
+  background: var(--surface);
+  border-radius: 5px;
+  padding: 2px 6px;
+  font: inherit;
+  font-size: 11px;
+  color: var(--ink-2);
+  max-width: 200px;
+}
+.ol-move-select:hover { border-color: var(--border-strong); color: var(--ink); }
+.ol-move-select:focus { outline: none; border-color: var(--accent); box-shadow: 0 0 0 2px var(--accent-soft); }
+
+/* Scene list — level 2, indented under chapter */
+.ol-scene-list {
+  display: flex; flex-direction: column;
+  gap: 1px;
+  padding-left: 22px;
+  border-left: 1px dashed var(--border-soft);
+  margin-left: 18px;
+  margin-bottom: 6px;
+}
+.ol-scene-row {
+  display: grid;
+  grid-template-columns: auto 1fr;
+  align-items: center;
+  gap: 10px;
+  padding: 4px 8px;
+  border-radius: 5px;
+  cursor: pointer;
+  transition: background .12s ease;
+}
+.ol-scene-row:hover { background: var(--surface-2); }
+.ol-scene-bullet {
+  font-variant-numeric: tabular-nums;
+  font-family: var(--font-mono);
+  color: var(--subtle);
+  font-size: 10.5px;
+  width: 28px;
+  text-align: right;
+}
+.ol-scene-title {
+  min-width: 0;
+  appearance: none;
+  background: transparent;
+  border: 1px solid transparent;
+  border-radius: 4px;
+  padding: 2px 6px;
+  font-family: var(--font-serif);
+  font-style: italic;
+  font-size: 13px;
+  color: var(--ink-2);
+  outline: none;
+}
+.ol-scene-title:hover { border-color: var(--border-soft); color: var(--ink); }
+.ol-scene-title:focus { border-color: var(--accent); background: var(--surface); color: var(--ink); box-shadow: 0 0 0 2px var(--accent-soft); font-style: normal; }
+.ol-scene-title::placeholder { color: var(--subtle); }
+
+/* "+ Add" buttons at each level (scene / chapter / part) */
+.ol-add {
+  display: inline-flex; align-items: center; gap: 5px;
+  border: 0;
+  background: transparent;
+  color: var(--muted);
+  font: inherit;
+  font-size: 11.5px;
+  font-weight: 500;
+  padding: 4px 8px;
+  border-radius: 5px;
+  cursor: pointer;
+  text-align: left;
+}
+.ol-add:hover { color: var(--accent); background: var(--accent-soft); }
+.ol-add-scene { margin: 2px 0 4px; }
+.ol-add-chapter { margin-top: 4px; align-self: flex-start; }
+.ol-add-part {
   display: flex; align-items: center; gap: 6px;
-  margin-top: 8px;
+  margin-top: 10px;
   padding: 10px 14px;
   width: 100%;
   justify-content: center;
@@ -514,8 +695,10 @@ onBeforeUnmount(() => window.removeEventListener("keydown", onKey));
   color: var(--muted);
   font-size: 12.5px;
   font-weight: 500;
+  border-radius: 10px;
+  cursor: pointer;
 }
-.outline-add-part:hover { background: var(--surface-2); color: var(--ink); }
+.ol-add-part:hover { background: var(--surface-2); color: var(--ink); border-color: var(--accent); }
 
 /* ── Scene strip (Edit mode) ──────────────────────────────── */
 /* Thin top bar above the editor with prev/next nav, current scene
@@ -677,85 +860,6 @@ onBeforeUnmount(() => window.removeEventListener("keydown", onKey));
   border-color: var(--accent);
 }
 
-.outline-move {
-  display: inline-flex; align-items: center; gap: 4px;
-  margin-left: auto;
-}
-.outline-move-select {
-  appearance: none;
-  border: 1px solid var(--border);
-  background: var(--surface);
-  border-radius: 5px;
-  padding: 2px 6px;
-  font: inherit;
-  font-size: 11px;
-  color: var(--ink-2);
-  max-width: 180px;
-}
-.outline-move-select:hover { border-color: var(--border-strong); color: var(--ink); }
-.outline-move-select:focus { outline: none; border-color: var(--accent); box-shadow: 0 0 0 2px var(--accent-soft); }
-
-
-.outline-empty-part {
-  font-size: 12px; font-style: italic; color: var(--muted);
-  padding: 14px 16px;
-  border: 1px dashed var(--border-soft);
-  border-radius: 10px;
-  text-align: center;
-}
-
-.outline-list { display: flex; flex-direction: column; gap: 6px; }
-
-.outline-row {
-  display: grid;
-  grid-template-columns: auto auto 1fr auto;
-  gap: 14px;
-  padding: 14px 16px;
-  background: var(--surface);
-  border: 1px solid var(--border-soft);
-  border-radius: 10px;
-  cursor: default;
-  transition: background .1s ease, border-color .1s ease;
-}
-.outline-row:hover { background: var(--surface-2); border-color: var(--border); }
-.outline-row.current { background: var(--accent-soft); border-color: var(--accent-line); }
-
-.outline-num {
-  font-family: var(--font-serif); font-style: italic;
-  font-variant-numeric: tabular-nums;
-  color: var(--muted);
-  font-size: 18px;
-  width: 28px; text-align: right;
-  padding-top: 2px;
-}
-
-.outline-ttl {
-  font-family: var(--font-serif);
-  font-size: 16px; font-weight: 600;
-  letter-spacing: -0.01em;
-  color: var(--ink);
-  border: 0; background: transparent; padding: 0;
-  width: 100%;
-  outline: none;
-}
-.outline-ttl:focus { background: var(--surface); padding: 2px 6px; border-radius: 4px; }
-
-.outline-meta {
-  display: flex; gap: 10px; align-items: center;
-  flex-wrap: wrap;
-  margin-top: 4px; margin-bottom: 8px;
-}
-
-.outline-snip {
-  margin: 0;
-  font-family: var(--font-serif);
-  font-size: 13.5px; line-height: 1.55;
-  color: var(--ink-2);
-  display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical;
-  overflow: hidden;
-}
-.outline-snip.empty { color: var(--subtle); font-style: italic; }
-
 .speakers-chip {
   display: inline-flex; align-items: center; gap: 4px;
   padding: 1px 6px;
@@ -764,12 +868,6 @@ onBeforeUnmount(() => window.removeEventListener("keydown", onKey));
   border-radius: 4px;
   font-size: 10.5px;
   font-weight: 500;
-}
-
-.outline-words {
-  text-align: right;
-  align-self: center;
-  min-width: 60px;
 }
 
 /* ── Read mode ─────────────────────────────────────────────── */

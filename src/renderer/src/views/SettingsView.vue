@@ -6,6 +6,7 @@ import { useUiStore } from "../stores/ui.js";
 import { saveImage, urlFor, hasNativeImages } from "../services/imageStore.js";
 import { getParamSchema } from "../domain/providerParams.js";
 import { promptDialog, confirmDialog } from "../services/dialog.js";
+import { getItem, setItem, clearPrefix, flushPending } from "../services/storage.js";
 import PaneHeader from "../components/PaneHeader.vue";
 import Icon from "../components/Icon.vue";
 
@@ -169,7 +170,7 @@ const backupBusy = ref(false);
 const backupError = ref(null);
 const importMessage = ref(null);
 const importFile = ref(null);
-const lastBackupAt = ref(localStorage.getItem("justwrite:lastBackupAt") || null);
+const lastBackupAt = ref(getItem("justwrite:lastBackupAt") || null);
 
 function safeFilename(title) {
   const base = (title || "justwrite").replace(/[^\w\d-]+/g, "_").replace(/^_+|_+$/g, "");
@@ -199,7 +200,7 @@ async function exportBackup() {
       setTimeout(() => URL.revokeObjectURL(url), 1000);
     }
     const now = new Date().toISOString();
-    localStorage.setItem("justwrite:lastBackupAt", now);
+    setItem("justwrite:lastBackupAt", now);
     lastBackupAt.value = now;
     ui.showToast({ message: "Backup saved." });
   } catch (err) {
@@ -254,9 +255,8 @@ async function resetWorkspace() {
   });
   if (typed !== "RESET") return;
   try {
-    for (const k of Object.keys(localStorage)) {
-      if (k.startsWith("justwrite:")) localStorage.removeItem(k);
-    }
+    flushPending();
+    await clearPrefix("justwrite:");
   } catch {}
   location.reload();
 }
@@ -392,7 +392,7 @@ const stats = computed(() => {
 
               <div class="t-muted" style="font-size:11px;display:inline-flex;gap:5px;align-items:center;font-family:var(--font-mono)">
                 <Icon :name="hasNativeImages ? 'Check' : 'Alert'" :size="11" />
-                {{ hasNativeImages ? "Cover is saved to your app folder." : "Browser preview — cover lives in localStorage." }}
+                {{ hasNativeImages ? "Cover is saved to your app folder." : "Browser preview — cover lives in IndexedDB as a data URL." }}
               </div>
             </div>
           </div>
@@ -715,7 +715,7 @@ const stats = computed(() => {
           </p>
           <div style="display:grid;grid-template-columns:140px 1fr;gap:10px 14px;font-size:13px;align-items:center;margin-bottom:12px">
             <span class="t-muted">Stored locally</span>
-            <span><b>justwrite:project</b> + sibling keys in <code>localStorage</code></span>
+            <span><b>justwrite:project</b> + sibling keys in <code>IndexedDB</code></span>
             <span class="t-muted">Last backup</span>
             <span>{{ lastBackupLabel }}</span>
             <span class="t-muted">Platform save</span>
@@ -739,7 +739,7 @@ const stats = computed(() => {
         <div class="card danger-card">
           <div class="card-title" style="color: var(--danger-ink)">Danger zone</div>
           <p class="t-muted" style="font-size:12.5px;margin:0 0 12px;line-height:1.55">
-            Wipes every <code>justwrite:*</code> key from localStorage — project, history, AI providers, voice cast, sessions — and reloads with the demo seed. Take a backup first.
+            Wipes every <code>justwrite:*</code> key from IndexedDB — project, history, AI providers, voice cast, sessions — and reloads with the demo seed. Take a backup first.
           </p>
           <button class="btn btn-danger" @click="resetWorkspace">
             <Icon name="Alert" :size="13" />
@@ -758,7 +758,7 @@ const stats = computed(() => {
           <div style="display:grid;grid-template-columns:160px 1fr;gap:8px 14px;font-size:13px">
             <span class="t-muted">Runtime</span><span>{{ platformLabel }}</span>
             <span class="t-muted">Renderer</span><span>Vue 3 + Pinia</span>
-            <span class="t-muted">Image storage</span><span>{{ hasNativeImages ? "Native file system" : "localStorage data URLs" }}</span>
+            <span class="t-muted">Image storage</span><span>{{ hasNativeImages ? "Native file system" : "IndexedDB data URLs" }}</span>
           </div>
         </div>
 

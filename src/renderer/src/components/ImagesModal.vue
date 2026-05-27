@@ -88,7 +88,7 @@ async function remove(img) {
           <Icon :name="hasNativeImages ? 'Check' : 'Alert'" :size="11" />
           {{ hasNativeImages
             ? "Images saved to disk in your app folder."
-            : "Browser preview — images live in localStorage and may exceed the quota for large files." }}
+            : "Browser preview — images are embedded in the IndexedDB project snapshot as data URLs." }}
         </div>
       </div>
     </div>

@@ -1,13 +1,9 @@
 // Theme application.
 //
-// Reads `justwrite:ui` from localStorage at module-load time and applies
-// the resolved theme to <html> BEFORE Vue mounts, so we don't flash a
-// light theme on dark-preferring users.
-//
-// Once the ui store is alive, `applyTheme(theme, accentHue)` is the
-// reactive entry point — call it from a watchEffect.
-
-const STORAGE_KEY = "justwrite:ui";
+// `applyTheme(theme, accentHue)` is the only entry point. Called once
+// pre-mount from main.js with "system" as a placeholder, then again
+// after the storage cache is hydrated with the persisted preference,
+// and reactively from App.vue while the user changes it in Settings.
 
 const mql = typeof window !== "undefined" && window.matchMedia
   ? window.matchMedia("(prefers-color-scheme: dark)")
@@ -47,12 +43,3 @@ export function applyTheme(theme, accentHue) {
 }
 
 export function currentMode() { return lastResolvedMode; }
-
-// Apply the persisted preference immediately on module load.
-try {
-  const raw = localStorage.getItem(STORAGE_KEY);
-  const parsed = raw ? JSON.parse(raw) : {};
-  applyTheme(parsed?.theme || "system", parsed?.accentHue);
-} catch {
-  applyTheme("system");
-}

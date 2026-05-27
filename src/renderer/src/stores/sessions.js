@@ -18,6 +18,7 @@
 // ============================================================
 
 import { defineStore } from "pinia";
+import { getItem, setItem } from "../services/storage.js";
 
 const LS_KEY = "justwrite:sessions";
 
@@ -27,12 +28,12 @@ const LS_KEY = "justwrite:sessions";
 const MAX_DAYS = 400;
 
 function load() {
-  try { return JSON.parse(localStorage.getItem(LS_KEY) || "null"); }
+  try { return JSON.parse(getItem(LS_KEY) || "null"); }
   catch { return null; }
 }
 function save(state) {
   try {
-    localStorage.setItem(LS_KEY, JSON.stringify({
+    setItem(LS_KEY, JSON.stringify({
       days: state.days,
       months: state.months,
       lastSeen: state.lastSeen,

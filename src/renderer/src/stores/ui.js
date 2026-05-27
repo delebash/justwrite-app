@@ -1,17 +1,19 @@
 // UI store — sidebar collapse, expanded sections, current selections,
-// transient toast notifications. Most state persists to localStorage so
-// the user's preferences survive reload (toasts don't).
+// transient toast notifications. Most state persists across reloads
+// (toasts don't). Backed by the IndexedDB-backed storage adapter; reads
+// are synchronous against the cache that's hydrated at app boot.
 
 import { defineStore } from "pinia";
+import { getItem, setItem } from "../services/storage.js";
 
 const LS_KEY = "justwrite:ui";
 
 function load() {
-  try { return JSON.parse(localStorage.getItem(LS_KEY) || "{}"); } catch { return {}; }
+  try { return JSON.parse(getItem(LS_KEY) || "{}"); } catch { return {}; }
 }
 
 function save(state) {
-  try { localStorage.setItem(LS_KEY, JSON.stringify(state)); } catch {}
+  try { setItem(LS_KEY, JSON.stringify(state)); } catch {}
 }
 
 let toastSeq = 0;

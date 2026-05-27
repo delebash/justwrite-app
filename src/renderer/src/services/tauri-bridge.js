@@ -6,7 +6,7 @@
 // Lives as a side-effect import in main.js so `window.justwrite` is
 // populated before any Pinia store mounts. Outside a Tauri webview
 // (e.g. plain `vite dev` in a browser tab) this is a no-op and the
-// renderer falls back to its localStorage / data-URL paths.
+// renderer falls back to its IndexedDB / data-URL paths.
 // ============================================================
 
 import { invoke } from "@tauri-apps/api/core";

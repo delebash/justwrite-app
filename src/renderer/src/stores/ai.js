@@ -1,15 +1,16 @@
 // AI store — manages providers (OpenAI-compatible), default LLM and TTS,
-// connection status. Persists to localStorage.
+// connection status. Persists via the IDB-backed storage adapter.
 
 import { defineStore } from "pinia";
 import { DEFAULT_PROVIDERS } from "../domain/seed.js";
 import { OpenAICompatClient } from "../services/openai-compat.js";
+import { getItem, setItem } from "../services/storage.js";
 
 const LS_KEY = "justwrite:ai";
 
 function load() {
   try {
-    const v = JSON.parse(localStorage.getItem(LS_KEY) || "null");
+    const v = JSON.parse(getItem(LS_KEY) || "null");
     if (!v || !Array.isArray(v.providers)) return null;
     // Migration: drop the removed Web Speech provider from persisted state
     // and reset defaults that pointed at it.
@@ -23,7 +24,7 @@ function load() {
 
 function save(state) {
   try {
-    localStorage.setItem(LS_KEY, JSON.stringify({
+    setItem(LS_KEY, JSON.stringify({
       providers: state.providers,
       defaultLlmId: state.defaultLlmId,
       defaultTtsId: state.defaultTtsId,

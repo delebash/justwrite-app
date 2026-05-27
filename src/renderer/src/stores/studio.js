@@ -2,12 +2,13 @@
 
 import { defineStore } from "pinia";
 import { DEFAULT_CAST, SAMPLE_VOICES, SCRIPT_CH7, RENDER_QUEUE } from "../domain/seed.js";
+import { getItem, setItem } from "../services/storage.js";
 
 const LS_KEY = "justwrite:studio";
 
 function load() {
   try {
-    const v = JSON.parse(localStorage.getItem(LS_KEY) || "null");
+    const v = JSON.parse(getItem(LS_KEY) || "null");
     if (!v) return null;
     // Migration: drop voices that belonged to the removed Web Speech
     // provider. Cast slots pointing at those voices fall back to null
@@ -21,7 +22,7 @@ function load() {
 function save(state) {
   try {
     // Scripts go on disk too — speaker-detection results survive reload.
-    localStorage.setItem(LS_KEY, JSON.stringify({
+    setItem(LS_KEY, JSON.stringify({
       cast: state.cast,
       voices: state.voices,
       scripts: state.scripts,
