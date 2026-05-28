@@ -26,7 +26,7 @@ const index = computed(() => buildIndex({
   objects: project.objects,
   notes: project.notes,
   groups: project.groups,
-  plotlines: project.plotlines,
+  strands: project.strands,
   worldbuilding: project.worldbuilding,
   architecture: project.architecture,
 }, studio.speakersByChapter));

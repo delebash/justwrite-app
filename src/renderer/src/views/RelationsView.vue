@@ -154,7 +154,7 @@ function buildEdges(known) {
           ...(Array.isArray(scn.objects)    ? scn.objects    : []),
         ];
         addAllPairs(ids, `Scene: ${scn.title || `Ch.${ch.num}`}`);
-        for (const strandId of (scn.plotlines || [])) {
+        for (const strandId of (scn.strands || [])) {
           let set = strandMembers.get(strandId);
           if (!set) { set = new Set(); strandMembers.set(strandId, set); }
           for (const id of ids) set.add(id);
@@ -166,7 +166,7 @@ function buildEdges(known) {
   // 3. Strand membership — every entity that appears in any scene
   //    tagged with the same strand gets connected to every other
   //    entity in that strand's set.
-  const strandsById = new Map((project.plotlines || []).map((s) => [s.id, s]));
+  const strandsById = new Map((project.strands || []).map((s) => [s.id, s]));
   for (const [strandId, set] of strandMembers) {
     if (set.size < 2) continue;
     const strand = strandsById.get(strandId);

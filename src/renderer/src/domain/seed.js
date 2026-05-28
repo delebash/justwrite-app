@@ -19,7 +19,7 @@ export const PROJECT = {
   coverImage: null,
 };
 
-export const PLOTLINES = [
+export const STRANDS = [
   { id: "s1", name: "Inheritance",      color: "oklch(0.82 0.08 75)",  status: "open", blurb: "Elen's reckoning with what her father left behind — and whether to honour it.", beats: [] },
   { id: "s2", name: "The Ledger",       color: "oklch(0.78 0.06 200)", status: "open", blurb: "The book itself: who has read it, who has added to it, what its last twelve pages mean.", beats: [
     { id: "b_s2_1", chapterId: "ch4", sceneId: "scn_ch4_1", label: "Inciting", note: "Elen finds the bearing that doesn't match any chart she owns." },
@@ -126,23 +126,23 @@ export const OBJECTS = [
 
 export const PARTS = [
   { id: "p1", title: "The Inheritance", chapters: [
-    { id: "ch1", num: 1, title: "What the door remembers",       words: 3120, status: "done",   plotlines: ["s1"],       scenes: 3 },
-    { id: "ch2", num: 2, title: "An inventory in two hands",     words: 2840, status: "done",   plotlines: ["s1", "s2", "s4"], scenes: 4 },
-    { id: "ch3", num: 3, title: "June, with a printer's apron",  words: 2210, status: "revise", plotlines: ["s1", "s2"], scenes: 2 },
-    { id: "ch4", num: 4, title: "A bearing no one recognizes",   words: 3640, status: "done",   plotlines: ["s2", "s3"], scenes: 4 },
+    { id: "ch1", num: 1, title: "What the door remembers",       words: 3120, status: "done",   strands: ["s1"],       scenes: 3 },
+    { id: "ch2", num: 2, title: "An inventory in two hands",     words: 2840, status: "done",   strands: ["s1", "s2", "s4"], scenes: 4 },
+    { id: "ch3", num: 3, title: "June, with a printer's apron",  words: 2210, status: "revise", strands: ["s1", "s2"], scenes: 2 },
+    { id: "ch4", num: 4, title: "A bearing no one recognizes",   words: 3640, status: "done",   strands: ["s2", "s3"], scenes: 4 },
   ]},
   { id: "p2", title: "The Ledger", chapters: [
-    { id: "ch5", num: 5, title: "Old Harbor 7",                  words: 3010, status: "done",   plotlines: ["s3"],       scenes: 3 },
-    { id: "ch6", num: 6, title: "Renn keeps a list",             words: 2480, status: "draft",  plotlines: ["s2"],       scenes: 3 },
-    { id: "ch7", num: 7, title: "Brackish Cove, at low tide",    words: 3995, status: "draft",  plotlines: ["s3", "s5"], scenes: 5 },
-    { id: "ch8", num: 8, title: "Petra refuses the chair",       words: 1820, status: "revise", plotlines: ["s4"],       scenes: 2 },
-    { id: "ch9", num: 9, title: "The hand that wrote the last twelve pages", words: 2640, status: "draft", plotlines: ["s2"], scenes: 3 },
+    { id: "ch5", num: 5, title: "Old Harbor 7",                  words: 3010, status: "done",   strands: ["s3"],       scenes: 3 },
+    { id: "ch6", num: 6, title: "Renn keeps a list",             words: 2480, status: "draft",  strands: ["s2"],       scenes: 3 },
+    { id: "ch7", num: 7, title: "Brackish Cove, at low tide",    words: 3995, status: "draft",  strands: ["s3", "s5"], scenes: 5 },
+    { id: "ch8", num: 8, title: "Petra refuses the chair",       words: 1820, status: "revise", strands: ["s4"],       scenes: 2 },
+    { id: "ch9", num: 9, title: "The hand that wrote the last twelve pages", words: 2640, status: "draft", strands: ["s2"], scenes: 3 },
   ]},
   { id: "p3", title: "What Returns", chapters: [
-    { id: "ch10", num: 10, title: "St. Eira's, between tides",   words: 2380, status: "draft", plotlines: ["s5", "s3"], scenes: 3 },
-    { id: "ch11", num: 11, title: "Tomas, who is older than he is", words: 1840, status: "todo", plotlines: ["s5"],     scenes: 2 },
-    { id: "ch12", num: 12, title: "The unsent letter",           words: 1640, status: "todo", plotlines: ["s4", "s5"], scenes: 2 },
-    { id: "ch13", num: 13, title: "A bearing, taken twice",      words: 950,  status: "todo", plotlines: ["s5", "s3", "s2", "s1"], scenes: 3 },
+    { id: "ch10", num: 10, title: "St. Eira's, between tides",   words: 2380, status: "draft", strands: ["s5", "s3"], scenes: 3 },
+    { id: "ch11", num: 11, title: "Tomas, who is older than he is", words: 1840, status: "todo", strands: ["s5"],     scenes: 2 },
+    { id: "ch12", num: 12, title: "The unsent letter",           words: 1640, status: "todo", strands: ["s4", "s5"], scenes: 2 },
+    { id: "ch13", num: 13, title: "A bearing, taken twice",      words: 950,  status: "todo", strands: ["s5", "s3", "s2", "s1"], scenes: 3 },
   ]},
 ];
 
@@ -154,93 +154,93 @@ export const PARTS = [
 export const SCENES = {
   ch1: [
     { title: "The key, after persuasion",
-      characters: ["c1"], locations: ["l1"], plotlines: ["s1"],
+      characters: ["c1"], locations: ["l1"], strands: ["s1"],
       body: `<p>The key turned, after some persuasion. The door swung open onto a room her father had not let her into for fifteen years.</p>
 <p>She stood in the doorway for the length of one breath, two. The kettle in the kitchen had begun to whistle, and she let it.</p>` },
     { title: "Cedar and pipe ash",
-      characters: ["c1"], locations: ["l1"], plotlines: ["s1"],
+      characters: ["c1"], locations: ["l1"], strands: ["s1"],
       body: `<p>It smelled of cedar and pipe ash and a third thing she could not name. Later, she would decide it had been the smell of paper that had not been disturbed.</p>
 <p>The window faced east. The window had not been opened in a long time.</p>` },
     { title: "The chair, the desk, the hands",
-      characters: ["c1", "c2"], locations: ["l1"], plotlines: ["s1"],
+      characters: ["c1", "c2"], locations: ["l1"], strands: ["s1"],
       body: `<p>His chair was pushed in. His desk was clear. The only thing out of place was a small brass weight he had used for keeping a page open against the wind.</p>
 <p>It was holding nothing down. She picked it up, and the weight of it was the weight of him.</p>` },
   ],
   ch2: [
     { title: "What the room held",
-      characters: ["c1"], locations: ["l1"], objects: ["o3"], plotlines: ["s1"],
+      characters: ["c1"], locations: ["l1"], objects: ["o3"], strands: ["s1"],
       body: `<p>Three drawers. Two cabinets. A leather case she had never seen before, brass-cornered, with the initials I.V. tooled small at the throat.</p>
 <p>She made a list, because making a list was a thing her mother would have done, and because she was not yet ready to open the case.</p>` },
     { title: "Petra, at the kitchen window",
-      characters: ["c1", "c5"], locations: ["l1"], plotlines: ["s1", "s4"],
+      characters: ["c1", "c5"], locations: ["l1"], strands: ["s1", "s4"],
       body: `<p>Petra had let herself in by the back door, the way she always had. She did not offer to help with the inventory. She set a loaf of bread on the table and said nothing about the case.</p>
 <p>"You'll want to be careful which papers you keep," she said, eventually. "Some of them are for keeping. Some are for not."</p>` },
     { title: "What she would carry away",
-      characters: ["c1"], locations: ["l1"], plotlines: ["s1"],
+      characters: ["c1"], locations: ["l1"], strands: ["s1"],
       body: `<p>By dusk Elen had two stacks. A short one and a long one. The short one she put back where she had found it. The long one she put into a satchel and carried into the front room and did not look at again until morning.</p>` },
     { title: "The case, after midnight",
-      characters: ["c1"], locations: ["l1"], objects: ["o1"], plotlines: ["s1", "s2"],
+      characters: ["c1"], locations: ["l1"], objects: ["o1"], strands: ["s1", "s2"],
       body: `<p>The brass corners of the case were warm in the lamplight, as if it had been somewhere warmer than the study. She turned it once on the desk so that the initials faced her, and then she turned it back.</p>
 <p>She did not open it. Not yet. She thought: <em>once it is open, it is the second day, and I am not finished being the daughter of the first.</em></p>` },
   ],
   ch3: [
     { title: "The kettle",
-      characters: ["c1", "c3"], locations: ["l3"], plotlines: ["s1", "s2"],
+      characters: ["c1", "c3"], locations: ["l3"], strands: ["s1", "s2"],
       body: `<p>June was already there, because June was always already there. She had brought the small electric kettle she carried everywhere and the printer's apron she did not need.</p>
 <p>"You haven't slept," she said, without looking up.</p>
 <p>"No."</p>
 <p>"Tea. Then the case. In that order."</p>` },
     { title: "Two readings, one ink",
-      characters: ["c1", "c3"], locations: ["l3"], objects: ["o1"], plotlines: ["s2"],
+      characters: ["c1", "c3"], locations: ["l3"], objects: ["o1"], strands: ["s2"],
       body: `<p>June opened the leather case at the table. She turned the pages slowly, the way one turns the pages of a book one already knows.</p>
 <p>"This is your father," she said, "to about page sixty. After that, it isn't. Whoever it is uses the same ink. They've gone to some trouble."</p>` },
   ],
   ch4: [
     { title: "A bearing on a page",
-      characters: ["c1"], objects: ["o1", "o2"], plotlines: ["s2"],
+      characters: ["c1"], objects: ["o1", "o2"], strands: ["s2"],
       body: `<p>The bearing was written in a hand Elen did not recognize, in a column Idris had reserved for a footnote that had never been added.</p>
 <p>It read: <em>54° 11' N, 4° 09' W</em>. Below it, a single word: <em>almost</em>.</p>` },
     { title: "A coast that should not be there",
-      characters: ["c1"], locations: ["l2"], objects: ["o2"], plotlines: ["s2", "s3"],
+      characters: ["c1"], locations: ["l2"], objects: ["o2"], strands: ["s2", "s3"],
       body: `<p>She unrolled the largest of her father's charts on the kitchen table. The bearing pointed to a stretch of water between two known headlands. There was no land there. There had never been land there.</p>
 <p>And yet someone had written it down as if there were.</p>` },
     { title: "The night charts",
-      characters: ["c1"], locations: ["l1"], objects: ["o2"], plotlines: ["s2", "s3"],
+      characters: ["c1"], locations: ["l1"], objects: ["o2"], strands: ["s2", "s3"],
       body: `<p>She fetched the rest of the charts down from the high shelf, three at a time, and laid them across the floor of the front room until the floor was a coast.</p>
 <p>The theodolite, set to a bearing no one recognised, agreed with one chart out of nine. The chart it agreed with was the oldest. It had been folded so often that the fold had become a coastline of its own.</p>` },
     { title: "A letter, half-written",
-      characters: ["c1"], locations: ["l1"], plotlines: ["s2"],
+      characters: ["c1"], locations: ["l1"], strands: ["s2"],
       body: `<p>She wrote to June. She wrote: <em>I think he was right about something. I don't know yet which thing.</em></p>
 <p>She did not send the letter. She set it on the mantelpiece, behind the brass weight, where her father had kept the letters he was thinking about.</p>` },
   ],
   ch5: [
     { title: "Old Harbor 7",
-      characters: ["c1"], locations: ["l6"], plotlines: ["s3"],
+      characters: ["c1"], locations: ["l6"], strands: ["s3"],
       body: `<p>Old Harbor 7 had been numbered when there were still seven harbours. Now there were four. The number had outlived the use.</p>
 <p>She walked the length of the seawall in a wind that smelled of iron and rope.</p>` },
     { title: "What the customs house wanted",
-      characters: ["c1"], locations: ["l4", "l6"], plotlines: ["s3"],
+      characters: ["c1"], locations: ["l4", "l6"], strands: ["s3"],
       body: `<p>The customs house had not been a customs house for nine years. Its windows had been boarded, then unboarded, then boarded again, in a sequence that suggested no one in particular was in charge of remembering whether it was a building or a ruin.</p>
 <p>She decided, for the time being, that it was both.</p>` },
     { title: "Mrs. Oren, on the path",
-      characters: ["c1", "c7"], locations: ["l6"], plotlines: ["s3", "s5"],
+      characters: ["c1", "c7"], locations: ["l6"], strands: ["s3", "s5"],
       body: `<p>Mrs. Oren was on the path above the seawall, walking the dog she still called Margaret's, though Margaret had been gone four winters.</p>
 <p>"You'll be going to look at the seventh," she said, as if Elen had told her so. "Mind the iron stair. Your father went up it sideways. He said it remembered him."</p>
 <p>She spoke of him in the present tense and did not seem to notice.</p>` },
   ],
   ch6: [
     { title: "Renn's list",
-      characters: ["c1", "c4"], locations: ["l4"], plotlines: ["s2"],
+      characters: ["c1", "c4"], locations: ["l4"], strands: ["s2"],
       body: `<p>Halvard Renn kept his lists in a small green book. He let Elen see only the page she had asked about, and then only after she had agreed not to copy it.</p>
 <p>"Your father's name is on it," he said. "Twice. The second time was after his death."</p>` },
     { title: "What lists do not say",
-      characters: ["c1", "c4"], locations: ["l4"], plotlines: ["s2"],
+      characters: ["c1", "c4"], locations: ["l4"], strands: ["s2"],
       body: `<p>"You catalogue what exists," she said. "What about what doesn't?"</p>
 <p>"That isn't my office."</p>
 <p>"Whose office is it?"</p>
 <p>Renn closed the green book. "I don't know," he said. "I have wondered."</p>` },
     { title: "The offer",
-      characters: ["c1", "c4"], locations: ["l4"], objects: ["o1"], plotlines: ["s2"],
+      characters: ["c1", "c4"], locations: ["l4"], objects: ["o1"], strands: ["s2"],
       body: `<p>Renn waited until she had her coat on. He always made his offers at the door, where they cost him less.</p>
 <p>"I'll give you what the case is worth," he said, "and a little more for the trouble. I am prepared to be generous about it."</p>
 <p>"And then?"</p>
@@ -249,103 +249,103 @@ export const SCENES = {
   ],
   ch7: [
     { title: "The customs house, condemned",
-      characters: ["c1"], locations: ["l4", "l6"], objects: ["o1"], plotlines: ["s2", "s3"],
+      characters: ["c1"], locations: ["l4", "l6"], objects: ["o1"], strands: ["s2", "s3"],
       body: `<p>The customs house at Old Harbor 7 had been condemned for nine years, which meant it was the most reliable building Elen knew. Condemned was a kind of inheritance. Nothing further could happen to it.</p>
 <p>She climbed the iron stair on the seaward side, the one Renn had told her not to use, and let herself in through the door her father had once rehung.</p>
 <p><em>Almost closed</em>, she thought. <em>That is the whole house. That is the whole ledger.</em></p>` },
     { title: "June's apron, June's kettle",
-      characters: ["c1", "c3"], locations: ["l4"], plotlines: ["s2"],
+      characters: ["c1", "c3"], locations: ["l4"], strands: ["s2"],
       body: `<p>June was already there. She had brought a printer's apron she did not need and the small electric kettle she carried everywhere.</p>
 <p>"I read the last twelve pages on the train," June said, without looking up. "Twice. And then once more on the platform."</p>
 <p>"And?"</p>
 <p>"It isn't your father. I'd know his hand the way I know my own."</p>` },
     { title: "What she is going to do",
-      characters: ["c1", "c3"], locations: ["l2"], plotlines: ["s2", "s5"],
+      characters: ["c1", "c3"], locations: ["l2"], strands: ["s2", "s5"],
       body: `<p>"Tell me what you're going to do," June said.</p>
 <p>"I'm going to go and see if it's there," she said.</p>
 <p>"And if it isn't?"</p>
 <p>"Then I'll have to decide whether to put it back."</p>` },
     { title: "The walk down, at low tide",
-      characters: ["c1", "c3"], locations: ["l2"], objects: ["o2"], plotlines: ["s3", "s5"],
+      characters: ["c1", "c3"], locations: ["l2"], objects: ["o2"], strands: ["s3", "s5"],
       body: `<p>They went down the path together. June carried the theodolite in its canvas sleeve because Elen had asked her to, and because June understood that some objects need to be carried by someone other than the one who has to read them.</p>
 <p>The tide was further out than the almanac had promised. They walked across a beach that had been water in the morning.</p>` },
     { title: "Almost, at the waterline",
-      characters: ["c1", "c3"], locations: ["l2"], objects: ["o1"], plotlines: ["s2", "s3", "s5"],
+      characters: ["c1", "c3"], locations: ["l2"], objects: ["o1"], strands: ["s2", "s3", "s5"],
       body: `<p>Where the ledger had said <em>almost</em>, the waterline made a slow, unconvinced curve, as if the sea had been arguing with the same question for a long time and had not yet decided.</p>
 <p>"It's here," June said quietly. "Some of it is here."</p>
 <p>Elen did not answer. She had been the daughter of this answer all her life and she wanted to be it for a little longer before she became something else.</p>` },
   ],
   ch8: [
     { title: "The question Elen finally asks",
-      characters: ["c1", "c5"], plotlines: ["s4"],
+      characters: ["c1", "c5"], strands: ["s4"],
       body: `<p>It was the first warm evening of the season, and Petra had been quiet for longer than Petra was ever quiet.</p>
 <p>"Was there a coast," Elen said. "Between the headlands. When you were a girl."</p>
 <p>Petra set down her cup. Petra did not look at her.</p>` },
     { title: "Silence, leaving the room",
-      characters: ["c1", "c5"], locations: ["l1"], plotlines: ["s4"],
+      characters: ["c1", "c5"], locations: ["l1"], strands: ["s4"],
       body: `<p>Petra stood, smoothed her skirt, and walked out through the kitchen and into the garden and did not come back until the bread was cold.</p>
 <p>That, too, Elen decided, was an answer.</p>` },
   ],
   ch9: [
     { title: "Twelve pages, eleven differences",
-      characters: ["c1", "c3"], locations: ["l3"], objects: ["o1"], plotlines: ["s2"],
+      characters: ["c1", "c3"], locations: ["l3"], objects: ["o1"], strands: ["s2"],
       body: `<p>She and June spread the last twelve pages out across the long table at the print shop, in order, and weighted each corner with the brass weights Idris had used.</p>
 <p>They counted differences. They counted eleven. The twelfth page, June said, was the one she could not yet make herself look at.</p>` },
     { title: "The shape of the letter g",
-      characters: ["c1", "c3"], objects: ["o1"], plotlines: ["s2"],
+      characters: ["c1", "c3"], objects: ["o1"], strands: ["s2"],
       body: `<p>"It's the g," June said, finally. "Your father's g comes down in a straight line. This g loops."</p>
 <p>"That's all?"</p>
 <p>"It's enough. A person doesn't change the way they write a g."</p>` },
     { title: "Whose hand it is",
-      characters: ["c1", "c3", "c5"], locations: ["l3"], objects: ["o1", "o3"], plotlines: ["s2", "s4"],
+      characters: ["c1", "c3", "c5"], locations: ["l3"], objects: ["o1", "o3"], strands: ["s2", "s4"],
       body: `<p>Elen took the unsent letter from the satchel and laid it beside the twelfth page. The g looped the same loop. The hand was older, but it was the same hand.</p>
 <p>"It's Petra," she said.</p>
 <p>June set down the magnifier with the care she reserved for objects she had hoped to be wrong about. "Yes," she said. "I think it has been Petra for a long time."</p>` },
   ],
   ch10: [
     { title: "St. Eira's, between tides",
-      characters: ["c1"], locations: ["l5", "l6"], plotlines: ["s3", "s5"],
+      characters: ["c1"], locations: ["l5", "l6"], strands: ["s3", "s5"],
       body: `<p>The chapel walls were what was left after the rest of the chapel had walked itself into the water. Two days a month, at low tide, you could stand inside it without getting wet.</p>
 <p>Elen waited for the tide. She had learned by now that some things only existed if you went on time.</p>` },
     { title: "What the wall remembered",
-      characters: ["c1"], locations: ["l5"], objects: ["o4"], plotlines: ["s5"],
+      characters: ["c1"], locations: ["l5"], objects: ["o4"], strands: ["s5"],
       body: `<p>Names had been written along the inside of the south wall in something that was probably whitewash and probably not. Hers was there. Petra's was there. So was a name she did not know how to read, in handwriting that looped its g's.</p>` },
     { title: "Leaving, before the tide",
-      characters: ["c1"], locations: ["l5"], plotlines: ["s5"],
+      characters: ["c1"], locations: ["l5"], strands: ["s5"],
       body: `<p>She left through the gap where the west wall had been, because the door no longer stood for anything. The tide was already turning. By the time she reached the path, the chapel was a chapel again only in the sense that something which has been a chapel cannot, afterwards, be nothing.</p>
 <p>She did not look back. Looking back, she had begun to think, was its own kind of bringing-back, and she was not yet ready to be responsible for that one.</p>` },
   ],
   ch11: [
     { title: "The boy on the pier",
-      characters: ["c1", "c6"], locations: ["l6"], objects: ["o5"], plotlines: ["s5"],
+      characters: ["c1", "c6"], locations: ["l6"], objects: ["o5"], strands: ["s5"],
       body: `<p>The boy at the end of the pier was nine years old. He had been nine years old for some time.</p>
 <p>"I was told to wait," he said, when Elen sat down beside him. He turned a green disc of sea-glass over and over in his hand. "I'm getting better at it."</p>` },
     { title: "What he had been waiting for",
-      characters: ["c1", "c6"], locations: ["l6"], objects: ["o5"], plotlines: ["s5"],
+      characters: ["c1", "c6"], locations: ["l6"], objects: ["o5"], strands: ["s5"],
       body: `<p>"Did anyone tell you what you were waiting for?" Elen asked.</p>
 <p>"No," Tomas said. He held the sea-glass up to the light. "But I think I know now."</p>` },
   ],
   ch12: [
     { title: "The letter, opened",
-      characters: ["c1"], locations: ["l1"], objects: ["o3"], plotlines: ["s4", "s5"],
+      characters: ["c1"], locations: ["l1"], objects: ["o3"], strands: ["s4", "s5"],
       body: `<p>She had carried the letter from drawer to drawer for three years without opening it. The seal had loosened on its own. The paper inside was good paper. The handwriting was her mother's.</p>
 <p><em>If you are reading this</em>, it began, <em>then you have decided to know.</em></p>` },
     { title: "What it asked of her",
-      characters: ["c1", "c5"], locations: ["l1"], objects: ["o3"], plotlines: ["s4"],
+      characters: ["c1", "c5"], locations: ["l1"], objects: ["o3"], strands: ["s4"],
       body: `<p>The letter asked only one thing of her, and it asked very gently, and it did not ask twice.</p>
 <p>Petra came in from the garden with mud on her boots. "I knew it would be today," she said. "Sit down."</p>` },
   ],
   ch13: [
     { title: "A bearing, taken twice",
-      characters: ["c1", "c3"], locations: ["l2"], objects: ["o1", "o2"], plotlines: ["s2", "s3", "s5"],
+      characters: ["c1", "c3"], locations: ["l2"], objects: ["o1", "o2"], strands: ["s2", "s3", "s5"],
       body: `<p>They went out at low tide, June and Elen and the brass theodolite, and they took the bearing twice — once from the headland and once from the boat — and the two readings agreed.</p>
 <p>The ledger had not been wrong. Or rather: the ledger had been right about something the charts had decided not to know.</p>` },
     { title: "What returns",
-      characters: ["c1"], locations: ["l2"], objects: ["o1"], plotlines: ["s5"],
+      characters: ["c1"], locations: ["l2"], objects: ["o1"], strands: ["s5"],
       body: `<p>She closed the ledger. She put it back into the leather case. She set the case on the kitchen table where her father had left it, and she did not lock it.</p>
 <p>The tide was coming in. The coast — whatever it had been doing in her absence — would still be there in the morning.</p>` },
     { title: "Renn, at the gate",
-      characters: ["c1", "c4"], locations: ["l1"], objects: ["o1"], plotlines: ["s1", "s2"],
+      characters: ["c1", "c4"], locations: ["l1"], objects: ["o1"], strands: ["s1", "s2"],
       body: `<p>Renn came up the cliff road in his good coat. He stopped at the gate rather than the door, which Elen understood to be a kindness.</p>
 <p>"I have read the entries you sent," he said. "I will not be cataloguing them. I also will not be burning them. I find I am unable to do either."</p>
 <p>"That's an answer," she said.</p>

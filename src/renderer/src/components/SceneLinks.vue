@@ -93,8 +93,8 @@ async function newStrand() {
     confirmLabel: "Create",
   });
   if (!name) return;
-  const id = project.addPlotline({ name });
-  toggle("plotlines", id);
+  const id = project.addStrand({ name });
+  toggle("strands", id);
 }
 
 const mainCharacters      = computed(() => project.characters.filter((c) => c.main));
@@ -216,11 +216,11 @@ function onBackdrop(e) {
         <section class="links-section">
           <div class="links-section-label">To which narrative strand does this scene belong?</div>
           <div class="links-row">
-            <button v-for="s in project.plotlines" :key="s.id"
+            <button v-for="s in project.strands" :key="s.id"
               type="button"
               class="link-chip"
-              :class="{ active: getList('plotlines').includes(s.id) }"
-              @click="toggle('plotlines', s.id)">
+              :class="{ active: getList('strands').includes(s.id) }"
+              @click="toggle('strands', s.id)">
               {{ s.name }}
             </button>
             <button type="button" class="link-chip link-chip-new" @click="newStrand">

@@ -3,7 +3,7 @@
 //
 // Builds a lightweight inverted index (Map<token, Set<docId>>)
 // over chapters, characters, locations, objects, groups, notes,
-// worldbuilding, plotlines, and architecture documents.
+// worldbuilding, strands, and architecture documents.
 //
 // Query: tokenize the input, intersect posting lists (AND), then
 // rank by per-token frequency. Returns hits with snippet windows
@@ -136,9 +136,9 @@ export function buildIndex(project, speakers = null) {
   }
 
   // Strands — name + blurb + body (for subplot search).
-  for (const s of project.plotlines) {
+  for (const s of project.strands) {
     const body = [s.blurb || "", s.body || ""].filter(Boolean).join("\n");
-    indexDoc({ id: `plotline:${s.id}`, kind: "plotline", title: s.name, sub: "Narrative strand", body, route: `/plotlines` });
+    indexDoc({ id: `strand:${s.id}`, kind: "strand", title: s.name, sub: "Narrative strand", body, route: `/strands` });
   }
 
   // Worldbuilding — title + summary + body, grouped by category in UI.
@@ -300,6 +300,6 @@ export const KIND_META = {
   group:         { label: "Groups",         icon: "GroupIcon", order: 5 },
   worldbuilding: { label: "Worldbuilding",  icon: "Sparkle",   order: 6 },
   note:          { label: "Notes",          icon: "Note",      order: 7 },
-  plotline:      { label: "Narrative strands",        icon: "Plotlines", order: 8 },
+  strand:        { label: "Narrative strands",        icon: "Strands", order: 8 },
   architecture:  { label: "Architecture",   icon: "Building",  order: 9 },
 };

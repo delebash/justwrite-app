@@ -62,7 +62,7 @@ const NAV = [
   { section: "Manuscript" },
   { id: "home",          label: "Home",          icon: "Home" },
   { id: "architecture",  label: "Architecture",  icon: "Building", expandable: "architecture", fixed: true },
-  { id: "plotlines",     label: "Narrative strands", icon: "Plotlines", expandable: "plotlines" },
+  { id: "strands",       label: "Narrative strands", icon: "Strands", expandable: "strands" },
   { id: "chapters",      label: "Chapters",      icon: "Book",     expandable: "chapters" },
   { id: "search",        label: "Search",        icon: "Search",   kbd: "⌘F" },
 
@@ -100,7 +100,7 @@ const expandableChildren = computed(() => ({
   ],
   locations: [{ subgroupId: "all", items: project.locations.map((l) => ({ id: l.id, label: l.name, sub: l.kind, subgroupId: "all" })) }],
   objects:   [{ subgroupId: "all", items: project.objects.map((o) => ({ id: o.id, label: o.name, sub: o.kind, subgroupId: "all" })) }],
-  plotlines: [{ subgroupId: "all", items: project.plotlines.map((s) => ({ id: s.id, label: s.name, subgroupId: "all" })) }],
+  strands: [{ subgroupId: "all", items: project.strands.map((s) => ({ id: s.id, label: s.name, subgroupId: "all" })) }],
   groups:    [{ subgroupId: "all", items: project.groups.map((g) => ({ id: g.id, label: g.name, color: g.color, subgroupId: "all" })) }],
   notes:     [{ subgroupId: "all", items: project.notes.map((n) => ({ id: n.id, label: n.title, sub: n.tag, subgroupId: "all" })) }],
   architecture: [{ subgroupId: "all", items: Object.values(project.architecture).filter(Boolean).map((d) => ({ id: d.id, label: d.title, sub: d.status, subgroupId: "all" })) }],
@@ -124,7 +124,7 @@ async function addItem(parentId) {
     objects:       { title: "New object",    label: "Object name",    confirmLabel: "Create object" },
     groups:        { title: "New group",     label: "Group name",     confirmLabel: "Create group" },
     worldbuilding: { title: "New article",   label: "Article title",  confirmLabel: "Create article" },
-    plotlines:     { title: "New narrative strand",    label: "Narrative strand name",    confirmLabel: "Create narrative strand" },
+    strands:       { title: "New narrative strand",    label: "Narrative strand name",    confirmLabel: "Create narrative strand" },
     notes:         { title: "New note",      label: "Note title",     confirmLabel: "Create note" },
   };
   const meta = META[parentId] || { title: "New item", label: "Name", confirmLabel: "Create" };
@@ -137,7 +137,7 @@ async function addItem(parentId) {
     case "objects":       id = project.addObject({ name }); break;
     case "groups":        id = project.addGroup({ name }); break;
     case "worldbuilding": id = project.addWorldbuilding({ title: name }); break;
-    case "plotlines":     id = project.addPlotline({ name }); break;
+    case "strands":       id = project.addStrand({ name }); break;
     case "notes":         id = project.addNote({ title: name }); break;
   }
   if (id) { ui.select(parentId, id); router.push(`/${parentId}/${id}`); }
@@ -416,7 +416,7 @@ function dropClass(kind, id) {
   return `drop-${dropTarget.value.position}`;
 }
 
-// ── Item-level drag-and-drop (plotlines, groups, characters, etc.) ──
+// ── Item-level drag-and-drop (strands, groups, characters, etc.) ──
 // Simpler than the parts/chapters tree: each section's items live in
 // one flat array. We restrict drops to items in the same `subgroupId`
 // (so e.g. a Main character can't be reordered into the Secondary
@@ -432,7 +432,7 @@ const itemDrop = ref(null);   // { section, id }
 
 function sectionFlatList(section) {
   switch (section) {
-    case "plotlines":     return project.plotlines;
+    case "strands":       return project.strands;
     case "groups":        return project.groups;
     case "characters":    return project.characters;
     case "objects":       return project.objects;
@@ -444,7 +444,7 @@ function sectionFlatList(section) {
 }
 function sectionReorder(section, ids) {
   switch (section) {
-    case "plotlines":     project.reorderPlotlines(ids); break;
+    case "strands":       project.reorderStrands(ids); break;
     case "groups":        project.reorderGroups(ids); break;
     case "characters":    project.reorderCharacters(ids); break;
     case "objects":       project.reorderObjects(ids); break;

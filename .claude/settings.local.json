@@ -6,7 +6,9 @@
       "Bash(cargo check *)",
       "Bash(Remove-Item *)",
       "Bash(curl -s http://localhost:1420)",
-      "Bash(npm install *)"
+      "Bash(npm install *)",
+      "Bash(git mv *)",
+      "Bash(git rm *)"
     ]
   }
 }

@@ -19,7 +19,7 @@ const modal = ref(null);
 // Show one strand at a time — selected from the route param, falling
 // back to the sidebar selection, then the first strand.
 const s = computed(() =>
-  project.plotlineById(props.id || ui.selections.plotlines) || project.plotlines[0]);
+  project.strandById(props.id || ui.selections.strands) || project.strands[0]);
 
 const STATUS_OPTIONS = [
   { value: "open",      label: "Open",      hint: "Active throughline" },
@@ -41,7 +41,7 @@ const scenesInStrand = computed(() => {
   for (const ch of project.allChapters) {
     const list = project.scenesFor(ch.id);
     list.forEach((scn, idx) => {
-      if ((scn.plotlines || []).includes(s.value.id)) {
+      if ((scn.strands || []).includes(s.value.id)) {
         out.push({
           sceneId: scn.id,
           sceneTitle: scn.title || `Scene ${idx + 1}`,
@@ -58,9 +58,9 @@ const scenesInStrand = computed(() => {
 });
 
 function chapterById(id) { return project.chapterById(id); }
-function update(k, v) { project.updatePlotline(s.value.id, { [k]: v }); }
-function updateBeat(beatId, k, v) { project.updatePlotlineBeat(s.value.id, beatId, { [k]: v }); }
-function removeBeat(beatId) { project.removePlotlineBeat(s.value.id, beatId); }
+function update(k, v) { project.updateStrand(s.value.id, { [k]: v }); }
+function updateBeat(beatId, k, v) { project.updateStrandBeat(s.value.id, beatId, { [k]: v }); }
+function removeBeat(beatId) { project.removeStrandBeat(s.value.id, beatId); }
 
 // Each scene picker option encodes both chapter and scene in one string
 // ("chapterId::sceneId") so a flat <select> can drive both fields at once.
@@ -92,11 +92,11 @@ function beatRefValue(b) {
 }
 function setBeatRef(beatId, encoded) {
   if (!encoded) {
-    project.updatePlotlineBeat(s.value.id, beatId, { chapterId: null, sceneId: null });
+    project.updateStrandBeat(s.value.id, beatId, { chapterId: null, sceneId: null });
     return;
   }
   const [chapterId, sceneId] = encoded.split("::");
-  project.updatePlotlineBeat(s.value.id, beatId, { chapterId, sceneId });
+  project.updateStrandBeat(s.value.id, beatId, { chapterId, sceneId });
 }
 function goBeat(b) {
   if (!b.chapterId) return;
@@ -104,7 +104,7 @@ function goBeat(b) {
   router.push(b.sceneId ? `/chapters/${b.chapterId}/${b.sceneId}` : `/chapters/${b.chapterId}`);
 }
 
-async function addPlotline() {
+async function addStrand() {
   const name = await promptDialog({
     title: "New narrative strand",
     label: "Narrative strand name",
@@ -112,12 +112,12 @@ async function addPlotline() {
     confirmLabel: "Create narrative strand",
   });
   if (!name) return;
-  const id = project.addPlotline({ name });
-  ui.select("plotlines", id);
-  router.push(`/plotlines/${id}`);
+  const id = project.addStrand({ name });
+  ui.select("strands", id);
+  router.push(`/strands/${id}`);
 }
 
-async function deletePlotline() {
+async function deleteStrand() {
   const used = scenesInStrand.value.length;
   const message = used
     ? `${used} scene${used === 1 ? " is" : "s are"} linked to this narrative strand. They'll lose the link (other narrative strand links on those scenes are kept).`
@@ -130,10 +130,10 @@ async function deletePlotline() {
   });
   if (!yes) return;
   const removedId = s.value.id;
-  project.removePlotline(removedId);
-  const next = project.plotlines[0];
-  if (next) { ui.select("plotlines", next.id); router.push(`/plotlines/${next.id}`); }
-  else router.push("/plotlines");
+  project.removeStrand(removedId);
+  const next = project.strands[0];
+  if (next) { ui.select("strands", next.id); router.push(`/strands/${next.id}`); }
+  else router.push("/strands");
 }
 
 async function addBeat() {
@@ -164,7 +164,7 @@ async function addBeat() {
   });
   if (!values) return;
   const [chapterId, sceneId] = (values.ref || "").split("::");
-  project.addPlotlineBeat(s.value.id, {
+  project.addStrandBeat(s.value.id, {
     label: values.label,
     chapterId: chapterId || null,
     sceneId: sceneId || null,
@@ -193,10 +193,10 @@ const sortedBeats = computed(() => {
 </script>
 
 <template>
-  <header class="pane-header plotline-pane-header">
+  <header class="pane-header strand-pane-header">
     <div class="pane-title">
       <span class="pane-eyebrow">Narrative strand</span>
-      <input v-if="s" class="plotline-name"
+      <input v-if="s" class="strand-name"
         :value="s.name"
         placeholder="Narrative strand name"
         @input="update('name', $event.target.value)" />
@@ -204,22 +204,22 @@ const sortedBeats = computed(() => {
     </div>
     <div class="pane-actions">
       <button v-if="s" class="btn ghost" @click="modal = 'groups'"><Icon name="GroupIcon" :size="14" /> Groups</button>
-      <button v-if="s" class="btn ghost" @click="deletePlotline">Delete</button>
-      <button class="btn primary" @click="addPlotline"><Icon name="Plus" :size="14" /> New narrative strand</button>
+      <button v-if="s" class="btn ghost" @click="deleteStrand">Delete</button>
+      <button class="btn primary" @click="addStrand"><Icon name="Plus" :size="14" /> New narrative strand</button>
     </div>
   </header>
 
   <div v-if="!s" class="col-detail scrollarea">
-    <div class="plotline-empty">
+    <div class="strand-empty">
       No narrative strands yet. Click <strong>New narrative strand</strong> to add one.
     </div>
   </div>
 
   <div v-else class="col-detail scrollarea">
-    <div class="plotline-wrap">
-      <div class="plotline-card">
-        <div class="plotline-body">
-          <div class="plotline-head">
+    <div class="strand-wrap">
+      <div class="strand-card">
+        <div class="strand-body">
+          <div class="strand-head">
             <div class="status-seg" role="radiogroup">
               <button v-for="opt in STATUS_OPTIONS" :key="opt.value"
                 type="button"
@@ -232,14 +232,14 @@ const sortedBeats = computed(() => {
             </div>
           </div>
 
-          <textarea class="plotline-blurb"
+          <textarea class="strand-blurb"
             :value="s.blurb || ''"
             placeholder="What is this narrative strand about? (One or two sentences)"
             rows="2"
             @input="update('blurb', $event.target.value)" />
 
-          <div class="plotline-meta-row">
-            <span class="plotline-count">
+          <div class="strand-meta-row">
+            <span class="strand-count">
               {{ scenesInStrand.length }} scene{{ scenesInStrand.length === 1 ? "" : "s" }}
             </span>
           </div>
@@ -303,7 +303,7 @@ const sortedBeats = computed(() => {
           <!-- Scenes linked to this strand (via the scene Links page) -->
           <div style="margin-top:22px">
             <div class="t-eyebrow" style="margin-bottom:10px">Appears in scenes</div>
-            <SceneRefList field="plotlines" :entity-id="s.id"
+            <SceneRefList field="strands" :entity-id="s.id"
               empty-text="No scenes linked to this narrative strand yet. Open a scene → Links → Narrative strands to add one." />
           </div>
         </div>
@@ -317,18 +317,18 @@ const sortedBeats = computed(() => {
   </div>
 
   <GroupsModal v-if="s && modal === 'groups'"
-    :entity-id="s.id" :entity-name="s.name" entity-kind="plotline"
+    :entity-id="s.id" :entity-name="s.name" entity-kind="strand"
     @close="modal = null" />
 </template>
 
 <style scoped>
-.plotline-wrap {
+.strand-wrap {
   padding: 22px;
   max-width: 980px;
   width: 100%;
 }
 
-.plotline-empty {
+.strand-empty {
   padding: 60px 20px;
   text-align: center;
   color: var(--muted);
@@ -336,7 +336,7 @@ const sortedBeats = computed(() => {
   font-size: 13.5px;
 }
 
-.plotline-card {
+.strand-card {
   display: flex; align-items: stretch; gap: 0;
   background: var(--surface);
   border: 1px solid var(--border);
@@ -344,18 +344,18 @@ const sortedBeats = computed(() => {
   box-shadow: var(--shadow-1);
   overflow: hidden;
 }
-.plotline-body {
+.strand-body {
   flex: 1; min-width: 0;
   display: flex; flex-direction: column; gap: 12px;
   padding: 18px 20px;
 }
 
-.plotline-head {
+.strand-head {
   display: flex; align-items: flex-start; gap: 14px;
 }
 
-.plotline-pane-header .pane-title { gap: 2px; }
-.plotline-name {
+.strand-pane-header .pane-title { gap: 2px; }
+.strand-name {
   appearance: none;
   font-family: var(--font-serif);
   font-size: 20px; font-weight: 600;
@@ -369,8 +369,8 @@ const sortedBeats = computed(() => {
   outline: none;
   min-width: 0;
 }
-.plotline-name:hover { border-color: var(--border-soft); }
-.plotline-name:focus { border-color: var(--accent); background: var(--surface); box-shadow: 0 0 0 3px var(--accent-soft); }
+.strand-name:hover { border-color: var(--border-soft); }
+.strand-name:focus { border-color: var(--accent); background: var(--surface); box-shadow: 0 0 0 3px var(--accent-soft); }
 
 .status-seg {
   display: inline-flex;
@@ -394,7 +394,7 @@ const sortedBeats = computed(() => {
 .status-seg-btn.active.status-resolved { background: var(--status-done, #6aa84f); color: #fff; }
 .status-seg-btn.active.status-abandoned { background: var(--surface-3); color: var(--muted); text-decoration: line-through; }
 
-.plotline-blurb {
+.strand-blurb {
   appearance: none;
   width: 100%;
   resize: vertical;
@@ -412,14 +412,14 @@ const sortedBeats = computed(() => {
   font-style: italic;
   outline: none;
 }
-.plotline-blurb:hover { border-color: var(--border-soft); }
-.plotline-blurb:focus { border-color: var(--accent); background: var(--surface); box-shadow: 0 0 0 3px var(--accent-soft); }
-.plotline-blurb::placeholder { color: var(--muted); }
+.strand-blurb:hover { border-color: var(--border-soft); }
+.strand-blurb:focus { border-color: var(--accent); background: var(--surface); box-shadow: 0 0 0 3px var(--accent-soft); }
+.strand-blurb::placeholder { color: var(--muted); }
 
-.plotline-meta-row {
+.strand-meta-row {
   display: flex; align-items: center; gap: 14px;
 }
-.plotline-count { margin-left: auto; font-size: 11.5px; color: var(--muted); }
+.strand-count { margin-left: auto; font-size: 11.5px; color: var(--muted); }
 
 .beats-section {
   border-top: 1px dashed var(--border-soft);
@@ -522,18 +522,18 @@ const sortedBeats = computed(() => {
 .beat-delete { color: var(--muted); width: 24px; height: 24px; padding: 4px; }
 .beat-delete:hover { color: var(--danger, #c0392b); background: var(--surface-3); }
 
-.plotline-chapters {
+.strand-chapters {
   display: flex; flex-wrap: wrap; gap: 5px; align-items: center;
   padding-top: 8px;
   border-top: 1px dashed var(--border-soft);
 }
-.plotline-chapters-label {
+.strand-chapters-label {
   font-size: 10.5px; font-weight: 600;
   text-transform: uppercase; letter-spacing: 0.08em;
   color: var(--muted);
   margin-right: 4px;
 }
-.plotline-chap {
+.strand-chap {
   appearance: none; border: 1px solid var(--border);
   background: var(--surface-2);
   border-radius: 6px;
@@ -545,16 +545,16 @@ const sortedBeats = computed(() => {
   max-width: 240px;
   cursor: default;
 }
-.plotline-chap:hover { background: var(--surface-3); color: var(--ink); border-color: var(--border-strong); }
-.plotline-chap-num {
+.strand-chap:hover { background: var(--surface-3); color: var(--ink); border-color: var(--border-strong); }
+.strand-chap-num {
   font-variant-numeric: tabular-nums;
   color: var(--muted);
 }
-.plotline-chap-title {
+.strand-chap-title {
   overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
 }
 
-.plotline-chapters-empty {
+.strand-chapters-empty {
   font-size: 11.5px;
   color: var(--muted);
   font-style: italic;

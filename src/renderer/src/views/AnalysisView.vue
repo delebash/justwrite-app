@@ -7,7 +7,7 @@ import { useSessionsStore } from "../stores/sessions.js";
 import PaneHeader from "../components/PaneHeader.vue";
 import Icon from "../components/Icon.vue";
 import {
-  statusCounts, plotlineDistribution, characterPresence,
+  statusCounts, strandDistribution, characterPresence,
   scenesPerChapter, projectKpis, paceSeries,
 } from "../services/analysis.js";
 
@@ -19,7 +19,7 @@ const router = useRouter();
 const allCh = computed(() => project.allChapters);
 const kpis = computed(() => projectKpis(project, allCh.value));
 const status = computed(() => statusCounts(allCh.value));
-const plotlines = computed(() => plotlineDistribution(project.plotlines, allCh.value));
+const strands = computed(() => strandDistribution(project.strands, allCh.value));
 const presence = computed(() => characterPresence(project.characters, project.characterExtras, allCh.value, project.chapterBody, studio.speakersByChapter));
 const scenes = computed(() => scenesPerChapter(allCh.value));
 
@@ -71,8 +71,8 @@ const paceShape = computed(() => {
   return { line, area: `0,${h} ${line} ${w},${h}`, w, h };
 });
 
-// Plotline totals — for relative-width bars.
-const plotlineTotal = computed(() => plotlines.value.reduce((s, r) => s + r.words, 0) || 1);
+// Strand totals — for relative-width bars.
+const strandTotal = computed(() => strands.value.reduce((s, r) => s + r.words, 0) || 1);
 
 // Heatmap cell coloring.
 function cellStyle(weight) {
@@ -138,7 +138,7 @@ function jumpChapter(chId) { router.push(`/chapters/${chId}`); }
       </div>
     </div>
 
-    <!-- Status donut + Plotline distribution -->
+    <!-- Status donut + Strand distribution -->
     <div style="display:grid;grid-template-columns:1fr 1fr;gap:18px;margin-bottom:18px">
       <div class="card">
         <div class="card-title">Status</div>
@@ -168,7 +168,7 @@ function jumpChapter(chId) { router.push(`/chapters/${chId}`); }
       <div class="card">
         <div class="card-title">Narrative strands by word count</div>
         <div style="display:flex;flex-direction:column;gap:10px;margin-top:6px">
-          <div v-for="s in plotlines" :key="s.plotlineId || 'none'">
+          <div v-for="s in strands" :key="s.strandId || 'none'">
             <div style="display:flex;justify-content:space-between;font-size:12.5px;margin-bottom:4px">
               <span style="display:inline-flex;align-items:center;gap:7px">
                 <span :style="`width:10px;height:10px;border-radius:2px;background:${s.color}`" />
@@ -177,7 +177,7 @@ function jumpChapter(chId) { router.push(`/chapters/${chId}`); }
               <span class="t-muted t-num">{{ s.words.toLocaleString() }} · {{ s.chapters }} ch</span>
             </div>
             <div style="height:6px;background:var(--surface-3);border-radius:999px;overflow:hidden">
-              <div :style="`width:${(s.words / plotlineTotal) * 100}%;height:100%;background:${s.color};border-radius:999px`" />
+              <div :style="`width:${(s.words / strandTotal) * 100}%;height:100%;background:${s.color};border-radius:999px`" />
             </div>
           </div>
         </div>
@@ -192,7 +192,7 @@ function jumpChapter(chId) { router.push(`/chapters/${chId}`); }
           class="bar-row" style="cursor:default" @click="jumpChapter(c.id)">
           <span class="name">{{ c.num }}. {{ c.title }}</span>
           <div class="track">
-            <div class="fill" :style="`width:${(c.words / Math.max(1, ...allCh.map(x => x.words))) * 100}%;background:${project.plotlineById((c.plotlines || [])[0])?.color || 'var(--accent)'}`" />
+            <div class="fill" :style="`width:${(c.words / Math.max(1, ...allCh.map(x => x.words))) * 100}%;background:${project.strandById((c.strands || [])[0])?.color || 'var(--accent)'}`" />
           </div>
           <span class="val">{{ c.words.toLocaleString() }}</span>
         </div>

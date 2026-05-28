@@ -13,10 +13,24 @@ const ui = useUiStore();
 const router = useRouter();
 const g = computed(() => project.groupById(props.id || ui.selections.groups) || project.groups[0]);
 const modal = ref(null);
-const KIND_ICON = { character: "Users", location: "Pin", object: "Cube", plotline: "Plotlines" };
-const KIND_LABEL = { character: "character", location: "location", object: "object", plotline: "narrative strand" };
+const KIND_ICON = { character: "Users", location: "Pin", object: "Cube", strand: "Strands" };
+const KIND_HEADING = { character: "Characters", location: "Locations", object: "Objects", strand: "Narrative strands" };
+const KIND_ORDER = ["character", "location", "object", "strand"];
 
-// Same family of oklch hues used in PlotlinesView, so colors picked
+const memberGroups = computed(() => {
+  const byKind = new Map();
+  for (const m of (g.value?.members || [])) {
+    if (!byKind.has(m.kind)) byKind.set(m.kind, []);
+    byKind.get(m.kind).push(m);
+  }
+  const kinds = [
+    ...KIND_ORDER.filter((k) => byKind.has(k)),
+    ...[...byKind.keys()].filter((k) => !KIND_ORDER.includes(k)),
+  ];
+  return kinds.map((kind) => ({ kind, label: KIND_HEADING[kind] || kind, members: byKind.get(kind) }));
+});
+
+// Same family of oklch hues used in StrandsView, so colors picked
 // across these two surfaces sit nicely next to each other in the UI.
 const COLOR_PALETTE = [
   "oklch(0.65 0.13 25)",   "oklch(0.65 0.13 5)",    "oklch(0.65 0.13 330)",
@@ -87,17 +101,19 @@ async function deleteGroup() {
         <div class="t-eyebrow" style="margin-bottom:10px">Members ({{ (g.members || []).length }})</div>
         <p class="t-muted" style="font-size:12px;margin:0 0 10px">Use characters/location/objects/narrative strands "Groups" button to add it here.</p>
         <div v-if="(g.members || []).length === 0" class="t-muted" style="font-size:12.5px;text-align:center;padding:24px 0;background:var(--surface-2);border-radius:8px">No members yet.</div>
-        <div v-else style="display:grid;grid-template-columns:repeat(auto-fill, minmax(200px, 1fr));gap:10px">
-          <div v-for="m in g.members" :key="`${m.kind}-${m.id}`"
-            class="card tight" style="display:flex;align-items:center;gap:10px;padding:12px">
-            <span style="width:32px;height:32px;border-radius:7px;background:var(--surface-3);color:var(--muted);display:grid;place-items:center">
-              <Icon :name="KIND_ICON[m.kind] || 'Star'" :size="15" />
-            </span>
-            <span style="flex:1;min-width:0">
-              <div style="font-weight:500;font-size:12.5px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">{{ m.name }}</div>
-              <div class="t-muted" style="font-size:10.5px">{{ KIND_LABEL[m.kind] || m.kind }}</div>
-            </span>
-            <button class="btn ghost sm" @click="project.removeGroupMember(g.id, m.id)">×</button>
+        <div v-for="grp in memberGroups" :key="grp.kind" class="member-group">
+          <div class="t-eyebrow member-group-head">{{ grp.label }} ({{ grp.members.length }})</div>
+          <div class="member-grid">
+            <div v-for="m in grp.members" :key="`${m.kind}-${m.id}`"
+              class="card tight" style="display:flex;align-items:center;gap:10px;padding:12px">
+              <span style="width:32px;height:32px;border-radius:7px;background:var(--surface-3);color:var(--muted);display:grid;place-items:center">
+                <Icon :name="KIND_ICON[m.kind] || 'Star'" :size="15" />
+              </span>
+              <span style="flex:1;min-width:0">
+                <div style="font-weight:500;font-size:12.5px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">{{ m.name }}</div>
+              </span>
+              <button class="btn ghost sm" @click="project.removeGroupMember(g.id, m.id)">×</button>
+            </div>
           </div>
         </div>
       </div>
@@ -142,5 +158,13 @@ async function deleteGroup() {
 .group-swatch:hover { transform: scale(1.1); }
 .group-swatch.active {
   box-shadow: inset 0 0 0 1px rgba(0,0,0,0.08), 0 0 0 2px var(--surface), 0 0 0 4px var(--accent);
+}
+
+.member-group { margin-top: 18px; }
+.member-group-head { margin-bottom: 8px; }
+.member-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+  gap: 10px;
 }
 </style>

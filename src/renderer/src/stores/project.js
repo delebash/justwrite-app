@@ -11,7 +11,7 @@ import { useSessionsStore } from "./sessions.js";
 import { removeImage as removeImageFile } from "../services/imageStore.js";
 import { getItem, setItem, removeItem } from "../services/storage.js";
 import {
-  PROJECT, PLOTLINES, CHARACTERS, CHARACTER_EXTRAS, LOCATIONS, OBJECTS,
+  PROJECT, STRANDS, CHARACTERS, CHARACTER_EXTRAS, LOCATIONS, OBJECTS,
   PARTS, NOTES, GROUPS, ARCHITECTURE, WORLDBUILDING, WORLDBUILDING_CATEGORIES,
   SCENES, EVENTS,
 } from "../domain/seed.js";
@@ -95,39 +95,63 @@ function bootstrap() {
 const boot = bootstrap();
 const loaded = boot.snapshot || {};
 
-// "Strands" were renamed to "Plotlines". Migrate any persisted snapshot
-// shape (chapter.strand → chapter.plotlines, state.strands → plotlines,
-// trash.strands → trash.plotlines) so existing workspaces keep working.
-if (Array.isArray(loaded.parts)) {
-  loaded.parts = loaded.parts.map((p) => ({
-    ...p,
-    chapters: (p.chapters || []).map((c) => {
-      if (Array.isArray(c.plotlines)) return c;
-      const { strand, strands, ...rest } = c;
-      const list = Array.isArray(strands)
-        ? strands
-        : strand ? [strand] : [];
-      return { ...rest, plotlines: list };
-    }),
-  }));
+// Canonical entity name is "strands". Earlier versions stored it as
+// "plotlines" (and originally as "strand"/"strands"). normalizeStrands
+// folds any persisted snapshot back to the canonical shape — chapter
+// {strand,plotlines} → chapter.strands, scene.plotlines → scene.strands,
+// state/trash.plotlines → .strands, and group members tagged
+// kind:"plotline" → "strand". Safe to call on any snapshot; runs at boot
+// here and again whenever another project is loaded (see switchProject).
+function normalizeStrands(snap) {
+  if (!snap || typeof snap !== "object") return snap;
+  if (Array.isArray(snap.parts)) {
+    snap.parts = snap.parts.map((p) => ({
+      ...p,
+      chapters: (p.chapters || []).map((c) => {
+        if (Array.isArray(c.strands)) return c;
+        const { strand, plotlines, ...rest } = c;
+        const list = Array.isArray(plotlines) ? plotlines : strand ? [strand] : [];
+        return { ...rest, strands: list };
+      }),
+    }));
+  }
+  if (!Array.isArray(snap.strands) && Array.isArray(snap.plotlines)) {
+    snap.strands = snap.plotlines;
+    delete snap.plotlines;
+  }
+  if (Array.isArray(snap.strands)) {
+    // Backfill new fields on older records so the UI doesn't render `undefined`.
+    snap.strands = snap.strands.map((s) => ({
+      blurb: "", status: "open", beats: [], ...s,
+      beats: Array.isArray(s.beats) ? s.beats.map((b) => ({ sceneId: null, ...b })) : [],
+    }));
+  }
+  if (snap.scenes && typeof snap.scenes === "object") {
+    for (const chId of Object.keys(snap.scenes)) {
+      const list = snap.scenes[chId];
+      if (!Array.isArray(list)) continue;
+      snap.scenes[chId] = list.map((scn) => {
+        if (!scn || Array.isArray(scn.strands)) return scn;
+        const { plotlines, ...rest } = scn;
+        return { ...rest, strands: Array.isArray(plotlines) ? plotlines : [] };
+      });
+    }
+  }
+  if (snap.trash && Array.isArray(snap.trash.plotlines) && !Array.isArray(snap.trash.strands)) {
+    snap.trash = { ...snap.trash, strands: snap.trash.plotlines };
+    delete snap.trash.plotlines;
+  }
+  if (Array.isArray(snap.groups)) {
+    snap.groups = snap.groups.map((g) => ({
+      ...g,
+      members: Array.isArray(g.members)
+        ? g.members.map((m) => (m && m.kind === "plotline" ? { ...m, kind: "strand" } : m))
+        : g.members,
+    }));
+  }
+  return snap;
 }
-if (!Array.isArray(loaded.plotlines) && Array.isArray(loaded.strands)) {
-  loaded.plotlines = loaded.strands;
-  delete loaded.strands;
-}
-if (Array.isArray(loaded.plotlines)) {
-  // Backfill new fields on older records so the UI doesn't render `undefined`.
-  loaded.plotlines = loaded.plotlines.map((s) => ({
-    blurb: "", status: "open", beats: [], ...s,
-    beats: Array.isArray(s.beats)
-      ? s.beats.map((b) => ({ sceneId: null, ...b }))
-      : [],
-  }));
-}
-if (loaded.trash && Array.isArray(loaded.trash.strands) && !Array.isArray(loaded.trash.plotlines)) {
-  loaded.trash = { ...loaded.trash, plotlines: loaded.trash.strands };
-  delete loaded.trash.strands;
-}
+normalizeStrands(loaded);
 
 // "Storylines" was briefly added as a fifth architecture doc and then
 // removed. Strip it from any project that picked it up so it doesn't
@@ -168,7 +192,7 @@ if (boot.snapshot && (!loaded.scenes || typeof loaded.scenes !== "object")) {
 
 const EMPTY_TRASH = {
   chapters: [], characters: [], locations: [], objects: [],
-  groups: [], notes: [], plotlines: [], worldbuilding: [],
+  groups: [], notes: [], strands: [], worldbuilding: [],
 };
 
 export const TRASH_KINDS = Object.keys(EMPTY_TRASH);
@@ -189,7 +213,7 @@ const PERSIST_DEBOUNCE_MS = 1500;
 const HISTORY_SLICES = [
   "project", "parts", "scenes",
   "characters", "characterExtras",
-  "locations", "objects", "groups", "notes", "plotlines",
+  "locations", "objects", "groups", "notes", "strands",
   "architecture", "worldbuilding",
   "images", "events",
   "trash",
@@ -213,8 +237,8 @@ const COALESCED_ACTIONS = new Set([
   "setSceneBody", "setSceneTitle", "setChapterTitle", "setChapterWords",
   "updateNote", "updateWorldbuilding", "updateArchitecture",
   "updateCharacter", "setCharacterExtras",
-  "updateLocation", "updateObject", "updatePlotline", "updateGroup",
-  "updatePart", "updatePlotlineBeat", "updateScene",
+  "updateLocation", "updateObject", "updateStrand", "updateGroup",
+  "updatePart", "updateStrandBeat", "updateScene",
 ]);
 
 let lastHistoryAt = 0;
@@ -226,7 +250,7 @@ let historyPersistTimer = null;
 export const useProjectStore = defineStore("project", {
   state: () => ({
     project:    { ...PROJECT, ...(loaded.project || {}) },
-    plotlines:  loaded.plotlines  || [...PLOTLINES],
+    strands:  loaded.strands  || [...STRANDS],
     characters: loaded.characters || [...CHARACTERS],
     characterExtras: { ...CHARACTER_EXTRAS, ...(loaded.characterExtras || {}) },
     locations:  loaded.locations  || [...LOCATIONS],
@@ -240,7 +264,7 @@ export const useProjectStore = defineStore("project", {
     // Scenes registry: { [chapterId]: [{ id, title, body, ...links }] }.
     // Seeded from the SCENES map — chapters not listed there open empty
     // so the writer can add their own scenes from the overview pane.
-    // The optional Links arrays (characters/locations/objects/plotlines)
+    // The optional Links arrays (characters/locations/objects/strands)
     // are preserved when present in the seed so Relations / Strand /
     // entity-detail views light up on a fresh workspace.
     scenes: loaded.scenes || Object.fromEntries(
@@ -253,7 +277,7 @@ export const useProjectStore = defineStore("project", {
           characters: Array.isArray(s.characters) ? [...s.characters] : [],
           locations:  Array.isArray(s.locations)  ? [...s.locations]  : [],
           objects:    Array.isArray(s.objects)    ? [...s.objects]    : [],
-          plotlines:  Array.isArray(s.plotlines)  ? [...s.plotlines]  : [],
+          strands:  Array.isArray(s.strands)  ? [...s.strands]  : [],
         })),
       ])
     ),
@@ -276,7 +300,7 @@ export const useProjectStore = defineStore("project", {
     // If we just rewrote the model from chapterBody → scenes, the
     // persisted history tail is shaped for the old slices and would
     // re-introduce the dead field on undo. Discard it.
-    _past:   markRaw(_scenesMigrationRan ? [] : loadHistory()),
+    _past:   markRaw(_scenesMigrationRan ? [] : loadHistory().map(normalizeStrands)),
     _future: markRaw([]),
   }),
 
@@ -313,7 +337,7 @@ export const useProjectStore = defineStore("project", {
     groupById:         (s) => (id) => s.groups.find((g) => g.id === id),
     noteById:          (s) => (id) => s.notes.find((n) => n.id === id),
     worldbuildingById: (s) => (id) => s.worldbuilding.find((a) => a.id === id),
-    plotlineById:      (s) => (id) => s.plotlines.find((x) => x.id === id),
+    strandById:      (s) => (id) => s.strands.find((x) => x.id === id),
     imagesFor:         (s) => (id) => s.images[id] || [],
     eventsFor:         (s) => (id) => s.events[id] || [],
     trashCount:        (s) => Object.values(s.trash).reduce((n, list) => n + list.length, 0),
@@ -399,7 +423,7 @@ export const useProjectStore = defineStore("project", {
       // chapter.scenes is now derived live from state.scenes; new chapters
       // start with no scenes — the user adds them via the chapter overview
       // pane or the sidebar's per-chapter "+ scene" action.
-      this.parts[partIdx].chapters.push({ id, num, title, words: 0, status, plotlines: [] });
+      this.parts[partIdx].chapters.push({ id, num, title, words: 0, status, strands: [] });
       this.scenes = { ...this.scenes, [id]: [] };
       this._persist();
       return id;
@@ -433,23 +457,23 @@ export const useProjectStore = defineStore("project", {
       this.parts = this.parts.map((p) => ({ ...p, chapters: p.chapters.map((c) => c.id === id ? { ...c, status } : c) }));
       this._persist();
     },
-    setChapterPlotlines(id, plotlines) {
-      this._record("setChapterPlotlines");
-      const next = Array.isArray(plotlines) ? [...new Set(plotlines)] : [];
-      this.parts = this.parts.map((p) => ({ ...p, chapters: p.chapters.map((c) => c.id === id ? { ...c, plotlines: next } : c) }));
+    setChapterStrands(id, strands) {
+      this._record("setChapterStrands");
+      const next = Array.isArray(strands) ? [...new Set(strands)] : [];
+      this.parts = this.parts.map((p) => ({ ...p, chapters: p.chapters.map((c) => c.id === id ? { ...c, strands: next } : c) }));
       this._persist();
     },
-    toggleChapterPlotline(id, plotlineId) {
-      this._record("toggleChapterPlotline");
+    toggleChapterStrand(id, strandId) {
+      this._record("toggleChapterStrand");
       this.parts = this.parts.map((p) => ({
         ...p,
         chapters: p.chapters.map((c) => {
           if (c.id !== id) return c;
-          const current = Array.isArray(c.plotlines) ? c.plotlines : [];
-          const next = current.includes(plotlineId)
-            ? current.filter((x) => x !== plotlineId)
-            : [...current, plotlineId];
-          return { ...c, plotlines: next };
+          const current = Array.isArray(c.strands) ? c.strands : [];
+          const next = current.includes(strandId)
+            ? current.filter((x) => x !== strandId)
+            : [...current, strandId];
+          return { ...c, strands: next };
         }),
       }));
       this._persist();
@@ -686,7 +710,7 @@ export const useProjectStore = defineStore("project", {
     },
 
     // ── Generic reorder for flat entity lists ───────────────
-    // Every sidebar list (plotlines, groups, characters, objects,
+    // Every sidebar list (strands, groups, characters, objects,
     // locations, worldbuilding) lives as a flat array on state. The
     // caller produces the new full order of ids; missing ids get
     // appended at the end so a partial caller can't accidentally drop
@@ -700,7 +724,7 @@ export const useProjectStore = defineStore("project", {
       }
       this[stateKey] = next;
     },
-    reorderPlotlines(ids)     { this._record("reorderPlotlines");     this._reorderFlat("plotlines", ids);     this._persist(); },
+    reorderStrands(ids)       { this._record("reorderStrands");       this._reorderFlat("strands", ids);       this._persist(); },
     reorderGroups(ids)        { this._record("reorderGroups");        this._reorderFlat("groups", ids);        this._persist(); },
     reorderCharacters(ids)    { this._record("reorderCharacters");    this._reorderFlat("characters", ids);    this._persist(); },
     reorderObjects(ids)       { this._record("reorderObjects");       this._reorderFlat("objects", ids);       this._persist(); },
@@ -799,11 +823,11 @@ export const useProjectStore = defineStore("project", {
     },
     updateWorldbuilding(id, patch) { this._record("updateWorldbuilding"); this.worldbuilding = this.worldbuilding.map((a) => a.id === id ? { ...a, ...patch } : a); this._persist(); },
 
-    // ── Plotlines ───────────────────────────────────────────
-    addPlotline(input = {}) {
-      this._record("addPlotline");
-      const id = uid("pl");
-      this.plotlines.push({
+    // ── Narrative strands ───────────────────────────────────
+    addStrand(input = {}) {
+      this._record("addStrand");
+      const id = uid("strand");
+      this.strands.push({
         id,
         name: "Untitled narrative strand",
         color: "oklch(0.78 0.06 200)",
@@ -816,32 +840,32 @@ export const useProjectStore = defineStore("project", {
       this._persist();
       return id;
     },
-    removePlotline(id) {
-      this._record("removePlotline");
-      const s = this.plotlines.find((x) => x.id === id);
+    removeStrand(id) {
+      this._record("removeStrand");
+      const s = this.strands.find((x) => x.id === id);
       if (!s) return;
-      this._pushTrash("plotlines", { ...s });
-      this.plotlines = this.plotlines.filter((x) => x.id !== id);
-      // Clear dangling refs so chapter rows don't render a dead plotline id.
+      this._pushTrash("strands", { ...s });
+      this.strands = this.strands.filter((x) => x.id !== id);
+      // Clear dangling refs so chapter rows don't render a dead strand id.
       this.parts = this.parts.map((p) => ({
         ...p,
         chapters: p.chapters.map((c) => {
-          const list = Array.isArray(c.plotlines) ? c.plotlines : [];
-          return list.includes(id) ? { ...c, plotlines: list.filter((x) => x !== id) } : c;
+          const list = Array.isArray(c.strands) ? c.strands : [];
+          return list.includes(id) ? { ...c, strands: list.filter((x) => x !== id) } : c;
         }),
       }));
-      this._toast(`Deleted narrative strand "${s.name}"`, "plotlines", id);
+      this._toast(`Deleted narrative strand "${s.name}"`, "strands", id);
       this._persist();
     },
-    updatePlotline(id, patch) { this._record("updatePlotline"); this.plotlines = this.plotlines.map((s) => s.id === id ? { ...s, ...patch } : s); this._persist(); },
+    updateStrand(id, patch) { this._record("updateStrand"); this.strands = this.strands.map((s) => s.id === id ? { ...s, ...patch } : s); this._persist(); },
 
-    // ── Plotline beats ──────────────────────────────────────
-    // Beats are turning points on a plotline pinned to a specific
+    // ── Strand beats ────────────────────────────────────────
+    // Beats are turning points on a strand pinned to a specific
     // scene within a chapter:
     //   { id, chapterId, sceneId, label, note }
     // E.g. { chapterId: "ch4", sceneId: "scn_ch4_1", label: "Inciting", note: "..." }
-    addPlotlineBeat(plotlineId, input = {}) {
-      this._record("addPlotlineBeat");
+    addStrandBeat(strandId, input = {}) {
+      this._record("addStrandBeat");
       const beat = {
         id: uid("b"),
         chapterId: null,
@@ -850,22 +874,22 @@ export const useProjectStore = defineStore("project", {
         note: "",
         ...input,
       };
-      this.plotlines = this.plotlines.map((s) => s.id === plotlineId
+      this.strands = this.strands.map((s) => s.id === strandId
         ? { ...s, beats: [...(s.beats || []), beat] }
         : s);
       this._persist();
       return beat.id;
     },
-    updatePlotlineBeat(plotlineId, beatId, patch) {
-      this._record("updatePlotlineBeat");
-      this.plotlines = this.plotlines.map((s) => s.id === plotlineId
+    updateStrandBeat(strandId, beatId, patch) {
+      this._record("updateStrandBeat");
+      this.strands = this.strands.map((s) => s.id === strandId
         ? { ...s, beats: (s.beats || []).map((b) => b.id === beatId ? { ...b, ...patch } : b) }
         : s);
       this._persist();
     },
-    removePlotlineBeat(plotlineId, beatId) {
-      this._record("removePlotlineBeat");
-      this.plotlines = this.plotlines.map((s) => s.id === plotlineId
+    removeStrandBeat(strandId, beatId) {
+      this._record("removeStrandBeat");
+      this.strands = this.strands.map((s) => s.id === strandId
         ? { ...s, beats: (s.beats || []).filter((b) => b.id !== beatId) }
         : s);
       this._persist();
@@ -998,13 +1022,13 @@ export const useProjectStore = defineStore("project", {
     },
 
     // ── Snapshot ────────────────────────────────────────────
-    loadSnapshot(snap) { Object.assign(this.$state, snap); this.clearHistory(); this._persist(); },
+    loadSnapshot(snap) { Object.assign(this.$state, normalizeStrands(snap)); this.clearHistory(); this._persist(); },
     exportSnapshot() {
       return {
         project: this.project, parts: this.parts, scenes: this.scenes,
         characters: this.characters, characterExtras: this.characterExtras,
         locations: this.locations, objects: this.objects, groups: this.groups,
-        plotlines: this.plotlines, notes: this.notes, architecture: this.architecture,
+        strands: this.strands, notes: this.notes, architecture: this.architecture,
         worldbuilding: this.worldbuilding, images: this.images, events: this.events,
         trash: this.trash,
         savedAt: new Date().toISOString(),
@@ -1049,7 +1073,7 @@ export const useProjectStore = defineStore("project", {
       const id = uid("prj");
       const fresh = {
         project: { ...PROJECT, title, author, coverImage: null, wordsWritten: 0, lastSaved: "" },
-        plotlines: [], characters: [], characterExtras: {},
+        strands: [], characters: [], characterExtras: {},
         locations: [], objects: [], groups: [], notes: [],
         parts: [{ id: uid("p"), title: "Part One", chapters: [] }],
         architecture: { ...ARCHITECTURE },
@@ -1068,7 +1092,7 @@ export const useProjectStore = defineStore("project", {
 
     switchProject(id) {
       if (!id || id === this._activeId) return;
-      const snap = loadSnap(id);
+      const snap = normalizeStrands(loadSnap(id));
       if (!snap) {
         useUiStore().showToast({ message: "That project couldn't be loaded." });
         return;

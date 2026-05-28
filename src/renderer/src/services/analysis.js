@@ -19,19 +19,19 @@ export function statusCounts(allChapters) {
 }
 
 /**
- * Plotline distribution — words per plotline, plus an unattributed bucket.
- * Chapters can belong to multiple plotlines; each plotline they're tagged
+ * Strand distribution — words per strand, plus an unattributed bucket.
+ * Chapters can belong to multiple strands; each strand they're tagged
  * with gets full credit for the chapter's word count, so the row totals
  * may exceed the manuscript's total words (this is intentional — each
  * row is "words spent on this thread", not "% of book").
  * Returns rows sorted by total words descending.
- *   [{ plotlineId, name, color, chapters, words }]
+ *   [{ strandId, name, color, chapters, words }]
  */
-export function plotlineDistribution(plotlines, allChapters) {
-  const byId = new Map(plotlines.map((s) => [s.id, { ...s, chapters: 0, words: 0 }]));
-  const unassigned = { plotlineId: null, name: "Unattributed", color: "var(--border-strong)", chapters: 0, words: 0 };
+export function strandDistribution(strands, allChapters) {
+  const byId = new Map(strands.map((s) => [s.id, { ...s, chapters: 0, words: 0 }]));
+  const unassigned = { strandId: null, name: "Unattributed", color: "var(--border-strong)", chapters: 0, words: 0 };
   for (const c of allChapters) {
-    const list = Array.isArray(c.plotlines) ? c.plotlines : [];
+    const list = Array.isArray(c.strands) ? c.strands : [];
     if (list.length === 0) {
       unassigned.chapters++;
       unassigned.words += c.words || 0;
@@ -45,7 +45,7 @@ export function plotlineDistribution(plotlines, allChapters) {
       }
     }
   }
-  const rows = [...byId.values()].map((s) => ({ plotlineId: s.id, name: s.name, color: s.color, chapters: s.chapters, words: s.words }));
+  const rows = [...byId.values()].map((s) => ({ strandId: s.id, name: s.name, color: s.color, chapters: s.chapters, words: s.words }));
   if (unassigned.chapters) rows.push(unassigned);
   return rows.sort((a, b) => b.words - a.words);
 }

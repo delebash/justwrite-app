@@ -59,8 +59,8 @@ const routes = [
   { path: "/groups/:id?",        name: "Groups",        component: () => import("../views/GroupsView.vue"), props: true },
 
   { path: "/worldbuilding/:id?", name: "Worldbuilding", component: () => import("../views/WorldbuildingView.vue"), props: true },
-  { path: "/plotlines/:id?",     name: "Plotlines",     component: () => import("../views/PlotlinesView.vue"), props: true },
-  { path: "/strands",            redirect: "/plotlines" },
+  { path: "/strands/:id?",       name: "Strands",       component: () => import("../views/StrandsView.vue"), props: true },
+  { path: "/plotlines/:id?",     redirect: "/strands" },
   { path: "/timeline",           name: "Timeline",      component: () => import("../views/TimelineView.vue") },
   { path: "/notes/:id?",         name: "Notes",         component: () => import("../views/NotesView.vue"), props: true },
   { path: "/relations",          name: "Relations",     component: () => import("../views/RelationsView.vue") },

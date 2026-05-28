@@ -10,7 +10,7 @@ import { useUiStore } from "../stores/ui.js";
 
 const props = defineProps({
   // The scene array field that holds the entity's id when linked.
-  // One of: "characters" | "locations" | "objects" | "plotlines".
+  // One of: "characters" | "locations" | "objects" | "strands".
   field: { type: String, required: true },
   entityId: { type: String, required: true },
   emptyText: {

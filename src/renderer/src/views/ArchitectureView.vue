@@ -12,7 +12,7 @@ const ui = useUiStore();
 const router = useRouter();
 
 // Architecture is a fixed map of four documents (premise / fabula /
-// setting / global notes). Show one at a time, like Groups/Plotlines.
+// setting / global notes). Show one at a time, like Groups/Strands.
 const docIds = computed(() => Object.keys(project.architecture));
 const doc = computed(() => {
   const id = props.id || ui.selections.architecture || docIds.value[0];

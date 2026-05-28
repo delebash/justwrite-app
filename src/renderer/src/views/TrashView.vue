@@ -18,7 +18,7 @@ const KIND_META = {
   objects:       { label: "Objects",       icon: "Cube",      labelOne: "object" },
   groups:        { label: "Groups",        icon: "GroupIcon", labelOne: "group" },
   notes:         { label: "Notes",         icon: "Note",      labelOne: "note" },
-  plotlines:     { label: "Narrative strands",       icon: "Plotlines", labelOne: "narrative strand" },
+  strands:       { label: "Narrative strands",       icon: "Strands", labelOne: "narrative strand" },
   worldbuilding: { label: "Worldbuilding", icon: "Sparkle",   labelOne: "article" },
 };
 

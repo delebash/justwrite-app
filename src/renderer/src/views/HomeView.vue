@@ -161,16 +161,16 @@ const streakSquares = computed(() => history14.value.map((d) => d.words > 0));
       <div class="card">
         <div class="card-title">Narrative strands</div>
         <div style="display:flex;flex-direction:column;gap:10px">
-          <div v-for="s in project.plotlines" :key="s.id">
+          <div v-for="s in project.strands" :key="s.id">
             <div style="display:flex;justify-content:space-between;font-size:12px;margin-bottom:4px">
               <span>
                 <i :style="`display:inline-block;width:8px;height:8px;border-radius:2px;background:${s.color};margin-right:7px;vertical-align:1px`" />
                 {{ s.name }}
               </span>
-              <span class="t-muted t-num">{{ allCh.filter(c => (c.plotlines || []).includes(s.id)).length }} ch</span>
+              <span class="t-muted t-num">{{ allCh.filter(c => (c.strands || []).includes(s.id)).length }} ch</span>
             </div>
             <div style="height:4px;background:var(--surface-3);border-radius:999px">
-              <div :style="`width:${(allCh.filter(c => (c.plotlines || []).includes(s.id)).length / Math.max(1, allCh.length)) * 100}%;height:100%;background:${s.color};border-radius:999px`" />
+              <div :style="`width:${(allCh.filter(c => (c.strands || []).includes(s.id)).length / Math.max(1, allCh.length)) * 100}%;height:100%;background:${s.color};border-radius:999px`" />
             </div>
           </div>
         </div>
