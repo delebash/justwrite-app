@@ -1,14 +1,63 @@
 import { createRouter, createWebHashHistory } from "vue-router";
 
+// Generic event-page route factory. Every entity with an Events button
+// (characters / locations / objects / groups / architecture/setting)
+// uses the same three pages: timeline, new, edit.
+const eventsTimeline = () => import("../views/EventsTimelineView.vue");
+const eventNew       = () => import("../views/EventNewView.vue");
+const eventEdit      = () => import("../views/EventEditView.vue");
+
+function entityEventRoutes(prefix, kind, opts = {}) {
+  const idParam = opts.idParam || "id";
+  const fixedId = opts.fixedId; // when set, the entityId is constant (Setting case).
+  const idOf = (route) => fixedId ?? route.params[idParam];
+  const namePrefix = opts.namePrefix || prefix.replace(/^\/+|\/+$/g, "").replace(/\W+/g, "-");
+  return [
+    {
+      path: `${prefix}/events/new`,
+      name: `${namePrefix}-events-new`,
+      component: eventNew,
+      props: (route) => ({ kind, entityId: idOf(route) }),
+    },
+    {
+      path: `${prefix}/events/:eventId/edit`,
+      name: `${namePrefix}-events-edit`,
+      component: eventEdit,
+      props: (route) => ({ kind, entityId: idOf(route), eventId: route.params.eventId }),
+    },
+    {
+      path: `${prefix}/events`,
+      name: `${namePrefix}-events`,
+      component: eventsTimeline,
+      props: (route) => ({ kind, entityId: idOf(route) }),
+    },
+  ];
+}
+
 const routes = [
   { path: "/",                   name: "Home",          component: () => import("../views/HomeView.vue") },
+
+  // Architecture / Setting events — singleton entity id "setting".
+  ...entityEventRoutes("/architecture/setting", "setting", { fixedId: "setting", namePrefix: "setting" }),
+
   { path: "/architecture/:id?",  name: "Architecture",  component: () => import("../views/ArchitectureView.vue"), props: true },
   { path: "/chapters/:id?/:sceneId?", name: "Chapters",      component: () => import("../views/ChaptersView.vue"), props: true },
   { path: "/search",             name: "Search",        component: () => import("../views/SearchView.vue") },
+
+  // Per-entity event routes are declared BEFORE the dynamic :id? routes
+  // so /characters/c1/events doesn't get swallowed by /characters/:id?.
+  ...entityEventRoutes("/characters/:id", "character"),
   { path: "/characters/:id?",    name: "Characters",    component: () => import("../views/CharactersView.vue"), props: true },
+
+  ...entityEventRoutes("/locations/:id",  "location"),
   { path: "/locations/:id?",     name: "Locations",     component: () => import("../views/LocationsView.vue"), props: true },
+
+  ...entityEventRoutes("/objects/:id",    "object"),
   { path: "/objects/:id?",       name: "Objects",       component: () => import("../views/ObjectsView.vue"), props: true },
+
+  ...entityEventRoutes("/groups/:id",     "group"),
   { path: "/groups/:id?",        name: "Groups",        component: () => import("../views/GroupsView.vue"), props: true },
+
   { path: "/worldbuilding/:id?", name: "Worldbuilding", component: () => import("../views/WorldbuildingView.vue"), props: true },
   { path: "/plotlines/:id?",     name: "Plotlines",     component: () => import("../views/PlotlinesView.vue"), props: true },
   { path: "/strands",            redirect: "/plotlines" },

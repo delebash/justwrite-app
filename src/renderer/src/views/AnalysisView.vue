@@ -166,7 +166,7 @@ function jumpChapter(chId) { router.push(`/chapters/${chId}`); }
       </div>
 
       <div class="card">
-        <div class="card-title">Strands by word count</div>
+        <div class="card-title">Narrative strands by word count</div>
         <div style="display:flex;flex-direction:column;gap:10px;margin-top:6px">
           <div v-for="s in plotlines" :key="s.plotlineId || 'none'">
             <div style="display:flex;justify-content:space-between;font-size:12.5px;margin-bottom:4px">

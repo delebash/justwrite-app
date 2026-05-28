@@ -354,6 +354,84 @@ export const SCENES = {
   ],
 };
 
+// Per-entity event log. Keyed by entity id (character / location / object /
+// group / "setting"). Each event is { id, when, title, note }, where `when`
+// is a datetime-local-shaped string so the timeline view can sort it.
+export const EVENTS = {
+  // ── Setting — the broader world timeline ──
+  setting: [
+    { id: "ev_set_1", when: "1881-06-15T09:00", title: "First Ordnance Survey of the coast",
+      note: "A team of three walks the line from the county town to Tern Head over two summers. The six-inch survey becomes the first authoritative map of this coast." },
+    { id: "ev_set_2", when: "1923-04-02T12:00", title: "Brackish Cove last appears on an Admiralty chart",
+      note: "Subsequent surveys mark the headlands but not the cove between them." },
+    { id: "ev_set_3", when: "1968-09-21T08:30", title: "St. Eira's west wall collapses into the sea",
+      note: "After a winter of storms. The chapel becomes a half-tide ruin." },
+    { id: "ev_set_4", when: "1995-11-04T03:14", title: "The storm year",
+      note: "Elen is born on the third night of the great storm. Halden House loses three slates and a window. Idris is at the lighthouse." },
+    { id: "ev_set_5", when: "2003-08-12T17:45", title: "Idris stops writing in the ledger",
+      note: "Page 60. He never explains why. Someone else continues from page 61, in a different hand." },
+    { id: "ev_set_6", when: "2026-03-11T07:20", title: "Idris dies; Elen inherits the house, the theodolite, and the ledger",
+      note: "Petra is the one who finds him. The kettle is still warm." },
+  ],
+
+  // ── Characters ──
+  c1: [
+    { id: "ev_c1_1", when: "1995-11-04T03:14", title: "Born",
+      note: "Halden House, cliff road. Mother had wanted to deliver at the cottage hospital; the storm decided otherwise." },
+    { id: "ev_c1_2", when: "2003-09-09T16:00", title: "Mother leaves",
+      note: "Eight years old. No explanation given at the time. Petra is the one who makes the supper that night." },
+    { id: "ev_c1_3", when: "2015-10-02T10:30", title: "Begins archival training",
+      note: "Two years, never finishes. Returns north when Idris first falls ill." },
+    { id: "ev_c1_4", when: "2026-03-11T11:00", title: "Inherits the ledger",
+      note: "Petra hands it to her, brass-cornered case, initials I.V. tooled at the throat. Elen does not open it for nine days." },
+  ],
+  c2: [
+    { id: "ev_c2_1", when: "1959-04-20T06:00", title: "Born", note: "Inland, in the county town. Moves to the coast in his twenties and stays." },
+    { id: "ev_c2_2", when: "1981-07-01T08:00", title: "Re-walks the 1881 Survey lines",
+      note: "On foot, with a borrowed theodolite. Writes the first entries of what becomes the ledger." },
+    { id: "ev_c2_3", when: "2003-08-12T17:45", title: "Stops writing", note: "Page 60. He continues to consult the ledger but adds nothing more." },
+    { id: "ev_c2_4", when: "2026-03-11T05:50", title: "Dies", note: "In his sleep. The study door is closed; the brass weight is on the desk, holding nothing down." },
+  ],
+  c3: [
+    { id: "ev_c3_1", when: "2024-02-18T14:00", title: "Buys the print shop",
+      note: "Lange & Co. Print, an inheritance from her father. June moves north a month later." },
+    { id: "ev_c3_2", when: "2026-04-19T19:30", title: "First sees the ledger",
+      note: "Elen brings it to the print shop. June identifies the change of hand in under ten minutes." },
+  ],
+  c5: [
+    { id: "ev_c5_1", when: "1965-05-08T11:00", title: "Born",
+      note: "Petra is the elder sister. The coast she remembers is not the same coast her sister will later claim never existed." },
+    { id: "ev_c5_2", when: "2003-09-09T18:00", title: "Stays the night Elen's mother leaves",
+      note: "Makes the supper. Does not answer the questions an eight-year-old asks. Begins, quietly, to add entries to the ledger." },
+  ],
+
+  // ── Locations ──
+  l2: [
+    { id: "ev_l2_1", when: "1881-07-22T11:00", title: "Surveyed but not named",
+      note: "The 1881 team records the cove without giving it a name. Two later maps disagree on its position." },
+    { id: "ev_l2_2", when: "1923-04-02T12:00", title: "Removed from Admiralty charts",
+      note: "Modern surveys cannot find it. Local fishermen continue to use the name." },
+  ],
+  l1: [
+    { id: "ev_l1_1", when: "1923-10-30T14:00", title: "Halden House built",
+      note: "On the cliff road. Salt warps the doors every winter." },
+  ],
+
+  // ── Objects ──
+  o1: [
+    { id: "ev_o1_1", when: "1981-07-01T08:00", title: "First entry",
+      note: "Idris's hand. Cloth-bound, 84 pages, a brass-cornered case." },
+    { id: "ev_o1_2", when: "2003-08-12T17:45", title: "Idris stops; another hand continues",
+      note: "Page 61 onward is written by someone using the same ink, the same care, and a different g." },
+  ],
+  o2: [
+    { id: "ev_o2_1", when: "1981-06-15T07:00", title: "Borrowed for the first re-walk",
+      note: "Brass, Royal Engineers pattern. Idris keeps it after the survey is done and no one asks for it back." },
+    { id: "ev_o2_2", when: "2026-03-12T09:00", title: "Found set to a bearing no one recognises",
+      note: "54° 11' N, 4° 09' W. The bearing is also in the ledger, in the second hand." },
+  ],
+};
+
 export const NOTES = [
   { id: "n1", title: "Why the last twelve pages", body: "Idris stopped writing in 2003. Someone else continued.", tag: "structure", updated: "May 22" },
   { id: "n2", title: "On maps, an epigraph", body: "Still looking for a quieter source than Borges.", tag: "research", updated: "May 19" },

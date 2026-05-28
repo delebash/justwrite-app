@@ -170,7 +170,7 @@ function buildEdges(known) {
   for (const [strandId, set] of strandMembers) {
     if (set.size < 2) continue;
     const strand = strandsById.get(strandId);
-    addAllPairs([...set], `Strand: ${strand?.name || strandId}`);
+    addAllPairs([...set], `Narrative strand: ${strand?.name || strandId}`);
   }
 
   return [...map.values()].map((e) => ({

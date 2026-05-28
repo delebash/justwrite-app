@@ -444,7 +444,7 @@ onBeforeUnmount(() => window.removeEventListener("keydown", onKey));
         Next scene <Icon name="ChevRight" :size="12" />
       </button>
       <div class="scene-strip-actions" style="margin-left:auto">
-        <button class="btn scene-links-btn" title="Links — POV, characters, locations, objects, strands"
+        <button class="btn scene-links-btn" title="Links — POV, characters, locations, objects, narrative strands"
           @click="linksOpen = true">
           <Icon name="Network" :size="13" /> Links
         </button>

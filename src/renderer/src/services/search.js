@@ -138,7 +138,7 @@ export function buildIndex(project, speakers = null) {
   // Strands — name + blurb + body (for subplot search).
   for (const s of project.plotlines) {
     const body = [s.blurb || "", s.body || ""].filter(Boolean).join("\n");
-    indexDoc({ id: `plotline:${s.id}`, kind: "plotline", title: s.name, sub: "Strand", body, route: `/plotlines` });
+    indexDoc({ id: `plotline:${s.id}`, kind: "plotline", title: s.name, sub: "Narrative strand", body, route: `/plotlines` });
   }
 
   // Worldbuilding — title + summary + body, grouped by category in UI.
@@ -300,6 +300,6 @@ export const KIND_META = {
   group:         { label: "Groups",         icon: "GroupIcon", order: 5 },
   worldbuilding: { label: "Worldbuilding",  icon: "Sparkle",   order: 6 },
   note:          { label: "Notes",          icon: "Note",      order: 7 },
-  plotline:      { label: "Strands",        icon: "Plotlines", order: 8 },
+  plotline:      { label: "Narrative strands",        icon: "Plotlines", order: 8 },
   architecture:  { label: "Architecture",   icon: "Building",  order: 9 },
 };

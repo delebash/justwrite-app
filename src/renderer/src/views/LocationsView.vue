@@ -5,7 +5,6 @@ import { useUiStore } from "../stores/ui.js";
 import { useRouter } from "vue-router";
 import Icon from "../components/Icon.vue";
 import ImagesModal from "../components/ImagesModal.vue";
-import EventsModal from "../components/EventsModal.vue";
 import GroupsModal from "../components/GroupsModal.vue";
 import SceneRefList from "../components/SceneRefList.vue";
 import { promptDialog, confirmDialog } from "../services/dialog.js";
@@ -52,7 +51,9 @@ async function deleteLocation() {
     </div>
     <div class="pane-actions">
       <button class="btn ghost" @click="modal = 'images'"><Icon name="Image" :size="14" /> Images</button>
-      <button class="btn ghost" @click="modal = 'events'"><Icon name="Calendar" :size="14" /> Events</button>
+      <router-link :to="`/locations/${loc.id}/events`" custom v-slot="{ navigate }">
+        <button class="btn ghost" @click="navigate"><Icon name="Calendar" :size="14" /> Events</button>
+      </router-link>
       <button class="btn ghost" @click="modal = 'groups'"><Icon name="GroupIcon" :size="14" /> Groups</button>
       <button class="btn ghost" @click="deleteLocation">Delete</button>
       <button class="btn primary" @click="addLocation"><Icon name="Plus" :size="14" /> New location</button>
@@ -74,7 +75,6 @@ async function deleteLocation() {
     </div>
   </div>
   <ImagesModal v-if="modal === 'images'" :entity-id="loc.id" :entity-name="loc.name" @close="modal = null" />
-  <EventsModal v-if="modal === 'events'" :entity-id="loc.id" :entity-name="loc.name" @close="modal = null" />
   <GroupsModal v-if="modal === 'groups'" :entity-id="loc.id" :entity-name="loc.name" entity-kind="location" @close="modal = null" />
 </template>
 

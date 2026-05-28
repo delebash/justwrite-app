@@ -1,5 +1,5 @@
 <script setup>
-import { computed } from "vue";
+import { computed, ref } from "vue";
 import { useRouter } from "vue-router";
 import { useProjectStore } from "../stores/project.js";
 import { useUiStore } from "../stores/ui.js";
@@ -7,12 +7,14 @@ import PaneHeader from "../components/PaneHeader.vue";
 import Icon from "../components/Icon.vue";
 import RichEditor from "../components/RichEditor.vue";
 import SceneRefList from "../components/SceneRefList.vue";
+import GroupsModal from "../components/GroupsModal.vue";
 import { promptDialog, confirmDialog } from "../services/dialog.js";
 
 const props = defineProps({ id: { type: String, default: "" } });
 const project = useProjectStore();
 const ui = useUiStore();
 const router = useRouter();
+const modal = ref(null);
 
 // Show one strand at a time — selected from the route param, falling
 // back to the sidebar selection, then the first strand.
@@ -104,10 +106,10 @@ function goBeat(b) {
 
 async function addPlotline() {
   const name = await promptDialog({
-    title: "New strand",
-    label: "Strand name",
+    title: "New narrative strand",
+    label: "Narrative strand name",
     placeholder: "e.g. The Map Plot",
-    confirmLabel: "Create strand",
+    confirmLabel: "Create narrative strand",
   });
   if (!name) return;
   const id = project.addPlotline({ name });
@@ -118,12 +120,12 @@ async function addPlotline() {
 async function deletePlotline() {
   const used = scenesInStrand.value.length;
   const message = used
-    ? `${used} scene${used === 1 ? " is" : "s are"} linked to this strand. They'll lose the link (other strand links on those scenes are kept).`
+    ? `${used} scene${used === 1 ? " is" : "s are"} linked to this narrative strand. They'll lose the link (other narrative strand links on those scenes are kept).`
     : null;
   const yes = await confirmDialog({
-    title: `Delete strand "${s.value.name}"?`,
+    title: `Delete narrative strand "${s.value.name}"?`,
     message,
-    confirmLabel: "Delete strand",
+    confirmLabel: "Delete narrative strand",
     danger: true,
   });
   if (!yes) return;
@@ -193,22 +195,23 @@ const sortedBeats = computed(() => {
 <template>
   <header class="pane-header plotline-pane-header">
     <div class="pane-title">
-      <span class="pane-eyebrow">Strand</span>
+      <span class="pane-eyebrow">Narrative strand</span>
       <input v-if="s" class="plotline-name"
         :value="s.name"
-        placeholder="Strand name"
+        placeholder="Narrative strand name"
         @input="update('name', $event.target.value)" />
-      <h1 v-else class="pane-h1">Strands</h1>
+      <h1 v-else class="pane-h1">Narrative strands</h1>
     </div>
     <div class="pane-actions">
+      <button v-if="s" class="btn ghost" @click="modal = 'groups'"><Icon name="GroupIcon" :size="14" /> Groups</button>
       <button v-if="s" class="btn ghost" @click="deletePlotline">Delete</button>
-      <button class="btn primary" @click="addPlotline"><Icon name="Plus" :size="14" /> New strand</button>
+      <button class="btn primary" @click="addPlotline"><Icon name="Plus" :size="14" /> New narrative strand</button>
     </div>
   </header>
 
   <div v-if="!s" class="col-detail scrollarea">
     <div class="plotline-empty">
-      No strands yet. Click <strong>New strand</strong> to add one.
+      No narrative strands yet. Click <strong>New narrative strand</strong> to add one.
     </div>
   </div>
 
@@ -231,7 +234,7 @@ const sortedBeats = computed(() => {
 
           <textarea class="plotline-blurb"
             :value="s.blurb || ''"
-            placeholder="What is this strand about? (One or two sentences)"
+            placeholder="What is this narrative strand about? (One or two sentences)"
             rows="2"
             @input="update('blurb', $event.target.value)" />
 
@@ -243,7 +246,7 @@ const sortedBeats = computed(() => {
 
           <RichEditor
             :model-value="s.body || ''"
-            placeholder="Write the strand in detail — synopsis, character arcs, beats in prose, anything you want to remember…"
+            placeholder="Write the narrative strand in detail — synopsis, character arcs, beats in prose, anything you want to remember…"
             variant="inline"
             :toolbar="['bold', 'italic', 'h2', 'quote', 'list', 'undo', 'redo']"
             :min-height="220"
@@ -260,7 +263,7 @@ const sortedBeats = computed(() => {
             </div>
 
             <div v-if="(s.beats || []).length === 0" class="beats-empty">
-              No beats yet. Add Inciting / Midpoint / Climax-style turning points so you can see where this strand pays off.
+              No beats yet. Add Inciting / Midpoint / Climax-style turning points so you can see where this narrative strand pays off.
             </div>
             <div v-else class="beats-list">
               <div v-for="b in sortedBeats" :key="b.id" class="beat-row">
@@ -301,7 +304,7 @@ const sortedBeats = computed(() => {
           <div style="margin-top:22px">
             <div class="t-eyebrow" style="margin-bottom:10px">Appears in scenes</div>
             <SceneRefList field="plotlines" :entity-id="s.id"
-              empty-text="No scenes linked to this strand yet. Open a scene → Links → Strands to add one." />
+              empty-text="No scenes linked to this narrative strand yet. Open a scene → Links → Narrative strands to add one." />
           </div>
         </div>
       </div>
@@ -312,6 +315,10 @@ const sortedBeats = computed(() => {
       <option v-for="preset in BEAT_PRESETS" :key="preset" :value="preset" />
     </datalist>
   </div>
+
+  <GroupsModal v-if="s && modal === 'groups'"
+    :entity-id="s.id" :entity-name="s.name" entity-kind="plotline"
+    @close="modal = null" />
 </template>
 
 <style scoped>

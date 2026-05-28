@@ -1,12 +1,15 @@
 <script setup>
 import { computed } from "vue";
+import { useRouter } from "vue-router";
 import { useProjectStore } from "../stores/project.js";
 import { useUiStore } from "../stores/ui.js";
 import RichEditor from "../components/RichEditor.vue";
+import Icon from "../components/Icon.vue";
 
 const props = defineProps({ id: { type: String, default: "" } });
 const project = useProjectStore();
 const ui = useUiStore();
+const router = useRouter();
 
 // Architecture is a fixed map of four documents (premise / fabula /
 // setting / global notes). Show one at a time, like Groups/Plotlines.
@@ -17,6 +20,7 @@ const doc = computed(() => {
 });
 
 function update(k, v) { project.updateArchitecture(doc.value.id, { [k]: v }); }
+function openEvents() { router.push("/architecture/setting/events"); }
 </script>
 
 <template>
@@ -25,6 +29,9 @@ function update(k, v) { project.updateArchitecture(doc.value.id, { [k]: v }); }
       <span class="pane-eyebrow">Architecture document</span>
       <input v-if="doc" class="input arch-title"
         :value="doc.title" @input="update('title', $event.target.value)" />
+    </div>
+    <div v-if="doc && doc.id === 'setting'" class="pane-actions">
+      <button class="btn ghost" @click="openEvents"><Icon name="Calendar" :size="14" /> Events</button>
     </div>
   </header>
 
@@ -44,6 +51,7 @@ function update(k, v) { project.updateArchitecture(doc.value.id, { [k]: v }); }
       />
     </div>
   </div>
+
 </template>
 
 <style scoped>

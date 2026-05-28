@@ -6,7 +6,6 @@ import { useRouter } from "vue-router";
 import Avatar from "../components/Avatar.vue";
 import Icon from "../components/Icon.vue";
 import ImagesModal from "../components/ImagesModal.vue";
-import EventsModal from "../components/EventsModal.vue";
 import GroupsModal from "../components/GroupsModal.vue";
 import SceneRefList from "../components/SceneRefList.vue";
 import { promptDialog, confirmDialog } from "../services/dialog.js";
@@ -135,7 +134,9 @@ function updateBackstory(v) { project.setCharacterExtras(ch.value.id, { backstor
     </div>
     <div class="pane-actions">
       <button class="btn ghost" @click="modal = 'images'"><Icon name="Image" :size="14" /> Images</button>
-      <button class="btn ghost" @click="modal = 'events'"><Icon name="Calendar" :size="14" /> Events</button>
+      <router-link :to="`/characters/${ch.id}/events`" custom v-slot="{ navigate }">
+        <button class="btn ghost" @click="navigate"><Icon name="Calendar" :size="14" /> Events</button>
+      </router-link>
       <button class="btn ghost" @click="modal = 'groups'"><Icon name="GroupIcon" :size="14" /> Groups</button>
       <button class="btn ghost" @click="deleteCharacter">Delete</button>
       <button class="btn primary" @click="addCharacter"><Icon name="Plus" :size="14" /> New character</button>
@@ -245,7 +246,6 @@ function updateBackstory(v) { project.setCharacterExtras(ch.value.id, { backstor
   </div>
 
   <ImagesModal v-if="modal === 'images'" :entity-id="ch.id" :entity-name="ch.name" @close="modal = null" />
-  <EventsModal v-if="modal === 'events'" :entity-id="ch.id" :entity-name="ch.name" @close="modal = null" />
   <GroupsModal v-if="modal === 'groups'" :entity-id="ch.id" :entity-name="ch.name" entity-kind="character" @close="modal = null" />
 </template>
 

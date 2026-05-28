@@ -5,7 +5,6 @@ import { useUiStore } from "../stores/ui.js";
 import { useRouter } from "vue-router";
 import Icon from "../components/Icon.vue";
 import ImagesModal from "../components/ImagesModal.vue";
-import EventsModal from "../components/EventsModal.vue";
 import { promptDialog, confirmDialog } from "../services/dialog.js";
 
 const props = defineProps({ id: { type: String, default: "" } });
@@ -15,6 +14,7 @@ const router = useRouter();
 const g = computed(() => project.groupById(props.id || ui.selections.groups) || project.groups[0]);
 const modal = ref(null);
 const KIND_ICON = { character: "Users", location: "Pin", object: "Cube", plotline: "Plotlines" };
+const KIND_LABEL = { character: "character", location: "location", object: "object", plotline: "narrative strand" };
 
 // Same family of oklch hues used in PlotlinesView, so colors picked
 // across these two surfaces sit nicely next to each other in the UI.
@@ -61,7 +61,9 @@ async function deleteGroup() {
     </div>
     <div class="pane-actions">
       <button class="btn ghost" @click="modal = 'images'"><Icon name="Image" :size="14" /> Images</button>
-      <button class="btn ghost" @click="modal = 'events'"><Icon name="Calendar" :size="14" /> Events</button>
+      <router-link :to="`/groups/${g.id}/events`" custom v-slot="{ navigate }">
+        <button class="btn ghost" @click="navigate"><Icon name="Calendar" :size="14" /> Events</button>
+      </router-link>
       <button class="btn ghost" @click="deleteGroup">Delete</button>
       <button class="btn primary" @click="addGroup"><Icon name="Plus" :size="14" /> New group</button>
     </div>
@@ -83,7 +85,7 @@ async function deleteGroup() {
       </div>
       <div style="margin-top:24px">
         <div class="t-eyebrow" style="margin-bottom:10px">Members ({{ (g.members || []).length }})</div>
-        <p class="t-muted" style="font-size:12px;margin:0 0 10px">Use a character/location/object's "Groups" button to add it here.</p>
+        <p class="t-muted" style="font-size:12px;margin:0 0 10px">Use characters/location/objects/narrative strands "Groups" button to add it here.</p>
         <div v-if="(g.members || []).length === 0" class="t-muted" style="font-size:12.5px;text-align:center;padding:24px 0;background:var(--surface-2);border-radius:8px">No members yet.</div>
         <div v-else style="display:grid;grid-template-columns:repeat(auto-fill, minmax(200px, 1fr));gap:10px">
           <div v-for="m in g.members" :key="`${m.kind}-${m.id}`"
@@ -93,7 +95,7 @@ async function deleteGroup() {
             </span>
             <span style="flex:1;min-width:0">
               <div style="font-weight:500;font-size:12.5px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">{{ m.name }}</div>
-              <div class="t-muted" style="font-size:10.5px">{{ m.kind }}</div>
+              <div class="t-muted" style="font-size:10.5px">{{ KIND_LABEL[m.kind] || m.kind }}</div>
             </span>
             <button class="btn ghost sm" @click="project.removeGroupMember(g.id, m.id)">×</button>
           </div>
@@ -102,7 +104,6 @@ async function deleteGroup() {
     </div>
   </div>
   <ImagesModal v-if="modal === 'images'" :entity-id="g.id" :entity-name="g.name" @close="modal = null" />
-  <EventsModal v-if="modal === 'events'" :entity-id="g.id" :entity-name="g.name" @close="modal = null" />
 </template>
 
 <style scoped>

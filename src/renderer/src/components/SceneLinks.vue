@@ -87,8 +87,8 @@ async function newObject() {
 }
 async function newStrand() {
   const name = await promptDialog({
-    title: "New strand",
-    label: "Strand name",
+    title: "New narrative strand",
+    label: "Narrative strand name",
     placeholder: "e.g. The Map Plot",
     confirmLabel: "Create",
   });
@@ -214,7 +214,7 @@ function onBackdrop(e) {
 
         <!-- Strands -->
         <section class="links-section">
-          <div class="links-section-label">To which strand does this scene belong?</div>
+          <div class="links-section-label">To which narrative strand does this scene belong?</div>
           <div class="links-row">
             <button v-for="s in project.plotlines" :key="s.id"
               type="button"
@@ -224,7 +224,7 @@ function onBackdrop(e) {
               {{ s.name }}
             </button>
             <button type="button" class="link-chip link-chip-new" @click="newStrand">
-              new strand
+              new narrative strand
             </button>
           </div>
         </section>

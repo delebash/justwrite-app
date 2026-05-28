@@ -13,7 +13,7 @@ import { getItem, setItem, removeItem } from "../services/storage.js";
 import {
   PROJECT, PLOTLINES, CHARACTERS, CHARACTER_EXTRAS, LOCATIONS, OBJECTS,
   PARTS, NOTES, GROUPS, ARCHITECTURE, WORLDBUILDING, WORLDBUILDING_CATEGORIES,
-  SCENES,
+  SCENES, EVENTS,
 } from "../domain/seed.js";
 
 // Multi-project storage:
@@ -258,7 +258,9 @@ export const useProjectStore = defineStore("project", {
       ])
     ),
     images: loaded.images || {},
-    events: loaded.events || {},
+    // Per-entity event log. Seeded only on a fresh install so re-seeding
+    // doesn't clobber user-added events on existing workspaces.
+    events: loaded.events || JSON.parse(JSON.stringify(EVENTS)),
     trash: { ...EMPTY_TRASH, ...(loaded.trash || {}) },
 
     // Multi-project registry. `_activeId` is the localStorage slot the
@@ -803,7 +805,7 @@ export const useProjectStore = defineStore("project", {
       const id = uid("pl");
       this.plotlines.push({
         id,
-        name: "Untitled strand",
+        name: "Untitled narrative strand",
         color: "oklch(0.78 0.06 200)",
         blurb: "",
         body: "",
@@ -828,7 +830,7 @@ export const useProjectStore = defineStore("project", {
           return list.includes(id) ? { ...c, plotlines: list.filter((x) => x !== id) } : c;
         }),
       }));
-      this._toast(`Deleted plotline "${s.name}"`, "plotlines", id);
+      this._toast(`Deleted narrative strand "${s.name}"`, "plotlines", id);
       this._persist();
     },
     updatePlotline(id, patch) { this._record("updatePlotline"); this.plotlines = this.plotlines.map((s) => s.id === id ? { ...s, ...patch } : s); this._persist(); },

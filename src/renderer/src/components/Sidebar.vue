@@ -62,7 +62,7 @@ const NAV = [
   { section: "Manuscript" },
   { id: "home",          label: "Home",          icon: "Home" },
   { id: "architecture",  label: "Architecture",  icon: "Building", expandable: "architecture", fixed: true },
-  { id: "plotlines",     label: "Strands",       icon: "Plotlines", expandable: "plotlines" },
+  { id: "plotlines",     label: "Narrative strands", icon: "Plotlines", expandable: "plotlines" },
   { id: "chapters",      label: "Chapters",      icon: "Book",     expandable: "chapters" },
   { id: "search",        label: "Search",        icon: "Search",   kbd: "⌘F" },
 
@@ -124,7 +124,7 @@ async function addItem(parentId) {
     objects:       { title: "New object",    label: "Object name",    confirmLabel: "Create object" },
     groups:        { title: "New group",     label: "Group name",     confirmLabel: "Create group" },
     worldbuilding: { title: "New article",   label: "Article title",  confirmLabel: "Create article" },
-    plotlines:     { title: "New strand",    label: "Strand name",    confirmLabel: "Create strand" },
+    plotlines:     { title: "New narrative strand",    label: "Narrative strand name",    confirmLabel: "Create narrative strand" },
     notes:         { title: "New note",      label: "Note title",     confirmLabel: "Create note" },
   };
   const meta = META[parentId] || { title: "New item", label: "Name", confirmLabel: "Create" };
