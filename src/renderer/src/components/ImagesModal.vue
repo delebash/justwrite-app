@@ -96,11 +96,6 @@ async function remove(img) {
 </template>
 
 <style>
-.modal-overlay { position: fixed; inset: 0; z-index: 100; background: var(--scrim); backdrop-filter: blur(4px); display: grid; place-items: center; padding: 24px; }
-.modal { width: min(640px, 100%); max-height: 80vh; background: var(--surface); border: 1px solid var(--border); border-radius: 14px; box-shadow: var(--shadow-window); display: flex; flex-direction: column; }
-.modal-head { padding: 16px 22px; border-bottom: 1px solid var(--border); display: flex; align-items: center; justify-content: space-between; }
-.modal-title { font-family: var(--font-serif); font-size: 18px; font-weight: 600; }
-.modal-body { padding: 18px 22px; overflow-y: auto; }
 .image-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; }
 .image-tile { border: 1px solid var(--border); border-radius: 8px; overflow: hidden; background: var(--surface-2); }
 .image-tile img { width: 100%; height: 120px; object-fit: cover; display: block; }
