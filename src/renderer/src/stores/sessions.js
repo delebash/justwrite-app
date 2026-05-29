@@ -37,6 +37,7 @@ function save(state) {
       days: state.days,
       months: state.months,
       lastSeen: state.lastSeen,
+      lastWrite: state.lastWrite,
     }));
   } catch {}
 }
@@ -70,11 +71,18 @@ export const useSessionsStore = defineStore("sessions", {
       days: loaded.days || {},
       months: loaded.months || {},
       lastSeen: loaded.lastSeen || {},
+      // { chapterId, day } — the chapter that last received a positive
+      // word delta, and the day it happened. Drives Home's "Today" jump.
+      lastWrite: loaded.lastWrite || null,
     };
   },
 
   getters: {
     todayWords: (s) => s.days[todayKey()] || 0,
+
+    // The chapter written in today, or null if nothing was written today.
+    todayChapterId: (s) =>
+      s.lastWrite && s.lastWrite.day === todayKey() ? s.lastWrite.chapterId : null,
 
     // Longest consecutive day-streak with non-zero words, ending today
     // (today counts if it has any words, otherwise we start from
@@ -126,6 +134,7 @@ export const useSessionsStore = defineStore("sessions", {
       if (delta > 0) {
         const key = todayKey();
         this.days = { ...this.days, [key]: (this.days[key] || 0) + delta };
+        this.lastWrite = { chapterId, day: key };
       }
       // Lazy maintenance — runs in O(days_to_archive) which is 0 on
       // every call except the first one of a new day.
@@ -216,6 +225,7 @@ export const useSessionsStore = defineStore("sessions", {
       this.days = {};
       this.months = {};
       this.lastSeen = {};
+      this.lastWrite = null;
       save(this.$state);
     },
   },

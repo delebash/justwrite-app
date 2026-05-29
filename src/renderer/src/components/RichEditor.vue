@@ -4,6 +4,11 @@ import { useEditor, EditorContent, BubbleMenu } from "@tiptap/vue-3";
 import StarterKit from "@tiptap/starter-kit";
 import Placeholder from "@tiptap/extension-placeholder";
 import Underline from "@tiptap/extension-underline";
+import Subscript from "@tiptap/extension-subscript";
+import Superscript from "@tiptap/extension-superscript";
+import TextStyle from "@tiptap/extension-text-style";
+import Color from "@tiptap/extension-color";
+import { Extension, Mark, mergeAttributes } from "@tiptap/core";
 import Link from "@tiptap/extension-link";
 import Highlight from "@tiptap/extension-highlight";
 import TextAlign from "@tiptap/extension-text-align";
@@ -20,8 +25,11 @@ import TableCell from "@tiptap/extension-table-cell";
 import { useRouter } from "vue-router";
 import { SearchReplace, searchReplacePluginKey } from "@renderer/services/searchReplace";
 import { buildMentionExtension } from "@renderer/services/editorMentions";
+import { EDITOR_TOOLBAR_FULL } from "@renderer/services/editorToolbars";
 import { saveImage, urlFor } from "@renderer/services/imageStore";
+import { useUiStore } from "../stores/ui.js";
 import Icon from "./Icon.vue";
+import EditorSettingsModal from "./EditorSettingsModal.vue";
 
 const props = defineProps({
   modelValue: { type: String, default: "" },
@@ -34,12 +42,7 @@ const props = defineProps({
   // inline callers pass a slimmer list.
   toolbar: {
     type: Array,
-    default: () => [
-      "bold", "italic", "underline", "strike",
-      "h1", "h2", "quote", "list", "orderedList", "taskList",
-      "sceneBreak", "align", "highlight", "link", "image", "table",
-      "find", "focus", "undo", "redo",
-    ],
+    default: () => EDITOR_TOOLBAR_FULL,
   },
   minHeight: { type: [Number, String], default: null },
   // When true (inline variant), the editor flexes to fill its parent and
@@ -56,11 +59,15 @@ const props = defineProps({
 
 const emit = defineEmits(["update:modelValue", "change"]);
 const router = useRouter();
+const ui = useUiStore();
+const settingsOpen = ref(false);
 
 const isManuscript = computed(() => props.variant === "manuscript");
 // Rich chrome (bubble menu, find bar, word count) is manuscript-only.
 const showWordCount = computed(() => isManuscript.value && props.countFooter);
-const useBubble = computed(() => isManuscript.value);
+// Selection bubble menu shows in both variants — manuscript and inline
+// editors share the same controls.
+const useBubble = computed(() => !!editor.value);
 
 const toLen = (v) => (typeof v === "number" ? `${v}px` : v);
 const inlineBodyStyle = computed(() => {
@@ -83,12 +90,70 @@ function toHtml(s) {
     .join("");
 }
 
+// Font size as a textStyle attribute (TipTap has no official one). Lets
+// the increase/decrease buttons set an inline font-size on the selection.
+const FontSize = Extension.create({
+  name: "fontSize",
+  addOptions() { return { types: ["textStyle"] }; },
+  addGlobalAttributes() {
+    return [{
+      types: this.options.types,
+      attributes: {
+        fontSize: {
+          default: null,
+          parseHTML: (el) => el.style.fontSize || null,
+          renderHTML: (attrs) => (attrs.fontSize ? { style: `font-size: ${attrs.fontSize}` } : {}),
+        },
+      },
+    }];
+  },
+  addCommands() {
+    return {
+      setFontSize: (size) => ({ chain }) => chain().setMark("textStyle", { fontSize: size }).run(),
+      unsetFontSize: () => ({ chain }) => chain().setMark("textStyle", { fontSize: null }).removeEmptyTextStyle().run(),
+    };
+  },
+});
+
+// Word-style comment: a mark that wraps the commented text and stores the
+// note in a data attribute (so it persists in the saved HTML). The note
+// itself only renders in a popover when the marked text is clicked.
+const Comment = Mark.create({
+  name: "comment",
+  inclusive: false,
+  addAttributes() {
+    return {
+      comment: {
+        default: "",
+        parseHTML: (el) => el.getAttribute("data-comment") || "",
+        renderHTML: (attrs) => (attrs.comment ? { "data-comment": attrs.comment } : {}),
+      },
+    };
+  },
+  parseHTML() { return [{ tag: "span[data-comment]" }]; },
+  renderHTML({ HTMLAttributes }) {
+    return ["span", mergeAttributes({ class: "comment-mark" }, HTMLAttributes), 0];
+  },
+  addCommands() {
+    return {
+      setComment: (comment) => ({ commands }) => commands.setMark("comment", { comment }),
+      unsetComment: () => ({ commands }) => commands.unsetMark("comment"),
+    };
+  },
+});
+
 const extensions = [
   StarterKit.configure({ heading: { levels: [1, 2, 3] } }),
   Placeholder.configure({ placeholder: props.placeholder }),
   Underline,
+  Subscript,
+  Superscript,
+  TextStyle,
+  Color,
+  FontSize,
+  Comment,
   Link.configure({ openOnClick: false, autolink: true, HTMLAttributes: { rel: "noopener nofollow", target: "_blank" } }),
-  Highlight,
+  Highlight.configure({ multicolor: true }),
   TextAlign.configure({ types: ["heading", "paragraph"] }),
   Typography,
   CharacterCount,
@@ -122,8 +187,25 @@ const editor = useEditor({
   content: toHtml(props.modelValue),
   autofocus: props.autofocus,
   extensions,
-  editorProps: { attributes: { class: "tiptap-content" } },
-  onCreate({ editor }) { syncCounts(editor); },
+  editorProps: {
+    attributes: { class: "tiptap-content", spellcheck: String(ui.editorSettings.spellCheck) },
+    // Auto-capitalize the first letter of a sentence as the user types,
+    // when the setting is on. Returns true to take over the insertion.
+    handleTextInput(view, from, to, text) {
+      if (!ui.editorSettings.capitalize) return false;
+      if (!/^[a-z]$/.test(text)) return false;
+      const $from = view.state.doc.resolve(from);
+      let atSentenceStart = $from.parentOffset === 0;
+      if (!atSentenceStart) {
+        const before = view.state.doc.textBetween(Math.max(0, from - 2), from, "\n", " ");
+        if (/[.!?]["')\]]?\s$/.test(before)) atSentenceStart = true;
+      }
+      if (!atSentenceStart) return false;
+      view.dispatch(view.state.tr.insertText(text.toUpperCase(), from, to));
+      return true;
+    },
+  },
+  onCreate({ editor }) { syncCounts(editor); editor.view.dom.spellcheck = ui.editorSettings.spellCheck; },
   onUpdate({ editor }) {
     const html = editor.getHTML();
     emit("update:modelValue", html);
@@ -145,12 +227,56 @@ watch(() => props.modelValue, (val) => {
   }
 });
 
+// Spell check toggles live on the editor's DOM node.
+watch(() => ui.editorSettings.spellCheck, (on) => {
+  if (editor.value?.view?.dom) editor.value.view.dom.spellcheck = on;
+});
+
 onBeforeUnmount(() => editor.value?.destroy());
 
 // --- toolbar helpers --------------------------------------------------
 const run = (cmd) => editor.value?.chain().focus()[cmd]().run();
 const isActive = (name, attrs) => editor.value?.isActive(name, attrs) || false;
 const show = (b) => props.toolbar.includes(b);
+
+// Tooltip shortcut hints. Most of these are TipTap/StarterKit built-ins;
+// "mod" renders ⌘ on macOS, Ctrl elsewhere.
+const isMac = typeof navigator !== "undefined" && /mac|iphone|ipad/i.test(navigator.platform || navigator.userAgent || "");
+function sc(combo) {
+  return combo.split("+").map((k) =>
+    k === "mod" ? (isMac ? "⌘" : "Ctrl")
+      : k === "shift" ? (isMac ? "⇧" : "Shift")
+        : k === "alt" ? (isMac ? "⌥" : "Alt")
+          : k
+  ).join(isMac ? "" : "+");
+}
+const TIP = {
+  bold: `Bold · ${sc("mod+B")}`,
+  italic: `Italic · ${sc("mod+I")}`,
+  underline: `Underline · ${sc("mod+U")}`,
+  strike: `Strikethrough · ${sc("mod+shift+S")}`,
+  superscript: `Superscript · ${sc("mod+.")}`,
+  subscript: `Subscript · ${sc("mod+,")}`,
+  h1: `Heading 1 · ${sc("mod+alt+1")}`,
+  h2: `Heading 2 · ${sc("mod+alt+2")}`,
+  h3: `Heading 3 · ${sc("mod+alt+3")}`,
+  quote: `Block quote · ${sc("mod+shift+B")}`,
+  bullet: `Bullet list · ${sc("mod+shift+8")}`,
+  ordered: `Numbered list · ${sc("mod+shift+7")}`,
+  task: `Checklist · ${sc("mod+shift+9")}`,
+  highlight: `Highlight · ${sc("mod+shift+H")}`,
+  alignLeft: `Align left · ${sc("mod+shift+L")}`,
+  alignCenter: `Align center · ${sc("mod+shift+E")}`,
+  alignRight: `Align right · ${sc("mod+shift+R")}`,
+  justify: `Justify · ${sc("mod+shift+J")}`,
+  link: `Link · ${sc("mod+K")}`,
+  undo: `Undo · ${sc("mod+Z")}`,
+  redo: `Redo · ${sc("mod+Y")}`,
+  find: `Find & replace · ${sc("mod+F")}`,
+  copy: `Copy · ${sc("mod+C")}`,
+  cut: `Cut · ${sc("mod+X")}`,
+  paste: `Paste · ${sc("mod+V")}`,
+};
 
 function setHeading(level) {
   editor.value?.chain().focus().toggleHeading({ level }).run();
@@ -167,6 +293,186 @@ function setLink() {
 }
 function insertTable() {
   editor.value?.chain().focus().insertTable({ rows: 3, cols: 3, withHeaderRow: true }).run();
+}
+
+// --- highlight color dropdown -----------------------------------------
+const HIGHLIGHT_COLORS = [
+  { label: "Yellow", color: "#ffe8a3" },
+  { label: "Green",  color: "#bdf0c4" },
+  { label: "Blue",   color: "#bfe1ff" },
+  { label: "Pink",   color: "#ffc9de" },
+  { label: "Purple", color: "#e2ccff" },
+  { label: "Orange", color: "#ffd2a6" },
+];
+// Separate open-state per surface (toolbar vs selection bubble) so the
+// menu doesn't render in both at once; the apply/clear actions are shared.
+const highlightOpen = ref(false);
+const highlightBubbleOpen = ref(false);
+const highlightWrap = ref(null);
+const highlightWrapBubble = ref(null);
+function toggleHighlightMenu() { highlightOpen.value = !highlightOpen.value; }
+function toggleHighlightBubble() { highlightBubbleOpen.value = !highlightBubbleOpen.value; }
+function setHighlightColor(color) {
+  editor.value?.chain().focus().setHighlight({ color }).run();
+  highlightOpen.value = false; highlightBubbleOpen.value = false;
+}
+function clearHighlight() {
+  editor.value?.chain().focus().unsetHighlight().run();
+  highlightOpen.value = false; highlightBubbleOpen.value = false;
+}
+// --- text color dropdown ----------------------------------------------
+const TEXT_COLORS = [
+  "#111827", "#6b7280", "#b91c1c", "#c2410c", "#15803d",
+  "#0f766e", "#1d4ed8", "#6d28d9", "#be185d",
+];
+const textColorOpen = ref(false);
+const textColorBubbleOpen = ref(false);
+const textColorWrap = ref(null);
+const textColorWrapBubble = ref(null);
+function toggleTextColorMenu() { textColorOpen.value = !textColorOpen.value; }
+function toggleTextColorBubble() { textColorBubbleOpen.value = !textColorBubbleOpen.value; }
+function textColorValue() { return editor.value?.getAttributes("textStyle")?.color || null; }
+function setTextColor(color) {
+  editor.value?.chain().focus().setColor(color).run();
+  textColorOpen.value = false; textColorBubbleOpen.value = false;
+}
+function clearTextColor() {
+  editor.value?.chain().focus().unsetColor().run();
+  textColorOpen.value = false; textColorBubbleOpen.value = false;
+}
+
+// --- font size (increase / decrease the selection's inline size) ------
+function currentFontSize() {
+  const fs = editor.value?.getAttributes("textStyle")?.fontSize;
+  const n = fs ? parseFloat(fs) : NaN;
+  return Number.isFinite(n) ? n : null;
+}
+function bumpFont(dir) {
+  const base = currentFontSize() ?? 16;
+  const next = Math.max(10, Math.min(48, Math.round(base) + dir * 2));
+  editor.value?.chain().focus().setFontSize(`${next}px`).run();
+}
+
+// --- comments (Word-style) --------------------------------------------
+// One floating popover: "edit" mode when adding/editing a comment on the
+// selection, "view" mode when a commented span is clicked. The note only
+// shows here — never inline — matching the requested behaviour.
+const commentState = ref({ open: false, mode: "view", text: "", x: 0, y: 0 });
+const commentInput = ref(null);
+const commentPopEl = ref(null);
+
+function selectionScreenRect() {
+  try {
+    const sel = window.getSelection();
+    if (sel && sel.rangeCount) {
+      const r = sel.getRangeAt(0).getBoundingClientRect();
+      if (r && (r.width || r.height)) return r;
+    }
+  } catch {}
+  return null;
+}
+function openCommentEditor() {
+  if (!editor.value || editor.value.state.selection.empty) return;
+  const existing = editor.value.getAttributes("comment")?.comment || "";
+  const r = selectionScreenRect();
+  commentState.value = { open: true, mode: "edit", text: existing, x: r ? r.left : 120, y: r ? r.bottom + 8 : 120 };
+  highlightOpen.value = highlightBubbleOpen.value = textColorOpen.value = textColorBubbleOpen.value = false;
+  nextTick(() => commentInput.value?.focus());
+}
+function saveComment() {
+  const text = commentState.value.text.trim();
+  const chain = editor.value?.chain().focus().extendMarkRange("comment");
+  if (text) chain?.setComment(text).run();
+  else chain?.unsetComment().run();
+  commentState.value.open = false;
+}
+function deleteComment() {
+  editor.value?.chain().focus().extendMarkRange("comment").unsetComment().run();
+  commentState.value.open = false;
+}
+function editComment() { commentState.value.mode = "edit"; nextTick(() => commentInput.value?.focus()); }
+function closeComment() { commentState.value.open = false; }
+function onCommentKeydown(e) {
+  e.stopPropagation();
+  if (e.key === "Escape") closeComment();
+}
+
+// Collect every comment range in the document (contiguous text nodes that
+// carry the comment mark are merged into one range) for prev/next jumps.
+function commentRanges() {
+  const out = [];
+  const ed = editor.value;
+  const type = ed?.schema?.marks?.comment;
+  if (!ed || !type) return out;
+  let cur = null;
+  ed.state.doc.descendants((node, pos) => {
+    if (!node.isText) return;
+    const mark = node.marks.find((m) => m.type === type);
+    if (mark) {
+      if (cur && cur.to === pos) cur.to = pos + node.nodeSize;
+      else { if (cur) out.push(cur); cur = { from: pos, to: pos + node.nodeSize, comment: mark.attrs.comment || "" }; }
+    } else if (cur) { out.push(cur); cur = null; }
+  });
+  if (cur) out.push(cur);
+  return out;
+}
+function gotoComment(dir) {
+  const ranges = commentRanges();
+  if (!ranges.length) return;
+  const head = editor.value.state.selection.head;
+  let target;
+  if (dir > 0) target = ranges.find((r) => r.from > head) || ranges[0];
+  else { const before = ranges.filter((r) => r.to < head); target = before.length ? before[before.length - 1] : ranges[ranges.length - 1]; }
+  editor.value.chain().focus().setTextSelection({ from: target.from, to: target.to }).scrollIntoView().run();
+  nextTick(() => {
+    const r = selectionScreenRect();
+    commentState.value = { open: true, mode: "view", text: target.comment, x: r ? r.left : 120, y: r ? r.bottom + 8 : 120 };
+  });
+}
+
+function onMenuDocDown(e) {
+  if (highlightOpen.value && highlightWrap.value && !highlightWrap.value.contains(e.target)) highlightOpen.value = false;
+  if (highlightBubbleOpen.value && highlightWrapBubble.value && !highlightWrapBubble.value.contains(e.target)) highlightBubbleOpen.value = false;
+  if (textColorOpen.value && textColorWrap.value && !textColorWrap.value.contains(e.target)) textColorOpen.value = false;
+  if (textColorBubbleOpen.value && textColorWrapBubble.value && !textColorWrapBubble.value.contains(e.target)) textColorBubbleOpen.value = false;
+  if (commentState.value.open && commentPopEl.value && !commentPopEl.value.contains(e.target) && !e.target?.closest?.(".comment-mark")) commentState.value.open = false;
+}
+document.addEventListener("mousedown", onMenuDocDown);
+onBeforeUnmount(() => document.removeEventListener("mousedown", onMenuDocDown));
+
+// --- clipboard / print / clear formatting -----------------------------
+function doCopy() { editor.value?.chain().focus().run(); try { document.execCommand("copy"); } catch {} }
+function doCut()  { editor.value?.chain().focus().run(); try { document.execCommand("cut"); } catch {} }
+async function doPaste() {
+  try {
+    const text = await navigator.clipboard.readText();
+    if (text) editor.value?.chain().focus().insertContent(text).run();
+  } catch {}
+}
+function clearFormat() { editor.value?.chain().focus().unsetAllMarks().clearNodes().run(); }
+function doPrint() {
+  const html = editor.value?.getHTML() || "";
+  const frame = document.createElement("iframe");
+  frame.setAttribute("aria-hidden", "true");
+  frame.style.cssText = "position:fixed;right:0;bottom:0;width:0;height:0;border:0;";
+  document.body.appendChild(frame);
+  const doc = frame.contentWindow?.document;
+  if (!doc) { frame.remove(); return; }
+  doc.open();
+  doc.write(`<!doctype html><html><head><meta charset="utf-8"><title>Print</title><style>
+    body{font-family:Georgia,'Times New Roman',serif;font-size:12.5pt;line-height:1.7;color:#111;max-width:680px;margin:0 auto;padding:48px}
+    h1,h2,h3{font-weight:600;line-height:1.3}h1{text-align:center}
+    blockquote{border-left:3px solid #bbb;padding-left:16px;color:#444;margin:14px 0}
+    img{max-width:100%}hr{border:0;text-align:center;margin:24px 0}hr::after{content:"\\2042";letter-spacing:4px;color:#888}
+    table{border-collapse:collapse;width:100%;margin:14px 0}th,td{border:1px solid #ccc;padding:6px 9px}
+    mark{padding:0 2px;border-radius:2px}
+    p{margin:0 0 1em}
+  </style></head><body>${html}</body></html>`);
+  doc.close();
+  setTimeout(() => {
+    try { frame.contentWindow.focus(); frame.contentWindow.print(); } catch {}
+    setTimeout(() => frame.remove(), 1000);
+  }, 250);
 }
 
 // --- image insert (via the app's imageStore) --------------------------
@@ -242,6 +548,12 @@ const doReplaceAll = () => editor.value?.commands.replaceAll(replaceTerm.value);
 // --- mention click → navigate to the bible entry ----------------------
 const ROUTE_BY_KIND = { character: "Characters", location: "Locations", object: "Objects", group: "Groups" };
 function onBodyClick(e) {
+  const commentEl = e.target?.closest?.(".comment-mark");
+  if (commentEl) {
+    const r = commentEl.getBoundingClientRect();
+    commentState.value = { open: true, mode: "view", text: commentEl.getAttribute("data-comment") || "", x: r.left, y: r.bottom + 8 };
+    return;
+  }
   const chip = e.target?.closest?.(".mention");
   if (!chip) return;
   const id = chip.getAttribute("data-id");
@@ -255,6 +567,10 @@ function onKeydown(e) {
     e.preventDefault();
     e.stopPropagation();
     openFind();
+  } else if ((e.metaKey || e.ctrlKey) && !e.shiftKey && e.key.toLowerCase() === "k") {
+    e.preventDefault();
+    e.stopPropagation();
+    setLink();
   } else if (e.key === "Escape" && findOpen.value) {
     closeFind();
   } else if (e.key === "Escape" && focusMode.value) {
@@ -268,90 +584,86 @@ defineExpose({ editor });
 <template>
   <div class="rich-editor" :class="[`rich-editor--${variant}`, { 'rich-editor--fill': fill, 'focus-on': focusMode, 'typewriter-on': focusMode && typewriter }]" @keydown="onKeydown">
     <div class="editor-toolbar" v-if="editor && !focusMode">
-      <div class="group" v-if="show('bold') || show('italic') || show('underline') || show('strike')">
-        <button v-if="show('bold')" class="tb-btn" :class="{ active: isActive('bold') }" @click="run('toggleBold')" title="Bold">
-          <Icon name="Bold" :size="14" />
-        </button>
-        <button v-if="show('italic')" class="tb-btn" :class="{ active: isActive('italic') }" @click="run('toggleItalic')" title="Italic">
-          <Icon name="Italic" :size="14" />
-        </button>
-        <button v-if="show('underline')" class="tb-btn" :class="{ active: isActive('underline') }" @click="run('toggleUnderline')" title="Underline">
-          <Icon name="Underline" :size="14" />
-        </button>
-        <button v-if="show('strike')" class="tb-btn" :class="{ active: isActive('strike') }" @click="run('toggleStrike')" title="Strikethrough">
-          <Icon name="Strike" :size="14" />
-        </button>
+      <div class="group" v-if="show('undo') || show('redo')">
+        <button v-if="show('undo')" class="tb-btn" :disabled="!editor.can().undo()" @click="run('undo')" :data-tip="TIP.undo"><Icon name="Refresh" :size="14" style="transform:scaleX(-1)" /></button>
+        <button v-if="show('redo')" class="tb-btn" :disabled="!editor.can().redo()" @click="run('redo')" :data-tip="TIP.redo"><Icon name="Refresh" :size="14" /></button>
+      </div>
+      <div class="group" v-if="show('copy') || show('cut') || show('paste')">
+        <button v-if="show('copy')" class="tb-btn" @click="doCopy" :data-tip="TIP.copy"><Icon name="Copy" :size="14" /></button>
+        <button v-if="show('cut')" class="tb-btn" @click="doCut" :data-tip="TIP.cut"><Icon name="Cut" :size="14" /></button>
+        <button v-if="show('paste')" class="tb-btn" @click="doPaste" :data-tip="TIP.paste"><Icon name="Paste" :size="14" /></button>
+      </div>
+      <div class="group" v-if="show('bold') || show('italic') || show('underline') || show('strike') || show('subscript') || show('superscript') || show('sceneBreak')">
+        <button v-if="show('bold')" class="tb-btn" :class="{ active: isActive('bold') }" @click="run('toggleBold')" :data-tip="TIP.bold"><Icon name="Bold" :size="14" /></button>
+        <button v-if="show('italic')" class="tb-btn" :class="{ active: isActive('italic') }" @click="run('toggleItalic')" :data-tip="TIP.italic"><Icon name="Italic" :size="14" /></button>
+        <button v-if="show('underline')" class="tb-btn" :class="{ active: isActive('underline') }" @click="run('toggleUnderline')" :data-tip="TIP.underline"><Icon name="Underline" :size="14" /></button>
+        <button v-if="show('strike')" class="tb-btn" :class="{ active: isActive('strike') }" @click="run('toggleStrike')" :data-tip="TIP.strike"><Icon name="Strike" :size="14" /></button>
+        <button v-if="show('superscript')" class="tb-btn tb-glyph" :class="{ active: isActive('superscript') }" @click="run('toggleSuperscript')" :data-tip="TIP.superscript">x²</button>
+        <button v-if="show('subscript')" class="tb-btn tb-glyph" :class="{ active: isActive('subscript') }" @click="run('toggleSubscript')" :data-tip="TIP.subscript">x₂</button>
+        <button v-if="show('sceneBreak')" class="tb-btn" @click="run('setHorizontalRule')" data-tip="Scene break"><Icon name="SceneBreak" :size="14" /></button>
+      </div>
+
+      <div class="group" v-if="show('highlight') || show('textColor') || show('fontDec') || show('fontInc') || show('clearFormat')">
+        <div v-if="show('highlight')" class="tb-highlight" ref="highlightWrap">
+          <button class="tb-btn tb-btn-split" :class="{ active: isActive('highlight') || highlightOpen }" @click="toggleHighlightMenu" :data-tip="TIP.highlight">
+            <Icon name="Highlight" :size="14" /><Icon name="ChevDown" :size="9" class="tb-caret" />
+          </button>
+          <div v-if="highlightOpen" class="tb-highlight-menu">
+            <button v-for="c in HIGHLIGHT_COLORS" :key="c.color" type="button" class="tb-swatch" :style="{ background: c.color }" :title="c.label" @click="setHighlightColor(c.color)" />
+            <button type="button" class="tb-swatch tb-swatch-none" title="Remove highlight" @click="clearHighlight"><Icon name="Close" :size="11" /></button>
+          </div>
+        </div>
+        <div v-if="show('textColor')" class="tb-highlight" ref="textColorWrap">
+          <button class="tb-btn tb-btn-split" :class="{ active: textColorOpen }" @click="toggleTextColorMenu" data-tip="Text color">
+            <span class="tb-A" :style="textColorValue() ? { color: textColorValue() } : null">A</span><Icon name="ChevDown" :size="9" class="tb-caret" />
+          </button>
+          <div v-if="textColorOpen" class="tb-highlight-menu">
+            <button v-for="c in TEXT_COLORS" :key="c" type="button" class="tb-swatch" :style="{ background: c }" :title="c" @click="setTextColor(c)" />
+            <button type="button" class="tb-swatch tb-swatch-none" title="Default color" @click="clearTextColor"><Icon name="Close" :size="11" /></button>
+          </div>
+        </div>
+        <button v-if="show('fontDec')" class="tb-btn tb-glyph" @click="bumpFont(-1)" data-tip="Decrease font size">A−</button>
+        <button v-if="show('fontInc')" class="tb-btn tb-glyph" @click="bumpFont(1)" data-tip="Increase font size">A+</button>
+        <button v-if="show('clearFormat')" class="tb-btn" @click="clearFormat" data-tip="Clear formatting"><Icon name="Eraser" :size="14" /></button>
+      </div>
+
+      <div class="group" v-if="show('quote') || show('list') || show('orderedList') || show('taskList') || show('align')">
+        <button v-if="show('quote')" class="tb-btn" :class="{ active: isActive('blockquote') }" @click="run('toggleBlockquote')" :data-tip="TIP.quote"><Icon name="Quote" :size="14" /></button>
+        <button v-if="show('list')" class="tb-btn" :class="{ active: isActive('bulletList') }" @click="run('toggleBulletList')" :data-tip="TIP.bullet"><Icon name="List" :size="14" /></button>
+        <button v-if="show('orderedList')" class="tb-btn" :class="{ active: isActive('orderedList') }" @click="run('toggleOrderedList')" :data-tip="TIP.ordered"><Icon name="ListOrdered" :size="14" /></button>
+        <button v-if="show('taskList')" class="tb-btn" :class="{ active: isActive('taskList') }" @click="run('toggleTaskList')" :data-tip="TIP.task"><Icon name="CheckSquare" :size="14" /></button>
+        <button v-if="show('align')" class="tb-btn" :class="{ active: isActive({ textAlign: 'left' }) }" @click="setAlign('left')" :data-tip="TIP.alignLeft"><Icon name="AlignLeft" :size="14" /></button>
+        <button v-if="show('align')" class="tb-btn" :class="{ active: isActive({ textAlign: 'center' }) }" @click="setAlign('center')" :data-tip="TIP.alignCenter"><Icon name="AlignCenter" :size="14" /></button>
+        <button v-if="show('align')" class="tb-btn" :class="{ active: isActive({ textAlign: 'right' }) }" @click="setAlign('right')" :data-tip="TIP.alignRight"><Icon name="AlignRight" :size="14" /></button>
+        <button v-if="show('align')" class="tb-btn" :class="{ active: isActive({ textAlign: 'justify' }) }" @click="setAlign('justify')" :data-tip="TIP.justify"><Icon name="AlignJustify" :size="14" /></button>
       </div>
 
       <div class="group" v-if="show('h1') || show('h2') || show('h3')">
-        <button v-if="show('h1')" class="tb-btn" :class="{ active: isActive('heading', { level: 1 }) }" @click="setHeading(1)" title="Heading 1">H1</button>
-        <button v-if="show('h2')" class="tb-btn" :class="{ active: isActive('heading', { level: 2 }) }" @click="setHeading(2)" title="Heading 2">H2</button>
-        <button v-if="show('h3')" class="tb-btn" :class="{ active: isActive('heading', { level: 3 }) }" @click="setHeading(3)" title="Heading 3">H3</button>
+        <button v-if="show('h1')" class="tb-btn tb-glyph" :class="{ active: isActive('heading', { level: 1 }) }" @click="setHeading(1)" :data-tip="TIP.h1">H1</button>
+        <button v-if="show('h2')" class="tb-btn tb-glyph" :class="{ active: isActive('heading', { level: 2 }) }" @click="setHeading(2)" :data-tip="TIP.h2">H2</button>
+        <button v-if="show('h3')" class="tb-btn tb-glyph" :class="{ active: isActive('heading', { level: 3 }) }" @click="setHeading(3)" :data-tip="TIP.h3">H3</button>
       </div>
 
-      <div class="group" v-if="show('quote') || show('list') || show('orderedList') || show('taskList')">
-        <button v-if="show('quote')" class="tb-btn" :class="{ active: isActive('blockquote') }" @click="run('toggleBlockquote')" title="Block quote">
-          <Icon name="Quote" :size="14" />
-        </button>
-        <button v-if="show('list')" class="tb-btn" :class="{ active: isActive('bulletList') }" @click="run('toggleBulletList')" title="Bullet list">
-          <Icon name="List" :size="14" />
-        </button>
-        <button v-if="show('orderedList')" class="tb-btn" :class="{ active: isActive('orderedList') }" @click="run('toggleOrderedList')" title="Numbered list">
-          <Icon name="ListOrdered" :size="14" />
-        </button>
-        <button v-if="show('taskList')" class="tb-btn" :class="{ active: isActive('taskList') }" @click="run('toggleTaskList')" title="Checklist">
-          <Icon name="CheckSquare" :size="14" />
-        </button>
+      <div class="group" v-if="show('link') || show('image') || show('table')">
+        <button v-if="show('link')" class="tb-btn" :class="{ active: isActive('link') }" @click="setLink" :data-tip="TIP.link"><Icon name="Link" :size="14" /></button>
+        <button v-if="show('image')" class="tb-btn" @click="pickImage" data-tip="Insert image"><Icon name="Image" :size="14" /></button>
+        <button v-if="show('table')" class="tb-btn" @click="insertTable" data-tip="Insert table"><Icon name="Table" :size="14" /></button>
       </div>
 
-      <div class="group" v-if="show('sceneBreak') || show('align')">
-        <button v-if="show('sceneBreak')" class="tb-btn" @click="run('setHorizontalRule')" title="Scene break">
-          <Icon name="SceneBreak" :size="14" />
-        </button>
-        <template v-if="show('align')">
-          <button class="tb-btn" :class="{ active: isActive({ textAlign: 'left' }) }" @click="setAlign('left')" title="Align left">
-            <Icon name="AlignLeft" :size="14" />
-          </button>
-          <button class="tb-btn" :class="{ active: isActive({ textAlign: 'center' }) }" @click="setAlign('center')" title="Align center">
-            <Icon name="AlignCenter" :size="14" />
-          </button>
-          <button class="tb-btn" :class="{ active: isActive({ textAlign: 'right' }) }" @click="setAlign('right')" title="Align right">
-            <Icon name="AlignRight" :size="14" />
-          </button>
-        </template>
+      <div class="group" v-if="show('print')">
+        <button v-if="show('print')" class="tb-btn" @click="doPrint" data-tip="Print"><Icon name="Print" :size="14" /></button>
       </div>
 
-      <div class="group" v-if="show('highlight') || show('link') || show('image') || show('table')">
-        <button v-if="show('highlight')" class="tb-btn" :class="{ active: isActive('highlight') }" @click="run('toggleHighlight')" title="Highlight">
-          <Icon name="Highlight" :size="14" />
-        </button>
-        <button v-if="show('link')" class="tb-btn" :class="{ active: isActive('link') }" @click="setLink" title="Link">
-          <Icon name="Link" :size="14" />
-        </button>
-        <button v-if="show('image')" class="tb-btn" @click="pickImage" title="Insert image">
-          <Icon name="Image" :size="14" />
-        </button>
-        <button v-if="show('table')" class="tb-btn" @click="insertTable" title="Insert table">
-          <Icon name="Table" :size="14" />
-        </button>
+      <div class="group" v-if="show('comment')">
+        <button class="tb-btn" :class="{ active: isActive('comment') }" :disabled="editor.state.selection.empty" @click="openCommentEditor" data-tip="Add comment"><Icon name="Comment" :size="14" /></button>
+        <button class="tb-btn" @click="gotoComment(-1)" data-tip="Previous comment"><Icon name="ChevRight" :size="13" style="transform:rotate(180deg)" /></button>
+        <button class="tb-btn" @click="gotoComment(1)" data-tip="Next comment"><Icon name="ChevRight" :size="13" /></button>
       </div>
 
-      <div class="group" v-if="show('find') || show('focus')">
-        <button v-if="show('find')" class="tb-btn" :class="{ active: findOpen }" @click="toggleFind" title="Find & replace">
-          <Icon name="Search" :size="14" />
-        </button>
-        <button v-if="show('focus')" class="tb-btn" :class="{ active: focusMode }" @click="toggleFocus" title="Focus mode">
-          <Icon name="Focus" :size="14" />
-        </button>
-      </div>
-
-      <div class="group" v-if="show('undo') || show('redo')">
-        <button v-if="show('undo')" class="tb-btn" :disabled="!editor.can().undo()" @click="run('undo')" title="Undo">
-          <Icon name="Refresh" :size="14" style="transform:scaleX(-1)" />
-        </button>
-        <button v-if="show('redo')" class="tb-btn" :disabled="!editor.can().redo()" @click="run('redo')" title="Redo">
-          <Icon name="Refresh" :size="14" />
-        </button>
+      <div class="group" v-if="show('find') || show('focus') || show('settings')">
+        <button v-if="show('find')" class="tb-btn" :class="{ active: findOpen }" @click="toggleFind" :data-tip="TIP.find"><Icon name="Search" :size="14" /></button>
+        <button v-if="show('focus')" class="tb-btn" :class="{ active: focusMode }" @click="toggleFocus" data-tip="Focus mode"><Icon name="Focus" :size="14" /></button>
+        <button v-if="show('settings')" class="tb-btn" @click="settingsOpen = true" data-tip="Writing settings"><Icon name="Settings" :size="14" /></button>
       </div>
 
       <div style="flex:1" />
@@ -363,15 +675,15 @@ defineExpose({ editor });
       <input ref="findInput" v-model="findTerm" class="find-input" type="text" placeholder="Find"
         @keydown.enter.prevent="findNext" @keydown.shift.enter.prevent="findPrev" />
       <span class="find-count">{{ searchInfo.count ? `${searchInfo.current}/${searchInfo.count}` : "0/0" }}</span>
-      <button class="tb-btn" @click="findPrev" title="Previous match"><Icon name="ArrowUp" :size="14" /></button>
-      <button class="tb-btn" @click="findNext" title="Next match"><Icon name="ArrowDown" :size="14" /></button>
+      <button class="tb-btn" @click="findPrev" data-tip="Previous"><Icon name="ArrowUp" :size="14" /></button>
+      <button class="tb-btn" @click="findNext" data-tip="Next"><Icon name="ArrowDown" :size="14" /></button>
       <label class="find-case" title="Match case">
         <input type="checkbox" v-model="caseSensitive" /> Aa
       </label>
       <input v-model="replaceTerm" class="find-input" type="text" placeholder="Replace with" />
-      <button class="tb-btn tb-text" @click="doReplace" title="Replace current">Replace</button>
-      <button class="tb-btn tb-text" @click="doReplaceAll" title="Replace all">All</button>
-      <button class="tb-btn" @click="closeFind" title="Close"><Icon name="Close" :size="14" /></button>
+      <button class="tb-btn tb-text" @click="doReplace">Replace</button>
+      <button class="tb-btn tb-text" @click="doReplaceAll">All</button>
+      <button class="tb-btn" @click="closeFind" data-tip="Close"><Icon name="Close" :size="14" /></button>
     </div>
 
     <!-- Focus-mode floating controls -->
@@ -383,11 +695,31 @@ defineExpose({ editor });
 
     <!-- Selection bubble menu (manuscript only) -->
     <bubble-menu v-if="editor && useBubble" :editor="editor" :tippy-options="{ duration: 100 }" class="bubble-menu">
-      <button class="tb-btn" :class="{ active: isActive('bold') }" @click="run('toggleBold')" title="Bold"><Icon name="Bold" :size="14" /></button>
-      <button class="tb-btn" :class="{ active: isActive('italic') }" @click="run('toggleItalic')" title="Italic"><Icon name="Italic" :size="14" /></button>
-      <button class="tb-btn" :class="{ active: isActive('underline') }" @click="run('toggleUnderline')" title="Underline"><Icon name="Underline" :size="14" /></button>
-      <button class="tb-btn" :class="{ active: isActive('highlight') }" @click="run('toggleHighlight')" title="Highlight"><Icon name="Highlight" :size="14" /></button>
-      <button class="tb-btn" :class="{ active: isActive('link') }" @click="setLink" title="Link"><Icon name="Link" :size="14" /></button>
+      <button class="tb-btn" :class="{ active: isActive('bold') }" @click="run('toggleBold')" :data-tip="TIP.bold"><Icon name="Bold" :size="14" /></button>
+      <button class="tb-btn" :class="{ active: isActive('italic') }" @click="run('toggleItalic')" :data-tip="TIP.italic"><Icon name="Italic" :size="14" /></button>
+      <button class="tb-btn" :class="{ active: isActive('underline') }" @click="run('toggleUnderline')" :data-tip="TIP.underline"><Icon name="Underline" :size="14" /></button>
+      <div class="tb-highlight" ref="highlightWrapBubble">
+        <button class="tb-btn tb-btn-split" :class="{ active: isActive('highlight') || highlightBubbleOpen }" @click="toggleHighlightBubble" :data-tip="TIP.highlight">
+          <Icon name="Highlight" :size="14" /><Icon name="ChevDown" :size="9" class="tb-caret" />
+        </button>
+        <div v-if="highlightBubbleOpen" class="tb-highlight-menu">
+          <button v-for="c in HIGHLIGHT_COLORS" :key="c.color" type="button" class="tb-swatch" :style="{ background: c.color }" :title="c.label" @click="setHighlightColor(c.color)" />
+          <button type="button" class="tb-swatch tb-swatch-none" title="Remove highlight" @click="clearHighlight"><Icon name="Close" :size="11" /></button>
+        </div>
+      </div>
+      <div class="tb-highlight" ref="textColorWrapBubble">
+        <button class="tb-btn tb-btn-split" :class="{ active: textColorBubbleOpen }" @click="toggleTextColorBubble" data-tip="Text color">
+          <span class="tb-A" :style="textColorValue() ? { color: textColorValue() } : null">A</span><Icon name="ChevDown" :size="9" class="tb-caret" />
+        </button>
+        <div v-if="textColorBubbleOpen" class="tb-highlight-menu">
+          <button v-for="c in TEXT_COLORS" :key="c" type="button" class="tb-swatch" :style="{ background: c }" :title="c" @click="setTextColor(c)" />
+          <button type="button" class="tb-swatch tb-swatch-none" title="Default color" @click="clearTextColor"><Icon name="Close" :size="11" /></button>
+        </div>
+      </div>
+      <button class="tb-btn tb-glyph" @click="bumpFont(-1)" data-tip="Decrease font size">A−</button>
+      <button class="tb-btn tb-glyph" @click="bumpFont(1)" data-tip="Increase font size">A+</button>
+      <button class="tb-btn" :class="{ active: isActive('link') }" @click="setLink" :data-tip="TIP.link"><Icon name="Link" :size="14" /></button>
+      <button class="tb-btn" :class="{ active: isActive('comment') }" @click="openCommentEditor" data-tip="Add comment"><Icon name="Comment" :size="14" /></button>
     </bubble-menu>
 
     <div v-if="variant === 'manuscript'" class="manuscript scrollarea" ref="manuscriptEl">
@@ -405,6 +737,27 @@ defineExpose({ editor });
     </div>
 
     <input ref="fileInput" type="file" accept="image/*" style="display:none" @change="onImagePicked" />
+
+    <EditorSettingsModal v-if="settingsOpen" @close="settingsOpen = false" />
+
+    <div v-if="commentState.open" ref="commentPopEl" class="comment-pop"
+      :style="{ left: `${commentState.x}px`, top: `${commentState.y}px` }" @keydown="onCommentKeydown">
+      <template v-if="commentState.mode === 'edit'">
+        <textarea ref="commentInput" v-model="commentState.text" class="comment-pop-input" rows="3" placeholder="Add a comment…" />
+        <div class="comment-pop-actions">
+          <button class="btn ghost sm" @click="closeComment">Cancel</button>
+          <button class="btn primary sm" @click="saveComment">Save</button>
+        </div>
+      </template>
+      <template v-else>
+        <div class="comment-pop-text">{{ commentState.text }}</div>
+        <div class="comment-pop-actions">
+          <button class="btn ghost sm" @click="deleteComment">Delete</button>
+          <button class="btn ghost sm" @click="editComment">Edit</button>
+          <button class="btn primary sm" @click="closeComment">Close</button>
+        </div>
+      </template>
+    </div>
   </div>
 </template>
 
@@ -442,8 +795,54 @@ defineExpose({ editor });
 .tiptap-content ul, .tiptap-content ol { padding-left: 20px; }
 .tiptap-content mark {
   background: color-mix(in oklch, var(--accent) 35%, transparent);
+  color: #1f2430;
   border-radius: 2px; padding: 0 1px;
 }
+
+/* Comment-marked text — reads as a subtle comment annotation, distinct
+   from a (filled) highlight: a dotted accent underline plus a tiny
+   speech-bubble marker. No persistent fill, so it can't be mistaken for a
+   highlight. The note itself only shows in the popover when clicked. */
+.tiptap-content .comment-mark {
+  background: color-mix(in oklch, var(--accent) 18%, transparent);
+  border-bottom: 2px solid color-mix(in oklch, var(--accent) 70%, transparent);
+  cursor: pointer;
+}
+.tiptap-content .comment-mark:hover { background: color-mix(in oklch, var(--accent) 32%, transparent); }
+/* Small speech-bubble icon — the cue that distinguishes a comment from a
+   plain highlight. Drawn via an SVG mask so it's tinted by `background`. */
+.tiptap-content .comment-mark::after {
+  content: "";
+  display: inline-block;
+  width: 13px; height: 13px;
+  margin-left: 3px;
+  vertical-align: middle;
+  background: var(--accent);
+  opacity: .9;
+  -webkit-mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath d='M20 2H4a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h4v4l5-4h7a2 2 0 0 0 2-2V4a2 2 0 0 0-2-2Z'/%3E%3C/svg%3E") center / contain no-repeat;
+  mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath d='M20 2H4a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h4v4l5-4h7a2 2 0 0 0 2-2V4a2 2 0 0 0-2-2Z'/%3E%3C/svg%3E") center / contain no-repeat;
+}
+
+/* Comment popover — fixed-position so it escapes editor overflow. */
+.comment-pop {
+  position: fixed; z-index: 200;
+  width: 260px; max-width: 80vw;
+  background: var(--surface);
+  border: 1px solid var(--border-strong);
+  border-radius: 10px;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, .22);
+  padding: 10px;
+  display: flex; flex-direction: column; gap: 8px;
+}
+.comment-pop-input {
+  width: 100%; resize: vertical; min-height: 56px;
+  border: 1px solid var(--border); border-radius: 7px;
+  padding: 7px 9px; font: inherit; font-size: 13px;
+  background: var(--surface); color: var(--ink); outline: none;
+}
+.comment-pop-input:focus { border-color: var(--accent); box-shadow: 0 0 0 3px var(--accent-soft); }
+.comment-pop-text { font-size: 13px; line-height: 1.5; color: var(--ink); white-space: pre-wrap; word-break: break-word; }
+.comment-pop-actions { display: flex; justify-content: flex-end; gap: 6px; }
 .tiptap-content a { color: var(--accent); text-decoration: underline; cursor: pointer; }
 .tiptap-content img { max-width: 100%; height: auto; border-radius: 6px; margin: 8px 0; }
 
@@ -579,14 +978,17 @@ defineExpose({ editor });
 }
 .rich-editor--inline .inline-editor-body {
   padding: 12px 14px;
-  font-family: var(--font-serif);
-  font-size: 15px;
-  line-height: 1.65;
+  font-family: var(--editor-font, var(--font-serif));
+  font-size: var(--editor-font-size, 15px);
+  line-height: var(--editor-line-height, 1.65);
   color: var(--ink);
   border: 1px solid var(--border);
   border-radius: 0 0 7px 7px;
   background: var(--surface);
 }
+.rich-editor--inline .tiptap-content p { text-indent: var(--editor-para-indent, 0); }
+.rich-editor--inline .tiptap-content p:first-of-type { text-indent: 0; }
+.rich-editor--inline .tiptap-content p + p { margin-top: var(--editor-para-spacing, 0); }
 .rich-editor--inline:focus-within .inline-editor-body,
 .rich-editor--inline:focus-within .editor-toolbar {
   border-color: var(--accent);

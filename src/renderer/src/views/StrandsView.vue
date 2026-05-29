@@ -6,9 +6,11 @@ import { useUiStore } from "../stores/ui.js";
 import PaneHeader from "../components/PaneHeader.vue";
 import Icon from "../components/Icon.vue";
 import RichEditor from "../components/RichEditor.vue";
+import { EDITOR_TOOLBAR_DOC } from "../services/editorToolbars.js";
 import StatusSelect from "../components/StatusSelect.vue";
 import SceneRefList from "../components/SceneRefList.vue";
 import GroupsModal from "../components/GroupsModal.vue";
+import Breadcrumb from "../components/Breadcrumb.vue";
 import { promptDialog, confirmDialog } from "../services/dialog.js";
 import { NEW_ENTITY_META } from "../services/entityMeta.js";
 
@@ -186,7 +188,7 @@ const sortedBeats = computed(() => {
 <template>
   <header class="pane-header strand-pane-header">
     <div class="pane-title">
-      <span class="pane-eyebrow">Narrative strand</span>
+      <Breadcrumb :segments="[{ label: 'Narrative strand', to: '/strands' }]" />
       <input v-if="s" class="strand-name"
         :value="s.name"
         placeholder="Narrative strand name"
@@ -225,7 +227,7 @@ const sortedBeats = computed(() => {
             :model-value="s.body || ''"
             placeholder="Write the narrative strand in detail — synopsis, character arcs, beats in prose, anything you want to remember…"
             variant="inline"
-            :toolbar="['bold', 'italic', 'underline', 'strike', 'h1', 'h2', 'h3', 'quote', 'list', 'orderedList', 'taskList', 'sceneBreak', 'align', 'highlight', 'link', 'image', 'table', 'find', 'undo', 'redo']"
+            :toolbar="EDITOR_TOOLBAR_DOC"
             :fill="true"
             @change="(html) => update('body', html)"
           />

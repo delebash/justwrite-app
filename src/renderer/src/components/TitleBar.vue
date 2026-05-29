@@ -1,4 +1,6 @@
 <script setup>
+import { ref, onMounted, onBeforeUnmount } from "vue";
+import { useRouter } from "vue-router";
 import { useUiStore } from "../stores/ui.js";
 import { useProjectStore } from "../stores/project.js";
 import Icon from "./Icon.vue";
@@ -7,7 +9,28 @@ defineProps({ title: { type: String, default: "JustWrite" } });
 
 const ui = useUiStore();
 const project = useProjectStore();
+const router = useRouter();
 const jw = window.justwrite;
+
+// Browser-style nav history. Vue Router stamps `back`/`forward` onto the
+// history state for the current entry, so we can light up the buttons
+// only when there's somewhere to go.
+const canBack = ref(false);
+const canForward = ref(false);
+function syncNav() {
+  const st = window.history.state || {};
+  canBack.value = st.back != null;
+  canForward.value = st.forward != null;
+}
+function goBack() { if (canBack.value) router.back(); }
+function goForward() { if (canForward.value) router.forward(); }
+
+let stopAfterEach;
+onMounted(() => {
+  syncNav();
+  stopAfterEach = router.afterEach(() => syncNav());
+});
+onBeforeUnmount(() => { if (stopAfterEach) stopAfterEach(); });
 
 async function saveProject() {
   if (!jw?.project?.save) {
@@ -29,7 +52,14 @@ async function openProject() {
 
 <template>
   <div class="titlebar">
-    <div class="titlebar-spacer" />
+    <div class="titlebar-left">
+      <button @click="goBack" :disabled="!canBack" :title="`Back${canBack ? '' : ' (no history)'}`">
+        <Icon name="ChevLeft" :size="15" />
+      </button>
+      <button @click="goForward" :disabled="!canForward" :title="`Forward${canForward ? '' : ' (no history)'}`">
+        <Icon name="ChevRight" :size="15" />
+      </button>
+    </div>
     <div class="titlebar-title">{{ title }}</div>
     <div class="titlebar-right">
       <button @click="openProject" title="Open project…"><Icon name="Folder" :size="13" /></button>
@@ -59,7 +89,8 @@ async function openProject() {
   background: var(--border);
   margin: 0 2px;
 }
-.titlebar-right button:disabled {
+.titlebar-right button:disabled,
+.titlebar-left button:disabled {
   opacity: 0.32;
   cursor: default;
 }

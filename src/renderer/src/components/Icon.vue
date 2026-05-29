@@ -25,6 +25,7 @@ const PATHS = {
   Plus:       "M5 12h14M12 5v14",
   ChevDown:   "m6 9 6 6 6-6",
   ChevRight:  "m9 6 6 6-6 6",
+  ChevLeft:   "m15 6-6 6 6 6",
   DragHandle: "M9 6h.01M9 12h.01M9 18h.01M15 6h.01M15 12h.01M15 18h.01",
   Folder:     "M3 6a2 2 0 0 1 2-2h4l2 2h8a2 2 0 0 1 2 2v10a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V6Z",
   Calendar:   "M5 6a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2v13H5V6Zm0 4h14M8 2v4m8-4v4",
@@ -64,7 +65,7 @@ const PATHS = {
   AlignLeft:  "M4 6h16M4 10h10M4 14h16M4 18h10",
   AlignCenter:"M4 6h16M7 10h10M4 14h16M7 18h10",
   AlignRight: "M4 6h16M10 10h10M4 14h16M10 18h10",
-  SceneBreak: "M6 12h.01M12 12h.01M18 12h.01",
+  SceneBreak: "M4 12h3M10.5 12h3M17 12h3",
   ListOrdered:"M10 6h10M10 12h10M10 18h10M5 4v4M3.5 8h2M3.5 12.5c.5-1 2-.7 2 .3 0 .8-2 1.2-2 2.2h2M3.5 17h2l-2 2.5h2",
   CheckSquare:"M9 4H6a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-7M8 12l3 3 9-9",
   Table:      "M4 5h16v14H4zM4 10h16M4 15h16M9 5v14M15 5v14",
@@ -74,6 +75,12 @@ const PATHS = {
   ArrowDown:  "M12 5v14M5 12l7 7 7-7",
   Grid:       "M4 4h7v7H4zM13 4h7v7h-7zM4 13h7v7H4zM13 13h7v7h-7z",
   History:    "M12 8v4l3 2M3.5 9a9 9 0 1 1-.6 4M3.5 9V4M3.5 9H8",
+  Copy:       "M8 8h11a1 1 0 0 1 1 1v11a1 1 0 0 1-1 1H8a1 1 0 0 1-1-1V9a1 1 0 0 1 1-1ZM4 16a1 1 0 0 1-1-1V4a1 1 0 0 1 1-1h11a1 1 0 0 1 1 1v1",
+  Cut:        "M6 7a2 2 0 1 0 0-4 2 2 0 0 0 0 4ZM6 21a2 2 0 1 0 0-4 2 2 0 0 0 0 4ZM7.6 6 20 19M7.6 18 20 5",
+  Paste:      "M9 4h6a1 1 0 0 1 1 1v1H8V5a1 1 0 0 1 1-1ZM8 6H6a1 1 0 0 0-1 1v13a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1V7a1 1 0 0 0-1-1h-2",
+  Print:      "M6 9V4h12v5M6 18H5a2 2 0 0 1-2-2v-4a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2v4a2 2 0 0 1-2 2h-1M7 14h10v6H7z",
+  Eraser:     "M7.6 20.4 3.6 16.4a1.5 1.5 0 0 1 0-2.1L13 5a1.5 1.5 0 0 1 2.1 0l4.3 4.3a1.5 1.5 0 0 1 0 2.1L12 19M9 12l5 5M9 21h11",
+  AlignJustify:"M4 6h16M4 10h16M4 14h16M4 18h16",
 };
 
 const d = computed(() => PATHS[props.name] || "");

@@ -255,12 +255,15 @@ html[data-theme="dark"] .titlebar {
   letter-spacing: 0.01em;
 }
 .titlebar-right { display: flex; justify-content: flex-end; gap: 8px; align-items: center; -webkit-app-region: no-drag; }
-.titlebar-right button {
+.titlebar-left  { display: flex; justify-content: flex-start; gap: 4px; align-items: center; -webkit-app-region: no-drag; }
+.titlebar-right button,
+.titlebar-left button {
   appearance: none; border: 0; background: transparent;
   color: var(--muted); padding: 4px 8px; border-radius: 6px;
   font-size: 12px;
 }
-.titlebar-right button:hover { background: var(--surface-3); color: var(--ink); }
+.titlebar-right button:hover,
+.titlebar-left button:not(:disabled):hover { background: var(--surface-3); color: var(--ink); }
 
 /* ============================================================
    App layout
@@ -900,23 +903,69 @@ input.nav-part-title:focus { border-color: var(--accent); background: var(--surf
    ============================================================ */
 
 .editor-toolbar {
-  display: flex; align-items: center; gap: 4px;
-  padding: 6px 16px;
+  display: flex; align-items: center; gap: 1px; flex-wrap: wrap; row-gap: 3px;
+  padding: 7px 12px;
   border-bottom: 1px solid var(--border);
   background: var(--surface-2);
   flex-shrink: 0;
 }
-.editor-toolbar .group { display: flex; gap: 2px; align-items: center; padding: 0 4px; border-right: 1px solid var(--border); }
-.editor-toolbar .group:last-child { border-right: 0; }
+.editor-toolbar .group { display: flex; gap: 1px; align-items: center; }
+.editor-toolbar .group + .group { margin-left: 7px; padding-left: 7px; border-left: 1px solid var(--border); }
 .tb-btn {
-  width: 26px; height: 26px;
-  display: grid; place-items: center;
+  position: relative;
+  width: 28px; height: 28px;
+  display: inline-flex; align-items: center; justify-content: center;
   border: 0; background: transparent;
-  color: var(--ink-2); border-radius: 5px;
+  color: var(--ink-2); border-radius: 6px;
+  cursor: pointer;
+  transition: background .1s ease, color .1s ease;
 }
 .tb-btn:hover { background: var(--surface-3); color: var(--ink); }
-.tb-btn.active { background: var(--ink); color: var(--surface); }
+.tb-btn.active { background: var(--accent-soft); color: var(--accent-ink); }
+.tb-btn:disabled { opacity: .35; cursor: default; }
 .tb-btn.wide { width: auto; padding: 0 8px; font-size: 11.5px; gap: 4px; }
+.tb-glyph { font-size: 12px; font-weight: 600; }
+.tb-A { font-size: 13px; font-weight: 700; line-height: 1; }
+
+/* Fast tooltip — pops well before the native title delay. */
+.tb-btn[data-tip]::after {
+  content: attr(data-tip);
+  position: absolute; top: calc(100% + 6px); left: 50%;
+  transform: translateX(-50%) translateY(-3px);
+  padding: 3px 7px;
+  background: var(--ink); color: var(--surface);
+  font-size: 11px; font-weight: 500; line-height: 1.3;
+  white-space: nowrap; border-radius: 5px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, .18);
+  opacity: 0; pointer-events: none;
+  transition: opacity .09s ease, transform .09s ease;
+  transition-delay: 0s;
+  z-index: 70;
+}
+.tb-btn[data-tip]:hover::after {
+  opacity: 1; transform: translateX(-50%) translateY(0);
+  transition-delay: .18s;
+}
+
+/* Highlight color dropdown */
+.tb-btn-split { width: auto; padding: 0 4px; gap: 1px; }
+.tb-caret { color: var(--muted); }
+.tb-highlight { position: relative; display: inline-flex; }
+.tb-highlight-menu {
+  position: absolute; top: calc(100% + 6px); left: 0; z-index: 80;
+  display: grid; grid-template-columns: repeat(4, 22px); gap: 6px;
+  padding: 8px;
+  background: var(--surface); border: 1px solid var(--border-strong);
+  border-radius: 9px; box-shadow: 0 8px 28px rgba(0, 0, 0, .18);
+}
+.tb-swatch {
+  width: 22px; height: 22px; border-radius: 5px;
+  border: 1px solid rgba(0, 0, 0, .12); cursor: pointer; padding: 0;
+  display: grid; place-items: center;
+  transition: transform .08s ease, box-shadow .08s ease;
+}
+.tb-swatch:hover { transform: scale(1.08); box-shadow: 0 0 0 2px var(--surface), 0 0 0 4px var(--accent); }
+.tb-swatch-none { background: var(--surface-2); color: var(--muted); }
 
 .manuscript {
   flex: 1; min-height: 0;
@@ -934,9 +983,9 @@ html[data-theme="dark"] .manuscript {
 .manuscript-inner {
   max-width: 760px; margin: 0 auto;
   padding: 56px 72px 120px;
-  font-family: var(--font-serif);
-  font-size: 17px;
-  line-height: 1.7;
+  font-family: var(--editor-font, var(--font-serif));
+  font-size: var(--editor-font-size, 17px);
+  line-height: var(--editor-line-height, 1.7);
   color: var(--ink);
 }
 .manuscript-inner h1, .manuscript-inner h2, .manuscript-inner h3 {
@@ -944,9 +993,9 @@ html[data-theme="dark"] .manuscript {
 }
 .manuscript-inner h1 { font-size: 28px; text-align: center; margin: 0 0 4px; }
 .manuscript-inner .scene-mark { text-align: center; color: var(--muted); letter-spacing: 0.4em; font-size: 14px; margin: 28px 0 22px; }
-.manuscript-inner p { margin: 0; text-indent: 1.6em; }
+.manuscript-inner p { margin: 0; text-indent: var(--editor-para-indent, 1.6em); }
 .manuscript-inner p:first-of-type { text-indent: 0; }
-.manuscript-inner p + p { margin-top: 0; }
+.manuscript-inner p + p { margin-top: var(--editor-para-spacing, 0); }
 .manuscript-inner em { font-style: italic; }
 .manuscript-inner ::selection { background: var(--accent-soft); }
 
@@ -1018,6 +1067,137 @@ html[data-theme="dark"] .manuscript {
 }
 .tl-card .ttl { font-size: 12.5px; font-weight: 500; }
 .tl-card .meta { font-size: 11px; color: var(--muted); margin-top: 4px; }
+
+/* ============================================================
+   Events timeline — shared by the per-entity Events view
+   (EventsTimelineView) and the project-wide Timeline view.
+   View-specific bits (edit/delete actions, owner links) stay
+   in those components' scoped styles.
+   ============================================================ */
+
+.events-pane { flex: 1; }
+.events-content {
+  max-width: 1100px;
+  padding: 18px 26px 60px;
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+}
+.events-subtitle {
+  font-family: var(--font-serif);
+  font-style: italic;
+  font-size: 13.5px;
+  color: var(--ink-2);
+  border-left: 3px solid var(--border);
+  padding: 4px 0 4px 12px;
+  margin: 0;
+}
+.events-empty {
+  padding: 40px 24px;
+  text-align: center;
+  font-size: 13px;
+  color: var(--muted);
+  font-style: italic;
+  background: var(--surface-2);
+  border: 1px dashed var(--border-strong);
+  border-radius: 10px;
+  line-height: 1.55;
+}
+
+.timeline {
+  display: flex;
+  flex-direction: column;
+  gap: 36px;
+  padding: 24px 0 12px;
+}
+.timeline-row {
+  display: grid;
+  grid-template-columns: minmax(220px, 1fr) 24px minmax(280px, 2fr);
+  align-items: center;
+  gap: 0;
+}
+
+.timeline-when {
+  display: flex;
+  align-items: baseline;
+  gap: 8px;
+  justify-content: flex-end;
+  padding-right: 18px;
+  font-family: var(--font-serif);
+  flex-wrap: wrap;
+}
+.when-weekday { font-size: 14px; color: var(--muted); }
+.when-date {
+  font-family: var(--font-mono);
+  font-size: 22px;
+  font-weight: 500;
+  color: var(--ink);
+  letter-spacing: -0.01em;
+}
+.when-time { font-family: var(--font-mono); font-size: 13.5px; color: var(--muted); }
+
+.timeline-spine {
+  position: relative;
+  align-self: stretch;
+  display: flex;
+  justify-content: center;
+}
+.timeline-spine::before {
+  content: "";
+  position: absolute;
+  top: -36px;
+  bottom: -36px;
+  width: 1px;
+  background: var(--border);
+}
+.timeline-row:first-child .timeline-spine::before { top: 0; }
+.timeline-row:last-child .timeline-spine::before  { bottom: 50%; }
+.timeline-dot {
+  width: 14px;
+  height: 14px;
+  border-radius: 50%;
+  background: var(--accent);
+  border: 2px solid var(--surface);
+  box-shadow: 0 0 0 1px var(--accent);
+  z-index: 1;
+}
+
+.timeline-card {
+  position: relative;
+  margin-left: 18px;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 14px 16px 12px;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.04);
+}
+.timeline-card::before {
+  content: "";
+  position: absolute;
+  top: 18px;
+  left: -8px;
+  width: 8px; height: 16px;
+  background: var(--surface);
+  border-left: 1px solid var(--border);
+  border-bottom: 1px solid var(--border);
+  transform: rotate(45deg) translate(2px, -2px);
+  transform-origin: 0 100%;
+  border-radius: 0 0 0 3px;
+}
+.timeline-card-title {
+  font-family: var(--font-serif);
+  font-size: 14.5px;
+  font-weight: 600;
+  color: var(--accent);
+  letter-spacing: -0.005em;
+}
+.timeline-card-note {
+  margin-top: 6px;
+  font-size: 13px;
+  color: var(--ink-2);
+  line-height: 1.55;
+  white-space: pre-wrap;
+}
 
 /* ============================================================
    Mind map (canvas)

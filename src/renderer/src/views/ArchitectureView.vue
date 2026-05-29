@@ -4,8 +4,10 @@ import { useRouter } from "vue-router";
 import { useProjectStore } from "../stores/project.js";
 import { useUiStore } from "../stores/ui.js";
 import RichEditor from "../components/RichEditor.vue";
+import { EDITOR_TOOLBAR_DOC } from "../services/editorToolbars.js";
 import Icon from "../components/Icon.vue";
 import StatusSelect from "../components/StatusSelect.vue";
+import Breadcrumb from "../components/Breadcrumb.vue";
 
 const props = defineProps({ id: { type: String, default: "" } });
 const project = useProjectStore();
@@ -27,7 +29,7 @@ function openEvents() { router.push("/architecture/setting/events"); }
 <template>
   <header class="pane-header arch-pane-header">
     <div class="pane-title">
-      <span class="pane-eyebrow">Architecture document</span>
+      <Breadcrumb :segments="[{ label: 'Architecture document', to: '/architecture' }]" />
       <input v-if="doc" class="input arch-title"
         :value="doc.title" @input="update('title', $event.target.value)" />
     </div>
@@ -47,7 +49,7 @@ function openEvents() { router.push("/architecture/setting/events"); }
         :model-value="doc.body"
         placeholder="Write the document…"
         variant="inline"
-        :toolbar="['bold', 'italic', 'underline', 'strike', 'h1', 'h2', 'h3', 'quote', 'list', 'orderedList', 'taskList', 'sceneBreak', 'align', 'highlight', 'link', 'image', 'table', 'find', 'undo', 'redo']"
+        :toolbar="EDITOR_TOOLBAR_DOC"
         :min-height="280"
         @change="(html) => update('body', html)"
       />

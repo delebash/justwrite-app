@@ -1,5 +1,5 @@
 <script setup>
-import { computed, ref, onMounted, onBeforeUnmount } from "vue";
+import { computed, ref, watch, onMounted, onBeforeUnmount } from "vue";
 import { useProjectStore } from "../stores/project.js";
 import { useStudioStore } from "../stores/studio.js";
 import { useUiStore } from "../stores/ui.js";
@@ -10,6 +10,7 @@ import RichEditor from "../components/RichEditor.vue";
 import SceneLinks from "../components/SceneLinks.vue";
 import VersionHistoryModal from "../components/VersionHistoryModal.vue";
 import StatusSelect from "../components/StatusSelect.vue";
+import Breadcrumb from "../components/Breadcrumb.vue";
 import { promptDialog, confirmDialog } from "../services/dialog.js";
 
 const props = defineProps({
@@ -83,6 +84,41 @@ const sceneWordCount = computed(() => {
   return t ? t.split(/\s+/).length : 0;
 });
 const sceneCharCount = computed(() => plainText(activeScene.value?.body).length);
+
+// Read view shows the prose without editorial comment marks — comments
+// live only in the editor. Unwrap the comment spans (keeping their text).
+function readBody(chId) {
+  const html = project.chapterBody[chId];
+  if (!html) return `<h1>${ch.value?.title || ""}</h1><p><em>Empty chapter.</em></p>`;
+  if (!html.includes("comment-mark")) return html;
+  const div = document.createElement("div");
+  div.innerHTML = html;
+  div.querySelectorAll("span.comment-mark").forEach((el) => el.replaceWith(...el.childNodes));
+  return div.innerHTML;
+}
+
+// Editor header breadcrumb: Part (→ outline) › Chapter (→ chapter overview)
+// › Scene (current). The part hops to outline mode (local state, not a
+// route); the chapter drops the scene param to show the chapter overview.
+const crumbs = computed(() => {
+  if (!ch.value) return [];
+  const segs = [{ label: ch.value.partTitle || "Manuscript", onClick: () => { mode.value = "outline"; } }];
+  if (activeScene.value) {
+    segs.push({ label: `Ch. ${ch.value.num} · ${ch.value.title}`, to: `/chapters/${ch.value.id}` });
+    segs.push({ label: `Scene ${activeSceneIdx.value + 1}` });
+  } else {
+    segs.push({ label: `Ch. ${ch.value.num}` });
+  }
+  return segs;
+});
+
+// A navigation to a different chapter/scene (e.g. clicking the sidebar)
+// should drop the structural overview modes back into the editor —
+// otherwise outline/cards are "sticky" and swallow the navigation. Read
+// mode is left alone so its own prev/next chapter paging keeps working.
+watch(() => [props.id, props.sceneId], () => {
+  if (mode.value === "outline" || mode.value === "cards") mode.value = "edit";
+});
 
 function goToScene(sceneId) {
   if (!ch.value || !sceneId) return;
@@ -199,7 +235,7 @@ async function addChapterToPart(partId) {
   });
   if (!title) return;
   const id = project.addChapter({ title, partId });
-  if (id) { ui.select("chapters", id); router.push(`/chapters/${id}`); mode.value = "outline"; }
+  if (id) { ui.select("chapters", id); router.push(`/chapters/${id}`); mode.value = "edit"; }
 }
 async function addSceneToChapter(chapterId) {
   const values = await promptDialog({
@@ -284,20 +320,15 @@ onBeforeUnmount(() => window.removeEventListener("keydown", onKey));
   <!-- ── Header (varies by mode) ─────────────────────────────── -->
   <header v-if="ch && mode === 'edit'" class="pane-header chapter-pane-header">
     <div class="pane-title">
-      <template v-if="activeScene">
-        <span class="pane-eyebrow">Ch. {{ ch.num }} · {{ ch.title }} · Scene {{ activeSceneIdx + 1 }}</span>
-        <input class="chapter-name"
-          :value="activeScene.title"
-          :placeholder="`Scene ${activeSceneIdx + 1} title (optional)`"
-          @input="onSceneTitleInput(activeScene.id, $event.target.value)" />
-      </template>
-      <template v-else>
-        <span class="pane-eyebrow">Ch. {{ ch.num }} · {{ ch.partTitle }}</span>
-        <input class="chapter-name"
-          :value="ch.title"
-          placeholder="Chapter title"
-          @input="updateTitle(ch.id, $event.target.value)" />
-      </template>
+      <Breadcrumb :segments="crumbs" />
+      <input v-if="activeScene" class="chapter-name"
+        :value="activeScene.title"
+        :placeholder="`Scene ${activeSceneIdx + 1} title (optional)`"
+        @input="onSceneTitleInput(activeScene.id, $event.target.value)" />
+      <input v-else class="chapter-name"
+        :value="ch.title"
+        placeholder="Chapter title"
+        @input="updateTitle(ch.id, $event.target.value)" />
     </div>
     <div class="pane-actions">
       <div class="seg-toggle">
@@ -464,7 +495,7 @@ onBeforeUnmount(() => window.removeEventListener("keydown", onKey));
   <div v-else-if="ch && mode === 'read'" class="pane-card">
    <div class="read-mode">
     <div class="manuscript scrollarea">
-      <article class="manuscript-inner read-content" v-html="project.chapterBody[ch.id] || `<h1>${ch.title}</h1><p><em>Empty chapter.</em></p>`" />
+      <article class="manuscript-inner read-content" v-html="readBody(ch.id)" />
       <nav class="read-nav">
         <button v-if="prev" class="read-nav-btn" @click="goPrev">
           <Icon name="ChevRight" :size="14" style="transform:rotate(180deg)" />

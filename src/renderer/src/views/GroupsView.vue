@@ -6,8 +6,10 @@ import { useRouter } from "vue-router";
 import Icon from "../components/Icon.vue";
 import ImagesModal from "../components/ImagesModal.vue";
 import RichEditor from "../components/RichEditor.vue";
+import { EDITOR_TOOLBAR_SLIM } from "../services/editorToolbars.js";
 import StatusSelect from "../components/StatusSelect.vue";
 import MentionRefList from "../components/MentionRefList.vue";
+import Breadcrumb from "../components/Breadcrumb.vue";
 import { promptDialog, confirmDialog } from "../services/dialog.js";
 import { NEW_ENTITY_META } from "../services/entityMeta.js";
 
@@ -20,6 +22,14 @@ const modal = ref(null);
 const KIND_ICON = { character: "Users", location: "Pin", object: "Cube", strand: "Strands" };
 const KIND_HEADING = { character: "Characters", location: "Locations", object: "Objects", strand: "Narrative strands" };
 const KIND_ORDER = ["character", "location", "object", "strand"];
+const KIND_ROUTE = { character: "characters", location: "locations", object: "objects", strand: "strands" };
+
+function goMember(m) {
+  const base = KIND_ROUTE[m.kind];
+  if (!base) return;
+  ui.select(base, m.id);
+  router.push(`/${base}/${m.id}`);
+}
 
 const memberGroups = computed(() => {
   const byKind = new Map();
@@ -65,7 +75,7 @@ async function deleteGroup() {
 <template>
   <header class="pane-header group-pane-header">
     <div class="pane-title">
-      <span class="pane-eyebrow">Group</span>
+      <Breadcrumb :segments="[{ label: 'Group', to: '/groups' }]" />
       <input v-if="g" class="group-name"
         :value="g.name"
         placeholder="Group name"
@@ -88,7 +98,7 @@ async function deleteGroup() {
         :model-value="g.blurb || ''"
         placeholder="Blurb"
         variant="inline"
-        :toolbar="['bold', 'italic', 'underline', 'strike', 'link', 'list', 'quote', 'find', 'undo', 'redo']"
+        :toolbar="EDITOR_TOOLBAR_SLIM"
         :fill="true"
         @change="(html) => update('blurb', html)"
       />
@@ -112,13 +122,13 @@ async function deleteGroup() {
           <div class="member-grid">
             <div v-for="(m, mi) in grp.members" :key="`${m.kind}-${m.id}-${mi}`"
               class="card tight" style="display:flex;align-items:center;gap:10px;padding:12px">
-              <span style="width:32px;height:32px;border-radius:7px;background:var(--surface-3);color:var(--muted);display:grid;place-items:center">
-                <Icon :name="KIND_ICON[m.kind] || 'Star'" :size="15" />
-              </span>
-              <span style="flex:1;min-width:0">
-                <div style="font-weight:500;font-size:12.5px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">{{ m.name }}</div>
-              </span>
-              <button class="btn ghost sm" @click="project.removeGroupMember(g.id, m.kind, m.id)">×</button>
+              <button type="button" class="member-open" :title="`Open ${m.name}`" @click="goMember(m)">
+                <span class="member-icon">
+                  <Icon :name="KIND_ICON[m.kind] || 'Star'" :size="15" />
+                </span>
+                <span class="member-name">{{ m.name }}</span>
+              </button>
+              <button class="btn ghost sm" title="Remove from group" @click="project.removeGroupMember(g.id, m.kind, m.id)">×</button>
             </div>
           </div>
         </div>
@@ -179,4 +189,26 @@ async function deleteGroup() {
   grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
   gap: 10px;
 }
+
+/* Member → its detail page. The icon + name form one clickable target;
+   the remove (×) button stays separate. */
+.member-open {
+  appearance: none; background: none; border: 0; padding: 0;
+  flex: 1; min-width: 0; cursor: pointer;
+  display: flex; align-items: center; gap: 10px;
+  text-align: left; font: inherit; color: inherit;
+}
+.member-icon {
+  width: 32px; height: 32px; border-radius: 7px;
+  background: var(--surface-3); color: var(--muted);
+  display: grid; place-items: center; flex: none;
+  transition: background .12s ease, color .12s ease;
+}
+.member-name {
+  flex: 1; min-width: 0;
+  font-weight: 500; font-size: 12.5px;
+  overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+}
+.member-open:hover .member-name { color: var(--accent); }
+.member-open:hover .member-icon { background: var(--accent-soft); color: var(--accent-ink); }
 </style>

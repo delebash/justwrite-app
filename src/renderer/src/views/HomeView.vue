@@ -1,10 +1,14 @@
 <script setup>
 import { computed } from "vue";
+import { useRouter } from "vue-router";
 import { useProjectStore } from "../stores/project.js";
+import { useUiStore } from "../stores/ui.js";
 import { useSessionsStore, DOW_LABELS_MONDAY_FIRST, reorderForMonday } from "../stores/sessions.js";
 import Icon from "../components/Icon.vue";
 
+const router = useRouter();
 const project = useProjectStore();
+const ui = useUiStore();
 const sessions = useSessionsStore();
 const P = project.project;
 
@@ -14,6 +18,13 @@ const allCh = computed(() => project.allChapters);
 const totalWords = computed(() => allCh.value.reduce((s, c) => s + (c.words || 0), 0));
 const pct = computed(() => Math.round((totalWords.value / (P.wordsGoal || 1)) * 100));
 
+// "Today" — open the chapter written in today; otherwise resume the
+// last-open chapter, falling back to the chapter list.
+function goToday() {
+  const id = sessions.todayChapterId || ui.selections.chapters;
+  router.push(id ? `/chapters/${id}` : "/chapters");
+}
+
 const done   = computed(() => allCh.value.filter((c) => c.status === "done").length);
 const draft  = computed(() => allCh.value.filter((c) => c.status === "draft").length);
 const revise = computed(() => allCh.value.filter((c) => c.status === "revise").length);
@@ -22,11 +33,6 @@ const todo   = computed(() => allCh.value.filter((c) => c.status === "todo").len
 // 14-day session series + sparkline geometry.
 const history14 = computed(() => sessions.historyFor(14));
 const totals14  = computed(() => sessions.totalsBy(14));
-
-const radial = computed(() => {
-  const r = 56, c = 2 * Math.PI * r;
-  return { c, dash: (pct.value / 100) * c };
-});
 
 const sparkPts = computed(() => {
   const vals = history14.value.map((d) => d.words);
@@ -55,7 +61,7 @@ const streakSquares = computed(() => history14.value.map((d) => d.words > 0));
         @input="project.updateProjectMeta({ title: $event.target.value })" />
     </div>
     <div class="pane-actions">
-      <button class="btn ghost"><Icon name="Calendar" :size="14" /> Today</button>
+      <button class="btn ghost" @click="goToday"><Icon name="Calendar" :size="14" /> Today</button>
       <router-link to="/chapters" custom v-slot="{ navigate }">
         <button class="btn primary" @click="navigate"><Icon name="Plus" :size="14" /> Quick write</button>
       </router-link>
@@ -74,19 +80,10 @@ const streakSquares = computed(() => history14.value.map((d) => d.words > 0));
             <div class="t-muted" style="font-size:13px;margin-top:6px">{{ P.subtitle }} · {{ P.genre }}</div>
             <p style="font-size:13.5px;color:var(--ink-2);margin-top:12px;max-width:560px;line-height:1.6">{{ P.premise }}</p>
           </div>
-          <div style="min-width:220px;position:relative;width:140px;height:140px">
-            <svg width="140" height="140" viewBox="0 0 140 140">
-              <circle cx="70" cy="70" r="56" fill="none" stroke="var(--surface-3)" stroke-width="10" />
-              <circle cx="70" cy="70" r="56" fill="none" stroke="var(--accent)" stroke-width="10"
-                stroke-linecap="round" :stroke-dasharray="`${radial.dash} ${radial.c}`" transform="rotate(-90 70 70)" />
-            </svg>
-            <div style="position:absolute;inset:0;display:grid;place-items:center;text-align:center">
-              <div>
-                <div style="font-family:var(--font-serif);font-size:28px;font-weight:600;line-height:1">{{ pct }}%</div>
-                <div style="font-size:11px;color:var(--muted);margin-top:4px">{{ totalWords.toLocaleString() }} / {{ P.wordsGoal.toLocaleString() }}</div>
-                <div style="font-size:10px;color:var(--muted)">words</div>
-              </div>
-            </div>
+          <div style="text-align:center;min-width:140px">
+            <div style="font-family:var(--font-serif);font-size:28px;font-weight:600;line-height:1">{{ pct }}%</div>
+            <div style="font-size:11px;color:var(--muted);margin-top:4px">{{ totalWords.toLocaleString() }} / {{ P.wordsGoal.toLocaleString() }}</div>
+            <div style="font-size:10px;color:var(--muted)">words</div>
           </div>
         </div>
 
@@ -101,7 +98,8 @@ const streakSquares = computed(() => history14.value.map((d) => d.words > 0));
             <span><i style="display:inline-block;width:8px;height:8px;border-radius:2px;background:var(--status-revise);margin-right:5px" />Revise · {{ revise }}</span>
             <span><i style="display:inline-block;width:8px;height:8px;border-radius:2px;background:var(--status-draft);margin-right:5px" />Draft · {{ draft }}</span>
             <span><i style="display:inline-block;width:8px;height:8px;border-radius:2px;background:var(--status-todo);margin-right:5px" />To do · {{ todo }}</span>
-            <span style="margin-left:auto">Deadline {{ P.deadline }}</span>
+            <router-link to="/settings/project" class="deadline-link" style="margin-left:auto"
+              title="Change deadline in Project settings">Deadline {{ P.deadline }}</router-link>
           </div>
         </div>
       </div>
@@ -199,4 +197,6 @@ const streakSquares = computed(() => history14.value.map((d) => d.words > 0));
 }
 .home-title:hover { border-color: var(--border-soft); }
 .home-title:focus { border-color: var(--accent); background: var(--surface); box-shadow: 0 0 0 3px var(--accent-soft); }
+.deadline-link { color: inherit; text-decoration: none; border-radius: 4px; }
+.deadline-link:hover { color: var(--accent); text-decoration: underline; }
 </style>

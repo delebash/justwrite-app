@@ -6,6 +6,7 @@ import PaneHeader from "../components/PaneHeader.vue";
 import Icon from "../components/Icon.vue";
 import RichEditor from "../components/RichEditor.vue";
 import StatusSelect from "../components/StatusSelect.vue";
+import Breadcrumb from "../components/Breadcrumb.vue";
 import { promptDialog, confirmDialog } from "../services/dialog.js";
 import { NEW_ENTITY_META } from "../services/entityMeta.js";
 
@@ -79,7 +80,7 @@ async function deleteArticle() {
   <template v-else>
     <header class="pane-header wb-pane-header">
       <div class="pane-title">
-        <span class="pane-eyebrow">{{ cat?.label || 'Worldbuilding' }}</span>
+        <Breadcrumb :segments="[{ label: cat?.label || 'Worldbuilding', to: '/worldbuilding' }]" />
         <input class="wb-title"
           placeholder="Article title"
           :value="article.title" @input="update('title', $event.target.value)" />

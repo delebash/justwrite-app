@@ -6,10 +6,12 @@ import { useRouter } from "vue-router";
 import Icon from "../components/Icon.vue";
 import ImagesModal from "../components/ImagesModal.vue";
 import RichEditor from "../components/RichEditor.vue";
+import { EDITOR_TOOLBAR_DOC } from "../services/editorToolbars.js";
 import StatusSelect from "../components/StatusSelect.vue";
 import GroupsModal from "../components/GroupsModal.vue";
 import SceneRefList from "../components/SceneRefList.vue";
 import MentionRefList from "../components/MentionRefList.vue";
+import Breadcrumb from "../components/Breadcrumb.vue";
 import { promptDialog, confirmDialog } from "../services/dialog.js";
 import { NEW_ENTITY_META } from "../services/entityMeta.js";
 
@@ -42,7 +44,7 @@ async function deleteLocation() {
 <template>
   <header class="pane-header location-pane-header">
     <div class="pane-title">
-      <span class="pane-eyebrow">Location</span>
+      <Breadcrumb :segments="[{ label: 'Location', to: '/locations' }]" />
       <input class="location-name"
         :value="loc.name"
         placeholder="Location name"
@@ -67,7 +69,7 @@ async function deleteLocation() {
         :model-value="loc.note || ''"
         placeholder="Description"
         variant="inline"
-        :toolbar="['bold', 'italic', 'underline', 'strike', 'h1', 'h2', 'h3', 'quote', 'list', 'orderedList', 'taskList', 'sceneBreak', 'align', 'highlight', 'link', 'image', 'table', 'find', 'undo', 'redo']"
+        :toolbar="EDITOR_TOOLBAR_DOC"
         :fill="true"
         @change="(html) => update('note', html)"
       />

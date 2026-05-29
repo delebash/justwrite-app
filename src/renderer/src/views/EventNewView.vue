@@ -4,6 +4,7 @@ import { useRouter } from "vue-router";
 import { useProjectStore } from "../stores/project.js";
 import { EVENTS_KIND_META } from "../services/eventsKind.js";
 import Icon from "../components/Icon.vue";
+import Breadcrumb from "../components/Breadcrumb.vue";
 
 const props = defineProps({
   kind:     { type: String, required: true },
@@ -16,6 +17,12 @@ const router  = useRouter();
 const meta   = computed(() => EVENTS_KIND_META[props.kind]);
 const entity = computed(() => meta.value?.getEntity(project, props.entityId));
 const name   = computed(() => meta.value?.entityName(entity.value));
+
+const crumbs = computed(() => [
+  { label: meta.value?.label, to: meta.value?.sectionUrl() },
+  { label: name.value, to: meta.value?.detailUrl(props.entityId) },
+  { label: "Events", to: meta.value?.eventsUrl(props.entityId) },
+]);
 
 const whenStr  = ref("");
 const titleStr = ref("");
@@ -40,7 +47,7 @@ function save() {
 <template>
   <header class="pane-header">
     <div class="pane-title">
-      <span class="pane-eyebrow">{{ meta?.label }} · {{ name }} · Events</span>
+      <Breadcrumb :segments="crumbs" />
       <h1 class="pane-h1">New event</h1>
     </div>
     <div class="pane-actions">

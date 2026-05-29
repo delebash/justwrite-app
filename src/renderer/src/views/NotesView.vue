@@ -5,6 +5,7 @@ import { useUiStore } from "../stores/ui.js";
 import { useRouter } from "vue-router";
 import Icon from "../components/Icon.vue";
 import RichEditor from "../components/RichEditor.vue";
+import Breadcrumb from "../components/Breadcrumb.vue";
 import { promptDialog, confirmDialog } from "../services/dialog.js";
 import { NEW_ENTITY_META } from "../services/entityMeta.js";
 
@@ -37,7 +38,7 @@ async function deleteNote() {
 <template>
   <header class="pane-header note-pane-header">
     <div class="pane-title">
-      <span class="pane-eyebrow">Note</span>
+      <Breadcrumb :segments="[{ label: 'Note', to: '/notes' }]" />
       <input v-if="n" class="note-title"
         :value="n.title"
         placeholder="Note title"

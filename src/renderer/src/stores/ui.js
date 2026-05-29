@@ -5,6 +5,7 @@
 
 import { defineStore } from "pinia";
 import { getItem, setItem } from "../services/storage.js";
+import { DEFAULT_EDITOR_SETTINGS } from "../services/editorSettings.js";
 
 const LS_KEY = "justwrite:ui";
 
@@ -38,6 +39,8 @@ export const useUiStore = defineStore("ui", {
     // Appearance preferences.
     theme: "system",          // "light" | "dark" | "system"
     accentHue: 200,            // 0–360 for the calm-teal default; user-tunable
+    // Writing/editor display settings (font, spacing, etc.).
+    editorSettings: { ...DEFAULT_EDITOR_SETTINGS },
     // Transient. Shape: { id, message, action?: { label, fn } }.
     toast: null,
     ...load(),
@@ -90,6 +93,10 @@ export const useUiStore = defineStore("ui", {
       this.accentHue = Number.isFinite(n) ? Math.max(0, Math.min(360, n)) : 200;
       this._persist();
     },
+    setEditorSettings(patch) {
+      this.editorSettings = { ...this.editorSettings, ...patch };
+      this._persist();
+    },
 
     _persist() {
       save({
@@ -99,6 +106,7 @@ export const useUiStore = defineStore("ui", {
         selections: this.selections,
         theme: this.theme,
         accentHue: this.accentHue,
+        editorSettings: this.editorSettings,
       });
     },
   },

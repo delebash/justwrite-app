@@ -10,6 +10,7 @@ import StatusSelect from "../components/StatusSelect.vue";
 import GroupsModal from "../components/GroupsModal.vue";
 import SceneRefList from "../components/SceneRefList.vue";
 import MentionRefList from "../components/MentionRefList.vue";
+import Breadcrumb from "../components/Breadcrumb.vue";
 import { promptDialog, confirmDialog } from "../services/dialog.js";
 import { saveImage } from "../services/imageStore.js";
 import { NEW_ENTITY_META } from "../services/entityMeta.js";
@@ -124,7 +125,7 @@ function updateBackstory(v) { project.setCharacterExtras(ch.value.id, { backstor
 <template>
   <header class="pane-header character-pane-header">
     <div class="pane-title">
-      <span class="pane-eyebrow">{{ ch.main ? 'Main character' : 'Secondary character' }}</span>
+      <Breadcrumb :segments="[{ label: ch.main ? 'Main character' : 'Secondary character', to: '/characters' }]" />
       <input class="character-name"
         :value="ch.name"
         placeholder="Character name"

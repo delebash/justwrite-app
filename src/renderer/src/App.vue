@@ -5,6 +5,7 @@ import { useUiStore } from "./stores/ui.js";
 import { useProjectStore } from "./stores/project.js";
 import { useSessionsStore } from "./stores/sessions.js";
 import { applyTheme } from "./services/theme.js";
+import { applyEditorSettings } from "./services/editorSettings.js";
 import TitleBar from "./components/TitleBar.vue";
 import Sidebar from "./components/Sidebar.vue";
 import Toast from "./components/Toast.vue";
@@ -65,6 +66,7 @@ function onKey(e) {
 // service was already initialized once at module load (in main.js) using
 // the persisted value; this watcher handles in-app changes from Settings.
 watchEffect(() => applyTheme(ui.theme, ui.accentHue));
+watchEffect(() => applyEditorSettings(ui.editorSettings));
 
 onMounted(() => {
   window.addEventListener("keydown", onKey);

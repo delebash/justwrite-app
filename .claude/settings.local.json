@@ -23,7 +23,8 @@
       "Bash(npx playwright *)",
       "Bash(node probe.mjs)",
       "Skill(update-config)",
-      "Bash(node *)"
+      "Bash(node *)",
+      "Bash(powershell *)"
     ]
   }
 }

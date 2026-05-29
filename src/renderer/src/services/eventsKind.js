@@ -6,6 +6,7 @@
 export const EVENTS_KIND_META = {
   character: {
     label: "Character",
+    sectionUrl: () => `/characters`,
     detailUrl: (id) => `/characters/${id}`,
     eventsUrl: (id) => `/characters/${id}/events`,
     newUrl:    (id) => `/characters/${id}/events/new`,
@@ -15,6 +16,7 @@ export const EVENTS_KIND_META = {
   },
   location: {
     label: "Location",
+    sectionUrl: () => `/locations`,
     detailUrl: (id) => `/locations/${id}`,
     eventsUrl: (id) => `/locations/${id}/events`,
     newUrl:    (id) => `/locations/${id}/events/new`,
@@ -24,6 +26,7 @@ export const EVENTS_KIND_META = {
   },
   object: {
     label: "Object",
+    sectionUrl: () => `/objects`,
     detailUrl: (id) => `/objects/${id}`,
     eventsUrl: (id) => `/objects/${id}/events`,
     newUrl:    (id) => `/objects/${id}/events/new`,
@@ -33,6 +36,7 @@ export const EVENTS_KIND_META = {
   },
   group: {
     label: "Group",
+    sectionUrl: () => `/groups`,
     detailUrl: (id) => `/groups/${id}`,
     eventsUrl: (id) => `/groups/${id}/events`,
     newUrl:    (id) => `/groups/${id}/events/new`,
@@ -43,6 +47,7 @@ export const EVENTS_KIND_META = {
   setting: {
     // Architecture/Setting is a singleton — the id is always "setting".
     label: "Setting",
+    sectionUrl: () => `/architecture`,
     detailUrl: () => `/architecture/setting`,
     eventsUrl: () => `/architecture/setting/events`,
     newUrl:    () => `/architecture/setting/events/new`,
