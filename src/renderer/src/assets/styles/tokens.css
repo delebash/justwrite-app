@@ -1015,9 +1015,9 @@ html[data-theme="dark"] .manuscript {
 .manuscript-inner {
   max-width: 760px; margin: 0 auto;
   padding: 56px 72px 120px;
-  font-family: var(--editor-font, var(--font-serif));
-  font-size: var(--editor-font-size, 17px);
-  line-height: var(--editor-line-height, 1.7);
+  font-family: var(--editor-font, var(--editor-body-font, var(--font-serif)));
+  font-size: var(--editor-font-size, var(--editor-body-font-size, 17px));
+  line-height: var(--editor-line-height, var(--editor-body-line-height, 1.7));
   color: var(--ink);
 }
 .manuscript-inner h1, .manuscript-inner h2, .manuscript-inner h3 {
@@ -1025,9 +1025,9 @@ html[data-theme="dark"] .manuscript {
 }
 .manuscript-inner h1 { font-size: 28px; text-align: center; margin: 0 0 4px; }
 .manuscript-inner .scene-mark { text-align: center; color: var(--muted); letter-spacing: 0.4em; font-size: 14px; margin: 28px 0 22px; }
-.manuscript-inner p { margin: 0; text-indent: var(--editor-para-indent, 1.6em); }
+.manuscript-inner p { margin: 0; text-indent: var(--editor-para-indent, var(--editor-body-para-indent, 1.6em)); }
 .manuscript-inner p:first-of-type { text-indent: 0; }
-.manuscript-inner p + p { margin-top: var(--editor-para-spacing, 0); }
+.manuscript-inner p + p { margin-top: var(--editor-para-spacing, var(--editor-body-para-spacing, 0)); }
 .manuscript-inner em { font-style: italic; }
 .manuscript-inner ::selection { background: var(--accent-soft); }
 

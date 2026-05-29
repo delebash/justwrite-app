@@ -32,6 +32,7 @@ function back() { emit("close"); }
         <div class="es-row">
           <span class="es-label">Font size</span>
           <div class="seg">
+            <button :class="{ active: draft.fontSize == null }" @click="draft.fontSize = null">theme</button>
             <button v-for="o in ['small', 'medium', 'big']" :key="o" :class="{ active: draft.fontSize === o }" @click="draft.fontSize = o">{{ o }}</button>
           </div>
         </div>
@@ -39,8 +40,9 @@ function back() { emit("close"); }
         <div class="es-row">
           <span class="es-label">Paragraph indent</span>
           <div class="seg">
-            <button :class="{ active: draft.paragraphIndent }" @click="draft.paragraphIndent = true">enabled</button>
-            <button :class="{ active: !draft.paragraphIndent }" @click="draft.paragraphIndent = false">disabled</button>
+            <button :class="{ active: draft.paragraphIndent == null }" @click="draft.paragraphIndent = null">theme</button>
+            <button :class="{ active: draft.paragraphIndent === true }" @click="draft.paragraphIndent = true">enabled</button>
+            <button :class="{ active: draft.paragraphIndent === false }" @click="draft.paragraphIndent = false">disabled</button>
           </div>
         </div>
 
@@ -55,6 +57,7 @@ function back() { emit("close"); }
         <div class="es-row">
           <span class="es-label">Line spacing</span>
           <div class="seg">
+            <button :class="{ active: draft.lineSpacing == null }" @click="draft.lineSpacing = null">theme</button>
             <button v-for="o in LINE_SPACING_OPTIONS" :key="o" :class="{ active: draft.lineSpacing === o }" @click="draft.lineSpacing = o">{{ o }}</button>
           </div>
         </div>
@@ -62,6 +65,7 @@ function back() { emit("close"); }
         <div class="es-row">
           <span class="es-label">Paragraph spacing</span>
           <div class="seg">
+            <button :class="{ active: draft.paragraphSpacing == null }" @click="draft.paragraphSpacing = null">theme</button>
             <button v-for="o in PARAGRAPH_SPACING_OPTIONS" :key="o" :class="{ active: draft.paragraphSpacing === o }" @click="draft.paragraphSpacing = o">{{ o }}</button>
           </div>
         </div>

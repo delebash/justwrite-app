@@ -982,9 +982,9 @@ defineExpose({ editor });
 }
 .rich-editor--inline .inline-editor-body {
   padding: 12px 14px;
-  font-family: var(--editor-font, var(--font-serif));
-  font-size: var(--editor-font-size, 15px);
-  line-height: var(--editor-line-height, 1.65);
+  font-family: var(--editor-font, var(--editor-body-font, var(--font-serif)));
+  font-size: var(--editor-font-size, var(--editor-body-font-size, 15px));
+  line-height: var(--editor-line-height, var(--editor-body-line-height, 1.65));
   color: var(--ink);
   border: 1px solid var(--border);
   border-radius: 0 0 7px 7px;
@@ -993,9 +993,9 @@ defineExpose({ editor });
 /* "Apply editor paper to inline fields" (Settings → Appearance) — inline
    editor bodies pick up the editor-paper tint instead of the surface. */
 html[data-inline-paper="on"] .rich-editor--inline .inline-editor-body { background: var(--editor-paper); }
-.rich-editor--inline .tiptap-content p { text-indent: var(--editor-para-indent, 0); }
+.rich-editor--inline .tiptap-content p { text-indent: var(--editor-para-indent, var(--editor-body-para-indent, 0)); }
 .rich-editor--inline .tiptap-content p:first-of-type { text-indent: 0; }
-.rich-editor--inline .tiptap-content p + p { margin-top: var(--editor-para-spacing, 0); }
+.rich-editor--inline .tiptap-content p + p { margin-top: var(--editor-para-spacing, var(--editor-body-para-spacing, 0)); }
 .rich-editor--inline:focus-within .inline-editor-body,
 .rich-editor--inline:focus-within .editor-toolbar {
   border-color: var(--accent);

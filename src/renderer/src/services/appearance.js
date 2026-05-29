@@ -177,79 +177,107 @@ export const GOLD_PRESETS = [
 // of optimal (including any field the user has tweaked since).
 export const THEME_PRESETS = [
   {
+    id: "studio", name: "Studio", hint: "Geist + teal, white surfaces — the original clean look.",
+    patch: {
+      mode: "system",
+      fontPairing: "calm", uiFont: "Geist", displayFont: "Source Serif 4", editorBodyFont: "Source Serif 4",
+      accentHue: 200, goldHue: 80,
+      appBg: "paperwhite", sidebarBg: "paperwhite", editorPaper: "white",
+      editorLayout: "full", inlinePaper: false,
+      inkPalette: "warm", uiScale: 1,
+      sidebarHeadingStyle: "eyebrow", sidebarHeadingSize: "s",
+      navItemStyle: "standard", navItemSize: "s",
+      editorFontSize: "medium", editorLineSpacing: 1.5, editorParaSpacing: 0.5, editorParaIndent: false,
+    },
+  },
+  {
     id: "fine-press", name: "Fine Press", hint: "Fraunces + oxblood, full-width editor.",
     patch: {
       mode: "system",
-      fontPairing: "fine-press", uiFont: "Spline Sans", displayFont: "Fraunces",
+      fontPairing: "fine-press", uiFont: "Spline Sans", displayFont: "Fraunces", editorBodyFont: "Fraunces",
       accentHue: 14, goldHue: 80,
       appBg: "neutral", sidebarBg: "neutral", editorPaper: "match",
       editorLayout: "full", inlinePaper: false,
       inkPalette: "warm", uiScale: 1,
       sidebarHeadingStyle: "eyebrow", sidebarHeadingSize: "s",
       navItemStyle: "standard", navItemSize: "s",
+      editorFontSize: "medium", editorLineSpacing: 1.7, editorParaSpacing: 0, editorParaIndent: true,
     },
   },
   {
     id: "ivory-press", name: "Ivory Press", hint: "Ivory surfaces, cream paper, italic headings.",
     patch: {
       mode: "system",
-      fontPairing: "fine-press", uiFont: "Spline Sans", displayFont: "Fraunces",
+      fontPairing: "fine-press", uiFont: "Spline Sans", displayFont: "Fraunces", editorBodyFont: "Fraunces",
       accentHue: 14, goldHue: 80,
       appBg: "ivory", sidebarBg: "ivory", editorPaper: "cream",
       editorLayout: "page", inlinePaper: true,
       inkPalette: "sepia", uiScale: 1,
       sidebarHeadingStyle: "display", sidebarHeadingSize: "m",
       navItemStyle: "editorial", navItemSize: "s",
+      editorFontSize: "medium", editorLineSpacing: 1.8, editorParaSpacing: 0, editorParaIndent: true,
     },
   },
   {
     id: "calm-modern", name: "Calm Modern", hint: "Geist + teal, clean defaults.",
     patch: {
       mode: "system",
-      fontPairing: "calm", uiFont: "Geist", displayFont: "Source Serif 4",
+      fontPairing: "calm", uiFont: "Geist", displayFont: "Source Serif 4", editorBodyFont: "Source Serif 4",
       accentHue: 200, goldHue: 80,
       appBg: "neutral", sidebarBg: "neutral", editorPaper: "match",
       editorLayout: "full", inlinePaper: false,
       inkPalette: "auto", uiScale: 1,
       sidebarHeadingStyle: "eyebrow", sidebarHeadingSize: "s",
       navItemStyle: "standard", navItemSize: "s",
+      editorFontSize: "medium", editorLineSpacing: 1.6, editorParaSpacing: 0, editorParaIndent: true,
     },
   },
   {
     id: "editorial", name: "Editorial", hint: "Newsreader + indigo, cool surfaces, mono headings.",
     patch: {
       mode: "system",
-      fontPairing: "editorial", uiFont: "Hanken Grotesk", displayFont: "Newsreader",
+      fontPairing: "editorial", uiFont: "Hanken Grotesk", displayFont: "Newsreader", editorBodyFont: "Newsreader",
       accentHue: 270, goldHue: 55,
       appBg: "cool", sidebarBg: "cool", editorPaper: "white",
       editorLayout: "page", inlinePaper: false,
       inkPalette: "cool", uiScale: 1,
       sidebarHeadingStyle: "mono", sidebarHeadingSize: "s",
       navItemStyle: "standard", navItemSize: "s",
+      editorFontSize: "medium", editorLineSpacing: 1.6, editorParaSpacing: 0.3, editorParaIndent: true,
     },
   },
 ];
 
 export const DEFAULT_APPEARANCE = {
   mode: "system",
-  preset: "fine-press",
-  fontPairing: "fine-press",
-  uiFont: "Spline Sans",
-  displayFont: "Fraunces",
-  accentHue: 14,
+  preset: "studio",
+  fontPairing: "calm",
+  uiFont: "Geist",
+  displayFont: "Source Serif 4",
+  editorBodyFont: "Source Serif 4",
+  accentHue: 200,
   goldHue: 80,
-  appBg: "neutral",
-  sidebarBg: "neutral",
-  editorPaper: "match",
+  appBg: "paperwhite",
+  sidebarBg: "paperwhite",
+  editorPaper: "white",
   editorLayout: "full",
   inlinePaper: false,    // also tint inline rich-text fields with editor-paper
-  inkPalette: "warm",    // text-colour family (matches the Fine Press preset)
+  inkPalette: "warm",    // text-colour family (matches the Studio preset)
   uiScale: 1,            // UI size multiplier (0.9 – 1.1)
   sidebarHeadingStyle: "eyebrow",
   sidebarHeadingSize: "s",
   navItemStyle: "standard",
   navItemSize: "s",
+  // Editor writing defaults (theme-owned; per-doc Writing settings can
+  // override each via "Theme default" in that modal).
+  editorFontSize: "medium",     // small | medium | big
+  editorLineSpacing: 1.5,
+  editorParaSpacing: 0.5,       // em between paragraphs
+  editorParaIndent: false,
 };
+
+// Px values for the named editor font-size tiers.
+const EDITOR_FONT_SIZE_PX = { small: 15, medium: 18, big: 21 };
 
 // Fold a persisted (possibly old-shape) ui blob into an appearance object.
 // Maps the legacy { theme, accentHue } keys onto the new model.
@@ -291,6 +319,16 @@ export function applyAppearance(appearance) {
   s.setProperty("--font-ui", uiStack(a.uiFont));
   s.setProperty("--font-serif", displayStack(a.displayFont));
   s.setProperty("--font-mono", MONO_STACK);
+  // The theme's default manuscript body font. Per-doc editor settings
+  // can still override via --editor-font (set by editorSettings.js).
+  s.setProperty("--editor-body-font", displayStack(a.editorBodyFont));
+  // Editor writing defaults — overridden per-doc by --editor-* vars set
+  // in editorSettings.js when the user picks something other than
+  // "Theme default" in the editor's ⚙ Writing settings.
+  s.setProperty("--editor-body-font-size", `${EDITOR_FONT_SIZE_PX[a.editorFontSize] || 18}px`);
+  s.setProperty("--editor-body-line-height", String(Number.isFinite(+a.editorLineSpacing) ? a.editorLineSpacing : 1.5));
+  s.setProperty("--editor-body-para-spacing", `${Number.isFinite(+a.editorParaSpacing) ? a.editorParaSpacing : 0}em`);
+  s.setProperty("--editor-body-para-indent", a.editorParaIndent ? "1.6em" : "0");
 
   s.setProperty("--app-bg", resolveTint(a.appBg, SURFACE_TINTS, mode));
   s.setProperty("--sidebar-bg", resolveTint(a.sidebarBg, SURFACE_TINTS, mode));

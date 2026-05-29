@@ -12,7 +12,7 @@ const LS_KEY = "justwrite:ui";
 
 // Appearance fields that define a "look" — changing any of them (without
 // naming a preset) drops the active preset to "custom".
-const PRESET_KEYS = ["mode", "fontPairing", "uiFont", "displayFont", "accentHue", "goldHue", "appBg", "sidebarBg", "editorPaper", "editorLayout", "inlinePaper", "inkPalette", "uiScale", "sidebarHeadingStyle", "sidebarHeadingSize", "navItemStyle", "navItemSize"];
+const PRESET_KEYS = ["mode", "fontPairing", "uiFont", "displayFont", "editorBodyFont", "accentHue", "goldHue", "appBg", "sidebarBg", "editorPaper", "editorLayout", "inlinePaper", "inkPalette", "uiScale", "sidebarHeadingStyle", "sidebarHeadingSize", "navItemStyle", "navItemSize", "editorFontSize", "editorLineSpacing", "editorParaSpacing", "editorParaIndent"];
 
 // Capture the "look" fields of an appearance config into a preset patch
 // (everything a preset defines — mode is excluded since it's independent).
@@ -107,7 +107,7 @@ export const useUiStore = defineStore("ui", {
     setAppearance(patch) {
       const next = { ...this.appearance, ...patch };
       if (!("preset" in patch) && PRESET_KEYS.some((k) => k in patch)) next.preset = "custom";
-      if (("uiFont" in patch || "displayFont" in patch) && !("fontPairing" in patch)) next.fontPairing = "custom";
+      if (("uiFont" in patch || "displayFont" in patch || "editorBodyFont" in patch) && !("fontPairing" in patch)) next.fontPairing = "custom";
       this.appearance = next;
       this._persist();
     },

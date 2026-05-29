@@ -171,6 +171,13 @@ const PAPER_TINT_LIST = Object.entries(PAPER_TINTS).map(([key, t]) => ({ key, ..
 const INK_PALETTE_LIST = Object.entries(INK_PALETTES).map(([key, t]) => ({ key, ...t }));
 const SIDEBAR_HEADING_STYLE_LIST = Object.entries(SIDEBAR_HEADING_STYLES).map(([key, t]) => ({ key, ...t }));
 const NAV_ITEM_STYLE_LIST = Object.entries(NAV_ITEM_STYLES).map(([key, t]) => ({ key, ...t }));
+const EDITOR_FONT_SIZES = [
+  { value: "small",  label: "Small",  px: "15px" },
+  { value: "medium", label: "Medium", px: "18px" },
+  { value: "big",    label: "Big",    px: "21px" },
+];
+const EDITOR_LINE_OPTIONS = [1.3, 1.4, 1.5, 1.6, 1.7, 1.8, 2];
+const EDITOR_PARA_OPTIONS = [0, 0.3, 0.5, 0.8, 1];
 
 function isCustomHex(v) { return typeof v === "string" && v.startsWith("#"); }
 function inkSwatch(t) {
@@ -891,6 +898,36 @@ async function deleteCategory(c) {
           </div>
         </div>
 
+        <!-- Preview — sits right under the preset row so a preset click
+             is immediately reflected without scrolling. -->
+        <div class="card">
+          <div class="card-title">Preview</div>
+          <div class="appear-preview" :data-layout="ap.editorLayout">
+            <div class="ap-side">
+              <div class="ap-brand">JustWrite</div>
+              <div class="ap-section">Manuscript</div>
+              <div class="ap-nav active">Chapters</div>
+              <div class="ap-nav">Characters</div>
+              <div class="ap-section">Project</div>
+              <div class="ap-nav">Settings</div>
+            </div>
+            <div class="ap-main">
+              <div class="ap-page">
+                <div v-if="ap.editorLayout === 'page'" class="ap-runninghead">The Cartographer's Daughter</div>
+                <div class="ap-eyebrow">Chapter 12</div>
+                <div class="ap-h">The First Crossing</div>
+                <p class="ap-prose">She pressed her thumb to the vellum where the coastline should have been, and felt only the cold weave of the cloth.</p>
+                <p class="ap-prose">Above her, the deck complained in its joints — and the fog, she now understood, was not weather.</p>
+                <div class="ap-ornament">✦&nbsp;&nbsp;✦&nbsp;&nbsp;✦</div>
+                <div class="ap-controls">
+                  <button class="btn accent sm">Accent</button>
+                  <span class="chip" style="background:var(--accent-soft);color:var(--accent-ink);border-color:var(--accent-line)">Selected</span>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
         <!-- Mode -->
         <div class="card">
           <div class="card-title">Mode</div>
@@ -913,10 +950,11 @@ async function deleteCategory(c) {
         <!-- Typography -->
         <div class="card">
           <div class="card-title">Typography</div>
+          <p class="t-muted" style="font-size:12px;margin:0 0 12px">Choose the typeface for each part of the app, scale the overall size, and tune the sidebar's heading + menu styles.</p>
           <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(190px,1fr));gap:10px">
             <button v-for="p in PAIRINGS" :key="p.id"
               class="pairing-tile" :class="{ active: ap.fontPairing === p.id }"
-              @click="setAp({ fontPairing: p.id, uiFont: p.ui, displayFont: p.display })">
+              @click="setAp({ fontPairing: p.id, uiFont: p.ui, displayFont: p.display, editorBodyFont: p.display })">
               <span class="pairing-sample" :style="{ fontFamily: dispStack(p.display) }">Ag</span>
               <div style="display:flex;flex-direction:column;min-width:0">
                 <b style="font-size:12.5px">{{ p.name }}</b>
@@ -930,11 +968,19 @@ async function deleteCategory(c) {
               <select class="input" :value="ap.uiFont" @change="setAp({ uiFont: $event.target.value })">
                 <option v-for="f in UI_FONTS" :key="f.label" :value="f.label">{{ f.label }}</option>
               </select>
+              <span class="field-hint">Buttons, menus, and labels.</span>
             </label>
             <label class="field"><span class="field-l">Display font</span>
               <select class="input" :value="ap.displayFont" @change="setAp({ displayFont: $event.target.value })">
                 <option v-for="f in DISPLAY_FONTS" :key="f.label" :value="f.label">{{ f.label }}</option>
               </select>
+              <span class="field-hint">Page titles, big numbers, serif headings.</span>
+            </label>
+            <label class="field"><span class="field-l">Editor body font</span>
+              <select class="input" :value="ap.editorBodyFont" @change="setAp({ editorBodyFont: $event.target.value })">
+                <option v-for="f in DISPLAY_FONTS" :key="f.label" :value="f.label">{{ f.label }}</option>
+              </select>
+              <span class="field-hint">Manuscript prose. Per-document choice can override this in the editor's ⚙ Writing settings.</span>
             </label>
           </div>
           <div class="size-row">
@@ -946,6 +992,7 @@ async function deleteCategory(c) {
                 <b>{{ s.label }}</b><span>{{ Math.round(s.value * 100) }}%</span>
               </button>
             </div>
+            <p class="size-hint">Scales every label, control, and the prose together.</p>
           </div>
           <div class="size-row">
             <span class="field-l">Section heading</span>
@@ -963,6 +1010,7 @@ async function deleteCategory(c) {
                 <b>{{ s.label }}</b>
               </button>
             </div>
+            <p class="size-hint">The small labels that group the sidebar nav (e.g. <em>Manuscript</em>, <em>Story world</em>).</p>
           </div>
           <div class="size-row">
             <span class="field-l">Menu item</span>
@@ -980,6 +1028,7 @@ async function deleteCategory(c) {
                 <b>{{ s.label }}</b>
               </button>
             </div>
+            <p class="size-hint">Each sidebar entry — <em>Home</em>, <em>Chapters</em>, <em>Characters</em>, and so on.</p>
           </div>
         </div>
 
@@ -1014,7 +1063,7 @@ async function deleteCategory(c) {
         <!-- Backgrounds -->
         <div class="card">
           <div class="card-title">Backgrounds</div>
-          <p class="t-muted" style="font-size:12px;margin:0 0 12px">Tint each area independently — every option is tuned to stay legible.</p>
+          <p class="t-muted" style="font-size:12px;margin:0 0 12px">Tint each area independently — every option is tuned to stay legible. Pick a curated swatch or click <b>Custom</b> for any colour. The <b>Text</b> row picks the text-colour family used across the app.</p>
           <div class="swatch-row">
             <span class="swatch-label">App</span>
             <button v-for="t in SURFACE_TINT_LIST" :key="t.key"
@@ -1079,6 +1128,7 @@ async function deleteCategory(c) {
         <!-- Editor layout -->
         <div class="card">
           <div class="card-title">Editor layout</div>
+          <p class="t-muted" style="font-size:12px;margin:0 0 12px">How the manuscript editor presents your prose while you write.</p>
           <div class="seg2">
             <button :class="{ active: ap.editorLayout === 'full' }" @click="setAp({ editorLayout: 'full' })">
               <b>Full width</b><span>Edge-to-edge writing surface.</span>
@@ -1087,35 +1137,52 @@ async function deleteCategory(c) {
               <b>Page</b><span>Centered sheet with margins, running head &amp; drop cap.</span>
             </button>
           </div>
-          <p class="t-muted" style="font-size:11px;margin:12px 0 0">Per-document font size &amp; spacing live in the editor's ⚙ Writing settings.</p>
+          <p class="t-muted" style="font-size:11px;margin:12px 0 0">Per-document overrides for any of these live in the editor's ⚙ Writing settings — pick <em>theme</em> there to fall back to the theme default.</p>
         </div>
 
-        <!-- Preview -->
+        <!-- Editor writing -->
         <div class="card">
-          <div class="card-title">Preview</div>
-          <div class="appear-preview" :data-layout="ap.editorLayout">
-            <div class="ap-side">
-              <div class="ap-brand">JustWrite</div>
-              <div class="ap-section">Manuscript</div>
-              <div class="ap-nav active">Chapters</div>
-              <div class="ap-nav">Characters</div>
-              <div class="ap-section">Project</div>
-              <div class="ap-nav">Settings</div>
+          <div class="card-title">Editor writing</div>
+          <p class="t-muted" style="font-size:12px;margin:0 0 12px">Defaults for the manuscript prose — font size, line spacing, paragraph spacing, and first-line indent. Per-document choices in the editor's ⚙ Writing settings override these.</p>
+          <div class="size-row">
+            <span class="field-l">Font size</span>
+            <div class="size-seg">
+              <button v-for="o in EDITOR_FONT_SIZES" :key="o.value"
+                :class="{ active: ap.editorFontSize === o.value }"
+                @click="setAp({ editorFontSize: o.value })">
+                <b>{{ o.label }}</b><span>{{ o.px }}</span>
+              </button>
             </div>
-            <div class="ap-main">
-              <div class="ap-page">
-                <div v-if="ap.editorLayout === 'page'" class="ap-runninghead">The Cartographer's Daughter</div>
-                <div class="ap-eyebrow">Chapter 12</div>
-                <div class="ap-h">The First Crossing</div>
-                <p class="ap-prose">She pressed her thumb to the vellum where the coastline should have been, and felt only the cold weave of the cloth.</p>
-                <div class="ap-controls">
-                  <button class="btn accent sm">Accent</button>
-                  <span class="chip" style="background:var(--accent-soft);color:var(--accent-ink);border-color:var(--accent-line)">Selected</span>
-                </div>
-              </div>
+          </div>
+          <div class="size-row">
+            <span class="field-l">Line spacing</span>
+            <div class="size-seg">
+              <button v-for="o in EDITOR_LINE_OPTIONS" :key="o"
+                :class="{ active: ap.editorLineSpacing === o }"
+                @click="setAp({ editorLineSpacing: o })">
+                <b>{{ o }}</b>
+              </button>
+            </div>
+          </div>
+          <div class="size-row">
+            <span class="field-l">Paragraph spacing</span>
+            <div class="size-seg">
+              <button v-for="o in EDITOR_PARA_OPTIONS" :key="o"
+                :class="{ active: ap.editorParaSpacing === o }"
+                @click="setAp({ editorParaSpacing: o })">
+                <b>{{ o === 0 ? '0' : o + 'em' }}</b>
+              </button>
+            </div>
+          </div>
+          <div class="size-row">
+            <span class="field-l">First-line indent</span>
+            <div class="size-seg">
+              <button :class="{ active: ap.editorParaIndent === true }" @click="setAp({ editorParaIndent: true })"><b>Indent</b></button>
+              <button :class="{ active: ap.editorParaIndent === false }" @click="setAp({ editorParaIndent: false })"><b>No indent</b></button>
             </div>
           </div>
         </div>
+
       </div>
 
       <!-- ── BACKUPS ───────────────────────────────── -->
@@ -1399,6 +1466,14 @@ async function deleteCategory(c) {
 /* Font field selects */
 .field { display: flex; flex-direction: column; gap: 5px; min-width: 180px; }
 .field-l { font-size: 11px; font-weight: 600; letter-spacing: 0.04em; text-transform: uppercase; color: var(--muted); }
+.field-hint { font-size: 10.5px; color: var(--muted); line-height: 1.4; margin: 1px 0 0; }
+
+/* Size-row hint — wraps to its own line beneath the segmented control. */
+.size-hint {
+  flex: 0 0 100%; margin: 4px 0 0; padding: 0;
+  font-size: 10.5px; color: var(--muted); line-height: 1.4;
+}
+.size-hint em { font-style: italic; color: var(--ink-2); }
 
 /* Editor-layout segmented control */
 .seg2 { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
@@ -1472,16 +1547,40 @@ async function deleteCategory(c) {
 .ap-eyebrow { font-family: var(--font-mono); font-size: 9.5px; letter-spacing: 0.16em; text-transform: uppercase; color: var(--accent); }
 .appear-preview[data-layout="page"] .ap-eyebrow { text-align: center; }
 .ap-h { font-family: var(--font-serif); font-size: 21px; font-weight: 600; margin: 4px 0 8px; }
+.ap-h::after {
+  /* Gold scene-rule under the chapter title — visible in both editor
+     layouts so the gold hue is obvious here too. */
+  content: ""; display: block;
+  width: 44px; height: 3px;
+  margin: 8px 0 12px;
+  background: var(--gold);
+  border-radius: 2px;
+}
 .appear-preview[data-layout="page"] .ap-h {
   text-align: center; font-weight: 400; font-style: italic;
 }
-.appear-preview[data-layout="page"] .ap-h::after {
-  content: ""; display: block;
-  width: 28px; height: 1px;
-  margin: 5px auto 12px;
-  background: var(--gold);
+.appear-preview[data-layout="page"] .ap-h::after { margin: 6px auto 12px; }
+
+/* Gold scene-break ornament after the prose — second visible gold
+   element so a hue change shows up clearly in both layouts. */
+.ap-ornament {
+  font-family: var(--font-serif);
+  font-size: 14px; color: var(--gold);
+  margin: 8px 0;
 }
-.ap-prose { font-family: var(--font-serif); font-size: 14px; line-height: 1.6; color: var(--ink-2); margin: 0; max-width: 52ch; }
+.appear-preview[data-layout="page"] .ap-ornament { text-align: center; }
+.ap-prose {
+  font-family: var(--editor-body-font, var(--font-serif));
+  font-size: 14px;
+  line-height: var(--editor-body-line-height, 1.6);
+  color: var(--ink-2);
+  margin: 0; max-width: 52ch;
+  /* Preview shows indent on every paragraph (including the first) so the
+     setting is unambiguous — the manuscript's "skip indent on the first
+     paragraph of a chapter" convention is intentionally not mirrored here. */
+  text-indent: var(--editor-body-para-indent, 0);
+}
+.ap-prose + .ap-prose { margin-top: var(--editor-body-para-spacing, 0); }
 .appear-preview[data-layout="page"] .ap-prose::first-letter {
   font-family: var(--font-serif); font-weight: 500;
   font-size: 2.4em; line-height: 0.82;

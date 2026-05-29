@@ -14,8 +14,7 @@ const router = useRouter();
 const jw = window.justwrite;
 
 // ── Theme preset switcher dropdown ──────────────────────────────────
-// Shows built-in presets + the user's saved custom presets. Mode
-// (light/dark/system) is a separate concern handled in Settings.
+// Shows built-in presets + the user's saved custom presets.
 const themeOpen = ref(false);
 const themeWrap = ref(null);
 const activePreset = computed(() => {
@@ -25,13 +24,40 @@ const activePreset = computed(() => {
     || null;
 });
 const activePresetLabel = computed(() => activePreset.value?.name || "Custom");
-function toggleTheme() { themeOpen.value = !themeOpen.value; }
+function toggleTheme() {
+  themeOpen.value = !themeOpen.value;
+  if (themeOpen.value) modeOpen.value = false;
+}
 function pickPreset(p) {
   ui.setAppearance({ preset: p.id, ...p.patch });
   themeOpen.value = false;
 }
+
+// ── Mode (light/dark/system) dropdown ───────────────────────────────
+const MODE_OPTIONS = [
+  { id: "light",  label: "Light",  icon: "Sun" },
+  { id: "dark",   label: "Dark",   icon: "Moon" },
+  { id: "system", label: "System", icon: "Monitor" },
+];
+const modeOpen = ref(false);
+const modeWrap = ref(null);
+const modeIcon = computed(() => {
+  const m = ui.appearance?.mode;
+  return m === "light" ? "Sun" : m === "dark" ? "Moon" : "Monitor";
+});
+const modeLabel = computed(() => ({ light: "Light", dark: "Dark", system: "System" })[ui.appearance?.mode] || "System");
+function toggleMode() {
+  modeOpen.value = !modeOpen.value;
+  if (modeOpen.value) themeOpen.value = false;
+}
+function pickMode(id) {
+  ui.setAppearance({ mode: id });
+  modeOpen.value = false;
+}
+
 function onTbDocClick(e) {
   if (themeOpen.value && themeWrap.value && !themeWrap.value.contains(e.target)) themeOpen.value = false;
+  if (modeOpen.value && modeWrap.value && !modeWrap.value.contains(e.target)) modeOpen.value = false;
 }
 
 // Browser-style nav history. Vue Router stamps `back`/`forward` onto the
@@ -116,6 +142,20 @@ async function openProject() {
           </div>
         </div>
       </div>
+      <div class="theme-switcher" ref="modeWrap">
+        <button @click="toggleMode" :title="`Mode · ${modeLabel}`">
+          <Icon :name="modeIcon" :size="13" />
+        </button>
+        <div v-if="modeOpen" class="theme-menu has-icons">
+          <div class="theme-menu-head">Mode</div>
+          <button v-for="m in MODE_OPTIONS" :key="m.id" @click="pickMode(m.id)"
+            :class="{ active: ui.appearance?.mode === m.id }">
+            <Icon :name="m.icon" :size="13" />
+            <span class="theme-name">{{ m.label }}</span>
+            <Icon v-if="ui.appearance?.mode === m.id" name="Check" :size="11" class="theme-check" />
+          </button>
+        </div>
+      </div>
       <span class="titlebar-divider" />
       <button @click="openProject" title="Open project…"><Icon name="Folder" :size="13" /></button>
       <button @click="saveProject" title="Save project as…"><Icon name="Download" :size="13" /></button>
@@ -174,6 +214,7 @@ async function openProject() {
 .theme-menu button:hover { background: var(--surface-2); color: var(--ink); }
 .theme-menu button.active { color: var(--accent-ink); font-weight: 500; }
 .theme-menu button.active .theme-check { color: var(--accent); }
+.theme-menu.has-icons button { grid-template-columns: 18px 1fr auto; }
 .theme-menu-head {
   padding: 6px 8px 2px;
   font-family: var(--font-mono);
