@@ -1,5 +1,5 @@
 <script setup>
-import { computed, ref, onMounted, onBeforeUnmount, nextTick } from "vue";
+import { computed, ref, watch, onMounted, onBeforeUnmount, nextTick } from "vue";
 import { useRouter } from "vue-router";
 import { useProjectStore } from "../stores/project.js";
 import { useStudioStore } from "../stores/studio.js";
@@ -68,12 +68,18 @@ function toggleKind(k) {
 }
 function clearKinds() { selectedKinds.value = new Set(); }
 
+// Reset filters when the search field is cleared.
+watch(q, (v) => {
+  if (!v.trim() && selectedKinds.value.size) selectedKinds.value = new Set();
+});
+
 function openHit(hit) { router.push(hit.doc.route); }
 
-// Esc clears the query when the input is focused. ⌘F is owned by App.vue.
+// Esc clears the query and filters when the input is focused. ⌘F is owned by App.vue.
 function onKey(e) {
   if (e.key === "Escape" && document.activeElement === inputEl.value) {
     q.value = "";
+    selectedKinds.value = new Set();
   }
 }
 
@@ -81,7 +87,11 @@ onMounted(() => {
   window.addEventListener("keydown", onKey);
   nextTick(() => inputEl.value?.focus());
 });
-onBeforeUnmount(() => window.removeEventListener("keydown", onKey));
+onBeforeUnmount(() => {
+  window.removeEventListener("keydown", onKey);
+  q.value = "";
+  selectedKinds.value = new Set();
+});
 
 // Helper: enumerate kinds for chip rendering, in canonical order.
 const KIND_ENTRIES = Object.entries(KIND_META).sort((a, b) => a[1].order - b[1].order);
