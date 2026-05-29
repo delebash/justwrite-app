@@ -52,7 +52,7 @@ async function deleteArticle() {
 <template>
   <template v-if="!article">
     <PaneHeader eyebrow="Story world" title="Worldbuilding">
-      <button class="btn primary" @click="addArticle"><Icon name="Plus" :size="14" /> New article</button>
+      <button class="btn primary sm" @click="addArticle"><Icon name="Plus" :size="14" /> New article</button>
     </PaneHeader>
     <div class="pane-card">
       <div class="scrollarea" style="padding:22px 26px 40px">
@@ -88,8 +88,8 @@ async function deleteArticle() {
         <router-link to="/worldbuilding" custom v-slot="{ navigate }">
           <button class="btn ghost sm" @click="navigate"><Icon name="ChevRight" :size="12" style="transform:rotate(180deg)" /> Back</button>
         </router-link>
-        <button class="btn ghost" @click="deleteArticle">Delete</button>
-        <button class="btn primary" @click="addArticle"><Icon name="Plus" :size="14" /> New article</button>
+        <button class="btn ghost sm" @click="deleteArticle">Delete</button>
+        <button class="btn primary sm" @click="addArticle"><Icon name="Plus" :size="14" /> New article</button>
         <StatusSelect :model-value="article.status || ''" @update:model-value="(v) => update('status', v)" />
       </div>
     </header>

@@ -131,13 +131,13 @@ function updateBackstory(v) { project.setCharacterExtras(ch.value.id, { backstor
         @input="updateField('name', $event.target.value)" />
     </div>
     <div class="pane-actions">
-      <button class="btn ghost" @click="modal = 'images'"><Icon name="Image" :size="14" /> Images</button>
+      <button class="btn ghost sm" @click="modal = 'images'"><Icon name="Image" :size="14" /> Images</button>
       <router-link :to="`/characters/${ch.id}/events`" custom v-slot="{ navigate }">
-        <button class="btn ghost" @click="navigate"><Icon name="Calendar" :size="14" /> Events</button>
+        <button class="btn ghost sm" @click="navigate"><Icon name="Calendar" :size="14" /> Events</button>
       </router-link>
-      <button class="btn ghost" @click="modal = 'groups'"><Icon name="GroupIcon" :size="14" /> Groups</button>
-      <button class="btn ghost" @click="deleteCharacter">Delete</button>
-      <button class="btn primary" @click="addCharacter"><Icon name="Plus" :size="14" /> New character</button>
+      <button class="btn ghost sm" @click="modal = 'groups'"><Icon name="GroupIcon" :size="14" /> Groups</button>
+      <button class="btn ghost sm" @click="deleteCharacter">Delete</button>
+      <button class="btn primary sm" @click="addCharacter"><Icon name="Plus" :size="14" /> New character</button>
       <StatusSelect :model-value="ch.status || ''" @update:model-value="(v) => updateField('status', v)" />
     </div>
   </header>

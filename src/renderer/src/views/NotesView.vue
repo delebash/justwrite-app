@@ -48,8 +48,8 @@ async function deleteNote() {
       <input v-if="n" class="input" placeholder="tag" style="max-width:120px"
         :value="n.tag" @input="update('tag', $event.target.value)" />
       <span v-if="n" class="t-muted" style="font-size:12px;padding:0 8px">Updated {{ n.updated }}</span>
-      <button v-if="n" class="btn ghost" @click="deleteNote">Delete</button>
-      <button class="btn primary" @click="addNote"><Icon name="Plus" :size="14" /> New note</button>
+      <button v-if="n" class="btn ghost sm" @click="deleteNote">Delete</button>
+      <button class="btn primary sm" @click="addNote"><Icon name="Plus" :size="14" /> New note</button>
     </div>
   </header>
 

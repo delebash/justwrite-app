@@ -32,7 +32,7 @@ function openEvents() { router.push("/architecture/setting/events"); }
         :value="doc.title" @input="update('title', $event.target.value)" />
     </div>
     <div v-if="doc" class="pane-actions">
-      <button v-if="doc.id === 'setting'" class="btn ghost" @click="openEvents"><Icon name="Calendar" :size="14" /> Events</button>
+      <button v-if="doc.id === 'setting'" class="btn ghost sm" @click="openEvents"><Icon name="Calendar" :size="14" /> Events</button>
       <StatusSelect :model-value="doc.status || ''" @update:model-value="(v) => update('status', v)" />
     </div>
   </header>

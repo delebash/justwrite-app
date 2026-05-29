@@ -194,9 +194,9 @@ const sortedBeats = computed(() => {
       <h1 v-else class="pane-h1">Narrative strands</h1>
     </div>
     <div class="pane-actions">
-      <button v-if="s" class="btn ghost" @click="modal = 'groups'"><Icon name="GroupIcon" :size="14" /> Groups</button>
-      <button v-if="s" class="btn ghost" @click="deleteStrand">Delete</button>
-      <button class="btn primary" @click="addStrand"><Icon name="Plus" :size="14" /> New narrative strand</button>
+      <button v-if="s" class="btn ghost sm" @click="modal = 'groups'"><Icon name="GroupIcon" :size="14" /> Groups</button>
+      <button v-if="s" class="btn ghost sm" @click="deleteStrand">Delete</button>
+      <button class="btn primary sm" @click="addStrand"><Icon name="Plus" :size="14" /> New narrative strand</button>
       <StatusSelect v-if="s" :model-value="s.status || ''" @update:model-value="(v) => update('status', v)" />
     </div>
   </header>

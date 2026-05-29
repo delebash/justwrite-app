@@ -318,8 +318,8 @@ onBeforeUnmount(() => window.removeEventListener("keydown", onKey));
           Next <Icon name="ChevRight" :size="12" />
         </button>
       </router-link>
-      <button class="btn ghost" @click="deleteChapter">Delete</button>
-      <button class="btn primary" @click="addChapter"><Icon name="Plus" :size="14" /> New chapter</button>
+      <button class="btn ghost sm" @click="deleteChapter">Delete</button>
+      <button class="btn primary sm" @click="addChapter"><Icon name="Plus" :size="14" /> New chapter</button>
       <StatusSelect
         :model-value="(activeScene ? activeScene.status : ch.status) || ''"
         @update:model-value="(v) => activeScene ? project.updateScene(ch.id, activeScene.id, { status: v }) : project.setChapterStatus(ch.id, v)" />
@@ -337,10 +337,10 @@ onBeforeUnmount(() => window.removeEventListener("keydown", onKey));
         <span>{{ m.label }}</span>
       </button>
     </div>
-    <button class="btn primary" @click="addChapter"><Icon name="Plus" :size="14" /> New chapter</button>
+    <button class="btn primary sm" @click="addChapter"><Icon name="Plus" :size="14" /> New chapter</button>
   </PaneHeader>
   <PaneHeader v-else eyebrow="Manuscript" title="No chapters">
-    <button class="btn primary" @click="addChapter"><Icon name="Plus" :size="14" /> New chapter</button>
+    <button class="btn primary sm" @click="addChapter"><Icon name="Plus" :size="14" /> New chapter</button>
   </PaneHeader>
 
   <!-- ── OUTLINE MODE ─────────────────────────────────────────── -->

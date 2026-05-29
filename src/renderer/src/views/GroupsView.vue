@@ -73,12 +73,12 @@ async function deleteGroup() {
       <h1 v-else class="pane-h1">Groups</h1>
     </div>
     <div class="pane-actions">
-      <button class="btn ghost" @click="modal = 'images'"><Icon name="Image" :size="14" /> Images</button>
+      <button class="btn ghost sm" @click="modal = 'images'"><Icon name="Image" :size="14" /> Images</button>
       <router-link :to="`/groups/${g.id}/events`" custom v-slot="{ navigate }">
-        <button class="btn ghost" @click="navigate"><Icon name="Calendar" :size="14" /> Events</button>
+        <button class="btn ghost sm" @click="navigate"><Icon name="Calendar" :size="14" /> Events</button>
       </router-link>
-      <button class="btn ghost" @click="deleteGroup">Delete</button>
-      <button class="btn primary" @click="addGroup"><Icon name="Plus" :size="14" /> New group</button>
+      <button class="btn ghost sm" @click="deleteGroup">Delete</button>
+      <button class="btn primary sm" @click="addGroup"><Icon name="Plus" :size="14" /> New group</button>
       <StatusSelect v-if="g" :model-value="g.status || ''" @update:model-value="(v) => update('status', v)" />
     </div>
   </header>

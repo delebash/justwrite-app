@@ -49,13 +49,13 @@ async function deleteLocation() {
         @input="update('name', $event.target.value)" />
     </div>
     <div class="pane-actions">
-      <button class="btn ghost" @click="modal = 'images'"><Icon name="Image" :size="14" /> Images</button>
+      <button class="btn ghost sm" @click="modal = 'images'"><Icon name="Image" :size="14" /> Images</button>
       <router-link :to="`/locations/${loc.id}/events`" custom v-slot="{ navigate }">
-        <button class="btn ghost" @click="navigate"><Icon name="Calendar" :size="14" /> Events</button>
+        <button class="btn ghost sm" @click="navigate"><Icon name="Calendar" :size="14" /> Events</button>
       </router-link>
-      <button class="btn ghost" @click="modal = 'groups'"><Icon name="GroupIcon" :size="14" /> Groups</button>
-      <button class="btn ghost" @click="deleteLocation">Delete</button>
-      <button class="btn primary" @click="addLocation"><Icon name="Plus" :size="14" /> New location</button>
+      <button class="btn ghost sm" @click="modal = 'groups'"><Icon name="GroupIcon" :size="14" /> Groups</button>
+      <button class="btn ghost sm" @click="deleteLocation">Delete</button>
+      <button class="btn primary sm" @click="addLocation"><Icon name="Plus" :size="14" /> New location</button>
       <StatusSelect :model-value="loc.status || ''" @update:model-value="(v) => update('status', v)" />
     </div>
   </header>
