@@ -49,6 +49,57 @@ const dowMax = computed(() => Math.max(...dowAvg.value, 1));
 
 // Streak heatmap — last 14 days as booleans.
 const streakSquares = computed(() => history14.value.map((d) => d.words > 0));
+
+// ── Goal ring geometry ───────────────────────────────────
+const RING_C = 2 * Math.PI * 74;   // circumference of the r=74 progress ring
+const ringDashoffset = computed(() => {
+  const p = Math.min(100, Math.max(0, pct.value));
+  return RING_C * (1 - p / 100);
+});
+
+// ── Resume — "pick up where you left off" ────────────────
+// Same target the Today button resolves: the chapter written in today,
+// else the last-selected chapter, else the first chapter.
+const resumeId = computed(() => sessions.todayChapterId || ui.selections.chapters || allCh.value[0]?.id);
+const resumeCh = computed(() => (resumeId.value ? project.chapterById(resumeId.value) : null));
+const resumeFirstScene = computed(() => (resumeId.value ? project.scenesFor(resumeId.value)[0] : null) || null);
+const resumedToday = computed(() => !!sessions.todayChapterId && sessions.todayChapterId === resumeId.value);
+const resumeStatus = computed(() => {
+  const s = resumeCh.value ? project.statusById(resumeCh.value.status) : null;
+  return s ? { label: s.label, color: s.color } : null;
+});
+
+// First real paragraph of the chapter, as a teaser (skip scene markers).
+function firstParagraph(html) {
+  if (!html) return "";
+  const div = document.createElement("div");
+  div.innerHTML = html;
+  for (const p of div.querySelectorAll("p")) {
+    if (p.classList.contains("scene-mark")) continue;
+    const t = p.textContent.trim();
+    if (t) return t.length > 240 ? t.slice(0, 240).trim() + "…" : t;
+  }
+  const t = (div.textContent || "").trim();
+  return t.length > 240 ? t.slice(0, 240).trim() + "…" : t;
+}
+const resumeTeaser = computed(() => firstParagraph(project.chapterBody[resumeId.value]));
+
+function resume() {
+  if (!resumeCh.value) { router.push("/chapters"); return; }
+  ui.select("chapters", resumeCh.value.id);
+  const sid = resumeFirstScene.value?.id;
+  router.push(sid ? `/chapters/${resumeCh.value.id}/${sid}` : `/chapters/${resumeCh.value.id}`);
+}
+
+// ── Cadence (day-of-week) peak + strand chapter counts ───
+const FULL_DOW = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"];
+const bestDowIdx = computed(() => {
+  const m = Math.max(...dowAvg.value);
+  return m > 0 ? dowAvg.value.indexOf(m) : -1;
+});
+const bestDow = computed(() => (bestDowIdx.value >= 0 ? FULL_DOW[bestDowIdx.value] : "—"));
+const bestDowAvg = computed(() => (bestDowIdx.value >= 0 ? dowAvg.value[bestDowIdx.value] : 0));
+const strandCount = (id) => allCh.value.filter((c) => (c.strands || []).includes(id)).length;
 </script>
 
 <template>
@@ -70,20 +121,30 @@ const streakSquares = computed(() => history14.value.map((d) => d.words > 0));
 
   <div class="pane-card">
   <div class="scrollarea">
-    <div class="card-grid" style="grid-template-columns:1.5fr 1fr 1fr;gap:16px">
+    <div class="card-grid" style="grid-template-columns:repeat(3,1fr);gap:16px">
 
       <!-- Hero -->
-      <div class="card" style="grid-column:1/-1;padding:22px">
-        <div style="display:flex;align-items:flex-start;gap:24px;flex-wrap:wrap">
-          <div style="flex:1;min-width:280px">
-            <div class="t-eyebrow">Overview</div>
-            <div class="t-muted" style="font-size:13px;margin-top:6px">{{ P.subtitle }} · {{ P.genre }}</div>
-            <p style="font-size:13.5px;color:var(--ink-2);margin-top:12px;max-width:560px;line-height:1.6">{{ P.premise }}</p>
+      <div class="card hero-card" style="grid-column:1/-1">
+        <div class="hero-main">
+          <div class="hero-text">
+            <div class="t-eyebrow">{{ P.genre || 'Manuscript' }}</div>
+            <div v-if="P.subtitle" class="hero-sub">{{ P.subtitle }}</div>
+            <p class="hero-premise">{{ P.premise }}</p>
           </div>
-          <div style="text-align:center;min-width:140px">
-            <div style="font-family:var(--font-serif);font-size:28px;font-weight:600;line-height:1">{{ pct }}%</div>
-            <div style="font-size:11px;color:var(--muted);margin-top:4px">{{ totalWords.toLocaleString() }} / {{ P.wordsGoal.toLocaleString() }}</div>
-            <div style="font-size:10px;color:var(--muted)">words</div>
+          <div class="goal-ring">
+            <div class="ring-disc">
+              <svg width="168" height="168" viewBox="0 0 168 168">
+                <circle cx="84" cy="84" r="74" fill="none" stroke="var(--surface-3)" stroke-width="11" />
+                <circle cx="84" cy="84" r="74" fill="none" stroke="var(--accent)" stroke-width="11"
+                  stroke-linecap="round" :stroke-dasharray="RING_C" :stroke-dashoffset="ringDashoffset" />
+                <circle cx="84" cy="84" r="74" fill="none" stroke="var(--gold)" stroke-width="3" opacity="0.5" stroke-dasharray="2 8" />
+              </svg>
+              <div class="ring-label">
+                <div class="ring-pct">{{ pct }}%</div>
+                <div class="ring-sub">of goal</div>
+              </div>
+            </div>
+            <div class="ring-words"><b>{{ totalWords.toLocaleString() }}</b> / {{ P.wordsGoal.toLocaleString() }} words</div>
           </div>
         </div>
 
@@ -104,74 +165,100 @@ const streakSquares = computed(() => history14.value.map((d) => d.words > 0));
         </div>
       </div>
 
-      <!-- Today -->
-      <div class="card">
-        <div class="card-title">Today<span class="pill">live</span></div>
-        <div style="display:grid;grid-template-columns:auto 1fr;gap:8px 14px;font-size:13px">
-          <span class="t-muted">Words</span><b class="t-num">{{ sessions.todayWords.toLocaleString() }}</b>
-          <span class="t-muted">Streak</span><span class="t-num">{{ sessions.streak }} day{{ sessions.streak === 1 ? "" : "s" }}</span>
-          <span class="t-muted">14-day total</span><span class="t-num">{{ totals14.total.toLocaleString() }}</span>
-        </div>
-        <div style="height:1px;background:var(--border-soft);margin:14px 0" />
-        <div class="t-eyebrow" style="margin-bottom:6px">Activity · last 14 days</div>
-        <div style="display:flex;gap:3px">
-          <div v-for="(active, i) in streakSquares" :key="i"
-            :style="`flex:1;height:22px;border-radius:3px;background:${active ? 'var(--accent)' : 'var(--surface-3)'};opacity:${active ? 0.55 + (i / 30) : 1}`"
-            :title="history14[i].date" />
-        </div>
-        <div style="font-size:11px;color:var(--muted);margin-top:6px">
-          {{ streakSquares.filter(Boolean).length }} of 14 days written
-        </div>
-      </div>
-
-      <!-- Sparkline -->
-      <div class="card">
-        <div class="card-title">Last 14 days</div>
-        <svg viewBox="0 0 100 64" preserveAspectRatio="none" style="width:100%;height:64px;display:block">
-          <polygon :points="sparkPts.area" fill="var(--accent-soft)" />
-          <polyline :points="sparkPts.pts" fill="none" stroke="var(--accent)" stroke-width="1.4" vector-effect="non-scaling-stroke" />
-        </svg>
-        <div style="display:grid;grid-template-columns:auto 1fr;gap:4px 14px;font-size:12px;margin-top:14px">
-          <span class="t-muted">Total</span><b class="t-num">{{ totals14.total.toLocaleString() }} words</b>
-          <span class="t-muted">Avg / day</span><span class="t-num">{{ totals14.avg.toLocaleString() }} words</span>
-          <span class="t-muted">Peak day</span><span class="t-num">{{ totals14.peak.toLocaleString() }} words</span>
-        </div>
-      </div>
-
-      <!-- Day of week -->
-      <div class="card">
-        <div class="card-title">By day of week</div>
-        <div style="display:flex;align-items:flex-end;gap:6px;height:80px">
-          <div v-for="(v, i) in dowAvg" :key="i"
-            style="flex:1;display:flex;flex-direction:column;align-items:center;gap:4px">
-            <div :style="`height:${(v / dowMax) * 100}%;width:100%;background:${v === Math.max(...dowAvg) && v > 0 ? 'var(--accent)' : 'var(--surface-3)'};border-radius:4px;min-height:2px`" />
+      <!-- Resume -->
+      <div v-if="resumeCh" class="card resume-card" style="grid-column:1/-1">
+        <div class="resume-body">
+          <div class="resume-lab">Pick up where you left off</div>
+          <h3 class="resume-h">
+            <span class="resume-part">{{ resumeCh.partTitle }} ·</span>
+            <span class="resume-ch">Chapter {{ resumeCh.num }} — {{ resumeCh.title }}</span>
+          </h3>
+          <p v-if="resumeTeaser" class="resume-quote">{{ resumeTeaser }}</p>
+          <p v-else class="resume-quote resume-empty">A blank page, waiting.</p>
+          <div class="resume-sub">
+            <span><b>{{ (resumeCh.words || 0).toLocaleString() }}</b> words</span>
+            <span class="dot-sep">·</span>
+            <span><b>{{ resumeCh.scenes }}</b> scene{{ resumeCh.scenes === 1 ? '' : 's' }}</span>
+            <template v-if="resumeStatus">
+              <span class="dot-sep">·</span>
+              <span :style="{ color: resumeStatus.color }">{{ resumeStatus.label }}</span>
+            </template>
+            <template v-if="resumedToday">
+              <span class="dot-sep">·</span>
+              <span class="resume-today">Today's chapter</span>
+            </template>
           </div>
         </div>
-        <div style="display:flex;gap:6px;margin-top:4px">
-          <div v-for="(d, i) in DOW_LABELS_MONDAY_FIRST" :key="i"
-            style="flex:1;text-align:center;font-size:10.5px;color:var(--muted)">{{ d }}</div>
+        <div class="resume-cta">
+          <button class="btn accent" @click="resume"><Icon name="Play" :size="14" :fill="true" /> Resume writing</button>
         </div>
-        <div v-if="totals14.total === 0" class="t-muted" style="font-size:11px;margin-top:8px;font-style:italic">
+      </div>
+
+      <!-- Today's session -->
+      <div class="card">
+        <div class="gcard-h">Today's session <span class="tag">live</span></div>
+        <div class="gstat">{{ sessions.todayWords.toLocaleString() }}<small>words</small></div>
+        <div class="gkv">
+          <span class="k">Streak</span><span class="v">{{ sessions.streak }} day{{ sessions.streak === 1 ? '' : 's' }}</span>
+          <span class="k">This fortnight</span><span class="v">{{ totals14.total.toLocaleString() }}</span>
+          <span class="k">Avg / day</span><span class="v">{{ totals14.avg.toLocaleString() }}</span>
+        </div>
+        <div class="gticks">
+          <i v-for="(active, i) in streakSquares" :key="i" :class="{ on: active }" :title="history14[i].date" />
+        </div>
+        <div class="gticks-cap">{{ streakSquares.filter(Boolean).length }} of 14 days written</div>
+      </div>
+
+      <!-- The fortnight -->
+      <div class="card">
+        <div class="gcard-h">The fortnight</div>
+        <svg class="gspark" viewBox="0 0 100 62" preserveAspectRatio="none">
+          <defs>
+            <linearGradient id="homeSpark" x1="0" x2="0" y1="0" y2="1">
+              <stop offset="0" stop-color="var(--accent)" stop-opacity="0.28" />
+              <stop offset="1" stop-color="var(--accent)" stop-opacity="0" />
+            </linearGradient>
+          </defs>
+          <polygon :points="sparkPts.area" fill="url(#homeSpark)" />
+          <polyline :points="sparkPts.pts" fill="none" stroke="var(--accent)" stroke-width="1.6" vector-effect="non-scaling-stroke" />
+        </svg>
+        <div class="gkv">
+          <span class="k">Total</span><span class="v">{{ totals14.total.toLocaleString() }} words</span>
+          <span class="k">Avg / day</span><span class="v">{{ totals14.avg.toLocaleString() }}</span>
+          <span class="k">Peak day</span><span class="v">{{ totals14.peak.toLocaleString() }}</span>
+        </div>
+      </div>
+
+      <!-- Cadence -->
+      <div class="card">
+        <div class="gcard-h">Cadence</div>
+        <div class="gdow-bars">
+          <div v-for="(v, i) in dowAvg" :key="i"
+            class="gdow-bar" :class="{ peak: i === bestDowIdx }"
+            :style="`height:${Math.max(3, (v / dowMax) * 100)}%`" />
+        </div>
+        <div class="gdow-lbls">
+          <span v-for="(d, i) in DOW_LABELS_MONDAY_FIRST" :key="i" class="lbl">{{ d }}</span>
+        </div>
+        <div class="gkv" style="margin-top:16px">
+          <span class="k">Best day</span><span class="v">{{ bestDow }}</span>
+          <span class="k">Most words</span><span class="v">avg {{ bestDowAvg.toLocaleString() }}</span>
+        </div>
+        <div v-if="totals14.total === 0" class="t-muted" style="font-size:11px;margin-top:10px;font-style:italic">
           Start writing to see your patterns.
         </div>
       </div>
 
-      <!-- Strands at a glance -->
-      <div class="card">
-        <div class="card-title">Narrative strands</div>
-        <div style="display:flex;flex-direction:column;gap:10px">
-          <div v-for="s in project.strands" :key="s.id">
-            <div style="display:flex;justify-content:space-between;font-size:12px;margin-bottom:4px">
-              <span>
-                <i :style="`display:inline-block;width:8px;height:8px;border-radius:2px;background:${s.color};margin-right:7px;vertical-align:1px`" />
-                {{ s.name }}
-              </span>
-              <span class="t-muted t-num">{{ allCh.filter(c => (c.strands || []).includes(s.id)).length }} ch</span>
-            </div>
-            <div style="height:4px;background:var(--surface-3);border-radius:999px">
-              <div :style="`width:${(allCh.filter(c => (c.strands || []).includes(s.id)).length / Math.max(1, allCh.length)) * 100}%;height:100%;background:${s.color};border-radius:999px`" />
-            </div>
+      <!-- Narrative strands -->
+      <div class="card" style="grid-column:1/-1">
+        <div class="gcard-h">Narrative strands</div>
+        <div class="gthreads">
+          <div v-for="s in project.strands" :key="s.id" class="gthread" :style="{ color: s.color }">
+            <span class="nm"><span class="dot" :style="{ background: s.color }" /><span class="nm-label">{{ s.name }}</span></span>
+            <span class="track"><span class="fill" :style="`width:${(strandCount(s.id) / Math.max(1, allCh.length)) * 100}%;background:${s.color}`" /></span>
+            <span class="ct">{{ strandCount(s.id) }} ch</span>
           </div>
+          <div v-if="!project.strands.length" class="t-muted" style="font-size:12px;font-style:italic">No strands yet.</div>
         </div>
       </div>
     </div>
@@ -199,4 +286,110 @@ const streakSquares = computed(() => history14.value.map((d) => d.words > 0));
 .home-title:focus { border-color: var(--accent); background: var(--surface); box-shadow: 0 0 0 3px var(--accent-soft); }
 .deadline-link { color: inherit; text-decoration: none; border-radius: 4px; }
 .deadline-link:hover { color: var(--accent); text-decoration: underline; }
+
+/* ── Hero ─────────────────────────────────────────────────── */
+.hero-card { padding: 24px; }
+.hero-main { display: flex; gap: 28px; align-items: center; flex-wrap: wrap; }
+.hero-text { flex: 1; min-width: 280px; }
+.hero-sub { font-size: 13px; color: var(--muted); margin-top: 6px; }
+.hero-premise {
+  font-family: var(--font-serif);
+  font-size: 15px; line-height: 1.6;
+  color: var(--ink-2); margin: 12px 0 0; max-width: 54ch;
+}
+
+/* Goal ring */
+.goal-ring { display: flex; flex-direction: column; align-items: center; gap: 10px; flex-shrink: 0; }
+.ring-disc { position: relative; display: grid; place-items: center; }
+.ring-disc svg { transform: rotate(-90deg); display: block; }
+.ring-disc circle { transition: stroke-dashoffset .6s cubic-bezier(.3, .7, .4, 1); }
+.ring-label { position: absolute; inset: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; }
+.ring-pct { font-family: var(--font-serif); font-size: 38px; font-weight: 500; line-height: 1; letter-spacing: -0.01em; }
+.ring-sub { font-size: 9.5px; font-weight: 600; letter-spacing: 0.14em; text-transform: uppercase; color: var(--muted); margin-top: 5px; }
+.ring-words { font-size: 11.5px; color: var(--muted); }
+.ring-words b { color: var(--ink); font-variant-numeric: tabular-nums; }
+
+/* ── Resume card ──────────────────────────────────────────── */
+.resume-card {
+  display: grid; grid-template-columns: 1fr auto; gap: 24px; align-items: center;
+  position: relative; overflow: hidden; padding: 22px 24px;
+}
+.resume-card::before {
+  content: ""; position: absolute; left: 0; top: 0; bottom: 0; width: 5px;
+  background: linear-gradient(180deg, var(--accent), var(--gold));
+}
+.resume-body { min-width: 0; padding-left: 6px; }
+.resume-lab {
+  font-size: 10.5px; font-weight: 600; letter-spacing: 0.06em; text-transform: uppercase;
+  color: var(--muted);
+}
+.resume-h { margin: 7px 0 0; font-family: var(--font-serif); font-size: 20px; font-weight: 600; line-height: 1.25; }
+.resume-part { color: var(--muted); font-weight: 400; }
+.resume-ch { color: var(--accent-ink); font-style: italic; font-weight: 500; }
+.resume-quote {
+  margin: 12px 0 0; max-width: 62ch;
+  font-family: var(--font-serif); font-style: italic; font-size: 14.5px; line-height: 1.6;
+  color: var(--ink-2);
+  padding-left: 14px; border-left: 2px solid var(--accent-line);
+}
+.resume-quote.resume-empty { color: var(--muted); }
+.resume-sub { margin-top: 13px; display: flex; flex-wrap: wrap; gap: 8px; align-items: center; font-size: 12px; color: var(--muted); }
+.resume-sub b { color: var(--ink-2); font-weight: 600; font-variant-numeric: tabular-nums; }
+.resume-sub .dot-sep { color: var(--subtle); }
+.resume-today { color: var(--accent-ink); }
+.resume-cta { display: flex; align-items: center; }
+.resume-cta .btn { padding: 11px 22px; font-size: 13.5px; }
+
+@media (max-width: 720px) {
+  .resume-card { grid-template-columns: 1fr; }
+}
+
+/* ── Stat / graph cards (editorial) ───────────────────────── */
+.gcard-h {
+  margin: 0 0 16px;
+  font-family: var(--font-mono);
+  font-size: 10px; letter-spacing: 0.16em; text-transform: uppercase;
+  color: var(--muted);
+  display: flex; align-items: center; gap: 9px;
+}
+.gcard-h::after { content: ""; flex: 1; height: 1px; background: var(--border); }
+.gcard-h .tag {
+  font-family: var(--font-ui); letter-spacing: 0; text-transform: none;
+  font-size: 10px; color: var(--accent);
+  background: var(--accent-soft); border-radius: 999px; padding: 2px 9px;
+}
+
+.gstat { font-family: var(--font-serif); font-size: 40px; font-weight: 500; line-height: 1; letter-spacing: -0.01em; }
+.gstat small { font-family: var(--font-mono); font-size: 11px; color: var(--muted); letter-spacing: 0.05em; margin-left: 6px; }
+
+.gkv { display: grid; grid-template-columns: auto 1fr; gap: 7px 16px; margin-top: 16px; font-size: 12.5px; }
+.gkv .k { color: var(--muted); }
+.gkv .v { text-align: right; font-family: var(--font-mono); font-size: 12px; font-variant-numeric: tabular-nums; }
+
+/* activity ticks */
+.gticks { display: flex; gap: 4px; align-items: flex-end; height: 40px; margin-top: 16px; }
+.gticks i { flex: 1; border-radius: 2px; background: var(--surface-3); height: 40%; }
+.gticks i.on { background: linear-gradient(180deg, var(--accent), var(--accent-ink)); height: 100%; }
+.gticks-cap { margin-top: 8px; font-family: var(--font-mono); font-size: 10.5px; color: var(--muted); }
+
+/* sparkline */
+.gspark { width: 100%; height: 62px; display: block; }
+
+/* cadence (day of week) */
+.gdow-bars { display: flex; align-items: flex-end; gap: 7px; height: 74px; }
+.gdow-bar { flex: 1; border-radius: 4px 4px 2px 2px; background: var(--surface-3); min-height: 3px; }
+.gdow-bar.peak { background: linear-gradient(180deg, var(--gold), color-mix(in oklab, var(--gold), black 28%)); }
+.gdow-lbls { display: flex; gap: 7px; margin-top: 6px; }
+.gdow-lbls .lbl { flex: 1; text-align: center; font-family: var(--font-mono); font-size: 9.5px; color: var(--muted); }
+
+/* narrative strands — threads */
+.gthreads { display: flex; flex-direction: column; }
+.gthread { display: grid; grid-template-columns: 160px 1fr 52px; align-items: center; gap: 16px; padding: 9px 0; }
+.gthread + .gthread { border-top: 1px solid var(--border-soft); }
+.gthread .nm { display: flex; align-items: center; gap: 9px; font-size: 13px; color: var(--ink); min-width: 0; padding-left: 3px; }
+.gthread .nm .dot { width: 9px; height: 9px; border-radius: 50%; flex-shrink: 0; box-shadow: 0 0 0 3px color-mix(in oklab, currentColor 18%, transparent); }
+.gthread .nm-label { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.gthread .track { height: 6px; border-radius: 999px; background: var(--surface-3); overflow: hidden; }
+.gthread .fill { display: block; height: 100%; border-radius: 999px; }
+.gthread .ct { text-align: right; font-family: var(--font-mono); font-size: 11px; color: var(--muted); }
 </style>

@@ -35,6 +35,10 @@ const props = defineProps({
   modelValue: { type: String, default: "" },
   placeholder: { type: String, default: "Start writing…" },
   autofocus: { type: Boolean, default: false },
+  // Running head (book title) + folio (chapter label) shown only in the
+  // "page" editor layout (Settings → Appearance); ignored when full-width.
+  runningHead: { type: String, default: "" },
+  folioLabel: { type: String, default: "" },
   // "manuscript" — full-bleed editor with serif manuscript chrome (chapters).
   // "inline" — sits inside any container; toolbar above, no manuscript wrapper.
   variant: { type: String, default: "manuscript" },
@@ -721,7 +725,9 @@ defineExpose({ editor });
 
     <div v-if="variant === 'manuscript'" class="manuscript scrollarea" ref="manuscriptEl">
       <div class="manuscript-inner" @click="onBodyClick">
+        <div v-if="runningHead" class="page-runninghead">{{ runningHead }}</div>
         <editor-content :editor="editor" />
+        <div class="page-folio">{{ folioLabel || "⁂" }}</div>
       </div>
     </div>
     <div v-else class="inline-editor-body" @click="onBodyClick" :style="inlineBodyStyle">
@@ -772,9 +778,10 @@ defineExpose({ editor });
    override the shared .manuscript-inner cap only inside the editor, and
    tighten the side padding so prose sits closer to the edges. */
 .rich-editor--manuscript .manuscript-inner { max-width: none; margin: 0; padding: 40px 28px 120px; }
-/* Plain white writing surface for the scene editor (the cream "paper"
-   gradient stays on read-only views, which keep the shared .manuscript). */
-.rich-editor--manuscript .manuscript { background: var(--surface); }
+/* Writing surface for the scene editor. Uses the per-area editor-paper
+   token so Settings → Appearance can retint it; defaults to the warm
+   paper, matching the read-only views. */
+.rich-editor--manuscript .manuscript { background: var(--editor-paper); }
 
 .tiptap-content { outline: none; min-height: 80px; }
 .tiptap-content p.is-editor-empty:first-child::before {
@@ -983,6 +990,9 @@ defineExpose({ editor });
   border-radius: 0 0 7px 7px;
   background: var(--surface);
 }
+/* "Apply editor paper to inline fields" (Settings → Appearance) — inline
+   editor bodies pick up the editor-paper tint instead of the surface. */
+html[data-inline-paper="on"] .rich-editor--inline .inline-editor-body { background: var(--editor-paper); }
 .rich-editor--inline .tiptap-content p { text-indent: var(--editor-para-indent, 0); }
 .rich-editor--inline .tiptap-content p:first-of-type { text-indent: 0; }
 .rich-editor--inline .tiptap-content p + p { margin-top: var(--editor-para-spacing, 0); }

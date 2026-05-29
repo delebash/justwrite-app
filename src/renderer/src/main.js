@@ -3,11 +3,11 @@
 // stores find the IPC adapter the moment they spin up.
 
 import "./services/tauri-bridge.js";
-// Apply the OS-default theme synchronously so we don't render with the
+// Apply the default appearance synchronously so we don't render with the
 // wrong colour scheme during the IDB hydration tick below. The real
-// persisted theme is reapplied after bootStorage resolves.
-import { applyTheme } from "./services/theme.js";
-applyTheme("system");
+// persisted appearance is reapplied after bootStorage resolves.
+import { applyAppearance, migrateAppearance, DEFAULT_APPEARANCE } from "./services/appearance.js";
+applyAppearance(DEFAULT_APPEARANCE);
 
 import { createApp } from "vue";
 import { createPinia } from "pinia";
@@ -24,10 +24,11 @@ import "./assets/styles/tokens.css";
 (async () => {
   await bootStorage();
 
-  // Now that the cache is populated, re-apply the persisted theme.
+  // Now that the cache is populated, re-apply the persisted appearance
+  // (migrating any legacy { theme, accentHue } shape).
   try {
     const ui = JSON.parse(getItem("justwrite:ui") || "{}");
-    applyTheme(ui.theme || "system", ui.accentHue);
+    applyAppearance(migrateAppearance(ui));
   } catch {}
 
   const app = createApp(App);

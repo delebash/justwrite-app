@@ -6,8 +6,21 @@
 import { defineStore } from "pinia";
 import { getItem, setItem } from "../services/storage.js";
 import { DEFAULT_EDITOR_SETTINGS } from "../services/editorSettings.js";
+import { DEFAULT_APPEARANCE, migrateAppearance } from "../services/appearance.js";
 
 const LS_KEY = "justwrite:ui";
+
+// Appearance fields that define a "look" — changing any of them (without
+// naming a preset) drops the active preset to "custom".
+const PRESET_KEYS = ["mode", "fontPairing", "uiFont", "displayFont", "accentHue", "goldHue", "appBg", "sidebarBg", "editorPaper", "editorLayout", "inlinePaper", "inkPalette", "uiScale", "sidebarHeadingStyle", "sidebarHeadingSize", "navItemStyle", "navItemSize"];
+
+// Capture the "look" fields of an appearance config into a preset patch
+// (everything a preset defines — mode is excluded since it's independent).
+function presetPatchFrom(a) {
+  const patch = {};
+  for (const k of PRESET_KEYS) patch[k] = a[k];
+  return patch;
+}
 
 function load() {
   try { return JSON.parse(getItem(LS_KEY) || "{}"); } catch { return {}; }
@@ -21,30 +34,37 @@ let toastSeq = 0;
 let toastTimer = null;
 
 export const useUiStore = defineStore("ui", {
-  state: () => ({
-    projectTitle: "The Cartographer's Daughter",
-    sidebarCollapsed: false,
-    sidebarWidth: 280,         // user-resizable; persisted
-    expanded: { chapters: true },
-    filters: {},  // per-section filter strings
-    selections: {
-      chapters: "ch7",
-      characters: "c1",
-      locations: "l2",
-      objects: "o1",
-      groups: "g1",
-      notes: "n1",
-      worldbuilding: null,
-    },
-    // Appearance preferences.
-    theme: "system",          // "light" | "dark" | "system"
-    accentHue: 200,            // 0–360 for the calm-teal default; user-tunable
-    // Writing/editor display settings (font, spacing, etc.).
-    editorSettings: { ...DEFAULT_EDITOR_SETTINGS },
-    // Transient. Shape: { id, message, action?: { label, fn } }.
-    toast: null,
-    ...load(),
-  }),
+  state: () => {
+    const saved = load();
+    return {
+      projectTitle: "The Cartographer's Daughter",
+      sidebarCollapsed: false,
+      sidebarWidth: 280,         // user-resizable; persisted
+      expanded: { chapters: true },
+      filters: {},  // per-section filter strings
+      selections: {
+        chapters: "ch7",
+        characters: "c1",
+        locations: "l2",
+        objects: "o1",
+        groups: "g1",
+        notes: "n1",
+        worldbuilding: null,
+      },
+      // Appearance / theming (see services/appearance.js).
+      appearance: { ...DEFAULT_APPEARANCE },
+      // User-saved appearance presets: { id, name, patch }.
+      customPresets: [],
+      // Writing/editor display settings (font, spacing, etc.).
+      editorSettings: { ...DEFAULT_EDITOR_SETTINGS },
+      // Transient. Shape: { id, message, action?: { label, fn } }.
+      toast: null,
+      ...saved,
+      // Resolve appearance last: wins over the raw spread and folds in any
+      // legacy { theme, accentHue } keys from older saves.
+      appearance: migrateAppearance(saved),
+    };
+  },
 
   actions: {
     toggleSidebar() {
@@ -84,14 +104,47 @@ export const useUiStore = defineStore("ui", {
       this.toast = null;
     },
 
-    setTheme(value) {
-      this.theme = value === "dark" || value === "light" ? value : "system";
+    setAppearance(patch) {
+      const next = { ...this.appearance, ...patch };
+      if (!("preset" in patch) && PRESET_KEYS.some((k) => k in patch)) next.preset = "custom";
+      if (("uiFont" in patch || "displayFont" in patch) && !("fontPairing" in patch)) next.fontPairing = "custom";
+      this.appearance = next;
       this._persist();
+    },
+    // Save the current look as a named custom preset and make it active.
+    saveCustomPreset(name) {
+      const id = "cp_" + Date.now().toString(36);
+      const preset = { id, name: String(name || "").trim() || "Custom", patch: presetPatchFrom(this.appearance) };
+      this.customPresets = [...this.customPresets, preset];
+      this.appearance = { ...this.appearance, preset: id };
+      this._persist();
+      return id;
+    },
+    renameCustomPreset(id, name) {
+      const nm = String(name || "").trim();
+      if (!nm) return;
+      this.customPresets = this.customPresets.map((p) => (p.id === id ? { ...p, name: nm } : p));
+      this._persist();
+    },
+    deleteCustomPreset(id) {
+      this.customPresets = this.customPresets.filter((p) => p.id !== id);
+      if (this.appearance.preset === id) this.appearance = { ...this.appearance, preset: "custom" };
+      this._persist();
+    },
+    // Reset every appearance setting to DEFAULT_APPEARANCE (including
+    // mode, which is now a preset-defining field). Saved custom presets
+    // are left intact.
+    resetAppearance() {
+      this.appearance = { ...DEFAULT_APPEARANCE };
+      this._persist();
+    },
+    // Back-compat shims onto the appearance model.
+    setTheme(value) {
+      this.setAppearance({ mode: value === "dark" || value === "light" ? value : "system" });
     },
     setAccentHue(hue) {
       const n = Number(hue);
-      this.accentHue = Number.isFinite(n) ? Math.max(0, Math.min(360, n)) : 200;
-      this._persist();
+      this.setAppearance({ accentHue: Number.isFinite(n) ? Math.max(0, Math.min(360, n)) : 14 });
     },
     setEditorSettings(patch) {
       this.editorSettings = { ...this.editorSettings, ...patch };
@@ -104,8 +157,8 @@ export const useUiStore = defineStore("ui", {
         sidebarWidth: this.sidebarWidth,
         expanded: this.expanded,
         selections: this.selections,
-        theme: this.theme,
-        accentHue: this.accentHue,
+        appearance: this.appearance,
+        customPresets: this.customPresets,
         editorSettings: this.editorSettings,
       });
     },

@@ -4,7 +4,7 @@ import { useRoute, useRouter } from "vue-router";
 import { useUiStore } from "./stores/ui.js";
 import { useProjectStore } from "./stores/project.js";
 import { useSessionsStore } from "./stores/sessions.js";
-import { applyTheme } from "./services/theme.js";
+import { applyAppearance } from "./services/appearance.js";
 import { applyEditorSettings } from "./services/editorSettings.js";
 import TitleBar from "./components/TitleBar.vue";
 import Sidebar from "./components/Sidebar.vue";
@@ -62,10 +62,11 @@ function onKey(e) {
   }
 }
 
-// Keep the resolved theme in sync with the user's preference. The theme
-// service was already initialized once at module load (in main.js) using
-// the persisted value; this watcher handles in-app changes from Settings.
-watchEffect(() => applyTheme(ui.theme, ui.accentHue));
+// Keep the appearance (mode, accent, fonts, surface tints, editor layout)
+// in sync with the user's preference. The service was initialized once at
+// module load (in main.js) with the persisted value; this watcher handles
+// in-app changes from Settings → Appearance.
+watchEffect(() => applyAppearance(ui.appearance));
 watchEffect(() => applyEditorSettings(ui.editorSettings));
 
 onMounted(() => {

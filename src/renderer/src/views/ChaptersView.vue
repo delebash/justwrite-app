@@ -572,6 +572,8 @@ onBeforeUnmount(() => window.removeEventListener("keydown", onKey));
       :model-value="activeScene.body"
       :placeholder="`Write scene ${activeSceneIdx + 1}…`"
       :count-footer="false"
+      :running-head="project.project.title"
+      :folio-label="`Ch. ${ch.num}`"
       @change="(html) => onSceneBodyChange(activeScene.id, html)" />
 
     <!-- Chapter overview: shown when no scene is picked yet. Lists

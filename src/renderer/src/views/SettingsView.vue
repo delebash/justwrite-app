@@ -9,6 +9,12 @@ import { promptDialog, confirmDialog } from "../services/dialog.js";
 import { getItem, setItem, clearPrefix, flushPending } from "../services/storage.js";
 import PaneHeader from "../components/PaneHeader.vue";
 import Icon from "../components/Icon.vue";
+import {
+  ACCENT_PRESETS, GOLD_PRESETS, PAIRINGS, SURFACE_TINTS, PAPER_TINTS,
+  THEME_PRESETS, UI_FONTS, DISPLAY_FONTS, INK_PALETTES, UI_SCALES,
+  SIDEBAR_HEADING_STYLES, SIDEBAR_HEADING_SIZES,
+  NAV_ITEM_STYLES, NAV_ITEM_SIZES,
+} from "../services/appearance.js";
 
 const props = defineProps({ section: { type: String, default: "" } });
 
@@ -151,19 +157,60 @@ const statusLabel = (s) => ({
 })[s] || "Not checked";
 
 // ── Appearance ─────────────────────────────────────────────────────
+// Curated tables (presets, pairings, tints, ACCENT/GOLD_PRESETS) are
+// imported from services/appearance.js so Settings offers exactly what the
+// apply step understands. `ap` is the live appearance config.
+const ap = computed(() => ui.appearance);
 const THEMES = [
   { id: "system", label: "Match system", hint: "Follow your OS dark/light preference." },
   { id: "light",  label: "Light",        hint: "Bright surfaces, warm neutrals." },
   { id: "dark",   label: "Dark",         hint: "Deep slate surfaces for night writing." },
 ];
-const ACCENT_PRESETS = [
-  { hue: 200, name: "Teal" },
-  { hue: 25,  name: "Rose" },
-  { hue: 75,  name: "Amber" },
-  { hue: 120, name: "Olive" },
-  { hue: 270, name: "Indigo" },
-  { hue: 320, name: "Plum" },
-];
+const SURFACE_TINT_LIST = Object.entries(SURFACE_TINTS).map(([key, t]) => ({ key, ...t }));
+const PAPER_TINT_LIST = Object.entries(PAPER_TINTS).map(([key, t]) => ({ key, ...t }));
+const INK_PALETTE_LIST = Object.entries(INK_PALETTES).map(([key, t]) => ({ key, ...t }));
+const SIDEBAR_HEADING_STYLE_LIST = Object.entries(SIDEBAR_HEADING_STYLES).map(([key, t]) => ({ key, ...t }));
+const NAV_ITEM_STYLE_LIST = Object.entries(NAV_ITEM_STYLES).map(([key, t]) => ({ key, ...t }));
+
+function isCustomHex(v) { return typeof v === "string" && v.startsWith("#"); }
+function inkSwatch(t) {
+  if (t.auto) return "var(--ink)";
+  const shades = modeNow() === "dark" ? t.dark : t.light;
+  return shades[0];
+}
+
+function setAp(patch) { ui.setAppearance(patch); }
+function applyPreset(p) { ui.setAppearance({ preset: p.id, ...p.patch }); }
+function clampHue(v) { const n = Number(v); return Number.isFinite(n) ? Math.max(0, Math.min(360, Math.round(n))) : 0; }
+function dispStack(label) { return (DISPLAY_FONTS.find((f) => f.label === label) || DISPLAY_FONTS[0]).stack; }
+function modeNow() { return document.documentElement.getAttribute("data-theme") === "dark" ? "dark" : "light"; }
+function tintColor(t) { return t.var ? t.var : t[modeNow()]; }
+
+// Custom presets — save the current look, rename, delete.
+async function saveCurrentPreset() {
+  const name = await promptDialog({ title: "Save preset", label: "Preset name", placeholder: "e.g. Night Study", confirmLabel: "Save preset" });
+  if (!name) return;
+  ui.saveCustomPreset(name);
+}
+async function renameCustomPreset(p) {
+  const name = await promptDialog({ title: "Rename preset", label: "Preset name", defaultValue: p.name, confirmLabel: "Rename" });
+  if (!name) return;
+  ui.renameCustomPreset(p.id, name);
+}
+async function removeCustomPreset(p) {
+  const yes = await confirmDialog({ title: `Delete "${p.name}"?`, message: "Removes this custom preset. Your current appearance stays as it is.", confirmLabel: "Delete", danger: true });
+  if (!yes) return;
+  ui.deleteCustomPreset(p.id);
+}
+async function resetAppearance() {
+  const yes = await confirmDialog({
+    title: "Reset appearance to defaults?",
+    message: "Returns every appearance setting — including light/dark mode — to the default look. Your saved custom presets are kept.",
+    confirmLabel: "Reset",
+  });
+  if (!yes) return;
+  ui.resetAppearance();
+}
 
 // ── Backups ────────────────────────────────────────────────────────
 const backupBusy = ref(false);
@@ -806,12 +853,51 @@ async function deleteCategory(c) {
 
       <!-- ── APPEARANCE ────────────────────────────── -->
       <div v-else-if="active === 'appearance'" style="display:flex;flex-direction:column;gap:14px">
+
+        <!-- Presets -->
         <div class="card">
-          <div class="card-title">Theme</div>
+          <div class="card-title">Theme preset
+            <button class="btn ghost sm" style="margin-left:auto" @click="resetAppearance"
+              title="Reset every appearance setting to the default look">
+              <Icon name="Refresh" :size="12" /> Reset to defaults
+            </button>
+          </div>
+          <p class="t-muted" style="font-size:12px;margin:0 0 12px">Start from a curated look, then fine-tune anything below.</p>
+          <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(168px,1fr));gap:10px">
+            <button v-for="p in THEME_PRESETS" :key="p.id"
+              class="preset-tile" :class="{ active: ap.preset === p.id }"
+              @click="applyPreset(p)">
+              <b>{{ p.name }}</b>
+              <span class="t-muted">{{ p.hint }}</span>
+              <Icon v-if="ap.preset === p.id" name="Check" :size="13" class="preset-check" />
+            </button>
+
+            <div v-for="p in ui.customPresets" :key="p.id"
+              class="preset-tile is-saved" :class="{ active: ap.preset === p.id }"
+              @click="applyPreset(p)">
+              <b>{{ p.name }}</b>
+              <span class="t-muted">Saved preset</span>
+              <div class="preset-actions">
+                <button class="preset-act" title="Rename" @click.stop="renameCustomPreset(p)"><Icon name="Pencil" :size="12" /></button>
+                <button class="preset-act danger" title="Delete" @click.stop="removeCustomPreset(p)"><Icon name="Trash" :size="12" /></button>
+              </div>
+            </div>
+
+            <button v-if="ap.preset === 'custom'" class="preset-tile is-save" @click="saveCurrentPreset">
+              <Icon name="Plus" :size="15" />
+              <b>Save current…</b>
+              <span class="t-muted">Keep this mix as a preset</span>
+            </button>
+          </div>
+        </div>
+
+        <!-- Mode -->
+        <div class="card">
+          <div class="card-title">Mode</div>
           <div style="display:grid;grid-template-columns:repeat(3, 1fr);gap:10px">
             <button v-for="t in THEMES" :key="t.id"
-              class="theme-tile" :class="{ active: ui.theme === t.id }"
-              @click="ui.setTheme(t.id)">
+              class="theme-tile" :class="{ active: ap.mode === t.id }"
+              @click="setAp({ mode: t.id })">
               <div class="theme-preview" :data-mode="t.id === 'system' ? 'split' : t.id">
                 <span class="dot dot-bg" /><span class="dot dot-surf" /><span class="dot dot-ink" />
               </div>
@@ -819,40 +905,215 @@ async function deleteCategory(c) {
                 <b style="font-size:12.5px">{{ t.label }}</b>
                 <span class="t-muted" style="font-size:11px;line-height:1.4">{{ t.hint }}</span>
               </div>
-              <Icon v-if="ui.theme === t.id" name="Check" :size="14" style="margin-left:auto;color:var(--accent)" />
+              <Icon v-if="ap.mode === t.id" name="Check" :size="14" style="margin-left:auto;color:var(--accent)" />
             </button>
           </div>
         </div>
 
+        <!-- Typography -->
         <div class="card">
-          <div class="card-title">Accent color</div>
-          <p class="t-muted" style="font-size:12px;margin:0 0 12px">Used for selection, the active nav item, and link-style controls.</p>
-          <div style="display:flex;flex-wrap:wrap;gap:8px;align-items:center">
-            <button v-for="p in ACCENT_PRESETS" :key="p.hue"
-              class="accent-swatch" :class="{ active: ui.accentHue === p.hue }"
-              :title="p.name"
-              :style="`background: oklch(0.62 0.1 ${p.hue})`"
-              @click="ui.setAccentHue(p.hue)">
-              <Icon v-if="ui.accentHue === p.hue" name="Check" :size="12" />
+          <div class="card-title">Typography</div>
+          <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(190px,1fr));gap:10px">
+            <button v-for="p in PAIRINGS" :key="p.id"
+              class="pairing-tile" :class="{ active: ap.fontPairing === p.id }"
+              @click="setAp({ fontPairing: p.id, uiFont: p.ui, displayFont: p.display })">
+              <span class="pairing-sample" :style="{ fontFamily: dispStack(p.display) }">Ag</span>
+              <div style="display:flex;flex-direction:column;min-width:0">
+                <b style="font-size:12.5px">{{ p.name }}</b>
+                <span class="t-muted" style="font-size:10.5px">{{ p.display }} · {{ p.ui }}</span>
+              </div>
+              <Icon v-if="ap.fontPairing === p.id" name="Check" :size="13" style="margin-left:auto;color:var(--accent)" />
             </button>
-            <span class="t-muted" style="font-size:11.5px;margin-left:12px">or</span>
-            <label style="display:flex;align-items:center;gap:6px;font-size:12px" class="t-muted">
-              hue
-              <input type="number" class="input" min="0" max="360" style="width:80px"
-                :value="ui.accentHue" @input="ui.setAccentHue($event.target.value)" />
+          </div>
+          <div style="display:flex;gap:18px;flex-wrap:wrap;margin-top:14px">
+            <label class="field"><span class="field-l">UI font</span>
+              <select class="input" :value="ap.uiFont" @change="setAp({ uiFont: $event.target.value })">
+                <option v-for="f in UI_FONTS" :key="f.label" :value="f.label">{{ f.label }}</option>
+              </select>
+            </label>
+            <label class="field"><span class="field-l">Display font</span>
+              <select class="input" :value="ap.displayFont" @change="setAp({ displayFont: $event.target.value })">
+                <option v-for="f in DISPLAY_FONTS" :key="f.label" :value="f.label">{{ f.label }}</option>
+              </select>
             </label>
           </div>
+          <div class="size-row">
+            <span class="field-l">Size</span>
+            <div class="size-seg">
+              <button v-for="s in UI_SCALES" :key="s.value"
+                :class="{ active: ap.uiScale === s.value }"
+                @click="setAp({ uiScale: s.value })">
+                <b>{{ s.label }}</b><span>{{ Math.round(s.value * 100) }}%</span>
+              </button>
+            </div>
+          </div>
+          <div class="size-row">
+            <span class="field-l">Section heading</span>
+            <div class="size-seg">
+              <button v-for="s in SIDEBAR_HEADING_STYLE_LIST" :key="s.key"
+                :class="{ active: ap.sidebarHeadingStyle === s.key }"
+                @click="setAp({ sidebarHeadingStyle: s.key })">
+                <b>{{ s.label }}</b>
+              </button>
+            </div>
+            <div class="size-seg size-seg-narrow">
+              <button v-for="s in SIDEBAR_HEADING_SIZES" :key="s.value"
+                :class="{ active: ap.sidebarHeadingSize === s.value }"
+                @click="setAp({ sidebarHeadingSize: s.value })">
+                <b>{{ s.label }}</b>
+              </button>
+            </div>
+          </div>
+          <div class="size-row">
+            <span class="field-l">Menu item</span>
+            <div class="size-seg">
+              <button v-for="s in NAV_ITEM_STYLE_LIST" :key="s.key"
+                :class="{ active: ap.navItemStyle === s.key }"
+                @click="setAp({ navItemStyle: s.key })">
+                <b>{{ s.label }}</b>
+              </button>
+            </div>
+            <div class="size-seg size-seg-narrow">
+              <button v-for="s in NAV_ITEM_SIZES" :key="s.value"
+                :class="{ active: ap.navItemSize === s.value }"
+                @click="setAp({ navItemSize: s.value })">
+                <b>{{ s.label }}</b>
+              </button>
+            </div>
+          </div>
         </div>
 
+        <!-- Accent & gold -->
+        <div class="card">
+          <div class="card-title">Accent &amp; gold</div>
+          <p class="t-muted" style="font-size:12px;margin:0 0 12px">Accent drives selection, the active nav item, buttons and links. Gold is the secondary — rings, rules, peak markers.</p>
+          <div class="swatch-row">
+            <span class="swatch-label">Accent</span>
+            <button v-for="p in ACCENT_PRESETS" :key="p.hue"
+              class="accent-swatch" :class="{ active: ap.accentHue === p.hue }"
+              :title="p.name" :style="`background: oklch(0.55 0.13 ${p.hue})`"
+              @click="setAp({ accentHue: p.hue })">
+              <Icon v-if="ap.accentHue === p.hue" name="Check" :size="12" />
+            </button>
+            <input type="number" class="input" min="0" max="360" style="width:74px"
+              :value="ap.accentHue" @input="setAp({ accentHue: clampHue($event.target.value) })" />
+          </div>
+          <div class="swatch-row" style="margin-top:8px">
+            <span class="swatch-label">Gold</span>
+            <button v-for="p in GOLD_PRESETS" :key="p.hue"
+              class="accent-swatch" :class="{ active: ap.goldHue === p.hue }"
+              :title="p.name" :style="`background: oklch(0.62 0.1 ${p.hue})`"
+              @click="setAp({ goldHue: p.hue })">
+              <Icon v-if="ap.goldHue === p.hue" name="Check" :size="12" />
+            </button>
+            <input type="number" class="input" min="0" max="360" style="width:74px"
+              :value="ap.goldHue" @input="setAp({ goldHue: clampHue($event.target.value) })" />
+          </div>
+        </div>
+
+        <!-- Backgrounds -->
+        <div class="card">
+          <div class="card-title">Backgrounds</div>
+          <p class="t-muted" style="font-size:12px;margin:0 0 12px">Tint each area independently — every option is tuned to stay legible.</p>
+          <div class="swatch-row">
+            <span class="swatch-label">App</span>
+            <button v-for="t in SURFACE_TINT_LIST" :key="t.key"
+              class="tint-swatch" :class="{ active: ap.appBg === t.key }"
+              :title="t.label" :style="{ background: tintColor(t) }"
+              @click="setAp({ appBg: t.key })">
+              <Icon v-if="ap.appBg === t.key" name="Check" :size="12" />
+            </button>
+            <label class="tint-swatch tint-custom" :class="{ active: isCustomHex(ap.appBg) }" title="Custom colour">
+              <input type="color" :value="isCustomHex(ap.appBg) ? ap.appBg : '#dcd6c4'"
+                @input="setAp({ appBg: $event.target.value })" />
+              <Icon v-if="isCustomHex(ap.appBg)" name="Check" :size="12" />
+            </label>
+          </div>
+          <div class="swatch-row" style="margin-top:8px">
+            <span class="swatch-label">Sidebar</span>
+            <button v-for="t in SURFACE_TINT_LIST" :key="t.key"
+              class="tint-swatch" :class="{ active: ap.sidebarBg === t.key }"
+              :title="t.label" :style="{ background: tintColor(t) }"
+              @click="setAp({ sidebarBg: t.key })">
+              <Icon v-if="ap.sidebarBg === t.key" name="Check" :size="12" />
+            </button>
+            <label class="tint-swatch tint-custom" :class="{ active: isCustomHex(ap.sidebarBg) }" title="Custom colour">
+              <input type="color" :value="isCustomHex(ap.sidebarBg) ? ap.sidebarBg : '#dcd6c4'"
+                @input="setAp({ sidebarBg: $event.target.value })" />
+              <Icon v-if="isCustomHex(ap.sidebarBg)" name="Check" :size="12" />
+            </label>
+          </div>
+          <div class="swatch-row" style="margin-top:8px">
+            <span class="swatch-label">Editor paper</span>
+            <button v-for="t in PAPER_TINT_LIST" :key="t.key"
+              class="tint-swatch" :class="{ active: ap.editorPaper === t.key }"
+              :title="t.label" :style="{ background: tintColor(t) }"
+              @click="setAp({ editorPaper: t.key })">
+              <Icon v-if="ap.editorPaper === t.key" name="Check" :size="12" />
+            </button>
+            <label class="tint-swatch tint-custom" :class="{ active: isCustomHex(ap.editorPaper) }" title="Custom paper colour">
+              <input type="color" :value="isCustomHex(ap.editorPaper) ? ap.editorPaper : '#f4ecd8'"
+                @input="setAp({ editorPaper: $event.target.value })" />
+              <Icon v-if="isCustomHex(ap.editorPaper)" name="Check" :size="12" />
+            </label>
+          </div>
+          <div class="swatch-row" style="margin-top:14px">
+            <span class="swatch-label">Text</span>
+            <button v-for="t in INK_PALETTE_LIST" :key="t.key"
+              class="tint-swatch" :class="{ active: ap.inkPalette === t.key }"
+              :title="t.label" :style="{ background: inkSwatch(t) }"
+              @click="setAp({ inkPalette: t.key })">
+              <Icon v-if="ap.inkPalette === t.key" name="Check" :size="12" style="color:#fff" />
+            </button>
+          </div>
+          <div class="inline-paper-row">
+            <label>
+              <input type="checkbox" :checked="ap.inlinePaper"
+                @change="setAp({ inlinePaper: $event.target.checked })" />
+              <span>Apply editor paper to inline fields</span>
+            </label>
+            <p class="t-muted" style="font-size:11px;margin:4px 0 0;padding-left:22px">Character, note &amp; worldbuilding rich-text fields pick up the paper tint instead of the surface.</p>
+          </div>
+        </div>
+
+        <!-- Editor layout -->
+        <div class="card">
+          <div class="card-title">Editor layout</div>
+          <div class="seg2">
+            <button :class="{ active: ap.editorLayout === 'full' }" @click="setAp({ editorLayout: 'full' })">
+              <b>Full width</b><span>Edge-to-edge writing surface.</span>
+            </button>
+            <button :class="{ active: ap.editorLayout === 'page' }" @click="setAp({ editorLayout: 'page' })">
+              <b>Page</b><span>Centered sheet with margins, running head &amp; drop cap.</span>
+            </button>
+          </div>
+          <p class="t-muted" style="font-size:11px;margin:12px 0 0">Per-document font size &amp; spacing live in the editor's ⚙ Writing settings.</p>
+        </div>
+
+        <!-- Preview -->
         <div class="card">
           <div class="card-title">Preview</div>
-          <div style="display:flex;gap:10px;flex-wrap:wrap;align-items:center">
-            <button class="btn">Button</button>
-            <button class="btn primary">Primary</button>
-            <button class="btn accent">Accent</button>
-            <span class="chip"><span class="dot" />Chip</span>
-            <span class="chip" style="background:var(--accent-soft);color:var(--accent-ink);border-color:var(--accent-line)">Selected</span>
-            <input class="input" placeholder="An input field" style="max-width:200px" />
+          <div class="appear-preview" :data-layout="ap.editorLayout">
+            <div class="ap-side">
+              <div class="ap-brand">JustWrite</div>
+              <div class="ap-section">Manuscript</div>
+              <div class="ap-nav active">Chapters</div>
+              <div class="ap-nav">Characters</div>
+              <div class="ap-section">Project</div>
+              <div class="ap-nav">Settings</div>
+            </div>
+            <div class="ap-main">
+              <div class="ap-page">
+                <div v-if="ap.editorLayout === 'page'" class="ap-runninghead">The Cartographer's Daughter</div>
+                <div class="ap-eyebrow">Chapter 12</div>
+                <div class="ap-h">The First Crossing</div>
+                <p class="ap-prose">She pressed her thumb to the vellum where the coastline should have been, and felt only the cold weave of the cloth.</p>
+                <div class="ap-controls">
+                  <button class="btn accent sm">Accent</button>
+                  <span class="chip" style="background:var(--accent-soft);color:var(--accent-ink);border-color:var(--accent-line)">Selected</span>
+                </div>
+              </div>
+            </div>
           </div>
         </div>
       </div>
@@ -1030,6 +1291,204 @@ async function deleteCategory(c) {
 }
 .accent-swatch.active { border-color: var(--ink); transform: scale(1.08); }
 .accent-swatch:hover { border-color: var(--border-strong); }
+
+/* Preset tiles */
+.preset-tile {
+  position: relative;
+  appearance: none; text-align: left; cursor: pointer;
+  display: flex; flex-direction: column; gap: 3px;
+  padding: 12px 14px; border-radius: 10px;
+  border: 1px solid var(--border); background: var(--surface);
+}
+.preset-tile b { font-size: 13px; }
+.preset-tile span { font-size: 11px; line-height: 1.4; }
+.preset-tile:hover { border-color: var(--border-strong); }
+.preset-tile.active { border-color: var(--accent); background: var(--accent-soft); }
+.preset-tile.active b { color: var(--accent-ink); }
+.preset-tile .preset-check { position: absolute; top: 10px; right: 10px; color: var(--accent); }
+.preset-tile.is-saved { cursor: pointer; }
+.preset-actions { position: absolute; top: 8px; right: 8px; display: flex; gap: 4px; opacity: 0; transition: opacity .1s ease; }
+.preset-tile.is-saved:hover .preset-actions,
+.preset-tile.is-saved:focus-within .preset-actions { opacity: 1; }
+.preset-act {
+  width: 22px; height: 22px; padding: 0; border-radius: 6px;
+  display: grid; place-items: center; cursor: pointer;
+  color: var(--muted); background: var(--surface-2); border: 1px solid var(--border);
+}
+.preset-act:hover { color: var(--ink); background: var(--surface-3); }
+.preset-act.danger:hover { color: var(--danger, #c0392b); }
+.preset-tile.is-save { cursor: pointer; border-style: dashed; gap: 4px; color: var(--muted); }
+.preset-tile.is-save b { color: var(--ink); }
+.preset-tile.is-save:hover { border-color: var(--accent); color: var(--accent-ink); }
+
+.inline-paper-row { margin-top: 16px; }
+.inline-paper-row label {
+  display: inline-flex; align-items: center; gap: 8px;
+  font-size: 12.5px; cursor: pointer; color: var(--ink);
+}
+.inline-paper-row input { width: 14px; height: 14px; accent-color: var(--accent); cursor: pointer; margin: 0; }
+
+/* Custom-colour swatch — a small rainbow-conic affordance with a hidden
+   native color input overlaid; clicking the swatch opens the picker. */
+.tint-swatch.tint-custom {
+  position: relative; overflow: hidden;
+  background: conic-gradient(from 180deg, #e15454, #d6a32f, #6fb45d, #4f9ec9, #8a6acd, #d166a3, #e15454);
+}
+.tint-swatch.tint-custom input[type="color"] {
+  position: absolute; inset: 0; width: 100%; height: 100%;
+  border: 0; padding: 0; opacity: 0; cursor: pointer;
+}
+.tint-swatch.tint-custom :deep(svg) { color: #fff; filter: drop-shadow(0 0 1px rgba(0,0,0,.5)); }
+
+/* UI size segmented control (Typography → Size) */
+.size-row { display: flex; align-items: center; gap: 12px; margin-top: 14px; flex-wrap: wrap; }
+.size-seg {
+  display: inline-flex; flex: 1; min-width: 280px;
+  padding: 2px; gap: 2px;
+  border: 1px solid var(--border); border-radius: 9px; background: var(--surface-2);
+}
+.size-seg button {
+  flex: 1;
+  display: flex; flex-direction: column; align-items: center; gap: 1px;
+  padding: 6px 4px; border: 0; border-radius: 7px;
+  background: transparent; color: var(--ink-2); cursor: pointer;
+}
+.size-seg button:hover { background: var(--surface-3); color: var(--ink); }
+.size-seg button.active {
+  background: var(--surface); color: var(--accent-ink);
+  box-shadow: 0 0 0 1px var(--border), 0 1px 2px rgba(0, 0, 0, .04);
+}
+.size-seg button b { font-size: 12px; }
+.size-seg button span { font-size: 10px; color: var(--muted); }
+.size-seg button.active span { color: var(--accent-ink); opacity: .8; }
+.size-seg-narrow { min-width: 0; flex: 0 1 auto; }
+
+/* Pairing tiles */
+.pairing-tile {
+  appearance: none; text-align: left; cursor: pointer;
+  display: flex; align-items: center; gap: 11px;
+  padding: 10px 12px; border-radius: 10px;
+  border: 1px solid var(--border); background: var(--surface);
+}
+.pairing-tile:hover { border-color: var(--border-strong); }
+.pairing-tile.active { border-color: var(--accent); background: var(--accent-soft); }
+.pairing-sample {
+  width: 38px; height: 38px; flex-shrink: 0;
+  display: grid; place-items: center;
+  font-size: 22px; line-height: 1; color: var(--ink);
+  background: var(--surface-2); border: 1px solid var(--border); border-radius: 8px;
+}
+
+/* Swatch rows */
+.swatch-row { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+.swatch-label {
+  width: 86px; flex-shrink: 0;
+  font-size: 11px; font-weight: 600; letter-spacing: 0.04em;
+  text-transform: uppercase; color: var(--muted);
+}
+.tint-swatch {
+  width: 30px; height: 24px; padding: 0;
+  border-radius: 6px; cursor: pointer;
+  border: 1px solid var(--border-strong);
+  display: grid; place-items: center; color: var(--ink);
+  box-shadow: inset 0 0 0 1px rgba(0, 0, 0, 0.04);
+}
+.tint-swatch:hover { transform: scale(1.06); }
+.tint-swatch.active { outline: 2px solid var(--accent); outline-offset: 1px; }
+
+/* Font field selects */
+.field { display: flex; flex-direction: column; gap: 5px; min-width: 180px; }
+.field-l { font-size: 11px; font-weight: 600; letter-spacing: 0.04em; text-transform: uppercase; color: var(--muted); }
+
+/* Editor-layout segmented control */
+.seg2 { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+.seg2 button {
+  appearance: none; text-align: left; cursor: pointer;
+  display: flex; flex-direction: column; gap: 3px;
+  padding: 12px 14px; border-radius: 10px;
+  border: 1px solid var(--border); background: var(--surface);
+}
+.seg2 button b { font-size: 13px; }
+.seg2 button span { font-size: 11px; line-height: 1.4; color: var(--muted); }
+.seg2 button:hover { border-color: var(--border-strong); }
+.seg2 button.active { border-color: var(--accent); background: var(--accent-soft); }
+.seg2 button.active b { color: var(--accent-ink); }
+
+/* Live preview — reflects every appearance knob: backgrounds, fonts,
+   ink palette, accent/gold, section-heading + menu-item style/size,
+   and the editor layout (full vs paged with running head, drop cap,
+   and a gold scene rule). */
+.appear-preview {
+  display: grid; grid-template-columns: 168px 1fr;
+  border: 1px solid var(--border); border-radius: 12px; overflow: hidden;
+  min-height: 220px; background: var(--app-bg);
+}
+.ap-side {
+  background: var(--sidebar-bg); border-right: 1px solid var(--border);
+  padding: 14px 12px; display: flex; flex-direction: column; gap: 2px;
+}
+.ap-brand { font-family: var(--font-serif); font-size: 15px; font-weight: 600; margin-bottom: 8px; }
+.ap-section {
+  font-family: var(--nav-section-font, var(--font-ui));
+  font-size: var(--nav-section-size, 10px);
+  font-weight: var(--nav-section-weight, 600);
+  font-style: var(--nav-section-style, normal);
+  text-transform: var(--nav-section-transform, uppercase);
+  letter-spacing: var(--nav-section-letter-spacing, 0.08em);
+  color: var(--muted);
+  padding: 8px 6px 3px;
+}
+.ap-section:first-of-type { padding-top: 2px; }
+.ap-nav {
+  font-family: var(--nav-item-font, var(--font-ui));
+  font-size: var(--nav-item-size, 12.5px);
+  font-weight: var(--nav-item-weight, 400);
+  font-style: var(--nav-item-style, normal);
+  letter-spacing: var(--nav-item-letter-spacing, 0);
+  color: var(--ink-2);
+  padding: 3px 8px; border-radius: 5px;
+}
+.ap-nav.active {
+  background: var(--accent-soft);
+  color: var(--accent-ink);
+  font-weight: var(--nav-item-active-weight, 500);
+}
+.ap-main { background: var(--editor-paper); padding: 18px 20px; }
+.appear-preview[data-layout="page"] .ap-main { background: var(--app-bg); padding: 12px; }
+.appear-preview[data-layout="page"] .ap-page {
+  background: var(--editor-paper);
+  border: 1px solid var(--border);
+  border-radius: 4px;
+  box-shadow: 0 4px 12px -4px rgba(0, 0, 0, 0.12);
+  padding: 18px 22px 18px;
+}
+.ap-runninghead {
+  text-align: center;
+  font-family: var(--font-mono);
+  font-size: 8px; letter-spacing: 0.28em;
+  text-transform: uppercase; color: var(--subtle);
+  margin: 0 0 14px;
+}
+.ap-eyebrow { font-family: var(--font-mono); font-size: 9.5px; letter-spacing: 0.16em; text-transform: uppercase; color: var(--accent); }
+.appear-preview[data-layout="page"] .ap-eyebrow { text-align: center; }
+.ap-h { font-family: var(--font-serif); font-size: 21px; font-weight: 600; margin: 4px 0 8px; }
+.appear-preview[data-layout="page"] .ap-h {
+  text-align: center; font-weight: 400; font-style: italic;
+}
+.appear-preview[data-layout="page"] .ap-h::after {
+  content: ""; display: block;
+  width: 28px; height: 1px;
+  margin: 5px auto 12px;
+  background: var(--gold);
+}
+.ap-prose { font-family: var(--font-serif); font-size: 14px; line-height: 1.6; color: var(--ink-2); margin: 0; max-width: 52ch; }
+.appear-preview[data-layout="page"] .ap-prose::first-letter {
+  font-family: var(--font-serif); font-weight: 500;
+  font-size: 2.4em; line-height: 0.82;
+  float: left; margin: 0.04em 0.08em -0.06em 0;
+  color: var(--accent);
+}
+.ap-controls { display: flex; gap: 8px; margin-top: 12px; align-items: center; }
 
 /* About → workspace stat tiles */
 .stat-tile {

@@ -698,7 +698,7 @@ function wbDropClass(kind, id) {
                 <template v-for="c in g.items" :key="c.id">
                   <div class="nav-child chapter-row"
                     :class="[{ sel: ui.selections[n.id] === c.id && activeSection === n.id }, dropClass('chapter', c.id)]"
-                    style="grid-template-columns: auto 1fr auto auto auto"
+                    style="grid-template-columns: auto auto 1fr auto auto auto"
                     draggable="true"
                     @click="clickChild(n.id, c.id)"
                     @dblclick="toggleChapterExpand(c.id)"
@@ -710,7 +710,7 @@ function wbDropClass(kind, id) {
                       :title="isChapterExpanded(c.id) ? 'Collapse scenes' : 'Show scenes'"
                       @mousedown.stop
                       @click.stop="toggleChapterExpand(c.id)">
-                      <Icon name="ChevRight" :size="10" />
+                      <Icon name="ChevRight" :size="14" />
                     </button>
                     <span class="nav-child-num">{{ c.num }}</span>
                     <span class="nav-child-label">{{ c.label }}</span>

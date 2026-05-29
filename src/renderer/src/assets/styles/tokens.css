@@ -11,6 +11,13 @@
   --surface-3:    oklch(0.955 0.005 85);    /* hover, chips    */
   --paper:        oklch(0.99 0.006 85);     /* manuscript page */
 
+  /* Per-area backgrounds — overridden at runtime by
+     services/appearance.js. Default to the existing surfaces (and track
+     the theme) so the out-of-the-box look is unchanged. */
+  --app-bg:       var(--surface-2);
+  --sidebar-bg:   var(--surface-2);
+  --editor-paper: var(--paper);
+
   /* Lines --------------------------------------------------- */
   --border:        oklch(0.91 0.005 85);
   --border-soft:   oklch(0.94 0.004 85);
@@ -22,12 +29,16 @@
   --muted:  oklch(0.55 0.008 85);
   --subtle: oklch(0.72 0.006 85);
 
-  /* Accent — calm teal, hue can be tuned in Settings ------- */
-  --accent-hue:   200;
-  --accent:       oklch(0.52 0.07 var(--accent-hue));
-  --accent-ink:   oklch(0.34 0.06 var(--accent-hue));
-  --accent-soft:  oklch(0.94 0.025 var(--accent-hue));
-  --accent-line:  oklch(0.85 0.04 var(--accent-hue));
+  /* Accent — oxblood, hue still tunable in Settings -------- */
+  --accent-hue:   14;
+  --accent:       oklch(0.46 0.105 var(--accent-hue));
+  --accent-ink:   oklch(0.40 0.092 var(--accent-hue));
+  --accent-soft:  oklch(0.92 0.028 var(--accent-hue));
+  --accent-line:  oklch(0.84 0.045 var(--accent-hue));
+
+  /* Gold — muted secondary (rings, rules, peak markers) ---- */
+  --gold:        oklch(0.62 0.085 80);
+  --gold-soft:   oklch(0.92 0.045 80);
 
   /* Strand chip palette (muted, harmonious) --------------- */
   --c-rose:   oklch(0.78 0.07 25);
@@ -37,10 +48,10 @@
   --c-indigo: oklch(0.74 0.07 270);
   --c-plum:   oklch(0.74 0.07 320);
 
-  /* Type ---------------------------------------------------- */
-  --font-ui:    "Geist", ui-sans-serif, -apple-system, BlinkMacSystemFont, "Helvetica Neue", sans-serif;
-  --font-mono:  "Geist Mono", ui-monospace, "SF Mono", Menlo, monospace;
-  --font-serif: "Source Serif 4", "Iowan Old Style", "Palatino Linotype", Georgia, serif;
+  /* Type — Fraunces display · Spline Sans UI · mono figures - */
+  --font-ui:    "Spline Sans", ui-sans-serif, -apple-system, BlinkMacSystemFont, "Helvetica Neue", sans-serif;
+  --font-mono:  "Spline Sans Mono", ui-monospace, "SF Mono", Menlo, monospace;
+  --font-serif: "Fraunces", "Iowan Old Style", "Palatino Linotype", Georgia, serif;
 
   /* Radii --------------------------------------------------- */
   --r-sm: 6px;
@@ -130,10 +141,13 @@ html[data-theme="dark"] {
   --muted:  oklch(0.62 0.007 85);
   --subtle: oklch(0.48 0.006 85);
 
-  --accent:       oklch(0.72 0.09 var(--accent-hue));
-  --accent-ink:   oklch(0.86 0.06 var(--accent-hue));
-  --accent-soft:  oklch(0.28 0.045 var(--accent-hue));
+  --accent:       oklch(0.68 0.10 var(--accent-hue));
+  --accent-ink:   oklch(0.82 0.07 var(--accent-hue));
+  --accent-soft:  oklch(0.30 0.045 var(--accent-hue));
   --accent-line:  oklch(0.42 0.06 var(--accent-hue));
+
+  --gold:        oklch(0.78 0.10 80);
+  --gold-soft:   oklch(0.32 0.045 80);
 
   --shadow-1: 0 1px 0 rgba(0,0,0,0.4), 0 1px 3px rgba(0,0,0,0.35);
   --shadow-2: 0 1px 0 rgba(0,0,0,0.45), 0 8px 24px rgba(0,0,0,0.4);
@@ -251,7 +265,7 @@ html[data-theme="dark"] .titlebar {
   background: linear-gradient(180deg, oklch(0.22 0.005 250), oklch(0.185 0.005 250));
 }
 .titlebar-title {
-  font-size: 12px; font-weight: 500; color: var(--muted);
+  font-size: 12.5px; font-weight: 600; color: var(--ink-2);
   letter-spacing: 0.01em;
 }
 .titlebar-right { display: flex; justify-content: flex-end; gap: 8px; align-items: center; -webkit-app-region: no-drag; }
@@ -259,11 +273,20 @@ html[data-theme="dark"] .titlebar {
 .titlebar-right button,
 .titlebar-left button {
   appearance: none; border: 0; background: transparent;
-  color: var(--muted); padding: 4px 8px; border-radius: 6px;
+  color: var(--ink-2); padding: 4px 8px; border-radius: 6px;
   font-size: 12px;
 }
 .titlebar-right button:hover,
-.titlebar-left button:not(:disabled):hover { background: var(--surface-3); color: var(--ink); }
+.titlebar-left button:not(:disabled):hover {
+  background: var(--surface);
+  color: var(--ink);
+  box-shadow: inset 0 0 0 1px var(--border-strong);
+}
+/* Bolder titlebar icons so they read clearly on the chrome gradient. */
+.titlebar-right button svg,
+.titlebar-left  button svg { stroke-width: 2.1; }
+.titlebar-right button:hover svg,
+.titlebar-left  button:not(:disabled):hover svg { stroke-width: 2.3; }
 
 /* ============================================================
    App layout
@@ -282,7 +305,7 @@ html[data-theme="dark"] .titlebar {
 html.sidebar-resizing .app { transition: none; }
 
 .sidebar {
-  background: var(--surface-2);
+  background: var(--sidebar-bg);
   border-right: 1px solid var(--border);
   display: flex; flex-direction: column;
   min-height: 0;
@@ -359,8 +382,12 @@ html.sidebar-resizing .app { transition: none; }
 
 .nav-section {
   padding: 12px 14px 4px;
-  font-size: 10px; font-weight: 600;
-  text-transform: uppercase; letter-spacing: 0.08em;
+  font-family: var(--nav-section-font, var(--font-ui));
+  font-size: var(--nav-section-size, 10px);
+  font-weight: var(--nav-section-weight, 600);
+  font-style: var(--nav-section-style, normal);
+  text-transform: var(--nav-section-transform, uppercase);
+  letter-spacing: var(--nav-section-letter-spacing, 0.08em);
   color: var(--muted);
 }
 .nav-section:first-child { padding-top: 4px; }
@@ -376,12 +403,17 @@ html.sidebar-resizing .app { transition: none; }
   display: grid; grid-template-columns: 18px 1fr auto;
   align-items: center; gap: 10px;
   padding: 6px 8px 6px 6px; border-radius: 7px;
-  font-size: 12.5px; color: var(--ink-2);
+  font-family: var(--nav-item-font, var(--font-ui));
+  font-size: var(--nav-item-size, 12.5px);
+  font-weight: var(--nav-item-weight, 400);
+  font-style: var(--nav-item-style, normal);
+  letter-spacing: var(--nav-item-letter-spacing, 0);
+  color: var(--ink-2);
   border: 0; background: transparent;
   text-align: left; width: 100%;
 }
 .nav-item:hover { background: var(--surface-3); color: var(--ink); }
-.nav-item.active { background: var(--accent-soft); color: var(--accent-ink); font-weight: 500; }
+.nav-item.active { background: var(--accent-soft); color: var(--accent-ink); font-weight: var(--nav-item-active-weight, 500); }
 .nav-item.active .nav-icon { color: var(--accent); }
 .nav-item .nav-icon { color: var(--muted); display: grid; place-items: center start; }
 .nav-item .nav-label { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
@@ -464,29 +496,29 @@ html.sidebar-resizing .app { transition: none; }
 .nav-child.sel .nav-child-num { color: var(--accent-ink); }
 .nav-child.sel:hover { background: var(--accent-soft); color: var(--accent-ink); }
 
-/* Chapter row chevron — toggles scenes underneath. Lives in the
-   nav-children's left gutter (absolute) so the dot/num/label of a
-   chapter row line up with the dot/label of every other sub-item. */
-.chapter-row { position: relative; }
+/* Chapter row chevron — toggles scenes underneath. Sits inline as the
+   first grid column of the row so it lands inside the selected-row
+   highlight, close to the chapter number/title rather than out in the
+   gutter. */
+.chapter-row {
+  position: relative;
+  padding-left: 4px;
+}
 .chapter-chev {
-  position: absolute;
-  left: -12px;
-  top: 50%;
-  transform: translateY(-50%);
-  width: 14px; height: 16px;
+  width: 22px; height: 22px;
   border: 0; background: transparent;
   color: var(--muted);
-  border-radius: 3px;
+  border-radius: 4px;
   display: grid; place-items: center;
   cursor: pointer;
   transition: transform .12s ease, background .12s ease, color .12s ease;
-  z-index: 2;
 }
 /* Icon inside the chev is decorative — let pointer events pass through
    to the button so :hover and clicks always hit the button, not the SVG. */
 .chapter-chev * { pointer-events: none; }
 .chapter-chev:hover { background: var(--surface-3); color: var(--ink); cursor: pointer; }
-.chapter-chev.open { transform: translateY(-50%) rotate(90deg); color: var(--ink-2); }
+.chapter-chev.open { transform: rotate(90deg); color: var(--ink-2); }
+.nav-child.sel .chapter-chev { color: var(--accent-ink); }
 
 /* Per-chapter "add scene" — hover-revealed, right of word count. */
 .chapter-add-scene {
@@ -718,7 +750,7 @@ input.nav-part-title:focus { border-color: var(--accent); background: var(--surf
   min-height: 0; min-width: 0;
   /* Tinted backdrop so the surface-colored .pane-card frames read as
      distinct panels on every screen. */
-  background: var(--surface-2);
+  background: var(--app-bg);
 }
 
 .pane-header {
@@ -973,12 +1005,12 @@ input.nav-part-title:focus { border-color: var(--accent); background: var(--surf
   padding: 0;
   background:
     radial-gradient(800px 600px at 50% 0%, oklch(0.99 0.005 85), transparent 60%),
-    var(--paper);
+    var(--editor-paper);
 }
 html[data-theme="dark"] .manuscript {
   background:
     radial-gradient(800px 600px at 50% 0%, oklch(0.28 0.008 80), transparent 60%),
-    var(--paper);
+    var(--editor-paper);
 }
 .manuscript-inner {
   max-width: 760px; margin: 0 auto;
@@ -998,6 +1030,48 @@ html[data-theme="dark"] .manuscript {
 .manuscript-inner p + p { margin-top: var(--editor-para-spacing, 0); }
 .manuscript-inner em { font-style: italic; }
 .manuscript-inner ::selection { background: var(--accent-soft); }
+
+/* ============================================================
+   Editor — "traditional page" layout
+   Toggled in Settings → Appearance (html[data-editor-layout="page"]).
+   The manuscript editor reads as a centered paper sheet with margins,
+   a running head, a folio, and a drop cap. The default ("full") keeps
+   the wide writing surface — these rules out-specify the full-bleed
+   override in RichEditor.vue via the leading attribute selector.
+   ============================================================ */
+.page-runninghead, .page-folio { display: none; }
+
+html[data-editor-layout="page"] .rich-editor--manuscript .manuscript { padding: 0 24px; }
+html[data-editor-layout="page"] .rich-editor--manuscript .manuscript-inner {
+  max-width: 760px;
+  margin: 32px auto 80px;
+  padding: 64px 84px 84px;
+  background: var(--editor-paper);
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  box-shadow: var(--shadow-2);
+  position: relative;
+}
+html[data-editor-layout="page"] .page-runninghead {
+  display: block; text-align: center;
+  font-family: var(--font-mono);
+  font-size: 9.5px; letter-spacing: 0.28em; text-transform: uppercase;
+  color: var(--subtle);
+  margin-bottom: 40px;
+}
+html[data-editor-layout="page"] .page-folio {
+  display: block; text-align: center;
+  font-family: var(--font-serif); font-style: italic;
+  font-size: 13px; color: var(--subtle);
+  margin-top: 48px;
+}
+/* Drop cap on the first paragraph of the sheet. */
+html[data-editor-layout="page"] .rich-editor--manuscript .tiptap-content > p:first-of-type::first-letter {
+  font-family: var(--font-serif); font-weight: 500;
+  font-size: 3.4em; line-height: 0.82;
+  float: left; margin: 0.04em 0.09em -0.06em 0;
+  color: var(--accent);
+}
 
 /* ============================================================
    Three-pane (list + detail) layout

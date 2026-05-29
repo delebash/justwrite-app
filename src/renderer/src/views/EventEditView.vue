@@ -5,6 +5,7 @@ import { useProjectStore } from "../stores/project.js";
 import { EVENTS_KIND_META } from "../services/eventsKind.js";
 import Icon from "../components/Icon.vue";
 import Breadcrumb from "../components/Breadcrumb.vue";
+import DateTimePicker from "../components/DateTimePicker.vue";
 
 const props = defineProps({
   kind:     { type: String, required: true },
@@ -78,10 +79,10 @@ function save() {
       <button class="btn sm" style="margin-left:8px" @click="cancel">Back to timeline</button>
     </div>
     <form v-else class="event-edit-form" @submit.prevent="save">
-      <label class="field">
+      <div class="field">
         <span class="field-label">When</span>
-        <input class="input" type="datetime-local" v-model="whenStr" />
-      </label>
+        <DateTimePicker v-model="whenStr" />
+      </div>
 
       <label class="field">
         <span class="field-label">Title</span>
