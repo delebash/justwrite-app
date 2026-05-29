@@ -210,7 +210,7 @@ function downloadChapter(chapterId) {
   </div>
 
   <!-- CAST TAB -->
-  <div v-if="activeTab === 'cast'" class="pane-body" style="display:grid;grid-template-columns:1fr 360px;min-height:0">
+  <div v-if="activeTab === 'cast'" class="pane-card" style="display:grid;grid-template-columns:1fr 360px">
     <div class="scrollarea" style="padding:18px 22px 40px">
       <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px">
         <div>
@@ -296,7 +296,7 @@ function downloadChapter(chapterId) {
   </div>
 
   <!-- SCRIPT TAB -->
-  <div v-else-if="activeTab === 'script'" class="pane-body" style="display:flex;flex-direction:column">
+  <div v-else-if="activeTab === 'script'" class="pane-card" style="display:flex;flex-direction:column">
     <div style="padding:14px 22px;border-bottom:1px solid var(--border);display:flex;gap:8px;align-items:center">
       <select class="input" v-model="scriptChapter" style="width:auto">
         <option v-for="c in project.allChapters" :key="c.id" :value="c.id">Ch. {{ c.num }} — {{ c.title }}</option>
@@ -327,7 +327,8 @@ function downloadChapter(chapterId) {
   </div>
 
   <!-- RENDER TAB -->
-  <div v-else class="pane-body scrollarea" style="padding:18px 22px">
+  <div v-else class="pane-card">
+  <div class="scrollarea" style="padding:18px 22px">
     <div style="margin-bottom:14px;font-size:13px;color:var(--ink-2)">
       Sends each script line to <b>{{ provider?.name || "your TTS provider" }}</b> with the assigned voice, then stitches a single WAV per chapter.
     </div>
@@ -358,6 +359,7 @@ function downloadChapter(chapterId) {
         <button class="btn sm" @click="downloadChapter(c.id)"><Icon name="Download" :size="11" /> WAV</button>
       </template>
     </div>
+  </div>
   </div>
 </template>
 

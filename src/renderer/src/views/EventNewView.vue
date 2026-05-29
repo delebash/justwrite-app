@@ -51,6 +51,7 @@ function save() {
     </div>
   </header>
 
+  <div class="pane-card">
   <div class="scrollarea event-new-pane">
     <form class="event-new-form" @submit.prevent="save">
       <label class="field">
@@ -69,6 +70,7 @@ function save() {
           placeholder="Optional — anything you want to remember about this event."></textarea>
       </label>
     </form>
+  </div>
   </div>
 </template>
 

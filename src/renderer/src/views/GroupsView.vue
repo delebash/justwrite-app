@@ -5,7 +5,11 @@ import { useUiStore } from "../stores/ui.js";
 import { useRouter } from "vue-router";
 import Icon from "../components/Icon.vue";
 import ImagesModal from "../components/ImagesModal.vue";
+import RichEditor from "../components/RichEditor.vue";
+import StatusSelect from "../components/StatusSelect.vue";
+import MentionRefList from "../components/MentionRefList.vue";
 import { promptDialog, confirmDialog } from "../services/dialog.js";
+import { NEW_ENTITY_META } from "../services/entityMeta.js";
 
 const props = defineProps({ id: { type: String, default: "" } });
 const project = useProjectStore();
@@ -41,12 +45,7 @@ const COLOR_PALETTE = [
 
 function update(k, v) { project.updateGroup(g.value.id, { [k]: v }); }
 async function addGroup() {
-  const name = await promptDialog({
-    title: "New group",
-    label: "Group name",
-    placeholder: "e.g. The Cartographers' Guild",
-    confirmLabel: "Create group",
-  });
+  const name = await promptDialog(NEW_ENTITY_META.groups);
   if (!name) return;
   const id = project.addGroup({ name }); ui.select("groups", id); router.push(`/groups/${id}`);
 }
@@ -80,13 +79,20 @@ async function deleteGroup() {
       </router-link>
       <button class="btn ghost" @click="deleteGroup">Delete</button>
       <button class="btn primary" @click="addGroup"><Icon name="Plus" :size="14" /> New group</button>
+      <StatusSelect v-if="g" :model-value="g.status || ''" @update:model-value="(v) => update('status', v)" />
     </div>
   </header>
-  <div class="col-detail scrollarea">
-    <div style="padding:24px 28px 40px;max-width:980px">
-      <textarea class="input" rows="3" style="font-family:var(--font-serif);font-style:italic"
+  <div class="pane-card">
+    <div style="padding:24px 28px 40px;display:flex;flex-direction:column;gap:14px;flex:1;min-height:0">
+      <RichEditor
+        :model-value="g.blurb || ''"
         placeholder="Blurb"
-        :value="g.blurb" @input="update('blurb', $event.target.value)" />
+        variant="inline"
+        :toolbar="['bold', 'italic', 'underline', 'strike', 'link', 'list', 'quote', 'find', 'undo', 'redo']"
+        :fill="true"
+        @change="(html) => update('blurb', html)"
+      />
+      <div style="flex:3;min-height:0;overflow-y:auto">
       <div class="group-swatches">
         <span class="t-eyebrow" style="font-size:10px;color:var(--muted)">Color</span>
         <button v-for="color in COLOR_PALETTE" :key="color"
@@ -104,7 +110,7 @@ async function deleteGroup() {
         <div v-for="grp in memberGroups" :key="grp.kind" class="member-group">
           <div class="t-eyebrow member-group-head">{{ grp.label }} ({{ grp.members.length }})</div>
           <div class="member-grid">
-            <div v-for="m in grp.members" :key="`${m.kind}-${m.id}`"
+            <div v-for="(m, mi) in grp.members" :key="`${m.kind}-${m.id}-${mi}`"
               class="card tight" style="display:flex;align-items:center;gap:10px;padding:12px">
               <span style="width:32px;height:32px;border-radius:7px;background:var(--surface-3);color:var(--muted);display:grid;place-items:center">
                 <Icon :name="KIND_ICON[m.kind] || 'Star'" :size="15" />
@@ -112,10 +118,16 @@ async function deleteGroup() {
               <span style="flex:1;min-width:0">
                 <div style="font-weight:500;font-size:12.5px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">{{ m.name }}</div>
               </span>
-              <button class="btn ghost sm" @click="project.removeGroupMember(g.id, m.id)">×</button>
+              <button class="btn ghost sm" @click="project.removeGroupMember(g.id, m.kind, m.id)">×</button>
             </div>
           </div>
         </div>
+      </div>
+
+      <div style="margin-top:24px">
+        <div class="t-eyebrow" style="margin-bottom:10px">Mentioned in prose</div>
+        <MentionRefList :entity-id="g.id" />
+      </div>
       </div>
     </div>
   </div>

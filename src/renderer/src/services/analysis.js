@@ -133,6 +133,51 @@ export function paceSeries(history) {
   };
 }
 
+/**
+ * Dialogue vs narration mix, by WORD COUNT, from Studio script analysis.
+ * `scripts` is studio.scripts — { [chapterId]: [{ speaker, kind, text }] }
+ * where kind ∈ "narration"|"dialogue"|"interior"|"scene". "scene" markers
+ * (and any unknown kind) are excluded. Only chapters with a stored script
+ * contribute; chapters never analyzed in Studio are skipped entirely.
+ *
+ * Returns:
+ *   {
+ *     analyzed,                       // chapters that contributed
+ *     totals: { dialogue, narration, interior, total },
+ *     overallDialoguePct,
+ *     perChapter: [{ id, num, title, dialogue, narration, interior, total, dialoguePct }]
+ *   }
+ */
+export function dialogueMix(scripts, allChapters) {
+  const KINDS = ["dialogue", "narration", "interior"];
+  const wc = (t) => (t ? t.trim().split(/\s+/).filter(Boolean).length : 0);
+  const totals = { dialogue: 0, narration: 0, interior: 0 };
+  const perChapter = [];
+  for (const ch of allChapters) {
+    const lines = scripts[ch.id];
+    if (!lines || !lines.length) continue;
+    const row = { id: ch.id, num: ch.num, title: ch.title, dialogue: 0, narration: 0, interior: 0 };
+    for (const l of lines) {
+      if (!KINDS.includes(l.kind)) continue;
+      const n = wc(l.text);
+      row[l.kind] += n;
+      totals[l.kind] += n;
+    }
+    const total = row.dialogue + row.narration + row.interior;
+    if (!total) continue;
+    row.total = total;
+    row.dialoguePct = Math.round((row.dialogue / total) * 100);
+    perChapter.push(row);
+  }
+  const grand = totals.dialogue + totals.narration + totals.interior;
+  return {
+    analyzed: perChapter.length,
+    totals: { ...totals, total: grand },
+    overallDialoguePct: grand ? Math.round((totals.dialogue / grand) * 100) : 0,
+    perChapter,
+  };
+}
+
 function stripHtml(html) {
   if (!html) return "";
   const tmp = document.createElement("div");

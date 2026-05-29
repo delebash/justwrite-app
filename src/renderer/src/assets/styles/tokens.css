@@ -450,6 +450,10 @@ html.sidebar-resizing .app { transition: none; }
   font-variant-numeric: tabular-nums;
   text-align: right;
 }
+.nav-child-status {
+  font-size: 10px; font-weight: 600;
+  text-align: right; white-space: nowrap;
+}
 .nav-child.sel {
   background: var(--accent-soft);
   color: var(--accent-ink);
@@ -498,7 +502,7 @@ html.sidebar-resizing .app { transition: none; }
 /* Scene rows — indented under a chapter when expanded. */
 .nav-scene {
   display: grid;
-  grid-template-columns: auto 1fr auto;
+  grid-template-columns: auto 1fr auto auto auto;
   gap: 8px; align-items: center;
   padding: 3px 8px 3px 36px;
   margin: 0;
@@ -649,6 +653,15 @@ input.nav-part-title:focus { border-color: var(--accent); background: var(--surf
   width: 8px; height: 8px;
   flex-shrink: 0;
 }
+/* Group color swatch — wider/longer than the status dot so it reads as
+   the group's color, not a status. Sits in the trailing column. */
+.nav-child-group-color {
+  display: inline-block;
+  width: 20px; height: 11px;
+  border-radius: 3px;
+  flex-shrink: 0;
+  box-shadow: inset 0 0 0 1px rgba(0, 0, 0, 0.12);
+}
 
 .nav-filter {
   display: flex; align-items: center; gap: 6px;
@@ -700,7 +713,9 @@ input.nav-part-title:focus { border-color: var(--accent); background: var(--surf
 .main {
   display: flex; flex-direction: column;
   min-height: 0; min-width: 0;
-  background: var(--surface);
+  /* Tinted backdrop so the surface-colored .pane-card frames read as
+     distinct panels on every screen. */
+  background: var(--surface-2);
 }
 
 .pane-header {
@@ -728,6 +743,24 @@ input.nav-part-title:focus { border-color: var(--accent); background: var(--surf
   display: flex; flex-direction: column;
   position: relative;
 }
+
+/* Content card — a bordered panel that fills the pane below the header
+   with a uniform margin, so every screen frames its content the same
+   way. It's a flex column: drop a `.scrollarea` (or any flex:1 child)
+   inside and content scrolls within the card. Children stretch to the
+   card's full width. */
+.pane-card {
+  flex: 1; min-height: 0; min-width: 0;
+  margin: 16px;
+  display: flex; flex-direction: column;
+  position: relative;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--r-lg);
+  box-shadow: var(--shadow-1);
+  overflow: hidden;
+}
+.pane-card > .scrollarea { flex: 1; min-height: 0; }
 
 /* ============================================================
    Buttons & form elements

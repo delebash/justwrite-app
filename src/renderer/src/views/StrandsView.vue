@@ -6,9 +6,11 @@ import { useUiStore } from "../stores/ui.js";
 import PaneHeader from "../components/PaneHeader.vue";
 import Icon from "../components/Icon.vue";
 import RichEditor from "../components/RichEditor.vue";
+import StatusSelect from "../components/StatusSelect.vue";
 import SceneRefList from "../components/SceneRefList.vue";
 import GroupsModal from "../components/GroupsModal.vue";
 import { promptDialog, confirmDialog } from "../services/dialog.js";
+import { NEW_ENTITY_META } from "../services/entityMeta.js";
 
 const props = defineProps({ id: { type: String, default: "" } });
 const project = useProjectStore();
@@ -20,12 +22,6 @@ const modal = ref(null);
 // back to the sidebar selection, then the first strand.
 const s = computed(() =>
   project.strandById(props.id || ui.selections.strands) || project.strands[0]);
-
-const STATUS_OPTIONS = [
-  { value: "open",      label: "Open",      hint: "Active throughline" },
-  { value: "resolved",  label: "Resolved",  hint: "Paid off in the manuscript" },
-  { value: "abandoned", label: "Abandoned", hint: "Cut from the story" },
-];
 
 const BEAT_PRESETS = [
   "Inciting", "First turn", "Midpoint",
@@ -105,12 +101,7 @@ function goBeat(b) {
 }
 
 async function addStrand() {
-  const name = await promptDialog({
-    title: "New narrative strand",
-    label: "Narrative strand name",
-    placeholder: "e.g. The Map Plot",
-    confirmLabel: "Create narrative strand",
-  });
+  const name = await promptDialog(NEW_ENTITY_META.strands);
   if (!name) return;
   const id = project.addStrand({ name });
   ui.select("strands", id);
@@ -206,32 +197,18 @@ const sortedBeats = computed(() => {
       <button v-if="s" class="btn ghost" @click="modal = 'groups'"><Icon name="GroupIcon" :size="14" /> Groups</button>
       <button v-if="s" class="btn ghost" @click="deleteStrand">Delete</button>
       <button class="btn primary" @click="addStrand"><Icon name="Plus" :size="14" /> New narrative strand</button>
+      <StatusSelect v-if="s" :model-value="s.status || ''" @update:model-value="(v) => update('status', v)" />
     </div>
   </header>
 
-  <div v-if="!s" class="col-detail scrollarea">
-    <div class="strand-empty">
+  <div v-if="!s" class="pane-card">
+    <div class="strand-empty scrollarea">
       No narrative strands yet. Click <strong>New narrative strand</strong> to add one.
     </div>
   </div>
 
-  <div v-else class="col-detail scrollarea">
-    <div class="strand-wrap">
-      <div class="strand-card">
-        <div class="strand-body">
-          <div class="strand-head">
-            <div class="status-seg" role="radiogroup">
-              <button v-for="opt in STATUS_OPTIONS" :key="opt.value"
-                type="button"
-                class="status-seg-btn"
-                :class="[`status-${opt.value}`, { active: (s.status || 'open') === opt.value }]"
-                :title="opt.hint"
-                @click="update('status', opt.value)">
-                {{ opt.label }}
-              </button>
-            </div>
-          </div>
-
+  <div v-else class="pane-card">
+    <div class="strand-body">
           <textarea class="strand-blurb"
             :value="s.blurb || ''"
             placeholder="What is this narrative strand about? (One or two sentences)"
@@ -248,11 +225,12 @@ const sortedBeats = computed(() => {
             :model-value="s.body || ''"
             placeholder="Write the narrative strand in detail — synopsis, character arcs, beats in prose, anything you want to remember…"
             variant="inline"
-            :toolbar="['bold', 'italic', 'h2', 'quote', 'list', 'undo', 'redo']"
-            :min-height="220"
+            :toolbar="['bold', 'italic', 'underline', 'strike', 'h1', 'h2', 'h3', 'quote', 'list', 'orderedList', 'taskList', 'sceneBreak', 'align', 'highlight', 'link', 'image', 'table', 'find', 'undo', 'redo']"
+            :fill="true"
             @change="(html) => update('body', html)"
           />
 
+          <div class="strand-below">
           <!-- Beats — turning points pinned to chapters -->
           <div class="beats-section">
             <div class="beats-head">
@@ -306,9 +284,8 @@ const sortedBeats = computed(() => {
             <SceneRefList field="strands" :entity-id="s.id"
               empty-text="No scenes linked to this narrative strand yet. Open a scene → Links → Narrative strands to add one." />
           </div>
+          </div>
         </div>
-      </div>
-    </div>
 
     <!-- Shared datalist of preset beat labels for autocomplete on every input. -->
     <datalist id="beat-presets">
@@ -322,12 +299,6 @@ const sortedBeats = computed(() => {
 </template>
 
 <style scoped>
-.strand-wrap {
-  padding: 22px;
-  max-width: 980px;
-  width: 100%;
-}
-
 .strand-empty {
   padding: 60px 20px;
   text-align: center;
@@ -336,18 +307,16 @@ const sortedBeats = computed(() => {
   font-size: 13.5px;
 }
 
-.strand-card {
-  display: flex; align-items: stretch; gap: 0;
-  background: var(--surface);
-  border: 1px solid var(--border);
-  border-radius: 12px;
-  box-shadow: var(--shadow-1);
-  overflow: hidden;
-}
 .strand-body {
-  flex: 1; min-width: 0;
+  flex: 1; min-width: 0; min-height: 0;
   display: flex; flex-direction: column; gap: 12px;
-  padding: 18px 20px;
+  padding: 22px 26px 40px;
+}
+/* The editor and the content below it split the card's remaining height;
+   each scrolls on its own so neither pushes the other off-screen. */
+.strand-below {
+  flex: 1; min-height: 0;
+  overflow-y: auto;
 }
 
 .strand-head {
@@ -371,28 +340,6 @@ const sortedBeats = computed(() => {
 }
 .strand-name:hover { border-color: var(--border-soft); }
 .strand-name:focus { border-color: var(--accent); background: var(--surface); box-shadow: 0 0 0 3px var(--accent-soft); }
-
-.status-seg {
-  display: inline-flex;
-  border: 1px solid var(--border);
-  border-radius: 7px;
-  padding: 2px;
-  background: var(--surface-2);
-  flex-shrink: 0;
-}
-.status-seg-btn {
-  appearance: none; border: 0; background: transparent;
-  padding: 4px 10px;
-  font: inherit;
-  font-size: 11.5px; font-weight: 500;
-  color: var(--ink-2);
-  border-radius: 5px;
-  cursor: default;
-}
-.status-seg-btn:hover { background: var(--surface-3); color: var(--ink); }
-.status-seg-btn.active.status-open { background: var(--accent); color: var(--on-accent); }
-.status-seg-btn.active.status-resolved { background: var(--status-done, #6aa84f); color: #fff; }
-.status-seg-btn.active.status-abandoned { background: var(--surface-3); color: var(--muted); text-decoration: line-through; }
 
 .strand-blurb {
   appearance: none;

@@ -57,6 +57,23 @@ const PATHS = {
   Target:     "M12 21a9 9 0 1 0 0-18 9 9 0 0 0 0 18Zm0-5a4 4 0 1 0 0-8 4 4 0 0 0 0 8Zm0-1a3 3 0 1 1 0-6 3 3 0 0 1 0 6Z",
   Replace:    "M4 7h10l-3-3M4 7l3 3M20 17H10l3 3M20 17l-3-3",
   Trash:      "M5 7h14M9 7V5h6v2M7 7l1 13h8l1-13M10 11v6M14 11v6",
+  Underline:  "M7 5v6a5 5 0 0 0 10 0V5M5 20h14",
+  Strike:     "M5 12h14M7 8c1-2 3-3 5-3s4 1 4 3M7 16c1 2 3 3 5 3",
+  Highlight:  "M15 5l4 4-9 9H6v-4l9-9ZM4 21h7M13 7l4 4",
+  Link:       "M10 14a4 4 0 0 0 6 .5l3-3a4 4 0 0 0-6-6l-1.5 1.5M14 10a4 4 0 0 0-6-.5l-3 3a4 4 0 0 0 6 6L12 13",
+  AlignLeft:  "M4 6h16M4 10h10M4 14h16M4 18h10",
+  AlignCenter:"M4 6h16M7 10h10M4 14h16M7 18h10",
+  AlignRight: "M4 6h16M10 10h10M4 14h16M10 18h10",
+  SceneBreak: "M6 12h.01M12 12h.01M18 12h.01",
+  ListOrdered:"M10 6h10M10 12h10M10 18h10M5 4v4M3.5 8h2M3.5 12.5c.5-1 2-.7 2 .3 0 .8-2 1.2-2 2.2h2M3.5 17h2l-2 2.5h2",
+  CheckSquare:"M9 4H6a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-7M8 12l3 3 9-9",
+  Table:      "M4 5h16v14H4zM4 10h16M4 15h16M9 5v14M15 5v14",
+  Focus:      "M12 9a3 3 0 1 0 0 6 3 3 0 0 0 0-6ZM5 8V6a1 1 0 0 1 1-1h2M16 5h2a1 1 0 0 1 1 1v2M19 16v2a1 1 0 0 1-1 1h-2M8 19H6a1 1 0 0 1-1-1v-2",
+  Close:      "M6 6l12 12M18 6L6 18",
+  ArrowUp:    "M12 19V5M5 12l7-7 7 7",
+  ArrowDown:  "M12 5v14M5 12l7 7 7-7",
+  Grid:       "M4 4h7v7H4zM13 4h7v7h-7zM4 13h7v7H4zM13 13h7v7h-7z",
+  History:    "M12 8v4l3 2M3.5 9a9 9 0 1 1-.6 4M3.5 9V4M3.5 9H8",
 };
 
 const d = computed(() => PATHS[props.name] || "");

@@ -372,7 +372,7 @@ onBeforeUnmount(() => window.removeEventListener("keydown", onKey));
     </div>
   </PaneHeader>
 
-  <div ref="wrapRef" class="relations-canvas" tabindex="0"
+  <div ref="wrapRef" class="pane-card relations-canvas" tabindex="0"
     :class="{ panning: isPanning }">
     <svg ref="svgRef"
       :viewBox="`0 0 ${CONTENT_W} ${CONTENT_H}`"
@@ -466,12 +466,10 @@ onBeforeUnmount(() => window.removeEventListener("keydown", onKey));
 }
 
 .relations-canvas {
-  flex: 1;
   position: relative;
   background:
     radial-gradient(circle at 14px 14px, var(--border-soft) 1px, transparent 1px) 0 0/28px 28px,
     var(--surface);
-  overflow: hidden;
   outline: none;
   cursor: grab;
 }

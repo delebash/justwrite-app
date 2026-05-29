@@ -4,6 +4,7 @@ import { useRoute, useRouter } from "vue-router";
 import { useUiStore } from "../stores/ui.js";
 import { useProjectStore } from "../stores/project.js";
 import { promptDialog, confirmDialog } from "../services/dialog.js";
+import { NEW_ENTITY_META } from "../services/entityMeta.js";
 import Icon from "./Icon.vue";
 
 const ui = useUiStore();
@@ -60,11 +61,11 @@ onBeforeUnmount(() => document.removeEventListener("mousedown", onDocClick));
 
 const NAV = [
   { section: "Manuscript" },
+  { id: "search",        label: "Search",        icon: "Search",   kbd: "⌘F" },
   { id: "home",          label: "Home",          icon: "Home" },
   { id: "architecture",  label: "Architecture",  icon: "Building", expandable: "architecture", fixed: true },
   { id: "strands",       label: "Narrative strands", icon: "Strands", expandable: "strands" },
   { id: "chapters",      label: "Chapters",      icon: "Book",     expandable: "chapters" },
-  { id: "search",        label: "Search",        icon: "Search",   kbd: "⌘F" },
 
   { section: "Story world" },
   { id: "characters",    label: "Characters",    icon: "Users",     expandable: "characters" },
@@ -88,26 +89,35 @@ const NAV = [
   { id: "settings",  label: "Settings",  icon: "Settings" },
 ];
 
+// Resolve an entity's status id → { statusLabel, statusColor } for the
+// nav. Unknown/unset ids yield empty strings (nav shows nothing).
+function navStatus(id) {
+  const s = project.statusById(id);
+  return s
+    ? { statusLabel: s.label, statusColor: s.color }
+    : { statusLabel: "Unset", statusColor: "var(--muted)" };
+}
+
 const expandableChildren = computed(() => ({
   chapters: (project.parts || []).filter(Boolean).map((p) => ({
     partId: p.id,
     group: p.title,
-    items: (p.chapters || []).filter((c) => c && c.id).map((c) => ({ id: c.id, label: c.title, num: c.num, status: c.status, words: c.words, partId: p.id })),
+    items: (p.chapters || []).filter((c) => c && c.id).map((c) => ({ id: c.id, label: c.title, num: c.num, ...navStatus(c.status), words: c.words, partId: p.id })),
   })),
   characters: [
-    { subgroupId: "main",      group: "Main",      items: project.characters.filter((c) => c.main).map((c) => ({ id: c.id, label: c.name, sub: c.role, subgroupId: "main" })) },
-    { subgroupId: "secondary", group: "Secondary", items: project.characters.filter((c) => !c.main).map((c) => ({ id: c.id, label: c.name, sub: c.role, subgroupId: "secondary" })) },
+    { subgroupId: "main",      group: "Main",      items: project.characters.filter((c) => c.main).map((c) => ({ id: c.id, label: c.name, ...navStatus(c.status), subgroupId: "main" })) },
+    { subgroupId: "secondary", group: "Secondary", items: project.characters.filter((c) => !c.main).map((c) => ({ id: c.id, label: c.name, ...navStatus(c.status), subgroupId: "secondary" })) },
   ],
-  locations: [{ subgroupId: "all", items: project.locations.map((l) => ({ id: l.id, label: l.name, sub: l.kind, subgroupId: "all" })) }],
-  objects:   [{ subgroupId: "all", items: project.objects.map((o) => ({ id: o.id, label: o.name, sub: o.kind, subgroupId: "all" })) }],
-  strands: [{ subgroupId: "all", items: project.strands.map((s) => ({ id: s.id, label: s.name, subgroupId: "all" })) }],
-  groups:    [{ subgroupId: "all", items: project.groups.map((g) => ({ id: g.id, label: g.name, color: g.color, subgroupId: "all" })) }],
+  locations: [{ subgroupId: "all", items: project.locations.map((l) => ({ id: l.id, label: l.name, ...navStatus(l.status), subgroupId: "all" })) }],
+  objects:   [{ subgroupId: "all", items: project.objects.map((o) => ({ id: o.id, label: o.name, ...navStatus(o.status), subgroupId: "all" })) }],
+  strands: [{ subgroupId: "all", items: project.strands.map((s) => ({ id: s.id, label: s.name, ...navStatus(s.status), subgroupId: "all" })) }],
+  groups:    [{ subgroupId: "all", items: project.groups.map((g) => ({ id: g.id, label: g.name, color: g.color, ...navStatus(g.status), subgroupId: "all" })) }],
   notes:     [{ subgroupId: "all", items: project.notes.map((n) => ({ id: n.id, label: n.title, sub: n.tag, subgroupId: "all" })) }],
-  architecture: [{ subgroupId: "all", items: Object.values(project.architecture).filter(Boolean).map((d) => ({ id: d.id, label: d.title, sub: d.status, subgroupId: "all" })) }],
+  architecture: [{ subgroupId: "all", items: Object.values(project.architecture).filter(Boolean).map((d) => ({ id: d.id, label: d.title, ...navStatus(d.status), subgroupId: "all" })) }],
   worldbuilding: project.worldbuildingCategories.map((c) => ({
     subgroupId: c.id,
     group: c.label,
-    items: project.worldbuilding.filter((a) => a.category === c.id).map((a) => ({ id: a.id, label: a.title, sub: a.status, subgroupId: c.id })),
+    items: project.worldbuilding.filter((a) => a.category === c.id).map((a) => ({ id: a.id, label: a.title, ...navStatus(a.status), subgroupId: c.id })),
   })),
 }));
 
@@ -118,16 +128,7 @@ function clickParent(item) { item.expandable ? ui.toggleSection(item.id) : go(it
 function clickChild(parentId, childId) { ui.select(parentId, childId); router.push(`/${parentId}/${childId}`); }
 
 async function addItem(parentId) {
-  const META = {
-    characters:    { title: "New character", label: "Character name", confirmLabel: "Create character" },
-    locations:     { title: "New location",  label: "Location name",  confirmLabel: "Create location" },
-    objects:       { title: "New object",    label: "Object name",    confirmLabel: "Create object" },
-    groups:        { title: "New group",     label: "Group name",     confirmLabel: "Create group" },
-    worldbuilding: { title: "New article",   label: "Article title",  confirmLabel: "Create article" },
-    strands:       { title: "New narrative strand",    label: "Narrative strand name",    confirmLabel: "Create narrative strand" },
-    notes:         { title: "New note",      label: "Note title",     confirmLabel: "Create note" },
-  };
-  const meta = META[parentId] || { title: "New item", label: "Name", confirmLabel: "Create" };
+  const meta = NEW_ENTITY_META[parentId] || { title: "New item", label: "Name", confirmLabel: "Create" };
   const name = await promptDialog(meta);
   if (!name) return;
   let id;
@@ -136,7 +137,6 @@ async function addItem(parentId) {
     case "locations":     id = project.addLocation({ name }); break;
     case "objects":       id = project.addObject({ name }); break;
     case "groups":        id = project.addGroup({ name }); break;
-    case "worldbuilding": id = project.addWorldbuilding({ title: name }); break;
     case "strands":       id = project.addStrand({ name }); break;
     case "notes":         id = project.addNote({ title: name }); break;
   }
@@ -169,32 +169,21 @@ async function addChapterInPart(partId) {
   const id = project.addChapter({ title, partId });
   if (id) { ui.select("chapters", id); router.push(`/chapters/${id}`); }
 }
-async function deletePart(partId, partTitle) {
-  if (project.parts.length <= 1) return;  // refuse to leave the project partless
-  const part = project.parts.find((p) => p.id === partId);
-  if (!part) return;
-  const count = part.chapters.length;
-  const neighborIdx = project.parts.findIndex((p) => p.id === partId);
-  const neighbor = neighborIdx > 0 ? project.parts[neighborIdx - 1] : project.parts[neighborIdx + 1];
-  const message = count
-    ? `Its ${count} chapter${count === 1 ? "" : "s"} will move to "${neighbor.title}".`
-    : "This part has no chapters.";
-  const yes = await confirmDialog({
-    title: `Delete "${partTitle}"?`,
-    message,
-    confirmLabel: "Delete part",
-    danger: true,
-  });
-  if (!yes) return;
-  project.removePart(partId);
-}
 function updatePartTitle(id, value) { project.updatePart(id, { title: value }); }
 
 // ── Scenes (under each chapter row) ─────────────────────
+// Word count per scene, computed the same way the chapter rollup does
+// (strip tags, split on whitespace) so sidebar totals match the editor.
+function sceneWords(scn) {
+  const text = (scn?.body || "").replace(/<[^>]+>/g, " ").trim();
+  return text ? text.split(/\s+/).length : 0;
+}
 function scenesForChapter(chapterId) {
   // Filter out any undefined entries that could sneak in via a corrupted
   // snapshot — they'd crash :key="scn.id" / @click="...scn.id" otherwise.
-  return (project.scenesFor(chapterId) || []).filter((s) => s && s.id);
+  return (project.scenesFor(chapterId) || [])
+    .filter((s) => s && s.id)
+    .map((s) => ({ ...s, words: sceneWords(s) }));
 }
 function isChapterExpanded(chapterId) { return !!ui.expanded[`chapter:${chapterId}`]; }
 function toggleChapterExpand(chapterId) { ui.toggleSection(`chapter:${chapterId}`); }
@@ -293,19 +282,6 @@ function sceneDropClass(chapterId, sceneId) {
   const targetIdx  = list.findIndex((s) => s.id === sceneId);
   if (draggedIdx < 0 || targetIdx < 0) return null;
   return draggedIdx < targetIdx ? "drop-after" : "drop-before";
-}
-
-async function deleteScene(chapterId, scene) {
-  const list = project.scenesFor(chapterId);
-  if (list.length <= 1) return;
-  const yes = await confirmDialog({
-    title: scene.title ? `Delete scene "${scene.title}"?` : "Delete this scene?",
-    message: "The scene's prose will be discarded. The chapter keeps its other scenes.",
-    confirmLabel: "Delete scene",
-    danger: true,
-  });
-  if (!yes) return;
-  project.removeScene(chapterId, scene.id);
 }
 
 function filteredGroups(parentId) {
@@ -438,7 +414,6 @@ function sectionFlatList(section) {
     case "objects":       return project.objects;
     case "locations":     return project.locations;
     case "notes":         return project.notes;
-    case "worldbuilding": return project.worldbuilding;
     default:              return [];
   }
 }
@@ -450,7 +425,6 @@ function sectionReorder(section, ids) {
     case "objects":       project.reorderObjects(ids); break;
     case "locations":     project.reorderLocations(ids); break;
     case "notes":         project.reorderNotes(ids); break;
-    case "worldbuilding": project.reorderWorldbuilding(ids); break;
   }
 }
 
@@ -504,6 +478,119 @@ function itemDropClass(section, id) {
   const targetIdx  = list.findIndex((it) => it.id === id);
   if (draggedIdx < 0 || targetIdx < 0) return null;
   return draggedIdx < targetIdx ? "drop-after item-drop-target" : "drop-before item-drop-target";
+}
+
+// ── Worldbuilding: categories-as-headers, articles-as-items ──────
+// Mirrors the chapters/parts tree. Categories are headers (like parts):
+// the filter-row "+" mints a new one, each has its own "+" to add an
+// article, an inline-rename title, a delete button, and double-click to
+// collapse. Articles (like chapters) drag to reorder within a category
+// or move across categories. Article→category assignment is the flat
+// `worldbuilding[].category` field; display order follows array order.
+async function addWbCategory() {
+  const label = await promptDialog({
+    title: "New category",
+    label: "Category name",
+    placeholder: "e.g. Religion & rites",
+    confirmLabel: "Create category",
+  });
+  if (!label) return;
+  project.addWorldbuildingCategory({ label });
+}
+async function addArticleInCat(catId) {
+  const M = NEW_ENTITY_META.worldbuilding;
+  const title = await promptDialog({
+    title: M.title, label: M.label, placeholder: M.placeholder, confirmLabel: M.confirmLabel,
+  });
+  if (!title) return;
+  const id = project.addWorldbuilding({ title, category: catId });
+  if (id) { ui.select("worldbuilding", id); router.push(`/worldbuilding/${id}`); }
+}
+function updateWbCatTitle(id, value) { project.updateWorldbuildingCategory(id, { label: value }); }
+async function deleteWbCat(catId, label) {
+  if (project.worldbuildingCategories.length <= 1) return;  // never leave zero categories
+  const count = project.worldbuilding.filter((a) => a.category === catId).length;
+  const fallback = project.worldbuildingCategories.find((c) => c.id !== catId);
+  const message = count
+    ? `Its ${count} article${count === 1 ? "" : "s"} will move to "${fallback.label}".`
+    : "This category has no articles.";
+  const yes = await confirmDialog({
+    title: `Delete "${label}"?`, message, confirmLabel: "Delete category", danger: true,
+  });
+  if (!yes) return;
+  project.removeWorldbuildingCategory(catId);
+}
+// Collapse state lives on ui.expanded under a `wbcat-collapsed:<id>` key
+// so the default (key absent) reads as expanded and toggleSection flips
+// cleanly without a stuck first click.
+function isWbCatExpanded(catId) { return !ui.expanded[`wbcat-collapsed:${catId}`]; }
+function toggleWbCat(catId) { ui.toggleSection(`wbcat-collapsed:${catId}`); }
+
+const wbDrag = ref(null);   // { kind: 'wbcat' | 'wbart', id, fromCat? }
+const wbDrop = ref(null);   // { kind, id, position }
+function onWbDragStart(kind, id, e, ctx = {}) {
+  wbDrag.value = { kind, id, ...ctx };
+  e.dataTransfer.effectAllowed = "move";
+  try { e.dataTransfer.setData("text/plain", id); } catch {}
+}
+function onWbDragEnd() { wbDrag.value = null; wbDrop.value = null; }
+// Category header is a dual target: reorder categories (before/after on
+// cursor Y) or accept an article dropped onto it (move into category).
+function onWbDragOverCat(catId, e) {
+  const d = wbDrag.value;
+  if (!d) return;
+  if (d.kind === "wbcat") {
+    e.preventDefault();
+    e.dataTransfer.dropEffect = "move";
+    const r = e.currentTarget.getBoundingClientRect();
+    const position = (e.clientY - r.top) < (r.height / 2) ? "before" : "after";
+    wbDrop.value = { kind: "wbcat", id: catId, position };
+  } else if (d.kind === "wbart") {
+    e.preventDefault();
+    e.dataTransfer.dropEffect = "move";
+    wbDrop.value = { kind: "wbcatHead", id: catId, position: "into" };
+  }
+}
+function onWbDropCat(catId) {
+  const d = wbDrag.value, t = wbDrop.value;
+  onWbDragEnd();
+  if (!d) return;
+  if (d.kind === "wbcat") {
+    if (d.id === catId) return;
+    const ids = project.worldbuildingCategories.map((c) => c.id).filter((id) => id !== d.id);
+    let idx = ids.indexOf(catId);
+    if (idx < 0) idx = ids.length;
+    if (t?.position === "after") idx += 1;
+    ids.splice(idx, 0, d.id);
+    project.reorderWorldbuildingCategories(ids);
+  } else if (d.kind === "wbart") {
+    if (d.fromCat === catId) return;
+    project.moveWorldbuilding(d.id, catId, null);
+  }
+}
+// Article row only accepts other articles.
+function onWbDragOverArt(artId, e) {
+  const d = wbDrag.value;
+  if (!d || d.kind !== "wbart") return;
+  e.preventDefault();
+  e.dataTransfer.dropEffect = "move";
+  const r = e.currentTarget.getBoundingClientRect();
+  const position = (e.clientY - r.top) < (r.height / 2) ? "before" : "after";
+  wbDrop.value = { kind: "wbart", id: artId, position };
+}
+function onWbDropArt(targetArtId, targetCatId) {
+  const d = wbDrag.value, t = wbDrop.value;
+  onWbDragEnd();
+  if (!d || d.kind !== "wbart" || d.id === targetArtId) return;
+  const inCat = project.worldbuilding.filter((a) => a.category === targetCatId);
+  const insertBefore = t?.position === "after"
+    ? inCat[inCat.findIndex((a) => a.id === targetArtId) + 1]?.id || null
+    : targetArtId;
+  project.moveWorldbuilding(d.id, targetCatId, insertBefore);
+}
+function wbDropClass(kind, id) {
+  if (!wbDrop.value || wbDrop.value.kind !== kind || wbDrop.value.id !== id) return null;
+  return `drop-${wbDrop.value.position}`;
 }
 </script>
 
@@ -573,6 +660,10 @@ function itemDropClass(section, id) {
                 @click.stop="addPart">
                 <Icon name="Plus" :size="11" />
               </button>
+              <button v-else-if="n.expandable === 'worldbuilding'" class="nav-add" title="New category"
+                @click.stop="addWbCategory">
+                <Icon name="Plus" :size="11" />
+              </button>
               <button v-else-if="!n.fixed" class="nav-add" :title="`New ${n.label.toLowerCase().replace(/s$/, '')}`"
                 @click.stop="addItem(n.expandable)">
                 <Icon name="Plus" :size="11" />
@@ -602,18 +693,15 @@ function itemDropClass(section, id) {
                       @click.stop="addChapterInPart(g.partId)">
                       <Icon name="Plus" :size="11" />
                     </button>
-                    <button v-if="project.parts.length > 1" class="part-action part-action-danger" title="Delete this part"
-                      @click.stop="deletePart(g.partId, g.group)">
-                      <Icon name="Trash" :size="11" />
-                    </button>
                   </div>
                 </div>
                 <template v-for="c in g.items" :key="c.id">
                   <div class="nav-child chapter-row"
                     :class="[{ sel: ui.selections[n.id] === c.id && activeSection === n.id }, dropClass('chapter', c.id)]"
-                    style="grid-template-columns: auto auto 1fr auto auto"
+                    style="grid-template-columns: auto 1fr auto auto auto"
                     draggable="true"
                     @click="clickChild(n.id, c.id)"
+                    @dblclick="toggleChapterExpand(c.id)"
                     @dragstart.stop="onDragStart('chapter', c.id, $event, { fromPartId: c.partId })"
                     @dragover="onDragOverChapter(c.id, $event)"
                     @drop="onDropChapter(c.id, c.partId)"
@@ -625,9 +713,9 @@ function itemDropClass(section, id) {
                       <Icon name="ChevRight" :size="10" />
                     </button>
                     <span class="nav-child-num">{{ c.num }}</span>
-                    <span class="status-dot" :class="c.status" style="width:6px;height:6px" />
                     <span class="nav-child-label">{{ c.label }}</span>
                     <span class="nav-child-sub t-num">{{ c.words ? c.words.toLocaleString() : '' }}</span>
+                    <span class="nav-child-status" :style="c.statusColor ? { color: c.statusColor } : null">{{ c.statusLabel }}</span>
                     <button class="chapter-add-scene" title="Add scene to this chapter"
                       @click.stop="addSceneToChapter(c.id)">
                       <Icon name="Plus" :size="11" />
@@ -648,17 +736,72 @@ function itemDropClass(section, id) {
                       @dragend="onSceneDragEnd">
                       <span class="scene-bullet">{{ si + 1 }}</span>
                       <span class="scene-label">{{ scn.title || `Scene ${si + 1}` }}</span>
-                      <button v-if="scenesForChapter(c.id).length > 1"
-                        class="scene-delete" title="Delete scene"
-                        @mousedown.stop
-                        @click.stop="deleteScene(c.id, scn)">
-                        <Icon name="Trash" :size="10" />
-                      </button>
+                      <span class="nav-child-sub t-num">{{ scn.words ? scn.words.toLocaleString() : '' }}</span>
+                      <span class="nav-child-status" :style="navStatus(scn.status).statusColor ? { color: navStatus(scn.status).statusColor } : null">{{ navStatus(scn.status).statusLabel }}</span>
                     </div>
                   </template>
                 </template>
               </template>
               <div v-if="filteredGroups(n.id).length === 0" class="nav-empty">No chapters match</div>
+            </template>
+
+            <!-- Worldbuilding: categories as collapsible headers (like
+                 parts), articles as items (like chapters) that drag to
+                 reorder within / move across categories. -->
+            <template v-else-if="n.expandable === 'worldbuilding'">
+              <template v-for="g in filteredGroups(n.id)" :key="g.subgroupId">
+                <div class="nav-subgroup nav-part-row wb-cat-row"
+                  :class="[wbDropClass('wbcat', g.subgroupId), wbDropClass('wbcatHead', g.subgroupId)]"
+                  draggable="true"
+                  @dragstart="onWbDragStart('wbcat', g.subgroupId, $event)"
+                  @dragover="onWbDragOverCat(g.subgroupId, $event)"
+                  @drop="onWbDropCat(g.subgroupId)"
+                  @dragend="onWbDragEnd"
+                  @dblclick="toggleWbCat(g.subgroupId)">
+                  <button class="wb-cat-chev" :class="{ open: isWbCatExpanded(g.subgroupId) }"
+                    :title="isWbCatExpanded(g.subgroupId) ? 'Collapse' : 'Expand'"
+                    @mousedown.stop
+                    @click.stop="toggleWbCat(g.subgroupId)">
+                    <Icon name="ChevRight" :size="10" />
+                  </button>
+                  <Icon name="DragHandle" :size="11" class="drag-handle" />
+                  <input class="nav-part-title"
+                    :value="g.group"
+                    :title="`Rename ${g.group}`"
+                    placeholder="Untitled category"
+                    @input="updateWbCatTitle(g.subgroupId, $event.target.value)"
+                    @mousedown.stop
+                    @click.stop
+                    @dblclick.stop
+                    @keydown.enter.prevent="$event.target.blur()" />
+                  <div class="part-actions">
+                    <button class="part-action" title="Add article to this category"
+                      @click.stop="addArticleInCat(g.subgroupId)">
+                      <Icon name="Plus" :size="11" />
+                    </button>
+                    <button v-if="project.worldbuildingCategories.length > 1" class="part-action part-action-danger" title="Delete this category"
+                      @click.stop="deleteWbCat(g.subgroupId, g.group)">
+                      <Icon name="Trash" :size="11" />
+                    </button>
+                  </div>
+                </div>
+                <template v-if="isWbCatExpanded(g.subgroupId)">
+                  <div v-for="a in g.items" :key="a.id"
+                    class="nav-child"
+                    :class="[{ sel: ui.selections[n.id] === a.id && activeSection === n.id }, wbDropClass('wbart', a.id)]"
+                    style="grid-template-columns: 1fr auto"
+                    draggable="true"
+                    @click="clickChild(n.id, a.id)"
+                    @dragstart.stop="onWbDragStart('wbart', a.id, $event, { fromCat: g.subgroupId })"
+                    @dragover="onWbDragOverArt(a.id, $event)"
+                    @drop="onWbDropArt(a.id, g.subgroupId)"
+                    @dragend="onWbDragEnd">
+                    <span class="nav-child-label">{{ a.label }}</span>
+                    <span v-if="a.statusLabel" class="nav-child-status" :style="{ color: a.statusColor }">{{ a.statusLabel }}</span>
+                  </div>
+                </template>
+              </template>
+              <div v-if="filteredGroups(n.id).length === 0" class="nav-empty">No worldbuilding match</div>
             </template>
 
             <!-- Every other section keeps its original rendering, plus
@@ -670,20 +813,17 @@ function itemDropClass(section, id) {
                 <div v-for="c in g.items" :key="c.id"
                   class="nav-child"
                   :class="[{ sel: ui.selections[n.id] === c.id && activeSection === n.id }, n.fixed ? null : itemDropClass(n.expandable, c.id)]"
+                  :style="{ gridTemplateColumns: c.color ? 'auto 1fr auto' : '1fr auto' }"
                   :draggable="!n.fixed"
                   @click="clickChild(n.id, c.id)"
                   @dragstart.stop="!n.fixed && onItemDragStart(n.expandable, c.id, c.subgroupId, $event)"
                   @dragover="!n.fixed && onItemDragOver(n.expandable, c.id, c.subgroupId, $event)"
                   @drop="!n.fixed && onItemDrop(n.expandable, c.id)"
                   @dragend="!n.fixed && onItemDragEnd()">
-                  <span v-if="c.color"
-                    class="nav-child-dot"
-                    :style="`background:${c.color};border-radius:2px`" />
-                  <span v-else
-                    class="nav-child-dot"
-                    style="background:var(--border-strong);border-radius:50%" />
+                  <span v-if="c.color" class="nav-child-group-color" :style="{ background: c.color }" title="Group color" />
                   <span class="nav-child-label">{{ c.label }}</span>
-                  <span v-if="c.sub && !c.color" class="nav-child-sub">{{ c.sub }}</span>
+                  <span v-if="c.statusLabel" class="nav-child-status" :style="{ color: c.statusColor }">{{ c.statusLabel }}</span>
+                  <span v-else-if="c.sub" class="nav-child-sub">{{ c.sub }}</span>
                 </div>
               </template>
               <div v-if="filteredGroups(n.id).length === 0" class="nav-empty">No {{ n.label.toLowerCase() }} match</div>
@@ -715,6 +855,23 @@ function itemDropClass(section, id) {
 </template>
 
 <style>
+/* Worldbuilding category header collapse chevron — inline (flex) rather
+   than the absolutely-positioned chapter-chev, since the header row is a
+   flexbox. Icon is decorative so pointer events pass to the button. */
+.wb-cat-chev {
+  width: 14px; height: 16px;
+  flex-shrink: 0;
+  border: 0; background: transparent;
+  color: var(--muted);
+  border-radius: 3px;
+  display: grid; place-items: center;
+  cursor: pointer;
+  transition: transform .12s ease, color .12s ease, background .12s ease;
+}
+.wb-cat-chev * { pointer-events: none; }
+.wb-cat-chev:hover { background: var(--surface-3); color: var(--ink); }
+.wb-cat-chev.open { transform: rotate(90deg); color: var(--ink-2); }
+
 .project-switcher-wrap { position: relative; }
 .project-switcher { cursor: pointer; text-align: left; width: calc(100% - 20px); }
 .project-switcher:hover { border-color: var(--border-strong); }

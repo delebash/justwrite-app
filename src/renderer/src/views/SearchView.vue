@@ -6,6 +6,7 @@ import { useStudioStore } from "../stores/studio.js";
 import PaneHeader from "../components/PaneHeader.vue";
 import Icon from "../components/Icon.vue";
 import { buildIndex, searchIndex, renderSnippet, KIND_META } from "../services/search.js";
+import ProjectReplaceModal from "../components/ProjectReplaceModal.vue";
 
 const project = useProjectStore();
 const studio = useStudioStore();
@@ -14,6 +15,7 @@ const router = useRouter();
 const q = ref("");
 const inputEl = ref(null);
 const selectedKinds = ref(new Set()); // empty = all kinds
+const replaceOpen = ref(false);
 
 // Build the index whenever project data changes. The store is reactive,
 // so referencing its arrays here makes Vue track them.
@@ -90,6 +92,9 @@ const KIND_ENTRIES = Object.entries(KIND_META).sort((a, b) => a[1].order - b[1].
     <span v-if="q && hits.length" class="t-muted" style="font-size:12px">
       {{ hits.length }} {{ hits.length === 1 ? "result" : "results" }}
     </span>
+    <button class="btn ghost sm" @click="replaceOpen = true" title="Project-wide find & replace in prose">
+      <Icon name="Replace" :size="13" /> Replace…
+    </button>
   </PaneHeader>
 
   <!-- Search bar -->
@@ -118,7 +123,8 @@ const KIND_ENTRIES = Object.entries(KIND_META).sort((a, b) => a[1].order - b[1].
   </div>
 
   <!-- Results -->
-  <div class="scrollarea" style="flex:1">
+  <div class="pane-card">
+  <div class="scrollarea">
     <!-- Empty: no query -->
     <div v-if="!q" style="padding:60px 22px;display:grid;place-items:center">
       <div style="max-width:420px;text-align:center">
@@ -176,6 +182,9 @@ const KIND_ENTRIES = Object.entries(KIND_META).sort((a, b) => a[1].order - b[1].
       </section>
     </div>
   </div>
+  </div>
+
+  <ProjectReplaceModal v-if="replaceOpen" :initial-term="q" @close="replaceOpen = false" />
 </template>
 
 <style scoped>

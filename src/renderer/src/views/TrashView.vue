@@ -97,7 +97,8 @@ async function emptyAll() {
     </button>
   </PaneHeader>
 
-  <div class="scrollarea" style="flex:1">
+  <div class="pane-card">
+  <div class="scrollarea">
     <!-- Empty -->
     <div v-if="totalCount === 0" style="padding:60px 22px;display:grid;place-items:center">
       <div style="max-width:380px;text-align:center">
@@ -146,6 +147,7 @@ async function emptyAll() {
         </div>
       </section>
     </div>
+  </div>
   </div>
 </template>
 

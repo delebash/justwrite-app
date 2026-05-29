@@ -9,7 +9,21 @@
       "Bash(npm install *)",
       "Bash(git mv *)",
       "Bash(git rm *)",
-      "mcp__ide__getDiagnostics"
+      "mcp__ide__getDiagnostics",
+      "Bash(node -e \"const p=require\\('./package.json'\\); console.log\\(JSON.stringify\\({...p.dependencies,...p.devDependencies},null,1\\)\\)\")",
+      "Bash(npm ls *)",
+      "Bash(git --no-pager diff HEAD --stat)",
+      "Bash(curl -s -o /dev/null -w \"%{http_code}\" http://localhost:1420/)",
+      "Bash(npx --no-install playwright --version)",
+      "Bash(npm --version)",
+      "Bash(git --no-pager diff --stat HEAD)",
+      "Bash(git --no-pager diff HEAD -- src/renderer/src/main.js)",
+      "Bash(git *)",
+      "Bash(node e2e-check.mjs)",
+      "Bash(npx playwright *)",
+      "Bash(node probe.mjs)",
+      "Skill(update-config)",
+      "Bash(node *)"
     ]
   }
 }

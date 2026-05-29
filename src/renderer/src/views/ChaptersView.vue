@@ -8,6 +8,8 @@ import PaneHeader from "../components/PaneHeader.vue";
 import Icon from "../components/Icon.vue";
 import RichEditor from "../components/RichEditor.vue";
 import SceneLinks from "../components/SceneLinks.vue";
+import VersionHistoryModal from "../components/VersionHistoryModal.vue";
+import StatusSelect from "../components/StatusSelect.vue";
 import { promptDialog, confirmDialog } from "../services/dialog.js";
 
 const props = defineProps({
@@ -35,9 +37,11 @@ const speakersByChapter = computed(() => {
 
 const mode = ref("edit"); // "edit" | "outline" | "read"
 const linksOpen = ref(false);
+const versionsOpen = ref(false);
 const MODES = [
   { id: "edit",    label: "Edit",    icon: "Quote" },
   { id: "outline", label: "Outline", icon: "List" },
+  { id: "cards",   label: "Cards",   icon: "Grid" },
   { id: "read",    label: "Read",    icon: "Eye" },
 ];
 
@@ -65,6 +69,21 @@ const activeSceneIdx = computed(() =>
 const prevScene = computed(() => activeSceneIdx.value > 0 ? scenes.value[activeSceneIdx.value - 1] : null);
 const nextScene = computed(() => activeSceneIdx.value >= 0 && activeSceneIdx.value < scenes.value.length - 1 ? scenes.value[activeSceneIdx.value + 1] : null);
 
+// Live word/char counts for the active scene, shown in the editor card's
+// footer. Driven off the scene body (updated on every keystroke via the
+// store) so they track typing without reaching into the editor.
+function plainText(html) {
+  if (!html) return "";
+  const div = document.createElement("div");
+  div.innerHTML = html;
+  return div.textContent || "";
+}
+const sceneWordCount = computed(() => {
+  const t = plainText(activeScene.value?.body).trim();
+  return t ? t.split(/\s+/).length : 0;
+});
+const sceneCharCount = computed(() => plainText(activeScene.value?.body).length);
+
 function goToScene(sceneId) {
   if (!ch.value || !sceneId) return;
   router.push(`/chapters/${ch.value.id}/${sceneId}`);
@@ -79,6 +98,26 @@ function addSceneHere() {
   if (!ch.value) return;
   const id = project.addScene(ch.value.id, {});
   if (id) goToScene(id);
+}
+
+// ── Corkboard (cards mode) ───────────────────────────────────────────
+const dragSceneId = ref(null);
+function synopsis(scene) {
+  const text = (scene.body || "").replace(/<[^>]+>/g, " ").replace(/\s+/g, " ").trim();
+  return text.length > 180 ? text.slice(0, 180) + "…" : text;
+}
+function onCardDragStart(id) { dragSceneId.value = id; }
+function onCardDrop(targetId) {
+  const from = dragSceneId.value;
+  dragSceneId.value = null;
+  if (!from || from === targetId || !ch.value) return;
+  const ids = scenes.value.map((s) => s.id);
+  const fromIdx = ids.indexOf(from);
+  const toIdx = ids.indexOf(targetId);
+  if (fromIdx < 0 || toIdx < 0) return;
+  ids.splice(fromIdx, 1);
+  ids.splice(toIdx, 0, from);
+  project.reorderScenes(ch.value.id, ids);
 }
 
 function onSceneBodyChange(sceneId, html) {
@@ -135,10 +174,6 @@ async function deleteChapter() {
   else router.push("/");
 }
 function updateTitle(id, v) { project.setChapterTitle(id, v); }
-function updateStatus(v) { project.setChapterStatus(ch.value.id, v); }
-
-const STATUS_OPTIONS = ["todo", "draft", "revise", "done"];
-const STATUS_LABEL = { todo: "To do", draft: "Draft", revise: "Revise", done: "Done" };
 
 // ── Parts ───────────────────────────────────────────────────────────
 function updatePartTitle(id, v) { project.updatePart(id, { title: v }); }
@@ -285,6 +320,9 @@ onBeforeUnmount(() => window.removeEventListener("keydown", onKey));
       </router-link>
       <button class="btn ghost" @click="deleteChapter">Delete</button>
       <button class="btn primary" @click="addChapter"><Icon name="Plus" :size="14" /> New chapter</button>
+      <StatusSelect
+        :model-value="(activeScene ? activeScene.status : ch.status) || ''"
+        @update:model-value="(v) => activeScene ? project.updateScene(ch.id, activeScene.id, { status: v }) : project.setChapterStatus(ch.id, v)" />
     </div>
   </header>
   <PaneHeader v-else-if="ch"
@@ -306,7 +344,8 @@ onBeforeUnmount(() => window.removeEventListener("keydown", onKey));
   </PaneHeader>
 
   <!-- ── OUTLINE MODE ─────────────────────────────────────────── -->
-  <div v-if="ch && mode === 'outline'" class="scrollarea outline-pane">
+  <div v-if="ch && mode === 'outline'" class="pane-card">
+   <div class="scrollarea outline-pane">
     <div class="outline-tree">
       <section v-for="(part, pi) in project.parts" :key="part.id" class="ol-part">
         <div class="ol-part-row">
@@ -388,10 +427,42 @@ onBeforeUnmount(() => window.removeEventListener("keydown", onKey));
         <Icon name="Plus" :size="13" /> New part
       </button>
     </div>
+   </div>
+  </div>
+
+  <!-- ── CARDS / CORKBOARD MODE ───────────────────────────────── -->
+  <div v-else-if="ch && mode === 'cards'" class="pane-card">
+   <div class="scrollarea cards-pane">
+    <div class="cards-head">
+      <div>
+        <div class="t-eyebrow">Chapter {{ ch.num }}</div>
+        <h2 class="cards-title">{{ ch.title }}</h2>
+      </div>
+      <span class="t-muted" style="font-size:12px">Drag cards to reorder scenes</span>
+    </div>
+    <div class="cards-grid">
+      <div v-for="(scn, i) in scenes" :key="scn.id"
+        class="scene-card" :class="{ dragging: dragSceneId === scn.id }"
+        draggable="true"
+        @dragstart="onCardDragStart(scn.id)"
+        @dragend="dragSceneId = null"
+        @dragover.prevent
+        @drop="onCardDrop(scn.id)"
+        @click="openScene(ch.id, scn.id)">
+        <div class="scene-card-num">{{ ch.num }}.{{ i + 1 }}</div>
+        <div class="scene-card-title">{{ scn.title || `Scene ${i + 1}` }}</div>
+        <div class="scene-card-body">{{ synopsis(scn) || "Empty scene." }}</div>
+      </div>
+      <button class="scene-card scene-card-add" @click="addSceneHere">
+        <Icon name="Plus" :size="18" /> <span>Add scene</span>
+      </button>
+    </div>
+   </div>
   </div>
 
   <!-- ── READ MODE ────────────────────────────────────────────── -->
-  <div v-else-if="ch && mode === 'read'" class="read-mode">
+  <div v-else-if="ch && mode === 'read'" class="pane-card">
+   <div class="read-mode">
     <div class="manuscript scrollarea">
       <article class="manuscript-inner read-content" v-html="project.chapterBody[ch.id] || `<h1>${ch.title}</h1><p><em>Empty chapter.</em></p>`" />
       <nav class="read-nav">
@@ -414,17 +485,15 @@ onBeforeUnmount(() => window.removeEventListener("keydown", onKey));
       </nav>
       <p class="read-hint">← / → to navigate · Esc to edit</p>
     </div>
+   </div>
   </div>
 
   <!-- ── EDIT MODE (default) ──────────────────────────────────── -->
-  <div v-else-if="ch" class="pane-body">
+  <div v-else-if="ch" class="pane-card">
     <div style="padding:10px 22px;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:12px;flex-wrap:wrap">
-      <select class="input" style="max-width:120px" :value="ch.status" @change="updateStatus($event.target.value)">
-        <option v-for="s in STATUS_OPTIONS" :key="s" :value="s">{{ STATUS_LABEL[s] }}</option>
-      </select>
-      <span style="margin-left:auto;font-size:11.5px;color:var(--muted)">
-        <b class="t-num" style="color:var(--ink-2)">{{ ch.words.toLocaleString() }}</b> words · {{ scenes.length }} scene{{ scenes.length === 1 ? "" : "s" }}
-      </span>
+      <button class="btn ghost sm" @click="versionsOpen = true" title="Version history — save & restore snapshots of this chapter">
+        <Icon name="History" :size="13" /> Versions
+      </button>
     </div>
 
     <!-- Single-scene editor: which scene shows is driven by the route
@@ -462,16 +531,22 @@ onBeforeUnmount(() => window.removeEventListener("keydown", onKey));
       :scene-id="activeScene.id"
       @close="linksOpen = false" />
 
-    <div class="scrollarea" style="flex:1">
-      <RichEditor v-if="activeScene"
-        :key="activeScene.id"
-        :model-value="activeScene.body"
-        :placeholder="`Write scene ${activeSceneIdx + 1}…`"
-        @change="(html) => onSceneBodyChange(activeScene.id, html)" />
+    <VersionHistoryModal v-if="versionsOpen && ch"
+      :chapter-id="ch.id"
+      :chapter-title="`Ch. ${ch.num} · ${ch.title}`"
+      @close="versionsOpen = false" />
 
-      <!-- Chapter overview: shown when no scene is picked yet. Lists
-           every scene as a clickable card so the user can drop into one. -->
-      <div v-else class="chapter-overview">
+    <RichEditor v-if="activeScene"
+      :key="activeScene.id"
+      :model-value="activeScene.body"
+      :placeholder="`Write scene ${activeSceneIdx + 1}…`"
+      :count-footer="false"
+      @change="(html) => onSceneBodyChange(activeScene.id, html)" />
+
+    <!-- Chapter overview: shown when no scene is picked yet. Lists
+         every scene as a clickable card so the user can drop into one. -->
+    <div v-else class="scrollarea" style="flex:1;min-height:0">
+      <div class="chapter-overview">
         <h2 class="chapter-overview-title">{{ ch.title }}</h2>
         <p class="chapter-overview-hint">
           {{ scenes.length
@@ -494,7 +569,10 @@ onBeforeUnmount(() => window.removeEventListener("keydown", onKey));
     </div>
 
     <div style="display:flex;align-items:center;gap:16px;padding:8px 22px;border-top:1px solid var(--border);background:var(--surface-2);font-size:11.5px;color:var(--muted)">
-      <span><b class="t-num" style="color:var(--ink)">{{ ch.words.toLocaleString() }}</b> words</span>
+      <span v-if="activeScene">
+        <b class="t-num" style="color:var(--ink)">{{ sceneWordCount.toLocaleString() }}</b> words ·
+        <b class="t-num" style="color:var(--ink)">{{ sceneCharCount.toLocaleString() }}</b> characters
+      </span>
       <span style="margin-left:auto">Autosaves to local storage</span>
     </div>
   </div>
@@ -543,6 +621,32 @@ onBeforeUnmount(() => window.removeEventListener("keydown", onKey));
 }
 .seg-toggle button:hover { background: var(--surface-3); color: var(--ink); }
 .seg-toggle button.active { background: var(--surface); color: var(--ink); box-shadow: var(--shadow-1), 0 0 0 1px var(--border); }
+
+/* ── Cards / corkboard ─────────────────────────────────────── */
+.cards-pane { flex: 1; padding: 22px 28px 60px; background: var(--surface); }
+.cards-head { display: flex; align-items: baseline; justify-content: space-between; gap: 12px; margin-bottom: 16px; }
+.cards-title { font-family: var(--font-serif); font-size: 20px; font-weight: 600; margin: 2px 0 0; }
+.cards-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 14px; }
+.scene-card {
+  text-align: left; appearance: none; font: inherit; cursor: pointer;
+  border: 1px solid var(--border); border-radius: 10px; background: var(--surface);
+  padding: 14px; min-height: 132px;
+  display: flex; flex-direction: column; gap: 8px;
+  transition: box-shadow .15s ease, border-color .15s ease, opacity .15s ease;
+}
+.scene-card:hover { border-color: var(--border-strong); box-shadow: 0 6px 18px rgba(0, 0, 0, .08); }
+.scene-card.dragging { opacity: .45; }
+.scene-card-num { font-size: 11px; color: var(--muted); font-variant-numeric: tabular-nums; }
+.scene-card-title { font-family: var(--font-serif); font-weight: 600; font-size: 15px; color: var(--ink); }
+.scene-card-body {
+  font-size: 12.5px; line-height: 1.5; color: var(--ink-2);
+  overflow: hidden; display: -webkit-box; -webkit-line-clamp: 4; -webkit-box-orient: vertical;
+}
+.scene-card-add {
+  flex-direction: row; align-items: center; justify-content: center; gap: 8px;
+  color: var(--muted); border-style: dashed; background: var(--surface-2);
+}
+.scene-card-add:hover { color: var(--accent-ink); }
 
 /* ── Outline (tree) ────────────────────────────────────────── */
 .outline-pane {

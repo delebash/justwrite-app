@@ -230,7 +230,10 @@ async function onImportFile(e) {
     });
     if (!yes) return;
     project.loadSnapshot(snap);
-    importMessage.value = `Imported "${snap.project.title || "project"}" — ${Object.keys(snap.chapterBody || {}).length} chapters.`;
+    const chapterCount = Array.isArray(snap.parts)
+      ? snap.parts.reduce((n, p) => n + (p.chapters?.length || 0), 0)
+      : Object.keys(snap.scenes || snap.chapterBody || {}).length;
+    importMessage.value = `Imported "${snap.project.title || "project"}" — ${chapterCount} chapters.`;
     ui.showToast({ message: "Backup imported." });
   } catch (err) {
     backupError.value = err.message || String(err);
@@ -286,11 +289,76 @@ const stats = computed(() => {
   const trashTotal = Object.values(project.trash || {}).reduce((n, list) => n + (list?.length || 0), 0);
   return { chapters, characters, locations, objects, worldbuilding, trashTotal };
 });
+
+// ── Statuses (user-definable palette) ──────────────────────────────
+const STATUS_SWATCHES = [
+  "oklch(0.7 0.13 75)",  "oklch(0.65 0.13 30)",  "oklch(0.6 0.13 150)",
+  "oklch(0.65 0.13 250)", "oklch(0.66 0.14 320)", "oklch(0.68 0.13 200)",
+  "oklch(0.64 0.14 290)", "oklch(0.7 0.12 120)",  "oklch(0.55 0.02 260)",
+];
+const editingColorId = ref(null);
+function addStatus() {
+  const color = STATUS_SWATCHES[project.statuses.length % STATUS_SWATCHES.length];
+  editingColorId.value = project.addStatusDef({ label: "New status", color });
+}
+function renameStatus(id, label) { project.updateStatusDef(id, { label }); }
+function recolorStatus(id, color) { project.updateStatusDef(id, { color }); editingColorId.value = null; }
+async function deleteStatus(s) {
+  const yes = await confirmDialog({
+    title: `Delete status "${s.label}"?`,
+    message: "Items using it will show as unset in the sidebar. No items are deleted.",
+    confirmLabel: "Delete status",
+    danger: true,
+  });
+  if (!yes) return;
+  project.removeStatusDef(s.id);
+}
+
+// ── Worldbuilding categories (user-definable) ──────────────────────
+const WB_HUES = [30, 60, 95, 130, 170, 200, 250, 290, 320, 0];
+const WB_ICONS = [
+  "Sparkle", "Pin", "Calendar", "Users", "GroupIcon",
+  "Quote", "Building", "Cube", "Book", "Note",
+  "Star", "Network", "Timeline", "Chart",
+];
+const wbEditing = ref(null); // { id, kind: 'hue' | 'icon' } | null
+function wbToggle(id, kind) {
+  wbEditing.value = wbEditing.value && wbEditing.value.id === id && wbEditing.value.kind === kind
+    ? null : { id, kind };
+}
+function addCategory() {
+  project.addWorldbuildingCategory({
+    label: "New category",
+    icon: "Sparkle",
+    hue: WB_HUES[project.worldbuildingCategories.length % WB_HUES.length],
+  });
+  wbEditing.value = null;
+}
+function renameCategory(id, label) { project.updateWorldbuildingCategory(id, { label }); }
+function recolorCategory(id, hue) { project.updateWorldbuildingCategory(id, { hue }); wbEditing.value = null; }
+function setCategoryIcon(id, icon) { project.updateWorldbuildingCategory(id, { icon }); wbEditing.value = null; }
+async function deleteCategory(c) {
+  if (project.worldbuildingCategories.length <= 1) {
+    ui.showToast({ message: "Keep at least one category." });
+    return;
+  }
+  const count = project.worldbuilding.filter((a) => a.category === c.id).length;
+  const into = project.worldbuildingCategories.find((x) => x.id !== c.id)?.label;
+  const yes = await confirmDialog({
+    title: `Delete category "${c.label}"?`,
+    message: count ? `Its ${count} article${count === 1 ? "" : "s"} will move to "${into}".` : "It has no articles.",
+    confirmLabel: "Delete category",
+    danger: true,
+  });
+  if (!yes) return;
+  project.removeWorldbuildingCategory(c.id);
+}
 </script>
 
 <template>
   <PaneHeader eyebrow="Project" title="Settings" />
-  <div class="scrollarea" style="flex:1;padding:22px">
+  <div class="pane-card">
+    <div class="scrollarea" style="padding:22px">
     <div style="display:grid;grid-template-columns:220px 1fr;gap:22px;max-width:1100px">
       <!-- Section nav -->
       <nav style="display:flex;flex-direction:column;gap:2px">
@@ -350,6 +418,90 @@ const stats = computed(() => {
               <span class="t-muted" style="font-size:11.5px">words/day — drives the Home streak ring</span>
             </div>
           </div>
+        </div>
+
+        <!-- ── Statuses ─────────────────────────────────────── -->
+        <div class="card">
+          <div class="card-title">Statuses</div>
+          <p class="t-muted" style="font-size:12.5px;margin:0 0 14px;line-height:1.55">
+            A shared palette used by chapters, architecture, the story-world entities, and narrative strands. Each status shows in its color beside items in the sidebar. Rename, recolor, or remove freely — deleting one leaves items that used it unset.
+          </p>
+          <div style="display:flex;flex-direction:column;gap:8px">
+            <div v-for="s in project.statuses" :key="s.id" style="display:flex;align-items:center;gap:10px">
+              <div style="position:relative">
+                <button type="button" title="Change color"
+                  :style="`width:24px;height:24px;border-radius:6px;border:1px solid var(--border);cursor:pointer;background:${s.color}`"
+                  @click="editingColorId = editingColorId === s.id ? null : s.id" />
+                <div v-if="editingColorId === s.id"
+                  style="position:absolute;top:calc(100% + 5px);left:0;z-index:20;display:grid;grid-template-columns:repeat(5,20px);gap:5px;padding:8px;background:var(--surface);border:1px solid var(--border-strong);border-radius:8px;box-shadow:0 8px 28px rgba(0,0,0,.18)">
+                  <button v-for="c in STATUS_SWATCHES" :key="c" type="button"
+                    :style="`width:20px;height:20px;border-radius:5px;border:0;cursor:pointer;background:${c};box-shadow:${c === s.color ? '0 0 0 2px var(--surface),0 0 0 4px var(--accent)' : 'inset 0 0 0 1px rgba(0,0,0,.08)'}`"
+                    @click="recolorStatus(s.id, c)" />
+                  <label title="Custom color"
+                    style="position:relative;width:20px;height:20px;border-radius:5px;display:grid;place-items:center;border:1px dashed var(--border-strong);cursor:pointer;color:var(--muted)">
+                    <input type="color" style="position:absolute;inset:0;opacity:0;cursor:pointer;border:0;padding:0"
+                      @input="recolorStatus(s.id, $event.target.value)" />
+                    <Icon name="Plus" :size="11" />
+                  </label>
+                </div>
+              </div>
+              <input class="input" style="max-width:220px" :value="s.label"
+                @input="renameStatus(s.id, $event.target.value)" placeholder="Status name" />
+              <span :style="`font-size:11px;font-weight:600;text-transform:lowercase;color:${s.color}`">{{ s.label }}</span>
+              <button class="btn ghost sm" style="margin-left:auto" title="Delete status" @click="deleteStatus(s)">
+                <Icon name="Trash" :size="13" />
+              </button>
+            </div>
+            <div v-if="!project.statuses.length" class="t-muted" style="font-size:12.5px;font-style:italic">No statuses yet — add one below.</div>
+          </div>
+          <button class="btn ghost" style="margin-top:12px" @click="addStatus"><Icon name="Plus" :size="13" /> Add status</button>
+        </div>
+
+        <!-- ── Worldbuilding categories ─────────────────────── -->
+        <div class="card">
+          <div class="card-title">Worldbuilding categories</div>
+          <p class="t-muted" style="font-size:12.5px;margin:0 0 14px;line-height:1.55">
+            Group your worldbuilding articles — these drive the sidebar sections and the category picker. Pick an icon and color for each. Deleting one moves its articles into another category.
+          </p>
+          <div style="display:flex;flex-direction:column;gap:8px">
+            <div v-for="c in project.worldbuildingCategories" :key="c.id" style="display:flex;align-items:center;gap:10px">
+              <!-- icon tile -->
+              <div style="position:relative">
+                <button type="button" title="Change icon"
+                  :style="`width:30px;height:30px;border-radius:8px;border:0;cursor:pointer;display:grid;place-items:center;background:oklch(var(--tile-bg-l) var(--tile-bg-c) ${c.hue});color:oklch(var(--tile-ink-l) var(--tile-ink-c) ${c.hue})`"
+                  @click="wbToggle(c.id, 'icon')">
+                  <Icon :name="c.icon" :size="15" />
+                </button>
+                <div v-if="wbEditing && wbEditing.id === c.id && wbEditing.kind === 'icon'"
+                  style="position:absolute;top:calc(100% + 5px);left:0;z-index:20;display:grid;grid-template-columns:repeat(5,28px);gap:4px;padding:8px;background:var(--surface);border:1px solid var(--border-strong);border-radius:8px;box-shadow:0 8px 28px rgba(0,0,0,.18)">
+                  <button v-for="ic in WB_ICONS" :key="ic" type="button"
+                    :style="`width:28px;height:28px;border-radius:6px;border:0;cursor:pointer;display:grid;place-items:center;color:var(--ink-2);background:${ic === c.icon ? 'var(--accent-soft)' : 'var(--surface-2)'}`"
+                    @click="setCategoryIcon(c.id, ic)">
+                    <Icon :name="ic" :size="14" />
+                  </button>
+                </div>
+              </div>
+              <!-- hue swatch -->
+              <div style="position:relative">
+                <button type="button" title="Change color"
+                  :style="`width:24px;height:24px;border-radius:6px;border:1px solid var(--border);cursor:pointer;background:oklch(0.62 0.13 ${c.hue})`"
+                  @click="wbToggle(c.id, 'hue')" />
+                <div v-if="wbEditing && wbEditing.id === c.id && wbEditing.kind === 'hue'"
+                  style="position:absolute;top:calc(100% + 5px);left:0;z-index:20;display:grid;grid-template-columns:repeat(5,20px);gap:5px;padding:8px;background:var(--surface);border:1px solid var(--border-strong);border-radius:8px;box-shadow:0 8px 28px rgba(0,0,0,.18)">
+                  <button v-for="h in WB_HUES" :key="h" type="button"
+                    :style="`width:20px;height:20px;border-radius:5px;border:0;cursor:pointer;background:oklch(0.62 0.13 ${h});box-shadow:${h === c.hue ? '0 0 0 2px var(--surface),0 0 0 4px var(--accent)' : 'inset 0 0 0 1px rgba(0,0,0,.08)'}`"
+                    @click="recolorCategory(c.id, h)" />
+                </div>
+              </div>
+              <input class="input" style="max-width:220px" :value="c.label"
+                @input="renameCategory(c.id, $event.target.value)" placeholder="Category name" />
+              <button class="btn ghost sm" style="margin-left:auto" title="Delete category" @click="deleteCategory(c)">
+                <Icon name="Trash" :size="13" />
+              </button>
+            </div>
+            <div v-if="!project.worldbuildingCategories.length" class="t-muted" style="font-size:12.5px;font-style:italic">No categories yet — add one below.</div>
+          </div>
+          <button class="btn ghost" style="margin-top:12px" @click="addCategory"><Icon name="Plus" :size="13" /> Add category</button>
         </div>
 
         <!-- ── Cover image ──────────────────────────────────── -->
@@ -802,6 +954,7 @@ const stats = computed(() => {
           </div>
         </div>
       </div>
+    </div>
     </div>
   </div>
 </template>

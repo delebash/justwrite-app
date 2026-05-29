@@ -69,6 +69,7 @@ function goAdd()         { router.push(meta.value.newUrl(props.entityId)); }
     </div>
   </header>
 
+  <div class="pane-card">
   <div class="scrollarea events-pane">
     <div class="events-content">
       <p class="events-subtitle">Events for {{ name }}</p>
@@ -98,6 +99,7 @@ function goAdd()         { router.push(meta.value.newUrl(props.entityId)); }
         </article>
       </section>
     </div>
+  </div>
   </div>
 </template>
 

@@ -62,7 +62,8 @@ const streakSquares = computed(() => history14.value.map((d) => d.words > 0));
     </div>
   </header>
 
-  <div class="scrollarea" style="flex:1">
+  <div class="pane-card">
+  <div class="scrollarea">
     <div class="card-grid" style="grid-template-columns:1.5fr 1fr 1fr;gap:16px">
 
       <!-- Hero -->
@@ -176,6 +177,7 @@ const streakSquares = computed(() => history14.value.map((d) => d.words > 0));
         </div>
       </div>
     </div>
+  </div>
   </div>
 </template>
 

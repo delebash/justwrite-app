@@ -118,26 +118,26 @@ export function buildIndex(project, speakers = null) {
 
   // Locations, Objects — name + kind + note.
   for (const l of project.locations) {
-    indexDoc({ id: `location:${l.id}`, kind: "location", title: l.name, sub: l.kind, body: l.note, route: `/locations/${l.id}` });
+    indexDoc({ id: `location:${l.id}`, kind: "location", title: l.name, sub: l.kind, body: stripHtml(l.note), route: `/locations/${l.id}` });
   }
   for (const o of project.objects) {
-    indexDoc({ id: `object:${o.id}`, kind: "object", title: o.name, sub: o.kind, body: o.note, route: `/objects/${o.id}` });
+    indexDoc({ id: `object:${o.id}`, kind: "object", title: o.name, sub: o.kind, body: stripHtml(o.note), route: `/objects/${o.id}` });
   }
 
   // Notes — title + tag + body.
   for (const n of project.notes) {
-    indexDoc({ id: `note:${n.id}`, kind: "note", title: n.title, sub: n.tag, body: n.body, route: `/notes/${n.id}` });
+    indexDoc({ id: `note:${n.id}`, kind: "note", title: n.title, sub: n.tag, body: stripHtml(n.body), route: `/notes/${n.id}` });
   }
 
   // Groups — name + blurb + member names.
   for (const g of project.groups) {
     const members = (g.members || []).map((m) => m.name).join(", ");
-    indexDoc({ id: `group:${g.id}`, kind: "group", title: g.name, sub: members, body: g.blurb, route: `/groups/${g.id}` });
+    indexDoc({ id: `group:${g.id}`, kind: "group", title: g.name, sub: members, body: stripHtml(g.blurb), route: `/groups/${g.id}` });
   }
 
   // Strands — name + blurb + body (for subplot search).
   for (const s of project.strands) {
-    const body = [s.blurb || "", s.body || ""].filter(Boolean).join("\n");
+    const body = stripHtml([s.blurb || "", s.body || ""].filter(Boolean).join("\n"));
     indexDoc({ id: `strand:${s.id}`, kind: "strand", title: s.name, sub: "Narrative strand", body, route: `/strands` });
   }
 
@@ -148,7 +148,7 @@ export function buildIndex(project, speakers = null) {
       kind: "worldbuilding",
       title: a.title,
       sub: a.category,
-      body: `${a.summary || ""} ${a.body || ""}`.trim(),
+      body: `${a.summary || ""} ${stripHtml(a.body)}`.trim(),
       route: `/worldbuilding/${a.id}`,
     });
   }
@@ -160,7 +160,7 @@ export function buildIndex(project, speakers = null) {
       kind: "architecture",
       title: doc.title,
       sub: doc.blurb,
-      body: doc.body,
+      body: stripHtml(doc.body),
       route: `/architecture`,
     });
   }

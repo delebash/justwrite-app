@@ -8,7 +8,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 npm install            # JS deps (first run only)
 npm run dev            # Tauri dev — boots Vite + native window. First run compiles the Rust crate (slow); subsequent runs are fast.
 npm run build          # Packaged app for the current OS
-npm run dev:vite       # Renderer only, in a plain browser tab (no Tauri APIs — falls back to localStorage / data-URLs)
+npm run dev:vite       # Renderer only, in a plain browser tab (no Tauri APIs — falls back to IndexedDB / data-URLs)
 npm run build:vite     # Renderer build only (Tauri invokes this via `beforeBuildCommand`)
 ```
 
@@ -33,7 +33,7 @@ window.justwrite.project = { save, open, saveTo }
 window.justwrite.images  = { save, read, delete }
 ```
 
-These mirror Rust commands in `src-tauri/src/lib.rs` one-for-one (`project_save`, `project_save_to`, `project_open`, `images_save`, `images_read`, `images_delete`). When `window.justwrite` is undefined (plain `vite dev` in a browser), the renderer falls back to localStorage / data-URL paths. **Do not call `invoke()` from views or stores — go through `window.justwrite`** so the browser-only path keeps working.
+These mirror Rust commands in `src-tauri/src/lib.rs` one-for-one (`project_save`, `project_save_to`, `project_open`, `images_save`, `images_read`, `images_delete`). When `window.justwrite` is undefined (plain `vite dev` in a browser), the renderer falls back to IndexedDB / data-URL paths. **Do not call `invoke()` from views or stores — go through `window.justwrite`** so the browser-only path keeps working.
 
 When adding a new Tauri command:
 1. Add the `#[tauri::command]` function in `src-tauri/src/lib.rs` and register it in the `invoke_handler![]` list.
@@ -53,9 +53,9 @@ All in `src/renderer/src/stores/`:
 
 **Project store invariants worth knowing before mutating it:**
 
-- Persists the whole snapshot to `localStorage["justwrite:project"]` on every change.
+- Persists the whole snapshot to IndexedDB under key `justwrite:project` on every change (via the `services/storage.js` adapter — a sync, cache-backed wrapper over `idb-keyval`).
 - Deletes are **soft** — `removeXxx` actions move the entity to `state.trash[kind]` and fire an Undo toast via `uiStore`. `TrashView` handles restore / permanent delete.
-- Undo/redo is **snapshot-based**: every mutating action calls `this._record(actionId)` before mutating, which deep-clones `HISTORY_SLICES` onto `_past`. Limit: 100 in-memory, last 10 persisted as a debounced tail at `localStorage["justwrite:project:history"]`.
+- Undo/redo is **snapshot-based**: every mutating action calls `this._record(actionId)` before mutating, which deep-clones `HISTORY_SLICES` onto `_past`. Limit: 100 in-memory, last 10 persisted as a debounced tail at IndexedDB key `justwrite:project:history`.
 - Keystroke-grain actions (in `COALESCED_ACTIONS`: `setChapterBody`, `setChapterTitle`, inline title edits, etc.) coalesce into one history entry per ~600ms quiescent window. When adding a new high-frequency mutator, add it to `COALESCED_ACTIONS` or the undo buffer fills instantly.
 - `_past` and `_future` are wrapped in `markRaw()` so Vue does not make snapshots reactive.
 
@@ -82,7 +82,7 @@ One client class — **`OpenAICompatClient`** (`services/openai-compat.js`) — 
 
 ### Image storage
 
-`services/imageStore.js` is the renderer-side facade. When `window.justwrite` exists, images are written via `images_save` to `$APPDATA/JustWrite/images/` and the renderer stores only the absolute path (read back through `images_read` which returns a data URL). Without Tauri, falls back to data-URL-in-localStorage.
+`services/imageStore.js` is the renderer-side facade. When `window.justwrite` exists, images are written via `images_save` to `$APPDATA/JustWrite/images/` and the renderer stores only the absolute path (read back through `images_read` which returns a data URL). Without Tauri, falls back to inline data-URL records stored in the project snapshot (IndexedDB-backed).
 
 **Caveat:** `images_save` ships bytes as JSON `number[]` over IPC. Fine for reference photos; if uploads grow to multi-MB range, switch to a Tauri Channel.
 
@@ -92,8 +92,6 @@ Hash router (`createWebHashHistory`) — see `router/index.js` for the full rout
 
 ## Conventions
 
-- **Plain JS, not TypeScript.** Don't add a `tsconfig.json` or migrate files unless asked.
-- **No framework-level test setup.** Don't scaffold Vitest / Playwright unless asked.
 - **The `@renderer` alias** resolves to `src/renderer/src/` (see `vite.config.js`). Prefer relative imports for files in the same directory, `@renderer/...` for cross-tree imports.
 - **Don't bypass the bridge.** Renderer code calling `invoke()` directly will break the browser-only dev path.
 - **Bundle icons** live in `src-tauri/icons/` (full set: `icon.icns`, `icon.ico`, desktop PNGs, plus Windows Store / android / ios). If you regenerate them, the canonical command is `cargo tauri icon <source.png>` from `src-tauri/`.

@@ -5,9 +5,13 @@ import { useUiStore } from "../stores/ui.js";
 import { useRouter } from "vue-router";
 import Icon from "../components/Icon.vue";
 import ImagesModal from "../components/ImagesModal.vue";
+import RichEditor from "../components/RichEditor.vue";
+import StatusSelect from "../components/StatusSelect.vue";
 import GroupsModal from "../components/GroupsModal.vue";
 import SceneRefList from "../components/SceneRefList.vue";
+import MentionRefList from "../components/MentionRefList.vue";
 import { promptDialog, confirmDialog } from "../services/dialog.js";
+import { NEW_ENTITY_META } from "../services/entityMeta.js";
 
 const props = defineProps({ id: { type: String, default: "" } });
 const project = useProjectStore();
@@ -18,12 +22,7 @@ const modal = ref(null);
 
 function update(k, v) { project.updateLocation(loc.value.id, { [k]: v }); }
 async function addLocation() {
-  const name = await promptDialog({
-    title: "New location",
-    label: "Location name",
-    placeholder: "e.g. Brackish Cove",
-    confirmLabel: "Create location",
-  });
+  const name = await promptDialog(NEW_ENTITY_META.locations);
   if (!name) return;
   const id = project.addLocation({ name }); ui.select("locations", id); router.push(`/locations/${id}`);
 }
@@ -57,20 +56,32 @@ async function deleteLocation() {
       <button class="btn ghost" @click="modal = 'groups'"><Icon name="GroupIcon" :size="14" /> Groups</button>
       <button class="btn ghost" @click="deleteLocation">Delete</button>
       <button class="btn primary" @click="addLocation"><Icon name="Plus" :size="14" /> New location</button>
+      <StatusSelect :model-value="loc.status || ''" @update:model-value="(v) => update('status', v)" />
     </div>
   </header>
-  <div class="col-detail scrollarea">
-    <div style="padding:24px 28px 40px;max-width:980px">
+  <div class="pane-card">
+    <div style="padding:24px 28px 40px;display:flex;flex-direction:column;gap:14px;flex:1;min-height:0">
       <input class="input" placeholder="Kind"
         :value="loc.kind" @input="update('kind', $event.target.value)" />
-      <textarea class="input" rows="5" style="margin-top:14px;font-family:var(--font-serif);font-size:15px;line-height:1.55"
+      <RichEditor
+        :model-value="loc.note || ''"
         placeholder="Description"
-        :value="loc.note" @input="update('note', $event.target.value)" />
+        variant="inline"
+        :toolbar="['bold', 'italic', 'underline', 'strike', 'h1', 'h2', 'h3', 'quote', 'list', 'orderedList', 'taskList', 'sceneBreak', 'align', 'highlight', 'link', 'image', 'table', 'find', 'undo', 'redo']"
+        :fill="true"
+        @change="(html) => update('note', html)"
+      />
+      <div style="flex:1;min-height:0;overflow-y:auto">
+        <div style="margin-top:22px">
+          <div class="t-eyebrow" style="margin-bottom:10px">Appears in scenes</div>
+          <SceneRefList field="locations" :entity-id="loc.id"
+            empty-text="No scenes set in this location yet. Open a scene → Links → Locations to add one." />
+        </div>
 
-      <div style="margin-top:22px">
-        <div class="t-eyebrow" style="margin-bottom:10px">Appears in scenes</div>
-        <SceneRefList field="locations" :entity-id="loc.id"
-          empty-text="No scenes set in this location yet. Open a scene → Links → Locations to add one." />
+        <div style="margin-top:22px">
+          <div class="t-eyebrow" style="margin-bottom:10px">Mentioned in prose</div>
+          <MentionRefList :entity-id="loc.id" />
+        </div>
       </div>
     </div>
   </div>

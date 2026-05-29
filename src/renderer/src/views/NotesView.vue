@@ -6,6 +6,7 @@ import { useRouter } from "vue-router";
 import Icon from "../components/Icon.vue";
 import RichEditor from "../components/RichEditor.vue";
 import { promptDialog, confirmDialog } from "../services/dialog.js";
+import { NEW_ENTITY_META } from "../services/entityMeta.js";
 
 const props = defineProps({ id: { type: String, default: "" } });
 const project = useProjectStore();
@@ -15,12 +16,7 @@ const n = computed(() => project.noteById(props.id || ui.selections.notes) || pr
 
 function update(k, v) { project.updateNote(n.value.id, { [k]: v }); }
 async function addNote() {
-  const title = await promptDialog({
-    title: "New note",
-    label: "Note title",
-    placeholder: "e.g. Research — coastline maps",
-    confirmLabel: "Create note",
-  });
+  const title = await promptDialog(NEW_ENTITY_META.notes);
   if (!title) return;
   const id = project.addNote({ title }); ui.select("notes", id); router.push(`/notes/${id}`);
 }
@@ -57,7 +53,7 @@ async function deleteNote() {
     </div>
   </header>
 
-  <div v-if="n" class="pane-body">
+  <div v-if="n" class="pane-card">
     <RichEditor
       :model-value="n.body"
       placeholder="Start writing the note…"
@@ -65,7 +61,7 @@ async function deleteNote() {
     />
   </div>
 
-  <div v-else class="scrollarea" style="flex:1;display:grid;place-items:center;padding:60px">
+  <div v-else class="pane-card" style="display:grid;place-items:center;padding:60px">
     <div class="t-muted" style="text-align:center">
       No notes yet.<br />
       <button class="btn primary" style="margin-top:14px" @click="addNote"><Icon name="Plus" :size="14" /> Create your first note</button>

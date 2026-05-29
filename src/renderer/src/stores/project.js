@@ -10,6 +10,7 @@ import { useUiStore } from "./ui.js";
 import { useSessionsStore } from "./sessions.js";
 import { removeImage as removeImageFile } from "../services/imageStore.js";
 import { getItem, setItem, removeItem } from "../services/storage.js";
+import { replaceInHtml } from "../services/projectReplace.js";
 import {
   PROJECT, STRANDS, CHARACTERS, CHARACTER_EXTRAS, LOCATIONS, OBJECTS,
   PARTS, NOTES, GROUPS, ARCHITECTURE, WORLDBUILDING, WORLDBUILDING_CATEGORIES,
@@ -214,7 +215,7 @@ const HISTORY_SLICES = [
   "project", "parts", "scenes",
   "characters", "characterExtras",
   "locations", "objects", "groups", "notes", "strands",
-  "architecture", "worldbuilding",
+  "architecture", "worldbuilding", "worldbuildingCategories", "statuses",
   "images", "events",
   "trash",
 ];
@@ -247,6 +248,21 @@ let lastHistoryAction = null;
 // survives across action invocations on the same store instance.
 let historyPersistTimer = null;
 
+// User-definable status palette (project-wide, shared by every section
+// that shows status). Seeded with the ids existing entities already use
+// (`todo`/`draft`/`revise`/`done`) so no data needs migrating; colors are
+// theme-adaptive CSS vars. Fully editable/deletable at runtime.
+const DEFAULT_STATUSES = [
+  { id: "todo",      label: "To do",     color: "var(--status-todo)" },
+  { id: "draft",     label: "Draft",     color: "var(--status-draft)" },
+  { id: "revise",    label: "Revise",    color: "var(--status-revise)" },
+  { id: "done",      label: "Done",      color: "var(--status-done)" },
+  // Throughline states — also re-link strands whose saved status is "open".
+  { id: "open",      label: "Open",      color: "oklch(0.66 0.13 250)" },
+  { id: "resolved",  label: "Resolved",  color: "oklch(0.62 0.14 150)" },
+  { id: "abandoned", label: "Abandoned", color: "oklch(0.6 0.02 260)" },
+];
+
 export const useProjectStore = defineStore("project", {
   state: () => ({
     project:    { ...PROJECT, ...(loaded.project || {}) },
@@ -260,7 +276,8 @@ export const useProjectStore = defineStore("project", {
     groups:     loaded.groups     || [...GROUPS],
     architecture: { ...ARCHITECTURE, ...(loaded.architecture || {}) },
     worldbuilding: loaded.worldbuilding || [...WORLDBUILDING],
-    worldbuildingCategories: [...WORLDBUILDING_CATEGORIES],
+    worldbuildingCategories: loaded.worldbuildingCategories || WORLDBUILDING_CATEGORIES.map((c) => ({ ...c })),
+    statuses: loaded.statuses || DEFAULT_STATUSES.map((s) => ({ ...s })),
     // Scenes registry: { [chapterId]: [{ id, title, body, ...links }] }.
     // Seeded from the SCENES map — chapters not listed there open empty
     // so the writer can add their own scenes from the overview pane.
@@ -287,7 +304,7 @@ export const useProjectStore = defineStore("project", {
     events: loaded.events || JSON.parse(JSON.stringify(EVENTS)),
     trash: { ...EMPTY_TRASH, ...(loaded.trash || {}) },
 
-    // Multi-project registry. `_activeId` is the localStorage slot the
+    // Multi-project registry. `_activeId` is the storage key the
     // current snapshot persists into. `_projects` mirrors the registry
     // so the sidebar dropdown can react. Neither participates in undo.
     _activeId: boot.activeId,
@@ -345,6 +362,7 @@ export const useProjectStore = defineStore("project", {
     canRedo:           (s) => s._future.length > 0,
     projectsList:      (s) => s._projects,
     activeProjectId:   (s) => s._activeId,
+    statusById:        (s) => (id) => s.statuses.find((x) => x.id === id) || null,
   },
 
   actions: {
@@ -398,7 +416,7 @@ export const useProjectStore = defineStore("project", {
     },
 
     /**
-     * Persist the tail of `_past` to localStorage on a debounce so a
+     * Persist the tail of `_past` to storage on a debounce so a
      * typing session doesn't write on every keystroke. We only keep
      * the last PERSIST_TAIL_SIZE entries — that's enough to recover
      * from a "closed the window after a fat-finger" mishap without
@@ -696,6 +714,60 @@ export const useProjectStore = defineStore("project", {
       this._renumberChapters();
       this._persist();
     },
+    // Project-wide find & replace across scene PROSE. Records ONE history
+    // entry no matter how many scenes/matches change, so a single undo
+    // reverts the whole operation. Returns the total matches replaced.
+    replaceInScenes(term, replaceWith, { caseSensitive = false } = {}) {
+      if (!term) return 0;
+      let total = 0;
+      const next = {};
+      const touched = [];
+      for (const [chId, list] of Object.entries(this.scenes)) {
+        let changed = false;
+        const newList = list.map((s) => {
+          const r = replaceInHtml(s.body || "", term, replaceWith, caseSensitive);
+          if (r.count > 0) { total += r.count; changed = true; return { ...s, body: r.html }; }
+          return s;
+        });
+        next[chId] = changed ? newList : list;
+        if (changed) touched.push(chId);
+      }
+      if (!total) return 0;
+      this._record("replaceInScenes");
+      this.scenes = next;
+      for (const chId of touched) this._recomputeChapterWords(chId);
+      this._persist();
+      return total;
+    },
+    // Same, scoped to a single scene (the per-row "Replace" in the modal).
+    replaceInScene(chapterId, sceneId, term, replaceWith, { caseSensitive = false } = {}) {
+      if (!term) return 0;
+      const list = this.scenes[chapterId] || [];
+      const scn = list.find((s) => s.id === sceneId);
+      if (!scn) return 0;
+      const r = replaceInHtml(scn.body || "", term, replaceWith, caseSensitive);
+      if (!r.count) return 0;
+      this._record("replaceInScene");
+      this.scenes = {
+        ...this.scenes,
+        [chapterId]: list.map((s) => (s.id === sceneId ? { ...s, body: r.html } : s)),
+      };
+      this._recomputeChapterWords(chapterId);
+      this._persist();
+      return r.count;
+    },
+    // Replace a chapter's scenes wholesale — used by version-history
+    // restore. Records history so the restore is itself undoable.
+    restoreChapterScenes(chapterId, scenes) {
+      this._record("restoreChapterScenes");
+      const next = (scenes || []).map((s) => ({ id: s.id, title: s.title || "", body: s.body || "" }));
+      this.scenes = {
+        ...this.scenes,
+        [chapterId]: next.length ? next : [{ id: uid("scn"), title: "", body: "" }],
+      };
+      this._recomputeChapterWords(chapterId);
+      this._persist();
+    },
     // Replace scene order within a chapter (drag-drop arbitrary position).
     reorderScenes(chapterId, sceneIds) {
       this._record("reorderScenes");
@@ -808,7 +880,7 @@ export const useProjectStore = defineStore("project", {
     addWorldbuilding(input = {}) {
       this._record("addWorldbuilding");
       const id = uid("wb");
-      this.worldbuilding.push({ id, title: "Untitled article", category: "geography", tags: [], status: "todo", words: 0, summary: "", body: "", related: [], ...input });
+      this.worldbuilding.push({ id, title: "Untitled article", category: this.worldbuildingCategories[0]?.id || "geography", tags: [], status: "", words: 0, summary: "", body: "", related: [], ...input });
       this._persist();
       return id;
     },
@@ -822,6 +894,55 @@ export const useProjectStore = defineStore("project", {
       this._persist();
     },
     updateWorldbuilding(id, patch) { this._record("updateWorldbuilding"); this.worldbuilding = this.worldbuilding.map((a) => a.id === id ? { ...a, ...patch } : a); this._persist(); },
+    // Drag-drop move: reassign an article's category and position it
+    // before `insertBeforeId` in the flat list (append to the category's
+    // tail when null). One history entry so a cross-category drag is a
+    // single undo. Display order per category follows flat-array order.
+    moveWorldbuilding(id, toCategory, insertBeforeId = null) {
+      this._record("moveWorldbuilding");
+      const art = this.worldbuilding.find((a) => a.id === id);
+      if (!art) return;
+      const rest = this.worldbuilding.filter((a) => a.id !== id);
+      let at = insertBeforeId ? rest.findIndex((a) => a.id === insertBeforeId) : -1;
+      if (at < 0) at = rest.length;
+      rest.splice(at, 0, { ...art, category: toCategory });
+      this.worldbuilding = rest;
+      this._persist();
+    },
+
+    // ── Worldbuilding categories (user-definable) ───────────
+    addWorldbuildingCategory({ label = "New category", icon = "Sparkle", hue = 200 } = {}) {
+      this._record("addWorldbuildingCategory");
+      const id = uid("wbc");
+      this.worldbuildingCategories = [...this.worldbuildingCategories, { id, label, icon, hue }];
+      this._persist();
+      return id;
+    },
+    updateWorldbuildingCategory(id, patch) {
+      this._record("updateWorldbuildingCategory");
+      this.worldbuildingCategories = this.worldbuildingCategories.map((c) => (c.id === id ? { ...c, ...patch } : c));
+      this._persist();
+    },
+    removeWorldbuildingCategory(id) {
+      // Keep at least one category, and never orphan articles — reassign
+      // any article in the deleted category to the first remaining one.
+      if (this.worldbuildingCategories.length <= 1) return false;
+      this._record("removeWorldbuildingCategory");
+      const remaining = this.worldbuildingCategories.filter((c) => c.id !== id);
+      const fallback = remaining[0].id;
+      this.worldbuildingCategories = remaining;
+      this.worldbuilding = this.worldbuilding.map((a) => (a.category === id ? { ...a, category: fallback } : a));
+      this._persist();
+      return true;
+    },
+    reorderWorldbuildingCategories(ids) {
+      this._record("reorderWorldbuildingCategories");
+      const byId = new Map(this.worldbuildingCategories.map((c) => [c.id, c]));
+      const next = ids.map((i) => byId.get(i)).filter(Boolean);
+      for (const c of this.worldbuildingCategories) if (!ids.includes(c.id)) next.push(c);
+      this.worldbuildingCategories = next;
+      this._persist();
+    },
 
     // ── Narrative strands ───────────────────────────────────
     addStrand(input = {}) {
@@ -907,16 +1028,27 @@ export const useProjectStore = defineStore("project", {
       this._persist();
     },
     updateGroup(id, patch) { this._record("updateGroup"); this.groups = this.groups.map((g) => g.id === id ? { ...g, ...patch } : g); this._persist(); },
+    // A member is identified by the (kind, id) pair — ids are only unique
+    // within a kind, so matching on id alone can clobber a same-id member
+    // of another kind.
     addGroupMember(groupId, member) {
       this._record("addGroupMember");
       this.groups = this.groups.map((g) => g.id === groupId
-        ? { ...g, members: [...(g.members || []).filter((m) => m.id !== member.id), member] } : g);
+        ? { ...g, members: [...(g.members || []).filter((m) => !(m.kind === member.kind && m.id === member.id)), member] } : g);
       this._persist();
     },
-    removeGroupMember(groupId, memberId) {
+    // Drop a single matching entry rather than filtering every match, so a
+    // legacy snapshot that picked up duplicate/blank-id refs can be cleared
+    // one click at a time instead of cascade-deleting the whole kind.
+    removeGroupMember(groupId, kind, id) {
       this._record("removeGroupMember");
-      this.groups = this.groups.map((g) => g.id === groupId
-        ? { ...g, members: (g.members || []).filter((m) => m.id !== memberId) } : g);
+      this.groups = this.groups.map((g) => {
+        if (g.id !== groupId) return g;
+        const members = [...(g.members || [])];
+        const i = members.findIndex((m) => m.kind === kind && m.id === id);
+        if (i >= 0) members.splice(i, 1);
+        return { ...g, members };
+      });
       this._persist();
     },
 
@@ -1021,6 +1153,35 @@ export const useProjectStore = defineStore("project", {
       this._persist();
     },
 
+    // ── Statuses (user-definable palette) ───────────────────
+    addStatusDef({ label = "New status", color = "var(--status-todo)" } = {}) {
+      this._record("addStatusDef");
+      const id = uid("st");
+      this.statuses = [...this.statuses, { id, label, color }];
+      this._persist();
+      return id;
+    },
+    updateStatusDef(id, patch) {
+      this._record("updateStatusDef");
+      this.statuses = this.statuses.map((s) => (s.id === id ? { ...s, ...patch } : s));
+      this._persist();
+    },
+    removeStatusDef(id) {
+      this._record("removeStatusDef");
+      // Entities still referencing this id simply resolve to "unset"
+      // (statusById → null), so no sweep is needed.
+      this.statuses = this.statuses.filter((s) => s.id !== id);
+      this._persist();
+    },
+    reorderStatusDefs(ids) {
+      this._record("reorderStatusDefs");
+      const byId = new Map(this.statuses.map((s) => [s.id, s]));
+      const next = ids.map((id) => byId.get(id)).filter(Boolean);
+      for (const s of this.statuses) if (!ids.includes(s.id)) next.push(s);
+      this.statuses = next;
+      this._persist();
+    },
+
     // ── Snapshot ────────────────────────────────────────────
     loadSnapshot(snap) { Object.assign(this.$state, normalizeStrands(snap)); this.clearHistory(); this._persist(); },
     exportSnapshot() {
@@ -1029,7 +1190,9 @@ export const useProjectStore = defineStore("project", {
         characters: this.characters, characterExtras: this.characterExtras,
         locations: this.locations, objects: this.objects, groups: this.groups,
         strands: this.strands, notes: this.notes, architecture: this.architecture,
-        worldbuilding: this.worldbuilding, images: this.images, events: this.events,
+        worldbuilding: this.worldbuilding, worldbuildingCategories: this.worldbuildingCategories,
+        images: this.images, events: this.events,
+        statuses: this.statuses,
         trash: this.trash,
         savedAt: new Date().toISOString(),
       };
@@ -1078,6 +1241,8 @@ export const useProjectStore = defineStore("project", {
         parts: [{ id: uid("p"), title: "Part One", chapters: [] }],
         architecture: { ...ARCHITECTURE },
         worldbuilding: [],
+        worldbuildingCategories: WORLDBUILDING_CATEGORIES.map((c) => ({ ...c })),
+        statuses: DEFAULT_STATUSES.map((s) => ({ ...s })),
         scenes: {},
         images: {}, events: {},
         trash: { ...EMPTY_TRASH },

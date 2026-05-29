@@ -5,6 +5,7 @@ import { useProjectStore } from "../stores/project.js";
 import { useUiStore } from "../stores/ui.js";
 import RichEditor from "../components/RichEditor.vue";
 import Icon from "../components/Icon.vue";
+import StatusSelect from "../components/StatusSelect.vue";
 
 const props = defineProps({ id: { type: String, default: "" } });
 const project = useProjectStore();
@@ -30,13 +31,14 @@ function openEvents() { router.push("/architecture/setting/events"); }
       <input v-if="doc" class="input arch-title"
         :value="doc.title" @input="update('title', $event.target.value)" />
     </div>
-    <div v-if="doc && doc.id === 'setting'" class="pane-actions">
-      <button class="btn ghost" @click="openEvents"><Icon name="Calendar" :size="14" /> Events</button>
+    <div v-if="doc" class="pane-actions">
+      <button v-if="doc.id === 'setting'" class="btn ghost" @click="openEvents"><Icon name="Calendar" :size="14" /> Events</button>
+      <StatusSelect :model-value="doc.status || ''" @update:model-value="(v) => update('status', v)" />
     </div>
   </header>
 
-  <div v-if="doc" class="col-detail scrollarea">
-    <div class="arch-wrap">
+  <div v-if="doc" class="pane-card">
+    <div class="arch-wrap scrollarea">
       <textarea class="input arch-blurb" rows="2"
         placeholder="Blurb"
         :value="doc.blurb" @input="update('blurb', $event.target.value)" />
@@ -45,7 +47,7 @@ function openEvents() { router.push("/architecture/setting/events"); }
         :model-value="doc.body"
         placeholder="Write the document…"
         variant="inline"
-        :toolbar="['bold', 'italic', 'h2', 'quote', 'list', 'undo', 'redo']"
+        :toolbar="['bold', 'italic', 'underline', 'strike', 'h1', 'h2', 'h3', 'quote', 'list', 'orderedList', 'taskList', 'sceneBreak', 'align', 'highlight', 'link', 'image', 'table', 'find', 'undo', 'redo']"
         :min-height="280"
         @change="(html) => update('body', html)"
       />
@@ -56,8 +58,9 @@ function openEvents() { router.push("/architecture/setting/events"); }
 
 <style scoped>
 .arch-wrap {
+  flex: 1;
+  min-height: 0;
   padding: 22px 26px 40px;
-  max-width: 760px;
   display: flex;
   flex-direction: column;
   gap: 14px;

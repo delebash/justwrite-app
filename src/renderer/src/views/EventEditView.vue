@@ -64,6 +64,7 @@ function save() {
     </div>
   </header>
 
+  <div class="pane-card">
   <div class="scrollarea event-edit-pane">
     <div v-if="!ev" class="event-missing">
       That event no longer exists.
@@ -86,6 +87,7 @@ function save() {
           placeholder="Optional — anything you want to remember about this event."></textarea>
       </label>
     </form>
+  </div>
   </div>
 </template>
 

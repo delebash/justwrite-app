@@ -17,9 +17,8 @@ import { bootStorage, getItem } from "./services/storage.js";
 
 import "./assets/styles/tokens.css";
 
-// Hydrate the storage cache from IndexedDB (and one-shot migrate any
-// leftover localStorage:justwrite:* keys into IDB) BEFORE any Pinia
-// store initialises — stores read from the cache synchronously.
+// Hydrate the storage cache from IndexedDB BEFORE any Pinia store
+// initialises — stores read from the cache synchronously.
 // Wrapped in an async IIFE to keep the build target compatible with
 // engines that don't support top-level await (esbuild's safari13).
 (async () => {

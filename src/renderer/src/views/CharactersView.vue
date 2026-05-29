@@ -6,10 +6,13 @@ import { useRouter } from "vue-router";
 import Avatar from "../components/Avatar.vue";
 import Icon from "../components/Icon.vue";
 import ImagesModal from "../components/ImagesModal.vue";
+import StatusSelect from "../components/StatusSelect.vue";
 import GroupsModal from "../components/GroupsModal.vue";
 import SceneRefList from "../components/SceneRefList.vue";
+import MentionRefList from "../components/MentionRefList.vue";
 import { promptDialog, confirmDialog } from "../services/dialog.js";
 import { saveImage } from "../services/imageStore.js";
+import { NEW_ENTITY_META } from "../services/entityMeta.js";
 
 const props = defineProps({ id: { type: String, default: "" } });
 const project = useProjectStore();
@@ -29,12 +32,7 @@ const MOTIVATIONS = [
 const ARC_STEPS = [{ k: "start", label: "Beginning" }, { k: "midpoint", label: "Midpoint" }, { k: "end", label: "End" }];
 
 async function addCharacter() {
-  const name = await promptDialog({
-    title: "New character",
-    label: "Character name",
-    placeholder: "e.g. Mira Halden",
-    confirmLabel: "Create character",
-  });
+  const name = await promptDialog(NEW_ENTITY_META.characters);
   if (!name) return;
   const id = project.addCharacter({ name });
   ui.select("characters", id);
@@ -140,11 +138,12 @@ function updateBackstory(v) { project.setCharacterExtras(ch.value.id, { backstor
       <button class="btn ghost" @click="modal = 'groups'"><Icon name="GroupIcon" :size="14" /> Groups</button>
       <button class="btn ghost" @click="deleteCharacter">Delete</button>
       <button class="btn primary" @click="addCharacter"><Icon name="Plus" :size="14" /> New character</button>
+      <StatusSelect :model-value="ch.status || ''" @update:model-value="(v) => updateField('status', v)" />
     </div>
   </header>
 
-  <div class="col-detail scrollarea" style="overflow:auto">
-    <div style="padding:24px 28px 40px;max-width:980px">
+  <div class="pane-card">
+    <div class="scrollarea" style="padding:24px 28px 40px">
       <div style="display:flex;gap:22px;align-items:flex-start">
         <div
           class="avatar-drop"
@@ -241,6 +240,11 @@ function updateBackstory(v) { project.setCharacterExtras(ch.value.id, { backstor
         <div class="t-eyebrow" style="margin-bottom:10px">Appears in scenes</div>
         <SceneRefList field="characters" :entity-id="ch.id"
           empty-text="No scenes link this character yet. Open a scene → Links → Characters to add one." />
+      </div>
+
+      <div style="margin-top:22px">
+        <div class="t-eyebrow" style="margin-bottom:10px">Mentioned in prose</div>
+        <MentionRefList :entity-id="ch.id" />
       </div>
     </div>
   </div>

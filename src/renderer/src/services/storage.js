@@ -56,41 +56,12 @@ function scheduleWrite(key) {
 
 /**
  * Boot the storage layer. MUST be awaited before mounting Vue or
- * initialising any Pinia store.
- *
- * Steps:
- *   1. One-time migration: copy any leftover `justwrite:*` keys from
- *      localStorage into IDB, then remove them from localStorage so the
- *      old workspace transparently carries over.
- *   2. Hydrate the in-memory cache from IDB so synchronous reads work.
+ * initialising any Pinia store. Hydrates the in-memory cache from IDB
+ * so the synchronous getters have data to serve.
  */
 export async function bootStorage() {
   if (booted) return;
 
-  // 1. localStorage → IDB migration. Idempotent; runs once per device.
-  try {
-    if (typeof localStorage !== "undefined") {
-      const lsKeys = [];
-      for (let i = 0; i < localStorage.length; i++) {
-        const k = localStorage.key(i);
-        if (k && k.startsWith(PREFIX)) lsKeys.push(k);
-      }
-      for (const k of lsKeys) {
-        const existing = await get(k, store);
-        // Don't overwrite a value that's already in IDB (in case a user
-        // somehow has both — IDB wins as the source of truth).
-        if (existing === undefined) {
-          await set(k, localStorage.getItem(k), store);
-        }
-        localStorage.removeItem(k);
-      }
-    }
-  } catch {
-    // Migration failures are non-fatal — IDB still works, the user just
-    // loses any pre-migration localStorage data.
-  }
-
-  // 2. Hydrate cache.
   try {
     const ks = await idbKeys(store);
     for (const k of ks) {
@@ -146,18 +117,6 @@ export async function clearPrefix(prefix = PREFIX) {
     const allKs = await idbKeys(store);
     for (const k of allKs) {
       if (typeof k === "string" && k.startsWith(prefix)) await del(k, store);
-    }
-  } catch {}
-  // Also drop any straggler localStorage entries with the same prefix in
-  // case migration was interrupted on a previous boot.
-  try {
-    if (typeof localStorage !== "undefined") {
-      const stragglers = [];
-      for (let i = 0; i < localStorage.length; i++) {
-        const k = localStorage.key(i);
-        if (k && k.startsWith(prefix)) stragglers.push(k);
-      }
-      stragglers.forEach((k) => localStorage.removeItem(k));
     }
   } catch {}
 }

@@ -161,7 +161,8 @@ async function exportM4b({ partial = false } = {}) {
 <template>
   <PaneHeader eyebrow="Project" title="Export" />
 
-  <div class="scrollarea" style="flex:1;padding:22px">
+  <div class="pane-card">
+  <div class="scrollarea" style="padding:22px">
     <div style="max-width:920px;display:flex;flex-direction:column;gap:18px">
 
       <!-- Format picker -->
@@ -304,6 +305,7 @@ async function exportM4b({ partial = false } = {}) {
       </template>
 
     </div>
+  </div>
   </div>
 </template>
 

@@ -8,7 +8,7 @@ import PaneHeader from "../components/PaneHeader.vue";
 import Icon from "../components/Icon.vue";
 import {
   statusCounts, strandDistribution, characterPresence,
-  scenesPerChapter, projectKpis, paceSeries,
+  scenesPerChapter, projectKpis, paceSeries, dialogueMix,
 } from "../services/analysis.js";
 
 const project = useProjectStore();
@@ -22,6 +22,16 @@ const status = computed(() => statusCounts(allCh.value));
 const strands = computed(() => strandDistribution(project.strands, allCh.value));
 const presence = computed(() => characterPresence(project.characters, project.characterExtras, allCh.value, project.chapterBody, studio.speakersByChapter));
 const scenes = computed(() => scenesPerChapter(allCh.value));
+const dialogue = computed(() => dialogueMix(studio.scripts, allCh.value));
+
+// Mix segments — fixed order + colors, shared by the overall bar, the
+// legend, and the per-chapter rows.
+const MIX_KINDS = [
+  { k: "dialogue",  label: "Dialogue",  color: "oklch(0.64 0.14 255)" },
+  { k: "narration", label: "Narration", color: "oklch(0.70 0.10 155)" },
+  { k: "interior",  label: "Interior",  color: "oklch(0.74 0.12 70)" },
+];
+const pct = (n, total) => (total ? (n / total) * 100 : 0);
 
 // Pace — driven by the session log. Empty until the user writes
 // anything, but the chart still renders (all zeros).
@@ -89,7 +99,8 @@ function jumpChapter(chId) { router.push(`/chapters/${chId}`); }
 <template>
   <PaneHeader eyebrow="Project" title="Analysis" />
 
-  <div class="scrollarea" style="flex:1;padding:22px 26px 60px">
+  <div class="pane-card">
+  <div class="scrollarea" style="padding:22px 26px 60px">
 
     <!-- KPI row -->
     <div style="display:grid;grid-template-columns:repeat(4, 1fr);gap:14px;margin-bottom:18px">
@@ -235,6 +246,46 @@ function jumpChapter(chId) { router.push(`/chapters/${chId}`); }
       </div>
     </div>
 
+    <!-- Dialogue vs narration -->
+    <div class="card" style="margin-bottom:18px">
+      <div style="display:flex;align-items:center;gap:10px;margin-bottom:6px">
+        <div class="card-title" style="margin:0">Dialogue vs narration</div>
+        <span class="t-muted" style="font-size:11.5px">By word count, from Studio script analysis</span>
+        <span v-if="dialogue.analyzed" style="margin-left:auto;font-size:11.5px;color:var(--muted)">
+          {{ dialogue.overallDialoguePct }}% dialogue · {{ dialogue.analyzed }} ch analyzed
+        </span>
+      </div>
+
+      <template v-if="dialogue.analyzed">
+        <div class="mix-bar mix-bar-lg">
+          <div v-for="m in MIX_KINDS" :key="m.k" class="mix-seg"
+            :style="`width:${pct(dialogue.totals[m.k], dialogue.totals.total)}%;background:${m.color}`"
+            :title="`${m.label}: ${dialogue.totals[m.k].toLocaleString()} words`" />
+        </div>
+        <div style="display:flex;gap:16px;margin-top:8px;font-size:11.5px;color:var(--muted)">
+          <span v-for="m in MIX_KINDS" :key="m.k" style="display:inline-flex;align-items:center;gap:6px">
+            <span :style="`width:10px;height:10px;border-radius:2px;background:${m.color}`" />
+            {{ m.label }} · {{ Math.round(pct(dialogue.totals[m.k], dialogue.totals.total)) }}%
+          </span>
+        </div>
+
+        <div style="margin-top:14px;display:flex;flex-direction:column;gap:7px">
+          <div v-for="row in dialogue.perChapter" :key="row.id" class="mix-row" @click="jumpChapter(row.id)">
+            <span class="name">{{ row.num }}. {{ row.title }}</span>
+            <div class="mix-bar">
+              <div v-for="m in MIX_KINDS" :key="m.k" class="mix-seg"
+                :style="`width:${pct(row[m.k], row.total)}%;background:${m.color}`"
+                :title="`${m.label}: ${row[m.k].toLocaleString()} words`" />
+            </div>
+            <span class="val">{{ row.dialoguePct }}%</span>
+          </div>
+        </div>
+      </template>
+      <div v-else class="t-muted" style="font-size:12.5px;text-align:center;padding:22px 0;background:var(--surface-2);border-radius:8px">
+        No script analysis yet. Run <b>Studio → Script</b> on a chapter to break down dialogue, narration, and interior.
+      </div>
+    </div>
+
     <!-- Scenes per chapter -->
     <div class="card">
       <div class="card-title">Scenes per chapter</div>
@@ -250,6 +301,7 @@ function jumpChapter(chId) { router.push(`/chapters/${chId}`); }
         </button>
       </div>
     </div>
+  </div>
   </div>
 </template>
 
@@ -310,4 +362,12 @@ function jumpChapter(chId) { router.push(`/chapters/${chId}`); }
 .scene-bar > div { width: 100%; }
 .scene-num { font-size: 10.5px; color: var(--muted); font-variant-numeric: tabular-nums; }
 .scene-val { font-size: 12px; font-weight: 600; font-variant-numeric: tabular-nums; }
+
+.mix-bar { display: flex; height: 8px; border-radius: 999px; overflow: hidden; background: var(--surface-3); }
+.mix-bar-lg { height: 14px; }
+.mix-seg { height: 100%; transition: width .2s ease; }
+.mix-row { display: grid; grid-template-columns: 200px 1fr 44px; gap: 14px; align-items: center; font-size: 12.5px; cursor: pointer; padding: 2px 0; }
+.mix-row .name { color: var(--ink-2); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.mix-row .val { text-align: right; color: var(--muted); font-variant-numeric: tabular-nums; }
+.mix-row:hover { background: var(--surface-2); }
 </style>

@@ -7,7 +7,8 @@ const project = useProjectStore();
 
 <template>
   <PaneHeader eyebrow="Planning" title="Timeline" />
-  <div class="scrollarea" style="flex:1;padding:22px;overflow:auto">
+  <div class="pane-card">
+  <div class="scrollarea" style="padding:22px;overflow:auto">
     <div style="display:grid;grid-auto-flow:column;grid-auto-columns:240px;gap:16px;align-items:start">
       <div v-for="c in project.allChapters.slice(0, 10)" :key="c.id" style="min-width:240px">
         <div style="font-size:11px;font-weight:600;letter-spacing:0.06em;text-transform:uppercase;color:var(--muted);padding-bottom:8px;border-bottom:1px solid var(--border);margin-bottom:10px">
@@ -20,5 +21,6 @@ const project = useProjectStore();
         </div>
       </div>
     </div>
+  </div>
   </div>
 </template>
