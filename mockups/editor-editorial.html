@@ -1,0 +1,457 @@
+yes<!doctype html>
+<html lang="en" data-theme="paper">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>JustWrite — editor redesign mockup</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,300..600;1,9..144,300..600&family=Spline+Sans:wght@400;500;600&family=Spline+Sans+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+/* ============================================================
+   JustWrite — "Fine Press" editorial redesign · Manuscript editor
+   ============================================================ */
+:root{
+  --paper:#f5efe2; --surface:#fbf7ee; --surface-2:#f1ead9; --surface-3:#e9e0cc;
+  --page:#fdfaf2;  /* the writing sheet — a shade brighter than chrome */
+  --line:#ddd2bb; --line-soft:#e7ddc9; --line-strong:#cabd9f;
+  --ink:#221f18; --ink-2:#534c3d; --muted:#8c8369; --subtle:#aaa089;
+  --accent:#893a48; --accent-ink:#6c2c38; --accent-soft:#f0dfdf; --accent-line:#e1c4c6;
+  --gold:#a87d35; --gold-soft:#efe2c4;
+  --r-sm:5px; --r-md:9px; --r-lg:14px;
+  --shadow-1:0 1px 0 rgba(45,38,24,.04),0 1px 3px rgba(45,38,24,.05);
+  --shadow-2:0 1px 0 rgba(45,38,24,.05),0 14px 38px -10px rgba(45,38,24,.18);
+  --shadow-page:0 0 0 1px rgba(45,38,24,.05),0 30px 60px -28px rgba(45,38,24,.3);
+  --font-ui:"Spline Sans",ui-sans-serif,system-ui,sans-serif;
+  --font-mono:"Spline Sans Mono",ui-monospace,monospace;
+  --font-disp:"Fraunces",Georgia,"Times New Roman",serif;
+  --hl-yellow:#f3e2a6;
+}
+html[data-theme="dark"]{
+  --paper:#171511; --surface:#201d17; --surface-2:#1b1813; --surface-3:#2a261d; --page:#222019;
+  --line:#332f25; --line-soft:#2a261d; --line-strong:#494232;
+  --ink:#f0e9d8; --ink-2:#c9c0aa; --muted:#988e74; --subtle:#6f6753;
+  --accent:#cf7c87; --accent-ink:#e6b3ba; --accent-soft:#3a242a; --accent-line:#5a3640;
+  --gold:#d6ab5e; --gold-soft:#3a311e;
+  --shadow-1:0 1px 0 rgba(0,0,0,.4),0 1px 3px rgba(0,0,0,.4);
+  --shadow-2:0 1px 0 rgba(0,0,0,.45),0 16px 40px -10px rgba(0,0,0,.6);
+  --shadow-page:0 0 0 1px rgba(0,0,0,.5),0 30px 60px -28px rgba(0,0,0,.7);
+  --hl-yellow:#5a4e2a;
+}
+*{box-sizing:border-box;}
+html,body{margin:0;padding:0;height:100%;}
+body{
+  font-family:var(--font-ui);color:var(--ink);font-size:13.5px;line-height:1.5;letter-spacing:-.003em;
+  -webkit-font-smoothing:antialiased;overflow:hidden;
+  background:
+    radial-gradient(1100px 720px at 16% -8%, color-mix(in oklab,var(--accent) 9%,transparent),transparent 60%),
+    radial-gradient(960px 680px at 112% 116%, color-mix(in oklab,var(--gold) 12%,transparent),transparent 60%),
+    var(--paper);
+}
+body::before{content:"";position:fixed;inset:0;pointer-events:none;z-index:9999;opacity:.5;mix-blend-mode:multiply;
+  background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.9' numOctaves='2' stitchTiles='stitch'/%3E%3CfeColorMatrix type='saturate' values='0'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='.035'/%3E%3C/svg%3E");}
+html[data-theme="dark"] body::before{mix-blend-mode:screen;opacity:.6;}
+button{font:inherit;color:inherit;cursor:pointer;border:0;background:transparent;}
+input{font:inherit;color:inherit;}
+::selection{background:var(--accent-soft);}
+.scrollarea{overflow-y:auto;scrollbar-width:thin;scrollbar-color:var(--line-strong) transparent;}
+.scrollarea::-webkit-scrollbar{width:11px;}
+.scrollarea::-webkit-scrollbar-thumb{background:var(--line-strong);border-radius:6px;border:3px solid transparent;background-clip:content-box;}
+
+.stage{position:fixed;inset:0;background:var(--surface);display:grid;grid-template-rows:40px 1fr;overflow:hidden;}
+.titlebar{display:grid;grid-template-columns:1fr auto 1fr;align-items:center;padding:0 14px;
+  background:linear-gradient(180deg,color-mix(in oklab,var(--surface) 92%,#fff),var(--surface-2));border-bottom:1px solid var(--line);user-select:none;}
+.tb-dots{display:flex;gap:8px;}
+.tb-dots i{width:11px;height:11px;border-radius:50%;display:block;background:var(--line-strong);}
+.tb-dots i:nth-child(1){background:#d08a86;} .tb-dots i:nth-child(2){background:#d8b46a;} .tb-dots i:nth-child(3){background:#9fbf86;}
+.tb-title{justify-self:center;font-family:var(--font-disp);font-size:13px;font-style:italic;color:var(--muted);}
+.tb-right{justify-self:end;display:flex;gap:2px;}
+.tb-right button{width:30px;height:26px;border-radius:6px;color:var(--muted);display:grid;place-items:center;}
+.tb-right button:hover{background:var(--surface-3);color:var(--ink);}
+
+.app{display:grid;grid-template-columns:300px 1fr;height:100%;min-height:0;}
+
+/* ---------- sidebar (same shell as Home) ---------- */
+.sidebar{background:var(--surface-2);border-right:1px solid var(--line);display:flex;flex-direction:column;min-height:0;position:relative;}
+.sidebar::after{content:"";position:absolute;top:0;bottom:0;right:0;width:1px;background:linear-gradient(180deg,transparent,var(--line-strong) 30%,var(--line-strong) 70%,transparent);}
+.brand{display:flex;align-items:center;gap:12px;padding:18px 20px 14px;}
+.brand-mark{width:34px;height:34px;border-radius:50%;flex-shrink:0;display:grid;place-items:center;color:var(--surface);
+  background:radial-gradient(circle at 35% 30%,#a8505d,var(--accent) 70%);
+  box-shadow:inset 0 0 0 1px rgba(255,255,255,.15),0 2px 6px rgba(108,44,56,.35);
+  font-family:var(--font-disp);font-style:italic;font-weight:500;font-size:18px;position:relative;}
+.brand-mark::after{content:"";position:absolute;inset:5px;border-radius:50%;border:1px solid rgba(255,255,255,.28);}
+.brand-name{font-family:var(--font-disp);font-weight:500;font-size:18px;line-height:1;}
+.brand-sub{font-family:var(--font-mono);font-size:9.5px;letter-spacing:.13em;text-transform:uppercase;color:var(--muted);margin-top:4px;}
+.switcher{margin:2px 16px 12px;padding:11px 13px;border-radius:var(--r-md);background:var(--surface);border:1px solid var(--line);
+  display:grid;grid-template-columns:1fr auto;align-items:center;gap:8px;cursor:pointer;transition:border-color .15s;}
+.switcher:hover{border-color:var(--line-strong);}
+.switcher .ttl{font-family:var(--font-disp);font-size:14.5px;font-weight:500;line-height:1.15;}
+.switcher .by{font-size:10.5px;color:var(--muted);margin-top:2px;}
+.switcher svg{color:var(--muted);}
+.nav-scroll{flex:1;min-height:0;padding:2px 0 10px;}
+.nav-sec{display:flex;align-items:center;gap:10px;padding:15px 20px 7px;font-family:var(--font-mono);font-size:9.5px;font-weight:500;letter-spacing:.16em;text-transform:uppercase;color:var(--muted);}
+.nav-sec::after{content:"";flex:1;height:1px;background:var(--line);}
+.nav-block{padding:0 12px;}
+.nav-item{width:100%;display:grid;grid-template-columns:20px 1fr auto;align-items:center;gap:11px;padding:7px 9px;border-radius:7px;text-align:left;color:var(--ink-2);font-size:13px;position:relative;transition:background .12s,color .12s;}
+.nav-item:hover{background:var(--surface-3);color:var(--ink);}
+.nav-item.active{background:var(--surface);color:var(--accent-ink);box-shadow:inset 0 0 0 1px var(--line);}
+.nav-item.active::before{content:"";position:absolute;left:-12px;top:7px;bottom:7px;width:3px;border-radius:0 2px 2px 0;background:var(--accent);}
+.nav-item .ico{color:var(--muted);display:grid;place-items:center;}
+.nav-item.active .ico{color:var(--accent);}
+.nav-item .kbd{font-family:var(--font-mono);font-size:9.5px;color:var(--muted);border:1px solid var(--line);border-radius:4px;padding:1px 5px;background:var(--surface);}
+.nav-item .cnt{font-family:var(--font-mono);font-size:10px;color:var(--muted);}
+.nav-item .chev{color:var(--subtle);transition:transform .15s;}
+.nav-item.open .chev{transform:rotate(90deg);color:var(--ink-2);}
+.toc{margin:3px 0 8px;padding:2px 0 4px 14px;border-left:1px solid var(--line);margin-left:9px;}
+.toc-part{font-family:var(--font-mono);font-size:9px;letter-spacing:.14em;text-transform:uppercase;color:var(--subtle);padding:8px 9px 4px;}
+.toc-row{display:grid;grid-template-columns:22px 1fr auto;align-items:baseline;gap:9px;padding:4px 9px;border-radius:6px;color:var(--ink-2);font-size:12.5px;cursor:pointer;}
+.toc-row:hover{background:var(--surface-3);color:var(--ink);}
+.toc-row.sel{background:var(--surface);box-shadow:inset 0 0 0 1px var(--line);color:var(--accent-ink);}
+.toc-num{font-family:var(--font-disp);font-style:italic;font-size:13px;color:var(--muted);text-align:right;}
+.toc-row.sel .toc-num{color:var(--accent);}
+.toc-label{overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+.toc-words{font-family:var(--font-mono);font-size:10px;color:var(--subtle);}
+/* scene rows nested under the open chapter */
+.toc-scene{display:grid;grid-template-columns:34px 1fr auto;align-items:baseline;gap:8px;padding:3px 9px 3px 0;margin-left:22px;border-radius:6px;color:var(--ink-2);font-size:11.5px;cursor:pointer;}
+.toc-scene:hover{background:var(--surface-3);color:var(--ink);}
+.toc-scene.sel{color:var(--accent-ink);font-weight:500;}
+.toc-scene .b{font-family:var(--font-mono);font-size:9.5px;color:var(--subtle);text-align:right;}
+.toc-scene.sel .b{color:var(--accent);}
+.sb-foot{margin-top:auto;padding:13px 18px;border-top:1px solid var(--line);display:flex;align-items:center;gap:11px;}
+.sb-foot .av{width:30px;height:30px;border-radius:50%;display:grid;place-items:center;color:#fff;font-size:11px;font-weight:600;background:linear-gradient(135deg,#b3727c,#7e5aa0);}
+.sb-foot b{font-size:12.5px;display:block;font-weight:500;}
+.sb-foot span{font-size:10px;color:var(--muted);font-family:var(--font-mono);letter-spacing:.02em;}
+.sb-foot .save-dot{width:6px;height:6px;border-radius:50%;background:#7f8a4e;box-shadow:0 0 0 3px color-mix(in oklab,#7f8a4e 25%,transparent);}
+
+/* ---------- main / editor ---------- */
+.main{display:flex;flex-direction:column;min-width:0;min-height:0;background:var(--surface-2);}
+
+/* run-head (pane header) */
+.runhead{display:flex;align-items:center;gap:16px;padding:13px 26px;border-bottom:1px solid var(--line);flex-shrink:0;}
+.crumbs{display:flex;align-items:center;gap:8px;font-family:var(--font-mono);font-size:10px;letter-spacing:.12em;text-transform:uppercase;color:var(--muted);}
+.crumbs a{color:var(--muted);text-decoration:none;}
+.crumbs a:hover{color:var(--accent-ink);}
+.crumbs .sep{color:var(--subtle);}
+.crumbs .cur{color:var(--accent-ink);}
+.title-wrap{flex:1;min-width:0;}
+.scene-title{appearance:none;border:1px solid transparent;background:transparent;border-radius:7px;padding:2px 7px;margin-left:-7px;
+  font-family:var(--font-disp);font-weight:500;font-size:22px;letter-spacing:.003em;color:var(--ink);width:100%;outline:none;}
+.scene-title:hover{border-color:var(--line);}
+.scene-title:focus{border-color:var(--accent);background:var(--page);box-shadow:0 0 0 3px var(--accent-soft);}
+
+.seg{display:inline-flex;background:var(--surface-2);border:1px solid var(--line);border-radius:9px;padding:2px;gap:2px;}
+.seg button{display:inline-flex;align-items:center;gap:6px;padding:5px 11px;border-radius:7px;font-size:11.5px;font-weight:500;color:var(--ink-2);}
+.seg button:hover{background:var(--surface-3);color:var(--ink);}
+.seg button.active{background:var(--page);color:var(--accent-ink);box-shadow:var(--shadow-1),inset 0 0 0 1px var(--line);}
+
+.icbtn{width:30px;height:30px;border-radius:8px;display:grid;place-items:center;color:var(--muted);border:1px solid var(--line);background:var(--surface);box-shadow:var(--shadow-1);}
+.icbtn:hover{background:var(--surface-3);color:var(--ink);}
+.icbtn.ghost{border-color:transparent;box-shadow:none;}
+.statussel{display:inline-flex;align-items:center;gap:7px;padding:6px 11px;border-radius:8px;border:1px solid var(--accent-line);background:var(--accent-soft);color:var(--accent-ink);font-size:11.5px;font-weight:500;}
+.statussel .dot{width:8px;height:8px;border-radius:50%;background:var(--accent);}
+
+/* toolbar */
+.toolbar{display:flex;align-items:center;gap:2px;flex-wrap:wrap;row-gap:4px;padding:7px 18px;border-bottom:1px solid var(--line);background:var(--surface);flex-shrink:0;}
+.tgrp{display:flex;gap:1px;align-items:center;}
+.tgrp + .tgrp{margin-left:8px;padding-left:8px;border-left:1px solid var(--line);}
+.tb{width:29px;height:29px;border-radius:7px;display:inline-flex;align-items:center;justify-content:center;color:var(--ink-2);transition:background .1s,color .1s;}
+.tb:hover{background:var(--surface-3);color:var(--ink);}
+.tb.active{background:var(--accent-soft);color:var(--accent-ink);}
+.tb.glyph{font-family:var(--font-disp);font-size:13px;font-weight:600;}
+.tb.sup{font-size:11px;font-weight:600;}
+.spacer{flex:1;}
+.tb-read{display:inline-flex;align-items:center;gap:6px;font-family:var(--font-mono);font-size:10px;letter-spacing:.08em;color:var(--muted);padding:0 8px;}
+
+/* scene strip */
+.scene-strip{display:flex;align-items:center;gap:12px;padding:8px 22px;border-bottom:1px solid var(--line);background:var(--surface-2);flex-wrap:wrap;}
+.ss-btn{display:inline-flex;align-items:center;gap:6px;padding:5px 11px;border-radius:7px;font-size:11.5px;color:var(--ink-2);border:1px solid var(--line);background:var(--surface);}
+.ss-btn:hover{background:var(--surface-3);color:var(--ink);}
+.ss-btn:disabled{opacity:.4;cursor:default;}
+.ss-pill{font-family:var(--font-mono);font-size:10px;letter-spacing:.1em;text-transform:uppercase;color:var(--muted);padding:4px 12px;border:1px solid var(--line);border-radius:999px;background:var(--surface);}
+.ss-links{margin-left:auto;display:inline-flex;align-items:center;gap:7px;padding:6px 13px;border-radius:8px;background:var(--accent);color:#fbeff0;font-size:12px;font-weight:600;box-shadow:0 2px 10px -2px rgba(108,44,56,.5);}
+.ss-links:hover{background:var(--accent-ink);}
+
+/* writing area */
+.desk{flex:1;min-height:0;overflow-y:auto;
+  background:
+    radial-gradient(900px 540px at 50% -6%, color-mix(in oklab,var(--gold) 8%,transparent), transparent 55%),
+    var(--surface-2);}
+.page{
+  position:relative;max-width:760px;margin:30px auto 90px;background:var(--page);
+  border:1px solid var(--line);border-radius:6px;box-shadow:var(--shadow-page);
+  padding:64px 88px 92px;
+}
+/* book-style running head + folio */
+.page .runninghead{position:absolute;top:26px;left:0;right:0;text-align:center;font-family:var(--font-mono);
+  font-size:9.5px;letter-spacing:.28em;text-transform:uppercase;color:var(--subtle);}
+.page .folio{position:absolute;bottom:30px;left:0;right:0;text-align:center;font-family:var(--font-disp);font-style:italic;font-size:13px;color:var(--subtle);}
+
+.prose{font-family:var(--font-disp);font-size:18.5px;line-height:1.84;color:var(--ink);font-weight:380;letter-spacing:.002em;}
+.prose .chap-no{text-align:center;font-family:var(--font-mono);font-size:11px;letter-spacing:.34em;text-transform:uppercase;color:var(--accent);margin:0 0 6px;}
+.prose h1{text-align:center;font-family:var(--font-disp);font-weight:400;font-style:italic;font-size:32px;letter-spacing:.01em;margin:0 0 8px;}
+.prose .rule{width:54px;height:1px;background:var(--line-strong);margin:0 auto 40px;position:relative;}
+.prose .rule::after{content:"";position:absolute;left:50%;top:-3px;width:7px;height:7px;border-radius:50%;background:var(--gold);transform:translateX(-50%);}
+.prose p{margin:0;text-indent:1.5em;}
+.prose p + p{margin-top:0;}
+.prose p.first{text-indent:0;}
+/* drop cap on the first paragraph */
+.prose p.first::first-letter{
+  font-family:var(--font-disp);font-weight:500;font-size:4.6em;line-height:.82;
+  float:left;margin:.06em .1em -.06em 0;color:var(--accent);
+}
+.prose em{font-style:italic;}
+/* scene break ornament */
+.prose .scene-break{text-align:center;color:var(--muted);letter-spacing:.5em;font-size:16px;margin:30px 0 26px;}
+/* @-mention chip */
+.mention{border-radius:5px;padding:0 5px;font-family:var(--font-ui);font-size:.82em;font-weight:500;white-space:nowrap;cursor:pointer;
+  background:color-mix(in oklab,#6aa9ff 20%,transparent);border:1px solid color-mix(in oklab,#6aa9ff 42%,transparent);color:var(--ink);}
+/* a commented span — dotted accent underline, ties to a margin note */
+.commented{background:color-mix(in oklab,var(--accent) 13%,transparent);border-bottom:2px dotted color-mix(in oklab,var(--accent) 65%,transparent);cursor:pointer;}
+/* highlighted span */
+.hl{background:var(--hl-yellow);border-radius:2px;padding:0 1px;}
+
+/* marginalia — comments live in the margin like an editor's pencil notes */
+.marginalia{position:absolute;right:-216px;width:196px;}
+.note{background:var(--surface);border:1px solid var(--line);border-left:3px solid var(--gold);border-radius:8px;padding:11px 13px;box-shadow:var(--shadow-1);}
+.note .who{display:flex;align-items:center;gap:7px;margin-bottom:5px;}
+.note .who .av{width:18px;height:18px;border-radius:50%;background:linear-gradient(135deg,#b3727c,#7e5aa0);color:#fff;font-size:8.5px;font-weight:600;display:grid;place-items:center;}
+.note .who b{font-size:11px;font-weight:600;}
+.note .who span{font-family:var(--font-mono);font-size:9px;color:var(--muted);margin-left:auto;}
+.note p{margin:0;font-size:12px;line-height:1.5;color:var(--ink-2);font-style:italic;font-family:var(--font-disp);}
+.note .tail{position:absolute;left:-20px;top:16px;width:20px;height:1px;background:var(--gold);opacity:.6;}
+
+/* floating selection bubble menu (shown statically for the mockup) */
+.bubble{position:absolute;left:120px;top:372px;display:flex;gap:2px;padding:4px;border-radius:9px;
+  background:var(--ink);box-shadow:0 10px 30px rgba(0,0,0,.3);z-index:5;}
+.bubble .tb{color:#e9e0cc;width:27px;height:27px;}
+.bubble .tb:hover{background:rgba(255,255,255,.12);color:#fff;}
+.bubble .tb.active{background:var(--accent);color:#fff;}
+.bubble::after{content:"";position:absolute;left:24px;bottom:-6px;width:12px;height:12px;background:var(--ink);transform:rotate(45deg);}
+
+/* footer — live session ticker */
+.ed-foot{display:flex;align-items:center;gap:18px;padding:9px 24px;border-top:1px solid var(--line);background:var(--surface);
+  font-family:var(--font-mono);font-size:11px;color:var(--muted);letter-spacing:.02em;flex-shrink:0;}
+.ed-foot b{color:var(--ink);font-weight:500;}
+.ed-foot .sep{width:1px;height:13px;background:var(--line-strong);}
+.ed-foot .sesh{color:var(--accent-ink);}
+.ed-foot .right{margin-left:auto;display:flex;align-items:center;gap:9px;}
+.ed-foot .save{display:inline-flex;align-items:center;gap:6px;}
+.ed-foot .save i{width:6px;height:6px;border-radius:50%;background:#7f8a4e;box-shadow:0 0 0 3px color-mix(in oklab,#7f8a4e 25%,transparent);}
+.ed-foot .focus{display:inline-flex;align-items:center;gap:6px;color:var(--ink-2);padding:3px 9px;border:1px solid var(--line);border-radius:7px;}
+.ed-foot .focus:hover{background:var(--surface-3);color:var(--ink);}
+</style>
+</head>
+<body>
+<div class="stage">
+
+  <div class="titlebar">
+    <div class="tb-dots"><i></i><i></i><i></i></div>
+    <div class="tb-title">The Cartographer's Daughter</div>
+    <div class="tb-right">
+      <button id="themeBtn" title="Toggle writing-room theme">
+        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 12.8A9 9 0 1 1 11.2 3a7 7 0 0 0 9.8 9.8z"/></svg>
+      </button>
+      <button title="Focus mode"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M8 3H5a2 2 0 0 0-2 2v3m18 0V5a2 2 0 0 0-2-2h-3M3 16v3a2 2 0 0 0 2 2h3m13-5v3a2 2 0 0 0-2 2h-3"/></svg></button>
+    </div>
+  </div>
+
+  <div class="app">
+
+    <!-- ===== SIDEBAR ===== -->
+    <aside class="sidebar">
+      <div class="brand">
+        <div class="brand-mark">J</div>
+        <div style="flex:1;min-width:0"><div class="brand-name">JustWrite</div><div class="brand-sub">Fine&nbsp;Press · Local</div></div>
+      </div>
+      <button class="switcher">
+        <div style="min-width:0"><div class="ttl">The Cartographer's Daughter</div><div class="by">by Mira Halden</div></div>
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="m6 9 6 6 6-6"/></svg>
+      </button>
+      <div class="nav-scroll scrollarea">
+        <div class="nav-sec">Manuscript</div>
+        <div class="nav-block">
+          <button class="nav-item"><span class="ico"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg></span><span>Search</span><span class="kbd">⌘F</span></button>
+          <button class="nav-item"><span class="ico"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 11.5 12 4l9 7.5"/><path d="M5 10v9h14v-9"/></svg></span><span>Home</span></button>
+          <button class="nav-item active open"><span class="ico"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 19.5V6a2 2 0 0 1 2-2h13v16H6a2 2 0 0 0-2 2z"/><path d="M9 4v16"/></svg></span><span>Chapters</span><span class="chev"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="m9 6 6 6-6 6"/></svg></span></button>
+          <div class="toc">
+            <div class="toc-part">Part I · The Margins</div>
+            <div class="toc-row"><span class="toc-num">i</span><span class="toc-label">A blank coastline</span><span class="toc-words">2,140</span></div>
+            <div class="toc-row"><span class="toc-num">ii</span><span class="toc-label">Inkwells and oaths</span><span class="toc-words">3,025</span></div>
+            <div class="toc-part">Part II · The Crossing</div>
+            <div class="toc-row sel"><span class="toc-num">xii</span><span class="toc-label">The first crossing</span><span class="toc-words">1,880</span></div>
+            <div class="toc-scene sel"><span class="b">12.1</span><span class="toc-label">The vellum</span></div>
+            <div class="toc-scene"><span class="b">12.2</span><span class="toc-label">Below deck</span></div>
+            <div class="toc-scene"><span class="b">12.3</span><span class="toc-label">Landfall, of a kind</span></div>
+            <div class="toc-row"><span class="toc-num">xiii</span><span class="toc-label">Salt and longitude</span><span class="toc-words">640</span></div>
+          </div>
+          <button class="nav-item"><span class="ico"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 6h16M4 12h10M4 18h7"/></svg></span><span>Narrative strands</span><span class="cnt">5</span></button>
+          <button class="nav-item"><span class="ico"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="4" y="4" width="16" height="16" rx="2"/><path d="M9 4v16M4 12h5"/></svg></span><span>Architecture</span></button>
+        </div>
+        <div class="nav-sec">Story world</div>
+        <div class="nav-block">
+          <button class="nav-item"><span class="ico"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="9" cy="8" r="3"/><path d="M3 20a6 6 0 0 1 12 0"/><path d="M16 6a3 3 0 0 1 0 6m5 8a6 6 0 0 0-4-5.6"/></svg></span><span>Characters</span><span class="cnt">14</span></button>
+          <button class="nav-item"><span class="ico"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 21s7-6.4 7-11a7 7 0 1 0-14 0c0 4.6 7 11 7 11z"/><circle cx="12" cy="10" r="2.5"/></svg></span><span>Locations</span><span class="cnt">9</span></button>
+          <button class="nav-item"><span class="ico"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="m12 3 8 4.5v9L12 21l-8-4.5v-9z"/><path d="m12 3v18M4 7.5l8 4.5 8-4.5"/></svg></span><span>Objects</span><span class="cnt">6</span></button>
+          <button class="nav-item"><span class="ico"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="m12 3 2.2 5.8L20 11l-5.8 2.2L12 19l-2.2-5.8L4 11l5.8-2.2z"/></svg></span><span>Worldbuilding</span><span class="cnt">22</span></button>
+        </div>
+        <div class="nav-sec">Planning</div>
+        <div class="nav-block">
+          <button class="nav-item"><span class="ico"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 12h18"/><circle cx="7" cy="12" r="2"/><circle cx="17" cy="12" r="2"/></svg></span><span>Timeline</span></button>
+          <button class="nav-item"><span class="ico"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 3h10l4 4v14H5z"/><path d="M14 3v5h5"/></svg></span><span>Notes</span><span class="cnt">17</span></button>
+          <button class="nav-item"><span class="ico"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="6" cy="6" r="2.5"/><circle cx="18" cy="18" r="2.5"/><circle cx="18" cy="6" r="2.5"/><path d="M8 6h8M7.8 8 16 16"/></svg></span><span>Relations</span></button>
+        </div>
+        <div class="nav-sec">Project</div>
+        <div class="nav-block">
+          <button class="nav-item"><span class="ico"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 20V10M10 20V4M16 20v-7M22 20H2"/></svg></span><span>Analysis</span></button>
+          <button class="nav-item"><span class="ico"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 3v12m0-12 4 4m-4-4-4 4M5 21h14"/></svg></span><span>Export</span></button>
+          <button class="nav-item"><span class="ico"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M19.4 13.5a1.6 1.6 0 0 0 .3 1.8 2 2 0 1 1-2.8 2.8 1.6 1.6 0 0 0-2.7 1.1V21a2 2 0 1 1-4 0 1.6 1.6 0 0 0-2.7-1.1 2 2 0 1 1-2.8-2.8A1.6 1.6 0 0 0 3 13.5a2 2 0 1 1 0-4 1.6 1.6 0 0 0 1.1-2.7 2 2 0 1 1 2.8-2.8A1.6 1.6 0 0 0 9.5 5a2 2 0 1 1 4 0 1.6 1.6 0 0 0 2.7-1.1 2 2 0 1 1 2.8 2.8A1.6 1.6 0 0 0 21 9.5a2 2 0 1 1 0 4z"/></svg></span><span>Settings</span></button>
+        </div>
+      </div>
+      <div class="sb-foot">
+        <div class="av">MH</div>
+        <div style="flex:1"><b>Mira Halden</b><span>Saved · 14:08</span></div>
+        <span class="save-dot" title="Autosaved"></span>
+      </div>
+    </aside>
+
+    <!-- ===== EDITOR ===== -->
+    <main class="main">
+
+      <!-- run-head -->
+      <div class="runhead">
+        <div class="title-wrap">
+          <div class="crumbs">
+            <a href="#">Part II · The Crossing</a><span class="sep">›</span>
+            <a href="#">Ch. 12 — The first crossing</a><span class="sep">›</span>
+            <span class="cur">Scene 1</span>
+          </div>
+          <input class="scene-title" value="The vellum" />
+        </div>
+        <div class="seg">
+          <button class="active"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 7h11M4 12h16M4 17h9"/></svg> Edit</button>
+          <button><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M8 6h13M8 12h13M8 18h13M3 6h.01M3 12h.01M3 18h.01"/></svg> Outline</button>
+          <button><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></svg> Cards</button>
+          <button><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7-10-7-10-7z"/><circle cx="12" cy="12" r="3"/></svg> Read</button>
+        </div>
+        <button class="icbtn ghost" title="Previous chapter"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="m15 6-6 6 6 6"/></svg></button>
+        <button class="icbtn ghost" title="Next chapter"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="m9 6 6 6-6 6"/></svg></button>
+        <button class="statussel"><span class="dot"></span> In revision</button>
+      </div>
+
+      <!-- toolbar -->
+      <div class="toolbar">
+        <div class="tgrp">
+          <button class="tb" title="Undo"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 14 4 9l5-5"/><path d="M4 9h11a5 5 0 0 1 0 10h-3"/></svg></button>
+          <button class="tb" title="Redo"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="m15 14 5-5-5-5"/><path d="M20 9H9a5 5 0 0 0 0 10h3"/></svg></button>
+        </div>
+        <div class="tgrp">
+          <button class="tb glyph active" style="font-weight:700" title="Bold">B</button>
+          <button class="tb glyph" style="font-style:italic" title="Italic">I</button>
+          <button class="tb glyph" style="text-decoration:underline" title="Underline">U</button>
+          <button class="tb glyph" style="text-decoration:line-through" title="Strikethrough">S</button>
+        </div>
+        <div class="tgrp">
+          <button class="tb" title="Highlight"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="m9 11 4 4 8-8-4-4z"/><path d="M5 21h6l-3-3z"/></svg></button>
+          <button class="tb" title="Text colour"><span style="font-family:var(--font-disp);font-weight:700;border-bottom:3px solid var(--accent);line-height:1">A</span></button>
+          <button class="tb glyph" title="Smaller">A−</button>
+          <button class="tb glyph" title="Larger">A+</button>
+        </div>
+        <div class="tgrp">
+          <button class="tb" title="Block quote"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M7 7H4v6h5V7Zm0 0c0 6-3 7-3 7m13-7h-3v6h5V7Zm0 0c0 6-3 7-3 7" transform="translate(0 1)"/></svg></button>
+          <button class="tb" title="Bullet list"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M8 6h13M8 12h13M8 18h13"/><circle cx="3.5" cy="6" r="1.2" fill="currentColor"/><circle cx="3.5" cy="12" r="1.2" fill="currentColor"/><circle cx="3.5" cy="18" r="1.2" fill="currentColor"/></svg></button>
+          <button class="tb" title="Scene break"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="5" cy="12" r="1.4" fill="currentColor"/><circle cx="12" cy="12" r="1.4" fill="currentColor"/><circle cx="19" cy="12" r="1.4" fill="currentColor"/></svg></button>
+        </div>
+        <div class="tgrp">
+          <button class="tb glyph" title="Heading 1">H1</button>
+          <button class="tb glyph" title="Heading 2">H2</button>
+        </div>
+        <div class="tgrp">
+          <button class="tb" title="Link"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M10 13a5 5 0 0 0 7 0l3-3a5 5 0 0 0-7-7l-1.5 1.5"/><path d="M14 11a5 5 0 0 0-7 0l-3 3a5 5 0 0 0 7 7l1.5-1.5"/></svg></button>
+          <button class="tb" title="Insert image"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="16" rx="2"/><circle cx="8.5" cy="9.5" r="1.5"/><path d="m21 16-5-5L5 20"/></svg></button>
+          <button class="tb active" title="Comment"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 2H4a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h4v4l5-4h7a2 2 0 0 0 2-2V4a2 2 0 0 0-2-2Z"/></svg></button>
+        </div>
+        <div class="spacer"></div>
+        <div class="tgrp" style="border:0;margin:0;padding:0">
+          <button class="tb" title="Find & replace"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg></button>
+          <button class="tb" title="Focus mode"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M8 3H5a2 2 0 0 0-2 2v3m18 0V5a2 2 0 0 0-2-2h-3M3 16v3a2 2 0 0 0 2 2h3m13-5v3a2 2 0 0 0-2 2h-3"/></svg></button>
+          <button class="tb" title="Writing settings"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M19.4 13.5a1.6 1.6 0 0 0 .3 1.8 2 2 0 1 1-2.8 2.8 1.6 1.6 0 0 0-2.7 1.1V21a2 2 0 1 1-4 0 1.6 1.6 0 0 0-2.7-1.1 2 2 0 1 1-2.8-2.8A1.6 1.6 0 0 0 3 13.5a2 2 0 1 1 0-4 1.6 1.6 0 0 0 1.1-2.7 2 2 0 1 1 2.8-2.8A1.6 1.6 0 0 0 9.5 5a2 2 0 1 1 4 0 1.6 1.6 0 0 0 2.7-1.1 2 2 0 1 1 2.8 2.8A1.6 1.6 0 0 0 21 9.5a2 2 0 1 1 0 4z"/></svg></button>
+        </div>
+      </div>
+
+      <!-- scene strip -->
+      <div class="scene-strip">
+        <button class="ss-btn" disabled><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="m15 6-6 6 6 6"/></svg> Prev scene</button>
+        <span class="ss-pill">Scene 1 of 3</span>
+        <button class="ss-btn">Next scene <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="m9 6 6 6-6 6"/></svg></button>
+        <button class="ss-links"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="6" cy="6" r="2.5"/><circle cx="18" cy="18" r="2.5"/><circle cx="18" cy="6" r="2.5"/><path d="M8 6h8M7.8 8 16 16"/></svg> Links · POV: Aldis</button>
+      </div>
+
+      <!-- writing desk -->
+      <div class="desk scrollarea">
+        <article class="page">
+          <div class="runninghead">The Cartographer's Daughter</div>
+
+          <!-- floating selection bubble (static, for the mockup) -->
+          <div class="bubble">
+            <button class="tb active" style="font-weight:700;font-family:var(--font-disp)">B</button>
+            <button class="tb" style="font-style:italic;font-family:var(--font-disp)">I</button>
+            <button class="tb"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="m9 11 4 4 8-8-4-4z"/><path d="M5 21h6l-3-3z"/></svg></button>
+            <button class="tb"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M10 13a5 5 0 0 0 7 0l3-3a5 5 0 0 0-7-7l-1.5 1.5"/><path d="M14 11a5 5 0 0 0-7 0l-3 3a5 5 0 0 0 7 7l1.5-1.5"/></svg></button>
+            <button class="tb"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 2H4a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h4v4l5-4h7a2 2 0 0 0 2-2V4a2 2 0 0 0-2-2Z"/></svg></button>
+          </div>
+
+          <div class="prose">
+            <p class="chap-no">Chapter Twelve</p>
+            <h1>The First Crossing</h1>
+            <div class="rule"></div>
+
+            <p class="first">She pressed her thumb to the vellum where the coastline should have been, and felt only the cold weave of the cloth, and the small, terrible certainty that her father had drawn the sea from memory. The chart was beautiful. That was the worst of it — the soundings inked in his careful hand, the rhumb lines fanning from a rose that pointed, she now understood, at nothing.</p>
+
+            <p>Above her, the deck complained in its joints. <span class="mention">@Wren</span> would be at the wheel by now, pretending the fog was weather and not an omen, and <span class="commented">she would have to tell him before the watch changed</span> that the harbour he steered for had never been surveyed by anyone living.</p>
+
+            <p>She rolled the chart and did not roll it tightly, the way her father had taught her — <em>a map remembers every crease, and a crease becomes a road</em> — and she wondered how many roads she had folded into the world without meaning to.</p>
+
+            <div class="scene-break">✦ ✦ ✦</div>
+
+            <p class="first">Below deck the lantern threw its yellow argument against the dark. She spread the second chart, the one she had not shown him, and <span class="hl">weighted its corners with the brass dividers and a cup gone cold</span>. Here the coast existed. Here it had teeth.</p>
+
+            <p>The difference between the two maps was three days' sailing and, she suspected, both their lives.</p>
+          </div>
+
+          <!-- marginalia: a comment, shown in the margin instead of inline -->
+          <div class="marginalia" style="top:300px">
+            <div class="note">
+              <span class="tail"></span>
+              <div class="who"><span class="av">MH</span><b>Note to self</b><span>14:01</span></div>
+              <p>Reveal is landing too early — move the chart-swap to the end of the scene?</p>
+            </div>
+          </div>
+
+          <div class="folio">— 142 —</div>
+        </article>
+      </div>
+
+      <!-- footer: live session ticker -->
+      <div class="ed-foot">
+        <span><b>1,880</b> words</span><span class="sep"></span>
+        <span><b>10,420</b> chars</span><span class="sep"></span>
+        <span>≈ 8 min read</span><span class="sep"></span>
+        <span class="sesh"><b>+1,240</b> this session · 1h 52m</span>
+        <div class="right">
+          <button class="focus"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M8 3H5a2 2 0 0 0-2 2v3m18 0V5a2 2 0 0 0-2-2h-3M3 16v3a2 2 0 0 0 2 2h3m13-5v3a2 2 0 0 0-2 2h-3"/></svg> Focus</button>
+          <span class="save"><i></i> Autosaved</span>
+        </div>
+      </div>
+
+    </main>
+  </div>
+</div>
+
+<script>
+  document.getElementById('themeBtn').addEventListener('click',()=>{
+    const h=document.documentElement;
+    h.dataset.theme = h.dataset.theme==='dark' ? 'paper' : 'dark';
+  });
+</script>
+</body>
+</html>
