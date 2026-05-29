@@ -650,20 +650,17 @@ defineExpose({ editor });
         <button v-if="show('table')" class="tb-btn" @click="insertTable" data-tip="Insert table"><Icon name="Table" :size="14" /></button>
       </div>
 
-      <div class="group" v-if="show('print')">
-        <button v-if="show('print')" class="tb-btn" @click="doPrint" data-tip="Print"><Icon name="Print" :size="14" /></button>
-      </div>
-
       <div class="group" v-if="show('comment')">
         <button class="tb-btn" :class="{ active: isActive('comment') }" :disabled="editor.state.selection.empty" @click="openCommentEditor" data-tip="Add comment"><Icon name="Comment" :size="14" /></button>
         <button class="tb-btn" @click="gotoComment(-1)" data-tip="Previous comment"><Icon name="ChevRight" :size="13" style="transform:rotate(180deg)" /></button>
         <button class="tb-btn" @click="gotoComment(1)" data-tip="Next comment"><Icon name="ChevRight" :size="13" /></button>
       </div>
 
-      <div class="group" v-if="show('find') || show('focus') || show('settings')">
+      <div class="group" v-if="show('find') || show('focus') || show('settings') || show('print')">
         <button v-if="show('find')" class="tb-btn" :class="{ active: findOpen }" @click="toggleFind" :data-tip="TIP.find"><Icon name="Search" :size="14" /></button>
         <button v-if="show('focus')" class="tb-btn" :class="{ active: focusMode }" @click="toggleFocus" data-tip="Focus mode"><Icon name="Focus" :size="14" /></button>
         <button v-if="show('settings')" class="tb-btn" @click="settingsOpen = true" data-tip="Writing settings"><Icon name="Settings" :size="14" /></button>
+        <button v-if="show('print')" class="tb-btn" @click="doPrint" data-tip="Print"><Icon name="Print" :size="14" /></button>
       </div>
 
       <div style="flex:1" />
