@@ -488,15 +488,14 @@ export const WORLDBUILDING = [
 
 export const DEFAULT_PROVIDERS = [
   {
-    id: "ollama-local", name: "Ollama (local)", kind: "llm",
+    // Generic OpenAI-shaped local LLM (Ollama, LM Studio, llama.cpp, …).
+    // chatModel is left blank because every server uses its own ids
+    // (e.g. "llama3.1:8b" on Ollama, "auto-detected/path/to.gguf" on
+    // LM Studio). Click "Fetch models" in Settings to pick from the
+    // running server's list.
+    id: "openai-compat-local", name: "OpenAI-compatible (local)", kind: "llm",
     baseUrl: "http://localhost:11434/v1",
-    chatModel: "llama3.1:8b",
-    builtIn: true,
-  },
-  {
-    id: "lmstudio-local", name: "LM Studio (local)", kind: "llm",
-    baseUrl: "http://localhost:1234/v1",
-    chatModel: "auto",
+    chatModel: "",
     builtIn: true,
   },
   {
@@ -508,38 +507,33 @@ export const DEFAULT_PROVIDERS = [
     builtIn: true,
   },
   {
-    id: "openedai-speech", name: "openedai-speech (local TTS proxy)", kind: "tts",
-    baseUrl: "http://localhost:8000/v1",
-    ttsModel: "tts-1",
-    ttsVoices: ["alloy", "echo", "fable", "onyx", "nova", "shimmer"],
+    // Claude via Anthropic's OpenAI-compatible endpoint. LLM-only —
+    // no TTS. Default model is the cheapest Claude (haiku); users can
+    // swap to claude-sonnet-4-6 or claude-opus-4-7 for higher quality.
+    id: "claude", name: "Claude (Anthropic)", kind: "llm",
+    baseUrl: "https://api.anthropic.com/v1",
+    chatModel: "claude-haiku-4-5",
     builtIn: true,
   },
   {
+    // Voices are discovered at runtime via GET /v1/audio/voices. The
+    // previous hard-coded list went stale as Kokoro-FastAPI renamed
+    // entries (e.g. bf_isabella → bf_v0isabella) and added new ones.
     id: "kokoro", name: "Kokoro (local TTS)", kind: "tts",
     baseUrl: "http://localhost:8880/v1",
     ttsModel: "kokoro",
-    ttsVoices: ["af_bella", "af_sarah", "af_nicole", "af_sky", "am_adam", "am_michael", "bf_emma", "bf_isabella", "bm_george", "bm_lewis"],
     builtIn: true,
   },
   {
-    id: "vibevoice", name: "VibeVoice (local TTS)", kind: "tts",
-    baseUrl: "http://localhost:8001/v1",
-    ttsModel: "vibevoice-1.5b",
-    ttsVoices: ["Alice", "Andrew", "Bowen", "Carter", "Frank", "Maya"],
-    builtIn: true,
-  },
-  {
-    id: "chatterbox-turbo", name: "Chatterbox-Turbo (local TTS)", kind: "tts",
-    baseUrl: "http://localhost:4123/v1",
-    ttsModel: "chatterbox-turbo",
-    ttsVoices: ["aria", "caleb", "mira", "theo"],
-    builtIn: true,
-  },
-  {
-    id: "xtts-v2", name: "XTTS-v2 (Coqui, local TTS)", kind: "tts",
-    baseUrl: "http://localhost:8020/v1",
-    ttsModel: "xtts-v2",
-    ttsVoices: ["Claribel Dervla", "Daisy Studious", "Gracie Wise", "Andrew Chipper", "Royston Min", "Damien Black"],
+    // devnen/Chatterbox-TTS-Server. Voices come from the server's ./voices/
+    // folder — discovered at runtime via GET /v1/audio/voices, so we don't
+    // hard-code a starter list. Drop a WAV or MP3 directly into ./voices/
+    // and refresh the cast picker. Note: devnen's web UI uploads go to
+    // ./reference_audio/ instead (used by its custom /tts route), not to
+    // ./voices/, so JustWrite won't see them unless you move them across.
+    id: "chatterbox", name: "Chatterbox (local TTS + cloning)", kind: "tts",
+    baseUrl: "http://localhost:8004/v1",
+    ttsModel: "chatterbox",
     builtIn: true,
   },
 ];
@@ -552,48 +546,17 @@ export const SAMPLE_VOICES = [
   { id: "fable",   providerId: "openai", name: "Fable",   gender: "neutral", age: "adult", accent: "British",  tone: "warm, narrative" },
   { id: "echo",    providerId: "openai", name: "Echo",    gender: "male",    age: "adult", accent: "American", tone: "measured" },
 
-  // Kokoro — small, fast local TTS (Kokoro-FastAPI, OpenAI-compatible).
-  { id: "af_bella",    providerId: "kokoro", name: "Bella",    gender: "female", age: "adult", accent: "American", tone: "warm" },
-  { id: "af_sarah",    providerId: "kokoro", name: "Sarah",    gender: "female", age: "adult", accent: "American", tone: "bright" },
-  { id: "af_nicole",   providerId: "kokoro", name: "Nicole",   gender: "female", age: "adult", accent: "American", tone: "intimate, whispered" },
-  { id: "af_sky",      providerId: "kokoro", name: "Sky",      gender: "female", age: "young", accent: "American", tone: "airy" },
-  { id: "am_adam",     providerId: "kokoro", name: "Adam",     gender: "male",   age: "adult", accent: "American", tone: "steady" },
-  { id: "am_michael",  providerId: "kokoro", name: "Michael",  gender: "male",   age: "adult", accent: "American", tone: "grounded" },
-  { id: "bf_emma",     providerId: "kokoro", name: "Emma",     gender: "female", age: "adult", accent: "British",  tone: "poised" },
-  { id: "bf_isabella", providerId: "kokoro", name: "Isabella", gender: "female", age: "adult", accent: "British",  tone: "literary" },
-  { id: "bm_george",   providerId: "kokoro", name: "George",   gender: "male",   age: "adult", accent: "British",  tone: "authoritative" },
-  { id: "bm_lewis",    providerId: "kokoro", name: "Lewis",    gender: "male",   age: "adult", accent: "British",  tone: "dry" },
-
-  // VibeVoice — Microsoft multi-speaker TTS (1.5B model defaults).
-  { id: "Alice",  providerId: "vibevoice", name: "Alice",  gender: "female", age: "adult", accent: "American", tone: "conversational" },
-  { id: "Andrew", providerId: "vibevoice", name: "Andrew", gender: "male",   age: "adult", accent: "American", tone: "easygoing" },
-  { id: "Bowen",  providerId: "vibevoice", name: "Bowen",  gender: "male",   age: "adult", accent: "American", tone: "confident" },
-  { id: "Carter", providerId: "vibevoice", name: "Carter", gender: "male",   age: "adult", accent: "American", tone: "thoughtful" },
-  { id: "Frank",  providerId: "vibevoice", name: "Frank",  gender: "male",   age: "older", accent: "American", tone: "weathered" },
-  { id: "Maya",   providerId: "vibevoice", name: "Maya",   gender: "female", age: "adult", accent: "American", tone: "lyrical" },
-
-  // Chatterbox-Turbo — Resemble's open-source emotional TTS. Built-in presets;
-  // clone-from-reference is the typical workflow, so treat these as starters.
-  { id: "aria",  providerId: "chatterbox-turbo", name: "Aria",  gender: "female", age: "adult", accent: "American", tone: "expressive" },
-  { id: "caleb", providerId: "chatterbox-turbo", name: "Caleb", gender: "male",   age: "adult", accent: "American", tone: "narrative" },
-  { id: "mira",  providerId: "chatterbox-turbo", name: "Mira",  gender: "female", age: "adult", accent: "American", tone: "intimate" },
-  { id: "theo",  providerId: "chatterbox-turbo", name: "Theo",  gender: "male",   age: "adult", accent: "British",  tone: "stoic" },
-
-  // XTTS-v2 — Coqui multilingual TTS, sampling its English speaker presets.
-  { id: "Claribel Dervla", providerId: "xtts-v2", name: "Claribel Dervla", gender: "female", age: "adult", accent: "Irish",    tone: "lilting" },
-  { id: "Daisy Studious",  providerId: "xtts-v2", name: "Daisy Studious",  gender: "female", age: "adult", accent: "British",  tone: "scholarly" },
-  { id: "Gracie Wise",     providerId: "xtts-v2", name: "Gracie Wise",     gender: "female", age: "older", accent: "American", tone: "knowing" },
-  { id: "Andrew Chipper",  providerId: "xtts-v2", name: "Andrew Chipper",  gender: "male",   age: "adult", accent: "American", tone: "cheerful" },
-  { id: "Royston Min",     providerId: "xtts-v2", name: "Royston Min",     gender: "male",   age: "adult", accent: "British",  tone: "formal" },
-  { id: "Damien Black",    providerId: "xtts-v2", name: "Damien Black",    gender: "male",   age: "adult", accent: "American", tone: "gravelly" },
+  // Kokoro and Chatterbox voices aren't seeded — their servers expose them
+  // via GET /v1/audio/voices (Kokoro: predefined model voices, Chatterbox:
+  // whatever WAV/MP3 files live in its ./voices/ folder). Keeping a static
+  // list here drifts as upstream renames or adds voices.
 ];
 
+// Empty by default — a fresh project starts with no cast assignments
+// so the user can see exactly what Smart Assign (or manual picks) does.
 export const DEFAULT_CAST = {
-  narrator: "fable",
-  characters: {
-    c1: "shimmer", c2: "onyx", c3: "nova", c4: "echo",
-    c5: "alloy",   c6: "shimmer", c7: null, c8: null,
-  },
+  narrator: null,
+  characters: {},
 };
 
 export const SCRIPT_CH7 = [

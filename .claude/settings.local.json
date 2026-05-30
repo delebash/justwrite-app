@@ -24,7 +24,26 @@
       "Bash(node probe.mjs)",
       "Skill(update-config)",
       "Bash(node *)",
-      "Bash(powershell *)"
+      "Bash(powershell *)",
+      "Bash(curl *)",
+      "PowerShell(Test-Path *)",
+      "WebSearch",
+      "WebFetch(domain:github.com)",
+      "WebFetch(domain:raw.githubusercontent.com)",
+      "Skill(deep-research)",
+      "PowerShell(Get-Command *)",
+      "Bash('E:\\\\pinokio\\\\bin\\\\npm\\\\pterm.cmd' --help)",
+      "Bash(python -c \"import sys,json; d=json.load\\(sys.stdin\\); [print\\(p, list\\(m.keys\\(\\)\\)\\) for p,m in d.get\\('paths',{}\\).items\\(\\)]\")",
+      "Bash(netstat -ano)",
+      "Bash('./env/Scripts/python.exe' shim.py)",
+      "Bash(echo '=== reproduce ping bug — GET /v1\\\\\\\\models ===')",
+      "Bash(awk '{print $NF}')",
+      "WebFetch(domain:www.aibase.com)",
+      "WebFetch(domain:localai.io)",
+      "WebFetch(domain:beta.pinokio.co)",
+      "WebFetch(domain:speech.fish.audio)",
+      "WebFetch(domain:inference.readthedocs.io)",
+      "WebFetch(domain:docs.anthropic.com)"
     ]
   }
 }

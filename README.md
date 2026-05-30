@@ -88,15 +88,15 @@ JustWrite uses one client class for everything: **`OpenAICompatClient`** (`src/r
 
 Pre-configured presets in Settings → **AI & Audio engines**:
 
-| Preset            | Base URL                            | Notes                                                                |
-| ----------------- | ----------------------------------- | -------------------------------------------------------------------- |
-| Ollama (local)    | `http://localhost:11434/v1`         | LLM only. Free. `ollama pull llama3.1:8b`.                          |
-| LM Studio (local) | `http://localhost:1234/v1`          | LLM only. Free. Load a model, start the local server.                |
-| OpenAI            | `https://api.openai.com/v1`         | LLM + TTS. Add your API key.                                         |
-| openedai-speech   | `http://localhost:8000/v1`          | Local TTS proxy. Wraps XTTS / Piper / Kokoro.                        |
-| Browser           | `browser://web-speech`              | Built-in `speechSynthesis`. Preview-only — can't be rendered to file.|
+| Preset                        | Base URL                            | Notes                                                                                                                |
+| ----------------------------- | ----------------------------------- | -------------------------------------------------------------------------------------------------------------------- |
+| OpenAI-compatible (local)     | `http://localhost:11434/v1`         | Generic LLM endpoint. Point at Ollama, LM Studio, llama.cpp, etc. — change the URL to whatever local server you run. |
+| OpenAI                        | `https://api.openai.com/v1`         | LLM + TTS. Add your API key.                                                                                         |
+| Claude (Anthropic)            | `https://api.anthropic.com/v1`      | LLM only, via Anthropic's OpenAI-compatible endpoint. Add your `sk-ant-...` key. Default model: `claude-haiku-4-5`.   |
+| Kokoro (local TTS)            | `http://localhost:8880/v1`          | Small, fast local TTS via Kokoro-FastAPI.                                                                            |
+| Chatterbox                    | `http://localhost:8004/v1`          | Local TTS + voice cloning (devnen/Chatterbox-TTS-Server). Drop reference WAV or MP3 files into the server's `./voices/` folder; they appear in JustWrite's cast picker by filename. |
 
-Add any other OpenAI-style provider via **Add provider**.
+Add any other OpenAI-style provider — including local TTS servers — via **Add provider**.
 
 ---
 

@@ -8,15 +8,7 @@ const LS_KEY = "justwrite:studio";
 
 function load() {
   try {
-    const v = JSON.parse(getItem(LS_KEY) || "null");
-    if (!v) return null;
-    // Migration: drop voices that belonged to the removed Web Speech
-    // provider. Cast slots pointing at those voices fall back to null
-    // naturally via voiceById() and the user re-picks.
-    if (Array.isArray(v.voices)) {
-      v.voices = v.voices.filter((vv) => vv.providerId !== "web-speech");
-    }
-    return v;
+    return JSON.parse(getItem(LS_KEY) || "null");
   } catch { return null; }
 }
 function save(state) {
@@ -81,6 +73,10 @@ export const useStudioStore = defineStore("studio", {
   },
 
   actions: {
+    clearCast() {
+      this.cast = { narrator: null, characters: {} };
+      save(this.$state);
+    },
     setNarrator(voiceId) {
       this.cast = { ...this.cast, narrator: voiceId };
       save(this.$state);

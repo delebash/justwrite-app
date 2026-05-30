@@ -8,8 +8,15 @@ import Icon from "../components/Icon.vue";
 import { listVoices, preview } from "../services/tts.js";
 import { smartCast, detectSpeakers } from "../services/llm.js";
 import { renderChapter } from "../services/render.js";
+import { confirmDialog } from "../services/dialog.js";
 
 const props = defineProps({ tab: { type: String, default: "cast" } });
+
+// Paragraphs whose entire content is just a chapter/scene/part label
+// (with optional Roman or Arabic numeral) get dropped before LLM analysis.
+// Examples that match: "Scene 1", "scene1", "Chapter II", "Prologue", "Act 3".
+// Examples that don't: "The scene shifted to the kitchen", "Chapter One ended in silence".
+const STRUCTURAL_MARKER_RE = /^(scene|chapter|part|book|act|prologue|epilogue|interlude)\s*[ivxlcdm0-9]*\.?$/i;
 
 const project = useProjectStore();
 const studio = useStudioStore();
@@ -65,6 +72,17 @@ async function playPreview(voice) {
   } catch (e) { error.value = e.message; previewingVoice.value = null; }
 }
 
+async function confirmClearCast() {
+  const yes = await confirmDialog({
+    title: "Clear every cast assignment?",
+    body: "The narrator and every character will be reset to no voice. Re-run Smart-assign or pick voices manually afterward.",
+    confirmLabel: "Clear cast",
+    danger: true,
+  });
+  if (!yes) return;
+  studio.clearCast();
+}
+
 async function runSmartCast() {
   if (!llmProvider.value) { error.value = "No LLM provider configured."; return; }
   smartLoading.value = true; error.value = null;
@@ -105,21 +123,49 @@ const analyzeLoading = ref(false);
 async function reanalyze() {
   if (!llmProvider.value) { error.value = "No LLM provider configured."; return; }
   analyzeLoading.value = true; error.value = null;
+  // Wipe the existing script first so the UI shows a clean state during
+  // the LLM call rather than the previous run's lines lingering until
+  // the new result arrives.
+  studio.clearScript(scriptChapter.value);
   try {
-    // Pull paragraphs from chapter body HTML.
+    // Pull paragraph text from the chapter body. Two things are stripped:
+    //   1. Headings (h1/h2/h3) — structural, not spoken content.
+    //   2. Paragraphs that are just a structural marker word like
+    //      "Scene 1", "Chapter II", "Prologue" — same intent.
+    // Either way: not in the script, no LLM tokens spent classifying them,
+    // no audio for them.
     const html = project.chapterBody[scriptChapter.value] || "";
     const div = document.createElement("div");
     div.innerHTML = html;
-    const paragraphs = Array.from(div.querySelectorAll("p, h1, h2, h3"))
+    const paragraphs = Array.from(div.querySelectorAll("p"))
       .map((el) => el.textContent.trim())
-      .filter(Boolean);
+      .filter((t) => t && !STRUCTURAL_MARKER_RE.test(t));
 
     const annotated = await detectSpeakers({
       provider: llmProvider.value,
       paragraphs,
       characters: project.characters,
     });
-    studio.setScript(scriptChapter.value, annotated.map((a, i) => ({ ...a, text: paragraphs[i] })));
+
+    // Prepend a narrator-spoken line built from the chapter's metadata
+    // (num + title) so the audiobook opens with "Chapter Seven.
+    // Brackish Cove, at low tide." before the prose starts. Both parts
+    // are optional — skip whichever is missing.
+    const chapter = project.chapterById(scriptChapter.value);
+    const introParts = [];
+    if (chapter?.num != null) introParts.push(`Chapter ${chapter.num}.`);
+    if (chapter?.title) introParts.push(`${chapter.title}.`);
+    const script = [];
+    if (introParts.length) {
+      script.push({
+        speaker: "narrator",
+        kind: "narration",
+        confidence: 1.0,
+        text: introParts.join(" "),
+      });
+    }
+    annotated.forEach((a, i) => script.push({ ...a, text: paragraphs[i] }));
+    studio.setScript(scriptChapter.value, script);
   } catch (e) { error.value = e.message; } finally { analyzeLoading.value = false; }
 }
 
@@ -217,10 +263,16 @@ function downloadChapter(chapterId) {
           <div class="t-eyebrow">Narrator</div>
           <div style="font-family:var(--font-serif);font-size:18px;font-weight:600">The voice of everything that isn't spoken</div>
         </div>
-        <button class="btn" :disabled="smartLoading" @click="runSmartCast">
-          <Icon :name="smartLoading ? 'Refresh' : 'Sparkle'" :size="13" />
-          {{ smartLoading ? "Casting…" : "Smart-assign" }}
-        </button>
+        <div style="display:flex;gap:8px">
+          <button class="btn" :disabled="smartLoading" @click="confirmClearCast">
+            <Icon name="Close" :size="13" />
+            Clear cast
+          </button>
+          <button class="btn" :disabled="smartLoading" @click="runSmartCast">
+            <Icon :name="smartLoading ? 'Refresh' : 'Sparkle'" :size="13" />
+            {{ smartLoading ? "Casting…" : "Smart-assign" }}
+          </button>
+        </div>
       </div>
 
       <button class="cast-card" :class="{ sel: selectedChar === 'narrator', unassigned: !castedVoice('narrator') }" @click="selectedChar = 'narrator'">

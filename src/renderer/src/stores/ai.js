@@ -12,12 +12,6 @@ function load() {
   try {
     const v = JSON.parse(getItem(LS_KEY) || "null");
     if (!v || !Array.isArray(v.providers)) return null;
-    // Migration: drop the removed Web Speech provider from persisted state
-    // and reset defaults that pointed at it.
-    const filtered = v.providers.filter((p) => p.id !== "web-speech" && p.engine !== "web-speech");
-    if (filtered.length !== v.providers.length) v.providers = filtered;
-    if (v.defaultTtsId === "web-speech") v.defaultTtsId = "openai";
-    if (v.defaultLlmId === "web-speech") v.defaultLlmId = "ollama-local";
     return v;
   } catch { return null; }
 }
@@ -37,7 +31,7 @@ export const useAiStore = defineStore("ai", {
     const loaded = load();
     return {
       providers: loaded?.providers ?? [...DEFAULT_PROVIDERS],
-      defaultLlmId: loaded?.defaultLlmId ?? "ollama-local",
+      defaultLlmId: loaded?.defaultLlmId ?? "openai-compat-local",
       defaultTtsId: loaded?.defaultTtsId ?? "openai",
       status: {}, // providerId -> "ok" | "down" | "checking" | undefined
     };

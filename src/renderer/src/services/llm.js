@@ -16,11 +16,10 @@ import { OpenAICompatClient } from "./openai-compat.js";
 const SPEAKER_SYSTEM = `You are a dialogue analysis assistant for a novelist.
 For each paragraph the user gives you, identify the speaker.
 Return a JSON array, one object per paragraph, in order, with fields:
-  { "speaker": <id>, "confidence": <0..1>, "kind": "narration"|"dialogue"|"interior"|"scene" }
+  { "speaker": <id>, "confidence": <0..1>, "kind": "narration"|"dialogue"|"interior" }
 Use "narrator" for narration. Use the character id (e.g. "c1") for dialogue.
-Use "interior" for unspoken thoughts of a character. Use "scene" for scene
-markers like "Scene i". Be conservative — if you are uncertain, set
-confidence below 0.85.`;
+Use "interior" for unspoken thoughts of a character. Be conservative — if
+you are uncertain, set confidence below 0.85.`;
 
 export async function detectSpeakers({ provider, paragraphs, characters, model, signal }) {
   const client = new OpenAICompatClient(provider);

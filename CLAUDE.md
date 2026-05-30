@@ -61,7 +61,7 @@ All in `src/renderer/src/stores/`:
 
 ### AI providers
 
-One client class — **`OpenAICompatClient`** (`services/openai-compat.js`) — speaks `/v1/chat/completions`, `/v1/audio/speech`, `/v1/audio/voices`, `/v1/models`. Used identically for Ollama, LM Studio, OpenAI, openedai-speech, and any other OpenAI-shaped endpoint added in Settings → AI providers.
+One client class — **`OpenAICompatClient`** (`services/openai-compat.js`) — speaks `/v1/chat/completions`, `/v1/audio/speech`, `/v1/audio/voices`, `/v1/models`. Used identically for the OpenAI cloud, any OpenAI-compatible local LLM server (Ollama, LM Studio, llama.cpp, …), and any OpenAI-compatible local TTS server added in Settings → AI providers.
 
 **Web Speech** (`services/webSpeech.js`) is a special provider marked `realtimeOnly` — voices come from the OS, preview plays live, and the render pipeline (`services/render.js`) skips realtime-only voices with a "preview-only" reason rather than attempting to file-render.
 
