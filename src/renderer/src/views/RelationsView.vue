@@ -23,16 +23,24 @@ const router = useRouter();
 // The edge map dedups undirected pairs and records source labels so a
 // hover tooltip can explain *why* two nodes are connected.
 
-const CONTENT_W = 900;
-const CONTENT_H = 640;
+const CONTENT_W = 1100;
+const CONTENT_H = 800;
 const CENTER_X = CONTENT_W / 2;
 const CENTER_Y = CONTENT_H / 2;
-const RING_MAIN     = 110;   // main characters
-const RING_SECOND   = 190;   // secondary characters
-const RING_OUTER    = 280;   // locations + objects
-const NODE_R_MAIN   = 36;
-const NODE_R_SECOND = 26;
-const NODE_R_OUTER  = 24;
+const RING_MAIN     = 140;   // main characters
+const RING_SECOND   = 240;   // secondary characters
+const RING_OUTER    = 340;   // locations + objects
+const NODE_R_MAIN   = 50;
+const NODE_R_SECOND = 38;
+const NODE_R_OUTER  = 36;
+
+// Shrink-to-fit helper: if the label is wider than the circle can hold,
+// return a textLength that compresses it. Returns null otherwise so the
+// text renders at its natural width (no stretching of short labels).
+function fitLength(label, fontSize, maxWidth) {
+  const estimated = (label?.length || 0) * fontSize * 0.55;
+  return estimated > maxWidth ? maxWidth : null;
+}
 
 function ringPlace(items, ringRadius, mapFn) {
   const out = [];
@@ -244,6 +252,54 @@ function openNode(n) {
   else router.push(`/characters/${n.id}`);
 }
 
+// ── Focus mode ────────────────────────────────────────────
+// Hover transiently focuses; clicking a node pins focus (so the user
+// can move the cursor away to read). Clicking the pinned node again
+// navigates to its page. Clicking empty canvas (or pressing Esc) clears
+// the pin. When something is focused, every node/edge not connected to
+// it is dimmed.
+const hoveredId = ref(null);
+const pinnedId = ref(null);
+const focusedId = computed(() => pinnedId.value || hoveredId.value);
+
+const connectedIds = computed(() => {
+  const id = focusedId.value;
+  if (!id) return null; // null = no focus, everything full opacity
+  const set = new Set([id]);
+  for (const e of visibleEdges.value) {
+    if (e.a === id) set.add(e.b);
+    else if (e.b === id) set.add(e.a);
+  }
+  return set;
+});
+
+const focusedNode = computed(() =>
+  focusedId.value ? nodeById.value.get(focusedId.value) : null
+);
+const focusedNeighborCount = computed(() =>
+  connectedIds.value ? Math.max(0, connectedIds.value.size - 1) : 0
+);
+
+function isNodeDim(n) {
+  return connectedIds.value ? !connectedIds.value.has(n.id) : false;
+}
+function isEdgeOnFocus(e) {
+  const id = focusedId.value;
+  return !!id && (e.a === id || e.b === id);
+}
+function isEdgeDim(e) {
+  return connectedIds.value ? !isEdgeOnFocus(e) : false;
+}
+
+function onNodeEnter(n) { hoveredId.value = n.id; }
+function onNodeLeave(n) { if (hoveredId.value === n.id) hoveredId.value = null; }
+function onNodeClick(n) {
+  // Second click on the pinned node → open its page.
+  if (pinnedId.value === n.id) { openNode(n); return; }
+  pinnedId.value = n.id;
+}
+function clearPin() { pinnedId.value = null; }
+
 // ── Pan / zoom ─────────────────────────────────────────────
 // Transform is applied to an inner <g> as translate(tx, ty) scale(z).
 // Wheel zooms cursor-anchored; left-click-drag on empty canvas pans.
@@ -293,13 +349,13 @@ function onWheel(e) {
 }
 
 let panStart = null;
+let panMoved = false;
 function onPointerDown(e) {
   // Only pan on a primary-button click that didn't land on a node.
   if (e.button !== 0) return;
-  // If a node was clicked, let it handle its own thing later — for
-  // now nodes don't have click handlers, so this is just a safety net.
   if (e.target.closest?.("[data-node]")) return;
   isPanning.value = true;
+  panMoved = false;
   panStart = { x: e.clientX, y: e.clientY, tx: tx.value, ty: ty.value };
   svgRef.value?.setPointerCapture?.(e.pointerId);
 }
@@ -310,11 +366,16 @@ function onPointerMove(e) {
   const ctm = svgRef.value?.getScreenCTM();
   const sx = ctm ? ctm.a : 1;
   const sy = ctm ? ctm.d : 1;
-  tx.value = panStart.tx + (e.clientX - panStart.x) / sx;
-  ty.value = panStart.ty + (e.clientY - panStart.y) / sy;
+  const dx = e.clientX - panStart.x;
+  const dy = e.clientY - panStart.y;
+  if (Math.abs(dx) + Math.abs(dy) > 4) panMoved = true;
+  tx.value = panStart.tx + dx / sx;
+  ty.value = panStart.ty + dy / sy;
 }
 function onPointerUp(e) {
   if (isPanning.value) {
+    // A tap on empty canvas (no drag movement) clears the pinned focus.
+    if (!panMoved) clearPin();
     isPanning.value = false;
     panStart = null;
     svgRef.value?.releasePointerCapture?.(e.pointerId);
@@ -353,6 +414,7 @@ function onKey(e) {
   if (e.key === "+" || e.key === "=") { e.preventDefault(); zoomIn(); }
   else if (e.key === "-" || e.key === "_") { e.preventDefault(); zoomOut(); }
   else if (e.key === "0") { e.preventDefault(); resetView(); }
+  else if (e.key === "Escape" && pinnedId.value) { e.preventDefault(); clearPin(); }
 }
 onMounted(() => window.addEventListener("keydown", onKey));
 onBeforeUnmount(() => window.removeEventListener("keydown", onKey));
@@ -389,22 +451,38 @@ onBeforeUnmount(() => window.removeEventListener("keydown", onKey));
           :x1="nodeById.get(e.a)?.x" :y1="nodeById.get(e.a)?.y"
           :x2="nodeById.get(e.b)?.x" :y2="nodeById.get(e.b)?.y"
           :stroke-width="Math.min(3, 1 + e.reasonList.length * 0.6)"
-          class="relations-edge">
+          class="relations-edge"
+          :class="{ dim: isEdgeDim(e), focused: isEdgeOnFocus(e) }">
           <title>{{ edgeTitle(e) }}</title>
         </line>
 
         <!-- Nodes -->
         <g v-for="n in nodes" :key="n.id" data-node class="relations-node"
+          :class="{
+            dim: isNodeDim(n),
+            'is-focused': focusedId === n.id,
+            'is-pinned': pinnedId === n.id,
+          }"
           :transform="`translate(${n.x} ${n.y})`"
-          @click="openNode(n)">
-          <title>{{ n.label }}{{ n.sub ? ` — ${n.sub}` : "" }}</title>
+          @click.stop="onNodeClick(n)"
+          @mouseenter="onNodeEnter(n)"
+          @mouseleave="onNodeLeave(n)">
+          <title>{{ n.label }}{{ n.sub ? ` — ${n.sub}` : "" }}{{ pinnedId === n.id ? ' (click again to open)' : '' }}</title>
           <circle :r="n.r"
             :style="`fill: ${nodeFill(n)}; stroke: ${nodeStroke(n)}`"
-            :stroke-width="n.main ? 2 : 1.5" />
-          <text :y="4" :font-size="n.r > 30 ? 12 : 11"
+            :stroke-width="pinnedId === n.id ? 3 : (n.main ? 2 : 1.5)" />
+          <text :y="-2" :font-size="n.r >= 50 ? 13 : 11"
             text-anchor="middle"
+            lengthAdjust="spacingAndGlyphs"
+            :textLength="fitLength(n.label, n.r >= 50 ? 13 : 11, n.r * 1.7) || undefined"
             style="fill: var(--ink); pointer-events: none; font-weight: 500;">
             {{ n.label }}
+          </text>
+          <text :y="n.r >= 50 ? 14 : 12" :font-size="n.r >= 50 ? 8.5 : 7.5"
+            text-anchor="middle"
+            class="relations-node-type"
+            style="pointer-events: none;">
+            {{ n.cls.charAt(0).toUpperCase() + n.cls.slice(1) }}
           </text>
         </g>
       </g>
@@ -442,8 +520,26 @@ onBeforeUnmount(() => window.removeEventListener("keydown", onKey));
       </label>
     </div>
 
+    <!-- Focus card — appears while something is hovered or pinned. -->
+    <div v-if="focusedNode" class="relations-focus" :class="{ pinned: !!pinnedId }">
+      <div class="relations-focus-row">
+        <i class="dot" :class="focusedNode.cls" />
+        <div class="relations-focus-text">
+          <div class="relations-focus-name">{{ focusedNode.label }}</div>
+          <div class="relations-focus-meta">
+            {{ focusedNeighborCount }} connection{{ focusedNeighborCount === 1 ? '' : 's' }}
+          </div>
+        </div>
+        <button v-if="pinnedId" class="btn ghost icon sm" title="Clear focus (Esc)" @click="clearPin">
+          <Icon name="Close" :size="12" />
+        </button>
+      </div>
+      <div v-if="!pinnedId" class="relations-focus-hint">Click to pin · click again to open</div>
+      <div v-else class="relations-focus-hint">Click node again to open · click empty space to clear</div>
+    </div>
+
     <div class="relations-hint">
-      <kbd>Wheel</kbd> zoom · <kbd>Drag</kbd> pan · <kbd>+</kbd>/<kbd>−</kbd>/<kbd>0</kbd>
+      <kbd>Wheel</kbd> zoom · <kbd>Drag</kbd> pan · <kbd>+</kbd>/<kbd>−</kbd>/<kbd>0</kbd> · <kbd>Esc</kbd> clear focus
     </div>
   </div>
 </template>
@@ -479,18 +575,37 @@ onBeforeUnmount(() => window.removeEventListener("keydown", onKey));
 .relations-edge {
   stroke: var(--border-strong);
   opacity: 0.6;
-  transition: opacity .12s ease, stroke .12s ease;
+  transition: opacity .14s ease, stroke .14s ease, stroke-width .14s ease;
 }
 .relations-edge:hover { opacity: 1; stroke: var(--accent); }
+.relations-edge.dim { opacity: 0.08; }
+.relations-edge.focused {
+  opacity: 1;
+  stroke: var(--accent);
+}
 
-.relations-node { cursor: pointer; }
+.relations-node { cursor: pointer; transition: opacity .14s ease; }
 .relations-node circle {
-  transition: filter .12s ease, transform .08s ease;
+  transition: filter .12s ease, transform .08s ease, stroke-width .12s ease;
 }
 .relations-node:hover circle {
   filter: drop-shadow(0 0 6px var(--accent-soft));
 }
 .relations-node:active circle { transform: scale(0.96); transform-box: fill-box; transform-origin: center; }
+.relations-node.dim { opacity: 0.18; }
+.relations-node.is-focused circle {
+  filter: drop-shadow(0 0 8px var(--accent));
+}
+.relations-node.is-pinned circle {
+  stroke: var(--accent);
+}
+.relations-node-type {
+  fill: var(--ink-2);
+  font-weight: 500;
+  letter-spacing: 0.04em;
+  opacity: 0.75;
+  text-transform: uppercase;
+}
 
 .relations-empty {
   position: absolute;
@@ -584,6 +699,69 @@ onBeforeUnmount(() => window.removeEventListener("keydown", onKey));
   grid-column: 4;
   min-width: 24px;
   text-align: right;
+}
+
+.relations-focus {
+  position: absolute;
+  left: 14px;
+  top: 14px;
+  min-width: 180px;
+  max-width: 260px;
+  padding: 8px 10px 6px;
+  background: color-mix(in oklab, var(--surface), transparent 8%);
+  border: 1px solid var(--border-soft);
+  border-radius: 8px;
+  font-size: 11.5px;
+  color: var(--ink);
+  box-shadow: 0 4px 12px -6px color-mix(in oklab, var(--ink), transparent 80%);
+  pointer-events: auto;
+}
+.relations-focus.pinned {
+  border-color: var(--accent);
+}
+.relations-focus-row {
+  display: grid;
+  grid-template-columns: auto 1fr auto;
+  align-items: center;
+  gap: 8px;
+}
+.relations-focus .dot {
+  width: 14px; height: 14px;
+  border-radius: 4px;
+  border: 1px solid;
+  flex-shrink: 0;
+}
+.relations-focus .dot.character {
+  background: var(--mm-character-line);
+  border-color: var(--mm-character-line);
+}
+.relations-focus .dot.location {
+  background: var(--mm-location-line);
+  border-color: var(--mm-location-line);
+}
+.relations-focus .dot.object {
+  background: var(--mm-object-line);
+  border-color: var(--mm-object-line);
+}
+.relations-focus-text { min-width: 0; }
+.relations-focus-name {
+  font-weight: 600;
+  font-size: 12.5px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.relations-focus-meta {
+  font-size: 10.5px;
+  color: var(--muted);
+  font-variant-numeric: tabular-nums;
+}
+.relations-focus-hint {
+  margin-top: 6px;
+  padding-top: 6px;
+  border-top: 1px dashed var(--border-soft);
+  font-size: 10.5px;
+  color: var(--muted);
 }
 
 .relations-hint {

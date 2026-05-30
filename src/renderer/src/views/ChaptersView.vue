@@ -1,5 +1,5 @@
 <script setup>
-import { computed, ref, watch, onMounted, onBeforeUnmount } from "vue";
+import { computed, ref, watch, nextTick, onMounted, onBeforeUnmount } from "vue";
 import { useProjectStore } from "../stores/project.js";
 import { useStudioStore } from "../stores/studio.js";
 import { useUiStore } from "../stores/ui.js";
@@ -36,7 +36,11 @@ const speakersByChapter = computed(() => {
   return out;
 });
 
-const mode = ref("edit"); // "edit" | "outline" | "read"
+const mode = ref("edit"); // "edit" | "outline" | "cards" | "read"
+// Read mode has two scopes: a single chapter (existing prev/next paging) or
+// the whole book stitched into one continuous scroll. In whole-book scope an
+// IntersectionObserver tracks which scene is in view and updates the sidebar.
+const readScope = ref("chapter"); // "chapter" | "book"
 const linksOpen = ref(false);
 const versionsOpen = ref(false);
 const MODES = [
@@ -308,12 +312,122 @@ function goNext() {
 function onKey(e) {
   if (mode.value !== "read") return;
   if (e.target instanceof HTMLInputElement || e.target instanceof HTMLTextAreaElement) return;
-  if (e.key === "ArrowLeft")  { e.preventDefault(); goPrev(); }
-  if (e.key === "ArrowRight") { e.preventDefault(); goNext(); }
+  // Arrow paging only makes sense for the single-chapter scope. In
+  // whole-book scope let the browser scroll naturally.
+  if (readScope.value === "chapter") {
+    if (e.key === "ArrowLeft")  { e.preventDefault(); goPrev(); }
+    if (e.key === "ArrowRight") { e.preventDefault(); goNext(); }
+  }
   if (e.key === "Escape")     { e.preventDefault(); mode.value = "edit"; }
 }
 onMounted(() => window.addEventListener("keydown", onKey));
-onBeforeUnmount(() => window.removeEventListener("keydown", onKey));
+onBeforeUnmount(() => {
+  window.removeEventListener("keydown", onKey);
+  teardownBookObserver();
+  ui.scrolledSceneId = null;
+});
+
+// ── Whole-book read scope ──────────────────────────────────────────
+// One continuous scrollable page stitched from every part → chapter →
+// scene. Each scene gets a [data-scene-id]/[data-chapter-id] anchor so an
+// IntersectionObserver can map "what's at the top of the viewport" to a
+// chapter/scene id, and update ui state so the sidebar lights up.
+const bookScrollEl = ref(null);
+
+// Per-scene HTML with comment marks unwrapped (same treatment readBody
+// does for stitched chapters, but on a single raw scene body).
+function sceneReadHtml(body) {
+  if (!body) return "";
+  if (!body.includes("comment-mark")) return body;
+  const div = document.createElement("div");
+  div.innerHTML = body;
+  div.querySelectorAll("span.comment-mark").forEach((el) => el.replaceWith(...el.childNodes));
+  return div.innerHTML;
+}
+
+let bookObserver = null;
+let lastObservedSceneId = null;
+
+function teardownBookObserver() {
+  if (bookObserver) { bookObserver.disconnect(); bookObserver = null; }
+  lastObservedSceneId = null;
+}
+
+function setupBookObserver() {
+  teardownBookObserver();
+  const root = bookScrollEl.value;
+  if (!root) return;
+  const targets = root.querySelectorAll("[data-scene-id]");
+  if (!targets.length) return;
+  bookObserver = new IntersectionObserver((entries) => {
+    // Of currently-intersecting scenes, the one closest to the top of the
+    // active band (set by rootMargin) is what the reader is on.
+    const visible = entries.filter((e) => e.isIntersecting);
+    if (!visible.length) return;
+    visible.sort((a, b) => a.boundingClientRect.top - b.boundingClientRect.top);
+    const top = visible[0].target;
+    const sceneId = top.dataset.sceneId;
+    const chapterId = top.dataset.chapterId;
+    if (sceneId === lastObservedSceneId) return;
+    lastObservedSceneId = sceneId;
+    ui.setScrolledScene(sceneId, chapterId);
+  }, {
+    root,
+    // Active band: top 15% to 30% of the viewport. The first scene crossing
+    // into it from below becomes the highlighted one.
+    rootMargin: "-15% 0px -70% 0px",
+    threshold: 0,
+  });
+  targets.forEach((el) => bookObserver.observe(el));
+}
+
+// Scroll the whole-book view to a chapter/scene anchor when the route
+// changes (e.g. user clicks a sidebar scene while reading) without
+// dropping out of whole-book scope.
+async function scrollBookTo(chapterId, sceneId) {
+  await nextTick();
+  const root = bookScrollEl.value;
+  if (!root) return;
+  const sel = sceneId
+    ? `[data-scene-id="${sceneId}"]`
+    : chapterId ? `[data-chapter-id="${chapterId}"]` : null;
+  if (!sel) return;
+  const el = root.querySelector(sel);
+  if (el) el.scrollIntoView({ behavior: "smooth", block: "start" });
+}
+
+// React to scope changes. Entering whole-book: render, observe, and jump
+// to the currently-selected chapter so the reader starts where they were.
+// Leaving: tear down observer and clear scroll highlight.
+watch([mode, readScope], async ([m, scope], [prevM, prevScope]) => {
+  if (m === "read" && scope === "book") {
+    await nextTick();
+    setupBookObserver();
+    // First entry — jump to current chapter (or scene if one is open).
+    if (prevScope !== "book" || prevM !== "read") {
+      scrollBookTo(ch.value?.id, props.sceneId);
+    }
+  } else if (prevM === "read" && prevScope === "book") {
+    teardownBookObserver();
+    ui.scrolledSceneId = null;
+  }
+});
+
+// While reading the whole book, clicking a chapter/scene in the sidebar
+// changes the route but should scroll the existing page, not collapse to
+// one chapter.
+watch(() => [props.id, props.sceneId], ([id, sceneId]) => {
+  if (mode.value !== "read" || readScope.value !== "book") return;
+  scrollBookTo(id, sceneId);
+});
+
+// Scenes can be added/removed/reordered while reading. Re-observe so the
+// new anchors participate in highlighting.
+watch(() => project.allChapters.map((c) => c.id + ":" + (project.scenesFor(c.id) || []).length).join("|"), async () => {
+  if (mode.value !== "read" || readScope.value !== "book") return;
+  await nextTick();
+  setupBookObserver();
+});
 </script>
 
 <template>
@@ -494,7 +608,19 @@ onBeforeUnmount(() => window.removeEventListener("keydown", onKey));
   <!-- ── READ MODE ────────────────────────────────────────────── -->
   <div v-else-if="ch && mode === 'read'" class="pane-card">
    <div class="read-mode">
-    <div class="manuscript scrollarea">
+    <div class="read-scope-bar">
+      <div class="seg-toggle">
+        <button :class="{ active: readScope === 'chapter' }" @click="readScope = 'chapter'" title="Read one chapter at a time">
+          <Icon name="Book" :size="12" /><span>Chapter</span>
+        </button>
+        <button :class="{ active: readScope === 'book' }" @click="readScope = 'book'" title="Read the whole book in one continuous page">
+          <Icon name="List" :size="12" /><span>Whole book</span>
+        </button>
+      </div>
+    </div>
+
+    <!-- Single chapter: existing prev/next paging. -->
+    <div v-if="readScope === 'chapter'" class="manuscript scrollarea">
       <article class="manuscript-inner read-content" v-html="readBody(ch.id)" />
       <nav class="read-nav">
         <button v-if="prev" class="read-nav-btn" @click="goPrev">
@@ -515,6 +641,35 @@ onBeforeUnmount(() => window.removeEventListener("keydown", onKey));
         <span v-else />
       </nav>
       <p class="read-hint">← / → to navigate · Esc to edit</p>
+    </div>
+
+    <!-- Whole book: every part → chapter → scene stitched into one
+         continuous scroll. Each scene has data attrs that the
+         IntersectionObserver maps back to sidebar highlights. -->
+    <div v-else class="manuscript scrollarea" ref="bookScrollEl">
+      <article class="manuscript-inner read-content read-book">
+        <template v-for="(part, pi) in project.parts" :key="part.id">
+          <header class="book-part-head">
+            <div class="book-part-eyebrow">Part {{ pi + 1 }}</div>
+            <h2 class="book-part-title">{{ part.title }}</h2>
+          </header>
+          <section v-for="chap in part.chapters" :key="chap.id" class="book-chapter">
+            <h1 class="book-chapter-title" :data-chapter-id="chap.id">
+              <span class="book-chapter-num">Chapter {{ chap.num }}</span>
+              <span class="book-chapter-name">{{ chap.title }}</span>
+            </h1>
+            <section v-for="(scn, si) in project.scenesFor(chap.id)" :key="scn.id"
+              class="book-scene"
+              :data-scene-id="scn.id"
+              :data-chapter-id="chap.id">
+              <p v-if="si > 0" class="scene-mark">* * *</p>
+              <h2 v-if="scn.title" class="scene-title">{{ scn.title }}</h2>
+              <div class="book-scene-body" v-html="sceneReadHtml(scn.body)" />
+            </section>
+          </section>
+        </template>
+        <p class="read-hint">End of book · Esc to edit</p>
+      </article>
     </div>
    </div>
   </div>
@@ -1098,5 +1253,83 @@ html[data-theme="dark"] .read-mode {
   font-size: 11px;
   color: var(--subtle);
   font-family: var(--font-mono);
+}
+
+/* ── Read scope toggle bar ─────────────────────────────────── */
+.read-scope-bar {
+  display: flex; justify-content: center;
+  padding: 10px 22px 4px;
+  flex-shrink: 0;
+}
+.read-scope-bar .seg-toggle { background: var(--surface); }
+
+/* ── Whole-book read view ──────────────────────────────────── */
+.read-book {
+  /* Inherits .read-content max-width / typography. The part/chapter
+     headers below add their own spacing on top of that. */
+}
+.book-part-head {
+  max-width: 680px;
+  margin: 80px auto 40px;
+  padding-bottom: 18px;
+  border-bottom: 1px solid var(--border-soft);
+  text-align: center;
+}
+.book-part-head:first-child { margin-top: 20px; }
+.book-part-eyebrow {
+  font-size: 11px; font-weight: 700;
+  text-transform: uppercase; letter-spacing: 0.18em;
+  color: var(--muted);
+  margin-bottom: 6px;
+}
+.book-part-title {
+  font-family: var(--font-serif);
+  font-size: 30px; font-weight: 600;
+  letter-spacing: -0.01em;
+  color: var(--ink);
+  margin: 0;
+}
+
+.book-chapter {
+  /* Each chapter sits in its own block; spacing between them keeps
+     the chapter break clear without a hard rule. */
+  padding-top: 56px;
+}
+.book-chapter:first-of-type { padding-top: 28px; }
+.book-chapter-title {
+  /* Override the generic read-content h1 size — chapters here are a
+     bit smaller than the full-page single-chapter h1 so they don't
+     scream at every break. */
+  font-size: 26px !important;
+  margin-bottom: 22px !important;
+  text-align: center;
+  display: flex; flex-direction: column; align-items: center; gap: 4px;
+  scroll-margin-top: 12px;
+}
+.book-chapter-num {
+  font-size: 11px; font-weight: 700;
+  text-transform: uppercase; letter-spacing: 0.18em;
+  color: var(--muted);
+}
+.book-chapter-name {
+  font-family: var(--font-serif);
+  font-size: 26px; font-weight: 600;
+  letter-spacing: -0.01em;
+  color: var(--ink);
+}
+.book-scene { scroll-margin-top: 12px; }
+.book-scene-body :deep(p:first-child) { margin-top: 0; }
+.read-book :deep(.scene-mark) {
+  text-align: center;
+  color: var(--muted);
+  letter-spacing: 0.4em;
+  margin: 24px 0;
+}
+.read-book :deep(.scene-title) {
+  font-family: var(--font-serif);
+  font-style: italic;
+  font-size: 16px;
+  color: var(--ink-2);
+  margin: 24px 0 14px;
 }
 </style>

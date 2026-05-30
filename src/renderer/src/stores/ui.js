@@ -59,6 +59,10 @@ export const useUiStore = defineStore("ui", {
       editorSettings: { ...DEFAULT_EDITOR_SETTINGS },
       // Transient. Shape: { id, message, action?: { label, fn } }.
       toast: null,
+      // Scroll-driven scene highlight for Read mode's whole-book scope.
+      // Not persisted — flooding IDB on every scroll tick is wasteful, and
+      // on reload there's nothing meaningful to restore to anyway.
+      scrolledSceneId: null,
       ...saved,
       // Resolve appearance last: wins over the raw spread and folds in any
       // legacy { theme, accentHue } keys from older saves.
@@ -87,6 +91,22 @@ export const useUiStore = defineStore("ui", {
     select(section, id) {
       this.selections = { ...this.selections, [section]: id };
       this._persist();
+    },
+
+    // Scroll-driven update from Read mode's whole-book view. Skips
+    // _persist so a fast scroll doesn't write to IDB on every tick.
+    // Auto-expands the current chapter so the highlighted scene is
+    // visible in the sidebar (collapse remains user-driven).
+    setScrolledScene(sceneId, chapterId) {
+      this.scrolledSceneId = sceneId || null;
+      if (!chapterId) return;
+      if (this.selections.chapters !== chapterId) {
+        this.selections = { ...this.selections, chapters: chapterId };
+      }
+      const key = `chapter:${chapterId}`;
+      if (!this.expanded[key]) {
+        this.expanded = { ...this.expanded, [key]: true };
+      }
     },
 
     // Toasts — show one at a time. Pass `action: { label, fn }` for an

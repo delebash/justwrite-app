@@ -725,7 +725,7 @@ function wbDropClass(kind, id) {
                     <div v-for="(scn, si) in scenesForChapter(c.id)" :key="scn.id"
                       class="nav-scene"
                       :class="[
-                        { sel: route.params.sceneId === scn.id && route.params.id === c.id && activeSection === 'chapters' },
+                        { sel: ((route.params.sceneId === scn.id && route.params.id === c.id) || (ui.scrolledSceneId === scn.id && ui.selections.chapters === c.id)) && activeSection === 'chapters' },
                         sceneDropClass(c.id, scn.id),
                       ]"
                       draggable="true"
