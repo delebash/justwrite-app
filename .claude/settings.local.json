@@ -46,7 +46,9 @@
       "WebFetch(domain:docs.anthropic.com)",
       "WebFetch(domain:lmstudio.ai)",
       "WebFetch(domain:ollama.com)",
-      "PowerShell($body = @{ model = \"qwen3.5:9b-q4_K_M\"; messages = @\\(@{ role = \"user\"; content = \"Say hi in one short sentence.\" }\\); think = $false; stream = $false } | ConvertTo-Json -Depth 5 -Compress; Invoke-RestMethod -Uri http://localhost:11434/v1/chat/completions -Method Post -Body $body -ContentType \"application/json\" | ConvertTo-Json -Depth 8)"
+      "PowerShell($body = @{ model = \"qwen3.5:9b-q4_K_M\"; messages = @\\(@{ role = \"user\"; content = \"Say hi in one short sentence.\" }\\); think = $false; stream = $false } | ConvertTo-Json -Depth 5 -Compress; Invoke-RestMethod -Uri http://localhost:11434/v1/chat/completions -Method Post -Body $body -ContentType \"application/json\" | ConvertTo-Json -Depth 8)",
+      "WebFetch(domain:docs.speechmatics.com)",
+      "Bash(gh repo *)"
     ]
   }
 }

@@ -92,6 +92,7 @@ async function runSmartCast() {
       provider: llmProvider.value,
       characters: project.characters,
       voices: engineVoices.value,
+      tier: ai.resolveTier(llmProvider.value.chatModel),
     });
     for (const [charId, voiceId] of Object.entries(map)) {
       if (project.characterById(charId) && engineVoices.value.find((v) => v.id === voiceId)) {
@@ -140,6 +141,10 @@ async function reanalyze() {
     const div = document.createElement("div");
     div.innerHTML = html;
     div.querySelectorAll("h2.scene-title, p.scene-mark").forEach((el) => el.remove());
+    // Pending AI revisions: never speak the "before" half; speak the
+    // "after" half as plain prose. Same policy as Read mode + export.
+    div.querySelectorAll("del[data-ai-del], .ai-del").forEach((el) => el.remove());
+    div.querySelectorAll("ins[data-ai-ins], .ai-ins").forEach((el) => el.replaceWith(...el.childNodes));
     const paragraphs = Array.from(div.querySelectorAll("p"))
       .map((el) => el.textContent.trim())
       .filter((t) => t && !STRUCTURAL_MARKER_RE.test(t));
@@ -148,6 +153,7 @@ async function reanalyze() {
       provider: llmProvider.value,
       paragraphs,
       characters: project.characters,
+      tier: ai.resolveTier(llmProvider.value.chatModel),
     });
 
     // Prepend a narrator-spoken line built from the chapter's metadata

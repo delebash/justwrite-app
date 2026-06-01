@@ -26,6 +26,7 @@ const ui = useUiStore();
 const SECTIONS = [
   { id: "project",    label: "Project" },
   { id: "audio",      label: "AI & Audio engines" },
+  { id: "usage",      label: "AI usage" },
   { id: "appearance", label: "Appearance" },
   { id: "backups",    label: "Backups" },
   { id: "debug",      label: "Debug" },
@@ -40,6 +41,13 @@ const DEBUG_TOOLS = [
     name: "Speaker Lab",
     description: "Test entity extraction & quote attribution against any OpenAI-compatible LLM. Side-by-side runs, two-stage pipelines, live streaming, prompt editing, saved presets.",
     route: "/debug/speaker-lab",
+    icon: "Sparkle",
+  },
+  {
+    id: "writer-lab",
+    name: "Writer Lab — model compare",
+    description: "Test writerAI actions, prose passes, and analysis pipelines against any OpenAI-compatible LLM. Up to 4 columns running in parallel for side-by-side model comparison. Same base controls as the user-facing Writer Lab.",
+    route: "/debug/writer-lab",
     icon: "Sparkle",
   },
 ];
@@ -221,6 +229,26 @@ const backupError = ref(null);
 const importMessage = ref(null);
 const importFile = ref(null);
 const lastBackupAt = ref(getItem("justwrite:lastBackupAt") || null);
+const lastAutosaveAt = ref(getItem("justwrite:lastAutosaveAt") || null);
+const autosaveDir = ref(null);
+
+// Resolve the autosave folder path so users can see where their work
+// is being mirrored to disk. Only populated under Tauri.
+(async () => {
+  try {
+    const res = await window.justwrite?.project?.autosaveDir?.();
+    if (typeof res === "string") autosaveDir.value = res;
+    else if (res && res.ok !== false && typeof res.path === "string") autosaveDir.value = res.path;
+  } catch {}
+})();
+
+// Re-read the timestamp on every tab switch into Backups so the user
+// doesn't see a stale "Never" right after the first autosave fires.
+watchEffect(() => {
+  if (active.value === "backups") {
+    lastAutosaveAt.value = getItem("justwrite:lastAutosaveAt") || null;
+  }
+});
 
 function safeFilename(title) {
   const base = (title || "justwrite").replace(/[^\w\d-]+/g, "_").replace(/^_+|_+$/g, "");
@@ -231,7 +259,7 @@ function safeFilename(title) {
 async function exportBackup() {
   backupBusy.value = true; backupError.value = null;
   try {
-    const snap = project.exportSnapshot();
+    const snap = project.exportFullBackup();
     const name = safeFilename(project.project.title);
     const jw = window.justwrite;
     if (jw?.project?.save) {
@@ -279,15 +307,124 @@ async function onImportFile(e) {
       danger: true,
     });
     if (!yes) return;
-    project.loadSnapshot(snap);
+    const { workspaceRestored } = project.loadSnapshot(snap) || {};
     const chapterCount = Array.isArray(snap.parts)
       ? snap.parts.reduce((n, p) => n + (p.chapters?.length || 0), 0)
       : Object.keys(snap.scenes || snap.chapterBody || {}).length;
     importMessage.value = `Imported "${snap.project.title || "project"}" — ${chapterCount} chapters.`;
     ui.showToast({ message: "Backup imported." });
+    if (workspaceRestored) scheduleWorkspaceReload();
   } catch (err) {
     backupError.value = err.message || String(err);
   }
+}
+
+// AI / studio / sessions stores only hydrate from IndexedDB at boot, so
+// after restoring workspace keys we need a reload for them to take effect.
+// Flush any pending IDB writes first so the reload sees the new values.
+function scheduleWorkspaceReload() {
+  ui.showToast({ message: "Reloading to apply workspace settings…" });
+  flushPending();
+  setTimeout(() => location.reload(), 700);
+}
+
+// ── Restore from autosave ─────────────────────────────────────────
+const autosaveList = ref([]);
+const autosaveListBusy = ref(false);
+const autosaveListShown = ref(false);
+
+async function toggleAutosaveList() {
+  autosaveListShown.value = !autosaveListShown.value;
+  if (autosaveListShown.value) await refreshAutosaveList();
+}
+
+async function refreshAutosaveList() {
+  if (!window.justwrite?.project?.autosaveList) return;
+  autosaveListBusy.value = true; backupError.value = null;
+  try {
+    const res = await window.justwrite.project.autosaveList();
+    autosaveList.value = Array.isArray(res) ? res : (res?.ok === false ? [] : (res || []));
+  } catch (err) {
+    backupError.value = err.message || String(err);
+  } finally {
+    autosaveListBusy.value = false;
+  }
+}
+
+async function restoreFromAutosave(entry) {
+  backupError.value = null;
+  const when = entry.savedAt ? new Date(entry.savedAt).toLocaleString() : "unknown time";
+  const yes = await confirmDialog({
+    title: `Restore "${entry.title || "project"}" from ${entry.generation}?`,
+    message: `Saved at ${when}. Your current workspace will be overwritten — every project, chapter body, AI provider, and voice cast assignment. Export a backup first if you want to keep what you have.`,
+    confirmLabel: "Restore from autosave",
+    danger: true,
+  });
+  if (!yes) return;
+  try {
+    const snap = await window.justwrite.project.autosaveRead(entry.path);
+    if (!snap || typeof snap !== "object" || snap.ok === false || !snap.project) {
+      throw new Error(snap?.error || "Couldn't read the autosave file.");
+    }
+    const { workspaceRestored } = project.loadSnapshot(snap) || {};
+    ui.showToast({ message: `Restored "${snap.project.title || "project"}".` });
+    if (workspaceRestored) scheduleWorkspaceReload();
+  } catch (err) {
+    backupError.value = err.message || String(err);
+  }
+}
+
+function autosaveLabel(when) {
+  if (!when) return "Unknown time";
+  try { return new Date(when).toLocaleString(); } catch { return when; }
+}
+function generationLabel(gen) {
+  if (gen === "current") return "Current";
+  if (gen === "prev")    return "Previous";
+  if (gen === "prev2")   return "Earlier";
+  return gen || "";
+}
+
+// ── AI usage helpers ────────────────────────────────────────────────
+function fmtUsd(cost) {
+  if (!cost || !isFinite(cost)) return "$0.00";
+  if (cost < 0.01) return "<$0.01";
+  if (cost < 1) return `$${cost.toFixed(3)}`;
+  return `$${cost.toFixed(2)}`;
+}
+function fmtTime(ts) {
+  if (!ts) return "—";
+  const d = new Date(ts);
+  const diff = Date.now() - ts;
+  if (diff < 60_000) return "just now";
+  if (diff < 3_600_000) return `${Math.floor(diff / 60_000)}m ago`;
+  if (diff < 86_400_000) return `${Math.floor(diff / 3_600_000)}h ago`;
+  return d.toLocaleDateString(undefined, { month: "short", day: "numeric", hour: "2-digit", minute: "2-digit" });
+}
+function providerLabel(id) {
+  return ai.providerById(id)?.name || id || "unknown";
+}
+const usageByFeature = computed(() =>
+  Object.entries(ai.usageTotals.byFeature || {})
+    .map(([key, v]) => ({ key, ...v }))
+    .sort((a, b) => b.cost - a.cost || b.calls - a.calls)
+);
+const usageByProvider = computed(() =>
+  Object.entries(ai.usageTotals.byProvider || {})
+    .map(([key, v]) => ({ key, ...v }))
+    .sort((a, b) => b.cost - a.cost || b.calls - a.calls)
+);
+const recentUsageRows = computed(() => ai.recentUsage(25));
+
+async function resetUsageLog() {
+  const yes = await confirmDialog({
+    title: "Reset the AI usage ledger?",
+    message: "Clears every recorded call and aggregate. Doesn't affect AI providers or your project data.",
+    confirmLabel: "Reset",
+    danger: true,
+  });
+  if (!yes) return;
+  ai.clearUsage();
 }
 
 async function resetWorkspace() {
@@ -317,6 +454,11 @@ async function resetWorkspace() {
 const lastBackupLabel = computed(() => {
   if (!lastBackupAt.value) return "Never";
   try { return new Date(lastBackupAt.value).toLocaleString(); } catch { return lastBackupAt.value; }
+});
+
+const lastAutosaveLabel = computed(() => {
+  if (!lastAutosaveAt.value) return "Pending — will fire within 10s of the next edit.";
+  try { return new Date(lastAutosaveAt.value).toLocaleString(); } catch { return lastAutosaveAt.value; }
 });
 
 // `window` is not on Vue's template proxy — referencing it in the template
@@ -660,6 +802,7 @@ async function deleteCategory(c) {
                   <div class="t-muted" style="font-family:var(--font-mono);font-size:11px;margin-top:2px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">{{ p.baseUrl }}</div>
                   <div class="t-muted" style="font-size:11px;margin-top:2px">
                     <template v-if="p.chatModel">chat: <b>{{ p.chatModel }}</b> · </template>
+                    <template v-if="p.embeddingModel">embed: <b>{{ p.embeddingModel }}</b> · </template>
                     <template v-if="p.ttsModel">tts: <b>{{ p.ttsModel }}</b> · </template>
                     <template v-if="p.ttsVoices?.length">{{ p.ttsVoices.length }} voices · </template>
                     {{ p.apiKey ? "API key set" : "no key" }}
@@ -709,6 +852,88 @@ async function deleteCategory(c) {
               </p>
             </div>
           </div>
+        </div>
+      </div>
+
+      <!-- ── AI USAGE ──────────────────────────────── -->
+      <div v-else-if="active === 'usage'" style="display:flex;flex-direction:column;gap:14px">
+        <div class="card">
+          <div class="card-title">
+            AI usage
+            <button class="btn ghost sm" style="margin-left:auto" @click="resetUsageLog"
+              title="Clear every recorded call. Future calls start tallying from zero.">Reset ledger</button>
+          </div>
+          <p class="t-muted" style="font-size:12.5px;margin:0 0 14px;line-height:1.55">
+            Tokens and estimated cost across every AI call routed through writerAI, critique, structural analysis,
+            and entity extraction. Local providers (Ollama, LM Studio, llama.cpp) are recorded at $0 — pricing only
+            applies to cloud models in the built-in price table.
+          </p>
+
+          <div v-if="ai.usageTotals.calls === 0" class="t-muted" style="font-size:12px;text-align:center;padding:22px 0;background:var(--surface-2);border-radius:8px;font-style:italic">
+            No AI calls yet. Run something from Critique, the bubble menu, or Writer Lab and it'll show up here.
+          </div>
+
+          <template v-else>
+            <!-- Rollup pills -->
+            <div class="usage-rollup">
+              <div class="usage-pill"><div class="usage-pill-num">{{ ai.usageTotals.calls.toLocaleString() }}</div><div class="usage-pill-lbl">calls</div></div>
+              <div class="usage-pill"><div class="usage-pill-num">{{ ai.totalTokens.toLocaleString() }}</div><div class="usage-pill-lbl">tokens</div></div>
+              <div class="usage-pill"><div class="usage-pill-num">{{ ai.usageTotals.promptTokens.toLocaleString() }}</div><div class="usage-pill-lbl">prompt</div></div>
+              <div class="usage-pill"><div class="usage-pill-num">{{ ai.usageTotals.completionTokens.toLocaleString() }}</div><div class="usage-pill-lbl">completion</div></div>
+              <div class="usage-pill"><div class="usage-pill-num">{{ fmtUsd(ai.totalCost) }}</div><div class="usage-pill-lbl">est. cost</div></div>
+            </div>
+
+            <!-- By feature -->
+            <div class="usage-section">
+              <div class="usage-section-h">By feature</div>
+              <div class="usage-table">
+                <div class="usage-row usage-row--head">
+                  <span>Feature</span><span>Calls</span><span>Prompt</span><span>Completion</span><span>Cost</span>
+                </div>
+                <div v-for="row in usageByFeature" :key="row.key" class="usage-row">
+                  <span class="usage-name">{{ row.key }}</span>
+                  <span class="usage-num">{{ row.calls.toLocaleString() }}</span>
+                  <span class="usage-num">{{ row.promptTokens.toLocaleString() }}</span>
+                  <span class="usage-num">{{ row.completionTokens.toLocaleString() }}</span>
+                  <span class="usage-num">{{ fmtUsd(row.cost) }}</span>
+                </div>
+              </div>
+            </div>
+
+            <!-- By provider -->
+            <div class="usage-section">
+              <div class="usage-section-h">By provider</div>
+              <div class="usage-table">
+                <div class="usage-row usage-row--head">
+                  <span>Provider</span><span>Calls</span><span>Prompt</span><span>Completion</span><span>Cost</span>
+                </div>
+                <div v-for="row in usageByProvider" :key="row.key" class="usage-row">
+                  <span class="usage-name">{{ providerLabel(row.key) }}</span>
+                  <span class="usage-num">{{ row.calls.toLocaleString() }}</span>
+                  <span class="usage-num">{{ row.promptTokens.toLocaleString() }}</span>
+                  <span class="usage-num">{{ row.completionTokens.toLocaleString() }}</span>
+                  <span class="usage-num">{{ fmtUsd(row.cost) }}</span>
+                </div>
+              </div>
+            </div>
+
+            <!-- Recent calls -->
+            <div class="usage-section">
+              <div class="usage-section-h">
+                Recent calls
+                <span class="t-muted" style="font-weight:400;font-size:11px;margin-left:6px">last {{ recentUsageRows.length }}</span>
+              </div>
+              <div class="usage-recent">
+                <div v-for="row in recentUsageRows" :key="row.id" class="usage-recent-row">
+                  <span class="usage-time">{{ fmtTime(row.at) }}</span>
+                  <span class="usage-feature">{{ row.feature }}</span>
+                  <span class="usage-model">{{ row.model || "—" }}</span>
+                  <span class="usage-num">{{ (row.promptTokens + row.completionTokens).toLocaleString() }} t</span>
+                  <span class="usage-num">{{ fmtUsd(row.cost) }}</span>
+                </div>
+              </div>
+            </div>
+          </template>
         </div>
       </div>
 
@@ -1041,6 +1266,49 @@ async function deleteCategory(c) {
 
       <!-- ── BACKUPS ───────────────────────────────── -->
       <div v-else-if="active === 'backups'" style="display:flex;flex-direction:column;gap:14px">
+        <div v-if="autosaveDir" class="card">
+          <div class="card-title">Auto-save to disk</div>
+          <p class="t-muted" style="font-size:12.5px;margin:0 0 12px;line-height:1.55">
+            Every edit is also mirrored to a JSON file on disk within ~10s. Two prior generations
+            are kept (<code>.prev.json</code> / <code>.prev2.json</code>) so a bad write or accidental
+            reset can be recovered without a manual export. Each file is a full workspace bundle —
+            project, AI providers, voice cast, sessions — so restoring one file brings everything back.
+            Anything OneDrive / Time Machine / your backup tool watches in this folder will pick it up
+            automatically.
+          </p>
+          <div style="display:grid;grid-template-columns:140px 1fr;gap:10px 14px;font-size:13px;align-items:center;margin-bottom:12px">
+            <span class="t-muted">Folder</span>
+            <code style="word-break:break-all">{{ autosaveDir }}</code>
+            <span class="t-muted">Last autosave</span>
+            <span>{{ lastAutosaveLabel }}</span>
+          </div>
+          <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap">
+            <button class="btn" :disabled="autosaveListBusy" @click="toggleAutosaveList">
+              <Icon name="Folder" :size="13" />
+              {{ autosaveListShown ? "Hide autosaves" : "Restore from autosave…" }}
+            </button>
+          </div>
+          <div v-if="autosaveListShown" style="margin-top:12px">
+            <div v-if="autosaveListBusy" class="t-muted" style="font-size:12.5px">Loading…</div>
+            <div v-else-if="!autosaveList.length" class="t-muted" style="font-size:12.5px">
+              No autosaves on disk yet. They start appearing after the first edit.
+            </div>
+            <ul v-else style="list-style:none;padding:0;margin:0;display:flex;flex-direction:column;gap:6px">
+              <li
+                v-for="entry in autosaveList"
+                :key="entry.path"
+                style="display:flex;align-items:center;gap:10px;padding:8px 10px;border:1px solid var(--border, #ddd);border-radius:6px;font-size:13px"
+              >
+                <div style="flex:1;min-width:0">
+                  <div><b>{{ entry.title || "Untitled" }}</b> <span class="t-muted">— {{ generationLabel(entry.generation) }}</span></div>
+                  <div class="t-muted" style="font-size:12px">{{ autosaveLabel(entry.savedAt) }}</div>
+                </div>
+                <button class="btn" @click="restoreFromAutosave(entry)">Restore</button>
+              </li>
+            </ul>
+          </div>
+        </div>
+
         <div class="card">
           <div class="card-title">Snapshot</div>
           <p class="t-muted" style="font-size:12.5px;margin:0 0 14px;line-height:1.55">
@@ -1550,4 +1818,56 @@ async function deleteCategory(c) {
   background: var(--surface-3);
   border-radius: 4px;
 }
+
+/* ── AI usage panel ─────────────────────────────────────────────── */
+.usage-rollup { display: flex; flex-wrap: wrap; gap: 10px; margin-bottom: 18px; }
+.usage-pill {
+  padding: 10px 14px; border-radius: 8px;
+  background: var(--surface-2); border: 1px solid var(--border-soft);
+  min-width: 96px;
+}
+.usage-pill-num {
+  font-family: var(--font-serif); font-size: 19px; font-weight: 500;
+  line-height: 1; font-variant-numeric: tabular-nums;
+}
+.usage-pill-lbl {
+  font-family: var(--font-mono); font-size: 9.5px;
+  letter-spacing: 0.09em; text-transform: uppercase;
+  color: var(--muted); margin-top: 5px;
+}
+.usage-section { margin-top: 18px; }
+.usage-section-h {
+  font-family: var(--font-mono); font-size: 10.5px;
+  letter-spacing: 0.12em; text-transform: uppercase;
+  color: var(--muted); font-weight: 600;
+  margin-bottom: 8px;
+}
+.usage-table { display: flex; flex-direction: column; border: 1px solid var(--border-soft); border-radius: 8px; overflow: hidden; }
+.usage-row {
+  display: grid; grid-template-columns: 1.6fr 60px 80px 90px 80px;
+  gap: 10px; padding: 7px 12px;
+  font-size: 12px; font-variant-numeric: tabular-nums;
+  border-bottom: 1px solid var(--border-soft);
+}
+.usage-row:last-child { border-bottom: 0; }
+.usage-row--head {
+  font-family: var(--font-mono); font-size: 10px;
+  letter-spacing: 0.08em; text-transform: uppercase;
+  color: var(--muted); background: var(--surface-2);
+}
+.usage-name { color: var(--ink); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.usage-num { text-align: right; color: var(--ink-2); }
+.usage-row--head .usage-num { color: var(--muted); }
+
+.usage-recent { display: flex; flex-direction: column; border: 1px solid var(--border-soft); border-radius: 8px; overflow: hidden; }
+.usage-recent-row {
+  display: grid; grid-template-columns: 80px 1.4fr 1.4fr 70px 70px;
+  gap: 10px; padding: 6px 12px;
+  font-size: 11.5px; font-variant-numeric: tabular-nums;
+  border-bottom: 1px solid var(--border-soft);
+}
+.usage-recent-row:last-child { border-bottom: 0; }
+.usage-recent-row:hover { background: var(--surface-2); }
+.usage-time, .usage-model { font-family: var(--font-mono); font-size: 10.5px; color: var(--muted); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.usage-feature { color: var(--accent-ink); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 </style>

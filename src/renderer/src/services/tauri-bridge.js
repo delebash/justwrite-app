@@ -84,6 +84,14 @@ if (isTauri) {
         safe(invoke("project_open")),
       saveTo: (path, snapshot) =>
         invoke("project_save_to", { path, snapshot }),
+      autosave: (projectId, snapshot) =>
+        safe(invoke("project_autosave", { projectId, snapshot })),
+      autosaveDir: () =>
+        safe(invoke("project_autosave_dir")),
+      autosaveList: () =>
+        safe(invoke("project_autosave_list")),
+      autosaveRead: (path) =>
+        safe(invoke("project_autosave_read", { path })),
     },
 
     images: {

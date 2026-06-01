@@ -9,7 +9,7 @@ import { markRaw } from "vue";
 import { useUiStore } from "./ui.js";
 import { useSessionsStore } from "./sessions.js";
 import { removeImage as removeImageFile } from "../services/imageStore.js";
-import { getItem, setItem, removeItem } from "../services/storage.js";
+import { getItem, setItem, removeItem, listKeys } from "../services/storage.js";
 import { replaceInHtml } from "../services/projectReplace.js";
 import {
   PROJECT, STRANDS, CHARACTERS, CHARACTER_EXTRAS, LOCATIONS, OBJECTS,
@@ -31,6 +31,12 @@ const LS_HISTORY_KEY   = "justwrite:project:history";
 
 const uid = (p) => `${p}_${Date.now().toString(36)}_${Math.random().toString(36).slice(2, 6)}`;
 
+function wordCountFromHtml(html) {
+  if (!html) return 0;
+  const text = String(html).replace(/<[^>]+>/g, " ").trim();
+  return text ? text.split(/\s+/).length : 0;
+}
+
 function loadJSON(key) { try { return JSON.parse(getItem(key) || "null"); } catch { return null; } }
 function saveJSON(key, val) { try { setItem(key, JSON.stringify(val)); } catch {} }
 function removeKey(key) { try { removeItem(key); } catch {} }
@@ -48,6 +54,72 @@ function loadHistory() {
   return Array.isArray(v) ? v : [];
 }
 function saveHistory(tail) { saveJSON(LS_HISTORY_KEY, tail); }
+
+// ── Workspace bundling ────────────────────────────────────────────
+// The autosave file (and the manual "Export backup…" path) contain the
+// active project's snapshot PLUS every non-project `justwrite:*` key
+// (AI providers, voice cast, render queue, sessions, …) tucked under
+// `_workspace`. That makes any single autosave file a one-shot
+// recovery of the whole workspace, not just one project.
+function workspaceKeysToBundle() {
+  const out = {};
+  for (const k of listKeys("justwrite:")) {
+    // Per-project snapshots and the project registry travel separately;
+    // the undo tail is regenerated on demand.
+    if (k.startsWith("justwrite:project")) continue;
+    const v = getItem(k);
+    if (typeof v === "string") out[k] = v;
+  }
+  return out;
+}
+
+export function restoreWorkspaceBundle(workspace) {
+  if (!workspace || typeof workspace !== "object") return false;
+  let touched = false;
+  for (const [k, v] of Object.entries(workspace)) {
+    if (typeof v !== "string") continue;
+    if (!k.startsWith("justwrite:") || k.startsWith("justwrite:project")) continue;
+    setItem(k, v);
+    touched = true;
+  }
+  return touched;
+}
+
+// ── Disk autosave (Tauri only) ─────────────────────────────────────
+// IndexedDB is the primary store, but it lives inside the webview's
+// profile — a "clear site data" or webview reset wipes it. Mirror every
+// snapshot to $APPDATA/projects/<id>.autosave.json on a debounce so the
+// user's work survives that, and so OS-level backups (OneDrive, Time
+// Machine, …) pick the file up. Two prior generations are kept by the
+// Rust side via rotation.
+const DISK_AUTOSAVE_DEBOUNCE_MS = 10000;
+let _diskAutosaveTimer = null;
+let _diskAutosavePending = null;
+
+function scheduleDiskAutosave(id, snap) {
+  if (typeof window === "undefined") return;
+  if (!window.justwrite?.project?.autosave) return; // browser-only dev path
+  _diskAutosavePending = { id, snap };
+  if (_diskAutosaveTimer) clearTimeout(_diskAutosaveTimer);
+  _diskAutosaveTimer = setTimeout(flushDiskAutosave, DISK_AUTOSAVE_DEBOUNCE_MS);
+}
+
+function flushDiskAutosave() {
+  if (_diskAutosaveTimer) { clearTimeout(_diskAutosaveTimer); _diskAutosaveTimer = null; }
+  const pending = _diskAutosavePending;
+  _diskAutosavePending = null;
+  if (!pending) return;
+  const jw = typeof window !== "undefined" ? window.justwrite : null;
+  if (!jw?.project?.autosave) return;
+  jw.project.autosave(pending.id, pending.snap).then((res) => {
+    if (res && res.ok) setItem("justwrite:lastAutosaveAt", new Date().toISOString());
+  }).catch(() => {});
+}
+
+if (typeof window !== "undefined") {
+  window.addEventListener("pagehide", flushDiskAutosave);
+  window.addEventListener("beforeunload", flushDiskAutosave);
+}
 
 // Decide which project to load on startup. Migrates the legacy single-project
 // key on first run so existing workspaces aren't lost.
@@ -319,6 +391,12 @@ export const useProjectStore = defineStore("project", {
     // re-introduce the dead field on undo. Discard it.
     _past:   markRaw(_scenesMigrationRan ? [] : loadHistory().map(normalizeStrands)),
     _future: markRaw([]),
+
+    // Reactive autosave timestamp — ticks each time _persist() runs so
+    // the sidebar "Autosaved · 5s ago" indicator stays live. Not part
+    // of HISTORY_SLICES or exportSnapshot — it's a runtime signal, not
+    // persisted state. Starts at 0; first edit sets it.
+    _lastSavedAt: 0,
   }),
 
   getters: {
@@ -496,10 +574,151 @@ export const useProjectStore = defineStore("project", {
       }));
       this._persist();
     },
+    // Persist a critique blob on a chapter. Shape (not strictly enforced):
+    //   { generatedAt, model, notes: [{ severity, category, message }],
+    //     structure: { tension, hookQuality, pacing, endingClass, summary } }
+    // Either half can be present without the other (text critique and
+    // structural analysis are independent LLM calls).
+    setChapterCritique(id, critique) {
+      this._record("setChapterCritique");
+      this.parts = this.parts.map((p) => ({
+        ...p,
+        chapters: p.chapters.map((c) => (c.id === id ? { ...c, critique } : c)),
+      }));
+      this._persist();
+    },
+    clearChapterCritique(id) {
+      this._record("clearChapterCritique");
+      this.parts = this.parts.map((p) => ({
+        ...p,
+        chapters: p.chapters.map((c) => {
+          if (c.id !== id) return c;
+          const { critique, ...rest } = c;
+          return rest;
+        }),
+      }));
+      this._persist();
+    },
     setChapterTitle(id, title) {
       this._record("setChapterTitle");
       this.parts = this.parts.map((p) => ({ ...p, chapters: p.chapters.map((c) => c.id === id ? { ...c, title } : c) }));
+      // Single-scene chapters keep the scene title in sync with the chapter
+      // title — there's no meaningful per-scene distinction yet. Once a
+      // second scene is added the titles decouple permanently.
+      const scs = this.scenes[id] || [];
+      if (scs.length === 1) {
+        this.scenes = { ...this.scenes, [id]: [{ ...scs[0], title }] };
+      }
       this._persist();
+    },
+
+    // Bulk-add an array of { title, html } chapters as a single history entry.
+    // Used by the import wizard so a many-chapter ingest is one undo.
+    // - partTitle: if set, a new part holds the import; otherwise chapters
+    //   append to the last existing part.
+    // - status: applied to every imported chapter.
+    // Returns { partId, chapterIds }.
+    importChapters({ chapters = [], partTitle = "", status = "draft" } = {}) {
+      const list = (chapters || []).filter((c) => c && (c.html || c.title));
+      if (!list.length) return { partId: null, chapterIds: [] };
+      this._record("importChapters");
+
+      let partId;
+      if (partTitle) {
+        partId = uid("p");
+        this.parts = [...this.parts, { id: partId, title: partTitle, chapters: [] }];
+      } else if (this.parts.length === 0) {
+        partId = uid("p");
+        this.parts = [{ id: partId, title: "Part One", chapters: [] }];
+      } else {
+        partId = this.parts[this.parts.length - 1].id;
+      }
+
+      const chapterIds = [];
+      const nextScenes = { ...this.scenes };
+      const newChapters = list.map((c, i) => {
+        const id = uid("ch");
+        chapterIds.push(id);
+        const sceneId = uid("scn");
+        const title = c.title || `Chapter ${i + 1}`;
+        // Single-scene chapters mirror the chapter title onto the scene
+        // so the scene strip isn't a row of blank placeholders.
+        nextScenes[id] = [{ id: sceneId, title, body: c.html || "" }];
+        return {
+          id,
+          num: 0, // filled by _renumberChapters
+          title,
+          words: wordCountFromHtml(c.html || ""),
+          status,
+          strands: [],
+        };
+      });
+
+      this.parts = this.parts.map((p) => p.id === partId
+        ? { ...p, chapters: [...p.chapters, ...newChapters] }
+        : p);
+      this.scenes = nextScenes;
+      this._renumberChapters();
+      this._persist();
+      return { partId, chapterIds };
+    },
+
+    // Split a chapter at a point inside one of its scenes. Used by the
+    // RichEditor "split chapter here" command — the editor hands us the
+    // HTML before and after the cursor, and we:
+    //  - replace the source scene's body with `beforeHtml`,
+    //  - create a new chapter (in the same part, right after this one),
+    //  - seed it with a single scene containing `afterHtml` + any scenes
+    //    that followed the source scene in the original chapter.
+    // One history entry; one undo reverses the whole split.
+    splitChapterAtScene(chapterId, sceneId, beforeHtml, afterHtml, newChapterTitle = "Untitled chapter") {
+      const sourceScenes = this.scenes[chapterId] || [];
+      const splitIdx = sourceScenes.findIndex((s) => s.id === sceneId);
+      if (splitIdx < 0) return null;
+      this._record("splitChapterAtScene");
+
+      const before = sourceScenes.slice(0, splitIdx);
+      const after  = sourceScenes.slice(splitIdx + 1);
+
+      // Updated source chapter: scenes up to (and including) the split scene
+      // truncated to `beforeHtml`.
+      const updatedSplitScene = { ...sourceScenes[splitIdx], body: beforeHtml || "" };
+      const stayScenes = [...before, updatedSplitScene];
+
+      // New chapter starts with a scene containing the after-cursor body,
+      // then inherits any scenes that originally followed. If the new
+      // chapter ends up single-scene, the scene title mirrors the chapter
+      // title to keep that invariant.
+      const newChapterId = uid("ch");
+      const carryTitle = after.length === 0 ? newChapterTitle : "";
+      const carryScene = { id: uid("scn"), title: carryTitle, body: afterHtml || "" };
+      const moveScenes = [carryScene, ...after];
+
+      this.parts = this.parts.map((p) => {
+        const idx = p.chapters.findIndex((c) => c.id === chapterId);
+        if (idx < 0) return p;
+        const newChapter = {
+          id: newChapterId,
+          num: 0,
+          title: newChapterTitle,
+          words: 0,
+          status: p.chapters[idx].status || "draft",
+          strands: [...(p.chapters[idx].strands || [])],
+        };
+        const chapters = [...p.chapters.slice(0, idx + 1), newChapter, ...p.chapters.slice(idx + 1)];
+        return { ...p, chapters };
+      });
+
+      const nextScenes = { ...this.scenes };
+      nextScenes[chapterId] = stayScenes.length ? stayScenes : [{ id: uid("scn"), title: "", body: "" }];
+      nextScenes[newChapterId] = moveScenes;
+      this.scenes = nextScenes;
+
+      this._renumberChapters();
+      this._recomputeChapterWords(chapterId);
+      this._recomputeChapterWords(newChapterId);
+      this._persist();
+      return newChapterId;
     },
 
     // ── Scenes ──────────────────────────────────────────────
@@ -526,9 +745,17 @@ export const useProjectStore = defineStore("project", {
       this._record("addScene");
       const id = uid("scn");
       const list = this.scenes[chapterId] || [];
+      // If this is the first scene in the chapter, seed its title from
+      // the chapter title so the single-scene invariant holds at creation
+      // time too. Explicit input.title still wins.
+      let seedTitle = "";
+      if (list.length === 0 && input.title === undefined) {
+        const ch = this.allChapters.find((c) => c.id === chapterId);
+        seedTitle = ch?.title || "";
+      }
       this.scenes = {
         ...this.scenes,
-        [chapterId]: [...list, { id, title: "", body: "", ...input }],
+        [chapterId]: [...list, { id, title: seedTitle, body: "", ...input }],
       };
       this._persist();
       return id;
@@ -1016,6 +1243,28 @@ export const useProjectStore = defineStore("project", {
       this._persist();
     },
 
+    // Move a beat from one strand to another while preserving its id
+    // and any caller-supplied patch (commonly { chapterId } for plot
+    // board drag-drop). One history entry so a cross-strand drag is a
+    // single undo. Returns true on success, false if the beat or target
+    // strand can't be found.
+    moveBeat(fromStrandId, toStrandId, beatId, patch = {}) {
+      if (fromStrandId === toStrandId) return false;
+      const fromStrand = this.strands.find((s) => s.id === fromStrandId);
+      const toStrand   = this.strands.find((s) => s.id === toStrandId);
+      const beat = fromStrand?.beats?.find((b) => b.id === beatId);
+      if (!fromStrand || !toStrand || !beat) return false;
+      this._record("moveBeat");
+      const moved = { ...beat, ...patch };
+      this.strands = this.strands.map((s) => {
+        if (s.id === fromStrandId) return { ...s, beats: (s.beats || []).filter((b) => b.id !== beatId) };
+        if (s.id === toStrandId)   return { ...s, beats: [...(s.beats || []), moved] };
+        return s;
+      });
+      this._persist();
+      return true;
+    },
+
     // ── Groups ──────────────────────────────────────────────
     addGroup(input = {}) { this._record("addGroup"); const id = uid("g"); this.groups.push({ id, name: "Untitled group", blurb: "", color: "oklch(0.6 0.1 200)", members: [], ...input }); this._persist(); return id; },
     removeGroup(id) {
@@ -1183,7 +1432,24 @@ export const useProjectStore = defineStore("project", {
     },
 
     // ── Snapshot ────────────────────────────────────────────
-    loadSnapshot(snap) { Object.assign(this.$state, normalizeStrands(snap)); this.clearHistory(); this._persist(); },
+    loadSnapshot(snap) {
+      const hadWorkspace = !!(snap && snap._workspace);
+      if (hadWorkspace) restoreWorkspaceBundle(snap._workspace);
+      // _workspace lives alongside the project fields in the file but isn't
+      // part of $state — strip it before assignment so it doesn't leak in.
+      const { _workspace, ...projectSnap } = snap || {};
+      Object.assign(this.$state, normalizeStrands(projectSnap));
+      this.clearHistory();
+      this._persist();
+      // Caller decides whether to reload; sister stores (AI/studio/sessions)
+      // only re-hydrate from IDB at boot, so a workspace restore needs one.
+      return { workspaceRestored: hadWorkspace };
+    },
+    // Full backup bundle — what gets written to disk and what the manual
+    // export downloads. Project snapshot + every non-project workspace key.
+    exportFullBackup() {
+      return { ...this.exportSnapshot(), _workspace: workspaceKeysToBundle() };
+    },
     exportSnapshot() {
       return {
         project: this.project, parts: this.parts, scenes: this.scenes,
@@ -1214,6 +1480,10 @@ export const useProjectStore = defineStore("project", {
       const snap = this.exportSnapshot();
       saveSnap(id, snap);
       saveJSON(LS_ACTIVE_KEY, id);
+      this._lastSavedAt = Date.now();
+      // Disk mirror is a full workspace bundle, not just the project, so
+      // any single autosave file is one-shot recoverable.
+      scheduleDiskAutosave(id, { ...snap, _workspace: workspaceKeysToBundle() });
       // Keep the registry entry's title/author/savedAt in sync so the
       // sidebar dropdown reflects renames the moment the user types.
       const entry = {
@@ -1235,7 +1505,7 @@ export const useProjectStore = defineStore("project", {
       this._persist();
       const id = uid("prj");
       const fresh = {
-        project: { ...PROJECT, title, author, coverImage: null, wordsWritten: 0, lastSaved: "" },
+        project: { ...PROJECT, title, author, coverImage: null, wordsWritten: 0 },
         strands: [], characters: [], characterExtras: {},
         locations: [], objects: [], groups: [], notes: [],
         parts: [{ id: uid("p"), title: "Part One", chapters: [] }],

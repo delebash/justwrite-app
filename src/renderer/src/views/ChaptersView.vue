@@ -9,6 +9,7 @@ import Icon from "../components/Icon.vue";
 import RichEditor from "../components/RichEditor.vue";
 import SceneLinks from "../components/SceneLinks.vue";
 import VersionHistoryModal from "../components/VersionHistoryModal.vue";
+import CritiqueModal from "../components/CritiqueModal.vue";
 import StatusSelect from "../components/StatusSelect.vue";
 import Breadcrumb from "../components/Breadcrumb.vue";
 import { promptDialog, confirmDialog } from "../services/dialog.js";
@@ -43,6 +44,7 @@ const mode = ref("edit"); // "edit" | "outline" | "cards" | "read"
 const readScope = ref("chapter"); // "chapter" | "book"
 const linksOpen = ref(false);
 const versionsOpen = ref(false);
+const critiqueOpen = ref(false);
 const MODES = [
   { id: "edit",    label: "Edit",    icon: "Quote" },
   { id: "outline", label: "Outline", icon: "List" },
@@ -100,6 +102,14 @@ function readBody(chId) {
   div.innerHTML = html;
   div.querySelectorAll("h2.scene-title, p.scene-mark").forEach((el) => el.remove());
   div.querySelectorAll("span.comment-mark").forEach((el) => el.replaceWith(...el.childNodes));
+  // Pending AI revisions are authoring chrome — strip from the read view:
+  // delete the "before" entirely, unwrap the "after" so only the candidate
+  // prose remains. Any paragraph left empty after the del-strip is removed.
+  div.querySelectorAll("del[data-ai-del], .ai-del").forEach((el) => el.remove());
+  div.querySelectorAll("ins[data-ai-ins], .ai-ins").forEach((el) => el.replaceWith(...el.childNodes));
+  div.querySelectorAll("p").forEach((p) => {
+    if (!p.textContent.trim() && !p.querySelector("img")) p.remove();
+  });
   return div.innerHTML;
 }
 
@@ -216,6 +226,46 @@ async function deleteChapter() {
   else router.push("/");
 }
 function updateTitle(id, v) { project.setChapterTitle(id, v); }
+
+// Split the current chapter at the editor's cursor. Content before the
+// cursor stays in the active scene; content after the cursor (plus any
+// scenes that followed) becomes a new chapter inserted right after this
+// one. Useful for chopping a freshly-imported single-blob chapter into
+// real chapters by walking the cursor to each "Chapter N" line.
+const editorRef = ref(null);
+async function splitChapterHere() {
+  if (!ch.value || !activeScene.value || !editorRef.value?.editor) return;
+  const editor = editorRef.value.editor;
+  const pos = editor.state.selection.from;
+  if (pos <= 0 || pos >= editor.state.doc.content.size) {
+    ui.showToast({ message: "Place the cursor where the new chapter should begin." });
+    return;
+  }
+  const title = await promptDialog({
+    title: "Split chapter here",
+    label: "New chapter title",
+    placeholder: "Title for the chapter starting at the cursor",
+    confirmLabel: "Split",
+  });
+  if (!title) return;
+
+  const { DOMSerializer } = await import("@tiptap/pm/model");
+  const ser = DOMSerializer.fromSchema(editor.schema);
+  const fragToHtml = (fragment) => {
+    const div = document.createElement("div");
+    div.appendChild(ser.serializeFragment(fragment));
+    return div.innerHTML;
+  };
+  const before = fragToHtml(editor.state.doc.cut(0, pos).content);
+  const after  = fragToHtml(editor.state.doc.cut(pos).content);
+
+  const newId = project.splitChapterAtScene(ch.value.id, activeScene.value.id, before, after, title);
+  if (newId) {
+    ui.select("chapters", newId);
+    router.push(`/chapters/${newId}`);
+    ui.showToast({ message: `Split into "${title}".` });
+  }
+}
 
 // ── Parts ───────────────────────────────────────────────────────────
 function updatePartTitle(id, v) { project.updatePart(id, { title: v }); }
@@ -465,6 +515,9 @@ watch(() => project.allChapters.map((c) => c.id + ":" + (project.scenesFor(c.id)
           Next <Icon name="ChevRight" :size="12" />
         </button>
       </router-link>
+      <button v-if="activeScene" class="btn ghost sm" @click="splitChapterHere" title="Split this chapter at the cursor">
+        <Icon name="Replace" :size="13" /> Split here
+      </button>
       <button class="btn ghost sm" @click="deleteChapter">Delete</button>
       <button class="btn primary sm" @click="addChapter"><Icon name="Plus" :size="14" /> New chapter</button>
       <StatusSelect
@@ -484,9 +537,28 @@ watch(() => project.allChapters.map((c) => c.id + ":" + (project.scenesFor(c.id)
         <span>{{ m.label }}</span>
       </button>
     </div>
+    <!-- Versions + Critique are available in non-edit modes too — the
+         writer often wants to critique while reading or to snapshot a
+         version from the outline. Skip outline (no chapter context). -->
+    <template v-if="mode !== 'outline'">
+      <button class="btn ghost sm" @click="versionsOpen = true" title="Version history">
+        <Icon name="History" :size="13" /> Versions
+      </button>
+      <button class="btn ghost sm" @click="critiqueOpen = true" title="AI critique — notes + structural analysis">
+        <Icon name="Sparkle" :size="13" />
+        Critique
+        <span v-if="ch?.critique?.notes?.length" class="critique-pill">{{ ch.critique.notes.length }}</span>
+      </button>
+    </template>
+    <router-link to="/import" custom v-slot="{ navigate }">
+      <button class="btn ghost sm" @click="navigate" title="Import chapters from a file"><Icon name="Plus" :size="14" /> Import</button>
+    </router-link>
     <button class="btn primary sm" @click="addChapter"><Icon name="Plus" :size="14" /> New chapter</button>
   </PaneHeader>
   <PaneHeader v-else eyebrow="Manuscript" title="No chapters">
+    <router-link to="/import" custom v-slot="{ navigate }">
+      <button class="btn ghost sm" @click="navigate"><Icon name="Plus" :size="14" /> Import from file</button>
+    </router-link>
     <button class="btn primary sm" @click="addChapter"><Icon name="Plus" :size="14" /> New chapter</button>
   </PaneHeader>
 
@@ -680,6 +752,11 @@ watch(() => project.allChapters.map((c) => c.id + ":" + (project.scenesFor(c.id)
       <button class="btn ghost sm" @click="versionsOpen = true" title="Version history — save & restore snapshots of this chapter">
         <Icon name="History" :size="13" /> Versions
       </button>
+      <button class="btn ghost sm" @click="critiqueOpen = true" title="AI critique — notes + structural analysis for this chapter">
+        <Icon name="Sparkle" :size="13" />
+        Critique
+        <span v-if="ch?.critique?.notes?.length" class="critique-pill">{{ ch.critique.notes.length }}</span>
+      </button>
     </div>
 
     <!-- Single-scene editor: which scene shows is driven by the route
@@ -717,12 +794,8 @@ watch(() => project.allChapters.map((c) => c.id + ":" + (project.scenesFor(c.id)
       :scene-id="activeScene.id"
       @close="linksOpen = false" />
 
-    <VersionHistoryModal v-if="versionsOpen && ch"
-      :chapter-id="ch.id"
-      :chapter-title="`Ch. ${ch.num} · ${ch.title}`"
-      @close="versionsOpen = false" />
-
     <RichEditor v-if="activeScene"
+      ref="editorRef"
       :key="activeScene.id"
       :model-value="activeScene.body"
       :placeholder="`Write scene ${activeSceneIdx + 1}…`"
@@ -771,6 +844,17 @@ watch(() => project.allChapters.map((c) => c.id + ":" + (project.scenesFor(c.id)
       <button class="btn primary" style="margin-top:14px" @click="addChapter"><Icon name="Plus" :size="14" /> Create your first chapter</button>
     </div>
   </div>
+
+  <!-- Modal mounts — hoisted out of the mode-specific wrappers so they
+       open regardless of edit/outline/cards/read mode. -->
+  <VersionHistoryModal v-if="versionsOpen && ch"
+    :chapter-id="ch.id"
+    :chapter-title="`Ch. ${ch.num} · ${ch.title}`"
+    @close="versionsOpen = false" />
+
+  <CritiqueModal v-if="critiqueOpen && ch"
+    :chapter-id="ch.id"
+    @close="critiqueOpen = false" />
 </template>
 
 <style scoped>
@@ -1051,6 +1135,15 @@ watch(() => project.allChapters.map((c) => c.id + ":" + (project.scenesFor(c.id)
   text-transform: uppercase; letter-spacing: 0.08em;
   color: var(--muted);
   flex-shrink: 0;
+}
+.critique-pill {
+  display: inline-flex; align-items: center;
+  margin-left: 4px;
+  padding: 0 6px; min-width: 16px; height: 16px;
+  border-radius: 999px;
+  font-family: var(--font-mono); font-size: 10px; font-weight: 600;
+  background: var(--accent-soft); color: var(--accent-ink);
+  line-height: 1;
 }
 .scene-title-input {
   flex: 1; min-width: 160px;

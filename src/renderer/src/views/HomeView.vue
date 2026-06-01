@@ -113,6 +113,9 @@ const strandCount = (id) => allCh.value.filter((c) => (c.strands || []).includes
     </div>
     <div class="pane-actions">
       <button class="btn ghost" @click="goToday"><Icon name="Calendar" :size="14" /> Today</button>
+      <router-link to="/import" custom v-slot="{ navigate }">
+        <button class="btn ghost" @click="navigate"><Icon name="Plus" :size="14" /> Import manuscript</button>
+      </router-link>
       <router-link to="/chapters" custom v-slot="{ navigate }">
         <button class="btn primary" @click="navigate"><Icon name="Plus" :size="14" /> Quick write</button>
       </router-link>

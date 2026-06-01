@@ -1,7 +1,16 @@
 // High-level LLM operations used by the rest of the app.
 // Wraps OpenAICompatClient with task-specific prompts.
+//
+// Tier integration: structured-output paths (detectSpeakers, smartCast)
+// accept an optional `tier` object resolved by the caller via
+// `ai.resolveTier(modelId)`. Callers pass the resolved tier so this layer
+// stays Pinia-free. Only `tier.think` is consumed here because production
+// prompts are paragraph-granular and don't match the inline-tag tier
+// prompts. When inline-tag eventually gets promoted to production, the
+// tier's prompt body becomes load-bearing too.
 
 import { OpenAICompatClient } from "./openai-compat.js";
+import { friendlyAiError } from "./aiErrors.js";
 
 // ─── Speaker detection ──────────────────────────────────────────────────
 //
@@ -21,7 +30,7 @@ Use "narrator" for narration. Use the character id (e.g. "c1") for dialogue.
 Use "interior" for unspoken thoughts of a character. Be conservative — if
 you are uncertain, set confidence below 0.85.`;
 
-export async function detectSpeakers({ provider, paragraphs, characters, model, signal }) {
+export async function detectSpeakers({ provider, paragraphs, characters, model, signal, tier }) {
   const client = new OpenAICompatClient(provider);
 
   const characterList = characters
@@ -38,19 +47,26 @@ export async function detectSpeakers({ provider, paragraphs, characters, model, 
     "Return only the JSON array, no commentary.",
   ].join("\n");
 
-  const reply = await client.chat({
-    model,
-    signal,
-    messages: [
-      { role: "system", content: SPEAKER_SYSTEM },
-      { role: "user", content: userMsg },
-    ],
-    // Disable thinking on Ollama-hosted reasoning models (Qwen3.5,
-    // DeepSeek-R1, …). Output is JSON-parsed downstream, so <think>
-    // blocks would break parsing. No-op on non-thinking models and on
-    // non-Ollama providers (unknown body param is ignored).
-    extra: { think: false },
-  });
+  let reply;
+  try {
+    reply = await client.chat({
+      model,
+      signal,
+      messages: [
+        { role: "system", content: SPEAKER_SYSTEM },
+        { role: "user", content: userMsg },
+      ],
+      // think driven by the resolved tier — Reasoned (hybrid models like
+      // Qwen3:14B+) gets true and benefits from implicit chain-of-thought;
+      // Guided / Direct get false. No-op on non-Ollama providers (unknown
+      // body param is ignored per OpenAI spec). Fallback to false when no
+      // tier is supplied keeps backwards-compat with any caller that
+      // hasn't been updated.
+      extra: { think: tier?.think === true },
+    });
+  } catch (err) {
+    throw friendlyAiError(err, provider);
+  }
 
   return parseJsonArray(reply, paragraphs);
 }
@@ -66,7 +82,7 @@ with descriptors, pick the best voice for each character. Return a JSON
 object mapping characterId -> voiceId. Match on age, gender, tone,
 and accent. Do not invent ids. If no voice fits, omit that character.`;
 
-export async function smartCast({ provider, characters, voices, model, signal }) {
+export async function smartCast({ provider, characters, voices, model, signal, tier }) {
   const client = new OpenAICompatClient(provider);
 
   const charList = characters
@@ -76,17 +92,21 @@ export async function smartCast({ provider, characters, voices, model, signal })
     .map((v) => `- id="${v.id}", name="${v.name}", gender=${v.gender || "?"}, age=${v.age || "?"}, accent=${v.accent || "?"}, tone="${v.tone || ""}"`)
     .join("\n");
 
-  const reply = await client.chat({
-    model,
-    signal,
-    messages: [
-      { role: "system", content: CAST_SYSTEM },
-      { role: "user", content: `Characters:\n${charList}\n\nAvailable voices:\n${voiceList}\n\nReturn only the JSON object.` },
-    ],
-    // JSON-parsed output — disable thinking on reasoning models. See
-    // detectSpeakers above for the rationale.
-    extra: { think: false },
-  });
+  let reply;
+  try {
+    reply = await client.chat({
+      model,
+      signal,
+      messages: [
+        { role: "system", content: CAST_SYSTEM },
+        { role: "user", content: `Characters:\n${charList}\n\nAvailable voices:\n${voiceList}\n\nReturn only the JSON object.` },
+      ],
+      // think driven by tier (model-level capability). See detectSpeakers.
+      extra: { think: tier?.think === true },
+    });
+  } catch (err) {
+    throw friendlyAiError(err, provider);
+  }
 
   return parseJsonObject(reply);
 }
@@ -98,7 +118,11 @@ export async function smartCast({ provider, characters, voices, model, signal })
 // reasoning model, or omit it and let the model think for creative tasks.
 export async function chat({ provider, messages, model, signal, temperature, extra }) {
   const client = new OpenAICompatClient(provider);
-  return client.chat({ messages, model, signal, temperature, extra });
+  try {
+    return await client.chat({ messages, model, signal, temperature, extra });
+  } catch (err) {
+    throw friendlyAiError(err, provider);
+  }
 }
 
 // ─── helpers ────────────────────────────────────────────────────────────

@@ -54,6 +54,16 @@ function blocksFromHtml(html, fallbackTitle = "", { stripSceneStructure = false 
     div.querySelectorAll("h2.scene-title, p.scene-mark").forEach((el) => el.remove());
   }
 
+  // Pending AI revisions are authoring chrome and never belong in a
+  // published export. Drop deletions outright; unwrap insertions so the
+  // proposed prose ships as plain text. Same policy as Read mode.
+  div.querySelectorAll("del[data-ai-del], .ai-del").forEach((el) => el.remove());
+  div.querySelectorAll("ins[data-ai-ins], .ai-ins").forEach((el) => el.replaceWith(...el.childNodes));
+  // Editorial comments are inline notes, not prose — strip the mark but
+  // keep the underlying text (the comment text itself lives in a data-attr
+  // and is invisible in the exported document).
+  div.querySelectorAll("span.comment-mark").forEach((el) => el.replaceWith(...el.childNodes));
+
   // Ensure every chapter has a top-level heading.
   let sawHeading = false;
   for (const node of div.childNodes) {

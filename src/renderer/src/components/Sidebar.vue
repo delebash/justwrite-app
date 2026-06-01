@@ -1,5 +1,5 @@
 <script setup>
-import { computed, ref, onBeforeUnmount } from "vue";
+import { computed, ref, onBeforeUnmount, onMounted } from "vue";
 import { useRoute, useRouter } from "vue-router";
 import { useUiStore } from "../stores/ui.js";
 import { useProjectStore } from "../stores/project.js";
@@ -15,6 +15,29 @@ const route = useRoute();
 // ── Project switcher dropdown ────────────────────────────
 const projectMenuOpen = ref(false);
 const projectSwitcherEl = ref(null);
+
+// Live-formatted "Autosaved · 5s ago" indicator. `nowTick` re-evaluates
+// every 15s so the relative label stays accurate without re-rendering
+// on every store change.
+const nowTick = ref(Date.now());
+let nowInterval = null;
+onMounted(() => { nowInterval = setInterval(() => { nowTick.value = Date.now(); }, 15000); });
+onBeforeUnmount(() => { if (nowInterval) clearInterval(nowInterval); });
+
+const savedAtLabel = computed(() => {
+  const ts = project._lastSavedAt;
+  if (!ts) return "never";
+  const diff = nowTick.value - ts;
+  if (diff < 5_000) return "just now";
+  if (diff < 60_000) return `${Math.floor(diff / 1000)}s ago`;
+  if (diff < 3_600_000) return `${Math.floor(diff / 60_000)}m ago`;
+  if (diff < 86_400_000) return `${Math.floor(diff / 3_600_000)}h ago`;
+  return new Date(ts).toLocaleDateString();
+});
+const savedAtTitle = computed(() => {
+  const ts = project._lastSavedAt;
+  return ts ? new Date(ts).toLocaleString() : "No edits saved yet";
+});
 
 function toggleProjectMenu() { projectMenuOpen.value = !projectMenuOpen.value; }
 function closeProjectMenu() { projectMenuOpen.value = false; }
@@ -66,6 +89,7 @@ const NAV = [
   { id: "architecture",  label: "Architecture",  icon: "Building", expandable: "architecture", fixed: true },
   { id: "strands",       label: "Narrative strands", icon: "Strands", expandable: "strands" },
   { id: "chapters",      label: "Chapters",      icon: "Book",     expandable: "chapters" },
+  { id: "ask",           label: "Ask the book",  icon: "Sparkle",  kbd: "⌘J", action: "openChat" },
 
   { section: "Story world" },
   { id: "characters",    label: "Characters",    icon: "Users",     expandable: "characters" },
@@ -75,6 +99,7 @@ const NAV = [
   { id: "worldbuilding", label: "Worldbuilding", icon: "Sparkle",   expandable: "worldbuilding" },
 
   { section: "Planning" },
+  { id: "plot",      label: "Plot board", icon: "Grid" },
   { id: "timeline",  label: "Timeline",  icon: "Timeline" },
   { id: "notes",     label: "Notes",     icon: "Note",     expandable: "notes" },
   { id: "relations", label: "Relations", icon: "Network" },
@@ -87,6 +112,7 @@ const NAV = [
   { id: "export",    label: "Export",    icon: "Export" },
   { id: "trash",     label: "Trash",     icon: "Trash" },
   { id: "settings",  label: "Settings",  icon: "Settings" },
+  { id: "writer-lab", label: "Writer Lab", icon: "Sparkle", path: "/writer-lab", activeName: "writerlab" },
 ];
 
 // Resolve an entity's status id → { statusLabel, statusColor } for the
@@ -123,8 +149,19 @@ const expandableChildren = computed(() => ({
 
 const activeSection = computed(() => String(route.name || "").toLowerCase());
 
-function go(id) { router.push("/" + (id === "home" ? "" : id)); }
-function clickParent(item) { item.expandable ? ui.toggleSection(item.id) : go(item.id); }
+function go(id) {
+  // NAV entries can carry a `path` override for one-off routes that
+  // don't follow the `/<id>` convention (e.g. /debug/writer-lab).
+  const entry = NAV.find((n) => n && n.id === id);
+  if (entry?.path) { router.push(entry.path); return; }
+  router.push("/" + (id === "home" ? "" : id));
+}
+function clickParent(item) {
+  if (item.expandable) { ui.toggleSection(item.id); return; }
+  if (item.action && typeof ui[item.action] === "function") { ui[item.action](); return; }
+  if (item.path) { router.push(item.path); return; }
+  go(item.id);
+}
 function clickChild(parentId, childId) { ui.select(parentId, childId); router.push(`/${parentId}/${childId}`); }
 
 async function addItem(parentId) {
@@ -641,7 +678,7 @@ function wbDropClass(kind, id) {
       <template v-for="n in NAV" :key="n.section || n.id">
         <div v-if="n.section" class="nav-section">{{ n.section }}</div>
         <div v-else class="nav-block">
-          <button class="nav-item expandable" :class="{ active: activeSection === n.id.toLowerCase() }" @click="clickParent(n)">
+          <button class="nav-item expandable" :class="{ active: activeSection === (n.activeName || n.id).toLowerCase() }" @click="clickParent(n)">
             <span class="nav-icon"><Icon :name="n.icon" :size="15" /></span>
             <span class="nav-label">{{ n.label }}</span>
             <span v-if="n.kbd" class="kbd-pill">{{ n.kbd }}</span>
@@ -835,8 +872,8 @@ function wbDropClass(kind, id) {
     <div class="sidebar-footer">
       <div class="avatar">MH</div>
       <div class="meta">
-        <b>Mira Halden</b>
-        <span>Autosaved · {{ project.project.lastSaved }}</span>
+        <b>{{ project.project.author || "Untitled author" }}</b>
+        <span :title="savedAtTitle">Autosaved · {{ savedAtLabel }}</span>
       </div>
     </div>
   </aside>
@@ -845,7 +882,7 @@ function wbDropClass(kind, id) {
     <button class="rail-toggle" @click="ui.toggleSidebar"><Icon name="SidebarToggle" :size="15" /></button>
     <div style="height:8px" />
     <button v-for="n in NAV.filter(x => x.id)" :key="n.id"
-      class="rail-item" :class="{ active: activeSection === n.id.toLowerCase() }"
+      class="rail-item" :class="{ active: activeSection === (n.activeName || n.id).toLowerCase() }"
       :title="n.label" @click="go(n.id)">
       <Icon :name="n.icon" :size="16" />
     </button>

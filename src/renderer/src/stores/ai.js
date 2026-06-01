@@ -1,5 +1,6 @@
 // AI store — manages providers (OpenAI-compatible), default LLM and TTS,
-// connection status. Persists via the IDB-backed storage adapter.
+// connection status, and the usage ledger (tokens + estimated cost per
+// call). Persists via the IDB-backed storage adapter.
 
 import { defineStore } from "pinia";
 import { DEFAULT_PROVIDERS } from "../domain/seed.js";
@@ -8,6 +9,88 @@ import { getModelTier, TIERS } from "../services/modelMeta.js";
 import { getItem, setItem } from "../services/storage.js";
 
 const LS_KEY = "justwrite:ai";
+const LS_USAGE_KEY = "justwrite:ai:usage";
+
+// In-memory cap on the usage log so a long session can't unbounded-bloat
+// IDB. The oldest rows are trimmed; aggregate totals are kept separately.
+const USAGE_LOG_LIMIT = 1000;
+
+// Per-1M-token pricing for known cloud models. Local providers (Ollama,
+// LM Studio, llama.cpp) cost $0 — they get no entry and pricing resolves
+// to zero. Add entries when surfacing a new cloud model in the UI;
+// missing entries return zero (so the ledger is still useful, just
+// without cost columns).
+const MODEL_PRICING = {
+  // OpenAI (USD per 1M tokens — input / output)
+  "gpt-5":              { in: 1.25,  out: 10.00 },
+  "gpt-5-mini":         { in: 0.25,  out: 2.00 },
+  "gpt-5-nano":         { in: 0.05,  out: 0.40 },
+  "gpt-4o":             { in: 2.50,  out: 10.00 },
+  "gpt-4o-mini":        { in: 0.15,  out: 0.60 },
+  "gpt-4.1":            { in: 2.00,  out: 8.00 },
+  "gpt-4.1-mini":       { in: 0.40,  out: 1.60 },
+  // Anthropic Claude (cloud — these run through openai-compat shims like
+  // OpenRouter but the bare model id is what surfaces in usage rows)
+  "claude-opus-4-7":    { in: 15.00, out: 75.00 },
+  "claude-sonnet-4-6":  { in: 3.00,  out: 15.00 },
+  "claude-haiku-4-5":   { in: 1.00,  out: 5.00 },
+  // Google Gemini
+  "gemini-2.5-pro":     { in: 1.25,  out: 5.00 },
+  "gemini-2.5-flash":   { in: 0.30,  out: 2.50 },
+};
+
+function priceFor(modelId) {
+  if (!modelId) return null;
+  const id = String(modelId).toLowerCase();
+  // Exact match first; otherwise prefix-match (catches `-2026-01-01` etc.).
+  if (MODEL_PRICING[id]) return MODEL_PRICING[id];
+  for (const [key, p] of Object.entries(MODEL_PRICING)) {
+    if (id.startsWith(key)) return p;
+  }
+  return null;
+}
+
+function loadUsage() {
+  try {
+    const v = JSON.parse(getItem(LS_USAGE_KEY) || "null");
+    if (!v || typeof v !== "object") return null;
+    return {
+      log: Array.isArray(v.log) ? v.log : [],
+      totals: v.totals && typeof v.totals === "object" ? v.totals : null,
+    };
+  } catch { return null; }
+}
+
+function saveUsage(log, totals) {
+  try {
+    setItem(LS_USAGE_KEY, JSON.stringify({ log, totals }));
+  } catch {}
+}
+
+function emptyTotals() {
+  return {
+    calls: 0,
+    promptTokens: 0,
+    completionTokens: 0,
+    cost: 0,
+    byFeature: {}, // featureKey -> { calls, promptTokens, completionTokens, cost }
+    byProvider: {}, // providerId -> same shape
+  };
+}
+
+function bumpBucket(bucket, row) {
+  bucket.calls += 1;
+  bucket.promptTokens += row.promptTokens || 0;
+  bucket.completionTokens += row.completionTokens || 0;
+  bucket.cost += row.cost || 0;
+}
+
+function bumpKey(map, key, row) {
+  if (!key) return;
+  const existing = map[key] || { calls: 0, promptTokens: 0, completionTokens: 0, cost: 0 };
+  bumpBucket(existing, row);
+  map[key] = existing;
+}
 
 function load() {
   try {
@@ -30,6 +113,7 @@ function save(state) {
       providers: state.providers,
       defaultLlmId: state.defaultLlmId,
       defaultTtsId: state.defaultTtsId,
+      defaultEmbeddingId: state.defaultEmbeddingId,
       modelTiers: state.modelTiers,
     }));
   } catch {}
@@ -38,10 +122,15 @@ function save(state) {
 export const useAiStore = defineStore("ai", {
   state: () => {
     const loaded = load();
+    const usage = loadUsage();
     return {
       providers: loaded?.providers ?? [...DEFAULT_PROVIDERS],
       defaultLlmId: loaded?.defaultLlmId ?? "openai-compat-local",
       defaultTtsId: loaded?.defaultTtsId ?? "openai",
+      // Default provider used for embeddings (RAG indexing + chat).
+      // Same provider can host LLM + embeddings; the model field on the
+      // provider determines which embedding model to call.
+      defaultEmbeddingId: loaded?.defaultEmbeddingId ?? "openai-compat-local",
       status: {}, // providerId -> "ok" | "down" | "checking" | undefined
       // Per-model tier overrides (pinned by the user in Settings or the
       // Speaker Lab). Keyed by bare model id, NOT by provider+model — same
@@ -49,6 +138,12 @@ export const useAiStore = defineStore("ai", {
       // judgement. Empty by default; the heuristic in modelMeta.js
       // provides the auto-detected tier when nothing is pinned.
       modelTiers: loaded?.modelTiers ?? {},
+      // Usage ledger — every LLM call routed through writerAI (and any
+      // future feature that uses recordUsage) appends a row. Aggregates
+      // are maintained alongside so a settings page can render totals
+      // without rewalking the log on every open.
+      usageLog: usage?.log || [],
+      usageTotals: usage?.totals || emptyTotals(),
     };
   },
 
@@ -56,8 +151,12 @@ export const useAiStore = defineStore("ai", {
     providerById: (s) => (id) => s.providers.find((p) => p.id === id),
     llmProvider: (s) => s.providers.find((p) => p.id === s.defaultLlmId) || null,
     ttsProvider: (s) => s.providers.find((p) => p.id === s.defaultTtsId) || null,
+    embeddingProvider: (s) => s.providers.find((p) => p.id === s.defaultEmbeddingId) || null,
     llmProviders: (s) => s.providers.filter((p) => p.kind === "llm" || p.kind === "both"),
     ttsProviders: (s) => s.providers.filter((p) => p.kind === "tts" || p.kind === "both"),
+    // Any LLM-capable provider can host embeddings — the embedding
+    // model is configured per-provider via the embeddingModel field.
+    embeddingProviders: (s) => s.providers.filter((p) => p.kind === "llm" || p.kind === "both"),
 
     // Resolve a model id to its tier — user override wins, else the
     // name-pattern heuristic. Returns the tier object (not just the id)
@@ -70,6 +169,12 @@ export const useAiStore = defineStore("ai", {
     // Whether the resolved tier came from a user pin or the heuristic —
     // drives the "(auto)" vs "(pinned)" badge in the Settings model picker.
     tierSource: (s) => (modelId) => (s.modelTiers[modelId] ? "pinned" : "auto"),
+
+    // Recent usage entries newest-first (for a "recent activity" list).
+    recentUsage: (s) => (limit = 20) => [...s.usageLog].reverse().slice(0, limit),
+    // Sum of cost across the entire ledger.
+    totalCost: (s) => s.usageTotals.cost || 0,
+    totalTokens: (s) => (s.usageTotals.promptTokens || 0) + (s.usageTotals.completionTokens || 0),
   },
 
   actions: {
@@ -95,6 +200,10 @@ export const useAiStore = defineStore("ai", {
       this.defaultTtsId = id;
       save(this.$state);
     },
+    setDefaultEmbedding(id) {
+      this.defaultEmbeddingId = id;
+      save(this.$state);
+    },
     // Pin a tier override for a specific model. Pass null/undefined to
     // clear and fall back to the auto-detected tier from modelMeta.
     setModelTier(modelId, tierId) {
@@ -116,5 +225,55 @@ export const useAiStore = defineStore("ai", {
       this.status = { ...this.status, [id]: ok ? "ok" : "down" };
       return ok;
     },
+
+    // ── Usage ───────────────────────────────────────────────
+    // Append a usage row. Called by writerAI (and any other AI feature
+    // routed through this ledger) on the final chunk of a chat call.
+    //   feature    — short key like "rewrite", "expand", "critique", …
+    //   providerId — id from the AI store; used for grouping + display
+    //   model      — bare model id (e.g. "gpt-4o-mini"); priced via
+    //                MODEL_PRICING above
+    //   promptTokens / completionTokens — from the server response
+    //   meta       — optional { chapterId, sceneId, label } for the
+    //                future "view recent calls" panel
+    recordUsage({ feature, providerId, model, promptTokens = 0, completionTokens = 0, meta = {} } = {}) {
+      const p = priceFor(model);
+      const cost = p
+        ? (promptTokens / 1_000_000) * p.in + (completionTokens / 1_000_000) * p.out
+        : 0;
+      const row = {
+        id: `u_${Date.now().toString(36)}_${Math.random().toString(36).slice(2, 6)}`,
+        at: Date.now(),
+        feature: feature || "unknown",
+        providerId: providerId || null,
+        model: model || null,
+        promptTokens: Math.max(0, promptTokens | 0),
+        completionTokens: Math.max(0, completionTokens | 0),
+        cost,
+        meta,
+      };
+      const nextLog = [...this.usageLog, row];
+      while (nextLog.length > USAGE_LOG_LIMIT) nextLog.shift();
+      this.usageLog = nextLog;
+      // Update aggregates in place — the totals object isn't rebuilt
+      // from the log so trimmed rows still count toward lifetime totals.
+      const totals = { ...this.usageTotals, byFeature: { ...this.usageTotals.byFeature }, byProvider: { ...this.usageTotals.byProvider } };
+      bumpBucket(totals, row);
+      bumpKey(totals.byFeature, row.feature, row);
+      bumpKey(totals.byProvider, row.providerId, row);
+      this.usageTotals = totals;
+      saveUsage(this.usageLog, this.usageTotals);
+      return row;
+    },
+
+    clearUsage() {
+      this.usageLog = [];
+      this.usageTotals = emptyTotals();
+      saveUsage(this.usageLog, this.usageTotals);
+    },
   },
 });
+
+// Exported for tests / settings pages that want to render the same
+// pricing table the store uses internally.
+export { MODEL_PRICING, priceFor };

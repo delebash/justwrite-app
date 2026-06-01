@@ -61,17 +61,22 @@ const routes = [
   { path: "/worldbuilding/:id?", name: "Worldbuilding", component: () => import("../views/WorldbuildingView.vue"), props: true },
   { path: "/strands/:id?",       name: "Strands",       component: () => import("../views/StrandsView.vue"), props: true },
   { path: "/plotlines/:id?",     redirect: "/strands" },
+  { path: "/plot",               name: "PlotBoard",     component: () => import("../views/PlotBoardView.vue") },
   { path: "/timeline",           name: "Timeline",      component: () => import("../views/TimelineView.vue") },
   { path: "/notes/:id?",         name: "Notes",         component: () => import("../views/NotesView.vue"), props: true },
   { path: "/relations",          name: "Relations",     component: () => import("../views/RelationsView.vue") },
   { path: "/studio/:tab?",       name: "Studio",        component: () => import("../views/StudioView.vue"), props: true },
   { path: "/analysis",          name: "Analysis",      component: () => import("../views/AnalysisView.vue") },
+  { path: "/import",            name: "Import",        component: () => import("../views/ImportView.vue") },
   { path: "/export",            name: "Export",        component: () => import("../views/ExportView.vue") },
   { path: "/trash",             name: "Trash",         component: () => import("../views/TrashView.vue") },
   { path: "/settings/:section?", name: "Settings",      component: () => import("../views/SettingsView.vue"), props: true },
 
+  { path: "/writer-lab",          name: "WriterLab",      component: () => import("../views/WriterLabView.vue") },
+
   // Hidden dev/debug routes — no sidebar entry. Reach via direct hash URL.
   { path: "/debug/speaker-lab",  name: "SpeakerLab",    component: () => import("../views/SpeakerLabView.vue") },
+  { path: "/debug/writer-lab",   name: "WriterLabDebug", component: () => import("../views/WriterLabDebugView.vue") },
 ];
 
 export default createRouter({

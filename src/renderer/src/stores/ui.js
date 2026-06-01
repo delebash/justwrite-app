@@ -63,6 +63,12 @@ export const useUiStore = defineStore("ui", {
       // Not persisted — flooding IDB on every scroll tick is wasteful, and
       // on reload there's nothing meaningful to restore to anyway.
       scrolledSceneId: null,
+      // Project find & replace modal — `open` summons the shared modal
+      // mounted at App level; `initialTerm` pre-fills the search input.
+      replaceModal: { open: false, initialTerm: "" },
+      // Manuscript chat panel (RAG). Single boolean; the panel itself
+      // owns its question/answer state.
+      chatPanelOpen: false,
       ...saved,
       // Resolve appearance last: wins over the raw spread and folds in any
       // legacy { theme, accentHue } keys from older saves.
@@ -123,6 +129,21 @@ export const useUiStore = defineStore("ui", {
       if (toastTimer) { clearTimeout(toastTimer); toastTimer = null; }
       this.toast = null;
     },
+
+    // Global project-wide find & replace modal — hoisted to ui so any
+    // view can summon it (the Search view button, the App-level ⌘⇧F
+    // shortcut, the command palette). Initial term seeds the search
+    // input so a Search-view replace lands with the current query.
+    openProjectReplace(initialTerm = "") {
+      this.replaceModal = { open: true, initialTerm: String(initialTerm || "") };
+    },
+    closeProjectReplace() {
+      this.replaceModal = { open: false, initialTerm: "" };
+    },
+
+    openChatPanel()  { this.chatPanelOpen = true; },
+    closeChatPanel() { this.chatPanelOpen = false; },
+    toggleChatPanel() { this.chatPanelOpen = !this.chatPanelOpen; },
 
     setAppearance(patch) {
       const next = { ...this.appearance, ...patch };

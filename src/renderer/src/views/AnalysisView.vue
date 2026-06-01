@@ -10,6 +10,7 @@ import {
   statusCounts, strandDistribution, characterPresence,
   scenesPerChapter, projectKpis, paceSeries, dialogueMix,
 } from "../services/analysis.js";
+import { bookMetrics, POV_LABELS } from "../services/analysis/styleMetrics.js";
 
 const project = useProjectStore();
 const studio = useStudioStore();
@@ -94,6 +95,92 @@ function cellStyle(weight) {
 const maxScenes = computed(() => Math.max(1, ...scenes.value.map((s) => s.scenes)));
 
 function jumpChapter(chId) { router.push(`/chapters/${chId}`); }
+
+// ─── Style + pacing metrics (deterministic) ─────────────────────────
+const style = computed(() => bookMetrics(allCh.value, project.chapterBody));
+
+// Pre-compute relative scales so the per-chapter bars share a single
+// max — easier to compare chapters at a glance.
+function maxOf(rows, field) {
+  return rows.reduce((m, r) => Math.max(m, r[field] || 0), 0) || 1;
+}
+const styleMaxes = computed(() => {
+  const r = style.value.rows;
+  return {
+    sentence: maxOf(r, "avgSentenceLength"),
+    paragraph: maxOf(r, "avgParagraphLength"),
+    dialogue: 1, // ratio, already 0..1
+    filter: maxOf(r, "filterWordsPer1k"),
+    adverb: maxOf(r, "adverbsPer1k"),
+    passive: maxOf(r, "passivePer1k"),
+  };
+});
+
+// ─── Writing heatmap (365 days) ─────────────────────────────────────
+// Build a 53-week × 7-day grid for the year ending today. Each cell is
+// one day; tier 0..4 by quartile of non-zero writing volume so a quiet
+// week still shows shape rather than disappearing.
+const heatmap = computed(() => {
+  const history = sessions.historyFor(371); // 53 * 7
+  // history is oldest-first; align so the rightmost column ends today.
+  const padded = history.slice(-371);
+  // Compute quartile thresholds from non-zero days only.
+  const nonZero = padded.map((d) => d.words).filter((w) => w > 0).sort((a, b) => a - b);
+  const q = (frac) => nonZero[Math.floor(nonZero.length * frac)] || 0;
+  const t1 = q(0.25), t2 = q(0.50), t3 = q(0.75);
+  function tier(w) {
+    if (w <= 0) return 0;
+    if (w <= t1) return 1;
+    if (w <= t2) return 2;
+    if (w <= t3) return 3;
+    return 4;
+  }
+  // Walk into a 7-row × N-col grid. Row 0 = Sunday (matches dow value).
+  const weeks = [];
+  let week = new Array(7).fill(null);
+  for (const day of padded) {
+    week[day.dow] = { date: day.date, words: day.words, tier: tier(day.words) };
+    if (day.dow === 6) {
+      weeks.push(week);
+      week = new Array(7).fill(null);
+    }
+  }
+  if (week.some(Boolean)) weeks.push(week);
+
+  // Month-label anchors: the first week whose Sunday lands inside each
+  // calendar month, in order.
+  const monthLabels = [];
+  let lastMonth = -1;
+  weeks.forEach((w, i) => {
+    const firstDay = w.find(Boolean);
+    if (!firstDay) return;
+    const m = parseInt(firstDay.date.slice(5, 7), 10) - 1;
+    if (m !== lastMonth) {
+      monthLabels.push({ idx: i, label: new Date(2000, m, 1).toLocaleString(undefined, { month: "short" }) });
+      lastMonth = m;
+    }
+  });
+
+  return { weeks, monthLabels, total: padded.reduce((s, d) => s + d.words, 0) };
+});
+
+const DOW_LABELS_HEATMAP = ["S", "M", "T", "W", "T", "F", "S"];
+
+// Milestone celebration — show the next milestone the user is heading
+// toward. Plain whole-thousand thresholds match how writers think about
+// progress; once one is hit the next slot is highlighted.
+const MILESTONES = [10000, 25000, 50000, 75000, 100000, 125000, 150000];
+const milestoneState = computed(() => {
+  const total = kpis.value.totalWords;
+  const reached = MILESTONES.filter((m) => total >= m);
+  const next = MILESTONES.find((m) => total < m) || null;
+  return {
+    reached,
+    next,
+    progressToNext: next ? Math.min(1, total / next) : 1,
+    pct: next ? Math.round((total / next) * 100) : 100,
+  };
+});
 </script>
 
 <template>
@@ -146,6 +233,71 @@ function jumpChapter(chId) { router.push(`/chapters/${chId}`); }
         <span><b class="t-num" style="color:var(--ink)">{{ pace.total.toLocaleString() }}</b> total</span>
         <span><b class="t-num" style="color:var(--ink)">{{ pace.avg.toLocaleString() }}</b> avg/day</span>
         <span><b class="t-num" style="color:var(--ink)">{{ pace.max.toLocaleString() }}</b> peak day</span>
+      </div>
+    </div>
+
+    <!-- Writing heatmap (365-day) + milestones -->
+    <div style="display:grid;grid-template-columns:2fr 1fr;gap:18px;margin-bottom:18px">
+      <div class="card">
+        <div style="display:flex;align-items:center;gap:10px;margin-bottom:8px">
+          <div class="card-title" style="margin:0">Writing year</div>
+          <span class="t-muted" style="font-size:11.5px">Last 53 weeks · {{ heatmap.total.toLocaleString() }} words</span>
+          <span style="margin-left:auto;display:flex;gap:6px;align-items:center;font-size:10.5px;color:var(--muted)">
+            <span>less</span>
+            <span v-for="t in [0,1,2,3,4]" :key="t" class="hm-cell" :class="`hm-t${t}`" style="width:11px;height:11px" />
+            <span>more</span>
+          </span>
+        </div>
+        <div class="hm-grid">
+          <div class="hm-dow">
+            <span v-for="(d, i) in DOW_LABELS_HEATMAP" :key="i" class="hm-dow-lbl" :style="{ visibility: i % 2 ? 'visible' : 'hidden' }">{{ d }}</span>
+          </div>
+          <div class="hm-weeks">
+            <div class="hm-month-row">
+              <span v-for="m in heatmap.monthLabels" :key="m.idx + m.label"
+                class="hm-month-lbl" :style="`grid-column-start: ${m.idx + 1}`">
+                {{ m.label }}
+              </span>
+            </div>
+            <div class="hm-cells">
+              <div v-for="(week, wi) in heatmap.weeks" :key="wi" class="hm-col">
+                <div v-for="(cell, ci) in week" :key="ci"
+                  class="hm-cell" :class="cell ? `hm-t${cell.tier}` : 'hm-t0'"
+                  :title="cell ? `${cell.date} · ${cell.words.toLocaleString()} words` : ''" />
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="card-title" style="margin-bottom:10px">Milestones</div>
+        <div class="ms-next" v-if="milestoneState.next">
+          <div class="ms-next-h">Next milestone</div>
+          <div class="ms-next-target">{{ milestoneState.next.toLocaleString() }} words</div>
+          <div class="ms-bar">
+            <div class="ms-fill" :style="`width:${milestoneState.pct}%`" />
+          </div>
+          <div class="ms-next-sub">
+            <b>{{ kpis.totalWords.toLocaleString() }}</b> / {{ milestoneState.next.toLocaleString() }}
+            <span class="t-muted">· {{ milestoneState.pct }}%</span>
+          </div>
+        </div>
+        <div v-else class="ms-next-h" style="color:var(--accent-ink)">Every milestone hit.</div>
+
+        <div class="ms-grid">
+          <div v-for="m in MILESTONES" :key="m"
+            class="ms-pip" :class="{ on: milestoneState.reached.includes(m), next: milestoneState.next === m }">
+            <Icon :name="milestoneState.reached.includes(m) ? 'Check' : 'Star'" :size="11" />
+            <span>{{ (m / 1000) }}k</span>
+          </div>
+        </div>
+
+        <div class="ms-streaks">
+          <div><span class="t-muted">Current streak</span><span><b>{{ sessions.streak }}</b> day{{ sessions.streak === 1 ? "" : "s" }}</span></div>
+          <div><span class="t-muted">Lifetime</span><span><b>{{ sessions.allTimeTotals.totalWords.toLocaleString() }}</b></span></div>
+          <div><span class="t-muted">Writing days</span><span><b>{{ sessions.allTimeTotals.writingDays }}</b></span></div>
+        </div>
       </div>
     </div>
 
@@ -207,6 +359,78 @@ function jumpChapter(chId) { router.push(`/chapters/${chId}`); }
           </div>
           <span class="val">{{ c.words.toLocaleString() }}</span>
         </div>
+      </div>
+    </div>
+
+    <!-- Style + pacing (deterministic) -->
+    <div class="card" style="margin-bottom:18px" v-if="style.summary.words > 0">
+      <div style="display:flex;align-items:center;gap:10px;margin-bottom:8px">
+        <div class="card-title" style="margin:0">Style &amp; pacing</div>
+        <span class="t-muted" style="font-size:11.5px">Per-chapter prose metrics · {{ POV_LABELS[style.summary.dominantPov] }}</span>
+      </div>
+
+      <!-- Book-level rollup pills -->
+      <div class="sm-rollup">
+        <div class="sm-pill">
+          <div class="sm-pill-num">{{ style.summary.avgSentenceLength.toFixed(1) }}</div>
+          <div class="sm-pill-lbl">words / sentence</div>
+        </div>
+        <div class="sm-pill">
+          <div class="sm-pill-num">{{ style.summary.avgParagraphLength.toFixed(1) }}</div>
+          <div class="sm-pill-lbl">words / paragraph</div>
+        </div>
+        <div class="sm-pill">
+          <div class="sm-pill-num">{{ Math.round(style.summary.dialogueRatio * 100) }}%</div>
+          <div class="sm-pill-lbl">dialogue</div>
+        </div>
+        <div class="sm-pill">
+          <div class="sm-pill-num">{{ style.summary.filterWordsPer1k.toFixed(1) }}</div>
+          <div class="sm-pill-lbl">filter words / 1k</div>
+        </div>
+        <div class="sm-pill">
+          <div class="sm-pill-num">{{ style.summary.adverbsPer1k.toFixed(1) }}</div>
+          <div class="sm-pill-lbl">adverbs / 1k</div>
+        </div>
+        <div class="sm-pill">
+          <div class="sm-pill-num">{{ style.summary.passivePer1k.toFixed(1) }}</div>
+          <div class="sm-pill-lbl">passive / 1k</div>
+        </div>
+        <div class="sm-pill">
+          <div class="sm-pill-num">{{ (style.summary.pacingCoV * 100).toFixed(0) }}%</div>
+          <div class="sm-pill-lbl">chapter-length variance</div>
+        </div>
+      </div>
+
+      <!-- Per-chapter table -->
+      <div class="sm-table-wrap">
+        <table class="sm-table">
+          <thead>
+            <tr>
+              <th class="left">Chapter</th>
+              <th title="Words">W</th>
+              <th title="Average sentence length (words)">Sent</th>
+              <th title="Average paragraph length (words)">Para</th>
+              <th title="Dialogue share">Dial</th>
+              <th title="Filter words per 1000 words (saw, heard, felt, …)">Filter</th>
+              <th title="Adverbs per 1000 words">Adv</th>
+              <th title="Passive constructions per 1000 (approximate)">Pass</th>
+              <th title="Dominant POV">POV</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr v-for="r in style.rows" :key="r.chapterId" @click="jumpChapter(r.chapterId)">
+              <td class="left"><b>{{ r.num }}</b>. {{ r.title }}</td>
+              <td>{{ r.words.toLocaleString() }}</td>
+              <td><span class="sm-bar"><span class="sm-fill" :style="`width:${(r.avgSentenceLength / styleMaxes.sentence) * 100}%`" /></span>{{ r.avgSentenceLength.toFixed(1) }}</td>
+              <td><span class="sm-bar"><span class="sm-fill" :style="`width:${(r.avgParagraphLength / styleMaxes.paragraph) * 100}%`" /></span>{{ r.avgParagraphLength.toFixed(1) }}</td>
+              <td><span class="sm-bar"><span class="sm-fill" :style="`width:${r.dialogueRatio * 100}%`" /></span>{{ Math.round(r.dialogueRatio * 100) }}%</td>
+              <td><span class="sm-bar"><span class="sm-fill" :style="`width:${(r.filterWordsPer1k / Math.max(styleMaxes.filter, 1)) * 100}%`" /></span>{{ r.filterWordsPer1k.toFixed(1) }}</td>
+              <td><span class="sm-bar"><span class="sm-fill" :style="`width:${(r.adverbsPer1k / Math.max(styleMaxes.adverb, 1)) * 100}%`" /></span>{{ r.adverbsPer1k.toFixed(1) }}</td>
+              <td><span class="sm-bar"><span class="sm-fill" :style="`width:${(r.passivePer1k / Math.max(styleMaxes.passive, 1)) * 100}%`" /></span>{{ r.passivePer1k.toFixed(1) }}</td>
+              <td class="pov-cell">{{ POV_LABELS[r.povHint] || "—" }}</td>
+            </tr>
+          </tbody>
+        </table>
       </div>
     </div>
 
@@ -370,4 +594,85 @@ function jumpChapter(chId) { router.push(`/chapters/${chId}`); }
 .mix-row .name { color: var(--ink-2); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 .mix-row .val { text-align: right; color: var(--muted); font-variant-numeric: tabular-nums; }
 .mix-row:hover { background: var(--surface-2); }
+
+/* ── Writing year heatmap (365-day) ─────────────────────────────── */
+.hm-grid { display: grid; grid-template-columns: 22px 1fr; gap: 6px; }
+.hm-dow {
+  display: grid; grid-template-rows: repeat(7, 1fr);
+  gap: 3px; padding-top: 16px;
+  font-family: var(--font-mono); font-size: 9.5px; color: var(--muted);
+}
+.hm-dow-lbl { line-height: 1; text-align: center; height: 12px; }
+.hm-weeks { display: flex; flex-direction: column; gap: 2px; min-width: 0; overflow: hidden; }
+.hm-month-row { display: grid; grid-auto-flow: column; grid-auto-columns: 13px; height: 12px; font-family: var(--font-mono); font-size: 9.5px; color: var(--muted); }
+.hm-month-lbl { grid-row: 1; line-height: 1; }
+.hm-cells { display: flex; gap: 2px; }
+.hm-col { display: grid; grid-template-rows: repeat(7, 11px); gap: 2px; }
+.hm-cell { width: 11px; height: 11px; border-radius: 2px; background: var(--surface-3); }
+.hm-cell.hm-t0 { background: var(--surface-3); }
+.hm-cell.hm-t1 { background: color-mix(in oklab, var(--accent) 18%, var(--surface)); }
+.hm-cell.hm-t2 { background: color-mix(in oklab, var(--accent) 38%, var(--surface)); }
+.hm-cell.hm-t3 { background: color-mix(in oklab, var(--accent) 65%, var(--surface)); }
+.hm-cell.hm-t4 { background: var(--accent); }
+
+/* ── Milestones card ────────────────────────────────────────────── */
+.ms-next-h {
+  font-family: var(--font-mono); font-size: 10px; letter-spacing: 0.14em;
+  text-transform: uppercase; color: var(--muted);
+}
+.ms-next-target { font-family: var(--font-serif); font-size: 22px; font-weight: 500; margin-top: 4px; }
+.ms-bar { margin-top: 10px; height: 6px; border-radius: 999px; background: var(--surface-3); overflow: hidden; }
+.ms-fill { height: 100%; background: linear-gradient(90deg, var(--accent), var(--gold)); transition: width .3s ease; }
+.ms-next-sub { font-size: 11.5px; margin-top: 6px; font-variant-numeric: tabular-nums; }
+.ms-grid {
+  margin-top: 16px;
+  display: grid; grid-template-columns: repeat(auto-fill, minmax(60px, 1fr));
+  gap: 6px;
+}
+.ms-pip {
+  display: inline-flex; align-items: center; gap: 4px;
+  padding: 5px 8px; border-radius: 6px;
+  font-family: var(--font-mono); font-size: 11px;
+  background: var(--surface-2); color: var(--muted);
+  border: 1px solid var(--border-soft);
+}
+.ms-pip.on { background: color-mix(in oklab, var(--status-done) 18%, var(--surface)); color: var(--status-done); border-color: color-mix(in oklab, var(--status-done) 40%, transparent); }
+.ms-pip.next { background: var(--accent-soft); color: var(--accent-ink); border-color: var(--accent-line); }
+.ms-streaks {
+  margin-top: 14px; display: flex; flex-direction: column; gap: 5px;
+  padding-top: 12px; border-top: 1px solid var(--border-soft);
+}
+.ms-streaks > div { display: flex; justify-content: space-between; font-size: 12px; }
+.ms-streaks b { color: var(--ink); font-variant-numeric: tabular-nums; }
+
+/* ── Style & pacing table ───────────────────────────────────────── */
+.sm-rollup { display: flex; flex-wrap: wrap; gap: 10px; margin: 6px 0 16px; }
+.sm-pill {
+  padding: 10px 14px; border-radius: 8px;
+  background: var(--surface-2); border: 1px solid var(--border-soft);
+  min-width: 110px;
+}
+.sm-pill-num { font-family: var(--font-serif); font-size: 19px; font-weight: 500; line-height: 1; font-variant-numeric: tabular-nums; }
+.sm-pill-lbl { font-family: var(--font-mono); font-size: 9.5px; letter-spacing: 0.09em; text-transform: uppercase; color: var(--muted); margin-top: 5px; }
+
+.sm-table-wrap { overflow-x: auto; }
+.sm-table { width: 100%; border-collapse: collapse; font-size: 12px; font-variant-numeric: tabular-nums; }
+.sm-table thead th {
+  text-align: right; padding: 6px 8px; font-weight: 600;
+  font-family: var(--font-mono); font-size: 10px;
+  letter-spacing: 0.08em; text-transform: uppercase;
+  color: var(--muted); border-bottom: 1px solid var(--border);
+}
+.sm-table th.left, .sm-table td.left { text-align: left; }
+.sm-table tbody td { padding: 7px 8px; text-align: right; border-bottom: 1px solid var(--border-soft); }
+.sm-table tbody tr { cursor: pointer; }
+.sm-table tbody tr:hover { background: var(--surface-2); }
+.sm-table td.left { color: var(--ink); max-width: 240px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.sm-table .pov-cell { color: var(--muted); font-family: var(--font-mono); font-size: 10.5px; }
+.sm-bar {
+  display: inline-block; width: 36px; height: 4px; border-radius: 999px;
+  background: var(--surface-3); vertical-align: middle; margin-right: 6px;
+  overflow: hidden;
+}
+.sm-fill { display: block; height: 100%; background: var(--accent); border-radius: 999px; }
 </style>

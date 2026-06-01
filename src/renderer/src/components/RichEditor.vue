@@ -9,6 +9,7 @@ import Superscript from "@tiptap/extension-superscript";
 import TextStyle from "@tiptap/extension-text-style";
 import Color from "@tiptap/extension-color";
 import { Extension, Mark, mergeAttributes } from "@tiptap/core";
+import { DOMSerializer } from "@tiptap/pm/model";
 import Link from "@tiptap/extension-link";
 import Highlight from "@tiptap/extension-highlight";
 import TextAlign from "@tiptap/extension-text-align";
@@ -27,9 +28,14 @@ import { SearchReplace, searchReplacePluginKey } from "@renderer/services/search
 import { buildMentionExtension } from "@renderer/services/editorMentions";
 import { EDITOR_TOOLBAR_FULL } from "@renderer/services/editorToolbars";
 import { saveImage, urlFor } from "@renderer/services/imageStore";
+import { AiDiff, hasPendingChanges, listPendingChanges } from "@renderer/services/aiDiff";
+import * as writerAI from "@renderer/services/writerAI";
+import { PROSE_RULES, PROSE_RULE_ORDER } from "@renderer/services/writerAI";
+import { useAiProgress } from "@renderer/composables/useAiProgress";
 import { useUiStore } from "../stores/ui.js";
 import Icon from "./Icon.vue";
 import EditorSettingsModal from "./EditorSettingsModal.vue";
+import AiProgressBar from "./AiProgressBar.vue";
 
 const props = defineProps({
   modelValue: { type: String, default: "" },
@@ -170,6 +176,7 @@ const extensions = [
   TableHeader,
   TableCell,
   SearchReplace,
+  AiDiff,
 ];
 if (props.mentions) extensions.push(buildMentionExtension());
 
@@ -209,15 +216,16 @@ const editor = useEditor({
       return true;
     },
   },
-  onCreate({ editor }) { syncCounts(editor); editor.view.dom.spellcheck = ui.editorSettings.spellCheck; },
+  onCreate({ editor }) { syncCounts(editor); syncDiffState(editor); editor.view.dom.spellcheck = ui.editorSettings.spellCheck; },
   onUpdate({ editor }) {
     const html = editor.getHTML();
     emit("update:modelValue", html);
     emit("change", html);
     syncCounts(editor);
+    syncDiffState(editor);
     maybeTypewriter();
   },
-  onSelectionUpdate() { maybeTypewriter(); },
+  onSelectionUpdate({ editor }) { syncDiffState(editor); maybeTypewriter(); },
   onTransaction({ editor }) { syncSearch(editor); },
 });
 
@@ -242,6 +250,197 @@ onBeforeUnmount(() => editor.value?.destroy());
 const run = (cmd) => editor.value?.chain().focus()[cmd]().run();
 const isActive = (name, attrs) => editor.value?.isActive(name, attrs) || false;
 const show = (b) => props.toolbar.includes(b);
+
+// --- AI assist (writerAI + aiDiff marks) ------------------------------
+// Selection-driven actions live in the bubble menu (Rewrite / Expand /
+// Tighten / Continue + Prose pass). Each call replaces the selection
+// with a paired <del>/<ins> diff that the user accepts or rejects.
+const aiRunning = ref(false);
+const aiError = ref("");
+const aiActionLabel = ref("");          // human label for the currently running action
+const proseMenuOpen = ref(false);
+const proseMenuWrap = ref(null);
+const PROSE_RULES_LIST = PROSE_RULE_ORDER.map((k) => ({ key: k, ...PROSE_RULES[k] }));
+
+// Shared progress for whichever writer-AI action is in flight. Prose
+// actions (rewrite/expand/tighten/continue) stream readable text, so
+// we expose a preview toggle for them. Persisted across sessions so
+// the user's pick sticks (small enough to live in localStorage directly).
+const aiProgress = useAiProgress();
+const aiShowPreview = ref(loadShowPreview());
+function loadShowPreview() {
+  try { return localStorage.getItem("justwrite:ui:aiShowPreview") === "1"; } catch { return false; }
+}
+watch(aiShowPreview, (v) => {
+  try { localStorage.setItem("justwrite:ui:aiShowPreview", v ? "1" : "0"); } catch {}
+});
+
+// JSON-output actions don't benefit from a live preview — they stream
+// gibberish until the closing brace lands. The bubble menu only
+// surfaces prose actions, so we always allow preview here; the lab
+// page can branch on this if it adds JSON actions later.
+function isProseAction(actionKey) {
+  // Match the writerAI ACTIONS plus PROSE_RULES (prose-pass actions
+  // also stream readable text).
+  return actionKey === "rewrite" || actionKey === "expand" ||
+         actionKey === "tighten" || actionKey === "continue" ||
+         actionKey?.startsWith?.("rule:");
+}
+
+// Pending-changes state — drives the "N changes" header bar and the
+// inline accept/reject overlay. Recomputed on every doc/selection update.
+const pendingCount = ref(0);
+const currentChangeId = ref(null);
+
+function syncDiffState(ed) {
+  const list = listPendingChanges(ed);
+  pendingCount.value = list.length;
+  // If the cursor is inside an aiIns or aiDel mark, surface its
+  // changeId so the inline overlay can show Accept / Reject buttons
+  // for just that change.
+  const marks = ed.state.selection.$from.marks?.() || [];
+  const aiMark = marks.find((m) => m.type.name === "aiIns" || m.type.name === "aiDel");
+  currentChangeId.value = aiMark?.attrs?.changeId || null;
+}
+
+function readSelectionHtml() {
+  if (!editor.value) return { from: 0, to: 0, html: "" };
+  const { from, to } = editor.value.state.selection;
+  if (from === to) return { from, to, html: "" };
+  const slice = editor.value.state.doc.cut(from, to);
+  const dom = DOMSerializer.fromSchema(editor.value.schema).serializeFragment(slice.content);
+  const div = document.createElement("div");
+  div.appendChild(dom);
+  return { from, to, html: div.innerHTML };
+}
+
+const ACTION_LABELS = {
+  rewrite: "Rewriting selection…",
+  expand: "Expanding selection…",
+  tighten: "Tightening selection…",
+  continue: "Continuing from cursor…",
+};
+
+async function runWriterAction(actionKey) {
+  if (!editor.value || aiRunning.value) return;
+  proseMenuOpen.value = false;
+  const { from, to, html } = readSelectionHtml();
+  // For "continue" with no selection, anchor at the cursor and feed the
+  // last paragraph as context.
+  if (actionKey === "continue" && from === to) {
+    const ctx = grabContextBeforeCursor(800);
+    if (!ctx.trim()) { aiError.value = "Place the cursor at the end of some prose to continue from."; return; }
+    aiRunning.value = true; aiError.value = "";
+    aiActionLabel.value = ACTION_LABELS.continue;
+    aiProgress.start();
+    try {
+      const result = await writerAI.continueFrom({
+        html: `<p>${ctx}</p>`,
+        signal: aiProgress.signal,
+        onDelta: aiProgress.onDelta,
+      });
+      editor.value.chain().focus().proposeContinuation({ at: from, newHtml: result.html }).run();
+      aiProgress.finish();
+    } catch (err) {
+      if (!aiProgress.cancelled.value) aiError.value = err?.message || String(err);
+      aiProgress.finish();
+    } finally {
+      aiRunning.value = false;
+    }
+    return;
+  }
+  if (from === to) { aiError.value = "Select some text first."; return; }
+  aiRunning.value = true; aiError.value = "";
+  aiActionLabel.value = ACTION_LABELS[actionKey] || "Working…";
+  aiProgress.start();
+  try {
+    const fn = actionKey === "rewrite" ? writerAI.rewrite
+             : actionKey === "expand" ? writerAI.expand
+             : actionKey === "tighten" ? writerAI.tighten
+             : writerAI.continueFrom;
+    const result = await fn({
+      html,
+      signal: aiProgress.signal,
+      onDelta: aiProgress.onDelta,
+    });
+    editor.value.chain().focus().proposeReplacement({ from, to, originalHtml: html, newHtml: result.html }).run();
+    aiProgress.finish();
+  } catch (err) {
+    if (!aiProgress.cancelled.value) aiError.value = err?.message || String(err);
+    aiProgress.finish();
+  } finally {
+    aiRunning.value = false;
+  }
+}
+
+async function runProsePass(ruleKey) {
+  if (!editor.value || aiRunning.value) return;
+  proseMenuOpen.value = false;
+  const { from, to, html } = readSelectionHtml();
+  if (from === to) { aiError.value = "Select the passage to run the prose pass on."; return; }
+  aiRunning.value = true; aiError.value = "";
+  aiActionLabel.value = `Running prose pass: ${PROSE_RULES[ruleKey]?.label || ruleKey}…`;
+  aiProgress.start();
+  try {
+    const result = await writerAI.applyRule(ruleKey, {
+      html,
+      signal: aiProgress.signal,
+      onDelta: aiProgress.onDelta,
+    });
+    editor.value.chain().focus().proposeReplacement({ from, to, originalHtml: html, newHtml: result.html }).run();
+    aiProgress.finish();
+  } catch (err) {
+    if (!aiProgress.cancelled.value) aiError.value = err?.message || String(err);
+    aiProgress.finish();
+  } finally {
+    aiRunning.value = false;
+  }
+}
+
+function grabContextBeforeCursor(limit = 800) {
+  if (!editor.value) return "";
+  const pos = editor.value.state.selection.from;
+  const text = editor.value.state.doc.textBetween(Math.max(0, pos - limit), pos, "\n\n");
+  return text;
+}
+
+function acceptCurrentChange() {
+  if (!currentChangeId.value || !editor.value) return;
+  editor.value.chain().focus().acceptChange(currentChangeId.value).run();
+}
+function rejectCurrentChange() {
+  if (!currentChangeId.value || !editor.value) return;
+  editor.value.chain().focus().rejectChange(currentChangeId.value).run();
+}
+function acceptAllAiChanges() { editor.value?.chain().focus().acceptAllChanges().run(); }
+function rejectAllAiChanges() { editor.value?.chain().focus().rejectAllChanges().run(); }
+
+// ◀ Prev / Next ▶ navigation between pending AI changes. Steps through
+// the list in document order; jumps the cursor to the first text of
+// the targeted change. When no change is currently focused, lands on
+// the first one (Next) or the last one (Prev).
+function stepChange(dir) {
+  if (!editor.value) return;
+  const list = listPendingChanges(editor.value);
+  if (!list.length) return;
+  let idx = currentChangeId.value
+    ? list.findIndex((c) => c.changeId === currentChangeId.value)
+    : (dir > 0 ? -1 : list.length);
+  idx = (idx + dir + list.length) % list.length;
+  const target = list[idx];
+  if (!target) return;
+  // Move the cursor onto the change's text run so syncDiffState() picks
+  // up the changeId and the per-change Accept/Reject buttons show.
+  editor.value.chain().focus().setTextSelection({ from: target.pos, to: target.pos }).run();
+  // Best-effort scroll into view — TipTap moves the cursor, but a
+  // long doc may need an explicit scroll.
+  const dom = editor.value.view.domAtPos(target.pos)?.node;
+  const el = dom?.nodeType === 1 ? dom : dom?.parentElement;
+  el?.scrollIntoView?.({ behavior: "smooth", block: "center" });
+}
+function prevChange() { stepChange(-1); }
+function nextChange() { stepChange(1); }
+function toggleProseMenu() { proseMenuOpen.value = !proseMenuOpen.value; }
 
 // Tooltip shortcut hints. Most of these are TipTap/StarterKit built-ins;
 // "mod" renders ⌘ on macOS, Ctrl elsewhere.
@@ -440,6 +639,7 @@ function onMenuDocDown(e) {
   if (textColorOpen.value && textColorWrap.value && !textColorWrap.value.contains(e.target)) textColorOpen.value = false;
   if (textColorBubbleOpen.value && textColorWrapBubble.value && !textColorWrapBubble.value.contains(e.target)) textColorBubbleOpen.value = false;
   if (commentState.value.open && commentPopEl.value && !commentPopEl.value.contains(e.target) && !e.target?.closest?.(".comment-mark")) commentState.value.open = false;
+  if (proseMenuOpen.value && proseMenuWrap.value && !proseMenuWrap.value.contains(e.target)) proseMenuOpen.value = false;
 }
 document.addEventListener("mousedown", onMenuDocDown);
 onBeforeUnmount(() => document.removeEventListener("mousedown", onMenuDocDown));
@@ -721,7 +921,66 @@ defineExpose({ editor });
       <button class="tb-btn tb-glyph" @click="bumpFont(1)" data-tip="Increase font size">A+</button>
       <button class="tb-btn" :class="{ active: isActive('link') }" @click="setLink" :data-tip="TIP.link"><Icon name="Link" :size="14" /></button>
       <button class="tb-btn" :class="{ active: isActive('comment') }" @click="openCommentEditor" data-tip="Add comment"><Icon name="Comment" :size="14" /></button>
+      <span class="bubble-sep" aria-hidden="true"></span>
+      <button class="tb-btn ai-btn" :disabled="aiRunning" @click="runWriterAction('rewrite')" data-tip="Rewrite — vivid + specific">
+        <Icon name="Sparkle" :size="13" /><span class="ai-lbl">Rewrite</span>
+      </button>
+      <button class="tb-btn ai-btn" :disabled="aiRunning" @click="runWriterAction('expand')" data-tip="Expand — add sensory detail">
+        <span class="ai-lbl">Expand</span>
+      </button>
+      <button class="tb-btn ai-btn" :disabled="aiRunning" @click="runWriterAction('tighten')" data-tip="Tighten — cut filler">
+        <span class="ai-lbl">Tighten</span>
+      </button>
+      <button class="tb-btn ai-btn" :disabled="aiRunning" @click="runWriterAction('continue')" data-tip="Continue from cursor">
+        <span class="ai-lbl">Continue</span>
+      </button>
+      <div class="tb-highlight" ref="proseMenuWrap">
+        <button class="tb-btn tb-btn-split ai-btn" :class="{ active: proseMenuOpen }" :disabled="aiRunning" @click="toggleProseMenu" data-tip="Prose pass — focused rewrites">
+          <span class="ai-lbl">Prose pass</span><Icon name="ChevDown" :size="9" class="tb-caret" />
+        </button>
+        <div v-if="proseMenuOpen" class="prose-menu">
+          <button v-for="r in PROSE_RULES_LIST" :key="r.key" class="prose-menu-item" @click="runProsePass(r.key)" :disabled="aiRunning">
+            <div class="prose-menu-label">{{ r.label }}</div>
+            <div class="prose-menu-desc">{{ r.description }}</div>
+          </button>
+        </div>
+      </div>
     </bubble-menu>
+
+    <!-- AI progress bar — shown while a writerAI call is running.
+         Streams a live preview for prose actions (opt-in via toggle). -->
+    <div v-if="aiRunning" class="ai-progress-wrap">
+      <AiProgressBar
+        :progress="aiProgress"
+        :label="aiActionLabel"
+        :show-preview="aiShowPreview"
+        :can-toggle-preview="true" />
+    </div>
+
+    <!-- Pending changes / error bar — silent when nothing's going on. -->
+    <div v-if="!aiRunning && (pendingCount > 0 || aiError)" class="ai-bar">
+      <template v-if="aiError">
+        <Icon name="Alert" :size="13" />
+        <span class="ai-bar-msg">{{ aiError }}</span>
+        <button class="tb-btn tb-text ai-bar-dismiss" @click="aiError = ''">Dismiss</button>
+      </template>
+      <template v-else>
+        <Icon name="Sparkle" :size="13" />
+        <span class="ai-bar-msg">{{ pendingCount }} pending {{ pendingCount === 1 ? "change" : "changes" }}</span>
+        <button class="tb-btn tb-text ai-bar-step" @click="prevChange" :disabled="pendingCount === 0" title="Previous change">
+          <Icon name="ChevRight" :size="11" style="transform:rotate(180deg)" />
+        </button>
+        <button class="tb-btn tb-text ai-bar-step" @click="nextChange" :disabled="pendingCount === 0" title="Next change">
+          <Icon name="ChevRight" :size="11" />
+        </button>
+        <span v-if="currentChangeId" class="ai-bar-sep" aria-hidden="true">·</span>
+        <button v-if="currentChangeId" class="tb-btn tb-text ai-bar-accept" @click="acceptCurrentChange">Accept this</button>
+        <button v-if="currentChangeId" class="tb-btn tb-text ai-bar-reject" @click="rejectCurrentChange">Reject this</button>
+        <span class="ai-bar-spacer"></span>
+        <button class="tb-btn tb-text ai-bar-accept" @click="acceptAllAiChanges">Accept all</button>
+        <button class="tb-btn tb-text ai-bar-reject" @click="rejectAllAiChanges">Reject all</button>
+      </template>
+    </div>
 
     <div v-if="variant === 'manuscript'" class="manuscript scrollarea" ref="manuscriptEl">
       <div class="manuscript-inner" @click="onBodyClick">
@@ -937,9 +1196,92 @@ defineExpose({ editor });
 
 /* Selection bubble menu */
 .bubble-menu {
-  display: flex; gap: 2px; padding: 4px;
+  display: flex; gap: 2px; padding: 4px; align-items: center;
   background: var(--surface); border: 1px solid var(--border);
   border-radius: 8px; box-shadow: 0 6px 20px rgba(0,0,0,.16);
+  max-width: min(640px, 92vw);
+  flex-wrap: wrap;
+}
+.bubble-sep {
+  width: 1px; align-self: stretch; margin: 2px 4px;
+  background: var(--border);
+}
+
+/* ── AI assist ───────────────────────────────────────────── */
+.ai-btn {
+  display: inline-flex !important; gap: 5px; align-items: center;
+  padding: 0 8px !important;
+  color: var(--accent-ink);
+}
+.ai-btn:hover { background: var(--accent-soft); }
+.ai-btn:disabled { opacity: 0.55; cursor: not-allowed; }
+.ai-btn .ai-lbl {
+  font-size: 11px; font-weight: 600; letter-spacing: 0.01em;
+}
+
+.prose-menu {
+  position: absolute; top: calc(100% + 4px); right: 0;
+  width: 280px; max-width: 92vw;
+  background: var(--surface); border: 1px solid var(--border);
+  border-radius: 8px; box-shadow: 0 8px 24px rgba(0,0,0,.18);
+  padding: 4px; z-index: 60;
+  display: flex; flex-direction: column;
+}
+.prose-menu-item {
+  display: flex; flex-direction: column; gap: 2px;
+  padding: 8px 10px; border-radius: 6px;
+  text-align: left; background: none; border: 0; cursor: pointer;
+  color: inherit;
+}
+.prose-menu-item:hover { background: var(--surface-2); }
+.prose-menu-item:disabled { opacity: 0.5; cursor: not-allowed; }
+.prose-menu-label { font-size: 13px; font-weight: 600; }
+.prose-menu-desc  { font-size: 11.5px; color: var(--muted); line-height: 1.4; }
+
+/* Wrap the new AiProgressBar so it gets the same edge margin as the
+   pending-changes bar — the bar itself draws its own border/background. */
+.ai-progress-wrap { padding: 7px 12px; border-bottom: 1px solid var(--border); background: var(--surface); }
+
+/* AI status bar above the editor body. Slim, single-row when possible. */
+.ai-bar {
+  display: flex; align-items: center; gap: 8px; flex-wrap: wrap;
+  padding: 7px 12px;
+  border-bottom: 1px solid var(--border);
+  background: var(--accent-soft);
+  color: var(--accent-ink);
+  font-size: 12.5px;
+}
+.ai-bar-msg { flex: 0 0 auto; }
+.ai-bar-sep { color: var(--muted); }
+.ai-bar-spacer { flex: 1; }
+.ai-bar-accept { color: var(--accent-ink); font-weight: 600; }
+.ai-bar-reject { color: var(--danger-ink, #b91c1c); }
+.ai-bar-dismiss { color: var(--muted); margin-left: auto; }
+.ai-bar-step {
+  display: inline-flex; align-items: center; padding: 0 5px !important;
+  color: var(--accent-ink); opacity: 0.85;
+}
+.ai-bar-step:disabled { opacity: 0.35; cursor: not-allowed; }
+.ai-bar-step:hover:not(:disabled) { opacity: 1; }
+.ai-spinner { animation: ai-spin 1.2s linear infinite; }
+@keyframes ai-spin { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
+
+/* AI diff marks — inline insert/delete styling */
+.tiptap-content .ai-ins {
+  background: color-mix(in oklab, var(--status-done) 14%, transparent);
+  color: inherit;
+  text-decoration: none;
+  border-radius: 2px;
+  padding: 0 2px;
+  border-bottom: 2px solid color-mix(in oklab, var(--status-done) 60%, transparent);
+}
+.tiptap-content .ai-del {
+  background: color-mix(in oklab, var(--danger-ink, #b91c1c) 12%, transparent);
+  color: var(--muted);
+  text-decoration: line-through;
+  text-decoration-color: color-mix(in oklab, var(--danger-ink, #b91c1c) 60%, transparent);
+  border-radius: 2px;
+  padding: 0 2px;
 }
 
 /* Find & replace bar */

@@ -1,5 +1,5 @@
 <script setup>
-import { computed, onMounted, onBeforeUnmount, watchEffect } from "vue";
+import { computed, onMounted, onBeforeUnmount, watchEffect, ref } from "vue";
 import { useRoute, useRouter } from "vue-router";
 import { useUiStore } from "./stores/ui.js";
 import { useProjectStore } from "./stores/project.js";
@@ -10,6 +10,11 @@ import TitleBar from "./components/TitleBar.vue";
 import Sidebar from "./components/Sidebar.vue";
 import Toast from "./components/Toast.vue";
 import AppDialog from "./components/AppDialog.vue";
+import CommandPalette from "./components/CommandPalette.vue";
+import ProjectReplaceModal from "./components/ProjectReplaceModal.vue";
+import ChatPanel from "./components/ChatPanel.vue";
+
+const palette = ref(null);
 
 const route = useRoute();
 const router = useRouter();
@@ -34,10 +39,28 @@ function onKey(e) {
   if (!mod) return;
   const key = e.key.toLowerCase();
 
+  // ⌘⇧F → open project-wide find & replace (any route).
+  if (key === "f" && e.shiftKey) {
+    e.preventDefault();
+    ui.openProjectReplace();
+    return;
+  }
   // ⌘F / Ctrl+F → jump to Search and focus its input.
   if (key === "f") {
     e.preventDefault();
     if (route.path !== "/search") router.push("/search");
+    return;
+  }
+  // ⌘P / Ctrl+P → open the command palette.
+  if (key === "p") {
+    e.preventDefault();
+    palette.value?.open();
+    return;
+  }
+  // ⌘J / Ctrl+J → toggle the manuscript chat panel.
+  if (key === "j") {
+    e.preventDefault();
+    ui.toggleChatPanel();
     return;
   }
   // ⌘\ → toggle sidebar.
@@ -80,7 +103,7 @@ onBeforeUnmount(() => window.removeEventListener("keydown", onKey));
 
 <template>
   <div class="app-stage">
-    <TitleBar :title="`JustWrite — ${ui.projectTitle}`" />
+    <TitleBar :title="ui.projectTitle" />
     <div class="app" :class="{ collapsed: ui.sidebarCollapsed }"
       :style="ui.sidebarCollapsed ? null : `grid-template-columns: ${ui.sidebarWidth}px 1fr`">
       <Sidebar />
@@ -92,5 +115,10 @@ onBeforeUnmount(() => window.removeEventListener("keydown", onKey));
     </div>
     <Toast />
     <AppDialog />
+    <CommandPalette ref="palette" />
+    <ProjectReplaceModal v-if="ui.replaceModal.open"
+      :initial-term="ui.replaceModal.initialTerm"
+      @close="ui.closeProjectReplace()" />
+    <ChatPanel v-model="ui.chatPanelOpen" />
   </div>
 </template>

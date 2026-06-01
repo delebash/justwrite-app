@@ -250,6 +250,11 @@ function resetParam(key) { setParam(key, undefined); }
               title="Revert to the auto-detected tier">Clear pin</button>
           </div>
         </template>
+
+        <span class="t-muted" title="Optional embedding model — fills the RAG (manuscript chat) index. Leave blank if this provider isn't your embedding provider. OpenAI: text-embedding-3-small. Ollama: nomic-embed-text.">Embedding model</span>
+        <input class="input"
+          v-model="draft.embeddingModel"
+          placeholder="text-embedding-3-small / nomic-embed-text / …" />
       </template>
 
       <template v-if="draft.kind === 'tts' || draft.kind === 'both'">

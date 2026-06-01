@@ -30,6 +30,13 @@ export function detectRunner(provider) {
   return "openai-compat";
 }
 
+// Speechmatics TTS uses a proprietary endpoint shape (voice in URL path,
+// { text } body, no model selector). Detected by hostname so the public
+// speech()/voices()/ping() APIs can branch without callers caring.
+export function isSpeechmatics(provider) {
+  return /\.speechmatics\.com(\/|$)/i.test(provider?.baseUrl || "");
+}
+
 export class OpenAICompatClient {
   constructor(provider) {
     this.provider = provider;
@@ -494,19 +501,100 @@ export class OpenAICompatClient {
     return list.map((m) => m?.id || m?.name || String(m)).filter(Boolean);
   }
 
+  // ─── Embeddings ─────────────────────────────────────────────────────────
+  //
+  // POST /v1/embeddings (OpenAI-shape) or /api/embeddings (Ollama native).
+  // Both accept either a single string or an array of strings; the OpenAI
+  // shape returns { data: [{ embedding: number[] }] }, Ollama returns
+  // { embedding: number[] } for single and { embeddings: number[][] } for
+  // batches. We normalize to always return Array<number[]> in input order.
+  //
+  // Pass `input` as a string or string[]. `model` defaults to the
+  // provider's `embeddingModel` if set.
+  async embed({ input, model, signal } = {}) {
+    if (input == null) throw new Error("embed: input is required.");
+    const arr = Array.isArray(input) ? input : [input];
+    if (!arr.length) return [];
+    const useModel = model || this.provider.embeddingModel || "";
+
+    if (detectRunner(this.provider) === "ollama") {
+      return this._ollamaEmbed({ input: arr, model: useModel, signal });
+    }
+    const res = await fetch(this.url("/embeddings"), {
+      method: "POST",
+      headers: this.headers,
+      signal,
+      body: JSON.stringify({ model: useModel, input: arr }),
+    });
+    if (!res.ok) {
+      const text = await res.text().catch(() => "");
+      throw new Error(`Embeddings error ${res.status}: ${text || res.statusText}`);
+    }
+    const json = await res.json();
+    const data = Array.isArray(json?.data) ? json.data : [];
+    return data.map((d) => d?.embedding).filter(Array.isArray);
+  }
+
+  async _ollamaEmbed({ input, model, signal } = {}) {
+    // Ollama batches via { input: string[] } at /api/embed; single-shot
+    // legacy is { prompt: string } at /api/embeddings. We use /api/embed
+    // (current API, batch-capable) and fall back to single-shot if the
+    // server doesn't recognize it (older builds).
+    try {
+      const res = await fetch(this.nativeUrl("/api/embed"), {
+        method: "POST",
+        headers: this.headers,
+        signal,
+        body: JSON.stringify({ model, input }),
+      });
+      if (res.ok) {
+        const json = await res.json();
+        const arr = Array.isArray(json?.embeddings) ? json.embeddings : [];
+        if (arr.length) return arr;
+      }
+    } catch { /* fall through to legacy */ }
+
+    // Legacy single-shot — one request per input.
+    const out = [];
+    for (const text of input) {
+      const res = await fetch(this.nativeUrl("/api/embeddings"), {
+        method: "POST",
+        headers: this.headers,
+        signal,
+        body: JSON.stringify({ model, prompt: text }),
+      });
+      if (!res.ok) {
+        const t = await res.text().catch(() => "");
+        throw new Error(`Embeddings error ${res.status}: ${t || res.statusText}`);
+      }
+      const json = await res.json();
+      const v = Array.isArray(json?.embedding) ? json.embedding : null;
+      if (!v) throw new Error("Embeddings response missing `embedding` field.");
+      out.push(v);
+    }
+    return out;
+  }
+
   // ─── Text-to-speech ─────────────────────────────────────────────────────
   //
-  // POST /v1/audio/speech
-  // body: { model, voice, input, response_format, speed, ...providerParams }
+  // POST /v1/audio/speech (OpenAI-shaped) — body shape:
+  //   { model, voice, input, response_format, speed, ...providerParams }
   //
   // `provider.params` holds engine-specific knobs configured in Settings
   // (OpenAI `instructions`, and whatever a local TTS server exposes). They are
   // spread into the body so each engine receives what it expects; the
   // core OpenAI fields override any conflicting keys.
   //
-  // Returns an audio Blob (mp3 by default).
+  // Speechmatics is NOT OpenAI-shaped — voice goes in the URL path and the
+  // body is just { text }. Branch by hostname so the public speech() API
+  // stays the same for callers.
+  //
+  // Returns an audio Blob (mp3 by default; WAV for Speechmatics).
   //
   async speech({ input, voice, model, format, speed, signal } = {}) {
+    if (isSpeechmatics(this.provider)) {
+      return this._speechmaticsSpeech({ input, voice, signal });
+    }
     const providerParams = this.provider.params || {};
     const body = {
       ...providerParams,
@@ -525,6 +613,31 @@ export class OpenAICompatClient {
     if (!res.ok) {
       const text = await res.text().catch(() => "");
       throw new Error(`TTS error ${res.status}: ${text || res.statusText}`);
+    }
+    return res.blob();
+  }
+
+  // ─── Speechmatics text-to-speech ─────────────────────────────────────────
+  //
+  // POST {baseUrl}/generate/{voice} with body { text }. Auth via Bearer.
+  // Voice is part of the path (sarah | theo | megan | jack). Returns WAV
+  // bytes by default (wav_16000); pcm_16000 available via output_format
+  // query param. No model selector, no speed, no language.
+  //
+  // The render pipeline expects WAV — let the default ride.
+  async _speechmaticsSpeech({ input, voice, signal } = {}) {
+    if (!voice) throw new Error("Speechmatics: voice is required (e.g. 'sarah', 'theo', 'megan', 'jack').");
+    const base = this.provider.baseUrl.replace(/\/$/, "");
+    const url = `${base}/generate/${encodeURIComponent(voice)}`;
+    const res = await fetch(url, {
+      method: "POST",
+      headers: this.headers,
+      signal,
+      body: JSON.stringify({ text: input }),
+    });
+    if (!res.ok) {
+      const text = await res.text().catch(() => "");
+      throw new Error(`Speechmatics TTS error ${res.status}: ${text || res.statusText}`);
     }
     return res.blob();
   }
@@ -581,6 +694,9 @@ export class OpenAICompatClient {
   // don't implement /v1/models, so we hit /v1/audio/voices instead.
   // Returns true/false.
   async ping({ timeoutMs = 2500 } = {}) {
+    // Speechmatics has no health/list endpoint; treat "API key present"
+    // as the only check we can do without spending a synthesis credit.
+    if (isSpeechmatics(this.provider)) return !!this.provider.apiKey;
     const ctl = new AbortController();
     const t = setTimeout(() => ctl.abort(), timeoutMs);
     const path = this.provider.kind === "tts" ? "/audio/voices" : "/models";

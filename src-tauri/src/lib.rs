@@ -7,6 +7,10 @@
 //   project_save(snapshot, suggested_name)   — native save dialog
 //   project_save_to(path, snapshot)          — silent write to known path
 //   project_open()                           — native open dialog
+//   project_autosave(project_id, snapshot)   — silent rotating autosave to AppData
+//   project_autosave_dir()                   — absolute path of the autosave folder
+//   project_autosave_list()                  — every autosave file as { projectId, title, savedAt, generation, path }
+//   project_autosave_read(path)              — parsed snapshot at an absolute path
 //
 //   images_save(name, buffer)   — write bytes to AppData/images/, return record
 //   images_read(path)           — read bytes, return data URL
@@ -88,6 +92,128 @@ async fn project_save_to(path: String, snapshot: Value) -> Result<SaveOk, String
     let json = serde_json::to_string_pretty(&snapshot).map_err(|e| e.to_string())?;
     fs::write(&path, json).map_err(|e| e.to_string())?;
     Ok(SaveOk { ok: true, path })
+}
+
+// Autosave lands here; rotation keeps two prior generations so a bad write
+// or accidental wipe can be recovered from disk without a manual export.
+fn autosave_dir(app: &AppHandle) -> Result<PathBuf, String> {
+    let mut p = app.path().app_data_dir().map_err(|e| e.to_string())?;
+    p.push("projects");
+    fs::create_dir_all(&p).map_err(|e| e.to_string())?;
+    Ok(p)
+}
+
+fn safe_id(s: &str) -> String {
+    let cleaned: String = s
+        .chars()
+        .map(|c| if c.is_ascii_alphanumeric() || c == '-' || c == '_' { c } else { '_' })
+        .collect();
+    if cleaned.is_empty() { "project".to_string() } else { cleaned }
+}
+
+#[tauri::command]
+async fn project_autosave(
+    app: AppHandle,
+    project_id: String,
+    snapshot: Value,
+) -> Result<SaveOk, String> {
+    let dir = autosave_dir(&app)?;
+    let id = safe_id(&project_id);
+    let current = dir.join(format!("{id}.autosave.json"));
+    let prev    = dir.join(format!("{id}.autosave.prev.json"));
+    let prev2   = dir.join(format!("{id}.autosave.prev2.json"));
+    let tmp     = dir.join(format!("{id}.autosave.tmp.json"));
+
+    let json = serde_json::to_string_pretty(&snapshot).map_err(|e| e.to_string())?;
+    // Write to tmp first, then rotate + rename so a crash mid-write can't
+    // corrupt the live autosave file.
+    fs::write(&tmp, json).map_err(|e| e.to_string())?;
+    if prev.exists()    { let _ = fs::remove_file(&prev2); let _ = fs::rename(&prev, &prev2); }
+    if current.exists() { let _ = fs::rename(&current, &prev); }
+    fs::rename(&tmp, &current).map_err(|e| e.to_string())?;
+
+    Ok(SaveOk { ok: true, path: current.display().to_string() })
+}
+
+#[tauri::command]
+async fn project_autosave_dir(app: AppHandle) -> Result<String, String> {
+    let dir = autosave_dir(&app)?;
+    Ok(dir.display().to_string())
+}
+
+#[derive(Serialize, Deserialize)]
+#[serde(rename_all = "camelCase")]
+struct AutosaveEntry {
+    project_id: String,
+    title: String,
+    saved_at: String,
+    generation: String,
+    path: String,
+}
+
+#[tauri::command]
+async fn project_autosave_list(app: AppHandle) -> Result<Vec<AutosaveEntry>, String> {
+    let dir = autosave_dir(&app)?;
+    let mut out: Vec<AutosaveEntry> = Vec::new();
+    let entries = match fs::read_dir(&dir) {
+        Ok(e) => e,
+        Err(_) => return Ok(out),
+    };
+    for entry in entries.flatten() {
+        let path = entry.path();
+        if !path.is_file() { continue; }
+        let name = match path.file_name().and_then(|s| s.to_str()) {
+            Some(s) => s,
+            None => continue,
+        };
+        // Suffix order matters — `.autosave.prev2.json` also ends with
+        // `.autosave.json` if we strip naively. Check longest first.
+        let (project_id, generation) = if let Some(id) = name.strip_suffix(".autosave.prev2.json") {
+            (id.to_string(), "prev2".to_string())
+        } else if let Some(id) = name.strip_suffix(".autosave.prev.json") {
+            (id.to_string(), "prev".to_string())
+        } else if let Some(id) = name.strip_suffix(".autosave.json") {
+            (id.to_string(), "current".to_string())
+        } else {
+            continue;
+        };
+        let text = match fs::read_to_string(&path) {
+            Ok(t) => t,
+            Err(_) => continue,
+        };
+        let parsed: Value = match serde_json::from_str(&text) {
+            Ok(v) => v,
+            Err(_) => continue,
+        };
+        let title = parsed
+            .get("project")
+            .and_then(|p| p.get("title"))
+            .and_then(|t| t.as_str())
+            .unwrap_or("Untitled")
+            .to_string();
+        let saved_at = parsed
+            .get("savedAt")
+            .and_then(|s| s.as_str())
+            .unwrap_or("")
+            .to_string();
+        out.push(AutosaveEntry {
+            project_id,
+            title,
+            saved_at,
+            generation,
+            path: path.display().to_string(),
+        });
+    }
+    // Most recent first; empty savedAt sorts last.
+    out.sort_by(|a, b| b.saved_at.cmp(&a.saved_at));
+    Ok(out)
+}
+
+#[tauri::command]
+async fn project_autosave_read(path: String) -> Result<Value, String> {
+    let text = fs::read_to_string(&path).map_err(|e| e.to_string())?;
+    let snapshot: Value = serde_json::from_str(&text).map_err(|e| e.to_string())?;
+    Ok(snapshot)
 }
 
 #[tauri::command]
@@ -218,6 +344,10 @@ pub fn run() {
             project_save,
             project_save_to,
             project_open,
+            project_autosave,
+            project_autosave_dir,
+            project_autosave_list,
+            project_autosave_read,
             images_save,
             images_read,
             images_delete,
