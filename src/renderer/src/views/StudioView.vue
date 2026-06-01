@@ -10,6 +10,13 @@ import { listVoices, preview } from "../services/tts.js";
 import { smartCast, detectSpeakers } from "../services/llm.js";
 import { renderChapter } from "../services/render.js";
 import { confirmDialog } from "../services/dialog.js";
+import DataTable from "primevue/datatable";
+import Column from "primevue/column";
+import InputText from "primevue/inputtext";
+import Select from "primevue/select";
+import Tag from "primevue/tag";
+import Button from "primevue/button";
+import { FilterMatchMode } from "@primevue/core/api";
 
 const props = defineProps({ tab: { type: String, default: "cast" } });
 
@@ -117,6 +124,39 @@ function voiceGradient(v) {
   return `linear-gradient(135deg, oklch(0.78 0.08 ${hue}), oklch(0.6 0.1 ${(hue + 40) % 360}))`;
 }
 const unassignedCount = computed(() => studio.unassignedCount);
+
+// ── Voice library DataTable ───────────────────────────────────────────
+// Enrich each voice with provider name for display + filtering.
+const voiceRows = computed(() =>
+  studio.voices.map((v) => ({
+    ...v,
+    providerName: ai.providerById(v.providerId)?.name || v.providerId || "—",
+  }))
+);
+const providerOptions = computed(() => {
+  const seen = new Set();
+  const out = [];
+  for (const v of studio.voices) {
+    if (seen.has(v.providerId)) continue;
+    seen.add(v.providerId);
+    out.push({ value: v.providerId, label: ai.providerById(v.providerId)?.name || v.providerId || "—" });
+  }
+  return out;
+});
+const voiceFilters = ref({
+  global:       { value: null, matchMode: FilterMatchMode.CONTAINS },
+  providerId:   { value: null, matchMode: FilterMatchMode.EQUALS },
+});
+const voiceQuery = ref("");
+function onVoiceInput(e) {
+  voiceQuery.value = e.target.value;
+  voiceFilters.value.global.value = e.target.value || null;
+}
+function genderSeverity(g) {
+  if (g === "male")   return "info";
+  if (g === "female") return "warn";
+  return "secondary";
+}
 
 // ── Script analysis ───────────────────────────────────────────────────
 const scriptChapter = ref("ch7");
@@ -265,7 +305,7 @@ function downloadChapter(chapterId) {
   </div>
 
   <!-- CAST TAB -->
-  <div v-if="activeTab === 'cast'" class="pane-card" style="display:grid;grid-template-columns:1fr 360px">
+  <div v-if="activeTab === 'cast'" class="pane-card" style="display:grid;grid-template-columns:1fr 440px">
     <div class="scrollarea" style="padding:18px 22px 40px">
       <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px">
         <div>
@@ -334,30 +374,72 @@ function downloadChapter(chapterId) {
         :searchable="false"
         placeholder="Pick a TTS provider"
         chev-title="Switch voice library provider"
-        style="margin-bottom:14px" />
+        style="margin-bottom:10px" />
       <div style="font-size:11.5px;color:var(--muted);margin-bottom:10px">
         <template v-if="selectedChar">Picking voice for <b style="color:var(--ink)">{{ selectedChar === "narrator" ? "Narrator" : project.characterById(selectedChar)?.name }}</b></template>
         <template v-else>Select a character to assign a voice.</template>
       </div>
-      <div v-if="loadingVoices" class="t-muted" style="font-size:12px;padding:14px 0">Loading voices…</div>
-      <div v-else style="display:flex;flex-direction:column;gap:6px">
-        <button v-for="v in engineVoices" :key="v.id"
-          class="voice-row" :class="{ assigned: isAssignedToSelected(v.id) }"
-          @click="pickVoice(v.id)">
-          <span class="voice-glyph" :style="`background:${voiceGradient(v)}`">{{ v.name[0] }}</span>
-          <span style="flex:1;min-width:0">
-            <b style="font-size:13px">{{ v.name }}</b>
-            <div v-if="v.tone" class="t-muted" style="font-size:11px;font-style:italic">{{ v.tone }}</div>
-          </span>
-          <button class="voice-play" @click.stop="playPreview(v)" :disabled="previewingVoice === v.id">
-            <Icon :name="previewingVoice === v.id ? 'Pause' : 'Play'" :size="11" />
-          </button>
-          <span v-if="isAssignedToSelected(v.id)" style="color:var(--accent)"><Icon name="Check" :size="14" /></span>
-        </button>
-        <div v-if="engineVoices.length === 0" class="t-muted" style="padding:14px;text-align:center;font-size:12px;background:var(--surface-3);border-radius:8px">
-          No voices for this provider.
-        </div>
+
+      <!-- Voice library search toolbar -->
+      <div class="wb-toolbar" style="margin-bottom:10px">
+        <span class="wb-search">
+          <Icon name="Search" :size="12" class="wb-search-icon" />
+          <InputText :value="voiceQuery" placeholder="Search voices…" @input="onVoiceInput" class="wb-search-input" />
+        </span>
+        <span class="wb-count">{{ engineVoices.length }}</span>
       </div>
+
+      <div v-if="loadingVoices" class="t-muted" style="font-size:12px;padding:14px 0">Loading voices…</div>
+      <DataTable
+        v-else
+        :value="voiceRows.filter((v) => v.providerId === activeProviderId)"
+        data-key="id"
+        v-model:filters="voiceFilters"
+        :global-filter-fields="['name', 'tone', 'accent']"
+        filter-display="row"
+        row-hover
+        selection-mode="single"
+        class="voice-dt"
+        size="small"
+        paginator
+        :rows="25"
+        :rows-per-page-options="[10, 25, 50, 100]"
+        @row-click="(e) => pickVoice(e.data.id)"
+      >
+        <template #empty>
+          <div style="padding:14px;text-align:center;font-size:12px;color:var(--muted);font-style:italic">No voices match.</div>
+        </template>
+
+        <Column field="name" header="Name" sortable style="min-width:110px">
+          <template #body="{ data }">
+            <div style="display:flex;align-items:center;gap:7px">
+              <span class="voice-glyph small" :style="`background:${voiceGradient(data)}`">{{ data.name[0] }}</span>
+              <span>
+                <b style="font-size:12px">{{ data.name }}</b>
+                <div v-if="data.tone" class="t-muted" style="font-size:10px;font-style:italic">{{ data.tone }}</div>
+              </span>
+              <span v-if="isAssignedToSelected(data.id)" style="color:var(--accent);margin-left:auto"><Icon name="Check" :size="13" /></span>
+            </div>
+          </template>
+          <template #filter="{ filterModel, filterCallback }">
+            <InputText v-model="filterModel.value" @input="filterCallback()" placeholder="Name…" size="small" />
+          </template>
+        </Column>
+
+        <Column field="gender" header="G" sortable style="width:60px">
+          <template #body="{ data }">
+            <Tag v-if="data.gender" :value="data.gender[0].toUpperCase()" :severity="genderSeverity(data.gender)" rounded />
+          </template>
+        </Column>
+
+        <Column field="preview" header="" style="width:44px">
+          <template #body="{ data }">
+            <Button text size="small" :disabled="previewingVoice === data.id" @click.stop="playPreview(data)">
+              <template #icon><Icon :name="previewingVoice === data.id ? 'Pause' : 'Play'" :size="11" /></template>
+            </Button>
+          </template>
+        </Column>
+      </DataTable>
     </aside>
   </div>
 
@@ -450,4 +532,11 @@ function downloadChapter(chapterId) {
     .voice-row { display: flex; align-items: center; gap: 10px; padding: 8px 10px; border: 1px solid var(--border-soft); border-radius: 8px; background: var(--surface); text-align: left; width: 100%; }
     .voice-row.assigned { border-color: var(--accent); background: var(--accent-soft); }
   .voice-play { width: 24px; height: 24px; border-radius: 50%; border: 0; background: var(--ink); color: var(--surface); display: grid; place-items: center; margin-left: 6px; }
+  .voice-dt { font-size: 12px; }
+  /* wb-toolbar / wb-search from WorldbuildingView pattern */
+  .wb-toolbar { display: flex; align-items: center; gap: 8px; }
+  .wb-search { position: relative; flex: 1; }
+  .wb-search-icon { position: absolute; left: 8px; top: 50%; transform: translateY(-50%); color: var(--muted); pointer-events: none; }
+  .wb-search-input { width: 100%; padding-left: 26px !important; }
+  .wb-count { font-family: var(--font-mono); font-size: 10.5px; color: var(--muted); white-space: nowrap; }
 </style>

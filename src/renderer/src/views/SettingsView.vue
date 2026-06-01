@@ -24,6 +24,11 @@ import {
   NAV_ITEM_STYLES, NAV_ITEM_SIZES,
 } from "../services/appearance.js";
 
+import DataTable from "primevue/datatable";
+import Column from "primevue/column";
+import Tag from "primevue/tag";
+import { FilterMatchMode } from "@primevue/core/api";
+
 const props = defineProps({ section: { type: String, default: "" } });
 
 const ai = useAiStore();
@@ -421,7 +426,21 @@ const usageByProvider = computed(() =>
     .map(([key, v]) => ({ key, ...v }))
     .sort((a, b) => b.cost - a.cost || b.calls - a.calls)
 );
-const recentUsageRows = computed(() => ai.recentUsage(25));
+const recentUsageRows = computed(() =>
+  [...(ai.usageLog || [])].reverse().map((r) => ({
+    ...r,
+    totalTokens: (r.promptTokens || 0) + (r.completionTokens || 0),
+    providerName: providerLabel(r.providerId),
+  }))
+);
+const recentFilters = ref({
+  global: { value: null, matchMode: FilterMatchMode.CONTAINS },
+});
+const recentGlobalQuery = ref("");
+function onRecentInput(e) {
+  recentGlobalQuery.value = e.target.value;
+  recentFilters.value.global.value = e.target.value || null;
+}
 
 async function resetUsageLog() {
   const yes = await confirmDialog({
@@ -897,52 +916,84 @@ async function deleteCategory(c) {
             <!-- By feature -->
             <div class="usage-section">
               <div class="usage-section-h">By feature</div>
-              <div class="usage-table">
-                <div class="usage-row usage-row--head">
-                  <span>Feature</span><span>Calls</span><span>Prompt</span><span>Completion</span><span>Cost</span>
-                </div>
-                <div v-for="row in usageByFeature" :key="row.key" class="usage-row">
-                  <span class="usage-name">{{ row.key }}</span>
-                  <span class="usage-num">{{ row.calls.toLocaleString() }}</span>
-                  <span class="usage-num">{{ row.promptTokens.toLocaleString() }}</span>
-                  <span class="usage-num">{{ row.completionTokens.toLocaleString() }}</span>
-                  <span class="usage-num">{{ fmtUsd(row.cost) }}</span>
-                </div>
-              </div>
+              <DataTable :value="usageByFeature" data-key="key" class="usage-dt" size="small">
+                <Column field="key" header="Feature" sortable style="min-width:160px" />
+                <Column field="calls" header="Calls" sortable data-type="numeric" style="text-align:right;width:70px">
+                  <template #body="{ data }">{{ data.calls.toLocaleString() }}</template>
+                </Column>
+                <Column field="promptTokens" header="Prompt" sortable data-type="numeric" style="text-align:right;width:90px">
+                  <template #body="{ data }">{{ data.promptTokens.toLocaleString() }}</template>
+                </Column>
+                <Column field="completionTokens" header="Completion" sortable data-type="numeric" style="text-align:right;width:100px">
+                  <template #body="{ data }">{{ data.completionTokens.toLocaleString() }}</template>
+                </Column>
+                <Column field="cost" header="Cost" sortable data-type="numeric" style="text-align:right;width:80px">
+                  <template #body="{ data }">{{ fmtUsd(data.cost) }}</template>
+                </Column>
+              </DataTable>
             </div>
 
             <!-- By provider -->
             <div class="usage-section">
               <div class="usage-section-h">By provider</div>
-              <div class="usage-table">
-                <div class="usage-row usage-row--head">
-                  <span>Provider</span><span>Calls</span><span>Prompt</span><span>Completion</span><span>Cost</span>
-                </div>
-                <div v-for="row in usageByProvider" :key="row.key" class="usage-row">
-                  <span class="usage-name">{{ providerLabel(row.key) }}</span>
-                  <span class="usage-num">{{ row.calls.toLocaleString() }}</span>
-                  <span class="usage-num">{{ row.promptTokens.toLocaleString() }}</span>
-                  <span class="usage-num">{{ row.completionTokens.toLocaleString() }}</span>
-                  <span class="usage-num">{{ fmtUsd(row.cost) }}</span>
-                </div>
-              </div>
+              <DataTable :value="usageByProvider" data-key="key" class="usage-dt" size="small">
+                <Column field="key" header="Provider" sortable style="min-width:160px">
+                  <template #body="{ data }">{{ providerLabel(data.key) }}</template>
+                </Column>
+                <Column field="calls" header="Calls" sortable data-type="numeric" style="text-align:right;width:70px">
+                  <template #body="{ data }">{{ data.calls.toLocaleString() }}</template>
+                </Column>
+                <Column field="promptTokens" header="Prompt" sortable data-type="numeric" style="text-align:right;width:90px">
+                  <template #body="{ data }">{{ data.promptTokens.toLocaleString() }}</template>
+                </Column>
+                <Column field="completionTokens" header="Completion" sortable data-type="numeric" style="text-align:right;width:100px">
+                  <template #body="{ data }">{{ data.completionTokens.toLocaleString() }}</template>
+                </Column>
+                <Column field="cost" header="Cost" sortable data-type="numeric" style="text-align:right;width:80px">
+                  <template #body="{ data }">{{ fmtUsd(data.cost) }}</template>
+                </Column>
+              </DataTable>
             </div>
 
             <!-- Recent calls -->
             <div class="usage-section">
               <div class="usage-section-h">
                 Recent calls
-                <span class="t-muted" style="font-weight:400;font-size:11px;margin-left:6px">last {{ recentUsageRows.length }}</span>
+                <span class="t-muted" style="font-weight:400;font-size:11px;margin-left:6px">{{ recentUsageRows.length }}</span>
               </div>
-              <div class="usage-recent">
-                <div v-for="row in recentUsageRows" :key="row.id" class="usage-recent-row">
-                  <span class="usage-time">{{ fmtTime(row.at) }}</span>
-                  <span class="usage-feature">{{ row.feature }}</span>
-                  <span class="usage-model">{{ row.model || "—" }}</span>
-                  <span class="usage-num">{{ (row.promptTokens + row.completionTokens).toLocaleString() }} t</span>
-                  <span class="usage-num">{{ fmtUsd(row.cost) }}</span>
-                </div>
+              <div class="wb-toolbar" style="margin-bottom:10px">
+                <span class="wb-search">
+                  <Icon name="Search" :size="13" class="wb-search-icon" />
+                  <InputText :value="recentGlobalQuery" placeholder="Search calls…" @input="onRecentInput" class="wb-search-input" />
+                </span>
               </div>
+              <DataTable
+                :value="recentUsageRows"
+                data-key="id"
+                v-model:filters="recentFilters"
+                :global-filter-fields="['feature', 'model', 'providerName']"
+                class="usage-dt"
+                size="small"
+                paginator
+                :rows="25"
+                :rows-per-page-options="[10, 25, 50]"
+                sort-field="at"
+                :sort-order="-1"
+              >
+                <Column field="at" header="Time" sortable style="width:110px">
+                  <template #body="{ data }">{{ fmtTime(data.at) }}</template>
+                </Column>
+                <Column field="feature" header="Feature" sortable style="min-width:120px" />
+                <Column field="model" header="Model" sortable style="min-width:130px">
+                  <template #body="{ data }">{{ data.model || "—" }}</template>
+                </Column>
+                <Column field="totalTokens" header="Tokens" sortable data-type="numeric" style="text-align:right;width:80px">
+                  <template #body="{ data }">{{ data.totalTokens.toLocaleString() }}</template>
+                </Column>
+                <Column field="cost" header="Cost" sortable data-type="numeric" style="text-align:right;width:80px">
+                  <template #body="{ data }">{{ fmtUsd(data.cost) }}</template>
+                </Column>
+              </DataTable>
             </div>
           </template>
         </div>
@@ -1827,32 +1878,15 @@ async function deleteCategory(c) {
   color: var(--muted); font-weight: 600;
   margin-bottom: 8px;
 }
-.usage-table { display: flex; flex-direction: column; border: 1px solid var(--border-soft); border-radius: 8px; overflow: hidden; }
-.usage-row {
-  display: grid; grid-template-columns: 1.6fr 60px 80px 90px 80px;
-  gap: 10px; padding: 7px 12px;
-  font-size: 12px; font-variant-numeric: tabular-nums;
-  border-bottom: 1px solid var(--border-soft);
-}
-.usage-row:last-child { border-bottom: 0; }
-.usage-row--head {
-  font-family: var(--font-mono); font-size: 10px;
-  letter-spacing: 0.08em; text-transform: uppercase;
-  color: var(--muted); background: var(--surface-2);
-}
-.usage-name { color: var(--ink); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-.usage-num { text-align: right; color: var(--ink-2); }
-.usage-row--head .usage-num { color: var(--muted); }
+.usage-dt { font-size: 12px; font-variant-numeric: tabular-nums; }
 
-.usage-recent { display: flex; flex-direction: column; border: 1px solid var(--border-soft); border-radius: 8px; overflow: hidden; }
-.usage-recent-row {
-  display: grid; grid-template-columns: 80px 1.4fr 1.4fr 70px 70px;
-  gap: 10px; padding: 6px 12px;
-  font-size: 11.5px; font-variant-numeric: tabular-nums;
-  border-bottom: 1px solid var(--border-soft);
+/* wb-toolbar / wb-search reused from WorldbuildingView pattern */
+.wb-toolbar { display: flex; align-items: center; gap: 10px; }
+.wb-search { position: relative; flex: 1; max-width: 360px; }
+.wb-search-icon {
+  position: absolute; left: 10px; top: 50%;
+  transform: translateY(-50%);
+  color: var(--muted); pointer-events: none;
 }
-.usage-recent-row:last-child { border-bottom: 0; }
-.usage-recent-row:hover { background: var(--surface-2); }
-.usage-time, .usage-model { font-family: var(--font-mono); font-size: 10.5px; color: var(--muted); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-.usage-feature { color: var(--accent-ink); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.wb-search-input { width: 100%; padding-left: 30px !important; }
 </style>

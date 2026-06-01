@@ -6,6 +6,9 @@ import { useUiStore } from "../stores/ui.js";
 import PaneHeader from "../components/PaneHeader.vue";
 import Icon from "../components/Icon.vue";
 import { confirmDialog } from "../services/dialog.js";
+import DataTable from "primevue/datatable";
+import Column from "primevue/column";
+import Button from "primevue/button";
 
 const project = useProjectStore();
 const ui = useUiStore();
@@ -127,24 +130,35 @@ async function emptyAll() {
           <span class="t-muted" style="font-size:11px;font-variant-numeric:tabular-nums">{{ s.items.length }}</span>
           <span style="flex:1;height:1px;background:var(--border-soft);margin-left:8px" />
         </div>
-        <div class="trash-list">
-          <div v-for="item in s.items" :key="item.id" class="trash-row">
-            <div style="flex:1;min-width:0">
-              <div class="trash-title">{{ titleOf(s.kind, item) }}</div>
-              <div class="trash-meta">
-                <span v-if="subOf(s.kind, item)">{{ subOf(s.kind, item) }}</span>
-                <span v-if="subOf(s.kind, item)">·</span>
-                <span>deleted {{ ago(item.deletedAt) }}</span>
+        <DataTable :value="s.items" data-key="id" class="trash-dt" size="small">
+          <Column field="title" header="Title" style="min-width:200px">
+            <template #body="{ data }">
+              <div class="trash-title">{{ titleOf(s.kind, data) }}</div>
+            </template>
+          </Column>
+          <Column field="sub" header="Details" style="min-width:140px">
+            <template #body="{ data }">
+              <span class="t-muted" style="font-size:11.5px">{{ subOf(s.kind, data) || "—" }}</span>
+            </template>
+          </Column>
+          <Column field="deletedAt" header="Deleted" sortable data-type="numeric" style="width:130px">
+            <template #body="{ data }">
+              <span class="t-muted" style="font-size:11.5px">{{ ago(data.deletedAt) }}</span>
+            </template>
+          </Column>
+          <Column header="Actions" style="width:130px;text-align:right">
+            <template #body="{ data }">
+              <div style="display:flex;gap:6px;justify-content:flex-end">
+                <Button label="Restore" severity="primary" size="small" @click="restore(s.kind, data.id)">
+                  <template #icon><Icon name="Refresh" :size="11" /></template>
+                </Button>
+                <Button severity="danger" text size="small" title="Permanently delete" @click="purge(s.kind, data.id, titleOf(s.kind, data))">
+                  <template #icon><Icon name="Trash" :size="11" /></template>
+                </Button>
               </div>
-            </div>
-            <button class="btn sm" @click="restore(s.kind, item.id)">
-              <Icon name="Refresh" :size="11" /> Restore
-            </button>
-            <button class="btn sm ghost danger" @click="purge(s.kind, item.id, titleOf(s.kind, item))" title="Permanently delete">
-              <Icon name="Trash" :size="11" />
-            </button>
-          </div>
-        </div>
+            </template>
+          </Column>
+        </DataTable>
       </section>
     </div>
   </div>
@@ -164,29 +178,11 @@ async function emptyAll() {
   letter-spacing: 0.06em; text-transform: uppercase;
   color: var(--muted);
 }
-
-.trash-list { display: flex; flex-direction: column; gap: 6px; }
-.trash-row {
-  display: flex; align-items: center; gap: 10px;
-  padding: 10px 14px;
-  background: var(--surface);
-  border: 1px solid var(--border-soft);
-  border-radius: 8px;
-}
-.trash-row:hover { background: var(--surface-2); border-color: var(--border); }
-
+.trash-dt { font-size: 13px; }
 .trash-title {
   font-family: var(--font-serif);
   font-size: 14px;
   font-weight: 600;
   letter-spacing: -0.005em;
 }
-.trash-meta {
-  font-size: 11px;
-  color: var(--muted);
-  display: flex; gap: 6px; align-items: center;
-  margin-top: 2px;
-}
-
-.btn.danger:hover { background: var(--danger-bg); color: var(--danger-ink); }
 </style>

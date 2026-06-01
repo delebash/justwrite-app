@@ -12,6 +12,8 @@ import {
   scenesPerChapter, projectKpis, paceSeries, dialogueMix,
 } from "../services/analysis.js";
 import { bookMetrics, POV_LABELS } from "../services/analysis/styleMetrics.js";
+import DataTable from "primevue/datatable";
+import Column from "primevue/column";
 
 const project = useProjectStore();
 const studio = useStudioStore();
@@ -381,37 +383,59 @@ const milestoneState = computed(() => {
         <StatPill :value="`${(style.summary.pacingCoV * 100).toFixed(0)}%`" label="chapter-length variance" />
       </div>
 
-      <!-- Per-chapter table -->
-      <div class="sm-table-wrap">
-        <table class="sm-table">
-          <thead>
-            <tr>
-              <th class="left">Chapter</th>
-              <th title="Words">W</th>
-              <th title="Average sentence length (words)">Sent</th>
-              <th title="Average paragraph length (words)">Para</th>
-              <th title="Dialogue share">Dial</th>
-              <th title="Filter words per 1000 words (saw, heard, felt, …)">Filter</th>
-              <th title="Adverbs per 1000 words">Adv</th>
-              <th title="Passive constructions per 1000 (approximate)">Pass</th>
-              <th title="Dominant POV">POV</th>
-            </tr>
-          </thead>
-          <tbody>
-            <tr v-for="r in style.rows" :key="r.chapterId" @click="jumpChapter(r.chapterId)">
-              <td class="left"><b>{{ r.num }}</b>. {{ r.title }}</td>
-              <td>{{ r.words.toLocaleString() }}</td>
-              <td><span class="sm-bar"><span class="sm-fill" :style="`width:${(r.avgSentenceLength / styleMaxes.sentence) * 100}%`" /></span>{{ r.avgSentenceLength.toFixed(1) }}</td>
-              <td><span class="sm-bar"><span class="sm-fill" :style="`width:${(r.avgParagraphLength / styleMaxes.paragraph) * 100}%`" /></span>{{ r.avgParagraphLength.toFixed(1) }}</td>
-              <td><span class="sm-bar"><span class="sm-fill" :style="`width:${r.dialogueRatio * 100}%`" /></span>{{ Math.round(r.dialogueRatio * 100) }}%</td>
-              <td><span class="sm-bar"><span class="sm-fill" :style="`width:${(r.filterWordsPer1k / Math.max(styleMaxes.filter, 1)) * 100}%`" /></span>{{ r.filterWordsPer1k.toFixed(1) }}</td>
-              <td><span class="sm-bar"><span class="sm-fill" :style="`width:${(r.adverbsPer1k / Math.max(styleMaxes.adverb, 1)) * 100}%`" /></span>{{ r.adverbsPer1k.toFixed(1) }}</td>
-              <td><span class="sm-bar"><span class="sm-fill" :style="`width:${(r.passivePer1k / Math.max(styleMaxes.passive, 1)) * 100}%`" /></span>{{ r.passivePer1k.toFixed(1) }}</td>
-              <td class="pov-cell">{{ POV_LABELS[r.povHint] || "—" }}</td>
-            </tr>
-          </tbody>
-        </table>
-      </div>
+      <!-- Per-chapter DataTable -->
+      <DataTable
+        :value="style.rows"
+        data-key="chapterId"
+        row-hover
+        selection-mode="single"
+        class="sm-dt"
+        @row-click="(e) => jumpChapter(e.data.chapterId)"
+      >
+        <Column field="title" header="Chapter" sortable style="min-width:200px">
+          <template #body="{ data }">
+            <span style="color:var(--ink)"><b>{{ data.num }}</b>. {{ data.title }}</span>
+          </template>
+        </Column>
+        <Column field="words" header="W" sortable data-type="numeric" style="text-align:right;width:80px">
+          <template #body="{ data }">{{ data.words.toLocaleString() }}</template>
+        </Column>
+        <Column field="avgSentenceLength" header="Sent" sortable data-type="numeric" style="text-align:right;width:90px" header-title="Average sentence length (words)">
+          <template #body="{ data }">
+            <span class="sm-bar"><span class="sm-fill" :style="`width:${(data.avgSentenceLength / styleMaxes.sentence) * 100}%`" /></span>{{ data.avgSentenceLength.toFixed(1) }}
+          </template>
+        </Column>
+        <Column field="avgParagraphLength" header="Para" sortable data-type="numeric" style="text-align:right;width:90px" header-title="Average paragraph length (words)">
+          <template #body="{ data }">
+            <span class="sm-bar"><span class="sm-fill" :style="`width:${(data.avgParagraphLength / styleMaxes.paragraph) * 100}%`" /></span>{{ data.avgParagraphLength.toFixed(1) }}
+          </template>
+        </Column>
+        <Column field="dialogueRatio" header="Dial" sortable data-type="numeric" style="text-align:right;width:85px" header-title="Dialogue share">
+          <template #body="{ data }">
+            <span class="sm-bar"><span class="sm-fill" :style="`width:${data.dialogueRatio * 100}%`" /></span>{{ Math.round(data.dialogueRatio * 100) }}%
+          </template>
+        </Column>
+        <Column field="filterWordsPer1k" header="Filter" sortable data-type="numeric" style="text-align:right;width:85px" header-title="Filter words per 1000 words (saw, heard, felt, …)">
+          <template #body="{ data }">
+            <span class="sm-bar"><span class="sm-fill" :style="`width:${(data.filterWordsPer1k / Math.max(styleMaxes.filter, 1)) * 100}%`" /></span>{{ data.filterWordsPer1k.toFixed(1) }}
+          </template>
+        </Column>
+        <Column field="adverbsPer1k" header="Adv" sortable data-type="numeric" style="text-align:right;width:80px" header-title="Adverbs per 1000 words">
+          <template #body="{ data }">
+            <span class="sm-bar"><span class="sm-fill" :style="`width:${(data.adverbsPer1k / Math.max(styleMaxes.adverb, 1)) * 100}%`" /></span>{{ data.adverbsPer1k.toFixed(1) }}
+          </template>
+        </Column>
+        <Column field="passivePer1k" header="Pass" sortable data-type="numeric" style="text-align:right;width:80px" header-title="Passive constructions per 1000 (approximate)">
+          <template #body="{ data }">
+            <span class="sm-bar"><span class="sm-fill" :style="`width:${(data.passivePer1k / Math.max(styleMaxes.passive, 1)) * 100}%`" /></span>{{ data.passivePer1k.toFixed(1) }}
+          </template>
+        </Column>
+        <Column field="povHint" header="POV" sortable style="width:80px" header-title="Dominant POV">
+          <template #body="{ data }">
+            <span style="color:var(--muted);font-family:var(--font-mono);font-size:10.5px">{{ POV_LABELS[data.povHint] || "—" }}</span>
+          </template>
+        </Column>
+      </DataTable>
     </div>
 
     <!-- Cast presence heatmap -->
@@ -628,20 +652,7 @@ const milestoneState = computed(() => {
 /* ── Style & pacing table ───────────────────────────────────────── */
 .pill-row { display: flex; flex-wrap: wrap; gap: 10px; margin: 6px 0 16px; }
 
-.sm-table-wrap { overflow-x: auto; }
-.sm-table { width: 100%; border-collapse: collapse; font-size: 12px; font-variant-numeric: tabular-nums; }
-.sm-table thead th {
-  text-align: right; padding: 6px 8px; font-weight: 600;
-  font-family: var(--font-mono); font-size: 10px;
-  letter-spacing: 0.08em; text-transform: uppercase;
-  color: var(--muted); border-bottom: 1px solid var(--border);
-}
-.sm-table th.left, .sm-table td.left { text-align: left; }
-.sm-table tbody td { padding: 7px 8px; text-align: right; border-bottom: 1px solid var(--border-soft); }
-.sm-table tbody tr { cursor: pointer; }
-.sm-table tbody tr:hover { background: var(--surface-2); }
-.sm-table td.left { color: var(--ink); max-width: 240px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-.sm-table .pov-cell { color: var(--muted); font-family: var(--font-mono); font-size: 10.5px; }
+.sm-dt { font-size: 12px; font-variant-numeric: tabular-nums; cursor: pointer; }
 .sm-bar {
   display: inline-block; width: 36px; height: 4px; border-radius: 999px;
   background: var(--surface-3); vertical-align: middle; margin-right: 6px;
