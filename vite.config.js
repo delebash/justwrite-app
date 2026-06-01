@@ -33,9 +33,16 @@ export default defineConfig({
     // from `tauri.conf.json` -> `app.security.headers`; the vite dev
     // server needs them set here too so `npm run dev:vite` (outside
     // Tauri) is also isolated.
+    //
+    // COEP is `credentialless` rather than `require-corp` because Tauri's
+    // IPC custom protocol (`http://ipc.localhost/...`) responses don't
+    // carry CORP headers — `require-corp` blocks them and the http
+    // plugin's body-chunk-read loop spins on the broken postMessage
+    // fallback. `credentialless` still grants cross-origin isolation
+    // (SharedArrayBuffer works), just without the explicit CORP opt-in.
     headers: {
       "Cross-Origin-Opener-Policy":   "same-origin",
-      "Cross-Origin-Embedder-Policy": "require-corp",
+      "Cross-Origin-Embedder-Policy": "credentialless",
       "Cross-Origin-Resource-Policy": "cross-origin",
     },
   },

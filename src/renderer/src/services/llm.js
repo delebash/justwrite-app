@@ -45,6 +45,11 @@ export async function detectSpeakers({ provider, paragraphs, characters, model, 
       { role: "system", content: SPEAKER_SYSTEM },
       { role: "user", content: userMsg },
     ],
+    // Disable thinking on Ollama-hosted reasoning models (Qwen3.5,
+    // DeepSeek-R1, …). Output is JSON-parsed downstream, so <think>
+    // blocks would break parsing. No-op on non-thinking models and on
+    // non-Ollama providers (unknown body param is ignored).
+    extra: { think: false },
   });
 
   return parseJsonArray(reply, paragraphs);
@@ -78,6 +83,9 @@ export async function smartCast({ provider, characters, voices, model, signal })
       { role: "system", content: CAST_SYSTEM },
       { role: "user", content: `Characters:\n${charList}\n\nAvailable voices:\n${voiceList}\n\nReturn only the JSON object.` },
     ],
+    // JSON-parsed output — disable thinking on reasoning models. See
+    // detectSpeakers above for the rationale.
+    extra: { think: false },
   });
 
   return parseJsonObject(reply);
@@ -85,9 +93,12 @@ export async function smartCast({ provider, characters, voices, model, signal })
 
 // ─── Generic chat ──────────────────────────────────────────────────────
 // For freeform features (writing assistance, brainstorming) added later.
-export async function chat({ provider, messages, model, signal, temperature }) {
+// `extra` is passed through to the underlying request body — callers can
+// add `{ think: false }` if they need a JSON-parseable response from a
+// reasoning model, or omit it and let the model think for creative tasks.
+export async function chat({ provider, messages, model, signal, temperature, extra }) {
   const client = new OpenAICompatClient(provider);
-  return client.chat({ messages, model, signal, temperature });
+  return client.chat({ messages, model, signal, temperature, extra });
 }
 
 // ─── helpers ────────────────────────────────────────────────────────────

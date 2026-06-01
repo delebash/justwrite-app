@@ -16,6 +16,7 @@ const ui = useUiStore();
 const router = useRouter();
 
 const fmt = ref("pdf");
+const stripSceneStructure = ref(false);
 
 const FORMATS = [
   { id: "pdf",  name: "PDF",            sub: "Print-ready manuscript with TOC.",       icon: "Export",     ext: "pdf",  mime: "application/pdf" },
@@ -89,7 +90,7 @@ async function exportManuscript(fmtId) {
   exportProgress.value = 0;
   exportStage.value = "composing";
   try {
-    const manuscript = buildManuscript(project);
+    const manuscript = buildManuscript(project, { stripSceneStructure: stripSceneStructure.value });
     let blob;
     const onProgress = ({ stage }) => { exportStage.value = stage; };
 
@@ -283,6 +284,16 @@ async function exportM4b({ partial = false } = {}) {
               <b class="t-num" style="font-size:18px;font-family:var(--font-serif)">{{ manuscriptStats.words.toLocaleString() }}</b>
             </div>
           </div>
+
+          <label style="display:flex;gap:10px;align-items:flex-start;margin-top:14px;padding:12px;background:var(--surface-2);border-radius:8px;cursor:pointer">
+            <input type="checkbox" v-model="stripSceneStructure" style="margin-top:2px" />
+            <span>
+              <div style="font-size:13px;font-weight:600">Continuous prose</div>
+              <div class="t-muted" style="font-size:11.5px;line-height:1.5;margin-top:2px">
+                Strip scene titles and <code style="font-size:10px">* * *</code> scene breaks so each chapter flows as one body of text, like a print novel without ornaments.
+              </div>
+            </span>
+          </label>
         </div>
 
         <div class="card">

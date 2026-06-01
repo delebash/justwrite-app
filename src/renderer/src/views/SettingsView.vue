@@ -9,6 +9,7 @@ import { getItem, setItem, clearPrefix, flushPending } from "../services/storage
 import PaneHeader from "../components/PaneHeader.vue";
 import Icon from "../components/Icon.vue";
 import SettingsProviderForm from "./SettingsProviderForm.vue";
+import Combobox from "../components/Combobox.vue";
 import {
   ACCENT_PRESETS, GOLD_PRESETS, PAIRINGS, SURFACE_TINTS, PAPER_TINTS,
   THEME_PRESETS, UI_FONTS, DISPLAY_FONTS, INK_PALETTES, UI_SCALES,
@@ -27,7 +28,20 @@ const SECTIONS = [
   { id: "audio",      label: "AI & Audio engines" },
   { id: "appearance", label: "Appearance" },
   { id: "backups",    label: "Backups" },
+  { id: "debug",      label: "Debug" },
   { id: "about",      label: "About" },
+];
+
+// Debug tools surfaced in the Debug section. Add new entries here as more
+// internal lab/inspector views are built.
+const DEBUG_TOOLS = [
+  {
+    id: "speaker-lab",
+    name: "Speaker Lab",
+    description: "Test entity extraction & quote attribution against any OpenAI-compatible LLM. Side-by-side runs, two-stage pipelines, live streaming, prompt editing, saved presets.",
+    route: "/debug/speaker-lab",
+    icon: "Sparkle",
+  },
 ];
 
 const active = ref(props.section || "project");
@@ -596,13 +610,23 @@ async function deleteCategory(c) {
           </div>
           <div style="display:grid;grid-template-columns:160px 1fr;gap:10px 14px;align-items:center;font-size:13px">
             <span class="t-muted">Default LLM</span>
-            <select class="input" :value="ai.defaultLlmId" @change="ai.setDefaultLlm($event.target.value)">
-              <option v-for="p in ai.llmProviders" :key="p.id" :value="p.id">{{ p.name }}</option>
-            </select>
+            <Combobox
+              :model-value="ai.defaultLlmId"
+              @update:model-value="ai.setDefaultLlm"
+              :items="ai.llmProviders"
+              item-value="id" item-label="name"
+              :searchable="false"
+              placeholder="Pick a provider"
+              chev-title="Choose default LLM provider" />
             <span class="t-muted">Default TTS</span>
-            <select class="input" :value="ai.defaultTtsId" @change="ai.setDefaultTts($event.target.value)">
-              <option v-for="p in ai.ttsProviders" :key="p.id" :value="p.id">{{ p.name }}</option>
-            </select>
+            <Combobox
+              :model-value="ai.defaultTtsId"
+              @update:model-value="ai.setDefaultTts"
+              :items="ai.ttsProviders"
+              item-value="id" item-label="name"
+              :searchable="false"
+              placeholder="Pick a provider"
+              chev-title="Choose default TTS provider" />
           </div>
         </div>
 
@@ -1058,6 +1082,32 @@ async function deleteCategory(c) {
         </div>
       </div>
 
+      <!-- ── DEBUG ─────────────────────────────────── -->
+      <div v-else-if="active === 'debug'" style="display:flex;flex-direction:column;gap:14px">
+        <div class="card">
+          <div class="card-title">Debug tools</div>
+          <p style="font-size:12.5px;color:var(--muted);margin:0 0 12px;line-height:1.5">
+            Internal lab views for testing pipelines and inspecting state. Hidden from the sidebar — reach them from here.
+          </p>
+          <div class="debug-tools">
+            <router-link
+              v-for="t in DEBUG_TOOLS"
+              :key="t.id"
+              :to="t.route"
+              class="debug-tile"
+            >
+              <span class="debug-tile-icon"><Icon :name="t.icon" :size="18" /></span>
+              <span class="debug-tile-body">
+                <b>{{ t.name }}</b>
+                <span class="t-muted">{{ t.description }}</span>
+                <code class="debug-tile-route">#{{ t.route }}</code>
+              </span>
+              <Icon name="ChevRight" :size="14" />
+            </router-link>
+          </div>
+        </div>
+      </div>
+
       <!-- ── ABOUT ─────────────────────────────────── -->
       <div v-else-if="active === 'about'" style="display:flex;flex-direction:column;gap:14px">
         <div class="card">
@@ -1463,5 +1513,41 @@ async function deleteCategory(c) {
 }
 .btn-danger:hover {
   background: var(--danger-bg);
+}
+
+/* Debug section */
+.debug-tools { display: flex; flex-direction: column; gap: 8px; }
+.debug-tile {
+  display: grid;
+  grid-template-columns: 40px 1fr 16px;
+  align-items: center;
+  gap: 12px;
+  padding: 12px 14px;
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  background: var(--surface);
+  text-decoration: none;
+  color: var(--ink);
+}
+.debug-tile:hover { border-color: var(--border-strong); background: var(--surface-2); }
+.debug-tile-icon {
+  width: 40px; height: 40px;
+  border-radius: 8px;
+  display: grid; place-items: center;
+  background: var(--accent-soft);
+  color: var(--accent-ink);
+}
+.debug-tile-body { display: flex; flex-direction: column; gap: 4px; min-width: 0; }
+.debug-tile-body b { font-size: 13.5px; }
+.debug-tile-body .t-muted { font-size: 11.5px; line-height: 1.45; }
+.debug-tile-route {
+  font-family: ui-monospace, "SF Mono", Menlo, Consolas, monospace;
+  font-size: 10.5px;
+  color: var(--muted);
+  margin-top: 2px;
+  align-self: flex-start;
+  padding: 1px 6px;
+  background: var(--surface-3);
+  border-radius: 4px;
 }
 </style>

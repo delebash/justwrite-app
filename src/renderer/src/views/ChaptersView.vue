@@ -89,14 +89,16 @@ const sceneWordCount = computed(() => {
 });
 const sceneCharCount = computed(() => plainText(activeScene.value?.body).length);
 
-// Read view shows the prose without editorial comment marks — comments
-// live only in the editor. Unwrap the comment spans (keeping their text).
+// Read view shows the prose as a continuous chapter — no scene titles, no
+// "* * *" scene marks, no editorial comment marks. Just the words, like a
+// printed book. The underlying chapterBody getter still carries that
+// structure for Studio / search / export consumers.
 function readBody(chId) {
   const html = project.chapterBody[chId];
   if (!html) return `<h1>${ch.value?.title || ""}</h1><p><em>Empty chapter.</em></p>`;
-  if (!html.includes("comment-mark")) return html;
   const div = document.createElement("div");
   div.innerHTML = html;
+  div.querySelectorAll("h2.scene-title, p.scene-mark").forEach((el) => el.remove());
   div.querySelectorAll("span.comment-mark").forEach((el) => el.replaceWith(...el.childNodes));
   return div.innerHTML;
 }
@@ -658,12 +660,10 @@ watch(() => project.allChapters.map((c) => c.id + ":" + (project.scenesFor(c.id)
               <span class="book-chapter-num">Chapter {{ chap.num }}</span>
               <span class="book-chapter-name">{{ chap.title }}</span>
             </h1>
-            <section v-for="(scn, si) in project.scenesFor(chap.id)" :key="scn.id"
+            <section v-for="scn in project.scenesFor(chap.id)" :key="scn.id"
               class="book-scene"
               :data-scene-id="scn.id"
               :data-chapter-id="chap.id">
-              <p v-if="si > 0" class="scene-mark">* * *</p>
-              <h2 v-if="scn.title" class="scene-title">{{ scn.title }}</h2>
               <div class="book-scene-body" v-html="sceneReadHtml(scn.body)" />
             </section>
           </section>

@@ -12,6 +12,13 @@ function load() {
   try {
     const v = JSON.parse(getItem(LS_KEY) || "null");
     if (!v || !Array.isArray(v.providers)) return null;
+    // Merge in any new built-in providers that have been added to the
+    // seed since this snapshot was saved. User edits to existing
+    // providers (or providers they've added by hand) are untouched —
+    // we only append by id, never overwrite.
+    const have = new Set(v.providers.map((p) => p.id));
+    const missing = DEFAULT_PROVIDERS.filter((p) => p.builtIn && !have.has(p.id));
+    if (missing.length) v.providers = [...v.providers, ...missing];
     return v;
   } catch { return null; }
 }

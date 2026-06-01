@@ -5,6 +5,7 @@ import { useStudioStore } from "../stores/studio.js";
 import { useAiStore } from "../stores/ai.js";
 import PaneHeader from "../components/PaneHeader.vue";
 import Icon from "../components/Icon.vue";
+import Combobox from "../components/Combobox.vue";
 import { listVoices, preview } from "../services/tts.js";
 import { smartCast, detectSpeakers } from "../services/llm.js";
 import { renderChapter } from "../services/render.js";
@@ -128,15 +129,17 @@ async function reanalyze() {
   // the new result arrives.
   studio.clearScript(scriptChapter.value);
   try {
-    // Pull paragraph text from the chapter body. Two things are stripped:
-    //   1. Headings (h1/h2/h3) — structural, not spoken content.
-    //   2. Paragraphs that are just a structural marker word like
+    // Pull paragraph text from the chapter body. Stripped before extraction:
+    //   1. Headings (h1/h2/h3) and scene titles — structural, not spoken.
+    //   2. Scene-break marks ("* * *") — visual separators, not lines.
+    //   3. Paragraphs that are just a structural marker word like
     //      "Scene 1", "Chapter II", "Prologue" — same intent.
     // Either way: not in the script, no LLM tokens spent classifying them,
-    // no audio for them.
+    // no audio for them. Matches what read mode shows the reader.
     const html = project.chapterBody[scriptChapter.value] || "";
     const div = document.createElement("div");
     div.innerHTML = html;
+    div.querySelectorAll("h2.scene-title, p.scene-mark").forEach((el) => el.remove());
     const paragraphs = Array.from(div.querySelectorAll("p"))
       .map((el) => el.textContent.trim())
       .filter((t) => t && !STRUCTURAL_MARKER_RE.test(t));
@@ -318,9 +321,14 @@ function downloadChapter(chapterId) {
 
     <aside class="studio-aside scrollarea">
       <div class="t-eyebrow" style="margin-bottom:8px">Voice library</div>
-      <select class="input" v-model="activeProviderId" style="margin-bottom:14px">
-        <option v-for="p in ai.ttsProviders" :key="p.id" :value="p.id">{{ p.name }}</option>
-      </select>
+      <Combobox
+        v-model="activeProviderId"
+        :items="ai.ttsProviders"
+        item-value="id" item-label="name"
+        :searchable="false"
+        placeholder="Pick a TTS provider"
+        chev-title="Switch voice library provider"
+        style="margin-bottom:14px" />
       <div style="font-size:11.5px;color:var(--muted);margin-bottom:10px">
         <template v-if="selectedChar">Picking voice for <b style="color:var(--ink)">{{ selectedChar === "narrator" ? "Narrator" : project.characterById(selectedChar)?.name }}</b></template>
         <template v-else>Select a character to assign a voice.</template>

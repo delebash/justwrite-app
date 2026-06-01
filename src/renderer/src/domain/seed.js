@@ -494,6 +494,7 @@ export const DEFAULT_PROVIDERS = [
     // LM Studio). Click "Fetch models" in Settings to pick from the
     // running server's list.
     id: "openai-compat-local", name: "OpenAI-compatible (local)", kind: "llm",
+    runner: "ollama",
     baseUrl: "http://localhost:11434/v1",
     chatModel: "",
     builtIn: true,
@@ -513,6 +514,36 @@ export const DEFAULT_PROVIDERS = [
     id: "claude", name: "Claude (Anthropic)", kind: "llm",
     baseUrl: "https://api.anthropic.com/v1",
     chatModel: "claude-haiku-4-5",
+    builtIn: true,
+  },
+  {
+    // Google's OpenAI-compatible Gemini endpoint. The URL prefix
+    // `/v1beta/openai` is Google-specific — our url() helper appends
+    // `/chat/completions`, `/models`, etc. directly after it, so the
+    // resulting paths match Google's spec.
+    id: "gemini", name: "Gemini (Google)", kind: "llm",
+    baseUrl: "https://generativelanguage.googleapis.com/v1beta/openai",
+    chatModel: "gemini-2.5-flash",
+    builtIn: true,
+  },
+  {
+    // DeepSeek's native API speaks OpenAI shape. `deepseek-chat` is V3;
+    // `deepseek-reasoner` is R1 (reasoning model, slower but stronger).
+    id: "deepseek", name: "DeepSeek", kind: "llm",
+    baseUrl: "https://api.deepseek.com/v1",
+    chatModel: "deepseek-chat",
+    builtIn: true,
+  },
+  {
+    // OpenRouter — single API key, OpenAI-shaped, routes to virtually any
+    // model on the market (Claude, Gemini, DeepSeek, Mistral, Llama, …).
+    // Useful as a "one key for everything" alternative to seeding each
+    // provider individually. Model ids take the form `vendor/model-name`,
+    // e.g. `anthropic/claude-sonnet-4-6` or `google/gemini-2.5-pro` —
+    // hit "Fetch models" to see the full live catalogue.
+    id: "openrouter", name: "OpenRouter (aggregator)", kind: "llm",
+    baseUrl: "https://openrouter.ai/api/v1",
+    chatModel: "",
     builtIn: true,
   },
   {

@@ -15,7 +15,7 @@
 // so downstream renderers always have at least a heading to lay out.
 // ============================================================
 
-export function buildManuscript(project) {
+export function buildManuscript(project, { stripSceneStructure = false } = {}) {
   return {
     title:    project.project.title || "Untitled",
     author:   project.project.author || "",
@@ -31,7 +31,7 @@ export function buildManuscript(project) {
         id: c.id,
         num: c.num,
         title: c.title,
-        blocks: blocksFromHtml(project.chapterBody[c.id], c.title),
+        blocks: blocksFromHtml(project.chapterBody[c.id], c.title, { stripSceneStructure }),
       })),
     })),
   };
@@ -43,10 +43,16 @@ export function buildManuscript(project) {
  * of node types (StarterKit), so a straightforward DOM traversal in a
  * detached div is sufficient and avoids bundling an XML parser.
  */
-function blocksFromHtml(html, fallbackTitle = "") {
+function blocksFromHtml(html, fallbackTitle = "", { stripSceneStructure = false } = {}) {
   const blocks = [];
   const div = document.createElement("div");
   div.innerHTML = html || "";
+
+  // Continuous-prose mode: drop scene titles and "* * *" marks before
+  // walking, so the chapter flows as one uninterrupted body.
+  if (stripSceneStructure) {
+    div.querySelectorAll("h2.scene-title, p.scene-mark").forEach((el) => el.remove());
+  }
 
   // Ensure every chapter has a top-level heading.
   let sawHeading = false;
