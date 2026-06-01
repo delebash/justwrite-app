@@ -55,14 +55,25 @@ export const JustWriteEditorial = definePreset(Aura, {
           background:        "var(--surface)",
           disabledBackground: "var(--surface-2)",
           filledBackground:  "var(--surface-2)",
-          borderColor:       "var(--border)",
+          borderColor:       "var(--border-strong)",
           hoverBorderColor:  "var(--accent-line)",
           focusBorderColor:  "var(--accent)",
+          invalidBorderColor:"var(--danger-ink, oklch(0.55 0.18 25))",
           color:             "var(--ink)",
           placeholderColor:  "var(--muted)",
-          borderRadius:      "6px",
+          borderRadius:      "7px",
           paddingX:          "10px",
           paddingY:          "6px",
+          // Focus ring — match the OLD .input look. Aura's default ring
+          // is the primary color at 24% alpha which read as a blue glow;
+          // we want the warm accent-soft glow the custom CSS used.
+          focusRing: {
+            width:  "3px",
+            style:  "solid",
+            color:  "var(--accent-soft)",
+            offset: "0",
+            shadow: "0 0 0 3px var(--accent-soft)",
+          },
         },
         content: {
           background:        "var(--surface)",
@@ -116,14 +127,22 @@ export const JustWriteEditorial = definePreset(Aura, {
           background:        "var(--surface)",
           disabledBackground: "var(--surface-2)",
           filledBackground:  "var(--surface-2)",
-          borderColor:       "var(--border)",
+          borderColor:       "var(--border-strong)",
           hoverBorderColor:  "var(--accent-line)",
           focusBorderColor:  "var(--accent)",
+          invalidBorderColor:"var(--danger-ink, oklch(0.55 0.18 25))",
           color:             "var(--ink)",
           placeholderColor:  "var(--muted)",
-          borderRadius:      "6px",
+          borderRadius:      "7px",
           paddingX:          "10px",
           paddingY:          "6px",
+          focusRing: {
+            width:  "3px",
+            style:  "solid",
+            color:  "var(--accent-soft)",
+            offset: "0",
+            shadow: "0 0 0 3px var(--accent-soft)",
+          },
         },
         content: {
           background:      "var(--surface)",
@@ -168,15 +187,34 @@ export const JustWriteEditorial = definePreset(Aura, {
   //   secondary → --surface-3 + --ink (neutral chip)
   //   contrast  → --ink (inverse fill)
   components: {
-    button: severityRamp({
-      primary:   { bg: "var(--accent)",           hover: "var(--accent-ink)",   contrast: "white" },
+    button: {
+      // Base button sizing — match the old .btn dimensions exactly so
+      // PrimeVue Buttons feel the same as the custom .btn class did.
+      //   old .btn:    padding 6px 12px, radius 7px, font 12.5px
+      //   old .btn.sm: padding 4px 8px,  radius 7px, font 11.5px
+      // PrimeVue's default is bigger + less rounded; these overrides
+      // bring it in line with the editorial palette.
+      borderRadius:      "7px",
+      roundedBorderRadius: "999px",
+      paddingX:          "12px",
+      paddingY:          "6px",
+      sm: { paddingX: "8px",  paddingY: "4px", fontSize: "11.5px" },
+      lg: { paddingX: "16px", paddingY: "8px", fontSize: "13.5px" },
+      label: { fontWeight: "500" },
+      gap:               "6px",
+      iconOnlyWidth:     "28px",
+      raisedShadow:      "var(--shadow-1, 0 1px 2px rgba(0,0,0,.05))",
+      // Severities live here too — spread the helper output below.
+      ...severityRamp({
+        primary:   { bg: "var(--accent)",           hover: "var(--accent-ink)",   contrast: "white" },
       success:   { bg: "var(--status-done)",      hover: "color-mix(in oklab, var(--status-done) 80%, black)", contrast: "white" },
       warn:      { bg: "var(--gold)",             hover: "color-mix(in oklab, var(--gold) 80%, black)",        contrast: "var(--ink)" },
       danger:    { bg: "var(--danger-ink, oklch(0.55 0.18 25))", hover: "color-mix(in oklab, var(--danger-ink, oklch(0.55 0.18 25)) 80%, black)", contrast: "white" },
       info:      { bg: "oklch(0.55 0.10 235)",    hover: "oklch(0.46 0.11 235)", contrast: "white" },
       secondary: { bg: "var(--surface-3)",        hover: "var(--border-soft)",   contrast: "var(--ink-2)" },
       contrast:  { bg: "var(--ink)",              hover: "var(--ink-2)",         contrast: "var(--surface)" },
-    }),
+      }),
+    },
     tag: tagRamp({
       primary:   { bg: "var(--accent-soft)",                                              fg: "var(--accent-ink)" },
       success:   { bg: "color-mix(in oklab, var(--status-done) 18%, transparent)",        fg: "var(--status-done)" },
