@@ -93,12 +93,14 @@ watchEffect(() => applyAppearance(ui.appearance));
 watchEffect(() => applyEditorSettings(ui.editorSettings));
 
 onMounted(() => {
-  window.addEventListener("keydown", onKey);
+  // Capture phase so we beat default browser/Tauri accelerators (e.g.
+  // Ctrl+P opening the OS print dialog before our palette can intercept).
+  window.addEventListener("keydown", onKey, { capture: true });
   // One-shot migration: roll any pre-existing daily entries older than
   // the retention cap into the monthly archive. Idempotent.
   sessions._archiveOldDays();
 });
-onBeforeUnmount(() => window.removeEventListener("keydown", onKey));
+onBeforeUnmount(() => window.removeEventListener("keydown", onKey, { capture: true }));
 </script>
 
 <template>
