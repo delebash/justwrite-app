@@ -11,11 +11,13 @@ applyAppearance(DEFAULT_APPEARANCE);
 
 import { createApp } from "vue";
 import { createPinia } from "pinia";
+import PrimeVue from "primevue/config";
 import App from "./App.vue";
 import router from "./router/index.js";
 import { bootStorage, getItem } from "./services/storage.js";
 
 import "./assets/styles/tokens.css";
+import { JustWriteEditorial } from "./services/primevue-preset.js";
 
 // Hydrate the storage cache from IndexedDB BEFORE any Pinia store
 // initialises — stores read from the cache synchronously.
@@ -34,5 +36,17 @@ import "./assets/styles/tokens.css";
   const app = createApp(App);
   app.use(createPinia());
   app.use(router);
+  app.use(PrimeVue, {
+    theme: {
+      preset: JustWriteEditorial,
+      options: {
+        // Wrap PrimeVue styles in a CSS layer so our own utility classes
+        // win cascade ties without !important wars. The order is set in
+        // tokens.css with @layer reset, primevue, app.
+        cssLayer: { name: "primevue", order: "reset, primevue, app" },
+        darkModeSelector: ".theme-dark",
+      },
+    },
+  });
   app.mount("#app");
 })();
