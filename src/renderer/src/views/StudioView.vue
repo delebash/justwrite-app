@@ -396,7 +396,6 @@ function downloadChapter(chapterId) {
         data-key="id"
         v-model:filters="voiceFilters"
         :global-filter-fields="['name', 'tone', 'accent']"
-        filter-display="row"
         row-hover
         selection-mode="single"
         class="voice-dt"
@@ -420,9 +419,6 @@ function downloadChapter(chapterId) {
               </span>
               <span v-if="isAssignedToSelected(data.id)" style="color:var(--accent);margin-left:auto"><Icon name="Check" :size="13" /></span>
             </div>
-          </template>
-          <template #filter="{ filterModel, filterCallback }">
-            <InputText v-model="filterModel.value" @input="filterCallback()" placeholder="Name…" size="small" />
           </template>
         </Column>
 

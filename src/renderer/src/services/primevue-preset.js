@@ -151,9 +151,41 @@ export const JustWriteEditorial = definePreset(Aura, {
       },
     },
   },
-  // Component-level overrides — DataTable in particular needs its
-  // serif headings and condensed row padding to feel editorial.
+  // Component-level overrides.
+  //
+  // PrimeVue's "severity" colors (danger / info / warn / success / secondary)
+  // default to Aura's stock blue / red / orange / green ramps. None of those
+  // fit the editorial palette. Map them onto our own CSS vars so a
+  // <Button severity="danger"> or <Tag severity="info"> reads as part of
+  // the manuscript app rather than a stock SaaS dashboard.
+  //
+  // Colors used:
+  //   primary   → --accent (warm rust)
+  //   success   → --status-done (muted green)
+  //   warn      → --gold (warm amber)
+  //   danger    → --danger-ink (muted rust-red)
+  //   info      → muted desaturated blue derived in-place (OKLCH)
+  //   secondary → --surface-3 + --ink (neutral chip)
+  //   contrast  → --ink (inverse fill)
   components: {
+    button: severityRamp({
+      primary:   { bg: "var(--accent)",           hover: "var(--accent-ink)",   contrast: "white" },
+      success:   { bg: "var(--status-done)",      hover: "color-mix(in oklab, var(--status-done) 80%, black)", contrast: "white" },
+      warn:      { bg: "var(--gold)",             hover: "color-mix(in oklab, var(--gold) 80%, black)",        contrast: "var(--ink)" },
+      danger:    { bg: "var(--danger-ink, oklch(0.55 0.18 25))", hover: "color-mix(in oklab, var(--danger-ink, oklch(0.55 0.18 25)) 80%, black)", contrast: "white" },
+      info:      { bg: "oklch(0.55 0.10 235)",    hover: "oklch(0.46 0.11 235)", contrast: "white" },
+      secondary: { bg: "var(--surface-3)",        hover: "var(--border-soft)",   contrast: "var(--ink-2)" },
+      contrast:  { bg: "var(--ink)",              hover: "var(--ink-2)",         contrast: "var(--surface)" },
+    }),
+    tag: tagRamp({
+      primary:   { bg: "var(--accent-soft)",                                              fg: "var(--accent-ink)" },
+      success:   { bg: "color-mix(in oklab, var(--status-done) 18%, transparent)",        fg: "var(--status-done)" },
+      warn:      { bg: "color-mix(in oklab, var(--gold) 22%, transparent)",                fg: "color-mix(in oklab, var(--gold) 60%, black)" },
+      danger:    { bg: "color-mix(in oklab, var(--danger-ink, #b91c1c) 14%, transparent)", fg: "var(--danger-ink, #b91c1c)" },
+      info:      { bg: "color-mix(in oklab, oklch(0.55 0.10 235) 16%, transparent)",       fg: "oklch(0.46 0.11 235)" },
+      secondary: { bg: "var(--surface-3)",                                                  fg: "var(--ink-2)" },
+      contrast:  { bg: "var(--ink)",                                                        fg: "var(--surface)" },
+    }),
     datatable: {
       header: {
         background: "var(--surface-2)",
@@ -184,3 +216,45 @@ export const JustWriteEditorial = definePreset(Aura, {
     },
   },
 });
+
+// Build a Button component token block for every severity in one pass.
+// Each severity gets background + hover + active + contrast color blocks
+// for both the solid fill and the outlined/text variants. Keeps the
+// component spec above readable by factoring out the repetitive shape.
+function severityRamp(severities) {
+  const out = {};
+  for (const [name, { bg, hover, contrast }] of Object.entries(severities)) {
+    out[name] = {
+      background:        bg,
+      hoverBackground:   hover,
+      activeBackground:  hover,
+      borderColor:       bg,
+      hoverBorderColor:  hover,
+      activeBorderColor: hover,
+      color:             contrast,
+      hoverColor:        contrast,
+      activeColor:       contrast,
+      focusRing: { color: bg, shadow: "none" },
+      outlined: {
+        color:           bg,
+        hoverBackground: "color-mix(in oklab, " + bg + " 10%, transparent)",
+        activeBackground:"color-mix(in oklab, " + bg + " 16%, transparent)",
+        borderColor:     bg,
+      },
+      text: {
+        color:           bg,
+        hoverBackground: "color-mix(in oklab, " + bg + " 10%, transparent)",
+        activeBackground:"color-mix(in oklab, " + bg + " 16%, transparent)",
+      },
+    };
+  }
+  return out;
+}
+
+function tagRamp(severities) {
+  const out = {};
+  for (const [name, { bg, fg }] of Object.entries(severities)) {
+    out[name] = { background: bg, color: fg };
+  }
+  return out;
+}
