@@ -157,7 +157,16 @@ function go(id) {
   router.push("/" + (id === "home" ? "" : id));
 }
 function clickParent(item) {
-  if (item.expandable) { ui.toggleSection(item.id); return; }
+  // Expandable sections (chapters, characters, worldbuilding, …) toggle
+  // their child list AND navigate to the parent route. The parent route
+  // serves as the "index" / list view for that entity. For entities whose
+  // detail view falls back to the last selection (chapters, locations,
+  // …) this is a no-op; for Worldbuilding it lands on the article list.
+  if (item.expandable) {
+    ui.toggleSection(item.id);
+    go(item.id);
+    return;
+  }
   if (item.action && typeof ui[item.action] === "function") { ui[item.action](); return; }
   if (item.path) { router.push(item.path); return; }
   go(item.id);
