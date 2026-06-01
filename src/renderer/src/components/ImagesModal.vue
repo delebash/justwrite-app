@@ -3,6 +3,7 @@ import { computed, ref, watchEffect } from "vue";
 import { useProjectStore } from "../stores/project.js";
 import { saveImage, urlFor, removeImage, hasNativeImages } from "../services/imageStore.js";
 import Icon from "./Icon.vue";
+import AppModal from "./AppModal.vue";
 
 const props = defineProps({
   entityId: { type: String, required: true },
@@ -57,42 +58,31 @@ async function remove(img) {
 </script>
 
 <template>
-  <div class="modal-overlay" @click.self="emit('close')">
-    <div class="modal">
-      <div class="modal-head">
-        <div>
-          <div class="t-eyebrow">Images</div>
-          <div class="modal-title">{{ entityName }}</div>
-        </div>
-        <button class="btn ghost sm" @click="emit('close')">Close</button>
-      </div>
-      <div class="modal-body">
-        <div v-if="error" class="image-error">{{ error }}</div>
-        <div class="image-grid">
-          <div v-for="img in images" :key="img.id" class="image-tile">
-            <img v-if="urlMap[img.id]" :src="urlMap[img.id]" :alt="img.name" />
-            <div v-else class="image-loading"><Icon name="Image" :size="18" /></div>
-            <div class="image-meta">
-              <span :title="img.name">{{ img.name }}</span>
-              <button class="btn sm ghost" @click="remove(img)">×</button>
-            </div>
-          </div>
-          <button class="image-add" @click="fileInput.click()" :disabled="saving > 0">
-            <Icon name="Plus" :size="22" />
-            <span>{{ saving > 0 ? `Saving ${saving}…` : "Add image(s)" }}</span>
-          </button>
-        </div>
-        <input ref="fileInput" type="file" accept="image/*" multiple style="display:none" @change="onFiles" />
-
-        <div class="image-storage-note">
-          <Icon :name="hasNativeImages ? 'Check' : 'Alert'" :size="11" />
-          {{ hasNativeImages
-            ? "Images saved to disk in your app folder."
-            : "Browser preview — images are embedded in the IndexedDB project snapshot as data URLs." }}
+  <AppModal eyebrow="Images" :title="entityName" @close="emit('close')">
+    <div v-if="error" class="image-error">{{ error }}</div>
+    <div class="image-grid">
+      <div v-for="img in images" :key="img.id" class="image-tile">
+        <img v-if="urlMap[img.id]" :src="urlMap[img.id]" :alt="img.name" />
+        <div v-else class="image-loading"><Icon name="Image" :size="18" /></div>
+        <div class="image-meta">
+          <span :title="img.name">{{ img.name }}</span>
+          <button class="btn sm ghost" @click="remove(img)">×</button>
         </div>
       </div>
+      <button class="image-add" @click="fileInput.click()" :disabled="saving > 0">
+        <Icon name="Plus" :size="22" />
+        <span>{{ saving > 0 ? `Saving ${saving}…` : "Add image(s)" }}</span>
+      </button>
     </div>
-  </div>
+    <input ref="fileInput" type="file" accept="image/*" multiple style="display:none" @change="onFiles" />
+
+    <div class="image-storage-note">
+      <Icon :name="hasNativeImages ? 'Check' : 'Alert'" :size="11" />
+      {{ hasNativeImages
+        ? "Images saved to disk in your app folder."
+        : "Browser preview — images are embedded in the IndexedDB project snapshot as data URLs." }}
+    </div>
+  </AppModal>
 </template>
 
 <style>

@@ -3,6 +3,7 @@ import { computed } from "vue";
 import { useProjectStore } from "../stores/project.js";
 import { promptDialog, confirmDialog } from "../services/dialog.js";
 import Icon from "./Icon.vue";
+import AppModal from "./AppModal.vue";
 
 const props = defineProps({
   entityId: { type: String, required: true },
@@ -46,42 +47,31 @@ async function deleteGroup(group) {
 </script>
 
 <template>
-  <div class="modal-overlay" @click.self="emit('close')">
-    <div class="modal">
-      <div class="modal-head">
-        <div>
-          <div class="t-eyebrow">Groups</div>
-          <div class="modal-title">{{ entityName }}</div>
-        </div>
-        <button class="btn ghost sm" @click="emit('close')">Close</button>
-      </div>
-      <div class="modal-body">
-        <p class="t-muted" style="font-size:12px;margin:0 0 12px">
-          Toggle {{ entityName }} in or out of any group.
-        </p>
-        <div v-if="groups.length === 0" class="t-muted" style="font-size:12.5px;text-align:center;padding:18px 0">
-          No groups yet — create one below.
-        </div>
-        <div v-else style="display:flex;flex-direction:column;gap:6px">
-          <div v-for="g in groups" :key="g.id"
-            class="group-row" :class="{ active: inGroup(g) }">
-            <button class="group-toggle" @click="toggle(g)">
-              <span style="width:10px;height:10px;border-radius:50%" :style="{ background: g.color }" />
-              <span style="font-weight:500;font-size:13px">{{ g.name }}</span>
-              <span class="t-muted" style="font-size:11px">{{ (g.members || []).length }} members</span>
-              <Icon :name="inGroup(g) ? 'Check' : 'Plus'" :size="13" />
-            </button>
-            <button class="group-del" title="Delete group" @click="deleteGroup(g)">
-              <Icon name="Trash" :size="13" />
-            </button>
-          </div>
-        </div>
-        <button class="group-new" @click="createGroup">
-          <Icon name="Plus" :size="13" /> New group
+  <AppModal eyebrow="Groups" :title="entityName" @close="emit('close')">
+    <p class="t-muted" style="font-size:12px;margin:0 0 12px">
+      Toggle {{ entityName }} in or out of any group.
+    </p>
+    <div v-if="groups.length === 0" class="t-muted" style="font-size:12.5px;text-align:center;padding:18px 0">
+      No groups yet — create one below.
+    </div>
+    <div v-else style="display:flex;flex-direction:column;gap:6px">
+      <div v-for="g in groups" :key="g.id"
+        class="group-row" :class="{ active: inGroup(g) }">
+        <button class="group-toggle" @click="toggle(g)">
+          <span style="width:10px;height:10px;border-radius:50%" :style="{ background: g.color }" />
+          <span style="font-weight:500;font-size:13px">{{ g.name }}</span>
+          <span class="t-muted" style="font-size:11px">{{ (g.members || []).length }} members</span>
+          <Icon :name="inGroup(g) ? 'Check' : 'Plus'" :size="13" />
+        </button>
+        <button class="group-del" title="Delete group" @click="deleteGroup(g)">
+          <Icon name="Trash" :size="13" />
         </button>
       </div>
     </div>
-  </div>
+    <button class="group-new" @click="createGroup">
+      <Icon name="Plus" :size="13" /> New group
+    </button>
+  </AppModal>
 </template>
 
 <style>

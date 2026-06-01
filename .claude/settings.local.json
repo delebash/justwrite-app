@@ -48,7 +48,10 @@
       "WebFetch(domain:ollama.com)",
       "PowerShell($body = @{ model = \"qwen3.5:9b-q4_K_M\"; messages = @\\(@{ role = \"user\"; content = \"Say hi in one short sentence.\" }\\); think = $false; stream = $false } | ConvertTo-Json -Depth 5 -Compress; Invoke-RestMethod -Uri http://localhost:11434/v1/chat/completions -Method Post -Body $body -ContentType \"application/json\" | ConvertTo-Json -Depth 8)",
       "WebFetch(domain:docs.speechmatics.com)",
-      "Bash(gh repo *)"
+      "Bash(gh repo *)",
+      "WebFetch(domain:daisyui.com)",
+      "WebFetch(domain:ui.nuxt.com)",
+      "WebFetch(domain:primevue.org)"
     ]
   }
 }

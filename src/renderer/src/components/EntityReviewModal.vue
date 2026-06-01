@@ -10,6 +10,8 @@ import { ref, computed, watch } from "vue";
 import { useProjectStore } from "../stores/project.js";
 import { useUiStore } from "../stores/ui.js";
 import Icon from "./Icon.vue";
+import AppModal from "./AppModal.vue";
+import EmptyState from "./EmptyState.vue";
 
 const props = defineProps({
   // { characters: [...], locations: [...], objects: [...] }
@@ -86,99 +88,68 @@ function originTitle(originChapters) {
 </script>
 
 <template>
-  <div class="modal-overlay" @click.self="emit('close')">
-    <div class="modal entity-modal">
-      <header class="er-header">
-        <div>
-          <div class="t-eyebrow">Entity proposals</div>
-          <h2>{{ chapterTitle ? `From ${chapterTitle}` : "Review proposals" }}</h2>
-        </div>
-        <button class="btn ghost sm" @click="emit('close')">
-          <Icon name="Close" :size="12" /> Close
-        </button>
-      </header>
+  <AppModal
+    eyebrow="Entity proposals"
+    :title="chapterTitle ? `From ${chapterTitle}` : 'Review proposals'"
+    @close="emit('close')"
+  >
+    <EmptyState v-if="!anyProposed"
+      icon="Check"
+      title="Nothing new"
+      message="Every named entity in this chapter is already in your story bible." />
 
-      <div v-if="!anyProposed" class="er-empty">
-        Nothing new — every named entity in this chapter is already in your story bible.
-      </div>
-
-      <div v-else class="er-body">
-        <section v-for="sec in SECTIONS" :key="sec.key" v-show="rows[sec.key].length" class="er-section">
-          <header class="er-section-h">
-            <Icon :name="sec.icon" :size="13" />
-            <h3>{{ sec.label }}</h3>
-            <span class="t-muted">{{ counts[sec.key] }} of {{ rows[sec.key].length }} selected</span>
-            <div class="er-section-h-actions">
-              <button class="tb-btn tb-text" @click="setAll(sec.key, true)">All</button>
-              <button class="tb-btn tb-text" @click="setAll(sec.key, false)">None</button>
-            </div>
-          </header>
-          <div class="er-list">
-            <div v-for="r in rows[sec.key]" :key="r._id" class="er-row" :class="{ dropped: !r.accept }">
-              <label class="er-check">
-                <input type="checkbox" v-model="r.accept" />
-              </label>
-              <div class="er-fields">
-                <div class="er-fields-row">
-                  <input class="er-name" v-model="r.name" placeholder="Name" :disabled="!r.accept" />
-                  <input class="er-primary" v-model="r[sec.primary]" :placeholder="sec.primary" :disabled="!r.accept" />
-                </div>
-                <input class="er-blurb" v-model="r[sec.blurb]" :placeholder="sec.blurb" :disabled="!r.accept" />
-                <div v-if="r.originChapters?.length" class="er-origins" :title="originTitle(r.originChapters)">
-                  <span class="er-origin-lbl">Found in</span>
-                  <span v-for="oc in r.originChapters.slice(0, 6)" :key="oc.id" class="er-origin-chip">Ch. {{ oc.num }}</span>
-                  <span v-if="r.originChapters.length > 6" class="er-origin-more">+{{ r.originChapters.length - 6 }}</span>
-                </div>
-                <div v-if="r.evidence" class="er-evidence">
-                  <span class="er-evidence-lbl">Quote</span>
-                  <span class="er-evidence-q">"{{ r.evidence }}"</span>
-                </div>
+    <div v-else class="er-body">
+      <section v-for="sec in SECTIONS" :key="sec.key" v-show="rows[sec.key].length" class="er-section">
+        <header class="er-section-h">
+          <Icon :name="sec.icon" :size="13" />
+          <h3>{{ sec.label }}</h3>
+          <span class="t-muted">{{ counts[sec.key] }} of {{ rows[sec.key].length }} selected</span>
+          <div class="er-section-h-actions">
+            <button class="tb-btn tb-text" @click="setAll(sec.key, true)">All</button>
+            <button class="tb-btn tb-text" @click="setAll(sec.key, false)">None</button>
+          </div>
+        </header>
+        <div class="er-list">
+          <div v-for="r in rows[sec.key]" :key="r._id" class="er-row" :class="{ dropped: !r.accept }">
+            <label class="er-check">
+              <input type="checkbox" v-model="r.accept" />
+            </label>
+            <div class="er-fields">
+              <div class="er-fields-row">
+                <input class="er-name" v-model="r.name" placeholder="Name" :disabled="!r.accept" />
+                <input class="er-primary" v-model="r[sec.primary]" :placeholder="sec.primary" :disabled="!r.accept" />
+              </div>
+              <input class="er-blurb" v-model="r[sec.blurb]" :placeholder="sec.blurb" :disabled="!r.accept" />
+              <div v-if="r.originChapters?.length" class="er-origins" :title="originTitle(r.originChapters)">
+                <span class="er-origin-lbl">Found in</span>
+                <span v-for="oc in r.originChapters.slice(0, 6)" :key="oc.id" class="er-origin-chip">Ch. {{ oc.num }}</span>
+                <span v-if="r.originChapters.length > 6" class="er-origin-more">+{{ r.originChapters.length - 6 }}</span>
+              </div>
+              <div v-if="r.evidence" class="er-evidence">
+                <span class="er-evidence-lbl">Quote</span>
+                <span class="er-evidence-q">"{{ r.evidence }}"</span>
               </div>
             </div>
           </div>
-        </section>
-      </div>
-
-      <footer class="er-footer">
-        <span class="t-muted">{{ totalSelected }} of {{ totalProposed }} selected</span>
-        <span style="flex:1"></span>
-        <button class="btn ghost" @click="emit('close')">Cancel</button>
-        <button class="btn primary" :disabled="totalSelected === 0" @click="commit">
-          <Icon name="Check" :size="13" />
-          Add {{ totalSelected }} to story bible
-        </button>
-      </footer>
+        </div>
+      </section>
     </div>
-  </div>
+
+    <template #footer>
+      <span class="t-muted">{{ totalSelected }} of {{ totalProposed }} selected</span>
+      <span style="flex:1"></span>
+      <button class="btn ghost" @click="emit('close')">Cancel</button>
+      <button class="btn primary" :disabled="totalSelected === 0" @click="commit">
+        <Icon name="Check" :size="13" />
+        Add {{ totalSelected }} to story bible
+      </button>
+    </template>
+  </AppModal>
 </template>
 
 <style scoped>
-.modal-overlay {
-  position: fixed; inset: 0; z-index: 100;
-  background: color-mix(in oklab, black 40%, transparent);
-  display: grid; place-items: center;
-  padding: 24px;
-}
-.entity-modal {
-  background: var(--surface); color: var(--ink);
-  border-radius: 12px; box-shadow: 0 20px 60px rgba(0,0,0,.3);
-  width: min(820px, 100%); max-height: 86vh;
-  display: flex; flex-direction: column;
-}
 
-.er-header {
-  display: flex; justify-content: space-between; align-items: flex-start;
-  gap: 16px; padding: 22px 26px 14px;
-  border-bottom: 1px solid var(--border);
-}
-.er-header h2 { font-family: var(--font-serif); font-size: 21px; font-weight: 600; margin: 4px 0 0; }
-
-.er-body { overflow-y: auto; padding: 16px 26px; display: flex; flex-direction: column; gap: 20px; flex: 1; }
-
-.er-empty {
-  padding: 32px 26px;
-  text-align: center; color: var(--muted); font-size: 13px; font-style: italic;
-}
+.er-body { display: flex; flex-direction: column; gap: 20px; }
 
 .er-section { display: flex; flex-direction: column; gap: 8px; }
 .er-section-h {
@@ -245,12 +216,6 @@ function originTitle(originChapters) {
 .er-origin-more {
   font-family: var(--font-mono); font-size: 10px;
   color: var(--muted);
-}
-
-.er-footer {
-  display: flex; align-items: center; gap: 10px;
-  padding: 14px 26px; border-top: 1px solid var(--border);
-  background: var(--surface);
 }
 
 @media (max-width: 640px) {

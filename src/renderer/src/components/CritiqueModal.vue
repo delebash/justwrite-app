@@ -17,6 +17,7 @@ import Icon from "./Icon.vue";
 import EntityReviewModal from "./EntityReviewModal.vue";
 import EntitySweepModal from "./EntitySweepModal.vue";
 import AiProgressBar from "./AiProgressBar.vue";
+import AppModal from "./AppModal.vue";
 
 const props = defineProps({
   chapterId: { type: String, required: true },
@@ -179,151 +180,137 @@ const SEVERITY_META = {
 </script>
 
 <template>
-  <div class="modal-overlay" @click.self="emit('close')">
-    <div class="modal critique-modal">
-      <header class="ck-header">
-        <div>
-          <div class="t-eyebrow">Chapter critique</div>
-          <h2>{{ ch ? `Ch. ${ch.num} · ${ch.title}` : "" }}</h2>
+  <AppModal
+    eyebrow="Chapter critique"
+    :title="ch ? `Ch. ${ch.num} · ${ch.title}` : ''"
+    @close="emit('close')"
+  >
+    <template #header>
+      <div class="ck-titleblock">
+        <div class="t-eyebrow">Chapter critique</div>
+        <h2 class="modal-title">{{ ch ? `Ch. ${ch.num} · ${ch.title}` : "" }}</h2>
+      </div>
+      <div class="ck-header-actions">
+        <button v-if="critique" class="btn ghost sm" @click="clearAll">
+          <Icon name="Trash" :size="12" /> Clear
+        </button>
+      </div>
+    </template>
+
+    <div v-if="critique?.generatedAt" class="ck-stamp">
+      <Icon name="Sparkle" :size="11" />
+      Generated {{ ago(critique.generatedAt) }} · {{ critique.model || "unknown model" }}
+    </div>
+
+    <div v-if="err" class="ck-error">
+      <Icon name="Alert" :size="13" /> {{ err }}
+    </div>
+
+    <!-- ── Structural analysis ───────────────────────────────────── -->
+    <section class="ck-section">
+      <header>
+        <h3>Structure</h3>
+        <button class="btn ghost sm" :disabled="runningStruct" @click="runStruct">
+          <Icon name="Refresh" :size="12" />
+          {{ structure ? "Re-analyze" : (runningStruct ? "Analyzing…" : "Analyze") }}
+        </button>
+      </header>
+
+      <AiProgressBar :progress="structProgress" label="Analyzing structure…" />
+      <div v-if="structure && !structProgress.running" class="struct-grid">
+        <div class="struct-metric">
+          <div class="sm-num">{{ structure.tension }}<small>/10</small></div>
+          <div class="sm-lbl">Tension</div>
+          <div class="sm-meter"><div class="sm-meter-fill" :style="`width:${structure.tension * 10}%`" /></div>
         </div>
-        <div class="ck-header-actions">
-          <button v-if="critique" class="btn ghost sm" @click="clearAll">
-            <Icon name="Trash" :size="12" /> Clear
+        <div class="struct-metric">
+          <div class="sm-num">{{ structure.hookQuality }}<small>/10</small></div>
+          <div class="sm-lbl">Hook</div>
+          <div class="sm-meter"><div class="sm-meter-fill" :style="`width:${structure.hookQuality * 10}%`" /></div>
+        </div>
+        <div class="struct-metric">
+          <div class="sm-num sm-text">{{ PACING_LABELS[structure.pacing] }}</div>
+          <div class="sm-lbl">Pacing</div>
+        </div>
+        <div class="struct-metric">
+          <div class="sm-num sm-text">{{ ENDING_LABELS[structure.endingClass] }}</div>
+          <div class="sm-lbl">Ending</div>
+        </div>
+      </div>
+      <p v-if="structure?.summary" class="struct-summary">{{ structure.summary }}</p>
+      <p v-else-if="!structure && !structProgress.running" class="ck-empty">
+        Run a structural pass to see tension, hook, pacing, and ending classification.
+      </p>
+    </section>
+
+    <!-- ── Entity extraction ─────────────────────────────────────── -->
+    <section class="ck-section">
+      <header>
+        <h3>Story bible</h3>
+        <div style="display:flex;gap:6px">
+          <button class="btn ghost sm" :disabled="runningEntities" @click="findEntities">
+            <Icon name="Refresh" :size="12" />
+            {{ runningEntities ? "Scanning…" : "This chapter" }}
           </button>
-          <button class="btn ghost sm" @click="emit('close')">
-            <Icon name="Close" :size="12" /> Close
+          <button class="btn ghost sm" :disabled="runningEntities" @click="sweepOpen = true" title="Scan every chapter for new entities (slower)">
+            <Icon name="Sparkle" :size="12" />
+            Whole book
           </button>
         </div>
       </header>
+      <AiProgressBar :progress="entitiesProgress" label="Scanning for entities…" />
+      <p class="ck-empty" v-if="!entitiesProgress.running">
+        Scan for new named characters, locations, and objects to add to the story bible. Choose <b>This chapter</b> for a quick scan, or <b>Whole book</b> to walk every chapter (slower but catches the whole cast at once). You'll review every proposal before anything is added.
+      </p>
+    </section>
 
-      <div v-if="critique?.generatedAt" class="ck-stamp">
-        <Icon name="Sparkle" :size="11" />
-        Generated {{ ago(critique.generatedAt) }} · {{ critique.model || "unknown model" }}
-      </div>
+    <!-- ── Text critique ──────────────────────────────────────────── -->
+    <section class="ck-section">
+      <header>
+        <h3>Notes</h3>
+        <button class="btn ghost sm" :disabled="runningNotes" @click="runNotes">
+          <Icon name="Refresh" :size="12" />
+          {{ notes.length ? "Re-run notes" : (runningNotes ? "Drafting notes…" : "Run notes") }}
+        </button>
+      </header>
 
-      <div v-if="err" class="ck-error">
-        <Icon name="Alert" :size="13" /> {{ err }}
-      </div>
-
-      <!-- ── Structural analysis ───────────────────────────────────── -->
-      <section class="ck-section">
-        <header>
-          <h3>Structure</h3>
-          <button class="btn ghost sm" :disabled="runningStruct" @click="runStruct">
-            <Icon name="Refresh" :size="12" />
-            {{ structure ? "Re-analyze" : (runningStruct ? "Analyzing…" : "Analyze") }}
-          </button>
-        </header>
-
-        <AiProgressBar :progress="structProgress" label="Analyzing structure…" />
-        <div v-if="structure && !structProgress.running" class="struct-grid">
-          <div class="struct-metric">
-            <div class="sm-num">{{ structure.tension }}<small>/10</small></div>
-            <div class="sm-lbl">Tension</div>
-            <div class="sm-meter"><div class="sm-meter-fill" :style="`width:${structure.tension * 10}%`" /></div>
+      <AiProgressBar :progress="notesProgress" label="Drafting notes…" />
+      <div v-if="notes.length && !notesProgress.running" class="notes-list">
+        <div v-for="sev in ['flag', 'suggest', 'info']" :key="sev"
+          v-show="grouped[sev].length"
+          class="notes-group">
+          <div class="notes-group-h" :style="`color: ${SEVERITY_META[sev].color}`">
+            <Icon :name="SEVERITY_META[sev].icon" :size="12" />
+            {{ SEVERITY_META[sev].label }}
+            <span class="t-muted" style="font-weight:400">· {{ grouped[sev].length }}</span>
           </div>
-          <div class="struct-metric">
-            <div class="sm-num">{{ structure.hookQuality }}<small>/10</small></div>
-            <div class="sm-lbl">Hook</div>
-            <div class="sm-meter"><div class="sm-meter-fill" :style="`width:${structure.hookQuality * 10}%`" /></div>
-          </div>
-          <div class="struct-metric">
-            <div class="sm-num sm-text">{{ PACING_LABELS[structure.pacing] }}</div>
-            <div class="sm-lbl">Pacing</div>
-          </div>
-          <div class="struct-metric">
-            <div class="sm-num sm-text">{{ ENDING_LABELS[structure.endingClass] }}</div>
-            <div class="sm-lbl">Ending</div>
+          <div v-for="n in grouped[sev]" :key="n.id" class="note-row">
+            <span class="note-cat">{{ n.category }}</span>
+            <span class="note-msg">{{ n.message }}</span>
           </div>
         </div>
-        <p v-if="structure?.summary" class="struct-summary">{{ structure.summary }}</p>
-        <p v-else-if="!structure && !structProgress.running" class="ck-empty">
-          Run a structural pass to see tension, hook, pacing, and ending classification.
-        </p>
-      </section>
+      </div>
+      <p v-else-if="!notesProgress.running" class="ck-empty">
+        Run notes to get a list of flags, suggestions, and observations.
+      </p>
+    </section>
 
-      <!-- ── Entity extraction ─────────────────────────────────────── -->
-      <section class="ck-section">
-        <header>
-          <h3>Story bible</h3>
-          <div style="display:flex;gap:6px">
-            <button class="btn ghost sm" :disabled="runningEntities" @click="findEntities">
-              <Icon name="Refresh" :size="12" />
-              {{ runningEntities ? "Scanning…" : "This chapter" }}
-            </button>
-            <button class="btn ghost sm" :disabled="runningEntities" @click="sweepOpen = true" title="Scan every chapter for new entities (slower)">
-              <Icon name="Sparkle" :size="12" />
-              Whole book
-            </button>
-          </div>
-        </header>
-        <AiProgressBar :progress="entitiesProgress" label="Scanning for entities…" />
-        <p class="ck-empty" v-if="!entitiesProgress.running">
-          Scan for new named characters, locations, and objects to add to the story bible. Choose <b>This chapter</b> for a quick scan, or <b>Whole book</b> to walk every chapter (slower but catches the whole cast at once). You'll review every proposal before anything is added.
-        </p>
-      </section>
+  </AppModal>
 
-      <!-- ── Text critique ──────────────────────────────────────────── -->
-      <section class="ck-section">
-        <header>
-          <h3>Notes</h3>
-          <button class="btn ghost sm" :disabled="runningNotes" @click="runNotes">
-            <Icon name="Refresh" :size="12" />
-            {{ notes.length ? "Re-run notes" : (runningNotes ? "Drafting notes…" : "Run notes") }}
-          </button>
-        </header>
+  <!-- Nested modals render as siblings so each gets its own full-screen overlay -->
+  <EntityReviewModal v-if="entityProposals"
+    :proposals="entityProposals"
+    :chapter-title="ch ? `Ch. ${ch.num} · ${ch.title}` : ''"
+    @close="entityProposals = null" />
 
-        <AiProgressBar :progress="notesProgress" label="Drafting notes…" />
-        <div v-if="notes.length && !notesProgress.running" class="notes-list">
-          <div v-for="sev in ['flag', 'suggest', 'info']" :key="sev"
-            v-show="grouped[sev].length"
-            class="notes-group">
-            <div class="notes-group-h" :style="`color: ${SEVERITY_META[sev].color}`">
-              <Icon :name="SEVERITY_META[sev].icon" :size="12" />
-              {{ SEVERITY_META[sev].label }}
-              <span class="t-muted" style="font-weight:400">· {{ grouped[sev].length }}</span>
-            </div>
-            <div v-for="n in grouped[sev]" :key="n.id" class="note-row">
-              <span class="note-cat">{{ n.category }}</span>
-              <span class="note-msg">{{ n.message }}</span>
-            </div>
-          </div>
-        </div>
-        <p v-else-if="!notesProgress.running" class="ck-empty">
-          Run notes to get a list of flags, suggestions, and observations.
-        </p>
-      </section>
-    </div>
-
-    <EntityReviewModal v-if="entityProposals"
-      :proposals="entityProposals"
-      :chapter-title="ch ? `Ch. ${ch.num} · ${ch.title}` : ''"
-      @close="entityProposals = null" />
-
-    <EntitySweepModal v-if="sweepOpen"
-      @close="sweepOpen = false"
-      @committed="sweepOpen = false" />
-  </div>
+  <EntitySweepModal v-if="sweepOpen"
+    @close="sweepOpen = false"
+    @committed="sweepOpen = false" />
 </template>
 
 <style scoped>
-.modal-overlay {
-  position: fixed; inset: 0; z-index: 100;
-  background: color-mix(in oklab, black 40%, transparent);
-  display: grid; place-items: center;
-  padding: 24px;
-}
-.critique-modal {
-  background: var(--surface); color: var(--ink);
-  border-radius: 12px; box-shadow: 0 20px 60px rgba(0,0,0,.3);
-  width: min(720px, 100%); max-height: 86vh;
-  overflow-y: auto;
-  padding: 22px 26px 26px;
-  display: flex; flex-direction: column; gap: 16px;
-}
-
-.ck-header { display: flex; justify-content: space-between; align-items: flex-start; gap: 16px; }
-.ck-header h2 { font-family: var(--font-serif); font-size: 22px; font-weight: 600; margin: 4px 0 0; }
+.ck-titleblock { display: flex; flex-direction: column; gap: 2px; flex: 1; min-width: 0; }
+.ck-titleblock h2 { font-family: var(--font-serif); font-size: 22px; font-weight: 600; margin: 4px 0 0; }
 .ck-header-actions { display: flex; gap: 8px; flex-shrink: 0; }
 
 .ck-stamp {

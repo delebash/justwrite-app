@@ -10,6 +10,7 @@ import { useUiStore } from "../stores/ui.js";
 import { useRouter } from "vue-router";
 import { scanScenes } from "../services/projectReplace.js";
 import Icon from "./Icon.vue";
+import AppModal from "./AppModal.vue";
 
 const props = defineProps({ initialTerm: { type: String, default: "" } });
 const emit = defineEmits(["close"]);
@@ -42,63 +43,50 @@ function openScene(row) {
 </script>
 
 <template>
-  <div class="modal-overlay" @click.self="emit('close')">
-    <div class="modal pr-modal">
-      <div class="modal-head">
-        <div>
-          <div class="t-eyebrow">Manuscript</div>
-          <div class="modal-title">Find &amp; replace in prose</div>
-        </div>
-        <button class="btn ghost sm" @click="emit('close')">Close</button>
-      </div>
+  <AppModal eyebrow="Manuscript" title="Find &amp; replace in prose" @close="emit('close')">
+    <div class="pr-fields">
+      <input class="input" v-model="term" placeholder="Find in all chapters…" autofocus />
+      <input class="input" v-model="replaceWith" placeholder="Replace with…" />
+      <label class="pr-case" title="Match case">
+        <input type="checkbox" v-model="caseSensitive" /> Aa
+      </label>
+    </div>
 
-      <div class="modal-body">
-        <div class="pr-fields">
-          <input class="input" v-model="term" placeholder="Find in all chapters…" autofocus />
-          <input class="input" v-model="replaceWith" placeholder="Replace with…" />
-          <label class="pr-case" title="Match case">
-            <input type="checkbox" v-model="caseSensitive" /> Aa
-          </label>
-        </div>
+    <div class="pr-summary">
+      <span v-if="term.trim() && preview.total">
+        <b>{{ preview.total }}</b> {{ preview.total === 1 ? "match" : "matches" }} in
+        <b>{{ preview.rows.length }}</b> {{ preview.rows.length === 1 ? "scene" : "scenes" }}
+      </span>
+      <span v-else-if="term.trim()" class="t-muted">No matches</span>
+      <span v-else class="t-muted">Type a term to search every chapter's prose. @-mention chips are left untouched.</span>
+    </div>
 
-        <div class="pr-summary">
-          <span v-if="term.trim() && preview.total">
-            <b>{{ preview.total }}</b> {{ preview.total === 1 ? "match" : "matches" }} in
-            <b>{{ preview.rows.length }}</b> {{ preview.rows.length === 1 ? "scene" : "scenes" }}
+    <div v-if="preview.rows.length" class="pr-list">
+      <div v-for="row in preview.rows" :key="`${row.chapterId}:${row.sceneId}`" class="pr-row">
+        <button class="pr-row-main" @click="openScene(row)"
+          :title="`Open Ch. ${row.chapterNum} · ${row.chapterTitle} — ${row.sceneTitle}`">
+          <span class="pr-row-head">
+            <span class="status-dot" :class="row.chapterStatus" />
+            <span class="pr-num">{{ row.chapterNum }}.{{ row.sceneIdx }}</span>
+            <span class="pr-title">{{ row.sceneTitle }}</span>
+            <span class="pr-count">×{{ row.count }}</span>
           </span>
-          <span v-else-if="term.trim()" class="t-muted">No matches</span>
-          <span v-else class="t-muted">Type a term to search every chapter's prose. @-mention chips are left untouched.</span>
-        </div>
-
-        <div v-if="preview.rows.length" class="pr-list">
-          <div v-for="row in preview.rows" :key="`${row.chapterId}:${row.sceneId}`" class="pr-row">
-            <button class="pr-row-main" @click="openScene(row)"
-              :title="`Open Ch. ${row.chapterNum} · ${row.chapterTitle} — ${row.sceneTitle}`">
-              <span class="pr-row-head">
-                <span class="status-dot" :class="row.chapterStatus" />
-                <span class="pr-num">{{ row.chapterNum }}.{{ row.sceneIdx }}</span>
-                <span class="pr-title">{{ row.sceneTitle }}</span>
-                <span class="pr-count">×{{ row.count }}</span>
-              </span>
-              <span class="pr-snippet">{{ row.snippet }}</span>
-            </button>
-            <button class="btn ghost sm" :disabled="!term.trim()" @click="replaceRow(row)">Replace</button>
-          </div>
-        </div>
-      </div>
-
-      <div class="modal-foot">
-        <span class="t-muted" style="font-size:11.5px">Replace all is a single undo (⌘Z).</span>
-        <button class="btn primary" :disabled="!canReplace" @click="replaceAll">
-          <Icon name="Replace" :size="14" /> Replace all{{ preview.total ? ` (${preview.total})` : "" }}
+          <span class="pr-snippet">{{ row.snippet }}</span>
         </button>
+        <button class="btn ghost sm" :disabled="!term.trim()" @click="replaceRow(row)">Replace</button>
       </div>
     </div>
-  </div>
+
+    <template #footer>
+      <span class="t-muted" style="font-size:11.5px">Replace all is a single undo (⌘Z).</span>
+      <button class="btn primary" :disabled="!canReplace" @click="replaceAll">
+        <Icon name="Replace" :size="14" /> Replace all{{ preview.total ? ` (${preview.total})` : "" }}
+      </button>
+    </template>
+  </AppModal>
 </template>
 
 <style scoped>
-.pr-modal { width: min(640px, 94vw); display: flex; flex-direction: column; max-height: 82vh; }
 .pr-fields { display: flex; gap: 8px; align-items: center; }
 .pr-fields .input { flex: 1; min-width: 0; }
 .pr-case { display: inline-flex; align-items: center; gap: 4px; font-size: 12px; color: var(--muted); cursor: pointer; flex: none; }
@@ -118,9 +106,5 @@ function openScene(row) {
 .pr-snippet {
   font-family: var(--font-serif); font-size: 12px; font-style: italic; color: var(--muted);
   overflow: hidden; white-space: nowrap; text-overflow: ellipsis;
-}
-.modal-foot {
-  display: flex; align-items: center; justify-content: space-between; gap: 12px;
-  padding: 12px 16px; border-top: 1px solid var(--border);
 }
 </style>

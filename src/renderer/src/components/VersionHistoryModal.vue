@@ -16,6 +16,8 @@ import { useUiStore } from "../stores/ui.js";
 import { confirmDialog } from "../services/dialog.js";
 import { diffVersions, renderDiffHtml, diffStats } from "../services/versionDiff.js";
 import Icon from "./Icon.vue";
+import AppModal from "./AppModal.vue";
+import EmptyState from "./EmptyState.vue";
 
 const props = defineProps({
   chapterId: { type: String, required: true },
@@ -139,126 +141,120 @@ function whenFor(id) {
 </script>
 
 <template>
-  <div class="modal-overlay" @click.self="emit('close')">
-    <div class="modal vh-modal" :class="{ 'vh-modal--wide': mode === 'diff' }">
-      <div class="modal-head">
-        <div>
-          <div class="t-eyebrow">Version history</div>
-          <div class="modal-title">{{ chapterTitle || "Chapter" }}</div>
-        </div>
-        <button class="btn ghost sm" @click="emit('close')">Close</button>
+  <AppModal
+    eyebrow="Version history"
+    :title="chapterTitle || 'Chapter'"
+    :wide="mode === 'diff'"
+    @close="emit('close')"
+  >
+    <!-- ── LIST mode ────────────────────────────────────────────── -->
+    <div v-if="mode === 'list'" class="vh-list-mode">
+      <div class="vh-save">
+        <input class="input" v-model="label" placeholder="Label this version (optional)…" @keydown.enter="save" />
+        <button class="btn primary" @click="save"><Icon name="History" :size="14" /> Save version</button>
       </div>
-
-      <!-- ── LIST mode ────────────────────────────────────────────── -->
-      <div v-if="mode === 'list'" class="modal-body">
-        <div class="vh-save">
-          <input class="input" v-model="label" placeholder="Label this version (optional)…" @keydown.enter="save" />
-          <button class="btn primary" @click="save"><Icon name="History" :size="14" /> Save version</button>
-        </div>
-        <p class="t-muted" style="font-size:11.5px;margin:10px 0 6px">
-          Snapshots of this chapter's scenes, kept on this device. Newest first.
-        </p>
-        <div v-if="list.length" class="vh-list">
-          <div v-for="v in list" :key="v.id" class="vh-row">
-            <div class="vh-main">
-              <div class="vh-label">{{ v.label || "Untitled version" }}</div>
-              <div class="vh-meta">{{ when(v.savedAt) }} · {{ v.words.toLocaleString() }} words · {{ v.scenes.length }} scene{{ v.scenes.length === 1 ? "" : "s" }}</div>
-            </div>
-            <button class="btn ghost sm" @click="compareWithCurrent(v)" title="See what's changed since this version">
-              <Icon name="Replace" :size="12" /> Compare
-            </button>
-            <button class="btn ghost sm" @click="restore(v)">Restore</button>
-            <button class="vh-del" title="Delete version" @click="remove(v)"><Icon name="Trash" :size="13" /></button>
+      <p class="t-muted" style="font-size:11.5px;margin:10px 0 6px">
+        Snapshots of this chapter's scenes, kept on this device. Newest first.
+      </p>
+      <div v-if="list.length" class="vh-list">
+        <div v-for="v in list" :key="v.id" class="vh-row">
+          <div class="vh-main">
+            <div class="vh-label">{{ v.label || "Untitled version" }}</div>
+            <div class="vh-meta">{{ when(v.savedAt) }} · {{ v.words.toLocaleString() }} words · {{ v.scenes.length }} scene{{ v.scenes.length === 1 ? "" : "s" }}</div>
           </div>
-        </div>
-        <div v-else class="t-muted" style="font-size:12.5px;text-align:center;padding:22px 0;background:var(--surface-2);border-radius:8px">
-          No versions saved yet. Save one before a big revision so you can roll back.
-        </div>
-        <div v-if="list.length >= 2" class="vh-foot">
-          <button class="btn ghost sm" @click="startPickTwo">
-            <Icon name="Replace" :size="12" /> Compare two saved versions…
-          </button>
-        </div>
-      </div>
-
-      <!-- ── PICK mode (choose A and B) ───────────────────────────── -->
-      <div v-else-if="mode === 'pick'" class="modal-body">
-        <div class="vh-pick-head">
-          <button class="btn ghost sm" @click="backToList">
-            <Icon name="ChevRight" :size="12" style="transform:rotate(180deg)" />
-            Back
-          </button>
-          <span class="t-muted" style="font-size:12px">Pick two versions to compare. A is the older / baseline, B is the newer.</span>
-        </div>
-        <div class="vh-pick-summary">
-          <div><span class="t-eyebrow">A</span><b>{{ pickA ? labelFor(pickA) : "(not selected)" }}</b></div>
-          <Icon name="ChevRight" :size="14" />
-          <div><span class="t-eyebrow">B</span><b>{{ pickB ? labelFor(pickB) : "(not selected)" }}</b></div>
-          <button class="btn primary sm" :disabled="!pickA || !pickB" @click="runPickedCompare">
+          <button class="btn ghost sm" @click="compareWithCurrent(v)" title="See what's changed since this version">
             <Icon name="Replace" :size="12" /> Compare
           </button>
-        </div>
-        <div class="vh-list">
-          <div class="vh-row vh-row--current">
-            <div class="vh-main">
-              <div class="vh-label">Current draft</div>
-              <div class="vh-meta">live working copy</div>
-            </div>
-            <button class="btn ghost sm vh-pick-btn" :class="{ active: pickA === 'current' }" @click="pickAs('A', 'current')">A</button>
-            <button class="btn ghost sm vh-pick-btn" :class="{ active: pickB === 'current' }" @click="pickAs('B', 'current')">B</button>
-          </div>
-          <div v-for="v in list" :key="v.id" class="vh-row">
-            <div class="vh-main">
-              <div class="vh-label">{{ v.label || "Untitled version" }}</div>
-              <div class="vh-meta">{{ when(v.savedAt) }} · {{ v.words.toLocaleString() }} words</div>
-            </div>
-            <button class="btn ghost sm vh-pick-btn" :class="{ active: pickA === v.id }" @click="pickAs('A', v.id)">A</button>
-            <button class="btn ghost sm vh-pick-btn" :class="{ active: pickB === v.id }" @click="pickAs('B', v.id)">B</button>
-          </div>
+          <button class="btn ghost sm" @click="restore(v)">Restore</button>
+          <button class="vh-del" title="Delete version" @click="remove(v)"><Icon name="Trash" :size="13" /></button>
         </div>
       </div>
-
-      <!-- ── DIFF mode ────────────────────────────────────────────── -->
-      <div v-else class="modal-body vh-diff-body">
-        <div class="vh-diff-head">
-          <button class="btn ghost sm" @click="backToList">
-            <Icon name="ChevRight" :size="12" style="transform:rotate(180deg)" />
-            Back
-          </button>
-          <div class="vh-diff-route">
-            <span class="vh-diff-route-side">
-              <span class="t-eyebrow">From</span>
-              <b>{{ labelFor(pickA) }}</b>
-              <span class="t-muted" style="font-size:11px">{{ whenFor(pickA) }}</span>
-            </span>
-            <Icon name="ChevRight" :size="14" />
-            <span class="vh-diff-route-side">
-              <span class="t-eyebrow">To</span>
-              <b>{{ labelFor(pickB) }}</b>
-              <span class="t-muted" style="font-size:11px">{{ whenFor(pickB) }}</span>
-            </span>
-          </div>
-          <div v-if="diffSummary" class="vh-diff-stats">
-            <span class="vh-stat vh-stat--ins">+{{ diffSummary.ins }}</span>
-            <span class="vh-stat vh-stat--del">−{{ diffSummary.del }}</span>
-            <span class="t-muted" style="font-size:11px">paragraphs</span>
-            <span class="vh-stat-sep">·</span>
-            <span class="t-muted" style="font-size:11px">
-              {{ diffSummary.scenesChanged }} modified ·
-              {{ diffSummary.scenesAdded }} added ·
-              {{ diffSummary.scenesRemoved }} removed
-            </span>
-          </div>
-        </div>
-        <div class="vh-diff" v-html="diffHtml"></div>
+      <EmptyState v-else compact
+        icon="History"
+        title="No versions saved yet"
+        message="Save one before a big revision so you can roll back." />
+      <div v-if="list.length >= 2" class="vh-foot">
+        <button class="btn ghost sm" @click="startPickTwo">
+          <Icon name="Replace" :size="12" /> Compare two saved versions…
+        </button>
       </div>
     </div>
-  </div>
+
+    <!-- ── PICK mode (choose A and B) ───────────────────────────── -->
+    <div v-else-if="mode === 'pick'" class="vh-pick-mode">
+      <div class="vh-pick-head">
+        <button class="btn ghost sm" @click="backToList">
+          <Icon name="ChevRight" :size="12" style="transform:rotate(180deg)" />
+          Back
+        </button>
+        <span class="t-muted" style="font-size:12px">Pick two versions to compare. A is the older / baseline, B is the newer.</span>
+      </div>
+      <div class="vh-pick-summary">
+        <div><span class="t-eyebrow">A</span><b>{{ pickA ? labelFor(pickA) : "(not selected)" }}</b></div>
+        <Icon name="ChevRight" :size="14" />
+        <div><span class="t-eyebrow">B</span><b>{{ pickB ? labelFor(pickB) : "(not selected)" }}</b></div>
+        <button class="btn primary sm" :disabled="!pickA || !pickB" @click="runPickedCompare">
+          <Icon name="Replace" :size="12" /> Compare
+        </button>
+      </div>
+      <div class="vh-list">
+        <div class="vh-row vh-row--current">
+          <div class="vh-main">
+            <div class="vh-label">Current draft</div>
+            <div class="vh-meta">live working copy</div>
+          </div>
+          <button class="btn ghost sm vh-pick-btn" :class="{ active: pickA === 'current' }" @click="pickAs('A', 'current')">A</button>
+          <button class="btn ghost sm vh-pick-btn" :class="{ active: pickB === 'current' }" @click="pickAs('B', 'current')">B</button>
+        </div>
+        <div v-for="v in list" :key="v.id" class="vh-row">
+          <div class="vh-main">
+            <div class="vh-label">{{ v.label || "Untitled version" }}</div>
+            <div class="vh-meta">{{ when(v.savedAt) }} · {{ v.words.toLocaleString() }} words</div>
+          </div>
+          <button class="btn ghost sm vh-pick-btn" :class="{ active: pickA === v.id }" @click="pickAs('A', v.id)">A</button>
+          <button class="btn ghost sm vh-pick-btn" :class="{ active: pickB === v.id }" @click="pickAs('B', v.id)">B</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- ── DIFF mode ────────────────────────────────────────────── -->
+    <div v-else class="vh-diff-mode">
+      <div class="vh-diff-head">
+        <button class="btn ghost sm" @click="backToList">
+          <Icon name="ChevRight" :size="12" style="transform:rotate(180deg)" />
+          Back
+        </button>
+        <div class="vh-diff-route">
+          <span class="vh-diff-route-side">
+            <span class="t-eyebrow">From</span>
+            <b>{{ labelFor(pickA) }}</b>
+            <span class="t-muted" style="font-size:11px">{{ whenFor(pickA) }}</span>
+          </span>
+          <Icon name="ChevRight" :size="14" />
+          <span class="vh-diff-route-side">
+            <span class="t-eyebrow">To</span>
+            <b>{{ labelFor(pickB) }}</b>
+            <span class="t-muted" style="font-size:11px">{{ whenFor(pickB) }}</span>
+          </span>
+        </div>
+        <div v-if="diffSummary" class="vh-diff-stats">
+          <span class="vh-stat vh-stat--ins">+{{ diffSummary.ins }}</span>
+          <span class="vh-stat vh-stat--del">−{{ diffSummary.del }}</span>
+          <span class="t-muted" style="font-size:11px">paragraphs</span>
+          <span class="vh-stat-sep">·</span>
+          <span class="t-muted" style="font-size:11px">
+            {{ diffSummary.scenesChanged }} modified ·
+            {{ diffSummary.scenesAdded }} added ·
+            {{ diffSummary.scenesRemoved }} removed
+          </span>
+        </div>
+      </div>
+      <div class="vh-diff" v-html="diffHtml"></div>
+    </div>
+  </AppModal>
 </template>
 
 <style scoped>
-.vh-modal { width: min(640px, 94vw); display: flex; flex-direction: column; max-height: 82vh; }
-.vh-modal--wide { width: min(960px, 96vw); max-height: 90vh; }
 .vh-save { display: flex; gap: 8px; align-items: center; }
 .vh-save .input { flex: 1; }
 .vh-list { display: flex; flex-direction: column; gap: 6px; overflow: auto; }
@@ -285,7 +281,7 @@ function whenFor(id) {
 .vh-pick-btn.active { background: var(--accent); color: white; border-color: var(--accent); }
 
 /* Diff view */
-.vh-diff-body { display: flex; flex-direction: column; gap: 14px; overflow: hidden; }
+.vh-diff-mode { display: flex; flex-direction: column; gap: 14px; overflow: hidden; }
 .vh-diff-head {
   display: flex; flex-direction: column; gap: 10px;
   padding-bottom: 10px; border-bottom: 1px solid var(--border);

@@ -18,6 +18,7 @@ import { askManuscript } from "../services/rag/chat.js";
 import { indexStatus } from "../services/rag/indexer.js";
 import IndexBuildModal from "./IndexBuildModal.vue";
 import AiProgressBar from "./AiProgressBar.vue";
+import EmptyState from "./EmptyState.vue";
 import Icon from "./Icon.vue";
 
 const props = defineProps({
@@ -119,14 +120,12 @@ defineExpose({ open: () => { open.value = true; }, close });
         </button>
       </header>
 
-      <div v-if="!hasIndex" class="cp-empty">
-        <Icon name="Sparkle" :size="22" />
-        <h3>No index yet</h3>
-        <p>Build a manuscript index so the assistant can search and quote your scenes. One LLM call per scene.</p>
-        <button class="btn primary" @click="indexModalMode = 'build'">
-          <Icon name="Sparkle" :size="13" /> Build index
-        </button>
-      </div>
+      <EmptyState v-if="!hasIndex"
+        icon="Sparkle"
+        title="No index yet"
+        message="Build a manuscript index so the assistant can search and quote your scenes. One LLM call per scene."
+        action-label="Build index"
+        @action="indexModalMode = 'build'" />
 
       <template v-else>
         <!-- Index status strip -->
@@ -227,14 +226,6 @@ defineExpose({ open: () => { open.value = true; }, close });
 
 .cp-head { display: flex; justify-content: space-between; align-items: flex-start; gap: 14px; }
 .cp-head h2 { font-family: var(--font-serif); font-size: 18px; font-weight: 600; margin: 3px 0 0; }
-
-.cp-empty {
-  display: flex; flex-direction: column; align-items: center; gap: 8px;
-  padding: 32px 16px; text-align: center;
-  background: var(--surface-2); border-radius: 10px;
-}
-.cp-empty h3 { font-family: var(--font-serif); font-size: 16px; font-weight: 600; margin: 0; }
-.cp-empty p { color: var(--muted); font-size: 12.5px; line-height: 1.5; margin: 0 0 6px; max-width: 28em; }
 
 .cp-status {
   display: flex; align-items: center; gap: 6px; flex-wrap: wrap;

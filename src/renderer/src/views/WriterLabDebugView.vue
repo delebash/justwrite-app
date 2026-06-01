@@ -13,6 +13,7 @@ import PaneHeader from "../components/PaneHeader.vue";
 import Icon from "../components/Icon.vue";
 import AiProgressBar from "../components/AiProgressBar.vue";
 import ModelPicker from "../components/ModelPicker.vue";
+import ProviderSelect from "../components/ProviderSelect.vue";
 import WriterLabBase from "../components/WriterLabBase.vue";
 
 import { PACING_LABELS, ENDING_LABELS } from "../services/analysis/critique.js";
@@ -182,13 +183,11 @@ function notesByGroup(notes) {
         <!-- Column header -->
         <div class="col-header">
           <span class="col-label">Column {{ COL_LABELS[idx] }}</span>
-          <select
-            class="input sm"
+          <ProviderSelect
             v-model="col.providerId"
-            @change="col.model = ''"
-          >
-            <option v-for="p in ai.llmProviders" :key="p.id" :value="p.id">{{ p.name || p.id }}</option>
-          </select>
+            kind="llm"
+            @update:modelValue="col.model = ''"
+          />
           <ModelPicker v-model="col.model" :provider-id="col.providerId" />
           <label
             class="toggle-label"

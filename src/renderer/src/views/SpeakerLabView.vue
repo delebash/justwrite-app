@@ -16,6 +16,7 @@ import { useAiStore } from "../stores/ai.js";
 import PaneHeader from "../components/PaneHeader.vue";
 import Icon from "../components/Icon.vue";
 import ModelPicker from "../components/ModelPicker.vue";
+import ProviderSelect from "../components/ProviderSelect.vue";
 import { OpenAICompatClient } from "../services/openai-compat.js";
 import { TIERS, TIER_IDS } from "../services/modelMeta.js";
 
@@ -1160,9 +1161,7 @@ function copyOutput(run) {
               </span>
             </div>
             <div class="row">
-              <select class="input sm" v-model="run.studio.providerId">
-                <option v-for="p in ai.llmProviders" :key="p.id" :value="p.id">{{ p.name || p.id }}</option>
-              </select>
+              <ProviderSelect v-model="run.studio.providerId" kind="llm" />
               <ModelPicker v-model="run.studio.model" :provider-id="run.studio.providerId" />
               <label class="temp">
                 <span class="t-muted">temp</span>
@@ -1200,9 +1199,7 @@ function copyOutput(run) {
               </span>
             </div>
             <div class="row">
-              <select class="input sm" v-model="run.inline.providerId">
-                <option v-for="p in ai.llmProviders" :key="p.id" :value="p.id">{{ p.name || p.id }}</option>
-              </select>
+              <ProviderSelect v-model="run.inline.providerId" kind="llm" />
               <ModelPicker v-model="run.inline.model" :provider-id="run.inline.providerId" />
               <label class="temp">
                 <span class="t-muted">temp</span>
@@ -1249,9 +1246,7 @@ function copyOutput(run) {
           </legend>
           <div v-if="!run.stage1.collapsed" class="stage-body">
             <div class="row">
-              <select class="input sm" v-model="run.stage1.providerId">
-                <option v-for="p in ai.llmProviders" :key="p.id" :value="p.id">{{ p.name || p.id }}</option>
-              </select>
+              <ProviderSelect v-model="run.stage1.providerId" kind="llm" />
               <ModelPicker v-model="run.stage1.model" :provider-id="run.stage1.providerId" />
               <label class="temp">
                 <span class="t-muted">temp</span>
@@ -1273,9 +1268,7 @@ function copyOutput(run) {
           </legend>
           <div v-if="!run.stage2.collapsed" class="stage-body">
             <div class="row">
-              <select class="input sm" v-model="run.stage2.providerId">
-                <option v-for="p in ai.llmProviders" :key="p.id" :value="p.id">{{ p.name || p.id }}</option>
-              </select>
+              <ProviderSelect v-model="run.stage2.providerId" kind="llm" />
               <ModelPicker v-model="run.stage2.model" :provider-id="run.stage2.providerId" />
               <label class="temp">
                 <span class="t-muted">temp</span>

@@ -9,6 +9,7 @@ import { getItem, setItem, clearPrefix, flushPending } from "../services/storage
 import PaneHeader from "../components/PaneHeader.vue";
 import Icon from "../components/Icon.vue";
 import SettingsProviderForm from "./SettingsProviderForm.vue";
+import StatPill from "../components/StatPill.vue";
 import Combobox from "../components/Combobox.vue";
 import {
   ACCENT_PRESETS, GOLD_PRESETS, PAIRINGS, SURFACE_TINTS, PAPER_TINTS,
@@ -875,12 +876,12 @@ async function deleteCategory(c) {
 
           <template v-else>
             <!-- Rollup pills -->
-            <div class="usage-rollup">
-              <div class="usage-pill"><div class="usage-pill-num">{{ ai.usageTotals.calls.toLocaleString() }}</div><div class="usage-pill-lbl">calls</div></div>
-              <div class="usage-pill"><div class="usage-pill-num">{{ ai.totalTokens.toLocaleString() }}</div><div class="usage-pill-lbl">tokens</div></div>
-              <div class="usage-pill"><div class="usage-pill-num">{{ ai.usageTotals.promptTokens.toLocaleString() }}</div><div class="usage-pill-lbl">prompt</div></div>
-              <div class="usage-pill"><div class="usage-pill-num">{{ ai.usageTotals.completionTokens.toLocaleString() }}</div><div class="usage-pill-lbl">completion</div></div>
-              <div class="usage-pill"><div class="usage-pill-num">{{ fmtUsd(ai.totalCost) }}</div><div class="usage-pill-lbl">est. cost</div></div>
+            <div class="pill-row">
+              <StatPill :value="ai.usageTotals.calls.toLocaleString()" label="calls" />
+              <StatPill :value="ai.totalTokens.toLocaleString()" label="tokens" />
+              <StatPill :value="ai.usageTotals.promptTokens.toLocaleString()" label="prompt" />
+              <StatPill :value="ai.usageTotals.completionTokens.toLocaleString()" label="completion" />
+              <StatPill :value="fmtUsd(ai.totalCost)" label="est. cost" />
             </div>
 
             <!-- By feature -->
@@ -1820,21 +1821,7 @@ async function deleteCategory(c) {
 }
 
 /* ── AI usage panel ─────────────────────────────────────────────── */
-.usage-rollup { display: flex; flex-wrap: wrap; gap: 10px; margin-bottom: 18px; }
-.usage-pill {
-  padding: 10px 14px; border-radius: 8px;
-  background: var(--surface-2); border: 1px solid var(--border-soft);
-  min-width: 96px;
-}
-.usage-pill-num {
-  font-family: var(--font-serif); font-size: 19px; font-weight: 500;
-  line-height: 1; font-variant-numeric: tabular-nums;
-}
-.usage-pill-lbl {
-  font-family: var(--font-mono); font-size: 9.5px;
-  letter-spacing: 0.09em; text-transform: uppercase;
-  color: var(--muted); margin-top: 5px;
-}
+.pill-row { display: flex; flex-wrap: wrap; gap: 10px; margin-bottom: 18px; }
 .usage-section { margin-top: 18px; }
 .usage-section-h {
   font-family: var(--font-mono); font-size: 10.5px;

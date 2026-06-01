@@ -6,6 +6,7 @@ import { useStudioStore } from "../stores/studio.js";
 import { useSessionsStore } from "../stores/sessions.js";
 import PaneHeader from "../components/PaneHeader.vue";
 import Icon from "../components/Icon.vue";
+import StatPill from "../components/StatPill.vue";
 import {
   statusCounts, strandDistribution, characterPresence,
   scenesPerChapter, projectKpis, paceSeries, dialogueMix,
@@ -370,35 +371,14 @@ const milestoneState = computed(() => {
       </div>
 
       <!-- Book-level rollup pills -->
-      <div class="sm-rollup">
-        <div class="sm-pill">
-          <div class="sm-pill-num">{{ style.summary.avgSentenceLength.toFixed(1) }}</div>
-          <div class="sm-pill-lbl">words / sentence</div>
-        </div>
-        <div class="sm-pill">
-          <div class="sm-pill-num">{{ style.summary.avgParagraphLength.toFixed(1) }}</div>
-          <div class="sm-pill-lbl">words / paragraph</div>
-        </div>
-        <div class="sm-pill">
-          <div class="sm-pill-num">{{ Math.round(style.summary.dialogueRatio * 100) }}%</div>
-          <div class="sm-pill-lbl">dialogue</div>
-        </div>
-        <div class="sm-pill">
-          <div class="sm-pill-num">{{ style.summary.filterWordsPer1k.toFixed(1) }}</div>
-          <div class="sm-pill-lbl">filter words / 1k</div>
-        </div>
-        <div class="sm-pill">
-          <div class="sm-pill-num">{{ style.summary.adverbsPer1k.toFixed(1) }}</div>
-          <div class="sm-pill-lbl">adverbs / 1k</div>
-        </div>
-        <div class="sm-pill">
-          <div class="sm-pill-num">{{ style.summary.passivePer1k.toFixed(1) }}</div>
-          <div class="sm-pill-lbl">passive / 1k</div>
-        </div>
-        <div class="sm-pill">
-          <div class="sm-pill-num">{{ (style.summary.pacingCoV * 100).toFixed(0) }}%</div>
-          <div class="sm-pill-lbl">chapter-length variance</div>
-        </div>
+      <div class="pill-row">
+        <StatPill :value="style.summary.avgSentenceLength.toFixed(1)" label="words / sentence" />
+        <StatPill :value="style.summary.avgParagraphLength.toFixed(1)" label="words / paragraph" />
+        <StatPill :value="`${Math.round(style.summary.dialogueRatio * 100)}%`" label="dialogue" />
+        <StatPill :value="style.summary.filterWordsPer1k.toFixed(1)" label="filter words / 1k" />
+        <StatPill :value="style.summary.adverbsPer1k.toFixed(1)" label="adverbs / 1k" />
+        <StatPill :value="style.summary.passivePer1k.toFixed(1)" label="passive / 1k" />
+        <StatPill :value="`${(style.summary.pacingCoV * 100).toFixed(0)}%`" label="chapter-length variance" />
       </div>
 
       <!-- Per-chapter table -->
@@ -646,14 +626,7 @@ const milestoneState = computed(() => {
 .ms-streaks b { color: var(--ink); font-variant-numeric: tabular-nums; }
 
 /* ── Style & pacing table ───────────────────────────────────────── */
-.sm-rollup { display: flex; flex-wrap: wrap; gap: 10px; margin: 6px 0 16px; }
-.sm-pill {
-  padding: 10px 14px; border-radius: 8px;
-  background: var(--surface-2); border: 1px solid var(--border-soft);
-  min-width: 110px;
-}
-.sm-pill-num { font-family: var(--font-serif); font-size: 19px; font-weight: 500; line-height: 1; font-variant-numeric: tabular-nums; }
-.sm-pill-lbl { font-family: var(--font-mono); font-size: 9.5px; letter-spacing: 0.09em; text-transform: uppercase; color: var(--muted); margin-top: 5px; }
+.pill-row { display: flex; flex-wrap: wrap; gap: 10px; margin: 6px 0 16px; }
 
 .sm-table-wrap { overflow-x: auto; }
 .sm-table { width: 100%; border-collapse: collapse; font-size: 12px; font-variant-numeric: tabular-nums; }

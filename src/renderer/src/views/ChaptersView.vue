@@ -10,6 +10,7 @@ import RichEditor from "../components/RichEditor.vue";
 import SceneLinks from "../components/SceneLinks.vue";
 import VersionHistoryModal from "../components/VersionHistoryModal.vue";
 import CritiqueModal from "../components/CritiqueModal.vue";
+import EmptyState from "../components/EmptyState.vue";
 import StatusSelect from "../components/StatusSelect.vue";
 import Breadcrumb from "../components/Breadcrumb.vue";
 import { promptDialog, confirmDialog } from "../services/dialog.js";
@@ -838,11 +839,12 @@ watch(() => project.allChapters.map((c) => c.id + ":" + (project.scenesFor(c.id)
     </div>
   </div>
 
-  <div v-else class="scrollarea" style="flex:1;display:grid;place-items:center;padding:60px">
-    <div class="t-muted" style="text-align:center">
-      No chapters yet.<br />
-      <button class="btn primary" style="margin-top:14px" @click="addChapter"><Icon name="Plus" :size="14" /> Create your first chapter</button>
-    </div>
+  <div v-else class="pane-card" style="display:grid;place-items:center;padding:60px">
+    <EmptyState icon="Book"
+      title="No chapters yet"
+      message="Create the first chapter to start writing, or import an existing manuscript from a file."
+      action-label="Create your first chapter"
+      @action="addChapter" />
   </div>
 
   <!-- Modal mounts — hoisted out of the mode-specific wrappers so they
