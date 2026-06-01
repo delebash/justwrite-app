@@ -17,6 +17,7 @@ import PaneHeader from "../components/PaneHeader.vue";
 import Icon from "../components/Icon.vue";
 import ModelPicker from "../components/ModelPicker.vue";
 import { OpenAICompatClient } from "../services/openai-compat.js";
+import { TIERS, TIER_IDS } from "../services/modelMeta.js";
 
 const project = useProjectStore();
 const ai = useAiStore();
@@ -200,14 +201,22 @@ function parseSpeakerArrayTolerant(text, paragraphCount) {
 // no LLM) and only ask the model to attribute the dialogue segments —
 // narration is always the narrator.
 
-// Two prompt profiles, sized to the model. The 14B+ profile relies on the
-// model to follow the strengthened rules without worked examples — verified
-// 17/17 on real chapter, clean on fixtures. The 8B profile adds three
-// worked examples that scaffold reasoning the smaller model can't do
-// natively — they cost some accuracy on real chapters but eliminate the
-// confident-substitution failure mode that 8B has on the fixtures.
+// Two prompt bodies, consumed by the three-tier system in services/modelMeta.js:
+//   • DIRECT — strict rules only. Used by Direct (no think) and Reasoned
+//     (think on) tiers. Verified 12/12 on Halvard/Elen ch6 with Reasoned
+//     (Qwen3:14B + think:true).
+//   • GUIDED — DIRECT plus four worked examples that scaffold reasoning
+//     for sub-12B models:
+//       1. Tagged dialogue → cast id
+//       2. Off-cast role label semantically near a cast role → unknown
+//       3. Bare-quote turn-taking with no name or tag → unknown
+//       4. Mid-paragraph continuation through "he said," → same speaker
+//     Example 4 balances Example 3 — without it, smaller models over-apply
+//     "bare-quote = unknown/turn-flip" to legitimate continuations like
+//       "I'll give you what the case is worth," he said, "and a little more for the trouble."
+//     where the bare-quote second span continues the same speaker.
 
-const INLINE_SPEAKER_SYSTEM_14B = `You are a dialogue attribution assistant for an audiobook producer.
+const INLINE_SPEAKER_SYSTEM_DIRECT = `You are a dialogue attribution assistant for an audiobook producer.
 
 Narration (everything outside quotation marks) is always read by the narrator. Your job is to attribute each quoted dialogue segment to a character.
 
@@ -223,7 +232,7 @@ Rules:
 - Use dialogue tags ("she said", "Tom answered"), turn-taking, and surrounding narration to disambiguate.
 - Do NOT include entries for narration — only dialogue segments tagged [D#].`;
 
-const INLINE_SPEAKER_SYSTEM_8B = `${INLINE_SPEAKER_SYSTEM_14B}
+const INLINE_SPEAKER_SYSTEM_GUIDED = `${INLINE_SPEAKER_SYSTEM_DIRECT}
 
 Worked examples:
 
@@ -250,18 +259,30 @@ Cast:
 Passage:
 [D1]"You're late."[/D1]
 [D2]"Twenty minutes."[/D2]
-Output: [{"speaker": "unknown", "confidence": 0.5}, {"speaker": "unknown", "confidence": 0.5}]`;
+Output: [{"speaker": "unknown", "confidence": 0.5}, {"speaker": "unknown", "confidence": 0.5}]
 
-// Backwards-compat alias kept so any code outside this file that imports
-// the old name (and the default Reset path) keeps working. Points at the
-// 8B profile, which is the current working default per the user's hardware.
-const INLINE_SPEAKER_SYSTEM = INLINE_SPEAKER_SYSTEM_8B;
+Example 4 — Mid-paragraph continuation through a pronoun tag → same speaker.
+A bare-quote segment in the same paragraph as a tagged segment, separated only by narration like "he said," / "she said,", continues the prior speaker. This is NOT turn-taking — the pronoun tag identifies who said both spans.
+Cast:
+- id=c1, name="Maya Chen"
+- id=c2, name="Detective Hayes"
+Passage:
+Hayes paused at the door. [D1]"This is your case,"[/D1] he said, [D2]"and you're going to close it."[/D2]
+Output: [{"speaker": "c2", "confidence": 1.0}, {"speaker": "c2", "confidence": 0.9}]`;
 
-// Recommended confidence floor per profile. 14B's honest calibration
-// produces legitimate 0.65–0.7 confidences on correct attributions, so the
-// old 0.7 floor would over-demote. 8B's broader confidence band still
-// benefits from a higher floor catching the genuine low-confidence cases.
-const INLINE_FLOOR_BY_PROFILE = { "14b": 0.5, "8b": 0.7 };
+// Backwards-compat aliases — old profile names kept in case anything
+// imports them. New code uses the tier system in services/modelMeta.js.
+const INLINE_SPEAKER_SYSTEM_14B = INLINE_SPEAKER_SYSTEM_DIRECT;
+const INLINE_SPEAKER_SYSTEM_8B = INLINE_SPEAKER_SYSTEM_GUIDED;
+const INLINE_SPEAKER_SYSTEM = INLINE_SPEAKER_SYSTEM_GUIDED;
+
+// Map TIER.systemKey → prompt body. Single source of truth for which
+// prompt a tier uses. Guided gets the scaffolded prompt; Direct and
+// Reasoned both use the strict prompt (they only differ in `think`).
+const SYSTEM_BY_TIER_KEY = {
+  guided: INLINE_SPEAKER_SYSTEM_GUIDED,
+  direct: INLINE_SPEAKER_SYSTEM_DIRECT,
+};
 
 const INLINE_SPEAKER_USER = `Characters in this novel:
 {{characters}}
@@ -614,20 +635,27 @@ function makeRun(idx) {
       collapsed: false,
       think: false,
     },
-    inline: {
-      providerId: ai.defaultLlmId,
-      model: "",
-      temperature: 0.2,       // lower for stricter JSON output
-      profile: "8b",          // "14b" | "8b" — picks prompt body + floor default
-      system: INLINE_SPEAKER_SYSTEM_8B,
-      user: INLINE_SPEAKER_USER,
-      collapsed: false,
-      propagate: true,        // deterministic dialogue-tag anchoring before the LLM call
-      useFloor: true,         // demote low-confidence LLM character picks to "unknown"
-      confidenceFloor: 0.7,   // overridden by applyInlineProfile when profile changes
-      think: false,           // Ollama think:false. Toggle ON for hybrid reasoning models
-                              // (Qwen3:14B-class) where implicit reasoning helps attribution.
-    },
+    inline: (() => {
+      // Initial tier derived from the resolved tier of the default LLM's
+      // chat model. If the user has Qwen3:14B configured by default, the
+      // lab opens in Reasoned; Qwen3:8B opens in Guided; etc. No model
+      // selected yet → Guided as the safe fallback.
+      const defaultModel = ai.llmProvider?.chatModel || "";
+      const initialTier = defaultModel ? ai.resolveTier(defaultModel) : TIERS.guided;
+      return {
+        providerId: ai.defaultLlmId,
+        model: "",
+        temperature: 0.2,       // lower for stricter JSON output
+        tier: initialTier.id,   // "guided" | "direct" | "reasoned" — picks prompt + think + floor
+        system: SYSTEM_BY_TIER_KEY[initialTier.systemKey] || INLINE_SPEAKER_SYSTEM_GUIDED,
+        user: INLINE_SPEAKER_USER,
+        collapsed: false,
+        propagate: true,        // deterministic dialogue-tag anchoring before the LLM call
+        useFloor: true,         // demote low-confidence LLM character picks to "unknown"
+        confidenceFloor: initialTier.floor,
+        think: initialTier.think, // Ollama think param — set by the current tier; no UI override.
+      };
+    })(),
     mode: "inline",      // "lab" | "studio" | "inline"
     state: "idle",       // idle | streaming | done | error
     activeStage: 0,      // 0 = none, 1 = stage 1 running, 2 = stage 2 running
@@ -917,19 +945,25 @@ async function runInline(run) {
 }
 
 function resetInlinePrompts(run) {
-  applyInlineProfile(run, run.inline.profile || "8b");
+  applyTier(run, run.inline.tier || "guided");
   run.inline.user = INLINE_SPEAKER_USER;
 }
 
-// Switches between the 14B (strict rules only) and 8B (rules + 3 worked
-// examples) prompt profiles. Also sets the floor to the recommended value
-// for that profile — 0.5 for 14B (model's own calibration is honest enough
-// to be trusted), 0.7 for 8B (broader confidence band, floor still useful).
-// Leaves propagate/useFloor toggles alone since those are user preference.
-function applyInlineProfile(run, profile) {
-  run.inline.profile = profile;
-  run.inline.system = profile === "14b" ? INLINE_SPEAKER_SYSTEM_14B : INLINE_SPEAKER_SYSTEM_8B;
-  run.inline.confidenceFloor = INLINE_FLOOR_BY_PROFILE[profile] ?? 0.5;
+// Applies a tier's prompt + think + floor defaults to the inline-tag
+// stage. Leaves propagate/useFloor toggles alone since those are user
+// preference and orthogonal to tier. Persists the user's pick as a
+// model-level override in the ai store so the same model gets the same
+// tier on subsequent runs (and other surfaces — Settings, future
+// production paths — pick it up too).
+function applyTier(run, tierId) {
+  const tier = TIERS[tierId] || TIERS.guided;
+  run.inline.tier = tier.id;
+  run.inline.system = SYSTEM_BY_TIER_KEY[tier.systemKey] || INLINE_SPEAKER_SYSTEM_GUIDED;
+  run.inline.confidenceFloor = tier.floor;
+  run.inline.think = tier.think;
+  // Persist user pick for the currently-selected model so it sticks.
+  const modelId = run.inline.model || ai.providerById(run.inline.providerId)?.chatModel;
+  if (modelId) ai.setModelTier(modelId, tier.id);
 }
 
 function speakerName(id) {
@@ -1162,7 +1196,7 @@ function copyOutput(run) {
                   <b>{{ inlinePreview.narration }}</b> narration segment{{ inlinePreview.narration === 1 ? '' : 's' }}.
                 </template>
                 Project characters: <b>{{ project.characters?.length || 0 }}</b>.
-                <br><b>Profile:</b> <b>14B+</b> = strict rules only (clean real-chapter results, needs a capable model — Qwen3:14B-class or larger). <b>8B</b> = same rules plus three worked examples that scaffold reasoning for 8B-class models (fixes off-cast substitution at the cost of some real-chapter accuracy). Pick to match your hardware.
+                <br><b>Tier:</b> <b>Guided</b> = scaffolded examples for sub-12B models. <b>Direct</b> = strict rules only, no thinking — for 12B-class non-reasoning (Mistral-Small 24B, Phi-4, Llama 3.x 70B). <b>Reasoned</b> = strict rules + implicit reasoning for hybrid models (Qwen3:14B+, Qwen3:32B+) — currently the only tier landing 12/12 on hard chapters, at 2× the time. Auto-picked from the selected model; override if you know better.
               </span>
             </div>
             <div class="row">
@@ -1179,10 +1213,11 @@ function copyOutput(run) {
               </button>
             </div>
             <div class="row" style="align-items:center">
-              <span class="t-muted" style="font-size:11px">Profile:</span>
-              <div class="mode-seg" title="Pick the prompt + floor pair sized to the model. 14B+ uses strict rules only (cleaner on real chapters, requires capable model). 8B uses strict rules plus three worked examples (compensates for smaller-model reasoning gaps; some real-chapter accuracy cost).">
-                <button type="button" class="mode-seg-btn" :class="{ active: run.inline.profile === '14b' }" @click="applyInlineProfile(run, '14b')">14B+ (strict)</button>
-                <button type="button" class="mode-seg-btn" :class="{ active: run.inline.profile === '8b' }" @click="applyInlineProfile(run, '8b')">8B (examples)</button>
+              <span class="t-muted" style="font-size:11px">Tier:</span>
+              <div class="mode-seg" title="Picks prompt + think + floor defaults sized to the model class. Guided = scaffolded examples (sub-12B). Direct = strict rules, no thinking (12B-class non-reasoning, e.g. Mistral-Small 24B). Reasoned = strict rules + implicit reasoning (hybrid models like Qwen3:14B+ — slowest but most accurate).">
+                <button type="button" class="mode-seg-btn" :class="{ active: run.inline.tier === 'guided' }" @click="applyTier(run, 'guided')">Guided</button>
+                <button type="button" class="mode-seg-btn" :class="{ active: run.inline.tier === 'direct' }" @click="applyTier(run, 'direct')">Direct</button>
+                <button type="button" class="mode-seg-btn" :class="{ active: run.inline.tier === 'reasoned' }" @click="applyTier(run, 'reasoned')">Reasoned</button>
               </div>
             </div>
             <label class="toggle" title="Deterministic pre-LLM pass: match dialogue tags ('X said') against cast names and propagate the speaker across adjacent untagged dialogue in the same paragraph. Anchors win over LLM.">
@@ -1198,10 +1233,6 @@ function copyOutput(run) {
                 type="number" step="0.05" min="0" max="1"
                 v-model.number="run.inline.confidenceFloor"
               />
-            </label>
-            <label class="toggle" title="Ollama think:false (default) suppresses reasoning — wanted for JSON output and for reasoning-first models like Qwen3.5/DeepSeek-R1 where thinking blocks slow streams and pollute the body. Turn ON for hybrid models like Qwen3:14B where implicit reasoning measurably helps attribution. No effect on non-Ollama providers.">
-              <input type="checkbox" v-model="run.inline.think" />
-              <span>Allow thinking</span>
             </label>
             <label class="t-muted small">System prompt</label>
             <textarea class="input mono" rows="8" v-model="run.inline.system"></textarea>

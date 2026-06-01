@@ -8,9 +8,12 @@
 import { ref, reactive, computed, onBeforeUnmount, nextTick } from "vue";
 import { getParamSchema } from "../domain/providerParams.js";
 import { OpenAICompatClient, detectRunner } from "../services/openai-compat.js";
-import { entryLabel } from "../services/modelMeta.js";
+import { entryLabel, TIERS, TIER_IDS } from "../services/modelMeta.js";
+import { useAiStore } from "../stores/ai.js";
 import Icon from "../components/Icon.vue";
 import Combobox from "../components/Combobox.vue";
+
+const ai = useAiStore();
 
 const props = defineProps({
   draft: { type: Object, required: true },
@@ -144,6 +147,27 @@ const voices = makeVoicesCombo();
 // pins the explicit choice from then on.
 const runnerValue = computed(() => detectRunner(props.draft));
 
+// ── Tier (attribution-pipeline capability bucket) ──────────────────
+// Resolved tier for the currently-picked chat model. Driven by
+// modelMeta's name heuristic, with an optional user pin in ai.modelTiers.
+// "auto" = heuristic-derived; "pinned" = explicit override.
+const currentTier = computed(() => {
+  const id = props.draft.chatModel;
+  return id ? ai.resolveTier(id) : null;
+});
+const tierSource = computed(() => {
+  const id = props.draft.chatModel;
+  return id ? ai.tierSource(id) : "auto";
+});
+function pinTier(tierId) {
+  if (!props.draft.chatModel) return;
+  ai.setModelTier(props.draft.chatModel, tierId);
+}
+function clearTierPin() {
+  if (!props.draft.chatModel) return;
+  ai.clearModelTier(props.draft.chatModel);
+}
+
 // ── Engine-specific param fields ──────────────────────────────────
 const paramSchema = computed(() => getParamSchema(props.draft));
 
@@ -210,6 +234,22 @@ function resetParam(key) { setParam(key, undefined); }
             {{ modelsError }}
           </div>
         </div>
+
+        <template v-if="draft.chatModel">
+          <span class="t-muted" title="Attribution pipeline capability bucket for this model. Auto-picked by name pattern; you can pin a different choice if you know better. Guided = scaffolded examples for sub-12B models. Direct = strict rules for 12B-class non-reasoning. Reasoned = strict rules + implicit reasoning for hybrid models (Qwen3:14B+).">Tier</span>
+          <div style="display:flex;gap:6px;align-items:center;flex-wrap:wrap;font-size:11.5px">
+            <div class="mode-seg">
+              <button v-for="t in TIER_IDS" :key="t" type="button" class="mode-seg-btn"
+                :class="{ active: currentTier?.id === t }"
+                @click="pinTier(t)">{{ TIERS[t].label }}</button>
+            </div>
+            <span class="t-muted" style="font-size:11px">{{ tierSource === 'pinned' ? 'pinned' : 'auto' }}</span>
+            <button v-if="tierSource === 'pinned'" type="button" class="btn-ghost"
+              style="padding:2px 8px;font-size:11px"
+              @click="clearTierPin"
+              title="Revert to the auto-detected tier">Clear pin</button>
+          </div>
+        </template>
       </template>
 
       <template v-if="draft.kind === 'tts' || draft.kind === 'both'">
@@ -326,6 +366,26 @@ function resetParam(key) { setParam(key, undefined); }
 </template>
 
 <style scoped>
+.mode-seg {
+  display: inline-flex;
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  overflow: hidden;
+  background: var(--surface-2);
+}
+.mode-seg-btn {
+  padding: 4px 10px;
+  font-size: 11px;
+  border: 0;
+  border-right: 1px solid var(--border);
+  background: transparent;
+  color: var(--muted);
+  cursor: pointer;
+}
+.mode-seg-btn:last-child { border-right: 0; }
+.mode-seg-btn:hover { color: var(--ink); }
+.mode-seg-btn.active { background: var(--accent); color: var(--on-accent); }
+
 .model-combo { display: flex; }
 .model-combo-input {
   width: 100%;

@@ -4,6 +4,7 @@
 import { defineStore } from "pinia";
 import { DEFAULT_PROVIDERS } from "../domain/seed.js";
 import { OpenAICompatClient } from "../services/openai-compat.js";
+import { getModelTier, TIERS } from "../services/modelMeta.js";
 import { getItem, setItem } from "../services/storage.js";
 
 const LS_KEY = "justwrite:ai";
@@ -29,6 +30,7 @@ function save(state) {
       providers: state.providers,
       defaultLlmId: state.defaultLlmId,
       defaultTtsId: state.defaultTtsId,
+      modelTiers: state.modelTiers,
     }));
   } catch {}
 }
@@ -41,6 +43,12 @@ export const useAiStore = defineStore("ai", {
       defaultLlmId: loaded?.defaultLlmId ?? "openai-compat-local",
       defaultTtsId: loaded?.defaultTtsId ?? "openai",
       status: {}, // providerId -> "ok" | "down" | "checking" | undefined
+      // Per-model tier overrides (pinned by the user in Settings or the
+      // Speaker Lab). Keyed by bare model id, NOT by provider+model — same
+      // model on different Ollama instances should share the same tier
+      // judgement. Empty by default; the heuristic in modelMeta.js
+      // provides the auto-detected tier when nothing is pinned.
+      modelTiers: loaded?.modelTiers ?? {},
     };
   },
 
@@ -50,6 +58,18 @@ export const useAiStore = defineStore("ai", {
     ttsProvider: (s) => s.providers.find((p) => p.id === s.defaultTtsId) || null,
     llmProviders: (s) => s.providers.filter((p) => p.kind === "llm" || p.kind === "both"),
     ttsProviders: (s) => s.providers.filter((p) => p.kind === "tts" || p.kind === "both"),
+
+    // Resolve a model id to its tier — user override wins, else the
+    // name-pattern heuristic. Returns the tier object (not just the id)
+    // so callers get prompt-key + think + floor in one read.
+    resolveTier: (s) => (modelId) => {
+      const tierId = s.modelTiers[modelId] || getModelTier(modelId);
+      return TIERS[tierId] || TIERS.guided;
+    },
+
+    // Whether the resolved tier came from a user pin or the heuristic —
+    // drives the "(auto)" vs "(pinned)" badge in the Settings model picker.
+    tierSource: (s) => (modelId) => (s.modelTiers[modelId] ? "pinned" : "auto"),
   },
 
   actions: {
@@ -74,6 +94,19 @@ export const useAiStore = defineStore("ai", {
     setDefaultTts(id) {
       this.defaultTtsId = id;
       save(this.$state);
+    },
+    // Pin a tier override for a specific model. Pass null/undefined to
+    // clear and fall back to the auto-detected tier from modelMeta.
+    setModelTier(modelId, tierId) {
+      if (!modelId) return;
+      const next = { ...this.modelTiers };
+      if (tierId && TIERS[tierId]) next[modelId] = tierId;
+      else delete next[modelId];
+      this.modelTiers = next;
+      save(this.$state);
+    },
+    clearModelTier(modelId) {
+      this.setModelTier(modelId, null);
     },
     async ping(id) {
       const p = this.providerById(id);
