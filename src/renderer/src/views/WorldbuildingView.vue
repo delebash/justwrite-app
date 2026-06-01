@@ -263,11 +263,9 @@ function onRowClick(event) {
           :value="article.title" @input="update('title', $event.target.value)" />
       </div>
       <div class="pane-actions">
-        <router-link to="/worldbuilding" custom v-slot="{ navigate }">
-          <Button label="Back" severity="secondary" text size="small" @click="navigate">
-            <template #icon><Icon name="ChevRight" :size="12" style="transform:rotate(180deg)" /></template>
-          </Button>
-        </router-link>
+        <Button label="Back" severity="secondary" text size="small" @click="router.push('/worldbuilding')">
+          <template #icon><Icon name="ChevRight" :size="12" style="transform:rotate(180deg)" /></template>
+        </Button>
         <Button label="Delete" severity="secondary" text size="small" @click="deleteArticle" />
         <Button label="New article" severity="primary" size="small" @click="addArticle">
           <template #icon><Icon name="Plus" :size="14" /></template>
