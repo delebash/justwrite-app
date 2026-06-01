@@ -11,6 +11,12 @@ import Icon from "../components/Icon.vue";
 import SettingsProviderForm from "./SettingsProviderForm.vue";
 import StatPill from "../components/StatPill.vue";
 import Combobox from "../components/Combobox.vue";
+import InputText from "primevue/inputtext";
+import InputNumber from "primevue/inputnumber";
+import Checkbox from "primevue/checkbox";
+import Select from "primevue/select";
+import Textarea from "primevue/textarea";
+import Button from "primevue/button";
 import {
   ACCENT_PRESETS, GOLD_PRESETS, PAIRINGS, SURFACE_TINTS, PAPER_TINTS,
   THEME_PRESETS, UI_FONTS, DISPLAY_FONTS, INK_PALETTES, UI_SCALES,
@@ -570,27 +576,27 @@ async function deleteCategory(c) {
           </p>
           <div style="display:grid;grid-template-columns:160px 1fr;gap:10px 14px;font-size:13px;align-items:center">
             <span class="t-muted">Title</span>
-            <input class="input" :value="project.project.title"
-              @input="setMeta('title', $event.target.value)" placeholder="Working title" />
+            <InputText :model-value="project.project.title"
+              @update:model-value="(v) => setMeta('title', v)" placeholder="Working title" />
             <span class="t-muted">Author</span>
-            <input class="input" :value="project.project.author"
-              @input="setMeta('author', $event.target.value)" placeholder="Pen name or legal name" />
+            <InputText :model-value="project.project.author"
+              @update:model-value="(v) => setMeta('author', v)" placeholder="Pen name or legal name" />
             <span class="t-muted">Subtitle</span>
-            <input class="input" :value="project.project.subtitle"
-              @input="setMeta('subtitle', $event.target.value)" placeholder="Optional" />
+            <InputText :model-value="project.project.subtitle"
+              @update:model-value="(v) => setMeta('subtitle', v)" placeholder="Optional" />
             <span class="t-muted">Genre</span>
-            <input class="input" :value="project.project.genre"
-              @input="setMeta('genre', $event.target.value)" placeholder="Literary, mystery, sci-fi…" />
+            <InputText :model-value="project.project.genre"
+              @update:model-value="(v) => setMeta('genre', v)" placeholder="Literary, mystery, sci-fi…" />
             <span class="t-muted">Started</span>
-            <input class="input" :value="project.project.startedOn"
-              @input="setMeta('startedOn', $event.target.value)" placeholder="e.g. March 11, 2026" />
+            <InputText :model-value="project.project.startedOn"
+              @update:model-value="(v) => setMeta('startedOn', v)" placeholder="e.g. March 11, 2026" />
             <span class="t-muted">Deadline</span>
-            <input class="input" :value="project.project.deadline"
-              @input="setMeta('deadline', $event.target.value)" placeholder="e.g. December 1, 2026" />
+            <InputText :model-value="project.project.deadline"
+              @update:model-value="(v) => setMeta('deadline', v)" placeholder="e.g. December 1, 2026" />
             <span class="t-muted" style="align-self:start;padding-top:6px">Premise</span>
-            <textarea class="input" rows="3" :value="project.project.premise"
-              @input="setMeta('premise', $event.target.value)"
-              placeholder="One- or two-sentence pitch. Used on the Home dashboard and exports."></textarea>
+            <Textarea auto-resize rows="3" :model-value="project.project.premise"
+              @update:model-value="(v) => setMeta('premise', v)"
+              placeholder="One- or two-sentence pitch. Used on the Home dashboard and exports." />
           </div>
         </div>
         <div class="card">
@@ -598,16 +604,16 @@ async function deleteCategory(c) {
           <div style="display:grid;grid-template-columns:160px 1fr;gap:10px 14px;font-size:13px;align-items:center">
             <span class="t-muted">Word goal</span>
             <div style="display:flex;align-items:center;gap:8px">
-              <input class="input" type="number" min="0" step="500" style="max-width:160px"
-                :value="project.project.wordsGoal"
-                @input="setMetaNumber('wordsGoal', $event.target.value)" />
+              <InputNumber :min="0" :step="500" style="max-width:160px"
+                :model-value="project.project.wordsGoal"
+                @update:model-value="(v) => setMetaNumber('wordsGoal', v)" />
               <span class="t-muted" style="font-size:11.5px">total words for the manuscript</span>
             </div>
             <span class="t-muted">Daily target</span>
             <div style="display:flex;align-items:center;gap:8px">
-              <input class="input" type="number" min="0" step="50" style="max-width:160px"
-                :value="project.project.dailyTarget ?? 1200"
-                @input="setMetaNumber('dailyTarget', $event.target.value)" />
+              <InputNumber :min="0" :step="50" style="max-width:160px"
+                :model-value="project.project.dailyTarget ?? 1200"
+                @update:model-value="(v) => setMetaNumber('dailyTarget', v)" />
               <span class="t-muted" style="font-size:11.5px">words/day — drives the Home streak ring</span>
             </div>
           </div>
@@ -638,16 +644,18 @@ async function deleteCategory(c) {
                   </label>
                 </div>
               </div>
-              <input class="input" style="max-width:220px" :value="s.label"
-                @input="renameStatus(s.id, $event.target.value)" placeholder="Status name" />
+              <InputText style="max-width:220px" :model-value="s.label"
+                @update:model-value="(v) => renameStatus(s.id, v)" placeholder="Status name" />
               <span :style="`font-size:11px;font-weight:600;text-transform:lowercase;color:${s.color}`">{{ s.label }}</span>
-              <button class="btn ghost sm" style="margin-left:auto" title="Delete status" @click="deleteStatus(s)">
-                <Icon name="Trash" :size="13" />
-              </button>
+              <Button severity="secondary" text size="small" style="margin-left:auto" title="Delete status" @click="deleteStatus(s)">
+                <template #icon><Icon name="Trash" :size="13" /></template>
+              </Button>
             </div>
             <div v-if="!project.statuses.length" class="t-muted" style="font-size:12.5px;font-style:italic">No statuses yet — add one below.</div>
           </div>
-          <button class="btn ghost" style="margin-top:12px" @click="addStatus"><Icon name="Plus" :size="13" /> Add status</button>
+          <Button label="Add status" severity="secondary" text style="margin-top:12px" @click="addStatus">
+            <template #icon><Icon name="Plus" :size="13" /></template>
+          </Button>
         </div>
 
         <!-- ── Worldbuilding categories ─────────────────────── -->
@@ -686,15 +694,17 @@ async function deleteCategory(c) {
                     @click="recolorCategory(c.id, h)" />
                 </div>
               </div>
-              <input class="input" style="max-width:220px" :value="c.label"
-                @input="renameCategory(c.id, $event.target.value)" placeholder="Category name" />
-              <button class="btn ghost sm" style="margin-left:auto" title="Delete category" @click="deleteCategory(c)">
-                <Icon name="Trash" :size="13" />
-              </button>
+              <InputText style="max-width:220px" :model-value="c.label"
+                @update:model-value="(v) => renameCategory(c.id, v)" placeholder="Category name" />
+              <Button severity="secondary" text size="small" style="margin-left:auto" title="Delete category" @click="deleteCategory(c)">
+                <template #icon><Icon name="Trash" :size="13" /></template>
+              </Button>
             </div>
             <div v-if="!project.worldbuildingCategories.length" class="t-muted" style="font-size:12.5px;font-style:italic">No categories yet — add one below.</div>
           </div>
-          <button class="btn ghost" style="margin-top:12px" @click="addCategory"><Icon name="Plus" :size="13" /> Add category</button>
+          <Button label="Add category" severity="secondary" text style="margin-top:12px" @click="addCategory">
+            <template #icon><Icon name="Plus" :size="13" /></template>
+          </Button>
         </div>
 
         <!-- ── Cover image ──────────────────────────────────── -->
@@ -732,7 +742,7 @@ async function deleteCategory(c) {
                   {{ coverUploading ? "Uploading…" : (project.project.coverImage ? "Replace…" : "Choose image…") }}
                   <input type="file" accept="image/*" style="display:none" @change="onPickCover" :disabled="coverUploading" />
                 </label>
-                <button v-if="project.project.coverImage" class="btn ghost" @click="removeCover">Remove</button>
+                <Button v-if="project.project.coverImage" label="Remove" severity="secondary" text @click="removeCover" />
               </div>
 
               <div class="t-muted" style="font-size:11px;display:inline-flex;gap:5px;align-items:center;font-family:var(--font-mono)">
@@ -777,9 +787,9 @@ async function deleteCategory(c) {
           <div style="display:flex;align-items:center;gap:10px;margin-bottom:10px">
             <div class="card-title" style="margin:0">Providers</div>
             <span class="t-muted" style="font-size:12px">{{ ai.providers.length }} configured</span>
-            <button class="btn sm primary" style="margin-left:auto" @click="startNew">
-              <Icon name="Plus" :size="12" /> Add provider
-            </button>
+            <Button label="Add provider" severity="primary" size="small" style="margin-left:auto" @click="startNew">
+              <template #icon><Icon name="Plus" :size="12" /></template>
+            </Button>
           </div>
 
           <div style="display:flex;flex-direction:column;gap:8px">
@@ -813,8 +823,8 @@ async function deleteCategory(c) {
                   <span :style="`width:8px;height:8px;border-radius:50%;background:${statusColor(ai.status[p.id])}`" />
                   {{ statusLabel(ai.status[p.id]) }}
                 </span>
-                <button class="btn sm" @click="pingProvider(p.id)">Test</button>
-                <button class="btn sm" @click="startEdit(p)">Edit</button>
+                <Button label="Test" size="small" @click="pingProvider(p.id)" />
+                <Button label="Edit" size="small" @click="startEdit(p)" />
               </div>
 
               <!-- Edit row -->
@@ -861,8 +871,8 @@ async function deleteCategory(c) {
         <div class="card">
           <div class="card-title">
             AI usage
-            <button class="btn ghost sm" style="margin-left:auto" @click="resetUsageLog"
-              title="Clear every recorded call. Future calls start tallying from zero.">Reset ledger</button>
+            <Button label="Reset ledger" severity="secondary" text size="small" style="margin-left:auto" @click="resetUsageLog"
+              title="Clear every recorded call. Future calls start tallying from zero." />
           </div>
           <p class="t-muted" style="font-size:12.5px;margin:0 0 14px;line-height:1.55">
             Tokens and estimated cost across every AI call routed through writerAI, critique, structural analysis,
@@ -944,10 +954,10 @@ async function deleteCategory(c) {
         <!-- Presets -->
         <div class="card">
           <div class="card-title">Theme preset
-            <button class="btn ghost sm" style="margin-left:auto" @click="resetAppearance"
+            <Button label="Reset to defaults" severity="secondary" text size="small" style="margin-left:auto" @click="resetAppearance"
               title="Reset every appearance setting to the default look">
-              <Icon name="Refresh" :size="12" /> Reset to defaults
-            </button>
+              <template #icon><Icon name="Refresh" :size="12" /></template>
+            </Button>
           </div>
           <p class="t-muted" style="font-size:12px;margin:0 0 12px">Start from a curated look, then fine-tune anything below.</p>
           <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(168px,1fr));gap:10px">
@@ -1045,21 +1055,21 @@ async function deleteCategory(c) {
           </div>
           <div style="display:flex;gap:18px;flex-wrap:wrap;margin-top:14px">
             <label class="field"><span class="field-l">UI font</span>
-              <select class="input" :value="ap.uiFont" @change="setAp({ uiFont: $event.target.value })">
-                <option v-for="f in UI_FONTS" :key="f.label" :value="f.label">{{ f.label }}</option>
-              </select>
+              <Select :model-value="ap.uiFont" @update:model-value="(v) => setAp({ uiFont: v })"
+                :options="UI_FONTS.map(f => ({ label: f.label, value: f.label }))"
+                optionLabel="label" optionValue="value" />
               <span class="field-hint">Buttons, menus, and labels.</span>
             </label>
             <label class="field"><span class="field-l">Display font</span>
-              <select class="input" :value="ap.displayFont" @change="setAp({ displayFont: $event.target.value })">
-                <option v-for="f in DISPLAY_FONTS" :key="f.label" :value="f.label">{{ f.label }}</option>
-              </select>
+              <Select :model-value="ap.displayFont" @update:model-value="(v) => setAp({ displayFont: v })"
+                :options="DISPLAY_FONTS.map(f => ({ label: f.label, value: f.label }))"
+                optionLabel="label" optionValue="value" />
               <span class="field-hint">Page titles, big numbers, serif headings.</span>
             </label>
             <label class="field"><span class="field-l">Editor body font</span>
-              <select class="input" :value="ap.editorBodyFont" @change="setAp({ editorBodyFont: $event.target.value })">
-                <option v-for="f in DISPLAY_FONTS" :key="f.label" :value="f.label">{{ f.label }}</option>
-              </select>
+              <Select :model-value="ap.editorBodyFont" @update:model-value="(v) => setAp({ editorBodyFont: v })"
+                :options="DISPLAY_FONTS.map(f => ({ label: f.label, value: f.label }))"
+                optionLabel="label" optionValue="value" />
               <span class="field-hint">Manuscript prose. Per-document choice can override this in the editor's ⚙ Writing settings.</span>
             </label>
           </div>
@@ -1124,8 +1134,8 @@ async function deleteCategory(c) {
               @click="setAp({ accentHue: p.hue })">
               <Icon v-if="ap.accentHue === p.hue" name="Check" :size="12" />
             </button>
-            <input type="number" class="input" min="0" max="360" style="width:74px"
-              :value="ap.accentHue" @input="setAp({ accentHue: clampHue($event.target.value) })" />
+            <InputNumber :min="0" :max="360" style="width:74px"
+              :model-value="ap.accentHue" @update:model-value="(v) => setAp({ accentHue: clampHue(v) })" />
           </div>
           <div class="swatch-row" style="margin-top:8px">
             <span class="swatch-label">Gold</span>
@@ -1135,8 +1145,8 @@ async function deleteCategory(c) {
               @click="setAp({ goldHue: p.hue })">
               <Icon v-if="ap.goldHue === p.hue" name="Check" :size="12" />
             </button>
-            <input type="number" class="input" min="0" max="360" style="width:74px"
-              :value="ap.goldHue" @input="setAp({ goldHue: clampHue($event.target.value) })" />
+            <InputNumber :min="0" :max="360" style="width:74px"
+              :model-value="ap.goldHue" @update:model-value="(v) => setAp({ goldHue: clampHue(v) })" />
           </div>
         </div>
 
@@ -1197,8 +1207,8 @@ async function deleteCategory(c) {
           </div>
           <div class="inline-paper-row">
             <label>
-              <input type="checkbox" :checked="ap.inlinePaper"
-                @change="setAp({ inlinePaper: $event.target.checked })" />
+              <Checkbox binary :model-value="ap.inlinePaper"
+                @update:model-value="(v) => setAp({ inlinePaper: v })" />
               <span>Apply editor paper to inline fields</span>
             </label>
             <p class="t-muted" style="font-size:11px;margin:4px 0 0;padding-left:22px">Character, note &amp; worldbuilding rich-text fields pick up the paper tint instead of the surface.</p>
@@ -1284,10 +1294,9 @@ async function deleteCategory(c) {
             <span>{{ lastAutosaveLabel }}</span>
           </div>
           <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap">
-            <button class="btn" :disabled="autosaveListBusy" @click="toggleAutosaveList">
-              <Icon name="Folder" :size="13" />
-              {{ autosaveListShown ? "Hide autosaves" : "Restore from autosave…" }}
-            </button>
+            <Button :label="autosaveListShown ? 'Hide autosaves' : 'Restore from autosave…'" :disabled="autosaveListBusy" @click="toggleAutosaveList">
+              <template #icon><Icon name="Folder" :size="13" /></template>
+            </Button>
           </div>
           <div v-if="autosaveListShown" style="margin-top:12px">
             <div v-if="autosaveListBusy" class="t-muted" style="font-size:12.5px">Loading…</div>
@@ -1304,7 +1313,7 @@ async function deleteCategory(c) {
                   <div><b>{{ entry.title || "Untitled" }}</b> <span class="t-muted">— {{ generationLabel(entry.generation) }}</span></div>
                   <div class="t-muted" style="font-size:12px">{{ autosaveLabel(entry.savedAt) }}</div>
                 </div>
-                <button class="btn" @click="restoreFromAutosave(entry)">Restore</button>
+                <Button label="Restore" @click="restoreFromAutosave(entry)" />
               </li>
             </ul>
           </div>
@@ -1327,10 +1336,9 @@ async function deleteCategory(c) {
           <div v-if="backupError" class="banner danger" style="margin-bottom:10px">{{ backupError }}</div>
           <div v-if="importMessage" class="banner success" style="margin-bottom:10px">{{ importMessage }}</div>
           <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap">
-            <button class="btn primary" :disabled="backupBusy" @click="exportBackup">
-              <Icon name="Export" :size="13" />
-              {{ backupBusy ? "Exporting…" : "Export backup…" }}
-            </button>
+            <Button :label="backupBusy ? 'Exporting…' : 'Export backup…'" severity="primary" :disabled="backupBusy" @click="exportBackup">
+              <template #icon><Icon name="Export" :size="13" /></template>
+            </Button>
             <label class="btn">
               <Icon name="Folder" :size="13" />
               Import backup…
@@ -1344,10 +1352,9 @@ async function deleteCategory(c) {
           <p class="t-muted" style="font-size:12.5px;margin:0 0 12px;line-height:1.55">
             Wipes every <code>justwrite:*</code> key from IndexedDB — project, history, AI providers, voice cast, sessions — and reloads with the demo seed. Take a backup first.
           </p>
-          <button class="btn btn-danger" @click="resetWorkspace">
-            <Icon name="Alert" :size="13" />
-            Reset workspace
-          </button>
+          <Button label="Reset workspace" severity="danger" @click="resetWorkspace">
+            <template #icon><Icon name="Alert" :size="13" /></template>
+          </Button>
         </div>
       </div>
 
@@ -1542,7 +1549,6 @@ async function deleteCategory(c) {
   display: inline-flex; align-items: center; gap: 8px;
   font-size: 12.5px; cursor: pointer; color: var(--ink);
 }
-.inline-paper-row input { width: 14px; height: 14px; accent-color: var(--accent); cursor: pointer; margin: 0; }
 
 /* Custom-colour swatch — a small rainbow-conic affordance with a hidden
    native color input overlaid; clicking the swatch opens the picker. */
@@ -1775,14 +1781,6 @@ async function deleteCategory(c) {
 }
 
 .danger-card { border-color: var(--danger-line); }
-.btn-danger {
-  border-color: var(--danger-line);
-  color: var(--danger-ink);
-  background: var(--surface);
-}
-.btn-danger:hover {
-  background: var(--danger-bg);
-}
 
 /* Debug section */
 .debug-tools { display: flex; flex-direction: column; gap: 8px; }

@@ -1,0 +1,9 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(npm run build:vite)",
+      "Bash(npm run dev:vite)",
+      "Bash(npm ls *)"
+    ]
+  }
+}

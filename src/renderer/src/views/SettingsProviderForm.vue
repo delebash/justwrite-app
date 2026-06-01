@@ -12,6 +12,12 @@ import { entryLabel, TIERS, TIER_IDS } from "../services/modelMeta.js";
 import { useAiStore } from "../stores/ai.js";
 import Icon from "../components/Icon.vue";
 import Combobox from "../components/Combobox.vue";
+import InputText from "primevue/inputtext";
+import InputNumber from "primevue/inputnumber";
+import Checkbox from "primevue/checkbox";
+import Select from "primevue/select";
+import Textarea from "primevue/textarea";
+import Button from "primevue/button";
 
 const ai = useAiStore();
 
@@ -191,26 +197,21 @@ function resetParam(key) { setParam(key, undefined); }
   <div style="padding:14px;border:1.5px solid var(--accent);border-radius:10px;background:var(--accent-soft)">
     <div style="display:grid;grid-template-columns:120px 1fr;gap:8px 12px;font-size:12.5px;align-items:center">
       <span class="t-muted">ID</span>
-      <input class="input" v-model="draft.id" :readonly="editingKey !== 'new'" placeholder="e.g. my-ollama" />
+      <InputText v-model="draft.id" :readonly="editingKey !== 'new'" placeholder="e.g. my-ollama" />
       <span class="t-muted">Name</span>
-      <input class="input" v-model="draft.name" placeholder="Display name" />
+      <InputText v-model="draft.name" placeholder="Display name" />
       <span class="t-muted">Kind</span>
-      <select class="input" v-model="draft.kind">
-        <option value="llm">LLM only</option>
-        <option value="tts">TTS only</option>
-        <option value="both">LLM + TTS</option>
-      </select>
+      <Select v-model="draft.kind" :options="[{ label: 'LLM only', value: 'llm' }, { label: 'TTS only', value: 'tts' }, { label: 'LLM + TTS', value: 'both' }]" optionLabel="label" optionValue="value" />
       <span class="t-muted">Base URL</span>
-      <input class="input" v-model="draft.baseUrl" placeholder="http://localhost:11434/v1" />
+      <InputText v-model="draft.baseUrl" placeholder="http://localhost:11434/v1" />
       <span class="t-muted">API key</span>
-      <input class="input" v-model="draft.apiKey" type="password" placeholder="Optional — leave blank for local providers" />
+      <InputText v-model="draft.apiKey" type="password" placeholder="Optional — leave blank for local providers" />
 
       <template v-if="draft.kind === 'llm' || draft.kind === 'both'">
         <span class="t-muted" title="Which LLM runner is behind the Base URL. Ollama uses its native /api/chat (where think:false actually works); everything else uses /v1/chat/completions.">Runner</span>
-        <select class="input" :value="runnerValue" @change="draft.runner = $event.target.value">
-          <option value="openai-compat">OpenAI-compatible (LM Studio, llama.cpp, vLLM, cloud APIs)</option>
-          <option value="ollama">Ollama (native /api/chat — honors think:false)</option>
-        </select>
+        <Select :model-value="runnerValue" @update:model-value="draft.runner = $event"
+          :options="[{ label: 'OpenAI-compatible (LM Studio, llama.cpp, vLLM, cloud APIs)', value: 'openai-compat' }, { label: 'Ollama (native /api/chat — honors think:false)', value: 'ollama' }]"
+          optionLabel="label" optionValue="value" />
       </template>
 
       <template v-if="draft.kind === 'llm' || draft.kind === 'both'">
@@ -252,9 +253,7 @@ function resetParam(key) { setParam(key, undefined); }
         </template>
 
         <span class="t-muted" title="Optional embedding model — fills the RAG (manuscript chat) index. Leave blank if this provider isn't your embedding provider. OpenAI: text-embedding-3-small. Ollama: nomic-embed-text.">Embedding model</span>
-        <input class="input"
-          v-model="draft.embeddingModel"
-          placeholder="text-embedding-3-small / nomic-embed-text / …" />
+        <InputText v-model="draft.embeddingModel" placeholder="text-embedding-3-small / nomic-embed-text / …" />
       </template>
 
       <template v-if="draft.kind === 'tts' || draft.kind === 'both'">
@@ -329,43 +328,41 @@ function resetParam(key) { setParam(key, undefined); }
               {{ f.label }}
             </span>
             <div style="display:flex;gap:6px;align-items:center">
-              <input v-if="f.type === 'number'" class="input" type="number"
+              <InputNumber v-if="f.type === 'number'"
                 :min="f.min" :max="f.max" :step="f.step"
                 :placeholder="f.placeholder || (f.default !== undefined ? `default ${f.default}` : '')"
-                :value="getParam(f.key) ?? ''"
-                @input="setParam(f.key, $event.target.value === '' ? undefined : Number($event.target.value))" />
-              <select v-else-if="f.type === 'select'" class="input"
-                :value="getParam(f.key) ?? f.default ?? ''"
-                @change="setParam(f.key, $event.target.value)">
-                <option v-for="opt in f.options" :key="opt" :value="opt">
-                  {{ f.optionLabels?.[opt] ?? (opt === '' ? '— default —' : opt) }}
-                </option>
-              </select>
+                :model-value="getParam(f.key) ?? null"
+                @update:model-value="(v) => setParam(f.key, v === null ? undefined : v)" />
+              <Select v-else-if="f.type === 'select'"
+                :model-value="getParam(f.key) ?? f.default ?? ''"
+                @update:model-value="(v) => setParam(f.key, v)"
+                :options="f.options.map(opt => ({ label: f.optionLabels?.[opt] ?? (opt === '' ? '— default —' : opt), value: opt }))"
+                optionLabel="label" optionValue="value" />
               <label v-else-if="f.type === 'boolean'" style="display:flex;align-items:center;gap:6px;font-size:12.5px">
-                <input type="checkbox"
-                  :checked="getParam(f.key) ?? f.default ?? false"
-                  @change="setParam(f.key, $event.target.checked)" />
+                <Checkbox binary
+                  :model-value="getParam(f.key) ?? f.default ?? false"
+                  @update:model-value="(v) => setParam(f.key, v)" />
                 <span class="t-muted">{{ (getParam(f.key) ?? f.default) ? 'on' : 'off' }}</span>
               </label>
-              <textarea v-else-if="f.type === 'textarea'" class="input"
+              <Textarea v-else-if="f.type === 'textarea'" auto-resize
                 rows="2" :placeholder="f.placeholder || ''"
-                :value="getParam(f.key) ?? ''"
-                @input="setParam(f.key, $event.target.value || undefined)" />
-              <input v-else class="input"
+                :model-value="getParam(f.key) ?? ''"
+                @update:model-value="(v) => setParam(f.key, v || undefined)" />
+              <InputText v-else
                 :placeholder="f.placeholder || ''"
-                :value="getParam(f.key) ?? ''"
-                @input="setParam(f.key, $event.target.value || undefined)" />
-              <button v-if="getParam(f.key) !== undefined" type="button"
-                class="btn sm ghost" :title="`Reset ${f.label}`"
-                style="padding:4px 8px" @click="resetParam(f.key)">↺</button>
+                :model-value="getParam(f.key) ?? ''"
+                @update:model-value="(v) => setParam(f.key, v || undefined)" />
+              <Button v-if="getParam(f.key) !== undefined" type="button"
+                label="↺" severity="secondary" text size="small" :title="`Reset ${f.label}`"
+                style="padding:4px 8px" @click="resetParam(f.key)" />
             </div>
           </template>
         </template>
       </template>
     </div>
     <div style="display:flex;gap:8px;margin-top:14px;justify-content:flex-end">
-      <button class="btn ghost" @click="emit('cancel')">Cancel</button>
-      <button class="btn primary" @click="emit('save')">Save</button>
+      <Button label="Cancel" severity="secondary" text @click="emit('cancel')" />
+      <Button label="Save" severity="primary" @click="emit('save')" />
     </div>
   </div>
 </template>
