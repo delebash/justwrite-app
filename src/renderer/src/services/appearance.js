@@ -255,7 +255,7 @@ export const DEFAULT_APPEARANCE = {
   uiFont: "Geist",
   displayFont: "Source Serif 4",
   editorBodyFont: "Source Serif 4",
-  accentHue: 200,
+  accentHue: 14,
   goldHue: 80,
   appBg: "paperwhite",
   sidebarBg: "paperwhite",
