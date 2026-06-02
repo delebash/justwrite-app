@@ -87,7 +87,7 @@ async function remove(img) {
 </template>
 
 <style>
-.image-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; }
+.image-grid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 10px; }
 .image-tile { border: 1px solid var(--border); border-radius: 8px; overflow: hidden; background: var(--surface-2); }
 .image-tile img { width: 100%; height: 120px; object-fit: cover; display: block; }
 .image-loading { width: 100%; height: 120px; display: grid; place-items: center; background: var(--surface-3); color: var(--muted); }

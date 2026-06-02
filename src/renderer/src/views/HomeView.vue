@@ -125,7 +125,7 @@ const strandCount = (id) => allCh.value.filter((c) => (c.strands || []).includes
 
   <div class="pane-card">
   <div class="scrollarea">
-    <div class="card-grid" style="grid-template-columns:repeat(3,1fr);gap:16px">
+    <div class="card-grid home-card-grid" style="gap:16px">
 
       <!-- Hero -->
       <div class="card hero-card" style="grid-column:1/-1">
@@ -291,6 +291,8 @@ const strandCount = (id) => allCh.value.filter((c) => (c.strands || []).includes
 .deadline-link { color: inherit; text-decoration: none; border-radius: 4px; }
 .deadline-link:hover { color: var(--accent); text-decoration: underline; }
 
+.home-card-grid { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+
 /* ── Hero ─────────────────────────────────────────────────── */
 .hero-card { padding: 24px; }
 .hero-main { display: flex; gap: 28px; align-items: center; flex-wrap: wrap; }
@@ -344,6 +346,9 @@ const strandCount = (id) => allCh.value.filter((c) => (c.strands || []).includes
 .resume-cta { display: flex; align-items: center; }
 .resume-cta :deep(.p-button) { padding: 11px 22px; font-size: 13.5px; }
 
+@media (max-width: 900px) {
+  .home-card-grid { grid-template-columns: 1fr !important; }
+}
 @media (max-width: 720px) {
   .resume-card { grid-template-columns: 1fr; }
 }

@@ -305,7 +305,7 @@ function downloadChapter(chapterId) {
   </div>
 
   <!-- CAST TAB -->
-  <div v-if="activeTab === 'cast'" class="pane-card" style="display:grid;grid-template-columns:1fr 440px">
+  <div v-if="activeTab === 'cast'" class="pane-card studio-cast-layout" style="display:grid;grid-template-columns:1fr 440px">
     <div class="scrollarea" style="padding:18px 22px 40px">
       <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px">
         <div>
@@ -535,4 +535,10 @@ function downloadChapter(chapterId) {
   .wb-search-icon { position: absolute; left: 8px; top: 50%; transform: translateY(-50%); color: var(--muted); pointer-events: none; }
   .wb-search-input { width: 100%; padding-left: 26px !important; }
   .wb-count { font-family: var(--font-mono); font-size: 10.5px; color: var(--muted); white-space: nowrap; }
+
+  @media (max-width: 900px) {
+    .studio-cast-layout { grid-template-columns: 1fr !important; }
+    .studio-tabs { flex-wrap: wrap; }
+    .studio-tab { min-width: 0; flex: 1; }
+  }
 </style>

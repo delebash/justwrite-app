@@ -193,7 +193,7 @@ const milestoneState = computed(() => {
   <div class="scrollarea" style="padding:22px 26px 60px">
 
     <!-- KPI row -->
-    <div style="display:grid;grid-template-columns:repeat(4, 1fr);gap:14px;margin-bottom:18px">
+    <div class="kpi-row" style="display:grid;gap:14px;margin-bottom:18px">
       <div class="card kpi">
         <div class="t-eyebrow">Manuscript</div>
         <div class="kpi-val">{{ kpis.totalWords.toLocaleString() }}</div>
@@ -240,7 +240,7 @@ const milestoneState = computed(() => {
     </div>
 
     <!-- Writing heatmap (365-day) + milestones -->
-    <div style="display:grid;grid-template-columns:2fr 1fr;gap:18px;margin-bottom:18px">
+    <div class="heatmap-milestones-row" style="display:grid;gap:18px;margin-bottom:18px">
       <div class="card">
         <div style="display:flex;align-items:center;gap:10px;margin-bottom:8px">
           <div class="card-title" style="margin:0">Writing year</div>
@@ -305,7 +305,7 @@ const milestoneState = computed(() => {
     </div>
 
     <!-- Status donut + Strand distribution -->
-    <div style="display:grid;grid-template-columns:1fr 1fr;gap:18px;margin-bottom:18px">
+    <div class="status-row" style="display:grid;gap:18px;margin-bottom:18px">
       <div class="card">
         <div class="card-title">Status</div>
         <div style="display:flex;gap:18px;align-items:center">
@@ -659,4 +659,14 @@ const milestoneState = computed(() => {
   overflow: hidden;
 }
 .sm-fill { display: block; height: 100%; background: var(--accent); border-radius: 999px; }
+
+.kpi-row { grid-template-columns: repeat(4, minmax(0, 1fr)); }
+.heatmap-milestones-row { grid-template-columns: 2fr 1fr; }
+.status-row { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+
+@media (max-width: 900px) {
+  .kpi-row { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .heatmap-milestones-row { grid-template-columns: 1fr; }
+  .status-row { grid-template-columns: 1fr; }
+}
 </style>

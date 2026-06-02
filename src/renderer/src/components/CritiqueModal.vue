@@ -344,7 +344,7 @@ const SEVERITY_META = {
 }
 
 /* Structure grid */
-.struct-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; }
+.struct-grid { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 10px; }
 .struct-metric {
   padding: 14px 12px; border-radius: 8px;
   background: var(--surface-2); border: 1px solid var(--border-soft);

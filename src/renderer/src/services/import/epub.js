@@ -3,8 +3,19 @@ import { splitHtmlByHeadings } from './detectChapters.js';
 function resolveHref(base, href) {
   // base is like 'OEBPS/content.opf', href is relative to that directory
   const dir = base.includes('/') ? base.slice(0, base.lastIndexOf('/') + 1) : '';
-  if (href.startsWith('/')) return href.slice(1);
-  return dir + href;
+  if (href.startsWith('/')) return normalizePath(href.slice(1));
+  return normalizePath(dir + href);
+}
+
+function normalizePath(path) {
+  // Collapse '..' and '.' segments without URL parsing
+  const parts = path.split('/');
+  const out = [];
+  for (const p of parts) {
+    if (p === '..') out.pop();
+    else if (p !== '.') out.push(p);
+  }
+  return out.join('/');
 }
 
 function parseXml(str) {
@@ -13,6 +24,16 @@ function parseXml(str) {
 
 function isNavDoc(text) {
   return /<nav[\s>]/i.test(text) && !/<p[\s>]/i.test(text);
+}
+
+const EXT_MIME = {
+  png: 'image/png', jpg: 'image/jpeg', jpeg: 'image/jpeg',
+  gif: 'image/gif', webp: 'image/webp', svg: 'image/svg+xml',
+};
+
+function mimeFromHref(href) {
+  const ext = href.slice(href.lastIndexOf('.') + 1).toLowerCase();
+  return EXT_MIME[ext] || null;
 }
 
 export async function parseEpub(arrayBuffer) {
@@ -35,12 +56,21 @@ export async function parseEpub(arrayBuffer) {
     };
   }
 
+  // Build a lookup from OPF-resolved href → manifest entry for images
+  const imageManifest = {}; // href → { href, mediaType }
+  for (const entry of Object.values(manifest)) {
+    if (entry.mediaType && entry.mediaType.startsWith('image/')) {
+      imageManifest[entry.href] = entry;
+    }
+  }
+
   const spineItems = Array.from(opfDoc.querySelectorAll('spine itemref'))
     .map(ref => manifest[ref.getAttribute('idref')])
     .filter(Boolean);
 
   const chapters = [];
-  let droppedImages = 0;
+  // Collect all image hrefs referenced by chapter HTML (OPF-resolved)
+  const referencedImageHrefs = new Set();
 
   for (const item of spineItems) {
     const mediaType = item.mediaType ?? '';
@@ -52,17 +82,19 @@ export async function parseEpub(arrayBuffer) {
     const text = await file.async('string');
     if (isNavDoc(text)) continue;
 
-    // Count and strip images
-    const imgMatches = text.match(/<img\b[^>]*>/gi) ?? [];
-    droppedImages += imgMatches.length;
-
     const doc = new DOMParser().parseFromString(text, 'text/html');
     const body = doc.body;
     if (!body || !body.textContent.trim()) continue;
 
-    // Strip img elements from the DOM
+    // Resolve each <img src> against this XHTML doc's directory,
+    // producing an OPF-resolved path that matches the manifest keys.
+    const xhtmlDir = item.href.includes('/') ? item.href.slice(0, item.href.lastIndexOf('/') + 1) : '';
     for (const img of Array.from(body.querySelectorAll('img'))) {
-      img.remove();
+      const src = img.getAttribute('src');
+      if (!src) continue;
+      const resolved = resolveHref(xhtmlDir + '_', src); // trick: treat xhtmlDir as base "file"
+      img.setAttribute('src', resolved);
+      referencedImageHrefs.add(resolved);
     }
 
     const bodyHtml = body.innerHTML;
@@ -81,9 +113,21 @@ export async function parseEpub(arrayBuffer) {
     }
   }
 
-  if (droppedImages > 0) {
-    warnings.push(`${droppedImages} image${droppedImages === 1 ? '' : 's'} dropped — not yet supported in import`);
+  // Extract bytes for every image referenced by chapters (must exist in zip)
+  const images = [];
+  for (const href of referencedImageHrefs) {
+    const entry = imageManifest[href];
+    const zipFile = zip.file(href);
+    if (!zipFile) continue;
+    const mime = (entry && entry.mediaType) || mimeFromHref(href) || 'application/octet-stream';
+    const bytes = await zipFile.async('uint8array');
+    const name = href.slice(href.lastIndexOf('/') + 1);
+    images.push({ href, name, mime, bytes });
   }
 
-  return { chapters: chapters.filter(c => c.title || c.html.replace(/\s/g, '')), warnings };
+  return {
+    chapters: chapters.filter(c => c.title || c.html.replace(/\s/g, '')),
+    warnings,
+    images,
+  };
 }

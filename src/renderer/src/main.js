@@ -20,6 +20,7 @@ import { bootStorage, getItem } from "./services/storage.js";
 
 import "./assets/styles/tokens.css";
 import { JustWriteEditorial } from "./services/primevue-preset.js";
+import { startAutoRebuildWatcher } from "./services/rag/autoIndex.js";
 
 // Hydrate the storage cache from IndexedDB BEFORE any Pinia store
 // initialises — stores read from the cache synchronously.
@@ -53,4 +54,9 @@ import { JustWriteEditorial } from "./services/primevue-preset.js";
   app.use(ToastService);
   app.directive("tooltip", Tooltip);
   app.mount("#app");
+
+  // Subscribe to project mutations and silently re-embed scenes a minute
+  // after the last edit when ai.autoRebuildRagIndex is on. Safe to call
+  // unconditionally — the watcher itself checks the setting before firing.
+  startAutoRebuildWatcher();
 })();

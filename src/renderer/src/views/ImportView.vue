@@ -395,7 +395,7 @@ function finishAfterSweep() {
 .wiz-h::after { content: ""; flex: 1; height: 1px; background: var(--border); }
 
 /* Intent cards */
-.intent-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; }
+.intent-grid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 12px; }
 .intent-card {
   display: grid; grid-template-columns: auto 1fr; gap: 14px;
   align-items: flex-start;
@@ -538,6 +538,9 @@ function finishAfterSweep() {
 /* Actions */
 .wiz-actions { flex-direction: row; justify-content: flex-end; gap: 10px; margin-top: 8px; }
 
+@media (max-width: 900px) {
+  .intent-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+}
 @media (max-width: 720px) {
   .intent-grid { grid-template-columns: 1fr; }
   .ps-stats { gap: 18px; }

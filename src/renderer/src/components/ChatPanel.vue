@@ -1,18 +1,15 @@
 <script setup>
 // Manuscript-RAG chat panel.
 //
-// Slide-in panel from the right. User types a question, we embed it,
-// look up top-K scenes via the vector store, build a prompt with
-// retrieved excerpts as context, then stream the LLM answer.
-//
-// Single-turn for v1 — every Ask resets the answer + citations. Multi-
-// turn would persist a chat history thread; deferred.
+// Slide-in panel from the right. Maintains a multi-turn thread per session:
+// each user question is embedded (with the prior user turn prepended for
+// pronoun/entity context), top-K scenes are retrieved, and the LLM streams
+// an answer with citations. The thread is kept in-memory and stays for the
+// life of the panel; "New thread" clears it.
 
 import { ref, computed, watch, nextTick } from "vue";
 import { useRouter } from "vue-router";
-import { useAiStore } from "../stores/ai.js";
 import { useProjectStore } from "../stores/project.js";
-import { useUiStore } from "../stores/ui.js";
 import { useAiProgress } from "../composables/useAiProgress.js";
 import { askManuscript } from "../services/rag/chat.js";
 import { indexStatus } from "../services/rag/indexer.js";
@@ -28,17 +25,17 @@ const props = defineProps({
 const emit = defineEmits(["update:modelValue"]);
 
 const router = useRouter();
-const ai = useAiStore();
 const project = useProjectStore();
-const ui = useUiStore();
 const progress = useAiProgress();
 
 const question = ref("");
-const answer = ref("");
-const citations = ref([]);   // [{ index, chunk, score }]
-const error = ref("");
+// thread items:
+//   { role: "user",      content }
+//   { role: "assistant", content, citations: [...], pending?: bool, error?: string }
+const thread = ref([]);
 const indexModalMode = ref(null); // "build" | "rebuild" | null
 const inputRef = ref(null);
+const threadRef = ref(null);
 
 const open = computed({
   get: () => props.modelValue,
@@ -47,34 +44,58 @@ const open = computed({
 
 const status = computed(() => indexStatus());
 const hasIndex = computed(() => status.value.exists && status.value.entryCount > 0);
+const hasThread = computed(() => thread.value.length > 0);
+
+// Reset the thread whenever the active project changes — old citations
+// won't make sense in a different manuscript.
+watch(() => project.activeProjectId, () => { thread.value = []; });
 
 // When the panel opens, focus the question input.
 watch(open, (v) => {
   if (v) nextTick(() => inputRef.value?.focus());
 });
 
+// Auto-scroll to the bottom on new content (new turns or streamed deltas).
+watch(thread, () => {
+  nextTick(() => {
+    const el = threadRef.value;
+    if (el) el.scrollTop = el.scrollHeight;
+  });
+}, { deep: true });
+
 async function ask() {
   const q = question.value.trim();
   if (!q || progress.running.value) return;
-  error.value = "";
-  answer.value = "";
-  citations.value = [];
+
+  // Snapshot history (everything sent BEFORE this turn) for the API call.
+  const history = thread.value
+    .filter((m) => !m.pending && !m.error)
+    .map((m) => ({ role: m.role, content: m.content }));
+
+  thread.value.push({ role: "user", content: q });
+  const assistantMsg = { role: "assistant", content: "", citations: [], pending: true };
+  thread.value.push(assistantMsg);
+  question.value = "";
+
   progress.start();
   try {
     const result = await askManuscript({
       question: q,
+      history,
       k: 6,
       signal: progress.signal,
       onDelta: (delta, content) => {
         progress.onDelta(delta, content);
-        answer.value = content;
+        assistantMsg.content = content;
       },
     });
-    answer.value = result.answer || answer.value;
-    citations.value = result.citations || [];
+    assistantMsg.content   = result.answer || assistantMsg.content;
+    assistantMsg.citations = result.citations || [];
+    assistantMsg.pending   = false;
     progress.finish();
   } catch (e) {
-    if (!progress.cancelled.value) error.value = e?.message || String(e);
+    assistantMsg.pending = false;
+    if (!progress.cancelled.value) assistantMsg.error = e?.message || String(e);
     progress.finish();
   }
 }
@@ -83,10 +104,10 @@ function cancel() {
   progress.cancel();
 }
 
-function clearAnswer() {
-  answer.value = "";
-  citations.value = [];
-  error.value = "";
+function newThread() {
+  thread.value = [];
+  question.value = "";
+  nextTick(() => inputRef.value?.focus());
 }
 
 function close() {
@@ -136,65 +157,80 @@ defineExpose({ open: () => { open.value = true; }, close });
           <span class="cp-status-sep">·</span>
           <span class="cp-status-model"><code>{{ status.model || "?" }}</code></span>
           <span class="cp-status-spacer"></span>
-          <Button severity="secondary" text size="small" @click="indexModalMode = 'build'" title="Embed any scenes added or edited since last build">
+          <Button v-if="hasThread" severity="secondary" text size="small" @click="newThread" v-tooltip.bottom="'Clear and start fresh'">
+            <Icon name="Plus" :size="11" /> New thread
+          </Button>
+          <Button severity="secondary" text size="small" @click="indexModalMode = 'build'" v-tooltip.bottom="'Embed any scenes added or edited since last build'">
             <Icon name="Refresh" :size="11" /> Update
           </Button>
-          <Button severity="secondary" text size="small" @click="indexModalMode = 'rebuild'" title="Wipe and re-embed everything">
+          <Button severity="secondary" text size="small" @click="indexModalMode = 'rebuild'" v-tooltip.bottom="'Wipe and re-embed everything'">
             <Icon name="Refresh" :size="11" /> Rebuild
           </Button>
         </div>
 
-        <!-- Question input -->
+        <!-- Thread (user + assistant turns) -->
+        <div ref="threadRef" class="cp-thread">
+          <div v-if="!hasThread" class="cp-empty-hint">
+            <Icon name="Sparkle" :size="14" />
+            <span>Ask anything about your book — characters, scenes, threads. Follow-ups remember the conversation.</span>
+          </div>
+
+          <template v-for="(m, i) in thread" :key="i">
+            <!-- User bubble -->
+            <div v-if="m.role === 'user'" class="cp-msg cp-msg-user">
+              <div class="cp-bubble cp-bubble-user">{{ m.content }}</div>
+            </div>
+
+            <!-- Assistant bubble -->
+            <div v-else class="cp-msg cp-msg-assistant">
+              <div v-if="m.error" class="cp-error">
+                <Icon name="Alert" :size="13" /> {{ m.error }}
+              </div>
+              <template v-else>
+                <div class="cp-bubble cp-bubble-assistant">{{ m.content || (m.pending ? "…" : "") }}</div>
+                <div v-if="m.citations && m.citations.length" class="cp-cites">
+                  <ol class="cp-cite-list">
+                    <li v-for="c in m.citations" :key="c.index" class="cp-cite" @click="openCitation(c)">
+                      <span class="cp-cite-num">[{{ c.index }}]</span>
+                      <span class="cp-cite-meta">
+                        <b>Ch. {{ c.chunk.chapterNum }}</b>
+                        <span class="cp-cite-ch">{{ c.chunk.chapterTitle || "Untitled" }}</span>
+                        <span v-if="c.chunk.sceneTitle || c.chunk.sceneIdx != null" class="cp-cite-sc">
+                          · {{ c.chunk.sceneTitle || `Scene ${c.chunk.sceneIdx + 1}` }}
+                        </span>
+                      </span>
+                      <span class="cp-cite-score">{{ (c.score * 100).toFixed(0) }}%</span>
+                    </li>
+                  </ol>
+                </div>
+              </template>
+            </div>
+          </template>
+        </div>
+
+        <!-- Question input (pinned to the bottom of the panel) -->
         <div class="cp-input-row">
           <textarea
             ref="inputRef"
             v-model="question"
             class="cp-textarea"
             rows="2"
-            placeholder="Ask anything about your book — characters, scenes, threads…"
+            :placeholder="hasThread ? 'Ask a follow-up…' : 'Ask anything about your book — characters, scenes, threads…'"
             @keydown.enter.exact.prevent="ask"
             @keydown.escape="close"
           />
           <div class="cp-input-actions">
             <span class="t-muted" style="font-size:10.5px">⏎ to send · ⇧⏎ for newline</span>
-            <Button severity="primary" size="small" :disabled="!question.trim() || progress.running.value" @click="ask">
+            <Button v-if="progress.running.value" severity="secondary" size="small" @click="cancel">
+              <Icon name="Close" :size="12" /> Cancel
+            </Button>
+            <Button v-else severity="primary" size="small" :disabled="!question.trim()" @click="ask">
               <Icon name="Sparkle" :size="12" /> Ask
             </Button>
           </div>
         </div>
 
-        <!-- Progress / error -->
         <AiProgressBar :progress="progress" label="Searching + answering…" />
-        <div v-if="error" class="cp-error">
-          <Icon name="Alert" :size="13" /> {{ error }}
-        </div>
-
-        <!-- Answer -->
-        <div v-if="answer || progress.running.value" class="cp-answer-wrap">
-          <div class="cp-answer-head">
-            <div class="t-eyebrow">Answer</div>
-            <button v-if="answer && !progress.running.value" class="tb-btn tb-text" @click="clearAnswer">Clear</button>
-          </div>
-          <div class="cp-answer">{{ answer || "…" }}</div>
-        </div>
-
-        <!-- Citations -->
-        <div v-if="citations.length" class="cp-cites">
-          <div class="t-eyebrow">Sources</div>
-          <ol class="cp-cite-list">
-            <li v-for="c in citations" :key="c.index" class="cp-cite" @click="openCitation(c)">
-              <span class="cp-cite-num">[{{ c.index }}]</span>
-              <span class="cp-cite-meta">
-                <b>Ch. {{ c.chunk.chapterNum }}</b>
-                <span class="cp-cite-ch">{{ c.chunk.chapterTitle || "Untitled" }}</span>
-                <span v-if="c.chunk.sceneTitle || c.chunk.sceneIdx != null" class="cp-cite-sc">
-                  · {{ c.chunk.sceneTitle || `Scene ${c.chunk.sceneIdx + 1}` }}
-                </span>
-              </span>
-              <span class="cp-cite-score">{{ (c.score * 100).toFixed(0) }}%</span>
-            </li>
-          </ol>
-        </div>
       </template>
 
       <IndexBuildModal v-if="indexModalMode"
@@ -215,7 +251,6 @@ defineExpose({ open: () => { open.value = true; }, close });
   display: flex; flex-direction: column;
   padding: 18px 22px;
   gap: 12px;
-  overflow-y: auto;
 }
 .cp-slide-enter-active, .cp-slide-leave-active {
   transition: transform .22s cubic-bezier(.4, .0, .2, 1), opacity .22s;
@@ -225,7 +260,7 @@ defineExpose({ open: () => { open.value = true; }, close });
   opacity: 0;
 }
 
-.cp-head { display: flex; justify-content: space-between; align-items: flex-start; gap: 14px; }
+.cp-head { display: flex; justify-content: space-between; align-items: flex-start; gap: 14px; flex-shrink: 0; }
 .cp-head h2 { font-family: var(--font-serif); font-size: 18px; font-weight: 600; margin: 3px 0 0; }
 
 .cp-status {
@@ -233,6 +268,7 @@ defineExpose({ open: () => { open.value = true; }, close });
   padding: 6px 10px; border-radius: 6px;
   background: var(--surface-2);
   font-size: 11.5px; color: var(--muted);
+  flex-shrink: 0;
 }
 .cp-status b { color: var(--ink); font-variant-numeric: tabular-nums; }
 .cp-status-sep { color: var(--subtle); }
@@ -243,11 +279,54 @@ defineExpose({ open: () => { open.value = true; }, close });
   background: var(--surface-3); color: var(--ink-2);
 }
 
+/* Thread — scrollable area between the status strip and the input row. */
+.cp-thread {
+  flex: 1 1 auto;
+  overflow-y: auto;
+  display: flex; flex-direction: column; gap: 12px;
+  padding: 4px 2px 8px;
+}
+.cp-empty-hint {
+  display: flex; gap: 8px; align-items: flex-start;
+  padding: 10px 12px;
+  color: var(--muted);
+  font-size: 12.5px; line-height: 1.5;
+  background: var(--surface-2); border-radius: 8px;
+}
+.cp-empty-hint :first-child { flex-shrink: 0; margin-top: 2px; }
+
+.cp-msg { display: flex; flex-direction: column; gap: 6px; }
+.cp-msg-user      { align-items: flex-end;   }
+.cp-msg-assistant { align-items: flex-start; }
+.cp-bubble {
+  max-width: 92%;
+  padding: 10px 13px;
+  border-radius: 10px;
+  font-size: 13.5px; line-height: 1.55;
+  white-space: pre-wrap; word-break: break-word;
+}
+.cp-bubble-user {
+  background: var(--accent-soft);
+  color: var(--accent-ink);
+  border: 1px solid var(--accent-line);
+  font-family: var(--font-ui);
+}
+.cp-bubble-assistant {
+  background: var(--surface-2);
+  color: var(--ink-2);
+  border-left: 3px solid var(--accent-line);
+  font-family: var(--font-serif);
+  font-size: 14px;
+  line-height: 1.6;
+  width: 100%; max-width: 100%; box-sizing: border-box;
+}
+
 .cp-input-row {
   display: flex; flex-direction: column; gap: 8px;
   border: 1px solid var(--border); border-radius: 8px;
   padding: 10px 12px;
   background: var(--surface);
+  flex-shrink: 0;
 }
 .cp-input-row:focus-within { border-color: var(--accent); }
 .cp-textarea {
@@ -268,18 +347,7 @@ defineExpose({ open: () => { open.value = true; }, close });
   font-size: 12px;
 }
 
-.cp-answer-wrap { display: flex; flex-direction: column; gap: 6px; }
-.cp-answer-head { display: flex; align-items: center; justify-content: space-between; }
-.cp-answer {
-  font-family: var(--font-serif); font-size: 14px; line-height: 1.6;
-  color: var(--ink-2);
-  white-space: pre-wrap;
-  padding: 12px 14px;
-  background: var(--surface-2); border-radius: 8px;
-  border-left: 3px solid var(--accent-line);
-}
-
-.cp-cites { display: flex; flex-direction: column; gap: 6px; }
+.cp-cites { display: flex; flex-direction: column; gap: 6px; width: 100%; }
 .cp-cite-list { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 4px; }
 .cp-cite {
   display: grid; grid-template-columns: auto 1fr auto;

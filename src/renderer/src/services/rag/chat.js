@@ -1,24 +1,33 @@
-// RAG chat — single-turn question answering over the indexed manuscript.
+// RAG chat — question answering over the indexed manuscript, with optional
+// multi-turn history.
 //
-// askManuscript({ question, k, signal, onDelta, llmProvider, llmModel,
+// askManuscript({ question, history, k, signal, onDelta, llmProvider, llmModel,
 //                 embedProvider, embedModel })
 //   1. Loads the vector store for the active project.
-//   2. Embeds the question and retrieves the top-k closest scenes.
-//   3. Builds a chat prompt with cited excerpts.
+//   2. Embeds a query (prior user turn + current question, so follow-ups like
+//      "what about her sister?" still retrieve the right scenes).
+//   3. Builds a chat prompt with cited excerpts AND any prior turns.
 //   4. Streams the answer; returns { answer, citations, usage }.
 
 import { OpenAICompatClient } from "../openai-compat.js";
 import { friendlyAiError } from "../aiErrors.js";
 import { useAiStore } from "../../stores/ai.js";
 import { useProjectStore } from "../../stores/project.js";
-import { load, topK } from "./vectorStore.js";
+import { load } from "./vectorStore.js";
+import { topKHybrid } from "./hybrid.js";
 
 // ─── Prompt templates ────────────────────────────────────────────────────
 
 const SYSTEM_PROMPT =
   "You are an assistant answering questions about a novel manuscript. " +
   "Use ONLY the provided excerpts. Cite each claim by chapter using the " +
-  "bracketed reference numbers (e.g. [1], [2]) that appear before each excerpt.";
+  "bracketed reference numbers (e.g. [1], [2]) that appear before each excerpt. " +
+  "When the user asks a follow-up, use prior turns for pronoun/entity context but " +
+  "still cite only from the freshly retrieved excerpts.";
+
+// Truncation policy: keep at most the last 8 messages (≈ 4 Q/A pairs) from
+// history. Beyond that, retrieval handles long-range memory anyway.
+const MAX_HISTORY_MESSAGES = 8;
 
 /**
  * Build the user message from a question and an array of ranked hits.
@@ -50,10 +59,33 @@ function buildUserMessage(question, hits) {
 // ─── Public API ───────────────────────────────────────────────────────────
 
 /**
+ * Build the history-aware embedding query.
+ *
+ * For a stand-alone question we just embed the question. For a follow-up
+ * (history non-empty) we prepend the most recent prior USER turn so terms
+ * like "she" / "the same chapter" / "what about her sister?" still pull
+ * back entity-relevant scenes. Cheaper than a query-rewrite LLM call and
+ * empirically good enough.
+ *
+ * @param {string} question
+ * @param {Array<{role:string, content:string}>} history
+ * @returns {string}
+ */
+function buildEmbedQuery(question, history) {
+  const lastUser = [...history].reverse().find((m) => m?.role === "user");
+  if (!lastUser?.content) return question.trim();
+  return `${lastUser.content.trim()}\n\n${question.trim()}`;
+}
+
+/**
  * Answer a question about the manuscript using RAG.
  *
  * @param {object} opts
  * @param {string}      opts.question
+ * @param {Array<{role:"user"|"assistant", content:string}>} [opts.history=[]]
+ *                                            — prior turns; the latest user
+ *                                              question should NOT be included
+ *                                              (pass it as `question`).
  * @param {number}      [opts.k=6]            — number of chunks to retrieve
  * @param {AbortSignal} [opts.signal]
  * @param {Function}    [opts.onDelta]         — (delta: string, content: string) => void
@@ -65,6 +97,7 @@ function buildUserMessage(question, hits) {
  */
 export async function askManuscript({
   question,
+  history = [],
   k = 6,
   signal,
   onDelta,
@@ -109,12 +142,13 @@ export async function askManuscript({
     );
   }
 
-  // ── 3. Embed the question ────────────────────────────────────────────────
+  // ── 3. Embed the (history-aware) query ───────────────────────────────────
   const embedClient = new OpenAICompatClient(resolvedEmbedProvider);
+  const embedQuery = buildEmbedQuery(question, history);
   let queryVectors;
   try {
     queryVectors = await embedClient.embed({
-      input: question.trim(),
+      input: embedQuery,
       model: resolvedEmbedModel,
       signal,
     });
@@ -127,8 +161,8 @@ export async function askManuscript({
     throw new Error("Embedding the question returned an empty vector.");
   }
 
-  // ── 4. Retrieve top-k chunks ─────────────────────────────────────────────
-  const hits = topK(store, queryVec, k);
+  // ── 4. Retrieve top-k chunks (hybrid: BM25 + cosine, blended via RRF) ────
+  const hits = topKHybrid(store, queryVec, embedQuery, k);
 
   if (!hits.length) {
     throw new Error(
@@ -136,9 +170,15 @@ export async function askManuscript({
     );
   }
 
-  // ── 5. Build prompt ──────────────────────────────────────────────────────
+  // ── 5. Build prompt (system + truncated history + final user msg) ────────
+  const recentHistory = history
+    .filter((m) => m && (m.role === "user" || m.role === "assistant") && m.content)
+    .slice(-MAX_HISTORY_MESSAGES)
+    .map((m) => ({ role: m.role, content: m.content }));
+
   const messages = [
     { role: "system", content: SYSTEM_PROMPT },
+    ...recentHistory,
     { role: "user",   content: buildUserMessage(question, hits) },
   ];
 
@@ -177,10 +217,15 @@ export async function askManuscript({
   }
 
   // ── 8. Return ────────────────────────────────────────────────────────────
-  const citations = hits.map(({ chunk, score }, i) => ({
+  // The citation "score" surfaced to the UI is the cosine similarity
+  // (the most human-interpretable number — "85% match"). The RRF blend
+  // score is what determined RANK, but it'd display as ~0.02 which
+  // isn't meaningful to a reader. bmScore is kept for debugging only.
+  const citations = hits.map(({ chunk, cosScore, bmScore }, i) => ({
     index: i + 1,   // 1-based to match the [1] refs in the prompt
     chunk,
-    score,
+    score: cosScore ?? 0,
+    bmScore,
   }));
 
   return { answer, citations, usage };

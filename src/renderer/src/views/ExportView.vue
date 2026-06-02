@@ -170,7 +170,7 @@ async function exportM4b({ partial = false } = {}) {
       <!-- Format picker -->
       <div class="card">
         <div class="card-title">Format</div>
-        <div style="display:grid;grid-template-columns:repeat(4, 1fr);gap:10px;margin-top:10px">
+        <div class="format-picker" style="display:grid;gap:10px;margin-top:10px">
           <button v-for="f in FORMATS" :key="f.id" @click="go(f.id)"
             :style="`text-align:left;padding:14px;border-radius:10px;background:${fmt === f.id ? 'var(--accent-soft)' : 'var(--surface-2)'};border:${fmt === f.id ? '1.5px solid var(--accent)' : '1px solid var(--border)'}`">
             <span style="width:32px;height:32px;border-radius:7px;background:var(--surface);display:grid;place-items:center;color:var(--muted)">
@@ -271,7 +271,7 @@ async function exportM4b({ partial = false } = {}) {
             <template v-else-if="fmt === 'docx'">Editable Word document — keeps chapter headings, scene breaks, and block quotes. Word will offer to refresh the TOC on first open.</template>
             <template v-else>EPUB 3 — one HTML file per part and chapter, with a navigation document so readers like Apple Books, Kobo, and Calibre show the contents.</template>
           </p>
-          <div style="display:grid;grid-template-columns:repeat(3, 1fr);gap:14px;padding:14px;background:var(--surface-2);border-radius:8px;font-size:13px">
+          <div class="manuscript-stats" style="display:grid;gap:14px;padding:14px;background:var(--surface-2);border-radius:8px;font-size:13px">
             <div>
               <div class="t-muted" style="font-size:11px">Parts</div>
               <b class="t-num" style="font-size:18px;font-family:var(--font-serif)">{{ manuscriptStats.parts }}</b>
@@ -322,6 +322,14 @@ async function exportM4b({ partial = false } = {}) {
 </template>
 
 <style scoped>
+.format-picker { grid-template-columns: repeat(4, minmax(0, 1fr)); }
+.manuscript-stats { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+
+@media (max-width: 900px) {
+  .format-picker { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .manuscript-stats { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+}
+
 .indeterminate {
   position: absolute; inset: 0;
   background: linear-gradient(90deg, transparent, var(--accent), transparent);

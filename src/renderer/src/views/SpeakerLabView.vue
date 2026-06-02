@@ -1468,7 +1468,8 @@ function copyOutput(run) {
 .lab .badge.pulse { background: var(--accent); color: var(--on-accent); animation: lab-pulse 1.2s ease-in-out infinite; }
 @keyframes lab-pulse { 0%,100% { opacity: 1; } 50% { opacity: 0.6; } }
 
-.lab .metrics { display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; padding: 8px 0; border-top: 1px solid var(--border-soft); border-bottom: 1px solid var(--border-soft); }
+.lab .metrics { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 8px; padding: 8px 0; border-top: 1px solid var(--border-soft); border-bottom: 1px solid var(--border-soft); }
+@media (max-width: 900px) { .lab .metrics { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
 .lab .metric { display: flex; flex-direction: column; gap: 1px; font-size: 11px; align-items: flex-start; }
 .lab .metric b { font-size: 16px; font-weight: 600; color: var(--ink); }
 .lab .metric i { font-style: normal; font-size: 10px; }

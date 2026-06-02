@@ -577,7 +577,7 @@ async function deleteCategory(c) {
   <PaneHeader eyebrow="Project" title="Settings" />
   <div class="pane-card">
     <div class="scrollarea" style="padding:22px">
-    <div style="display:grid;grid-template-columns:220px 1fr;gap:22px;max-width:1100px">
+    <div class="settings-layout" style="display:grid;grid-template-columns:220px 1fr;gap:22px;max-width:1100px">
       <!-- Section nav -->
       <nav style="display:flex;flex-direction:column;gap:2px">
         <button v-for="s in SECTIONS" :key="s.id"
@@ -799,6 +799,14 @@ async function deleteCategory(c) {
               :searchable="false"
               placeholder="Pick a provider"
               chev-title="Choose default TTS provider" />
+            <span class="t-muted">Auto-rebuild RAG</span>
+            <label style="display:flex;align-items:center;gap:8px;cursor:pointer">
+              <Checkbox :model-value="ai.autoRebuildRagIndex" :binary="true"
+                @update:model-value="ai.setAutoRebuildRagIndex" />
+              <span style="color:var(--ink-2);font-size:12.5px;line-height:1.45">
+                Embed new and changed scenes a minute after the last edit. Costs nothing on local embedding providers; cloud embeddings will accrue tokens.
+              </span>
+            </label>
           </div>
         </div>
 
@@ -856,7 +864,7 @@ async function deleteCategory(c) {
 
         <div class="card">
           <div class="card-title">Quick setup tips</div>
-          <div style="display:grid;grid-template-columns:repeat(2, 1fr);gap:14px;font-size:12.5px;color:var(--ink-2)">
+          <div class="settings-tips-grid" style="display:grid;grid-template-columns:repeat(2, minmax(0, 1fr));gap:14px;font-size:12.5px;color:var(--ink-2)">
             <div>
               <b style="font-size:12.5px;color:var(--ink)">OpenAI-compatible (local)</b>
               <p style="margin:4px 0 0;line-height:1.55">
@@ -1072,7 +1080,7 @@ async function deleteCategory(c) {
         <!-- Mode -->
         <div class="card">
           <div class="card-title">Mode</div>
-          <div style="display:grid;grid-template-columns:repeat(3, 1fr);gap:10px">
+          <div class="settings-mode-grid" style="display:grid;grid-template-columns:repeat(3, minmax(0, 1fr));gap:10px">
             <button v-for="t in THEMES" :key="t.id"
               class="theme-tile" :class="{ active: ap.mode === t.id }"
               @click="setAp({ mode: t.id })">
@@ -1523,7 +1531,7 @@ async function deleteCategory(c) {
 
         <div class="card">
           <div class="card-title">This workspace</div>
-          <div style="display:grid;grid-template-columns:repeat(3, 1fr);gap:14px">
+          <div class="settings-stats-grid" style="display:grid;grid-template-columns:repeat(3, minmax(0, 1fr));gap:14px">
             <div class="stat-tile">
               <div class="stat-num">{{ stats.chapters }}</div>
               <div class="stat-label">Chapters</div>
@@ -1948,6 +1956,20 @@ async function deleteCategory(c) {
   margin-bottom: 8px;
 }
 .usage-dt { font-size: 12px; font-variant-numeric: tabular-nums; }
+
+@media (max-width: 900px) {
+  /* Collapse side-nav + content from 220px 1fr → stacked */
+  .settings-layout { grid-template-columns: 1fr !important; }
+  /* Mode tiles (3 cols) → 2 cols */
+  .settings-mode-grid { grid-template-columns: repeat(2, minmax(0, 1fr)) !important; }
+  /* About stats (3 cols) → 2 cols */
+  .settings-stats-grid { grid-template-columns: repeat(2, minmax(0, 1fr)) !important; }
+  /* AI quick-tips (2 cols) → 1 col */
+  .settings-tips-grid { grid-template-columns: 1fr !important; }
+  /* Provider row (auto 1fr auto auto auto) → allow wrap */
+  .provider-row { grid-template-columns: auto 1fr !important; }
+  .provider-row .provider-actions { grid-column: 1 / -1; display: flex; gap: 8px; justify-content: flex-end; }
+}
 
 /* wb-toolbar / wb-search reused from WorldbuildingView pattern */
 .wb-toolbar { display: flex; align-items: center; gap: 10px; }

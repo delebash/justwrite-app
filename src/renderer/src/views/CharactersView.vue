@@ -185,7 +185,7 @@ function updateBackstory(v) { project.setCharacterExtras(ch.value.id, { backstor
 
       <div style="margin-top:22px">
         <div class="t-eyebrow" style="margin-bottom:10px">Motivation</div>
-        <div style="display:grid;grid-template-columns:repeat(2, 1fr);gap:10px">
+        <div class="motivation-grid" style="display:grid;gap:10px">
           <div v-for="i in MOTIVATIONS" :key="i.k"
             :style="`padding:14px;border-radius:10px;background:${i.bg};border:1px solid color-mix(in oklab, ${i.color}, white 60%)`">
             <div :style="`font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:0.06em;color:${i.color};margin-bottom:6px`">{{ i.label }}</div>
@@ -198,7 +198,7 @@ function updateBackstory(v) { project.setCharacterExtras(ch.value.id, { backstor
       <div style="margin-top:22px">
         <div class="t-eyebrow" style="margin-bottom:10px">Arc</div>
         <div class="card tight" style="padding:0;overflow:hidden">
-          <div style="display:grid;grid-template-columns:1fr 1fr 1fr">
+          <div class="arc-grid" style="display:grid">
             <div v-for="(s, i) in ARC_STEPS" :key="s.k"
               :style="`padding:14px;${i < 2 ? 'border-right:1px solid var(--border);' : ''}`">
               <div style="display:flex;align-items:center;gap:8px;margin-bottom:6px">
@@ -309,5 +309,15 @@ function updateBackstory(v) { project.setCharacterExtras(ch.value.id, { backstor
   text-transform: none;
   letter-spacing: 0;
   font-weight: 500;
+}
+
+.motivation-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+.arc-grid { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+
+@media (max-width: 900px) {
+  .motivation-grid { grid-template-columns: 1fr; }
+  .arc-grid { grid-template-columns: 1fr; }
+  .arc-grid > div { border-right: 0 !important; border-bottom: 1px solid var(--border); }
+  .arc-grid > div:last-child { border-bottom: 0; }
 }
 </style>

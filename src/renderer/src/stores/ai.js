@@ -115,6 +115,7 @@ function save(state) {
       defaultTtsId: state.defaultTtsId,
       defaultEmbeddingId: state.defaultEmbeddingId,
       modelTiers: state.modelTiers,
+      autoRebuildRagIndex: state.autoRebuildRagIndex,
     }));
   } catch {}
 }
@@ -138,6 +139,11 @@ export const useAiStore = defineStore("ai", {
       // judgement. Empty by default; the heuristic in modelMeta.js
       // provides the auto-detected tier when nothing is pinned.
       modelTiers: loaded?.modelTiers ?? {},
+      // When true, services/rag/autoIndex.js silently embeds new/changed
+      // scenes a minute after the last edit. Default OFF — auto-firing
+      // burns embed tokens on every save against a cloud provider, which
+      // the user shouldn't get without opting in.
+      autoRebuildRagIndex: loaded?.autoRebuildRagIndex ?? false,
       // Usage ledger — every LLM call routed through writerAI (and any
       // future feature that uses recordUsage) appends a row. Aggregates
       // are maintained alongside so a settings page can render totals
@@ -202,6 +208,10 @@ export const useAiStore = defineStore("ai", {
     },
     setDefaultEmbedding(id) {
       this.defaultEmbeddingId = id;
+      save(this.$state);
+    },
+    setAutoRebuildRagIndex(on) {
+      this.autoRebuildRagIndex = !!on;
       save(this.$state);
     },
     // Pin a tier override for a specific model. Pass null/undefined to

@@ -180,3 +180,20 @@ export function topK(store, queryVec, k = 8) {
   results.sort((a, b) => b.score - a.score);
   return results.slice(0, k);
 }
+
+/**
+ * Per-entry cosine score map. Used by hybrid search to blend with BM25.
+ *
+ * @param {object} store
+ * @param {number[]} queryVec
+ * @returns {Map<string, number>}
+ */
+export function cosineScores(store, queryVec) {
+  const qDim = queryVec.length;
+  const scores = new Map();
+  for (const [id, entry] of Object.entries(store.entries || {})) {
+    if (!entry.vector || entry.vector.length !== qDim) continue;
+    scores.set(id, cosine(queryVec, entry.vector));
+  }
+  return scores;
+}
