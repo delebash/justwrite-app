@@ -233,6 +233,20 @@ html[data-theme="dark"] body {
 button { font: inherit; color: inherit; cursor: default; }
 input, textarea, select { font: inherit; color: inherit; }
 
+/* Kill the browser-default focus ring on form controls. Every input /
+   textarea / select / button in the app has its own :focus styling (the
+   warm accent-soft glow via .input:focus, .btn:focus, etc.), so the
+   user-agent's blue accessibility ring is redundant and visually clashes
+   with the editorial palette. Tauri's WebView2 doesn't show this ring
+   the same way Chrome does, which is why this only became visible when
+   testing in a browser tab. */
+input:focus, input:focus-visible,
+textarea:focus, textarea:focus-visible,
+select:focus, select:focus-visible,
+button:focus, button:focus-visible {
+  outline: none;
+}
+
 /* Custom scrollbars in panels */
 .scrollarea { overflow-y: auto; scrollbar-width: thin; scrollbar-color: var(--border-strong) transparent; }
 .scrollarea::-webkit-scrollbar { width: 10px; height: 10px; }
