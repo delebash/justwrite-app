@@ -67,12 +67,15 @@ export const JustWriteEditorial = definePreset(Aura, {
           // Focus ring — match the OLD .input look. Aura's default ring
           // is the primary color at 24% alpha which read as a blue glow;
           // we want the warm accent-soft glow the custom CSS used.
+          // No glow ring — the focusBorderColor change is enough. Matches
+          // the OLD .input:focus behavior the user actually wanted: just
+          // the border switches to accent on focus, no surrounding halo.
           focusRing: {
-            width:  "3px",
-            style:  "solid",
-            color:  "var(--accent-soft)",
+            width:  "0",
+            style:  "none",
+            color:  "transparent",
             offset: "0",
-            shadow: "0 0 0 3px var(--accent-soft)",
+            shadow: "none",
           },
         },
         content: {
@@ -136,12 +139,15 @@ export const JustWriteEditorial = definePreset(Aura, {
           borderRadius:      "7px",
           paddingX:          "10px",
           paddingY:          "6px",
+          // No glow ring — the focusBorderColor change is enough. Matches
+          // the OLD .input:focus behavior the user actually wanted: just
+          // the border switches to accent on focus, no surrounding halo.
           focusRing: {
-            width:  "3px",
-            style:  "solid",
-            color:  "var(--accent-soft)",
+            width:  "0",
+            style:  "none",
+            color:  "transparent",
             offset: "0",
-            shadow: "0 0 0 3px var(--accent-soft)",
+            shadow: "none",
           },
         },
         content: {

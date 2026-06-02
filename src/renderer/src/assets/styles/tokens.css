@@ -856,7 +856,7 @@ input.nav-part-title:focus { border-color: var(--accent); background: var(--surf
   outline: none;
   width: 100%;
 }
-.input:focus, .textarea:focus { border-color: var(--accent); box-shadow: 0 0 0 3px var(--accent-soft); }
+.input:focus, .textarea:focus { border-color: var(--accent); }
 
 .chip {
   display: inline-flex; align-items: center; gap: 5px;
