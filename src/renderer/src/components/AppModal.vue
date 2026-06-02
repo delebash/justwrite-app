@@ -1,81 +1,63 @@
 <script setup>
-// Shared modal wrapper — overlay + box + header (eyebrow/title/close)
-// + scrollable body + optional sticky footer. Hand-written modals
-// duplicated this shell ten times before this component existed.
+// Shared modal wrapper — now a thin skin over PrimeVue's <Dialog> so every
+// modal inherits one focus trap, ESC/mask handling, and transition. The
+// public API is unchanged from the hand-rolled version, so the ~10 consumers
+// need no edits: parents still render this with `v-if + @close` and the same
+// eyebrow / title / wide / noPadding props + header / footer / default slots.
+//
+// Chrome (header border-bottom, footer border-top, content scroll, width)
+// lives in tokens.css under `.app-modal`, keyed off the class passed below.
 //
 // Slots:
-//   default — body content (always scrollable inside .modal-body)
-//   header  — replaces the default eyebrow/title/close trio (rare; use props instead)
+//   default — body content (scrollable)
+//   header  — replaces the default eyebrow/title block (close button stays)
 //   footer  — optional sticky footer for action buttons
 //
-// Props:
-//   eyebrow / title — header content via the default header
-//   wide            — boolean, widens the modal for diff/compare views
-//   noPadding       — boolean, drops .modal-body's inset for content
-//                     that owns its own padding (chat, lists)
+// Props: eyebrow / title — default header content. wide — widens for
+//   diff/compare views. noPadding — drops content inset (chat, lists).
 //
-// Emits: close (fires on backdrop click, Esc, or X-button click)
+// Emits: close (fires on backdrop click, Esc, or the Dialog's X button)
 
-import { onMounted, onBeforeUnmount } from "vue";
-import Icon from "./Icon.vue";
+import { ref, watch } from "vue";
+import Dialog from "primevue/dialog";
 
 const props = defineProps({
-  eyebrow: { type: String, default: "" },
-  title:   { type: String, default: "" },
-  wide:    { type: Boolean, default: false },
+  eyebrow:   { type: String, default: "" },
+  title:     { type: String, default: "" },
+  wide:      { type: Boolean, default: false },
   noPadding: { type: Boolean, default: false },
 });
 const emit = defineEmits(["close"]);
 
-function close() { emit("close"); }
-function onKey(e) { if (e.key === "Escape") close(); }
-
-onMounted(() => document.addEventListener("keydown", onKey));
-onBeforeUnmount(() => document.removeEventListener("keydown", onKey));
+// Dialog is visibility-driven; parents are mount-driven (v-if + @close). Hold
+// our own visible flag, start open, and translate a close back into the emit
+// the parents already listen for.
+const visible = ref(true);
+watch(visible, (v) => { if (!v) emit("close"); });
 </script>
 
 <template>
-  <div class="modal-overlay" @click.self="close">
-    <div class="modal app-modal" :class="{ 'app-modal--wide': wide }" role="dialog" aria-modal="true">
-      <header class="modal-head app-modal-head">
-        <slot name="header">
-          <div class="app-modal-titleblock">
-            <div v-if="eyebrow" class="t-eyebrow">{{ eyebrow }}</div>
-            <div v-if="title" class="modal-title">{{ title }}</div>
-          </div>
-        </slot>
-        <button class="app-modal-close" @click="close" title="Close (Esc)">
-          <Icon name="Close" :size="14" />
-        </button>
-      </header>
-      <div class="modal-body app-modal-body" :class="{ 'app-modal-body--flush': noPadding }">
-        <slot />
-      </div>
-      <footer v-if="$slots.footer" class="app-modal-footer">
-        <slot name="footer" />
-      </footer>
-    </div>
-  </div>
-</template>
+  <Dialog
+    v-model:visible="visible"
+    modal
+    dismissableMask
+    :draggable="false"
+    class="app-modal"
+    :class="{ 'app-modal--wide': wide, 'app-modal--flush': noPadding }"
+  >
+    <template #header>
+      <slot name="header">
+        <div class="app-modal-titleblock">
+          <div v-if="eyebrow" class="t-eyebrow">{{ eyebrow }}</div>
+          <div v-if="title" class="modal-title">{{ title }}</div>
+        </div>
+      </slot>
+    </template>
 
-<style scoped>
-.app-modal--wide { width: min(960px, 96vw); max-height: 90vh; }
-.app-modal-head { gap: 14px; align-items: flex-start; }
-.app-modal-titleblock { display: flex; flex-direction: column; gap: 2px; min-width: 0; }
-.app-modal-close {
-  width: 28px; height: 28px; flex-shrink: 0;
-  display: grid; place-items: center;
-  border: 0; background: transparent;
-  color: var(--muted); border-radius: 6px;
-  cursor: pointer;
-}
-.app-modal-close:hover { background: var(--surface-2); color: var(--ink); }
-.app-modal-body { flex: 1; min-height: 0; }
-.app-modal-body--flush { padding: 0; }
-.app-modal-footer {
-  display: flex; align-items: center; gap: 10px;
-  padding: 12px 22px;
-  border-top: 1px solid var(--border);
-  background: var(--surface);
-}
-</style>
+    <slot />
+
+    <template v-if="$slots.footer" #footer>
+      <slot name="footer" />
+    </template>
+  </Dialog>
+</template>

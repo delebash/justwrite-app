@@ -4,6 +4,8 @@ import { useProjectStore } from "../stores/project.js";
 import { useUiStore } from "../stores/ui.js";
 import { useRouter } from "vue-router";
 import Icon from "../components/Icon.vue";
+import InputText from "primevue/inputtext";
+import Button from "primevue/button";
 import ImagesModal from "../components/ImagesModal.vue";
 import RichEditor from "../components/RichEditor.vue";
 import { EDITOR_TOOLBAR_DOC } from "../services/editorToolbars.js";
@@ -51,20 +53,20 @@ async function deleteLocation() {
         @input="update('name', $event.target.value)" />
     </div>
     <div class="pane-actions">
-      <button class="btn ghost sm" @click="modal = 'images'"><Icon name="Image" :size="14" /> Images</button>
+      <Button severity="secondary" text size="small" @click="modal = 'images'"><Icon name="Image" :size="14" /> Images</Button>
       <router-link :to="`/locations/${loc.id}/events`" custom v-slot="{ navigate }">
-        <button class="btn ghost sm" @click="navigate"><Icon name="Calendar" :size="14" /> Events</button>
+        <Button severity="secondary" text size="small" @click="navigate"><Icon name="Calendar" :size="14" /> Events</Button>
       </router-link>
-      <button class="btn ghost sm" @click="modal = 'groups'"><Icon name="GroupIcon" :size="14" /> Groups</button>
-      <button class="btn ghost sm" @click="deleteLocation">Delete</button>
-      <button class="btn primary sm" @click="addLocation"><Icon name="Plus" :size="14" /> New location</button>
+      <Button severity="secondary" text size="small" @click="modal = 'groups'"><Icon name="GroupIcon" :size="14" /> Groups</Button>
+      <Button severity="secondary" text size="small" @click="deleteLocation">Delete</Button>
+      <Button severity="primary" size="small" @click="addLocation"><Icon name="Plus" :size="14" /> New location</Button>
       <StatusSelect :model-value="loc.status || ''" @update:model-value="(v) => update('status', v)" />
     </div>
   </header>
   <div class="pane-card">
     <div style="padding:24px 28px 40px;display:flex;flex-direction:column;gap:14px;flex:1;min-height:0">
-      <input class="input" placeholder="Kind"
-        :value="loc.kind" @input="update('kind', $event.target.value)" />
+      <InputText fluid placeholder="Kind"
+        :model-value="loc.kind" @update:model-value="update('kind', $event)" />
       <RichEditor
         :model-value="loc.note || ''"
         placeholder="Description"

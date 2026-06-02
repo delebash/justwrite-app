@@ -34,6 +34,7 @@ import { PROSE_RULES, PROSE_RULE_ORDER } from "@renderer/services/writerAI";
 import { useAiProgress } from "@renderer/composables/useAiProgress";
 import { useUiStore } from "../stores/ui.js";
 import Icon from "./Icon.vue";
+import Button from "primevue/button";
 import EditorSettingsModal from "./EditorSettingsModal.vue";
 import AiProgressBar from "./AiProgressBar.vue";
 
@@ -1007,16 +1008,16 @@ defineExpose({ editor });
       <template v-if="commentState.mode === 'edit'">
         <textarea ref="commentInput" v-model="commentState.text" class="comment-pop-input" rows="3" placeholder="Add a comment…" />
         <div class="comment-pop-actions">
-          <button class="btn ghost sm" @click="closeComment">Cancel</button>
-          <button class="btn primary sm" @click="saveComment">Save</button>
+          <Button severity="secondary" text size="small" @click="closeComment">Cancel</Button>
+          <Button severity="primary" size="small" @click="saveComment">Save</Button>
         </div>
       </template>
       <template v-else>
         <div class="comment-pop-text">{{ commentState.text }}</div>
         <div class="comment-pop-actions">
-          <button class="btn ghost sm" @click="deleteComment">Delete</button>
-          <button class="btn ghost sm" @click="editComment">Edit</button>
-          <button class="btn primary sm" @click="closeComment">Close</button>
+          <Button severity="secondary" text size="small" @click="deleteComment">Delete</Button>
+          <Button severity="secondary" text size="small" @click="editComment">Edit</Button>
+          <Button severity="primary" size="small" @click="closeComment">Close</Button>
         </div>
       </template>
     </div>

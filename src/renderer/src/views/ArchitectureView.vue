@@ -6,8 +6,10 @@ import { useUiStore } from "../stores/ui.js";
 import RichEditor from "../components/RichEditor.vue";
 import { EDITOR_TOOLBAR_DOC } from "../services/editorToolbars.js";
 import Icon from "../components/Icon.vue";
+import Button from "primevue/button";
 import StatusSelect from "../components/StatusSelect.vue";
 import Breadcrumb from "../components/Breadcrumb.vue";
+import Textarea from "primevue/textarea";
 
 const props = defineProps({ id: { type: String, default: "" } });
 const project = useProjectStore();
@@ -34,16 +36,16 @@ function openEvents() { router.push("/architecture/setting/events"); }
         :value="doc.title" @input="update('title', $event.target.value)" />
     </div>
     <div v-if="doc" class="pane-actions">
-      <button v-if="doc.id === 'setting'" class="btn ghost sm" @click="openEvents"><Icon name="Calendar" :size="14" /> Events</button>
+      <Button v-if="doc.id === 'setting'" severity="secondary" text size="small" @click="openEvents"><Icon name="Calendar" :size="14" /> Events</Button>
       <StatusSelect :model-value="doc.status || ''" @update:model-value="(v) => update('status', v)" />
     </div>
   </header>
 
   <div v-if="doc" class="pane-card">
     <div class="arch-wrap scrollarea">
-      <textarea class="input arch-blurb" rows="2"
+      <Textarea fluid class="arch-blurb" rows="2"
         placeholder="Blurb"
-        :value="doc.blurb" @input="update('blurb', $event.target.value)" />
+        :model-value="doc.blurb" @update:model-value="update('blurb', $event)" />
 
       <RichEditor
         :model-value="doc.body"

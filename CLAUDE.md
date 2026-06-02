@@ -2,6 +2,10 @@
 
 This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
 
+## Active work
+
+A PrimeVue UI migration ("Path B") is in progress. **See [MIGRATION.md](MIGRATION.md) for phase-by-phase status and what's next** — read it before continuing migration work, and update it in the same commit that lands a phase.
+
 ## Commands
 
 ```bash

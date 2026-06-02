@@ -225,12 +225,12 @@ function resetParam(key) { setParam(key, undefined); }
             free-text
             :placeholder="fetchedModels.length ? `Type to filter or click ▾ to pick from ${fetchedModels.length} models` : 'llama3.1:8b, gpt-4o-mini, …'"
             :chev-title="fetchedModels.length ? 'Show fetched models' : 'Fetch models first'" />
-          <button type="button" class="btn-ghost"
+          <Button severity="secondary" text type="button"
             :disabled="modelsLoading || !draft.baseUrl"
             @click="fetchModels"
             :title="draft.baseUrl ? 'Query GET /v1/models on the Base URL above' : 'Fill the Base URL first'">
             {{ modelsLoading ? "Loading…" : (fetchedModels.length ? "Refresh" : "Fetch models") }}
-          </button>
+          </Button>
           <div v-if="modelsError" class="t-muted" style="flex-basis:100%;font-size:11px;color:var(--danger,#c33)">
             {{ modelsError }}
           </div>
@@ -245,10 +245,10 @@ function resetParam(key) { setParam(key, undefined); }
                 @click="pinTier(t)">{{ TIERS[t].label }}</button>
             </div>
             <span class="t-muted" style="font-size:11px">{{ tierSource === 'pinned' ? 'pinned' : 'auto' }}</span>
-            <button v-if="tierSource === 'pinned'" type="button" class="btn-ghost"
+            <Button v-if="tierSource === 'pinned'" severity="secondary" text type="button"
               style="padding:2px 8px;font-size:11px"
               @click="clearTierPin"
-              title="Revert to the auto-detected tier">Clear pin</button>
+              title="Revert to the auto-detected tier">Clear pin</Button>
           </div>
         </template>
 
@@ -267,12 +267,12 @@ function resetParam(key) { setParam(key, undefined); }
             free-text
             :placeholder="fetchedModels.length ? `Type to filter or click ▾ to pick from ${fetchedModels.length} models` : 'tts-1, gpt-4o-mini-tts, …'"
             :chev-title="fetchedModels.length ? 'Show fetched models' : 'Fetch models first (use the button on the Chat model row, or set Kind to LLM+TTS)'" />
-          <button v-if="draft.kind === 'tts'" type="button" class="btn-ghost"
+          <Button v-if="draft.kind === 'tts'" severity="secondary" text type="button"
             :disabled="modelsLoading || !draft.baseUrl"
             @click="fetchModels"
             :title="draft.baseUrl ? 'Query GET /v1/models on the Base URL above' : 'Fill the Base URL first'">
             {{ modelsLoading ? "Loading…" : (fetchedModels.length ? "Refresh" : "Fetch models") }}
-          </button>
+          </Button>
           <div v-if="draft.kind === 'tts' && modelsError" class="t-muted" style="flex-basis:100%;font-size:11px;color:var(--danger,#c33)">
             {{ modelsError }}
           </div>
@@ -306,12 +306,12 @@ function resetParam(key) { setParam(key, undefined); }
               </li>
             </ul>
           </div>
-          <button type="button" class="btn-ghost"
+          <Button severity="secondary" text type="button"
             :disabled="voicesLoading || !draft.baseUrl"
             @click="fetchVoices"
             :title="draft.baseUrl ? 'Query GET /v1/audio/voices on the Base URL above' : 'Fill the Base URL first'">
             {{ voicesLoading ? "Loading…" : (fetchedVoices.length ? "Refresh" : "Fetch voices") }}
-          </button>
+          </Button>
           <div v-if="voicesError" class="t-muted" style="flex-basis:100%;font-size:11px;color:var(--danger,#c33)">
             {{ voicesError }}
           </div>

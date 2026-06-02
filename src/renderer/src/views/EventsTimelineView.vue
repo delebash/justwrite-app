@@ -5,6 +5,7 @@ import { useProjectStore } from "../stores/project.js";
 import { EVENTS_KIND_META } from "../services/eventsKind.js";
 import Icon from "../components/Icon.vue";
 import Breadcrumb from "../components/Breadcrumb.vue";
+import Button from "primevue/button";
 
 const props = defineProps({
   kind:     { type: String, required: true },
@@ -65,13 +66,13 @@ function goAdd()         { router.push(meta.value.newUrl(props.entityId)); }
       <h1 class="pane-h1">Events</h1>
     </div>
     <div class="pane-actions">
-      <button class="btn ghost sm" @click="goBack">
+      <Button severity="secondary" text size="small" @click="goBack">
         <Icon name="ChevRight" :size="12" style="transform:rotate(180deg)" />
         Back to {{ meta?.label }}
-      </button>
-      <button class="btn primary" @click="goAdd">
+      </Button>
+      <Button severity="primary" @click="goAdd">
         <Icon name="Plus" :size="13" /> Add event
-      </button>
+      </Button>
     </div>
   </header>
 
@@ -98,8 +99,8 @@ function goAdd()         { router.push(meta.value.newUrl(props.entityId)); }
             <div class="timeline-card-title">{{ ev.title || "Untitled event" }}</div>
             <div v-if="ev.note" class="timeline-card-note">{{ ev.note }}</div>
             <div class="timeline-card-actions">
-              <button class="btn ghost sm" @click="goEdit(ev.id)">edit</button>
-              <button class="btn ghost sm" @click="remove(ev.id)">delete</button>
+              <Button severity="secondary" text size="small" @click="goEdit(ev.id)">edit</Button>
+              <Button severity="secondary" text size="small" @click="remove(ev.id)">delete</Button>
             </div>
           </div>
         </article>
@@ -116,18 +117,5 @@ function goAdd()         { router.push(meta.value.newUrl(props.entityId)); }
   margin-top: 8px;
   display: flex;
   gap: 6px;
-}
-.timeline-card-actions .btn {
-  padding: 2px 8px;
-  font-size: 11.5px;
-  border: 1px solid var(--border);
-  background: var(--surface);
-  color: var(--ink-2);
-  border-radius: 4px;
-}
-.timeline-card-actions .btn:hover {
-  background: var(--surface-2);
-  color: var(--ink);
-  border-color: var(--border-strong);
 }
 </style>

@@ -5,6 +5,7 @@ import { useProjectStore } from "../stores/project.js";
 import { useUiStore } from "../stores/ui.js";
 import { useSessionsStore, DOW_LABELS_MONDAY_FIRST, reorderForMonday } from "../stores/sessions.js";
 import Icon from "../components/Icon.vue";
+import Button from "primevue/button";
 
 const router = useRouter();
 const project = useProjectStore();
@@ -112,12 +113,12 @@ const strandCount = (id) => allCh.value.filter((c) => (c.strands || []).includes
         @input="project.updateProjectMeta({ title: $event.target.value })" />
     </div>
     <div class="pane-actions">
-      <button class="btn ghost" @click="goToday"><Icon name="Calendar" :size="14" /> Today</button>
+      <Button severity="secondary" text @click="goToday"><Icon name="Calendar" :size="14" /> Today</Button>
       <router-link to="/import" custom v-slot="{ navigate }">
-        <button class="btn ghost" @click="navigate"><Icon name="Plus" :size="14" /> Import manuscript</button>
+        <Button severity="secondary" text @click="navigate"><Icon name="Plus" :size="14" /> Import manuscript</Button>
       </router-link>
       <router-link to="/chapters" custom v-slot="{ navigate }">
-        <button class="btn primary" @click="navigate"><Icon name="Plus" :size="14" /> Quick write</button>
+        <Button severity="primary" @click="navigate"><Icon name="Plus" :size="14" /> Quick write</Button>
       </router-link>
     </div>
   </header>
@@ -193,7 +194,7 @@ const strandCount = (id) => allCh.value.filter((c) => (c.strands || []).includes
           </div>
         </div>
         <div class="resume-cta">
-          <button class="btn accent" @click="resume"><Icon name="Play" :size="14" :fill="true" /> Resume writing</button>
+          <Button @click="resume"><Icon name="Play" :size="14" :fill="true" /> Resume writing</Button>
         </div>
       </div>
 
@@ -341,7 +342,7 @@ const strandCount = (id) => allCh.value.filter((c) => (c.strands || []).includes
 .resume-sub .dot-sep { color: var(--subtle); }
 .resume-today { color: var(--accent-ink); }
 .resume-cta { display: flex; align-items: center; }
-.resume-cta .btn { padding: 11px 22px; font-size: 13.5px; }
+.resume-cta :deep(.p-button) { padding: 11px 22px; font-size: 13.5px; }
 
 @media (max-width: 720px) {
   .resume-card { grid-template-columns: 1fr; }

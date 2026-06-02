@@ -7,6 +7,7 @@ import PaneHeader from "../components/PaneHeader.vue";
 import Icon from "../components/Icon.vue";
 import { parseFile, normalizeHtml } from "../services/import/index.js";
 import EntitySweepModal from "../components/EntitySweepModal.vue";
+import Button from "primevue/button";
 
 const router = useRouter();
 const project = useProjectStore();
@@ -195,7 +196,7 @@ function finishAfterSweep() {
 <template>
   <PaneHeader eyebrow="Manuscript" title="Import">
     <router-link to="/" custom v-slot="{ navigate }">
-      <button class="btn ghost sm" @click="navigate">Cancel</button>
+      <Button severity="secondary" text size="small" @click="navigate">Cancel</Button>
     </router-link>
   </PaneHeader>
 
@@ -312,10 +313,10 @@ function finishAfterSweep() {
                 <div class="ps-lbl">source</div>
               </div>
             </div>
-            <button class="btn ghost sm" @click="restart">
+            <Button severity="secondary" text size="small" @click="restart">
               <Icon name="ChevRight" :size="11" style="transform:rotate(180deg)" />
               Choose a different file
-            </button>
+            </Button>
           </div>
 
           <div v-if="warnings.length" class="wiz-warnings">
@@ -339,12 +340,12 @@ function finishAfterSweep() {
               <span class="ch-num">{{ i + 1 }}</span>
               <input class="ch-title" v-model="c.title" placeholder="Untitled chapter" :disabled="c.drop" />
               <span class="ch-words">{{ wordCount(c.html).toLocaleString() }} w</span>
-              <button class="btn ghost xs ch-drop"
+              <Button severity="secondary" text size="small" class="ch-drop"
                 @click="dropChapter(i)"
                 :title="c.drop ? 'Keep this chapter' : 'Drop this chapter'">
                 <Icon :name="c.drop ? 'Plus' : 'Trash'" :size="12" />
                 {{ c.drop ? "Keep" : "Drop" }}
-              </button>
+              </Button>
               <div class="ch-preview" v-if="!c.drop">{{ preview(c.html) }}</div>
               <div class="ch-preview ch-dropped-msg" v-else>Will not be imported.</div>
             </li>
@@ -363,13 +364,13 @@ function finishAfterSweep() {
         </section>
 
         <section class="wiz-section wiz-actions">
-          <button class="btn ghost" @click="restart">Start over</button>
-          <button class="btn primary" :disabled="!validChapters.length" @click="ingest">
+          <Button severity="secondary" text @click="restart">Start over</Button>
+          <Button severity="primary" :disabled="!validChapters.length" @click="ingest">
             <Icon name="Check" :size="13" />
             {{ intent === "narrate" ? "Import & open Studio"
               : intent === "new" ? "Create book"
               : "Import chapters" }}
-          </button>
+          </Button>
         </section>
       </div>
     </div>

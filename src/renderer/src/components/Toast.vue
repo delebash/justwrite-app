@@ -1,42 +1,47 @@
 <script setup>
-import { useUiStore } from "../stores/ui.js";
-const ui = useUiStore();
+// Toast host — now a skin over PrimeVue's <Toast>. Mounted once in App.vue.
+// On setup it grabs the live ToastService (only reachable here, in component
+// context) and hands it to the toast bridge so ui.showToast() can fire from
+// anywhere. The #message slot renders the message + the optional inline
+// action button (e.g. soft-delete's "Undo"); PrimeVue draws the close button.
 
-function trigger() {
-  const a = ui.toast?.action;
-  if (!a) return;
-  a.fn();
-  ui.dismissToast();
+import PvToast from "primevue/toast";
+import { useToast } from "primevue/usetoast";
+import { bindToastService } from "../services/toastBridge.js";
+
+bindToastService(useToast());
+
+function runAction(message) {
+  message.action?.fn?.();
+  // useToast().remove dismisses this specific message.
+  useToast().remove(message);
 }
 </script>
 
 <template>
-  <Transition name="toast">
-    <div v-if="ui.toast" class="toast" role="status">
-      <span class="toast-msg">{{ ui.toast.message }}</span>
-      <button v-if="ui.toast.action" class="toast-action" @click="trigger">
-        {{ ui.toast.action.label }}
-      </button>
-      <button class="toast-close" @click="ui.dismissToast" aria-label="Dismiss">×</button>
-    </div>
-  </Transition>
+  <PvToast position="bottom-center" group="app" class="jw-toast">
+    <template #message="{ message }">
+      <div class="jw-toast-content">
+        <span class="jw-toast-msg">{{ message.summary }}</span>
+        <button
+          v-if="message.action"
+          class="jw-toast-action"
+          @click="runAction(message)"
+        >
+          {{ message.action.label }}
+        </button>
+      </div>
+    </template>
+  </PvToast>
 </template>
 
 <style scoped>
-.toast {
-  position: fixed; bottom: 24px; left: 50%;
-  transform: translateX(-50%);
-  background: var(--ink); color: var(--surface);
-  border-radius: 10px;
-  padding: 6px 6px 6px 16px;
+.jw-toast-content {
   display: flex; align-items: center; gap: 12px;
   font-size: 13px;
-  box-shadow: var(--shadow-2);
-  z-index: 200;
-  min-width: 280px; max-width: 480px;
 }
-.toast-msg { flex: 1; }
-.toast-action {
+.jw-toast-msg { flex: 1; }
+.jw-toast-action {
   appearance: none;
   background: var(--accent); color: var(--on-accent);
   border: 0;
@@ -45,21 +50,7 @@ function trigger() {
   font: inherit;
   font-weight: 600;
   font-size: 12px;
-  cursor: default;
+  cursor: pointer;
 }
-.toast-action:hover { filter: brightness(1.1); }
-.toast-close {
-  appearance: none;
-  background: transparent;
-  color: color-mix(in oklch, var(--surface) 70%, transparent);
-  border: 0;
-  width: 26px; height: 26px;
-  border-radius: 6px;
-  font-size: 16px;
-  cursor: default;
-}
-.toast-close:hover { background: color-mix(in oklch, var(--surface) 12%, transparent); color: var(--surface); }
-
-.toast-enter-active, .toast-leave-active { transition: opacity .2s ease, transform .2s ease; }
-.toast-enter-from, .toast-leave-to { opacity: 0; transform: translateX(-50%) translateY(12px); }
+.jw-toast-action:hover { filter: brightness(1.1); }
 </style>

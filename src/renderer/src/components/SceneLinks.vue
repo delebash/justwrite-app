@@ -8,6 +8,7 @@ import { computed } from "vue";
 import { useProjectStore } from "../stores/project.js";
 import { promptDialog } from "../services/dialog.js";
 import Icon from "./Icon.vue";
+import Button from "primevue/button";
 
 const props = defineProps({
   chapterId: { type: String, required: true },
@@ -110,7 +111,7 @@ function onBackdrop(e) {
     <div class="links-panel">
       <header class="links-head">
         <h2>Links</h2>
-        <button class="btn ghost icon" title="Close" @click="emit('close')">×</button>
+        <Button severity="secondary" text v-tooltip.bottom="'Close'" @click="emit('close')">×</Button>
       </header>
 
       <div class="links-body scrollarea">

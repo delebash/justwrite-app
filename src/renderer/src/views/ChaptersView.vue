@@ -14,6 +14,7 @@ import EmptyState from "../components/EmptyState.vue";
 import StatusSelect from "../components/StatusSelect.vue";
 import Breadcrumb from "../components/Breadcrumb.vue";
 import { promptDialog, confirmDialog } from "../services/dialog.js";
+import Button from "primevue/button";
 
 const props = defineProps({
   id: { type: String, default: "" },
@@ -507,20 +508,20 @@ watch(() => project.allChapters.map((c) => c.id + ":" + (project.scenesFor(c.id)
         </button>
       </div>
       <router-link v-if="prev" :to="`/chapters/${prev.id}`" custom v-slot="{ navigate }">
-        <button class="btn ghost sm" @click="navigate" :title="`Ch. ${prev.num} — ${prev.title}`">
+        <Button severity="secondary" text size="small" @click="navigate" :title="`Ch. ${prev.num} — ${prev.title}`">
           <Icon name="ChevRight" :size="12" style="transform:rotate(180deg)" /> Prev
-        </button>
+        </Button>
       </router-link>
       <router-link v-if="next" :to="`/chapters/${next.id}`" custom v-slot="{ navigate }">
-        <button class="btn ghost sm" @click="navigate" :title="`Ch. ${next.num} — ${next.title}`">
+        <Button severity="secondary" text size="small" @click="navigate" :title="`Ch. ${next.num} — ${next.title}`">
           Next <Icon name="ChevRight" :size="12" />
-        </button>
+        </Button>
       </router-link>
-      <button v-if="activeScene" class="btn ghost sm" @click="splitChapterHere" title="Split this chapter at the cursor">
+      <Button v-if="activeScene" severity="secondary" text size="small" @click="splitChapterHere" title="Split this chapter at the cursor">
         <Icon name="Replace" :size="13" /> Split here
-      </button>
-      <button class="btn ghost sm" @click="deleteChapter">Delete</button>
-      <button class="btn primary sm" @click="addChapter"><Icon name="Plus" :size="14" /> New chapter</button>
+      </Button>
+      <Button severity="secondary" text size="small" @click="deleteChapter">Delete</Button>
+      <Button severity="primary" size="small" @click="addChapter"><Icon name="Plus" :size="14" /> New chapter</Button>
       <StatusSelect
         :model-value="(activeScene ? activeScene.status : ch.status) || ''"
         @update:model-value="(v) => activeScene ? project.updateScene(ch.id, activeScene.id, { status: v }) : project.setChapterStatus(ch.id, v)" />
@@ -542,25 +543,25 @@ watch(() => project.allChapters.map((c) => c.id + ":" + (project.scenesFor(c.id)
          writer often wants to critique while reading or to snapshot a
          version from the outline. Skip outline (no chapter context). -->
     <template v-if="mode !== 'outline'">
-      <button class="btn ghost sm" @click="versionsOpen = true" title="Version history">
+      <Button severity="secondary" text size="small" @click="versionsOpen = true" title="Version history">
         <Icon name="History" :size="13" /> Versions
-      </button>
-      <button class="btn ghost sm" @click="critiqueOpen = true" title="AI critique — notes + structural analysis">
+      </Button>
+      <Button severity="secondary" text size="small" @click="critiqueOpen = true" title="AI critique — notes + structural analysis">
         <Icon name="Sparkle" :size="13" />
         Critique
         <span v-if="ch?.critique?.notes?.length" class="critique-pill">{{ ch.critique.notes.length }}</span>
-      </button>
+      </Button>
     </template>
     <router-link to="/import" custom v-slot="{ navigate }">
-      <button class="btn ghost sm" @click="navigate" title="Import chapters from a file"><Icon name="Plus" :size="14" /> Import</button>
+      <Button severity="secondary" text size="small" @click="navigate" title="Import chapters from a file"><Icon name="Plus" :size="14" /> Import</Button>
     </router-link>
-    <button class="btn primary sm" @click="addChapter"><Icon name="Plus" :size="14" /> New chapter</button>
+    <Button severity="primary" size="small" @click="addChapter"><Icon name="Plus" :size="14" /> New chapter</Button>
   </PaneHeader>
   <PaneHeader v-else eyebrow="Manuscript" title="No chapters">
     <router-link to="/import" custom v-slot="{ navigate }">
-      <button class="btn ghost sm" @click="navigate"><Icon name="Plus" :size="14" /> Import from file</button>
+      <Button severity="secondary" text size="small" @click="navigate"><Icon name="Plus" :size="14" /> Import from file</Button>
     </router-link>
-    <button class="btn primary sm" @click="addChapter"><Icon name="Plus" :size="14" /> New chapter</button>
+    <Button severity="primary" size="small" @click="addChapter"><Icon name="Plus" :size="14" /> New chapter</Button>
   </PaneHeader>
 
   <!-- ── OUTLINE MODE ─────────────────────────────────────────── -->
@@ -575,24 +576,24 @@ watch(() => project.allChapters.map((c) => c.id + ":" + (project.scenesFor(c.id)
             placeholder="Untitled part"
             @input="updatePartTitle(part.id, $event.target.value)" />
           <div class="ol-row-actions">
-            <button class="btn ghost icon sm"
+            <Button severity="secondary" text size="small"
               :disabled="pi === 0"
-              title="Move part up"
+              v-tooltip.bottom="'Move part up'"
               @click="movePart(part.id, -1)">
               <Icon name="ChevRight" :size="12" style="transform:rotate(-90deg)" />
-            </button>
-            <button class="btn ghost icon sm"
+            </Button>
+            <Button severity="secondary" text size="small"
               :disabled="pi === project.parts.length - 1"
-              title="Move part down"
+              v-tooltip.bottom="'Move part down'"
               @click="movePart(part.id, 1)">
               <Icon name="ChevRight" :size="12" style="transform:rotate(90deg)" />
-            </button>
-            <button class="btn ghost icon sm"
+            </Button>
+            <Button severity="secondary" text size="small"
               :disabled="project.parts.length <= 1"
-              :title="project.parts.length <= 1 ? 'Project needs at least one part' : 'Delete part'"
+              v-tooltip.bottom="project.parts.length <= 1 ? 'Project needs at least one part' : 'Delete part'"
               @click="deletePart(part)">
               <Icon name="Trash" :size="12" />
-            </button>
+            </Button>
           </div>
         </div>
 
@@ -643,9 +644,9 @@ watch(() => project.allChapters.map((c) => c.id + ":" + (project.scenesFor(c.id)
           </button>
         </div>
       </section>
-      <button class="btn ghost ol-add-part" @click="addPart">
+      <Button severity="secondary" text class="ol-add-part" @click="addPart">
         <Icon name="Plus" :size="13" /> New part
-      </button>
+      </Button>
     </div>
    </div>
   </div>
@@ -750,43 +751,43 @@ watch(() => project.allChapters.map((c) => c.id + ":" + (project.scenesFor(c.id)
   <!-- ── EDIT MODE (default) ──────────────────────────────────── -->
   <div v-else-if="ch" class="pane-card">
     <div style="padding:10px 22px;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:12px;flex-wrap:wrap">
-      <button class="btn ghost sm" @click="versionsOpen = true" title="Version history — save & restore snapshots of this chapter">
+      <Button severity="secondary" text size="small" @click="versionsOpen = true" title="Version history — save & restore snapshots of this chapter">
         <Icon name="History" :size="13" /> Versions
-      </button>
-      <button class="btn ghost sm" @click="critiqueOpen = true" title="AI critique — notes + structural analysis for this chapter">
+      </Button>
+      <Button severity="secondary" text size="small" @click="critiqueOpen = true" title="AI critique — notes + structural analysis for this chapter">
         <Icon name="Sparkle" :size="13" />
         Critique
         <span v-if="ch?.critique?.notes?.length" class="critique-pill">{{ ch.critique.notes.length }}</span>
-      </button>
+      </Button>
     </div>
 
     <!-- Single-scene editor: which scene shows is driven by the route
          hash (#scene-<id>), set by the sidebar's scene list. -->
     <div v-if="activeScene" class="scene-strip">
-      <button class="btn ghost sm"
+      <Button severity="secondary" text size="small"
         :disabled="!prevScene"
         :title="prevScene ? `Scene ${activeSceneIdx} — ${prevScene.title || 'Untitled'}` : 'Already the first scene'"
         @click="prevScene && goToScene(prevScene.id)">
         <Icon name="ChevRight" :size="12" style="transform:rotate(180deg)" /> Prev scene
-      </button>
+      </Button>
       <span class="scene-pill">Scene {{ activeSceneIdx + 1 }} of {{ scenes.length }}</span>
-      <button class="btn ghost sm"
+      <Button severity="secondary" text size="small"
         :disabled="!nextScene"
         :title="nextScene ? `Scene ${activeSceneIdx + 2} — ${nextScene.title || 'Untitled'}` : 'Already the last scene'"
         @click="nextScene && goToScene(nextScene.id)">
         Next scene <Icon name="ChevRight" :size="12" />
-      </button>
+      </Button>
       <div class="scene-strip-actions" style="margin-left:auto">
-        <button class="btn scene-links-btn" title="Links — POV, characters, locations, objects, narrative strands"
+        <Button severity="secondary" class="scene-links-btn" title="Links — POV, characters, locations, objects, narrative strands"
           @click="linksOpen = true">
           <Icon name="Network" :size="13" /> Links
-        </button>
-        <button class="btn ghost icon sm"
+        </Button>
+        <Button severity="secondary" text size="small"
           :disabled="scenes.length <= 1"
-          :title="scenes.length <= 1 ? 'A chapter needs at least one scene' : 'Delete scene'"
+          v-tooltip.bottom="scenes.length <= 1 ? 'A chapter needs at least one scene' : 'Delete scene'"
           @click="removeScene(activeScene)">
           <Icon name="Trash" :size="12" />
-        </button>
+        </Button>
       </div>
     </div>
 
@@ -1020,7 +1021,6 @@ watch(() => project.allChapters.map((c) => c.id + ":" + (project.scenesFor(c.id)
 }
 .ol-part-row:hover .ol-row-actions,
 .ol-chapter-row:hover .ol-row-actions { opacity: 1; }
-.ol-row-actions .btn:disabled { opacity: 0.3; cursor: not-allowed; }
 
 /* Move-to chapter→part dropdown */
 .ol-move-to { display: inline-flex; align-items: center; }
@@ -1176,7 +1176,6 @@ watch(() => project.allChapters.map((c) => c.id + ":" + (project.scenesFor(c.id)
   display: flex; align-items: center; gap: 8px;
   flex-shrink: 0;
 }
-.scene-strip-actions .btn:disabled { opacity: 0.3; cursor: not-allowed; }
 
 /* "Links" button — stands out from the muted scene-strip controls. */
 .scene-links-btn {

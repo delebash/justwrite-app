@@ -16,6 +16,7 @@ import AiProgressBar from "./AiProgressBar.vue";
 import Icon from "./Icon.vue";
 import AppModal from "./AppModal.vue";
 import StatusRow from "./StatusRow.vue";
+import Button from "primevue/button";
 
 const props = defineProps({
   // Optional: limit the sweep to specific chapter ids (Set or array).
@@ -154,9 +155,9 @@ onMounted(runSweep);
         <div class="t-eyebrow">Whole-book scan</div>
         <div class="modal-title">Scanning for new entities</div>
       </div>
-      <button v-if="progress.running.value" class="btn ghost sm" @click="cancelSweep">
+      <Button v-if="progress.running.value" severity="secondary" text size="small" @click="cancelSweep">
         <Icon name="Close" :size="12" /> Cancel
-      </button>
+      </Button>
     </template>
 
     <div v-if="error" class="sweep-error">

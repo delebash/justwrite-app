@@ -1,9 +1,18 @@
 <script setup>
 // Renderer-side host for promptDialog() / confirmDialog() in
 // services/dialog.js. Mounted once at the top level in App.vue.
+//
+// Shell is PrimeVue <Dialog>; fields are PrimeVue InputText / Select; actions
+// are PrimeVue <Button>. The prompt logic (per-field values, requireMatch,
+// enter-to-submit on the last field, focus+select the first field) is
+// unchanged from the hand-rolled version.
 
 import { computed, nextTick, ref, watch } from "vue";
 import { dialogState, _resolveDialog } from "../services/dialog.js";
+import Dialog from "primevue/dialog";
+import Button from "primevue/button";
+import InputText from "primevue/inputtext";
+import Select from "primevue/select";
 
 // Normalize the active dialog into a uniform shape the template can read.
 // Single-field prompts become a one-element `fields` list internally so
@@ -48,6 +57,13 @@ const dialog = computed(() => {
   };
 });
 
+// Dialog visibility mirrors the service's open flag; closing via ESC / X /
+// mask routes through cancel() so the pending promise resolves correctly.
+const visible = computed({
+  get: () => dialogState.open,
+  set: (v) => { if (!v) cancel(); },
+});
+
 // values keyed by field.key. Re-seeded each time a new dialog opens.
 const values = ref({});
 const firstInput = ref(null);
@@ -61,7 +77,7 @@ watch(
     values.value = next;
     await nextTick();
     const el = firstInput.value;
-    if (el) { el.focus(); if (typeof el.select === "function") el.select(); }
+    if (el) { el.focus?.(); if (typeof el.select === "function") el.select(); }
   },
   { immediate: true },
 );
@@ -82,6 +98,13 @@ const canSubmit = computed(() => {
   }
   return true;
 });
+
+// Capture the underlying DOM node so focus()/select() work whether the ref
+// is a native element or a PrimeVue component instance ($el).
+function captureFirst(el, i) {
+  if (i !== 0) return;
+  firstInput.value = el?.$el ?? el ?? null;
+}
 
 function cancel() {
   if (!dialog.value) return;
@@ -106,11 +129,6 @@ function submit() {
   }
 }
 
-function onKey(e) {
-  if (!dialog.value) return;
-  if (e.key === "Escape") { e.stopPropagation(); e.preventDefault(); cancel(); }
-}
-
 function onEnter(e, isLastField) {
   // Enter submits only when on the last field (or single-field prompts).
   // Shift+Enter is reserved for any future multiline inputs.
@@ -120,94 +138,64 @@ function onEnter(e, isLastField) {
 </script>
 
 <template>
-  <Transition name="dlg">
-    <div v-if="dialog" class="dlg-overlay" @click.self="cancel" @keydown="onKey" tabindex="-1">
-      <div class="dlg" role="dialog" aria-modal="true">
-        <div class="dlg-head">
-          <div class="dlg-title">{{ dialog.title }}</div>
-        </div>
-        <div class="dlg-body">
-          <div v-if="dialog.message" class="dlg-message">{{ dialog.message }}</div>
+  <Dialog
+    v-model:visible="visible"
+    modal
+    dismissableMask
+    :draggable="false"
+    class="app-dialog"
+    :header="dialog?.title || ' '"
+  >
+    <div v-if="dialog" class="dlg-body">
+      <div v-if="dialog.message" class="dlg-message">{{ dialog.message }}</div>
 
-          <template v-if="dialog.kind === 'prompt'">
-            <div
-              v-for="(f, i) in dialog.fields"
-              :key="f.key"
-              class="dlg-field"
-            >
-              <label v-if="f.label" class="dlg-label" :for="`dlg-field-${f.key}`">{{ f.label }}</label>
-              <select
-                v-if="f.type === 'select'"
-                :id="`dlg-field-${f.key}`"
-                :ref="el => { if (i === 0) firstInput = el; }"
-                class="input"
-                v-model="values[f.key]"
-                @keydown.enter="onEnter($event, i === dialog.fields.length - 1)"
-              >
-                <option v-for="opt in (f.options || [])" :key="opt.value" :value="opt.value">
-                  {{ opt.label }}
-                </option>
-              </select>
-              <input
-                v-else
-                :id="`dlg-field-${f.key}`"
-                :ref="el => { if (i === 0) firstInput = el; }"
-                class="input"
-                :type="f.type || 'text'"
-                :placeholder="f.placeholder || ''"
-                v-model="values[f.key]"
-                @keydown.enter="onEnter($event, i === dialog.fields.length - 1)"
-                @keydown.escape.prevent="cancel"
-              />
-              <div v-if="f.help" class="dlg-help">{{ f.help }}</div>
-            </div>
-          </template>
+      <template v-if="dialog.kind === 'prompt'">
+        <div
+          v-for="(f, i) in dialog.fields"
+          :key="f.key"
+          class="dlg-field"
+        >
+          <label v-if="f.label" class="dlg-label" :for="`dlg-field-${f.key}`">{{ f.label }}</label>
+          <Select
+            v-if="f.type === 'select'"
+            :input-id="`dlg-field-${f.key}`"
+            :ref="el => captureFirst(el, i)"
+            v-model="values[f.key]"
+            :options="f.options || []"
+            option-label="label"
+            option-value="value"
+            fluid
+          />
+          <InputText
+            v-else
+            :id="`dlg-field-${f.key}`"
+            :ref="el => captureFirst(el, i)"
+            :type="f.type || 'text'"
+            :placeholder="f.placeholder || ''"
+            v-model="values[f.key]"
+            fluid
+            @keydown.enter="onEnter($event, i === dialog.fields.length - 1)"
+            @keydown.escape.prevent="cancel"
+          />
+          <div v-if="f.help" class="dlg-help">{{ f.help }}</div>
         </div>
-        <div class="dlg-foot">
-          <button class="btn ghost" @click="cancel">{{ dialog.cancelLabel }}</button>
-          <button
-            class="btn"
-            :class="dialog.danger ? 'danger' : 'primary'"
-            :disabled="!canSubmit"
-            @click="submit"
-          >
-            {{ dialog.confirmLabel }}
-          </button>
-        </div>
-      </div>
+      </template>
     </div>
-  </Transition>
+
+    <template #footer>
+      <Button :label="dialog?.cancelLabel || 'Cancel'" severity="secondary" text @click="cancel" />
+      <Button
+        :label="dialog?.confirmLabel || 'OK'"
+        :severity="dialog?.danger ? 'danger' : 'primary'"
+        :disabled="!canSubmit"
+        @click="submit"
+      />
+    </template>
+  </Dialog>
 </template>
 
 <style scoped>
-.dlg-overlay {
-  position: fixed; inset: 0; z-index: 250;
-  background: var(--scrim);
-  backdrop-filter: blur(4px);
-  display: grid; place-items: center;
-  padding: 24px;
-}
-.dlg {
-  width: min(440px, 100%);
-  background: var(--surface);
-  border: 1px solid var(--border);
-  border-radius: 14px;
-  box-shadow: var(--shadow-window, 0 24px 60px rgba(0,0,0,0.28));
-  display: flex; flex-direction: column;
-  overflow: hidden;
-}
-.dlg-head {
-  padding: 16px 22px 4px;
-}
-.dlg-title {
-  font-family: var(--font-serif);
-  font-size: 18px;
-  font-weight: 600;
-  color: var(--ink);
-  letter-spacing: -0.01em;
-}
 .dlg-body {
-  padding: 8px 22px 18px;
   display: flex; flex-direction: column;
   gap: 14px;
 }
@@ -226,26 +214,4 @@ function onEnter(e, isLastField) {
   color: var(--muted);
 }
 .dlg-help { font-size: 11.5px; color: var(--muted); }
-
-.dlg-foot {
-  padding: 12px 18px;
-  background: var(--surface-2);
-  border-top: 1px solid var(--border-soft, var(--border));
-  display: flex; justify-content: flex-end; gap: 8px;
-}
-
-/* Danger variant — used for destructive confirms. Falls back gracefully
-   if the project doesn't define danger tokens. */
-.btn.danger {
-  background: var(--danger, #c0392b);
-  color: var(--on-danger, #fff);
-  border-color: var(--danger, #c0392b);
-}
-.btn.danger:hover { filter: brightness(1.08); }
-.btn:disabled { opacity: 0.5; cursor: not-allowed; }
-
-.dlg-enter-active, .dlg-leave-active { transition: opacity .14s ease; }
-.dlg-enter-active .dlg, .dlg-leave-active .dlg { transition: transform .16s ease, opacity .16s ease; }
-.dlg-enter-from, .dlg-leave-to { opacity: 0; }
-.dlg-enter-from .dlg, .dlg-leave-to .dlg { transform: translateY(8px) scale(0.98); opacity: 0; }
 </style>

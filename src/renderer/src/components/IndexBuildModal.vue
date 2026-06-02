@@ -15,6 +15,7 @@ import AiProgressBar from "./AiProgressBar.vue";
 import Icon from "./Icon.vue";
 import AppModal from "./AppModal.vue";
 import StatusRow from "./StatusRow.vue";
+import Button from "primevue/button";
 
 const props = defineProps({
   // "build" — incremental (only embed new/changed scenes)
@@ -121,9 +122,9 @@ const totalDone = computed(() => rows.value.filter((r) => r.status === "done").l
         <div class="t-eyebrow">Manuscript index</div>
         <div class="modal-title">{{ mode === "rebuild" ? "Rebuilding index" : "Building index" }}</div>
       </div>
-      <button v-if="progress.running.value" class="btn ghost sm" @click="cancel">
+      <Button v-if="progress.running.value" severity="secondary" text size="small" @click="cancel">
         <Icon name="Close" :size="12" /> Cancel
-      </button>
+      </Button>
     </template>
 
     <div v-if="before.exists && !progress.running.value && !result" class="idx-stat">
@@ -153,13 +154,13 @@ const totalDone = computed(() => rows.value.filter((r) => r.status === "done").l
     </div>
 
     <template v-if="!progress.running.value" #footer>
-      <button v-if="before.exists && !result" class="btn ghost sm" @click="clearAndClose">
+      <Button v-if="before.exists && !result" severity="secondary" text size="small" @click="clearAndClose">
         Clear index
-      </button>
+      </Button>
       <span style="flex:1"></span>
-      <button class="btn primary" @click="emit('close')">
+      <Button severity="primary" @click="emit('close')">
         {{ result ? "Done" : "Close" }}
-      </button>
+      </Button>
     </template>
   </AppModal>
 </template>

@@ -5,6 +5,11 @@ import { useUiStore } from "../stores/ui.js";
 import { useRouter } from "vue-router";
 import Avatar from "../components/Avatar.vue";
 import Icon from "../components/Icon.vue";
+import InputText from "primevue/inputtext";
+import InputNumber from "primevue/inputnumber";
+import Textarea from "primevue/textarea";
+import Checkbox from "primevue/checkbox";
+import Button from "primevue/button";
 import ImagesModal from "../components/ImagesModal.vue";
 import StatusSelect from "../components/StatusSelect.vue";
 import GroupsModal from "../components/GroupsModal.vue";
@@ -132,13 +137,13 @@ function updateBackstory(v) { project.setCharacterExtras(ch.value.id, { backstor
         @input="updateField('name', $event.target.value)" />
     </div>
     <div class="pane-actions">
-      <button class="btn ghost sm" @click="modal = 'images'"><Icon name="Image" :size="14" /> Images</button>
+      <Button severity="secondary" text size="small" @click="modal = 'images'"><Icon name="Image" :size="14" /> Images</Button>
       <router-link :to="`/characters/${ch.id}/events`" custom v-slot="{ navigate }">
-        <button class="btn ghost sm" @click="navigate"><Icon name="Calendar" :size="14" /> Events</button>
+        <Button severity="secondary" text size="small" @click="navigate"><Icon name="Calendar" :size="14" /> Events</Button>
       </router-link>
-      <button class="btn ghost sm" @click="modal = 'groups'"><Icon name="GroupIcon" :size="14" /> Groups</button>
-      <button class="btn ghost sm" @click="deleteCharacter">Delete</button>
-      <button class="btn primary sm" @click="addCharacter"><Icon name="Plus" :size="14" /> New character</button>
+      <Button severity="secondary" text size="small" @click="modal = 'groups'"><Icon name="GroupIcon" :size="14" /> Groups</Button>
+      <Button severity="secondary" text size="small" @click="deleteCharacter">Delete</Button>
+      <Button severity="primary" size="small" @click="addCharacter"><Icon name="Plus" :size="14" /> New character</Button>
       <StatusSelect :model-value="ch.status || ''" @update:model-value="(v) => updateField('status', v)" />
     </div>
   </header>
@@ -163,18 +168,18 @@ function updateBackstory(v) { project.setCharacterExtras(ch.value.id, { backstor
         </div>
         <div style="flex:1;min-width:0">
           <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap">
-            <input class="input" style="max-width:200px" placeholder="Role"
-              :value="ch.role" @input="updateField('role', $event.target.value)" />
-            <label class="chip" style="cursor:pointer">
-              <input type="checkbox" :checked="ch.main" @change="updateField('main', $event.target.checked)" style="margin-right:6px" />
+            <InputText fluid style="max-width:200px" placeholder="Role"
+              :model-value="ch.role" @update:model-value="updateField('role', $event)" />
+            <label class="chip" style="cursor:pointer;gap:6px">
+              <Checkbox :model-value="ch.main" binary @update:model-value="updateField('main', $event)" />
               Main character
             </label>
-            <input class="input" type="number" style="max-width:80px" placeholder="Age"
-              :value="ch.age ?? ''" @input="updateField('age', $event.target.value ? Number($event.target.value) : null)" />
+            <InputNumber fluid style="max-width:80px" placeholder="Age" :use-grouping="false"
+              :model-value="ch.age ?? null" @update:model-value="updateField('age', $event ?? null)" />
           </div>
-          <textarea class="input" rows="2" style="margin-top:14px;font-family:var(--font-serif);font-style:italic"
+          <Textarea fluid rows="2" style="margin-top:14px;font-family:var(--font-serif);font-style:italic"
             placeholder="One-liner"
-            :value="ch.oneLiner" @input="updateField('oneLiner', $event.target.value)" />
+            :model-value="ch.oneLiner" @update:model-value="updateField('oneLiner', $event)" />
         </div>
       </div>
 
@@ -184,8 +189,8 @@ function updateBackstory(v) { project.setCharacterExtras(ch.value.id, { backstor
           <div v-for="i in MOTIVATIONS" :key="i.k"
             :style="`padding:14px;border-radius:10px;background:${i.bg};border:1px solid color-mix(in oklab, ${i.color}, white 60%)`">
             <div :style="`font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:0.06em;color:${i.color};margin-bottom:6px`">{{ i.label }}</div>
-            <textarea class="input" rows="2" style="background:transparent;border:0;font-family:var(--font-serif);font-size:14.5px;line-height:1.5"
-              :value="extras?.motivation?.[i.k] || ''" @input="updateMotivation(i.k, $event.target.value)" />
+            <Textarea fluid rows="2" style="background:transparent;border:0;font-family:var(--font-serif);font-size:14.5px;line-height:1.5"
+              :model-value="extras?.motivation?.[i.k] || ''" @update:model-value="updateMotivation(i.k, $event)" />
           </div>
         </div>
       </div>
@@ -200,8 +205,8 @@ function updateBackstory(v) { project.setCharacterExtras(ch.value.id, { backstor
                 <span :style="`width:18px;height:18px;border-radius:50%;background:${i === 0 ? 'var(--surface-3)' : i === 1 ? 'var(--accent-soft)' : 'var(--accent)'};color:${i === 2 ? 'white' : 'var(--ink-2)'};display:grid;place-items:center;font-family:var(--font-serif);font-style:italic;font-size:11px;font-weight:600`">{{ i + 1 }}</span>
                 <span class="t-eyebrow">{{ s.label }}</span>
               </div>
-              <textarea class="input" rows="3" style="background:transparent;border:0;font-family:var(--font-serif);font-size:14px;line-height:1.55"
-                :value="extras?.arc?.[s.k] || ''" @input="updateArc(s.k, $event.target.value)" />
+              <Textarea fluid rows="3" style="background:transparent;border:0;font-family:var(--font-serif);font-size:14px;line-height:1.55"
+                :model-value="extras?.arc?.[s.k] || ''" @update:model-value="updateArc(s.k, $event)" />
             </div>
           </div>
         </div>
@@ -212,19 +217,19 @@ function updateBackstory(v) { project.setCharacterExtras(ch.value.id, { backstor
         <div class="card tight" style="padding:16px;display:grid;grid-template-columns:1fr 1fr;gap:10px 18px;font-size:12.5px">
           <div>
             <div class="t-muted">Accent</div>
-            <input class="input" :value="extras?.voice?.accent || ''" @input="updateVoice('accent', $event.target.value)" />
+            <InputText fluid :model-value="extras?.voice?.accent || ''" @update:model-value="updateVoice('accent', $event)" />
           </div>
           <div>
             <div class="t-muted">Vocabulary</div>
-            <input class="input" :value="extras?.voice?.vocabulary || ''" @input="updateVoice('vocabulary', $event.target.value)" />
+            <InputText fluid :model-value="extras?.voice?.vocabulary || ''" @update:model-value="updateVoice('vocabulary', $event)" />
           </div>
           <div style="grid-column:1/-1">
             <div class="t-muted">Speech tic</div>
-            <input class="input" :value="extras?.voice?.tic || ''" @input="updateVoice('tic', $event.target.value)" />
+            <InputText fluid :model-value="extras?.voice?.tic || ''" @update:model-value="updateVoice('tic', $event)" />
           </div>
           <div style="grid-column:1/-1">
             <div class="t-muted">Sample line</div>
-            <textarea class="input" rows="2" :value="extras?.voice?.sample || ''" @input="updateVoice('sample', $event.target.value)" />
+            <Textarea fluid rows="2" :model-value="extras?.voice?.sample || ''" @update:model-value="updateVoice('sample', $event)" />
           </div>
         </div>
       </div>
@@ -232,8 +237,8 @@ function updateBackstory(v) { project.setCharacterExtras(ch.value.id, { backstor
       <div style="margin-top:22px">
         <div class="t-eyebrow" style="margin-bottom:10px">Backstory</div>
         <div class="card tight" style="padding:16px">
-          <textarea class="input" rows="5" style="font-family:var(--font-serif);font-size:15px;line-height:1.65"
-            :value="extras?.backstory || ''" @input="updateBackstory($event.target.value)" />
+          <Textarea fluid rows="5" style="font-family:var(--font-serif);font-size:15px;line-height:1.65"
+            :model-value="extras?.backstory || ''" @update:model-value="updateBackstory($event)" />
         </div>
       </div>
 

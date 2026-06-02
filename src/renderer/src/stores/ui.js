@@ -7,12 +7,13 @@ import { defineStore } from "pinia";
 import { getItem, setItem } from "../services/storage.js";
 import { DEFAULT_EDITOR_SETTINGS } from "../services/editorSettings.js";
 import { DEFAULT_APPEARANCE, migrateAppearance } from "../services/appearance.js";
+import { pushToast, clearToasts } from "../services/toastBridge.js";
 
 const LS_KEY = "justwrite:ui";
 
 // Appearance fields that define a "look" — changing any of them (without
 // naming a preset) drops the active preset to "custom".
-const PRESET_KEYS = ["mode", "fontPairing", "uiFont", "displayFont", "editorBodyFont", "accentHue", "goldHue", "appBg", "sidebarBg", "editorPaper", "editorLayout", "inlinePaper", "inkPalette", "uiScale", "sidebarHeadingStyle", "sidebarHeadingSize", "navItemStyle", "navItemSize", "editorFontSize", "editorLineSpacing", "editorParaSpacing", "editorParaIndent"];
+const PRESET_KEYS = ["mode", "fontPairing", "uiFont", "displayFont", "editorBodyFont", "accentHue", "goldHue", "dangerHue", "successHue", "infoHue", "appBg", "sidebarBg", "editorPaper", "editorLayout", "inlinePaper", "inkPalette", "uiScale", "sidebarHeadingStyle", "sidebarHeadingSize", "navItemStyle", "navItemSize", "editorFontSize", "editorLineSpacing", "editorParaSpacing", "editorParaIndent"];
 
 // Capture the "look" fields of an appearance config into a preset patch
 // (everything a preset defines — mode is excluded since it's independent).
@@ -29,9 +30,6 @@ function load() {
 function save(state) {
   try { setItem(LS_KEY, JSON.stringify(state)); } catch {}
 }
-
-let toastSeq = 0;
-let toastTimer = null;
 
 export const useUiStore = defineStore("ui", {
   state: () => {
@@ -57,8 +55,6 @@ export const useUiStore = defineStore("ui", {
       customPresets: [],
       // Writing/editor display settings (font, spacing, etc.).
       editorSettings: { ...DEFAULT_EDITOR_SETTINGS },
-      // Transient. Shape: { id, message, action?: { label, fn } }.
-      toast: null,
       // Scroll-driven scene highlight for Read mode's whole-book scope.
       // Not persisted — flooding IDB on every scroll tick is wasteful, and
       // on reload there's nothing meaningful to restore to anyway.
@@ -115,19 +111,13 @@ export const useUiStore = defineStore("ui", {
       }
     },
 
-    // Toasts — show one at a time. Pass `action: { label, fn }` for an
-    // inline button (used by soft-delete to surface "Undo").
+    // Toasts — delegate to PrimeVue's ToastService via the bridge. Pass
+    // `action: { label, fn }` for an inline button (soft-delete's "Undo").
     showToast({ message, action } = {}, ms = 6000) {
-      const id = ++toastSeq;
-      this.toast = { id, message, action };
-      if (toastTimer) clearTimeout(toastTimer);
-      toastTimer = setTimeout(() => {
-        if (this.toast?.id === id) this.toast = null;
-      }, ms);
+      pushToast({ message, action }, ms);
     },
     dismissToast() {
-      if (toastTimer) { clearTimeout(toastTimer); toastTimer = null; }
-      this.toast = null;
+      clearToasts();
     },
 
     // Global project-wide find & replace modal — hoisted to ui so any

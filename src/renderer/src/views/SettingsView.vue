@@ -18,7 +18,7 @@ import Select from "primevue/select";
 import Textarea from "primevue/textarea";
 import Button from "primevue/button";
 import {
-  ACCENT_PRESETS, GOLD_PRESETS, PAIRINGS, SURFACE_TINTS, PAPER_TINTS,
+  ACCENT_PRESETS, GOLD_PRESETS, FUNCTIONAL_PRESETS, PAIRINGS, SURFACE_TINTS, PAPER_TINTS,
   THEME_PRESETS, UI_FONTS, DISPLAY_FONTS, INK_PALETTES, UI_SCALES,
   SIDEBAR_HEADING_STYLES, SIDEBAR_HEADING_SIZES,
   NAV_ITEM_STYLES, NAV_ITEM_SIZES,
@@ -647,7 +647,7 @@ async function deleteCategory(c) {
           <div style="display:flex;flex-direction:column;gap:8px">
             <div v-for="s in project.statuses" :key="s.id" style="display:flex;align-items:center;gap:10px">
               <div style="position:relative">
-                <button type="button" title="Change color"
+                <button type="button" v-tooltip.bottom="'Change color'"
                   :style="`width:24px;height:24px;border-radius:6px;border:1px solid var(--border);cursor:pointer;background:${s.color}`"
                   @click="editingColorId = editingColorId === s.id ? null : s.id" />
                 <div v-if="editingColorId === s.id"
@@ -666,7 +666,7 @@ async function deleteCategory(c) {
               <InputText style="max-width:220px" :model-value="s.label"
                 @update:model-value="(v) => renameStatus(s.id, v)" placeholder="Status name" />
               <span :style="`font-size:11px;font-weight:600;text-transform:lowercase;color:${s.color}`">{{ s.label }}</span>
-              <Button severity="secondary" text size="small" style="margin-left:auto" title="Delete status" @click="deleteStatus(s)">
+              <Button severity="secondary" text size="small" style="margin-left:auto" v-tooltip.bottom="'Delete status'" @click="deleteStatus(s)">
                 <template #icon><Icon name="Trash" :size="13" /></template>
               </Button>
             </div>
@@ -687,7 +687,7 @@ async function deleteCategory(c) {
             <div v-for="c in project.worldbuildingCategories" :key="c.id" style="display:flex;align-items:center;gap:10px">
               <!-- icon tile -->
               <div style="position:relative">
-                <button type="button" title="Change icon"
+                <button type="button" v-tooltip.bottom="'Change icon'"
                   :style="`width:30px;height:30px;border-radius:8px;border:0;cursor:pointer;display:grid;place-items:center;background:oklch(var(--tile-bg-l) var(--tile-bg-c) ${c.hue});color:oklch(var(--tile-ink-l) var(--tile-ink-c) ${c.hue})`"
                   @click="wbToggle(c.id, 'icon')">
                   <Icon :name="c.icon" :size="15" />
@@ -703,7 +703,7 @@ async function deleteCategory(c) {
               </div>
               <!-- hue swatch -->
               <div style="position:relative">
-                <button type="button" title="Change color"
+                <button type="button" v-tooltip.bottom="'Change color'"
                   :style="`width:24px;height:24px;border-radius:6px;border:1px solid var(--border);cursor:pointer;background:oklch(0.62 0.13 ${c.hue})`"
                   @click="wbToggle(c.id, 'hue')" />
                 <div v-if="wbEditing && wbEditing.id === c.id && wbEditing.kind === 'hue'"
@@ -715,7 +715,7 @@ async function deleteCategory(c) {
               </div>
               <InputText style="max-width:220px" :model-value="c.label"
                 @update:model-value="(v) => renameCategory(c.id, v)" placeholder="Category name" />
-              <Button severity="secondary" text size="small" style="margin-left:auto" title="Delete category" @click="deleteCategory(c)">
+              <Button severity="secondary" text size="small" style="margin-left:auto" v-tooltip.bottom="'Delete category'" @click="deleteCategory(c)">
                 <template #icon><Icon name="Trash" :size="13" /></template>
               </Button>
             </div>
@@ -756,11 +756,11 @@ async function deleteCategory(c) {
               </div>
 
               <div style="display:flex;gap:8px;align-items:center;margin-top:4px">
-                <label class="btn primary" :class="{ disabled: coverUploading }">
+                <Button as="label" severity="primary" :disabled="coverUploading">
                   <Icon name="Image" :size="13" />
                   {{ coverUploading ? "Uploading…" : (project.project.coverImage ? "Replace…" : "Choose image…") }}
                   <input type="file" accept="image/*" style="display:none" @change="onPickCover" :disabled="coverUploading" />
-                </label>
+                </Button>
                 <Button v-if="project.project.coverImage" label="Remove" severity="secondary" text @click="removeCover" />
               </div>
 
@@ -1026,8 +1026,8 @@ async function deleteCategory(c) {
               <b>{{ p.name }}</b>
               <span class="t-muted">Saved preset</span>
               <div class="preset-actions">
-                <button class="preset-act" title="Rename" @click.stop="renameCustomPreset(p)"><Icon name="Pencil" :size="12" /></button>
-                <button class="preset-act danger" title="Delete" @click.stop="removeCustomPreset(p)"><Icon name="Trash" :size="12" /></button>
+                <button class="preset-act" v-tooltip.bottom="'Rename'" @click.stop="renameCustomPreset(p)"><Icon name="Pencil" :size="12" /></button>
+                <button class="preset-act danger" v-tooltip.bottom="'Delete'" @click.stop="removeCustomPreset(p)"><Icon name="Trash" :size="12" /></button>
               </div>
             </div>
 
@@ -1061,7 +1061,7 @@ async function deleteCategory(c) {
                 <p class="ap-prose">Above her, the deck complained in its joints — and the fog, she now understood, was not weather.</p>
                 <div class="ap-ornament">✦&nbsp;&nbsp;✦&nbsp;&nbsp;✦</div>
                 <div class="ap-controls">
-                  <button class="btn accent sm">Accent</button>
+                  <Button size="small">Accent</Button>
                   <span class="chip" style="background:var(--accent-soft);color:var(--accent-ink);border-color:var(--accent-line)">Selected</span>
                 </div>
               </div>
@@ -1173,10 +1173,10 @@ async function deleteCategory(c) {
           </div>
         </div>
 
-        <!-- Accent & gold -->
+        <!-- Accents (primary + second) -->
         <div class="card">
-          <div class="card-title">Accent &amp; gold</div>
-          <p class="t-muted" style="font-size:12px;margin:0 0 12px">Accent drives selection, the active nav item, buttons and links. Gold is the secondary — rings, rules, peak markers.</p>
+          <div class="card-title">Accents</div>
+          <p class="t-muted" style="font-size:12px;margin:0 0 12px">Accent drives selection, the active nav item, buttons and links. Accent 2 is the secondary — rings, rules, peak markers, and the <code>warn</code> button/tag.</p>
           <div class="swatch-row">
             <span class="swatch-label">Accent</span>
             <button v-for="p in ACCENT_PRESETS" :key="p.hue"
@@ -1189,7 +1189,7 @@ async function deleteCategory(c) {
               :model-value="ap.accentHue" @update:model-value="(v) => setAp({ accentHue: clampHue(v) })" />
           </div>
           <div class="swatch-row" style="margin-top:8px">
-            <span class="swatch-label">Gold</span>
+            <span class="swatch-label">Accent 2</span>
             <button v-for="p in GOLD_PRESETS" :key="p.hue"
               class="accent-swatch" :class="{ active: ap.goldHue === p.hue }"
               :title="p.name" :style="`background: oklch(0.62 0.1 ${p.hue})`"
@@ -1198,6 +1198,78 @@ async function deleteCategory(c) {
             </button>
             <InputNumber :min="0" :max="360" style="width:74px"
               :model-value="ap.goldHue" @update:model-value="(v) => setAp({ goldHue: clampHue(v) })" />
+          </div>
+          <!-- Live preview — the button + tag both track the Accent 2 hue. -->
+          <div style="display:flex;flex-wrap:wrap;gap:8px;align-items:center;margin-top:14px;padding-top:12px;border-top:1px solid var(--border-soft)">
+            <Button severity="warn" size="small" label="Accent 2" />
+            <Button severity="warn" outlined size="small" label="Accent 2" />
+            <Tag severity="warn" value="Warn" />
+          </div>
+        </div>
+
+        <!-- Functional colours -->
+        <div class="card">
+          <div class="card-title">Functional colours</div>
+          <p class="t-muted" style="font-size:12px;margin:0 0 12px">Success, danger and info — used by status chips, banners and the PrimeVue Buttons/Tags below. Like the accent, you pick a hue and every shade stays legible in light &amp; dark.</p>
+          <div class="swatch-row">
+            <span class="swatch-label">Success</span>
+            <button v-for="p in FUNCTIONAL_PRESETS.success" :key="p.hue"
+              class="accent-swatch" :class="{ active: ap.successHue === p.hue }"
+              v-tooltip.bottom="p.name" :style="`background: oklch(0.6 0.13 ${p.hue})`"
+              @click="setAp({ successHue: p.hue })">
+              <Icon v-if="ap.successHue === p.hue" name="Check" :size="12" />
+            </button>
+            <InputNumber :min="0" :max="360" style="width:74px"
+              :model-value="ap.successHue" @update:model-value="(v) => setAp({ successHue: clampHue(v) })" />
+          </div>
+          <div class="swatch-row" style="margin-top:8px">
+            <span class="swatch-label">Danger</span>
+            <button v-for="p in FUNCTIONAL_PRESETS.danger" :key="p.hue"
+              class="accent-swatch" :class="{ active: ap.dangerHue === p.hue }"
+              v-tooltip.bottom="p.name" :style="`background: oklch(0.62 0.17 ${p.hue})`"
+              @click="setAp({ dangerHue: p.hue })">
+              <Icon v-if="ap.dangerHue === p.hue" name="Check" :size="12" />
+            </button>
+            <InputNumber :min="0" :max="360" style="width:74px"
+              :model-value="ap.dangerHue" @update:model-value="(v) => setAp({ dangerHue: clampHue(v) })" />
+          </div>
+          <div class="swatch-row" style="margin-top:8px">
+            <span class="swatch-label">Info</span>
+            <button v-for="p in FUNCTIONAL_PRESETS.info" :key="p.hue"
+              class="accent-swatch" :class="{ active: ap.infoHue === p.hue }"
+              v-tooltip.bottom="p.name" :style="`background: oklch(0.55 0.1 ${p.hue})`"
+              @click="setAp({ infoHue: p.hue })">
+              <Icon v-if="ap.infoHue === p.hue" name="Check" :size="12" />
+            </button>
+            <InputNumber :min="0" :max="360" style="width:74px"
+              :model-value="ap.infoHue" @update:model-value="(v) => setAp({ infoHue: clampHue(v) })" />
+          </div>
+          <!-- Live preview — these tags re-skin from the hues above (banners + status chips use the same shades). -->
+          <div style="display:flex;flex-wrap:wrap;gap:8px;align-items:center;margin-top:16px;padding-top:14px;border-top:1px solid var(--border-soft)">
+            <Tag severity="success" value="Done" />
+            <Tag severity="danger" value="Error" />
+            <Tag severity="info" value="Note" />
+          </div>
+        </div>
+
+        <!-- Buttons — the six roles every app button uses -->
+        <div class="card">
+          <div class="card-title">Buttons</div>
+          <p class="t-muted" style="font-size:12px;margin:0 0 12px"><b>Primary</b> follows the accent; <b>Accent 2</b> is your second accent (set in Accents above); <b>Success / Danger / Info</b> follow the functional colours; <b>Neutral</b> stays a quiet grey. Text colour is chosen automatically so every button stays readable in light &amp; dark. Filled = strong emphasis, outlined/text = lighter.</p>
+          <div style="display:flex;flex-wrap:wrap;gap:8px;align-items:center">
+            <Button size="small" label="Primary" />
+            <Button severity="warn" size="small" label="Accent 2" />
+            <Button severity="secondary" size="small" label="Neutral" />
+            <Button severity="success" size="small" label="Success" />
+            <Button severity="danger" size="small" label="Danger" />
+            <Button severity="info" size="small" label="Info" />
+          </div>
+          <div style="display:flex;flex-wrap:wrap;gap:8px;align-items:center;margin-top:8px">
+            <Button outlined size="small" label="Primary" />
+            <Button severity="warn" outlined size="small" label="Accent 2" />
+            <Button severity="secondary" text size="small" label="Neutral" />
+            <Button severity="danger" outlined size="small" label="Danger" />
+            <Button severity="info" text size="small" label="Info" />
           </div>
         </div>
 
@@ -1390,11 +1462,11 @@ async function deleteCategory(c) {
             <Button :label="backupBusy ? 'Exporting…' : 'Export backup…'" severity="primary" :disabled="backupBusy" @click="exportBackup">
               <template #icon><Icon name="Export" :size="13" /></template>
             </Button>
-            <label class="btn">
+            <Button as="label" severity="secondary">
               <Icon name="Folder" :size="13" />
               Import backup…
               <input type="file" accept="application/json,.json" style="display:none" @change="onImportFile" />
-            </label>
+            </Button>
           </div>
         </div>
 
@@ -1403,7 +1475,7 @@ async function deleteCategory(c) {
           <p class="t-muted" style="font-size:12.5px;margin:0 0 12px;line-height:1.55">
             Wipes every <code>justwrite:*</code> key from IndexedDB — project, history, AI providers, voice cast, sessions — and reloads with the demo seed. Take a backup first.
           </p>
-          <Button label="Reset workspace" severity="danger" @click="resetWorkspace">
+          <Button label="Reset workspace" severity="danger" outlined @click="resetWorkspace">
             <template #icon><Icon name="Alert" :size="13" /></template>
           </Button>
         </div>
@@ -1512,9 +1584,6 @@ async function deleteCategory(c) {
 .cover-frame img {
   width: 100%; height: 100%; object-fit: cover; display: block;
 }
-.btn.disabled { opacity: 0.55; pointer-events: none; }
-.btn input[type="file"] { display: none; }
-
 /* Theme tiles */
 .theme-tile {
   appearance: none;

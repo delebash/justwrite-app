@@ -276,7 +276,7 @@ function downloadChapter(chapterId) {
   <PaneHeader eyebrow="Audio" title="Studio">
     <span class="chip">Engine · <b style="font-weight:600;margin-left:4px">{{ provider?.name || "—" }}</b></span>
     <router-link to="/settings/audio" custom v-slot="{ navigate }">
-      <button class="btn ghost" @click="navigate"><Icon name="Settings" :size="14" /> Engines</button>
+      <Button severity="secondary" text size="small" @click="navigate"><Icon name="Settings" :size="14" /> Engines</Button>
     </router-link>
   </PaneHeader>
 
@@ -313,14 +313,14 @@ function downloadChapter(chapterId) {
           <div style="font-family:var(--font-serif);font-size:18px;font-weight:600">The voice of everything that isn't spoken</div>
         </div>
         <div style="display:flex;gap:8px">
-          <button class="btn" :disabled="smartLoading" @click="confirmClearCast">
+          <Button severity="secondary" :disabled="smartLoading" @click="confirmClearCast">
             <Icon name="Close" :size="13" />
             Clear cast
-          </button>
-          <button class="btn" :disabled="smartLoading" @click="runSmartCast">
+          </Button>
+          <Button severity="secondary" :disabled="smartLoading" @click="runSmartCast">
             <Icon :name="smartLoading ? 'Refresh' : 'Sparkle'" :size="13" />
             {{ smartLoading ? "Casting…" : "Smart-assign" }}
-          </button>
+          </Button>
         </div>
       </div>
 
@@ -445,10 +445,10 @@ function downloadChapter(chapterId) {
       <select class="input" v-model="scriptChapter" style="width:auto">
         <option v-for="c in project.allChapters" :key="c.id" :value="c.id">Ch. {{ c.num }} — {{ c.title }}</option>
       </select>
-      <button class="btn" :disabled="analyzeLoading" @click="reanalyze">
+      <Button severity="secondary" :disabled="analyzeLoading" @click="reanalyze">
         <Icon :name="analyzeLoading ? 'Refresh' : 'Sparkle'" :size="13" />
         {{ analyzeLoading ? "Analyzing…" : "Re-analyze" }}
-      </button>
+      </Button>
       <span class="t-muted" style="font-size:12px;margin-left:auto">
         Calls {{ llmProvider?.name || "your LLM provider" }} · {{ studio.scriptFor(scriptChapter)?.length || 0 }} lines analyzed
       </span>
@@ -493,14 +493,14 @@ function downloadChapter(chapterId) {
           No script — analyze chapter first
         </div>
       </div>
-      <button v-if="!renderResults[c.id]" class="btn sm primary"
+      <Button v-if="!renderResults[c.id]" severity="primary" size="small"
         :disabled="renderingId === c.id || !studio.scriptFor(c.id)"
         @click="startRender(c.id)">
         <Icon name="Mic" :size="11" /> Render
-      </button>
+      </Button>
       <template v-else>
-        <button class="btn sm" @click="playChapter(c.id)"><Icon name="Play" :size="11" /> Play</button>
-        <button class="btn sm" @click="downloadChapter(c.id)"><Icon name="Download" :size="11" /> WAV</button>
+        <Button severity="secondary" size="small" @click="playChapter(c.id)"><Icon name="Play" :size="11" /> Play</Button>
+        <Button severity="secondary" size="small" @click="downloadChapter(c.id)"><Icon name="Download" :size="11" /> WAV</Button>
       </template>
     </div>
   </div>

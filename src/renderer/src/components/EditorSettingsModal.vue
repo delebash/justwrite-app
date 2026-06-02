@@ -8,6 +8,7 @@ import {
   EDITOR_FONTS, LINE_SPACING_OPTIONS, PARAGRAPH_SPACING_OPTIONS, DEFAULT_EDITOR_SETTINGS,
 } from "../services/editorSettings.js";
 import AppModal from "./AppModal.vue";
+import Button from "primevue/button";
 
 const emit = defineEmits(["close"]);
 const ui = useUiStore();
@@ -78,8 +79,8 @@ function back() { emit("close"); }
     </div>
 
     <template #footer>
-      <button class="btn primary" @click="save">save</button>
-      <button class="btn ghost" @click="back">back</button>
+      <Button severity="primary" @click="save">save</Button>
+      <Button severity="secondary" text @click="back">back</Button>
     </template>
   </AppModal>
 </template>

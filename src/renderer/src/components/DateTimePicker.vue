@@ -173,22 +173,22 @@ onBeforeUnmount(() => document.removeEventListener("mousedown", onDocClick));
 
     <div v-if="open" class="dtp-pop">
       <div class="dtp-nav">
-        <button type="button" class="dtp-ico-btn" title="Previous month" @click="stepMonth(-1)">
+        <button type="button" class="dtp-ico-btn" v-tooltip.bottom="'Previous month'" @click="stepMonth(-1)">
           <Icon name="ChevLeft" :size="15" />
         </button>
         <select class="dtp-month" :value="month" @change="setMonth">
           <option v-for="(m, i) in MONTHS" :key="i" :value="i">{{ m }}</option>
         </select>
         <div class="dtp-year">
-          <button type="button" class="dtp-ico-btn sm" title="Previous year" @click="stepYear(-1)">
+          <button type="button" class="dtp-ico-btn sm" v-tooltip.bottom="'Previous year'" @click="stepYear(-1)">
             <Icon name="ChevLeft" :size="13" />
           </button>
           <input class="dtp-year-input" type="number" :value="year" @input="setYear" @change="setYear" />
-          <button type="button" class="dtp-ico-btn sm" title="Next year" @click="stepYear(1)">
+          <button type="button" class="dtp-ico-btn sm" v-tooltip.bottom="'Next year'" @click="stepYear(1)">
             <Icon name="ChevRight" :size="13" />
           </button>
         </div>
-        <button type="button" class="dtp-ico-btn" title="Next month" @click="stepMonth(1)">
+        <button type="button" class="dtp-ico-btn" v-tooltip.bottom="'Next month'" @click="stepMonth(1)">
           <Icon name="ChevRight" :size="15" />
         </button>
       </div>

@@ -4,6 +4,8 @@ import { useRouter } from "vue-router";
 import { useProjectStore } from "../stores/project.js";
 import PaneHeader from "../components/PaneHeader.vue";
 import Icon from "../components/Icon.vue";
+import Button from "primevue/button";
+import Checkbox from "primevue/checkbox";
 
 const project = useProjectStore();
 const router = useRouter();
@@ -423,14 +425,14 @@ onBeforeUnmount(() => window.removeEventListener("keydown", onKey));
 <template>
   <PaneHeader eyebrow="Planning" title="Relations">
     <div class="relations-toolbar">
-      <button class="btn ghost icon sm" title="Zoom out (−)" @click="zoomOut">
+      <Button severity="secondary" text size="small" v-tooltip.bottom="'Zoom out (−)'" @click="zoomOut">
         <Icon name="ChevRight" :size="12" style="transform:rotate(180deg)" />
-      </button>
+      </Button>
       <span class="relations-zoom-label">{{ Math.round(zoom * 100) }}%</span>
-      <button class="btn ghost icon sm" title="Zoom in (+)" @click="zoomIn">
+      <Button severity="secondary" text size="small" v-tooltip.bottom="'Zoom in (+)'" @click="zoomIn">
         <Icon name="ChevRight" :size="12" />
-      </button>
-      <button class="btn ghost sm" title="Reset view (0)" @click="resetView">Reset</button>
+      </Button>
+      <Button severity="secondary" text size="small" title="Reset view (0)" @click="resetView">Reset</Button>
     </div>
   </PaneHeader>
 
@@ -501,19 +503,19 @@ onBeforeUnmount(() => window.removeEventListener("keydown", onKey));
         <span class="legend-head-count">Edges</span>
       </div>
       <label>
-        <input type="checkbox" v-model="showCharacters" />
+        <Checkbox v-model="showCharacters" binary />
         <i class="dot character" />
         <span class="legend-label">Character</span>
         <span class="legend-count">{{ edgeCounts.character }}</span>
       </label>
       <label>
-        <input type="checkbox" v-model="showLocations" />
+        <Checkbox v-model="showLocations" binary />
         <i class="dot location" />
         <span class="legend-label">Location</span>
         <span class="legend-count">{{ edgeCounts.location }}</span>
       </label>
       <label>
-        <input type="checkbox" v-model="showObjects" />
+        <Checkbox v-model="showObjects" binary />
         <i class="dot object" />
         <span class="legend-label">Object</span>
         <span class="legend-count">{{ edgeCounts.object }}</span>
@@ -530,9 +532,9 @@ onBeforeUnmount(() => window.removeEventListener("keydown", onKey));
             {{ focusedNeighborCount }} connection{{ focusedNeighborCount === 1 ? '' : 's' }}
           </div>
         </div>
-        <button v-if="pinnedId" class="btn ghost icon sm" title="Clear focus (Esc)" @click="clearPin">
+        <Button v-if="pinnedId" severity="secondary" text size="small" v-tooltip.bottom="'Clear focus (Esc)'" @click="clearPin">
           <Icon name="Close" :size="12" />
-        </button>
+        </Button>
       </div>
       <div v-if="!pinnedId" class="relations-focus-hint">Click to pin · click again to open</div>
       <div v-else class="relations-focus-hint">Click node again to open · click empty space to clear</div>
@@ -648,11 +650,6 @@ onBeforeUnmount(() => window.removeEventListener("keydown", onKey));
   cursor: pointer;
   user-select: none;
   padding: 2px 0;
-}
-.relations-legend input[type="checkbox"] {
-  margin: 0;
-  accent-color: var(--accent);
-  cursor: pointer;
 }
 .relations-legend .dot {
   width: 18px; height: 18px;

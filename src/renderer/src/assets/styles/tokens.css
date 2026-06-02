@@ -64,31 +64,40 @@
   --shadow-2: 0 1px 0 rgba(20, 22, 24, 0.05), 0 8px 24px rgba(20, 22, 24, 0.06);
   --shadow-window: 0 0 0 1px rgba(20, 22, 24, 0.08), 0 30px 80px -20px rgba(20, 22, 24, 0.35);
 
+  /* Functional-colour hues — driven by the theme manager (appearance.js),
+     same trick as --accent-hue: the user retints danger/success/info while
+     L/C stay fixed per mode, so every shade stays auto-legible in light AND
+     dark. PrimeVue severities point at the derived vars too (see the preset),
+     so one knob re-skins native chips + PrimeVue Buttons/Tags together. */
+  --danger-hue:  35;
+  --success-hue: 150;
+  --info-hue:    220;
+
   /* State tokens (banners, callouts, danger zones) ---------- */
-  --danger-bg:   oklch(0.97 0.03 35);
-  --danger-ink:  oklch(0.4 0.13 35);
-  --danger-line: oklch(0.88 0.06 35);
-  --danger:      oklch(0.62 0.17 35);
+  --danger-bg:   oklch(0.97 0.03 var(--danger-hue));
+  --danger-ink:  oklch(0.4 0.13 var(--danger-hue));
+  --danger-line: oklch(0.88 0.06 var(--danger-hue));
+  --danger:      oklch(0.62 0.17 var(--danger-hue));
 
   --warn-bg:     oklch(0.97 0.03 75);
   --warn-ink:    oklch(0.4 0.1 65);
   --warn-line:   oklch(0.85 0.08 75);
 
-  --success-bg:  oklch(0.95 0.04 150);
-  --success-ink: oklch(0.4 0.13 150);
-  --success-line: oklch(0.82 0.07 150);
-  --success:     oklch(0.6 0.13 150);
+  --success-bg:  oklch(0.95 0.04 var(--success-hue));
+  --success-ink: oklch(0.4 0.13 var(--success-hue));
+  --success-line: oklch(0.82 0.07 var(--success-hue));
+  --success:     oklch(0.6 0.13 var(--success-hue));
 
-  --info-bg:     oklch(0.95 0.025 220);
-  --info-ink:    oklch(0.4 0.08 220);
-  --info-line:   oklch(0.82 0.05 220);
-  --info:        oklch(0.55 0.1 220);
+  --info-bg:     oklch(0.95 0.025 var(--info-hue));
+  --info-ink:    oklch(0.4 0.08 var(--info-hue));
+  --info-line:   oklch(0.82 0.05 var(--info-hue));
+  --info:        oklch(0.55 0.1 var(--info-hue));
 
   /* Status dots (manuscript scene status) ------------------- */
   --status-todo:   oklch(0.85 0.005 85);
   --status-draft:  oklch(0.7 0.1 75);
   --status-revise: oklch(0.65 0.13 30);
-  --status-done:   oklch(0.6 0.13 150);
+  --status-done:   oklch(0.6 0.13 var(--success-hue));
 
   /* Character trait pills ----------------------------------- */
   --trait-want-bg:   oklch(0.97 0.03 30);
@@ -153,30 +162,32 @@ html[data-theme="dark"] {
   --shadow-2: 0 1px 0 rgba(0,0,0,0.45), 0 8px 24px rgba(0,0,0,0.4);
   --shadow-window: 0 0 0 1px rgba(0,0,0,0.5), 0 30px 80px -20px rgba(0,0,0,0.7);
 
-  /* State tokens — darker fills, lifted ink for legibility */
-  --danger-bg:   oklch(0.28 0.06 35);
-  --danger-ink:  oklch(0.85 0.1 35);
-  --danger-line: oklch(0.42 0.1 35);
-  --danger:      oklch(0.72 0.15 35);
+  /* State tokens — darker fills, lifted ink for legibility.
+     Hue vars (--danger-hue / --success-hue / --info-hue) inherit from :root;
+     only L/C change per mode, so the user's hue choice stays legible here. */
+  --danger-bg:   oklch(0.28 0.06 var(--danger-hue));
+  --danger-ink:  oklch(0.85 0.1 var(--danger-hue));
+  --danger-line: oklch(0.42 0.1 var(--danger-hue));
+  --danger:      oklch(0.72 0.15 var(--danger-hue));
 
   --warn-bg:     oklch(0.28 0.05 75);
   --warn-ink:    oklch(0.86 0.09 75);
   --warn-line:   oklch(0.42 0.08 75);
 
-  --success-bg:  oklch(0.26 0.05 150);
-  --success-ink: oklch(0.85 0.1 150);
-  --success-line: oklch(0.42 0.08 150);
-  --success:     oklch(0.72 0.13 150);
+  --success-bg:  oklch(0.26 0.05 var(--success-hue));
+  --success-ink: oklch(0.85 0.1 var(--success-hue));
+  --success-line: oklch(0.42 0.08 var(--success-hue));
+  --success:     oklch(0.72 0.13 var(--success-hue));
 
-  --info-bg:     oklch(0.27 0.04 220);
-  --info-ink:    oklch(0.86 0.07 220);
-  --info-line:   oklch(0.42 0.06 220);
-  --info:        oklch(0.72 0.1 220);
+  --info-bg:     oklch(0.27 0.04 var(--info-hue));
+  --info-ink:    oklch(0.86 0.07 var(--info-hue));
+  --info-line:   oklch(0.42 0.06 var(--info-hue));
+  --info:        oklch(0.72 0.1 var(--info-hue));
 
   --status-todo:   oklch(0.42 0.006 85);
   --status-draft:  oklch(0.72 0.12 75);
   --status-revise: oklch(0.7 0.15 30);
-  --status-done:   oklch(0.7 0.14 150);
+  --status-done:   oklch(0.7 0.14 var(--success-hue));
 
   --trait-want-bg:   oklch(0.28 0.05 30);
   --trait-want-ink:  oklch(0.85 0.1 30);
@@ -230,7 +241,12 @@ html[data-theme="dark"] body {
     var(--bg);
 }
 
-button { font: inherit; color: inherit; cursor: default; }
+button { font: inherit; cursor: default; }
+/* Native buttons inherit text colour; PrimeVue's <Button> must NOT — it owns
+   its label colour via the theme preset. This unlayered reset otherwise beats
+   PrimeVue's layered colour token, forcing every .p-button label to the page
+   ink (which made the dark `contrast` severity render ink-on-ink — invisible). */
+button:not(.p-button) { color: inherit; }
 input, textarea, select { font: inherit; color: inherit; }
 
 /* Kill the browser-default focus ring on form controls. Every input /
@@ -815,36 +831,9 @@ input.nav-part-title:focus { border-color: var(--accent); background: var(--surf
    Buttons & form elements
    ============================================================ */
 
-.btn {
-  appearance: none; border: 1px solid var(--border-strong);
-  background: var(--surface);
-  color: var(--ink);
-  padding: 6px 12px; border-radius: 7px;
-  font-size: 12.5px; font-weight: 500;
-  display: inline-flex; align-items: center; gap: 6px;
-  box-shadow: var(--shadow-1);
-}
-.btn:hover { background: var(--surface-3); }
-.btn.primary {
-  background: var(--ink);
-  color: var(--surface);
-  border-color: var(--ink);
-}
-.btn.primary:hover { background: var(--primary-hover); }
-.btn.accent {
-  background: var(--accent);
-  color: var(--on-accent);
-  border-color: var(--accent);
-}
-.btn.ghost {
-  background: transparent;
-  border-color: transparent;
-  color: var(--ink-2);
-  box-shadow: none;
-}
-.btn.ghost:hover { background: var(--surface-3); color: var(--ink); }
-.btn.sm { padding: 4px 8px; font-size: 11.5px; }
-.btn.icon { padding: 5px; width: 28px; height: 28px; justify-content: center; }
+/* The bespoke `.btn` button system was fully retired by the PrimeVue
+   migration — every app button is now a PrimeVue <Button> (themed by the
+   JustWriteEditorial preset). Reach for <Button>, never a new `.btn`. */
 
 .input, .textarea {
   appearance: none;
@@ -877,6 +866,36 @@ input.nav-part-title:focus { border-color: var(--accent); background: var(--surf
 .modal-head { padding: 16px 22px; border-bottom: 1px solid var(--border); display: flex; align-items: center; justify-content: space-between; }
 .modal-title { font-family: var(--font-serif); font-size: 18px; font-weight: 600; }
 .modal-body { padding: 18px 22px; overflow-y: auto; }
+
+/* PrimeVue <Dialog> chrome — AppModal.vue + AppDialog.vue skin the stock
+   Dialog. These unlayered rules win over PrimeVue's `primevue` cascade layer,
+   so they restore the bespoke .modal / .dlg looks the components used to roll
+   by hand. Class lands on the .p-dialog box (not the mask). */
+.p-dialog-mask { backdrop-filter: blur(4px); }
+
+/* AppModal — header divider, scrollable body, sticky footer on surface. */
+.app-modal { width: min(640px, 100%); max-height: 80vh; }
+.app-modal.app-modal--wide { width: min(960px, 96vw); max-height: 90vh; }
+.app-modal .p-dialog-header { border-bottom: 1px solid var(--border); align-items: flex-start; }
+.app-modal .p-dialog-content { flex: 1 1 auto; min-height: 0; overflow-y: auto; }
+.app-modal.app-modal--flush .p-dialog-content { padding: 0; }
+.app-modal .p-dialog-footer {
+  border-top: 1px solid var(--border);
+  background: var(--surface);
+  align-items: center;
+}
+.app-modal-titleblock { display: flex; flex-direction: column; gap: 2px; min-width: 0; }
+
+/* AppDialog — compact prompt/confirm; footer sits on surface-2 like the old .dlg-foot. */
+.app-dialog { width: min(440px, 100%); }
+.app-dialog .p-dialog-footer {
+  background: var(--surface-2);
+  border-top: 1px solid var(--border-soft);
+}
+
+/* PrimeVue <Toast> (Toast.vue) — bottom-center pill, above modals' mask. */
+.p-toast { z-index: 200; }
+.p-toast .p-toast-message { border-radius: 10px; box-shadow: var(--shadow-2); }
 
 /* Banner callouts — theme-aware state strips used across views. */
 .banner {

@@ -18,6 +18,7 @@ import WriterLabBase from "../components/WriterLabBase.vue";
 
 import { PACING_LABELS, ENDING_LABELS } from "../services/analysis/critique.js";
 import { dispatchRun, reconstructPrompt, textToHtml, fmtMs } from "../services/writerLab.js";
+import Button from "primevue/button";
 
 const project = useProjectStore();
 const ai      = useAiStore();
@@ -164,13 +165,13 @@ function notesByGroup(notes) {
 
     <!-- ── COLUMNS TOOLBAR ────────────────────────────────────────────── -->
     <div class="run-row">
-      <button class="btn primary" @click="runAll" :disabled="!canRunAll">
+      <Button severity="primary" @click="runAll" :disabled="!canRunAll">
         <Icon name="Sparkle" :size="13" />
         Run all{{ columns.length > 1 ? ` (${columns.length})` : "" }}
-      </button>
-      <button class="btn sm" @click="addColumn" :disabled="columns.length >= 4">
+      </Button>
+      <Button severity="secondary" size="small" @click="addColumn" :disabled="columns.length >= 4">
         <Icon name="Plus" :size="12" /> Add column
-      </button>
+      </Button>
       <span v-if="!selectedAction" class="t-muted" style="font-size:12px">
         Select an operation above.
       </span>

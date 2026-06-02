@@ -12,6 +12,7 @@ import { computed, watch } from "vue";
 import { useProjectStore } from "../stores/project.js";
 import Icon from "./Icon.vue";
 import { ACTION_GROUPS, stripHtml, countWords } from "../services/writerLab.js";
+import Button from "primevue/button";
 
 const props = defineProps({
   modelValue: {
@@ -103,9 +104,9 @@ function togglePreview(e) {
           Ch. {{ ch.num }} — {{ ch.title }}
         </option>
       </select>
-      <button class="btn sm" @click="clearInput" :disabled="!modelValue.inputText">
+      <Button severity="secondary" size="small" @click="clearInput" :disabled="!modelValue.inputText">
         <Icon name="Close" :size="12" /> Clear
-      </button>
+      </Button>
       <span class="t-muted" style="font-size:11.5px;margin-left:auto">
         Paste prose or load a chapter.
       </span>

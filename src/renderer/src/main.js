@@ -12,6 +12,8 @@ applyAppearance(DEFAULT_APPEARANCE);
 import { createApp } from "vue";
 import { createPinia } from "pinia";
 import PrimeVue from "primevue/config";
+import ToastService from "primevue/toastservice";
+import Tooltip from "primevue/tooltip";
 import App from "./App.vue";
 import router from "./router/index.js";
 import { bootStorage, getItem } from "./services/storage.js";
@@ -48,5 +50,7 @@ import { JustWriteEditorial } from "./services/primevue-preset.js";
       },
     },
   });
+  app.use(ToastService);
+  app.directive("tooltip", Tooltip);
   app.mount("#app");
 })();

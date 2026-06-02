@@ -95,9 +95,9 @@ async function emptyAll() {
     <span class="t-muted" style="font-size:12px">
       {{ totalCount }} item{{ totalCount === 1 ? "" : "s" }}
     </span>
-    <button v-if="totalCount" class="btn ghost" @click="emptyAll">
+    <Button v-if="totalCount" severity="secondary" text @click="emptyAll">
       <Icon name="Trash" :size="13" /> Empty trash
-    </button>
+    </Button>
   </PaneHeader>
 
   <div class="pane-card">
@@ -152,7 +152,7 @@ async function emptyAll() {
                 <Button label="Restore" severity="primary" size="small" @click="restore(s.kind, data.id)">
                   <template #icon><Icon name="Refresh" :size="11" /></template>
                 </Button>
-                <Button severity="danger" text size="small" title="Permanently delete" @click="purge(s.kind, data.id, titleOf(s.kind, data))">
+                <Button severity="danger" text size="small" v-tooltip.bottom="'Permanently delete'" @click="purge(s.kind, data.id, titleOf(s.kind, data))">
                   <template #icon><Icon name="Trash" :size="11" /></template>
                 </Button>
               </div>

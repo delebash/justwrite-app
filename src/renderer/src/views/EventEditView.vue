@@ -6,6 +6,9 @@ import { EVENTS_KIND_META } from "../services/eventsKind.js";
 import Icon from "../components/Icon.vue";
 import Breadcrumb from "../components/Breadcrumb.vue";
 import DateTimePicker from "../components/DateTimePicker.vue";
+import InputText from "primevue/inputtext";
+import Textarea from "primevue/textarea";
+import Button from "primevue/button";
 
 const props = defineProps({
   kind:     { type: String, required: true },
@@ -65,10 +68,10 @@ function save() {
       <h1 class="pane-h1">Edit event</h1>
     </div>
     <div class="pane-actions">
-      <button class="btn ghost" @click="cancel">Cancel</button>
-      <button class="btn primary" :disabled="!titleStr.trim()" @click="save">
+      <Button severity="secondary" text @click="cancel">Cancel</Button>
+      <Button severity="primary" :disabled="!titleStr.trim()" @click="save">
         <Icon name="Check" :size="13" /> Save changes
-      </button>
+      </Button>
     </div>
   </header>
 
@@ -76,7 +79,7 @@ function save() {
   <div class="scrollarea event-edit-pane">
     <div v-if="!ev" class="event-missing">
       That event no longer exists.
-      <button class="btn sm" style="margin-left:8px" @click="cancel">Back to timeline</button>
+      <Button severity="secondary" size="small" style="margin-left:8px" @click="cancel">Back to timeline</Button>
     </div>
     <form v-else class="event-edit-form" @submit.prevent="save">
       <div class="field">
@@ -86,13 +89,13 @@ function save() {
 
       <label class="field">
         <span class="field-label">Title</span>
-        <input class="input" ref="titleRef" v-model="titleStr" placeholder="What happened?" />
+        <InputText fluid ref="titleRef" v-model="titleStr" placeholder="What happened?" />
       </label>
 
       <label class="field">
         <span class="field-label">Notes</span>
-        <textarea class="input" v-model="noteStr" rows="6"
-          placeholder="Optional — anything you want to remember about this event."></textarea>
+        <Textarea fluid v-model="noteStr" rows="6"
+          placeholder="Optional — anything you want to remember about this event." />
       </label>
     </form>
   </div>

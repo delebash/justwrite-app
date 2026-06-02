@@ -52,7 +52,7 @@ const defaultLabel = computed(() => {
     <option value="">{{ defaultLabel }}</option>
     <option v-for="m in models" :key="m.id" :value="m.id">{{ entryLabel(m) }}</option>
   </select>
-  <button class="icon-btn" @click="refreshModels(providerId)" title="Refresh model list">
+  <button class="icon-btn" @click="refreshModels(providerId)" v-tooltip.bottom="'Refresh model list'">
     <Icon name="Refresh" :size="12" />
   </button>
 </template>

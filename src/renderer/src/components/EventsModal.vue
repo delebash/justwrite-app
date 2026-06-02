@@ -3,6 +3,7 @@ import { computed, ref } from "vue";
 import { useProjectStore } from "../stores/project.js";
 import Icon from "./Icon.vue";
 import AppModal from "./AppModal.vue";
+import Button from "primevue/button";
 
 const props = defineProps({
   entityId: { type: String, required: true },
@@ -26,9 +27,9 @@ function addEvent() {
       <input class="input" v-model="draftWhen" placeholder="When (e.g. Ch. 7, age 9)" />
       <input class="input" v-model="draftTitle" placeholder="Event title" @keydown.enter="addEvent" />
       <textarea class="input" v-model="draftNote" placeholder="Notes (optional)" rows="2" />
-      <button class="btn primary" :disabled="!draftTitle.trim()" @click="addEvent">
+      <Button severity="primary" :disabled="!draftTitle.trim()" @click="addEvent">
         <Icon name="Plus" :size="12" /> Add event
-      </button>
+      </Button>
     </div>
     <div v-if="events.length === 0" class="t-muted" style="font-size:12.5px;text-align:center;padding:24px 0">
       No events yet.
@@ -44,7 +45,7 @@ function addEvent() {
           <textarea class="input" :value="ev.note" rows="2" placeholder="Notes…"
             @input="project.updateEvent(entityId, ev.id, { note: $event.target.value })" />
         </div>
-        <button class="btn ghost sm" @click="project.removeEvent(entityId, ev.id)">×</button>
+        <Button severity="secondary" text size="small" @click="project.removeEvent(entityId, ev.id)">×</Button>
       </div>
     </div>
   </AppModal>
@@ -52,5 +53,5 @@ function addEvent() {
 
 <style>
 .event-form { display: grid; gap: 6px; margin-bottom: 18px; padding-bottom: 18px; border-bottom: 1px solid var(--border-soft); }
-.event-form .btn.primary { justify-self: end; }
+.event-form > .p-button { justify-self: end; }
 </style>

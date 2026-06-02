@@ -16,6 +16,7 @@
 // Emits: "action" when the default action button is clicked.
 
 import Icon from "./Icon.vue";
+import Button from "primevue/button";
 
 defineProps({
   icon:       { type: String, default: "Sparkle" },
@@ -34,9 +35,9 @@ const emit = defineEmits(["action"]);
     <h3 v-if="title" class="empty-state-title">{{ title }}</h3>
     <p v-if="message" class="empty-state-message">{{ message }}</p>
     <slot name="actions">
-      <button v-if="actionLabel" class="btn primary" @click="emit('action')">
+      <Button v-if="actionLabel" severity="primary" @click="emit('action')">
         {{ actionLabel }}
-      </button>
+      </Button>
     </slot>
   </div>
 </template>

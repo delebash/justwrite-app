@@ -1,5 +1,7 @@
 <script setup>
 import { computed } from "vue";
+import InputText from "primevue/inputtext";
+import Button from "primevue/button";
 import { useProjectStore } from "../stores/project.js";
 import { useUiStore } from "../stores/ui.js";
 import { useRouter } from "vue-router";
@@ -46,11 +48,11 @@ async function deleteNote() {
       <h1 v-else class="pane-h1">No notes</h1>
     </div>
     <div class="pane-actions">
-      <input v-if="n" class="input" placeholder="tag" style="max-width:120px"
-        :value="n.tag" @input="update('tag', $event.target.value)" />
+      <InputText v-if="n" fluid placeholder="tag" style="max-width:120px"
+        :model-value="n.tag" @update:model-value="update('tag', $event)" />
       <span v-if="n" class="t-muted" style="font-size:12px;padding:0 8px">Updated {{ n.updated }}</span>
-      <button v-if="n" class="btn ghost sm" @click="deleteNote">Delete</button>
-      <button class="btn primary sm" @click="addNote"><Icon name="Plus" :size="14" /> New note</button>
+      <Button v-if="n" severity="secondary" text size="small" @click="deleteNote">Delete</Button>
+      <Button severity="primary" size="small" @click="addNote"><Icon name="Plus" :size="14" /> New note</Button>
     </div>
   </header>
 
@@ -65,7 +67,7 @@ async function deleteNote() {
   <div v-else class="pane-card" style="display:grid;place-items:center;padding:60px">
     <div class="t-muted" style="text-align:center">
       No notes yet.<br />
-      <button class="btn primary" style="margin-top:14px" @click="addNote"><Icon name="Plus" :size="14" /> Create your first note</button>
+      <Button severity="primary" style="margin-top:14px" @click="addNote"><Icon name="Plus" :size="14" /> Create your first note</Button>
     </div>
   </div>
 </template>

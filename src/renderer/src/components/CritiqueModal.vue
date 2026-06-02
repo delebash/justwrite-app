@@ -18,6 +18,7 @@ import EntityReviewModal from "./EntityReviewModal.vue";
 import EntitySweepModal from "./EntitySweepModal.vue";
 import AiProgressBar from "./AiProgressBar.vue";
 import AppModal from "./AppModal.vue";
+import Button from "primevue/button";
 
 const props = defineProps({
   chapterId: { type: String, required: true },
@@ -191,9 +192,9 @@ const SEVERITY_META = {
         <h2 class="modal-title">{{ ch ? `Ch. ${ch.num} · ${ch.title}` : "" }}</h2>
       </div>
       <div class="ck-header-actions">
-        <button v-if="critique" class="btn ghost sm" @click="clearAll">
+        <Button v-if="critique" severity="secondary" text size="small" @click="clearAll">
           <Icon name="Trash" :size="12" /> Clear
-        </button>
+        </Button>
       </div>
     </template>
 
@@ -210,10 +211,10 @@ const SEVERITY_META = {
     <section class="ck-section">
       <header>
         <h3>Structure</h3>
-        <button class="btn ghost sm" :disabled="runningStruct" @click="runStruct">
+        <Button severity="secondary" text size="small" :disabled="runningStruct" @click="runStruct">
           <Icon name="Refresh" :size="12" />
           {{ structure ? "Re-analyze" : (runningStruct ? "Analyzing…" : "Analyze") }}
-        </button>
+        </Button>
       </header>
 
       <AiProgressBar :progress="structProgress" label="Analyzing structure…" />
@@ -248,14 +249,14 @@ const SEVERITY_META = {
       <header>
         <h3>Story bible</h3>
         <div style="display:flex;gap:6px">
-          <button class="btn ghost sm" :disabled="runningEntities" @click="findEntities">
+          <Button severity="secondary" text size="small" :disabled="runningEntities" @click="findEntities">
             <Icon name="Refresh" :size="12" />
             {{ runningEntities ? "Scanning…" : "This chapter" }}
-          </button>
-          <button class="btn ghost sm" :disabled="runningEntities" @click="sweepOpen = true" title="Scan every chapter for new entities (slower)">
+          </Button>
+          <Button severity="secondary" text size="small" :disabled="runningEntities" @click="sweepOpen = true" title="Scan every chapter for new entities (slower)">
             <Icon name="Sparkle" :size="12" />
             Whole book
-          </button>
+          </Button>
         </div>
       </header>
       <AiProgressBar :progress="entitiesProgress" label="Scanning for entities…" />
@@ -268,10 +269,10 @@ const SEVERITY_META = {
     <section class="ck-section">
       <header>
         <h3>Notes</h3>
-        <button class="btn ghost sm" :disabled="runningNotes" @click="runNotes">
+        <Button severity="secondary" text size="small" :disabled="runningNotes" @click="runNotes">
           <Icon name="Refresh" :size="12" />
           {{ notes.length ? "Re-run notes" : (runningNotes ? "Drafting notes…" : "Run notes") }}
-        </button>
+        </Button>
       </header>
 
       <AiProgressBar :progress="notesProgress" label="Drafting notes…" />

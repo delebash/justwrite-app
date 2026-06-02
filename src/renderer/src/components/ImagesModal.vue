@@ -4,6 +4,7 @@ import { useProjectStore } from "../stores/project.js";
 import { saveImage, urlFor, removeImage, hasNativeImages } from "../services/imageStore.js";
 import Icon from "./Icon.vue";
 import AppModal from "./AppModal.vue";
+import Button from "primevue/button";
 
 const props = defineProps({
   entityId: { type: String, required: true },
@@ -66,7 +67,7 @@ async function remove(img) {
         <div v-else class="image-loading"><Icon name="Image" :size="18" /></div>
         <div class="image-meta">
           <span :title="img.name">{{ img.name }}</span>
-          <button class="btn sm ghost" @click="remove(img)">×</button>
+          <Button severity="secondary" text size="small" @click="remove(img)">×</Button>
         </div>
       </div>
       <button class="image-add" @click="fileInput.click()" :disabled="saving > 0">

@@ -63,7 +63,7 @@ async function deleteGroup(group) {
           <span class="t-muted" style="font-size:11px">{{ (g.members || []).length }} members</span>
           <Icon :name="inGroup(g) ? 'Check' : 'Plus'" :size="13" />
         </button>
-        <button class="group-del" title="Delete group" @click="deleteGroup(g)">
+        <button class="group-del" v-tooltip.bottom="'Delete group'" @click="deleteGroup(g)">
           <Icon name="Trash" :size="13" />
         </button>
       </div>

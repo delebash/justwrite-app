@@ -210,26 +210,33 @@ export const JustWriteEditorial = definePreset(Aura, {
       gap:               "6px",
       iconOnlyWidth:     "28px",
       raisedShadow:      "var(--shadow-1, 0 1px 2px rgba(0,0,0,.05))",
-      // Severities live here too — spread the helper output below.
-      ...severityRamp({
-        primary:   { bg: "var(--accent)",           hover: "var(--accent-ink)",   contrast: "white" },
-      success:   { bg: "var(--status-done)",      hover: "color-mix(in oklab, var(--status-done) 80%, black)", contrast: "white" },
-      warn:      { bg: "var(--gold)",             hover: "color-mix(in oklab, var(--gold) 80%, black)",        contrast: "var(--ink)" },
-      danger:    { bg: "var(--danger-ink, oklch(0.55 0.18 25))", hover: "color-mix(in oklab, var(--danger-ink, oklch(0.55 0.18 25)) 80%, black)", contrast: "white" },
-      info:      { bg: "oklch(0.55 0.10 235)",    hover: "oklch(0.46 0.11 235)", contrast: "white" },
-      secondary: { bg: "var(--surface-3)",        hover: "var(--border-soft)",   contrast: "var(--ink-2)" },
-      contrast:  { bg: "var(--ink)",              hover: "var(--ink-2)",         contrast: "var(--surface)" },
-      }),
+      // Severity colours MUST live under colorScheme.{light,dark}.root|outlined|text
+      // — verified against @primeuix/themes/aura/button. Overriding button.<severity>
+      // directly (as this preset did before) is silently IGNORED, so those buttons fell
+      // back to Aura's fixed green/red/sky/orange and never tracked the theme hues.
+      // primary/secondary/contrast already follow the theme via the semantic `primary`
+      // + `surface` overrides, so here we only retint success / danger / info / warn.
+      colorScheme: { light: buttonColorScheme(), dark: buttonColorScheme() },
     },
-    tag: tagRamp({
-      primary:   { bg: "var(--accent-soft)",                                              fg: "var(--accent-ink)" },
-      success:   { bg: "color-mix(in oklab, var(--status-done) 18%, transparent)",        fg: "var(--status-done)" },
-      warn:      { bg: "color-mix(in oklab, var(--gold) 22%, transparent)",                fg: "color-mix(in oklab, var(--gold) 60%, black)" },
-      danger:    { bg: "color-mix(in oklab, var(--danger-ink, #b91c1c) 14%, transparent)", fg: "var(--danger-ink, #b91c1c)" },
-      info:      { bg: "color-mix(in oklab, oklch(0.55 0.10 235) 16%, transparent)",       fg: "oklch(0.46 0.11 235)" },
-      secondary: { bg: "var(--surface-3)",                                                  fg: "var(--ink-2)" },
-      contrast:  { bg: "var(--ink)",                                                        fg: "var(--surface)" },
-    }),
+    // Same path rule as buttons: tag severities live at tag.colorScheme.{light,dark}.<severity>
+    // (verified against @primeuix/themes/aura/tag). Soft tint + readable ink, mode-aware.
+    tag: { colorScheme: { light: tagColorScheme(), dark: tagColorScheme() } },
+    dialog: {
+      // Match the bespoke .modal shell: surface bg, 14px radius, the
+      // editorial window shadow, serif title. Header/footer chrome
+      // (border-bottom / border-top) + content scroll live in tokens.css
+      // as unlayered rules keyed on .app-modal / .app-dialog so the two
+      // overlay flavors keep their distinct looks.
+      background:   "var(--surface)",
+      borderColor:  "var(--border)",
+      color:        "var(--ink)",
+      borderRadius: "14px",
+      shadow:       "var(--shadow-window)",
+      header: { padding: "16px 22px", gap: "14px" },
+      title:  { fontSize: "18px", fontWeight: "600" },
+      content: { padding: "18px 22px" },
+      footer: { padding: "12px 22px", gap: "10px" },
+    },
     datatable: {
       header: {
         background: "var(--surface-2)",
@@ -261,44 +268,47 @@ export const JustWriteEditorial = definePreset(Aura, {
   },
 });
 
-// Build a Button component token block for every severity in one pass.
-// Each severity gets background + hover + active + contrast color blocks
-// for both the solid fill and the outlined/text variants. Keeps the
-// component spec above readable by factoring out the repetitive shape.
-function severityRamp(severities) {
-  const out = {};
-  for (const [name, { bg, hover, contrast }] of Object.entries(severities)) {
-    out[name] = {
-      background:        bg,
-      hoverBackground:   hover,
-      activeBackground:  hover,
-      borderColor:       bg,
-      hoverBorderColor:  hover,
-      activeBorderColor: hover,
-      color:             contrast,
-      hoverColor:        contrast,
-      activeColor:       contrast,
-      focusRing: { color: bg, shadow: "none" },
-      outlined: {
-        color:           bg,
-        hoverBackground: "color-mix(in oklab, " + bg + " 10%, transparent)",
-        activeBackground:"color-mix(in oklab, " + bg + " 16%, transparent)",
-        borderColor:     bg,
-      },
-      text: {
-        color:           bg,
-        hoverBackground: "color-mix(in oklab, " + bg + " 10%, transparent)",
-        activeBackground:"color-mix(in oklab, " + bg + " 16%, transparent)",
-      },
+// Button severity colours. All references are MODE-AWARE app vars (tokens.css
+// flips their L/C per light/dark), so one definition serves both colorSchemes.
+//   fill   = filled background (the exact colour the Functional-colours swatch shows)
+//   onFill = label on the filled button (chosen to contrast the fill in both modes)
+//   label  = outlined/text label (the mode-aware -ink shade: readable, same hue)
+function buttonColorScheme() {
+  const SEV = {
+    success: { fill: "var(--status-done)", onFill: "var(--surface)", label: "var(--success-ink)" },
+    info:    { fill: "var(--info)",        onFill: "var(--surface)", label: "var(--info-ink)" },
+    danger:  { fill: "var(--danger)",      onFill: "var(--surface)", label: "var(--danger-ink)" },
+    warn:    { fill: "var(--gold)",        onFill: "color-mix(in oklab, var(--gold) 22%, black)",
+               label: "color-mix(in oklab, var(--gold) 55%, black)" },
+  };
+  const root = {}, outlined = {}, text = {};
+  for (const [name, c] of Object.entries(SEV)) {
+    const hover  = "color-mix(in oklab, " + c.fill + " 82%, black)";
+    const soft10 = "color-mix(in oklab, " + c.fill + " 10%, transparent)";
+    const soft16 = "color-mix(in oklab, " + c.fill + " 16%, transparent)";
+    root[name] = {
+      background: c.fill, hoverBackground: hover, activeBackground: hover,
+      borderColor: c.fill, hoverBorderColor: hover, activeBorderColor: hover,
+      color: c.onFill, hoverColor: c.onFill, activeColor: c.onFill,
+      focusRing: { color: c.fill, shadow: "none" },
     };
+    outlined[name] = { color: c.label, borderColor: c.fill, hoverBackground: soft10, activeBackground: soft16 };
+    text[name]     = { color: c.label, hoverBackground: soft10, activeBackground: soft16 };
   }
-  return out;
+  return { root, outlined, text };
 }
 
-function tagRamp(severities) {
+// Tag severity colours — soft tint background + readable ink. The -bg / -ink
+// families are mode-aware, so one definition serves both light and dark.
+function tagColorScheme() {
+  const SEV = {
+    primary: { bg: "var(--accent-soft)", fg: "var(--accent-ink)" },
+    success: { bg: "var(--success-bg)",  fg: "var(--success-ink)" },
+    info:    { bg: "var(--info-bg)",     fg: "var(--info-ink)" },
+    warn:    { bg: "var(--warn-bg)",     fg: "var(--warn-ink)" },
+    danger:  { bg: "var(--danger-bg)",   fg: "var(--danger-ink)" },
+  };
   const out = {};
-  for (const [name, { bg, fg }] of Object.entries(severities)) {
-    out[name] = { background: bg, color: fg };
-  }
+  for (const [name, c] of Object.entries(SEV)) out[name] = { background: c.bg, color: c.fg };
   return out;
 }

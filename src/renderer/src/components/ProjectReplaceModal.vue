@@ -11,6 +11,7 @@ import { useRouter } from "vue-router";
 import { scanScenes } from "../services/projectReplace.js";
 import Icon from "./Icon.vue";
 import AppModal from "./AppModal.vue";
+import Button from "primevue/button";
 
 const props = defineProps({ initialTerm: { type: String, default: "" } });
 const emit = defineEmits(["close"]);
@@ -73,15 +74,15 @@ function openScene(row) {
           </span>
           <span class="pr-snippet">{{ row.snippet }}</span>
         </button>
-        <button class="btn ghost sm" :disabled="!term.trim()" @click="replaceRow(row)">Replace</button>
+        <Button severity="secondary" text size="small" :disabled="!term.trim()" @click="replaceRow(row)">Replace</Button>
       </div>
     </div>
 
     <template #footer>
       <span class="t-muted" style="font-size:11.5px">Replace all is a single undo (⌘Z).</span>
-      <button class="btn primary" :disabled="!canReplace" @click="replaceAll">
+      <Button severity="primary" :disabled="!canReplace" @click="replaceAll">
         <Icon name="Replace" :size="14" /> Replace all{{ preview.total ? ` (${preview.total})` : "" }}
-      </button>
+      </Button>
     </template>
   </AppModal>
 </template>

@@ -20,6 +20,7 @@ import IndexBuildModal from "./IndexBuildModal.vue";
 import AiProgressBar from "./AiProgressBar.vue";
 import EmptyState from "./EmptyState.vue";
 import Icon from "./Icon.vue";
+import Button from "primevue/button";
 
 const props = defineProps({
   modelValue: { type: Boolean, default: false },
@@ -115,9 +116,9 @@ defineExpose({ open: () => { open.value = true; }, close });
           <div class="t-eyebrow">Ask the manuscript</div>
           <h2>Chat with your book</h2>
         </div>
-        <button class="btn ghost sm" @click="close">
+        <Button severity="secondary" text size="small" @click="close">
           <Icon name="Close" :size="12" /> Close
-        </button>
+        </Button>
       </header>
 
       <EmptyState v-if="!hasIndex"
@@ -135,12 +136,12 @@ defineExpose({ open: () => { open.value = true; }, close });
           <span class="cp-status-sep">·</span>
           <span class="cp-status-model"><code>{{ status.model || "?" }}</code></span>
           <span class="cp-status-spacer"></span>
-          <button class="btn ghost sm" @click="indexModalMode = 'build'" title="Embed any scenes added or edited since last build">
+          <Button severity="secondary" text size="small" @click="indexModalMode = 'build'" title="Embed any scenes added or edited since last build">
             <Icon name="Refresh" :size="11" /> Update
-          </button>
-          <button class="btn ghost sm" @click="indexModalMode = 'rebuild'" title="Wipe and re-embed everything">
+          </Button>
+          <Button severity="secondary" text size="small" @click="indexModalMode = 'rebuild'" title="Wipe and re-embed everything">
             <Icon name="Refresh" :size="11" /> Rebuild
-          </button>
+          </Button>
         </div>
 
         <!-- Question input -->
@@ -156,9 +157,9 @@ defineExpose({ open: () => { open.value = true; }, close });
           />
           <div class="cp-input-actions">
             <span class="t-muted" style="font-size:10.5px">⏎ to send · ⇧⏎ for newline</span>
-            <button class="btn primary sm" :disabled="!question.trim() || progress.running.value" @click="ask">
+            <Button severity="primary" size="small" :disabled="!question.trim() || progress.running.value" @click="ask">
               <Icon name="Sparkle" :size="12" /> Ask
-            </button>
+            </Button>
           </div>
         </div>
 

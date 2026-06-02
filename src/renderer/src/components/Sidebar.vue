@@ -6,6 +6,7 @@ import { useProjectStore } from "../stores/project.js";
 import { promptDialog, confirmDialog } from "../services/dialog.js";
 import { NEW_ENTITY_META } from "../services/entityMeta.js";
 import Icon from "./Icon.vue";
+import Button from "primevue/button";
 
 const ui = useUiStore();
 const project = useProjectStore();
@@ -649,7 +650,7 @@ function wbDropClass(kind, id) {
         <div class="brand-name">JustWrite</div>
         <div class="brand-sub">v0.1 · local</div>
       </div>
-      <button class="btn ghost icon" @click="ui.toggleSidebar"><Icon name="SidebarToggle" :size="14" /></button>
+      <Button severity="secondary" text v-tooltip.bottom="'Toggle sidebar'" @click="ui.toggleSidebar"><Icon name="SidebarToggle" :size="14" /></Button>
     </div>
     <div class="project-switcher-wrap" ref="projectSwitcherEl">
       <button class="project-switcher" :class="{ open: projectMenuOpen }" @click="toggleProjectMenu">

@@ -7,6 +7,7 @@ import { PLOT_TEMPLATES, TEMPLATE_ORDER, applyTemplate } from "../services/plotT
 import { promptDialog, confirmDialog } from "../services/dialog.js";
 import PaneHeader from "../components/PaneHeader.vue";
 import Icon from "../components/Icon.vue";
+import Button from "primevue/button";
 
 const project = useProjectStore();
 const ui = useUiStore();
@@ -294,11 +295,11 @@ function sceneBadge(beat) {
         <div class="empty-actions">
           <!-- Template dropdown in empty state -->
           <div class="dropdown-wrap" style="position:relative">
-            <button class="btn-outline" ref="templateBtnRef" @click="openTemplateMenu">
+            <Button severity="secondary" outlined ref="templateBtnRef" @click="openTemplateMenu">
               <Icon name="Sparkle" :size="14" />
               Apply a template
               <Icon name="ChevDown" :size="13" />
-            </button>
+            </Button>
             <div v-if="templateMenuOpen" ref="templateMenuRef" class="template-menu">
               <button
                 v-for="id in TEMPLATE_ORDER"
@@ -311,10 +312,10 @@ function sceneBadge(beat) {
               </button>
             </div>
           </div>
-          <button class="btn-outline" @click="handleNewStrand">
+          <Button severity="secondary" outlined @click="handleNewStrand">
             <Icon name="Plus" :size="14" />
             Start blank
-          </button>
+          </Button>
         </div>
       </div>
     </template>
@@ -324,11 +325,11 @@ function sceneBadge(beat) {
       <!-- Toolbar -->
       <div class="toolbar">
         <div style="position:relative">
-          <button class="btn-outline" ref="templateBtnRef" @click="openTemplateMenu">
+          <Button severity="secondary" outlined ref="templateBtnRef" @click="openTemplateMenu">
             <Icon name="Sparkle" :size="14" />
             Apply template
             <Icon name="ChevDown" :size="13" />
-          </button>
+          </Button>
           <div v-if="templateMenuOpen" ref="templateMenuRef" class="template-menu">
             <button
               v-for="id in TEMPLATE_ORDER"
@@ -341,10 +342,10 @@ function sceneBadge(beat) {
             </button>
           </div>
         </div>
-        <button class="btn-primary" @click="handleNewStrand">
+        <Button @click="handleNewStrand">
           <Icon name="Plus" :size="14" />
           New strand
-        </button>
+        </Button>
       </div>
 
       <!-- Board scroll container -->
@@ -522,39 +523,6 @@ function sceneBadge(beat) {
   border-bottom: 1px solid var(--border-soft);
 }
 .toolbar > *:last-child { margin-left: auto; }
-
-.btn-outline {
-  display: inline-flex;
-  align-items: center;
-  gap: 6px;
-  padding: 6px 12px;
-  border: 1px solid var(--border);
-  border-radius: 7px;
-  background: var(--surface);
-  color: var(--ink-2);
-  font-size: 12.5px;
-  font-family: var(--font-ui);
-  cursor: pointer;
-  white-space: nowrap;
-  transition: border-color .15s, background .15s;
-}
-.btn-outline:hover { background: var(--surface-2); border-color: var(--border); color: var(--ink); }
-
-.btn-primary {
-  display: inline-flex;
-  align-items: center;
-  gap: 6px;
-  padding: 6px 14px;
-  border: 1px solid transparent;
-  border-radius: 7px;
-  background: var(--accent);
-  color: var(--accent-ink);
-  font-size: 12.5px;
-  font-family: var(--font-ui);
-  cursor: pointer;
-  white-space: nowrap;
-}
-.btn-primary:hover { opacity: 0.88; }
 
 /* ── Template dropdown menu ──────────────────────────────────────── */
 .template-menu {
