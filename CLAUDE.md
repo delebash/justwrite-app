@@ -4,7 +4,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Active work
 
-A PrimeVue UI migration ("Path B") is in progress. **See [MIGRATION.md](MIGRATION.md) for phase-by-phase status and what's next** — read it before continuing migration work, and update it in the same commit that lands a phase.
+PrimeVue has been fully removed in favor of a custom-component layer (`src/renderer/src/components/ui/Jw*.vue`) backed by Reka UI, TanStack Vue Table, Floating UI, and vue-sonner. See **UI components** below for the conventions, and `MIGRATION.md` for historical phase notes.
 
 ## Commands
 
@@ -100,3 +100,75 @@ Hash router (`createWebHashHistory`) — see `router/index.js` for the full rout
 - **Don't bypass the bridge.** Renderer code calling `invoke()` directly will break the browser-only dev path.
 - **Bundle icons** live in `src-tauri/icons/` (full set: `icon.icns`, `icon.ico`, desktop PNGs, plus Windows Store / android / ios). If you regenerate them, the canonical command is `cargo tauri icon <source.png>` from `src-tauri/`.
 - **fs plugin scope** allows `$APPDATA/images/*` and `$APPDATA/projects/*`. Saving project files elsewhere requires widening the scope in `tauri.conf.json`.
+
+## UI components
+
+All app-level UI primitives live in `src/renderer/src/components/ui/`. They share one design contract — a single `intent` prop encodes BOTH semantic role AND visual style, never separate `severity` + boolean modifiers. New visual variants get added as intents, not as `outlined` / `text` props.
+
+### Components
+
+| Component | Replaces | What it does |
+|---|---|---|
+| `JwButton` | PrimeVue Button | Single intent prop. `size="small"` for compact toolbars. `as="label"` for file-picker buttons. `<template #icon>` for leading icons. |
+| `JwInput` | PrimeVue InputText | Plain `<input>` wrapper with `:size`, `:invalid`, standard v-model. |
+| `JwTextarea` | PrimeVue Textarea | Same as JwInput, plus `auto-resize` that grows with content (custom JS, ~15 lines). |
+| `JwCheckbox` | PrimeVue Checkbox | Binary v-model only. Custom box renders with accent fill when checked. |
+| `JwSelect` | PrimeVue Select | Reka UI primitives. Arrow-key nav, type-ahead, Esc-close, screen-reader semantics, Floating-UI positioning — free. |
+| `JwTag` | PrimeVue Tag | Soft-tint chip in the intent colour. |
+| `JwTable` | PrimeVue DataTable | TanStack Vue Table inside. `:columns` array of defs, slot per `accessorKey` for cell rendering. Sort, global filter, pagination. |
+| `JwNumber` | PrimeVue InputNumber | `Intl.NumberFormat`-driven locale-aware grouping; cursor stays sane while typing; reformats on blur. Up/Down keys step. |
+
+### Button intents
+
+| Intent | Look | Use for |
+|---|---|---|
+| `primary` | solid accent | Main affordance — Save, Create, Edit, Quick Write |
+| `secondary` | outlined neutral | Supporting action — Cancel, Test |
+| `ghost` | text only | Quiet utility — list-row icons, "Delete" on lists |
+| `danger` | solid red | Destructive — Discard, Remove, Reset workspace |
+| `success` | solid green | Positive — Confirm, Apply |
+| `info` | solid blue | Informational |
+| `accent2` | solid gold | User's second accent — Resume CTA, etc. (UI label = "Accent 2"; code-facing intent = `accent2`. They're the same thing.) |
+
+### Size rule
+
+- **Inline list-row / card-header utility actions** → `size="small"` (Add provider, Test/Edit per provider row, list-row Delete icons)
+- **Standalone / destination CTAs / empty-state actions** → no `size` prop (regular). Includes destructive actions like Reset workspace and dashboard CTAs like the Home page's Quick Write.
+
+When in doubt: if the button sits in a toolbar with other small chips, it's small; if it's the main reason the user is on this surface, it's regular.
+
+### Theming knobs (user-tunable in Settings → Appearance)
+
+Three button-level knobs ride on the CSS custom properties at the top of `tokens.css` and flow into every JwButton:
+
+- **`btnRadius`**: `sharp` (2px) · `standard` (6px) · `rounded` (10px) · `pill` (999px)
+- **`btnDensity`**: `compact` · `comfy`
+- **`btnLabelCase`**: `default` (sentence) · `uppercase` (auto-tracks letter-spacing)
+
+Adding more knobs follows the same pattern: token in `tokens.css` → defaults injected by `services/appearance.js` → segmented-button UI in `SettingsView.vue` → key registered in `PRESET_KEYS` (`stores/ui.js`).
+
+### Other UI pieces
+
+- **`services/tooltip.js`** — `v-tooltip.bottom="'text'"` directive (Floating UI under the hood). Registered globally in `main.js`.
+- **`services/toastBridge.js`** + **`components/Toast.vue`** — `ui.showToast({ message, action })` from anywhere. Sonner under the hood; theming uses our tokens.
+- **`components/AppModal.vue`** — shell wrapper for body-scrolling modals (eyebrow/title/wide/noPadding/closable + footer slot). Used by ~11 consumers.
+- **`components/AppDialog.vue`** — imperative prompt/confirm host driven by `services/dialog.js`. Use `promptDialog()` / `confirmDialog()` from any view.
+
+Both modal wrappers are Reka UI Dialog primitives — focus trap, scroll lock, Esc, ARIA come free. `AppModal` blocks backdrop click; `AppDialog` allows it (cancels).
+
+### Three-tier architecture
+
+When adding new UI behavior, place it correctly:
+
+1. **CSS classes / tokens** for purely visual variants — colors, padding, density. In `tokens.css`. No JS.
+2. **Directives / composables** for cross-cutting behavior with no UI surface — `v-tooltip` (Floating UI), `v-auto-resize` (Textarea grow), etc.
+3. **Components** for anything with non-trivial state, focus management, or markup — the Jw* family, AppModal, AppDialog.
+
+Don't reach for a component when a class would do. Don't reach for a class when behavior needs JS — make a directive instead. Reserve components for the things that genuinely need them.
+
+### Don't
+
+- **Don't add new PrimeVue components.** It's fully out of `package.json`. Build with the Jw* layer.
+- **Don't roll new `.btn-*` classes.** Use `<JwButton>`.
+- **Don't add `severity` / `outlined` / `text` props to JwButton.** The single-`intent` API is intentional; visual style is baked into the intent.
+- **Don't bypass the bridge.** `ui.showToast`, `promptDialog`, `confirmDialog` — always through the helpers, never directly into the component.

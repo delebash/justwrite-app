@@ -53,5 +53,4 @@ function addEvent() {
 
 <style>
 .event-form { display: grid; gap: 6px; margin-bottom: 18px; padding-bottom: 18px; border-bottom: 1px solid var(--border-soft); }
-.event-form > .p-button { justify-self: end; }
 </style>

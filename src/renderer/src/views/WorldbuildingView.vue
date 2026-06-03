@@ -10,15 +10,10 @@ import Breadcrumb from "../components/Breadcrumb.vue";
 import { promptDialog, confirmDialog } from "../services/dialog.js";
 import { NEW_ENTITY_META } from "../services/entityMeta.js";
 
-// ── PrimeVue components (spike) ──────────────────────────────────────
-import DataTable from "primevue/datatable";
-import Column from "primevue/column";
-import InputText from "primevue/inputtext";
-import Select from "primevue/select";
-import MultiSelect from "primevue/multiselect";
-import Tag from "primevue/tag";
+import JwTable from "@renderer/components/ui/JwTable.vue";
+import JwInput from "@renderer/components/ui/JwInput.vue";
+import JwTag from "@renderer/components/ui/JwTag.vue";
 import JwButton from "@renderer/components/ui/JwButton.vue";
-import { FilterMatchMode, FilterOperator } from "@primevue/core/api";
 
 const props = defineProps({ id: { type: String, default: "" } });
 const project = useProjectStore();
@@ -75,55 +70,31 @@ const rows = computed(() =>
   }),
 );
 
-// Distinct values per filterable column — fed to MultiSelect / Select dropdowns.
-const categoryOptions = computed(() =>
-  project.worldbuildingCategories.map((c) => ({ value: c.id, label: c.label })),
-);
-const statusOptions = computed(() => {
-  const seen = new Set();
-  const out = [];
-  for (const s of project.statuses) {
-    if (seen.has(s.id)) continue;
-    seen.add(s.id);
-    out.push({ value: s.id, label: s.label });
-  }
-  return out;
-});
-const allTags = computed(() => {
-  const tags = new Set();
-  for (const a of project.worldbuilding) for (const t of (a.tags || [])) tags.add(t);
-  return [...tags].sort().map((t) => ({ value: t, label: t }));
-});
-
-// PrimeVue DataTable filter config — `global` powers the search box,
-// per-column filters drive the in-column filter UI.
-const filters = ref({
-  global:   { value: null, matchMode: FilterMatchMode.CONTAINS },
-  title:    { operator: FilterOperator.AND, constraints: [{ value: null, matchMode: FilterMatchMode.CONTAINS }] },
-  category: { value: null, matchMode: FilterMatchMode.EQUALS },
-  status:   { value: null, matchMode: FilterMatchMode.EQUALS },
-  tags:     { value: null, matchMode: FilterMatchMode.ARRAY_CONTAINS_ANY },
-});
+// Global search powers the table's filter; the per-column filters from
+// the PrimeVue era (Category/Status select, Tags multi-select inside the
+// column headers) were dropped during the TanStack migration since the
+// global search covers the same workflow and is more discoverable.
+// TODO: bring back filter chips above the table if users want per-facet
+// filtering (category/status/tags toggles).
 const globalQuery = ref("");
-function onGlobalInput(e) {
-  globalQuery.value = e.target.value;
-  filters.value.global.value = e.target.value || null;
-}
-function clearAllFilters() {
-  globalQuery.value = "";
-  filters.value.global.value = null;
-  filters.value.title.constraints[0].value = null;
-  filters.value.category.value = null;
-  filters.value.status.value = null;
-  filters.value.tags.value = null;
-}
+function onGlobalInput(e) { globalQuery.value = e.target.value; }
+function clearAllFilters() { globalQuery.value = ""; }
+
+// JwTable column definitions. Each column's accessorKey ties into the
+// matching slot below (#title, #category, #tags, #status, #words).
+const columns = [
+  { accessorKey: "title",     header: "Title",    sortable: true, headerStyle: "min-width: 220px" },
+  { accessorKey: "category",  header: "Category", sortable: true, headerStyle: "min-width: 160px" },
+  { accessorKey: "tags",      header: "Tags",     sortable: false, headerStyle: "min-width: 160px", enableGlobalFilter: true },
+  { accessorKey: "status",    header: "Status",   sortable: true, headerStyle: "min-width: 120px" },
+  { accessorKey: "words",     header: "Words",    sortable: true, headerStyle: "min-width: 90px; text-align: right", cellStyle: "text-align: right" },
+];
 
 function statusLabel(id) { return project.statusById(id)?.label || id || ""; }
 function statusSeverity(id) {
-  // Map status ids onto PrimeVue Tag severities so the colors track
-  // the editorial palette via our preset overrides.
+  // Map status ids onto JwTag intents so colors track the editorial palette.
   if (id === "done")    return "success";
-  if (id === "revise")  return "warn";
+  if (id === "revise")  return "accent2";
   if (id === "draft")   return "info";
   if (id === "todo")    return "secondary";
   return "secondary";
@@ -149,7 +120,7 @@ function onRowClick(event) {
         <div class="wb-toolbar">
           <span class="wb-search">
             <Icon name="Search" :size="13" class="wb-search-icon" />
-            <InputText
+            <JwInput
               :value="globalQuery"
               placeholder="Search articles…"
               @input="onGlobalInput"
@@ -160,96 +131,50 @@ function onRowClick(event) {
           <span class="wb-count">{{ rows.length }} article{{ rows.length === 1 ? "" : "s" }}</span>
         </div>
 
-        <DataTable
-          :value="rows"
-          v-model:filters="filters"
-          :global-filter-fields="['title', 'summary', 'tags']"
-          filter-display="menu"
-          row-hover
-          selection-mode="single"
+        <JwTable
+          :data="rows"
+          :columns="columns"
           data-key="id"
-          @row-click="onRowClick"
-          paginator
-          :rows="20"
-          :rows-per-page-options="[10, 20, 50, 100]"
+          row-hover
+          :global-filter="globalQuery"
+          :global-filter-fields="['title', 'summary', 'tags']"
+          :pagination="{ pageSize: 20, pageSizeOptions: [10, 20, 50, 100] }"
           class="wb-table"
+          @row-click="onRowClick"
         >
           <template #empty>
-            <div class="wb-empty">No articles match your filters.</div>
+            <div class="wb-empty">No articles match your search.</div>
           </template>
 
-          <Column field="title" header="Title" sortable :show-filter-match-modes="false" style="min-width: 220px">
-            <template #body="{ data }">
-              <div class="wb-cell-title">
-                <span class="wb-cell-title-text">{{ data.title }}</span>
-                <span v-if="data.summary" class="wb-cell-title-sum">{{ data.summary }}</span>
-              </div>
-            </template>
-            <template #filter="{ filterModel }">
-              <InputText v-model="filterModel.value" placeholder="Title contains…" />
-            </template>
-          </Column>
+          <template #title="{ row }">
+            <div class="wb-cell-title">
+              <span class="wb-cell-title-text">{{ row.title }}</span>
+              <span v-if="row.summary" class="wb-cell-title-sum">{{ row.summary }}</span>
+            </div>
+          </template>
 
-          <Column field="category" header="Category" sortable :show-filter-match-modes="false" style="min-width: 160px">
-            <template #body="{ data }">
-              <span class="wb-cat" :style="`--h:${data.categoryHue}`">
-                <Icon :name="data.categoryIcon" :size="11" />
-                {{ data.categoryLabel }}
-              </span>
-            </template>
-            <template #filter="{ filterModel }">
-              <Select
-                v-model="filterModel.value"
-                :options="categoryOptions"
-                option-label="label"
-                option-value="value"
-                placeholder="Any category"
-                show-clear
-              />
-            </template>
-          </Column>
+          <template #category="{ row }">
+            <span class="wb-cat" :style="`--h:${row.categoryHue}`">
+              <Icon :name="row.categoryIcon" :size="11" />
+              {{ row.categoryLabel }}
+            </span>
+          </template>
 
-          <Column field="tags" header="Tags" :show-filter-match-modes="false" style="min-width: 160px">
-            <template #body="{ data }">
-              <div class="wb-tags">
-                <Tag v-for="t in data.tags" :key="t" :value="t" severity="secondary" rounded />
-              </div>
-            </template>
-            <template #filter="{ filterModel }">
-              <MultiSelect
-                v-model="filterModel.value"
-                :options="allTags"
-                option-label="label"
-                option-value="value"
-                placeholder="Any tag"
-                :max-selected-labels="2"
-              />
-            </template>
-          </Column>
+          <template #tags="{ row }">
+            <div class="wb-tags">
+              <JwTag v-for="t in row.tags" :key="t" :value="t" intent="secondary" />
+            </div>
+          </template>
 
-          <Column field="status" header="Status" sortable :show-filter-match-modes="false" style="min-width: 120px">
-            <template #body="{ data }">
-              <Tag v-if="data.status" :value="statusLabel(data.status)" :severity="statusSeverity(data.status)" />
-              <span v-else class="wb-status-empty">—</span>
-            </template>
-            <template #filter="{ filterModel }">
-              <Select
-                v-model="filterModel.value"
-                :options="statusOptions"
-                option-label="label"
-                option-value="value"
-                placeholder="Any status"
-                show-clear
-              />
-            </template>
-          </Column>
+          <template #status="{ row }">
+            <JwTag v-if="row.status" :value="statusLabel(row.status)" :intent="statusSeverity(row.status)" />
+            <span v-else class="wb-status-empty">—</span>
+          </template>
 
-          <Column field="words" header="Words" sortable data-type="numeric" style="min-width: 90px; text-align: right">
-            <template #body="{ data }">
-              <span class="wb-words">{{ (data.words || 0).toLocaleString() }}</span>
-            </template>
-          </Column>
-        </DataTable>
+          <template #words="{ row }">
+            <span class="wb-words">{{ (row.words || 0).toLocaleString() }}</span>
+          </template>
+        </JwTable>
       </div>
     </div>
   </template>

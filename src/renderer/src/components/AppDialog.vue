@@ -1,18 +1,27 @@
 <script setup>
 // Renderer-side host for promptDialog() / confirmDialog() in
-// services/dialog.js. Mounted once at the top level in App.vue.
+// services/dialog.js. Mounted once at the top level in App.vue. Reka UI
+// Dialog primitives under the hood — same prompt logic (per-field values,
+// requireMatch, enter-to-submit on the last field, focus+select the first
+// field) as the PrimeVue version it replaces.
 //
-// Shell is PrimeVue <Dialog>; fields are PrimeVue InputText / Select; actions
-// are PrimeVue <Button>. The prompt logic (per-field values, requireMatch,
-// enter-to-submit on the last field, focus+select the first field) is
-// unchanged from the hand-rolled version.
+// Backdrop click and Esc both route through cancel() so the pending
+// dialog promise resolves to the cancellation sentinel.
 
 import { computed, nextTick, ref, watch } from "vue";
 import { dialogState, _resolveDialog } from "../services/dialog.js";
-import Dialog from "primevue/dialog";
+import {
+  DialogRoot,
+  DialogPortal,
+  DialogOverlay,
+  DialogContent,
+  DialogTitle,
+  DialogClose,
+} from "reka-ui";
+import Icon from "./Icon.vue";
 import JwButton from "@renderer/components/ui/JwButton.vue";
-import InputText from "primevue/inputtext";
-import Select from "primevue/select";
+import JwInput from "@renderer/components/ui/JwInput.vue";
+import JwSelect from "@renderer/components/ui/JwSelect.vue";
 
 // Normalize the active dialog into a uniform shape the template can read.
 // Single-field prompts become a one-element `fields` list internally so
@@ -57,8 +66,8 @@ const dialog = computed(() => {
   };
 });
 
-// Dialog visibility mirrors the service's open flag; closing via ESC / X /
-// mask routes through cancel() so the pending promise resolves correctly.
+// Dialog visibility mirrors the service's open flag; closing via Esc /
+// X / backdrop routes through cancel() so the pending promise resolves.
 const visible = computed({
   get: () => dialogState.open,
   set: (v) => { if (!v) cancel(); },
@@ -100,7 +109,7 @@ const canSubmit = computed(() => {
 });
 
 // Capture the underlying DOM node so focus()/select() work whether the ref
-// is a native element or a PrimeVue component instance ($el).
+// is a native element or a component instance ($el).
 function captureFirst(el, i) {
   if (i !== 0) return;
   firstInput.value = el?.$el ?? el ?? null;
@@ -138,60 +147,67 @@ function onEnter(e, isLastField) {
 </script>
 
 <template>
-  <Dialog
-    v-model:visible="visible"
-    modal
-    dismissableMask
-    :draggable="false"
-    class="app-dialog"
-    :header="dialog?.title || ' '"
-  >
-    <div v-if="dialog" class="dlg-body">
-      <div v-if="dialog.message" class="dlg-message">{{ dialog.message }}</div>
+  <DialogRoot :open="visible" @update:open="(v) => visible = v">
+    <DialogPortal>
+      <DialogOverlay class="app-modal-overlay" />
+      <DialogContent class="app-modal app-dialog">
+        <header class="app-modal-header">
+          <DialogTitle as-child>
+            <div class="app-modal-titleblock">
+              <div v-if="dialog?.title" class="modal-title">{{ dialog.title }}</div>
+            </div>
+          </DialogTitle>
+          <DialogClose class="app-modal-close" aria-label="Close">
+            <Icon name="Close" :size="14" />
+          </DialogClose>
+        </header>
 
-      <template v-if="dialog.kind === 'prompt'">
-        <div
-          v-for="(f, i) in dialog.fields"
-          :key="f.key"
-          class="dlg-field"
-        >
-          <label v-if="f.label" class="dlg-label" :for="`dlg-field-${f.key}`">{{ f.label }}</label>
-          <Select
-            v-if="f.type === 'select'"
-            :input-id="`dlg-field-${f.key}`"
-            :ref="el => captureFirst(el, i)"
-            v-model="values[f.key]"
-            :options="f.options || []"
-            option-label="label"
-            option-value="value"
-            fluid
-          />
-          <InputText
-            v-else
-            :id="`dlg-field-${f.key}`"
-            :ref="el => captureFirst(el, i)"
-            :type="f.type || 'text'"
-            :placeholder="f.placeholder || ''"
-            v-model="values[f.key]"
-            fluid
-            @keydown.enter="onEnter($event, i === dialog.fields.length - 1)"
-            @keydown.escape.prevent="cancel"
-          />
-          <div v-if="f.help" class="dlg-help">{{ f.help }}</div>
+        <div v-if="dialog" class="app-modal-body dlg-body">
+          <div v-if="dialog.message" class="dlg-message">{{ dialog.message }}</div>
+
+          <template v-if="dialog.kind === 'prompt'">
+            <div
+              v-for="(f, i) in dialog.fields"
+              :key="f.key"
+              class="dlg-field"
+            >
+              <label v-if="f.label" class="dlg-label" :for="`dlg-field-${f.key}`">{{ f.label }}</label>
+              <JwSelect
+                v-if="f.type === 'select'"
+                :input-id="`dlg-field-${f.key}`"
+                :ref="el => captureFirst(el, i)"
+                v-model="values[f.key]"
+                :options="f.options || []"
+                option-label="label"
+                option-value="value"
+              />
+              <JwInput
+                v-else
+                :id="`dlg-field-${f.key}`"
+                :ref="el => captureFirst(el, i)"
+                :type="f.type || 'text'"
+                :placeholder="f.placeholder || ''"
+                v-model="values[f.key]"
+                @keydown.enter="onEnter($event, i === dialog.fields.length - 1)"
+                @keydown.escape.prevent="cancel"
+              />
+              <div v-if="f.help" class="dlg-help">{{ f.help }}</div>
+            </div>
+          </template>
         </div>
-      </template>
-    </div>
 
-    <template #footer>
-      <JwButton :label="dialog?.cancelLabel || 'Cancel'" intent="ghost" @click="cancel" />
-      <JwButton
-        :label="dialog?.confirmLabel || 'OK'"
-        :intent="dialog?.danger ? 'danger' : 'primary'"
-        :disabled="!canSubmit"
-        @click="submit"
-      />
-    </template>
-  </Dialog>
+        <footer class="app-modal-footer">
+          <JwButton :label="dialog?.cancelLabel || 'Cancel'" intent="ghost" @click="cancel" />
+          <JwButton
+            :label="dialog?.confirmLabel || 'OK'"
+            :intent="dialog?.danger ? 'danger' : 'primary'"
+            :disabled="!canSubmit"
+            @click="submit"
+          />
+        </footer>
+      </DialogContent>
+    </DialogPortal>
+  </DialogRoot>
 </template>
 
 <style scoped>

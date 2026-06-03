@@ -194,7 +194,7 @@ const strandCount = (id) => allCh.value.filter((c) => (c.strands || []).includes
           </div>
         </div>
         <div class="resume-cta">
-          <JwButton intent="warn" @click="resume"><Icon name="Play" :size="14" :fill="true" /> Resume writing</JwButton>
+          <JwButton intent="accent2" @click="resume"><Icon name="Play" :size="14" :fill="true" /> Resume writing</JwButton>
         </div>
       </div>
 
@@ -344,7 +344,6 @@ const strandCount = (id) => allCh.value.filter((c) => (c.strands || []).includes
 .resume-sub .dot-sep { color: var(--subtle); }
 .resume-today { color: var(--accent-ink); }
 .resume-cta { display: flex; align-items: center; }
-.resume-cta :deep(.p-button) { padding: 11px 22px; font-size: 13.5px; }
 
 @media (max-width: 900px) {
   .home-card-grid { grid-template-columns: 1fr !important; }

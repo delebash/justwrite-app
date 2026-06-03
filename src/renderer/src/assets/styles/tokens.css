@@ -257,11 +257,8 @@ html[data-theme="dark"] body {
 }
 
 button { font: inherit; cursor: default; }
-/* Native buttons inherit text colour; PrimeVue's <Button> must NOT — it owns
-   its label colour via the theme preset. This unlayered reset otherwise beats
-   PrimeVue's layered colour token, forcing every .p-button label to the page
-   ink (which made the dark `contrast` severity render ink-on-ink — invisible). */
-button:not(.p-button):not(.jw-btn) { color: inherit; }
+/* Native buttons inherit text colour; .jw-btn manages its own colour. */
+button:not(.jw-btn) { color: inherit; }
 input, textarea, select { font: inherit; color: inherit; }
 
 /* Kill the browser-default focus ring on form controls. Every input /
@@ -846,9 +843,10 @@ input.nav-part-title:focus { border-color: var(--accent); background: var(--surf
    Buttons & form elements
    ============================================================ */
 
-/* The bespoke `.btn` button system was fully retired by the PrimeVue
-   migration — every app button is now a PrimeVue <Button> (themed by the
-   JustWriteEditorial preset). Reach for <Button>, never a new `.btn`. */
+/* Every app button is now <JwButton> (components/ui/JwButton.vue). Pick
+   an intent (primary | secondary | ghost | danger | success | info |
+   accent2) and an optional size. Visual rules live in the "JwButton"
+   section further down in this file. Don't roll new `.btn-*` classes. */
 
 .input, .textarea {
   appearance: none;
@@ -882,35 +880,88 @@ input.nav-part-title:focus { border-color: var(--accent); background: var(--surf
 .modal-title { font-family: var(--font-serif); font-size: 18px; font-weight: 600; }
 .modal-body { padding: 18px 22px; overflow-y: auto; }
 
-/* PrimeVue <Dialog> chrome — AppModal.vue + AppDialog.vue skin the stock
-   Dialog. These unlayered rules win over PrimeVue's `primevue` cascade layer,
-   so they restore the bespoke .modal / .dlg looks the components used to roll
-   by hand. Class lands on the .p-dialog box (not the mask). */
-.p-dialog-mask { backdrop-filter: blur(4px); }
+/* ============================================================
+   AppModal / AppDialog — Reka UI Dialog shell. The overlay is a
+   fixed scrim; the content box centers in the viewport (Reka
+   sets transform: translate(-50%, -50%) via its own styles, we
+   just position relative to viewport). One stack of rules
+   covers both wrappers; .app-dialog tweaks for the compact
+   confirm/prompt variant.
+   ============================================================ */
+.app-modal-overlay {
+  position: fixed; inset: 0;
+  background: var(--scrim);
+  backdrop-filter: blur(4px);
+  z-index: 100;
+  animation: app-modal-overlay-in .18s ease-out;
+}
+.app-modal-overlay[data-state="closed"] { animation: app-modal-overlay-out .18s ease-in forwards; }
+@keyframes app-modal-overlay-in  { from { opacity: 0; } to { opacity: 1; } }
+@keyframes app-modal-overlay-out { from { opacity: 1; } to { opacity: 0; } }
 
-/* AppModal — header divider, scrollable body, sticky footer on surface. */
-.app-modal { width: min(640px, 100%); max-height: 80vh; }
-.app-modal.app-modal--wide { width: min(960px, 96vw); max-height: 90vh; }
-.app-modal .p-dialog-header { border-bottom: 1px solid var(--border); align-items: flex-start; }
-.app-modal .p-dialog-content { flex: 1 1 auto; min-height: 0; overflow-y: auto; }
-.app-modal.app-modal--flush .p-dialog-content { padding: 0; }
-.app-modal .p-dialog-footer {
+.app-modal {
+  position: fixed;
+  top: 50%; left: 50%;
+  transform: translate(-50%, -50%);
+  width: min(640px, calc(100vw - 32px));
+  max-height: 80vh;
+  display: flex; flex-direction: column;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 14px;
+  box-shadow: var(--shadow-window);
+  outline: none;
+  z-index: 101;
+  animation: app-modal-in .2s ease-out;
+}
+.app-modal[data-state="closed"] { animation: app-modal-out .18s ease-in forwards; }
+@keyframes app-modal-in  { from { opacity: 0; transform: translate(-50%, -48%) scale(0.98); } to { opacity: 1; transform: translate(-50%, -50%) scale(1); } }
+@keyframes app-modal-out { from { opacity: 1; transform: translate(-50%, -50%) scale(1); } to { opacity: 0; transform: translate(-50%, -48%) scale(0.98); } }
+
+.app-modal--wide { width: min(960px, calc(100vw - 48px)); max-height: 90vh; }
+
+.app-modal-header {
+  display: flex; align-items: flex-start; justify-content: space-between;
+  gap: 14px;
+  padding: 16px 20px;
+  border-bottom: 1px solid var(--border);
+}
+.app-modal-titleblock { display: flex; flex-direction: column; gap: 2px; min-width: 0; flex: 1; }
+.app-modal-close {
+  appearance: none;
+  display: inline-grid; place-items: center;
+  width: 28px; height: 28px;
+  background: transparent; border: 0;
+  color: var(--muted);
+  border-radius: 6px;
+  cursor: pointer;
+  flex-shrink: 0;
+}
+.app-modal-close:hover { background: var(--surface-3); color: var(--ink-2); }
+.app-modal-close:focus-visible { outline: none; box-shadow: 0 0 0 3px var(--accent-soft); }
+
+.app-modal-body {
+  flex: 1 1 auto;
+  min-height: 0;
+  overflow-y: auto;
+  padding: 18px 22px;
+}
+.app-modal--flush .app-modal-body { padding: 0; }
+
+.app-modal-footer {
+  display: flex; align-items: center; justify-content: flex-end;
+  gap: 8px;
+  padding: 12px 16px;
   border-top: 1px solid var(--border);
   background: var(--surface);
-  align-items: center;
 }
-.app-modal-titleblock { display: flex; flex-direction: column; gap: 2px; min-width: 0; }
 
-/* AppDialog — compact prompt/confirm; footer sits on surface-2 like the old .dlg-foot. */
-.app-dialog { width: min(440px, 100%); }
-.app-dialog .p-dialog-footer {
+/* AppDialog — compact prompt/confirm footer sits on surface-2. */
+.app-dialog { width: min(440px, calc(100vw - 32px)); max-height: 80vh; }
+.app-dialog .app-modal-footer {
   background: var(--surface-2);
   border-top: 1px solid var(--border-soft);
 }
-
-/* PrimeVue <Toast> (Toast.vue) — bottom-center pill, above modals' mask. */
-.p-toast { z-index: 200; }
-.p-toast .p-toast-message { border-radius: 10px; box-shadow: var(--shadow-2); }
 
 /* Banner callouts — theme-aware state strips used across views. */
 .banner {
@@ -1464,13 +1515,372 @@ html[data-editor-layout="page"] .rich-editor--manuscript .tiptap-content > p:fir
   border-color: color-mix(in oklab, var(--info) 82%, black);
 }
 
-/* warn — solid gold. Warnings (lower-stakes than danger). */
-.jw-btn--warn {
+/* accent2 — solid gold. The user's second accent (Accents → Accent 2 in
+   Settings). Not a "warning" colour despite the gold tint; used for
+   secondary emphasis like the Home dashboard's Resume CTA. */
+.jw-btn--accent2 {
   background: var(--gold); border-color: var(--gold);
   color: color-mix(in oklab, var(--gold) 22%, black);
 }
-.jw-btn--warn:not(:disabled):not(.is-disabled):hover {
+.jw-btn--accent2:not(:disabled):not(.is-disabled):hover {
   background: color-mix(in oklab, var(--gold) 82%, black);
   border-color: color-mix(in oklab, var(--gold) 82%, black);
 }
+
+/* ============================================================
+   JwInput / JwTextarea — replaces PrimeVue InputText + Textarea.
+   The .jw-input class styles both <input> and <textarea>; the
+   .jw-textarea additional class only matters for layout
+   (display: block, resize behaviour).
+   ============================================================ */
+.jw-input {
+  display: inline-block;
+  width: 100%;
+  padding: 8px 10px;
+  font: inherit;
+  font-size: 13.5px;
+  color: var(--ink);
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--r-sm);
+  outline: none;
+  transition: border-color .12s, box-shadow .12s, background-color .12s;
+}
+.jw-input::placeholder { color: var(--muted); }
+.jw-input:hover:not(:disabled):not(:focus) { border-color: var(--border-strong); }
+.jw-input:focus {
+  border-color: var(--accent);
+  box-shadow: 0 0 0 3px var(--accent-soft);
+}
+.jw-input:disabled { opacity: 0.55; cursor: not-allowed; background: var(--surface-2); }
+.jw-input.is-invalid {
+  border-color: var(--danger);
+  box-shadow: 0 0 0 3px color-mix(in oklab, var(--danger) 18%, transparent);
+}
+.jw-input--small { padding: 5px 8px; font-size: 12.5px; }
+.jw-number { font-variant-numeric: tabular-nums; }
+
+/* Textarea sits as a block by default and respects rows. Auto-resize
+   mode disables manual resize (the component grows it programmatically). */
+.jw-textarea {
+  display: block;
+  line-height: 1.55;
+  resize: vertical;
+  min-height: 60px;
+}
+.jw-textarea.auto-resize { resize: none; overflow: hidden; }
+
+/* ============================================================
+   JwCheckbox — replaces PrimeVue Checkbox (binary). Custom box
+   so it tints with the accent the way the rest of the app does;
+   the native <input> is visually hidden but stays in the tab
+   order and the source of truth for the checked state.
+   ============================================================ */
+.jw-checkbox {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  cursor: pointer;
+  user-select: none;
+  font-size: 13px;
+  color: var(--ink);
+}
+.jw-checkbox-input {
+  position: absolute;
+  width: 1px; height: 1px;
+  opacity: 0; pointer-events: none;
+  /* Keep in the document flow so :focus-within works on the label. */
+}
+.jw-checkbox-box {
+  flex: 0 0 auto;
+  width: 16px; height: 16px;
+  display: inline-grid; place-items: center;
+  border: 1px solid var(--border-strong);
+  border-radius: 4px;
+  background: var(--surface);
+  color: transparent;
+  transition: background-color .12s, border-color .12s, color .12s, box-shadow .12s;
+}
+.jw-checkbox-tick { width: 12px; height: 12px; }
+.jw-checkbox.is-checked .jw-checkbox-box {
+  background: var(--accent);
+  border-color: var(--accent);
+  color: var(--on-accent);
+}
+.jw-checkbox-input:focus-visible + .jw-checkbox-box {
+  box-shadow: 0 0 0 3px var(--accent-soft);
+}
+.jw-checkbox.is-disabled { opacity: 0.55; cursor: not-allowed; }
+.jw-checkbox-label { line-height: 1.4; }
+
+/* ============================================================
+   JwTag — replaces PrimeVue Tag. Soft-tint chip in the intent
+   colour; uses the same -bg / -ink token families that banners
+   and status chips already share, so re-tinting in Settings →
+   Appearance retints tags automatically.
+   ============================================================ */
+.jw-tag {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 2px 8px;
+  font: 600 11px/1.4 var(--font-ui);
+  border-radius: 4px;
+  white-space: nowrap;
+}
+.jw-tag--primary   { background: var(--accent-soft);  color: var(--accent-ink); }
+.jw-tag--secondary { background: var(--surface-3);    color: var(--ink-2); }
+.jw-tag--success   { background: var(--success-bg);   color: var(--success-ink); }
+.jw-tag--info      { background: var(--info-bg);      color: var(--info-ink); }
+.jw-tag--accent2   { background: var(--warn-bg);      color: var(--warn-ink); } /* gold-tinted; --warn-* tokens are shared with .banner.warn */
+
+/* ============================================================
+   JwTooltip — replaces PrimeVue's v-tooltip directive. The
+   element is appended to <body> and positioned with Floating UI
+   via transform. position: fixed keeps it relative to the
+   viewport, matching the floating-ui "fixed" strategy.
+   ============================================================ */
+.jw-tooltip {
+  position: fixed;
+  top: 0; left: 0;
+  background: var(--ink);
+  color: var(--surface);
+  padding: 5px 9px;
+  border-radius: 5px;
+  font: 500 11.5px/1.4 var(--font-ui);
+  pointer-events: none;
+  opacity: 0;
+  z-index: 99999;
+  white-space: nowrap;
+  max-width: 320px;
+  box-shadow: var(--shadow-2);
+  transition: opacity .14s;
+}
+.jw-tooltip.is-visible { opacity: 0.96; }
+
+/* ============================================================
+   vue-sonner — theme override. Sonner ships its own CSS but
+   exposes both per-mode CSS custom properties AND data-attribute
+   hooks. We retint via the custom props so theming follows
+   tokens.css; visual rhythm (radius, padding, shadow) overrides
+   via the data-attr selectors below.
+   ============================================================ */
+.jw-toast-host {
+  /* "normal" toast — the default look */
+  --normal-bg: var(--ink);
+  --normal-text: var(--surface);
+  --normal-border: transparent;
+  /* severity ramps — match our JwButton intent colours */
+  --success-bg: var(--status-done);
+  --success-text: var(--surface);
+  --success-border: transparent;
+  --info-bg: var(--info);
+  --info-text: var(--surface);
+  --info-border: transparent;
+  --error-bg: var(--danger);
+  --error-text: var(--surface);
+  --error-border: transparent;
+  --warning-bg: var(--gold);
+  --warning-text: color-mix(in oklab, var(--gold) 22%, black);
+  --warning-border: transparent;
+}
+[data-sonner-toast] {
+  border-radius: 8px !important;
+  box-shadow: var(--shadow-2) !important;
+  font-family: var(--font-ui) !important;
+  font-size: 13px !important;
+  padding: 12px 14px !important;
+}
+[data-sonner-toast] [data-button] {
+  background: var(--accent) !important;
+  color: var(--on-accent) !important;
+  border: 0 !important;
+  border-radius: 5px !important;
+  font-weight: 600 !important;
+  font-size: 12px !important;
+  padding: 5px 12px !important;
+}
+[data-sonner-toast] [data-button]:hover {
+  filter: brightness(1.1);
+}
+[data-sonner-toast] [data-close-button] {
+  color: currentColor !important;
+  opacity: 0.6;
+}
+[data-sonner-toast] [data-close-button]:hover { opacity: 1; }
+
+/* ============================================================
+   JwSelect — replaces PrimeVue Select. Headless behaviour from
+   Reka UI's Select primitives; visuals live here. Trigger
+   matches .jw-input so a select sits cleanly alongside text
+   inputs in forms. The dropdown is portaled to body and
+   positioned by Floating UI (built into Reka UI).
+   ============================================================ */
+.jw-select-trigger {
+  display: inline-flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  width: 100%;
+  padding: 7px 8px 7px 10px;
+  font: 500 13.5px/1.2 var(--font-ui);
+  color: var(--ink);
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--r-sm);
+  cursor: pointer;
+  outline: none;
+  transition: border-color .12s, box-shadow .12s;
+}
+.jw-select-trigger:hover:not([data-disabled]) { border-color: var(--border-strong); }
+.jw-select-trigger[data-state="open"],
+.jw-select-trigger:focus-visible {
+  border-color: var(--accent);
+  box-shadow: 0 0 0 3px var(--accent-soft);
+}
+.jw-select-trigger[data-disabled] { opacity: 0.55; cursor: not-allowed; background: var(--surface-2); }
+.jw-select-trigger.is-empty { color: var(--muted); }
+.jw-select-trigger > [data-reka-select-value] {
+  flex: 1; min-width: 0;
+  text-align: left;
+  overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+}
+.jw-select-icons {
+  display: inline-flex; align-items: center; gap: 2px;
+  flex-shrink: 0;
+  color: var(--muted);
+}
+.jw-select-chev { display: inline-flex; transition: transform .12s; }
+.jw-select-trigger[data-state="open"] .jw-select-chev { transform: rotate(180deg); }
+.jw-select-clear {
+  display: inline-grid; place-items: center;
+  width: 18px; height: 18px;
+  border: 0; background: transparent; color: var(--muted);
+  border-radius: 4px; cursor: pointer; padding: 0;
+}
+.jw-select-clear:hover { background: var(--surface-3); color: var(--ink-2); }
+
+/* Dropdown content */
+.jw-select-content {
+  z-index: 999;
+  min-width: var(--reka-select-trigger-width);
+  max-height: var(--reka-select-content-available-height, 320px);
+  background: var(--surface);
+  border: 1px solid var(--border-strong);
+  border-radius: var(--r-sm);
+  box-shadow: var(--shadow-2);
+  overflow: hidden;
+  /* Reka portals the content; suppress any animation jank from initial paint */
+  animation: jw-select-in .1s ease-out;
+}
+@keyframes jw-select-in {
+  from { opacity: 0; transform: translateY(-3px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+.jw-select-viewport { padding: 4px; }
+.jw-select-item {
+  position: relative;
+  display: flex; align-items: center; justify-content: space-between;
+  gap: 8px;
+  padding: 7px 9px 7px 9px;
+  font: 500 13.5px/1.2 var(--font-ui);
+  color: var(--ink);
+  border-radius: 4px;
+  cursor: pointer;
+  user-select: none;
+  outline: none;
+}
+.jw-select-item[data-highlighted] { background: var(--surface-3); }
+.jw-select-item[data-state="checked"] { color: var(--accent-ink); }
+.jw-select-item[data-disabled] { opacity: 0.5; pointer-events: none; }
+.jw-select-indicator {
+  display: inline-flex; align-items: center; justify-content: center;
+  color: var(--accent);
+  flex-shrink: 0;
+}
+
+/* ============================================================
+   JwTable — replaces PrimeVue DataTable. Headless state from
+   TanStack Vue Table; visuals here. Borders ride on row-bottom
+   for a flat editorial look.
+   ============================================================ */
+.jw-table-wrap {
+  display: flex; flex-direction: column;
+  width: 100%;
+  font-family: var(--font-ui);
+  color: var(--ink);
+}
+.jw-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 13px;
+}
+.jw-table thead th {
+  text-align: left;
+  font: 600 10.5px/1.2 var(--font-mono);
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--muted);
+  padding: 9px 10px;
+  border-bottom: 1px solid var(--border);
+  background: var(--surface-2);
+  user-select: none;
+  white-space: nowrap;
+}
+.jw-table thead th.is-sortable { cursor: pointer; }
+.jw-table thead th.is-sortable:hover { color: var(--ink-2); }
+.jw-table thead th.is-sorted { color: var(--accent-ink); }
+.jw-th-inner { display: inline-flex; align-items: center; gap: 4px; }
+.jw-sort-ind { display: inline-flex; transition: transform .12s; }
+.jw-sort-ind.desc { transform: rotate(0); }
+.jw-sort-ind:not(.desc) { transform: rotate(180deg); }
+.jw-table tbody td {
+  padding: 9px 10px;
+  border-bottom: 1px solid var(--border-soft);
+  vertical-align: middle;
+}
+.jw-table-hover .jw-row:hover { background: var(--surface-2); cursor: pointer; }
+.jw-empty-row td {
+  padding: 22px 10px;
+  text-align: center;
+  font-style: italic;
+  color: var(--muted);
+}
+
+/* Pager footer */
+.jw-pager {
+  display: flex; align-items: center; justify-content: space-between;
+  gap: 12px;
+  padding: 8px 4px 4px;
+  font-size: 11.5px;
+  color: var(--muted);
+  font-family: var(--font-mono);
+  font-variant-numeric: tabular-nums;
+}
+.jw-pager-controls { display: inline-flex; align-items: center; gap: 6px; }
+.jw-pager-btn {
+  display: inline-grid; place-items: center;
+  height: 24px; min-width: 24px;
+  padding: 0 4px;
+  border: 1px solid var(--border);
+  border-radius: 4px;
+  background: var(--surface);
+  color: var(--ink-2);
+  cursor: pointer;
+}
+.jw-pager-btn:hover:not(:disabled) { background: var(--surface-3); }
+.jw-pager-btn:disabled { opacity: 0.4; cursor: default; }
+.jw-pager-page { padding: 0 6px; }
+.jw-pager-size {
+  appearance: none;
+  height: 24px;
+  padding: 0 22px 0 8px;
+  border: 1px solid var(--border);
+  border-radius: 4px;
+  background: var(--surface) url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='8' height='5' viewBox='0 0 8 5'%3E%3Cpath fill='%23999' d='M0 0h8L4 5z'/%3E%3C/svg%3E") no-repeat right 7px center;
+  color: var(--ink-2);
+  font: inherit;
+  cursor: pointer;
+}
+.jw-tag--danger    { background: var(--danger-bg);    color: var(--danger-ink); }
 

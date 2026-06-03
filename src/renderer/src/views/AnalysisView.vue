@@ -12,8 +12,7 @@ import {
   scenesPerChapter, projectKpis, paceSeries, dialogueMix,
 } from "../services/analysis.js";
 import { bookMetrics, POV_LABELS } from "../services/analysis/styleMetrics.js";
-import DataTable from "primevue/datatable";
-import Column from "primevue/column";
+import JwTable from "@renderer/components/ui/JwTable.vue";
 
 const project = useProjectStore();
 const studio = useStudioStore();
@@ -168,6 +167,18 @@ const heatmap = computed(() => {
 });
 
 const DOW_LABELS_HEATMAP = ["S", "M", "T", "W", "T", "F", "S"];
+
+const styleColumns = [
+  { accessorKey: "title",              header: "Chapter", sortable: true, headerStyle: "min-width:200px", cellStyle: "min-width:200px" },
+  { accessorKey: "words",              header: "W",       sortable: true, headerStyle: "text-align:right;width:80px",  cellStyle: "text-align:right;width:80px" },
+  { accessorKey: "avgSentenceLength",  header: "Sent",    sortable: true, headerStyle: "text-align:right;width:90px",  cellStyle: "text-align:right;width:90px" },
+  { accessorKey: "avgParagraphLength", header: "Para",    sortable: true, headerStyle: "text-align:right;width:90px",  cellStyle: "text-align:right;width:90px" },
+  { accessorKey: "dialogueRatio",      header: "Dial",    sortable: true, headerStyle: "text-align:right;width:85px",  cellStyle: "text-align:right;width:85px" },
+  { accessorKey: "filterWordsPer1k",   header: "Filter",  sortable: true, headerStyle: "text-align:right;width:85px",  cellStyle: "text-align:right;width:85px" },
+  { accessorKey: "adverbsPer1k",       header: "Adv",     sortable: true, headerStyle: "text-align:right;width:80px",  cellStyle: "text-align:right;width:80px" },
+  { accessorKey: "passivePer1k",       header: "Pass",    sortable: true, headerStyle: "text-align:right;width:80px",  cellStyle: "text-align:right;width:80px" },
+  { accessorKey: "povHint",            header: "POV",     sortable: true, headerStyle: "width:80px",                   cellStyle: "width:80px" },
+];
 
 // Milestone celebration — show the next milestone the user is heading
 // toward. Plain whole-thousand thresholds match how writers think about
@@ -383,59 +394,41 @@ const milestoneState = computed(() => {
         <StatPill :value="`${(style.summary.pacingCoV * 100).toFixed(0)}%`" label="chapter-length variance" />
       </div>
 
-      <!-- Per-chapter DataTable -->
-      <DataTable
-        :value="style.rows"
+      <!-- Per-chapter style table -->
+      <JwTable
+        :data="style.rows"
         data-key="chapterId"
         row-hover
-        selection-mode="single"
+        :columns="styleColumns"
         class="sm-dt"
         @row-click="(e) => jumpChapter(e.data.chapterId)"
       >
-        <Column field="title" header="Chapter" sortable style="min-width:200px">
-          <template #body="{ data }">
-            <span style="color:var(--ink)"><b>{{ data.num }}</b>. {{ data.title }}</span>
-          </template>
-        </Column>
-        <Column field="words" header="W" sortable data-type="numeric" style="text-align:right;width:80px">
-          <template #body="{ data }">{{ data.words.toLocaleString() }}</template>
-        </Column>
-        <Column field="avgSentenceLength" header="Sent" sortable data-type="numeric" style="text-align:right;width:90px" header-title="Average sentence length (words)">
-          <template #body="{ data }">
-            <span class="sm-bar"><span class="sm-fill" :style="`width:${(data.avgSentenceLength / styleMaxes.sentence) * 100}%`" /></span>{{ data.avgSentenceLength.toFixed(1) }}
-          </template>
-        </Column>
-        <Column field="avgParagraphLength" header="Para" sortable data-type="numeric" style="text-align:right;width:90px" header-title="Average paragraph length (words)">
-          <template #body="{ data }">
-            <span class="sm-bar"><span class="sm-fill" :style="`width:${(data.avgParagraphLength / styleMaxes.paragraph) * 100}%`" /></span>{{ data.avgParagraphLength.toFixed(1) }}
-          </template>
-        </Column>
-        <Column field="dialogueRatio" header="Dial" sortable data-type="numeric" style="text-align:right;width:85px" header-title="Dialogue share">
-          <template #body="{ data }">
-            <span class="sm-bar"><span class="sm-fill" :style="`width:${data.dialogueRatio * 100}%`" /></span>{{ Math.round(data.dialogueRatio * 100) }}%
-          </template>
-        </Column>
-        <Column field="filterWordsPer1k" header="Filter" sortable data-type="numeric" style="text-align:right;width:85px" header-title="Filter words per 1000 words (saw, heard, felt, …)">
-          <template #body="{ data }">
-            <span class="sm-bar"><span class="sm-fill" :style="`width:${(data.filterWordsPer1k / Math.max(styleMaxes.filter, 1)) * 100}%`" /></span>{{ data.filterWordsPer1k.toFixed(1) }}
-          </template>
-        </Column>
-        <Column field="adverbsPer1k" header="Adv" sortable data-type="numeric" style="text-align:right;width:80px" header-title="Adverbs per 1000 words">
-          <template #body="{ data }">
-            <span class="sm-bar"><span class="sm-fill" :style="`width:${(data.adverbsPer1k / Math.max(styleMaxes.adverb, 1)) * 100}%`" /></span>{{ data.adverbsPer1k.toFixed(1) }}
-          </template>
-        </Column>
-        <Column field="passivePer1k" header="Pass" sortable data-type="numeric" style="text-align:right;width:80px" header-title="Passive constructions per 1000 (approximate)">
-          <template #body="{ data }">
-            <span class="sm-bar"><span class="sm-fill" :style="`width:${(data.passivePer1k / Math.max(styleMaxes.passive, 1)) * 100}%`" /></span>{{ data.passivePer1k.toFixed(1) }}
-          </template>
-        </Column>
-        <Column field="povHint" header="POV" sortable style="width:80px" header-title="Dominant POV">
-          <template #body="{ data }">
-            <span style="color:var(--muted);font-family:var(--font-mono);font-size:10.5px">{{ POV_LABELS[data.povHint] || "—" }}</span>
-          </template>
-        </Column>
-      </DataTable>
+        <template #title="{ row }">
+          <span style="color:var(--ink)"><b>{{ row.num }}</b>. {{ row.title }}</span>
+        </template>
+        <template #words="{ value }">{{ value.toLocaleString() }}</template>
+        <template #avgSentenceLength="{ row }">
+          <span class="sm-bar"><span class="sm-fill" :style="`width:${(row.avgSentenceLength / styleMaxes.sentence) * 100}%`" /></span>{{ row.avgSentenceLength.toFixed(1) }}
+        </template>
+        <template #avgParagraphLength="{ row }">
+          <span class="sm-bar"><span class="sm-fill" :style="`width:${(row.avgParagraphLength / styleMaxes.paragraph) * 100}%`" /></span>{{ row.avgParagraphLength.toFixed(1) }}
+        </template>
+        <template #dialogueRatio="{ row }">
+          <span class="sm-bar"><span class="sm-fill" :style="`width:${row.dialogueRatio * 100}%`" /></span>{{ Math.round(row.dialogueRatio * 100) }}%
+        </template>
+        <template #filterWordsPer1k="{ row }">
+          <span class="sm-bar"><span class="sm-fill" :style="`width:${(row.filterWordsPer1k / Math.max(styleMaxes.filter, 1)) * 100}%`" /></span>{{ row.filterWordsPer1k.toFixed(1) }}
+        </template>
+        <template #adverbsPer1k="{ row }">
+          <span class="sm-bar"><span class="sm-fill" :style="`width:${(row.adverbsPer1k / Math.max(styleMaxes.adverb, 1)) * 100}%`" /></span>{{ row.adverbsPer1k.toFixed(1) }}
+        </template>
+        <template #passivePer1k="{ row }">
+          <span class="sm-bar"><span class="sm-fill" :style="`width:${(row.passivePer1k / Math.max(styleMaxes.passive, 1)) * 100}%`" /></span>{{ row.passivePer1k.toFixed(1) }}
+        </template>
+        <template #povHint="{ value }">
+          <span style="color:var(--muted);font-family:var(--font-mono);font-size:10.5px">{{ POV_LABELS[value] || "—" }}</span>
+        </template>
+      </JwTable>
     </div>
 
     <!-- Cast presence heatmap -->

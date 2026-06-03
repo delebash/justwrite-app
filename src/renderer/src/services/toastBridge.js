@@ -1,33 +1,25 @@
-// Bridge between callers (the ui store, anywhere) and PrimeVue's
-// ToastService. PrimeVue exposes the service only via useToast() inside a
-// component's setup, so Toast.vue binds the live instance here on mount and
-// ui.showToast() / ui.dismissToast() call through these helpers.
+// Bridge between callers (the ui store, anywhere) and vue-sonner's
+// imperative toast() API. Unlike PrimeVue's ToastService, sonner needs no
+// service-binding from a setup() context — `toast(...)` works anywhere.
+// We keep this thin shim so callsites (pushToast / clearToasts) don't
+// change between toast backends.
 //
 // Toasts carry an optional `action` ({ label, fn }) for the inline button
-// that soft-delete uses to surface "Undo". It rides along as a custom field
-// on the PrimeVue message object and is rendered by Toast.vue's #message slot.
+// that soft-delete uses to surface "Undo" — mapped to sonner's `action`
+// shape ({ label, onClick }) here.
 
-const GROUP = "app";
+import { toast } from "vue-sonner";
 
-let _service = null;
-
-export function bindToastService(service) {
-  _service = service;
-}
-
-// Show one toast. Mirrors the old store signature: { message, action } + ms.
+// Show one toast.
 export function pushToast({ message, action } = {}, ms = 6000) {
-  if (!_service) return;
-  _service.add({
-    severity: "contrast",
-    group: GROUP,
-    summary: message,
-    action: action || null,
-    life: ms,
+  if (!message) return;
+  toast(message, {
+    duration: ms,
+    action: action ? { label: action.label, onClick: action.fn } : undefined,
   });
 }
 
 // Dismiss any visible toast (the old dismissToast cleared the single slot).
 export function clearToasts() {
-  _service?.removeGroup?.(GROUP);
+  toast.dismiss();
 }

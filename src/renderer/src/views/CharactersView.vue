@@ -5,10 +5,10 @@ import { useUiStore } from "../stores/ui.js";
 import { useRouter } from "vue-router";
 import Avatar from "../components/Avatar.vue";
 import Icon from "../components/Icon.vue";
-import InputText from "primevue/inputtext";
-import InputNumber from "primevue/inputnumber";
-import Textarea from "primevue/textarea";
-import Checkbox from "primevue/checkbox";
+import JwInput from "@renderer/components/ui/JwInput.vue";
+import JwTextarea from "@renderer/components/ui/JwTextarea.vue";
+import JwCheckbox from "@renderer/components/ui/JwCheckbox.vue";
+import JwNumber from "@renderer/components/ui/JwNumber.vue";
 import JwButton from "@renderer/components/ui/JwButton.vue";
 import ImagesModal from "../components/ImagesModal.vue";
 import StatusSelect from "../components/StatusSelect.vue";
@@ -179,16 +179,16 @@ function updateBackstory(v) { project.setCharacterExtras(ch.value.id, { backstor
         </div>
         <div class="character-hero-fields">
           <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap">
-            <InputText fluid style="max-width:200px" placeholder="Role"
+            <JwInput fluid style="max-width:200px" placeholder="Role"
               :model-value="ch.role" @update:model-value="updateField('role', $event)" />
             <label class="chip" style="cursor:pointer;gap:6px">
-              <Checkbox :model-value="ch.main" binary @update:model-value="updateField('main', $event)" />
+              <JwCheckbox :model-value="ch.main" @update:model-value="updateField('main', $event)" />
               Main character
             </label>
-            <InputNumber fluid style="max-width:80px" placeholder="Age" :use-grouping="false"
+            <JwNumber style="max-width:80px" placeholder="Age" :use-grouping="false"
               :model-value="ch.age ?? null" @update:model-value="updateField('age', $event ?? null)" />
           </div>
-          <Textarea fluid rows="2" style="margin-top:14px;font-family:var(--font-serif);font-style:italic"
+          <JwTextarea fluid rows="2" style="margin-top:14px;font-family:var(--font-serif);font-style:italic"
             placeholder="One-liner"
             :model-value="ch.oneLiner" @update:model-value="updateField('oneLiner', $event)" />
         </div>
@@ -200,7 +200,7 @@ function updateBackstory(v) { project.setCharacterExtras(ch.value.id, { backstor
           <div v-for="i in MOTIVATIONS" :key="i.k"
             :style="`padding:14px;border-radius:10px;background:${i.bg};border:1px solid color-mix(in oklab, ${i.color}, white 60%)`">
             <div :style="`font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:0.06em;color:${i.color};margin-bottom:6px`">{{ i.label }}</div>
-            <Textarea fluid rows="2" style="background:transparent;border:0;font-family:var(--font-serif);font-size:14.5px;line-height:1.5"
+            <JwTextarea fluid rows="2" style="background:transparent;border:0;font-family:var(--font-serif);font-size:14.5px;line-height:1.5"
               :model-value="extras?.motivation?.[i.k] || ''" @update:model-value="updateMotivation(i.k, $event)" />
           </div>
         </div>
@@ -216,7 +216,7 @@ function updateBackstory(v) { project.setCharacterExtras(ch.value.id, { backstor
                 <span :style="`width:18px;height:18px;border-radius:50%;background:${i === 0 ? 'var(--surface-3)' : i === 1 ? 'var(--accent-soft)' : 'var(--accent)'};color:${i === 2 ? 'white' : 'var(--ink-2)'};display:grid;place-items:center;font-family:var(--font-serif);font-style:italic;font-size:11px;font-weight:600`">{{ i + 1 }}</span>
                 <span class="t-eyebrow">{{ s.label }}</span>
               </div>
-              <Textarea fluid rows="3" style="background:transparent;border:0;font-family:var(--font-serif);font-size:14px;line-height:1.55"
+              <JwTextarea fluid rows="3" style="background:transparent;border:0;font-family:var(--font-serif);font-size:14px;line-height:1.55"
                 :model-value="extras?.arc?.[s.k] || ''" @update:model-value="updateArc(s.k, $event)" />
             </div>
           </div>
@@ -228,19 +228,19 @@ function updateBackstory(v) { project.setCharacterExtras(ch.value.id, { backstor
         <div class="card tight voice-grid" style="padding:16px;gap:10px 18px;font-size:12.5px">
           <div>
             <div class="t-muted">Accent</div>
-            <InputText fluid :model-value="extras?.voice?.accent || ''" @update:model-value="updateVoice('accent', $event)" />
+            <JwInput fluid :model-value="extras?.voice?.accent || ''" @update:model-value="updateVoice('accent', $event)" />
           </div>
           <div>
             <div class="t-muted">Vocabulary</div>
-            <InputText fluid :model-value="extras?.voice?.vocabulary || ''" @update:model-value="updateVoice('vocabulary', $event)" />
+            <JwInput fluid :model-value="extras?.voice?.vocabulary || ''" @update:model-value="updateVoice('vocabulary', $event)" />
           </div>
           <div style="grid-column:1/-1">
             <div class="t-muted">Speech tic</div>
-            <InputText fluid :model-value="extras?.voice?.tic || ''" @update:model-value="updateVoice('tic', $event)" />
+            <JwInput fluid :model-value="extras?.voice?.tic || ''" @update:model-value="updateVoice('tic', $event)" />
           </div>
           <div style="grid-column:1/-1">
             <div class="t-muted">Sample line</div>
-            <Textarea fluid rows="2" :model-value="extras?.voice?.sample || ''" @update:model-value="updateVoice('sample', $event)" />
+            <JwTextarea fluid rows="2" :model-value="extras?.voice?.sample || ''" @update:model-value="updateVoice('sample', $event)" />
           </div>
         </div>
       </div>
@@ -248,7 +248,7 @@ function updateBackstory(v) { project.setCharacterExtras(ch.value.id, { backstor
       <div style="margin-top:22px">
         <div class="t-eyebrow" style="margin-bottom:10px">Backstory</div>
         <div class="card tight" style="padding:16px">
-          <Textarea fluid rows="5" style="font-family:var(--font-serif);font-size:15px;line-height:1.65"
+          <JwTextarea fluid rows="5" style="font-family:var(--font-serif);font-size:15px;line-height:1.65"
             :model-value="extras?.backstory || ''" @update:model-value="updateBackstory($event)" />
         </div>
       </div>

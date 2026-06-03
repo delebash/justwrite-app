@@ -312,7 +312,6 @@ function sceneBadge(beat) {
               </button>
             </div>
           </div>
-          <!-- TODO: review intent — was severity="secondary" outlined -->
           <JwButton intent="secondary" @click="handleNewStrand">
             <Icon name="Plus" :size="14" />
             Start blank
@@ -326,7 +325,6 @@ function sceneBadge(beat) {
       <!-- Toolbar -->
       <div class="toolbar">
         <div style="position:relative">
-          <!-- TODO: review intent — was severity="secondary" outlined -->
           <JwButton intent="secondary" ref="templateBtnRef" @click="openTemplateMenu">
             <Icon name="Sparkle" :size="14" />
             Apply template

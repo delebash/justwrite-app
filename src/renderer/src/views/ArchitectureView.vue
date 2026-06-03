@@ -9,7 +9,7 @@ import Icon from "../components/Icon.vue";
 import JwButton from "@renderer/components/ui/JwButton.vue";
 import StatusSelect from "../components/StatusSelect.vue";
 import Breadcrumb from "../components/Breadcrumb.vue";
-import Textarea from "primevue/textarea";
+import JwTextarea from "@renderer/components/ui/JwTextarea.vue";
 
 const props = defineProps({ id: { type: String, default: "" } });
 const project = useProjectStore();
@@ -43,7 +43,7 @@ function openEvents() { router.push("/architecture/setting/events"); }
 
   <div v-if="doc" class="pane-card">
     <div class="arch-wrap scrollarea">
-      <Textarea fluid class="arch-blurb" rows="2"
+      <JwTextarea fluid class="arch-blurb" rows="2"
         placeholder="Blurb"
         :model-value="doc.blurb" @update:model-value="update('blurb', $event)" />
 

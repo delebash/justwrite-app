@@ -194,7 +194,6 @@ function whenFor(id) {
             <div class="vh-label">{{ v.label || "Untitled version" }}</div>
             <div class="vh-meta">{{ when(v.savedAt) }} · {{ v.words.toLocaleString() }} words · {{ v.scenes.length }} scene{{ v.scenes.length === 1 ? "" : "s" }}</div>
           </div>
-          <!-- TODO: review intent — was severity="secondary" outlined -->
           <JwButton intent="secondary" size="small" @click="compareWithCurrent(v)" title="See what's changed since this version">
             <Icon name="Replace" :size="12" /> Compare
           </JwButton>

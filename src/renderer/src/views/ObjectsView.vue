@@ -4,7 +4,7 @@ import { useProjectStore } from "../stores/project.js";
 import { useUiStore } from "../stores/ui.js";
 import { useRouter } from "vue-router";
 import Icon from "../components/Icon.vue";
-import InputText from "primevue/inputtext";
+import JwInput from "@renderer/components/ui/JwInput.vue";
 import JwButton from "@renderer/components/ui/JwButton.vue";
 import ImagesModal from "../components/ImagesModal.vue";
 import RichEditor from "../components/RichEditor.vue";
@@ -68,7 +68,7 @@ async function deleteObject() {
   </header>
   <div v-if="obj" class="pane-card">
     <div style="padding:24px 28px 40px;display:flex;flex-direction:column;gap:14px;flex:1;min-height:0">
-      <InputText fluid placeholder="Kind"
+      <JwInput fluid placeholder="Kind"
         :model-value="obj.kind" @update:model-value="update('kind', $event)" />
       <RichEditor
         :model-value="obj.note || ''"

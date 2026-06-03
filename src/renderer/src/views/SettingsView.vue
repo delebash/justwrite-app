@@ -13,11 +13,11 @@ import Icon from "../components/Icon.vue";
 import SettingsProviderForm from "./SettingsProviderForm.vue";
 import StatPill from "../components/StatPill.vue";
 import Combobox from "../components/Combobox.vue";
-import InputText from "primevue/inputtext";
-import InputNumber from "primevue/inputnumber";
-import Checkbox from "primevue/checkbox";
-import Select from "primevue/select";
-import Textarea from "primevue/textarea";
+import JwInput from "@renderer/components/ui/JwInput.vue";
+import JwTextarea from "@renderer/components/ui/JwTextarea.vue";
+import JwCheckbox from "@renderer/components/ui/JwCheckbox.vue";
+import JwNumber from "@renderer/components/ui/JwNumber.vue";
+import JwSelect from "@renderer/components/ui/JwSelect.vue";
 import JwButton from "@renderer/components/ui/JwButton.vue";
 import {
   ACCENT_PRESETS, GOLD_PRESETS, FUNCTIONAL_PRESETS, PAIRINGS, SURFACE_TINTS, PAPER_TINTS,
@@ -27,10 +27,8 @@ import {
   BUTTON_RADIUS_OPTIONS, BUTTON_DENSITY_OPTIONS, BUTTON_LABEL_CASE_OPTIONS,
 } from "../services/appearance.js";
 
-import DataTable from "primevue/datatable";
-import Column from "primevue/column";
-import Tag from "primevue/tag";
-import { FilterMatchMode } from "@primevue/core/api";
+import JwTag from "@renderer/components/ui/JwTag.vue";
+import JwTable from "@renderer/components/ui/JwTable.vue";
 
 const props = defineProps({ section: { type: String, default: "" } });
 
@@ -455,13 +453,9 @@ const recentUsageRows = computed(() =>
     providerName: providerLabel(r.providerId),
   }))
 );
-const recentFilters = ref({
-  global: { value: null, matchMode: FilterMatchMode.CONTAINS },
-});
 const recentGlobalQuery = ref("");
 function onRecentInput(e) {
   recentGlobalQuery.value = e.target.value;
-  recentFilters.value.global.value = e.target.value || null;
 }
 
 async function resetUsageLog() {
@@ -593,6 +587,29 @@ async function deleteCategory(c) {
   if (!yes) return;
   project.removeWorldbuildingCategory(c.id);
 }
+
+// ── AI Usage table column defs ──────────────────────────────────────
+const byFeatureColumns = [
+  { accessorKey: "key",              header: "Feature",    sortable: true, headerStyle: "min-width:160px", cellStyle: "min-width:160px" },
+  { accessorKey: "calls",            header: "Calls",      sortable: true, headerStyle: "text-align:right;width:70px", cellStyle: "text-align:right;width:70px" },
+  { accessorKey: "promptTokens",     header: "Prompt",     sortable: true, headerStyle: "text-align:right;width:90px", cellStyle: "text-align:right;width:90px" },
+  { accessorKey: "completionTokens", header: "Completion", sortable: true, headerStyle: "text-align:right;width:100px", cellStyle: "text-align:right;width:100px" },
+  { accessorKey: "cost",             header: "Cost",       sortable: true, headerStyle: "text-align:right;width:80px", cellStyle: "text-align:right;width:80px" },
+];
+const byProviderColumns = [
+  { accessorKey: "key",              header: "Provider",   sortable: true, headerStyle: "min-width:160px", cellStyle: "min-width:160px" },
+  { accessorKey: "calls",            header: "Calls",      sortable: true, headerStyle: "text-align:right;width:70px", cellStyle: "text-align:right;width:70px" },
+  { accessorKey: "promptTokens",     header: "Prompt",     sortable: true, headerStyle: "text-align:right;width:90px", cellStyle: "text-align:right;width:90px" },
+  { accessorKey: "completionTokens", header: "Completion", sortable: true, headerStyle: "text-align:right;width:100px", cellStyle: "text-align:right;width:100px" },
+  { accessorKey: "cost",             header: "Cost",       sortable: true, headerStyle: "text-align:right;width:80px", cellStyle: "text-align:right;width:80px" },
+];
+const recentColumns = [
+  { accessorKey: "at",          header: "Time",    sortable: true, headerStyle: "width:110px",    cellStyle: "width:110px" },
+  { accessorKey: "feature",     header: "Feature", sortable: true, headerStyle: "min-width:120px", cellStyle: "min-width:120px" },
+  { accessorKey: "model",       header: "Model",   sortable: true, headerStyle: "min-width:130px", cellStyle: "min-width:130px" },
+  { accessorKey: "totalTokens", header: "Tokens",  sortable: true, headerStyle: "text-align:right;width:80px", cellStyle: "text-align:right;width:80px" },
+  { accessorKey: "cost",        header: "Cost",    sortable: true, headerStyle: "text-align:right;width:80px", cellStyle: "text-align:right;width:80px" },
+];
 </script>
 
 <template>
@@ -617,25 +634,25 @@ async function deleteCategory(c) {
           </p>
           <div style="display:grid;grid-template-columns:160px minmax(0,1fr);gap:10px 14px;font-size:13px;align-items:center">
             <span class="t-muted">Title</span>
-            <InputText :model-value="project.project.title"
+            <JwInput :model-value="project.project.title"
               @update:model-value="(v) => setMeta('title', v)" placeholder="Working title" />
             <span class="t-muted">Author</span>
-            <InputText :model-value="project.project.author"
+            <JwInput :model-value="project.project.author"
               @update:model-value="(v) => setMeta('author', v)" placeholder="Pen name or legal name" />
             <span class="t-muted">Subtitle</span>
-            <InputText :model-value="project.project.subtitle"
+            <JwInput :model-value="project.project.subtitle"
               @update:model-value="(v) => setMeta('subtitle', v)" placeholder="Optional" />
             <span class="t-muted">Genre</span>
-            <InputText :model-value="project.project.genre"
+            <JwInput :model-value="project.project.genre"
               @update:model-value="(v) => setMeta('genre', v)" placeholder="Literary, mystery, sci-fi…" />
             <span class="t-muted">Started</span>
-            <InputText :model-value="project.project.startedOn"
+            <JwInput :model-value="project.project.startedOn"
               @update:model-value="(v) => setMeta('startedOn', v)" placeholder="e.g. March 11, 2026" />
             <span class="t-muted">Deadline</span>
-            <InputText :model-value="project.project.deadline"
+            <JwInput :model-value="project.project.deadline"
               @update:model-value="(v) => setMeta('deadline', v)" placeholder="e.g. December 1, 2026" />
             <span class="t-muted" style="align-self:start;padding-top:6px">Premise</span>
-            <Textarea auto-resize rows="3" :model-value="project.project.premise"
+            <JwTextarea auto-resize rows="3" :model-value="project.project.premise"
               @update:model-value="(v) => setMeta('premise', v)"
               placeholder="One- or two-sentence pitch. Used on the Home dashboard and exports." />
           </div>
@@ -645,14 +662,14 @@ async function deleteCategory(c) {
           <div style="display:grid;grid-template-columns:160px minmax(0,1fr);gap:10px 14px;font-size:13px;align-items:center">
             <span class="t-muted" style="align-self:start;padding-top:8px">Word goal</span>
             <div style="display:flex;flex-direction:column;align-items:flex-start;gap:4px;min-width:0">
-              <InputNumber :min="0" :step="500" :input-style="{ width: '160px' }"
+              <JwNumber :min="0" :step="500" style="max-width:160px"
                 :model-value="project.project.wordsGoal"
                 @update:model-value="(v) => setMetaNumber('wordsGoal', v)" />
               <span class="t-muted" style="font-size:11.5px">total words for the manuscript</span>
             </div>
             <span class="t-muted" style="align-self:start;padding-top:8px">Daily target</span>
             <div style="display:flex;flex-direction:column;align-items:flex-start;gap:4px;min-width:0">
-              <InputNumber :min="0" :step="50" :input-style="{ width: '160px' }"
+              <JwNumber :min="0" :step="50" style="max-width:160px"
                 :model-value="project.project.dailyTarget ?? 1200"
                 @update:model-value="(v) => setMetaNumber('dailyTarget', v)" />
               <span class="t-muted" style="font-size:11.5px">words/day — drives the Home streak ring</span>
@@ -685,7 +702,7 @@ async function deleteCategory(c) {
                   </label>
                 </div>
               </div>
-              <InputText style="max-width:220px" :model-value="s.label"
+              <JwInput style="max-width:220px" :model-value="s.label"
                 @update:model-value="(v) => renameStatus(s.id, v)" placeholder="Status name" />
               <span :style="`font-size:11px;font-weight:600;text-transform:lowercase;color:${s.color}`">{{ s.label }}</span>
               <JwButton intent="ghost" size="small" style="margin-left:auto" v-tooltip.bottom="'Delete status'" @click="deleteStatus(s)">
@@ -735,7 +752,7 @@ async function deleteCategory(c) {
                     @click="recolorCategory(c.id, h)" />
                 </div>
               </div>
-              <InputText style="max-width:220px" :model-value="c.label"
+              <JwInput style="max-width:220px" :model-value="c.label"
                 @update:model-value="(v) => renameCategory(c.id, v)" placeholder="Category name" />
               <JwButton intent="ghost" size="small" style="margin-left:auto" v-tooltip.bottom="'Delete category'" @click="deleteCategory(c)">
                 <template #icon><Icon name="Trash" :size="13" /></template>
@@ -832,7 +849,7 @@ async function deleteCategory(c) {
               chev-title="Choose default embedding provider" />
             <span class="t-muted">Auto-rebuild RAG</span>
             <label style="display:flex;align-items:center;gap:8px;cursor:pointer">
-              <Checkbox :model-value="ai.autoRebuildRagIndex" :binary="true"
+              <JwCheckbox :model-value="ai.autoRebuildRagIndex"
                 @update:model-value="ai.setAutoRebuildRagIndex" />
               <span style="color:var(--ink-2);font-size:12.5px;line-height:1.45">
                 Embed new and changed scenes a minute after the last edit. Costs nothing on local embedding providers; cloud embeddings will accrue tokens.
@@ -955,43 +972,24 @@ async function deleteCategory(c) {
             <!-- By feature -->
             <div class="usage-section">
               <div class="usage-section-h">By feature</div>
-              <DataTable :value="usageByFeature" data-key="key" class="usage-dt" size="small">
-                <Column field="key" header="Feature" sortable style="min-width:160px" />
-                <Column field="calls" header="Calls" sortable data-type="numeric" style="text-align:right;width:70px">
-                  <template #body="{ data }">{{ data.calls.toLocaleString() }}</template>
-                </Column>
-                <Column field="promptTokens" header="Prompt" sortable data-type="numeric" style="text-align:right;width:90px">
-                  <template #body="{ data }">{{ data.promptTokens.toLocaleString() }}</template>
-                </Column>
-                <Column field="completionTokens" header="Completion" sortable data-type="numeric" style="text-align:right;width:100px">
-                  <template #body="{ data }">{{ data.completionTokens.toLocaleString() }}</template>
-                </Column>
-                <Column field="cost" header="Cost" sortable data-type="numeric" style="text-align:right;width:80px">
-                  <template #body="{ data }">{{ fmtUsd(data.cost) }}</template>
-                </Column>
-              </DataTable>
+              <JwTable :data="usageByFeature" data-key="key" :columns="byFeatureColumns" class="usage-dt">
+                <template #calls="{ value }">{{ value.toLocaleString() }}</template>
+                <template #promptTokens="{ value }">{{ value.toLocaleString() }}</template>
+                <template #completionTokens="{ value }">{{ value.toLocaleString() }}</template>
+                <template #cost="{ value }">{{ fmtUsd(value) }}</template>
+              </JwTable>
             </div>
 
             <!-- By provider -->
             <div class="usage-section">
               <div class="usage-section-h">By provider</div>
-              <DataTable :value="usageByProvider" data-key="key" class="usage-dt" size="small">
-                <Column field="key" header="Provider" sortable style="min-width:160px">
-                  <template #body="{ data }">{{ providerLabel(data.key) }}</template>
-                </Column>
-                <Column field="calls" header="Calls" sortable data-type="numeric" style="text-align:right;width:70px">
-                  <template #body="{ data }">{{ data.calls.toLocaleString() }}</template>
-                </Column>
-                <Column field="promptTokens" header="Prompt" sortable data-type="numeric" style="text-align:right;width:90px">
-                  <template #body="{ data }">{{ data.promptTokens.toLocaleString() }}</template>
-                </Column>
-                <Column field="completionTokens" header="Completion" sortable data-type="numeric" style="text-align:right;width:100px">
-                  <template #body="{ data }">{{ data.completionTokens.toLocaleString() }}</template>
-                </Column>
-                <Column field="cost" header="Cost" sortable data-type="numeric" style="text-align:right;width:80px">
-                  <template #body="{ data }">{{ fmtUsd(data.cost) }}</template>
-                </Column>
-              </DataTable>
+              <JwTable :data="usageByProvider" data-key="key" :columns="byProviderColumns" class="usage-dt">
+                <template #key="{ value }">{{ providerLabel(value) }}</template>
+                <template #calls="{ value }">{{ value.toLocaleString() }}</template>
+                <template #promptTokens="{ value }">{{ value.toLocaleString() }}</template>
+                <template #completionTokens="{ value }">{{ value.toLocaleString() }}</template>
+                <template #cost="{ value }">{{ fmtUsd(value) }}</template>
+              </JwTable>
             </div>
 
             <!-- Recent calls -->
@@ -1003,36 +1001,24 @@ async function deleteCategory(c) {
               <div class="wb-toolbar" style="margin-bottom:10px">
                 <span class="wb-search">
                   <Icon name="Search" :size="13" class="wb-search-icon" />
-                  <InputText :value="recentGlobalQuery" placeholder="Search calls…" @input="onRecentInput" class="wb-search-input" />
+                  <JwInput :value="recentGlobalQuery" placeholder="Search calls…" @input="onRecentInput" class="wb-search-input" />
                 </span>
               </div>
-              <DataTable
-                :value="recentUsageRows"
+              <JwTable
+                :data="recentUsageRows"
                 data-key="id"
-                v-model:filters="recentFilters"
+                :global-filter="recentGlobalQuery"
                 :global-filter-fields="['feature', 'model', 'providerName']"
+                :columns="recentColumns"
                 class="usage-dt"
-                size="small"
-                paginator
-                :rows="25"
-                :rows-per-page-options="[10, 25, 50]"
-                sort-field="at"
-                :sort-order="-1"
+                :pagination="{ pageSize: 25, pageSizeOptions: [10, 25, 50] }"
+                :default-sort="{ id: 'at', desc: true }"
               >
-                <Column field="at" header="Time" sortable style="width:110px">
-                  <template #body="{ data }">{{ fmtTime(data.at) }}</template>
-                </Column>
-                <Column field="feature" header="Feature" sortable style="min-width:120px" />
-                <Column field="model" header="Model" sortable style="min-width:130px">
-                  <template #body="{ data }">{{ data.model || "—" }}</template>
-                </Column>
-                <Column field="totalTokens" header="Tokens" sortable data-type="numeric" style="text-align:right;width:80px">
-                  <template #body="{ data }">{{ data.totalTokens.toLocaleString() }}</template>
-                </Column>
-                <Column field="cost" header="Cost" sortable data-type="numeric" style="text-align:right;width:80px">
-                  <template #body="{ data }">{{ fmtUsd(data.cost) }}</template>
-                </Column>
-              </DataTable>
+                <template #at="{ value }">{{ fmtTime(value) }}</template>
+                <template #model="{ value }">{{ value || "—" }}</template>
+                <template #totalTokens="{ value }">{{ value.toLocaleString() }}</template>
+                <template #cost="{ value }">{{ fmtUsd(value) }}</template>
+              </JwTable>
             </div>
           </template>
         </div>
@@ -1145,19 +1131,19 @@ async function deleteCategory(c) {
           </div>
           <div style="display:flex;gap:18px;flex-wrap:wrap;margin-top:14px">
             <label class="field"><span class="field-l">UI font</span>
-              <Select :model-value="ap.uiFont" @update:model-value="(v) => setAp({ uiFont: v })"
+              <JwSelect :model-value="ap.uiFont" @update:model-value="(v) => setAp({ uiFont: v })"
                 :options="UI_FONTS.map(f => ({ label: f.label, value: f.label }))"
                 optionLabel="label" optionValue="value" />
               <span class="field-hint">Buttons, menus, and labels.</span>
             </label>
             <label class="field"><span class="field-l">Display font</span>
-              <Select :model-value="ap.displayFont" @update:model-value="(v) => setAp({ displayFont: v })"
+              <JwSelect :model-value="ap.displayFont" @update:model-value="(v) => setAp({ displayFont: v })"
                 :options="DISPLAY_FONTS.map(f => ({ label: f.label, value: f.label }))"
                 optionLabel="label" optionValue="value" />
               <span class="field-hint">Page titles, big numbers, serif headings.</span>
             </label>
             <label class="field"><span class="field-l">Editor body font</span>
-              <Select :model-value="ap.editorBodyFont" @update:model-value="(v) => setAp({ editorBodyFont: v })"
+              <JwSelect :model-value="ap.editorBodyFont" @update:model-value="(v) => setAp({ editorBodyFont: v })"
                 :options="DISPLAY_FONTS.map(f => ({ label: f.label, value: f.label }))"
                 optionLabel="label" optionValue="value" />
               <span class="field-hint">Manuscript prose. Per-document choice can override this in the editor's ⚙ Writing settings.</span>
@@ -1215,7 +1201,7 @@ async function deleteCategory(c) {
         <!-- Accents (primary + second) -->
         <div class="card">
           <div class="card-title">Accents</div>
-          <p class="t-muted" style="font-size:12px;margin:0 0 12px">Accent drives selection, the active nav item, buttons and links. Accent 2 is the secondary — rings, rules, peak markers, and the <code>warn</code> button/tag.</p>
+          <p class="t-muted" style="font-size:12px;margin:0 0 12px">Accent drives selection, the active nav item, buttons and links. Accent 2 is the secondary — rings, rules, peak markers, and the <code>accent2</code> intent on buttons and tags.</p>
           <div class="swatch-row">
             <span class="swatch-label">Accent</span>
             <button v-for="p in ACCENT_PRESETS" :key="p.hue"
@@ -1224,7 +1210,7 @@ async function deleteCategory(c) {
               @click="setAp({ accentHue: p.hue })">
               <Icon v-if="ap.accentHue === p.hue" name="Check" :size="12" />
             </button>
-            <InputNumber :min="0" :max="360" style="width:74px"
+            <JwNumber :min="0" :max="360" style="width:74px"
               :model-value="ap.accentHue" @update:model-value="(v) => setAp({ accentHue: clampHue(v) })" />
           </div>
           <div class="swatch-row" style="margin-top:8px">
@@ -1235,22 +1221,20 @@ async function deleteCategory(c) {
               @click="setAp({ goldHue: p.hue })">
               <Icon v-if="ap.goldHue === p.hue" name="Check" :size="12" />
             </button>
-            <InputNumber :min="0" :max="360" style="width:74px"
+            <JwNumber :min="0" :max="360" style="width:74px"
               :model-value="ap.goldHue" @update:model-value="(v) => setAp({ goldHue: clampHue(v) })" />
           </div>
           <!-- Live preview — the button + tag both track the Accent 2 hue. -->
           <div style="display:flex;flex-wrap:wrap;gap:8px;align-items:center;margin-top:14px;padding-top:12px;border-top:1px solid var(--border-soft)">
-            <JwButton intent="warn" size="small" label="Accent 2" />
-            <!-- TODO: review intent — was severity="warn" outlined -->
-            <JwButton intent="warn" size="small" label="Accent 2" />
-            <Tag severity="warn" value="Warn" />
+            <JwButton intent="accent2" size="small" label="Accent 2" />
+            <JwTag intent="accent2" value="Accent 2" />
           </div>
         </div>
 
         <!-- Functional colours -->
         <div class="card">
           <div class="card-title">Functional colours</div>
-          <p class="t-muted" style="font-size:12px;margin:0 0 12px">Success, danger and info — used by status chips, banners and the PrimeVue Buttons/Tags below. Like the accent, you pick a hue and every shade stays legible in light &amp; dark.</p>
+          <p class="t-muted" style="font-size:12px;margin:0 0 12px">Success, danger and info — used by status chips, banners and the buttons and tags below. Like the accent, you pick a hue and every shade stays legible in light &amp; dark.</p>
           <div class="swatch-row">
             <span class="swatch-label">Success</span>
             <button v-for="p in FUNCTIONAL_PRESETS.success" :key="p.hue"
@@ -1259,7 +1243,7 @@ async function deleteCategory(c) {
               @click="setAp({ successHue: p.hue })">
               <Icon v-if="ap.successHue === p.hue" name="Check" :size="12" />
             </button>
-            <InputNumber :min="0" :max="360" style="width:74px"
+            <JwNumber :min="0" :max="360" style="width:74px"
               :model-value="ap.successHue" @update:model-value="(v) => setAp({ successHue: clampHue(v) })" />
           </div>
           <div class="swatch-row" style="margin-top:8px">
@@ -1270,7 +1254,7 @@ async function deleteCategory(c) {
               @click="setAp({ dangerHue: p.hue })">
               <Icon v-if="ap.dangerHue === p.hue" name="Check" :size="12" />
             </button>
-            <InputNumber :min="0" :max="360" style="width:74px"
+            <JwNumber :min="0" :max="360" style="width:74px"
               :model-value="ap.dangerHue" @update:model-value="(v) => setAp({ dangerHue: clampHue(v) })" />
           </div>
           <div class="swatch-row" style="margin-top:8px">
@@ -1281,37 +1265,37 @@ async function deleteCategory(c) {
               @click="setAp({ infoHue: p.hue })">
               <Icon v-if="ap.infoHue === p.hue" name="Check" :size="12" />
             </button>
-            <InputNumber :min="0" :max="360" style="width:74px"
+            <JwNumber :min="0" :max="360" style="width:74px"
               :model-value="ap.infoHue" @update:model-value="(v) => setAp({ infoHue: clampHue(v) })" />
           </div>
-          <!-- Live preview — these tags re-skin from the hues above (banners + status chips use the same shades). -->
+          <!-- Live preview — buttons and tags re-skin from the hues above (banners + status chips use the same shades). -->
           <div style="display:flex;flex-wrap:wrap;gap:8px;align-items:center;margin-top:16px;padding-top:14px;border-top:1px solid var(--border-soft)">
-            <Tag severity="success" value="Done" />
-            <Tag severity="danger" value="Error" />
-            <Tag severity="info" value="Note" />
-          </div>
-        </div>
-
-        <!-- Buttons — the six roles every app button uses -->
-        <div class="card">
-          <div class="card-title">Buttons</div>
-          <p class="t-muted" style="font-size:12px;margin:0 0 12px"><b>Primary</b> follows the accent; <b>Accent 2</b> is your second accent (set in Accents above); <b>Success / Danger / Info</b> follow the functional colours; <b>Neutral</b> stays a quiet grey. Text colour is chosen automatically so every button stays readable in light &amp; dark. Filled = strong emphasis, outlined/text = lighter.</p>
-          <div style="display:flex;flex-wrap:wrap;gap:8px;align-items:center">
-            <JwButton intent="primary" size="small" label="Primary" />
-            <JwButton intent="warn" size="small" label="Accent 2" />
-            <JwButton intent="secondary" size="small" label="Neutral" />
             <JwButton intent="success" size="small" label="Success" />
             <JwButton intent="danger" size="small" label="Danger" />
             <JwButton intent="info" size="small" label="Info" />
+            <span style="width:8px" />
+            <JwTag intent="success" value="Done" />
+            <JwTag intent="danger" value="Error" />
+            <JwTag intent="info" value="Note" />
           </div>
-          <div style="display:flex;flex-wrap:wrap;gap:8px;align-items:center;margin-top:8px">
-            <JwButton intent="secondary" size="small" label="Primary" />
-            <!-- TODO: review intent — was severity="warn" outlined -->
-            <JwButton intent="warn" size="small" label="Accent 2" />
-            <JwButton intent="ghost" size="small" label="Neutral" />
-            <!-- TODO: review intent — was severity="danger" outlined -->
-            <JwButton intent="danger" size="small" label="Danger" />
-            <JwButton intent="ghost" size="small" label="Info" />
+        </div>
+
+        <!-- Buttons — every intent the app uses, one of each. -->
+        <div class="card">
+          <div class="card-title">Buttons</div>
+          <p class="t-muted" style="font-size:12px;margin:0 0 12px">
+            Each button has a single <b>intent</b> that encodes both colour and visual style.
+            <b>Primary</b> (solid accent) is the main affordance. <b>Secondary</b> is outlined neutral for supporting actions. <b>Ghost</b> is quiet text-only for utility.
+            <b>Danger / Success / Info</b> follow the functional colours above, <b>Accent 2</b> follows your second accent — all solid fills for clear status. Re-tinting any colour above re-skins them all.
+          </p>
+          <div style="display:flex;flex-wrap:wrap;gap:8px;align-items:center">
+            <JwButton intent="primary"   size="small" label="Primary" />
+            <JwButton intent="secondary" size="small" label="Secondary" />
+            <JwButton intent="ghost"     size="small" label="Ghost" />
+            <JwButton intent="success"   size="small" label="Success" />
+            <JwButton intent="danger"    size="small" label="Danger" />
+            <JwButton intent="info"      size="small" label="Info" />
+            <JwButton intent="accent2"   size="small" label="Accent 2" />
           </div>
         </div>
 
@@ -1372,7 +1356,7 @@ async function deleteCategory(c) {
           </div>
           <div class="inline-paper-row">
             <label>
-              <Checkbox binary :model-value="ap.inlinePaper"
+              <JwCheckbox :model-value="ap.inlinePaper"
                 @update:model-value="(v) => setAp({ inlinePaper: v })" />
               <span>Apply editor paper to inline fields</span>
             </label>
@@ -1560,7 +1544,6 @@ async function deleteCategory(c) {
           <p class="t-muted" style="font-size:12.5px;margin:0 0 12px;line-height:1.55">
             Wipes every <code>justwrite:*</code> key from IndexedDB — project, history, AI providers, voice cast, sessions — and reloads with the demo seed. Take a backup first.
           </p>
-          <!-- TODO: review intent — was severity="danger" outlined -->
           <JwButton label="Reset workspace" intent="danger" @click="resetWorkspace">
             <template #icon><Icon name="Alert" :size="13" /></template>
           </JwButton>

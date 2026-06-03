@@ -5,7 +5,7 @@ import { useProjectStore } from "../stores/project.js";
 import PaneHeader from "../components/PaneHeader.vue";
 import Icon from "../components/Icon.vue";
 import JwButton from "@renderer/components/ui/JwButton.vue";
-import Checkbox from "primevue/checkbox";
+import JwCheckbox from "@renderer/components/ui/JwCheckbox.vue";
 
 const project = useProjectStore();
 const router = useRouter();
@@ -503,19 +503,19 @@ onBeforeUnmount(() => window.removeEventListener("keydown", onKey));
         <span class="legend-head-count">Edges</span>
       </div>
       <label>
-        <Checkbox v-model="showCharacters" binary />
+        <JwCheckbox v-model="showCharacters" />
         <i class="dot character" />
         <span class="legend-label">Character</span>
         <span class="legend-count">{{ edgeCounts.character }}</span>
       </label>
       <label>
-        <Checkbox v-model="showLocations" binary />
+        <JwCheckbox v-model="showLocations" />
         <i class="dot location" />
         <span class="legend-label">Location</span>
         <span class="legend-count">{{ edgeCounts.location }}</span>
       </label>
       <label>
-        <Checkbox v-model="showObjects" binary />
+        <JwCheckbox v-model="showObjects" />
         <i class="dot object" />
         <span class="legend-label">Object</span>
         <span class="legend-count">{{ edgeCounts.object }}</span>

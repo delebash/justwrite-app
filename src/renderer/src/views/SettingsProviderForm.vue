@@ -12,11 +12,11 @@ import { entryLabel, TIERS, TIER_IDS } from "../services/modelMeta.js";
 import { useAiStore } from "../stores/ai.js";
 import Icon from "../components/Icon.vue";
 import Combobox from "../components/Combobox.vue";
-import InputText from "primevue/inputtext";
-import InputNumber from "primevue/inputnumber";
-import Checkbox from "primevue/checkbox";
-import Select from "primevue/select";
-import Textarea from "primevue/textarea";
+import JwInput from "@renderer/components/ui/JwInput.vue";
+import JwTextarea from "@renderer/components/ui/JwTextarea.vue";
+import JwCheckbox from "@renderer/components/ui/JwCheckbox.vue";
+import JwNumber from "@renderer/components/ui/JwNumber.vue";
+import JwSelect from "@renderer/components/ui/JwSelect.vue";
 import JwButton from "@renderer/components/ui/JwButton.vue";
 
 const ai = useAiStore();
@@ -197,19 +197,19 @@ function resetParam(key) { setParam(key, undefined); }
   <div style="padding:14px;border:1.5px solid var(--accent);border-radius:10px;background:var(--accent-soft)">
     <div style="display:grid;grid-template-columns:120px minmax(0,1fr);gap:8px 12px;font-size:12.5px;align-items:center">
       <span class="t-muted">ID</span>
-      <InputText v-model="draft.id" :readonly="editingKey !== 'new'" placeholder="e.g. my-ollama" />
+      <JwInput v-model="draft.id" :readonly="editingKey !== 'new'" placeholder="e.g. my-ollama" />
       <span class="t-muted">Name</span>
-      <InputText v-model="draft.name" placeholder="Display name" />
+      <JwInput v-model="draft.name" placeholder="Display name" />
       <span class="t-muted">Kind</span>
-      <Select v-model="draft.kind" :options="[{ label: 'LLM only', value: 'llm' }, { label: 'TTS only', value: 'tts' }, { label: 'LLM + TTS', value: 'both' }]" optionLabel="label" optionValue="value" />
+      <JwSelect v-model="draft.kind" :options="[{ label: 'LLM only', value: 'llm' }, { label: 'TTS only', value: 'tts' }, { label: 'LLM + TTS', value: 'both' }]" optionLabel="label" optionValue="value" />
       <span class="t-muted">Base URL</span>
-      <InputText v-model="draft.baseUrl" placeholder="http://localhost:11434/v1" />
+      <JwInput v-model="draft.baseUrl" placeholder="http://localhost:11434/v1" />
       <span class="t-muted">API key</span>
-      <InputText v-model="draft.apiKey" type="password" placeholder="Optional — leave blank for local providers" />
+      <JwInput v-model="draft.apiKey" type="password" placeholder="Optional — leave blank for local providers" />
 
       <template v-if="draft.kind === 'llm' || draft.kind === 'both'">
         <span class="t-muted" title="Which LLM runner is behind the Base URL. Ollama uses its native /api/chat (where think:false actually works); everything else uses /v1/chat/completions.">Runner</span>
-        <Select :model-value="runnerValue" @update:model-value="draft.runner = $event"
+        <JwSelect :model-value="runnerValue" @update:model-value="draft.runner = $event"
           :options="[{ label: 'OpenAI-compatible (LM Studio, llama.cpp, vLLM, cloud APIs)', value: 'openai-compat' }, { label: 'Ollama (native /api/chat — honors think:false)', value: 'ollama' }]"
           optionLabel="label" optionValue="value" />
       </template>
@@ -335,27 +335,27 @@ function resetParam(key) { setParam(key, undefined); }
               {{ f.label }}
             </span>
             <div style="display:flex;gap:6px;align-items:center">
-              <InputNumber v-if="f.type === 'number'"
+              <JwNumber v-if="f.type === 'number'"
                 :min="f.min" :max="f.max" :step="f.step"
                 :placeholder="f.placeholder || (f.default !== undefined ? `default ${f.default}` : '')"
                 :model-value="getParam(f.key) ?? null"
                 @update:model-value="(v) => setParam(f.key, v === null ? undefined : v)" />
-              <Select v-else-if="f.type === 'select'"
+              <JwSelect v-else-if="f.type === 'select'"
                 :model-value="getParam(f.key) ?? f.default ?? ''"
                 @update:model-value="(v) => setParam(f.key, v)"
                 :options="f.options.map(opt => ({ label: f.optionLabels?.[opt] ?? (opt === '' ? '— default —' : opt), value: opt }))"
                 optionLabel="label" optionValue="value" />
               <label v-else-if="f.type === 'boolean'" style="display:flex;align-items:center;gap:6px;font-size:12.5px">
-                <Checkbox binary
+                <JwCheckbox
                   :model-value="getParam(f.key) ?? f.default ?? false"
                   @update:model-value="(v) => setParam(f.key, v)" />
                 <span class="t-muted">{{ (getParam(f.key) ?? f.default) ? 'on' : 'off' }}</span>
               </label>
-              <Textarea v-else-if="f.type === 'textarea'" auto-resize
+              <JwTextarea v-else-if="f.type === 'textarea'" auto-resize
                 rows="2" :placeholder="f.placeholder || ''"
                 :model-value="getParam(f.key) ?? ''"
                 @update:model-value="(v) => setParam(f.key, v || undefined)" />
-              <InputText v-else
+              <JwInput v-else
                 :placeholder="f.placeholder || ''"
                 :model-value="getParam(f.key) ?? ''"
                 @update:model-value="(v) => setParam(f.key, v || undefined)" />

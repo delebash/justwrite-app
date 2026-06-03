@@ -10,13 +10,10 @@ import { listVoices, preview } from "../services/tts.js";
 import { smartCast, detectSpeakers } from "../services/llm.js";
 import { renderChapter } from "../services/render.js";
 import { confirmDialog } from "../services/dialog.js";
-import DataTable from "primevue/datatable";
-import Column from "primevue/column";
-import InputText from "primevue/inputtext";
-import Select from "primevue/select";
-import Tag from "primevue/tag";
+import JwInput from "@renderer/components/ui/JwInput.vue";
+import JwTag from "@renderer/components/ui/JwTag.vue";
 import JwButton from "@renderer/components/ui/JwButton.vue";
-import { FilterMatchMode } from "@primevue/core/api";
+import JwTable from "@renderer/components/ui/JwTable.vue";
 
 const props = defineProps({ tab: { type: String, default: "cast" } });
 
@@ -143,20 +140,22 @@ const providerOptions = computed(() => {
   }
   return out;
 });
-const voiceFilters = ref({
-  global:       { value: null, matchMode: FilterMatchMode.CONTAINS },
-  providerId:   { value: null, matchMode: FilterMatchMode.EQUALS },
-});
 const voiceQuery = ref("");
 function onVoiceInput(e) {
   voiceQuery.value = e.target.value;
-  voiceFilters.value.global.value = e.target.value || null;
 }
+// TODO: providerId column filter was previously a DataTable filter; not yet wired to JwTable
 function genderSeverity(g) {
   if (g === "male")   return "info";
-  if (g === "female") return "warn";
+  if (g === "female") return "accent2";
   return "secondary";
 }
+
+const voiceColumns = [
+  { accessorKey: "name",    header: "Name",   sortable: true, headerStyle: "min-width:110px", cellStyle: "min-width:110px" },
+  { accessorKey: "gender",  header: "G",      sortable: true, headerStyle: "width:60px",      cellStyle: "width:60px" },
+  { id: "preview", accessorKey: "id", header: "", headerStyle: "width:44px", cellStyle: "width:44px" },
+];
 
 // ── Script analysis ───────────────────────────────────────────────────
 const scriptChapter = ref("ch7");
@@ -313,7 +312,6 @@ function downloadChapter(chapterId) {
           <div style="font-family:var(--font-serif);font-size:18px;font-weight:600">The voice of everything that isn't spoken</div>
         </div>
         <div style="display:flex;gap:8px">
-          <!-- TODO: review intent — was severity="secondary" outlined -->
           <JwButton intent="secondary" :disabled="smartLoading" @click="confirmClearCast">
             <Icon name="Close" :size="13" />
             Clear cast
@@ -385,58 +383,49 @@ function downloadChapter(chapterId) {
       <div class="wb-toolbar" style="margin-bottom:10px">
         <span class="wb-search">
           <Icon name="Search" :size="12" class="wb-search-icon" />
-          <InputText :value="voiceQuery" placeholder="Search voices…" @input="onVoiceInput" class="wb-search-input" />
+          <JwInput :value="voiceQuery" placeholder="Search voices…" @input="onVoiceInput" class="wb-search-input" />
         </span>
         <span class="wb-count">{{ engineVoices.length }}</span>
       </div>
 
       <div v-if="loadingVoices" class="t-muted" style="font-size:12px;padding:14px 0">Loading voices…</div>
-      <DataTable
+      <JwTable
         v-else
-        :value="voiceRows.filter((v) => v.providerId === activeProviderId)"
+        :data="voiceRows.filter((v) => v.providerId === activeProviderId)"
         data-key="id"
-        v-model:filters="voiceFilters"
+        :global-filter="voiceQuery"
         :global-filter-fields="['name', 'tone', 'accent']"
         row-hover
-        selection-mode="single"
+        :columns="voiceColumns"
         class="voice-dt"
-        size="small"
-        paginator
-        :rows="25"
-        :rows-per-page-options="[10, 25, 50, 100]"
+        :pagination="{ pageSize: 25, pageSizeOptions: [10, 25, 50, 100] }"
         @row-click="(e) => pickVoice(e.data.id)"
       >
         <template #empty>
           <div style="padding:14px;text-align:center;font-size:12px;color:var(--muted);font-style:italic">No voices match.</div>
         </template>
 
-        <Column field="name" header="Name" sortable style="min-width:110px">
-          <template #body="{ data }">
-            <div style="display:flex;align-items:center;gap:7px">
-              <span class="voice-glyph small" :style="`background:${voiceGradient(data)}`">{{ data.name[0] }}</span>
-              <span>
-                <b style="font-size:12px">{{ data.name }}</b>
-                <div v-if="data.tone" class="t-muted" style="font-size:10px;font-style:italic">{{ data.tone }}</div>
-              </span>
-              <span v-if="isAssignedToSelected(data.id)" style="color:var(--accent);margin-left:auto"><Icon name="Check" :size="13" /></span>
-            </div>
-          </template>
-        </Column>
+        <template #name="{ row }">
+          <div style="display:flex;align-items:center;gap:7px">
+            <span class="voice-glyph small" :style="`background:${voiceGradient(row)}`">{{ row.name[0] }}</span>
+            <span>
+              <b style="font-size:12px">{{ row.name }}</b>
+              <div v-if="row.tone" class="t-muted" style="font-size:10px;font-style:italic">{{ row.tone }}</div>
+            </span>
+            <span v-if="isAssignedToSelected(row.id)" style="color:var(--accent);margin-left:auto"><Icon name="Check" :size="13" /></span>
+          </div>
+        </template>
 
-        <Column field="gender" header="G" sortable style="width:60px">
-          <template #body="{ data }">
-            <Tag v-if="data.gender" :value="data.gender[0].toUpperCase()" :severity="genderSeverity(data.gender)" rounded />
-          </template>
-        </Column>
+        <template #gender="{ row }">
+          <JwTag v-if="row.gender" :value="row.gender[0].toUpperCase()" :intent="genderSeverity(row.gender)" rounded />
+        </template>
 
-        <Column field="preview" header="" style="width:44px">
-          <template #body="{ data }">
-            <JwButton intent="ghost" size="small" :disabled="previewingVoice === data.id" @click.stop="playPreview(data)">
-              <template #icon><Icon :name="previewingVoice === data.id ? 'Pause' : 'Play'" :size="11" /></template>
-            </JwButton>
-          </template>
-        </Column>
-      </DataTable>
+        <template #preview="{ row }">
+          <JwButton intent="ghost" size="small" :disabled="previewingVoice === row.id" @click.stop="playPreview(row)">
+            <template #icon><Icon :name="previewingVoice === row.id ? 'Pause' : 'Play'" :size="11" /></template>
+          </JwButton>
+        </template>
+      </JwTable>
     </aside>
   </div>
 
@@ -501,7 +490,6 @@ function downloadChapter(chapterId) {
       </JwButton>
       <template v-else>
         <JwButton intent="primary" size="small" @click="playChapter(c.id)"><Icon name="Play" :size="11" /> Play</JwButton>
-        <!-- TODO: review intent — was severity="secondary" outlined -->
         <JwButton intent="secondary" size="small" @click="downloadChapter(c.id)"><Icon name="Download" :size="11" /> WAV</JwButton>
       </template>
     </div>

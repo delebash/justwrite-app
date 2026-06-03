@@ -1,6 +1,6 @@
 <script setup>
 import { computed } from "vue";
-import InputText from "primevue/inputtext";
+import JwInput from "@renderer/components/ui/JwInput.vue";
 import JwButton from "@renderer/components/ui/JwButton.vue";
 import { useProjectStore } from "../stores/project.js";
 import { useUiStore } from "../stores/ui.js";
@@ -48,7 +48,7 @@ async function deleteNote() {
       <h1 v-else class="pane-h1">No notes</h1>
     </div>
     <div class="pane-actions">
-      <InputText v-if="n" fluid placeholder="tag" style="max-width:120px"
+      <JwInput v-if="n" fluid placeholder="tag" style="max-width:120px"
         :model-value="n.tag" @update:model-value="update('tag', $event)" />
       <span v-if="n" class="t-muted" style="font-size:12px;padding:0 8px">Updated {{ n.updated }}</span>
       <JwButton v-if="n" intent="ghost" size="small" @click="deleteNote">Delete</JwButton>

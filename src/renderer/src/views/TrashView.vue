@@ -6,9 +6,8 @@ import { useUiStore } from "../stores/ui.js";
 import PaneHeader from "../components/PaneHeader.vue";
 import Icon from "../components/Icon.vue";
 import { confirmDialog } from "../services/dialog.js";
-import DataTable from "primevue/datatable";
-import Column from "primevue/column";
 import JwButton from "@renderer/components/ui/JwButton.vue";
+import JwTable from "@renderer/components/ui/JwTable.vue";
 
 const project = useProjectStore();
 const ui = useUiStore();
@@ -88,6 +87,13 @@ async function emptyAll() {
   project.emptyTrash();
   ui.showToast({ message: "Trash emptied." });
 }
+
+const trashColumns = [
+  { accessorKey: "title",     header: "Title",   headerStyle: "min-width:200px", cellStyle: "min-width:200px" },
+  { accessorKey: "sub",       header: "Details", headerStyle: "min-width:140px", cellStyle: "min-width:140px" },
+  { accessorKey: "deletedAt", header: "Deleted", sortable: true, headerStyle: "width:130px", cellStyle: "width:130px" },
+  { id: "actions",            header: "Actions", headerStyle: "width:130px;text-align:right", cellStyle: "width:130px;text-align:right" },
+];
 </script>
 
 <template>
@@ -130,35 +136,27 @@ async function emptyAll() {
           <span class="t-muted" style="font-size:11px;font-variant-numeric:tabular-nums">{{ s.items.length }}</span>
           <span style="flex:1;height:1px;background:var(--border-soft);margin-left:8px" />
         </div>
-        <DataTable :value="s.items" data-key="id" class="trash-dt" size="small">
-          <Column field="title" header="Title" style="min-width:200px">
-            <template #body="{ data }">
-              <div class="trash-title">{{ titleOf(s.kind, data) }}</div>
-            </template>
-          </Column>
-          <Column field="sub" header="Details" style="min-width:140px">
-            <template #body="{ data }">
-              <span class="t-muted" style="font-size:11.5px">{{ subOf(s.kind, data) || "—" }}</span>
-            </template>
-          </Column>
-          <Column field="deletedAt" header="Deleted" sortable data-type="numeric" style="width:130px">
-            <template #body="{ data }">
-              <span class="t-muted" style="font-size:11.5px">{{ ago(data.deletedAt) }}</span>
-            </template>
-          </Column>
-          <Column header="Actions" style="width:130px;text-align:right">
-            <template #body="{ data }">
-              <div style="display:flex;gap:6px;justify-content:flex-end">
-                <JwButton label="Restore" intent="primary" size="small" @click="restore(s.kind, data.id)">
-                  <template #icon><Icon name="Refresh" :size="11" /></template>
-                </JwButton>
-                <JwButton intent="ghost" size="small" v-tooltip.bottom="'Permanently delete'" @click="purge(s.kind, data.id, titleOf(s.kind, data))">
-                  <template #icon><Icon name="Trash" :size="11" /></template>
-                </JwButton>
-              </div>
-            </template>
-          </Column>
-        </DataTable>
+        <JwTable :data="s.items" data-key="id" :columns="trashColumns" class="trash-dt">
+          <template #title="{ row }">
+            <div class="trash-title">{{ titleOf(s.kind, row) }}</div>
+          </template>
+          <template #sub="{ row }">
+            <span class="t-muted" style="font-size:11.5px">{{ subOf(s.kind, row) || "—" }}</span>
+          </template>
+          <template #deletedAt="{ row }">
+            <span class="t-muted" style="font-size:11.5px">{{ ago(row.deletedAt) }}</span>
+          </template>
+          <template #actions="{ row }">
+            <div style="display:flex;gap:6px;justify-content:flex-end">
+              <JwButton label="Restore" intent="primary" size="small" @click="restore(s.kind, row.id)">
+                <template #icon><Icon name="Refresh" :size="11" /></template>
+              </JwButton>
+              <JwButton intent="ghost" size="small" v-tooltip.bottom="'Permanently delete'" @click="purge(s.kind, row.id, titleOf(s.kind, row))">
+                <template #icon><Icon name="Trash" :size="11" /></template>
+              </JwButton>
+            </div>
+          </template>
+        </JwTable>
       </section>
     </div>
   </div>
