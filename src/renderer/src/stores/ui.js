@@ -55,6 +55,9 @@ export const useUiStore = defineStore("ui", {
       customPresets: [],
       // Writing/editor display settings (font, spacing, etc.).
       editorSettings: { ...DEFAULT_EDITOR_SETTINGS },
+      // UI language. null = browser-default at boot; setLocale() pins it.
+      // Date / number formatting (Intl.*) tracks the same value.
+      locale: null,
       // Scroll-driven scene highlight for Read mode's whole-book scope.
       // Not persisted — flooding IDB on every scroll tick is wasteful, and
       // on reload there's nothing meaningful to restore to anyway.
@@ -181,6 +184,10 @@ export const useUiStore = defineStore("ui", {
       this.editorSettings = { ...this.editorSettings, ...patch };
       this._persist();
     },
+    setLocale(code) {
+      this.locale = code || null;
+      this._persist();
+    },
 
     _persist() {
       save({
@@ -191,6 +198,7 @@ export const useUiStore = defineStore("ui", {
         appearance: this.appearance,
         customPresets: this.customPresets,
         editorSettings: this.editorSettings,
+        locale: this.locale,
       });
     },
   },

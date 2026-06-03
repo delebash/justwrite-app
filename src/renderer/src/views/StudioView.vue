@@ -130,21 +130,13 @@ const voiceRows = computed(() =>
     providerName: ai.providerById(v.providerId)?.name || v.providerId || "—",
   }))
 );
-const providerOptions = computed(() => {
-  const seen = new Set();
-  const out = [];
-  for (const v of studio.voices) {
-    if (seen.has(v.providerId)) continue;
-    seen.add(v.providerId);
-    out.push({ value: v.providerId, label: ai.providerById(v.providerId)?.name || v.providerId || "—" });
-  }
-  return out;
-});
 const voiceQuery = ref("");
 function onVoiceInput(e) {
   voiceQuery.value = e.target.value;
 }
-// TODO: providerId column filter was previously a DataTable filter; not yet wired to JwTable
+// Voice library is pre-filtered by the active provider via the Combobox
+// above the table (see `:data="voiceRows.filter(... activeProviderId)"`),
+// so the old per-column provider filter from the PrimeVue era is moot.
 function genderSeverity(g) {
   if (g === "male")   return "info";
   if (g === "female") return "accent2";

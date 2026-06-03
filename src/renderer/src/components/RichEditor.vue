@@ -1,13 +1,13 @@
 <script setup>
 import { ref, computed, watch, nextTick, onBeforeUnmount } from "vue";
-import { useEditor, EditorContent, BubbleMenu } from "@tiptap/vue-3";
+import { useEditor, EditorContent } from "@tiptap/vue-3";
+import { BubbleMenu } from "@tiptap/vue-3/menus";
 import StarterKit from "@tiptap/starter-kit";
 import Placeholder from "@tiptap/extension-placeholder";
 import Underline from "@tiptap/extension-underline";
 import Subscript from "@tiptap/extension-subscript";
 import Superscript from "@tiptap/extension-superscript";
-import TextStyle from "@tiptap/extension-text-style";
-import Color from "@tiptap/extension-color";
+import { TextStyle, Color } from "@tiptap/extension-text-style";
 import { Extension, Mark, Node, mergeAttributes } from "@tiptap/core";
 import { DOMSerializer } from "@tiptap/pm/model";
 import { AllSelection, TextSelection } from "@tiptap/pm/state";
@@ -20,10 +20,7 @@ import Focus from "@tiptap/extension-focus";
 import Image from "@tiptap/extension-image";
 import TaskList from "@tiptap/extension-task-list";
 import TaskItem from "@tiptap/extension-task-item";
-import Table from "@tiptap/extension-table";
-import TableRow from "@tiptap/extension-table-row";
-import TableHeader from "@tiptap/extension-table-header";
-import TableCell from "@tiptap/extension-table-cell";
+import { Table, TableRow, TableHeader, TableCell } from "@tiptap/extension-table";
 import { useRouter } from "vue-router";
 import { SearchReplace, searchReplacePluginKey } from "@renderer/services/searchReplace";
 import { buildMentionExtension } from "@renderer/services/editorMentions";

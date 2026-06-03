@@ -5,10 +5,12 @@
 // (so cursor position stays sane); on blur the value is parsed, clamped
 // to min/max, and re-formatted. Up/Down arrow keys step by `step`.
 //
-// Locale defaults to the browser's preferred locale; pass `locale` to
-// pin it. When i18n is wired up, source `locale` from vue-i18n.
+// Locale defaults to vue-i18n's active locale (falls back to the
+// browser's preferred locale before i18n boots); pass `locale` to pin a
+// specific value for one input.
 
 import { computed, ref, watch } from "vue";
+import { useI18n } from "vue-i18n";
 
 const props = defineProps({
   modelValue: { type: [Number, String, null], default: null },
@@ -31,7 +33,11 @@ const props = defineProps({
 });
 const emit = defineEmits(["update:modelValue", "blur", "focus", "keydown"]);
 
-const fmt = computed(() => new Intl.NumberFormat(props.locale || undefined, {
+// Pull live locale from vue-i18n so the formatter retints when the user
+// switches languages. The composable returns null when called outside
+// a Vue setup() — we fall through to undefined (= browser default).
+const { locale: i18nLocale } = useI18n({ useScope: "global" });
+const fmt = computed(() => new Intl.NumberFormat(props.locale || i18nLocale.value || undefined, {
   useGrouping: props.useGrouping,
   maximumFractionDigits: 20,
 }));

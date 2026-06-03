@@ -17,6 +17,7 @@ import { bootStorage, getItem } from "./services/storage.js";
 
 import "./assets/styles/tokens.css";
 import { tooltipDirective } from "./services/tooltip.js";
+import { i18n, detectLocale, setLocale as setI18nLocale } from "./i18n/index.js";
 import { startAutoRebuildWatcher } from "./services/rag/autoIndex.js";
 
 // Hydrate the storage cache from IndexedDB BEFORE any Pinia store
@@ -27,15 +28,18 @@ import { startAutoRebuildWatcher } from "./services/rag/autoIndex.js";
   await bootStorage();
 
   // Now that the cache is populated, re-apply the persisted appearance
-  // (migrating any legacy { theme, accentHue } shape).
+  // (migrating any legacy { theme, accentHue } shape) and resolve the
+  // active i18n locale (persisted choice → browser preference → English).
   try {
     const ui = JSON.parse(getItem("justwrite:ui") || "{}");
     applyAppearance(migrateAppearance(ui));
-  } catch {}
+    setI18nLocale(ui.locale || detectLocale());
+  } catch { setI18nLocale(detectLocale()); }
 
   const app = createApp(App);
   app.use(createPinia());
   app.use(router);
+  app.use(i18n);
   app.directive("tooltip", tooltipDirective);
   app.mount("#app");
 

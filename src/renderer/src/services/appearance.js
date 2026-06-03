@@ -290,7 +290,10 @@ export const DEFAULT_APPEARANCE = {
   uiFont: "Geist",
   displayFont: "Source Serif 4",
   editorBodyFont: "Source Serif 4",
-  accentHue: 14,
+  // 200 = teal, matching the Studio preset above. Previously was 14
+  // (Fine Press's oxblood) which left the default state inconsistent —
+  // preset name said Studio but the accent rendered Fine Press red.
+  accentHue: 200,
   goldHue: 80,
   dangerHue: 35,    // functional-colour hues (success/danger/info), DaisyUI-style
   successHue: 150,

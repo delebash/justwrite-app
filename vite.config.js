@@ -52,7 +52,10 @@ export default defineConfig({
     emptyOutDir: true,
     // Tauri's bundled webview is a current Chromium / WKWebView on each
     // OS; the per-platform targets here keep esbuild from down-leveling.
-    target: process.env.TAURI_ENV_PLATFORM === "windows" ? "chrome105" : "safari13",
+    // The macOS fallback (safari17) matches the WKWebView floor Tauri 2
+    // ships against and is high enough that worker bundles using modern
+    // destructuring (ffmpeg.wasm) transpile cleanly under Vite 8.
+    target: process.env.TAURI_ENV_PLATFORM === "windows" ? "chrome105" : "safari17",
     minify: !process.env.TAURI_ENV_DEBUG ? "esbuild" : false,
     sourcemap: !!process.env.TAURI_ENV_DEBUG,
   },

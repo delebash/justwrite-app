@@ -70,15 +70,60 @@ const rows = computed(() =>
   }),
 );
 
-// Global search powers the table's filter; the per-column filters from
-// the PrimeVue era (Category/Status select, Tags multi-select inside the
-// column headers) were dropped during the TanStack migration since the
-// global search covers the same workflow and is more discoverable.
-// TODO: bring back filter chips above the table if users want per-facet
-// filtering (category/status/tags toggles).
+// Global search + per-facet filter chips. Category and Status are
+// single-select (a row matches if it's in the selected value); Tags is
+// multi-select with ANY-match semantics. Chips live above the table; the
+// table sees pre-filtered rows so JwTable doesn't have to model facets.
 const globalQuery = ref("");
+const selectedCategory = ref(null);
+const selectedStatus = ref(null);
+const selectedTags = ref(new Set());
+
 function onGlobalInput(e) { globalQuery.value = e.target.value; }
-function clearAllFilters() { globalQuery.value = ""; }
+function toggleTag(t) {
+  const next = new Set(selectedTags.value);
+  if (next.has(t)) next.delete(t); else next.add(t);
+  selectedTags.value = next;
+}
+function clearAllFilters() {
+  globalQuery.value = "";
+  selectedCategory.value = null;
+  selectedStatus.value = null;
+  selectedTags.value = new Set();
+}
+
+const categoryOptions = computed(() =>
+  project.worldbuildingCategories.map((c) => ({ value: c.id, label: c.label })),
+);
+const statusOptions = computed(() =>
+  project.statuses.map((s) => ({ value: s.id, label: s.label })),
+);
+const allTags = computed(() => {
+  const set = new Set();
+  for (const a of project.worldbuilding) for (const t of (a.tags || [])) set.add(t);
+  return [...set].sort();
+});
+
+// Pre-filter rows by the three facets before handing to JwTable. Global
+// text search stays in JwTable's hands so its filteredRowModel still works.
+const filteredRows = computed(() => {
+  const rs = rows.value;
+  if (!selectedCategory.value && !selectedStatus.value && selectedTags.value.size === 0) return rs;
+  return rs.filter((r) => {
+    if (selectedCategory.value && r.category !== selectedCategory.value) return false;
+    if (selectedStatus.value && r.status !== selectedStatus.value) return false;
+    if (selectedTags.value.size > 0) {
+      const rt = r.tags || [];
+      const hit = rt.some((t) => selectedTags.value.has(t));
+      if (!hit) return false;
+    }
+    return true;
+  });
+});
+
+const hasActiveFacets = computed(() =>
+  !!selectedCategory.value || !!selectedStatus.value || selectedTags.value.size > 0,
+);
 
 // JwTable column definitions. Each column's accessorKey ties into the
 // matching slot below (#title, #category, #tags, #status, #words).
@@ -127,12 +172,42 @@ function onRowClick(event) {
               class="wb-search-input"
             />
           </span>
-          <JwButton label="Clear filters" intent="ghost" size="small" @click="clearAllFilters" />
-          <span class="wb-count">{{ rows.length }} article{{ rows.length === 1 ? "" : "s" }}</span>
+          <JwButton v-if="globalQuery || hasActiveFacets" label="Clear filters" intent="ghost" size="small" @click="clearAllFilters" />
+          <span class="wb-count">{{ filteredRows.length }} of {{ rows.length }}</span>
+        </div>
+
+        <!-- Facet filter chips: Category (single), Status (single), Tags (multi). -->
+        <div class="wb-facets" v-if="categoryOptions.length || statusOptions.length || allTags.length">
+          <div v-if="categoryOptions.length" class="wb-facet">
+            <span class="wb-facet-label">Category</span>
+            <button class="wb-chip" :class="{ active: !selectedCategory }" @click="selectedCategory = null">All</button>
+            <button v-for="c in categoryOptions" :key="c.value"
+              class="wb-chip" :class="{ active: selectedCategory === c.value }"
+              @click="selectedCategory = selectedCategory === c.value ? null : c.value">
+              {{ c.label }}
+            </button>
+          </div>
+          <div v-if="statusOptions.length" class="wb-facet">
+            <span class="wb-facet-label">Status</span>
+            <button class="wb-chip" :class="{ active: !selectedStatus }" @click="selectedStatus = null">All</button>
+            <button v-for="s in statusOptions" :key="s.value"
+              class="wb-chip" :class="{ active: selectedStatus === s.value }"
+              @click="selectedStatus = selectedStatus === s.value ? null : s.value">
+              {{ s.label }}
+            </button>
+          </div>
+          <div v-if="allTags.length" class="wb-facet">
+            <span class="wb-facet-label">Tags</span>
+            <button v-for="t in allTags" :key="t"
+              class="wb-chip" :class="{ active: selectedTags.has(t) }"
+              @click="toggleTag(t)">
+              {{ t }}
+            </button>
+          </div>
         </div>
 
         <JwTable
-          :data="rows"
+          :data="filteredRows"
           :columns="columns"
           data-key="id"
           row-hover
@@ -249,7 +324,40 @@ function onRowClick(event) {
   color: var(--muted); pointer-events: none;
 }
 .wb-search-input { width: 100%; padding-left: 30px !important; }
-.wb-count { margin-left: auto; font-family: var(--font-mono); font-size: 11px; color: var(--muted); }
+.wb-count { margin-left: auto; font-family: var(--font-mono); font-size: 11px; color: var(--muted); font-variant-numeric: tabular-nums; }
+
+/* Facet filter chips — Category / Status / Tags rows above the table. */
+.wb-facets {
+  display: flex; flex-direction: column;
+  gap: 8px;
+  padding: 10px 0 14px;
+}
+.wb-facet { display: flex; align-items: center; gap: 6px; flex-wrap: wrap; }
+.wb-facet-label {
+  font-family: var(--font-mono);
+  font-size: 10px;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--muted);
+  min-width: 64px;
+}
+.wb-chip {
+  appearance: none;
+  background: transparent;
+  border: 1px solid var(--border);
+  color: var(--ink-2);
+  padding: 3px 9px;
+  border-radius: 999px;
+  font: 500 11.5px/1.4 var(--font-ui);
+  cursor: pointer;
+  transition: background-color .12s, border-color .12s, color .12s;
+}
+.wb-chip:hover { background: var(--surface-3); border-color: var(--border-strong); }
+.wb-chip.active {
+  background: var(--accent-soft);
+  border-color: var(--accent-line);
+  color: var(--accent-ink);
+}
 
 .wb-table { font-size: 13px; }
 .wb-cell-title { display: flex; flex-direction: column; gap: 2px; cursor: pointer; }

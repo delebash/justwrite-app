@@ -26,6 +26,8 @@ import {
   NAV_ITEM_STYLES, NAV_ITEM_SIZES,
   BUTTON_RADIUS_OPTIONS, BUTTON_DENSITY_OPTIONS, BUTTON_LABEL_CASE_OPTIONS,
 } from "../services/appearance.js";
+import { AVAILABLE_LOCALES, setLocale as setI18nLocale } from "../i18n/index.js";
+import { useI18n } from "vue-i18n";
 
 import JwTag from "@renderer/components/ui/JwTag.vue";
 import JwTable from "@renderer/components/ui/JwTable.vue";
@@ -35,6 +37,17 @@ const props = defineProps({ section: { type: String, default: "" } });
 const ai = useAiStore();
 const project = useProjectStore();
 const ui = useUiStore();
+
+// i18n locale picker — list comes from AVAILABLE_LOCALES; the active
+// value mirrors vue-i18n's reactive `locale` ref so the select reflects
+// the live UI language even if it was set elsewhere.
+const { locale: activeI18nLocale } = useI18n({ useScope: "global" });
+const LOCALE_OPTIONS = AVAILABLE_LOCALES.map((l) => ({ label: l.label, value: l.code }));
+function onLocaleChange(code) {
+  const next = code || AVAILABLE_LOCALES[0].code;
+  ui.setLocale(next);
+  setI18nLocale(next);
+}
 
 const SECTIONS = [
   { id: "project",    label: "Project" },
@@ -673,6 +686,25 @@ const recentColumns = [
                 :model-value="project.project.dailyTarget ?? 1200"
                 @update:model-value="(v) => setMetaNumber('dailyTarget', v)" />
               <span class="t-muted" style="font-size:11.5px">words/day — drives the Home streak ring</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- ── Preferences (user-level, not project-specific) ─── -->
+        <div class="card">
+          <div class="card-title">Preferences</div>
+          <div style="display:grid;grid-template-columns:160px minmax(0,1fr);gap:10px 14px;font-size:13px;align-items:center">
+            <span class="t-muted" style="align-self:start;padding-top:6px">{{ $t("settings.language.label") }}</span>
+            <div style="display:flex;flex-direction:column;gap:6px;min-width:0">
+              <JwSelect
+                style="max-width:240px"
+                :model-value="ui.locale || activeI18nLocale"
+                @update:model-value="onLocaleChange"
+                :options="LOCALE_OPTIONS"
+                option-label="label"
+                option-value="value"
+              />
+              <span class="t-muted" style="font-size:11.5px">{{ $t("settings.language.hint") }}</span>
             </div>
           </div>
         </div>
