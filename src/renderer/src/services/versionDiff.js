@@ -6,12 +6,23 @@
 // Diff strategy:
 //   1. Match scenes by id across versions. Restored versions preserve
 //      ids, so this is the reliable axis.
-//   2. For each matched pair: split bodies into paragraphs and run LCS
-//      on paragraph text to mark each paragraph as eq / del / ins.
-//   3. Unmatched-in-new scenes → wholly deleted; unmatched-in-old →
-//      wholly inserted.
-//   4. Preserve scene ORDER from the new version, with deleted scenes
-//      slotted in at the position they last held in the old version.
+//   2. For scenes that DIDN'T match by id, run a fuzzy content-similarity
+//      pass: pair an unmatched-old with an unmatched-new when their body
+//      texts share enough vocabulary (Jaccard ≥ FUZZY_MATCH_THRESHOLD).
+//      Greedy by descending similarity; each scene matches at most once.
+//      This catches scenes that survived with a different id (rare, but
+//      possible after copy-paste rebuilds or schema migrations).
+//   3. For each matched pair (id or fuzzy): split bodies into paragraphs
+//      and run LCS on paragraph text to mark each as eq / del / ins.
+//   4. Remaining unmatched-in-new → wholly inserted; unmatched-in-old →
+//      wholly deleted.
+//   5. Preserve scene ORDER from the new version, with deleted scenes
+//      slotted at the position they last held in the old version.
+
+// Empirical: 0.6 leaves room for substantial revisions (e.g. ~half the
+// vocabulary swapped) to still match, while keeping unrelated scenes
+// firmly below the line.
+const FUZZY_MATCH_THRESHOLD = 0.6;
 //
 // Output: an array of "scene-diff" entries, each with:
 //   { kind: "eq" | "ins" | "del" | "modified",
@@ -203,9 +214,46 @@ export function diffVersions(oldV, newV) {
   const oldById = new Map(oldScenes.map((s, idx) => [s.id, { ...s, _idx: idx }]));
   const newById = new Map(newScenes.map((s, idx) => [s.id, { ...s, _idx: idx }]));
 
-  // Walk the union of scene ids in new-version order, with deleted
-  // scenes slotted at their old index. This keeps the diff readable
-  // top-to-bottom.
+  // ── Match scenes across versions ──────────────────────────────────────
+  // Stage 1: exact-id matches (the reliable axis when ids survive).
+  // matchedOldByNewId: newId → the oldScene it should diff against.
+  const matchedOldByNewId = new Map();
+  const matchedNewByOldId = new Map();
+  for (const s of newScenes) {
+    const oldS = oldById.get(s.id);
+    if (oldS) {
+      matchedOldByNewId.set(s.id, oldS);
+      matchedNewByOldId.set(oldS.id, s);
+    }
+  }
+
+  // Stage 2: fuzzy content match on the residue. Scenes that lost their
+  // id between versions (e.g. copy-paste rebuilds) but kept the body
+  // mostly intact get paired up here so they show as "modified" instead
+  // of a full del+ins.
+  const unmatchedNew = newScenes.filter((s) => !matchedOldByNewId.has(s.id));
+  const unmatchedOld = oldScenes.filter((s) => !matchedNewByOldId.has(s.id));
+  if (unmatchedNew.length && unmatchedOld.length) {
+    const candidates = [];
+    for (const oldS of unmatchedOld) {
+      for (const newS of unmatchedNew) {
+        const sim = sceneBodyJaccard(oldS.body, newS.body);
+        if (sim >= FUZZY_MATCH_THRESHOLD) candidates.push({ oldS, newS, sim });
+      }
+    }
+    // Greedy: highest-similarity pairs first, each scene at most once.
+    candidates.sort((a, b) => b.sim - a.sim);
+    const usedOld = new Set(), usedNewIds = new Set();
+    for (const { oldS, newS } of candidates) {
+      if (usedOld.has(oldS.id) || usedNewIds.has(newS.id)) continue;
+      matchedOldByNewId.set(newS.id, oldById.get(oldS.id));
+      matchedNewByOldId.set(oldS.id, newS);
+      usedOld.add(oldS.id);
+      usedNewIds.add(newS.id);
+    }
+  }
+
+  // ── Walk new-version order, slotting deletions at their old position ──
   const seen = new Set();
   const out = [];
 
@@ -214,7 +262,7 @@ export function diffVersions(oldV, newV) {
     // first, so the deletion appears in roughly its old place.
     for (const oldS of oldScenes) {
       if (seen.has(oldS.id)) continue;
-      if (newById.has(oldS.id)) continue;
+      if (matchedNewByOldId.has(oldS.id)) continue;
       if (oldS._idx != null && oldS._idx >= i) continue;
       out.push(sceneDel(oldS));
       seen.add(oldS.id);
@@ -222,7 +270,7 @@ export function diffVersions(oldV, newV) {
 
     const s = newScenes[i];
     seen.add(s.id);
-    const oldS = oldById.get(s.id);
+    const oldS = matchedOldByNewId.get(s.id);
     if (!oldS) {
       out.push(sceneIns(s));
     } else {
@@ -242,11 +290,26 @@ export function diffVersions(oldV, newV) {
   // scene's original position).
   for (const oldS of oldScenes) {
     if (seen.has(oldS.id)) continue;
-    if (newById.has(oldS.id)) continue;
+    if (matchedNewByOldId.has(oldS.id)) continue;
     out.push(sceneDel(oldS));
   }
 
   return out;
+}
+
+// Jaccard similarity over the word sets of two scene bodies (HTML
+// stripped to text first). Returns 0 when either side is empty.
+function sceneBodyJaccard(oldHtml, newHtml) {
+  const aText = htmlToText(oldHtml);
+  const bText = htmlToText(newHtml);
+  return jaccard(aText, bText);
+}
+
+function htmlToText(html) {
+  if (!html) return "";
+  const div = document.createElement("div");
+  div.innerHTML = html;
+  return div.textContent || "";
 }
 
 function sceneIns(s) {

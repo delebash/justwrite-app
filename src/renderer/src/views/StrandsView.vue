@@ -5,7 +5,7 @@ import { useProjectStore } from "../stores/project.js";
 import { useUiStore } from "../stores/ui.js";
 import PaneHeader from "../components/PaneHeader.vue";
 import Icon from "../components/Icon.vue";
-import Button from "primevue/button";
+import JwButton from "@renderer/components/ui/JwButton.vue";
 import RichEditor from "../components/RichEditor.vue";
 import { EDITOR_TOOLBAR_DOC } from "../services/editorToolbars.js";
 import StatusSelect from "../components/StatusSelect.vue";
@@ -197,9 +197,9 @@ const sortedBeats = computed(() => {
       <h1 v-else class="pane-h1">Narrative strands</h1>
     </div>
     <div class="pane-actions">
-      <Button v-if="s" severity="secondary" text size="small" @click="modal = 'groups'"><Icon name="GroupIcon" :size="14" /> Groups</Button>
-      <Button v-if="s" severity="secondary" text size="small" @click="deleteStrand">Delete</Button>
-      <Button severity="primary" size="small" @click="addStrand"><Icon name="Plus" :size="14" /> New narrative strand</Button>
+      <JwButton v-if="s" intent="ghost" size="small" @click="modal = 'groups'"><Icon name="GroupIcon" :size="14" /> Groups</JwButton>
+      <JwButton v-if="s" intent="ghost" size="small" @click="deleteStrand">Delete</JwButton>
+      <JwButton intent="primary" size="small" @click="addStrand"><Icon name="Plus" :size="14" /> New narrative strand</JwButton>
       <StatusSelect v-if="s" :model-value="s.status || ''" @update:model-value="(v) => update('status', v)" />
     </div>
   </header>
@@ -238,9 +238,9 @@ const sortedBeats = computed(() => {
           <div class="beats-section">
             <div class="beats-head">
               <span class="beats-title">Beats</span>
-              <Button severity="secondary" text size="small" @click="addBeat">
+              <JwButton intent="ghost" size="small" @click="addBeat">
                 <Icon name="Plus" :size="11" /> Add beat
-              </Button>
+              </JwButton>
             </div>
 
             <div v-if="(s.beats || []).length === 0" class="beats-empty">
@@ -274,9 +274,9 @@ const sortedBeats = computed(() => {
                     {{ opt.label }}
                   </option>
                 </select>
-                <Button severity="secondary" text size="small" class="beat-delete" v-tooltip.bottom="'Remove beat'" @click="removeBeat(b.id)">
+                <JwButton intent="ghost" size="small" class="beat-delete" v-tooltip.bottom="'Remove beat'" @click="removeBeat(b.id)">
                   <Icon name="Trash" :size="12" />
-                </Button>
+                </JwButton>
               </div>
             </div>
           </div>

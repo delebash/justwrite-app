@@ -10,7 +10,7 @@
 import { computed, nextTick, ref, watch } from "vue";
 import { dialogState, _resolveDialog } from "../services/dialog.js";
 import Dialog from "primevue/dialog";
-import Button from "primevue/button";
+import JwButton from "@renderer/components/ui/JwButton.vue";
 import InputText from "primevue/inputtext";
 import Select from "primevue/select";
 
@@ -183,10 +183,10 @@ function onEnter(e, isLastField) {
     </div>
 
     <template #footer>
-      <Button :label="dialog?.cancelLabel || 'Cancel'" severity="secondary" text @click="cancel" />
-      <Button
+      <JwButton :label="dialog?.cancelLabel || 'Cancel'" intent="ghost" @click="cancel" />
+      <JwButton
         :label="dialog?.confirmLabel || 'OK'"
-        :severity="dialog?.danger ? 'danger' : 'primary'"
+        :intent="dialog?.danger ? 'danger' : 'primary'"
         :disabled="!canSubmit"
         @click="submit"
       />

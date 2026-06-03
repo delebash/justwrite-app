@@ -12,7 +12,7 @@ import { useUiStore } from "../stores/ui.js";
 import Icon from "./Icon.vue";
 import AppModal from "./AppModal.vue";
 import EmptyState from "./EmptyState.vue";
-import Button from "primevue/button";
+import JwButton from "@renderer/components/ui/JwButton.vue";
 
 const props = defineProps({
   // { characters: [...], locations: [...], objects: [...] }
@@ -139,11 +139,11 @@ function originTitle(originChapters) {
     <template #footer>
       <span class="t-muted">{{ totalSelected }} of {{ totalProposed }} selected</span>
       <span style="flex:1"></span>
-      <Button severity="secondary" text @click="emit('close')">Cancel</Button>
-      <Button severity="primary" :disabled="totalSelected === 0" @click="commit">
+      <JwButton intent="ghost" @click="emit('close')">Cancel</JwButton>
+      <JwButton intent="primary" :disabled="totalSelected === 0" @click="commit">
         <Icon name="Check" :size="13" />
         Add {{ totalSelected }} to story bible
-      </Button>
+      </JwButton>
     </template>
   </AppModal>
 </template>

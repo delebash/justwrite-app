@@ -7,7 +7,7 @@ import { PLOT_TEMPLATES, TEMPLATE_ORDER, applyTemplate } from "../services/plotT
 import { promptDialog, confirmDialog } from "../services/dialog.js";
 import PaneHeader from "../components/PaneHeader.vue";
 import Icon from "../components/Icon.vue";
-import Button from "primevue/button";
+import JwButton from "@renderer/components/ui/JwButton.vue";
 
 const project = useProjectStore();
 const ui = useUiStore();
@@ -295,11 +295,11 @@ function sceneBadge(beat) {
         <div class="empty-actions">
           <!-- Template dropdown in empty state -->
           <div class="dropdown-wrap" style="position:relative">
-            <Button severity="secondary" outlined ref="templateBtnRef" @click="openTemplateMenu">
+            <JwButton intent="primary" ref="templateBtnRef" @click="openTemplateMenu">
               <Icon name="Sparkle" :size="14" />
               Apply a template
               <Icon name="ChevDown" :size="13" />
-            </Button>
+            </JwButton>
             <div v-if="templateMenuOpen" ref="templateMenuRef" class="template-menu">
               <button
                 v-for="id in TEMPLATE_ORDER"
@@ -312,10 +312,11 @@ function sceneBadge(beat) {
               </button>
             </div>
           </div>
-          <Button severity="secondary" outlined @click="handleNewStrand">
+          <!-- TODO: review intent — was severity="secondary" outlined -->
+          <JwButton intent="secondary" @click="handleNewStrand">
             <Icon name="Plus" :size="14" />
             Start blank
-          </Button>
+          </JwButton>
         </div>
       </div>
     </template>
@@ -325,11 +326,12 @@ function sceneBadge(beat) {
       <!-- Toolbar -->
       <div class="toolbar">
         <div style="position:relative">
-          <Button severity="secondary" outlined ref="templateBtnRef" @click="openTemplateMenu">
+          <!-- TODO: review intent — was severity="secondary" outlined -->
+          <JwButton intent="secondary" ref="templateBtnRef" @click="openTemplateMenu">
             <Icon name="Sparkle" :size="14" />
             Apply template
             <Icon name="ChevDown" :size="13" />
-          </Button>
+          </JwButton>
           <div v-if="templateMenuOpen" ref="templateMenuRef" class="template-menu">
             <button
               v-for="id in TEMPLATE_ORDER"
@@ -342,10 +344,10 @@ function sceneBadge(beat) {
             </button>
           </div>
         </div>
-        <Button @click="handleNewStrand">
+        <JwButton intent="primary" @click="handleNewStrand">
           <Icon name="Plus" :size="14" />
           New strand
-        </Button>
+        </JwButton>
       </div>
 
       <!-- Board scroll container -->

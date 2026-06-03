@@ -71,6 +71,7 @@ const PATHS = {
   AlignCenter:"M4 6h16M7 10h10M4 14h16M7 18h10",
   AlignRight: "M4 6h16M10 10h10M4 14h16M10 18h10",
   SceneBreak: "M4 12h3M10.5 12h3M17 12h3",
+  PageBreak:  "M6 4h12v5M6 4v5M6 20h12v-5M6 20v-5M3 12h3M8 12h2M13 12h2M18 12h3",
   ListOrdered:"M10 6h10M10 12h10M10 18h10M5 4v4M3.5 8h2M3.5 12.5c.5-1 2-.7 2 .3 0 .8-2 1.2-2 2.2h2M3.5 17h2l-2 2.5h2",
   CheckSquare:"M9 4H6a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-7M8 12l3 3 9-9",
   Table:      "M4 5h16v14H4zM4 10h16M4 15h16M9 5v14M15 5v14",

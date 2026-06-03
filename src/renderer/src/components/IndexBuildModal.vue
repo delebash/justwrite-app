@@ -15,7 +15,7 @@ import AiProgressBar from "./AiProgressBar.vue";
 import Icon from "./Icon.vue";
 import AppModal from "./AppModal.vue";
 import StatusRow from "./StatusRow.vue";
-import Button from "primevue/button";
+import JwButton from "@renderer/components/ui/JwButton.vue";
 
 const props = defineProps({
   // "build" — incremental (only embed new/changed scenes)
@@ -33,6 +33,13 @@ const phase = ref("");      // "chunking" | "embedding" | "done" | ""
 const error = ref("");
 const result = ref(null);   // { added, updated, removed }
 const before = computed(() => indexStatus());
+// Ref to the AppModal — we close through its exposed close() method so
+// PrimeVue's Dialog completes its leave transition (and cleans its modal
+// mask) before the parent unmounts us via v-if. Emitting 'close' directly
+// from a footer button skips that and orphans an invisible mask over the
+// whole app — see AppModal.vue for the full explanation.
+const appModal = ref(null);
+function requestClose() { appModal.value?.close(); }
 
 // Each "embedding" progress tick names a chunk — mirror that into rows.
 function rowForChunk(c) {
@@ -103,7 +110,7 @@ function cancel() {
 
 async function clearAndClose() {
   await clearIndex();
-  emit("close");
+  requestClose();
 }
 
 onMounted(run);
@@ -113,8 +120,10 @@ const totalDone = computed(() => rows.value.filter((r) => r.status === "done").l
 
 <template>
   <AppModal
+    ref="appModal"
     eyebrow="Manuscript index"
     :title="mode === 'rebuild' ? 'Rebuilding index' : 'Building index'"
+    :closable="!progress.running.value"
     @close="emit('close')"
   >
     <template #header>
@@ -122,9 +131,9 @@ const totalDone = computed(() => rows.value.filter((r) => r.status === "done").l
         <div class="t-eyebrow">Manuscript index</div>
         <div class="modal-title">{{ mode === "rebuild" ? "Rebuilding index" : "Building index" }}</div>
       </div>
-      <Button v-if="progress.running.value" severity="secondary" text size="small" @click="cancel">
+      <JwButton v-if="progress.running.value" intent="ghost" size="small" @click="cancel">
         <Icon name="Close" :size="12" /> Cancel
-      </Button>
+      </JwButton>
     </template>
 
     <div v-if="before.exists && !progress.running.value && !result" class="idx-stat">
@@ -154,13 +163,13 @@ const totalDone = computed(() => rows.value.filter((r) => r.status === "done").l
     </div>
 
     <template v-if="!progress.running.value" #footer>
-      <Button v-if="before.exists && !result" severity="secondary" text size="small" @click="clearAndClose">
+      <JwButton v-if="before.exists && !result" intent="ghost" size="small" @click="clearAndClose">
         Clear index
-      </Button>
+      </JwButton>
       <span style="flex:1"></span>
-      <Button severity="primary" @click="emit('close')">
+      <JwButton intent="primary" @click="requestClose">
         {{ result ? "Done" : "Close" }}
-      </Button>
+      </JwButton>
     </template>
   </AppModal>
 </template>

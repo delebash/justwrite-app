@@ -6,7 +6,7 @@ import { useProjectStore } from "../stores/project.js";
 import { promptDialog, confirmDialog } from "../services/dialog.js";
 import { NEW_ENTITY_META } from "../services/entityMeta.js";
 import Icon from "./Icon.vue";
-import Button from "primevue/button";
+import JwButton from "@renderer/components/ui/JwButton.vue";
 
 const ui = useUiStore();
 const project = useProjectStore();
@@ -90,7 +90,7 @@ const NAV = [
   { id: "architecture",  label: "Architecture",  icon: "Building", expandable: "architecture", fixed: true },
   { id: "strands",       label: "Narrative strands", icon: "Strands", expandable: "strands" },
   { id: "chapters",      label: "Chapters",      icon: "Book",     expandable: "chapters" },
-  { id: "ask",           label: "Ask the book",  icon: "Sparkle",  kbd: "⌘J", action: "openChat" },
+  { id: "ask",           label: "Ask the book",  icon: "Sparkle",  kbd: "⌘J", action: "openChatPanel" },
 
   { section: "Story world" },
   { id: "characters",    label: "Characters",    icon: "Users",     expandable: "characters" },
@@ -650,7 +650,7 @@ function wbDropClass(kind, id) {
         <div class="brand-name">JustWrite</div>
         <div class="brand-sub">v0.1 · local</div>
       </div>
-      <Button severity="secondary" text v-tooltip.bottom="'Toggle sidebar'" @click="ui.toggleSidebar"><Icon name="SidebarToggle" :size="14" /></Button>
+      <JwButton intent="ghost" v-tooltip.bottom="'Toggle sidebar'" @click="ui.toggleSidebar"><Icon name="SidebarToggle" :size="14" /></JwButton>
     </div>
     <div class="project-switcher-wrap" ref="projectSwitcherEl">
       <button class="project-switcher" :class="{ open: projectMenuOpen }" @click="toggleProjectMenu">

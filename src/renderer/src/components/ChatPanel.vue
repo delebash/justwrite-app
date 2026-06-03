@@ -1,11 +1,11 @@
 <script setup>
 // Manuscript-RAG chat panel.
 //
-// Slide-in panel from the right. Maintains a multi-turn thread per session:
-// each user question is embedded (with the prior user turn prepended for
-// pronoun/entity context), top-K scenes are retrieved, and the LLM streams
-// an answer with citations. The thread is kept in-memory and stays for the
-// life of the panel; "New thread" clears it.
+// Slide-in panel from the right. Maintains a multi-turn thread per project,
+// persisted to IDB so closing the panel doesn't lose context. Each user
+// question is embedded (with the prior user turn prepended for pronoun
+// /entity context), top-K scenes are retrieved, and the LLM streams an
+// answer with citations. "New thread" clears.
 
 import { ref, computed, watch, nextTick } from "vue";
 import { useRouter } from "vue-router";
@@ -13,11 +13,45 @@ import { useProjectStore } from "../stores/project.js";
 import { useAiProgress } from "../composables/useAiProgress.js";
 import { askManuscript } from "../services/rag/chat.js";
 import { indexStatus } from "../services/rag/indexer.js";
+import { autoIndexRunning } from "../services/rag/autoIndex.js";
+import { getItem, setItem } from "../services/storage.js";
 import IndexBuildModal from "./IndexBuildModal.vue";
 import AiProgressBar from "./AiProgressBar.vue";
 import EmptyState from "./EmptyState.vue";
 import Icon from "./Icon.vue";
-import Button from "primevue/button";
+import JwButton from "@renderer/components/ui/JwButton.vue";
+
+const THREAD_KEY = (pid) => `justwrite:rag:thread:${pid}`;
+// Cap persisted threads at the last 30 messages — long threads waste
+// storage and the model already truncates history to MAX_HISTORY_MESSAGES.
+const MAX_PERSISTED = 30;
+
+function loadThread(projectId) {
+  if (!projectId) return [];
+  try {
+    const raw = getItem(THREAD_KEY(projectId));
+    if (!raw) return [];
+    const arr = JSON.parse(raw);
+    if (!Array.isArray(arr)) return [];
+    // A pending assistant message persisted from a previous session was
+    // an aborted stream — drop the trailing user+pending pair so the
+    // restored thread doesn't show a question "in flight" forever.
+    let trimmed = [...arr];
+    while (trimmed.length && trimmed[trimmed.length - 1]?.pending) {
+      trimmed.pop();
+      if (trimmed.length && trimmed[trimmed.length - 1]?.role === "user") trimmed.pop();
+    }
+    return trimmed;
+  } catch { return []; }
+}
+
+function saveThread(projectId, items) {
+  if (!projectId) return;
+  try {
+    const trimmed = items.slice(-MAX_PERSISTED);
+    setItem(THREAD_KEY(projectId), JSON.stringify(trimmed));
+  } catch {}
+}
 
 const props = defineProps({
   modelValue: { type: Boolean, default: false },
@@ -32,7 +66,7 @@ const question = ref("");
 // thread items:
 //   { role: "user",      content }
 //   { role: "assistant", content, citations: [...], pending?: bool, error?: string }
-const thread = ref([]);
+const thread = ref(loadThread(project.activeProjectId));
 const indexModalMode = ref(null); // "build" | "rebuild" | null
 const inputRef = ref(null);
 const threadRef = ref(null);
@@ -42,25 +76,41 @@ const open = computed({
   set: (v) => emit("update:modelValue", v),
 });
 
-const status = computed(() => indexStatus());
+// indexStatus() reads the (non-reactive) IDB cache directly, so the computed
+// has no signal to recompute when the vector store changes. Bump indexBump
+// from places that mutate the index (build / rebuild / clear / auto-rebuild
+// finish) and touch it inside the computed.
+const indexBump = ref(0);
+const status = computed(() => {
+  indexBump.value; // touch — forces recompute when bumped
+  return indexStatus();
+});
 const hasIndex = computed(() => status.value.exists && status.value.entryCount > 0);
 const hasThread = computed(() => thread.value.length > 0);
+// Wrap the imported ref so the template gets a guaranteed-unwrapped value.
+// Bump indexBump when an auto-rebuild finishes so the scenes-indexed count
+// in the status strip reflects new chunks.
+const isIndexing = computed(() => autoIndexRunning.value);
+watch(autoIndexRunning, (running) => { if (!running) indexBump.value++; });
 
-// Reset the thread whenever the active project changes — old citations
-// won't make sense in a different manuscript.
-watch(() => project.activeProjectId, () => { thread.value = []; });
+// Reset (and rehydrate) the thread whenever the active project changes —
+// old citations wouldn't make sense in a different manuscript.
+watch(() => project.activeProjectId, (pid) => { thread.value = loadThread(pid); });
 
 // When the panel opens, focus the question input.
 watch(open, (v) => {
   if (v) nextTick(() => inputRef.value?.focus());
 });
 
-// Auto-scroll to the bottom on new content (new turns or streamed deltas).
+// Auto-scroll to the bottom on new content (new turns or streamed deltas)
+// and persist the thread snapshot. Saving on every keystroke of a streamed
+// delta is fine — setItem is a sync IDB-cached write, cheap at this size.
 watch(thread, () => {
   nextTick(() => {
     const el = threadRef.value;
     if (el) el.scrollTop = el.scrollHeight;
   });
+  saveThread(project.activeProjectId, thread.value);
 }, { deep: true });
 
 async function ask() {
@@ -107,6 +157,8 @@ function cancel() {
 function newThread() {
   thread.value = [];
   question.value = "";
+  // Wipe the persisted copy too, so the empty state survives a panel close.
+  saveThread(project.activeProjectId, []);
   nextTick(() => inputRef.value?.focus());
 }
 
@@ -115,9 +167,15 @@ function close() {
 }
 
 function onIndexBuilt() {
-  indexModalMode.value = null;
-  // status is computed off indexStatus() which reads storage each call,
-  // so reactivity picks up the change next tick.
+  // Don't auto-close the modal — yanking it via v-if while PrimeVue's
+  // Dialog is still in visible=true orphans the modal-mask backdrop over
+  // the whole app and blocks every click until reload (see AppModal.vue).
+  // The user dismisses with the Done button.
+  //
+  // Bump indexBump so the status computed re-evaluates against the freshly
+  // written IDB store — otherwise hasIndex stays stuck at false and the
+  // chat panel keeps showing the "No index yet" empty state under the modal.
+  indexBump.value++;
 }
 
 function openCitation(c) {
@@ -137,9 +195,9 @@ defineExpose({ open: () => { open.value = true; }, close });
           <div class="t-eyebrow">Ask the manuscript</div>
           <h2>Chat with your book</h2>
         </div>
-        <Button severity="secondary" text size="small" @click="close">
+        <JwButton intent="ghost" size="small" @click="close">
           <Icon name="Close" :size="12" /> Close
-        </Button>
+        </JwButton>
       </header>
 
       <EmptyState v-if="!hasIndex"
@@ -156,16 +214,19 @@ defineExpose({ open: () => { open.value = true; }, close });
           <span><b>{{ status.entryCount }}</b> scenes indexed</span>
           <span class="cp-status-sep">·</span>
           <span class="cp-status-model"><code>{{ status.model || "?" }}</code></span>
+          <span v-if="isIndexing" class="cp-indexing" v-tooltip.bottom="'Auto-rebuild is updating the index'">
+            <span class="cp-indexing-dot"></span> indexing…
+          </span>
           <span class="cp-status-spacer"></span>
-          <Button v-if="hasThread" severity="secondary" text size="small" @click="newThread" v-tooltip.bottom="'Clear and start fresh'">
+          <JwButton v-if="hasThread" intent="ghost" size="small" @click="newThread" v-tooltip.bottom="'Clear and start fresh'">
             <Icon name="Plus" :size="11" /> New thread
-          </Button>
-          <Button severity="secondary" text size="small" @click="indexModalMode = 'build'" v-tooltip.bottom="'Embed any scenes added or edited since last build'">
+          </JwButton>
+          <JwButton intent="ghost" size="small" @click="indexModalMode = 'build'" v-tooltip.bottom="'Embed any scenes added or edited since last build'">
             <Icon name="Refresh" :size="11" /> Update
-          </Button>
-          <Button severity="secondary" text size="small" @click="indexModalMode = 'rebuild'" v-tooltip.bottom="'Wipe and re-embed everything'">
+          </JwButton>
+          <JwButton intent="ghost" size="small" @click="indexModalMode = 'rebuild'" v-tooltip.bottom="'Wipe and re-embed everything'">
             <Icon name="Refresh" :size="11" /> Rebuild
-          </Button>
+          </JwButton>
         </div>
 
         <!-- Thread (user + assistant turns) -->
@@ -220,17 +281,21 @@ defineExpose({ open: () => { open.value = true; }, close });
             @keydown.escape="close"
           />
           <div class="cp-input-actions">
-            <span class="t-muted" style="font-size:10.5px">⏎ to send · ⇧⏎ for newline</span>
-            <Button v-if="progress.running.value" severity="secondary" size="small" @click="cancel">
+            <span class="cp-hint">
+              <kbd class="cp-kbd">⏎</kbd> to send
+              <span class="cp-hint-sep">·</span>
+              <kbd class="cp-kbd">⇧⏎</kbd> for newline
+            </span>
+            <JwButton v-if="progress.running.value" intent="secondary" size="small" @click="cancel">
               <Icon name="Close" :size="12" /> Cancel
-            </Button>
-            <Button v-else severity="primary" size="small" :disabled="!question.trim()" @click="ask">
+            </JwButton>
+            <JwButton v-else intent="primary" size="small" :disabled="!question.trim()" @click="ask">
               <Icon name="Sparkle" :size="12" /> Ask
-            </Button>
+            </JwButton>
           </div>
         </div>
 
-        <AiProgressBar :progress="progress" label="Searching + answering…" />
+        <AiProgressBar :progress="progress" label="Searching + answering…" :show-cancel="false" />
       </template>
 
       <IndexBuildModal v-if="indexModalMode"
@@ -278,10 +343,30 @@ defineExpose({ open: () => { open.value = true; }, close });
   padding: 1px 5px; border-radius: 3px;
   background: var(--surface-3); color: var(--ink-2);
 }
+.cp-indexing {
+  display: inline-flex; align-items: center; gap: 5px;
+  padding: 1px 7px 1px 6px; border-radius: 999px;
+  background: var(--accent-soft); color: var(--accent-ink);
+  font-size: 10.5px; font-weight: 500;
+}
+.cp-indexing-dot {
+  width: 6px; height: 6px; border-radius: 50%;
+  background: var(--accent);
+  animation: cp-indexing-pulse 1.4s ease-in-out infinite;
+}
+@keyframes cp-indexing-pulse {
+  0%, 100% { opacity: 0.35; transform: scale(0.9); }
+  50%      { opacity: 1;    transform: scale(1.1); }
+}
 
-/* Thread — scrollable area between the status strip and the input row. */
+/* Thread — scrollable area between the status strip and the input row.
+   min-height: 0 lets flex shrink this past its content's natural size so
+   the input row + progress bar stay pinned to the bottom regardless of how
+   many turns are in the thread (without it the thread's content-min would
+   push them out of the panel). */
 .cp-thread {
   flex: 1 1 auto;
+  min-height: 0;
   overflow-y: auto;
   display: flex; flex-direction: column; gap: 12px;
   padding: 4px 2px 8px;
@@ -338,6 +423,17 @@ defineExpose({ open: () => { open.value = true; }, close });
 }
 .cp-textarea::placeholder { color: var(--muted); }
 .cp-input-actions { display: flex; align-items: center; justify-content: space-between; gap: 10px; }
+.cp-hint {
+  display: inline-flex; align-items: center; gap: 6px;
+  font-size: 11.5px; color: var(--ink-2);
+}
+.cp-hint-sep { color: var(--muted); }
+.cp-kbd {
+  font-family: var(--font-mono); font-size: 10.5px;
+  color: var(--ink-2); background: var(--surface);
+  border: 1px solid var(--border-soft); border-radius: 4px;
+  padding: 1px 5px; line-height: 14px;
+}
 
 .cp-error {
   display: flex; gap: 8px; align-items: center;

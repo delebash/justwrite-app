@@ -17,7 +17,7 @@ import InputText from "primevue/inputtext";
 import Select from "primevue/select";
 import MultiSelect from "primevue/multiselect";
 import Tag from "primevue/tag";
-import Button from "primevue/button";
+import JwButton from "@renderer/components/ui/JwButton.vue";
 import { FilterMatchMode, FilterOperator } from "@primevue/core/api";
 
 const props = defineProps({ id: { type: String, default: "" } });
@@ -138,9 +138,9 @@ function onRowClick(event) {
 <template>
   <template v-if="!article">
     <PaneHeader eyebrow="Story world" title="Worldbuilding">
-      <Button label="New article" severity="primary" size="small" @click="addArticle">
+      <JwButton label="New article" intent="primary" size="small" @click="addArticle">
         <template #icon><Icon name="Plus" :size="14" /></template>
-      </Button>
+      </JwButton>
     </PaneHeader>
     <div class="pane-card">
       <div class="scrollarea" style="padding:18px 22px 40px">
@@ -156,7 +156,7 @@ function onRowClick(event) {
               class="wb-search-input"
             />
           </span>
-          <Button label="Clear filters" severity="secondary" text size="small" @click="clearAllFilters" />
+          <JwButton label="Clear filters" intent="ghost" size="small" @click="clearAllFilters" />
           <span class="wb-count">{{ rows.length }} article{{ rows.length === 1 ? "" : "s" }}</span>
         </div>
 
@@ -263,13 +263,13 @@ function onRowClick(event) {
           :value="article.title" @input="update('title', $event.target.value)" />
       </div>
       <div class="pane-actions">
-        <Button label="Back" severity="secondary" text size="small" @click="router.push('/worldbuilding')">
+        <JwButton label="Back" intent="ghost" size="small" @click="router.push('/worldbuilding')">
           <template #icon><Icon name="ChevRight" :size="12" style="transform:rotate(180deg)" /></template>
-        </Button>
-        <Button label="Delete" severity="secondary" text size="small" @click="deleteArticle" />
-        <Button label="New article" severity="primary" size="small" @click="addArticle">
+        </JwButton>
+        <JwButton label="Delete" intent="ghost" size="small" @click="deleteArticle" />
+        <JwButton label="New article" intent="primary" size="small" @click="addArticle">
           <template #icon><Icon name="Plus" :size="14" /></template>
-        </Button>
+        </JwButton>
         <StatusSelect :model-value="article.status || ''" @update:model-value="(v) => update('status', v)" />
       </div>
     </header>

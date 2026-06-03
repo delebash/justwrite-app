@@ -21,6 +21,10 @@ const props = defineProps({
   label: { type: String, default: "Working…" },
   showPreview: { type: Boolean, default: false },
   canTogglePreview: { type: Boolean, default: false },
+  // When false, the strip omits its built-in Cancel button — for call sites
+  // that already have their own Cancel (e.g. ChatPanel pairs Cancel with
+  // the Ask input, so the bar's button would just be a duplicate).
+  showCancel: { type: Boolean, default: true },
 });
 const emit = defineEmits(["cancel"]);
 
@@ -38,35 +42,41 @@ function togglePreview() {
 </script>
 
 <template>
-  <div class="aiprog" v-if="progress.running">
+  <!-- progress.* fields are refs from useAiProgress. Accessing them via the
+       prop here does NOT auto-unwrap (template auto-unwrap only applies to
+       top-level setup bindings, not props.dot-access), so every truthiness
+       check has to read .value explicitly. Without this, `v-if="progress.running"`
+       is always true (the Ref object is truthy) and the strip stays mounted
+       after finish(), leaving a Cancel button visible next to the Done footer. -->
+  <div class="aiprog" v-if="progress.running.value">
     <div class="aiprog-row">
       <Icon name="Sparkle" :size="13" class="aiprog-spin" />
       <span class="aiprog-label">{{ label }}</span>
       <span class="aiprog-stat">
         <Icon name="Clock" v-if="false" :size="11" />
-        {{ progress.elapsedSeconds }}s
+        {{ progress.elapsedSeconds.value }}s
       </span>
-      <span class="aiprog-stat" v-if="progress.firstTokenMs > 0">
-        first token in {{ (progress.firstTokenMs / 1000).toFixed(1) }}s
+      <span class="aiprog-stat" v-if="progress.firstTokenMs.value > 0">
+        first token in {{ (progress.firstTokenMs.value / 1000).toFixed(1) }}s
       </span>
-      <span class="aiprog-stat" v-if="progress.tokensApprox.value > 0">
-        <template v-if="progress.tokensApprox.exact">
-          {{ progress.tokensApprox.value }} tokens
+      <span class="aiprog-stat" v-if="progress.tokensApprox.value.value > 0">
+        <template v-if="progress.tokensApprox.value.exact">
+          {{ progress.tokensApprox.value.value }} tokens
         </template>
         <template v-else>
-          ~{{ progress.tokensApprox.value }} tokens
+          ~{{ progress.tokensApprox.value.value }} tokens
         </template>
       </span>
       <span class="aiprog-spacer" />
-      <button v-if="canTogglePreview && progress.preview" class="aiprog-btn aiprog-btn--ghost" @click="togglePreview">
+      <button v-if="canTogglePreview && progress.preview.value" class="aiprog-btn aiprog-btn--ghost" @click="togglePreview">
         {{ previewOpen ? "Hide preview" : "Show preview" }}
       </button>
-      <button class="aiprog-btn aiprog-btn--danger" @click="onCancel">
+      <button v-if="showCancel" class="aiprog-btn aiprog-btn--danger" @click="onCancel">
         <Icon name="Close" :size="11" /> Cancel
       </button>
     </div>
-    <div v-if="previewOpen && progress.preview" class="aiprog-preview">
-      <pre>{{ progress.preview }}</pre>
+    <div v-if="previewOpen && progress.preview.value" class="aiprog-preview">
+      <pre>{{ progress.preview.value }}</pre>
     </div>
   </div>
 </template>

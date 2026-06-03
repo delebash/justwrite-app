@@ -116,6 +116,8 @@ export async function exportDocx({ manuscript, onProgress } = {}) {
           children.push(para(b.text, { italics: true, color: "555555", alignment: AlignmentType.LEFT }));
         } else if (b.kind === "scene-break") {
           children.push(sceneBreak());
+        } else if (b.kind === "page-break") {
+          children.push(pageBreak());
         } else if (b.kind === "ul-item") {
           children.push(bullet(b.text));
         } else {

@@ -6,7 +6,7 @@ import { useUiStore } from "../stores/ui.js";
 import RichEditor from "../components/RichEditor.vue";
 import { EDITOR_TOOLBAR_DOC } from "../services/editorToolbars.js";
 import Icon from "../components/Icon.vue";
-import Button from "primevue/button";
+import JwButton from "@renderer/components/ui/JwButton.vue";
 import StatusSelect from "../components/StatusSelect.vue";
 import Breadcrumb from "../components/Breadcrumb.vue";
 import Textarea from "primevue/textarea";
@@ -36,7 +36,7 @@ function openEvents() { router.push("/architecture/setting/events"); }
         :value="doc.title" @input="update('title', $event.target.value)" />
     </div>
     <div v-if="doc" class="pane-actions">
-      <Button v-if="doc.id === 'setting'" severity="secondary" text size="small" @click="openEvents"><Icon name="Calendar" :size="14" /> Events</Button>
+      <JwButton v-if="doc.id === 'setting'" intent="ghost" size="small" @click="openEvents"><Icon name="Calendar" :size="14" /> Events</JwButton>
       <StatusSelect :model-value="doc.status || ''" @update:model-value="(v) => update('status', v)" />
     </div>
   </header>

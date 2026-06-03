@@ -127,7 +127,13 @@ function bootstrap() {
   let registry = loadRegistry();
   let activeId = loadJSON(LS_ACTIVE_KEY);
 
-  if (activeId && loadSnap(activeId)) {
+  // Use the persisted activeId even if no project snapshot exists yet —
+  // a brand-new project has an active id from the moment it's minted, but
+  // the snapshot only gets written on the first edit. Requiring both would
+  // make every reload of an un-edited project re-mint a fresh uuid and
+  // orphan anything that's keyed on activeProjectId (RAG index, AI usage
+  // log, sessions, etc.).
+  if (activeId) {
     return { activeId, registry, snapshot: loadSnap(activeId) };
   }
 
@@ -165,8 +171,65 @@ function bootstrap() {
   return { activeId: id, registry, snapshot: null };
 }
 
-const boot = bootstrap();
-const loaded = boot.snapshot || {};
+// IMPORTANT: bootstrap() reads from the storage cache (services/storage.js),
+// which is empty until bootStorage() runs from main.js's IIFE. ES modules
+// evaluate before main.js's body, so calling bootstrap() at module-load
+// time would silently read null for the persisted activeId / registry /
+// snapshot and mint a fresh project UUID on every full reload — losing
+// the user's chapters, RAG index, sessions, and everything else keyed on
+// activeProjectId. The seed data made this look like persistence on the
+// surface because the demo content reappears each time.
+//
+// Defer bootstrap (and the migration steps it feeds) into a lazy initialiser
+// that runs once when the state factory first executes. Pinia state factories
+// only run on the first useProjectStore() call, which happens during the
+// app's component setup — well after bootStorage() has populated the cache.
+let _bootCache = null;
+function getBoot() {
+  if (_bootCache) return _bootCache;
+  const boot = bootstrap();
+  const loaded = boot.snapshot || {};
+
+  normalizeStrands(loaded);
+
+  // "Storylines" was briefly added as a fifth architecture doc and then
+  // removed. Strip it from any project that picked it up so it doesn't
+  // linger in the sidebar list.
+  if (loaded.architecture && loaded.architecture.storylines) {
+    const { storylines, ...rest } = loaded.architecture;
+    loaded.architecture = rest;
+  }
+
+  // Chapters now contain scenes instead of a single body. Migrate every
+  // existing `chapterBody[id] = html` into a one-scene record so the user's
+  // prose is preserved exactly; clear the old chapterBody and the persisted
+  // history tail (old snapshots referenced the dead field).
+  // Gate on boot.snapshot — on a fresh install there is nothing to migrate
+  // AND running the migration would set scenes to {}, which would then beat
+  // the SCENES seed in the state factory below.
+  let scenesMigrationRan = false;
+  if (boot.snapshot && (!loaded.scenes || typeof loaded.scenes !== "object")) {
+    scenesMigrationRan = true;
+    loaded.scenes = {};
+    const oldBody = (loaded.chapterBody && typeof loaded.chapterBody === "object") ? loaded.chapterBody : {};
+    for (const [chId, html] of Object.entries(oldBody)) {
+      loaded.scenes[chId] = [{ id: `scn_${chId}_1`, title: "", body: html || "" }];
+    }
+    if (Array.isArray(loaded.parts)) {
+      for (const p of loaded.parts) {
+        for (const c of (p.chapters || [])) {
+          if (!loaded.scenes[c.id]) {
+            loaded.scenes[c.id] = [{ id: `scn_${c.id}_1`, title: "", body: "" }];
+          }
+        }
+      }
+    }
+    delete loaded.chapterBody;
+  }
+
+  _bootCache = { boot, loaded, scenesMigrationRan };
+  return _bootCache;
+}
 
 // Canonical entity name is "strands". Earlier versions stored it as
 // "plotlines" (and originally as "strand"/"strands"). normalizeStrands
@@ -224,45 +287,6 @@ function normalizeStrands(snap) {
   }
   return snap;
 }
-normalizeStrands(loaded);
-
-// "Storylines" was briefly added as a fifth architecture doc and then
-// removed. Strip it from any project that picked it up so it doesn't
-// linger in the sidebar list.
-if (loaded.architecture && loaded.architecture.storylines) {
-  const { storylines, ...rest } = loaded.architecture;
-  loaded.architecture = rest;
-}
-
-// Chapters now contain scenes instead of a single body. Migrate every
-// existing `chapterBody[id] = html` into a one-scene record so the user's
-// prose is preserved exactly; clear the old chapterBody and the persisted
-// history tail (old snapshots referenced the dead field).
-// Gate on boot.snapshot — on a fresh install there is nothing to migrate
-// AND running the migration would set scenes to {}, which would then beat
-// the SCENES seed in the state factory below.
-let _scenesMigrationRan = false;
-if (boot.snapshot && (!loaded.scenes || typeof loaded.scenes !== "object")) {
-  _scenesMigrationRan = true;
-  loaded.scenes = {};
-  const oldBody = (loaded.chapterBody && typeof loaded.chapterBody === "object") ? loaded.chapterBody : {};
-  for (const [chId, html] of Object.entries(oldBody)) {
-    loaded.scenes[chId] = [{ id: `scn_${chId}_1`, title: "", body: html || "" }];
-  }
-  // Seed an empty scene for any chapter that had no body yet so the user
-  // always has a place to write.
-  if (Array.isArray(loaded.parts)) {
-    for (const p of loaded.parts) {
-      for (const c of (p.chapters || [])) {
-        if (!loaded.scenes[c.id]) {
-          loaded.scenes[c.id] = [{ id: `scn_${c.id}_1`, title: "", body: "" }];
-        }
-      }
-    }
-  }
-  delete loaded.chapterBody;
-}
-
 const EMPTY_TRASH = {
   chapters: [], characters: [], locations: [], objects: [],
   groups: [], notes: [], strands: [], worldbuilding: [],
@@ -336,7 +360,10 @@ const DEFAULT_STATUSES = [
 ];
 
 export const useProjectStore = defineStore("project", {
-  state: () => ({
+  state: () => {
+    // Lazy bootstrap — see getBoot() for why this can't run at module load.
+    const { boot, loaded, scenesMigrationRan } = getBoot();
+    return ({
     project:    { ...PROJECT, ...(loaded.project || {}) },
     strands:  loaded.strands  || [...STRANDS],
     characters: loaded.characters || [...CHARACTERS],
@@ -389,7 +416,7 @@ export const useProjectStore = defineStore("project", {
     // If we just rewrote the model from chapterBody → scenes, the
     // persisted history tail is shaped for the old slices and would
     // re-introduce the dead field on undo. Discard it.
-    _past:   markRaw(_scenesMigrationRan ? [] : loadHistory().map(normalizeStrands)),
+    _past:   markRaw(scenesMigrationRan ? [] : loadHistory().map(normalizeStrands)),
     _future: markRaw([]),
 
     // Reactive autosave timestamp — ticks each time _persist() runs so
@@ -397,7 +424,8 @@ export const useProjectStore = defineStore("project", {
     // of HISTORY_SLICES or exportSnapshot — it's a runtime signal, not
     // persisted state. Starts at 0; first edit sets it.
     _lastSavedAt: 0,
-  }),
+    });
+  },
 
   getters: {
     allChapters: (s) => s.parts.flatMap((p) => p.chapters.map((c) => ({

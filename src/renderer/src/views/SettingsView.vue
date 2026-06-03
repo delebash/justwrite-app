@@ -6,6 +6,8 @@ import { useUiStore } from "../stores/ui.js";
 import { saveImage, urlFor, hasNativeImages } from "../services/imageStore.js";
 import { promptDialog, confirmDialog } from "../services/dialog.js";
 import { getItem, setItem, clearPrefix, flushPending } from "../services/storage.js";
+import { indexStatus } from "../services/rag/indexer.js";
+import { pushToast } from "../services/toastBridge.js";
 import PaneHeader from "../components/PaneHeader.vue";
 import Icon from "../components/Icon.vue";
 import SettingsProviderForm from "./SettingsProviderForm.vue";
@@ -16,12 +18,13 @@ import InputNumber from "primevue/inputnumber";
 import Checkbox from "primevue/checkbox";
 import Select from "primevue/select";
 import Textarea from "primevue/textarea";
-import Button from "primevue/button";
+import JwButton from "@renderer/components/ui/JwButton.vue";
 import {
   ACCENT_PRESETS, GOLD_PRESETS, FUNCTIONAL_PRESETS, PAIRINGS, SURFACE_TINTS, PAPER_TINTS,
   THEME_PRESETS, UI_FONTS, DISPLAY_FONTS, INK_PALETTES, UI_SCALES,
   SIDEBAR_HEADING_STYLES, SIDEBAR_HEADING_SIZES,
   NAV_ITEM_STYLES, NAV_ITEM_SIZES,
+  BUTTON_RADIUS_OPTIONS, BUTTON_DENSITY_OPTIONS, BUTTON_LABEL_CASE_OPTIONS,
 } from "../services/appearance.js";
 
 import DataTable from "primevue/datatable";
@@ -160,6 +163,25 @@ function cancelEdit() { editing.value = null; draft.value = null; }
 
 async function pingProvider(id) {
   await ai.ping(id);
+}
+
+// Wraps ai.setDefaultEmbedding so changing providers mid-session doesn't
+// silently strand the existing RAG index. If the active project has an
+// index built with a different embedding model than the new provider's
+// model, surface a heads-up — the user can either Rebuild from the chat
+// panel (re-embeds everything against the new model) or switch back.
+function chooseDefaultEmbedding(id) {
+  const prev = ai.defaultEmbeddingId;
+  ai.setDefaultEmbedding(id);
+  if (id === prev) return;
+  const newProvider = ai.providerById(id);
+  const newModel = newProvider?.embeddingModel || "";
+  const status = indexStatus();
+  if (status.exists && status.entryCount > 0 && newModel && status.model && status.model !== newModel) {
+    pushToast({
+      message: `Embedding model changed. Your manuscript index was built with “${status.model}” — it will keep working with the old model. Hit Rebuild in the chat panel to re-embed against “${newModel}”.`,
+    }, 9000);
+  }
 }
 
 const statusColor = (s) => ({
@@ -577,7 +599,7 @@ async function deleteCategory(c) {
   <PaneHeader eyebrow="Project" title="Settings" />
   <div class="pane-card">
     <div class="scrollarea" style="padding:22px">
-    <div class="settings-layout" style="display:grid;grid-template-columns:220px 1fr;gap:22px;max-width:1100px">
+    <div class="settings-layout" style="display:grid;grid-template-columns:220px minmax(0,1fr);gap:22px;max-width:1100px">
       <!-- Section nav -->
       <nav style="display:flex;flex-direction:column;gap:2px">
         <button v-for="s in SECTIONS" :key="s.id"
@@ -587,13 +609,13 @@ async function deleteCategory(c) {
       </nav>
 
       <!-- ── PROJECT ─────────────────────────────── -->
-      <div v-if="active === 'project'" style="display:flex;flex-direction:column;gap:14px">
+      <div v-if="active === 'project'" style="display:flex;flex-direction:column;gap:14px;min-width:0">
         <div class="card">
           <div class="card-title">Project</div>
           <p class="t-muted" style="font-size:12px;margin:0 0 14px;line-height:1.55">
             Edits flow through the same undo/redo history as your manuscript — ⌘Z restores the previous value.
           </p>
-          <div style="display:grid;grid-template-columns:160px 1fr;gap:10px 14px;font-size:13px;align-items:center">
+          <div style="display:grid;grid-template-columns:160px minmax(0,1fr);gap:10px 14px;font-size:13px;align-items:center">
             <span class="t-muted">Title</span>
             <InputText :model-value="project.project.title"
               @update:model-value="(v) => setMeta('title', v)" placeholder="Working title" />
@@ -620,17 +642,17 @@ async function deleteCategory(c) {
         </div>
         <div class="card">
           <div class="card-title">Goals</div>
-          <div style="display:grid;grid-template-columns:160px 1fr;gap:10px 14px;font-size:13px;align-items:center">
-            <span class="t-muted">Word goal</span>
-            <div style="display:flex;align-items:center;gap:8px">
-              <InputNumber :min="0" :step="500" style="max-width:160px"
+          <div style="display:grid;grid-template-columns:160px minmax(0,1fr);gap:10px 14px;font-size:13px;align-items:center">
+            <span class="t-muted" style="align-self:start;padding-top:8px">Word goal</span>
+            <div style="display:flex;flex-direction:column;align-items:flex-start;gap:4px;min-width:0">
+              <InputNumber :min="0" :step="500" :input-style="{ width: '160px' }"
                 :model-value="project.project.wordsGoal"
                 @update:model-value="(v) => setMetaNumber('wordsGoal', v)" />
               <span class="t-muted" style="font-size:11.5px">total words for the manuscript</span>
             </div>
-            <span class="t-muted">Daily target</span>
-            <div style="display:flex;align-items:center;gap:8px">
-              <InputNumber :min="0" :step="50" style="max-width:160px"
+            <span class="t-muted" style="align-self:start;padding-top:8px">Daily target</span>
+            <div style="display:flex;flex-direction:column;align-items:flex-start;gap:4px;min-width:0">
+              <InputNumber :min="0" :step="50" :input-style="{ width: '160px' }"
                 :model-value="project.project.dailyTarget ?? 1200"
                 @update:model-value="(v) => setMetaNumber('dailyTarget', v)" />
               <span class="t-muted" style="font-size:11.5px">words/day — drives the Home streak ring</span>
@@ -666,15 +688,15 @@ async function deleteCategory(c) {
               <InputText style="max-width:220px" :model-value="s.label"
                 @update:model-value="(v) => renameStatus(s.id, v)" placeholder="Status name" />
               <span :style="`font-size:11px;font-weight:600;text-transform:lowercase;color:${s.color}`">{{ s.label }}</span>
-              <Button severity="secondary" text size="small" style="margin-left:auto" v-tooltip.bottom="'Delete status'" @click="deleteStatus(s)">
+              <JwButton intent="ghost" size="small" style="margin-left:auto" v-tooltip.bottom="'Delete status'" @click="deleteStatus(s)">
                 <template #icon><Icon name="Trash" :size="13" /></template>
-              </Button>
+              </JwButton>
             </div>
             <div v-if="!project.statuses.length" class="t-muted" style="font-size:12.5px;font-style:italic">No statuses yet — add one below.</div>
           </div>
-          <Button label="Add status" severity="secondary" text style="margin-top:12px" @click="addStatus">
+          <JwButton label="Add status" intent="ghost" style="margin-top:12px" @click="addStatus">
             <template #icon><Icon name="Plus" :size="13" /></template>
-          </Button>
+          </JwButton>
         </div>
 
         <!-- ── Worldbuilding categories ─────────────────────── -->
@@ -715,15 +737,15 @@ async function deleteCategory(c) {
               </div>
               <InputText style="max-width:220px" :model-value="c.label"
                 @update:model-value="(v) => renameCategory(c.id, v)" placeholder="Category name" />
-              <Button severity="secondary" text size="small" style="margin-left:auto" v-tooltip.bottom="'Delete category'" @click="deleteCategory(c)">
+              <JwButton intent="ghost" size="small" style="margin-left:auto" v-tooltip.bottom="'Delete category'" @click="deleteCategory(c)">
                 <template #icon><Icon name="Trash" :size="13" /></template>
-              </Button>
+              </JwButton>
             </div>
             <div v-if="!project.worldbuildingCategories.length" class="t-muted" style="font-size:12.5px;font-style:italic">No categories yet — add one below.</div>
           </div>
-          <Button label="Add category" severity="secondary" text style="margin-top:12px" @click="addCategory">
+          <JwButton label="Add category" intent="ghost" style="margin-top:12px" @click="addCategory">
             <template #icon><Icon name="Plus" :size="13" /></template>
-          </Button>
+          </JwButton>
         </div>
 
         <!-- ── Cover image ──────────────────────────────────── -->
@@ -733,7 +755,7 @@ async function deleteCategory(c) {
             Shows up as the book cover in EPUB and PDF exports. Recommended size: 1600 × 2400 px (2:3 ratio), JPEG or PNG.
           </p>
 
-          <div style="display:grid;grid-template-columns:140px 1fr;gap:18px;align-items:start">
+          <div style="display:grid;grid-template-columns:minmax(0,140px) minmax(0,1fr);gap:18px;align-items:start">
             <!-- Preview -->
             <div class="cover-frame" :class="{ empty: !coverSrc }">
               <img v-if="coverSrc" :src="coverSrc" alt="Book cover" />
@@ -756,12 +778,12 @@ async function deleteCategory(c) {
               </div>
 
               <div style="display:flex;gap:8px;align-items:center;margin-top:4px">
-                <Button as="label" severity="primary" :disabled="coverUploading">
+                <JwButton as="label" intent="primary" :disabled="coverUploading">
                   <Icon name="Image" :size="13" />
                   {{ coverUploading ? "Uploading…" : (project.project.coverImage ? "Replace…" : "Choose image…") }}
                   <input type="file" accept="image/*" style="display:none" @change="onPickCover" :disabled="coverUploading" />
-                </Button>
-                <Button v-if="project.project.coverImage" label="Remove" severity="secondary" text @click="removeCover" />
+                </JwButton>
+                <JwButton v-if="project.project.coverImage" label="Remove" intent="ghost" @click="removeCover" />
               </div>
 
               <div class="t-muted" style="font-size:11px;display:inline-flex;gap:5px;align-items:center;font-family:var(--font-mono)">
@@ -774,13 +796,13 @@ async function deleteCategory(c) {
       </div>
 
       <!-- ── AI & AUDIO ────────────────────────────── -->
-      <div v-else-if="active === 'audio'" style="display:flex;flex-direction:column;gap:14px">
+      <div v-else-if="active === 'audio'" style="display:flex;flex-direction:column;gap:14px;min-width:0">
         <div class="card">
           <div class="card-title">Defaults</div>
           <div style="font-size:13px;color:var(--ink-2);margin-bottom:12px">
             Pick which provider handles writing assistance (LLM) and which handles audio (TTS). Both follow the OpenAI HTTP standard — anything that speaks it works here.
           </div>
-          <div style="display:grid;grid-template-columns:160px 1fr;gap:10px 14px;align-items:center;font-size:13px">
+          <div style="display:grid;grid-template-columns:160px minmax(0,1fr);gap:10px 14px;align-items:center;font-size:13px">
             <span class="t-muted">Default LLM</span>
             <Combobox
               :model-value="ai.defaultLlmId"
@@ -799,6 +821,15 @@ async function deleteCategory(c) {
               :searchable="false"
               placeholder="Pick a provider"
               chev-title="Choose default TTS provider" />
+            <span class="t-muted">Default embedding</span>
+            <Combobox
+              :model-value="ai.defaultEmbeddingId"
+              @update:model-value="chooseDefaultEmbedding"
+              :items="ai.embeddingProviders"
+              item-value="id" item-label="name"
+              :searchable="false"
+              placeholder="Pick a provider"
+              chev-title="Choose default embedding provider" />
             <span class="t-muted">Auto-rebuild RAG</span>
             <label style="display:flex;align-items:center;gap:8px;cursor:pointer">
               <Checkbox :model-value="ai.autoRebuildRagIndex" :binary="true"
@@ -814,9 +845,9 @@ async function deleteCategory(c) {
           <div style="display:flex;align-items:center;gap:10px;margin-bottom:10px">
             <div class="card-title" style="margin:0">Providers</div>
             <span class="t-muted" style="font-size:12px">{{ ai.providers.length }} configured</span>
-            <Button label="Add provider" severity="primary" size="small" style="margin-left:auto" @click="startNew">
+            <JwButton label="Add provider" intent="primary" size="small" style="margin-left:auto" @click="startNew">
               <template #icon><Icon name="Plus" :size="12" /></template>
-            </Button>
+            </JwButton>
           </div>
 
           <div style="display:flex;flex-direction:column;gap:8px">
@@ -827,7 +858,7 @@ async function deleteCategory(c) {
 
             <template v-for="p in ai.providers" :key="p.id">
               <!-- Read row -->
-              <div v-if="editing !== p.id" style="display:grid;grid-template-columns:auto 1fr auto auto auto;gap:14px;align-items:center;padding:12px 14px;border:1px solid var(--border);border-radius:10px;background:var(--surface)">
+              <div v-if="editing !== p.id" style="display:grid;grid-template-columns:auto minmax(0,1fr) auto auto auto;gap:14px;align-items:center;padding:12px 14px;border:1px solid var(--border);border-radius:10px;background:var(--surface)">
                 <span style="width:36px;height:36px;border-radius:8px;background:var(--surface-3);color:var(--ink-2);display:grid;place-items:center">
                   <Icon :name="p.kind === 'tts' ? 'Headphones' : p.kind === 'both' ? 'Sparkle' : 'Cpu'" :size="16" />
                 </span>
@@ -850,8 +881,8 @@ async function deleteCategory(c) {
                   <span :style="`width:8px;height:8px;border-radius:50%;background:${statusColor(ai.status[p.id])}`" />
                   {{ statusLabel(ai.status[p.id]) }}
                 </span>
-                <Button label="Test" size="small" @click="pingProvider(p.id)" />
-                <Button label="Edit" size="small" @click="startEdit(p)" />
+                <JwButton label="Test" intent="secondary" size="small" @click="pingProvider(p.id)" />
+                <JwButton label="Edit" intent="primary" size="small" @click="startEdit(p)" />
               </div>
 
               <!-- Edit row -->
@@ -898,7 +929,7 @@ async function deleteCategory(c) {
         <div class="card">
           <div class="card-title">
             AI usage
-            <Button label="Reset ledger" severity="secondary" text size="small" style="margin-left:auto" @click="resetUsageLog"
+            <JwButton label="Reset ledger" intent="ghost" size="small" style="margin-left:auto" @click="resetUsageLog"
               title="Clear every recorded call. Future calls start tallying from zero." />
           </div>
           <p class="t-muted" style="font-size:12.5px;margin:0 0 14px;line-height:1.55">
@@ -1013,10 +1044,10 @@ async function deleteCategory(c) {
         <!-- Presets -->
         <div class="card">
           <div class="card-title">Theme preset
-            <Button label="Reset to defaults" severity="secondary" text size="small" style="margin-left:auto" @click="resetAppearance"
+            <JwButton label="Reset to defaults" intent="ghost" size="small" style="margin-left:auto" @click="resetAppearance"
               title="Reset every appearance setting to the default look">
               <template #icon><Icon name="Refresh" :size="12" /></template>
-            </Button>
+            </JwButton>
           </div>
           <p class="t-muted" style="font-size:12px;margin:0 0 12px">Start from a curated look, then fine-tune anything below.</p>
           <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(168px,1fr));gap:10px">
@@ -1069,7 +1100,7 @@ async function deleteCategory(c) {
                 <p class="ap-prose">Above her, the deck complained in its joints — and the fog, she now understood, was not weather.</p>
                 <div class="ap-ornament">✦&nbsp;&nbsp;✦&nbsp;&nbsp;✦</div>
                 <div class="ap-controls">
-                  <Button size="small">Accent</Button>
+                  <JwButton intent="primary" size="small">Accent</JwButton>
                   <span class="chip" style="background:var(--accent-soft);color:var(--accent-ink);border-color:var(--accent-line)">Selected</span>
                 </div>
               </div>
@@ -1209,8 +1240,9 @@ async function deleteCategory(c) {
           </div>
           <!-- Live preview — the button + tag both track the Accent 2 hue. -->
           <div style="display:flex;flex-wrap:wrap;gap:8px;align-items:center;margin-top:14px;padding-top:12px;border-top:1px solid var(--border-soft)">
-            <Button severity="warn" size="small" label="Accent 2" />
-            <Button severity="warn" outlined size="small" label="Accent 2" />
+            <JwButton intent="warn" size="small" label="Accent 2" />
+            <!-- TODO: review intent — was severity="warn" outlined -->
+            <JwButton intent="warn" size="small" label="Accent 2" />
             <Tag severity="warn" value="Warn" />
           </div>
         </div>
@@ -1265,19 +1297,21 @@ async function deleteCategory(c) {
           <div class="card-title">Buttons</div>
           <p class="t-muted" style="font-size:12px;margin:0 0 12px"><b>Primary</b> follows the accent; <b>Accent 2</b> is your second accent (set in Accents above); <b>Success / Danger / Info</b> follow the functional colours; <b>Neutral</b> stays a quiet grey. Text colour is chosen automatically so every button stays readable in light &amp; dark. Filled = strong emphasis, outlined/text = lighter.</p>
           <div style="display:flex;flex-wrap:wrap;gap:8px;align-items:center">
-            <Button size="small" label="Primary" />
-            <Button severity="warn" size="small" label="Accent 2" />
-            <Button severity="secondary" size="small" label="Neutral" />
-            <Button severity="success" size="small" label="Success" />
-            <Button severity="danger" size="small" label="Danger" />
-            <Button severity="info" size="small" label="Info" />
+            <JwButton intent="primary" size="small" label="Primary" />
+            <JwButton intent="warn" size="small" label="Accent 2" />
+            <JwButton intent="secondary" size="small" label="Neutral" />
+            <JwButton intent="success" size="small" label="Success" />
+            <JwButton intent="danger" size="small" label="Danger" />
+            <JwButton intent="info" size="small" label="Info" />
           </div>
           <div style="display:flex;flex-wrap:wrap;gap:8px;align-items:center;margin-top:8px">
-            <Button outlined size="small" label="Primary" />
-            <Button severity="warn" outlined size="small" label="Accent 2" />
-            <Button severity="secondary" text size="small" label="Neutral" />
-            <Button severity="danger" outlined size="small" label="Danger" />
-            <Button severity="info" text size="small" label="Info" />
+            <JwButton intent="secondary" size="small" label="Primary" />
+            <!-- TODO: review intent — was severity="warn" outlined -->
+            <JwButton intent="warn" size="small" label="Accent 2" />
+            <JwButton intent="ghost" size="small" label="Neutral" />
+            <!-- TODO: review intent — was severity="danger" outlined -->
+            <JwButton intent="danger" size="small" label="Danger" />
+            <JwButton intent="ghost" size="small" label="Info" />
           </div>
         </div>
 
@@ -1404,6 +1438,49 @@ async function deleteCategory(c) {
           </div>
         </div>
 
+        <!-- ── Buttons (radius / density / label casing) ───────── -->
+        <div class="card">
+          <div class="card-title">Buttons</div>
+          <p class="t-muted" style="font-size:12px;margin:0 0 12px">Shape, padding, and label casing for every button across the app.</p>
+          <div class="size-row">
+            <span class="field-l">Corner radius</span>
+            <div class="size-seg">
+              <button v-for="o in BUTTON_RADIUS_OPTIONS" :key="o.value"
+                :class="{ active: ap.btnRadius === o.value }"
+                @click="setAp({ btnRadius: o.value })">
+                <b>{{ o.label }}</b>
+              </button>
+            </div>
+          </div>
+          <div class="size-row">
+            <span class="field-l">Density</span>
+            <div class="size-seg">
+              <button v-for="o in BUTTON_DENSITY_OPTIONS" :key="o.value"
+                :class="{ active: ap.btnDensity === o.value }"
+                @click="setAp({ btnDensity: o.value })">
+                <b>{{ o.label }}</b>
+              </button>
+            </div>
+          </div>
+          <div class="size-row">
+            <span class="field-l">Label casing</span>
+            <div class="size-seg">
+              <button v-for="o in BUTTON_LABEL_CASE_OPTIONS" :key="o.value"
+                :class="{ active: ap.btnLabelCase === o.value }"
+                @click="setAp({ btnLabelCase: o.value })">
+                <b>{{ o.label }}</b>
+              </button>
+            </div>
+          </div>
+          <div style="display:flex;gap:10px;align-items:center;margin-top:14px;padding-top:14px;border-top:1px solid var(--border-soft)">
+            <span class="t-muted" style="font-size:11.5px;font-family:var(--font-mono);text-transform:uppercase;letter-spacing:0.08em">Preview</span>
+            <JwButton intent="primary" label="Save" />
+            <JwButton intent="secondary" label="Cancel" />
+            <JwButton intent="ghost" label="Skip" />
+            <JwButton intent="danger" label="Delete" />
+          </div>
+        </div>
+
       </div>
 
       <!-- ── BACKUPS ───────────────────────────────── -->
@@ -1425,9 +1502,9 @@ async function deleteCategory(c) {
             <span>{{ lastAutosaveLabel }}</span>
           </div>
           <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap">
-            <Button :label="autosaveListShown ? 'Hide autosaves' : 'Restore from autosave…'" :disabled="autosaveListBusy" @click="toggleAutosaveList">
+            <JwButton :label="autosaveListShown ? 'Hide autosaves' : 'Restore from autosave…'" intent="primary" :disabled="autosaveListBusy" @click="toggleAutosaveList">
               <template #icon><Icon name="Folder" :size="13" /></template>
-            </Button>
+            </JwButton>
           </div>
           <div v-if="autosaveListShown" style="margin-top:12px">
             <div v-if="autosaveListBusy" class="t-muted" style="font-size:12.5px">Loading…</div>
@@ -1444,7 +1521,7 @@ async function deleteCategory(c) {
                   <div><b>{{ entry.title || "Untitled" }}</b> <span class="t-muted">— {{ generationLabel(entry.generation) }}</span></div>
                   <div class="t-muted" style="font-size:12px">{{ autosaveLabel(entry.savedAt) }}</div>
                 </div>
-                <Button label="Restore" @click="restoreFromAutosave(entry)" />
+                <JwButton label="Restore" intent="primary" @click="restoreFromAutosave(entry)" />
               </li>
             </ul>
           </div>
@@ -1467,14 +1544,14 @@ async function deleteCategory(c) {
           <div v-if="backupError" class="banner danger" style="margin-bottom:10px">{{ backupError }}</div>
           <div v-if="importMessage" class="banner success" style="margin-bottom:10px">{{ importMessage }}</div>
           <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap">
-            <Button :label="backupBusy ? 'Exporting…' : 'Export backup…'" severity="primary" :disabled="backupBusy" @click="exportBackup">
+            <JwButton :label="backupBusy ? 'Exporting…' : 'Export backup…'" intent="primary" :disabled="backupBusy" @click="exportBackup">
               <template #icon><Icon name="Export" :size="13" /></template>
-            </Button>
-            <Button as="label" severity="secondary">
+            </JwButton>
+            <JwButton as="label" intent="secondary">
               <Icon name="Folder" :size="13" />
               Import backup…
               <input type="file" accept="application/json,.json" style="display:none" @change="onImportFile" />
-            </Button>
+            </JwButton>
           </div>
         </div>
 
@@ -1483,9 +1560,10 @@ async function deleteCategory(c) {
           <p class="t-muted" style="font-size:12.5px;margin:0 0 12px;line-height:1.55">
             Wipes every <code>justwrite:*</code> key from IndexedDB — project, history, AI providers, voice cast, sessions — and reloads with the demo seed. Take a backup first.
           </p>
-          <Button label="Reset workspace" severity="danger" outlined @click="resetWorkspace">
+          <!-- TODO: review intent — was severity="danger" outlined -->
+          <JwButton label="Reset workspace" intent="danger" @click="resetWorkspace">
             <template #icon><Icon name="Alert" :size="13" /></template>
-          </Button>
+          </JwButton>
         </div>
       </div>
 
@@ -1576,8 +1654,9 @@ async function deleteCategory(c) {
 
 <style scoped>
 .cover-frame {
-  width: 140px;
-  height: 210px;
+  width: 100%;
+  max-width: 140px;
+  aspect-ratio: 2 / 3;
   border-radius: 6px;
   background: var(--surface-2);
   border: 1px solid var(--border);

@@ -4,7 +4,7 @@ import { useRouter } from "vue-router";
 import { useProjectStore } from "../stores/project.js";
 import PaneHeader from "../components/PaneHeader.vue";
 import Icon from "../components/Icon.vue";
-import Button from "primevue/button";
+import JwButton from "@renderer/components/ui/JwButton.vue";
 import Checkbox from "primevue/checkbox";
 
 const project = useProjectStore();
@@ -425,14 +425,14 @@ onBeforeUnmount(() => window.removeEventListener("keydown", onKey));
 <template>
   <PaneHeader eyebrow="Planning" title="Relations">
     <div class="relations-toolbar">
-      <Button severity="secondary" text size="small" v-tooltip.bottom="'Zoom out (−)'" @click="zoomOut">
+      <JwButton intent="ghost" size="small" v-tooltip.bottom="'Zoom out (−)'" @click="zoomOut">
         <Icon name="ChevRight" :size="12" style="transform:rotate(180deg)" />
-      </Button>
+      </JwButton>
       <span class="relations-zoom-label">{{ Math.round(zoom * 100) }}%</span>
-      <Button severity="secondary" text size="small" v-tooltip.bottom="'Zoom in (+)'" @click="zoomIn">
+      <JwButton intent="ghost" size="small" v-tooltip.bottom="'Zoom in (+)'" @click="zoomIn">
         <Icon name="ChevRight" :size="12" />
-      </Button>
-      <Button severity="secondary" text size="small" title="Reset view (0)" @click="resetView">Reset</Button>
+      </JwButton>
+      <JwButton intent="ghost" size="small" title="Reset view (0)" @click="resetView">Reset</JwButton>
     </div>
   </PaneHeader>
 
@@ -532,9 +532,9 @@ onBeforeUnmount(() => window.removeEventListener("keydown", onKey));
             {{ focusedNeighborCount }} connection{{ focusedNeighborCount === 1 ? '' : 's' }}
           </div>
         </div>
-        <Button v-if="pinnedId" severity="secondary" text size="small" v-tooltip.bottom="'Clear focus (Esc)'" @click="clearPin">
+        <JwButton v-if="pinnedId" intent="ghost" size="small" v-tooltip.bottom="'Clear focus (Esc)'" @click="clearPin">
           <Icon name="Close" :size="12" />
-        </Button>
+        </JwButton>
       </div>
       <div v-if="!pinnedId" class="relations-focus-hint">Click to pin · click again to open</div>
       <div v-else class="relations-focus-hint">Click node again to open · click empty space to clear</div>

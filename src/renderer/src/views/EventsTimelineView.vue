@@ -5,7 +5,7 @@ import { useProjectStore } from "../stores/project.js";
 import { EVENTS_KIND_META } from "../services/eventsKind.js";
 import Icon from "../components/Icon.vue";
 import Breadcrumb from "../components/Breadcrumb.vue";
-import Button from "primevue/button";
+import JwButton from "@renderer/components/ui/JwButton.vue";
 
 const props = defineProps({
   kind:     { type: String, required: true },
@@ -66,13 +66,13 @@ function goAdd()         { router.push(meta.value.newUrl(props.entityId)); }
       <h1 class="pane-h1">Events</h1>
     </div>
     <div class="pane-actions">
-      <Button severity="secondary" text size="small" @click="goBack">
+      <JwButton intent="ghost" size="small" @click="goBack">
         <Icon name="ChevRight" :size="12" style="transform:rotate(180deg)" />
         Back to {{ meta?.label }}
-      </Button>
-      <Button severity="primary" @click="goAdd">
+      </JwButton>
+      <JwButton intent="primary" @click="goAdd">
         <Icon name="Plus" :size="13" /> Add event
-      </Button>
+      </JwButton>
     </div>
   </header>
 
@@ -99,8 +99,8 @@ function goAdd()         { router.push(meta.value.newUrl(props.entityId)); }
             <div class="timeline-card-title">{{ ev.title || "Untitled event" }}</div>
             <div v-if="ev.note" class="timeline-card-note">{{ ev.note }}</div>
             <div class="timeline-card-actions">
-              <Button severity="secondary" text size="small" @click="goEdit(ev.id)">edit</Button>
-              <Button severity="secondary" text size="small" @click="remove(ev.id)">delete</Button>
+              <JwButton intent="ghost" size="small" @click="goEdit(ev.id)">edit</JwButton>
+              <JwButton intent="ghost" size="small" @click="remove(ev.id)">delete</JwButton>
             </div>
           </div>
         </article>

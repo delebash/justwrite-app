@@ -11,7 +11,7 @@ export const EDITOR_TOOLBAR_FULL = [
   "bold", "italic", "underline", "strike", "subscript", "superscript",
   "h1", "h2", "h3", "fontDec", "fontInc",
   "quote", "list", "orderedList", "taskList",
-  "sceneBreak", "align", "highlight", "textColor", "link", "image", "table",
+  "sceneBreak", "align", "highlight", "textColor", "link", "image", "table", "pageBreak",
   "clearFormat", "copy", "cut", "paste", "print",
   "comment", "find", "focus", "settings", "undo", "redo",
 ];

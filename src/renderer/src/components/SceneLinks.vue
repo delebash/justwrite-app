@@ -8,7 +8,7 @@ import { computed } from "vue";
 import { useProjectStore } from "../stores/project.js";
 import { promptDialog } from "../services/dialog.js";
 import Icon from "./Icon.vue";
-import Button from "primevue/button";
+import JwButton from "@renderer/components/ui/JwButton.vue";
 
 const props = defineProps({
   chapterId: { type: String, required: true },
@@ -111,7 +111,7 @@ function onBackdrop(e) {
     <div class="links-panel">
       <header class="links-head">
         <h2>Links</h2>
-        <Button severity="secondary" text v-tooltip.bottom="'Close'" @click="emit('close')">×</Button>
+        <JwButton intent="ghost" v-tooltip.bottom="'Close'" @click="emit('close')">×</JwButton>
       </header>
 
       <div class="links-body scrollarea">

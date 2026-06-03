@@ -1,7 +1,7 @@
 <script setup>
 import { computed } from "vue";
 import InputText from "primevue/inputtext";
-import Button from "primevue/button";
+import JwButton from "@renderer/components/ui/JwButton.vue";
 import { useProjectStore } from "../stores/project.js";
 import { useUiStore } from "../stores/ui.js";
 import { useRouter } from "vue-router";
@@ -51,8 +51,8 @@ async function deleteNote() {
       <InputText v-if="n" fluid placeholder="tag" style="max-width:120px"
         :model-value="n.tag" @update:model-value="update('tag', $event)" />
       <span v-if="n" class="t-muted" style="font-size:12px;padding:0 8px">Updated {{ n.updated }}</span>
-      <Button v-if="n" severity="secondary" text size="small" @click="deleteNote">Delete</Button>
-      <Button severity="primary" size="small" @click="addNote"><Icon name="Plus" :size="14" /> New note</Button>
+      <JwButton v-if="n" intent="ghost" size="small" @click="deleteNote">Delete</JwButton>
+      <JwButton intent="primary" size="small" @click="addNote"><Icon name="Plus" :size="14" /> New note</JwButton>
     </div>
   </header>
 
@@ -67,7 +67,7 @@ async function deleteNote() {
   <div v-else class="pane-card" style="display:grid;place-items:center;padding:60px">
     <div class="t-muted" style="text-align:center">
       No notes yet.<br />
-      <Button severity="primary" style="margin-top:14px" @click="addNote"><Icon name="Plus" :size="14" /> Create your first note</Button>
+      <JwButton intent="primary" style="margin-top:14px" @click="addNote"><Icon name="Plus" :size="14" /> Create your first note</JwButton>
     </div>
   </div>
 </template>

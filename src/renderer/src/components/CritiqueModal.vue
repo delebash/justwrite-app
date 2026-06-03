@@ -18,7 +18,7 @@ import EntityReviewModal from "./EntityReviewModal.vue";
 import EntitySweepModal from "./EntitySweepModal.vue";
 import AiProgressBar from "./AiProgressBar.vue";
 import AppModal from "./AppModal.vue";
-import Button from "primevue/button";
+import JwButton from "@renderer/components/ui/JwButton.vue";
 
 const props = defineProps({
   chapterId: { type: String, required: true },
@@ -184,6 +184,7 @@ const SEVERITY_META = {
   <AppModal
     eyebrow="Chapter critique"
     :title="ch ? `Ch. ${ch.num} · ${ch.title}` : ''"
+    :closable="!notesProgress.running.value && !structProgress.running.value && !entitiesProgress.running.value"
     @close="emit('close')"
   >
     <template #header>
@@ -192,9 +193,9 @@ const SEVERITY_META = {
         <h2 class="modal-title">{{ ch ? `Ch. ${ch.num} · ${ch.title}` : "" }}</h2>
       </div>
       <div class="ck-header-actions">
-        <Button v-if="critique" severity="secondary" text size="small" @click="clearAll">
+        <JwButton v-if="critique" intent="ghost" size="small" @click="clearAll">
           <Icon name="Trash" :size="12" /> Clear
-        </Button>
+        </JwButton>
       </div>
     </template>
 
@@ -211,10 +212,10 @@ const SEVERITY_META = {
     <section class="ck-section">
       <header>
         <h3>Structure</h3>
-        <Button severity="secondary" text size="small" :disabled="runningStruct" @click="runStruct">
+        <JwButton intent="ghost" size="small" :disabled="runningStruct" @click="runStruct">
           <Icon name="Refresh" :size="12" />
           {{ structure ? "Re-analyze" : (runningStruct ? "Analyzing…" : "Analyze") }}
-        </Button>
+        </JwButton>
       </header>
 
       <AiProgressBar :progress="structProgress" label="Analyzing structure…" />
@@ -249,14 +250,14 @@ const SEVERITY_META = {
       <header>
         <h3>Story bible</h3>
         <div style="display:flex;gap:6px">
-          <Button severity="secondary" text size="small" :disabled="runningEntities" @click="findEntities">
+          <JwButton intent="ghost" size="small" :disabled="runningEntities" @click="findEntities">
             <Icon name="Refresh" :size="12" />
             {{ runningEntities ? "Scanning…" : "This chapter" }}
-          </Button>
-          <Button severity="secondary" text size="small" :disabled="runningEntities" @click="sweepOpen = true" title="Scan every chapter for new entities (slower)">
+          </JwButton>
+          <JwButton intent="ghost" size="small" :disabled="runningEntities" @click="sweepOpen = true" title="Scan every chapter for new entities (slower)">
             <Icon name="Sparkle" :size="12" />
             Whole book
-          </Button>
+          </JwButton>
         </div>
       </header>
       <AiProgressBar :progress="entitiesProgress" label="Scanning for entities…" />
@@ -269,10 +270,10 @@ const SEVERITY_META = {
     <section class="ck-section">
       <header>
         <h3>Notes</h3>
-        <Button severity="secondary" text size="small" :disabled="runningNotes" @click="runNotes">
+        <JwButton intent="ghost" size="small" :disabled="runningNotes" @click="runNotes">
           <Icon name="Refresh" :size="12" />
           {{ notes.length ? "Re-run notes" : (runningNotes ? "Drafting notes…" : "Run notes") }}
-        </Button>
+        </JwButton>
       </header>
 
       <AiProgressBar :progress="notesProgress" label="Drafting notes…" />

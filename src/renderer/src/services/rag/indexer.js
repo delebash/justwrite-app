@@ -23,6 +23,27 @@ import { load, save, upsert, removeId, diff, clear } from "./vectorStore.js";
 // still respecting per-request limits on most providers.
 const EMBED_BATCH_SIZE = 16;
 
+// Thrown by buildOrUpdateIndex when the resolved embedding model differs
+// from the model the store was built with. Vectors from different models
+// aren't comparable, so the only safe options are (a) keep the store and
+// switch back, or (b) call rebuildIndex() to wipe + re-embed everything.
+// Auto-rebuild catches this silently (it's nobody's job to start a fresh
+// embed when the user only flipped a setting); manual paths surface the
+// message so the user can pick.
+export class IndexModelMismatchError extends Error {
+  constructor(currentModel, targetModel) {
+    super(
+      `The index was built with "${currentModel || "(unknown)"}" but the embedding ` +
+      `provider is now set to "${targetModel || "(unknown)"}". Hit Rebuild to ` +
+      `re-embed everything against the new model, or switch the embedding ` +
+      `provider back to keep the existing index.`,
+    );
+    this.name = "IndexModelMismatchError";
+    this.currentModel = currentModel;
+    this.targetModel = targetModel;
+  }
+}
+
 // ─── Helpers ──────────────────────────────────────────────────────────────
 
 function emptyStore(model) {
@@ -151,10 +172,10 @@ export async function buildOrUpdateIndex({ signal, onProgress, provider, model }
   // Load or create the store.
   let store = load(projectId);
 
-  // If the model changed, wipe the store — vectors from a different model
-  // are not comparable.
+  // Models don't match → refuse to silently wipe. The user has to either
+  // switch the provider back or hit Rebuild explicitly.
   if (store && store.model && store.model !== resolvedModel) {
-    store = null;
+    throw new IndexModelMismatchError(store.model, resolvedModel);
   }
 
   if (!store) {

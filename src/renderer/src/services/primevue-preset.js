@@ -278,6 +278,8 @@ function buttonColorScheme() {
     success: { fill: "var(--status-done)", onFill: "var(--surface)", label: "var(--success-ink)" },
     info:    { fill: "var(--info)",        onFill: "var(--surface)", label: "var(--info-ink)" },
     danger:  { fill: "var(--danger)",      onFill: "var(--surface)", label: "var(--danger-ink)" },
+    // `warn` is the "Accent 2" severity — fills with --gold (a.k.a. Accent 2
+    // in Settings → Appearance, tunable via goldHue in appearance.js).
     warn:    { fill: "var(--gold)",        onFill: "color-mix(in oklab, var(--gold) 22%, black)",
                label: "color-mix(in oklab, var(--gold) 55%, black)" },
   };

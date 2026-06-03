@@ -15,7 +15,7 @@ import Column from "primevue/column";
 import InputText from "primevue/inputtext";
 import Select from "primevue/select";
 import Tag from "primevue/tag";
-import Button from "primevue/button";
+import JwButton from "@renderer/components/ui/JwButton.vue";
 import { FilterMatchMode } from "@primevue/core/api";
 
 const props = defineProps({ tab: { type: String, default: "cast" } });
@@ -276,7 +276,7 @@ function downloadChapter(chapterId) {
   <PaneHeader eyebrow="Audio" title="Studio">
     <span class="chip">Engine · <b style="font-weight:600;margin-left:4px">{{ provider?.name || "—" }}</b></span>
     <router-link to="/settings/audio" custom v-slot="{ navigate }">
-      <Button severity="secondary" text size="small" @click="navigate"><Icon name="Settings" :size="14" /> Engines</Button>
+      <JwButton intent="ghost" size="small" @click="navigate"><Icon name="Settings" :size="14" /> Engines</JwButton>
     </router-link>
   </PaneHeader>
 
@@ -313,14 +313,15 @@ function downloadChapter(chapterId) {
           <div style="font-family:var(--font-serif);font-size:18px;font-weight:600">The voice of everything that isn't spoken</div>
         </div>
         <div style="display:flex;gap:8px">
-          <Button severity="secondary" :disabled="smartLoading" @click="confirmClearCast">
+          <!-- TODO: review intent — was severity="secondary" outlined -->
+          <JwButton intent="secondary" :disabled="smartLoading" @click="confirmClearCast">
             <Icon name="Close" :size="13" />
             Clear cast
-          </Button>
-          <Button severity="secondary" :disabled="smartLoading" @click="runSmartCast">
+          </JwButton>
+          <JwButton intent="primary" :disabled="smartLoading" @click="runSmartCast">
             <Icon :name="smartLoading ? 'Refresh' : 'Sparkle'" :size="13" />
             {{ smartLoading ? "Casting…" : "Smart-assign" }}
-          </Button>
+          </JwButton>
         </div>
       </div>
 
@@ -430,9 +431,9 @@ function downloadChapter(chapterId) {
 
         <Column field="preview" header="" style="width:44px">
           <template #body="{ data }">
-            <Button text size="small" :disabled="previewingVoice === data.id" @click.stop="playPreview(data)">
+            <JwButton intent="ghost" size="small" :disabled="previewingVoice === data.id" @click.stop="playPreview(data)">
               <template #icon><Icon :name="previewingVoice === data.id ? 'Pause' : 'Play'" :size="11" /></template>
-            </Button>
+            </JwButton>
           </template>
         </Column>
       </DataTable>
@@ -445,10 +446,10 @@ function downloadChapter(chapterId) {
       <select class="input" v-model="scriptChapter" style="width:auto">
         <option v-for="c in project.allChapters" :key="c.id" :value="c.id">Ch. {{ c.num }} — {{ c.title }}</option>
       </select>
-      <Button severity="secondary" :disabled="analyzeLoading" @click="reanalyze">
+      <JwButton intent="secondary" :disabled="analyzeLoading" @click="reanalyze">
         <Icon :name="analyzeLoading ? 'Refresh' : 'Sparkle'" :size="13" />
         {{ analyzeLoading ? "Analyzing…" : "Re-analyze" }}
-      </Button>
+      </JwButton>
       <span class="t-muted" style="font-size:12px;margin-left:auto">
         Calls {{ llmProvider?.name || "your LLM provider" }} · {{ studio.scriptFor(scriptChapter)?.length || 0 }} lines analyzed
       </span>
@@ -493,14 +494,15 @@ function downloadChapter(chapterId) {
           No script — analyze chapter first
         </div>
       </div>
-      <Button v-if="!renderResults[c.id]" severity="primary" size="small"
+      <JwButton v-if="!renderResults[c.id]" intent="primary" size="small"
         :disabled="renderingId === c.id || !studio.scriptFor(c.id)"
         @click="startRender(c.id)">
         <Icon name="Mic" :size="11" /> Render
-      </Button>
+      </JwButton>
       <template v-else>
-        <Button severity="secondary" size="small" @click="playChapter(c.id)"><Icon name="Play" :size="11" /> Play</Button>
-        <Button severity="secondary" size="small" @click="downloadChapter(c.id)"><Icon name="Download" :size="11" /> WAV</Button>
+        <JwButton intent="primary" size="small" @click="playChapter(c.id)"><Icon name="Play" :size="11" /> Play</JwButton>
+        <!-- TODO: review intent — was severity="secondary" outlined -->
+        <JwButton intent="secondary" size="small" @click="downloadChapter(c.id)"><Icon name="Download" :size="11" /> WAV</JwButton>
       </template>
     </div>
   </div>

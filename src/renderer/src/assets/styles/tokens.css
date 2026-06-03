@@ -36,7 +36,10 @@
   --accent-soft:  oklch(0.92 0.028 var(--accent-hue));
   --accent-line:  oklch(0.84 0.045 var(--accent-hue));
 
-  /* Gold — muted secondary (rings, rules, peak markers) ---- */
+  /* Gold — a.k.a. "Accent 2" in Settings → Appearance.
+     Drives the PrimeVue `warn` severity (Button/Tag) plus rings, rules,
+     scene-break ornaments, and peak markers. Hue is user-tunable in
+     Settings via `goldHue` (see services/appearance.js). ---------- */
   --gold:        oklch(0.62 0.085 80);
   --gold-soft:   oklch(0.92 0.045 80);
 
@@ -128,6 +131,18 @@
   --scrim:        oklch(0.2 0.005 85 / 0.5);
   --primary-hover: oklch(0.3 0.008 85);
   --on-accent:    white;
+
+  /* Button theming knobs — overridden at runtime by appearance.js.
+     Defaults reproduce the "standard / comfy / sentence-case" look. */
+  --btn-radius:         var(--r-sm);   /* sharp 2px · standard 6px · rounded 10px · pill 999px */
+  --btn-pad-y:          8px;
+  --btn-pad-x:          16px;
+  --btn-pad-y-sm:       4px;
+  --btn-pad-x-sm:       11px;
+  --btn-font-size:      14px;
+  --btn-font-size-sm:   12px;
+  --btn-text-transform: none;          /* none · uppercase */
+  --btn-letter-spacing: normal;        /* widens with uppercase */
 }
 
 /* ============================================================
@@ -246,7 +261,7 @@ button { font: inherit; cursor: default; }
    its label colour via the theme preset. This unlayered reset otherwise beats
    PrimeVue's layered colour token, forcing every .p-button label to the page
    ink (which made the dark `contrast` severity render ink-on-ink — invisible). */
-button:not(.p-button) { color: inherit; }
+button:not(.p-button):not(.jw-btn) { color: inherit; }
 input, textarea, select { font: inherit; color: inherit; }
 
 /* Kill the browser-default focus ring on form controls. Every input /
@@ -1063,6 +1078,28 @@ html[data-theme="dark"] .manuscript {
 .manuscript-inner p + p { margin-top: var(--editor-para-spacing, var(--editor-body-para-spacing, 0)); }
 .manuscript-inner em { font-style: italic; }
 .manuscript-inner ::selection { background: var(--accent-soft); }
+/* Forced page break — visible separator in edit + read views. PDF/DOCX
+   exports honor it as a real page break. */
+.manuscript-inner .page-break {
+  position: relative;
+  margin: 22px 0;
+  height: 1px;
+  background: var(--border-strong);
+  text-indent: 0;
+}
+.manuscript-inner .page-break::after {
+  content: attr(data-content);
+  position: absolute;
+  top: 50%; left: 50%;
+  transform: translate(-50%, -50%);
+  background: var(--editor-paper, var(--surface));
+  color: var(--muted);
+  font-family: var(--font-mono);
+  font-size: 10px;
+  text-transform: uppercase;
+  letter-spacing: 0.18em;
+  padding: 0 10px;
+}
 
 /* ============================================================
    Editor — "traditional page" layout
@@ -1358,3 +1395,82 @@ html[data-editor-layout="page"] .rich-editor--manuscript .tiptap-content > p:fir
   text-transform: uppercase; letter-spacing: 0.08em;
   color: var(--muted);
 }
+
+/* ============================================================
+   JwButton — replaces PrimeVue Button. Single `intent` prop on
+   the component encodes BOTH semantic role AND visual style, so
+   each intent has its own self-contained CSS rule (no separate
+   variant modifier). Add a new intent here, register it in
+   JwButton.vue's prop docs, done.
+   ============================================================ */
+.jw-btn {
+  display: inline-flex; align-items: center; justify-content: center;
+  gap: 8px;
+  padding: var(--btn-pad-y) var(--btn-pad-x);
+  font: 500 var(--btn-font-size)/1.2 var(--font-ui);
+  text-transform: var(--btn-text-transform);
+  letter-spacing: var(--btn-letter-spacing);
+  border: 1px solid transparent;
+  border-radius: var(--btn-radius);
+  cursor: pointer;
+  user-select: none;
+  white-space: nowrap;
+  background: transparent;
+  transition: background-color .12s, border-color .12s, color .12s, box-shadow .12s;
+}
+.jw-btn:focus-visible {
+  outline: none;
+  box-shadow: 0 0 0 3px var(--accent-soft);
+}
+.jw-btn.is-disabled, .jw-btn:disabled {
+  opacity: 0.5; cursor: not-allowed;
+}
+.jw-btn--small { padding: var(--btn-pad-y-sm) var(--btn-pad-x-sm); font-size: var(--btn-font-size-sm); gap: 6px; }
+.jw-btn-label { display: inline-flex; align-items: center; }
+
+/* primary — solid accent. Main affordance. */
+.jw-btn--primary { background: var(--accent); border-color: var(--accent); color: var(--on-accent); }
+.jw-btn--primary:not(:disabled):not(.is-disabled):hover {
+  background: color-mix(in oklab, var(--accent) 82%, black);
+  border-color: color-mix(in oklab, var(--accent) 82%, black);
+}
+
+/* secondary — outlined neutral. Supporting action (Cancel, Test). */
+.jw-btn--secondary { border-color: var(--border-strong); color: var(--ink-2); }
+.jw-btn--secondary:not(:disabled):not(.is-disabled):hover { background: var(--surface-3); }
+
+/* ghost — no border, no fill. Quiet utility (row icons, list-row Delete). */
+.jw-btn--ghost { color: var(--ink-2); }
+.jw-btn--ghost:not(:disabled):not(.is-disabled):hover { background: var(--surface-3); }
+
+/* danger — solid danger. Destructive. */
+.jw-btn--danger { background: var(--danger); border-color: var(--danger); color: var(--surface); }
+.jw-btn--danger:not(:disabled):not(.is-disabled):hover {
+  background: color-mix(in oklab, var(--danger) 82%, black);
+  border-color: color-mix(in oklab, var(--danger) 82%, black);
+}
+
+/* success — solid success. Positive confirmations. */
+.jw-btn--success { background: var(--status-done); border-color: var(--status-done); color: var(--surface); }
+.jw-btn--success:not(:disabled):not(.is-disabled):hover {
+  background: color-mix(in oklab, var(--status-done) 82%, black);
+  border-color: color-mix(in oklab, var(--status-done) 82%, black);
+}
+
+/* info — solid info. Informational. */
+.jw-btn--info { background: var(--info); border-color: var(--info); color: var(--surface); }
+.jw-btn--info:not(:disabled):not(.is-disabled):hover {
+  background: color-mix(in oklab, var(--info) 82%, black);
+  border-color: color-mix(in oklab, var(--info) 82%, black);
+}
+
+/* warn — solid gold. Warnings (lower-stakes than danger). */
+.jw-btn--warn {
+  background: var(--gold); border-color: var(--gold);
+  color: color-mix(in oklab, var(--gold) 22%, black);
+}
+.jw-btn--warn:not(:disabled):not(.is-disabled):hover {
+  background: color-mix(in oklab, var(--gold) 82%, black);
+  border-color: color-mix(in oklab, var(--gold) 82%, black);
+}
+

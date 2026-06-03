@@ -99,6 +99,8 @@ export async function exportPdf({ manuscript, onProgress } = {}) {
           content.push({ text: b.text, style: "blockquote" });
         else if (b.kind === "scene-break")
           content.push({ text: "* * *", style: "sceneBreak" });
+        else if (b.kind === "page-break")
+          content.push({ text: "", pageBreak: "after" });
         else if (b.kind === "ul-item")
           content.push({ ul: [b.text], style: "p" });
         else

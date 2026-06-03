@@ -1,11 +1,12 @@
 <script setup>
 // Whole-book entity sweep modal.
 //
-// Kicks off scanAllChapters() with progress reporting. Each chapter
-// shows as a row that transitions from pending → scanning → done /
-// skipped. When the sweep finishes (or the user cancels early), the
-// running aggregate is handed to the existing EntityReviewModal for
-// per-proposal accept/reject.
+// Kicks off scanAllChapters() with progress reporting. Chapters run in a
+// bounded-concurrency pool, so multiple rows may sit in "scanning" at the
+// same time. Each row transitions pending → scanning → done / skipped /
+// error. When the sweep finishes (or the user cancels early), the running
+// aggregate is handed to the existing EntityReviewModal for per-proposal
+// accept/reject.
 
 import { ref, computed, onMounted } from "vue";
 import { useProjectStore } from "../stores/project.js";
@@ -16,7 +17,7 @@ import AiProgressBar from "./AiProgressBar.vue";
 import Icon from "./Icon.vue";
 import AppModal from "./AppModal.vue";
 import StatusRow from "./StatusRow.vue";
-import Button from "primevue/button";
+import JwButton from "@renderer/components/ui/JwButton.vue";
 
 const props = defineProps({
   // Optional: limit the sweep to specific chapter ids (Set or array).
@@ -30,7 +31,9 @@ const progress = useAiProgress();
 
 // One row per chapter, status updated as the sweep progresses.
 const rows = ref([]);
-const currentIdx = ref(-1);     // index into rows of the chapter being scanned
+const rowById = ref(new Map()); // id -> row (reactive lookup for O(1) updates)
+const completedCount = ref(0);
+const totalCount = ref(0);
 const proposals = ref(null);     // populated when sweep finishes
 const error = ref("");
 
@@ -40,12 +43,7 @@ const phase = computed(() => {
   return "scanning";
 });
 
-const totalProposed = computed(() => {
-  if (!proposals.value) return 0;
-  return (proposals.value.characters?.length || 0)
-       + (proposals.value.locations?.length  || 0)
-       + (proposals.value.objects?.length    || 0);
-});
+const scanningCount = computed(() => rows.value.filter((r) => r.status === "scanning").length);
 
 function initRows() {
   const filter = props.chapterIds
@@ -60,6 +58,9 @@ function initRows() {
       status: "pending",  // "pending" | "scanning" | "done" | "skipped" | "error"
       reason: "",
     }));
+  rowById.value = new Map(rows.value.map((r) => [r.id, r]));
+  totalCount.value = rows.value.length;
+  completedCount.value = 0;
 }
 
 async function runSweep() {
@@ -74,32 +75,24 @@ async function runSweep() {
     const result = await scanAllChapters({
       project,
       signal: progress.signal,
-      onDelta: progress.onDelta,
       chapterFilter: filter ? { ids: filter } : undefined,
-      onProgress: ({ index, chapter }) => {
-        // Mark prior row as done (it must have completed if we've moved on).
-        if (currentIdx.value >= 0 && rows.value[currentIdx.value]?.status === "scanning") {
-          rows.value[currentIdx.value].status = "done";
+      onProgress: ({ phase: ph, chapter, completed, reason }) => {
+        const row = rowById.value.get(chapter.id);
+        if (row) {
+          if (ph === "start") row.status = "scanning";
+          else if (ph === "done")  row.status = "done";
+          else if (ph === "skip")  { row.status = "skipped"; row.reason = reason || ""; }
+          else if (ph === "error") { row.status = "error";   row.reason = reason || ""; }
         }
-        currentIdx.value = index;
-        const row = rows.value[index];
-        if (row) row.status = "scanning";
-        // Reset the per-chapter token counter so the bar shows progress for
-        // just this chapter rather than the cumulative stream.
-        progress.preview.value = "";
-        progress.chars.value = 0;
-        progress.firstDeltaAt && (progress.firstDeltaAt.value = 0);
+        completedCount.value = completed;
       },
     });
-    // Final row gets closed out — the sweep loop doesn't bump onProgress
-    // past the last chapter, so the last row finishes here.
-    if (currentIdx.value >= 0 && rows.value[currentIdx.value]?.status === "scanning") {
-      rows.value[currentIdx.value].status = "done";
-    }
-    // Apply the service's `skipped` list onto rows so the visual reflects it.
+    // Backstop in case any row missed a "done" callback (shouldn't happen
+    // but defensive — the result.skipped list is authoritative for skips
+    // anyway).
     for (const s of result.skipped || []) {
-      const row = rows.value.find((r) => r.id === s.id);
-      if (row) { row.status = "skipped"; row.reason = s.reason || ""; }
+      const row = rowById.value.get(s.id);
+      if (row && row.status === "scanning") { row.status = "skipped"; row.reason = s.reason || ""; }
     }
     progress.finish();
 
@@ -116,11 +109,10 @@ async function runSweep() {
 
 function cancelSweep() {
   progress.cancel();
-  // Mark any in-flight row as skipped so the user can see it didn't
+  // Mark any in-flight row as cancelled so the user can see what didn't
   // finish — leave already-done rows alone.
-  if (currentIdx.value >= 0 && rows.value[currentIdx.value]?.status === "scanning") {
-    rows.value[currentIdx.value].status = "skipped";
-    rows.value[currentIdx.value].reason = "cancelled";
+  for (const row of rows.value) {
+    if (row.status === "scanning") { row.status = "skipped"; row.reason = "cancelled"; }
   }
   // Surface partial results so the user can still review what came back.
   if (!proposals.value) {
@@ -149,15 +141,16 @@ onMounted(runSweep);
   />
 
   <!-- ── SCANNING PHASE ─────────────────────────────────────────────── -->
-  <AppModal v-else eyebrow="Whole-book scan" title="Scanning for new entities" @close="emit('close')">
+  <AppModal v-else eyebrow="Whole-book scan" title="Scanning for new entities"
+    :closable="!progress.running.value" @close="emit('close')">
     <template #header>
       <div class="sweep-titleblock">
         <div class="t-eyebrow">Whole-book scan</div>
         <div class="modal-title">Scanning for new entities</div>
       </div>
-      <Button v-if="progress.running.value" severity="secondary" text size="small" @click="cancelSweep">
+      <JwButton v-if="progress.running.value" intent="ghost" size="small" @click="cancelSweep">
         <Icon name="Close" :size="12" /> Cancel
-      </Button>
+      </JwButton>
     </template>
 
     <div v-if="error" class="sweep-error">
@@ -166,7 +159,9 @@ onMounted(runSweep);
 
     <AiProgressBar
       :progress="progress"
-      :label="currentIdx >= 0 ? `Ch. ${rows[currentIdx]?.num} — ${rows[currentIdx]?.title}` : 'Starting…'"
+      :label="totalCount > 0
+        ? `${completedCount} of ${totalCount} chapters · ${scanningCount} scanning`
+        : 'Starting…'"
     />
 
     <div class="sweep-list">

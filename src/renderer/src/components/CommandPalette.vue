@@ -129,7 +129,13 @@ const ACTION_ITEMS = computed(() => {
         const label = await promptDialog({ title: "Save version", label: "Version label (optional)", confirmLabel: "Save" });
         if (label === null) return;
         versions.saveVersion(chId, label || "");
-        ui.showToast({ message: "Version saved." });
+        const title = (project.chapterById(chId)?.title || "").trim();
+        const clip = (s, n = 30) => s.length > n ? s.slice(0, n - 1) + "…" : s;
+        const chapter = title ? clip(title) : "this chapter";
+        const message = label
+          ? `Saved “${clip(label.trim())}” — ${chapter}`
+          : `Saved version of ${chapter}`;
+        ui.showToast({ message });
       } },
     { id: "act:toggleSidebar", label: "Toggle sidebar", sublabel: "Action · ⌘\\", icon: "SidebarToggle",
       run: () => ui.toggleSidebar() },

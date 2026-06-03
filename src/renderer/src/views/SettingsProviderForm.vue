@@ -17,7 +17,7 @@ import InputNumber from "primevue/inputnumber";
 import Checkbox from "primevue/checkbox";
 import Select from "primevue/select";
 import Textarea from "primevue/textarea";
-import Button from "primevue/button";
+import JwButton from "@renderer/components/ui/JwButton.vue";
 
 const ai = useAiStore();
 
@@ -195,7 +195,7 @@ function resetParam(key) { setParam(key, undefined); }
 
 <template>
   <div style="padding:14px;border:1.5px solid var(--accent);border-radius:10px;background:var(--accent-soft)">
-    <div style="display:grid;grid-template-columns:120px 1fr;gap:8px 12px;font-size:12.5px;align-items:center">
+    <div style="display:grid;grid-template-columns:120px minmax(0,1fr);gap:8px 12px;font-size:12.5px;align-items:center">
       <span class="t-muted">ID</span>
       <InputText v-model="draft.id" :readonly="editingKey !== 'new'" placeholder="e.g. my-ollama" />
       <span class="t-muted">Name</span>
@@ -225,12 +225,12 @@ function resetParam(key) { setParam(key, undefined); }
             free-text
             :placeholder="fetchedModels.length ? `Type to filter or click ▾ to pick from ${fetchedModels.length} models` : 'llama3.1:8b, gpt-4o-mini, …'"
             :chev-title="fetchedModels.length ? 'Show fetched models' : 'Fetch models first'" />
-          <Button severity="secondary" text type="button"
+          <JwButton intent="ghost" type="button"
             :disabled="modelsLoading || !draft.baseUrl"
             @click="fetchModels"
             :title="draft.baseUrl ? 'Query GET /v1/models on the Base URL above' : 'Fill the Base URL first'">
             {{ modelsLoading ? "Loading…" : (fetchedModels.length ? "Refresh" : "Fetch models") }}
-          </Button>
+          </JwButton>
           <div v-if="modelsError" class="t-muted" style="flex-basis:100%;font-size:11px;color:var(--danger,#c33)">
             {{ modelsError }}
           </div>
@@ -245,15 +245,22 @@ function resetParam(key) { setParam(key, undefined); }
                 @click="pinTier(t)">{{ TIERS[t].label }}</button>
             </div>
             <span class="t-muted" style="font-size:11px">{{ tierSource === 'pinned' ? 'pinned' : 'auto' }}</span>
-            <Button v-if="tierSource === 'pinned'" severity="secondary" text type="button"
+            <JwButton v-if="tierSource === 'pinned'" intent="ghost" type="button"
               style="padding:2px 8px;font-size:11px"
               @click="clearTierPin"
-              title="Revert to the auto-detected tier">Clear pin</Button>
+              title="Revert to the auto-detected tier">Clear pin</JwButton>
           </div>
         </template>
 
         <span class="t-muted" title="Optional embedding model — fills the RAG (manuscript chat) index. Leave blank if this provider isn't your embedding provider. OpenAI: text-embedding-3-small. Ollama: nomic-embed-text.">Embedding model</span>
-        <InputText v-model="draft.embeddingModel" placeholder="text-embedding-3-small / nomic-embed-text / …" />
+        <Combobox
+          v-model="draft.embeddingModel"
+          :items="fetchedModels"
+          item-value="id"
+          item-label="label"
+          free-text
+          :placeholder="fetchedModels.length ? `Type to filter or click ▾ to pick from ${fetchedModels.length} models` : 'text-embedding-3-small / nomic-embed-text / … (Fetch models on Chat row above)'"
+          :chev-title="fetchedModels.length ? 'Show fetched models' : 'Fetch models on the Chat model row first'" />
       </template>
 
       <template v-if="draft.kind === 'tts' || draft.kind === 'both'">
@@ -267,12 +274,12 @@ function resetParam(key) { setParam(key, undefined); }
             free-text
             :placeholder="fetchedModels.length ? `Type to filter or click ▾ to pick from ${fetchedModels.length} models` : 'tts-1, gpt-4o-mini-tts, …'"
             :chev-title="fetchedModels.length ? 'Show fetched models' : 'Fetch models first (use the button on the Chat model row, or set Kind to LLM+TTS)'" />
-          <Button v-if="draft.kind === 'tts'" severity="secondary" text type="button"
+          <JwButton v-if="draft.kind === 'tts'" intent="ghost" type="button"
             :disabled="modelsLoading || !draft.baseUrl"
             @click="fetchModels"
             :title="draft.baseUrl ? 'Query GET /v1/models on the Base URL above' : 'Fill the Base URL first'">
             {{ modelsLoading ? "Loading…" : (fetchedModels.length ? "Refresh" : "Fetch models") }}
-          </Button>
+          </JwButton>
           <div v-if="draft.kind === 'tts' && modelsError" class="t-muted" style="flex-basis:100%;font-size:11px;color:var(--danger,#c33)">
             {{ modelsError }}
           </div>
@@ -306,12 +313,12 @@ function resetParam(key) { setParam(key, undefined); }
               </li>
             </ul>
           </div>
-          <Button severity="secondary" text type="button"
+          <JwButton intent="ghost" type="button"
             :disabled="voicesLoading || !draft.baseUrl"
             @click="fetchVoices"
             :title="draft.baseUrl ? 'Query GET /v1/audio/voices on the Base URL above' : 'Fill the Base URL first'">
             {{ voicesLoading ? "Loading…" : (fetchedVoices.length ? "Refresh" : "Fetch voices") }}
-          </Button>
+          </JwButton>
           <div v-if="voicesError" class="t-muted" style="flex-basis:100%;font-size:11px;color:var(--danger,#c33)">
             {{ voicesError }}
           </div>
@@ -352,8 +359,8 @@ function resetParam(key) { setParam(key, undefined); }
                 :placeholder="f.placeholder || ''"
                 :model-value="getParam(f.key) ?? ''"
                 @update:model-value="(v) => setParam(f.key, v || undefined)" />
-              <Button v-if="getParam(f.key) !== undefined" type="button"
-                label="↺" severity="secondary" text size="small" :title="`Reset ${f.label}`"
+              <JwButton v-if="getParam(f.key) !== undefined" type="button"
+                label="↺" intent="ghost" size="small" :title="`Reset ${f.label}`"
                 style="padding:4px 8px" @click="resetParam(f.key)" />
             </div>
           </template>
@@ -361,8 +368,8 @@ function resetParam(key) { setParam(key, undefined); }
       </template>
     </div>
     <div style="display:flex;gap:8px;margin-top:14px;justify-content:flex-end">
-      <Button label="Cancel" severity="secondary" text @click="emit('cancel')" />
-      <Button label="Save" severity="primary" @click="emit('save')" />
+      <JwButton label="Cancel" intent="ghost" @click="emit('cancel')" />
+      <JwButton label="Save" intent="primary" @click="emit('save')" />
     </div>
   </div>
 </template>

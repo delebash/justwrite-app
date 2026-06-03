@@ -187,6 +187,7 @@ function chapterHtml(ch) {
     if (b.kind === "h2") body.push(`<h3>${xmlEscape(b.text)}</h3>`);
     else if (b.kind === "blockquote") body.push(`<blockquote>${xmlEscape(b.text)}</blockquote>`);
     else if (b.kind === "scene-break") body.push(`<p class="scene-break">* * *</p>`);
+    else if (b.kind === "page-break") continue; // EPUB is reflowable — page breaks aren't meaningful
     else if (b.kind === "ul-item") body.push(`<ul><li>${xmlEscape(b.text)}</li></ul>`);
     else body.push(`<p>${xmlEscape(b.text)}</p>`);
   }

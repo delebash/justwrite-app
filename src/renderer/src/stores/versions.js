@@ -72,5 +72,20 @@ export const useVersionsStore = defineStore("versions", {
       this.byProject = { ...this.byProject, [pid]: forProject };
       this._persist();
     },
+
+    // Re-insert a previously deleted version object. Keeps the list
+    // sorted newest-first so Undo lands the row back in its original slot.
+    addVersion(chapterId, version) {
+      const pid = useProjectStore().activeProjectId || "_";
+      const forProject = { ...(this.byProject[pid] || {}) };
+      const list = forProject[chapterId] || [];
+      if (list.some((v) => v.id === version.id)) return;
+      const next = [version, ...list]
+        .sort((a, b) => (b.savedAt || "").localeCompare(a.savedAt || ""))
+        .slice(0, MAX_PER_CHAPTER);
+      forProject[chapterId] = next;
+      this.byProject = { ...this.byProject, [pid]: forProject };
+      this._persist();
+    },
   },
 });

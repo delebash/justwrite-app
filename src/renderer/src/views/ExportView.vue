@@ -9,7 +9,7 @@ import Icon from "../components/Icon.vue";
 import { makeM4b, fmtDuration } from "../services/m4b.js";
 import { buildManuscript, slug } from "../services/export/manuscript.js";
 import { confirmDialog } from "../services/dialog.js";
-import Button from "primevue/button";
+import JwButton from "@renderer/components/ui/JwButton.vue";
 
 const project = useProjectStore();
 const studio = useStudioStore();
@@ -221,9 +221,9 @@ async function exportM4b({ partial = false } = {}) {
               </div>
             </div>
             <router-link to="/studio/render" custom v-slot="{ navigate }">
-              <Button severity="secondary" size="small" @click="navigate">
+              <JwButton intent="secondary" size="small" @click="navigate">
                 <Icon name="Headphones" :size="11" /> Open Studio
-              </Button>
+              </JwButton>
             </router-link>
           </div>
 
@@ -249,10 +249,10 @@ async function exportM4b({ partial = false } = {}) {
             The first export will download the ffmpeg wasm bundle (~10&nbsp;MB) on demand.
           </div>
           <div style="display:flex;gap:10px;align-items:center;margin-top:6px">
-            <Button severity="primary" :disabled="exporting || renderedCount === 0" @click="exportM4b()">
+            <JwButton intent="primary" :disabled="exporting || renderedCount === 0" @click="exportM4b()">
               <Icon name="Download" :size="13" />
               Export {{ allRendered ? 'full' : `partial (${renderedCount} ch)` }} audiobook
-            </Button>
+            </JwButton>
             <span class="t-muted" style="font-size:11.5px">
               <template v-if="renderedCount === 0">Render chapters first</template>
               <template v-else-if="allRendered">{{ fmtDuration(totalDuration) }} ready to export</template>
@@ -305,9 +305,9 @@ async function exportM4b({ partial = false } = {}) {
             <template v-else>First-time export downloads JSZip (~80&nbsp;KB) on demand.</template>
           </div>
           <div style="display:flex;gap:10px;align-items:center">
-            <Button severity="primary" :disabled="exporting || manuscriptStats.chapters === 0" @click="exportManuscript(fmt)">
+            <JwButton intent="primary" :disabled="exporting || manuscriptStats.chapters === 0" @click="exportManuscript(fmt)">
               <Icon name="Download" :size="13" /> Export {{ FORMATS.find(f => f.id === fmt)?.name }}
-            </Button>
+            </JwButton>
             <span class="t-muted" style="font-size:11.5px">
               <template v-if="manuscriptStats.chapters === 0">No chapters yet</template>
               <template v-else>Saves as <code>{{ slug(project.project.title) }}.{{ FORMATS.find(f => f.id === fmt)?.ext }}</code></template>

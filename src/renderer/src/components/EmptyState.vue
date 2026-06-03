@@ -16,7 +16,7 @@
 // Emits: "action" when the default action button is clicked.
 
 import Icon from "./Icon.vue";
-import Button from "primevue/button";
+import JwButton from "@renderer/components/ui/JwButton.vue";
 
 defineProps({
   icon:       { type: String, default: "Sparkle" },
@@ -35,9 +35,9 @@ const emit = defineEmits(["action"]);
     <h3 v-if="title" class="empty-state-title">{{ title }}</h3>
     <p v-if="message" class="empty-state-message">{{ message }}</p>
     <slot name="actions">
-      <Button v-if="actionLabel" severity="primary" @click="emit('action')">
+      <JwButton v-if="actionLabel" intent="primary" @click="emit('action')">
         {{ actionLabel }}
-      </Button>
+      </JwButton>
     </slot>
   </div>
 </template>

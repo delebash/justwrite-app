@@ -5,7 +5,7 @@ import { useUiStore } from "../stores/ui.js";
 import { useRouter } from "vue-router";
 import Icon from "../components/Icon.vue";
 import InputText from "primevue/inputtext";
-import Button from "primevue/button";
+import JwButton from "@renderer/components/ui/JwButton.vue";
 import ImagesModal from "../components/ImagesModal.vue";
 import RichEditor from "../components/RichEditor.vue";
 import { EDITOR_TOOLBAR_DOC } from "../services/editorToolbars.js";
@@ -47,23 +47,26 @@ async function deleteObject() {
   <header class="pane-header object-pane-header">
     <div class="pane-title">
       <Breadcrumb :segments="[{ label: 'Object', to: '/objects' }]" />
-      <input class="object-name"
+      <input v-if="obj" class="object-name"
         :value="obj.name"
         placeholder="Object name"
         @input="update('name', $event.target.value)" />
+      <h1 v-else class="pane-h1">No objects</h1>
     </div>
     <div class="pane-actions">
-      <Button severity="secondary" text size="small" @click="modal = 'images'"><Icon name="Image" :size="14" /> Images</Button>
-      <router-link :to="`/objects/${obj.id}/events`" custom v-slot="{ navigate }">
-        <Button severity="secondary" text size="small" @click="navigate"><Icon name="Calendar" :size="14" /> Events</Button>
-      </router-link>
-      <Button severity="secondary" text size="small" @click="modal = 'groups'"><Icon name="GroupIcon" :size="14" /> Groups</Button>
-      <Button severity="secondary" text size="small" @click="deleteObject">Delete</Button>
-      <Button severity="primary" size="small" @click="addObject"><Icon name="Plus" :size="14" /> New object</Button>
-      <StatusSelect :model-value="obj.status || ''" @update:model-value="(v) => update('status', v)" />
+      <template v-if="obj">
+        <JwButton intent="ghost" size="small" @click="modal = 'images'"><Icon name="Image" :size="14" /> Images</JwButton>
+        <router-link :to="`/objects/${obj.id}/events`" custom v-slot="{ navigate }">
+          <JwButton intent="ghost" size="small" @click="navigate"><Icon name="Calendar" :size="14" /> Events</JwButton>
+        </router-link>
+        <JwButton intent="ghost" size="small" @click="modal = 'groups'"><Icon name="GroupIcon" :size="14" /> Groups</JwButton>
+        <JwButton intent="ghost" size="small" @click="deleteObject">Delete</JwButton>
+      </template>
+      <JwButton intent="primary" size="small" @click="addObject"><Icon name="Plus" :size="14" /> New object</JwButton>
+      <StatusSelect v-if="obj" :model-value="obj.status || ''" @update:model-value="(v) => update('status', v)" />
     </div>
   </header>
-  <div class="pane-card">
+  <div v-if="obj" class="pane-card">
     <div style="padding:24px 28px 40px;display:flex;flex-direction:column;gap:14px;flex:1;min-height:0">
       <InputText fluid placeholder="Kind"
         :model-value="obj.kind" @update:model-value="update('kind', $event)" />
@@ -89,8 +92,14 @@ async function deleteObject() {
       </div>
     </div>
   </div>
-  <ImagesModal v-if="modal === 'images'" :entity-id="obj.id" :entity-name="obj.name" @close="modal = null" />
-  <GroupsModal v-if="modal === 'groups'" :entity-id="obj.id" :entity-name="obj.name" entity-kind="object" @close="modal = null" />
+  <div v-else class="pane-card" style="display:grid;place-items:center;padding:60px">
+    <div class="t-muted" style="text-align:center">
+      No objects yet.<br />
+      <JwButton intent="primary" style="margin-top:14px" @click="addObject"><Icon name="Plus" :size="14" /> Create your first object</JwButton>
+    </div>
+  </div>
+  <ImagesModal v-if="obj && modal === 'images'" :entity-id="obj.id" :entity-name="obj.name" @close="modal = null" />
+  <GroupsModal v-if="obj && modal === 'groups'" :entity-id="obj.id" :entity-name="obj.name" entity-kind="object" @close="modal = null" />
 </template>
 
 <style scoped>

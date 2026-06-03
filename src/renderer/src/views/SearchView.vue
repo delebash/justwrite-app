@@ -7,7 +7,7 @@ import PaneHeader from "../components/PaneHeader.vue";
 import Icon from "../components/Icon.vue";
 import { buildIndex, searchIndex, renderSnippet, KIND_META } from "../services/search.js";
 import { useUiStore } from "../stores/ui.js";
-import Button from "primevue/button";
+import JwButton from "@renderer/components/ui/JwButton.vue";
 
 const project = useProjectStore();
 const studio = useStudioStore();
@@ -103,9 +103,9 @@ const KIND_ENTRIES = Object.entries(KIND_META).sort((a, b) => a[1].order - b[1].
     <span v-if="q && hits.length" class="t-muted" style="font-size:12px">
       {{ hits.length }} {{ hits.length === 1 ? "result" : "results" }}
     </span>
-    <Button severity="secondary" text size="small" @click="ui.openProjectReplace(q)" title="Project-wide find & replace in prose">
+    <JwButton intent="ghost" size="small" @click="ui.openProjectReplace(q)" title="Project-wide find & replace in prose">
       <Icon name="Replace" :size="13" /> Replace…
-    </Button>
+    </JwButton>
   </PaneHeader>
 
   <!-- Search bar -->
@@ -114,7 +114,7 @@ const KIND_ENTRIES = Object.entries(KIND_META).sort((a, b) => a[1].order - b[1].
       <Icon name="Search" :size="14" />
       <input ref="inputEl" v-model="q" placeholder="Find anywhere in the project — name, prose, note, group, narrative strand…"
         style="flex:1;border:0;outline:0;background:transparent;font:inherit;font-size:13.5px" />
-      <Button v-if="q" severity="secondary" text size="small" @click="q = ''" style="padding:2px 6px" v-tooltip.bottom="'Clear'">×</Button>
+      <JwButton v-if="q" intent="ghost" size="small" @click="q = ''" style="padding:2px 6px" v-tooltip.bottom="'Clear'">×</JwButton>
       <span class="kbd-pill">⌘F</span>
     </div>
 

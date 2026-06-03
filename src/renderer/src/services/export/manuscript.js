@@ -9,7 +9,7 @@
 //   }
 //
 // Each block is `{ kind, text }` where kind is one of:
-//   "h1" | "h2" | "p" | "blockquote" | "scene-break" | "ul-item"
+//   "h1" | "h2" | "p" | "blockquote" | "scene-break" | "page-break" | "ul-item"
 //
 // Chapters with empty bodies get a synthetic h1 from the chapter title
 // so downstream renderers always have at least a heading to lay out.
@@ -77,6 +77,7 @@ function blocksFromHtml(html, fallbackTitle = "", { stripSceneStructure = false 
     else if (tag === "h3") blocks.push({ kind: "h2", text }); // promote h3 to h2
     else if (tag === "blockquote") blocks.push({ kind: "blockquote", text });
     else if (tag === "hr") blocks.push({ kind: "scene-break", text: "" });
+    else if (tag === "div" && node.classList.contains("page-break")) blocks.push({ kind: "page-break", text: "" });
     else if (tag === "ul" || tag === "ol") {
       for (const li of node.querySelectorAll("li")) {
         const t = li.textContent?.replace(/\s+/g, " ").trim();

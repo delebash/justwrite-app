@@ -18,7 +18,7 @@ import WriterLabBase from "../components/WriterLabBase.vue";
 
 import { PACING_LABELS, ENDING_LABELS } from "../services/analysis/critique.js";
 import { dispatchRun, reconstructPrompt, textToHtml, fmtMs } from "../services/writerLab.js";
-import Button from "primevue/button";
+import JwButton from "@renderer/components/ui/JwButton.vue";
 
 const project = useProjectStore();
 const ai      = useAiStore();
@@ -165,13 +165,13 @@ function notesByGroup(notes) {
 
     <!-- ── COLUMNS TOOLBAR ────────────────────────────────────────────── -->
     <div class="run-row">
-      <Button severity="primary" @click="runAll" :disabled="!canRunAll">
+      <JwButton intent="primary" @click="runAll" :disabled="!canRunAll">
         <Icon name="Sparkle" :size="13" />
         Run all{{ columns.length > 1 ? ` (${columns.length})` : "" }}
-      </Button>
-      <Button severity="secondary" size="small" @click="addColumn" :disabled="columns.length >= 4">
+      </JwButton>
+      <JwButton intent="secondary" size="small" @click="addColumn" :disabled="columns.length >= 4">
         <Icon name="Plus" :size="12" /> Add column
-      </Button>
+      </JwButton>
       <span v-if="!selectedAction" class="t-muted" style="font-size:12px">
         Select an operation above.
       </span>

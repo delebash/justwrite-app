@@ -13,7 +13,7 @@ const LS_KEY = "justwrite:ui";
 
 // Appearance fields that define a "look" — changing any of them (without
 // naming a preset) drops the active preset to "custom".
-const PRESET_KEYS = ["mode", "fontPairing", "uiFont", "displayFont", "editorBodyFont", "accentHue", "goldHue", "dangerHue", "successHue", "infoHue", "appBg", "sidebarBg", "editorPaper", "editorLayout", "inlinePaper", "inkPalette", "uiScale", "sidebarHeadingStyle", "sidebarHeadingSize", "navItemStyle", "navItemSize", "editorFontSize", "editorLineSpacing", "editorParaSpacing", "editorParaIndent"];
+const PRESET_KEYS = ["mode", "fontPairing", "uiFont", "displayFont", "editorBodyFont", "accentHue", "goldHue", "dangerHue", "successHue", "infoHue", "appBg", "sidebarBg", "editorPaper", "editorLayout", "inlinePaper", "inkPalette", "uiScale", "sidebarHeadingStyle", "sidebarHeadingSize", "navItemStyle", "navItemSize", "editorFontSize", "editorLineSpacing", "editorParaSpacing", "editorParaIndent", "btnRadius", "btnDensity", "btnLabelCase"];
 
 // Capture the "look" fields of an appearance config into a preset patch
 // (everything a preset defines — mode is excluded since it's independent).

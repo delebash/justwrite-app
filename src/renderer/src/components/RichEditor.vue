@@ -8,8 +8,9 @@ import Subscript from "@tiptap/extension-subscript";
 import Superscript from "@tiptap/extension-superscript";
 import TextStyle from "@tiptap/extension-text-style";
 import Color from "@tiptap/extension-color";
-import { Extension, Mark, mergeAttributes } from "@tiptap/core";
+import { Extension, Mark, Node, mergeAttributes } from "@tiptap/core";
 import { DOMSerializer } from "@tiptap/pm/model";
+import { AllSelection, TextSelection } from "@tiptap/pm/state";
 import Link from "@tiptap/extension-link";
 import Highlight from "@tiptap/extension-highlight";
 import TextAlign from "@tiptap/extension-text-align";
@@ -34,7 +35,7 @@ import { PROSE_RULES, PROSE_RULE_ORDER } from "@renderer/services/writerAI";
 import { useAiProgress } from "@renderer/composables/useAiProgress";
 import { useUiStore } from "../stores/ui.js";
 import Icon from "./Icon.vue";
-import Button from "primevue/button";
+import JwButton from "@renderer/components/ui/JwButton.vue";
 import EditorSettingsModal from "./EditorSettingsModal.vue";
 import AiProgressBar from "./AiProgressBar.vue";
 
@@ -126,6 +127,132 @@ const FontSize = Extension.create({
   },
 });
 
+// Word-faithful Tab. Adds an `indent` attribute (integer level) to
+// paragraph nodes that renders as inline `text-indent: N*1.6em` and
+// round-trips through saved HTML. Tab/Shift-Tab nudge the level up/down
+// on the current paragraph (or sink/lift on list items). Inline style
+// overrides the .manuscript-inner auto-indent rule via specificity, so
+// the writer's explicit Tab always wins over the automatic baseline.
+const Indent = Extension.create({
+  name: "indent",
+  addOptions() {
+    return {
+      types: ["paragraph"],
+      minLevel: 0,
+      maxLevel: 4,
+      indentSize: 1.6, // em — matches --editor-para-indent
+    };
+  },
+  addGlobalAttributes() {
+    return [{
+      types: this.options.types,
+      attributes: {
+        indent: {
+          default: null,
+          renderHTML: (attrs) => {
+            const lvl = attrs.indent;
+            if (lvl === null || lvl === undefined) return {};
+            // Explicit 0 forces flush even when the CSS auto-indent is on.
+            if (lvl <= 0) return { style: "text-indent: 0" };
+            return { style: `text-indent: ${lvl * this.options.indentSize}em` };
+          },
+          parseHTML: (el) => {
+            const t = el.style.textIndent;
+            if (!t) return null;
+            if (/^\s*0(\.0+)?(px|em|rem|%)?\s*$/i.test(t)) return 0;
+            const m = t.match(/([\d.]+)/);
+            if (!m) return null;
+            const v = parseFloat(m[1]);
+            if (!Number.isFinite(v) || !this.options.indentSize) return null;
+            const lvl = Math.round(v / this.options.indentSize);
+            return lvl > this.options.minLevel ? lvl : null;
+          },
+        },
+      },
+    }];
+  },
+  addCommands() {
+    const adjust = (tr, pos, delta) => {
+      const node = tr.doc.nodeAt(pos);
+      if (!node) return tr;
+      const cur = node.attrs.indent;
+      const isExplicit = cur !== null && cur !== undefined;
+      const curNum = isExplicit ? cur : 0;
+      const next = Math.max(this.options.minLevel, Math.min(this.options.maxLevel, curNum + delta));
+      // Allow null → explicit 0 transition so Shift-Tab can override CSS auto-indent.
+      if (next === curNum && isExplicit) return tr;
+      const attrs = { ...node.attrs };
+      delete attrs.indent;
+      return tr.setNodeMarkup(pos, node.type, { ...attrs, indent: next }, node.marks);
+    };
+    const step = (delta) => () => ({ tr, state, dispatch }) => {
+      tr.setSelection(state.selection);
+      const sel = state.selection;
+      if (sel instanceof TextSelection || sel instanceof AllSelection) {
+        const { from, to } = sel;
+        tr.doc.nodesBetween(from, to, (node, pos) => {
+          if (this.options.types.includes(node.type.name)) {
+            tr = adjust(tr, pos, delta);
+            return false;
+          }
+          return true;
+        });
+      }
+      if (tr.docChanged) {
+        if (dispatch) dispatch(tr);
+        return true;
+      }
+      return false;
+    };
+    return {
+      setIndent: step(1),
+      setOutdent: step(-1),
+    };
+  },
+  addKeyboardShortcuts() {
+    // Always return true so Tab never escapes the editor — matches Word's
+    // contract that Tab is a writing key, not a navigation key.
+    return {
+      Tab: () => {
+        const ed = this.editor;
+        if (ed.isActive("bulletList") || ed.isActive("orderedList")) ed.commands.sinkListItem("listItem");
+        else if (ed.isActive("taskList")) ed.commands.sinkListItem("taskItem");
+        else ed.commands.setIndent();
+        return true;
+      },
+      "Shift-Tab": () => {
+        const ed = this.editor;
+        if (ed.isActive("bulletList") || ed.isActive("orderedList")) ed.commands.liftListItem("listItem");
+        else if (ed.isActive("taskList")) ed.commands.liftListItem("taskItem");
+        else ed.commands.setOutdent();
+        return true;
+      },
+    };
+  },
+});
+
+// Forced page break, Word's Cmd/Ctrl+Enter. Renders as a styled divider
+// in the editor and Read view; the export adapters (pdf/docx) detect the
+// node and emit a real page break. EPUB ignores it (reflowable format).
+const PageBreak = Node.create({
+  name: "pageBreak",
+  group: "block",
+  selectable: true,
+  atom: true,
+  parseHTML() { return [{ tag: "div.page-break" }]; },
+  renderHTML({ HTMLAttributes }) {
+    return ["div", mergeAttributes({ class: "page-break", "data-content": "Page break" }, HTMLAttributes)];
+  },
+  addCommands() {
+    return {
+      setPageBreak: () => ({ commands }) => commands.insertContent({ type: this.name }),
+    };
+  },
+  addKeyboardShortcuts() {
+    return { "Mod-Enter": () => this.editor.commands.setPageBreak() };
+  },
+});
+
 // Word-style comment: a mark that wraps the commented text and stores the
 // note in a data attribute (so it persists in the saved HTML). The note
 // itself only renders in a popover when the marked text is clicked.
@@ -178,6 +305,8 @@ const extensions = [
   TableCell,
   SearchReplace,
   AiDiff,
+  Indent,
+  PageBreak,
 ];
 if (props.mentions) extensions.push(buildMentionExtension());
 
@@ -340,7 +469,14 @@ async function runWriterAction(actionKey) {
         signal: aiProgress.signal,
         onDelta: aiProgress.onDelta,
       });
-      editor.value.chain().focus().proposeContinuation({ at: from, newHtml: result.html }).run();
+      // Guard empty/whitespace-only responses — otherwise proposeContinuation
+      // inserts nothing visible and the user sees the progress bar vanish
+      // with no result and no error.
+      if (!result?.html?.trim()) {
+        aiError.value = "AI returned an empty response. Try again — and verify the model is running and isn't returning only thinking tags.";
+      } else {
+        editor.value.chain().focus().proposeContinuation({ at: from, newHtml: result.html }).run();
+      }
       aiProgress.finish();
     } catch (err) {
       if (!aiProgress.cancelled.value) aiError.value = err?.message || String(err);
@@ -364,7 +500,14 @@ async function runWriterAction(actionKey) {
       signal: aiProgress.signal,
       onDelta: aiProgress.onDelta,
     });
-    editor.value.chain().focus().proposeReplacement({ from, to, originalHtml: html, newHtml: result.html }).run();
+    // Guard empty/whitespace-only responses — proposeReplacement would
+    // deleteRange()+insertContentAt("") and silently nuke the selection
+    // without surfacing an error.
+    if (!result?.html?.trim()) {
+      aiError.value = "AI returned an empty response. Try again — and verify the model is running and isn't returning only thinking tags.";
+    } else {
+      editor.value.chain().focus().proposeReplacement({ from, to, originalHtml: html, newHtml: result.html }).run();
+    }
     aiProgress.finish();
   } catch (err) {
     if (!aiProgress.cancelled.value) aiError.value = err?.message || String(err);
@@ -388,7 +531,11 @@ async function runProsePass(ruleKey) {
       signal: aiProgress.signal,
       onDelta: aiProgress.onDelta,
     });
-    editor.value.chain().focus().proposeReplacement({ from, to, originalHtml: html, newHtml: result.html }).run();
+    if (!result?.html?.trim()) {
+      aiError.value = "AI returned an empty response. Try again — and verify the model is running and isn't returning only thinking tags.";
+    } else {
+      editor.value.chain().focus().proposeReplacement({ from, to, originalHtml: html, newHtml: result.html }).run();
+    }
     aiProgress.finish();
   } catch (err) {
     if (!aiProgress.cancelled.value) aiError.value = err?.message || String(err);
@@ -849,10 +996,11 @@ defineExpose({ editor });
         <button v-if="show('h3')" class="tb-btn tb-glyph" :class="{ active: isActive('heading', { level: 3 }) }" @click="setHeading(3)" :data-tip="TIP.h3">H3</button>
       </div>
 
-      <div class="group" v-if="show('link') || show('image') || show('table')">
+      <div class="group" v-if="show('link') || show('image') || show('table') || show('pageBreak')">
         <button v-if="show('link')" class="tb-btn" :class="{ active: isActive('link') }" @click="setLink" :data-tip="TIP.link"><Icon name="Link" :size="14" /></button>
         <button v-if="show('image')" class="tb-btn" @click="pickImage" data-tip="Insert image"><Icon name="Image" :size="14" /></button>
         <button v-if="show('table')" class="tb-btn" @click="insertTable" data-tip="Insert table"><Icon name="Table" :size="14" /></button>
+        <button v-if="show('pageBreak')" class="tb-btn" @click="run('setPageBreak')" data-tip="Page break (⌘⏎)"><Icon name="PageBreak" :size="14" /></button>
       </div>
 
       <div class="group" v-if="show('comment')">
@@ -1008,16 +1156,16 @@ defineExpose({ editor });
       <template v-if="commentState.mode === 'edit'">
         <textarea ref="commentInput" v-model="commentState.text" class="comment-pop-input" rows="3" placeholder="Add a comment…" />
         <div class="comment-pop-actions">
-          <Button severity="secondary" text size="small" @click="closeComment">Cancel</Button>
-          <Button severity="primary" size="small" @click="saveComment">Save</Button>
+          <JwButton intent="ghost" size="small" @click="closeComment">Cancel</JwButton>
+          <JwButton intent="primary" size="small" @click="saveComment">Save</JwButton>
         </div>
       </template>
       <template v-else>
         <div class="comment-pop-text">{{ commentState.text }}</div>
         <div class="comment-pop-actions">
-          <Button severity="secondary" text size="small" @click="deleteComment">Delete</Button>
-          <Button severity="secondary" text size="small" @click="editComment">Edit</Button>
-          <Button severity="primary" size="small" @click="closeComment">Close</Button>
+          <JwButton intent="ghost" size="small" @click="deleteComment">Delete</JwButton>
+          <JwButton intent="ghost" size="small" @click="editComment">Edit</JwButton>
+          <JwButton intent="primary" size="small" @click="closeComment">Close</JwButton>
         </div>
       </template>
     </div>
@@ -1038,6 +1186,13 @@ defineExpose({ editor });
    override the shared .manuscript-inner cap only inside the editor, and
    tighten the side padding so prose sits closer to the edges. */
 .rich-editor--manuscript .manuscript-inner { max-width: none; margin: 0; padding: 40px 28px 120px; }
+/* In the edit surface there's no visible heading anchoring the first
+   paragraph, so a flush-left opening reads as an outlier rather than a
+   convention. Restore the indent on the first paragraph while editing —
+   read views and exports keep the typographic flush-left. */
+.rich-editor--manuscript .manuscript-inner p:first-of-type {
+  text-indent: var(--editor-para-indent, var(--editor-body-para-indent, 1.6em));
+}
 /* Writing surface for the scene editor. Uses the per-area editor-paper
    token so Settings → Appearance can retint it; defaults to the warm
    paper, matching the read-only views. */

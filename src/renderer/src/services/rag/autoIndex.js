@@ -11,14 +11,18 @@
 // Errors are swallowed: an auto-rebuild failing should never toast or
 // alert; the user can still manually update from the chat panel.
 
+import { ref } from "vue";
 import { useAiStore } from "../../stores/ai.js";
 import { useProjectStore } from "../../stores/project.js";
 import { buildOrUpdateIndex, indexStatus } from "./indexer.js";
 
 const DEBOUNCE_MS = 60_000;
 
+// Reactive flag for the ChatPanel "indexing…" indicator. Mutated only
+// from inside fire(); read-only from the perspective of consumers.
+export const autoIndexRunning = ref(false);
+
 let timer = null;
-let running = false;
 let unsubscribe = null;
 
 function schedule() {
@@ -28,7 +32,7 @@ function schedule() {
 
 async function fire() {
   timer = null;
-  if (running) return;
+  if (autoIndexRunning.value) return;
 
   const ai = useAiStore();
   if (!ai.autoRebuildRagIndex) return;
@@ -37,14 +41,14 @@ async function fire() {
   const status = indexStatus();
   if (!status.exists || status.entryCount === 0) return;
 
-  running = true;
+  autoIndexRunning.value = true;
   try {
     await buildOrUpdateIndex();
   } catch {
     // Auto-rebuild is opportunistic — failures are not the user's problem
     // to deal with. They can still Update manually if they want.
   } finally {
-    running = false;
+    autoIndexRunning.value = false;
   }
 }
 

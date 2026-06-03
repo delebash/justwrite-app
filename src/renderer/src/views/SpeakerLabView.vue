@@ -19,7 +19,7 @@ import ModelPicker from "../components/ModelPicker.vue";
 import ProviderSelect from "../components/ProviderSelect.vue";
 import { OpenAICompatClient } from "../services/openai-compat.js";
 import { TIERS, TIER_IDS } from "../services/modelMeta.js";
-import Button from "primevue/button";
+import JwButton from "@renderer/components/ui/JwButton.vue";
 
 const project = useProjectStore();
 const ai = useAiStore();
@@ -1097,10 +1097,10 @@ function copyOutput(run) {
           <option value="">Load from chapter…</option>
           <option v-for="c in project.allChapters" :key="c.id" :value="c.id">Ch. {{ c.num }} — {{ c.title }}</option>
         </select>
-        <Button severity="secondary" size="small" @click="clearInput" :disabled="!inputText"><Icon name="Close" :size="12" /> Clear</Button>
-        <Button severity="secondary" size="small" @click="loadSampleCh3" title="Built-in test fixture for Inline-tag mode (speaker: June Asari)">
+        <JwButton intent="secondary" size="small" @click="clearInput" :disabled="!inputText"><Icon name="Close" :size="12" /> Clear</JwButton>
+        <JwButton intent="secondary" size="small" @click="loadSampleCh3" title="Built-in test fixture for Inline-tag mode (speaker: June Asari)">
           <Icon name="Sparkle" :size="12" /> Sample: Ch. 3
-        </Button>
+        </JwButton>
         <span class="t-muted" style="font-size:11.5px;margin-left:auto">Paste a few chapters, or load one from this project.</span>
       </div>
       <textarea
@@ -1113,13 +1113,13 @@ function copyOutput(run) {
 
     <!-- ── RUN BAR ────────────────────────────────────────────────── -->
     <div class="run-bar">
-      <Button severity="primary" @click="runAll" :disabled="!inputText.trim()">
+      <JwButton intent="primary" @click="runAll" :disabled="!inputText.trim()">
         <Icon name="Sparkle" :size="13" />
         Run {{ runs.length > 1 ? `all ${runs.length}` : "" }}
-      </Button>
-      <Button severity="secondary" size="small" @click="addRun" :disabled="runs.length >= 4">
+      </JwButton>
+      <JwButton intent="secondary" size="small" @click="addRun" :disabled="runs.length >= 4">
         <Icon name="Plus" :size="12" /> Add column
-      </Button>
+      </JwButton>
       <span v-if="presets.length" class="t-muted" style="font-size:11.5px;margin-left:auto">
         Presets: {{ presets.length }} saved
       </span>
@@ -1168,9 +1168,9 @@ function copyOutput(run) {
                 <span class="t-muted">temp</span>
                 <input class="input sm temp-input" type="number" step="0.05" min="0" max="2" v-model.number="run.studio.temperature" />
               </label>
-              <Button severity="secondary" size="small" @click="resetStudioPrompts(run)" title="Restore the exact Studio prompt">
+              <JwButton intent="secondary" size="small" @click="resetStudioPrompts(run)" title="Restore the exact Studio prompt">
                 <Icon name="Refresh" :size="11" /> Reset
-              </Button>
+              </JwButton>
             </div>
             <label class="t-muted small">System prompt</label>
             <textarea class="input mono" rows="7" v-model="run.studio.system"></textarea>
@@ -1206,9 +1206,9 @@ function copyOutput(run) {
                 <span class="t-muted">temp</span>
                 <input class="input sm temp-input" type="number" step="0.05" min="0" max="2" v-model.number="run.inline.temperature" />
               </label>
-              <Button severity="secondary" size="small" @click="resetInlinePrompts(run)" title="Restore the current profile's default prompt">
+              <JwButton intent="secondary" size="small" @click="resetInlinePrompts(run)" title="Restore the current profile's default prompt">
                 <Icon name="Refresh" :size="11" /> Reset
-              </Button>
+              </JwButton>
             </div>
             <div class="row" style="align-items:center">
               <span class="t-muted" style="font-size:11px">Tier:</span>
@@ -1286,9 +1286,9 @@ function copyOutput(run) {
         <!-- Presets -->
         <div class="preset-row">
           <input class="input sm" v-model="presetName" placeholder="Preset name…" style="flex:1" />
-          <Button severity="secondary" size="small" @click="savePresetFor(run)" :disabled="!presetName.trim()" title="Save current config as preset">
+          <JwButton intent="secondary" size="small" @click="savePresetFor(run)" :disabled="!presetName.trim()" title="Save current config as preset">
             <Icon name="Pencil" :size="11" /> Save
-          </Button>
+          </JwButton>
           <select class="input sm" @change="(e) => { const p = presets.find(x => x.name === e.target.value); if (p) applyPreset(run, p); e.target.value = ''; }">
             <option value="">Load preset…</option>
             <option v-for="p in presets" :key="p.name" :value="p.name">{{ p.name }}</option>
@@ -1297,12 +1297,12 @@ function copyOutput(run) {
 
         <!-- Action row -->
         <div class="action-row">
-          <Button v-if="run.state !== 'streaming'" severity="primary" @click="runPipeline(run)" :disabled="!inputText.trim()">
+          <JwButton v-if="run.state !== 'streaming'" intent="primary" @click="runPipeline(run)" :disabled="!inputText.trim()">
             <Icon name="Play" :size="11" /> Run
-          </Button>
-          <Button v-else severity="danger" @click="abortRun(run)">
+          </JwButton>
+          <JwButton v-else intent="danger" @click="abortRun(run)">
             <Icon name="Stop" :size="11" /> Stop
-          </Button>
+          </JwButton>
           <span v-if="run.activeStage" class="badge pulse">Stage {{ run.activeStage }}…</span>
           <span v-else-if="run.state === 'done'" class="badge ok"><Icon name="Check" :size="10" /> Done</span>
           <span v-else-if="run.state === 'error'" class="badge err">Error</span>

@@ -155,6 +155,10 @@ export const NAV_ITEM_SIZES = [
 ];
 
 // ── Accent / gold presets (hue-based) ────────────────────────────────
+// `goldHue` / GOLD_PRESETS / --gold are the code names for what the UI
+// labels "Accent 2" in Settings → Appearance. It also drives the PrimeVue
+// `warn` severity (see services/primevue-preset.js — Button severity="warn"
+// and Tag severity="warn" both point at --gold).
 export const ACCENT_PRESETS = [
   { hue: 14,  name: "Oxblood" },
   { hue: 200, name: "Teal" },
@@ -167,8 +171,12 @@ export const ACCENT_PRESETS = [
 export const GOLD_PRESETS = [
   { hue: 80,  name: "Gold" },
   { hue: 55,  name: "Brass" },
+  { hue: 45,  name: "Bronze" },
   { hue: 35,  name: "Copper" },
+  { hue: 155, name: "Sage" },
   { hue: 140, name: "Verdigris" },
+  { hue: 235, name: "Slate" },
+  { hue: 340, name: "Mauve" },
 ];
 
 // ── Functional-colour hue presets ────────────────────────────────────
@@ -303,7 +311,34 @@ export const DEFAULT_APPEARANCE = {
   editorLineSpacing: 1.5,
   editorParaSpacing: 0.5,       // em between paragraphs
   editorParaIndent: false,
+  // Button theming knobs — see BUTTON_RADIUS_PX / BUTTON_DENSITY_PX below.
+  btnRadius: "standard",        // sharp | standard | rounded | pill
+  btnDensity: "comfy",          // compact | comfy
+  btnLabelCase: "default",      // default | uppercase
 };
+
+// Lookup tables for the button theme knobs. Tunable here.
+const BUTTON_RADIUS_PX = { sharp: "2px", standard: "6px", rounded: "10px", pill: "999px" };
+const BUTTON_DENSITY = {
+  compact: { padY: "5px", padX: "12px", padYSm: "3px", padXSm: "8px",  fontSize: "13px", fontSizeSm: "11.5px" },
+  comfy:   { padY: "8px", padX: "16px", padYSm: "4px", padXSm: "11px", fontSize: "14px", fontSizeSm: "12px"   },
+};
+
+// Option lists for Settings → Appearance UI. Labels are user-facing.
+export const BUTTON_RADIUS_OPTIONS = [
+  { value: "sharp",    label: "Sharp" },
+  { value: "standard", label: "Standard" },
+  { value: "rounded",  label: "Rounded" },
+  { value: "pill",     label: "Pill" },
+];
+export const BUTTON_DENSITY_OPTIONS = [
+  { value: "compact", label: "Compact" },
+  { value: "comfy",   label: "Comfy" },
+];
+export const BUTTON_LABEL_CASE_OPTIONS = [
+  { value: "default",   label: "Sentence" },
+  { value: "uppercase", label: "UPPERCASE" },
+];
 
 // Px values for the named editor font-size tiers.
 const EDITOR_FONT_SIZE_PX = { small: 15, medium: 18, big: 21 };
@@ -373,6 +408,23 @@ export function applyAppearance(appearance) {
   s.setProperty("--editor-body-line-height", String(Number.isFinite(+a.editorLineSpacing) ? a.editorLineSpacing : 1.5));
   s.setProperty("--editor-body-para-spacing", `${Number.isFinite(+a.editorParaSpacing) ? a.editorParaSpacing : 0}em`);
   s.setProperty("--editor-body-para-indent", a.editorParaIndent ? "1.6em" : "0");
+
+  // Button knobs — radius / density / label casing.
+  s.setProperty("--btn-radius", BUTTON_RADIUS_PX[a.btnRadius] || BUTTON_RADIUS_PX.standard);
+  const dens = BUTTON_DENSITY[a.btnDensity] || BUTTON_DENSITY.comfy;
+  s.setProperty("--btn-pad-y", dens.padY);
+  s.setProperty("--btn-pad-x", dens.padX);
+  s.setProperty("--btn-pad-y-sm", dens.padYSm);
+  s.setProperty("--btn-pad-x-sm", dens.padXSm);
+  s.setProperty("--btn-font-size", dens.fontSize);
+  s.setProperty("--btn-font-size-sm", dens.fontSizeSm);
+  if (a.btnLabelCase === "uppercase") {
+    s.setProperty("--btn-text-transform", "uppercase");
+    s.setProperty("--btn-letter-spacing", "0.06em");
+  } else {
+    s.setProperty("--btn-text-transform", "none");
+    s.setProperty("--btn-letter-spacing", "normal");
+  }
 
   s.setProperty("--app-bg", resolveTint(a.appBg, SURFACE_TINTS, mode));
   s.setProperty("--sidebar-bg", resolveTint(a.sidebarBg, SURFACE_TINTS, mode));

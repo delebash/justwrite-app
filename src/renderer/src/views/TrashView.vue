@@ -8,7 +8,7 @@ import Icon from "../components/Icon.vue";
 import { confirmDialog } from "../services/dialog.js";
 import DataTable from "primevue/datatable";
 import Column from "primevue/column";
-import Button from "primevue/button";
+import JwButton from "@renderer/components/ui/JwButton.vue";
 
 const project = useProjectStore();
 const ui = useUiStore();
@@ -95,9 +95,9 @@ async function emptyAll() {
     <span class="t-muted" style="font-size:12px">
       {{ totalCount }} item{{ totalCount === 1 ? "" : "s" }}
     </span>
-    <Button v-if="totalCount" severity="secondary" text @click="emptyAll">
+    <JwButton v-if="totalCount" intent="ghost" @click="emptyAll">
       <Icon name="Trash" :size="13" /> Empty trash
-    </Button>
+    </JwButton>
   </PaneHeader>
 
   <div class="pane-card">
@@ -149,12 +149,12 @@ async function emptyAll() {
           <Column header="Actions" style="width:130px;text-align:right">
             <template #body="{ data }">
               <div style="display:flex;gap:6px;justify-content:flex-end">
-                <Button label="Restore" severity="primary" size="small" @click="restore(s.kind, data.id)">
+                <JwButton label="Restore" intent="primary" size="small" @click="restore(s.kind, data.id)">
                   <template #icon><Icon name="Refresh" :size="11" /></template>
-                </Button>
-                <Button severity="danger" text size="small" v-tooltip.bottom="'Permanently delete'" @click="purge(s.kind, data.id, titleOf(s.kind, data))">
+                </JwButton>
+                <JwButton intent="ghost" size="small" v-tooltip.bottom="'Permanently delete'" @click="purge(s.kind, data.id, titleOf(s.kind, data))">
                   <template #icon><Icon name="Trash" :size="11" /></template>
-                </Button>
+                </JwButton>
               </div>
             </template>
           </Column>

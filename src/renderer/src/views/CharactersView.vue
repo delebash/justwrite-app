@@ -9,7 +9,7 @@ import InputText from "primevue/inputtext";
 import InputNumber from "primevue/inputnumber";
 import Textarea from "primevue/textarea";
 import Checkbox from "primevue/checkbox";
-import Button from "primevue/button";
+import JwButton from "@renderer/components/ui/JwButton.vue";
 import ImagesModal from "../components/ImagesModal.vue";
 import StatusSelect from "../components/StatusSelect.vue";
 import GroupsModal from "../components/GroupsModal.vue";
@@ -130,27 +130,38 @@ function updateBackstory(v) { project.setCharacterExtras(ch.value.id, { backstor
 <template>
   <header class="pane-header character-pane-header">
     <div class="pane-title">
-      <Breadcrumb :segments="[{ label: ch.main ? 'Main character' : 'Secondary character', to: '/characters' }]" />
-      <input class="character-name"
+      <Breadcrumb v-if="ch" :segments="[{ label: ch.main ? 'Main character' : 'Secondary character', to: '/characters' }]" />
+      <Breadcrumb v-else :segments="[{ label: 'Character', to: '/characters' }]" />
+      <input v-if="ch" class="character-name"
         :value="ch.name"
         placeholder="Character name"
         @input="updateField('name', $event.target.value)" />
+      <h1 v-else class="pane-h1">No characters</h1>
     </div>
     <div class="pane-actions">
-      <Button severity="secondary" text size="small" @click="modal = 'images'"><Icon name="Image" :size="14" /> Images</Button>
-      <router-link :to="`/characters/${ch.id}/events`" custom v-slot="{ navigate }">
-        <Button severity="secondary" text size="small" @click="navigate"><Icon name="Calendar" :size="14" /> Events</Button>
-      </router-link>
-      <Button severity="secondary" text size="small" @click="modal = 'groups'"><Icon name="GroupIcon" :size="14" /> Groups</Button>
-      <Button severity="secondary" text size="small" @click="deleteCharacter">Delete</Button>
-      <Button severity="primary" size="small" @click="addCharacter"><Icon name="Plus" :size="14" /> New character</Button>
-      <StatusSelect :model-value="ch.status || ''" @update:model-value="(v) => updateField('status', v)" />
+      <template v-if="ch">
+        <JwButton intent="ghost" size="small" @click="modal = 'images'"><Icon name="Image" :size="14" /> Images</JwButton>
+        <router-link :to="`/characters/${ch.id}/events`" custom v-slot="{ navigate }">
+          <JwButton intent="ghost" size="small" @click="navigate"><Icon name="Calendar" :size="14" /> Events</JwButton>
+        </router-link>
+        <JwButton intent="ghost" size="small" @click="modal = 'groups'"><Icon name="GroupIcon" :size="14" /> Groups</JwButton>
+        <JwButton intent="ghost" size="small" @click="deleteCharacter">Delete</JwButton>
+      </template>
+      <JwButton intent="primary" size="small" @click="addCharacter"><Icon name="Plus" :size="14" /> New character</JwButton>
+      <StatusSelect v-if="ch" :model-value="ch.status || ''" @update:model-value="(v) => updateField('status', v)" />
     </div>
   </header>
 
-  <div class="pane-card">
+  <div v-if="!ch" class="pane-card" style="display:grid;place-items:center;padding:60px">
+    <div class="t-muted" style="text-align:center">
+      No characters yet.<br />
+      <JwButton intent="primary" style="margin-top:14px" @click="addCharacter"><Icon name="Plus" :size="14" /> Create your first character</JwButton>
+    </div>
+  </div>
+
+  <div v-else class="pane-card">
     <div class="scrollarea" style="padding:24px 28px 40px">
-      <div style="display:flex;gap:22px;align-items:flex-start">
+      <div class="character-hero">
         <div
           class="avatar-drop"
           :class="{ 'avatar-drop-hot': isFileDragging, 'avatar-drop-saving': dropSaving > 0 }"
@@ -166,7 +177,7 @@ function updateBackstory(v) { project.setCharacterExtras(ch.value.id, { backstor
           </div>
           <div v-else-if="dropSaving > 0" class="avatar-drop-overlay saving">Saving…</div>
         </div>
-        <div style="flex:1;min-width:0">
+        <div class="character-hero-fields">
           <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap">
             <InputText fluid style="max-width:200px" placeholder="Role"
               :model-value="ch.role" @update:model-value="updateField('role', $event)" />
@@ -214,7 +225,7 @@ function updateBackstory(v) { project.setCharacterExtras(ch.value.id, { backstor
 
       <div style="margin-top:22px">
         <div class="t-eyebrow" style="margin-bottom:10px">Voice & dialect</div>
-        <div class="card tight" style="padding:16px;display:grid;grid-template-columns:1fr 1fr;gap:10px 18px;font-size:12.5px">
+        <div class="card tight voice-grid" style="padding:16px;gap:10px 18px;font-size:12.5px">
           <div>
             <div class="t-muted">Accent</div>
             <InputText fluid :model-value="extras?.voice?.accent || ''" @update:model-value="updateVoice('accent', $event)" />
@@ -255,8 +266,8 @@ function updateBackstory(v) { project.setCharacterExtras(ch.value.id, { backstor
     </div>
   </div>
 
-  <ImagesModal v-if="modal === 'images'" :entity-id="ch.id" :entity-name="ch.name" @close="modal = null" />
-  <GroupsModal v-if="modal === 'groups'" :entity-id="ch.id" :entity-name="ch.name" entity-kind="character" @close="modal = null" />
+  <ImagesModal v-if="ch && modal === 'images'" :entity-id="ch.id" :entity-name="ch.name" @close="modal = null" />
+  <GroupsModal v-if="ch && modal === 'groups'" :entity-id="ch.id" :entity-name="ch.name" entity-kind="character" @close="modal = null" />
 </template>
 
 <style scoped>
@@ -311,13 +322,29 @@ function updateBackstory(v) { project.setCharacterExtras(ch.value.id, { backstor
   font-weight: 500;
 }
 
+/* Container query target: at Tauri's minimum window width (1000px) with
+   the sidebar open, the pane drops to ~720px. Stack at <= 760px so the
+   layout collapses cleanly before things get crushed. */
+.pane-card { container-type: inline-size; container-name: pane; }
+
+.character-hero {
+  display: flex;
+  gap: 22px;
+  align-items: flex-start;
+}
+.character-hero-fields { flex: 1; min-width: 0; }
+
 .motivation-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
 .arc-grid { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+.voice-grid { display: grid; grid-template-columns: 1fr 1fr; }
 
-@media (max-width: 900px) {
+@container pane (max-width: 760px) {
+  .character-hero { flex-direction: column; align-items: stretch; gap: 14px; }
+  .character-hero .avatar-drop { align-self: center; }
   .motivation-grid { grid-template-columns: 1fr; }
   .arc-grid { grid-template-columns: 1fr; }
   .arc-grid > div { border-right: 0 !important; border-bottom: 1px solid var(--border); }
   .arc-grid > div:last-child { border-bottom: 0; }
+  .voice-grid { grid-template-columns: 1fr; }
 }
 </style>

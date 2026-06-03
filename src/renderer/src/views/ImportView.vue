@@ -7,7 +7,7 @@ import PaneHeader from "../components/PaneHeader.vue";
 import Icon from "../components/Icon.vue";
 import { parseFile, normalizeHtml } from "../services/import/index.js";
 import EntitySweepModal from "../components/EntitySweepModal.vue";
-import Button from "primevue/button";
+import JwButton from "@renderer/components/ui/JwButton.vue";
 
 const router = useRouter();
 const project = useProjectStore();
@@ -110,10 +110,7 @@ async function loadFile(file) {
       const stem = file.name.replace(/\.[^.]+$/, "");
       if (newPart.value && !partTitle.value) partTitle.value = stem;
       if (!newBookTitle.value) newBookTitle.value = stem;
-      // Default the scan-after-import toggle from the intent: on for
-      // fresh-project paths (whole cast is unmapped), off for editing
-      // (the existing bible is presumably current).
-      scanAfterImport.value = intent.value !== "edit";
+      scanAfterImport.value = false;
       step.value = "preview";
     }
   } catch (err) {
@@ -196,7 +193,7 @@ function finishAfterSweep() {
 <template>
   <PaneHeader eyebrow="Manuscript" title="Import">
     <router-link to="/" custom v-slot="{ navigate }">
-      <Button severity="secondary" text size="small" @click="navigate">Cancel</Button>
+      <JwButton intent="ghost" size="small" @click="navigate">Cancel</JwButton>
     </router-link>
   </PaneHeader>
 
@@ -313,10 +310,10 @@ function finishAfterSweep() {
                 <div class="ps-lbl">source</div>
               </div>
             </div>
-            <Button severity="secondary" text size="small" @click="restart">
+            <JwButton intent="ghost" size="small" @click="restart">
               <Icon name="ChevRight" :size="11" style="transform:rotate(180deg)" />
               Choose a different file
-            </Button>
+            </JwButton>
           </div>
 
           <div v-if="warnings.length" class="wiz-warnings">
@@ -340,12 +337,12 @@ function finishAfterSweep() {
               <span class="ch-num">{{ i + 1 }}</span>
               <input class="ch-title" v-model="c.title" placeholder="Untitled chapter" :disabled="c.drop" />
               <span class="ch-words">{{ wordCount(c.html).toLocaleString() }} w</span>
-              <Button severity="secondary" text size="small" class="ch-drop"
+              <JwButton intent="ghost" size="small" class="ch-drop"
                 @click="dropChapter(i)"
                 :title="c.drop ? 'Keep this chapter' : 'Drop this chapter'">
                 <Icon :name="c.drop ? 'Plus' : 'Trash'" :size="12" />
                 {{ c.drop ? "Keep" : "Drop" }}
-              </Button>
+              </JwButton>
               <div class="ch-preview" v-if="!c.drop">{{ preview(c.html) }}</div>
               <div class="ch-preview ch-dropped-msg" v-else>Will not be imported.</div>
             </li>
@@ -364,13 +361,13 @@ function finishAfterSweep() {
         </section>
 
         <section class="wiz-section wiz-actions">
-          <Button severity="secondary" text @click="restart">Start over</Button>
-          <Button severity="primary" :disabled="!validChapters.length" @click="ingest">
+          <JwButton intent="ghost" @click="restart">Start over</JwButton>
+          <JwButton intent="primary" :disabled="!validChapters.length" @click="ingest">
             <Icon name="Check" :size="13" />
             {{ intent === "narrate" ? "Import & open Studio"
               : intent === "new" ? "Create book"
               : "Import chapters" }}
-          </Button>
+          </JwButton>
         </section>
       </div>
     </div>

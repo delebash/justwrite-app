@@ -5,7 +5,7 @@ import { useProjectStore } from "../stores/project.js";
 import { useUiStore } from "../stores/ui.js";
 import { useSessionsStore, DOW_LABELS_MONDAY_FIRST, reorderForMonday } from "../stores/sessions.js";
 import Icon from "../components/Icon.vue";
-import Button from "primevue/button";
+import JwButton from "@renderer/components/ui/JwButton.vue";
 
 const router = useRouter();
 const project = useProjectStore();
@@ -113,12 +113,12 @@ const strandCount = (id) => allCh.value.filter((c) => (c.strands || []).includes
         @input="project.updateProjectMeta({ title: $event.target.value })" />
     </div>
     <div class="pane-actions">
-      <Button severity="secondary" text @click="goToday"><Icon name="Calendar" :size="14" /> Today</Button>
+      <JwButton intent="ghost" @click="goToday"><Icon name="Calendar" :size="14" /> Today</JwButton>
       <router-link to="/import" custom v-slot="{ navigate }">
-        <Button severity="secondary" text @click="navigate"><Icon name="Plus" :size="14" /> Import manuscript</Button>
+        <JwButton intent="ghost" @click="navigate"><Icon name="Plus" :size="14" /> Import manuscript</JwButton>
       </router-link>
       <router-link to="/chapters" custom v-slot="{ navigate }">
-        <Button severity="primary" @click="navigate"><Icon name="Plus" :size="14" /> Quick write</Button>
+        <JwButton intent="primary" @click="navigate"><Icon name="Plus" :size="14" /> Quick write</JwButton>
       </router-link>
     </div>
   </header>
@@ -194,7 +194,7 @@ const strandCount = (id) => allCh.value.filter((c) => (c.strands || []).includes
           </div>
         </div>
         <div class="resume-cta">
-          <Button @click="resume"><Icon name="Play" :size="14" :fill="true" /> Resume writing</Button>
+          <JwButton intent="warn" @click="resume"><Icon name="Play" :size="14" :fill="true" /> Resume writing</JwButton>
         </div>
       </div>
 

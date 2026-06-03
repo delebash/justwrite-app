@@ -8,7 +8,7 @@ import Breadcrumb from "../components/Breadcrumb.vue";
 import DateTimePicker from "../components/DateTimePicker.vue";
 import InputText from "primevue/inputtext";
 import Textarea from "primevue/textarea";
-import Button from "primevue/button";
+import JwButton from "@renderer/components/ui/JwButton.vue";
 
 const props = defineProps({
   kind:     { type: String, required: true },
@@ -68,10 +68,10 @@ function save() {
       <h1 class="pane-h1">Edit event</h1>
     </div>
     <div class="pane-actions">
-      <Button severity="secondary" text @click="cancel">Cancel</Button>
-      <Button severity="primary" :disabled="!titleStr.trim()" @click="save">
+      <JwButton intent="ghost" @click="cancel">Cancel</JwButton>
+      <JwButton intent="primary" :disabled="!titleStr.trim()" @click="save">
         <Icon name="Check" :size="13" /> Save changes
-      </Button>
+      </JwButton>
     </div>
   </header>
 
@@ -79,7 +79,7 @@ function save() {
   <div class="scrollarea event-edit-pane">
     <div v-if="!ev" class="event-missing">
       That event no longer exists.
-      <Button severity="secondary" size="small" style="margin-left:8px" @click="cancel">Back to timeline</Button>
+      <JwButton intent="secondary" size="small" style="margin-left:8px" @click="cancel">Back to timeline</JwButton>
     </div>
     <form v-else class="event-edit-form" @submit.prevent="save">
       <div class="field">

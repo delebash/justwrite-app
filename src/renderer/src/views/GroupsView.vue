@@ -4,7 +4,7 @@ import { useProjectStore } from "../stores/project.js";
 import { useUiStore } from "../stores/ui.js";
 import { useRouter } from "vue-router";
 import Icon from "../components/Icon.vue";
-import Button from "primevue/button";
+import JwButton from "@renderer/components/ui/JwButton.vue";
 import ImagesModal from "../components/ImagesModal.vue";
 import RichEditor from "../components/RichEditor.vue";
 import { EDITOR_TOOLBAR_SLIM } from "../services/editorToolbars.js";
@@ -84,12 +84,12 @@ async function deleteGroup() {
       <h1 v-else class="pane-h1">Groups</h1>
     </div>
     <div class="pane-actions">
-      <Button severity="secondary" text size="small" @click="modal = 'images'"><Icon name="Image" :size="14" /> Images</Button>
+      <JwButton intent="ghost" size="small" @click="modal = 'images'"><Icon name="Image" :size="14" /> Images</JwButton>
       <router-link :to="`/groups/${g.id}/events`" custom v-slot="{ navigate }">
-        <Button severity="secondary" text size="small" @click="navigate"><Icon name="Calendar" :size="14" /> Events</Button>
+        <JwButton intent="ghost" size="small" @click="navigate"><Icon name="Calendar" :size="14" /> Events</JwButton>
       </router-link>
-      <Button severity="secondary" text size="small" @click="deleteGroup">Delete</Button>
-      <Button severity="primary" size="small" @click="addGroup"><Icon name="Plus" :size="14" /> New group</Button>
+      <JwButton intent="ghost" size="small" @click="deleteGroup">Delete</JwButton>
+      <JwButton intent="primary" size="small" @click="addGroup"><Icon name="Plus" :size="14" /> New group</JwButton>
       <StatusSelect v-if="g" :model-value="g.status || ''" @update:model-value="(v) => update('status', v)" />
     </div>
   </header>
@@ -129,7 +129,7 @@ async function deleteGroup() {
                 </span>
                 <span class="member-name">{{ m.name }}</span>
               </button>
-              <Button severity="secondary" text size="small" v-tooltip.bottom="'Remove from group'" @click="project.removeGroupMember(g.id, m.kind, m.id)">×</Button>
+              <JwButton intent="ghost" size="small" v-tooltip.bottom="'Remove from group'" @click="project.removeGroupMember(g.id, m.kind, m.id)">×</JwButton>
             </div>
           </div>
         </div>
