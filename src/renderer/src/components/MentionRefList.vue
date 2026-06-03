@@ -38,7 +38,7 @@ function goScene(chapterId, sceneId) {
       :title="`Ch. ${row.chapterNum} · ${row.chapterTitle} — ${row.sceneTitle}`"
       @click="goScene(row.chapterId, row.sceneId)">
       <span class="mref-head">
-        <span class="status-dot" :class="row.chapterStatus" />
+        <span class="status-dot" :class="row.sceneStatus" />
         <span class="mref-num">{{ row.chapterNum }}.{{ row.sceneIdx }}</span>
         <span class="mref-title">{{ row.sceneTitle }}</span>
         <span v-if="row.count > 1" class="mref-count">×{{ row.count }}</span>

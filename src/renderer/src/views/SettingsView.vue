@@ -28,6 +28,7 @@ import {
 } from "../services/appearance.js";
 import { AVAILABLE_LOCALES, setLocale as setI18nLocale } from "../i18n/index.js";
 import { useI18n } from "vue-i18n";
+import { useModelList } from "../composables/useModelList.js";
 
 import JwTag from "@renderer/components/ui/JwTag.vue";
 import JwTable from "@renderer/components/ui/JwTable.vue";
@@ -37,6 +38,72 @@ const props = defineProps({ section: { type: String, default: "" } });
 const ai = useAiStore();
 const project = useProjectStore();
 const ui = useUiStore();
+
+// Per-feature LLM pin UI. Two selects per feature: provider AND model,
+// independent of the global default. Model list is fetched live from
+// the chosen provider's /v1/models endpoint (cached per-provider by
+// useModelList); if the provider isn't reachable, the model list is
+// empty and the user falls back to the provider's saved chatModel.
+const { modelsFor: featureModelsFor, refreshModels: refreshFeatureModels, ensureModels: ensureFeatureModels } = useModelList();
+
+const AI_FEATURES = [
+  { key: "chat",        label: "Manuscript chat", hint: "RAG question/answer in the chat panel." },
+  { key: "critique",    label: "Critique",        hint: "The Critique modal's structural pass." },
+  { key: "entitySweep", label: "Entity sweep",    hint: "Scans chapters for new characters / locations / objects." },
+  { key: "writerAI",    label: "Writer actions",  hint: "Bubble-menu rewrites and prose passes in the editor." },
+];
+const INHERIT = "__inherit__";
+
+// Provider select options — "Inherit default" plus every configured
+// provider. The model column only enables once a specific provider is
+// chosen (inherit means "use the global default's provider AND model").
+const featureProviderOptions = computed(() => {
+  const out = [{ value: INHERIT, label: `Inherit default · ${ai.llmProvider?.name || "—"}` }];
+  for (const p of ai.readyLlmProviders) out.push({ value: p.id, label: p.name });
+  return out;
+});
+
+function featureProviderValue(key) {
+  return ai.featurePins?.[key]?.providerId || INHERIT;
+}
+function featureModelValue(key) {
+  return ai.featurePins?.[key]?.model || "";
+}
+
+function setFeatureProvider(key, providerId) {
+  if (!providerId || providerId === INHERIT) { ai.setFeaturePin(key, null); return; }
+  // New pin: default the model to the provider's saved chatModel so the
+  // pin is immediately usable. User can refine via the model select.
+  const provider = ai.providerById(providerId);
+  ai.setFeaturePin(key, { providerId, model: provider?.chatModel || "" });
+  ensureFeatureModels(providerId); // fetches only when the cache is empty
+}
+function setFeatureModel(key, model) {
+  const pin = ai.featurePins?.[key];
+  if (!pin?.providerId) return;
+  ai.setFeaturePin(key, { providerId: pin.providerId, model: model || pin.model });
+}
+
+// Model options for one feature row. Empty list when the provider is
+// inheriting; otherwise the provider's saved chatModel comes first
+// (always selectable even if the live fetch failed), then any models
+// the live fetch surfaced. De-duplicated by id.
+function featureModelOptions(key) {
+  const providerId = featureProviderValue(key);
+  if (providerId === INHERIT) return [];
+  const provider = ai.providerById(providerId);
+  const list = featureModelsFor(providerId);
+  const seen = new Set();
+  const out = [];
+  if (provider?.chatModel) {
+    out.push({ value: provider.chatModel, label: `${provider.chatModel} (configured default)` });
+    seen.add(provider.chatModel);
+  }
+  for (const m of list) {
+    if (m.id && !seen.has(m.id)) { out.push({ value: m.id, label: m.id }); seen.add(m.id); }
+  }
+  return out;
+}
 
 // i18n locale picker — list comes from AVAILABLE_LOCALES; the active
 // value mirrors vue-i18n's reactive `locale` ref so the select reflects
@@ -79,6 +146,17 @@ const DEBUG_TOOLS = [
 ];
 
 const active = ref(props.section || "project");
+
+// Lazily fetch model lists for any features that already have a pinned
+// provider when the AI section opens (so the model select isn't blank
+// on first render even though we haven't refreshed yet).
+watchEffect(() => {
+  if (active.value !== "audio") return;
+  for (const f of AI_FEATURES) {
+    const pid = ai.featurePins?.[f.key]?.providerId;
+    if (pid) ensureFeatureModels(pid);
+  }
+});
 
 // ── Project meta editing ───────────────────────────────────────────
 // Patch the store live as the user types; updateProjectMeta is already
@@ -891,6 +969,47 @@ const recentColumns = [
         </div>
 
         <div class="card">
+          <div class="card-title">Feature routing</div>
+          <p class="t-muted" style="font-size:12.5px;margin:0 0 14px;line-height:1.55">
+            The AI layer acts as an aggregator: each feature can route to any configured provider and model independently. Pick "Inherit default" to fall back to the global Default LLM above. The model list is fetched live from the provider — it'll be empty until you save an API key (or for local providers, until the server is reachable).
+          </p>
+          <!-- Header row -->
+          <div style="display:grid;grid-template-columns:minmax(180px,200px) minmax(140px,1fr) minmax(140px,1.4fr);gap:8px 14px;align-items:center;font-size:11px;font-family:var(--font-mono);text-transform:uppercase;letter-spacing:0.08em;color:var(--muted);padding-bottom:6px;border-bottom:1px solid var(--border-soft)">
+            <span>Feature</span>
+            <span>Provider</span>
+            <span>Model</span>
+          </div>
+          <div style="display:grid;grid-template-columns:minmax(180px,200px) minmax(140px,1fr) minmax(140px,1.4fr);gap:10px 14px;align-items:center;font-size:13px;margin-top:10px">
+            <template v-for="f in AI_FEATURES" :key="f.key">
+              <div>
+                <div style="font-weight:500;color:var(--ink)">{{ f.label }}</div>
+                <div class="t-muted" style="font-size:11.5px;margin-top:2px;line-height:1.4">{{ f.hint }}</div>
+              </div>
+              <JwSelect
+                :model-value="featureProviderValue(f.key)"
+                @update:model-value="(v) => setFeatureProvider(f.key, v)"
+                :options="featureProviderOptions" />
+              <div style="display:flex;align-items:center;gap:6px;min-width:0">
+                <JwSelect
+                  style="flex:1;min-width:0"
+                  :model-value="featureModelValue(f.key)"
+                  @update:model-value="(v) => setFeatureModel(f.key, v)"
+                  :options="featureModelOptions(f.key)"
+                  :disabled="featureProviderValue(f.key) === '__inherit__'"
+                  :placeholder="featureProviderValue(f.key) === '__inherit__' ? 'Follows default' : 'Pick a model'" />
+                <JwButton
+                  intent="ghost" size="small"
+                  v-tooltip.bottom="'Refresh model list from the provider'"
+                  :disabled="featureProviderValue(f.key) === '__inherit__'"
+                  @click="refreshFeatureModels(featureProviderValue(f.key))">
+                  <template #icon><Icon name="Refresh" :size="12" /></template>
+                </JwButton>
+              </div>
+            </template>
+          </div>
+        </div>
+
+        <div class="card">
           <div style="display:flex;align-items:center;gap:10px;margin-bottom:10px">
             <div class="card-title" style="margin:0">Providers</div>
             <span class="t-muted" style="font-size:12px">{{ ai.providers.length }} configured</span>
@@ -1405,7 +1524,7 @@ const recentColumns = [
               <b>Full width</b><span>Edge-to-edge writing surface.</span>
             </button>
             <button :class="{ active: ap.editorLayout === 'page' }" @click="setAp({ editorLayout: 'page' })">
-              <b>Page</b><span>Centered sheet with margins, running head &amp; drop cap.</span>
+              <b>Page</b><span>Centered sheet with margins and running head.</span>
             </button>
           </div>
           <p class="t-muted" style="font-size:11px;margin:12px 0 0">Per-document overrides for any of these live in the editor's ⚙ Writing settings — pick <em>theme</em> there to fall back to the theme default.</p>
@@ -1958,12 +2077,8 @@ const recentColumns = [
   text-indent: var(--editor-body-para-indent, 0);
 }
 .ap-prose + .ap-prose { margin-top: var(--editor-body-para-spacing, 0); }
-.appear-preview[data-layout="page"] .ap-prose::first-letter {
-  font-family: var(--font-serif); font-weight: 500;
-  font-size: 2.4em; line-height: 0.82;
-  float: left; margin: 0.04em 0.08em -0.06em 0;
-  color: var(--accent);
-}
+/* Drop cap intentionally not previewed — it's disabled in the editor
+   by default. See tokens.css "Drop cap on the first paragraph". */
 .ap-controls { display: flex; gap: 8px; margin-top: 12px; align-items: center; }
 
 /* About → workspace stat tiles */

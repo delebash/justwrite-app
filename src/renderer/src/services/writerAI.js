@@ -43,9 +43,9 @@ function textToHtml(text) {
 // LLM is used.
 async function runChat({ messages, signal, onDelta, temperature, extra, provider, model }) {
   const ai = useAiStore();
-  const actualProvider = provider || ai.llmProvider;
+  const actualProvider = provider || ai.providerForFeature("writerAI");
   if (!actualProvider) throw new Error("No LLM provider is configured. Add one in Settings → AI providers.");
-  const actualModel = model || actualProvider.chatModel;
+  const actualModel = model || ai.modelForFeature("writerAI") || actualProvider.chatModel;
   const tier = ai.resolveTier(actualModel);
   const client = new OpenAICompatClient(actualProvider);
 

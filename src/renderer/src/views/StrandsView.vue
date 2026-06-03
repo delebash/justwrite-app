@@ -32,6 +32,15 @@ const BEAT_PRESETS = [
   "Setup", "Reveal", "Setback", "Refusal",
 ];
 
+// Same family of oklch hues used in GroupsView, so colors picked
+// across these two surfaces sit nicely next to each other in the UI.
+const COLOR_PALETTE = [
+  "oklch(0.65 0.13 25)",   "oklch(0.65 0.13 5)",    "oklch(0.65 0.13 330)",
+  "oklch(0.65 0.13 290)",  "oklch(0.65 0.13 250)",  "oklch(0.65 0.13 210)",
+  "oklch(0.65 0.13 170)",  "oklch(0.65 0.13 130)",  "oklch(0.65 0.13 95)",
+  "oklch(0.7 0.13 55)",
+];
+
 // Scenes whose Links → Strands selection includes this strand.
 // Each row also carries its parent chapter so we can label/navigate.
 const scenesInStrand = computed(() => {
@@ -48,7 +57,7 @@ const scenesInStrand = computed(() => {
           chapterId: ch.id,
           chapterTitle: ch.title,
           chapterNum: ch.num,
-          chapterStatus: ch.status,
+          sceneStatus: scn.status,
         });
       }
     });
@@ -57,6 +66,11 @@ const scenesInStrand = computed(() => {
 });
 
 function chapterById(id) { return project.chapterById(id); }
+function beatSceneStatus(b) {
+  if (!b.chapterId || !b.sceneId) return "";
+  const scn = project.scenesFor(b.chapterId).find((s) => s.id === b.sceneId);
+  return scn?.status || "";
+}
 function update(k, v) { project.updateStrand(s.value.id, { [k]: v }); }
 function updateBeat(beatId, k, v) { project.updateStrandBeat(s.value.id, beatId, { [k]: v }); }
 function removeBeat(beatId) { project.removeStrandBeat(s.value.id, beatId); }
@@ -190,10 +204,13 @@ const sortedBeats = computed(() => {
   <header class="pane-header strand-pane-header">
     <div class="pane-title">
       <Breadcrumb :segments="[{ label: 'Narrative strand', to: '/strands' }]" />
-      <input v-if="s" class="strand-name"
-        :value="s.name"
-        placeholder="Narrative strand name"
-        @input="update('name', $event.target.value)" />
+      <div v-if="s" class="strand-name-row">
+        <span v-if="s.color" class="strand-name-dot" :style="{ background: s.color }" :title="s.color" />
+        <input class="strand-name"
+          :value="s.name"
+          placeholder="Narrative strand name"
+          @input="update('name', $event.target.value)" />
+      </div>
       <h1 v-else class="pane-h1">Narrative strands</h1>
     </div>
     <div class="pane-actions">
@@ -219,6 +236,16 @@ const sortedBeats = computed(() => {
             @input="update('blurb', $event.target.value)" />
 
           <div class="strand-meta-row">
+            <div class="strand-swatches">
+              <span class="t-eyebrow" style="font-size:10px;color:var(--muted)">Color</span>
+              <button v-for="color in COLOR_PALETTE" :key="color"
+                type="button"
+                class="strand-swatch"
+                :class="{ active: color === s.color }"
+                :style="`background:${color}`"
+                :title="`Use ${color}`"
+                @click="update('color', color)" />
+            </div>
             <span class="strand-count">
               {{ scenesInStrand.length }} scene{{ scenesInStrand.length === 1 ? "" : "s" }}
             </span>
@@ -251,7 +278,7 @@ const sortedBeats = computed(() => {
                 <button class="beat-chapter"
                   :class="{ missing: !chapterById(b.chapterId) }"
                   @click="goBeat(b)">
-                  <span v-if="chapterById(b.chapterId)" class="status-dot" :class="chapterById(b.chapterId).status" />
+                  <span v-if="chapterById(b.chapterId)" class="status-dot" :class="beatSceneStatus(b)" />
                   <span class="beat-chapter-text">{{ sceneRefLabel(b) }}</span>
                 </button>
                 <div class="beat-body">
@@ -275,7 +302,7 @@ const sortedBeats = computed(() => {
                   </option>
                 </select>
                 <JwButton intent="ghost" size="small" class="beat-delete" v-tooltip.bottom="'Remove beat'" @click="removeBeat(b.id)">
-                  <Icon name="Trash" :size="12" />
+                  <Icon name="Trash" :size="14" />
                 </JwButton>
               </div>
             </div>
@@ -327,6 +354,15 @@ const sortedBeats = computed(() => {
 }
 
 .strand-pane-header .pane-title { gap: 2px; }
+.strand-name-row {
+  display: flex; align-items: center; gap: 8px;
+  min-width: 0;
+}
+.strand-name-dot {
+  width: 12px; height: 12px; border-radius: 50%;
+  box-shadow: inset 0 0 0 1px rgba(0,0,0,0.12);
+  flex: none;
+}
 .strand-name {
   appearance: none;
   font-family: var(--font-serif);
@@ -370,6 +406,24 @@ const sortedBeats = computed(() => {
   display: flex; align-items: center; gap: 14px;
 }
 .strand-count { margin-left: auto; font-size: 11.5px; color: var(--muted); }
+
+.strand-swatches {
+  display: flex; align-items: center; gap: 6px;
+  flex-wrap: wrap;
+}
+.strand-swatches .t-eyebrow { margin-right: 4px; }
+.strand-swatch {
+  appearance: none; border: 0;
+  width: 20px; height: 20px;
+  border-radius: 5px;
+  cursor: pointer;
+  box-shadow: inset 0 0 0 1px rgba(0,0,0,0.08);
+  transition: transform .08s ease;
+}
+.strand-swatch:hover { transform: scale(1.1); }
+.strand-swatch.active {
+  box-shadow: inset 0 0 0 1px rgba(0,0,0,0.08), 0 0 0 2px var(--surface), 0 0 0 4px var(--accent);
+}
 
 .beats-section {
   border-top: 1px dashed var(--border-soft);

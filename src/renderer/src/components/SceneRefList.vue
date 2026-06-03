@@ -37,7 +37,7 @@ const rows = computed(() => {
           chapterId: ch.id,
           chapterTitle: ch.title,
           chapterNum: ch.num,
-          chapterStatus: ch.status,
+          sceneStatus: scn.status,
         });
       }
     });
@@ -57,7 +57,7 @@ function goScene(chapterId, sceneId) {
       class="scene-ref-chip"
       :title="`Ch. ${row.chapterNum} · ${row.chapterTitle} — ${row.sceneTitle}`"
       @click="goScene(row.chapterId, row.sceneId)">
-      <span class="status-dot" :class="row.chapterStatus" />
+      <span class="status-dot" :class="row.sceneStatus" />
       <span class="scene-ref-num">{{ row.chapterNum }}.{{ row.sceneIdx }}</span>
       <span class="scene-ref-title">{{ row.sceneTitle }}</span>
     </button>

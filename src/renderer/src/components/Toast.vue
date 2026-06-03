@@ -13,7 +13,7 @@ import { Toaster } from "vue-sonner";
     :duration="6000"
     :gap="10"
     :visible-toasts="3"
-    :offset="24"
+    :offset="40"
     close-button
     rich-colors
     class="jw-toast-host"

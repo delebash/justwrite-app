@@ -26,8 +26,14 @@ import JwSelect from "@renderer/components/ui/JwSelect.vue";
 // Normalize the active dialog into a uniform shape the template can read.
 // Single-field prompts become a one-element `fields` list internally so
 // the template only deals with one case.
+//
+// We intentionally do NOT gate on dialogState.open — the body needs to
+// stay rendered during Reka UI's close animation, and the service keeps
+// kind/options around for that purpose (see services/dialog.js).
+// Visibility is driven by `visible` below; that's what controls whether
+// Reka shows the dialog at all.
 const dialog = computed(() => {
-  if (!dialogState.open) return null;
+  if (!dialogState.kind) return null;
   const opts = dialogState.options || {};
   if (dialogState.kind === "confirm") {
     return {

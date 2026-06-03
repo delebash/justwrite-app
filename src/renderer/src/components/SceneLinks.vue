@@ -219,9 +219,13 @@ function onBackdrop(e) {
           <div class="links-row">
             <button v-for="s in project.strands" :key="s.id"
               type="button"
-              class="link-chip"
+              class="link-chip link-chip-strand"
               :class="{ active: getList('strands').includes(s.id) }"
+              :style="getList('strands').includes(s.id) && s.color
+                ? { background: s.color, borderColor: s.color, color: '#fff' }
+                : null"
               @click="toggle('strands', s.id)">
+              <span v-if="s.color" class="link-chip-dot" :style="{ background: s.color }" />
               {{ s.name }}
             </button>
             <button type="button" class="link-chip link-chip-new" @click="newStrand">
@@ -316,6 +320,18 @@ function onBackdrop(e) {
 .link-chip-sub {
   color: var(--muted);
   font-size: 11px;
+}
+.link-chip-strand {
+  display: inline-flex; align-items: center; gap: 7px;
+}
+.link-chip-dot {
+  width: 8px; height: 8px; border-radius: 50%;
+  box-shadow: inset 0 0 0 1px rgba(0,0,0,0.12);
+  flex: none;
+}
+.link-chip-strand.active .link-chip-dot {
+  background: rgba(255,255,255,0.85) !important;
+  box-shadow: inset 0 0 0 1px rgba(0,0,0,0.18);
 }
 .link-chip-new {
   background: var(--surface);

@@ -115,6 +115,7 @@ function save(state) {
       defaultTtsId: state.defaultTtsId,
       defaultEmbeddingId: state.defaultEmbeddingId,
       modelTiers: state.modelTiers,
+      featurePins: state.featurePins,
       autoRebuildRagIndex: state.autoRebuildRagIndex,
     }));
   } catch {}
@@ -139,6 +140,13 @@ export const useAiStore = defineStore("ai", {
       // judgement. Empty by default; the heuristic in modelMeta.js
       // provides the auto-detected tier when nothing is pinned.
       modelTiers: loaded?.modelTiers ?? {},
+      // Per-feature LLM pins. Each key is a feature id (chat | critique |
+      // entitySweep | writerAI); each value is null (= inherit the global
+      // defaultLlmId) or { providerId, model? }. `model` is optional —
+      // when null the provider's own `chatModel` is used. Surfaced in
+      // Settings → AI → Feature defaults, plus the chat panel writes to
+      // featurePins.chat directly for in-thread model switching.
+      featurePins: loaded?.featurePins ?? { chat: null, critique: null, entitySweep: null, writerAI: null },
       // When true, services/rag/autoIndex.js silently embeds new/changed
       // scenes a minute after the last edit. Default OFF — auto-firing
       // burns embed tokens on every save against a cloud provider, which
@@ -159,10 +167,40 @@ export const useAiStore = defineStore("ai", {
     ttsProvider: (s) => s.providers.find((p) => p.id === s.defaultTtsId) || null,
     embeddingProvider: (s) => s.providers.find((p) => p.id === s.defaultEmbeddingId) || null,
     llmProviders: (s) => s.providers.filter((p) => p.kind === "llm" || p.kind === "both"),
+
+    // Subset of llmProviders that's actually usable right now: local
+    // endpoints (no key needed) or cloud providers that have an apiKey
+    // filled in. The model pickers (chat panel, Settings → AI → Feature
+    // defaults) filter on this so we don't surface seed entries like
+    // "Claude · claude-haiku-4-5" when the user hasn't configured them.
+    readyLlmProviders(s) {
+      const isLocal = (url) => /\b(localhost|127\.0\.0\.1|0\.0\.0\.0)\b/i.test(String(url || ""));
+      return s.providers
+        .filter((p) => p.kind === "llm" || p.kind === "both")
+        .filter((p) => !!p.apiKey || isLocal(p.baseUrl));
+    },
     ttsProviders: (s) => s.providers.filter((p) => p.kind === "tts" || p.kind === "both"),
     // Any LLM-capable provider can host embeddings — the embedding
     // model is configured per-provider via the embeddingModel field.
     embeddingProviders: (s) => s.providers.filter((p) => p.kind === "llm" || p.kind === "both"),
+
+    // Resolve a feature pin to its provider; falls back to the global
+    // default LLM provider when no pin is set or the pinned provider is
+    // gone. Use this in feature services instead of `llmProvider`.
+    providerForFeature: (s) => (featureKey) => {
+      const pin = s.featurePins?.[featureKey];
+      if (pin?.providerId) {
+        const hit = s.providers.find((p) => p.id === pin.providerId);
+        if (hit) return hit;
+      }
+      return s.providers.find((p) => p.id === s.defaultLlmId) || null;
+    },
+    // The model id for a feature pin, or null when the pinned provider's
+    // own chatModel should be used (the common case — most pins just
+    // change provider, not model).
+    modelForFeature: (s) => (featureKey) => {
+      return s.featurePins?.[featureKey]?.model || null;
+    },
 
     // Resolve a model id to its tier — user override wins, else the
     // name-pattern heuristic. Returns the tier object (not just the id)
@@ -196,6 +234,11 @@ export const useAiStore = defineStore("ai", {
     },
     removeProvider(id) {
       this.providers = this.providers.filter((p) => p.id !== id || p.builtIn);
+      save(this.$state);
+    },
+    setFeaturePin(featureKey, pin) {
+      // pin = null to inherit the default; { providerId, model? } to pin.
+      this.featurePins = { ...this.featurePins, [featureKey]: pin || null };
       save(this.$state);
     },
     setDefaultLlm(id) {

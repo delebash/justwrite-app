@@ -114,9 +114,12 @@ async function handleEditBeat(strandId, beat, e) {
   // Build a scene picker when the beat is assigned to a chapter so the
   // user can pin the beat to a specific scene. Unassigned beats skip
   // the picker — there are no scenes to choose from.
+  // `note` is intentionally optional (most beats are just a label); the
+  // dialog's canSubmit gate would otherwise disable Save when the beat
+  // has no note. Label stays required.
   const fields = [
     { key: "label", label: "Label", defaultValue: beat.label },
-    { key: "note",  label: "Note",  defaultValue: beat.note },
+    { key: "note",  label: "Note",  defaultValue: beat.note || "", optional: true },
   ];
   const scenes = beat.chapterId ? project.scenesFor(beat.chapterId) : [];
   if (scenes.length) {
@@ -140,6 +143,18 @@ async function handleEditBeat(strandId, beat, e) {
     if ("sceneId" in result) patch.sceneId = result.sceneId || null;
   }
   if (Object.keys(patch).length) project.updateStrandBeat(strandId, beat.id, patch);
+}
+
+// Keyboard activation: Enter and Space trigger the cell/card's click
+// handler. This makes the board navigable without a mouse and gives the
+// Reka UI Dialog focus-restore mechanism a real focusable target to
+// return to when an Add/Edit Beat dialog closes.
+function onCellKey(e, action, enabled) {
+  if (!enabled) return;
+  if (e.key === "Enter" || e.key === " ") { e.preventDefault(); action(); }
+}
+function onCardKey(e, strandId, beat) {
+  if (e.key === "Enter" || e.key === " ") { e.preventDefault(); handleEditBeat(strandId, beat, e); }
 }
 
 async function handleRemoveBeat(strandId, beatId, e) {
@@ -425,7 +440,11 @@ function sceneBadge(beat) {
                 'drag-over': dragOverKey === cellKey(strand.id, null),
                 'cell-empty': beatsInCell(strand, null).length === 0,
               }"
+              :tabindex="beatsInCell(strand, null).length === 0 ? 0 : -1"
+              :role="beatsInCell(strand, null).length === 0 ? 'button' : undefined"
+              :aria-label="beatsInCell(strand, null).length === 0 ? 'Add beat (unassigned)' : undefined"
               @click="beatsInCell(strand, null).length === 0 && handleAddBeat(strand.id, null)"
+              @keydown="onCellKey($event, () => handleAddBeat(strand.id, null), beatsInCell(strand, null).length === 0)"
               @dragover="onDragOver($event, strand.id, null)"
               @dragleave="onDragLeave(strand.id, null)"
               @drop="onDrop($event, strand.id, null)"
@@ -434,12 +453,16 @@ function sceneBadge(beat) {
                 v-for="beat in beatsInCell(strand, null)"
                 :key="beat.id"
                 class="beat-card"
+                tabindex="0"
+                role="button"
+                :aria-label="`Edit beat: ${beat.label}`"
                 :style="`border-left-color:${strand.color || 'var(--accent)'}`"
                 draggable="true"
                 :title="beat.note || beat.label"
                 @dragstart="onDragStart($event, strand.id, beat)"
                 @dragend="onDragEnd"
                 @click.stop="handleEditBeat(strand.id, beat, $event)"
+                @keydown="onCardKey($event, strand.id, beat)"
               >
                 <span class="beat-label">{{ beat.label }}</span>
                 <span v-if="sceneBadge(beat)" class="beat-scene" :title="`Pinned to ${sceneBadge(beat)}`">{{ sceneBadge(beat) }}</span>
@@ -470,7 +493,11 @@ function sceneBadge(beat) {
                 'drag-over': dragOverKey === cellKey(strand.id, ch.id),
                 'cell-empty': beatsInCell(strand, ch.id).length === 0,
               }"
+              :tabindex="beatsInCell(strand, ch.id).length === 0 ? 0 : -1"
+              :role="beatsInCell(strand, ch.id).length === 0 ? 'button' : undefined"
+              :aria-label="beatsInCell(strand, ch.id).length === 0 ? `Add beat in chapter ${ch.num}` : undefined"
               @click="beatsInCell(strand, ch.id).length === 0 && handleAddBeat(strand.id, ch.id)"
+              @keydown="onCellKey($event, () => handleAddBeat(strand.id, ch.id), beatsInCell(strand, ch.id).length === 0)"
               @dragover="onDragOver($event, strand.id, ch.id)"
               @dragleave="onDragLeave(strand.id, ch.id)"
               @drop="onDrop($event, strand.id, ch.id)"
@@ -479,12 +506,16 @@ function sceneBadge(beat) {
                 v-for="beat in beatsInCell(strand, ch.id)"
                 :key="beat.id"
                 class="beat-card"
+                tabindex="0"
+                role="button"
+                :aria-label="`Edit beat: ${beat.label}`"
                 :style="`border-left-color:${strand.color || 'var(--accent)'}`"
                 draggable="true"
                 :title="beat.note || beat.label"
                 @dragstart="onDragStart($event, strand.id, beat)"
                 @dragend="onDragEnd"
                 @click.stop="handleEditBeat(strand.id, beat, $event)"
+                @keydown="onCardKey($event, strand.id, beat)"
               >
                 <span class="beat-label">{{ beat.label }}</span>
                 <span v-if="sceneBadge(beat)" class="beat-scene" :title="`Pinned to ${sceneBadge(beat)}`">{{ sceneBadge(beat) }}</span>
@@ -788,6 +819,15 @@ function sceneBadge(beat) {
   outline-offset: -2px;
   background: color-mix(in oklab, var(--accent) 12%, transparent);
 }
+/* Keyboard focus rings — :focus-visible only, so mouse-clicking a cell
+   doesn't leave a permanent ring behind. Matches the accent-soft pattern
+   used elsewhere in the app (inputs, JwButton, JwSelect). */
+.beat-cell:focus { outline: none; }
+.beat-cell:focus-visible {
+  outline: none;
+  box-shadow: 0 0 0 3px var(--accent-soft);
+  border-radius: 4px;
+}
 
 /* ── Beat cards ──────────────────────────────────────────────────── */
 .beat-card {
@@ -798,12 +838,17 @@ function sceneBadge(beat) {
   padding: 6px 8px;
   background: var(--surface-2);
   border: 1px solid var(--border-soft);
-  border-left: 3px solid var(--accent); /* color overridden inline */
+  border-left: 6px solid var(--accent); /* color overridden inline */
   font-size: 11.5px;
   line-height: 1.3;
   cursor: grab;
   transition: background .12s, box-shadow .12s;
   min-width: 0;
+}
+.beat-card:focus { outline: none; }
+.beat-card:focus-visible {
+  outline: none;
+  box-shadow: 0 0 0 3px var(--accent-soft);
 }
 .beat-card:hover {
   background: var(--surface-3);

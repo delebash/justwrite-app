@@ -114,7 +114,8 @@ export async function askManuscript({
   const ai      = useAiStore();
   const project = useProjectStore();
 
-  const resolvedLlmProvider   = llmProvider   || ai.llmProvider;
+  const resolvedLlmProvider   = llmProvider   || ai.providerForFeature("chat");
+  const resolvedLlmModel      = llmModel      || ai.modelForFeature("chat") || resolvedLlmProvider?.chatModel;
   const resolvedEmbedProvider = embedProvider || ai.embeddingProvider;
 
   if (!resolvedLlmProvider) {
@@ -128,7 +129,6 @@ export async function askManuscript({
     );
   }
 
-  const resolvedLlmModel   = llmModel   || resolvedLlmProvider.chatModel   || "";
   const resolvedEmbedModel = embedModel || resolvedEmbedProvider.embeddingModel || "";
 
   // ── 2. Load vector store ─────────────────────────────────────────────────

@@ -208,9 +208,12 @@ function resetParam(key) { setParam(key, undefined); }
       <JwInput v-model="draft.apiKey" type="password" placeholder="Optional — leave blank for local providers" />
 
       <template v-if="draft.kind === 'llm' || draft.kind === 'both'">
-        <span class="t-muted" title="Which LLM runner is behind the Base URL. Ollama uses its native /api/chat (where think:false actually works); everything else uses /v1/chat/completions.">Runner</span>
+        <span class="t-muted" title="Which request format this provider speaks. OpenAI-compatible covers OpenAI, Anthropic, Google, OpenRouter, DeepSeek, LM Studio, llama.cpp, vLLM — anything that exposes /v1/chat/completions. Pick Ollama only for an Ollama daemon — its native /api/chat is the only path that honors think:false.">API format</span>
         <JwSelect :model-value="runnerValue" @update:model-value="draft.runner = $event"
-          :options="[{ label: 'OpenAI-compatible (LM Studio, llama.cpp, vLLM, cloud APIs)', value: 'openai-compat' }, { label: 'Ollama (native /api/chat — honors think:false)', value: 'ollama' }]"
+          :options="[
+            { label: 'OpenAI-compatible (most providers — OpenAI, Anthropic, Google, OpenRouter, DeepSeek, LM Studio, llama.cpp, vLLM…)', value: 'openai-compat' },
+            { label: 'Ollama native (only for an Ollama daemon — honors think:false)', value: 'ollama' },
+          ]"
           optionLabel="label" optionValue="value" />
       </template>
 
@@ -252,15 +255,10 @@ function resetParam(key) { setParam(key, undefined); }
           </div>
         </template>
 
-        <span class="t-muted" title="Optional embedding model — fills the RAG (manuscript chat) index. Leave blank if this provider isn't your embedding provider. OpenAI: text-embedding-3-small. Ollama: nomic-embed-text.">Embedding model</span>
-        <Combobox
+        <span class="t-muted" title="Optional embedding model — fills the RAG (manuscript chat) index. Leave blank if this provider isn't your embedding provider. OpenAI: text-embedding-3-small. Ollama: nomic-embed-text. Anthropic / Google / OpenRouter generally don't expose embedding endpoints — leave blank.">Embedding model</span>
+        <JwInput
           v-model="draft.embeddingModel"
-          :items="fetchedModels"
-          item-value="id"
-          item-label="label"
-          free-text
-          :placeholder="fetchedModels.length ? `Type to filter or click ▾ to pick from ${fetchedModels.length} models` : 'text-embedding-3-small / nomic-embed-text / … (Fetch models on Chat row above)'"
-          :chev-title="fetchedModels.length ? 'Show fetched models' : 'Fetch models on the Chat model row first'" />
+          placeholder="text-embedding-3-small  ·  nomic-embed-text  ·  …" />
       </template>
 
       <template v-if="draft.kind === 'tts' || draft.kind === 'both'">

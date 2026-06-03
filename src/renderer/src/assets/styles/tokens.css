@@ -1186,8 +1186,10 @@ html[data-editor-layout="page"] .page-folio {
   font-size: 13px; color: var(--subtle);
   margin-top: 48px;
 }
-/* Drop cap on the first paragraph of the sheet. */
-html[data-editor-layout="page"] .rich-editor--manuscript .tiptap-content > p:first-of-type::first-letter {
+/* Drop cap on the first paragraph of the sheet — disabled by default;
+   the editor's first letter renders as plain prose. Re-enable by giving
+   the manuscript-inner element the .with-drop-cap class. */
+html[data-editor-layout="page"] .rich-editor--manuscript .manuscript-inner.with-drop-cap .tiptap-content > p:first-of-type::first-letter {
   font-family: var(--font-serif); font-weight: 500;
   font-size: 3.4em; line-height: 0.82;
   float: left; margin: 0.04em 0.09em -0.06em 0;

@@ -59,11 +59,17 @@ export function confirmDialog(options = {}) {
 }
 
 // Called by the dialog host on confirm / cancel.
+//
+// We deliberately keep `kind` and `options` set after closing — the
+// dialog host renders its body off those, and Reka UI's DialogContent
+// keeps the dialog frame mounted during its close animation (~150ms).
+// Clearing kind/options synchronously made the body content disappear
+// mid-fade ("dialog collapses to just the header + footer for a frame"
+// before disappearing entirely). The next openDialog call overwrites
+// both fields atomically, so the stale data is harmless until then.
 export function _resolveDialog(value) {
   const r = dialogState._resolve;
   dialogState.open = false;
-  dialogState.kind = null;
-  dialogState.options = null;
   dialogState._resolve = null;
   if (r) r(value);
 }

@@ -13,8 +13,17 @@
 //
 // Reka UI's SelectItem requires string values internally; we string-
 // roundtrip non-string values so callers can pass numbers/booleans too.
+//
+// Reka also forbids an empty-string value on SelectItem (it reserves ""
+// as the "no selection" sentinel on SelectRoot). To let callers offer
+// an "Any" / "None" option with value="" without hitting that error, we
+// swap empty values for an internal sentinel at the SelectItem boundary
+// and unwrap on emit. Callers see "" / null in v-model; Reka never sees
+// a literal "" in an option.
 
 import { computed } from "vue";
+
+const EMPTY_SENTINEL = "__jw_empty__";
 import {
   SelectRoot,
   SelectTrigger,
@@ -47,16 +56,29 @@ function labelFor(option) { return option == null ? "" : option[props.optionLabe
 // Reka's SelectRoot deals in strings; we convert at the boundary so the
 // outer v-model keeps the caller's native type (the common case is string
 // anyway, but font-size enums and a few other selects use other types).
+//   modelValue = null      → Reka value "" (no selection)
+//   modelValue = ""        → Reka value EMPTY_SENTINEL (user picked the empty-value option)
+//   modelValue = otherwise → Reka value String(modelValue)
 const stringValue = computed({
   get() {
-    return props.modelValue == null ? "" : String(props.modelValue);
+    if (props.modelValue == null) return "";
+    if (props.modelValue === "") return EMPTY_SENTINEL;
+    return String(props.modelValue);
   },
   set(s) {
-    if (s === "" || s == null) { emit("update:modelValue", null); return; }
+    if (s == null || s === "") { emit("update:modelValue", null); return; }
+    if (s === EMPTY_SENTINEL) { emit("update:modelValue", ""); return; }
     const match = props.options.find(o => String(valueFor(o)) === s);
     emit("update:modelValue", match ? valueFor(match) : s);
   },
 });
+
+// Sentinel-swap for the per-item value. Callers can declare an option
+// with value="" and we render it with the sentinel so Reka accepts it.
+function itemValue(opt) {
+  const v = String(valueFor(opt));
+  return v === "" ? EMPTY_SENTINEL : v;
+}
 
 const selectedLabel = computed(() => {
   if (props.modelValue == null) return "";
@@ -96,7 +118,7 @@ function clear(e) {
           <SelectItem
             v-for="opt in options"
             :key="String(valueFor(opt))"
-            :value="String(valueFor(opt))"
+            :value="itemValue(opt)"
             class="jw-select-item"
           >
             <SelectItemText>{{ labelFor(opt) }}</SelectItemText>

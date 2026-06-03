@@ -1203,10 +1203,18 @@ export const useProjectStore = defineStore("project", {
     addStrand(input = {}) {
       this._record("addStrand");
       const id = uid("strand");
+      // Rotate through the picker palette so freshly-created strands get
+      // distinct hues instead of every new one defaulting to the same blue.
+      const palette = [
+        "oklch(0.65 0.13 25)",   "oklch(0.65 0.13 5)",    "oklch(0.65 0.13 330)",
+        "oklch(0.65 0.13 290)",  "oklch(0.65 0.13 250)",  "oklch(0.65 0.13 210)",
+        "oklch(0.65 0.13 170)",  "oklch(0.65 0.13 130)",  "oklch(0.65 0.13 95)",
+        "oklch(0.7 0.13 55)",
+      ];
       this.strands.push({
         id,
         name: "Untitled narrative strand",
-        color: "oklch(0.78 0.06 200)",
+        color: palette[this.strands.length % palette.length],
         blurb: "",
         body: "",
         status: "open",

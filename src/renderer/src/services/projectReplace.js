@@ -88,10 +88,10 @@ export function scanScenes(project, term, caseSensitive = false) {
         chapterId: ch.id,
         chapterNum: ch.num,
         chapterTitle: ch.title,
-        chapterStatus: ch.status,
         sceneId: scn.id,
         sceneIdx: idx + 1,
         sceneTitle: scn.title || `Scene ${idx + 1}`,
+        sceneStatus: scn.status,
         count,
         snippet,
       });

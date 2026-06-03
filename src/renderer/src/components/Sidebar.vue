@@ -137,7 +137,7 @@ const expandableChildren = computed(() => ({
   ],
   locations: [{ subgroupId: "all", items: project.locations.map((l) => ({ id: l.id, label: l.name, ...navStatus(l.status), subgroupId: "all" })) }],
   objects:   [{ subgroupId: "all", items: project.objects.map((o) => ({ id: o.id, label: o.name, ...navStatus(o.status), subgroupId: "all" })) }],
-  strands: [{ subgroupId: "all", items: project.strands.map((s) => ({ id: s.id, label: s.name, ...navStatus(s.status), subgroupId: "all" })) }],
+  strands: [{ subgroupId: "all", items: project.strands.map((s) => ({ id: s.id, label: s.name, color: s.color, ...navStatus(s.status), subgroupId: "all" })) }],
   groups:    [{ subgroupId: "all", items: project.groups.map((g) => ({ id: g.id, label: g.name, color: g.color, ...navStatus(g.status), subgroupId: "all" })) }],
   notes:     [{ subgroupId: "all", items: project.notes.map((n) => ({ id: n.id, label: n.title, sub: n.tag, subgroupId: "all" })) }],
   architecture: [{ subgroupId: "all", items: Object.values(project.architecture).filter(Boolean).map((d) => ({ id: d.id, label: d.title, ...navStatus(d.status), subgroupId: "all" })) }],
@@ -867,7 +867,7 @@ function wbDropClass(kind, id) {
                   @dragover="!n.fixed && onItemDragOver(n.expandable, c.id, c.subgroupId, $event)"
                   @drop="!n.fixed && onItemDrop(n.expandable, c.id)"
                   @dragend="!n.fixed && onItemDragEnd()">
-                  <span v-if="c.color" class="nav-child-group-color" :style="{ background: c.color }" title="Group color" />
+                  <span v-if="c.color" class="nav-child-group-color" :style="{ background: c.color }" />
                   <span class="nav-child-label">{{ c.label }}</span>
                   <span v-if="c.statusLabel" class="nav-child-status" :style="{ color: c.statusColor }">{{ c.statusLabel }}</span>
                   <span v-else-if="c.sub" class="nav-child-sub">{{ c.sub }}</span>

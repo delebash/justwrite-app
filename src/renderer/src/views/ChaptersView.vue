@@ -592,7 +592,7 @@ watch(() => project.allChapters.map((c) => c.id + ":" + (project.scenesFor(c.id)
               :disabled="project.parts.length <= 1"
               v-tooltip.bottom="project.parts.length <= 1 ? 'Project needs at least one part' : 'Delete part'"
               @click="deletePart(part)">
-              <Icon name="Trash" :size="12" />
+              <Icon name="Trash" :size="14" />
             </JwButton>
           </div>
         </div>
@@ -786,7 +786,7 @@ watch(() => project.allChapters.map((c) => c.id + ":" + (project.scenesFor(c.id)
           :disabled="scenes.length <= 1"
           v-tooltip.bottom="scenes.length <= 1 ? 'A chapter needs at least one scene' : 'Delete scene'"
           @click="removeScene(activeScene)">
-          <Icon name="Trash" :size="12" />
+          <Icon name="Trash" :size="14" />
         </JwButton>
       </div>
     </div>

@@ -67,7 +67,7 @@ function openScene(row) {
         <button class="pr-row-main" @click="openScene(row)"
           :title="`Open Ch. ${row.chapterNum} · ${row.chapterTitle} — ${row.sceneTitle}`">
           <span class="pr-row-head">
-            <span class="status-dot" :class="row.chapterStatus" />
+            <span class="status-dot" :class="row.sceneStatus" />
             <span class="pr-num">{{ row.chapterNum }}.{{ row.sceneIdx }}</span>
             <span class="pr-title">{{ row.sceneTitle }}</span>
             <span class="pr-count">×{{ row.count }}</span>

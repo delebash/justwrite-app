@@ -1349,10 +1349,10 @@ defineExpose({ editor });
 
 /* Selection bubble menu */
 .bubble-menu {
-  display: flex; gap: 2px; padding: 4px; align-items: center;
+  display: flex; gap: 4px; padding: 4px; align-items: center;
   background: var(--surface); border: 1px solid var(--border);
   border-radius: 8px; box-shadow: 0 6px 20px rgba(0,0,0,.16);
-  max-width: min(640px, 92vw);
+  max-width: min(720px, 92vw);
   flex-wrap: wrap;
 }
 .bubble-sep {
@@ -1363,9 +1363,13 @@ defineExpose({ editor });
 /* ── AI assist ───────────────────────────────────────────── */
 .ai-btn {
   display: inline-flex !important; gap: 5px; align-items: center;
-  padding: 0 8px !important;
+  width: auto !important;
+  padding: 0 10px !important;
   color: var(--accent-ink);
 }
+/* Tighten internal label spacing on AI buttons so multi-word labels
+   don't run flush against the next button's icon/label. */
+.ai-btn + .ai-btn { margin-left: 2px; }
 .ai-btn:hover { background: var(--accent-soft); }
 .ai-btn:disabled { opacity: 0.55; cursor: not-allowed; }
 .ai-btn .ai-lbl {

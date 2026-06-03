@@ -25,9 +25,9 @@ function htmlToText(html) {
 
 async function runChat({ messages, temperature, extra, signal, onDelta, provider, model }) {
   const ai = useAiStore();
-  const actualProvider = provider || ai.llmProvider;
+  const actualProvider = provider || ai.providerForFeature("critique");
   if (!actualProvider) throw new Error("No LLM provider is configured. Add one in Settings → AI providers.");
-  const actualModel = model || actualProvider.chatModel;
+  const actualModel = model || ai.modelForFeature("critique") || actualProvider.chatModel;
   const client = new OpenAICompatClient(actualProvider);
   const tier = ai.resolveTier(actualModel);
   let content = "";

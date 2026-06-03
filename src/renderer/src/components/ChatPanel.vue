@@ -7,9 +7,10 @@
 // /entity context), top-K scenes are retrieved, and the LLM streams an
 // answer with citations. "New thread" clears.
 
-import { ref, computed, watch, nextTick } from "vue";
+import { ref, computed, watch, nextTick, onBeforeUnmount } from "vue";
 import { useRouter } from "vue-router";
 import { useProjectStore } from "../stores/project.js";
+import { useAiStore } from "../stores/ai.js";
 import { useAiProgress } from "../composables/useAiProgress.js";
 import { askManuscript } from "../services/rag/chat.js";
 import { indexStatus } from "../services/rag/indexer.js";
@@ -20,6 +21,8 @@ import AiProgressBar from "./AiProgressBar.vue";
 import EmptyState from "./EmptyState.vue";
 import Icon from "./Icon.vue";
 import JwButton from "@renderer/components/ui/JwButton.vue";
+import JwSelect from "@renderer/components/ui/JwSelect.vue";
+import { useModelList } from "../composables/useModelList.js";
 
 const THREAD_KEY = (pid) => `justwrite:rag:thread:${pid}`;
 // Cap persisted threads at the last 30 messages — long threads waste
@@ -60,7 +63,54 @@ const emit = defineEmits(["update:modelValue"]);
 
 const router = useRouter();
 const project = useProjectStore();
+const ai = useAiStore();
 const progress = useAiProgress();
+
+// Per-thread provider+model picker. Writes to ai.featurePins.chat —
+// the same key Settings → AI → Feature routing edits. Two selects mirror
+// the aggregator pattern: pick provider, then pick model.
+const { modelsFor: chatModelsFor, refreshModels: refreshChatModels, ensureModels: ensureChatModels } = useModelList();
+const INHERIT_CHAT = "__inherit__";
+
+const chatProviderOptions = computed(() => {
+  const out = [{ value: INHERIT_CHAT, label: `Default · ${ai.llmProvider?.name || "—"}` }];
+  for (const p of ai.readyLlmProviders) out.push({ value: p.id, label: p.name });
+  return out;
+});
+const chatProviderValue = computed({
+  get() { return ai.featurePins?.chat?.providerId || INHERIT_CHAT; },
+  set(v) {
+    if (!v || v === INHERIT_CHAT) { ai.setFeaturePin("chat", null); return; }
+    const p = ai.providerById(v);
+    ai.setFeaturePin("chat", { providerId: v, model: p?.chatModel || "" });
+    ensureChatModels(v);
+  },
+});
+const chatModelValue = computed({
+  get() { return ai.featurePins?.chat?.model || ""; },
+  set(v) {
+    const pin = ai.featurePins?.chat;
+    if (!pin?.providerId) return;
+    ai.setFeaturePin("chat", { providerId: pin.providerId, model: v || pin.model });
+  },
+});
+const chatModelOptions = computed(() => {
+  const pid = chatProviderValue.value;
+  if (pid === INHERIT_CHAT) return [];
+  const provider = ai.providerById(pid);
+  const list = chatModelsFor(pid);
+  const seen = new Set();
+  const out = [];
+  if (provider?.chatModel) {
+    out.push({ value: provider.chatModel, label: `${provider.chatModel} (default)` });
+    seen.add(provider.chatModel);
+  }
+  for (const m of list) {
+    if (m.id && !seen.has(m.id)) { out.push({ value: m.id, label: m.id }); seen.add(m.id); }
+  }
+  return out;
+});
+const showModelPicker = computed(() => ai.readyLlmProviders.length > 1);
 
 const question = ref("");
 // thread items:
@@ -75,6 +125,15 @@ const open = computed({
   get: () => props.modelValue,
   set: (v) => emit("update:modelValue", v),
 });
+
+// When the panel opens with a pre-existing chat pin, make sure the
+// model list is populated. ensureChatModels only hits the network when
+// the cache is empty — repeat opens are free.
+watch(open, (v) => {
+  if (!v) return;
+  const pid = ai.featurePins?.chat?.providerId;
+  if (pid) ensureChatModels(pid);
+}, { immediate: true });
 
 // indexStatus() reads the (non-reactive) IDB cache directly, so the computed
 // has no signal to recompute when the vector store changes. Bump indexBump
@@ -165,6 +224,15 @@ function newThread() {
 function close() {
   open.value = false;
 }
+
+function onDocKeydown(e) {
+  if (e.key === "Escape" && open.value) {
+    e.stopPropagation();
+    close();
+  }
+}
+document.addEventListener("keydown", onDocKeydown);
+onBeforeUnmount(() => document.removeEventListener("keydown", onDocKeydown));
 
 function onIndexBuilt() {
   // Don't auto-close the modal — yanking it via v-if while PrimeVue's
@@ -271,6 +339,24 @@ defineExpose({ open: () => { open.value = true; }, close });
 
         <!-- Question input (pinned to the bottom of the panel) -->
         <div class="cp-input-row">
+          <div v-if="showModelPicker" class="cp-model-pick">
+            <JwSelect v-model="chatProviderValue" :options="chatProviderOptions" />
+            <div style="display:flex;align-items:center;gap:4px;min-width:0">
+              <JwSelect
+                style="flex:1;min-width:0"
+                v-model="chatModelValue"
+                :options="chatModelOptions"
+                :disabled="chatProviderValue === '__inherit__'"
+                :placeholder="chatProviderValue === '__inherit__' ? 'Follows default' : 'Model'" />
+              <JwButton
+                intent="ghost" size="small"
+                v-tooltip.bottom="'Refresh model list from the provider'"
+                :disabled="chatProviderValue === '__inherit__'"
+                @click="refreshChatModels(chatProviderValue)">
+                <template #icon><Icon name="Refresh" :size="11" /></template>
+              </JwButton>
+            </div>
+          </div>
           <textarea
             ref="inputRef"
             v-model="question"
@@ -308,11 +394,12 @@ defineExpose({ open: () => { open.value = true; }, close });
 
 <style scoped>
 .chat-panel {
-  position: fixed; top: 0; right: 0; bottom: 0; z-index: 80;
-  width: min(440px, 100vw);
+  position: fixed; top: 16px; right: 16px; bottom: 32px; z-index: 80;
+  width: min(440px, calc(100vw - 32px));
   background: var(--surface);
-  border-left: 1px solid var(--border);
-  box-shadow: -8px 0 24px rgba(0, 0, 0, .14);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  box-shadow: var(--shadow-window);
   display: flex; flex-direction: column;
   padding: 18px 22px;
   gap: 12px;
@@ -414,6 +501,12 @@ defineExpose({ open: () => { open.value = true; }, close });
   flex-shrink: 0;
 }
 .cp-input-row:focus-within { border-color: var(--accent); }
+.cp-model-pick {
+  display: grid; grid-template-columns: 1fr 1fr; gap: 6px;
+  padding-bottom: 6px; margin-bottom: 2px;
+  border-bottom: 1px solid var(--border-soft);
+}
+.cp-model-pick :deep(.jw-select-trigger) { padding: 4px 8px; font-size: 12.5px; }
 .cp-textarea {
   width: 100%; box-sizing: border-box;
   appearance: none; border: 0; outline: 0; background: transparent; resize: vertical;
