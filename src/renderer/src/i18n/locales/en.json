@@ -1,0 +1,67 @@
+{
+  "nav": {
+    "home": "Home",
+    "chapters": "Chapters",
+    "characters": "Characters",
+    "locations": "Locations",
+    "objects": "Objects",
+    "groups": "Groups",
+    "notes": "Notes",
+    "strands": "Strands",
+    "worldbuilding": "Worldbuilding",
+    "architecture": "Architecture",
+    "search": "Search",
+    "studio": "Studio",
+    "analysis": "Analysis",
+    "import": "Import",
+    "export": "Export",
+    "trash": "Trash",
+    "settings": "Settings"
+  },
+  "common": {
+    "save": "Save",
+    "cancel": "Cancel",
+    "delete": "Delete",
+    "edit": "Edit",
+    "remove": "Remove",
+    "restore": "Restore",
+    "confirm": "Confirm",
+    "ok": "OK",
+    "close": "Close",
+    "back": "Back",
+    "next": "Next",
+    "previous": "Previous",
+    "search": "Search",
+    "loading": "Loading…",
+    "create": "Create",
+    "add": "Add",
+    "done": "Done",
+    "yes": "Yes",
+    "no": "No",
+    "skip": "Skip",
+    "discard": "Discard",
+    "apply": "Apply",
+    "reset": "Reset",
+    "clear": "Clear",
+    "clearFilters": "Clear filters",
+    "new": "New",
+    "undo": "Undo",
+    "redo": "Redo"
+  },
+  "settings": {
+    "title": "Settings",
+    "sections": {
+      "project": "Project",
+      "audio": "AI & Audio engines",
+      "usage": "AI usage",
+      "appearance": "Appearance",
+      "backups": "Backups",
+      "debug": "Debug",
+      "about": "About"
+    },
+    "language": {
+      "label": "Language",
+      "hint": "User-interface language. Date and number formatting follow the same locale."
+    }
+  }
+}
