@@ -1,0 +1,25 @@
+@page {
+    margin-bottom: 20pt;
+    margin-top: 20pt
+    }
+@font-face {
+    font-family: "Times New Roman";
+    font-weight: normal;
+    font-style: normal;
+    font-stretch: normal;
+    src: url(../Fonts/Times-New-Roman.ttf)
+    }
+@font-face {
+    font-family: "Times New Roman";
+    font-weight: bold;
+    font-style: normal;
+    font-stretch: normal;
+    src: url(../Fonts/Times-New-Roman-Bold.ttf)
+    }
+@font-face {
+    font-family: "Times New Roman";
+    font-weight: normal;
+    font-style: italic;
+    font-stretch: normal;
+    src: url(../Fonts/Times-New-Roman-Italic.ttf)
+    }

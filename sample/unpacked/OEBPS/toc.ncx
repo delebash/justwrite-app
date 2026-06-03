@@ -1,0 +1,237 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<!DOCTYPE ncx PUBLIC "-//NISO//DTD ncx 2005-1//EN"
+ "http://www.daisy.org/z3986/2005/ncx-2005-1.dtd"><ncx version="2005-1" xmlns="http://www.daisy.org/z3986/2005/ncx/">
+  <head>
+    <meta content="038da0b2-5140-42ac-ac18-e7005a109f94" name="dtb:uid"/>
+    <meta content="1" name="dtb:depth"/>
+    <meta content="0" name="dtb:totalPageCount"/>
+    <meta content="0" name="dtb:maxPageNumber"/>
+  </head>
+  <docTitle>
+    <text>The Gilgamesh Project - Book 5 Cuba</text>
+  </docTitle>
+  <navMap>
+    <navPoint id="navPoint-1" playOrder="1">
+      <navLabel>
+        <text>THE GILGAMESH PROJECT</text>
+      </navLabel>
+      <content src="Text/index.html"/>
+    </navPoint>
+    <navPoint id="navPoint-2" playOrder="2">
+      <navLabel>
+        <text>INTRODUCTION</text>
+      </navLabel>
+      <content src="Text/index.html#id_RefHeading___Toc117_1311921074"/>
+    </navPoint>
+    <navPoint id="navPoint-3" playOrder="3">
+      <navLabel>
+        <text>PROLOGUE</text>
+      </navLabel>
+      <content src="Text/index.html#id_RefHeading___Toc119_1311921074"/>
+    </navPoint>
+    <navPoint id="navPoint-4" playOrder="4">
+      <navLabel>
+        <text>CHAPTER 1</text>
+      </navLabel>
+      <content src="Text/index.html#sigil_toc_id_1"/>
+    </navPoint>
+    <navPoint id="navPoint-5" playOrder="5">
+      <navLabel>
+        <text>CHAPTER 2</text>
+      </navLabel>
+      <content src="Text/index.html#id_RefHeading___Toc127_1311921074"/>
+    </navPoint>
+    <navPoint id="navPoint-6" playOrder="6">
+      <navLabel>
+        <text>CHAPTER 3</text>
+      </navLabel>
+      <content src="Text/index.html#id_RefHeading___Toc129_1311921074"/>
+    </navPoint>
+    <navPoint id="navPoint-7" playOrder="7">
+      <navLabel>
+        <text>CHAPTER 4</text>
+      </navLabel>
+      <content src="Text/index.html#id_RefHeading___Toc131_1311921074"/>
+    </navPoint>
+    <navPoint id="navPoint-8" playOrder="8">
+      <navLabel>
+        <text>CHAPTER 5</text>
+      </navLabel>
+      <content src="Text/index.html#id_RefHeading___Toc133_1311921074"/>
+    </navPoint>
+    <navPoint id="navPoint-9" playOrder="9">
+      <navLabel>
+        <text>CHAPTER 6</text>
+      </navLabel>
+      <content src="Text/index.html#id_RefHeading___Toc135_1311921074"/>
+    </navPoint>
+    <navPoint id="navPoint-10" playOrder="10">
+      <navLabel>
+        <text>CHAPTER 7</text>
+      </navLabel>
+      <content src="Text/index.html#id_RefHeading___Toc137_1311921074"/>
+    </navPoint>
+    <navPoint id="navPoint-11" playOrder="11">
+      <navLabel>
+        <text>CHAPTER 8</text>
+      </navLabel>
+      <content src="Text/index.html#id_RefHeading___Toc141_1311921074"/>
+    </navPoint>
+    <navPoint id="navPoint-12" playOrder="12">
+      <navLabel>
+        <text>CHAPTER 9</text>
+      </navLabel>
+      <content src="Text/index.html#id_RefHeading___Toc143_1311921074"/>
+    </navPoint>
+    <navPoint id="navPoint-13" playOrder="13">
+      <navLabel>
+        <text>CHAPTER 10</text>
+      </navLabel>
+      <content src="Text/index.html#id_RefHeading___Toc147_1311921074"/>
+    </navPoint>
+    <navPoint id="navPoint-14" playOrder="14">
+      <navLabel>
+        <text>CHAPTER 11</text>
+      </navLabel>
+      <content src="Text/index.html#id_RefHeading___Toc151_1311921074"/>
+    </navPoint>
+    <navPoint id="navPoint-15" playOrder="15">
+      <navLabel>
+        <text>CHAPTER 12</text>
+      </navLabel>
+      <content src="Text/index.html#id_RefHeading___Toc155_1311921074"/>
+    </navPoint>
+    <navPoint id="navPoint-16" playOrder="16">
+      <navLabel>
+        <text>CHAPTER 13</text>
+      </navLabel>
+      <content src="Text/index.html#id_RefHeading___Toc157_1311921074"/>
+    </navPoint>
+    <navPoint id="navPoint-17" playOrder="17">
+      <navLabel>
+        <text>CHAPTER 14</text>
+      </navLabel>
+      <content src="Text/index.html#id_RefHeading___Toc159_1311921074"/>
+    </navPoint>
+    <navPoint id="navPoint-18" playOrder="18">
+      <navLabel>
+        <text>CHAPTER 15</text>
+      </navLabel>
+      <content src="Text/index.html#id_RefHeading___Toc161_1311921074"/>
+    </navPoint>
+    <navPoint id="navPoint-19" playOrder="19">
+      <navLabel>
+        <text>CHAPTER 16</text>
+      </navLabel>
+      <content src="Text/index.html#id_RefHeading___Toc163_1311921074"/>
+    </navPoint>
+    <navPoint id="navPoint-20" playOrder="20">
+      <navLabel>
+        <text>CHAPTER 17</text>
+      </navLabel>
+      <content src="Text/index.html#id_RefHeading___Toc165_1311921074"/>
+    </navPoint>
+    <navPoint id="navPoint-21" playOrder="21">
+      <navLabel>
+        <text>CHAPTER 18</text>
+      </navLabel>
+      <content src="Text/index.html#id_RefHeading___Toc167_1311921074"/>
+    </navPoint>
+    <navPoint id="navPoint-22" playOrder="22">
+      <navLabel>
+        <text>CHAPTER 19</text>
+      </navLabel>
+      <content src="Text/index.html#id_RefHeading___Toc169_1311921074"/>
+    </navPoint>
+    <navPoint id="navPoint-23" playOrder="23">
+      <navLabel>
+        <text>CHAPTER 20﻿</text>
+      </navLabel>
+      <content src="Text/index.html#id_RefHeading___Toc171_1311921074"/>
+    </navPoint>
+    <navPoint id="navPoint-24" playOrder="24">
+      <navLabel>
+        <text>CHAPTER 21</text>
+      </navLabel>
+      <content src="Text/index.html#id_RefHeading___Toc173_1311921074"/>
+    </navPoint>
+    <navPoint id="navPoint-25" playOrder="25">
+      <navLabel>
+        <text>CHAPTER 22</text>
+      </navLabel>
+      <content src="Text/index.html#id_RefHeading___Toc175_1311921074"/>
+    </navPoint>
+    <navPoint id="navPoint-26" playOrder="26">
+      <navLabel>
+        <text>CHAPTER 23</text>
+      </navLabel>
+      <content src="Text/index.html#id_RefHeading___Toc177_1311921074"/>
+    </navPoint>
+    <navPoint id="navPoint-27" playOrder="27">
+      <navLabel>
+        <text>CHAPTER 24</text>
+      </navLabel>
+      <content src="Text/index.html#id_RefHeading___Toc179_1311921074"/>
+    </navPoint>
+    <navPoint id="navPoint-28" playOrder="28">
+      <navLabel>
+        <text>CHAPTER 25</text>
+      </navLabel>
+      <content src="Text/index.html#id_RefHeading___Toc181_1311921074"/>
+    </navPoint>
+    <navPoint id="navPoint-29" playOrder="29">
+      <navLabel>
+        <text>CHAPTER 26</text>
+      </navLabel>
+      <content src="Text/index.html#id_RefHeading___Toc183_1311921074"/>
+    </navPoint>
+    <navPoint id="navPoint-30" playOrder="30">
+      <navLabel>
+        <text>CHAPTER 27</text>
+      </navLabel>
+      <content src="Text/index.html#id_RefHeading___Toc185_1311921074"/>
+    </navPoint>
+    <navPoint id="navPoint-31" playOrder="31">
+      <navLabel>
+        <text>CHAPTER 28</text>
+      </navLabel>
+      <content src="Text/index.html#id_RefHeading___Toc187_1311921074"/>
+    </navPoint>
+    <navPoint id="navPoint-32" playOrder="32">
+      <navLabel>
+        <text>CHAPTER 29</text>
+      </navLabel>
+      <content src="Text/index.html#id_RefHeading___Toc189_1311921074"/>
+    </navPoint>
+    <navPoint id="navPoint-33" playOrder="33">
+      <navLabel>
+        <text>CHAPTER 30</text>
+      </navLabel>
+      <content src="Text/index.html#id_RefHeading___Toc191_1311921074"/>
+    </navPoint>
+    <navPoint id="navPoint-34" playOrder="34">
+      <navLabel>
+        <text>CHAPTER 31</text>
+      </navLabel>
+      <content src="Text/index.html#id_RefHeading___Toc193_1311921074"/>
+    </navPoint>
+    <navPoint id="navPoint-35" playOrder="35">
+      <navLabel>
+        <text>CHAPTER 32</text>
+      </navLabel>
+      <content src="Text/index.html#id_RefHeading___Toc195_1311921074"/>
+    </navPoint>
+    <navPoint id="navPoint-36" playOrder="36">
+      <navLabel>
+        <text>ACKNOWLEDGMENTS</text>
+      </navLabel>
+      <content src="Text/index.html#sigil_toc_id_2"/>
+    </navPoint>
+    <navPoint id="navPoint-37" playOrder="37">
+      <navLabel>
+        <text>Other books by John Francis Kinsella Fiction</text>
+      </navLabel>
+      <content src="Text/index.html#sigil_toc_id_3"/>
+    </navPoint>
+  </navMap>
+</ncx>
