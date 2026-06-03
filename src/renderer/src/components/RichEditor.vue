@@ -1,7 +1,8 @@
 <script setup>
 import { ref, computed, watch, nextTick, onBeforeUnmount } from "vue";
-import { useEditor, EditorContent } from "@tiptap/vue-3";
+import { useEditor, EditorContent, VueNodeViewRenderer } from "@tiptap/vue-3";
 import { BubbleMenu } from "@tiptap/vue-3/menus";
+import SceneBoundaryView from "./SceneBoundaryView.vue";
 import StarterKit from "@tiptap/starter-kit";
 import Placeholder from "@tiptap/extension-placeholder";
 import Underline from "@tiptap/extension-underline";
@@ -77,6 +78,21 @@ const showWordCount = computed(() => isManuscript.value && props.countFooter);
 // Selection bubble menu shows in both variants — manuscript and inline
 // editors share the same controls.
 const useBubble = computed(() => !!editor.value);
+
+// Decide whether the bubble menu should render for a given selection.
+// Default behaviour (mirroring TipTap's): show when there's a non-empty
+// text selection. We add a guard against atom-node selections (the
+// scene-boundary NodeView, the page-break node) so clicking the
+// boundary's title input doesn't immediately summon a Bold/Italic
+// floating menu over an element that has no text formatting to apply.
+function bubbleShouldShow({ state }) {
+  if (!state) return false;
+  const { selection } = state;
+  if (!selection) return false;
+  // NodeSelection on an atom (boundary, page break) — never show.
+  if (selection.node?.type?.spec?.atom) return false;
+  return !selection.empty;
+}
 
 const toLen = (v) => (typeof v === "number" ? `${v}px` : v);
 const inlineBodyStyle = computed(() => {
@@ -245,8 +261,82 @@ const PageBreak = Node.create({
       setPageBreak: () => ({ commands }) => commands.insertContent({ type: this.name }),
     };
   },
+  // No keyboard shortcut — the page break node + export plumbing stay
+  // in place (PDF / DOCX honor it; EPUB skips), but it's no longer in
+  // the toolbar and Mod-Enter is freed up. If a writer ever needs to
+  // force a mid-chapter page break for a specific manuscript, the
+  // `setPageBreak` command remains callable programmatically.
+});
+
+// Continuous-chapter scene boundary. In continuous editor mode we stitch
+// every scene in a chapter into one document, separated by this node.
+// Carries the scene's id/title/idx so the stitch can be split back into
+// per-scene structure without losing metadata. Renders as a visible
+// divider with the scene's title beneath it. Atomic (not editable as
+// text) so a writer can't accidentally split one mid-typing — but IS
+// deletable, which is the canonical way to merge two adjacent scenes.
+const SceneBoundary = Node.create({
+  name: "sceneBoundary",
+  group: "block",
+  selectable: true,
+  atom: true,
+  draggable: false,
+  parseHTML() { return [{ tag: "div[data-scene-boundary]" }]; },
+  renderHTML({ HTMLAttributes }) {
+    const title = HTMLAttributes["data-scene-title"] || "";
+    const idx = HTMLAttributes["data-scene-idx"];
+    return [
+      "div",
+      mergeAttributes({ class: "scene-boundary" }, HTMLAttributes, {
+        "data-scene-boundary": "true",
+        "data-label": idx != null ? `Scene ${Number(idx) + 1}${title ? " — " + title : ""}` : (title || "New scene"),
+      }),
+    ];
+  },
+  addAttributes() {
+    return {
+      sceneId: {
+        default: null,
+        parseHTML: (el) => el.getAttribute("data-scene-id") || null,
+        renderHTML: (attrs) => (attrs.sceneId ? { "data-scene-id": attrs.sceneId } : {}),
+      },
+      sceneTitle: {
+        default: "",
+        parseHTML: (el) => el.getAttribute("data-scene-title") || "",
+        renderHTML: (attrs) => (attrs.sceneTitle ? { "data-scene-title": attrs.sceneTitle } : {}),
+      },
+      sceneIdx: {
+        default: 0,
+        parseHTML: (el) => Number(el.getAttribute("data-scene-idx") || 0),
+        renderHTML: (attrs) => ({ "data-scene-idx": String(attrs.sceneIdx ?? 0) }),
+      },
+    };
+  },
+  addCommands() {
+    return {
+      // Insert a new scene boundary at the cursor. No sceneId — the
+      // continuous-chapter splitter (services/chapterStitch.js) treats
+      // null-id boundaries as new scenes and the project store mints a
+      // fresh sceneId on apply. We chain a trailing empty paragraph so
+      // the cursor lands inside an editable body block (without it,
+      // TipTap parks the cursor right after the atom node, which is
+      // not a typeable position when the boundary is the last block).
+      setSceneBoundary: () => ({ chain }) => chain()
+        .insertContent([
+          { type: this.name, attrs: { sceneId: null, sceneTitle: "", sceneIdx: 0 } },
+          { type: "paragraph" },
+        ])
+        .focus()
+        .run(),
+    };
+  },
   addKeyboardShortcuts() {
-    return { "Mod-Enter": () => this.editor.commands.setPageBreak() };
+    return {
+      "Mod-Shift-Enter": () => this.editor.commands.setSceneBoundary(),
+    };
+  },
+  addNodeView() {
+    return VueNodeViewRenderer(SceneBoundaryView);
   },
 });
 
@@ -304,6 +394,7 @@ const extensions = [
   AiDiff,
   Indent,
   PageBreak,
+  SceneBoundary,
 ];
 if (props.mentions) extensions.push(buildMentionExtension());
 
@@ -353,7 +444,27 @@ const editor = useEditor({
     maybeTypewriter();
   },
   onSelectionUpdate({ editor }) { syncDiffState(editor); maybeTypewriter(); },
-  onTransaction({ editor }) { syncSearch(editor); },
+  onTransaction({ editor }) { syncSearch(editor); docVersion.value++; },
+});
+
+// Bumps on every editor transaction (typing, formatting, scene-boundary
+// insert, etc.). Computeds that need to walk the document for content-
+// dependent state (`hasComments` below — could grow to more later)
+// touch this ref so Vue knows to recompute when the doc changes.
+const docVersion = ref(0);
+
+// True when the document contains at least one comment mark. Drives the
+// disabled state of the Prev/Next comment toolbar buttons so they don't
+// dead-click in a comment-less document.
+const hasComments = computed(() => {
+  docVersion.value; // touch — trigger recompute on every transaction
+  if (!editor.value) return false;
+  let found = false;
+  editor.value.state.doc.descendants((node) => {
+    if (found) return false;
+    if (node.marks?.some((m) => m.type.name === "comment")) found = true;
+  });
+  return found;
 });
 
 // Keep external value changes in sync (e.g. switching the selected entity).
@@ -624,6 +735,7 @@ const TIP = {
   copy: `Copy · ${sc("mod+C")}`,
   cut: `Cut · ${sc("mod+X")}`,
   paste: `Paste · ${sc("mod+V")}`,
+  newScene: `New scene — splits chapter here · ${sc("mod+shift+Enter")}`,
 };
 
 function setHeading(level) {
@@ -789,6 +901,18 @@ function onMenuDocDown(e) {
 document.addEventListener("mousedown", onMenuDocDown);
 onBeforeUnmount(() => document.removeEventListener("mousedown", onMenuDocDown));
 
+// Global Esc handler — focus mode's floating buttons (Typewriter / Close)
+// can hold keyboard focus, and Esc on those targets doesn't reach the
+// editor's local @keydown. A window-level capture guarantees Esc exits
+// focus mode regardless of where focus currently sits.
+function onWindowKeydown(e) {
+  if (e.key === "Escape" && focusMode.value && !findOpen.value) {
+    focusMode.value = false;
+  }
+}
+window.addEventListener("keydown", onWindowKeydown);
+onBeforeUnmount(() => window.removeEventListener("keydown", onWindowKeydown));
+
 // --- clipboard / print / clear formatting -----------------------------
 function doCopy() { editor.value?.chain().focus().run(); try { document.execCommand("copy"); } catch {} }
 function doCut()  { editor.value?.chain().focus().run(); try { document.execCommand("cut"); } catch {} }
@@ -850,7 +974,12 @@ function toggleFocus() {
 }
 function toggleTypewriter() {
   typewriter.value = !typewriter.value;
-  if (typewriter.value) nextTick(scrollCaretToCenter);
+  // Re-focus the editor first so coordsAtPos reflects the live caret,
+  // not whatever stale position the editor had when the button took focus.
+  if (typewriter.value) {
+    editor.value?.commands.focus();
+    nextTick(scrollCaretToCenter);
+  }
 }
 
 // Keep the caret's line vertically centred in the manuscript scroller.
@@ -949,7 +1078,7 @@ defineExpose({ editor });
         <button v-if="show('strike')" class="tb-btn" :class="{ active: isActive('strike') }" @click="run('toggleStrike')" :data-tip="TIP.strike"><Icon name="Strike" :size="14" /></button>
         <button v-if="show('superscript')" class="tb-btn tb-glyph" :class="{ active: isActive('superscript') }" @click="run('toggleSuperscript')" :data-tip="TIP.superscript">x²</button>
         <button v-if="show('subscript')" class="tb-btn tb-glyph" :class="{ active: isActive('subscript') }" @click="run('toggleSubscript')" :data-tip="TIP.subscript">x₂</button>
-        <button v-if="show('sceneBreak')" class="tb-btn" @click="run('setHorizontalRule')" data-tip="Scene break"><Icon name="SceneBreak" :size="14" /></button>
+        <button v-if="show('sceneBreak')" class="tb-btn" @click="run('setHorizontalRule')" data-tip="Scene break (in-scene * * *)"><Icon name="SceneBreak" :size="14" /></button>
       </div>
 
       <div class="group" v-if="show('highlight') || show('textColor') || show('fontDec') || show('fontInc') || show('clearFormat')">
@@ -993,17 +1122,18 @@ defineExpose({ editor });
         <button v-if="show('h3')" class="tb-btn tb-glyph" :class="{ active: isActive('heading', { level: 3 }) }" @click="setHeading(3)" :data-tip="TIP.h3">H3</button>
       </div>
 
-      <div class="group" v-if="show('link') || show('image') || show('table') || show('pageBreak')">
+      <div class="group" v-if="show('link') || show('image') || show('table') || show('pageBreak') || show('newScene')">
         <button v-if="show('link')" class="tb-btn" :class="{ active: isActive('link') }" @click="setLink" :data-tip="TIP.link"><Icon name="Link" :size="14" /></button>
         <button v-if="show('image')" class="tb-btn" @click="pickImage" data-tip="Insert image"><Icon name="Image" :size="14" /></button>
         <button v-if="show('table')" class="tb-btn" @click="insertTable" data-tip="Insert table"><Icon name="Table" :size="14" /></button>
         <button v-if="show('pageBreak')" class="tb-btn" @click="run('setPageBreak')" data-tip="Page break (⌘⏎)"><Icon name="PageBreak" :size="14" /></button>
+        <button v-if="show('newScene')" class="tb-btn" @click="run('setSceneBoundary')" :data-tip="TIP.newScene"><Icon name="Strands" :size="14" /></button>
       </div>
 
       <div class="group" v-if="show('comment')">
         <button class="tb-btn" :class="{ active: isActive('comment') }" :disabled="editor.state.selection.empty" @click="openCommentEditor" data-tip="Add comment"><Icon name="Comment" :size="14" /></button>
-        <button class="tb-btn" @click="gotoComment(-1)" data-tip="Previous comment"><Icon name="ChevRight" :size="13" style="transform:rotate(180deg)" /></button>
-        <button class="tb-btn" @click="gotoComment(1)" data-tip="Next comment"><Icon name="ChevRight" :size="13" /></button>
+        <button class="tb-btn" :disabled="!hasComments" @click="gotoComment(-1)" data-tip="Previous comment"><Icon name="ChevRight" :size="13" style="transform:rotate(180deg)" /></button>
+        <button class="tb-btn" :disabled="!hasComments" @click="gotoComment(1)" data-tip="Next comment"><Icon name="ChevRight" :size="13" /></button>
       </div>
 
       <div class="group" v-if="show('find') || show('focus') || show('settings') || show('print')">
@@ -1035,13 +1165,15 @@ defineExpose({ editor });
 
     <!-- Focus-mode floating controls -->
     <div v-if="editor && focusMode" class="focus-controls">
+      <button v-if="show('newScene')" class="tb-btn" @click="run('setSceneBoundary')"
+        :data-tip="TIP.newScene"><Icon name="Strands" :size="14" /></button>
       <button class="tb-btn tb-text" :class="{ active: typewriter }" @click="toggleTypewriter"
         title="Typewriter scrolling — keep the current line centered">Typewriter</button>
       <button class="tb-btn" @click="toggleFocus" title="Exit focus mode (Esc)"><Icon name="Close" :size="14" /></button>
     </div>
 
     <!-- Selection bubble menu (manuscript only) -->
-    <bubble-menu v-if="editor && useBubble" :editor="editor" :tippy-options="{ duration: 100 }" class="bubble-menu">
+    <bubble-menu v-if="editor && useBubble" :editor="editor" :tippy-options="{ duration: 100 }" :should-show="bubbleShouldShow" class="bubble-menu">
       <button class="tb-btn" :class="{ active: isActive('bold') }" @click="run('toggleBold')" :data-tip="TIP.bold"><Icon name="Bold" :size="14" /></button>
       <button class="tb-btn" :class="{ active: isActive('italic') }" @click="run('toggleItalic')" :data-tip="TIP.italic"><Icon name="Italic" :size="14" /></button>
       <button class="tb-btn" :class="{ active: isActive('underline') }" @click="run('toggleUnderline')" :data-tip="TIP.underline"><Icon name="Underline" :size="14" /></button>
@@ -1326,13 +1458,12 @@ defineExpose({ editor });
 .mention-empty { padding: 9px; color: var(--muted); font-size: 13px; }
 
 /* Focus mode — fullscreen, distraction-free. Fixed overlay covers the
-   app chrome (sidebar/titlebar); active block stays lit, rest dims. */
+   app chrome (sidebar/titlebar). All prose stays fully visible; the
+   surrounding chrome (toolbar, scene strip, sidebar) is what gets cut. */
 .rich-editor.focus-on {
   position: fixed; inset: 0; z-index: 150;
   background: var(--paper);
 }
-.rich-editor.focus-on .tiptap-content > * { opacity: .32; transition: opacity .2s ease; }
-.rich-editor.focus-on .tiptap-content .has-focus { opacity: 1; }
 /* Typewriter scrolling — pad so any line (incl. first/last) can centre. */
 .rich-editor.focus-on.typewriter-on .manuscript-inner { padding-top: 45vh; padding-bottom: 45vh; }
 

@@ -1152,6 +1152,89 @@ html[data-theme="dark"] .manuscript {
   padding: 0 10px;
 }
 
+/* Continuous-chapter scene boundary — rendered between stitched scenes
+   in the chapter-continuous editor mode. Distinct from a page break
+   (more space, mono label below the rule) so writers always know which
+   scene they're typing into. The boundary is a TipTap atom node:
+   selectable + deletable (delete to merge with the previous scene), but
+   not editable as text. */
+.manuscript-inner .scene-boundary {
+  position: relative;
+  margin: 36px 0 28px;
+  height: 1px;
+  background: var(--border);
+  text-indent: 0;
+}
+.manuscript-inner .scene-boundary::before {
+  content: "* * *";
+  position: absolute;
+  top: -10px; left: 50%;
+  transform: translateX(-50%);
+  background: var(--editor-paper, var(--surface));
+  color: var(--accent);
+  letter-spacing: 0.4em;
+  font-size: 13px;
+  padding: 0 14px;
+}
+.manuscript-inner .scene-boundary.ProseMirror-selectednode {
+  background: var(--accent);
+  box-shadow: 0 0 0 4px var(--accent-soft);
+}
+/* NodeView layout: title sits inline with the divider rule, centered
+   horizontally. The rule passes edge-to-edge behind the title; the
+   title's editor-paper background visually "punches a gap" in the rule
+   so the text is fully legible and never intersects the line. The
+   prior * * * ornament is dropped — the labeled rule IS the ornament
+   now. */
+.manuscript-inner .scene-boundary-node {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin: 44px 0 40px;
+  padding: 0;
+  height: auto;
+  background: transparent;
+}
+/* Suppress the original .scene-boundary::before * * * ornament on the
+   NodeView path so we don't double-up the ornament + title. */
+.manuscript-inner .scene-boundary-node::before { content: none; }
+.manuscript-inner .scene-boundary-node::after {
+  content: "";
+  position: absolute;
+  top: 50%; left: 0; right: 0;
+  height: 1px;
+  background: var(--border);
+  z-index: 0;
+}
+.scene-boundary-title-input {
+  position: relative;
+  z-index: 1;
+  margin: 0 auto;
+  padding: 4px 14px;
+  min-width: 120px;
+  max-width: 60%;
+  border: 0;
+  background: var(--editor-paper, var(--surface));
+  text-align: center;
+  font-family: var(--font-mono);
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 0.18em;
+  color: var(--ink-2);
+  outline: none;
+  border-radius: 4px;
+  transition: background-color .12s, color .12s, box-shadow .12s;
+  cursor: text;
+}
+.scene-boundary-title-input::placeholder { color: var(--muted); }
+.scene-boundary-title-input:hover { color: var(--ink); }
+.scene-boundary-title-input:focus {
+  color: var(--ink);
+  background: var(--surface);
+  box-shadow: 0 0 0 3px var(--accent-soft);
+}
+
 /* ============================================================
    Editor — "traditional page" layout
    Toggled in Settings → Appearance (html[data-editor-layout="page"]).

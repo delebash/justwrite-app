@@ -58,6 +58,11 @@ export const useUiStore = defineStore("ui", {
       // UI language. null = browser-default at boot; setLocale() pins it.
       // Date / number formatting (Intl.*) tracks the same value.
       locale: null,
+      // Chapter editor mode. true = "continuous" (all scenes stitched
+      // into one editable surface); false = "single scene" (default).
+      // Persists across chapters AND reloads — once a writer turns it
+      // on, it stays on for every chapter until they toggle it back.
+      continuousChapter: false,
       // Scroll-driven scene highlight for Read mode's whole-book scope.
       // Not persisted — flooding IDB on every scroll tick is wasteful, and
       // on reload there's nothing meaningful to restore to anyway.
@@ -188,6 +193,10 @@ export const useUiStore = defineStore("ui", {
       this.locale = code || null;
       this._persist();
     },
+    setContinuousChapter(on) {
+      this.continuousChapter = !!on;
+      this._persist();
+    },
 
     _persist() {
       save({
@@ -199,6 +208,7 @@ export const useUiStore = defineStore("ui", {
         customPresets: this.customPresets,
         editorSettings: this.editorSettings,
         locale: this.locale,
+        continuousChapter: this.continuousChapter,
       });
     },
   },

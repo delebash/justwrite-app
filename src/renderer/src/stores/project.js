@@ -304,8 +304,16 @@ export const TRASH_KINDS = Object.keys(EMPTY_TRASH);
 // the last few changes without bloating the persisted snapshot. The
 // persist is debounced — a typing session writes once after the user
 // pauses, not on every keystroke.
-const HISTORY_LIMIT = 100;
-const PERSIST_TAIL_SIZE = 10;
+//
+// Keystroke-grain edits coalesce into one snapshot per ~600ms quiescent
+// window (see COALESCED_ACTIONS), so HISTORY_LIMIT roughly maps to
+// minutes of writing: 100 ≈ 1 min, 500 ≈ 5 min, 1000 ≈ 10 min of
+// continuous typing before the oldest undo step falls off. Marathon
+// sessions benefit from the bigger ceiling; the memory cost is bounded
+// by the project size × HISTORY_LIMIT, so very large projects (200k+
+// words) may want to tune down if RAM becomes a constraint.
+const HISTORY_LIMIT = 1000;
+const PERSIST_TAIL_SIZE = 50;
 const PERSIST_DEBOUNCE_MS = 1500;
 const HISTORY_SLICES = [
   "project", "parts", "scenes",
@@ -332,6 +340,7 @@ function applySlices(state, snap) {
 const COALESCE_WINDOW_MS = 600;
 const COALESCED_ACTIONS = new Set([
   "setSceneBody", "setSceneTitle", "setChapterTitle", "setChapterWords",
+  "applyStitchedChapter",
   "updateNote", "updateWorldbuilding", "updateArchitecture",
   "updateCharacter", "setCharacterExtras",
   "updateLocation", "updateObject", "updateStrand", "updateGroup",
@@ -795,6 +804,37 @@ export const useProjectStore = defineStore("project", {
         [chapterId]: (this.scenes[chapterId] || []).map((s) =>
           s.id === sceneId ? { ...s, ...patch } : s),
       };
+      this._persist();
+    },
+    // Continuous-chapter editor write path. Takes the array of records
+    // produced by splitChapter() (services/chapterStitch.js) and updates
+    // the chapter's scenes atomically:
+    //   - Existing sceneId  → body (and optional title) updated in place
+    //   - sceneId === null (isNew: true) → minted as a fresh scene
+    //   - Scenes that no longer appear in `records` are removed (the
+    //     "writer deleted the boundary, merge scenes" path)
+    // Single history entry per typing window thanks to applyStitchedChapter
+    // being in COALESCED_ACTIONS — the writer's undo lands on the previous
+    // quiescent state of the whole chapter, not one scene at a time.
+    applyStitchedChapter(chapterId, records) {
+      this._record("applyStitchedChapter");
+      const prev = this.scenes[chapterId] || [];
+      const prevById = new Map(prev.map((s) => [s.id, s]));
+      const next = [];
+      for (const r of records) {
+        if (r.sceneId && prevById.has(r.sceneId)) {
+          const existing = prevById.get(r.sceneId);
+          next.push({ ...existing, body: r.body, title: r.title || existing.title });
+        } else {
+          next.push({ id: uid("scn"), title: r.title || "", body: r.body });
+        }
+      }
+      // If the writer somehow emptied the chapter (deleted every boundary
+      // AND every block), keep one empty scene — chapters always have at
+      // least one scene (matches removeScene's invariant).
+      if (!next.length) next.push({ id: uid("scn"), title: "", body: "" });
+      this.scenes = { ...this.scenes, [chapterId]: next };
+      this._recomputeChapterWords(chapterId);
       this._persist();
     },
     setSceneBody(chapterId, sceneId, html) {

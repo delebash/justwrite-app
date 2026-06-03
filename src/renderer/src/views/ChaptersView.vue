@@ -14,6 +14,8 @@ import EmptyState from "../components/EmptyState.vue";
 import StatusSelect from "../components/StatusSelect.vue";
 import Breadcrumb from "../components/Breadcrumb.vue";
 import { promptDialog, confirmDialog } from "../services/dialog.js";
+import { stitchChapter, splitChapter } from "../services/chapterStitch.js";
+import { EDITOR_TOOLBAR_FULL } from "../services/editorToolbars.js";
 import JwButton from "@renderer/components/ui/JwButton.vue";
 
 const props = defineProps({
@@ -87,11 +89,26 @@ function plainText(html) {
   div.innerHTML = html;
   return div.textContent || "";
 }
+// Counts at the bottom of the editor — scoped to the active scene in
+// single-scene mode, rolled up across every scene in the chapter when
+// the writer is editing in continuous mode. Same computed pair drives
+// the footer regardless of mode.
 const sceneWordCount = computed(() => {
+  if (continuousMode.value) {
+    return scenes.value.reduce((sum, s) => {
+      const t = plainText(s.body).trim();
+      return sum + (t ? t.split(/\s+/).length : 0);
+    }, 0);
+  }
   const t = plainText(activeScene.value?.body).trim();
   return t ? t.split(/\s+/).length : 0;
 });
-const sceneCharCount = computed(() => plainText(activeScene.value?.body).length);
+const sceneCharCount = computed(() => {
+  if (continuousMode.value) {
+    return scenes.value.reduce((sum, s) => sum + plainText(s.body).length, 0);
+  }
+  return plainText(activeScene.value?.body).length;
+});
 
 // Read view shows the prose as a continuous chapter — no scene titles, no
 // "* * *" scene marks, no editorial comment marks. Just the words, like a
@@ -178,6 +195,53 @@ function onSceneBodyChange(sceneId, html) {
   if (!ch.value) return;
   project.setSceneBody(ch.value.id, sceneId, html);
 }
+
+// Active scene's status — drives the scene-strip pill's color, so the
+// writer always sees the open scene's state at a glance (draft / revise
+// / done / etc.). Falls back to the chapter's status if the scene
+// doesn't have one of its own. null = no color (pill stays neutral).
+const activeStatus = computed(() => {
+  const id = activeScene.value?.status || ch.value?.status;
+  return id ? project.statusById(id) : null;
+});
+
+// ── Continuous-chapter editor mode ──────────────────────────────────
+// User preference toggle that swaps the editor between "single scene"
+// (default) and "continuous chapter" — all the chapter's scenes
+// stitched into one editable document with visual scene boundaries
+// between them. Round-trips through services/chapterStitch.
+//
+// Source-of-truth is ui.continuousChapter (persisted) so the mode
+// follows the writer across chapter changes AND page reloads. Once on,
+// it stays on until they toggle it off.
+const continuousMode = computed({
+  get: () => ui.continuousChapter,
+  set: (v) => ui.setContinuousChapter(v),
+});
+
+const stitchedBody = computed(() => continuousMode.value && ch.value
+  ? stitchChapter(scenes.value)
+  : "");
+
+function onStitchedChange(html) {
+  if (!ch.value) return;
+  const records = splitChapter(html);
+  if (!records.length) return; // nothing to apply; safer than nuking the chapter
+  project.applyStitchedChapter(ch.value.id, records);
+}
+
+function toggleContinuous() {
+  continuousMode.value = !continuousMode.value;
+}
+
+// The "New scene" toolbar button (chapter-splitter) only makes sense in
+// continuous mode — in single-scene mode the inserted boundary just
+// sits as decorative content with no structural effect until the writer
+// toggles to continuous, which is confusing. Hide the button when not
+// in continuous mode.
+const editorToolbar = computed(() => continuousMode.value
+  ? EDITOR_TOOLBAR_FULL
+  : EDITOR_TOOLBAR_FULL.filter((t) => t !== "newScene"));
 function onSceneTitleInput(sceneId, title) {
   if (!ch.value) return;
   project.setSceneTitle(ch.value.id, sceneId, title);
@@ -759,26 +823,43 @@ watch(() => project.allChapters.map((c) => c.id + ":" + (project.scenesFor(c.id)
         Critique
         <span v-if="ch?.critique?.notes?.length" class="critique-pill">{{ ch.critique.notes.length }}</span>
       </JwButton>
+      <JwButton intent="ghost" size="small" style="margin-left:auto"
+        :class="{ 'is-active': continuousMode }"
+        v-tooltip.bottom="continuousMode ? 'Switch back to single-scene editing' : 'Edit the whole chapter as one document (scene boundaries visible between)'"
+        @click="toggleContinuous">
+        <Icon name="Strands" :size="13" /> {{ continuousMode ? "Single scene" : "Continuous" }}
+      </JwButton>
     </div>
 
     <!-- Single-scene editor: which scene shows is driven by the route
-         hash (#scene-<id>), set by the sidebar's scene list. -->
+         hash (#scene-<id>), set by the sidebar's scene list. The
+         prev/next/pill block is hidden in continuous mode — there's no
+         single "current scene" when every scene is on screen at once. -->
     <div v-if="activeScene" class="scene-strip">
-      <JwButton intent="ghost" size="small"
-        :disabled="!prevScene"
-        :title="prevScene ? `Scene ${activeSceneIdx} — ${prevScene.title || 'Untitled'}` : 'Already the first scene'"
-        @click="prevScene && goToScene(prevScene.id)">
-        <Icon name="ChevRight" :size="12" style="transform:rotate(180deg)" /> Prev scene
-      </JwButton>
-      <span class="scene-pill">Scene {{ activeSceneIdx + 1 }} of {{ scenes.length }}</span>
-      <JwButton intent="ghost" size="small"
-        :disabled="!nextScene"
-        :title="nextScene ? `Scene ${activeSceneIdx + 2} — ${nextScene.title || 'Untitled'}` : 'Already the last scene'"
-        @click="nextScene && goToScene(nextScene.id)">
-        Next scene <Icon name="ChevRight" :size="12" />
-      </JwButton>
+      <template v-if="!continuousMode">
+        <JwButton intent="ghost" size="small"
+          :disabled="!prevScene"
+          :title="prevScene ? `Scene ${activeSceneIdx} — ${prevScene.title || 'Untitled'}` : 'Already the first scene'"
+          @click="prevScene && goToScene(prevScene.id)">
+          <Icon name="ChevRight" :size="12" style="transform:rotate(180deg)" /> Prev scene
+        </JwButton>
+        <span class="scene-pill" :class="{ 'has-status': activeStatus }"
+              :style="activeStatus ? { '--pill-c': activeStatus.color } : null">
+          <span v-if="activeStatus" class="scene-pill-dot" />
+          Scene {{ activeSceneIdx + 1 }} of {{ scenes.length }}
+          <span v-if="activeStatus" class="scene-pill-status">· {{ activeStatus.label }}</span>
+        </span>
+        <JwButton intent="ghost" size="small"
+          :disabled="!nextScene"
+          :title="nextScene ? `Scene ${activeSceneIdx + 2} — ${nextScene.title || 'Untitled'}` : 'Already the last scene'"
+          @click="nextScene && goToScene(nextScene.id)">
+          Next scene <Icon name="ChevRight" :size="12" />
+        </JwButton>
+      </template>
+      <span v-else class="scene-pill">Chapter {{ ch.num }} · {{ scenes.length }} scene{{ scenes.length === 1 ? "" : "s" }}</span>
       <div class="scene-strip-actions" style="margin-left:auto">
-        <JwButton intent="secondary" class="scene-links-btn" title="Links — POV, characters, locations, objects, narrative strands"
+        <JwButton intent="primary" class="scene-links-btn"
+          v-tooltip.bottom="'Links — POV, characters, locations, objects, narrative strands'"
           @click="linksOpen = true">
           <Icon name="Network" :size="13" /> Links
         </JwButton>
@@ -796,10 +877,24 @@ watch(() => project.allChapters.map((c) => c.id + ":" + (project.scenesFor(c.id)
       :scene-id="activeScene.id"
       @close="linksOpen = false" />
 
-    <RichEditor v-if="activeScene"
+    <!-- Continuous-chapter editor — one big stitched document; on
+         change we split it back and apply atomically. -->
+    <RichEditor v-if="continuousMode && ch && scenes.length"
+      ref="editorRef"
+      :key="`continuous-${ch.id}`"
+      :model-value="stitchedBody"
+      :toolbar="editorToolbar"
+      placeholder="Write the chapter — scenes are separated by the boundaries below…"
+      :count-footer="false"
+      :running-head="project.project.title"
+      :folio-label="`Ch. ${ch.num}`"
+      @change="onStitchedChange" />
+
+    <RichEditor v-else-if="activeScene"
       ref="editorRef"
       :key="activeScene.id"
       :model-value="activeScene.body"
+      :toolbar="editorToolbar"
       :placeholder="`Write scene ${activeSceneIdx + 1}…`"
       :count-footer="false"
       :running-head="project.project.title"
@@ -832,9 +927,10 @@ watch(() => project.allChapters.map((c) => c.id + ":" + (project.scenesFor(c.id)
     </div>
 
     <div style="display:flex;align-items:center;gap:16px;padding:8px 22px;border-top:1px solid var(--border);background:var(--surface-2);font-size:11.5px;color:var(--muted)">
-      <span v-if="activeScene">
+      <span v-if="activeScene || continuousMode">
         <b class="t-num" style="color:var(--ink)">{{ sceneWordCount.toLocaleString() }}</b> words ·
         <b class="t-num" style="color:var(--ink)">{{ sceneCharCount.toLocaleString() }}</b> characters
+        <span v-if="continuousMode" style="margin-left:6px">· chapter</span>
       </span>
       <span style="margin-left:auto">Autosaves to local storage</span>
     </div>
@@ -1128,7 +1224,7 @@ watch(() => project.allChapters.map((c) => c.id + ":" + (project.scenesFor(c.id)
   flex-wrap: wrap;
 }
 .scene-pill {
-  display: inline-flex; align-items: center;
+  display: inline-flex; align-items: center; gap: 5px;
   padding: 2px 10px;
   background: var(--surface);
   border: 1px solid var(--border);
@@ -1137,7 +1233,21 @@ watch(() => project.allChapters.map((c) => c.id + ":" + (project.scenesFor(c.id)
   text-transform: uppercase; letter-spacing: 0.08em;
   color: var(--muted);
   flex-shrink: 0;
+  transition: border-color .15s, background-color .15s;
 }
+.scene-pill.has-status {
+  background: color-mix(in oklab, var(--pill-c) 10%, var(--surface));
+  border-color: color-mix(in oklab, var(--pill-c) 35%, var(--border));
+  color: var(--ink-2);
+}
+.scene-pill-dot {
+  width: 8px; height: 8px;
+  border-radius: 50%;
+  background: var(--pill-c);
+  box-shadow: inset 0 0 0 1px rgba(0,0,0,0.08);
+  flex-shrink: 0;
+}
+.scene-pill-status { color: var(--pill-c); }
 .critique-pill {
   display: inline-flex; align-items: center;
   margin-left: 4px;
@@ -1175,6 +1285,10 @@ watch(() => project.allChapters.map((c) => c.id + ":" + (project.scenesFor(c.id)
 .scene-strip-actions {
   display: flex; align-items: center; gap: 8px;
   flex-shrink: 0;
+}
+.scene-strip-actions :deep(.jw-btn.is-active) {
+  background: var(--accent-soft);
+  color: var(--accent-ink);
 }
 
 /* "Links" button — stands out from the muted scene-strip controls. */
