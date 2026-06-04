@@ -10,6 +10,28 @@ import {
 import AppModal from "./AppModal.vue";
 import JwButton from "@renderer/components/ui/JwButton.vue";
 import JwSelect from "@renderer/components/ui/JwSelect.vue";
+import JwSegmented from "@renderer/components/ui/JwSegmented.vue";
+
+// Options for the segmented controls below. `null` means "follow the
+// project's theme default" for the three tri-state fields (font size,
+// indent, line/paragraph spacing). The boolean fields are two-state.
+const FONT_SIZE_OPTS = [
+  { value: null,     label: "theme" },
+  { value: "small",  label: "small" },
+  { value: "medium", label: "medium" },
+  { value: "big",    label: "big" },
+];
+const INDENT_OPTS = [
+  { value: null,  label: "theme" },
+  { value: true,  label: "enabled" },
+  { value: false, label: "disabled" },
+];
+const BOOL_OPTS = [
+  { value: true,  label: "enabled" },
+  { value: false, label: "disabled" },
+];
+const LINE_SPACING_OPTS  = [{ value: null, label: "theme" }, ...LINE_SPACING_OPTIONS.map((o) => ({ value: o, label: o }))];
+const PARA_SPACING_OPTS  = [{ value: null, label: "theme" }, ...PARAGRAPH_SPACING_OPTIONS.map((o) => ({ value: o, label: o }))];
 
 const emit = defineEmits(["close"]);
 const ui = useUiStore();
@@ -30,51 +52,32 @@ function back() { emit("close"); }
 
       <div class="es-row">
         <span class="es-label">Font size</span>
-        <div class="seg" role="radiogroup" aria-label="Font size">
-          <button role="radio" :aria-checked="draft.fontSize == null" :class="{ active: draft.fontSize == null }" @click="draft.fontSize = null">theme</button>
-          <button v-for="o in ['small', 'medium', 'big']" :key="o" role="radio" :aria-checked="draft.fontSize === o" :class="{ active: draft.fontSize === o }" @click="draft.fontSize = o">{{ o }}</button>
-        </div>
+        <JwSegmented v-model="draft.fontSize" :options="FONT_SIZE_OPTS" aria-label="Font size" />
       </div>
 
       <div class="es-row">
         <span class="es-label">Paragraph indent</span>
-        <div class="seg" role="radiogroup" aria-label="Paragraph indent">
-          <button role="radio" :aria-checked="draft.paragraphIndent == null" :class="{ active: draft.paragraphIndent == null }" @click="draft.paragraphIndent = null">theme</button>
-          <button role="radio" :aria-checked="draft.paragraphIndent === true" :class="{ active: draft.paragraphIndent === true }" @click="draft.paragraphIndent = true">enabled</button>
-          <button role="radio" :aria-checked="draft.paragraphIndent === false" :class="{ active: draft.paragraphIndent === false }" @click="draft.paragraphIndent = false">disabled</button>
-        </div>
+        <JwSegmented v-model="draft.paragraphIndent" :options="INDENT_OPTS" aria-label="Paragraph indent" />
       </div>
 
       <div class="es-row">
         <span class="es-label">Capitalize first letter of sentences</span>
-        <div class="seg" role="radiogroup" aria-label="Capitalize first letter of sentences">
-          <button role="radio" :aria-checked="draft.capitalize" :class="{ active: draft.capitalize }" @click="draft.capitalize = true">enabled</button>
-          <button role="radio" :aria-checked="!draft.capitalize" :class="{ active: !draft.capitalize }" @click="draft.capitalize = false">disabled</button>
-        </div>
+        <JwSegmented v-model="draft.capitalize" :options="BOOL_OPTS" aria-label="Capitalize first letter of sentences" />
       </div>
 
       <div class="es-row">
         <span class="es-label">Line spacing</span>
-        <div class="seg" role="radiogroup" aria-label="Line spacing">
-          <button role="radio" :aria-checked="draft.lineSpacing == null" :class="{ active: draft.lineSpacing == null }" @click="draft.lineSpacing = null">theme</button>
-          <button v-for="o in LINE_SPACING_OPTIONS" :key="o" role="radio" :aria-checked="draft.lineSpacing === o" :class="{ active: draft.lineSpacing === o }" @click="draft.lineSpacing = o">{{ o }}</button>
-        </div>
+        <JwSegmented v-model="draft.lineSpacing" :options="LINE_SPACING_OPTS" aria-label="Line spacing" />
       </div>
 
       <div class="es-row">
         <span class="es-label">Paragraph spacing</span>
-        <div class="seg" role="radiogroup" aria-label="Paragraph spacing">
-          <button :class="{ active: draft.paragraphSpacing == null }" role="radio" :aria-checked="draft.paragraphSpacing == null" @click="draft.paragraphSpacing = null">theme</button>
-          <button v-for="o in PARAGRAPH_SPACING_OPTIONS" :key="o" role="radio" :aria-checked="draft.paragraphSpacing === o" :class="{ active: draft.paragraphSpacing === o }" @click="draft.paragraphSpacing = o">{{ o }}</button>
-        </div>
+        <JwSegmented v-model="draft.paragraphSpacing" :options="PARA_SPACING_OPTS" aria-label="Paragraph spacing" />
       </div>
 
       <div class="es-row">
         <span class="es-label">Spell check</span>
-        <div class="seg" role="radiogroup" aria-label="Spell check">
-          <button role="radio" :aria-checked="draft.spellCheck" :class="{ active: draft.spellCheck }" @click="draft.spellCheck = true">enabled</button>
-          <button role="radio" :aria-checked="!draft.spellCheck" :class="{ active: !draft.spellCheck }" @click="draft.spellCheck = false">disabled</button>
-        </div>
+        <JwSegmented v-model="draft.spellCheck" :options="BOOL_OPTS" aria-label="Spell check" />
       </div>
     </div>
 
@@ -93,19 +96,4 @@ function back() { emit("close"); }
 }
 .es-label { font-size: 12.5px; font-weight: 600; color: var(--ink-2); text-align: right; line-height: 1.3; }
 .es-select { max-width: 260px; }
-
-.seg {
-  display: inline-flex; align-self: start;
-  border: 1px solid var(--border); border-radius: 8px;
-  overflow: hidden; background: var(--surface);
-}
-.seg button {
-  appearance: none; border: 0; background: transparent;
-  padding: 6px 13px; font: inherit; font-size: 12px;
-  color: var(--ink-2); cursor: pointer;
-  border-right: 1px solid var(--border);
-}
-.seg button:last-child { border-right: 0; }
-.seg button:hover { background: var(--surface-2); color: var(--ink); }
-.seg button.active { background: var(--accent-soft); color: var(--accent-ink); font-weight: 600; }
 </style>
