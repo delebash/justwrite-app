@@ -11,7 +11,7 @@ import { EDITOR_TOOLBAR_SLIM } from "../services/editorToolbars.js";
 import StatusSelect from "../components/StatusSelect.vue";
 import MentionRefList from "../components/MentionRefList.vue";
 import Breadcrumb from "../components/Breadcrumb.vue";
-import { promptDialog, confirmDialog } from "../services/dialog.js";
+import { promptDialog } from "../services/dialog.js";
 import { NEW_ENTITY_META } from "../services/entityMeta.js";
 
 const props = defineProps({ id: { type: String, default: "" } });
@@ -60,13 +60,7 @@ async function addGroup() {
   if (!name) return;
   const id = project.addGroup({ name }); ui.select("groups", id); router.push(`/groups/${id}`);
 }
-async function deleteGroup() {
-  const yes = await confirmDialog({
-    title: `Delete "${g.value.name}"?`,
-    confirmLabel: "Delete",
-    danger: true,
-  });
-  if (!yes) return;
+function deleteGroup() {
   project.removeGroup(g.value.id);
   const next = project.groups[0];
   if (next) { ui.select("groups", next.id); router.push(`/groups/${next.id}`); } else router.push("/");

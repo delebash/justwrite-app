@@ -252,20 +252,14 @@ function onSceneTitleInput(sceneId, title) {
   if (!ch.value) return;
   project.setSceneTitle(ch.value.id, sceneId, title);
 }
-async function removeScene(scene) {
+function removeScene(scene) {
   if (!ch.value || !scene) return;
   if (scenes.value.length <= 1) return;
-  const yes = await confirmDialog({
-    title: scene.title ? `Delete scene "${scene.title}"?` : "Delete this scene?",
-    message: "The scene's prose will be discarded. The chapter keeps its other scenes.",
-    confirmLabel: "Delete scene",
-    danger: true,
-  });
-  if (!yes) return;
   // After delete, move to the next remaining scene (or the previous if
   // we just deleted the last one).
   const fallback = nextScene.value || prevScene.value;
   project.removeScene(ch.value.id, scene.id);
+  ui.showToast({ message: `Removed scene${scene.title ? ` "${scene.title}"` : ""}.` });
   if (fallback) goToScene(fallback.id);
 }
 
@@ -283,15 +277,8 @@ async function addChapter() {
   router.push(`/chapters/${id}`);
   mode.value = "edit";
 }
-async function deleteChapter() {
+function deleteChapter() {
   if (!ch.value) return;
-  const yes = await confirmDialog({
-    title: `Delete "${ch.value.title}"?`,
-    message: "This can't be undone.",
-    confirmLabel: "Delete",
-    danger: true,
-  });
-  if (!yes) return;
   project.removeChapter(ch.value.id);
   const fallback = project.allChapters[0];
   if (fallback) { ui.select("chapters", fallback.id); router.push(`/chapters/${fallback.id}`); }

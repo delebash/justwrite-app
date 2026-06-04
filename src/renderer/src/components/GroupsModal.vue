@@ -1,7 +1,7 @@
 <script setup>
 import { computed } from "vue";
 import { useProjectStore } from "../stores/project.js";
-import { promptDialog, confirmDialog } from "../services/dialog.js";
+import { promptDialog } from "../services/dialog.js";
 import Icon from "./Icon.vue";
 import AppModal from "./AppModal.vue";
 
@@ -34,14 +34,7 @@ async function createGroup() {
   project.addGroupMember(id, { kind: props.entityKind, id: props.entityId, name: props.entityName });
 }
 
-async function deleteGroup(group) {
-  const yes = await confirmDialog({
-    title: `Delete "${group.name}"?`,
-    message: "This removes the group from the whole project, not just this item.",
-    confirmLabel: "Delete group",
-    danger: true,
-  });
-  if (!yes) return;
+function deleteGroup(group) {
   project.removeGroup(group.id);
 }
 </script>

@@ -8,7 +8,7 @@ import RichEditor from "../components/RichEditor.vue";
 import StatusSelect from "../components/StatusSelect.vue";
 import Breadcrumb from "../components/Breadcrumb.vue";
 import TagEditor from "../components/TagEditor.vue";
-import { promptDialog, confirmDialog } from "../services/dialog.js";
+import { promptDialog } from "../services/dialog.js";
 import { NEW_ENTITY_META } from "../services/entityMeta.js";
 
 import JwTable from "@renderer/components/ui/JwTable.vue";
@@ -55,14 +55,8 @@ async function addArticle() {
   router.push(`/worldbuilding/${id}`);
 }
 
-async function deleteArticle() {
+function deleteArticle() {
   if (!article.value) return;
-  const yes = await confirmDialog({
-    title: `Delete "${article.value.title}"?`,
-    confirmLabel: "Delete",
-    danger: true,
-  });
-  if (!yes) return;
   project.removeWorldbuilding(article.value.id);
   router.push("/worldbuilding");
 }

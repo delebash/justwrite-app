@@ -6,7 +6,7 @@ import { EVENTS_KIND_META } from "../services/eventsKind.js";
 import Icon from "../components/Icon.vue";
 import Breadcrumb from "../components/Breadcrumb.vue";
 import JwButton from "@renderer/components/ui/JwButton.vue";
-import { confirmDialog } from "../services/dialog.js";
+import { useUiStore } from "../stores/ui.js";
 
 const props = defineProps({
   kind:     { type: String, required: true },
@@ -14,6 +14,7 @@ const props = defineProps({
 });
 
 const project = useProjectStore();
+const ui      = useUiStore();
 const router  = useRouter();
 
 const meta   = computed(() => EVENTS_KIND_META[props.kind]);
@@ -54,14 +55,9 @@ function formatWhen(when) {
   };
 }
 
-async function remove(ev) {
-  const yes = await confirmDialog({
-    title: `Delete "${ev.title || "Untitled event"}"?`,
-    confirmLabel: "Delete",
-    danger: true,
-  });
-  if (!yes) return;
+function remove(ev) {
   project.removeEvent(props.entityId, ev.id);
+  ui.showToast({ message: `Removed event "${ev.title || "Untitled event"}".` });
 }
 function goEdit(eventId) { router.push(meta.value.editUrl(props.entityId, eventId)); }
 function goBack()        { router.push(meta.value.detailUrl(props.entityId)); }

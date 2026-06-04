@@ -13,7 +13,6 @@ import { ref, computed } from "vue";
 import { useVersionsStore } from "../stores/versions.js";
 import { useProjectStore } from "../stores/project.js";
 import { useUiStore } from "../stores/ui.js";
-import { confirmDialog } from "../services/dialog.js";
 import { diffVersions, renderDiffHtml, diffStats } from "../services/versionDiff.js";
 import Icon from "./Icon.vue";
 import AppModal from "./AppModal.vue";
@@ -77,21 +76,13 @@ function save() {
   ui.showToast({ message });
 }
 
-async function restore(v) {
-  const yes = await confirmDialog({
-    title: "Restore this version?",
-    message: "The chapter's current scenes will be replaced. You can undo (⌘Z) right after if needed.",
-    confirmLabel: "Restore",
-  });
-  if (!yes) return;
+function restore(v) {
   versions.restoreVersion(props.chapterId, v.id);
   ui.showToast({ message: `Restored ${versionLabel(v)}` });
   emit("close");
 }
 
-async function remove(v) {
-  const yes = await confirmDialog({ title: "Delete this version?", confirmLabel: "Delete", danger: true });
-  if (!yes) return;
+function remove(v) {
   const snapshot = { ...v };
   versions.deleteVersion(props.chapterId, v.id);
   ui.showToast({

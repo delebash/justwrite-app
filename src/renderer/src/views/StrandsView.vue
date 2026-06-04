@@ -14,7 +14,7 @@ import StatusSelect from "../components/StatusSelect.vue";
 import SceneRefList from "../components/SceneRefList.vue";
 import GroupsModal from "../components/GroupsModal.vue";
 import Breadcrumb from "../components/Breadcrumb.vue";
-import { promptDialog, confirmDialog } from "../services/dialog.js";
+import { promptDialog } from "../services/dialog.js";
 import { NEW_ENTITY_META } from "../services/entityMeta.js";
 
 const props = defineProps({ id: { type: String, default: "" } });
@@ -127,18 +127,7 @@ async function addStrand() {
   router.push(`/strands/${id}`);
 }
 
-async function deleteStrand() {
-  const used = scenesInStrand.value.length;
-  const message = used
-    ? `${used} scene${used === 1 ? " is" : "s are"} linked to this narrative strand. They'll lose the link (other narrative strand links on those scenes are kept).`
-    : null;
-  const yes = await confirmDialog({
-    title: `Delete narrative strand "${s.value.name}"?`,
-    message,
-    confirmLabel: "Delete narrative strand",
-    danger: true,
-  });
-  if (!yes) return;
+function deleteStrand() {
   const removedId = s.value.id;
   project.removeStrand(removedId);
   const next = project.strands[0];

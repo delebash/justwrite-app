@@ -11,7 +11,6 @@ import { useProjectStore } from "../stores/project.js";
 import { useUiStore } from "../stores/ui.js";
 import { runCritique, runStructuralAnalysis, PACING_LABELS, ENDING_LABELS } from "../services/analysis/critique.js";
 import { extractEntities } from "../services/analysis/entityExtraction.js";
-import { confirmDialog } from "../services/dialog.js";
 import { useAiProgress } from "../composables/useAiProgress.js";
 import Icon from "./Icon.vue";
 import EntityReviewModal from "./EntityReviewModal.vue";
@@ -161,14 +160,7 @@ async function findEntities() {
   }
 }
 
-async function clearAll() {
-  const yes = await confirmDialog({
-    title: "Clear this chapter's critique?",
-    message: "The notes and structural analysis will be removed. You can re-run them anytime.",
-    confirmLabel: "Clear",
-    danger: true,
-  });
-  if (!yes) return;
+function clearAll() {
   project.clearChapterCritique(props.chapterId);
   ui.showToast({ message: "Critique cleared." });
 }

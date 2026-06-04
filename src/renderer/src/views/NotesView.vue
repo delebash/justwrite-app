@@ -8,7 +8,7 @@ import { useRouter } from "vue-router";
 import Icon from "../components/Icon.vue";
 import RichEditor from "../components/RichEditor.vue";
 import Breadcrumb from "../components/Breadcrumb.vue";
-import { promptDialog, confirmDialog } from "../services/dialog.js";
+import { promptDialog } from "../services/dialog.js";
 import { NEW_ENTITY_META } from "../services/entityMeta.js";
 
 const props = defineProps({ id: { type: String, default: "" } });
@@ -67,14 +67,8 @@ async function addNote() {
   if (!title) return;
   const id = project.addNote({ title }); ui.select("notes", id); router.push(`/notes/${id}`);
 }
-async function deleteNote() {
+function deleteNote() {
   if (!n.value) return;
-  const yes = await confirmDialog({
-    title: `Delete "${n.value.title}"?`,
-    confirmLabel: "Delete",
-    danger: true,
-  });
-  if (!yes) return;
   project.removeNote(n.value.id);
   const next = project.notes[0];
   if (next) { ui.select("notes", next.id); router.push(`/notes/${next.id}`); } else router.push("/");

@@ -1366,7 +1366,7 @@ const recentColumns = [
           <div class="size-row">
             <span class="field-l">Size</span>
             <JwSegmented
-              class="size-seg"
+              class="size-seg" variant="connected"
               :model-value="ap.uiScale"
               :options="UI_SCALE_OPTIONS"
               aria-label="UI scale"
@@ -1376,13 +1376,13 @@ const recentColumns = [
           <div class="size-row">
             <span class="field-l">Section heading</span>
             <JwSegmented
-              class="size-seg"
+              class="size-seg" variant="connected"
               :model-value="ap.sidebarHeadingStyle"
               :options="SH_STYLE_OPTIONS"
               aria-label="Sidebar heading style"
               @update:model-value="setAp({ sidebarHeadingStyle: $event })" />
             <JwSegmented
-              class="size-seg size-seg-narrow"
+              class="size-seg size-seg-narrow" variant="connected"
               :model-value="ap.sidebarHeadingSize"
               :options="SH_SIZE_OPTIONS"
               aria-label="Sidebar heading size"
@@ -1392,13 +1392,13 @@ const recentColumns = [
           <div class="size-row">
             <span class="field-l">Menu item</span>
             <JwSegmented
-              class="size-seg"
+              class="size-seg" variant="connected"
               :model-value="ap.navItemStyle"
               :options="NAV_STYLE_OPTIONS"
               aria-label="Menu item style"
               @update:model-value="setAp({ navItemStyle: $event })" />
             <JwSegmented
-              class="size-seg size-seg-narrow"
+              class="size-seg size-seg-narrow" variant="connected"
               :model-value="ap.navItemSize"
               :options="NAV_SIZE_OPTIONS"
               aria-label="Menu item size"
@@ -1600,7 +1600,7 @@ const recentColumns = [
           <div class="size-row">
             <span class="field-l">{{ $t('settings.appearance.editorFontSizeLabel') }}</span>
             <JwSegmented
-              class="size-seg"
+              class="size-seg" variant="connected"
               :model-value="ap.editorFontSize"
               :options="FONT_SIZE_OPTIONS"
               :aria-label="$t('settings.appearance.editorFontSizeLabel')"
@@ -1609,7 +1609,7 @@ const recentColumns = [
           <div class="size-row">
             <span class="field-l">{{ $t('settings.appearance.editorLineSpacingLabel') }}</span>
             <JwSegmented
-              class="size-seg"
+              class="size-seg" variant="connected"
               :model-value="ap.editorLineSpacing"
               :options="LINE_OPTIONS"
               :aria-label="$t('settings.appearance.editorLineSpacingLabel')"
@@ -1618,7 +1618,7 @@ const recentColumns = [
           <div class="size-row">
             <span class="field-l">{{ $t('settings.appearance.editorParaSpacingLabel') }}</span>
             <JwSegmented
-              class="size-seg"
+              class="size-seg" variant="connected"
               :model-value="ap.editorParaSpacing"
               :options="PARA_OPTIONS"
               :aria-label="$t('settings.appearance.editorParaSpacingLabel')"
@@ -1627,7 +1627,7 @@ const recentColumns = [
           <div class="size-row">
             <span class="field-l">{{ $t('settings.appearance.editorParaIndentLabel') }}</span>
             <JwSegmented
-              class="size-seg"
+              class="size-seg" variant="connected"
               :model-value="ap.editorParaIndent"
               :options="INDENT_OPTIONS"
               :aria-label="$t('settings.appearance.editorParaIndentLabel')"
@@ -1642,7 +1642,7 @@ const recentColumns = [
           <div class="size-row">
             <span class="field-l">{{ $t('settings.appearance.btnCornerRadiusLabel') }}</span>
             <JwSegmented
-              class="size-seg"
+              class="size-seg" variant="connected"
               :model-value="ap.btnRadius"
               :options="BUTTON_RADIUS_OPTIONS"
               :aria-label="$t('settings.appearance.btnCornerRadiusLabel')"
@@ -1651,7 +1651,7 @@ const recentColumns = [
           <div class="size-row">
             <span class="field-l">{{ $t('settings.appearance.btnDensityLabel') }}</span>
             <JwSegmented
-              class="size-seg"
+              class="size-seg" variant="connected"
               :model-value="ap.btnDensity"
               :options="BUTTON_DENSITY_OPTIONS"
               :aria-label="$t('settings.appearance.btnDensityLabel')"
@@ -1660,7 +1660,7 @@ const recentColumns = [
           <div class="size-row">
             <span class="field-l">{{ $t('settings.appearance.btnLabelCasingLabel') }}</span>
             <JwSegmented
-              class="size-seg"
+              class="size-seg" variant="connected"
               :model-value="ap.btnLabelCase"
               :options="BUTTON_LABEL_CASE_OPTIONS"
               :aria-label="$t('settings.appearance.btnLabelCasingLabel')"
@@ -1962,28 +1962,11 @@ const recentColumns = [
 }
 .tint-swatch.tint-custom :deep(svg) { color: #fff; filter: drop-shadow(0 0 1px rgba(0,0,0,.5)); }
 
-/* UI size segmented control (Typography → Size, Editor writing, Buttons)
-   .size-seg is placed as a class on <JwSegmented>. The root element of
-   JwSegmented is .jw-seg (styled in JwSegmented.vue); we use :deep() to
-   override the button layout to a vertical column stack with a sublabel row,
-   matching the original bespoke design without touching JwSegmented.vue. */
+/* Sizing for connected segmented controls in Appearance rows. JwSegmented
+   owns the visual variant via variant="connected"; these classes only size
+   the control within the .size-row flex container. */
 .size-row { display: flex; align-items: center; gap: 12px; margin-top: 14px; flex-wrap: wrap; }
-.size-seg {
-  flex: 1; min-width: 280px;
-  border-radius: 9px;
-}
-.size-seg :deep(button) {
-  flex: 1;
-  flex-direction: column; align-items: center; gap: 1px;
-  padding: 6px 4px;
-}
-.size-seg :deep(button.active) {
-  color: var(--accent-ink);
-  box-shadow: 0 0 0 1px var(--border), 0 1px 2px rgba(0, 0, 0, .04);
-}
-.size-seg :deep(button b) { font-size: 12px; }
-.size-seg :deep(button span) { font-size: 10px; color: var(--muted); }
-.size-seg :deep(button.active span) { color: var(--accent-ink); opacity: .8; }
+.size-seg { flex: 1; min-width: 280px; }
 .size-seg-narrow { min-width: 0; flex: 0 1 auto; }
 
 /* Pairing tiles */

@@ -66,8 +66,8 @@ function save() {
   <div class="scrollarea event-new-pane">
     <form class="event-new-form" @submit.prevent="save">
       <div class="field">
-        <span class="field-label">When</span>
-        <DateTimePicker v-model="whenStr" />
+        <label class="field-label" for="event-new-when">When</label>
+        <DateTimePicker v-model="whenStr" input-id="event-new-when" />
       </div>
 
       <label class="field">

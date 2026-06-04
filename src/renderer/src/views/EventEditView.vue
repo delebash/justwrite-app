@@ -88,8 +88,8 @@ function save() {
     </div>
     <form v-else class="event-edit-form" @submit.prevent="save">
       <div class="field">
-        <span class="field-label">When</span>
-        <DateTimePicker v-model="whenStr" />
+        <label class="field-label" for="event-edit-when">When</label>
+        <DateTimePicker v-model="whenStr" input-id="event-edit-when" />
       </div>
 
       <label class="field">

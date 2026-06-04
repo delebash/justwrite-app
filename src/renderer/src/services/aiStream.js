@@ -45,6 +45,10 @@ import { friendlyAiError } from "./aiErrors.js";
 //                    default).
 // `model`          — optional model id override.
 // `meta`           — opaque object attached to the usage record.
+// `skipUsage`      — when true, don't write to the cost ledger. For
+//                    benchmarks, sandboxes, model-compare runs, and
+//                    anything else that shouldn't pollute "what I
+//                    actually used" stats.
 export async function runAiStream({
   feature,
   usageFeature,
@@ -56,6 +60,7 @@ export async function runAiStream({
   provider,
   model,
   meta,
+  skipUsage = false,
 }) {
   const ai = useAiStore();
   const actualProvider = provider || ai.providerForFeature(feature);
@@ -85,7 +90,7 @@ export async function runAiStream({
     throw friendlyAiError(err, actualProvider);
   }
 
-  if (usage) {
+  if (usage && !skipUsage) {
     ai.recordUsage({
       feature: usageFeature || feature,
       providerId: actualProvider.id,

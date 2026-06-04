@@ -32,6 +32,7 @@ const props = defineProps({
   optionSublabel:{ type: String, default: "sublabel" },
   ariaLabel:     { type: String, default: "" },
   size:          { type: String, default: "regular" },     // small | regular
+  variant:       { type: String, default: "default" },     // default | connected
 });
 const emit = defineEmits(["update:modelValue"]);
 
@@ -79,7 +80,11 @@ function onKeydown(e, idx) {
 </script>
 
 <template>
-  <div class="jw-seg" :class="{ 'jw-seg--small': size === 'small' }"
+  <div class="jw-seg"
+    :class="{
+      'jw-seg--small': size === 'small',
+      'jw-seg--connected': variant === 'connected',
+    }"
     role="radiogroup" :aria-label="ariaLabel">
     <button v-for="(opt, i) in options" :key="valueOf(opt)"
       :ref="(el) => registerItem(i, el)"
@@ -133,4 +138,22 @@ function onKeydown(e, idx) {
 .jw-seg button b { font-weight: 600; }
 .jw-seg button span { font-size: 11px; color: var(--muted); }
 .jw-seg--small button { padding: 4px 8px; font-size: 12px; }
+
+/* Connected variant — buttons flex to fill the parent and stack
+   their <b>label</b><span>sublabel</span> vertically. The 1px gap
+   from the base reads as a hairline divider between segments. Caller
+   still owns row-layout sizing (e.g. flex: 1; min-width: …). */
+.jw-seg--connected { border-radius: 9px; }
+.jw-seg--connected button {
+  flex: 1;
+  flex-direction: column; align-items: center; gap: 1px;
+  padding: 6px 4px;
+}
+.jw-seg--connected button.active {
+  color: var(--accent-ink);
+  box-shadow: 0 0 0 1px var(--border), 0 1px 2px var(--shadow-soft);
+}
+.jw-seg--connected button b { font-size: 12px; }
+.jw-seg--connected button span { font-size: 10px; color: var(--muted); }
+.jw-seg--connected button.active span { color: var(--accent-ink); opacity: .8; }
 </style>

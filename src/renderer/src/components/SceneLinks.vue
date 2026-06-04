@@ -198,10 +198,11 @@ function onBackdrop(e) {
 
         <!-- When -->
         <section class="links-section">
-          <div class="links-section-label">When does this scene take place?</div>
+          <label class="links-section-label" for="scene-links-when">When does this scene take place?</label>
           <div class="links-row links-row-when">
             <DateTimePicker
               :model-value="scene?.when || ''"
+              input-id="scene-links-when"
               @update:model-value="update({ when: $event })" />
           </div>
         </section>

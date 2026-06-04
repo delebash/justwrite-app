@@ -20,7 +20,7 @@ import SceneRefList from "../components/SceneRefList.vue";
 import MentionRefList from "../components/MentionRefList.vue";
 import Breadcrumb from "../components/Breadcrumb.vue";
 import PaneHeader from "../components/PaneHeader.vue";
-import { promptDialog, confirmDialog } from "../services/dialog.js";
+import { promptDialog } from "../services/dialog.js";
 import { saveImage } from "../services/imageStore.js";
 import { NEW_ENTITY_META } from "../services/entityMeta.js";
 
@@ -49,13 +49,7 @@ async function addCharacter() {
   ui.select("characters", id);
   router.push(`/characters/${id}`);
 }
-async function deleteCharacter() {
-  const yes = await confirmDialog({
-    title: `Delete "${ch.value.name}"?`,
-    confirmLabel: "Delete",
-    danger: true,
-  });
-  if (!yes) return;
+function deleteCharacter() {
   project.removeCharacter(ch.value.id);
   const next = project.characters[0];
   if (next) { ui.select("characters", next.id); router.push(`/characters/${next.id}`); } else router.push("/characters");

@@ -11,6 +11,9 @@ import Icon from "./Icon.vue";
 const props = defineProps({
   modelValue: { type: String, default: "" },
   placeholder: { type: String, default: "Set date & time" },
+  // Optional id applied to the trigger <button>, so a parent <label for>
+  // can associate with the picker for screen readers and click-to-focus.
+  inputId: { type: String, default: null },
 });
 const emit = defineEmits(["update:modelValue"]);
 
@@ -207,7 +210,7 @@ onBeforeUnmount(() => {
 
 <template>
   <div class="dtp" ref="rootEl" @keydown="onKeydown">
-    <button ref="triggerEl" type="button" class="dtp-trigger" :class="{ open, empty: triggerLabel.empty }" :aria-expanded="open" @click="toggle">
+    <button ref="triggerEl" :id="inputId" type="button" class="dtp-trigger" :class="{ open, empty: triggerLabel.empty }" :aria-expanded="open" @click="toggle">
       <Icon name="Calendar" :size="14" class="dtp-trigger-ico" />
       <span class="dtp-trigger-label" :class="{ raw: triggerLabel.raw }">{{ triggerLabel.text }}</span>
       <Icon name="ChevDown" :size="13" class="dtp-trigger-chev" />

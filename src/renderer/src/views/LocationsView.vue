@@ -18,7 +18,7 @@ import SceneRefList from "../components/SceneRefList.vue";
 import MentionRefList from "../components/MentionRefList.vue";
 import Breadcrumb from "../components/Breadcrumb.vue";
 import PaneHeader from "../components/PaneHeader.vue";
-import { promptDialog, confirmDialog } from "../services/dialog.js";
+import { promptDialog } from "../services/dialog.js";
 import { NEW_ENTITY_META } from "../services/entityMeta.js";
 
 const props = defineProps({ id: { type: String, default: "" } });
@@ -43,13 +43,7 @@ async function addLocation() {
   if (!name) return;
   const id = project.addLocation({ name }); ui.select("locations", id); router.push(`/locations/${id}`);
 }
-async function deleteLocation() {
-  const yes = await confirmDialog({
-    title: `Delete "${loc.value.name}"?`,
-    confirmLabel: "Delete",
-    danger: true,
-  });
-  if (!yes) return;
+function deleteLocation() {
   project.removeLocation(loc.value.id);
   const next = project.locations[0];
   if (next) { ui.select("locations", next.id); router.push(`/locations/${next.id}`); } else router.push("/locations");
