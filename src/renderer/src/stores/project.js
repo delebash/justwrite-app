@@ -11,6 +11,7 @@ import { useSessionsStore } from "./sessions.js";
 import { removeImage as removeImageFile } from "../services/imageStore.js";
 import { getItem, setItem, removeItem, listKeys } from "../services/storage.js";
 import { replaceInHtml } from "../services/projectReplace.js";
+import { nextColor } from "../services/categoricalColors.js";
 import {
   PROJECT, STRANDS, CHARACTERS, CHARACTER_EXTRAS, LOCATIONS, OBJECTS,
   PARTS, NOTES, GROUPS, ARCHITECTURE, WORLDBUILDING, WORLDBUILDING_CATEGORIES,
@@ -1270,18 +1271,10 @@ export const useProjectStore = defineStore("project", {
     addStrand(input = {}) {
       this._record("addStrand");
       const id = uid("strand");
-      // Rotate through the picker palette so freshly-created strands get
-      // distinct hues instead of every new one defaulting to the same blue.
-      const palette = [
-        "oklch(0.65 0.13 25)",   "oklch(0.65 0.13 5)",    "oklch(0.65 0.13 330)",
-        "oklch(0.65 0.13 290)",  "oklch(0.65 0.13 250)",  "oklch(0.65 0.13 210)",
-        "oklch(0.65 0.13 170)",  "oklch(0.65 0.13 130)",  "oklch(0.65 0.13 95)",
-        "oklch(0.7 0.13 55)",
-      ];
       this.strands.push({
         id,
         name: "Untitled narrative strand",
-        color: palette[this.strands.length % palette.length],
+        color: nextColor(this.strands.length),
         blurb: "",
         body: "",
         status: "open",
@@ -1369,7 +1362,7 @@ export const useProjectStore = defineStore("project", {
     },
 
     // ── Groups ──────────────────────────────────────────────
-    addGroup(input = {}) { this._record("addGroup"); const id = uid("g"); this.groups.push({ id, name: "Untitled group", blurb: "", color: "oklch(0.6 0.1 200)", members: [], ...input }); this._persist(); return id; },
+    addGroup(input = {}) { this._record("addGroup"); const id = uid("g"); this.groups.push({ id, name: "Untitled group", blurb: "", color: nextColor(this.groups.length), members: [], ...input }); this._persist(); return id; },
     removeGroup(id) {
       this._record("removeGroup");
       const g = this.groups.find((x) => x.id === id);

@@ -16,6 +16,7 @@ import GroupsModal from "../components/GroupsModal.vue";
 import Breadcrumb from "../components/Breadcrumb.vue";
 import { promptDialog } from "../services/dialog.js";
 import { NEW_ENTITY_META } from "../services/entityMeta.js";
+import { PALETTE as COLOR_PALETTE } from "../services/categoricalColors.js";
 
 const props = defineProps({ id: { type: String, default: "" } });
 const project = useProjectStore();
@@ -32,15 +33,6 @@ const BEAT_PRESETS = [
   "Inciting", "First turn", "Midpoint",
   "Crisis", "Climax", "Resolution",
   "Setup", "Reveal", "Setback", "Refusal",
-];
-
-// Same family of oklch hues used in GroupsView, so colors picked
-// across these two surfaces sit nicely next to each other in the UI.
-const COLOR_PALETTE = [
-  "oklch(0.65 0.13 25)",   "oklch(0.65 0.13 5)",    "oklch(0.65 0.13 330)",
-  "oklch(0.65 0.13 290)",  "oklch(0.65 0.13 250)",  "oklch(0.65 0.13 210)",
-  "oklch(0.65 0.13 170)",  "oklch(0.65 0.13 130)",  "oklch(0.65 0.13 95)",
-  "oklch(0.7 0.13 55)",
 ];
 
 // Scenes whose Links → Strands selection includes this strand.
