@@ -171,8 +171,9 @@ async function exportM4b({ partial = false } = {}) {
       <!-- Format picker -->
       <div class="card">
         <div class="card-title">Format</div>
-        <div class="format-picker" style="display:grid;gap:10px;margin-top:10px">
+        <div class="format-picker" role="radiogroup" aria-label="Export format" style="display:grid;gap:10px;margin-top:10px">
           <button v-for="f in FORMATS" :key="f.id" @click="go(f.id)"
+            role="radio" :aria-checked="fmt === f.id"
             :style="`text-align:left;padding:14px;border-radius:10px;background:${fmt === f.id ? 'var(--accent-soft)' : 'var(--surface-2)'};border:${fmt === f.id ? '1.5px solid var(--accent)' : '1px solid var(--border)'}`">
             <span style="width:32px;height:32px;border-radius:7px;background:var(--surface);display:grid;place-items:center;color:var(--muted)">
               <Icon :name="f.icon" :size="16" />

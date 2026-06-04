@@ -425,11 +425,11 @@ onBeforeUnmount(() => window.removeEventListener("keydown", onKey));
 <template>
   <PaneHeader eyebrow="Planning" title="Relations">
     <div class="relations-toolbar">
-      <JwButton intent="ghost" size="small" v-tooltip.bottom="'Zoom out (−)'" @click="zoomOut">
+      <JwButton intent="ghost" size="small" aria-label="Zoom out" v-tooltip.bottom="'Zoom out (−)'" @click="zoomOut">
         <Icon name="ChevRight" :size="12" style="transform:rotate(180deg)" />
       </JwButton>
       <span class="relations-zoom-label">{{ Math.round(zoom * 100) }}%</span>
-      <JwButton intent="ghost" size="small" v-tooltip.bottom="'Zoom in (+)'" @click="zoomIn">
+      <JwButton intent="ghost" size="small" aria-label="Zoom in" v-tooltip.bottom="'Zoom in (+)'" @click="zoomIn">
         <Icon name="ChevRight" :size="12" />
       </JwButton>
       <JwButton intent="ghost" size="small" v-tooltip.bottom="'Reset view (0)'" @click="resetView">Reset</JwButton>
@@ -442,6 +442,8 @@ onBeforeUnmount(() => window.removeEventListener("keydown", onKey));
       :viewBox="`0 0 ${CONTENT_W} ${CONTENT_H}`"
       preserveAspectRatio="xMidYMid meet"
       width="100%" height="100%"
+      role="img"
+      :aria-label="focusedNode ? `Relationship graph — ${focusedNode.label} selected` : 'Relationship graph'"
       @wheel.prevent="onWheel"
       @pointerdown="onPointerDown"
       @pointermove="onPointerMove"
@@ -466,9 +468,17 @@ onBeforeUnmount(() => window.removeEventListener("keydown", onKey));
             'is-pinned': pinnedId === n.id,
           }"
           :transform="`translate(${n.x} ${n.y})`"
+          role="button"
+          tabindex="0"
+          :aria-label="`${n.label}${n.sub ? `, ${n.sub}` : ''} — ${n.cls}${pinnedId === n.id ? '. Click again to open' : '. Click to pin'}`"
+          :aria-pressed="pinnedId === n.id ? 'true' : 'false'"
           @click.stop="onNodeClick(n)"
+          @keydown.enter.stop="onNodeClick(n)"
+          @keydown.space.stop.prevent="onNodeClick(n)"
           @mouseenter="onNodeEnter(n)"
-          @mouseleave="onNodeLeave(n)">
+          @mouseleave="onNodeLeave(n)"
+          @focus="onNodeEnter(n)"
+          @blur="onNodeLeave(n)">
           <title>{{ n.label }}{{ n.sub ? ` — ${n.sub}` : "" }}{{ pinnedId === n.id ? ' (click again to open)' : '' }}</title>
           <circle :r="n.r"
             :style="`fill: ${nodeFill(n)}; stroke: ${nodeStroke(n)}`"
@@ -497,28 +507,28 @@ onBeforeUnmount(() => window.removeEventListener("keydown", onKey));
 
     <!-- Legend — colored dots double as toggles; each row shows the
          total edge count touching that kind. -->
-    <div class="relations-legend">
-      <div class="legend-head">
+    <div class="relations-legend" role="group" aria-label="Filter by entity type">
+      <div class="legend-head" aria-hidden="true">
         <span>Type</span>
         <span class="legend-head-count">Edges</span>
       </div>
-      <label>
+      <label :aria-label="`Show characters — ${edgeCounts.character} edges`">
         <JwCheckbox v-model="showCharacters" />
-        <i class="dot character" />
+        <i class="dot character" aria-hidden="true" />
         <span class="legend-label">Character</span>
-        <span class="legend-count">{{ edgeCounts.character }}</span>
+        <span class="legend-count" aria-hidden="true">{{ edgeCounts.character }}</span>
       </label>
-      <label>
+      <label :aria-label="`Show locations — ${edgeCounts.location} edges`">
         <JwCheckbox v-model="showLocations" />
-        <i class="dot location" />
+        <i class="dot location" aria-hidden="true" />
         <span class="legend-label">Location</span>
-        <span class="legend-count">{{ edgeCounts.location }}</span>
+        <span class="legend-count" aria-hidden="true">{{ edgeCounts.location }}</span>
       </label>
-      <label>
+      <label :aria-label="`Show objects — ${edgeCounts.object} edges`">
         <JwCheckbox v-model="showObjects" />
-        <i class="dot object" />
+        <i class="dot object" aria-hidden="true" />
         <span class="legend-label">Object</span>
-        <span class="legend-count">{{ edgeCounts.object }}</span>
+        <span class="legend-count" aria-hidden="true">{{ edgeCounts.object }}</span>
       </label>
     </div>
 
@@ -532,7 +542,7 @@ onBeforeUnmount(() => window.removeEventListener("keydown", onKey));
             {{ focusedNeighborCount }} connection{{ focusedNeighborCount === 1 ? '' : 's' }}
           </div>
         </div>
-        <JwButton v-if="pinnedId" intent="ghost" size="small" v-tooltip.bottom="'Clear focus (Esc)'" @click="clearPin">
+        <JwButton v-if="pinnedId" intent="ghost" size="small" aria-label="Clear focus" v-tooltip.bottom="'Clear focus (Esc)'" @click="clearPin">
           <Icon name="Close" :size="12" />
         </JwButton>
       </div>
@@ -586,11 +596,12 @@ onBeforeUnmount(() => window.removeEventListener("keydown", onKey));
   stroke: var(--accent);
 }
 
-.relations-node { cursor: pointer; transition: opacity .14s ease; }
+.relations-node { cursor: pointer; transition: opacity .14s ease; outline: none; }
 .relations-node circle {
   transition: filter .12s ease, transform .08s ease, stroke-width .12s ease;
 }
-.relations-node:hover circle {
+.relations-node:hover circle,
+.relations-node:focus-visible circle {
   filter: drop-shadow(0 0 6px var(--accent-soft));
 }
 .relations-node:active circle { transform: scale(0.96); transform-box: fill-box; transform-origin: center; }

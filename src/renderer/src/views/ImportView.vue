@@ -205,8 +205,9 @@ function finishAfterSweep() {
       <div v-if="step === 'intent'" class="wiz">
         <section class="wiz-section">
           <h2 class="wiz-h">How will you use this manuscript?</h2>
-          <div class="intent-grid">
-            <label class="intent-card" :class="{ active: intent === 'edit' }">
+          <div class="intent-grid" role="radiogroup" aria-label="Import intent">
+            <label class="intent-card" :class="{ active: intent === 'edit' }"
+              role="radio" :aria-checked="intent === 'edit'">
               <input type="radio" v-model="intent" value="edit" />
               <Icon name="Quote" :size="20" />
               <div class="intent-body">
@@ -214,7 +215,8 @@ function finishAfterSweep() {
                 <div class="intent-sub">Append chapters to your <em>current</em> project for continued writing or revising.</div>
               </div>
             </label>
-            <label class="intent-card" :class="{ active: intent === 'new' }">
+            <label class="intent-card" :class="{ active: intent === 'new' }"
+              role="radio" :aria-checked="intent === 'new'">
               <input type="radio" v-model="intent" value="new" />
               <Icon name="Book" :size="20" />
               <div class="intent-body">
@@ -222,7 +224,8 @@ function finishAfterSweep() {
                 <div class="intent-sub">Create a fresh project from this file. Your current project stays untouched.</div>
               </div>
             </label>
-            <label class="intent-card" :class="{ active: intent === 'narrate' }">
+            <label class="intent-card" :class="{ active: intent === 'narrate' }"
+              role="radio" :aria-checked="intent === 'narrate'">
               <input type="radio" v-model="intent" value="narrate" />
               <Icon name="Play" :size="20" />
               <div class="intent-body">
@@ -332,7 +335,7 @@ function finishAfterSweep() {
               <span class="ch-words">{{ wordCount(c.html).toLocaleString() }} w</span>
               <JwButton intent="ghost" size="small" class="ch-drop"
                 @click="dropChapter(i)"
-                :title="c.drop ? 'Keep this chapter' : 'Drop this chapter'">
+                v-tooltip.bottom="c.drop ? 'Keep this chapter' : 'Drop this chapter'">
                 <Icon :name="c.drop ? 'Plus' : 'Trash'" :size="12" />
                 {{ c.drop ? "Keep" : "Drop" }}
               </JwButton>
@@ -406,7 +409,6 @@ function finishAfterSweep() {
 
 /* Options */
 .opt-row { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; }
-.opt { display: inline-flex; align-items: center; gap: 8px; font-size: 13px; cursor: pointer; }
 .opt-hint { font-size: 12px; color: var(--muted); font-style: italic; }
 .opt-label {
   font-family: var(--font-mono); font-size: 10.5px;

@@ -9,6 +9,7 @@ import { useProjectStore } from "../stores/project.js";
 import { promptDialog } from "../services/dialog.js";
 import Icon from "./Icon.vue";
 import JwButton from "@renderer/components/ui/JwButton.vue";
+import JwInput from "@renderer/components/ui/JwInput.vue";
 
 const props = defineProps({
   chapterId: { type: String, required: true },
@@ -111,18 +112,19 @@ function onBackdrop(e) {
     <div class="links-panel">
       <header class="links-head">
         <h2>Links</h2>
-        <JwButton intent="ghost" v-tooltip.bottom="'Close'" @click="emit('close')">×</JwButton>
+        <JwButton intent="ghost" aria-label="Close links panel" v-tooltip.bottom="'Close'" @click="emit('close')">×</JwButton>
       </header>
 
       <div class="links-body scrollarea">
         <!-- POV -->
         <section class="links-section">
           <div class="links-section-label">From which point of view is the scene narrated?</div>
-          <div class="links-row">
+          <div class="links-row" role="group" aria-label="Point of view">
             <button v-for="opt in POV_OPTIONS" :key="opt.value"
               type="button"
               class="link-chip"
               :class="{ active: scene?.pov === opt.value }"
+              :aria-pressed="scene?.pov === opt.value ? 'true' : 'false'"
               @click="setPov(opt.value)">
               {{ opt.label }}
             </button>
@@ -132,11 +134,12 @@ function onBackdrop(e) {
         <!-- Characters -->
         <section class="links-section">
           <div class="links-section-label">Which characters appear in this scene?</div>
-          <div class="links-row">
+          <div class="links-row" role="group" aria-label="Characters">
             <button v-for="c in mainCharacters" :key="c.id"
               type="button"
               class="link-chip"
               :class="{ active: getList('characters').includes(c.id) }"
+              :aria-pressed="getList('characters').includes(c.id) ? 'true' : 'false'"
               @click="toggle('characters', c.id)">
               {{ c.name }}
             </button>
@@ -144,6 +147,7 @@ function onBackdrop(e) {
               type="button"
               class="link-chip"
               :class="{ active: getList('characters').includes(c.id) }"
+              :aria-pressed="getList('characters').includes(c.id) ? 'true' : 'false'"
               @click="toggle('characters', c.id)">
               {{ c.name }}
             </button>
@@ -159,11 +163,12 @@ function onBackdrop(e) {
         <!-- Locations -->
         <section class="links-section">
           <div class="links-section-label">Where is this scene located?</div>
-          <div class="links-row">
+          <div class="links-row" role="group" aria-label="Locations">
             <button v-for="l in project.locations" :key="l.id"
               type="button"
               class="link-chip"
               :class="{ active: getList('locations').includes(l.id) }"
+              :aria-pressed="getList('locations').includes(l.id) ? 'true' : 'false'"
               @click="toggle('locations', l.id)">
               {{ l.name }}<span v-if="l.kind" class="link-chip-sub"> ({{ l.kind }})</span>
             </button>
@@ -176,11 +181,12 @@ function onBackdrop(e) {
         <!-- Objects -->
         <section class="links-section">
           <div class="links-section-label">Objects</div>
-          <div class="links-row">
+          <div class="links-row" role="group" aria-label="Objects">
             <button v-for="o in project.objects" :key="o.id"
               type="button"
               class="link-chip"
               :class="{ active: getList('objects').includes(o.id) }"
+              :aria-pressed="getList('objects').includes(o.id) ? 'true' : 'false'"
               @click="toggle('objects', o.id)">
               {{ o.name }}
             </button>
@@ -194,18 +200,21 @@ function onBackdrop(e) {
         <section class="links-section">
           <div class="links-section-label">When does this scene take place?</div>
           <div class="links-row links-row-when">
-            <input type="text" class="link-when-input"
-              :value="scene?.when || ''"
+            <JwInput
+              :model-value="scene?.when || ''"
               placeholder="e.g. Tuesday morning · 1843 · the harbour year"
-              @input="update({ when: $event.target.value })" />
-            <div class="link-when-cal">
+              class="link-when-input"
+              @update:model-value="update({ when: $event })" />
+            <div class="link-when-cal" role="group" aria-label="Calendar type">
               <button type="button" class="link-chip"
                 :class="{ active: (scene?.calendarKind || 'gregorian') === 'gregorian' }"
+                :aria-pressed="(scene?.calendarKind || 'gregorian') === 'gregorian' ? 'true' : 'false'"
                 @click="update({ calendarKind: 'gregorian' })">
                 gregorian calendar
               </button>
               <button type="button" class="link-chip"
                 :class="{ active: scene?.calendarKind === 'alternative' }"
+                :aria-pressed="scene?.calendarKind === 'alternative' ? 'true' : 'false'"
                 @click="update({ calendarKind: 'alternative' })">
                 alternative calendar
               </button>
@@ -216,11 +225,12 @@ function onBackdrop(e) {
         <!-- Strands -->
         <section class="links-section">
           <div class="links-section-label">To which narrative strand does this scene belong?</div>
-          <div class="links-row">
+          <div class="links-row" role="group" aria-label="Narrative strands">
             <button v-for="s in project.strands" :key="s.id"
               type="button"
               class="link-chip link-chip-strand"
               :class="{ active: getList('strands').includes(s.id) }"
+              :aria-pressed="getList('strands').includes(s.id) ? 'true' : 'false'"
               :style="getList('strands').includes(s.id) && s.color
                 ? { background: s.color, borderColor: s.color, color: '#fff' }
                 : null"
@@ -241,7 +251,7 @@ function onBackdrop(e) {
 <style scoped>
 .links-overlay {
   position: fixed; inset: 0;
-  background: rgba(0, 0, 0, 0.45);
+  background: color-mix(in oklab, var(--ink), transparent 55%);
   z-index: 200;
   display: grid; place-items: center;
   padding: 24px;
@@ -250,7 +260,7 @@ function onBackdrop(e) {
   background: var(--surface);
   border: 1px solid var(--border-strong);
   border-radius: 12px;
-  box-shadow: 0 16px 48px rgba(0, 0, 0, 0.25);
+  box-shadow: 0 16px 48px color-mix(in oklab, var(--ink), transparent 75%);
   width: 100%;
   max-width: 920px;
   max-height: calc(100vh - 48px);
@@ -326,12 +336,12 @@ function onBackdrop(e) {
 }
 .link-chip-dot {
   width: 8px; height: 8px; border-radius: 50%;
-  box-shadow: inset 0 0 0 1px rgba(0,0,0,0.12);
+  box-shadow: inset 0 0 0 1px color-mix(in oklab, var(--ink), transparent 88%);
   flex: none;
 }
 .link-chip-strand.active .link-chip-dot {
-  background: rgba(255,255,255,0.85) !important;
-  box-shadow: inset 0 0 0 1px rgba(0,0,0,0.18);
+  background: color-mix(in oklab, var(--surface), transparent 15%) !important;
+  box-shadow: inset 0 0 0 1px color-mix(in oklab, var(--ink), transparent 82%);
 }
 .link-chip-new {
   background: var(--surface);
@@ -349,18 +359,8 @@ function onBackdrop(e) {
   gap: 18px;
 }
 .link-when-input {
-  appearance: none;
-  background: var(--surface-2);
-  border: 1px solid var(--border);
-  border-radius: 6px;
-  padding: 8px 12px;
-  font: inherit;
-  font-size: 13px;
-  color: var(--ink);
   min-width: 280px;
   flex: 1;
-  outline: none;
 }
-.link-when-input:focus { border-color: var(--accent); box-shadow: 0 0 0 2px var(--accent-soft); }
 .link-when-cal { display: inline-flex; gap: 6px; flex-shrink: 0; }
 </style>

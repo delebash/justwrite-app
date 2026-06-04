@@ -164,7 +164,7 @@ const strandCount = (id) => allCh.value.filter((c) => (c.strands || []).includes
             <span><i style="display:inline-block;width:8px;height:8px;border-radius:2px;background:var(--status-draft);margin-right:5px" />Draft · {{ draft }}</span>
             <span><i style="display:inline-block;width:8px;height:8px;border-radius:2px;background:var(--status-todo);margin-right:5px" />To do · {{ todo }}</span>
             <router-link to="/settings/project" class="deadline-link" style="margin-left:auto"
-              title="Change deadline in Project settings">Deadline {{ P.deadline }}</router-link>
+              v-tooltip.bottom="'Change deadline in Project settings'">Deadline {{ P.deadline }}</router-link>
           </div>
         </div>
       </div>
@@ -208,7 +208,7 @@ const strandCount = (id) => allCh.value.filter((c) => (c.strands || []).includes
           <span class="k">Avg / day</span><span class="v">{{ totals14.avg.toLocaleString() }}</span>
         </div>
         <div class="gticks">
-          <i v-for="(active, i) in streakSquares" :key="i" :class="{ on: active }" :title="history14[i].date" />
+          <i v-for="(active, i) in streakSquares" :key="i" :class="{ on: active }" v-tooltip.bottom="history14[i].date" />
         </div>
         <div class="gticks-cap">{{ streakSquares.filter(Boolean).length }} of 14 days written</div>
       </div>
