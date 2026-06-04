@@ -1,6 +1,6 @@
 {
   "name": "justwrite",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "description": "JustWrite — a writing app for novels, with an audio studio that connects to any OpenAI-compatible AI provider.",
   "private": true,
   "type": "module",
