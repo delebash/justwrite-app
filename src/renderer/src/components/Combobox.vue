@@ -192,7 +192,7 @@ watch(() => filtered.value.length, (n) => {
   background: var(--surface);
   border: 1px solid var(--border-strong, var(--border));
   border-radius: 8px;
-  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.18);
+  box-shadow: 0 8px 24px var(--shadow-medium);
   max-height: 240px;
   overflow-y: auto;
 }

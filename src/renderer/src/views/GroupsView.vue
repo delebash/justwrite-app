@@ -174,12 +174,12 @@ async function deleteGroup() {
   width: 20px; height: 20px;
   border-radius: 5px;
   cursor: default;
-  box-shadow: inset 0 0 0 1px rgba(0,0,0,0.08);
+  box-shadow: inset 0 0 0 1px var(--shadow-soft);
   transition: transform .08s ease;
 }
 .group-swatch:hover { transform: scale(1.1); }
 .group-swatch.active {
-  box-shadow: inset 0 0 0 1px rgba(0,0,0,0.08), 0 0 0 2px var(--surface), 0 0 0 4px var(--accent);
+  box-shadow: inset 0 0 0 1px var(--shadow-soft), 0 0 0 2px var(--surface), 0 0 0 4px var(--accent);
 }
 
 .member-group { margin-top: 18px; }

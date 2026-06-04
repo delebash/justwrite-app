@@ -233,7 +233,7 @@ async function openProject() {
 .theme-menu-sep { height: 1px; background: var(--border); margin: 4px 4px; }
 .theme-dot {
   width: 11px; height: 11px; border-radius: 50%;
-  box-shadow: inset 0 0 0 1px rgba(0, 0, 0, 0.12);
+  box-shadow: inset 0 0 0 1px var(--shadow-soft);
 }
 .theme-menu-custom {
   display: grid; grid-template-columns: 12px 1fr;

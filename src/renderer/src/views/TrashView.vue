@@ -97,7 +97,7 @@ const trashColumns = [
 </script>
 
 <template>
-  <PaneHeader eyebrow="Project" title="Trash">
+  <PaneHeader :eyebrow="$t('settings.eyebrow')" :title="$t('nav.trash')">
     <span class="t-muted" style="font-size:12px">
       {{ totalCount }} item{{ totalCount === 1 ? "" : "s" }}
     </span>

@@ -164,7 +164,7 @@ function onRowClick(event) {
 
 <template>
   <template v-if="!article">
-    <PaneHeader eyebrow="Story world" title="Worldbuilding">
+    <PaneHeader :eyebrow="$t('panes.worldbuilding.eyebrow')" :title="$t('nav.worldbuilding')">
       <JwButton label="New article" intent="primary" size="small" @click="addArticle">
         <template #icon><Icon name="Plus" :size="14" /></template>
       </JwButton>
@@ -296,6 +296,7 @@ function onRowClick(event) {
       <TagEditor
         :model-value="article.tags || []"
         :pool="tagPool"
+        :curated="project.tagVocabularies.worldbuilding"
         @update:model-value="(v) => update('tags', v)" />
 
       <RichEditor

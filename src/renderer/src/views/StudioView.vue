@@ -288,7 +288,7 @@ function downloadChapter(chapterId) {
 </script>
 
 <template>
-  <PaneHeader eyebrow="Audio" title="Studio">
+  <PaneHeader :eyebrow="$t('panes.studio.eyebrow')" :title="$t('nav.studio')">
     <span class="chip">Engine · <b style="font-weight:600;margin-left:4px">{{ provider?.name || "—" }}</b></span>
     <router-link to="/settings/audio" custom v-slot="{ navigate }">
       <JwButton intent="ghost" size="small" @click="navigate"><Icon name="Settings" :size="14" /> Engines</JwButton>

@@ -69,7 +69,7 @@ function goOwner(ev) { router.push(EVENTS_KIND_META[ev.ownerKind].detailUrl(ev.o
 </script>
 
 <template>
-  <PaneHeader eyebrow="Planning" title="Timeline" />
+  <PaneHeader :eyebrow="$t('panes.timeline.eyebrow')" :title="$t('panes.timeline.title')" />
   <div class="pane-card">
     <div class="scrollarea events-pane">
       <div class="events-content">

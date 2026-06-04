@@ -204,7 +204,7 @@ const milestoneState = computed(() => {
 </script>
 
 <template>
-  <PaneHeader eyebrow="Project" title="Analysis" />
+  <PaneHeader :eyebrow="$t('settings.eyebrow')" :title="$t('nav.analysis')" />
 
   <div class="pane-card">
   <div class="scrollarea" style="padding:22px 26px 60px">

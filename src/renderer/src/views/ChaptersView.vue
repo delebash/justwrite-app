@@ -635,7 +635,7 @@ watch(() => project.allChapters.map((c) => c.id + ":" + (project.scenesFor(c.id)
     </router-link>
     <JwButton intent="primary" size="small" @click="addChapter"><Icon name="Plus" :size="14" /> New chapter</JwButton>
   </PaneHeader>
-  <PaneHeader v-else eyebrow="Manuscript" title="No chapters">
+  <PaneHeader v-else :eyebrow="$t('panes.chapters.eyebrow')" :title="$t('panes.chapters.emptyTitle')">
     <router-link to="/import" custom v-slot="{ navigate }">
       <JwButton intent="ghost" size="small" @click="navigate"><Icon name="Plus" :size="14" /> Import from file</JwButton>
     </router-link>
@@ -1253,7 +1253,7 @@ watch(() => project.allChapters.map((c) => c.id + ":" + (project.scenesFor(c.id)
   width: 8px; height: 8px;
   border-radius: 50%;
   background: var(--pill-c);
-  box-shadow: inset 0 0 0 1px rgba(0,0,0,0.08);
+  box-shadow: inset 0 0 0 1px var(--shadow-soft);
   flex-shrink: 0;
 }
 .scene-pill-status { color: var(--pill-c); }
@@ -1307,10 +1307,10 @@ watch(() => project.allChapters.map((c) => c.id + ":" + (project.scenesFor(c.id)
 .scene-links-btn {
   font-weight: 600;
   letter-spacing: 0.01em;
-  box-shadow: 0 1px 0 rgba(0,0,0,0.06);
+  box-shadow: 0 1px 0 var(--shadow-soft);
 }
 .scene-links-btn:hover {
-  box-shadow: 0 1px 0 rgba(0,0,0,0.06), 0 0 0 3px var(--accent-soft);
+  box-shadow: 0 1px 0 var(--shadow-soft), 0 0 0 3px var(--accent-soft);
 }
 .scene-links-btn:active { transform: translateY(1px); }
 

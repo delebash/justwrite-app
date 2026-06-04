@@ -193,7 +193,7 @@ function finishAfterSweep() {
 </script>
 
 <template>
-  <PaneHeader eyebrow="Manuscript" title="Import">
+  <PaneHeader :eyebrow="$t('panes.import.eyebrow')" :title="$t('nav.import')">
     <router-link to="/" custom v-slot="{ navigate }">
       <JwButton intent="ghost" size="small" @click="navigate">Cancel</JwButton>
     </router-link>

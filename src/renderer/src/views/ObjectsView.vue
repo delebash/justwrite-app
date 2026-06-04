@@ -134,7 +134,7 @@ function onRowClick(event) {
 <template>
   <!-- ── List mode (no id in URL) ─────────────────────────────── -->
   <template v-if="!obj && !id">
-    <PaneHeader eyebrow="Story world" title="Objects">
+    <PaneHeader :eyebrow="$t('panes.objects.eyebrow')" :title="$t('nav.objects')">
       <JwButton label="New object" intent="primary" size="small" @click="addObject">
         <template #icon><Icon name="Plus" :size="14" /></template>
       </JwButton>
@@ -263,6 +263,7 @@ function onRowClick(event) {
         <TagEditor
           :model-value="obj.tags || []"
           :pool="tagPool"
+          :curated="project.tagVocabularies.objects"
           @update:model-value="(v) => update('tags', v)" />
         <RichEditor
           :model-value="obj.note || ''"

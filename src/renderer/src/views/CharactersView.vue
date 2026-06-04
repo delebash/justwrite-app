@@ -213,7 +213,7 @@ function onRowClick(event) {
 <template>
   <!-- ── List mode (no id in URL) ─────────────────────────────── -->
   <template v-if="!ch && !id">
-    <PaneHeader eyebrow="Cast" title="Characters">
+    <PaneHeader :eyebrow="$t('panes.characters.eyebrow')" :title="$t('nav.characters')">
       <JwButton label="New character" intent="primary" size="small" @click="addCharacter">
         <template #icon><Icon name="Plus" :size="14" /></template>
       </JwButton>
@@ -380,6 +380,7 @@ function onRowClick(event) {
         <TagEditor
           :model-value="ch.tags || []"
           :pool="tagPool"
+          :curated="project.tagVocabularies.characters"
           @update:model-value="(v) => updateField('tags', v)" />
 
         <div style="margin-top:22px">

@@ -319,7 +319,7 @@ const HISTORY_SLICES = [
   "project", "parts", "scenes",
   "characters", "characterExtras",
   "locations", "objects", "groups", "notes", "strands",
-  "architecture", "worldbuilding", "worldbuildingCategories", "statuses",
+  "architecture", "worldbuilding", "worldbuildingCategories", "tagVocabularies", "statuses",
   "images", "events",
   "trash",
 ];
@@ -345,6 +345,7 @@ const COALESCED_ACTIONS = new Set([
   "updateCharacter", "setCharacterExtras",
   "updateLocation", "updateObject", "updateStrand", "updateGroup",
   "updatePart", "updateStrandBeat", "updateScene",
+  "renameTagVocab",
 ]);
 
 let lastHistoryAt = 0;
@@ -385,6 +386,7 @@ export const useProjectStore = defineStore("project", {
     architecture: { ...ARCHITECTURE, ...(loaded.architecture || {}) },
     worldbuilding: loaded.worldbuilding || [...WORLDBUILDING],
     worldbuildingCategories: loaded.worldbuildingCategories || WORLDBUILDING_CATEGORIES.map((c) => ({ ...c })),
+    tagVocabularies: { characters: [], locations: [], objects: [], worldbuilding: [], ...(loaded.tagVocabularies || {}) },
     statuses: loaded.statuses || DEFAULT_STATUSES.map((s) => ({ ...s })),
     // Scenes registry: { [chapterId]: [{ id, title, body, ...links }] }.
     // Seeded from the SCENES map — chapters not listed there open empty
@@ -1239,6 +1241,31 @@ export const useProjectStore = defineStore("project", {
       this._persist();
     },
 
+    // ── Tag vocabularies (per-kind curated suggestions) ──────
+    addTagVocab(kind, label = "New tag") {
+      this._record("addTagVocab");
+      const id = uid("tv");
+      const next = { ...this.tagVocabularies };
+      next[kind] = [...(next[kind] || []), { id, label }];
+      this.tagVocabularies = next;
+      this._persist();
+      return id;
+    },
+    renameTagVocab(kind, id, label) {
+      this._record("renameTagVocab");
+      const next = { ...this.tagVocabularies };
+      next[kind] = (next[kind] || []).map((t) => (t.id === id ? { ...t, label } : t));
+      this.tagVocabularies = next;
+      this._persist();
+    },
+    removeTagVocab(kind, id) {
+      this._record("removeTagVocab");
+      const next = { ...this.tagVocabularies };
+      next[kind] = (next[kind] || []).filter((t) => t.id !== id);
+      this.tagVocabularies = next;
+      this._persist();
+    },
+
     // ── Narrative strands ───────────────────────────────────
     addStrand(input = {}) {
       this._record("addStrand");
@@ -1533,6 +1560,7 @@ export const useProjectStore = defineStore("project", {
         locations: this.locations, objects: this.objects, groups: this.groups,
         strands: this.strands, notes: this.notes, architecture: this.architecture,
         worldbuilding: this.worldbuilding, worldbuildingCategories: this.worldbuildingCategories,
+        tagVocabularies: this.tagVocabularies,
         images: this.images, events: this.events,
         statuses: this.statuses,
         trash: this.trash,
@@ -1588,6 +1616,7 @@ export const useProjectStore = defineStore("project", {
         architecture: { ...ARCHITECTURE },
         worldbuilding: [],
         worldbuildingCategories: WORLDBUILDING_CATEGORIES.map((c) => ({ ...c })),
+        tagVocabularies: { characters: [], locations: [], objects: [], worldbuilding: [] },
         statuses: DEFAULT_STATUSES.map((s) => ({ ...s })),
         scenes: {},
         images: {}, events: {},

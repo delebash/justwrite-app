@@ -76,6 +76,8 @@
   --shadow-1: 0 1px 0 rgba(20, 22, 24, 0.04), 0 1px 3px rgba(20, 22, 24, 0.04);
   --shadow-2: 0 1px 0 rgba(20, 22, 24, 0.05), 0 8px 24px rgba(20, 22, 24, 0.06);
   --shadow-window: 0 0 0 1px rgba(20, 22, 24, 0.08), 0 30px 80px -20px rgba(20, 22, 24, 0.35);
+  --shadow-soft:   rgba(0, 0, 0, 0.08); /* subtle hover / inset hairlines */
+  --shadow-medium: rgba(0, 0, 0, 0.18); /* dropdown / popover lift */
 
   /* Functional-colour hues — driven by the theme manager (appearance.js),
      same trick as --accent-hue: the user retints danger/success/info while
@@ -193,6 +195,8 @@ html[data-theme="dark"] {
   --shadow-1: 0 1px 0 rgba(0,0,0,0.4), 0 1px 3px rgba(0,0,0,0.35);
   --shadow-2: 0 1px 0 rgba(0,0,0,0.45), 0 8px 24px rgba(0,0,0,0.4);
   --shadow-window: 0 0 0 1px rgba(0,0,0,0.5), 0 30px 80px -20px rgba(0,0,0,0.7);
+  --shadow-soft:   rgba(0, 0, 0, 0.20); /* inset hairlines need more contrast on dark */
+  --shadow-medium: rgba(0, 0, 0, 0.45); /* dropdown / popover lift on dark */
 
   /* State tokens — darker fills, lifted ink for legibility.
      Hue vars (--danger-hue / --success-hue / --info-hue) inherit from :root;
@@ -757,7 +761,7 @@ input.nav-part-title:focus { border-color: var(--accent); background: var(--surf
   width: 20px; height: 11px;
   border-radius: 3px;
   flex-shrink: 0;
-  box-shadow: inset 0 0 0 1px rgba(0, 0, 0, 0.12);
+  box-shadow: inset 0 0 0 1px var(--shadow-soft);
 }
 
 .nav-filter {
@@ -1469,7 +1473,7 @@ html[data-editor-layout="page"] .rich-editor--manuscript .manuscript-inner.with-
   border: 1px solid var(--border);
   border-radius: 8px;
   padding: 14px 16px 12px;
-  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.04);
+  box-shadow: 0 1px 2px var(--shadow-soft);
 }
 .timeline-card::before {
   content: "";

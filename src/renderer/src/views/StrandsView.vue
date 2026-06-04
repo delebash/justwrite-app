@@ -365,7 +365,7 @@ const sortedBeats = computed(() => {
 }
 .strand-name-dot {
   width: 12px; height: 12px; border-radius: 50%;
-  box-shadow: inset 0 0 0 1px rgba(0,0,0,0.12);
+  box-shadow: inset 0 0 0 1px var(--shadow-soft);
   flex: none;
 }
 .strand-name {
@@ -422,12 +422,12 @@ const sortedBeats = computed(() => {
   width: 20px; height: 20px;
   border-radius: 5px;
   cursor: pointer;
-  box-shadow: inset 0 0 0 1px rgba(0,0,0,0.08);
+  box-shadow: inset 0 0 0 1px var(--shadow-soft);
   transition: transform .08s ease;
 }
 .strand-swatch:hover { transform: scale(1.1); }
 .strand-swatch.active {
-  box-shadow: inset 0 0 0 1px rgba(0,0,0,0.08), 0 0 0 2px var(--surface), 0 0 0 4px var(--accent);
+  box-shadow: inset 0 0 0 1px var(--shadow-soft), 0 0 0 2px var(--surface), 0 0 0 4px var(--accent);
 }
 
 .beats-section {

@@ -55,6 +55,159 @@
     "cancelLabel": "Cancel",
     "closeLabel": "Close"
   },
+  "panes": {
+    "help": {
+      "eyebrow": "Help"
+    },
+    "characters": {
+      "eyebrow": "Cast"
+    },
+    "import": {
+      "eyebrow": "Manuscript"
+    },
+    "locations": {
+      "eyebrow": "Story world"
+    },
+    "plotBoard": {
+      "eyebrow": "Planning",
+      "title": "Plot board"
+    },
+    "objects": {
+      "eyebrow": "Story world"
+    },
+    "studio": {
+      "eyebrow": "Audio"
+    },
+    "timeline": {
+      "eyebrow": "Planning",
+      "title": "Timeline"
+    },
+    "relations": {
+      "eyebrow": "Planning",
+      "title": "Relations"
+    },
+    "search": {
+      "eyebrow": "Manuscript"
+    },
+    "worldbuilding": {
+      "eyebrow": "Story world"
+    },
+    "writerLab": {
+      "eyebrow": "Tools",
+      "title": "Writer Lab"
+    },
+    "writerLabDebug": {
+      "eyebrow": "Debug",
+      "title": "Writer Lab — model compare"
+    },
+    "speakerLab": {
+      "eyebrow": "Debug",
+      "title": "Speaker Lab"
+    },
+    "chapters": {
+      "eyebrow": "Manuscript",
+      "emptyTitle": "No chapters"
+    }
+  },
+  "sidebar": {
+    "sections": {
+      "manuscript": "Manuscript",
+      "storyWorld": "Story world",
+      "planning": "Planning",
+      "audio": "Audio",
+      "project": "Project"
+    },
+    "nav": {
+      "ariaLabel": "Main navigation",
+      "askTheBook": "Ask the book",
+      "plotBoard": "Plot board",
+      "timeline": "Timeline",
+      "relations": "Relations",
+      "writerLab": "Writer Lab",
+      "help": "Help"
+    },
+    "projectSwitcher": {
+      "heading": "Projects",
+      "untitled": "Untitled",
+      "noAuthor": "no author",
+      "empty": "No projects yet.",
+      "newProject": "New project…",
+      "newProjectTitle": "New project",
+      "newProjectConfirm": "Create",
+      "fieldTitle": "Project title",
+      "fieldTitlePlaceholder": "e.g. The Cartographer's Daughter",
+      "fieldAuthor": "Author (optional)",
+      "fieldAuthorPlaceholder": "Your name",
+      "deleteProjectTitle": "Delete project \"{title}\"?",
+      "deleteProjectMessage": "This removes it from this device permanently. Export a backup first if you might want it back.",
+      "deleteProjectConfirm": "Delete project",
+      "deleteTooltip": "Delete {title}",
+      "deleteAriaLabel": "Delete project {title}"
+    },
+    "tooltips": {
+      "dragToResize": "Drag to resize",
+      "toggleSidebar": "Toggle sidebar",
+      "expandSidebar": "Expand sidebar",
+      "newPart": "New part",
+      "newCategory": "New category",
+      "newItem": "New {label}",
+      "addChapterToPart": "Add chapter to this part",
+      "addSceneToChapter": "Add scene to this chapter",
+      "addArticleToCategory": "Add article to this category",
+      "deleteCategory": "Delete this category",
+      "deleteCategoryNamed": "Delete category {name}",
+      "collapseScenes": "Collapse scenes",
+      "showScenes": "Show scenes",
+      "collapse": "Collapse",
+      "expand": "Expand",
+      "collapseNamed": "Collapse {name}",
+      "expandNamed": "Expand {name}",
+      "renamePart": "Rename {name}",
+      "renameCategory": "Rename {name}"
+    },
+    "placeholders": {
+      "untitledPart": "Untitled part",
+      "untitledCategory": "Untitled category"
+    },
+    "filter": {
+      "placeholder": "Filter {label}…"
+    },
+    "actions": {
+      "newPartTitle": "New part",
+      "newPartLabel": "Part title",
+      "newPartPlaceholder": "e.g. Part {n} — The Reckoning",
+      "newPartConfirm": "Create part",
+      "newChapterTitle": "New chapter",
+      "newChapterLabel": "Chapter title",
+      "newChapterPlaceholder": "e.g. The first crossing",
+      "newChapterConfirm": "Create chapter",
+      "newSceneTitle": "New scene",
+      "newSceneConfirm": "Add scene",
+      "newSceneLabel": "Scene title",
+      "newScenePlaceholder": "Leave blank for an untitled scene",
+      "newWbCategoryTitle": "New category",
+      "newWbCategoryLabel": "Category name",
+      "newWbCategoryPlaceholder": "e.g. Religion & rites",
+      "newWbCategoryConfirm": "Create category",
+      "deleteWbCategoryTitle": "Delete \"{label}\"?",
+      "deleteWbCategoryEmpty": "This category has no articles.",
+      "deleteWbCategoryConfirm": "Delete category",
+      "newItemFallbackTitle": "New item",
+      "newItemFallbackLabel": "Name",
+      "newItemFallbackConfirm": "Create"
+    },
+    "empty": {
+      "noChaptersMatch": "No chapters match",
+      "noWorldbuildingMatch": "No worldbuilding match"
+    },
+    "footer": {
+      "untitledAuthor": "Untitled author",
+      "autosaved": "Autosaved",
+      "savedNever": "never",
+      "savedJustNow": "just now",
+      "noEditsSaved": "No edits saved yet"
+    }
+  },
   "settings": {
     "title": "Settings",
     "eyebrow": "Project",
@@ -116,7 +269,42 @@
       "modeCardTitle": "Mode",
       "typographyCardTitle": "Typography",
       "accentsCardTitle": "Accents",
-      "resetToDefaults": "Reset to defaults"
+      "resetToDefaults": "Reset to defaults",
+      "functionalColoursCardTitle": "Functional colours",
+      "functionalColoursHint": "Success, danger and info — used by status chips, banners and the buttons and tags below. Like the accent, you pick a hue and every shade stays legible in light & dark.",
+      "successLabel": "Success",
+      "dangerLabel": "Danger",
+      "infoLabel": "Info",
+      "buttonIntentsCardTitle": "Buttons",
+      "buttonIntentsHint": "Each button has a single <b>intent</b> that encodes both colour and visual style. <b>Primary</b> (solid accent) is the main affordance. <b>Secondary</b> is outlined neutral for supporting actions. <b>Ghost</b> is quiet text-only for utility. <b>Danger / Success / Info</b> follow the functional colours above, <b>Accent 2</b> follows your second accent — all solid fills for clear status. Re-tinting any colour above re-skins them all.",
+      "backgroundsCardTitle": "Backgrounds",
+      "backgroundsHint": "Tint each area independently — every option is tuned to stay legible. Pick a curated swatch or click <b>Custom</b> for any colour. The <b>Text</b> row picks the text-colour family used across the app.",
+      "bgAppLabel": "App",
+      "bgSidebarLabel": "Sidebar",
+      "bgEditorPaperLabel": "Editor paper",
+      "bgTextColourLabel": "Text",
+      "bgCustomColour": "Custom colour",
+      "inlinePaperLabel": "Apply editor paper to inline fields",
+      "inlinePaperHint": "Character, note & worldbuilding rich-text fields pick up the paper tint instead of the surface.",
+      "editorLayoutCardTitle": "Editor layout",
+      "editorLayoutHint": "How the manuscript editor presents your prose while you write.",
+      "editorLayoutFullWidth": "Full width",
+      "editorLayoutFullWidthHint": "Edge-to-edge writing surface.",
+      "editorLayoutPage": "Page",
+      "editorLayoutPageHint": "Centered sheet with margins and running head.",
+      "editorLayoutOverrideNote": "Per-document overrides for any of these live in the editor's ⚙ Writing settings — pick <em>theme</em> there to fall back to the theme default.",
+      "editorWritingCardTitle": "Editor writing",
+      "editorWritingHint": "Defaults for the manuscript prose — font size, line spacing, paragraph spacing, and first-line indent. Per-document choices in the editor's ⚙ Writing settings override these.",
+      "editorFontSizeLabel": "Font size",
+      "editorLineSpacingLabel": "Line spacing",
+      "editorParaSpacingLabel": "Paragraph spacing",
+      "editorParaIndentLabel": "First-line indent",
+      "buttonStylingCardTitle": "Buttons",
+      "buttonStylingHint": "Shape, padding, and label casing for every button across the app.",
+      "btnCornerRadiusLabel": "Corner radius",
+      "btnDensityLabel": "Density",
+      "btnLabelCasingLabel": "Label casing",
+      "previewLabel": "Preview"
     },
     "backups": {
       "autosaveCardTitle": "Auto-save to disk",
@@ -129,6 +317,13 @@
     "wbCategories": {
       "cardTitle": "Worldbuilding categories"
     },
+    "tagVocabularies": {
+      "cardTitle": "Tag vocabularies",
+      "hint": "A curated set of tags per entity type. These appear first in the tag suggestion dropdown and canonicalize ad-hoc input — typing \"Antagonist\" resolves to \"antagonist\" when that's a curated tag. Freeform tags continue to work alongside them.",
+      "addTag": "Add tag",
+      "placeholder": "Tag label",
+      "empty": "No curated tags yet — add one to suggest it across all entries of this type."
+    },
     "coverImage": {
       "cardTitle": "Cover image"
     },
@@ -139,6 +334,56 @@
     },
     "debug": {
       "cardTitle": "Debug tools"
+    },
+    "providerForm": {
+      "fieldId": "ID",
+      "fieldIdPlaceholder": "e.g. my-ollama",
+      "fieldName": "Name",
+      "fieldNamePlaceholder": "Display name",
+      "fieldKind": "Kind",
+      "kindLlm": "LLM only",
+      "kindTts": "TTS only",
+      "kindBoth": "LLM + TTS",
+      "fieldBaseUrl": "Base URL",
+      "fieldApiKey": "API key",
+      "fieldApiKeyPlaceholder": "Optional — leave blank for local providers",
+      "fieldApiFormat": "API format",
+      "fieldApiFormatTitle": "Which request format this provider speaks. OpenAI-compatible covers OpenAI, Anthropic, Google, OpenRouter, DeepSeek, LM Studio, llama.cpp, vLLM — anything that exposes /v1/chat/completions. Pick Ollama only for an Ollama daemon — its native /api/chat is the only path that honors think:false.",
+      "runnerOpenai": "OpenAI-compatible (most providers — OpenAI, Anthropic, Google, OpenRouter, DeepSeek, LM Studio, llama.cpp, vLLM…)",
+      "runnerOllama": "Ollama native (only for an Ollama daemon — honors think:false)",
+      "fieldChatModel": "Chat model",
+      "chatModelPlaceholder": "llama3.1:8b, gpt-4o-mini, …",
+      "chevShowFetched": "Show fetched models",
+      "chevFetchFirst": "Fetch models first",
+      "chevFetchFirstTts": "Fetch models first (use the button on the Chat model row, or set Kind to LLM+TTS)",
+      "tooltipFetchModels": "Query GET /v1/models on the Base URL above",
+      "tooltipFillBaseUrl": "Fill the Base URL first",
+      "btnLoading": "Loading…",
+      "btnRefresh": "Refresh",
+      "btnFetchModels": "Fetch models",
+      "fieldTier": "Tier",
+      "fieldTierTitle": "Attribution pipeline capability bucket for this model. Auto-picked by name pattern; you can pin a different choice if you know better. Guided = scaffolded examples for sub-12B models. Direct = strict rules for 12B-class non-reasoning. Reasoned = strict rules + implicit reasoning for hybrid models (Qwen3:14B+).",
+      "tierPinned": "pinned",
+      "tierAuto": "auto",
+      "tooltipClearPin": "Revert to the auto-detected tier",
+      "btnClearPin": "Clear pin",
+      "fieldEmbeddingModel": "Embedding model",
+      "fieldEmbeddingModelTitle": "Optional embedding model — fills the RAG (manuscript chat) index. Leave blank if this provider isn't your embedding provider. OpenAI: text-embedding-3-small. Ollama: nomic-embed-text. Anthropic / Google / OpenRouter generally don't expose embedding endpoints — leave blank.",
+      "fieldTtsModel": "TTS model",
+      "ttsModelPlaceholder": "tts-1, gpt-4o-mini-tts, …",
+      "fieldVoices": "Voices",
+      "voicesPlaceholder": "comma-separated · e.g. alloy, echo, nova",
+      "tooltipPickVoices": "Pick from fetched voices",
+      "tooltipFetchVoicesFirst": "Fetch voices first",
+      "tooltipFetchVoices": "Query GET /v1/audio/voices on the Base URL above",
+      "btnFetchVoices": "Fetch voices",
+      "engineParamsHeading": "Engine parameters",
+      "engineParamsHint": "Blank = let the server use its default.",
+      "selectDefaultOption": "— default —",
+      "boolOn": "on",
+      "boolOff": "off",
+      "btnCancel": "Cancel",
+      "btnSave": "Save"
     }
   }
 }

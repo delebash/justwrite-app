@@ -658,6 +658,14 @@ async function deleteStatus(s) {
   project.removeStatusDef(s.id);
 }
 
+// ── Tag vocabularies ───────────────────────────────────────────────
+const TAG_VOCAB_KINDS = [
+  { key: "characters",    labelKey: "nav.characters" },
+  { key: "locations",     labelKey: "nav.locations" },
+  { key: "objects",       labelKey: "nav.objects" },
+  { key: "worldbuilding", labelKey: "nav.worldbuilding" },
+];
+
 // ── Worldbuilding categories (user-definable) ──────────────────────
 const WB_HUES = [30, 60, 95, 130, 170, 200, 250, 290, 320, 0];
 const WB_ICONS = [
@@ -892,6 +900,41 @@ const recentColumns = [
           <JwButton label="Add category" intent="ghost" style="margin-top:12px" @click="addCategory">
             <template #icon><Icon name="Plus" :size="13" /></template>
           </JwButton>
+        </div>
+
+        <!-- ── Tag vocabularies ─────────────────────────────── -->
+        <div class="card">
+          <div class="card-title">{{ $t('settings.tagVocabularies.cardTitle') }}</div>
+          <p class="t-muted" style="font-size:12.5px;margin:0 0 14px;line-height:1.55">
+            {{ $t('settings.tagVocabularies.hint') }}
+          </p>
+          <div style="display:flex;flex-direction:column;gap:18px">
+            <div v-for="kind in TAG_VOCAB_KINDS" :key="kind.key">
+              <div class="t-eyebrow" style="margin-bottom:8px">{{ $t(kind.labelKey) }}</div>
+              <div style="display:flex;flex-direction:column;gap:6px">
+                <div v-for="t in project.tagVocabularies[kind.key]" :key="t.id"
+                  style="display:flex;align-items:center;gap:10px">
+                  <JwInput style="max-width:280px" :model-value="t.label"
+                    @update:model-value="(v) => project.renameTagVocab(kind.key, t.id, v)"
+                    :placeholder="$t('settings.tagVocabularies.placeholder')" />
+                  <JwButton intent="ghost" size="small" style="margin-left:auto"
+                    v-tooltip.bottom="$t('common.remove')"
+                    @click="project.removeTagVocab(kind.key, t.id)">
+                    <template #icon><Icon name="Trash" :size="13" /></template>
+                  </JwButton>
+                </div>
+                <div v-if="!project.tagVocabularies[kind.key].length"
+                  class="t-muted" style="font-size:12.5px;font-style:italic">
+                  {{ $t('settings.tagVocabularies.empty') }}
+                </div>
+              </div>
+              <JwButton :label="$t('settings.tagVocabularies.addTag')" intent="ghost"
+                size="small" style="margin-top:8px"
+                @click="project.addTagVocab(kind.key)">
+                <template #icon><Icon name="Plus" :size="13" /></template>
+              </JwButton>
+            </div>
+          </div>
         </div>
 
         <!-- ── Cover image ──────────────────────────────────── -->
@@ -1401,10 +1444,10 @@ const recentColumns = [
 
         <!-- Functional colours -->
         <div class="card">
-          <div class="card-title">Functional colours</div>
-          <p class="t-muted" style="font-size:12px;margin:0 0 12px">Success, danger and info — used by status chips, banners and the buttons and tags below. Like the accent, you pick a hue and every shade stays legible in light &amp; dark.</p>
-          <div class="swatch-row" role="radiogroup" aria-label="Success">
-            <span class="swatch-label">Success</span>
+          <div class="card-title">{{ $t('settings.appearance.functionalColoursCardTitle') }}</div>
+          <p class="t-muted" style="font-size:12px;margin:0 0 12px">{{ $t('settings.appearance.functionalColoursHint') }}</p>
+          <div class="swatch-row" role="radiogroup" :aria-label="$t('settings.appearance.successLabel')">
+            <span class="swatch-label">{{ $t('settings.appearance.successLabel') }}</span>
             <button v-for="p in FUNCTIONAL_PRESETS.success" :key="p.hue"
               role="radio" :aria-checked="ap.successHue === p.hue" :aria-label="p.name"
               class="accent-swatch" :class="{ active: ap.successHue === p.hue }"
@@ -1415,8 +1458,8 @@ const recentColumns = [
             <JwNumber :min="0" :max="360" style="width:74px"
               :model-value="ap.successHue" @update:model-value="(v) => setAp({ successHue: clampHue(v) })" />
           </div>
-          <div class="swatch-row" style="margin-top:8px" role="radiogroup" aria-label="Danger">
-            <span class="swatch-label">Danger</span>
+          <div class="swatch-row" style="margin-top:8px" role="radiogroup" :aria-label="$t('settings.appearance.dangerLabel')">
+            <span class="swatch-label">{{ $t('settings.appearance.dangerLabel') }}</span>
             <button v-for="p in FUNCTIONAL_PRESETS.danger" :key="p.hue"
               role="radio" :aria-checked="ap.dangerHue === p.hue" :aria-label="p.name"
               class="accent-swatch" :class="{ active: ap.dangerHue === p.hue }"
@@ -1427,8 +1470,8 @@ const recentColumns = [
             <JwNumber :min="0" :max="360" style="width:74px"
               :model-value="ap.dangerHue" @update:model-value="(v) => setAp({ dangerHue: clampHue(v) })" />
           </div>
-          <div class="swatch-row" style="margin-top:8px" role="radiogroup" aria-label="Info">
-            <span class="swatch-label">Info</span>
+          <div class="swatch-row" style="margin-top:8px" role="radiogroup" :aria-label="$t('settings.appearance.infoLabel')">
+            <span class="swatch-label">{{ $t('settings.appearance.infoLabel') }}</span>
             <button v-for="p in FUNCTIONAL_PRESETS.info" :key="p.hue"
               role="radio" :aria-checked="ap.infoHue === p.hue" :aria-label="p.name"
               class="accent-swatch" :class="{ active: ap.infoHue === p.hue }"
@@ -1453,12 +1496,8 @@ const recentColumns = [
 
         <!-- Buttons — every intent the app uses, one of each. -->
         <div class="card">
-          <div class="card-title">Buttons</div>
-          <p class="t-muted" style="font-size:12px;margin:0 0 12px">
-            Each button has a single <b>intent</b> that encodes both colour and visual style.
-            <b>Primary</b> (solid accent) is the main affordance. <b>Secondary</b> is outlined neutral for supporting actions. <b>Ghost</b> is quiet text-only for utility.
-            <b>Danger / Success / Info</b> follow the functional colours above, <b>Accent 2</b> follows your second accent — all solid fills for clear status. Re-tinting any colour above re-skins them all.
-          </p>
+          <div class="card-title">{{ $t('settings.appearance.buttonIntentsCardTitle') }}</div>
+          <p class="t-muted" style="font-size:12px;margin:0 0 12px" v-html="$t('settings.appearance.buttonIntentsHint')"></p>
           <div style="display:flex;flex-wrap:wrap;gap:8px;align-items:center">
             <JwButton intent="primary"   size="small" label="Primary" />
             <JwButton intent="secondary" size="small" label="Secondary" />
@@ -1472,10 +1511,10 @@ const recentColumns = [
 
         <!-- Backgrounds -->
         <div class="card">
-          <div class="card-title">Backgrounds</div>
-          <p class="t-muted" style="font-size:12px;margin:0 0 12px">Tint each area independently — every option is tuned to stay legible. Pick a curated swatch or click <b>Custom</b> for any colour. The <b>Text</b> row picks the text-colour family used across the app.</p>
-          <div class="swatch-row" role="radiogroup" aria-label="App background">
-            <span class="swatch-label">App</span>
+          <div class="card-title">{{ $t('settings.appearance.backgroundsCardTitle') }}</div>
+          <p class="t-muted" style="font-size:12px;margin:0 0 12px" v-html="$t('settings.appearance.backgroundsHint')"></p>
+          <div class="swatch-row" role="radiogroup" :aria-label="$t('settings.appearance.bgAppLabel')">
+            <span class="swatch-label">{{ $t('settings.appearance.bgAppLabel') }}</span>
             <button v-for="t in SURFACE_TINT_LIST" :key="t.key"
               role="radio" :aria-checked="ap.appBg === t.key" :aria-label="t.label"
               class="tint-swatch" :class="{ active: ap.appBg === t.key }"
@@ -1483,14 +1522,14 @@ const recentColumns = [
               @click="setAp({ appBg: t.key })">
               <Icon v-if="ap.appBg === t.key" name="Check" :size="12" />
             </button>
-            <label class="tint-swatch tint-custom" :class="{ active: isCustomHex(ap.appBg) }" title="Custom colour">
+            <label class="tint-swatch tint-custom" :class="{ active: isCustomHex(ap.appBg) }" :title="$t('settings.appearance.bgCustomColour')">
               <input type="color" :value="isCustomHex(ap.appBg) ? ap.appBg : '#dcd6c4'"
                 @input="setAp({ appBg: $event.target.value })" />
               <Icon v-if="isCustomHex(ap.appBg)" name="Check" :size="12" />
             </label>
           </div>
-          <div class="swatch-row" style="margin-top:8px" role="radiogroup" aria-label="Sidebar background">
-            <span class="swatch-label">Sidebar</span>
+          <div class="swatch-row" style="margin-top:8px" role="radiogroup" :aria-label="$t('settings.appearance.bgSidebarLabel')">
+            <span class="swatch-label">{{ $t('settings.appearance.bgSidebarLabel') }}</span>
             <button v-for="t in SURFACE_TINT_LIST" :key="t.key"
               role="radio" :aria-checked="ap.sidebarBg === t.key" :aria-label="t.label"
               class="tint-swatch" :class="{ active: ap.sidebarBg === t.key }"
@@ -1498,14 +1537,14 @@ const recentColumns = [
               @click="setAp({ sidebarBg: t.key })">
               <Icon v-if="ap.sidebarBg === t.key" name="Check" :size="12" />
             </button>
-            <label class="tint-swatch tint-custom" :class="{ active: isCustomHex(ap.sidebarBg) }" title="Custom colour">
+            <label class="tint-swatch tint-custom" :class="{ active: isCustomHex(ap.sidebarBg) }" :title="$t('settings.appearance.bgCustomColour')">
               <input type="color" :value="isCustomHex(ap.sidebarBg) ? ap.sidebarBg : '#dcd6c4'"
                 @input="setAp({ sidebarBg: $event.target.value })" />
               <Icon v-if="isCustomHex(ap.sidebarBg)" name="Check" :size="12" />
             </label>
           </div>
-          <div class="swatch-row" style="margin-top:8px" role="radiogroup" aria-label="Editor paper">
-            <span class="swatch-label">Editor paper</span>
+          <div class="swatch-row" style="margin-top:8px" role="radiogroup" :aria-label="$t('settings.appearance.bgEditorPaperLabel')">
+            <span class="swatch-label">{{ $t('settings.appearance.bgEditorPaperLabel') }}</span>
             <button v-for="t in PAPER_TINT_LIST" :key="t.key"
               role="radio" :aria-checked="ap.editorPaper === t.key" :aria-label="t.label"
               class="tint-swatch" :class="{ active: ap.editorPaper === t.key }"
@@ -1513,14 +1552,14 @@ const recentColumns = [
               @click="setAp({ editorPaper: t.key })">
               <Icon v-if="ap.editorPaper === t.key" name="Check" :size="12" />
             </button>
-            <label class="tint-swatch tint-custom" :class="{ active: isCustomHex(ap.editorPaper) }" title="Custom paper colour">
+            <label class="tint-swatch tint-custom" :class="{ active: isCustomHex(ap.editorPaper) }" :title="$t('settings.appearance.bgCustomColour')">
               <input type="color" :value="isCustomHex(ap.editorPaper) ? ap.editorPaper : '#f4ecd8'"
                 @input="setAp({ editorPaper: $event.target.value })" />
               <Icon v-if="isCustomHex(ap.editorPaper)" name="Check" :size="12" />
             </label>
           </div>
-          <div class="swatch-row" style="margin-top:14px" role="radiogroup" aria-label="Text colour">
-            <span class="swatch-label">Text</span>
+          <div class="swatch-row" style="margin-top:14px" role="radiogroup" :aria-label="$t('settings.appearance.bgTextColourLabel')">
+            <span class="swatch-label">{{ $t('settings.appearance.bgTextColourLabel') }}</span>
             <button v-for="t in INK_PALETTE_LIST" :key="t.key"
               role="radio" :aria-checked="ap.inkPalette === t.key" :aria-label="t.label"
               class="tint-swatch" :class="{ active: ap.inkPalette === t.key }"
@@ -1533,102 +1572,102 @@ const recentColumns = [
             <label>
               <JwCheckbox :model-value="ap.inlinePaper"
                 @update:model-value="(v) => setAp({ inlinePaper: v })" />
-              <span>Apply editor paper to inline fields</span>
+              <span>{{ $t('settings.appearance.inlinePaperLabel') }}</span>
             </label>
-            <p class="t-muted" style="font-size:11px;margin:4px 0 0;padding-left:22px">Character, note &amp; worldbuilding rich-text fields pick up the paper tint instead of the surface.</p>
+            <p class="t-muted" style="font-size:11px;margin:4px 0 0;padding-left:22px">{{ $t('settings.appearance.inlinePaperHint') }}</p>
           </div>
         </div>
 
         <!-- Editor layout -->
         <div class="card">
-          <div class="card-title">Editor layout</div>
-          <p class="t-muted" style="font-size:12px;margin:0 0 12px">How the manuscript editor presents your prose while you write.</p>
-          <div class="seg2" role="radiogroup" aria-label="Editor layout">
+          <div class="card-title">{{ $t('settings.appearance.editorLayoutCardTitle') }}</div>
+          <p class="t-muted" style="font-size:12px;margin:0 0 12px">{{ $t('settings.appearance.editorLayoutHint') }}</p>
+          <div class="seg2" role="radiogroup" :aria-label="$t('settings.appearance.editorLayoutCardTitle')">
             <button role="radio" :aria-checked="ap.editorLayout === 'full'" :class="{ active: ap.editorLayout === 'full' }" @click="setAp({ editorLayout: 'full' })">
-              <b>Full width</b><span>Edge-to-edge writing surface.</span>
+              <b>{{ $t('settings.appearance.editorLayoutFullWidth') }}</b><span>{{ $t('settings.appearance.editorLayoutFullWidthHint') }}</span>
             </button>
             <button role="radio" :aria-checked="ap.editorLayout === 'page'" :class="{ active: ap.editorLayout === 'page' }" @click="setAp({ editorLayout: 'page' })">
-              <b>Page</b><span>Centered sheet with margins and running head.</span>
+              <b>{{ $t('settings.appearance.editorLayoutPage') }}</b><span>{{ $t('settings.appearance.editorLayoutPageHint') }}</span>
             </button>
           </div>
-          <p class="t-muted" style="font-size:11px;margin:12px 0 0">Per-document overrides for any of these live in the editor's ⚙ Writing settings — pick <em>theme</em> there to fall back to the theme default.</p>
+          <p class="t-muted" style="font-size:11px;margin:12px 0 0" v-html="$t('settings.appearance.editorLayoutOverrideNote')"></p>
         </div>
 
         <!-- Editor writing -->
         <div class="card">
-          <div class="card-title">Editor writing</div>
-          <p class="t-muted" style="font-size:12px;margin:0 0 12px">Defaults for the manuscript prose — font size, line spacing, paragraph spacing, and first-line indent. Per-document choices in the editor's ⚙ Writing settings override these.</p>
+          <div class="card-title">{{ $t('settings.appearance.editorWritingCardTitle') }}</div>
+          <p class="t-muted" style="font-size:12px;margin:0 0 12px">{{ $t('settings.appearance.editorWritingHint') }}</p>
           <div class="size-row">
-            <span class="field-l">Font size</span>
+            <span class="field-l">{{ $t('settings.appearance.editorFontSizeLabel') }}</span>
             <JwSegmented
               class="size-seg"
               :model-value="ap.editorFontSize"
               :options="FONT_SIZE_OPTIONS"
-              aria-label="Editor font size"
+              :aria-label="$t('settings.appearance.editorFontSizeLabel')"
               @update:model-value="setAp({ editorFontSize: $event })" />
           </div>
           <div class="size-row">
-            <span class="field-l">Line spacing</span>
+            <span class="field-l">{{ $t('settings.appearance.editorLineSpacingLabel') }}</span>
             <JwSegmented
               class="size-seg"
               :model-value="ap.editorLineSpacing"
               :options="LINE_OPTIONS"
-              aria-label="Line spacing"
+              :aria-label="$t('settings.appearance.editorLineSpacingLabel')"
               @update:model-value="setAp({ editorLineSpacing: $event })" />
           </div>
           <div class="size-row">
-            <span class="field-l">Paragraph spacing</span>
+            <span class="field-l">{{ $t('settings.appearance.editorParaSpacingLabel') }}</span>
             <JwSegmented
               class="size-seg"
               :model-value="ap.editorParaSpacing"
               :options="PARA_OPTIONS"
-              aria-label="Paragraph spacing"
+              :aria-label="$t('settings.appearance.editorParaSpacingLabel')"
               @update:model-value="setAp({ editorParaSpacing: $event })" />
           </div>
           <div class="size-row">
-            <span class="field-l">First-line indent</span>
+            <span class="field-l">{{ $t('settings.appearance.editorParaIndentLabel') }}</span>
             <JwSegmented
               class="size-seg"
               :model-value="ap.editorParaIndent"
               :options="INDENT_OPTIONS"
-              aria-label="Paragraph indent"
+              :aria-label="$t('settings.appearance.editorParaIndentLabel')"
               @update:model-value="setAp({ editorParaIndent: $event })" />
           </div>
         </div>
 
         <!-- ── Buttons (radius / density / label casing) ───────── -->
         <div class="card">
-          <div class="card-title">Buttons</div>
-          <p class="t-muted" style="font-size:12px;margin:0 0 12px">Shape, padding, and label casing for every button across the app.</p>
+          <div class="card-title">{{ $t('settings.appearance.buttonStylingCardTitle') }}</div>
+          <p class="t-muted" style="font-size:12px;margin:0 0 12px">{{ $t('settings.appearance.buttonStylingHint') }}</p>
           <div class="size-row">
-            <span class="field-l">Corner radius</span>
+            <span class="field-l">{{ $t('settings.appearance.btnCornerRadiusLabel') }}</span>
             <JwSegmented
               class="size-seg"
               :model-value="ap.btnRadius"
               :options="BUTTON_RADIUS_OPTIONS"
-              aria-label="Button corner radius"
+              :aria-label="$t('settings.appearance.btnCornerRadiusLabel')"
               @update:model-value="setAp({ btnRadius: $event })" />
           </div>
           <div class="size-row">
-            <span class="field-l">Density</span>
+            <span class="field-l">{{ $t('settings.appearance.btnDensityLabel') }}</span>
             <JwSegmented
               class="size-seg"
               :model-value="ap.btnDensity"
               :options="BUTTON_DENSITY_OPTIONS"
-              aria-label="Button density"
+              :aria-label="$t('settings.appearance.btnDensityLabel')"
               @update:model-value="setAp({ btnDensity: $event })" />
           </div>
           <div class="size-row">
-            <span class="field-l">Label casing</span>
+            <span class="field-l">{{ $t('settings.appearance.btnLabelCasingLabel') }}</span>
             <JwSegmented
               class="size-seg"
               :model-value="ap.btnLabelCase"
               :options="BUTTON_LABEL_CASE_OPTIONS"
-              aria-label="Button label casing"
+              :aria-label="$t('settings.appearance.btnLabelCasingLabel')"
               @update:model-value="setAp({ btnLabelCase: $event })" />
           </div>
           <div style="display:flex;gap:10px;align-items:center;margin-top:14px;padding-top:14px;border-top:1px solid var(--border-soft)">
-            <span class="t-muted" style="font-size:11.5px;font-family:var(--font-mono);text-transform:uppercase;letter-spacing:0.08em">Preview</span>
+            <span class="t-muted" style="font-size:11.5px;font-family:var(--font-mono);text-transform:uppercase;letter-spacing:0.08em">{{ $t('settings.appearance.previewLabel') }}</span>
             <JwButton intent="primary" label="Save" />
             <JwButton intent="secondary" label="Cancel" />
             <JwButton intent="ghost" label="Skip" />
@@ -1975,7 +2014,7 @@ const recentColumns = [
   border-radius: 6px; cursor: pointer;
   border: 1px solid var(--border-strong);
   display: grid; place-items: center; color: var(--ink);
-  box-shadow: inset 0 0 0 1px rgba(0, 0, 0, 0.04);
+  box-shadow: inset 0 0 0 1px var(--shadow-soft);
 }
 .tint-swatch:hover { transform: scale(1.06); }
 .tint-swatch.active { outline: 2px solid var(--accent); outline-offset: 1px; }
@@ -2051,7 +2090,7 @@ const recentColumns = [
   background: var(--editor-paper);
   border: 1px solid var(--border);
   border-radius: 4px;
-  box-shadow: 0 4px 12px -4px rgba(0, 0, 0, 0.12);
+  box-shadow: 0 4px 12px -4px var(--shadow-medium);
   padding: 18px 22px 18px;
 }
 .ap-runninghead {

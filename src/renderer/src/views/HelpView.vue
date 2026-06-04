@@ -99,7 +99,7 @@ onMounted(() => {
 
 <template>
   <div class="help-page">
-    <PaneHeader :title="docTitle" eyebrow="Help">
+    <PaneHeader :title="docTitle" :eyebrow="$t('panes.help.eyebrow')">
       <JwButton intent="secondary" size="small" @click="openOnWeb">
         <template #icon><Icon name="ExternalLink" :size="14" /></template>
         Open on the web

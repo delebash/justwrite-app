@@ -1085,7 +1085,7 @@ function copyOutput(run) {
 </script>
 
 <template>
-  <PaneHeader eyebrow="Debug" title="Speaker Lab" />
+  <PaneHeader :eyebrow="$t('panes.speakerLab.eyebrow')" :title="$t('panes.speakerLab.title')" />
 
   <div class="lab scrollarea">
     <!-- ── INPUT ──────────────────────────────────────────────────── -->

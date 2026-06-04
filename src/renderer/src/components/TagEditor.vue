@@ -7,6 +7,9 @@
 //   :pool="allKnownTags"    — flat array used to populate the suggestion
 //                             dropdown. Caller typically derives this by
 //                             flat-mapping every same-kind entity's tags.
+//   :curated="[{id,label}]" — preferred vocabulary; suggestions appear first
+//                             and are marked. Committed tags are canonicalized
+//                             to the curated label casing to prevent splintering.
 //
 // Keyboard:
 //   Enter / comma        — commit the typed draft (or the highlighted
@@ -25,6 +28,7 @@ import Icon from "./Icon.vue";
 const props = defineProps({
   modelValue:  { type: Array,  default: () => [] },
   pool:        { type: Array,  default: () => [] },
+  curated:     { type: Array,  default: () => [] },
   label:       { type: String, default: "Tags" },
   placeholder: { type: String, default: "Add tag…" },
 });
@@ -35,12 +39,19 @@ const draft = ref("");
 const suggestOpen = ref(false);
 const suggestIndex = ref(0);
 
+function canonicalize(label) {
+  const lower = String(label || "").trim().toLowerCase();
+  const match = (props.curated || []).find((c) => c.label.toLowerCase() === lower);
+  return match ? match.label : String(label || "").trim();
+}
+
 function addTag(raw) {
-  const parts = String(raw || "").split(",").map((p) => p.trim()).filter(Boolean);
+  const parts = String(raw || "").split(",").map((p) => canonicalize(p)).filter(Boolean);
   if (!parts.length) return;
   const current = props.modelValue || [];
+  const lowerCurrent = new Set(current.map((s) => s.toLowerCase()));
   const next = [...current];
-  for (const p of parts) if (!next.includes(p)) next.push(p);
+  for (const p of parts) if (!lowerCurrent.has(p.toLowerCase())) { next.push(p); lowerCurrent.add(p.toLowerCase()); }
   if (next.length !== current.length) emit("update:modelValue", next);
 }
 function commitDraft() {
@@ -63,13 +74,24 @@ function removeAt(i) {
 
 const suggestions = computed(() => {
   const q = draft.value.trim().toLowerCase();
-  const used = new Set(props.modelValue || []);
-  const uniq = Array.from(new Set(props.pool || []));
-  return uniq
-    .filter((t) => !used.has(t))
+  const used = new Set((props.modelValue || []).map((s) => s.toLowerCase()));
+  const curatedLabelsLower = new Set((props.curated || []).map((c) => c.label.toLowerCase()));
+  const curatedItems = (props.curated || [])
+    .filter((c) => !used.has(c.label.toLowerCase()))
+    .filter((c) => !q || c.label.toLowerCase().includes(q))
+    .map((c) => ({ label: c.label, isCurated: true }));
+  const poolItems = Array.from(new Set(props.pool || []))
+    .filter((t) => !used.has(t.toLowerCase()))
+    .filter((t) => !curatedLabelsLower.has(t.toLowerCase()))
     .filter((t) => !q || t.toLowerCase().includes(q))
-    .slice(0, 8);
+    .map((t) => ({ label: t, isCurated: false }));
+  return [...curatedItems, ...poolItems].slice(0, 8);
 });
+
+function isChipCurated(label) {
+  const lower = String(label || "").toLowerCase();
+  return (props.curated || []).some((c) => c.label.toLowerCase() === lower);
+}
 
 function onInput() { suggestOpen.value = true; suggestIndex.value = 0; }
 function onFocus() { suggestOpen.value = true; suggestIndex.value = 0; }
@@ -93,8 +115,8 @@ function onKeydown(e) {
   } else if (e.key === "Enter") {
     e.preventDefault();
     if (suggestOpen.value && list.length && draft.value.trim() &&
-        list[suggestIndex.value]?.toLowerCase().includes(draft.value.trim().toLowerCase())) {
-      pick(list[suggestIndex.value]);
+        list[suggestIndex.value]?.label.toLowerCase().includes(draft.value.trim().toLowerCase())) {
+      pick(list[suggestIndex.value].label);
     } else {
       commitDraft();
     }
@@ -114,7 +136,8 @@ function onKeydown(e) {
 <template>
   <div class="tag-editor">
     <span v-if="label" class="tag-editor-label">{{ label }}</span>
-    <div class="tag-chip" v-for="(t, i) in (modelValue || [])" :key="t + i">
+    <div class="tag-chip" v-for="(t, i) in (modelValue || [])" :key="t + i"
+      :class="{ 'is-curated': isChipCurated(t) }">
       <span>{{ t }}</span>
       <button type="button" class="tag-chip-x" @click="removeAt(i)" aria-label="Remove tag">
         <Icon name="Close" :size="10" />
@@ -129,14 +152,14 @@ function onKeydown(e) {
         @blur="onBlur"
         @keydown="onKeydown" />
       <ul v-if="suggestOpen && suggestions.length" class="tag-suggest" role="listbox">
-        <li v-for="(t, i) in suggestions" :key="t"
+        <li v-for="(s, i) in suggestions" :key="s.label"
           class="tag-suggest-item"
-          :class="{ active: i === suggestIndex }"
+          :class="{ active: i === suggestIndex, 'is-curated': s.isCurated }"
           role="option"
           :aria-selected="i === suggestIndex"
           @mouseenter="suggestIndex = i"
-          @mousedown.prevent="pick(t)">
-          {{ t }}
+          @mousedown.prevent="pick(s.label)">
+          {{ s.label }}
         </li>
       </ul>
     </div>
@@ -195,4 +218,15 @@ function onKeydown(e) {
   cursor: pointer;
 }
 .tag-suggest-item.active { background: var(--accent-soft); color: var(--accent-ink); }
+.tag-chip.is-curated::before,
+.tag-suggest-item.is-curated::before {
+  content: "";
+  display: inline-block;
+  width: 5px; height: 5px;
+  border-radius: 999px;
+  background: var(--accent);
+  flex-shrink: 0;
+}
+.tag-chip.is-curated { padding-left: 7px; gap: 5px; }
+.tag-suggest-item.is-curated { display: flex; align-items: center; gap: 6px; }
 </style>

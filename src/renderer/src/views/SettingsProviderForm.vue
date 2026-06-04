@@ -6,6 +6,7 @@
 // this component is identical between them.
 
 import { ref, reactive, computed, onBeforeUnmount, nextTick } from "vue";
+import { useI18n } from "vue-i18n";
 import { getParamSchema } from "../domain/providerParams.js";
 import { OpenAICompatClient, detectRunner } from "../services/openai-compat.js";
 import { entryLabel, TIERS, TIER_IDS } from "../services/modelMeta.js";
@@ -20,6 +21,7 @@ import JwSelect from "@renderer/components/ui/JwSelect.vue";
 import JwButton from "@renderer/components/ui/JwButton.vue";
 import JwSegmented from "@renderer/components/ui/JwSegmented.vue";
 
+useI18n();
 const ai = useAiStore();
 
 const props = defineProps({
@@ -200,29 +202,29 @@ function resetParam(key) { setParam(key, undefined); }
 <template>
   <div style="padding:14px;border:1.5px solid var(--accent);border-radius:10px;background:var(--accent-soft)">
     <div style="display:grid;grid-template-columns:120px minmax(0,1fr);gap:8px 12px;font-size:12.5px;align-items:center">
-      <span class="t-muted">ID</span>
-      <JwInput v-model="draft.id" :readonly="editingKey !== 'new'" placeholder="e.g. my-ollama" />
-      <span class="t-muted">Name</span>
-      <JwInput v-model="draft.name" placeholder="Display name" />
-      <span class="t-muted">Kind</span>
-      <JwSelect v-model="draft.kind" :options="[{ label: 'LLM only', value: 'llm' }, { label: 'TTS only', value: 'tts' }, { label: 'LLM + TTS', value: 'both' }]" optionLabel="label" optionValue="value" />
-      <span class="t-muted">Base URL</span>
+      <span class="t-muted">{{ $t('settings.providerForm.fieldId') }}</span>
+      <JwInput v-model="draft.id" :readonly="editingKey !== 'new'" :placeholder="$t('settings.providerForm.fieldIdPlaceholder')" />
+      <span class="t-muted">{{ $t('settings.providerForm.fieldName') }}</span>
+      <JwInput v-model="draft.name" :placeholder="$t('settings.providerForm.fieldNamePlaceholder')" />
+      <span class="t-muted">{{ $t('settings.providerForm.fieldKind') }}</span>
+      <JwSelect v-model="draft.kind" :options="[{ label: $t('settings.providerForm.kindLlm'), value: 'llm' }, { label: $t('settings.providerForm.kindTts'), value: 'tts' }, { label: $t('settings.providerForm.kindBoth'), value: 'both' }]" optionLabel="label" optionValue="value" />
+      <span class="t-muted">{{ $t('settings.providerForm.fieldBaseUrl') }}</span>
       <JwInput v-model="draft.baseUrl" placeholder="http://localhost:11434/v1" />
-      <span class="t-muted">API key</span>
-      <JwInput v-model="draft.apiKey" type="password" placeholder="Optional — leave blank for local providers" />
+      <span class="t-muted">{{ $t('settings.providerForm.fieldApiKey') }}</span>
+      <JwInput v-model="draft.apiKey" type="password" :placeholder="$t('settings.providerForm.fieldApiKeyPlaceholder')" />
 
       <template v-if="draft.kind === 'llm' || draft.kind === 'both'">
-        <span class="t-muted" title="Which request format this provider speaks. OpenAI-compatible covers OpenAI, Anthropic, Google, OpenRouter, DeepSeek, LM Studio, llama.cpp, vLLM — anything that exposes /v1/chat/completions. Pick Ollama only for an Ollama daemon — its native /api/chat is the only path that honors think:false.">API format</span>
+        <span class="t-muted" :title="$t('settings.providerForm.fieldApiFormatTitle')">{{ $t('settings.providerForm.fieldApiFormat') }}</span>
         <JwSelect :model-value="runnerValue" @update:model-value="draft.runner = $event"
           :options="[
-            { label: 'OpenAI-compatible (most providers — OpenAI, Anthropic, Google, OpenRouter, DeepSeek, LM Studio, llama.cpp, vLLM…)', value: 'openai-compat' },
-            { label: 'Ollama native (only for an Ollama daemon — honors think:false)', value: 'ollama' },
+            { label: $t('settings.providerForm.runnerOpenai'), value: 'openai-compat' },
+            { label: $t('settings.providerForm.runnerOllama'), value: 'ollama' },
           ]"
           optionLabel="label" optionValue="value" />
       </template>
 
       <template v-if="draft.kind === 'llm' || draft.kind === 'both'">
-        <span class="t-muted">Chat model</span>
+        <span class="t-muted">{{ $t('settings.providerForm.fieldChatModel') }}</span>
         <div style="display:flex;gap:6px;align-items:stretch;flex-wrap:wrap">
           <Combobox style="flex:1;min-width:160px"
             v-model="draft.chatModel"
@@ -230,13 +232,13 @@ function resetParam(key) { setParam(key, undefined); }
             item-value="id"
             item-label="label"
             free-text
-            :placeholder="fetchedModels.length ? `Type to filter or click ▾ to pick from ${fetchedModels.length} models` : 'llama3.1:8b, gpt-4o-mini, …'"
-            :chev-title="fetchedModels.length ? 'Show fetched models' : 'Fetch models first'" />
+            :placeholder="fetchedModels.length ? `Type to filter or click ▾ to pick from ${fetchedModels.length} models` : $t('settings.providerForm.chatModelPlaceholder')"
+            :chev-title="fetchedModels.length ? $t('settings.providerForm.chevShowFetched') : $t('settings.providerForm.chevFetchFirst')" />
           <JwButton intent="ghost" type="button"
             :disabled="modelsLoading || !draft.baseUrl"
             @click="fetchModels"
-            v-tooltip.bottom="draft.baseUrl ? 'Query GET /v1/models on the Base URL above' : 'Fill the Base URL first'">
-            {{ modelsLoading ? "Loading…" : (fetchedModels.length ? "Refresh" : "Fetch models") }}
+            v-tooltip.bottom="draft.baseUrl ? $t('settings.providerForm.tooltipFetchModels') : $t('settings.providerForm.tooltipFillBaseUrl')">
+            {{ modelsLoading ? $t('settings.providerForm.btnLoading') : (fetchedModels.length ? $t('settings.providerForm.btnRefresh') : $t('settings.providerForm.btnFetchModels')) }}
           </JwButton>
           <div v-if="modelsError" class="t-muted" style="flex-basis:100%;font-size:11px;color:var(--danger,#c33)">
             {{ modelsError }}
@@ -244,30 +246,30 @@ function resetParam(key) { setParam(key, undefined); }
         </div>
 
         <template v-if="draft.chatModel">
-          <span class="t-muted" title="Attribution pipeline capability bucket for this model. Auto-picked by name pattern; you can pin a different choice if you know better. Guided = scaffolded examples for sub-12B models. Direct = strict rules for 12B-class non-reasoning. Reasoned = strict rules + implicit reasoning for hybrid models (Qwen3:14B+).">Tier</span>
+          <span class="t-muted" :title="$t('settings.providerForm.fieldTierTitle')">{{ $t('settings.providerForm.fieldTier') }}</span>
           <div style="display:flex;gap:6px;align-items:center;flex-wrap:wrap;font-size:11.5px">
             <JwSegmented
               :model-value="currentTier?.id"
               :options="TIER_OPTIONS"
               size="small"
-              aria-label="Tier"
+              :aria-label="$t('settings.providerForm.fieldTier')"
               @update:model-value="pinTier($event)" />
-            <span class="t-muted" style="font-size:11px">{{ tierSource === 'pinned' ? 'pinned' : 'auto' }}</span>
+            <span class="t-muted" style="font-size:11px">{{ tierSource === 'pinned' ? $t('settings.providerForm.tierPinned') : $t('settings.providerForm.tierAuto') }}</span>
             <JwButton v-if="tierSource === 'pinned'" intent="ghost" type="button"
               style="padding:2px 8px;font-size:11px"
               @click="clearTierPin"
-              v-tooltip.bottom="'Revert to the auto-detected tier'">Clear pin</JwButton>
+              v-tooltip.bottom="$t('settings.providerForm.tooltipClearPin')">{{ $t('settings.providerForm.btnClearPin') }}</JwButton>
           </div>
         </template>
 
-        <span class="t-muted" title="Optional embedding model — fills the RAG (manuscript chat) index. Leave blank if this provider isn't your embedding provider. OpenAI: text-embedding-3-small. Ollama: nomic-embed-text. Anthropic / Google / OpenRouter generally don't expose embedding endpoints — leave blank.">Embedding model</span>
+        <span class="t-muted" :title="$t('settings.providerForm.fieldEmbeddingModelTitle')">{{ $t('settings.providerForm.fieldEmbeddingModel') }}</span>
         <JwInput
           v-model="draft.embeddingModel"
           placeholder="text-embedding-3-small  ·  nomic-embed-text  ·  …" />
       </template>
 
       <template v-if="draft.kind === 'tts' || draft.kind === 'both'">
-        <span class="t-muted">TTS model</span>
+        <span class="t-muted">{{ $t('settings.providerForm.fieldTtsModel') }}</span>
         <div style="display:flex;gap:6px;align-items:stretch;flex-wrap:wrap">
           <Combobox style="flex:1;min-width:160px"
             v-model="draft.ttsModel"
@@ -275,19 +277,19 @@ function resetParam(key) { setParam(key, undefined); }
             item-value="id"
             item-label="label"
             free-text
-            :placeholder="fetchedModels.length ? `Type to filter or click ▾ to pick from ${fetchedModels.length} models` : 'tts-1, gpt-4o-mini-tts, …'"
-            :chev-title="fetchedModels.length ? 'Show fetched models' : 'Fetch models first (use the button on the Chat model row, or set Kind to LLM+TTS)'" />
+            :placeholder="fetchedModels.length ? `Type to filter or click ▾ to pick from ${fetchedModels.length} models` : $t('settings.providerForm.ttsModelPlaceholder')"
+            :chev-title="fetchedModels.length ? $t('settings.providerForm.chevShowFetched') : $t('settings.providerForm.chevFetchFirstTts')" />
           <JwButton v-if="draft.kind === 'tts'" intent="ghost" type="button"
             :disabled="modelsLoading || !draft.baseUrl"
             @click="fetchModels"
-            v-tooltip.bottom="draft.baseUrl ? 'Query GET /v1/models on the Base URL above' : 'Fill the Base URL first'">
-            {{ modelsLoading ? "Loading…" : (fetchedModels.length ? "Refresh" : "Fetch models") }}
+            v-tooltip.bottom="draft.baseUrl ? $t('settings.providerForm.tooltipFetchModels') : $t('settings.providerForm.tooltipFillBaseUrl')">
+            {{ modelsLoading ? $t('settings.providerForm.btnLoading') : (fetchedModels.length ? $t('settings.providerForm.btnRefresh') : $t('settings.providerForm.btnFetchModels')) }}
           </JwButton>
           <div v-if="draft.kind === 'tts' && modelsError" class="t-muted" style="flex-basis:100%;font-size:11px;color:var(--danger,#c33)">
             {{ modelsError }}
           </div>
         </div>
-        <span class="t-muted">Voices</span>
+        <span class="t-muted">{{ $t('settings.providerForm.fieldVoices') }}</span>
         <div style="display:flex;gap:6px;align-items:stretch;flex-wrap:wrap">
           <div class="model-combo" :class="{ open: voices.state.open }" :ref="voices.setBoxRef" style="flex:1;min-width:160px;position:relative">
             <JwInput class="input model-combo-input"
@@ -296,10 +298,10 @@ function resetParam(key) { setParam(key, undefined); }
               @focus="voices.openIt"
               @click="voices.openIt"
               @keydown="voices.onKey"
-              :placeholder="voices.items.length ? `Type or click ▾ to pick from ${voices.items.length} fetched voices` : 'comma-separated · e.g. alloy, echo, nova'" />
+              :placeholder="voices.items.length ? `Type or click ▾ to pick from ${voices.items.length} fetched voices` : $t('settings.providerForm.voicesPlaceholder')" />
             <button type="button" class="model-combo-chev"
               :disabled="!voices.items.length"
-              v-tooltip.bottom="voices.items.length ? 'Pick from fetched voices' : 'Fetch voices first'"
+              v-tooltip.bottom="voices.items.length ? $t('settings.providerForm.tooltipPickVoices') : $t('settings.providerForm.tooltipFetchVoicesFirst')"
               @mousedown.prevent
               @click="voices.toggleIt">
               <Icon name="ChevDown" :size="13" class="model-combo-chev-icon" />
@@ -319,8 +321,8 @@ function resetParam(key) { setParam(key, undefined); }
           <JwButton intent="ghost" type="button"
             :disabled="voicesLoading || !draft.baseUrl"
             @click="fetchVoices"
-            v-tooltip.bottom="draft.baseUrl ? 'Query GET /v1/audio/voices on the Base URL above' : 'Fill the Base URL first'">
-            {{ voicesLoading ? "Loading…" : (fetchedVoices.length ? "Refresh" : "Fetch voices") }}
+            v-tooltip.bottom="draft.baseUrl ? $t('settings.providerForm.tooltipFetchVoices') : $t('settings.providerForm.tooltipFillBaseUrl')">
+            {{ voicesLoading ? $t('settings.providerForm.btnLoading') : (fetchedVoices.length ? $t('settings.providerForm.btnRefresh') : $t('settings.providerForm.btnFetchVoices')) }}
           </JwButton>
           <div v-if="voicesError" class="t-muted" style="flex-basis:100%;font-size:11px;color:var(--danger,#c33)">
             {{ voicesError }}
@@ -329,8 +331,8 @@ function resetParam(key) { setParam(key, undefined); }
 
         <template v-if="paramSchema.length">
           <div style="grid-column:1/-1;display:flex;align-items:baseline;gap:8px;margin-top:8px;padding-top:10px;border-top:1px dashed var(--border)">
-            <span class="t-eyebrow" style="font-size:10.5px">Engine parameters</span>
-            <span class="t-muted" style="font-size:11px">Blank = let the server use its default.</span>
+            <span class="t-eyebrow" style="font-size:10.5px">{{ $t('settings.providerForm.engineParamsHeading') }}</span>
+            <span class="t-muted" style="font-size:11px">{{ $t('settings.providerForm.engineParamsHint') }}</span>
           </div>
           <template v-for="f in paramSchema" :key="f.key">
             <span class="t-muted" :title="f.help || ''"
@@ -346,13 +348,13 @@ function resetParam(key) { setParam(key, undefined); }
               <JwSelect v-else-if="f.type === 'select'"
                 :model-value="getParam(f.key) ?? f.default ?? ''"
                 @update:model-value="(v) => setParam(f.key, v)"
-                :options="f.options.map(opt => ({ label: f.optionLabels?.[opt] ?? (opt === '' ? '— default —' : opt), value: opt }))"
+                :options="f.options.map(opt => ({ label: f.optionLabels?.[opt] ?? (opt === '' ? $t('settings.providerForm.selectDefaultOption') : opt), value: opt }))"
                 optionLabel="label" optionValue="value" />
               <label v-else-if="f.type === 'boolean'" style="display:flex;align-items:center;gap:6px;font-size:12.5px">
                 <JwCheckbox
                   :model-value="getParam(f.key) ?? f.default ?? false"
                   @update:model-value="(v) => setParam(f.key, v)" />
-                <span class="t-muted">{{ (getParam(f.key) ?? f.default) ? 'on' : 'off' }}</span>
+                <span class="t-muted">{{ (getParam(f.key) ?? f.default) ? $t('settings.providerForm.boolOn') : $t('settings.providerForm.boolOff') }}</span>
               </label>
               <JwTextarea v-else-if="f.type === 'textarea'" auto-resize
                 rows="2" :placeholder="f.placeholder || ''"
@@ -371,8 +373,8 @@ function resetParam(key) { setParam(key, undefined); }
       </template>
     </div>
     <div style="display:flex;gap:8px;margin-top:14px;justify-content:flex-end">
-      <JwButton label="Cancel" intent="ghost" @click="emit('cancel')" />
-      <JwButton label="Save" intent="primary" @click="emit('save')" />
+      <JwButton :label="$t('settings.providerForm.btnCancel')" intent="ghost" @click="emit('cancel')" />
+      <JwButton :label="$t('settings.providerForm.btnSave')" intent="primary" @click="emit('save')" />
     </div>
   </div>
 </template>
@@ -415,7 +417,7 @@ function resetParam(key) { setParam(key, undefined); }
   background: var(--surface);
   border: 1px solid var(--border-strong, var(--border));
   border-radius: 8px;
-  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.18);
+  box-shadow: 0 8px 24px var(--shadow-medium);
   max-height: 240px;
   overflow-y: auto;
 }

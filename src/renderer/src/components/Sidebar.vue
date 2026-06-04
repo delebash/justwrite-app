@@ -1,6 +1,7 @@
 <script setup>
 import { computed, ref, onBeforeUnmount, onMounted } from "vue";
 import { useRoute, useRouter } from "vue-router";
+import { useI18n } from "vue-i18n";
 import { useUiStore } from "../stores/ui.js";
 import { useProjectStore } from "../stores/project.js";
 import { promptDialog, confirmDialog } from "../services/dialog.js";
@@ -8,8 +9,9 @@ import { NEW_ENTITY_META } from "../services/entityMeta.js";
 import Icon from "./Icon.vue";
 import JwButton from "@renderer/components/ui/JwButton.vue";
 import JwInput from "@renderer/components/ui/JwInput.vue";
-import { useRovingTabindex } from "@renderer/composables/useRovingTabindex.js";
+import { useRovingTabindexMap } from "@renderer/composables/useRovingTabindexMap.js";
 
+const { t } = useI18n();
 const ui = useUiStore();
 const project = useProjectStore();
 const router = useRouter();
@@ -47,9 +49,9 @@ onBeforeUnmount(() => {
 
 const savedAtLabel = computed(() => {
   const ts = project._lastSavedAt;
-  if (!ts) return "never";
+  if (!ts) return t("sidebar.footer.savedNever");
   const diff = nowTick.value - ts;
-  if (diff < 5_000) return "just now";
+  if (diff < 5_000) return t("sidebar.footer.savedJustNow");
   if (diff < 60_000) return `${Math.floor(diff / 1000)}s ago`;
   if (diff < 3_600_000) return `${Math.floor(diff / 60_000)}m ago`;
   if (diff < 86_400_000) return `${Math.floor(diff / 3_600_000)}h ago`;
@@ -57,7 +59,7 @@ const savedAtLabel = computed(() => {
 });
 const savedAtTitle = computed(() => {
   const ts = project._lastSavedAt;
-  return ts ? new Date(ts).toLocaleString() : "No edits saved yet";
+  return ts ? new Date(ts).toLocaleString() : t("sidebar.footer.noEditsSaved");
 });
 
 function toggleProjectMenu() { projectMenuOpen.value = !projectMenuOpen.value; }
@@ -73,11 +75,11 @@ function pickProject(id) {
 async function newProject() {
   closeProjectMenu();
   const values = await promptDialog({
-    title: "New project",
-    confirmLabel: "Create",
+    title: t("sidebar.projectSwitcher.newProjectTitle"),
+    confirmLabel: t("sidebar.projectSwitcher.newProjectConfirm"),
     fields: [
-      { key: "title",  label: "Project title", placeholder: "e.g. The Cartographer's Daughter" },
-      { key: "author", label: "Author (optional)", placeholder: "Your name", optional: true },
+      { key: "title",  label: t("sidebar.projectSwitcher.fieldTitle"), placeholder: t("sidebar.projectSwitcher.fieldTitlePlaceholder") },
+      { key: "author", label: t("sidebar.projectSwitcher.fieldAuthor"), placeholder: t("sidebar.projectSwitcher.fieldAuthorPlaceholder"), optional: true },
     ],
   });
   if (!values || !values.title) return;
@@ -87,9 +89,9 @@ async function newProject() {
 
 async function deleteProject(id, title) {
   const yes = await confirmDialog({
-    title: `Delete project "${title}"?`,
-    message: "This removes it from this device permanently. Export a backup first if you might want it back.",
-    confirmLabel: "Delete project",
+    title: t("sidebar.projectSwitcher.deleteProjectTitle", { title }),
+    message: t("sidebar.projectSwitcher.deleteProjectMessage"),
+    confirmLabel: t("sidebar.projectSwitcher.deleteProjectConfirm"),
     danger: true,
   });
   if (!yes) return;
@@ -104,37 +106,37 @@ document.addEventListener("mousedown", onDocClick);
 onBeforeUnmount(() => document.removeEventListener("mousedown", onDocClick));
 
 const NAV = [
-  { section: "Manuscript" },
-  { id: "search",        label: "Search",        icon: "Search",   kbd: "⌘F" },
-  { id: "home",          label: "Home",          icon: "Home" },
-  { id: "architecture",  label: "Architecture",  icon: "Building", expandable: "architecture", fixed: true },
-  { id: "strands",       label: "Narrative strands", icon: "Strands", expandable: "strands" },
-  { id: "chapters",      label: "Chapters",      icon: "Book",     expandable: "chapters" },
-  { id: "ask",           label: "Ask the book",  icon: "Sparkle",  kbd: "⌘J", action: "openChatPanel" },
+  { section: "sidebar.sections.manuscript" },
+  { id: "search",        label: "nav.search",        icon: "Search",   kbd: "⌘F" },
+  { id: "home",          label: "nav.home",          icon: "Home" },
+  { id: "architecture",  label: "nav.architecture",  icon: "Building", expandable: "architecture", fixed: true },
+  { id: "strands",       label: "nav.strands",       icon: "Strands",  expandable: "strands" },
+  { id: "chapters",      label: "nav.chapters",      icon: "Book",     expandable: "chapters" },
+  { id: "ask",           label: "sidebar.nav.askTheBook", icon: "Sparkle", kbd: "⌘J", action: "openChatPanel" },
 
-  { section: "Story world" },
-  { id: "characters",    label: "Characters",    icon: "Users",     expandable: "characters" },
-  { id: "locations",     label: "Locations",     icon: "Pin",       expandable: "locations" },
-  { id: "objects",       label: "Objects",       icon: "Cube",      expandable: "objects" },
-  { id: "groups",        label: "Groups",        icon: "GroupIcon", expandable: "groups" },
-  { id: "worldbuilding", label: "Worldbuilding", icon: "Sparkle",   expandable: "worldbuilding" },
+  { section: "sidebar.sections.storyWorld" },
+  { id: "characters",    label: "nav.characters",    icon: "Users",     expandable: "characters" },
+  { id: "locations",     label: "nav.locations",     icon: "Pin",       expandable: "locations" },
+  { id: "objects",       label: "nav.objects",       icon: "Cube",      expandable: "objects" },
+  { id: "groups",        label: "nav.groups",        icon: "GroupIcon", expandable: "groups" },
+  { id: "worldbuilding", label: "nav.worldbuilding", icon: "Sparkle",   expandable: "worldbuilding" },
 
-  { section: "Planning" },
-  { id: "plot",      label: "Plot board", icon: "Grid" },
-  { id: "timeline",  label: "Timeline",  icon: "Timeline" },
-  { id: "notes",     label: "Notes",     icon: "Note",     expandable: "notes" },
-  { id: "relations", label: "Relations", icon: "Network" },
+  { section: "sidebar.sections.planning" },
+  { id: "plot",      label: "sidebar.nav.plotBoard", icon: "Grid" },
+  { id: "timeline",  label: "sidebar.nav.timeline",  icon: "Timeline" },
+  { id: "notes",     label: "nav.notes",             icon: "Note",     expandable: "notes" },
+  { id: "relations", label: "sidebar.nav.relations", icon: "Network" },
 
-  { section: "Audio" },
-  { id: "studio",    label: "Studio",    icon: "Headphones" },
+  { section: "sidebar.sections.audio" },
+  { id: "studio",    label: "nav.studio",    icon: "Headphones" },
 
-  { section: "Project" },
-  { id: "analysis",  label: "Analysis",  icon: "Chart" },
-  { id: "export",    label: "Export",    icon: "Export" },
-  { id: "trash",     label: "Trash",     icon: "Trash" },
-  { id: "settings",  label: "Settings",  icon: "Settings" },
-  { id: "writer-lab", label: "Writer Lab", icon: "Sparkle", path: "/writer-lab", activeName: "writerlab" },
-  { id: "help",      label: "Help",      icon: "Help",     path: "/help", activeName: "help" },
+  { section: "sidebar.sections.project" },
+  { id: "analysis",  label: "nav.analysis",  icon: "Chart" },
+  { id: "export",    label: "nav.export",    icon: "Export" },
+  { id: "trash",     label: "nav.trash",     icon: "Trash" },
+  { id: "settings",  label: "nav.settings",  icon: "Settings" },
+  { id: "writer-lab", label: "sidebar.nav.writerLab", icon: "Sparkle", path: "/writer-lab", activeName: "writerlab" },
+  { id: "help",      label: "sidebar.nav.help",       icon: "Help",     path: "/help", activeName: "help" },
 ];
 
 // Resolve an entity's status id → { statusLabel, statusColor } for the
@@ -196,7 +198,7 @@ function clickParent(item) {
 function clickChild(parentId, childId) { ui.select(parentId, childId); router.push(`/${parentId}/${childId}`); }
 
 async function addItem(parentId) {
-  const meta = NEW_ENTITY_META[parentId] || { title: "New item", label: "Name", confirmLabel: "Create" };
+  const meta = NEW_ENTITY_META[parentId] || { title: t("sidebar.actions.newItemFallbackTitle"), label: t("sidebar.actions.newItemFallbackLabel"), confirmLabel: t("sidebar.actions.newItemFallbackConfirm") };
   const name = await promptDialog(meta);
   if (!name) return;
   let id;
@@ -218,20 +220,20 @@ async function addItem(parentId) {
 // adding a chapter and deleting the part. Renaming is inline.
 async function addPart() {
   const title = await promptDialog({
-    title: "New part",
-    label: "Part title",
-    placeholder: `e.g. Part ${project.parts.length + 1} — The Reckoning`,
-    confirmLabel: "Create part",
+    title: t("sidebar.actions.newPartTitle"),
+    label: t("sidebar.actions.newPartLabel"),
+    placeholder: t("sidebar.actions.newPartPlaceholder", { n: project.parts.length + 1 }),
+    confirmLabel: t("sidebar.actions.newPartConfirm"),
   });
   if (!title) return;
   project.addPart({ title });
 }
 async function addChapterInPart(partId) {
   const title = await promptDialog({
-    title: "New chapter",
-    label: "Chapter title",
-    placeholder: "e.g. The first crossing",
-    confirmLabel: "Create chapter",
+    title: t("sidebar.actions.newChapterTitle"),
+    label: t("sidebar.actions.newChapterLabel"),
+    placeholder: t("sidebar.actions.newChapterPlaceholder"),
+    confirmLabel: t("sidebar.actions.newChapterConfirm"),
   });
   if (!title) return;
   const id = project.addChapter({ title, partId });
@@ -261,12 +263,12 @@ function clickScene(chapterId, sceneId) {
 }
 async function addSceneToChapter(chapterId) {
   const values = await promptDialog({
-    title: "New scene",
-    confirmLabel: "Add scene",
+    title: t("sidebar.actions.newSceneTitle"),
+    confirmLabel: t("sidebar.actions.newSceneConfirm"),
     fields: [{
       key: "title",
-      label: "Scene title",
-      placeholder: "Leave blank for an untitled scene",
+      label: t("sidebar.actions.newSceneLabel"),
+      placeholder: t("sidebar.actions.newScenePlaceholder"),
       optional: true,
     }],
   });
@@ -362,27 +364,18 @@ function filteredGroups(parentId) {
 }
 
 // ── Roving tabindex for section item lists ───────────────────────
-// One composable instance per section. Created lazily on first access.
-// Each instance manages focus within a flat list of all visible items
-// for that section (across subgroups).
-const _sectionRoving = new Map();
-
-function _getSectionRoving(sectionId) {
-  if (!_sectionRoving.has(sectionId)) {
-    const length = computed(() => _flatItems(sectionId).length);
-    const instance = useRovingTabindex({
-      length,
-      orientation: "vertical",
-      loop: false,
-      onActivate: (i) => {
-        const item = _flatItems(sectionId)[i];
-        if (item) clickChild(sectionId, item.id);
-      },
-    });
-    _sectionRoving.set(sectionId, instance);
-  }
-  return _sectionRoving.get(sectionId);
-}
+// One composable instance per section, lazily created. Each manages
+// focus within a flat list of visible items for that section
+// (across subgroups).
+const _sectionRoving = useRovingTabindexMap((sectionId) => ({
+  length: computed(() => _flatItems(sectionId).length),
+  orientation: "vertical",
+  loop: false,
+  onActivate: (i) => {
+    const item = _flatItems(sectionId)[i];
+    if (item) clickChild(sectionId, item.id);
+  },
+}));
 
 // Return a flat ordered array of visible nav-child items for a given
 // section. Mirrors the v-for rendering order so flat index is stable.
@@ -416,7 +409,7 @@ function _itemFlatIndex(sectionId, itemId) {
 
 // Tabindex for a nav-child item (0 = in tab order; -1 = roving-managed).
 function navChildTabindex(sectionId, itemId) {
-  const roving = _getSectionRoving(sectionId);
+  const roving = _sectionRoving.get(sectionId);
   const i = _itemFlatIndex(sectionId, itemId);
   if (i < 0) return -1;
   return roving.getTabindex(i);
@@ -426,7 +419,7 @@ function navChildTabindex(sectionId, itemId) {
 function navChildKeydown(sectionId, itemId, e) {
   const i = _itemFlatIndex(sectionId, itemId);
   if (i < 0) return;
-  const roving = _getSectionRoving(sectionId);
+  const roving = _sectionRoving.get(sectionId);
   roving.onKeydown(e, i);
 }
 
@@ -434,7 +427,40 @@ function navChildKeydown(sectionId, itemId, e) {
 function navChildRef(sectionId, itemId, el) {
   const i = _itemFlatIndex(sectionId, itemId);
   if (i < 0) return;
-  _getSectionRoving(sectionId).registerItem(i, el);
+  _sectionRoving.get(sectionId).registerItem(i, el);
+}
+
+// ── Roving tabindex for scene rows (per-chapter) ─────────────────────
+// One composable instance per expanded chapter, keyed by chapterId.
+const _chapterSceneRoving = useRovingTabindexMap((chapterId) => ({
+  length: computed(() => scenesForChapter(chapterId).length),
+  orientation: "vertical",
+  loop: false,
+  onActivate: (i) => {
+    const scn = scenesForChapter(chapterId)[i];
+    if (scn) clickScene(chapterId, scn.id);
+  },
+}));
+
+function sceneTabindex(chapterId, sceneId) {
+  const scenes = scenesForChapter(chapterId);
+  const i = scenes.findIndex((s) => s.id === sceneId);
+  if (i < 0) return -1;
+  return _chapterSceneRoving.get(chapterId).getTabindex(i);
+}
+
+function sceneKeydown(chapterId, sceneId, e) {
+  const scenes = scenesForChapter(chapterId);
+  const i = scenes.findIndex((s) => s.id === sceneId);
+  if (i < 0) return;
+  _chapterSceneRoving.get(chapterId).onKeydown(e, i);
+}
+
+function sceneRef(chapterId, sceneId, el) {
+  const scenes = scenesForChapter(chapterId);
+  const i = scenes.findIndex((s) => s.id === sceneId);
+  if (i < 0) return;
+  _chapterSceneRoving.get(chapterId).registerItem(i, el);
 }
 
 // ── Drag-and-drop reorder ────────────────────────────────────────
@@ -633,10 +659,10 @@ function itemDropClass(section, id) {
 // `worldbuilding[].category` field; display order follows array order.
 async function addWbCategory() {
   const label = await promptDialog({
-    title: "New category",
-    label: "Category name",
-    placeholder: "e.g. Religion & rites",
-    confirmLabel: "Create category",
+    title: t("sidebar.actions.newWbCategoryTitle"),
+    label: t("sidebar.actions.newWbCategoryLabel"),
+    placeholder: t("sidebar.actions.newWbCategoryPlaceholder"),
+    confirmLabel: t("sidebar.actions.newWbCategoryConfirm"),
   });
   if (!label) return;
   project.addWorldbuildingCategory({ label });
@@ -657,9 +683,9 @@ async function deleteWbCat(catId, label) {
   const fallback = project.worldbuildingCategories.find((c) => c.id !== catId);
   const message = count
     ? `Its ${count} article${count === 1 ? "" : "s"} will move to "${fallback.label}".`
-    : "This category has no articles.";
+    : t("sidebar.actions.deleteWbCategoryEmpty");
   const yes = await confirmDialog({
-    title: `Delete "${label}"?`, message, confirmLabel: "Delete category", danger: true,
+    title: t("sidebar.actions.deleteWbCategoryTitle", { label }), message, confirmLabel: t("sidebar.actions.deleteWbCategoryConfirm"), danger: true,
   });
   if (!yes) return;
   project.removeWorldbuildingCategory(catId);
@@ -740,14 +766,14 @@ function wbDropClass(kind, id) {
 
 <template>
   <aside class="sidebar" :class="{ collapsed: ui.sidebarCollapsed }" v-if="!ui.sidebarCollapsed">
-    <div class="sidebar-resize" v-tooltip.bottom="'Drag to resize'" @mousedown="onResizeStart" />
+    <div class="sidebar-resize" v-tooltip.bottom="$t('sidebar.tooltips.dragToResize')" @mousedown="onResizeStart" />
     <div class="brand">
       <div class="brand-mark">J</div>
       <div style="flex:1;min-width:0">
         <div class="brand-name">JustWrite</div>
         <div class="brand-sub">v0.1 · local</div>
       </div>
-      <JwButton intent="ghost" v-tooltip.bottom="'Toggle sidebar'" aria-label="Toggle sidebar" @click="ui.toggleSidebar"><Icon name="SidebarToggle" :size="14" /></JwButton>
+      <JwButton intent="ghost" v-tooltip.bottom="$t('sidebar.tooltips.toggleSidebar')" :aria-label="$t('sidebar.tooltips.toggleSidebar')" @click="ui.toggleSidebar"><Icon name="SidebarToggle" :size="14" /></JwButton>
     </div>
     <div class="project-switcher-wrap" ref="projectSwitcherEl">
       <button class="project-switcher" :class="{ open: projectMenuOpen }"
@@ -760,33 +786,33 @@ function wbDropClass(kind, id) {
         <Icon name="ChevDown" :size="14" />
       </button>
       <div v-if="projectMenuOpen" class="project-menu">
-        <div class="project-menu-head">Projects</div>
+        <div class="project-menu-head">{{ $t('sidebar.projectSwitcher.heading') }}</div>
         <div class="project-menu-list scrollarea">
           <div v-for="p in project.projectsList" :key="p.id"
             class="project-menu-row"
             :class="{ active: p.id === project.activeProjectId }"
             @click="pickProject(p.id)">
             <div style="min-width:0;flex:1">
-              <div class="ttl">{{ p.title || "Untitled" }}</div>
-              <div class="by">{{ p.author ? `by ${p.author}` : "no author" }}</div>
+              <div class="ttl">{{ p.title || $t('sidebar.projectSwitcher.untitled') }}</div>
+              <div class="by">{{ p.author ? `by ${p.author}` : $t('sidebar.projectSwitcher.noAuthor') }}</div>
             </div>
             <Icon v-if="p.id === project.activeProjectId" name="Check" :size="13" />
-            <button v-else class="project-menu-del" v-tooltip.bottom="`Delete ${p.title}`"
-              :aria-label="`Delete project ${p.title}`"
+            <button v-else class="project-menu-del" v-tooltip.bottom="$t('sidebar.projectSwitcher.deleteTooltip', { title: p.title })"
+              :aria-label="$t('sidebar.projectSwitcher.deleteAriaLabel', { title: p.title })"
               @click.stop="deleteProject(p.id, p.title)">
               <Icon name="Trash" :size="12" />
             </button>
           </div>
-          <div v-if="!project.projectsList.length" class="project-menu-empty">No projects yet.</div>
+          <div v-if="!project.projectsList.length" class="project-menu-empty">{{ $t('sidebar.projectSwitcher.empty') }}</div>
         </div>
         <button class="project-menu-new" @click="newProject">
-          <Icon name="Plus" :size="13" /> New project…
+          <Icon name="Plus" :size="13" /> {{ $t('sidebar.projectSwitcher.newProject') }}
         </button>
       </div>
     </div>
-    <nav class="nav-scroll scrollarea" aria-label="Main navigation">
+    <nav class="nav-scroll scrollarea" :aria-label="$t('sidebar.nav.ariaLabel')">
       <template v-for="n in NAV" :key="n.section || n.id">
-        <div v-if="n.section" class="nav-section" role="separator">{{ n.section }}</div>
+        <div v-if="n.section" class="nav-section" role="separator">{{ $t(n.section) }}</div>
         <div v-else class="nav-block">
           <button class="nav-item expandable"
             :class="{ active: activeSection === (n.activeName || n.id).toLowerCase() }"
@@ -794,7 +820,7 @@ function wbDropClass(kind, id) {
             :aria-current="activeSection === (n.activeName || n.id).toLowerCase() ? 'page' : undefined"
             @click="clickParent(n)">
             <span class="nav-icon"><Icon :name="n.icon" :size="15" /></span>
-            <span class="nav-label">{{ n.label }}</span>
+            <span class="nav-label">{{ $t(n.label) }}</span>
             <span v-if="n.kbd" class="kbd-pill">{{ n.kbd }}</span>
             <span v-if="n.expandable" class="nav-chev" :class="{ open: ui.expanded[n.id] }">
               <Icon name="ChevRight" :size="12" />
@@ -804,22 +830,22 @@ function wbDropClass(kind, id) {
             <div class="nav-filter">
               <Icon name="Search" :size="11" />
               <JwInput size="small"
-                :placeholder="`Filter ${n.label.toLowerCase()}…`"
+                :placeholder="$t('sidebar.filter.placeholder', { label: $t(n.label).toLowerCase() })"
                 :modelValue="ui.filters[n.id] || ''"
                 @update:modelValue="ui.setFilter(n.id, $event)"
                 @click.stop />
-              <JwButton v-if="n.expandable === 'chapters'" intent="ghost" class="nav-add" v-tooltip.bottom="'New part'"
-                aria-label="New part"
+              <JwButton v-if="n.expandable === 'chapters'" intent="ghost" class="nav-add" v-tooltip.bottom="$t('sidebar.tooltips.newPart')"
+                :aria-label="$t('sidebar.tooltips.newPart')"
                 @click.stop="addPart">
                 <template #icon><Icon name="Plus" :size="11" /></template>
               </JwButton>
-              <JwButton v-else-if="n.expandable === 'worldbuilding'" intent="ghost" class="nav-add" v-tooltip.bottom="'New category'"
-                aria-label="New category"
+              <JwButton v-else-if="n.expandable === 'worldbuilding'" intent="ghost" class="nav-add" v-tooltip.bottom="$t('sidebar.tooltips.newCategory')"
+                :aria-label="$t('sidebar.tooltips.newCategory')"
                 @click.stop="addWbCategory">
                 <template #icon><Icon name="Plus" :size="11" /></template>
               </JwButton>
-              <JwButton v-else-if="!n.fixed" intent="ghost" class="nav-add" v-tooltip.bottom="`New ${n.label.toLowerCase().replace(/s$/, '')}`"
-                :aria-label="`New ${n.label.toLowerCase().replace(/s$/, '')}`"
+              <JwButton v-else-if="!n.fixed" intent="ghost" class="nav-add" v-tooltip.bottom="$t('sidebar.tooltips.newItem', { label: $t(n.label).toLowerCase().replace(/s$/, '') })"
+                :aria-label="$t('sidebar.tooltips.newItem', { label: $t(n.label).toLowerCase().replace(/s$/, '') })"
                 @click.stop="addItem(n.expandable)">
                 <template #icon><Icon name="Plus" :size="11" /></template>
               </JwButton>
@@ -837,15 +863,15 @@ function wbDropClass(kind, id) {
                   <Icon name="DragHandle" :size="11" class="drag-handle" />
                   <input class="nav-part-title"
                     :value="g.group"
-                    :title="`Rename ${g.group}`"
-                    placeholder="Untitled part"
+                    :title="$t('sidebar.tooltips.renamePart', { name: g.group })"
+                    :placeholder="$t('sidebar.placeholders.untitledPart')"
                     @input="updatePartTitle(g.partId, $event.target.value)"
                     @mousedown.stop
                     @click.stop
                     @keydown.enter.prevent="$event.target.blur()" />
                   <div class="part-actions">
-                    <JwButton intent="ghost" class="part-action" v-tooltip.bottom="'Add chapter to this part'"
-                      aria-label="Add chapter to this part"
+                    <JwButton intent="ghost" class="part-action" v-tooltip.bottom="$t('sidebar.tooltips.addChapterToPart')"
+                      :aria-label="$t('sidebar.tooltips.addChapterToPart')"
                       @click.stop="addChapterInPart(g.partId)">
                       <template #icon><Icon name="Plus" :size="11" /></template>
                     </JwButton>
@@ -866,8 +892,8 @@ function wbDropClass(kind, id) {
                     @drop="onDropChapter(c.id, c.partId)"
                     @dragend="onDragEnd">
                     <JwButton intent="ghost" class="chapter-chev" :class="{ open: isChapterExpanded(c.id) }"
-                      v-tooltip.bottom="isChapterExpanded(c.id) ? 'Collapse scenes' : 'Show scenes'"
-                      :aria-label="isChapterExpanded(c.id) ? 'Collapse scenes' : 'Show scenes'"
+                      v-tooltip.bottom="isChapterExpanded(c.id) ? $t('sidebar.tooltips.collapseScenes') : $t('sidebar.tooltips.showScenes')"
+                      :aria-label="isChapterExpanded(c.id) ? $t('sidebar.tooltips.collapseScenes') : $t('sidebar.tooltips.showScenes')"
                       :aria-expanded="isChapterExpanded(c.id)"
                       @mousedown.stop
                       @click.stop="toggleChapterExpand(c.id)">
@@ -877,21 +903,24 @@ function wbDropClass(kind, id) {
                     <span class="nav-child-label">{{ c.label }}</span>
                     <span class="nav-child-sub t-num">{{ c.words ? c.words.toLocaleString() : '' }}</span>
                     <span class="nav-child-status" :style="c.statusColor ? { color: c.statusColor } : null">{{ c.statusLabel }}</span>
-                    <JwButton intent="ghost" class="chapter-add-scene" v-tooltip.bottom="'Add scene to this chapter'"
-                      aria-label="Add scene to this chapter"
+                    <JwButton intent="ghost" class="chapter-add-scene" v-tooltip.bottom="$t('sidebar.tooltips.addSceneToChapter')"
+                      :aria-label="$t('sidebar.tooltips.addSceneToChapter')"
                       @click.stop="addSceneToChapter(c.id)">
                       <template #icon><Icon name="Plus" :size="11" /></template>
                     </JwButton>
                   </div>
                   <template v-if="isChapterExpanded(c.id)">
                     <div v-for="(scn, si) in scenesForChapter(c.id)" :key="scn.id"
+                      :ref="(el) => sceneRef(c.id, scn.id, el)"
                       class="nav-scene"
                       :class="[
                         { sel: ((route.params.sceneId === scn.id && route.params.id === c.id) || (ui.scrolledSceneId === scn.id && ui.selections.chapters === c.id)) && activeSection === 'chapters' },
                         sceneDropClass(c.id, scn.id),
                       ]"
+                      :tabindex="sceneTabindex(c.id, scn.id)"
                       draggable="true"
                       @click.stop="clickScene(c.id, scn.id)"
+                      @keydown="sceneKeydown(c.id, scn.id, $event)"
                       @dragstart.stop="onSceneDragStart(c.id, scn.id, $event)"
                       @dragover="onSceneDragOver(c.id, scn.id, $event)"
                       @drop="onSceneDrop(c.id, scn.id)"
@@ -904,7 +933,7 @@ function wbDropClass(kind, id) {
                   </template>
                 </template>
               </template>
-              <div v-if="filteredGroups(n.id).length === 0" class="nav-empty">No chapters match</div>
+              <div v-if="filteredGroups(n.id).length === 0" class="nav-empty">{{ $t('sidebar.empty.noChaptersMatch') }}</div>
             </template>
 
             <!-- Worldbuilding: categories as collapsible headers (like
@@ -921,8 +950,8 @@ function wbDropClass(kind, id) {
                   @dragend="onWbDragEnd"
                   @dblclick="toggleWbCat(g.subgroupId)">
                   <JwButton intent="ghost" class="wb-cat-chev" :class="{ open: isWbCatExpanded(g.subgroupId) }"
-                    v-tooltip.bottom="isWbCatExpanded(g.subgroupId) ? 'Collapse' : 'Expand'"
-                    :aria-label="isWbCatExpanded(g.subgroupId) ? `Collapse ${g.group}` : `Expand ${g.group}`"
+                    v-tooltip.bottom="isWbCatExpanded(g.subgroupId) ? $t('sidebar.tooltips.collapse') : $t('sidebar.tooltips.expand')"
+                    :aria-label="isWbCatExpanded(g.subgroupId) ? $t('sidebar.tooltips.collapseNamed', { name: g.group }) : $t('sidebar.tooltips.expandNamed', { name: g.group })"
                     :aria-expanded="isWbCatExpanded(g.subgroupId)"
                     @mousedown.stop
                     @click.stop="toggleWbCat(g.subgroupId)">
@@ -931,22 +960,22 @@ function wbDropClass(kind, id) {
                   <Icon name="DragHandle" :size="11" class="drag-handle" />
                   <input class="nav-part-title"
                     :value="g.group"
-                    :title="`Rename ${g.group}`"
-                    placeholder="Untitled category"
+                    :title="$t('sidebar.tooltips.renameCategory', { name: g.group })"
+                    :placeholder="$t('sidebar.placeholders.untitledCategory')"
                     @input="updateWbCatTitle(g.subgroupId, $event.target.value)"
                     @mousedown.stop
                     @click.stop
                     @dblclick.stop
                     @keydown.enter.prevent="$event.target.blur()" />
                   <div class="part-actions">
-                    <JwButton intent="ghost" class="part-action" v-tooltip.bottom="'Add article to this category'"
-                      aria-label="Add article to this category"
+                    <JwButton intent="ghost" class="part-action" v-tooltip.bottom="$t('sidebar.tooltips.addArticleToCategory')"
+                      :aria-label="$t('sidebar.tooltips.addArticleToCategory')"
                       @click.stop="addArticleInCat(g.subgroupId)">
                       <template #icon><Icon name="Plus" :size="11" /></template>
                     </JwButton>
                     <JwButton v-if="project.worldbuildingCategories.length > 1" intent="ghost" class="part-action part-action-danger"
-                      v-tooltip.bottom="'Delete this category'"
-                      :aria-label="`Delete category ${g.group}`"
+                      v-tooltip.bottom="$t('sidebar.tooltips.deleteCategory')"
+                      :aria-label="$t('sidebar.tooltips.deleteCategoryNamed', { name: g.group })"
                       @click.stop="deleteWbCat(g.subgroupId, g.group)">
                       <template #icon><Icon name="Trash" :size="11" /></template>
                     </JwButton>
@@ -971,7 +1000,7 @@ function wbDropClass(kind, id) {
                   </div>
                 </template>
               </template>
-              <div v-if="filteredGroups(n.id).length === 0" class="nav-empty">No worldbuilding match</div>
+              <div v-if="filteredGroups(n.id).length === 0" class="nav-empty">{{ $t('sidebar.empty.noWorldbuildingMatch') }}</div>
             </template>
 
             <!-- Every other section keeps its original rendering, plus
@@ -1008,18 +1037,18 @@ function wbDropClass(kind, id) {
     <div class="sidebar-footer">
       <div class="avatar">MH</div>
       <div class="meta">
-        <b>{{ project.project.author || "Untitled author" }}</b>
-        <span v-tooltip.bottom="savedAtTitle">Autosaved · {{ savedAtLabel }}</span>
+        <b>{{ project.project.author || $t('sidebar.footer.untitledAuthor') }}</b>
+        <span v-tooltip.bottom="savedAtTitle">{{ $t('sidebar.footer.autosaved') }} · {{ savedAtLabel }}</span>
       </div>
     </div>
   </aside>
   <aside v-else class="sidebar collapsed">
     <div class="brand-mini"><div class="brand-mark">J</div></div>
-    <button class="rail-toggle" aria-label="Expand sidebar" @click="ui.toggleSidebar"><Icon name="SidebarToggle" :size="15" /></button>
+    <button class="rail-toggle" :aria-label="$t('sidebar.tooltips.expandSidebar')" @click="ui.toggleSidebar"><Icon name="SidebarToggle" :size="15" /></button>
     <div style="height:8px" />
     <button v-for="n in NAV.filter(x => x.id)" :key="n.id"
       class="rail-item" :class="{ active: activeSection === (n.activeName || n.id).toLowerCase() }"
-      v-tooltip.bottom="n.label" :aria-label="n.label"
+      v-tooltip.bottom="$t(n.label)" :aria-label="$t(n.label)"
       :aria-current="activeSection === (n.activeName || n.id).toLowerCase() ? 'page' : undefined"
       @click="go(n.id)">
       <Icon :name="n.icon" :size="16" />
