@@ -6,6 +6,7 @@ import { EVENTS_KIND_META } from "../services/eventsKind.js";
 import Icon from "../components/Icon.vue";
 import Breadcrumb from "../components/Breadcrumb.vue";
 import JwButton from "@renderer/components/ui/JwButton.vue";
+import { confirmDialog } from "../services/dialog.js";
 
 const props = defineProps({
   kind:     { type: String, required: true },
@@ -53,7 +54,15 @@ function formatWhen(when) {
   };
 }
 
-function remove(eventId) { project.removeEvent(props.entityId, eventId); }
+async function remove(ev) {
+  const yes = await confirmDialog({
+    title: `Delete "${ev.title || "Untitled event"}"?`,
+    confirmLabel: "Delete",
+    danger: true,
+  });
+  if (!yes) return;
+  project.removeEvent(props.entityId, ev.id);
+}
 function goEdit(eventId) { router.push(meta.value.editUrl(props.entityId, eventId)); }
 function goBack()        { router.push(meta.value.detailUrl(props.entityId)); }
 function goAdd()         { router.push(meta.value.newUrl(props.entityId)); }
@@ -99,8 +108,10 @@ function goAdd()         { router.push(meta.value.newUrl(props.entityId)); }
             <div class="timeline-card-title">{{ ev.title || "Untitled event" }}</div>
             <div v-if="ev.note" class="timeline-card-note">{{ ev.note }}</div>
             <div class="timeline-card-actions">
-              <JwButton intent="ghost" size="small" @click="goEdit(ev.id)">edit</JwButton>
-              <JwButton intent="ghost" size="small" @click="remove(ev.id)">delete</JwButton>
+              <JwButton intent="ghost" size="small" @click="goEdit(ev.id)"
+                :aria-label="`Edit ${ev.title || 'event'}`">edit</JwButton>
+              <JwButton intent="ghost" size="small" @click="remove(ev)"
+                :aria-label="`Delete ${ev.title || 'event'}`">delete</JwButton>
             </div>
           </div>
         </article>

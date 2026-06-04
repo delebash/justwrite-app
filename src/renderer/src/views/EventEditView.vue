@@ -45,7 +45,12 @@ watch(ev, (cur) => {
   noteStr.value  = cur.note || "";
 }, { immediate: true });
 
-onMounted(() => { titleRef.value?.focus?.(); });
+// Guard the focus call — if the route lands here with a stale eventId
+// (e.g. the event was deleted in another tab), `ev` resolves to null
+// and the title input isn't rendered. Without the guard, the focus
+// silently misses; with it, we just skip until ev shows up (the watch
+// below also handles re-focusing when ev arrives later).
+onMounted(() => { if (ev.value) titleRef.value?.focus?.(); });
 
 function cancel() { router.push(meta.value.eventsUrl(props.entityId)); }
 function save() {

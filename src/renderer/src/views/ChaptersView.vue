@@ -1404,16 +1404,13 @@ watch(() => project.allChapters.map((c) => c.id + ":" + (project.scenesFor(c.id)
 }
 
 /* ── Read mode ─────────────────────────────────────────────── */
+/* The vignette is a single rule now — --read-glow flips per-mode in
+   tokens.css so we don't need a dark-mode override here. */
 .read-mode {
   flex: 1; min-height: 0;
   display: flex; flex-direction: column;
   background:
-    radial-gradient(800px 600px at 50% 0%, oklch(0.99 0.005 85), transparent 60%),
-    var(--paper);
-}
-html[data-theme="dark"] .read-mode {
-  background:
-    radial-gradient(800px 600px at 50% 0%, oklch(0.28 0.008 80), transparent 60%),
+    radial-gradient(800px 600px at 50% 0%, var(--read-glow), transparent 60%),
     var(--paper);
 }
 .read-content {

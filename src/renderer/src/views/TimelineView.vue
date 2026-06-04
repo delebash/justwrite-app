@@ -82,8 +82,11 @@ function goOwner(ev) { router.push(EVENTS_KIND_META[ev.ownerKind].detailUrl(ev.o
         <section v-else class="timeline">
           <article v-for="ev in allEvents" :key="`${ev.ownerId}:${ev.id}`" class="timeline-row">
             <div class="timeline-when tl-when-click" role="button" tabindex="0"
-              :title="`Open ${ev.title || 'event'}`"
-              @click="goEvent(ev)" @keydown.enter="goEvent(ev)">
+              :aria-label="`Open ${ev.title || 'event'}`"
+              v-tooltip.bottom="`Open ${ev.title || 'event'}`"
+              @click="goEvent(ev)"
+              @keydown.enter.prevent="goEvent(ev)"
+              @keydown.space.prevent="goEvent(ev)">
               <span class="when-weekday">{{ formatWhen(ev.when).weekday }}</span>
               <span class="when-date">{{ formatWhen(ev.when).date }}</span>
               <span class="when-time">{{ formatWhen(ev.when).time }}</span>
