@@ -42,6 +42,24 @@ function onDocMousedown(e) {
 onMounted(() => document.addEventListener("mousedown", onDocMousedown));
 onUnmounted(() => document.removeEventListener("mousedown", onDocMousedown));
 
+// Safety-net dragend at the document level. The native `dragend` only
+// fires on the dragged element — if a reactive update removes that
+// element mid-drag, the local @dragend never runs and the dragging
+// refs stay dirty, then the next drop fires with stale context. A
+// document-level listener catches every drag completion regardless.
+function onDocDragEnd() {
+  if (dragging.value || dragOverKey.value) {
+    dragging.value = null;
+    dragOverKey.value = null;
+  }
+  if (draggingStrandId.value || strandDropTarget.value) {
+    draggingStrandId.value = null;
+    strandDropTarget.value = null;
+  }
+}
+onMounted(() => document.addEventListener("dragend", onDocDragEnd));
+onUnmounted(() => document.removeEventListener("dragend", onDocDragEnd));
+
 async function handleApplyTemplate(templateId) {
   closeTemplateMenu();
   const tpl = PLOT_TEMPLATES[templateId];
@@ -157,9 +175,13 @@ function onCardKey(e, strandId, beat) {
   if (e.key === "Enter" || e.key === " ") { e.preventDefault(); handleEditBeat(strandId, beat, e); }
 }
 
-async function handleRemoveBeat(strandId, beatId, e) {
+async function handleRemoveBeat(strandId, beat, e) {
   e.stopPropagation();
-  project.removeStrandBeat(strandId, beatId);
+  project.removeStrandBeat(strandId, beat.id);
+  // Beats live in the global undo history (no Trash entry), so a quick
+  // toast pointing at ⌘Z is enough — confirmDialog would be over-friction
+  // for a one-line item the user can recover instantly.
+  ui.showToast({ message: `Removed beat "${beat.label || 'untitled'}".` });
 }
 
 // ── Drag and drop ────────────────────────────────────────────────────
@@ -228,6 +250,11 @@ function cellKey(strandId, chapterId) {
 }
 
 function onDragOver(e, strandId, chapterId) {
+  // While a strand row is being dragged, every beat cell the cursor
+  // passes over should advance the STRAND drop indicator — otherwise
+  // the indicator only updates on the sticky label cell and a drop on
+  // any beat cell would land on whatever row was last hovered.
+  if (draggingStrandId.value) { onStrandDragOver(e, strandId); return; }
   e.preventDefault();
   e.dataTransfer.dropEffect = "move";
   dragOverKey.value = cellKey(strandId, chapterId);
@@ -240,6 +267,9 @@ function onDragLeave(strandId, chapterId) {
 }
 
 function onDrop(e, targetStrandId, targetChapterId) {
+  // Same delegation as dragover — if the user drops while strand-
+  // dragging anywhere in the row, complete the strand move.
+  if (draggingStrandId.value) { onStrandDrop(e, targetStrandId); return; }
   e.preventDefault();
   dragOverKey.value = null;
   const drag = dragging.value;
@@ -275,11 +305,24 @@ function beatCount(strand) {
   return (strand.beats || []).length;
 }
 
+// Memoize the strand×chapter bucketing so a single reactive update
+// doesn't re-filter every strand's beat list O(rows × cols × calls-per-cell)
+// times — template bindings reach beatsInCell 4× per cell (class,
+// tabindex, role, aria-label).
+const beatsByCell = computed(() => {
+  const map = new Map();
+  for (const strand of strands.value) {
+    for (const b of strand.beats || []) {
+      const key = `${strand.id}:${b.chapterId == null ? "none" : b.chapterId}`;
+      const list = map.get(key);
+      if (list) list.push(b); else map.set(key, [b]);
+    }
+  }
+  return map;
+});
 function beatsInCell(strand, chapterId) {
   // chapterId === null → Unassigned column
-  return (strand.beats || []).filter((b) =>
-    chapterId === null ? b.chapterId == null : b.chapterId === chapterId
-  );
+  return beatsByCell.value.get(`${strand.id}:${chapterId ?? "none"}`) || [];
 }
 
 // "Scene 2" / scene-title badge shown on beat cards when sceneId is
@@ -424,6 +467,7 @@ function sceneBadge(beat) {
                 >{{ strand.name }}</span>
                 <button
                   class="strand-trash-btn"
+                  :aria-label="`Delete strand ${strand.name}`"
                   v-tooltip.bottom="'Delete strand'"
                   @click="handleRemoveStrand(strand)"
                 >
@@ -468,8 +512,9 @@ function sceneBadge(beat) {
                 <span v-if="sceneBadge(beat)" class="beat-scene" :title="`Pinned to ${sceneBadge(beat)}`">{{ sceneBadge(beat) }}</span>
                 <button
                   class="beat-del-btn"
+                  aria-label="Remove beat"
                   v-tooltip.bottom="'Remove beat'"
-                  @click="handleRemoveBeat(strand.id, beat.id, $event)"
+                  @click="handleRemoveBeat(strand.id, beat, $event)"
                 >
                   <Icon name="Close" :size="10" />
                 </button>
@@ -477,6 +522,7 @@ function sceneBadge(beat) {
               <button
                 v-if="beatsInCell(strand, null).length > 0"
                 class="cell-add-btn"
+                aria-label="Add beat to unassigned column"
                 v-tooltip.bottom="'Add beat here'"
                 @click.stop="handleAddBeat(strand.id, null)"
               >
@@ -521,8 +567,9 @@ function sceneBadge(beat) {
                 <span v-if="sceneBadge(beat)" class="beat-scene" :title="`Pinned to ${sceneBadge(beat)}`">{{ sceneBadge(beat) }}</span>
                 <button
                   class="beat-del-btn"
+                  aria-label="Remove beat"
                   v-tooltip.bottom="'Remove beat'"
-                  @click="handleRemoveBeat(strand.id, beat.id, $event)"
+                  @click="handleRemoveBeat(strand.id, beat, $event)"
                 >
                   <Icon name="Close" :size="10" />
                 </button>
@@ -530,6 +577,7 @@ function sceneBadge(beat) {
               <button
                 v-if="beatsInCell(strand, ch.id).length > 0"
                 class="cell-add-btn"
+                :aria-label="`Add beat to Chapter ${ch.num}`"
                 v-tooltip.bottom="'Add beat here'"
                 @click.stop="handleAddBeat(strand.id, ch.id)"
               >
