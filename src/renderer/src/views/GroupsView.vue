@@ -13,7 +13,7 @@ import MentionRefList from "../components/MentionRefList.vue";
 import Breadcrumb from "../components/Breadcrumb.vue";
 import { promptDialog } from "../services/dialog.js";
 import { NEW_ENTITY_META } from "../services/entityMeta.js";
-import { PALETTE as COLOR_PALETTE } from "../services/categoricalColors.js";
+import JwColorPicker from "@renderer/components/ui/JwColorPicker.vue";
 
 const props = defineProps({ id: { type: String, default: "" } });
 const project = useProjectStore();
@@ -90,16 +90,12 @@ function deleteGroup() {
         @change="(html) => update('blurb', html)"
       />
       <div style="flex:3;min-height:0;overflow-y:auto">
-      <div class="group-swatches" role="radiogroup" aria-label="Group color">
+      <div class="group-color-picker">
         <span class="t-eyebrow" style="font-size:10px;color:var(--muted)">Color</span>
-        <button v-for="color in COLOR_PALETTE" :key="color"
-          type="button"
-          role="radio" :aria-checked="color === g.color" :aria-label="color"
-          class="group-swatch"
-          :class="{ active: color === g.color }"
-          :style="`background:${color}`"
-          :title="`Use ${color}`"
-          @click="update('color', color)" />
+        <JwColorPicker
+          :model-value="g.color"
+          aria-label="Group color"
+          @update:model-value="update('color', $event)" />
       </div>
       <div style="margin-top:24px">
         <div class="t-eyebrow" style="margin-bottom:10px">Members ({{ (g.members || []).length }})</div>
@@ -149,24 +145,11 @@ function deleteGroup() {
 .group-name:hover { border-color: var(--border-soft); }
 .group-name:focus { border-color: var(--accent); background: var(--surface); box-shadow: 0 0 0 3px var(--accent-soft); }
 
-.group-swatches {
-  display: flex; align-items: center; gap: 6px;
+.group-color-picker {
+  display: flex; align-items: center; gap: 10px;
   margin-top: 10px;
-  flex-wrap: wrap;
 }
-.group-swatches .t-eyebrow { margin-right: 4px; }
-.group-swatch {
-  appearance: none; border: 0;
-  width: 20px; height: 20px;
-  border-radius: 5px;
-  cursor: default;
-  box-shadow: inset 0 0 0 1px var(--shadow-soft);
-  transition: transform .08s ease;
-}
-.group-swatch:hover { transform: scale(1.1); }
-.group-swatch.active {
-  box-shadow: inset 0 0 0 1px var(--shadow-soft), 0 0 0 2px var(--surface), 0 0 0 4px var(--accent);
-}
+.group-color-picker .t-eyebrow { margin-right: 4px; flex-shrink: 0; }
 
 .member-group { margin-top: 18px; }
 .member-group-head { margin-bottom: 8px; }

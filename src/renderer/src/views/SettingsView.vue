@@ -19,6 +19,7 @@ import JwCheckbox from "@renderer/components/ui/JwCheckbox.vue";
 import JwNumber from "@renderer/components/ui/JwNumber.vue";
 import JwSelect from "@renderer/components/ui/JwSelect.vue";
 import JwButton from "@renderer/components/ui/JwButton.vue";
+import JwColorPicker from "@renderer/components/ui/JwColorPicker.vue";
 import {
   ACCENT_PRESETS, GOLD_PRESETS, FUNCTIONAL_PRESETS, PAIRINGS, SURFACE_TINTS, PAPER_TINTS,
   THEME_PRESETS, UI_FONTS, DISPLAY_FONTS, INK_PALETTES, UI_SCALES,
@@ -667,28 +668,21 @@ const TAG_VOCAB_KINDS = [
 ];
 
 // ── Worldbuilding categories (user-definable) ──────────────────────
-const WB_HUES = [30, 60, 95, 130, 170, 200, 250, 290, 320, 0];
-const WB_ICONS = [
-  "Sparkle", "Pin", "Calendar", "Users", "GroupIcon",
-  "Quote", "Building", "Cube", "Book", "Note",
-  "Star", "Network", "Timeline", "Chart",
-];
-const wbEditing = ref(null); // { id, kind: 'hue' | 'icon' } | null
-function wbToggle(id, kind) {
-  wbEditing.value = wbEditing.value && wbEditing.value.id === id && wbEditing.value.kind === kind
-    ? null : { id, kind };
-}
+// The category's `icon` field stays in the data model (sidebar still
+// renders it), but the icon picker UI was removed — new categories
+// default to "Sparkle" since we can't know what the user wants.
 function addCategory() {
-  project.addWorldbuildingCategory({
-    label: "New category",
-    icon: "Sparkle",
-    hue: WB_HUES[project.worldbuildingCategories.length % WB_HUES.length],
-  });
-  wbEditing.value = null;
+  project.addWorldbuildingCategory({ label: "New category" });
 }
 function renameCategory(id, label) { project.updateWorldbuildingCategory(id, { label }); }
-function recolorCategory(id, hue) { project.updateWorldbuildingCategory(id, { hue }); wbEditing.value = null; }
-function setCategoryIcon(id, icon) { project.updateWorldbuildingCategory(id, { icon }); wbEditing.value = null; }
+function recolorCategory(id, hue) { project.updateWorldbuildingCategory(id, { hue }); }
+// Parse the hue number out of an oklch() string emitted by JwColorPicker,
+// since worldbuilding categories store hue as a bare number (the render
+// code reassembles oklch with its own clamped L and C).
+function parseHueFromOklch(s) {
+  const m = String(s || "").match(/oklch\(\s*[\d.]+\s+[\d.]+\s+([\d.]+)/);
+  return m ? Math.round(parseFloat(m[1])) % 360 : 200;
+}
 async function deleteCategory(c) {
   if (project.worldbuildingCategories.length <= 1) {
     ui.showToast({ message: "Keep at least one category." });
@@ -857,40 +851,16 @@ const recentColumns = [
         <div class="card">
           <div class="card-title">{{ $t('settings.wbCategories.cardTitle') }}</div>
           <p class="t-muted" style="font-size:12.5px;margin:0 0 14px;line-height:1.55">
-            Group your worldbuilding articles — these drive the sidebar sections and the category picker. Pick an icon and color for each. Deleting one moves its articles into another category.
+            Group your worldbuilding articles — these drive the sidebar sections and the category picker. Pick a color for each. Deleting one moves its articles into another category.
           </p>
           <div style="display:flex;flex-direction:column;gap:8px">
             <div v-for="c in project.worldbuildingCategories" :key="c.id" style="display:flex;align-items:center;gap:10px">
-              <!-- icon tile -->
-              <div style="position:relative">
-                <button type="button" v-tooltip.bottom="'Change icon'"
-                  :style="`width:30px;height:30px;border-radius:8px;border:0;cursor:pointer;display:grid;place-items:center;background:oklch(var(--tile-bg-l) var(--tile-bg-c) ${c.hue});color:oklch(var(--tile-ink-l) var(--tile-ink-c) ${c.hue})`"
-                  @click="wbToggle(c.id, 'icon')">
-                  <Icon :name="c.icon" :size="15" />
-                </button>
-                <div v-if="wbEditing && wbEditing.id === c.id && wbEditing.kind === 'icon'"
-                  style="position:absolute;top:calc(100% + 5px);left:0;z-index:20;display:grid;grid-template-columns:repeat(5,28px);gap:4px;padding:8px;background:var(--surface);border:1px solid var(--border-strong);border-radius:8px;box-shadow:0 8px 28px rgba(0,0,0,.18)">
-                  <button v-for="ic in WB_ICONS" :key="ic" type="button"
-                    :style="`width:28px;height:28px;border-radius:6px;border:0;cursor:pointer;display:grid;place-items:center;color:var(--ink-2);background:${ic === c.icon ? 'var(--accent-soft)' : 'var(--surface-2)'}`"
-                    @click="setCategoryIcon(c.id, ic)">
-                    <Icon :name="ic" :size="14" />
-                  </button>
-                </div>
-              </div>
-              <!-- hue swatch -->
-              <div style="position:relative">
-                <button type="button" v-tooltip.bottom="'Change color'"
-                  :style="`width:24px;height:24px;border-radius:6px;border:1px solid var(--border);cursor:pointer;background:oklch(0.62 0.13 ${c.hue})`"
-                  @click="wbToggle(c.id, 'hue')" />
-                <div v-if="wbEditing && wbEditing.id === c.id && wbEditing.kind === 'hue'"
-                  style="position:absolute;top:calc(100% + 5px);left:0;z-index:20;display:grid;grid-template-columns:repeat(5,20px);gap:5px;padding:8px;background:var(--surface);border:1px solid var(--border-strong);border-radius:8px;box-shadow:0 8px 28px rgba(0,0,0,.18)">
-                  <button v-for="h in WB_HUES" :key="h" type="button"
-                    :style="`width:20px;height:20px;border-radius:5px;border:0;cursor:pointer;background:oklch(0.62 0.13 ${h});box-shadow:${h === c.hue ? '0 0 0 2px var(--surface),0 0 0 4px var(--accent)' : 'inset 0 0 0 1px rgba(0,0,0,.08)'}`"
-                    @click="recolorCategory(c.id, h)" />
-                </div>
-              </div>
               <JwInput style="max-width:220px" :model-value="c.label"
                 @update:model-value="(v) => renameCategory(c.id, v)" placeholder="Category name" />
+              <JwColorPicker
+                :model-value="`oklch(0.62 0.13 ${c.hue})`"
+                aria-label="Category color"
+                @update:model-value="(v) => recolorCategory(c.id, parseHueFromOklch(v))" />
               <JwButton intent="ghost" size="small" style="margin-left:auto" v-tooltip.bottom="'Delete category'" @click="deleteCategory(c)">
                 <template #icon><Icon name="Trash" :size="13" /></template>
               </JwButton>

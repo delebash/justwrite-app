@@ -16,7 +16,7 @@ import GroupsModal from "../components/GroupsModal.vue";
 import Breadcrumb from "../components/Breadcrumb.vue";
 import { promptDialog } from "../services/dialog.js";
 import { NEW_ENTITY_META } from "../services/entityMeta.js";
-import { PALETTE as COLOR_PALETTE } from "../services/categoricalColors.js";
+import JwColorPicker from "@renderer/components/ui/JwColorPicker.vue";
 
 const props = defineProps({ id: { type: String, default: "" } });
 const project = useProjectStore();
@@ -220,20 +220,12 @@ const sortedBeats = computed(() => {
             @update:model-value="(v) => update('blurb', v)" />
 
           <div class="strand-meta-row">
-            <div class="strand-swatches">
-              <span class="t-eyebrow" style="font-size:10px;color:var(--muted)" id="strand-color-label">Color</span>
-              <div role="radiogroup" aria-labelledby="strand-color-label" style="display:contents">
-                <button v-for="color in COLOR_PALETTE" :key="color"
-                  type="button"
-                  role="radio"
-                  :aria-checked="color === s.color ? 'true' : 'false'"
-                  :aria-label="`Strand color ${color}`"
-                  class="strand-swatch"
-                  :class="{ active: color === s.color }"
-                  :style="`background:${color}`"
-                  v-tooltip.bottom="'Set strand color'"
-                  @click="update('color', color)" />
-              </div>
+            <div class="strand-color-picker">
+              <span class="t-eyebrow" style="font-size:10px;color:var(--muted)">Color</span>
+              <JwColorPicker
+                :model-value="s.color"
+                aria-label="Strand color"
+                @update:model-value="update('color', $event)" />
             </div>
             <span class="strand-count">
               {{ scenesInStrand.length }} scene{{ scenesInStrand.length === 1 ? "" : "s" }}
@@ -393,23 +385,10 @@ const sortedBeats = computed(() => {
 }
 .strand-count { margin-left: auto; font-size: 11.5px; color: var(--muted); }
 
-.strand-swatches {
-  display: flex; align-items: center; gap: 6px;
-  flex-wrap: wrap;
+.strand-color-picker {
+  display: flex; align-items: center; gap: 10px;
 }
-.strand-swatches .t-eyebrow { margin-right: 4px; }
-.strand-swatch {
-  appearance: none; border: 0;
-  width: 20px; height: 20px;
-  border-radius: 5px;
-  cursor: pointer;
-  box-shadow: inset 0 0 0 1px var(--shadow-soft);
-  transition: transform .08s ease;
-}
-.strand-swatch:hover { transform: scale(1.1); }
-.strand-swatch.active {
-  box-shadow: inset 0 0 0 1px var(--shadow-soft), 0 0 0 2px var(--surface), 0 0 0 4px var(--accent);
-}
+.strand-color-picker .t-eyebrow { margin-right: 4px; flex-shrink: 0; }
 
 .beats-section {
   border-top: 1px dashed var(--border-soft);

@@ -11,7 +11,7 @@ import { useSessionsStore } from "./sessions.js";
 import { removeImage as removeImageFile } from "../services/imageStore.js";
 import { getItem, setItem, removeItem, listKeys } from "../services/storage.js";
 import { replaceInHtml } from "../services/projectReplace.js";
-import { nextColor } from "../services/categoricalColors.js";
+import { nextColor, nextHue } from "../services/categoricalColors.js";
 import {
   PROJECT, STRANDS, CHARACTERS, CHARACTER_EXTRAS, LOCATIONS, OBJECTS,
   PARTS, NOTES, GROUPS, ARCHITECTURE, WORLDBUILDING, WORLDBUILDING_CATEGORIES,
@@ -1209,10 +1209,11 @@ export const useProjectStore = defineStore("project", {
     },
 
     // ── Worldbuilding categories (user-definable) ───────────
-    addWorldbuildingCategory({ label = "New category", icon = "Sparkle", hue = 200 } = {}) {
+    addWorldbuildingCategory({ label = "New category", icon = "Sparkle", hue } = {}) {
       this._record("addWorldbuildingCategory");
       const id = uid("wbc");
-      this.worldbuildingCategories = [...this.worldbuildingCategories, { id, label, icon, hue }];
+      const finalHue = hue ?? nextHue(this.worldbuildingCategories.length);
+      this.worldbuildingCategories = [...this.worldbuildingCategories, { id, label, icon, hue: finalHue }];
       this._persist();
       return id;
     },
