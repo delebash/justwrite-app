@@ -56,7 +56,7 @@ const grouped = computed(() => {
 // what scope filters would reveal).
 const allKindsForQuery = computed(() => {
   if (!q.value.trim()) return {};
-  const all = searchIndex(index.value, q.value, { limit: 500 });
+  const all = searchIndex(index.value, q.value, { limit: 5000 });
   const counts = {};
   for (const h of all) counts[h.doc.kind] = (counts[h.doc.kind] || 0) + 1;
   return counts;
@@ -114,17 +114,18 @@ const KIND_ENTRIES = Object.entries(KIND_META).sort((a, b) => a[1].order - b[1].
       <Icon name="Search" :size="14" />
       <input ref="inputEl" v-model="q" placeholder="Find anywhere in the project — name, prose, note, group, narrative strand…"
         style="flex:1;border:0;outline:0;background:transparent;font:inherit;font-size:13.5px" />
-      <JwButton v-if="q" intent="ghost" size="small" @click="q = ''" style="padding:2px 6px" v-tooltip.bottom="'Clear'">×</JwButton>
+      <JwButton v-if="q" intent="ghost" size="small" @click="q = ''" style="padding:2px 6px" v-tooltip.bottom="'Clear'" aria-label="Clear search">×</JwButton>
       <span class="kbd-pill">⌘F</span>
     </div>
 
     <!-- Kind filter chips -->
     <div style="display:flex;flex-wrap:wrap;gap:6px;align-items:center">
-      <button class="filter-chip" :class="{ active: selectedKinds.size === 0 }" @click="clearKinds">All</button>
+      <button class="filter-chip" :class="{ active: selectedKinds.size === 0 }" :aria-pressed="selectedKinds.size === 0" @click="clearKinds">All</button>
       <button v-for="[kind, meta] in KIND_ENTRIES" :key="kind"
         class="filter-chip"
         :class="{ active: selectedKinds.has(kind), dim: q && !allKindsForQuery[kind] }"
         :disabled="q && !allKindsForQuery[kind]"
+        :aria-pressed="selectedKinds.has(kind)"
         @click="toggleKind(kind)">
         <Icon :name="meta.icon" :size="12" />
         {{ meta.label }}
@@ -176,7 +177,7 @@ const KIND_ENTRIES = Object.entries(KIND_META).sort((a, b) => a[1].order - b[1].
           <span style="flex:1;height:1px;background:var(--border-soft);margin-left:8px" />
         </div>
         <div style="display:flex;flex-direction:column">
-          <button v-for="hit in g.list" :key="hit.doc.id" class="result-row" @click="openHit(hit)">
+          <button v-for="hit in g.list" :key="hit.doc.id" class="result-row" :aria-label="`Open ${hit.doc.title}`" @click="openHit(hit)">
             <div class="result-title">
               <span>{{ hit.doc.title }}</span>
               <span v-if="hit.doc.sub" class="result-sub">· {{ hit.doc.sub }}</span>

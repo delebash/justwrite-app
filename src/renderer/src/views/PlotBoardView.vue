@@ -88,12 +88,12 @@ async function handleNewStrand() {
 
 // ── Strand name inline edit ──────────────────────────────────────────
 function onStrandNameBlur(strand, e) {
-  const val = e.target.innerText.trim();
+  const val = e.target.value.trim();
   if (val && val !== strand.name) {
     project.updateStrand(strand.id, { name: val });
   } else {
     // Reset to stored name if blank
-    e.target.innerText = strand.name;
+    e.target.value = strand.name;
   }
 }
 
@@ -420,15 +420,15 @@ function sceneBadge(beat) {
             <span class="col-label">Unassigned</span>
           </div>
           <!-- Chapter headers -->
-          <div
+          <router-link
             v-for="ch in chapters"
             :key="ch.id"
+            :to="`/chapters/${ch.id}`"
             class="col-header ch-header"
             v-tooltip.bottom="ch.title"
-            @click="router.push(`/chapters/${ch.id}`)"
           >
             <span class="col-label">Ch {{ ch.num }}</span>
-          </div>
+          </router-link>
 
           <!-- ── Strand rows ───────────────────────────────── -->
           <template v-for="strand in strands" :key="strand.id">
@@ -458,21 +458,23 @@ function sceneBadge(beat) {
                   class="strand-color-swatch"
                   :style="`background:${strand.color || 'var(--accent)'}`"
                 />
-                <span
+                <input
                   class="strand-name"
-                  contenteditable="true"
                   spellcheck="false"
+                  :value="strand.name"
                   @blur="onStrandNameBlur(strand, $event)"
                   @keydown="onStrandNameKeydown"
-                >{{ strand.name }}</span>
-                <button
+                />
+                <JwButton
+                  intent="ghost"
+                  size="small"
                   class="strand-trash-btn"
                   :aria-label="`Delete strand ${strand.name}`"
                   v-tooltip.bottom="'Delete strand'"
                   @click="handleRemoveStrand(strand)"
                 >
                   <Icon name="Trash" :size="13" />
-                </button>
+                </JwButton>
               </div>
               <span class="strand-beat-count">{{ beatCount(strand) }} beat{{ beatCount(strand) === 1 ? "" : "s" }}</span>
             </div>
@@ -510,14 +512,16 @@ function sceneBadge(beat) {
               >
                 <span class="beat-label">{{ beat.label }}</span>
                 <span v-if="sceneBadge(beat)" class="beat-scene" :title="`Pinned to ${sceneBadge(beat)}`">{{ sceneBadge(beat) }}</span>
-                <button
+                <JwButton
+                  intent="ghost"
+                  size="small"
                   class="beat-del-btn"
                   aria-label="Remove beat"
                   v-tooltip.bottom="'Remove beat'"
                   @click="handleRemoveBeat(strand.id, beat, $event)"
                 >
                   <Icon name="Close" :size="10" />
-                </button>
+                </JwButton>
               </div>
               <button
                 v-if="beatsInCell(strand, null).length > 0"
@@ -565,14 +569,16 @@ function sceneBadge(beat) {
               >
                 <span class="beat-label">{{ beat.label }}</span>
                 <span v-if="sceneBadge(beat)" class="beat-scene" :title="`Pinned to ${sceneBadge(beat)}`">{{ sceneBadge(beat) }}</span>
-                <button
+                <JwButton
+                  intent="ghost"
+                  size="small"
                   class="beat-del-btn"
                   aria-label="Remove beat"
                   v-tooltip.bottom="'Remove beat'"
                   @click="handleRemoveBeat(strand.id, beat, $event)"
                 >
                   <Icon name="Close" :size="10" />
-                </button>
+                </JwButton>
               </div>
               <button
                 v-if="beatsInCell(strand, ch.id).length > 0"
@@ -724,6 +730,8 @@ function sceneBadge(beat) {
 
 .ch-header {
   cursor: pointer;
+  text-decoration: none;
+  color: inherit;
   transition: background .12s;
 }
 .ch-header:hover { background: var(--surface-2); }
@@ -788,34 +796,32 @@ function sceneBadge(beat) {
   font-size: 13px;
   font-weight: 500;
   color: var(--ink);
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  outline: none;
+  appearance: none;
+  background: transparent;
+  border: 1px solid transparent;
   border-radius: 3px;
   padding: 1px 3px;
   cursor: text;
+  outline: none;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  width: 0; /* flex:1 drives actual width */
 }
+.strand-name:hover { border-color: var(--border-soft); }
 .strand-name:focus {
+  border-color: var(--accent);
+  box-shadow: 0 0 0 3px var(--accent-soft);
+  background: var(--surface);
   white-space: normal;
   overflow: visible;
-  background: var(--surface-2);
-  outline: 1px solid var(--accent-line);
+  text-overflow: clip;
 }
 
 .strand-trash-btn {
   flex-shrink: 0;
   opacity: 0;
-  border: 0;
-  background: transparent;
-  color: var(--muted);
-  cursor: pointer;
-  padding: 2px;
-  border-radius: 4px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  transition: opacity .15s, color .15s;
+  transition: opacity .15s;
 }
 .strand-label-cell:hover .strand-trash-btn { opacity: 1; }
 .strand-trash-btn:hover { color: var(--danger-ink); }
@@ -925,16 +931,7 @@ function sceneBadge(beat) {
 .beat-del-btn {
   flex-shrink: 0;
   opacity: 0;
-  border: 0;
-  background: transparent;
-  color: var(--muted);
-  cursor: pointer;
-  padding: 0;
-  display: flex;
-  align-items: center;
-  line-height: 1;
-  border-radius: 3px;
-  transition: opacity .12s, color .12s;
+  transition: opacity .12s;
 }
 .beat-card:hover .beat-del-btn { opacity: 1; }
 .beat-del-btn:hover { color: var(--danger-ink); }
