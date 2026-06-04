@@ -30,50 +30,50 @@ function back() { emit("close"); }
 
       <div class="es-row">
         <span class="es-label">Font size</span>
-        <div class="seg">
-          <button :class="{ active: draft.fontSize == null }" @click="draft.fontSize = null">theme</button>
-          <button v-for="o in ['small', 'medium', 'big']" :key="o" :class="{ active: draft.fontSize === o }" @click="draft.fontSize = o">{{ o }}</button>
+        <div class="seg" role="radiogroup" aria-label="Font size">
+          <button role="radio" :aria-checked="draft.fontSize == null" :class="{ active: draft.fontSize == null }" @click="draft.fontSize = null">theme</button>
+          <button v-for="o in ['small', 'medium', 'big']" :key="o" role="radio" :aria-checked="draft.fontSize === o" :class="{ active: draft.fontSize === o }" @click="draft.fontSize = o">{{ o }}</button>
         </div>
       </div>
 
       <div class="es-row">
         <span class="es-label">Paragraph indent</span>
-        <div class="seg">
-          <button :class="{ active: draft.paragraphIndent == null }" @click="draft.paragraphIndent = null">theme</button>
-          <button :class="{ active: draft.paragraphIndent === true }" @click="draft.paragraphIndent = true">enabled</button>
-          <button :class="{ active: draft.paragraphIndent === false }" @click="draft.paragraphIndent = false">disabled</button>
+        <div class="seg" role="radiogroup" aria-label="Paragraph indent">
+          <button role="radio" :aria-checked="draft.paragraphIndent == null" :class="{ active: draft.paragraphIndent == null }" @click="draft.paragraphIndent = null">theme</button>
+          <button role="radio" :aria-checked="draft.paragraphIndent === true" :class="{ active: draft.paragraphIndent === true }" @click="draft.paragraphIndent = true">enabled</button>
+          <button role="radio" :aria-checked="draft.paragraphIndent === false" :class="{ active: draft.paragraphIndent === false }" @click="draft.paragraphIndent = false">disabled</button>
         </div>
       </div>
 
       <div class="es-row">
         <span class="es-label">Capitalize first letter of sentences</span>
-        <div class="seg">
-          <button :class="{ active: draft.capitalize }" @click="draft.capitalize = true">enabled</button>
-          <button :class="{ active: !draft.capitalize }" @click="draft.capitalize = false">disabled</button>
+        <div class="seg" role="radiogroup" aria-label="Capitalize first letter of sentences">
+          <button role="radio" :aria-checked="draft.capitalize" :class="{ active: draft.capitalize }" @click="draft.capitalize = true">enabled</button>
+          <button role="radio" :aria-checked="!draft.capitalize" :class="{ active: !draft.capitalize }" @click="draft.capitalize = false">disabled</button>
         </div>
       </div>
 
       <div class="es-row">
         <span class="es-label">Line spacing</span>
-        <div class="seg">
-          <button :class="{ active: draft.lineSpacing == null }" @click="draft.lineSpacing = null">theme</button>
-          <button v-for="o in LINE_SPACING_OPTIONS" :key="o" :class="{ active: draft.lineSpacing === o }" @click="draft.lineSpacing = o">{{ o }}</button>
+        <div class="seg" role="radiogroup" aria-label="Line spacing">
+          <button role="radio" :aria-checked="draft.lineSpacing == null" :class="{ active: draft.lineSpacing == null }" @click="draft.lineSpacing = null">theme</button>
+          <button v-for="o in LINE_SPACING_OPTIONS" :key="o" role="radio" :aria-checked="draft.lineSpacing === o" :class="{ active: draft.lineSpacing === o }" @click="draft.lineSpacing = o">{{ o }}</button>
         </div>
       </div>
 
       <div class="es-row">
         <span class="es-label">Paragraph spacing</span>
-        <div class="seg">
-          <button :class="{ active: draft.paragraphSpacing == null }" @click="draft.paragraphSpacing = null">theme</button>
-          <button v-for="o in PARAGRAPH_SPACING_OPTIONS" :key="o" :class="{ active: draft.paragraphSpacing === o }" @click="draft.paragraphSpacing = o">{{ o }}</button>
+        <div class="seg" role="radiogroup" aria-label="Paragraph spacing">
+          <button :class="{ active: draft.paragraphSpacing == null }" role="radio" :aria-checked="draft.paragraphSpacing == null" @click="draft.paragraphSpacing = null">theme</button>
+          <button v-for="o in PARAGRAPH_SPACING_OPTIONS" :key="o" role="radio" :aria-checked="draft.paragraphSpacing === o" :class="{ active: draft.paragraphSpacing === o }" @click="draft.paragraphSpacing = o">{{ o }}</button>
         </div>
       </div>
 
       <div class="es-row">
         <span class="es-label">Spell check</span>
-        <div class="seg">
-          <button :class="{ active: draft.spellCheck }" @click="draft.spellCheck = true">enabled</button>
-          <button :class="{ active: !draft.spellCheck }" @click="draft.spellCheck = false">disabled</button>
+        <div class="seg" role="radiogroup" aria-label="Spell check">
+          <button role="radio" :aria-checked="draft.spellCheck" :class="{ active: draft.spellCheck }" @click="draft.spellCheck = true">enabled</button>
+          <button role="radio" :aria-checked="!draft.spellCheck" :class="{ active: !draft.spellCheck }" @click="draft.spellCheck = false">disabled</button>
         </div>
       </div>
     </div>

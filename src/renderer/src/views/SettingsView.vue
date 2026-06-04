@@ -1248,8 +1248,9 @@ const recentColumns = [
         <!-- Mode -->
         <div class="card">
           <div class="card-title">Mode</div>
-          <div class="settings-mode-grid" style="display:grid;grid-template-columns:repeat(3, minmax(0, 1fr));gap:10px">
+          <div class="settings-mode-grid" style="display:grid;grid-template-columns:repeat(3, minmax(0, 1fr));gap:10px" role="radiogroup" aria-label="Theme">
             <button v-for="t in THEMES" :key="t.id"
+              role="radio" :aria-checked="ap.mode === t.id"
               class="theme-tile" :class="{ active: ap.mode === t.id }"
               @click="setAp({ mode: t.id })">
               <div class="theme-preview" :data-mode="t.id === 'system' ? 'split' : t.id">
@@ -1302,8 +1303,9 @@ const recentColumns = [
           </div>
           <div class="size-row">
             <span class="field-l">Size</span>
-            <div class="size-seg">
+            <div class="size-seg" role="radiogroup" aria-label="UI scale">
               <button v-for="s in UI_SCALES" :key="s.value"
+                role="radio" :aria-checked="ap.uiScale === s.value"
                 :class="{ active: ap.uiScale === s.value }"
                 @click="setAp({ uiScale: s.value })">
                 <b>{{ s.label }}</b><span>{{ Math.round(s.value * 100) }}%</span>
@@ -1313,15 +1315,17 @@ const recentColumns = [
           </div>
           <div class="size-row">
             <span class="field-l">Section heading</span>
-            <div class="size-seg">
+            <div class="size-seg" role="radiogroup" aria-label="Sidebar heading style">
               <button v-for="s in SIDEBAR_HEADING_STYLE_LIST" :key="s.key"
+                role="radio" :aria-checked="ap.sidebarHeadingStyle === s.key"
                 :class="{ active: ap.sidebarHeadingStyle === s.key }"
                 @click="setAp({ sidebarHeadingStyle: s.key })">
                 <b>{{ s.label }}</b>
               </button>
             </div>
-            <div class="size-seg size-seg-narrow">
+            <div class="size-seg size-seg-narrow" role="radiogroup" aria-label="Sidebar heading size">
               <button v-for="s in SIDEBAR_HEADING_SIZES" :key="s.value"
+                role="radio" :aria-checked="ap.sidebarHeadingSize === s.value"
                 :class="{ active: ap.sidebarHeadingSize === s.value }"
                 @click="setAp({ sidebarHeadingSize: s.value })">
                 <b>{{ s.label }}</b>
@@ -1331,15 +1335,17 @@ const recentColumns = [
           </div>
           <div class="size-row">
             <span class="field-l">Menu item</span>
-            <div class="size-seg">
+            <div class="size-seg" role="radiogroup" aria-label="Menu item style">
               <button v-for="s in NAV_ITEM_STYLE_LIST" :key="s.key"
+                role="radio" :aria-checked="ap.navItemStyle === s.key"
                 :class="{ active: ap.navItemStyle === s.key }"
                 @click="setAp({ navItemStyle: s.key })">
                 <b>{{ s.label }}</b>
               </button>
             </div>
-            <div class="size-seg size-seg-narrow">
+            <div class="size-seg size-seg-narrow" role="radiogroup" aria-label="Menu item size">
               <button v-for="s in NAV_ITEM_SIZES" :key="s.value"
+                role="radio" :aria-checked="ap.navItemSize === s.value"
                 :class="{ active: ap.navItemSize === s.value }"
                 @click="setAp({ navItemSize: s.value })">
                 <b>{{ s.label }}</b>
@@ -1353,9 +1359,10 @@ const recentColumns = [
         <div class="card">
           <div class="card-title">Accents</div>
           <p class="t-muted" style="font-size:12px;margin:0 0 12px">Accent drives selection, the active nav item, buttons and links. Accent 2 is the secondary — rings, rules, peak markers, and the <code>accent2</code> intent on buttons and tags.</p>
-          <div class="swatch-row">
+          <div class="swatch-row" role="radiogroup" aria-label="Accent">
             <span class="swatch-label">Accent</span>
             <button v-for="p in ACCENT_PRESETS" :key="p.hue"
+              role="radio" :aria-checked="ap.accentHue === p.hue" :aria-label="p.name"
               class="accent-swatch" :class="{ active: ap.accentHue === p.hue }"
               :title="p.name" :style="`background: oklch(0.55 0.13 ${p.hue})`"
               @click="setAp({ accentHue: p.hue })">
@@ -1364,9 +1371,10 @@ const recentColumns = [
             <JwNumber :min="0" :max="360" style="width:74px"
               :model-value="ap.accentHue" @update:model-value="(v) => setAp({ accentHue: clampHue(v) })" />
           </div>
-          <div class="swatch-row" style="margin-top:8px">
+          <div class="swatch-row" style="margin-top:8px" role="radiogroup" aria-label="Accent 2">
             <span class="swatch-label">Accent 2</span>
             <button v-for="p in GOLD_PRESETS" :key="p.hue"
+              role="radio" :aria-checked="ap.goldHue === p.hue" :aria-label="p.name"
               class="accent-swatch" :class="{ active: ap.goldHue === p.hue }"
               :title="p.name" :style="`background: oklch(0.62 0.1 ${p.hue})`"
               @click="setAp({ goldHue: p.hue })">
@@ -1386,9 +1394,10 @@ const recentColumns = [
         <div class="card">
           <div class="card-title">Functional colours</div>
           <p class="t-muted" style="font-size:12px;margin:0 0 12px">Success, danger and info — used by status chips, banners and the buttons and tags below. Like the accent, you pick a hue and every shade stays legible in light &amp; dark.</p>
-          <div class="swatch-row">
+          <div class="swatch-row" role="radiogroup" aria-label="Success">
             <span class="swatch-label">Success</span>
             <button v-for="p in FUNCTIONAL_PRESETS.success" :key="p.hue"
+              role="radio" :aria-checked="ap.successHue === p.hue" :aria-label="p.name"
               class="accent-swatch" :class="{ active: ap.successHue === p.hue }"
               v-tooltip.bottom="p.name" :style="`background: oklch(0.6 0.13 ${p.hue})`"
               @click="setAp({ successHue: p.hue })">
@@ -1397,9 +1406,10 @@ const recentColumns = [
             <JwNumber :min="0" :max="360" style="width:74px"
               :model-value="ap.successHue" @update:model-value="(v) => setAp({ successHue: clampHue(v) })" />
           </div>
-          <div class="swatch-row" style="margin-top:8px">
+          <div class="swatch-row" style="margin-top:8px" role="radiogroup" aria-label="Danger">
             <span class="swatch-label">Danger</span>
             <button v-for="p in FUNCTIONAL_PRESETS.danger" :key="p.hue"
+              role="radio" :aria-checked="ap.dangerHue === p.hue" :aria-label="p.name"
               class="accent-swatch" :class="{ active: ap.dangerHue === p.hue }"
               v-tooltip.bottom="p.name" :style="`background: oklch(0.62 0.17 ${p.hue})`"
               @click="setAp({ dangerHue: p.hue })">
@@ -1408,9 +1418,10 @@ const recentColumns = [
             <JwNumber :min="0" :max="360" style="width:74px"
               :model-value="ap.dangerHue" @update:model-value="(v) => setAp({ dangerHue: clampHue(v) })" />
           </div>
-          <div class="swatch-row" style="margin-top:8px">
+          <div class="swatch-row" style="margin-top:8px" role="radiogroup" aria-label="Info">
             <span class="swatch-label">Info</span>
             <button v-for="p in FUNCTIONAL_PRESETS.info" :key="p.hue"
+              role="radio" :aria-checked="ap.infoHue === p.hue" :aria-label="p.name"
               class="accent-swatch" :class="{ active: ap.infoHue === p.hue }"
               v-tooltip.bottom="p.name" :style="`background: oklch(0.55 0.1 ${p.hue})`"
               @click="setAp({ infoHue: p.hue })">
@@ -1454,9 +1465,10 @@ const recentColumns = [
         <div class="card">
           <div class="card-title">Backgrounds</div>
           <p class="t-muted" style="font-size:12px;margin:0 0 12px">Tint each area independently — every option is tuned to stay legible. Pick a curated swatch or click <b>Custom</b> for any colour. The <b>Text</b> row picks the text-colour family used across the app.</p>
-          <div class="swatch-row">
+          <div class="swatch-row" role="radiogroup" aria-label="App background">
             <span class="swatch-label">App</span>
             <button v-for="t in SURFACE_TINT_LIST" :key="t.key"
+              role="radio" :aria-checked="ap.appBg === t.key" :aria-label="t.label"
               class="tint-swatch" :class="{ active: ap.appBg === t.key }"
               :title="t.label" :style="{ background: tintColor(t) }"
               @click="setAp({ appBg: t.key })">
@@ -1468,9 +1480,10 @@ const recentColumns = [
               <Icon v-if="isCustomHex(ap.appBg)" name="Check" :size="12" />
             </label>
           </div>
-          <div class="swatch-row" style="margin-top:8px">
+          <div class="swatch-row" style="margin-top:8px" role="radiogroup" aria-label="Sidebar background">
             <span class="swatch-label">Sidebar</span>
             <button v-for="t in SURFACE_TINT_LIST" :key="t.key"
+              role="radio" :aria-checked="ap.sidebarBg === t.key" :aria-label="t.label"
               class="tint-swatch" :class="{ active: ap.sidebarBg === t.key }"
               :title="t.label" :style="{ background: tintColor(t) }"
               @click="setAp({ sidebarBg: t.key })">
@@ -1482,9 +1495,10 @@ const recentColumns = [
               <Icon v-if="isCustomHex(ap.sidebarBg)" name="Check" :size="12" />
             </label>
           </div>
-          <div class="swatch-row" style="margin-top:8px">
+          <div class="swatch-row" style="margin-top:8px" role="radiogroup" aria-label="Editor paper">
             <span class="swatch-label">Editor paper</span>
             <button v-for="t in PAPER_TINT_LIST" :key="t.key"
+              role="radio" :aria-checked="ap.editorPaper === t.key" :aria-label="t.label"
               class="tint-swatch" :class="{ active: ap.editorPaper === t.key }"
               :title="t.label" :style="{ background: tintColor(t) }"
               @click="setAp({ editorPaper: t.key })">
@@ -1496,9 +1510,10 @@ const recentColumns = [
               <Icon v-if="isCustomHex(ap.editorPaper)" name="Check" :size="12" />
             </label>
           </div>
-          <div class="swatch-row" style="margin-top:14px">
+          <div class="swatch-row" style="margin-top:14px" role="radiogroup" aria-label="Text colour">
             <span class="swatch-label">Text</span>
             <button v-for="t in INK_PALETTE_LIST" :key="t.key"
+              role="radio" :aria-checked="ap.inkPalette === t.key" :aria-label="t.label"
               class="tint-swatch" :class="{ active: ap.inkPalette === t.key }"
               :title="t.label" :style="{ background: inkSwatch(t) }"
               @click="setAp({ inkPalette: t.key })">
@@ -1519,11 +1534,11 @@ const recentColumns = [
         <div class="card">
           <div class="card-title">Editor layout</div>
           <p class="t-muted" style="font-size:12px;margin:0 0 12px">How the manuscript editor presents your prose while you write.</p>
-          <div class="seg2">
-            <button :class="{ active: ap.editorLayout === 'full' }" @click="setAp({ editorLayout: 'full' })">
+          <div class="seg2" role="radiogroup" aria-label="Editor layout">
+            <button role="radio" :aria-checked="ap.editorLayout === 'full'" :class="{ active: ap.editorLayout === 'full' }" @click="setAp({ editorLayout: 'full' })">
               <b>Full width</b><span>Edge-to-edge writing surface.</span>
             </button>
-            <button :class="{ active: ap.editorLayout === 'page' }" @click="setAp({ editorLayout: 'page' })">
+            <button role="radio" :aria-checked="ap.editorLayout === 'page'" :class="{ active: ap.editorLayout === 'page' }" @click="setAp({ editorLayout: 'page' })">
               <b>Page</b><span>Centered sheet with margins and running head.</span>
             </button>
           </div>
@@ -1536,8 +1551,9 @@ const recentColumns = [
           <p class="t-muted" style="font-size:12px;margin:0 0 12px">Defaults for the manuscript prose — font size, line spacing, paragraph spacing, and first-line indent. Per-document choices in the editor's ⚙ Writing settings override these.</p>
           <div class="size-row">
             <span class="field-l">Font size</span>
-            <div class="size-seg">
+            <div class="size-seg" role="radiogroup" aria-label="Editor font size">
               <button v-for="o in EDITOR_FONT_SIZES" :key="o.value"
+                role="radio" :aria-checked="ap.editorFontSize === o.value"
                 :class="{ active: ap.editorFontSize === o.value }"
                 @click="setAp({ editorFontSize: o.value })">
                 <b>{{ o.label }}</b><span>{{ o.px }}</span>
@@ -1546,8 +1562,9 @@ const recentColumns = [
           </div>
           <div class="size-row">
             <span class="field-l">Line spacing</span>
-            <div class="size-seg">
+            <div class="size-seg" role="radiogroup" aria-label="Line spacing">
               <button v-for="o in EDITOR_LINE_OPTIONS" :key="o"
+                role="radio" :aria-checked="ap.editorLineSpacing === o"
                 :class="{ active: ap.editorLineSpacing === o }"
                 @click="setAp({ editorLineSpacing: o })">
                 <b>{{ o }}</b>
@@ -1556,8 +1573,9 @@ const recentColumns = [
           </div>
           <div class="size-row">
             <span class="field-l">Paragraph spacing</span>
-            <div class="size-seg">
+            <div class="size-seg" role="radiogroup" aria-label="Paragraph spacing">
               <button v-for="o in EDITOR_PARA_OPTIONS" :key="o"
+                role="radio" :aria-checked="ap.editorParaSpacing === o"
                 :class="{ active: ap.editorParaSpacing === o }"
                 @click="setAp({ editorParaSpacing: o })">
                 <b>{{ o === 0 ? '0' : o + 'em' }}</b>
@@ -1566,9 +1584,9 @@ const recentColumns = [
           </div>
           <div class="size-row">
             <span class="field-l">First-line indent</span>
-            <div class="size-seg">
-              <button :class="{ active: ap.editorParaIndent === true }" @click="setAp({ editorParaIndent: true })"><b>Indent</b></button>
-              <button :class="{ active: ap.editorParaIndent === false }" @click="setAp({ editorParaIndent: false })"><b>No indent</b></button>
+            <div class="size-seg" role="radiogroup" aria-label="Paragraph indent">
+              <button role="radio" :aria-checked="ap.editorParaIndent === true" :class="{ active: ap.editorParaIndent === true }" @click="setAp({ editorParaIndent: true })"><b>Indent</b></button>
+              <button role="radio" :aria-checked="ap.editorParaIndent === false" :class="{ active: ap.editorParaIndent === false }" @click="setAp({ editorParaIndent: false })"><b>No indent</b></button>
             </div>
           </div>
         </div>
@@ -1579,8 +1597,9 @@ const recentColumns = [
           <p class="t-muted" style="font-size:12px;margin:0 0 12px">Shape, padding, and label casing for every button across the app.</p>
           <div class="size-row">
             <span class="field-l">Corner radius</span>
-            <div class="size-seg">
+            <div class="size-seg" role="radiogroup" aria-label="Button corner radius">
               <button v-for="o in BUTTON_RADIUS_OPTIONS" :key="o.value"
+                role="radio" :aria-checked="ap.btnRadius === o.value"
                 :class="{ active: ap.btnRadius === o.value }"
                 @click="setAp({ btnRadius: o.value })">
                 <b>{{ o.label }}</b>
@@ -1589,8 +1608,9 @@ const recentColumns = [
           </div>
           <div class="size-row">
             <span class="field-l">Density</span>
-            <div class="size-seg">
+            <div class="size-seg" role="radiogroup" aria-label="Button density">
               <button v-for="o in BUTTON_DENSITY_OPTIONS" :key="o.value"
+                role="radio" :aria-checked="ap.btnDensity === o.value"
                 :class="{ active: ap.btnDensity === o.value }"
                 @click="setAp({ btnDensity: o.value })">
                 <b>{{ o.label }}</b>
@@ -1599,8 +1619,9 @@ const recentColumns = [
           </div>
           <div class="size-row">
             <span class="field-l">Label casing</span>
-            <div class="size-seg">
+            <div class="size-seg" role="radiogroup" aria-label="Button label casing">
               <button v-for="o in BUTTON_LABEL_CASE_OPTIONS" :key="o.value"
+                role="radio" :aria-checked="ap.btnLabelCase === o.value"
                 :class="{ active: ap.btnLabelCase === o.value }"
                 @click="setAp({ btnLabelCase: o.value })">
                 <b>{{ o.label }}</b>

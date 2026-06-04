@@ -104,10 +104,11 @@ async function deleteGroup() {
         @change="(html) => update('blurb', html)"
       />
       <div style="flex:3;min-height:0;overflow-y:auto">
-      <div class="group-swatches">
+      <div class="group-swatches" role="radiogroup" aria-label="Group color">
         <span class="t-eyebrow" style="font-size:10px;color:var(--muted)">Color</span>
         <button v-for="color in COLOR_PALETTE" :key="color"
           type="button"
+          role="radio" :aria-checked="color === g.color" :aria-label="color"
           class="group-swatch"
           :class="{ active: color === g.color }"
           :style="`background:${color}`"

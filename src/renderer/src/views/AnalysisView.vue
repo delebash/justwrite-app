@@ -232,8 +232,9 @@ const milestoneState = computed(() => {
       <div style="display:flex;align-items:center;gap:12px;margin-bottom:8px">
         <div class="card-title" style="margin:0">Pace</div>
         <span class="t-muted" style="font-size:11.5px">Daily words written</span>
-        <div style="margin-left:auto;display:flex;gap:4px">
+        <div style="margin-left:auto;display:flex;gap:4px" role="radiogroup" aria-label="Time window">
           <button v-for="d in [14, 30, 90]" :key="d"
+            role="radio" :aria-checked="windowDays === d"
             class="seg-btn" :class="{ active: windowDays === d }"
             @click="windowDays = d">{{ d }}d</button>
         </div>

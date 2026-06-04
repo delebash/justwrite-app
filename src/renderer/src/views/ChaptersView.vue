@@ -564,8 +564,9 @@ watch(() => project.allChapters.map((c) => c.id + ":" + (project.scenesFor(c.id)
         @input="updateTitle(ch.id, $event.target.value)" />
     </div>
     <div class="pane-actions">
-      <div class="seg-toggle">
+      <div class="seg-toggle" role="radiogroup" aria-label="View mode">
         <button v-for="m in MODES" :key="m.id"
+          role="radio" :aria-checked="mode === m.id"
           :class="{ active: mode === m.id }"
           @click="mode = m.id">
           <Icon :name="m.icon" :size="13" />
@@ -596,8 +597,9 @@ watch(() => project.allChapters.map((c) => c.id + ":" + (project.scenesFor(c.id)
     :eyebrow="mode === 'outline' ? 'Manuscript' : ch.partTitle"
     :title="mode === 'outline' ? 'Outline' : `Chapter ${ch.num} · ${ch.title}`">
 
-    <div class="seg-toggle">
+    <div class="seg-toggle" role="radiogroup" aria-label="View mode">
       <button v-for="m in MODES" :key="m.id"
+        role="radio" :aria-checked="mode === m.id"
         :class="{ active: mode === m.id }"
         @click="mode = m.id">
         <Icon :name="m.icon" :size="13" />
@@ -749,11 +751,11 @@ watch(() => project.allChapters.map((c) => c.id + ":" + (project.scenesFor(c.id)
   <div v-else-if="ch && mode === 'read'" class="pane-card">
    <div class="read-mode">
     <div class="read-scope-bar">
-      <div class="seg-toggle">
-        <button :class="{ active: readScope === 'chapter' }" @click="readScope = 'chapter'" v-tooltip.bottom="'Read one chapter at a time'">
+      <div class="seg-toggle" role="radiogroup" aria-label="Read scope">
+        <button role="radio" :aria-checked="readScope === 'chapter'" :class="{ active: readScope === 'chapter' }" @click="readScope = 'chapter'" v-tooltip.bottom="'Read one chapter at a time'">
           <Icon name="Book" :size="12" /><span>Chapter</span>
         </button>
-        <button :class="{ active: readScope === 'book' }" @click="readScope = 'book'" v-tooltip.bottom="'Read the whole book in one continuous page'">
+        <button role="radio" :aria-checked="readScope === 'book'" :class="{ active: readScope === 'book' }" @click="readScope = 'book'" v-tooltip.bottom="'Read the whole book in one continuous page'">
           <Icon name="List" :size="12" /><span>Whole book</span>
         </button>
       </div>

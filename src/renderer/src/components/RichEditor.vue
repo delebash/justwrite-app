@@ -1431,10 +1431,10 @@ defineExpose({ editor });
   border: 1px solid var(--border);
 }
 .mention:hover { filter: brightness(0.96); }
-.mention[data-kind="character"] { background: color-mix(in oklch, #6aa9ff 22%, transparent); border-color: color-mix(in oklch, #6aa9ff 45%, transparent); }
-.mention[data-kind="location"]  { background: color-mix(in oklch, #57c08a 22%, transparent); border-color: color-mix(in oklch, #57c08a 45%, transparent); }
-.mention[data-kind="object"]    { background: color-mix(in oklch, #d9a441 22%, transparent); border-color: color-mix(in oklch, #d9a441 45%, transparent); }
-.mention[data-kind="group"]     { background: color-mix(in oklch, #b083e0 22%, transparent); border-color: color-mix(in oklch, #b083e0 45%, transparent); }
+.mention[data-kind="character"] { background: color-mix(in oklch, var(--mention-character) 22%, transparent); border-color: color-mix(in oklch, var(--mention-character) 45%, transparent); }
+.mention[data-kind="location"]  { background: color-mix(in oklch, var(--mention-location) 22%, transparent);  border-color: color-mix(in oklch, var(--mention-location) 45%, transparent); }
+.mention[data-kind="object"]    { background: color-mix(in oklch, var(--mention-object) 22%, transparent);    border-color: color-mix(in oklch, var(--mention-object) 45%, transparent); }
+.mention[data-kind="group"]     { background: color-mix(in oklch, var(--mention-group) 22%, transparent);     border-color: color-mix(in oklch, var(--mention-group) 45%, transparent); }
 
 /* @-mention suggestion popup (appended to <body>) */
 .mention-popup { position: fixed; z-index: 1000; }
@@ -1450,10 +1450,10 @@ defineExpose({ editor });
 }
 .mention-item.active { background: var(--surface-2); }
 .mention-item-dot { width: 8px; height: 8px; border-radius: 50%; flex: none; background: var(--muted); }
-.mention-item-dot[data-kind="character"] { background: #6aa9ff; }
-.mention-item-dot[data-kind="location"]  { background: #57c08a; }
-.mention-item-dot[data-kind="object"]    { background: #d9a441; }
-.mention-item-dot[data-kind="group"]     { background: #b083e0; }
+.mention-item-dot[data-kind="character"] { background: var(--mention-character); }
+.mention-item-dot[data-kind="location"]  { background: var(--mention-location); }
+.mention-item-dot[data-kind="object"]    { background: var(--mention-object); }
+.mention-item-dot[data-kind="group"]     { background: var(--mention-group); }
 .mention-item-label { flex: 1; color: var(--ink); font-size: 13px; }
 .mention-item-type { font-size: 11px; color: var(--muted); text-transform: capitalize; }
 .mention-empty { padding: 9px; color: var(--muted); font-size: 13px; }

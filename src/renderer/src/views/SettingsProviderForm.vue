@@ -242,8 +242,9 @@ function resetParam(key) { setParam(key, undefined); }
         <template v-if="draft.chatModel">
           <span class="t-muted" title="Attribution pipeline capability bucket for this model. Auto-picked by name pattern; you can pin a different choice if you know better. Guided = scaffolded examples for sub-12B models. Direct = strict rules for 12B-class non-reasoning. Reasoned = strict rules + implicit reasoning for hybrid models (Qwen3:14B+).">Tier</span>
           <div style="display:flex;gap:6px;align-items:center;flex-wrap:wrap;font-size:11.5px">
-            <div class="mode-seg">
+            <div class="mode-seg" role="radiogroup" aria-label="Tier">
               <button v-for="t in TIER_IDS" :key="t" type="button" class="mode-seg-btn"
+                role="radio" :aria-checked="currentTier?.id === t"
                 :class="{ active: currentTier?.id === t }"
                 @click="pinTier(t)">{{ TIERS[t].label }}</button>
             </div>

@@ -51,6 +51,15 @@
   --c-indigo: oklch(0.74 0.07 270);
   --c-plum:   oklch(0.74 0.07 320);
 
+  /* Mention chip palette — one hue per entity kind, used in RichEditor
+     for inline @-mentions and the suggestion-list dot indicators.
+     Slightly more saturated than the strand palette so chips read as
+     "tagged" against running prose. */
+  --mention-character: #6aa9ff;
+  --mention-location:  #57c08a;
+  --mention-object:    #d9a441;
+  --mention-group:     #b083e0;
+
   /* Type — Fraunces display · Spline Sans UI · mono figures - */
   --font-ui:    "Spline Sans", ui-sans-serif, -apple-system, BlinkMacSystemFont, "Helvetica Neue", sans-serif;
   --font-mono:  "Spline Sans Mono", ui-monospace, "SF Mono", Menlo, monospace;

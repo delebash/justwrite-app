@@ -1,5 +1,5 @@
 <script setup>
-import { ref, computed, watch, onMounted } from "vue";
+import { ref, computed, watch, onMounted, nextTick } from "vue";
 import { useProjectStore } from "../stores/project.js";
 import { useStudioStore } from "../stores/studio.js";
 import { useAiStore } from "../stores/ai.js";
@@ -30,6 +30,30 @@ const ai = useAiStore();
 
 const activeTab = ref(props.tab || "cast");
 watch(() => props.tab, (v) => { if (v) activeTab.value = v; });
+
+// Keyboard nav for the Studio tab bar. Implements the standard
+// ARIA tablist pattern: Left/Right (and Up/Down) cycle through
+// tabs, Home/End jump to the ends, the activated tab takes focus.
+const TAB_ORDER = ["cast", "script", "render"];
+function onTabKeydown(e) {
+  const idx = TAB_ORDER.indexOf(activeTab.value);
+  if (idx < 0) return;
+  const max = TAB_ORDER.length - 1;
+  let next = idx;
+  if (e.key === "ArrowRight" || e.key === "ArrowDown") next = idx >= max ? 0 : idx + 1;
+  else if (e.key === "ArrowLeft" || e.key === "ArrowUp") next = idx <= 0 ? max : idx - 1;
+  else if (e.key === "Home") next = 0;
+  else if (e.key === "End") next = max;
+  else return;
+  e.preventDefault();
+  activeTab.value = TAB_ORDER[next];
+  // Move focus to the newly selected tab so subsequent arrow presses
+  // continue navigating from there (roving tabindex).
+  nextTick(() => {
+    const el = document.querySelector(`.studio-tab[data-tab="${TAB_ORDER[next]}"]`);
+    el?.focus?.();
+  });
+}
 
 // ── Cast ──────────────────────────────────────────────────────────────
 const activeProviderId = ref(ai.defaultTtsId);
@@ -271,22 +295,31 @@ function downloadChapter(chapterId) {
     </router-link>
   </PaneHeader>
 
-  <div class="studio-tabs">
-    <button class="studio-tab" :class="{ active: activeTab === 'cast' }" @click="activeTab = 'cast'">
+  <div class="studio-tabs" role="tablist" aria-label="Studio sections">
+    <button class="studio-tab" data-tab="cast"
+      role="tab" :aria-selected="activeTab === 'cast'" :tabindex="activeTab === 'cast' ? 0 : -1"
+      :class="{ active: activeTab === 'cast' }"
+      @click="activeTab = 'cast'" @keydown="onTabKeydown">
       <Icon name="Headphones" :size="15" />
       <span class="studio-tab-label">
         <span class="studio-tab-name">Cast</span>
         <span class="studio-tab-sub">{{ project.characters.length - unassignedCount }}/{{ project.characters.length }} cast{{ unassignedCount ? ` · ${unassignedCount} unassigned` : "" }}</span>
       </span>
     </button>
-    <button class="studio-tab" :class="{ active: activeTab === 'script' }" @click="activeTab = 'script'">
+    <button class="studio-tab" data-tab="script"
+      role="tab" :aria-selected="activeTab === 'script'" :tabindex="activeTab === 'script' ? 0 : -1"
+      :class="{ active: activeTab === 'script' }"
+      @click="activeTab = 'script'" @keydown="onTabKeydown">
       <Icon name="Comment" :size="15" />
       <span class="studio-tab-label">
         <span class="studio-tab-name">Script</span>
         <span class="studio-tab-sub">Speaker analysis</span>
       </span>
     </button>
-    <button class="studio-tab" :class="{ active: activeTab === 'render' }" @click="activeTab = 'render'">
+    <button class="studio-tab" data-tab="render"
+      role="tab" :aria-selected="activeTab === 'render'" :tabindex="activeTab === 'render' ? 0 : -1"
+      :class="{ active: activeTab === 'render' }"
+      @click="activeTab = 'render'" @keydown="onTabKeydown">
       <Icon name="Waveform" :size="15" />
       <span class="studio-tab-label">
         <span class="studio-tab-name">Render</span>
@@ -296,7 +329,7 @@ function downloadChapter(chapterId) {
   </div>
 
   <!-- CAST TAB -->
-  <div v-if="activeTab === 'cast'" class="pane-card studio-cast-layout" style="display:grid;grid-template-columns:1fr 440px">
+  <div v-if="activeTab === 'cast'" role="tabpanel" aria-label="Cast" class="pane-card studio-cast-layout" style="display:grid;grid-template-columns:1fr 440px">
     <div class="scrollarea" style="padding:18px 22px 40px">
       <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px">
         <div>
@@ -422,7 +455,7 @@ function downloadChapter(chapterId) {
   </div>
 
   <!-- SCRIPT TAB -->
-  <div v-else-if="activeTab === 'script'" class="pane-card" style="display:flex;flex-direction:column">
+  <div v-else-if="activeTab === 'script'" role="tabpanel" aria-label="Script" class="pane-card" style="display:flex;flex-direction:column">
     <div style="padding:14px 22px;border-bottom:1px solid var(--border);display:flex;gap:8px;align-items:center">
       <JwSelect v-model="scriptChapter" style="width:auto"
         :options="project.allChapters.map(c => ({ label: `Ch. ${c.num} — ${c.title}`, value: c.id }))" />
@@ -452,7 +485,7 @@ function downloadChapter(chapterId) {
   </div>
 
   <!-- RENDER TAB -->
-  <div v-else class="pane-card">
+  <div v-else role="tabpanel" aria-label="Render" class="pane-card">
   <div class="scrollarea" style="padding:18px 22px">
     <div style="margin-bottom:14px;font-size:13px;color:var(--ink-2)">
       Sends each script line to <b>{{ provider?.name || "your TTS provider" }}</b> with the assigned voice, then stitches a single WAV per chapter.
