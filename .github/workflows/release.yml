@@ -69,15 +69,11 @@ jobs:
         with:
           targets: ${{ matrix.rust-targets }}
 
-      - name: Cache Cargo
-        uses: actions/cache@v4
-        with:
-          path: |
-            ~/.cargo/registry
-            ~/.cargo/git
-            src-tauri/target
-          key: ${{ matrix.platform }}-cargo-${{ hashFiles('src-tauri/Cargo.lock') }}
-          restore-keys: ${{ matrix.platform }}-cargo-
+      # Note: no explicit actions/cache step for ~/.cargo + target/.
+      # tauri-action already handles cargo caching internally, and the
+      # generic cache action's post-step regularly hangs on Windows
+      # uploading the multi-GB target/ directory — burning hours of
+      # runner time for a marginal speedup on subsequent builds.
 
       - name: Install Linux deps
         if: matrix.platform == 'ubuntu-22.04'
