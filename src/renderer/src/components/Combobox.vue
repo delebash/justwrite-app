@@ -137,13 +137,17 @@ watch(() => filtered.value.length, (n) => {
       @keydown="onKey" />
     <button type="button" class="combobox-chev"
       :disabled="disabled || (!items.length && !freeText)"
-      :title="chevTitle"
+      v-tooltip.bottom="chevTitle || 'Toggle options'"
+      :aria-label="chevTitle || 'Toggle options'"
       @mousedown.prevent
       @click="toggleIt">
       <Icon name="ChevDown" :size="13" class="combobox-chev-icon" />
     </button>
-    <ul v-if="state.open && filtered.length" :ref="(el) => (listEl = el)" class="combobox-list">
+    <ul v-if="state.open && filtered.length" :ref="(el) => (listEl = el)" class="combobox-list"
+      role="listbox">
       <li v-for="(item, i) in filtered" :key="valueOf(item)"
+        role="option"
+        :aria-selected="valueOf(item) === modelValue"
         :class="{ active: i === state.hover, selected: valueOf(item) === modelValue }"
         @mousedown.prevent="pick(item)"
         @mouseenter="state.hover = i">

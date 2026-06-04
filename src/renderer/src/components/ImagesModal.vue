@@ -66,11 +66,11 @@ async function remove(img) {
         <img v-if="urlMap[img.id]" :src="urlMap[img.id]" :alt="img.name" />
         <div v-else class="image-loading"><Icon name="Image" :size="18" /></div>
         <div class="image-meta">
-          <span :title="img.name">{{ img.name }}</span>
-          <JwButton intent="ghost" size="small" @click="remove(img)">×</JwButton>
+          <span v-tooltip.bottom="img.name">{{ img.name }}</span>
+          <JwButton intent="ghost" size="small" aria-label="Remove image" v-tooltip.bottom="'Remove image'" @click="remove(img)">×</JwButton>
         </div>
       </div>
-      <button class="image-add" @click="fileInput.click()" :disabled="saving > 0">
+      <button type="button" class="image-add" aria-label="Add images" @click="fileInput.click()" :disabled="saving > 0">
         <Icon name="Plus" :size="22" />
         <span>{{ saving > 0 ? `Saving ${saving}…` : "Add image(s)" }}</span>
       </button>

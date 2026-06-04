@@ -242,11 +242,13 @@ function pick(item) {
         />
         <span class="cp-hint">esc</span>
       </div>
-      <div class="cp-list">
+      <div class="cp-list" role="listbox" aria-label="Command results">
         <button
           v-for="(item, i) in results"
           :key="item.id"
           :data-idx="i"
+          role="option"
+          :aria-selected="highlighted === i"
           class="cp-item"
           :class="{ 'cp-item--active': highlighted === i }"
           @mouseenter="highlighted = i"

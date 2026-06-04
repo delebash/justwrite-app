@@ -88,7 +88,7 @@ const isSpinning = computed(() => props.status === "working" || props.status ===
 .status-row--removed { opacity: 0.55; }
 
 .status-row--error .status-row-icon,
-.status-row--error .status-row-right { color: var(--danger-ink, #b91c1c); }
+.status-row--error .status-row-right { color: var(--danger-ink); }
 
 .status-row--pending .status-row-main { color: var(--muted); }
 

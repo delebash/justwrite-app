@@ -57,18 +57,18 @@ async function deleteGroup(group) {
     <div v-else style="display:flex;flex-direction:column;gap:6px">
       <div v-for="g in groups" :key="g.id"
         class="group-row" :class="{ active: inGroup(g) }">
-        <button class="group-toggle" @click="toggle(g)">
+        <button type="button" class="group-toggle" @click="toggle(g)">
           <span style="width:10px;height:10px;border-radius:50%" :style="{ background: g.color }" />
           <span style="font-weight:500;font-size:13px">{{ g.name }}</span>
           <span class="t-muted" style="font-size:11px">{{ (g.members || []).length }} members</span>
           <Icon :name="inGroup(g) ? 'Check' : 'Plus'" :size="13" />
         </button>
-        <button class="group-del" v-tooltip.bottom="'Delete group'" @click="deleteGroup(g)">
+        <button type="button" class="group-del" aria-label="Delete group" v-tooltip.bottom="'Delete group'" @click="deleteGroup(g)">
           <Icon name="Trash" :size="13" />
         </button>
       </div>
     </div>
-    <button class="group-new" @click="createGroup">
+    <button type="button" class="group-new" @click="createGroup">
       <Icon name="Plus" :size="13" /> New group
     </button>
   </AppModal>
@@ -81,7 +81,7 @@ async function deleteGroup(group) {
 .group-row.active .group-toggle { border-color: var(--accent); background: var(--accent-soft); color: var(--accent-ink); }
 .group-row.active .group-toggle:hover { background: var(--accent-soft); }
 .group-del { flex-shrink: 0; width: 36px; align-self: stretch; display: grid; place-items: center; border: 1px solid var(--border); background: var(--surface); border-radius: 8px; color: var(--muted); }
-.group-del:hover { color: var(--danger-ink, #c0392b); background: var(--surface-3); border-color: var(--border-strong); }
+.group-del:hover { color: var(--danger-ink); background: var(--surface-3); border-color: var(--border-strong); }
 .group-new { display: flex; align-items: center; justify-content: center; gap: 6px; width: 100%; margin-top: 12px; padding: 9px 12px; border: 1.5px dashed var(--border-strong); background: var(--surface-2); border-radius: 8px; color: var(--ink-2); font-size: 12.5px; font-weight: 500; }
 .group-new:hover { background: var(--surface-3); color: var(--ink); }
 </style>

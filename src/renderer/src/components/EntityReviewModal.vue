@@ -107,8 +107,8 @@ function originTitle(originChapters) {
           <h3>{{ sec.label }}</h3>
           <span class="t-muted">{{ counts[sec.key] }} of {{ rows[sec.key].length }} selected</span>
           <div class="er-section-h-actions">
-            <button class="tb-btn tb-text" @click="setAll(sec.key, true)">All</button>
-            <button class="tb-btn tb-text" @click="setAll(sec.key, false)">None</button>
+            <button type="button" class="tb-btn tb-text" @click="setAll(sec.key, true)">All</button>
+            <button type="button" class="tb-btn tb-text" @click="setAll(sec.key, false)">None</button>
           </div>
         </header>
         <div class="er-list">
@@ -120,7 +120,7 @@ function originTitle(originChapters) {
                 <input class="er-primary" v-model="r[sec.primary]" :placeholder="sec.primary" :disabled="!r.accept" />
               </div>
               <input class="er-blurb" v-model="r[sec.blurb]" :placeholder="sec.blurb" :disabled="!r.accept" />
-              <div v-if="r.originChapters?.length" class="er-origins" :title="originTitle(r.originChapters)">
+              <div v-if="r.originChapters?.length" class="er-origins" v-tooltip.bottom="originTitle(r.originChapters)">
                 <span class="er-origin-lbl">Found in</span>
                 <span v-for="oc in r.originChapters.slice(0, 6)" :key="oc.id" class="er-origin-chip">Ch. {{ oc.num }}</span>
                 <span v-if="r.originChapters.length > 6" class="er-origin-more">+{{ r.originChapters.length - 6 }}</span>

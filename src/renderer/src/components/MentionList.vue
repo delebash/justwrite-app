@@ -37,11 +37,13 @@ defineExpose({ onKeyDown });
 </script>
 
 <template>
-  <div class="mention-list">
+  <div class="mention-list" role="listbox" aria-label="Entity suggestions">
     <button
       v-for="(item, i) in items"
       :key="item.kind + ':' + item.id"
       type="button"
+      role="option"
+      :aria-selected="i === selected"
       class="mention-item"
       :class="{ active: i === selected }"
       @mousedown.prevent="choose(i)"

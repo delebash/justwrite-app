@@ -47,7 +47,7 @@ function addEvent() {
           <JwTextarea class="input" :value="ev.note" :rows="2" placeholder="Notes…"
             @input="project.updateEvent(entityId, ev.id, { note: $event.target.value })" />
         </div>
-        <JwButton intent="ghost" size="small" @click="project.removeEvent(entityId, ev.id)">×</JwButton>
+        <JwButton intent="ghost" size="small" aria-label="Remove event" v-tooltip.bottom="'Remove event'" @click="project.removeEvent(entityId, ev.id)">×</JwButton>
       </div>
     </div>
   </AppModal>

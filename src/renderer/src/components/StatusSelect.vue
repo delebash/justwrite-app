@@ -59,14 +59,14 @@ onBeforeUnmount(() => document.removeEventListener("mousedown", onDocClick));
 
 <template>
   <div class="status-select" ref="rootEl">
-    <button type="button" class="status-pill" :class="{ open }" @click="toggle">
+    <button type="button" class="status-pill" :class="{ open }" :aria-expanded="open" aria-haspopup="listbox" @click="toggle">
       <span class="status-pill-dot" :class="{ 'status-pill-dot--empty': !real }" :style="real ? { background: current.color } : null" />
       <span class="status-pill-label" :style="{ color: current.color }">{{ current.label }}</span>
       <Icon name="ChevDown" :size="13" class="status-pill-chev" />
     </button>
 
-    <div v-if="open" class="status-menu">
-      <button type="button" class="status-opt status-opt-muted" :class="{ active: !modelValue }" @click="pick('')">
+    <div v-if="open" class="status-menu" role="listbox" :aria-label="`Status for item`">
+      <button type="button" role="option" :aria-selected="!modelValue" class="status-opt status-opt-muted" :class="{ active: !modelValue }" @click="pick('')">
         <span class="status-pill-dot status-pill-dot--empty" />
         <span class="status-opt-label">Status Unset</span>
         <Icon v-if="!modelValue" name="Check" :size="13" class="status-opt-check" />
@@ -75,6 +75,7 @@ onBeforeUnmount(() => document.removeEventListener("mousedown", onDocClick));
       <div class="status-menu-sep" />
 
       <button v-for="s in project.statuses" :key="s.id" type="button"
+        role="option" :aria-selected="s.id === modelValue"
         class="status-opt" :class="{ active: s.id === modelValue }" @click="pick(s.id)">
         <span class="status-pill-dot" :style="{ background: s.color }" />
         <span class="status-opt-label" :style="{ color: s.color }">{{ s.label }}</span>

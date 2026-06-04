@@ -165,7 +165,7 @@ onBeforeUnmount(() => document.removeEventListener("mousedown", onDocClick));
 
 <template>
   <div class="dtp" ref="rootEl" @keydown="onKeydown">
-    <button type="button" class="dtp-trigger" :class="{ open, empty: triggerLabel.empty }" @click="toggle">
+    <button type="button" class="dtp-trigger" :class="{ open, empty: triggerLabel.empty }" :aria-expanded="open" @click="toggle">
       <Icon name="Calendar" :size="14" class="dtp-trigger-ico" />
       <span class="dtp-trigger-label" :class="{ raw: triggerLabel.raw }">{{ triggerLabel.text }}</span>
       <Icon name="ChevDown" :size="13" class="dtp-trigger-chev" />
@@ -209,9 +209,9 @@ onBeforeUnmount(() => document.removeEventListener("mousedown", onDocClick));
         <input class="dtp-time-input" type="number" min="1" max="12" :value="hour12" @input="setHour12" @change="setHour12" />
         <span class="dtp-colon">:</span>
         <input class="dtp-time-input" type="number" min="0" max="59" :value="pad(minute)" @input="setMinute" @change="setMinute" />
-        <div class="dtp-merid">
-          <button type="button" :class="{ on: !isPM }" @click="setMeridiem(false)">AM</button>
-          <button type="button" :class="{ on: isPM }" @click="setMeridiem(true)">PM</button>
+        <div class="dtp-merid" role="group" aria-label="AM/PM">
+          <button type="button" :class="{ on: !isPM }" :aria-pressed="!isPM" @click="setMeridiem(false)">AM</button>
+          <button type="button" :class="{ on: isPM }" :aria-pressed="isPM" @click="setMeridiem(true)">PM</button>
         </div>
       </div>
 
