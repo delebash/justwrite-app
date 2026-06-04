@@ -8,8 +8,8 @@ import { computed } from "vue";
 import { useProjectStore } from "../stores/project.js";
 import { promptDialog } from "../services/dialog.js";
 import Icon from "./Icon.vue";
+import DateTimePicker from "./DateTimePicker.vue";
 import JwButton from "@renderer/components/ui/JwButton.vue";
-import JwInput from "@renderer/components/ui/JwInput.vue";
 
 const props = defineProps({
   chapterId: { type: String, required: true },
@@ -200,25 +200,9 @@ function onBackdrop(e) {
         <section class="links-section">
           <div class="links-section-label">When does this scene take place?</div>
           <div class="links-row links-row-when">
-            <JwInput
+            <DateTimePicker
               :model-value="scene?.when || ''"
-              placeholder="e.g. Tuesday morning · 1843 · the harbour year"
-              class="link-when-input"
               @update:model-value="update({ when: $event })" />
-            <div class="link-when-cal" role="group" aria-label="Calendar type">
-              <button type="button" class="link-chip"
-                :class="{ active: (scene?.calendarKind || 'gregorian') === 'gregorian' }"
-                :aria-pressed="(scene?.calendarKind || 'gregorian') === 'gregorian' ? 'true' : 'false'"
-                @click="update({ calendarKind: 'gregorian' })">
-                gregorian calendar
-              </button>
-              <button type="button" class="link-chip"
-                :class="{ active: scene?.calendarKind === 'alternative' }"
-                :aria-pressed="scene?.calendarKind === 'alternative' ? 'true' : 'false'"
-                @click="update({ calendarKind: 'alternative' })">
-                alternative calendar
-              </button>
-            </div>
           </div>
         </section>
 
@@ -358,9 +342,9 @@ function onBackdrop(e) {
   align-items: center;
   gap: 18px;
 }
-.link-when-input {
-  min-width: 280px;
+.links-row-when :deep(.dtp) {
   flex: 1;
+  min-width: 280px;
+  max-width: 420px;
 }
-.link-when-cal { display: inline-flex; gap: 6px; flex-shrink: 0; }
 </style>

@@ -4,7 +4,8 @@
 // runs the value through `new Date()`) is unaffected. Built for fiction
 // timelines: the year is a directly editable field with steppers, not a
 // fiddly native spinner, so arbitrary years (past or far future) are easy.
-import { ref, computed, watch, onBeforeUnmount } from "vue";
+import { ref, computed, watch, nextTick, onBeforeUnmount } from "vue";
+import { computePosition, autoUpdate, offset, flip, shift, size } from "@floating-ui/dom";
 import Icon from "./Icon.vue";
 
 const props = defineProps({
@@ -19,6 +20,41 @@ const DOW = ["Su","Mo","Tu","We","Th","Fr","Sa"];
 
 const open = ref(false);
 const rootEl = ref(null);
+const triggerEl = ref(null);
+const popEl = ref(null);
+let cleanupPos = null;
+
+function tearDownPos() {
+  if (cleanupPos) { cleanupPos(); cleanupPos = null; }
+}
+function setUpPos() {
+  tearDownPos();
+  if (!triggerEl.value || !popEl.value) return;
+  cleanupPos = autoUpdate(triggerEl.value, popEl.value, () => {
+    computePosition(triggerEl.value, popEl.value, {
+      strategy: "fixed",
+      placement: "bottom-start",
+      middleware: [
+        offset(5),
+        flip(),
+        shift({ padding: 6 }),
+        size({
+          padding: 8,
+          apply({ availableHeight, elements }) {
+            elements.floating.style.maxHeight = `${Math.max(220, availableHeight)}px`;
+          },
+        }),
+      ],
+    }).then(({ x, y }) => {
+      if (!popEl.value) return;
+      popEl.value.style.transform = `translate(${Math.round(x)}px, ${Math.round(y)}px)`;
+    });
+  });
+}
+watch(open, async (v) => {
+  if (v) { await nextTick(); setUpPos(); }
+  else tearDownPos();
+});
 
 // Selected parts. `day` is null until a calendar day is chosen — that is the
 // signal for "no value". year/month/time still hold a sensible view default
@@ -156,22 +192,29 @@ function clearAll() {
 function toggle() { open.value = !open.value; }
 function close() { open.value = false; }
 function onDocClick(e) {
-  if (open.value && rootEl.value && !rootEl.value.contains(e.target)) close();
+  if (!open.value) return;
+  const inRoot = rootEl.value && rootEl.value.contains(e.target);
+  const inPop  = popEl.value && popEl.value.contains(e.target);
+  if (!inRoot && !inPop) close();
 }
 function onKeydown(e) { if (e.key === "Escape" && open.value) { close(); e.stopPropagation(); } }
 document.addEventListener("mousedown", onDocClick);
-onBeforeUnmount(() => document.removeEventListener("mousedown", onDocClick));
+onBeforeUnmount(() => {
+  document.removeEventListener("mousedown", onDocClick);
+  tearDownPos();
+});
 </script>
 
 <template>
   <div class="dtp" ref="rootEl" @keydown="onKeydown">
-    <button type="button" class="dtp-trigger" :class="{ open, empty: triggerLabel.empty }" :aria-expanded="open" @click="toggle">
+    <button ref="triggerEl" type="button" class="dtp-trigger" :class="{ open, empty: triggerLabel.empty }" :aria-expanded="open" @click="toggle">
       <Icon name="Calendar" :size="14" class="dtp-trigger-ico" />
       <span class="dtp-trigger-label" :class="{ raw: triggerLabel.raw }">{{ triggerLabel.text }}</span>
       <Icon name="ChevDown" :size="13" class="dtp-trigger-chev" />
     </button>
 
-    <div v-if="open" class="dtp-pop">
+    <Teleport to="body">
+    <div v-if="open" ref="popEl" class="dtp-pop" @keydown="onKeydown">
       <div class="dtp-nav">
         <button type="button" class="dtp-ico-btn" v-tooltip.bottom="'Previous month'" @click="stepMonth(-1)">
           <Icon name="ChevLeft" :size="15" />
@@ -222,6 +265,7 @@ onBeforeUnmount(() => document.removeEventListener("mousedown", onDocClick));
         <button type="button" class="dtp-foot-btn primary" @click="close">Done</button>
       </div>
     </div>
+    </Teleport>
   </div>
 </template>
 
@@ -246,10 +290,12 @@ onBeforeUnmount(() => document.removeEventListener("mousedown", onDocClick));
 .dtp-trigger.open .dtp-trigger-chev { transform: rotate(180deg); }
 
 .dtp-pop {
-  position: absolute; top: calc(100% + 5px); left: 0; z-index: 50;
-  width: 280px; padding: 10px;
+  position: fixed; top: 0; left: 0; z-index: 250;
+  width: 340px; padding: 12px;
   background: var(--surface); border: 1px solid var(--border-strong);
   border-radius: 11px; box-shadow: 0 12px 36px rgba(0, 0, 0, .2);
+  overflow: auto;
+  overscroll-behavior: contain;
 }
 
 .dtp-nav { display: flex; align-items: center; gap: 6px; margin-bottom: 8px; }
