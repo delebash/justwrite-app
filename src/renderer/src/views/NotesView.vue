@@ -1,5 +1,5 @@
 <script setup>
-import { computed, ref } from "vue";
+import { computed, ref, watch } from "vue";
 import JwInput from "@renderer/components/ui/JwInput.vue";
 import JwButton from "@renderer/components/ui/JwButton.vue";
 import { useProjectStore } from "../stores/project.js";
@@ -36,6 +36,13 @@ const tagSuggestions = computed(() => {
 });
 function onTagFocus() { tagSuggestOpen.value = true; tagSuggestIndex.value = 0; }
 function onTagBlur() { setTimeout(() => { tagSuggestOpen.value = false; }, 120); }
+
+// The view stays mounted across note navigation — reset suggest state
+// so the dropdown doesn't linger from a previous note.
+watch(() => n.value?.id, () => {
+  tagSuggestOpen.value = false;
+  tagSuggestIndex.value = 0;
+});
 function pickTag(t) { update("tag", t); tagSuggestOpen.value = false; }
 function onTagKeydown(e) {
   const list = tagSuggestions.value;

@@ -1,5 +1,5 @@
 <script setup>
-import { computed, ref, nextTick } from "vue";
+import { computed, ref, nextTick, watch } from "vue";
 import { useProjectStore } from "../stores/project.js";
 import { useRouter } from "vue-router";
 import PaneHeader from "../components/PaneHeader.vue";
@@ -57,6 +57,15 @@ function removeTagAt(i) {
   next.splice(i, 1);
   update("tags", next);
 }
+
+// Route param change leaves the component mounted (it's the same view,
+// just a different article id). Reset draft + dropdown so the editor
+// state doesn't bleed between articles.
+watch(() => article.value?.id, () => {
+  tagDraft.value = "";
+  tagSuggestOpen.value = false;
+  tagSuggestIndex.value = 0;
+});
 
 // Suggestions: every project-wide tag that contains the draft (case-
 // insensitive) and isn't already on this article. Cap at 8 so the

@@ -1051,6 +1051,9 @@ function onKeydown(e) {
     setLink();
   } else if (e.key === "Escape" && findOpen.value) {
     closeFind();
+    // Stop the window-level focus-mode Esc handler from also firing —
+    // a single Esc should close the find bar, not also exit focus mode.
+    e.stopPropagation();
   } else if (e.key === "Escape" && focusMode.value) {
     focusMode.value = false;
   }
@@ -1168,8 +1171,8 @@ defineExpose({ editor });
       <button v-if="show('newScene')" class="tb-btn" @click="run('setSceneBoundary')"
         :data-tip="TIP.newScene"><Icon name="Strands" :size="14" /></button>
       <button class="tb-btn tb-text" :class="{ active: typewriter }" @click="toggleTypewriter"
-        title="Typewriter scrolling — keep the current line centered">Typewriter</button>
-      <button class="tb-btn" @click="toggleFocus" title="Exit focus mode (Esc)"><Icon name="Close" :size="14" /></button>
+        data-tip="Typewriter scrolling — keep the current line centered">Typewriter</button>
+      <button class="tb-btn" @click="toggleFocus" data-tip="Exit focus mode (Esc)"><Icon name="Close" :size="14" /></button>
     </div>
 
     <!-- Selection bubble menu (manuscript only) -->

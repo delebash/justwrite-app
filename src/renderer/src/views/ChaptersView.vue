@@ -1291,23 +1291,16 @@ watch(() => project.allChapters.map((c) => c.id + ":" + (project.scenesFor(c.id)
   color: var(--accent-ink);
 }
 
-/* "Links" button — stands out from the muted scene-strip controls. */
+/* "Links" button — stands out from the muted scene-strip controls.
+   Background/color/border come from intent="primary"; this layer adds
+   the distinctive bolder text, subtle base shadow, and accent halo on
+   hover that makes the button read as the surface's main action. */
 .scene-links-btn {
-  display: inline-flex; align-items: center; gap: 6px;
-  padding: 6px 12px;
-  background: var(--accent);
-  color: var(--on-accent);
-  border: 1px solid var(--accent);
-  border-radius: 7px;
-  font-size: 12.5px;
   font-weight: 600;
   letter-spacing: 0.01em;
-  cursor: pointer;
-  box-shadow: 0 1px 0 rgba(0,0,0,0.06), 0 0 0 0 var(--accent-soft);
-  transition: background .12s ease, box-shadow .12s ease, transform .08s ease;
+  box-shadow: 0 1px 0 rgba(0,0,0,0.06);
 }
 .scene-links-btn:hover {
-  background: color-mix(in oklab, var(--accent), black 8%);
   box-shadow: 0 1px 0 rgba(0,0,0,0.06), 0 0 0 3px var(--accent-soft);
 }
 .scene-links-btn:active { transform: translateY(1px); }
