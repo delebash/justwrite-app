@@ -33,11 +33,10 @@ const phase = ref("");      // "chunking" | "embedding" | "done" | ""
 const error = ref("");
 const result = ref(null);   // { added, updated, removed }
 const before = computed(() => indexStatus());
-// Ref to the AppModal — we close through its exposed close() method so
-// PrimeVue's Dialog completes its leave transition (and cleans its modal
-// mask) before the parent unmounts us via v-if. Emitting 'close' directly
-// from a footer button skips that and orphans an invisible mask over the
-// whole app — see AppModal.vue for the full explanation.
+// Ref to the AppModal — close through its exposed close() method so
+// the leave transition completes before the parent unmounts us via v-if.
+// Emitting 'close' directly from a footer button skips the transition —
+// see AppModal.vue for the timing detail.
 const appModal = ref(null);
 function requestClose() { appModal.value?.close(); }
 

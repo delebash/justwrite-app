@@ -119,7 +119,7 @@ export const useUiStore = defineStore("ui", {
       }
     },
 
-    // Toasts — delegate to PrimeVue's ToastService via the bridge. Pass
+    // Toasts — delegate to sonner via toastBridge. Pass
     // `action: { label, fn }` for an inline button (soft-delete's "Undo").
     showToast({ message, action } = {}, ms = 6000) {
       pushToast({ message, action }, ms);

@@ -135,8 +135,7 @@ function onVoiceInput(e) {
   voiceQuery.value = e.target.value;
 }
 // Voice library is pre-filtered by the active provider via the Combobox
-// above the table (see `:data="voiceRows.filter(... activeProviderId)"`),
-// so the old per-column provider filter from the PrimeVue era is moot.
+// above the table (see `:data="voiceRows.filter(... activeProviderId)"`).
 function genderSeverity(g) {
   if (g === "male")   return "info";
   if (g === "female") return "accent2";

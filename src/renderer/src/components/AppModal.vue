@@ -1,8 +1,7 @@
 <script setup>
-// Shared modal wrapper — Reka UI Dialog under the hood. Same public API as
-// the PrimeVue version (~11 callsites continue to render this with
-// `v-if + @close` and the same eyebrow / title / wide / noPadding / closable
-// props + default / header / footer slots).
+// Shared modal wrapper — Reka UI Dialog under the hood. ~11 callsites
+// mount this with `v-if + @close` and the eyebrow / title / wide /
+// noPadding / closable props plus default / header / footer slots.
 //
 // Reka gives us focus trap, scroll lock, Esc handling, and a11y for free;
 // we just style the overlay + content with .app-modal-* rules in tokens.css.

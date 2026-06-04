@@ -444,7 +444,7 @@ function onRowClick(event) {
 .wb-title:hover { border-color: var(--border-soft); }
 .wb-title:focus { border-color: var(--accent); background: var(--surface); box-shadow: 0 0 0 3px var(--accent-soft); }
 
-/* ── List view (PrimeVue spike) ─────────────────────────────────── */
+/* ── List view ─────────────────────────────────────────────────── */
 .wb-toolbar {
   display: flex; align-items: center; gap: 10px;
   margin-bottom: 14px;

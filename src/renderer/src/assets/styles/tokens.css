@@ -37,7 +37,7 @@
   --accent-line:  oklch(0.84 0.045 var(--accent-hue));
 
   /* Gold — a.k.a. "Accent 2" in Settings → Appearance.
-     Drives the PrimeVue `warn` severity (Button/Tag) plus rings, rules,
+     Drives the --warn-* token family (used by .banner.warn) plus rings, rules,
      scene-break ornaments, and peak markers. Hue is user-tunable in
      Settings via `goldHue` (see services/appearance.js). ---------- */
   --gold:        oklch(0.62 0.085 80);
@@ -70,8 +70,7 @@
   /* Functional-colour hues — driven by the theme manager (appearance.js),
      same trick as --accent-hue: the user retints danger/success/info while
      L/C stay fixed per mode, so every shade stays auto-legible in light AND
-     dark. PrimeVue severities point at the derived vars too (see the preset),
-     so one knob re-skins native chips + PrimeVue Buttons/Tags together. */
+     dark. Native chips and the Jw* components read these derived vars, so one knob re-skins the whole semantic-colour family. */
   --danger-hue:  35;
   --success-hue: 150;
   --info-hue:    220;

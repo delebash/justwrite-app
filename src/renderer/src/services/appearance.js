@@ -183,9 +183,9 @@ export const GOLD_PRESETS = [
 // ── Functional-colour hue presets ────────────────────────────────────
 // The semantic state colours (success / danger / info) are hue-driven like
 // the accent: pick a hue and appearance.js retints the whole family while
-// L/C stay fixed per mode (auto-legible). These also drive the matching
-// PrimeVue severities, so a change re-skins native chips + PrimeVue
-// Buttons/Tags at once. Curated to sensible "this colour means X" hues.
+// L/C stay fixed per mode (auto-legible). Native chips and the Jw* components
+// read the derived vars, so changing a hue re-skins the whole semantic-colour
+// family at once. Curated to sensible "this colour means X" hues.
 export const FUNCTIONAL_PRESETS = {
   success: [
     { hue: 150, name: "Green" }, { hue: 165, name: "Emerald" },
@@ -379,7 +379,7 @@ export function applyAppearance(appearance) {
   if (mode === "dark") {
     s.setProperty("--gold", `oklch(0.78 0.10 ${gh})`);
     s.setProperty("--gold-soft", `oklch(0.32 0.045 ${gh})`);
-    // Warn-* drives the PrimeVue warn Tag and .banner.warn; track goldHue
+    // Warn-* drives .banner.warn; track goldHue
     // so the 2nd-accent hue change retints them too.
     s.setProperty("--warn-bg",   `oklch(0.28 0.05 ${gh})`);
     s.setProperty("--warn-ink",  `oklch(0.86 0.09 ${gh})`);
@@ -394,7 +394,7 @@ export function applyAppearance(appearance) {
 
   // Functional-colour hues. Only the hue is set here; tokens.css holds the
   // per-mode L/C so each family stays legible. Falsy/NaN → keep the
-  // tokens.css default. PrimeVue severities reference the derived vars.
+  // tokens.css default.
   if (Number.isFinite(+a.dangerHue))  s.setProperty("--danger-hue",  String(a.dangerHue));
   if (Number.isFinite(+a.successHue)) s.setProperty("--success-hue", String(a.successHue));
   if (Number.isFinite(+a.infoHue))    s.setProperty("--info-hue",    String(a.infoHue));
