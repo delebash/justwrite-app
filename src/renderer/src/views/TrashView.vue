@@ -151,7 +151,7 @@ const trashColumns = [
               <JwButton label="Restore" intent="primary" size="small" @click="restore(s.kind, row.id)">
                 <template #icon><Icon name="Refresh" :size="11" /></template>
               </JwButton>
-              <JwButton intent="ghost" size="small" v-tooltip.bottom="'Permanently delete'" @click="purge(s.kind, row.id, titleOf(s.kind, row))">
+              <JwButton intent="ghost" size="small" aria-label="Permanently delete" v-tooltip.bottom="'Permanently delete'" @click="purge(s.kind, row.id, titleOf(s.kind, row))">
                 <template #icon><Icon name="Trash" :size="11" /></template>
               </JwButton>
             </div>

@@ -232,22 +232,27 @@ const sortedBeats = computed(() => {
   <div v-else class="pane-card">
     <div class="strand-body">
           <JwTextarea class="strand-blurb"
-            :value="s.blurb || ''"
+            :model-value="s.blurb || ''"
             placeholder="What is this narrative strand about? (One or two sentences)"
             :rows="2"
             auto-resize
-            @input="update('blurb', $event.target.value)" />
+            @update:model-value="(v) => update('blurb', v)" />
 
           <div class="strand-meta-row">
             <div class="strand-swatches">
-              <span class="t-eyebrow" style="font-size:10px;color:var(--muted)">Color</span>
-              <button v-for="color in COLOR_PALETTE" :key="color"
-                type="button"
-                class="strand-swatch"
-                :class="{ active: color === s.color }"
-                :style="`background:${color}`"
-                :title="`Use ${color}`"
-                @click="update('color', color)" />
+              <span class="t-eyebrow" style="font-size:10px;color:var(--muted)" id="strand-color-label">Color</span>
+              <div role="radiogroup" aria-labelledby="strand-color-label" style="display:contents">
+                <button v-for="color in COLOR_PALETTE" :key="color"
+                  type="button"
+                  role="radio"
+                  :aria-checked="color === s.color ? 'true' : 'false'"
+                  :aria-label="`Strand color ${color}`"
+                  class="strand-swatch"
+                  :class="{ active: color === s.color }"
+                  :style="`background:${color}`"
+                  v-tooltip.bottom="'Set strand color'"
+                  @click="update('color', color)" />
+              </div>
             </div>
             <span class="strand-count">
               {{ scenesInStrand.length }} scene{{ scenesInStrand.length === 1 ? "" : "s" }}
@@ -280,6 +285,7 @@ const sortedBeats = computed(() => {
               <div v-for="b in sortedBeats" :key="b.id" class="beat-row">
                 <button class="beat-chapter"
                   :class="{ missing: !chapterById(b.chapterId) }"
+                  :aria-label="`Go to ${sceneRefLabel(b)}`"
                   @click="goBeat(b)">
                   <span v-if="chapterById(b.chapterId)" class="status-dot" :class="beatSceneStatus(b)" />
                   <span class="beat-chapter-text">{{ sceneRefLabel(b) }}</span>
@@ -300,7 +306,7 @@ const sortedBeats = computed(() => {
                   v-tooltip.bottom="'Reassign to a different scene'"
                   @update:model-value="(v) => setBeatRef(b.id, v)"
                   :options="[{ label: '(no scene)', value: '' }, ...sceneOptions]" />
-                <JwButton intent="ghost" size="small" class="beat-delete" v-tooltip.bottom="'Remove beat'" @click="removeBeat(b.id)">
+                <JwButton intent="ghost" size="small" class="beat-delete" aria-label="Remove beat" v-tooltip.bottom="'Remove beat'" @click="removeBeat(b.id)">
                   <Icon name="Trash" :size="14" />
                 </JwButton>
               </div>
@@ -523,7 +529,7 @@ const sortedBeats = computed(() => {
 .beat-rechapter option { text-indent: 0; color: var(--ink); }
 
 .beat-delete { color: var(--muted); width: 24px; height: 24px; padding: 4px; }
-.beat-delete:hover { color: var(--danger, #c0392b); background: var(--surface-3); }
+.beat-delete:hover { color: var(--danger); background: var(--surface-3); }
 
 .strand-chapters {
   display: flex; flex-wrap: wrap; gap: 5px; align-items: center;

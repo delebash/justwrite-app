@@ -7,6 +7,7 @@ import { promptDialog, confirmDialog } from "../services/dialog.js";
 import { NEW_ENTITY_META } from "../services/entityMeta.js";
 import Icon from "./Icon.vue";
 import JwButton from "@renderer/components/ui/JwButton.vue";
+import JwInput from "@renderer/components/ui/JwInput.vue";
 
 const ui = useUiStore();
 const project = useProjectStore();
@@ -22,8 +23,26 @@ const projectSwitcherEl = ref(null);
 // on every store change.
 const nowTick = ref(Date.now());
 let nowInterval = null;
-onMounted(() => { nowInterval = setInterval(() => { nowTick.value = Date.now(); }, 15000); });
-onBeforeUnmount(() => { if (nowInterval) clearInterval(nowInterval); });
+
+// Safety net: if the dragged element is reactively unmounted during a drag
+// (e.g. filter hides it), the element-level dragend never fires. A document-
+// level dragend handler clears all four drag-state refs so the UI doesn't
+// stay stuck in a "dragging" visual state.
+function _clearAllDragState() {
+  drag.value       = null; dropTarget.value = null;
+  sceneDrag.value  = null; sceneDrop.value  = null;
+  itemDrag.value   = null; itemDrop.value   = null;
+  wbDrag.value     = null; wbDrop.value     = null;
+}
+
+onMounted(() => {
+  nowInterval = setInterval(() => { nowTick.value = Date.now(); }, 15000);
+  document.addEventListener("dragend", _clearAllDragState);
+});
+onBeforeUnmount(() => {
+  if (nowInterval) clearInterval(nowInterval);
+  document.removeEventListener("dragend", _clearAllDragState);
+});
 
 const savedAtLabel = computed(() => {
   const ts = project._lastSavedAt;
@@ -290,7 +309,7 @@ const sceneDrop = ref(null);   // { chapterId, id }
 function onSceneDragStart(chapterId, sceneId, e) {
   sceneDrag.value = { chapterId, id: sceneId };
   e.dataTransfer.effectAllowed = "move";
-  try { e.dataTransfer.setData("text/plain", sceneId); } catch {}
+  try { e.dataTransfer.setData("text/plain", sceneId); } catch { /* Firefox requires a payload */ }
 }
 function onSceneDragOver(chapterId, sceneId, e) {
   const d = sceneDrag.value;
@@ -358,7 +377,7 @@ function onDragStart(kind, id, e, ctx = {}) {
   drag.value = { kind, id, ...ctx };
   // Firefox needs *some* dataTransfer payload or dragstart is cancelled.
   e.dataTransfer.effectAllowed = "move";
-  try { e.dataTransfer.setData("text/plain", id); } catch {}
+  try { e.dataTransfer.setData("text/plain", id); } catch { /* Firefox requires a payload */ }
 }
 function onDragEnd() {
   drag.value = null;
@@ -478,7 +497,7 @@ function sectionReorder(section, ids) {
 function onItemDragStart(section, id, subgroupId, e) {
   itemDrag.value = { section, id, subgroupId };
   e.dataTransfer.effectAllowed = "move";
-  try { e.dataTransfer.setData("text/plain", id); } catch {}
+  try { e.dataTransfer.setData("text/plain", id); } catch { /* Firefox requires a payload */ }
 }
 function onItemDragOver(section, id, subgroupId, e) {
   const d = itemDrag.value;
@@ -578,7 +597,7 @@ const wbDrop = ref(null);   // { kind, id, position }
 function onWbDragStart(kind, id, e, ctx = {}) {
   wbDrag.value = { kind, id, ...ctx };
   e.dataTransfer.effectAllowed = "move";
-  try { e.dataTransfer.setData("text/plain", id); } catch {}
+  try { e.dataTransfer.setData("text/plain", id); } catch { /* Firefox requires a payload */ }
 }
 function onWbDragEnd() { wbDrag.value = null; wbDrop.value = null; }
 // Category header is a dual target: reorder categories (before/after on
@@ -643,17 +662,19 @@ function wbDropClass(kind, id) {
 
 <template>
   <aside class="sidebar" :class="{ collapsed: ui.sidebarCollapsed }" v-if="!ui.sidebarCollapsed">
-    <div class="sidebar-resize" title="Drag to resize" @mousedown="onResizeStart" />
+    <div class="sidebar-resize" v-tooltip.bottom="'Drag to resize'" @mousedown="onResizeStart" />
     <div class="brand">
       <div class="brand-mark">J</div>
       <div style="flex:1;min-width:0">
         <div class="brand-name">JustWrite</div>
         <div class="brand-sub">v0.1 · local</div>
       </div>
-      <JwButton intent="ghost" v-tooltip.bottom="'Toggle sidebar'" @click="ui.toggleSidebar"><Icon name="SidebarToggle" :size="14" /></JwButton>
+      <JwButton intent="ghost" v-tooltip.bottom="'Toggle sidebar'" aria-label="Toggle sidebar" @click="ui.toggleSidebar"><Icon name="SidebarToggle" :size="14" /></JwButton>
     </div>
     <div class="project-switcher-wrap" ref="projectSwitcherEl">
-      <button class="project-switcher" :class="{ open: projectMenuOpen }" @click="toggleProjectMenu">
+      <button class="project-switcher" :class="{ open: projectMenuOpen }"
+        :aria-expanded="projectMenuOpen" aria-haspopup="listbox"
+        @click="toggleProjectMenu">
         <div style="min-width:0">
           <div class="ttl">{{ project.project.title }}</div>
           <div class="by">by {{ project.project.author || "—" }}</div>
@@ -673,6 +694,7 @@ function wbDropClass(kind, id) {
             </div>
             <Icon v-if="p.id === project.activeProjectId" name="Check" :size="13" />
             <button v-else class="project-menu-del" v-tooltip.bottom="`Delete ${p.title}`"
+              :aria-label="`Delete project ${p.title}`"
               @click.stop="deleteProject(p.id, p.title)">
               <Icon name="Trash" :size="12" />
             </button>
@@ -684,11 +706,15 @@ function wbDropClass(kind, id) {
         </button>
       </div>
     </div>
-    <div class="nav-scroll scrollarea">
+    <nav class="nav-scroll scrollarea" aria-label="Main navigation">
       <template v-for="n in NAV" :key="n.section || n.id">
-        <div v-if="n.section" class="nav-section">{{ n.section }}</div>
+        <div v-if="n.section" class="nav-section" role="separator">{{ n.section }}</div>
         <div v-else class="nav-block">
-          <button class="nav-item expandable" :class="{ active: activeSection === (n.activeName || n.id).toLowerCase() }" @click="clickParent(n)">
+          <button class="nav-item expandable"
+            :class="{ active: activeSection === (n.activeName || n.id).toLowerCase() }"
+            :aria-expanded="n.expandable ? !!ui.expanded[n.id] : undefined"
+            :aria-current="activeSection === (n.activeName || n.id).toLowerCase() ? 'page' : undefined"
+            @click="clickParent(n)">
             <span class="nav-icon"><Icon :name="n.icon" :size="15" /></span>
             <span class="nav-label">{{ n.label }}</span>
             <span v-if="n.kbd" class="kbd-pill">{{ n.kbd }}</span>
@@ -699,19 +725,23 @@ function wbDropClass(kind, id) {
           <div v-if="n.expandable && ui.expanded[n.id]" class="nav-children">
             <div class="nav-filter">
               <Icon name="Search" :size="11" />
-              <input :placeholder="`Filter ${n.label.toLowerCase()}…`"
-                :value="ui.filters[n.id] || ''"
-                @input="ui.setFilter(n.id, $event.target.value)"
+              <JwInput size="small"
+                :placeholder="`Filter ${n.label.toLowerCase()}…`"
+                :modelValue="ui.filters[n.id] || ''"
+                @update:modelValue="ui.setFilter(n.id, $event)"
                 @click.stop />
               <button v-if="n.expandable === 'chapters'" class="nav-add" v-tooltip.bottom="'New part'"
+                aria-label="New part"
                 @click.stop="addPart">
                 <Icon name="Plus" :size="11" />
               </button>
               <button v-else-if="n.expandable === 'worldbuilding'" class="nav-add" v-tooltip.bottom="'New category'"
+                aria-label="New category"
                 @click.stop="addWbCategory">
                 <Icon name="Plus" :size="11" />
               </button>
               <button v-else-if="!n.fixed" class="nav-add" v-tooltip.bottom="`New ${n.label.toLowerCase().replace(/s$/, '')}`"
+                :aria-label="`New ${n.label.toLowerCase().replace(/s$/, '')}`"
                 @click.stop="addItem(n.expandable)">
                 <Icon name="Plus" :size="11" />
               </button>
@@ -737,6 +767,7 @@ function wbDropClass(kind, id) {
                     @keydown.enter.prevent="$event.target.blur()" />
                   <div class="part-actions">
                     <button class="part-action" v-tooltip.bottom="'Add chapter to this part'"
+                      aria-label="Add chapter to this part"
                       @click.stop="addChapterInPart(g.partId)">
                       <Icon name="Plus" :size="11" />
                     </button>
@@ -755,6 +786,8 @@ function wbDropClass(kind, id) {
                     @dragend="onDragEnd">
                     <button class="chapter-chev" :class="{ open: isChapterExpanded(c.id) }"
                       v-tooltip.bottom="isChapterExpanded(c.id) ? 'Collapse scenes' : 'Show scenes'"
+                      :aria-label="isChapterExpanded(c.id) ? 'Collapse scenes' : 'Show scenes'"
+                      :aria-expanded="isChapterExpanded(c.id)"
                       @mousedown.stop
                       @click.stop="toggleChapterExpand(c.id)">
                       <Icon name="ChevRight" :size="14" />
@@ -764,6 +797,7 @@ function wbDropClass(kind, id) {
                     <span class="nav-child-sub t-num">{{ c.words ? c.words.toLocaleString() : '' }}</span>
                     <span class="nav-child-status" :style="c.statusColor ? { color: c.statusColor } : null">{{ c.statusLabel }}</span>
                     <button class="chapter-add-scene" v-tooltip.bottom="'Add scene to this chapter'"
+                      aria-label="Add scene to this chapter"
                       @click.stop="addSceneToChapter(c.id)">
                       <Icon name="Plus" :size="11" />
                     </button>
@@ -807,6 +841,8 @@ function wbDropClass(kind, id) {
                   @dblclick="toggleWbCat(g.subgroupId)">
                   <button class="wb-cat-chev" :class="{ open: isWbCatExpanded(g.subgroupId) }"
                     v-tooltip.bottom="isWbCatExpanded(g.subgroupId) ? 'Collapse' : 'Expand'"
+                    :aria-label="isWbCatExpanded(g.subgroupId) ? `Collapse ${g.group}` : `Expand ${g.group}`"
+                    :aria-expanded="isWbCatExpanded(g.subgroupId)"
                     @mousedown.stop
                     @click.stop="toggleWbCat(g.subgroupId)">
                     <Icon name="ChevRight" :size="10" />
@@ -823,10 +859,13 @@ function wbDropClass(kind, id) {
                     @keydown.enter.prevent="$event.target.blur()" />
                   <div class="part-actions">
                     <button class="part-action" v-tooltip.bottom="'Add article to this category'"
+                      aria-label="Add article to this category"
                       @click.stop="addArticleInCat(g.subgroupId)">
                       <Icon name="Plus" :size="11" />
                     </button>
-                    <button v-if="project.worldbuildingCategories.length > 1" class="part-action part-action-danger" v-tooltip.bottom="'Delete this category'"
+                    <button v-if="project.worldbuildingCategories.length > 1" class="part-action part-action-danger"
+                      v-tooltip.bottom="'Delete this category'"
+                      :aria-label="`Delete category ${g.group}`"
                       @click.stop="deleteWbCat(g.subgroupId, g.group)">
                       <Icon name="Trash" :size="11" />
                     </button>
@@ -878,22 +917,24 @@ function wbDropClass(kind, id) {
           </div>
         </div>
       </template>
-    </div>
+    </nav>
     <div class="sidebar-footer">
       <div class="avatar">MH</div>
       <div class="meta">
         <b>{{ project.project.author || "Untitled author" }}</b>
-        <span :title="savedAtTitle">Autosaved · {{ savedAtLabel }}</span>
+        <span v-tooltip.bottom="savedAtTitle">Autosaved · {{ savedAtLabel }}</span>
       </div>
     </div>
   </aside>
   <aside v-else class="sidebar collapsed">
     <div class="brand-mini"><div class="brand-mark">J</div></div>
-    <button class="rail-toggle" @click="ui.toggleSidebar"><Icon name="SidebarToggle" :size="15" /></button>
+    <button class="rail-toggle" aria-label="Expand sidebar" @click="ui.toggleSidebar"><Icon name="SidebarToggle" :size="15" /></button>
     <div style="height:8px" />
     <button v-for="n in NAV.filter(x => x.id)" :key="n.id"
       class="rail-item" :class="{ active: activeSection === (n.activeName || n.id).toLowerCase() }"
-      v-tooltip.bottom="n.label" @click="go(n.id)">
+      v-tooltip.bottom="n.label" :aria-label="n.label"
+      :aria-current="activeSection === (n.activeName || n.id).toLowerCase() ? 'page' : undefined"
+      @click="go(n.id)">
       <Icon :name="n.icon" :size="16" />
     </button>
     <div style="flex:1" />
