@@ -71,6 +71,7 @@ const routes = [
   { path: "/export",            name: "Export",        component: () => import("../views/ExportView.vue") },
   { path: "/trash",             name: "Trash",         component: () => import("../views/TrashView.vue") },
   { path: "/settings/:section?", name: "Settings",      component: () => import("../views/SettingsView.vue"), props: true },
+  { path: "/help/:slug?",       name: "Help",          component: () => import("../views/HelpView.vue"), props: true },
 
   { path: "/writer-lab",          name: "WriterLab",      component: () => import("../views/WriterLabView.vue") },
 

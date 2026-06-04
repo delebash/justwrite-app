@@ -45,6 +45,14 @@ export default defineConfig({
       "Cross-Origin-Embedder-Policy": "credentialless",
       "Cross-Origin-Resource-Policy": "cross-origin",
     },
+    fs: {
+      // Allow reading docs/*.md from the repo root for the in-app Help
+      // viewer — the vite root is `src/renderer/`, so docs/ sits one
+      // level up. import.meta.glob in services/helpDocs.js picks them
+      // up at build time; this entry keeps the dev server able to
+      // serve them too.
+      allow: [resolve(__dirname, "src/renderer"), resolve(__dirname, "docs")],
+    },
   },
   envPrefix: ["VITE_", "TAURI_"],
   build: {

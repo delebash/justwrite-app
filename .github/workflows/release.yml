@@ -1,0 +1,127 @@
+name: Release
+
+# Manual only. The build is NEVER triggered by push, PR, or tag — only
+# by `npm run release` (which calls `gh workflow run release.yml`) or
+# the "Run workflow" button on the Actions page.
+on:
+  workflow_dispatch:
+    inputs:
+      tag:
+        description: 'Tag to build (e.g. v0.2.0). Must already exist on origin.'
+        required: true
+        type: string
+
+permissions:
+  contents: write   # needed to create / update the GitHub release
+
+jobs:
+  build:
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - platform: macos-latest
+            args: '--target universal-apple-darwin'
+            rust-targets: 'aarch64-apple-darwin x86_64-apple-darwin'
+          - platform: ubuntu-22.04
+            args: ''
+            rust-targets: ''
+          - platform: windows-latest
+            args: ''
+            rust-targets: ''
+
+    runs-on: ${{ matrix.platform }}
+    steps:
+      - name: Checkout (at tag)
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ inputs.tag }}
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: npm
+
+      - name: Setup Rust
+        uses: dtolnay/rust-toolchain@stable
+        with:
+          targets: ${{ matrix.rust-targets }}
+
+      - name: Cache Cargo
+        uses: actions/cache@v4
+        with:
+          path: |
+            ~/.cargo/registry
+            ~/.cargo/git
+            src-tauri/target
+          key: ${{ matrix.platform }}-cargo-${{ hashFiles('src-tauri/Cargo.lock') }}
+          restore-keys: ${{ matrix.platform }}-cargo-
+
+      - name: Install Linux deps
+        if: matrix.platform == 'ubuntu-22.04'
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y \
+            libwebkit2gtk-4.1-dev \
+            libappindicator3-dev \
+            librsvg2-dev \
+            patchelf
+
+      - name: Install JS deps
+        run: npm ci
+
+      - name: Build and publish to release
+        uses: tauri-apps/tauri-action@v0
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          tagName: ${{ inputs.tag }}
+          releaseName: 'JustWrite ${{ inputs.tag }}'
+          releaseBody: |
+            JustWrite ${{ inputs.tag }}.
+            See `docs.tar.gz` for the bundled user documentation that the marketing site mirrors for this release.
+          releaseDraft: false
+          prerelease: false
+          args: ${{ matrix.args }}
+
+  attach-docs:
+    needs: build
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout (at tag)
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ inputs.tag }}
+
+      - name: Pack docs
+        run: tar -czf docs.tar.gz docs/
+
+      - name: Attach to release
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: gh release upload "${{ inputs.tag }}" docs.tar.gz --clobber
+
+  notify-website:
+    needs: attach-docs
+    runs-on: ubuntu-latest
+    steps:
+      - name: Trigger justwrite-website rebuild
+        env:
+          # A Personal Access Token with `repo` scope on justwrite-website.
+          # Create one at https://github.com/settings/tokens, then add it as
+          # repo secret WEBSITE_DISPATCH_TOKEN. The default GITHUB_TOKEN
+          # cannot dispatch workflows in another repository.
+          GH_TOKEN: ${{ secrets.WEBSITE_DISPATCH_TOKEN }}
+        run: |
+          if [ -z "$GH_TOKEN" ]; then
+            echo "WEBSITE_DISPATCH_TOKEN not set — skipping website rebuild trigger."
+            echo "Configure the secret to enable automatic docs sync."
+            exit 0
+          fi
+          curl -fsSL -X POST \
+            -H "Accept: application/vnd.github+json" \
+            -H "Authorization: Bearer $GH_TOKEN" \
+            -H "X-GitHub-Api-Version: 2022-11-28" \
+            https://api.github.com/repos/delebash/justwrite-website/dispatches \
+            -d "{\"event_type\":\"docs-updated\",\"client_payload\":{\"tag\":\"${{ inputs.tag }}\"}}"

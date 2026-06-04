@@ -87,6 +87,8 @@ const PATHS = {
   Print:      "M6 9V4h12v5M6 18H5a2 2 0 0 1-2-2v-4a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2v4a2 2 0 0 1-2 2h-1M7 14h10v6H7z",
   Eraser:     "M7.6 20.4 3.6 16.4a1.5 1.5 0 0 1 0-2.1L13 5a1.5 1.5 0 0 1 2.1 0l4.3 4.3a1.5 1.5 0 0 1 0 2.1L12 19M9 12l5 5M9 21h11",
   AlignJustify:"M4 6h16M4 10h16M4 14h16M4 18h16",
+  Help:       "M12 21a9 9 0 1 0 0-18 9 9 0 0 0 0 18Zm-2.5-11a2.5 2.5 0 0 1 5 .3c0 1.5-2.5 2-2.5 3.7M12 17v.01",
+  ExternalLink:"M10 6H6a2 2 0 0 0-2 2v10a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2v-4M14 4h6m0 0v6m0-6L10 14",
 };
 
 const d = computed(() => PATHS[props.name] || "");

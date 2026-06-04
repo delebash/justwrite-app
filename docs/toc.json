@@ -1,0 +1,43 @@
+[
+  {
+    "section": "The basics",
+    "items": [
+      { "slug": "getting-started",   "title": "Getting started",   "hint": "Install, first launch, optional AI setup" },
+      { "slug": "core-concepts",     "title": "Core concepts",     "hint": "Parts, Chapters, Scenes, autosave, undo" },
+      { "slug": "writing",           "title": "Writing",           "hint": "The editor, view modes, AI rewrites" }
+    ]
+  },
+  {
+    "section": "Planning your story",
+    "items": [
+      { "slug": "story-bible",       "title": "Story bible",       "hint": "Characters, Locations, Objects, Groups, Relations" },
+      { "slug": "plot-and-time",     "title": "Plot and time",     "hint": "Narrative strands, Plot Board, Timeline, Events" },
+      { "slug": "worldbuilding",     "title": "Worldbuilding",     "hint": "Architecture + the Worldbuilding library" },
+      { "slug": "notes-and-search",  "title": "Notes and search",  "hint": "Notes scratch-pad and full-text search" }
+    ]
+  },
+  {
+    "section": "Producing the book",
+    "items": [
+      { "slug": "import-and-export", "title": "Import and export", "hint": "PDF, DOCX, EPUB, M4B" },
+      { "slug": "audio-studio",      "title": "Audio Studio",      "hint": "Cast, Script, Render" },
+      { "slug": "analysis",          "title": "Analysis",          "hint": "Pace, milestones, style metrics" },
+      { "slug": "writer-lab",        "title": "Writer Lab",        "hint": "AI editor-on-call for any passage" }
+    ]
+  },
+  {
+    "section": "Setup and configuration",
+    "items": [
+      { "slug": "ai-providers",      "title": "AI providers",      "hint": "OpenAI, Claude, Ollama, LM Studio, Kokoro, Chatterbox" },
+      { "slug": "appearance",        "title": "Appearance",        "hint": "Theme, fonts, accents, layout" },
+      { "slug": "backups-and-data",  "title": "Backups and data",  "hint": "Autosave, snapshots, restoring" },
+      { "slug": "keyboard-shortcuts", "title": "Keyboard shortcuts", "hint": "Full reference" }
+    ]
+  },
+  {
+    "section": "What's coming",
+    "items": [
+      { "slug": "roadmap", "title": "Roadmap", "hint": "Direction, not commitment" }
+    ]
+  }
+]

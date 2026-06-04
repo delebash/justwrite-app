@@ -10,7 +10,9 @@
     "preview:vite": "vite preview",
     "dev": "tauri dev",
     "build": "tauri build",
-    "tauri": "tauri"
+    "tauri": "tauri",
+    "bump": "node scripts/bump.mjs",
+    "release": "node scripts/release.mjs"
   },
   "dependencies": {
     "@ffmpeg/ffmpeg": "^0.12.15",
@@ -49,6 +51,7 @@
     "idb-keyval": "^6.2.5",
     "jszip": "^3.10.1",
     "mammoth": "^1.12.0",
+    "marked": "^18.0.5",
     "pdfmake": "^0.3.9",
     "pinia": "^3.0.4",
     "reka-ui": "^2.9.9",

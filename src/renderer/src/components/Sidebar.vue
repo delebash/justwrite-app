@@ -132,6 +132,7 @@ const NAV = [
   { id: "export",    label: "Export",    icon: "Export" },
   { id: "trash",     label: "Trash",     icon: "Trash" },
   { id: "settings",  label: "Settings",  icon: "Settings" },
+  { id: "help",      label: "Help",      icon: "Help",     path: "/help", activeName: "help" },
   { id: "writer-lab", label: "Writer Lab", icon: "Sparkle", path: "/writer-lab", activeName: "writerlab" },
 ];
 
