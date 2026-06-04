@@ -66,9 +66,16 @@ function onContentClick(e) {
 }
 
 function openOnWeb() {
-  // In Tauri, plain window.open delegates to the OS shell; in the
-  // browser fallback path it opens a new tab. Either is fine.
-  window.open(webUrl.value, "_blank", "noopener,noreferrer");
+  // Tauri's webview swallows window.open for external URLs — route
+  // through the bridge command so the OS browser actually opens.
+  // The browser-only dev path (no window.justwrite) falls back to
+  // a plain window.open which works there.
+  const url = webUrl.value;
+  if (window.justwrite?.shell?.openExternal) {
+    window.justwrite.shell.openExternal(url);
+  } else {
+    window.open(url, "_blank", "noopener,noreferrer");
+  }
 }
 
 function go(slug) {

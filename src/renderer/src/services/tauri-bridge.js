@@ -111,5 +111,11 @@ if (isTauri) {
         invoke("images_delete", { path }).then(() => ({ ok: true }),
                                                 (e) => ({ ok: false, error: String(e) })),
     },
+
+    shell: {
+      // Hand a URL to the OS default browser. `window.open` does
+      // nothing inside the Tauri webview, so callers must route here.
+      openExternal: (url) => safe(invoke("open_external", { target: url })),
+    },
   };
 }

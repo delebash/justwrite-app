@@ -332,6 +332,21 @@ async fn images_delete(path: String) -> Result<bool, String> {
     Ok(true)
 }
 
+// ─── External opener ─────────────────────────────────────────────────
+// `window.open` does nothing useful inside a Tauri webview — the OS
+// default handler is the right surface for "Open on the web" / future
+// "Reveal in folder" affordances. Validates http(s) to avoid handing
+// arbitrary URI schemes to the OS.
+
+#[tauri::command]
+async fn open_external(target: String) -> Result<bool, String> {
+    if !target.starts_with("http://") && !target.starts_with("https://") {
+        return Err("open_external only handles http(s) URLs".into());
+    }
+    open::that(&target).map_err(|e| e.to_string())?;
+    Ok(true)
+}
+
 // ─── Runner ──────────────────────────────────────────────────────────
 
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
@@ -351,6 +366,7 @@ pub fn run() {
             images_save,
             images_read,
             images_delete,
+            open_external,
         ])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");
