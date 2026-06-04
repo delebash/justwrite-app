@@ -111,7 +111,14 @@ if (answer !== "y" && answer !== "yes") {
 // 5. Trigger ---------------------------------------------------------
 console.log("Triggering...");
 try {
-  run(`gh workflow run release.yml -f tag=${tag} -f platforms=${platform}`, { stdio: "inherit" });
+  // Close stdin explicitly. With a fully inherited stdio the prior
+  // readline prompt leaves a closed-pipe stdin behind when invoked
+  // from a piped context (e.g. `echo y | npm run release`), which gh
+  // then exits non-zero on. Inherit stdout/stderr so the run URL
+  // still streams live.
+  run(`gh workflow run release.yml -f tag=${tag} -f platforms=${platform}`, {
+    stdio: ["ignore", "inherit", "inherit"],
+  });
 } catch {
   fail("gh workflow run failed. Check that the release.yml workflow exists on the default branch.");
 }
