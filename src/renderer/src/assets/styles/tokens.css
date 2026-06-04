@@ -94,6 +94,13 @@
   --warn-ink:    oklch(0.4 0.1 65);
   --warn-line:   oklch(0.85 0.08 75);
 
+  /* "Suggest" severity — amber-orange, slightly redder than warn.
+     Currently used by the WriterLab note-severity badges. Tinted soft
+     so it sits quietly next to the danger / info badges in the same
+     list. */
+  --suggest-bg:  color-mix(in oklab, oklch(0.72 0.15 60) 18%, transparent);
+  --suggest-ink: oklch(0.48 0.14 60);
+
   --success-bg:  oklch(0.95 0.04 var(--success-hue));
   --success-ink: oklch(0.4 0.13 var(--success-hue));
   --success-line: oklch(0.82 0.07 var(--success-hue));
@@ -196,6 +203,9 @@ html[data-theme="dark"] {
   --warn-bg:     oklch(0.28 0.05 75);
   --warn-ink:    oklch(0.86 0.09 75);
   --warn-line:   oklch(0.42 0.08 75);
+
+  --suggest-bg:  color-mix(in oklab, oklch(0.72 0.15 60) 18%, transparent);
+  --suggest-ink: oklch(0.82 0.13 60);
 
   --success-bg:  oklch(0.26 0.05 var(--success-hue));
   --success-ink: oklch(0.85 0.1 var(--success-hue));

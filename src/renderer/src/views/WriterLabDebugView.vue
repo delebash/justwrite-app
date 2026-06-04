@@ -608,8 +608,8 @@ function notesByGroup(notes) {
 }
 
 .note-severity--suggest {
-  background: color-mix(in oklab, oklch(0.72 0.15 60) 18%, transparent);
-  color: oklch(0.48 0.14 60);
+  background: var(--suggest-bg);
+  color: var(--suggest-ink);
 }
 
 .note-severity--info {
