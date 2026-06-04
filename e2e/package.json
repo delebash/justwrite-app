@@ -1,0 +1,20 @@
+{
+  "name": "justwrite-e2e",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "description": "E2E tests and screenshot capture for JustWrite via tauri-driver + msedgedriver (raw W3C WebDriver from Node)",
+  "scripts": {
+    "postinstall": "node scripts/fetch-driver.mjs",
+    "fetch-driver": "node scripts/fetch-driver.mjs --force",
+    "test": "node --test --test-reporter=spec tests/*.test.mjs",
+    "capture": "node capture-direct.mjs"
+  },
+  "devDependencies": {
+    "@wdio/cli": "^8.46.0",
+    "@wdio/local-runner": "^8.46.0",
+    "@wdio/mocha-framework": "^8.46.0",
+    "@wdio/spec-reporter": "^8.43.0",
+    "webdriverio": "^8.46.0"
+  }
+}

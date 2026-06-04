@@ -1,0 +1,10 @@
+node_modules/
+
+# msedgedriver is fetched on demand by scripts/fetch-driver.mjs (npm
+# postinstall). The binary + its license folder go stale every time
+# Edge updates, so we don't commit them.
+drivers/msedgedriver.exe
+drivers/Driver_Notes/
+
+# Screenshot output drops into the marketing site repo, not here.
+tests/screenshots/

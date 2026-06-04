@@ -5,7 +5,3 @@ dist/
 *.log
 .vscode/
 .idea/
-
-# Local e2e test setup (WebdriverIO + msedgedriver binary). Not part
-# of the app build; lives alongside the repo for manual driving only.
-e2e/
