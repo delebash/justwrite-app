@@ -18,6 +18,7 @@ import JwCheckbox from "@renderer/components/ui/JwCheckbox.vue";
 import JwNumber from "@renderer/components/ui/JwNumber.vue";
 import JwSelect from "@renderer/components/ui/JwSelect.vue";
 import JwButton from "@renderer/components/ui/JwButton.vue";
+import JwSegmented from "@renderer/components/ui/JwSegmented.vue";
 
 const ai = useAiStore();
 
@@ -147,6 +148,9 @@ function makeVoicesCombo() {
 
 const voices = makeVoicesCombo();
 
+// ── Tier options for JwSegmented ─────────────────────────────────────
+const TIER_OPTIONS = TIER_IDS.map((id) => ({ value: id, label: TIERS[id].label }));
+
 // ── Runner (LLM endpoint family) ───────────────────────────────────
 // Shows the explicit `draft.runner` if set, otherwise the URL-based
 // auto-detect. Picking from the select writes to `draft.runner`, which
@@ -242,12 +246,12 @@ function resetParam(key) { setParam(key, undefined); }
         <template v-if="draft.chatModel">
           <span class="t-muted" title="Attribution pipeline capability bucket for this model. Auto-picked by name pattern; you can pin a different choice if you know better. Guided = scaffolded examples for sub-12B models. Direct = strict rules for 12B-class non-reasoning. Reasoned = strict rules + implicit reasoning for hybrid models (Qwen3:14B+).">Tier</span>
           <div style="display:flex;gap:6px;align-items:center;flex-wrap:wrap;font-size:11.5px">
-            <div class="mode-seg" role="radiogroup" aria-label="Tier">
-              <button v-for="t in TIER_IDS" :key="t" type="button" class="mode-seg-btn"
-                role="radio" :aria-checked="currentTier?.id === t"
-                :class="{ active: currentTier?.id === t }"
-                @click="pinTier(t)">{{ TIERS[t].label }}</button>
-            </div>
+            <JwSegmented
+              :model-value="currentTier?.id"
+              :options="TIER_OPTIONS"
+              size="small"
+              aria-label="Tier"
+              @update:model-value="pinTier($event)" />
             <span class="t-muted" style="font-size:11px">{{ tierSource === 'pinned' ? 'pinned' : 'auto' }}</span>
             <JwButton v-if="tierSource === 'pinned'" intent="ghost" type="button"
               style="padding:2px 8px;font-size:11px"
@@ -374,25 +378,6 @@ function resetParam(key) { setParam(key, undefined); }
 </template>
 
 <style scoped>
-.mode-seg {
-  display: inline-flex;
-  border: 1px solid var(--border);
-  border-radius: 6px;
-  overflow: hidden;
-  background: var(--surface-2);
-}
-.mode-seg-btn {
-  padding: 4px 10px;
-  font-size: 11px;
-  border: 0;
-  border-right: 1px solid var(--border);
-  background: transparent;
-  color: var(--muted);
-  cursor: pointer;
-}
-.mode-seg-btn:last-child { border-right: 0; }
-.mode-seg-btn:hover { color: var(--ink); }
-.mode-seg-btn.active { background: var(--accent); color: var(--on-accent); }
 
 .model-combo { display: flex; }
 .model-combo-input {

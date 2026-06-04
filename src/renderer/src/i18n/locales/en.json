@@ -48,8 +48,16 @@
     "undo": "Undo",
     "redo": "Redo"
   },
+  "dialog": {
+    "defaultTitle": "Are you sure?",
+    "confirmLabel": "Confirm",
+    "okLabel": "OK",
+    "cancelLabel": "Cancel",
+    "closeLabel": "Close"
+  },
   "settings": {
     "title": "Settings",
+    "eyebrow": "Project",
     "sections": {
       "project": "Project",
       "audio": "AI & Audio engines",
@@ -62,6 +70,75 @@
     "language": {
       "label": "Language",
       "hint": "User-interface language. Date and number formatting follow the same locale."
+    },
+    "project": {
+      "cardTitle": "Project",
+      "fieldTitle": "Title",
+      "fieldAuthor": "Author",
+      "fieldSubtitle": "Subtitle",
+      "fieldGenre": "Genre",
+      "fieldStarted": "Started",
+      "fieldDeadline": "Deadline",
+      "fieldPremise": "Premise"
+    },
+    "goals": {
+      "cardTitle": "Goals",
+      "wordGoal": "Word goal",
+      "wordGoalHint": "total words for the manuscript",
+      "dailyTarget": "Daily target",
+      "dailyTargetHint": "words/day — drives the Home streak ring"
+    },
+    "preferences": {
+      "cardTitle": "Preferences"
+    },
+    "audio": {
+      "defaultsCardTitle": "Defaults",
+      "routingCardTitle": "Feature routing",
+      "providersCardTitle": "Providers",
+      "tipsCardTitle": "Quick setup tips",
+      "fieldDefaultLlm": "Default LLM",
+      "fieldDefaultTts": "Default TTS",
+      "fieldDefaultEmbedding": "Default embedding",
+      "fieldAutoRebuild": "Auto-rebuild RAG",
+      "addProvider": "Add provider"
+    },
+    "usage": {
+      "cardTitle": "AI usage",
+      "resetLedger": "Reset ledger",
+      "byFeature": "By feature",
+      "byProvider": "By provider",
+      "recentCalls": "Recent calls",
+      "noCallsYet": "No AI calls yet. Run something from Critique, the bubble menu, or Writer Lab and it'll show up here."
+    },
+    "appearance": {
+      "presetCardTitle": "Theme preset",
+      "previewCardTitle": "Preview",
+      "modeCardTitle": "Mode",
+      "typographyCardTitle": "Typography",
+      "accentsCardTitle": "Accents",
+      "resetToDefaults": "Reset to defaults"
+    },
+    "backups": {
+      "autosaveCardTitle": "Auto-save to disk",
+      "snapshotCardTitle": "Snapshot",
+      "dangerCardTitle": "Danger zone"
+    },
+    "statuses": {
+      "cardTitle": "Statuses"
+    },
+    "wbCategories": {
+      "cardTitle": "Worldbuilding categories"
+    },
+    "coverImage": {
+      "cardTitle": "Cover image"
+    },
+    "about": {
+      "appCardTitle": "JustWrite",
+      "workspaceCardTitle": "This workspace",
+      "shortcutsCardTitle": "Keyboard shortcuts"
+    },
+    "debug": {
+      "cardTitle": "Debug tools"
     }
   }
 }

@@ -9,6 +9,7 @@
 // dialog promise resolves to the cancellation sentinel.
 
 import { computed, nextTick, ref, watch } from "vue";
+import { useI18n } from "vue-i18n";
 import { dialogState, _resolveDialog } from "../services/dialog.js";
 import {
   DialogRoot,
@@ -22,6 +23,8 @@ import Icon from "./Icon.vue";
 import JwButton from "@renderer/components/ui/JwButton.vue";
 import JwInput from "@renderer/components/ui/JwInput.vue";
 import JwSelect from "@renderer/components/ui/JwSelect.vue";
+
+const { t } = useI18n();
 
 // Normalize the active dialog into a uniform shape the template can read.
 // Single-field prompts become a one-element `fields` list internally so
@@ -38,10 +41,10 @@ const dialog = computed(() => {
   if (dialogState.kind === "confirm") {
     return {
       kind: "confirm",
-      title: opts.title || "Are you sure?",
+      title: opts.title || t("dialog.defaultTitle"),
       message: opts.message || "",
-      confirmLabel: opts.confirmLabel || "Confirm",
-      cancelLabel: opts.cancelLabel || "Cancel",
+      confirmLabel: opts.confirmLabel || t("dialog.confirmLabel"),
+      cancelLabel: opts.cancelLabel || t("dialog.cancelLabel"),
       danger: !!opts.danger,
     };
   }
@@ -60,8 +63,8 @@ const dialog = computed(() => {
     kind: "prompt",
     title: opts.title || "",
     message: opts.message || "",
-    confirmLabel: opts.confirmLabel || "OK",
-    cancelLabel: opts.cancelLabel || "Cancel",
+    confirmLabel: opts.confirmLabel || t("dialog.okLabel"),
+    cancelLabel: opts.cancelLabel || t("dialog.cancelLabel"),
     danger: !!opts.danger,
     fields,
     isSingle: !Array.isArray(opts.fields),
@@ -163,7 +166,7 @@ function onEnter(e, isLastField) {
               <div v-if="dialog?.title" class="modal-title">{{ dialog.title }}</div>
             </div>
           </DialogTitle>
-          <DialogClose class="app-modal-close" aria-label="Close">
+          <DialogClose class="app-modal-close" :aria-label="$t('dialog.closeLabel')">
             <Icon name="Close" :size="14" />
           </DialogClose>
         </header>
@@ -203,9 +206,9 @@ function onEnter(e, isLastField) {
         </div>
 
         <footer class="app-modal-footer">
-          <JwButton :label="dialog?.cancelLabel || 'Cancel'" intent="ghost" @click="cancel" />
+          <JwButton :label="dialog?.cancelLabel || $t('dialog.cancelLabel')" intent="ghost" @click="cancel" />
           <JwButton
-            :label="dialog?.confirmLabel || 'OK'"
+            :label="dialog?.confirmLabel || $t('dialog.okLabel')"
             :intent="dialog?.danger ? 'danger' : 'primary'"
             :disabled="!canSubmit"
             @click="submit"

@@ -13,6 +13,7 @@ import {
 } from "../services/analysis.js";
 import { bookMetrics, POV_LABELS } from "../services/analysis/styleMetrics.js";
 import JwTable from "@renderer/components/ui/JwTable.vue";
+import JwSegmented from "@renderer/components/ui/JwSegmented.vue";
 
 const project = useProjectStore();
 const studio = useStudioStore();
@@ -39,6 +40,11 @@ const pct = (n, total) => (total ? (n / total) * 100 : 0);
 // Pace — driven by the session log. Empty until the user writes
 // anything, but the chart still renders (all zeros).
 const windowDays = ref(30);
+const WINDOW_OPTIONS = [
+  { value: 14, label: "14d" },
+  { value: 30, label: "30d" },
+  { value: 90, label: "90d" },
+];
 const pace = computed(() => {
   const series = sessions.historyFor(windowDays.value);
   return paceSeries(series.map((d) => d.words));
@@ -232,12 +238,13 @@ const milestoneState = computed(() => {
       <div style="display:flex;align-items:center;gap:12px;margin-bottom:8px">
         <div class="card-title" style="margin:0">Pace</div>
         <span class="t-muted" style="font-size:11.5px">Daily words written</span>
-        <div style="margin-left:auto;display:flex;gap:4px" role="radiogroup" aria-label="Time window">
-          <button v-for="d in [14, 30, 90]" :key="d"
-            role="radio" :aria-checked="windowDays === d"
-            class="seg-btn" :class="{ active: windowDays === d }"
-            @click="windowDays = d">{{ d }}d</button>
-        </div>
+        <JwSegmented
+          style="margin-left:auto"
+          :model-value="windowDays"
+          :options="WINDOW_OPTIONS"
+          size="small"
+          aria-label="Time window"
+          @update:model-value="windowDays = $event" />
       </div>
       <svg :viewBox="`0 0 ${paceShape.w} ${paceShape.h}`" preserveAspectRatio="none"
         style="width:100%;height:140px;display:block">
@@ -366,14 +373,14 @@ const milestoneState = computed(() => {
     <div class="card" style="margin-bottom:18px">
       <div class="card-title">Words per chapter</div>
       <div style="margin-top:8px">
-        <div v-for="c in allCh" :key="c.id"
-          class="bar-row" style="cursor:default" @click="jumpChapter(c.id)">
+        <button v-for="c in allCh" :key="c.id" type="button"
+          class="bar-row" @click="jumpChapter(c.id)">
           <span class="name">{{ c.num }}. {{ c.title }}</span>
           <div class="track">
             <div class="fill" :style="`width:${(c.words / Math.max(1, ...allCh.map(x => x.words))) * 100}%;background:${project.strandById((c.strands || [])[0])?.color || 'var(--accent)'}`" />
           </div>
           <span class="val">{{ c.words.toLocaleString() }}</span>
-        </div>
+        </button>
       </div>
     </div>
 
@@ -459,7 +466,7 @@ const milestoneState = computed(() => {
           <button class="heatmap-label" @click="router.push(`/characters/${row.character.id}`)">
             {{ row.character.name }}
           </button>
-          <div v-for="cell in row.cells" :key="cell.chapter.id"
+          <button v-for="cell in row.cells" :key="cell.chapter.id" type="button"
             class="heatmap-cell"
             :style="cellStyle(cell.weight)"
             :title="`${row.character.name} · Ch. ${cell.chapter.num} — ${cell.chapter.title}${cell.mentions ? ` · ${cell.mentions} mentions` : ''}`"
@@ -492,7 +499,7 @@ const milestoneState = computed(() => {
         </div>
 
         <div style="margin-top:14px;display:flex;flex-direction:column;gap:7px">
-          <div v-for="row in dialogue.perChapter" :key="row.id" class="mix-row" @click="jumpChapter(row.id)">
+          <button v-for="row in dialogue.perChapter" :key="row.id" type="button" class="mix-row" @click="jumpChapter(row.id)">
             <span class="name">{{ row.num }}. {{ row.title }}</span>
             <div class="mix-bar">
               <div v-for="m in MIX_KINDS" :key="m.k" class="mix-seg"
@@ -500,7 +507,7 @@ const milestoneState = computed(() => {
                 :title="`${m.label}: ${row[m.k].toLocaleString()} words`" />
             </div>
             <span class="val">{{ row.dialoguePct }}%</span>
-          </div>
+          </button>
         </div>
       </template>
       <div v-else class="t-muted" style="font-size:12.5px;text-align:center;padding:22px 0;background:var(--surface-2);border-radius:8px">
@@ -533,19 +540,8 @@ const milestoneState = computed(() => {
 .kpi-of { color: var(--muted); font-weight: 400; font-size: 18px; }
 .kpi-sub { font-size: 11px; color: var(--muted); margin-top: 2px; }
 
-.seg-btn {
-  appearance: none;
-  border: 1px solid var(--border);
-  background: var(--surface);
-  border-radius: 6px;
-  padding: 3px 9px;
-  font-size: 11px;
-  color: var(--ink-2);
-  font-variant-numeric: tabular-nums;
-}
-.seg-btn.active { background: var(--ink); color: var(--surface); border-color: var(--ink); }
 
-.bar-row { display: grid; grid-template-columns: 200px 1fr 70px; gap: 14px; align-items: center; padding: 4px 0; font-size: 12.5px; }
+.bar-row { display: grid; grid-template-columns: 200px 1fr 70px; gap: 14px; align-items: center; padding: 4px 0; font-size: 12.5px; width: 100%; border: 0; background: transparent; cursor: pointer; text-align: left; }
 .bar-row .name { color: var(--ink-2); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 .bar-row .track { height: 8px; background: var(--surface-3); border-radius: 999px; overflow: hidden; }
 .bar-row .fill { height: 100%; border-radius: 999px; transition: width .2s ease; }
@@ -568,6 +564,7 @@ const milestoneState = computed(() => {
 }
 .heatmap-cell {
   height: 20px; border-radius: 3px; border: 0;
+  padding: 0; background: transparent; cursor: pointer;
   font-size: 0;
 }
 .heatmap-cell:hover { outline: 2px solid var(--accent); outline-offset: 1px; }
@@ -588,7 +585,7 @@ const milestoneState = computed(() => {
 .mix-bar { display: flex; height: 8px; border-radius: 999px; overflow: hidden; background: var(--surface-3); }
 .mix-bar-lg { height: 14px; }
 .mix-seg { height: 100%; transition: width .2s ease; }
-.mix-row { display: grid; grid-template-columns: 200px 1fr 44px; gap: 14px; align-items: center; font-size: 12.5px; cursor: pointer; padding: 2px 0; }
+.mix-row { display: grid; grid-template-columns: 200px 1fr 44px; gap: 14px; align-items: center; font-size: 12.5px; cursor: pointer; padding: 2px 0; width: 100%; border: 0; background: transparent; text-align: left; }
 .mix-row .name { color: var(--ink-2); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 .mix-row .val { text-align: right; color: var(--muted); font-variant-numeric: tabular-nums; }
 .mix-row:hover { background: var(--surface-2); }

@@ -21,7 +21,8 @@
 // Custom button content via slot:
 //   <template #option="{ option, selected }">…</template>
 
-import { nextTick, ref } from "vue";
+import { computed, nextTick } from "vue";
+import { useRovingTabindex } from "@renderer/composables/useRovingTabindex.js";
 
 const props = defineProps({
   modelValue:    {},                                       // current value (any)
@@ -34,39 +35,54 @@ const props = defineProps({
 });
 const emit = defineEmits(["update:modelValue"]);
 
-const wrapperRef = ref(null);
-
 function valueOf(opt) { return opt?.[props.optionValue]; }
 function labelOf(opt) { return opt?.[props.optionLabel]; }
 function sublabelOf(opt) { return opt?.[props.optionSublabel]; }
 
 function pick(opt) { emit("update:modelValue", valueOf(opt)); }
 
-function focusAt(i) {
-  const wrap = wrapperRef.value;
-  if (!wrap) return;
-  const btns = wrap.querySelectorAll('button[role="radio"]');
-  btns[i]?.focus();
-}
+// JwSegmented drives tabindex from the *selected* value, not the roving
+// focus state, so we use the composable only for key navigation and
+// ignore its getTabindex/activeIndex entirely.
+const length = computed(() => props.options.length);
+const { onKeydown: rovingKeydown, registerItem, focusAt } = useRovingTabindex({
+  length,
+  orientation: "both",
+  loop: true,
+  onActivate: (i) => pick(props.options[i]),
+});
 
+// Type-ahead: collecting keystrokes to match option labels
+let typeBuffer = "";
+let typeTimer = null;
 function onKeydown(e, idx) {
-  const max = props.options.length - 1;
-  let target = idx;
-  if (e.key === "ArrowRight" || e.key === "ArrowDown") target = idx >= max ? 0 : idx + 1;
-  else if (e.key === "ArrowLeft" || e.key === "ArrowUp") target = idx <= 0 ? max : idx - 1;
-  else if (e.key === "Home") target = 0;
-  else if (e.key === "End") target = max;
-  else return;
-  e.preventDefault();
-  pick(props.options[target]);
-  nextTick(() => focusAt(target));
+  // Let the composable handle arrow / Home / End / Enter / Space first.
+  // It only calls preventDefault for those keys; others fall through.
+  rovingKeydown(e, idx);
+  if (e.defaultPrevented) return;
+
+  // Type-ahead: printable single character → match option label
+  if (e.key.length === 1 && !e.ctrlKey && !e.metaKey && !e.altKey) {
+    clearTimeout(typeTimer);
+    typeBuffer += e.key.toLowerCase();
+    const match = props.options.findIndex((o) =>
+      String(labelOf(o) ?? "").toLowerCase().startsWith(typeBuffer)
+    );
+    if (match >= 0) {
+      e.preventDefault();
+      pick(props.options[match]);
+      nextTick(() => focusAt(match));
+    }
+    typeTimer = setTimeout(() => { typeBuffer = ""; }, 600);
+  }
 }
 </script>
 
 <template>
-  <div ref="wrapperRef" class="jw-seg" :class="{ 'jw-seg--small': size === 'small' }"
+  <div class="jw-seg" :class="{ 'jw-seg--small': size === 'small' }"
     role="radiogroup" :aria-label="ariaLabel">
     <button v-for="(opt, i) in options" :key="valueOf(opt)"
+      :ref="(el) => registerItem(i, el)"
       type="button"
       role="radio"
       :aria-checked="modelValue === valueOf(opt)"

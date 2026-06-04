@@ -32,6 +32,7 @@ import { useModelList } from "../composables/useModelList.js";
 
 import JwTag from "@renderer/components/ui/JwTag.vue";
 import JwTable from "@renderer/components/ui/JwTable.vue";
+import JwSegmented from "@renderer/components/ui/JwSegmented.vue";
 
 const props = defineProps({ section: { type: String, default: "" } });
 
@@ -108,7 +109,7 @@ function featureModelOptions(key) {
 // i18n locale picker — list comes from AVAILABLE_LOCALES; the active
 // value mirrors vue-i18n's reactive `locale` ref so the select reflects
 // the live UI language even if it was set elsewhere.
-const { locale: activeI18nLocale } = useI18n({ useScope: "global" });
+const { locale: activeI18nLocale, t } = useI18n({ useScope: "global" });
 const LOCALE_OPTIONS = AVAILABLE_LOCALES.map((l) => ({ label: l.label, value: l.code }));
 function onLocaleChange(code) {
   const next = code || AVAILABLE_LOCALES[0].code;
@@ -116,15 +117,15 @@ function onLocaleChange(code) {
   setI18nLocale(next);
 }
 
-const SECTIONS = [
-  { id: "project",    label: "Project" },
-  { id: "audio",      label: "AI & Audio engines" },
-  { id: "usage",      label: "AI usage" },
-  { id: "appearance", label: "Appearance" },
-  { id: "backups",    label: "Backups" },
-  { id: "debug",      label: "Debug" },
-  { id: "about",      label: "About" },
-];
+const SECTIONS = computed(() => [
+  { id: "project",    label: t("settings.sections.project") },
+  { id: "audio",      label: t("settings.sections.audio") },
+  { id: "usage",      label: t("settings.sections.usage") },
+  { id: "appearance", label: t("settings.sections.appearance") },
+  { id: "backups",    label: t("settings.sections.backups") },
+  { id: "debug",      label: t("settings.sections.debug") },
+  { id: "about",      label: t("settings.sections.about") },
+]);
 
 // Debug tools surfaced in the Debug section. Add new entries here as more
 // internal lab/inspector views are built.
@@ -305,6 +306,24 @@ const EDITOR_FONT_SIZES = [
 ];
 const EDITOR_LINE_OPTIONS = [1.3, 1.4, 1.5, 1.6, 1.7, 1.8, 2];
 const EDITOR_PARA_OPTIONS = [0, 0.3, 0.5, 0.8, 1];
+
+// ── Segmented-control option arrays ───────────────────────────────────
+// Each maps existing constants to { value, label, sublabel? } so JwSegmented
+// can consume them without needing to know internal key shapes.
+const UI_SCALE_OPTIONS = UI_SCALES.map((s) => ({
+  value: s.value, label: s.label, sublabel: `${Math.round(s.value * 100)}%`,
+}));
+const SH_STYLE_OPTIONS = SIDEBAR_HEADING_STYLE_LIST.map((s) => ({ value: s.key, label: s.label }));
+const SH_SIZE_OPTIONS  = SIDEBAR_HEADING_SIZES.map((s) => ({ value: s.value, label: s.label }));
+const NAV_STYLE_OPTIONS = NAV_ITEM_STYLE_LIST.map((s) => ({ value: s.key, label: s.label }));
+const NAV_SIZE_OPTIONS  = NAV_ITEM_SIZES.map((s) => ({ value: s.value, label: s.label }));
+const FONT_SIZE_OPTIONS = EDITOR_FONT_SIZES.map((s) => ({ value: s.value, label: s.label, sublabel: s.px }));
+const LINE_OPTIONS  = EDITOR_LINE_OPTIONS.map((v) => ({ value: v, label: String(v) }));
+const PARA_OPTIONS  = EDITOR_PARA_OPTIONS.map((v) => ({ value: v, label: v === 0 ? "0" : `${v}em` }));
+const INDENT_OPTIONS = [
+  { value: true,  label: "Indent" },
+  { value: false, label: "No indent" },
+];
 
 function isCustomHex(v) { return typeof v === "string" && v.startsWith("#"); }
 function inkSwatch(t) {
@@ -704,7 +723,7 @@ const recentColumns = [
 </script>
 
 <template>
-  <PaneHeader eyebrow="Project" title="Settings" />
+  <PaneHeader :eyebrow="$t('settings.eyebrow')" :title="$t('settings.title')" />
   <div class="pane-card">
     <div class="scrollarea" style="padding:22px">
     <div class="settings-layout" style="display:grid;grid-template-columns:220px minmax(0,1fr);gap:22px;max-width:1100px">
@@ -719,58 +738,58 @@ const recentColumns = [
       <!-- ── PROJECT ─────────────────────────────── -->
       <div v-if="active === 'project'" style="display:flex;flex-direction:column;gap:14px;min-width:0">
         <div class="card">
-          <div class="card-title">Project</div>
+          <div class="card-title">{{ $t('settings.project.cardTitle') }}</div>
           <p class="t-muted" style="font-size:12px;margin:0 0 14px;line-height:1.55">
             Edits flow through the same undo/redo history as your manuscript — ⌘Z restores the previous value.
           </p>
           <div style="display:grid;grid-template-columns:160px minmax(0,1fr);gap:10px 14px;font-size:13px;align-items:center">
-            <span class="t-muted">Title</span>
+            <span class="t-muted">{{ $t('settings.project.fieldTitle') }}</span>
             <JwInput :model-value="project.project.title"
               @update:model-value="(v) => setMeta('title', v)" placeholder="Working title" />
-            <span class="t-muted">Author</span>
+            <span class="t-muted">{{ $t('settings.project.fieldAuthor') }}</span>
             <JwInput :model-value="project.project.author"
               @update:model-value="(v) => setMeta('author', v)" placeholder="Pen name or legal name" />
-            <span class="t-muted">Subtitle</span>
+            <span class="t-muted">{{ $t('settings.project.fieldSubtitle') }}</span>
             <JwInput :model-value="project.project.subtitle"
               @update:model-value="(v) => setMeta('subtitle', v)" placeholder="Optional" />
-            <span class="t-muted">Genre</span>
+            <span class="t-muted">{{ $t('settings.project.fieldGenre') }}</span>
             <JwInput :model-value="project.project.genre"
               @update:model-value="(v) => setMeta('genre', v)" placeholder="Literary, mystery, sci-fi…" />
-            <span class="t-muted">Started</span>
+            <span class="t-muted">{{ $t('settings.project.fieldStarted') }}</span>
             <JwInput :model-value="project.project.startedOn"
               @update:model-value="(v) => setMeta('startedOn', v)" placeholder="e.g. March 11, 2026" />
-            <span class="t-muted">Deadline</span>
+            <span class="t-muted">{{ $t('settings.project.fieldDeadline') }}</span>
             <JwInput :model-value="project.project.deadline"
               @update:model-value="(v) => setMeta('deadline', v)" placeholder="e.g. December 1, 2026" />
-            <span class="t-muted" style="align-self:start;padding-top:6px">Premise</span>
+            <span class="t-muted" style="align-self:start;padding-top:6px">{{ $t('settings.project.fieldPremise') }}</span>
             <JwTextarea auto-resize rows="3" :model-value="project.project.premise"
               @update:model-value="(v) => setMeta('premise', v)"
               placeholder="One- or two-sentence pitch. Used on the Home dashboard and exports." />
           </div>
         </div>
         <div class="card">
-          <div class="card-title">Goals</div>
+          <div class="card-title">{{ $t('settings.goals.cardTitle') }}</div>
           <div style="display:grid;grid-template-columns:160px minmax(0,1fr);gap:10px 14px;font-size:13px;align-items:center">
-            <span class="t-muted" style="align-self:start;padding-top:8px">Word goal</span>
+            <span class="t-muted" style="align-self:start;padding-top:8px">{{ $t('settings.goals.wordGoal') }}</span>
             <div style="display:flex;flex-direction:column;align-items:flex-start;gap:4px;min-width:0">
               <JwNumber :min="0" :step="500" style="max-width:160px"
                 :model-value="project.project.wordsGoal"
                 @update:model-value="(v) => setMetaNumber('wordsGoal', v)" />
-              <span class="t-muted" style="font-size:11.5px">total words for the manuscript</span>
+              <span class="t-muted" style="font-size:11.5px">{{ $t('settings.goals.wordGoalHint') }}</span>
             </div>
-            <span class="t-muted" style="align-self:start;padding-top:8px">Daily target</span>
+            <span class="t-muted" style="align-self:start;padding-top:8px">{{ $t('settings.goals.dailyTarget') }}</span>
             <div style="display:flex;flex-direction:column;align-items:flex-start;gap:4px;min-width:0">
               <JwNumber :min="0" :step="50" style="max-width:160px"
                 :model-value="project.project.dailyTarget ?? 1200"
                 @update:model-value="(v) => setMetaNumber('dailyTarget', v)" />
-              <span class="t-muted" style="font-size:11.5px">words/day — drives the Home streak ring</span>
+              <span class="t-muted" style="font-size:11.5px">{{ $t('settings.goals.dailyTargetHint') }}</span>
             </div>
           </div>
         </div>
 
         <!-- ── Preferences (user-level, not project-specific) ─── -->
         <div class="card">
-          <div class="card-title">Preferences</div>
+          <div class="card-title">{{ $t('settings.preferences.cardTitle') }}</div>
           <div style="display:grid;grid-template-columns:160px minmax(0,1fr);gap:10px 14px;font-size:13px;align-items:center">
             <span class="t-muted" style="align-self:start;padding-top:6px">{{ $t("settings.language.label") }}</span>
             <div style="display:flex;flex-direction:column;gap:6px;min-width:0">
@@ -789,7 +808,7 @@ const recentColumns = [
 
         <!-- ── Statuses ─────────────────────────────────────── -->
         <div class="card">
-          <div class="card-title">Statuses</div>
+          <div class="card-title">{{ $t('settings.statuses.cardTitle') }}</div>
           <p class="t-muted" style="font-size:12.5px;margin:0 0 14px;line-height:1.55">
             A shared palette used by chapters, architecture, the story-world entities, and narrative strands. Each status shows in its color beside items in the sidebar. Rename, recolor, or remove freely — deleting one leaves items that used it unset.
           </p>
@@ -828,7 +847,7 @@ const recentColumns = [
 
         <!-- ── Worldbuilding categories ─────────────────────── -->
         <div class="card">
-          <div class="card-title">Worldbuilding categories</div>
+          <div class="card-title">{{ $t('settings.wbCategories.cardTitle') }}</div>
           <p class="t-muted" style="font-size:12.5px;margin:0 0 14px;line-height:1.55">
             Group your worldbuilding articles — these drive the sidebar sections and the category picker. Pick an icon and color for each. Deleting one moves its articles into another category.
           </p>
@@ -877,7 +896,7 @@ const recentColumns = [
 
         <!-- ── Cover image ──────────────────────────────────── -->
         <div class="card">
-          <div class="card-title">Cover image</div>
+          <div class="card-title">{{ $t('settings.coverImage.cardTitle') }}</div>
           <p class="t-muted" style="font-size:12.5px;margin:0 0 14px;line-height:1.55">
             Shows up as the book cover in EPUB and PDF exports. Recommended size: 1600 × 2400 px (2:3 ratio), JPEG or PNG.
           </p>
@@ -925,12 +944,12 @@ const recentColumns = [
       <!-- ── AI & AUDIO ────────────────────────────── -->
       <div v-else-if="active === 'audio'" style="display:flex;flex-direction:column;gap:14px;min-width:0">
         <div class="card">
-          <div class="card-title">Defaults</div>
+          <div class="card-title">{{ $t('settings.audio.defaultsCardTitle') }}</div>
           <div style="font-size:13px;color:var(--ink-2);margin-bottom:12px">
             Pick which provider handles writing assistance (LLM) and which handles audio (TTS). Both follow the OpenAI HTTP standard — anything that speaks it works here.
           </div>
           <div style="display:grid;grid-template-columns:160px minmax(0,1fr);gap:10px 14px;align-items:center;font-size:13px">
-            <span class="t-muted">Default LLM</span>
+            <span class="t-muted">{{ $t('settings.audio.fieldDefaultLlm') }}</span>
             <Combobox
               :model-value="ai.defaultLlmId"
               @update:model-value="ai.setDefaultLlm"
@@ -939,7 +958,7 @@ const recentColumns = [
               :searchable="false"
               placeholder="Pick a provider"
               chev-title="Choose default LLM provider" />
-            <span class="t-muted">Default TTS</span>
+            <span class="t-muted">{{ $t('settings.audio.fieldDefaultTts') }}</span>
             <Combobox
               :model-value="ai.defaultTtsId"
               @update:model-value="ai.setDefaultTts"
@@ -948,7 +967,7 @@ const recentColumns = [
               :searchable="false"
               placeholder="Pick a provider"
               chev-title="Choose default TTS provider" />
-            <span class="t-muted">Default embedding</span>
+            <span class="t-muted">{{ $t('settings.audio.fieldDefaultEmbedding') }}</span>
             <Combobox
               :model-value="ai.defaultEmbeddingId"
               @update:model-value="chooseDefaultEmbedding"
@@ -957,7 +976,7 @@ const recentColumns = [
               :searchable="false"
               placeholder="Pick a provider"
               chev-title="Choose default embedding provider" />
-            <span class="t-muted">Auto-rebuild RAG</span>
+            <span class="t-muted">{{ $t('settings.audio.fieldAutoRebuild') }}</span>
             <label style="display:flex;align-items:center;gap:8px;cursor:pointer">
               <JwCheckbox :model-value="ai.autoRebuildRagIndex"
                 @update:model-value="ai.setAutoRebuildRagIndex" />
@@ -969,7 +988,7 @@ const recentColumns = [
         </div>
 
         <div class="card">
-          <div class="card-title">Feature routing</div>
+          <div class="card-title">{{ $t('settings.audio.routingCardTitle') }}</div>
           <p class="t-muted" style="font-size:12.5px;margin:0 0 14px;line-height:1.55">
             The AI layer acts as an aggregator: each feature can route to any configured provider and model independently. Pick "Inherit default" to fall back to the global Default LLM above. The model list is fetched live from the provider — it'll be empty until you save an API key (or for local providers, until the server is reachable).
           </p>
@@ -1011,9 +1030,9 @@ const recentColumns = [
 
         <div class="card">
           <div style="display:flex;align-items:center;gap:10px;margin-bottom:10px">
-            <div class="card-title" style="margin:0">Providers</div>
+            <div class="card-title" style="margin:0">{{ $t('settings.audio.providersCardTitle') }}</div>
             <span class="t-muted" style="font-size:12px">{{ ai.providers.length }} configured</span>
-            <JwButton label="Add provider" intent="primary" size="small" style="margin-left:auto" @click="startNew">
+            <JwButton :label="$t('settings.audio.addProvider')" intent="primary" size="small" style="margin-left:auto" @click="startNew">
               <template #icon><Icon name="Plus" :size="12" /></template>
             </JwButton>
           </div>
@@ -1096,8 +1115,8 @@ const recentColumns = [
       <div v-else-if="active === 'usage'" style="display:flex;flex-direction:column;gap:14px">
         <div class="card">
           <div class="card-title">
-            AI usage
-            <JwButton label="Reset ledger" intent="ghost" size="small" style="margin-left:auto" @click="resetUsageLog"
+            {{ $t('settings.usage.cardTitle') }}
+            <JwButton :label="$t('settings.usage.resetLedger')" intent="ghost" size="small" style="margin-left:auto" @click="resetUsageLog"
               v-tooltip.bottom="'Clear every recorded call. Future calls start tallying from zero.'" />
           </div>
           <p class="t-muted" style="font-size:12.5px;margin:0 0 14px;line-height:1.55">
@@ -1122,7 +1141,7 @@ const recentColumns = [
 
             <!-- By feature -->
             <div class="usage-section">
-              <div class="usage-section-h">By feature</div>
+              <div class="usage-section-h">{{ $t('settings.usage.byFeature') }}</div>
               <JwTable :data="usageByFeature" data-key="key" :columns="byFeatureColumns" class="usage-dt">
                 <template #calls="{ value }">{{ value.toLocaleString() }}</template>
                 <template #promptTokens="{ value }">{{ value.toLocaleString() }}</template>
@@ -1133,7 +1152,7 @@ const recentColumns = [
 
             <!-- By provider -->
             <div class="usage-section">
-              <div class="usage-section-h">By provider</div>
+              <div class="usage-section-h">{{ $t('settings.usage.byProvider') }}</div>
               <JwTable :data="usageByProvider" data-key="key" :columns="byProviderColumns" class="usage-dt">
                 <template #key="{ value }">{{ providerLabel(value) }}</template>
                 <template #calls="{ value }">{{ value.toLocaleString() }}</template>
@@ -1146,7 +1165,7 @@ const recentColumns = [
             <!-- Recent calls -->
             <div class="usage-section">
               <div class="usage-section-h">
-                Recent calls
+                {{ $t('settings.usage.recentCalls') }}
                 <span class="t-muted" style="font-weight:400;font-size:11px;margin-left:6px">{{ recentUsageRows.length }}</span>
               </div>
               <div class="wb-toolbar" style="margin-bottom:10px">
@@ -1180,8 +1199,8 @@ const recentColumns = [
 
         <!-- Presets -->
         <div class="card">
-          <div class="card-title">Theme preset
-            <JwButton label="Reset to defaults" intent="ghost" size="small" style="margin-left:auto" @click="resetAppearance"
+          <div class="card-title">{{ $t('settings.appearance.presetCardTitle') }}
+            <JwButton :label="$t('settings.appearance.resetToDefaults')" intent="ghost" size="small" style="margin-left:auto" @click="resetAppearance"
               v-tooltip.bottom="'Reset every appearance setting to the default look'">
               <template #icon><Icon name="Refresh" :size="12" /></template>
             </JwButton>
@@ -1218,7 +1237,7 @@ const recentColumns = [
         <!-- Preview — sits right under the preset row so a preset click
              is immediately reflected without scrolling. -->
         <div class="card">
-          <div class="card-title">Preview</div>
+          <div class="card-title">{{ $t('settings.appearance.previewCardTitle') }}</div>
           <div class="appear-preview" :data-layout="ap.editorLayout">
             <div class="ap-side">
               <div class="ap-brand">JustWrite</div>
@@ -1247,7 +1266,7 @@ const recentColumns = [
 
         <!-- Mode -->
         <div class="card">
-          <div class="card-title">Mode</div>
+          <div class="card-title">{{ $t('settings.appearance.modeCardTitle') }}</div>
           <div class="settings-mode-grid" style="display:grid;grid-template-columns:repeat(3, minmax(0, 1fr));gap:10px" role="radiogroup" aria-label="Theme">
             <button v-for="t in THEMES" :key="t.id"
               role="radio" :aria-checked="ap.mode === t.id"
@@ -1267,7 +1286,7 @@ const recentColumns = [
 
         <!-- Typography -->
         <div class="card">
-          <div class="card-title">Typography</div>
+          <div class="card-title">{{ $t('settings.appearance.typographyCardTitle') }}</div>
           <p class="t-muted" style="font-size:12px;margin:0 0 12px">Choose the typeface for each part of the app, scale the overall size, and tune the sidebar's heading + menu styles.</p>
           <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(190px,1fr));gap:10px">
             <button v-for="p in PAIRINGS" :key="p.id"
@@ -1303,61 +1322,51 @@ const recentColumns = [
           </div>
           <div class="size-row">
             <span class="field-l">Size</span>
-            <div class="size-seg" role="radiogroup" aria-label="UI scale">
-              <button v-for="s in UI_SCALES" :key="s.value"
-                role="radio" :aria-checked="ap.uiScale === s.value"
-                :class="{ active: ap.uiScale === s.value }"
-                @click="setAp({ uiScale: s.value })">
-                <b>{{ s.label }}</b><span>{{ Math.round(s.value * 100) }}%</span>
-              </button>
-            </div>
+            <JwSegmented
+              class="size-seg"
+              :model-value="ap.uiScale"
+              :options="UI_SCALE_OPTIONS"
+              aria-label="UI scale"
+              @update:model-value="setAp({ uiScale: $event })" />
             <p class="size-hint">Scales every label, control, and the prose together.</p>
           </div>
           <div class="size-row">
             <span class="field-l">Section heading</span>
-            <div class="size-seg" role="radiogroup" aria-label="Sidebar heading style">
-              <button v-for="s in SIDEBAR_HEADING_STYLE_LIST" :key="s.key"
-                role="radio" :aria-checked="ap.sidebarHeadingStyle === s.key"
-                :class="{ active: ap.sidebarHeadingStyle === s.key }"
-                @click="setAp({ sidebarHeadingStyle: s.key })">
-                <b>{{ s.label }}</b>
-              </button>
-            </div>
-            <div class="size-seg size-seg-narrow" role="radiogroup" aria-label="Sidebar heading size">
-              <button v-for="s in SIDEBAR_HEADING_SIZES" :key="s.value"
-                role="radio" :aria-checked="ap.sidebarHeadingSize === s.value"
-                :class="{ active: ap.sidebarHeadingSize === s.value }"
-                @click="setAp({ sidebarHeadingSize: s.value })">
-                <b>{{ s.label }}</b>
-              </button>
-            </div>
+            <JwSegmented
+              class="size-seg"
+              :model-value="ap.sidebarHeadingStyle"
+              :options="SH_STYLE_OPTIONS"
+              aria-label="Sidebar heading style"
+              @update:model-value="setAp({ sidebarHeadingStyle: $event })" />
+            <JwSegmented
+              class="size-seg size-seg-narrow"
+              :model-value="ap.sidebarHeadingSize"
+              :options="SH_SIZE_OPTIONS"
+              aria-label="Sidebar heading size"
+              @update:model-value="setAp({ sidebarHeadingSize: $event })" />
             <p class="size-hint">The small labels that group the sidebar nav (e.g. <em>Manuscript</em>, <em>Story world</em>).</p>
           </div>
           <div class="size-row">
             <span class="field-l">Menu item</span>
-            <div class="size-seg" role="radiogroup" aria-label="Menu item style">
-              <button v-for="s in NAV_ITEM_STYLE_LIST" :key="s.key"
-                role="radio" :aria-checked="ap.navItemStyle === s.key"
-                :class="{ active: ap.navItemStyle === s.key }"
-                @click="setAp({ navItemStyle: s.key })">
-                <b>{{ s.label }}</b>
-              </button>
-            </div>
-            <div class="size-seg size-seg-narrow" role="radiogroup" aria-label="Menu item size">
-              <button v-for="s in NAV_ITEM_SIZES" :key="s.value"
-                role="radio" :aria-checked="ap.navItemSize === s.value"
-                :class="{ active: ap.navItemSize === s.value }"
-                @click="setAp({ navItemSize: s.value })">
-                <b>{{ s.label }}</b>
-              </button>
-            </div>
+            <JwSegmented
+              class="size-seg"
+              :model-value="ap.navItemStyle"
+              :options="NAV_STYLE_OPTIONS"
+              aria-label="Menu item style"
+              @update:model-value="setAp({ navItemStyle: $event })" />
+            <JwSegmented
+              class="size-seg size-seg-narrow"
+              :model-value="ap.navItemSize"
+              :options="NAV_SIZE_OPTIONS"
+              aria-label="Menu item size"
+              @update:model-value="setAp({ navItemSize: $event })" />
             <p class="size-hint">Each sidebar entry — <em>Home</em>, <em>Chapters</em>, <em>Characters</em>, and so on.</p>
           </div>
         </div>
 
         <!-- Accents (primary + second) -->
         <div class="card">
-          <div class="card-title">Accents</div>
+          <div class="card-title">{{ $t('settings.appearance.accentsCardTitle') }}</div>
           <p class="t-muted" style="font-size:12px;margin:0 0 12px">Accent drives selection, the active nav item, buttons and links. Accent 2 is the secondary — rings, rules, peak markers, and the <code>accent2</code> intent on buttons and tags.</p>
           <div class="swatch-row" role="radiogroup" aria-label="Accent">
             <span class="swatch-label">Accent</span>
@@ -1551,43 +1560,39 @@ const recentColumns = [
           <p class="t-muted" style="font-size:12px;margin:0 0 12px">Defaults for the manuscript prose — font size, line spacing, paragraph spacing, and first-line indent. Per-document choices in the editor's ⚙ Writing settings override these.</p>
           <div class="size-row">
             <span class="field-l">Font size</span>
-            <div class="size-seg" role="radiogroup" aria-label="Editor font size">
-              <button v-for="o in EDITOR_FONT_SIZES" :key="o.value"
-                role="radio" :aria-checked="ap.editorFontSize === o.value"
-                :class="{ active: ap.editorFontSize === o.value }"
-                @click="setAp({ editorFontSize: o.value })">
-                <b>{{ o.label }}</b><span>{{ o.px }}</span>
-              </button>
-            </div>
+            <JwSegmented
+              class="size-seg"
+              :model-value="ap.editorFontSize"
+              :options="FONT_SIZE_OPTIONS"
+              aria-label="Editor font size"
+              @update:model-value="setAp({ editorFontSize: $event })" />
           </div>
           <div class="size-row">
             <span class="field-l">Line spacing</span>
-            <div class="size-seg" role="radiogroup" aria-label="Line spacing">
-              <button v-for="o in EDITOR_LINE_OPTIONS" :key="o"
-                role="radio" :aria-checked="ap.editorLineSpacing === o"
-                :class="{ active: ap.editorLineSpacing === o }"
-                @click="setAp({ editorLineSpacing: o })">
-                <b>{{ o }}</b>
-              </button>
-            </div>
+            <JwSegmented
+              class="size-seg"
+              :model-value="ap.editorLineSpacing"
+              :options="LINE_OPTIONS"
+              aria-label="Line spacing"
+              @update:model-value="setAp({ editorLineSpacing: $event })" />
           </div>
           <div class="size-row">
             <span class="field-l">Paragraph spacing</span>
-            <div class="size-seg" role="radiogroup" aria-label="Paragraph spacing">
-              <button v-for="o in EDITOR_PARA_OPTIONS" :key="o"
-                role="radio" :aria-checked="ap.editorParaSpacing === o"
-                :class="{ active: ap.editorParaSpacing === o }"
-                @click="setAp({ editorParaSpacing: o })">
-                <b>{{ o === 0 ? '0' : o + 'em' }}</b>
-              </button>
-            </div>
+            <JwSegmented
+              class="size-seg"
+              :model-value="ap.editorParaSpacing"
+              :options="PARA_OPTIONS"
+              aria-label="Paragraph spacing"
+              @update:model-value="setAp({ editorParaSpacing: $event })" />
           </div>
           <div class="size-row">
             <span class="field-l">First-line indent</span>
-            <div class="size-seg" role="radiogroup" aria-label="Paragraph indent">
-              <button role="radio" :aria-checked="ap.editorParaIndent === true" :class="{ active: ap.editorParaIndent === true }" @click="setAp({ editorParaIndent: true })"><b>Indent</b></button>
-              <button role="radio" :aria-checked="ap.editorParaIndent === false" :class="{ active: ap.editorParaIndent === false }" @click="setAp({ editorParaIndent: false })"><b>No indent</b></button>
-            </div>
+            <JwSegmented
+              class="size-seg"
+              :model-value="ap.editorParaIndent"
+              :options="INDENT_OPTIONS"
+              aria-label="Paragraph indent"
+              @update:model-value="setAp({ editorParaIndent: $event })" />
           </div>
         </div>
 
@@ -1597,36 +1602,30 @@ const recentColumns = [
           <p class="t-muted" style="font-size:12px;margin:0 0 12px">Shape, padding, and label casing for every button across the app.</p>
           <div class="size-row">
             <span class="field-l">Corner radius</span>
-            <div class="size-seg" role="radiogroup" aria-label="Button corner radius">
-              <button v-for="o in BUTTON_RADIUS_OPTIONS" :key="o.value"
-                role="radio" :aria-checked="ap.btnRadius === o.value"
-                :class="{ active: ap.btnRadius === o.value }"
-                @click="setAp({ btnRadius: o.value })">
-                <b>{{ o.label }}</b>
-              </button>
-            </div>
+            <JwSegmented
+              class="size-seg"
+              :model-value="ap.btnRadius"
+              :options="BUTTON_RADIUS_OPTIONS"
+              aria-label="Button corner radius"
+              @update:model-value="setAp({ btnRadius: $event })" />
           </div>
           <div class="size-row">
             <span class="field-l">Density</span>
-            <div class="size-seg" role="radiogroup" aria-label="Button density">
-              <button v-for="o in BUTTON_DENSITY_OPTIONS" :key="o.value"
-                role="radio" :aria-checked="ap.btnDensity === o.value"
-                :class="{ active: ap.btnDensity === o.value }"
-                @click="setAp({ btnDensity: o.value })">
-                <b>{{ o.label }}</b>
-              </button>
-            </div>
+            <JwSegmented
+              class="size-seg"
+              :model-value="ap.btnDensity"
+              :options="BUTTON_DENSITY_OPTIONS"
+              aria-label="Button density"
+              @update:model-value="setAp({ btnDensity: $event })" />
           </div>
           <div class="size-row">
             <span class="field-l">Label casing</span>
-            <div class="size-seg" role="radiogroup" aria-label="Button label casing">
-              <button v-for="o in BUTTON_LABEL_CASE_OPTIONS" :key="o.value"
-                role="radio" :aria-checked="ap.btnLabelCase === o.value"
-                :class="{ active: ap.btnLabelCase === o.value }"
-                @click="setAp({ btnLabelCase: o.value })">
-                <b>{{ o.label }}</b>
-              </button>
-            </div>
+            <JwSegmented
+              class="size-seg"
+              :model-value="ap.btnLabelCase"
+              :options="BUTTON_LABEL_CASE_OPTIONS"
+              aria-label="Button label casing"
+              @update:model-value="setAp({ btnLabelCase: $event })" />
           </div>
           <div style="display:flex;gap:10px;align-items:center;margin-top:14px;padding-top:14px;border-top:1px solid var(--border-soft)">
             <span class="t-muted" style="font-size:11.5px;font-family:var(--font-mono);text-transform:uppercase;letter-spacing:0.08em">Preview</span>
@@ -1642,7 +1641,7 @@ const recentColumns = [
       <!-- ── BACKUPS ───────────────────────────────── -->
       <div v-else-if="active === 'backups'" style="display:flex;flex-direction:column;gap:14px">
         <div v-if="autosaveDir" class="card">
-          <div class="card-title">Auto-save to disk</div>
+          <div class="card-title">{{ $t('settings.backups.autosaveCardTitle') }}</div>
           <p class="t-muted" style="font-size:12.5px;margin:0 0 12px;line-height:1.55">
             Every edit is also mirrored to a JSON file on disk within ~10s. Two prior generations
             are kept (<code>.prev.json</code> / <code>.prev2.json</code>) so a bad write or accidental
@@ -1684,7 +1683,7 @@ const recentColumns = [
         </div>
 
         <div class="card">
-          <div class="card-title">Snapshot</div>
+          <div class="card-title">{{ $t('settings.backups.snapshotCardTitle') }}</div>
           <p class="t-muted" style="font-size:12.5px;margin:0 0 14px;line-height:1.55">
             Your work auto-saves to this device's local storage on every change. To survive a browser reset
             or move between machines, export a JSON snapshot — it includes every chapter body, every character, the trash bin, and your cast assignments.
@@ -1712,7 +1711,7 @@ const recentColumns = [
         </div>
 
         <div class="card danger-card">
-          <div class="card-title" style="color: var(--danger-ink)">Danger zone</div>
+          <div class="card-title" style="color: var(--danger-ink)">{{ $t('settings.backups.dangerCardTitle') }}</div>
           <p class="t-muted" style="font-size:12.5px;margin:0 0 12px;line-height:1.55">
             Wipes every <code>justwrite:*</code> key from IndexedDB — project, history, AI providers, voice cast, sessions — and reloads with the demo seed. Take a backup first.
           </p>
@@ -1725,22 +1724,22 @@ const recentColumns = [
       <!-- ── DEBUG ─────────────────────────────────── -->
       <div v-else-if="active === 'debug'" style="display:flex;flex-direction:column;gap:14px">
         <div class="card">
-          <div class="card-title">Debug tools</div>
+          <div class="card-title">{{ $t('settings.debug.cardTitle') }}</div>
           <p style="font-size:12.5px;color:var(--muted);margin:0 0 12px;line-height:1.5">
             Internal lab views for testing pipelines and inspecting state. Hidden from the sidebar — reach them from here.
           </p>
           <div class="debug-tools">
             <router-link
-              v-for="t in DEBUG_TOOLS"
-              :key="t.id"
-              :to="t.route"
+              v-for="tool in DEBUG_TOOLS"
+              :key="tool.id"
+              :to="tool.route"
               class="debug-tile"
             >
-              <span class="debug-tile-icon"><Icon :name="t.icon" :size="18" /></span>
+              <span class="debug-tile-icon"><Icon :name="tool.icon" :size="18" /></span>
               <span class="debug-tile-body">
-                <b>{{ t.name }}</b>
-                <span class="t-muted">{{ t.description }}</span>
-                <code class="debug-tile-route">#{{ t.route }}</code>
+                <b>{{ tool.name }}</b>
+                <span class="t-muted">{{ tool.description }}</span>
+                <code class="debug-tile-route">#{{ tool.route }}</code>
               </span>
               <Icon name="ChevRight" :size="14" />
             </router-link>
@@ -1751,7 +1750,7 @@ const recentColumns = [
       <!-- ── ABOUT ─────────────────────────────────── -->
       <div v-else-if="active === 'about'" style="display:flex;flex-direction:column;gap:14px">
         <div class="card">
-          <div class="card-title">JustWrite</div>
+          <div class="card-title">{{ $t('settings.about.appCardTitle') }}</div>
           <p style="font-size:13px;margin:0 0 12px;line-height:1.6">
             A local-first writing studio for novels — chapters, cast, world, and audio rendering, all stored on your machine.
           </p>
@@ -1763,7 +1762,7 @@ const recentColumns = [
         </div>
 
         <div class="card">
-          <div class="card-title">This workspace</div>
+          <div class="card-title">{{ $t('settings.about.workspaceCardTitle') }}</div>
           <div class="settings-stats-grid" style="display:grid;grid-template-columns:repeat(3, minmax(0, 1fr));gap:14px">
             <div class="stat-tile">
               <div class="stat-num">{{ stats.chapters }}</div>
@@ -1793,7 +1792,7 @@ const recentColumns = [
         </div>
 
         <div class="card">
-          <div class="card-title">Keyboard shortcuts</div>
+          <div class="card-title">{{ $t('settings.about.shortcutsCardTitle') }}</div>
           <div style="display:grid;grid-template-columns:auto 1fr;gap:8px 18px;font-size:12.5px">
             <kbd class="kbd-pill">⌘F</kbd><span>Focus search</span>
             <kbd class="kbd-pill">⌘\</kbd><span>Toggle sidebar</span>
@@ -1924,27 +1923,28 @@ const recentColumns = [
 }
 .tint-swatch.tint-custom :deep(svg) { color: #fff; filter: drop-shadow(0 0 1px rgba(0,0,0,.5)); }
 
-/* UI size segmented control (Typography → Size) */
+/* UI size segmented control (Typography → Size, Editor writing, Buttons)
+   .size-seg is placed as a class on <JwSegmented>. The root element of
+   JwSegmented is .jw-seg (styled in JwSegmented.vue); we use :deep() to
+   override the button layout to a vertical column stack with a sublabel row,
+   matching the original bespoke design without touching JwSegmented.vue. */
 .size-row { display: flex; align-items: center; gap: 12px; margin-top: 14px; flex-wrap: wrap; }
 .size-seg {
-  display: inline-flex; flex: 1; min-width: 280px;
-  padding: 2px; gap: 2px;
-  border: 1px solid var(--border); border-radius: 9px; background: var(--surface-2);
+  flex: 1; min-width: 280px;
+  border-radius: 9px;
 }
-.size-seg button {
+.size-seg :deep(button) {
   flex: 1;
-  display: flex; flex-direction: column; align-items: center; gap: 1px;
-  padding: 6px 4px; border: 0; border-radius: 7px;
-  background: transparent; color: var(--ink-2); cursor: pointer;
+  flex-direction: column; align-items: center; gap: 1px;
+  padding: 6px 4px;
 }
-.size-seg button:hover { background: var(--surface-3); color: var(--ink); }
-.size-seg button.active {
-  background: var(--surface); color: var(--accent-ink);
+.size-seg :deep(button.active) {
+  color: var(--accent-ink);
   box-shadow: 0 0 0 1px var(--border), 0 1px 2px rgba(0, 0, 0, .04);
 }
-.size-seg button b { font-size: 12px; }
-.size-seg button span { font-size: 10px; color: var(--muted); }
-.size-seg button.active span { color: var(--accent-ink); opacity: .8; }
+.size-seg :deep(button b) { font-size: 12px; }
+.size-seg :deep(button span) { font-size: 10px; color: var(--muted); }
+.size-seg :deep(button.active span) { color: var(--accent-ink); opacity: .8; }
 .size-seg-narrow { min-width: 0; flex: 0 1 auto; }
 
 /* Pairing tiles */

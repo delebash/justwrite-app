@@ -8,6 +8,7 @@ import { NEW_ENTITY_META } from "../services/entityMeta.js";
 import Icon from "./Icon.vue";
 import JwButton from "@renderer/components/ui/JwButton.vue";
 import JwInput from "@renderer/components/ui/JwInput.vue";
+import { useRovingTabindex } from "@renderer/composables/useRovingTabindex.js";
 
 const ui = useUiStore();
 const project = useProjectStore();
@@ -358,6 +359,82 @@ function filteredGroups(parentId) {
   return groups
     .map((g) => ({ ...g, items: g.items.filter((c) => c.label.toLowerCase().includes(filter)) }))
     .filter((g) => g.items.length > 0);
+}
+
+// ── Roving tabindex for section item lists ───────────────────────
+// One composable instance per section. Created lazily on first access.
+// Each instance manages focus within a flat list of all visible items
+// for that section (across subgroups).
+const _sectionRoving = new Map();
+
+function _getSectionRoving(sectionId) {
+  if (!_sectionRoving.has(sectionId)) {
+    const length = computed(() => _flatItems(sectionId).length);
+    const instance = useRovingTabindex({
+      length,
+      orientation: "vertical",
+      loop: false,
+      onActivate: (i) => {
+        const item = _flatItems(sectionId)[i];
+        if (item) clickChild(sectionId, item.id);
+      },
+    });
+    _sectionRoving.set(sectionId, instance);
+  }
+  return _sectionRoving.get(sectionId);
+}
+
+// Return a flat ordered array of visible nav-child items for a given
+// section. Mirrors the v-for rendering order so flat index is stable.
+// For 'chapters': items are chapters (not scenes — scenes are a sub-level
+// that operates outside this group for now).
+// For 'worldbuilding': only items in expanded categories are included.
+// For all others: all items from filteredGroups.
+function _flatItems(sectionId) {
+  const groups = filteredGroups(sectionId);
+  if (sectionId === "worldbuilding") {
+    const flat = [];
+    for (const g of groups) {
+      if (isWbCatExpanded(g.subgroupId)) {
+        for (const a of g.items) flat.push(a);
+      }
+    }
+    return flat;
+  }
+  const flat = [];
+  for (const g of groups) {
+    for (const item of g.items) flat.push(item);
+  }
+  return flat;
+}
+
+// Return the flat index of an item within its section.
+// Returns -1 if not found (safely handled in getTabindex / onKeydown).
+function _itemFlatIndex(sectionId, itemId) {
+  return _flatItems(sectionId).findIndex((it) => it.id === itemId);
+}
+
+// Tabindex for a nav-child item (0 = in tab order; -1 = roving-managed).
+function navChildTabindex(sectionId, itemId) {
+  const roving = _getSectionRoving(sectionId);
+  const i = _itemFlatIndex(sectionId, itemId);
+  if (i < 0) return -1;
+  return roving.getTabindex(i);
+}
+
+// Keydown handler for nav-child items.
+function navChildKeydown(sectionId, itemId, e) {
+  const i = _itemFlatIndex(sectionId, itemId);
+  if (i < 0) return;
+  const roving = _getSectionRoving(sectionId);
+  roving.onKeydown(e, i);
+}
+
+// Register a nav-child element with its section's composable.
+function navChildRef(sectionId, itemId, el) {
+  const i = _itemFlatIndex(sectionId, itemId);
+  if (i < 0) return;
+  _getSectionRoving(sectionId).registerItem(i, el);
 }
 
 // ── Drag-and-drop reorder ────────────────────────────────────────
@@ -731,21 +808,21 @@ function wbDropClass(kind, id) {
                 :modelValue="ui.filters[n.id] || ''"
                 @update:modelValue="ui.setFilter(n.id, $event)"
                 @click.stop />
-              <button v-if="n.expandable === 'chapters'" class="nav-add" v-tooltip.bottom="'New part'"
+              <JwButton v-if="n.expandable === 'chapters'" intent="ghost" class="nav-add" v-tooltip.bottom="'New part'"
                 aria-label="New part"
                 @click.stop="addPart">
-                <Icon name="Plus" :size="11" />
-              </button>
-              <button v-else-if="n.expandable === 'worldbuilding'" class="nav-add" v-tooltip.bottom="'New category'"
+                <template #icon><Icon name="Plus" :size="11" /></template>
+              </JwButton>
+              <JwButton v-else-if="n.expandable === 'worldbuilding'" intent="ghost" class="nav-add" v-tooltip.bottom="'New category'"
                 aria-label="New category"
                 @click.stop="addWbCategory">
-                <Icon name="Plus" :size="11" />
-              </button>
-              <button v-else-if="!n.fixed" class="nav-add" v-tooltip.bottom="`New ${n.label.toLowerCase().replace(/s$/, '')}`"
+                <template #icon><Icon name="Plus" :size="11" /></template>
+              </JwButton>
+              <JwButton v-else-if="!n.fixed" intent="ghost" class="nav-add" v-tooltip.bottom="`New ${n.label.toLowerCase().replace(/s$/, '')}`"
                 :aria-label="`New ${n.label.toLowerCase().replace(/s$/, '')}`"
                 @click.stop="addItem(n.expandable)">
-                <Icon name="Plus" :size="11" />
-              </button>
+                <template #icon><Icon name="Plus" :size="11" /></template>
+              </JwButton>
             </div>
             <!-- Chapters section: parts + chapters with drag-to-reorder. -->
             <template v-if="n.expandable === 'chapters'">
@@ -767,41 +844,44 @@ function wbDropClass(kind, id) {
                     @click.stop
                     @keydown.enter.prevent="$event.target.blur()" />
                   <div class="part-actions">
-                    <button class="part-action" v-tooltip.bottom="'Add chapter to this part'"
+                    <JwButton intent="ghost" class="part-action" v-tooltip.bottom="'Add chapter to this part'"
                       aria-label="Add chapter to this part"
                       @click.stop="addChapterInPart(g.partId)">
-                      <Icon name="Plus" :size="11" />
-                    </button>
+                      <template #icon><Icon name="Plus" :size="11" /></template>
+                    </JwButton>
                   </div>
                 </div>
                 <template v-for="c in g.items" :key="c.id">
                   <div class="nav-child chapter-row"
+                    :ref="(el) => navChildRef(n.id, c.id, el)"
                     :class="[{ sel: ui.selections[n.id] === c.id && activeSection === n.id }, dropClass('chapter', c.id)]"
                     style="grid-template-columns: auto auto 1fr auto auto auto"
+                    :tabindex="navChildTabindex(n.id, c.id)"
                     draggable="true"
                     @click="clickChild(n.id, c.id)"
                     @dblclick="toggleChapterExpand(c.id)"
+                    @keydown="navChildKeydown(n.id, c.id, $event)"
                     @dragstart.stop="onDragStart('chapter', c.id, $event, { fromPartId: c.partId })"
                     @dragover="onDragOverChapter(c.id, $event)"
                     @drop="onDropChapter(c.id, c.partId)"
                     @dragend="onDragEnd">
-                    <button class="chapter-chev" :class="{ open: isChapterExpanded(c.id) }"
+                    <JwButton intent="ghost" class="chapter-chev" :class="{ open: isChapterExpanded(c.id) }"
                       v-tooltip.bottom="isChapterExpanded(c.id) ? 'Collapse scenes' : 'Show scenes'"
                       :aria-label="isChapterExpanded(c.id) ? 'Collapse scenes' : 'Show scenes'"
                       :aria-expanded="isChapterExpanded(c.id)"
                       @mousedown.stop
                       @click.stop="toggleChapterExpand(c.id)">
-                      <Icon name="ChevRight" :size="14" />
-                    </button>
+                      <template #icon><Icon name="ChevRight" :size="14" /></template>
+                    </JwButton>
                     <span class="nav-child-num">{{ c.num }}</span>
                     <span class="nav-child-label">{{ c.label }}</span>
                     <span class="nav-child-sub t-num">{{ c.words ? c.words.toLocaleString() : '' }}</span>
                     <span class="nav-child-status" :style="c.statusColor ? { color: c.statusColor } : null">{{ c.statusLabel }}</span>
-                    <button class="chapter-add-scene" v-tooltip.bottom="'Add scene to this chapter'"
+                    <JwButton intent="ghost" class="chapter-add-scene" v-tooltip.bottom="'Add scene to this chapter'"
                       aria-label="Add scene to this chapter"
                       @click.stop="addSceneToChapter(c.id)">
-                      <Icon name="Plus" :size="11" />
-                    </button>
+                      <template #icon><Icon name="Plus" :size="11" /></template>
+                    </JwButton>
                   </div>
                   <template v-if="isChapterExpanded(c.id)">
                     <div v-for="(scn, si) in scenesForChapter(c.id)" :key="scn.id"
@@ -840,14 +920,14 @@ function wbDropClass(kind, id) {
                   @drop="onWbDropCat(g.subgroupId)"
                   @dragend="onWbDragEnd"
                   @dblclick="toggleWbCat(g.subgroupId)">
-                  <button class="wb-cat-chev" :class="{ open: isWbCatExpanded(g.subgroupId) }"
+                  <JwButton intent="ghost" class="wb-cat-chev" :class="{ open: isWbCatExpanded(g.subgroupId) }"
                     v-tooltip.bottom="isWbCatExpanded(g.subgroupId) ? 'Collapse' : 'Expand'"
                     :aria-label="isWbCatExpanded(g.subgroupId) ? `Collapse ${g.group}` : `Expand ${g.group}`"
                     :aria-expanded="isWbCatExpanded(g.subgroupId)"
                     @mousedown.stop
                     @click.stop="toggleWbCat(g.subgroupId)">
-                    <Icon name="ChevRight" :size="10" />
-                  </button>
+                    <template #icon><Icon name="ChevRight" :size="10" /></template>
+                  </JwButton>
                   <Icon name="DragHandle" :size="11" class="drag-handle" />
                   <input class="nav-part-title"
                     :value="g.group"
@@ -859,26 +939,29 @@ function wbDropClass(kind, id) {
                     @dblclick.stop
                     @keydown.enter.prevent="$event.target.blur()" />
                   <div class="part-actions">
-                    <button class="part-action" v-tooltip.bottom="'Add article to this category'"
+                    <JwButton intent="ghost" class="part-action" v-tooltip.bottom="'Add article to this category'"
                       aria-label="Add article to this category"
                       @click.stop="addArticleInCat(g.subgroupId)">
-                      <Icon name="Plus" :size="11" />
-                    </button>
-                    <button v-if="project.worldbuildingCategories.length > 1" class="part-action part-action-danger"
+                      <template #icon><Icon name="Plus" :size="11" /></template>
+                    </JwButton>
+                    <JwButton v-if="project.worldbuildingCategories.length > 1" intent="ghost" class="part-action part-action-danger"
                       v-tooltip.bottom="'Delete this category'"
                       :aria-label="`Delete category ${g.group}`"
                       @click.stop="deleteWbCat(g.subgroupId, g.group)">
-                      <Icon name="Trash" :size="11" />
-                    </button>
+                      <template #icon><Icon name="Trash" :size="11" /></template>
+                    </JwButton>
                   </div>
                 </div>
                 <template v-if="isWbCatExpanded(g.subgroupId)">
                   <div v-for="a in g.items" :key="a.id"
+                    :ref="(el) => navChildRef(n.id, a.id, el)"
                     class="nav-child"
                     :class="[{ sel: ui.selections[n.id] === a.id && activeSection === n.id }, wbDropClass('wbart', a.id)]"
                     style="grid-template-columns: 1fr auto"
+                    :tabindex="navChildTabindex(n.id, a.id)"
                     draggable="true"
                     @click="clickChild(n.id, a.id)"
+                    @keydown="navChildKeydown(n.id, a.id, $event)"
                     @dragstart.stop="onWbDragStart('wbart', a.id, $event, { fromCat: g.subgroupId })"
                     @dragover="onWbDragOverArt(a.id, $event)"
                     @drop="onWbDropArt(a.id, g.subgroupId)"
@@ -898,11 +981,14 @@ function wbDropClass(kind, id) {
               <template v-for="(g, gi) in filteredGroups(n.id)" :key="gi">
                 <div v-if="g.group" class="nav-subgroup">{{ g.group }}</div>
                 <div v-for="c in g.items" :key="c.id"
+                  :ref="(el) => navChildRef(n.id, c.id, el)"
                   class="nav-child"
                   :class="[{ sel: ui.selections[n.id] === c.id && activeSection === n.id }, n.fixed ? null : itemDropClass(n.expandable, c.id)]"
                   :style="{ gridTemplateColumns: c.color ? 'auto 1fr auto' : '1fr auto' }"
+                  :tabindex="navChildTabindex(n.id, c.id)"
                   :draggable="!n.fixed"
                   @click="clickChild(n.id, c.id)"
+                  @keydown="navChildKeydown(n.id, c.id, $event)"
                   @dragstart.stop="!n.fixed && onItemDragStart(n.expandable, c.id, c.subgroupId, $event)"
                   @dragover="!n.fixed && onItemDragOver(n.expandable, c.id, c.subgroupId, $event)"
                   @drop="!n.fixed && onItemDrop(n.expandable, c.id)"
@@ -946,7 +1032,9 @@ function wbDropClass(kind, id) {
 <style>
 /* Worldbuilding category header collapse chevron — inline (flex) rather
    than the absolutely-positioned chapter-chev, since the header row is a
-   flexbox. Icon is decorative so pointer events pass to the button. */
+   flexbox. Icon is decorative so pointer events pass to the button.
+   Now rendered as JwButton intent="ghost"; overrides below restore the
+   sidebar-specific dimensions and muted idle color. */
 .wb-cat-chev {
   width: 14px; height: 16px;
   flex-shrink: 0;
@@ -960,6 +1048,17 @@ function wbDropClass(kind, id) {
 .wb-cat-chev * { pointer-events: none; }
 .wb-cat-chev:hover { background: var(--surface-3); color: var(--ink); }
 .wb-cat-chev.open { transform: rotate(90deg); color: var(--ink-2); }
+
+/* When the bespoke sidebar icon-buttons are rendered as JwButton, the
+   .jw-btn base and .jw-btn--ghost rules arrive later in the stylesheet
+   and would override the sidebar-specific dimensions (padding, color).
+   These double-class selectors restore the intended values without
+   touching tokens.css. */
+.jw-btn.wb-cat-chev        { padding: 0; color: var(--muted); }
+.jw-btn.chapter-chev       { padding: 0; color: var(--muted); }
+.jw-btn.chapter-add-scene  { padding: 0; color: var(--muted); }
+.jw-btn.part-action        { padding: 0; color: var(--muted); }
+.jw-btn.nav-add            { padding: 0; color: var(--muted); }
 
 .project-switcher-wrap { position: relative; }
 .project-switcher { cursor: pointer; text-align: left; width: calc(100% - 20px); }

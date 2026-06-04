@@ -1,5 +1,5 @@
 <script setup>
-import { computed } from "vue";
+import { computed, ref } from "vue";
 import { useProjectStore } from "../stores/project.js";
 import { useRouter } from "vue-router";
 import PaneHeader from "../components/PaneHeader.vue";

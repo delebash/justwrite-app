@@ -18,6 +18,7 @@ import { stitchChapter, splitChapter } from "../services/chapterStitch.js";
 import { EDITOR_TOOLBAR_FULL } from "../services/editorToolbars.js";
 import JwButton from "@renderer/components/ui/JwButton.vue";
 import JwSelect from "@renderer/components/ui/JwSelect.vue";
+import JwSegmented from "@renderer/components/ui/JwSegmented.vue";
 
 const props = defineProps({
   id: { type: String, default: "" },
@@ -51,10 +52,14 @@ const linksOpen = ref(false);
 const versionsOpen = ref(false);
 const critiqueOpen = ref(false);
 const MODES = [
-  { id: "edit",    label: "Edit",    icon: "Quote" },
-  { id: "outline", label: "Outline", icon: "List" },
-  { id: "cards",   label: "Cards",   icon: "Grid" },
-  { id: "read",    label: "Read",    icon: "Eye" },
+  { value: "edit",    label: "Edit",    icon: "Quote" },
+  { value: "outline", label: "Outline", icon: "List" },
+  { value: "cards",   label: "Cards",   icon: "Grid" },
+  { value: "read",    label: "Read",    icon: "Eye" },
+];
+const READ_SCOPE_OPTIONS = [
+  { value: "chapter",  label: "Chapter",   icon: "Book",  tooltip: "Read one chapter at a time" },
+  { value: "book",     label: "Whole book", icon: "List", tooltip: "Read the whole book in one continuous page" },
 ];
 
 const selectedId = computed(() => props.id || ui.selections.chapters || project.allChapters[0]?.id);
@@ -564,15 +569,18 @@ watch(() => project.allChapters.map((c) => c.id + ":" + (project.scenesFor(c.id)
         @input="updateTitle(ch.id, $event.target.value)" />
     </div>
     <div class="pane-actions">
-      <div class="seg-toggle" role="radiogroup" aria-label="View mode">
-        <button v-for="m in MODES" :key="m.id"
-          role="radio" :aria-checked="mode === m.id"
-          :class="{ active: mode === m.id }"
-          @click="mode = m.id">
-          <Icon :name="m.icon" :size="13" />
-          <span>{{ m.label }}</span>
-        </button>
-      </div>
+      <JwSegmented
+        class="seg-toggle"
+        :model-value="mode"
+        :options="MODES"
+        option-value="value"
+        aria-label="View mode"
+        @update:model-value="mode = $event">
+        <template #option="{ option }">
+          <Icon :name="option.icon" :size="13" />
+          <span>{{ option.label }}</span>
+        </template>
+      </JwSegmented>
       <router-link v-if="prev" :to="`/chapters/${prev.id}`" custom v-slot="{ navigate }">
         <JwButton intent="ghost" size="small" @click="navigate" v-tooltip.bottom="`Ch. ${prev.num} — ${prev.title}`">
           <Icon name="ChevRight" :size="12" style="transform:rotate(180deg)" /> Prev
@@ -597,15 +605,18 @@ watch(() => project.allChapters.map((c) => c.id + ":" + (project.scenesFor(c.id)
     :eyebrow="mode === 'outline' ? 'Manuscript' : ch.partTitle"
     :title="mode === 'outline' ? 'Outline' : `Chapter ${ch.num} · ${ch.title}`">
 
-    <div class="seg-toggle" role="radiogroup" aria-label="View mode">
-      <button v-for="m in MODES" :key="m.id"
-        role="radio" :aria-checked="mode === m.id"
-        :class="{ active: mode === m.id }"
-        @click="mode = m.id">
-        <Icon :name="m.icon" :size="13" />
-        <span>{{ m.label }}</span>
-      </button>
-    </div>
+    <JwSegmented
+      class="seg-toggle"
+      :model-value="mode"
+      :options="MODES"
+      option-value="value"
+      aria-label="View mode"
+      @update:model-value="mode = $event">
+      <template #option="{ option }">
+        <Icon :name="option.icon" :size="13" />
+        <span>{{ option.label }}</span>
+      </template>
+    </JwSegmented>
     <!-- Versions + Critique are available in non-edit modes too — the
          writer often wants to critique while reading or to snapshot a
          version from the outline. Skip outline (no chapter context). -->
@@ -751,14 +762,18 @@ watch(() => project.allChapters.map((c) => c.id + ":" + (project.scenesFor(c.id)
   <div v-else-if="ch && mode === 'read'" class="pane-card">
    <div class="read-mode">
     <div class="read-scope-bar">
-      <div class="seg-toggle" role="radiogroup" aria-label="Read scope">
-        <button role="radio" :aria-checked="readScope === 'chapter'" :class="{ active: readScope === 'chapter' }" @click="readScope = 'chapter'" v-tooltip.bottom="'Read one chapter at a time'">
-          <Icon name="Book" :size="12" /><span>Chapter</span>
-        </button>
-        <button role="radio" :aria-checked="readScope === 'book'" :class="{ active: readScope === 'book' }" @click="readScope = 'book'" v-tooltip.bottom="'Read the whole book in one continuous page'">
-          <Icon name="List" :size="12" /><span>Whole book</span>
-        </button>
-      </div>
+      <JwSegmented
+        class="seg-toggle"
+        :model-value="readScope"
+        :options="READ_SCOPE_OPTIONS"
+        option-value="value"
+        aria-label="Read scope"
+        @update:model-value="readScope = $event">
+        <template #option="{ option }">
+          <Icon :name="option.icon" :size="12" />
+          <span>{{ option.label }}</span>
+        </template>
+      </JwSegmented>
     </div>
 
     <!-- Single chapter: existing prev/next paging. -->
@@ -977,23 +992,15 @@ watch(() => project.allChapters.map((c) => c.id + ":" + (project.scenesFor(c.id)
 .chapter-name:hover { border-color: var(--border-soft); }
 .chapter-name:focus { border-color: var(--accent); background: var(--surface); box-shadow: 0 0 0 3px var(--accent-soft); }
 
-.seg-toggle {
-  display: inline-flex;
-  background: var(--surface-2);
-  border: 1px solid var(--border);
-  border-radius: 8px;
-  padding: 2px;
-  gap: 2px;
-}
-.seg-toggle button {
-  appearance: none; border: 0; background: transparent;
-  display: inline-flex; align-items: center; gap: 5px;
-  padding: 4px 10px; border-radius: 6px;
+/* JwSegmented override — matches the original .seg-toggle look */
+.seg-toggle :deep(button) {
   font-size: 11.5px; font-weight: 500;
-  color: var(--ink-2);
+  gap: 5px;
+  padding: 4px 10px;
 }
-.seg-toggle button:hover { background: var(--surface-3); color: var(--ink); }
-.seg-toggle button.active { background: var(--surface); color: var(--ink); box-shadow: var(--shadow-1), 0 0 0 1px var(--border); }
+.seg-toggle :deep(button.active) {
+  box-shadow: var(--shadow-1), 0 0 0 1px var(--border);
+}
 
 /* ── Cards / corkboard ─────────────────────────────────────── */
 .cards-pane { flex: 1; padding: 22px 28px 60px; background: var(--surface); }

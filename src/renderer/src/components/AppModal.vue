@@ -21,6 +21,7 @@
 // Emits: close (fires after the leave transition finishes)
 
 import { ref, useSlots, watch } from "vue";
+import { useI18n } from "vue-i18n";
 import {
   DialogRoot,
   DialogPortal,
@@ -31,6 +32,8 @@ import {
   VisuallyHidden,
 } from "reka-ui";
 import Icon from "./Icon.vue";
+
+const { t } = useI18n();
 
 const props = defineProps({
   eyebrow:   { type: String, default: "" },
@@ -95,7 +98,7 @@ function onOutside(e) { e.preventDefault(); }
           <DialogClose
             v-if="closable"
             class="app-modal-close"
-            aria-label="Close"
+            :aria-label="t('dialog.closeLabel')"
           >
             <Icon name="Close" :size="14" />
           </DialogClose>

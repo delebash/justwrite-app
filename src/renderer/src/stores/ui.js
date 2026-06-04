@@ -185,6 +185,9 @@ export const useUiStore = defineStore("ui", {
       const n = Number(hue);
       this.setAppearance({ accentHue: Number.isFinite(n) ? Math.max(0, Math.min(360, n)) : 14 });
     },
+    // `fontSize`, `paragraphIndent`, and `lineSpacing` accept `null` to mean
+    // "follow theme default" — the editor reads through to the active theme's
+    // values when the field is null. Don't coerce null → 0 / "" here.
     setEditorSettings(patch) {
       this.editorSettings = { ...this.editorSettings, ...patch };
       this._persist();

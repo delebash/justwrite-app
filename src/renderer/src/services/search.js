@@ -254,16 +254,50 @@ function buildSnippet(haystack, lower, tokens, firstIdx, snippetLen) {
   while (start > 0 && /\w/.test(haystack[start - 1]) && haystack[start - 1] !== "\n") start--;
   while (end < haystack.length && /\w/.test(haystack[end])) end++;
 
-  const text = (start > 0 ? "… " : "") + haystack.slice(start, end).replace(/\s+/g, " ").trim() + (end < haystack.length ? " …" : "");
-  const offset = (start > 0 ? 2 : 0) - start;  // account for the prepended ellipsis
+  // Collapse whitespace in the window slice and build a mapping from
+  // original-window offset → collapsed offset so match ranges stay accurate.
+  const windowStr = haystack.slice(start, end);
+  let collapsed = "";
+  // origToCollapsed[i] = position in `collapsed` that windowStr[i] maps to.
+  // We also need the length of each original character's contribution (0 for
+  // characters eaten by a whitespace collapse).
+  const origToCollapsed = new Int32Array(windowStr.length + 1);
+  let ci = 0;
+  let inWs = false;
+  for (let i = 0; i < windowStr.length; i++) {
+    origToCollapsed[i] = ci;
+    if (/\s/.test(windowStr[i])) {
+      if (!inWs) { collapsed += " "; ci++; inWs = true; }
+      // else: eat the extra whitespace — origToCollapsed[i] still points to
+      // the single space that was already emitted.
+    } else {
+      collapsed += windowStr[i]; ci++; inWs = false;
+    }
+  }
+  origToCollapsed[windowStr.length] = ci;  // sentinel for end-of-window
+  const trimmedLeading = collapsed.length - collapsed.trimStart().length;
+  const trimmedCollapsed = collapsed.trim();
+  // Adjust collapsed index: subtract leading-whitespace trim offset.
+  const ellipsisPrefix = start > 0 ? "… " : "";
+  const text = ellipsisPrefix + trimmedCollapsed + (end < haystack.length ? " …" : "");
+  // Map: original haystack index → final `text` index.
+  // final = ellipsisPrefix.length + (collapsedIdx - trimmedLeading)
+  const prefixLen = ellipsisPrefix.length;
 
   // Find all token offsets inside the original window, translate to the new string.
   const matches = [];
   for (const tok of tokens) {
     let i = start;
     while ((i = lower.indexOf(tok, i)) !== -1 && i < end) {
-      const s = i + offset, e = s + tok.length;
-      if (s >= 0 && e <= text.length) matches.push([s, e]);
+      // Translate start and end through the mapping.
+      const winStart = i - start;
+      const winEnd = winStart + tok.length;
+      const cs = origToCollapsed[winStart] - trimmedLeading + prefixLen;
+      // For the end position use the collapsed index of the character just
+      // past the token; if the token ends exactly at the window boundary use
+      // the sentinel.
+      const ce = origToCollapsed[Math.min(winEnd, windowStr.length)] - trimmedLeading + prefixLen;
+      if (cs >= prefixLen && ce <= text.length) matches.push([cs, ce]);
       i += tok.length;
     }
   }

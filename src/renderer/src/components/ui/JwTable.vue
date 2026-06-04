@@ -212,7 +212,8 @@ function setPageSize(n) {
         <button class="jw-pager-btn" :disabled="!table.getCanNextPage()" @click="table.lastPage()" v-tooltip.bottom="'Last page'">
           <Icon name="ChevRight" :size="12" /><Icon name="ChevRight" :size="12" />
         </button>
-        <select class="jw-pager-size" :value="paginationState.pageSize" @change="setPageSize($event.target.value)">
+        <label class="jw-pager-size-label" for="jw-pager-size">Rows per page</label>
+        <select id="jw-pager-size" class="jw-pager-size" :value="paginationState.pageSize" @change="setPageSize($event.target.value)">
           <option v-for="n in paginationCfg.pageSizeOptions" :key="n" :value="n">{{ n }} / page</option>
         </select>
       </span>
