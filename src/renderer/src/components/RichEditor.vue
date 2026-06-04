@@ -955,9 +955,14 @@ async function onImagePicked(e) {
   const file = e.target.files?.[0];
   e.target.value = "";
   if (!file) return;
-  const rec = await saveImage(file);
-  const src = await urlFor(rec);
-  if (src) editor.value?.chain().focus().setImage({ src, alt: rec.name }).run();
+  try {
+    const rec = await saveImage(file);
+    const src = await urlFor(rec);
+    if (src) editor.value?.chain().focus().setImage({ src, alt: rec.name }).run();
+  } catch (err) {
+    console.error("onImagePicked failed:", err);
+    ui.showToast({ message: `Couldn't insert image — ${err?.message || err}` });
+  }
 }
 
 // --- focus mode -------------------------------------------------------

@@ -38,7 +38,7 @@ function wordCountFromHtml(html) {
 }
 
 function loadJSON(key) { try { return JSON.parse(getItem(key) || "null"); } catch { return null; } }
-function saveJSON(key, val) { try { setItem(key, JSON.stringify(val)); } catch {} }
+function saveJSON(key, val) { try { setItem(key, JSON.stringify(val)); } catch (err) { console.error("project saveJSON failed:", err); } }
 function removeKey(key) { try { removeItem(key); } catch {} }
 
 function loadRegistry() {

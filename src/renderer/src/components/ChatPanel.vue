@@ -54,7 +54,9 @@ function saveThread(projectId, items) {
   try {
     const trimmed = items.slice(-MAX_PERSISTED);
     setItem(THREAD_KEY(projectId), JSON.stringify(trimmed));
-  } catch {}
+  } catch (err) {
+    console.error("ChatPanel.saveThread failed:", err);
+  }
 }
 
 const props = defineProps({

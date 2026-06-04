@@ -47,9 +47,14 @@ export async function urlFor(image) {
   if (image.dataUrl) return image.dataUrl;
   if (image.path && hasNativeImages) {
     if (urlCache.has(image.path)) return urlCache.get(image.path);
-    const url = await jw.images.read(image.path);
-    urlCache.set(image.path, url);
-    return url;
+    try {
+      const url = await jw.images.read(image.path);
+      urlCache.set(image.path, url);
+      return url;
+    } catch (err) {
+      console.error("imageStore.urlFor failed:", err);
+      return null;
+    }
   }
   return "";
 }

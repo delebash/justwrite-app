@@ -68,7 +68,9 @@ export async function bootStorage() {
       if (typeof k !== "string" || !k.startsWith(PREFIX)) continue;
       cache.set(k, await get(k, store));
     }
-  } catch {}
+  } catch (err) {
+    console.error("storage.bootStorage failed:", err);
+  }
 
   booted = true;
 }

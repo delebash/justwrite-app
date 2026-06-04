@@ -22,7 +22,12 @@ const hue = computed(() => {
 const imgSrc = ref(null);
 watchEffect(async () => {
   if (!props.image) { imgSrc.value = null; return; }
-  imgSrc.value = await urlFor(props.image);
+  try {
+    imgSrc.value = await urlFor(props.image);
+  } catch (err) {
+    console.error("Avatar urlFor failed:", err);
+    imgSrc.value = null;
+  }
 });
 
 const style = computed(() => ({

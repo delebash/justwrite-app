@@ -89,7 +89,11 @@ async function saveProject() {
     alert("Save is only available in the Electron desktop build.");
     return;
   }
-  await jw.project.save(project.exportSnapshot(), project.project.title);
+  const result = await jw.project.save(project.exportSnapshot(), project.project.title);
+  if (result && !result.ok) {
+    console.error("saveProject failed:", result.error);
+    ui.showToast({ message: `Couldn't save project — ${result.error || "unknown error"}` });
+  }
 }
 
 async function openProject() {
@@ -98,7 +102,12 @@ async function openProject() {
     return;
   }
   const res = await jw.project.open();
-  if (res?.ok && res.snapshot) project.loadSnapshot(res.snapshot);
+  if (res?.ok && res.snapshot) {
+    project.loadSnapshot(res.snapshot);
+  } else if (res && !res.cancelled) {
+    console.error("openProject failed:", res?.error);
+    ui.showToast({ message: `Couldn't open project — ${res?.error || "unknown error"}` });
+  }
 }
 </script>
 

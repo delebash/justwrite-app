@@ -56,7 +56,9 @@ export function load(projectId) {
 export function save(projectId, store) {
   try {
     setItem(storageKey(projectId), JSON.stringify(store));
-  } catch {}
+  } catch (err) {
+    console.error("rag vector store save failed:", err);
+  }
 }
 
 /**
