@@ -311,7 +311,7 @@ function whenFor(id) {
 .vh-pick-summary > div .t-eyebrow { font-size: 9.5px; }
 .vh-pick-summary button { margin-left: auto; flex-shrink: 0; }
 .vh-pick-btn { min-width: 28px; padding: 0 8px !important; font-family: var(--font-mono); font-weight: 600; }
-.vh-pick-btn.active { background: var(--accent); color: white; border-color: var(--accent); }
+.vh-pick-btn.active { background: var(--accent); color: var(--on-accent); border-color: var(--accent); }
 
 /* Diff view */
 .vh-diff-mode { display: flex; flex-direction: column; gap: 14px; overflow: hidden; }

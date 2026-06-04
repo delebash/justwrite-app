@@ -1344,7 +1344,7 @@ defineExpose({ editor });
 .tiptap-content ul, .tiptap-content ol { padding-left: 20px; }
 .tiptap-content mark {
   background: color-mix(in oklch, var(--accent) 35%, transparent);
-  color: #1f2430;
+  color: var(--ink);
   border-radius: 2px; padding: 0 1px;
 }
 
@@ -1422,7 +1422,7 @@ defineExpose({ editor });
 
 /* Find/replace match highlights */
 .search-match { background: color-mix(in oklch, var(--accent) 22%, transparent); border-radius: 2px; }
-.search-match--current { background: var(--accent); color: #fff; }
+.search-match--current { background: var(--accent); color: var(--on-accent); }
 
 /* @-mention chips */
 .mention {

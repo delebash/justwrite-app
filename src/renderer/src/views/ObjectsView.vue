@@ -11,6 +11,7 @@ import RichEditor from "../components/RichEditor.vue";
 import { EDITOR_TOOLBAR_DOC } from "../services/editorToolbars.js";
 import StatusSelect from "../components/StatusSelect.vue";
 import GroupsModal from "../components/GroupsModal.vue";
+import TagEditor from "../components/TagEditor.vue";
 import SceneRefList from "../components/SceneRefList.vue";
 import MentionRefList from "../components/MentionRefList.vue";
 import Breadcrumb from "../components/Breadcrumb.vue";
@@ -25,6 +26,12 @@ const obj = computed(() => project.objectById(props.id || ui.selections.objects)
 const modal = ref(null);
 
 function update(k, v) { project.updateObject(obj.value.id, { [k]: v }); }
+
+const tagPool = computed(() => {
+  const out = [];
+  for (const o of project.objects) for (const t of (o.tags || [])) out.push(t);
+  return out;
+});
 async function addObject() {
   const name = await promptDialog(NEW_ENTITY_META.objects);
   if (!name) return;
@@ -70,6 +77,10 @@ async function deleteObject() {
     <div style="padding:24px 28px 40px;display:flex;flex-direction:column;gap:14px;flex:1;min-height:0">
       <JwInput fluid placeholder="Kind"
         :model-value="obj.kind" @update:model-value="update('kind', $event)" />
+      <TagEditor
+        :model-value="obj.tags || []"
+        :pool="tagPool"
+        @update:model-value="(v) => update('tags', v)" />
       <RichEditor
         :model-value="obj.note || ''"
         placeholder="Description"

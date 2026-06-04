@@ -298,7 +298,7 @@ onBeforeUnmount(() => document.removeEventListener("mousedown", onDocClick));
   display: grid; place-items: center;
 }
 .dtp-day:hover:not(.empty) { background: var(--surface-3); color: var(--ink); }
-.dtp-day.sel { background: var(--accent); color: oklch(0.99 0 0); font-weight: 600; }
+.dtp-day.sel { background: var(--accent); color: var(--on-accent); font-weight: 600; }
 .dtp-day.empty { cursor: default; }
 
 .dtp-time {
@@ -348,6 +348,6 @@ onBeforeUnmount(() => document.removeEventListener("mousedown", onDocClick));
 .dtp-foot-btn:hover { background: var(--surface-2); color: var(--ink); border-color: var(--border-strong); }
 .dtp-foot-btn.ghost { border-color: transparent; }
 .dtp-foot-btn.ghost:hover { color: var(--accent-ink); }
-.dtp-foot-btn.primary { background: var(--accent); border-color: var(--accent); color: oklch(0.99 0 0); }
+.dtp-foot-btn.primary { background: var(--accent); border-color: var(--accent); color: var(--on-accent); }
 .dtp-foot-btn.primary:hover { filter: brightness(1.05); }
 </style>

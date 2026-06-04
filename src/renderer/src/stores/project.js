@@ -1103,7 +1103,7 @@ export const useProjectStore = defineStore("project", {
     addCharacter(input = {}) {
       this._record("addCharacter");
       const id = uid("c");
-      this.characters.push({ id, main: false, age: null, oneLiner: "", role: "", name: "Untitled character", ...input });
+      this.characters.push({ id, main: false, age: null, oneLiner: "", role: "", name: "Untitled character", tags: [], ...input });
       this._persist();
       return id;
     },
@@ -1121,7 +1121,7 @@ export const useProjectStore = defineStore("project", {
     setCharacterExtras(id, extras) { this._record("setCharacterExtras"); this.characterExtras = { ...this.characterExtras, [id]: { ...(this.characterExtras[id] || {}), ...extras } }; this._persist(); },
 
     // ── Locations ───────────────────────────────────────────
-    addLocation(input = {}) { this._record("addLocation"); const id = uid("l"); this.locations.push({ id, name: "Untitled location", kind: "", note: "", ...input }); this._persist(); return id; },
+    addLocation(input = {}) { this._record("addLocation"); const id = uid("l"); this.locations.push({ id, name: "Untitled location", kind: "", note: "", tags: [], ...input }); this._persist(); return id; },
     removeLocation(id) {
       this._record("removeLocation");
       const l = this.locations.find((x) => x.id === id);
@@ -1134,7 +1134,7 @@ export const useProjectStore = defineStore("project", {
     updateLocation(id, patch) { this._record("updateLocation"); this.locations = this.locations.map((l) => l.id === id ? { ...l, ...patch } : l); this._persist(); },
 
     // ── Objects ─────────────────────────────────────────────
-    addObject(input = {}) { this._record("addObject"); const id = uid("o"); this.objects.push({ id, name: "Untitled object", kind: "", note: "", ...input }); this._persist(); return id; },
+    addObject(input = {}) { this._record("addObject"); const id = uid("o"); this.objects.push({ id, name: "Untitled object", kind: "", note: "", tags: [], ...input }); this._persist(); return id; },
     removeObject(id) {
       this._record("removeObject");
       const o = this.objects.find((x) => x.id === id);

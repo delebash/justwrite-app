@@ -1,5 +1,5 @@
 <script setup>
-import { computed, ref, nextTick, watch } from "vue";
+import { computed } from "vue";
 import { useProjectStore } from "../stores/project.js";
 import { useRouter } from "vue-router";
 import PaneHeader from "../components/PaneHeader.vue";
@@ -7,6 +7,7 @@ import Icon from "../components/Icon.vue";
 import RichEditor from "../components/RichEditor.vue";
 import StatusSelect from "../components/StatusSelect.vue";
 import Breadcrumb from "../components/Breadcrumb.vue";
+import TagEditor from "../components/TagEditor.vue";
 import { promptDialog, confirmDialog } from "../services/dialog.js";
 import { NEW_ENTITY_META } from "../services/entityMeta.js";
 
@@ -24,109 +25,14 @@ const cat = computed(() => article.value ? project.worldbuildingCategories.find(
 
 function update(k, v) { project.updateWorldbuilding(article.value.id, { [k]: v }); }
 
-// Tag editor — comma or Enter commits; Backspace on an empty input
-// removes the last chip. Duplicates and blanks are silently dropped.
-// Typeahead surfaces existing tags from the project so writers reuse
-// vocabulary instead of accidentally splintering it (magic/Magic/magick).
-const tagDraft = ref("");
-const tagInputRef = ref(null);
-const tagSuggestOpen = ref(false);
-const tagSuggestIndex = ref(0);
-
-function addTag(raw) {
-  const parts = String(raw || "").split(",").map((p) => p.trim()).filter(Boolean);
-  if (!parts.length) return;
-  const current = article.value.tags || [];
-  const next = [...current];
-  for (const p of parts) if (!next.includes(p)) next.push(p);
-  if (next.length !== current.length) update("tags", next);
-}
-function commitDraft() {
-  const draft = tagDraft.value;
-  tagDraft.value = "";
-  tagSuggestOpen.value = false;
-  if (draft.trim()) addTag(draft);
-}
-function pickSuggestion(t) {
-  tagDraft.value = "";
-  tagSuggestOpen.value = false;
-  addTag(t);
-  nextTick(() => tagInputRef.value?.focus());
-}
-function removeTagAt(i) {
-  const next = (article.value.tags || []).slice();
-  next.splice(i, 1);
-  update("tags", next);
-}
-
-// Route param change leaves the component mounted (it's the same view,
-// just a different article id). Reset draft + dropdown so the editor
-// state doesn't bleed between articles.
-watch(() => article.value?.id, () => {
-  tagDraft.value = "";
-  tagSuggestOpen.value = false;
-  tagSuggestIndex.value = 0;
+// Pool feeding the tag typeahead — every tag in use across every
+// worldbuilding article. TagEditor dedups and filters internally; we
+// just hand it the flat list.
+const tagPool = computed(() => {
+  const out = [];
+  for (const a of project.worldbuilding) for (const t of (a.tags || [])) out.push(t);
+  return out;
 });
-
-// Suggestions: every project-wide tag that contains the draft (case-
-// insensitive) and isn't already on this article. Cap at 8 so the
-// dropdown stays manageable.
-const tagSuggestions = computed(() => {
-  const q = tagDraft.value.trim().toLowerCase();
-  const used = new Set(article.value?.tags || []);
-  const all = [];
-  for (const a of project.worldbuilding) for (const t of (a.tags || [])) all.push(t);
-  const uniq = Array.from(new Set(all));
-  const matches = uniq
-    .filter((t) => !used.has(t))
-    .filter((t) => !q || t.toLowerCase().includes(q));
-  return matches.slice(0, 8);
-});
-
-function onTagInput() {
-  tagSuggestOpen.value = true;
-  tagSuggestIndex.value = 0;
-}
-function onTagFocus() {
-  tagSuggestOpen.value = true;
-  tagSuggestIndex.value = 0;
-}
-function onTagBlur() {
-  // Delay so a click on a suggestion fires before the list unmounts.
-  setTimeout(() => {
-    tagSuggestOpen.value = false;
-    if (tagDraft.value.trim()) commitDraft();
-  }, 120);
-}
-function onTagKeydown(e) {
-  const list = tagSuggestions.value;
-  if (e.key === "ArrowDown" && list.length) {
-    e.preventDefault();
-    tagSuggestOpen.value = true;
-    tagSuggestIndex.value = (tagSuggestIndex.value + 1) % list.length;
-  } else if (e.key === "ArrowUp" && list.length) {
-    e.preventDefault();
-    tagSuggestOpen.value = true;
-    tagSuggestIndex.value = (tagSuggestIndex.value - 1 + list.length) % list.length;
-  } else if (e.key === "Enter") {
-    e.preventDefault();
-    if (tagSuggestOpen.value && list.length && tagDraft.value.trim() &&
-        list[tagSuggestIndex.value]?.toLowerCase().includes(tagDraft.value.trim().toLowerCase())) {
-      pickSuggestion(list[tagSuggestIndex.value]);
-    } else {
-      commitDraft();
-    }
-  } else if (e.key === ",") {
-    e.preventDefault();
-    commitDraft();
-  } else if (e.key === "Escape" && tagSuggestOpen.value) {
-    e.preventDefault();
-    tagSuggestOpen.value = false;
-  } else if (e.key === "Backspace" && !tagDraft.value && (article.value.tags || []).length) {
-    e.preventDefault();
-    removeTagAt(article.value.tags.length - 1);
-  }
-}
 
 async function addArticle() {
   const M = NEW_ENTITY_META.worldbuilding;
@@ -387,35 +293,10 @@ function onRowClick(event) {
           :value="article.summary" @input="update('summary', $event.target.value)" />
       </div>
 
-      <div class="wb-tag-editor">
-        <span class="wb-tag-editor-label">Tags</span>
-        <div class="wb-tag-chip" v-for="(t, i) in (article.tags || [])" :key="t + i">
-          <span>{{ t }}</span>
-          <button type="button" class="wb-tag-chip-x" @click="removeTagAt(i)" aria-label="Remove tag">
-            <Icon name="Close" :size="10" />
-          </button>
-        </div>
-        <div class="wb-tag-input-wrap">
-          <input ref="tagInputRef" class="wb-tag-input"
-            v-model="tagDraft"
-            placeholder="Add tag…"
-            @input="onTagInput"
-            @focus="onTagFocus"
-            @blur="onTagBlur"
-            @keydown="onTagKeydown" />
-          <ul v-if="tagSuggestOpen && tagSuggestions.length" class="wb-tag-suggest" role="listbox">
-            <li v-for="(t, i) in tagSuggestions" :key="t"
-              class="wb-tag-suggest-item"
-              :class="{ active: i === tagSuggestIndex }"
-              role="option"
-              :aria-selected="i === tagSuggestIndex"
-              @mouseenter="tagSuggestIndex = i"
-              @mousedown.prevent="pickSuggestion(t)">
-              {{ t }}
-            </li>
-          </ul>
-        </div>
-      </div>
+      <TagEditor
+        :model-value="article.tags || []"
+        :pool="tagPool"
+        @update:model-value="(v) => update('tags', v)" />
 
       <RichEditor
         :model-value="article.body"
@@ -516,59 +397,6 @@ function onRowClick(event) {
 
 .wb-tags { display: flex; gap: 4px; flex-wrap: wrap; }
 
-/* Inline tag editor on the article detail view. Sits below the summary,
-   above the body, in the same flat-bordered band style. */
-.wb-tag-editor {
-  display: flex; align-items: center; flex-wrap: wrap; gap: 6px;
-  padding: 10px 22px;
-  border-bottom: 1px solid var(--border);
-}
-.wb-tag-editor-label {
-  font-size: 11.5px; font-weight: 600; letter-spacing: 0.04em;
-  text-transform: uppercase; color: var(--muted);
-  margin-right: 4px;
-}
-.wb-tag-chip {
-  display: inline-flex; align-items: center; gap: 6px;
-  padding: 2px 4px 2px 10px; border-radius: 999px;
-  background: var(--surface-3); color: var(--ink);
-  font-size: 12px; line-height: 1.4;
-  border: 1px solid var(--border);
-}
-.wb-tag-chip-x {
-  display: inline-flex; align-items: center; justify-content: center;
-  width: 18px; height: 18px; border: 0; border-radius: 999px;
-  background: var(--border); color: var(--ink); cursor: pointer;
-  transition: background .12s ease, color .12s ease;
-}
-.wb-tag-chip-x:hover { background: var(--danger); color: var(--surface); }
-.wb-tag-input-wrap {
-  position: relative;
-  flex: 1; min-width: 140px;
-}
-.wb-tag-input {
-  width: 100%;
-  border: 0; background: transparent; outline: none;
-  font-size: 13px; color: var(--ink);
-  padding: 2px 0;
-}
-.wb-tag-input::placeholder { color: var(--muted); }
-.wb-tag-suggest {
-  position: absolute; top: calc(100% + 4px); left: -6px;
-  margin: 0; padding: 4px; list-style: none;
-  background: var(--surface); border: 1px solid var(--border);
-  border-radius: 8px;
-  box-shadow: 0 8px 24px rgba(0, 0, 0, .14);
-  min-width: 160px; max-width: 280px;
-  z-index: 40;
-  max-height: 240px; overflow-y: auto;
-}
-.wb-tag-suggest-item {
-  padding: 5px 10px; border-radius: 5px;
-  font-size: 13px; color: var(--ink);
-  cursor: pointer;
-}
-.wb-tag-suggest-item.active { background: var(--accent-soft); color: var(--accent-ink); }
 .wb-status-empty { color: var(--muted); }
 .wb-words { font-family: var(--font-mono); font-size: 11.5px; font-variant-numeric: tabular-nums; color: var(--ink-2); }
 .wb-empty { padding: 28px; text-align: center; color: var(--muted); font-style: italic; }

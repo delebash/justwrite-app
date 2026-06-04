@@ -6,9 +6,7 @@
 // We dedupe against existing entity names so the LLM doesn't propose
 // "Halvard" when there's already a Halvard in the cast.
 
-import { OpenAICompatClient } from "../openai-compat.js";
-import { useAiStore } from "../../stores/ai.js";
-import { friendlyAiError } from "../aiErrors.js";
+import { runAiStream } from "../aiStream.js";
 
 function htmlToText(html) {
   if (!html) return "";
@@ -17,49 +15,6 @@ function htmlToText(html) {
   div.querySelectorAll(".ai-del").forEach((el) => el.remove());
   div.querySelectorAll(".ai-ins").forEach((el) => el.replaceWith(...el.childNodes));
   return div.textContent || "";
-}
-
-async function runChat({ messages, temperature, signal, onDelta, provider, model }) {
-  const ai = useAiStore();
-  const actualProvider = provider || ai.providerForFeature("entitySweep");
-  if (!actualProvider) throw new Error("No LLM provider is configured. Add one in Settings → AI providers.");
-  const actualModel = model || ai.modelForFeature("entitySweep") || actualProvider.chatModel;
-  const client = new OpenAICompatClient(actualProvider);
-  let content = "";
-  let usage = null;
-  const stream = client.chatStream({
-    messages,
-    model: actualModel,
-    signal,
-    temperature: temperature ?? 0.2,
-    // JSON output — no thinking on Ollama hybrid models so reasoning
-    // doesn't end up in the body and break the parse.
-    extra: { think: false },
-  });
-  try {
-    for await (const chunk of stream) {
-      if (chunk.delta && onDelta) onDelta(chunk.delta, chunk.content);
-      if (chunk.content) content = chunk.content;
-      if (chunk.usage) usage = chunk.usage;
-    }
-  } catch (err) {
-    throw friendlyAiError(err, actualProvider);
-  }
-  return { content, usage, providerId: actualProvider.id, model: actualModel };
-}
-
-function recordCall(feature, result, meta) {
-  const { usage, providerId, model } = result;
-  if (!usage) return;
-  const ai = useAiStore();
-  ai.recordUsage({
-    feature,
-    providerId,
-    model,
-    promptTokens: usage.prompt_tokens || 0,
-    completionTokens: usage.completion_tokens || 0,
-    meta: meta || {},
-  });
 }
 
 function parseJsonLoose(text) {
@@ -145,8 +100,11 @@ export async function extractEntities({
     { role: "system", content: ENTITY_SYSTEM },
     { role: "user",   content: `${existing}\n\n${header}--- BEGIN CHAPTER ---\n${text}\n--- END CHAPTER ---` },
   ];
-  const result = await runChat({ messages, temperature: 0.2, signal, onDelta, provider, model });
-  recordCall("entity-extraction", result, meta);
+  const result = await runAiStream({
+    feature: "entitySweep", usageFeature: "entity-extraction",
+    messages, temperature: 0.2, extra: { think: false },
+    signal, onDelta, provider, model, meta,
+  });
 
   const parsed = parseJsonLoose(result.content) || {};
   const knownChar = new Set(existingCharacters.map((c) => norm(c.name)));

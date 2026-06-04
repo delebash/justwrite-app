@@ -11,6 +11,7 @@ import RichEditor from "../components/RichEditor.vue";
 import { EDITOR_TOOLBAR_DOC } from "../services/editorToolbars.js";
 import StatusSelect from "../components/StatusSelect.vue";
 import GroupsModal from "../components/GroupsModal.vue";
+import TagEditor from "../components/TagEditor.vue";
 import SceneRefList from "../components/SceneRefList.vue";
 import MentionRefList from "../components/MentionRefList.vue";
 import Breadcrumb from "../components/Breadcrumb.vue";
@@ -25,6 +26,12 @@ const loc = computed(() => project.locationById(props.id || ui.selections.locati
 const modal = ref(null);
 
 function update(k, v) { project.updateLocation(loc.value.id, { [k]: v }); }
+
+const tagPool = computed(() => {
+  const out = [];
+  for (const l of project.locations) for (const t of (l.tags || [])) out.push(t);
+  return out;
+});
 async function addLocation() {
   const name = await promptDialog(NEW_ENTITY_META.locations);
   if (!name) return;
@@ -70,6 +77,10 @@ async function deleteLocation() {
     <div style="padding:24px 28px 40px;display:flex;flex-direction:column;gap:14px;flex:1;min-height:0">
       <JwInput fluid placeholder="Kind"
         :model-value="loc.kind" @update:model-value="update('kind', $event)" />
+      <TagEditor
+        :model-value="loc.tags || []"
+        :pool="tagPool"
+        @update:model-value="(v) => update('tags', v)" />
       <RichEditor
         :model-value="loc.note || ''"
         placeholder="Description"

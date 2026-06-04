@@ -1,14 +1,11 @@
 // writerAI — selection-level writing assistance.
 //
 // Each public function takes a string of HTML (or plain text) and returns
-// a Promise that resolves to the LLM's reply. Every call is routed through
-// chatStream() so we capture the `usage` field on the final chunk and feed
-// it to ai.recordUsage(). Callers who want token-by-token streaming pass an
-// onDelta callback; everything else just awaits the final string.
+// a Promise that resolves to the LLM's reply. The chat-stream plumbing
+// (provider resolution, cancel signal, friendly errors, token-usage
+// ledger) lives in services/aiStream.js — we only write the prompts.
 
-import { OpenAICompatClient } from "./openai-compat.js";
-import { useAiStore } from "../stores/ai.js";
-import { friendlyAiError } from "./aiErrors.js";
+import { runAiStream } from "./aiStream.js";
 
 // Strip HTML tags for prompts that work on plain text (passive voice
 // rules, sentence variety, etc. — we don't want the LLM rewriting <em>
@@ -32,59 +29,6 @@ function textToHtml(text) {
     .filter(Boolean)
     .map((p) => `<p>${esc(p).replace(/\n/g, "<br>")}</p>`)
     .join("");
-}
-
-// Drive a chatStream to completion. Captures content, usage, and feeds
-// per-chunk deltas to onDelta if supplied. Returns { content, usage }.
-//
-// `provider` and `model` are optional overrides — they let the Writer
-// Lab run the same call against any configured provider/model without
-// touching the user's default. When omitted, the AI store's default
-// LLM is used.
-async function runChat({ messages, signal, onDelta, temperature, extra, provider, model }) {
-  const ai = useAiStore();
-  const actualProvider = provider || ai.providerForFeature("writerAI");
-  if (!actualProvider) throw new Error("No LLM provider is configured. Add one in Settings → AI providers.");
-  const actualModel = model || ai.modelForFeature("writerAI") || actualProvider.chatModel;
-  const tier = ai.resolveTier(actualModel);
-  const client = new OpenAICompatClient(actualProvider);
-
-  let content = "";
-  let usage = null;
-  // Creative-writing tasks benefit from the model thinking when it can,
-  // so we hand the tier's recommendation in (no-op on non-Ollama).
-  const stream = client.chatStream({
-    messages,
-    model: actualModel,
-    signal,
-    temperature: temperature ?? 0.7,
-    extra: { think: tier?.think === true, ...(extra || {}) },
-  });
-  try {
-    for await (const chunk of stream) {
-      if (chunk.delta && onDelta) onDelta(chunk.delta, chunk.content);
-      if (chunk.content) content = chunk.content;
-      if (chunk.usage) usage = chunk.usage;
-    }
-  } catch (err) {
-    throw friendlyAiError(err, actualProvider);
-  }
-  return { content, usage, providerId: actualProvider.id, model: actualModel };
-}
-
-// Common end-of-call bookkeeping: record token usage to the AI store.
-function recordCall(feature, runResult, meta) {
-  const { usage, providerId, model } = runResult;
-  if (!usage) return; // Local providers sometimes omit usage — skip silently.
-  const ai = useAiStore();
-  ai.recordUsage({
-    feature,
-    providerId,
-    model,
-    promptTokens: usage.prompt_tokens || 0,
-    completionTokens: usage.completion_tokens || 0,
-    meta: meta || {},
-  });
 }
 
 // ─── Prompts ────────────────────────────────────────────────────────────
@@ -193,8 +137,14 @@ async function runAction(actionKey, { html, signal, onDelta, meta, provider, mod
     { role: "system", content: SYSTEM_BASE },
     { role: "user", content: `${action.instruction}\n\n--- BEGIN PASSAGE ---\n${source}\n--- END PASSAGE ---` },
   ];
-  const result = await runChat({ messages, signal, onDelta, temperature: 0.7, provider, model });
-  recordCall(actionKey, result, meta);
+  // feature: "writerAI" drives provider/model lookup; usageFeature splits
+  // the ledger per action so rewrite/expand/tighten/continue each show
+  // up as separate rows in the usage dashboard.
+  const result = await runAiStream({
+    feature: "writerAI", usageFeature: actionKey,
+    messages, signal, onDelta, temperature: 0.7,
+    provider, model, meta,
+  });
   return { html: textToHtml(result.content), raw: result.content, usage: result.usage };
 }
 
@@ -213,8 +163,11 @@ export async function applyRule(ruleKey, { html, signal, onDelta, meta, provider
     { role: "system", content: SYSTEM_BASE },
     { role: "user", content: `${rule.instruction}\n\n--- BEGIN PASSAGE ---\n${source}\n--- END PASSAGE ---` },
   ];
-  const result = await runChat({ messages, signal, onDelta, temperature: 0.6, provider, model });
-  recordCall(`rule:${ruleKey}`, result, meta);
+  const result = await runAiStream({
+    feature: "writerAI", usageFeature: `rule:${ruleKey}`,
+    messages, signal, onDelta, temperature: 0.6,
+    provider, model, meta,
+  });
   return { html: textToHtml(result.content), raw: result.content, usage: result.usage };
 }
 

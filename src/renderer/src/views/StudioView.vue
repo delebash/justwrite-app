@@ -504,7 +504,7 @@ function downloadChapter(chapterId) {
     .cast-portrait { width: 52px; height: 52px; flex-shrink: 0; }
     .narrator-mark { width: 100%; height: 100%; border-radius: 10px; background: linear-gradient(135deg, var(--accent), var(--accent-ink)); color: var(--on-accent); display: grid; place-items: center; }
     .cast-unassigned { display: inline-flex; align-items: center; gap: 6px; margin-top: 8px; padding: 4px 8px; background: var(--danger-bg); color: var(--danger-ink); border-radius: 5px; font-size: 11px; }
-    .voice-glyph { width: 24px; height: 24px; border-radius: 6px; color: white; display: grid; place-items: center; font-family: var(--font-serif); font-weight: 600; font-size: 13px; flex-shrink: 0; }
+    .voice-glyph { width: 24px; height: 24px; border-radius: 6px; color: var(--on-accent); display: grid; place-items: center; font-family: var(--font-serif); font-weight: 600; font-size: 13px; flex-shrink: 0; }
     .voice-glyph.small { width: 20px; height: 20px; font-size: 11px; border-radius: 5px; }
     .voice-row { display: flex; align-items: center; gap: 10px; padding: 8px 10px; border: 1px solid var(--border-soft); border-radius: 8px; background: var(--surface); text-align: left; width: 100%; }
     .voice-row.assigned { border-color: var(--accent); background: var(--accent-soft); }

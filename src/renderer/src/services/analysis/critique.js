@@ -8,9 +8,7 @@
 //
 // Both return shapes that drop straight into `chapter.critique`.
 
-import { OpenAICompatClient } from "../openai-compat.js";
-import { useAiStore } from "../../stores/ai.js";
-import { friendlyAiError } from "../aiErrors.js";
+import { runAiStream } from "../aiStream.js";
 
 function htmlToText(html) {
   if (!html) return "";
@@ -21,51 +19,6 @@ function htmlToText(html) {
   div.querySelectorAll(".ai-del").forEach((el) => el.remove());
   div.querySelectorAll(".ai-ins").forEach((el) => el.replaceWith(...el.childNodes));
   return div.textContent || "";
-}
-
-async function runChat({ messages, temperature, extra, signal, onDelta, provider, model }) {
-  const ai = useAiStore();
-  const actualProvider = provider || ai.providerForFeature("critique");
-  if (!actualProvider) throw new Error("No LLM provider is configured. Add one in Settings → AI providers.");
-  const actualModel = model || ai.modelForFeature("critique") || actualProvider.chatModel;
-  const client = new OpenAICompatClient(actualProvider);
-  const tier = ai.resolveTier(actualModel);
-  let content = "";
-  let usage = null;
-  const stream = client.chatStream({
-    messages,
-    model: actualModel,
-    signal,
-    temperature: temperature ?? 0.4,
-    // Critique benefits from reasoning on reasoning-capable models;
-    // structural analysis (JSON) prefers no-think so the response is
-    // pure JSON — callers can override via extra.think.
-    extra: { think: tier?.think === true, ...(extra || {}) },
-  });
-  try {
-    for await (const chunk of stream) {
-      if (chunk.delta && onDelta) onDelta(chunk.delta, chunk.content);
-      if (chunk.content) content = chunk.content;
-      if (chunk.usage) usage = chunk.usage;
-    }
-  } catch (err) {
-    throw friendlyAiError(err, actualProvider);
-  }
-  return { content, usage, providerId: actualProvider.id, model: actualModel };
-}
-
-function recordCall(feature, runResult, meta) {
-  const { usage, providerId, model } = runResult;
-  if (!usage) return;
-  const ai = useAiStore();
-  ai.recordUsage({
-    feature,
-    providerId,
-    model,
-    promptTokens: usage.prompt_tokens || 0,
-    completionTokens: usage.completion_tokens || 0,
-    meta: meta || {},
-  });
 }
 
 // Strip ```json fences and grab the outermost JSON object/array.
@@ -114,8 +67,11 @@ export async function runCritique({ html, chapterTitle = "", chapterNum = null, 
     { role: "system", content: CRITIQUE_SYSTEM },
     { role: "user",   content: `${header}--- BEGIN CHAPTER ---\n${text}\n--- END CHAPTER ---` },
   ];
-  const result = await runChat({ messages, temperature: 0.4, signal, onDelta, provider, model });
-  recordCall("critique", result, meta);
+  const result = await runAiStream({
+    feature: "critique",
+    messages, temperature: 0.4,
+    signal, onDelta, provider, model, meta,
+  });
 
   const parsed = parseJsonLoose(result.content);
   const rawNotes = Array.isArray(parsed?.notes) ? parsed.notes : [];
@@ -172,8 +128,11 @@ export async function runStructuralAnalysis({ html, chapterTitle = "", chapterNu
   ];
   // JSON output — turn thinking off so reasoning doesn't end up in the
   // body and break the parse on Ollama hybrid models.
-  const result = await runChat({ messages, temperature: 0.2, extra: { think: false }, signal, onDelta, provider, model });
-  recordCall("structural-analysis", result, meta);
+  const result = await runAiStream({
+    feature: "critique", usageFeature: "structural-analysis",
+    messages, temperature: 0.2, extra: { think: false },
+    signal, onDelta, provider, model, meta,
+  });
 
   const parsed = parseJsonLoose(result.content) || {};
   const tension = clamp1to10(parsed.tension);

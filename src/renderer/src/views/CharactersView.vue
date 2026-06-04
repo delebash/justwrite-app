@@ -13,6 +13,7 @@ import JwButton from "@renderer/components/ui/JwButton.vue";
 import ImagesModal from "../components/ImagesModal.vue";
 import StatusSelect from "../components/StatusSelect.vue";
 import GroupsModal from "../components/GroupsModal.vue";
+import TagEditor from "../components/TagEditor.vue";
 import SceneRefList from "../components/SceneRefList.vue";
 import MentionRefList from "../components/MentionRefList.vue";
 import Breadcrumb from "../components/Breadcrumb.vue";
@@ -125,6 +126,12 @@ function updateMotivation(k, v) { project.setCharacterExtras(ch.value.id, { moti
 function updateArc(k, v) { project.setCharacterExtras(ch.value.id, { arc: { ...(extras.value?.arc || {}), [k]: v } }); }
 function updateVoice(k, v) { project.setCharacterExtras(ch.value.id, { voice: { ...(extras.value?.voice || {}), [k]: v } }); }
 function updateBackstory(v) { project.setCharacterExtras(ch.value.id, { backstory: v }); }
+
+const tagPool = computed(() => {
+  const out = [];
+  for (const c of project.characters) for (const t of (c.tags || [])) out.push(t);
+  return out;
+});
 </script>
 
 <template>
@@ -193,6 +200,11 @@ function updateBackstory(v) { project.setCharacterExtras(ch.value.id, { backstor
             :model-value="ch.oneLiner" @update:model-value="updateField('oneLiner', $event)" />
         </div>
       </div>
+
+      <TagEditor
+        :model-value="ch.tags || []"
+        :pool="tagPool"
+        @update:model-value="(v) => updateField('tags', v)" />
 
       <div style="margin-top:22px">
         <div class="t-eyebrow" style="margin-bottom:10px">Motivation</div>

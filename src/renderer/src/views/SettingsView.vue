@@ -1850,7 +1850,7 @@ const recentColumns = [
   border-radius: 50%;
   border: 2px solid var(--border);
   display: grid; place-items: center;
-  color: white;
+  color: var(--on-accent);
   padding: 0;
 }
 .accent-swatch.active { border-color: var(--ink); transform: scale(1.08); }

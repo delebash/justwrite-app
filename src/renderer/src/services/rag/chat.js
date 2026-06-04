@@ -11,6 +11,7 @@
 
 import { OpenAICompatClient } from "../openai-compat.js";
 import { friendlyAiError } from "../aiErrors.js";
+import { runAiStream } from "../aiStream.js";
 import { useAiStore } from "../../stores/ai.js";
 import { useProjectStore } from "../../stores/project.js";
 import { load } from "./vectorStore.js";
@@ -183,38 +184,16 @@ export async function askManuscript({
   ];
 
   // ── 6. Stream the answer ─────────────────────────────────────────────────
-  const llmClient = new OpenAICompatClient(resolvedLlmProvider);
-  let answer = "";
-  let usage  = null;
-
-  const stream = llmClient.chatStream({
-    messages,
-    model: resolvedLlmModel,
-    temperature: 0.3,
-    signal,
+  // Lookup is "chat" (provider/model per the user's Settings); ledger
+  // records "rag-chat" so manuscript Q&A shows up distinctly from any
+  // future plain-chat feature.
+  const { content: answer, usage } = await runAiStream({
+    feature: "chat", usageFeature: "rag-chat",
+    messages, temperature: 0.3,
+    signal, onDelta,
+    provider: resolvedLlmProvider, model: resolvedLlmModel,
+    meta: { question: question.slice(0, 120) },
   });
-
-  try {
-    for await (const chunk of stream) {
-      if (chunk.delta && onDelta) onDelta(chunk.delta, chunk.content);
-      if (chunk.content) answer = chunk.content;
-      if (chunk.usage)   usage  = chunk.usage;
-    }
-  } catch (err) {
-    throw friendlyAiError(err, resolvedLlmProvider);
-  }
-
-  // ── 7. Record usage ──────────────────────────────────────────────────────
-  if (usage) {
-    ai.recordUsage({
-      feature: "rag-chat",
-      providerId: resolvedLlmProvider.id,
-      model: resolvedLlmModel,
-      promptTokens: usage.prompt_tokens || 0,
-      completionTokens: usage.completion_tokens || 0,
-      meta: { question: question.slice(0, 120) },
-    });
-  }
 
   // ── 8. Return ────────────────────────────────────────────────────────────
   // The citation "score" surfaced to the UI is the cosine similarity
