@@ -103,7 +103,7 @@ const KIND_ENTRIES = Object.entries(KIND_META).sort((a, b) => a[1].order - b[1].
     <span v-if="q && hits.length" class="t-muted" style="font-size:12px">
       {{ hits.length }} {{ hits.length === 1 ? "result" : "results" }}
     </span>
-    <JwButton intent="ghost" size="small" @click="ui.openProjectReplace(q)" title="Project-wide find & replace in prose">
+    <JwButton intent="ghost" size="small" @click="ui.openProjectReplace(q)" v-tooltip.bottom="'Project-wide find & replace in prose'">
       <Icon name="Replace" :size="13" /> Replace…
     </JwButton>
   </PaneHeader>

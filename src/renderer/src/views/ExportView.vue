@@ -10,6 +10,7 @@ import { makeM4b, fmtDuration } from "../services/m4b.js";
 import { buildManuscript, slug } from "../services/export/manuscript.js";
 import { confirmDialog } from "../services/dialog.js";
 import JwButton from "@renderer/components/ui/JwButton.vue";
+import JwCheckbox from "@renderer/components/ui/JwCheckbox.vue";
 
 const project = useProjectStore();
 const studio = useStudioStore();
@@ -286,15 +287,14 @@ async function exportM4b({ partial = false } = {}) {
             </div>
           </div>
 
-          <label style="display:flex;gap:10px;align-items:flex-start;margin-top:14px;padding:12px;background:var(--surface-2);border-radius:8px;cursor:pointer">
-            <input type="checkbox" v-model="stripSceneStructure" style="margin-top:2px" />
+          <JwCheckbox v-model="stripSceneStructure" style="display:flex;gap:10px;align-items:flex-start;margin-top:14px;padding:12px;background:var(--surface-2);border-radius:8px;cursor:pointer">
             <span>
               <div style="font-size:13px;font-weight:600">Continuous prose</div>
               <div class="t-muted" style="font-size:11.5px;line-height:1.5;margin-top:2px">
                 Strip scene titles and <code style="font-size:10px">* * *</code> scene breaks so each chapter flows as one body of text, like a print novel without ornaments.
               </div>
             </span>
-          </label>
+          </JwCheckbox>
         </div>
 
         <div class="card">

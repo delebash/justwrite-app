@@ -4,6 +4,8 @@ import { useProjectStore } from "../stores/project.js";
 import Icon from "./Icon.vue";
 import AppModal from "./AppModal.vue";
 import JwButton from "@renderer/components/ui/JwButton.vue";
+import JwInput from "@renderer/components/ui/JwInput.vue";
+import JwTextarea from "@renderer/components/ui/JwTextarea.vue";
 
 const props = defineProps({
   entityId: { type: String, required: true },
@@ -24,9 +26,9 @@ function addEvent() {
 <template>
   <AppModal eyebrow="Events" :title="entityName" @close="emit('close')">
     <div class="event-form">
-      <input class="input" v-model="draftWhen" placeholder="When (e.g. Ch. 7, age 9)" />
-      <input class="input" v-model="draftTitle" placeholder="Event title" @keydown.enter="addEvent" />
-      <textarea class="input" v-model="draftNote" placeholder="Notes (optional)" rows="2" />
+      <JwInput class="input" v-model="draftWhen" placeholder="When (e.g. Ch. 7, age 9)" />
+      <JwInput class="input" v-model="draftTitle" placeholder="Event title" @keydown.enter="addEvent" />
+      <JwTextarea class="input" v-model="draftNote" placeholder="Notes (optional)" :rows="2" />
       <JwButton intent="primary" :disabled="!draftTitle.trim()" @click="addEvent">
         <Icon name="Plus" :size="12" /> Add event
       </JwButton>
@@ -37,12 +39,12 @@ function addEvent() {
     <div v-else style="display:flex;flex-direction:column;gap:10px">
       <div v-for="ev in events" :key="ev.id"
         style="display:grid;grid-template-columns:120px 1fr auto;gap:10px;align-items:flex-start;padding:10px;border:1px solid var(--border);border-radius:8px;background:var(--surface-2)">
-        <input class="input" :value="ev.when" placeholder="—"
+        <JwInput class="input" :value="ev.when" placeholder="—"
           @input="project.updateEvent(entityId, ev.id, { when: $event.target.value })" />
         <div style="display:flex;flex-direction:column;gap:6px">
-          <input class="input" :value="ev.title"
+          <JwInput class="input" :value="ev.title"
             @input="project.updateEvent(entityId, ev.id, { title: $event.target.value })" />
-          <textarea class="input" :value="ev.note" rows="2" placeholder="Notes…"
+          <JwTextarea class="input" :value="ev.note" :rows="2" placeholder="Notes…"
             @input="project.updateEvent(entityId, ev.id, { note: $event.target.value })" />
         </div>
         <JwButton intent="ghost" size="small" @click="project.removeEvent(entityId, ev.id)">×</JwButton>

@@ -21,6 +21,7 @@ import AiProgressBar from "./AiProgressBar.vue";
 import EmptyState from "./EmptyState.vue";
 import Icon from "./Icon.vue";
 import JwButton from "@renderer/components/ui/JwButton.vue";
+import JwTextarea from "@renderer/components/ui/JwTextarea.vue";
 import JwSelect from "@renderer/components/ui/JwSelect.vue";
 import { useModelList } from "../composables/useModelList.js";
 
@@ -235,10 +236,9 @@ document.addEventListener("keydown", onDocKeydown);
 onBeforeUnmount(() => document.removeEventListener("keydown", onDocKeydown));
 
 function onIndexBuilt() {
-  // Don't auto-close the modal — yanking it via v-if while PrimeVue's
-  // Dialog is still in visible=true orphans the modal-mask backdrop over
-  // the whole app and blocks every click until reload (see AppModal.vue).
-  // The user dismisses with the Done button.
+  // Don't auto-close the modal — yanking it via v-if before the leave
+  // transition finishes skips AppModal's close timing dance (see
+  // AppModal.vue). The user dismisses with the Done button.
   //
   // Bump indexBump so the status computed re-evaluates against the freshly
   // written IDB store — otherwise hasIndex stays stuck at false and the
@@ -357,12 +357,13 @@ defineExpose({ open: () => { open.value = true; }, close });
               </JwButton>
             </div>
           </div>
-          <textarea
+          <JwTextarea
             ref="inputRef"
             v-model="question"
             class="cp-textarea"
-            rows="2"
+            :rows="2"
             :placeholder="hasThread ? 'Ask a follow-up…' : 'Ask anything about your book — characters, scenes, threads…'"
+            auto-resize
             @keydown.enter.exact.prevent="ask"
             @keydown.escape="close"
           />
@@ -509,7 +510,7 @@ defineExpose({ open: () => { open.value = true; }, close });
 .cp-model-pick :deep(.jw-select-trigger) { padding: 4px 8px; font-size: 12.5px; }
 .cp-textarea {
   width: 100%; box-sizing: border-box;
-  appearance: none; border: 0; outline: 0; background: transparent; resize: vertical;
+  appearance: none; border: 0; outline: 0; background: transparent; resize: none;
   font-family: var(--font-ui); font-size: 13.5px; line-height: 1.5;
   color: var(--ink);
   min-height: 42px;

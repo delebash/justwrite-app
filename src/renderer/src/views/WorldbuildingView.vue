@@ -14,6 +14,7 @@ import JwTable from "@renderer/components/ui/JwTable.vue";
 import JwInput from "@renderer/components/ui/JwInput.vue";
 import JwTag from "@renderer/components/ui/JwTag.vue";
 import JwButton from "@renderer/components/ui/JwButton.vue";
+import JwTextarea from "@renderer/components/ui/JwTextarea.vue";
 
 const props = defineProps({ id: { type: String, default: "" } });
 const project = useProjectStore();
@@ -380,7 +381,7 @@ function onRowClick(event) {
 
     <div class="pane-card">
       <div style="padding:14px 22px;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:16px">
-        <input class="input"
+        <JwInput class="input"
           style="flex:1;font-style:italic;color:var(--muted);font-size:13.5px;border:0;background:transparent;padding:0;font-family:var(--font-serif)"
           placeholder="Summary"
           :value="article.summary" @input="update('summary', $event.target.value)" />

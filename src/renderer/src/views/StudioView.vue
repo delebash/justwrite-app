@@ -13,6 +13,7 @@ import { confirmDialog } from "../services/dialog.js";
 import JwInput from "@renderer/components/ui/JwInput.vue";
 import JwTag from "@renderer/components/ui/JwTag.vue";
 import JwButton from "@renderer/components/ui/JwButton.vue";
+import JwSelect from "@renderer/components/ui/JwSelect.vue";
 import JwTable from "@renderer/components/ui/JwTable.vue";
 
 const props = defineProps({ tab: { type: String, default: "cast" } });
@@ -423,9 +424,8 @@ function downloadChapter(chapterId) {
   <!-- SCRIPT TAB -->
   <div v-else-if="activeTab === 'script'" class="pane-card" style="display:flex;flex-direction:column">
     <div style="padding:14px 22px;border-bottom:1px solid var(--border);display:flex;gap:8px;align-items:center">
-      <select class="input" v-model="scriptChapter" style="width:auto">
-        <option v-for="c in project.allChapters" :key="c.id" :value="c.id">Ch. {{ c.num }} — {{ c.title }}</option>
-      </select>
+      <JwSelect v-model="scriptChapter" style="width:auto"
+        :options="project.allChapters.map(c => ({ label: `Ch. ${c.num} — ${c.title}`, value: c.id }))" />
       <JwButton intent="secondary" :disabled="analyzeLoading" @click="reanalyze">
         <Icon :name="analyzeLoading ? 'Refresh' : 'Sparkle'" :size="13" />
         {{ analyzeLoading ? "Analyzing…" : "Re-analyze" }}

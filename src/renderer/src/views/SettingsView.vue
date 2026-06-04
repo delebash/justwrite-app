@@ -1098,7 +1098,7 @@ const recentColumns = [
           <div class="card-title">
             AI usage
             <JwButton label="Reset ledger" intent="ghost" size="small" style="margin-left:auto" @click="resetUsageLog"
-              title="Clear every recorded call. Future calls start tallying from zero." />
+              v-tooltip.bottom="'Clear every recorded call. Future calls start tallying from zero.'" />
           </div>
           <p class="t-muted" style="font-size:12.5px;margin:0 0 14px;line-height:1.55">
             Tokens and estimated cost across every AI call routed through writerAI, critique, structural analysis,
@@ -1182,7 +1182,7 @@ const recentColumns = [
         <div class="card">
           <div class="card-title">Theme preset
             <JwButton label="Reset to defaults" intent="ghost" size="small" style="margin-left:auto" @click="resetAppearance"
-              title="Reset every appearance setting to the default look">
+              v-tooltip.bottom="'Reset every appearance setting to the default look'">
               <template #icon><Icon name="Refresh" :size="12" /></template>
             </JwButton>
           </div>

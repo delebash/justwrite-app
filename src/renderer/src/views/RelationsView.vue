@@ -432,7 +432,7 @@ onBeforeUnmount(() => window.removeEventListener("keydown", onKey));
       <JwButton intent="ghost" size="small" v-tooltip.bottom="'Zoom in (+)'" @click="zoomIn">
         <Icon name="ChevRight" :size="12" />
       </JwButton>
-      <JwButton intent="ghost" size="small" title="Reset view (0)" @click="resetView">Reset</JwButton>
+      <JwButton intent="ghost" size="small" v-tooltip.bottom="'Reset view (0)'" @click="resetView">Reset</JwButton>
     </div>
   </PaneHeader>
 

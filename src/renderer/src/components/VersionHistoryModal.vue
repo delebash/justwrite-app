@@ -19,6 +19,7 @@ import Icon from "./Icon.vue";
 import AppModal from "./AppModal.vue";
 import EmptyState from "./EmptyState.vue";
 import JwButton from "@renderer/components/ui/JwButton.vue";
+import JwInput from "@renderer/components/ui/JwInput.vue";
 
 const props = defineProps({
   chapterId: { type: String, required: true },
@@ -182,7 +183,7 @@ function whenFor(id) {
     <!-- ── LIST mode ────────────────────────────────────────────── -->
     <div v-if="mode === 'list'" class="vh-list-mode">
       <div class="vh-save">
-        <input class="input" v-model="label" placeholder="Label this version (optional)…" @keydown.enter="save" />
+        <JwInput v-model="label" placeholder="Label this version (optional)…" @keydown.enter="save" />
         <JwButton intent="primary" @click="save"><Icon name="History" :size="14" /> Save version</JwButton>
       </div>
       <p class="t-muted" style="font-size:11.5px;margin:10px 0 6px">
@@ -194,11 +195,11 @@ function whenFor(id) {
             <div class="vh-label">{{ v.label || "Untitled version" }}</div>
             <div class="vh-meta">{{ when(v.savedAt) }} · {{ v.words.toLocaleString() }} words · {{ v.scenes.length }} scene{{ v.scenes.length === 1 ? "" : "s" }}</div>
           </div>
-          <JwButton intent="secondary" size="small" @click="compareWithCurrent(v)" title="See what's changed since this version">
+          <JwButton intent="secondary" size="small" @click="compareWithCurrent(v)" v-tooltip.bottom="'See what\'s changed since this version'">
             <Icon name="Replace" :size="12" /> Compare
           </JwButton>
           <JwButton intent="primary" size="small" @click="restore(v)">Restore</JwButton>
-          <button class="vh-del" title="Delete version" @click="remove(v)"><Icon name="Trash" :size="13" /></button>
+          <button class="vh-del" v-tooltip.bottom="'Delete version'" @click="remove(v)"><Icon name="Trash" :size="13" /></button>
         </div>
       </div>
       <EmptyState v-else compact

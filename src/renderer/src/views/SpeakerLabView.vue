@@ -20,6 +20,11 @@ import ProviderSelect from "../components/ProviderSelect.vue";
 import { OpenAICompatClient } from "../services/openai-compat.js";
 import { TIERS, TIER_IDS } from "../services/modelMeta.js";
 import JwButton from "@renderer/components/ui/JwButton.vue";
+import JwInput from "@renderer/components/ui/JwInput.vue";
+import JwTextarea from "@renderer/components/ui/JwTextarea.vue";
+import JwNumber from "@renderer/components/ui/JwNumber.vue";
+import JwCheckbox from "@renderer/components/ui/JwCheckbox.vue";
+import JwSelect from "@renderer/components/ui/JwSelect.vue";
 
 const project = useProjectStore();
 const ai = useAiStore();
@@ -564,6 +569,7 @@ June opened the leather case at the table. She turned the pages slowly, the way 
 const PRESETS_KEY = "justwrite:speakerlab:presets";
 const presets = ref(loadPresetsFromStorage());
 const presetName = ref("");
+const presetPickerValue = ref("");
 
 function loadPresetsFromStorage() {
   try {
@@ -1093,22 +1099,22 @@ function copyOutput(run) {
         </div>
       </div>
       <div class="toolbar">
-        <select class="input sm" :value="loadedChapterId" @change="(e) => loadChapter(e.target.value)">
-          <option value="">Load from chapter…</option>
-          <option v-for="c in project.allChapters" :key="c.id" :value="c.id">Ch. {{ c.num }} — {{ c.title }}</option>
-        </select>
+        <JwSelect class="input sm"
+          :model-value="loadedChapterId"
+          @update:model-value="(v) => loadChapter(v)"
+          :options="[{ label: 'Load from chapter…', value: '' }, ...project.allChapters.map(c => ({ label: `Ch. ${c.num} — ${c.title}`, value: c.id }))]" />
         <JwButton intent="secondary" size="small" @click="clearInput" :disabled="!inputText"><Icon name="Close" :size="12" /> Clear</JwButton>
-        <JwButton intent="secondary" size="small" @click="loadSampleCh3" title="Built-in test fixture for Inline-tag mode (speaker: June Asari)">
+        <JwButton intent="secondary" size="small" @click="loadSampleCh3" v-tooltip.bottom="'Built-in test fixture for Inline-tag mode (speaker: June Asari)'">
           <Icon name="Sparkle" :size="12" /> Sample: Ch. 3
         </JwButton>
         <span class="t-muted" style="font-size:11.5px;margin-left:auto">Paste a few chapters, or load one from this project.</span>
       </div>
-      <textarea
+      <JwTextarea
         v-model="inputText"
         class="input mono"
-        rows="10"
+        :rows="10"
         placeholder="Paste manuscript text here, or load a chapter above…"
-      ></textarea>
+      />
     </section>
 
     <!-- ── RUN BAR ────────────────────────────────────────────────── -->
@@ -1129,19 +1135,16 @@ function copyOutput(run) {
     <div class="columns" :class="`cols-${runs.length}`">
       <article v-for="(run, idx) in runs" :key="idx" class="col card">
         <header class="col-head">
-          <input v-model="run.label" class="input col-label" />
+          <JwInput v-model="run.label" class="input col-label" />
           <div class="mode-seg" title="Pipeline mode">
             <button type="button" class="mode-seg-btn" :class="{ active: run.mode === 'lab' }" @click="run.mode = 'lab'">Lab</button>
             <button type="button" class="mode-seg-btn" :class="{ active: run.mode === 'studio' }" @click="run.mode = 'studio'">Studio</button>
             <button type="button" class="mode-seg-btn" :class="{ active: run.mode === 'inline' }" @click="run.mode = 'inline'">Inline-tag</button>
           </div>
-          <label v-if="run.mode === 'lab'" class="toggle" :title="run.twoStage ? 'Two-stage pipeline' : 'Single stage'">
-            <input type="checkbox" v-model="run.twoStage" />
-            <span>Two-stage</span>
-          </label>
-          <button v-if="runs.length > 1" class="icon-btn" @click="removeRun(run)" title="Remove this run">
-            <Icon name="Trash" :size="13" />
-          </button>
+          <JwCheckbox v-if="run.mode === 'lab'" v-model="run.twoStage" class="toggle" :title="run.twoStage ? 'Two-stage pipeline' : 'Single stage'">Two-stage</JwCheckbox>
+          <JwButton v-if="runs.length > 1" intent="ghost" size="small" @click="removeRun(run)" v-tooltip.bottom="'Remove this run'">
+            <template #icon><Icon name="Trash" :size="13" /></template>
+          </JwButton>
         </header>
 
         <!-- Studio mode -->
@@ -1166,16 +1169,16 @@ function copyOutput(run) {
               <ModelPicker v-model="run.studio.model" :provider-id="run.studio.providerId" />
               <label class="temp">
                 <span class="t-muted">temp</span>
-                <input class="input sm temp-input" type="number" step="0.05" min="0" max="2" v-model.number="run.studio.temperature" />
+                <JwNumber class="input sm temp-input" :step="0.05" :min="0" :max="2" v-model="run.studio.temperature" />
               </label>
-              <JwButton intent="secondary" size="small" @click="resetStudioPrompts(run)" title="Restore the exact Studio prompt">
+              <JwButton intent="secondary" size="small" @click="resetStudioPrompts(run)" v-tooltip.bottom="'Restore the exact Studio prompt'">
                 <Icon name="Refresh" :size="11" /> Reset
               </JwButton>
             </div>
             <label class="t-muted small">System prompt</label>
-            <textarea class="input mono" rows="7" v-model="run.studio.system"></textarea>
+            <JwTextarea class="input mono" :rows="7" v-model="run.studio.system" />
             <label class="t-muted small">User prompt <span class="hint">— variables: <code v-pre>{{characters}}</code>, <code v-pre>{{paragraphs}}</code></span></label>
-            <textarea class="input mono" rows="5" v-model="run.studio.user"></textarea>
+            <JwTextarea class="input mono" :rows="5" v-model="run.studio.user" />
           </div>
         </fieldset>
 
@@ -1204,9 +1207,9 @@ function copyOutput(run) {
               <ModelPicker v-model="run.inline.model" :provider-id="run.inline.providerId" />
               <label class="temp">
                 <span class="t-muted">temp</span>
-                <input class="input sm temp-input" type="number" step="0.05" min="0" max="2" v-model.number="run.inline.temperature" />
+                <JwNumber class="input sm temp-input" :step="0.05" :min="0" :max="2" v-model="run.inline.temperature" />
               </label>
-              <JwButton intent="secondary" size="small" @click="resetInlinePrompts(run)" title="Restore the current profile's default prompt">
+              <JwButton intent="secondary" size="small" @click="resetInlinePrompts(run)" v-tooltip.bottom="'Restore the current profile\'s default prompt'">
                 <Icon name="Refresh" :size="11" /> Reset
               </JwButton>
             </div>
@@ -1218,24 +1221,20 @@ function copyOutput(run) {
                 <button type="button" class="mode-seg-btn" :class="{ active: run.inline.tier === 'reasoned' }" @click="applyTier(run, 'reasoned')">Reasoned</button>
               </div>
             </div>
-            <label class="toggle" title="Deterministic pre-LLM pass: match dialogue tags ('X said') against cast names and propagate the speaker across adjacent untagged dialogue in the same paragraph. Anchors win over LLM.">
-              <input type="checkbox" v-model="run.inline.propagate" />
-              <span>Use anchor propagation (pre-LLM)</span>
-            </label>
+            <JwCheckbox v-model="run.inline.propagate" class="toggle" title="Deterministic pre-LLM pass: match dialogue tags ('X said') against cast names and propagate the speaker across adjacent untagged dialogue in the same paragraph. Anchors win over LLM.">Use anchor propagation (pre-LLM)</JwCheckbox>
             <label class="toggle" title="Demote any LLM character pick below this confidence to 'unknown'. Keeps the model's would-be pick visible as 'was: X' so demotions are auditable.">
-              <input type="checkbox" v-model="run.inline.useFloor" />
-              <span>Confidence floor</span>
-              <input
+              <JwCheckbox v-model="run.inline.useFloor">Confidence floor</JwCheckbox>
+              <JwNumber
                 v-if="run.inline.useFloor"
                 class="input sm temp-input"
-                type="number" step="0.05" min="0" max="1"
-                v-model.number="run.inline.confidenceFloor"
+                :step="0.05" :min="0" :max="1"
+                v-model="run.inline.confidenceFloor"
               />
             </label>
             <label class="t-muted small">System prompt</label>
-            <textarea class="input mono" rows="8" v-model="run.inline.system"></textarea>
+            <JwTextarea class="input mono" :rows="8" v-model="run.inline.system" />
             <label class="t-muted small">User prompt <span class="hint">— variables: <code v-pre>{{characters}}</code>, <code v-pre>{{paragraphs}}</code></span></label>
-            <textarea class="input mono" rows="5" v-model="run.inline.user"></textarea>
+            <JwTextarea class="input mono" :rows="5" v-model="run.inline.user" />
           </div>
         </fieldset>
 
@@ -1251,13 +1250,13 @@ function copyOutput(run) {
               <ModelPicker v-model="run.stage1.model" :provider-id="run.stage1.providerId" />
               <label class="temp">
                 <span class="t-muted">temp</span>
-                <input class="input sm temp-input" type="number" step="0.05" min="0" max="2" v-model.number="run.stage1.temperature" />
+                <JwNumber class="input sm temp-input" :step="0.05" :min="0" :max="2" v-model="run.stage1.temperature" />
               </label>
             </div>
             <label class="t-muted small">System prompt</label>
-            <textarea class="input mono" rows="5" v-model="run.stage1.system"></textarea>
+            <JwTextarea class="input mono" :rows="5" v-model="run.stage1.system" />
             <label class="t-muted small">User prompt <span class="hint">— variables: <code v-pre>{{text}}</code></span></label>
-            <textarea class="input mono" rows="3" v-model="run.stage1.user"></textarea>
+            <JwTextarea class="input mono" :rows="3" v-model="run.stage1.user" />
           </div>
         </fieldset>
 
@@ -1273,26 +1272,26 @@ function copyOutput(run) {
               <ModelPicker v-model="run.stage2.model" :provider-id="run.stage2.providerId" />
               <label class="temp">
                 <span class="t-muted">temp</span>
-                <input class="input sm temp-input" type="number" step="0.05" min="0" max="2" v-model.number="run.stage2.temperature" />
+                <JwNumber class="input sm temp-input" :step="0.05" :min="0" :max="2" v-model="run.stage2.temperature" />
               </label>
             </div>
             <label class="t-muted small">System prompt</label>
-            <textarea class="input mono" rows="5" v-model="run.stage2.system"></textarea>
+            <JwTextarea class="input mono" :rows="5" v-model="run.stage2.system" />
             <label class="t-muted small">User prompt <span class="hint">— variables: <code v-pre>{{text}}</code>, <code v-pre>{{cast}}</code></span></label>
-            <textarea class="input mono" rows="3" v-model="run.stage2.user"></textarea>
+            <JwTextarea class="input mono" :rows="3" v-model="run.stage2.user" />
           </div>
         </fieldset>
 
         <!-- Presets -->
         <div class="preset-row">
-          <input class="input sm" v-model="presetName" placeholder="Preset name…" style="flex:1" />
-          <JwButton intent="secondary" size="small" @click="savePresetFor(run)" :disabled="!presetName.trim()" title="Save current config as preset">
+          <JwInput class="input sm" v-model="presetName" placeholder="Preset name…" style="flex:1" />
+          <JwButton intent="secondary" size="small" @click="savePresetFor(run)" :disabled="!presetName.trim()" v-tooltip.bottom="'Save current config as preset'">
             <Icon name="Pencil" :size="11" /> Save
           </JwButton>
-          <select class="input sm" @change="(e) => { const p = presets.find(x => x.name === e.target.value); if (p) applyPreset(run, p); e.target.value = ''; }">
-            <option value="">Load preset…</option>
-            <option v-for="p in presets" :key="p.name" :value="p.name">{{ p.name }}</option>
-          </select>
+          <JwSelect class="input sm"
+            :model-value="presetPickerValue"
+            @update:model-value="(v) => { const p = presets.find(x => x.name === v); if (p) applyPreset(run, p); presetPickerValue = ''; }"
+            :options="[{ label: 'Load preset…', value: '' }, ...presets.map(p => ({ label: p.name, value: p.name }))]" />
         </div>
 
         <!-- Action row -->
@@ -1323,27 +1322,27 @@ function copyOutput(run) {
         <div class="out-tabs" v-if="run.mode === 'lab' && run.twoStage">
           <button class="tab" :class="{ active: run.viewStage === 1 }" @click="run.viewStage = 1">Stage 1 output</button>
           <button class="tab" :class="{ active: run.viewStage === 2 }" @click="run.viewStage = 2">Stage 2 output</button>
-          <button class="icon-btn" @click="copyOutput(run)" style="margin-left:auto" title="Copy raw output">
-            <Icon name="Note" :size="12" />
-          </button>
+          <JwButton intent="ghost" size="small" @click="copyOutput(run)" style="margin-left:auto" v-tooltip.bottom="'Copy raw output'">
+            <template #icon><Icon name="Note" :size="12" /></template>
+          </JwButton>
         </div>
         <div class="out-tabs" v-else-if="run.mode === 'studio'">
           <button class="tab" :class="{ active: run.studioView === 'raw' }" @click="run.studioView = 'raw'">Raw</button>
           <button class="tab" :class="{ active: run.studioView === 'parsed' }" :disabled="!run.parsedRows.length" @click="run.studioView = 'parsed'">
             Parsed{{ run.parsedRows.length ? ` (${run.parsedRows.length})` : '' }}
           </button>
-          <button class="icon-btn" @click="copyOutput(run)" style="margin-left:auto" title="Copy raw output">
-            <Icon name="Note" :size="12" />
-          </button>
+          <JwButton intent="ghost" size="small" @click="copyOutput(run)" style="margin-left:auto" v-tooltip.bottom="'Copy raw output'">
+            <template #icon><Icon name="Note" :size="12" /></template>
+          </JwButton>
         </div>
         <div class="out-tabs" v-else-if="run.mode === 'inline'">
           <button class="tab" :class="{ active: run.inlineView === 'raw' }" @click="run.inlineView = 'raw'">Raw</button>
           <button class="tab" :class="{ active: run.inlineView === 'parsed' }" :disabled="!run.inlineParsedRows.length" @click="run.inlineView = 'parsed'">
             Parsed{{ run.inlineParsedRows.length ? ` (${run.inlineParsedRows.length})` : '' }}
           </button>
-          <button class="icon-btn" @click="copyOutput(run)" style="margin-left:auto" title="Copy raw output">
-            <Icon name="Note" :size="12" />
-          </button>
+          <JwButton intent="ghost" size="small" @click="copyOutput(run)" style="margin-left:auto" v-tooltip.bottom="'Copy raw output'">
+            <template #icon><Icon name="Note" :size="12" /></template>
+          </JwButton>
         </div>
 
         <!-- Raw streaming output (lab, studio-raw, inline-raw) -->
@@ -1411,7 +1410,9 @@ function copyOutput(run) {
       <div class="preset-list">
         <div v-for="p in presets" :key="p.name" class="preset-chip">
           <span><b>{{ p.name }}</b> · {{ p.twoStage ? '2-stage' : '1-stage' }} · <span class="t-muted">{{ p.stage1.model || '(default)' }}{{ p.twoStage ? ` → ${p.stage2.model || '(default)'}` : '' }}</span></span>
-          <button class="icon-btn" @click="deletePreset(p.name)" title="Delete preset"><Icon name="Trash" :size="11" /></button>
+          <JwButton intent="ghost" size="small" @click="deletePreset(p.name)" v-tooltip.bottom="'Delete preset'">
+            <template #icon><Icon name="Trash" :size="11" /></template>
+          </JwButton>
         </div>
       </div>
     </section>

@@ -199,17 +199,17 @@ function setPageSize(n) {
     <div v-if="paginationCfg" class="jw-pager">
       <span class="jw-pager-count">{{ pageStart }}–{{ pageEnd }} of {{ totalRows }}</span>
       <span class="jw-pager-controls">
-        <button class="jw-pager-btn" :disabled="!table.getCanPreviousPage()" @click="table.firstPage()" title="First page">
+        <button class="jw-pager-btn" :disabled="!table.getCanPreviousPage()" @click="table.firstPage()" v-tooltip.bottom="'First page'">
           <Icon name="ChevLeft" :size="12" /><Icon name="ChevLeft" :size="12" />
         </button>
-        <button class="jw-pager-btn" :disabled="!table.getCanPreviousPage()" @click="table.previousPage()" title="Previous page">
+        <button class="jw-pager-btn" :disabled="!table.getCanPreviousPage()" @click="table.previousPage()" v-tooltip.bottom="'Previous page'">
           <Icon name="ChevLeft" :size="12" />
         </button>
         <span class="jw-pager-page">Page {{ pageIndex + 1 }} / {{ Math.max(1, pageCount) }}</span>
-        <button class="jw-pager-btn" :disabled="!table.getCanNextPage()" @click="table.nextPage()" title="Next page">
+        <button class="jw-pager-btn" :disabled="!table.getCanNextPage()" @click="table.nextPage()" v-tooltip.bottom="'Next page'">
           <Icon name="ChevRight" :size="12" />
         </button>
-        <button class="jw-pager-btn" :disabled="!table.getCanNextPage()" @click="table.lastPage()" title="Last page">
+        <button class="jw-pager-btn" :disabled="!table.getCanNextPage()" @click="table.lastPage()" v-tooltip.bottom="'Last page'">
           <Icon name="ChevRight" :size="12" /><Icon name="ChevRight" :size="12" />
         </button>
         <select class="jw-pager-size" :value="paginationState.pageSize" @change="setPageSize($event.target.value)">

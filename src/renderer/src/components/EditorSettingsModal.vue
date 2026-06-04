@@ -9,6 +9,7 @@ import {
 } from "../services/editorSettings.js";
 import AppModal from "./AppModal.vue";
 import JwButton from "@renderer/components/ui/JwButton.vue";
+import JwSelect from "@renderer/components/ui/JwSelect.vue";
 
 const emit = defineEmits(["close"]);
 const ui = useUiStore();
@@ -23,9 +24,8 @@ function back() { emit("close"); }
     <div class="es-body">
       <div class="es-row">
         <span class="es-label">Font</span>
-        <select class="input es-select" v-model="draft.font">
-          <option v-for="f in EDITOR_FONTS" :key="f.label" :value="f.label">{{ f.label }}</option>
-        </select>
+        <JwSelect class="es-select" v-model="draft.font"
+          :options="EDITOR_FONTS.map(f => ({ label: f.label, value: f.label }))" />
       </div>
 
       <div class="es-row">

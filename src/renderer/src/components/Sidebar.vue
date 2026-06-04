@@ -672,7 +672,7 @@ function wbDropClass(kind, id) {
               <div class="by">{{ p.author ? `by ${p.author}` : "no author" }}</div>
             </div>
             <Icon v-if="p.id === project.activeProjectId" name="Check" :size="13" />
-            <button v-else class="project-menu-del" :title="`Delete ${p.title}`"
+            <button v-else class="project-menu-del" v-tooltip.bottom="`Delete ${p.title}`"
               @click.stop="deleteProject(p.id, p.title)">
               <Icon name="Trash" :size="12" />
             </button>
@@ -703,15 +703,15 @@ function wbDropClass(kind, id) {
                 :value="ui.filters[n.id] || ''"
                 @input="ui.setFilter(n.id, $event.target.value)"
                 @click.stop />
-              <button v-if="n.expandable === 'chapters'" class="nav-add" title="New part"
+              <button v-if="n.expandable === 'chapters'" class="nav-add" v-tooltip.bottom="'New part'"
                 @click.stop="addPart">
                 <Icon name="Plus" :size="11" />
               </button>
-              <button v-else-if="n.expandable === 'worldbuilding'" class="nav-add" title="New category"
+              <button v-else-if="n.expandable === 'worldbuilding'" class="nav-add" v-tooltip.bottom="'New category'"
                 @click.stop="addWbCategory">
                 <Icon name="Plus" :size="11" />
               </button>
-              <button v-else-if="!n.fixed" class="nav-add" :title="`New ${n.label.toLowerCase().replace(/s$/, '')}`"
+              <button v-else-if="!n.fixed" class="nav-add" v-tooltip.bottom="`New ${n.label.toLowerCase().replace(/s$/, '')}`"
                 @click.stop="addItem(n.expandable)">
                 <Icon name="Plus" :size="11" />
               </button>
@@ -736,7 +736,7 @@ function wbDropClass(kind, id) {
                     @click.stop
                     @keydown.enter.prevent="$event.target.blur()" />
                   <div class="part-actions">
-                    <button class="part-action" title="Add chapter to this part"
+                    <button class="part-action" v-tooltip.bottom="'Add chapter to this part'"
                       @click.stop="addChapterInPart(g.partId)">
                       <Icon name="Plus" :size="11" />
                     </button>
@@ -754,7 +754,7 @@ function wbDropClass(kind, id) {
                     @drop="onDropChapter(c.id, c.partId)"
                     @dragend="onDragEnd">
                     <button class="chapter-chev" :class="{ open: isChapterExpanded(c.id) }"
-                      :title="isChapterExpanded(c.id) ? 'Collapse scenes' : 'Show scenes'"
+                      v-tooltip.bottom="isChapterExpanded(c.id) ? 'Collapse scenes' : 'Show scenes'"
                       @mousedown.stop
                       @click.stop="toggleChapterExpand(c.id)">
                       <Icon name="ChevRight" :size="14" />
@@ -763,7 +763,7 @@ function wbDropClass(kind, id) {
                     <span class="nav-child-label">{{ c.label }}</span>
                     <span class="nav-child-sub t-num">{{ c.words ? c.words.toLocaleString() : '' }}</span>
                     <span class="nav-child-status" :style="c.statusColor ? { color: c.statusColor } : null">{{ c.statusLabel }}</span>
-                    <button class="chapter-add-scene" title="Add scene to this chapter"
+                    <button class="chapter-add-scene" v-tooltip.bottom="'Add scene to this chapter'"
                       @click.stop="addSceneToChapter(c.id)">
                       <Icon name="Plus" :size="11" />
                     </button>
@@ -806,7 +806,7 @@ function wbDropClass(kind, id) {
                   @dragend="onWbDragEnd"
                   @dblclick="toggleWbCat(g.subgroupId)">
                   <button class="wb-cat-chev" :class="{ open: isWbCatExpanded(g.subgroupId) }"
-                    :title="isWbCatExpanded(g.subgroupId) ? 'Collapse' : 'Expand'"
+                    v-tooltip.bottom="isWbCatExpanded(g.subgroupId) ? 'Collapse' : 'Expand'"
                     @mousedown.stop
                     @click.stop="toggleWbCat(g.subgroupId)">
                     <Icon name="ChevRight" :size="10" />
@@ -822,11 +822,11 @@ function wbDropClass(kind, id) {
                     @dblclick.stop
                     @keydown.enter.prevent="$event.target.blur()" />
                   <div class="part-actions">
-                    <button class="part-action" title="Add article to this category"
+                    <button class="part-action" v-tooltip.bottom="'Add article to this category'"
                       @click.stop="addArticleInCat(g.subgroupId)">
                       <Icon name="Plus" :size="11" />
                     </button>
-                    <button v-if="project.worldbuildingCategories.length > 1" class="part-action part-action-danger" title="Delete this category"
+                    <button v-if="project.worldbuildingCategories.length > 1" class="part-action part-action-danger" v-tooltip.bottom="'Delete this category'"
                       @click.stop="deleteWbCat(g.subgroupId, g.group)">
                       <Icon name="Trash" :size="11" />
                     </button>
@@ -893,7 +893,7 @@ function wbDropClass(kind, id) {
     <div style="height:8px" />
     <button v-for="n in NAV.filter(x => x.id)" :key="n.id"
       class="rail-item" :class="{ active: activeSection === (n.activeName || n.id).toLowerCase() }"
-      :title="n.label" @click="go(n.id)">
+      v-tooltip.bottom="n.label" @click="go(n.id)">
       <Icon :name="n.icon" :size="16" />
     </button>
     <div style="flex:1" />

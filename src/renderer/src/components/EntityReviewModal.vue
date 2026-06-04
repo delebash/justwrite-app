@@ -13,6 +13,7 @@ import Icon from "./Icon.vue";
 import AppModal from "./AppModal.vue";
 import EmptyState from "./EmptyState.vue";
 import JwButton from "@renderer/components/ui/JwButton.vue";
+import JwCheckbox from "@renderer/components/ui/JwCheckbox.vue";
 
 const props = defineProps({
   // { characters: [...], locations: [...], objects: [...] }
@@ -112,9 +113,7 @@ function originTitle(originChapters) {
         </header>
         <div class="er-list">
           <div v-for="r in rows[sec.key]" :key="r._id" class="er-row" :class="{ dropped: !r.accept }">
-            <label class="er-check">
-              <input type="checkbox" v-model="r.accept" />
-            </label>
+            <JwCheckbox v-model="r.accept" class="er-check" />
             <div class="er-fields">
               <div class="er-fields-row">
                 <input class="er-name" v-model="r.name" placeholder="Name" :disabled="!r.accept" />

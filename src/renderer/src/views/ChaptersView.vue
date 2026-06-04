@@ -17,6 +17,7 @@ import { promptDialog, confirmDialog } from "../services/dialog.js";
 import { stitchChapter, splitChapter } from "../services/chapterStitch.js";
 import { EDITOR_TOOLBAR_FULL } from "../services/editorToolbars.js";
 import JwButton from "@renderer/components/ui/JwButton.vue";
+import JwSelect from "@renderer/components/ui/JwSelect.vue";
 
 const props = defineProps({
   id: { type: String, default: "" },
@@ -566,22 +567,22 @@ watch(() => project.allChapters.map((c) => c.id + ":" + (project.scenesFor(c.id)
       <div class="seg-toggle">
         <button v-for="m in MODES" :key="m.id"
           :class="{ active: mode === m.id }"
-          @click="mode = m.id" :title="m.label">
+          @click="mode = m.id">
           <Icon :name="m.icon" :size="13" />
           <span>{{ m.label }}</span>
         </button>
       </div>
       <router-link v-if="prev" :to="`/chapters/${prev.id}`" custom v-slot="{ navigate }">
-        <JwButton intent="ghost" size="small" @click="navigate" :title="`Ch. ${prev.num} — ${prev.title}`">
+        <JwButton intent="ghost" size="small" @click="navigate" v-tooltip.bottom="`Ch. ${prev.num} — ${prev.title}`">
           <Icon name="ChevRight" :size="12" style="transform:rotate(180deg)" /> Prev
         </JwButton>
       </router-link>
       <router-link v-if="next" :to="`/chapters/${next.id}`" custom v-slot="{ navigate }">
-        <JwButton intent="ghost" size="small" @click="navigate" :title="`Ch. ${next.num} — ${next.title}`">
+        <JwButton intent="ghost" size="small" @click="navigate" v-tooltip.bottom="`Ch. ${next.num} — ${next.title}`">
           Next <Icon name="ChevRight" :size="12" />
         </JwButton>
       </router-link>
-      <JwButton v-if="activeScene" intent="ghost" size="small" @click="splitChapterHere" title="Split this chapter at the cursor">
+      <JwButton v-if="activeScene" intent="ghost" size="small" @click="splitChapterHere" v-tooltip.bottom="'Split this chapter at the cursor'">
         <Icon name="Replace" :size="13" /> Split here
       </JwButton>
       <JwButton intent="ghost" size="small" @click="deleteChapter">Delete</JwButton>
@@ -598,7 +599,7 @@ watch(() => project.allChapters.map((c) => c.id + ":" + (project.scenesFor(c.id)
     <div class="seg-toggle">
       <button v-for="m in MODES" :key="m.id"
         :class="{ active: mode === m.id }"
-        @click="mode = m.id" :title="m.label">
+        @click="mode = m.id">
         <Icon :name="m.icon" :size="13" />
         <span>{{ m.label }}</span>
       </button>
@@ -607,17 +608,17 @@ watch(() => project.allChapters.map((c) => c.id + ":" + (project.scenesFor(c.id)
          writer often wants to critique while reading or to snapshot a
          version from the outline. Skip outline (no chapter context). -->
     <template v-if="mode !== 'outline'">
-      <JwButton intent="ghost" size="small" @click="versionsOpen = true" title="Version history">
+      <JwButton intent="ghost" size="small" @click="versionsOpen = true" v-tooltip.bottom="'Version history'">
         <Icon name="History" :size="13" /> Versions
       </JwButton>
-      <JwButton intent="ghost" size="small" @click="critiqueOpen = true" title="AI critique — notes + structural analysis">
+      <JwButton intent="ghost" size="small" @click="critiqueOpen = true" v-tooltip.bottom="'AI critique — notes + structural analysis'">
         <Icon name="Sparkle" :size="13" />
         Critique
         <span v-if="ch?.critique?.notes?.length" class="critique-pill">{{ ch.critique.notes.length }}</span>
       </JwButton>
     </template>
     <router-link to="/import" custom v-slot="{ navigate }">
-      <JwButton intent="ghost" size="small" @click="navigate" title="Import chapters from a file"><Icon name="Plus" :size="14" /> Import</JwButton>
+      <JwButton intent="ghost" size="small" @click="navigate" v-tooltip.bottom="'Import chapters from a file'"><Icon name="Plus" :size="14" /> Import</JwButton>
     </router-link>
     <JwButton intent="primary" size="small" @click="addChapter"><Icon name="Plus" :size="14" /> New chapter</JwButton>
   </PaneHeader>
@@ -677,12 +678,11 @@ watch(() => project.allChapters.map((c) => c.id + ":" + (project.scenesFor(c.id)
               </span>
               <div class="ol-row-actions">
                 <label v-if="project.parts.length > 1" class="ol-move-to" @click.stop>
-                  <select class="ol-move-select"
-                    :value="part.id"
-                    @click.stop
-                    @change="moveChapterPart(c.id, $event.target.value)">
-                    <option v-for="p in project.parts" :key="p.id" :value="p.id">Move to: {{ p.title }}</option>
-                  </select>
+                  <JwSelect class="ol-move-select"
+                    :model-value="part.id"
+                    @update:model-value="(v) => moveChapterPart(c.id, v)"
+                    :options="project.parts.map(p => ({ label: `Move to: ${p.title}`, value: p.id }))"
+                    @click.stop />
                 </label>
               </div>
             </div>
@@ -750,10 +750,10 @@ watch(() => project.allChapters.map((c) => c.id + ":" + (project.scenesFor(c.id)
    <div class="read-mode">
     <div class="read-scope-bar">
       <div class="seg-toggle">
-        <button :class="{ active: readScope === 'chapter' }" @click="readScope = 'chapter'" title="Read one chapter at a time">
+        <button :class="{ active: readScope === 'chapter' }" @click="readScope = 'chapter'" v-tooltip.bottom="'Read one chapter at a time'">
           <Icon name="Book" :size="12" /><span>Chapter</span>
         </button>
-        <button :class="{ active: readScope === 'book' }" @click="readScope = 'book'" title="Read the whole book in one continuous page">
+        <button :class="{ active: readScope === 'book' }" @click="readScope = 'book'" v-tooltip.bottom="'Read the whole book in one continuous page'">
           <Icon name="List" :size="12" /><span>Whole book</span>
         </button>
       </div>
@@ -815,10 +815,10 @@ watch(() => project.allChapters.map((c) => c.id + ":" + (project.scenesFor(c.id)
   <!-- ── EDIT MODE (default) ──────────────────────────────────── -->
   <div v-else-if="ch" class="pane-card">
     <div style="padding:10px 22px;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:12px;flex-wrap:wrap">
-      <JwButton intent="ghost" size="small" @click="versionsOpen = true" title="Version history — save & restore snapshots of this chapter">
+      <JwButton intent="ghost" size="small" @click="versionsOpen = true" v-tooltip.bottom="'Version history — save & restore snapshots of this chapter'">
         <Icon name="History" :size="13" /> Versions
       </JwButton>
-      <JwButton intent="ghost" size="small" @click="critiqueOpen = true" title="AI critique — notes + structural analysis for this chapter">
+      <JwButton intent="ghost" size="small" @click="critiqueOpen = true" v-tooltip.bottom="'AI critique — notes + structural analysis for this chapter'">
         <Icon name="Sparkle" :size="13" />
         Critique
         <span v-if="ch?.critique?.notes?.length" class="critique-pill">{{ ch.critique.notes.length }}</span>
@@ -839,7 +839,7 @@ watch(() => project.allChapters.map((c) => c.id + ":" + (project.scenesFor(c.id)
       <template v-if="!continuousMode">
         <JwButton intent="ghost" size="small"
           :disabled="!prevScene"
-          :title="prevScene ? `Scene ${activeSceneIdx} — ${prevScene.title || 'Untitled'}` : 'Already the first scene'"
+          v-tooltip.bottom="prevScene ? `Scene ${activeSceneIdx} — ${prevScene.title || 'Untitled'}` : 'Already the first scene'"
           @click="prevScene && goToScene(prevScene.id)">
           <Icon name="ChevRight" :size="12" style="transform:rotate(180deg)" /> Prev scene
         </JwButton>
@@ -851,7 +851,7 @@ watch(() => project.allChapters.map((c) => c.id + ":" + (project.scenesFor(c.id)
         </span>
         <JwButton intent="ghost" size="small"
           :disabled="!nextScene"
-          :title="nextScene ? `Scene ${activeSceneIdx + 2} — ${nextScene.title || 'Untitled'}` : 'Already the last scene'"
+          v-tooltip.bottom="nextScene ? `Scene ${activeSceneIdx + 2} — ${nextScene.title || 'Untitled'}` : 'Already the last scene'"
           @click="nextScene && goToScene(nextScene.id)">
           Next scene <Icon name="ChevRight" :size="12" />
         </JwButton>

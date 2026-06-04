@@ -15,6 +15,7 @@
 
 import { ref, watch } from "vue";
 import Icon from "./Icon.vue";
+import JwButton from "@renderer/components/ui/JwButton.vue";
 
 const props = defineProps({
   progress: { type: Object, required: true },
@@ -68,12 +69,13 @@ function togglePreview() {
         </template>
       </span>
       <span class="aiprog-spacer" />
-      <button v-if="canTogglePreview && progress.preview.value" class="aiprog-btn aiprog-btn--ghost" @click="togglePreview">
+      <JwButton v-if="canTogglePreview && progress.preview.value" intent="ghost" size="small" @click="togglePreview">
         {{ previewOpen ? "Hide preview" : "Show preview" }}
-      </button>
-      <button v-if="showCancel" class="aiprog-btn aiprog-btn--danger" @click="onCancel">
-        <Icon name="Close" :size="11" /> Cancel
-      </button>
+      </JwButton>
+      <JwButton v-if="showCancel" intent="danger" size="small" @click="onCancel">
+        <template #icon><Icon name="Close" :size="11" /></template>
+        Cancel
+      </JwButton>
     </div>
     <div v-if="previewOpen && progress.preview.value" class="aiprog-preview">
       <pre>{{ progress.preview.value }}</pre>
@@ -103,21 +105,14 @@ function togglePreview() {
   white-space: nowrap;
 }
 .aiprog-spacer { flex: 1; min-width: 4px; }
-.aiprog-btn {
-  border: 0; background: transparent;
-  padding: 3px 8px; border-radius: 5px;
-  font: inherit; cursor: pointer;
-  display: inline-flex; align-items: center; gap: 4px;
+
+/* JwButton intent="ghost" uses var(--ink-2) by default, but the strip's
+   own text uses var(--accent-ink). Re-tint just inside this component
+   so the preview-toggle button reads as part of the strip's label band. */
+.aiprog :deep(.jw-btn--ghost) { color: var(--accent-ink); }
+.aiprog :deep(.jw-btn--ghost):not(:disabled):not(.is-disabled):hover {
+  background: color-mix(in oklab, var(--accent) 18%, transparent);
 }
-.aiprog-btn--ghost { color: var(--accent-ink); opacity: 0.85; }
-.aiprog-btn--ghost:hover { background: color-mix(in oklab, var(--accent) 18%, transparent); opacity: 1; }
-.aiprog-btn--danger {
-  color: var(--danger-ink, #b91c1c);
-  background: var(--surface);
-  border: 1px solid color-mix(in oklab, var(--danger-ink, #b91c1c) 30%, transparent);
-  font-weight: 600;
-}
-.aiprog-btn--danger:hover { background: color-mix(in oklab, var(--danger-ink, #b91c1c) 12%, transparent); }
 
 .aiprog-preview {
   border-top: 1px solid color-mix(in oklab, var(--accent) 25%, transparent);

@@ -254,7 +254,7 @@ const SEVERITY_META = {
             <Icon name="Refresh" :size="12" />
             {{ runningEntities ? "Scanning…" : "This chapter" }}
           </JwButton>
-          <JwButton intent="ghost" size="small" :disabled="runningEntities" @click="sweepOpen = true" title="Scan every chapter for new entities (slower)">
+          <JwButton intent="ghost" size="small" :disabled="runningEntities" @click="sweepOpen = true" v-tooltip.bottom="'Scan every chapter for new entities (slower)'">
             <Icon name="Sparkle" :size="12" />
             Whole book
           </JwButton>

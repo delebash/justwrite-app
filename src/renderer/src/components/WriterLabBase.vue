@@ -13,6 +13,8 @@ import { useProjectStore } from "../stores/project.js";
 import Icon from "./Icon.vue";
 import { ACTION_GROUPS, stripHtml, countWords } from "../services/writerLab.js";
 import JwButton from "@renderer/components/ui/JwButton.vue";
+import JwTextarea from "@renderer/components/ui/JwTextarea.vue";
+import JwSelect from "@renderer/components/ui/JwSelect.vue";
 
 const props = defineProps({
   modelValue: {
@@ -98,12 +100,10 @@ function togglePreview(e) {
       </div>
     </div>
     <div class="toolbar">
-      <select class="input sm" :value="modelValue.loadedChapterId" @change="(e) => loadChapter(e.target.value)">
-        <option value="">Load chapter&#9660;</option>
-        <option v-for="ch in project.allChapters" :key="ch.id" :value="ch.id">
-          Ch. {{ ch.num }} — {{ ch.title }}
-        </option>
-      </select>
+      <JwSelect class="input sm"
+        :model-value="modelValue.loadedChapterId"
+        @update:model-value="(v) => loadChapter(v)"
+        :options="[{ label: 'Load chapter…', value: '' }, ...project.allChapters.map(ch => ({ label: `Ch. ${ch.num} — ${ch.title}`, value: ch.id }))]" />
       <JwButton intent="secondary" size="small" @click="clearInput" :disabled="!modelValue.inputText">
         <Icon name="Close" :size="12" /> Clear
       </JwButton>
@@ -111,11 +111,11 @@ function togglePreview(e) {
         Paste prose or load a chapter.
       </span>
     </div>
-    <textarea
+    <JwTextarea
       :value="modelValue.inputText"
       @input="(e) => patch({ inputText: e.target.value })"
       class="input mono"
-      rows="8"
+      :rows="8"
       style="min-height:200px"
       placeholder="Paste manuscript text here, or load a chapter above…"
     />

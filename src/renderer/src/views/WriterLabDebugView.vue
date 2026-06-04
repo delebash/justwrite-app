@@ -19,6 +19,7 @@ import WriterLabBase from "../components/WriterLabBase.vue";
 import { PACING_LABELS, ENDING_LABELS } from "../services/analysis/critique.js";
 import { dispatchRun, reconstructPrompt, textToHtml, fmtMs } from "../services/writerLab.js";
 import JwButton from "@renderer/components/ui/JwButton.vue";
+import JwCheckbox from "@renderer/components/ui/JwCheckbox.vue";
 
 const project = useProjectStore();
 const ai      = useAiStore();
@@ -190,26 +191,22 @@ function notesByGroup(notes) {
             @update:modelValue="col.model = ''"
           />
           <ModelPicker v-model="col.model" :provider-id="col.providerId" />
-          <label
+          <JwCheckbox
+            v-model="base.showPreview"
             class="toggle-label"
             :class="{ 'toggle-label--dim': !isProseAction }"
             :title="isProseAction ? 'Show preview while streaming' : 'Preview only available for prose actions'"
-          >
-            <input
-              type="checkbox"
-              v-model="base.showPreview"
-              :disabled="!isProseAction"
-            />
-            Preview
-          </label>
-          <button
-            class="icon-btn"
+            :disabled="!isProseAction"
+          >Preview</JwCheckbox>
+          <JwButton
+            intent="ghost"
+            size="small"
             @click="removeColumn(col)"
             :disabled="columns.length <= 1"
-            title="Remove column"
+            v-tooltip.bottom="'Remove column'"
           >
-            <Icon name="Trash" :size="13" />
-          </button>
+            <template #icon><Icon name="Trash" :size="13" /></template>
+          </JwButton>
         </div>
 
         <!-- Progress bar -->
@@ -242,7 +239,7 @@ function notesByGroup(notes) {
           <div class="result-panel">
             <div class="result-eyebrow">
               Raw response
-              <button class="copy-btn" @click="copyRaw(col)" title="Copy raw response">Copy</button>
+              <button class="copy-btn" @click="copyRaw(col)" v-tooltip.bottom="'Copy raw response'">Copy</button>
             </div>
             <pre class="mono-pre">{{ colRawResponse(col) || "(streaming…)" }}</pre>
           </div>

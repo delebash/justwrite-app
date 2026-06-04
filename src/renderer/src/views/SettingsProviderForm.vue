@@ -231,7 +231,7 @@ function resetParam(key) { setParam(key, undefined); }
           <JwButton intent="ghost" type="button"
             :disabled="modelsLoading || !draft.baseUrl"
             @click="fetchModels"
-            :title="draft.baseUrl ? 'Query GET /v1/models on the Base URL above' : 'Fill the Base URL first'">
+            v-tooltip.bottom="draft.baseUrl ? 'Query GET /v1/models on the Base URL above' : 'Fill the Base URL first'">
             {{ modelsLoading ? "Loading…" : (fetchedModels.length ? "Refresh" : "Fetch models") }}
           </JwButton>
           <div v-if="modelsError" class="t-muted" style="flex-basis:100%;font-size:11px;color:var(--danger,#c33)">
@@ -251,7 +251,7 @@ function resetParam(key) { setParam(key, undefined); }
             <JwButton v-if="tierSource === 'pinned'" intent="ghost" type="button"
               style="padding:2px 8px;font-size:11px"
               @click="clearTierPin"
-              title="Revert to the auto-detected tier">Clear pin</JwButton>
+              v-tooltip.bottom="'Revert to the auto-detected tier'">Clear pin</JwButton>
           </div>
         </template>
 
@@ -275,7 +275,7 @@ function resetParam(key) { setParam(key, undefined); }
           <JwButton v-if="draft.kind === 'tts'" intent="ghost" type="button"
             :disabled="modelsLoading || !draft.baseUrl"
             @click="fetchModels"
-            :title="draft.baseUrl ? 'Query GET /v1/models on the Base URL above' : 'Fill the Base URL first'">
+            v-tooltip.bottom="draft.baseUrl ? 'Query GET /v1/models on the Base URL above' : 'Fill the Base URL first'">
             {{ modelsLoading ? "Loading…" : (fetchedModels.length ? "Refresh" : "Fetch models") }}
           </JwButton>
           <div v-if="draft.kind === 'tts' && modelsError" class="t-muted" style="flex-basis:100%;font-size:11px;color:var(--danger,#c33)">
@@ -285,7 +285,7 @@ function resetParam(key) { setParam(key, undefined); }
         <span class="t-muted">Voices</span>
         <div style="display:flex;gap:6px;align-items:stretch;flex-wrap:wrap">
           <div class="model-combo" :class="{ open: voices.state.open }" :ref="voices.setBoxRef" style="flex:1;min-width:160px;position:relative">
-            <input class="input model-combo-input"
+            <JwInput class="input model-combo-input"
               :value="draft.ttsVoices?.join(', ') || ''"
               @input="draft.ttsVoices = $event.target.value.split(',').map(v => v.trim()).filter(Boolean)"
               @focus="voices.openIt"
@@ -294,7 +294,7 @@ function resetParam(key) { setParam(key, undefined); }
               :placeholder="voices.items.length ? `Type or click ▾ to pick from ${voices.items.length} fetched voices` : 'comma-separated · e.g. alloy, echo, nova'" />
             <button type="button" class="model-combo-chev"
               :disabled="!voices.items.length"
-              :title="voices.items.length ? 'Pick from fetched voices' : 'Fetch voices first'"
+              v-tooltip.bottom="voices.items.length ? 'Pick from fetched voices' : 'Fetch voices first'"
               @mousedown.prevent
               @click="voices.toggleIt">
               <Icon name="ChevDown" :size="13" class="model-combo-chev-icon" />
@@ -314,7 +314,7 @@ function resetParam(key) { setParam(key, undefined); }
           <JwButton intent="ghost" type="button"
             :disabled="voicesLoading || !draft.baseUrl"
             @click="fetchVoices"
-            :title="draft.baseUrl ? 'Query GET /v1/audio/voices on the Base URL above' : 'Fill the Base URL first'">
+            v-tooltip.bottom="draft.baseUrl ? 'Query GET /v1/audio/voices on the Base URL above' : 'Fill the Base URL first'">
             {{ voicesLoading ? "Loading…" : (fetchedVoices.length ? "Refresh" : "Fetch voices") }}
           </JwButton>
           <div v-if="voicesError" class="t-muted" style="flex-basis:100%;font-size:11px;color:var(--danger,#c33)">
@@ -358,7 +358,7 @@ function resetParam(key) { setParam(key, undefined); }
                 :model-value="getParam(f.key) ?? ''"
                 @update:model-value="(v) => setParam(f.key, v || undefined)" />
               <JwButton v-if="getParam(f.key) !== undefined" type="button"
-                label="↺" intent="ghost" size="small" :title="`Reset ${f.label}`"
+                label="↺" intent="ghost" size="small" v-tooltip.bottom="`Reset ${f.label}`"
                 style="padding:4px 8px" @click="resetParam(f.key)" />
             </div>
           </template>

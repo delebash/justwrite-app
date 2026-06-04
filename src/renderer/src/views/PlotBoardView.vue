@@ -381,7 +381,7 @@ function sceneBadge(beat) {
             v-for="ch in chapters"
             :key="ch.id"
             class="col-header ch-header"
-            :title="ch.title"
+            v-tooltip.bottom="ch.title"
             @click="router.push(`/chapters/${ch.id}`)"
           >
             <span class="col-label">Ch {{ ch.num }}</span>
@@ -405,7 +405,7 @@ function sceneBadge(beat) {
                 <span
                   class="strand-drag-handle"
                   draggable="true"
-                  title="Drag to reorder"
+                  v-tooltip.bottom="'Drag to reorder'"
                   @dragstart="onStrandDragStart($event, strand.id)"
                   @dragend="onStrandDragEnd"
                 >
@@ -424,7 +424,7 @@ function sceneBadge(beat) {
                 >{{ strand.name }}</span>
                 <button
                   class="strand-trash-btn"
-                  title="Delete strand"
+                  v-tooltip.bottom="'Delete strand'"
                   @click="handleRemoveStrand(strand)"
                 >
                   <Icon name="Trash" :size="13" />
@@ -458,7 +458,7 @@ function sceneBadge(beat) {
                 :aria-label="`Edit beat: ${beat.label}`"
                 :style="`border-left-color:${strand.color || 'var(--accent)'}`"
                 draggable="true"
-                :title="beat.note || beat.label"
+                v-tooltip.bottom="beat.note || beat.label"
                 @dragstart="onDragStart($event, strand.id, beat)"
                 @dragend="onDragEnd"
                 @click.stop="handleEditBeat(strand.id, beat, $event)"
@@ -468,7 +468,7 @@ function sceneBadge(beat) {
                 <span v-if="sceneBadge(beat)" class="beat-scene" :title="`Pinned to ${sceneBadge(beat)}`">{{ sceneBadge(beat) }}</span>
                 <button
                   class="beat-del-btn"
-                  title="Remove beat"
+                  v-tooltip.bottom="'Remove beat'"
                   @click="handleRemoveBeat(strand.id, beat.id, $event)"
                 >
                   <Icon name="Close" :size="10" />
@@ -477,7 +477,7 @@ function sceneBadge(beat) {
               <button
                 v-if="beatsInCell(strand, null).length > 0"
                 class="cell-add-btn"
-                title="Add beat here"
+                v-tooltip.bottom="'Add beat here'"
                 @click.stop="handleAddBeat(strand.id, null)"
               >
                 <Icon name="Plus" :size="11" />
@@ -511,7 +511,7 @@ function sceneBadge(beat) {
                 :aria-label="`Edit beat: ${beat.label}`"
                 :style="`border-left-color:${strand.color || 'var(--accent)'}`"
                 draggable="true"
-                :title="beat.note || beat.label"
+                v-tooltip.bottom="beat.note || beat.label"
                 @dragstart="onDragStart($event, strand.id, beat)"
                 @dragend="onDragEnd"
                 @click.stop="handleEditBeat(strand.id, beat, $event)"
@@ -521,7 +521,7 @@ function sceneBadge(beat) {
                 <span v-if="sceneBadge(beat)" class="beat-scene" :title="`Pinned to ${sceneBadge(beat)}`">{{ sceneBadge(beat) }}</span>
                 <button
                   class="beat-del-btn"
-                  title="Remove beat"
+                  v-tooltip.bottom="'Remove beat'"
                   @click="handleRemoveBeat(strand.id, beat.id, $event)"
                 >
                   <Icon name="Close" :size="10" />
@@ -530,7 +530,7 @@ function sceneBadge(beat) {
               <button
                 v-if="beatsInCell(strand, ch.id).length > 0"
                 class="cell-add-btn"
-                title="Add beat here"
+                v-tooltip.bottom="'Add beat here'"
                 @click.stop="handleAddBeat(strand.id, ch.id)"
               >
                 <Icon name="Plus" :size="11" />

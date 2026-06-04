@@ -105,17 +105,17 @@ async function openProject() {
 <template>
   <div class="titlebar">
     <div class="titlebar-left">
-      <button @click="goBack" :disabled="!canBack" :title="`Back${canBack ? '' : ' (no history)'}`">
+      <button @click="goBack" :disabled="!canBack" v-tooltip.bottom="`Back${canBack ? '' : ' (no history)'}`">
         <Icon name="ChevLeft" :size="15" />
       </button>
-      <button @click="goForward" :disabled="!canForward" :title="`Forward${canForward ? '' : ' (no history)'}`">
+      <button @click="goForward" :disabled="!canForward" v-tooltip.bottom="`Forward${canForward ? '' : ' (no history)'}`">
         <Icon name="ChevRight" :size="15" />
       </button>
     </div>
     <div class="titlebar-title">{{ title }}</div>
     <div class="titlebar-right">
       <div class="theme-switcher" ref="themeWrap">
-        <button @click="toggleTheme" :title="`Theme · ${activePresetLabel}`">
+        <button @click="toggleTheme" v-tooltip.bottom="`Theme · ${activePresetLabel}`">
           <Icon name="Palette" :size="13" />
         </button>
         <div v-if="themeOpen" class="theme-menu">
@@ -143,7 +143,7 @@ async function openProject() {
         </div>
       </div>
       <div class="theme-switcher" ref="modeWrap">
-        <button @click="toggleMode" :title="`Mode · ${modeLabel}`">
+        <button @click="toggleMode" v-tooltip.bottom="`Mode · ${modeLabel}`">
           <Icon :name="modeIcon" :size="13" />
         </button>
         <div v-if="modeOpen" class="theme-menu has-icons">
@@ -157,21 +157,21 @@ async function openProject() {
         </div>
       </div>
       <span class="titlebar-divider" />
-      <button @click="openProject" title="Open project…"><Icon name="Folder" :size="13" /></button>
-      <button @click="saveProject" title="Save project as…"><Icon name="Download" :size="13" /></button>
+      <button @click="openProject" v-tooltip.bottom="'Open project…'"><Icon name="Folder" :size="13" /></button>
+      <button @click="saveProject" v-tooltip.bottom="'Save project as…'"><Icon name="Download" :size="13" /></button>
       <span class="titlebar-divider" />
-      <button @click="project.undo" :disabled="!project.canUndo" :title="`Undo${project.canUndo ? '' : ' (nothing to undo)'} · ⌘Z`">
+      <button @click="project.undo" :disabled="!project.canUndo" v-tooltip.bottom="`Undo${project.canUndo ? '' : ' (nothing to undo)'} · ⌘Z`">
         <Icon name="Refresh" :size="13" style="transform:scaleX(-1)" />
       </button>
-      <button @click="project.redo" :disabled="!project.canRedo" :title="`Redo${project.canRedo ? '' : ' (nothing to redo)'} · ⌘⇧Z`">
+      <button @click="project.redo" :disabled="!project.canRedo" v-tooltip.bottom="`Redo${project.canRedo ? '' : ' (nothing to redo)'} · ⌘⇧Z`">
         <Icon name="Refresh" :size="13" />
       </button>
       <span class="titlebar-divider" />
-      <button @click="ui.toggleSidebar" :title="ui.sidebarCollapsed ? 'Expand sidebar' : 'Collapse sidebar'">
+      <button @click="ui.toggleSidebar" v-tooltip.bottom="ui.sidebarCollapsed ? 'Expand sidebar' : 'Collapse sidebar'">
         <Icon name="SidebarToggle" :size="14" />
       </button>
       <router-link to="/search" custom v-slot="{ navigate }">
-        <button @click="navigate" title="Search · ⌘F"><Icon name="Search" :size="13" /></button>
+        <button @click="navigate" v-tooltip.bottom="'Search · ⌘F'"><Icon name="Search" :size="13" /></button>
       </router-link>
     </div>
   </div>

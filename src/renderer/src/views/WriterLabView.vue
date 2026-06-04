@@ -164,7 +164,7 @@ function notesByGroup(notes) {
       <div class="result-panel">
         <div class="result-eyebrow">
           Raw response
-          <button class="copy-btn" @click="copyRaw" title="Copy raw response">Copy</button>
+          <button class="copy-btn" @click="copyRaw" v-tooltip.bottom="'Copy raw response'">Copy</button>
         </div>
         <pre class="mono-pre">{{ rawResponse() || "(streaming…)" }}</pre>
       </div>

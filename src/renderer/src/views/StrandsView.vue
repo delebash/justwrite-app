@@ -6,6 +6,8 @@ import { useUiStore } from "../stores/ui.js";
 import PaneHeader from "../components/PaneHeader.vue";
 import Icon from "../components/Icon.vue";
 import JwButton from "@renderer/components/ui/JwButton.vue";
+import JwSelect from "@renderer/components/ui/JwSelect.vue";
+import JwTextarea from "@renderer/components/ui/JwTextarea.vue";
 import RichEditor from "../components/RichEditor.vue";
 import { EDITOR_TOOLBAR_DOC } from "../services/editorToolbars.js";
 import StatusSelect from "../components/StatusSelect.vue";
@@ -229,10 +231,11 @@ const sortedBeats = computed(() => {
 
   <div v-else class="pane-card">
     <div class="strand-body">
-          <textarea class="strand-blurb"
+          <JwTextarea class="strand-blurb"
             :value="s.blurb || ''"
             placeholder="What is this narrative strand about? (One or two sentences)"
-            rows="2"
+            :rows="2"
+            auto-resize
             @input="update('blurb', $event.target.value)" />
 
           <div class="strand-meta-row">
@@ -292,15 +295,11 @@ const sortedBeats = computed(() => {
                     placeholder="Note (optional)"
                     @input="updateBeat(b.id, 'note', $event.target.value)" />
                 </div>
-                <select class="beat-rechapter"
-                  :value="beatRefValue(b)"
-                  :title="'Reassign to a different scene'"
-                  @change="setBeatRef(b.id, $event.target.value)">
-                  <option value="">(no scene)</option>
-                  <option v-for="opt in sceneOptions" :key="opt.value" :value="opt.value">
-                    {{ opt.label }}
-                  </option>
-                </select>
+                <JwSelect class="beat-rechapter"
+                  :model-value="beatRefValue(b)"
+                  v-tooltip.bottom="'Reassign to a different scene'"
+                  @update:model-value="(v) => setBeatRef(b.id, v)"
+                  :options="[{ label: '(no scene)', value: '' }, ...sceneOptions]" />
                 <JwButton intent="ghost" size="small" class="beat-delete" v-tooltip.bottom="'Remove beat'" @click="removeBeat(b.id)">
                   <Icon name="Trash" :size="14" />
                 </JwButton>
