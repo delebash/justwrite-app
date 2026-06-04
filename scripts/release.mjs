@@ -6,13 +6,16 @@
 // way to kick a release, on purpose.
 //
 // Usage:
-//   npm run release           # uses version from package.json
-//   npm run release 0.2.0     # explicit version
+//   npm run release                       # all platforms, version from package.json
+//   npm run release 0.2.0                 # all platforms, explicit version
+//   npm run release:windows               # convenience — windows only
+//   npm run release:macos                 # convenience — macos only
+//   npm run release:linux                 # convenience — linux only
+//   node scripts/release.mjs --platform windows   # flag form (also works)
 //
 // Preconditions (verified here):
 //   - gh CLI installed and authenticated
 //   - tag v<version> exists on origin
-//   - working tree is clean
 
 import { readFile } from "node:fs/promises";
 import { resolve, dirname } from "node:path";
@@ -43,8 +46,22 @@ if (tryRun("gh auth status") === null) {
   fail("gh CLI is not authenticated. Run `gh auth login` first.");
 }
 
-// 2. Resolve version -------------------------------------------------
-let version = process.argv[2];
+// 2. Parse args ------------------------------------------------------
+const VALID_PLATFORMS = ["all", "windows", "macos", "linux"];
+const argv = process.argv.slice(2);
+let platform = "all";
+let version = null;
+for (let i = 0; i < argv.length; i++) {
+  const a = argv[i];
+  if (a === "--platform" || a === "-p") {
+    platform = argv[++i];
+    if (!VALID_PLATFORMS.includes(platform)) {
+      fail(`Invalid platform "${platform}". One of: ${VALID_PLATFORMS.join(", ")}.`);
+    }
+  } else if (!a.startsWith("-") && !version) {
+    version = a;
+  }
+}
 if (!version) {
   const pkg = JSON.parse(await readFile(resolve(ROOT, "package.json"), "utf8"));
   version = pkg.version;
@@ -67,11 +84,18 @@ if (!remoteTag) {
 }
 
 // 4. Confirm ---------------------------------------------------------
+const ARTIFACTS = {
+  all:     ".dmg (macOS universal), .exe + .msi (Windows), .AppImage + .deb + .rpm (Linux)",
+  windows: ".exe + .msi (Windows only)",
+  macos:   ".dmg (macOS universal only)",
+  linux:   ".AppImage + .deb + .rpm (Linux only)",
+};
 console.log(`Tag ${tag} found on origin. Ready to trigger the release workflow.`);
+console.log(`Platforms: ${platform}`);
 console.log("");
 console.log("This will:");
-console.log("  - Build .dmg (macOS universal), .exe + .msi (Windows), .AppImage + .deb + .rpm (Linux)");
-console.log("  - Create GitHub Release '" + tag + "' with the binaries attached");
+console.log(`  - Build ${ARTIFACTS[platform]}`);
+console.log("  - Create / update GitHub Release '" + tag + "' with the binaries attached");
 console.log("  - Pack docs/ into docs.tar.gz and attach to the release");
 console.log("  - Fire a repository_dispatch to justwrite-website so it rebuilds with the new docs");
 console.log("");
@@ -87,7 +111,7 @@ if (answer !== "y" && answer !== "yes") {
 // 5. Trigger ---------------------------------------------------------
 console.log("Triggering...");
 try {
-  run(`gh workflow run release.yml -f tag=${tag}`, { stdio: "inherit" });
+  run(`gh workflow run release.yml -f tag=${tag} -f platforms=${platform}`, { stdio: "inherit" });
 } catch {
   fail("gh workflow run failed. Check that the release.yml workflow exists on the default branch.");
 }

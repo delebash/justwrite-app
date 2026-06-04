@@ -12,7 +12,10 @@
     "build": "tauri build",
     "tauri": "tauri",
     "bump": "node scripts/bump.mjs",
-    "release": "node scripts/release.mjs"
+    "release": "node scripts/release.mjs",
+    "release:windows": "node scripts/release.mjs --platform windows",
+    "release:macos": "node scripts/release.mjs --platform macos",
+    "release:linux": "node scripts/release.mjs --platform linux"
   },
   "dependencies": {
     "@ffmpeg/ffmpeg": "^0.12.15",

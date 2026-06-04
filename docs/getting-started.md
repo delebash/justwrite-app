@@ -128,6 +128,9 @@ The first `npm run dev` compiles the Rust crate and is slow; every subsequent la
 | `npm run build:vite` | Renderer build only (Tauri invokes this via `beforeBuildCommand`) |
 | `npm run bump <version>` | Update the version number in `package.json`, `src-tauri/Cargo.toml`, and `src-tauri/tauri.conf.json` |
 | `npm run release` | Trigger the GitHub Actions cross-platform release build (manual only) |
+| `npm run release:windows` | Same, but build Windows only — useful for iteration before going full release |
+| `npm run release:macos` | Same, macOS only |
+| `npm run release:linux` | Same, Linux only |
 
 The architecture and contribution notes live in the repo's `CLAUDE.md` and `README.md`.
 
@@ -145,9 +148,19 @@ git push && git push --tags
 npm run release                                     # confirms, then triggers the workflow
 ```
 
+**Single-platform iteration.** When you're testing on one OS and don't want to spend ~20 min waiting for builds you won't use, target a single platform:
+
+```bash
+npm run release:windows     # only spins up the Windows runner
+npm run release:macos       # only macOS
+npm run release:linux       # only Linux
+```
+
+The GitHub Release picks up whichever binaries land first; re-running with a different platform later adds those binaries to the same release.
+
 The workflow runs three jobs:
 
-1. **`build`** — matrix build via [`tauri-apps/tauri-action`](https://github.com/tauri-apps/tauri-action) on macOS (universal `.dmg`), Windows (`.exe` + `.msi`), and Linux (`.AppImage` + `.deb` + `.rpm`). Creates the GitHub Release and uploads the binaries.
+1. **`build`** — matrix build via [`tauri-apps/tauri-action`](https://github.com/tauri-apps/tauri-action) on macOS (universal `.dmg`), Windows (`.exe` + `.msi`), and Linux (`.AppImage` + `.deb` + `.rpm`). The matrix is computed dynamically from the `platforms` workflow input (`all` / `windows` / `macos` / `linux`). Creates the GitHub Release and uploads the binaries.
 2. **`attach-docs`** — packs the `docs/` folder into `docs.tar.gz` and attaches it to the release. The marketing site treats this as the source of truth for the docs at this version.
 3. **`notify-website`** — fires a `repository_dispatch` to [`justwrite-website`](https://github.com/delebash/justwrite-website), which rebuilds and redeploys with the new docs.
 

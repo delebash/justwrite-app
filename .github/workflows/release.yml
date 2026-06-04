@@ -10,25 +10,46 @@ on:
         description: 'Tag to build (e.g. v0.2.0). Must already exist on origin.'
         required: true
         type: string
+      platforms:
+        description: 'Which platforms to build.'
+        required: true
+        type: choice
+        default: 'all'
+        options:
+          - all
+          - windows
+          - macos
+          - linux
 
 permissions:
   contents: write   # needed to create / update the GitHub release
 
 jobs:
+  setup:
+    runs-on: ubuntu-latest
+    outputs:
+      matrix: ${{ steps.matrix.outputs.matrix }}
+    steps:
+      - id: matrix
+        env:
+          PLATFORMS: ${{ inputs.platforms }}
+        run: |
+          WIN='{"platform":"windows-latest","args":"","rust-targets":""}'
+          MAC='{"platform":"macos-latest","args":"--target universal-apple-darwin","rust-targets":"aarch64-apple-darwin x86_64-apple-darwin"}'
+          LIN='{"platform":"ubuntu-22.04","args":"","rust-targets":""}'
+          case "$PLATFORMS" in
+            windows) MATRIX="{\"include\":[$WIN]}" ;;
+            macos)   MATRIX="{\"include\":[$MAC]}" ;;
+            linux)   MATRIX="{\"include\":[$LIN]}" ;;
+            *)       MATRIX="{\"include\":[$MAC,$LIN,$WIN]}" ;;
+          esac
+          echo "matrix=$MATRIX" >> "$GITHUB_OUTPUT"
+
   build:
+    needs: setup
     strategy:
       fail-fast: false
-      matrix:
-        include:
-          - platform: macos-latest
-            args: '--target universal-apple-darwin'
-            rust-targets: 'aarch64-apple-darwin x86_64-apple-darwin'
-          - platform: ubuntu-22.04
-            args: ''
-            rust-targets: ''
-          - platform: windows-latest
-            args: ''
-            rust-targets: ''
+      matrix: ${{ fromJson(needs.setup.outputs.matrix) }}
 
     runs-on: ${{ matrix.platform }}
     steps:
