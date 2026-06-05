@@ -58,9 +58,9 @@ export const useUiStore = defineStore("ui", {
         notes: "n1",
         worldbuilding: null,
       },
-      // Appearance / theming (see services/appearance.js).
-      appearance: { ...DEFAULT_APPEARANCE },
       // User-saved appearance presets: { id, name, patch }.
+      // The `appearance` slice itself is set further down via
+      // migrateAppearance(saved) so legacy keys get folded in.
       customPresets: [],
       // Writing/editor display settings (font, spacing, etc.).
       editorSettings: { ...DEFAULT_EDITOR_SETTINGS },

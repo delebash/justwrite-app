@@ -33,9 +33,9 @@ export function topKHybrid(store, queryVec, queryText, k = 8) {
   const bmRanked  = [...bm.entries()].sort((a, b) => b[1] - a[1]);
 
   const cosRank = new Map();
-  cosRanked.forEach(([id], i) => cosRank.set(id, i + 1));
+  cosRanked.forEach(([id], i) => { cosRank.set(id, i + 1); });
   const bmRank  = new Map();
-  bmRanked.forEach(([id], i) => bmRank.set(id, i + 1));
+  bmRanked.forEach(([id], i) => { bmRank.set(id, i + 1); });
 
   const ids = new Set([...cosRank.keys(), ...bmRank.keys()]);
   const blended = [];

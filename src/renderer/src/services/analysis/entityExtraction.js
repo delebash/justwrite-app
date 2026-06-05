@@ -12,8 +12,8 @@ function htmlToText(html) {
   if (!html) return "";
   const div = document.createElement("div");
   div.innerHTML = html;
-  div.querySelectorAll(".ai-del").forEach((el) => el.remove());
-  div.querySelectorAll(".ai-ins").forEach((el) => el.replaceWith(...el.childNodes));
+  div.querySelectorAll(".ai-del").forEach((el) => { el.remove(); });
+  div.querySelectorAll(".ai-ins").forEach((el) => { el.replaceWith(...el.childNodes); });
   return div.textContent || "";
 }
 

@@ -156,7 +156,7 @@ Return only the JSON array, no commentary.`;
 function extractStudioParagraphs(html) {
   const div = document.createElement("div");
   div.innerHTML = String(html || "");
-  div.querySelectorAll("h2.scene-title, p.scene-mark").forEach((el) => el.remove());
+  div.querySelectorAll("h2.scene-title, p.scene-mark").forEach((el) => { el.remove(); });
   return Array.from(div.querySelectorAll("p"))
     .map((el) => el.textContent.trim())
     .filter((t) => t && !STRUCTURAL_MARKER_RE.test(t));
@@ -404,7 +404,7 @@ function buildNameIndex(characters) {
     add(c.name, c.id);
     const parts = String(c.name || "").trim().split(/\s+/);
     if (parts.length > 1) { add(parts[0], c.id); add(parts[parts.length - 1], c.id); }
-    if (Array.isArray(c.aliases)) c.aliases.forEach((a) => add(a, c.id));
+    if (Array.isArray(c.aliases)) c.aliases.forEach((a) => { add(a, c.id); });
   }
   return idx;
 }
@@ -847,7 +847,7 @@ async function runStudio(run) {
     if (introParts.length) {
       rows.push({ speaker: "narrator", kind: "narration", confidence: 1.0, text: introParts.join(" "), intro: true });
     }
-    parsed.forEach((a, i) => rows.push({ ...a, text: paragraphs[i] || "" }));
+    parsed.forEach((a, i) => { rows.push({ ...a, text: paragraphs[i] || "" }); });
     run.parsedRows = rows;
     run.studioView = "parsed";
     run.activeStage = 0;

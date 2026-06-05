@@ -12,20 +12,16 @@ function stripText(html) {
   div.innerHTML = html;
 
   // Remove deleted AI content entirely.
-  div.querySelectorAll("del[data-ai-del], .ai-del").forEach((el) => el.remove());
+  div.querySelectorAll("del[data-ai-del], .ai-del").forEach((el) => { el.remove(); });
 
   // Remove scene-break markers entirely (the "* * *" paragraphs).
-  div.querySelectorAll(".scene-mark").forEach((el) => el.remove());
+  div.querySelectorAll(".scene-mark").forEach((el) => { el.remove(); });
 
   // Unwrap inserted AI content — keep text, remove tags.
-  div.querySelectorAll("ins[data-ai-ins], .ai-ins").forEach((el) =>
-    el.replaceWith(...el.childNodes),
-  );
+  div.querySelectorAll("ins[data-ai-ins], .ai-ins").forEach((el) => { el.replaceWith(...el.childNodes); });
 
   // Unwrap mention chips — keep text, remove tags.
-  div.querySelectorAll(".mention, [data-mention]").forEach((el) =>
-    el.replaceWith(...el.childNodes),
-  );
+  div.querySelectorAll(".mention, [data-mention]").forEach((el) => { el.replaceWith(...el.childNodes); });
 
   return (div.textContent || "").replace(/\s+/g, " ").trim();
 }

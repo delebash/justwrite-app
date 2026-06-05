@@ -195,11 +195,11 @@ async function reanalyze() {
     const html = project.chapterBody[scriptChapter.value] || "";
     const div = document.createElement("div");
     div.innerHTML = html;
-    div.querySelectorAll("h2.scene-title, p.scene-mark").forEach((el) => el.remove());
+    div.querySelectorAll("h2.scene-title, p.scene-mark").forEach((el) => { el.remove(); });
     // Pending AI revisions: never speak the "before" half; speak the
     // "after" half as plain prose. Same policy as Read mode + export.
-    div.querySelectorAll("del[data-ai-del], .ai-del").forEach((el) => el.remove());
-    div.querySelectorAll("ins[data-ai-ins], .ai-ins").forEach((el) => el.replaceWith(...el.childNodes));
+    div.querySelectorAll("del[data-ai-del], .ai-del").forEach((el) => { el.remove(); });
+    div.querySelectorAll("ins[data-ai-ins], .ai-ins").forEach((el) => { el.replaceWith(...el.childNodes); });
     const paragraphs = Array.from(div.querySelectorAll("p"))
       .map((el) => el.textContent.trim())
       .filter((t) => t && !STRUCTURAL_MARKER_RE.test(t));
@@ -228,7 +228,7 @@ async function reanalyze() {
         text: introParts.join(" "),
       });
     }
-    annotated.forEach((a, i) => script.push({ ...a, text: paragraphs[i] }));
+    annotated.forEach((a, i) => { script.push({ ...a, text: paragraphs[i] }); });
     studio.setScript(scriptChapter.value, script);
   } catch (e) { error.value = e.message; } finally { analyzeLoading.value = false; }
 }

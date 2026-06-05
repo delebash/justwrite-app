@@ -259,7 +259,7 @@ function normalizeStrands(snap) {
   if (Array.isArray(snap.strands)) {
     // Backfill new fields on older records so the UI doesn't render `undefined`.
     snap.strands = snap.strands.map((s) => ({
-      blurb: "", status: "open", beats: [], ...s,
+      blurb: "", status: "open", ...s,
       beats: Array.isArray(s.beats) ? s.beats.map((b) => ({ sceneId: null, ...b })) : [],
     }));
   }

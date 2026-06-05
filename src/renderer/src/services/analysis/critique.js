@@ -16,8 +16,8 @@ function htmlToText(html) {
   div.innerHTML = html;
   // Strip pending AI diff marks so the LLM doesn't critique its own
   // earlier suggestions back to itself.
-  div.querySelectorAll(".ai-del").forEach((el) => el.remove());
-  div.querySelectorAll(".ai-ins").forEach((el) => el.replaceWith(...el.childNodes));
+  div.querySelectorAll(".ai-del").forEach((el) => { el.remove(); });
+  div.querySelectorAll(".ai-ins").forEach((el) => { el.replaceWith(...el.childNodes); });
   return div.textContent || "";
 }
 

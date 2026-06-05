@@ -185,7 +185,7 @@ function stripHtml(html) {
   // Same policy as read mode / export / search: drop deleted ranges,
   // unwrap insertions. Otherwise the cast-presence heatmap counts
   // character names that are being struck through.
-  tmp.querySelectorAll("del[data-ai-del], .ai-del").forEach((el) => el.remove());
-  tmp.querySelectorAll("ins[data-ai-ins], .ai-ins").forEach((el) => el.replaceWith(...el.childNodes));
+  tmp.querySelectorAll("del[data-ai-del], .ai-del").forEach((el) => { el.remove(); });
+  tmp.querySelectorAll("ins[data-ai-ins], .ai-ins").forEach((el) => { el.replaceWith(...el.childNodes); });
   return (tmp.textContent || "").replace(/\s+/g, " ").trim();
 }

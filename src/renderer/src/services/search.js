@@ -39,8 +39,8 @@ function stripHtml(html) {
   // Pending AI revisions aren't real prose yet — drop deleted ranges
   // entirely so they stop matching searches, and unwrap insertions so
   // proposed text IS findable while the user is reviewing it.
-  tmp.querySelectorAll("del[data-ai-del], .ai-del").forEach((el) => el.remove());
-  tmp.querySelectorAll("ins[data-ai-ins], .ai-ins").forEach((el) => el.replaceWith(...el.childNodes));
+  tmp.querySelectorAll("del[data-ai-del], .ai-del").forEach((el) => { el.remove(); });
+  tmp.querySelectorAll("ins[data-ai-ins], .ai-ins").forEach((el) => { el.replaceWith(...el.childNodes); });
   return (tmp.textContent || "").replace(/\s+/g, " ").trim();
 }
 

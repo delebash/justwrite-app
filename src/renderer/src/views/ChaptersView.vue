@@ -139,13 +139,13 @@ function readBody(chId) {
   if (!html) return `<h1>${ch.value?.title || ""}</h1><p><em>Empty chapter.</em></p>`;
   const div = document.createElement("div");
   div.innerHTML = html;
-  div.querySelectorAll("h2.scene-title, p.scene-mark").forEach((el) => el.remove());
-  div.querySelectorAll("span.comment-mark").forEach((el) => el.replaceWith(...el.childNodes));
+  div.querySelectorAll("h2.scene-title, p.scene-mark").forEach((el) => { el.remove(); });
+  div.querySelectorAll("span.comment-mark").forEach((el) => { el.replaceWith(...el.childNodes); });
   // Pending AI revisions are authoring chrome — strip from the read view:
   // delete the "before" entirely, unwrap the "after" so only the candidate
   // prose remains. Any paragraph left empty after the del-strip is removed.
-  div.querySelectorAll("del[data-ai-del], .ai-del").forEach((el) => el.remove());
-  div.querySelectorAll("ins[data-ai-ins], .ai-ins").forEach((el) => el.replaceWith(...el.childNodes));
+  div.querySelectorAll("del[data-ai-del], .ai-del").forEach((el) => { el.remove(); });
+  div.querySelectorAll("ins[data-ai-ins], .ai-ins").forEach((el) => { el.replaceWith(...el.childNodes); });
   div.querySelectorAll("p").forEach((p) => {
     if (!p.textContent.trim() && !p.querySelector("img")) p.remove();
   });
@@ -473,7 +473,7 @@ function sceneReadHtml(body) {
   if (!body.includes("comment-mark")) return body;
   const div = document.createElement("div");
   div.innerHTML = body;
-  div.querySelectorAll("span.comment-mark").forEach((el) => el.replaceWith(...el.childNodes));
+  div.querySelectorAll("span.comment-mark").forEach((el) => { el.replaceWith(...el.childNodes); });
   return div.innerHTML;
 }
 
@@ -510,7 +510,7 @@ function setupBookObserver() {
     rootMargin: "-15% 0px -70% 0px",
     threshold: 0,
   });
-  targets.forEach((el) => bookObserver.observe(el));
+  targets.forEach((el) => { bookObserver.observe(el); });
 }
 
 // Scroll the whole-book view to a chapter/scene anchor when the route

@@ -1,3 +1,4 @@
+// biome-ignore lint/suspicious/noMisleadingCharacterClass: deliberately strips individual zero-width codepoints (ZWSP / ZWNJ / ZWJ / BOM) as import artifacts; we want each codepoint matched, not joined sequences preserved.
 const ZERO_WIDTH_RE = /[​‌‍﻿]/g;
 
 function applyTransforms(str) {

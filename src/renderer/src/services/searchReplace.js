@@ -97,7 +97,7 @@ export const SearchReplace = Extension.create({
           // Replace back-to-front so earlier positions stay valid.
           [...ps.results]
             .sort((a, b) => b.from - a.from)
-            .forEach((m) => tr.insertText(replaceWith ?? "", m.from, m.to));
+            .forEach((m) => { tr.insertText(replaceWith ?? "", m.from, m.to); });
           if (dispatch) dispatch(tr);
           return true;
         },

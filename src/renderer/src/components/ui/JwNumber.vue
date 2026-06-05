@@ -103,7 +103,7 @@ function onFocus(e) {
   emit("focus", e);
 }
 
-function step(delta) {
+function bump(delta) {
   const current = parseNumber(display.value) ?? 0;
   const next = clamp(current + delta * props.step);
   emit("update:modelValue", next);
@@ -111,8 +111,8 @@ function step(delta) {
 }
 
 function onKeydown(e) {
-  if (e.key === "ArrowUp")   { e.preventDefault(); step(+1); }
-  if (e.key === "ArrowDown") { e.preventDefault(); step(-1); }
+  if (e.key === "ArrowUp")   { e.preventDefault(); bump(+1); }
+  if (e.key === "ArrowDown") { e.preventDefault(); bump(-1); }
   emit("keydown", e);
 }
 
