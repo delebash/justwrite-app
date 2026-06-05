@@ -88,6 +88,7 @@ const AI_FEATURES = [
   { key: "characterChat",   label: "Character chat",   hint: "The chat panel's \"Talk to a character\" mode — first-person, in-voice answers from your cast." },
   { key: "relationshipArc", label: "Relationship arc", hint: "Chapter-by-chapter warmth / tension / power tracking for a pair of characters." },
   { key: "marketingPack",   label: "Marketing pack",   hint: "Logline, back-cover blurbs, synopsis, and elevator pitch for querying and pitching." },
+  { key: "multiReader",     label: "Multi-reader panel", hint: "Four distinct reader personas (genre reader / literary critic / agent intern / book-club reader) react to a chapter in parallel." },
 ];
 const INHERIT = "__inherit__";
 

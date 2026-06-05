@@ -1352,6 +1352,30 @@ export const useProjectStore = defineStore("project", {
       this.worldRules = String(text || "");
       this._persist();
     },
+    // Multi-reader panel critique persisted per chapter. Sits alongside
+    // chapter.critique (the single-pass critique) and chapter.readerKnowledge
+    // (the dramatic-irony tracker) — three independent revision lenses on
+    // the same chapter.
+    setChapterMultiReader(id, payload) {
+      this._record("setChapterMultiReader");
+      this.parts = this.parts.map((p) => ({
+        ...p,
+        chapters: p.chapters.map((c) => (c.id === id ? { ...c, multiReader: payload } : c)),
+      }));
+      this._persist();
+    },
+    clearChapterMultiReader(id) {
+      this._record("clearChapterMultiReader");
+      this.parts = this.parts.map((p) => ({
+        ...p,
+        chapters: p.chapters.map((c) => {
+          if (c.id !== id) return c;
+          const { multiReader, ...rest } = c;
+          return rest;
+        }),
+      }));
+      this._persist();
+    },
     dismissPlotHole(findingId) {
       if (!this.plotHoles?.findings) return;
       this.plotHoles = {

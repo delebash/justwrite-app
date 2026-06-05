@@ -199,26 +199,47 @@ Post-draft marketing pack. LLM compresses the manuscript via RAG into a logline,
 
 ## Tier 3 — Niche / experimental
 
-### 23. "What-if" branch exploration
+### 23. "What-if" branch exploration — **Won't ship**
+
 At any point, generate a parallel timeline (*"what if Elena DIDN'T forgive him?"*) as a side document. Helps writers test consequences without committing. Could store as a branch-chapter in soft-storage.
 
-### 24. Magic-system / world-rule auditor
+**Decision:** Won't ship. Requires a whole branching-storage data model — branches, comparison view, orphan cleanup — disproportionate to the use case. Writers who want this fork by copying into Notes and writing alternatives manually. Revisit if multiple users specifically request.
+
+### 24. Magic-system / world-rule auditor — **Shipped as extension to #13**
+
 Add a "world rules" entity type; LLM audits scenes for violations. High value for SFF.
 
-### 25. Sprint coach with story awareness
+**Shipped as:** Extension to the **Plot-hole audit** (#13) rather than a separate surface — see commit `097f837`. The Plot-hole audit modal now has a collapsible **"World rules to enforce"** textarea where the writer types free-text in-world constraints (magic-system rules, hard SF physics, technology limits, social structures). When non-empty, the rules are appended to the audit's system prompt and the model checks each chapter against them in the same pass, flagging violations as continuity issues with the specific rule named in the `reason` field. If the prose **earns the exception** (a cost paid, a workaround stated, a bypass shown), it's not flagged. Empty rules = audit runs identically to today. Rules persist on `project.worldRules`. Docs: `docs/analysis.md` Plot-hole audit section.
+
+### 25. Sprint coach with story awareness — **Won't ship**
+
 Wraps existing session tracking. Mid-sprint, watches recent prose and offers micro-nudges based on what's been written this session.
 
-### 26. Multi-reader-panel critique
+**Decision:** Won't ship. Live-AI-while-writing is a UX bet most apps lose — interruption mid-sprint is counterproductive even when the interruption is smart. The Resume briefing (#1) and Session recap (#2) already cover the bookending parts of a session loop; the writing-itself part stays distraction-free.
+
+### 26. Multi-reader-panel critique — **Shipped**
+
 Run Chapter Critique 3–5 times with different personas (genre-savvy SFF reader / literary critic / first-time reader / agent intern / book club member). Synthesize. Ideorix-style.
 
-### 27. Period/historical accuracy spot-checker
+**Shipped as:** A **Multi-reader panel** button in the chapter editor's chapter toolbar (next to Critique) opens a modal where four LLM calls fire in parallel — one per persona: **genre-savvy reader** (encountering cold, reading for genre delivery), **literary critic** (prose craft / voice / image), **agent's intern** (hook / comp / marketability), **book-club reader** (character / emotional truth / discussion potential). Each persona has a distinct system-prompt body and returns 2–3 paragraphs of first-person reaction plus 1–3 short concrete suggestions. The modal renders four columns side-by-side, each with a coloured left border distinguishing the persona. The model is told to stay in lane so the columns read as four perspectives rather than four variants of the same bias. Persists per-chapter on `chapter.multiReader`. Routable as the **multiReader** feature in Settings → AI. Service: `services/analysis/multiReaderCritique.js` (with `PERSONAS` export). Modal: `components/MultiReaderPanelModal.vue`. Project store: `setChapterMultiReader / clearChapterMultiReader`. Docs: `docs/writing.md` "Multi-reader panel" section.
+
+### 27. Period/historical accuracy spot-checker — **Won't ship**
+
 Highlight selection → "would this be plausible in [period]?" High hallucination risk — surface as questions, not assertions.
 
-### 28. Screenplay ↔ novel conversion
+**Decision:** Won't ship. Models are confidently wrong about historical detail in ways worse than no check. A writer trusting a hallucinated date or fact is in worse shape than one doing real research. Anyone writing serious historical fiction has dedicated research tools and primary sources; nobody else needs this.
+
+### 28. Screenplay ↔ novel conversion — **Won't ship**
+
 Niche but high-value for screenwriters crossing to fiction. Probably out-of-scope unless a screenplay format already exists.
 
-### 29. Glossary-aware translation
+**Decision:** Won't ship. JustWrite doesn't have a screenplay format, and adding one for the sake of conversion would be format-conversion-as-feature — a different tool category. Final Draft and similar exist for screenwriters; the conversion workflow is a vanishingly small audience.
+
+### 29. Glossary-aware translation — **Won't ship**
+
 If a translation flow is ever added, do it right: locked codex terms, character name preservation, voice preservation per language. Lexilit is the current best implementation to study.
+
+**Decision:** Won't ship. Translation is a specialised, saturated category. Lexilit is the current best-in-class; users who want translation get more value from running their exported manuscript through it than from a half-built translation layer in JustWrite.
 
 ---
 

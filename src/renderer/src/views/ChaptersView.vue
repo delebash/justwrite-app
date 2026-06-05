@@ -10,6 +10,7 @@ import RichEditor from "../components/RichEditor.vue";
 import SceneLinks from "../components/SceneLinks.vue";
 import VersionHistoryModal from "../components/VersionHistoryModal.vue";
 import CritiqueModal from "../components/CritiqueModal.vue";
+import MultiReaderPanelModal from "../components/MultiReaderPanelModal.vue";
 import ChapterNotesModal from "../components/ChapterNotesModal.vue";
 import StuckDiagnosticModal from "../components/StuckDiagnosticModal.vue";
 import SensoryResearchModal from "../components/SensoryResearchModal.vue";
@@ -69,6 +70,7 @@ const readScope = ref("chapter"); // "chapter" | "book"
 const linksOpen = ref(false);
 const versionsOpen = ref(false);
 const critiqueOpen = ref(false);
+const multiReaderOpen = ref(false);
 const notesOpen = ref(false);
 // notesChapterId is the chapter the modal renders for — usually the
 // active chapter, but the outline view opens chips for scenes in other
@@ -974,6 +976,11 @@ watch(() => project.allChapters.map((c) => c.id + ":" + (project.scenesFor(c.id)
           Critique
           <span v-if="ch?.critique?.notes?.length" class="critique-pill">{{ ch.critique.notes.length }}</span>
         </JwButton>
+        <JwButton intent="ghost" size="small" @click="multiReaderOpen = true" v-tooltip.bottom="'Four distinct reader personas each react to this chapter through their own lens'">
+          <Icon name="Users" :size="13" />
+          Multi-reader panel
+          <span v-if="ch?.multiReader?.panel?.length" class="critique-pill">4</span>
+        </JwButton>
         <JwButton intent="ghost" size="small" @click="openChapterNotes"
           v-tooltip.bottom="'Notes pinned to this chapter or any of its scenes'">
           <Icon name="Note" :size="13" />
@@ -1221,6 +1228,10 @@ watch(() => project.allChapters.map((c) => c.id + ":" + (project.scenesFor(c.id)
   <CritiqueModal v-if="critiqueOpen && ch"
     :chapter-id="ch.id"
     @close="critiqueOpen = false" />
+
+  <MultiReaderPanelModal v-if="multiReaderOpen && ch"
+    :chapter-id="ch.id"
+    @close="multiReaderOpen = false" />
 
   <ChapterNotesModal v-if="notesOpen && notesChapterId"
     :chapter-id="notesChapterId"

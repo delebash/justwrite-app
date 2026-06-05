@@ -339,6 +339,25 @@ A grouped section of more targeted revisions, each focused on one craft problem 
 
 **How to use them well.** A small selection gives you a focused, easy-to-review result; running a line edit on a whole scene is the right move when you want one consistent treatment applied throughout (e.g. "strip filter words across this scene"). The output is always a starting point, not an answer — accept the changes you like, reject the ones you don't, and keep moving. If a result feels worse than what you wrote, that's useful information about what makes your prose yours.
 
+### Multi-reader panel
+
+> *"My critique partner is brilliant on prose and useless on marketability. My agent friend is the opposite. I want both reads at once."*
+
+The standard **Critique** button gives one editorial pass. The **Multi-reader panel** button (right next to it in the chapter editor's chapter toolbar) gives four — four distinct readers each react to the chapter through their own lens:
+
+- **Genre-savvy reader** — encountering the chapter cold, reading for the things this genre does well. Cares about hook strength, genre-promise delivery, where they'd put this book on the shelf.
+- **Literary critic** — reading for prose craft. Cares about voice, image, sentence rhythm, the work the sentences are doing.
+- **Agent's intern** — deciding whether to flag this for their boss. Cares about hook strength, voice that distinguishes the writer, comp-title legibility, clear stakes.
+- **Book-club reader** — deciding what they'll discuss next month. Cares about character, emotional truth, the choices people make and what those choices reveal.
+
+The four personas run in parallel — one LLM call each, fired concurrently. Each returns 2–3 paragraphs of first-person reaction (in their voice as that reader) plus 1–3 short, concrete suggestions. Each persona is instructed to **stay in their lane** so the four columns read as four perspectives rather than four variants of the same model bias.
+
+The modal renders the four columns side-by-side with a coloured left border distinguishing each persona. Per-column reactions are kept short enough that the writer can read all four in under five minutes. The panel persists on the chapter so re-opening the modal reads from cache; **Re-run panel** regenerates against the current prose; **Clear panel** discards the saved set.
+
+**Why a writer would use it.** Critique partners have biases. Yours might be brilliant on prose and useless on plot, or vice versa. The panel guarantees four different lenses, every time. The biggest value is often in seeing where the personas **disagree** — when the literary critic loves the chapter and the agent's intern would set it aside, you've learned something about the chapter's market position that no single reader would have told you.
+
+**Cost note.** Four LLM calls per panel run. The system prompts are short and the chapter is the bulk of the input, so the cost is ~4× a standard critique. Routable as the **multiReader** feature in Settings → AI.
+
 ### Critique and structural analysis
 
 > *"I've revised this chapter three times and I genuinely can't tell if it's good now or if I've just read it too many times to see the problems."*
