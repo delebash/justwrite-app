@@ -12,8 +12,12 @@ import {
   scenesPerChapter, projectKpis, paceSeries, dialogueMix,
 } from "../services/analysis.js";
 import { bookMetrics, POV_LABELS } from "../services/analysis/styleMetrics.js";
+import { computeVoiceDrift, explainVoiceDrift } from "../services/analysis/voiceDrift.js";
+import { useAiStore } from "../stores/ai.js";
+import { useAiProgress } from "../composables/useAiProgress.js";
 import JwTable from "@renderer/components/ui/JwTable.vue";
 import JwSegmented from "@renderer/components/ui/JwSegmented.vue";
+import JwButton from "@renderer/components/ui/JwButton.vue";
 
 const project = useProjectStore();
 const studio = useStudioStore();
@@ -123,6 +127,128 @@ const styleMaxes = computed(() => {
     passive: maxOf(r, "passivePer1k"),
   };
 });
+
+// ─── Voice drift ───────────────────────────────────────────────────
+// Pure deterministic analytics derived from styleMetrics' per-chapter
+// rows. Detects per-metric outliers (|z| > 1) and chapters that go
+// outlier on 2+ metrics ("hot chapters" — likely voice drift).
+
+const ai = useAiStore();
+const drift = computed(() => computeVoiceDrift(style.value.rows));
+
+// Render-only helpers — keep the SVG sparkline scales tight per metric.
+function sparklineGeom(metric, w = 240, h = 28) {
+  const vals = metric.displayValues;
+  if (!vals.length) return null;
+  const lo = Math.min(...vals, metric.display ? metric.mean * 100 : metric.mean);
+  const hi = Math.max(...vals, metric.display ? metric.mean * 100 : metric.mean);
+  const pad = (hi - lo) * 0.15 || 1;
+  const yMin = lo - pad;
+  const yMax = hi + pad;
+  const span = yMax - yMin || 1;
+  const step = vals.length > 1 ? w / (vals.length - 1) : 0;
+  const y = (v) => h - ((v - yMin) / span) * (h - 4) - 2;
+  // Mean line + ±1 stdev band coordinates.
+  const meanDisp = metric.display ? metric.mean * 100 : metric.mean;
+  const sdDisp   = metric.display ? metric.stdev * 100 : metric.stdev;
+  const meanY = y(meanDisp);
+  const bandTop = y(meanDisp + sdDisp);
+  const bandBot = y(meanDisp - sdDisp);
+  const points = vals.map((v, i) => ({ x: i * step, y: y(v), i }));
+  const polyline = points.map((p) => `${p.x.toFixed(1)},${p.y.toFixed(1)}`).join(" ");
+  return { polyline, points, meanY, bandTop, bandBot, w, h };
+}
+
+// Inline explanation state — per outlier chapter id. Shape:
+//   { running, text, error }
+const driftExplanations = ref({});
+const driftExplainProgress = useAiProgress();
+const driftExplainingId = ref(null);
+
+async function explainHot(chapterId) {
+  const d = drift.value;
+  if (!d.eligible) return;
+  if (driftExplanations.value[chapterId]?.text) {
+    // Toggle off — collapse the inline expansion.
+    const next = { ...driftExplanations.value };
+    delete next[chapterId];
+    driftExplanations.value = next;
+    return;
+  }
+  if (!ai.providerForFeature("voiceDrift")) {
+    driftExplanations.value = {
+      ...driftExplanations.value,
+      [chapterId]: { error: "Configure an AI provider in Settings → AI to explain voice drift." },
+    };
+    return;
+  }
+  driftExplainingId.value = chapterId;
+  driftExplanations.value = {
+    ...driftExplanations.value,
+    [chapterId]: { running: true, text: "", error: "" },
+  };
+  // Baseline = the 3 LOWEST-driftScore chapters (most typical of the
+  // writer's voice in this book).
+  const baselineIds = [...d.chapters]
+    .filter((c) => c.chapterId !== chapterId)
+    .sort((a, b) => a.driftScore - b.driftScore)
+    .slice(0, 3)
+    .map((c) => c.chapterId);
+  // Divergent metrics — those where this chapter is an outlier.
+  const divergent = [];
+  for (const m of d.metrics) {
+    const out = m.outliers.find((o) => o.chapterId === chapterId);
+    if (!out) continue;
+    const direction = out.z > 0 ? "higher" : "lower";
+    const baselineMean = m.format ? m.format(m.mean) : m.mean.toFixed(1);
+    const outlierValue = m.format ? m.format(out.value) : out.value.toFixed(1);
+    divergent.push({ label: m.label, direction, baselineMean, outlierValue });
+  }
+  driftExplainProgress.start();
+  try {
+    const result = await explainVoiceDrift({
+      project,
+      outlierChapterId: chapterId,
+      baselineChapterIds: baselineIds,
+      divergentMetrics: divergent,
+      signal: driftExplainProgress.signal,
+      onDelta: (delta, content) => {
+        driftExplanations.value = {
+          ...driftExplanations.value,
+          [chapterId]: { running: true, text: content || "", error: "" },
+        };
+      },
+    });
+    driftExplanations.value = {
+      ...driftExplanations.value,
+      [chapterId]: { running: false, text: result.text, error: "" },
+    };
+    driftExplainProgress.finish();
+  } catch (e) {
+    if (!driftExplainProgress.cancelled.value) {
+      const msg = String(e?.message || e || "");
+      driftExplanations.value = {
+        ...driftExplanations.value,
+        [chapterId]: {
+          running: false, text: "",
+          error: /provider|api key|configure/i.test(msg)
+            ? "Configure an AI provider in Settings → AI to explain voice drift."
+            : msg || "Couldn't generate explanation.",
+        },
+      };
+    }
+    driftExplainProgress.finish();
+  } finally {
+    driftExplainingId.value = null;
+  }
+}
+
+const TREND_LABELS = { rising: "Rising", falling: "Falling", flat: "Flat" };
+const TREND_COLOURS = {
+  rising: "var(--status-revise)",
+  falling: "var(--accent)",
+  flat: "var(--muted)",
+};
 
 // ─── Writing heatmap (365 days) ─────────────────────────────────────
 // Build a 53-week × 7-day grid for the year ending today. Each cell is
@@ -439,6 +565,95 @@ const milestoneState = computed(() => {
       </JwTable>
     </div>
 
+    <!-- Voice drift -->
+    <div v-if="drift.eligible" class="card vd-card" style="margin-bottom:18px">
+      <div style="display:flex;align-items:center;gap:10px;margin-bottom:8px">
+        <div class="card-title" style="margin:0">Voice drift</div>
+        <span class="t-muted" style="font-size:11.5px">Per-metric trend across chapters · outliers in red</span>
+        <span style="margin-left:auto;display:flex;gap:8px;align-items:center">
+          <span class="vd-pill vd-pill-hot">{{ drift.hotChapters.length }} hot chapter{{ drift.hotChapters.length === 1 ? '' : 's' }}</span>
+          <span class="vd-pill vd-pill-muted">{{ Math.round(drift.driftIndex * 100) }}% of the book</span>
+        </span>
+      </div>
+
+      <p class="vd-blurb">
+        For each metric, the line shows per-chapter values; the dashed line is the book-wide mean;
+        the band is ±1 standard deviation. Chapters that sit outside the band on this metric are dots
+        rendered in red. A chapter that's an outlier on <strong>two or more</strong> metrics — what we call
+        <strong>hot</strong> — is a likely voice-drift candidate.
+      </p>
+
+      <div class="vd-grid">
+        <div v-for="m in drift.metrics" :key="m.key" class="vd-row">
+          <div class="vd-row-label">
+            <span class="vd-row-title">{{ m.label }}</span>
+            <span class="vd-row-mean">mean {{ m.format(m.mean) }}</span>
+          </div>
+          <div class="vd-row-trend"
+               :style="{ color: TREND_COLOURS[m.trend.direction] }"
+               v-tooltip.bottom="`Early third mean ${m.format(m.display ? m.trend.earlyMean : m.trend.earlyMean)} → late third mean ${m.format(m.display ? m.trend.lateMean : m.trend.lateMean)}`">
+            {{ TREND_LABELS[m.trend.direction] }}
+          </div>
+          <svg v-if="sparklineGeom(m)" class="vd-spark"
+               :viewBox="`0 0 ${sparklineGeom(m).w} ${sparklineGeom(m).h}`"
+               preserveAspectRatio="none">
+            <!-- ±1 stdev band -->
+            <rect :x="0" :y="sparklineGeom(m).bandTop"
+                  :width="sparklineGeom(m).w"
+                  :height="Math.max(0.5, sparklineGeom(m).bandBot - sparklineGeom(m).bandTop)"
+                  fill="var(--accent-soft)" />
+            <!-- mean line -->
+            <line :x1="0" :x2="sparklineGeom(m).w"
+                  :y1="sparklineGeom(m).meanY" :y2="sparklineGeom(m).meanY"
+                  stroke="var(--accent-ink)" stroke-width="0.5"
+                  stroke-dasharray="3 2" vector-effect="non-scaling-stroke" />
+            <!-- per-chapter polyline -->
+            <polyline :points="sparklineGeom(m).polyline"
+                      fill="none" stroke="var(--ink-2)" stroke-width="1.1"
+                      vector-effect="non-scaling-stroke" />
+            <!-- per-chapter dots -->
+            <circle v-for="(p, i) in sparklineGeom(m).points" :key="i"
+                    :cx="p.x" :cy="p.y" :r="Math.abs(m.zScores[i]) > 1 ? 2 : 1.2"
+                    :fill="Math.abs(m.zScores[i]) > 1 ? 'var(--danger)' : 'var(--accent)'" />
+          </svg>
+        </div>
+      </div>
+
+      <!-- Hot chapters list -->
+      <div v-if="drift.hotChapters.length" class="vd-hot">
+        <div class="vd-hot-h">Hot chapters</div>
+        <ul class="vd-hot-list">
+          <li v-for="hc in drift.hotChapters" :key="hc.chapterId" class="vd-hot-row">
+            <div class="vd-hot-main">
+              <button class="vd-hot-jump" @click="jumpChapter(hc.chapterId)"
+                      v-tooltip.bottom="'Open chapter in editor'">
+                Ch. {{ hc.num }} — {{ hc.title || 'Untitled' }}
+              </button>
+              <span class="vd-hot-count">{{ hc.outlierCount }} outlier metrics</span>
+            </div>
+            <JwButton intent="ghost" size="small"
+                      :disabled="driftExplainingId && driftExplainingId !== hc.chapterId"
+                      @click="explainHot(hc.chapterId)">
+              <Icon name="Sparkle" :size="12" />
+              {{ driftExplanations[hc.chapterId]?.text ? 'Hide' : driftExplanations[hc.chapterId]?.running ? 'Diagnosing…' : 'Explain' }}
+            </JwButton>
+            <div v-if="driftExplanations[hc.chapterId]" class="vd-hot-explain">
+              <p v-if="driftExplanations[hc.chapterId].error" class="vd-hot-err">
+                <Icon name="Alert" :size="12" /> {{ driftExplanations[hc.chapterId].error }}
+              </p>
+              <p v-else-if="driftExplanations[hc.chapterId].text" class="vd-hot-text">
+                {{ driftExplanations[hc.chapterId].text }}
+              </p>
+              <p v-else class="vd-hot-loading">Reading the chapter…</p>
+            </div>
+          </li>
+        </ul>
+      </div>
+      <p v-else class="vd-blurb" style="margin-top:14px;font-style:italic">
+        No chapters sit more than 1 standard deviation off on two or more metrics — your voice is consistent so far.
+      </p>
+    </div>
+
     <!-- Cast presence heatmap -->
     <div class="card" style="margin-bottom:18px">
       <div style="display:flex;align-items:center;gap:10px;margin-bottom:6px">
@@ -659,5 +874,96 @@ const milestoneState = computed(() => {
   .kpi-row { grid-template-columns: repeat(2, minmax(0, 1fr)); }
   .heatmap-milestones-row { grid-template-columns: 1fr; }
   .status-row { grid-template-columns: 1fr; }
+}
+
+/* ── Voice drift ──────────────────────────────────────────── */
+.vd-card .vd-blurb {
+  margin: 0 0 14px; max-width: 78ch;
+  font-size: 12.5px; line-height: 1.55; color: var(--muted);
+}
+.vd-card .vd-blurb strong { color: var(--ink-2); font-weight: 600; }
+.vd-pill {
+  font-family: var(--font-mono); font-size: 10.5px;
+  padding: 3px 10px; border-radius: 999px;
+}
+.vd-pill-hot {
+  background: color-mix(in oklab, var(--danger) 16%, transparent);
+  color: var(--ink);
+}
+.vd-pill-muted { background: var(--surface-3); color: var(--muted); }
+
+.vd-grid { display: flex; flex-direction: column; gap: 6px; }
+.vd-row {
+  display: grid;
+  grid-template-columns: 180px 70px 1fr;
+  align-items: center; gap: 14px;
+  padding: 4px 0;
+}
+.vd-row-label { display: flex; flex-direction: column; gap: 1px; min-width: 0; }
+.vd-row-title { font-size: 12.5px; color: var(--ink-2); }
+.vd-row-mean { font-family: var(--font-mono); font-size: 10px; color: var(--muted); }
+.vd-row-trend {
+  font-family: var(--font-mono); font-size: 10px;
+  letter-spacing: 0.08em; text-transform: uppercase;
+  text-align: right;
+}
+.vd-spark { width: 100%; height: 28px; display: block; }
+
+.vd-hot { margin-top: 18px; padding-top: 14px; border-top: 1px solid var(--border-soft); }
+.vd-hot-h {
+  font-family: var(--font-mono); font-size: 10px;
+  letter-spacing: 0.16em; text-transform: uppercase; color: var(--muted);
+  margin-bottom: 8px;
+}
+.vd-hot-list { list-style: none; padding: 0; margin: 0; display: flex; flex-direction: column; gap: 6px; }
+.vd-hot-row {
+  display: grid;
+  grid-template-columns: 1fr auto;
+  column-gap: 12px; row-gap: 8px;
+  padding: 10px 12px;
+  background: var(--surface-2); border-radius: 6px;
+}
+.vd-hot-main {
+  display: flex; align-items: baseline; gap: 10px; flex-wrap: wrap;
+  min-width: 0;
+}
+.vd-hot-jump {
+  appearance: none; border: 0; background: transparent; cursor: pointer;
+  font: inherit; color: var(--ink-2); padding: 0; font-weight: 500;
+  font-family: var(--font-serif); font-size: 13.5px;
+}
+.vd-hot-jump:hover { color: var(--accent); text-decoration: underline; }
+.vd-hot-count {
+  font-family: var(--font-mono); font-size: 10.5px; color: var(--danger);
+  background: color-mix(in oklab, var(--danger) 14%, transparent);
+  padding: 2px 8px; border-radius: 999px;
+}
+.vd-hot-explain {
+  grid-column: 1 / -1;
+  padding: 10px 12px;
+  margin-top: 4px;
+  background: var(--surface); border: 1px solid var(--border-soft); border-radius: 6px;
+}
+.vd-hot-text {
+  margin: 0;
+  font-family: var(--font-serif); font-size: 13.5px; line-height: 1.65;
+  color: var(--ink-2); font-style: italic;
+  white-space: pre-wrap;
+}
+.vd-hot-loading {
+  margin: 0;
+  font-size: 12px; color: var(--muted); font-style: italic;
+}
+.vd-hot-err {
+  margin: 0;
+  display: flex; align-items: center; gap: 6px;
+  font-size: 12px; color: var(--danger);
+}
+
+@media (max-width: 720px) {
+  .vd-row { grid-template-columns: 1fr auto; grid-template-areas: "label trend" "spark spark"; }
+  .vd-row-label { grid-area: label; }
+  .vd-row-trend { grid-area: trend; }
+  .vd-spark { grid-area: spark; }
 }
 </style>

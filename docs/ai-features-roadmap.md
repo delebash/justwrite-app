@@ -59,11 +59,13 @@ Sister feature to #1. When the user closes a sprint or hits a target, summarize 
 
 **Shipped as:** A new top-level **Reader knowledge** view at `/reader-knowledge` (sidebar Project section, Eye icon). Sequential per-chapter LLM sweep — each call receives the accumulated reader/POV fact lists from prior chapters and returns the deltas + a status classification (aligned/dramatic-irony/reader-confused/neutral) + a rationale. Per-chapter results persist on `chapter.readerKnowledge` (mirrors `chapter.critique`). UI: coloured chapter strip, knowledge-growth chart (two cumulative lines: reader vs POV), stats row, detail panel with rationale + new-facts deltas + jump-to-chapter link. Cancellable mid-sweep — partial results stay. Routable as the **readerKnowledge** feature in Settings → AI. Service: `services/analysis/readerKnowledge.js`. View: `views/ReaderKnowledgeView.vue`. Docs: `docs/reader-knowledge.md`.
 
-### 5. Voice-drift timeline across chapters
+### 5. Voice-drift timeline across chapters — **Shipped**
 
 **Writer problem:** "I drafted Ch.1 six months ago and Ch.20 last week. Has my voice drifted?"
 
 **Why it's interesting:** `styleMetrics` already computes per-chapter sentence length, dialogue ratio, filter-words/1k, adverbs/1k, passive/1k, POV hints — all deterministic. Three steps away: (a) plot these as small sparklines per chapter; (b) flag chapters that deviate >1 stddev from baseline; (c) optional LLM diff call: *"Ch.18 voice differs from Ch.1–10: register has become more reportorial, less lyrical."* Pure analytics page, near-zero LLM cost.
+
+**Shipped as:** A new "Voice drift" section in the Analysis dashboard, between Style & pacing and Cast presence. Pure deterministic analytics over `styleMetrics` rows: per-metric mean/stdev/z-scores, ±1 stdev band visualised, per-chapter polyline sparkline with outlier dots in red, early-vs-late-third trend chip per metric. A "Hot chapters" rollup lists chapters that outlier on two or more metrics, sorted by drift score. Each hot chapter has an **Explain** button that calls `explainVoiceDrift()` — an optional LLM call (`voiceDrift` feature pin) that compares the outlier's prose to the 3 most-typical chapters and returns 2–4 sentences naming the specific shifts, with quoted phrases from both sets. Inline-expanding result, no modal. Service: `services/analysis/voiceDrift.js`. Docs: `docs/analysis.md`.
 
 ### 6. Stuck-on-this-chapter diagnostic ("I'm blocked" menu)
 

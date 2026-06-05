@@ -91,6 +91,28 @@ All metrics are calculated locally from the text — no AI call.
 
 Sort by any column to find outliers fast.
 
+### Voice drift
+
+> *"I drafted Chapter 1 six months ago and Chapter 20 last week. Has my voice drifted?"*
+
+The longer the draft, the harder it is to see your own prose from the outside. You've been deep in chapter 20 for the past month; you can't remember what chapter 3 sounded like. Voice drift across a long book is real — your sentence rhythm tightens or loosens, your dialogue ratio shifts, you stop reaching for filter words because you've internalised the lesson — and it shows up as inconsistency to a reader.
+
+The **Voice drift** section visualises the per-chapter shape of every metric Style & pacing measures (sentence length, paragraph length, dialogue ratio, filter words, adverbs, passive voice). For each metric you get:
+
+- A **sparkline** of values across chapters, one point per chapter.
+- A **mean line** (dashed) showing the book-wide average for that metric.
+- A **±1 standard deviation band** (faint accent fill) around the mean — the "typical for this writer in this book" range.
+- **Outlier dots in red** — chapters that sit more than 1 standard deviation from the mean on this metric.
+- A **trend chip** showing whether the metric is rising, falling, or flat across the manuscript (computed by comparing the early third's mean to the late third's). A consistent rise in dialogue plus a consistent fall in filter words is a real voice shift; pay attention.
+
+Underneath the metric strips, the **Hot chapters** list calls out chapters that are outliers on **two or more metrics** at once. One outlier metric is often noise — a single dialogue-heavy interrogation scene, say. Two or more is a pattern.
+
+For any hot chapter, click **Explain** to send the outlier's prose plus a sample of your baseline chapters to the model. It comes back with 2–4 sentences naming the specific shift in concrete terms ("Your voice in Chapter 18 has moved toward action over interiority — paragraphs end on physical beats rather than the protagonist's reflection, and there's almost no use of filter words like 'noticed' or 'realized' that anchor your earlier chapters"). Quotes phrases from both sets to ground the diagnosis.
+
+**Why a writer would care.** Voice drift isn't necessarily bad — sometimes it's deliberate (the climax SHOULD read differently from the opening). But unintended drift is the kind of thing readers notice without being able to name. Catching it during revision is much cheaper than catching it in a copyedit pass, and much cheaper still than catching it in reviews.
+
+The metric analysis is **pure deterministic** — no AI required. The Explain button is the only AI piece, and only fires when you click it. Routable as the **voiceDrift** feature in Settings → AI.
+
 ### Cast presence heatmap
 
 A grid: every character along one axis, every chapter along the other. Each cell shows whether the character appears in that chapter:
@@ -142,6 +164,7 @@ Almost nothing. Specifically:
 - **Pace chart, milestones, streak, heatmap** — all local
 - **Chapter status donut, strand distribution, words per chapter** — all local
 - **Style and pacing metrics, scenes per chapter** — all local
+- **Voice drift metrics + sparklines + hot-chapters list** — all local. The optional **Explain** button per hot chapter is the only AI piece in the whole Analysis dashboard
 - **Cast presence heatmap** — partially. The mention layer is local; the Studio speaker layer requires Studio → Script to have been run, which uses an LLM
 - **Dialogue vs. narration breakdown** — requires Studio → Script
 

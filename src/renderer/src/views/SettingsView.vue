@@ -57,6 +57,7 @@ const AI_FEATURES = [
   { key: "recap",       label: "Session recap",   hint: "End-of-day \"Wrap up session\" recap + open-thread suggestions." },
   { key: "foreshadowing", label: "Foreshadowing scan", hint: "Whole-book scan for setups that may not have paid off." },
   { key: "readerKnowledge", label: "Reader knowledge", hint: "Tracks dramatic irony — what the reader knows vs. what the POV character knows, chapter by chapter." },
+  { key: "voiceDrift",      label: "Voice drift explainer", hint: "Diagnoses what shifted between an outlier chapter and the writer's baseline voice in the Analysis dashboard." },
 ];
 const INHERIT = "__inherit__";
 
