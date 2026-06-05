@@ -87,7 +87,7 @@ From left to right (approximate; some buttons collapse into menus on narrower wi
 
 ### The bubble menu
 
-Select any text and a small floating menu appears next to your selection with the most common actions: the formatting palette, plus a row of **AI writing actions** (see below).
+Select any text and a small floating menu appears next to your selection with the formatting palette — bold, italic, underline, text colour, font size, link, comment. The bubble is formatting only; the AI actions live in the scene strip's **AI** dropdown (see below) so they're one click away even when you don't have a selection yet.
 
 ### `@`-mentions
 
@@ -113,12 +113,19 @@ The **New scene** toolbar button (or Ctrl/⌘ + Shift + Enter) inserts a boundar
 
 ### The scene strip
 
-Above the editor, a thin bar shows:
+Above the editor, a thin bar shows scene-level controls. From left to right:
 
-- Previous / Next scene navigation
+- **Previous / Next scene** navigation
 - The current scene number and status, colour-coded
-- A **Links** button (see below)
-- A **Delete scene** button (only enabled if there is more than one scene in the chapter)
+- **[AI]** — opens the AI dropdown (Rewrite, Expand, Tighten, Continue, Prose pass — see below)
+- **Status** select — the scene's status (To-do / Draft / Revise / Done, or whatever you've configured)
+- **Split here** — splits the chapter at the cursor; the active scene stays with the original chapter and the rest becomes a new chapter
+- **Notes** — opens a scene-focused notes view (just this scene's pinned notes; for the whole-chapter list use the chapter-level Notes button below)
+- **Links** — see below
+- **+ New scene** — adds a scene to the current chapter (the primary action)
+- **Delete scene** — only enabled if there's more than one scene in the chapter
+
+A second toolbar sits just below for chapter-level controls when no scene is focused: previous/next chapter, the chapter's Status, **Versions**, **Critique**, chapter **Notes**, **New chapter**, and **Delete chapter**.
 
 ### The Links panel
 
@@ -145,18 +152,25 @@ The **Find / Replace** bar in the toolbar searches within the current chapter an
 
 ## AI writing actions
 
-If you have an AI provider configured (see [AI providers](ai-providers.md)), the bubble menu has a row of AI actions. None of these are required, and they all show you the result as a coloured diff that you accept or reject line-by-line — your prose is never silently overwritten.
+If you have an AI provider configured (see [AI providers](ai-providers.md)), the scene strip's **[AI]** dropdown holds a row of AI actions. None of these are required, and they all show you the result as a coloured diff that you accept or reject line-by-line — your prose is never silently overwritten.
+
+The dropdown groups actions by what they operate on, so you can tell at a glance whether you need to highlight text first:
+
+- **Selection only** — Rewrite and Expand. Greyed out until you select text in the editor.
+- **Selection or whole scene** — Tighten. Runs on the selection if you have one, on the entire scene otherwise.
+- **From the cursor** — Continue. Generates the next paragraphs from wherever the cursor sits.
+- **Prose pass** — surgical revisions (Show don't tell, Filter words, Dialogue tags, etc.) that run on the selection, or on the whole scene if nothing is selected.
 
 ### Whole-passage actions
 
-- **Rewrite** — same meaning, different prose. Useful when you know the scene works but the wording feels stale.
-- **Expand** — adds sensory detail, interiority, small physical actions. Roughly doubles the length.
-- **Tighten** — strips filler. Comes back shorter.
-- **Continue** — generates the next 2–4 paragraphs from where your selection ends. Useful when you're stuck.
+- **Rewrite** — same meaning, different prose. Useful when you know the scene works but the wording feels stale. *Selection only* — for whole-scene rewrites, use Writer Lab where you can compare passes side-by-side.
+- **Expand** — adds sensory detail, interiority, small physical actions. Roughly doubles the length. *Selection only.*
+- **Tighten** — strips filler. Comes back shorter. *Selection or whole scene* — runs on the highlighted text, or the entire scene if nothing is selected.
+- **Continue** — generates the next 2–4 paragraphs from the cursor. Useful when you're stuck. *No selection needed.*
 
 ### Prose passes
 
-A submenu of more targeted revisions, each focused on one craft problem:
+A grouped section of more targeted revisions, each focused on one craft problem. All of them run on the selection, or on the whole scene if nothing is selected.
 
 - **Show, don't tell** — replaces emotion-state statements with concrete behaviour, sensory detail, and dialogue.
 - **Passive voice** — converts to active where it strengthens the prose.
@@ -165,11 +179,11 @@ A submenu of more targeted revisions, each focused on one craft problem:
 - **Sentence variety** — mixes long and short structures when the rhythm has gone monotonous.
 - **Prose tightening** — cuts hedges ("just", "really", "very") and sentences that don't earn their place.
 
-**How to use them well.** Run these on small passages, not whole chapters. The output is a starting point, not an answer. Accept the changes you like, reject the ones you don't, and keep moving. If a result feels worse than what you wrote, that's useful information about what makes your prose yours.
+**How to use them well.** A small selection gives you a focused, easy-to-review result; running a Prose pass on a whole scene is the right move when you want one consistent treatment applied throughout (e.g. "strip filter words across this scene"). The output is always a starting point, not an answer — accept the changes you like, reject the ones you don't, and keep moving. If a result feels worse than what you wrote, that's useful information about what makes your prose yours.
 
 ### Critique and structural analysis
 
-In the editor's Versions / Critique menu, **AI Critique** runs two separate passes on the current chapter:
+The **Critique** button in the chapter editor toolbar runs two separate passes on the current chapter:
 
 1. A **critique pass** that returns notes grouped by severity: Flags (problems), Suggestions (improvements), Observations.
 2. A **structural pass** that scores Tension (1–10), Hook Quality (1–10), and classifies pacing and ending.
@@ -184,7 +198,7 @@ Inside the Critique modal there is a sweep that proposes Story Bible entities �
 
 ## Version History
 
-Click **Versions** in the editor's menu to save a named snapshot of the current chapter. The dialog shows every snapshot you've ever taken, and you can:
+Click **Versions** in the chapter editor toolbar to save a named snapshot of the current chapter. The dialog shows every snapshot you've ever taken, and you can:
 
 - **Restore** any previous snapshot, replacing the current version.
 - **Diff** any two snapshots side-by-side (or compare a snapshot against the current live version).

@@ -43,6 +43,17 @@ The typeahead means once you've used a tag, you'll reuse it consistently.
 
 Because Notes use the same rich-text editor as chapters, you can `@`-mention any Story Bible entity. Useful for "research on the Heliad Empire" — `@Empire` and the note links back into the Story Bible.
 
+### Pinning a note to a chapter or scene
+
+By default a note is **story-wide** — it lives in the Notes view, anchored to nothing in particular. You can pin a note to a specific chapter or scene with the anchor picker in the note header (the pin icon to the left of the tag field). The picker is a chapter-and-scene list — pick any to re-anchor, or pick "Story-wide" to unanchor.
+
+A pinned note shows up where you'd expect to find it:
+
+- The chapter editor toolbar's **Notes** button opens a **chapter-wide** view that lists every note anchored anywhere in this chapter — at the chapter level or to any of its scenes — grouped by section.
+- The scene strip's **Notes** button opens a **scene-focused** view that lists only the notes pinned to that specific scene.
+
+In both views the "Add note" button creates a new note already pre-anchored to the right scope, so writing a quick note while you're in a scene takes one click. If you later delete the scene a note is pinned to, the note re-anchors up to the parent chapter so it's not silently orphaned.
+
 ---
 
 ## Search
@@ -101,6 +112,8 @@ Replace shows you a preview of every match before committing. You can apply sele
 ### The "Ask the book" chat
 
 A different feature in the same neighbourhood: the **Ask the book** chat panel (Manuscript section, or **Ctrl/⌘ + J**) lets you ask natural-language questions about your manuscript and get answers that cite the chapters they came from. This is a separate feature from Search — Search finds exact matches, Ask the book reasons over the whole text.
+
+Both the keyboard shortcut and the sidebar item **toggle** the panel — press once to open, again to close. Clicking outside the panel also closes it.
 
 Ask the book requires an AI provider and an embedding model. See [AI providers](ai-providers.md) for setup.
 
