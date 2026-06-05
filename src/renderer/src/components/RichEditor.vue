@@ -497,7 +497,7 @@ const show = (b) => props.toolbar.includes(b);
 
 // --- AI assist (writerAI + aiDiff marks) ------------------------------
 // Selection-driven actions live in the bubble menu (Rewrite / Expand /
-// Tighten / Continue + Prose pass). Each call replaces the selection
+// Tighten / Continue + Line edits). Each call replaces the selection
 // with a paired <del>/<ins> diff that the user accepts or rejects.
 const aiRunning = ref(false);
 const aiError = ref("");
@@ -567,7 +567,7 @@ function readSelectionHtml() {
 
 // Whole-document range + serialized HTML. Used as a fallback by actions
 // that can operate on the entire scene when nothing is selected (Tighten,
-// every Prose pass rule). Returns html === "" when the doc is empty so
+// every line edit). Returns html === "" when the doc is empty so
 // callers can early-out with a friendly error.
 function readWholeDocHtml() {
   if (!editor.value) return { from: 0, to: 0, html: "" };
@@ -712,14 +712,14 @@ async function runProsePass(ruleKey) {
   proseMenuOpen.value = false;
   let { from, to, html } = readSelectionHtml();
   let scope = from === to ? "scene" : "selection";
-  // Prose pass rules are surgical edits; running them on the whole scene
+  // Line edits are surgical revisions; running them on the whole scene
   // is the primary use case, so no selection → operate on the whole doc.
   if (from === to) {
     ({ from, to, html } = readWholeDocHtml());
     if (!html) { aiError.value = "Nothing to work with — the scene is empty."; return; }
   }
   aiRunning.value = true; aiError.value = "";
-  aiActionLabel.value = `Running prose pass: ${PROSE_RULES[ruleKey]?.label || ruleKey} (${scope})…`;
+  aiActionLabel.value = `Running line edit: ${PROSE_RULES[ruleKey]?.label || ruleKey} (${scope})…`;
   aiProgress.start();
   try {
     const result = await writerAI.applyRule(ruleKey, {
@@ -1358,6 +1358,35 @@ function grabUnstuckContext(maxChars = 1800) {
   return grabContextBeforeCursor(maxChars);
 }
 
+// Sensory research — return the selected text so the modal knows what
+// subject to research. Falls back to a small slice around the cursor
+// when nothing is selected.
+function grabSensorySubject() {
+  if (!editor.value) return "";
+  const { from, to } = editor.value.state.selection;
+  if (from === to) return "";
+  return editor.value.state.doc.textBetween(from, to, " ");
+}
+
+// Drop a sensory phrase into the editor at the end of the current
+// selection (or at the cursor if none). Wraps the phrase in a space on
+// each side so it doesn't run into adjacent text, but otherwise inserts
+// as plain inline text — no AI-diff machinery. Repeated calls append
+// onto the prior insertion point so the writer can stack multiple
+// phrases in sequence.
+function insertSensoryPhrase(phrase) {
+  if (!editor.value) return;
+  const text = String(phrase || "").trim();
+  if (!text) return;
+  const sel = editor.value.state.selection;
+  const at = sel.to;
+  // Add a leading space if the character right before is non-whitespace,
+  // and a trailing space so the next insertion lands cleanly.
+  const before = editor.value.state.doc.textBetween(Math.max(0, at - 1), at, " ");
+  const lead = before && !/\s/.test(before) ? " " : "";
+  editor.value.chain().focus().insertContentAt(at, `${lead}${text} `).run();
+}
+
 defineExpose({
   editor,
   // Exposed so the scene-strip AI dropdown (in ChaptersView) can drive
@@ -1366,6 +1395,8 @@ defineExpose({
   runProsePass,
   runGuidedContinue,
   grabUnstuckContext,
+  grabSensorySubject,
+  insertSensoryPhrase,
   aiRunning,
   hasSelection,
   PROSE_RULES_LIST,
@@ -1507,7 +1538,7 @@ defineExpose({
       <button class="tb-btn tb-glyph" @click="bumpFont(1)" data-tip="Increase font size">A+</button>
       <button class="tb-btn" :class="{ active: isActive('link') }" @click="setLink" :data-tip="TIP.link"><Icon name="Link" :size="14" /></button>
       <button class="tb-btn" :class="{ active: isActive('comment') }" @click="openCommentEditor" data-tip="Add comment"><Icon name="Comment" :size="14" /></button>
-      <!-- AI assist actions (Rewrite/Expand/Tighten/Continue/Prose pass)
+      <!-- AI assist actions (Rewrite/Expand/Tighten/Continue/Line edits)
            moved to the scene strip's AI dropdown so they're always one
            click away (and not gated by a text selection appearing). -->
     </bubble-menu>

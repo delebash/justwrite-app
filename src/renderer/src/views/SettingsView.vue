@@ -52,13 +52,14 @@ const AI_FEATURES = [
   { key: "chat",        label: "Manuscript chat", hint: "RAG question/answer in the chat panel." },
   { key: "critique",    label: "Critique",        hint: "The Critique modal's structural pass." },
   { key: "entitySweep", label: "Entity sweep",    hint: "Scans chapters for new characters / locations / objects." },
-  { key: "writerAI",    label: "Writer actions",  hint: "Bubble-menu rewrites and prose passes in the editor." },
+  { key: "writerAI",    label: "Writer actions",  hint: "Bubble-menu rewrites and line edits in the editor." },
   { key: "briefing",    label: "Resume briefing", hint: "Generates the Home \"Previously on your novel\" recap card." },
   { key: "recap",       label: "Session recap",   hint: "End-of-day \"Wrap up session\" recap + open-thread suggestions." },
   { key: "foreshadowing", label: "Foreshadowing scan", hint: "Whole-book scan for setups that may not have paid off." },
   { key: "readerKnowledge", label: "Reader knowledge", hint: "Tracks dramatic irony — what the reader knows vs. what the POV character knows, chapter by chapter." },
   { key: "voiceDrift",      label: "Voice drift explainer", hint: "Diagnoses what shifted between an outlier chapter and the writer's baseline voice in the Analysis dashboard." },
   { key: "unstuck",         label: "Unstuck moves",   hint: "The AI dropdown's \"Unstuck — five ways out\" diagnostic that proposes goal shift / interrupt / setting / reveal / time cut." },
+  { key: "sensory",         label: "Sensory research", hint: "The AI dropdown's \"Research feel…\" modal — structured sensory pack for a selected subject." },
 ];
 const INHERIT = "__inherit__";
 
@@ -147,7 +148,7 @@ const DEBUG_TOOLS = [
   {
     id: "writer-lab",
     name: "Writer Lab — model compare",
-    description: "Test writerAI actions, prose passes, and analysis pipelines against any OpenAI-compatible LLM. Up to 4 columns running in parallel for side-by-side model comparison. Same base controls as the user-facing Writer Lab.",
+    description: "Test writerAI actions, line edits, and analysis pipelines against any OpenAI-compatible LLM. Up to 4 columns running in parallel for side-by-side model comparison. Same base controls as the user-facing Writer Lab.",
     route: "/debug/writer-lab",
     icon: "Sparkle",
   },

@@ -12,6 +12,7 @@ import VersionHistoryModal from "../components/VersionHistoryModal.vue";
 import CritiqueModal from "../components/CritiqueModal.vue";
 import ChapterNotesModal from "../components/ChapterNotesModal.vue";
 import StuckDiagnosticModal from "../components/StuckDiagnosticModal.vue";
+import SensoryResearchModal from "../components/SensoryResearchModal.vue";
 import EmptyState from "../components/EmptyState.vue";
 import StatusSelect from "../components/StatusSelect.vue";
 import Breadcrumb from "../components/Breadcrumb.vue";
@@ -396,6 +397,31 @@ function closeStuck() { stuckOpen.value = false; }
 function onStuckUseMove(move) {
   stuckOpen.value = false;
   editorRef.value?.runGuidedContinue?.(move?.instruction || "");
+}
+
+// ── Sensory research ────────────────────────────────────────────
+// Highlight a subject; modal returns a pack of short concrete sensory
+// phrases the writer can click to drop into the prose. Additive — like
+// Describe, but structured instead of streamed.
+const sensoryOpen = ref(false);
+const sensorySubject = ref("");
+function openSensory() {
+  aiStripOpen.value = false;
+  if (!editorRef.value) {
+    ui.showToast({ message: "Open a chapter first." });
+    return;
+  }
+  const subj = editorRef.value.grabSensorySubject?.() || "";
+  if (!subj.trim()) {
+    ui.showToast({ message: "Highlight a subject first (a place, object, or moment)." });
+    return;
+  }
+  sensorySubject.value = subj;
+  sensoryOpen.value = true;
+}
+function closeSensory() { sensoryOpen.value = false; }
+function onSensoryInsert(phrase) {
+  editorRef.value?.insertSensoryPhrase?.(phrase);
 }
 
 // ── Guided Continue (standalone) ────────────────────────────────
@@ -1009,7 +1035,7 @@ watch(() => project.allChapters.map((c) => c.id + ":" + (project.scenesFor(c.id)
           <JwButton intent="ghost" size="small"
             :class="['ai-strip-trigger', { 'is-open': aiStripOpen }]"
             :disabled="aiRunning"
-            v-tooltip.bottom="'AI writing assist — Rewrite, Expand, Tighten, Continue, Prose pass'"
+            v-tooltip.bottom="'AI writing assist — Rewrite, Expand, Tighten, Continue, Line edits'"
             @click="toggleAiStrip">
             <span class="ai-strip-badge">AI</span>
             <Icon name="ChevDown" :size="12" class="ai-strip-caret" />
@@ -1030,6 +1056,10 @@ watch(() => project.allChapters.map((c) => c.id + ":" + (project.scenesFor(c.id)
             <button class="ai-strip-item" :disabled="aiRunning || !hasSelection" @click="callAi('describe')">
               <div class="ai-strip-label">Describe</div>
               <div class="ai-strip-desc">Treat the highlighted text as a subject — a place, person, object, or moment — and add 1–2 paragraphs of fresh sensory prose ABOUT it right after. Additive, not a rewrite; the original passage stays untouched.</div>
+            </button>
+            <button class="ai-strip-item" :disabled="aiRunning || !hasSelection" @click="openSensory">
+              <div class="ai-strip-label">Research feel…</div>
+              <div class="ai-strip-desc">Sibling to Describe. Instead of streamed prose, get a structured pack of short sensory phrases (smell, sound, touch, temperature, taste, movement, social, period detail). Pick the ones that fit and click to drop them into your manuscript.</div>
             </button>
             <div class="ai-strip-divider"></div>
             <div class="ai-strip-section">Selection or whole scene</div>
@@ -1054,7 +1084,7 @@ watch(() => project.allChapters.map((c) => c.id + ":" + (project.scenesFor(c.id)
             <template v-if="proseRules.length">
               <div class="ai-strip-divider"></div>
               <div class="ai-strip-section">
-                Prose pass
+                Line edits
                 <span class="ai-strip-section-hint">Selection, or whole scene if none</span>
               </div>
               <button v-for="r in proseRules" :key="r.key" class="ai-strip-item" :disabled="aiRunning" @click="callProse(r.key)">
@@ -1190,6 +1220,11 @@ watch(() => project.allChapters.map((c) => c.id + ":" + (project.scenesFor(c.id)
     :chapter-num="stuckChapterNum"
     @close="closeStuck"
     @use-move="onStuckUseMove" />
+
+  <SensoryResearchModal v-if="sensoryOpen"
+    :subject="sensorySubject"
+    @close="closeSensory"
+    @insert="onSensoryInsert" />
 </template>
 
 <style scoped>

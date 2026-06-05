@@ -83,11 +83,13 @@ Sister feature to #1. When the user closes a sprint or hits a target, summarize 
 
 **Shipped as:** A **Continue with direction…** entry in the scene-strip AI dropdown opens a one-field promptDialog. The user's instruction routes through `writerAI.guidedContinue()` (already shipped with #6 as the engine for Unstuck's Write-this buttons) and lands in the editor as an accept/reject diff. Reuses the **Writer actions** provider pin — no new feature key needed. Wired: `views/ChaptersView.vue` openGuidedContinue handler. Docs: `docs/writing.md` "Continue with direction" section.
 
-### 8. Sensory research mode (extension of Describe)
+### 8. Sensory research mode (extension of Describe) — **Shipped**
 
 **Writer problem:** "I'm writing a Victorian tannery scene and have no clue what it smells/sounds/feels like."
 
 **Why it's interesting:** Describe expands a noun in-prose. A sibling action — call it "Research feel" — takes the same selection but produces a *card* (smell / sound / touch / temperature / social dynamics / period-accurate detail) the writer can browse and selectively inject. Different UX surface, same LLM cost class, fills a real gap.
+
+**Shipped as:** A **Research feel…** entry in the scene-strip AI dropdown (placed right after Describe) opens a modal that takes the selection text as the subject and returns a structured JSON pack across eight categories: smell, sound, touch, temperature, taste, movement, social, period detail. Each phrase has an Insert button that drops the phrase as plain inline text at the end of the current selection (via a new `insertSensoryPhrase` on RichEditor that handles whitespace boundaries). Multiple phrases stack cleanly. Regenerate asks for a fresh pack. Routable as the **sensory** feature in Settings → AI. Service: `services/sensoryResearch.js`. Modal: `components/SensoryResearchModal.vue`. Editor: `grabSensorySubject` + `insertSensoryPhrase` added to `RichEditor.vue`'s defineExpose. Docs: `docs/writing.md` "Research feel" section.
 
 ### 9. Story-tension timeline (visualize what's already computed)
 

@@ -160,7 +160,7 @@ Above the editor, a thin bar shows scene-level controls. From left to right:
 
 - **Previous / Next scene** navigation
 - The current scene number and status, colour-coded
-- **[AI]** — opens the AI dropdown (Rewrite, Expand, Tighten, Continue, Prose pass — see below)
+- **[AI]** — opens the AI dropdown (Rewrite, Expand, Tighten, Continue, Line edits — see below)
 - **Status** select — the scene's status (To-do / Draft / Revise / Done, or whatever you've configured)
 - **Split here** — splits the chapter at the cursor; the active scene stays with the original chapter and the rest becomes a new chapter
 - **Notes** — opens a scene-focused notes view (just this scene's pinned notes; for the whole-chapter list use the chapter-level Notes button below)
@@ -208,17 +208,43 @@ The dropdown groups actions by what they operate on, so you can tell at a glance
 - **Selection only** — Rewrite, Expand, and Describe. Greyed out until you select text in the editor.
 - **Selection or whole scene** — Tighten. Runs on the selection if you have one, on the entire scene otherwise.
 - **From the cursor** — Continue. Generates the next paragraphs from wherever the cursor sits.
-- **Prose pass** — surgical revisions (Show don't tell, Filter words, Dialogue tags, etc.) that run on the selection, or on the whole scene if nothing is selected.
+- **Line edits** — surgical, single-issue revisions (Show don't tell, Filter words, Dialogue tags, Sensory grounding, etc.) that run on the selection, or on the whole scene if nothing is selected.
 
 ### Whole-passage actions
 
 - **Rewrite** — same meaning, different prose. Useful when you know the scene works but the wording feels stale. *Selection only* — for whole-scene rewrites, use Writer Lab where you can compare passes side-by-side.
 - **Expand** — adds sensory detail, interiority, small physical actions. Roughly doubles the length. *Selection only.*
 - **Describe** — additive. Treats the highlighted text as a *subject* (a place, person, object, or moment) and writes 1–2 paragraphs of fresh sensory prose **about** it, inserted right after the selection. The original passage stays untouched. Use it when you've named something but haven't brought it to life on the page — highlight "the old market" and get 200 words of sights, smells, and textures dropped in after. *Selection only.*
+- **Research feel…** — Describe's structured sibling. Returns a research pack of short concrete sensory phrases the writer browses and selectively drops in. See below.
 - **Tighten** — strips filler. Comes back shorter. *Selection or whole scene* — runs on the highlighted text, or the entire scene if nothing is selected.
 - **Continue** — generates the next 2–4 paragraphs from the cursor. Useful when you're stuck. *No selection needed.*
 - **Continue with direction…** — same as Continue, but you give it a one-line instruction first. See below.
 - **Unstuck — five ways out** — opens a diagnostic modal with five distinct moves the scene could take from here. See below.
+
+### Research feel — sensory research pack
+
+> *"I'm writing a Victorian tannery scene and have no clue what it smells / sounds / feels like."*
+
+Describe gives you a paragraph of polished prose about a subject. **Research feel** gives you the *materials* for that paragraph — a structured pack of short sensory phrases across eight categories that you pick from and stack to taste.
+
+Highlight a subject (a place, an object, a moment, an experience) — anything you'd type into a search engine if a search engine could read your scene. Click **Research feel…** in the AI dropdown. JustWrite asks the model for a research pack and shows it as a grid:
+
+- **Smell** — what it smells of, specific and sometimes unpleasant
+- **Sound** — background and foreground noise; what the ear actually catches
+- **Touch** — surfaces, weight, fabric and air against skin
+- **Temperature** — heat, cold, drafts, the body's response
+- **Taste** — the mouth as a sense organ (often empty for non-edible subjects)
+- **Movement** — bodies in motion, how the space is navigated, what's happening
+- **Social** — who is here, what they're doing, the codes they speak in
+- **Period detail** — period- or setting-specific texture a modern reader wouldn't know
+
+Each entry is a short concrete phrase, not a finished sentence. Click any phrase to drop it into your manuscript at the end of the selection — additive, your original prose stays untouched. The button turns green to show what you've taken; the rest stays in the modal for browsing. **Regenerate** asks for a fresh pack.
+
+**Why a writer would use it.** Writers under-write smell, sound, touch, and temperature reliably — visual detail comes easy; the other four senses don't. Getting fifteen specific sensory phrases per subject in twenty seconds, then picking three that fit, materially improves prose. The taste and period-detail categories often surprise — they catch things you would not have thought to research.
+
+**The trick is to highlight a SPECIFIC subject**, not a vague one. "The market" produces generic results; "the fish market on a hot July afternoon" produces ones you'd actually want to use. Include the period or modifier in your selection.
+
+**Routable** as the **sensory** feature in Settings → AI. Doesn't need a heavy model — the task is research, not reasoning. A fast local model is usually fine.
 
 ### Continue with direction
 

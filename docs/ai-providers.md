@@ -154,7 +154,7 @@ You don't add Web Speech as a provider — it's just there.
 
 The defaults are convenient but limiting. Once you have two or more providers, you may want to send different features to different ones.
 
-In **Settings → AI & Audio engines → Feature routing** you can pin each of ten features to its own provider and model:
+In **Settings → AI & Audio engines → Feature routing** you can pin each of eleven features to its own provider and model:
 
 | Feature | What it does |
 |---|---|
@@ -168,6 +168,7 @@ In **Settings → AI & Audio engines → Feature routing** you can pin each of t
 | **Reader knowledge** | The Reader knowledge view's per-chapter dramatic-irony analysis (reader vs. POV knowledge) |
 | **Voice drift explainer** | The Analysis dashboard "Explain" button that diagnoses why a hot chapter's voice differs from the baseline |
 | **Unstuck moves** | The AI dropdown's "Unstuck — five ways out" diagnostic that proposes goal shift / interrupt / setting change / reveal / time cut |
+| **Sensory research** | The AI dropdown's "Research feel…" modal — a structured sensory pack for the selected subject |
 
 Setting "Inherit default" for any feature uses your global Default LLM.
 
