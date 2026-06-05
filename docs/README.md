@@ -39,14 +39,15 @@ If you want to plan first:
 
 - **[Story bible](story-bible.md)** — Characters, Locations, Objects, Groups, Relations graph
 - **[Plot and time](plot-and-time.md)** — Narrative strands, Plot Board, project Timeline, per-entity Events
-- **[Worldbuilding](worldbuilding.md)** — Worldbuilding articles and the four Architecture documents (Premise, Fabula, Setting, Global Notes)
+- **[Worldbuilding](worldbuilding.md)** — Worldbuilding articles and the three Architecture documents (Premise, Fabula, Setting)
 - **[Notes and search](notes-and-search.md)** — the scratch-pad and full-text search across everything
+- **[Markers](markers.md)** — in-prose pins for fix-laters, loose threads, weak prose, and AI-tell / dangling-thread scans
 
 ### Producing the book
 
 - **[Import and export](import-and-export.md)** — bring a manuscript in; export to PDF, DOCX, EPUB, or M4B audiobook
 - **[Audio Studio](audio-studio.md)** — Cast, Script, Render; turning your book into a narrated audiobook
-- **[Analysis](analysis.md)** — pace, milestones, style metrics, cast presence
+- **[Analysis](analysis.md)** — pace, milestones, style metrics, cast presence; plus the structural AI passes (story tension, voice drift, reverse outline, beat sheet, plot-hole audit, marketing pack)
 - **[Reader knowledge](reader-knowledge.md)** — a chapter-by-chapter dramatic-irony map: what the reader knows vs. what the POV character knows
 - **[Writer Lab](writer-lab.md)** — an editor-on-call for rewrites, critiques, and entity extraction
 
@@ -60,6 +61,7 @@ If you want to plan first:
 ### What's coming
 
 - **[Roadmap](roadmap.md)** — items on the table; not promises, just direction
+- **[AI features roadmap](ai-features-roadmap.md)** — AI-specific direction; shipped, deferred, and won't-ship entries with rationales
 
 ---
 
