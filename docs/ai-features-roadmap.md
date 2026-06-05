@@ -109,8 +109,11 @@ Sister feature to #1. When the user closes a sprint or hits a target, summarize 
 
 ## Tier 2 — Solid additions, somewhat more lift
 
-### 11. Reverse-outline ("StorySnap")
+### 11. Reverse-outline ("StorySnap") — **Shipped**
+
 LLM reads finished chapters → produces an outline with act structure / beats. High value for pantsers. Reuses the structural-analysis pattern at manuscript level.
+
+**Shipped as:** A **Reverse outline** button in the Analysis dashboard's Story tension section opens a modal that sends a chapter-by-chapter digest (titles, word counts, structural-analysis summaries when present, first-paragraph fallback otherwise, plus tension/pacing/ending metadata) in one LLM call. Returns structured outline: structure name (3-act / 5-act / loose), 2–3 sentence shape summary, plot points list (Inciting incident, Midpoint, Climax, etc. with chapter refs + descriptions), and per-chapter beats with act-break dividers. The model is told to identify the structure the book ACTUALLY does, not force a preconceived framework (that's #12's job). Persists on `project.reverseOutline` so re-opening the modal reads from cache. Routable as the **reverseOutline** feature in Settings → AI. Service: `services/analysis/reverseOutline.js`. Modal: `components/ReverseOutlineModal.vue`. Docs: `docs/analysis.md` "Reverse outline" sub-section.
 
 ### 12. Beat-sheet overlay (Save the Cat / Hero's Journey / 7-point)
 User picks a template; the LLM maps existing chapters to its beats, flagging missing structural elements. Pairs naturally with #11.
