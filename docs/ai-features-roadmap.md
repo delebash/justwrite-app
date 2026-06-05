@@ -97,11 +97,13 @@ Sister feature to #1. When the user closes a sprint or hits a target, summarize 
 
 **Shipped as:** A new **Story tension** section at the top of the Analysis dashboard. Reads from data already on `chapter.critique.structure`. Renders: a stats row (avg tension, avg hook, peak/lowest chapters as clickable jumps), a two-line chart (tension in solid red, hook quality in dashed gold, with gridlines at 3 and 7), and a per-chapter strip where each cell is coloured by pacing (slow/balanced/fast) and has a corner badge for ending class. Sequential bulk sweep via `services/analysis/tensionSweep.js` runs `runStructuralAnalysis` on chapters that don't have a structure yet (or all chapters with `force: true`). Cancellable mid-sweep with partial results preserved. Reuses the existing **critique** feature pin — no new feature key. Service: `services/analysis/tensionSweep.js`. Docs: `docs/analysis.md` "Story tension" section.
 
-### 10. Character-action ↔ profile consistency audit
+### 10. Character-action ↔ profile consistency audit — **Shipped**
 
 **Writer problem:** "Did my introverted loyalty-first character betray her best friend convincingly, or did I just write what the plot needed?"
 
 **Why it's interesting:** Retroactive audit doesn't exist in any tool. Character store has descriptions/roles; RAG retrieves scenes. Per-character pass: *"Here is the profile. Here are her scenes. Flag actions inconsistent with established psychology."* Output is evidence-cited concerns, same shape as Critique notes.
+
+**Shipped as:** An **Audit consistency** button on the Characters view header opens a sweep modal that walks every main character sequentially. Per character, the model gets the full profile (name, role, one-liner, voice, arc, motivation, backstory, voice samples) plus a digest of every scene that features them, and returns structured concerns (severity: flag/suggest/info, chapter ref, issue, verbatim quote, reason citing the profile, cheapest fix) plus a per-character verdict (consistent / minor-drift / significant-drift). The model is instructed to be selective and honest — a consistent character returns zero concerns. Results persist on `character.audit` (mirrors the chapter.critique pattern) so re-opening the modal reads from cache. The review UI shows per-character expandable cards with chapter-jump links on each concern. Cancel mid-sweep preserves partial results. Routable as the **characterAudit** feature in Settings → AI. Service: `services/analysis/characterAudit.js`. Modal: `components/CharacterAuditModal.vue`. Project store: `setCharacterAudit / clearCharacterAudit / clearAllCharacterAudits` actions. Docs: `docs/story-bible.md` "Audit consistency" section.
 
 ---
 

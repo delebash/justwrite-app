@@ -60,6 +60,7 @@ const AI_FEATURES = [
   { key: "voiceDrift",      label: "Voice drift explainer", hint: "Diagnoses what shifted between an outlier chapter and the writer's baseline voice in the Analysis dashboard." },
   { key: "unstuck",         label: "Unstuck moves",   hint: "The AI dropdown's \"Unstuck — five ways out\" diagnostic that proposes goal shift / interrupt / setting / reveal / time cut." },
   { key: "sensory",         label: "Sensory research", hint: "The AI dropdown's \"Research feel…\" modal — structured sensory pack for a selected subject." },
+  { key: "characterAudit",  label: "Character audit",  hint: "Per-character consistency audit (profile + their scenes → flagged actions) on the Characters view." },
 ];
 const INHERIT = "__inherit__";
 

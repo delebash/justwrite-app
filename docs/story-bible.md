@@ -35,17 +35,49 @@ The page also shows two reverse indexes:
 
 ### Why a writer would use the Motivation panel
 
-The Wants / Needs / Lie / Truth grid is a compressed version of a long-standing storytelling framework (Lisa Cron, K.M. Weiland, and others have written about it). It is genuinely useful to write down what your character thinks they want, what they actually need, the false belief that keeps them stuck, and the truth they discover. When you get to a scene and don't know what your character would do, the Motivation panel often answers it.
+> *"I'm stuck on what my protagonist would do here. I know what the plot needs to happen — but I don't know what she'd actually do."*
+
+The Wants / Needs / Lie / Truth grid is a compressed version of a long-standing storytelling framework (Lisa Cron, K.M. Weiland, and others have written about it). It is genuinely useful to write down what your character thinks they want, what they actually need, the false belief that keeps them stuck, and the truth they discover. When you get to a scene and don't know what your character would do, the Motivation panel often answers it — the four boxes hand the choice back to character instead of to plot convenience.
 
 Fill it in for your protagonist and your antagonist first. Supporting characters can stay empty until you discover they need filling out.
 
 ### Voice & dialect — why bother
 
-If you write multiple POVs, or you ever have to hand a chapter to an editor or collaborator, the Voice section is your reference for keeping a character's dialogue consistent. A "Sample line" is especially powerful — a single line that sounds *exactly like them* — so when you write new dialogue for them weeks later, you can re-read it and re-tune your ear.
+> *"I haven't written this character in four chapters and now I can't remember how they sound. The dialogue I'm putting in their mouth sounds like everyone else."*
+
+If you write multiple POVs, or you ever have to hand a chapter to an editor or collaborator, the Voice section is your reference for keeping a character's dialogue consistent. A "Sample line" is especially powerful — a single line that sounds *exactly like them* — so when you write new dialogue for them weeks later, you can re-read it and re-tune your ear before you write the next line.
 
 ### Backstory
 
-Private notes that never get exported. Use this for "I know they used to be a soldier, but the reader doesn't" details. The Description fields on Locations and Objects do export; the Character Backstory field does not.
+> *"I have a whole history for this character in my head and nowhere to keep it where it won't end up in the exported book."*
+
+Private notes that never get exported. Use this for "I know they used to be a soldier, but the reader doesn't" details — the stuff that shapes how you write them but isn't for the reader's eyes. The Description fields on Locations and Objects *do* export; the Character Backstory field deliberately does not.
+
+### Audit consistency — does this character act like themselves?
+
+> *"Did my introverted loyalty-first character betray her best friend convincingly, or did I just write what the plot needed?"*
+
+You write the character's profile when you start the book. You write the scenes over months. Inevitably, somewhere around chapter eighteen, the character does something the plot needs them to do — and you don't notice that it doesn't match the psychology you established back in chapter one. This is one of the most common revision-stage problems in long fiction, and it's hard to see from inside the draft because you remember WHY you wrote each scene, not whether the scene fits the character.
+
+**Audit consistency** in the Characters view header opens a sweep modal that walks every **main character** one at a time and asks the model: *"Given this character's profile and every scene they appear in, are any of their actions, reactions, or dialogue inconsistent with what you've established about them?"*
+
+The model gets the full profile (name, role, one-liner, voice, arc, motivation, backstory, established voice samples) plus a digest of the scenes that feature the character. It returns:
+
+- A **verdict** per character — Consistent, Minor drift, or Significant drift.
+- A list of **concerns**, each with:
+  - A **severity** — **Flag** (clear inconsistency), **Suggestion** (borderline, could be intentional growth), or **Note** (small observation).
+  - The **chapter** the inconsistency appears in (clickable, jumps you straight there).
+  - A short hint of where in the chapter.
+  - The **issue** — one sentence naming what action looks inconsistent.
+  - A verbatim **quote** from the prose.
+  - **Why** it doesn't fit, citing the established profile.
+  - The **cheapest fix** — earn the action, change the action, or revise the profile.
+
+**The audit persists.** Results are saved on the character so re-opening the modal reads from cache. **Re-audit** forces a fresh sweep on every main character; **Clear saved audit** discards stored results. Cancel mid-sweep keeps the per-character results that already completed.
+
+**The model is instructed to be honest, not flag-happy.** A character that's genuinely consistent across their scenes returns zero concerns and the **Consistent** verdict — no false flags to pad the output. Character growth and change that's *earned* on the page is ignored unless the scene gives no reason for the shift; the **Why** field is explicit about distinguishing "uncosted change" from "unearned change". You should still treat findings as a second opinion, not gospel — the model is reading without the wider context of your manuscript that informs your decisions.
+
+**Routable** as the **characterAudit** feature in Settings → AI. This is one of the most reasoning-heavy LLM tasks in JustWrite — long context windows and strong text comprehension help materially. Pin to your strongest cloud model if you can; the per-character cost is real but the value-per-call is high.
 
 ---
 
@@ -64,7 +96,9 @@ Reference sheets for every place in your story.
 
 ### When to use it
 
-A location entry is worth it when the place will appear in more than one scene and you want to keep sensory details, history, or floor plans consistent. For a single throwaway location ("a dusty bar in town"), a tag on the scene is enough.
+> *"This inn shows up in three chapters and every time I write it the layout is slightly different. Now I can't remember which version is canon."*
+
+A location entry is worth it when the place will appear in more than one scene and you want to keep sensory details, history, or floor plans consistent. For a single throwaway location ("a dusty bar in town"), a tag on the scene is enough — don't fill the bible with one-shot rooms.
 
 Because the description editor supports headings and lists, you can structure a complex location — a mansion with multiple rooms, a city with several districts — inside a single article rather than splintering it into many tiny records.
 
@@ -79,6 +113,8 @@ Significant props: weapons, letters, artefacts, MacGuffins, vehicles. Anything t
 Same shape as Locations: Name, Kind, Status, Tags, Images, Groups, Events, Description, "Appears in scenes", "Mentioned in prose".
 
 ### When to make something an Object
+
+> *"Is this prop actually worth tracking, or am I just hoarding lore?"*
 
 Two tests:
 
@@ -101,6 +137,8 @@ Groups are collections that bundle any mix of characters, locations, objects, an
 - **Members** — auto-collected from every entity that has been toggled into this group. The Groups view shows the roster; you add and remove members from the individual entities' Groups buttons, not from the Group page itself.
 
 ### Why use a Group instead of just tagging things
+
+> *"I have a whole rebel cell — five characters, two safe houses, a forged document, an arc that runs through twelve chapters — and tagging each item with 'resistance' isn't giving me a place to think about the cell as a unit."*
 
 Use a Group when a concept spans entity types and you want a single page that collects them.
 
@@ -131,7 +169,9 @@ The **Relations** view is an interactive visual graph showing how every characte
 
 ### How to use it
 
-Relations is a **diagnostic** view, not a data-entry view. You don't build connections here; they appear automatically from the work you do elsewhere — adding characters to scenes via the Links panel, putting things in groups, tagging scenes with strands.
+> *"I think my protagonist is at the centre of this story — but I want to see it, not just believe it."*
+
+Relations is a **diagnostic** view, not a data-entry view. You don't build connections here; they appear automatically from the work you do elsewhere — adding characters to scenes via the Links panel, putting things in groups, tagging scenes with strands. The graph reflects what is actually written, which is the point.
 
 Visit it when you want to ask:
 

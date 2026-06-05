@@ -201,6 +201,13 @@ function getBoot() {
     loaded.architecture = rest;
   }
 
+  // "Global notes" was retired in favour of story-wide entries in the
+  // Notes view. Strip it from any project that still carries it.
+  if (loaded.architecture && loaded.architecture.globalnotes) {
+    const { globalnotes, ...rest } = loaded.architecture;
+    loaded.architecture = rest;
+  }
+
   // Chapters now contain scenes instead of a single body. Migrate every
   // existing `chapterBody[id] = html` into a one-scene record so the user's
   // prose is preserved exactly; clear the old chapterBody and the persisted
@@ -1193,6 +1200,31 @@ export const useProjectStore = defineStore("project", {
     },
     updateCharacter(id, patch) { this._record("updateCharacter"); this.characters = this.characters.map((c) => c.id === id ? { ...c, ...patch } : c); this._persist(); },
     setCharacterExtras(id, extras) { this._record("setCharacterExtras"); this.characterExtras = { ...this.characterExtras, [id]: { ...(this.characterExtras[id] || {}), ...extras } }; this._persist(); },
+    // Persist a consistency-audit result on a character. Shape:
+    //   { concerns: [...], verdict, sceneCount, generatedAt, model }
+    // Mirrors the chapter.critique pattern.
+    setCharacterAudit(id, audit) {
+      this._record("setCharacterAudit");
+      this.characters = this.characters.map((c) => c.id === id ? { ...c, audit } : c);
+      this._persist();
+    },
+    clearCharacterAudit(id) {
+      this._record("clearCharacterAudit");
+      this.characters = this.characters.map((c) => {
+        if (c.id !== id) return c;
+        const { audit, ...rest } = c;
+        return rest;
+      });
+      this._persist();
+    },
+    clearAllCharacterAudits() {
+      this._record("clearAllCharacterAudits");
+      this.characters = this.characters.map((c) => {
+        const { audit, ...rest } = c;
+        return rest;
+      });
+      this._persist();
+    },
 
     // ── Locations ───────────────────────────────────────────
     addLocation(input = {}) { this._record("addLocation"); const id = uid("l"); this.locations.push({ id, name: "Untitled location", kind: "", note: "", tags: [], ...input }); this._persist(); return id; },

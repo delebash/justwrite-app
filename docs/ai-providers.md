@@ -1,6 +1,6 @@
 # AI providers
 
-JustWrite uses AI for several features: writing assistance (bubble-menu rewrites and prose passes), critique, entity sweeps, "Ask the book" chat, audiobook narration (TTS), and smart voice assignment. **None of them are required** — you can write an entire novel in JustWrite with zero AI calls.
+JustWrite uses AI for several features: writing assistance (bubble-menu rewrites and line edits), critique, entity sweeps, "Ask the book" chat, audiobook narration (TTS), and smart voice assignment. **None of them are required** — you can write an entire novel in JustWrite with zero AI calls.
 
 If you do want AI features, you choose the provider. JustWrite isn't locked to any vendor. It works with the OpenAI cloud, Anthropic Claude, any local model server that speaks the OpenAI protocol (Ollama, LM Studio, llama.cpp), and any TTS server that speaks the OpenAI audio protocol.
 
@@ -154,14 +154,14 @@ You don't add Web Speech as a provider — it's just there.
 
 The defaults are convenient but limiting. Once you have two or more providers, you may want to send different features to different ones.
 
-In **Settings → AI & Audio engines → Feature routing** you can pin each of eleven features to its own provider and model:
+In **Settings → AI & Audio engines → Feature routing** you can pin each of twelve features to its own provider and model:
 
 | Feature | What it does |
 |---|---|
 | **Manuscript chat** | "Ask the book" — natural-language questions about your manuscript |
 | **Critique** | The structural critique modal in the editor and chapter Versions menu |
 | **Entity sweep** | The AI scan that proposes new characters, locations, and objects from chapter text |
-| **Writer actions** | The bubble-menu rewrites and prose passes in the editor |
+| **Writer actions** | The bubble-menu rewrites and line edits in the editor |
 | **Resume briefing** | The Home "Previously on your novel" card that orients you after a break |
 | **Session recap** | The Home "Wrap up session" end-of-day recap that summarises what you wrote and pins open threads |
 | **Foreshadowing scan** | The Markers view "Find dangling threads" scan that surfaces setups that may not have paid off |
@@ -169,6 +169,7 @@ In **Settings → AI & Audio engines → Feature routing** you can pin each of e
 | **Voice drift explainer** | The Analysis dashboard "Explain" button that diagnoses why a hot chapter's voice differs from the baseline |
 | **Unstuck moves** | The AI dropdown's "Unstuck — five ways out" diagnostic that proposes goal shift / interrupt / setting change / reveal / time cut |
 | **Sensory research** | The AI dropdown's "Research feel…" modal — a structured sensory pack for the selected subject |
+| **Character audit** | The Characters view "Audit consistency" sweep — flags actions inconsistent with each main character's established psychology |
 
 Setting "Inherit default" for any feature uses your global Default LLM.
 

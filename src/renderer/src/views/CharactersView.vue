@@ -14,6 +14,7 @@ import JwTag from "@renderer/components/ui/JwTag.vue";
 import JwTable from "@renderer/components/ui/JwTable.vue";
 import ImagesModal from "../components/ImagesModal.vue";
 import EntitySweepModal from "../components/EntitySweepModal.vue";
+import CharacterAuditModal from "../components/CharacterAuditModal.vue";
 import StatusSelect from "../components/StatusSelect.vue";
 import GroupsModal from "../components/GroupsModal.vue";
 import TagEditor from "../components/TagEditor.vue";
@@ -30,6 +31,7 @@ const project = useProjectStore();
 const ui = useUiStore();
 const router = useRouter();
 const sweepOpen = ref(false);
+const auditOpen = ref(false);
 
 // When id is present → detail mode. When absent → list mode.
 const ch = computed(() => props.id ? project.characterById(props.id) : null);
@@ -212,6 +214,9 @@ function onRowClick(event) {
     <PaneHeader :eyebrow="$t('panes.characters.eyebrow')" :title="$t('nav.characters')">
       <JwButton intent="ghost" size="small" @click="sweepOpen = true" v-tooltip.bottom="'Scan the manuscript for new characters, locations, and objects'">
         <Icon name="Sparkle" :size="13" /> Find new entities
+      </JwButton>
+      <JwButton intent="ghost" size="small" @click="auditOpen = true" v-tooltip.bottom="'Check whether each main character acts in line with their established psychology'">
+        <Icon name="Users" :size="13" /> Audit consistency
       </JwButton>
       <JwButton label="New character" intent="primary" size="small" @click="addCharacter">
         <template #icon><Icon name="Plus" :size="14" /></template>
@@ -485,6 +490,9 @@ function onRowClick(event) {
   <EntitySweepModal v-if="sweepOpen"
     @close="sweepOpen = false"
     @committed="sweepOpen = false" />
+
+  <CharacterAuditModal v-if="auditOpen"
+    @close="auditOpen = false" />
 </template>
 
 <style scoped>
