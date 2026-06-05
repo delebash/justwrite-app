@@ -91,6 +91,14 @@ export const useUiStore = defineStore("ui", {
       // Manuscript chat panel (RAG). Single boolean; the panel itself
       // owns its question/answer state.
       chatPanelOpen: false,
+      // "Previously on your novel" briefing — generated on Home when the
+      // writer returns. Cache survives reloads so same-day reopens reuse
+      // the same briefing instead of re-billing the LLM. Dismissal is
+      // per-day so the card stays hidden until tomorrow.
+      // Shape: { day: 'yyyy-mm-dd', chapterId, chapterNum, chapterTitle,
+      //          text, gapLabel, daysSince, generatedAt, model, providerId }
+      briefingCache: null,
+      briefingDismissedOn: null,
       ...saved,
       // Resolve appearance last: wins over the raw spread and folds in any
       // legacy { theme, accentHue } keys from older saves.
@@ -160,6 +168,20 @@ export const useUiStore = defineStore("ui", {
     openChatPanel()  { this.chatPanelOpen = true; },
     closeChatPanel() { this.chatPanelOpen = false; },
     toggleChatPanel() { this.chatPanelOpen = !this.chatPanelOpen; },
+
+    // ── Resume-from-here briefing ────────────────────────────────────
+    setBriefing(payload) {
+      this.briefingCache = payload ? { ...payload } : null;
+      this._persist();
+    },
+    clearBriefing() {
+      this.briefingCache = null;
+      this._persist();
+    },
+    dismissBriefing(dayKey) {
+      this.briefingDismissedOn = String(dayKey || "");
+      this._persist();
+    },
 
     setAppearance(patch) {
       const next = { ...this.appearance, ...patch };
@@ -240,6 +262,8 @@ export const useUiStore = defineStore("ui", {
         continuousChapter: this.continuousChapter,
         chapterMode: this.chapterMode,
         chapterEditStyle: this.chapterEditStyle,
+        briefingCache: this.briefingCache,
+        briefingDismissedOn: this.briefingDismissedOn,
       });
     },
   },

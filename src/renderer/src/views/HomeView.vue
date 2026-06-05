@@ -1,9 +1,12 @@
 <script setup>
-import { computed } from "vue";
+import { computed, onMounted, ref, watch } from "vue";
 import { useRouter } from "vue-router";
 import { useProjectStore } from "../stores/project.js";
 import { useUiStore } from "../stores/ui.js";
 import { useSessionsStore, DOW_LABELS_MONDAY_FIRST, reorderForMonday } from "../stores/sessions.js";
+import { useAiStore } from "../stores/ai.js";
+import { useAiProgress } from "../composables/useAiProgress.js";
+import { generateResumeBriefing, buildBriefingContext } from "../services/resumeBriefing.js";
 import Icon from "../components/Icon.vue";
 import JwButton from "@renderer/components/ui/JwButton.vue";
 
@@ -11,7 +14,18 @@ const router = useRouter();
 const project = useProjectStore();
 const ui = useUiStore();
 const sessions = useSessionsStore();
+const ai = useAiStore();
 const P = project.project;
+
+// Local copy of sessions.js's todayKey shape (yyyy-mm-dd, local time).
+// Re-implemented here rather than exported because exporting from a
+// Pinia store module entry-point would force a hot-reload edge case.
+function todayKey(d = new Date()) {
+  const y = d.getFullYear();
+  const m = String(d.getMonth() + 1).padStart(2, "0");
+  const day = String(d.getDate()).padStart(2, "0");
+  return `${y}-${m}-${day}`;
+}
 
 const allCh = computed(() => project.allChapters);
 
@@ -91,6 +105,136 @@ function resume() {
   const sid = resumeFirstScene.value?.id;
   router.push(sid ? `/chapters/${resumeCh.value.id}/${sid}` : `/chapters/${resumeCh.value.id}`);
 }
+
+// ── "Previously on your novel" briefing ──────────────────
+// Auto-generates on Home mount when the writer returns to the app
+// after a gap. Cache lives in ui.briefingCache and is keyed by date;
+// same-day reloads reuse the cached prose. Dismissal is per-day so the
+// card stays hidden until tomorrow.
+
+const briefingProgress = useAiProgress();
+const briefingError = ref(null);
+
+// Quick eligibility check that mirrors what the service does — without
+// running it, so the card can decide whether to show at all.
+const briefingContext = computed(() =>
+  buildBriefingContext({ project, sessions }),
+);
+const briefingEligible = computed(() => briefingContext.value.meta?.eligible === true);
+
+const briefingDismissedToday = computed(
+  () => ui.briefingDismissedOn === todayKey(),
+);
+
+// Cache is valid only if it matches today AND the chapter the writer
+// most recently touched. If they wrote in a different chapter since,
+// regenerate.
+const briefingCacheValid = computed(() => {
+  const c = ui.briefingCache;
+  if (!c) return false;
+  if (c.day !== todayKey()) return false;
+  if (c.chapterId && sessions.lastWrite?.chapterId &&
+      c.chapterId !== sessions.lastWrite.chapterId) return false;
+  return true;
+});
+
+const briefingVisible = computed(() => {
+  if (briefingDismissedToday.value) return false;
+  if (!briefingEligible.value && !briefingCacheValid.value) return false;
+  return true;
+});
+
+const briefingText = computed(() => {
+  if (briefingProgress.running.value) return briefingProgress.preview.value || "";
+  if (briefingCacheValid.value) return ui.briefingCache?.text || "";
+  return "";
+});
+
+// Meta line under the eyebrow — "3 days ago · Chapter 7 — The rooftop".
+const briefingMetaLine = computed(() => {
+  const c = ui.briefingCache;
+  const live = briefingContext.value.meta;
+  const gap = c?.gapLabel || live?.gapLabel || "";
+  const num = c?.chapterNum ?? live?.lastChapter?.num;
+  const title = c?.chapterTitle ?? live?.lastChapter?.title;
+  const chapterPart = num != null ? `Chapter ${num}${title ? ` — ${title}` : ""}` : "";
+  return [gap, chapterPart].filter(Boolean).join(" · ");
+});
+
+const briefingChapterId = computed(
+  () => ui.briefingCache?.chapterId || briefingContext.value.meta?.lastChapter?.id || null,
+);
+
+async function runBriefing() {
+  if (!briefingEligible.value) return;
+  if (briefingProgress.running.value) return;
+  briefingError.value = null;
+  briefingProgress.start();
+  try {
+    const result = await generateResumeBriefing({
+      project, sessions,
+      signal: briefingProgress.signal,
+      onDelta: briefingProgress.onDelta,
+    });
+    ui.setBriefing({
+      day: todayKey(),
+      chapterId: result.chapterId,
+      chapterNum: result.chapterNum,
+      chapterTitle: result.chapterTitle,
+      text: result.text,
+      gapLabel: result.gapLabel,
+      daysSince: result.daysSince,
+      generatedAt: result.generatedAt,
+      model: result.model,
+      providerId: result.providerId,
+    });
+    briefingProgress.finish();
+  } catch (err) {
+    if (briefingProgress.cancelled.value) {
+      // intentional abort; not an error to surface
+    } else {
+      const msg = String(err?.message || err || "");
+      briefingError.value =
+        /provider|api key|configure/i.test(msg)
+          ? "Configure an AI provider in Settings → AI to generate this briefing."
+          : msg || "Couldn't generate briefing.";
+    }
+    briefingProgress.finish();
+  }
+}
+
+function regenerateBriefing() {
+  ui.clearBriefing();
+  briefingError.value = null;
+  runBriefing();
+}
+
+function dismissBriefing() {
+  briefingProgress.cancel();
+  ui.dismissBriefing(todayKey());
+}
+
+function jumpToLastChapter() {
+  const id = briefingChapterId.value;
+  if (!id) return;
+  const sid = project.scenesFor(id)?.[0]?.id;
+  ui.select("chapters", id);
+  router.push(sid ? `/chapters/${id}/${sid}` : `/chapters/${id}`);
+}
+
+// Kick off on mount if there's nothing valid cached. Avoid running when
+// no AI provider is configured — surface that as the error state if the
+// user manually retries.
+onMounted(() => {
+  if (!briefingVisible.value) return;
+  if (briefingCacheValid.value) return;
+  if (!briefingEligible.value) return;
+  if (!ai.providerForFeature("briefing")) {
+    briefingError.value = "Configure an AI provider in Settings → AI to generate this briefing.";
+    return;
+  }
+  runBriefing();
+});
 
 // ── Cadence (day-of-week) peak + strand chapter counts ───
 const FULL_DOW = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"];
@@ -195,6 +339,51 @@ const strandCount = (id) => allCh.value.filter((c) => (c.strands || []).includes
         </div>
         <div class="resume-cta">
           <JwButton intent="accent2" @click="resume"><Icon name="Play" :size="14" :fill="true" /> Resume writing</JwButton>
+        </div>
+      </div>
+
+      <!-- Previously on your novel — resume briefing -->
+      <div v-if="briefingVisible" class="card briefing-card" style="grid-column:1/-1">
+        <div class="briefing-head">
+          <div class="briefing-eyebrow">Previously on your novel</div>
+          <button class="briefing-x" v-tooltip.bottom="'Hide until tomorrow'"
+                  @click="dismissBriefing" aria-label="Dismiss briefing">
+            <Icon name="Close" :size="14" />
+          </button>
+        </div>
+        <div v-if="briefingMetaLine" class="briefing-meta">
+          <button v-if="briefingChapterId" class="briefing-jump" @click="jumpToLastChapter"
+                  v-tooltip.bottom="'Open this chapter'">{{ briefingMetaLine }}</button>
+          <span v-else>{{ briefingMetaLine }}</span>
+        </div>
+
+        <div v-if="briefingError" class="briefing-error">
+          <Icon name="Alert" :size="14" />
+          <span>{{ briefingError }}</span>
+          <JwButton intent="ghost" size="small" @click="runBriefing">
+            <Icon name="Refresh" :size="12" /> Retry
+          </JwButton>
+        </div>
+
+        <p v-else-if="briefingText" class="briefing-body">{{ briefingText }}</p>
+
+        <div v-else-if="briefingProgress.running.value" class="briefing-loading">
+          <span class="briefing-spinner" />
+          <span>Reading where you left off…</span>
+        </div>
+
+        <div class="briefing-foot">
+          <span v-if="ui.briefingCache?.model" class="briefing-model">
+            via {{ ui.briefingCache.model }}
+          </span>
+          <span class="briefing-foot-actions">
+            <JwButton intent="ghost" size="small"
+                      :disabled="briefingProgress.running.value"
+                      @click="regenerateBriefing"
+                      v-tooltip.bottom="'Generate a fresh briefing'">
+              <Icon name="Refresh" :size="12" /> Regenerate
+            </JwButton>
+          </span>
         </div>
       </div>
 
@@ -351,6 +540,72 @@ const strandCount = (id) => allCh.value.filter((c) => (c.strands || []).includes
 @media (max-width: 720px) {
   .resume-card { grid-template-columns: 1fr; }
 }
+
+/* ── Briefing card ────────────────────────────────────────── */
+.briefing-card {
+  position: relative; overflow: hidden;
+  padding: 20px 22px 16px;
+}
+.briefing-card::before {
+  content: ""; position: absolute; left: 0; top: 0; bottom: 0; width: 5px;
+  background: linear-gradient(180deg, var(--gold), var(--accent));
+}
+.briefing-head {
+  display: flex; align-items: center; justify-content: space-between;
+  gap: 12px; padding-left: 6px;
+}
+.briefing-eyebrow {
+  font-family: var(--font-mono);
+  font-size: 10px; letter-spacing: 0.16em; text-transform: uppercase;
+  color: var(--muted);
+}
+.briefing-x {
+  appearance: none; border: 0; background: transparent; cursor: pointer;
+  color: var(--muted); padding: 4px; border-radius: 4px;
+  display: inline-flex; align-items: center; justify-content: center;
+}
+.briefing-x:hover { color: var(--ink-2); background: var(--surface-3); }
+.briefing-meta {
+  margin: 8px 0 12px; padding-left: 6px;
+  font-size: 12px; color: var(--muted);
+}
+.briefing-jump {
+  appearance: none; border: 0; background: transparent; cursor: pointer;
+  font: inherit; color: var(--accent-ink); padding: 0;
+  border-bottom: 1px dotted var(--accent-line);
+}
+.briefing-jump:hover { color: var(--accent); border-bottom-style: solid; }
+.briefing-body {
+  margin: 0; padding-left: 6px; max-width: 68ch;
+  font-family: var(--font-serif); font-size: 14.5px; line-height: 1.7;
+  color: var(--ink-2);
+  white-space: pre-wrap;
+}
+.briefing-loading {
+  display: flex; align-items: center; gap: 10px; padding-left: 6px;
+  font-size: 12.5px; color: var(--muted); font-style: italic;
+  min-height: 60px;
+}
+.briefing-spinner {
+  display: inline-block; width: 12px; height: 12px;
+  border: 2px solid var(--surface-3); border-top-color: var(--accent);
+  border-radius: 50%; animation: briefing-spin 0.9s linear infinite;
+}
+@keyframes briefing-spin { to { transform: rotate(360deg); } }
+.briefing-error {
+  display: flex; align-items: center; gap: 10px; padding: 10px 12px;
+  margin-left: 6px;
+  background: var(--surface-3); border-radius: 6px;
+  font-size: 12.5px; color: var(--ink-2);
+}
+.briefing-error :deep(svg) { color: var(--danger); flex-shrink: 0; }
+.briefing-foot {
+  display: flex; align-items: center; justify-content: space-between;
+  gap: 12px; margin-top: 12px; padding-left: 6px;
+  font-family: var(--font-mono); font-size: 10.5px; color: var(--subtle);
+}
+.briefing-model { font-variant-numeric: tabular-nums; }
+.briefing-foot-actions { display: flex; gap: 6px; }
 
 /* ── Stat / graph cards (editorial) ───────────────────────── */
 .gcard-h {

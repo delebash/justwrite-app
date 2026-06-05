@@ -154,7 +154,7 @@ You don't add Web Speech as a provider — it's just there.
 
 The defaults are convenient but limiting. Once you have two or more providers, you may want to send different features to different ones.
 
-In **Settings → AI & Audio engines → Feature routing** you can pin each of four features to its own provider and model:
+In **Settings → AI & Audio engines → Feature routing** you can pin each of five features to its own provider and model:
 
 | Feature | What it does |
 |---|---|
@@ -162,6 +162,7 @@ In **Settings → AI & Audio engines → Feature routing** you can pin each of f
 | **Critique** | The structural critique modal in the editor and chapter Versions menu |
 | **Entity sweep** | The AI scan that proposes new characters, locations, and objects from chapter text |
 | **Writer actions** | The bubble-menu rewrites and prose passes in the editor |
+| **Resume briefing** | The Home "Previously on your novel" card that orients you after a break |
 
 Setting "Inherit default" for any feature uses your global Default LLM.
 
@@ -172,6 +173,7 @@ Setting "Inherit default" for any feature uses your global Default LLM.
 - **Entity sweep**: pinned to GPT-4o-mini (cheap and reliable for this specific job)
 - **Writer actions**: inherits default (Ollama)
 - **Manuscript chat**: inherits default
+- **Resume briefing**: inherits default (a fast local model is fine here — it's a short, structured task)
 - **TTS**: Kokoro (free, local, fast)
 
 This pattern keeps day-to-day cost near zero and only spends on the two features where cloud quality genuinely matters.

@@ -53,6 +53,7 @@ const AI_FEATURES = [
   { key: "critique",    label: "Critique",        hint: "The Critique modal's structural pass." },
   { key: "entitySweep", label: "Entity sweep",    hint: "Scans chapters for new characters / locations / objects." },
   { key: "writerAI",    label: "Writer actions",  hint: "Bubble-menu rewrites and prose passes in the editor." },
+  { key: "briefing",    label: "Resume briefing", hint: "Generates the Home \"Previously on your novel\" recap card." },
 ];
 const INHERIT = "__inherit__";
 

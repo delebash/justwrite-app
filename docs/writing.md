@@ -14,6 +14,7 @@ What you see at the top:
 - **A progress ring** — what fraction of your word goal you've hit. The goal is set in **Settings → Project → Goals**.
 - **A chapter-status bar** — a horizontal bar showing the proportion of your chapters that are Done, in Revise, in Draft, or still To-do. The deadline you set in Settings appears as a clickable link.
 - **Resume writing** — a card that surfaces the chapter you worked on today (or your last-open chapter as a fallback). Click the button to jump straight back into the editor at the right scene.
+- **Previously on your novel** — an AI-written orientation paragraph that helps you re-enter the story after time away. See below.
 
 Below those:
 
@@ -23,6 +24,26 @@ Below those:
 - **Narrative strands** — a row per strand with a progress bar showing how many chapters that strand appears in.
 
 **Why this matters for a writer.** The cadence chart often reveals something surprising — that you actually write more on Sundays than on weekdays, for example, or that your Mondays are wasted. Use that information to plan your week. The strand bars are a quick visual check that your subplots are distributed evenly through the book; if one strand has zero chapters for the last quarter of the book, that's a red flag worth investigating.
+
+### "Previously on your novel"
+
+> *"I closed the laptop two weeks ago mid-chapter. I can't remember what I was building toward, who's mad at whom, or which threads I left dangling."*
+
+When you return to a novel after a break — even a short one — there's a re-entry tax. The story is no longer warm in your head; you have to reload it before you can write. This card hands you that reload, automatically.
+
+When you open Home, JustWrite generates a 150–250 word **briefing** addressed to you ("You left off in the middle of the rooftop confrontation. Elena still suspects Marcus…"). It's grounded in real project state — the chapter you last wrote in, the closing passage of that chapter, your active characters, your open narrative strands, and any **Loose thread** or **TODO** markers in the surrounding chapters. It ends with one concrete next-action suggestion: a scene to write, a thread to pay off, a decision to make.
+
+**How it behaves:**
+
+- **It only runs when there's something to brief on.** A brand-new project with no writing yet, or no AI provider configured, doesn't show the card.
+- **It caches for the day.** The first time you open Home, the briefing is generated and saved. Same-day reloads reuse the cached prose — no repeat AI charges. The cache refreshes automatically the next day, or whenever you write in a different chapter.
+- **Dismiss hides it until tomorrow.** Click the **×** in the top-right corner if you don't want the card today. It comes back the next day.
+- **Regenerate** asks for a fresh briefing right now — useful if the first one missed the mark or if you've made progress since.
+- **Click the meta line** ("3 days ago · Chapter 7 — The rooftop") to jump straight into that chapter.
+
+**Why a writer would use it.** Most writers re-orient by scrolling back and re-reading the last chapter, which is slow and easy to skip on a busy day. A two-paragraph briefing closes the gap in about 20 seconds and explicitly names what's at stake and what's open — including the threads you'd planted and forgotten about. It also catches your own **Loose thread** pins from previous sessions, so the markers you dropped in the heat of drafting actually come back to you when you sit down to write.
+
+The model used is whichever provider you've pinned for **briefing** in **Settings → AI** (or your default LLM provider if none is pinned). The footer of the card names it.
 
 ---
 
