@@ -126,7 +126,7 @@ if (typeof window !== "undefined") {
 // key on first run so existing workspaces aren't lost.
 function bootstrap() {
   let registry = loadRegistry();
-  let activeId = loadJSON(LS_ACTIVE_KEY);
+  const activeId = loadJSON(LS_ACTIVE_KEY);
 
   // Use the persisted activeId even if no project snapshot exists yet —
   // a brand-new project has an active id from the moment it's minted, but

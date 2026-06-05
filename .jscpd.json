@@ -1,0 +1,8 @@
+{
+  "threshold": 10,
+  "minTokens": 50,
+  "pattern": "src/renderer/src/**/*.{js,vue}",
+  "ignore": ["**/node_modules/**", "**/dist/**"],
+  "reporters": ["json", "console"],
+  "output": "./report/jscpd"
+}

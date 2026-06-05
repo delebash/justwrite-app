@@ -5,3 +5,8 @@ dist/
 *.log
 .vscode/
 .idea/
+
+# Audit tool output (jscpd report dir, biome scratch dumps)
+report/
+biome_output.json
+biome_parsed.json

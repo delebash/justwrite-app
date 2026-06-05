@@ -24,7 +24,7 @@ const webUrl = computed(() => webUrlFor(currentSlug.value));
 
 const renderer = new marked.Renderer();
 const baseLinkRenderer = renderer.link.bind(renderer);
-renderer.link = function ({ href, title, tokens }) {
+renderer.link = ({ href, title, tokens }) => {
   // Rewrite intra-doc links (e.g. "writing.md" → "/help/writing").
   // Anchors and external links pass through; external get target=_blank.
   let h = href || "";

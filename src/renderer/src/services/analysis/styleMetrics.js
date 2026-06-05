@@ -103,7 +103,7 @@ function splitSentences(text) {
   // be clever about abbreviations — slightly over-counts on "Mr. Smith"
   // but that's noise, not signal.
   return text
-    .split(/(?<=[.!?])\s+(?=[A-Z"'(\[])/)
+    .split(/(?<=[.!?])\s+(?=[A-Z"'([])/)
     .map((s) => s.trim())
     .filter(Boolean);
 }

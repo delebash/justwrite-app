@@ -93,7 +93,7 @@ function parseNav(navDoc, navPath) {
 // which we want to slice.
 function findCommonAncestor(body, els) {
   if (!els.length) return body;
-  let ancestors = [];
+  const ancestors = [];
   for (let n = els[0]; n; n = n.parentNode) {
     ancestors.push(n);
     if (n === body) break;
@@ -156,7 +156,7 @@ function splitBodyByFragments(body, navEntries) {
   const startByChild = new Map();
   for (let i = 0; i < resolved.length; i++) {
     const { entry, el } = resolved[i];
-    let child = el ? ascendTo(el, root) : root.firstElementChild;
+    const child = el ? ascendTo(el, root) : root.firstElementChild;
     if (!child) continue;
     // First entry with no fragment wins the first child; later entries
     // with no fragment are no-ops (rare in real EPUBs).
