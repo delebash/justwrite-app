@@ -21,18 +21,49 @@ function htmlToText(html) {
   return div.textContent || "";
 }
 
-// Strip ```json fences and grab the outermost JSON object/array.
+// Strip ```json fences, drop any <think>…</think> reasoning block, then
+// scan for the first balanced JSON object or array. Brace-matching beats
+// a greedy regex because reasoning blocks often contain example JSON
+// that would otherwise extend the match across non-JSON text.
+//
+// Picks whichever bracket appears FIRST in the body so a top-level array
+// response (e.g. `[{...}, {...}]`) isn't misread as the first inner object.
 function parseJsonLoose(text) {
   if (!text) return null;
-  const trimmed = text.replace(/```(?:json)?/gi, "").trim();
-  // Object first; arrays handled at the call site if we need them.
-  const objMatch = trimmed.match(/\{[\s\S]*\}/);
-  if (objMatch) {
-    try { return JSON.parse(objMatch[0]); } catch {}
+  let s = text.replace(/```(?:json)?/gi, "");
+  s = s.replace(/<think>[\s\S]*?<\/think>/gi, "");
+  const objIdx = s.indexOf("{");
+  const arrIdx = s.indexOf("[");
+  const objectFirst =
+    objIdx !== -1 && (arrIdx === -1 || objIdx < arrIdx);
+  const tryOrder = objectFirst
+    ? [["{", "}"], ["[", "]"]]
+    : [["[", "]"], ["{", "}"]];
+  for (const [open, close] of tryOrder) {
+    const slice = extractBalanced(s, open, close);
+    if (slice) { try { return JSON.parse(slice); } catch {} }
   }
-  const arrMatch = trimmed.match(/\[[\s\S]*\]/);
-  if (arrMatch) {
-    try { return JSON.parse(arrMatch[0]); } catch {}
+  return null;
+}
+
+function extractBalanced(s, open, close) {
+  for (let start = s.indexOf(open); start !== -1; start = s.indexOf(open, start + 1)) {
+    let depth = 0, inStr = false, esc = false;
+    for (let i = start; i < s.length; i++) {
+      const c = s[i];
+      if (inStr) {
+        if (esc) esc = false;
+        else if (c === "\\") esc = true;
+        else if (c === '"') inStr = false;
+        continue;
+      }
+      if (c === '"') { inStr = true; continue; }
+      if (c === open) depth++;
+      else if (c === close) {
+        depth--;
+        if (depth === 0) return s.slice(start, i + 1);
+      }
+    }
   }
   return null;
 }
@@ -70,11 +101,18 @@ export async function runCritique({ html, chapterTitle = "", chapterNum = null, 
   const result = await runAiStream({
     feature: "critique",
     messages, temperature: 0.4,
+    extra: { think: false },
     signal, onDelta, provider, model, meta,
   });
 
   const parsed = parseJsonLoose(result.content);
-  const rawNotes = Array.isArray(parsed?.notes) ? parsed.notes : [];
+  // Tolerate both shapes: {"notes":[…]} (the prompt asks for this) AND a
+  // bare top-level array of note objects (which some models give anyway).
+  const rawNotes = Array.isArray(parsed?.notes)
+    ? parsed.notes
+    : Array.isArray(parsed)
+      ? parsed
+      : [];
   const notes = rawNotes
     .map((n, i) => ({
       id: `note_${Date.now().toString(36)}_${i}`,

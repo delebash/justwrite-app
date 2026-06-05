@@ -123,6 +123,7 @@ const thread = ref(loadThread(project.activeProjectId));
 const indexModalMode = ref(null); // "build" | "rebuild" | null
 const inputRef = ref(null);
 const threadRef = ref(null);
+const panelRef = ref(null);
 
 const open = computed({
   get: () => props.modelValue,
@@ -234,8 +235,31 @@ function onDocKeydown(e) {
     close();
   }
 }
+// Click-outside dismissal. Runs in the click bubble phase, so any in-panel
+// @click (and the sidebar "Ask the book" toggle, which fires on its own
+// target first) has already executed by the time we see the event — that's
+// why the sidebar toggle works as a true toggle: it flips open → false
+// before we get here. Exemptions:
+//   - [data-chat-toggle] — the sidebar trigger, so clicking it while
+//     closed doesn't immediately re-close after it just opened.
+//   - [role="dialog"]    — portaled modals (IndexBuildModal via AppModal)
+//     teleport outside the panel; clicks inside them aren't "outside".
+//   - [role="listbox"]   — Reka Select popover content (model picker).
+function onDocClick(e) {
+  if (!open.value) return;
+  const target = e.target;
+  if (!target || !panelRef.value) return;
+  if (panelRef.value.contains(target)) return;
+  if (target.closest?.("[data-chat-toggle]")) return;
+  if (target.closest?.('[role="dialog"], [role="listbox"]')) return;
+  close();
+}
 document.addEventListener("keydown", onDocKeydown);
-onBeforeUnmount(() => document.removeEventListener("keydown", onDocKeydown));
+document.addEventListener("click", onDocClick);
+onBeforeUnmount(() => {
+  document.removeEventListener("keydown", onDocKeydown);
+  document.removeEventListener("click", onDocClick);
+});
 
 function onIndexBuilt() {
   // Don't auto-close the modal — yanking it via v-if before the leave
@@ -259,7 +283,7 @@ defineExpose({ open: () => { open.value = true; }, close });
 
 <template>
   <transition name="cp-slide">
-    <aside v-if="open" class="chat-panel" role="dialog" aria-label="Ask the manuscript">
+    <aside v-if="open" ref="panelRef" class="chat-panel" role="dialog" aria-label="Ask the manuscript">
       <header class="cp-head">
         <div>
           <div class="t-eyebrow">Ask the manuscript</div>

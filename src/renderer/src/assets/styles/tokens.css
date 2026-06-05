@@ -1760,8 +1760,12 @@ html[data-editor-layout="page"] .rich-editor--manuscript .manuscript-inner.with-
   pointer-events: none;
   opacity: 0;
   z-index: 99999;
-  white-space: nowrap;
+  /* Short tooltips stay on one line (content sets its own width);
+     long ones wrap within max-width so they don't run off the viewport
+     and get clipped by floating-ui's shift middleware. */
+  white-space: normal;
   max-width: 320px;
+  word-wrap: break-word;
   box-shadow: var(--shadow-2);
   transition: opacity .14s;
 }

@@ -112,7 +112,7 @@ const NAV = [
   { id: "architecture",  label: "nav.architecture",  icon: "Building", expandable: "architecture", fixed: true },
   { id: "strands",       label: "nav.strands",       icon: "Strands",  expandable: "strands" },
   { id: "chapters",      label: "nav.chapters",      icon: "Book",     expandable: "chapters" },
-  { id: "ask",           label: "sidebar.nav.askTheBook", icon: "Sparkle", kbd: "⌘J", action: "openChatPanel" },
+  { id: "ask",           label: "sidebar.nav.askTheBook", icon: "Sparkle", kbd: "⌘J", action: "toggleChatPanel" },
 
   { section: "sidebar.sections.storyWorld" },
   { id: "characters",    label: "nav.characters",    icon: "Users",     expandable: "characters" },
@@ -148,6 +148,21 @@ function navStatus(id) {
     : { statusLabel: "Unset", statusColor: "var(--muted)" };
 }
 
+// Sidebar sub-text for a note row: "Ch. 3 · Scene 2 · my-tag" when the
+// note is anchored, falls back to the tag alone when story-wide.
+function noteSub(n) {
+  const a = n.anchor;
+  if (!a) return n.tag;
+  const c = project.chapterById(a.chapterId);
+  if (!c) return n.tag;
+  let label = `Ch. ${c.num}`;
+  if (a.sceneId) {
+    const idx = project.scenesFor(c.id).findIndex((s) => s.id === a.sceneId);
+    if (idx >= 0) label += ` · Scene ${idx + 1}`;
+  }
+  return n.tag ? `${label} · ${n.tag}` : label;
+}
+
 const expandableChildren = computed(() => ({
   chapters: (project.parts || []).filter(Boolean).map((p) => ({
     partId: p.id,
@@ -162,7 +177,7 @@ const expandableChildren = computed(() => ({
   objects:   [{ subgroupId: "all", items: project.objects.map((o) => ({ id: o.id, label: o.name, ...navStatus(o.status), subgroupId: "all" })) }],
   strands: [{ subgroupId: "all", items: project.strands.map((s) => ({ id: s.id, label: s.name, color: s.color, ...navStatus(s.status), subgroupId: "all" })) }],
   groups:    [{ subgroupId: "all", items: project.groups.map((g) => ({ id: g.id, label: g.name, color: g.color, ...navStatus(g.status), subgroupId: "all" })) }],
-  notes:     [{ subgroupId: "all", items: project.notes.map((n) => ({ id: n.id, label: n.title, sub: n.tag, subgroupId: "all" })) }],
+  notes:     [{ subgroupId: "all", items: project.notes.map((n) => ({ id: n.id, label: n.title, sub: noteSub(n), subgroupId: "all" })) }],
   architecture: [{ subgroupId: "all", items: Object.values(project.architecture).filter(Boolean).map((d) => ({ id: d.id, label: d.title, ...navStatus(d.status), subgroupId: "all" })) }],
   worldbuilding: project.worldbuildingCategories.map((c) => ({
     subgroupId: c.id,
@@ -818,6 +833,7 @@ function wbDropClass(kind, id) {
             :class="{ active: activeSection === (n.activeName || n.id).toLowerCase() }"
             :aria-expanded="n.expandable ? !!ui.expanded[n.id] : undefined"
             :aria-current="activeSection === (n.activeName || n.id).toLowerCase() ? 'page' : undefined"
+            :data-chat-toggle="n.id === 'ask' ? '' : null"
             @click="clickParent(n)">
             <span class="nav-icon"><Icon :name="n.icon" :size="15" /></span>
             <span class="nav-label">{{ $t(n.label) }}</span>

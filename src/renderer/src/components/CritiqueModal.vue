@@ -79,6 +79,14 @@ async function runNotes() {
       signal: notesProgress.signal,
       onDelta: notesProgress.onDelta,
     });
+    // A non-empty completion that yielded zero notes is a parse miss —
+    // surface it instead of falling back to the empty-state placeholder
+    // (which reads like the run never happened). The raw text is on
+    // result.raw if we ever want to expose a "show raw" toggle.
+    if (!result.notes.length && (result.raw || "").trim().length > 0) {
+      console.warn("[critique] notes parse returned 0 items. Raw model output:", result.raw);
+      err.value = "Couldn't parse notes from the model's reply. Try re-running, or switch the critique model in Settings.";
+    }
     // Merge with existing structure if present.
     project.setChapterCritique(ch.value.id, {
       ...critique.value,
@@ -174,9 +182,13 @@ const SEVERITY_META = {
           {{ structure ? "Re-analyze" : (runningStruct ? "Analyzing…" : "Analyze") }}
         </JwButton>
       </header>
+      <p class="ck-section-desc">
+        Scores the chapter as a whole — tension (rising stakes), hook strength (opening pull),
+        pacing (rushed vs. measured), and how the ending lands (cliffhanger, resolved, transition).
+      </p>
 
       <AiProgressBar :progress="structProgress" label="Analyzing structure…" />
-      <div v-if="structure && !structProgress.running" class="struct-grid">
+      <div v-if="structure && !structProgress.running.value" class="struct-grid">
         <div class="struct-metric">
           <div class="sm-num">{{ structure.tension }}<small>/10</small></div>
           <div class="sm-lbl">Tension</div>
@@ -197,7 +209,7 @@ const SEVERITY_META = {
         </div>
       </div>
       <p v-if="structure?.summary" class="struct-summary">{{ structure.summary }}</p>
-      <p v-else-if="!structure && !structProgress.running" class="ck-empty">
+      <p v-else-if="!structure && !structProgress.running.value" class="ck-empty">
         Run a structural pass to see tension, hook, pacing, and ending classification.
       </p>
     </section>
@@ -211,9 +223,14 @@ const SEVERITY_META = {
           {{ notes.length ? "Re-run notes" : (runningNotes ? "Drafting notes…" : "Run notes") }}
         </JwButton>
       </header>
+      <p class="ck-section-desc">
+        Line-level editor notes across categories like pacing, voice, dialogue, POV, and clarity —
+        grouped into <strong>flags</strong> (clear problems), <strong>suggestions</strong>
+        (concrete revisions), and <strong>observations</strong> (worth noting, no action).
+      </p>
 
       <AiProgressBar :progress="notesProgress" label="Drafting notes…" />
-      <div v-if="notes.length && !notesProgress.running" class="notes-list">
+      <div v-if="notes.length && !notesProgress.running.value" class="notes-list">
         <div v-for="sev in ['flag', 'suggest', 'info']" :key="sev"
           v-show="grouped[sev].length"
           class="notes-group">
@@ -228,7 +245,7 @@ const SEVERITY_META = {
           </div>
         </div>
       </div>
-      <p v-else-if="!notesProgress.running" class="ck-empty">
+      <p v-else-if="!notesProgress.running.value" class="ck-empty">
         Run notes to get a list of flags, suggestions, and observations.
       </p>
     </section>
@@ -258,6 +275,11 @@ const SEVERITY_META = {
   font-size: 12.5px; color: var(--muted); font-style: italic;
   padding: 14px 16px; background: var(--surface-2); border-radius: 8px;
 }
+.ck-section-desc {
+  font-size: 12px; line-height: 1.55; color: var(--muted);
+  margin: -2px 0 0;
+}
+.ck-section-desc strong { color: var(--ink-2); font-weight: 600; }
 
 .ck-section { display: flex; flex-direction: column; gap: 10px; }
 .ck-section > header {

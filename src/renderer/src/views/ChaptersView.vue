@@ -10,6 +10,7 @@ import RichEditor from "../components/RichEditor.vue";
 import SceneLinks from "../components/SceneLinks.vue";
 import VersionHistoryModal from "../components/VersionHistoryModal.vue";
 import CritiqueModal from "../components/CritiqueModal.vue";
+import ChapterNotesModal from "../components/ChapterNotesModal.vue";
 import EmptyState from "../components/EmptyState.vue";
 import StatusSelect from "../components/StatusSelect.vue";
 import Breadcrumb from "../components/Breadcrumb.vue";
@@ -66,6 +67,14 @@ const readScope = ref("chapter"); // "chapter" | "book"
 const linksOpen = ref(false);
 const versionsOpen = ref(false);
 const critiqueOpen = ref(false);
+const notesOpen = ref(false);
+// notesChapterId is the chapter the modal renders for — usually the
+// active chapter, but the outline view opens chips for scenes in other
+// chapters too, so it's a separate ref instead of reading ch.value.
+const notesChapterId = ref("");
+// "chapter" → scroll to chapter-level section; a sceneId → scroll to
+// that scene's section. Set before opening the modal.
+const notesFocus = ref("chapter");
 const MODES = [
   { value: "edit",    label: "Edit",    icon: "Quote" },
   { value: "outline", label: "Outline", icon: "List" },
@@ -181,6 +190,26 @@ watch(() => [props.id, props.sceneId], ([newId, newSceneId], [oldId, oldSceneId]
   }
   if (mode.value === "outline") mode.value = "edit";
 });
+
+// Live counts for the Notes badges on the chapter header + scene strip.
+const chapterNotesCount = computed(() => ch.value
+  ? project.notesForChapter(ch.value.id).length
+  : 0);
+const activeSceneNotesCount = computed(() => activeScene.value
+  ? project.notesForScene(activeScene.value.id).length
+  : 0);
+function openNotesPanel(chapterId, focus = "chapter") {
+  if (!chapterId) return;
+  notesChapterId.value = chapterId;
+  notesFocus.value = focus;
+  notesOpen.value = true;
+}
+function openChapterNotes() {
+  if (ch.value) openNotesPanel(ch.value.id, "chapter");
+}
+function openSceneNotes(sceneId) {
+  if (ch.value) openNotesPanel(ch.value.id, sceneId);
+}
 
 function goToScene(sceneId) {
   if (!ch.value || !sceneId) return;
@@ -563,18 +592,31 @@ watch(() => project.allChapters.map((c) => c.id + ":" + (project.scenesFor(c.id)
 </script>
 
 <template>
-  <!-- ── Header (varies by mode) ─────────────────────────────── -->
-  <header v-if="ch && mode === 'edit'" class="pane-header chapter-pane-header">
+  <!-- ── Header ─────────────────────────────────────────────────
+       One header for all three modes (edit / outline / read). Only the
+       title region differs — edit mode shows the chapter/scene title
+       input, outline/read show a static eyebrow + h1. The centered
+       Edit/Outline/Read toggle is the same across modes so its position
+       doesn't jump when you switch view. Mode-specific action buttons
+       (if we ever add any back) go inside .pane-actions, where they'll
+       be conditional on `mode`. -->
+  <header v-if="ch" class="pane-header chapter-pane-header">
     <div class="pane-title">
-      <Breadcrumb :segments="crumbs" />
-      <input v-if="activeScene" class="chapter-name"
-        :value="activeScene.title"
-        :placeholder="`Scene ${activeSceneIdx + 1} title (optional)`"
-        @input="onSceneTitleInput(activeScene.id, $event.target.value)" />
-      <input v-else class="chapter-name"
-        :value="ch.title"
-        placeholder="Chapter title"
-        @input="updateTitle(ch.id, $event.target.value)" />
+      <template v-if="mode === 'edit'">
+        <Breadcrumb :segments="crumbs" />
+        <input v-if="activeScene" class="chapter-name"
+          :value="activeScene.title"
+          :placeholder="`Scene ${activeSceneIdx + 1} title (optional)`"
+          @input="onSceneTitleInput(activeScene.id, $event.target.value)" />
+        <input v-else class="chapter-name"
+          :value="ch.title"
+          placeholder="Chapter title"
+          @input="updateTitle(ch.id, $event.target.value)" />
+      </template>
+      <template v-else>
+        <span class="pane-eyebrow">{{ mode === 'outline' ? 'Manuscript' : ch.partTitle }}</span>
+        <h1 class="pane-h1">{{ mode === 'outline' ? 'Outline' : `Chapter ${ch.num} · ${ch.title}` }}</h1>
+      </template>
     </div>
     <div class="pane-actions">
       <JwSegmented
@@ -589,58 +631,8 @@ watch(() => project.allChapters.map((c) => c.id + ":" + (project.scenesFor(c.id)
           <span>{{ option.label }}</span>
         </template>
       </JwSegmented>
-      <JwButton intent="ghost" size="small" @click="versionsOpen = true" v-tooltip.bottom="'Version history — save & restore snapshots of this chapter'">
-        <Icon name="History" :size="13" /> Versions
-      </JwButton>
-      <JwButton intent="ghost" size="small" @click="critiqueOpen = true" v-tooltip.bottom="'AI critique — notes + structural analysis for this chapter'">
-        <Icon name="Sparkle" :size="13" />
-        Critique
-        <span v-if="ch?.critique?.notes?.length" class="critique-pill">{{ ch.critique.notes.length }}</span>
-      </JwButton>
-      <JwButton v-if="activeScene" intent="ghost" size="small" @click="splitChapterHere" v-tooltip.bottom="'Split this chapter at the cursor'">
-        <Icon name="Replace" :size="13" /> Split here
-      </JwButton>
-      <JwButton intent="ghost" size="small" @click="deleteChapter">Delete</JwButton>
-      <JwButton intent="primary" size="small" @click="addChapter"><Icon name="Plus" :size="14" /> New chapter</JwButton>
-      <StatusSelect
-        :model-value="(activeScene ? activeScene.status : ch.status) || ''"
-        @update:model-value="(v) => activeScene ? project.updateScene(ch.id, activeScene.id, { status: v }) : project.setChapterStatus(ch.id, v)" />
     </div>
   </header>
-  <PaneHeader v-else-if="ch"
-    :eyebrow="mode === 'outline' ? 'Manuscript' : ch.partTitle"
-    :title="mode === 'outline' ? 'Outline' : `Chapter ${ch.num} · ${ch.title}`">
-
-    <JwSegmented
-      class="seg-toggle"
-      :model-value="mode"
-      :options="MODES"
-      option-value="value"
-      aria-label="View mode"
-      @update:model-value="mode = $event">
-      <template #option="{ option }">
-        <Icon :name="option.icon" :size="13" />
-        <span>{{ option.label }}</span>
-      </template>
-    </JwSegmented>
-    <!-- Versions + Critique are available in non-edit modes too — the
-         writer often wants to critique while reading or to snapshot a
-         version from the outline. Skip outline (no chapter context). -->
-    <template v-if="mode !== 'outline'">
-      <JwButton intent="ghost" size="small" @click="versionsOpen = true" v-tooltip.bottom="'Version history'">
-        <Icon name="History" :size="13" /> Versions
-      </JwButton>
-      <JwButton intent="ghost" size="small" @click="critiqueOpen = true" v-tooltip.bottom="'AI critique — notes + structural analysis'">
-        <Icon name="Sparkle" :size="13" />
-        Critique
-        <span v-if="ch?.critique?.notes?.length" class="critique-pill">{{ ch.critique.notes.length }}</span>
-      </JwButton>
-    </template>
-    <router-link to="/import" custom v-slot="{ navigate }">
-      <JwButton intent="ghost" size="small" @click="navigate" v-tooltip.bottom="'Import chapters from a file'"><Icon name="Plus" :size="14" /> Import</JwButton>
-    </router-link>
-    <JwButton intent="primary" size="small" @click="addChapter"><Icon name="Plus" :size="14" /> New chapter</JwButton>
-  </PaneHeader>
   <PaneHeader v-else :eyebrow="$t('panes.chapters.eyebrow')" :title="$t('panes.chapters.emptyTitle')">
     <router-link to="/import" custom v-slot="{ navigate }">
       <JwButton intent="ghost" size="small" @click="navigate"><Icon name="Plus" :size="14" /> Import from file</JwButton>
@@ -695,6 +687,13 @@ watch(() => project.allChapters.map((c) => c.id + ":" + (project.scenesFor(c.id)
               <span class="ol-chapter-meta">
                 {{ c.scenes }} scene{{ c.scenes === 1 ? '' : 's' }} · {{ c.words.toLocaleString() }} words
               </span>
+              <span v-if="project.notesForChapter(c.id).length"
+                class="ol-scene-notes"
+                v-tooltip.bottom="'Notes pinned to this chapter or its scenes'"
+                @click.stop="openNotesPanel(c.id, 'chapter')">
+                {{ project.notesForChapter(c.id).length }}
+                note{{ project.notesForChapter(c.id).length === 1 ? '' : 's' }}
+              </span>
               <div class="ol-row-actions">
                 <label v-if="project.parts.length > 1" class="ol-move-to" @click.stop>
                   <JwSelect class="ol-move-select"
@@ -716,6 +715,13 @@ watch(() => project.allChapters.map((c) => c.id + ":" + (project.scenesFor(c.id)
                   :placeholder="`Scene ${si + 1}`"
                   @click.stop
                   @input="project.setSceneTitle(c.id, scn.id, $event.target.value)" />
+                <span v-if="project.notesForScene(scn.id).length"
+                  class="ol-scene-notes"
+                  v-tooltip.bottom="'Notes pinned to this scene'"
+                  @click.stop="openNotesPanel(c.id, scn.id)">
+                  {{ project.notesForScene(scn.id).length }}
+                  note{{ project.notesForScene(scn.id).length === 1 ? '' : 's' }}
+                </span>
               </div>
               <button class="ol-add ol-add-scene" @click="addSceneToChapter(c.id)">
                 <Icon name="Plus" :size="11" /> Add scene
@@ -834,7 +840,28 @@ watch(() => project.allChapters.map((c) => c.id + ":" + (project.scenesFor(c.id)
           Next chapter <Icon name="ChevRight" :size="12" />
         </JwButton>
       </div>
-      <div></div>
+      <div v-if="!activeScene" style="display:flex;gap:8px;align-items:center;justify-self:end">
+        <StatusSelect
+          :model-value="ch.status || ''"
+          @update:model-value="(v) => project.setChapterStatus(ch.id, v)" />
+        <JwButton intent="ghost" size="small" @click="versionsOpen = true" v-tooltip.bottom="'Version history — save & restore snapshots of this chapter'">
+          <Icon name="History" :size="13" style="margin-right:3px" /> Versions
+        </JwButton>
+        <JwButton intent="ghost" size="small" @click="critiqueOpen = true" v-tooltip.bottom="'AI critique — notes + structural analysis for this chapter'">
+          <Icon name="Sparkle" :size="13" />
+          Critique
+          <span v-if="ch?.critique?.notes?.length" class="critique-pill">{{ ch.critique.notes.length }}</span>
+        </JwButton>
+        <JwButton intent="ghost" size="small" @click="openChapterNotes"
+          v-tooltip.bottom="'Notes pinned to this chapter or any of its scenes'">
+          <Icon name="Note" :size="13" />
+          Notes
+          <span v-if="chapterNotesCount" class="critique-pill">{{ chapterNotesCount }}</span>
+        </JwButton>
+        <JwButton intent="primary" size="small" @click="addChapter" v-tooltip.bottom="'Add a new chapter'"><Icon name="Plus" :size="14" /> New chapter</JwButton>
+        <JwButton intent="danger" size="small" @click="deleteChapter" v-tooltip.bottom="'Delete this chapter'">Delete chapter</JwButton>
+      </div>
+      <div v-else></div>
     </div>
 
     <!-- ── Body switches between corkboard (cards) and the scene
@@ -891,16 +918,31 @@ watch(() => project.allChapters.map((c) => c.id + ":" + (project.scenesFor(c.id)
       </template>
       <span v-else class="scene-pill">Chapter {{ ch.num }} · {{ scenes.length }} scene{{ scenes.length === 1 ? "" : "s" }}</span>
       <div class="scene-strip-actions" style="margin-left:auto">
-        <JwButton intent="primary" class="scene-links-btn"
-          v-tooltip.bottom="'Links — POV, characters, locations, objects, narrative strands'"
-          @click="linksOpen = true">
-          <Icon name="Network" :size="13" /> Links
+        <StatusSelect
+          :model-value="activeScene.status || ''"
+          @update:model-value="(v) => project.updateScene(ch.id, activeScene.id, { status: v })" />
+        <JwButton intent="ghost" size="small" @click="splitChapterHere" v-tooltip.bottom="'Split this chapter at the cursor'">
+          <Icon name="Replace" :size="14" /> Split here
+        </JwButton>
+        <JwButton intent="ghost" size="small" class="scene-notes-btn"
+          v-tooltip.bottom="'Notes pinned to this scene'"
+          @click="openSceneNotes(activeScene.id)">
+          Notes
+          <span v-if="activeSceneNotesCount" class="critique-pill">{{ activeSceneNotesCount }}</span>
         </JwButton>
         <JwButton intent="ghost" size="small"
+          v-tooltip.bottom="'Links — POV, characters, locations, objects, narrative strands'"
+          @click="linksOpen = true">
+          <Icon name="Network" :size="14" /> Links
+        </JwButton>
+        <JwButton intent="primary" size="small" @click="addSceneHere" v-tooltip.bottom="'Add a new scene to this chapter'">
+          <Icon name="Plus" :size="13" /> New scene
+        </JwButton>
+        <JwButton intent="danger" size="small"
           :disabled="scenes.length <= 1"
-          v-tooltip.bottom="scenes.length <= 1 ? 'A chapter needs at least one scene' : 'Delete scene'"
+          v-tooltip.bottom="scenes.length <= 1 ? 'A chapter needs at least one scene' : 'Delete this scene'"
           @click="removeScene(activeScene)">
-          <Icon name="Trash" :size="14" />
+          Delete scene
         </JwButton>
       </div>
     </div>
@@ -988,10 +1030,24 @@ watch(() => project.allChapters.map((c) => c.id + ":" + (project.scenesFor(c.id)
   <CritiqueModal v-if="critiqueOpen && ch"
     :chapter-id="ch.id"
     @close="critiqueOpen = false" />
+
+  <ChapterNotesModal v-if="notesOpen && notesChapterId"
+    :chapter-id="notesChapterId"
+    :initial-focus="notesFocus"
+    @close="notesOpen = false" />
 </template>
 
 <style scoped>
 .chapter-pane-header .pane-title { gap: 2px; }
+/* 3-column grid [title 1fr | seg-toggle auto | spacer 1fr] so the
+   Edit/Outline/Read toggle sits in the horizontal centre of the header
+   regardless of title width. The seg-toggle is the only thing left in
+   .pane-actions after all other actions moved into the toolbar below. */
+.chapter-pane-header {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr);
+}
+.chapter-pane-header .pane-actions { grid-column: 2; }
 .chapter-name {
   appearance: none;
   font-family: var(--font-serif);
@@ -1098,7 +1154,7 @@ watch(() => project.allChapters.map((c) => c.id + ":" + (project.scenesFor(c.id)
 .ol-chapter { display: flex; flex-direction: column; }
 .ol-chapter-row {
   display: grid;
-  grid-template-columns: auto auto 1fr auto auto;
+  grid-template-columns: auto auto 1fr auto auto auto;
   align-items: center;
   gap: 10px;
   padding: 6px 8px;
@@ -1171,7 +1227,7 @@ watch(() => project.allChapters.map((c) => c.id + ":" + (project.scenesFor(c.id)
 }
 .ol-scene-row {
   display: grid;
-  grid-template-columns: auto 1fr;
+  grid-template-columns: auto 1fr auto;
   align-items: center;
   gap: 10px;
   padding: 4px 8px;
@@ -1179,6 +1235,17 @@ watch(() => project.allChapters.map((c) => c.id + ":" + (project.scenesFor(c.id)
   cursor: pointer;
   transition: background .12s ease;
 }
+.ol-scene-notes {
+  display: inline-flex; align-items: center; gap: 4px;
+  padding: 2px 7px;
+  font-family: var(--font-mono); font-size: 10.5px;
+  font-variant-numeric: tabular-nums;
+  border-radius: 999px;
+  background: var(--accent-soft); color: var(--accent-ink);
+  cursor: pointer;
+  transition: background .12s ease;
+}
+.ol-scene-notes:hover { background: var(--accent); color: var(--on-accent, #fff); }
 .ol-scene-row:hover { background: var(--surface-2); }
 .ol-scene-bullet {
   font-variant-numeric: tabular-nums;
@@ -1316,20 +1383,6 @@ watch(() => project.allChapters.map((c) => c.id + ":" + (project.scenesFor(c.id)
   background: var(--accent-soft);
   color: var(--accent-ink);
 }
-
-/* "Links" button — stands out from the muted scene-strip controls.
-   Background/color/border come from intent="primary"; this layer adds
-   the distinctive bolder text, subtle base shadow, and accent halo on
-   hover that makes the button read as the surface's main action. */
-.scene-links-btn {
-  font-weight: 600;
-  letter-spacing: 0.01em;
-  box-shadow: 0 1px 0 var(--shadow-soft);
-}
-.scene-links-btn:hover {
-  box-shadow: 0 1px 0 var(--shadow-soft), 0 0 0 3px var(--accent-soft);
-}
-.scene-links-btn:active { transform: translateY(1px); }
 
 /* ── Chapter overview (no scene picked yet) ───────────────── */
 .chapter-overview {
