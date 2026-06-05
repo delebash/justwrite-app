@@ -217,7 +217,20 @@ The dropdown groups actions by what they operate on, so you can tell at a glance
 - **Describe** — additive. Treats the highlighted text as a *subject* (a place, person, object, or moment) and writes 1–2 paragraphs of fresh sensory prose **about** it, inserted right after the selection. The original passage stays untouched. Use it when you've named something but haven't brought it to life on the page — highlight "the old market" and get 200 words of sights, smells, and textures dropped in after. *Selection only.*
 - **Tighten** — strips filler. Comes back shorter. *Selection or whole scene* — runs on the highlighted text, or the entire scene if nothing is selected.
 - **Continue** — generates the next 2–4 paragraphs from the cursor. Useful when you're stuck. *No selection needed.*
+- **Continue with direction…** — same as Continue, but you give it a one-line instruction first. See below.
 - **Unstuck — five ways out** — opens a diagnostic modal with five distinct moves the scene could take from here. See below.
+
+### Continue with direction
+
+> *"I know roughly what happens next; I want a 200-word draft I can shape."*
+
+Plain Continue writes whatever it thinks should come next. That works when you're truly stuck, but most of the time you actually know the next beat — you just don't feel like writing it cold. **Continue with direction** is the answer.
+
+Click **Continue with direction…** in the AI dropdown. A small prompt asks for one sentence: "Elena confronts Marcus but he deflects with charm." JustWrite drafts the next 2–4 paragraphs honouring that direction while matching the voice, tense, and POV of what came before. The result lands as an accept/reject diff like any other AI change.
+
+**Why a writer would use it.** This is the single most-used AI feature in working tools like Sudowrite and NovelCrafter because it sits in the sweet spot between dictation (too constrained) and improvisation (too unmoored). You stay the author — the instruction is yours — but you don't have to sit through the friction of actually typing the paragraph. Use it as a momentum tool: type a direction, accept what comes back as a starting point, revise on top of it.
+
+**Routes through the same engine as Unstuck's Write-this buttons** (guidedContinue under the hood). The model used is whichever provider you've pinned for **Writer actions** in Settings → AI.
 
 ### Unstuck — five ways out
 

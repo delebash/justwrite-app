@@ -398,6 +398,29 @@ function onStuckUseMove(move) {
   editorRef.value?.runGuidedContinue?.(move?.instruction || "");
 }
 
+// ── Guided Continue (standalone) ────────────────────────────────
+// Same engine as Unstuck's "Write this" but driven by a one-line
+// direction the writer types in a prompt dialog. For when they
+// already know what should happen next and want a 200-word draft.
+async function openGuidedContinue() {
+  aiStripOpen.value = false;
+  if (!editorRef.value) {
+    ui.showToast({ message: "Open a chapter first." });
+    return;
+  }
+  const instruction = await promptDialog({
+    title: "Continue with a direction",
+    message: "What should happen next? One sentence is enough — JustWrite will draft the next 2–4 paragraphs in that direction.",
+    label: "Direction",
+    placeholder: "e.g. Elena confronts Marcus but he deflects with charm.",
+    confirmLabel: "Write this",
+  });
+  if (!instruction) return;
+  const text = String(instruction || "").trim();
+  if (!text) return;
+  editorRef.value?.runGuidedContinue?.(text);
+}
+
 async function splitChapterHere() {
   if (!ch.value || !activeScene.value || !editorRef.value?.editor) return;
   const editor = editorRef.value.editor;
@@ -1019,6 +1042,10 @@ watch(() => project.allChapters.map((c) => c.id + ":" + (project.scenesFor(c.id)
             <button class="ai-strip-item" :disabled="aiRunning" @click="callAi('continue')">
               <div class="ai-strip-label">Continue</div>
               <div class="ai-strip-desc">Write 2–4 more paragraphs from where the cursor is, matching the voice, tense, and POV of what came before.</div>
+            </button>
+            <button class="ai-strip-item" :disabled="aiRunning" @click="openGuidedContinue">
+              <div class="ai-strip-label">Continue with direction…</div>
+              <div class="ai-strip-desc">Same as Continue, but you give it a one-line instruction first ("Elena confronts Marcus but he deflects with charm"). The next 2–4 paragraphs honour your direction while matching the voice, tense, and POV of what came before.</div>
             </button>
             <button class="ai-strip-item" :disabled="aiRunning" @click="openStuck">
               <div class="ai-strip-label">Unstuck — five ways out</div>
