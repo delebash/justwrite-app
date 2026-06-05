@@ -1,0 +1,130 @@
+# Markers
+
+Markers are pins you drop directly into your prose while drafting — "fix this later", "verify this fact", "this dialogue is weak", "this is a loose thread". They live inline in the manuscript like comments, but they're built for speed: hit a key, type three words, keep writing. Later, in revision, you open the Markers view and see every unresolved problem in the book laid out on one strip.
+
+The point is to stop interrupting your flow to fix things you've noticed. Drop the marker, keep writing, come back when you're in revision mode.
+
+---
+
+## How markers differ from notes and comments
+
+JustWrite has three ways to leave yourself a message about your prose. They're related but each fits a different moment:
+
+- **Notes** are full prose surfaces. You open the Notes view, write a paragraph or three about a chapter or scene, anchor it, and it lives there until you delete it. Use Notes for *thinking*: plot ideas, character backstory you might use, scene-planning sketches.
+- **Comments** are paragraph-level annotations. You select text, hit the Comment button, write a longer explanation. The selected text gets an underline; the comment pops up when you click. Use Comments for *explanations* that need more than a phrase — review feedback from a beta reader, an editorial note you want to keep across drafts.
+- **Markers** are span-level pins with a one-line label and a category. Drop one with a hotkey while writing, almost without breaking flow. Use Markers for *unresolved problems in the prose itself*.
+
+If you write 14 iffy sentences in a chapter, 14 Notes is unusable and 14 Comments is heavy. 14 Markers shows up as 14 ticks in one colour on the timeline strip — and you can see at a glance that chapter seven is where your prose problems live.
+
+---
+
+## Dropping a marker
+
+While the cursor is in the editor:
+
+- Select the text you want to flag (a word, a phrase, a sentence — whatever you want the marker to attach to).
+- Press **Alt + M** or click the pin icon in the editor toolbar.
+- A small popover opens. Pick a category, optionally type a one-line label, hit **Enter** (or click **Drop marker**).
+
+If you don't have anything selected, JustWrite expands the marker to the word at the cursor — so a quick Alt + M without a selection still lands on something visible.
+
+The marked text gets a dotted underline in the category's colour. The label and category are stored inline in the scene HTML, so the marker travels with the prose when you move scenes around, split chapters, or merge.
+
+### The categories
+
+The built-in categories are designed to cover the most common revision concerns:
+
+| Category | Colour | Use for |
+|---|---|---|
+| **Fix later** | red | Anything obviously broken you'll come back to |
+| **Verify** | blue | Facts to check, names to look up, dates to confirm |
+| **Weak prose** | pink | Sentences you don't love but don't want to stop and fix |
+| **Loose thread** | purple | Plot threads or character beats that need closing |
+| **TODO** | yellow | Generic catch-all |
+| **Idea** | green | A thought you had while drafting that you might develop later |
+
+Each category gets its own colour throughout the app — the dotted underline in the editor, the ticks on the timeline strip, the dots in the markers list. Pick whatever convention you like; the system is opinionated about the names but you don't have to use them in any particular way.
+
+---
+
+## Editing or resolving a marker
+
+Click any marked span in the editor and the marker popover opens again — this time in edit mode. You can:
+
+- **Change the category** — pick a different chip.
+- **Edit the label** — change the one-line note.
+- **Save** — apply your changes.
+- **Resolve** — remove the marker (the underlying text stays put; only the pin goes).
+- **Cancel** — close without changes.
+
+The toolbar also has **previous marker** and **next marker** buttons (the arrows next to the pin icon). They walk through every marker in the current scene in document order.
+
+---
+
+## The Markers view
+
+The sidebar's Planning section has a **Markers** entry. Click it to open the manuscript-wide markers view.
+
+### The timeline strip
+
+At the top of the view is a horizontal strip that represents your whole manuscript at proportional scale. Every marker in the book is a coloured tick on that strip — coloured by category, positioned by how far into the manuscript the marker sits.
+
+The strip is the differentiator. You see at a glance:
+
+- Where your problem markers cluster. Fourteen "weak prose" ticks in the second half of chapter seven means that's where your revision pass starts.
+- Whether you've left "verify" pins scattered through the book (yellow ticks every few chapters) or concentrated in one section (clumped together).
+- Whether your "loose thread" pins are evenly distributed (you've been good about tracking them throughout) or all in the back half (the front of the book is now suspiciously fine).
+
+Click any tick to jump straight to that marker in the editor.
+
+### The filter chips
+
+Below the timeline is a row of category chips with marker counts. Click any chip to filter the list (and dim the timeline strip) to just that category. Click **All** to clear the filter.
+
+The counts are honest — they're recomputed every time you open the view. As you resolve markers in the editor, the counts go down.
+
+### The marker list
+
+Below the filters is the flat marker list, in manuscript order. Each row shows:
+
+- The category dot and label.
+- The chapter and scene number.
+- Your one-line label (if you wrote one).
+- A short snippet of the marked text in italics.
+- **Jump to** — opens the chapter/scene in the editor.
+- **Resolve** — removes the marker from the prose. The text stays; only the pin goes.
+
+---
+
+## A drafting workflow
+
+What this is meant to enable:
+
+1. You're writing. The current sentence isn't great but you don't want to lose momentum fixing it. Highlight the sentence, Alt + M, pick "Weak prose", type "stilted" if you like, Enter. Three seconds. Keep writing.
+2. You're writing. You name a character "Margaret" but you're not sure if that contradicts a backstory beat from chapter three. Highlight "Margaret", Alt + M, pick "Verify", type "ch.3 conflict?", Enter. Keep writing.
+3. You're writing. You mention an old letter the protagonist found, but you haven't decided what it says. Highlight "the letter", Alt + M, pick "Loose thread", type "decide what it says", Enter. Keep writing.
+
+Hours later, you stop drafting and open Markers. The timeline shows the scene you just wrote has clusters of weak-prose ticks (this scene is hard for you) and a couple of loose-thread pins. Spend 20 minutes resolving the weak-prose ones — most are smaller than they felt when you flagged them. Leave the loose threads alone; they're real plot work for next session.
+
+That's the loop. The point is to make "I noticed a problem" a one-handed two-second action so noticing doesn't cost you the next sentence.
+
+---
+
+## How markers behave during structural changes
+
+Markers ride on the prose, not on the scene. So:
+
+- **Splitting a chapter** — markers in the before-cursor half stay with the original chapter; markers in the after-cursor half go with the new chapter.
+- **Moving scenes** — markers go where the scene goes.
+- **Merging two scenes** (deleting a scene boundary in continuous mode) — markers from both scenes end up in the merged scene.
+- **Copy and paste** — copying a marked span pastes the marker too.
+
+There's no "I had three markers in this chapter and now they're gone" failure mode — they always travel with the text they wrap.
+
+---
+
+## See also
+
+- **[Writing](writing.md)** — the editor, view modes, AI actions, the bubble menu
+- **[Notes and search](notes-and-search.md)** — the heavier Notes surface for thinking
+- **[Keyboard shortcuts](keyboard-shortcuts.md)** — Alt + M and the rest

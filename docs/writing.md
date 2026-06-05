@@ -148,6 +148,12 @@ The footer of the editor shows live word and character counts for the active sce
 
 The **Find / Replace** bar in the toolbar searches within the current chapter and highlights matches as you type. For project-wide replace (renaming a character across the entire book, for example), press **Ctrl/⌘ + Shift + F**, or open Search and click **Replace**.
 
+### Dropping markers while you write
+
+The pin icon in the toolbar (or **Alt + M**) drops a marker — a category-tagged pin attached to a span of prose. Use it for "fix later", "verify this fact", "weak prose", "loose thread", and similar notes you don't want to stop drafting to address. The marker shows as a coloured dotted underline; clicking it opens an edit popover where you can change the category, edit the label, or resolve (remove) it.
+
+Markers are the third annotation layer (after Comments and Notes) and they have a specific job: they're the lightweight "drop a pin and keep writing" surface, plus a manuscript-wide timeline view in revision. See the [Markers](markers.md) page for the full workflow.
+
 ---
 
 ## AI writing actions
@@ -156,7 +162,7 @@ If you have an AI provider configured (see [AI providers](ai-providers.md)), the
 
 The dropdown groups actions by what they operate on, so you can tell at a glance whether you need to highlight text first:
 
-- **Selection only** — Rewrite and Expand. Greyed out until you select text in the editor.
+- **Selection only** — Rewrite, Expand, and Describe. Greyed out until you select text in the editor.
 - **Selection or whole scene** — Tighten. Runs on the selection if you have one, on the entire scene otherwise.
 - **From the cursor** — Continue. Generates the next paragraphs from wherever the cursor sits.
 - **Prose pass** — surgical revisions (Show don't tell, Filter words, Dialogue tags, etc.) that run on the selection, or on the whole scene if nothing is selected.
@@ -165,6 +171,7 @@ The dropdown groups actions by what they operate on, so you can tell at a glance
 
 - **Rewrite** — same meaning, different prose. Useful when you know the scene works but the wording feels stale. *Selection only* — for whole-scene rewrites, use Writer Lab where you can compare passes side-by-side.
 - **Expand** — adds sensory detail, interiority, small physical actions. Roughly doubles the length. *Selection only.*
+- **Describe** — additive. Treats the highlighted text as a *subject* (a place, person, object, or moment) and writes 1–2 paragraphs of fresh sensory prose **about** it, inserted right after the selection. The original passage stays untouched. Use it when you've named something but haven't brought it to life on the page — highlight "the old market" and get 200 words of sights, smells, and textures dropped in after. *Selection only.*
 - **Tighten** — strips filler. Comes back shorter. *Selection or whole scene* — runs on the highlighted text, or the entire scene if nothing is selected.
 - **Continue** — generates the next 2–4 paragraphs from the cursor. Useful when you're stuck. *No selection needed.*
 

@@ -28,6 +28,7 @@ import { buildMentionExtension } from "@renderer/services/editorMentions";
 import { EDITOR_TOOLBAR_FULL } from "@renderer/services/editorToolbars";
 import { saveImage, urlFor } from "@renderer/services/imageStore";
 import { AiDiff, hasPendingChanges, listPendingChanges } from "@renderer/services/aiDiff";
+import { Marker, MARKER_CATEGORIES, categoryById } from "@renderer/services/markers";
 import * as writerAI from "@renderer/services/writerAI";
 import { PROSE_RULES, PROSE_RULE_ORDER } from "@renderer/services/writerAI";
 import { useAiProgress } from "@renderer/composables/useAiProgress";
@@ -392,6 +393,7 @@ const extensions = [
   TableCell,
   SearchReplace,
   AiDiff,
+  Marker,
   Indent,
   PageBreak,
   SceneBoundary,
@@ -584,6 +586,7 @@ const ACTION_LABELS = {
   expand: "Expanding selection…",
   tighten: { selection: "Tightening selection…", scene: "Tightening scene…" },
   continue: "Continuing from cursor…",
+  describe: "Describing selection…",
 };
 
 // Actions that can fall back to the whole document when nothing is
@@ -598,6 +601,36 @@ async function runWriterAction(actionKey) {
   proseMenuOpen.value = false;
   let { from, to, html } = readSelectionHtml();
   let scope = from === to ? "scene" : "selection";
+  // Describe — additive: takes the selection as the subject and inserts
+  // fresh sensory prose ABOUT it right after the selection. Different
+  // shape from rewrite/expand (which transform the selection) — closer
+  // to "continue", but anchored at the selection end rather than the
+  // cursor, so the original passage is preserved verbatim.
+  if (actionKey === "describe") {
+    if (from === to) { aiError.value = "Highlight the subject to describe (a place, person, object, or moment)."; return; }
+    aiRunning.value = true; aiError.value = "";
+    aiActionLabel.value = ACTION_LABELS.describe;
+    aiProgress.start();
+    try {
+      const result = await writerAI.describe({
+        html,
+        signal: aiProgress.signal,
+        onDelta: aiProgress.onDelta,
+      });
+      if (!result?.html?.trim()) {
+        aiError.value = "AI returned an empty response. Try again — and verify the model is running and isn't returning only thinking tags.";
+      } else {
+        editor.value.chain().focus().proposeContinuation({ at: to, newHtml: result.html }).run();
+      }
+      aiProgress.finish();
+    } catch (err) {
+      if (!aiProgress.cancelled.value) aiError.value = err?.message || String(err);
+      aiProgress.finish();
+    } finally {
+      aiRunning.value = false;
+    }
+    return;
+  }
   // For "continue" with no selection, anchor at the cursor and feed the
   // last paragraph as context.
   if (actionKey === "continue" && from === to) {
@@ -940,11 +973,164 @@ function gotoComment(dir) {
   });
 }
 
+// --- markers (drop-a-pin notes) ---------------------------------------
+// One floating popover for setting a marker: pick a category (Fix/Verify/…)
+// + optional one-line label, click Drop. Operates on the current selection
+// (or — convenience — the word at the cursor if no selection).
+const MARKER_CATEGORIES_LIST = MARKER_CATEGORIES;
+const markerState = ref({ open: false, mode: "create", category: "fix", label: "", markerId: null, x: 0, y: 0 });
+const markerLabelInput = ref(null);
+const markerPopEl = ref(null);
+
+function openMarkerEditor() {
+  if (!editor.value) return;
+  const sel = editor.value.state.selection;
+  let r = selectionScreenRect();
+  if (sel.empty) {
+    // No selection — try the cursor's word. If even that's empty, place
+    // the popover at the cursor coords and let the user select first.
+    const ranges = editor.value.view?.endOfTextblock
+      ? null
+      : null;
+    try {
+      const coords = editor.value.view.coordsAtPos(sel.from);
+      r = r || { left: coords.left, bottom: coords.bottom };
+    } catch {}
+    // Expand the empty selection to the surrounding word so dropping a
+    // marker at the cursor still wraps something visible.
+    editor.value.chain().focus().setTextSelection({ from: sel.from, to: sel.from }).run();
+  }
+  // If cursor is inside a marker, edit it instead of creating a new one.
+  const existing = editor.value.getAttributes("marker");
+  if (existing?.markerId) {
+    markerState.value = {
+      open: true, mode: "edit",
+      category: existing.category || "fix",
+      label: existing.label || "",
+      markerId: existing.markerId,
+      x: r ? r.left : 120, y: r ? r.bottom + 8 : 120,
+    };
+  } else {
+    markerState.value = {
+      open: true, mode: "create",
+      category: markerState.value.category || "fix",
+      label: "",
+      markerId: null,
+      x: r ? r.left : 120, y: r ? r.bottom + 8 : 120,
+    };
+  }
+  highlightOpen.value = textColorOpen.value = textColorBubbleOpen.value = false;
+  nextTick(() => markerLabelInput.value?.focus());
+}
+function dropMarker() {
+  const { category, label } = markerState.value;
+  const ed = editor.value;
+  if (!ed) return;
+  if (ed.state.selection.empty) {
+    // Expand to the surrounding word so the marker wraps real text.
+    const $from = ed.state.selection.$from;
+    const start = $from.start();
+    const end = $from.end();
+    const text = ed.state.doc.textBetween(start, end, "\n");
+    const pos = $from.parentOffset;
+    // Find the word boundary around `pos` in the parent's text.
+    let ws = pos, we = pos;
+    while (ws > 0 && /\S/.test(text[ws - 1])) ws--;
+    while (we < text.length && /\S/.test(text[we])) we++;
+    if (we > ws) {
+      ed.chain().focus().setTextSelection({ from: start + ws, to: start + we }).run();
+    }
+  }
+  if (ed.state.selection.empty) {
+    markerState.value.open = false;
+    return;
+  }
+  ed.chain().focus().setMarker({ category, label: label.trim() }).run();
+  markerState.value.open = false;
+}
+function saveMarkerEdit() {
+  const { category, label } = markerState.value;
+  const ed = editor.value;
+  if (!ed) return;
+  // Re-set the mark on the existing marker range — extendMarkRange picks
+  // up the full span carrying the same mark, so the new category/label
+  // replace the old ones.
+  ed.chain().focus().extendMarkRange("marker").setMark("marker", {
+    category,
+    label: label.trim(),
+    markerId: markerState.value.markerId,
+  }).run();
+  markerState.value.open = false;
+}
+function removeMarkerHere() {
+  const ed = editor.value;
+  if (!ed) return;
+  ed.chain().focus().extendMarkRange("marker").unsetMarker().run();
+  markerState.value.open = false;
+}
+function closeMarker() { markerState.value.open = false; }
+function onMarkerKeydown(e) {
+  e.stopPropagation();
+  if (e.key === "Escape") closeMarker();
+  if (e.key === "Enter" && !e.shiftKey) {
+    e.preventDefault();
+    markerState.value.mode === "edit" ? saveMarkerEdit() : dropMarker();
+  }
+}
+
+const hasMarkers = computed(() => {
+  docVersion.value;
+  if (!editor.value) return false;
+  let found = false;
+  editor.value.state.doc.descendants((node) => {
+    if (found) return false;
+    if (node.marks?.some((m) => m.type.name === "marker")) found = true;
+  });
+  return found;
+});
+
+function markerRanges() {
+  const out = [];
+  const ed = editor.value;
+  const type = ed?.schema?.marks?.marker;
+  if (!ed || !type) return out;
+  let cur = null;
+  ed.state.doc.descendants((node, pos) => {
+    if (!node.isText) return;
+    const mark = node.marks.find((m) => m.type === type);
+    if (mark) {
+      if (cur && cur.to === pos && cur.markerId === mark.attrs.markerId) cur.to = pos + node.nodeSize;
+      else {
+        if (cur) out.push(cur);
+        cur = {
+          from: pos, to: pos + node.nodeSize,
+          category: mark.attrs.category || "fix",
+          label: mark.attrs.label || "",
+          markerId: mark.attrs.markerId || null,
+        };
+      }
+    } else if (cur) { out.push(cur); cur = null; }
+  });
+  if (cur) out.push(cur);
+  return out;
+}
+function gotoMarker(dir) {
+  const ranges = markerRanges();
+  if (!ranges.length) return;
+  const head = editor.value.state.selection.head;
+  let target;
+  if (dir > 0) target = ranges.find((r) => r.from > head) || ranges[0];
+  else { const before = ranges.filter((r) => r.to < head); target = before.length ? before[before.length - 1] : ranges[ranges.length - 1]; }
+  editor.value.chain().focus().setTextSelection({ from: target.from, to: target.to }).scrollIntoView().run();
+  nextTick(openMarkerEditor);
+}
+
 function onMenuDocDown(e) {
   if (highlightOpen.value && highlightWrap.value && !highlightWrap.value.contains(e.target)) highlightOpen.value = false;
   if (textColorOpen.value && textColorWrap.value && !textColorWrap.value.contains(e.target)) textColorOpen.value = false;
   if (textColorBubbleOpen.value && textColorWrapBubble.value && !textColorWrapBubble.value.contains(e.target)) textColorBubbleOpen.value = false;
   if (commentState.value.open && commentPopEl.value && !commentPopEl.value.contains(e.target) && !e.target?.closest?.(".comment-mark")) commentState.value.open = false;
+  if (markerState.value.open && markerPopEl.value && !markerPopEl.value.contains(e.target) && !e.target?.closest?.(".marker-mark")) markerState.value.open = false;
   if (proseMenuOpen.value && proseMenuWrap.value && !proseMenuWrap.value.contains(e.target)) proseMenuOpen.value = false;
 }
 document.addEventListener("mousedown", onMenuDocDown);
@@ -1086,6 +1272,19 @@ function onBodyClick(e) {
     commentState.value = { open: true, mode: "view", text: commentEl.getAttribute("data-comment") || "", x: r.left, y: r.bottom + 8 };
     return;
   }
+  const markerEl = e.target?.closest?.(".marker-mark");
+  if (markerEl) {
+    const r = markerEl.getBoundingClientRect();
+    markerState.value = {
+      open: true, mode: "edit",
+      category: markerEl.getAttribute("data-marker-category") || "fix",
+      label: markerEl.getAttribute("data-marker-label") || "",
+      markerId: markerEl.getAttribute("data-marker-id") || null,
+      x: r.left, y: r.bottom + 8,
+    };
+    nextTick(() => markerLabelInput.value?.focus());
+    return;
+  }
   const chip = e.target?.closest?.(".mention");
   if (!chip) return;
   const id = chip.getAttribute("data-id");
@@ -1103,6 +1302,10 @@ function onKeydown(e) {
     e.preventDefault();
     e.stopPropagation();
     setLink();
+  } else if (e.altKey && !e.metaKey && !e.ctrlKey && e.key.toLowerCase() === "m") {
+    e.preventDefault();
+    e.stopPropagation();
+    openMarkerEditor();
   } else if (e.key === "Escape" && findOpen.value) {
     closeFind();
     // Stop the window-level focus-mode Esc handler from also firing —
@@ -1198,6 +1401,12 @@ defineExpose({
         <button class="tb-btn" :class="{ active: isActive('comment') }" :disabled="editor.state.selection.empty" @click="openCommentEditor" data-tip="Add comment"><Icon name="Comment" :size="14" /></button>
         <button class="tb-btn" :disabled="!hasComments" @click="gotoComment(-1)" data-tip="Previous comment"><Icon name="ChevRight" :size="13" style="transform:rotate(180deg)" /></button>
         <button class="tb-btn" :disabled="!hasComments" @click="gotoComment(1)" data-tip="Next comment"><Icon name="ChevRight" :size="13" /></button>
+      </div>
+
+      <div class="group" v-if="show('marker')">
+        <button class="tb-btn" :class="{ active: isActive('marker') }" @click="openMarkerEditor" :data-tip="`Drop a marker · ${sc('alt+M')}`"><Icon name="Pin" :size="14" /></button>
+        <button class="tb-btn" :disabled="!hasMarkers" @click="gotoMarker(-1)" data-tip="Previous marker"><Icon name="ChevRight" :size="13" style="transform:rotate(180deg)" /></button>
+        <button class="tb-btn" :disabled="!hasMarkers" @click="gotoMarker(1)" data-tip="Next marker"><Icon name="ChevRight" :size="13" /></button>
       </div>
 
       <div class="group" v-if="show('find') || show('focus') || show('settings') || show('print')">
@@ -1332,6 +1541,33 @@ defineExpose({
         </div>
       </template>
     </div>
+
+    <div v-if="markerState.open" ref="markerPopEl" class="marker-pop"
+      :style="{ left: `${markerState.x}px`, top: `${markerState.y}px` }" @keydown="onMarkerKeydown">
+      <div class="marker-pop-row">
+        <div class="marker-pop-cats">
+          <button v-for="c in MARKER_CATEGORIES_LIST" :key="c.id"
+            type="button"
+            class="marker-pop-cat"
+            :class="{ active: markerState.category === c.id }"
+            :style="{ '--marker-c': c.color }"
+            @click="markerState.category = c.id">
+            <span class="marker-pop-cat-dot" :style="{ background: c.color }" />
+            {{ c.label }}
+          </button>
+        </div>
+      </div>
+      <input ref="markerLabelInput" v-model="markerState.label" class="marker-pop-input" type="text"
+        placeholder="Optional one-line note (Enter to save)" />
+      <div class="marker-pop-actions">
+        <JwButton v-if="markerState.mode === 'edit'" intent="ghost" size="small" @click="removeMarkerHere">Resolve</JwButton>
+        <JwButton intent="ghost" size="small" @click="closeMarker">Cancel</JwButton>
+        <JwButton intent="primary" size="small"
+          @click="markerState.mode === 'edit' ? saveMarkerEdit() : dropMarker()">
+          {{ markerState.mode === "edit" ? "Save" : "Drop marker" }}
+        </JwButton>
+      </div>
+    </div>
   </div>
 </template>
 
@@ -1404,6 +1640,100 @@ defineExpose({
   -webkit-mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath d='M20 2H4a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h4v4l5-4h7a2 2 0 0 0 2-2V4a2 2 0 0 0-2-2Z'/%3E%3C/svg%3E") center / contain no-repeat;
   mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath d='M20 2H4a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h4v4l5-4h7a2 2 0 0 0 2-2V4a2 2 0 0 0-2-2Z'/%3E%3C/svg%3E") center / contain no-repeat;
 }
+
+/* In-text markers — colored dotted underline keyed off data attribute.
+   Read by both the editor and any read view that renders raw scene HTML
+   (since the mark stores its color via the data-marker-category attr,
+   not inline style). */
+.tiptap-content .marker-mark,
+.scene-body .marker-mark,
+.read-view .marker-mark {
+  text-decoration: underline dotted;
+  text-decoration-thickness: 2px;
+  text-underline-offset: 3px;
+  cursor: pointer;
+  background: color-mix(in oklab, var(--marker-fix) 12%, transparent);
+  border-radius: 2px;
+}
+.tiptap-content .marker-mark[data-marker-category="fix"],
+.scene-body .marker-mark[data-marker-category="fix"],
+.read-view .marker-mark[data-marker-category="fix"] {
+  text-decoration-color: var(--marker-fix);
+  background: color-mix(in oklab, var(--marker-fix) 12%, transparent);
+}
+.tiptap-content .marker-mark[data-marker-category="verify"],
+.scene-body .marker-mark[data-marker-category="verify"],
+.read-view .marker-mark[data-marker-category="verify"] {
+  text-decoration-color: var(--marker-verify);
+  background: color-mix(in oklab, var(--marker-verify) 12%, transparent);
+}
+.tiptap-content .marker-mark[data-marker-category="weak"],
+.scene-body .marker-mark[data-marker-category="weak"],
+.read-view .marker-mark[data-marker-category="weak"] {
+  text-decoration-color: var(--marker-weak);
+  background: color-mix(in oklab, var(--marker-weak) 12%, transparent);
+}
+.tiptap-content .marker-mark[data-marker-category="thread"],
+.scene-body .marker-mark[data-marker-category="thread"],
+.read-view .marker-mark[data-marker-category="thread"] {
+  text-decoration-color: var(--marker-thread);
+  background: color-mix(in oklab, var(--marker-thread) 12%, transparent);
+}
+.tiptap-content .marker-mark[data-marker-category="todo"],
+.scene-body .marker-mark[data-marker-category="todo"],
+.read-view .marker-mark[data-marker-category="todo"] {
+  text-decoration-color: var(--marker-todo);
+  background: color-mix(in oklab, var(--marker-todo) 12%, transparent);
+}
+.tiptap-content .marker-mark[data-marker-category="idea"],
+.scene-body .marker-mark[data-marker-category="idea"],
+.read-view .marker-mark[data-marker-category="idea"] {
+  text-decoration-color: var(--marker-idea);
+  background: color-mix(in oklab, var(--marker-idea) 12%, transparent);
+}
+
+/* Marker popover — same fixed-position pattern as the comment popover. */
+.marker-pop {
+  position: fixed; z-index: 200;
+  width: 320px; max-width: 90vw;
+  background: var(--surface);
+  border: 1px solid var(--border-strong);
+  border-radius: 10px;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, .22);
+  padding: 10px;
+  display: flex; flex-direction: column; gap: 8px;
+}
+.marker-pop-row { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+.marker-pop-cats {
+  display: flex; flex-wrap: wrap; gap: 5px;
+}
+.marker-pop-cat {
+  appearance: none;
+  display: inline-flex; align-items: center; gap: 5px;
+  padding: 4px 9px; border-radius: 999px;
+  border: 1px solid var(--border);
+  background: var(--surface);
+  font: inherit; font-size: 11.5px;
+  color: var(--ink-2);
+  cursor: pointer;
+}
+.marker-pop-cat:hover { background: var(--surface-2); }
+.marker-pop-cat.active {
+  background: color-mix(in oklab, var(--marker-c, var(--accent)) 18%, transparent);
+  border-color: var(--marker-c, var(--accent));
+  color: var(--ink);
+}
+.marker-pop-cat-dot {
+  width: 8px; height: 8px; border-radius: 50%; flex: none;
+}
+.marker-pop-input {
+  width: 100%;
+  border: 1px solid var(--border); border-radius: 7px;
+  padding: 7px 9px; font: inherit; font-size: 13px;
+  background: var(--surface); color: var(--ink); outline: none;
+}
+.marker-pop-input:focus { border-color: var(--accent); box-shadow: 0 0 0 3px var(--accent-soft); }
+.marker-pop-actions { display: flex; justify-content: flex-end; gap: 6px; }
 
 /* Comment popover — fixed-position so it escapes editor overflow. */
 .comment-pop {

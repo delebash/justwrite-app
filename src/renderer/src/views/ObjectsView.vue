@@ -8,6 +8,7 @@ import JwInput from "@renderer/components/ui/JwInput.vue";
 import JwButton from "@renderer/components/ui/JwButton.vue";
 import JwTag from "@renderer/components/ui/JwTag.vue";
 import JwTable from "@renderer/components/ui/JwTable.vue";
+import JwCheckbox from "@renderer/components/ui/JwCheckbox.vue";
 import ImagesModal from "../components/ImagesModal.vue";
 import EntitySweepModal from "../components/EntitySweepModal.vue";
 import RichEditor from "../components/RichEditor.vue";
@@ -264,6 +265,11 @@ function onRowClick(event) {
           :pool="tagPool"
           :curated="project.tagVocabularies.objects"
           @update:model-value="(v) => update('tags', v)" />
+        <label class="chip" style="cursor:pointer;gap:6px;align-self:flex-start"
+          v-tooltip.bottom="'Hides this entity from any AI feature that pulls in story-world context.'">
+          <JwCheckbox :model-value="!!obj.excludeFromAi" @update:model-value="(v) => update('excludeFromAi', v)" />
+          Exclude from AI
+        </label>
         <RichEditor
           :model-value="obj.note || ''"
           placeholder="Description"

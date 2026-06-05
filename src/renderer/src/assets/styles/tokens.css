@@ -120,6 +120,14 @@
   --status-revise: oklch(0.65 0.13 30);
   --status-done:   oklch(0.6 0.13 var(--success-hue));
 
+  /* In-text markers (drop-a-pin notes) ---------------------- */
+  --marker-fix:    oklch(0.62 0.18 25);
+  --marker-verify: oklch(0.65 0.15 200);
+  --marker-weak:   oklch(0.65 0.13 320);
+  --marker-thread: oklch(0.6 0.14 280);
+  --marker-todo:   oklch(0.65 0.14 85);
+  --marker-idea:   oklch(0.62 0.15 150);
+
   /* Character trait pills ----------------------------------- */
   --trait-want-bg:   oklch(0.97 0.03 30);
   --trait-want-ink:  oklch(0.55 0.13 30);
@@ -227,6 +235,13 @@ html[data-theme="dark"] {
   --status-draft:  oklch(0.72 0.12 75);
   --status-revise: oklch(0.7 0.15 30);
   --status-done:   oklch(0.7 0.14 var(--success-hue));
+
+  --marker-fix:    oklch(0.7 0.2 25);
+  --marker-verify: oklch(0.72 0.18 200);
+  --marker-weak:   oklch(0.72 0.16 320);
+  --marker-thread: oklch(0.7 0.17 280);
+  --marker-todo:   oklch(0.74 0.17 85);
+  --marker-idea:   oklch(0.7 0.18 150);
 
   --trait-want-bg:   oklch(0.28 0.05 30);
   --trait-want-ink:  oklch(0.85 0.1 30);

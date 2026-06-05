@@ -58,6 +58,16 @@ const ACTIONS = {
     label: "Continue",
     instruction: "Continue writing from where the passage below ends. Match the voice, tense, and POV. Write 2–4 more paragraphs of prose. Do not summarize or repeat what came before.",
   },
+  describe: {
+    label: "Describe",
+    instruction:
+      "The passage below names a subject — a place, person, object, or moment — that the writer wants " +
+      "to bring to life on the page. Write 1–2 paragraphs of fresh sensory prose ABOUT that subject: " +
+      "sights, sounds, smells, textures, the feel of the air, small specific details that anchor it " +
+      "in the body of the scene. Do not repeat or paraphrase the passage. Do not summarize. Match the " +
+      "voice, tense, and POV of the passage. Return new prose only — it will be inserted right after " +
+      "the passage in the manuscript.",
+  },
 };
 
 // ─── Named prose-pass rules ─────────────────────────────────────────────
@@ -152,6 +162,7 @@ export function rewrite(opts)   { return runAction("rewrite", opts); }
 export function expand(opts)    { return runAction("expand", opts); }
 export function tighten(opts)   { return runAction("tighten", opts); }
 export function continueFrom(opts) { return runAction("continue", opts); }
+export function describe(opts)  { return runAction("describe", opts); }
 
 export async function applyRule(ruleKey, { html, signal, onDelta, meta, provider, model } = {}) {
   const rule = PROSE_RULES[ruleKey];
@@ -182,5 +193,5 @@ export const PROSE_RULE_ORDER = [
   "prose-tightening",
 ];
 
-export const ACTION_ORDER = ["rewrite", "expand", "tighten", "continue"];
+export const ACTION_ORDER = ["rewrite", "expand", "tighten", "continue", "describe"];
 export { ACTIONS };

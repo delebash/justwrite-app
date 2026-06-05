@@ -13,7 +13,7 @@ export const EDITOR_TOOLBAR_FULL = [
   "quote", "list", "orderedList", "taskList",
   "newScene", "align", "highlight", "textColor", "link", "image", "table",
   "clearFormat", "copy", "cut", "paste", "print",
-  "comment", "find", "focus", "settings", "undo", "redo",
+  "comment", "marker", "find", "focus", "settings", "undo", "redo",
 ];
 
 // Inline document fields (Architecture, Strands, Object/Location notes).

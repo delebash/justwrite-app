@@ -228,6 +228,22 @@ function onBackdrop(e) {
             </button>
           </div>
         </section>
+
+        <!-- Exclude from AI -->
+        <section class="links-section">
+          <div class="links-section-label">Should this scene be hidden from AI retrieval?</div>
+          <div class="links-row links-row-toggle">
+            <label class="links-toggle">
+              <input type="checkbox"
+                :checked="!!scene?.excludeFromAi"
+                @change="update({ excludeFromAi: $event.target.checked })" />
+              <span>Exclude from AI</span>
+            </label>
+            <span class="links-toggle-help">
+              Keeps this scene out of Ask-the-Book retrieval and any future feature that feeds scene text into an LLM. Useful for spoilers, twists you haven't planted yet, or drafts you don't want surfaced.
+            </span>
+          </div>
+        </section>
       </div>
     </div>
   </div>
@@ -342,6 +358,26 @@ function onBackdrop(e) {
 .links-row-when {
   align-items: center;
   gap: 18px;
+}
+.links-row-toggle {
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 6px;
+}
+.links-toggle {
+  display: inline-flex; align-items: center; gap: 8px;
+  font-size: 13.5px; color: var(--ink);
+  cursor: pointer;
+}
+.links-toggle input[type="checkbox"] {
+  width: 15px; height: 15px;
+  accent-color: var(--accent);
+  cursor: pointer;
+}
+.links-toggle-help {
+  font-size: 12px; color: var(--muted);
+  line-height: 1.5;
+  max-width: 640px;
 }
 .links-row-when :deep(.dtp) {
   flex: 1;

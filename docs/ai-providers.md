@@ -22,6 +22,12 @@ A provider can speak more than one of these. **OpenAI**, for example, provides L
 
 ---
 
+## Keeping content out of AI context
+
+Every scene's **Links** panel and every character / location / object / group / worldbuilding article has an **Exclude from AI** checkbox. Tick it and that item is skipped by Ask-the-Book retrieval and any future feature that pulls scene or entity text into an LLM prompt. Use it for spoilers you haven't planted yet, drafts you don't want surfaced in chat answers, or sensitive backstory the model shouldn't read. The flag stays with the item; nothing else changes about how you write it.
+
+---
+
 ## Where to set this up
 
 Open **Settings → AI & Audio engines**. The page has three areas:

@@ -125,6 +125,8 @@ const NAV = [
   { id: "plot",      label: "sidebar.nav.plotBoard", icon: "Grid" },
   { id: "timeline",  label: "sidebar.nav.timeline",  icon: "Timeline" },
   { id: "notes",     label: "nav.notes",             icon: "Note",     expandable: "notes" },
+  { id: "brainstorm", label: "sidebar.nav.brainstorm", icon: "Sparkle" },
+  { id: "markers",   label: "sidebar.nav.markers",   icon: "Pin" },
   { id: "relations", label: "sidebar.nav.relations", icon: "Network" },
 
   { section: "sidebar.sections.audio" },

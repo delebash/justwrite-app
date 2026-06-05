@@ -973,6 +973,10 @@ watch(() => project.allChapters.map((c) => c.id + ":" + (project.scenesFor(c.id)
               <div class="ai-strip-label">Expand</div>
               <div class="ai-strip-desc">Add sensory detail, interiority, and small actions. Roughly doubles the length without changing voice or tense.</div>
             </button>
+            <button class="ai-strip-item" :disabled="aiRunning || !hasSelection" @click="callAi('describe')">
+              <div class="ai-strip-label">Describe</div>
+              <div class="ai-strip-desc">Treat the highlighted text as a subject — a place, person, object, or moment — and add 1–2 paragraphs of fresh sensory prose ABOUT it right after. Additive, not a rewrite; the original passage stays untouched.</div>
+            </button>
             <div class="ai-strip-divider"></div>
             <div class="ai-strip-section">Selection or whole scene</div>
             <button class="ai-strip-item" :disabled="aiRunning" @click="callAi('tighten')">

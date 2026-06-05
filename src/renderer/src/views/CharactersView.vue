@@ -367,6 +367,11 @@ function onRowClick(event) {
                 <JwCheckbox :model-value="ch.main" @update:model-value="updateField('main', $event)" />
                 Main character
               </label>
+              <label class="chip" style="cursor:pointer;gap:6px"
+                v-tooltip.bottom="'Hides this entity from any AI feature that pulls in story-world context.'">
+                <JwCheckbox :model-value="!!ch.excludeFromAi" @update:model-value="(v) => updateField('excludeFromAi', v)" />
+                Exclude from AI
+              </label>
               <JwNumber style="max-width:80px" placeholder="Age" :use-grouping="false"
                 :model-value="ch.age ?? null" @update:model-value="updateField('age', $event ?? null)" />
             </div>

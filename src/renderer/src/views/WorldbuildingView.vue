@@ -16,6 +16,7 @@ import JwInput from "@renderer/components/ui/JwInput.vue";
 import JwTag from "@renderer/components/ui/JwTag.vue";
 import JwButton from "@renderer/components/ui/JwButton.vue";
 import JwTextarea from "@renderer/components/ui/JwTextarea.vue";
+import JwCheckbox from "@renderer/components/ui/JwCheckbox.vue";
 
 const props = defineProps({ id: { type: String, default: "" } });
 const project = useProjectStore();
@@ -292,6 +293,12 @@ function onRowClick(event) {
         :pool="tagPool"
         :curated="project.tagVocabularies.worldbuilding"
         @update:model-value="(v) => update('tags', v)" />
+
+      <label class="chip" style="cursor:pointer;gap:6px;padding:8px 14px"
+        v-tooltip.bottom="'Hides this entity from any AI feature that pulls in story-world context.'">
+        <JwCheckbox :model-value="!!article.excludeFromAi" @update:model-value="(v) => update('excludeFromAi', v)" />
+        Exclude from AI
+      </label>
 
       <RichEditor
         :model-value="article.body"

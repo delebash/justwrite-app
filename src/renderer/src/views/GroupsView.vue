@@ -14,6 +14,7 @@ import Breadcrumb from "../components/Breadcrumb.vue";
 import { promptDialog } from "../services/dialog.js";
 import { NEW_ENTITY_META } from "../services/entityMeta.js";
 import JwColorPicker from "@renderer/components/ui/JwColorPicker.vue";
+import JwCheckbox from "@renderer/components/ui/JwCheckbox.vue";
 
 const props = defineProps({ id: { type: String, default: "" } });
 const project = useProjectStore();
@@ -96,6 +97,11 @@ function deleteGroup() {
           :model-value="g.color"
           aria-label="Group color"
           @update:model-value="update('color', $event)" />
+        <label class="chip" style="cursor:pointer;gap:6px;margin-left:auto"
+          v-tooltip.bottom="'Hides this entity from any AI feature that pulls in story-world context.'">
+          <JwCheckbox :model-value="!!g.excludeFromAi" @update:model-value="(v) => update('excludeFromAi', v)" />
+          Exclude from AI
+        </label>
       </div>
       <div style="margin-top:24px">
         <div class="t-eyebrow" style="margin-bottom:10px">Members ({{ (g.members || []).length }})</div>

@@ -33,6 +33,7 @@ When the cursor is inside the manuscript editor.
 | **Ctrl/⌘ + I** | Italic |
 | **Ctrl/⌘ + U** | Underline |
 | **Ctrl/⌘ + K** | Insert link |
+| **Alt + M** | Drop a marker on the selection (or edit the marker at the cursor) |
 | **Tab** | Indent paragraph (or sink list item) |
 | **Shift + Tab** | Outdent paragraph (or lift list item) |
 | **Ctrl/⌘ + Shift + Enter** | Insert new scene boundary (continuous mode) |

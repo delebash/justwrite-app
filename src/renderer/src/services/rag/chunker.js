@@ -53,6 +53,12 @@ export function chunkProject(project) {
 
     for (let si = 0; si < scenes.length; si++) {
       const scene = scenes[si];
+      // Honor the per-scene "Exclude from AI" flag — used for spoiler
+      // protection, unfinished drafts the writer doesn't want surfaced
+      // in Ask-the-Book answers, and any scene the writer wants kept
+      // out of retrieval context. Skipping here means it never embeds
+      // and never appears in RAG results.
+      if (scene.excludeFromAi) continue;
       const text = stripText(scene.body || "");
       if (!text) continue;
 
