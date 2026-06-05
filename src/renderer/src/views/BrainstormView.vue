@@ -74,6 +74,12 @@ function categoryLabel(val) {
 
 function buildSystemPrompt() {
   const label = categoryLabel(category.value);
+  // Plot-level brainstorms (next beats, twists) need longer items than
+  // names/titles, so we give the model a different length contract.
+  if (category.value === "next_beat" || category.value === "twist") {
+    const kind = category.value === "twist" ? "plot twists, reveals, or reversals" : "next plot beats — possible moves, escalations, or scene-level developments";
+    return `You are a story-craft brainstorming partner for a novelist. The user has described their current situation; you respond with 15-20 distinct ${kind}, each on its own line. Each item is a single sentence (12-25 words) naming a specific, concrete move — not abstract advice. Mix close-to-obvious moves with wilder ones. No numbering, no commentary, no preface, no explanations. Do not repeat items the user has already seen.`;
+  }
   return `You are a creative brainstorming partner for a novelist. The user is generating ${label} ideas. Reply with 15–20 short suggestions, one per line, no numbering, no commentary, no explanations. Each suggestion stands alone — a name, a phrase, a title — never more than ~6 words. Do not repeat suggestions the user has already seen.`;
 }
 

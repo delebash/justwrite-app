@@ -148,11 +148,17 @@ Per relationship pair (A↔B), LLM produces a chapter-by-chapter arc with warmth
 ### 17. Three-alternative streaming (variations)
 Writer actions currently stream one result. Add an opt-in "show 3" mode (parallel generations, varied temperature). Writers underuse this but it changes draft quality once the habit forms.
 
-### 18. Brainstorm-next-beats (plot-level)
+### 18. Brainstorm-next-beats (plot-level) — **Shipped**
+
 Current Brainstorm does names/titles. Sibling mode: given the last scene + summary, return 8–12 ranked plot beats. Reuses the same UI shell, different prompt.
 
-### 19. Twist generator
+**Shipped as:** A **Next plot beats** category in the Brainstorm view. Plot-level items use a different length contract (12–25 word sentences, not 6-word phrases) and mix close-to-obvious moves with wilder ones. Reuses the existing Brainstorm UI shell, seed-prompt flow, like/thumbs-up gating, and "more like these" continuation. Routes through the existing `brainstorm` feature pin. Docs: `docs/brainstorm.md` categories table.
+
+### 19. Twist generator — **Shipped**
+
 Cheap, fun, surprisingly generative. Same UI shell as Brainstorm.
+
+**Shipped as:** A **Plot twists** category in the Brainstorm view, sibling to Next plot beats. Same length contract (full-sentence ideas). The model is instructed to mix plausible twists with wild ones so even rejected options often reveal moves the writer didn't see. Routes through the existing `brainstorm` feature pin. Docs: `docs/brainstorm.md` categories table + closing paragraph noting plot-level categories differ from naming ones.
 
 ### 20. AI-tell phrase scanner
 Ideorix claims 1,212 blocked phrases ("her eyes twinkled", "couldn't help but", "testament to"). Ship as deterministic post-pass on AI-generated diffs *before* presenting them, plus a manuscript-wide "find AI-tells" report. Reuses the Critique UI.

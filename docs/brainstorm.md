@@ -28,7 +28,11 @@ Pick the one that fits the kind of output you want back. The selected category's
 | **Place names** | Toponyms — cities, taverns, neighbourhoods, mountains, ships, kingdoms, planets | *Creepy New England small-town shop names, 1920s setting.* |
 | **Item / object names** | Names for things — swords, books, organisations, spells, drugs, vehicles, recurring objects | *Names for a legendary sword passed down by exiled queens, evocative not ornate.* |
 | **Titles (book / chapter / scene)** | Short, evocative, register-aware titles | *Titles for a heist novel set on a generation ship — single word, evocative.* |
+| **Next plot beats** | Possible next moves from where the story currently sits — escalations, scene-level developments | *Elena confirmed Marcus is lying. She has the locket but no allies. What happens next?* |
+| **Plot twists** | Twists, reveals, and unexpected turns — plausible to wild | *Mid-second-act thriller. Detective is closing in on the killer. Brainstorm twists.* |
 | **Anything (free prompt)** | Use when the list doesn't fit — phrases, taglines, alternate words, ideas | *Twenty short phrases a tired innkeeper might say to a stranger before bed.* |
+
+The **Next plot beats** and **Plot twists** categories work differently from the naming ones — they return full-sentence ideas (12–25 words each) rather than short phrases. They mix close-to-obvious moves with wilder ones, so even when you reject most options, seeing the menu often unlocks the move you actually wanted.
 
 The categories aren't enforced — picking "Place names" doesn't stop you from typing a character-name seed. They're just a steering hint to the model. If the suggestions you get feel off-shape, switch the category and re-run.
 
