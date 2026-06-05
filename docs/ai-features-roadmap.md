@@ -37,9 +37,11 @@ That stack is unusually well-positioned for the features below — many become s
 
 **Shipped as:** A "Previously on your novel" card on Home, between the Resume card and the stat cards. Auto-generates on mount when there's a valid last-edited chapter and an AI provider is configured. Caches per day so same-day reloads reuse the prose. Dismiss hides for the day; Regenerate forces a refresh; the meta line jumps to the last-edited chapter. Routable as the **briefing** feature in Settings → AI. Service: `services/resumeBriefing.js`. Docs: `docs/writing.md`.
 
-### 2. End-of-session recap with forward TODOs
+### 2. End-of-session recap with forward TODOs — **Shipped**
 
 Sister feature to #1. When the user closes a sprint or hits a target, summarize what was written (plot events, new entities introduced, decisions made) and surface "you set up X — payoff?" Auto-creates `Loose thread` markers at the relevant positions, so the markers panel becomes a living TODO list. Pair with #1 for a session loop nobody else has.
+
+**Shipped as:** A **Wrap up session** button on the Home "Today's session" card opens a modal that generates a 150–300 word recap of today's writing plus a structured list of open threads (verbatim snippets from today's prose). Each thread has a **Pin** button that drops a Loose-thread marker into the chapter at the exact phrase (via a new `addMarkerToSceneHtml` helper that works without an editor instance). **Pin all** marks every unmarked thread at once. Recaps persist as `project.dailyRecaps[day]` (excluded from undo) and feed into the next day's resume briefing as additional grounding — closing the loop. Routable as the **recap** feature in Settings → AI. Service: `services/sessionRecap.js`. Modal: `components/SessionRecapModal.vue`. Docs: `docs/writing.md`.
 
 ### 3. Foreshadowing / dangling-thread tracker
 

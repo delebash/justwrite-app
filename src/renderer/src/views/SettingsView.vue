@@ -54,6 +54,7 @@ const AI_FEATURES = [
   { key: "entitySweep", label: "Entity sweep",    hint: "Scans chapters for new characters / locations / objects." },
   { key: "writerAI",    label: "Writer actions",  hint: "Bubble-menu rewrites and prose passes in the editor." },
   { key: "briefing",    label: "Resume briefing", hint: "Generates the Home \"Previously on your novel\" recap card." },
+  { key: "recap",       label: "Session recap",   hint: "End-of-day \"Wrap up session\" recap + open-thread suggestions." },
 ];
 const INHERIT = "__inherit__";
 

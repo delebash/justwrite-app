@@ -18,7 +18,7 @@ What you see at the top:
 
 Below those:
 
-- **Today's session** — words written today, current writing streak, last 14 days total, and a 14-square activity heatmap.
+- **Today's session** — words written today, current writing streak, last 14 days total, and a 14-square activity heatmap. The card has a **Wrap up session** button that generates an end-of-day AI recap — see below.
 - **The fortnight** — a 14-day sparkline of your daily word counts.
 - **Cadence** — a bar chart of your average word count by day of the week. Your best day is highlighted in gold.
 - **Narrative strands** — a row per strand with a progress bar showing how many chapters that strand appears in.
@@ -44,6 +44,28 @@ When you open Home, JustWrite generates a 150–250 word **briefing** addressed 
 **Why a writer would use it.** Most writers re-orient by scrolling back and re-reading the last chapter, which is slow and easy to skip on a busy day. A two-paragraph briefing closes the gap in about 20 seconds and explicitly names what's at stake and what's open — including the threads you'd planted and forgotten about. It also catches your own **Loose thread** pins from previous sessions, so the markers you dropped in the heat of drafting actually come back to you when you sit down to write.
 
 The model used is whichever provider you've pinned for **briefing** in **Settings → AI** (or your default LLM provider if none is pinned). The footer of the card names it.
+
+### "Wrap up session" — end-of-day recap
+
+> *"I closed the laptop in the middle of a scene and tomorrow I'll forget half of what I just set up — the foreshadowing, the small promises, the decisions I almost made."*
+
+The mirror image of the resume briefing. Where "Previously on your novel" looks back at where you left off, **Wrap up session** looks at what you just did and helps you hand it off cleanly to tomorrow.
+
+Click **Wrap up session** on the **Today's session** card. JustWrite generates a 150–300 word AI recap of today's writing addressed to you ("You wrapped up the rooftop confrontation. Elena chose to keep the locket secret…") and a list of **open threads** — verbatim snippets from today's prose that look like setup-without-payoff.
+
+**For each open thread you can click "Pin"** to drop a **Loose thread** marker directly into the chapter at the exact phrase the AI quoted. The phrase becomes a coloured dotted underline; clicking it later opens the marker popover for editing or resolving. **Pin all** drops markers on every unmarked thread at once. Threads whose snippet can't be located in current prose (because you've since edited that passage) show **Not found** instead of a button.
+
+The recap also persists. Tomorrow's **Previously on your novel** card folds your own wrap-up note into its briefing context, so the AI orienting you back into the story has access to the exact framing you used at the end of the previous session. The two features form a session loop — wrap up at night, get oriented in the morning, with your own words carrying the thread.
+
+**How it behaves:**
+
+- **Eligibility.** The button only enables when you've written at least one word today. Pure-reading days don't have a recap.
+- **Caches for the day.** Once generated, today's recap is saved on the project. Re-opening the modal reads from cache; **Regenerate** asks for a fresh pass.
+- **Persists across sessions.** Recaps are stored per-day and don't roll back when you undo prose changes — they're append-only by design.
+- **Discard recap** in the footer wipes today's saved recap if it missed the mark or you don't want it folded into tomorrow's briefing.
+- **Routable** as the **recap** feature in Settings → AI. A small, fast local model is plenty here.
+
+**Why a writer would use it.** The pieces you forget overnight are exactly the ones you should remember — the throwaway line that's actually a setup, the decision you almost-made-but-deferred, the character moment that didn't get its reaction. The recap catches these and converts them into manuscript-anchored markers so tomorrow's draft inherits the throughline you built today, rather than restarting from scratch.
 
 ---
 

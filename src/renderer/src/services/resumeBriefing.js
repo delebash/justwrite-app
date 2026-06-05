@@ -60,6 +60,22 @@ function describeGap(days) {
   return `${Math.round(days / 30)} months ago`;
 }
 
+// Pull the most-recent dailyRecap that's older than today. End-of-day
+// recaps written before "now" get folded into tomorrow's briefing so
+// the resume card knows how the writer summarised yesterday's work to
+// themselves. Returns null if no eligible recap exists.
+function priorRecap(project) {
+  const recaps = project.dailyRecaps || {};
+  const today = (() => {
+    const d = new Date();
+    return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
+  })();
+  const keys = Object.keys(recaps).filter((k) => k < today).sort();
+  if (!keys.length) return null;
+  const last = keys[keys.length - 1];
+  return recaps[last] || null;
+}
+
 // Build the structured context the prompt is grounded in. Pure data —
 // no model calls. Returned as both a `meta` summary (for the UI) and a
 // `prompt` string (for the LLM).
@@ -137,6 +153,11 @@ export function buildBriefingContext({ project, sessions, maxTailWords = 500 }) 
     premise: (P.premise || "").slice(0, 400),
   };
 
+  // Pull the most recent end-of-session recap (from a previous day) —
+  // it's the writer's own framing of where they left off, so it's a
+  // strong grounding signal for the briefing.
+  const prior = priorRecap(project);
+
   const meta = {
     eligible: !!tail,
     lastChapter: {
@@ -153,6 +174,7 @@ export function buildBriefingContext({ project, sessions, maxTailWords = 500 }) 
     openStrands,
     nearbyMarkers,
     projectMeta,
+    priorRecap: prior ? { day: prior.day, text: prior.text } : null,
   };
 
   if (!tail) {
@@ -172,6 +194,17 @@ export function buildBriefingContext({ project, sessions, maxTailWords = 500 }) 
     `The writer last worked on this manuscript ${meta.gapLabel}.`,
     `Last chapter touched: Chapter ${lastChapter.num}${lastChapter.title ? ` — "${lastChapter.title}"` : ""} (${(lastChapter.words || 0).toLocaleString()} words).`,
     "",
+  );
+
+  if (prior?.text) {
+    lines.push(
+      `The writer's own wrap-up note from ${prior.day || "their last session"} (in their own framing — trust this strongly):`,
+      prior.text.trim(),
+      "",
+    );
+  }
+
+  lines.push(
     "Final passage of that chapter (tail):",
     tail,
     "",

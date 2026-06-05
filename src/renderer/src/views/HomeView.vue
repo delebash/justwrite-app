@@ -9,6 +9,7 @@ import { useAiProgress } from "../composables/useAiProgress.js";
 import { generateResumeBriefing, buildBriefingContext } from "../services/resumeBriefing.js";
 import Icon from "../components/Icon.vue";
 import JwButton from "@renderer/components/ui/JwButton.vue";
+import SessionRecapModal from "../components/SessionRecapModal.vue";
 
 const router = useRouter();
 const project = useProjectStore();
@@ -236,6 +237,15 @@ onMounted(() => {
   runBriefing();
 });
 
+// ── End-of-session recap modal ───────────────────────────
+const recapOpen = ref(false);
+function openRecap() { recapOpen.value = true; }
+function closeRecap() { recapOpen.value = false; }
+// Eligible to wrap up when SOMETHING was written today. Without that
+// the recap has no material to work with.
+const canWrapUp = computed(() => sessions.todayWords > 0 || !!sessions.todayChapterId);
+const hasTodayRecap = computed(() => !!project.getDailyRecap(todayKey()));
+
 // ── Cadence (day-of-week) peak + strand chapter counts ───
 const FULL_DOW = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"];
 const bestDowIdx = computed(() => {
@@ -400,6 +410,15 @@ const strandCount = (id) => allCh.value.filter((c) => (c.strands || []).includes
           <i v-for="(active, i) in streakSquares" :key="i" :class="{ on: active }" v-tooltip.bottom="history14[i].date" />
         </div>
         <div class="gticks-cap">{{ streakSquares.filter(Boolean).length }} of 14 days written</div>
+        <div class="gtoday-foot">
+          <JwButton intent="ghost" size="small"
+                    :disabled="!canWrapUp"
+                    @click="openRecap"
+                    v-tooltip.bottom="canWrapUp ? 'Generate an AI recap of what you wrote today and pin any open threads' : 'Write something today to enable a recap'">
+            <Icon name="Sparkle" :size="12" />
+            {{ hasTodayRecap ? "View today's recap" : "Wrap up session" }}
+          </JwButton>
+        </div>
       </div>
 
       <!-- The fortnight -->
@@ -457,6 +476,8 @@ const strandCount = (id) => allCh.value.filter((c) => (c.strands || []).includes
     </div>
   </div>
   </div>
+
+  <SessionRecapModal v-if="recapOpen" @close="closeRecap" />
 </template>
 
 <style scoped>
@@ -634,6 +655,7 @@ const strandCount = (id) => allCh.value.filter((c) => (c.strands || []).includes
 .gticks i { flex: 1; border-radius: 2px; background: var(--surface-3); height: 40%; }
 .gticks i.on { background: linear-gradient(180deg, var(--accent), var(--accent-ink)); height: 100%; }
 .gticks-cap { margin-top: 8px; font-family: var(--font-mono); font-size: 10.5px; color: var(--muted); }
+.gtoday-foot { margin-top: 14px; padding-top: 12px; border-top: 1px solid var(--border-soft); display: flex; }
 
 /* sparkline */
 .gspark { width: 100%; height: 62px; display: block; }

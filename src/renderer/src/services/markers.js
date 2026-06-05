@@ -164,6 +164,136 @@ export function scanProjectMarkers(project) {
   return out;
 }
 
+// Add a marker by wrapping the first occurrence of `snippet` (plain
+// text) in a scene's HTML with a marker span. Returns the new HTML, or
+// null if the snippet wasn't found (callers can fall back to skipping
+// the marker rather than failing the whole save).
+//
+// Used by features that propose markers from outside the editor — the
+// end-of-session recap, dangling-thread tracker, etc. — where the LLM
+// surfaces a phrase from the prose and we want to pin it without the
+// writer manually selecting and applying.
+//
+// Matching:
+//   - normalized whitespace (runs of spaces/tabs/newlines collapse to one)
+//   - case-sensitive
+//   - first text-only match within a single text node, OR a span of text
+//     nodes inside the same parent
+//
+// If the snippet straddles formatting boundaries we currently skip
+// (returning null) rather than mangle inline marks. Good-enough for
+// recap suggestions, which the LLM is asked to quote verbatim from a
+// continuous run of prose.
+export function addMarkerToSceneHtml(html, snippet, { category = "thread", label = "" } = {}) {
+  if (!html || !snippet) return null;
+  const cleanSnippet = String(snippet).replace(/\s+/g, " ").trim();
+  if (!cleanSnippet) return null;
+
+  const div = document.createElement("div");
+  div.innerHTML = html;
+
+  // Build a flat list of text nodes with their cumulative normalised
+  // offsets so we can locate the snippet across a contiguous run.
+  const walker = document.createTreeWalker(div, NodeFilter.SHOW_TEXT, null);
+  const nodes = [];
+  let node = walker.nextNode();
+  let cursor = 0;
+  while (node) {
+    // Skip text nodes already inside a marker span — don't double-wrap.
+    let inMarker = false;
+    let p = node.parentElement;
+    while (p && p !== div) {
+      if (p.hasAttribute?.("data-marker-category")) { inMarker = true; break; }
+      p = p.parentElement;
+    }
+    if (!inMarker) {
+      const raw = node.nodeValue || "";
+      // Normalise whitespace for matching but remember the raw length too.
+      const norm = raw.replace(/\s+/g, " ");
+      nodes.push({ node, raw, norm, normStart: cursor });
+      cursor += norm.length;
+    }
+    node = walker.nextNode();
+  }
+
+  // Concatenate the normalised text and find the snippet's offset.
+  const fullNorm = nodes.map((n) => n.norm).join("");
+  const hit = fullNorm.indexOf(cleanSnippet);
+  if (hit < 0) return null;
+  const hitEnd = hit + cleanSnippet.length;
+
+  // Resolve the start/end node + offset for the slice.
+  function locate(targetOffset) {
+    for (const n of nodes) {
+      const end = n.normStart + n.norm.length;
+      if (targetOffset <= end) {
+        // Map the normalised offset back to a raw offset within this text node.
+        const local = Math.max(0, targetOffset - n.normStart);
+        // Walk the raw string consuming whitespace runs as one. Tracks
+        // the raw index that corresponds to the normalised `local`.
+        let rawIdx = 0;
+        let normIdx = 0;
+        const raw = n.raw;
+        while (rawIdx < raw.length && normIdx < local) {
+          const ws = /\s/.test(raw[rawIdx]);
+          if (ws) {
+            // consume the whole whitespace run, count as 1 normalised char
+            while (rawIdx < raw.length && /\s/.test(raw[rawIdx])) rawIdx++;
+            normIdx++;
+          } else {
+            rawIdx++;
+            normIdx++;
+          }
+        }
+        return { node: n.node, offset: rawIdx };
+      }
+    }
+    return null;
+  }
+  const startLoc = locate(hit);
+  const endLoc = locate(hitEnd);
+  if (!startLoc || !endLoc) return null;
+
+  // Require start and end nodes to share a common ancestor that isn't
+  // the document — otherwise wrapping across boundaries would have to
+  // split formatting marks. We allow same-parent OR same-paragraph: walk
+  // up to find a block-level ancestor (P/LI/DIV/etc.) and require both
+  // sit inside the same one.
+  function block(n) {
+    let p = n.parentNode;
+    while (p && p !== div) {
+      const tag = (p.tagName || "").toLowerCase();
+      if (["p", "li", "blockquote", "div", "td", "th"].includes(tag)) return p;
+      p = p.parentNode;
+    }
+    return p || div;
+  }
+  if (block(startLoc.node) !== block(endLoc.node)) return null;
+
+  // Use a Range to extract the contents into a marker span. This handles
+  // multi-text-node, mark-spanning cases cleanly when start/end share a
+  // block container.
+  const range = document.createRange();
+  try {
+    range.setStart(startLoc.node, startLoc.offset);
+    range.setEnd(endLoc.node, endLoc.offset);
+  } catch {
+    return null;
+  }
+  const span = document.createElement("span");
+  span.setAttribute("data-marker-category", category);
+  span.setAttribute("data-marker-id", uid());
+  if (label) span.setAttribute("data-marker-label", label);
+  try {
+    const contents = range.extractContents();
+    span.appendChild(contents);
+    range.insertNode(span);
+  } catch {
+    return null;
+  }
+  return div.innerHTML;
+}
+
 // Remove a marker (by id) from a scene's HTML and return the new HTML.
 // Pure string transformation so callers can hand the result straight to
 // project.setSceneBody / updateScene.
