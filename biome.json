@@ -11,5 +11,18 @@
       }
     }
   },
-  "formatter": { "enabled": false }
+  "formatter": { "enabled": false },
+  "overrides": [
+    {
+      "includes": ["**/*.vue"],
+      "linter": {
+        "rules": {
+          "correctness": {
+            "noUnusedImports": "off",
+            "noUnusedVariables": "off"
+          }
+        }
+      }
+    }
+  ]
 }
