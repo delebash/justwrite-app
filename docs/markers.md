@@ -128,6 +128,30 @@ For each setup it captures a verbatim phrase from the chapter and a short "key t
 
 ---
 
+## "Find AI tells" — phrases that smell of AI
+
+> *"I asked the model to rewrite a paragraph and it sounds technically fine, but something about it feels off — and I can't put my finger on what."*
+
+LLM-assisted prose has a fingerprint. Even when the meaning is right and the voice is mostly yours, certain phrases sneak in that read as AI: stock catalog verbs ("delved into", "navigated the complexities", "tapestry of"), body-language clichés ("eyes sparkled", "stomach churned"), hedging qualifiers ("couldn't help but", "in a sense"), over-balanced cadence ("not only X, but Y"), and out-of-genre register ("ultimately", "it is important to note").
+
+The **Find AI tells** button in the Markers view header runs a pure-deterministic regex scan across every chapter for the most common giveaway phrases. **No LLM call**. Results land instantly.
+
+The modal groups findings into five kinds:
+
+- **Stock catalog phrase** — the AI press-release register ("a testament to", "shed light on", "myriad of")
+- **Body-language cliché** — the AI emotional-tell catalogue ("heart raced", "let out a shaky breath", "exchanged a knowing look")
+- **Hedge / qualifier** — distancing layers the model adds when it isn't sure ("somehow felt", "in a way")
+- **AI cadence** — over-balanced sentence rhythms the model defaults to ("not only X, but Y", "what had begun as X had become Y")
+- **Out-of-genre register** — essay or non-fiction phrasings ("in conclusion", "ultimately", "as we have seen")
+
+Each finding shows: the matched phrase, the sentence it falls in (with the match highlighted), the chapter and scene, and a short why-this-is-suspicious blurb. Click the kind chips to filter; click any **Scene** link to jump to the offending passage. **Re-scan** runs the pass again — useful after revisions.
+
+**What it catches and what it doesn't.** The deterministic pass catches the easy tells with high confidence. It does not catch the harder ones: paragraph-level cadence, the way LLMs over-balance "and" clauses across sentences, generic abstraction creeping into descriptive prose. Those need a model to hear and are out of scope for this scanner. Treat the findings as a fast first-pass triage — fix what's flagged, then read with fresh eyes for the rest.
+
+**Why a writer would use it.** AI-tell phrases are the single most reliable signal that prose was AI-assisted (or that the writer has internalised LLM register from too much exposure). They're cheap to fix once flagged. A draft that's been through this scan reads markedly less AI-shaped without the writer having to remember the catalog themselves.
+
+---
+
 ## A drafting workflow
 
 > *"I keep noticing problems while I'm drafting but every time I stop to fix one I lose my place in the scene."*

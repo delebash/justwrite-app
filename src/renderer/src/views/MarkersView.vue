@@ -19,6 +19,7 @@ import { MARKER_CATEGORIES, categoryById, scanProjectMarkers, removeMarkerFromHt
 import Icon from "../components/Icon.vue";
 import JwButton from "@renderer/components/ui/JwButton.vue";
 import ForeshadowingScanModal from "../components/ForeshadowingScanModal.vue";
+import AiTellScanModal from "../components/AiTellScanModal.vue";
 
 const project = useProjectStore();
 const router = useRouter();
@@ -63,6 +64,10 @@ function locationLabel(m) {
 const scanOpen = ref(false);
 function openScan() { scanOpen.value = true; }
 function closeScan() { scanOpen.value = false; }
+// AI-tell scan modal — deterministic regex scan, no LLM call.
+const tellScanOpen = ref(false);
+function openTellScan() { tellScanOpen.value = true; }
+function closeTellScan() { tellScanOpen.value = false; }
 </script>
 
 <template>
@@ -79,6 +84,10 @@ function closeScan() { scanOpen.value = false; }
         <JwButton intent="secondary" @click="openScan"
                   v-tooltip.bottom="'Scan the whole manuscript for setups that may not have paid off'">
           <Icon name="Sparkle" :size="13" /> Find dangling threads
+        </JwButton>
+        <JwButton intent="secondary" @click="openTellScan"
+                  v-tooltip.bottom="'Deterministic scan for phrases that smell of AI — stock verbs, body-language clichés, hedges. No LLM call.'">
+          <Icon name="Eye" :size="13" /> Find AI tells
         </JwButton>
       </div>
     </header>
@@ -161,6 +170,7 @@ function closeScan() { scanOpen.value = false; }
   </div>
 
   <ForeshadowingScanModal v-if="scanOpen" @close="closeScan" />
+  <AiTellScanModal v-if="tellScanOpen" @close="closeTellScan" />
 </template>
 
 <style scoped>

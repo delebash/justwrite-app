@@ -160,8 +160,11 @@ Cheap, fun, surprisingly generative. Same UI shell as Brainstorm.
 
 **Shipped as:** A **Plot twists** category in the Brainstorm view, sibling to Next plot beats. Same length contract (full-sentence ideas). The model is instructed to mix plausible twists with wild ones so even rejected options often reveal moves the writer didn't see. Routes through the existing `brainstorm` feature pin. Docs: `docs/brainstorm.md` categories table + closing paragraph noting plot-level categories differ from naming ones.
 
-### 20. AI-tell phrase scanner
+### 20. AI-tell phrase scanner — **Shipped**
+
 Ideorix claims 1,212 blocked phrases ("her eyes twinkled", "couldn't help but", "testament to"). Ship as deterministic post-pass on AI-generated diffs *before* presenting them, plus a manuscript-wide "find AI-tells" report. Reuses the Critique UI.
+
+**Shipped as:** A **Find AI tells** button on the Markers view header opens a modal that runs a pure-deterministic regex scan across every chapter — no LLM call. Hand-curated phrase library in `services/analysis/aiTellScanner.js` groups matches into five kinds: stock catalog phrases ("delved into", "tapestry of", "testament to"), body-language clichés ("eyes sparkled", "stomach churned"), hedges ("couldn't help but", "in a sense"), AI cadence signatures ("not only X, but Y"), and out-of-genre register ("ultimately", "in conclusion"). The modal shows per-finding: phrase, surrounding sentence with the match highlighted, why-this-is-suspicious blurb, kind chip, and chapter+scene jump. Filter chips at the top toggle kinds; Re-scan reruns the pass. Pre-pass on AI-generated diffs is left for a follow-up (the manuscript-wide report is the core value). No feature pin needed (no LLM call). Service: `services/analysis/aiTellScanner.js` (with `TELL_KINDS` export). Modal: `components/AiTellScanModal.vue`. Docs: `docs/markers.md` "Find AI tells" section.
 
 ### 21. Blurb / logline / synopsis generation (Shrink Ray equivalent)
 Post-draft marketing pack. LLM compresses the manuscript via RAG into a logline, back-cover blurb (3 variants), one-page synopsis, 3-paragraph elevator pitch.
