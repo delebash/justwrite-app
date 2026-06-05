@@ -1,5 +1,7 @@
 # Markers
 
+> *"I noticed the pacing was off in this scene but I knew if I stopped to fix it I'd lose the next paragraph entirely — so I just kept writing and now I've forgotten what was wrong."*
+
 Markers are pins you drop directly into your prose while drafting — "fix this later", "verify this fact", "this dialogue is weak", "this is a loose thread". They live inline in the manuscript like comments, but they're built for speed: hit a key, type three words, keep writing. Later, in revision, you open the Markers view and see every unresolved problem in the book laid out on one strip.
 
 The point is to stop interrupting your flow to fix things you've noticed. Drop the marker, keep writing, come back when you're in revision mode.
@@ -67,6 +69,8 @@ The sidebar's Planning section has a **Markers** entry. Click it to open the man
 
 ### The timeline strip
 
+> *"I'm starting my revision pass and I have no idea where the real problems are — I just have a vague feeling that the second half is rougher."*
+
 At the top of the view is a horizontal strip that represents your whole manuscript at proportional scale. Every marker in the book is a coloured tick on that strip — coloured by category, positioned by how far into the manuscript the marker sits.
 
 The strip is the differentiator. You see at a glance:
@@ -125,6 +129,8 @@ For each setup it captures a verbatim phrase from the chapter and a short "key t
 ---
 
 ## A drafting workflow
+
+> *"I keep noticing problems while I'm drafting but every time I stop to fix one I lose my place in the scene."*
 
 What this is meant to enable:
 

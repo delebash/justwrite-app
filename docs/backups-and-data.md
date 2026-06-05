@@ -14,6 +14,8 @@ All this lives in **Settings → Backups**.
 
 ## Autosave to disk
 
+> *"I don't want to lose an hour of work because my laptop died. I want to know my writing is safe without having to remember to save it."*
+
 Every edit you make is mirrored to a JSON file on your computer within about ten seconds. Three generations are kept:
 
 - **Current** — the latest state
@@ -31,6 +33,8 @@ The Backups section shows you the **path** where this is stored on your machine.
 ---
 
 ## Manual snapshot export and import
+
+> *"I'm about to tear this chapter apart and reorganize the whole middle act. I want a copy I can go back to if I hate where it ends up."*
 
 For more permanent archiving:
 
@@ -58,6 +62,8 @@ The autosave on disk and the manual snapshots are complementary. Autosave is you
 ---
 
 ## Restoring from autosave
+
+> *"I just deleted three scenes trying to restructure a chapter and now I need them back. I saved after, so Ctrl-Z won't reach it."*
 
 If something goes wrong:
 
@@ -106,6 +112,8 @@ You can move a JustWrite project from one computer to another by copying the aut
 ---
 
 ## A reasonable backup discipline
+
+> *"How worried should I actually be about losing my book? What's the minimum I need to do to sleep at night?"*
 
 You don't need to do much; the defaults are safe. A practical approach:
 

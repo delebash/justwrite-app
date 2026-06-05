@@ -9,6 +9,8 @@ JustWrite reads and writes the formats writers actually use:
 
 ## Import
 
+> *"I have a half-finished novel in Word. I don't want to retype it — I just want to keep writing it here."*
+
 The **Import** view (Project section in the sidebar) brings a manuscript file — or a stack of note files — into JustWrite.
 
 ### Four import modes
@@ -36,9 +38,13 @@ When you start an import, you choose what to do with the result:
 
 ### Part picker (Add existing)
 
+> *"I'm importing one chapter from an old draft. I want it to land in Part 2, not tacked on at the end of everything."*
+
 In **Add existing**, the **Add to part** dropdown lists every existing Part in the current project plus a **New part…** option. The default is whichever Part is last in your manuscript, so a quick import lands at the end of your draft. Pick a specific Part to insert chapters mid-manuscript, or choose **New part…** to create a Part on the fly (its title defaults to the file name).
 
 ### Notes options (Add notes)
+
+> *"I have twenty `.txt` research files sitting in a folder. Copying each one in by hand is going to take all afternoon."*
 
 The **Add notes** mode applies two settings to every note in the batch:
 
@@ -70,6 +76,8 @@ The **Add notes** mode applies two settings to every note in the batch:
 
 ## Export
 
+> *"I'm finally done with this draft. I need a file I can actually send — to an agent, an editor, or just my e-reader."*
+
 The **Export** view (Project section in the sidebar) produces a finished file in one of four formats.
 
 ### The format picker
@@ -77,6 +85,8 @@ The **Export** view (Project section in the sidebar) produces a finished file in
 Four cards: **PDF**, **DOCX**, **EPUB**, **M4B Audiobook**. Pick one to see its options.
 
 ### PDF
+
+> *"My agent wants a clean read. I need something that looks like a real manuscript, not a Google Doc export."*
 
 A print-ready A4 document with:
 
@@ -97,6 +107,8 @@ A print-ready A4 document with:
 
 ### DOCX
 
+> *"My editor wants to leave tracked changes. She only works in Word."*
+
 A Word document that preserves:
 
 - Chapter headings (so Word's "Navigation Pane" works)
@@ -113,6 +125,8 @@ A Word document that preserves:
 - Importing into another writing tool.
 
 ### EPUB
+
+> *"I'm self-publishing on Apple Books and Kobo. I need an actual e-book file, not a PDF someone has to squint at on their phone."*
 
 A reflowable EPUB 3 e-book with:
 
@@ -131,6 +145,8 @@ A reflowable EPUB 3 e-book with:
 - Sharing with beta readers who use e-readers.
 
 ### Continuous prose toggle (PDF / DOCX / EPUB)
+
+> *"The `* * *` scene breaks look fine on screen but they feel amateur in the actual printed book."*
 
 A checkbox that strips scene titles and `* * *` scene-break ornaments before export, so each chapter reads as **uninterrupted prose** — the way most print novels are formatted.
 

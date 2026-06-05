@@ -6,6 +6,8 @@ Before you start clicking around, it helps to understand how JustWrite organises
 
 ## A book is Parts → Chapters → Scenes
 
+> *"I want to break my novel into acts, then chapters, then individual scenes I can move around — but I'm not sure how the app expects me to think about that."*
+
 Every manuscript in JustWrite has three structural levels:
 
 - A **Part** groups chapters. You can call a Part anything — "Part One", "Book of Storms", "Before the Fall". Many novels use a single Part for the whole book; longer or multi-volume works use several.
@@ -21,6 +23,8 @@ You can also switch a chapter into **continuous mode** (a toggle in the editor) 
 ---
 
 ## The Story Bible
+
+> *"My character notes are in a Google Doc, my world history is in a spreadsheet, and my location sketches are in a notebook. Every time I need to check something, I'm switching between three places."*
 
 The "Story Bible" is the collective name for everything that isn't manuscript prose:
 
@@ -38,6 +42,8 @@ The Story Bible is where you do background work that doesn't go into the manuscr
 ---
 
 ## Strands vs. Plot Board vs. Events vs. Timeline
+
+> *"I see four different planning views and I don't know which one I'm supposed to use to map out my subplot."*
 
 This is the part most new users find confusing, so it gets its own section.
 
@@ -60,6 +66,8 @@ See [Plot and time](plot-and-time.md) for a deeper walkthrough.
 
 ## Nothing is deleted (right away)
 
+> *"I just deleted that chapter and immediately regretted it. It's gone, isn't it."*
+
 When you delete a chapter, a character, a note, a strand — anything — JustWrite does not actually destroy it. It moves the item to the **Trash**.
 
 You will see a small toast pop up at the bottom of the screen with an **Undo** button. Click it within a few seconds and the deletion never happened.
@@ -73,6 +81,8 @@ The only thing that actually destroys an item is clicking the trash-can icon ins
 ---
 
 ## Undo and redo
+
+> *"I renamed a bunch of things and moved some scenes around and now everything feels wrong. I just want to go back to how it was ten minutes ago."*
 
 JustWrite remembers the last hundred changes you made and lets you walk backwards through them with **Ctrl/⌘ + Z**. Redo with **Ctrl/⌘ + Shift + Z** (or **Ctrl + Y** on Windows).
 
@@ -88,6 +98,8 @@ In short: edit freely. There is almost always a way back.
 
 ## Autosave
 
+> *"I wrote for two hours and then the power flickered. Please tell me I didn't just lose all of that."*
+
 You do not need to save. Every change you make — typing in a chapter, adding a character, dragging a beat — is saved to your computer's local storage instantly, and to a JSON file on disk within about ten seconds.
 
 The sidebar footer shows "Autosaved · Xs ago" so you can confirm at a glance that things are flowing.
@@ -97,6 +109,8 @@ If you ever want to force a backup to a file you can move or archive, open **Set
 ---
 
 ## Statuses
+
+> *"I have forty chapters and I genuinely cannot remember which ones I've revised and which ones are still rough draft."*
 
 Almost every item in JustWrite (chapters, scenes, characters, locations, articles, strands) carries a **status** — a coloured label that tells you, at a glance, where it stands. The default palette includes things like Draft, Revise, Done, To-do.
 
@@ -113,6 +127,8 @@ Statuses are entirely yours. Use them for whatever workflow makes sense to you. 
 
 ## Tags
 
+> *"I want to pull up every character who's part of the northern faction without having to remember which ones I tagged with what."*
+
 Characters, Locations, Objects, and Worldbuilding articles all carry **tags** — short freeform labels you type yourself. Tags are how you cut across categories: "antagonist", "northern coast", "act three", "magic system".
 
 Tags suggest existing values as you type, so you don't end up with "Antagonist", "antagonist", and "antag" all referring to the same thing.
@@ -120,6 +136,8 @@ Tags suggest existing values as you type, so you don't end up with "Antagonist",
 ---
 
 ## Mentions: the `@` symbol
+
+> *"I keep referring to the same character in fifty different scenes and I have no way of knowing which scenes she actually appears in without reading the whole thing."*
 
 When you are writing in the editor, type **`@`** to bring up a small picker. Start typing a name and JustWrite shows matches from your entire Story Bible — characters, locations, objects, groups, strands. Pick one and it gets inserted as a linked mention.
 

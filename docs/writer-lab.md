@@ -1,5 +1,7 @@
 # Writer Lab
 
+> *"I want to mess with this passage in a sandbox before I decide what to do with my manuscript — try a rewrite, see a critique, run an analysis, without anything I do leaking back into the book."*
+
 **Writer Lab** (Project section in the sidebar) is a scratch-pad AI workbench. Paste any passage of prose — or load any chapter from your manuscript — and run a menu of writing operations on it.
 
 Think of it as an editor on call for any piece of text at any time. The bubble-menu AI actions in the manuscript editor work on the current selection in the current chapter; Writer Lab is for **standalone passages**, **experimentation**, and **structural critique** without committing anything to the manuscript.
@@ -20,7 +22,7 @@ The provider and model used are whatever you've set as your default LLM in Setti
 
 - **Input area** — a large text box for your passage. Live word and character counts.
 - **Chapter loader** — a dropdown that pulls the plain prose of any chapter into the input area. Loading strips formatting so you have a clean text to work with.
-- **Operation buttons** — three groups: Prose Actions, Prose Passes, Analysis.
+- **Operation buttons** — three groups: Prose Actions, Line Edits, Analysis.
 - **Live preview toggle** — for the prose operations, you can choose to see the result stream in as it's written, rather than waiting for the complete result.
 - **Output panels** — the raw AI response and a structured/parsed view (formatted HTML for rewrites, scored cards for structural analysis, grouped note lists for critique, entity cards for extraction).
 - **Prompt panel** — an optional view of the full prompt sent to the AI, for transparency.
@@ -42,18 +44,19 @@ Four operations that transform the entire passage:
 | **Tighten** | Removes filler words, hedges, redundant phrases. Comes back noticeably shorter. |
 | **Continue** | Writes 2–4 new paragraphs from where the passage ends, matching your voice and POV. |
 
-### Prose passes — targeted single-issue rewrites
+### Line edits — targeted single-issue rewrites
 
-Six operations that rewrite the passage to fix one specific weakness at a time. Each one ignores the other dimensions and focuses:
+Surgical revisions that rewrite the passage to fix one specific craft problem at a time — what a professional line editor would mark up on a final read. Each one ignores the other dimensions and focuses:
 
 | Pass | What it targets |
 |---|---|
-| **Show, don't tell** | Replaces emotion-state statements with concrete behaviour, sensory detail, revealing dialogue. |
-| **Passive voice** | Converts passive constructions to active where it strengthens the prose. Leaves passive alone when it's genuinely appropriate. |
-| **Filter words** | Removes distancing words like "she saw", "he felt", "she noticed". Puts the reader directly in the character's perception. |
-| **Dialogue tags** | Replaces fancy tags ("exclaimed", "retorted") with "said"/"asked" or action beats. Removes adverbs in tags. |
-| **Sentence variety** | Breaks up monotonous rhythm by mixing long and short sentence structures. |
-| **Prose tightening** | Cuts hedges ("just", "really", "very") and any sentence that doesn't earn its place. |
+| **Show don't tell** | Trades told-emotion ("she was nervous") for the body language, behaviour, and dialogue that let the reader feel it firsthand. |
+| **Passive voice** | Switches to active voice when the actor matters. Leaves passive in place when the doer genuinely doesn't — crime scenes, mysteries, agentless states. |
+| **Filter words** | Strips the layer of "she saw / he heard / I felt" between the POV character and what they're perceiving. The reader gets the perception direct. |
+| **Dialogue tags** | Plainer tags ("exclaimed", "retorted" → "said") and action beats that show how a line lands. Pulls out adverb-glued tags ("said angrily") the same way. |
+| **Sensory grounding** | Anchors abstract or interior prose in the body — sight, sound, smell, the feel of the air. Pulls a scene out of pure thought and back into the world. |
+| **Sentence variety** | When sentences start marching in lockstep, breaks long ones up or joins short ones together. Lets the rhythm breathe. |
+| **Prose tightening** | Cuts hedges ("just", "really", "somewhat"), filler phrases, and lines that don't move the scene. The result is shorter and usually sharper. |
 
 ### Analysis operations — no rewrite, just feedback
 
@@ -93,27 +96,39 @@ A few patterns that work:
 
 ### Paste in a passage you're struggling with
 
+> *"This paragraph isn't working but I can't see why anymore. I've stared at it too long."*
+
 Run **Rewrite** to see an alternate take on the same prose. You're not committing to the AI's version — you're seeing what the passage looks like through different eyes. Sometimes the rewrite is better; sometimes it gives you the angle you needed to fix your own version. Either way, you learn something.
 
 ### Use Tighten or Prose tightening on baggy revisions
 
-You wrote 1,200 words and you know 200 of them are filler. Paste, run **Tighten**, and see what survives. You probably won't keep the AI's output verbatim — but the highlights of what got cut will tell you which sentences are weak.
+> *"I wrote 1,200 words and I know 200 of them are filler. I just can't tell which 200."*
+
+Paste, run **Tighten**, and see what survives. You probably won't keep the AI's output verbatim — but the diff between your draft and the tightened version tells you which sentences are weak. Useful precisely because the AI is more ruthless than you are with your own prose.
 
 ### Run Critique notes before sending to a beta reader
 
-A free first-pass editorial perspective. The notes won't be perfect, but they'll catch the obvious problems (a flat character motivation, a pacing dip, a confusing antecedent) before your beta reader has to.
+> *"I'm about to send this chapter to a beta reader and I'd rather catch the obvious problems myself first — I only get one set of first impressions per reader."*
+
+A free first-pass editorial perspective. The notes won't be perfect, but they'll catch the obvious problems — a flat character motivation, a pacing dip, a confusing antecedent — before your beta reader has to spend their fresh-eyes pass on stuff you could have fixed.
 
 ### Use Structural analysis to check chapter shape
 
-Load a finished chapter. Run **Structural analysis**. If it scores Tension 3 and Hook Quality 2, you have an objective second opinion that the chapter is flat. If it scores Tension 9, you've probably written something good.
+> *"Is this chapter actually good, or am I just relieved I finished it?"*
+
+Load a finished chapter. Run **Structural analysis**. If it scores Tension 3 and Hook Quality 2, you have an objective second opinion that the chapter is flat — and you can stop arguing with yourself about it and revise. If it scores Tension 9, you've probably written something good and you can move on instead of overworking it.
 
 ### Use Continue when you're stuck at the end of a scene
 
-You finished a paragraph and you don't know what comes next. Paste in the last few paragraphs, run **Continue**, see what direction the AI suggests. You'll almost certainly write something different — but you'll know what to write *against*.
+> *"I finished the paragraph. I don't know what comes next. I just need *something* on the page so I can react to it."*
+
+Paste in the last few paragraphs, run **Continue**, see what direction the AI suggests. You'll almost certainly write something different — but having a draft you disagree with is much easier to write *against* than staring at an empty cursor.
 
 ### Use Extract entities after writing or importing a chapter
 
-You wrote a chapter and a new innkeeper character appeared. Did you remember to add him to your Story Bible? **Extract entities** finds out. Especially useful after importing a draft from another tool.
+> *"I imported a draft I wrote in another tool and I have no idea which of the characters in it are missing from my Story Bible."*
+
+You wrote (or imported) a chapter and a new innkeeper character appeared. Did you remember to add him to your Story Bible? **Extract entities** finds out — it surfaces the people, places, and objects in the prose that don't yet have entries, so you can stub them out before they multiply.
 
 ---
 
@@ -127,7 +142,7 @@ You wrote a chapter and a new innkeeper character appeared. Did you remember to 
 
 ## Writer Lab vs. the editor's bubble menu
 
-Both surfaces have similar AI actions (Rewrite, Tighten, prose passes, etc.). The difference:
+Both surfaces have similar AI actions (Rewrite, Tighten, line edits, etc.). The difference:
 
 - **Bubble menu** — works on the current selection in the current chapter, with the result shown as an inline diff you accept or reject line-by-line. Best for **small, targeted edits in flow**.
 - **Writer Lab** — works on any passage, in a standalone panel, with the result kept separate from your manuscript. Best for **experimentation, structural critique, and any operation you don't want committed**.

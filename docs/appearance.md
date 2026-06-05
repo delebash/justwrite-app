@@ -26,6 +26,8 @@ If at any point things look wrong, the **Reset to defaults** button at the botto
 
 ## Typography
 
+> *"I've been writing for three hours and my eyes are burning. I don't know if it's the font or the screen or just the hour, but I need to change something before I call it."*
+
 These are the controls that most affect daily writing comfort.
 
 ### Font pairings
@@ -102,6 +104,8 @@ You can break the convention — make Danger orange, make Success teal — but t
 
 ## Backgrounds
 
+> *"I write late at night and the white page is basically a flashlight pointed at my face. I want something warmer that I can actually sit with for two hours."*
+
 These set the canvas the rest of the app sits on.
 
 - **App background tint** — the colour behind everything
@@ -112,11 +116,13 @@ These set the canvas the rest of the app sits on.
 
 Each tint has curated swatches plus a free colour picker.
 
-**Why a writer would care.** The Editor paper tint is genuinely important for long writing sessions. A pure-white background is glaring; a slight warm cream is easier on the eyes. If you write at night, a darker paper tint plus dark mode reduces strain. Find a combination you can live in.
+The Editor paper tint is the one worth spending a minute on. A pure-white background is glaring; a slight warm cream is easier on the eyes over a long session. If you write at night, a darker paper tint plus dark mode reduces strain. Find a combination you can actually live in.
 
 ---
 
 ## Editor layout
+
+> *"The edge-to-edge text stretches all the way across my monitor and I keep losing my place at the end of each line. I just want it to look like a page."*
 
 Two options:
 
@@ -129,6 +135,8 @@ Two options:
 
 ## Editor writing defaults
 
+> *"The lines feel crammed together and I can't tell where one paragraph ends and the next begins. I'm rereading the same sentence twice."*
+
 These are global defaults for the editor. Per-chapter overrides are available in the editor's writing-settings gear icon (which takes precedence over these).
 
 - **Font size** — Small (15px) / Medium (18px) / Big (21px)
@@ -136,7 +144,7 @@ These are global defaults for the editor. Per-chapter overrides are available in
 - **Paragraph spacing** — 0 / 0.3em / 0.5em / 0.8em / 1em
 - **First-line indent** — Indent / No indent
 
-**Why a writer would care.** Editor writing settings are the second-biggest comfort lever after font choice. Line spacing of 1.6–1.8 is easier to read than the tight 1.3; a paragraph spacing of 0.3em makes prose breathe. First-line indent is a taste call — indented paragraphs feel like a book, no-indent paragraphs feel like the web.
+These are the second-biggest comfort lever after font choice. Line spacing of 1.6–1.8 is easier to read than the tight default 1.3; a paragraph spacing of 0.3em makes prose breathe. First-line indent is a taste call — indented paragraphs feel like a book, no-indent feels like the web.
 
 ---
 

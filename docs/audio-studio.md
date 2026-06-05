@@ -1,5 +1,7 @@
 # Audio Studio
 
+> *"I want my novel as an audiobook, and I can't afford to hire a narrator. Or I'm halfway through revisions and I want to *hear* my prose read back so I can catch what my eyes keep skipping."*
+
 The **Studio** view is where you turn your written manuscript into a narrated audiobook. It walks you through three sequential stages, presented as three tabs:
 
 1. **Cast** — choose voices for the narrator and every character.
@@ -26,6 +28,8 @@ A note on **Web Speech** (your operating system's built-in voices): JustWrite ca
 ---
 
 ## Cast — assigning voices
+
+> *"I want each character to sound like a different person — and I'd rather not spend three hours auditioning every voice against every character."*
 
 The **Cast** tab is where you pick a voice for each character and for the narrator.
 
@@ -134,11 +138,25 @@ For a 100,000-word novel, this is a multi-day process — partly because of TTS 
 
 ## A few less-obvious uses
 
-Some non-audiobook uses for Studio:
+Studio earns its keep even if you never ship an audiobook. Three writer-problems it quietly solves:
 
-- **Read your prose aloud as a revision technique.** Render a single chapter and listen. You will hear clunky sentences, repeated words, and rhythm problems that your eye missed. This is older than the recording industry: writers have read aloud for centuries to catch what reading silently can't.
-- **Check dialogue attribution clarity.** If the Script tab gets a line wrong, your reader probably will too. Use it as a diagnostic for "does this dialogue read cleanly?"
-- **Make an early audiobook for beta readers.** A rough TTS render is enough for a beta reader who prefers listening over reading.
+### Read your prose aloud as a revision technique
+
+> *"I keep missing the same clunky sentences when I re-read silently — my eye fills in what I meant instead of what I wrote."*
+
+Render a single chapter and listen. You will hear clunky sentences, repeated words, and rhythm problems that your eye missed. This is older than the recording industry: writers have read aloud for centuries to catch what reading silently can't — TTS just removes the friction of doing it yourself. A flat-affect synthetic narrator is, perversely, *better* than a great human reader for this: it doesn't paper over a weak sentence with charm.
+
+### Check dialogue attribution clarity
+
+> *"My beta reader said she lost track of who was speaking in the argument scene — but reading it back, every line seems obviously attributed to me."*
+
+If the Script tab gets a line wrong, your reader probably will too. The LLM that runs Script is doing roughly what your reader does: scanning for cues that say "this is character A, not character B." Use it as a diagnostic for "does this dialogue read cleanly?" — when the Script tab misattributes, that's the spot to add a beat or a tag.
+
+### Make an early audiobook for beta readers
+
+> *"Half my beta readers listen rather than read, and I don't have a finished audiobook to give them yet."*
+
+A rough TTS render is enough for a beta reader who prefers listening over reading. The voices won't be perfect — but plot, character, pacing all land, and you get genuine reactions instead of a "I'll get to it when I have time" stall.
 
 ---
 

@@ -6,6 +6,8 @@ Two small but heavily-used surfaces.
 
 ## Notes
 
+> *"I have an idea I'm not ready to commit to a chapter yet, and I don't want to lose it between now and tomorrow."*
+
 The **Notes** view (Planning section in the sidebar) is a scratch-pad. Each note is a single free-form rich-text document with a title and one optional tag.
 
 ### What's on the page
@@ -17,6 +19,8 @@ The **Notes** view (Planning section in the sidebar) is a scratch-pad. Each note
 - **Rich-text body** — the same full editor as chapters and worldbuilding articles. Headings, lists, links, images, tables, the lot.
 
 ### When to use Notes
+
+> *"This isn't a character profile, it's not a worldbuilding article — it's just something I need to remember while I write this act."*
 
 A Note is the right home for anything that doesn't fit the structured views:
 
@@ -30,6 +34,8 @@ A Note is the right home for anything that doesn't fit the structured views:
 If you find yourself writing free-form thoughts and they don't belong to a Character, Location, Object, Worldbuilding article, or Architecture document, write them as a Note.
 
 ### Bringing existing notes in
+
+> *"I've been doing all my research in a folder of Markdown files. I want to pull it into the project without retyping anything."*
 
 If you already have research, outlines, or scratch text in Word, Markdown, or plain text, the **Import** view's **Add notes** mode pulls it straight into the project. Each heading in the file becomes one note (a flat file becomes one). You can drop multiple files at once, set a tag for the whole batch, and pin every imported note to a specific chapter or scene in one shot. See [Import and export](import-and-export.md) for the details.
 
@@ -49,6 +55,8 @@ Because Notes use the same rich-text editor as chapters, you can `@`-mention any
 
 ### Pinning a note to a chapter or scene
 
+> *"I had a thought about exactly this scene — a detail I can't forget — and I want it to live right here where I'll find it when I'm writing, not buried in the general Notes list."*
+
 By default a note is **story-wide** — it lives in the Notes view, anchored to nothing in particular. You can pin a note to a specific chapter or scene with the anchor picker in the note header (the pin icon to the left of the tag field). The picker is a chapter-and-scene list — pick any to re-anchor, or pick "Story-wide" to unanchor.
 
 A pinned note shows up where you'd expect to find it:
@@ -61,6 +69,8 @@ In both views the "Add note" button creates a new note already pre-anchored to t
 ---
 
 ## Search
+
+> *"Where did I put that detail about the scar? I know I wrote it somewhere — a chapter, a character page, a note — but I can't find it."*
 
 The **Search** view (top of the Manuscript section in the sidebar) is full-text search across everything you've written.
 
@@ -94,6 +104,8 @@ If you also use Studio's Script tab to detect who speaks in which chapter, that 
 
 ### When to use Search
 
+> *"I mentioned something about the lighthouse in chapter three, or maybe chapter seven — I just need to find it fast and jump there."*
+
 Search is the fastest way to answer questions like:
 
 - "Where did I mention the lighthouse?"
@@ -105,6 +117,8 @@ The kind filter is essential when looking for a name. Without it, searching for 
 
 ### Project-wide find and replace
 
+> *"I've decided the character's name is Maren, not Maya — and I used 'Maya' about three hundred times across twenty chapters."*
+
 The **Replace** button in the Search header opens a project-wide replace dialog — useful when you decide to rename a character across the entire book, or fix a typo you made consistently.
 
 Shortcut: **Ctrl/⌘ + Shift + F** opens replace directly.
@@ -114,6 +128,8 @@ Replace shows you a preview of every match before committing. You can apply sele
 **Why a writer would use it.** Renaming a character is the obvious case. Less obvious uses: changing tense in a chapter you've decided was wrong, fixing a place name you misspelled for half the book, or systematically cutting a verbal tic you noticed in revision ("I just realised I've used 'just' 240 times").
 
 ### The "Ask the book" chat
+
+> *"I don't want to search for a word — I want to ask 'does Aria know about her father's debt by the end of act two?' and have the book answer me."*
 
 A different feature in the same neighbourhood: the **Ask the book** chat panel (Manuscript section, or **Ctrl/⌘ + J**) lets you ask natural-language questions about your manuscript and get answers that cite the chapters they came from. This is a separate feature from Search — Search finds exact matches, Ask the book reasons over the whole text.
 

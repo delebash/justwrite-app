@@ -8,6 +8,8 @@ This page explains each in turn, and (importantly) when you would use one vs. an
 
 ## Narrative strands — the short answer
 
+> *"My romance subplot and my main plot feel like they're running in parallel universes. I write chapters for one, then the other, and I've lost track of how they connect or whether one is even pacing the other."*
+
 A **narrative strand** is a continuous thread that runs through your manuscript and has its own internal shape — a beginning, turning points, and a resolution.
 
 That's an intentionally broad definition. Different writers draw the same map differently. In practice, a strand is whatever you decide is worth tracking as a through-line.
@@ -42,6 +44,8 @@ The **Strands** view (Manuscript section in the sidebar) is the dedicated notebo
 
 ### How to use it
 
+> *"I know roughly what my character arc is supposed to do, but every time I open a new chapter I'm re-reading my messy planning notes to remember where I left it."*
+
 Use Strands view when you are **planning a single thread in depth**. The notes body is where you think through:
 
 - What does this arc need to accomplish?
@@ -53,6 +57,8 @@ Use beats to mark the structural skeleton once you know roughly where the thread
 ---
 
 ## Plot Board — the wide-angle view
+
+> *"I have three subplots and I genuinely don't know if they're paced anywhere near each other. I need to see all of them at once, laid across all the chapters, before I can figure out what's wrong."*
 
 The **Plot Board** (Planning section in the sidebar) is a two-axis grid:
 
@@ -85,6 +91,8 @@ There's an **Apply template** dropdown that creates a new strand pre-loaded with
 When you apply one, all the beats start in the **Unassigned** column. You drag them onto chapters as you decide where they land.
 
 ### How to use it
+
+> *"Chapter 9 has four things happening and Chapter 12 has nothing. I don't know if that's intentional pacing or if I just forgot to write the middle."*
 
 The Plot Board is for asking **structural questions**:
 
@@ -130,6 +138,8 @@ Events are biographical and historical records:
 
 ### Why a writer would use this
 
+> *"I just wrote a scene where my character mentions her mother died when she was twelve — but I already wrote somewhere that she was nine. I have no idea which is right because I never wrote it down properly."*
+
 Events are most valuable when your story has **dates that matter**:
 
 - Historical fiction
@@ -149,6 +159,8 @@ The **Timeline** view (Planning section in the sidebar) is a read-only **merged*
 Each row shows the weekday, date, time, title, optional note, and an icon badge identifying who or what the event belongs to. Click the title to edit the event; click the badge to jump to the entity's page.
 
 ### When to use it
+
+> *"I need to check whether Aria could physically have been in Dunmore before the flood, given when she left the capital. I've scattered that information across three character pages and I can't hold it all in my head at once."*
 
 Use the Timeline when you need to **audit chronology**:
 

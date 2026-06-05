@@ -1,5 +1,7 @@
 # Brainstorm
 
+> *"I need twenty names for this frontier tavern and I don't want any of them cluttering my project — I just need something to pick from so I can get back to the scene."*
+
 Brainstorm is the panel you open when you're stuck on "what should I *call* this thing." Give it a category (Character names, Place names, Item names, Titles, or a free prompt), a seed describing the vibe you're after, and it produces 15–20 short candidates. Thumbs-up the ones you like, click **More like these**, and the next batch drifts in that direction. Copy the winners into your story bible (or your manuscript) and close the panel — nothing here is saved.
 
 It's a transient generator, not a note-taking surface. The Notes view is where you write your thinking down to keep; Brainstorm is for the moment when you want twenty options for a tavern's name and you don't want any of them to live in your project permanently.
@@ -49,6 +51,8 @@ You can also start a completely new run at any time — typing a new seed and hi
 ---
 
 ## What Brainstorm is *not*
+
+> *"I thumbed up six names I liked, navigated away to check a character's notes, and came back to an empty panel."*
 
 - **It's not a notes feature.** Nothing persists between sessions; close the panel and the suggestions are gone. If you want to keep a brainstorm session for later, copy the suggestions you care about into a Note (or directly into a character/location/etc.).
 - **It's not a name *committer*.** Brainstorm doesn't write to your project. Clicking **Use** copies to the clipboard — you decide where the result lands.
