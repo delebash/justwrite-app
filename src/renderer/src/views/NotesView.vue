@@ -2,6 +2,7 @@
 import { computed, ref, watch } from "vue";
 import JwInput from "@renderer/components/ui/JwInput.vue";
 import JwButton from "@renderer/components/ui/JwButton.vue";
+import JwSelect from "@renderer/components/ui/JwSelect.vue";
 import { useProjectStore } from "../stores/project.js";
 import { useUiStore } from "../stores/ui.js";
 import { useRouter } from "vue-router";
@@ -67,6 +68,55 @@ async function addNote() {
   if (!title) return;
   const id = project.addNote({ title }); ui.select("notes", id); router.push(`/notes/${id}`);
 }
+// ── Anchor: chapter / scene that this note is pinned to ───────────
+// One JwSelect lists every chapter and scene in order so the writer
+// can re-anchor (or unanchor) without leaving the note. Value shape
+// matches what addNote / updateNote expect: "" → null, "ch:<id>" →
+// { chapterId }, "scn:<chId>:<sceneId>" → { chapterId, sceneId }.
+const anchorOptions = computed(() => {
+  const opts = [{ label: "Story-wide (no anchor)", value: "" }];
+  for (const c of project.allChapters) {
+    opts.push({ label: `Ch. ${c.num} · ${c.title || "Untitled"}`, value: `ch:${c.id}` });
+    const scenes = project.scenesFor(c.id);
+    scenes.forEach((s, i) => {
+      opts.push({
+        label: `   Ch. ${c.num} · Scene ${i + 1}${s.title ? " — " + s.title : ""}`,
+        value: `scn:${c.id}:${s.id}`,
+      });
+    });
+  }
+  return opts;
+});
+const anchorValue = computed({
+  get() {
+    const a = n.value?.anchor;
+    if (!a) return "";
+    if (a.sceneId) return `scn:${a.chapterId}:${a.sceneId}`;
+    return `ch:${a.chapterId}`;
+  },
+  set(v) {
+    if (!n.value) return;
+    if (!v) { project.updateNote(n.value.id, { anchor: null }); return; }
+    if (v.startsWith("scn:")) {
+      const [, chapterId, sceneId] = v.split(":");
+      project.updateNote(n.value.id, { anchor: { chapterId, sceneId } });
+    } else if (v.startsWith("ch:")) {
+      const [, chapterId] = v.split(":");
+      project.updateNote(n.value.id, { anchor: { chapterId } });
+    }
+  },
+});
+const anchorLabel = computed(() => {
+  const a = n.value?.anchor;
+  if (!a) return "Story-wide";
+  const c = project.chapterById(a.chapterId);
+  if (!c) return "Stale anchor";
+  if (!a.sceneId) return `Ch. ${c.num}`;
+  const scenes = project.scenesFor(c.id);
+  const idx = scenes.findIndex((s) => s.id === a.sceneId);
+  return idx >= 0 ? `Ch. ${c.num} · Scene ${idx + 1}` : `Ch. ${c.num}`;
+});
+
 function deleteNote() {
   if (!n.value) return;
   project.removeNote(n.value.id);
@@ -86,6 +136,14 @@ function deleteNote() {
       <h1 v-else class="pane-h1">No notes</h1>
     </div>
     <div class="pane-actions">
+      <div v-if="n" class="note-anchor-wrap" v-tooltip.bottom="'Pin this note to a chapter or scene — it appears in that chapter\'s Notes panel'">
+        <Icon name="Pin" :size="11" class="note-anchor-icon" />
+        <JwSelect class="note-anchor-select"
+          :model-value="anchorValue"
+          @update:model-value="anchorValue = $event"
+          :options="anchorOptions"
+          aria-label="Note anchor" />
+      </div>
       <div v-if="n" class="note-tag-wrap">
         <JwInput fluid placeholder="tag"
           :model-value="n.tag"
@@ -145,6 +203,25 @@ function deleteNote() {
 }
 .note-title:hover { border-color: var(--border-soft); }
 .note-title:focus { border-color: var(--accent); background: var(--surface); box-shadow: 0 0 0 3px var(--accent-soft); }
+
+.note-anchor-wrap {
+  position: relative;
+  display: inline-flex; align-items: center; gap: 6px;
+  padding: 0 8px 0 10px;
+  border: 1px solid var(--border-soft); border-radius: 6px;
+  background: var(--surface);
+  max-width: 240px;
+  color: var(--muted);
+}
+.note-anchor-wrap:focus-within { border-color: var(--accent); box-shadow: 0 0 0 3px var(--accent-soft); }
+.note-anchor-icon { flex-shrink: 0; }
+.note-anchor-select { border: none; background: transparent; min-width: 160px; }
+.note-anchor-select :deep(button) {
+  border: none !important; background: transparent !important;
+  padding: 5px 0 !important;
+  box-shadow: none !important;
+  font-size: 12.5px;
+}
 
 .note-tag-wrap { position: relative; max-width: 120px; }
 .note-tag-suggest {

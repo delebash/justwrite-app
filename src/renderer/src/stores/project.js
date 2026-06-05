@@ -472,6 +472,13 @@ export const useProjectStore = defineStore("project", {
     objectById:        (s) => (id) => s.objects.find((o) => o.id === id),
     groupById:         (s) => (id) => s.groups.find((g) => g.id === id),
     noteById:          (s) => (id) => s.notes.find((n) => n.id === id),
+    // Notes anchored to a chapter (header-level OR any scene in that
+    // chapter). Used by the chapter view's "Notes" button to surface
+    // every note pinned anywhere in this chapter at once.
+    notesForChapter:   (s) => (chapterId) => s.notes.filter((n) => n.anchor?.chapterId === chapterId),
+    // Notes anchored specifically to a scene. Subset of notesForChapter
+    // for that scene's parent chapter.
+    notesForScene:     (s) => (sceneId) => s.notes.filter((n) => n.anchor?.sceneId === sceneId),
     worldbuildingById: (s) => (id) => s.worldbuilding.find((a) => a.id === id),
     strandById:      (s) => (id) => s.strands.find((x) => x.id === id),
     imagesFor:         (s) => (id) => s.images[id] || [],
@@ -874,6 +881,14 @@ export const useProjectStore = defineStore("project", {
         ...this.scenes,
         [chapterId]: list.filter((s) => s.id !== sceneId),
       };
+      // Notes anchored to this scene re-bind to the parent chapter so the
+      // writer's annotations aren't silently orphaned. Restoring the scene
+      // from trash won't auto-re-attach them (anchors stay at chapter
+      // level) — that's the trade for keeping the notes findable now.
+      this.notes = this.notes.map((n) =>
+        n.anchor?.sceneId === sceneId
+          ? { ...n, anchor: { chapterId } }
+          : n);
       this._recomputeChapterWords(chapterId);
       this._toast(`Removed scene${scene.title ? ` "${scene.title}"` : ""}`, "scenes", sceneId);
       this._persist();
@@ -1162,7 +1177,10 @@ export const useProjectStore = defineStore("project", {
       this._record("addNote");
       const id = uid("n");
       const today = new Date().toLocaleDateString("en-US", { month: "short", day: "numeric" });
-      this.notes.push({ id, title: "Untitled note", body: "", tag: "note", updated: today, ...input });
+      // anchor = null     → story-wide note (default)
+      // anchor = { chapterId }            → pinned to a chapter
+      // anchor = { chapterId, sceneId }   → pinned to a specific scene
+      this.notes.push({ id, title: "Untitled note", body: "", tag: "note", updated: today, anchor: null, ...input });
       this._persist();
       return id;
     },
