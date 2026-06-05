@@ -134,6 +134,7 @@ const NAV = [
 
   { section: "sidebar.sections.project" },
   { id: "analysis",  label: "nav.analysis",  icon: "Chart" },
+  { id: "reader-knowledge", label: "sidebar.nav.readerKnowledge", icon: "Eye", path: "/reader-knowledge", activeName: "readerknowledge" },
   { id: "export",    label: "nav.export",    icon: "Export" },
   { id: "trash",     label: "nav.trash",     icon: "Trash" },
   { id: "settings",  label: "nav.settings",  icon: "Settings" },

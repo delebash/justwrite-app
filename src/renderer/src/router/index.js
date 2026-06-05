@@ -69,6 +69,7 @@ const routes = [
   { path: "/relations",          name: "Relations",     component: () => import("../views/RelationsView.vue") },
   { path: "/studio/:tab?",       name: "Studio",        component: () => import("../views/StudioView.vue"), props: true },
   { path: "/analysis",          name: "Analysis",      component: () => import("../views/AnalysisView.vue") },
+  { path: "/reader-knowledge",  name: "ReaderKnowledge", component: () => import("../views/ReaderKnowledgeView.vue") },
   { path: "/import",            name: "Import",        component: () => import("../views/ImportView.vue") },
   { path: "/export",            name: "Export",        component: () => import("../views/ExportView.vue") },
   { path: "/trash",             name: "Trash",         component: () => import("../views/TrashView.vue") },

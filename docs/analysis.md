@@ -152,5 +152,6 @@ If you don't run Studio analysis, the dashboard still works; the dialogue breakd
 ## See also
 
 - **[Writing](writing.md)** — the editor that feeds the word counts and session log
+- **[Reader knowledge](reader-knowledge.md)** — the dramatic-irony map (separate view, LLM-powered)
 - **[Audio Studio](audio-studio.md)** — the Script analysis that powers cast presence and dialogue breakdown
 - **[Plot and time](plot-and-time.md)** — strand tagging that powers strand distribution

@@ -154,7 +154,7 @@ You don't add Web Speech as a provider — it's just there.
 
 The defaults are convenient but limiting. Once you have two or more providers, you may want to send different features to different ones.
 
-In **Settings → AI & Audio engines → Feature routing** you can pin each of seven features to its own provider and model:
+In **Settings → AI & Audio engines → Feature routing** you can pin each of eight features to its own provider and model:
 
 | Feature | What it does |
 |---|---|
@@ -165,6 +165,7 @@ In **Settings → AI & Audio engines → Feature routing** you can pin each of s
 | **Resume briefing** | The Home "Previously on your novel" card that orients you after a break |
 | **Session recap** | The Home "Wrap up session" end-of-day recap that summarises what you wrote and pins open threads |
 | **Foreshadowing scan** | The Markers view "Find dangling threads" scan that surfaces setups that may not have paid off |
+| **Reader knowledge** | The Reader knowledge view's per-chapter dramatic-irony analysis (reader vs. POV knowledge) |
 
 Setting "Inherit default" for any feature uses your global Default LLM.
 
@@ -178,6 +179,7 @@ Setting "Inherit default" for any feature uses your global Default LLM.
 - **Resume briefing**: inherits default (a fast local model is fine here — it's a short, structured task)
 - **Session recap**: inherits default (same reasoning — short structured output, no need for the heavy provider)
 - **Foreshadowing scan**: pinned to Claude (long-context structural reasoning helps catch subtler setups; runs once per chapter so the per-call cost adds up — pick your battle)
+- **Reader knowledge**: pinned to Claude (same reasoning — sequential per-chapter calls benefit from strong reading comprehension; a smaller model produces noisier facts)
 - **TTS**: Kokoro (free, local, fast)
 
 This pattern keeps day-to-day cost near zero and only spends on the two features where cloud quality genuinely matters.

@@ -51,11 +51,13 @@ Sister feature to #1. When the user closes a sprint or hits a target, summarize 
 
 **Shipped as:** A **Find dangling threads** button on the Markers view header opens a scan modal that walks every chapter (bounded-concurrency pool) calling `extractThreads()`. Each chapter returns setups categorised as promise / object / question / ability / secret / threat / debt, with verbatim snippets and a "keyTerm" the model picks for downstream matching. A post-pass scans later chapters for each keyTerm and classifies setups as **Dangling** (key term never reappears) or **Mentioned later** (appears in N later chapters). Already-pinned setups are filtered out by comparing against existing Loose-thread / TODO markers. The review UI groups proposals by chapter with per-thread **Pin** buttons (drops a Loose-thread marker at the exact snippet via `addMarkerToSceneHtml`) and a **Pin all dangling** bulk action. Routable as the **foreshadowing** feature in Settings → AI. Services: `services/analysis/threadExtraction.js`, `services/analysis/foreshadowingScan.js`. Modal: `components/ForeshadowingScanModal.vue`. Docs: `docs/markers.md`.
 
-### 4. Reader-knowledge vs character-knowledge tracker (dramatic-irony map)
+### 4. Reader-knowledge vs character-knowledge tracker (dramatic-irony map) — **Shipped**
 
 **Writer problem:** "I'm writing a mystery and I can't keep straight what the reader has figured out vs. what my protagonist knows."
 
 **Why it's interesting:** Genuinely doesn't exist anywhere as a built tool. For mystery/thriller/suspense/unreliable-narrator writers it would be a "why didn't this exist before" moment. Per chapter, the LLM tracks two knowledge sets (reader vs POV character) and renders a timeline — green = aligned, gold = dramatic irony, red = reader confused. Differentiating and scopable.
+
+**Shipped as:** A new top-level **Reader knowledge** view at `/reader-knowledge` (sidebar Project section, Eye icon). Sequential per-chapter LLM sweep — each call receives the accumulated reader/POV fact lists from prior chapters and returns the deltas + a status classification (aligned/dramatic-irony/reader-confused/neutral) + a rationale. Per-chapter results persist on `chapter.readerKnowledge` (mirrors `chapter.critique`). UI: coloured chapter strip, knowledge-growth chart (two cumulative lines: reader vs POV), stats row, detail panel with rationale + new-facts deltas + jump-to-chapter link. Cancellable mid-sweep — partial results stay. Routable as the **readerKnowledge** feature in Settings → AI. Service: `services/analysis/readerKnowledge.js`. View: `views/ReaderKnowledgeView.vue`. Docs: `docs/reader-knowledge.md`.
 
 ### 5. Voice-drift timeline across chapters
 

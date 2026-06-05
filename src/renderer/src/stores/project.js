@@ -654,6 +654,43 @@ export const useProjectStore = defineStore("project", {
       }));
       this._persist();
     },
+    // Persist a reader-knowledge entry on a chapter. Shape:
+    //   { povCharacter, newReaderFacts, newPovFacts, status, rationale,
+    //     totalReaderKnown, totalPovKnown, activeIronyCount,
+    //     generatedAt, model }
+    // Written per-chapter as the sequential sweep walks the manuscript
+    // so the user sees partial results immediately on cancel.
+    setChapterReaderKnowledge(id, readerKnowledge) {
+      this._record("setChapterReaderKnowledge");
+      this.parts = this.parts.map((p) => ({
+        ...p,
+        chapters: p.chapters.map((c) => (c.id === id ? { ...c, readerKnowledge } : c)),
+      }));
+      this._persist();
+    },
+    clearChapterReaderKnowledge(id) {
+      this._record("clearChapterReaderKnowledge");
+      this.parts = this.parts.map((p) => ({
+        ...p,
+        chapters: p.chapters.map((c) => {
+          if (c.id !== id) return c;
+          const { readerKnowledge, ...rest } = c;
+          return rest;
+        }),
+      }));
+      this._persist();
+    },
+    clearAllReaderKnowledge() {
+      this._record("clearAllReaderKnowledge");
+      this.parts = this.parts.map((p) => ({
+        ...p,
+        chapters: p.chapters.map((c) => {
+          const { readerKnowledge, ...rest } = c;
+          return rest;
+        }),
+      }));
+      this._persist();
+    },
     setChapterTitle(id, title) {
       this._record("setChapterTitle");
       this.parts = this.parts.map((p) => ({ ...p, chapters: p.chapters.map((c) => c.id === id ? { ...c, title } : c) }));
