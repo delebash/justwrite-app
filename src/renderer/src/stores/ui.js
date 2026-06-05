@@ -24,7 +24,16 @@ function presetPatchFrom(a) {
 }
 
 function load() {
-  try { return JSON.parse(getItem(LS_KEY) || "{}"); } catch { return {}; }
+  try {
+    const saved = JSON.parse(getItem(LS_KEY) || "{}");
+    // Legacy: "cards" used to be a top-level chapter mode; it's now an
+    // edit-mode style. Migrate so the user lands in the same view.
+    if (saved.chapterMode === "cards") {
+      saved.chapterMode = "edit";
+      saved.chapterEditStyle = "cards";
+    }
+    return saved;
+  } catch { return {}; }
 }
 
 function save(state) {
@@ -63,6 +72,15 @@ export const useUiStore = defineStore("ui", {
       // Persists across chapters AND reloads — once a writer turns it
       // on, it stays on for every chapter until they toggle it back.
       continuousChapter: false,
+      // Which pane the chapter view opens to: "edit" | "outline" |
+      // "read". Persists so the user's chosen pane survives navigation
+      // and reload.
+      chapterMode: "edit",
+      // Presentation style within edit mode: "list" (scene-by-scene
+      // editor — the default) or "cards" (corkboard grid). Persists
+      // independently of mode so the user's preferred edit style is
+      // remembered even when they switch to outline / read and back.
+      chapterEditStyle: "list",
       // Scroll-driven scene highlight for Read mode's whole-book scope.
       // Not persisted — flooding IDB on every scroll tick is wasteful, and
       // on reload there's nothing meaningful to restore to anyway.
@@ -200,6 +218,14 @@ export const useUiStore = defineStore("ui", {
       this.continuousChapter = !!on;
       this._persist();
     },
+    setChapterMode(m) {
+      this.chapterMode = m;
+      this._persist();
+    },
+    setChapterEditStyle(s) {
+      this.chapterEditStyle = s;
+      this._persist();
+    },
 
     _persist() {
       save({
@@ -212,6 +238,8 @@ export const useUiStore = defineStore("ui", {
         editorSettings: this.editorSettings,
         locale: this.locale,
         continuousChapter: this.continuousChapter,
+        chapterMode: this.chapterMode,
+        chapterEditStyle: this.chapterEditStyle,
       });
     },
   },

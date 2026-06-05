@@ -43,7 +43,22 @@ const speakersByChapter = computed(() => {
   return out;
 });
 
-const mode = ref("edit"); // "edit" | "outline" | "cards" | "read"
+// Mode persists on the ui store so a user's preferred view
+// (edit / outline / read) survives navigation and reload.
+const mode = computed({
+  get: () => ui.chapterMode,
+  set: (v) => ui.setChapterMode(v),
+});
+// Within edit mode, the user can present scenes as a vertical list
+// (the default scene editor) or as a corkboard of cards. The chosen
+// preference persists; the *effective* display falls back to "list"
+// whenever a scene is focused (cards don't carry a single-scene view),
+// without overwriting the stored preference — that way clicking a
+// card and then navigating back to the chapter heading restores cards.
+const editStyle = computed({
+  get: () => activeScene.value ? "list" : ui.chapterEditStyle,
+  set: (v) => ui.setChapterEditStyle(v),
+});
 // Read mode has two scopes: a single chapter (existing prev/next paging) or
 // the whole book stitched into one continuous scroll. In whole-book scope an
 // IntersectionObserver tracks which scene is in view and updates the sidebar.
@@ -54,7 +69,6 @@ const critiqueOpen = ref(false);
 const MODES = [
   { value: "edit",    label: "Edit",    icon: "Quote" },
   { value: "outline", label: "Outline", icon: "List" },
-  { value: "cards",   label: "Cards",   icon: "Grid" },
   { value: "read",    label: "Read",    icon: "Eye" },
 ];
 const READ_SCOPE_OPTIONS = [
@@ -153,12 +167,19 @@ const crumbs = computed(() => {
   return segs;
 });
 
-// A navigation to a different chapter/scene (e.g. clicking the sidebar)
-// should drop the structural overview modes back into the editor —
-// otherwise outline/cards are "sticky" and swallow the navigation. Read
-// mode is left alone so its own prev/next chapter paging keeps working.
-watch(() => [props.id, props.sceneId], () => {
-  if (mode.value === "outline" || mode.value === "cards") mode.value = "edit";
+// Explicit scene focus (clicking a scene in the sidebar) drops into
+// edit mode — the user picked a scene and wants to edit it. The
+// editStyle computed automatically returns "list" while a scene is
+// focused without modifying the user's stored preference, so cards
+// return when they navigate back to the chapter heading. Outline
+// shows whole-manuscript structure so it also resets on any chapter
+// switch.
+watch(() => [props.id, props.sceneId], ([newId, newSceneId], [oldId, oldSceneId]) => {
+  if (newSceneId && newSceneId !== oldSceneId) {
+    mode.value = "edit";
+    return;
+  }
+  if (mode.value === "outline") mode.value = "edit";
 });
 
 function goToScene(sceneId) {
@@ -256,10 +277,10 @@ function removeScene(scene) {
   if (!ch.value || !scene) return;
   if (scenes.value.length <= 1) return;
   // After delete, move to the next remaining scene (or the previous if
-  // we just deleted the last one).
+  // we just deleted the last one). The store handles the trash entry
+  // and undo toast — view just navigates.
   const fallback = nextScene.value || prevScene.value;
   project.removeScene(ch.value.id, scene.id);
-  ui.showToast({ message: `Removed scene${scene.title ? ` "${scene.title}"` : ""}.` });
   if (fallback) goToScene(fallback.id);
 }
 
@@ -568,16 +589,14 @@ watch(() => project.allChapters.map((c) => c.id + ":" + (project.scenesFor(c.id)
           <span>{{ option.label }}</span>
         </template>
       </JwSegmented>
-      <router-link v-if="prev" :to="`/chapters/${prev.id}`" custom v-slot="{ navigate }">
-        <JwButton intent="ghost" size="small" @click="navigate" v-tooltip.bottom="`Ch. ${prev.num} — ${prev.title}`">
-          <Icon name="ChevRight" :size="12" style="transform:rotate(180deg)" /> Prev
-        </JwButton>
-      </router-link>
-      <router-link v-if="next" :to="`/chapters/${next.id}`" custom v-slot="{ navigate }">
-        <JwButton intent="ghost" size="small" @click="navigate" v-tooltip.bottom="`Ch. ${next.num} — ${next.title}`">
-          Next <Icon name="ChevRight" :size="12" />
-        </JwButton>
-      </router-link>
+      <JwButton intent="ghost" size="small" @click="versionsOpen = true" v-tooltip.bottom="'Version history — save & restore snapshots of this chapter'">
+        <Icon name="History" :size="13" /> Versions
+      </JwButton>
+      <JwButton intent="ghost" size="small" @click="critiqueOpen = true" v-tooltip.bottom="'AI critique — notes + structural analysis for this chapter'">
+        <Icon name="Sparkle" :size="13" />
+        Critique
+        <span v-if="ch?.critique?.notes?.length" class="critique-pill">{{ ch.critique.notes.length }}</span>
+      </JwButton>
       <JwButton v-if="activeScene" intent="ghost" size="small" @click="splitChapterHere" v-tooltip.bottom="'Split this chapter at the cursor'">
         <Icon name="Replace" :size="13" /> Split here
       </JwButton>
@@ -715,36 +734,6 @@ watch(() => project.allChapters.map((c) => c.id + ":" + (project.scenesFor(c.id)
    </div>
   </div>
 
-  <!-- ── CARDS / CORKBOARD MODE ───────────────────────────────── -->
-  <div v-else-if="ch && mode === 'cards'" class="pane-card">
-   <div class="scrollarea cards-pane">
-    <div class="cards-head">
-      <div>
-        <div class="t-eyebrow">Chapter {{ ch.num }}</div>
-        <h2 class="cards-title">{{ ch.title }}</h2>
-      </div>
-      <span class="t-muted" style="font-size:12px">Drag cards to reorder scenes</span>
-    </div>
-    <div class="cards-grid">
-      <div v-for="(scn, i) in scenes" :key="scn.id"
-        class="scene-card" :class="{ dragging: dragSceneId === scn.id }"
-        draggable="true"
-        @dragstart="onCardDragStart(scn.id)"
-        @dragend="dragSceneId = null"
-        @dragover.prevent
-        @drop="onCardDrop(scn.id)"
-        @click="openScene(ch.id, scn.id)">
-        <div class="scene-card-num">{{ ch.num }}.{{ i + 1 }}</div>
-        <div class="scene-card-title">{{ scn.title || `Scene ${i + 1}` }}</div>
-        <div class="scene-card-body">{{ synopsis(scn) || "Empty scene." }}</div>
-      </div>
-      <button class="scene-card scene-card-add" @click="addSceneHere">
-        <Icon name="Plus" :size="18" /> <span>Add scene</span>
-      </button>
-    </div>
-   </div>
-  </div>
-
   <!-- ── READ MODE ────────────────────────────────────────────── -->
   <div v-else-if="ch && mode === 'read'" class="pane-card">
    <div class="read-mode">
@@ -818,23 +807,63 @@ watch(() => project.allChapters.map((c) => c.id + ":" + (project.scenesFor(c.id)
 
   <!-- ── EDIT MODE (default) ──────────────────────────────────── -->
   <div v-else-if="ch" class="pane-card">
-    <div style="padding:10px 22px;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:12px;flex-wrap:wrap">
-      <JwButton intent="ghost" size="small" @click="versionsOpen = true" v-tooltip.bottom="'Version history — save & restore snapshots of this chapter'">
-        <Icon name="History" :size="13" /> Versions
-      </JwButton>
-      <JwButton intent="ghost" size="small" @click="critiqueOpen = true" v-tooltip.bottom="'AI critique — notes + structural analysis for this chapter'">
-        <Icon name="Sparkle" :size="13" />
-        Critique
-        <span v-if="ch?.critique?.notes?.length" class="critique-pill">{{ ch.critique.notes.length }}</span>
-      </JwButton>
-      <JwButton intent="ghost" size="small" style="margin-left:auto"
-        :class="{ 'is-active': continuousMode }"
-        v-tooltip.bottom="continuousMode ? 'Switch back to single-scene editing' : 'Edit the whole chapter as one document (scene boundaries visible between)'"
-        @click="toggleContinuous">
-        <Icon name="Strands" :size="13" /> {{ continuousMode ? "Single scene" : "Continuous" }}
-      </JwButton>
+    <div style="padding:10px 22px;border-bottom:1px solid var(--border);display:grid;grid-template-columns:1fr auto 1fr;align-items:center;gap:12px">
+      <div style="display:flex;gap:12px;align-items:center;justify-self:start">
+        <JwButton intent="ghost" size="small"
+          :class="{ 'is-active': continuousMode }"
+          v-tooltip.bottom="continuousMode ? 'Switch back to single-scene editing' : 'Edit the whole chapter as one document (scene boundaries visible between)'"
+          @click="toggleContinuous">
+          <Icon name="Strands" :size="13" /> {{ continuousMode ? "Single scene" : "Continuous" }}
+        </JwButton>
+        <JwButton v-if="!activeScene" intent="ghost" size="small"
+          v-tooltip.bottom="editStyle === 'cards' ? 'Switch back to the scene-by-scene editor' : 'Show this chapter\'s scenes as a corkboard of cards'"
+          @click="editStyle = editStyle === 'cards' ? 'list' : 'cards'">
+          <Icon :name="editStyle === 'cards' ? 'List' : 'Grid'" :size="13" />
+          {{ editStyle === 'cards' ? 'List view' : 'Card view' }}
+        </JwButton>
+      </div>
+      <div style="display:flex;gap:12px;align-items:center">
+        <JwButton v-if="prev" intent="ghost" size="small"
+          v-tooltip.bottom="`Ch. ${prev.num} — ${prev.title}`"
+          @click="goPrev">
+          <Icon name="ChevRight" :size="12" style="transform:rotate(180deg)" /> Previous chapter
+        </JwButton>
+        <JwButton v-if="next" intent="ghost" size="small"
+          v-tooltip.bottom="`Ch. ${next.num} — ${next.title}`"
+          @click="goNext">
+          Next chapter <Icon name="ChevRight" :size="12" />
+        </JwButton>
+      </div>
+      <div></div>
     </div>
 
+    <!-- ── Body switches between corkboard (cards) and the scene
+         editor (list). The bar above and footer below stay put so
+         the header is consistent across both styles. ──────────── -->
+    <template v-if="editStyle === 'cards'">
+      <div class="scrollarea cards-pane">
+        <p class="t-muted" style="font-size:12px;margin:0 0 14px">Drag cards to reorder scenes</p>
+        <div class="cards-grid">
+          <div v-for="(scn, i) in scenes" :key="scn.id"
+            class="scene-card" :class="{ dragging: dragSceneId === scn.id }"
+            draggable="true"
+            @dragstart="onCardDragStart(scn.id)"
+            @dragend="dragSceneId = null"
+            @dragover.prevent
+            @drop="onCardDrop(scn.id)"
+            @click="openScene(ch.id, scn.id)">
+            <div class="scene-card-num">{{ ch.num }}.{{ i + 1 }}</div>
+            <div class="scene-card-title">{{ scn.title || `Scene ${i + 1}` }}</div>
+            <div class="scene-card-body">{{ synopsis(scn) || "Empty scene." }}</div>
+          </div>
+          <button class="scene-card scene-card-add" @click="addSceneHere">
+            <Icon name="Plus" :size="18" /> <span>Add scene</span>
+          </button>
+        </div>
+      </div>
+    </template>
+
+    <template v-else>
     <!-- Single-scene editor: which scene shows is driven by the route
          hash (#scene-<id>), set by the sidebar's scene list. The
          prev/next/pill block is hidden in continuous mode — there's no
@@ -929,6 +958,7 @@ watch(() => project.allChapters.map((c) => c.id + ":" + (project.scenesFor(c.id)
         </button>
       </div>
     </div>
+    </template>
 
     <div style="display:flex;align-items:center;gap:16px;padding:8px 22px;border-top:1px solid var(--border);background:var(--surface-2);font-size:11.5px;color:var(--muted)">
       <span v-if="activeScene || continuousMode">
