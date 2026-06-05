@@ -247,7 +247,7 @@ If a translation flow is ever added, do it right: locked codex terms, character 
 
 - **Infinite spatial Canvas (Sudowrite-style):** Big UX investment, reinventing FigJam. Multi-year bet, not a feature.
 - **Real-time Hemingway-style highlighting:** Existing deterministic styleMetrics covers this; always-on inline highlights distract during drafting and conflict with the AI-diff UX.
-- **Yet another grammar/copyedit pass:** Grammarly and ProWritingAid have eaten this category. Don't compete on commodity line editing — the prose-pass system already does the literary stuff better suited to fiction.
+- **Yet another grammar/copyedit pass:** Grammarly and ProWritingAid have eaten this category. Don't compete on commodity line editing — the line-edit system already does the literary stuff better suited to fiction.
 - **Generic readability scoring (Flesch-Kincaid):** Penalizes literary prose. Adds noise, not signal.
 - **Beta-reader simulator as a one-shot review:** Tends toward diplomatic mush in practice. The reader-knowledge tracker (#4) is the better version of "reader perspective."
 

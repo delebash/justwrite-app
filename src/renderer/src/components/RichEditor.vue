@@ -573,7 +573,7 @@ watch(aiShowPreview, (v) => {
 // surfaces prose actions, so we always allow preview here; the lab
 // page can branch on this if it adds JSON actions later.
 function isProseAction(actionKey) {
-  // Match the writerAI ACTIONS plus PROSE_RULES (prose-pass actions
+  // Match the writerAI ACTIONS plus PROSE_RULES (line-edit actions
   // also stream readable text).
   return actionKey === "rewrite" || actionKey === "expand" ||
          actionKey === "tighten" || actionKey === "continue" ||

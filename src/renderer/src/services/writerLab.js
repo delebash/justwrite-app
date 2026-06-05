@@ -50,7 +50,7 @@ export const ACTION_GROUPS = [
     })),
   },
   {
-    label: "Prose passes",
+    label: "Line edits",
     items: PROSE_RULE_ORDER.map((k) => ({
       kind: "rule",
       key: k,
