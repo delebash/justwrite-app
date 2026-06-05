@@ -16,8 +16,8 @@ const project = useProjectStore();
 const ui = useUiStore();
 const router = useRouter();
 
-// Architecture is a fixed map of four documents (premise / fabula /
-// setting / global notes). Show one at a time, like Groups/Strands.
+// Architecture is a fixed map of three documents (premise / fabula /
+// setting). Show one at a time, like Groups/Strands.
 const docIds = computed(() => Object.keys(project.architecture));
 const doc = computed(() => {
   const id = props.id || ui.selections.architecture || docIds.value[0];
@@ -43,6 +43,13 @@ function openEvents() { router.push("/architecture/setting/events"); }
 
   <div v-if="doc" class="pane-card">
     <div class="arch-wrap scrollarea">
+      <p class="arch-desc">
+        <strong>Architecture</strong> holds your book's three foundation documents —
+        <strong>Premise</strong> (one paragraph: what the book is about),
+        <strong>Fabula</strong> (the cause-and-effect chain of events in story chronology),
+        and <strong>Setting</strong> (world and time-period context). These three slots are
+        always present; treat them as the bones the rest of your planning hangs on.
+      </p>
       <JwTextarea fluid class="arch-blurb" rows="2"
         placeholder="Blurb"
         :model-value="doc.blurb" @update:model-value="update('blurb', $event)" />
@@ -61,6 +68,12 @@ function openEvents() { router.push("/architecture/setting/events"); }
 </template>
 
 <style scoped>
+.arch-desc {
+  font-size: 14px; line-height: 1.55; color: var(--muted);
+  margin: 0;
+}
+.arch-desc strong { color: var(--ink-2); font-weight: 600; }
+
 .arch-wrap {
   flex: 1;
   min-height: 0;

@@ -158,7 +158,7 @@ export function buildIndex(project, speakers = null) {
     });
   }
 
-  // Architecture — premise, fabula, setting, global notes.
+  // Architecture — premise, fabula, setting.
   for (const [id, doc] of Object.entries(project.architecture || {})) {
     indexDoc({
       id: `architecture:${id}`,

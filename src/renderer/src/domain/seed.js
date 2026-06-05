@@ -465,7 +465,6 @@ export const ARCHITECTURE = {
   premise:     { id: "premise",     title: "Premise",      blurb: "The single sentence the novel can be reduced to.", status: "done",  words: 184,  body: "A reclusive cartographer's daughter inherits a ledger of places that no longer exist — and must decide which of them are worth bringing back." },
   fabula:      { id: "fabula",      title: "Fabula",       blurb: "The story as it happens in time.",                  status: "draft", words: 1240, body: "Part One — The Inheritance.\n\nPart Two — The Ledger.\n\nPart Three — What Returns." },
   setting:     { id: "setting",     title: "Setting",      blurb: "The world the book occupies.",                       status: "draft", words: 920,  body: "A north-facing coastline. Late spring into early autumn, 2026." },
-  globalnotes: { id: "globalnotes", title: "Global notes", blurb: "Anything that touches the whole project.",           status: "todo",  words: 240,  body: "Epigraph: still looking for a quieter source than Borges." },
 };
 
 export const WORLDBUILDING_CATEGORIES = [

@@ -2,33 +2,36 @@
 
 JustWrite has two homes for long-form planning prose that doesn't belong to any single character, location, or object:
 
-- **Architecture** — four fixed documents that hold your book's foundations.
+- **Architecture** — three fixed documents that hold your book's foundations.
 - **Worldbuilding** — a library of articles organised by category that you create yourself.
 
-The difference is structural: Architecture is **four permanent slots**, always in the same place, always with the same names. Worldbuilding is **a flexible library** you fill and organise however you want.
+The difference is structural: Architecture is **three permanent slots**, always in the same place, always with the same names. Worldbuilding is **a flexible library** you fill and organise however you want.
 
 ---
 
 ## Architecture
 
-The **Architecture** view (Manuscript section in the sidebar) houses four documents that every book gets:
+> *"I'm three chapters in and I already can't remember what I decided about the magic system or why the protagonist is on the road. I need one place to write down the bones of this book before I forget them."*
 
-### The four documents
+The **Architecture** view (Manuscript section in the sidebar) houses three documents that every book gets:
+
+### The three documents
 
 | Document | What goes here |
 |---|---|
 | **Premise** | What is this book about, in one paragraph? Your anchor — the sentence you come back to when the project starts to drift. |
 | **Fabula** | The cause-and-effect chain of your story. The sequence of events as they happen in the world's chronology (not necessarily the order the reader will encounter them). |
 | **Setting** | World and time-period context. What kind of place is this? What technology level, what kind of magic, what social rules? This document also has an **Events** button that opens the world's chronological event log. |
-| **Global Notes** | The catch-all for cross-cutting decisions. POV rules, tense, series continuity, formatting choices, anything you want to remember about how the whole book is supposed to work. |
 
-These documents are **always present** — you cannot create new ones or delete them. The fixed structure is the point: every book has these four layers of planning, and they have a permanent home.
+These documents are **always present** — you cannot create new ones or delete them. The fixed structure is the point: every book has these three layers of planning, and they have a permanent home.
+
+For cross-cutting decisions and project-wide reminders ("no flashbacks", "always third-person past", "the protagonist is never alone in a scene"), use a **story-wide note** in the [Notes](notes-and-search.md) view — leave the anchor as "Story-wide" and tag it however you like.
 
 ### What's in each document
 
 Each Architecture document has:
 
-- A **title** (inline-editable, though "Premise", "Fabula", "Setting", "Global Notes" are sensible defaults)
+- A **title** (inline-editable, though "Premise", "Fabula", "Setting" are sensible defaults)
 - A **blurb** — a short italic summary at the top
 - A **status** — the same project-wide palette as everything else
 - A **rich-text body** with the full editor toolbar
@@ -37,6 +40,8 @@ The Setting document also has an **Events** button that opens the world-level ch
 
 ### Why a writer would use it
 
+> *"I closed the laptop two weeks ago mid-chapter. I can't remember what I was building toward, and my Premise is buried somewhere in a notebook I can't find."*
+
 The Architecture documents are most useful **before** you start writing and during **revision**. During drafting you may not look at them for weeks at a time. That's fine — they're foundations, not active tools.
 
 A common rhythm:
@@ -44,7 +49,6 @@ A common rhythm:
 - **At the start of a project**, write a paragraph in **Premise** so you have something to come back to.
 - **Sketch the Fabula** before you start drafting if you plan, or after the first draft if you discovery-write — either way, getting the cause-and-effect chain explicit catches plot holes.
 - **Fill in Setting** as you make worldbuilding decisions. This is the place to write "magic costs blood" or "FTL travel takes nine days" once and refer back forever.
-- **Use Global Notes** for "no flashbacks", "always third-person past", "the protagonist is never alone in a scene", or whatever cross-cutting rules you set for yourself.
 
 Because these documents are reachable in two clicks from anywhere, they're faster to consult than scrolling through a long Worldbuilding article.
 
@@ -55,6 +59,8 @@ Because these documents are reachable in two clicks from anywhere, they're faste
 The **Worldbuilding** view (Story world section in the sidebar) is a library of reference articles organised by category.
 
 ### When to make a Worldbuilding article
+
+> *"My magic system has rules, costs, a whole lineage of practitioners — none of it belongs on any character sheet, and I've been copy-pasting it into chapter notes every time I need to check a detail."*
 
 A Worldbuilding article is the right home for any reference material that **doesn't belong on a character, location, or object sheet**. Examples:
 
@@ -68,6 +74,8 @@ A Worldbuilding article is the right home for any reference material that **does
 If you find yourself wanting to write *about* something rather than describe one specific instance of it, that's a Worldbuilding article.
 
 ### Categories
+
+> *"I have thirty-odd worldbuilding articles and scrolling the list to find the magic ones is getting old. I need to group them somehow."*
 
 Articles are organised into **categories** — buckets that you control. The defaults include things like Geography, Politics, History, Magic, Religion. You can add, rename, recolour, and delete categories in **Settings → Project → Worldbuilding categories**.
 
@@ -102,6 +110,8 @@ When you click into an article:
 
 ### How to use the category system
 
+> *"I want to see every article that's still a Draft, is tagged 'act two', and sits in the Politics category — all at once, without manually hunting."*
+
 Categories pay off when you have many articles. With 5 articles you don't need them; with 50 you can't navigate without them.
 
 A useful first split is **Setting, Magic, Politics, History, Culture, Other**. You can refine from there. Each category gets an icon and a colour so the sidebar tree stays readable even with dozens of articles.
@@ -121,13 +131,13 @@ Worldbuilding articles use the same status palette as chapters and characters �
 | One-paragraph premise of the book | **Architecture → Premise** |
 | Full chronological plot of the book | **Architecture → Fabula** |
 | Single document about the world's overall context | **Architecture → Setting** |
-| Cross-cutting rules ("always third person", "no flashbacks") | **Architecture → Global Notes** |
+| Cross-cutting rules ("always third person", "no flashbacks") | **Notes** (story-wide, no anchor) |
 | Deep article on a single worldbuilding topic | **Worldbuilding article** |
 | A category of articles (magic system, politics, religion) | **Worldbuilding** with its own category |
 | Notes specific to one character | **Character → Backstory** |
 | Notes specific to one location | **Location → Description** |
 
-In short: **Architecture is the foundation** (four slots, always there). **Worldbuilding is the library** (many articles, organised by category). **Character/Location/Object descriptions** are for what belongs to one specific entity.
+In short: **Architecture is the foundation** (three slots, always there). **Worldbuilding is the library** (many articles, organised by category). **Character/Location/Object descriptions** are for what belongs to one specific entity.
 
 ---
 
@@ -138,7 +148,7 @@ You're writing a fantasy novel.
 - **Premise** — *"A young cartographer must finish her dead father's atlas while a foreign empire moves to invade the territory it describes."* One paragraph. Anchors everything.
 - **Fabula** — A bullet list of events in story-world chronological order: the invasion's preparation, the father's death, the daughter's discovery of the partial atlas, etc.
 - **Setting** — Two paragraphs on the world: continent, technology level (early industrial), magic (cartomancy — maps have power), the political landscape.
-- **Global Notes** — *"Third-person past, single POV. The atlas is described in the present tense when quoted. Chapter titles are locations on the map."*
+- **Notes → story-wide** — *"Third-person past, single POV. The atlas is described in the present tense when quoted. Chapter titles are locations on the map."*
 - **Worldbuilding → Magic → "Cartomancy"** — a long article on how map-magic works. Rules, limits, costs, training, lineage. Status: Draft.
 - **Worldbuilding → Politics → "The Heliad Empire"** — an article on the invading power. History, structure, ambition. Status: Done.
 - **Worldbuilding → History → "The Long Peace"** — the 70 years before the novel begins. Status: To-do.
