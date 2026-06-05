@@ -16,15 +16,51 @@ const APP_BIN  = path.resolve(__dirname, "../src-tauri/target/release/justwrite.
 const EDGE_DRV = path.resolve(__dirname, "./drivers/msedgedriver.exe");
 const OUT_DIR  = path.resolve(__dirname, "../../justwrite-website/public/screenshots");
 
+// Each target may set `scroll` (CSS pixels) — applied to the inner
+// `.scrollarea` element if one exists, falling back to window.scrollTo.
+// Used to push past KPI strips on long pages so the screenshot lands
+// on the more visually interesting body sections.
 const TARGETS = [
-  { name: "studio",          hash: "#/studio",         wait: 2500 },
-  { name: "settings-ai",     hash: "#/settings/audio", wait: 2500 },
-  { name: "analysis-tauri",  hash: "#/analysis",       wait: 3000 },
-  { name: "worldbuilding",   hash: "#/worldbuilding",  wait: 2500 },
-  { name: "timeline",        hash: "#/timeline",       wait: 2500 },
-  { name: "plotboard-tauri", hash: "#/plot",           wait: 2500 },
-  { name: "characters",      hash: "#/characters",     wait: 2500 },
-  { name: "relations",       hash: "#/relations",      wait: 3000 },
+  // Manuscript
+  { name: "home-light",         hash: "#/",                    wait: 2500 },
+  { name: "editor",             hash: "#/chapters/ch4",        wait: 3000 },
+
+  // Story world
+  { name: "characters-list",    hash: "#/characters",          wait: 2500 },
+  { name: "characters",         hash: "#/characters/c1",       wait: 3000 },
+  { name: "locations",          hash: "#/locations",           wait: 2500 },
+  { name: "objects",            hash: "#/objects",             wait: 2500 },
+  { name: "groups",             hash: "#/groups/g1",           wait: 2500 },
+  { name: "architecture",       hash: "#/architecture",        wait: 2500 },
+  { name: "worldbuilding",      hash: "#/worldbuilding",       wait: 2500 },
+  { name: "relations",          hash: "#/relations",           wait: 3000 },
+
+  // Planning / structure
+  { name: "strands",            hash: "#/strands",             wait: 2500 },
+  { name: "plotboard",          hash: "#/plot",                wait: 2500 },
+  { name: "timeline",           hash: "#/timeline",            wait: 2500 },
+  { name: "notes",              hash: "#/notes",               wait: 2500 },
+  { name: "brainstorm",         hash: "#/brainstorm",          wait: 2500 },
+
+  // Analysis / reflection
+  { name: "analysis",           hash: "#/analysis",            wait: 3500, scroll: 340 },
+  { name: "writer-lab",         hash: "#/writer-lab",          wait: 2500 },
+
+  // Studio
+  { name: "studio",             hash: "#/studio",              wait: 2500 },
+  { name: "studio-script",      hash: "#/studio/script",       wait: 2500 },
+  { name: "studio-render",      hash: "#/studio/render",       wait: 2500 },
+
+  // Settings
+  { name: "settings-project",   hash: "#/settings/project",    wait: 2500 },
+  { name: "settings-ai",        hash: "#/settings/audio",      wait: 2500 },
+  { name: "settings-appearance", hash: "#/settings/appearance", wait: 2500 },
+  { name: "settings-usage",     hash: "#/settings/usage",      wait: 2500 },
+  { name: "settings-backups",   hash: "#/settings/backups",    wait: 2500 },
+
+  // Import / export
+  { name: "import",             hash: "#/import",              wait: 2500 },
+  { name: "export",             hash: "#/export",              wait: 2500 },
 ];
 
 const BASE = "http://127.0.0.1:4444";
@@ -110,6 +146,14 @@ async function main() {
       console.log(`→ ${t.name} (${t.hash})`);
       await execute(sid, "window.location.hash = arguments[0];", [t.hash]);
       await new Promise((r) => setTimeout(r, t.wait));
+      if (t.scroll) {
+        await execute(
+          sid,
+          "const el = document.querySelector('.scrollarea'); if (el) el.scrollTop = arguments[0]; else window.scrollTo(0, arguments[0]);",
+          [t.scroll],
+        );
+        await new Promise((r) => setTimeout(r, 400));
+      }
       const file = path.join(OUT_DIR, `${t.name}.png`);
       await screenshot(sid, file);
       console.log(`   saved ${path.basename(file)}`);
