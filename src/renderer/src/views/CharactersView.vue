@@ -15,6 +15,7 @@ import JwTable from "@renderer/components/ui/JwTable.vue";
 import ImagesModal from "../components/ImagesModal.vue";
 import EntitySweepModal from "../components/EntitySweepModal.vue";
 import CharacterAuditModal from "../components/CharacterAuditModal.vue";
+import RelationshipArcModal from "../components/RelationshipArcModal.vue";
 import StatusSelect from "../components/StatusSelect.vue";
 import GroupsModal from "../components/GroupsModal.vue";
 import TagEditor from "../components/TagEditor.vue";
@@ -32,6 +33,7 @@ const ui = useUiStore();
 const router = useRouter();
 const sweepOpen = ref(false);
 const auditOpen = ref(false);
+const relationshipArcOpen = ref(false);
 
 // When id is present → detail mode. When absent → list mode.
 const ch = computed(() => props.id ? project.characterById(props.id) : null);
@@ -218,6 +220,9 @@ function onRowClick(event) {
       <JwButton intent="ghost" size="small" @click="auditOpen = true" v-tooltip.bottom="'Check whether each main character acts in line with their established psychology'">
         <Icon name="Users" :size="13" /> Audit consistency
       </JwButton>
+      <JwButton intent="ghost" size="small" @click="relationshipArcOpen = true" v-tooltip.bottom="'Track how the relationship between two characters moves across the book'">
+        <Icon name="Network" :size="13" /> Relationship arc
+      </JwButton>
       <JwButton label="New character" intent="primary" size="small" @click="addCharacter">
         <template #icon><Icon name="Plus" :size="14" /></template>
       </JwButton>
@@ -233,6 +238,12 @@ function onRowClick(event) {
 
     <div v-else class="pane-card">
       <div class="scrollarea" style="padding:18px 22px 40px">
+        <p class="ch-desc">
+          A <strong>character</strong> is anyone in your story worth tracking — protagonist,
+          antagonist, side cast. Fill in motivation, arc, voice, and backstory as you need them;
+          every field is optional. Characters feed the <strong>Relations</strong> graph, the
+          <strong>Cast presence</strong> heatmap, and AI features that draw on story-world context.
+        </p>
         <!-- Toolbar -->
         <div class="ch-toolbar">
           <span class="ch-search">
@@ -348,6 +359,12 @@ function onRowClick(event) {
 
     <div class="pane-card">
       <div class="scrollarea" style="padding:24px 28px 40px">
+        <p class="ch-desc">
+          A <strong>character</strong> is anyone in your story worth tracking — protagonist,
+          antagonist, side cast. Fill in motivation, arc, voice, and backstory as you need them;
+          every field is optional. Characters feed the <strong>Relations</strong> graph, the
+          <strong>Cast presence</strong> heatmap, and AI features that draw on story-world context.
+        </p>
         <div class="character-hero">
           <div
             class="avatar-drop"
@@ -493,9 +510,18 @@ function onRowClick(event) {
 
   <CharacterAuditModal v-if="auditOpen"
     @close="auditOpen = false" />
+
+  <RelationshipArcModal v-if="relationshipArcOpen"
+    @close="relationshipArcOpen = false" />
 </template>
 
 <style scoped>
+.ch-desc {
+  font-size: 14px; line-height: 1.55; color: var(--muted);
+  margin: 0 0 18px;
+}
+.ch-desc strong { color: var(--ink-2); font-weight: 600; }
+
 .character-pane-header .pane-title { gap: 2px; }
 .character-name {
   appearance: none;

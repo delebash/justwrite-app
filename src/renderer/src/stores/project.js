@@ -453,6 +453,11 @@ export const useProjectStore = defineStore("project", {
     // injected into every Rewrite / Expand / Continue / Describe.
     voiceCanonChapterIds: Array.isArray(loaded.voiceCanonChapterIds) ? loaded.voiceCanonChapterIds : [],
 
+    // Relationship arcs — keyed by canonical pair key (sorted ids
+    // joined by "::"). Each value is the analyseRelationship() result.
+    // The writer can track multiple pairs concurrently.
+    relationshipArcs: loaded.relationshipArcs || {},
+
     // Multi-project registry. `_activeId` is the storage key the
     // current snapshot persists into. `_projects` mirrors the registry
     // so the sidebar dropdown can react. Neither participates in undo.
@@ -1303,6 +1308,25 @@ export const useProjectStore = defineStore("project", {
       this.voiceCanonChapterIds = [];
       this._persist();
     },
+    // Relationship arcs — keyed by canonical pair id (sorted ids
+    // joined by "::"). Skip _record so undo of chapter edits doesn't
+    // rewind a freshly-generated arc.
+    setRelationshipArc(pairKey, arc) {
+      if (!pairKey) return;
+      this.relationshipArcs = { ...this.relationshipArcs, [pairKey]: { ...arc } };
+      this._persist();
+    },
+    clearRelationshipArc(pairKey) {
+      if (!pairKey || !this.relationshipArcs?.[pairKey]) return;
+      const next = { ...this.relationshipArcs };
+      delete next[pairKey];
+      this.relationshipArcs = next;
+      this._persist();
+    },
+    clearAllRelationshipArcs() {
+      this.relationshipArcs = {};
+      this._persist();
+    },
     dismissPlotHole(findingId) {
       if (!this.plotHoles?.findings) return;
       this.plotHoles = {
@@ -1854,6 +1878,7 @@ export const useProjectStore = defineStore("project", {
         beatSheets: this.beatSheets,
         plotHoles: this.plotHoles,
         voiceCanonChapterIds: this.voiceCanonChapterIds,
+        relationshipArcs: this.relationshipArcs,
         savedAt: new Date().toISOString(),
       };
     },
@@ -1944,6 +1969,7 @@ export const useProjectStore = defineStore("project", {
         beatSheets: {},
         plotHoles: null,
         voiceCanonChapterIds: [],
+        relationshipArcs: {},
       };
       this._activeId = id;
       Object.assign(this.$state, fresh);

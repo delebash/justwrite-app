@@ -154,7 +154,7 @@ You don't add Web Speech as a provider — it's just there.
 
 The defaults are convenient but limiting. Once you have two or more providers, you may want to send different features to different ones.
 
-In **Settings → AI & Audio engines → Feature routing** you can pin each of sixteen features to its own provider and model:
+In **Settings → AI & Audio engines → Feature routing** you can pin each of seventeen features to its own provider and model:
 
 | Feature | What it does |
 |---|---|
@@ -174,6 +174,7 @@ In **Settings → AI & Audio engines → Feature routing** you can pin each of s
 | **Beat sheet overlay** | The Analysis dashboard "Map to beat sheet" modal — maps the draft to Save the Cat, Hero's Journey, or 7-Point Story Structure |
 | **Plot-hole audit** | The Analysis dashboard "Plot-hole audit" modal — flags contradictions, timeline issues, continuity drift, and character-knowledge errors across the manuscript |
 | **Character chat** | The chat panel's "Talk to a character" mode — first-person, in-voice answers from your cast, grounded in the manuscript |
+| **Relationship arc** | The Characters view "Relationship arc" modal — chapter-by-chapter warmth / tension / power tracking for a pair of characters |
 
 Setting "Inherit default" for any feature uses your global Default LLM.
 

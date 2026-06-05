@@ -77,6 +77,33 @@ JustWrite builds the character's system prompt from everything you've put in the
 
 **Cost note.** Uses the same vector store and embedding provider as Ask-the-book — if you've already built an index for one, the other works immediately. Routable as the **characterChat** feature in Settings → AI (separately from **chat** so you can pin a more conversational/in-character model here while keeping factual Q&A pinned to a tighter one).
 
+### Relationship arc — how does this pair move across the book?
+
+> *"My two leads' relationship feels static. They're orbiting each other but the dynamic isn't shifting and I can't see why."*
+
+Characters change in arcs. So do the *relationships* between them. The trouble is that an individual character's arc tends to live in your head — you wrote their wants, needs, and end-state into their Motivation panel — but the way two characters' dynamic evolves chapter to chapter rarely gets the same explicit treatment. You feel when it's wrong, you can't always see where.
+
+The **Relationship arc** button on the Characters header opens a modal where you pick two characters who share scenes. JustWrite collects every chapter they both appear in (per the Links panel) and asks the model to track three dimensions chapter by chapter:
+
+- **Warmth** (1–10) — cold ↔ warm. 1 is open hostility; 5 is civil neutrality; 10 is deep intimacy.
+- **Tension** (1–10) — calm ↔ taut. 1 is entirely calm; 10 is breaking point.
+- **Power** — who's setting the terms in this chapter. "A-dominant", "B-dominant", or "Equal".
+
+The result lands as:
+
+- A **trajectory chip** naming the overall shape: Warming, Cooling, Escalating, Defusing, Flipping (power inverts), or Static.
+- A **2–3 sentence summary** of the arc.
+- A **two-line chart** of warmth (solid gold) and tension (dashed red) across chapters.
+- A **per-chapter strip** with three rows — warmth (cold-blue to warm-gold), tension (grey to red), power (A-tinted / equal-grey / B-tinted). Click any cell to see the model's one-sentence summary of the chapter's moment.
+
+**Persistence and the gallery.** Each pair you track is saved on the project. The modal's pickers default to your first two main characters; switch either dropdown to load a different pair's cached arc, or generate a fresh one. **Regenerate** runs a new pass; **Clear this arc** wipes the saved analysis for the current pair.
+
+**Why a writer would use it.** Two characters in scene together don't just *exist* together — they *move* together, and the movement is a structural element you can shape. A relationship the writer intended as cooling but reads as flat is a real revision finding. A flipping power dynamic that happens too late (or doesn't happen at all) often explains why a climax doesn't land. The chart externalises the curve in a way that's hard to hold in your head while writing.
+
+**Requires scenes with both characters linked.** The model is only shown chapters where both characters are linked to the same scene via the Links panel. If they share zero scenes, the modal surfaces a clear error telling you to link them first.
+
+**Cost note.** One LLM call per relationship pair. Routable as the **relationshipArc** feature in Settings → AI.
+
 ### Audit consistency — does this character act like themselves?
 
 > *"Did my introverted loyalty-first character betray her best friend convincingly, or did I just write what the plot needed?"*

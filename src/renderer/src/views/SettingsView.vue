@@ -86,6 +86,7 @@ const AI_FEATURES = [
   { key: "beatSheet",       label: "Beat sheet overlay", hint: "Maps your draft to Save the Cat, Hero's Journey, or 7-Point Story Structure beats." },
   { key: "plotHoles",       label: "Plot-hole audit",  hint: "Whole-book continuity scan for contradictions, timeline issues, and character-knowledge errors." },
   { key: "characterChat",   label: "Character chat",   hint: "The chat panel's \"Talk to a character\" mode — first-person, in-voice answers from your cast." },
+  { key: "relationshipArc", label: "Relationship arc", hint: "Chapter-by-chapter warmth / tension / power tracking for a pair of characters." },
 ];
 const INHERIT = "__inherit__";
 
