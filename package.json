@@ -1,6 +1,6 @@
 {
   "name": "justwrite",
-  "version": "0.1.1",
+  "version": "1.0.0",
   "description": "JustWrite — a writing app for novels, with an audio studio that connects to any OpenAI-compatible AI provider.",
   "private": true,
   "type": "module",
@@ -15,7 +15,8 @@
     "release": "node scripts/release.mjs",
     "release:windows": "node scripts/release.mjs --platform windows",
     "release:macos": "node scripts/release.mjs --platform macos",
-    "release:linux": "node scripts/release.mjs --platform linux"
+    "release:linux": "node scripts/release.mjs --platform linux",
+    "screenshots": "node e2e/capture-direct.mjs"
   },
   "dependencies": {
     "@ffmpeg/ffmpeg": "^0.12.15",

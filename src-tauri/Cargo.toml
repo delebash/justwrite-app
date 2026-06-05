@@ -1,6 +1,6 @@
 [package]
 name = "justwrite"
-version = "0.1.1"
+version = "1.0.0"
 description = "JustWrite — writing app with an audio studio"
 authors = ["JustWrite contributors"]
 edition = "2021"
