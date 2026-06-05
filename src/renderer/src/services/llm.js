@@ -48,6 +48,11 @@ export async function detectSpeakers({ paragraphs, characters, task, meta } = {}
     "Return only the JSON array, no commentary.",
   ].join("\n");
 
+  // Temperature 0.3 — low for stricter JSON output. runAiStream's default
+  // is 0.7 (for prose generation), which is way too high here: at 0.7 the
+  // model gets creative, mis-attributes lines, and sometimes returns
+  // malformed JSON. Speaker Lab's studio path uses 0.3 and produces
+  // correct attributions; this matches it.
   // think disabled — JSON-parseable output; reasoning trails would break
   // the array parse. Spread via `extra` so the OpenAI-compat code path
   // ignores it as an unknown body field and Ollama honors it on /api/chat.
@@ -57,6 +62,7 @@ export async function detectSpeakers({ paragraphs, characters, task, meta } = {}
       { role: "system", content: SPEAKER_SYSTEM },
       { role: "user", content: userMsg },
     ],
+    temperature: 0.3,
     extra: { think: false },
     meta,
     task: task || { label: "Script analysis", meta },
@@ -84,12 +90,15 @@ export async function smartCast({ characters, voices, task, meta } = {}) {
     .map((v) => `- id="${v.id}", name="${v.name}", gender=${v.gender || "?"}, age=${v.age || "?"}, accent=${v.accent || "?"}, tone="${v.tone || ""}"`)
     .join("\n");
 
+  // Temperature 0.3 — JSON output; see detectSpeakers above for the same
+  // reasoning. Default 0.7 from runAiStream produces erratic casting.
   const { content } = await runAiStream({
     feature: "smartCast",
     messages: [
       { role: "system", content: CAST_SYSTEM },
       { role: "user", content: `Characters:\n${charList}\n\nAvailable voices:\n${voiceList}\n\nReturn only the JSON object.` },
     ],
+    temperature: 0.3,
     extra: { think: false },
     meta,
     task: task || { label: "Smart-assign cast", meta },

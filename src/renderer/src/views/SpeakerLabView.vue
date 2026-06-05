@@ -17,7 +17,7 @@ import PaneHeader from "../components/PaneHeader.vue";
 import Icon from "../components/Icon.vue";
 import ModelPicker from "../components/ModelPicker.vue";
 import ProviderSelect from "../components/ProviderSelect.vue";
-import { OpenAICompatClient } from "../services/openai-compat.js";
+import { runAiStream } from "../services/aiStream.js";
 import { TIERS, TIER_IDS } from "../services/modelMeta.js";
 import JwButton from "@renderer/components/ui/JwButton.vue";
 import JwInput from "@renderer/components/ui/JwInput.vue";
@@ -637,7 +637,7 @@ function makeRun(idx) {
     studio: {
       providerId: ai.defaultLlmId,
       model: "",
-      temperature: 0.3,  // matches OpenAICompatClient.chat() default used by detectSpeakers
+      temperature: 0.3,  // matches detectSpeakers in services/llm.js (low for JSON output)
       system: STUDIO_SPEAKER_SYSTEM,
       user: STUDIO_SPEAKER_USER,
       collapsed: false,
@@ -1001,40 +1001,62 @@ async function streamStage({ run, stage, vars, signal, onContent }) {
   const provider = ai.providerById(stage.providerId);
   if (!provider) throw new Error(`Provider not found for stage`);
 
-  const client = new OpenAICompatClient(provider);
   const messages = [
     { role: "system", content: interpolate(stage.system, vars) },
     { role: "user",   content: interpolate(stage.user,   vars) },
   ];
 
+  // Goes through runAiStream — the same wrapper every production AI
+  // call uses — so each lab stage shows up in the global AI task panel
+  // (header chip + slide-in) with elapsed, tokens, cancel, just like
+  // critique / smart-cast / writer-assist. Bespoke metrics (words,
+  // exact-vs-approx token source) stay rendered inline because they're
+  // lab diagnostics the standard strip doesn't expose.
+  //
+  // Per-stage `think` (Ollama-only). false (default) suppresses <think>
+  // blocks — wanted for JSON-output stages and reasoning-first models
+  // like Qwen3.5 / DeepSeek-R1. true forces reasoning on for hybrid
+  // models (Qwen3:14B-class) where implicit chain-of-thought measurably
+  // helps tasks like dialogue attribution. Non-Ollama providers ignore
+  // the field per OpenAI spec.
   let lastContent = "";
-  for await (const chunk of client.chatStream({
+  const result = await runAiStream({
+    feature: "speakerLab",
     messages,
+    provider,
     model: stage.model || provider.chatModel,
     temperature: Number(stage.temperature) || 0,
     signal,
-    // Per-stage `think` (Ollama-only). false (default) suppresses
-    // <think> blocks — wanted for JSON-output stages and reasoning-first
-    // models like Qwen3.5 / DeepSeek-R1. true forces reasoning on for
-    // hybrid models (Qwen3:14B-class) where implicit chain-of-thought
-    // measurably helps tasks like dialogue attribution. Non-Ollama
-    // providers ignore the field per OpenAI spec.
     extra: { think: stage.think === true },
-  })) {
-    lastContent = chunk.content;
-    onContent(chunk.content);
+    onDelta: (_delta, content) => {
+      lastContent = content;
+      onContent(content);
+      const elapsed = (performance.now() - run.metrics.startedAt) / 1000;
+      // No exact token count until the final chunk lands; use chars÷4
+      // as a live approximation so the diagnostic row updates while
+      // the stream runs.
+      const tokens = Math.ceil((content || "").length / 4);
+      run.metrics.elapsed = elapsed;
+      run.metrics.tokens = tokens;
+      run.metrics.tokensPerSec = elapsed > 0 ? tokens / elapsed : 0;
+      run.metrics.words = countWords(content);
+      run.metrics.source = "approx";
+    },
+    task: { label: `Speaker Lab · ${run.label}`, meta: { speakerLab: true, runLabel: run.label, mode: run.mode } },
+  });
 
+  // Final pass — swap the live char÷4 approximation for the exact token
+  // counts the model reported in its terminal usage chunk.
+  if (result.usage) {
     const elapsed = (performance.now() - run.metrics.startedAt) / 1000;
-    const reportedTokens = chunk.usage?.completion_tokens;
-    const tokens = reportedTokens ?? Math.ceil(chunk.content.length / 4);
     run.metrics.elapsed = elapsed;
-    run.metrics.tokens = tokens;
-    run.metrics.tokensPerSec = elapsed > 0 ? tokens / elapsed : 0;
-    run.metrics.words = countWords(chunk.content);
-    run.metrics.source = reportedTokens != null ? "exact" : "approx";
-    if (chunk.usage) run.metrics.usage = chunk.usage;
+    run.metrics.tokens = result.usage.completion_tokens || run.metrics.tokens;
+    run.metrics.tokensPerSec = elapsed > 0 ? (result.usage.completion_tokens || 0) / elapsed : 0;
+    run.metrics.usage = result.usage;
+    run.metrics.source = "exact";
   }
-  return lastContent;
+
+  return result.content || lastContent;
 }
 
 // ─── Helpers ─────────────────────────────────────────────────────────

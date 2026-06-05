@@ -25,6 +25,7 @@ Items are loosely grouped by area and by how concrete they are.
 - **Better routing transparency.** When you have multiple providers and feature routing in place, it can be hard to remember which feature uses which model. A small "this used Provider X / Model Y" indicator next to AI results would help.
 - **Token budgets per feature.** A per-feature monthly cap that pauses AI calls when exceeded, to prevent surprise bills on cloud providers.
 - **Embedding rebuild status.** The auto-rebuild RAG indicator could be more visible when it's actively running.
+- **Per-model temperature, resolved via tier.** AI services currently hard-code their temperature (0.3 for JSON-output features like speaker analysis and smart-cast, 0.4–0.55 for prose critique, etc.). One value applies regardless of which model runs the call. A more nuanced approach would extend the tier system (`Guided` / `Direct` / `Reasoned`) with a per-tier temperature so that, say, Claude or GPT-4o on Direct could run at 0.4 for a touch more nuance while Qwen3:8B on Guided stays at 0.3 for JSON safety. Services would read `tier.temperature` the same way they currently read `tier.think`.
 
 ---
 
