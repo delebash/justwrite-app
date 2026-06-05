@@ -662,17 +662,21 @@ export const useProjectStore = defineStore("project", {
 
     // Bulk-add an array of { title, html } chapters as a single history entry.
     // Used by the import wizard so a many-chapter ingest is one undo.
-    // - partTitle: if set, a new part holds the import; otherwise chapters
-    //   append to the last existing part.
+    // - partId: if set and it matches an existing part, chapters append there.
+    // - partTitle: if set (and no matching partId), a new part holds the import.
+    // - Otherwise chapters append to the last existing part.
     // - status: applied to every imported chapter.
     // Returns { partId, chapterIds }.
-    importChapters({ chapters = [], partTitle = "", status = "draft" } = {}) {
+    importChapters({ chapters = [], partId: targetPartId = "", partTitle = "", status = "draft" } = {}) {
       const list = (chapters || []).filter((c) => c && (c.html || c.title));
       if (!list.length) return { partId: null, chapterIds: [] };
       this._record("importChapters");
 
       let partId;
-      if (partTitle) {
+      const existing = targetPartId ? this.parts.find((p) => p.id === targetPartId) : null;
+      if (existing) {
+        partId = existing.id;
+      } else if (partTitle) {
         partId = uid("p");
         this.parts = [...this.parts, { id: partId, title: partTitle, chapters: [] }];
       } else if (this.parts.length === 0) {
@@ -1198,6 +1202,37 @@ export const useProjectStore = defineStore("project", {
       const today = new Date().toLocaleDateString("en-US", { month: "short", day: "numeric" });
       this.notes = this.notes.map((n) => n.id === id ? { ...n, ...patch, updated: today } : n);
       this._persist();
+    },
+
+    // Bulk-add an array of { title, html } notes as a single history entry.
+    // Mirrors importChapters — used by the import wizard so a many-note
+    // ingest is one undo.
+    //   tag    — applied to every imported note (default "note").
+    //   anchor — story-wide (null) | { chapterId } | { chapterId, sceneId }.
+    // Returns { noteIds }.
+    importNotes({ notes = [], tag = "note", anchor = null } = {}) {
+      const list = (notes || []).filter((n) => n && (n.html || n.title));
+      if (!list.length) return { noteIds: [] };
+      this._record("importNotes");
+      const today = new Date().toLocaleDateString("en-US", { month: "short", day: "numeric" });
+      const noteIds = [];
+      // Snapshot the anchor so every imported note holds an independent copy
+      // — otherwise undo / per-note re-anchor would mutate shared state.
+      const cloneAnchor = () => (anchor ? { ...anchor } : null);
+      for (const n of list) {
+        const id = uid("n");
+        noteIds.push(id);
+        this.notes.push({
+          id,
+          title: n.title || "Untitled note",
+          body: n.html || "",
+          tag: tag || "note",
+          updated: today,
+          anchor: cloneAnchor(),
+        });
+      }
+      this._persist();
+      return { noteIds };
     },
 
     // ── Worldbuilding ───────────────────────────────────────

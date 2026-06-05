@@ -10,6 +10,9 @@ import EntitySweepModal from "../components/EntitySweepModal.vue";
 import JwButton from "@renderer/components/ui/JwButton.vue";
 import JwInput from "@renderer/components/ui/JwInput.vue";
 import JwCheckbox from "@renderer/components/ui/JwCheckbox.vue";
+import JwSelect from "@renderer/components/ui/JwSelect.vue";
+
+const NEW_PART = "__new__";
 
 const router = useRouter();
 const project = useProjectStore();
@@ -22,12 +25,70 @@ const step = ref("intent");
 //   "edit"   — chapters append to the current project for continued writing.
 //   "new"    — create a fresh project from the imported chapters.
 //   "narrate" — create a fresh project AND jump to Studio Cast for TTS.
-// Both "new" and "narrate" preserve the current project; the new one
-// becomes active.
+//   "notes"  — file's sections become notes in the current project.
+// "new"/"narrate" preserve the current project; the new one becomes active.
 const intent = ref("edit");
 
-// "edit" mode option — append to last part vs. land in a new part.
-const newPart = ref(false);
+// Notes intent uses the same parser (one detected section = one note), so
+// "chapters" in this view doubles as the note list when intent === "notes".
+// Keep label helpers in one place so the wizard reads naturally either way.
+const itemLabel = computed(() => intent.value === "notes" ? "note" : "chapter");
+const itemLabelPlural = computed(() => intent.value === "notes" ? "notes" : "chapters");
+
+// "notes" intent options — applied to every imported note.
+const notesTag = ref("note");
+// notesAnchor encodes the same scheme as NotesView's JwSelect:
+//   ""                       → story-wide (null)
+//   "ch:<id>"                → { chapterId }
+//   "scn:<chId>:<sceneId>"   → { chapterId, sceneId }
+const notesAnchor = ref("");
+const notesAnchorOptions = computed(() => {
+  const opts = [{ label: "Story-wide (no anchor)", value: "" }];
+  for (const c of project.allChapters || []) {
+    opts.push({ label: `Ch. ${c.num} · ${c.title || "Untitled"}`, value: `ch:${c.id}` });
+    const scenes = project.scenesFor(c.id) || [];
+    scenes.forEach((s, i) => {
+      opts.push({
+        label: `   Ch. ${c.num} · Scene ${i + 1}${s.title ? " — " + s.title : ""}`,
+        value: `scn:${c.id}:${s.id}`,
+      });
+    });
+  }
+  return opts;
+});
+const notesTagSuggestions = computed(() => {
+  const all = (project.notes || []).map((x) => x.tag).filter(Boolean);
+  return Array.from(new Set(all));
+});
+function anchorFromKey(key) {
+  if (!key) return null;
+  if (key.startsWith("scn:")) {
+    const [, chapterId, sceneId] = key.split(":");
+    return { chapterId, sceneId };
+  }
+  if (key.startsWith("ch:")) {
+    const [, chapterId] = key.split(":");
+    return { chapterId };
+  }
+  return null;
+}
+
+// "edit" mode option — pick an existing part to append to, or NEW_PART
+// to create one. Defaults to the last existing part (or NEW_PART when the
+// current project has no parts yet).
+const partOptions = computed(() => {
+  const opts = (project.parts || []).map((p) => ({
+    label: p.title || "Untitled part",
+    value: p.id,
+  }));
+  opts.push({ label: "New part…", value: NEW_PART });
+  return opts;
+});
+const partChoice = ref(
+  project.parts && project.parts.length
+    ? project.parts[project.parts.length - 1].id
+    : NEW_PART,
+);
 const partTitle = ref("");
 
 // "new" mode — title and author of the new project. Title auto-fills
@@ -73,50 +134,69 @@ function preview(html) {
 }
 
 async function onPickFile(e) {
-  const file = (e.target.files || [])[0];
+  const files = Array.from(e.target.files || []);
   e.target.value = "";
-  if (!file) return;
-  await loadFile(file);
+  if (!files.length) return;
+  await loadFiles(files);
 }
 
 async function onDrop(e) {
   e.preventDefault();
-  const file = (e.dataTransfer?.files || [])[0];
-  if (!file) return;
-  await loadFile(file);
+  const files = Array.from(e.dataTransfer?.files || []);
+  if (!files.length) return;
+  await loadFiles(files);
 }
 
-async function loadFile(file) {
+async function loadFiles(files) {
   parseError.value = "";
   warnings.value = [];
   chapters.value = [];
-  fileName.value = file.name;
+  fileName.value = files.length === 1
+    ? files[0].name
+    : `${files.length} files`;
   parsing.value = true;
+  const errors = [];
+  const accumulated = [];
   try {
-    const result = await parseFile(file);
-    warnings.value = result.warnings || [];
-    let parsed = result.chapters || [];
-    if (normalize.value) {
-      parsed = parsed.map((c) => ({ ...c, html: normalizeHtml(c.html || "") }));
+    for (const file of files) {
+      try {
+        const result = await parseFile(file);
+        for (const w of (result.warnings || [])) {
+          warnings.value.push(files.length > 1 ? `${file.name}: ${w}` : w);
+        }
+        let parsed = result.chapters || [];
+        if (normalize.value) {
+          parsed = parsed.map((c) => ({ ...c, html: normalizeHtml(c.html || "") }));
+        }
+        const stemForUntitled = file.name.replace(/\.[^.]+$/, "") || "Untitled";
+        const mapped = parsed.map((c, i) => ({
+          title: c.title || (intent.value === "notes"
+            ? (parsed.length === 1 ? stemForUntitled : `${stemForUntitled} ${i + 1}`)
+            : `Chapter ${i + 1}`),
+          html: c.html || "",
+          drop: false,
+        }));
+        accumulated.push(...mapped);
+      } catch (err) {
+        errors.push(`${file.name}: ${err?.message || String(err)}`);
+      }
     }
-    chapters.value = parsed.map((c, i) => ({
-      title: c.title || `Chapter ${i + 1}`,
-      html: c.html || "",
-      drop: false,
-    }));
+    chapters.value = accumulated;
+    if (errors.length) {
+      // Surface per-file errors without blocking the rest of the import.
+      parseError.value = errors.join(" · ");
+    }
     if (!chapters.value.length) {
-      parseError.value = "No content found in this file.";
+      if (!errors.length) parseError.value = "No content found.";
     } else {
-      // Seed the title fields from the filename so the wizard isn't a
+      // Seed the title fields from the first file so the wizard isn't a
       // blank box. The user can edit before confirming.
-      const stem = file.name.replace(/\.[^.]+$/, "");
-      if (newPart.value && !partTitle.value) partTitle.value = stem;
+      const stem = files[0].name.replace(/\.[^.]+$/, "");
+      if (partChoice.value === NEW_PART && !partTitle.value) partTitle.value = stem;
       if (!newBookTitle.value) newBookTitle.value = stem;
       scanAfterImport.value = false;
       step.value = "preview";
     }
-  } catch (err) {
-    parseError.value = err?.message || String(err);
   } finally {
     parsing.value = false;
   }
@@ -147,6 +227,19 @@ function ingest() {
   let nav = "/chapters";
   let toast = "";
 
+  if (intent.value === "notes") {
+    const { noteIds } = project.importNotes({
+      notes: list,
+      tag: (notesTag.value || "note").trim() || "note",
+      anchor: anchorFromKey(notesAnchor.value),
+    });
+    nav = noteIds[0] ? `/notes/${noteIds[0]}` : "/notes";
+    toast = `Imported ${count} note${plural}.`;
+    ui.showToast({ message: toast });
+    router.push(nav);
+    return;
+  }
+
   if (intent.value === "new" || intent.value === "narrate") {
     const title = newBookTitle.value.trim() || fileName.value.replace(/\.[^.]+$/, "") || "Imported book";
     project.createProject({ title, author: newBookAuthor.value.trim() });
@@ -160,9 +253,11 @@ function ingest() {
     }
   } else {
     // "edit" — append to current project.
+    const makeNewPart = partChoice.value === NEW_PART;
     chapterIds = project.importChapters({
       chapters: list,
-      partTitle: newPart.value ? (partTitle.value || fileName.value || "Imported") : "",
+      partId: makeNewPart ? "" : partChoice.value,
+      partTitle: makeNewPart ? (partTitle.value || fileName.value || "Imported") : "",
       status: "draft",
     }).chapterIds;
     nav = chapterIds[0] ? `/chapters/${chapterIds[0]}` : "/chapters";
@@ -204,14 +299,14 @@ function finishAfterSweep() {
       <!-- ── STEP 1: Intent + file picker ────────────────────────── -->
       <div v-if="step === 'intent'" class="wiz">
         <section class="wiz-section">
-          <h2 class="wiz-h">How will you use this manuscript?</h2>
+          <h2 class="wiz-h">How will you use this file?</h2>
           <div class="intent-grid" role="radiogroup" aria-label="Import intent">
             <label class="intent-card" :class="{ active: intent === 'edit' }"
               role="radio" :aria-checked="intent === 'edit'">
               <input type="radio" v-model="intent" value="edit" />
               <Icon name="Quote" :size="20" />
               <div class="intent-body">
-                <div class="intent-title">Resume editing</div>
+                <div class="intent-title">Add existing</div>
                 <div class="intent-sub">Append chapters to your <em>current</em> project for continued writing or revising.</div>
               </div>
             </label>
@@ -231,6 +326,15 @@ function finishAfterSweep() {
               <div class="intent-body">
                 <div class="intent-title">Narrate as audiobook</div>
                 <div class="intent-sub">Create a fresh project from this file, then drop into Studio Cast for TTS.</div>
+              </div>
+            </label>
+            <label class="intent-card" :class="{ active: intent === 'notes' }"
+              role="radio" :aria-checked="intent === 'notes'">
+              <input type="radio" v-model="intent" value="notes" />
+              <Icon name="Note" :size="20" />
+              <div class="intent-body">
+                <div class="intent-title">Add notes</div>
+                <div class="intent-sub">Bring sections of this file in as notes on your <em>current</em> project. Each heading becomes one note; a flat file becomes one.</div>
               </div>
             </label>
           </div>
@@ -254,12 +358,36 @@ function finishAfterSweep() {
         <section class="wiz-section" v-else-if="intent === 'edit'">
           <h2 class="wiz-h">Where should the chapters land?</h2>
           <div class="opt-row">
-            <JwCheckbox v-model="newPart">Add to a new part</JwCheckbox>
-            <JwInput v-if="newPart"
+            <span class="opt-label">Add to part</span>
+            <JwSelect class="part-input"
+              v-model="partChoice"
+              :options="partOptions"
+              placeholder="Choose a part" />
+            <JwInput v-if="partChoice === NEW_PART"
               class="part-input"
               v-model="partTitle"
               placeholder="Part title (defaults to file name)" />
-            <span v-else class="t-muted opt-hint">Appends to the last existing part.</span>
+          </div>
+          <div class="opt-row">
+            <JwCheckbox v-model="normalize">Clean up smart quotes, em-dashes, ellipses, whitespace</JwCheckbox>
+          </div>
+        </section>
+
+        <section class="wiz-section" v-else-if="intent === 'notes'">
+          <h2 class="wiz-h">Notes options</h2>
+          <div class="opt-row">
+            <span class="opt-label">Tag</span>
+            <JwInput class="part-input" v-model="notesTag" placeholder="note" list="jw-notes-tag-list" />
+            <datalist id="jw-notes-tag-list">
+              <option v-for="t in notesTagSuggestions" :key="t" :value="t" />
+            </datalist>
+          </div>
+          <div class="opt-row">
+            <span class="opt-label">Pin to</span>
+            <JwSelect class="part-input"
+              v-model="notesAnchor"
+              :options="notesAnchorOptions"
+              placeholder="Story-wide" />
           </div>
           <div class="opt-row">
             <JwCheckbox v-model="normalize">Clean up smart quotes, em-dashes, ellipses, whitespace</JwCheckbox>
@@ -272,11 +400,15 @@ function finishAfterSweep() {
             @dragover.prevent @drop="onDrop">
             <input ref="fileRef" type="file"
               accept=".docx,.epub,.odt,.txt,.md,.markdown"
+              multiple
               style="display:none"
               @change="onPickFile" />
             <Icon name="Plus" :size="22" />
-            <div class="dz-title">Drop a file here, or click to choose</div>
-            <div class="dz-sub">Supports <code>.docx</code> · <code>.epub</code> · <code>.odt</code> · <code>.txt</code> · <code>.md</code></div>
+            <div class="dz-title">Drop {{ intent === "notes" ? "files" : "a file" }} here, or click to choose</div>
+            <div class="dz-sub">
+              Supports <code>.docx</code> · <code>.epub</code> · <code>.odt</code> · <code>.txt</code> · <code>.md</code>
+              <span v-if="intent === 'notes'"> — drop multiple files to import them in one batch</span>
+            </div>
           </label>
 
           <div v-if="parsing" class="wiz-status">
@@ -295,7 +427,7 @@ function finishAfterSweep() {
             <div class="ps-stats">
               <div class="ps-stat">
                 <div class="ps-num">{{ validChapters.length }}</div>
-                <div class="ps-lbl">{{ validChapters.length === 1 ? "chapter" : "chapters" }}</div>
+                <div class="ps-lbl">{{ validChapters.length === 1 ? itemLabel : itemLabelPlural }}</div>
               </div>
               <div class="ps-stat">
                 <div class="ps-num">{{ totalWords.toLocaleString() }}</div>
@@ -324,18 +456,18 @@ function finishAfterSweep() {
         </section>
 
         <section class="wiz-section">
-          <h2 class="wiz-h">Detected chapters</h2>
+          <h2 class="wiz-h">Detected {{ itemLabelPlural }}</h2>
           <p class="t-muted" style="font-size:12.5px;margin:0 0 12px">
-            Edit titles, or drop chapters you don't want.
+            Edit titles, or drop {{ itemLabelPlural }} you don't want.
           </p>
           <ol class="ch-list">
             <li v-for="(c, i) in chapters" :key="i" class="ch-row" :class="{ dropped: c.drop }">
               <span class="ch-num">{{ i + 1 }}</span>
-              <JwInput class="ch-title" v-model="c.title" placeholder="Untitled chapter" :disabled="c.drop" />
+              <JwInput class="ch-title" v-model="c.title" :placeholder="`Untitled ${itemLabel}`" :disabled="c.drop" />
               <span class="ch-words">{{ wordCount(c.html).toLocaleString() }} w</span>
               <JwButton intent="ghost" size="small" class="ch-drop"
                 @click="dropChapter(i)"
-                v-tooltip.bottom="c.drop ? 'Keep this chapter' : 'Drop this chapter'">
+                v-tooltip.bottom="c.drop ? `Keep this ${itemLabel}` : `Drop this ${itemLabel}`">
                 <Icon :name="c.drop ? 'Plus' : 'Trash'" :size="12" />
                 {{ c.drop ? "Keep" : "Drop" }}
               </JwButton>
@@ -345,7 +477,7 @@ function finishAfterSweep() {
           </ol>
         </section>
 
-        <section class="wiz-section">
+        <section class="wiz-section" v-if="intent !== 'notes'">
           <h2 class="wiz-h">After import</h2>
           <JwCheckbox v-model="scanAfterImport">Scan the imported chapters for new characters, locations, and objects</JwCheckbox>
           <span class="t-muted opt-hint" v-if="scanAfterImport">
@@ -359,6 +491,7 @@ function finishAfterSweep() {
             <Icon name="Check" :size="13" />
             {{ intent === "narrate" ? "Import & open Studio"
               : intent === "new" ? "Create book"
+              : intent === "notes" ? "Import notes"
               : "Import chapters" }}
           </JwButton>
         </section>
@@ -385,7 +518,7 @@ function finishAfterSweep() {
 .wiz-h::after { content: ""; flex: 1; height: 1px; background: var(--border); }
 
 /* Intent cards */
-.intent-grid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 12px; }
+.intent-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; }
 .intent-card {
   display: grid; grid-template-columns: auto 1fr; gap: 14px;
   align-items: flex-start;
@@ -527,9 +660,6 @@ function finishAfterSweep() {
 /* Actions */
 .wiz-actions { flex-direction: row; justify-content: flex-end; gap: 10px; margin-top: 8px; }
 
-@media (max-width: 900px) {
-  .intent-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
-}
 @media (max-width: 720px) {
   .intent-grid { grid-template-columns: 1fr; }
   .ps-stats { gap: 18px; }

@@ -9,29 +9,43 @@ JustWrite reads and writes the formats writers actually use:
 
 ## Import
 
-The **Import** view (Project section in the sidebar) brings a manuscript file into JustWrite as chapters.
+The **Import** view (Project section in the sidebar) brings a manuscript file — or a stack of note files — into JustWrite.
 
-### Three import modes
+### Four import modes
 
 When you start an import, you choose what to do with the result:
 
 | Mode | What it does |
 |---|---|
-| **Edit in current project** | Adds the imported chapters to the project you're currently in. You can optionally drop them inside a brand-new Part. |
-| **Create new project** | Spins up a fresh project from the imported file. You pick a title and (optional) author. |
-| **Narrate as audiobook** | Same as "Create new project" but drops you straight into Studio → Cast as soon as it's done. |
+| **Add existing** | Appends the imported chapters to the project you're currently in. You pick which **Part** they land in (any existing part, or a brand-new one). |
+| **Start a new book** | Spins up a fresh project from the imported file. You pick a title and (optional) author. |
+| **Narrate as audiobook** | Same as "Start a new book" but drops you straight into Studio → Cast as soon as it's done. |
+| **Add notes** | Brings sections of the file in as **notes** on your current project. Each heading becomes one note; a flat file becomes one. Supports dropping multiple files in one batch. |
 
 ### How to import
 
 1. Open **Import** from the sidebar.
 2. Choose your mode.
-3. **Drop a file onto the page** or use the file picker. Supported formats: `.docx`, `.epub`, `.odt`, `.md`, `.txt`.
-4. JustWrite parses the file and shows a **preview** with every detected chapter.
-5. **Review the preview**: each chapter shows its detected title, word count, and a text snippet. You can:
-   - Rename any chapter title inline.
-   - Drop chapters you don't want imported.
-6. If the parser had to work around odd formatting, a **warnings panel** explains what was adjusted.
-7. **Confirm.** The chapters land in your project.
+3. **Drop a file onto the page** (or several, for **Add notes**) or use the file picker. Supported formats: `.docx`, `.epub`, `.odt`, `.md`, `.txt`.
+4. JustWrite parses the file(s) and shows a **preview** with every detected section.
+5. **Review the preview**: each entry shows its detected title, word count, and a text snippet. You can:
+   - Rename the title inline.
+   - Drop entries you don't want imported.
+6. If the parser had to work around odd formatting, a **warnings panel** explains what was adjusted — prefixed with the source filename when multiple files were imported.
+7. **Confirm.** The chapters (or notes) land in your project.
+
+### Part picker (Add existing)
+
+In **Add existing**, the **Add to part** dropdown lists every existing Part in the current project plus a **New part…** option. The default is whichever Part is last in your manuscript, so a quick import lands at the end of your draft. Pick a specific Part to insert chapters mid-manuscript, or choose **New part…** to create a Part on the fly (its title defaults to the file name).
+
+### Notes options (Add notes)
+
+The **Add notes** mode applies two settings to every note in the batch:
+
+- **Tag** — a single keyword (e.g. `research`, `plot`, `structure`). Defaults to `note`. A datalist suggests tags already in use elsewhere in the project, so your note vocabulary doesn't splinter over time.
+- **Pin to** — where the notes attach. Default is **Story-wide** (no anchor). Pick a specific chapter or scene to pin every imported note there in one shot — useful when the file is research for a particular scene. You can re-anchor any individual note later from the Notes view.
+
+**Multi-file drop**: dropping several files at once batches them into a single import. Each file's detected sections become entries in the same preview list, and the whole batch ingests as one undoable action. Useful for bringing in a folder of `.txt` notes from another tool.
 
 ### Optional cleanups
 
@@ -41,9 +55,10 @@ When you start an import, you choose what to do with the result:
 
 ### When to use which mode
 
-- **Edit in current project** — you're moving an in-progress draft from Word or Scrivener into JustWrite and want to keep working on it. Useful for getting one Part of a long manuscript out of a `.docx` file you've outgrown.
-- **Create new project** — you have a finished or partial book in another tool and you want a clean JustWrite project for it.
+- **Add existing** — you're moving an in-progress draft from Word or Scrivener into JustWrite and want to keep working on it. Useful for getting one Part of a long manuscript out of a `.docx` file you've outgrown.
+- **Start a new book** — you have a finished or partial book in another tool and you want a clean JustWrite project for it.
 - **Narrate as audiobook** — you have a complete manuscript and you want to record an audiobook of it without doing any editing in JustWrite. One-click into Studio.
+- **Add notes** — you have research, outlines, character sketches, or scratch text in Word/Markdown/plain text that you want surfaced inside the project. Multi-file makes it practical to bring a folder of notes in at once.
 
 ### Tips
 

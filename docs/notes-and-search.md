@@ -29,6 +29,10 @@ A Note is the right home for anything that doesn't fit the structured views:
 
 If you find yourself writing free-form thoughts and they don't belong to a Character, Location, Object, Worldbuilding article, or Architecture document, write them as a Note.
 
+### Bringing existing notes in
+
+If you already have research, outlines, or scratch text in Word, Markdown, or plain text, the **Import** view's **Add notes** mode pulls it straight into the project. Each heading in the file becomes one note (a flat file becomes one). You can drop multiple files at once, set a tag for the whole batch, and pin every imported note to a specific chapter or scene in one shot. See [Import and export](import-and-export.md) for the details.
+
 ### Tagging
 
 The tag field is the only organisational tool. Pick a single short label per note and the sidebar can filter by it. A few useful tag schemes:
