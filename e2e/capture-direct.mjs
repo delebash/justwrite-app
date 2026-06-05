@@ -141,6 +141,29 @@ async function main() {
   // Let the app boot fully — Pinia stores hydrate from IDB on mount.
   await new Promise((r) => setTimeout(r, 4000));
 
+  // Switch the active theme preset BEFORE running the capture loop, so
+  // every shot reflects that look. Navigates to Settings → Appearance
+  // and clicks the named preset tile, then jumps to a neutral route so
+  // the first real target doesn't have to undo the settings page.
+  const THEME = process.env.JW_THEME || "Fine Press";
+  console.log(`→ setting theme preset: ${THEME}`);
+  await execute(sid, "window.location.hash = arguments[0];", ["#/settings/appearance"]);
+  await new Promise((r) => setTimeout(r, 1500));
+  const clicked = await execute(
+    sid,
+    `const tile = [...document.querySelectorAll('.preset-tile')]
+       .find((el) => el.querySelector('b') && el.querySelector('b').textContent.trim() === arguments[0]);
+     if (!tile) return false;
+     tile.click();
+     return true;`,
+    [THEME],
+  );
+  if (!clicked) throw new Error(`Theme preset "${THEME}" tile not found.`);
+  // Give applyAppearance() time to push CSS custom properties + swap fonts.
+  await new Promise((r) => setTimeout(r, 1200));
+  await execute(sid, "window.location.hash = '#/';", []);
+  await new Promise((r) => setTimeout(r, 800));
+
   try {
     for (const t of TARGETS) {
       console.log(`→ ${t.name} (${t.hash})`);
