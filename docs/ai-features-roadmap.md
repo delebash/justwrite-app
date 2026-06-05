@@ -11,7 +11,7 @@ Research-driven catalog of AI features worth considering for JustWrite. Cross-re
 For context while reading the proposals below. JustWrite already has:
 
 - **Drafting**: Rewrite, Expand, Tighten, Continue, Describe (bubble menu, scene-strip AI dropdown, Writer Lab).
-- **Prose passes**: Show-don't-tell, Passive Voice, Filter Words, Dialogue Tags, Sentence Variety, Prose Tightening — all with accept/reject diff UI.
+- **Line edits**: Show don't tell, Passive Voice, Filter Words, Dialogue Tags, Sensory Grounding, Sentence Variety, Prose Tightening — all with accept/reject diff UI.
 - **Analysis**: Chapter Critique notes, Structural Analysis (tension 1–10, hookQuality 1–10, pacing, endingClass, summary).
 - **Worldbuilding**: Single-chapter Entity Extraction, Whole-book Entity Sweep with review modal.
 - **Brainstorming**: Name / title / free Brainstorm with "more like these" steering.
@@ -91,9 +91,11 @@ Sister feature to #1. When the user closes a sprint or hits a target, summarize 
 
 **Shipped as:** A **Research feel…** entry in the scene-strip AI dropdown (placed right after Describe) opens a modal that takes the selection text as the subject and returns a structured JSON pack across eight categories: smell, sound, touch, temperature, taste, movement, social, period detail. Each phrase has an Insert button that drops the phrase as plain inline text at the end of the current selection (via a new `insertSensoryPhrase` on RichEditor that handles whitespace boundaries). Multiple phrases stack cleanly. Regenerate asks for a fresh pack. Routable as the **sensory** feature in Settings → AI. Service: `services/sensoryResearch.js`. Modal: `components/SensoryResearchModal.vue`. Editor: `grabSensorySubject` + `insertSensoryPhrase` added to `RichEditor.vue`'s defineExpose. Docs: `docs/writing.md` "Research feel" section.
 
-### 9. Story-tension timeline (visualize what's already computed)
+### 9. Story-tension timeline (visualize what's already computed) — **Shipped**
 
 `runStructuralAnalysis` already returns `tension: 1-10` and `pacing` per chapter. One chart away from a story-shape visualization — the kind ProWritingAid and Marlowe charge for. Add a bulk "analyze all unanalyzed chapters" button and you get the arc graph for free.
+
+**Shipped as:** A new **Story tension** section at the top of the Analysis dashboard. Reads from data already on `chapter.critique.structure`. Renders: a stats row (avg tension, avg hook, peak/lowest chapters as clickable jumps), a two-line chart (tension in solid red, hook quality in dashed gold, with gridlines at 3 and 7), and a per-chapter strip where each cell is coloured by pacing (slow/balanced/fast) and has a corner badge for ending class. Sequential bulk sweep via `services/analysis/tensionSweep.js` runs `runStructuralAnalysis` on chapters that don't have a structure yet (or all chapters with `force: true`). Cancellable mid-sweep with partial results preserved. Reuses the existing **critique** feature pin — no new feature key. Service: `services/analysis/tensionSweep.js`. Docs: `docs/analysis.md` "Story tension" section.
 
 ### 10. Character-action ↔ profile consistency audit
 

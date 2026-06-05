@@ -13,6 +13,8 @@ import {
 } from "../services/analysis.js";
 import { bookMetrics, POV_LABELS } from "../services/analysis/styleMetrics.js";
 import { computeVoiceDrift, explainVoiceDrift } from "../services/analysis/voiceDrift.js";
+import { sweepStoryTension } from "../services/analysis/tensionSweep.js";
+import { PACING_LABELS, ENDING_LABELS } from "../services/analysis/critique.js";
 import { useAiStore } from "../stores/ai.js";
 import { useAiProgress } from "../composables/useAiProgress.js";
 import JwTable from "@renderer/components/ui/JwTable.vue";
@@ -249,6 +251,105 @@ const TREND_COLOURS = {
   falling: "var(--accent)",
   flat: "var(--muted)",
 };
+
+// ─── Story tension timeline ──────────────────────────────────────────
+// Visualises the per-chapter tension + hookQuality values that
+// runStructuralAnalysis already records on chapter.critique.structure.
+// One bulk-run button covers chapters that haven't been analysed yet.
+
+const tensionProgress = useAiProgress();
+const tensionRunningChapterId = ref(null);
+const tensionError = ref("");
+
+const tensionRows = computed(() => allCh.value.map((c) => ({
+  chapter: c,
+  s: c.critique?.structure || null,
+})));
+const analysedTensionRows = computed(() => tensionRows.value.filter((r) => r.s));
+const unanalysedCount = computed(() => tensionRows.value.filter((r) => !r.s).length);
+const tensionEligible = computed(() => analysedTensionRows.value.length >= 2);
+
+const tensionStats = computed(() => {
+  const rows = analysedTensionRows.value;
+  if (!rows.length) return null;
+  const tensions = rows.map((r) => r.s.tension || 0);
+  const hooks = rows.map((r) => r.s.hookQuality || 0);
+  const avgT = tensions.reduce((s, v) => s + v, 0) / tensions.length;
+  const avgH = hooks.reduce((s, v) => s + v, 0) / hooks.length;
+  let peakIdx = 0, lowIdx = 0;
+  for (let i = 0; i < rows.length; i++) {
+    if ((rows[i].s.tension || 0) > (rows[peakIdx].s.tension || 0)) peakIdx = i;
+    if ((rows[i].s.tension || 0) < (rows[lowIdx].s.tension || 0)) lowIdx = i;
+  }
+  return {
+    avgTension: avgT,
+    avgHook: avgH,
+    peakChapter: rows[peakIdx].chapter,
+    peakValue: rows[peakIdx].s.tension,
+    lowChapter: rows[lowIdx].chapter,
+    lowValue: rows[lowIdx].s.tension,
+  };
+});
+
+// Build SVG geometry — one line for tension, one for hook quality.
+// Both are scored 1..10 so they share the y-axis.
+const tensionGeom = computed(() => {
+  const rows = tensionRows.value;
+  if (rows.length < 2) return null;
+  const W = 100, H = 50;
+  const xs = rows.map((_, i) => rows.length > 1 ? (i / (rows.length - 1)) * W : 0);
+  const y = (v) => H - ((v - 1) / 9) * (H - 4) - 2;
+  const tensionPts = rows.map((r, i) => r.s ? `${xs[i].toFixed(1)},${y(r.s.tension || 0).toFixed(1)}` : null).filter(Boolean).join(" ");
+  const hookPts = rows.map((r, i) => r.s ? `${xs[i].toFixed(1)},${y(r.s.hookQuality || 0).toFixed(1)}` : null).filter(Boolean).join(" ");
+  return { W, H, tensionPts, hookPts };
+});
+
+const PACING_BG = {
+  slow:    "color-mix(in oklab, var(--status-todo) 28%, transparent)",
+  balanced:"color-mix(in oklab, var(--status-done) 24%, transparent)",
+  fast:    "color-mix(in oklab, var(--gold) 30%, transparent)",
+};
+const ENDING_BG = {
+  cliffhanger: "color-mix(in oklab, var(--danger) 26%, transparent)",
+  soft:        "color-mix(in oklab, var(--accent) 22%, transparent)",
+  closed:      "color-mix(in oklab, var(--status-done) 22%, transparent)",
+  "dead-end":  "color-mix(in oklab, var(--muted) 30%, transparent)",
+};
+
+async function runTensionSweep(force = false) {
+  tensionError.value = "";
+  if (!ai.providerForFeature("critique")) {
+    tensionError.value = "Configure an AI provider in Settings → AI to run the tension sweep.";
+    return;
+  }
+  tensionProgress.start();
+  try {
+    await sweepStoryTension({
+      project,
+      signal: tensionProgress.signal,
+      force,
+      onProgress: ({ phase, chapter }) => {
+        if (phase === "start") tensionRunningChapterId.value = chapter.id;
+        else tensionRunningChapterId.value = null;
+      },
+    });
+    tensionProgress.finish();
+    tensionRunningChapterId.value = null;
+  } catch (e) {
+    if (!tensionProgress.cancelled.value) {
+      const msg = String(e?.message || e || "");
+      tensionError.value = /provider|api key|configure/i.test(msg)
+        ? "Configure an AI provider in Settings → AI to run the tension sweep."
+        : msg || "Tension sweep failed.";
+    }
+    tensionProgress.finish();
+    tensionRunningChapterId.value = null;
+  }
+}
+function cancelTensionSweep() {
+  tensionProgress.cancel();
+  tensionRunningChapterId.value = null;
+}
 
 // ─── Writing heatmap (365 days) ─────────────────────────────────────
 // Build a 53-week × 7-day grid for the year ending today. Each cell is
@@ -565,6 +666,120 @@ const milestoneState = computed(() => {
       </JwTable>
     </div>
 
+    <!-- Story tension timeline -->
+    <div class="card st-card" style="margin-bottom:18px">
+      <div style="display:flex;align-items:center;gap:10px;margin-bottom:8px;flex-wrap:wrap">
+        <div class="card-title" style="margin:0">Story tension</div>
+        <span class="t-muted" style="font-size:11.5px">Per-chapter tension + hook quality from structural analysis</span>
+        <span style="margin-left:auto;display:flex;gap:8px;align-items:center">
+          <span v-if="analysedTensionRows.length" class="st-pill">
+            {{ analysedTensionRows.length }} of {{ tensionRows.length }} chapters analysed
+          </span>
+          <JwButton v-if="!tensionProgress.running.value" intent="ghost" size="small"
+                    :disabled="!unanalysedCount && analysedTensionRows.length"
+                    @click="runTensionSweep(false)"
+                    v-tooltip.bottom="unanalysedCount ? `Analyse ${unanalysedCount} chapter${unanalysedCount === 1 ? '' : 's'} that don't yet have a structural pass` : 'All chapters already analysed'">
+            <Icon name="Sparkle" :size="12" />
+            {{ unanalysedCount ? `Analyse ${unanalysedCount} chapter${unanalysedCount === 1 ? '' : 's'}` : 'All analysed' }}
+          </JwButton>
+          <JwButton v-if="!tensionProgress.running.value && analysedTensionRows.length" intent="ghost" size="small"
+                    @click="runTensionSweep(true)"
+                    v-tooltip.bottom="'Re-run on every chapter, replacing prior results'">
+            <Icon name="Refresh" :size="12" /> Re-analyse all
+          </JwButton>
+          <JwButton v-else-if="tensionProgress.running.value" intent="danger" size="small" @click="cancelTensionSweep">
+            <Icon name="Close" :size="12" /> Cancel
+          </JwButton>
+        </span>
+      </div>
+
+      <div v-if="tensionError" class="st-error">
+        <Icon name="Alert" :size="13" /> {{ tensionError }}
+      </div>
+
+      <div v-if="tensionProgress.running.value" class="st-progress">
+        <span class="st-spinner" />
+        <span>Analysing chapter {{ tensionRunningChapterId ? allCh.find(c => c.id === tensionRunningChapterId)?.num : '' }}… ({{ tensionProgress.elapsedSeconds }}s)</span>
+      </div>
+
+      <p v-if="!analysedTensionRows.length && !tensionProgress.running.value" class="st-empty">
+        No chapters have a structural analysis yet. Click the button above to walk every chapter and score tension (1–10), hook quality (1–10), pacing, and ending classification. Sequential — one LLM call per chapter — so longer books take a while. Cancel mid-sweep keeps partial results.
+      </p>
+
+      <template v-if="tensionGeom && analysedTensionRows.length">
+        <!-- Stats row -->
+        <div v-if="tensionStats" class="st-stats">
+          <div class="st-stat">
+            <div class="st-stat-v">{{ tensionStats.avgTension.toFixed(1) }}<small> / 10</small></div>
+            <div class="st-stat-k">avg tension</div>
+          </div>
+          <div class="st-stat">
+            <div class="st-stat-v">{{ tensionStats.avgHook.toFixed(1) }}<small> / 10</small></div>
+            <div class="st-stat-k">avg hook quality</div>
+          </div>
+          <div class="st-stat st-stat-wide">
+            <button class="st-stat-jump" @click="jumpChapter(tensionStats.peakChapter.id)"
+                    v-tooltip.bottom="'Open this chapter'">
+              Ch.{{ tensionStats.peakChapter.num }} — {{ tensionStats.peakChapter.title || 'Untitled' }} ({{ tensionStats.peakValue }}/10)
+            </button>
+            <div class="st-stat-k">peak tension</div>
+          </div>
+          <div class="st-stat st-stat-wide">
+            <button class="st-stat-jump" @click="jumpChapter(tensionStats.lowChapter.id)"
+                    v-tooltip.bottom="'Open this chapter'">
+              Ch.{{ tensionStats.lowChapter.num }} — {{ tensionStats.lowChapter.title || 'Untitled' }} ({{ tensionStats.lowValue }}/10)
+            </button>
+            <div class="st-stat-k">lowest tension</div>
+          </div>
+        </div>
+
+        <!-- Two-line chart -->
+        <svg class="st-chart" :viewBox="`0 0 ${tensionGeom.W} ${tensionGeom.H}`" preserveAspectRatio="none">
+          <!-- gridlines at 3 and 7 -->
+          <line :x1="0" :x2="tensionGeom.W"
+                :y1="tensionGeom.H - ((3 - 1) / 9) * (tensionGeom.H - 4) - 2"
+                :y2="tensionGeom.H - ((3 - 1) / 9) * (tensionGeom.H - 4) - 2"
+                stroke="var(--border-soft)" stroke-width="0.4"
+                stroke-dasharray="2 2" vector-effect="non-scaling-stroke" />
+          <line :x1="0" :x2="tensionGeom.W"
+                :y1="tensionGeom.H - ((7 - 1) / 9) * (tensionGeom.H - 4) - 2"
+                :y2="tensionGeom.H - ((7 - 1) / 9) * (tensionGeom.H - 4) - 2"
+                stroke="var(--border-soft)" stroke-width="0.4"
+                stroke-dasharray="2 2" vector-effect="non-scaling-stroke" />
+          <polyline :points="tensionGeom.tensionPts"
+                    fill="none" stroke="var(--danger)" stroke-width="1.6"
+                    vector-effect="non-scaling-stroke" />
+          <polyline :points="tensionGeom.hookPts"
+                    fill="none" stroke="var(--gold)" stroke-width="1.6"
+                    stroke-dasharray="3 2" vector-effect="non-scaling-stroke" />
+        </svg>
+        <div class="st-legend">
+          <span class="st-legend-item"><span class="st-legend-line tension" /> Tension</span>
+          <span class="st-legend-item"><span class="st-legend-line hook" /> Hook quality</span>
+        </div>
+
+        <!-- Per-chapter strip — pacing/ending classification at a glance -->
+        <div class="st-strip">
+          <button v-for="r in tensionRows" :key="r.chapter.id" type="button"
+                  class="st-cell"
+                  :class="{ unscanned: !r.s, running: tensionRunningChapterId === r.chapter.id }"
+                  :style="{ background: r.s ? PACING_BG[r.s.pacing] || 'var(--surface-3)' : 'var(--surface-3)' }"
+                  v-tooltip.bottom="r.s ? `Ch.${r.chapter.num}${r.chapter.title ? ' — ' + r.chapter.title : ''}\nTension ${r.s.tension}/10 · Hook ${r.s.hookQuality}/10\nPacing: ${PACING_LABELS[r.s.pacing] || r.s.pacing} · Ending: ${ENDING_LABELS[r.s.endingClass] || r.s.endingClass}` : `Ch.${r.chapter.num} — not analysed`"
+                  @click="jumpChapter(r.chapter.id)">
+            <span class="st-cell-num">{{ r.chapter.num }}</span>
+            <span v-if="r.s" class="st-cell-end"
+                  :style="{ background: ENDING_BG[r.s.endingClass] || 'transparent' }">
+              {{ r.s.endingClass.charAt(0).toUpperCase() }}
+            </span>
+          </button>
+        </div>
+        <p class="st-strip-hint">
+          Cell colour = pacing (slow / balanced / fast). Corner badge = ending class
+          (<strong>C</strong>liffhanger · <strong>S</strong>oft hook · <strong>C</strong>losed · <strong>D</strong>ead-end). Click any chapter to open it.
+        </p>
+      </template>
+    </div>
+
     <!-- Voice drift -->
     <div v-if="drift.eligible" class="card vd-card" style="margin-bottom:18px">
       <div style="display:flex;align-items:center;gap:10px;margin-bottom:8px">
@@ -875,6 +1090,111 @@ const milestoneState = computed(() => {
   .heatmap-milestones-row { grid-template-columns: 1fr; }
   .status-row { grid-template-columns: 1fr; }
 }
+
+/* ── Story tension ────────────────────────────────────────── */
+.st-card .st-pill {
+  font-family: var(--font-mono); font-size: 10.5px;
+  padding: 3px 10px; border-radius: 999px;
+  background: var(--surface-3); color: var(--muted);
+}
+.st-error {
+  display: flex; gap: 8px; align-items: center;
+  padding: 8px 12px; border-radius: 6px;
+  background: color-mix(in oklab, var(--danger-ink, #b91c1c) 12%, transparent);
+  color: var(--danger-ink, #b91c1c);
+  font-size: 12.5px; margin-bottom: 10px;
+}
+.st-progress {
+  display: flex; align-items: center; gap: 10px;
+  font-size: 12.5px; color: var(--muted); font-style: italic;
+  padding: 8px 0;
+}
+.st-spinner {
+  display: inline-block; width: 12px; height: 12px;
+  border: 2px solid var(--surface-3); border-top-color: var(--accent);
+  border-radius: 50%; animation: st-spin 0.9s linear infinite;
+}
+@keyframes st-spin { to { transform: rotate(360deg); } }
+.st-empty {
+  margin: 6px 0 0; max-width: 78ch;
+  font-size: 12.5px; line-height: 1.55; color: var(--muted); font-style: italic;
+}
+
+.st-stats {
+  display: flex; flex-wrap: wrap; gap: 22px;
+  padding: 4px 0 14px;
+  border-bottom: 1px solid var(--border-soft);
+  margin-bottom: 14px;
+}
+.st-stat { display: flex; flex-direction: column; gap: 2px; min-width: 0; }
+.st-stat-wide { flex: 1 1 280px; min-width: 0; }
+.st-stat-v {
+  font-family: var(--font-serif); font-size: 22px; font-weight: 500;
+  color: var(--ink); line-height: 1.1;
+  overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+}
+.st-stat-v small {
+  font-family: var(--font-mono); font-size: 11px;
+  color: var(--muted); letter-spacing: 0.04em;
+}
+.st-stat-k {
+  font-family: var(--font-mono); font-size: 9.5px;
+  letter-spacing: 0.15em; text-transform: uppercase; color: var(--muted);
+}
+.st-stat-jump {
+  appearance: none; border: 0; background: transparent; cursor: pointer;
+  font: inherit; font-family: var(--font-serif); font-size: 14px; color: var(--ink-2);
+  padding: 0; text-align: left;
+  overflow: hidden; text-overflow: ellipsis; white-space: nowrap; max-width: 100%;
+}
+.st-stat-jump:hover { color: var(--accent); text-decoration: underline; }
+
+.st-chart {
+  width: 100%; height: 100px;
+  background: var(--surface-2); border-radius: 6px;
+  padding: 4px; box-sizing: border-box;
+}
+.st-legend { display: flex; gap: 16px; margin-top: 8px; }
+.st-legend-item { display: inline-flex; align-items: center; gap: 6px; font-size: 11.5px; color: var(--ink-2); }
+.st-legend-line { width: 16px; border-top: 2px solid; display: inline-block; }
+.st-legend-line.tension { color: var(--danger); }
+.st-legend-line.hook { color: var(--gold); border-top-style: dashed; }
+
+.st-strip {
+  display: flex; flex-wrap: wrap; gap: 4px;
+  margin-top: 16px;
+}
+.st-cell {
+  appearance: none; border: 0; cursor: pointer;
+  width: 34px; height: 34px;
+  position: relative;
+  display: flex; align-items: center; justify-content: center;
+  border-radius: 5px;
+  font-family: var(--font-mono); font-size: 11px; font-weight: 600;
+  color: var(--ink-2);
+}
+.st-cell:hover:not(.unscanned) { transform: translateY(-1px); }
+.st-cell.unscanned { cursor: default; color: var(--subtle); }
+.st-cell.running {
+  outline: 2px solid var(--accent); outline-offset: 1px;
+  animation: st-pulse 1.2s ease-in-out infinite;
+}
+@keyframes st-pulse {
+  0%, 100% { opacity: 1; } 50% { opacity: 0.75; }
+}
+.st-cell-num { line-height: 1; }
+.st-cell-end {
+  position: absolute; top: 1px; right: 1px;
+  width: 12px; height: 12px;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 9px; border-radius: 3px;
+  color: var(--ink);
+}
+.st-strip-hint {
+  margin: 10px 0 0; max-width: 78ch;
+  font-size: 11.5px; color: var(--muted); font-style: italic;
+}
+.st-strip-hint strong { color: var(--ink-2); font-weight: 600; font-style: normal; }
 
 /* ── Voice drift ──────────────────────────────────────────── */
 .vd-card .vd-blurb {

@@ -91,6 +91,24 @@ All metrics are calculated locally from the text — no AI call.
 
 Sort by any column to find outliers fast.
 
+### Story tension
+
+> *"My second act drags and I can't tell exactly where."*
+
+JustWrite's Critique modal in the chapter editor already scores each chapter for **tension** (1–10), **hook quality** (1–10), **pacing** (slow / balanced / fast), and **ending class** (cliffhanger / soft / closed / dead-end). The **Story tension** section in Analysis is the manuscript-wide rollup — once you've run the structural pass on multiple chapters, you get a story arc you can actually read at a glance.
+
+The section header has an **Analyse N chapters** button that finds every chapter without a structural score yet and runs the structural pass on them, one at a time. Sequential — one LLM call per chapter — so longer books take a while. Cancellable mid-sweep with partial results preserved. **Re-analyse all** forces a fresh pass on every chapter.
+
+Once you have data:
+
+- **Stats row** — average tension, average hook quality, the peak-tension chapter, the lowest-tension chapter. The peak/lowest are clickable to jump straight into the chapter.
+- **Two-line chart** — tension across chapters (solid red) and hook quality (dashed gold). Faint dashed gridlines at 3 and 7 mark the "weak" and "strong" thresholds. The two lines together show the shape of the book — a story whose tension never crosses 6 has different problems from one whose tension is 9 by chapter 4.
+- **Per-chapter strip** — one coloured cell per chapter showing pacing at a glance (slow / balanced / fast), with a small corner badge for the ending class (**C**liffhanger · **S**oft hook · **C**losed · **D**ead-end). Click any cell to open that chapter.
+
+**Why a writer would care.** Story shape is one of the things you can't see from inside the draft. The classic "the middle sags" or "the climax doesn't land" complaints usually map to a tension curve that flattens at the wrong place, or peaks too early, or never peaks at all. Seeing the arc charted lets you point at the actual chapter that's dragging instead of vaguely revising the middle of the book.
+
+The structural analysis itself is routable as the **critique** feature in Settings → AI (it shares the pin with the per-chapter Critique modal). A long-context cloud model produces noticeably better structural reasoning than small local models — for this specific feature, the per-chapter cost is worth pinning to your strongest available model.
+
 ### Voice drift
 
 > *"I drafted Chapter 1 six months ago and Chapter 20 last week. Has my voice drifted?"*
@@ -164,7 +182,8 @@ Almost nothing. Specifically:
 - **Pace chart, milestones, streak, heatmap** — all local
 - **Chapter status donut, strand distribution, words per chapter** — all local
 - **Style and pacing metrics, scenes per chapter** — all local
-- **Voice drift metrics + sparklines + hot-chapters list** — all local. The optional **Explain** button per hot chapter is the only AI piece in the whole Analysis dashboard
+- **Voice drift metrics + sparklines + hot-chapters list** — all local. The optional **Explain** button per hot chapter is one of two AI surfaces in the dashboard
+- **Story tension chart + per-chapter strip** — reads from data already on `chapter.critique.structure`. The **Analyse N chapters** button runs the structural pass on chapters that don't have one yet (the other AI surface in the dashboard)
 - **Cast presence heatmap** — partially. The mention layer is local; the Studio speaker layer requires Studio → Script to have been run, which uses an LLM
 - **Dialogue vs. narration breakdown** — requires Studio → Script
 
