@@ -104,7 +104,16 @@ Return ONLY a JSON object:
     { "angle": "premise",   "text": "~120-180 word back-cover paragraph, premise-driven (leads with the world or situation, closes with the human pull)" }
   ],
   "synopsis": "one-page synopsis (~500-700 words) of the WHOLE plot including the ending, present tense, third person, naming characters by name. This is for a query package — agents need to know the ending.",
-  "pitch":    "3-paragraph elevator pitch (~200-300 words). Paragraph 1: the hook in 1-2 sentences. Paragraph 2: the story's spine — who/what/where/stakes. Paragraph 3: what makes this book matter / why this writer / comp register."
+  "pitch":    "3-paragraph elevator pitch (~200-300 words). Paragraph 1: the hook in 1-2 sentences. Paragraph 2: the story's spine — who/what/where/stakes. Paragraph 3: what makes this book matter / why this writer / comp register.",
+  "comps":    [
+    {
+      "title":      "the book's title",
+      "author":     "the author's name",
+      "year":       4-digit year or null,
+      "rationale":  "one sentence naming WHAT specifically this book and the writer's book share — structure, register, subgenre, voice, protagonist archetype — not generic resemblance",
+      "confidence": "high" | "medium" | "low" — your confidence the comp ACTUALLY exists as you've named it
+    }
+  ]
 }
 
 Style rules:
@@ -115,6 +124,13 @@ Style rules:
   - Don't use AI-tell phrases ("delved into", "navigated the complexities", "tapestry of", "testament to", "in a world where").
   - Don't editorialise about quality ("a riveting read", "a poignant exploration"). Show the story.
   - Don't pad the word counts with filler; the targets are upper bounds.
+
+COMP-TITLE RULES — these are different and matter:
+  - Return 3-6 comps. Quality over quantity. If you only know 3 good ones, return 3.
+  - Agents want comps PUBLISHED IN THE LAST 5 YEARS. Older books are weak comps — only include a "classic" comp if it's genuinely load-bearing.
+  - Prefer mid-list and well-regarded titles to bestsellers. "Like Gone Girl" tells an agent nothing; "like Mona Awad's Bunny for the unstable narrator" tells them everything.
+  - The rationale must name a SPECIFIC craft connection — structure, voice, register, subgenre, protagonist archetype. Not "thriller fans will enjoy".
+  - HALLUCINATION WARNING: you may not know what books actually exist. If you are NOT SURE a title-and-author combination is real, set confidence to "low" and SAY in the rationale that the writer should verify. If you are confident it exists, set "high". If you've heard of one or the other but not both together, "medium". Be honest. Bad comps are worse than fewer comps.
 
 Return ONLY the JSON object. No preface, no markdown fences.`;
 
@@ -182,11 +198,31 @@ export async function generateMarketingPack({
     };
   });
 
+  const rawComps = Array.isArray(parsed.comps) ? parsed.comps : [];
+  const comps = rawComps
+    .map((c, i) => {
+      if (!c) return null;
+      const title = typeof c.title === "string" ? c.title.trim() : "";
+      const author = typeof c.author === "string" ? c.author.trim() : "";
+      if (!title && !author) return null;
+      const yearRaw = c.year;
+      const year = Number.isFinite(yearRaw) && yearRaw > 1800 && yearRaw < 2100 ? Math.round(yearRaw) : null;
+      const rationale = typeof c.rationale === "string" ? c.rationale.trim().slice(0, 400) : "";
+      const confidence = ["high", "medium", "low"].includes(c.confidence) ? c.confidence : "low";
+      return {
+        id: `comp_${i}`,
+        title, author, year, rationale, confidence,
+      };
+    })
+    .filter(Boolean)
+    .slice(0, 8);
+
   return {
     logline,
     blurbs,
     synopsis,
     pitch,
+    comps,
     totalChapters: chapters.length,
     raw: result.content,
     model: result.model,

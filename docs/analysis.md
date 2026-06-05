@@ -170,6 +170,8 @@ Each artifact has a **Copy** button that drops it onto the clipboard with a conf
 
 **The model is instructed to avoid AI-tell phrases**, but you should still run the result through the [Find AI tells](markers.md) scanner before sending anywhere. Routable as the **marketingPack** feature in Settings → AI.
 
+**Comp titles** ride along in the same modal. The pack returns 3–6 comparable titles — book + author + year + a one-sentence rationale naming the specific craft connection (structure, voice, register, subgenre, protagonist archetype). Each comp carries a **confidence label** (high / medium / low) that's the model's own self-assessment of whether the title-and-author combination is real. A red **verification warning** sits above the list because models confidently invent comp titles that don't exist or misattribute them — treat the suggestions as a *starting point for research*, not a finished list. Agents want comps from the last 5 years and prefer mid-list to bestsellers; a generated comp older than that or aimed at a mega-hit ("like Gone Girl") is a signal to find a more recent or more specific equivalent.
+
 ### Voice drift
 
 > *"I drafted Chapter 1 six months ago and Chapter 20 last week. Has my voice drifted?"*

@@ -145,8 +145,11 @@ Per relationship pair (A↔B), LLM produces a chapter-by-chapter arc with warmth
 
 **Shipped as:** A **Relationship arc** button on the Characters view header opens a modal with two character pickers. JustWrite collects every chapter where both characters are linked to the same scene via the Links panel, sends profiles + shared-scene tails to the model, and gets back a chapter-by-chapter arc with three dimensions per chapter: warmth (1–10, cold↔warm), tension (1–10, calm↔taut), and power ("A"|"B"|"eq"). Plus an overall trajectory classification — warming / cooling / escalating / defusing / flipping / static — and a 2–3 sentence summary. The modal renders a trajectory chip, a two-line chart (warmth solid gold + tension dashed red), and a three-row heatmap strip (warmth / tension / power) with per-chapter cells coloured on those scales. Click any cell to surface the model's one-sentence moment for that chapter. Surfaces a clear error if the two characters share no scenes (the Links panel is the source of truth). Persists per-pair on `project.relationshipArcs[pairKey]` keyed by sorted character ids, so multiple tracked pairs coexist. Routable as the **relationshipArc** feature in Settings → AI. Service: `services/analysis/relationshipArc.js` (with `pairKey` and `TRAJECTORY_LABELS` exports). Modal: `components/RelationshipArcModal.vue`. Project store: `setRelationshipArc / clearRelationshipArc / clearAllRelationshipArcs`. Docs: `docs/story-bible.md` "Relationship arc" section.
 
-### 17. Three-alternative streaming (variations)
+### 17. Three-alternative streaming (variations) — **Deferred**
+
 Writer actions currently stream one result. Add an opt-in "show 3" mode (parallel generations, varied temperature). Writers underuse this but it changes draft quality once the habit forms.
+
+**Status:** Deferred. Touches `RichEditor.vue` — the AI-diff / `proposeContinuation` machinery is the most surgical part of the codebase, and the file has been actively under user edit through this Tier 2 push. Risk of merge collision is high relative to the feature's value. Revisit when the editor is settled.
 
 ### 18. Brainstorm-next-beats (plot-level) — **Shipped**
 
@@ -172,8 +175,11 @@ Post-draft marketing pack. LLM compresses the manuscript via RAG into a logline,
 
 **Shipped as:** A **Marketing pack** button on the Analysis dashboard's Story tension section opens a modal that runs one LLM call over the same chapter digest the other structural modals use (Reverse outline / Beat sheet / Plot-hole audit). Returns four artifacts: logline (one sentence, 15–30 words), three back-cover blurbs at distinct angles (hook-driven / character-driven / premise-driven, ~150 words each), one-page synopsis (~600 words, includes the ending — agents need it for query packages), and three-paragraph elevator pitch (~250 words). System prompt explicitly bans AI-tell phrases (delved into, tapestry of, in a world where, testament to). Each artifact has a Copy button with toast confirmation. Persists on `project.marketingPack` so re-opening reads from cache. Routable as the **marketingPack** feature in Settings → AI. Service: `services/analysis/marketingPack.js`. Modal: `components/MarketingPackModal.vue`. Project store: `setMarketingPack / clearMarketingPack`. Docs: `docs/analysis.md` "Marketing pack" sub-section.
 
-### 22. Comp-titles suggester
+### 22. Comp-titles suggester — **Shipped**
+
 "Readers who liked X" with rationale. Pair with the blurb generator. Mind the hallucination risk — surface confidence and prompt the user to verify.
+
+**Shipped as:** A **Comp titles** section *inside* the existing Marketing pack modal (#21) — same LLM call returns 3–6 comps as a new `comps` array. Each comp has title, author, year, a one-sentence rationale naming the specific craft connection (structure / voice / register / subgenre / archetype, not generic resemblance), and a `confidence` label (high / medium / low) that's the model's own self-assessment of whether the title-and-author combination is real. Modal renders the comps with the confidence label colour-coding the left border (high green, medium gold, low red) and a prominent red verification warning above the list reminding the writer that models confidently invent titles. Prompt explicitly instructs the model to: prefer comps published in the last 5 years; favour mid-list and well-regarded over bestseller comps; tie each rationale to a specific craft element; flag low confidence honestly rather than guess. Includes a Copy-as-list button that formats comps as a query-letter-ready bullet list. No new feature pin (rides on the existing `marketingPack` pin and cache). Service: `services/analysis/marketingPack.js` (extended). Modal: `components/MarketingPackModal.vue` (extended). Docs: `docs/analysis.md` Marketing pack section extended.
 
 ---
 

@@ -85,6 +85,14 @@ function wordCount(text) {
   return text.trim().split(/\s+/).length;
 }
 
+function formatComps(comps) {
+  if (!Array.isArray(comps) || !comps.length) return "";
+  return comps.map((c) => {
+    const head = [c.title, c.author && `by ${c.author}`, c.year && `(${c.year})`].filter(Boolean).join(" ");
+    return `- ${head}${c.rationale ? ` — ${c.rationale}` : ""}`;
+  }).join("\n");
+}
+
 onMounted(() => {
   if (!pack.value) run();
 });
@@ -185,6 +193,42 @@ onMounted(() => {
           </JwButton>
         </div>
         <p class="mp-prose">{{ pack.pitch || "(no pitch returned)" }}</p>
+      </section>
+
+      <!-- Comp titles -->
+      <section v-if="pack.comps?.length" class="mp-section">
+        <div class="mp-section-h">
+          <span>Comp titles</span>
+          <span class="mp-section-meta">{{ pack.comps.length }} suggested</span>
+          <span class="mp-spacer" />
+          <JwButton intent="ghost" size="small" @click="copyText(formatComps(pack.comps), 'Comp titles')">
+            <Icon name="Plus" :size="12" /> Copy as list
+          </JwButton>
+        </div>
+        <p class="mp-comp-warning">
+          <Icon name="Alert" :size="12" />
+          <span>
+            <strong>Verify these before sending anywhere.</strong> Models confidently invent comp
+            titles that don't exist or misattribute them. Confidence labels are the model's own
+            self-assessment — treat as a starting point for research, not a finished list. Agents
+            want comps published in the last 5 years; if a suggestion is older, reach for a more
+            recent equivalent.
+          </span>
+        </p>
+        <ul class="mp-comps">
+          <li v-for="c in pack.comps" :key="c.id" class="mp-comp" :data-confidence="c.confidence">
+            <div class="mp-comp-head">
+              <span class="mp-comp-title">{{ c.title || "(untitled)" }}</span>
+              <span v-if="c.author" class="mp-comp-author">— {{ c.author }}</span>
+              <span v-if="c.year" class="mp-comp-year">({{ c.year }})</span>
+              <span class="mp-spacer" />
+              <span class="mp-comp-conf" :data-confidence="c.confidence">
+                {{ c.confidence }} confidence
+              </span>
+            </div>
+            <p v-if="c.rationale" class="mp-comp-rationale">{{ c.rationale }}</p>
+          </li>
+        </ul>
       </section>
     </template>
 
@@ -289,6 +333,49 @@ onMounted(() => {
   white-space: pre-wrap;
   padding: 14px 16px;
   background: var(--surface-2); border-radius: 8px;
+}
+
+.mp-comp-warning {
+  display: flex; gap: 10px;
+  margin: 0 0 14px;
+  padding: 10px 14px;
+  background: color-mix(in oklab, var(--danger) 8%, var(--surface-2));
+  border-left: 3px solid var(--danger);
+  border-radius: 6px;
+  font-size: 12.5px; line-height: 1.55; color: var(--ink-2);
+  max-width: 80ch;
+}
+.mp-comp-warning :deep(svg) { color: var(--danger); flex-shrink: 0; margin-top: 3px; }
+.mp-comp-warning strong { color: var(--ink); font-weight: 600; }
+
+.mp-comps { list-style: none; padding: 0; margin: 0; display: flex; flex-direction: column; gap: 8px; }
+.mp-comp {
+  padding: 12px 14px;
+  background: var(--surface-2); border-radius: 6px;
+  border-left: 3px solid var(--accent);
+}
+.mp-comp[data-confidence="medium"] { border-left-color: var(--gold); }
+.mp-comp[data-confidence="low"]    { border-left-color: var(--danger); }
+
+.mp-comp-head { display: flex; align-items: baseline; gap: 6px; flex-wrap: wrap; margin-bottom: 4px; }
+.mp-comp-title {
+  font-family: var(--font-serif); font-size: 14.5px; font-weight: 600;
+  color: var(--ink); font-style: italic;
+}
+.mp-comp-author { color: var(--ink-2); font-size: 13px; }
+.mp-comp-year { font-family: var(--font-mono); font-size: 11px; color: var(--muted); }
+.mp-comp-conf {
+  font-family: var(--font-mono); font-size: 9.5px;
+  letter-spacing: 0.12em; text-transform: uppercase;
+  padding: 2px 8px; border-radius: 999px;
+  background: var(--surface-3); color: var(--muted);
+}
+.mp-comp-conf[data-confidence="high"] { background: color-mix(in oklab, var(--status-done) 18%, transparent); color: var(--ink); }
+.mp-comp-conf[data-confidence="medium"] { background: color-mix(in oklab, var(--gold) 22%, transparent); color: var(--ink); }
+.mp-comp-conf[data-confidence="low"] { background: color-mix(in oklab, var(--danger) 18%, transparent); color: var(--ink); }
+.mp-comp-rationale {
+  margin: 0; max-width: 70ch;
+  font-size: 12.5px; line-height: 1.55; color: var(--ink-2);
 }
 
 .mp-foot-spacer { flex: 1; }
