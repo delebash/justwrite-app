@@ -135,6 +135,15 @@ const trashColumns = [
 
   <div class="pane-card">
   <div class="scrollarea">
+    <div style="padding:18px 26px 0">
+      <p class="trash-desc">
+        <strong>Trash</strong> is where soft-deleted items rest — every chapter, character,
+        location, object, group, note, or strand you remove lands here first. Click
+        <strong>Restore</strong> any time to bring an item back; click the trash icon to destroy
+        it permanently. Items stay in Trash indefinitely until you choose to empty it.
+      </p>
+    </div>
+
     <!-- Empty -->
     <div v-if="totalCount === 0" style="padding:60px 22px;display:grid;place-items:center">
       <div style="max-width:380px;text-align:center">
@@ -210,4 +219,9 @@ const trashColumns = [
   font-weight: 600;
   letter-spacing: -0.005em;
 }
+.trash-desc {
+  font-size: 14px; line-height: 1.55; color: var(--muted);
+  margin: 0 0 18px;
+}
+.trash-desc strong { color: var(--ink-2); font-weight: 600; }
 </style>

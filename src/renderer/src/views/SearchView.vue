@@ -138,6 +138,12 @@ const KIND_ENTRIES = Object.entries(KIND_META).sort((a, b) => a[1].order - b[1].
   <!-- Results -->
   <div class="pane-card">
   <div class="scrollarea">
+    <p class="search-desc">
+      <strong>Search</strong> is full-text search across every surface in your project — chapters,
+      character profiles, locations, objects, notes, groups, strands, worldbuilding, architecture.
+      Filter by kind to cut noise; click any result to jump to it. The <strong>Replace</strong>
+      button opens project-wide find-and-replace for renames or systematic fixes.
+    </p>
     <!-- Empty: no query -->
     <div v-if="!q" style="padding:60px 22px;display:grid;place-items:center">
       <div style="max-width:420px;text-align:center">
@@ -200,6 +206,13 @@ const KIND_ENTRIES = Object.entries(KIND_META).sort((a, b) => a[1].order - b[1].
 </template>
 
 <style scoped>
+.search-desc {
+  font-size: 14px; line-height: 1.55; color: var(--muted);
+  margin: 0 0 18px;
+  padding: 14px 22px 0;
+}
+.search-desc strong { color: var(--ink-2); font-weight: 600; }
+
 .filter-chip {
   appearance: none;
   display: inline-flex; align-items: center; gap: 5px;

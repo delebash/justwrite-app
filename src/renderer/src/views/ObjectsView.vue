@@ -150,6 +150,12 @@ function onRowClick(event) {
 
     <div v-else class="pane-card">
       <div class="scrollarea" style="padding:18px 22px 40px">
+        <p class="obj-desc" style="margin: 0 0 18px">
+          An <strong>object</strong> is a significant prop — a weapon, a letter, a relic, a
+          vehicle. File one when the thing carries weight in the plot or recurs across scenes;
+          throwaway items don't need an entry. Objects feed the <strong>Relations</strong>
+          graph and AI features that draw on story-world context.
+        </p>
         <!-- Toolbar -->
         <div class="obj-toolbar">
           <span class="obj-search">
@@ -258,6 +264,12 @@ function onRowClick(event) {
     </header>
     <div class="pane-card">
       <div style="padding:24px 28px 40px;display:flex;flex-direction:column;gap:14px;flex:1;min-height:0">
+        <p class="obj-desc">
+          An <strong>object</strong> is a significant prop — a weapon, a letter, a relic, a
+          vehicle. File one when the thing carries weight in the plot or recurs across scenes;
+          throwaway items don't need an entry. Objects feed the <strong>Relations</strong>
+          graph and AI features that draw on story-world context.
+        </p>
         <JwInput fluid placeholder="Kind"
           :model-value="obj.kind" @update:model-value="update('kind', $event)" />
         <TagEditor
@@ -321,6 +333,12 @@ function onRowClick(event) {
 </template>
 
 <style scoped>
+.obj-desc {
+  font-size: 14px; line-height: 1.55; color: var(--muted);
+  margin: 0;
+}
+.obj-desc strong { color: var(--ink-2); font-weight: 600; }
+
 .object-pane-header .pane-title { gap: 2px; }
 .object-name {
   appearance: none;

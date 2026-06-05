@@ -461,6 +461,14 @@ const milestoneState = computed(() => {
   <div class="pane-card">
   <div class="scrollarea" style="padding:22px 26px 60px">
 
+    <p class="an-desc">
+      <strong>Analysis</strong> is a dashboard of objective data about your manuscript — how much
+      you've written, how fast, how the chapters are structured, and what your prose patterns
+      look like. Almost everything is calculated locally from the text; the only AI surfaces are
+      the <strong>Story tension</strong> bulk-analyse button and the per-chapter
+      <strong>Explain</strong> button under Voice drift.
+    </p>
+
     <!-- KPI row -->
     <div class="kpi-row" style="display:grid;gap:14px;margin-bottom:18px">
       <div class="card kpi">
@@ -1012,6 +1020,12 @@ const milestoneState = computed(() => {
 </template>
 
 <style scoped>
+.an-desc {
+  font-size: 14px; line-height: 1.55; color: var(--muted);
+  margin: 0 0 18px;
+}
+.an-desc strong { color: var(--ink-2); font-weight: 600; }
+
 .kpi { padding: 14px 16px; }
 .kpi-val { font-family: var(--font-serif); font-weight: 600; font-size: 26px; letter-spacing: -0.01em; margin-top: 6px; }
 .kpi-of { color: var(--muted); font-weight: 400; font-size: 18px; }

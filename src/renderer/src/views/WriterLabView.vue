@@ -110,6 +110,14 @@ function notesByGroup(notes) {
   <div class="pane-card">
    <div class="scrollarea lab">
 
+    <!-- ── PAGE DESCRIPTOR ───────────────────────────────────────────── -->
+    <p class="wl-desc">
+      <strong>Writer Lab</strong> is a scratch-pad AI workbench — paste any passage of prose (or
+      load a chapter), then run rewrite, expand, tighten, continue, line-edits, critique,
+      structural analysis, or entity extraction. Output stays in the lab; nothing writes back
+      into your manuscript without your explicit copy-paste.
+    </p>
+
     <!-- ── SHARED INPUT + ACTION PICKER ──────────────────────────────── -->
     <WriterLabBase v-model="base" />
 
@@ -276,6 +284,13 @@ function notesByGroup(notes) {
 </template>
 
 <style scoped>
+/* ── Page descriptor ─────────────────────────────────────────────────── */
+.wl-desc {
+  font-size: 14px; line-height: 1.55; color: var(--muted);
+  margin: 0;
+}
+.wl-desc strong { color: var(--ink-2); font-weight: 600; }
+
 /* ── Layout ─────────────────────────────────────────────────────────── */
 .lab {
   display: flex;

@@ -212,6 +212,13 @@ const sortedBeats = computed(() => {
 
   <div v-else class="pane-card">
     <div class="strand-body">
+          <p class="strand-desc">
+            A <strong>narrative strand</strong> is a thread that runs through your manuscript —
+            the main plot, a subplot, a character arc, a thematic spine. Write your synopsis
+            and notes below; add <strong>beats</strong> to mark where the thread turns; tag
+            scenes with this strand via each scene's <strong>Links</strong> panel. Strand
+            membership also feeds the <strong>Relations</strong> graph.
+          </p>
           <JwTextarea class="strand-blurb"
             :model-value="s.blurb || ''"
             placeholder="What is this narrative strand about? (One or two sentences)"
@@ -307,6 +314,12 @@ const sortedBeats = computed(() => {
 </template>
 
 <style scoped>
+.strand-desc {
+  font-size: 14px; line-height: 1.55; color: var(--muted);
+  margin: 0;
+}
+.strand-desc strong { color: var(--ink-2); font-weight: 600; }
+
 .strand-empty {
   padding: 60px 20px;
   text-align: center;

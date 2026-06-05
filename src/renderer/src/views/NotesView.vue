@@ -170,6 +170,12 @@ function deleteNote() {
   </header>
 
   <div v-if="n" class="pane-card">
+    <p class="note-desc">
+      A <strong>note</strong> is anything that doesn't fit one of the structured surfaces —
+      research clippings, half-formed scene ideas, cut prose, beta feedback, a thought you want
+      to come back to. Tag it to find it later; pin it to a chapter or scene above so it
+      surfaces there too.
+    </p>
     <RichEditor
       :model-value="n.body"
       placeholder="Start writing the note…"
@@ -186,6 +192,13 @@ function deleteNote() {
 </template>
 
 <style scoped>
+.note-desc {
+  font-size: 14px; line-height: 1.55; color: var(--muted);
+  padding: 16px 22px 0;
+  margin: 0;
+}
+.note-desc strong { color: var(--ink-2); font-weight: 600; }
+
 .note-pane-header .pane-title { gap: 2px; }
 .note-title {
   appearance: none;

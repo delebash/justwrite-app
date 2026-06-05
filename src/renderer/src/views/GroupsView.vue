@@ -82,6 +82,13 @@ function deleteGroup() {
   </header>
   <div class="pane-card">
     <div style="padding:24px 28px 40px;display:flex;flex-direction:column;gap:14px;flex:1;min-height:0">
+      <p class="gr-desc">
+        A <strong>group</strong> is a cluster of characters, locations, objects, or narrative
+        strands that belong together — a faction, a family, a crew. Members are added from each
+        entity's own <strong>Groups</strong> button; the page below collects everything that's
+        been linked here, and shared membership draws edges between members in the
+        <strong>Relations</strong> graph.
+      </p>
       <RichEditor
         :model-value="g.blurb || ''"
         placeholder="Blurb"
@@ -133,6 +140,12 @@ function deleteGroup() {
 </template>
 
 <style scoped>
+.gr-desc {
+  font-size: 14px; line-height: 1.55; color: var(--muted);
+  margin: 0;
+}
+.gr-desc strong { color: var(--ink-2); font-weight: 600; }
+
 .group-pane-header .pane-title { gap: 2px; }
 .group-name {
   appearance: none;

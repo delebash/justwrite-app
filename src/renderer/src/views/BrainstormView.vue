@@ -37,6 +37,18 @@ const CATEGORIES = [
     placeholder: "e.g. Titles for a heist novel set on a generation ship, single word, evocative.\n\nOr: Chapter titles for a slow-burn romance — three-to-five words, melancholy.",
   },
   {
+    label: "Next plot beats",
+    value: "next_beat",
+    purpose: "Brainstorm what could happen next at the plot level — moves, beats, escalations from where the story currently sits. Different from \"Continue\" in the editor: this gives you a menu of options, not finished prose.",
+    placeholder: "e.g. Elena has just confirmed Marcus is lying. She has the locket but no allies left. Generate 15–20 possible next plot beats — escalations, complications, reveals, twists, scene moves.\n\nOr: The crew has reached the temple. Tomas wants to enter; Esme wants to wait. Brainstorm where the scene goes next.",
+  },
+  {
+    label: "Plot twists",
+    value: "twist",
+    purpose: "Twists, reveals, and unexpected turns the story could take — from plausible to wild. Excellent for when the next move feels too obvious, or for a brainstorm even when you reject most options.",
+    placeholder: "e.g. Mid-second-act thriller. Detective protagonist is closing in on the killer. Brainstorm 15–20 plot twists — revelations, reversals, identity shifts, betrayals — from plausible to wild.\n\nOr: Quiet literary novel about a daughter caring for an aging father. What could twist the dynamic?",
+  },
+  {
     label: "Anything (free prompt)",
     value: "free",
     purpose: "Use this when the category list doesn't fit — phrases, taglines, alternate words, ideas.",
@@ -171,6 +183,13 @@ function clear() {
     <PaneHeader eyebrow="Planning" title="Brainstorm" />
 
     <div class="brainstorm-controls">
+      <p class="bs-desc">
+        <strong>Brainstorm</strong> is a transient generator for names and short phrases —
+        character names, place names, object/item names, titles, or any free-form list. Pick a
+        category, type a seed, hit Generate; thumbs-up the ones you like and click
+        <strong>More like these</strong> to steer the next batch. Nothing here persists once you
+        leave the panel — copy what you want and move on.
+      </p>
       <div class="brainstorm-field">
         <label class="brainstorm-label">Category</label>
         <JwSelect
@@ -273,6 +292,12 @@ function clear() {
 </template>
 
 <style scoped>
+.bs-desc {
+  font-size: 14px; line-height: 1.55; color: var(--muted);
+  margin: 0;
+}
+.bs-desc strong { color: var(--ink-2); font-weight: 600; }
+
 .brainstorm-view {
   display: flex;
   flex-direction: column;

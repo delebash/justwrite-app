@@ -166,6 +166,13 @@ function onRowClick(event) {
     </PaneHeader>
     <div class="pane-card">
       <div class="scrollarea" style="padding:18px 22px 40px">
+        <p class="wb-desc" style="padding: 0; margin: 0 0 18px">
+          A <strong>worldbuilding article</strong> is long-form reference that doesn't belong on
+          a character, location, or object sheet — a magic system, a kingdom's history, an
+          invented language, a calendar, a religion. Organise articles by category, tag them
+          freely; AI features that draw on story-world context will reach for the article when
+          it's relevant.
+        </p>
 
         <!-- Global search + filter reset -->
         <div class="wb-toolbar">
@@ -281,6 +288,13 @@ function onRowClick(event) {
     </header>
 
     <div class="pane-card">
+      <p class="wb-desc">
+        A <strong>worldbuilding article</strong> is long-form reference that doesn't belong on
+        a character, location, or object sheet — a magic system, a kingdom's history, an
+        invented language, a calendar, a religion. Organise articles by category, tag them
+        freely; AI features that draw on story-world context will reach for the article when
+        it's relevant.
+      </p>
       <div style="padding:14px 22px;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:16px">
         <JwInput class="input"
           style="flex:1;font-style:italic;color:var(--muted);font-size:13.5px;border:0;background:transparent;padding:0;font-family:var(--font-serif)"
@@ -310,6 +324,13 @@ function onRowClick(event) {
 </template>
 
 <style scoped>
+.wb-desc {
+  font-size: 14px; line-height: 1.55; color: var(--muted);
+  padding: 14px 22px 0;
+  margin: 0;
+}
+.wb-desc strong { color: var(--ink-2); font-weight: 600; }
+
 .wb-pane-header .pane-title { gap: 2px; }
 .wb-title {
   appearance: none;

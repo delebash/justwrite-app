@@ -83,6 +83,16 @@ function closeScan() { scanOpen.value = false; }
       </div>
     </header>
 
+    <!-- Orientation descriptor. -->
+    <p class="mk-desc">
+      <strong>Markers</strong> is the manuscript-wide view of every pin you've dropped while
+      drafting — <strong>Fix later</strong>, <strong>Verify</strong>, <strong>Weak prose</strong>,
+      <strong>Loose thread</strong>, <strong>TODO</strong>, <strong>Idea</strong>. The timeline
+      strip at the top shows where they cluster across the book; click any tick or row to jump to
+      the marker in the editor. The <strong>Find dangling threads</strong> button asks the AI to
+      scan for setups that may never pay off.
+    </p>
+
     <!-- Timeline strip — manuscript-wide birds-eye. -->
     <div class="markers-timeline-wrap">
       <div class="markers-timeline">
@@ -288,4 +298,10 @@ function closeScan() { scanOpen.value = false; }
   font-family: var(--font-mono);
   font-size: 11px;
 }
+
+.mk-desc {
+  font-size: 14px; line-height: 1.55; color: var(--muted);
+  margin: 0;
+}
+.mk-desc strong { color: var(--ink-2); font-weight: 600; }
 </style>

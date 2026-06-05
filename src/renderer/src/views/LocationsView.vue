@@ -150,6 +150,13 @@ function onRowClick(event) {
 
     <div v-else class="pane-card">
       <div class="scrollarea" style="padding:18px 22px 40px">
+        <p class="loc-desc" style="margin: 0 0 18px">
+          A <strong>location</strong> is a place that appears in your story — a city, a tavern,
+          a starship interior, an abandoned house. Use an entry when the place shows up in more
+          than one scene and you want a single source of truth for its layout, history, and
+          sensory detail. Locations feed the <strong>Relations</strong> graph and AI features
+          that draw on story-world context.
+        </p>
         <!-- Toolbar -->
         <div class="loc-toolbar">
           <span class="loc-search">
@@ -258,6 +265,13 @@ function onRowClick(event) {
     </header>
     <div class="pane-card">
       <div style="padding:24px 28px 40px;display:flex;flex-direction:column;gap:14px;flex:1;min-height:0">
+        <p class="loc-desc">
+          A <strong>location</strong> is a place that appears in your story — a city, a tavern,
+          a starship interior, an abandoned house. Use an entry when the place shows up in more
+          than one scene and you want a single source of truth for its layout, history, and
+          sensory detail. Locations feed the <strong>Relations</strong> graph and AI features
+          that draw on story-world context.
+        </p>
         <JwInput fluid placeholder="Kind"
           :model-value="loc.kind" @update:model-value="update('kind', $event)" />
         <TagEditor
@@ -321,6 +335,12 @@ function onRowClick(event) {
 </template>
 
 <style scoped>
+.loc-desc {
+  font-size: 14px; line-height: 1.55; color: var(--muted);
+  margin: 0;
+}
+.loc-desc strong { color: var(--ink-2); font-weight: 600; }
+
 .location-pane-header .pane-title { gap: 2px; }
 .location-name {
   appearance: none;

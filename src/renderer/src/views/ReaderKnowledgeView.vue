@@ -209,6 +209,14 @@ function jumpToChapter(chapterId) {
       </div>
     </header>
 
+    <p class="rk-desc">
+      <strong>Reader knowledge</strong> is a chapter-by-chapter map of what your reader knows
+      vs. what your POV character knows — the dramatic-irony view. Each chapter is classified as
+      <strong>aligned</strong>, <strong>dramatic irony</strong>, <strong>reader confused</strong>,
+      or <strong>neutral</strong>, and you can see the gap grow or close across the manuscript.
+      Most useful for mystery, thriller, and suspense writers tracking a deliberate reveal.
+    </p>
+
     <div v-if="error" class="rk-error">
       <Icon name="Alert" :size="13" /> {{ error }}
     </div>
@@ -334,6 +342,12 @@ function jumpToChapter(chapterId) {
 </template>
 
 <style scoped>
+.rk-desc {
+  font-size: 14px; line-height: 1.55; color: var(--muted);
+  margin: 0;
+}
+.rk-desc strong { color: var(--ink-2); font-weight: 600; }
+
 .rk-pane {
   padding: 28px 32px 80px;
   overflow-y: auto;

@@ -380,6 +380,14 @@ function sceneBadge(beat) {
 
     <!-- ── Board ──────────────────────────────────────────────── -->
     <template v-else>
+      <p class="pb-desc">
+        The <strong>Plot board</strong> is a two-axis grid: narrative strands across the rows,
+        chapters across the columns. Each beat sits at its strand × chapter intersection. Drag
+        beats around, click an empty cell to add one, and <strong>Apply template</strong> lays a
+        standard structural framework (Three-Act, Save the Cat, Hero's Journey, Story Circle)
+        over your outline.
+      </p>
+
       <!-- Toolbar -->
       <div class="toolbar">
         <div style="position:relative">
@@ -599,6 +607,14 @@ function sceneBadge(beat) {
 </template>
 
 <style scoped>
+/* ── Page descriptor ─────────────────────────────────────────────── */
+.pb-desc {
+  font-size: 14px; line-height: 1.55; color: var(--muted);
+  margin: 0 0 18px;
+  padding: 16px 16px 0;
+}
+.pb-desc strong { color: var(--ink-2); font-weight: 600; }
+
 /* ── Toolbar ──────────────────────────────────────────────────────── */
 .toolbar {
   display: flex;

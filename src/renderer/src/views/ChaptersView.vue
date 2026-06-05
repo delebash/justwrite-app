@@ -752,6 +752,14 @@ watch(() => project.allChapters.map((c) => c.id + ":" + (project.scenesFor(c.id)
   <!-- ── OUTLINE MODE ─────────────────────────────────────────── -->
   <div v-if="ch && mode === 'outline'" class="pane-card">
    <div class="scrollarea outline-pane">
+    <p class="chap-desc">
+      <strong>Chapters</strong> is the writing surface — the editor itself, with
+      <strong>Outline</strong> / <strong>Cards</strong> / <strong>Read</strong> view modes that
+      switch your lens on the same manuscript. Type <code>@</code> to mention any Story Bible
+      entity; the <strong>AI</strong> button in the scene strip opens rewrite, continue, and
+      line-edit actions; the <strong>Links</strong> panel ties each scene to its characters,
+      location, and strands.
+    </p>
     <div class="outline-tree">
       <section v-for="(part, pi) in project.parts" :key="part.id" class="ol-part">
         <div class="ol-part-row">
@@ -1228,6 +1236,13 @@ watch(() => project.allChapters.map((c) => c.id + ":" + (project.scenesFor(c.id)
 </template>
 
 <style scoped>
+.chap-desc {
+  font-size: 14px; line-height: 1.55; color: var(--muted);
+  margin: 0 0 18px;
+}
+.chap-desc strong { color: var(--ink-2); font-weight: 600; }
+.chap-desc code { font-family: var(--font-mono); font-size: 0.92em; padding: 0 4px; background: var(--surface-3); border-radius: 4px; }
+
 .chapter-pane-header .pane-title { gap: 2px; }
 /* 3-column grid [title 1fr | seg-toggle auto | spacer 1fr] so the
    Edit/Outline/Read toggle sits in the horizontal centre of the header

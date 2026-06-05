@@ -281,6 +281,14 @@ const strandCount = (id) => allCh.value.filter((c) => (c.strands || []).includes
   <div class="scrollarea">
     <div class="card-grid home-card-grid" style="gap:16px">
 
+      <p class="home-desc" style="grid-column:1/-1">
+        <strong>Home</strong> is your daily landing surface — recent activity, your streak and pace,
+        progress toward your goal, and a one-click <strong>Resume writing</strong> card that jumps
+        you back into the chapter you last touched. If you have an AI provider configured, the
+        <strong>Previously on your novel</strong> card hands you a fresh re-orientation paragraph
+        when you return after a break.
+      </p>
+
       <!-- Hero -->
       <div class="card hero-card" style="grid-column:1/-1">
         <div class="hero-main">
@@ -481,6 +489,12 @@ const strandCount = (id) => allCh.value.filter((c) => (c.strands || []).includes
 </template>
 
 <style scoped>
+.home-desc {
+  font-size: 14px; line-height: 1.55; color: var(--muted);
+  margin: 0;
+}
+.home-desc strong { color: var(--ink-2); font-weight: 600; }
+
 .home-pane-header .pane-title { gap: 2px; }
 .home-title {
   appearance: none;

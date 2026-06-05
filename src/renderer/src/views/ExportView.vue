@@ -168,6 +168,14 @@ async function exportM4b({ partial = false } = {}) {
   <div class="scrollarea" style="padding:22px">
     <div style="max-width:920px;display:flex;flex-direction:column;gap:18px">
 
+      <p class="ex-desc">
+        <strong>Export</strong> produces a finished file in one of four formats —
+        <strong>PDF</strong> (typeset with cover and TOC), <strong>DOCX</strong> (Word with a live
+        TOC), <strong>EPUB</strong> (e-book for Apple Books / Kobo / Kindle), or
+        <strong>M4B</strong> (audiobook with chapter markers). Pick a format card to see its
+        options; engines are downloaded on first use.
+      </p>
+
       <!-- Format picker -->
       <div class="card">
         <div class="card-title">Format</div>
@@ -323,6 +331,12 @@ async function exportM4b({ partial = false } = {}) {
 </template>
 
 <style scoped>
+.ex-desc {
+  font-size: 14px; line-height: 1.55; color: var(--muted);
+  margin: 0;
+}
+.ex-desc strong { color: var(--ink-2); font-weight: 600; }
+
 .format-picker { grid-template-columns: repeat(4, minmax(0, 1fr)); }
 .manuscript-stats { grid-template-columns: repeat(3, minmax(0, 1fr)); }
 

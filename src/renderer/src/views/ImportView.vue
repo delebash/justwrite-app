@@ -296,6 +296,14 @@ function finishAfterSweep() {
 
   <div class="pane-card">
     <div class="scrollarea">
+      <p class="im-desc">
+        <strong>Import</strong> brings outside files into your project — <code>.docx</code>,
+        <code>.epub</code>, <code>.odt</code>, <code>.md</code>, <code>.txt</code>. Choose a mode
+        (add to your current draft, start a new book, narrate as an audiobook, or bring sections
+        in as notes), drop the file, review the parser's chapter split, confirm. Embedded images
+        are extracted automatically.
+      </p>
+
       <!-- ── STEP 1: Intent + file picker ────────────────────────── -->
       <div v-if="step === 'intent'" class="wiz">
         <section class="wiz-section">
@@ -664,4 +672,12 @@ function finishAfterSweep() {
   .intent-grid { grid-template-columns: 1fr; }
   .ps-stats { gap: 18px; }
 }
+
+.im-desc {
+  font-size: 14px; line-height: 1.55; color: var(--muted);
+  margin: 0 0 18px;
+  padding: 16px 4px 0;
+}
+.im-desc strong { color: var(--ink-2); font-weight: 600; }
+.im-desc code { font-family: var(--font-mono); font-size: 0.92em; padding: 0 4px; background: var(--surface-3); border-radius: 4px; }
 </style>

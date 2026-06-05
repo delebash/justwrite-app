@@ -436,6 +436,14 @@ onBeforeUnmount(() => window.removeEventListener("keydown", onKey));
     </div>
   </PaneHeader>
 
+  <p class="rel-desc">
+    <strong>Relations</strong> is a diagnostic graph of how every character, location, and
+    object in your project connects. Edges come from shared scenes, shared groups, and shared
+    strands — you don't draw them here, they appear automatically from the work you do
+    elsewhere. Use it to ask whether your protagonist is really at the centre of the story,
+    or whether a major character is isolated.
+  </p>
+
   <div ref="wrapRef" class="pane-card relations-canvas" tabindex="0"
     :class="{ panning: isPanning }">
     <svg ref="svgRef"
@@ -557,6 +565,13 @@ onBeforeUnmount(() => window.removeEventListener("keydown", onKey));
 </template>
 
 <style scoped>
+.rel-desc {
+  font-size: 14px; line-height: 1.55; color: var(--muted);
+  margin: 12px 0 0;
+  padding: 0 22px;
+}
+.rel-desc strong { color: var(--ink-2); font-weight: 600; }
+
 .relations-toolbar {
   display: inline-flex; align-items: center; gap: 4px;
   padding: 2px 4px;

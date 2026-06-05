@@ -295,6 +295,15 @@ function downloadChapter(chapterId) {
     </router-link>
   </PaneHeader>
 
+  <p class="studio-desc">
+    <strong>Studio</strong> turns your written manuscript into a narrated audiobook in three
+    sequential steps — choose voices in <strong>Cast</strong>, let the AI work out who speaks
+    each line in <strong>Script</strong>, then generate the audio chapter by chapter in
+    <strong>Render</strong>. You can write a whole novel without touching it; it exists for
+    writers who want to produce their own audiobook or hear their prose read aloud as a
+    revision tool.
+  </p>
+
   <div class="studio-tabs" role="tablist" aria-label="Studio sections">
     <button class="studio-tab" data-tab="cast"
       role="tab" :aria-selected="activeTab === 'cast'" :tabindex="activeTab === 'cast' ? 0 : -1"
@@ -533,6 +542,13 @@ function downloadChapter(chapterId) {
 </template>
 
 <style>
+  .studio-desc {
+    font-size: 14px; line-height: 1.55; color: var(--muted);
+    padding: 14px 22px 0;
+    margin: 0;
+  }
+  .studio-desc strong { color: var(--ink-2); font-weight: 600; }
+
   .st-cast-desc, .st-script-desc {
     font-size: 12px; line-height: 1.55; color: var(--muted);
     margin: 0 0 14px;

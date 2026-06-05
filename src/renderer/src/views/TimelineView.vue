@@ -73,7 +73,13 @@ function goOwner(ev) { router.push(EVENTS_KIND_META[ev.ownerKind].detailUrl(ev.o
   <div class="pane-card">
     <div class="scrollarea events-pane">
       <div class="events-content">
-        <p class="events-subtitle">Every event across the project, in chronological order.</p>
+        <p class="tl-desc">
+          The <strong>Timeline</strong> is a merged, read-only view of every event across every
+          character, location, object, group, and the world Setting — sorted chronologically. Click
+          any event title to edit it; click the entity badge on the right to jump to that entity's
+          page. You add events from each entity's <strong>Events</strong> button; the Timeline
+          collects them automatically.
+        </p>
 
         <section v-if="allEvents.length === 0" class="events-empty">
           No events yet. Add events from any character, location, object, group, or the Setting and they'll gather here.
@@ -135,4 +141,10 @@ function goOwner(ev) { router.push(EVENTS_KIND_META[ev.ownerKind].detailUrl(ev.o
 }
 .tl-owner:hover { color: var(--accent); }
 .tl-owner svg { opacity: 0.8; }
+
+.tl-desc {
+  font-size: 14px; line-height: 1.55; color: var(--muted);
+  margin: 0 0 18px;
+}
+.tl-desc strong { color: var(--ink-2); font-weight: 600; }
 </style>
