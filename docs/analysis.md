@@ -123,7 +123,44 @@ Once you have data:
 
 The structural analysis itself is routable as the **critique** feature in Settings → AI (it shares the pin with the per-chapter Critique modal). A long-context cloud model produces noticeably better structural reasoning than small local models — for this specific feature, the per-chapter cost is worth pinning to your strongest available model.
 
-The Story tension section header also carries four structural-analysis buttons that open full-book LLM modals: **Reverse outline** (the act structure the book actually has, with plot points and per-chapter beats), **Map to beat sheet** (Save the Cat / Hero's Journey / 7-Point Story Structure with MISSING-beat flags), **Plot-hole audit** (see below), and **Marketing pack** (logline / blurbs / synopsis / pitch — see below). Each modal persists its result on the project so re-opening reads from cache.
+The Story tension section header also carries four structural-analysis buttons that open full-book LLM modals: **Reverse outline** (the act structure the book actually has), **Map to beat sheet** (mapped to Save the Cat / Hero's Journey / 7-Point), **Plot-hole audit** (see below), and **Marketing pack** (logline / blurbs / synopsis / pitch — see below). Each modal persists its result on the project so re-opening reads from cache.
+
+### Reverse outline — the shape your book actually has
+
+> *"I'm a pantser. I finished 90,000 words and I'm honestly not sure what structure I've ended up with."*
+
+The Story tension chart shows the *curve* of the book. The **Reverse outline** button (in the Story tension section header) does the complementary structural job: reads the manuscript through chapter summaries and tension data, then produces the act structure your book actually has — not the structure it should have. One LLM call over the whole-book digest.
+
+The modal returns:
+
+- A **structure name** — three-act, five-act, or "loose / episodic". The model picks based on what the book actually does; it won't force a three-act reading onto a genuinely episodic book.
+- A **2–3 sentence summary** of the book's shape in concrete terms (where it starts, where it pivots, where it lands).
+- A **plot points list** — Inciting incident, Plot point 1, Midpoint, Plot point 2, Climax, Resolution, etc. Each with the chapter it lands in (clickable to jump) and one sentence on what specifically happens there.
+- A **chapter-by-chapter strip** with **act-break dividers** showing one sentence per chapter on its purpose in the overall shape.
+
+**Why a writer would use it.** Pantsers (writers who draft without a detailed outline) often finish a draft and genuinely don't know what they've built. The reverse outline is the answer to "what shape is this?" — a structural editor's first-pass reading you can use as the foundation for your revision plan. It's also useful for plotters: comparing what you intended (your pre-draft outline) against what you actually wrote (the reverse outline) reveals where the book diverged from the plan.
+
+**Cost note.** This sends a digest of every chapter in one call. On long books the prompt can get large; pin to a long-context model. The model is told to be honest — if the book has structural problems (no clear inciting incident, climax that lands too early), the summary will say so plainly. Routable as the **reverseOutline** feature in Settings → AI. The result persists on the project so re-opening the modal reads from cache.
+
+### Map to beat sheet — fit the draft to a named framework
+
+> *"I want to know if my draft hits the Save the Cat beats, or where it doesn't."*
+
+The reverse outline names whatever structure the book actually has. The **Map to beat sheet** button does the complementary job — maps the draft to a *specific* named narrative framework you pick from a dropdown, and explicitly flags which beats the book is missing.
+
+Three frameworks ship:
+
+- **Save the Cat** — Blake Snyder's 15-beat sheet. Built for commercial film, widely used in genre fiction. Beats include Opening Image, Catalyst, Break Into Two, Fun and Games, Midpoint, Bad Guys Close In, All Is Lost, Dark Night of the Soul, Break Into Three, Finale, Final Image.
+- **Hero's Journey** — Christopher Vogler's 12-stage adaptation of Joseph Campbell's monomyth. Strong for fantasy, sci-fi, and mythic structure. Stages from Ordinary World through Return with the Elixir.
+- **7-Point Story Structure** — Dan Wells's compressed framework: Hook, Plot Turn 1, Pinch 1, Midpoint, Pinch 2, Plot Turn 2, Resolution. Easy to apply; good for short novels and series planning.
+
+For each beat the modal shows: the beat name, its canonical definition, which chapter best fulfils it (clickable to jump), and a one-sentence justification quoting something specific from that chapter. Beats with no matching chapter get a **MISSING** badge in red with a short reason why the book doesn't cover them.
+
+**The model is instructed to be honest about gaps.** A clean map of every beat is suspicious — most drafts genuinely miss 1–3 beats — and the summary at the top tells you the count ("12 of 15 covered. All Is Lost is missing; the protagonist's lowest point isn't on the page."). Change the framework dropdown to compare how the same draft maps to different structures; each mapping persists separately on `project.beatSheets[templateKey]`, so all three can be on file at once.
+
+**Why a writer would use it.** During revision, after the reverse outline has shown you the structure you actually have. If your reverse outline says "loose / episodic" and you wanted a tight three-act structure, the beat-sheet overlay tells you exactly which beats you're missing. If you wrote to a beat sheet originally but feel the draft has drifted, the overlay tells you what fell out.
+
+**Cost note.** Same shape as Reverse outline — one LLM call over the whole-book digest. Routable as the **beatSheet** feature in Settings → AI.
 
 ### Plot-hole / continuity audit
 
