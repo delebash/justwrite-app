@@ -18,6 +18,7 @@ import { PACING_LABELS, ENDING_LABELS } from "../services/analysis/critique.js";
 import ReverseOutlineModal from "../components/ReverseOutlineModal.vue";
 import BeatSheetModal from "../components/BeatSheetModal.vue";
 import PlotHoleScanModal from "../components/PlotHoleScanModal.vue";
+import MarketingPackModal from "../components/MarketingPackModal.vue";
 import { useAiStore } from "../stores/ai.js";
 import { useAiProgress } from "../composables/useAiProgress.js";
 import JwTable from "@renderer/components/ui/JwTable.vue";
@@ -375,6 +376,12 @@ const plotHolesActiveCount = computed(() => {
   if (!project.plotHoles?.findings) return 0;
   return project.plotHoles.findings.filter((f) => !f.dismissed).length;
 });
+
+// Marketing pack modal — logline / blurbs / synopsis / pitch.
+const marketingPackOpen = ref(false);
+function openMarketingPack() { marketingPackOpen.value = true; }
+function closeMarketingPack() { marketingPackOpen.value = false; }
+const hasMarketingPack = computed(() => !!project.marketingPack);
 
 // ─── Writing heatmap (365 days) ─────────────────────────────────────
 // Build a 53-week × 7-day grid for the year ending today. Each cell is
@@ -738,6 +745,12 @@ const milestoneState = computed(() => {
             <Icon name="Alert" :size="12" />
             {{ hasPlotHoles ? `Plot holes (${plotHolesActiveCount})` : 'Plot-hole audit' }}
           </JwButton>
+          <JwButton v-if="!tensionProgress.running.value" intent="ghost" size="small"
+                    @click="openMarketingPack"
+                    v-tooltip.bottom="'Logline, back-cover blurbs, synopsis, and elevator pitch for querying and pitching'">
+            <Icon name="Export" :size="12" />
+            {{ hasMarketingPack ? 'View marketing pack' : 'Marketing pack' }}
+          </JwButton>
           <JwButton v-else-if="tensionProgress.running.value" intent="danger" size="small" @click="cancelTensionSweep">
             <Icon name="Close" :size="12" /> Cancel
           </JwButton>
@@ -834,6 +847,7 @@ const milestoneState = computed(() => {
     <ReverseOutlineModal v-if="reverseOutlineOpen" @close="closeReverseOutline" />
     <BeatSheetModal v-if="beatSheetOpen" @close="closeBeatSheet" />
     <PlotHoleScanModal v-if="plotHolesOpen" @close="closePlotHoles" />
+    <MarketingPackModal v-if="marketingPackOpen" @close="closeMarketingPack" />
 
     <!-- Voice drift -->
     <div v-if="drift.eligible" class="card vd-card" style="margin-bottom:18px">

@@ -458,6 +458,10 @@ export const useProjectStore = defineStore("project", {
     // The writer can track multiple pairs concurrently.
     relationshipArcs: loaded.relationshipArcs || {},
 
+    // Marketing pack — single project-wide artifact.
+    // { logline, blurbs: [...3], synopsis, pitch, generatedAt, model }
+    marketingPack: loaded.marketingPack || null,
+
     // Multi-project registry. `_activeId` is the storage key the
     // current snapshot persists into. `_projects` mirrors the registry
     // so the sidebar dropdown can react. Neither participates in undo.
@@ -1327,6 +1331,15 @@ export const useProjectStore = defineStore("project", {
       this.relationshipArcs = {};
       this._persist();
     },
+    // Marketing pack — single project-wide artifact.
+    setMarketingPack(pack) {
+      this.marketingPack = pack ? { ...pack } : null;
+      this._persist();
+    },
+    clearMarketingPack() {
+      this.marketingPack = null;
+      this._persist();
+    },
     dismissPlotHole(findingId) {
       if (!this.plotHoles?.findings) return;
       this.plotHoles = {
@@ -1879,6 +1892,7 @@ export const useProjectStore = defineStore("project", {
         plotHoles: this.plotHoles,
         voiceCanonChapterIds: this.voiceCanonChapterIds,
         relationshipArcs: this.relationshipArcs,
+        marketingPack: this.marketingPack,
         savedAt: new Date().toISOString(),
       };
     },
@@ -1970,6 +1984,7 @@ export const useProjectStore = defineStore("project", {
         plotHoles: null,
         voiceCanonChapterIds: [],
         relationshipArcs: {},
+        marketingPack: null,
       };
       this._activeId = id;
       Object.assign(this.$state, fresh);

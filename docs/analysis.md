@@ -123,7 +123,7 @@ Once you have data:
 
 The structural analysis itself is routable as the **critique** feature in Settings → AI (it shares the pin with the per-chapter Critique modal). A long-context cloud model produces noticeably better structural reasoning than small local models — for this specific feature, the per-chapter cost is worth pinning to your strongest available model.
 
-The Story tension section header also carries three structural-analysis buttons that open full-book LLM modals: **Reverse outline** (the act structure the book actually has, with plot points and per-chapter beats), **Map to beat sheet** (Save the Cat / Hero's Journey / 7-Point Story Structure with MISSING-beat flags), and **Plot-hole audit** (see below). Each modal persists its result on the project so re-opening reads from cache.
+The Story tension section header also carries four structural-analysis buttons that open full-book LLM modals: **Reverse outline** (the act structure the book actually has, with plot points and per-chapter beats), **Map to beat sheet** (Save the Cat / Hero's Journey / 7-Point Story Structure with MISSING-beat flags), **Plot-hole audit** (see below), and **Marketing pack** (logline / blurbs / synopsis / pitch — see below). Each modal persists its result on the project so re-opening reads from cache.
 
 ### Plot-hole / continuity audit
 
@@ -147,6 +147,28 @@ Each finding has a **severity** (Flag / Suggestion / Note), the **chapter number
 **Why a writer would care.** Continuity drift is the kind of mistake nobody notices in their own draft because the *intent* of each scene was right at the time you wrote it. The audit catches the kind of thing a fresh beta reader would notice on first read — the things readers actually email you about three months after publication. The model is instructed to be selective and honest; a clean audit is meaningful, padded findings are noise. A draft that returns 0–3 findings is normal; 10+ is the signal you have real revision work to do.
 
 **Cost note.** One LLM call over the digest plus tails. The prompt is longer than Reverse outline because of the prose tails, so pin to a long-context model if you can. Routable as the **plotHoles** feature in Settings → AI.
+
+#### Marketing pack — logline, blurbs, synopsis, pitch
+
+> *"I've finished the draft. Now I have to write a query letter, a synopsis, a back-cover blurb, and an elevator pitch. I'd rather rewrite a chapter."*
+
+Marketing copy is its own skill set, and it's one most writers don't have. The **Marketing pack** button on the Story tension header opens a modal that generates the four artifacts a writer needs to query agents and pitch publishers — in one LLM call, from the same chapter digest the other structural modals use.
+
+The pack returns:
+
+- **Logline** — one sentence, 15–30 words: protagonist + central conflict + stakes. The version you put at the top of your query.
+- **Three back-cover blurbs**, ~150 words each, at three different angles so you can pick or splice:
+  - **Hook-driven** — leads with the central conflict or question; closes with stakes.
+  - **Character-driven** — leads with the protagonist; closes with what they stand to lose.
+  - **Premise-driven** — leads with the world or situation; closes with the human pull.
+- **One-page synopsis** — ~600 words, present tense, third person, **includes the ending**. Agents need it; don't tease.
+- **Three-paragraph elevator pitch** — ~250 words: paragraph 1 is the hook, paragraph 2 is the spine, paragraph 3 is why-this-book-matters and the comp register.
+
+Each artifact has a **Copy** button that drops it onto the clipboard with a confirmation toast. The pack persists on the project so re-opening the modal reads from cache; **Regenerate** asks for a fresh pass after revisions; **Clear pack** wipes the cached set.
+
+**Why a writer would use it.** The blurbs and synopsis aren't your final marketing copy — they're a strong first draft you edit. The model has read your entire book; it knows what it's about. Most writers find it easier to react to and revise a generated pack than to write one cold. The three blurb angles in particular often surface the framing that *should* go on the back cover, even if the words need work.
+
+**The model is instructed to avoid AI-tell phrases**, but you should still run the result through the [Find AI tells](markers.md) scanner before sending anywhere. Routable as the **marketingPack** feature in Settings → AI.
 
 ### Voice drift
 
