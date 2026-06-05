@@ -9,6 +9,7 @@ import JwButton from "@renderer/components/ui/JwButton.vue";
 import JwTag from "@renderer/components/ui/JwTag.vue";
 import JwTable from "@renderer/components/ui/JwTable.vue";
 import ImagesModal from "../components/ImagesModal.vue";
+import EntitySweepModal from "../components/EntitySweepModal.vue";
 import RichEditor from "../components/RichEditor.vue";
 import { EDITOR_TOOLBAR_DOC } from "../services/editorToolbars.js";
 import StatusSelect from "../components/StatusSelect.vue";
@@ -25,6 +26,7 @@ const props = defineProps({ id: { type: String, default: "" } });
 const project = useProjectStore();
 const ui = useUiStore();
 const router = useRouter();
+const sweepOpen = ref(false);
 
 // When id is present → detail mode. When absent → list mode.
 const loc = computed(() => props.id ? project.locationById(props.id) : null);
@@ -129,6 +131,9 @@ function onRowClick(event) {
   <!-- ── List mode (no id in URL) ─────────────────────────────── -->
   <template v-if="!loc && !id">
     <PaneHeader :eyebrow="$t('panes.locations.eyebrow')" :title="$t('nav.locations')">
+      <JwButton intent="ghost" size="small" @click="sweepOpen = true" v-tooltip.bottom="'Scan the manuscript for new characters, locations, and objects'">
+        <Icon name="Sparkle" :size="13" /> Find new entities
+      </JwButton>
       <JwButton label="New location" intent="primary" size="small" @click="addLocation">
         <template #icon><Icon name="Plus" :size="14" /></template>
       </JwButton>
@@ -303,6 +308,10 @@ function onRowClick(event) {
       </div>
     </div>
   </template>
+
+  <EntitySweepModal v-if="sweepOpen"
+    @close="sweepOpen = false"
+    @committed="sweepOpen = false" />
 </template>
 
 <style scoped>

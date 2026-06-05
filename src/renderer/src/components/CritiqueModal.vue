@@ -5,16 +5,18 @@
 // chapter.critique object that persists on the chapter. Both can be
 // re-run independently; freshness is shown via a "generated 5m ago"
 // timestamp so the user can tell stale notes from a recent run.
+//
+// Entity extraction (find new characters/locations/objects from the
+// prose) used to live here too but moved out — see the "Find new
+// entities" button on CharactersView / LocationsView / ObjectsView,
+// which opens EntitySweepModal directly.
 
 import { ref, computed } from "vue";
 import { useProjectStore } from "../stores/project.js";
 import { useUiStore } from "../stores/ui.js";
 import { runCritique, runStructuralAnalysis, PACING_LABELS, ENDING_LABELS } from "../services/analysis/critique.js";
-import { extractEntities } from "../services/analysis/entityExtraction.js";
 import { useAiProgress } from "../composables/useAiProgress.js";
 import Icon from "./Icon.vue";
-import EntityReviewModal from "./EntityReviewModal.vue";
-import EntitySweepModal from "./EntitySweepModal.vue";
 import AiProgressBar from "./AiProgressBar.vue";
 import AppModal from "./AppModal.vue";
 import JwButton from "@renderer/components/ui/JwButton.vue";
@@ -34,17 +36,13 @@ const notes = computed(() => critique.value?.notes || []);
 
 const runningNotes = ref(false);
 const runningStruct = ref(false);
-const runningEntities = ref(false);
-const entityProposals = ref(null);
-const sweepOpen = ref(false);
 const err = ref("");
 
-// One progress tracker per concurrent call site. They live independently
-// because the user can in principle run notes / structure / entities at
-// the same time — each has its own elapsed time, token count, and cancel.
-const notesProgress    = useAiProgress();
-const structProgress   = useAiProgress();
-const entitiesProgress = useAiProgress();
+// One progress tracker per concurrent call site so notes and structure
+// can in principle run at the same time — each has its own elapsed
+// time, token count, and cancel.
+const notesProgress  = useAiProgress();
+const structProgress = useAiProgress();
 
 const ago = (ts) => {
   if (!ts) return "";
@@ -127,39 +125,6 @@ async function runStruct() {
   }
 }
 
-async function findEntities() {
-  if (!ch.value) return;
-  err.value = "";
-  runningEntities.value = true;
-  entitiesProgress.start();
-  try {
-    const html = project.chapterBody[ch.value.id] || "";
-    const proposals = await extractEntities({
-      html,
-      chapterTitle: ch.value.title,
-      chapterNum: ch.value.num,
-      existingCharacters: project.characters,
-      existingLocations:  project.locations,
-      existingObjects:    project.objects,
-      meta: { chapterId: ch.value.id },
-      signal: entitiesProgress.signal,
-      onDelta: entitiesProgress.onDelta,
-    });
-    const total = proposals.characters.length + proposals.locations.length + proposals.objects.length;
-    if (total === 0) {
-      ui.showToast({ message: "No new entities — your story bible already covers this chapter." });
-    } else {
-      entityProposals.value = proposals;
-    }
-    entitiesProgress.finish();
-  } catch (e) {
-    if (!entitiesProgress.cancelled.value) err.value = e?.message || String(e);
-    entitiesProgress.finish();
-  } finally {
-    runningEntities.value = false;
-  }
-}
-
 function clearAll() {
   project.clearChapterCritique(props.chapterId);
   ui.showToast({ message: "Critique cleared." });
@@ -176,7 +141,7 @@ const SEVERITY_META = {
   <AppModal
     eyebrow="Chapter critique"
     :title="ch ? `Ch. ${ch.num} · ${ch.title}` : ''"
-    :closable="!notesProgress.running.value && !structProgress.running.value && !entitiesProgress.running.value"
+    :closable="!notesProgress.running.value && !structProgress.running.value"
     @close="emit('close')"
   >
     <template #header>
@@ -237,27 +202,6 @@ const SEVERITY_META = {
       </p>
     </section>
 
-    <!-- ── Entity extraction ─────────────────────────────────────── -->
-    <section class="ck-section">
-      <header>
-        <h3>Story bible</h3>
-        <div style="display:flex;gap:6px">
-          <JwButton intent="ghost" size="small" :disabled="runningEntities" @click="findEntities">
-            <Icon name="Refresh" :size="12" />
-            {{ runningEntities ? "Scanning…" : "This chapter" }}
-          </JwButton>
-          <JwButton intent="ghost" size="small" :disabled="runningEntities" @click="sweepOpen = true" v-tooltip.bottom="'Scan every chapter for new entities (slower)'">
-            <Icon name="Sparkle" :size="12" />
-            Whole book
-          </JwButton>
-        </div>
-      </header>
-      <AiProgressBar :progress="entitiesProgress" label="Scanning for entities…" />
-      <p class="ck-empty" v-if="!entitiesProgress.running">
-        Scan for new named characters, locations, and objects to add to the story bible. Choose <b>This chapter</b> for a quick scan, or <b>Whole book</b> to walk every chapter (slower but catches the whole cast at once). You'll review every proposal before anything is added.
-      </p>
-    </section>
-
     <!-- ── Text critique ──────────────────────────────────────────── -->
     <section class="ck-section">
       <header>
@@ -290,16 +234,6 @@ const SEVERITY_META = {
     </section>
 
   </AppModal>
-
-  <!-- Nested modals render as siblings so each gets its own full-screen overlay -->
-  <EntityReviewModal v-if="entityProposals"
-    :proposals="entityProposals"
-    :chapter-title="ch ? `Ch. ${ch.num} · ${ch.title}` : ''"
-    @close="entityProposals = null" />
-
-  <EntitySweepModal v-if="sweepOpen"
-    @close="sweepOpen = false"
-    @committed="sweepOpen = false" />
 </template>
 
 <style scoped>
