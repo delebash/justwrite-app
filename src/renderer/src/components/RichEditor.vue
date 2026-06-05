@@ -443,7 +443,11 @@ const editor = useEditor({
     syncDiffState(editor);
     maybeTypewriter();
   },
-  onSelectionUpdate({ editor }) { syncDiffState(editor); maybeTypewriter(); },
+  onSelectionUpdate({ editor }) {
+    syncDiffState(editor);
+    maybeTypewriter();
+    hasSelection.value = !editor.state.selection.empty;
+  },
   onTransaction({ editor }) { syncSearch(editor); docVersion.value++; },
 });
 
@@ -500,6 +504,13 @@ const proseMenuOpen = ref(false);
 const proseMenuWrap = ref(null);
 const PROSE_RULES_LIST = PROSE_RULE_ORDER.map((k) => ({ key: k, ...PROSE_RULES[k] }));
 
+// Reactive "is there a non-empty selection right now?" — the scene-strip
+// AI dropdown reads this through defineExpose to grey out actions that
+// need a selection (Rewrite/Expand/Tighten). Updated from
+// onSelectionUpdate below since TipTap's selection state isn't directly
+// observable by Vue's reactivity.
+const hasSelection = ref(false);
+
 // Shared progress for whichever writer-AI action is in flight. Prose
 // actions (rewrite/expand/tighten/continue) stream readable text, so
 // we expose a preview toggle for them. Persisted across sessions so
@@ -552,17 +563,41 @@ function readSelectionHtml() {
   return { from, to, html: div.innerHTML };
 }
 
+// Whole-document range + serialized HTML. Used as a fallback by actions
+// that can operate on the entire scene when nothing is selected (Tighten,
+// every Prose pass rule). Returns html === "" when the doc is empty so
+// callers can early-out with a friendly error.
+function readWholeDocHtml() {
+  if (!editor.value) return { from: 0, to: 0, html: "" };
+  const doc = editor.value.state.doc;
+  const to = doc.content.size;
+  const slice = doc.cut(0, to);
+  const dom = DOMSerializer.fromSchema(editor.value.schema).serializeFragment(slice.content);
+  const div = document.createElement("div");
+  div.appendChild(dom);
+  const html = div.innerHTML;
+  return { from: 0, to, html: (div.textContent || "").trim() ? html : "" };
+}
+
 const ACTION_LABELS = {
   rewrite: "Rewriting selection…",
   expand: "Expanding selection…",
-  tighten: "Tightening selection…",
+  tighten: { selection: "Tightening selection…", scene: "Tightening scene…" },
   continue: "Continuing from cursor…",
 };
+
+// Actions that can fall back to the whole document when nothing is
+// selected. Rewrite/Expand stay selection-only because applying them to
+// a full scene is destructive at a scale users typically want to think
+// about (load in Writers Lab, compare passes) rather than fire from a
+// one-click menu.
+const ACTIONS_WHOLE_SCENE_FALLBACK = new Set(["tighten"]);
 
 async function runWriterAction(actionKey) {
   if (!editor.value || aiRunning.value) return;
   proseMenuOpen.value = false;
-  const { from, to, html } = readSelectionHtml();
+  let { from, to, html } = readSelectionHtml();
+  let scope = from === to ? "scene" : "selection";
   // For "continue" with no selection, anchor at the cursor and feed the
   // last paragraph as context.
   if (actionKey === "continue" && from === to) {
@@ -594,9 +629,23 @@ async function runWriterAction(actionKey) {
     }
     return;
   }
-  if (from === to) { aiError.value = "Select some text first."; return; }
+  if (from === to) {
+    // No selection — fall back to the whole document if this action
+    // supports it. Otherwise tell the user to make a selection.
+    if (ACTIONS_WHOLE_SCENE_FALLBACK.has(actionKey)) {
+      ({ from, to, html } = readWholeDocHtml());
+      if (!html) { aiError.value = "Nothing to work with — the scene is empty."; return; }
+    } else {
+      aiError.value = "Select some text first.";
+      return;
+    }
+  }
   aiRunning.value = true; aiError.value = "";
-  aiActionLabel.value = ACTION_LABELS[actionKey] || "Working…";
+  // Pick the scope-aware label for actions that have one; fall back to a
+  // single string for actions that don't (rewrite/expand are
+  // selection-only so their label never varies).
+  const lbl = ACTION_LABELS[actionKey];
+  aiActionLabel.value = typeof lbl === "object" ? (lbl[scope] || lbl.selection) : (lbl || "Working…");
   aiProgress.start();
   try {
     const fn = actionKey === "rewrite" ? writerAI.rewrite
@@ -628,10 +677,16 @@ async function runWriterAction(actionKey) {
 async function runProsePass(ruleKey) {
   if (!editor.value || aiRunning.value) return;
   proseMenuOpen.value = false;
-  const { from, to, html } = readSelectionHtml();
-  if (from === to) { aiError.value = "Select the passage to run the prose pass on."; return; }
+  let { from, to, html } = readSelectionHtml();
+  let scope = from === to ? "scene" : "selection";
+  // Prose pass rules are surgical edits; running them on the whole scene
+  // is the primary use case, so no selection → operate on the whole doc.
+  if (from === to) {
+    ({ from, to, html } = readWholeDocHtml());
+    if (!html) { aiError.value = "Nothing to work with — the scene is empty."; return; }
+  }
   aiRunning.value = true; aiError.value = "";
-  aiActionLabel.value = `Running prose pass: ${PROSE_RULES[ruleKey]?.label || ruleKey}…`;
+  aiActionLabel.value = `Running prose pass: ${PROSE_RULES[ruleKey]?.label || ruleKey} (${scope})…`;
   aiProgress.start();
   try {
     const result = await writerAI.applyRule(ruleKey, {
@@ -1064,7 +1119,16 @@ function onKeydown(e) {
   }
 }
 
-defineExpose({ editor });
+defineExpose({
+  editor,
+  // Exposed so the scene-strip AI dropdown (in ChaptersView) can drive
+  // the same writerAI actions that used to live in the selection bubble.
+  runWriterAction,
+  runProsePass,
+  aiRunning,
+  hasSelection,
+  PROSE_RULES_LIST,
+});
 </script>
 
 <template>
@@ -1183,15 +1247,6 @@ defineExpose({ editor });
       <button class="tb-btn" :class="{ active: isActive('bold') }" @click="run('toggleBold')" :data-tip="TIP.bold"><Icon name="Bold" :size="14" /></button>
       <button class="tb-btn" :class="{ active: isActive('italic') }" @click="run('toggleItalic')" :data-tip="TIP.italic"><Icon name="Italic" :size="14" /></button>
       <button class="tb-btn" :class="{ active: isActive('underline') }" @click="run('toggleUnderline')" :data-tip="TIP.underline"><Icon name="Underline" :size="14" /></button>
-      <div class="tb-highlight" ref="highlightWrapBubble">
-        <button class="tb-btn tb-btn-split" :class="{ active: isActive('highlight') || highlightBubbleOpen }" @click="toggleHighlightBubble" :data-tip="TIP.highlight">
-          <Icon name="Highlight" :size="14" /><Icon name="ChevDown" :size="9" class="tb-caret" />
-        </button>
-        <div v-if="highlightBubbleOpen" class="tb-highlight-menu">
-          <button v-for="c in HIGHLIGHT_COLORS" :key="c.color" type="button" class="tb-swatch" :style="{ background: c.color }" :title="c.label" @click="setHighlightColor(c.color)" />
-          <button type="button" class="tb-swatch tb-swatch-none" title="Remove highlight" @click="clearHighlight"><Icon name="Close" :size="11" /></button>
-        </div>
-      </div>
       <div class="tb-highlight" ref="textColorWrapBubble">
         <button class="tb-btn tb-btn-split" :class="{ active: textColorBubbleOpen }" @click="toggleTextColorBubble" data-tip="Text color">
           <span class="tb-A" :style="textColorValue() ? { color: textColorValue() } : null">A</span><Icon name="ChevDown" :size="9" class="tb-caret" />
@@ -1205,30 +1260,9 @@ defineExpose({ editor });
       <button class="tb-btn tb-glyph" @click="bumpFont(1)" data-tip="Increase font size">A+</button>
       <button class="tb-btn" :class="{ active: isActive('link') }" @click="setLink" :data-tip="TIP.link"><Icon name="Link" :size="14" /></button>
       <button class="tb-btn" :class="{ active: isActive('comment') }" @click="openCommentEditor" data-tip="Add comment"><Icon name="Comment" :size="14" /></button>
-      <span class="bubble-sep" aria-hidden="true"></span>
-      <button class="tb-btn ai-btn" :disabled="aiRunning" @click="runWriterAction('rewrite')" data-tip="Rewrite — vivid + specific">
-        <Icon name="Sparkle" :size="13" /><span class="ai-lbl">Rewrite</span>
-      </button>
-      <button class="tb-btn ai-btn" :disabled="aiRunning" @click="runWriterAction('expand')" data-tip="Expand — add sensory detail">
-        <span class="ai-lbl">Expand</span>
-      </button>
-      <button class="tb-btn ai-btn" :disabled="aiRunning" @click="runWriterAction('tighten')" data-tip="Tighten — cut filler">
-        <span class="ai-lbl">Tighten</span>
-      </button>
-      <button class="tb-btn ai-btn" :disabled="aiRunning" @click="runWriterAction('continue')" data-tip="Continue from cursor">
-        <span class="ai-lbl">Continue</span>
-      </button>
-      <div class="tb-highlight" ref="proseMenuWrap">
-        <button class="tb-btn tb-btn-split ai-btn" :class="{ active: proseMenuOpen }" :disabled="aiRunning" @click="toggleProseMenu" data-tip="Prose pass — focused rewrites">
-          <span class="ai-lbl">Prose pass</span><Icon name="ChevDown" :size="9" class="tb-caret" />
-        </button>
-        <div v-if="proseMenuOpen" class="prose-menu">
-          <button v-for="r in PROSE_RULES_LIST" :key="r.key" class="prose-menu-item" @click="runProsePass(r.key)" :disabled="aiRunning">
-            <div class="prose-menu-label">{{ r.label }}</div>
-            <div class="prose-menu-desc">{{ r.description }}</div>
-          </button>
-        </div>
-      </div>
+      <!-- AI assist actions (Rewrite/Expand/Tighten/Continue/Prose pass)
+           moved to the scene strip's AI dropdown so they're always one
+           click away (and not gated by a text selection appearing). -->
     </bubble-menu>
 
     <!-- AI progress bar — shown while a writerAI call is running.
@@ -1498,39 +1532,60 @@ defineExpose({ editor });
 }
 
 /* ── AI assist ───────────────────────────────────────────── */
+/* Wraps the leading "AI" badge + every AI button as one visual block so
+   the whole strip reads as "AI tools" instead of a continuation of the
+   formatting controls before the separator. Subtle accent tint is the
+   anchor; the badge is the explicit label. */
+.ai-group {
+  display: inline-flex; align-items: center; gap: 4px;
+  /* Stay together as one cohesive block — never split the AI cluster
+     across lines, even if the bubble itself wraps on a narrow window. */
+  flex-shrink: 0;
+  flex-wrap: nowrap;
+}
+.ai-badge {
+  display: inline-flex; align-items: center;
+  padding: 0 5px; height: 14px; border-radius: 3px;
+  background: var(--accent); color: var(--on-accent, #fff);
+  font-family: var(--font-mono);
+  font-size: 9px; font-weight: 700; letter-spacing: 0.08em;
+  margin-right: 2px;
+}
 .ai-btn {
   display: inline-flex !important; gap: 5px; align-items: center;
   width: auto !important;
   padding: 0 10px !important;
   color: var(--accent-ink);
 }
-/* Tighten internal label spacing on AI buttons so multi-word labels
-   don't run flush against the next button's icon/label. */
-.ai-btn + .ai-btn { margin-left: 2px; }
+.ai-btn + .ai-btn { margin-left: 0; }
 .ai-btn:hover { background: var(--accent-soft); }
 .ai-btn:disabled { opacity: 0.55; cursor: not-allowed; }
 .ai-btn .ai-lbl {
   font-size: 11px; font-weight: 600; letter-spacing: 0.01em;
 }
+/* Carets inside AI buttons should match the button's accent-ink color, not
+   the global .tb-caret muted gray, which would otherwise fade against the
+   bolder AI button text. */
+.ai-btn .tb-caret { color: inherit; opacity: 0.85; }
 
 .prose-menu {
   position: absolute; top: calc(100% + 4px); right: 0;
-  width: 280px; max-width: 92vw;
+  width: 380px; max-width: 92vw;
   background: var(--surface); border: 1px solid var(--border);
   border-radius: 8px; box-shadow: 0 8px 24px rgba(0,0,0,.18);
-  padding: 4px; z-index: 60;
+  padding: 6px; z-index: 60;
   display: flex; flex-direction: column;
 }
 .prose-menu-item {
-  display: flex; flex-direction: column; gap: 2px;
-  padding: 8px 10px; border-radius: 6px;
+  display: flex; flex-direction: column; gap: 3px;
+  padding: 10px 12px; border-radius: 6px;
   text-align: left; background: none; border: 0; cursor: pointer;
   color: inherit;
 }
 .prose-menu-item:hover { background: var(--surface-2); }
 .prose-menu-item:disabled { opacity: 0.5; cursor: not-allowed; }
-.prose-menu-label { font-size: 13px; font-weight: 600; }
-.prose-menu-desc  { font-size: 11.5px; color: var(--muted); line-height: 1.4; }
+.prose-menu-label { font-size: 14px; font-weight: 600; }
+.prose-menu-desc  { font-size: 12.5px; color: var(--muted); line-height: 1.45; }
 
 /* Wrap the new AiProgressBar so it gets the same edge margin as the
    pending-changes bar — the bar itself draws its own border/background. */

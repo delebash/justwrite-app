@@ -342,6 +342,31 @@ function updateTitle(id, v) { project.setChapterTitle(id, v); }
 // one. Useful for chopping a freshly-imported single-blob chapter into
 // real chapters by walking the cursor to each "Chapter N" line.
 const editorRef = ref(null);
+
+// ── Scene-strip AI dropdown ───────────────────────────────────────
+// One button in the scene strip that opens a popover of every writerAI
+// action. Talks to the active RichEditor via its defineExpose surface.
+const aiStripOpen = ref(false);
+const aiStripWrap = ref(null);
+const aiRunning = computed(() => editorRef.value?.aiRunning || false);
+const hasSelection = computed(() => editorRef.value?.hasSelection || false);
+const proseRules = computed(() => editorRef.value?.PROSE_RULES_LIST || []);
+function toggleAiStrip() { aiStripOpen.value = !aiStripOpen.value; }
+function callAi(key) {
+  aiStripOpen.value = false;
+  editorRef.value?.runWriterAction?.(key);
+}
+function callProse(key) {
+  aiStripOpen.value = false;
+  editorRef.value?.runProsePass?.(key);
+}
+function onAiStripDocMousedown(e) {
+  if (!aiStripOpen.value) return;
+  if (aiStripWrap.value && !aiStripWrap.value.contains(e.target)) {
+    aiStripOpen.value = false;
+  }
+}
+
 async function splitChapterHere() {
   if (!ch.value || !activeScene.value || !editorRef.value?.editor) return;
   const editor = editorRef.value.editor;
@@ -481,9 +506,13 @@ function onKey(e) {
   }
   if (e.key === "Escape")     { e.preventDefault(); mode.value = "edit"; }
 }
-onMounted(() => window.addEventListener("keydown", onKey));
+onMounted(() => {
+  window.addEventListener("keydown", onKey);
+  document.addEventListener("mousedown", onAiStripDocMousedown);
+});
 onBeforeUnmount(() => {
   window.removeEventListener("keydown", onKey);
+  document.removeEventListener("mousedown", onAiStripDocMousedown);
   teardownBookObserver();
   ui.scrolledSceneId = null;
 });
@@ -918,11 +947,63 @@ watch(() => project.allChapters.map((c) => c.id + ":" + (project.scenesFor(c.id)
       </template>
       <span v-else class="scene-pill">Chapter {{ ch.num }} · {{ scenes.length }} scene{{ scenes.length === 1 ? "" : "s" }}</span>
       <div class="scene-strip-actions" style="margin-left:auto">
+        <!-- AI writing assist — single dropdown that hosts every action
+             that used to live in the selection bubble. Grouped by what
+             they operate on so users know whether to make a selection
+             first. -->
+        <div class="ai-strip-wrap" ref="aiStripWrap">
+          <JwButton intent="ghost" size="small"
+            :class="['ai-strip-trigger', { 'is-open': aiStripOpen }]"
+            :disabled="aiRunning"
+            v-tooltip.bottom="'AI writing assist — Rewrite, Expand, Tighten, Continue, Prose pass'"
+            @click="toggleAiStrip">
+            <span class="ai-strip-badge">AI</span>
+            <Icon name="ChevDown" :size="12" class="ai-strip-caret" />
+          </JwButton>
+          <div v-if="aiStripOpen" class="ai-strip-menu" role="menu">
+            <div class="ai-strip-section">
+              Selection only
+              <span v-if="!hasSelection" class="ai-strip-section-hint">Highlight text first to enable</span>
+            </div>
+            <button class="ai-strip-item" :disabled="aiRunning || !hasSelection" @click="callAi('rewrite')">
+              <div class="ai-strip-label">Rewrite</div>
+              <div class="ai-strip-desc">Rewrite the passage to be more vivid and specific while preserving meaning, tense, and voice. Selection-only because a whole-scene rewrite is too transformative for one click — use Writers Lab for that.</div>
+            </button>
+            <button class="ai-strip-item" :disabled="aiRunning || !hasSelection" @click="callAi('expand')">
+              <div class="ai-strip-label">Expand</div>
+              <div class="ai-strip-desc">Add sensory detail, interiority, and small actions. Roughly doubles the length without changing voice or tense.</div>
+            </button>
+            <div class="ai-strip-divider"></div>
+            <div class="ai-strip-section">Selection or whole scene</div>
+            <button class="ai-strip-item" :disabled="aiRunning" @click="callAi('tighten')">
+              <div class="ai-strip-label">Tighten</div>
+              <div class="ai-strip-desc">Remove filler words, hedges, and redundant phrases. Keeps the meaning, voice, and tense intact — the result is noticeably shorter. Runs on the selection, or the whole scene if nothing is selected.</div>
+            </button>
+            <div class="ai-strip-divider"></div>
+            <div class="ai-strip-section">From the cursor</div>
+            <button class="ai-strip-item" :disabled="aiRunning" @click="callAi('continue')">
+              <div class="ai-strip-label">Continue</div>
+              <div class="ai-strip-desc">Write 2–4 more paragraphs from where the cursor is, matching the voice, tense, and POV of what came before.</div>
+            </button>
+            <template v-if="proseRules.length">
+              <div class="ai-strip-divider"></div>
+              <div class="ai-strip-section">
+                Prose pass
+                <span class="ai-strip-section-hint">Selection, or whole scene if none</span>
+              </div>
+              <button v-for="r in proseRules" :key="r.key" class="ai-strip-item" :disabled="aiRunning" @click="callProse(r.key)">
+                <div class="ai-strip-label">{{ r.label }}</div>
+                <div class="ai-strip-desc">{{ r.description }}</div>
+              </button>
+            </template>
+          </div>
+        </div>
         <StatusSelect
           :model-value="activeScene.status || ''"
           @update:model-value="(v) => project.updateScene(ch.id, activeScene.id, { status: v })" />
         <JwButton intent="ghost" size="small" @click="splitChapterHere" v-tooltip.bottom="'Split this chapter at the cursor'">
-          <Icon name="Replace" :size="14" /> Split here
+          <template #icon><Icon name="Replace" :size="14" /></template>
+          Split here
         </JwButton>
         <JwButton intent="ghost" size="small" class="scene-notes-btn"
           v-tooltip.bottom="'Notes pinned to this scene'"
@@ -933,7 +1014,8 @@ watch(() => project.allChapters.map((c) => c.id + ":" + (project.scenesFor(c.id)
         <JwButton intent="ghost" size="small"
           v-tooltip.bottom="'Links — POV, characters, locations, objects, narrative strands'"
           @click="linksOpen = true">
-          <Icon name="Network" :size="14" /> Links
+          <template #icon><Icon name="Network" :size="14" /></template>
+          Links
         </JwButton>
         <JwButton intent="primary" size="small" @click="addSceneHere" v-tooltip.bottom="'Add a new scene to this chapter'">
           <Icon name="Plus" :size="13" /> New scene
@@ -1382,6 +1464,86 @@ watch(() => project.allChapters.map((c) => c.id + ":" + (project.scenesFor(c.id)
 .scene-strip-actions :deep(.jw-btn.is-active) {
   background: var(--accent-soft);
   color: var(--accent-ink);
+}
+
+/* ── AI dropdown (scene strip) ────────────────────────────── */
+.ai-strip-wrap { position: relative; display: inline-flex; }
+/* Sized to match the Status select pill (height: 30px, padding: 0 9px,
+   border-radius: 8px in StatusSelect.vue) so the AI trigger sits flush
+   with it. Width is bumped via padding 0 14px — wider than Status to
+   read as the headline AI affordance — but the height matches. */
+.ai-strip-wrap :deep(.ai-strip-trigger) {
+  height: 30px;
+  padding: 0 14px;
+  gap: 7px;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  color: var(--ink);
+  font-size: 12.5px;
+}
+.ai-strip-wrap :deep(.ai-strip-trigger):hover:not(:disabled) {
+  border-color: var(--border-strong);
+  background: var(--surface-2);
+}
+.ai-strip-wrap :deep(.ai-strip-trigger.is-open) {
+  border-color: var(--accent);
+  box-shadow: 0 0 0 3px var(--accent-soft);
+}
+.ai-strip-wrap :deep(.ai-strip-trigger .ai-strip-caret) {
+  transition: transform .15s ease;
+}
+.ai-strip-wrap :deep(.ai-strip-trigger.is-open .ai-strip-caret) {
+  transform: rotate(180deg);
+}
+/* Small filled "AI" pill — the accent colour landing on the white
+   button is the only color signal that this is the AI affordance. */
+.ai-strip-badge {
+  display: inline-flex; align-items: center;
+  padding: 0 5px; height: 14px; border-radius: 3px;
+  background: var(--accent); color: var(--on-accent, #fff);
+  font-family: var(--font-mono);
+  font-size: 9px; font-weight: 700; letter-spacing: 0.08em;
+}
+.ai-strip-menu {
+  position: absolute; top: calc(100% + 4px); right: 0;
+  width: 380px; max-width: 92vw;
+  max-height: 70vh; overflow-y: auto;
+  background: var(--surface); border: 1px solid var(--border);
+  border-radius: 8px; box-shadow: 0 8px 24px rgba(0,0,0,.18);
+  padding: 6px; z-index: 60;
+  display: flex; flex-direction: column;
+}
+.ai-strip-section {
+  display: flex; align-items: baseline; gap: 8px;
+  font-family: var(--font-mono); font-size: 10px;
+  letter-spacing: 0.12em; text-transform: uppercase; color: var(--muted);
+  padding: 6px 12px 2px;
+}
+.ai-strip-section-hint {
+  font-family: var(--font-ui); font-size: 10.5px;
+  letter-spacing: 0; text-transform: none;
+  color: var(--subtle, var(--muted)); font-style: italic;
+}
+.ai-strip-item {
+  display: flex; flex-direction: column; gap: 3px;
+  padding: 10px 12px; border-radius: 6px;
+  text-align: left; background: none; border: 0; cursor: pointer;
+  color: inherit; font: inherit;
+}
+.ai-strip-item:hover:not(:disabled) { background: var(--surface-2); }
+/* Disabled items get a stronger greying treatment than a flat opacity so
+   they read as "not available right now" instead of "loading". */
+.ai-strip-item:disabled {
+  cursor: not-allowed;
+  color: var(--muted);
+}
+.ai-strip-item:disabled .ai-strip-label { color: var(--muted); font-weight: 500; }
+.ai-strip-item:disabled .ai-strip-desc  { color: var(--subtle, var(--muted)); }
+.ai-strip-label { font-size: 14px; font-weight: 600; color: var(--ink); }
+.ai-strip-desc  { font-size: 12.5px; color: var(--muted); line-height: 1.45; }
+.ai-strip-divider {
+  height: 1px; background: var(--border-soft); margin: 4px 6px;
 }
 
 /* ── Chapter overview (no scene picked yet) ───────────────── */
