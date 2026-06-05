@@ -116,6 +116,35 @@ See `STATE.md` for the full list. Highlights:
 
 ---
 
+## Code audit & refactor
+
+Four dev-only tools are wired into `package.json` for periodic cleanup. None run automatically — the project has no linter or formatter in the loop on purpose (writing prose is the priority).
+
+| Tool | What it finds | When to reach for it |
+|---|---|---|
+| **Biome** | Unused imports, dead variables, suspicious patterns. Auto-fixes most of what it flags. | After heavy iteration when imports and locals drift out of sync. |
+| **depcheck** | `package.json` deps that nothing imports — and the reverse (imports of packages not declared). | Before a release, or after ripping out a feature. |
+| **jscpd** | Copy-paste detector. Surfaces duplicated blocks with file:line citations. | When you suspect a helper should be extracted but don't know where the copies live. |
+| **madge** | Circular dependencies and orphan files in the renderer. | When import errors get weird, or when untangling a module. |
+
+### Light audit — run by hand
+
+```bash
+npx biome check src/renderer/src/        # lint findings (add --apply for safe auto-fixes)
+npx depcheck                              # unused / missing deps
+npx jscpd src/renderer/src/               # writes a report to ./report/
+npx madge --circular src/renderer/src/    # circular deps only
+npx madge --orphans src/renderer/src/     # files not imported anywhere
+```
+
+Read the output, fix what's obvious, skip what isn't. Biome's `--apply` is safe to run blind; the other three are read-only.
+
+### Deep audit — hand it to Claude Code
+
+For a full pass — run all four tools, triage findings against the actual code (catches false positives like dynamic imports), apply the safe fixes, and produce a punch list of judgment calls — ask Claude Code to **"use a workflow for a deep audit refactor"**. The keyword *workflow* opts in to multi-agent orchestration: the audit fans out across parallel subagents instead of one agent reading every report end-to-end. Expect a few minutes wall-time and substantial token use; you get a structured report back instead of triaging hundreds of raw findings yourself.
+
+---
+
 ## License
 
 Your code, your terms. Voices, models, and APIs are subject to their providers' terms.
