@@ -15,10 +15,10 @@
 import { ref, computed, onMounted } from "vue";
 import { useProjectStore } from "../stores/project.js";
 import { useUiStore } from "../stores/ui.js";
-import { useAiProgress } from "../composables/useAiProgress.js";
+import { useAiTasksStore } from "../stores/aiTasks.js";
 import { scanForDanglingThreads } from "../services/analysis/foreshadowingScan.js";
 import { addMarkerToSceneHtml } from "../services/markers.js";
-import AiProgressBar from "./AiProgressBar.vue";
+import AiTaskStrip from "./AiTaskStrip.vue";
 import Icon from "./Icon.vue";
 import AppModal from "./AppModal.vue";
 import StatusRow from "./StatusRow.vue";
@@ -29,7 +29,14 @@ const emit = defineEmits(["close"]);
 
 const project = useProjectStore();
 const ui = useUiStore();
-const progress = useAiProgress();
+const aiTasks = useAiTasksStore();
+
+const myTask = computed(() => aiTasks.runningTasks.find(
+  (t) => t.feature === "foreshadowing"
+));
+const running = computed(() => !!myTask.value);
+
+function isAbort(e) { return e?.name === "AbortError" || /abort/i.test(e?.message || ""); }
 
 const rows = ref([]);
 const rowById = ref(new Map());
@@ -96,6 +103,7 @@ function initRows() {
 }
 
 async function runScan() {
+  if (running.value) return;
   initRows();
   error.value = "";
   result.value = null;
@@ -104,11 +112,9 @@ async function runScan() {
     error.value = "No chapters to scan.";
     return;
   }
-  progress.start();
   try {
     const r = await scanForDanglingThreads({
       project,
-      signal: progress.signal,
       onProgress: ({ phase: ph, chapter, completed, reason }) => {
         const row = rowById.value.get(chapter.id);
         if (row) {
@@ -120,7 +126,6 @@ async function runScan() {
         completedCount.value = completed;
       },
     });
-    progress.finish();
     result.value = r;
     // If everything's mentioned-later, default the filter to "all" so
     // the list isn't empty by accident.
@@ -128,23 +133,21 @@ async function runScan() {
       filter.value = "all";
     }
   } catch (e) {
-    if (!progress.cancelled.value) {
+    if (isAbort(e)) {
+      for (const row of rows.value) {
+        if (row.status === "scanning") { row.status = "skipped"; row.reason = "cancelled"; }
+      }
+    } else {
       const msg = String(e?.message || e || "");
       error.value = /provider|api key|configure/i.test(msg)
         ? "Configure an AI provider in Settings → AI to run the scan."
         : msg || "Couldn't run scan.";
     }
-    progress.finish();
   }
 }
 
 function cancelScan() {
-  progress.cancel();
-  for (const row of rows.value) {
-    if (row.status === "scanning") { row.status = "skipped"; row.reason = "cancelled"; }
-  }
-  // No result.value set → user stays in the scanning phase with the
-  // partial row state visible, then can close.
+  if (myTask.value) aiTasks.cancel(myTask.value.id);
 }
 
 function pinThread(thread) {
@@ -296,7 +299,7 @@ onMounted(runScan);
     v-else
     eyebrow="Foreshadowing scan"
     title="Reading every chapter for unresolved setups"
-    :closable="!progress.running.value"
+    :closable="!running"
     @close="emit('close')"
   >
     <template #header>
@@ -304,7 +307,7 @@ onMounted(runScan);
         <div class="t-eyebrow">Foreshadowing scan</div>
         <div class="modal-title">Reading every chapter for unresolved setups</div>
       </div>
-      <JwButton v-if="progress.running.value" intent="ghost" size="small" @click="cancelScan">
+      <JwButton v-if="running" intent="ghost" size="small" @click="cancelScan">
         <Icon name="Close" :size="12" /> Cancel
       </JwButton>
     </template>
@@ -321,12 +324,7 @@ onMounted(runScan);
       <Icon name="Alert" :size="13" /> {{ error }}
     </div>
 
-    <AiProgressBar
-      :progress="progress"
-      :label="totalCount > 0
-        ? `${completedCount} of ${totalCount} chapters · ${scanningCount} scanning`
-        : 'Starting…'"
-    />
+    <AiTaskStrip :task="myTask" />
 
     <div class="fs-rowlist">
       <StatusRow v-for="row in rows" :key="row.id"

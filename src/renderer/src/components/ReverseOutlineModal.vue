@@ -15,12 +15,13 @@ import { ref, computed, onMounted } from "vue";
 import { useRouter } from "vue-router";
 import { useProjectStore } from "../stores/project.js";
 import { useAiStore } from "../stores/ai.js";
-import { useAiProgress } from "../composables/useAiProgress.js";
+import { useAiTasksStore } from "../stores/aiTasks.js";
 import {
   generateReverseOutline,
   STRUCTURE_LABELS,
 } from "../services/analysis/reverseOutline.js";
 import Icon from "./Icon.vue";
+import AiTaskStrip from "./AiTaskStrip.vue";
 import AppModal from "./AppModal.vue";
 import JwButton from "@renderer/components/ui/JwButton.vue";
 
@@ -29,8 +30,13 @@ const emit = defineEmits(["close"]);
 const project = useProjectStore();
 const ai = useAiStore();
 const router = useRouter();
-const progress = useAiProgress();
+const aiTasks = useAiTasksStore();
 const error = ref("");
+
+const myTask = computed(() => aiTasks.runningTasks.find((t) => t.feature === "reverseOutline"));
+const running = computed(() => !!myTask.value);
+
+function isAbort(e) { return e?.name === "AbortError" || /abort/i.test(e?.message || ""); }
 
 const outline = computed(() => project.reverseOutline);
 
@@ -40,23 +46,19 @@ async function run() {
     error.value = "Configure an AI provider in Settings → AI to generate the reverse outline.";
     return;
   }
-  progress.start();
   try {
     const result = await generateReverseOutline({
       project,
-      signal: progress.signal,
-      onDelta: progress.onDelta,
+      task: { label: "Reverse outline", meta: {} },
     });
     project.setReverseOutline(result);
-    progress.finish();
   } catch (e) {
-    if (!progress.cancelled.value) {
+    if (!isAbort(e)) {
       const msg = String(e?.message || e || "");
       error.value = /provider|api key|configure/i.test(msg)
         ? "Configure an AI provider in Settings → AI to generate the reverse outline."
         : msg || "Couldn't build the outline.";
     }
-    progress.finish();
   }
 }
 
@@ -121,7 +123,7 @@ onMounted(() => {
     eyebrow="Reverse outline"
     title="The shape your book actually has"
     wide
-    :closable="!progress.running.value"
+    :closable="!running"
     @close="emit('close')"
   >
     <p class="ro-blurb">
@@ -138,10 +140,7 @@ onMounted(() => {
       </JwButton>
     </div>
 
-    <div v-else-if="progress.running.value && !outline" class="ro-loading">
-      <span class="ro-spinner" />
-      <span>Reading the whole book and naming the shape… ({{ progress.elapsedSeconds }}s)</span>
-    </div>
+    <AiTaskStrip v-if="running" :task="myTask" />
 
     <template v-else-if="outline">
       <div class="ro-head">
@@ -197,11 +196,11 @@ onMounted(() => {
     </template>
 
     <template #footer>
-      <JwButton v-if="outline && !progress.running.value" intent="ghost" @click="clearAll">
+      <JwButton v-if="outline && !running" intent="ghost" @click="clearAll">
         Clear outline
       </JwButton>
       <span class="ro-foot-spacer" />
-      <JwButton v-if="outline && !progress.running.value" intent="ghost" @click="regenerate">
+      <JwButton v-if="outline && !running" intent="ghost" @click="regenerate">
         <Icon name="Refresh" :size="12" /> Regenerate
       </JwButton>
       <JwButton intent="primary" @click="emit('close')">Done</JwButton>

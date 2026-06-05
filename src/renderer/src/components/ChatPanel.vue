@@ -11,14 +11,14 @@ import { ref, computed, watch, nextTick, onBeforeUnmount } from "vue";
 import { useRouter } from "vue-router";
 import { useProjectStore } from "../stores/project.js";
 import { useAiStore } from "../stores/ai.js";
-import { useAiProgress } from "../composables/useAiProgress.js";
+import { useAiTasksStore } from "../stores/aiTasks.js";
 import { askManuscript } from "../services/rag/chat.js";
 import { askAsCharacter } from "../services/rag/characterChat.js";
 import { indexStatus } from "../services/rag/indexer.js";
 import { autoIndexRunning } from "../services/rag/autoIndex.js";
 import { getItem, setItem } from "../services/storage.js";
 import IndexBuildModal from "./IndexBuildModal.vue";
-import AiProgressBar from "./AiProgressBar.vue";
+import AiTaskStrip from "./AiTaskStrip.vue";
 import EmptyState from "./EmptyState.vue";
 import Icon from "./Icon.vue";
 import JwButton from "@renderer/components/ui/JwButton.vue";
@@ -78,7 +78,16 @@ const emit = defineEmits(["update:modelValue"]);
 const router = useRouter();
 const project = useProjectStore();
 const ai = useAiStore();
-const progress = useAiProgress();
+const aiTasks = useAiTasksStore();
+
+// Task lookup covers both chat modes — book mode uses "chat", character
+// mode uses "characterChat". We match whichever is currently running.
+const myTask = computed(() => aiTasks.runningTasks.find(
+  (t) => t.feature === "chat" || t.feature === "characterChat"
+));
+const running = computed(() => !!myTask.value);
+
+function isAbort(e) { return e?.name === "AbortError" || /abort/i.test(e?.message || ""); }
 
 // Per-thread provider+model picker. Writes to ai.featurePins.chat —
 // the same key Settings → AI → Feature routing edits. Two selects mirror
@@ -223,7 +232,7 @@ watch(thread, () => {
 
 async function ask() {
   const q = question.value.trim();
-  if (!q || progress.running.value) return;
+  if (!q || running.value) return;
   if (chatMode.value === "character" && !selectedCharacterId.value) {
     // Defensive: shouldn't happen since the dropdown auto-selects, but
     // surface a clear hint if it does rather than failing silently.
@@ -241,17 +250,18 @@ async function ask() {
   thread.value.push(assistantMsg);
   question.value = "";
 
-  progress.start();
   try {
     const askArgs = {
       question: q,
       history,
       k: 6,
-      signal: progress.signal,
       onDelta: (delta, content) => {
-        progress.onDelta(delta, content);
         assistantMsg.content = content;
       },
+      task: { label: chatMode.value === "character"
+        ? `Character chat · ${(project.characters || []).find(c => c.id === selectedCharacterId.value)?.name || "Character"}`
+        : "Ask the manuscript",
+        meta: { mode: chatMode.value, characterId: selectedCharacterId.value } },
     };
     const result = chatMode.value === "character"
       ? await askAsCharacter({ ...askArgs, characterId: selectedCharacterId.value })
@@ -259,16 +269,10 @@ async function ask() {
     assistantMsg.content   = result.answer || assistantMsg.content;
     assistantMsg.citations = result.citations || [];
     assistantMsg.pending   = false;
-    progress.finish();
   } catch (e) {
     assistantMsg.pending = false;
-    if (!progress.cancelled.value) assistantMsg.error = e?.message || String(e);
-    progress.finish();
+    if (!isAbort(e)) assistantMsg.error = e?.message || String(e);
   }
-}
-
-function cancel() {
-  progress.cancel();
 }
 
 function newThread() {
@@ -470,16 +474,13 @@ defineExpose({ open: () => { open.value = true; }, close });
               <span class="cp-hint-sep">·</span>
               <kbd class="cp-kbd">⇧⏎</kbd> for newline
             </span>
-            <JwButton v-if="progress.running.value" intent="secondary" size="small" @click="cancel">
-              <Icon name="Close" :size="12" /> Cancel
-            </JwButton>
-            <JwButton v-else intent="primary" size="small" :disabled="!question.trim()" @click="ask">
+            <JwButton intent="primary" size="small" :disabled="!question.trim() || running" @click="ask">
               <Icon name="Sparkle" :size="12" /> Ask
             </JwButton>
           </div>
         </div>
 
-        <AiProgressBar :progress="progress" label="Searching + answering…" :show-cancel="false" />
+        <AiTaskStrip :task="myTask" />
       </template>
 
       <IndexBuildModal v-if="indexModalMode"

@@ -9,9 +9,10 @@
 
 import { ref, computed, onMounted } from "vue";
 import { useAiStore } from "../stores/ai.js";
-import { useAiProgress } from "../composables/useAiProgress.js";
+import { useAiTasksStore } from "../stores/aiTasks.js";
 import { generateSensoryPack, SENSORY_CATEGORIES } from "../services/sensoryResearch.js";
 import Icon from "./Icon.vue";
+import AiTaskStrip from "./AiTaskStrip.vue";
 import AppModal from "./AppModal.vue";
 import JwButton from "@renderer/components/ui/JwButton.vue";
 
@@ -22,8 +23,13 @@ const props = defineProps({
 const emit = defineEmits(["close", "insert"]);
 
 const ai = useAiStore();
-const progress = useAiProgress();
+const aiTasks = useAiTasksStore();
 const pack = ref(null);
+
+const myTask = computed(() => aiTasks.runningTasks.find((t) => t.feature === "sensory"));
+const running = computed(() => !!myTask.value);
+
+function isAbort(e) { return e?.name === "AbortError" || /abort/i.test(e?.message || ""); }
 const error = ref("");
 const insertedKeys = ref(new Set()); // category:index
 
@@ -35,27 +41,23 @@ async function run() {
   }
   pack.value = null;
   insertedKeys.value = new Set();
-  progress.start();
   try {
     const result = await generateSensoryPack({
       subject: props.subject,
       contextHint: props.contextHint,
-      signal: progress.signal,
-      onDelta: progress.onDelta,
+      task: { label: "Sensory research pack", meta: { subject: props.subject } },
     });
     pack.value = result;
     if (Object.values(result.pack).every((arr) => !arr.length)) {
       error.value = "The model returned no usable phrases. Try regenerating with a more specific subject.";
     }
-    progress.finish();
   } catch (e) {
-    if (!progress.cancelled.value) {
+    if (!isAbort(e)) {
       const msg = String(e?.message || e || "");
       error.value = /provider|api key|configure/i.test(msg)
         ? "Configure an AI provider in Settings → AI to generate a sensory pack."
         : msg || "Couldn't generate the sensory pack.";
     }
-    progress.finish();
   }
 }
 
@@ -89,7 +91,7 @@ onMounted(run);
     eyebrow="Research feel"
     title="Sensory research pack"
     wide
-    :closable="!progress.running.value"
+    :closable="!running"
     @close="emit('close')"
   >
     <p class="sr-blurb">
@@ -105,10 +107,7 @@ onMounted(run);
       </JwButton>
     </div>
 
-    <div v-else-if="progress.running.value && !pack" class="sr-loading">
-      <span class="sr-spinner" />
-      <span>Collecting sensory details…</span>
-    </div>
+    <AiTaskStrip v-if="running" :task="myTask" />
 
     <template v-else-if="categories.length">
       <div class="sr-grid">
@@ -137,7 +136,7 @@ onMounted(run);
     <template #footer>
       <span class="t-muted">{{ totalCount }} phrase{{ totalCount === 1 ? '' : 's' }}</span>
       <span class="sr-foot-spacer" />
-      <JwButton intent="ghost" :disabled="progress.running.value" @click="run">
+      <JwButton intent="ghost" :disabled="running" @click="run">
         <Icon name="Refresh" :size="12" /> Regenerate
       </JwButton>
       <JwButton intent="primary" @click="emit('close')">Done</JwButton>

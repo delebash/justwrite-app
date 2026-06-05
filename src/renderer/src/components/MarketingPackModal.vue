@@ -12,9 +12,10 @@ import { ref, computed, onMounted } from "vue";
 import { useProjectStore } from "../stores/project.js";
 import { useUiStore } from "../stores/ui.js";
 import { useAiStore } from "../stores/ai.js";
-import { useAiProgress } from "../composables/useAiProgress.js";
+import { useAiTasksStore } from "../stores/aiTasks.js";
 import { generateMarketingPack } from "../services/analysis/marketingPack.js";
 import Icon from "./Icon.vue";
+import AiTaskStrip from "./AiTaskStrip.vue";
 import AppModal from "./AppModal.vue";
 import JwButton from "@renderer/components/ui/JwButton.vue";
 
@@ -23,34 +24,38 @@ const emit = defineEmits(["close"]);
 const project = useProjectStore();
 const ui = useUiStore();
 const ai = useAiStore();
-const progress = useAiProgress();
+const aiTasks = useAiTasksStore();
 const error = ref("");
+
+const myTask = computed(() => aiTasks.runningTasks.find(
+  (t) => t.feature === "marketingPack"
+));
+const running = computed(() => !!myTask.value);
+
+function isAbort(e) { return e?.name === "AbortError" || /abort/i.test(e?.message || ""); }
 
 const pack = computed(() => project.marketingPack);
 
 async function run() {
   error.value = "";
+  if (running.value) return;
   if (!ai.providerForFeature("marketingPack")) {
     error.value = "Configure an AI provider in Settings → AI to generate the marketing pack.";
     return;
   }
-  progress.start();
   try {
     const result = await generateMarketingPack({
       project,
-      signal: progress.signal,
-      onDelta: progress.onDelta,
+      task: { label: "Marketing pack", meta: {} },
     });
     project.setMarketingPack(result);
-    progress.finish();
   } catch (e) {
-    if (!progress.cancelled.value) {
+    if (!isAbort(e)) {
       const msg = String(e?.message || e || "");
       error.value = /provider|api key|configure/i.test(msg)
         ? "Configure an AI provider in Settings → AI to generate the marketing pack."
         : msg || "Couldn't generate the marketing pack.";
     }
-    progress.finish();
   }
 }
 function regenerate() {
@@ -103,7 +108,7 @@ onMounted(() => {
     eyebrow="Marketing pack"
     title="Logline, blurbs, synopsis, pitch"
     wide
-    :closable="!progress.running.value"
+    :closable="!running"
     @close="emit('close')"
   >
     <p class="mp-blurb">
@@ -121,9 +126,11 @@ onMounted(() => {
       </JwButton>
     </div>
 
-    <div v-else-if="progress.running.value && !pack" class="mp-loading">
+    <AiTaskStrip v-if="running" :task="myTask" />
+
+    <div v-else-if="!pack" class="mp-loading">
       <span class="mp-spinner" />
-      <span>Reading the whole book… ({{ progress.elapsedSeconds }}s)</span>
+      <span>Reading the whole book…</span>
     </div>
 
     <template v-else-if="pack">
@@ -233,11 +240,11 @@ onMounted(() => {
     </template>
 
     <template #footer>
-      <JwButton v-if="pack && !progress.running.value" intent="ghost" @click="clearAll">
+      <JwButton v-if="pack && !running" intent="ghost" @click="clearAll">
         Clear pack
       </JwButton>
       <span class="mp-foot-spacer" />
-      <JwButton v-if="pack && !progress.running.value" intent="ghost" @click="regenerate">
+      <JwButton v-if="pack && !running" intent="ghost" @click="regenerate">
         <Icon name="Refresh" :size="12" /> Regenerate
       </JwButton>
       <JwButton intent="primary" @click="emit('close')">Done</JwButton>

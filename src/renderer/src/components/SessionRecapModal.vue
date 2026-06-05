@@ -17,10 +17,11 @@ import { useProjectStore } from "../stores/project.js";
 import { useUiStore } from "../stores/ui.js";
 import { useSessionsStore } from "../stores/sessions.js";
 import { useAiStore } from "../stores/ai.js";
-import { useAiProgress } from "../composables/useAiProgress.js";
+import { useAiTasksStore } from "../stores/aiTasks.js";
 import { generateSessionRecap } from "../services/sessionRecap.js";
 import { addMarkerToSceneHtml } from "../services/markers.js";
 import Icon from "./Icon.vue";
+import AiTaskStrip from "./AiTaskStrip.vue";
 import AppModal from "./AppModal.vue";
 import JwButton from "@renderer/components/ui/JwButton.vue";
 
@@ -30,6 +31,7 @@ const project = useProjectStore();
 const ui = useUiStore();
 const sessions = useSessionsStore();
 const ai = useAiStore();
+const aiTasks = useAiTasksStore();
 
 function todayKey(d = new Date()) {
   const y = d.getFullYear();
@@ -38,7 +40,9 @@ function todayKey(d = new Date()) {
   return `${y}-${m}-${day}`;
 }
 
-const progress = useAiProgress();
+const myTask = computed(() => aiTasks.runningTasks.find((t) => t.feature === "recap"));
+const running = computed(() => !!myTask.value);
+function isAbort(e) { return e?.name === "AbortError" || /abort/i.test(e?.message || ""); }
 const err = ref("");
 const liveResult = ref(null);
 
@@ -64,12 +68,10 @@ async function runRecap() {
   }
   liveResult.value = null;
   threadStatus.value = {};
-  progress.start();
   try {
     const result = await generateSessionRecap({
       project, sessions,
-      signal: progress.signal,
-      onDelta: progress.onDelta,
+      task: { label: "Session recap", meta: {} },
     });
     liveResult.value = result;
     // Persist immediately so closing without "Save" still keeps it —
@@ -86,15 +88,13 @@ async function runRecap() {
       model: result.model,
       providerId: result.providerId,
     });
-    progress.finish();
   } catch (e) {
-    if (!progress.cancelled.value) {
+    if (!isAbort(e)) {
       const msg = String(e?.message || e || "");
       err.value = /provider|api key|configure/i.test(msg)
         ? "Configure an AI provider in Settings → AI to generate the recap."
         : msg || "Couldn't generate recap.";
     }
-    progress.finish();
   }
 }
 
@@ -137,7 +137,7 @@ function clearAndClose() {
 }
 
 const recapText = computed(() => {
-  if (progress.running.value) return progress.preview.value || "";
+  if (running.value) return myTask.value?.preview || "";
   return recap.value?.text || "";
 });
 
@@ -171,7 +171,7 @@ onMounted(() => {
   <AppModal
     eyebrow="End of session"
     title="Wrap up your day"
-    :closable="!progress.running.value"
+    :closable="!running"
     @close="emit('close')"
   >
     <div class="recap-stats">
@@ -206,10 +206,7 @@ onMounted(() => {
       <section class="recap-section">
         <div class="recap-h">Today's recap</div>
         <p v-if="recapText" class="recap-body">{{ recapText }}</p>
-        <div v-else-if="progress.running.value" class="recap-loading">
-          <span class="recap-spinner" />
-          <span>Reading what you wrote today…</span>
-        </div>
+        <AiTaskStrip v-else-if="running" :task="myTask" />
       </section>
 
       <section v-if="threads.length" class="recap-section">
@@ -257,18 +254,18 @@ onMounted(() => {
     <template #footer>
       <div class="recap-foot">
         <JwButton v-if="recap" intent="ghost" size="small"
-                  :disabled="progress.running.value"
+                  :disabled="running"
                   @click="regenerate">
           <Icon name="Refresh" :size="12" /> Regenerate
         </JwButton>
         <JwButton v-if="cached" intent="ghost" size="small"
-                  :disabled="progress.running.value"
+                  :disabled="running"
                   @click="clearAndClose">
           Discard recap
         </JwButton>
         <span class="recap-foot-spacer" />
         <JwButton intent="primary"
-                  :disabled="progress.running.value"
+                  :disabled="running"
                   @click="emit('close')">
           Done
         </JwButton>

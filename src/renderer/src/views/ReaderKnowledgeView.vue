@@ -20,14 +20,14 @@ import { useRouter } from "vue-router";
 import { useProjectStore } from "../stores/project.js";
 import { useUiStore } from "../stores/ui.js";
 import { useAiStore } from "../stores/ai.js";
-import { useAiProgress } from "../composables/useAiProgress.js";
+import { useAiTasksStore } from "../stores/aiTasks.js";
 import {
   scanReaderKnowledge,
   STATUS_LABELS,
   STATUS_COLOURS,
 } from "../services/analysis/readerKnowledge.js";
 import Icon from "../components/Icon.vue";
-import AiProgressBar from "../components/AiProgressBar.vue";
+import AiTaskStrip from "../components/AiTaskStrip.vue";
 import EmptyState from "../components/EmptyState.vue";
 import JwButton from "@renderer/components/ui/JwButton.vue";
 
@@ -35,7 +35,12 @@ const project = useProjectStore();
 const ui = useUiStore();
 const ai = useAiStore();
 const router = useRouter();
-const progress = useAiProgress();
+const aiTasks = useAiTasksStore();
+
+const myTask = computed(() => aiTasks.runningTasks.find((t) => t.feature === "readerKnowledge"));
+const running = computed(() => !!myTask.value);
+
+function isAbort(e) { return e?.name === "AbortError" || /abort/i.test(e?.message || ""); }
 
 const allChapters = computed(() => project.allChapters);
 
@@ -127,11 +132,9 @@ async function runScan() {
   // Clear prior partial state so the strip shows the new sweep cleanly.
   project.clearAllReaderKnowledge();
   selectedId.value = null;
-  progress.start();
   try {
     await scanReaderKnowledge({
       project,
-      signal: progress.signal,
       onProgress: ({ phase, chapter, result }) => {
         if (phase === "start") {
           runningChapterId.value = chapter.id;
@@ -153,22 +156,20 @@ async function runScan() {
         if (phase !== "start") runningChapterId.value = null;
       },
     });
-    progress.finish();
     runningChapterId.value = null;
   } catch (e) {
-    if (!progress.cancelled.value) {
+    runningChapterId.value = null;
+    if (!isAbort(e)) {
       const msg = String(e?.message || e || "");
       error.value = /provider|api key|configure/i.test(msg)
         ? "Configure an AI provider in Settings → AI to run this analysis."
         : msg || "Couldn't complete the analysis.";
     }
-    progress.finish();
-    runningChapterId.value = null;
   }
 }
 
 function cancelScan() {
-  progress.cancel();
+  if (myTask.value) aiTasks.cancel(myTask.value.id);
   runningChapterId.value = null;
 }
 
@@ -194,12 +195,12 @@ function jumpToChapter(chapterId) {
         </p>
       </div>
       <div class="pane-actions">
-        <span v-if="lastRunAt && !progress.running.value" class="rk-stamp">Last run {{ ago(lastRunAt) }}</span>
-        <JwButton v-if="hasAny && !progress.running.value" intent="ghost" @click="clearAll"
+        <span v-if="lastRunAt && !running" class="rk-stamp">Last run {{ ago(lastRunAt) }}</span>
+        <JwButton v-if="hasAny && !running" intent="ghost" @click="clearAll"
                   v-tooltip.bottom="'Discard the saved analysis'">
           Clear
         </JwButton>
-        <JwButton v-if="!progress.running.value" intent="primary" @click="runScan">
+        <JwButton v-if="!running" intent="primary" @click="runScan">
           <Icon name="Sparkle" :size="13" />
           {{ hasAny ? "Re-analyse" : "Analyse manuscript" }}
         </JwButton>
@@ -221,14 +222,10 @@ function jumpToChapter(chapterId) {
       <Icon name="Alert" :size="13" /> {{ error }}
     </div>
 
-    <AiProgressBar
-      v-if="progress.running.value"
-      :progress="progress"
-      :label="`${analysedCount} of ${totalCount} chapters analysed`"
-    />
+    <AiTaskStrip :task="myTask" />
 
     <!-- Empty state when nothing's been run. -->
-    <div v-if="!hasAny && !progress.running.value" class="rk-empty">
+    <div v-if="!hasAny && !running" class="rk-empty">
       <EmptyState
         icon="Eye"
         title="No analysis yet"

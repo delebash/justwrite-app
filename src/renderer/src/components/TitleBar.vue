@@ -5,6 +5,7 @@ import { useUiStore } from "../stores/ui.js";
 import { useProjectStore } from "../stores/project.js";
 import { THEME_PRESETS } from "../services/appearance.js";
 import Icon from "./Icon.vue";
+import AiStatusButton from "./AiStatusButton.vue";
 
 defineProps({ title: { type: String, default: "JustWrite" } });
 
@@ -175,6 +176,8 @@ async function openProject() {
       <button @click="project.redo" :disabled="!project.canRedo" v-tooltip.bottom="`Redo${project.canRedo ? '' : ' (nothing to redo)'} · ⌘⇧Z`">
         <Icon name="Refresh" :size="13" />
       </button>
+      <span class="titlebar-divider" />
+      <AiStatusButton />
       <span class="titlebar-divider" />
       <button @click="ui.toggleSidebar" v-tooltip.bottom="ui.sidebarCollapsed ? 'Expand sidebar' : 'Collapse sidebar'">
         <Icon name="SidebarToggle" :size="14" />

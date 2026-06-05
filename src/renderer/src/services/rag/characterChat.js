@@ -136,6 +136,8 @@ export async function askAsCharacter({
   llmModel,
   embedProvider,
   embedModel,
+  task,
+  meta,
 } = {}) {
   if (!question || !question.trim()) throw new Error("Question must not be empty.");
   if (!characterId) throw new Error("Pick a character first.");
@@ -191,12 +193,14 @@ export async function askAsCharacter({
     { role: "user", content: buildUserMessage(question, hits) },
   ];
 
+  const chatMeta = { ...(meta || {}), characterId, characterName: character.name };
   const { content: answer, usage } = await runAiStream({
     feature: "characterChat", usageFeature: "character-chat",
     messages, temperature: 0.7,
     signal, onDelta,
     provider: resolvedLlmProvider, model: resolvedLlmModel,
-    meta: { characterId, characterName: character.name },
+    meta: chatMeta,
+    task: task || { label: "Character chat", meta: chatMeta },
   });
 
   const citations = hits.map((h, i) => ({

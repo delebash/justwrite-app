@@ -109,6 +109,8 @@ export async function generateSensoryPack({
   onDelta,
   provider,
   model,
+  task,
+  meta,
 } = {}) {
   const trimmed = String(subject || "").trim();
   if (!trimmed) throw new Error("Highlight a subject first (a place, object, or moment).");
@@ -126,6 +128,7 @@ export async function generateSensoryPack({
     { role: "user", content: parts.join("\n") },
   ];
 
+  const sensoryMeta = { ...(meta || {}), subject: trimmed.slice(0, 120) };
   const result = await runAiStream({
     feature: "sensory",
     messages,
@@ -135,7 +138,8 @@ export async function generateSensoryPack({
     onDelta,
     provider,
     model,
-    meta: { subject: trimmed.slice(0, 120) },
+    meta: sensoryMeta,
+    task: task || { label: "Sensory research", meta: sensoryMeta },
   });
 
   const parsed = parseJsonLoose(result.content) || {};

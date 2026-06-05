@@ -14,13 +14,14 @@ import { ref, computed, watch } from "vue";
 import { useRouter } from "vue-router";
 import { useProjectStore } from "../stores/project.js";
 import { useAiStore } from "../stores/ai.js";
-import { useAiProgress } from "../composables/useAiProgress.js";
+import { useAiTasksStore } from "../stores/aiTasks.js";
 import {
   mapToBeatSheet,
   BEAT_TEMPLATES,
   TEMPLATE_OPTIONS,
 } from "../services/analysis/beatSheet.js";
 import Icon from "./Icon.vue";
+import AiTaskStrip from "./AiTaskStrip.vue";
 import AppModal from "./AppModal.vue";
 import JwButton from "@renderer/components/ui/JwButton.vue";
 import JwSelect from "@renderer/components/ui/JwSelect.vue";
@@ -30,8 +31,15 @@ const emit = defineEmits(["close"]);
 const project = useProjectStore();
 const ai = useAiStore();
 const router = useRouter();
-const progress = useAiProgress();
+const aiTasks = useAiTasksStore();
 const error = ref("");
+
+const myTask = computed(() => aiTasks.runningTasks.find(
+  (t) => t.feature === "beatSheet"
+));
+const running = computed(() => !!myTask.value);
+
+function isAbort(e) { return e?.name === "AbortError" || /abort/i.test(e?.message || ""); }
 
 const selectedTemplate = ref(TEMPLATE_OPTIONS[0].value);
 const mapping = computed(() => project.beatSheets?.[selectedTemplate.value] || null);
@@ -39,28 +47,25 @@ const currentTemplate = computed(() => BEAT_TEMPLATES[selectedTemplate.value]);
 
 async function run() {
   error.value = "";
+  if (running.value) return;
   if (!ai.providerForFeature("beatSheet")) {
     error.value = "Configure an AI provider in Settings → AI to map to a beat sheet.";
     return;
   }
-  progress.start();
   try {
     const result = await mapToBeatSheet({
       project,
       templateKey: selectedTemplate.value,
-      signal: progress.signal,
-      onDelta: progress.onDelta,
+      task: { label: "Beat sheet mapping", meta: { templateKey: selectedTemplate.value } },
     });
     project.setBeatSheet(selectedTemplate.value, result);
-    progress.finish();
   } catch (e) {
-    if (!progress.cancelled.value) {
+    if (!isAbort(e)) {
       const msg = String(e?.message || e || "");
       error.value = /provider|api key|configure/i.test(msg)
         ? "Configure an AI provider in Settings → AI to map to a beat sheet."
         : msg || "Couldn't map to beat sheet.";
     }
-    progress.finish();
   }
 }
 
@@ -82,7 +87,7 @@ function jumpToChapter(num) {
 // that template yet.
 watch(selectedTemplate, () => {
   error.value = "";
-  if (!mapping.value && !progress.running.value) run();
+  if (!mapping.value && !running.value) run();
 });
 
 const ago = (ts) => {
@@ -104,7 +109,7 @@ if (!mapping.value) run();
     eyebrow="Beat sheet"
     title="Map to a narrative framework"
     wide
-    :closable="!progress.running.value"
+    :closable="!running"
     @close="emit('close')"
   >
     <p class="bs-blurb">
@@ -134,9 +139,11 @@ if (!mapping.value) run();
       </JwButton>
     </div>
 
-    <div v-else-if="progress.running.value && !mapping" class="bs-loading">
+    <AiTaskStrip v-if="running" :task="myTask" />
+
+    <div v-else-if="!mapping" class="bs-loading">
       <span class="bs-spinner" />
-      <span>Mapping chapters to beats… ({{ progress.elapsedSeconds }}s)</span>
+      <span>Mapping chapters to beats…</span>
     </div>
 
     <template v-else-if="mapping">
@@ -179,11 +186,11 @@ if (!mapping.value) run();
     </template>
 
     <template #footer>
-      <JwButton v-if="mapping && !progress.running.value" intent="ghost" @click="clearCurrent">
+      <JwButton v-if="mapping && !running" intent="ghost" @click="clearCurrent">
         Clear this mapping
       </JwButton>
       <span class="bs-foot-spacer" />
-      <JwButton v-if="mapping && !progress.running.value" intent="ghost" @click="regenerate">
+      <JwButton v-if="mapping && !running" intent="ghost" @click="regenerate">
         <Icon name="Refresh" :size="12" /> Regenerate
       </JwButton>
       <JwButton intent="primary" @click="emit('close')">Done</JwButton>

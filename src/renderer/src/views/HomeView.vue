@@ -5,9 +5,10 @@ import { useProjectStore } from "../stores/project.js";
 import { useUiStore } from "../stores/ui.js";
 import { useSessionsStore, DOW_LABELS_MONDAY_FIRST, reorderForMonday } from "../stores/sessions.js";
 import { useAiStore } from "../stores/ai.js";
-import { useAiProgress } from "../composables/useAiProgress.js";
+import { useAiTasksStore } from "../stores/aiTasks.js";
 import { generateResumeBriefing, buildBriefingContext } from "../services/resumeBriefing.js";
 import Icon from "../components/Icon.vue";
+import AiTaskStrip from "../components/AiTaskStrip.vue";
 import JwButton from "@renderer/components/ui/JwButton.vue";
 import SessionRecapModal from "../components/SessionRecapModal.vue";
 
@@ -16,6 +17,7 @@ const project = useProjectStore();
 const ui = useUiStore();
 const sessions = useSessionsStore();
 const ai = useAiStore();
+const aiTasks = useAiTasksStore();
 const P = project.project;
 
 // Local copy of sessions.js's todayKey shape (yyyy-mm-dd, local time).
@@ -113,7 +115,9 @@ function resume() {
 // same-day reloads reuse the cached prose. Dismissal is per-day so the
 // card stays hidden until tomorrow.
 
-const briefingProgress = useAiProgress();
+const briefingTask = computed(() => aiTasks.runningTasks.find((t) => t.feature === "briefing"));
+const briefingRunning = computed(() => !!briefingTask.value);
+function isAbort(e) { return e?.name === "AbortError" || /abort/i.test(e?.message || ""); }
 const briefingError = ref(null);
 
 // Quick eligibility check that mirrors what the service does — without
@@ -146,7 +150,7 @@ const briefingVisible = computed(() => {
 });
 
 const briefingText = computed(() => {
-  if (briefingProgress.running.value) return briefingProgress.preview.value || "";
+  if (briefingRunning.value) return briefingTask.value?.preview || "";
   if (briefingCacheValid.value) return ui.briefingCache?.text || "";
   return "";
 });
@@ -168,14 +172,12 @@ const briefingChapterId = computed(
 
 async function runBriefing() {
   if (!briefingEligible.value) return;
-  if (briefingProgress.running.value) return;
+  if (briefingRunning.value) return;
   briefingError.value = null;
-  briefingProgress.start();
   try {
     const result = await generateResumeBriefing({
       project, sessions,
-      signal: briefingProgress.signal,
-      onDelta: briefingProgress.onDelta,
+      task: { label: "Previously on your novel", meta: {} },
     });
     ui.setBriefing({
       day: todayKey(),
@@ -189,18 +191,14 @@ async function runBriefing() {
       model: result.model,
       providerId: result.providerId,
     });
-    briefingProgress.finish();
   } catch (err) {
-    if (briefingProgress.cancelled.value) {
-      // intentional abort; not an error to surface
-    } else {
+    if (!isAbort(err)) {
       const msg = String(err?.message || err || "");
       briefingError.value =
         /provider|api key|configure/i.test(msg)
           ? "Configure an AI provider in Settings → AI to generate this briefing."
           : msg || "Couldn't generate briefing.";
     }
-    briefingProgress.finish();
   }
 }
 
@@ -211,7 +209,7 @@ function regenerateBriefing() {
 }
 
 function dismissBriefing() {
-  briefingProgress.cancel();
+  if (briefingTask.value) aiTasks.cancel(briefingTask.value.id);
   ui.dismissBriefing(todayKey());
 }
 
@@ -236,6 +234,8 @@ onMounted(() => {
   }
   runBriefing();
 });
+
+
 
 // ── End-of-session recap modal ───────────────────────────
 const recapOpen = ref(false);
@@ -385,10 +385,7 @@ const strandCount = (id) => allCh.value.filter((c) => (c.strands || []).includes
 
         <p v-else-if="briefingText" class="briefing-body">{{ briefingText }}</p>
 
-        <div v-else-if="briefingProgress.running.value" class="briefing-loading">
-          <span class="briefing-spinner" />
-          <span>Reading where you left off…</span>
-        </div>
+        <AiTaskStrip v-else-if="briefingRunning" :task="briefingTask" />
 
         <div class="briefing-foot">
           <span v-if="ui.briefingCache?.model" class="briefing-model">
@@ -396,7 +393,7 @@ const strandCount = (id) => allCh.value.filter((c) => (c.strands || []).includes
           </span>
           <span class="briefing-foot-actions">
             <JwButton intent="ghost" size="small"
-                      :disabled="briefingProgress.running.value"
+                      :disabled="briefingRunning"
                       @click="regenerateBriefing"
                       v-tooltip.bottom="'Generate a fresh briefing'">
               <Icon name="Refresh" :size="12" /> Regenerate

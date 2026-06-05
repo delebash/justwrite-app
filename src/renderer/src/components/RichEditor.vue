@@ -32,12 +32,12 @@ import { Marker, MARKER_CATEGORIES, categoryById } from "@renderer/services/mark
 import * as writerAI from "@renderer/services/writerAI";
 import VariationsModal from "./VariationsModal.vue";
 import { PROSE_RULES, PROSE_RULE_ORDER } from "@renderer/services/writerAI";
-import { useAiProgress } from "@renderer/composables/useAiProgress";
+import { useAiTasksStore } from "../stores/aiTasks.js";
 import { useUiStore } from "../stores/ui.js";
 import Icon from "./Icon.vue";
 import JwButton from "@renderer/components/ui/JwButton.vue";
 import EditorSettingsModal from "./EditorSettingsModal.vue";
-import AiProgressBar from "./AiProgressBar.vue";
+import AiTaskStrip from "./AiTaskStrip.vue";
 
 const props = defineProps({
   modelValue: { type: String, default: "" },
@@ -500,9 +500,11 @@ const show = (b) => props.toolbar.includes(b);
 // Selection-driven actions live in the bubble menu (Rewrite / Expand /
 // Tighten / Continue + Line edits). Each call replaces the selection
 // with a paired <del>/<ins> diff that the user accepts or rejects.
-const aiRunning = ref(false);
+const aiTasks = useAiTasksStore();
+const myTask = computed(() => aiTasks.runningTasks.find((t) => t.feature === "writerAI"));
+const aiRunning = computed(() => !!myTask.value);
+function isAiAbort(e) { return e?.name === "AbortError" || /abort/i.test(e?.message || ""); }
 const aiError = ref("");
-const aiActionLabel = ref("");          // human label for the currently running action
 const proseMenuOpen = ref(false);
 const proseMenuWrap = ref(null);
 const PROSE_RULES_LIST = PROSE_RULE_ORDER.map((k) => ({ key: k, ...PROSE_RULES[k] }));
@@ -513,13 +515,6 @@ const PROSE_RULES_LIST = PROSE_RULE_ORDER.map((k) => ({ key: k, ...PROSE_RULES[k
 // onSelectionUpdate below since TipTap's selection state isn't directly
 // observable by Vue's reactivity.
 const hasSelection = ref(false);
-
-// Shared progress for whichever writer-AI action is in flight. Prose
-// actions (rewrite/expand/tighten/continue) stream readable text, so
-// we expose a preview toggle for them. Persisted across sessions so
-// the user's pick sticks (small enough to live in localStorage directly).
-const aiProgress = useAiProgress();
-const aiShowPreview = ref(loadShowPreview());
 
 // Three-alternative streaming. When set, the VariationsModal opens
 // with the runnerFactory and applies the chosen result via the
@@ -560,24 +555,6 @@ function onVariationsClose() {
 // global toggle decides. Returns true when the modal should be used.
 function shouldUseVariations(callerShift) {
   return !!callerShift || !!ui.showVariations;
-}
-function loadShowPreview() {
-  try { return localStorage.getItem("justwrite:ui:aiShowPreview") === "1"; } catch { return false; }
-}
-watch(aiShowPreview, (v) => {
-  try { localStorage.setItem("justwrite:ui:aiShowPreview", v ? "1" : "0"); } catch {}
-});
-
-// JSON-output actions don't benefit from a live preview — they stream
-// gibberish until the closing brace lands. The bubble menu only
-// surfaces prose actions, so we always allow preview here; the lab
-// page can branch on this if it adds JSON actions later.
-function isProseAction(actionKey) {
-  // Match the writerAI ACTIONS plus PROSE_RULES (line-edit actions
-  // also stream readable text).
-  return actionKey === "rewrite" || actionKey === "expand" ||
-         actionKey === "tighten" || actionKey === "continue" ||
-         actionKey?.startsWith?.("rule:");
 }
 
 // Pending-changes state — drives the "N changes" header bar and the
@@ -653,8 +630,9 @@ async function runWriterAction(actionKey, opts = {}) {
     if (from === to) { aiError.value = "Highlight the subject to describe (a place, person, object, or moment)."; return; }
     if (useVariations) {
       startVariations({
-        runnerFactory: (temperature, signal, onDelta) => writerAI.describe({
+        runnerFactory: (temperature, signal, onDelta, taskMeta) => writerAI.describe({
           html, signal, onDelta, temperature,
+          task: { label: "Writer assist · Describe", meta: { ...(taskMeta || {}), action: "describe" } },
         }),
         mode: "continue-at", from: to, to,
         originalHtml: "",
@@ -663,26 +641,16 @@ async function runWriterAction(actionKey, opts = {}) {
       });
       return;
     }
-    aiRunning.value = true; aiError.value = "";
-    aiActionLabel.value = ACTION_LABELS.describe;
-    aiProgress.start();
+    aiError.value = "";
     try {
-      const result = await writerAI.describe({
-        html,
-        signal: aiProgress.signal,
-        onDelta: aiProgress.onDelta,
-      });
+      const result = await writerAI.describe({ html });
       if (!result?.html?.trim()) {
         aiError.value = "AI returned an empty response. Try again — and verify the model is running and isn't returning only thinking tags.";
       } else {
         editor.value.chain().focus().proposeContinuation({ at: to, newHtml: result.html }).run();
       }
-      aiProgress.finish();
     } catch (err) {
-      if (!aiProgress.cancelled.value) aiError.value = err?.message || String(err);
-      aiProgress.finish();
-    } finally {
-      aiRunning.value = false;
+      if (!isAiAbort(err)) aiError.value = err?.message || String(err);
     }
     return;
   }
@@ -693,8 +661,9 @@ async function runWriterAction(actionKey, opts = {}) {
     if (!ctx.trim()) { aiError.value = "Place the cursor at the end of some prose to continue from."; return; }
     if (useVariations) {
       startVariations({
-        runnerFactory: (temperature, signal, onDelta) => writerAI.continueFrom({
+        runnerFactory: (temperature, signal, onDelta, taskMeta) => writerAI.continueFrom({
           html: `<p>${ctx}</p>`, signal, onDelta, temperature,
+          task: { label: "Writer assist · Continue", meta: { ...(taskMeta || {}), action: "continue" } },
         }),
         mode: "continue-at", from, to: from,
         originalHtml: "",
@@ -703,15 +672,9 @@ async function runWriterAction(actionKey, opts = {}) {
       });
       return;
     }
-    aiRunning.value = true; aiError.value = "";
-    aiActionLabel.value = ACTION_LABELS.continue;
-    aiProgress.start();
+    aiError.value = "";
     try {
-      const result = await writerAI.continueFrom({
-        html: `<p>${ctx}</p>`,
-        signal: aiProgress.signal,
-        onDelta: aiProgress.onDelta,
-      });
+      const result = await writerAI.continueFrom({ html: `<p>${ctx}</p>` });
       // Guard empty/whitespace-only responses — otherwise proposeContinuation
       // inserts nothing visible and the user sees the progress bar vanish
       // with no result and no error.
@@ -720,12 +683,8 @@ async function runWriterAction(actionKey, opts = {}) {
       } else {
         editor.value.chain().focus().proposeContinuation({ at: from, newHtml: result.html }).run();
       }
-      aiProgress.finish();
     } catch (err) {
-      if (!aiProgress.cancelled.value) aiError.value = err?.message || String(err);
-      aiProgress.finish();
-    } finally {
-      aiRunning.value = false;
+      if (!isAiAbort(err)) aiError.value = err?.message || String(err);
     }
     return;
   }
@@ -748,8 +707,9 @@ async function runWriterAction(actionKey, opts = {}) {
     const labelMap = ACTION_LABELS[actionKey];
     const labelText = typeof labelMap === "object" ? (labelMap[scope] || labelMap.selection) : (labelMap || "Variations");
     startVariations({
-      runnerFactory: (temperature, signal, onDelta) => fnVariation({
+      runnerFactory: (temperature, signal, onDelta, taskMeta) => fnVariation({
         html, signal, onDelta, temperature,
+        task: { label: `Writer assist · ${labelText.replace(/[…\.]+$/, "")}`, meta: { ...(taskMeta || {}), action: actionKey } },
       }),
       mode: "replace", from, to, originalHtml: html,
       eyebrow: `${labelText.replace(/[…\.]+$/, "")} — three variations`,
@@ -757,23 +717,13 @@ async function runWriterAction(actionKey, opts = {}) {
     });
     return;
   }
-  aiRunning.value = true; aiError.value = "";
-  // Pick the scope-aware label for actions that have one; fall back to a
-  // single string for actions that don't (rewrite/expand are
-  // selection-only so their label never varies).
-  const lbl = ACTION_LABELS[actionKey];
-  aiActionLabel.value = typeof lbl === "object" ? (lbl[scope] || lbl.selection) : (lbl || "Working…");
-  aiProgress.start();
+  aiError.value = "";
   try {
     const fn = actionKey === "rewrite" ? writerAI.rewrite
              : actionKey === "expand" ? writerAI.expand
              : actionKey === "tighten" ? writerAI.tighten
              : writerAI.continueFrom;
-    const result = await fn({
-      html,
-      signal: aiProgress.signal,
-      onDelta: aiProgress.onDelta,
-    });
+    const result = await fn({ html });
     // Guard empty/whitespace-only responses — proposeReplacement would
     // deleteRange()+insertContentAt("") and silently nuke the selection
     // without surfacing an error.
@@ -782,12 +732,8 @@ async function runWriterAction(actionKey, opts = {}) {
     } else {
       editor.value.chain().focus().proposeReplacement({ from, to, originalHtml: html, newHtml: result.html }).run();
     }
-    aiProgress.finish();
   } catch (err) {
-    if (!aiProgress.cancelled.value) aiError.value = err?.message || String(err);
-    aiProgress.finish();
-  } finally {
-    aiRunning.value = false;
+    if (!isAiAbort(err)) aiError.value = err?.message || String(err);
   }
 }
 
@@ -806,8 +752,9 @@ async function runProsePass(ruleKey, opts = {}) {
   if (useVariations) {
     const ruleLabel = PROSE_RULES[ruleKey]?.label || ruleKey;
     startVariations({
-      runnerFactory: (temperature, signal, onDelta) => writerAI.applyRule(ruleKey, {
+      runnerFactory: (temperature, signal, onDelta, taskMeta) => writerAI.applyRule(ruleKey, {
         html, signal, onDelta, temperature,
+        task: { label: `Writer assist · ${ruleLabel}`, meta: { ...(taskMeta || {}), rule: ruleKey } },
       }),
       mode: "replace", from, to, originalHtml: html,
       eyebrow: `${ruleLabel} — three variations (${scope})`,
@@ -815,26 +762,16 @@ async function runProsePass(ruleKey, opts = {}) {
     });
     return;
   }
-  aiRunning.value = true; aiError.value = "";
-  aiActionLabel.value = `Running line edit: ${PROSE_RULES[ruleKey]?.label || ruleKey} (${scope})…`;
-  aiProgress.start();
+  aiError.value = "";
   try {
-    const result = await writerAI.applyRule(ruleKey, {
-      html,
-      signal: aiProgress.signal,
-      onDelta: aiProgress.onDelta,
-    });
+    const result = await writerAI.applyRule(ruleKey, { html });
     if (!result?.html?.trim()) {
       aiError.value = "AI returned an empty response. Try again — and verify the model is running and isn't returning only thinking tags.";
     } else {
       editor.value.chain().focus().proposeReplacement({ from, to, originalHtml: html, newHtml: result.html }).run();
     }
-    aiProgress.finish();
   } catch (err) {
-    if (!aiProgress.cancelled.value) aiError.value = err?.message || String(err);
-    aiProgress.finish();
-  } finally {
-    aiRunning.value = false;
+    if (!isAiAbort(err)) aiError.value = err?.message || String(err);
   }
 }
 
@@ -1427,8 +1364,9 @@ async function runGuidedContinue(instruction, opts = {}) {
   proseMenuOpen.value = false;
   if (shouldUseVariations(opts.shiftKey)) {
     startVariations({
-      runnerFactory: (temperature, signal, onDelta) => writerAI.guidedContinue({
+      runnerFactory: (temperature, signal, onDelta, taskMeta) => writerAI.guidedContinue({
         html: `<p>${ctx}</p>`, instruction: text, signal, onDelta, temperature,
+        task: { label: "Writer assist · Continue (guided)", meta: { ...(taskMeta || {}), action: "guidedContinue" } },
       }),
       mode: "continue-at", from: pos, to: pos,
       originalHtml: "",
@@ -1437,27 +1375,19 @@ async function runGuidedContinue(instruction, opts = {}) {
     });
     return;
   }
-  aiRunning.value = true; aiError.value = "";
-  aiActionLabel.value = "Writing your direction…";
-  aiProgress.start();
+  aiError.value = "";
   try {
     const result = await writerAI.guidedContinue({
       html: `<p>${ctx}</p>`,
       instruction: text,
-      signal: aiProgress.signal,
-      onDelta: aiProgress.onDelta,
     });
     if (!result?.html?.trim()) {
       aiError.value = "AI returned an empty response. Try again — and verify the model is running and isn't returning only thinking tags.";
     } else {
       editor.value.chain().focus().proposeContinuation({ at: pos, newHtml: result.html }).run();
     }
-    aiProgress.finish();
   } catch (err) {
-    if (!aiProgress.cancelled.value) aiError.value = err?.message || String(err);
-    aiProgress.finish();
-  } finally {
-    aiRunning.value = false;
+    if (!isAiAbort(err)) aiError.value = err?.message || String(err);
   }
 }
 
@@ -1652,14 +1582,9 @@ defineExpose({
            click away (and not gated by a text selection appearing). -->
     </bubble-menu>
 
-    <!-- AI progress bar — shown while a writerAI call is running.
-         Streams a live preview for prose actions (opt-in via toggle). -->
+    <!-- AI progress strip — shown while a writerAI call is running. -->
     <div v-if="aiRunning" class="ai-progress-wrap">
-      <AiProgressBar
-        :progress="aiProgress"
-        :label="aiActionLabel"
-        :show-preview="aiShowPreview"
-        :can-toggle-preview="true" />
+      <AiTaskStrip :task="myTask" />
     </div>
 
     <!-- Pending changes / error bar — silent when nothing's going on. -->
@@ -2106,8 +2031,8 @@ defineExpose({
 .prose-menu-label { font-size: 14px; font-weight: 600; }
 .prose-menu-desc  { font-size: 12.5px; color: var(--muted); line-height: 1.45; }
 
-/* Wrap the new AiProgressBar so it gets the same edge margin as the
-   pending-changes bar — the bar itself draws its own border/background. */
+/* Wrap AiTaskStrip so it gets the same edge margin as the pending-changes
+   bar — the strip itself draws its own border/background. */
 .ai-progress-wrap { padding: 7px 12px; border-bottom: 1px solid var(--border); background: var(--surface); }
 
 /* AI status bar above the editor body. Slim, single-row when possible. */

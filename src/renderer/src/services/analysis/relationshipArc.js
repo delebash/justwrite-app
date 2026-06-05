@@ -162,6 +162,8 @@ export async function analyseRelationship({
   onDelta,
   provider,
   model,
+  task,
+  meta,
 } = {}) {
   if (!project) throw new Error("analyseRelationship: project store is required.");
   if (!characterAId || !characterBId || characterAId === characterBId) {
@@ -202,6 +204,7 @@ export async function analyseRelationship({
     { role: "user", content: body.join("\n") },
   ];
 
+  const arcMeta = { ...(meta || {}), characterAId, characterBId };
   const result = await runAiStream({
     feature: "relationshipArc",
     messages,
@@ -211,7 +214,8 @@ export async function analyseRelationship({
     onDelta,
     provider,
     model,
-    meta: { characterAId, characterBId },
+    meta: arcMeta,
+    task: task || { label: "Relationship arc", meta: arcMeta },
   });
 
   const parsed = parseJsonLoose(result.content) || {};

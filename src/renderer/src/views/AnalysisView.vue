@@ -19,8 +19,9 @@ import ReverseOutlineModal from "../components/ReverseOutlineModal.vue";
 import BeatSheetModal from "../components/BeatSheetModal.vue";
 import PlotHoleScanModal from "../components/PlotHoleScanModal.vue";
 import MarketingPackModal from "../components/MarketingPackModal.vue";
+import AiTaskStrip from "../components/AiTaskStrip.vue";
 import { useAiStore } from "../stores/ai.js";
-import { useAiProgress } from "../composables/useAiProgress.js";
+import { useAiTasksStore } from "../stores/aiTasks.js";
 import JwTable from "@renderer/components/ui/JwTable.vue";
 import JwSegmented from "@renderer/components/ui/JwSegmented.vue";
 import JwButton from "@renderer/components/ui/JwButton.vue";
@@ -140,7 +141,10 @@ const styleMaxes = computed(() => {
 // outlier on 2+ metrics ("hot chapters" — likely voice drift).
 
 const ai = useAiStore();
+const aiTasks = useAiTasksStore();
 const drift = computed(() => computeVoiceDrift(style.value.rows));
+
+function isAbort(e) { return e?.name === "AbortError" || /abort/i.test(e?.message || ""); }
 
 // Render-only helpers — keep the SVG sparkline scales tight per metric.
 function sparklineGeom(metric, w = 240, h = 28) {
@@ -168,7 +172,6 @@ function sparklineGeom(metric, w = 240, h = 28) {
 // Inline explanation state — per outlier chapter id. Shape:
 //   { running, text, error }
 const driftExplanations = ref({});
-const driftExplainProgress = useAiProgress();
 const driftExplainingId = ref(null);
 
 async function explainHot(chapterId) {
@@ -210,14 +213,13 @@ async function explainHot(chapterId) {
     const outlierValue = m.format ? m.format(out.value) : out.value.toFixed(1);
     divergent.push({ label: m.label, direction, baselineMean, outlierValue });
   }
-  driftExplainProgress.start();
   try {
     const result = await explainVoiceDrift({
       project,
       outlierChapterId: chapterId,
       baselineChapterIds: baselineIds,
       divergentMetrics: divergent,
-      signal: driftExplainProgress.signal,
+      task: { label: "Voice drift explanation", meta: { chapterId } },
       onDelta: (delta, content) => {
         driftExplanations.value = {
           ...driftExplanations.value,
@@ -229,9 +231,8 @@ async function explainHot(chapterId) {
       ...driftExplanations.value,
       [chapterId]: { running: false, text: result.text, error: "" },
     };
-    driftExplainProgress.finish();
   } catch (e) {
-    if (!driftExplainProgress.cancelled.value) {
+    if (!isAbort(e)) {
       const msg = String(e?.message || e || "");
       driftExplanations.value = {
         ...driftExplanations.value,
@@ -242,8 +243,12 @@ async function explainHot(chapterId) {
             : msg || "Couldn't generate explanation.",
         },
       };
+    } else {
+      // Aborted — clear the running indicator.
+      const next = { ...driftExplanations.value };
+      delete next[chapterId];
+      driftExplanations.value = next;
     }
-    driftExplainProgress.finish();
   } finally {
     driftExplainingId.value = null;
   }
@@ -261,7 +266,8 @@ const TREND_COLOURS = {
 // runStructuralAnalysis already records on chapter.critique.structure.
 // One bulk-run button covers chapters that haven't been analysed yet.
 
-const tensionProgress = useAiProgress();
+const tensionTask = computed(() => aiTasks.runningTasks.find((t) => t.feature === "critique"));
+const tensionRunning = computed(() => !!tensionTask.value);
 const tensionRunningChapterId = ref(null);
 const tensionError = ref("");
 
@@ -326,32 +332,28 @@ async function runTensionSweep(force = false) {
     tensionError.value = "Configure an AI provider in Settings → AI to run the tension sweep.";
     return;
   }
-  tensionProgress.start();
   try {
     await sweepStoryTension({
       project,
-      signal: tensionProgress.signal,
       force,
       onProgress: ({ phase, chapter }) => {
         if (phase === "start") tensionRunningChapterId.value = chapter.id;
         else tensionRunningChapterId.value = null;
       },
     });
-    tensionProgress.finish();
     tensionRunningChapterId.value = null;
   } catch (e) {
-    if (!tensionProgress.cancelled.value) {
+    tensionRunningChapterId.value = null;
+    if (!isAbort(e)) {
       const msg = String(e?.message || e || "");
       tensionError.value = /provider|api key|configure/i.test(msg)
         ? "Configure an AI provider in Settings → AI to run the tension sweep."
         : msg || "Tension sweep failed.";
     }
-    tensionProgress.finish();
-    tensionRunningChapterId.value = null;
   }
 }
 function cancelTensionSweep() {
-  tensionProgress.cancel();
+  if (tensionTask.value) aiTasks.cancel(tensionTask.value.id);
   tensionRunningChapterId.value = null;
 }
 
@@ -715,43 +717,43 @@ const milestoneState = computed(() => {
           <span v-if="analysedTensionRows.length" class="st-pill">
             {{ analysedTensionRows.length }} of {{ tensionRows.length }} chapters analysed
           </span>
-          <JwButton v-if="!tensionProgress.running.value" intent="ghost" size="small"
+          <JwButton v-if="!tensionRunning.value" intent="ghost" size="small"
                     :disabled="!unanalysedCount && analysedTensionRows.length"
                     @click="runTensionSweep(false)"
                     v-tooltip.bottom="unanalysedCount ? `Analyse ${unanalysedCount} chapter${unanalysedCount === 1 ? '' : 's'} that don't yet have a structural pass` : 'All chapters already analysed'">
             <Icon name="Sparkle" :size="12" />
             {{ unanalysedCount ? `Analyse ${unanalysedCount} chapter${unanalysedCount === 1 ? '' : 's'}` : 'All analysed' }}
           </JwButton>
-          <JwButton v-if="!tensionProgress.running.value && analysedTensionRows.length" intent="ghost" size="small"
+          <JwButton v-if="!tensionRunning.value && analysedTensionRows.length" intent="ghost" size="small"
                     @click="runTensionSweep(true)"
                     v-tooltip.bottom="'Re-run on every chapter, replacing prior results'">
             <Icon name="Refresh" :size="12" /> Re-analyse all
           </JwButton>
-          <JwButton v-if="!tensionProgress.running.value" intent="ghost" size="small"
+          <JwButton v-if="!tensionRunning.value" intent="ghost" size="small"
                     @click="openReverseOutline"
                     v-tooltip.bottom="'Read the whole draft and produce the act structure the book actually has'">
             <Icon name="Book" :size="12" />
             {{ hasReverseOutline ? 'View reverse outline' : 'Reverse outline' }}
           </JwButton>
-          <JwButton v-if="!tensionProgress.running.value" intent="ghost" size="small"
+          <JwButton v-if="!tensionRunning.value" intent="ghost" size="small"
                     @click="openBeatSheet"
                     v-tooltip.bottom="'Map the draft to Save the Cat, Heros Journey, or 7-Point Story Structure'">
             <Icon name="Target" :size="12" />
             {{ hasAnyBeatSheet ? 'View beat sheet' : 'Map to beat sheet' }}
           </JwButton>
-          <JwButton v-if="!tensionProgress.running.value" intent="ghost" size="small"
+          <JwButton v-if="!tensionRunning.value" intent="ghost" size="small"
                     @click="openPlotHoles"
                     v-tooltip.bottom="'One-pass continuity audit for contradictions, timeline drift, character-knowledge errors'">
             <Icon name="Alert" :size="12" />
             {{ hasPlotHoles ? `Plot holes (${plotHolesActiveCount})` : 'Plot-hole audit' }}
           </JwButton>
-          <JwButton v-if="!tensionProgress.running.value" intent="ghost" size="small"
+          <JwButton v-if="!tensionRunning.value" intent="ghost" size="small"
                     @click="openMarketingPack"
                     v-tooltip.bottom="'Logline, back-cover blurbs, synopsis, and elevator pitch for querying and pitching'">
             <Icon name="Export" :size="12" />
             {{ hasMarketingPack ? 'View marketing pack' : 'Marketing pack' }}
           </JwButton>
-          <JwButton v-else-if="tensionProgress.running.value" intent="danger" size="small" @click="cancelTensionSweep">
+          <JwButton v-else-if="tensionRunning.value" intent="danger" size="small" @click="cancelTensionSweep">
             <Icon name="Close" :size="12" /> Cancel
           </JwButton>
         </span>
@@ -761,12 +763,9 @@ const milestoneState = computed(() => {
         <Icon name="Alert" :size="13" /> {{ tensionError }}
       </div>
 
-      <div v-if="tensionProgress.running.value" class="st-progress">
-        <span class="st-spinner" />
-        <span>Analysing chapter {{ tensionRunningChapterId ? allCh.find(c => c.id === tensionRunningChapterId)?.num : '' }}… ({{ tensionProgress.elapsedSeconds }}s)</span>
-      </div>
+      <AiTaskStrip :task="tensionTask" />
 
-      <p v-if="!analysedTensionRows.length && !tensionProgress.running.value" class="st-empty">
+      <p v-if="!analysedTensionRows.length && !tensionRunning.value" class="st-empty">
         No chapters have a structural analysis yet. Click the button above to walk every chapter and score tension (1–10), hook quality (1–10), pacing, and ending classification. Sequential — one LLM call per chapter — so longer books take a while. Cancel mid-sweep keeps partial results.
       </p>
 

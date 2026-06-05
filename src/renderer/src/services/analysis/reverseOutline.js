@@ -143,6 +143,8 @@ export async function generateReverseOutline({
   onDelta,
   provider,
   model,
+  task,
+  meta,
 } = {}) {
   if (!project) throw new Error("generateReverseOutline: project store is required.");
   const chapters = buildChapterDigest(project);
@@ -172,6 +174,7 @@ export async function generateReverseOutline({
     { role: "user", content: body.join("\n") },
   ];
 
+  const outlineMeta = { ...(meta || {}), totalChapters: chapters.length };
   const result = await runAiStream({
     feature: "reverseOutline",
     messages,
@@ -181,7 +184,8 @@ export async function generateReverseOutline({
     onDelta,
     provider,
     model,
-    meta: { totalChapters: chapters.length },
+    meta: outlineMeta,
+    task: task || { label: "Reverse outline", meta: outlineMeta },
   });
 
   const parsed = parseJsonLoose(result.content) || {};

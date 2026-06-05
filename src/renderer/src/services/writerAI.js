@@ -175,7 +175,7 @@ const DEFAULT_TEMPERATURE = 0.7;
 // that the three columns read distinctly without any feeling forced.
 export const VARIATION_TEMPERATURES = [0.55, 0.7, 0.95];
 
-async function runAction(actionKey, { html, signal, onDelta, meta, provider, model, temperature } = {}) {
+async function runAction(actionKey, { html, signal, onDelta, meta, provider, model, temperature, task } = {}) {
   const action = ACTIONS[actionKey];
   if (!action) throw new Error(`Unknown action: ${actionKey}`);
   const source = htmlToText(html);
@@ -193,6 +193,7 @@ async function runAction(actionKey, { html, signal, onDelta, meta, provider, mod
     messages, signal, onDelta,
     temperature: typeof temperature === "number" ? temperature : DEFAULT_TEMPERATURE,
     provider, model, meta,
+    task: task || { label: `Writer assist · ${action.label}`, meta },
   });
   return { html: textToHtml(result.content), raw: result.content, usage: result.usage };
 }
@@ -220,7 +221,7 @@ export function describe(opts)  { return runAction("describe", opts); }
  * @param {object} [opts.provider]
  * @param {string} [opts.model]
  */
-export async function guidedContinue({ html, instruction, signal, onDelta, meta, provider, model, temperature } = {}) {
+export async function guidedContinue({ html, instruction, signal, onDelta, meta, provider, model, temperature, task } = {}) {
   const source = htmlToText(html);
   if (!source.trim()) throw new Error("There's nothing to continue from.");
   const trimmed = String(instruction || "").trim();
@@ -243,11 +244,12 @@ export async function guidedContinue({ html, instruction, signal, onDelta, meta,
     messages, signal, onDelta,
     temperature: typeof temperature === "number" ? temperature : DEFAULT_TEMPERATURE,
     provider, model, meta,
+    task: task || { label: "Writer assist · Continue", meta },
   });
   return { html: textToHtml(result.content), raw: result.content, usage: result.usage };
 }
 
-export async function applyRule(ruleKey, { html, signal, onDelta, meta, provider, model, temperature } = {}) {
+export async function applyRule(ruleKey, { html, signal, onDelta, meta, provider, model, temperature, task } = {}) {
   const rule = PROSE_RULES[ruleKey];
   if (!rule) throw new Error(`Unknown rule: ${ruleKey}`);
   const source = htmlToText(html);
@@ -262,6 +264,7 @@ export async function applyRule(ruleKey, { html, signal, onDelta, meta, provider
     messages, signal, onDelta,
     temperature: typeof temperature === "number" ? temperature : 0.6,
     provider, model, meta,
+    task: task || { label: `Writer assist · ${rule.label}`, meta },
   });
   return { html: textToHtml(result.content), raw: result.content, usage: result.usage };
 }

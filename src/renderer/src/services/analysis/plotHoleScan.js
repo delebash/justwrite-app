@@ -160,6 +160,8 @@ export async function scanPlotHoles({
   onDelta,
   provider,
   model,
+  task,
+  meta,
 } = {}) {
   if (!project) throw new Error("scanPlotHoles: project store is required.");
 
@@ -201,6 +203,7 @@ export async function scanPlotHoles({
     { role: "user", content: body.join("\n") },
   ];
 
+  const chaptersMeta = { ...(meta || {}), totalChapters: chapters.length };
   const result = await runAiStream({
     feature: "plotHoles",
     messages,
@@ -210,7 +213,8 @@ export async function scanPlotHoles({
     onDelta,
     provider,
     model,
-    meta: { totalChapters: chapters.length },
+    meta: chaptersMeta,
+    task: task || { label: "Plot hole scan", meta: chaptersMeta },
   });
 
   const parsed = parseJsonLoose(result.content) || {};

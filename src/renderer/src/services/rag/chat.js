@@ -106,6 +106,8 @@ export async function askManuscript({
   llmModel,
   embedProvider,
   embedModel,
+  task,
+  meta,
 } = {}) {
   // ── 1. Validate ──────────────────────────────────────────────────────────
   if (!question || !question.trim()) {
@@ -187,12 +189,14 @@ export async function askManuscript({
   // Lookup is "chat" (provider/model per the user's Settings); ledger
   // records "rag-chat" so manuscript Q&A shows up distinctly from any
   // future plain-chat feature.
+  const ragMeta = { ...(meta || {}), question: question.slice(0, 120) };
   const { content: answer, usage } = await runAiStream({
     feature: "chat", usageFeature: "rag-chat",
     messages, temperature: 0.3,
     signal, onDelta,
     provider: resolvedLlmProvider, model: resolvedLlmModel,
-    meta: { question: question.slice(0, 120) },
+    meta: ragMeta,
+    task: task || { label: "Ask the book", meta: ragMeta },
   });
 
   // ── 8. Return ────────────────────────────────────────────────────────────

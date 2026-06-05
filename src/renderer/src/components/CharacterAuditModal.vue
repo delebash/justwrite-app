@@ -16,12 +16,12 @@ import { useRouter } from "vue-router";
 import { useProjectStore } from "../stores/project.js";
 import { useUiStore } from "../stores/ui.js";
 import { useAiStore } from "../stores/ai.js";
-import { useAiProgress } from "../composables/useAiProgress.js";
+import { useAiTasksStore } from "../stores/aiTasks.js";
 import { auditAllCharacters } from "../services/analysis/characterAudit.js";
 import Icon from "./Icon.vue";
 import AppModal from "./AppModal.vue";
 import StatusRow from "./StatusRow.vue";
-import AiProgressBar from "./AiProgressBar.vue";
+import AiTaskStrip from "./AiTaskStrip.vue";
 import EmptyState from "./EmptyState.vue";
 import JwButton from "@renderer/components/ui/JwButton.vue";
 
@@ -31,7 +31,14 @@ const project = useProjectStore();
 const ui = useUiStore();
 const ai = useAiStore();
 const router = useRouter();
-const progress = useAiProgress();
+const aiTasks = useAiTasksStore();
+
+const myTask = computed(() => aiTasks.runningTasks.find(
+  (t) => t.feature === "characterAudit"
+));
+const running = computed(() => !!myTask.value);
+
+function isAbort(e) { return e?.name === "AbortError" || /abort/i.test(e?.message || ""); }
 
 const error = ref("");
 
@@ -52,16 +59,24 @@ function initRows() {
   completedCount.value = rows.value.filter((r) => r.status === "done").length;
 }
 
+function cancelSweep() {
+  if (myTask.value) aiTasks.cancel(myTask.value.id);
+  for (const r of rows.value) {
+    if (r.status === "scanning") { r.status = "skipped"; r.reason = "cancelled"; }
+  }
+}
+
 // Are we currently running OR have we never started?
 const everRan = computed(() => rows.value.some((r) => project.characters.find((c) => c.id === r.id)?.audit));
 const phase = computed(() => {
-  if (progress.running.value) return "scanning";
+  if (running.value) return "scanning";
   if (everRan.value) return "review";
   return "scanning";
 });
 
 async function runSweep(force = false) {
   error.value = "";
+  if (running.value) return;
   if (!ai.providerForFeature("characterAudit")) {
     error.value = "Configure an AI provider in Settings → AI to run the audit.";
     return;
@@ -72,11 +87,10 @@ async function runSweep(force = false) {
     error.value = "No main characters to audit. Mark a character as 'main' in their detail page first.";
     return;
   }
-  progress.start();
   try {
     await auditAllCharacters({
       project,
-      signal: progress.signal,
+      task: { label: "Character consistency audit", meta: { feature: "characterAudit" } },
       onProgress: ({ phase: ph, character, completed, result, reason }) => {
         const row = rowById.value.get(character.id);
         if (row) {
@@ -94,22 +108,17 @@ async function runSweep(force = false) {
         completedCount.value = completed;
       },
     });
-    progress.finish();
   } catch (e) {
-    if (!progress.cancelled.value) {
+    if (!isAbort(e)) {
       const msg = String(e?.message || e || "");
       error.value = /provider|api key|configure/i.test(msg)
         ? "Configure an AI provider in Settings → AI to run the audit."
         : msg || "Couldn't complete the audit.";
+    } else {
+      for (const r of rows.value) {
+        if (r.status === "scanning") { r.status = "skipped"; r.reason = "cancelled"; }
+      }
     }
-    progress.finish();
-  }
-}
-
-function cancelSweep() {
-  progress.cancel();
-  for (const r of rows.value) {
-    if (r.status === "scanning") { r.status = "skipped"; r.reason = "cancelled"; }
   }
 }
 
@@ -181,7 +190,7 @@ onMounted(() => {
     eyebrow="Character audit"
     title="Consistency audit"
     wide
-    :closable="!progress.running.value"
+    :closable="!running"
     @close="emit('close')"
   >
     <p class="ca-blurb">
@@ -199,12 +208,10 @@ onMounted(() => {
       </JwButton>
     </div>
 
-    <AiProgressBar v-if="progress.running.value"
-      :progress="progress"
-      :label="`${completedCount} of ${rows.length} characters`" />
+    <AiTaskStrip :task="myTask" />
 
     <!-- ── Scanning phase ────────────────────────────────────── -->
-    <div v-if="progress.running.value || !reviewCharacters.length" class="ca-rows">
+    <div v-if="running || !reviewCharacters.length" class="ca-rows">
       <StatusRow v-for="row in rows" :key="row.id"
         :status="row.status"
         :left="row.name?.[0]?.toUpperCase() || '?'"
@@ -271,11 +278,11 @@ onMounted(() => {
     </template>
 
     <template #footer>
-      <JwButton v-if="reviewCharacters.length && !progress.running.value" intent="ghost" @click="clearAll">
+      <JwButton v-if="reviewCharacters.length && !running" intent="ghost" @click="clearAll">
         Clear saved audit
       </JwButton>
       <span class="ca-foot-spacer" />
-      <JwButton v-if="!progress.running.value" intent="ghost" @click="runSweep(true)">
+      <JwButton v-if="!running" intent="ghost" @click="runSweep(true)">
         <Icon name="Refresh" :size="12" />
         {{ reviewCharacters.length ? "Re-audit" : "Run audit" }}
       </JwButton>

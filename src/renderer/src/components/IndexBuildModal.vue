@@ -9,9 +9,9 @@
 import { ref, computed, onMounted } from "vue";
 import { useAiStore } from "../stores/ai.js";
 import { useProjectStore } from "../stores/project.js";
-import { useAiProgress } from "../composables/useAiProgress.js";
+import { useAiTasksStore } from "../stores/aiTasks.js";
 import { buildOrUpdateIndex, rebuildIndex, indexStatus, clearIndex } from "../services/rag/indexer.js";
-import AiProgressBar from "./AiProgressBar.vue";
+import AiTaskStrip from "./AiTaskStrip.vue";
 import Icon from "./Icon.vue";
 import AppModal from "./AppModal.vue";
 import StatusRow from "./StatusRow.vue";
@@ -26,7 +26,17 @@ const emit = defineEmits(["close", "built"]);
 
 const ai = useAiStore();
 const project = useProjectStore();
-const progress = useAiProgress();
+const aiTasks = useAiTasksStore();
+
+// Embedding doesn't go through runAiStream (it uses client.embed in a
+// loop, one call per scene), so we register the task directly with the
+// store rather than via the chat-stream wrapper. Looking it up by
+// feature is enough — only one index build runs at a time.
+const myTask = computed(() => aiTasks.runningTasks.find((t) => t.feature === "ragIndex"));
+const running = computed(() => !!myTask.value);
+// The aiTasks handle for the in-flight call, captured at start time so
+// we can call finish/cancel from outside the run() closure.
+let taskHandle = null;
 
 const rows = ref([]);       // [{ id, label, status: "pending"|"working"|"done"|"removed" }]
 const phase = ref("");      // "chunking" | "embedding" | "done" | ""
@@ -49,6 +59,8 @@ function rowForChunk(c) {
   };
 }
 
+function isAbort(e) { return e?.name === "AbortError" || /abort/i.test(e?.message || ""); }
+
 async function run() {
   error.value = "";
   result.value = null;
@@ -63,12 +75,20 @@ async function run() {
     error.value = `Provider "${provider.name || provider.id}" has no embedding model set. Fill in Settings → AI providers.`;
     return;
   }
-  progress.start();
+  taskHandle = aiTasks.start({
+    feature: "ragIndex",
+    label: props.mode === "rebuild" ? "Rebuild manuscript index" : "Build manuscript index",
+    meta: { mode: props.mode },
+  });
   try {
     const fn = props.mode === "rebuild" ? rebuildIndex : buildOrUpdateIndex;
     const r = await fn({
-      signal: progress.signal,
-      onDelta: progress.onDelta,
+      signal: taskHandle.signal,
+      // Embedding doesn't stream tokens, but each scene completion is a
+      // useful "still alive" tick — bump the task's lastDeltaAt via
+      // onDelta with an empty string so the panel's freshness indicator
+      // stays "live" while we work through the queue.
+      onDelta: taskHandle.onDelta,
       onProgress: ({ phase: p, index, total, chunk, action }) => {
         phase.value = p;
         if (p === "embedding" && chunk) {
@@ -83,6 +103,9 @@ async function run() {
           for (const r of rows.value) {
             if (r.id !== chunk.id && r.status === "working") r.status = "done";
           }
+          // Tick the task's freshness signal so the panel doesn't show
+          // "stalled" while a long embedding queue is processing.
+          taskHandle.onDelta("", null);
         } else if (action === "removed" && chunk) {
           rows.value.push({ id: chunk.id, label: `(stale) ${chunk.id}`, status: "removed" });
         }
@@ -92,16 +115,23 @@ async function run() {
     for (const r of rows.value) if (r.status === "working") r.status = "done";
     phase.value = "done";
     result.value = r || { added: 0, updated: 0, removed: 0 };
-    progress.finish();
+    taskHandle.finish({});
+    taskHandle = null;
     emit("built", result.value);
   } catch (e) {
-    if (!progress.cancelled.value) error.value = e?.message || String(e);
-    progress.finish();
+    if (isAbort(e)) {
+      // Cancel path is already recorded by the store via cancel().
+    } else {
+      error.value = e?.message || String(e);
+      taskHandle?.fail(e);
+    }
+    taskHandle = null;
   }
 }
 
 function cancel() {
-  progress.cancel();
+  taskHandle?.cancel();
+  taskHandle = null;
   // Stop the spinner on the working row but leave it visible so the
   // user can see where it broke off.
   for (const r of rows.value) if (r.status === "working") r.status = "pending";
@@ -122,7 +152,7 @@ const totalDone = computed(() => rows.value.filter((r) => r.status === "done").l
     ref="appModal"
     eyebrow="Manuscript index"
     :title="mode === 'rebuild' ? 'Rebuilding index' : 'Building index'"
-    :closable="!progress.running.value"
+    :closable="!running"
     @close="emit('close')"
   >
     <template #header>
@@ -130,7 +160,7 @@ const totalDone = computed(() => rows.value.filter((r) => r.status === "done").l
         <div class="t-eyebrow">Manuscript index</div>
         <div class="modal-title">{{ mode === "rebuild" ? "Rebuilding index" : "Building index" }}</div>
       </div>
-      <JwButton v-if="progress.running.value" intent="ghost" size="small" @click="cancel">
+      <JwButton v-if="running" intent="ghost" size="small" @click="cancel">
         <Icon name="Close" :size="12" /> Cancel
       </JwButton>
     </template>
@@ -142,7 +172,7 @@ const totalDone = computed(() => rows.value.filter((r) => r.status === "done").l
       book and get answers grounded in specific scenes.
     </p>
 
-    <div v-if="before.exists && !progress.running.value && !result" class="idx-stat">
+    <div v-if="before.exists && !running && !result" class="idx-stat">
       Current index: <b>{{ before.entryCount }}</b> scene{{ before.entryCount === 1 ? "" : "s" }} ·
       model <code>{{ before.model || "?" }}</code> · {{ before.dims || "?" }}d
     </div>
@@ -151,10 +181,7 @@ const totalDone = computed(() => rows.value.filter((r) => r.status === "done").l
       <Icon name="Alert" :size="13" /> {{ error }}
     </div>
 
-    <AiProgressBar
-      :progress="progress"
-      :label="phase === 'chunking' ? 'Reading scenes…' : phase === 'embedding' ? 'Embedding…' : 'Working…'"
-    />
+    <AiTaskStrip :task="myTask" />
 
     <div v-if="rows.length" class="idx-list">
       <StatusRow v-for="row in rows" :key="row.id"
@@ -168,7 +195,7 @@ const totalDone = computed(() => rows.value.filter((r) => r.status === "done").l
       <span v-if="result.removed" class="t-muted"> · {{ result.removed }} stale chunk{{ result.removed === 1 ? "" : "s" }} cleared</span>
     </div>
 
-    <template v-if="!progress.running.value" #footer>
+    <template v-if="!running" #footer>
       <JwButton v-if="before.exists && !result" intent="ghost" size="small" @click="clearAndClose">
         Clear index
       </JwButton>

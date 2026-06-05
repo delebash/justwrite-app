@@ -137,7 +137,7 @@ function buildPersonaSystem(persona) {
 
 // ─── Run a single persona ───────────────────────────────────────────
 
-async function runPersona({ persona, html, chapterTitle, chapterNum, signal, provider, model, meta }) {
+async function runPersona({ persona, html, chapterTitle, chapterNum, signal, provider, model, meta, task }) {
   const text = htmlToText(html).trim();
   if (!text) throw new Error("Chapter has no prose to read.");
   const header = chapterTitle
@@ -158,6 +158,7 @@ async function runPersona({ persona, html, chapterTitle, chapterNum, signal, pro
     signal,
     provider, model,
     meta: { ...meta, personaKey: persona.key },
+    task: task || { label: "Multi-reader critique", meta: { ...meta, personaKey: persona.key } },
   });
 
   const parsed = parseJsonLoose(result.content) || {};
@@ -204,13 +205,14 @@ export async function runMultiReaderPanel({
   provider,
   model,
   meta = {},
+  task,
 } = {}) {
   const tasks = PERSONAS.map(async (persona) => {
     onPersonaPhase?.(persona.key, "start");
     try {
       const r = await runPersona({
         persona, html, chapterTitle, chapterNum,
-        signal, provider, model, meta,
+        signal, provider, model, meta, task,
       });
       onPersonaPhase?.(persona.key, "done", r);
       return r;

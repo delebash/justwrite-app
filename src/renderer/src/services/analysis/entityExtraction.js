@@ -81,6 +81,7 @@ export async function extractEntities({
   onDelta,
   provider,
   model,
+  task,
 } = {}) {
   const text = htmlToText(html).trim();
   if (!text) throw new Error("This chapter has no prose to scan yet.");
@@ -104,6 +105,7 @@ export async function extractEntities({
     feature: "entitySweep", usageFeature: "entity-extraction",
     messages, temperature: 0.2, extra: { think: false },
     signal, onDelta, provider, model, meta,
+    task: task || { label: "Entity sweep", meta },
   });
 
   const parsed = parseJsonLoose(result.content) || {};

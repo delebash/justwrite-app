@@ -140,6 +140,8 @@ export async function generateMarketingPack({
   onDelta,
   provider,
   model,
+  task,
+  meta,
 } = {}) {
   if (!project) throw new Error("generateMarketingPack: project store is required.");
   const chapters = buildChapterDigest(project);
@@ -170,6 +172,7 @@ export async function generateMarketingPack({
     { role: "user", content: body.join("\n") },
   ];
 
+  const packMeta = { ...(meta || {}), totalChapters: chapters.length };
   const result = await runAiStream({
     feature: "marketingPack",
     messages,
@@ -179,7 +182,8 @@ export async function generateMarketingPack({
     onDelta,
     provider,
     model,
-    meta: { totalChapters: chapters.length },
+    meta: packMeta,
+    task: task || { label: "Marketing pack", meta: packMeta },
   });
 
   const parsed = parseJsonLoose(result.content) || {};

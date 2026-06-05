@@ -274,6 +274,8 @@ export async function generateResumeBriefing({
   onDelta,
   provider,
   model,
+  task,
+  meta: callerMeta,
 } = {}) {
   const { meta, prompt } = buildBriefingContext({ project, sessions });
   if (!meta.eligible || !prompt) {
@@ -291,6 +293,7 @@ export async function generateResumeBriefing({
     { role: "user", content: prompt },
   ];
 
+  const briefingMeta = { ...(callerMeta || {}), chapterId: meta.lastChapter.id, daysSince: meta.daysSince };
   const result = await runAiStream({
     feature: "briefing",
     messages,
@@ -300,7 +303,8 @@ export async function generateResumeBriefing({
     onDelta,
     provider,
     model,
-    meta: { chapterId: meta.lastChapter.id, daysSince: meta.daysSince },
+    meta: briefingMeta,
+    task: task || { label: "Previously on…", meta: briefingMeta },
   });
 
   const text = (result.content || "").trim();

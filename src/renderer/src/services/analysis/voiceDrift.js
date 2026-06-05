@@ -230,6 +230,8 @@ export async function explainVoiceDrift({
   onDelta,
   provider,
   model,
+  task,
+  meta,
 } = {}) {
   if (!project || !outlierChapterId) throw new Error("explainVoiceDrift: project + outlierChapterId required.");
 
@@ -277,6 +279,7 @@ export async function explainVoiceDrift({
     { role: "user", content: body.join("\n") },
   ];
 
+  const driftMeta = { ...(meta || {}), chapterId: outlierChapterId };
   const result = await runAiStream({
     feature: "voiceDrift",
     messages,
@@ -286,7 +289,8 @@ export async function explainVoiceDrift({
     onDelta,
     provider,
     model,
-    meta: { chapterId: outlierChapterId },
+    meta: driftMeta,
+    task: task || { label: "Voice drift", meta: driftMeta },
   });
 
   return {

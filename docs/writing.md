@@ -369,6 +369,8 @@ The **Critique** button in the chapter editor toolbar runs two separate passes o
 
 Notes persist on the chapter and can be re-run independently.
 
+Both passes — and every other AI call in JustWrite — show up live in the **AI task panel** behind the sparkle chip in the title bar, with elapsed time, token count, a stuck-vs-streaming indicator, and a Cancel button. You can close the Critique modal and the call keeps running; the notes still land on the chapter when it finishes. See **[AI providers → Watching AI calls](ai-providers.md#watching-ai-calls)**.
+
 ### Entity extraction
 
 > *"I imported three chapters from my old draft and new characters appeared in the prose that aren't in my Story Bible yet. I want to find them all without reading every chapter by hand."*

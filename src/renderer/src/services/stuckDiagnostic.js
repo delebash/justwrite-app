@@ -144,6 +144,8 @@ export async function generateUnstuckMoves({
   onDelta,
   provider,
   model,
+  task,
+  meta,
 } = {}) {
   const text = String(contextText || "").trim();
   if (!text) throw new Error("There's no prose to brainstorm from yet — write a few lines first.");
@@ -159,6 +161,7 @@ export async function generateUnstuckMoves({
     },
   ];
 
+  const stuckMeta = { ...(meta || {}), kind: "unstuck" };
   const result = await runAiStream({
     feature: "unstuck",
     messages,
@@ -168,7 +171,8 @@ export async function generateUnstuckMoves({
     onDelta,
     provider,
     model,
-    meta: { kind: "unstuck" },
+    meta: stuckMeta,
+    task: task || { label: "Stuck diagnostic", meta: stuckMeta },
   });
 
   const parsed = parseJsonLoose(result.content) || {};

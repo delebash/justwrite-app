@@ -5,11 +5,19 @@ import JwButton from "@renderer/components/ui/JwButton.vue";
 import JwSelect from "@renderer/components/ui/JwSelect.vue";
 import JwTextarea from "@renderer/components/ui/JwTextarea.vue";
 import { useUiStore } from "../stores/ui.js";
-import { useAiProgress } from "../composables/useAiProgress.js";
+import { useAiTasksStore } from "../stores/aiTasks.js";
 import { runAiStream } from "../services/aiStream.js";
+import AiTaskStrip from "../components/AiTaskStrip.vue";
 
 const ui = useUiStore();
-const progress = useAiProgress();
+const aiTasks = useAiTasksStore();
+
+const myTask = computed(() => aiTasks.runningTasks.find(
+  (t) => t.feature === "brainstorm" && t.meta?.category === category.value
+));
+const running = computed(() => !!myTask.value);
+
+function isAbort(e) { return e?.name === "AbortError" || /abort/i.test(e?.message || ""); }
 
 const CATEGORIES = [
   {
@@ -65,8 +73,8 @@ const seen     = ref(new Set());
 const error    = ref("");
 
 const likedItems  = computed(() => results.value.filter((r) => r.liked).map((r) => r.text));
-const canMoreLike = computed(() => likedItems.value.length > 0 && !progress.running.value);
-const canGenerate = computed(() => seed.value.trim().length > 0 && !progress.running.value);
+const canMoreLike = computed(() => likedItems.value.length > 0 && !running.value);
+const canGenerate = computed(() => seed.value.trim().length > 0 && !running.value);
 
 function categoryLabel(val) {
   return CATEGORIES.find((c) => c.value === val)?.label || val;
@@ -112,24 +120,24 @@ function parseLines(raw) {
 }
 
 async function runGenerate(isContinuation) {
+  if (running.value) return;
   error.value = "";
-  progress.start();
   try {
     let accumulated = "";
-    await runAiStream({
+    const { content } = await runAiStream({
       feature: "brainstorm",
       usageFeature: `brainstorm:${category.value}`,
       temperature: 0.9,
-      signal: progress.signal,
       onDelta(delta) {
         accumulated += delta;
-        progress.onDelta(delta, accumulated);
       },
       messages: [
         { role: "system", content: buildSystemPrompt() },
         { role: "user",   content: buildUserPrompt(isContinuation) },
       ],
+      task: { label: "Brainstorm", meta: { category: category.value } },
     });
+    accumulated = content || accumulated;
 
     const lines = parseLines(accumulated);
     const deduped = [];
@@ -147,10 +155,8 @@ async function runGenerate(isContinuation) {
     } else {
       results.value = newItems;
     }
-    progress.finish();
-  } catch (err) {
-    progress.finish();
-    error.value = err.message || "Something went wrong.";
+  } catch (e) {
+    if (!isAbort(e)) error.value = e?.message || "Something went wrong.";
   }
 }
 
@@ -212,18 +218,20 @@ function clear() {
           v-model="seed"
           :rows="4"
           :placeholder="activeCategory.placeholder"
-          :disabled="progress.running.value"
+          :disabled="running.value"
         />
         <p class="brainstorm-seed-hint">
           Describe vibe, genre, era, register, sound — the more specific the seed, the less generic the output.
         </p>
       </div>
 
+      <AiTaskStrip :task="myTask" />
+
       <div class="brainstorm-actions">
         <JwButton
           intent="primary"
           label="Generate"
-          :loading="progress.running.value"
+          :loading="running.value"
           :disabled="!canGenerate"
           @click="generate"
         />
@@ -231,7 +239,7 @@ function clear() {
           v-if="results.length > 0"
           intent="ghost"
           label="Clear"
-          :disabled="progress.running.value"
+          :disabled="running.value"
           @click="clear"
         />
       </div>
@@ -277,21 +285,21 @@ function clear() {
         <JwButton
           intent="accent2"
           label="More like these"
-          :loading="progress.running.value"
+          :loading="running.value"
           :disabled="!canMoreLike"
           @click="moreLikeThese"
         />
-        <span v-if="likedItems.length === 0 && !progress.running.value" class="brainstorm-hint">
+        <span v-if="likedItems.length === 0 && !running.value" class="brainstorm-hint">
           Thumb-up results to steer the next batch.
         </span>
       </div>
     </div>
 
-    <div v-else-if="!progress.running.value && !error" class="brainstorm-empty">
+    <div v-else-if="!running.value && !error" class="brainstorm-empty">
       <p>Pick a category, describe what you need, and hit Generate.</p>
     </div>
 
-    <div v-if="progress.running.value && results.length === 0" class="brainstorm-empty">
+    <div v-if="running.value && results.length === 0" class="brainstorm-empty">
       <p class="brainstorm-generating">Generating…</p>
     </div>
   </div>

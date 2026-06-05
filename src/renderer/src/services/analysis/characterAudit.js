@@ -177,6 +177,7 @@ export async function auditCharacter({
   provider,
   model,
   meta = {},
+  task,
 } = {}) {
   if (!project) throw new Error("auditCharacter: project store is required.");
   const character = (project.characters || []).find((c) => c.id === characterId);
@@ -212,6 +213,7 @@ export async function auditCharacter({
     { role: "user", content: userBody },
   ];
 
+  const auditMeta = { ...meta, characterId };
   const result = await runAiStream({
     feature: "characterAudit",
     messages,
@@ -220,7 +222,8 @@ export async function auditCharacter({
     signal,
     provider,
     model,
-    meta: { ...meta, characterId },
+    meta: auditMeta,
+    task: task || { label: "Character audit", meta: auditMeta },
   });
 
   const parsed = parseJsonLoose(result.content) || {};

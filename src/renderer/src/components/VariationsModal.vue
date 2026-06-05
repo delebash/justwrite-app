@@ -14,14 +14,18 @@
 
 import { ref, onMounted, onBeforeUnmount, computed } from "vue";
 import { VARIATION_TEMPERATURES } from "../services/writerAI.js";
-import { useAiProgress } from "../composables/useAiProgress.js";
+import { useAiTasksStore } from "../stores/aiTasks.js";
 import Icon from "./Icon.vue";
 import AppModal from "./AppModal.vue";
 import JwButton from "@renderer/components/ui/JwButton.vue";
 
 const props = defineProps({
-  // (temperature: number, signal: AbortSignal, onDelta: (delta, content) => void)
+  // Runner contract:
+  // (temperature: number, signal: AbortSignal, onDelta: (delta, content) => void, taskMeta: object)
   //   => Promise<{ html, raw, usage }>
+  // The runner MUST forward `taskMeta` into its runAiStream `task.meta`
+  // so each column's call gets a unique identifier — that's how this
+  // modal locates each column's task in the global aiTasks store.
   runner: { type: Function, required: true },
   label:  { type: String, default: "Three variations" },
   eyebrow: { type: String, default: "Compare variations" },
@@ -30,39 +34,57 @@ const props = defineProps({
 });
 const emit = defineEmits(["close", "useVariation"]);
 
-// One progress + result slot per column.
+const aiTasks = useAiTasksStore();
+
+// One result slot per column. The `runId` is stamped into the column's
+// runAiStream task meta so we can find each column's task in the global
+// store; cleared after the run ends. `preview` mirrors task.preview so
+// the column body can render streamed text while the call is in flight
+// AND after it ends (live task gets archived out of runningTasks at
+// finish time).
 const cols = props.temperatures.map((t, i) => ({
   index: i,
   temperature: t,
-  progress: useAiProgress(),
+  runId: ref(null),
   result: ref(null),    // { html, raw } when done
   error: ref(""),
   preview: ref(""),
 }));
 
-const anyRunning = computed(() => cols.some((c) => c.progress.running.value));
+function colTask(col) {
+  return col.runId.value
+    ? aiTasks.runningTasks.find((t) => t.meta?.variationRunId === col.runId.value)
+    : null;
+}
+function colRunning(col) { return !!colTask(col); }
+
+const anyRunning = computed(() => cols.some((c) => colRunning(c)));
+
+function isAbort(e) { return e?.name === "AbortError" || /abort/i.test(e?.message || ""); }
 
 async function runColumn(col) {
   col.error.value = "";
   col.result.value = null;
   col.preview.value = "";
-  col.progress.start();
+  const runId = `var_${col.index}_${Math.random().toString(36).slice(2, 8)}`;
+  col.runId.value = runId;
   try {
     const out = await props.runner(
       col.temperature,
-      col.progress.signal,
+      // Cannot pass a signal up-front (the column's task doesn't exist
+      // yet — runAiStream creates it). Passing null lets the wrapper
+      // own the AbortController; we cancel by id via aiTasks.cancel().
+      null,
       (delta, content) => {
-        col.progress.onDelta(delta, content);
         col.preview.value = content || (col.preview.value + (delta || ""));
       },
+      { variationRunId: runId, variationIndex: col.index },
     );
     col.result.value = out || null;
-    col.progress.finish();
   } catch (e) {
-    if (!col.progress.cancelled.value) {
-      col.error.value = e?.message || String(e);
-    }
-    col.progress.finish();
+    if (!isAbort(e)) col.error.value = e?.message || String(e);
+  } finally {
+    col.runId.value = null;
   }
 }
 
@@ -70,22 +92,36 @@ function useColumn(col) {
   if (!col.result.value) return;
   // Abort any siblings still running so we don't burn tokens on
   // results we're discarding.
-  for (const c of cols) if (c !== col && c.progress.running.value) c.progress.cancel();
+  for (const c of cols) {
+    if (c !== col) {
+      const t = colTask(c);
+      if (t) aiTasks.cancel(t.id);
+    }
+  }
   emit("useVariation", col.result.value);
 }
 
 function regenerateColumn(col) {
-  if (col.progress.running.value) return;
+  if (colRunning(col)) return;
   runColumn(col);
 }
 
 function cancelAll() {
-  for (const c of cols) if (c.progress.running.value) c.progress.cancel();
+  for (const c of cols) {
+    const t = colTask(c);
+    if (t) aiTasks.cancel(t.id);
+  }
 }
 
 function close() {
   cancelAll();
   emit("close");
+}
+
+function elapsedSeconds(col) {
+  const t = colTask(col);
+  if (!t) return "0.0";
+  return Math.max(0, (aiTasks.now - t.startedAt) / 1000).toFixed(1);
 }
 
 onMounted(() => {
@@ -117,7 +153,7 @@ onBeforeUnmount(cancelAll);
         </header>
 
         <div class="va-col-body">
-          <div v-if="col.progress.running.value && !col.preview.value" class="va-loading">
+          <div v-if="colRunning(col) && !col.preview.value" class="va-loading">
             <span class="va-spinner" />
             <span>Streaming…</span>
           </div>
@@ -130,8 +166,8 @@ onBeforeUnmount(cancelAll);
         </div>
 
         <footer class="va-col-foot">
-          <span v-if="col.progress.running.value" class="va-progress-text">
-            {{ col.progress.elapsedSeconds }}s
+          <span v-if="colRunning(col)" class="va-progress-text">
+            {{ elapsedSeconds(col) }}s
           </span>
           <span v-else-if="col.error.value" class="va-progress-text">
             <JwButton intent="ghost" size="small" @click="regenerateColumn(col)">
@@ -156,7 +192,7 @@ onBeforeUnmount(cancelAll);
 
     <template #footer>
       <span v-if="anyRunning" class="t-muted" style="font-size:12px;font-style:italic">
-        {{ cols.filter(c => c.progress.running.value).length }} of 3 still streaming
+        {{ cols.filter(c => colRunning(c)).length }} of 3 still streaming
       </span>
       <span class="va-foot-spacer" />
       <JwButton intent="ghost" @click="close">

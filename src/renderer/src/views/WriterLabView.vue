@@ -6,10 +6,10 @@
 
 import { ref, computed } from "vue";
 import { useProjectStore } from "../stores/project.js";
-import { useAiProgress } from "../composables/useAiProgress.js";
+import { useAiTasksStore } from "../stores/aiTasks.js";
 import PaneHeader from "../components/PaneHeader.vue";
 import Icon from "../components/Icon.vue";
-import AiProgressBar from "../components/AiProgressBar.vue";
+import AiTaskStrip from "../components/AiTaskStrip.vue";
 import WriterLabBase from "../components/WriterLabBase.vue";
 
 import { PACING_LABELS, ENDING_LABELS } from "../services/analysis/critique.js";
@@ -17,7 +17,21 @@ import { dispatchRun, reconstructPrompt, textToHtml, fmtMs } from "../services/w
 import JwButton from "@renderer/components/ui/JwButton.vue";
 
 const project = useProjectStore();
-const progress = useAiProgress();
+const aiTasks = useAiTasksStore();
+
+// Each Run gets a fresh runId so we can find this view's task in the
+// global aiTasks store. The underlying service auto-registers a task
+// when it sees task.meta — we just inject the runId to disambiguate
+// from any other concurrent writerAI / critique / entities task.
+const currentRunId = ref(null);
+const myTask = computed(() => currentRunId.value
+  ? aiTasks.runningTasks.find((t) => t.meta?.writerLabRunId === currentRunId.value)
+  : null
+);
+// Terminal stats are snapshot here on finish so the diagnostic footer
+// (Elapsed / In / Out) still shows useful numbers after the call ends
+// — the live task gets archived out of `runningTasks` at finish time.
+const lastRun = ref({ elapsedMs: 0, tokensIn: 0, tokensOut: 0 });
 
 // ─── Base component state (v-model object) ────────────────────────────────
 const base = ref({
@@ -36,41 +50,62 @@ const isProseAction  = computed(() =>
 const result = ref(null);
 const error  = ref("");
 
+const running = computed(() => !!myTask.value);
 const canRun = computed(() =>
-  base.value.inputText.trim() && selectedAction.value && !progress.running.value,
+  base.value.inputText.trim() && selectedAction.value && !running.value,
 );
 
 function rawResponse() {
-  if (!result.value) return progress.preview.value || "";
+  if (!result.value) return myTask.value?.preview || "";
   if (result.value.raw) return result.value.raw;
-  return progress.preview.value || "";
+  return myTask.value?.preview || "";
 }
+
+function isAbort(e) { return e?.name === "AbortError" || /abort/i.test(e?.message || ""); }
 
 async function run() {
   if (!canRun.value) return;
   result.value = null;
   error.value  = "";
-  progress.start();
 
   const html = textToHtml(base.value.inputText);
+  const runId = `wl_${Math.random().toString(36).slice(2, 10)}`;
+  currentRunId.value = runId;
+  const startedAt = Date.now();
 
   try {
     const res = await dispatchRun(selectedAction.value, {
       html,
-      signal:  progress.signal,
-      onDelta: progress.onDelta,
       // provider + model intentionally omitted → service uses default LLM
       project,
+      task: {
+        label: `Writer Lab · ${selectedAction.value.label}`,
+        meta: { writerLab: true, writerLabRunId: runId, actionKey: selectedAction.value.key },
+      },
     });
     result.value = res;
-    progress.finish(res?.usage);
+    lastRun.value = {
+      elapsedMs: Date.now() - startedAt,
+      tokensIn:  res?.usage?.prompt_tokens     || 0,
+      tokensOut: res?.usage?.completion_tokens || 0,
+    };
   } catch (e) {
-    progress.finish();
-    if (!progress.cancelled.value) {
-      error.value = e?.message || String(e);
-    }
+    if (!isAbort(e)) error.value = e?.message || String(e);
   }
 }
+
+function cancelRun() {
+  if (myTask.value) aiTasks.cancel(myTask.value.id);
+}
+
+// Live elapsed while the task is running; frozen lastRun value after it
+// ends. Same shape for `tokensIn` / `tokensOut`.
+const elapsedDisplay = computed(() => {
+  if (myTask.value) return aiTasks.now - myTask.value.startedAt;
+  return lastRun.value.elapsedMs;
+});
+const tokensInDisplay  = computed(() => myTask.value?.tokensIn  ?? lastRun.value.tokensIn);
+const tokensOutDisplay = computed(() => myTask.value?.tokensOut ?? lastRun.value.tokensOut);
 
 // ─── Copy helpers ─────────────────────────────────────────────────────────
 function copyHtml() {
@@ -134,7 +169,7 @@ function notesByGroup(notes) {
         <Icon name="Sparkle" :size="13" />
         Run
       </JwButton>
-      <JwButton v-if="progress.running.value" intent="secondary" size="small" @click="progress.cancel()">
+      <JwButton v-if="running" intent="secondary" size="small" @click="cancelRun">
         Cancel
       </JwButton>
       <span v-if="!selectedAction" class="t-muted" style="font-size:12px">
@@ -143,13 +178,7 @@ function notesByGroup(notes) {
     </div>
 
     <!-- ── PROGRESS ───────────────────────────────────────────────────── -->
-    <AiProgressBar
-      v-if="progress.running.value"
-      :progress="progress"
-      :label="selectedAction ? `${selectedAction.label}…` : 'Working…'"
-      :show-preview="base.showPreview && isProseAction"
-      :can-toggle-preview="isProseAction"
-    />
+    <AiTaskStrip :task="myTask" />
 
     <!-- ── ERROR ──────────────────────────────────────────────────────── -->
     <div v-if="error" class="error-strip">
@@ -159,7 +188,7 @@ function notesByGroup(notes) {
 
     <!-- ── EMPTY STATE ────────────────────────────────────────────────── -->
     <div
-      v-if="!result && !rawResponse() && !progress.running.value && !error"
+      v-if="!result && !rawResponse() && !running && !error"
       class="empty-state"
     >
       Pick an operation above and press Run.
@@ -268,12 +297,12 @@ function notesByGroup(notes) {
 
       <!-- Footer: timing + tokens -->
       <div class="col-footer">
-        <span class="footer-stat"><b>Elapsed:</b> {{ fmtMs(progress.elapsed.value) }}</span>
-        <span class="footer-stat" v-if="progress.tokensIn.value">
-          <b>In:</b> {{ progress.tokensIn.value.toLocaleString() }}
+        <span class="footer-stat"><b>Elapsed:</b> {{ fmtMs(elapsedDisplay) }}</span>
+        <span class="footer-stat" v-if="tokensInDisplay">
+          <b>In:</b> {{ tokensInDisplay.toLocaleString() }}
         </span>
-        <span class="footer-stat" v-if="progress.tokensOut.value">
-          <b>Out:</b> {{ progress.tokensOut.value.toLocaleString() }}
+        <span class="footer-stat" v-if="tokensOutDisplay">
+          <b>Out:</b> {{ tokensOutDisplay.toLocaleString() }}
         </span>
       </div>
 

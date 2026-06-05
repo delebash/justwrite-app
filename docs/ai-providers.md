@@ -224,6 +224,39 @@ These are optional refinements. The defaults are reasonable for almost every cas
 
 ---
 
+## Watching AI calls
+
+> *"I asked for a critique five minutes ago. Is it still working, or did it freeze? I switched to another chapter to keep writing and now I can't tell what's going on."*
+
+Anything in JustWrite that calls an AI — critique, brainstorm, smart-assign, script analysis, plot-hole scan, "Ask the book", every writer-assist rewrite — registers as a **task** that you can monitor from anywhere in the app. The sparkle icon in the title bar is the doorway.
+
+**The header chip.** A small sparkle icon sits in the title bar. When no calls are in flight it's quiet. When something is running, it gets a pulsing dot and a number showing how many tasks are active. Click it to open the full **AI task panel** from any screen.
+
+**What the panel shows you, per task:**
+
+- The task's name (e.g. *"Chapter critique notes · Ch. 7"*) and feature.
+- **Status phase** — *Connecting* before the first token arrives, *Streaming* once the model starts producing output.
+- **Elapsed time** — live, in seconds.
+- **First-token latency** — how long the model took to respond at all. Useful for local models that sometimes need to load before the first token; a 30-second first-token delay on a small model usually means it's still warming up.
+- **Tokens** — exact count once the call completes, approximate during streaming.
+- **Tokens per second** — how fast the model is producing output.
+- **A freshness indicator** — the single best signal for *"is this stuck, or still working?"* It walks through three states based on when the last token arrived:
+  - **Live** (green) — last token in the past three seconds.
+  - **Stalling** (gold, blinking) — no tokens in 3–10 seconds.
+  - **Stuck** (red, blinking) — no tokens in 10+ seconds. Almost always means cancel and try again.
+- **A preview toggle** — expand to see the assistant's streaming text in real time as it's produced.
+- **Cancel** — abort the call immediately. Cleaner than closing a modal mid-stream.
+
+**Tasks survive navigation.** This is the headline. Start a critique on Chapter 7, navigate over to Worldbuilding to check a fact, hop into the Plot Board — the call keeps running. When it finishes, the result lands wherever it was supposed to (the critique on the chapter, the smart cast on Studio characters, etc.) and a toast tells you it's done with a **View** action that opens the panel to the just-finished entry. Closing a modal that was waiting for an AI call no longer cancels the call — the call decouples from the modal's lifecycle.
+
+**Recent history.** The bottom of the panel lists the last 30 completed (or cancelled, or failed) tasks with duration, tokens used, and outcome. Useful for spot-checking which model produced which result, or for noticing that your local Ollama keeps timing out on the same feature.
+
+**Dismissing the panel.** Esc, the **Close** button in the panel header, clicking the chip again, or clicking anywhere outside the panel.
+
+**Why this matters for a writer.** Long AI calls — especially on local models, especially on the bigger analysis features — used to be opaque. You'd click Re-analyze, wait, and have no idea whether to keep waiting or give up. The freshness indicator answers that question directly: a green "live" dot means trust the wait; a red "stuck" dot means cancel and try a different model. And because the calls survive navigation, you're not penalised for switching screens mid-call to check something else.
+
+---
+
 ## Troubleshooting
 
 **Test returns Offline.**
@@ -248,6 +281,13 @@ These are optional refinements. The defaults are reasonable for almost every cas
 - Check **Settings → AI Usage** for the breakdown by feature.
 - The biggest spenders are usually: TTS (per character of text), critique on long chapters, and "Ask the book" if auto-rebuild RAG is on.
 - Pin expensive features to cheaper models or local ones.
+
+**An AI call seems hung — should I wait or give up?**
+
+- Open the **AI task panel** from the sparkle chip in the title bar (see *Watching AI calls* above).
+- A **live** (green) freshness dot means tokens are still arriving; trust the wait, especially for big analysis features.
+- A **stalling** (gold) dot means no tokens in a few seconds; usually still recoverable.
+- A **stuck** (red) dot means nothing has arrived in 10+ seconds. Hit Cancel and try a different model.
 
 ---
 

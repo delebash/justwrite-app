@@ -1,16 +1,19 @@
 // High-level LLM operations used by the rest of the app.
 // Wraps OpenAICompatClient with task-specific prompts.
 //
-// Tier integration: structured-output paths (detectSpeakers, smartCast)
-// accept an optional `tier` object resolved by the caller via
-// `ai.resolveTier(modelId)`. Callers pass the resolved tier so this layer
-// stays Pinia-free. Only `tier.think` is consumed here because production
-// prompts are paragraph-granular and don't match the inline-tag tier
-// prompts. When inline-tag eventually gets promoted to production, the
-// tier's prompt body becomes load-bearing too.
+// detectSpeakers / smartCast route through `runAiStream` so they show up
+// in the global AI status panel (header chip → slide-in) with elapsed,
+// token count, tokens/s, and a cancel button — and so the call survives
+// component unmount. The legacy `provider`/`model`/`tier` args are still
+// accepted for ad-hoc callers, but Studio (the only production caller)
+// now relies on the wrapper's provider-pin resolution.
+//
+// `chat()` (freeform) still uses the non-streaming OpenAICompatClient
+// directly for callers that don't need the panel surface.
 
 import { OpenAICompatClient } from "./openai-compat.js";
 import { friendlyAiError } from "./aiErrors.js";
+import { runAiStream } from "./aiStream.js";
 
 // ─── Speaker detection ──────────────────────────────────────────────────
 //
@@ -30,9 +33,7 @@ Use "narrator" for narration. Use the character id (e.g. "c1") for dialogue.
 Use "interior" for unspoken thoughts of a character. Be conservative — if
 you are uncertain, set confidence below 0.85.`;
 
-export async function detectSpeakers({ provider, paragraphs, characters, model, signal, tier }) {
-  const client = new OpenAICompatClient(provider);
-
+export async function detectSpeakers({ paragraphs, characters, task, meta } = {}) {
   const characterList = characters
     .map((c) => `- id=${c.id}, name="${c.name}", role="${c.role}"`)
     .join("\n");
@@ -47,28 +48,21 @@ export async function detectSpeakers({ provider, paragraphs, characters, model, 
     "Return only the JSON array, no commentary.",
   ].join("\n");
 
-  let reply;
-  try {
-    reply = await client.chat({
-      model,
-      signal,
-      messages: [
-        { role: "system", content: SPEAKER_SYSTEM },
-        { role: "user", content: userMsg },
-      ],
-      // think driven by the resolved tier — Reasoned (hybrid models like
-      // Qwen3:14B+) gets true and benefits from implicit chain-of-thought;
-      // Guided / Direct get false. No-op on non-Ollama providers (unknown
-      // body param is ignored per OpenAI spec). Fallback to false when no
-      // tier is supplied keeps backwards-compat with any caller that
-      // hasn't been updated.
-      extra: { think: tier?.think === true },
-    });
-  } catch (err) {
-    throw friendlyAiError(err, provider);
-  }
+  // think disabled — JSON-parseable output; reasoning trails would break
+  // the array parse. Spread via `extra` so the OpenAI-compat code path
+  // ignores it as an unknown body field and Ollama honors it on /api/chat.
+  const { content } = await runAiStream({
+    feature: "speakerAnalysis",
+    messages: [
+      { role: "system", content: SPEAKER_SYSTEM },
+      { role: "user", content: userMsg },
+    ],
+    extra: { think: false },
+    meta,
+    task: task || { label: "Script analysis", meta },
+  });
 
-  return parseJsonArray(reply, paragraphs);
+  return parseJsonArray(content, paragraphs);
 }
 
 // ─── Smart cast assignment ──────────────────────────────────────────────
@@ -82,9 +76,7 @@ with descriptors, pick the best voice for each character. Return a JSON
 object mapping characterId -> voiceId. Match on age, gender, tone,
 and accent. Do not invent ids. If no voice fits, omit that character.`;
 
-export async function smartCast({ provider, characters, voices, model, signal, tier }) {
-  const client = new OpenAICompatClient(provider);
-
+export async function smartCast({ characters, voices, task, meta } = {}) {
   const charList = characters
     .map((c) => `- id=${c.id}, name="${c.name}", role="${c.role}", description="${c.oneLiner}"`)
     .join("\n");
@@ -92,23 +84,18 @@ export async function smartCast({ provider, characters, voices, model, signal, t
     .map((v) => `- id="${v.id}", name="${v.name}", gender=${v.gender || "?"}, age=${v.age || "?"}, accent=${v.accent || "?"}, tone="${v.tone || ""}"`)
     .join("\n");
 
-  let reply;
-  try {
-    reply = await client.chat({
-      model,
-      signal,
-      messages: [
-        { role: "system", content: CAST_SYSTEM },
-        { role: "user", content: `Characters:\n${charList}\n\nAvailable voices:\n${voiceList}\n\nReturn only the JSON object.` },
-      ],
-      // think driven by tier (model-level capability). See detectSpeakers.
-      extra: { think: tier?.think === true },
-    });
-  } catch (err) {
-    throw friendlyAiError(err, provider);
-  }
+  const { content } = await runAiStream({
+    feature: "smartCast",
+    messages: [
+      { role: "system", content: CAST_SYSTEM },
+      { role: "user", content: `Characters:\n${charList}\n\nAvailable voices:\n${voiceList}\n\nReturn only the JSON object.` },
+    ],
+    extra: { think: false },
+    meta,
+    task: task || { label: "Smart-assign cast", meta },
+  });
 
-  return parseJsonObject(reply);
+  return parseJsonObject(content);
 }
 
 // ─── Generic chat ──────────────────────────────────────────────────────

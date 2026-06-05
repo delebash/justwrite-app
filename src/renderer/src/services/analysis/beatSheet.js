@@ -191,6 +191,8 @@ export async function mapToBeatSheet({
   onDelta,
   provider,
   model,
+  task,
+  meta,
 } = {}) {
   if (!project) throw new Error("mapToBeatSheet: project store is required.");
   const template = BEAT_TEMPLATES[templateKey];
@@ -226,6 +228,7 @@ export async function mapToBeatSheet({
     { role: "user", content: userBody },
   ];
 
+  const beatMeta = { ...(meta || {}), templateKey, totalChapters: chapters.length };
   const result = await runAiStream({
     feature: "beatSheet",
     messages,
@@ -235,7 +238,8 @@ export async function mapToBeatSheet({
     onDelta,
     provider,
     model,
-    meta: { templateKey, totalChapters: chapters.length },
+    meta: beatMeta,
+    task: task || { label: "Beat sheet", meta: beatMeta },
   });
 
   const parsed = parseJsonLoose(result.content) || {};

@@ -19,9 +19,10 @@ import { ref, computed, watch } from "vue";
 import { useRouter } from "vue-router";
 import { useProjectStore } from "../stores/project.js";
 import { useAiStore } from "../stores/ai.js";
-import { useAiProgress } from "../composables/useAiProgress.js";
+import { useAiTasksStore } from "../stores/aiTasks.js";
 import { analyseRelationship, pairKey, TRAJECTORY_LABELS } from "../services/analysis/relationshipArc.js";
 import Icon from "./Icon.vue";
+import AiTaskStrip from "./AiTaskStrip.vue";
 import AppModal from "./AppModal.vue";
 import JwButton from "@renderer/components/ui/JwButton.vue";
 import JwSelect from "@renderer/components/ui/JwSelect.vue";
@@ -31,8 +32,13 @@ const emit = defineEmits(["close"]);
 const project = useProjectStore();
 const ai = useAiStore();
 const router = useRouter();
-const progress = useAiProgress();
+const aiTasks = useAiTasksStore();
 const error = ref("");
+
+const myTask = computed(() => aiTasks.runningTasks.find((t) => t.feature === "relationshipArc"));
+const running = computed(() => !!myTask.value);
+
+function isAbort(e) { return e?.name === "AbortError" || /abort/i.test(e?.message || ""); }
 
 const aId = ref(null);
 const bId = ref(null);
@@ -65,25 +71,21 @@ async function run() {
     error.value = "Pick two different characters.";
     return;
   }
-  progress.start();
   try {
     const result = await analyseRelationship({
       project,
       characterAId: aId.value,
       characterBId: bId.value,
-      signal: progress.signal,
-      onDelta: progress.onDelta,
+      task: { label: "Relationship arc", meta: {} },
     });
     project.setRelationshipArc(currentKey.value, result);
-    progress.finish();
   } catch (e) {
-    if (!progress.cancelled.value) {
+    if (!isAbort(e)) {
       const msg = String(e?.message || e || "");
       error.value = /provider|api key|configure/i.test(msg)
         ? "Configure an AI provider in Settings → AI to track the relationship."
         : msg || "Couldn't analyse the relationship.";
     }
-    progress.finish();
   }
 }
 function regenerate() {
@@ -168,7 +170,7 @@ const TRAJECTORY_COLOURS = {
     eyebrow="Relationship arc"
     title="How does this relationship move?"
     wide
-    :closable="!progress.running.value"
+    :closable="!running"
     @close="emit('close')"
   >
     <p class="ra-blurb">
@@ -197,10 +199,7 @@ const TRAJECTORY_COLOURS = {
       <Icon name="Alert" :size="13" /> {{ error }}
     </div>
 
-    <div v-if="progress.running.value" class="ra-loading">
-      <span class="ra-spinner" />
-      <span>Reading their shared scenes… ({{ progress.elapsedSeconds }}s)</span>
-    </div>
+    <AiTaskStrip v-if="running" :task="myTask" />
 
     <template v-else-if="arc">
       <div class="ra-head">
@@ -305,14 +304,14 @@ const TRAJECTORY_COLOURS = {
     </template>
 
     <template #footer>
-      <JwButton v-if="arc && !progress.running.value" intent="ghost" @click="clearCurrent">
+      <JwButton v-if="arc && !running" intent="ghost" @click="clearCurrent">
         Clear this arc
       </JwButton>
       <span class="ra-foot-spacer" />
-      <JwButton v-if="arc && !progress.running.value" intent="ghost" @click="regenerate">
+      <JwButton v-if="arc && !running" intent="ghost" @click="regenerate">
         <Icon name="Refresh" :size="12" /> Regenerate
       </JwButton>
-      <JwButton v-if="!arc && !progress.running.value" intent="primary" @click="run">
+      <JwButton v-if="!arc && !running" intent="primary" @click="run">
         <Icon name="Sparkle" :size="12" /> Analyse
       </JwButton>
       <JwButton intent="primary" v-if="arc" @click="emit('close')">Done</JwButton>

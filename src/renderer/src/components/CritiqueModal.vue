@@ -14,10 +14,10 @@
 import { ref, computed } from "vue";
 import { useProjectStore } from "../stores/project.js";
 import { useUiStore } from "../stores/ui.js";
+import { useAiTasksStore } from "../stores/aiTasks.js";
 import { runCritique, runStructuralAnalysis, PACING_LABELS, ENDING_LABELS } from "../services/analysis/critique.js";
-import { useAiProgress } from "../composables/useAiProgress.js";
 import Icon from "./Icon.vue";
-import AiProgressBar from "./AiProgressBar.vue";
+import AiTaskStrip from "./AiTaskStrip.vue";
 import AppModal from "./AppModal.vue";
 import JwButton from "@renderer/components/ui/JwButton.vue";
 
@@ -28,21 +28,27 @@ const emit = defineEmits(["close"]);
 
 const project = useProjectStore();
 const ui = useUiStore();
+const aiTasks = useAiTasksStore();
 
 const ch = computed(() => project.chapterById(props.chapterId));
 const critique = computed(() => ch.value?.critique || null);
 const structure = computed(() => critique.value?.structure || null);
 const notes = computed(() => critique.value?.notes || []);
 
-const runningNotes = ref(false);
-const runningStruct = ref(false);
 const err = ref("");
 
-// One progress tracker per concurrent call site so notes and structure
-// can in principle run at the same time — each has its own elapsed
-// time, token count, and cancel.
-const notesProgress  = useAiProgress();
-const structProgress = useAiProgress();
+// Tasks for the two concurrent critique calls. Looked up from the global
+// aiTasks store by feature + chapter id + meta.kind. When the call
+// finishes, the task leaves runningTasks and these computeds turn null,
+// which hides the inline strips automatically.
+const notesTask  = computed(() => aiTasks.runningTasks.find(
+  (t) => t.feature === "critique" && t.meta?.chapterId === props.chapterId && t.meta?.kind === "notes"
+));
+const structTask = computed(() => aiTasks.runningTasks.find(
+  (t) => t.feature === "critique" && t.meta?.chapterId === props.chapterId && t.meta?.kind === "structure"
+));
+const runningNotes  = computed(() => !!notesTask.value);
+const runningStruct = computed(() => !!structTask.value);
 
 const ago = (ts) => {
   if (!ts) return "";
@@ -64,20 +70,27 @@ const grouped = computed(() => {
   return byKey;
 });
 
+// User clicked Cancel → the task store aborted the controller → the
+// chat-stream throws an AbortError. friendlyAiError passes aborts
+// through unchanged, so detecting one is a name/message check. Don't
+// surface "aborted" as an inline error — the cancellation is already
+// recorded in the AI task panel.
+function isAbort(e) {
+  return e?.name === "AbortError" || /abort/i.test(e?.message || "");
+}
+
 async function runNotes() {
-  if (!ch.value) return;
+  if (!ch.value || runningNotes.value) return;
   err.value = "";
-  runningNotes.value = true;
-  notesProgress.start();
   try {
     const html = project.chapterBody[ch.value.id] || "";
+    const chapterId = ch.value.id;
     const result = await runCritique({
       html,
       chapterTitle: ch.value.title,
       chapterNum: ch.value.num,
-      meta: { chapterId: ch.value.id, kind: "notes" },
-      signal: notesProgress.signal,
-      onDelta: notesProgress.onDelta,
+      meta: { chapterId, kind: "notes" },
+      task: { label: `Chapter critique notes · Ch. ${ch.value.num ?? "?"}`, meta: { chapterId, kind: "notes" } },
     });
     // A non-empty completion that yielded zero notes is a parse miss —
     // surface it instead of falling back to the empty-state placeholder
@@ -88,48 +101,38 @@ async function runNotes() {
       err.value = "Couldn't parse notes from the model's reply. Try re-running, or switch the critique model in Settings.";
     }
     // Merge with existing structure if present.
-    project.setChapterCritique(ch.value.id, {
+    project.setChapterCritique(chapterId, {
       ...critique.value,
       generatedAt: result.generatedAt,
       model: result.model,
       notes: result.notes,
     });
-    notesProgress.finish();
   } catch (e) {
-    if (!notesProgress.cancelled.value) err.value = e?.message || String(e);
-    notesProgress.finish();
-  } finally {
-    runningNotes.value = false;
+    if (!isAbort(e)) err.value = e?.message || String(e);
   }
 }
 
 async function runStruct() {
-  if (!ch.value) return;
+  if (!ch.value || runningStruct.value) return;
   err.value = "";
-  runningStruct.value = true;
-  structProgress.start();
   try {
     const html = project.chapterBody[ch.value.id] || "";
+    const chapterId = ch.value.id;
     const result = await runStructuralAnalysis({
       html,
       chapterTitle: ch.value.title,
       chapterNum: ch.value.num,
-      meta: { chapterId: ch.value.id, kind: "structure" },
-      signal: structProgress.signal,
-      onDelta: structProgress.onDelta,
+      meta: { chapterId, kind: "structure" },
+      task: { label: `Chapter structure · Ch. ${ch.value.num ?? "?"}`, meta: { chapterId, kind: "structure" } },
     });
     const next = { ...(critique.value || {}), structure: result };
     // Stamp generatedAt at the topmost level too so the panel header has
     // something to show even when only structure has been generated.
     if (!next.generatedAt) next.generatedAt = result.generatedAt;
     if (!next.model) next.model = result.model;
-    project.setChapterCritique(ch.value.id, next);
-    structProgress.finish();
+    project.setChapterCritique(chapterId, next);
   } catch (e) {
-    if (!structProgress.cancelled.value) err.value = e?.message || String(e);
-    structProgress.finish();
-  } finally {
-    runningStruct.value = false;
+    if (!isAbort(e)) err.value = e?.message || String(e);
   }
 }
 
@@ -149,7 +152,7 @@ const SEVERITY_META = {
   <AppModal
     eyebrow="Chapter critique"
     :title="ch ? `Ch. ${ch.num} · ${ch.title}` : ''"
-    :closable="!notesProgress.running.value && !structProgress.running.value"
+    :closable="!runningNotes && !runningStruct"
     @close="emit('close')"
   >
     <template #header>
@@ -187,8 +190,8 @@ const SEVERITY_META = {
         pacing (rushed vs. measured), and how the ending lands (cliffhanger, resolved, transition).
       </p>
 
-      <AiProgressBar :progress="structProgress" label="Analyzing structure…" />
-      <div v-if="structure && !structProgress.running.value" class="struct-grid">
+      <AiTaskStrip :task="structTask" />
+      <div v-if="structure && !runningStruct" class="struct-grid">
         <div class="struct-metric">
           <div class="sm-num">{{ structure.tension }}<small>/10</small></div>
           <div class="sm-lbl">Tension</div>
@@ -209,7 +212,7 @@ const SEVERITY_META = {
         </div>
       </div>
       <p v-if="structure?.summary" class="struct-summary">{{ structure.summary }}</p>
-      <p v-else-if="!structure && !structProgress.running.value" class="ck-empty">
+      <p v-else-if="!structure && !runningStruct" class="ck-empty">
         Run a structural pass to see tension, hook, pacing, and ending classification.
       </p>
     </section>
@@ -229,8 +232,8 @@ const SEVERITY_META = {
         (concrete revisions), and <strong>observations</strong> (worth noting, no action).
       </p>
 
-      <AiProgressBar :progress="notesProgress" label="Drafting notes…" />
-      <div v-if="notes.length && !notesProgress.running.value" class="notes-list">
+      <AiTaskStrip :task="notesTask" />
+      <div v-if="notes.length && !runningNotes" class="notes-list">
         <div v-for="sev in ['flag', 'suggest', 'info']" :key="sev"
           v-show="grouped[sev].length"
           class="notes-group">
@@ -245,7 +248,7 @@ const SEVERITY_META = {
           </div>
         </div>
       </div>
-      <p v-else-if="!notesProgress.running.value" class="ck-empty">
+      <p v-else-if="!runningNotes" class="ck-empty">
         Run notes to get a list of flags, suggestions, and observations.
       </p>
     </section>

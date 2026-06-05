@@ -6,15 +6,16 @@
 // closes the modal and runs runGuidedContinue on the editor with that
 // move's instruction prepended. Regenerate asks for a fresh five.
 
-import { ref, onMounted } from "vue";
+import { ref, computed, onMounted } from "vue";
 import { useAiStore } from "../stores/ai.js";
-import { useAiProgress } from "../composables/useAiProgress.js";
+import { useAiTasksStore } from "../stores/aiTasks.js";
 import {
   generateUnstuckMoves,
   MOVE_KIND_BLURBS,
   MOVE_KIND_LABELS,
 } from "../services/stuckDiagnostic.js";
 import Icon from "./Icon.vue";
+import AiTaskStrip from "./AiTaskStrip.vue";
 import AppModal from "./AppModal.vue";
 import JwButton from "@renderer/components/ui/JwButton.vue";
 
@@ -28,9 +29,14 @@ const props = defineProps({
 const emit = defineEmits(["close", "useMove"]);
 
 const ai = useAiStore();
-const progress = useAiProgress();
+const aiTasks = useAiTasksStore();
 const moves = ref([]);
 const error = ref("");
+
+const myTask = computed(() => aiTasks.runningTasks.find((t) => t.feature === "unstuck"));
+const running = computed(() => !!myTask.value);
+
+function isAbort(e) { return e?.name === "AbortError" || /abort/i.test(e?.message || ""); }
 
 async function run() {
   error.value = "";
@@ -39,28 +45,24 @@ async function run() {
     return;
   }
   moves.value = [];
-  progress.start();
   try {
     const result = await generateUnstuckMoves({
       contextText: props.contextText,
       chapterTitle: props.chapterTitle,
       chapterNum: props.chapterNum,
-      signal: progress.signal,
-      onDelta: progress.onDelta,
+      task: { label: "Unstuck moves", meta: {} },
     });
     moves.value = result.moves;
     if (!moves.value.length) {
       error.value = "The model didn't return any usable moves. Try regenerating.";
     }
-    progress.finish();
   } catch (e) {
-    if (!progress.cancelled.value) {
+    if (!isAbort(e)) {
       const msg = String(e?.message || e || "");
       error.value = /provider|api key|configure/i.test(msg)
         ? "Configure an AI provider in Settings → AI to generate Unstuck moves."
         : msg || "Couldn't generate moves.";
     }
-    progress.finish();
   }
 }
 
@@ -75,7 +77,7 @@ onMounted(run);
   <AppModal
     eyebrow="Stuck?"
     title="Five ways to unblock this scene"
-    :closable="!progress.running.value"
+    :closable="!running"
     @close="emit('close')"
   >
     <p class="su-blurb">
@@ -91,10 +93,7 @@ onMounted(run);
       </JwButton>
     </div>
 
-    <div v-else-if="progress.running.value && !moves.length" class="su-loading">
-      <span class="su-spinner" />
-      <span>Reading the scene and brainstorming…</span>
-    </div>
+    <AiTaskStrip v-if="running" :task="myTask" />
 
     <ul v-else-if="moves.length" class="su-moves">
       <li v-for="m in moves" :key="m.id" class="su-move" :data-kind="m.kind">
@@ -114,7 +113,7 @@ onMounted(run);
 
     <template #footer>
       <JwButton intent="ghost"
-                :disabled="progress.running.value"
+                :disabled="running"
                 @click="run">
         <Icon name="Refresh" :size="12" /> Regenerate
       </JwButton>

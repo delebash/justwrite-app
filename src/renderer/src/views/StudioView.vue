@@ -3,6 +3,7 @@ import { ref, computed, watch, onMounted, nextTick } from "vue";
 import { useProjectStore } from "../stores/project.js";
 import { useStudioStore } from "../stores/studio.js";
 import { useAiStore } from "../stores/ai.js";
+import { useAiTasksStore } from "../stores/aiTasks.js";
 import PaneHeader from "../components/PaneHeader.vue";
 import Icon from "../components/Icon.vue";
 import Combobox from "../components/Combobox.vue";
@@ -15,6 +16,7 @@ import JwTag from "@renderer/components/ui/JwTag.vue";
 import JwButton from "@renderer/components/ui/JwButton.vue";
 import JwSelect from "@renderer/components/ui/JwSelect.vue";
 import JwTable from "@renderer/components/ui/JwTable.vue";
+import AiTaskStrip from "../components/AiTaskStrip.vue";
 
 const props = defineProps({ tab: { type: String, default: "cast" } });
 
@@ -27,6 +29,7 @@ const STRUCTURAL_MARKER_RE = /^(scene|chapter|part|book|act|prologue|epilogue|in
 const project = useProjectStore();
 const studio = useStudioStore();
 const ai = useAiStore();
+const aiTasks = useAiTasksStore();
 
 const activeTab = ref(props.tab || "cast");
 watch(() => props.tab, (v) => { if (v) activeTab.value = v; });
@@ -63,8 +66,18 @@ const selectedChar = ref(null);
 const loadingVoices = ref(false);
 const previewingVoice = ref(null);
 const audio = ref(null);
-const smartLoading = ref(false);
 const error = ref(null);
+
+// Smart-assign loading state derives from the global task store rather
+// than a local ref. That way the button reflects actual call state after
+// navigating away and coming back, and there's no stale-loading bug
+// where a finished call leaves the button stuck in "Casting…".
+// (The Script tab's analyze-loading lookup lives further down next to
+// `scriptChapter` since it's keyed by chapter id.)
+const smartCastTask = computed(() =>
+  aiTasks.runningTasks.find((t) => t.feature === "smartCast")
+);
+const smartLoading = computed(() => !!smartCastTask.value);
 
 const engineVoices = computed(() => studio.voices.filter((v) => v.providerId === provider.value?.id));
 
@@ -115,20 +128,25 @@ async function confirmClearCast() {
 
 async function runSmartCast() {
   if (!llmProvider.value) { error.value = "No LLM provider configured."; return; }
-  smartLoading.value = true; error.value = null;
+  if (smartLoading.value) return;
+  error.value = null;
   try {
     const map = await smartCast({
-      provider: llmProvider.value,
       characters: project.characters,
       voices: engineVoices.value,
-      tier: ai.resolveTier(llmProvider.value.chatModel),
+      task: { label: "Smart-assign cast" },
     });
     for (const [charId, voiceId] of Object.entries(map)) {
       if (project.characterById(charId) && engineVoices.value.find((v) => v.id === voiceId)) {
         studio.assignVoice(charId, voiceId);
       }
     }
-  } catch (e) { error.value = e.message; } finally { smartLoading.value = false; }
+  } catch (e) {
+    // The task store already showed a "failed: …" toast and cleared
+    // the running state. We only surface the message inline so the
+    // banner under the buttons stays useful.
+    error.value = e.message;
+  }
 }
 
 function isAssignedToSelected(voiceId) {
@@ -175,15 +193,33 @@ const voiceColumns = [
 
 // ── Script analysis ───────────────────────────────────────────────────
 const scriptChapter = ref("ch7");
-const analyzeLoading = ref(false);
+
+// Speaker analysis runs are tracked in the global task store, keyed by
+// chapter id in the task's meta. The button derives its loading state
+// from "is there a running task for THIS chapter" — that fixes the
+// "stuck on Analyzing…" bug (the local ref never reset on the success
+// path of the previous implementation) and lets the user navigate away
+// mid-call without losing the in-flight state.
+const analyzeTask = computed(() =>
+  aiTasks.runningTasks.find(
+    (t) => t.feature === "speakerAnalysis" && t.meta?.chapterId === scriptChapter.value
+  )
+);
+const analyzeLoading = computed(() => !!analyzeTask.value);
 
 async function reanalyze() {
   if (!llmProvider.value) { error.value = "No LLM provider configured."; return; }
-  analyzeLoading.value = true; error.value = null;
+  if (analyzeLoading.value) return;
+  error.value = null;
+  // Snapshot the chapter id at call time. If the user changes the
+  // dropdown mid-call, results still land in the chapter the analysis
+  // was started on (and the running task's meta.chapterId stays
+  // consistent for derive-loading lookup).
+  const chapterId = scriptChapter.value;
   // Wipe the existing script first so the UI shows a clean state during
   // the LLM call rather than the previous run's lines lingering until
   // the new result arrives.
-  studio.clearScript(scriptChapter.value);
+  studio.clearScript(chapterId);
   try {
     // Pull paragraph text from the chapter body. Stripped before extraction:
     //   1. Headings (h1/h2/h3) and scene titles — structural, not spoken.
@@ -192,7 +228,7 @@ async function reanalyze() {
     //      "Scene 1", "Chapter II", "Prologue" — same intent.
     // Either way: not in the script, no LLM tokens spent classifying them,
     // no audio for them. Matches what read mode shows the reader.
-    const html = project.chapterBody[scriptChapter.value] || "";
+    const html = project.chapterBody[chapterId] || "";
     const div = document.createElement("div");
     div.innerHTML = html;
     div.querySelectorAll("h2.scene-title, p.scene-mark").forEach((el) => { el.remove(); });
@@ -204,18 +240,18 @@ async function reanalyze() {
       .map((el) => el.textContent.trim())
       .filter((t) => t && !STRUCTURAL_MARKER_RE.test(t));
 
+    const chapter = project.chapterById(chapterId);
+    const label = `Script analysis · Ch. ${chapter?.num ?? "?"}`;
     const annotated = await detectSpeakers({
-      provider: llmProvider.value,
       paragraphs,
       characters: project.characters,
-      tier: ai.resolveTier(llmProvider.value.chatModel),
+      task: { label, meta: { chapterId } },
     });
 
     // Prepend a narrator-spoken line built from the chapter's metadata
     // (num + title) so the audiobook opens with "Chapter Seven.
     // Brackish Cove, at low tide." before the prose starts. Both parts
     // are optional — skip whichever is missing.
-    const chapter = project.chapterById(scriptChapter.value);
     const introParts = [];
     if (chapter?.num != null) introParts.push(`Chapter ${chapter.num}.`);
     if (chapter?.title) introParts.push(`${chapter.title}.`);
@@ -229,8 +265,10 @@ async function reanalyze() {
       });
     }
     annotated.forEach((a, i) => { script.push({ ...a, text: paragraphs[i] }); });
-    studio.setScript(scriptChapter.value, script);
-  } catch (e) { error.value = e.message; } finally { analyzeLoading.value = false; }
+    studio.setScript(chapterId, script);
+  } catch (e) {
+    error.value = e.message;
+  }
 }
 
 // ── Render ────────────────────────────────────────────────────────────
@@ -362,6 +400,8 @@ function downloadChapter(chapterId) {
         assignment manually by selecting a character card and clicking a voice in the library.
       </p>
 
+      <AiTaskStrip :task="smartCastTask" />
+
       <button class="cast-card" :class="{ sel: selectedChar === 'narrator', unassigned: !castedVoice('narrator') }" @click="selectedChar = 'narrator'">
         <div class="cast-portrait"><div class="narrator-mark"><Icon name="Headphones" :size="28" /></div></div>
         <div style="flex:1;min-width:0">
@@ -489,6 +529,7 @@ function downloadChapter(chapterId) {
         classifies it as narration, dialogue, or interior thought. The resulting script drives
         the Render tab's text-to-speech pipeline.
       </p>
+      <AiTaskStrip :task="analyzeTask" />
       <div v-if="error" class="banner danger" style="margin-bottom:14px;padding:10px 14px;border-radius:8px">{{ error }}</div>
       <div v-for="(l, i) in studio.scriptFor(scriptChapter) || []" :key="i"
         style="display:grid;grid-template-columns:140px 1fr auto;gap:14px;padding:12px 0;border-bottom:1px solid var(--border-soft);align-items:start">

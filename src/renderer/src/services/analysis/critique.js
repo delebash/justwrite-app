@@ -87,7 +87,7 @@ Be specific — quote a short phrase from the text when calling something out.
 Be honest — if the chapter is genuinely strong, say so briefly in 2-3 "info" notes rather than inventing problems.
 Return ONLY the JSON object, no preface, no markdown fences.`;
 
-export async function runCritique({ html, chapterTitle = "", chapterNum = null, meta = {}, signal, onDelta, provider, model } = {}) {
+export async function runCritique({ html, chapterTitle = "", chapterNum = null, meta = {}, signal, onDelta, provider, model, task } = {}) {
   const text = htmlToText(html).trim();
   if (!text) throw new Error("This chapter has no prose to critique yet.");
   const header = chapterTitle
@@ -103,6 +103,7 @@ export async function runCritique({ html, chapterTitle = "", chapterNum = null, 
     messages, temperature: 0.4,
     extra: { think: false },
     signal, onDelta, provider, model, meta,
+    task: task || { label: "Chapter critique notes", meta },
   });
 
   const parsed = parseJsonLoose(result.content);
@@ -153,7 +154,7 @@ Return ONLY the JSON object, no preface, no markdown fences.`;
 const PACING_OPTIONS = ["slow", "balanced", "fast"];
 const ENDING_OPTIONS = ["cliffhanger", "soft", "closed", "dead-end"];
 
-export async function runStructuralAnalysis({ html, chapterTitle = "", chapterNum = null, meta = {}, signal, onDelta, provider, model } = {}) {
+export async function runStructuralAnalysis({ html, chapterTitle = "", chapterNum = null, meta = {}, signal, onDelta, provider, model, task } = {}) {
   const text = htmlToText(html).trim();
   if (!text) throw new Error("This chapter has no prose to analyze yet.");
   const header = chapterTitle
@@ -170,6 +171,7 @@ export async function runStructuralAnalysis({ html, chapterTitle = "", chapterNu
     feature: "critique", usageFeature: "structural-analysis",
     messages, temperature: 0.2, extra: { think: false },
     signal, onDelta, provider, model, meta,
+    task: task || { label: "Chapter structure", meta },
   });
 
   const parsed = parseJsonLoose(result.content) || {};

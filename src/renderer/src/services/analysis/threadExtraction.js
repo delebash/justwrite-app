@@ -117,6 +117,7 @@ export async function extractThreads({
   provider,
   model,
   meta = {},
+  task,
 } = {}) {
   const text = htmlToText(html).trim();
   if (!text) {
@@ -142,6 +143,7 @@ export async function extractThreads({
     provider,
     model,
     meta,
+    task: task || { label: "Thread extraction", meta },
   });
 
   const parsed = parseJsonLoose(result.content) || {};

@@ -79,7 +79,7 @@ export const ACTION_GROUPS = [
 //
 // Returns the service's return value as-is so callers can branch on shape.
 
-export async function dispatchRun(action, { html, signal, onDelta, provider, model, project } = {}) {
+export async function dispatchRun(action, { html, signal, onDelta, provider, model, project, task } = {}) {
   if (action.kind === "writerAction") {
     const fn = {
       rewrite:  writerAI.rewrite,
@@ -87,19 +87,19 @@ export async function dispatchRun(action, { html, signal, onDelta, provider, mod
       tighten:  writerAI.tighten,
       continue: writerAI.continueFrom,
     }[action.key];
-    return fn({ html, signal, onDelta, provider, model });
+    return fn({ html, signal, onDelta, provider, model, task });
   }
 
   if (action.kind === "rule") {
-    return writerAI.applyRule(action.key, { html, signal, onDelta, provider, model });
+    return writerAI.applyRule(action.key, { html, signal, onDelta, provider, model, task });
   }
 
   if (action.key === "critique") {
-    return runCritique({ html, chapterTitle: "Lab", chapterNum: 0, signal, onDelta, provider, model });
+    return runCritique({ html, chapterTitle: "Lab", chapterNum: 0, signal, onDelta, provider, model, task });
   }
 
   if (action.key === "structure") {
-    return runStructuralAnalysis({ html, chapterTitle: "Lab", chapterNum: 0, signal, onDelta, provider, model });
+    return runStructuralAnalysis({ html, chapterTitle: "Lab", chapterNum: 0, signal, onDelta, provider, model, task });
   }
 
   if (action.key === "entities") {
@@ -114,6 +114,7 @@ export async function dispatchRun(action, { html, signal, onDelta, provider, mod
       onDelta,
       provider,
       model,
+      task,
     });
   }
 

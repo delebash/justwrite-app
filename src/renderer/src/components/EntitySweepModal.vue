@@ -10,10 +10,10 @@
 
 import { ref, computed, onMounted } from "vue";
 import { useProjectStore } from "../stores/project.js";
-import { useAiProgress } from "../composables/useAiProgress.js";
+import { useAiTasksStore } from "../stores/aiTasks.js";
 import { scanAllChapters } from "../services/analysis/entitySweep.js";
 import EntityReviewModal from "./EntityReviewModal.vue";
-import AiProgressBar from "./AiProgressBar.vue";
+import AiTaskStrip from "./AiTaskStrip.vue";
 import Icon from "./Icon.vue";
 import AppModal from "./AppModal.vue";
 import StatusRow from "./StatusRow.vue";
@@ -27,7 +27,14 @@ const props = defineProps({
 const emit = defineEmits(["close", "committed"]);
 
 const project = useProjectStore();
-const progress = useAiProgress();
+const aiTasks = useAiTasksStore();
+
+const myTask = computed(() => aiTasks.runningTasks.find(
+  (t) => t.feature === "entitySweep"
+));
+const running = computed(() => !!myTask.value);
+
+function isAbort(e) { return e?.name === "AbortError" || /abort/i.test(e?.message || ""); }
 
 // One row per chapter, status updated as the sweep progresses.
 const rows = ref([]);
@@ -64,17 +71,16 @@ function initRows() {
 }
 
 async function runSweep() {
+  if (running.value) return;
   initRows();
   if (!rows.value.length) {
     error.value = "No chapters to scan.";
     return;
   }
-  progress.start();
   try {
     const filter = props.chapterIds ? new Set(rows.value.map((r) => r.id)) : null;
     const result = await scanAllChapters({
       project,
-      signal: progress.signal,
       chapterFilter: filter ? { ids: filter } : undefined,
       onProgress: ({ phase: ph, chapter, completed, reason }) => {
         const row = rowById.value.get(chapter.id);
@@ -94,7 +100,6 @@ async function runSweep() {
       const row = rowById.value.get(s.id);
       if (row && row.status === "scanning") { row.status = "skipped"; row.reason = s.reason || ""; }
     }
-    progress.finish();
 
     proposals.value = {
       characters: result.characters || [],
@@ -102,22 +107,23 @@ async function runSweep() {
       objects:    result.objects    || [],
     };
   } catch (e) {
-    if (!progress.cancelled.value) error.value = e?.message || String(e);
-    progress.finish();
+    if (isAbort(e)) {
+      // Mark any in-flight row as cancelled so the user can see what didn't finish.
+      for (const row of rows.value) {
+        if (row.status === "scanning") { row.status = "skipped"; row.reason = "cancelled"; }
+      }
+      // Surface partial results so the user can still review what came back.
+      if (!proposals.value) {
+        proposals.value = { characters: [], locations: [], objects: [] };
+      }
+    } else {
+      error.value = e?.message || String(e);
+    }
   }
 }
 
 function cancelSweep() {
-  progress.cancel();
-  // Mark any in-flight row as cancelled so the user can see what didn't
-  // finish — leave already-done rows alone.
-  for (const row of rows.value) {
-    if (row.status === "scanning") { row.status = "skipped"; row.reason = "cancelled"; }
-  }
-  // Surface partial results so the user can still review what came back.
-  if (!proposals.value) {
-    proposals.value = { characters: [], locations: [], objects: [] };
-  }
+  if (myTask.value) aiTasks.cancel(myTask.value.id);
 }
 
 function onReviewClose() {
@@ -142,13 +148,13 @@ onMounted(runSweep);
 
   <!-- ── SCANNING PHASE ─────────────────────────────────────────────── -->
   <AppModal v-else eyebrow="Whole-book scan" title="Scanning for new entities"
-    :closable="!progress.running.value" @close="emit('close')">
+    :closable="!running" @close="emit('close')">
     <template #header>
       <div class="sweep-titleblock">
         <div class="t-eyebrow">Whole-book scan</div>
         <div class="modal-title">Scanning for new entities</div>
       </div>
-      <JwButton v-if="progress.running.value" intent="ghost" size="small" @click="cancelSweep">
+      <JwButton v-if="running" intent="ghost" size="small" @click="cancelSweep">
         <Icon name="Close" :size="12" /> Cancel
       </JwButton>
     </template>
@@ -163,12 +169,7 @@ onMounted(runSweep);
       <Icon name="Alert" :size="13" /> {{ error }}
     </div>
 
-    <AiProgressBar
-      :progress="progress"
-      :label="totalCount > 0
-        ? `${completedCount} of ${totalCount} chapters · ${scanningCount} scanning`
-        : 'Starting…'"
-    />
+    <AiTaskStrip :task="myTask" />
 
     <div class="sweep-list">
       <StatusRow v-for="row in rows" :key="row.id"

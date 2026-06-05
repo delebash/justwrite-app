@@ -237,6 +237,8 @@ export async function generateSessionRecap({
   onDelta,
   provider,
   model,
+  task,
+  meta: callerMeta,
 } = {}) {
   const { meta, prompt } = buildRecapContext({ project, sessions });
   if (!meta.eligible || !prompt) {
@@ -256,6 +258,7 @@ export async function generateSessionRecap({
     { role: "user", content: prompt },
   ];
 
+  const recapMeta = { ...(callerMeta || {}), chapterId: meta.chapterId, day: meta.day, totalWords: meta.totalWords };
   const result = await runAiStream({
     feature: "recap",
     messages,
@@ -265,7 +268,8 @@ export async function generateSessionRecap({
     onDelta,
     provider,
     model,
-    meta: { chapterId: meta.chapterId, day: meta.day, totalWords: meta.totalWords },
+    meta: recapMeta,
+    task: task || { label: "Session recap", meta: recapMeta },
   });
 
   const parsed = parseJsonLoose(result.content) || {};

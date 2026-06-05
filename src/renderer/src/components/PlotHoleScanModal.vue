@@ -13,9 +13,10 @@ import { ref, computed, onMounted } from "vue";
 import { useRouter } from "vue-router";
 import { useProjectStore } from "../stores/project.js";
 import { useAiStore } from "../stores/ai.js";
-import { useAiProgress } from "../composables/useAiProgress.js";
+import { useAiTasksStore } from "../stores/aiTasks.js";
 import { scanPlotHoles, KIND_LABELS } from "../services/analysis/plotHoleScan.js";
 import Icon from "./Icon.vue";
+import AiTaskStrip from "./AiTaskStrip.vue";
 import AppModal from "./AppModal.vue";
 import JwButton from "@renderer/components/ui/JwButton.vue";
 import EmptyState from "./EmptyState.vue";
@@ -25,8 +26,15 @@ const emit = defineEmits(["close"]);
 const project = useProjectStore();
 const ai = useAiStore();
 const router = useRouter();
-const progress = useAiProgress();
+const aiTasks = useAiTasksStore();
 const error = ref("");
+
+const myTask = computed(() => aiTasks.runningTasks.find(
+  (t) => t.feature === "plotHoles"
+));
+const running = computed(() => !!myTask.value);
+
+function isAbort(e) { return e?.name === "AbortError" || /abort/i.test(e?.message || ""); }
 const showDismissed = ref(false);
 
 const audit = computed(() => project.plotHoles);
@@ -62,27 +70,24 @@ const groups = computed(() => {
 
 async function run() {
   error.value = "";
+  if (running.value) return;
   if (!ai.providerForFeature("plotHoles")) {
     error.value = "Configure an AI provider in Settings → AI to run the audit.";
     return;
   }
-  progress.start();
   try {
     const result = await scanPlotHoles({
       project,
-      signal: progress.signal,
-      onDelta: progress.onDelta,
+      task: { label: "Plot-hole / continuity audit", meta: {} },
     });
     project.setPlotHoles(result);
-    progress.finish();
   } catch (e) {
-    if (!progress.cancelled.value) {
+    if (!isAbort(e)) {
       const msg = String(e?.message || e || "");
       error.value = /provider|api key|configure/i.test(msg)
         ? "Configure an AI provider in Settings → AI to run the audit."
         : msg || "Couldn't run the audit.";
     }
-    progress.finish();
   }
 }
 
@@ -130,7 +135,7 @@ onMounted(() => {
     eyebrow="Plot holes"
     title="Continuity audit"
     wide
-    :closable="!progress.running.value"
+    :closable="!running"
     @close="emit('close')"
   >
     <p class="ph-blurb">
@@ -173,9 +178,11 @@ onMounted(() => {
       </JwButton>
     </div>
 
-    <div v-else-if="progress.running.value && !audit" class="ph-loading">
+    <AiTaskStrip v-if="running" :task="myTask" />
+
+    <div v-else-if="!audit" class="ph-loading">
       <span class="ph-spinner" />
-      <span>Reading the whole book for contradictions… ({{ progress.elapsedSeconds }}s)</span>
+      <span>Reading the whole book for contradictions…</span>
     </div>
 
     <template v-else-if="audit">
@@ -252,11 +259,11 @@ onMounted(() => {
     </template>
 
     <template #footer>
-      <JwButton v-if="audit && !progress.running.value" intent="ghost" @click="clearAll">
+      <JwButton v-if="audit && !running" intent="ghost" @click="clearAll">
         Clear audit
       </JwButton>
       <span class="ph-foot-spacer" />
-      <JwButton v-if="audit && !progress.running.value" intent="ghost" @click="regenerate">
+      <JwButton v-if="audit && !running" intent="ghost" @click="regenerate">
         <Icon name="Refresh" :size="12" /> Re-run
       </JwButton>
       <JwButton intent="primary" @click="emit('close')">Done</JwButton>

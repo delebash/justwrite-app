@@ -157,6 +157,7 @@ export async function analyseChapterKnowledge({
   provider,
   model,
   meta = {},
+  task,
 } = {}) {
   const text = htmlToText(html).trim();
   if (!text) {
@@ -211,6 +212,7 @@ export async function analyseChapterKnowledge({
     provider,
     model,
     meta,
+    task: task || { label: "Reader knowledge", meta },
   });
 
   const parsed = parseJsonLoose(result.content) || {};
@@ -277,6 +279,7 @@ export async function scanReaderKnowledge({
   provider,
   model,
   chapterFilter,
+  task,
 } = {}) {
   if (!project) throw new Error("scanReaderKnowledge: project store is required.");
 
@@ -312,6 +315,7 @@ export async function scanReaderKnowledge({
         priorPovFacts: accumulatedPov,
         signal, provider, model,
         meta: { chapterId: ch.id, kind: "readerKnowledge" },
+        task,
       });
 
       if (r.empty) {

@@ -8,10 +8,10 @@
 import { ref, computed } from "vue";
 import { useProjectStore } from "../stores/project.js";
 import { useAiStore } from "../stores/ai.js";
-import { useAiProgress } from "../composables/useAiProgress.js";
+import { useAiTasksStore } from "../stores/aiTasks.js";
 import PaneHeader from "../components/PaneHeader.vue";
 import Icon from "../components/Icon.vue";
-import AiProgressBar from "../components/AiProgressBar.vue";
+import AiTaskStrip from "../components/AiTaskStrip.vue";
 import ModelPicker from "../components/ModelPicker.vue";
 import ProviderSelect from "../components/ProviderSelect.vue";
 import WriterLabBase from "../components/WriterLabBase.vue";
@@ -23,6 +23,7 @@ import JwCheckbox from "@renderer/components/ui/JwCheckbox.vue";
 
 const project = useProjectStore();
 const ai      = useAiStore();
+const aiTasks = useAiTasksStore();
 
 // ─── Base component state (v-model object) ────────────────────────────────
 const base = ref({
@@ -45,7 +46,12 @@ function makeColumn() {
     id:         `col_${Math.random().toString(36).slice(2, 8)}`,
     providerId: ai.defaultLlmId,
     model:      "",
-    progress:   useAiProgress(),
+    // Per-run id stamped into the task meta so we can find this column's
+    // task in the global store. Cleared after the run ends; the column
+    // owns the lastRun snapshot for post-completion footer stats.
+    runId:      null,
+    startedAt:  0,
+    lastRun:    { elapsedMs: 0, tokensIn: 0, tokensOut: 0 },
     result:     null,
     error:      "",
   };
@@ -53,21 +59,36 @@ function makeColumn() {
 
 const columns = ref([makeColumn()]);
 
+function colTask(col) {
+  return col.runId
+    ? aiTasks.runningTasks.find((t) => t.meta?.writerLabRunId === col.runId)
+    : null;
+}
+function colRunning(col) { return !!colTask(col); }
+function colElapsed(col) {
+  const t = colTask(col);
+  return t ? aiTasks.now - t.startedAt : col.lastRun.elapsedMs;
+}
+function colTokensIn(col)  { return colTask(col)?.tokensIn  ?? col.lastRun.tokensIn; }
+function colTokensOut(col) { return colTask(col)?.tokensOut ?? col.lastRun.tokensOut; }
+
 function addColumn() {
   if (columns.value.length >= 4) return;
   columns.value.push(makeColumn());
 }
 
 function removeColumn(col) {
-  col.progress.cancel();
+  const t = colTask(col);
+  if (t) aiTasks.cancel(t.id);
   columns.value = columns.value.filter((c) => c !== col);
 }
 
 // ─── Per-column helpers ───────────────────────────────────────────────────
 function colRawResponse(col) {
-  if (!col.result) return col.progress.preview.value || "";
+  const t = colTask(col);
+  if (!col.result) return t?.preview || "";
   if (col.result.raw) return col.result.raw;
-  return col.progress.preview.value || "";
+  return t?.preview || "";
 }
 
 function colResultModel(col) {
@@ -75,8 +96,10 @@ function colResultModel(col) {
   return col.model || provider?.chatModel || ai.llmProvider?.chatModel || "—";
 }
 
+function isAbort(e) { return e?.name === "AbortError" || /abort/i.test(e?.message || ""); }
+
 // ─── Run dispatch ─────────────────────────────────────────────────────────
-const anyRunning = computed(() => columns.value.some((c) => c.progress.running.value));
+const anyRunning = computed(() => columns.value.some((c) => colRunning(c)));
 
 const canRunAll = computed(() =>
   base.value.inputText.trim() && selectedAction.value && !anyRunning.value,
@@ -85,28 +108,35 @@ const canRunAll = computed(() =>
 async function runOneColumn(col) {
   col.result = null;
   col.error  = "";
-  col.progress.start();
 
   const html     = textToHtml(base.value.inputText);
   const provider = ai.providerById(col.providerId);
   const model    = col.model || undefined;
+  const runId = `wld_${Math.random().toString(36).slice(2, 10)}`;
+  col.runId = runId;
+  col.startedAt = Date.now();
 
   try {
     const res = await dispatchRun(selectedAction.value, {
       html,
-      signal:  col.progress.signal,
-      onDelta: col.progress.onDelta,
       provider,
       model,
       project,
+      task: {
+        label: `Writer Lab · ${selectedAction.value.label} · ${col.model || provider?.chatModel || "default"}`,
+        meta: { writerLab: true, writerLabRunId: runId, columnId: col.id, actionKey: selectedAction.value.key },
+      },
     });
     col.result = res;
-    col.progress.finish(res?.usage);
+    col.lastRun = {
+      elapsedMs: Date.now() - col.startedAt,
+      tokensIn:  res?.usage?.prompt_tokens     || 0,
+      tokensOut: res?.usage?.completion_tokens || 0,
+    };
   } catch (e) {
-    col.progress.finish();
-    if (!col.progress.cancelled.value) {
-      col.error = e?.message || String(e);
-    }
+    if (!isAbort(e)) col.error = e?.message || String(e);
+  } finally {
+    col.runId = null;
   }
 }
 
@@ -210,13 +240,7 @@ function notesByGroup(notes) {
         </div>
 
         <!-- Progress bar -->
-        <AiProgressBar
-          v-if="col.progress.running.value"
-          :progress="col.progress"
-          :label="selectedAction ? `${selectedAction.label}…` : 'Working…'"
-          :show-preview="base.showPreview && isProseAction"
-          :can-toggle-preview="isProseAction"
-        />
+        <AiTaskStrip :task="colTask(col)" />
 
         <!-- Error -->
         <div v-if="col.error" class="error-strip">
@@ -226,7 +250,7 @@ function notesByGroup(notes) {
 
         <!-- Empty state -->
         <div
-          v-if="!col.result && !colRawResponse(col) && !col.progress.running.value && !col.error"
+          v-if="!col.result && !colRawResponse(col) && !colRunning(col) && !col.error"
           class="empty-state"
         >
           Press Run to compare against this model.
@@ -335,12 +359,12 @@ function notesByGroup(notes) {
 
           <!-- Column footer: timing + tokens -->
           <div class="col-footer">
-            <span class="footer-stat"><b>Elapsed:</b> {{ fmtMs(col.progress.elapsed.value) }}</span>
-            <span class="footer-stat" v-if="col.progress.tokensIn.value">
-              <b>In:</b> {{ col.progress.tokensIn.value.toLocaleString() }}
+            <span class="footer-stat"><b>Elapsed:</b> {{ fmtMs(colElapsed(col)) }}</span>
+            <span class="footer-stat" v-if="colTokensIn(col)">
+              <b>In:</b> {{ colTokensIn(col).toLocaleString() }}
             </span>
-            <span class="footer-stat" v-if="col.progress.tokensOut.value">
-              <b>Out:</b> {{ col.progress.tokensOut.value.toLocaleString() }}
+            <span class="footer-stat" v-if="colTokensOut(col)">
+              <b>Out:</b> {{ colTokensOut(col).toLocaleString() }}
             </span>
             <span class="footer-stat"><b>Model:</b> {{ colResultModel(col) }}</span>
           </div>
