@@ -435,6 +435,12 @@ export const useProjectStore = defineStore("project", {
     // chapterBeats, generatedAt, model }. Null until generated.
     reverseOutline: loaded.reverseOutline || null,
 
+    // Beat-sheet overlays — one mapping per template the writer has
+    // run. Keyed by templateKey ("save-the-cat" | "heros-journey" |
+    // "seven-point"). Each value: { templateKey, templateName,
+    // summary, mapping, missingCount, totalBeats, generatedAt, model }.
+    beatSheets: loaded.beatSheets || {},
+
     // Multi-project registry. `_activeId` is the storage key the
     // current snapshot persists into. `_projects` mirrors the registry
     // so the sidebar dropdown can react. Neither participates in undo.
@@ -1243,6 +1249,20 @@ export const useProjectStore = defineStore("project", {
       this.reverseOutline = null;
       this._persist();
     },
+    // Beat-sheet overlay — one per template. Skip _record so the
+    // mapping doesn't churn over undo when the chapter list changes.
+    setBeatSheet(templateKey, mapping) {
+      if (!templateKey) return;
+      this.beatSheets = { ...this.beatSheets, [templateKey]: { ...mapping, templateKey } };
+      this._persist();
+    },
+    clearBeatSheet(templateKey) {
+      if (!templateKey || !this.beatSheets?.[templateKey]) return;
+      const next = { ...this.beatSheets };
+      delete next[templateKey];
+      this.beatSheets = next;
+      this._persist();
+    },
 
     // ── Locations ───────────────────────────────────────────
     addLocation(input = {}) { this._record("addLocation"); const id = uid("l"); this.locations.push({ id, name: "Untitled location", kind: "", note: "", tags: [], ...input }); this._persist(); return id; },
@@ -1773,6 +1793,7 @@ export const useProjectStore = defineStore("project", {
         trash: this.trash,
         dailyRecaps: this.dailyRecaps,
         reverseOutline: this.reverseOutline,
+        beatSheets: this.beatSheets,
         savedAt: new Date().toISOString(),
       };
     },
@@ -1860,6 +1881,7 @@ export const useProjectStore = defineStore("project", {
         trash: { ...EMPTY_TRASH },
         dailyRecaps: {},
         reverseOutline: null,
+        beatSheets: {},
       };
       this._activeId = id;
       Object.assign(this.$state, fresh);

@@ -62,6 +62,7 @@ const AI_FEATURES = [
   { key: "sensory",         label: "Sensory research", hint: "The AI dropdown's \"Research feel…\" modal — structured sensory pack for a selected subject." },
   { key: "characterAudit",  label: "Character audit",  hint: "Per-character consistency audit (profile + their scenes → flagged actions) on the Characters view." },
   { key: "reverseOutline",  label: "Reverse outline",  hint: "Reads the whole draft and produces the act structure the book actually has — plot points, act breaks, per-chapter beats." },
+  { key: "beatSheet",       label: "Beat sheet overlay", hint: "Maps your draft to Save the Cat, Hero's Journey, or 7-Point Story Structure beats." },
 ];
 const INHERIT = "__inherit__";
 

@@ -16,6 +16,7 @@ import { computeVoiceDrift, explainVoiceDrift } from "../services/analysis/voice
 import { sweepStoryTension } from "../services/analysis/tensionSweep.js";
 import { PACING_LABELS, ENDING_LABELS } from "../services/analysis/critique.js";
 import ReverseOutlineModal from "../components/ReverseOutlineModal.vue";
+import BeatSheetModal from "../components/BeatSheetModal.vue";
 import { useAiStore } from "../stores/ai.js";
 import { useAiProgress } from "../composables/useAiProgress.js";
 import JwTable from "@renderer/components/ui/JwTable.vue";
@@ -357,6 +358,12 @@ const reverseOutlineOpen = ref(false);
 function openReverseOutline() { reverseOutlineOpen.value = true; }
 function closeReverseOutline() { reverseOutlineOpen.value = false; }
 const hasReverseOutline = computed(() => !!project.reverseOutline);
+
+// Beat-sheet overlay modal — sibling to reverse outline.
+const beatSheetOpen = ref(false);
+function openBeatSheet() { beatSheetOpen.value = true; }
+function closeBeatSheet() { beatSheetOpen.value = false; }
+const hasAnyBeatSheet = computed(() => Object.keys(project.beatSheets || {}).length > 0);
 
 // ─── Writing heatmap (365 days) ─────────────────────────────────────
 // Build a 53-week × 7-day grid for the year ending today. Each cell is
@@ -700,6 +707,12 @@ const milestoneState = computed(() => {
             <Icon name="Book" :size="12" />
             {{ hasReverseOutline ? 'View reverse outline' : 'Reverse outline' }}
           </JwButton>
+          <JwButton v-if="!tensionProgress.running.value" intent="ghost" size="small"
+                    @click="openBeatSheet"
+                    v-tooltip.bottom="'Map the draft to Save the Cat, Heros Journey, or 7-Point Story Structure'">
+            <Icon name="Target" :size="12" />
+            {{ hasAnyBeatSheet ? 'View beat sheet' : 'Map to beat sheet' }}
+          </JwButton>
           <JwButton v-else-if="tensionProgress.running.value" intent="danger" size="small" @click="cancelTensionSweep">
             <Icon name="Close" :size="12" /> Cancel
           </JwButton>
@@ -794,6 +807,7 @@ const milestoneState = computed(() => {
     </div>
 
     <ReverseOutlineModal v-if="reverseOutlineOpen" @close="closeReverseOutline" />
+    <BeatSheetModal v-if="beatSheetOpen" @close="closeBeatSheet" />
 
     <!-- Voice drift -->
     <div v-if="drift.eligible" class="card vd-card" style="margin-bottom:18px">
