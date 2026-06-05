@@ -228,7 +228,7 @@ These are optional refinements. The defaults are reasonable for almost every cas
 
 > *"I'm in the Critique modal and the result feels off. I want to try a different model right here without leaving to navigate Settings."*
 
-Every AI page has a small chip in its header showing the current **provider · model** for that feature. Studio shows two — one for the TTS engine, one for the active LLM call (Smart-assign on the Cast tab, Speaker analysis on the Script tab). Critique, Brainstorm, every analysis modal, Reader knowledge, the chat panel — same chip in each.
+Every AI page has a small chip in its header showing the current **provider · model** for that feature. Studio shows two — one for the TTS engine, one for the active LLM call (Smart-assign on the Cast tab, Speaker analysis on the Script tab). Critique, Brainstorm, every analysis modal, Reader knowledge, the chat panel — same chip in each. In the chapter editor, the chip sits at the **top of each scene's AI dropdown**, so writer actions (Rewrite, Expand, Tighten, Continue, Line edits) show their routing right above the menu items they apply to.
 
 **Click the chip** and a small popover opens with two dropdowns: Provider and Model. The Provider dropdown lists *"Inherit default"* (the global LLM default set in Settings) plus every configured LLM-capable provider. The Model dropdown enables once you pick a specific provider; it shows the provider's saved configured-default model plus any models the live `/v1/models` fetch returned (Refresh button alongside if you need to force a re-fetch).
 
@@ -237,6 +237,8 @@ Every AI page has a small chip in its header showing the current **provider · m
 **Visual cue:** the chip's tint changes when a pin is set, so you can tell at a glance whether the feature is following the global default or has been explicitly routed.
 
 **Dismiss the popover** with Esc, by clicking the chip again, or by clicking anywhere outside it.
+
+**Analysis modals wait for you.** When you open Multi-reader, Entity sweep, Foreshadowing, Plot-hole audit, Reverse outline, Marketing pack, Character audit, Sensory research, Session recap, Stuck diagnostic, or AI-tell scan, the modal opens to an empty-state with a primary "Run" button instead of firing the AI call immediately. That gives you a chance to change the chip routing first — pick a different model, or switch from your default to a faster local one — before spending tokens. Click the Run button when you're ready.
 
 ---
 
