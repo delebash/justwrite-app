@@ -13,6 +13,7 @@ import { useProjectStore } from "../stores/project.js";
 import { useAiStore } from "../stores/ai.js";
 import { useAiProgress } from "../composables/useAiProgress.js";
 import { askManuscript } from "../services/rag/chat.js";
+import { askAsCharacter } from "../services/rag/characterChat.js";
 import { indexStatus } from "../services/rag/indexer.js";
 import { autoIndexRunning } from "../services/rag/autoIndex.js";
 import { getItem, setItem } from "../services/storage.js";
@@ -25,15 +26,24 @@ import JwTextarea from "@renderer/components/ui/JwTextarea.vue";
 import JwSelect from "@renderer/components/ui/JwSelect.vue";
 import { useModelList } from "../composables/useModelList.js";
 
-const THREAD_KEY = (pid) => `justwrite:rag:thread:${pid}`;
+// One thread per (project, mode, character) combo. Book mode is
+// keyed without a character id (preserves the pre-character-mode key
+// shape so older threads load unchanged).
+const THREAD_KEY = (pid, mode, characterId) => {
+  if (mode === "character" && characterId) {
+    return `justwrite:rag:thread:${pid}:char:${characterId}`;
+  }
+  return `justwrite:rag:thread:${pid}`;
+};
 // Cap persisted threads at the last 30 messages — long threads waste
 // storage and the model already truncates history to MAX_HISTORY_MESSAGES.
 const MAX_PERSISTED = 30;
 
-function loadThread(projectId) {
+function loadThread(projectId, mode, characterId) {
   if (!projectId) return [];
+  if (mode === "character" && !characterId) return [];
   try {
-    const raw = getItem(THREAD_KEY(projectId));
+    const raw = getItem(THREAD_KEY(projectId, mode, characterId));
     if (!raw) return [];
     const arr = JSON.parse(raw);
     if (!Array.isArray(arr)) return [];
@@ -49,11 +59,12 @@ function loadThread(projectId) {
   } catch { return []; }
 }
 
-function saveThread(projectId, items) {
+function saveThread(projectId, mode, characterId, items) {
   if (!projectId) return;
+  if (mode === "character" && !characterId) return;
   try {
     const trimmed = items.slice(-MAX_PERSISTED);
-    setItem(THREAD_KEY(projectId), JSON.stringify(trimmed));
+    setItem(THREAD_KEY(projectId, mode, characterId), JSON.stringify(trimmed));
   } catch (err) {
     console.error("ChatPanel.saveThread failed:", err);
   }
@@ -116,10 +127,27 @@ const chatModelOptions = computed(() => {
 const showModelPicker = computed(() => ai.readyLlmProviders.length > 1);
 
 const question = ref("");
+// "book" = Ask the manuscript (the original chat). "character" = talk
+// to a specific character in the writer's cast (first-person, in-voice).
+const chatMode = ref("book");
+const selectedCharacterId = ref(null);
+const MODE_OPTIONS = [
+  { value: "book", label: "Ask the book" },
+  { value: "character", label: "Talk to a character" },
+];
+const characterOptions = computed(() => {
+  const main = (project.characters || []).filter((c) => c.main);
+  const rest = (project.characters || []).filter((c) => !c.main);
+  return [...main, ...rest].map((c) => ({ value: c.id, label: c.name + (c.role ? ` — ${c.role}` : "") }));
+});
+const selectedCharacter = computed(
+  () => (project.characters || []).find((c) => c.id === selectedCharacterId.value) || null,
+);
+
 // thread items:
 //   { role: "user",      content }
 //   { role: "assistant", content, citations: [...], pending?: bool, error?: string }
-const thread = ref(loadThread(project.activeProjectId));
+const thread = ref(loadThread(project.activeProjectId, "book", null));
 const indexModalMode = ref(null); // "build" | "rebuild" | null
 const inputRef = ref(null);
 const threadRef = ref(null);
@@ -156,9 +184,26 @@ const hasThread = computed(() => thread.value.length > 0);
 const isIndexing = computed(() => autoIndexRunning.value);
 watch(autoIndexRunning, (running) => { if (!running) indexBump.value++; });
 
-// Reset (and rehydrate) the thread whenever the active project changes —
-// old citations wouldn't make sense in a different manuscript.
-watch(() => project.activeProjectId, (pid) => { thread.value = loadThread(pid); });
+// Reset (and rehydrate) the thread whenever the active project, mode,
+// or selected character changes — each combo has its own persisted
+// thread so closing and re-opening preserves wherever the writer was.
+watch(() => project.activeProjectId, (pid) => {
+  thread.value = loadThread(pid, chatMode.value, selectedCharacterId.value);
+});
+watch([chatMode, selectedCharacterId], () => {
+  thread.value = loadThread(project.activeProjectId, chatMode.value, selectedCharacterId.value);
+  question.value = "";
+});
+
+// Auto-pick a default character on first switch into character mode so
+// the writer doesn't have to fish through the dropdown to start chatting.
+watch(chatMode, (mode) => {
+  if (mode !== "character") return;
+  if (selectedCharacterId.value) return;
+  const list = project.characters || [];
+  const first = list.find((c) => c.main) || list[0];
+  if (first) selectedCharacterId.value = first.id;
+});
 
 // When the panel opens, focus the question input.
 watch(open, (v) => {
@@ -173,12 +218,18 @@ watch(thread, () => {
     const el = threadRef.value;
     if (el) el.scrollTop = el.scrollHeight;
   });
-  saveThread(project.activeProjectId, thread.value);
+  saveThread(project.activeProjectId, chatMode.value, selectedCharacterId.value, thread.value);
 }, { deep: true });
 
 async function ask() {
   const q = question.value.trim();
   if (!q || progress.running.value) return;
+  if (chatMode.value === "character" && !selectedCharacterId.value) {
+    // Defensive: shouldn't happen since the dropdown auto-selects, but
+    // surface a clear hint if it does rather than failing silently.
+    thread.value.push({ role: "assistant", content: "", error: "Pick a character first.", pending: false });
+    return;
+  }
 
   // Snapshot history (everything sent BEFORE this turn) for the API call.
   const history = thread.value
@@ -192,7 +243,7 @@ async function ask() {
 
   progress.start();
   try {
-    const result = await askManuscript({
+    const askArgs = {
       question: q,
       history,
       k: 6,
@@ -201,7 +252,10 @@ async function ask() {
         progress.onDelta(delta, content);
         assistantMsg.content = content;
       },
-    });
+    };
+    const result = chatMode.value === "character"
+      ? await askAsCharacter({ ...askArgs, characterId: selectedCharacterId.value })
+      : await askManuscript(askArgs);
     assistantMsg.content   = result.answer || assistantMsg.content;
     assistantMsg.citations = result.citations || [];
     assistantMsg.pending   = false;
@@ -221,7 +275,7 @@ function newThread() {
   thread.value = [];
   question.value = "";
   // Wipe the persisted copy too, so the empty state survives a panel close.
-  saveThread(project.activeProjectId, []);
+  saveThread(project.activeProjectId, chatMode.value, selectedCharacterId.value, []);
   nextTick(() => inputRef.value?.focus());
 }
 
@@ -286,13 +340,30 @@ defineExpose({ open: () => { open.value = true; }, close });
     <aside v-if="open" ref="panelRef" class="chat-panel" role="dialog" aria-label="Ask the manuscript">
       <header class="cp-head">
         <div>
-          <div class="t-eyebrow">Ask the manuscript</div>
-          <h2>Chat with your book</h2>
+          <div class="t-eyebrow">{{ chatMode === "character" ? "Talk to a character" : "Ask the manuscript" }}</div>
+          <h2>
+            <template v-if="chatMode === 'character'">
+              {{ selectedCharacter?.name || "Pick a character" }}
+            </template>
+            <template v-else>Chat with your book</template>
+          </h2>
         </div>
         <JwButton intent="ghost" size="small" @click="close">
           <Icon name="Close" :size="12" /> Close
         </JwButton>
       </header>
+
+      <!-- Mode + character picker. The character dropdown only shows
+           in character mode. Switching either resets the thread to the
+           one persisted under that (mode, character) combo. -->
+      <div class="cp-mode-row">
+        <JwSelect v-model="chatMode" :options="MODE_OPTIONS" />
+        <JwSelect v-if="chatMode === 'character'"
+                  v-model="selectedCharacterId"
+                  :options="characterOptions"
+                  :placeholder="characterOptions.length ? 'Pick a character' : 'No characters yet'"
+                  :disabled="!characterOptions.length" />
+      </div>
 
       <EmptyState v-if="!hasIndex"
         icon="Sparkle"
@@ -441,6 +512,11 @@ defineExpose({ open: () => { open.value = true; }, close });
 
 .cp-head { display: flex; justify-content: space-between; align-items: flex-start; gap: 14px; flex-shrink: 0; }
 .cp-head h2 { font-family: var(--font-serif); font-size: 18px; font-weight: 600; margin: 3px 0 0; }
+.cp-mode-row {
+  display: grid; grid-template-columns: 1fr 1fr; gap: 8px;
+  margin-top: 12px; flex-shrink: 0;
+}
+.cp-mode-row > * { min-width: 0; }
 
 .cp-status {
   display: flex; align-items: center; gap: 6px; flex-wrap: wrap;

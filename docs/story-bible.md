@@ -53,6 +53,30 @@ If you write multiple POVs, or you ever have to hand a chapter to an editor or c
 
 Private notes that never get exported. Use this for "I know they used to be a soldier, but the reader doesn't" details — the stuff that shapes how you write them but isn't for the reader's eyes. The Description fields on Locations and Objects *do* export; the Character Backstory field deliberately does not.
 
+### Talk to a character — interview them in their voice
+
+> *"I'm stuck on what my protagonist would do here. I know what the plot needs to happen — but I don't know what she'd actually do."*
+
+The Motivation panel is a planning tool — you write down what your character wants, needs, believes, and discovers, and the next decision often falls out of the four boxes. The character-chat is a *discovery* tool: you put your character on the couch and ask them.
+
+Open the chat panel (sidebar's "Ask the book" toggle, or `Ctrl/⌘ + F`). The mode picker at the top has two options: **Ask the book** (the original RAG chat) and **Talk to a character**. Switch to the second; a character dropdown appears (main characters first, then the rest). Pick one and start asking.
+
+JustWrite builds the character's system prompt from everything you've put in their detail page — role, age, one-liner, voice (accent / vocabulary / speech tic / sample line), motivation (want / need / lie / truth), arc (beginning / midpoint / end), backstory, and any sample quotes you've stored. The model is told to **answer in first person, in voice**, using the retrieved scenes as their memory of what's happened. RAG retrieval pulls scenes biased toward the character's name; citations work the same way as Ask-the-book.
+
+**Rules the model follows:**
+
+- **First person, in voice.** They speak as themselves.
+- **Knowledge state.** The model is told to only use scenes the character would actually have been present for. It can refuse to answer about events they weren't in ("I wasn't there" / "I haven't heard about that yet"). It's an instruction, not a hard guarantee — the model may slip — but the prompt strongly biases toward not leaking.
+- **Stay in character even when speculating.** If they'd lie, they lie. If they'd dodge, they dodge. If they'd refuse, they refuse.
+- **No fourth-wall breaks.** They won't refer to the manuscript, the writer, or themselves as an AI. They're a person who exists in the story.
+- **Reasonably short answers.** Usually 1–3 sentences. Sometimes a paragraph. No lectures.
+
+**Each character has their own persisted thread.** Switch characters in the dropdown and the conversation switches with them. Switch back later and the thread is still there. The book-chat thread is also separate from any character thread — switching modes doesn't lose your place in either.
+
+**Why a writer would use it.** Character-as-oracle is genuinely useful when you can't think your way to a scene. Ask them what they'd do, why they hesitated, what they want from another character, what they'd never tell anyone. The answers reveal contradictions in your own characterisation as often as they unblock the next scene — the model patterns-matches against the profile you've built and surfaces psychological tensions you didn't see while drafting. Treat answers as discovery prompts, not gospel.
+
+**Cost note.** Uses the same vector store and embedding provider as Ask-the-book — if you've already built an index for one, the other works immediately. Routable as the **characterChat** feature in Settings → AI (separately from **chat** so you can pin a more conversational/in-character model here while keeping factual Q&A pinned to a tighter one).
+
 ### Audit consistency — does this character act like themselves?
 
 > *"Did my introverted loyalty-first character betray her best friend convincingly, or did I just write what the plot needed?"*

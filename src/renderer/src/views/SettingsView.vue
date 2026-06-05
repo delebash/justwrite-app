@@ -64,6 +64,7 @@ const AI_FEATURES = [
   { key: "reverseOutline",  label: "Reverse outline",  hint: "Reads the whole draft and produces the act structure the book actually has — plot points, act breaks, per-chapter beats." },
   { key: "beatSheet",       label: "Beat sheet overlay", hint: "Maps your draft to Save the Cat, Hero's Journey, or 7-Point Story Structure beats." },
   { key: "plotHoles",       label: "Plot-hole audit",  hint: "Whole-book continuity scan for contradictions, timeline issues, and character-knowledge errors." },
+  { key: "characterChat",   label: "Character chat",   hint: "The chat panel's \"Talk to a character\" mode — first-person, in-voice answers from your cast." },
 ];
 const INHERIT = "__inherit__";
 
