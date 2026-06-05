@@ -447,6 +447,12 @@ export const useProjectStore = defineStore("project", {
     // cleared and regenerated.
     plotHoles: loaded.plotHoles || null,
 
+    // Voice canon — chapter ids the writer has marked as
+    // representative of their established voice. The fingerprint
+    // service uses these to build a sample + style summary that's
+    // injected into every Rewrite / Expand / Continue / Describe.
+    voiceCanonChapterIds: Array.isArray(loaded.voiceCanonChapterIds) ? loaded.voiceCanonChapterIds : [],
+
     // Multi-project registry. `_activeId` is the storage key the
     // current snapshot persists into. `_projects` mirrors the registry
     // so the sidebar dropdown can react. Neither participates in undo.
@@ -1278,6 +1284,25 @@ export const useProjectStore = defineStore("project", {
       this.plotHoles = null;
       this._persist();
     },
+    // Voice canon — marked chapters that represent the writer's
+    // established voice. Used by the voice-fingerprint service to
+    // build a sample + style summary injected into writer actions.
+    setVoiceCanonChapters(ids) {
+      const next = Array.isArray(ids) ? ids.filter(Boolean) : [];
+      this.voiceCanonChapterIds = next;
+      this._persist();
+    },
+    toggleVoiceCanonChapter(id) {
+      if (!id) return;
+      const cur = Array.isArray(this.voiceCanonChapterIds) ? this.voiceCanonChapterIds : [];
+      const next = cur.includes(id) ? cur.filter((x) => x !== id) : [...cur, id];
+      this.voiceCanonChapterIds = next;
+      this._persist();
+    },
+    clearVoiceCanon() {
+      this.voiceCanonChapterIds = [];
+      this._persist();
+    },
     dismissPlotHole(findingId) {
       if (!this.plotHoles?.findings) return;
       this.plotHoles = {
@@ -1828,6 +1853,7 @@ export const useProjectStore = defineStore("project", {
         reverseOutline: this.reverseOutline,
         beatSheets: this.beatSheets,
         plotHoles: this.plotHoles,
+        voiceCanonChapterIds: this.voiceCanonChapterIds,
         savedAt: new Date().toISOString(),
       };
     },
@@ -1917,6 +1943,7 @@ export const useProjectStore = defineStore("project", {
         reverseOutline: null,
         beatSheets: {},
         plotHoles: null,
+        voiceCanonChapterIds: [],
       };
       this._activeId = id;
       Object.assign(this.$state, fresh);

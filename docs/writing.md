@@ -96,6 +96,8 @@ In Outline mode you can:
 
 ### Splitting a chapter
 
+> *"This chapter ballooned to 8,000 words while I wasn't paying attention. I need to break it in two without losing the scenes."*
+
 If you imported a long single-blob document, or you wrote a chapter that is now too long, the editor has a **Split chapter** action. Place your cursor where you want the split, run the command, and JustWrite asks for a title for the new chapter that comes after. The split happens cleanly; both halves keep their scenes.
 
 ---
@@ -134,17 +136,23 @@ Select any text and a small floating menu appears next to your selection with th
 
 ### `@`-mentions
 
+> *"I typed a character's name in chapter 12. Three chapters later I've forgotten whether I spelled it consistently — and I can't find all the places she appears."*
+
 Type **`@`** anywhere in the editor and a picker appears. Search across your entire Story Bible — characters, locations, objects, groups, strands. Pick one to insert a linked mention.
 
 A mention is more than text: it tells the rest of the app that this entity appears in this scene. Open the character's page later and you'll see every scene they were mentioned in, with the surrounding prose as a snippet.
 
 ### Inline comments
 
+> *"I want to flag this paragraph as 'rewrite this' without stopping to open a note — I'm in the middle of a sentence."*
+
 Highlight any text and click the comment button (or use the bubble menu). Type your note. The text is now visually marked; click it later to read the note. Comments are private — they never appear in exports.
 
 Use comments for notes-to-self ("rewrite this passage"), questions you want to come back to ("verify the timeline here"), or research reminders ("look up Victorian medical practice").
 
 ### Continuous-chapter mode
+
+> *"I don't think in scenes. My chapter is one long flow and the scene-by-scene view keeps interrupting me."*
 
 By default the editor shows one scene at a time. The **Continuous** toggle stitches every scene in the current chapter together into one document with visible dividers between scenes. Useful when:
 
@@ -172,6 +180,8 @@ A second toolbar sits just below for chapter-level controls when no scene is foc
 
 ### The Links panel
 
+> *"I wrote a scene with three characters and a location but I have no way to find it later except scrolling — nothing in the app knows they were in this scene."*
+
 Click **Links** on the scene strip to open a modal that records the connective tissue for this scene:
 
 - **POV perspective** — six options from first-person through omniscient
@@ -193,6 +203,8 @@ The **Find / Replace** bar in the toolbar searches within the current chapter an
 
 ### Dropping markers while you write
 
+> *"I'm mid-sentence and I just noticed the timeline is wrong here. I don't want to stop drafting — I just need to mark it and keep going."*
+
 The pin icon in the toolbar (or **Alt + M**) drops a marker — a category-tagged pin attached to a span of prose. Use it for "fix later", "verify this fact", "weak prose", "loose thread", and similar notes you don't want to stop drafting to address. The marker shows as a coloured dotted underline; clicking it opens an edit popover where you can change the category, edit the label, or resolve (remove) it.
 
 Markers are the third annotation layer (after Comments and Notes) and they have a specific job: they're the lightweight "drop a pin and keep writing" surface, plus a manuscript-wide timeline view in revision. See the [Markers](markers.md) page for the full workflow.
@@ -202,6 +214,18 @@ Markers are the third annotation layer (after Comments and Notes) and they have 
 ## AI writing actions
 
 If you have an AI provider configured (see [AI providers](ai-providers.md)), the scene strip's **[AI]** dropdown holds a row of AI actions. None of these are required, and they all show you the result as a coloured diff that you accept or reject line-by-line — your prose is never silently overwritten.
+
+### Match my voice — the voice canon
+
+> *"The AI rewrites the scene technically correctly, but it doesn't sound like me."*
+
+JustWrite has a project-level setting called the **voice canon** — a small list of your own chapters that represent how you write at your best. Once you've nominated a few, every Rewrite / Expand / Tighten / Continue / Describe / line-edit pass automatically injects a sample from those chapters plus a measured style summary into the model's instructions. The result matches your sentence rhythm, dialogue ratio, register, and POV distance instead of defaulting to generic LLM prose.
+
+Set it in **Settings → AI & Audio engines → Voice canon**. The picker shows every chapter with prose; tick two or three middle-of-book chapters that read like your voice at its strongest. The settings panel shows the measured style summary it'll inject ("Average sentence ~14 words. Dialogue ~32%. Low filter-word density.") plus a collapsible preview of the full block. Clear or re-pick at any time; the change applies to the next AI action.
+
+**Why a writer would use it.** Surface-level style mimicry is the single most reliable lever to make AI prose stop feeling like AI prose. The model has no innate sense of "your voice" — it has to infer it from the prose you put in front of it. Two pages of your own writing in the system prompt closes most of the gap. Best ship after a complete draft, when you know which chapters you're proud of; less useful in early drafting when your own voice is still settling.
+
+
 
 The dropdown groups actions by what they operate on, so you can tell at a glance whether you need to highlight text first:
 
@@ -282,20 +306,25 @@ The model returns five cards — one per category — each with a short headline
 
 **Routable** as the **unstuck** feature in Settings → AI. The diagnostic itself doesn't need a heavy model — a fast local model is usually fine. The actual prose drafting (the Write-this click) goes through **Writer actions** like any other Continue.
 
-### Prose passes
+### Line edits
 
-A grouped section of more targeted revisions, each focused on one craft problem. All of them run on the selection, or on the whole scene if nothing is selected.
+> *"My critique partner flagged passive voice all through chapter 6. I want to sweep just that one issue without touching anything else."*
 
-- **Show, don't tell** — replaces emotion-state statements with concrete behaviour, sensory detail, and dialogue.
-- **Passive voice** — converts to active where it strengthens the prose.
-- **Filter words** — removes distancing phrases ("she saw", "he felt", "she noticed") so the reader is in the character's perception directly.
-- **Dialogue tags** — replaces fancy tags ("exclaimed", "retorted") with "said"/"asked" or action beats; removes adverbs.
-- **Sentence variety** — mixes long and short structures when the rhythm has gone monotonous.
-- **Prose tightening** — cuts hedges ("just", "really", "very") and sentences that don't earn their place.
+A grouped section of more targeted revisions, each focused on one craft problem — what a professional line editor would mark up on a final read. All of them run on the selection, or on the whole scene if nothing is selected.
 
-**How to use them well.** A small selection gives you a focused, easy-to-review result; running a Prose pass on a whole scene is the right move when you want one consistent treatment applied throughout (e.g. "strip filter words across this scene"). The output is always a starting point, not an answer — accept the changes you like, reject the ones you don't, and keep moving. If a result feels worse than what you wrote, that's useful information about what makes your prose yours.
+- **Show don't tell** — trades told-emotion ("she was nervous") for body language, behaviour, and dialogue the reader can feel firsthand.
+- **Passive voice** — switches to active where the actor matters; leaves passive in place when the doer genuinely doesn't (crime scenes, mysteries, agentless states).
+- **Filter words** — strips the layer of "she saw / he heard / I felt" between the POV character and what they're perceiving.
+- **Dialogue tags** — replaces "exclaimed", "retorted", "queried" with plain "said" or action beats; pulls out adverb-glued tags ("said angrily").
+- **Sensory grounding** — anchors abstract or interior prose in the body — sight, sound, smell, the feel of the air. Pulls a scene out of pure thought and back into the world.
+- **Sentence variety** — breaks long sentences up or joins short ones together when the rhythm has gone monotonous.
+- **Prose tightening** — cuts hedges ("just", "really", "very"), filler phrases, and lines that don't move the scene.
+
+**How to use them well.** A small selection gives you a focused, easy-to-review result; running a line edit on a whole scene is the right move when you want one consistent treatment applied throughout (e.g. "strip filter words across this scene"). The output is always a starting point, not an answer — accept the changes you like, reject the ones you don't, and keep moving. If a result feels worse than what you wrote, that's useful information about what makes your prose yours.
 
 ### Critique and structural analysis
+
+> *"I've revised this chapter three times and I genuinely can't tell if it's good now or if I've just read it too many times to see the problems."*
 
 The **Critique** button in the chapter editor toolbar runs two separate passes on the current chapter:
 
@@ -306,11 +335,15 @@ Notes persist on the chapter and can be re-run independently.
 
 ### Entity extraction
 
+> *"I imported three chapters from my old draft and new characters appeared in the prose that aren't in my Story Bible yet. I want to find them all without reading every chapter by hand."*
+
 The **Characters**, **Locations**, and **Objects** views each have a **Find new** button that runs a sweep across every chapter and proposes Story Bible entities of that kind that appear in your prose but aren't yet in the Bible. Same-name proposals from multiple chapters are merged into one with the originating chapters listed. You review every proposal individually on the next screen; nothing is added without your click. Useful after writing or after importing a draft from elsewhere.
 
 ---
 
 ## Version History
+
+> *"I'm about to restructure this chapter heavily. If I hate what it becomes, I want to be able to get the original back."*
 
 Click **Versions** in the chapter editor toolbar to save a named snapshot of the current chapter. The dialog shows every snapshot you've ever taken, and you can:
 

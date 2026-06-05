@@ -7,6 +7,7 @@ import { saveImage, urlFor, hasNativeImages } from "../services/imageStore.js";
 import { promptDialog, confirmDialog } from "../services/dialog.js";
 import { getItem, setItem, clearPrefix, flushPending } from "../services/storage.js";
 import { indexStatus } from "../services/rag/indexer.js";
+import { buildVoiceFingerprint } from "../services/voiceFingerprint.js";
 import { pushToast } from "../services/toastBridge.js";
 import PaneHeader from "../components/PaneHeader.vue";
 import Icon from "../components/Icon.vue";
@@ -40,6 +41,26 @@ const props = defineProps({ section: { type: String, default: "" } });
 const ai = useAiStore();
 const project = useProjectStore();
 const ui = useUiStore();
+
+// ── Voice canon ────────────────────────────────────────────────────
+// Chapter picker for the writer's voice canon. Selected chapters
+// are passed to buildVoiceFingerprint which generates the sample +
+// style summary writerAI injects into every prose generation.
+const canonChapterOptions = computed(() =>
+  project.allChapters
+    .filter((c) => (c.words || 0) > 50)
+    .map((c) => ({ id: c.id, num: c.num, title: c.title, words: c.words || 0 })),
+);
+function canonHas(id) {
+  return (project.voiceCanonChapterIds || []).includes(id);
+}
+function toggleCanon(id) {
+  project.toggleVoiceCanonChapter(id);
+}
+function clearCanon() {
+  project.clearVoiceCanon();
+}
+const voicePreview = computed(() => buildVoiceFingerprint(project, { targetWords: 600 }));
 
 // Per-feature LLM pin UI. Two selects per feature: provider AND model,
 // independent of the global default. Model list is fetched live from
@@ -740,6 +761,14 @@ const recentColumns = [
   <PaneHeader :eyebrow="$t('settings.eyebrow')" :title="$t('settings.title')" />
   <div class="pane-card">
     <div class="scrollarea" style="padding:22px">
+    <p class="set-desc">
+      <strong>Settings</strong> is divided into sections — <strong>Project</strong> (metadata,
+      goals, statuses, deadlines), <strong>AI &amp; Audio engines</strong> (provider setup and
+      per-feature routing), <strong>Appearance</strong> (themes, fonts, colours, density),
+      <strong>Backups</strong> (autosave path and manual snapshots), and a
+      <strong>Danger zone</strong> for resetting the workspace. Nothing here touches your
+      manuscript prose.
+    </p>
     <div class="settings-layout" style="display:grid;grid-template-columns:220px minmax(0,1fr);gap:22px;max-width:1100px">
       <!-- Section nav -->
       <nav style="display:flex;flex-direction:column;gap:2px">
@@ -1051,6 +1080,55 @@ const recentColumns = [
               </div>
             </template>
           </div>
+        </div>
+
+        <!-- Voice canon — chapters that represent the writer's established
+             voice. The fingerprint service builds a sample + style summary
+             from them and injects it into every writer action's system
+             prompt so Rewrite / Expand / Continue / Describe / line edits
+             match the writer's voice without per-call guidance. -->
+        <div class="card">
+          <div class="card-title">Voice canon</div>
+          <p class="t-muted" style="font-size:12.5px;margin:0 0 14px;line-height:1.55">
+            Pick the chapters JustWrite should treat as your "voice canon" — the prose that
+            represents how you write at your best. Every <strong>Rewrite</strong>,
+            <strong>Expand</strong>, <strong>Tighten</strong>, <strong>Continue</strong>,
+            <strong>Describe</strong>, and line-edit pass will inject a short sample from these
+            chapters plus a measured style summary into the model's instructions, so the result
+            matches your voice without per-call guidance. Two or three middle-of-book chapters
+            work best — opening chapters often have structural quirks that distort the fingerprint.
+          </p>
+          <div v-if="canonChapterOptions.length === 0" class="t-muted" style="font-size:12.5px;font-style:italic">
+            No chapters with prose yet. Once you've drafted a few chapters, come back here.
+          </div>
+          <template v-else>
+            <div style="display:flex;flex-direction:column;gap:4px;max-height:280px;overflow-y:auto;padding:6px 4px;border:1px solid var(--border-soft);border-radius:6px">
+              <label v-for="c in canonChapterOptions" :key="c.id"
+                     style="display:flex;gap:10px;align-items:center;padding:6px 10px;cursor:pointer;border-radius:4px"
+                     :style="canonHas(c.id) ? 'background:var(--accent-soft)' : ''">
+                <JwCheckbox
+                  :model-value="canonHas(c.id)"
+                  @update:model-value="toggleCanon(c.id)" />
+                <span style="font-family:var(--font-mono);font-size:11px;color:var(--muted);min-width:48px">Ch. {{ c.num }}</span>
+                <span style="flex:1;color:var(--ink-2);font-size:13px">{{ c.title || 'Untitled' }}</span>
+                <span style="font-family:var(--font-mono);font-size:10.5px;color:var(--muted)">{{ c.words.toLocaleString() }} w</span>
+              </label>
+            </div>
+            <div style="margin-top:12px;display:flex;align-items:center;gap:10px;font-family:var(--font-mono);font-size:11px;color:var(--muted)">
+              <span>{{ project.voiceCanonChapterIds?.length || 0 }} chapter{{ (project.voiceCanonChapterIds?.length || 0) === 1 ? '' : 's' }} in canon</span>
+              <span v-if="voicePreview.sampleWordCount">· ~{{ voicePreview.sampleWordCount }} word sample</span>
+              <span style="flex:1"></span>
+              <JwButton v-if="project.voiceCanonChapterIds?.length" intent="ghost" size="small" @click="clearCanon">
+                Clear all
+              </JwButton>
+            </div>
+            <details v-if="voicePreview.block" style="margin-top:14px">
+              <summary style="cursor:pointer;font-family:var(--font-mono);font-size:10px;letter-spacing:0.16em;text-transform:uppercase;color:var(--muted)">
+                Preview the fingerprint that will be injected
+              </summary>
+              <div style="margin-top:8px;padding:12px 14px;background:var(--surface-2);border-radius:6px;font-family:var(--font-serif);font-size:12.5px;line-height:1.6;color:var(--ink-2);white-space:pre-wrap;max-height:300px;overflow:auto">{{ voicePreview.block }}</div>
+            </details>
+          </template>
         </div>
 
         <div class="card">
@@ -2214,4 +2292,10 @@ const recentColumns = [
   color: var(--muted); pointer-events: none;
 }
 .wb-search-input { width: 100%; padding-left: 30px !important; }
+
+.set-desc {
+  font-size: 14px; line-height: 1.55; color: var(--muted);
+  margin: 0 0 18px;
+}
+.set-desc strong { color: var(--ink-2); font-weight: 600; }
 </style>
