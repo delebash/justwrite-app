@@ -162,9 +162,10 @@ const headerStats = computed(() => {
 });
 
 onMounted(() => {
-  if (eligibilityText.value) return;
-  if (cached.value) return;   // already generated for today
-  runRecap();
+  // Deliberately no auto-run: the user should see the AI routing chip
+  // in the header and have the option to change provider or model before
+  // spending tokens. The empty-state CTA below kicks off the run when
+  // they're ready.
 });
 </script>
 
@@ -210,6 +211,17 @@ onMounted(() => {
       <span>{{ err }}</span>
       <JwButton intent="ghost" size="small" @click="runRecap">
         <Icon name="Refresh" :size="12" /> Retry
+      </JwButton>
+    </div>
+
+    <div v-else-if="!recap && !running" class="recap-cta-empty">
+      <Icon name="Sparkle" :size="20" />
+      <p class="recap-cta-text">
+        Summarise today's writing and surface open threads worth pinning.
+        Change the provider in the chip above first if you want.
+      </p>
+      <JwButton intent="primary" @click="runRecap">
+        <Icon name="Sparkle" :size="13" /> Generate session recap
       </JwButton>
     </div>
 
@@ -367,6 +379,19 @@ onMounted(() => {
 }
 .recap-thread-status.added { color: var(--status-done); }
 .recap-thread-status.unavailable { color: var(--muted); font-style: italic; }
+
+.recap-cta-empty {
+  display: flex; flex-direction: column; align-items: center;
+  gap: 14px; padding: 32px 18px;
+  background: var(--surface-2);
+  border-radius: 10px;
+  text-align: center;
+}
+.recap-cta-empty > :first-child { color: var(--accent); }
+.recap-cta-text {
+  margin: 0; max-width: 56ch;
+  font-size: 13px; line-height: 1.55; color: var(--ink-2);
+}
 
 .recap-empty,
 .recap-error {

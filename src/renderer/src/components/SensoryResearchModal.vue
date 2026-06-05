@@ -84,7 +84,10 @@ const totalCount = computed(() =>
   categories.value.reduce((s, c) => s + c.items.length, 0),
 );
 
-onMounted(run);
+// Deliberately no auto-run on mount: the user should see the AI
+// routing chip in the header and have the option to change provider
+// or model before spending tokens. The empty-state CTA below kicks
+// off the run when they're ready.
 </script>
 
 <template>
@@ -119,6 +122,17 @@ onMounted(run);
     </div>
 
     <AiTaskStrip v-if="running" :task="myTask" />
+
+    <div v-else-if="!pack" class="sr-empty">
+      <Icon name="Sparkle" :size="20" />
+      <p class="sr-empty-text">
+        Build a structured sensory pack — sights, sounds, smells, textures, tastes — for the
+        selected subject. Change the provider in the chip above first if you want.
+      </p>
+      <JwButton intent="primary" @click="run">
+        <Icon name="Sparkle" :size="13" /> Research sensory details
+      </JwButton>
+    </div>
 
     <template v-else-if="categories.length">
       <div class="sr-grid">
@@ -170,17 +184,18 @@ onMounted(run);
   font-size: 12.5px;
 }
 
-.sr-loading {
-  display: flex; align-items: center; gap: 12px;
-  font-size: 13px; color: var(--muted); font-style: italic;
-  min-height: 100px;
+.sr-empty {
+  display: flex; flex-direction: column; align-items: center;
+  gap: 14px; padding: 32px 18px;
+  background: var(--surface-2);
+  border-radius: 10px;
+  text-align: center;
 }
-.sr-spinner {
-  display: inline-block; width: 14px; height: 14px;
-  border: 2px solid var(--surface-3); border-top-color: var(--accent);
-  border-radius: 50%; animation: sr-spin 0.9s linear infinite;
+.sr-empty > :first-child { color: var(--accent); }
+.sr-empty-text {
+  margin: 0; max-width: 56ch;
+  font-size: 13px; line-height: 1.55; color: var(--ink-2);
 }
-@keyframes sr-spin { to { transform: rotate(360deg); } }
 
 .sr-grid {
   display: grid;

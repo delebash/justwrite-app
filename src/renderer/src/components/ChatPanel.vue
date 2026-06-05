@@ -516,9 +516,16 @@ defineExpose({ open: () => { open.value = true; }, close });
   opacity: 0;
 }
 
-.cp-head { display: flex; justify-content: space-between; align-items: flex-start; gap: 14px; flex-shrink: 0; }
-.cp-head h2 { font-family: var(--font-serif); font-size: 18px; font-weight: 600; margin: 3px 0 0; }
-.cp-head-actions { display: flex; align-items: center; gap: 6px; flex-shrink: 0; }
+.cp-head { display: flex; justify-content: space-between; align-items: flex-start; gap: 14px; flex-shrink: 0; flex-wrap: wrap; }
+.cp-head > :first-child { flex: 1 1 auto; min-width: 0; }
+.cp-head h2 {
+  font-family: var(--font-serif); font-size: 18px; font-weight: 600; margin: 3px 0 0;
+  white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+}
+/* Actions row sits next to the title when there's space, wraps onto its
+   own line when the chip + Close button can't share the row with the
+   ~120px headline. flex-wrap on .cp-head handles the layout flip. */
+.cp-head-actions { display: flex; align-items: center; gap: 6px; flex-shrink: 0; flex-wrap: wrap; }
 .cp-mode-row {
   display: grid; grid-template-columns: 1fr 1fr; gap: 8px;
   margin-top: 12px; flex-shrink: 0;

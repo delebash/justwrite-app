@@ -180,9 +180,10 @@ const VERDICT_COLOURS = {
 
 onMounted(() => {
   initRows();
-  if (!reviewCharacters.value.length && rows.value.length) {
-    runSweep(false);
-  }
+  // Deliberately no auto-run: the user should see the AI routing chip
+  // in the header and have the option to change provider or model before
+  // spending tokens on each character. The empty-state CTA kicks off
+  // the run when they're ready.
 });
 </script>
 
@@ -222,16 +223,30 @@ onMounted(() => {
     <AiTaskStrip :task="myTask" />
 
     <!-- ── Scanning phase ────────────────────────────────────── -->
-    <div v-if="running || !reviewCharacters.length" class="ca-rows">
+    <div v-if="running" class="ca-rows">
       <StatusRow v-for="row in rows" :key="row.id"
         :status="row.status"
         :left="row.name?.[0]?.toUpperCase() || '?'"
         :main="row.name"
         :right="row.reason ? `${row.status} · ${row.reason}` : row.status" />
-      <EmptyState v-if="!progress.running.value && !rows.length"
+    </div>
+
+    <div v-else-if="!reviewCharacters.length && !rows.length" class="ca-rows">
+      <EmptyState
         icon="Users"
         title="No main characters"
         message="Mark a character as 'main' in their detail page, then re-open this modal." />
+    </div>
+
+    <div v-else-if="!reviewCharacters.length" class="ca-empty">
+      <Icon name="Sparkle" :size="20" />
+      <p class="ca-empty-text">
+        Read every scene this character appears in and audit for consistency against their profile.
+        Change the provider in the chip above first if you want.
+      </p>
+      <JwButton intent="primary" @click="runSweep(false)">
+        <Icon name="Sparkle" :size="13" /> Audit this character
+      </JwButton>
     </div>
 
     <!-- ── Review phase ──────────────────────────────────────── -->
@@ -319,6 +334,19 @@ onMounted(() => {
   color: var(--danger-ink, #b91c1c);
   font-size: 12.5px;
   margin-bottom: 10px;
+}
+
+.ca-empty {
+  display: flex; flex-direction: column; align-items: center;
+  gap: 14px; padding: 32px 18px;
+  background: var(--surface-2);
+  border-radius: 10px;
+  text-align: center;
+}
+.ca-empty > :first-child { color: var(--accent); }
+.ca-empty-text {
+  margin: 0; max-width: 56ch;
+  font-size: 13px; line-height: 1.55; color: var(--ink-2);
 }
 
 .ca-rows {

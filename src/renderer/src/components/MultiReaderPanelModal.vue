@@ -13,11 +13,13 @@
 import { ref, computed, onMounted } from "vue";
 import { useProjectStore } from "../stores/project.js";
 import { useAiStore } from "../stores/ai.js";
+import { useAiTasksStore } from "../stores/aiTasks.js";
 import {
   runMultiReaderPanel,
   PERSONAS,
 } from "../services/analysis/multiReaderCritique.js";
 import Icon from "./Icon.vue";
+import AiFeatureChip from "./AiFeatureChip.vue";
 import AppModal from "./AppModal.vue";
 import JwButton from "@renderer/components/ui/JwButton.vue";
 
@@ -28,19 +30,32 @@ const emit = defineEmits(["close"]);
 
 const project = useProjectStore();
 const ai = useAiStore();
+const aiTasks = useAiTasksStore();
 
 const ch = computed(() => project.chapterById(props.chapterId));
 const cached = computed(() => ch.value?.multiReader || null);
 
-const running = ref(false);
 const error = ref("");
 const liveColumns = ref(null);  // null until first run; map { personaKey: 'running' | 'done' | 'error' }
-let controller = null;
+
+// Find every persona task currently running for THIS chapter. Each of
+// the 4 personas registers its own task in the global aiTasks store
+// (feature "multiReader" + meta.chapterId + meta.personaKey), so we
+// filter by chapter and let the modal aggregate.
+const myTasks = computed(() =>
+  aiTasks.runningTasks.filter(
+    (t) => t.feature === "multiReader" && t.meta?.chapterId === props.chapterId
+  )
+);
+const running = computed(() => myTasks.value.length > 0);
 
 const panel = computed(() => cached.value?.panel || []);
 
+function isAbort(e) { return e?.name === "AbortError" || /abort/i.test(e?.message || ""); }
+
 async function run() {
   error.value = "";
+  if (running.value) return;
   if (!ai.providerForFeature("multiReader")) {
     error.value = "Configure an AI provider in Settings → AI to run the multi-reader panel.";
     return;
@@ -50,15 +65,12 @@ async function run() {
     error.value = "This chapter has no prose to read yet.";
     return;
   }
-  controller = new AbortController();
   liveColumns.value = Object.fromEntries(PERSONAS.map((p) => [p.key, "pending"]));
-  running.value = true;
   try {
     const result = await runMultiReaderPanel({
       html,
       chapterTitle: ch.value?.title,
       chapterNum: ch.value?.num,
-      signal: controller.signal,
       onPersonaPhase: (key, phase) => {
         liveColumns.value = { ...liveColumns.value, [key]: phase };
       },
@@ -66,14 +78,13 @@ async function run() {
     });
     project.setChapterMultiReader(props.chapterId, result);
   } catch (e) {
-    if (!controller.signal.aborted) {
+    if (!isAbort(e)) {
       const msg = String(e?.message || e || "");
       error.value = /provider|api key|configure/i.test(msg)
         ? "Configure an AI provider in Settings → AI to run the multi-reader panel."
         : msg || "Couldn't run the panel.";
     }
   } finally {
-    running.value = false;
     liveColumns.value = null;
   }
 }
@@ -86,8 +97,11 @@ function clearPanel() {
   project.clearChapterMultiReader(props.chapterId);
 }
 function cancel() {
-  if (controller) controller.abort();
-  running.value = false;
+  // Cancel every running persona task for this chapter — each is its
+  // own entry in the aiTasks store. Snapshot ids first because cancel
+  // mutates the running list.
+  const ids = myTasks.value.map((t) => t.id);
+  for (const id of ids) aiTasks.cancel(id);
   liveColumns.value = null;
 }
 
@@ -101,9 +115,10 @@ const ago = (ts) => {
   return `${Math.floor(h / 24)}d ago`;
 };
 
-onMounted(() => {
-  if (!cached.value) run();
-});
+// Deliberately no auto-run on mount: the user should see the chip and
+// have the option to change the AI provider/model before spending tokens
+// on 4 persona calls. The "Read this chapter" CTA in the empty state
+// kicks off the run when they're ready.
 </script>
 
 <template>
@@ -114,6 +129,16 @@ onMounted(() => {
     :closable="!running"
     @close="emit('close')"
   >
+    <template #header>
+      <div class="mr-titleblock">
+        <div class="t-eyebrow">Multi-reader panel</div>
+        <h2 class="modal-title">{{ ch ? `Chapter ${ch.num} — ${ch.title || "Untitled"}` : "Multi-reader panel" }}</h2>
+      </div>
+      <div class="mr-header-actions">
+        <AiFeatureChip feature="multiReader" label="Multi-reader" />
+      </div>
+    </template>
+
     <p class="mr-blurb">
       Four distinct readers each read this chapter through a different lens — a
       <strong>genre-savvy reader</strong> encountering it cold, a <strong>literary critic</strong>
@@ -141,6 +166,19 @@ onMounted(() => {
           </span>
         </template>
       </span>
+    </div>
+
+    <div v-else-if="!cached && !running" class="mr-empty">
+      <Icon name="Sparkle" :size="20" />
+      <p class="mr-empty-text">
+        Send this chapter to four reader lenses in parallel — a
+        <strong>genre-savvy reader</strong>, a <strong>literary critic</strong>, an
+        <strong>agent's intern</strong>, and a <strong>book-club reader</strong>.
+        Change the provider in the chip above first if you want.
+      </p>
+      <JwButton intent="primary" @click="run">
+        <Icon name="Sparkle" :size="13" /> Read this chapter
+      </JwButton>
     </div>
 
     <div v-else-if="cached" class="mr-grid">
@@ -189,6 +227,10 @@ onMounted(() => {
 </template>
 
 <style scoped>
+.mr-titleblock { display: flex; flex-direction: column; gap: 2px; flex: 1; min-width: 0; }
+.mr-titleblock h2 { font-family: var(--font-serif); font-size: 22px; font-weight: 600; margin: 4px 0 0; }
+.mr-header-actions { display: flex; align-items: center; gap: 8px; flex-shrink: 0; }
+
 .mr-blurb {
   margin: 0 0 16px; max-width: 82ch;
   font-size: 12.5px; line-height: 1.55; color: var(--muted);
@@ -208,6 +250,23 @@ onMounted(() => {
   font-size: 12.5px; color: var(--muted); font-style: italic;
   padding: 16px 0;
 }
+
+/* Empty state — shown before any panel has been generated AND there's
+   no run in flight. Gives the user a beat to change the chip routing
+   before spending tokens on four parallel persona calls. */
+.mr-empty {
+  display: flex; flex-direction: column; align-items: center;
+  gap: 14px; padding: 32px 18px;
+  background: var(--surface-2);
+  border-radius: 10px;
+  text-align: center;
+}
+.mr-empty > :first-child { color: var(--accent); }
+.mr-empty-text {
+  margin: 0; max-width: 56ch;
+  font-size: 13px; line-height: 1.55; color: var(--ink-2);
+}
+.mr-empty-text strong { color: var(--ink); font-weight: 600; }
 .mr-loading .done { color: var(--status-done); font-weight: 600; font-style: normal; }
 .mr-loading .err { color: var(--danger); font-style: normal; }
 .mr-spinner {

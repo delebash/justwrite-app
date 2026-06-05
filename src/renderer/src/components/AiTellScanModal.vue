@@ -70,7 +70,9 @@ function highlight(snippet, phrase) {
 
 const KIND_KEYS = Object.keys(TELL_KINDS);
 
-onMounted(runScan);
+// Deliberately no auto-run on mount: the user should be able to see
+// the modal before the scan fires. The empty-state CTA below kicks
+// off the deterministic scan when they're ready.
 </script>
 
 <template>
@@ -88,7 +90,16 @@ onMounted(runScan);
       way LLMs over-balance clauses) need a model to hear.
     </p>
 
-    <div v-if="!result" class="at-loading">Scanning…</div>
+    <div v-if="!result" class="at-empty">
+      <Icon name="Sparkle" :size="20" />
+      <p class="at-empty-text">
+        Scan this chapter for telling-instead-of-showing prose.
+        No AI call needed — this runs instantly on your local manuscript.
+      </p>
+      <JwButton intent="primary" @click="runScan">
+        <Icon name="Sparkle" :size="13" /> Scan for tell
+      </JwButton>
+    </div>
 
     <template v-else>
       <div class="at-stats">
@@ -168,8 +179,17 @@ onMounted(runScan);
 }
 .at-blurb strong { color: var(--ink-2); font-weight: 600; }
 
-.at-loading {
-  font-size: 12.5px; color: var(--muted); font-style: italic; padding: 20px 0;
+.at-empty {
+  display: flex; flex-direction: column; align-items: center;
+  gap: 14px; padding: 32px 18px;
+  background: var(--surface-2);
+  border-radius: 10px;
+  text-align: center;
+}
+.at-empty > :first-child { color: var(--accent); }
+.at-empty-text {
+  margin: 0; max-width: 56ch;
+  font-size: 13px; line-height: 1.55; color: var(--ink-2);
 }
 
 .at-stats {

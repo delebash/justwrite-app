@@ -126,9 +126,10 @@ const ago = (ts) => {
   return `${Math.floor(h / 24)}d ago`;
 };
 
-onMounted(() => {
-  if (!audit.value) run();
-});
+// Deliberately no auto-run on mount: the user should see the AI
+// routing chip in the header and have the option to change provider
+// or model before spending tokens on the whole-book pass. The
+// empty-state CTA below kicks off the run when they're ready.
 </script>
 
 <template>
@@ -191,9 +192,15 @@ onMounted(() => {
 
     <AiTaskStrip v-if="running" :task="myTask" />
 
-    <div v-else-if="!audit" class="ph-loading">
-      <span class="ph-spinner" />
-      <span>Reading the whole book for contradictions…</span>
+    <div v-else-if="!audit" class="ph-empty">
+      <Icon name="Sparkle" :size="20" />
+      <p class="ph-empty-text">
+        Scan the whole book for continuity contradictions, timeline issues, and
+        character-knowledge errors. Change the provider in the chip above first if you want.
+      </p>
+      <JwButton intent="primary" @click="run">
+        <Icon name="Sparkle" :size="13" /> Scan for plot holes
+      </JwButton>
     </div>
 
     <template v-else-if="audit">
@@ -297,17 +304,18 @@ onMounted(() => {
   font-size: 12.5px;
 }
 
-.ph-loading {
-  display: flex; align-items: center; gap: 12px;
-  font-size: 13px; color: var(--muted); font-style: italic;
-  min-height: 100px;
+.ph-empty {
+  display: flex; flex-direction: column; align-items: center;
+  gap: 14px; padding: 32px 18px;
+  background: var(--surface-2);
+  border-radius: 10px;
+  text-align: center;
 }
-.ph-spinner {
-  display: inline-block; width: 14px; height: 14px;
-  border: 2px solid var(--surface-3); border-top-color: var(--accent);
-  border-radius: 50%; animation: ph-spin 0.9s linear infinite;
+.ph-empty > :first-child { color: var(--accent); }
+.ph-empty-text {
+  margin: 0; max-width: 56ch;
+  font-size: 13px; line-height: 1.55; color: var(--ink-2);
 }
-@keyframes ph-spin { to { transform: rotate(360deg); } }
 
 .ph-head { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; margin-bottom: 12px; }
 .ph-pill {

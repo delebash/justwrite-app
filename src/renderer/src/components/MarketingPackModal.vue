@@ -99,9 +99,10 @@ function formatComps(comps) {
   }).join("\n");
 }
 
-onMounted(() => {
-  if (!pack.value) run();
-});
+// Deliberately no auto-run on mount: the user should see the AI
+// routing chip in the header and have the option to change provider
+// or model before spending tokens on the whole-book pass. The
+// empty-state CTA below kicks off the run when they're ready.
 </script>
 
 <template>
@@ -139,9 +140,15 @@ onMounted(() => {
 
     <AiTaskStrip v-if="running" :task="myTask" />
 
-    <div v-else-if="!pack" class="mp-loading">
-      <span class="mp-spinner" />
-      <span>Reading the whole book…</span>
+    <div v-else-if="!pack" class="mp-empty">
+      <Icon name="Sparkle" :size="20" />
+      <p class="mp-empty-text">
+        Generate a logline, back-cover blurbs, synopsis, and elevator pitch from your manuscript.
+        Change the provider in the chip above first if you want.
+      </p>
+      <JwButton intent="primary" @click="run">
+        <Icon name="Sparkle" :size="13" /> Generate marketing pack
+      </JwButton>
     </div>
 
     <template v-else-if="pack">
@@ -278,17 +285,18 @@ onMounted(() => {
   font-size: 12.5px;
 }
 
-.mp-loading {
-  display: flex; align-items: center; gap: 12px;
-  font-size: 13px; color: var(--muted); font-style: italic;
-  min-height: 100px;
+.mp-empty {
+  display: flex; flex-direction: column; align-items: center;
+  gap: 14px; padding: 32px 18px;
+  background: var(--surface-2);
+  border-radius: 10px;
+  text-align: center;
 }
-.mp-spinner {
-  display: inline-block; width: 14px; height: 14px;
-  border: 2px solid var(--surface-3); border-top-color: var(--accent);
-  border-radius: 50%; animation: mp-spin 0.9s linear infinite;
+.mp-empty > :first-child { color: var(--accent); }
+.mp-empty-text {
+  margin: 0; max-width: 56ch;
+  font-size: 13px; line-height: 1.55; color: var(--ink-2);
 }
-@keyframes mp-spin { to { transform: rotate(360deg); } }
 
 .mp-head { margin-bottom: 16px; }
 .mp-meta { font-family: var(--font-mono); font-size: 10.5px; color: var(--muted); }

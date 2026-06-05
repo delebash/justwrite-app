@@ -7,6 +7,7 @@ import { useRouter } from "vue-router";
 import PaneHeader from "../components/PaneHeader.vue";
 import Icon from "../components/Icon.vue";
 import RichEditor from "../components/RichEditor.vue";
+import AiFeatureChip from "../components/AiFeatureChip.vue";
 import SceneLinks from "../components/SceneLinks.vue";
 import VersionHistoryModal from "../components/VersionHistoryModal.vue";
 import CritiqueModal from "../components/CritiqueModal.vue";
@@ -1061,6 +1062,14 @@ watch(() => project.allChapters.map((c) => c.id + ":" + (project.scenesFor(c.id)
             <Icon name="ChevDown" :size="12" class="ai-strip-caret" />
           </JwButton>
           <div v-if="aiStripOpen" class="ai-strip-menu" role="menu">
+            <!-- Routing chip at the top of the menu: shows the current
+                 provider + model for every writerAI action below, with
+                 a click-to-edit popover for picking a different one. -->
+            <div class="ai-strip-routing">
+              <span class="ai-strip-routing-label">Running on</span>
+              <AiFeatureChip feature="writerAI" label="Writer actions" />
+            </div>
+            <div class="ai-strip-divider"></div>
             <div class="ai-strip-section">
               Selection only
               <span v-if="!hasSelection" class="ai-strip-section-hint">Highlight text first to enable</span>
@@ -1652,6 +1661,18 @@ watch(() => project.allChapters.map((c) => c.id + ":" + (project.scenesFor(c.id)
   border-radius: 8px; box-shadow: 0 8px 24px rgba(0,0,0,.18);
   padding: 6px; z-index: 60;
   display: flex; flex-direction: column;
+}
+/* Routing row at the top of the AI dropdown. The chip sits next to a
+   "Running on" label so the writer knows which provider + model will
+   run when they pick an action below — and can change it inline before
+   committing. */
+.ai-strip-routing {
+  display: flex; align-items: center; gap: 8px; flex-wrap: wrap;
+  padding: 8px 12px 6px;
+}
+.ai-strip-routing-label {
+  font-family: var(--font-mono); font-size: 10px;
+  letter-spacing: 0.12em; text-transform: uppercase; color: var(--muted);
 }
 .ai-strip-section {
   display: flex; align-items: baseline; gap: 8px;

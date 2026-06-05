@@ -71,7 +71,10 @@ function useMove(move) {
   emit("useMove", move);
 }
 
-onMounted(run);
+// Deliberately no auto-run on mount: the user should see the AI
+// routing chip in the header and have the option to change provider
+// or model before spending tokens. The empty-state CTA below kicks
+// off the run when they're ready.
 </script>
 
 <template>
@@ -105,6 +108,17 @@ onMounted(run);
     </div>
 
     <AiTaskStrip v-if="running" :task="myTask" />
+
+    <div v-else-if="!moves.length" class="su-empty">
+      <Icon name="Sparkle" :size="20" />
+      <p class="su-empty-text">
+        Five concrete ways out of this stuck moment — goal shift, interrupt, setting change,
+        reveal, time cut. Change the provider in the chip above first if you want.
+      </p>
+      <JwButton intent="primary" @click="run">
+        <Icon name="Sparkle" :size="13" /> Get unstuck
+      </JwButton>
+    </div>
 
     <ul v-else-if="moves.length" class="su-moves">
       <li v-for="m in moves" :key="m.id" class="su-move" :data-kind="m.kind">
@@ -148,17 +162,18 @@ onMounted(run);
   font-size: 12.5px;
 }
 
-.su-loading {
-  display: flex; align-items: center; gap: 12px;
-  font-size: 13px; color: var(--muted); font-style: italic;
-  min-height: 80px;
+.su-empty {
+  display: flex; flex-direction: column; align-items: center;
+  gap: 14px; padding: 32px 18px;
+  background: var(--surface-2);
+  border-radius: 10px;
+  text-align: center;
 }
-.su-spinner {
-  display: inline-block; width: 14px; height: 14px;
-  border: 2px solid var(--surface-3); border-top-color: var(--accent);
-  border-radius: 50%; animation: su-spin 0.9s linear infinite;
+.su-empty > :first-child { color: var(--accent); }
+.su-empty-text {
+  margin: 0; max-width: 56ch;
+  font-size: 13px; line-height: 1.55; color: var(--ink-2);
 }
-@keyframes su-spin { to { transform: rotate(360deg); } }
 
 .su-moves { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 10px; }
 .su-move {

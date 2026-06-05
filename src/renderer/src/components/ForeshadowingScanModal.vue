@@ -184,7 +184,10 @@ const danglingCount = computed(() => dangling.value.length);
 const mentionedCount = computed(() => mentioned.value.length);
 const pinnedCount = computed(() => Object.values(pinStatus.value).filter((v) => v === "added").length);
 
-onMounted(runScan);
+// Deliberately no auto-run on mount: the user should see the AI
+// routing chip in the header and have the option to change provider
+// or model before spending tokens on every chapter. The empty-state
+// CTA below kicks off the run when they're ready.
 </script>
 
 <template>
@@ -338,6 +341,18 @@ onMounted(runScan);
       <Icon name="Alert" :size="13" /> {{ error }}
     </div>
 
+    <div v-if="!running && !rows.length" class="fh-empty">
+      <Icon name="Sparkle" :size="20" />
+      <p class="fh-empty-text">
+        Scan every chapter for setups that may not have paid off.
+        Change the provider in the chip above first if you want.
+      </p>
+      <JwButton intent="primary" @click="runScan">
+        <Icon name="Sparkle" :size="13" /> Scan for dangling threads
+      </JwButton>
+    </div>
+
+    <template v-else>
     <AiTaskStrip :task="myTask" />
 
     <div class="fs-rowlist">
@@ -347,6 +362,7 @@ onMounted(runScan);
         :main="row.title || 'Untitled'"
         :right="row.reason ? `${row.status} · ${row.reason}` : row.status" />
     </div>
+    </template>
   </AppModal>
 </template>
 
@@ -363,6 +379,19 @@ onMounted(runScan);
   color: var(--danger-ink, #b91c1c);
   font-size: 12.5px;
   margin-bottom: 10px;
+}
+
+.fh-empty {
+  display: flex; flex-direction: column; align-items: center;
+  gap: 14px; padding: 32px 18px;
+  background: var(--surface-2);
+  border-radius: 10px;
+  text-align: center;
+}
+.fh-empty > :first-child { color: var(--accent); }
+.fh-empty-text {
+  margin: 0; max-width: 56ch;
+  font-size: 13px; line-height: 1.55; color: var(--ink-2);
 }
 
 .fs-rowlist {

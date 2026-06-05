@@ -134,7 +134,10 @@ function onReviewCommitted(payload) {
   emit("committed", payload);
 }
 
-onMounted(runSweep);
+// Deliberately no auto-run on mount: the user should see the AI
+// routing chip in the header and have the option to change provider
+// or model before spending tokens on every chapter. The empty-state
+// CTA below kicks off the run when they're ready.
 </script>
 
 <template>
@@ -175,7 +178,18 @@ onMounted(runSweep);
 
     <AiTaskStrip :task="myTask" />
 
-    <div class="sweep-list">
+    <div v-if="!running && !rows.length" class="sweep-empty">
+      <Icon name="Sparkle" :size="20" />
+      <p class="sweep-empty-text">
+        Scan every chapter for new characters, locations, and objects. Change the provider
+        in the chip above first if you want.
+      </p>
+      <JwButton intent="primary" @click="runSweep">
+        <Icon name="Sparkle" :size="13" /> Scan the manuscript
+      </JwButton>
+    </div>
+
+    <div v-else class="sweep-list">
       <StatusRow v-for="row in rows" :key="row.id"
         :status="row.status"
         :left="row.num"
@@ -201,6 +215,23 @@ onMounted(runSweep);
   background: color-mix(in oklab, var(--danger-ink, #b91c1c) 12%, transparent);
   color: var(--danger-ink, #b91c1c);
   font-size: 12.5px;
+}
+
+.sweep-empty {
+  display: flex; flex-direction: column; align-items: center;
+  gap: 14px; padding: 32px 18px;
+  background: var(--surface-2);
+  border-radius: 10px;
+  text-align: center;
+}
+/* Direct child only — without `>`, this also matched the first child of
+   the JwButton's label span (which IS the slot content), recoloring the
+   button text to the same accent as the button background → invisible
+   text. The intent is to color just the big Sparkle icon at the top. */
+.sweep-empty > :first-child { color: var(--accent); }
+.sweep-empty-text {
+  margin: 0; max-width: 56ch;
+  font-size: 13px; line-height: 1.55; color: var(--ink-2);
 }
 
 .sweep-list {
