@@ -1,5 +1,5 @@
 <script setup>
-import { ref, computed, watchEffect } from "vue";
+import { ref, computed, watch, watchEffect } from "vue";
 import { useAiStore } from "../stores/ai.js";
 import { useProjectStore } from "../stores/project.js";
 import { useUiStore } from "../stores/ui.js";
@@ -184,6 +184,7 @@ const DEBUG_TOOLS = [
 ];
 
 const active = ref(props.section || "project");
+watch(() => props.section, (s) => { if (s) active.value = s; });
 
 // Lazily fetch model lists for any features that already have a pinned
 // provider when the AI section opens (so the model select isn't blank
