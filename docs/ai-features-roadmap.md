@@ -145,25 +145,25 @@ Per relationship pair (A↔B), LLM produces a chapter-by-chapter arc with warmth
 
 **Shipped as:** A **Relationship arc** button on the Characters view header opens a modal with two character pickers. JustWrite collects every chapter where both characters are linked to the same scene via the Links panel, sends profiles + shared-scene tails to the model, and gets back a chapter-by-chapter arc with three dimensions per chapter: warmth (1–10, cold↔warm), tension (1–10, calm↔taut), and power ("A"|"B"|"eq"). Plus an overall trajectory classification — warming / cooling / escalating / defusing / flipping / static — and a 2–3 sentence summary. The modal renders a trajectory chip, a two-line chart (warmth solid gold + tension dashed red), and a three-row heatmap strip (warmth / tension / power) with per-chapter cells coloured on those scales. Click any cell to surface the model's one-sentence moment for that chapter. Surfaces a clear error if the two characters share no scenes (the Links panel is the source of truth). Persists per-pair on `project.relationshipArcs[pairKey]` keyed by sorted character ids, so multiple tracked pairs coexist. Routable as the **relationshipArc** feature in Settings → AI. Service: `services/analysis/relationshipArc.js` (with `pairKey` and `TRAJECTORY_LABELS` exports). Modal: `components/RelationshipArcModal.vue`. Project store: `setRelationshipArc / clearRelationshipArc / clearAllRelationshipArcs`. Docs: `docs/story-bible.md` "Relationship arc" section.
 
-### 17. Three-alternative streaming (variations)
+### 17. Three-alternative streaming (variations) — **Shipped**
 
 Writer actions currently stream one result. Add an opt-in "show 3" mode (parallel generations, varied temperature). Writers underuse this but it changes draft quality once the habit forms.
 
-**Design — opt-in by default, two surfaces:**
+**Shipped as:** Opt-in by default with two surfaces, exactly as specified:
 
-1. **Settings toggle** in Settings → AI: *"Show 3 variations on every writer action"* (off by default). When off, behaviour is unchanged from today — single stream, one result, same cost. When on, every Rewrite / Expand / Tighten / Continue / Describe / line edit runs three streams in parallel with slightly varied temperature (e.g. 0.6 / 0.75 / 0.9) and opens a three-column comparison modal.
-2. **Shift-click** on any AI dropdown item forces 3-up for one call regardless of the toggle. Power-user escape hatch for "I trust the prose for most actions but want choice on this paragraph."
+1. **Settings → AI → "Show 3 variations on every AI action"** — global toggle, off by default. When on, every Rewrite / Expand / Tighten / Continue / Describe / line edit / guided continue routes through `VariationsModal` instead of streaming inline. The toggle is persisted on `ui.showVariations`.
+2. **Shift-click** on any scene-strip AI dropdown item forces variations for that one call regardless of the toggle. `ChaptersView.callAi` and `callProse` now accept the click event and forward `shiftKey` through to `runWriterAction` / `runProsePass`.
 
-**Cost story:** identical to today by default. Triple only when the writer explicitly opts in (toggle on, or shift-click). No surprise bills.
+Cost story preserved: identical to today by default; triple only on explicit opt-in. The `runAiStream` usage ledger records all three streams independently so cost surfaces honestly in Settings → AI Usage.
 
-**Shape:**
-  - Service: extend `writerAI.runAction` / `guidedContinue` with `variations: 1 | 3` option. When 3, fires three `runAiStream` calls concurrently, each with its own temperature; returns an array of `{ html, raw, usage }`.
-  - New `components/VariationsModal.vue`: three-column live-streaming view; each column has its own progress + "Use this" button. Clicking a column threads the chosen result into the existing `proposeContinuation` flow (so accept/reject diff UI is unchanged).
-  - `RichEditor.vue` `runWriterAction` and `runGuidedContinue` check the toggle and/or a `shiftKey` flag from the caller; route to the modal when variations are requested.
-  - `ui` store: `showVariations: false` setting + persistence.
-  - SettingsView toggle.
+**Shape (shipped):**
+  - `services/writerAI.js`: `runAction`, `guidedContinue`, and `applyRule` now accept an optional `temperature` param (defaults preserved at 0.7 / 0.7 / 0.6 respectively). A `VARIATION_TEMPERATURES = [0.55, 0.7, 0.95]` constant is exported.
+  - `components/VariationsModal.vue` — generic three-column streaming UI parameterised by a `runner(temperature, signal, onDelta)` function the caller closes over. Each column has its own `useAiProgress` instance, live `<pre>`-style preview, error state, retry/re-stream button, and "Use this" action. Closing the modal cancels every in-flight stream.
+  - `components/RichEditor.vue`: a `startVariations({ runnerFactory, mode, from, to, originalHtml, eyebrow, label })` helper captures the LLM call shape + target range, sets `variationsFlow` ref to mount the modal, and threads the chosen result back into the existing `proposeReplacement` / `proposeContinuation` machinery on the `useVariation` emission. `runWriterAction`, `runProsePass`, and `runGuidedContinue` all branch through this when `shouldUseVariations(opts.shiftKey)` returns true.
+  - `stores/ui.js`: `showVariations: false` state + `setShowVariations` action + persistence.
+  - `views/SettingsView.vue`: new "Three-alternative streaming" card under the AI section with writer-problem framing, the toggle, and explicit note that shift-click is always available.
 
-Per-call cost ledger records all three usage payloads independently so the Usage dashboard surfaces the real cost honestly.
+Closes Tier 2 — 12 of 12 entries Shipped.
 
 ### 18. Brainstorm-next-beats (plot-level) — **Shipped**
 

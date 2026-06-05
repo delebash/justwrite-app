@@ -1084,6 +1084,36 @@ const recentColumns = [
           </div>
         </div>
 
+        <!-- Three-alternative streaming — opt-in cost control for the
+             "always show 3 variations" mode. Off by default; the writer
+             can also force variations per-call with shift-click on any
+             AI dropdown item regardless of this toggle. -->
+        <div class="card">
+          <div class="card-title">Three-alternative streaming</div>
+          <p class="t-muted" style="font-size:12.5px;margin:0 0 14px;line-height:1.55">
+            When on, every <strong>Rewrite</strong>, <strong>Expand</strong>, <strong>Tighten</strong>,
+            <strong>Continue</strong>, <strong>Describe</strong>, <strong>line edit</strong>, and
+            <strong>Continue with direction</strong> runs as three parallel streams (varied
+            temperature, more conservative ↔ more inventive). Pick the column that reads best;
+            the other two are discarded. <strong>Off by default</strong> — variations mode triples
+            token cost. Whether the toggle is on or off, <strong>shift-click any AI dropdown
+            item</strong> to opt in to variations for that one call.
+          </p>
+          <label style="display:flex;gap:10px;align-items:flex-start;padding:8px;cursor:pointer;border-radius:6px"
+                 :style="ui.showVariations ? 'background:var(--accent-soft)' : ''">
+            <JwCheckbox
+              :model-value="ui.showVariations"
+              @update:model-value="ui.setShowVariations" />
+            <span style="color:var(--ink-2);font-size:13px;line-height:1.45">
+              <strong style="color:var(--ink)">Show 3 variations on every AI action.</strong><br />
+              <span style="color:var(--muted);font-size:12px">
+                Triples token cost on cloud providers. Free on local. The writer can still
+                shift-click for one-off variations even when this is off.
+              </span>
+            </span>
+          </label>
+        </div>
+
         <!-- Voice canon — chapters that represent the writer's established
              voice. The fingerprint service builds a sample + style summary
              from them and injects it into every writer action's system

@@ -99,6 +99,12 @@ export const useUiStore = defineStore("ui", {
       //          text, gapLabel, daysSince, generatedAt, model, providerId }
       briefingCache: null,
       briefingDismissedOn: null,
+      // When true, every Rewrite / Expand / Tighten / Continue / Describe
+      // / line edit / guided continue runs as THREE parallel streams
+      // (varied temperature) so the writer picks the best column.
+      // Off by default — triples token cost. Shift-click on any AI
+      // dropdown item is a per-call override regardless of this toggle.
+      showVariations: false,
       ...saved,
       // Resolve appearance last: wins over the raw spread and folds in any
       // legacy { theme, accentHue } keys from older saves.
@@ -163,6 +169,11 @@ export const useUiStore = defineStore("ui", {
     },
     closeProjectReplace() {
       this.replaceModal = { open: false, initialTerm: "" };
+    },
+
+    setShowVariations(on) {
+      this.showVariations = !!on;
+      this._persist();
     },
 
     openChatPanel()  { this.chatPanelOpen = true; },
@@ -264,6 +275,7 @@ export const useUiStore = defineStore("ui", {
         chapterEditStyle: this.chapterEditStyle,
         briefingCache: this.briefingCache,
         briefingDismissedOn: this.briefingDismissedOn,
+        showVariations: this.showVariations,
       });
     },
   },

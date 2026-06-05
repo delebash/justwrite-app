@@ -30,6 +30,7 @@ import { saveImage, urlFor } from "@renderer/services/imageStore";
 import { AiDiff, hasPendingChanges, listPendingChanges } from "@renderer/services/aiDiff";
 import { Marker, MARKER_CATEGORIES, categoryById } from "@renderer/services/markers";
 import * as writerAI from "@renderer/services/writerAI";
+import VariationsModal from "./VariationsModal.vue";
 import { PROSE_RULES, PROSE_RULE_ORDER } from "@renderer/services/writerAI";
 import { useAiProgress } from "@renderer/composables/useAiProgress";
 import { useUiStore } from "../stores/ui.js";
@@ -519,6 +520,47 @@ const hasSelection = ref(false);
 // the user's pick sticks (small enough to live in localStorage directly).
 const aiProgress = useAiProgress();
 const aiShowPreview = ref(loadShowPreview());
+
+// Three-alternative streaming. When set, the VariationsModal opens
+// with the runnerFactory and applies the chosen result via the
+// captured mode + target range. Cleared when the modal closes.
+// Shape: { runnerFactory, mode, from, to, originalHtml, label, eyebrow }
+//   - mode 'replace':       proposeReplacement at (from, to)
+//   - mode 'continue-at':   proposeContinuation at `from`
+const variationsFlow = ref(null);
+
+// Helper invoked from each writer-action entry point. Captures the
+// LLM-call shape and the target range, then opens the modal. The
+// modal runs the runner three times concurrently; on Use this we
+// apply the chosen result via the editor's existing diff machinery.
+function startVariations({ runnerFactory, mode, from, to, originalHtml, label, eyebrow }) {
+  variationsFlow.value = { runnerFactory, mode, from, to, originalHtml, label, eyebrow };
+}
+function onVariationChosen(result) {
+  const flow = variationsFlow.value;
+  variationsFlow.value = null;
+  if (!flow || !editor.value || !result?.html?.trim()) return;
+  if (flow.mode === "replace") {
+    editor.value.chain().focus().proposeReplacement({
+      from: flow.from, to: flow.to,
+      originalHtml: flow.originalHtml,
+      newHtml: result.html,
+    }).run();
+  } else if (flow.mode === "continue-at") {
+    editor.value.chain().focus().proposeContinuation({
+      at: flow.from, newHtml: result.html,
+    }).run();
+  }
+}
+function onVariationsClose() {
+  variationsFlow.value = null;
+}
+// Per-call resolution of variations mode — caller may force it via
+// shiftKey (passed through callAi handlers), otherwise the ui store's
+// global toggle decides. Returns true when the modal should be used.
+function shouldUseVariations(callerShift) {
+  return !!callerShift || !!ui.showVariations;
+}
 function loadShowPreview() {
   try { return localStorage.getItem("justwrite:ui:aiShowPreview") === "1"; } catch { return false; }
 }
@@ -596,9 +638,10 @@ const ACTION_LABELS = {
 // one-click menu.
 const ACTIONS_WHOLE_SCENE_FALLBACK = new Set(["tighten"]);
 
-async function runWriterAction(actionKey) {
+async function runWriterAction(actionKey, opts = {}) {
   if (!editor.value || aiRunning.value) return;
   proseMenuOpen.value = false;
+  const useVariations = shouldUseVariations(opts.shiftKey);
   let { from, to, html } = readSelectionHtml();
   let scope = from === to ? "scene" : "selection";
   // Describe — additive: takes the selection as the subject and inserts
@@ -608,6 +651,18 @@ async function runWriterAction(actionKey) {
   // cursor, so the original passage is preserved verbatim.
   if (actionKey === "describe") {
     if (from === to) { aiError.value = "Highlight the subject to describe (a place, person, object, or moment)."; return; }
+    if (useVariations) {
+      startVariations({
+        runnerFactory: (temperature, signal, onDelta) => writerAI.describe({
+          html, signal, onDelta, temperature,
+        }),
+        mode: "continue-at", from: to, to,
+        originalHtml: "",
+        eyebrow: "Describe — three variations",
+        label: "Pick a description to insert",
+      });
+      return;
+    }
     aiRunning.value = true; aiError.value = "";
     aiActionLabel.value = ACTION_LABELS.describe;
     aiProgress.start();
@@ -636,6 +691,18 @@ async function runWriterAction(actionKey) {
   if (actionKey === "continue" && from === to) {
     const ctx = grabContextBeforeCursor(800);
     if (!ctx.trim()) { aiError.value = "Place the cursor at the end of some prose to continue from."; return; }
+    if (useVariations) {
+      startVariations({
+        runnerFactory: (temperature, signal, onDelta) => writerAI.continueFrom({
+          html: `<p>${ctx}</p>`, signal, onDelta, temperature,
+        }),
+        mode: "continue-at", from, to: from,
+        originalHtml: "",
+        eyebrow: "Continue — three variations",
+        label: "Pick a continuation to insert",
+      });
+      return;
+    }
     aiRunning.value = true; aiError.value = "";
     aiActionLabel.value = ACTION_LABELS.continue;
     aiProgress.start();
@@ -673,6 +740,23 @@ async function runWriterAction(actionKey) {
       return;
     }
   }
+  if (useVariations) {
+    const fnVariation = actionKey === "rewrite" ? writerAI.rewrite
+                      : actionKey === "expand"  ? writerAI.expand
+                      : actionKey === "tighten" ? writerAI.tighten
+                      : writerAI.continueFrom;
+    const labelMap = ACTION_LABELS[actionKey];
+    const labelText = typeof labelMap === "object" ? (labelMap[scope] || labelMap.selection) : (labelMap || "Variations");
+    startVariations({
+      runnerFactory: (temperature, signal, onDelta) => fnVariation({
+        html, signal, onDelta, temperature,
+      }),
+      mode: "replace", from, to, originalHtml: html,
+      eyebrow: `${labelText.replace(/[…\.]+$/, "")} — three variations`,
+      label: "Pick a variation to apply",
+    });
+    return;
+  }
   aiRunning.value = true; aiError.value = "";
   // Pick the scope-aware label for actions that have one; fall back to a
   // single string for actions that don't (rewrite/expand are
@@ -707,9 +791,10 @@ async function runWriterAction(actionKey) {
   }
 }
 
-async function runProsePass(ruleKey) {
+async function runProsePass(ruleKey, opts = {}) {
   if (!editor.value || aiRunning.value) return;
   proseMenuOpen.value = false;
+  const useVariations = shouldUseVariations(opts.shiftKey);
   let { from, to, html } = readSelectionHtml();
   let scope = from === to ? "scene" : "selection";
   // Line edits are surgical revisions; running them on the whole scene
@@ -717,6 +802,18 @@ async function runProsePass(ruleKey) {
   if (from === to) {
     ({ from, to, html } = readWholeDocHtml());
     if (!html) { aiError.value = "Nothing to work with — the scene is empty."; return; }
+  }
+  if (useVariations) {
+    const ruleLabel = PROSE_RULES[ruleKey]?.label || ruleKey;
+    startVariations({
+      runnerFactory: (temperature, signal, onDelta) => writerAI.applyRule(ruleKey, {
+        html, signal, onDelta, temperature,
+      }),
+      mode: "replace", from, to, originalHtml: html,
+      eyebrow: `${ruleLabel} — three variations (${scope})`,
+      label: "Pick a line-edit pass to apply",
+    });
+    return;
   }
   aiRunning.value = true; aiError.value = "";
   aiActionLabel.value = `Running line edit: ${PROSE_RULES[ruleKey]?.label || ruleKey} (${scope})…`;
@@ -1320,7 +1417,7 @@ function onKeydown(e) {
 // of runWriterAction, but with a user-supplied instruction prepended.
 // Returned to ChaptersView via defineExpose so the Unstuck modal can
 // drive the editor without reaching into the writerAI service itself.
-async function runGuidedContinue(instruction) {
+async function runGuidedContinue(instruction, opts = {}) {
   if (!editor.value || aiRunning.value) return;
   const text = String(instruction || "").trim();
   if (!text) { aiError.value = "Guided Continue needs a one-line direction."; return; }
@@ -1328,6 +1425,18 @@ async function runGuidedContinue(instruction) {
   if (!ctx.trim()) { aiError.value = "Place the cursor at the end of some prose to continue from."; return; }
   const pos = editor.value.state.selection.from;
   proseMenuOpen.value = false;
+  if (shouldUseVariations(opts.shiftKey)) {
+    startVariations({
+      runnerFactory: (temperature, signal, onDelta) => writerAI.guidedContinue({
+        html: `<p>${ctx}</p>`, instruction: text, signal, onDelta, temperature,
+      }),
+      mode: "continue-at", from: pos, to: pos,
+      originalHtml: "",
+      eyebrow: "Continue with direction — three variations",
+      label: "Pick a continuation to insert",
+    });
+    return;
+  }
   aiRunning.value = true; aiError.value = "";
   aiActionLabel.value = "Writing your direction…";
   aiProgress.start();
@@ -1643,6 +1752,17 @@ defineExpose({
         </JwButton>
       </div>
     </div>
+
+    <!-- Three-alternative streaming modal — opens when ui.showVariations
+         is on OR the writer shift-clicks an AI dropdown item. Each
+         column streams independently; the chosen one threads back into
+         the existing proposeContinuation / proposeReplacement flow. -->
+    <VariationsModal v-if="variationsFlow"
+      :runner="variationsFlow.runnerFactory"
+      :label="variationsFlow.label"
+      :eyebrow="variationsFlow.eyebrow"
+      @use-variation="onVariationChosen"
+      @close="onVariationsClose" />
   </div>
 </template>
 

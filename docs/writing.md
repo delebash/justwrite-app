@@ -215,6 +215,23 @@ Markers are the third annotation layer (after Comments and Notes) and they have 
 
 If you have an AI provider configured (see [AI providers](ai-providers.md)), the scene strip's **[AI]** dropdown holds a row of AI actions. None of these are required, and they all show you the result as a coloured diff that you accept or reject line-by-line — your prose is never silently overwritten.
 
+### Three variations — see the space before picking
+
+> *"The AI rewrote the paragraph and it's fine. But I have no idea if there's a better version of that paragraph one click away. I just took the one it gave me."*
+
+By default every AI dropdown action returns one result. **Three-alternative streaming** is an opt-in mode that runs three parallel streams instead — same prompt, different temperatures (more conservative ↔ more inventive). The three columns stream live side-by-side; you click **Use this** on whichever reads best and the other two are discarded.
+
+There are two ways to turn it on:
+
+- **Settings → AI → Three-alternative streaming.** A single toggle: *"Show 3 variations on every AI action."* Off by default. When on, every Rewrite / Expand / Tighten / Continue / Describe / line edit / Continue-with-direction opens the three-column modal automatically.
+- **Shift-click any AI dropdown item.** Per-call opt-in regardless of the toggle. When you trust the prose for most actions but want to see the space on one tough paragraph, shift-click is the escape hatch.
+
+**Why the opt-in.** Variations mode triples the token cost on cloud providers. The toggle lets you choose cost vs. choice once and forget it; the shift-click lets you make the choice case by case. There's no surprise bills surface — the dashboard's Usage page records all three streams independently so the cost is honest.
+
+**Why a writer would use it.** The single most under-used pattern in AI-assisted writing. Picking from three forces you to read the *space* of possible rewrites instead of accepting whatever the model gave you first. Writers who form the habit consistently report cleaner prose; writers who don't, don't notice they're missing it. Try it as the default for a week before deciding whether to keep it on.
+
+The chosen column threads back into the existing accept/reject AI-diff machinery — same UX you use for single-stream results.
+
 ### Match my voice — the voice canon
 
 > *"The AI rewrites the scene technically correctly, but it doesn't sound like me."*

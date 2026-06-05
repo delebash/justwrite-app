@@ -164,7 +164,18 @@ export const PROSE_RULES = {
 // level), and `usage` is the raw usage info from the LLM (already
 // recorded into ai.usage — exposed in case callers want to display it).
 
-async function runAction(actionKey, { html, signal, onDelta, meta, provider, model } = {}) {
+// Default temperature for single-stream writer actions. Variations mode
+// (see VARIATION_TEMPERATURES below) overrides this per-stream so the
+// three columns return materially different prose.
+const DEFAULT_TEMPERATURE = 0.7;
+
+// Per-column temperatures when running an action in 3-variation mode.
+// Lower is more conservative / closer to a literal rewrite; higher is
+// more inventive / further from the source. The spread is large enough
+// that the three columns read distinctly without any feeling forced.
+export const VARIATION_TEMPERATURES = [0.55, 0.7, 0.95];
+
+async function runAction(actionKey, { html, signal, onDelta, meta, provider, model, temperature } = {}) {
   const action = ACTIONS[actionKey];
   if (!action) throw new Error(`Unknown action: ${actionKey}`);
   const source = htmlToText(html);
@@ -179,7 +190,8 @@ async function runAction(actionKey, { html, signal, onDelta, meta, provider, mod
   // up as separate rows in the usage dashboard.
   const result = await runAiStream({
     feature: "writerAI", usageFeature: actionKey,
-    messages, signal, onDelta, temperature: 0.7,
+    messages, signal, onDelta,
+    temperature: typeof temperature === "number" ? temperature : DEFAULT_TEMPERATURE,
     provider, model, meta,
   });
   return { html: textToHtml(result.content), raw: result.content, usage: result.usage };
@@ -208,7 +220,7 @@ export function describe(opts)  { return runAction("describe", opts); }
  * @param {object} [opts.provider]
  * @param {string} [opts.model]
  */
-export async function guidedContinue({ html, instruction, signal, onDelta, meta, provider, model } = {}) {
+export async function guidedContinue({ html, instruction, signal, onDelta, meta, provider, model, temperature } = {}) {
   const source = htmlToText(html);
   if (!source.trim()) throw new Error("There's nothing to continue from.");
   const trimmed = String(instruction || "").trim();
@@ -228,13 +240,14 @@ export async function guidedContinue({ html, instruction, signal, onDelta, meta,
 
   const result = await runAiStream({
     feature: "writerAI", usageFeature: "guided-continue",
-    messages, signal, onDelta, temperature: 0.7,
+    messages, signal, onDelta,
+    temperature: typeof temperature === "number" ? temperature : DEFAULT_TEMPERATURE,
     provider, model, meta,
   });
   return { html: textToHtml(result.content), raw: result.content, usage: result.usage };
 }
 
-export async function applyRule(ruleKey, { html, signal, onDelta, meta, provider, model } = {}) {
+export async function applyRule(ruleKey, { html, signal, onDelta, meta, provider, model, temperature } = {}) {
   const rule = PROSE_RULES[ruleKey];
   if (!rule) throw new Error(`Unknown rule: ${ruleKey}`);
   const source = htmlToText(html);
@@ -246,7 +259,8 @@ export async function applyRule(ruleKey, { html, signal, onDelta, meta, provider
   ];
   const result = await runAiStream({
     feature: "writerAI", usageFeature: `rule:${ruleKey}`,
-    messages, signal, onDelta, temperature: 0.6,
+    messages, signal, onDelta,
+    temperature: typeof temperature === "number" ? temperature : 0.6,
     provider, model, meta,
   });
   return { html: textToHtml(result.content), raw: result.content, usage: result.usage };

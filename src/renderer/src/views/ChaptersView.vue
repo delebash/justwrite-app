@@ -354,13 +354,18 @@ const aiRunning = computed(() => editorRef.value?.aiRunning || false);
 const hasSelection = computed(() => editorRef.value?.hasSelection || false);
 const proseRules = computed(() => editorRef.value?.PROSE_RULES_LIST || []);
 function toggleAiStrip() { aiStripOpen.value = !aiStripOpen.value; }
-function callAi(key) {
+// Shift-click on any AI dropdown item forces the three-variations
+// modal even when the global "Show variations" toggle is off. The
+// click event is forwarded into runWriterAction / runProsePass so
+// they can read the shiftKey flag without RichEditor needing to
+// observe the dropdown's DOM events.
+function callAi(key, e) {
   aiStripOpen.value = false;
-  editorRef.value?.runWriterAction?.(key);
+  editorRef.value?.runWriterAction?.(key, { shiftKey: !!e?.shiftKey });
 }
-function callProse(key) {
+function callProse(key, e) {
   aiStripOpen.value = false;
-  editorRef.value?.runProsePass?.(key);
+  editorRef.value?.runProsePass?.(key, { shiftKey: !!e?.shiftKey });
 }
 function onAiStripDocMousedown(e) {
   if (!aiStripOpen.value) return;
@@ -1053,15 +1058,15 @@ watch(() => project.allChapters.map((c) => c.id + ":" + (project.scenesFor(c.id)
               Selection only
               <span v-if="!hasSelection" class="ai-strip-section-hint">Highlight text first to enable</span>
             </div>
-            <button class="ai-strip-item" :disabled="aiRunning || !hasSelection" @click="callAi('rewrite')">
+            <button class="ai-strip-item" :disabled="aiRunning || !hasSelection" @click="callAi('rewrite', $event)">
               <div class="ai-strip-label">Rewrite</div>
               <div class="ai-strip-desc">Rewrite the passage to be more vivid and specific while preserving meaning, tense, and voice. Selection-only because a whole-scene rewrite is too transformative for one click — use Writers Lab for that.</div>
             </button>
-            <button class="ai-strip-item" :disabled="aiRunning || !hasSelection" @click="callAi('expand')">
+            <button class="ai-strip-item" :disabled="aiRunning || !hasSelection" @click="callAi('expand', $event)">
               <div class="ai-strip-label">Expand</div>
               <div class="ai-strip-desc">Add sensory detail, interiority, and small actions. Roughly doubles the length without changing voice or tense.</div>
             </button>
-            <button class="ai-strip-item" :disabled="aiRunning || !hasSelection" @click="callAi('describe')">
+            <button class="ai-strip-item" :disabled="aiRunning || !hasSelection" @click="callAi('describe', $event)">
               <div class="ai-strip-label">Describe</div>
               <div class="ai-strip-desc">Treat the highlighted text as a subject — a place, person, object, or moment — and add 1–2 paragraphs of fresh sensory prose ABOUT it right after. Additive, not a rewrite; the original passage stays untouched.</div>
             </button>
@@ -1071,13 +1076,13 @@ watch(() => project.allChapters.map((c) => c.id + ":" + (project.scenesFor(c.id)
             </button>
             <div class="ai-strip-divider"></div>
             <div class="ai-strip-section">Selection or whole scene</div>
-            <button class="ai-strip-item" :disabled="aiRunning" @click="callAi('tighten')">
+            <button class="ai-strip-item" :disabled="aiRunning" @click="callAi('tighten', $event)">
               <div class="ai-strip-label">Tighten</div>
               <div class="ai-strip-desc">Remove filler words, hedges, and redundant phrases. Keeps the meaning, voice, and tense intact — the result is noticeably shorter. Runs on the selection, or the whole scene if nothing is selected.</div>
             </button>
             <div class="ai-strip-divider"></div>
             <div class="ai-strip-section">From the cursor</div>
-            <button class="ai-strip-item" :disabled="aiRunning" @click="callAi('continue')">
+            <button class="ai-strip-item" :disabled="aiRunning" @click="callAi('continue', $event)">
               <div class="ai-strip-label">Continue</div>
               <div class="ai-strip-desc">Write 2–4 more paragraphs from where the cursor is, matching the voice, tense, and POV of what came before.</div>
             </button>
@@ -1095,7 +1100,7 @@ watch(() => project.allChapters.map((c) => c.id + ":" + (project.scenesFor(c.id)
                 Line edits
                 <span class="ai-strip-section-hint">Selection, or whole scene if none</span>
               </div>
-              <button v-for="r in proseRules" :key="r.key" class="ai-strip-item" :disabled="aiRunning" @click="callProse(r.key)">
+              <button v-for="r in proseRules" :key="r.key" class="ai-strip-item" :disabled="aiRunning" @click="callProse(r.key, $event)">
                 <div class="ai-strip-label">{{ r.label }}</div>
                 <div class="ai-strip-desc">{{ r.description }}</div>
               </button>
