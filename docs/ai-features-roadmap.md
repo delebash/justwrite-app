@@ -75,11 +75,13 @@ Sister feature to #1. When the user closes a sprint or hits a target, summarize 
 
 **Shipped as:** An **Unstuck — five ways out** entry in the scene-strip AI dropdown opens a modal that sends the 1800-character prose tail before the cursor to the model. The model returns five moves, one per kind (goal-shift / interrupt / setting / reveal / timeframe), each with a label and a 1–2 sentence instruction. Each card's **Write this** button closes the modal and drives `runGuidedContinue(instruction)` on the editor — which routes through a new `writerAI.guidedContinue()` (the foundation for #7's standalone "Continue with direction") and lands as an accept/reject diff. Per-kind border colours visually distinguish the five categories. Regenerate asks for a fresh five. Services: `services/stuckDiagnostic.js`, `services/writerAI.js` (new `guidedContinue` export). Modal: `components/StuckDiagnosticModal.vue`. Editor: `runGuidedContinue` + `grabUnstuckContext` added to `RichEditor.vue`'s defineExpose. Routable as the **unstuck** feature in Settings → AI. Docs: `docs/writing.md` "Unstuck — five ways out" section.
 
-### 7. Guided Continue (Continue + instruction)
+### 7. Guided Continue (Continue + instruction) — **Shipped**
 
 **Writer problem:** "I know roughly what happens next; I want a 200-word draft I can shape."
 
 **Why it's interesting:** Sudowrite's most-used feature. Current Continue uses surrounding context only. Add an optional one-line instruction field (*"Elena confronts Marcus but he deflects with charm"*) and prepend to the prompt. Trivial code change, large UX delta.
+
+**Shipped as:** A **Continue with direction…** entry in the scene-strip AI dropdown opens a one-field promptDialog. The user's instruction routes through `writerAI.guidedContinue()` (already shipped with #6 as the engine for Unstuck's Write-this buttons) and lands in the editor as an accept/reject diff. Reuses the **Writer actions** provider pin — no new feature key needed. Wired: `views/ChaptersView.vue` openGuidedContinue handler. Docs: `docs/writing.md` "Continue with direction" section.
 
 ### 8. Sensory research mode (extension of Describe)
 
