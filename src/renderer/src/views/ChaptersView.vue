@@ -11,6 +11,7 @@ import SceneLinks from "../components/SceneLinks.vue";
 import VersionHistoryModal from "../components/VersionHistoryModal.vue";
 import CritiqueModal from "../components/CritiqueModal.vue";
 import ChapterNotesModal from "../components/ChapterNotesModal.vue";
+import StuckDiagnosticModal from "../components/StuckDiagnosticModal.vue";
 import EmptyState from "../components/EmptyState.vue";
 import StatusSelect from "../components/StatusSelect.vue";
 import Breadcrumb from "../components/Breadcrumb.vue";
@@ -365,6 +366,36 @@ function onAiStripDocMousedown(e) {
   if (aiStripWrap.value && !aiStripWrap.value.contains(e.target)) {
     aiStripOpen.value = false;
   }
+}
+
+// ── Unstuck (stuck-on-this-chapter diagnostic) ───────────────────
+// Opens a modal that asks the model for five distinct unblock moves.
+// Each move's "Use this" button drives runGuidedContinue on the editor
+// so the next 2-4 paragraphs land in the chosen direction.
+const stuckOpen = ref(false);
+const stuckContextText = ref("");
+const stuckChapterTitle = ref("");
+const stuckChapterNum = ref(null);
+function openStuck() {
+  aiStripOpen.value = false;
+  if (!editorRef.value) {
+    ui.showToast({ message: "Open a chapter first." });
+    return;
+  }
+  const ctx = editorRef.value.grabUnstuckContext?.(1800) || "";
+  if (!ctx.trim()) {
+    ui.showToast({ message: "Write a few lines first — Unstuck needs prose to brainstorm from." });
+    return;
+  }
+  stuckContextText.value = ctx;
+  stuckChapterTitle.value = ch.value?.title || "";
+  stuckChapterNum.value = ch.value?.num ?? null;
+  stuckOpen.value = true;
+}
+function closeStuck() { stuckOpen.value = false; }
+function onStuckUseMove(move) {
+  stuckOpen.value = false;
+  editorRef.value?.runGuidedContinue?.(move?.instruction || "");
 }
 
 async function splitChapterHere() {
@@ -989,6 +1020,10 @@ watch(() => project.allChapters.map((c) => c.id + ":" + (project.scenesFor(c.id)
               <div class="ai-strip-label">Continue</div>
               <div class="ai-strip-desc">Write 2–4 more paragraphs from where the cursor is, matching the voice, tense, and POV of what came before.</div>
             </button>
+            <button class="ai-strip-item" :disabled="aiRunning" @click="openStuck">
+              <div class="ai-strip-label">Unstuck — five ways out</div>
+              <div class="ai-strip-desc">When you're not sure what should happen next, ask the model for five distinct moves (goal shift, interrupt, setting change, reveal, time cut). Pick one and JustWrite drafts the next 2–4 paragraphs in that direction.</div>
+            </button>
             <template v-if="proseRules.length">
               <div class="ai-strip-divider"></div>
               <div class="ai-strip-section">
@@ -1121,6 +1156,13 @@ watch(() => project.allChapters.map((c) => c.id + ":" + (project.scenesFor(c.id)
     :chapter-id="notesChapterId"
     :initial-focus="notesFocus"
     @close="notesOpen = false" />
+
+  <StuckDiagnosticModal v-if="stuckOpen"
+    :context-text="stuckContextText"
+    :chapter-title="stuckChapterTitle"
+    :chapter-num="stuckChapterNum"
+    @close="closeStuck"
+    @use-move="onStuckUseMove" />
 </template>
 
 <style scoped>

@@ -67,11 +67,13 @@ Sister feature to #1. When the user closes a sprint or hits a target, summarize 
 
 **Shipped as:** A new "Voice drift" section in the Analysis dashboard, between Style & pacing and Cast presence. Pure deterministic analytics over `styleMetrics` rows: per-metric mean/stdev/z-scores, ±1 stdev band visualised, per-chapter polyline sparkline with outlier dots in red, early-vs-late-third trend chip per metric. A "Hot chapters" rollup lists chapters that outlier on two or more metrics, sorted by drift score. Each hot chapter has an **Explain** button that calls `explainVoiceDrift()` — an optional LLM call (`voiceDrift` feature pin) that compares the outlier's prose to the 3 most-typical chapters and returns 2–4 sentences naming the specific shifts, with quoted phrases from both sets. Inline-expanding result, no modal. Service: `services/analysis/voiceDrift.js`. Docs: `docs/analysis.md`.
 
-### 6. Stuck-on-this-chapter diagnostic ("I'm blocked" menu)
+### 6. Stuck-on-this-chapter diagnostic ("I'm blocked" menu) — **Shipped**
 
 **Writer problem:** "I don't even know why I'm stuck. Just give me options."
 
 **Why it's interesting:** Continue *writes* for them; this is a *diagnostic-first* flow. Small panel asks the LLM "what could unblock this scene?" with structured output — five distinct moves: change POV character's goal mid-scene · introduce an interruption · shift the setting · reveal something the POV doesn't yet know · cut to a different timeframe. Each card has a "use this" button that runs Continue with that instruction prepended.
+
+**Shipped as:** An **Unstuck — five ways out** entry in the scene-strip AI dropdown opens a modal that sends the 1800-character prose tail before the cursor to the model. The model returns five moves, one per kind (goal-shift / interrupt / setting / reveal / timeframe), each with a label and a 1–2 sentence instruction. Each card's **Write this** button closes the modal and drives `runGuidedContinue(instruction)` on the editor — which routes through a new `writerAI.guidedContinue()` (the foundation for #7's standalone "Continue with direction") and lands as an accept/reject diff. Per-kind border colours visually distinguish the five categories. Regenerate asks for a fresh five. Services: `services/stuckDiagnostic.js`, `services/writerAI.js` (new `guidedContinue` export). Modal: `components/StuckDiagnosticModal.vue`. Editor: `runGuidedContinue` + `grabUnstuckContext` added to `RichEditor.vue`'s defineExpose. Routable as the **unstuck** feature in Settings → AI. Docs: `docs/writing.md` "Unstuck — five ways out" section.
 
 ### 7. Guided Continue (Continue + instruction)
 

@@ -58,6 +58,7 @@ const AI_FEATURES = [
   { key: "foreshadowing", label: "Foreshadowing scan", hint: "Whole-book scan for setups that may not have paid off." },
   { key: "readerKnowledge", label: "Reader knowledge", hint: "Tracks dramatic irony — what the reader knows vs. what the POV character knows, chapter by chapter." },
   { key: "voiceDrift",      label: "Voice drift explainer", hint: "Diagnoses what shifted between an outlier chapter and the writer's baseline voice in the Analysis dashboard." },
+  { key: "unstuck",         label: "Unstuck moves",   hint: "The AI dropdown's \"Unstuck — five ways out\" diagnostic that proposes goal shift / interrupt / setting / reveal / time cut." },
 ];
 const INHERIT = "__inherit__";
 

@@ -1316,12 +1316,56 @@ function onKeydown(e) {
   }
 }
 
+// Guided Continue — same shape as the cursor-anchored continue branch
+// of runWriterAction, but with a user-supplied instruction prepended.
+// Returned to ChaptersView via defineExpose so the Unstuck modal can
+// drive the editor without reaching into the writerAI service itself.
+async function runGuidedContinue(instruction) {
+  if (!editor.value || aiRunning.value) return;
+  const text = String(instruction || "").trim();
+  if (!text) { aiError.value = "Guided Continue needs a one-line direction."; return; }
+  const ctx = grabContextBeforeCursor(800);
+  if (!ctx.trim()) { aiError.value = "Place the cursor at the end of some prose to continue from."; return; }
+  const pos = editor.value.state.selection.from;
+  proseMenuOpen.value = false;
+  aiRunning.value = true; aiError.value = "";
+  aiActionLabel.value = "Writing your direction…";
+  aiProgress.start();
+  try {
+    const result = await writerAI.guidedContinue({
+      html: `<p>${ctx}</p>`,
+      instruction: text,
+      signal: aiProgress.signal,
+      onDelta: aiProgress.onDelta,
+    });
+    if (!result?.html?.trim()) {
+      aiError.value = "AI returned an empty response. Try again — and verify the model is running and isn't returning only thinking tags.";
+    } else {
+      editor.value.chain().focus().proposeContinuation({ at: pos, newHtml: result.html }).run();
+    }
+    aiProgress.finish();
+  } catch (err) {
+    if (!aiProgress.cancelled.value) aiError.value = err?.message || String(err);
+    aiProgress.finish();
+  } finally {
+    aiRunning.value = false;
+  }
+}
+
+// The Unstuck modal needs the prose tail to feed the diagnostic. Expose
+// a grab so callers don't have to reach into ProseMirror state.
+function grabUnstuckContext(maxChars = 1800) {
+  return grabContextBeforeCursor(maxChars);
+}
+
 defineExpose({
   editor,
   // Exposed so the scene-strip AI dropdown (in ChaptersView) can drive
   // the same writerAI actions that used to live in the selection bubble.
   runWriterAction,
   runProsePass,
+  runGuidedContinue,
+  grabUnstuckContext,
   aiRunning,
   hasSelection,
   PROSE_RULES_LIST,

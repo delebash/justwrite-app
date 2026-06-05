@@ -217,6 +217,31 @@ The dropdown groups actions by what they operate on, so you can tell at a glance
 - **Describe** — additive. Treats the highlighted text as a *subject* (a place, person, object, or moment) and writes 1–2 paragraphs of fresh sensory prose **about** it, inserted right after the selection. The original passage stays untouched. Use it when you've named something but haven't brought it to life on the page — highlight "the old market" and get 200 words of sights, smells, and textures dropped in after. *Selection only.*
 - **Tighten** — strips filler. Comes back shorter. *Selection or whole scene* — runs on the highlighted text, or the entire scene if nothing is selected.
 - **Continue** — generates the next 2–4 paragraphs from the cursor. Useful when you're stuck. *No selection needed.*
+- **Unstuck — five ways out** — opens a diagnostic modal with five distinct moves the scene could take from here. See below.
+
+### Unstuck — five ways out
+
+> *"I don't even know why I'm stuck. Just give me options."*
+
+**Continue** writes for you. **Unstuck** writes nothing — it diagnoses. When you can feel the scene has stalled but can't see where to push it next, this is the right tool to reach for.
+
+Click **Unstuck — five ways out** in the AI dropdown. JustWrite sends the prose leading up to your cursor to the model and asks for **five distinct moves** — one each from these categories:
+
+- **Goal shift** — the POV character's goal changes mid-scene (they wanted X; now they want Y)
+- **Interrupt** — someone or something interrupts the current action
+- **Setting** — the scene moves to a different place, or the setting itself shifts (weather, lights, time of day)
+- **Reveal** — surface something the POV character doesn't yet know
+- **Time cut** — cut to a different moment (later, earlier, or elsewhere)
+
+The model returns five cards — one per category — each with a short headline and a 1–2 sentence direction. The categories are constraints, not suggestions, so you really do get five different shapes of move, not five variations of the same idea.
+
+**Each card has a Write this button.** Click it and JustWrite drafts the next 2–4 paragraphs using that direction (via Guided Continue under the hood — the user's pick is fed verbatim into the Continue prompt). The result lands in the editor as a coloured diff you can accept or reject like any other AI change.
+
+**Regenerate** in the modal footer asks for a fresh five if none landed. The modal is dismissible at any time.
+
+**Why a writer would use it.** The hard part of being stuck isn't picking between known options — it's that you can't see what the options ARE. The five-category constraint is the whole point: it stops the model from giving you five flavours of "they keep arguing" and forces it to surface moves you might not have considered. The interrupt option might be the wrong one, but seeing all five at once is often what unlocks the next sentence.
+
+**Routable** as the **unstuck** feature in Settings → AI. The diagnostic itself doesn't need a heavy model — a fast local model is usually fine. The actual prose drafting (the Write-this click) goes through **Writer actions** like any other Continue.
 
 ### Prose passes
 

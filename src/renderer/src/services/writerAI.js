@@ -164,6 +164,49 @@ export function tighten(opts)   { return runAction("tighten", opts); }
 export function continueFrom(opts) { return runAction("continue", opts); }
 export function describe(opts)  { return runAction("describe", opts); }
 
+/**
+ * Guided Continue — Continue with a one-line user instruction prepended
+ * to the standard Continue prompt. Used by the Unstuck modal's "Use
+ * this" buttons (and any "Continue with direction" surface).
+ *
+ * @param {object} opts
+ * @param {string} opts.html         — context HTML (typically the prose
+ *                                     leading up to the cursor)
+ * @param {string} opts.instruction  — short user direction, e.g.
+ *                                     "Elena confronts Marcus but he
+ *                                     deflects with charm."
+ * @param {AbortSignal} [opts.signal]
+ * @param {(d,c)=>void} [opts.onDelta]
+ * @param {object} [opts.meta]
+ * @param {object} [opts.provider]
+ * @param {string} [opts.model]
+ */
+export async function guidedContinue({ html, instruction, signal, onDelta, meta, provider, model } = {}) {
+  const source = htmlToText(html);
+  if (!source.trim()) throw new Error("There's nothing to continue from.");
+  const trimmed = String(instruction || "").trim();
+  if (!trimmed) throw new Error("Guided Continue needs a one-line direction.");
+
+  const directive =
+    "Continue writing from where the passage below ends. " +
+    "Follow this specific direction the writer has given you: " +
+    `"${trimmed}". ` +
+    "Match the voice, tense, and POV of the passage. Write 2–4 more paragraphs of prose. " +
+    "Do not summarize what came before. Do not echo the direction back as a header.";
+
+  const messages = [
+    { role: "system", content: SYSTEM_BASE },
+    { role: "user", content: `${directive}\n\n--- BEGIN PASSAGE ---\n${source}\n--- END PASSAGE ---` },
+  ];
+
+  const result = await runAiStream({
+    feature: "writerAI", usageFeature: "guided-continue",
+    messages, signal, onDelta, temperature: 0.7,
+    provider, model, meta,
+  });
+  return { html: textToHtml(result.content), raw: result.content, usage: result.usage };
+}
+
 export async function applyRule(ruleKey, { html, signal, onDelta, meta, provider, model } = {}) {
   const rule = PROSE_RULES[ruleKey];
   if (!rule) throw new Error(`Unknown rule: ${ruleKey}`);
