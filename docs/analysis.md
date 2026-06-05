@@ -123,6 +123,31 @@ Once you have data:
 
 The structural analysis itself is routable as the **critique** feature in Settings → AI (it shares the pin with the per-chapter Critique modal). A long-context cloud model produces noticeably better structural reasoning than small local models — for this specific feature, the per-chapter cost is worth pinning to your strongest available model.
 
+The Story tension section header also carries three structural-analysis buttons that open full-book LLM modals: **Reverse outline** (the act structure the book actually has, with plot points and per-chapter beats), **Map to beat sheet** (Save the Cat / Hero's Journey / 7-Point Story Structure with MISSING-beat flags), and **Plot-hole audit** (see below). Each modal persists its result on the project so re-opening reads from cache.
+
+### Plot-hole / continuity audit
+
+> *"I contradicted myself three chapters ago and I still don't know it."*
+
+The **Plot-hole audit** button (next to Reverse outline and Beat sheet) runs a one-pass continuity scan over the whole-book digest plus a tail of each chapter's actual prose. Reverse outline names the shape; the plot-hole audit looks for things that are *broken* — facts that contradict each other across chapters.
+
+The audit returns findings categorised by kind:
+
+- **Contradiction** — two prose moments that can't both be true
+- **Timeline** — events happen in an order or pace the text can't support (a journey takes hours described as days; a year passed but characters reference it as days)
+- **Continuity** — small drift in a detail across chapters (eye colour, scar, weather, season)
+- **Character knowledge** — a character acts on information they couldn't yet have
+- **Object** — an object appears, disappears, or changes hands without explanation
+- **Other** — anything else the model flags
+
+Each finding has a **severity** (Flag / Suggestion / Note), the **chapter numbers** whose content collides (clickable to jump), a verbatim **evidence** quote, and a one-line **cheapest fix** suggestion. Findings group by severity in the modal — Flags first, Suggestions second, Notes last.
+
+**Dismiss** removes individual findings from the default view (they persist on the project; **Show dismissed** brings them back). **Re-run** clears the audit and regenerates against the current draft state.
+
+**Why a writer would care.** Continuity drift is the kind of mistake nobody notices in their own draft because the *intent* of each scene was right at the time you wrote it. The audit catches the kind of thing a fresh beta reader would notice on first read — the things readers actually email you about three months after publication. The model is instructed to be selective and honest; a clean audit is meaningful, padded findings are noise. A draft that returns 0–3 findings is normal; 10+ is the signal you have real revision work to do.
+
+**Cost note.** One LLM call over the digest plus tails. The prompt is longer than Reverse outline because of the prose tails, so pin to a long-context model if you can. Routable as the **plotHoles** feature in Settings → AI.
+
 ### Voice drift
 
 > *"I drafted Chapter 1 six months ago and Chapter 20 last week. Has my voice drifted?"*

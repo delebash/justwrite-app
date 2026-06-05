@@ -441,6 +441,12 @@ export const useProjectStore = defineStore("project", {
     // summary, mapping, missingCount, totalBeats, generatedAt, model }.
     beatSheets: loaded.beatSheets || {},
 
+    // Plot-hole / continuity audit results — single project-wide
+    // artifact. Shape: { summary, findings: [...], generatedAt, model }.
+    // Individual findings can be dismissed; the whole object can be
+    // cleared and regenerated.
+    plotHoles: loaded.plotHoles || null,
+
     // Multi-project registry. `_activeId` is the storage key the
     // current snapshot persists into. `_projects` mirrors the registry
     // so the sidebar dropdown can react. Neither participates in undo.
@@ -1263,6 +1269,33 @@ export const useProjectStore = defineStore("project", {
       this.beatSheets = next;
       this._persist();
     },
+    // Plot-hole / continuity audit results.
+    setPlotHoles(payload) {
+      this.plotHoles = payload ? { ...payload } : null;
+      this._persist();
+    },
+    clearPlotHoles() {
+      this.plotHoles = null;
+      this._persist();
+    },
+    dismissPlotHole(findingId) {
+      if (!this.plotHoles?.findings) return;
+      this.plotHoles = {
+        ...this.plotHoles,
+        findings: this.plotHoles.findings.map((f) =>
+          f.id === findingId ? { ...f, dismissed: true } : f),
+      };
+      this._persist();
+    },
+    undismissPlotHole(findingId) {
+      if (!this.plotHoles?.findings) return;
+      this.plotHoles = {
+        ...this.plotHoles,
+        findings: this.plotHoles.findings.map((f) =>
+          f.id === findingId ? { ...f, dismissed: false } : f),
+      };
+      this._persist();
+    },
 
     // ── Locations ───────────────────────────────────────────
     addLocation(input = {}) { this._record("addLocation"); const id = uid("l"); this.locations.push({ id, name: "Untitled location", kind: "", note: "", tags: [], ...input }); this._persist(); return id; },
@@ -1794,6 +1827,7 @@ export const useProjectStore = defineStore("project", {
         dailyRecaps: this.dailyRecaps,
         reverseOutline: this.reverseOutline,
         beatSheets: this.beatSheets,
+        plotHoles: this.plotHoles,
         savedAt: new Date().toISOString(),
       };
     },
@@ -1882,6 +1916,7 @@ export const useProjectStore = defineStore("project", {
         dailyRecaps: {},
         reverseOutline: null,
         beatSheets: {},
+        plotHoles: null,
       };
       this._activeId = id;
       Object.assign(this.$state, fresh);

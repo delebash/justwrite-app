@@ -17,6 +17,7 @@ import { sweepStoryTension } from "../services/analysis/tensionSweep.js";
 import { PACING_LABELS, ENDING_LABELS } from "../services/analysis/critique.js";
 import ReverseOutlineModal from "../components/ReverseOutlineModal.vue";
 import BeatSheetModal from "../components/BeatSheetModal.vue";
+import PlotHoleScanModal from "../components/PlotHoleScanModal.vue";
 import { useAiStore } from "../stores/ai.js";
 import { useAiProgress } from "../composables/useAiProgress.js";
 import JwTable from "@renderer/components/ui/JwTable.vue";
@@ -364,6 +365,16 @@ const beatSheetOpen = ref(false);
 function openBeatSheet() { beatSheetOpen.value = true; }
 function closeBeatSheet() { beatSheetOpen.value = false; }
 const hasAnyBeatSheet = computed(() => Object.keys(project.beatSheets || {}).length > 0);
+
+// Plot-hole / continuity audit modal.
+const plotHolesOpen = ref(false);
+function openPlotHoles() { plotHolesOpen.value = true; }
+function closePlotHoles() { plotHolesOpen.value = false; }
+const hasPlotHoles = computed(() => !!project.plotHoles);
+const plotHolesActiveCount = computed(() => {
+  if (!project.plotHoles?.findings) return 0;
+  return project.plotHoles.findings.filter((f) => !f.dismissed).length;
+});
 
 // ─── Writing heatmap (365 days) ─────────────────────────────────────
 // Build a 53-week × 7-day grid for the year ending today. Each cell is
@@ -713,6 +724,12 @@ const milestoneState = computed(() => {
             <Icon name="Target" :size="12" />
             {{ hasAnyBeatSheet ? 'View beat sheet' : 'Map to beat sheet' }}
           </JwButton>
+          <JwButton v-if="!tensionProgress.running.value" intent="ghost" size="small"
+                    @click="openPlotHoles"
+                    v-tooltip.bottom="'One-pass continuity audit for contradictions, timeline drift, character-knowledge errors'">
+            <Icon name="Alert" :size="12" />
+            {{ hasPlotHoles ? `Plot holes (${plotHolesActiveCount})` : 'Plot-hole audit' }}
+          </JwButton>
           <JwButton v-else-if="tensionProgress.running.value" intent="danger" size="small" @click="cancelTensionSweep">
             <Icon name="Close" :size="12" /> Cancel
           </JwButton>
@@ -808,6 +825,7 @@ const milestoneState = computed(() => {
 
     <ReverseOutlineModal v-if="reverseOutlineOpen" @close="closeReverseOutline" />
     <BeatSheetModal v-if="beatSheetOpen" @close="closeBeatSheet" />
+    <PlotHoleScanModal v-if="plotHolesOpen" @close="closePlotHoles" />
 
     <!-- Voice drift -->
     <div v-if="drift.eligible" class="card vd-card" style="margin-bottom:18px">
