@@ -819,21 +819,16 @@ const HIGHLIGHT_COLORS = [
   { label: "Purple", color: "#e2ccff" },
   { label: "Orange", color: "#ffd2a6" },
 ];
-// Separate open-state per surface (toolbar vs selection bubble) so the
-// menu doesn't render in both at once; the apply/clear actions are shared.
 const highlightOpen = ref(false);
-const highlightBubbleOpen = ref(false);
 const highlightWrap = ref(null);
-const highlightWrapBubble = ref(null);
 function toggleHighlightMenu() { highlightOpen.value = !highlightOpen.value; }
-function toggleHighlightBubble() { highlightBubbleOpen.value = !highlightBubbleOpen.value; }
 function setHighlightColor(color) {
   editor.value?.chain().focus().setHighlight({ color }).run();
-  highlightOpen.value = false; highlightBubbleOpen.value = false;
+  highlightOpen.value = false;
 }
 function clearHighlight() {
   editor.value?.chain().focus().unsetHighlight().run();
-  highlightOpen.value = false; highlightBubbleOpen.value = false;
+  highlightOpen.value = false;
 }
 // --- text color dropdown ----------------------------------------------
 const TEXT_COLORS = [
@@ -891,7 +886,7 @@ function openCommentEditor() {
   const existing = editor.value.getAttributes("comment")?.comment || "";
   const r = selectionScreenRect();
   commentState.value = { open: true, mode: "edit", text: existing, x: r ? r.left : 120, y: r ? r.bottom + 8 : 120 };
-  highlightOpen.value = highlightBubbleOpen.value = textColorOpen.value = textColorBubbleOpen.value = false;
+  highlightOpen.value = textColorOpen.value = textColorBubbleOpen.value = false;
   nextTick(() => commentInput.value?.focus());
 }
 function saveComment() {
@@ -947,7 +942,6 @@ function gotoComment(dir) {
 
 function onMenuDocDown(e) {
   if (highlightOpen.value && highlightWrap.value && !highlightWrap.value.contains(e.target)) highlightOpen.value = false;
-  if (highlightBubbleOpen.value && highlightWrapBubble.value && !highlightWrapBubble.value.contains(e.target)) highlightBubbleOpen.value = false;
   if (textColorOpen.value && textColorWrap.value && !textColorWrap.value.contains(e.target)) textColorOpen.value = false;
   if (textColorBubbleOpen.value && textColorWrapBubble.value && !textColorWrapBubble.value.contains(e.target)) textColorBubbleOpen.value = false;
   if (commentState.value.open && commentPopEl.value && !commentPopEl.value.contains(e.target) && !e.target?.closest?.(".comment-mark")) commentState.value.open = false;

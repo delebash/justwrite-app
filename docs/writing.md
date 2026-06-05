@@ -192,7 +192,7 @@ Notes persist on the chapter and can be re-run independently.
 
 ### Entity extraction
 
-Inside the Critique modal there is a sweep that proposes Story Bible entities — characters, locations, objects — that appear in the chapter text but aren't yet in your Bible. You review every proposal individually; nothing is added without your click. Useful after writing or after importing a draft from elsewhere.
+The **Characters**, **Locations**, and **Objects** views each have a **Find new** button that runs a sweep across every chapter and proposes Story Bible entities of that kind that appear in your prose but aren't yet in the Bible. Same-name proposals from multiple chapters are merged into one with the originating chapters listed. You review every proposal individually on the next screen; nothing is added without your click. Useful after writing or after importing a draft from elsewhere.
 
 ---
 
