@@ -206,6 +206,7 @@ export class OpenAICompatClient {
         // SSE frames are separated by blank lines; each frame is one or more
         // `data: <json>` lines (or `data: [DONE]`).
         let sep;
+        // biome-ignore lint/suspicious/noAssignInExpressions: SSE frame loop — drain buffer one delimiter at a time.
         while ((sep = buffer.indexOf("\n\n")) !== -1) {
           const frame = buffer.slice(0, sep);
           buffer = buffer.slice(sep + 2);
@@ -286,6 +287,7 @@ export class OpenAICompatClient {
         buffer += decoder.decode(value, { stream: true });
 
         let nl;
+        // biome-ignore lint/suspicious/noAssignInExpressions: NDJSON line loop — drain buffer one newline at a time.
         while ((nl = buffer.indexOf("\n")) !== -1) {
           const line = buffer.slice(0, nl).trim();
           buffer = buffer.slice(nl + 1);

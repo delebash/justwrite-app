@@ -38,6 +38,7 @@ export function replaceInHtml(html, term, replaceWith, caseSensitive = false) {
     const hay = caseSensitive ? text : text.toLowerCase();
     if (!hay.includes(needle)) continue;
     let result = "", i = 0, idx;
+    // biome-ignore lint/suspicious/noAssignInExpressions: indexOf-walk — advances `i` through the haystack.
     while ((idx = hay.indexOf(needle, i)) !== -1) {
       result += text.slice(i, idx) + (replaceWith ?? "");
       i = idx + needle.length;
@@ -59,6 +60,7 @@ function countAndSnippet(html, term, caseSensitive) {
     const text = node.nodeValue;
     const hay = caseSensitive ? text : text.toLowerCase();
     let i = 0, idx;
+    // biome-ignore lint/suspicious/noAssignInExpressions: indexOf-walk — advances `i` through the haystack.
     while ((idx = hay.indexOf(needle, i)) !== -1) {
       if (!snippet) {
         const start = Math.max(0, idx - SNIPPET_RADIUS);

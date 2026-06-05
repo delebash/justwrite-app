@@ -215,6 +215,7 @@ export function searchIndex(index, query, { kinds, limit = 100, snippetLen = 160
     let firstIdx = Infinity;
     for (const tok of tokens) {
       let i = 0, count = 0;
+      // biome-ignore lint/suspicious/noAssignInExpressions: indexOf-walk — advances `i` past each occurrence.
       while ((i = lower.indexOf(tok, i)) !== -1) {
         count++; if (i < firstIdx) firstIdx = i; i += tok.length;
       }
@@ -288,6 +289,7 @@ function buildSnippet(haystack, lower, tokens, firstIdx, snippetLen) {
   const matches = [];
   for (const tok of tokens) {
     let i = start;
+    // biome-ignore lint/suspicious/noAssignInExpressions: indexOf-walk within a window — advances `i` past each occurrence.
     while ((i = lower.indexOf(tok, i)) !== -1 && i < end) {
       // Translate start and end through the mapping.
       const winStart = i - start;

@@ -24,6 +24,7 @@ function findMatches(doc, term, caseSensitive) {
     if (!node.isText || !node.text) return;
     const hay = caseSensitive ? node.text : node.text.toLowerCase();
     let i = 0;
+    // biome-ignore lint/suspicious/noAssignInExpressions: indexOf-walk — advances `i` past each occurrence.
     while ((i = hay.indexOf(needle, i)) !== -1) {
       results.push({ from: pos + i, to: pos + i + term.length });
       i += Math.max(needle.length, 1);

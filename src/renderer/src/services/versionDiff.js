@@ -197,6 +197,7 @@ function tokenizeForWordDiff(text) {
   const out = [];
   const re = /\s+|[\p{Letter}\p{Number}]+|[^\s\p{Letter}\p{Number}]+/gu;
   let m;
+  // biome-ignore lint/suspicious/noAssignInExpressions: regex.exec loop — assignment-in-while is the idiomatic pattern.
   while ((m = re.exec(String(text || ""))) !== null) out.push(m[0]);
   return out;
 }

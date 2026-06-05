@@ -147,6 +147,7 @@ function dialogueWords(text) {
   let total = 0;
   for (const re of DIALOGUE_RES) {
     let m;
+    // biome-ignore lint/suspicious/noAssignInExpressions: regex.exec loop — assignment-in-while is the idiomatic pattern.
     while ((m = re.exec(text)) !== null) {
       total += wordCount(m[1]);
     }

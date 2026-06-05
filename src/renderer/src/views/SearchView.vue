@@ -45,6 +45,7 @@ const grouped = computed(() => {
   const buckets = {};
   for (const hit of hits.value) {
     const k = hit.doc.kind;
+    // biome-ignore lint/suspicious/noAssignInExpressions: get-or-init bucket idiom — initializes the array if missing and pushes in one expression.
     (buckets[k] = buckets[k] || []).push(hit);
   }
   return Object.entries(buckets)
