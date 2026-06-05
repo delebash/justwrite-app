@@ -23,6 +23,8 @@ These are the project's vital signs.
 
 ### Pace chart
 
+> *"I feel like I've been writing every day, but I'm not sure I'm actually making progress — or if I've quietly stopped."*
+
 A line graph of words written per day. A segmented control switches between **14 / 30 / 90 days**.
 
 Below the graph: total words in the window, average per day, peak single day.
@@ -33,11 +35,15 @@ Populated automatically as you write — no manual logging required.
 
 ### Writing year heatmap
 
+> *"I think of myself as someone who writes consistently. I'm a little afraid to find out if that's actually true."*
+
 A GitHub-style 53-week grid, every day of the past year as a small square. Each square is shaded by how much you wrote that day, on a 5-tier scale from none (blank) to peak (deep colour). Month labels and day-of-week labels are shown. Hover any cell to see the date and exact word count.
 
 **Why a writer would care.** Long blank stretches are obvious. So are streaks. So is the pattern of "I write a lot for two weeks and then nothing for a week" — which is useful information about your real working style.
 
 ### Milestones
+
+> *"I've been at this for four months. Am I anywhere near a complete draft, or am I still in the foothills?"*
 
 A horizontal bar showing progress toward standard fiction milestones (10k, 25k, 50k, 75k, 100k, 125k, 150k words). Plus:
 
@@ -51,11 +57,15 @@ A horizontal bar showing progress toward standard fiction milestones (10k, 25k, 
 
 ### Chapter status donut
 
+> *"I've revised a lot of chapters. But I've lost track — how many are actually done versus just touched?"*
+
 A donut chart showing the proportion of chapters by status (Done / Revise / Draft / To-do), with exact counts.
 
-**Why a writer would care.** A glance answers "how close am I to a finished draft?" In revision, it tracks how many chapters still need work.
+**Why a writer would care.** A glance shows how close you are to a finished draft. In revision, it tracks how many chapters still need work.
 
 ### Narrative strand distribution
+
+> *"My B-plot feels thin, but I don't know if that's a real structural problem or just my anxiety talking."*
 
 A horizontal bar chart showing how many **words and chapters** each narrative strand contains, proportional to the total.
 
@@ -63,11 +73,15 @@ A horizontal bar chart showing how many **words and chapters** each narrative st
 
 ### Words per chapter
 
+> *"Some of my chapters feel enormous and some feel like nothing. I don't know if the variation is intentional or if I just lost control of the pacing."*
+
 A bar chart with one bar per chapter, colour-coded by narrative strand, with the exact word count. Clicking a chapter opens it in the editor.
 
 **Why a writer would care.** Wildly uneven chapter lengths are sometimes deliberate (a punchy short chapter for impact). Often they aren't, and a 12,000-word chapter next to a 1,500-word one is a sign the long one needs splitting or the short one needs more.
 
 ### Style and pacing metrics
+
+> *"I know I overuse filter words and adverbs. I just don't know which chapters are the worst offenders."*
 
 A per-chapter sortable table with book-level summary pills at the top. Columns:
 
@@ -133,6 +147,8 @@ The metric analysis is **pure deterministic** — no AI required. The Explain bu
 
 ### Cast presence heatmap
 
+> *"My deuteragonist had a big arc in the first half. Did I actually follow through on it in the second half, or did she quietly disappear?"*
+
 A grid: every character along one axis, every chapter along the other. Each cell shows whether the character appears in that chapter:
 
 - Blank — absent
@@ -152,6 +168,8 @@ Presence is fed by **both** prose mentions (the `@` linking system) **and** the 
 
 ### Dialogue vs. narration breakdown
 
+> *"My climax felt off in feedback, and someone said it was 'too internal.' I want to see if they're right before I rewrite it."*
+
 A stacked bar showing the book-wide split between dialogue, narration, and interior thought as a percentage of word count. Plus a per-chapter row for each chapter that's been analysed.
 
 This section **requires Studio → Script analysis** on at least one chapter. Without that, you get a prompt to run the analysis. With it on every chapter, you get a complete picture.
@@ -159,6 +177,8 @@ This section **requires Studio → Script analysis** on at least one chapter. Wi
 **Why a writer would care.** Dialogue-heavy chapters and narration-heavy chapters do different work. If your action sequences are mostly narration, that's normal. If your climax is mostly interior thought, that may be the problem you couldn't put a finger on. The per-chapter breakdown shows you which chapters are which.
 
 ### Scenes per chapter
+
+> *"Chapter 14 feels choppy and Chapter 7 feels like it never moves. I want to know if my scene count is actually the problem."*
 
 A bar chart grid — one entry per chapter, showing how many scenes it contains.
 

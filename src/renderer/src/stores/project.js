@@ -430,6 +430,11 @@ export const useProjectStore = defineStore("project", {
     // writer doesn't expect undo to roll one back.
     dailyRecaps: loaded.dailyRecaps || {},
 
+    // Reverse outline ("StorySnap") — single project-wide structural
+    // artifact. Shape: { structureName, summary, actBreaks, plotPoints,
+    // chapterBeats, generatedAt, model }. Null until generated.
+    reverseOutline: loaded.reverseOutline || null,
+
     // Multi-project registry. `_activeId` is the storage key the
     // current snapshot persists into. `_projects` mirrors the registry
     // so the sidebar dropdown can react. Neither participates in undo.
@@ -1225,6 +1230,19 @@ export const useProjectStore = defineStore("project", {
       });
       this._persist();
     },
+    // Reverse outline ("StorySnap") — one structural artifact per
+    // project, regenerated as the draft changes shape. Stored on the
+    // project root so it persists across sessions. Not in HISTORY_SLICES
+    // so an undo of a chapter edit doesn't rewind a freshly-generated
+    // outline.
+    setReverseOutline(outline) {
+      this.reverseOutline = outline ? { ...outline } : null;
+      this._persist();
+    },
+    clearReverseOutline() {
+      this.reverseOutline = null;
+      this._persist();
+    },
 
     // ── Locations ───────────────────────────────────────────
     addLocation(input = {}) { this._record("addLocation"); const id = uid("l"); this.locations.push({ id, name: "Untitled location", kind: "", note: "", tags: [], ...input }); this._persist(); return id; },
@@ -1754,6 +1772,7 @@ export const useProjectStore = defineStore("project", {
         statuses: this.statuses,
         trash: this.trash,
         dailyRecaps: this.dailyRecaps,
+        reverseOutline: this.reverseOutline,
         savedAt: new Date().toISOString(),
       };
     },
@@ -1840,6 +1859,7 @@ export const useProjectStore = defineStore("project", {
         images: {}, events: {},
         trash: { ...EMPTY_TRASH },
         dailyRecaps: {},
+        reverseOutline: null,
       };
       this._activeId = id;
       Object.assign(this.$state, fresh);

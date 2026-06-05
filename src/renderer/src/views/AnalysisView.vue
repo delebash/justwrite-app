@@ -15,6 +15,7 @@ import { bookMetrics, POV_LABELS } from "../services/analysis/styleMetrics.js";
 import { computeVoiceDrift, explainVoiceDrift } from "../services/analysis/voiceDrift.js";
 import { sweepStoryTension } from "../services/analysis/tensionSweep.js";
 import { PACING_LABELS, ENDING_LABELS } from "../services/analysis/critique.js";
+import ReverseOutlineModal from "../components/ReverseOutlineModal.vue";
 import { useAiStore } from "../stores/ai.js";
 import { useAiProgress } from "../composables/useAiProgress.js";
 import JwTable from "@renderer/components/ui/JwTable.vue";
@@ -350,6 +351,12 @@ function cancelTensionSweep() {
   tensionProgress.cancel();
   tensionRunningChapterId.value = null;
 }
+
+// Reverse outline modal — opens from the Story tension section.
+const reverseOutlineOpen = ref(false);
+function openReverseOutline() { reverseOutlineOpen.value = true; }
+function closeReverseOutline() { reverseOutlineOpen.value = false; }
+const hasReverseOutline = computed(() => !!project.reverseOutline);
 
 // ─── Writing heatmap (365 days) ─────────────────────────────────────
 // Build a 53-week × 7-day grid for the year ending today. Each cell is
@@ -687,6 +694,12 @@ const milestoneState = computed(() => {
                     v-tooltip.bottom="'Re-run on every chapter, replacing prior results'">
             <Icon name="Refresh" :size="12" /> Re-analyse all
           </JwButton>
+          <JwButton v-if="!tensionProgress.running.value" intent="ghost" size="small"
+                    @click="openReverseOutline"
+                    v-tooltip.bottom="'Read the whole draft and produce the act structure the book actually has'">
+            <Icon name="Book" :size="12" />
+            {{ hasReverseOutline ? 'View reverse outline' : 'Reverse outline' }}
+          </JwButton>
           <JwButton v-else-if="tensionProgress.running.value" intent="danger" size="small" @click="cancelTensionSweep">
             <Icon name="Close" :size="12" /> Cancel
           </JwButton>
@@ -779,6 +792,8 @@ const milestoneState = computed(() => {
         </p>
       </template>
     </div>
+
+    <ReverseOutlineModal v-if="reverseOutlineOpen" @close="closeReverseOutline" />
 
     <!-- Voice drift -->
     <div v-if="drift.eligible" class="card vd-card" style="margin-bottom:18px">
