@@ -43,11 +43,13 @@ Sister feature to #1. When the user closes a sprint or hits a target, summarize 
 
 **Shipped as:** A **Wrap up session** button on the Home "Today's session" card opens a modal that generates a 150–300 word recap of today's writing plus a structured list of open threads (verbatim snippets from today's prose). Each thread has a **Pin** button that drops a Loose-thread marker into the chapter at the exact phrase (via a new `addMarkerToSceneHtml` helper that works without an editor instance). **Pin all** marks every unmarked thread at once. Recaps persist as `project.dailyRecaps[day]` (excluded from undo) and feed into the next day's resume briefing as additional grounding — closing the loop. Routable as the **recap** feature in Settings → AI. Service: `services/sessionRecap.js`. Modal: `components/SessionRecapModal.vue`. Docs: `docs/writing.md`.
 
-### 3. Foreshadowing / dangling-thread tracker
+### 3. Foreshadowing / dangling-thread tracker — **Shipped**
 
 **Writer problem:** "I planted the locket in Chapter 3 and genuinely don't remember if it ever pays off."
 
 **Why it's interesting:** Universally wanted, no major tool surfaces it as a button. The `Loose thread` marker category already exists — this feature LLM-scans the manuscript for setup-without-payoff and proposes new `Loose thread` markers automatically. Accept/reject per finding using the existing Entity Sweep review modal pattern. Basically Entity Sweep but for narrative promises instead of nouns.
+
+**Shipped as:** A **Find dangling threads** button on the Markers view header opens a scan modal that walks every chapter (bounded-concurrency pool) calling `extractThreads()`. Each chapter returns setups categorised as promise / object / question / ability / secret / threat / debt, with verbatim snippets and a "keyTerm" the model picks for downstream matching. A post-pass scans later chapters for each keyTerm and classifies setups as **Dangling** (key term never reappears) or **Mentioned later** (appears in N later chapters). Already-pinned setups are filtered out by comparing against existing Loose-thread / TODO markers. The review UI groups proposals by chapter with per-thread **Pin** buttons (drops a Loose-thread marker at the exact snippet via `addMarkerToSceneHtml`) and a **Pin all dangling** bulk action. Routable as the **foreshadowing** feature in Settings → AI. Services: `services/analysis/threadExtraction.js`, `services/analysis/foreshadowingScan.js`. Modal: `components/ForeshadowingScanModal.vue`. Docs: `docs/markers.md`.
 
 ### 4. Reader-knowledge vs character-knowledge tracker (dramatic-irony map)
 

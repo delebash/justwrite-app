@@ -96,6 +96,34 @@ Below the filters is the flat marker list, in manuscript order. Each row shows:
 
 ---
 
+## "Find dangling threads" — AI scan for unresolved setups
+
+> *"I planted the locket in chapter three and genuinely can't remember if it ever pays off."*
+
+You don't notice the threads you forget. Mid-draft you set up a vow, an object, a question, an ability, a secret — and a thousand sentences later you've buried it. The thing about a forgotten setup is that you can't search for it: you don't remember what to look for. The Markers view has a **Find dangling threads** button in the header that closes this loop by asking the model to do the noticing for you.
+
+**What it does.** Walks every chapter and identifies *setups* — narrative elements that demand a later payoff. Things like:
+
+- **Promises** ("I'll find him")
+- **Objects** (a distinctive item placed in someone's hand)
+- **Questions** raised but not answered
+- **Abilities** established for later use
+- **Secrets** known to one character but not others
+- **Threats** issued
+- **Debts** declared
+
+For each setup it captures a verbatim phrase from the chapter and a short "key term" — a specific noun or two-word phrase. Then it scans every *later* chapter for that key term. Setups whose key term never reappears are flagged as **Dangling**; setups whose key term does show up later are flagged as **Mentioned later** (payoff or not is your call — the model is cautious about claiming something is resolved).
+
+**The review modal.** After the scan you see a list grouped by chapter. The default filter is **Dangling** — the ones that need your attention. Each thread shows the kind badge, the verbatim snippet in italics, your auto-generated label, and a status badge listing the chapters the key term re-appears in (if any). Per-thread **Pin** drops a Loose-thread marker into the chapter at the exact phrase. **Pin all dangling** marks the whole filtered set at once.
+
+**What the scan doesn't do.** It doesn't read for payoff in the literary sense — that requires understanding the scene, which is expensive. The keyTerm check is a cheap proxy: if the noun doesn't show up downstream, there's nothing to pay it off. If it does show up, you decide whether the payoff is real or whether the chapter just mentions the noun in passing.
+
+**Already-pinned threads are filtered out.** The scan checks your existing Loose-thread and TODO markers and skips proposals that overlap with them — so a re-scan doesn't surface the same threads you've already noted.
+
+**Routable** as the **foreshadowing** feature in Settings → AI. Long-context structural reasoning is helpful here, so a stronger cloud model often produces better setup-spotting than a small local model. The scan runs once per chapter, so per-call costs add up on long books — pick a model accordingly.
+
+---
+
 ## A drafting workflow
 
 What this is meant to enable:

@@ -18,6 +18,7 @@ import { useProjectStore } from "../stores/project.js";
 import { MARKER_CATEGORIES, categoryById, scanProjectMarkers, removeMarkerFromHtml } from "../services/markers.js";
 import Icon from "../components/Icon.vue";
 import JwButton from "@renderer/components/ui/JwButton.vue";
+import ForeshadowingScanModal from "../components/ForeshadowingScanModal.vue";
 
 const project = useProjectStore();
 const router = useRouter();
@@ -57,6 +58,11 @@ function locationLabel(m) {
   if (m.sceneTitle) s += ` — ${m.sceneTitle}`;
   return s;
 }
+
+// Foreshadowing scan modal — opens from the header action.
+const scanOpen = ref(false);
+function openScan() { scanOpen.value = true; }
+function closeScan() { scanOpen.value = false; }
 </script>
 
 <template>
@@ -68,6 +74,12 @@ function locationLabel(m) {
           Pins dropped in the prose during drafting — fix-later notes, fact-checks, loose threads, weak passages.
           Click any tick or row to jump to that spot in the manuscript.
         </p>
+      </div>
+      <div class="pane-actions">
+        <JwButton intent="secondary" @click="openScan"
+                  v-tooltip.bottom="'Scan the whole manuscript for setups that may not have paid off'">
+          <Icon name="Sparkle" :size="13" /> Find dangling threads
+        </JwButton>
       </div>
     </header>
 
@@ -137,6 +149,8 @@ function locationLabel(m) {
       <p v-else>No markers in this category.</p>
     </div>
   </div>
+
+  <ForeshadowingScanModal v-if="scanOpen" @close="closeScan" />
 </template>
 
 <style scoped>
