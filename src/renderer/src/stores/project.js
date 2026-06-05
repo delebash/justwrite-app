@@ -462,6 +462,14 @@ export const useProjectStore = defineStore("project", {
     // { logline, blurbs: [...3], synopsis, pitch, generatedAt, model }
     marketingPack: loaded.marketingPack || null,
 
+    // World rules — free-text "rules the writer has explicitly stated
+    // this world enforces" (magic system rules, technology constraints,
+    // social structures, in-world physics). When non-empty, the Plot-
+    // hole audit checks scenes against these in addition to the usual
+    // contradiction / timeline / continuity passes. Closes the SFF gap
+    // without a dedicated world-rule auditor surface.
+    worldRules: typeof loaded.worldRules === "string" ? loaded.worldRules : "",
+
     // Multi-project registry. `_activeId` is the storage key the
     // current snapshot persists into. `_projects` mirrors the registry
     // so the sidebar dropdown can react. Neither participates in undo.
@@ -1340,6 +1348,10 @@ export const useProjectStore = defineStore("project", {
       this.marketingPack = null;
       this._persist();
     },
+    setWorldRules(text) {
+      this.worldRules = String(text || "");
+      this._persist();
+    },
     dismissPlotHole(findingId) {
       if (!this.plotHoles?.findings) return;
       this.plotHoles = {
@@ -1893,6 +1905,7 @@ export const useProjectStore = defineStore("project", {
         voiceCanonChapterIds: this.voiceCanonChapterIds,
         relationshipArcs: this.relationshipArcs,
         marketingPack: this.marketingPack,
+        worldRules: this.worldRules,
         savedAt: new Date().toISOString(),
       };
     },
@@ -1985,6 +1998,7 @@ export const useProjectStore = defineStore("project", {
         voiceCanonChapterIds: [],
         relationshipArcs: {},
         marketingPack: null,
+        worldRules: "",
       };
       this._activeId = id;
       Object.assign(this.$state, fresh);

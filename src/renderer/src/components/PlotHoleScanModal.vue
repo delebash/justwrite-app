@@ -30,6 +30,18 @@ const error = ref("");
 const showDismissed = ref(false);
 
 const audit = computed(() => project.plotHoles);
+
+// World rules — explicit constraints the audit should enforce in
+// addition to the usual contradiction / timeline / continuity passes.
+// Closes the SFF gap: writers can declare magic-system rules, hard SF
+// physics, technology limits, or social structures and have the audit
+// flag any violations of them. Persisted on the project, so the writer
+// fills this in once per project and the audit picks it up forever.
+const worldRulesOpen = ref(!!project.worldRules);
+const worldRulesDraft = ref(project.worldRules || "");
+function saveWorldRules() {
+  project.setWorldRules(worldRulesDraft.value);
+}
 const findings = computed(() => audit.value?.findings || []);
 const visibleFindings = computed(() =>
   showDismissed.value ? findings.value : findings.value.filter((f) => !f.dismissed),
@@ -128,6 +140,31 @@ onMounted(() => {
       audit is meaningful, padded findings are noise. Dismissed findings stay on the project
       but drop out of the default view.
     </p>
+
+    <!-- World rules — optional extra constraint set the audit enforces. -->
+    <details class="ph-rules" :open="worldRulesOpen" @toggle="(e) => worldRulesOpen = e.target.open">
+      <summary>
+        World rules to enforce
+        <span v-if="project.worldRules?.trim()" class="ph-rules-pill">on</span>
+        <span v-else class="ph-rules-pill muted">off</span>
+      </summary>
+      <p class="ph-rules-help">
+        Free-text <strong>rules the writer has explicitly stated this world enforces</strong> —
+        magic-system constraints ("blood magic costs a year of life per use"), hard SF physics
+        ("FTL drives need 48 hours to recharge"), technology limits, social structures. When
+        non-empty, the audit checks each chapter against these in the same pass. If a chapter
+        breaks a rule but the prose <em>earns the exception</em> (a cost paid, a workaround,
+        a stated bypass), it's not flagged. Leave blank for non-SFF projects — the rest of the
+        audit runs identically.
+      </p>
+      <textarea
+        v-model="worldRulesDraft"
+        @blur="saveWorldRules"
+        class="ph-rules-textarea"
+        rows="6"
+        placeholder="e.g. Magic requires a physical cost — wounds, age, exhaustion. No magic is free.&#10;FTL drives need 48 hours between jumps; characters mid-flight cannot communicate.&#10;Vows sworn on the Star Stone cannot be broken without the swearer's death.">
+      </textarea>
+    </details>
 
     <div v-if="error" class="ph-error">
       <Icon name="Alert" :size="13" /> {{ error }}
@@ -334,6 +371,40 @@ onMounted(() => {
   color: var(--muted); margin-right: 6px;
 }
 .ph-item-actions { display: flex; justify-content: flex-end; }
+
+.ph-rules {
+  margin: 0 0 16px;
+  background: var(--surface-2); border: 1px solid var(--border-soft);
+  border-radius: 8px; padding: 10px 14px;
+}
+.ph-rules > summary {
+  cursor: pointer;
+  font-family: var(--font-mono); font-size: 10px;
+  letter-spacing: 0.16em; text-transform: uppercase; color: var(--muted);
+  display: flex; align-items: center; gap: 10px;
+}
+.ph-rules-pill {
+  font-family: var(--font-ui); letter-spacing: 0; text-transform: none;
+  font-size: 10.5px; padding: 2px 9px; border-radius: 999px;
+  background: var(--accent-soft); color: var(--accent-ink);
+}
+.ph-rules-pill.muted { background: var(--surface-3); color: var(--muted); }
+.ph-rules-help {
+  margin: 10px 0 8px; font-size: 12px; line-height: 1.55; color: var(--muted);
+  max-width: 78ch;
+}
+.ph-rules-help strong { color: var(--ink-2); font-weight: 600; }
+.ph-rules-textarea {
+  width: 100%; box-sizing: border-box;
+  padding: 10px 12px;
+  background: var(--surface); border: 1px solid var(--border-soft); border-radius: 6px;
+  font-family: var(--font-mono); font-size: 12.5px; line-height: 1.55;
+  color: var(--ink-2);
+  resize: vertical;
+}
+.ph-rules-textarea:focus {
+  outline: none; border-color: var(--accent); box-shadow: 0 0 0 3px var(--accent-soft);
+}
 
 .ph-foot-spacer { flex: 1; }
 </style>

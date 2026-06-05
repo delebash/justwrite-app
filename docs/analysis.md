@@ -148,6 +148,8 @@ Each finding has a **severity** (Flag / Suggestion / Note), the **chapter number
 
 **Cost note.** One LLM call over the digest plus tails. The prompt is longer than Reverse outline because of the prose tails, so pin to a long-context model if you can. Routable as the **plotHoles** feature in Settings → AI.
 
+**World rules to enforce.** SFF writers can declare in-world constraints — magic-system rules, hard SF physics, technology limits, social structures — in a collapsible textarea on the modal ("World rules to enforce"). When non-empty, the audit checks each chapter against those rules in the same pass. *"Magic requires a physical cost — wounds, age, exhaustion. No magic is free."* If a chapter breaks a rule but the prose **earns the exception** (a cost paid, a workaround, a stated bypass), it's not flagged. The model is told to distinguish unearned violations from costed ones. Leave the field blank for non-SFF projects — the rest of the audit runs identically. The rules persist on the project, so the writer fills it in once and every subsequent scan picks it up.
+
 #### Marketing pack — logline, blurbs, synopsis, pitch
 
 > *"I've finished the draft. Now I have to write a query letter, a synopsis, a back-cover blurb, and an elevator pitch. I'd rather rewrite a chapter."*

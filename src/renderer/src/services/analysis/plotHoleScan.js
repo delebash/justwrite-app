@@ -89,7 +89,7 @@ export const KIND_LABELS = {
   other:                "Other",
 };
 
-const SYSTEM = `You audit a novelist's draft for plot holes and continuity drift.
+const SYSTEM_BASE = `You audit a novelist's draft for plot holes and continuity drift.
 
 You will be given a chapter-by-chapter digest. For each chapter you'll see the chapter number, title, word count, a short summary, and a TAIL of the chapter's actual prose (the last ~300 words) so you can catch details that don't show up in summaries.
 
@@ -132,6 +132,27 @@ Rules:
   - Don't flag intentional ambiguity, deliberate withheld information, or unreliable-narrator effects unless something is clearly broken.
 
 Return ONLY the JSON object. No preface, no markdown fences.`;
+
+// Appended to SYSTEM_BASE when the writer has filled in project.worldRules.
+// Lets the model check the manuscript against the writer's explicitly
+// declared in-world constraints (magic-system rules, technology limits,
+// social structures, hard SF physics) in the same pass.
+function systemWithWorldRules(rules) {
+  const trimmed = String(rules || "").trim();
+  if (!trimmed) return SYSTEM_BASE;
+  return `${SYSTEM_BASE}
+
+EXTRA: WORLD RULES TO ENFORCE.
+
+The writer has explicitly stated the following rules this world enforces. When you scan the manuscript, ALSO check whether any chapter violates these rules without an on-page explanation. Flag violations as "kind": "continuity" with severity "flag" (or "suggest" if the rule is fuzzy). Quote the violating prose in the evidence field and name the specific rule that was broken in the reason field. If a chapter appears to break a rule but the prose explicitly establishes an exception (a workaround, a cost paid, a rule-bound character bypassing it for a stated reason), do NOT flag — that's the writer earning the exception.
+
+World rules (verbatim from the writer):
+"""
+${trimmed.slice(0, 4000)}
+"""
+
+End of world rules.`;
+}
 
 export async function scanPlotHoles({
   project,
@@ -176,7 +197,7 @@ export async function scanPlotHoles({
   }
 
   const messages = [
-    { role: "system", content: SYSTEM },
+    { role: "system", content: systemWithWorldRules(project.worldRules) },
     { role: "user", content: body.join("\n") },
   ];
 
