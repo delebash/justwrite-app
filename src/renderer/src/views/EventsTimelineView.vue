@@ -6,7 +6,6 @@ import { EVENTS_KIND_META } from "../services/eventsKind.js";
 import Icon from "../components/Icon.vue";
 import Breadcrumb from "../components/Breadcrumb.vue";
 import JwButton from "@renderer/components/ui/JwButton.vue";
-import { useUiStore } from "../stores/ui.js";
 
 const props = defineProps({
   kind:     { type: String, required: true },
@@ -14,7 +13,6 @@ const props = defineProps({
 });
 
 const project = useProjectStore();
-const ui      = useUiStore();
 const router  = useRouter();
 
 const meta   = computed(() => EVENTS_KIND_META[props.kind]);
@@ -56,8 +54,8 @@ function formatWhen(when) {
 }
 
 function remove(ev) {
+  // Store handles the trash entry + undo toast.
   project.removeEvent(props.entityId, ev.id);
-  ui.showToast({ message: `Removed event "${ev.title || "Untitled event"}".` });
 }
 function goEdit(eventId) { router.push(meta.value.editUrl(props.entityId, eventId)); }
 function goBack()        { router.push(meta.value.detailUrl(props.entityId)); }

@@ -15,6 +15,7 @@ const router = useRouter();
 
 const KIND_META = {
   chapters:      { label: "Chapters",      icon: "Book",      labelOne: "chapter" },
+  scenes:        { label: "Scenes",        icon: "Quote",     labelOne: "scene" },
   characters:    { label: "Characters",    icon: "Users",     labelOne: "character" },
   locations:     { label: "Locations",     icon: "Pin",       labelOne: "location" },
   objects:       { label: "Objects",       icon: "Cube",      labelOne: "object" },
@@ -22,6 +23,9 @@ const KIND_META = {
   notes:         { label: "Notes",         icon: "Note",      labelOne: "note" },
   strands:       { label: "Narrative strands",       icon: "Strands", labelOne: "narrative strand" },
   worldbuilding: { label: "Worldbuilding", icon: "Sparkle",   labelOne: "article" },
+  events:        { label: "Events",        icon: "Calendar",  labelOne: "event" },
+  statuses:      { label: "Statuses",      icon: "Check",     labelOne: "status" },
+  tagVocab:      { label: "Curated tags",  icon: "Sparkle",   labelOne: "tag" },
 };
 
 // Group by kind with metadata; only show kinds that have items.
@@ -35,18 +39,41 @@ const totalCount = computed(() => project.trashCount);
 // Item title — different shape per kind.
 function titleOf(kind, item) {
   if (kind === "chapters")      return `Ch. ${item.num} — ${item.title}`;
+  if (kind === "scenes")        return item.title || "Untitled scene";
   if (kind === "notes")         return item.title;
   if (kind === "worldbuilding") return item.title;
+  if (kind === "events")        return item.title || "Untitled event";
+  if (kind === "statuses")      return item.label;
+  if (kind === "tagVocab")      return item.label;
   return item.name;
+}
+// Resolve the parent entity name for a deleted event (events attach to
+// characters/locations/objects). Returns null if the parent was deleted too.
+function eventParentName(entityId) {
+  if (!entityId) return null;
+  for (const list of [project.characters, project.locations, project.objects]) {
+    const found = list.find((x) => x.id === entityId);
+    if (found) return found.name;
+  }
+  return null;
 }
 function subOf(kind, item) {
   if (kind === "chapters")   return item.partId ? "from " + (project.parts.find((p) => p.id === item.partId)?.title || "removed part") : null;
+  if (kind === "scenes") {
+    const parent = project.chapterById(item.chapterId);
+    return parent ? `from "Ch. ${parent.num} — ${parent.title}"` : "from removed chapter";
+  }
   if (kind === "characters") return item.role;
   if (kind === "locations")  return item.kind;
   if (kind === "objects")    return item.kind;
   if (kind === "notes")      return `tag · ${item.tag}`;
   if (kind === "groups")     return `${(item.members || []).length} members`;
   if (kind === "worldbuilding") return item.category;
+  if (kind === "events") {
+    const parent = eventParentName(item.entityId);
+    return parent ? `from "${parent}"` : "from removed entity";
+  }
+  if (kind === "tagVocab")   return `for ${item.kind}`;
   return null;
 }
 function ago(ts) {

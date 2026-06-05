@@ -289,8 +289,9 @@ function normalizeStrands(snap) {
   return snap;
 }
 const EMPTY_TRASH = {
-  chapters: [], characters: [], locations: [], objects: [],
+  chapters: [], scenes: [], characters: [], locations: [], objects: [],
   groups: [], notes: [], strands: [], worldbuilding: [],
+  events: [], statuses: [], tagVocab: [],
 };
 
 export const TRASH_KINDS = Object.keys(EMPTY_TRASH);
@@ -863,11 +864,18 @@ export const useProjectStore = defineStore("project", {
       this._record("removeScene");
       const list = this.scenes[chapterId] || [];
       if (list.length <= 1) return;  // Always keep at least one scene per chapter.
+      const idx = list.findIndex((s) => s.id === sceneId);
+      if (idx < 0) return;
+      const scene = list[idx];
+      // Trash carries the parent chapterId and original position so a
+      // later restore re-inserts the scene where it used to live.
+      this._pushTrash("scenes", { ...scene, chapterId, index: idx });
       this.scenes = {
         ...this.scenes,
         [chapterId]: list.filter((s) => s.id !== sceneId),
       };
       this._recomputeChapterWords(chapterId);
+      this._toast(`Removed scene${scene.title ? ` "${scene.title}"` : ""}`, "scenes", sceneId);
       this._persist();
     },
     moveScene(chapterId, sceneId, dir) {
@@ -1262,9 +1270,14 @@ export const useProjectStore = defineStore("project", {
     },
     removeTagVocab(kind, id) {
       this._record("removeTagVocab");
+      const list = this.tagVocabularies[kind] || [];
+      const tag = list.find((t) => t.id === id);
+      if (!tag) return;
+      this._pushTrash("tagVocab", { ...tag, kind });
       const next = { ...this.tagVocabularies };
-      next[kind] = (next[kind] || []).filter((t) => t.id !== id);
+      next[kind] = list.filter((t) => t.id !== id);
       this.tagVocabularies = next;
+      this._toast(`Removed tag "${tag.label}"`, "tagVocab", id);
       this._persist();
     },
 
@@ -1436,7 +1449,19 @@ export const useProjectStore = defineStore("project", {
     },
     addEvent(entityId, event) { this._record("addEvent"); const id = uid("ev"); this.events = { ...this.events, [entityId]: [...(this.events[entityId] || []), { id, when: "", title: "Untitled event", note: "", ...event }] }; this._persist(); },
     updateEvent(entityId, eventId, patch) { this._record("updateEvent"); this.events = { ...this.events, [entityId]: (this.events[entityId] || []).map((e) => e.id === eventId ? { ...e, ...patch } : e) }; this._persist(); },
-    removeEvent(entityId, eventId) { this._record("removeEvent"); this.events = { ...this.events, [entityId]: (this.events[entityId] || []).filter((e) => e.id !== eventId) }; this._persist(); },
+    removeEvent(entityId, eventId) {
+      this._record("removeEvent");
+      const list = this.events[entityId] || [];
+      const idx = list.findIndex((e) => e.id === eventId);
+      if (idx < 0) return;
+      const ev = list[idx];
+      // Carry entityId and original position so restore re-inserts where
+      // the event used to live.
+      this._pushTrash("events", { ...ev, entityId, index: idx });
+      this.events = { ...this.events, [entityId]: list.filter((e) => e.id !== eventId) };
+      this._toast(`Removed event "${ev.title || "Untitled event"}"`, "events", eventId);
+      this._persist();
+    },
 
     // ── Trash ───────────────────────────────────────────────
     _pushTrash(kind, item) {
@@ -1479,6 +1504,43 @@ export const useProjectStore = defineStore("project", {
           this.scenes = { ...this.scenes, [chapter.id]: nextScenes };
           break;
         }
+        case "events": {
+          const { entityId, index, ...event } = rest;
+          const list = this.events[entityId] || [];
+          const insertAt = Math.max(0, Math.min(index ?? list.length, list.length));
+          const next = [...list];
+          next.splice(insertAt, 0, event);
+          this.events = { ...this.events, [entityId]: next };
+          break;
+        }
+        case "tagVocab": {
+          const { kind, ...tag } = rest;
+          const next = { ...this.tagVocabularies };
+          next[kind] = [...(next[kind] || []), tag];
+          this.tagVocabularies = next;
+          break;
+        }
+        case "scenes": {
+          const { chapterId, index, ...scene } = rest;
+          const list = this.scenes[chapterId];
+          if (!list) {
+            // Parent chapter is gone (also in trash, or purged). Put the
+            // scene back so the user can restore the chapter first — its
+            // own trash payload carries the scenes that were still in it
+            // at chapter-delete time, but standalone scene trash entries
+            // are orphaned without the parent.
+            this.trash = { ...this.trash, scenes: [...(this.trash.scenes || []), item] };
+            const ui = useUiStore();
+            ui.showToast({ message: `Restore the parent chapter first — then this scene.` });
+            return;
+          }
+          const insertAt = Math.max(0, Math.min(index ?? list.length, list.length));
+          const next = [...list];
+          next.splice(insertAt, 0, scene);
+          this.scenes = { ...this.scenes, [chapterId]: next };
+          this._recomputeChapterWords(chapterId);
+          break;
+        }
         case "characters": {
           const { extras, ...c } = rest;
           this.characters = [...this.characters, c];
@@ -1514,9 +1576,13 @@ export const useProjectStore = defineStore("project", {
     },
     removeStatusDef(id) {
       this._record("removeStatusDef");
+      const s = this.statuses.find((x) => x.id === id);
+      if (!s) return;
+      this._pushTrash("statuses", { ...s });
       // Entities still referencing this id simply resolve to "unset"
       // (statusById → null), so no sweep is needed.
-      this.statuses = this.statuses.filter((s) => s.id !== id);
+      this.statuses = this.statuses.filter((x) => x.id !== id);
+      this._toast(`Deleted status "${s.label}"`, "statuses", id);
       this._persist();
     },
     reorderStatusDefs(ids) {
