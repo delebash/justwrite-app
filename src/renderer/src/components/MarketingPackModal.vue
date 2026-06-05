@@ -16,6 +16,7 @@ import { useAiTasksStore } from "../stores/aiTasks.js";
 import { generateMarketingPack } from "../services/analysis/marketingPack.js";
 import Icon from "./Icon.vue";
 import AiTaskStrip from "./AiTaskStrip.vue";
+import AiFeatureChip from "./AiFeatureChip.vue";
 import AppModal from "./AppModal.vue";
 import JwButton from "@renderer/components/ui/JwButton.vue";
 
@@ -111,6 +112,16 @@ onMounted(() => {
     :closable="!running"
     @close="emit('close')"
   >
+    <template #header>
+      <div class="mp-titleblock">
+        <div class="t-eyebrow">Marketing pack</div>
+        <h2 class="modal-title">Logline, blurbs, synopsis, pitch</h2>
+      </div>
+      <div class="mp-header-actions">
+        <AiFeatureChip feature="marketingPack" label="Marketing" />
+      </div>
+    </template>
+
     <p class="mp-blurb">
       One LLM call returns the four artifacts a writer needs to query and pitch: a
       <strong>logline</strong> (one sentence), three <strong>back-cover blurb variants</strong>
@@ -386,4 +397,8 @@ onMounted(() => {
 }
 
 .mp-foot-spacer { flex: 1; }
+
+.mp-titleblock { display: flex; flex-direction: column; gap: 2px; flex: 1; min-width: 0; }
+.mp-titleblock h2 { font-family: var(--font-serif); font-size: 22px; font-weight: 600; margin: 4px 0 0; }
+.mp-header-actions { display: flex; gap: 8px; flex-shrink: 0; align-items: center; }
 </style>

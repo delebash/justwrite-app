@@ -22,6 +22,7 @@ import { generateSessionRecap } from "../services/sessionRecap.js";
 import { addMarkerToSceneHtml } from "../services/markers.js";
 import Icon from "./Icon.vue";
 import AiTaskStrip from "./AiTaskStrip.vue";
+import AiFeatureChip from "./AiFeatureChip.vue";
 import AppModal from "./AppModal.vue";
 import JwButton from "@renderer/components/ui/JwButton.vue";
 
@@ -174,6 +175,16 @@ onMounted(() => {
     :closable="!running"
     @close="emit('close')"
   >
+    <template #header>
+      <div class="recap-titleblock">
+        <div class="t-eyebrow">End of session</div>
+        <h2 class="modal-title">Wrap up your day</h2>
+      </div>
+      <div class="recap-header-actions">
+        <AiFeatureChip feature="recap" label="Recap" />
+      </div>
+    </template>
+
     <div class="recap-stats">
       <div class="recap-stat">
         <div class="recap-stat-v">{{ headerStats.words.toLocaleString() }}</div>
@@ -369,4 +380,8 @@ onMounted(() => {
 
 .recap-foot { display: flex; align-items: center; gap: 10px; width: 100%; }
 .recap-foot-spacer { flex: 1; }
+
+.recap-titleblock { display: flex; flex-direction: column; gap: 2px; flex: 1; min-width: 0; }
+.recap-titleblock h2 { font-family: var(--font-serif); font-size: 22px; font-weight: 600; margin: 4px 0 0; }
+.recap-header-actions { display: flex; gap: 8px; flex-shrink: 0; align-items: center; }
 </style>

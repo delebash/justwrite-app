@@ -23,6 +23,7 @@ import { useAiTasksStore } from "../stores/aiTasks.js";
 import { analyseRelationship, pairKey, TRAJECTORY_LABELS } from "../services/analysis/relationshipArc.js";
 import Icon from "./Icon.vue";
 import AiTaskStrip from "./AiTaskStrip.vue";
+import AiFeatureChip from "./AiFeatureChip.vue";
 import AppModal from "./AppModal.vue";
 import JwButton from "@renderer/components/ui/JwButton.vue";
 import JwSelect from "@renderer/components/ui/JwSelect.vue";
@@ -173,6 +174,16 @@ const TRAJECTORY_COLOURS = {
     :closable="!running"
     @close="emit('close')"
   >
+    <template #header>
+      <div class="ra-titleblock">
+        <div class="t-eyebrow">Relationship arc</div>
+        <h2 class="modal-title">How does this relationship move?</h2>
+      </div>
+      <div class="ra-header-actions">
+        <AiFeatureChip feature="relationshipArc" label="Relationship" />
+      </div>
+    </template>
+
     <p class="ra-blurb">
       Pick two characters who share scenes. JustWrite reads every chapter they appear in together
       and produces a chapter-by-chapter arc — <strong>warmth</strong> (cold to warm),
@@ -433,4 +444,8 @@ const TRAJECTORY_COLOURS = {
 }
 
 .ra-foot-spacer { flex: 1; }
+
+.ra-titleblock { display: flex; flex-direction: column; gap: 2px; flex: 1; min-width: 0; }
+.ra-titleblock h2 { font-family: var(--font-serif); font-size: 22px; font-weight: 600; margin: 4px 0 0; }
+.ra-header-actions { display: flex; gap: 8px; flex-shrink: 0; align-items: center; }
 </style>

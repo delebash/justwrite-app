@@ -19,6 +19,7 @@ import { autoIndexRunning } from "../services/rag/autoIndex.js";
 import { getItem, setItem } from "../services/storage.js";
 import IndexBuildModal from "./IndexBuildModal.vue";
 import AiTaskStrip from "./AiTaskStrip.vue";
+import AiFeatureChip from "./AiFeatureChip.vue";
 import EmptyState from "./EmptyState.vue";
 import Icon from "./Icon.vue";
 import JwButton from "@renderer/components/ui/JwButton.vue";
@@ -352,9 +353,13 @@ defineExpose({ open: () => { open.value = true; }, close });
             <template v-else>Chat with your book</template>
           </h2>
         </div>
-        <JwButton intent="ghost" size="small" @click="close">
-          <Icon name="Close" :size="12" /> Close
-        </JwButton>
+        <div class="cp-head-actions">
+          <AiFeatureChip v-if="chatMode === 'character'" feature="characterChat" label="Talk to character" />
+          <AiFeatureChip v-else feature="chat" label="Ask the book" />
+          <JwButton intent="ghost" size="small" @click="close">
+            <Icon name="Close" :size="12" /> Close
+          </JwButton>
+        </div>
       </header>
 
       <!-- Mode + character picker. The character dropdown only shows
@@ -513,6 +518,7 @@ defineExpose({ open: () => { open.value = true; }, close });
 
 .cp-head { display: flex; justify-content: space-between; align-items: flex-start; gap: 14px; flex-shrink: 0; }
 .cp-head h2 { font-family: var(--font-serif); font-size: 18px; font-weight: 600; margin: 3px 0 0; }
+.cp-head-actions { display: flex; align-items: center; gap: 6px; flex-shrink: 0; }
 .cp-mode-row {
   display: grid; grid-template-columns: 1fr 1fr; gap: 8px;
   margin-top: 12px; flex-shrink: 0;

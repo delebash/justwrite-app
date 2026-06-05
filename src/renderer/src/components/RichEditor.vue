@@ -497,9 +497,10 @@ const isActive = (name, attrs) => editor.value?.isActive(name, attrs) || false;
 const show = (b) => props.toolbar.includes(b);
 
 // --- AI assist (writerAI + aiDiff marks) ------------------------------
-// Selection-driven actions live in the bubble menu (Rewrite / Expand /
-// Tighten / Continue + Line edits). Each call replaces the selection
-// with a paired <del>/<ins> diff that the user accepts or rejects.
+// Selection-driven actions live in the scene strip's AI dropdown
+// (Rewrite / Expand / Tighten / Continue + Line edits). Each call
+// replaces the selection with a paired <del>/<ins> diff that the
+// user accepts or rejects.
 const aiTasks = useAiTasksStore();
 const myTask = computed(() => aiTasks.runningTasks.find((t) => t.feature === "writerAI"));
 const aiRunning = computed(() => !!myTask.value);

@@ -1,8 +1,8 @@
 // Convert raw fetch / HTTP errors from an LLM provider into a single
 // short, user-readable line. Each writerAI / critique / entityExtraction
 // call wraps its stream loop with friendlyAiError(err, provider) so the
-// modals + bubble menu never surface verbose "Chat stream error 500: …"
-// to the user.
+// modals + scene-strip AI dropdown never surface verbose "Chat stream
+// error 500: …" to the user.
 
 const PROVIDER_HINTS = {
   401: "Authentication failed — check the API key in Settings → AI providers.",

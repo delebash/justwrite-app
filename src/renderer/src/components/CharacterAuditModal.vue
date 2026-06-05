@@ -19,6 +19,7 @@ import { useAiStore } from "../stores/ai.js";
 import { useAiTasksStore } from "../stores/aiTasks.js";
 import { auditAllCharacters } from "../services/analysis/characterAudit.js";
 import Icon from "./Icon.vue";
+import AiFeatureChip from "./AiFeatureChip.vue";
 import AppModal from "./AppModal.vue";
 import StatusRow from "./StatusRow.vue";
 import AiTaskStrip from "./AiTaskStrip.vue";
@@ -193,6 +194,16 @@ onMounted(() => {
     :closable="!running"
     @close="emit('close')"
   >
+    <template #header>
+      <div class="ca-titleblock">
+        <div class="t-eyebrow">Character audit</div>
+        <h2 class="modal-title">Consistency audit</h2>
+      </div>
+      <div class="ca-header-actions">
+        <AiFeatureChip feature="characterAudit" label="Character audit" />
+      </div>
+    </template>
+
     <p class="ca-blurb">
       For each main character, JustWrite sends their profile (role, one-liner, voice, arc, motivation,
       backstory, established voice samples) plus the prose of every scene that features them. The model
@@ -404,4 +415,8 @@ onMounted(() => {
 }
 
 .ca-foot-spacer { flex: 1; }
+
+.ca-titleblock { display: flex; flex-direction: column; gap: 2px; flex: 1; min-width: 0; }
+.ca-titleblock h2 { font-family: var(--font-serif); font-size: 22px; font-weight: 600; margin: 4px 0 0; }
+.ca-header-actions { display: flex; gap: 8px; flex-shrink: 0; align-items: center; }
 </style>

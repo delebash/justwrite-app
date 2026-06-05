@@ -14,6 +14,7 @@ import { useAiTasksStore } from "../stores/aiTasks.js";
 import { scanAllChapters } from "../services/analysis/entitySweep.js";
 import EntityReviewModal from "./EntityReviewModal.vue";
 import AiTaskStrip from "./AiTaskStrip.vue";
+import AiFeatureChip from "./AiFeatureChip.vue";
 import Icon from "./Icon.vue";
 import AppModal from "./AppModal.vue";
 import StatusRow from "./StatusRow.vue";
@@ -154,9 +155,12 @@ onMounted(runSweep);
         <div class="t-eyebrow">Whole-book scan</div>
         <div class="modal-title">Scanning for new entities</div>
       </div>
-      <JwButton v-if="running" intent="ghost" size="small" @click="cancelSweep">
-        <Icon name="Close" :size="12" /> Cancel
-      </JwButton>
+      <div class="sweep-header-actions">
+        <AiFeatureChip feature="entitySweep" label="Entity sweep" />
+        <JwButton v-if="running" intent="ghost" size="small" @click="cancelSweep">
+          <Icon name="Close" :size="12" /> Cancel
+        </JwButton>
+      </div>
     </template>
 
     <p class="sweep-desc">
@@ -183,6 +187,7 @@ onMounted(runSweep);
 
 <style scoped>
 .sweep-titleblock { display: flex; flex-direction: column; gap: 2px; flex: 1; min-width: 0; }
+.sweep-header-actions { display: flex; gap: 8px; align-items: center; flex-shrink: 0; }
 
 .sweep-desc {
   font-size: 12px; line-height: 1.55; color: var(--muted);

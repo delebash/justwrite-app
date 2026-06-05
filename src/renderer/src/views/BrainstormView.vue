@@ -8,6 +8,7 @@ import { useUiStore } from "../stores/ui.js";
 import { useAiTasksStore } from "../stores/aiTasks.js";
 import { runAiStream } from "../services/aiStream.js";
 import AiTaskStrip from "../components/AiTaskStrip.vue";
+import AiFeatureChip from "../components/AiFeatureChip.vue";
 
 const ui = useUiStore();
 const aiTasks = useAiTasksStore();
@@ -192,7 +193,9 @@ function clear() {
 
 <template>
   <div class="brainstorm-view">
-    <PaneHeader eyebrow="Planning" title="Brainstorm" />
+    <PaneHeader eyebrow="Planning" title="Brainstorm">
+      <AiFeatureChip feature="brainstorm" label="Brainstorm" />
+    </PaneHeader>
 
     <div class="brainstorm-controls">
       <p class="bs-desc">

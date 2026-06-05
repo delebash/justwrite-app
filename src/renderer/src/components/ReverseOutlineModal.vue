@@ -22,6 +22,7 @@ import {
 } from "../services/analysis/reverseOutline.js";
 import Icon from "./Icon.vue";
 import AiTaskStrip from "./AiTaskStrip.vue";
+import AiFeatureChip from "./AiFeatureChip.vue";
 import AppModal from "./AppModal.vue";
 import JwButton from "@renderer/components/ui/JwButton.vue";
 
@@ -126,6 +127,16 @@ onMounted(() => {
     :closable="!running"
     @close="emit('close')"
   >
+    <template #header>
+      <div class="ro-titleblock">
+        <div class="t-eyebrow">Reverse outline</div>
+        <h2 class="modal-title">The shape your book actually has</h2>
+      </div>
+      <div class="ro-header-actions">
+        <AiFeatureChip feature="reverseOutline" label="Reverse outline" />
+      </div>
+    </template>
+
     <p class="ro-blurb">
       A structural editor's reading of the book you've drafted — the act structure that's
       actually on the page, where the plot points land, and what each chapter is doing in
@@ -315,4 +326,8 @@ onMounted(() => {
 }
 
 .ro-foot-spacer { flex: 1; }
+
+.ro-titleblock { display: flex; flex-direction: column; gap: 2px; flex: 1; min-width: 0; }
+.ro-titleblock h2 { font-family: var(--font-serif); font-size: 22px; font-weight: 600; margin: 4px 0 0; }
+.ro-header-actions { display: flex; gap: 8px; flex-shrink: 0; align-items: center; }
 </style>

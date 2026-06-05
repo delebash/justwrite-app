@@ -183,6 +183,6 @@ There's no "I had three markers in this chapter and now they're gone" failure mo
 
 ## See also
 
-- **[Writing](writing.md)** — the editor, view modes, AI actions, the bubble menu
+- **[Writing](writing.md)** — the editor, view modes, the scene-strip AI dropdown, the formatting bubble menu
 - **[Notes and search](notes-and-search.md)** — the heavier Notes surface for thinking
 - **[Keyboard shortcuts](keyboard-shortcuts.md)** — Alt + M and the rest

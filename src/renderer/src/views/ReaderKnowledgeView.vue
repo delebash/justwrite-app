@@ -28,6 +28,7 @@ import {
 } from "../services/analysis/readerKnowledge.js";
 import Icon from "../components/Icon.vue";
 import AiTaskStrip from "../components/AiTaskStrip.vue";
+import AiFeatureChip from "../components/AiFeatureChip.vue";
 import EmptyState from "../components/EmptyState.vue";
 import JwButton from "@renderer/components/ui/JwButton.vue";
 
@@ -195,6 +196,7 @@ function jumpToChapter(chapterId) {
         </p>
       </div>
       <div class="pane-actions">
+        <AiFeatureChip feature="readerKnowledge" label="Reader knowledge" />
         <span v-if="lastRunAt && !running" class="rk-stamp">Last run {{ ago(lastRunAt) }}</span>
         <JwButton v-if="hasAny && !running" intent="ghost" @click="clearAll"
                   v-tooltip.bottom="'Discard the saved analysis'">

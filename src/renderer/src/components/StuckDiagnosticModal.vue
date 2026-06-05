@@ -16,6 +16,7 @@ import {
 } from "../services/stuckDiagnostic.js";
 import Icon from "./Icon.vue";
 import AiTaskStrip from "./AiTaskStrip.vue";
+import AiFeatureChip from "./AiFeatureChip.vue";
 import AppModal from "./AppModal.vue";
 import JwButton from "@renderer/components/ui/JwButton.vue";
 
@@ -80,6 +81,16 @@ onMounted(run);
     :closable="!running"
     @close="emit('close')"
   >
+    <template #header>
+      <div class="su-titleblock">
+        <div class="t-eyebrow">Stuck?</div>
+        <h2 class="modal-title">Five ways to unblock this scene</h2>
+      </div>
+      <div class="su-header-actions">
+        <AiFeatureChip feature="unstuck" label="Unstuck" />
+      </div>
+    </template>
+
     <p class="su-blurb">
       Five distinct moves the scene could take from here. Each one belongs to a different category so
       you get a real menu, not five variations of the same idea. Pick one and JustWrite drafts the
@@ -185,4 +196,8 @@ onMounted(run);
 .su-move-actions { display: flex; justify-content: flex-end; }
 
 .su-foot-spacer { flex: 1; }
+
+.su-titleblock { display: flex; flex-direction: column; gap: 2px; flex: 1; min-width: 0; }
+.su-titleblock h2 { font-family: var(--font-serif); font-size: 22px; font-weight: 600; margin: 4px 0 0; }
+.su-header-actions { display: flex; gap: 8px; flex-shrink: 0; align-items: center; }
 </style>

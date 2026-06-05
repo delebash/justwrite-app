@@ -14,7 +14,7 @@ If this is your first time:
 
 1. **[Getting started](getting-started.md)** — install, open the app, find your bearings.
 2. **[Core concepts](core-concepts.md)** — the way JustWrite thinks about a book (Parts, Chapters, Scenes, the Story Bible, autosave, undo).
-3. **[Writing](writing.md)** — the editor itself: Home, Chapters, the four view modes, the AI bubble menu.
+3. **[Writing](writing.md)** — the editor itself: Home, Chapters, the four view modes, the scene-strip AI dropdown.
 
 If you have a draft already:
 

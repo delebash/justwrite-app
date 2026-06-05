@@ -70,10 +70,11 @@ const voicePreview = computed(() => buildVoiceFingerprint(project, { targetWords
 const { modelsFor: featureModelsFor, refreshModels: refreshFeatureModels, ensureModels: ensureFeatureModels } = useModelList();
 
 const AI_FEATURES = [
-  { key: "chat",        label: "Manuscript chat", hint: "RAG question/answer in the chat panel." },
-  { key: "critique",    label: "Critique",        hint: "The Critique modal's structural pass." },
+  { key: "chat",        label: "Manuscript chat", hint: "\"Ask the book\" RAG question/answer mode in the chat panel." },
+  { key: "critique",    label: "Critique",        hint: "The Critique modal — line-level notes (flags / suggestions / observations) and the structural pass (tension, hook, pacing, ending)." },
   { key: "entitySweep", label: "Entity sweep",    hint: "Scans chapters for new characters / locations / objects." },
-  { key: "writerAI",    label: "Writer actions",  hint: "Bubble-menu rewrites and line edits in the editor." },
+  { key: "writerAI",    label: "Writer actions",  hint: "The AI dropdown in each scene's strip — Rewrite, Expand, Tighten, Continue, Describe, plus all Line edits." },
+  { key: "brainstorm",  label: "Brainstorm",      hint: "The Brainstorm view — name / title / freeform idea generation with thumbs-up steering." },
   { key: "briefing",    label: "Resume briefing", hint: "Generates the Home \"Previously on your novel\" recap card." },
   { key: "recap",       label: "Session recap",   hint: "End-of-day \"Wrap up session\" recap + open-thread suggestions." },
   { key: "foreshadowing", label: "Foreshadowing scan", hint: "Whole-book scan for setups that may not have paid off." },
@@ -89,6 +90,8 @@ const AI_FEATURES = [
   { key: "relationshipArc", label: "Relationship arc", hint: "Chapter-by-chapter warmth / tension / power tracking for a pair of characters." },
   { key: "marketingPack",   label: "Marketing pack",   hint: "Logline, back-cover blurbs, synopsis, and elevator pitch for querying and pitching." },
   { key: "multiReader",     label: "Multi-reader panel", hint: "Four distinct reader personas (genre reader / literary critic / agent intern / book-club reader) react to a chapter in parallel." },
+  { key: "smartCast",       label: "Studio · Smart-assign", hint: "Studio → Cast tab. Matches each character to a TTS voice based on role and tone." },
+  { key: "speakerAnalysis", label: "Studio · Speaker analysis", hint: "Studio → Script tab. Tags each paragraph with its speaker (narrator vs character) for the audiobook render." },
 ];
 const INHERIT = "__inherit__";
 
@@ -1257,13 +1260,14 @@ const recentColumns = [
               v-tooltip.bottom="'Clear every recorded call. Future calls start tallying from zero.'" />
           </div>
           <p class="t-muted" style="font-size:12.5px;margin:0 0 14px;line-height:1.55">
-            Tokens and estimated cost across every AI call routed through writerAI, critique, structural analysis,
-            and entity extraction. Local providers (Ollama, LM Studio, llama.cpp) are recorded at $0 — pricing only
-            applies to cloud models in the built-in price table.
+            Tokens and estimated cost across every AI call — writer actions, critique, brainstorm, entity sweep,
+            Studio smart-cast and speaker analysis, the chat panel, and every analysis pass. Local providers
+            (Ollama, LM Studio, llama.cpp) are recorded at $0 — pricing only applies to cloud models in the
+            built-in price table.
           </p>
 
           <div v-if="ai.usageTotals.calls === 0" class="t-muted" style="font-size:12px;text-align:center;padding:22px 0;background:var(--surface-2);border-radius:8px;font-style:italic">
-            No AI calls yet. Run something from Critique, the bubble menu, or Writer Lab and it'll show up here.
+            No AI calls yet. Run something from the scene-strip AI dropdown, the Critique modal, or any analysis feature and it'll show up here.
           </div>
 
           <template v-else>
@@ -1346,6 +1350,7 @@ const recentColumns = [
           <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(168px,1fr));gap:10px">
             <button v-for="p in THEME_PRESETS" :key="p.id"
               class="preset-tile" :class="{ active: ap.preset === p.id }"
+              :data-testid="`theme-preset-${p.id}`"
               @click="applyPreset(p)">
               <b>{{ p.name }}</b>
               <span class="t-muted">{{ p.hint }}</span>

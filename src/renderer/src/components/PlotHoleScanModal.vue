@@ -17,6 +17,7 @@ import { useAiTasksStore } from "../stores/aiTasks.js";
 import { scanPlotHoles, KIND_LABELS } from "../services/analysis/plotHoleScan.js";
 import Icon from "./Icon.vue";
 import AiTaskStrip from "./AiTaskStrip.vue";
+import AiFeatureChip from "./AiFeatureChip.vue";
 import AppModal from "./AppModal.vue";
 import JwButton from "@renderer/components/ui/JwButton.vue";
 import EmptyState from "./EmptyState.vue";
@@ -138,6 +139,16 @@ onMounted(() => {
     :closable="!running"
     @close="emit('close')"
   >
+    <template #header>
+      <div class="ph-titleblock">
+        <div class="t-eyebrow">Plot holes</div>
+        <h2 class="modal-title">Continuity audit</h2>
+      </div>
+      <div class="ph-header-actions">
+        <AiFeatureChip feature="plotHoles" label="Plot-holes" />
+      </div>
+    </template>
+
     <p class="ph-blurb">
       One pass over the whole-book digest plus a tail of each chapter's prose looks for
       <strong>contradictions, timeline impossibilities, continuity drift</strong>, and
@@ -414,4 +425,8 @@ onMounted(() => {
 }
 
 .ph-foot-spacer { flex: 1; }
+
+.ph-titleblock { display: flex; flex-direction: column; gap: 2px; flex: 1; min-width: 0; }
+.ph-titleblock h2 { font-family: var(--font-serif); font-size: 22px; font-weight: 600; margin: 4px 0 0; }
+.ph-header-actions { display: flex; gap: 8px; flex-shrink: 0; align-items: center; }
 </style>

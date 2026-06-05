@@ -13,6 +13,7 @@ import { useAiTasksStore } from "../stores/aiTasks.js";
 import { generateSensoryPack, SENSORY_CATEGORIES } from "../services/sensoryResearch.js";
 import Icon from "./Icon.vue";
 import AiTaskStrip from "./AiTaskStrip.vue";
+import AiFeatureChip from "./AiFeatureChip.vue";
 import AppModal from "./AppModal.vue";
 import JwButton from "@renderer/components/ui/JwButton.vue";
 
@@ -94,6 +95,16 @@ onMounted(run);
     :closable="!running"
     @close="emit('close')"
   >
+    <template #header>
+      <div class="sr-titleblock">
+        <div class="t-eyebrow">Research feel</div>
+        <h2 class="modal-title">Sensory research pack</h2>
+      </div>
+      <div class="sr-header-actions">
+        <AiFeatureChip feature="sensory" label="Sensory" />
+      </div>
+    </template>
+
     <p class="sr-blurb">
       Short, concrete sensory phrases for <strong>"{{ subject }}"</strong>. Click any phrase to drop it
       into your manuscript at the end of the selection — additive, your original prose stays untouched.
@@ -216,4 +227,8 @@ onMounted(run);
 .sr-phrase.inserted .sr-phrase-icon { color: var(--status-done); }
 
 .sr-foot-spacer { flex: 1; }
+
+.sr-titleblock { display: flex; flex-direction: column; gap: 2px; flex: 1; min-width: 0; }
+.sr-titleblock h2 { font-family: var(--font-serif); font-size: 22px; font-weight: 600; margin: 4px 0 0; }
+.sr-header-actions { display: flex; gap: 8px; flex-shrink: 0; align-items: center; }
 </style>

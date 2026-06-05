@@ -4,7 +4,7 @@
 
 **Writer Lab** (Project section in the sidebar) is a scratch-pad AI workbench. Paste any passage of prose — or load any chapter from your manuscript — and run a menu of writing operations on it.
 
-Think of it as an editor on call for any piece of text at any time. The bubble-menu AI actions in the manuscript editor work on the current selection in the current chapter; Writer Lab is for **standalone passages**, **experimentation**, and **structural critique** without committing anything to the manuscript.
+Think of it as an editor on call for any piece of text at any time. The scene-strip AI dropdown in the manuscript editor works on the current selection in the current chapter; Writer Lab is for **standalone passages**, **experimentation**, and **structural critique** without committing anything to the manuscript.
 
 ---
 
@@ -140,18 +140,18 @@ You wrote (or imported) a chapter and a new innkeeper character appeared. Did yo
 
 ---
 
-## Writer Lab vs. the editor's bubble menu
+## Writer Lab vs. the editor's AI dropdown
 
 Both surfaces have similar AI actions (Rewrite, Tighten, line edits, etc.). The difference:
 
-- **Bubble menu** — works on the current selection in the current chapter, with the result shown as an inline diff you accept or reject line-by-line. Best for **small, targeted edits in flow**.
+- **Scene-strip AI dropdown** — works on the current selection in the current chapter, with the result shown as an inline diff you accept or reject line-by-line. Best for **small, targeted edits in flow**.
 - **Writer Lab** — works on any passage, in a standalone panel, with the result kept separate from your manuscript. Best for **experimentation, structural critique, and any operation you don't want committed**.
 
-Use bubble menu when you're inside the writing flow and want a quick rewrite of one paragraph. Use Writer Lab when you want to study a passage, compare alternative versions, or run analysis without touching the manuscript.
+Use the scene-strip AI dropdown when you're inside the writing flow and want a quick rewrite of one paragraph. Use Writer Lab when you want to study a passage, compare alternative versions, or run analysis without touching the manuscript.
 
 ---
 
 ## See also
 
-- **[Writing](writing.md)** — the in-editor bubble-menu AI actions and Critique modal
+- **[Writing](writing.md)** — the in-editor scene-strip AI dropdown and Critique modal
 - **[AI providers](ai-providers.md)** — setting up the LLM that powers Writer Lab

@@ -19,6 +19,7 @@ import { useAiTasksStore } from "../stores/aiTasks.js";
 import { scanForDanglingThreads } from "../services/analysis/foreshadowingScan.js";
 import { addMarkerToSceneHtml } from "../services/markers.js";
 import AiTaskStrip from "./AiTaskStrip.vue";
+import AiFeatureChip from "./AiFeatureChip.vue";
 import Icon from "./Icon.vue";
 import AppModal from "./AppModal.vue";
 import StatusRow from "./StatusRow.vue";
@@ -195,6 +196,16 @@ onMounted(runScan);
     wide
     @close="emit('close')"
   >
+    <template #header>
+      <div class="fs-titleblock">
+        <div class="t-eyebrow">Foreshadowing scan</div>
+        <div class="modal-title">Dangling threads</div>
+      </div>
+      <div class="fs-header-actions">
+        <AiFeatureChip feature="foreshadowing" label="Foreshadowing" />
+      </div>
+    </template>
+
     <p class="fs-desc">
       Setups your manuscript plants that may not have paid off. <strong>Dangling</strong> means
       the setup's key term never appears in a later chapter; <strong>mentioned later</strong>
@@ -307,9 +318,12 @@ onMounted(runScan);
         <div class="t-eyebrow">Foreshadowing scan</div>
         <div class="modal-title">Reading every chapter for unresolved setups</div>
       </div>
-      <JwButton v-if="running" intent="ghost" size="small" @click="cancelScan">
-        <Icon name="Close" :size="12" /> Cancel
-      </JwButton>
+      <div class="fs-header-actions">
+        <AiFeatureChip feature="foreshadowing" label="Foreshadowing" />
+        <JwButton v-if="running" intent="ghost" size="small" @click="cancelScan">
+          <Icon name="Close" :size="12" /> Cancel
+        </JwButton>
+      </div>
     </template>
 
     <p class="fs-desc">
@@ -338,6 +352,7 @@ onMounted(runScan);
 
 <style scoped>
 .fs-titleblock { display: flex; flex-direction: column; gap: 2px; flex: 1; min-width: 0; }
+.fs-header-actions { display: flex; gap: 8px; align-items: center; flex-shrink: 0; }
 .fs-desc { font-size: 12.5px; line-height: 1.6; color: var(--muted); margin: 0 0 14px; max-width: 80ch; }
 .fs-desc strong { color: var(--ink-2); font-weight: 600; }
 

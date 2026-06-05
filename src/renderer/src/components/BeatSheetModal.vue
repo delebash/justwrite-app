@@ -22,6 +22,7 @@ import {
 } from "../services/analysis/beatSheet.js";
 import Icon from "./Icon.vue";
 import AiTaskStrip from "./AiTaskStrip.vue";
+import AiFeatureChip from "./AiFeatureChip.vue";
 import AppModal from "./AppModal.vue";
 import JwButton from "@renderer/components/ui/JwButton.vue";
 import JwSelect from "@renderer/components/ui/JwSelect.vue";
@@ -112,6 +113,16 @@ if (!mapping.value) run();
     :closable="!running"
     @close="emit('close')"
   >
+    <template #header>
+      <div class="bs-titleblock">
+        <div class="t-eyebrow">Beat sheet</div>
+        <h2 class="modal-title">Map to a narrative framework</h2>
+      </div>
+      <div class="bs-header-actions">
+        <AiFeatureChip feature="beatSheet" label="Beat sheet" />
+      </div>
+    </template>
+
     <p class="bs-blurb">
       Pick a framework. JustWrite maps each of its beats to the chapter that best fulfils it
       — and flags the beats your book doesn't cover. The model's instructed to be honest about
@@ -299,4 +310,8 @@ if (!mapping.value) run();
 }
 
 .bs-foot-spacer { flex: 1; }
+
+.bs-titleblock { display: flex; flex-direction: column; gap: 2px; flex: 1; min-width: 0; }
+.bs-titleblock h2 { font-family: var(--font-serif); font-size: 22px; font-weight: 600; margin: 4px 0 0; }
+.bs-header-actions { display: flex; gap: 8px; flex-shrink: 0; align-items: center; }
 </style>

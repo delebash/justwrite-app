@@ -413,7 +413,7 @@ A practical rhythm:
 3. Write. The editor's word count climbs in real time; you don't have to save anything.
 4. When you finish a scene, fill in the **Links** panel (characters, location, strand). Five seconds.
 5. Open **Outline** to see how this chapter is shaped, or **Cards** to drag scenes into a better order.
-6. Optional: select a passage you're unhappy with, hit **Tighten** or **Show, don't tell** in the bubble menu, and see what comes back.
+6. Optional: select a passage you're unhappy with, hit **Tighten** or **Show, don't tell** from the scene strip's **AI** dropdown, and see what comes back.
 7. End the day. Tomorrow, JustWrite remembers exactly where you stopped.
 
 That's it. Everything else in the app is in service of this loop.

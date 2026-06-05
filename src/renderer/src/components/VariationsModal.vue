@@ -16,6 +16,7 @@ import { ref, onMounted, onBeforeUnmount, computed } from "vue";
 import { VARIATION_TEMPERATURES } from "../services/writerAI.js";
 import { useAiTasksStore } from "../stores/aiTasks.js";
 import Icon from "./Icon.vue";
+import AiFeatureChip from "./AiFeatureChip.vue";
 import AppModal from "./AppModal.vue";
 import JwButton from "@renderer/components/ui/JwButton.vue";
 
@@ -139,6 +140,16 @@ onBeforeUnmount(cancelAll);
     :closable="!anyRunning"
     @close="close"
   >
+    <template #header>
+      <div class="va-titleblock">
+        <div class="t-eyebrow">{{ eyebrow }}</div>
+        <h2 class="modal-title">{{ label }}</h2>
+      </div>
+      <div class="va-header-actions">
+        <AiFeatureChip feature="writerAI" label="Variations" />
+      </div>
+    </template>
+
     <p class="va-blurb">
       Three streams running in parallel with slightly different temperatures (more conservative ↔
       more inventive). Click <strong>Use this</strong> on whichever column reads best — the chosen
@@ -281,4 +292,8 @@ onBeforeUnmount(cancelAll);
 .va-spacer { flex: 1; }
 
 .va-foot-spacer { flex: 1; }
+
+.va-titleblock { display: flex; flex-direction: column; gap: 2px; flex: 1; min-width: 0; }
+.va-titleblock h2 { font-family: var(--font-serif); font-size: 22px; font-weight: 600; margin: 4px 0 0; }
+.va-header-actions { display: flex; gap: 8px; flex-shrink: 0; align-items: center; }
 </style>

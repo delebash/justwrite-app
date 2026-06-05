@@ -1,6 +1,6 @@
 # AI providers
 
-JustWrite uses AI for several features: writing assistance (bubble-menu rewrites and line edits), critique, entity sweeps, "Ask the book" chat, audiobook narration (TTS), and smart voice assignment. **None of them are required** — you can write an entire novel in JustWrite with zero AI calls.
+JustWrite uses AI for several features: writing assistance (the scene-strip AI dropdown — Rewrite, Expand, Tighten, Continue, Describe, plus Line edits), critique, entity sweeps, "Ask the book" chat, audiobook narration (TTS), and smart voice assignment. **None of them are required** — you can write an entire novel in JustWrite with zero AI calls.
 
 If you do want AI features, you choose the provider. JustWrite isn't locked to any vendor. It works with the OpenAI cloud, Anthropic Claude, any local model server that speaks the OpenAI protocol (Ollama, LM Studio, llama.cpp), and any TTS server that speaks the OpenAI audio protocol.
 
@@ -161,7 +161,7 @@ In **Settings → AI & Audio engines → Feature routing** you can pin each of n
 | **Manuscript chat** | "Ask the book" — natural-language questions about your manuscript |
 | **Critique** | The structural critique modal in the editor and chapter Versions menu |
 | **Entity sweep** | The AI scan that proposes new characters, locations, and objects from chapter text |
-| **Writer actions** | The bubble-menu rewrites and line edits in the editor |
+| **Writer actions** | The scene strip's **AI** dropdown — Rewrite, Expand, Tighten, Continue, Describe, plus all Line edits |
 | **Resume briefing** | The Home "Previously on your novel" card that orients you after a break |
 | **Session recap** | The Home "Wrap up session" end-of-day recap that summarises what you wrote and pins open threads |
 | **Foreshadowing scan** | The Markers view "Find dangling threads" scan that surfaces setups that may not have paid off |
@@ -221,6 +221,22 @@ When editing a provider, you can:
 - **Adjust temperature and other generation parameters** through the engine parameters block.
 
 These are optional refinements. The defaults are reasonable for almost every case.
+
+---
+
+## Switching provider or model from the page itself
+
+> *"I'm in the Critique modal and the result feels off. I want to try a different model right here without leaving to navigate Settings."*
+
+Every AI page has a small chip in its header showing the current **provider · model** for that feature. Studio shows two — one for the TTS engine, one for the active LLM call (Smart-assign on the Cast tab, Speaker analysis on the Script tab). Critique, Brainstorm, every analysis modal, Reader knowledge, the chat panel — same chip in each.
+
+**Click the chip** and a small popover opens with two dropdowns: Provider and Model. The Provider dropdown lists *"Inherit default"* (the global LLM default set in Settings) plus every configured LLM-capable provider. The Model dropdown enables once you pick a specific provider; it shows the provider's saved configured-default model plus any models the live `/v1/models` fetch returned (Refresh button alongside if you need to force a re-fetch).
+
+**The chip is a clearer surface for the same Feature routing in Settings.** Whatever you pick here is written to the same per-feature pin. Pinning Critique to Anthropic from the Critique modal also routes Multi-reader (which uses the `critique` feature key) to Anthropic — that's expected behavior, since both flow through the same feature.
+
+**Visual cue:** the chip's tint changes when a pin is set, so you can tell at a glance whether the feature is following the global default or has been explicitly routed.
+
+**Dismiss the popover** with Esc, by clicking the chip again, or by clicking anywhere outside it.
 
 ---
 
@@ -293,7 +309,7 @@ Anything in JustWrite that calls an AI — critique, brainstorm, smart-assign, s
 
 ## See also
 
-- **[Writing](writing.md)** — the bubble-menu AI actions and Critique modal
+- **[Writing](writing.md)** — the scene-strip AI dropdown and Critique modal
 - **[Audio Studio](audio-studio.md)** — TTS setup for audiobook narration
 - **[Writer Lab](writer-lab.md)** — the standalone AI workbench
 - **[Notes and search](notes-and-search.md)** — "Ask the book" chat

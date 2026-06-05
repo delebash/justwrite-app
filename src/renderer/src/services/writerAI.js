@@ -269,8 +269,8 @@ export async function applyRule(ruleKey, { html, signal, onDelta, meta, provider
   return { html: textToHtml(result.content), raw: result.content, usage: result.usage };
 }
 
-// Exposed for the bubble menu UI — gives a stable order + labels without
-// reaching into PROSE_RULES directly.
+// Exposed for the scene-strip AI dropdown — gives a stable order + labels
+// without reaching into PROSE_RULES directly.
 export const PROSE_RULE_ORDER = [
   "show-dont-tell",
   "passive-voice",

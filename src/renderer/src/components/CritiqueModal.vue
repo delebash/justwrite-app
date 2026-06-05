@@ -18,6 +18,7 @@ import { useAiTasksStore } from "../stores/aiTasks.js";
 import { runCritique, runStructuralAnalysis, PACING_LABELS, ENDING_LABELS } from "../services/analysis/critique.js";
 import Icon from "./Icon.vue";
 import AiTaskStrip from "./AiTaskStrip.vue";
+import AiFeatureChip from "./AiFeatureChip.vue";
 import AppModal from "./AppModal.vue";
 import JwButton from "@renderer/components/ui/JwButton.vue";
 
@@ -161,6 +162,7 @@ const SEVERITY_META = {
         <h2 class="modal-title">{{ ch ? `Ch. ${ch.num} · ${ch.title}` : "" }}</h2>
       </div>
       <div class="ck-header-actions">
+        <AiFeatureChip feature="critique" label="Critique" />
         <JwButton v-if="critique" intent="ghost" size="small" @click="clearAll">
           <Icon name="Trash" :size="12" /> Clear
         </JwButton>

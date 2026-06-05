@@ -9,6 +9,7 @@ import { useAiTasksStore } from "../stores/aiTasks.js";
 import { generateResumeBriefing, buildBriefingContext } from "../services/resumeBriefing.js";
 import Icon from "../components/Icon.vue";
 import AiTaskStrip from "../components/AiTaskStrip.vue";
+import AiFeatureChip from "../components/AiFeatureChip.vue";
 import JwButton from "@renderer/components/ui/JwButton.vue";
 import SessionRecapModal from "../components/SessionRecapModal.vue";
 
@@ -364,6 +365,7 @@ const strandCount = (id) => allCh.value.filter((c) => (c.strands || []).includes
       <div v-if="briefingVisible" class="card briefing-card" style="grid-column:1/-1">
         <div class="briefing-head">
           <div class="briefing-eyebrow">Previously on your novel</div>
+          <AiFeatureChip feature="briefing" label="Briefing" />
           <button class="briefing-x" v-tooltip.bottom="'Hide until tomorrow'"
                   @click="dismissBriefing" aria-label="Dismiss briefing">
             <Icon name="Close" :size="14" />

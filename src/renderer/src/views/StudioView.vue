@@ -7,6 +7,7 @@ import { useAiTasksStore } from "../stores/aiTasks.js";
 import PaneHeader from "../components/PaneHeader.vue";
 import Icon from "../components/Icon.vue";
 import Combobox from "../components/Combobox.vue";
+import AiFeatureChip from "../components/AiFeatureChip.vue";
 import { listVoices, preview } from "../services/tts.js";
 import { smartCast, detectSpeakers } from "../services/llm.js";
 import { renderChapter } from "../services/render.js";
@@ -327,7 +328,17 @@ function downloadChapter(chapterId) {
 
 <template>
   <PaneHeader :eyebrow="$t('panes.studio.eyebrow')" :title="$t('nav.studio')">
-    <span class="chip">Engine · <b style="font-weight:600;margin-left:4px">{{ provider?.name || "—" }}</b></span>
+    <!-- TTS engine chip — always shown, since every Studio tab interacts
+         with the voice library (preview, render). Provider + model. -->
+    <span class="chip" v-tooltip.bottom="'Active TTS provider for voice preview and render. Switch the voice library above to compare engines.'">
+      TTS · <b style="font-weight:600;margin-left:4px">{{ provider?.name || "—" }}</b>
+      <span style="color:var(--muted);opacity:0.6;margin:0 4px">·</span>
+      <code style="font-family:var(--font-mono);font-size:10.5px;color:var(--ink-2)">{{ provider?.ttsModel || "—" }}</code>
+    </span>
+    <!-- LLM chip — feature varies by tab. Cast uses Smart-assign, Script
+         uses Speaker analysis. Render uses no LLM. -->
+    <AiFeatureChip v-if="activeTab === 'cast'"   feature="smartCast"       label="Smart-assign" />
+    <AiFeatureChip v-if="activeTab === 'script'" feature="speakerAnalysis" label="Speaker analysis" />
     <router-link to="/settings/audio" custom v-slot="{ navigate }">
       <JwButton intent="ghost" size="small" @click="navigate"><Icon name="Settings" :size="14" /> Engines</JwButton>
     </router-link>
