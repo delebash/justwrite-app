@@ -347,6 +347,11 @@ function downloadChapter(chapterId) {
           </JwButton>
         </div>
       </div>
+      <p class="st-cast-desc">
+        <strong>Smart-assign</strong> asks your LLM to match each character's name and role
+        against the available TTS voices and propose an initial cast. You can override any
+        assignment manually by selecting a character card and clicking a voice in the library.
+      </p>
 
       <button class="cast-card" :class="{ sel: selectedChar === 'narrator', unassigned: !castedVoice('narrator') }" @click="selectedChar = 'narrator'">
         <div class="cast-portrait"><div class="narrator-mark"><Icon name="Headphones" :size="28" /></div></div>
@@ -469,6 +474,12 @@ function downloadChapter(chapterId) {
     </div>
 
     <div class="scrollarea" style="flex:1;padding:18px 22px">
+      <p class="st-script-desc">
+        <strong>Re-analyze</strong> sends the selected chapter's paragraphs to your LLM, which
+        attributes each line to a <strong>speaker</strong> (a character or the narrator) and
+        classifies it as narration, dialogue, or interior thought. The resulting script drives
+        the Render tab's text-to-speech pipeline.
+      </p>
       <div v-if="error" class="banner danger" style="margin-bottom:14px;padding:10px 14px;border-radius:8px">{{ error }}</div>
       <div v-for="(l, i) in studio.scriptFor(scriptChapter) || []" :key="i"
         style="display:grid;grid-template-columns:140px 1fr auto;gap:14px;padding:12px 0;border-bottom:1px solid var(--border-soft);align-items:start">
@@ -522,6 +533,12 @@ function downloadChapter(chapterId) {
 </template>
 
 <style>
+  .st-cast-desc, .st-script-desc {
+    font-size: 12px; line-height: 1.55; color: var(--muted);
+    margin: 0 0 14px;
+  }
+  .st-cast-desc strong, .st-script-desc strong { color: var(--ink-2); font-weight: 600; }
+
   .studio-tabs { display: flex; gap: 8px; padding: 10px 22px; border-bottom: 1px solid var(--border); background: var(--surface-2); }
     .studio-tab { display: flex; align-items: center; gap: 10px; padding: 8px 14px; border: 1px solid var(--border); border-radius: 9px; background: var(--surface); text-align: left; min-width: 220px; }
     .studio-tab.active { background: var(--accent-soft); border-color: var(--accent-line); color: var(--accent-ink); }

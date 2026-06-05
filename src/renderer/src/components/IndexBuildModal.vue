@@ -135,6 +135,13 @@ const totalDone = computed(() => rows.value.filter((r) => r.status === "done").l
       </JwButton>
     </template>
 
+    <p class="idx-desc">
+      Splits your manuscript into <strong>scenes</strong> and sends each one to the configured
+      <strong>embedding model</strong> to build a vector index. Once built, the index powers
+      semantic search and the <strong>Chat</strong> panel so you can ask questions about your
+      book and get answers grounded in specific scenes.
+    </p>
+
     <div v-if="before.exists && !progress.running.value && !result" class="idx-stat">
       Current index: <b>{{ before.entryCount }}</b> scene{{ before.entryCount === 1 ? "" : "s" }} ·
       model <code>{{ before.model || "?" }}</code> · {{ before.dims || "?" }}d
@@ -175,6 +182,12 @@ const totalDone = computed(() => rows.value.filter((r) => r.status === "done").l
 
 <style scoped>
 .idx-titleblock { display: flex; flex-direction: column; gap: 2px; flex: 1; min-width: 0; }
+
+.idx-desc {
+  font-size: 12px; line-height: 1.55; color: var(--muted);
+  margin: 0;
+}
+.idx-desc strong { color: var(--ink-2); font-weight: 600; }
 
 .idx-stat {
   font-size: 12px; color: var(--muted);

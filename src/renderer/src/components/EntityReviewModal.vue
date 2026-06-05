@@ -95,6 +95,12 @@ function originTitle(originChapters) {
     :title="chapterTitle ? `From ${chapterTitle}` : 'Review proposals'"
     @close="emit('close')"
   >
+    <p v-if="anyProposed" class="er-desc">
+      The model proposed these entities from your prose. Tick the ones you want to keep,
+      edit any field inline, then add the selected items to your story bible.
+      Unticked rows are discarded — nothing is saved until you confirm.
+    </p>
+
     <EmptyState v-if="!anyProposed"
       icon="Check"
       title="Nothing new"
@@ -148,6 +154,11 @@ function originTitle(originChapters) {
 </template>
 
 <style scoped>
+
+.er-desc {
+  font-size: 12px; line-height: 1.55; color: var(--muted);
+  margin: 0 0 14px;
+}
 
 .er-body { display: flex; flex-direction: column; gap: 20px; }
 

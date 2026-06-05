@@ -153,6 +153,12 @@ onMounted(runSweep);
       </JwButton>
     </template>
 
+    <p class="sweep-desc">
+      Reads every chapter and asks the model for any <strong>characters, locations, and objects</strong>
+      not already in your story bible. Same-name proposals from multiple chapters are merged into one,
+      with the originating chapters listed. Nothing is added yet — you review and tick what to keep on the next screen.
+    </p>
+
     <div v-if="error" class="sweep-error">
       <Icon name="Alert" :size="13" /> {{ error }}
     </div>
@@ -176,6 +182,12 @@ onMounted(runSweep);
 
 <style scoped>
 .sweep-titleblock { display: flex; flex-direction: column; gap: 2px; flex: 1; min-width: 0; }
+
+.sweep-desc {
+  font-size: 12px; line-height: 1.55; color: var(--muted);
+  margin: 0;
+}
+.sweep-desc strong { color: var(--ink-2); font-weight: 600; }
 
 .sweep-error {
   display: flex; gap: 8px; align-items: center;
