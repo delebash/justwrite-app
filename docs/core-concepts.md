@@ -34,7 +34,7 @@ The "Story Bible" is the collective name for everything that isn't manuscript pr
 - **Groups** — collections that bundle any of the above (factions, families, crews)
 - **Worldbuilding articles** — long-form reference pages organised by category (magic, history, politics, etc.)
 - **Narrative strands** — your plot threads (we'll explain these next)
-- **Architecture** — four fixed planning documents that hold your book's foundations
+- **Architecture** — three fixed planning documents that hold your book's foundations
 - **Notes** — anything else
 
 The Story Bible is where you do background work that doesn't go into the manuscript. None of it is required, but the more you fill in, the more the rest of the app can help you — Search finds it, the Relations graph maps it, exports can include it, and the AI features know it exists when you ask them to rewrite, critique, or extract entities.
