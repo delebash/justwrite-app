@@ -37,16 +37,33 @@ const emit = defineEmits(["save", "cancel"]);
 // /v1/models for other servers. Each entry gets a precomputed `label`
 // so the Combobox can show "qwen/qwen3-8b · Q4_K_M · not loaded" while
 // still binding the bare id to draft.chatModel / draft.ttsModel.
+// Unfiltered fetch — every model the server reports, regardless of type.
+// Three computeds slice it into the per-purpose dropdowns below so a single
+// Fetch populates the chat, embedding, and TTS Combobox simultaneously
+// (chat dropdown hides nomic-embed-* and similar; the embedding dropdown
+// shows only those).
 const fetchedModels = ref([]);
 const modelsLoading = ref(false);
 const modelsError = ref(null);
+
+const EMBED_RX = /embed/i;
+const TTS_RX = /tts|whisper|speech/i;
+const chatFetchedModels = computed(() =>
+  fetchedModels.value.filter((e) => !EMBED_RX.test(e.id) && !TTS_RX.test(e.id)),
+);
+const embeddingFetchedModels = computed(() =>
+  fetchedModels.value.filter((e) => EMBED_RX.test(e.id)),
+);
+const ttsFetchedModels = computed(() =>
+  fetchedModels.value.filter((e) => TTS_RX.test(e.id)),
+);
 
 async function fetchModels() {
   if (!props.draft?.baseUrl) return;
   modelsError.value = null;
   modelsLoading.value = true;
   try {
-    const list = await new OpenAICompatClient(props.draft).enrichedModels();
+    const list = await new OpenAICompatClient(props.draft).enrichedModels({ kind: "all" });
     fetchedModels.value = list.map((entry) => ({ ...entry, label: entryLabel(entry) }));
     if (!list.length) modelsError.value = "Server returned an empty list. Make sure a model is loaded.";
   } catch (e) {
@@ -348,12 +365,12 @@ watch(() => props.draft?.baseUrl, () => {
         <div style="display:flex;gap:6px;align-items:stretch;flex-wrap:wrap">
           <Combobox style="flex:1;min-width:160px"
             v-model="draft.chatModel"
-            :items="fetchedModels"
+            :items="chatFetchedModels"
             item-value="id"
             item-label="label"
             free-text
-            :placeholder="fetchedModels.length ? `Type to filter or click ▾ to pick from ${fetchedModels.length} models` : $t('settings.providerForm.chatModelPlaceholder')"
-            :chev-title="fetchedModels.length ? $t('settings.providerForm.chevShowFetched') : $t('settings.providerForm.chevFetchFirst')" />
+            :placeholder="chatFetchedModels.length ? `Type to filter or click ▾ to pick from ${chatFetchedModels.length} chat models` : $t('settings.providerForm.chatModelPlaceholder')"
+            :chev-title="chatFetchedModels.length ? $t('settings.providerForm.chevShowFetched') : $t('settings.providerForm.chevFetchFirst')" />
           <JwButton intent="ghost" type="button"
             :disabled="modelsLoading || !draft.baseUrl"
             @click="fetchModels"
@@ -383,9 +400,14 @@ watch(() => props.draft?.baseUrl, () => {
         </template>
 
         <span class="t-muted" :title="$t('settings.providerForm.fieldEmbeddingModelTitle')">{{ $t('settings.providerForm.fieldEmbeddingModel') }}</span>
-        <JwInput
+        <Combobox
           v-model="draft.embeddingModel"
-          placeholder="text-embedding-3-small  ·  nomic-embed-text  ·  …" />
+          :items="embeddingFetchedModels"
+          item-value="id"
+          item-label="label"
+          free-text
+          :placeholder="embeddingFetchedModels.length ? `Type to filter or click ▾ to pick from ${embeddingFetchedModels.length} embedding models` : 'text-embedding-3-small  ·  nomic-embed-text  ·  …'"
+          :chev-title="embeddingFetchedModels.length ? $t('settings.providerForm.chevShowFetched') : $t('settings.providerForm.chevFetchFirst')" />
       </template>
 
       <template v-if="draft.kind === 'tts' || draft.kind === 'both'">
@@ -394,12 +416,12 @@ watch(() => props.draft?.baseUrl, () => {
           <div style="display:flex;gap:6px;align-items:stretch;flex-wrap:wrap">
             <Combobox style="flex:1;min-width:160px"
               v-model="draft.ttsModel"
-              :items="fetchedModels"
+              :items="ttsFetchedModels"
               item-value="id"
               item-label="label"
               free-text
-              :placeholder="fetchedModels.length ? `Type to filter or click ▾ to pick from ${fetchedModels.length} models` : $t('settings.providerForm.ttsModelPlaceholder')"
-              :chev-title="fetchedModels.length ? $t('settings.providerForm.chevShowFetched') : $t('settings.providerForm.chevFetchFirstTts')" />
+              :placeholder="ttsFetchedModels.length ? `Type to filter or click ▾ to pick from ${ttsFetchedModels.length} TTS models` : $t('settings.providerForm.ttsModelPlaceholder')"
+              :chev-title="ttsFetchedModels.length ? $t('settings.providerForm.chevShowFetched') : $t('settings.providerForm.chevFetchFirstTts')" />
             <JwButton v-if="draft.kind === 'tts'" intent="ghost" type="button"
               :disabled="modelsLoading || !draft.baseUrl"
               @click="fetchModels"

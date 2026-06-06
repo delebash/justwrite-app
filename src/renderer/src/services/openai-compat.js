@@ -396,10 +396,17 @@ export class OpenAICompatClient {
   // /v1/models hides. Falls back to /v1/models for any other server.
   //
   // Returns: [{ id, quant, state, type, publisher, arch }] — fields are
-  // null when the source didn't provide them. Embeddings / STT / TTS are
-  // filtered out since this powers the chat-model dropdowns.
+  // null when the source didn't provide them. The `kind` option controls
+  // what's filtered:
+  //   "chat" (default) — strip embedding / whisper / tts ids; existing
+  //                       caller default, preserves chat-dropdown behavior
+  //   "all"            — return everything; consumer filters client-side
+  //                       (e.g. SettingsProviderForm does this so its
+  //                       embedding-model Combobox can list nomic-embed-*)
   //
-  async enrichedModels({ signal, timeoutMs = 15000 } = {}) {
+  async enrichedModels({ signal, timeoutMs = 15000, kind = "chat" } = {}) {
+    const stripChatPattern = /embed|embedding|whisper|tts/i;
+    const keepId = (id) => kind === "all" || !stripChatPattern.test(id);
     // Path 1 — LM Studio /api/v1/models (current Beta REST). Returns a
     // `models` array; each model has a `variants` array of quant names
     // and a `selected_variant` showing which is currently loaded. We
@@ -417,7 +424,7 @@ export class OpenAICompatClient {
         const out = [];
         for (const m of arr) {
           // LM Studio types: "llm", "vlm", "embedding", "stt", "tts".
-          if (m.type && m.type !== "llm" && m.type !== "vlm") continue;
+          if (kind !== "all" && m.type && m.type !== "llm" && m.type !== "vlm") continue;
           const id = m.key || m.id;
           if (!id) continue;
           // Prefer the per-model variants array (one entry per quant on
@@ -461,7 +468,7 @@ export class OpenAICompatClient {
         const json = await res.json();
         const arr = Array.isArray(json?.data) ? json.data : [];
         return arr
-          .filter((m) => !m.type || m.type === "llm" || m.type === "vlm")
+          .filter((m) => kind === "all" || !m.type || m.type === "llm" || m.type === "vlm")
           .map((m) => ({
             id: m.id,
             variant: m.quantization || null,
@@ -482,7 +489,7 @@ export class OpenAICompatClient {
     const ids = await this.models({ signal, timeoutMs });
     if (ids.length) {
       return ids
-        .filter((id) => !/embed|embedding|whisper|tts/i.test(id))
+        .filter(keepId)
         .map((id) => ({ id, variant: null, quant: null, state: null, type: null, publisher: null, arch: null }));
     }
 
@@ -509,7 +516,7 @@ export class OpenAICompatClient {
                      publisher: null, arch: m?.details?.family || null };
           })
           .filter(Boolean)
-          .filter((e) => !/embed|embedding|whisper|tts/i.test(e.id));
+          .filter((e) => keepId(e.id));
         if (mapped.length) return mapped;
         tagsDiag = `/api/tags returned ${arr.length} entr${arr.length === 1 ? "y" : "ies"} (after filtering: 0).`;
       } else {
