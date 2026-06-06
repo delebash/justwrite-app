@@ -685,6 +685,59 @@ const allRenderableSelected = computed(() => {
 // AI task panel is single-feature anyway).
 const suggestingPresetFor = ref(null);
 
+// Bulk-suggest state. When a sweep is running, suggestingPresetFor
+// tracks the live row (spinner moves down the table), bulkSuggesting
+// flags the whole loop, and bulkSuggestCancel can be flipped to break
+// out cleanly between chapters — the in-flight LLM call still finishes
+// (it's a single-shot, not streaming long-form) but no further chapter
+// gets started.
+const bulkSuggesting = ref(false);
+let bulkSuggestCancel = false;
+const bulkSuggestProgress = ref({ done: 0, total: 0, applied: 0, skipped: 0 });
+
+// Chapters that have a script analysed but no preset assigned — the
+// natural target population for a "suggest for all" sweep. Order by
+// chapter number so progress moves predictably down the list.
+const chaptersNeedingPreset = computed(() =>
+  (project.allChapters || [])
+    .filter((c) => studio.scriptFor(c.id) && !studio.chapterPresets[c.id])
+    .map((c) => c.id),
+);
+
+async function bulkSuggestPresets() {
+  if (bulkSuggesting.value) { bulkSuggestCancel = true; return; }
+  if (!llmProvider.value) { pushToast({ message: "No LLM provider configured." }); return; }
+  if (!studio.renderPresets.length) { pushToast({ message: "No render presets defined." }); return; }
+  const targets = chaptersNeedingPreset.value;
+  if (!targets.length) { pushToast({ message: "Every scripted chapter already has a preset." }); return; }
+
+  bulkSuggesting.value = true;
+  bulkSuggestCancel = false;
+  bulkSuggestProgress.value = { done: 0, total: targets.length, applied: 0, skipped: 0 };
+
+  for (const chapterId of targets) {
+    if (bulkSuggestCancel) break;
+    // Reuse the same single-chapter helper so the AI task panel sees one
+    // entry per chapter, the row spinner highlights the current one, and
+    // mis-applies (LLM returned an unrecognised name) get the same
+    // skipped-with-toast treatment as the per-row button.
+    await suggestPresetForChapter(chapterId);
+    if (studio.chapterPresets[chapterId]) bulkSuggestProgress.value.applied += 1;
+    else bulkSuggestProgress.value.skipped += 1;
+    bulkSuggestProgress.value.done += 1;
+  }
+
+  const { applied, skipped, done, total } = bulkSuggestProgress.value;
+  const stopped = bulkSuggestCancel && done < total;
+  pushToast({
+    message: stopped
+      ? `Stopped after ${done} of ${total} chapters. Applied ${applied}, skipped ${skipped}.`
+      : `Done. Applied ${applied} of ${total} chapter${total === 1 ? "" : "s"}${skipped ? ` (${skipped} skipped — LLM didn't return a clear pick)` : ""}.`,
+  });
+  bulkSuggesting.value = false;
+  bulkSuggestCancel = false;
+}
+
 async function suggestPresetForChapter(chapterId) {
   if (suggestingPresetFor.value) return;
   if (!llmProvider.value) { pushToast({ message: "No LLM provider configured." }); return; }
@@ -1080,6 +1133,34 @@ async function confirmDeleteAllRendered() {
       </template>
     </AiTaskStrip>
     <div v-if="error" class="banner danger" style="margin-bottom:14px;padding:10px 14px;border-radius:8px">{{ error }}</div>
+
+    <!-- Bulk-suggest toolbar. Shown only when at least one scripted chapter
+         is missing a preset. Sweeps the unset ones in order, calling the
+         same suggestRenderPreset per chapter as the per-row button — the
+         row spinner highlights the current chapter as the loop progresses.
+         Cancellable: re-clicking the button while running stops cleanly
+         after the in-flight call. -->
+    <div v-if="studio.renderPresets.length && (chaptersNeedingPreset.length || bulkSuggesting)"
+      style="display:flex;align-items:center;gap:10px;padding:10px 14px;margin:6px 0;border:1px solid var(--border-soft);border-radius:10px;background:var(--surface-2)">
+      <Icon name="Sparkle" :size="13" style="color:var(--accent)" />
+      <span style="font-size:12.5px;color:var(--ink-2)">
+        <template v-if="bulkSuggesting">
+          Suggesting presets… {{ bulkSuggestProgress.done }} / {{ bulkSuggestProgress.total }}
+          <span class="t-muted" style="margin-left:6px">({{ bulkSuggestProgress.applied }} applied{{ bulkSuggestProgress.skipped ? `, ${bulkSuggestProgress.skipped} skipped` : "" }})</span>
+        </template>
+        <template v-else>
+          {{ chaptersNeedingPreset.length }} chapter{{ chaptersNeedingPreset.length === 1 ? "" : "s" }} without a preset
+        </template>
+      </span>
+      <JwButton style="margin-left:auto"
+        :intent="bulkSuggesting ? 'secondary' : 'primary'" size="small"
+        :disabled="(!bulkSuggesting && !chaptersNeedingPreset.length) || !llmProvider"
+        v-tooltip.bottom="bulkSuggesting ? 'Stop after the in-flight chapter finishes' : 'Run LLM Suggest sequentially on every chapter that has a script but no preset'"
+        @click="bulkSuggestPresets">
+        <template #icon><Icon :name="bulkSuggesting ? 'Stop' : 'Sparkle'" :size="11" /></template>
+        {{ bulkSuggesting ? "Stop" : `Suggest for all (${chaptersNeedingPreset.length})` }}
+      </JwButton>
+    </div>
 
     <!-- Bulk-render toolbar. "Select all" picks every chapter that has a
          script and isn't already rendered (the common case: render the

@@ -214,6 +214,8 @@ Use this for voice character: give your narrator a slower speed and lower exagge
 
 The chapter row also has a **Suggest** button next to the dropdown: it sends a short tone-summary of the chapter (opening + ending paragraphs) and the list of your defined preset names to your configured LLM and applies whichever one the model picks, with the reason surfaced as a toast. Useful for backfilling a large book — render-side autopilot you can always override manually.
 
+When several chapters still have no preset, a **Suggest for all** banner appears above the chapter list with a button that sweeps the unset ones sequentially. Re-clicking the button while it's running stops cleanly after the in-flight chapter finishes; chapters that already have a preset are left alone.
+
 Use this for scene mood: a tense chapter gets all voices 1.05× faster with exaggeration pushed to 1.5; the quiet flashback that follows gets 0.92× speed and exaggeration pulled back to 0.7.
 
 Engines silently ignore params they don't understand — a Chatterbox-tuned preset applied through an OpenAI render simply no-ops on `exaggeration` rather than erroring.
