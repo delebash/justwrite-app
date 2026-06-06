@@ -47,6 +47,36 @@ export function isDia(provider) {
   return provider?.id === "dia";
 }
 
+// devnen/Chatterbox-TTS-Server. Its /v1/audio/speech is a thin OpenAI
+// compatibility layer — only model/voice/input/response_format/speed,
+// no exaggeration/cfg_weight/temperature. The richer engine lives at
+// the root /tts route, with /get_predefined_voices + /get_reference_files
+// for voice discovery and /save_settings + /restart_server for hot-
+// swapping the active model. We route every TTS call through /tts so
+// the engine knobs in providerParams.js → chatterbox actually reach the
+// model, and merge predefined + clone voices in voices().
+export function isChatterbox(provider) {
+  return provider?.id === "chatterbox";
+}
+
+// Chatterbox engine knobs that map 1:1 onto /tts body fields. Listed
+// here (not just in providerParams.js) so _chatterboxSpeech can spread
+// only the fields it understands and ignore anything else.
+const CHATTERBOX_TTS_KNOBS = [
+  "temperature", "exaggeration", "cfg_weight",
+  "speed_factor", "language", "chunk_size", "seed",
+];
+
+// The three repo_ids accepted by Chatterbox's model.repo_id config field.
+// /v1/models doesn't exist on this server, so the dropdown is hard-coded.
+// Confirmed against devnen/Chatterbox-TTS-Server v2.0.x (full Chatterbox
+// family — original + multilingual + turbo, all hot-swappable).
+export const CHATTERBOX_MODELS = [
+  { id: "chatterbox",              label: "Base",          hint: "0.5B, English, exaggeration + cfg_weight emotion knobs" },
+  { id: "chatterbox-turbo",        label: "Turbo",         hint: "350M, fastest, supports paralinguistic tags like [laugh]" },
+  { id: "chatterbox-multilingual", label: "Multilingual",  hint: "0.5B, 23 languages, voice cloning + emotion" },
+];
+
 export class OpenAICompatClient {
   constructor(provider) {
     this.provider = provider;
@@ -607,6 +637,9 @@ export class OpenAICompatClient {
     if (isSpeechmatics(this.provider)) {
       return this._speechmaticsSpeech({ input, voice, signal });
     }
+    if (isChatterbox(this.provider)) {
+      return this._chatterboxSpeech({ input, voice, signal });
+    }
     const providerParams = this.provider.params || {};
     const body = {
       ...providerParams,
@@ -697,6 +730,145 @@ export class OpenAICompatClient {
     return out;
   }
 
+  // ─── Chatterbox text-to-speech ─────────────────────────────────────────
+  //
+  // POST /tts on the server root (not /v1/audio/speech, which only honors
+  // model/voice/speed/format and drops the engine knobs). Body shape:
+  //   {
+  //     text, voice_mode: "predefined"|"clone",
+  //     predefined_voice_id?: filename, reference_audio_filename?: filename,
+  //     output_format: wav|opus|mp3, split_text, chunk_size, stream,
+  //     temperature, exaggeration, cfg_weight, speed_factor, language, seed
+  //   }
+  //
+  // Voice id convention: clone voices are tagged with a "clone:" prefix
+  // by _chatterboxVoices() so that the writer's existing cast (which
+  // stored bare filenames against the old OpenAI-compat path) keeps
+  // resolving as predefined. Anything new the writer picks from the
+  // "(clone)" list gets the prefix and routes to voice_mode="clone".
+  async _chatterboxSpeech({ input, voice, signal } = {}) {
+    if (!voice) throw new Error("Chatterbox: voice is required.");
+    const params = this.provider.params || {};
+    const isClone = voice.startsWith("clone:");
+    const voiceFile = isClone ? voice.slice("clone:".length) : voice;
+
+    const body = {
+      text: input,
+      voice_mode: isClone ? "clone" : "predefined",
+      output_format: params.output_format ?? "wav",
+      split_text: true,
+    };
+    if (isClone) body.reference_audio_filename = voiceFile;
+    else body.predefined_voice_id = voiceFile;
+
+    for (const k of CHATTERBOX_TTS_KNOBS) {
+      if (params[k] !== undefined && params[k] !== "") body[k] = params[k];
+    }
+
+    const res = await fetch(this.nativeUrl("/tts"), {
+      method: "POST",
+      headers: this.headers,
+      signal,
+      body: JSON.stringify(body),
+    });
+    if (!res.ok) {
+      const text = await res.text().catch(() => "");
+      throw new Error(`Chatterbox TTS error ${res.status}: ${text || res.statusText}`);
+    }
+    return res.blob();
+  }
+
+  // Chatterbox voice listing — merge predefined and clone references.
+  //   GET /get_predefined_voices  → [{ display_name, filename }, ...]  (voices/ folder)
+  //   GET /get_reference_files    → [filename, ...]                    (reference_audio/ folder)
+  // Clone entries get a "clone:" id prefix so synth can route them to
+  // voice_mode="clone", and a " (clone)" suffix on the display name so
+  // the cast picker shows them distinctly from a same-named predefined.
+  async _chatterboxVoices({ signal, timeoutMs = 15000 } = {}) {
+    const fetchJson = async (path) => {
+      try {
+        const res = await this._fetchWithTimeout(
+          this.nativeUrl(path),
+          { headers: this.authHeaders },
+          { signal, timeoutMs },
+        );
+        if (!res.ok) return [];
+        return await res.json();
+      } catch { return []; }
+    };
+    const [predefined, references] = await Promise.all([
+      fetchJson("/get_predefined_voices"),
+      fetchJson("/get_reference_files"),
+    ]);
+    const out = [];
+    for (const v of Array.isArray(predefined) ? predefined : []) {
+      if (typeof v === "string") {
+        out.push({ id: v, name: v.replace(/\.[^.]+$/, "") });
+      } else if (v?.filename) {
+        out.push({ id: v.filename, name: v.display_name || v.filename });
+      }
+    }
+    for (const f of Array.isArray(references) ? references : []) {
+      if (typeof f === "string") {
+        out.push({ id: `clone:${f}`, name: `${f.replace(/\.[^.]+$/, "")} (clone)` });
+      }
+    }
+    return out;
+  }
+
+  // Hot-swap the loaded Chatterbox model. Two-step:
+  //   POST /save_settings { model: { repo_id } }   → merges into config.yaml
+  //   POST /restart_server                          → unload + clear VRAM + load
+  // /restart_server can take 10–30s the first time a model is downloaded
+  // from HuggingFace; subsequent swaps are fast (model_cache hit). We
+  // skip /restart_server when save_settings reports restart_needed: false.
+  async chatterboxSetModel(repoId, { signal, timeoutMs = 90000 } = {}) {
+    const saveRes = await this._fetchWithTimeout(
+      this.nativeUrl("/save_settings"),
+      {
+        method: "POST",
+        headers: this.headers,
+        body: JSON.stringify({ model: { repo_id: repoId } }),
+      },
+      { signal, timeoutMs: 10000 },
+    );
+    if (!saveRes.ok) {
+      const text = await saveRes.text().catch(() => "");
+      throw new Error(`save_settings failed: ${saveRes.status} ${text || saveRes.statusText}`);
+    }
+    const saveJson = await saveRes.json().catch(() => ({}));
+    if (saveJson?.restart_needed === false) return { restarted: false, message: saveJson?.message };
+
+    const restartRes = await this._fetchWithTimeout(
+      this.nativeUrl("/restart_server"),
+      { method: "POST", headers: this.headers },
+      { signal, timeoutMs },
+    );
+    if (!restartRes.ok) {
+      const text = await restartRes.text().catch(() => "");
+      throw new Error(`restart_server failed: ${restartRes.status} ${text || restartRes.statusText}`);
+    }
+    const restartJson = await restartRes.json().catch(() => ({}));
+    return { restarted: true, message: restartJson?.message };
+  }
+
+  // Probe the live state of the loaded Chatterbox model. Used by the
+  // Settings UI to show what's actually active on the server (separate
+  // from the writer's preferred selection persisted in provider.ttsModel)
+  // and to surface the paralinguistic tags the active model supports.
+  // Shape: { loaded, type, class_name, device, sample_rate,
+  //          supports_paralinguistic_tags, available_paralinguistic_tags,
+  //          supports_multilingual, supported_languages }
+  async chatterboxModelInfo({ signal, timeoutMs = 5000 } = {}) {
+    const res = await this._fetchWithTimeout(
+      this.nativeUrl("/api/model-info"),
+      { headers: this.authHeaders },
+      { signal, timeoutMs },
+    );
+    if (!res.ok) throw new Error(`model-info failed: ${res.status} ${res.statusText}`);
+    return res.json();
+  }
+
   // ─── List voices ────────────────────────────────────────────────────────
   //
   // GET /v1/audio/voices — only some services implement this. For services
@@ -710,6 +882,9 @@ export class OpenAICompatClient {
     }
     if (isDia(this.provider)) {
       return this._diaVoices({ signal, timeoutMs });
+    }
+    if (isChatterbox(this.provider)) {
+      return this._chatterboxVoices({ signal, timeoutMs });
     }
     try {
       const res = await this._fetchWithTimeout(

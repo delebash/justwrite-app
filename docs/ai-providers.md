@@ -166,33 +166,41 @@ A small, fast local TTS engine for audiobook narration.
 
 ### Chatterbox (local TTS + voice cloning)
 
-A local TTS server that supports voice cloning — drop a reference voice clip into its `voices/` folder and the cloned voice appears in JustWrite's voice library.
+**The only local TTS server JustWrite supports that does true voice cloning.** Ships three swappable models you switch from the provider editor:
+
+- **chatterbox** (Base) — English, 0.5 B parameters, strongest emotion control via the exaggeration and cfg_weight knobs.
+- **chatterbox-turbo** — fastest (350 M), supports paralinguistic tags in the script text: `[laugh]` `[chuckle]` `[sigh]` `[gasp]` `[cough]` `[clear throat]` `[sniff]` `[groan]` `[shush]`.
+- **chatterbox-multilingual** — 0.5 B, 23 languages.
+
+Switching models triggers a server reload; the first switch for a model may take 10–30 seconds while it downloads from HuggingFace.
 
 1. Install Chatterbox-TTS-Server (devnen/Chatterbox-TTS-Server on GitHub).
 2. Start the server — default port is `8004`.
-3. **Drop your reference WAV or MP3 files** into the server's `voices/` folder. The filenames become the voice names.
+3. **(Optional)** Drop reference WAV or MP3 files into the server's `voices/` folder or `reference_audio/` folder — both are picked up. The web UI's Import button puts uploads into `reference_audio/`, so either path works. Clone entries appear in the cast picker with a `(clone)` suffix.
 4. In JustWrite, **Add provider → Preset: Chatterbox**.
 5. Base URL: `http://localhost:8004/v1`.
-6. **Fetch voices** — your reference clips appear.
-7. Save.
+6. **Pick a model** — Base, Turbo, or Multilingual — then click **Apply** to hot-swap the server.
+7. **Fetch voices** — predefined voices and clones both appear.
+8. (Optional) Open **Engine params** to tune **exaggeration**, **cfg_weight**, **temperature**, **speed_factor**, **chunk_size**, and **language**.
+9. Save.
 
-**When to pick Chatterbox.** You want to narrate the book in a specific voice — your own, an actor's, the voice of a particular published audiobook. Drop a clip in, fetch, assign.
+**When to pick Chatterbox.** You want to narrate the book in a specific voice — your own, an actor's, the voice of a particular published audiobook. Drop a clip in `voices/` or `reference_audio/`, fetch, assign. Use Turbo when you want paralinguistic cues like laughter or sighs baked into the audio; use Base when you want the most expressive emotion control; use Multilingual for non-English manuscripts.
 
 ### Dia (local TTS + expressive dialogue)
 
-A local TTS server from the same author as Chatterbox, focused on expressive multi-speaker dialogue. Strong choice when dialogue-heavy chapters sound flat with Kokoro or OpenAI's voices. Supports voice cloning via reference clips, plus a bundled catalogue of predefined voices.
+A local TTS server from the same author as Chatterbox, focused on expressive multi-speaker dialogue. Strong choice when dialogue-heavy chapters sound flat with Kokoro or OpenAI's voices. Bundles a catalogue of predefined voices and accepts reference clips for prosody guidance — but it isn't a voice-cloning engine; for that, use Chatterbox.
 
 1. Install **devnen/Dia-TTS-Server** (Python venv + `pip install -r requirements.txt`, same playbook as Chatterbox).
 2. Start the server — default port is `8003`.
-3. **(Optional)** Drop reference `.wav` / `.mp3` clips into the server's `./reference_audio/` folder (the web UI's "Import" button puts uploads there, so either path works).
+3. **(Optional)** Drop reference `.wav` / `.mp3` clips into the server's `./reference_audio/` folder (the web UI's "Import" button puts uploads there, so either path works). These act as prosody/style references — not voice clones.
 4. In JustWrite, **Add provider → Preset: Dia**.
 5. Base URL: `http://localhost:8003/v1`.
-6. **Fetch voices** — Dia's bundled predefined voices, your reference clones, and two synthetic mode tokens (**S1** / **S2**) all appear in the cast picker.
+6. **Fetch voices** — Dia's bundled predefined voices, any reference clips you've added, and two synthetic mode tokens (**S1** / **S2**) all appear in the cast picker.
 7. Save.
 
-**S1 and S2** are Dia's dialogue-mode speaker tokens. Cast a character on S1 and another on S2 in the same chapter to get distinct voices for an exchange even without uploading clones — useful for dialogue-heavy chapters where you want fast renders before committing to specific voice clips.
+**S1 and S2** are Dia's dialogue-mode speaker tokens. Cast a character on S1 and another on S2 in the same chapter to get distinct voices for an exchange even without uploading reference clips — useful for dialogue-heavy chapters where you want fast renders before committing to specific voices.
 
-**When to pick Dia.** Your chapters have a lot of dialogue and you want it to sound like a conversation rather than two slightly different read-alouds. Or you want voice cloning with a different model than Chatterbox's.
+**When to pick Dia.** Your chapters have a lot of dialogue and you want it to sound like a conversation rather than two slightly different read-alouds. If you specifically need voice cloning, pick Chatterbox instead — Dia's reference clips guide style and prosody, not speaker identity.
 
 ### Microsoft Edge TTS (built-in, free)
 

@@ -5,12 +5,13 @@
 // The two render sites differ only in vertical position; everything inside
 // this component is identical between them.
 
-import { ref, reactive, computed, onBeforeUnmount, nextTick } from "vue";
+import { ref, reactive, computed, onBeforeUnmount, onMounted, nextTick, watch } from "vue";
 import { useI18n } from "vue-i18n";
 import { getParamSchema } from "../domain/providerParams.js";
-import { OpenAICompatClient, detectRunner } from "../services/openai-compat.js";
+import { OpenAICompatClient, detectRunner, isChatterbox, CHATTERBOX_MODELS } from "../services/openai-compat.js";
 import { entryLabel, TIERS, TIER_IDS } from "../services/modelMeta.js";
 import { useAiStore } from "../stores/ai.js";
+import { pushToast } from "../services/toastBridge.js";
 import Icon from "../components/Icon.vue";
 import Combobox from "../components/Combobox.vue";
 import JwInput from "@renderer/components/ui/JwInput.vue";
@@ -197,6 +198,65 @@ function setParam(key, value) {
   props.draft.params = next;
 }
 function resetParam(key) { setParam(key, undefined); }
+
+// ── Chatterbox model + live engine state ──────────────────────────
+// Shown only when editing the Chatterbox provider. /v1/models doesn't
+// exist on this server, so the picker is the hard-coded CHATTERBOX_MODELS
+// constant. Applying a choice POSTs /save_settings + /restart_server on
+// the draft's baseUrl — server hot-swaps the model (no process restart),
+// then we refresh /api/model-info so the active type label and any
+// paralinguistic-tag chips reflect the new state.
+const isChatterboxDraft = computed(() => isChatterbox(props.draft));
+const CHATTERBOX_MODEL_OPTIONS = CHATTERBOX_MODELS.map((m) => ({
+  value: m.id, label: m.label,
+}));
+const chatterboxInfo = ref(null);
+const chatterboxInfoError = ref(null);
+const chatterboxApplying = ref(false);
+
+async function refreshChatterboxInfo() {
+  if (!isChatterboxDraft.value || !props.draft.baseUrl) return;
+  chatterboxInfoError.value = null;
+  try {
+    chatterboxInfo.value = await new OpenAICompatClient(props.draft).chatterboxModelInfo();
+  } catch (e) {
+    chatterboxInfo.value = null;
+    chatterboxInfoError.value = e.message || "Couldn't reach the server.";
+  }
+}
+
+async function applyChatterboxModel() {
+  if (!isChatterboxDraft.value) return;
+  const repoId = props.draft.ttsModel;
+  if (!repoId) return;
+  chatterboxApplying.value = true;
+  try {
+    const { restarted } = await new OpenAICompatClient(props.draft).chatterboxSetModel(repoId);
+    pushToast({
+      message: restarted
+        ? `Switched Chatterbox to ${repoId} (hot-swapped).`
+        : `Chatterbox is already running ${repoId}.`,
+    });
+    await refreshChatterboxInfo();
+  } catch (e) {
+    pushToast({ message: `Couldn't switch model: ${e.message || e}` });
+  } finally {
+    chatterboxApplying.value = false;
+  }
+}
+
+// Refresh on mount when editing Chatterbox, and again if the user pastes
+// a different baseUrl (e.g. running the server on a non-default port).
+onMounted(() => { if (isChatterboxDraft.value) refreshChatterboxInfo(); });
+watch(() => props.draft?.baseUrl, () => {
+  if (isChatterboxDraft.value) refreshChatterboxInfo();
+});
+
+const chatterboxParalingTags = computed(() => {
+  const info = chatterboxInfo.value;
+  if (!info?.supports_paralinguistic_tags) return [];
+  return info.available_paralinguistic_tags || [];
+});
 </script>
 
 <template>
@@ -269,26 +329,28 @@ function resetParam(key) { setParam(key, undefined); }
       </template>
 
       <template v-if="draft.kind === 'tts' || draft.kind === 'both'">
-        <span class="t-muted">{{ $t('settings.providerForm.fieldTtsModel') }}</span>
-        <div style="display:flex;gap:6px;align-items:stretch;flex-wrap:wrap">
-          <Combobox style="flex:1;min-width:160px"
-            v-model="draft.ttsModel"
-            :items="fetchedModels"
-            item-value="id"
-            item-label="label"
-            free-text
-            :placeholder="fetchedModels.length ? `Type to filter or click ▾ to pick from ${fetchedModels.length} models` : $t('settings.providerForm.ttsModelPlaceholder')"
-            :chev-title="fetchedModels.length ? $t('settings.providerForm.chevShowFetched') : $t('settings.providerForm.chevFetchFirstTts')" />
-          <JwButton v-if="draft.kind === 'tts'" intent="ghost" type="button"
-            :disabled="modelsLoading || !draft.baseUrl"
-            @click="fetchModels"
-            v-tooltip.bottom="draft.baseUrl ? $t('settings.providerForm.tooltipFetchModels') : $t('settings.providerForm.tooltipFillBaseUrl')">
-            {{ modelsLoading ? $t('settings.providerForm.btnLoading') : (fetchedModels.length ? $t('settings.providerForm.btnRefresh') : $t('settings.providerForm.btnFetchModels')) }}
-          </JwButton>
-          <div v-if="draft.kind === 'tts' && modelsError" class="t-muted" style="flex-basis:100%;font-size:11px;color:var(--danger,#c33)">
-            {{ modelsError }}
+        <template v-if="!isChatterboxDraft">
+          <span class="t-muted">{{ $t('settings.providerForm.fieldTtsModel') }}</span>
+          <div style="display:flex;gap:6px;align-items:stretch;flex-wrap:wrap">
+            <Combobox style="flex:1;min-width:160px"
+              v-model="draft.ttsModel"
+              :items="fetchedModels"
+              item-value="id"
+              item-label="label"
+              free-text
+              :placeholder="fetchedModels.length ? `Type to filter or click ▾ to pick from ${fetchedModels.length} models` : $t('settings.providerForm.ttsModelPlaceholder')"
+              :chev-title="fetchedModels.length ? $t('settings.providerForm.chevShowFetched') : $t('settings.providerForm.chevFetchFirstTts')" />
+            <JwButton v-if="draft.kind === 'tts'" intent="ghost" type="button"
+              :disabled="modelsLoading || !draft.baseUrl"
+              @click="fetchModels"
+              v-tooltip.bottom="draft.baseUrl ? $t('settings.providerForm.tooltipFetchModels') : $t('settings.providerForm.tooltipFillBaseUrl')">
+              {{ modelsLoading ? $t('settings.providerForm.btnLoading') : (fetchedModels.length ? $t('settings.providerForm.btnRefresh') : $t('settings.providerForm.btnFetchModels')) }}
+            </JwButton>
+            <div v-if="draft.kind === 'tts' && modelsError" class="t-muted" style="flex-basis:100%;font-size:11px;color:var(--danger,#c33)">
+              {{ modelsError }}
+            </div>
           </div>
-        </div>
+        </template>
         <span class="t-muted">{{ $t('settings.providerForm.fieldVoices') }}</span>
         <div style="display:flex;gap:6px;align-items:stretch;flex-wrap:wrap">
           <div class="model-combo" :class="{ open: voices.state.open }" :ref="voices.setBoxRef" style="flex:1;min-width:160px;position:relative">
@@ -328,6 +390,58 @@ function resetParam(key) { setParam(key, undefined); }
             {{ voicesError }}
           </div>
         </div>
+
+        <template v-if="isChatterboxDraft">
+          <div style="grid-column:1/-1;display:flex;align-items:baseline;gap:8px;margin-top:8px;padding-top:10px;border-top:1px dashed var(--border)">
+            <span class="t-eyebrow" style="font-size:10.5px">Chatterbox engine</span>
+            <span class="t-muted" style="font-size:11px">Three models share the same server, hot-swapped via <code>/save_settings</code> + <code>/restart_server</code>.</span>
+          </div>
+          <span class="t-muted" title="The model the writer wants loaded — applied to the live server via Apply.">Model</span>
+          <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap">
+            <JwSegmented
+              :model-value="draft.ttsModel || 'chatterbox-turbo'"
+              :options="CHATTERBOX_MODEL_OPTIONS"
+              size="small"
+              aria-label="Chatterbox model"
+              @update:model-value="(v) => draft.ttsModel = v" />
+            <JwButton type="button" intent="primary" size="small"
+              :disabled="chatterboxApplying || !draft.baseUrl || !draft.ttsModel"
+              @click="applyChatterboxModel"
+              v-tooltip.bottom="'POST /save_settings then /restart_server — first load of a model may take 10–30s while it downloads.'">
+              {{ chatterboxApplying ? "Switching…" : "Apply" }}
+            </JwButton>
+            <JwButton type="button" intent="ghost" size="small"
+              :disabled="chatterboxApplying || !draft.baseUrl"
+              @click="refreshChatterboxInfo"
+              v-tooltip.bottom="'GET /api/model-info — refresh the live engine state below.'">
+              Refresh
+            </JwButton>
+          </div>
+          <span class="t-muted">Active on server</span>
+          <div style="display:flex;flex-direction:column;gap:4px;font-size:11.5px">
+            <div v-if="chatterboxInfoError" style="color:var(--danger,#c33)">
+              {{ chatterboxInfoError }}
+            </div>
+            <div v-else-if="!chatterboxInfo" class="t-muted" style="font-style:italic">
+              Probing…
+            </div>
+            <template v-else>
+              <div>
+                <code>{{ chatterboxInfo.type || "unknown" }}</code>
+                <span class="t-muted"> · {{ chatterboxInfo.class_name }} · {{ chatterboxInfo.device }} · {{ chatterboxInfo.sample_rate }} Hz</span>
+              </div>
+              <div v-if="chatterboxParalingTags.length" style="display:flex;gap:4px;align-items:center;flex-wrap:wrap;margin-top:4px">
+                <span class="t-muted">Paralinguistic tags:</span>
+                <code v-for="tag in chatterboxParalingTags" :key="tag"
+                  style="font-size:10.5px;padding:1px 5px;background:var(--surface-3);border-radius:3px">[{{ tag }}]</code>
+                <span class="t-muted" style="font-size:10.5px"> — drop into your manuscript text to cue them.</span>
+              </div>
+              <div v-if="chatterboxInfo.supports_multilingual && chatterboxInfo.supported_languages" class="t-muted" style="margin-top:2px">
+                Languages: {{ Object.keys(chatterboxInfo.supported_languages).join(", ") }}
+              </div>
+            </template>
+          </div>
+        </template>
 
         <template v-if="paramSchema.length">
           <div style="grid-column:1/-1;display:flex;align-items:baseline;gap:8px;margin-top:8px;padding-top:10px;border-top:1px dashed var(--border)">

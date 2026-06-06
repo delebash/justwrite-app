@@ -18,7 +18,7 @@ You can write an entire novel in JustWrite without touching Studio. It exists fo
 
 Before you can use Studio at all:
 
-- **A TTS (text-to-speech) provider** — Studio needs an engine that can speak text. Options include OpenAI TTS (cloud, paid), Kokoro (local, free, fast), Chatterbox (local, free, supports voice cloning), Dia (local, free, strong on expressive multi-speaker dialogue), Microsoft Edge TTS (built-in, free, ~400 neural voices), and anything else that speaks OpenAI's TTS protocol. Set this up in **Settings → AI & Audio engines**.
+- **A TTS (text-to-speech) provider** — Studio needs an engine that can speak text. Options include OpenAI TTS (cloud, paid), Kokoro (local, free, fast), **Chatterbox (local, free, the only local engine that does voice cloning)**, Dia (local, free, strong on expressive multi-speaker dialogue), Microsoft Edge TTS (built-in, free, ~400 neural voices), and anything else that speaks OpenAI's TTS protocol. Set this up in **Settings → AI & Audio engines**.
 - **An LLM provider** — Studio uses an LLM for the "Smart-assign" voice matcher and for the per-chapter speaker analysis. Any OpenAI-compatible chat model works.
 
 See [AI providers](ai-providers.md) for the full setup walkthrough for each engine.
@@ -56,7 +56,7 @@ The **Cast** tab is where you pick a voice for each character and for the narrat
 
 - **Smart-assign is a starting point, not a verdict.** It does a reasonable job matching gender and rough age but it doesn't know your book the way you do. Review every assignment before rendering.
 - **Voices from different providers can coexist.** If OpenAI has the perfect voice for your protagonist but Kokoro has the right antagonist voice, use both — the pipeline routes each character's line to the correct engine automatically.
-- **Voice cloning** (Chatterbox) lets you drop reference voice clips (WAV or MP3) into Chatterbox's `voices/` folder and use them by filename. Useful for narrating in your own voice, or for matching the tone of a published audiobook.
+- **Voice cloning is Chatterbox-only.** Among the local engines JustWrite supports, only Chatterbox actually clones a voice from a reference clip. Drop a WAV or MP3 into Chatterbox's `voices/` or `reference_audio/` folder — both are picked up automatically, and clone entries appear in the cast picker with a `(clone)` suffix. Useful for narrating in your own voice, or for matching the tone of a published audiobook. If you use Chatterbox Turbo, you can also embed paralinguistic cues directly in the script text (`[laugh]`, `[sigh]`, `[gasp]`, and similar tags) to get expressive sounds baked into the render.
 
 ### Gender tags — auto-detected, click to fix
 

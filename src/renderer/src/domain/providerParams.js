@@ -55,13 +55,52 @@ export const PROVIDER_PARAM_SCHEMAS = {
     },
   ],
 
-  // devnen's /v1/audio/speech is a thin compatibility layer — only the
-  // standard OpenAI fields plus speed/format are honored. Engine knobs
-  // (exaggeration, cfg_weight, temperature) live in Chatterbox's own
-  // config.yaml, editable from its web UI at the server's port.
+  // Chatterbox synth is routed through the server's richer custom /tts
+  // route (see openai-compat.js → _chatterboxSpeech), not the OpenAI-compat
+  // /v1/audio/speech which silently drops the engine knobs. Keys here
+  // match /tts body fields 1:1.
+  //
+  // The model itself (chatterbox / chatterbox-turbo / chatterbox-multilingual)
+  // is server state, not a per-call param — it's swapped via
+  // SettingsProviderForm's Chatterbox section calling
+  // client.chatterboxSetModel(repoId).
   chatterbox: [
-    SPEED,
-    FORMAT,
+    {
+      key: "output_format", label: "Audio format", type: "select",
+      default: "wav",
+      options: ["wav", "opus", "mp3"],
+      help: "Encoding requested from the /tts route.",
+    },
+    {
+      key: "speed_factor", label: "Speed", type: "number",
+      default: 1.0, min: 0.25, max: 4.0, step: 0.05,
+      help: "Playback rate multiplier. Chatterbox's /tts field name.",
+    },
+    {
+      key: "temperature", label: "Temperature", type: "number",
+      default: 0.8, min: 0.0, max: 2.0, step: 0.05,
+      help: "Sampling randomness. Higher = more varied prosody, lower = more deterministic.",
+    },
+    {
+      key: "exaggeration", label: "Exaggeration", type: "number",
+      default: 1.3, min: 0.0, max: 2.0, step: 0.05,
+      help: "Emotion intensity. 0.5 is flat-ish, 1.3 is the trained sweet spot, 2.0 is theatrical. Only meaningful on the base + multilingual models.",
+    },
+    {
+      key: "cfg_weight", label: "CFG weight", type: "number",
+      default: 0.5, min: 0.0, max: 1.0, step: 0.05,
+      help: "Classifier-free guidance strength. Higher = closer to reference voice but can flatten emotion. Only meaningful on the base + multilingual models.",
+    },
+    {
+      key: "chunk_size", label: "Chunk size", type: "number",
+      default: 120, min: 50, max: 500, step: 10,
+      help: "Approximate character length per synthesis chunk when long text is auto-split.",
+    },
+    {
+      key: "language", label: "Language", type: "input",
+      placeholder: "en",
+      help: "ISO code (en, es, fr, de, …). Only honored by chatterbox-multilingual; ignored by base / turbo.",
+    },
   ],
 
 };

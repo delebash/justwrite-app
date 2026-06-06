@@ -556,15 +556,19 @@ export const DEFAULT_PROVIDERS = [
     builtIn: true,
   },
   {
-    // devnen/Chatterbox-TTS-Server. Voices come from the server's ./voices/
-    // folder — discovered at runtime via GET /v1/audio/voices, so we don't
-    // hard-code a starter list. Drop a WAV or MP3 directly into ./voices/
-    // and refresh the cast picker. Note: devnen's web UI uploads go to
-    // ./reference_audio/ instead (used by its custom /tts route), not to
-    // ./voices/, so JustWrite won't see them unless you move them across.
+    // devnen/Chatterbox-TTS-Server. Synth routes through the server's
+    // richer /tts endpoint (see openai-compat.js → _chatterboxSpeech),
+    // which exposes exaggeration / cfg_weight / temperature beyond the
+    // OpenAI-shape /v1/audio/speech. Voice listing merges predefined
+    // (./voices/) and clone references (./reference_audio/) — both
+    // appear in the cast picker now, with " (clone)" suffix on the
+    // latter. ttsModel here mirrors the active server model.repo_id
+    // (chatterbox / chatterbox-turbo / chatterbox-multilingual);
+    // Settings → Providers → Chatterbox shows the live engine and lets
+    // you hot-swap.
     id: "chatterbox", name: "Chatterbox (local TTS + cloning)", kind: "tts",
     baseUrl: "http://localhost:8004/v1",
-    ttsModel: "chatterbox",
+    ttsModel: "chatterbox-turbo",
     builtIn: true,
   },
   {
