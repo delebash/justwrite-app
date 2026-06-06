@@ -22,6 +22,7 @@ import JwCheckbox from "@renderer/components/ui/JwCheckbox.vue";
 import JwSelect from "@renderer/components/ui/JwSelect.vue";
 import JwTable from "@renderer/components/ui/JwTable.vue";
 import AiTaskStrip from "../components/AiTaskStrip.vue";
+import AppModal from "../components/AppModal.vue";
 
 const props = defineProps({ tab: { type: String, default: "cast" } });
 
@@ -361,6 +362,101 @@ async function reanalyze() {
     studio.setScript(chapterId, script);
   } catch (e) {
     error.value = e.message;
+  }
+}
+
+// ── Batch script analysis ─────────────────────────────────────────────
+// Mirrors the Render tab's batch flow but for speaker detection. Opens
+// an AppModal with per-chapter checkboxes so the writer can analyze a
+// subset (or "all unscripted") in one go without re-clicking
+// Re-analyze for every chapter.
+const batchAnalyzeOpen = ref(false);
+const selectedAnalyzeIds = ref(new Set());
+const batchAnalyzing = ref(false);
+const batchAnalyzeProgress = ref(null); // { done, total, currentChapterId }
+const batchCancelRequested = ref(false);
+
+// "Select all unscripted" target: chapters with no script yet. Existing
+// scripts can still be re-analyzed by ticking them manually — Select-all
+// just skips them because the common case is "analyze the new ones".
+const unscriptedChapterIds = computed(() =>
+  project.allChapters
+    .filter((c) => !studio.scriptFor(c.id))
+    .map((c) => c.id),
+);
+const allUnscriptedSelected = computed(() => {
+  const ids = unscriptedChapterIds.value;
+  if (!ids.length) return false;
+  return ids.every((id) => selectedAnalyzeIds.value.has(id));
+});
+
+function toggleAnalyzeSelected(chapterId) {
+  const next = new Set(selectedAnalyzeIds.value);
+  if (next.has(chapterId)) next.delete(chapterId);
+  else next.add(chapterId);
+  selectedAnalyzeIds.value = next;
+}
+function toggleAnalyzeSelectAll(checked) {
+  if (checked) {
+    selectedAnalyzeIds.value = new Set(unscriptedChapterIds.value);
+  } else {
+    selectedAnalyzeIds.value = new Set();
+  }
+}
+
+function openBatchAnalyze() {
+  // Preselect every unscripted chapter as the sensible default. The
+  // writer can tweak before clicking Analyze.
+  selectedAnalyzeIds.value = new Set(unscriptedChapterIds.value);
+  batchAnalyzeOpen.value = true;
+}
+
+async function runBatchAnalyze() {
+  if (!llmProvider.value) { error.value = "No LLM provider configured."; return; }
+  const ids = project.allChapters
+    .map((c) => c.id)
+    .filter((id) => selectedAnalyzeIds.value.has(id));
+  if (!ids.length) return;
+  batchAnalyzing.value = true;
+  batchCancelRequested.value = false;
+  error.value = null;
+  let done = 0;
+  try {
+    for (const chapterId of ids) {
+      if (batchCancelRequested.value) break;
+      batchAnalyzeProgress.value = { done, total: ids.length, currentChapterId: chapterId };
+      try {
+        // Same shape as reanalyze() — wipe first so the line list shows
+        // a clean state while the LLM call streams.
+        studio.clearScript(chapterId);
+        const html = project.chapterBody[chapterId] || "";
+        const paragraphs = extractParagraphsFromHtml(html);
+        const chapter = project.chapterById(chapterId);
+        const label = `Script analysis · Ch. ${chapter?.num ?? "?"}`;
+        const script = await detectSpeakers({
+          paragraphs,
+          characters: project.characters,
+          chapter,
+          task: { label, meta: { chapterId } },
+        });
+        studio.setScript(chapterId, script);
+      } catch (e) {
+        // One chapter's failure shouldn't kill the batch — log and move on.
+        // Cancel from the AI panel surfaces as an AbortError; treat that
+        // as "user wants to stop the whole batch", same as the modal's
+        // Cancel button.
+        if (e?.name === "AbortError" || /cancell?ed/i.test(e?.message || "")) {
+          batchCancelRequested.value = true;
+          break;
+        }
+        error.value = `Chapter ${project.chapterById(chapterId)?.num ?? chapterId}: ${e.message}`;
+      }
+      done += 1;
+    }
+  } finally {
+    batchAnalyzing.value = false;
+    batchAnalyzeProgress.value = null;
+    batchCancelRequested.value = false;
   }
 }
 
@@ -794,9 +890,13 @@ async function confirmDeleteAllRendered() {
     <div style="padding:14px 22px;border-bottom:1px solid var(--border);display:flex;gap:8px;align-items:center">
       <JwSelect v-model="scriptChapter" style="width:auto"
         :options="project.allChapters.map(c => ({ label: `Ch. ${c.num} — ${c.title}`, value: c.id }))" />
-      <JwButton intent="secondary" :disabled="analyzeLoading" @click="reanalyze">
+      <JwButton intent="secondary" :disabled="analyzeLoading || batchAnalyzing" @click="reanalyze">
         <Icon :name="analyzeLoading ? 'Refresh' : 'Sparkle'" :size="13" />
         {{ analyzeLoading ? "Analyzing…" : "Re-analyze" }}
+      </JwButton>
+      <JwButton intent="ghost" :disabled="batchAnalyzing" @click="openBatchAnalyze"
+        v-tooltip.bottom="'Analyze speaker attribution on multiple chapters in one batch'">
+        <Icon name="List" :size="13" /> Batch analyze…
       </JwButton>
       <span class="t-muted" style="font-size:12px;margin-left:auto">
         Calls {{ llmProvider?.name || "your LLM provider" }} · {{ studio.scriptFor(scriptChapter)?.length || 0 }} lines analyzed
@@ -927,6 +1027,77 @@ async function confirmDeleteAllRendered() {
     </div>
   </div>
   </div>
+
+  <!-- Batch-analyze modal: per-chapter checkboxes + master Select-all
+       (preset to "all unscripted"). Runs sequentially; the AI task panel
+       shows live progress per chapter. Closing during analysis flags the
+       loop to stop after the current chapter — the in-flight call itself
+       can be cancelled via the AI panel's Cancel button. -->
+  <AppModal v-if="batchAnalyzeOpen"
+            eyebrow="Studio"
+            title="Batch analyze chapters"
+            :closable="!batchAnalyzing"
+            @close="batchAnalyzeOpen = false">
+    <p style="font-size:13px;color:var(--ink-2);margin:0 0 14px;line-height:1.55">
+      Pick which chapters to run speaker detection on. JustWrite analyzes them one at a time
+      — live progress shows in the AI task panel (top-right). Already-scripted chapters can be
+      ticked to re-analyze; <b>Select all unscripted</b> skips them by default.
+    </p>
+
+    <div style="display:flex;align-items:center;gap:10px;padding:10px 14px;margin-bottom:12px;border:1px solid var(--border-soft);border-radius:10px;background:var(--surface-2)">
+      <JwCheckbox
+        :model-value="allUnscriptedSelected"
+        :disabled="batchAnalyzing || !unscriptedChapterIds.length"
+        @update:model-value="toggleAnalyzeSelectAll">
+        <span style="font-size:12.5px;color:var(--ink-2)">
+          Select all unscripted ({{ unscriptedChapterIds.length }})
+        </span>
+      </JwCheckbox>
+      <span class="t-muted" style="font-size:11.5px;margin-left:auto">
+        {{ selectedAnalyzeIds.size }} selected
+      </span>
+    </div>
+
+    <div style="display:flex;flex-direction:column;gap:4px;max-height:380px;overflow-y:auto;padding:2px">
+      <label v-for="c in project.allChapters" :key="c.id"
+             style="display:grid;grid-template-columns:28px 36px 1fr auto;gap:12px;align-items:center;padding:8px 12px;border:1px solid var(--border-soft);border-radius:8px;cursor:pointer;background:var(--surface)"
+             :style="selectedAnalyzeIds.has(c.id) ? 'background:var(--accent-soft);border-color:var(--accent)' : ''">
+        <JwCheckbox
+          :model-value="selectedAnalyzeIds.has(c.id)"
+          :disabled="batchAnalyzing"
+          @update:model-value="toggleAnalyzeSelected(c.id)" />
+        <span class="t-num t-muted" style="font-family:var(--font-mono);font-size:11px">Ch. {{ c.num }}</span>
+        <span style="font-size:13px;color:var(--ink);overflow:hidden;text-overflow:ellipsis;white-space:nowrap">{{ c.title || 'Untitled' }}</span>
+        <span class="t-muted" style="font-size:11px;font-family:var(--font-mono);white-space:nowrap">
+          <template v-if="batchAnalyzeProgress?.currentChapterId === c.id">analyzing…</template>
+          <template v-else-if="studio.scriptFor(c.id)">{{ studio.scriptFor(c.id).length }} lines</template>
+          <template v-else>not analyzed</template>
+        </span>
+      </label>
+    </div>
+
+    <template #footer>
+      <div style="display:flex;align-items:center;gap:10px;width:100%">
+        <span v-if="batchAnalyzing" class="t-muted" style="font-size:12px">
+          Analyzing {{ (batchAnalyzeProgress?.done || 0) + 1 }} of {{ batchAnalyzeProgress?.total || selectedAnalyzeIds.size }}…
+        </span>
+        <span style="flex:1"></span>
+        <JwButton v-if="!batchAnalyzing" intent="secondary" @click="batchAnalyzeOpen = false">Cancel</JwButton>
+        <JwButton v-else intent="secondary"
+                  :disabled="batchCancelRequested"
+                  @click="batchCancelRequested = true"
+                  v-tooltip.bottom="'Stop after the current chapter finishes. Use the AI task panel to abort the in-flight call.'">
+          {{ batchCancelRequested ? "Stopping…" : "Stop after this chapter" }}
+        </JwButton>
+        <JwButton v-if="!batchAnalyzing"
+                  intent="primary"
+                  :disabled="!selectedAnalyzeIds.size || !llmProvider"
+                  @click="runBatchAnalyze">
+          <Icon name="Sparkle" :size="12" /> Analyze {{ selectedAnalyzeIds.size }} chapter{{ selectedAnalyzeIds.size === 1 ? '' : 's' }}
+        </JwButton>
+      </div>
+    </template>
+  </AppModal>
 </template>
 
 <style>

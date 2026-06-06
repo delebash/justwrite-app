@@ -90,6 +90,7 @@ The **Script** tab does the unglamorous work of figuring out, for every paragrap
 
 - **A chapter dropdown** — pick the chapter you want to analyse. JustWrite remembers your last selection between sessions, so reopening Script lands you where you left off.
 - **A Re-analyze button** — sends the chapter prose to your LLM, which returns a labelled breakdown.
+- **A Batch analyze button** — opens a modal where you can pick multiple chapters (or *Select all unscripted*) and run them sequentially. The AI task panel shows live per-chapter progress; **Stop after this chapter** halts cleanly between chapters, and the AI panel's Cancel button aborts the in-flight call.
 - **The result display** — each line of the chapter, labelled with: **speaker** (Narrator / character name), **type** (Narration / Dialogue / Interior thought), **confidence percentage**, and the full text of the line. Every line has an **editable speaker dropdown** — if the AI got it wrong, click the dropdown and pick the right speaker (or *Unknown* if it's genuinely ambiguous). This works for both dialogue and narration: first-person POV chapters where the protagonist is the narrator, or stretches the AI mistakenly attributed to the narrator instead of a character, are both fixable here. Edited lines show a small ✎ marker and drop their confidence number (you've overruled the AI; it doesn't get to claim a percentage anymore).
 
 ### How it works
@@ -129,7 +130,7 @@ In practice this means:
 
 Re-analyze itself doesn't preserve manual edits to specific lines — it overwrites the script wholesale. The **correction memory is what carries your judgement forward** across runs.
 
-Repeat for every chapter you intend to render.
+Repeat for every chapter you intend to render — or click **Batch analyze** to queue several at once. Like the Render tab, *Select all unscripted* preloads every chapter that hasn't been analysed yet; you can also tick already-scripted chapters to re-analyse them. The batch runs sequentially.
 
 ### Why Script comes between Cast and Render
 
