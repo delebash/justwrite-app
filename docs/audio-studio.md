@@ -125,6 +125,7 @@ In practice this means:
 - Your corrections are per-project. A different project starts with a clean slate.
 - Corrections involving characters you've since deleted from the cast quietly drop out — they're useless as examples.
 - Up to 12 of the most recent corrections are sent on each Re-analyze; up to 200 are stored. The cap keeps the prompt small and your prior-art bank focused on recent decisions.
+- You can wipe the whole correction memory in **Settings → Audio → Studio · Speaker corrections** (e.g. after a major character rename or POV change that invalidates old examples). The card shows how many corrections are stored. Clearing the memory does not touch existing scripts or the lines you've already fixed.
 
 Re-analyze itself doesn't preserve manual edits to specific lines — it overwrites the script wholesale. The **correction memory is what carries your judgement forward** across runs.
 

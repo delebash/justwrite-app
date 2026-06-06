@@ -2,6 +2,7 @@
 import { ref, computed, watch, watchEffect } from "vue";
 import { useAiStore } from "../stores/ai.js";
 import { useProjectStore } from "../stores/project.js";
+import { useStudioStore } from "../stores/studio.js";
 import { useUiStore } from "../stores/ui.js";
 import { saveImage, urlFor, hasNativeImages } from "../services/imageStore.js";
 import { promptDialog, confirmDialog } from "../services/dialog.js";
@@ -40,7 +41,22 @@ const props = defineProps({ section: { type: String, default: "" } });
 
 const ai = useAiStore();
 const project = useProjectStore();
+const studio = useStudioStore();
 const ui = useUiStore();
+
+async function confirmClearSpeakerCorrections() {
+  const n = studio.corrections?.length || 0;
+  if (!n) return;
+  const yes = await confirmDialog({
+    title: `Clear ${n} speaker correction${n === 1 ? "" : "s"}?`,
+    body: "Future Re-analyze runs will stop using your past speaker overrides as worked examples. Existing scripts (and the lines you've already fixed) are not touched — only the learning memory is wiped.",
+    confirmLabel: "Clear corrections",
+    danger: true,
+  });
+  if (!yes) return;
+  studio.clearCorrections();
+  pushToast({ message: `Cleared ${n} speaker correction${n === 1 ? "" : "s"}.` });
+}
 
 // ── Voice canon ────────────────────────────────────────────────────
 // Chapter picker for the writer's voice canon. Selected chapters
@@ -1312,6 +1328,34 @@ const recentColumns = [
                   <code style="font-family:var(--font-mono);color:var(--ink-2);white-space:pre-wrap;word-break:break-word">{{ truncatePrompt(activeConfigEntry(f.key).settings.userTemplate) }}</code>
                 </template>
               </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Studio · Speaker corrections — per-project memory of dialogue-line
+             overrides the writer made in Studio's Script tab. Fed back into
+             Re-analyze as worked examples. This card surfaces the count and
+             lets the writer wipe it (e.g. after a major character rename or
+             POV change that invalidates old examples). -->
+        <div class="card">
+          <div style="display:flex;align-items:flex-start;gap:14px">
+            <div style="flex:1;min-width:0">
+              <div class="card-title" style="margin-bottom:6px">Studio · Speaker corrections</div>
+              <p class="t-muted" style="font-size:12.5px;margin:0;line-height:1.55">
+                Every time you fix a dialogue speaker in Studio → Script, the line and the correct
+                character are remembered. The 12 most recent are sent as worked examples on the next
+                Re-analyze so the AI stops repeating the same mistakes. Clearing wipes the memory only —
+                existing scripts and the lines you've already fixed are untouched.
+              </p>
+            </div>
+            <div style="display:flex;flex-direction:column;align-items:flex-end;gap:8px;flex-shrink:0">
+              <div style="font-family:var(--font-mono);font-size:11px;color:var(--muted);text-transform:uppercase;letter-spacing:0.08em">stored</div>
+              <div style="font-size:22px;font-weight:600;color:var(--ink);line-height:1">{{ studio.corrections?.length || 0 }}</div>
+              <JwButton intent="danger" size="small"
+                        :disabled="!(studio.corrections?.length)"
+                        @click="confirmClearSpeakerCorrections">
+                <Icon name="Trash" :size="11" /> Clear corrections
+              </JwButton>
             </div>
           </div>
         </div>
