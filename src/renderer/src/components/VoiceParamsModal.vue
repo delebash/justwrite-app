@@ -6,10 +6,12 @@
 // synth time (services/tts.js → mergeParams). Empty / null values
 // fall through to the provider default rather than overriding with zero.
 
-import { ref, computed, watch } from "vue";
+import { ref, computed, watch, onBeforeUnmount } from "vue";
 import { getParamSchema } from "../domain/providerParams.js";
 import { useStudioStore } from "../stores/studio.js";
+import { preview as previewVoice } from "../services/tts.js";
 import AppModal from "./AppModal.vue";
+import Icon from "./Icon.vue";
 import JwInput from "@renderer/components/ui/JwInput.vue";
 import JwTextarea from "@renderer/components/ui/JwTextarea.vue";
 import JwCheckbox from "@renderer/components/ui/JwCheckbox.vue";
@@ -83,7 +85,53 @@ function save() {
 // Close-on-escape via AppModal; revert silently if the writer dismisses
 // without hitting Save (Cancel and outside-click both treat the modal
 // as a non-destination).
-function cancel() { emit("close"); }
+function cancel() { stopPreview(); emit("close"); }
+
+// ── Preview with pending overrides ───────────────────────────────
+// Synthesises the voice with the WORKING draft (not the saved value),
+// so the writer can hear each tweak before committing. Same sample
+// line the Cast tab uses, so what you hear here matches the audition.
+// One preview at a time — re-clicking while it's playing stops it.
+const PREVIEW_TEXT = "I'm going to go and see if it's there. And if it isn't, I'll have to decide whether to put it back.";
+const previewing = ref(false);
+const previewError = ref(null);
+let audioEl = null;
+
+async function playPreview() {
+  if (previewing.value) { stopPreview(); return; }
+  previewError.value = null;
+  previewing.value = true;
+  try {
+    // useCache: false — the draft can change every click, and the
+    // cache key already hashes the merged params, so we'd hit a stale
+    // entry exactly when the writer wants to hear the tweak.
+    const { url } = await previewVoice({
+      provider: props.provider,
+      voice: props.voice.id,
+      voiceParams: draft.value,
+      input: PREVIEW_TEXT,
+      useCache: false,
+    });
+    audioEl = new Audio(url);
+    audioEl.onended = () => { previewing.value = false; audioEl = null; };
+    audioEl.onerror = () => { previewing.value = false; previewError.value = "Playback failed."; audioEl = null; };
+    await audioEl.play().catch((e) => { throw e; });
+  } catch (e) {
+    previewing.value = false;
+    previewError.value = e?.message || "Preview failed — is the TTS server reachable?";
+    audioEl = null;
+  }
+}
+
+function stopPreview() {
+  if (audioEl) {
+    try { audioEl.pause(); } catch {}
+    audioEl = null;
+  }
+  previewing.value = false;
+}
+
+onBeforeUnmount(stopPreview);
 </script>
 
 <template>
@@ -135,10 +183,20 @@ function cancel() { emit("close"); }
       </template>
     </div>
 
+    <div v-if="previewError" class="t-muted"
+      style="margin-top:10px;font-size:11.5px;color:var(--danger,#c33);padding:8px 10px;background:var(--surface-2);border-radius:6px">
+      {{ previewError }}
+    </div>
+
     <template #footer>
       <span class="t-muted" style="font-size:11.5px;margin-right:auto">
         {{ overrideCount }} override{{ overrideCount === 1 ? '' : 's' }} set
       </span>
+      <JwButton intent="secondary" :label="previewing ? 'Stop' : 'Preview'"
+        v-tooltip.bottom="'Synthesise the voice with your pending overrides — no need to save first.'"
+        @click="playPreview">
+        <template #icon><Icon :name="previewing ? 'Pause' : 'Play'" :size="11" /></template>
+      </JwButton>
       <JwButton v-if="overrideCount > 0" intent="ghost" label="Reset all" @click="resetAll" />
       <JwButton intent="ghost" label="Cancel" @click="cancel" />
       <JwButton intent="primary" label="Save" @click="save" />
