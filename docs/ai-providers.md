@@ -15,7 +15,7 @@ There are three kinds of provider you might set up:
 | Provider kind | What it does | Examples |
 |---|---|---|
 | **LLM** (chat) | Writing assistance, critique, entity sweeps, smart-cast | OpenAI, Claude, Gemini, DeepSeek, OpenRouter, Ollama, LM Studio |
-| **TTS** (text-to-speech) | Audiobook narration | OpenAI TTS, Kokoro, Chatterbox, Dia, Speechmatics |
+| **TTS** (text-to-speech) | Audiobook narration | OpenAI TTS, Kokoro, Chatterbox, Dia, Microsoft Edge TTS (built-in), Speechmatics |
 | **Embedding** | "Ask the book" chat — indexes your manuscript for question answering | OpenAI embeddings, any local embedding model |
 
 A provider can speak more than one of these. **OpenAI**, for example, provides LLM + TTS + embeddings in one. **Anthropic**, **Google Gemini**, **DeepSeek**, and **OpenRouter** provide LLM only. **Ollama** provides LLM and embeddings (locally). **Kokoro** provides TTS only.
@@ -193,6 +193,20 @@ A local TTS server from the same author as Chatterbox, focused on expressive mul
 **S1 and S2** are Dia's dialogue-mode speaker tokens. Cast a character on S1 and another on S2 in the same chapter to get distinct voices for an exchange even without uploading clones — useful for dialogue-heavy chapters where you want fast renders before committing to specific voice clips.
 
 **When to pick Dia.** Your chapters have a lot of dialogue and you want it to sound like a conversation rather than two slightly different read-alouds. Or you want voice cloning with a different model than Chatterbox's.
+
+### Microsoft Edge TTS (built-in, free)
+
+JustWrite ships with **Microsoft's Edge "Read Aloud" TTS** built in — ~400 neural voices across ~140 locales, no setup, no API key, no account. The voices are the same ones Edge browser's Read Aloud feature uses (Aria, Emma, Guy, Davis, Jenny, Andrew, the multilingual line, plus localised voices for almost every European, Asian, and major African / South American language).
+
+1. In JustWrite, **Add provider → Preset: Microsoft Edge TTS (free)**. Already ready — no fields to fill.
+2. **Fetch voices** — the catalogue appears in the cast picker.
+3. Save.
+
+**Desktop app only.** Edge TTS routes through JustWrite's Rust backend (using the `msedge-tts` crate) because the renderer can't talk to Microsoft's WebSocket endpoint directly. `npm run dev:vite` in a plain browser won't have it; the packaged desktop build always does.
+
+**When to pick Edge TTS.** You want a no-setup multilingual narration option that ships with the app — useful for first-time renders, non-English manuscripts, or pulling in a specific localised voice without standing up another server.
+
+**Caveats.** Microsoft's Read Aloud endpoint is unofficial — it's intended for Edge browser. Microsoft has rotated authentication tokens before (the upstream library breaks; JustWrite ships a fix in a later release). Treat it as solid for everyday narration but keep one of the local engines (Kokoro, Chatterbox, Dia) configured as a fallback if you depend on TTS for production work.
 
 ### Speechmatics (cloud TTS)
 

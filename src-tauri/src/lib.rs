@@ -488,6 +488,90 @@ async fn audio_save_as(
     Ok(SaveOk { ok: true, path: dest.display().to_string() })
 }
 
+// ─── Edge TTS (Microsoft Read Aloud) ─────────────────────────────────
+// Renderer cannot reach Microsoft's WebSocket endpoint directly — it
+// needs a `Sec-WebSocket-Version` header the WebView2 spec API forbids
+// setting from JS. So we route through the `msedge-tts` Rust crate.
+//
+// The voice catalogue (~400 neural voices across ~140 locales) is
+// fetched once via HTTP and cached for the process lifetime. Each
+// synth call opens a fresh WebSocket — fine at per-line granularity,
+// where each render is one round-trip of ~50ms+audio.
+
+use msedge_tts::{
+    tts::{client::connect as edge_connect, SpeechConfig},
+    voice::{get_voices_list, Voice},
+};
+use std::sync::OnceLock;
+
+static EDGE_VOICES_CACHE: OnceLock<Vec<Voice>> = OnceLock::new();
+
+fn edge_voices_cached() -> Result<&'static Vec<Voice>, String> {
+    if let Some(v) = EDGE_VOICES_CACHE.get() {
+        return Ok(v);
+    }
+    let voices = get_voices_list().map_err(|e| format!("Edge TTS: voice list fetch failed: {e}"))?;
+    // Two callers can race the first fetch and both call get_voices_list();
+    // OnceLock::set returns the conflicting value if already set, so we just
+    // drop the duplicate and return whatever landed first.
+    let _ = EDGE_VOICES_CACHE.set(voices);
+    Ok(EDGE_VOICES_CACHE.get().expect("set above"))
+}
+
+#[derive(Serialize, Deserialize)]
+#[serde(rename_all = "camelCase")]
+struct EdgeTtsVoiceDto {
+    /// Short name like "en-US-EmmaMultilingualNeural" — what the
+    /// renderer stores as the voice id and what's passed back to
+    /// `tts_edge_speech`.
+    id: String,
+    /// Friendly display label like "Microsoft Emma Online (Natural)".
+    name: String,
+    gender: String,
+    locale: String,
+}
+
+#[tauri::command]
+async fn tts_edge_voices() -> Result<Vec<EdgeTtsVoiceDto>, String> {
+    tokio::task::spawn_blocking(|| {
+        let voices = edge_voices_cached()?;
+        let out: Vec<EdgeTtsVoiceDto> = voices
+            .iter()
+            .filter_map(|v| {
+                let id = v.short_name.clone()?;
+                Some(EdgeTtsVoiceDto {
+                    name: v.friendly_name.clone().unwrap_or_else(|| id.clone()),
+                    id,
+                    gender: v.gender.clone().unwrap_or_default(),
+                    locale: v.locale.clone().unwrap_or_default(),
+                })
+            })
+            .collect();
+        Ok::<_, String>(out)
+    })
+    .await
+    .map_err(|e| e.to_string())?
+}
+
+#[tauri::command]
+async fn tts_edge_speech(voice: String, text: String) -> Result<Vec<u8>, String> {
+    tokio::task::spawn_blocking(move || {
+        let voices = edge_voices_cached()?;
+        let v = voices
+            .iter()
+            .find(|v| v.short_name.as_deref() == Some(voice.as_str()))
+            .ok_or_else(|| format!("Edge TTS: unknown voice '{voice}'"))?;
+        let cfg = SpeechConfig::from(v);
+        let mut client = edge_connect().map_err(|e| format!("Edge TTS: connect failed: {e}"))?;
+        let audio = client
+            .synthesize(&text, &cfg)
+            .map_err(|e| format!("Edge TTS: synthesize failed: {e}"))?;
+        Ok::<_, String>(audio.audio_bytes)
+    })
+    .await
+    .map_err(|e| e.to_string())?
+}
+
 // ─── Runner ──────────────────────────────────────────────────────────
 
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
@@ -513,6 +597,8 @@ pub fn run() {
             audio_delete,
             audio_clear_project,
             audio_save_as,
+            tts_edge_voices,
+            tts_edge_speech,
         ])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");

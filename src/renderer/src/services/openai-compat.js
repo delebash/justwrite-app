@@ -755,6 +755,15 @@ export class OpenAICompatClient {
     // Speechmatics has no health/list endpoint; treat "API key present"
     // as the only check we can do without spending a synthesis credit.
     if (isSpeechmatics(this.provider)) return !!this.provider.apiKey;
+    // Edge TTS doesn't go through HTTP — bridge presence + a successful
+    // voice fetch is the closest health signal we have.
+    if (this.provider.id === "edgeTts") {
+      if (!window.justwrite?.tts?.edge?.voices) return false;
+      try {
+        const list = await window.justwrite.tts.edge.voices();
+        return Array.isArray(list) && list.length > 0;
+      } catch { return false; }
+    }
     const ctl = new AbortController();
     const t = setTimeout(() => ctl.abort(), timeoutMs);
     const path = this.provider.kind === "tts" ? "/audio/voices" : "/models";

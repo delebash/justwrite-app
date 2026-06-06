@@ -262,9 +262,14 @@ export const useAiStore = defineStore("ai", {
     // we don't poll on every list to find out.
     readyTtsProviders: (s) => {
       const isLocal = (url) => /\b(localhost|127\.0\.0\.1|0\.0\.0\.0)\b/i.test(String(url || ""));
+      // Edge TTS routes through Rust (msedge-tts crate) — always ready
+      // when the desktop app is running. No apiKey, no localhost URL.
+      // In browser dev (`vite dev` outside Tauri) the bridge isn't
+      // populated and synth throws a "desktop app only" error.
+      const isEdgeTts = (p) => p.id === "edgeTts";
       return s.providers
         .filter((p) => p.kind === "tts" || p.kind === "both")
-        .filter((p) => !!p.apiKey || isLocal(p.baseUrl));
+        .filter((p) => !!p.apiKey || isLocal(p.baseUrl) || isEdgeTts(p));
     },
     // Any LLM-capable provider can host embeddings — the embedding
     // model is configured per-provider via the embeddingModel field.

@@ -581,6 +581,19 @@ export const DEFAULT_PROVIDERS = [
     builtIn: true,
   },
   {
+    // Microsoft Edge "Read Aloud" — ~400 free neural voices across ~140
+    // locales, no API key, no account. Routed through the msedge-tts
+    // Rust crate (see src-tauri/src/lib.rs → tts_edge_*). NOT an
+    // OpenAI-compatible HTTP provider: services/tts.js → isEdgeTts()
+    // branches to window.justwrite.tts.edge.* for synth and voice
+    // listing. baseUrl is decorative — stores/ai.js → readyTtsProviders
+    // explicitly allows this provider without checking the URL.
+    id: "edgeTts", name: "Microsoft Edge TTS (free)", kind: "tts",
+    baseUrl: "tauri://edge-tts",
+    ttsModel: "edge",
+    builtIn: true,
+  },
+  {
     // Speechmatics TTS (preview). Proprietary endpoint shape — voice goes
     // in the URL path, body is { text }. Detected by hostname in
     // openai-compat.js → isSpeechmatics(). Four English voices today

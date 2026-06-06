@@ -1442,6 +1442,12 @@ const recentColumns = [
                 Install <b>devnen/Dia-TTS-Server</b> (same author as Chatterbox — see <a href="https://github.com/devnen/Dia-TTS-Server" target="_blank" rel="noopener" style="color:var(--accent)">github.com/devnen/Dia-TTS-Server</a>). Base URL <code style="background:var(--surface-3);padding:1px 5px;border-radius:3px">http://localhost:8003/v1</code>. Bundled predefined voices plus reference clones (dropped into <code style="background:var(--surface-3);padding:1px 5px;border-radius:3px">reference_audio/</code> — the web UI's Import button puts them there too). Fetch voices and the catalogue appears alongside the synthetic <b>S1</b> / <b>S2</b> dialogue-mode tokens. Cast different characters on S1 vs S2 to get distinct voices without uploading clips.
               </p>
             </div>
+            <div>
+              <b style="font-size:12.5px;color:var(--ink)">Microsoft Edge TTS</b>
+              <p style="margin:4px 0 0;line-height:1.55">
+                Built in — ~400 neural voices across ~140 locales, free, no API key, no account. Routed through JustWrite's Rust backend (the renderer can't reach Microsoft's WebSocket directly). Desktop app only — <code style="background:var(--surface-3);padding:1px 5px;border-radius:3px">npm run dev:vite</code> in a browser doesn't have it. Add the preset, hit <b>Fetch voices</b>, you're done. Microsoft's endpoint is unofficial and has broken before — keep one local engine configured as a fallback if you rely on TTS.
+              </p>
+            </div>
           </div>
         </div>
       </div>

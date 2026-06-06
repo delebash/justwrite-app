@@ -18,7 +18,7 @@ You can write an entire novel in JustWrite without touching Studio. It exists fo
 
 Before you can use Studio at all:
 
-- **A TTS (text-to-speech) provider** — Studio needs an engine that can speak text. Options include OpenAI TTS (cloud, paid), Kokoro (local, free, fast), Chatterbox (local, free, supports voice cloning), Dia (local, free, strong on expressive multi-speaker dialogue), and anything else that speaks OpenAI's TTS protocol. Set this up in **Settings → AI & Audio engines**.
+- **A TTS (text-to-speech) provider** — Studio needs an engine that can speak text. Options include OpenAI TTS (cloud, paid), Kokoro (local, free, fast), Chatterbox (local, free, supports voice cloning), Dia (local, free, strong on expressive multi-speaker dialogue), Microsoft Edge TTS (built-in, free, ~400 neural voices), and anything else that speaks OpenAI's TTS protocol. Set this up in **Settings → AI & Audio engines**.
 - **An LLM provider** — Studio uses an LLM for the "Smart-assign" voice matcher and for the per-chapter speaker analysis. Any OpenAI-compatible chat model works.
 
 See [AI providers](ai-providers.md) for the full setup walkthrough for each engine.

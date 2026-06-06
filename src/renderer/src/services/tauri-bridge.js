@@ -154,5 +154,26 @@ if (isTauri) {
       saveAs:       (srcPath, suggestedName) =>
         safe(invoke("audio_save_as", { srcPath, suggestedName })),
     },
+
+    tts: {
+      // Microsoft Edge "Read Aloud" TTS via the msedge-tts Rust crate.
+      // The renderer can't talk to MS's WebSocket directly because the
+      // browser-spec WebSocket forbids setting Sec-WebSocket-Version
+      // (which MS requires) — Rust handles the handshake.
+      edge: {
+        voices: () => invoke("tts_edge_voices"),
+        // Returns a Blob in whatever audio format the voice's
+        // suggested_codec specified (MP3 in practice). Web Audio's
+        // decodeAudioData handles it the same as Kokoro/OpenAI output.
+        speech: async ({ voice, text }) => {
+          const bytes = await invoke("tts_edge_speech", { voice, text });
+          // Tauri serializes Vec<u8> as a number[] — fine for ~50KB
+          // per-line chunks, expensive for whole chapters. The render
+          // pipeline calls this per line so we stay in the safe zone.
+          const u8 = bytes instanceof Uint8Array ? bytes : new Uint8Array(bytes);
+          return new Blob([u8], { type: "audio/mpeg" });
+        },
+      },
+    },
   };
 }
