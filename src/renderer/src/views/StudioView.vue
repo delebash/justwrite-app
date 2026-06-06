@@ -24,6 +24,7 @@ import JwTable from "@renderer/components/ui/JwTable.vue";
 import AiTaskStrip from "../components/AiTaskStrip.vue";
 import AppModal from "../components/AppModal.vue";
 import VoiceParamsModal from "../components/VoiceParamsModal.vue";
+import RenderLabPanel from "../components/RenderLabPanel.vue";
 
 const props = defineProps({ tab: { type: String, default: "cast" } });
 
@@ -44,7 +45,7 @@ watch(() => props.tab, (v) => { if (v) activeTab.value = v; });
 // Keyboard nav for the Studio tab bar. Implements the standard
 // ARIA tablist pattern: Left/Right (and Up/Down) cycle through
 // tabs, Home/End jump to the ends, the activated tab takes focus.
-const TAB_ORDER = ["cast", "script", "render"];
+const TAB_ORDER = ["cast", "script", "render", "lab"];
 function onTabKeydown(e) {
   const idx = TAB_ORDER.indexOf(activeTab.value);
   if (idx < 0) return;
@@ -785,6 +786,16 @@ async function confirmDeleteAllRendered() {
         <span class="studio-tab-sub">Chapter audio</span>
       </span>
     </button>
+    <button class="studio-tab" data-tab="lab"
+      role="tab" :aria-selected="activeTab === 'lab'" :tabindex="activeTab === 'lab' ? 0 : -1"
+      :class="{ active: activeTab === 'lab' }"
+      @click="activeTab = 'lab'" @keydown="onTabKeydown">
+      <Icon name="Sparkle" :size="15" />
+      <span class="studio-tab-label">
+        <span class="studio-tab-name">Lab</span>
+        <span class="studio-tab-sub">A/B engine params</span>
+      </span>
+    </button>
   </div>
 
   <!-- CAST TAB -->
@@ -1010,7 +1021,7 @@ async function confirmDeleteAllRendered() {
   </div>
 
   <!-- RENDER TAB -->
-  <div v-else role="tabpanel" aria-label="Render" class="pane-card">
+  <div v-else-if="activeTab === 'render'" role="tabpanel" aria-label="Render" class="pane-card">
   <div class="scrollarea" style="padding:18px 22px">
     <div style="display:flex;align-items:flex-start;justify-content:space-between;gap:14px;margin-bottom:14px">
       <div style="font-size:13px;color:var(--ink-2);flex:1;min-width:0">
@@ -1112,6 +1123,11 @@ async function confirmDeleteAllRendered() {
       </div>
     </div>
   </div>
+  </div>
+
+  <!-- LAB TAB — A/B engine params across a grid of values -->
+  <div v-else-if="activeTab === 'lab'" role="tabpanel" aria-label="Render Lab" class="pane-card" style="display:flex;flex-direction:column;overflow:hidden">
+    <RenderLabPanel />
   </div>
 
   <!-- Batch-analyze modal: per-chapter checkboxes + master Select-all
