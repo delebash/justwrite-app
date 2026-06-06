@@ -90,7 +90,7 @@ The **Script** tab does the unglamorous work of figuring out, for every paragrap
 
 - **A chapter dropdown** — pick the chapter you want to analyse. JustWrite remembers your last selection between sessions, so reopening Script lands you where you left off.
 - **A Re-analyze button** — sends the chapter prose to your LLM, which returns a labelled breakdown.
-- **The result display** — each line of the chapter, labelled with: **speaker** (Narrator / character name), **type** (Narration / Dialogue / Interior thought), **confidence percentage**, and the full text of the line. Dialogue lines have an **editable speaker dropdown** — if the AI got it wrong, click the dropdown and pick the right character (or *Unknown* if it's genuinely ambiguous). Edited lines show a small ✎ marker and drop their confidence number (you've overruled the AI; it doesn't get to claim a percentage anymore).
+- **The result display** — each line of the chapter, labelled with: **speaker** (Narrator / character name), **type** (Narration / Dialogue / Interior thought), **confidence percentage**, and the full text of the line. Every line has an **editable speaker dropdown** — if the AI got it wrong, click the dropdown and pick the right speaker (or *Unknown* if it's genuinely ambiguous). This works for both dialogue and narration: first-person POV chapters where the protagonist is the narrator, or stretches the AI mistakenly attributed to the narrator instead of a character, are both fixable here. Edited lines show a small ✎ marker and drop their confidence number (you've overruled the AI; it doesn't get to claim a percentage anymore).
 
 ### How it works
 
@@ -115,7 +115,9 @@ Review the result. If a line is mis-attributed, you have three options:
 
 ### The AI learns from your corrections
 
-Every time you fix a speaker on a dialogue line, JustWrite remembers the line and the right speaker as a **correction**. The next time you Re-analyze *any* chapter in this project, the most recent corrections are folded into the LLM prompt as worked examples: *"here are lines you previously misattributed in this story — match these exactly when they appear, and apply the same reasoning to similar lines."*
+Every time you fix a speaker on a **dialogue line**, JustWrite remembers the line and the right speaker as a **correction**. The next time you Re-analyze *any* chapter in this project, the most recent corrections are folded into the LLM prompt as worked examples: *"here are lines you previously misattributed in this story — match these exactly when they appear, and apply the same reasoning to similar lines."*
+
+Narration-line edits *don't* feed the learning loop. The LLM only ever attributes dialogue — narration is split out mechanically by the quote-splitter before the model sees anything — so a manual narration override is a one-off override of the pipeline, not a training signal. If you re-run Re-analyze on a chapter where you'd reassigned narration to a character, you'll need to reassign it again.
 
 In practice this means:
 

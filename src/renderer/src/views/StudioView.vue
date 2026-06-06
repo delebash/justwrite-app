@@ -756,7 +756,7 @@ async function confirmDeleteAllRendered() {
       <div v-for="(l, i) in studio.scriptFor(scriptChapter) || []" :key="i"
         style="display:grid;grid-template-columns:160px 1fr auto;gap:14px;padding:12px 0;border-bottom:1px solid var(--border-soft);align-items:start">
         <div>
-          <div v-if="l.kind === 'dialogue'" style="display:flex;align-items:center;gap:6px">
+          <div style="display:flex;align-items:center;gap:6px">
             <JwSelect
               :modelValue="l.speaker"
               :options="speakerOptions"
@@ -765,7 +765,6 @@ async function confirmDeleteAllRendered() {
             <span v-if="l.edited" v-tooltip.bottom="'You edited this line. Future Re-analyze runs will use it as an example.'"
               style="font-size:11px;color:var(--accent);line-height:1">✎</span>
           </div>
-          <div v-else style="font-size:11.5px;font-weight:600">Narrator</div>
           <div class="t-muted" style="font-size:10.5px;margin-top:4px">
             {{ l.kind }}<template v-if="!l.edited"> · {{ Math.round((l.confidence || 0) * 100) }}%</template>
           </div>
