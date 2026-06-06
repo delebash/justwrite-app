@@ -94,7 +94,7 @@ Every text surface in the project:
 - Worldbuilding articles
 - Architecture documents
 
-If you also use Studio's Script tab to detect who speaks in which chapter, that speaker attribution is also folded into the index — so searching for a character name surfaces chapters where they speak even if their name isn't typed in the prose.
+If you also use Audio Studio's Script tab to detect who speaks in which chapter, that speaker attribution is also folded into the index — so searching for a character name surfaces chapters where they speak even if their name isn't typed in the prose.
 
 ### What you see
 

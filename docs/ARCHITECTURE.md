@@ -94,7 +94,7 @@ latency, tokens, tokens/s, last-token freshness, expandable preview, cancel
 4. Visibility into "is this stuck or still processing?" for long-running
    calls (smart-cast, script analysis) that used to be opaque.
 
-Studio's smart-assign + re-analyze were the worst offenders — no progress,
+Audio Studio's smart-assign + re-analyze were the worst offenders — no progress,
 no cancel, and a stuck-on-"Analyzing…" bug from local refs not resetting.
 
 **How any AI feature plugs in:** pass `task: { label, meta }` (or
@@ -212,7 +212,7 @@ Callers can override via `extra.options.num_ctx`.
 
 1. **Production** — `StudioView` Script tab. One LLM call per chapter,
    paragraph-granular attribution via `services/llm.js → detectSpeakers`.
-2. **Speaker Lab → Studio mode** (`/#/debug/speaker-lab`) — exact mirror of
+2. **Speaker Lab → Audio Studio mode** (`/#/debug/speaker-lab`) — exact mirror of
    production with prompt/model/temperature knobs and A/B columns. Use this
    to evaluate prompt/model changes against current behavior before
    touching production.
@@ -364,7 +364,7 @@ hangs at session handshake with no diagnostic). Wrapper is
 
 **Why this matters:** earlier attempts to capture views by driving the
 renderer in browser-mode (`npm run dev:vite` + Playwright + IDB injection)
-succeeded for Home / Analysis / Plot board but failed silently for Studio /
+succeeded for Home / Analysis / Plot board but failed silently for Audio Studio /
 Settings / Worldbuilding / Timeline — lazy-loaded views error at mount when
 run in vanilla browser. The Tauri harness gets all of them.
 

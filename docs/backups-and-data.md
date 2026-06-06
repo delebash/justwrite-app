@@ -106,7 +106,7 @@ For the technically curious:
 - **Autosave on disk** lives in your operating system's app data folder under a JustWrite directory. The Backups section shows the exact path.
 - **Snapshots** are wherever you saved them.
 - **Images** for character avatars, location photos, the cover image, etc., live under the same app data folder as autosave (when you run the desktop app) or as data URLs in the project snapshot (when you run in a browser).
-- **Rendered chapter audio** (Studio → Render) also lives under the app data folder, in an `audio/` subdirectory scoped per project — so refreshing or re-opening JustWrite keeps your renders intact. Deleting a chapter from the Trash, or deleting the project, cleans up its audio files automatically. Soft-deleting a chapter keeps the audio (restore brings it back too).
+- **Rendered chapter audio** (Audio Studio → Render) also lives under the app data folder, in an `audio/` subdirectory scoped per project — so refreshing or re-opening JustWrite keeps your renders intact. Deleting a chapter from the Trash, or deleting the project, cleans up its audio files automatically. Soft-deleting a chapter keeps the audio (restore brings it back too).
 
 You can move a JustWrite project from one computer to another by copying the autosave folder, by exporting/importing a snapshot, or both. There is no cloud account to sync.
 

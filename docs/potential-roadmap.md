@@ -11,7 +11,7 @@ A pool of feature candidates, not commitments. Distinct from [`roadmap.md`](road
 
 JustWrite already sits in an unusually strong position — local-first by architecture, deep on Story World and AI auditing primitives, ahead of competitors on transparency (Writer Lab) and provider-agnostic AI. The highest-leverage work isn't new AI generation but three other moves:
 
-1. **Package existing infrastructure into discoverable named features** — sprint timer over Focus Mode, read-aloud over Studio TTS, disclosure generator over Usage Ledger.
+1. **Package existing infrastructure into discoverable named features** — sprint timer over Focus Mode, read-aloud over Audio Studio TTS, disclosure generator over Usage Ledger.
 2. **Close a small number of genuine gaps that map cleanly onto existing primitives** — per-chapter POV field, setup/payoff Marker pairs, scene snapshots, beta-reader reactions round-trip.
 3. **One or two genre and series bets that unlock new audiences** — genre presets, Series container across projects.
 
@@ -38,7 +38,7 @@ The AI-rejection signal is consistently sharp: **prose generation is the third r
 | 13 | **Suspect grid + alibi-contradiction audit** (Mystery preset companion) | moderate | medium | Typewriter explicitly markets this. Reuses reader-knowledge map + timelines + plot-hole audit. |
 | 14 | **Per-chapter release schedule + drop calendar** (serial fiction) | moderate | small | Kindle Vella shutdown Feb 2025 left Royal Road/Wattpad/Laterpress writers shopping. Pure metadata. |
 | 15 | **Sources entity + `[^cite:id]` footnotes** (memoir/nonfiction) — promote `verify` Marker to carry source/status | moderate | small | KDP/Springer publisher requirements. Light-touch — don't rebuild Zotero. |
-| 16 | **Fountain (.fountain) export** of dialogue-only chapters using Studio's speaker analysis | moderate | small | LivingWriter rebuilt this as marquee June 2025. Plain-text export adapter. |
+| 16 | **Fountain (.fountain) export** of dialogue-only chapters using Audio Studio's speaker analysis | moderate | small | LivingWriter rebuilt this as marquee June 2025. Plain-text export adapter. |
 | 17 | **Free-form spatial canvas** for outlining (infinite corkboard, draggable cards, arrows) | moderate | large | Sudowrite Canvas. ADHD writers need non-linear externalisation before structure exists. |
 | 18 | **Scheduled auto-export to user folder** (backup hardening) | moderate | small | Lets users opt into "sync" via their own iCloud/Dropbox/OneDrive folder without JW running a cloud. |
 | 19 | **Web-companion PWA** (read + minor edit, mobile capture bucket) | strong | large | Mobile capture is the most common phone use case. Browser fallback already exists; real lift is sync via user cloud folder. |
@@ -56,7 +56,7 @@ The AI-rejection signal is consistently sharp: **prose generation is the third r
 | 2 | **Continuous fact-ledger + inline contradiction Markers** — always-on background pass; project-wide claim ledger; auto-drops "contradicts ch.3" Marker | 🔥 hot | large | #1 unmet need in AI-acceptance brief. Describes rather than generates — even skeptics want this. Local Ollama for cost-free background passes is a real moat. |
 | 3 | **Editor-grade copy-edit pass** — explicitly framed as Authors-Guild-permitted, Elsevier-exempt "basic spelling/grammar" tier; accept/reject suggestions only, never bulk-applied | strong | small | ~70% of AI-using authors use it for editing. Framing is the entire value-add — labelled-safe lane converts skeptics. |
 | 4 | **Deterministic pet-words / echo / said-bookism / adjective-stack report** | strong | small | No AI, no tokens, no ethics. Competitors charge subscriptions for this exact pass (PWA, AutoCrit). |
-| 5 | **Read-this-aloud proofreading mode** — reuses Studio TTS at 1×/1.25×/1.5×/2× | strong | small | Reuses 90% of Studio pipeline. #1 dyslexia + ADHD use case. Accessibility-positive. |
+| 5 | **Read-this-aloud proofreading mode** — reuses Audio Studio TTS at 1×/1.25×/1.5×/2× | strong | small | Reuses 90% of Audio Studio pipeline. #1 dyslexia + ADHD use case. Accessibility-positive. |
 | 6 | **AI margin notes pinned to spans** — extend Multi-reader panel to drop inline editor-style comments by edit-type (line/dev/copy/continuity) into Markers stream | strong | medium | Competitive parity with Sudowrite's headline 2025 Feedback feature. |
 | 7 | **Sensitivity triage pass** — flag potential representation/stereotype concerns, **never clears** for human reader | moderate | medium | "Flag, never clear" framing is the ethical lane. EFA shows publisher requests up 60% since 2021. |
 | 8 | **Show-the-thinking toggle for reasoning models** (`<think>` blocks from R1/GPT-5-thinking/Claude-thinking) | moderate | small | Novelcrafter shipped Jan 9 2026. Tiny lift; reinforces no-black-box positioning. |

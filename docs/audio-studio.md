@@ -2,7 +2,7 @@
 
 > *"I want my novel as an audiobook, and I can't afford to hire a narrator. Or I'm halfway through revisions and I want to *hear* my prose read back so I can catch what my eyes keep skipping."*
 
-The **Studio** view is where you turn your written manuscript into a narrated audiobook. It walks you through three sequential stages, presented as three tabs:
+The **Audio Studio** view is where you turn your written manuscript into a narrated audiobook. It walks you through three sequential stages, presented as three tabs:
 
 1. **Cast** — choose voices for the narrator and every character.
 2. **Script** — let the AI work out who speaks each line of every chapter.
@@ -10,16 +10,16 @@ The **Studio** view is where you turn your written manuscript into a narrated au
 
 When all chapters are rendered, the **Export** view packages them into an M4B audiobook file with chapter markers.
 
-You can write an entire novel in JustWrite without touching Studio. It exists for writers who want to produce an audiobook themselves, or to hear their prose read aloud as a revision tool.
+You can write an entire novel in JustWrite without touching Audio Studio. It exists for writers who want to produce an audiobook themselves, or to hear their prose read aloud as a revision tool.
 
 ---
 
 ## Setup required
 
-Before you can use Studio at all:
+Before you can use Audio Studio at all:
 
-- **A TTS (text-to-speech) provider** — Studio needs an engine that can speak text. Options include OpenAI TTS (cloud, paid), Kokoro (local, free, fast), **Chatterbox (local, free, the only local engine that does voice cloning)**, Dia (local, free, strong on expressive multi-speaker dialogue), Microsoft Edge TTS (built-in, free, ~400 neural voices), and anything else that speaks OpenAI's TTS protocol. Set this up in **Settings → AI & Audio engines**.
-- **An LLM provider** — Studio uses an LLM for the "Smart-assign" voice matcher and for the per-chapter speaker analysis. Any OpenAI-compatible chat model works.
+- **A TTS (text-to-speech) provider** — Audio Studio needs an engine that can speak text. Options include OpenAI TTS (cloud, paid), Kokoro (local, free, fast), **Chatterbox (local, free, the only local engine that does voice cloning)**, Dia (local, free, strong on expressive multi-speaker dialogue), Microsoft Edge TTS (built-in, free, ~400 neural voices), and anything else that speaks OpenAI's TTS protocol. Set this up in **Settings → AI & Audio engines**.
+- **An LLM provider** — Audio Studio uses an LLM for the "Smart-assign" voice matcher and for the per-chapter speaker analysis. Any OpenAI-compatible chat model works.
 
 See [AI providers](ai-providers.md) for the full setup walkthrough for each engine.
 
@@ -36,7 +36,7 @@ The **Cast** tab is where you pick a voice for each character and for the narrat
 ### What you see
 
 - **A TTS provider dropdown** at the top — pick which TTS engine to draw voices from. Only providers you've actually connected appear here (an API key set, or a local server pointed at JustWrite). Each entry shows a status tag: `CHECKING…` while the dropdown verifies reachability, `OFFLINE` when a server isn't responding or a key looks wrong. Offline providers stay in the list (so you don't lose your selection when a local server is temporarily off) — just dimmed and labelled. If your active provider goes offline, a small banner appears below the dropdown with a **retry** link.
-- **A voice library** — every voice your selected provider offers, discovered live the first time you open Studio (and re-discovered when you switch providers). Each voice has a name, a gender chip, and a play button for an audition clip.
+- **A voice library** — every voice your selected provider offers, discovered live the first time you open Audio Studio (and re-discovered when you switch providers). Each voice has a name, a gender chip, and a play button for an audition clip.
 - **A search box** to filter the voice library by name.
 - **The Narrator slot** — a dedicated card. The narrator voice handles all narration, interior thought, and the auto-generated chapter intros.
 - **Character cards** — every character in your Story Bible appears as a card showing name, role, and the currently assigned voice. Unassigned cards have a dashed border and a warning badge so nothing slips through.
@@ -76,7 +76,7 @@ Why bother? Smart-assign matches characters to voices by gender alongside everyt
 2. Open each main character in the Story Bible and confirm **Gender** + **Pronouns** are filled.
 3. Then click Smart-assign.
 
-Existing voices you cached before the auto-detect shipped get backfilled on the next Studio open — JustWrite fills in any blank gender/accent/tone fields from inference but never overwrites a chip you set manually.
+Existing voices you cached before the auto-detect shipped get backfilled on the next Audio Studio open — JustWrite fills in any blank gender/accent/tone fields from inference but never overwrites a chip you set manually.
 
 ---
 
@@ -126,7 +126,7 @@ In practice this means:
 - Your corrections are per-project. A different project starts with a clean slate.
 - Corrections involving characters you've since deleted from the cast quietly drop out — they're useless as examples.
 - Up to 12 of the most recent corrections are sent on each Re-analyze; up to 200 are stored. The cap keeps the prompt small and your prior-art bank focused on recent decisions.
-- You can wipe the whole correction memory in **Settings → Audio → Studio · Speaker corrections** (e.g. after a major character rename or POV change that invalidates old examples). The card shows how many corrections are stored. Clearing the memory does not touch existing scripts or the lines you've already fixed.
+- You can wipe the whole correction memory in **Settings → AI & Audio engines → Audio Studio · Speaker corrections** (e.g. after a major character rename or POV change that invalidates old examples). The card shows how many corrections are stored. Clearing the memory does not touch existing scripts or the lines you've already fixed.
 
 Re-analyze itself doesn't preserve manual edits to specific lines — it overwrites the script wholesale. The **correction memory is what carries your judgement forward** across runs.
 
@@ -147,7 +147,7 @@ The **Render** tab is the final stage. For each chapter, it sends every script l
 - **A list of every chapter** in your manuscript, each with a **checkbox** for batch selection.
 - A **batch toolbar** at the top with a **Select all unrendered** master checkbox (picks every chapter that has a script and isn't yet rendered) and a **Render selected (N)** button that runs the picks sequentially.
 - A **Render button** per chapter (disabled until the chapter has been analysed in the Script tab) for one-at-a-time renders.
-- A **progress strip** while rendering — elapsed time, current line / total lines, and a **Cancel** button. It's the same status strip every AI feature in JustWrite uses, so the in-flight render also appears in the header AI status panel and survives navigating away from Studio.
+- A **progress strip** while rendering — elapsed time, current line / total lines, and a **Cancel** button. It's the same status strip every AI feature in JustWrite uses, so the in-flight render also appears in the header AI status panel and survives navigating away from Audio Studio.
 - Once rendered: **Play / Stop**, **WAV** (download), **Re-render**, and a **Delete** icon per chapter. The chapter row tells you the rendered duration in seconds.
 - A **Delete all rendered (N)** button in the tab toolbar when at least one chapter has been rendered, in case you want to free the disk space the WAVs are taking up before re-rendering with a different cast.
 
@@ -220,7 +220,7 @@ Engines silently ignore params they don't understand — a Chatterbox-tuned pres
 
 ### Render Lab
 
-**Start here if you're not sure what values you want.** The Render Lab (fourth tab in Studio) is an A/B harness for finding your settings before you commit. Pick a voice, type 1–3 sample sentences, and define one or two parameter axes — for example `exaggeration: 0.8, 1.2, 1.5` crossed with `speed_factor: 0.95, 1.05`. The Lab synthesises every combination in parallel (capped at 16 cells, 2 concurrent to protect local servers) and gives each cell its own audio player for side-by-side listening. The audio you hear in the Lab is exactly what you'll get on a full chapter render — same synthesis code path. The voice's existing Tier 2 overrides apply to every cell as the baseline, so you're tuning *on top of* what you already set, not blowing it away.
+**Start here if you're not sure what values you want.** The Render Lab (fourth tab in Audio Studio) is an A/B harness for finding your settings before you commit. Pick a voice, type 1–3 sample sentences, and define one or two parameter axes — for example `exaggeration: 0.8, 1.2, 1.5` crossed with `speed_factor: 0.95, 1.05`. The Lab synthesises every combination in parallel (capped at 16 cells, 2 concurrent to protect local servers) and gives each cell its own audio player for side-by-side listening. The audio you hear in the Lab is exactly what you'll get on a full chapter render — same synthesis code path. The voice's existing Tier 2 overrides apply to every cell as the baseline, so you're tuning *on top of* what you already set, not blowing it away.
 
 Each cell has two save buttons:
 
@@ -241,9 +241,9 @@ A rough guide to the Chatterbox knobs writers reach for most often:
 A realistic full-book audiobook session:
 
 1. **Configure your TTS provider** in Settings (one-time setup).
-2. **Open Studio → Cast.** Click Smart-assign. Review the assignments — override any that feel wrong. Assign the Narrator.
-3. **Open Studio → Script.** Work through every chapter, clicking Re-analyze on each. Spot-check the speaker attribution; fix any clearly wrong lines by improving the chapter prose.
-4. **Open Studio → Render.** Render every chapter. Listen to each as it finishes.
+2. **Open Audio Studio → Cast.** Click Smart-assign. Review the assignments — override any that feel wrong. Assign the Narrator.
+3. **Open Audio Studio → Script.** Work through every chapter, clicking Re-analyze on each. Spot-check the speaker attribution; fix any clearly wrong lines by improving the chapter prose.
+4. **Open Audio Studio → Render.** Render every chapter. Listen to each as it finishes.
 5. **Open Export → M4B Audiobook.** Confirm all chapters are present, and export. You get a single `.m4b` file with chapter markers and metadata.
 
 For a 100,000-word novel, this is a multi-day process — partly because of TTS speed, partly because spot-checking and re-rendering takes time. Treat it like a final-pass production stage, not something you do during drafting.
@@ -252,7 +252,7 @@ For a 100,000-word novel, this is a multi-day process — partly because of TTS 
 
 ## A few less-obvious uses
 
-Studio earns its keep even if you never ship an audiobook. Three writer-problems it quietly solves:
+Audio Studio earns its keep even if you never ship an audiobook. Three writer-problems it quietly solves:
 
 ### Read your prose aloud as a revision technique
 

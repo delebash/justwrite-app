@@ -21,7 +21,7 @@ When you start an import, you choose what to do with the result:
 |---|---|
 | **Add existing** | Appends the imported chapters to the project you're currently in. You pick which **Part** they land in (any existing part, or a brand-new one). |
 | **Start a new book** | Spins up a fresh project from the imported file. You pick a title and (optional) author. |
-| **Narrate as audiobook** | Same as "Start a new book" but drops you straight into Studio → Cast as soon as it's done. |
+| **Narrate as audiobook** | Same as "Start a new book" but drops you straight into Audio Studio → Cast as soon as it's done. |
 | **Add notes** | Brings sections of the file in as **notes** on your current project. Each heading becomes one note; a flat file becomes one. Supports dropping multiple files in one batch. |
 
 ### How to import
@@ -63,7 +63,7 @@ The **Add notes** mode applies two settings to every note in the batch:
 
 - **Add existing** — you're moving an in-progress draft from Word or Scrivener into JustWrite and want to keep working on it. Useful for getting one Part of a long manuscript out of a `.docx` file you've outgrown.
 - **Start a new book** — you have a finished or partial book in another tool and you want a clean JustWrite project for it.
-- **Narrate as audiobook** — you have a complete manuscript and you want to record an audiobook of it without doing any editing in JustWrite. One-click into Studio.
+- **Narrate as audiobook** — you have a complete manuscript and you want to record an audiobook of it without doing any editing in JustWrite. One-click into Audio Studio.
 - **Add notes** — you have research, outlines, character sketches, or scratch text in Word/Markdown/plain text that you want surfaced inside the project. Multi-file makes it practical to bring a folder of notes in at once.
 
 ### Tips
@@ -158,14 +158,14 @@ A single file containing the entire audiobook with chapter markers and metadata.
 
 **Requirements:**
 
-- All chapters you want included must already be rendered in Studio → Render.
+- All chapters you want included must already be rendered in Audio Studio → Render.
 - Engine: ffmpeg.wasm (about 10 MB), downloaded on first use.
 
 **Source status panel** in the M4B card shows:
 
 - How many chapters are rendered
 - Total duration ready to export
-- A direct link to Studio → Render if anything is missing
+- A direct link to Audio Studio → Render if anything is missing
 
 If only some chapters are rendered, JustWrite offers to export the partial set.
 
@@ -207,14 +207,14 @@ For a novel ready to publish:
 1. **Set metadata and cover.**
 2. **Export EPUB** for Apple Books, Kobo, and Kindle (via Kindle Previewer).
 3. **Export DOCX** if your publishing path needs it (some print-on-demand services prefer it).
-4. **Optional**: record the audiobook in Studio and **export M4B** for audiobook distributors.
+4. **Optional**: record the audiobook in Audio Studio and **export M4B** for audiobook distributors.
 
 ---
 
 ## A few caveats
 
 - **First export of each format downloads its engine library** the first time only. This is one-time and modest in size.
-- **M4B requires Studio renders.** No render, no audiobook.
+- **M4B requires Audio Studio renders.** No render, no audiobook.
 - **The cover image** is set in Settings, not at export time. Same image flows into PDF and EPUB.
 - **DOCX TOC** is a Word feature, not a static table — Word will prompt to refresh it the first time you open the file. That's normal.
 

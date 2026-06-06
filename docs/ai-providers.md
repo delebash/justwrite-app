@@ -75,7 +75,7 @@ The **Quick setup** wizard (in **Settings → AI & Audio engines**, top of the p
 
 - Default LLM → `qwen3:14b` (prose quality)
 - Brainstorm, Resume briefing, Session recap, Entity sweep, Sensory research, Unstuck moves → `qwen3:8b` (snappier responses where speed matters more than depth)
-- Writer actions, Studio Speaker analysis, Studio Smart-assign, Character chat → inherit the 14B default (reasoning-class work)
+- Writer actions, Audio Studio Speaker analysis, Audio Studio Smart-assign, Character chat → inherit the 14B default (reasoning-class work)
 - Critique, Plot-hole audit, Reverse outline, Multi-reader, Character audit, Foreshadowing, Reader knowledge, Voice drift, Beat sheet, Marketing pack, Relationship arc → cloud (if a cloud provider was picked) or default 14B (if not)
 - Embedding → `nomic-embed-text` on the same Ollama endpoint
 
@@ -206,7 +206,7 @@ Older guidance (including earlier versions of this page) told 8 GB-card users th
 
 **What 8B is genuinely fine for:** brainstorming, outlining, single-sentence rewrites, structural one-off prompts, short-input/short-output utility calls.
 
-**What 8B underdelivers on:** Continue-a-scene, Expand-with-sensory-detail, voice consistency, multi-paragraph rewrites, Studio speaker attribution. All of these benefit meaningfully from stepping up to 14B even if it costs partial CPU offload on an 8 GB card.
+**What 8B underdelivers on:** Continue-a-scene, Expand-with-sensory-detail, voice consistency, multi-paragraph rewrites, Audio Studio speaker attribution. All of these benefit meaningfully from stepping up to 14B even if it costs partial CPU offload on an 8 GB card.
 
 **What you actually want at the prose threshold:** 32B+. 14B is a meaningful step up from 8B but still not what a novelist would call "great." For full-chapter critique and plot-hole work, route to cloud regardless of local card size.
 
@@ -257,8 +257,8 @@ All of these are configured in **Settings → AI & Audio engines → Feature rou
 | Resume briefing | `qwen3:8b` | Short structured output. |
 | Session recap | `qwen3:8b` | Short structured output. |
 | Writer actions | inherit (14B) | Prose generation — accept the slower speed for quality. |
-| Studio · Speaker analysis | inherit (14B) | 8B misses attributions; 14B is the working floor. |
-| Studio · Smart-assign | inherit (14B) | Reasoning-class. |
+| Audio Studio · Speaker analysis | inherit (14B) | 8B misses attributions; 14B is the working floor. |
+| Audio Studio · Smart-assign | inherit (14B) | Reasoning-class. |
 | Critique | cloud (Claude / DeepSeek) | Long context, structural reasoning. |
 | Plot-hole audit | cloud | Cross-chapter reasoning. |
 | Reverse outline | cloud | Reads the whole manuscript. |
@@ -272,7 +272,7 @@ Embeddings: `nomic-embed-text` loaded alongside the chat model (~500 MB; fits wi
 
 **Default LLM** → `qwen3:14b` (full GPU, ~40–60 tok/s — no offload).
 
-Same pinning recipe as 8 GB above, but Writer actions and Studio Speaker analysis run much faster locally. Critique and plot-hole audit are still meaningfully better on cloud at this tier — that's a quality call, not a hardware one.
+Same pinning recipe as 8 GB above, but Writer actions and Audio Studio Speaker analysis run much faster locally. Critique and plot-hole audit are still meaningfully better on cloud at this tier — that's a quality call, not a hardware one.
 
 #### 16 GB card (RTX 4060Ti 16GB / 5060Ti 16GB / 4080)
 
@@ -294,7 +294,7 @@ Cloud routing becomes a personal preference rather than a quality requirement.
 
 #### CPU only
 
-**Default LLM** → `qwen3:8b` Q4_K_M. Pin **Writer actions, Critique, all Studio features, multi-reader, audits** → cloud. Local CPU inference is too slow to be enjoyable for prose generation; spending a few cents on cloud is the right call. Keep Brainstorm / Resume / Recap local — short calls the CPU can handle.
+**Default LLM** → `qwen3:8b` Q4_K_M. Pin **Writer actions, Critique, all Audio Studio features, multi-reader, audits** → cloud. Local CPU inference is too slow to be enjoyable for prose generation; spending a few cents on cloud is the right call. Keep Brainstorm / Resume / Recap local — short calls the CPU can handle.
 
 ### Notes for an 8 GB card
 
@@ -391,7 +391,7 @@ A cloud TTS preview — four English voices (2 UK, 2 US, male/female), WAV 16 kH
 
 ### Web Speech (your operating system's voices)
 
-A special case. JustWrite can preview your OS's built-in voices live (so you can audition them in Studio), but it cannot use them to render audio files. They are flagged as "preview-only" and the render pipeline skips them.
+A special case. JustWrite can preview your OS's built-in voices live (so you can audition them in Audio Studio), but it cannot use them to render audio files. They are flagged as "preview-only" and the render pipeline skips them.
 
 You don't add Web Speech as a provider — it's just there.
 
@@ -425,8 +425,8 @@ In **Settings → AI & Audio engines → Feature routing** you can pin each of t
 | **Relationship arc** | The Characters view "Relationship arc" modal — chapter-by-chapter warmth / tension / power tracking for a pair of characters |
 | **Marketing pack** | The Analysis dashboard "Marketing pack" modal — logline, three back-cover blurbs, one-page synopsis, three-paragraph elevator pitch |
 | **Multi-reader panel** | The chapter editor's "Multi-reader panel" critique — four reader personas (genre reader / literary critic / agent intern / book-club reader) react to a chapter in parallel |
-| **Studio · Speaker analysis** | Studio → Script → Re-analyze — dialogue-to-character attribution. Reasoning-class; benefits from a larger local model than the writer-actions tier. |
-| **Studio · Smart-assign** | Studio → Cast — auto-assigns TTS voices to characters based on traits. Reasoning-class. |
+| **Audio Studio · Speaker analysis** | Audio Studio → Script → Re-analyze — dialogue-to-character attribution. Reasoning-class; benefits from a larger local model than the writer-actions tier. |
+| **Audio Studio · Smart-assign** | Audio Studio → Cast — auto-assigns TTS voices to characters based on traits. Reasoning-class. |
 
 Setting "Inherit default" for any feature uses your global Default LLM.
 
@@ -466,7 +466,7 @@ A **Reset ledger** button clears the log so you can start a fresh accounting per
 
 When editing a provider, you can:
 
-- **Set a Tier** (Guided / Direct / Reasoned) — affects the speaker-attribution pipeline in Studio. Auto-detected by model name; can be pinned manually. Most users never need to touch this.
+- **Set a Tier** (Guided / Direct / Reasoned) — affects the speaker-attribution pipeline in Audio Studio. Auto-detected by model name; can be pinned manually. Most users never need to touch this.
 - **Add a custom system prompt** — overrides JustWrite's default system message for that provider. Advanced.
 - **Adjust temperature and other generation parameters** through the engine parameters block.
 
@@ -478,7 +478,7 @@ These are optional refinements. The defaults are reasonable for almost every cas
 
 > *"I'm in the Critique modal and the result feels off. I want to try a different model right here without leaving to navigate Settings."*
 
-Every AI page has a small chip in its header showing the current **provider · model** for that feature. Studio shows two — one for the TTS engine, one for the active LLM call (Smart-assign on the Cast tab, Speaker analysis on the Script tab). Critique, Brainstorm, every analysis modal, Reader knowledge, the chat panel, the Speaker Lab — same chip in each. In the chapter editor, the chip sits at the **top of each scene's AI dropdown**, so writer actions (Rewrite, Expand, Tighten, Continue, Line edits) show their routing right above the menu items they apply to.
+Every AI page has a small chip in its header showing the current **provider · model** for that feature. Audio Studio shows two — one for the TTS engine, one for the active LLM call (Smart-assign on the Cast tab, Speaker analysis on the Script tab). Critique, Brainstorm, every analysis modal, Reader knowledge, the chat panel, the Speaker Lab — same chip in each. In the chapter editor, the chip sits at the **top of each scene's AI dropdown**, so writer actions (Rewrite, Expand, Tighten, Continue, Line edits) show their routing right above the menu items they apply to.
 
 **Click the chip** and a small popover opens with two dropdowns: Provider and Model. The Provider dropdown lists *"Inherit default"* (the global LLM default set in Settings) plus every configured LLM-capable provider. The Model dropdown enables once you pick a specific provider; it shows the provider's saved configured-default model plus any models the live `/v1/models` fetch returned (Refresh button alongside if you need to force a re-fetch).
 
@@ -494,19 +494,19 @@ Every AI page has a small chip in its header showing the current **provider · m
 
 ## Tuning the speaker-attribution prompt — Speaker Lab and production configs
 
-> *"The Studio Re-analyze pipeline misattributes a few lines in chapter 2 with my current model. I want to try a different temperature or prompt, see if it fixes it, and have that tuned version be what every chapter actually runs against."*
+> *"The Audio Studio Re-analyze pipeline misattributes a few lines in chapter 2 with my current model. I want to try a different temperature or prompt, see if it fixes it, and have that tuned version be what every chapter actually runs against."*
 
-JustWrite ships a **Speaker Lab** in the sidebar (Project section) — a debugging surface that exposes every knob behind Studio → Script → Re-analyze: the system prompt, the user template, temperature, anchor propagation, the confidence floor, Ollama think mode, and the tier (Guided / Direct / Reasoned). Three modes:
+JustWrite ships a **Speaker Lab** in the sidebar (Project section) — a debugging surface that exposes every knob behind Audio Studio → Script → Re-analyze: the system prompt, the user template, temperature, anchor propagation, the confidence floor, Ollama think mode, and the tier (Guided / Direct / Reasoned). Three modes:
 
-- **Studio** — the production pipeline. Tune in here when you want changes to affect what `Studio → Script → Re-analyze` actually does.
+- **Audio Studio** — the production pipeline. Tune in here when you want changes to affect what `Audio Studio → Script → Re-analyze` actually does.
 - **Lab** — a two-stage experimental pipeline. For research, not currently a production target.
-- **Legacy Studio** — the older paragraph-level approach, kept around as a comparison point.
+- **Legacy Audio Studio** — the older paragraph-level approach, kept around as a comparison point.
 
-**Production configs.** The Studio panel has a row at the top: a picker showing **Default** plus every saved config, a green `PRODUCTION` badge on whichever one is currently active, and a primary **Use as production** button that promotes the picker's selection. The Default config is built-in (uses tier-resolved prompts and settings for whichever model the feature is routed to) and can't be edited or deleted. You can save the lab's current settings under a name (**Save as**, prompts for the name), load a saved config back into the lab to tweak it (**Load**), and switch the active production config without leaving the lab (just change the picker).
+**Production configs.** The Audio Studio panel has a row at the top: a picker showing **Default** plus every saved config, a green `PRODUCTION` badge on whichever one is currently active, and a primary **Use as production** button that promotes the picker's selection. The Default config is built-in (uses tier-resolved prompts and settings for whichever model the feature is routed to) and can't be edited or deleted. You can save the lab's current settings under a name (**Save as**, prompts for the name), load a saved config back into the lab to tweak it (**Load**), and switch the active production config without leaving the lab (just change the picker).
 
 **Settings → AI & Audio engines** also shows a *Production prompt configs* card with the same picker — for each feature (Speaker analysis, Smart-assign), it shows the active config name, source, last-saved timestamp, and a preview of every overridden knob (temperature, system, user, propagate, useFloor, confidenceFloor, think). Switch active right from Settings if you don't want to open the lab.
 
-**What it means in practice:** by default, Studio → Script → Re-analyze runs against the tier-resolved built-in prompt (the same one the lab opens to). If you tune the lab against a hard chapter, save it as *"Tuned for Claude"*, and click Use as production, every subsequent Re-analyze runs against that config — across every chapter in the project. Revert to Default any time by setting the picker back to Default and clicking Use as production.
+**What it means in practice:** by default, Audio Studio → Script → Re-analyze runs against the tier-resolved built-in prompt (the same one the lab opens to). If you tune the lab against a hard chapter, save it as *"Tuned for Claude"*, and click Use as production, every subsequent Re-analyze runs against that config — across every chapter in the project. Revert to Default any time by setting the picker back to Default and clicking Use as production.
 
 **Smart-Assign**: the same data model exists for `smartCast`, but the Smart-Assign Lab itself isn't built yet (on the roadmap). For now the Smart-Assign row in Settings always says "Default (tier-resolved)" and you can't override it; the data shape is ready when the lab ships.
 
@@ -535,7 +535,7 @@ Anything in JustWrite that calls an AI — critique, brainstorm, smart-assign, s
 - **A preview toggle** — expand to see the assistant's streaming text in real time as it's produced.
 - **Cancel** — abort the call immediately. Cleaner than closing a modal mid-stream.
 
-**Tasks survive navigation.** This is the headline. Start a critique on Chapter 7, navigate over to Worldbuilding to check a fact, hop into the Plot Board — the call keeps running. When it finishes, the result lands wherever it was supposed to (the critique on the chapter, the smart cast on Studio characters, etc.) and a toast tells you it's done with a **View** action that opens the panel to the just-finished entry. Closing a modal that was waiting for an AI call no longer cancels the call — the call decouples from the modal's lifecycle.
+**Tasks survive navigation.** This is the headline. Start a critique on Chapter 7, navigate over to Worldbuilding to check a fact, hop into the Plot Board — the call keeps running. When it finishes, the result lands wherever it was supposed to (the critique on the chapter, the smart cast on Audio Studio characters, etc.) and a toast tells you it's done with a **View** action that opens the panel to the just-finished entry. Closing a modal that was waiting for an AI call no longer cancels the call — the call decouples from the modal's lifecycle.
 
 **Recent history.** The bottom of the panel lists the last 30 completed (or cancelled, or failed) tasks with duration, tokens used, and outcome. Useful for spot-checking which model produced which result, or for noticing that your local Ollama keeps timing out on the same feature.
 
