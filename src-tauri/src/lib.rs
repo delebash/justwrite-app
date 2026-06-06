@@ -347,6 +347,147 @@ async fn open_external(target: String) -> Result<bool, String> {
     Ok(true)
 }
 
+// ─── Generic binary save (Save-As) ───────────────────────────────────
+// WebView2 ignores `<a download>` on blob: URLs, so any "Save as WAV /
+// PDF / EPUB / …" button in the renderer routes here. Bytes ride the
+// raw IPC body (zero-copy, same pattern as `images_save`); the suggested
+// filename and a single file-type filter come in as base64 headers.
+
+#[tauri::command]
+async fn shell_save_file(
+    app: AppHandle,
+    request: Request<'_>,
+) -> Result<SaveOk, String> {
+    let InvokeBody::Raw(buffer) = request.body() else {
+        return Err("shell_save_file expects a raw binary body".into());
+    };
+
+    let headers = request.headers();
+    let decode_b64_header = |key: &str| -> Option<String> {
+        let raw = headers.get(key)?.to_str().ok()?;
+        let bytes = base64::engine::general_purpose::STANDARD.decode(raw).ok()?;
+        String::from_utf8(bytes).ok()
+    };
+
+    let suggested = decode_b64_header("x-save-name").unwrap_or_else(|| "download".to_string());
+    let title = decode_b64_header("x-save-title").unwrap_or_else(|| "Save file".to_string());
+    let filter_name = decode_b64_header("x-filter-name").unwrap_or_else(|| "File".to_string());
+    let filter_ext = decode_b64_header("x-filter-ext").unwrap_or_default();
+
+    let mut dialog = app
+        .dialog()
+        .file()
+        .set_title(&title)
+        .set_file_name(&suggested);
+    if !filter_ext.is_empty() {
+        let exts: Vec<&str> = filter_ext.split(',').filter(|s| !s.is_empty()).collect();
+        if !exts.is_empty() {
+            dialog = dialog.add_filter(&filter_name, &exts);
+        }
+    }
+
+    let Some(file_path) = dialog.blocking_save_file() else {
+        return Err("cancelled".into());
+    };
+    let path_buf: PathBuf = file_path.into_path().map_err(|e| e.to_string())?;
+    fs::write(&path_buf, buffer).map_err(|e| e.to_string())?;
+    Ok(SaveOk { ok: true, path: path_buf.display().to_string() })
+}
+
+// ─── Chapter audio storage ───────────────────────────────────────────
+// Rendered chapter WAVs land in $APPDATA/<identifier>/audio/<projectId>/
+// <chapterId>.wav so renders survive an app refresh / re-open. Playback
+// uses the asset protocol (configured in tauri.conf.json), so the
+// renderer's <audio> element streams the file directly instead of pulling
+// the whole WAV through IPC.
+
+fn audio_dir(app: &AppHandle, project_id: &str) -> Result<PathBuf, String> {
+    let mut p = app.path().app_data_dir().map_err(|e| e.to_string())?;
+    p.push("audio");
+    p.push(safe_id(project_id));
+    fs::create_dir_all(&p).map_err(|e| e.to_string())?;
+    Ok(p)
+}
+
+#[derive(Serialize, Deserialize)]
+#[serde(rename_all = "camelCase")]
+struct AudioRecord {
+    chapter_id: String,
+    path: String,
+    size: u64,
+}
+
+#[tauri::command]
+async fn audio_save(app: AppHandle, request: Request<'_>) -> Result<AudioRecord, String> {
+    let InvokeBody::Raw(buffer) = request.body() else {
+        return Err("audio_save expects a raw binary body".into());
+    };
+    let headers = request.headers();
+    let project_id = headers
+        .get("x-project-id")
+        .and_then(|v| v.to_str().ok())
+        .ok_or("missing x-project-id header")?
+        .to_string();
+    let chapter_id = headers
+        .get("x-chapter-id")
+        .and_then(|v| v.to_str().ok())
+        .ok_or("missing x-chapter-id header")?
+        .to_string();
+
+    let dir = audio_dir(&app, &project_id)?;
+    let filename = format!("{}.wav", safe_id(&chapter_id));
+    let path = dir.join(&filename);
+    fs::write(&path, buffer).map_err(|e| e.to_string())?;
+    let size = fs::metadata(&path).map(|m| m.len()).unwrap_or(0);
+
+    Ok(AudioRecord {
+        chapter_id,
+        path: path.display().to_string(),
+        size,
+    })
+}
+
+#[tauri::command]
+async fn audio_delete(path: String) -> Result<bool, String> {
+    if std::path::Path::new(&path).exists() {
+        fs::remove_file(&path).map_err(|e| e.to_string())?;
+    }
+    Ok(true)
+}
+
+#[tauri::command]
+async fn audio_clear_project(app: AppHandle, project_id: String) -> Result<bool, String> {
+    let dir = audio_dir(&app, &project_id)?;
+    if dir.exists() {
+        fs::remove_dir_all(&dir).map_err(|e| e.to_string())?;
+    }
+    Ok(true)
+}
+
+#[tauri::command]
+async fn audio_save_as(
+    app: AppHandle,
+    src_path: String,
+    suggested_name: Option<String>,
+) -> Result<SaveOk, String> {
+    let default = suggested_name
+        .filter(|s| !s.is_empty())
+        .unwrap_or_else(|| "audio.wav".to_string());
+    let Some(file_path) = app
+        .dialog()
+        .file()
+        .set_title("Save chapter audio")
+        .set_file_name(&default)
+        .add_filter("WAV audio", &["wav"])
+        .blocking_save_file()
+    else {
+        return Err("cancelled".into());
+    };
+    let dest: PathBuf = file_path.into_path().map_err(|e| e.to_string())?;
+    fs::copy(&src_path, &dest).map_err(|e| e.to_string())?;
+    Ok(SaveOk { ok: true, path: dest.display().to_string() })
+}
+
 // ─── Runner ──────────────────────────────────────────────────────────
 
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
@@ -367,6 +508,11 @@ pub fn run() {
             images_read,
             images_delete,
             open_external,
+            shell_save_file,
+            audio_save,
+            audio_delete,
+            audio_clear_project,
+            audio_save_as,
         ])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");

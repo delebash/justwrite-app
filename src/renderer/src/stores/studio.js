@@ -3,6 +3,7 @@
 import { defineStore } from "pinia";
 import { DEFAULT_CAST, SCRIPT_CH7, RENDER_QUEUE } from "../domain/seed.js";
 import { getItem, setItem } from "../services/storage.js";
+import * as audioStore from "../services/audioStore.js";
 
 const LS_KEY = "justwrite:studio";
 
@@ -14,11 +15,29 @@ function load() {
 function save(state) {
   try {
     // Scripts go on disk too — speaker-detection results survive reload.
+    // chapterAudio: only file-kind records (path on disk) get persisted;
+    // blob-kind records die with the session because object URLs and
+    // Blobs can't survive a reload.
+    const persistedAudio = {};
+    for (const [k, a] of Object.entries(state.chapterAudio || {})) {
+      if (a?.kind === "file" && a?.path) {
+        persistedAudio[k] = {
+          kind: "file",
+          projectId: a.projectId,
+          chapterId: a.chapterId,
+          path: a.path,
+          size: a.size,
+          duration: a.duration,
+          version: a.version,
+        };
+      }
+    }
     setItem(LS_KEY, JSON.stringify({
       cast: state.cast,
       voices: state.voices,
       scripts: state.scripts,
       lastScriptChapter: state.lastScriptChapter,
+      chapterAudio: persistedAudio,
     }));
   } catch {}
 }
@@ -36,9 +55,13 @@ export const useStudioStore = defineStore("studio", {
       // always available even on a fresh install.
       scripts: { ch7: [...SCRIPT_CH7], ...(loaded?.scripts || {}) },
       renderQueue: [...RENDER_QUEUE],
-      // Session-only — Blob URLs don't survive reload. Keyed by chapter id.
-      // Shape: { url, blob, duration }.
-      chapterAudio: {},
+      // Keyed by chapter id. File-kind records (Tauri builds) survive
+      // reload via the persistence path above — they point at a WAV in
+      // $APPDATA/audio/<projectId>/. Blob-kind records (browser dev
+      // path) are session-only because object URLs die with the page.
+      // Shape: { kind, chapterId, duration, path?, size?, version?,
+      //          blob?, url? }.
+      chapterAudio: loaded?.chapterAudio || {},
       // Which chapter the Script tab was last viewing. Restored on
       // mount so opening Studio → Script lands you where you left off.
       // Null until the user has actually picked one.
@@ -147,18 +170,54 @@ export const useStudioStore = defineStore("studio", {
       save(this.$state);
     },
     setChapterAudio(chapterId, audio) {
-      // audio = { url, blob, duration } or null to clear
+      // audio = a record from audioStore.saveChapter(), or null to clear.
       const next = { ...this.chapterAudio };
       if (audio) next[chapterId] = audio;
       else delete next[chapterId];
       this.chapterAudio = next;
+      save(this.$state);
     },
     clearAllAudio() {
-      // Revoke object URLs to free memory.
+      // Revoke session-only object URLs to free memory. File records'
+      // on-disk files are NOT removed here — that's the caller's job
+      // (via audioStore.removeChapter / clearProject) so a stray reset
+      // doesn't silently delete the writer's rendered audiobook.
       for (const a of Object.values(this.chapterAudio)) {
-        if (a?.url) URL.revokeObjectURL(a.url);
+        if (a?.kind === "blob" && a?.url) URL.revokeObjectURL(a.url);
       }
       this.chapterAudio = {};
+      save(this.$state);
+    },
+    // Used by the project store's purgeFromTrash / emptyTrash. Removes
+    // both the on-disk WAV and the in-memory record. Soft-delete to
+    // Trash is NOT a caller of this — chapters can be restored, and
+    // the writer would be surprised if undeleting brought back the
+    // chapter but not its rendered audio.
+    async removeChapterAudio(chapterId) {
+      const rec = this.chapterAudio[chapterId];
+      if (!rec) return;
+      await audioStore.removeChapter(rec);
+      const next = { ...this.chapterAudio };
+      delete next[chapterId];
+      this.chapterAudio = next;
+      save(this.$state);
+    },
+    // Used by the project store's deleteProject. Wipes the project's
+    // audio directory on disk AND drops every in-memory record that
+    // belongs to it (matched by `projectId` on the record itself —
+    // path-string matching would break on path normalization).
+    async clearProjectAudio(projectId) {
+      if (!projectId) return;
+      await audioStore.clearProject(projectId);
+      const next = {};
+      for (const [k, a] of Object.entries(this.chapterAudio)) {
+        if (a?.projectId !== projectId) next[k] = a;
+        else if (a?.kind === "blob" && a?.url) {
+          try { URL.revokeObjectURL(a.url); } catch {}
+        }
+      }
+      this.chapterAudio = next;
+      save(this.$state);
     },
   },
 });

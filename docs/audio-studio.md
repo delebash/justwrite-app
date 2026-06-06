@@ -125,25 +125,45 @@ The **Render** tab is the final stage. For each chapter, it sends every script l
 
 - **A list of every chapter** in your manuscript.
 - A **Render button** per chapter (disabled until the chapter has been analysed in the Script tab).
-- A **progress display** while rendering — the line being processed and the total line count.
-- **Play / Download buttons** once rendered — you can listen to the WAV in the app or save it.
+- A **progress strip** while rendering — elapsed time, current line / total lines, and a **Cancel** button. It's the same status strip every AI feature in JustWrite uses, so the in-flight render also appears in the header AI status panel and survives navigating away from Studio.
+- Once rendered: **Play / Stop**, **WAV** (download), **Re-render**, and a **Delete** icon per chapter. The chapter row tells you the rendered duration in seconds.
+- A **Delete all rendered (N)** button in the tab toolbar when at least one chapter has been rendered, in case you want to free the disk space the WAVs are taking up before re-rendering with a different cast.
 
 ### How to use it
 
 Work down the chapter list:
 
 1. **Click Render** on Chapter 1.
-2. **Wait.** Longer chapters take several minutes depending on your TTS provider's speed and your machine. A 5,000-word chapter on a local Kokoro server typically renders in 1–3 minutes.
-3. **Listen** to the result. Catch any awkward pronunciations now.
-4. **Move to Chapter 2** and repeat.
+2. **Wait.** Longer chapters take several minutes depending on your TTS provider's speed and your machine. A 5,000-word chapter on a local Kokoro server typically renders in 1–3 minutes. Use **Cancel** on the progress strip to stop a render mid-flight (useful when you realise you've assigned the wrong voice).
+3. **Listen** to the result with **Play**. **Stop** halts playback; clicking another chapter's Play stops the previous one automatically.
+4. **Re-render** if the result is unsatisfactory (see below).
+5. **Move to Chapter 2** and repeat.
 
 Rendered chapters are automatically made available to the **Export** view for packaging into an M4B file.
+
+### Renders survive a refresh
+
+On the desktop app, every rendered chapter is written to disk under your app data directory and indexed in the project. **Closing JustWrite or refreshing the window does not lose your renders** — when you come back to the Render tab, the Play / WAV / Re-render / Delete row is already there. Renders only disappear when you:
+
+- click **Delete** on a single chapter,
+- click **Delete all rendered** for the project,
+- permanently delete a chapter from the **Trash** (soft-deleting a chapter keeps its audio, so restoring brings the audio back too),
+- delete the whole project.
+
+In other words: deleting work in JustWrite cleans up its audio too; restoring keeps it intact.
+
+In the browser-only dev build (`npm run dev:vite`), renders are session-only — refreshing the tab wipes them.
+
+### Re-render and download
+
+- **Re-render** generates the chapter again with the current cast and current script. The same on-disk file is overwritten; you don't end up with two copies. Use this whenever you change a character's voice in Cast, re-run Script analysis, or tweak the chapter prose.
+- **WAV** opens a native Save As dialog (on the desktop app) so you can drop the chapter file wherever you want — no Downloads-folder lock-in. The file is copied from the in-app render directory, so saving doesn't consume extra disk space until you confirm.
 
 ### Tips
 
 - **Local TTS engines are dramatically faster** than re-downloading audio from a cloud API. If you plan to render the whole book, a local engine (Kokoro, Chatterbox) is worth setting up.
-- **You can re-render a single chapter** if the result is unsatisfactory. Open the chapter in the manuscript editor, fix the prose (often the problem is a confusing dialogue attribution), re-analyse the chapter in the Script tab, then re-render here.
-- **Render is sequential.** You can't render four chapters at once.
+- **Improve the prose, then re-render.** Often a misattributed line in the audio comes from a confusing dialogue tag in the text. Fix the prose in the editor, re-analyse the chapter in the Script tab, then Re-render here.
+- **Render is sequential.** You can't render four chapters at once — the Render buttons on other rows disable while one is in flight.
 
 ---
 

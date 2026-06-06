@@ -116,6 +116,43 @@ if (isTauri) {
       // Hand a URL to the OS default browser. `window.open` does
       // nothing inside the Tauri webview, so callers must route here.
       openExternal: (url) => safe(invoke("open_external", { target: url })),
+      // Save-as for binary blobs. WebView2 ignores `<a download>` on
+      // blob: URLs, so callers must come through here for the desktop
+      // app and fall back to the anchor trick on `vite dev` in a browser.
+      // Bytes ride the raw IPC body; suggested filename + dialog title +
+      // a single file-type filter come through base64 headers so non-
+      // ASCII names survive transport.
+      saveFile: async ({ blob, suggestedName, title, filterName, filterExt }) => {
+        const buf = await blob.arrayBuffer();
+        const bytes = new Uint8Array(buf);
+        const b64 = (s) => btoa(unescape(encodeURIComponent(s)));
+        const headers = {};
+        if (suggestedName) headers["x-save-name"] = b64(suggestedName);
+        if (title)         headers["x-save-title"] = b64(title);
+        if (filterName)    headers["x-filter-name"] = b64(filterName);
+        if (filterExt)     headers["x-filter-ext"] = b64(filterExt);
+        return safe(invoke("shell_save_file", bytes, { headers }));
+      },
+    },
+
+    audio: {
+      // Persist a rendered chapter WAV to AppData. Bytes ride the raw IPC
+      // body (zero-copy); projectId/chapterId arrive as headers and end
+      // up in the on-disk path so each project's audio lives separately.
+      // Playback uses convertFileSrc on the returned path (see audioStore.js).
+      save: async ({ projectId, chapterId, blob }) => {
+        const bytes = new Uint8Array(await blob.arrayBuffer());
+        const headers = {
+          "x-project-id": projectId,
+          "x-chapter-id": chapterId,
+        };
+        return safe(invoke("audio_save", bytes, { headers }));
+      },
+      delete:       (path)                 => safe(invoke("audio_delete", { path })),
+      clearProject: (projectId)            => safe(invoke("audio_clear_project", { projectId })),
+      // File-to-file copy via native Save As dialog — no bytes through IPC.
+      saveAs:       (srcPath, suggestedName) =>
+        safe(invoke("audio_save_as", { srcPath, suggestedName })),
     },
   };
 }

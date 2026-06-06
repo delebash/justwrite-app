@@ -13,6 +13,7 @@ import { inferVoiceMetadata } from "../services/voiceGender.js";
 import { smartCast, detectSpeakers } from "../services/llm.js";
 import { extractParagraphsFromHtml } from "../services/speakerAttribution.js";
 import { renderChapter } from "../services/render.js";
+import * as audioStore from "../services/audioStore.js";
 import { confirmDialog } from "../services/dialog.js";
 import JwInput from "@renderer/components/ui/JwInput.vue";
 import JwTag from "@renderer/components/ui/JwTag.vue";
@@ -343,19 +344,52 @@ async function reanalyze() {
 }
 
 // ── Render ────────────────────────────────────────────────────────────
-const renderingId = ref(null);
+// Rendered audio lives in `studio.chapterAudio` (persisted to disk on
+// the Tauri build, session-only in browser dev), so navigating away —
+// or refreshing the app entirely — no longer loses renders.
+//
+// The render itself goes through the global aiTasks store so it shows
+// up in the standard AiTaskStrip (elapsed + Cancel) and the header
+// status panel, same as every other AI surface. `renderProgress` is
+// still a view-local ref because line-by-line counts feed the strip's
+// extra-stats slot and the per-row status line.
 const renderProgress = ref(null);
-const renderResults = ref({}); // chapterId -> { url, duration }
 const renderAudio = ref(null);
+// Currently-playing chapter id, or null. Drives the Play/Stop toggle.
+const playingChapterId = ref(null);
+
+const renderTask = computed(() =>
+  aiTasks.runningTasks.find((t) => t.feature === "renderChapter")
+);
+const renderingId = computed(() => renderTask.value?.meta?.chapterId || null);
+
+const renderedCount = computed(() =>
+  project.allChapters.filter((c) => studio.chapterAudio[c.id]).length
+);
+
+function chapterFilename(chapterId) {
+  const c = project.chapterById(chapterId);
+  const base = c ? `Ch${c.num}-${c.title}` : chapterId;
+  return `${base.replace(/[\\/:*?"<>|]+/g, "_")}.wav`;
+}
 
 async function startRender(chapterId) {
   if (!provider.value) { error.value = "No TTS provider configured."; return; }
   const script = studio.scriptFor(chapterId);
   if (!script) { error.value = `No script for ${chapterId}. Re-analyze first.`; return; }
-  renderingId.value = chapterId;
-  renderProgress.value = { line: 0, total: script.length };
+  const chapter = project.chapterById(chapterId);
+  const handle = aiTasks.start({
+    feature: "renderChapter",
+    label: `Render Ch. ${chapter?.num ?? "?"} — ${chapter?.title ?? chapterId}`,
+    meta: { chapterId },
+  });
+  renderProgress.value = { line: 0, total: script.length, status: "rendering" };
   error.value = null;
   try {
+    // Flip the strip's "connecting" → "streaming" right away so the
+    // elapsed timer reads "live" instead of sitting in the connecting
+    // dot for the entire render.
+    handle.markStreaming();
     const result = await renderChapter({
       provider: provider.value,
       // Route per-voice so a cast mixing OpenAI and Web Speech voices
@@ -366,33 +400,97 @@ async function startRender(chapterId) {
       },
       lines: script,
       voiceFor: (s) => s === "narrator" ? studio.cast.narrator : studio.cast.characters[s],
-      onProgress: (p) => { renderProgress.value = p; },
+      onProgress: (p) => {
+        renderProgress.value = p;
+        // Feed each line tick to the strip so the freshness dot stays
+        // green and the preview text reads "Line N / M" in the panel.
+        handle.onDelta(null, `Line ${p.line} / ${p.total}`);
+      },
+      signal: handle.signal,
     });
-    renderResults.value = { ...renderResults.value, [chapterId]: { url: result.url, duration: result.duration } };
-    // Also surface to the studio store so ExportView can collect WAVs across views.
-    studio.setChapterAudio(chapterId, { url: result.url, blob: result.wavBlob, duration: result.duration });
+    const record = await audioStore.saveChapter({
+      projectId: project.activeProjectId || "default",
+      chapterId,
+      blob: result.wavBlob,
+      duration: result.duration,
+    });
+    studio.setChapterAudio(chapterId, record);
+    handle.finish({});
     // Surface skipped lines as a non-blocking warning.
     if (result.skipped?.length) {
       error.value = `Rendered ${chapterId} with ${result.skipped.length} skipped line(s). Most common reason: ${result.skipped[0].reason}.`;
     }
-  } catch (e) { error.value = e.message; } finally { renderingId.value = null; }
+  } catch (e) {
+    // User-initiated cancel from the AiTaskStrip flips the task to
+    // "cancelled" and aborts the signal; renderChapter then throws
+    // "Render cancelled". That's not an error path — let it pass.
+    if (e?.message === "Render cancelled") {
+      handle.cancel();
+    } else {
+      handle.fail(e);
+      error.value = e.message;
+    }
+  } finally {
+    renderProgress.value = null;
+  }
 }
 
 function playChapter(chapterId) {
-  const r = renderResults.value[chapterId];
-  if (!r) return;
-  if (renderAudio.value) renderAudio.value.pause();
-  renderAudio.value = new Audio(r.url);
-  renderAudio.value.play();
+  const rec = studio.chapterAudio[chapterId];
+  if (!rec) return;
+  const url = audioStore.urlFor(rec);
+  if (!url) { error.value = "Audio is unavailable — re-render this chapter."; return; }
+  if (renderAudio.value) { try { renderAudio.value.pause(); } catch {} }
+  renderAudio.value = new Audio(url);
+  renderAudio.value.onended = () => { playingChapterId.value = null; };
+  renderAudio.value.onerror = () => { playingChapterId.value = null; };
+  renderAudio.value.play()
+    .then(() => { playingChapterId.value = chapterId; })
+    .catch((err) => {
+      playingChapterId.value = null;
+      error.value = `Playback failed: ${err.message}. The file may have been moved — re-render to fix.`;
+    });
 }
 
-function downloadChapter(chapterId) {
-  const r = renderResults.value[chapterId];
-  if (!r) return;
-  const a = document.createElement("a");
-  a.href = r.url;
-  a.download = `${chapterId}.wav`;
-  a.click();
+function stopPlayback() {
+  if (renderAudio.value) { try { renderAudio.value.pause(); } catch {} renderAudio.value = null; }
+  playingChapterId.value = null;
+}
+
+async function downloadChapter(chapterId) {
+  const rec = studio.chapterAudio[chapterId];
+  if (!rec) return;
+  const result = await audioStore.saveChapterAs(rec, chapterFilename(chapterId));
+  if (result?.error) error.value = `Download failed: ${result.error}`;
+}
+
+async function reRenderChapter(chapterId) {
+  // The render writes to the same on-disk path, so the existing file
+  // gets overwritten; the new record carries a fresh `version` so the
+  // webview's media cache doesn't replay the stale WAV.
+  await startRender(chapterId);
+}
+
+async function deleteChapterAudio(chapterId) {
+  // No confirm: the WAV is one Render click away from reappearing,
+  // and the row visibly reverts to the Render-only state so the
+  // writer immediately sees what they just did.
+  if (playingChapterId.value === chapterId) stopPlayback();
+  await studio.removeChapterAudio(chapterId);
+}
+
+async function confirmDeleteAllRendered() {
+  const n = renderedCount.value;
+  if (!n) return;
+  const yes = await confirmDialog({
+    title: `Delete ${n} rendered chapter${n === 1 ? "" : "s"}?`,
+    body: "Frees the disk space the WAVs are taking up. You can re-render any chapter later — your scripts and cast aren't touched.",
+    confirmLabel: "Delete rendered audio",
+    danger: true,
+  });
+  if (!yes) return;
+  stopPlayback();
+  await studio.clearProjectAudio(project.activeProjectId || "default");
 }
 </script>
 
@@ -652,35 +750,62 @@ function downloadChapter(chapterId) {
   <!-- RENDER TAB -->
   <div v-else role="tabpanel" aria-label="Render" class="pane-card">
   <div class="scrollarea" style="padding:18px 22px">
-    <div style="margin-bottom:14px;font-size:13px;color:var(--ink-2)">
-      Sends each script line to <b>{{ provider?.name || "your TTS provider" }}</b> with the assigned voice, then stitches a single WAV per chapter.
+    <div style="display:flex;align-items:flex-start;justify-content:space-between;gap:14px;margin-bottom:14px">
+      <div style="font-size:13px;color:var(--ink-2);flex:1;min-width:0">
+        Sends each script line to <b>{{ provider?.name || "your TTS provider" }}</b> with the assigned voice, then stitches a single WAV per chapter.
+      </div>
+      <JwButton v-if="renderedCount > 0" intent="danger" size="small" @click="confirmDeleteAllRendered">
+        <Icon name="Trash" :size="11" /> Delete all rendered ({{ renderedCount }})
+      </JwButton>
     </div>
+    <AiTaskStrip :task="renderTask">
+      <template #extra-stats>
+        <span v-if="renderProgress" class="sts-stat">line {{ renderProgress.line }} / {{ renderProgress.total }}</span>
+      </template>
+    </AiTaskStrip>
     <div v-if="error" class="banner danger" style="margin-bottom:14px;padding:10px 14px;border-radius:8px">{{ error }}</div>
 
     <div v-for="c in project.allChapters" :key="c.id"
-      style="display:grid;grid-template-columns:28px 1fr auto auto auto;gap:14px;padding:12px 14px;margin:6px 0;border:1px solid var(--border);border-radius:10px;background:var(--surface);align-items:center">
+      style="display:grid;grid-template-columns:28px 1fr auto;gap:14px;padding:12px 14px;margin:6px 0;border:1px solid var(--border);border-radius:10px;background:var(--surface);align-items:center">
       <span class="t-num t-muted" style="font-size:12px;text-align:right">{{ c.num }}</span>
       <div style="min-width:0">
         <div style="font-weight:500;font-size:13.5px">{{ c.title }}</div>
         <div v-if="renderingId === c.id && renderProgress" class="t-muted" style="font-size:11px;margin-top:2px">
           {{ renderProgress.status }} · line {{ renderProgress.line }} / {{ renderProgress.total }}
         </div>
-        <div v-else-if="renderResults[c.id]" class="t-muted" style="font-size:11px;margin-top:2px">
-          {{ Math.round(renderResults[c.id].duration) }}s rendered
+        <div v-else-if="studio.chapterAudio[c.id]" class="t-muted" style="font-size:11px;margin-top:2px">
+          {{ Math.round(studio.chapterAudio[c.id].duration) }}s rendered
         </div>
         <div v-else-if="!studio.scriptFor(c.id)" class="t-muted" style="font-size:11px;margin-top:2px">
           No script — analyze chapter first
         </div>
       </div>
-      <JwButton v-if="!renderResults[c.id]" intent="primary" size="small"
-        :disabled="renderingId === c.id || !studio.scriptFor(c.id)"
-        @click="startRender(c.id)">
-        <Icon name="Mic" :size="11" /> Render
-      </JwButton>
-      <template v-else>
-        <JwButton intent="primary" size="small" @click="playChapter(c.id)"><Icon name="Play" :size="11" /> Play</JwButton>
-        <JwButton intent="secondary" size="small" @click="downloadChapter(c.id)"><Icon name="Download" :size="11" /> WAV</JwButton>
-      </template>
+      <div style="display:flex;gap:6px;align-items:center">
+        <template v-if="!studio.chapterAudio[c.id]">
+          <JwButton intent="primary" size="small"
+            :disabled="!!renderingId || !studio.scriptFor(c.id)"
+            @click="startRender(c.id)">
+            <Icon :name="renderingId === c.id ? 'Refresh' : 'Mic'" :size="11" />
+            {{ renderingId === c.id ? "Rendering…" : "Render" }}
+          </JwButton>
+        </template>
+        <template v-else>
+          <JwButton v-if="playingChapterId === c.id" intent="secondary" size="small" @click="stopPlayback">
+            <Icon name="Stop" :size="11" /> Stop
+          </JwButton>
+          <JwButton v-else intent="primary" size="small" @click="playChapter(c.id)">
+            <Icon name="Play" :size="11" /> Play
+          </JwButton>
+          <JwButton intent="secondary" size="small" @click="downloadChapter(c.id)"><Icon name="Download" :size="11" /> WAV</JwButton>
+          <JwButton intent="ghost" size="small" :disabled="!!renderingId" @click="reRenderChapter(c.id)">
+            <Icon name="Refresh" :size="11" /> Re-render
+          </JwButton>
+          <JwButton intent="ghost" size="small" :disabled="!!renderingId" @click="deleteChapterAudio(c.id)"
+            v-tooltip.bottom="'Delete this rendered audio (script is kept)'">
+            <template #icon><Icon name="Trash" :size="11" /></template>
+          </JwButton>
+        </template>
+      </div>
     </div>
   </div>
   </div>
