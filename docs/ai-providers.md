@@ -30,11 +30,11 @@ Every scene's **Links** panel and every character / location / object / group / 
 
 ## Where to set this up
 
-Open **Settings → AI & Audio engines**. The page has three areas:
+Open **Settings → AI & Audio engines**. The page is grouped into three labelled sections so you can jump straight to what you're after:
 
-1. **Defaults** — three pickers for your global default LLM, TTS, and embedding provider.
-2. **Feature routing** — per-feature overrides if you want a specific provider for a specific job.
-3. **Providers list** — every provider you've added; the place to add, edit, test, and remove. The **Quick setup** button at the top of this card runs a one-click wizard that detects your GPU, downloads the right local models, and applies a sensible routing preset (see *Quick setup for local LLM* below). Each provider row carries a small **usage badge** ("default", "N pinned features", or both) — click it to expand a list of every feature routed to that provider, so the role of a secondary provider (e.g. the "fast" Ollama entry the wizard creates on small cards) is visible without scrolling to Feature routing.
+- **Engines** — the providers list (where you add, edit, test, and remove) plus the **Hardware presets** card that owns the Quick Setup wizard's per-tier model picks. The **Quick setup** button at the top of the providers list runs a one-click wizard that detects your GPU, downloads the right local models, and applies a sensible routing preset (see *Quick setup for local LLM* below). Each provider row carries a small **usage badge** ("default", "N pinned features", or both) — click it to expand a list of every feature routed to that provider, so the role of a secondary provider (e.g. the "fast" Ollama entry the wizard creates on small cards) is visible without scrolling to Feature routing.
+- **Routing & cost** — your three global Defaults (LLM, TTS, embedding), the **Feature routing** card for per-feature overrides, the variations editor, and the production-prompt configs surfaced from Speaker Lab.
+- **Audio Studio** — audio-specific knobs that the audiobook pipeline needs: Render presets and the optional voice-gender LLM fallback. Set up your TTS provider here too if you haven't already.
 
 ---
 

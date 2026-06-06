@@ -27,7 +27,7 @@ The sidebar on the left is the main map. It is grouped into five sections:
 - **Manuscript** — Search, Home, Architecture, Narrative strands, Chapters, Ask the book
 - **Story world** — Characters, Locations, Objects, Groups, Worldbuilding
 - **Planning** — Plot board, Timeline, Notes, Relations
-- **Audio** — Studio
+- **Audio** — Audio Studio
 - **Project** — Analysis, Export, Trash, Settings, Writer Lab
 
 Hover any item to see its name. Click to open it. Drag the right edge of the sidebar to resize it; press **Ctrl/⌘ + \\** to hide it entirely (and again to bring it back).
