@@ -790,7 +790,7 @@ async function confirmDeleteAllRendered() {
   </PaneHeader>
 
   <p class="studio-desc">
-    <strong>Studio</strong> turns your written manuscript into a narrated audiobook in three
+    <strong>Audio Studio</strong> turns your written manuscript into a narrated audiobook in three
     sequential steps — choose voices in <strong>Cast</strong>, let the AI work out who speaks
     each line in <strong>Script</strong>, then generate the audio chapter by chapter in
     <strong>Render</strong>. You can write a whole novel without touching it; it exists for
@@ -798,7 +798,7 @@ async function confirmDeleteAllRendered() {
     revision tool.
   </p>
 
-  <div class="studio-tabs" role="tablist" aria-label="Studio sections">
+  <div class="studio-tabs" role="tablist" aria-label="Audio Studio sections">
     <button class="studio-tab" data-tab="cast"
       role="tab" :aria-selected="activeTab === 'cast'" :tabindex="activeTab === 'cast' ? 0 : -1"
       :class="{ active: activeTab === 'cast' }"
@@ -1187,7 +1187,7 @@ async function confirmDeleteAllRendered() {
        loop to stop after the current chapter — the in-flight call itself
        can be cancelled via the AI panel's Cancel button. -->
   <AppModal v-if="batchAnalyzeOpen"
-            eyebrow="Studio"
+            eyebrow="Audio Studio"
             title="Batch analyze chapters"
             :closable="!batchAnalyzing"
             @close="batchAnalyzeOpen = false">

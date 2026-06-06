@@ -979,7 +979,7 @@ const milestoneState = computed(() => {
     <div class="card" style="margin-bottom:18px">
       <div style="display:flex;align-items:center;gap:10px;margin-bottom:6px">
         <div class="card-title" style="margin:0">Dialogue vs narration</div>
-        <span class="t-muted" style="font-size:11.5px">By word count, from Studio script analysis</span>
+        <span class="t-muted" style="font-size:11.5px">By word count, from Audio Studio script analysis</span>
         <span v-if="dialogue.analyzed" style="margin-left:auto;font-size:11.5px;color:var(--muted)">
           {{ dialogue.overallDialoguePct }}% dialogue · {{ dialogue.analyzed }} ch analyzed
         </span>
@@ -1011,7 +1011,7 @@ const milestoneState = computed(() => {
         </div>
       </template>
       <div v-else class="t-muted" style="font-size:12.5px;text-align:center;padding:22px 0;background:var(--surface-2);border-radius:8px">
-        No script analysis yet. Run <b>Studio → Script</b> on a chapter to break down dialogue, narration, and interior.
+        No script analysis yet. Run <b>Audio Studio → Script</b> on a chapter to break down dialogue, narration, and interior.
       </div>
     </div>
 

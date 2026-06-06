@@ -24,7 +24,7 @@ const FORMATS = [
   { id: "pdf",  name: "PDF",            sub: "Print-ready manuscript with TOC.",       icon: "Export",     ext: "pdf",  mime: "application/pdf" },
   { id: "docx", name: "DOCX",           sub: "Word-compatible.",                       icon: "Book",       ext: "docx", mime: "application/vnd.openxmlformats-officedocument.wordprocessingml.document" },
   { id: "epub", name: "EPUB",           sub: "Reflowable e-book.",                     icon: "Book",       ext: "epub", mime: "application/epub+zip" },
-  { id: "m4b",  name: "M4B audiobook",  sub: "Stitched from Studio renders.",          icon: "Headphones", ext: "m4b",  mime: "audio/mp4" },
+  { id: "m4b",  name: "M4B audiobook",  sub: "Stitched from Audio Studio renders.",    icon: "Headphones", ext: "m4b",  mime: "audio/mp4" },
 ];
 
 // ── Shared state ─────────────────────────────────────────────────────
@@ -124,7 +124,7 @@ async function exportM4b({ partial = false } = {}) {
 
   const pool = chapterAudios.value.filter((x) => x.audio);
   if (pool.length === 0) {
-    exportError.value = "No chapters have been rendered yet. Open Studio → Render and render at least one chapter.";
+    exportError.value = "No chapters have been rendered yet. Open Audio Studio → Render and render at least one chapter.";
     return;
   }
   if (!partial && pool.length < chapterAudios.value.length) {
@@ -217,8 +217,8 @@ async function exportM4b({ partial = false } = {}) {
         <div class="card">
           <div class="card-title">Source audio</div>
           <p class="t-muted" style="font-size:12.5px;margin:0 0 14px;line-height:1.55">
-            The M4B is stitched from the per-chapter WAVs you've rendered in Studio.
-            Open <router-link to="/studio/render" style="color:var(--accent-ink);font-weight:600">Studio → Render</router-link> to render chapters, then come back here to export.
+            The M4B is stitched from the per-chapter WAVs you've rendered in Audio Studio.
+            Open <router-link to="/studio/render" style="color:var(--accent-ink);font-weight:600">Audio Studio → Render</router-link> to render chapters, then come back here to export.
           </p>
           <div style="display:grid;grid-template-columns:auto 1fr auto;gap:14px;font-size:13px;align-items:center;padding:10px 12px;background:var(--surface-2);border-radius:8px">
             <div :style="`width:36px;height:36px;border-radius:8px;background:${renderedCount ? 'var(--accent-soft)' : 'var(--surface-3)'};color:${renderedCount ? 'var(--accent)' : 'var(--muted)'};display:grid;place-items:center`">
@@ -232,7 +232,7 @@ async function exportM4b({ partial = false } = {}) {
             </div>
             <router-link to="/studio/render" custom v-slot="{ navigate }">
               <JwButton intent="secondary" size="small" @click="navigate">
-                <Icon name="Headphones" :size="11" /> Open Studio
+                <Icon name="Headphones" :size="11" /> Open Audio Studio
               </JwButton>
             </router-link>
           </div>

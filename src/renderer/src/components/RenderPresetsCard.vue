@@ -115,7 +115,7 @@ function summary(p) {
     </div>
 
     <p class="t-muted" style="font-size:12.5px;line-height:1.5;margin:0 0 12px">
-      Bundle engine knobs (speed, exaggeration, …) under a name and assign to chapters from <b>Studio → Render</b>.
+      Bundle engine knobs (speed, exaggeration, …) under a name and assign to chapters from <b>Audio Studio → Render</b>.
       A preset layers on top of per-voice overrides and the provider default — empty keys fall through. Examples:
       <i>Tense Scene</i> (faster + higher exaggeration), <i>Quiet Reflection</i> (slower + lower exaggeration).
     </p>

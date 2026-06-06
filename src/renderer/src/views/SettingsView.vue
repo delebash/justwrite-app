@@ -109,8 +109,8 @@ const AI_FEATURES = [
   { key: "relationshipArc", label: "Relationship arc", hint: "Chapter-by-chapter warmth / tension / power tracking for a pair of characters." },
   { key: "marketingPack",   label: "Marketing pack",   hint: "Logline, back-cover blurbs, synopsis, and elevator pitch for querying and pitching." },
   { key: "multiReader",     label: "Multi-reader panel", hint: "Four distinct reader personas (genre reader / literary critic / agent intern / book-club reader) react to a chapter in parallel." },
-  { key: "smartCast",       label: "Studio · Smart-assign", hint: "Studio → Cast tab. Matches each character to a TTS voice based on role and tone." },
-  { key: "speakerAnalysis", label: "Studio · Speaker analysis", hint: "Studio → Script tab. Tags each paragraph with its speaker (narrator vs character) for the audiobook render." },
+  { key: "smartCast",       label: "Audio Studio · Smart-assign", hint: "Audio Studio → Cast tab. Matches each character to a TTS voice based on role and tone." },
+  { key: "speakerAnalysis", label: "Audio Studio · Speaker analysis", hint: "Audio Studio → Script tab. Tags each paragraph with its speaker (narrator vs character) for the audiobook render." },
 ];
 const INHERIT = "__inherit__";
 
@@ -124,14 +124,14 @@ const INHERIT = "__inherit__";
 const PROMOTABLE_FEATURES = [
   {
     key: "speakerAnalysis",
-    label: "Studio · Speaker analysis",
+    label: "Audio Studio · Speaker analysis",
     labPath: "/speaker-lab",
     labLabel: "Speaker Lab",
     labReady: true,
   },
   {
     key: "smartCast",
-    label: "Studio · Smart-assign",
+    label: "Audio Studio · Smart-assign",
     labPath: "/speaker-lab",       // placeholder until Smart-Assign Lab ships
     labLabel: "Smart-Assign Lab",
     labReady: false,
@@ -1116,63 +1116,16 @@ const recentColumns = [
       </div>
 
       <!-- ── AI & AUDIO ────────────────────────────── -->
+      <!-- Cards are grouped into three sections, separated by t-eyebrow
+           labels: Engines (providers + tier presets), Routing & cost
+           (defaults, per-feature overrides, variations, prod configs),
+           and Audio Studio (audio-specific extras). Voice canon and
+           Quick setup tips sit below the groups since they're general
+           tips / writing-side settings rather than engine plumbing. -->
       <div v-else-if="active === 'audio'" style="display:flex;flex-direction:column;gap:14px;min-width:0">
-        <div class="card">
-          <div class="card-title">{{ $t('settings.audio.defaultsCardTitle') }}</div>
-          <div style="font-size:13px;color:var(--ink-2);margin-bottom:12px">
-            Pick which provider handles writing assistance (LLM) and which handles audio (TTS). Both follow the OpenAI HTTP standard — anything that speaks it works here.
-          </div>
-          <div style="display:grid;grid-template-columns:160px minmax(0,1fr);gap:10px 14px;align-items:center;font-size:13px">
-            <span class="t-muted">{{ $t('settings.audio.fieldDefaultLlm') }}</span>
-            <Combobox
-              :model-value="ai.defaultLlmId"
-              @update:model-value="ai.setDefaultLlm"
-              :items="ai.llmProviders"
-              item-value="id" item-label="name"
-              :searchable="false"
-              placeholder="Pick a provider"
-              chev-title="Choose default LLM provider" />
-            <span class="t-muted">{{ $t('settings.audio.fieldDefaultTts') }}</span>
-            <Combobox
-              :model-value="ai.defaultTtsId"
-              @update:model-value="ai.setDefaultTts"
-              :items="ai.ttsProviders"
-              item-value="id" item-label="name"
-              :searchable="false"
-              placeholder="Pick a provider"
-              chev-title="Choose default TTS provider" />
-            <span class="t-muted">{{ $t('settings.audio.fieldDefaultEmbedding') }}</span>
-            <Combobox
-              :model-value="ai.defaultEmbeddingId"
-              @update:model-value="chooseDefaultEmbedding"
-              :items="ai.embeddingProviders"
-              item-value="id" item-label="name"
-              :searchable="false"
-              placeholder="Pick a provider"
-              chev-title="Choose default embedding provider" />
-            <span class="t-muted">{{ $t('settings.audio.fieldAutoRebuild') }}</span>
-            <label style="display:flex;align-items:center;gap:8px;cursor:pointer">
-              <JwCheckbox :model-value="ai.autoRebuildRagIndex"
-                @update:model-value="ai.setAutoRebuildRagIndex" />
-              <span style="color:var(--ink-2);font-size:12.5px;line-height:1.45">
-                Embed new and changed scenes a minute after the last edit. Costs nothing on local embedding providers; cloud embeddings will accrue tokens.
-              </span>
-            </label>
 
-            <span class="t-muted">Guess voice gender with LLM</span>
-            <label style="display:flex;align-items:flex-start;gap:8px;cursor:pointer">
-              <JwCheckbox :model-value="ai.useLlmVoiceGender"
-                @update:model-value="ai.setUseLlmVoiceGender" style="margin-top:2px" />
-              <span style="color:var(--ink-2);font-size:12.5px;line-height:1.45">
-                After Studio fetches voices, any name the built-in dictionary doesn't recognise (Gianna, Axel, fantasy names) gets sent in one batch to your default LLM, which labels each as female / male / neutral. Smart-assign uses these to match characters to voices. Off by default — a no-network alternative is to click the <b>❓</b> chip in Studio's voice library and cycle to the right gender. Manual settings persist across re-fetches; only the truly unknown rows are ever sent to the LLM.
-              </span>
-            </label>
-          </div>
-        </div>
-
-        <RenderPresetsCard />
-
-        <HardwarePresetsCard />
+        <!-- ─── Engines ─────────────────────────────────────── -->
+        <div class="t-eyebrow" style="margin-top:2px">Engines</div>
 
         <div class="card">
           <div style="display:flex;align-items:center;gap:10px;margin-bottom:10px">
@@ -1251,6 +1204,64 @@ const recentColumns = [
                 :draft="draft" :editing-key="editing"
                 @save="saveDraft" @cancel="cancelEdit" />
             </template>
+          </div>
+        </div>
+
+        <HardwarePresetsCard />
+
+        <!-- ─── Routing & cost ──────────────────────────────── -->
+        <div class="t-eyebrow" style="margin-top:6px">Routing &amp; cost</div>
+
+        <div class="card">
+          <div class="card-title">{{ $t('settings.audio.defaultsCardTitle') }}</div>
+          <div style="font-size:13px;color:var(--ink-2);margin-bottom:12px">
+            Pick which provider handles writing assistance (LLM) and which handles audio (TTS). Both follow the OpenAI HTTP standard — anything that speaks it works here.
+          </div>
+          <div style="display:grid;grid-template-columns:160px minmax(0,1fr);gap:10px 14px;align-items:center;font-size:13px">
+            <span class="t-muted">{{ $t('settings.audio.fieldDefaultLlm') }}</span>
+            <Combobox
+              :model-value="ai.defaultLlmId"
+              @update:model-value="ai.setDefaultLlm"
+              :items="ai.llmProviders"
+              item-value="id" item-label="name"
+              :searchable="false"
+              placeholder="Pick a provider"
+              chev-title="Choose default LLM provider" />
+            <span class="t-muted">{{ $t('settings.audio.fieldDefaultTts') }}</span>
+            <Combobox
+              :model-value="ai.defaultTtsId"
+              @update:model-value="ai.setDefaultTts"
+              :items="ai.ttsProviders"
+              item-value="id" item-label="name"
+              :searchable="false"
+              placeholder="Pick a provider"
+              chev-title="Choose default TTS provider" />
+            <span class="t-muted">{{ $t('settings.audio.fieldDefaultEmbedding') }}</span>
+            <Combobox
+              :model-value="ai.defaultEmbeddingId"
+              @update:model-value="chooseDefaultEmbedding"
+              :items="ai.embeddingProviders"
+              item-value="id" item-label="name"
+              :searchable="false"
+              placeholder="Pick a provider"
+              chev-title="Choose default embedding provider" />
+            <span class="t-muted">{{ $t('settings.audio.fieldAutoRebuild') }}</span>
+            <label style="display:flex;align-items:center;gap:8px;cursor:pointer">
+              <JwCheckbox :model-value="ai.autoRebuildRagIndex"
+                @update:model-value="ai.setAutoRebuildRagIndex" />
+              <span style="color:var(--ink-2);font-size:12.5px;line-height:1.45">
+                Embed new and changed scenes a minute after the last edit. Costs nothing on local embedding providers; cloud embeddings will accrue tokens.
+              </span>
+            </label>
+
+            <span class="t-muted">Guess voice gender with LLM</span>
+            <label style="display:flex;align-items:flex-start;gap:8px;cursor:pointer">
+              <JwCheckbox :model-value="ai.useLlmVoiceGender"
+                @update:model-value="ai.setUseLlmVoiceGender" style="margin-top:2px" />
+              <span style="color:var(--ink-2);font-size:12.5px;line-height:1.45">
+                After Audio Studio fetches voices, any name the built-in dictionary doesn't recognise (Gianna, Axel, fantasy names) gets sent in one batch to your default LLM, which labels each as female / male / neutral. Smart-assign uses these to match characters to voices. Off by default — a no-network alternative is to click the <b>❓</b> chip in Audio Studio's voice library and cycle to the right gender. Manual settings persist across re-fetches; only the truly unknown rows are ever sent to the LLM.
+              </span>
+            </label>
           </div>
         </div>
 
@@ -1406,17 +1417,22 @@ const recentColumns = [
           </div>
         </div>
 
-        <!-- Studio · Speaker corrections — per-project memory of dialogue-line
-             overrides the writer made in Studio's Script tab. Fed back into
+        <!-- ─── Audio Studio ────────────────────────────────── -->
+        <div class="t-eyebrow" style="margin-top:6px">Audio Studio</div>
+
+        <RenderPresetsCard />
+
+        <!-- Audio Studio · Speaker corrections — per-project memory of dialogue-line
+             overrides the writer made in Audio Studio's Script tab. Fed back into
              Re-analyze as worked examples. This card surfaces the count and
              lets the writer wipe it (e.g. after a major character rename or
              POV change that invalidates old examples). -->
         <div class="card">
           <div style="display:flex;align-items:flex-start;gap:14px">
             <div style="flex:1;min-width:0">
-              <div class="card-title" style="margin-bottom:6px">Studio · Speaker corrections</div>
+              <div class="card-title" style="margin-bottom:6px">Audio Studio · Speaker corrections</div>
               <p class="t-muted" style="font-size:12.5px;margin:0;line-height:1.55">
-                Every time you fix a dialogue speaker in Studio → Script, the line and the correct
+                Every time you fix a dialogue speaker in Audio Studio → Script, the line and the correct
                 character are remembered. The 12 most recent are sent as worked examples on the next
                 Re-analyze so the AI stops repeating the same mistakes. Clearing wipes the memory only —
                 existing scripts and the lines you've already fixed are untouched.
@@ -1536,7 +1552,7 @@ const recentColumns = [
           </div>
           <p class="t-muted" style="font-size:12.5px;margin:0 0 14px;line-height:1.55">
             Tokens and estimated cost across every AI call — writer actions, critique, brainstorm, entity sweep,
-            Studio smart-cast and speaker analysis, the chat panel, and every analysis pass. Local providers
+            Audio Studio smart-cast and speaker analysis, the chat panel, and every analysis pass. Local providers
             (Ollama, LM Studio, llama.cpp) are recorded at $0 — pricing only applies to cloud models in the
             built-in price table.
           </p>

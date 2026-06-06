@@ -632,9 +632,9 @@ migrateLegacyPresets();
 // Tab/mode metadata. PROMOTABLE_MODE flags which mode's presets can be
 // marked active production (Studio = inline for speakerAnalysis).
 const MODE_INFO = {
-  inline: { label: "Studio", promotable: true,  resetFn: (run) => resetInlinePrompts(run) },
-  lab:    { label: "Lab",    promotable: false, resetFn: (run) => { resetStudioPrompts(run); /* lab uses stage1/2 defaults */ } },
-  studio: { label: "Legacy Studio", promotable: false, resetFn: (run) => resetStudioPrompts(run) },
+  inline: { label: "Audio Studio", promotable: true,  resetFn: (run) => resetInlinePrompts(run) },
+  lab:    { label: "Lab",          promotable: false, resetFn: (run) => { resetStudioPrompts(run); /* lab uses stage1/2 defaults */ } },
+  studio: { label: "Legacy Audio Studio", promotable: false, resetFn: (run) => resetStudioPrompts(run) },
 };
 
 // Capture the current run's settings for a mode into a settings object.
@@ -1372,9 +1372,9 @@ function copyOutput(run) {
                  level approach kept around as a comparison point (now
                  labelled "Legacy Studio"). Internal keys are unchanged
                  to keep saved presets and existing code-paths intact. -->
-            <button type="button" class="mode-seg-btn" :class="{ active: run.mode === 'inline' }" @click="run.mode = 'inline'">Studio</button>
+            <button type="button" class="mode-seg-btn" :class="{ active: run.mode === 'inline' }" @click="run.mode = 'inline'">Audio Studio</button>
             <button type="button" class="mode-seg-btn" :class="{ active: run.mode === 'lab' }" @click="run.mode = 'lab'">Lab</button>
-            <button type="button" class="mode-seg-btn" :class="{ active: run.mode === 'studio' }" @click="run.mode = 'studio'">Legacy Studio</button>
+            <button type="button" class="mode-seg-btn" :class="{ active: run.mode === 'studio' }" @click="run.mode = 'studio'">Legacy Audio Studio</button>
           </div>
           <JwCheckbox v-if="run.mode === 'lab'" v-model="run.twoStage" class="toggle" :title="run.twoStage ? 'Two-stage pipeline' : 'Single stage'">Two-stage</JwCheckbox>
           <JwButton v-if="runs.length > 1" intent="ghost" size="small" @click="removeRun(run)" v-tooltip.bottom="'Remove this run'">
@@ -1386,14 +1386,14 @@ function copyOutput(run) {
         <fieldset v-if="run.mode === 'studio'" class="stage studio-stage" :class="{ active: run.activeStage === 1 }">
           <legend @click="run.studio.collapsed = !run.studio.collapsed">
             <Icon :name="run.studio.collapsed ? 'ChevRight' : 'ChevDown'" :size="11" />
-            <b>Legacy Studio pipeline</b> — single-call paragraph-level attribution
+            <b>Legacy Audio Studio pipeline</b> — single-call paragraph-level attribution
           </legend>
           <div v-if="!run.studio.collapsed" class="stage-body">
             <!-- Legacy Studio presets (no production marker — this mode
                  doesn't drive production). -->
             <div class="preset-row">
               <span class="preset-row-label">
-                <Icon name="Folder" :size="11" /> Legacy Studio presets
+                <Icon name="Folder" :size="11" /> Legacy Audio Studio presets
               </span>
               <JwSelect class="input"
                 :model-value="presetPickerValueFor(run, 'studio')"
@@ -1428,7 +1428,7 @@ function copyOutput(run) {
                 <span class="t-muted">temp</span>
                 <JwNumber class="input sm temp-input" :step="0.05" :min="0" :max="2" v-model="run.studio.temperature" />
               </label>
-              <JwButton intent="secondary" size="small" @click="resetStudioPrompts(run)" v-tooltip.bottom="'Restore the exact legacy Studio prompt'">
+              <JwButton intent="secondary" size="small" @click="resetStudioPrompts(run)" v-tooltip.bottom="'Restore the exact legacy Audio Studio prompt'">
                 <Icon name="Refresh" :size="11" /> Reset
               </JwButton>
             </div>
@@ -1443,7 +1443,7 @@ function copyOutput(run) {
         <fieldset v-if="run.mode === 'inline'" class="stage inline-stage" :class="{ active: run.activeStage === 1 }">
           <legend @click="run.inline.collapsed = !run.inline.collapsed">
             <Icon :name="run.inline.collapsed ? 'ChevRight' : 'ChevDown'" :size="11" />
-            <b>Studio pipeline</b> — segment-aware attribution (production target)
+            <b>Audio Studio pipeline</b> — segment-aware attribution (production target)
           </legend>
           <div v-if="!run.inline.collapsed" class="stage-body">
             <!-- Per-mode preset row. Each mode (Studio / Lab / Legacy)
@@ -1455,21 +1455,21 @@ function copyOutput(run) {
                  selection. -->
             <div class="preset-row">
               <span class="preset-row-label">
-                <Icon name="Folder" :size="11" /> Studio presets
+                <Icon name="Folder" :size="11" /> Audio Studio presets
               </span>
               <JwSelect class="input"
                 :model-value="presetPickerValueFor(run, 'inline')"
                 @update:model-value="(v) => setPresetPickerValue(run, 'inline', v)"
                 :options="presetOptionsForMode('inline')"
                 style="flex:1;min-width:160px"
-                v-tooltip.bottom="'Picker for Studio (inline-pipeline) presets. Default resets to built-in values.'" />
+                v-tooltip.bottom="'Picker for Audio Studio (inline-pipeline) presets. Default resets to built-in values.'" />
               <span v-if="isProductionPreset('inline', presetPickerValueFor(run, 'inline'))" class="preset-prod-badge"
-                v-tooltip.bottom="'This preset is currently the active production config (Studio → Script uses it).'">
+                v-tooltip.bottom="'This preset is currently the active production config (Audio Studio → Script uses it).'">
                 <Icon name="Check" :size="10" /> Production
               </span>
               <JwButton intent="primary" size="small" @click="setPickerAsProduction(run, 'inline')"
                 :disabled="isProductionPreset('inline', presetPickerValueFor(run, 'inline'))"
-                v-tooltip.bottom="'Make the selected preset the active production config (what Studio → Script runs)'">
+                v-tooltip.bottom="'Make the selected preset the active production config (what Audio Studio → Script runs)'">
                 <Icon name="Check" :size="11" /> Use as production
               </JwButton>
               <JwButton intent="secondary" size="small" @click="loadPresetIntoRun(run, 'inline')"
@@ -1477,7 +1477,7 @@ function copyOutput(run) {
                 <Icon name="Download" :size="11" /> Load
               </JwButton>
               <JwButton intent="secondary" size="small" @click="saveCurrentAsPreset(run, 'inline')"
-                v-tooltip.bottom="'Save the current Studio settings as a new named preset'">
+                v-tooltip.bottom="'Save the current Audio Studio settings as a new named preset'">
                 <Icon name="Plus" :size="11" /> Save as
               </JwButton>
               <JwButton v-if="presetPickerValueFor(run, 'inline') !== 'Default'" intent="ghost" size="small"
