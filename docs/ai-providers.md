@@ -134,22 +134,138 @@ Runs entire LLMs on your own computer. No API key, no monthly bill, no data leav
 
 **When to pick Ollama.** Privacy-critical work, no internet access, no API costs. The trade-off is quality — local 7B–13B models are noticeably weaker than GPT-4-class cloud models, though they've improved dramatically. Try a model on a sample passage before committing.
 
-**Recommended models** (as of 2026): `qwen2.5:14b` or `llama3.1:8b` for writing, `mxbai-embed-large` for embeddings.
+**Recommended models** (as of 2026): see **[Choosing a local model for your hardware](#choosing-a-local-model-for-your-hardware)** below for picks by VRAM tier — covers Ollama and LM Studio alike.
 
 ### LM Studio (local, free, GUI)
 
-An alternative to Ollama with a graphical interface for downloading and managing models.
+A graphical alternative to Ollama. Same engine family (llama.cpp under the hood) but with a built-in model browser that filters by VRAM, one-click downloads, and a server tab that flips on an OpenAI-compatible endpoint. The easiest path for users who'd rather not touch a terminal.
 
-1. Install LM Studio from **lmstudio.ai**.
-2. Download a model from inside LM Studio.
-3. Start the local server (the "Local Server" tab) — default port is `1234`.
-4. In JustWrite, **Add provider → Preset: OpenAI-compatible (local)**.
-5. Base URL: `http://localhost:1234/v1`.
-6. API key: leave blank.
-7. **Fetch models** — your loaded model appears.
-8. **Test.** Save.
+1. Install LM Studio from **lmstudio.ai** (Windows / macOS / Linux installers).
+2. Open the **Discover** tab. Browse or search for a model — LM Studio shows a green "Will fit" / yellow "Partial GPU" / red "Won't fit" badge against your detected VRAM, so you don't need to guess. See **[Choosing a local model](#choosing-a-local-model-for-your-hardware)** below for picks.
+3. Click **Download** on the chosen GGUF variant (e.g. `Q4_K_M` for the best size/quality tradeoff on most cards).
+4. Open the **Developer** tab (older builds: **Local Server**) and click **Start Server**. Default port is `1234`.
+5. In JustWrite, **Add provider → Preset: OpenAI-compatible (local)**.
+6. Base URL: `http://localhost:1234/v1`.
+7. API key: leave blank.
+8. Click **Fetch models** — every model you've loaded in LM Studio appears.
+9. **Test.** Save.
 
-**When to pick LM Studio.** Same use case as Ollama, but with a friendlier interface for finding and managing models. The two are interchangeable from JustWrite's perspective.
+**Embeddings.** LM Studio can serve an embedding model on the same endpoint. Download an embedding model (`nomic-embed-text-v1.5`, `bge-m3`, or `mxbai-embed-large` — see the table below), load it from the Developer tab alongside your chat model, and pick it in JustWrite's embedding-model dropdown for "Ask the book".
+
+**When to pick LM Studio over Ollama.** You want a GUI for browsing and downloading models, you'd like at-a-glance VRAM compatibility, or you want a Settings panel that exposes GPU offload / context length / KV-cache quant without editing config files. Functionally interchangeable with Ollama from JustWrite's perspective — the choice is purely about UX preference.
+
+---
+
+## Choosing a local model for your hardware
+
+The biggest variable for local LLM quality is the model size you can fit in VRAM at a reasonable quantization. The table below is a starting point; LM Studio's compatibility badges will give you the exact answer for your card.
+
+**Quantization quick reference.** `Q4_K_M` is the standard size/quality sweet spot — sub-1pp MMLU loss vs full precision at ~30% of the file size. Drop to `Q3_K_M` only if a model otherwise won't fit; step up to `Q5_K_M` or `Q6_K` if you have headroom and want a small quality bump.
+
+### Honest framing for the 8B tier
+
+Older guidance (including earlier versions of this page) told 8 GB-card users that an 8B model was "fine for writer actions." Current benchmark evidence and user testing say that's too generous:
+
+- The Qwen3 technical report (arXiv 2505.09388) shows **Qwen3-14B = 7.02 vs Qwen3-8B = 5.42** on WritingBench — a ~30% gap.
+- Neither dense 8B nor dense 14B Qwen3 models appear in Arena's Creative Writing top 182 (of 363 models, June 2026) — the 8B tier isn't competitive on prose leaderboards.
+- Community reports document 8B failure modes — rushing scenes, phrase repetition, voice drift — that show up within standard chapter-length generation, not just long context.
+
+**What 8B is genuinely fine for:** brainstorming, outlining, single-sentence rewrites, structural one-off prompts, short-input/short-output utility calls.
+
+**What 8B underdelivers on:** Continue-a-scene, Expand-with-sensory-detail, voice consistency, multi-paragraph rewrites, Studio speaker attribution. All of these benefit meaningfully from stepping up to 14B even if it costs partial CPU offload on an 8 GB card.
+
+**What you actually want at the prose threshold:** 32B+. 14B is a meaningful step up from 8B but still not what a novelist would call "great." For full-chapter critique and plot-hole work, route to cloud regardless of local card size.
+
+### LLM (writing assistance, critique, entity sweep)
+
+| Your hardware | VRAM | Primary pick | Notes |
+|---|---|---|---|
+| RTX 2060 / 3050 / 4050, RX 6600 | 6–8 GB | `qwen3:14b` (Q4_K_M) with partial CPU offload | 8B fits cleanly but underdelivers on prose. 14B (~9 GB) needs CPU offload here, runs ~6–12 tok/s — slower but the prose quality justifies it. Keep 8B around as a pin for Brainstorm only. |
+| RTX 2070 / 3060Ti / 3070 / 4060 | 8 GB | `qwen3:14b` (Q4_K_M) with partial CPU offload | Same logic. 14B at ~10–20 tok/s with offload is the honest default; pin Brainstorm and Resume briefing to 8B if you want snappy responses there. See 8 GB notes below. |
+| RTX 3060 12 GB / 4070 / 5070, RX 6700XT / 7700XT | 12 GB | `qwen3:14b` (Q4_K_M) ~9 GB full-GPU | 14B fits cleanly on GPU here — no offload, ~40–60 tok/s. The 24B at Q3 is a stretch option for tough analysis. |
+| RTX 4060Ti 16GB / 5060Ti 16GB / 4080, RX 7800XT | 16 GB | `qwen3:14b` (Q6_K) or `mistral-small3:24b` (Q4_K_M) ~14 GB | Either better quality on a 14B or a meaningfully stronger 24B at standard quant. |
+| RTX 3090 / 4090 / 7900XTX | 24 GB | `qwen3:32b` (Q5_K_M) ~22 GB, or `gpt-oss:20b` (Q6_K) | At this tier you're approaching cloud-class quality for prose work. |
+| RTX 5090 | 32 GB | `llama3.3:70b` (Q4_K_M) ~42 GB partial offload, or `qwen3:32b` (Q6_K) ~27 GB full | 70B fits comfortably with KV-cache headroom. Genuinely competitive with GPT-4o-mini on writing tasks. |
+| CPU only, 16+ GB RAM | n/a | `qwen3:8b` (Q4_K_M) — the only realistic local option here | Expect 3–8 tok/s. Adequate for short utility calls and brainstorming; painful for prose generation, unusable for critique on long chapters. Route prose-heavy features to cloud. |
+| Apple Silicon (M2/M3/M4) | unified RAM | Same picks as the matching VRAM tier — Macs share RAM with the GPU | On an M-series with 16 GB RAM, treat it like a 12 GB GPU (the OS reserves some). Metal acceleration is excellent in both Ollama and LM Studio. |
+
+### Embedding ("Ask the book" / RAG)
+
+Embedding models are tiny (sub-1 GB) and run alongside your chat model without meaningful VRAM impact. Three solid picks:
+
+| Model | Size | Context | Notes |
+|---|---|---|---|
+| `nomic-embed-text` | 137 M (~270 MB) | 8K | Lightweight default. Strong for English prose, multilingual is decent. Fastest. |
+| `bge-m3` | 568 M (~1.2 GB) | 8K | Best multilingual quality. Pick this if your manuscript isn't English, or for long chapters where the 8K window matters. |
+| `mxbai-embed-large` | 335 M (~670 MB) | 512 | Highest English quality at the price of a short context window — JustWrite chunks chapters before embedding, so the small window is usually fine. |
+
+For an 8 GB GPU running an 8B chat model: `nomic-embed-text` is the safe choice. For 12 GB+: any of the three.
+
+### Recommended feature routing by card
+
+The hardware table above tells you which **model** to use. This section tells you which **features** to pin to which model so the heavier picks only run where they're needed. All of these are configured in **Settings → AI & Audio engines → Feature routing**.
+
+**Two setup steps before you start pinning:**
+1. Add **two** Ollama / LM Studio providers pointing at the same server but with different default chat models — e.g. *"Ollama (8B fast)"* with `qwen3:8b` and *"Ollama (14B prose)"* with `qwen3:14b`. JustWrite treats each as a separate provider you can pin features to.
+2. Add a cloud provider (Claude, DeepSeek, or Gemini) for the heavy analysis features.
+
+#### 8 GB card (RTX 2070 / 3060Ti / 3070 / 4060)
+
+**Default LLM** → `qwen3:14b` (partial CPU offload, ~10–20 tok/s).
+
+| Feature | Pin to | Why |
+|---|---|---|
+| Brainstorm | `qwen3:8b` | Speed matters more than depth for ideation. |
+| Resume briefing | `qwen3:8b` | Short structured output. |
+| Session recap | `qwen3:8b` | Short structured output. |
+| Writer actions | inherit (14B) | Prose generation — accept the slower speed for quality. |
+| Studio · Speaker analysis | inherit (14B) | 8B misses attributions; 14B is the working floor. |
+| Studio · Smart-assign | inherit (14B) | Reasoning-class. |
+| Critique | cloud (Claude / DeepSeek) | Long context, structural reasoning. |
+| Plot-hole audit | cloud | Cross-chapter reasoning. |
+| Reverse outline | cloud | Reads the whole manuscript. |
+| Multi-reader panel | cloud | Four personas in parallel — cloud quality compounds. |
+| Character audit | cloud | Cross-chapter reasoning. |
+| Foreshadowing scan | cloud | Same. |
+
+Embeddings: `nomic-embed-text` loaded alongside the chat model (~500 MB; fits with the 14B).
+
+#### 12 GB card (RTX 3060 12GB / 4070 / 5070)
+
+**Default LLM** → `qwen3:14b` (full GPU, ~40–60 tok/s — no offload).
+
+Same pinning recipe as 8 GB above, but Writer actions and Studio Speaker analysis run much faster locally. Critique and plot-hole audit are still meaningfully better on cloud at this tier — that's a quality call, not a hardware one.
+
+#### 16 GB card (RTX 4060Ti 16GB / 5060Ti 16GB / 4080)
+
+**Default LLM** → `qwen3:14b` Q6_K, or `mistral-small3:24b` Q4_K_M.
+
+Keep Brainstorm / Resume / Recap pinned to a smaller model for snappy responses. Critique and reverse outline can run locally on the 24B; pin to cloud only if you want top-tier reasoning quality.
+
+#### 24 GB card (RTX 3090 / 4090 / 7900XTX)
+
+**Default LLM** → `qwen3:32b` Q5_K_M, or `gpt-oss:20b` Q6_K.
+
+Almost everything runs locally at this tier. Cloud routing is optional — useful when you want a specific model's voice for critique (Claude's editorial tone, say) but no longer a quality necessity.
+
+#### 32 GB card (RTX 5090)
+
+**Default LLM** → `llama3.3:70b` Q4_K_M, or `qwen3:32b` Q6_K.
+
+Cloud routing becomes a personal preference rather than a quality requirement.
+
+#### CPU only
+
+**Default LLM** → `qwen3:8b` Q4_K_M. Pin **Writer actions, Critique, all Studio features, multi-reader, audits** → cloud. Local CPU inference is too slow to be enjoyable for prose generation; spending a few cents on cloud is the right call. Keep Brainstorm / Resume / Recap local — short calls the CPU can handle.
+
+### Notes for an 8 GB card
+
+If you have an RTX 2070 / 3060Ti / 3070 (8 GB):
+
+- The **default LLM** should be `qwen3:14b` at Q4_K_M with partial CPU offload. Slower than 8B (~10–20 tok/s depending on your CPU and RAM speed) but the prose quality is meaningfully better — Qwen3's own benchmark numbers put 14B ~30% above 8B on WritingBench.
+- **Pin Brainstorm, Resume briefing, and Session recap to `qwen3:8b`** for snappier responses where speed matters more than depth.
+- **Pin Critique, Plot-hole audit, Reverse outline, Multi-reader panel, Character audit, and Foreshadowing scan to a cloud provider** (Claude, DeepSeek, Gemini). Local 14B with offload technically works but the latency on full-chapter analysis becomes painful, and cloud reasoning quality is meaningfully better.
+- **Embeddings ("Ask the book"):** keep `nomic-embed-text` loaded. ~500 MB alongside the chat model, fits comfortably with the 14B.
 
 ### Kokoro (local TTS, free, fast)
 
@@ -247,7 +363,7 @@ You don't add Web Speech as a provider — it's just there.
 
 The defaults are convenient but limiting. Once you have two or more providers, you may want to send different features to different ones.
 
-In **Settings → AI & Audio engines → Feature routing** you can pin each of nineteen features to its own provider and model:
+In **Settings → AI & Audio engines → Feature routing** you can pin each of twenty-two features to its own provider and model:
 
 | Feature | What it does |
 |---|---|
@@ -255,6 +371,7 @@ In **Settings → AI & Audio engines → Feature routing** you can pin each of n
 | **Critique** | The structural critique modal in the editor and chapter Versions menu |
 | **Entity sweep** | The AI scan that proposes new characters, locations, and objects from chapter text |
 | **Writer actions** | The scene strip's **AI** dropdown — Rewrite, Expand, Tighten, Continue, Describe, plus all Line edits |
+| **Brainstorm** | The standalone Brainstorm workbench — ideation and short-form drafting |
 | **Resume briefing** | The Home "Previously on your novel" card that orients you after a break |
 | **Session recap** | The Home "Wrap up session" end-of-day recap that summarises what you wrote and pins open threads |
 | **Foreshadowing scan** | The Markers view "Find dangling threads" scan that surfaces setups that may not have paid off |
@@ -270,6 +387,8 @@ In **Settings → AI & Audio engines → Feature routing** you can pin each of n
 | **Relationship arc** | The Characters view "Relationship arc" modal — chapter-by-chapter warmth / tension / power tracking for a pair of characters |
 | **Marketing pack** | The Analysis dashboard "Marketing pack" modal — logline, three back-cover blurbs, one-page synopsis, three-paragraph elevator pitch |
 | **Multi-reader panel** | The chapter editor's "Multi-reader panel" critique — four reader personas (genre reader / literary critic / agent intern / book-club reader) react to a chapter in parallel |
+| **Studio · Speaker analysis** | Studio → Script → Re-analyze — dialogue-to-character attribution. Reasoning-class; benefits from a larger local model than the writer-actions tier. |
+| **Studio · Smart-assign** | Studio → Cast — auto-assigns TTS voices to characters based on traits. Reasoning-class. |
 
 Setting "Inherit default" for any feature uses your global Default LLM.
 
