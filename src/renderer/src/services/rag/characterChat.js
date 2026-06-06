@@ -30,6 +30,10 @@ function buildCharacterSystem(character, extras) {
   parts.push("");
   parts.push("YOUR PROFILE:");
   if (character.role) parts.push(`Role: ${character.role}`);
+  if (character.gender) parts.push(`Gender: ${character.gender}`);
+  if (character.pronouns) parts.push(`Pronouns: ${character.pronouns}`);
+  if (character.lifeStatus) parts.push(`Life status: ${character.lifeStatus}`);
+  if ((character.aliases || []).length) parts.push(`Also known as: ${character.aliases.join(", ")}`);
   if (character.age) parts.push(`Age: ${character.age}`);
   if (character.oneLiner) parts.push(`Self-image (one line): ${character.oneLiner}`);
 

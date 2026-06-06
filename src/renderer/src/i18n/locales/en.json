@@ -107,6 +107,12 @@
     "chapters": {
       "eyebrow": "Manuscript",
       "emptyTitle": "No chapters"
+    },
+    "notes": {
+      "eyebrow": "Project"
+    },
+    "architecture": {
+      "eyebrow": "Planning"
     }
   },
   "sidebar": {

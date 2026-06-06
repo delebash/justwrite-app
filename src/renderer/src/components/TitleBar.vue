@@ -85,6 +85,11 @@ onBeforeUnmount(() => {
   document.removeEventListener("mousedown", onTbDocClick);
 });
 
+function toggleChat() {
+  if (ui.chatPanelOpen) ui.closeChatPanel();
+  else ui.openChatPanelFor({ mode: "book" });
+}
+
 async function saveProject() {
   if (!jw?.project?.save) {
     alert("Save is only available in the Electron desktop build.");
@@ -179,6 +184,9 @@ async function openProject() {
       <span class="titlebar-divider" />
       <AiStatusButton />
       <span class="titlebar-divider" />
+      <button data-chat-toggle @click="toggleChat" :class="{ active: ui.chatPanelOpen }" v-tooltip.bottom="'Ask the book · ⌘J'">
+        <Icon name="Chat" :size="13" />
+      </button>
       <button @click="ui.toggleSidebar" v-tooltip.bottom="ui.sidebarCollapsed ? 'Expand sidebar' : 'Collapse sidebar'">
         <Icon name="SidebarToggle" :size="14" />
       </button>
@@ -200,6 +208,11 @@ async function openProject() {
 .titlebar-left button:disabled {
   opacity: 0.32;
   cursor: default;
+}
+.titlebar-right button.active {
+  background: var(--accent-soft);
+  color: var(--accent-ink);
+  box-shadow: inset 0 0 0 1px var(--accent-line);
 }
 
 /* Theme switcher dropdown */

@@ -80,6 +80,13 @@ const notesChapterId = ref("");
 // "chapter" → scroll to chapter-level section; a sceneId → scroll to
 // that scene's section. Set before opening the modal.
 const notesFocus = ref("chapter");
+function askTheBook() {
+  if (!ch.value) return;
+  ui.openChatPanelFor({
+    mode: "book",
+    question: `Tell me about chapter ${ch.value.num}${ch.value.title ? ` — "${ch.value.title}"` : ""}`,
+  });
+}
 const MODES = [
   { value: "edit",    label: "Edit",    icon: "Quote" },
   { value: "outline", label: "Outline", icon: "List" },
@@ -736,6 +743,10 @@ watch(() => project.allChapters.map((c) => c.id + ":" + (project.scenesFor(c.id)
       </template>
     </div>
     <div class="pane-actions">
+      <JwButton intent="ghost" size="small" data-chat-toggle @click="askTheBook"
+        v-tooltip.bottom="`Ask the book about chapter ${ch.num}`">
+        <Icon name="Chat" :size="14" /> Ask the book
+      </JwButton>
       <JwSegmented
         class="seg-toggle"
         :model-value="mode"

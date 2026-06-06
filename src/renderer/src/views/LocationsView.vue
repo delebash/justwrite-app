@@ -46,6 +46,13 @@ async function addLocation() {
   if (!name) return;
   const id = project.addLocation({ name }); ui.select("locations", id); router.push(`/locations/${id}`);
 }
+function askTheBook() {
+  if (!loc.value) return;
+  ui.openChatPanelFor({
+    mode: "book",
+    question: `Tell me about ${loc.value.name}`,
+  });
+}
 function deleteLocation() {
   project.removeLocation(loc.value.id);
   const next = project.locations[0];
@@ -124,7 +131,7 @@ function statusSeverity(id) {
 
 function onRowClick(event) {
   const id = event?.data?.id;
-  if (id) router.push(`/locations/${id}`);
+  if (id) { ui.select("locations", id); router.push(`/locations/${id}`); }
 }
 </script>
 
@@ -253,6 +260,10 @@ function onRowClick(event) {
           @input="update('name', $event.target.value)" />
       </div>
       <div class="pane-actions">
+        <JwButton intent="ghost" size="small" data-chat-toggle @click="askTheBook"
+          v-tooltip.bottom="`Ask the book about ${loc.name}`">
+          <Icon name="Chat" :size="14" /> Ask the book
+        </JwButton>
         <JwButton intent="ghost" size="small" @click="modal = 'images'"><Icon name="Image" :size="14" /> Images</JwButton>
         <router-link :to="`/locations/${loc.id}/events`" custom v-slot="{ navigate }">
           <JwButton intent="ghost" size="small" @click="navigate"><Icon name="Calendar" :size="14" /> Events</JwButton>

@@ -2,6 +2,8 @@
 
 Your "Story Bible" is everything that isn't manuscript prose — characters, places, things, factions, and the way they all connect to each other. JustWrite gives you a structured place for each of these, plus a graph that visualises how they're woven together.
 
+**Section landing pages.** Click any Story-bible section header in the sidebar (Characters / Locations / Objects / Groups / Strands / Worldbuilding) and you land on a sortable, searchable grid of every entry. Search across names, tags, and content; filter by status, type, or any in-use facet; click a row to open the detail page. Each detail page has an **Ask the book** button in the header that opens the chat panel with a question prefilled about that entity. The character page has a second button — **Talk to {Name}** — that opens the chat in first-person character mode with that character already selected.
+
 You do not need to fill every field. Many writers start with names alone and only fill in the rest when they need it. The point of the Story Bible is that it's there when you do.
 
 ---
@@ -15,7 +17,11 @@ The **Characters** view is your central file for every person (or creature) in y
 - **Name** — large serif heading; click to rename inline.
 - **Role** — a short label (e.g., "Detective", "Henchman").
 - **Main character toggle** — promotes them to the inner ring of the Relations graph. Use this for protagonists, not for everyone.
+- **Gender** — free text. Whatever fits your story — "Female", "Non-binary", "Dragon", "Unspecified". Flows into AI features that already use voice gender for casting and pronoun-aware generation.
+- **Pronouns** — free text (e.g., "she/her", "they/them", neopronouns, species-specific). Surfaced to every AI feature that builds a character profile so generated prose uses the right pronouns instead of guessing.
 - **Age** — numeric.
+- **Life status** — Alive · Deceased · Missing · Unknown. Useful when a character dies mid-book and you don't want AI features writing them as still alive in chapter 30.
+- **Aliases (a.k.a.)** — chips for the other names this character goes by. "Mr. Underhill" for Bilbo, "Iron Man" for Tony Stark, "the Witch" for Esme. Speaker attribution and the global search use this to disambiguate; "ask the character" and audits factor it in too.
 - **One-liner** — a single italic sentence that captures who they are.
 - **Avatar photo** — a 96 px circle. Drag any image file onto it to set or replace.
 - **Status pill** — a colour-coded label drawn from your project palette (Settings → Project → Statuses).
@@ -59,7 +65,9 @@ Private notes that never get exported. Use this for "I know they used to be a so
 
 The Motivation panel is a planning tool — you write down what your character wants, needs, believes, and discovers, and the next decision often falls out of the four boxes. The character-chat is a *discovery* tool: you put your character on the couch and ask them.
 
-Open the chat panel (sidebar's "Ask the book" toggle, or `Ctrl/⌘ + F`). The mode picker at the top has two options: **Ask the book** (the original RAG chat) and **Talk to a character**. Switch to the second; a character dropdown appears (main characters first, then the rest). Pick one and start asking.
+Open the chat panel (sidebar's "Ask the book" toggle, the **Chat** icon in the title bar, or `Ctrl/⌘ + J`). The mode picker at the top has two options: **Ask the book** (the original RAG chat) and **Talk to a character**. Switch to the second; a character dropdown appears (main characters first, then the rest). Pick one and start asking.
+
+Or skip the mode picker entirely: on any character's page, click **Talk to {Name}** in the header — the chat opens already in character mode with that character selected. The companion **Ask the book** button next to it opens book mode with the question prefilled ("Tell me about {Name}") so you can ask third-person questions about the same character without switching contexts.
 
 JustWrite builds the character's system prompt from everything you've put in their detail page — role, age, one-liner, voice (accent / vocabulary / speech tic / sample line), motivation (want / need / lie / truth), arc (beginning / midpoint / end), backstory, and any sample quotes you've stored. The model is told to **answer in first person, in voice**, using the retrieved scenes as their memory of what's happened. RAG retrieval pulls scenes biased toward the character's name; citations work the same way as Ask-the-book.
 

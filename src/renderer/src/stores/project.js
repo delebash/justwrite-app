@@ -1224,7 +1224,7 @@ export const useProjectStore = defineStore("project", {
     addCharacter(input = {}) {
       this._record("addCharacter");
       const id = uid("c");
-      this.characters.push({ id, main: false, age: null, oneLiner: "", role: "", name: "Untitled character", tags: [], ...input });
+      this.characters.push({ id, main: false, age: null, gender: "", pronouns: "", aliases: [], lifeStatus: "", oneLiner: "", role: "", name: "Untitled character", tags: [], ...input });
       this._persist();
       return id;
     },

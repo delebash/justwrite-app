@@ -2,7 +2,7 @@
 
 JustWrite uses AI for several features: writing assistance (the scene-strip AI dropdown — Rewrite, Expand, Tighten, Continue, Describe, plus Line edits), critique, entity sweeps, "Ask the book" chat, audiobook narration (TTS), and smart voice assignment. **None of them are required** — you can write an entire novel in JustWrite with zero AI calls.
 
-If you do want AI features, you choose the provider. JustWrite isn't locked to any vendor. It works with the OpenAI cloud, Anthropic Claude, any local model server that speaks the OpenAI protocol (Ollama, LM Studio, llama.cpp), and any TTS server that speaks the OpenAI audio protocol.
+If you do want AI features, you choose the provider. JustWrite isn't locked to any vendor. It works with anything that speaks the OpenAI chat-completions protocol — **cloud:** OpenAI, Anthropic Claude, Google Gemini, DeepSeek, OpenRouter (one key, every major model), or any other OpenAI-compatible endpoint; **local:** Ollama, LM Studio, llama.cpp, vLLM, or your own deployment. TTS works the same way — any server that speaks the OpenAI audio protocol.
 
 You can have several providers configured at once and route different features to different providers.
 
@@ -14,11 +14,11 @@ There are three kinds of provider you might set up:
 
 | Provider kind | What it does | Examples |
 |---|---|---|
-| **LLM** (chat) | Writing assistance, critique, entity sweeps, smart-cast | OpenAI, Anthropic Claude, Ollama, LM Studio |
-| **TTS** (text-to-speech) | Audiobook narration | OpenAI TTS, Kokoro, Chatterbox |
+| **LLM** (chat) | Writing assistance, critique, entity sweeps, smart-cast | OpenAI, Claude, Gemini, DeepSeek, OpenRouter, Ollama, LM Studio |
+| **TTS** (text-to-speech) | Audiobook narration | OpenAI TTS, Kokoro, Chatterbox, Speechmatics |
 | **Embedding** | "Ask the book" chat — indexes your manuscript for question answering | OpenAI embeddings, any local embedding model |
 
-A provider can speak more than one of these. **OpenAI**, for example, provides LLM + TTS + embeddings in one. **Anthropic** provides LLM only. **Ollama** provides LLM and embeddings (locally). **Kokoro** provides TTS only.
+A provider can speak more than one of these. **OpenAI**, for example, provides LLM + TTS + embeddings in one. **Anthropic**, **Google Gemini**, **DeepSeek**, and **OpenRouter** provide LLM only. **Ollama** provides LLM and embeddings (locally). **Kokoro** provides TTS only.
 
 ---
 
@@ -82,6 +82,42 @@ Excellent for writing tasks — particularly critique and longer prose work — 
 
 **When to pick Claude.** Long-form prose work, structural critique, anything where you want a model that handles nuance and length well. Many writers prefer Claude for critique even when they use OpenAI for everything else — set Claude as the routing for "Critique" in Settings.
 
+### Google Gemini (cloud)
+
+Gemini through Google's OpenAI-compatible endpoint. LLM only (no TTS). Long context window — useful for whole-manuscript reads.
+
+1. Get an API key from **aistudio.google.com**.
+2. **Add provider → Preset: Gemini (Google)**.
+3. Paste your key.
+4. The default model is `gemini-2.5-flash`. Swap to `gemini-2.5-pro` for harder tasks.
+5. **Test.** Save.
+
+**When to pick Gemini.** Large-context tasks where the whole manuscript needs to be in the prompt — reverse outline, plot-hole audit, full-book sweeps. Gemini's context window is generous compared to most peers.
+
+### DeepSeek (cloud)
+
+DeepSeek's native API speaks OpenAI shape. LLM only. Strong reasoning quality at a fraction of the cost of GPT-4-class models.
+
+1. Get an API key from **platform.deepseek.com**.
+2. **Add provider → Preset: DeepSeek**.
+3. Paste your key.
+4. The default model is `deepseek-chat` (V3). Switch to `deepseek-reasoner` (R1) for slower-but-stronger reasoning.
+5. **Test.** Save.
+
+**When to pick DeepSeek.** Routine writing assistance at low cost, or `deepseek-reasoner` for structural / critique work where you'd otherwise reach for Claude. Notably cheap per token.
+
+### OpenRouter (cloud aggregator)
+
+One API key, OpenAI-shaped, routes to virtually every major model on the market — Claude, Gemini, DeepSeek, Mistral, Llama, GPT, and dozens more. Useful as a "single key for everything" alternative to seeding each provider individually.
+
+1. Get an API key from **openrouter.ai**.
+2. **Add provider → Preset: OpenRouter (aggregator)**.
+3. Paste your key.
+4. Click **Fetch models** — the live catalogue populates the dropdown. Model ids take the form `vendor/model-name`, e.g. `anthropic/claude-sonnet-4-6`, `google/gemini-2.5-pro`, `meta-llama/llama-3.1-70b-instruct`.
+5. Pick a chat model. **Test.** Save.
+
+**When to pick OpenRouter.** You want to A/B several models without managing five separate API keys. Or you want a model that doesn't ship with a built-in preset (Mistral, Together, Fireworks, …) — OpenRouter probably proxies it. Routing per feature (Settings → Feature routing) lets you point Critique at Claude, Writer actions at DeepSeek, and Entity sweep at Gemini, all through one key.
+
 ### Ollama (local, free)
 
 Runs entire LLMs on your own computer. No API key, no monthly bill, no data leaving your machine.
@@ -141,6 +177,18 @@ A local TTS server that supports voice cloning — drop a reference voice clip i
 7. Save.
 
 **When to pick Chatterbox.** You want to narrate the book in a specific voice — your own, an actor's, the voice of a particular published audiobook. Drop a clip in, fetch, assign.
+
+### Speechmatics (cloud TTS)
+
+A cloud TTS preview — four English voices (2 UK, 2 US, male/female), WAV 16 kHz output. Free during preview; paid tier begins later.
+
+1. Sign up at **speechmatics.com** and get an API key.
+2. **Add provider → Preset: Speechmatics (cloud TTS)**.
+3. Paste your key.
+4. The four voices (`sarah`, `theo`, `megan`, `jack`) are already populated — no Fetch step needed.
+5. **Test.** Save.
+
+**When to pick Speechmatics.** Quick cloud narration with no local setup, English-only voices, during the preview window. For full multi-voice casting at scale, Kokoro or OpenAI TTS offer broader voice libraries.
 
 ### Web Speech (your operating system's voices)
 

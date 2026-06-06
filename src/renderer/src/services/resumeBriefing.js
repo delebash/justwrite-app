@@ -113,6 +113,10 @@ export function buildBriefingContext({ project, sessions, maxTailWords = 500 }) 
     .map((c) => ({
       name: c.name,
       role: c.role || "",
+      gender: c.gender || "",
+      pronouns: c.pronouns || "",
+      aliases: c.aliases || [],
+      lifeStatus: c.lifeStatus || "",
       oneLiner: c.oneLiner || "",
     }));
 
@@ -213,8 +217,9 @@ export function buildBriefingContext({ project, sessions, maxTailWords = 500 }) 
   if (activeChars.length) {
     lines.push("Active characters in or near this chapter:");
     for (const c of activeChars) {
-      const desc = [c.role, c.oneLiner].filter(Boolean).join(" — ");
-      lines.push(`- ${c.name}${desc ? `: ${desc}` : ""}`);
+      const desc = [c.role, c.gender, c.pronouns, c.lifeStatus, c.oneLiner].filter(Boolean).join(" — ");
+      const aka = (c.aliases || []).length ? ` (a.k.a. ${c.aliases.join(", ")})` : "";
+      lines.push(`- ${c.name}${aka}${desc ? `: ${desc}` : ""}`);
     }
     lines.push("");
   }

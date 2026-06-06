@@ -10,6 +10,8 @@ Two small but heavily-used surfaces.
 
 The **Notes** view (Planning section in the sidebar) is a scratch-pad. Each note is a single free-form rich-text document with a title and one optional tag.
 
+Click the Notes header in the sidebar and you land on a sortable, searchable table of every note — search across titles and tags, filter by anchor scope (story-wide / anchored to a chapter) or by tag, and click a row to open. Click a note in the sidebar tree to skip the list and jump straight to the editor.
+
 ### What's on the page
 
 - **Note list in the sidebar** — every note you've created. Click one to open.
@@ -38,6 +40,8 @@ If you find yourself writing free-form thoughts and they don't belong to a Chara
 > *"I've been doing all my research in a folder of Markdown files. I want to pull it into the project without retyping anything."*
 
 If you already have research, outlines, or scratch text in Word, Markdown, or plain text, the **Import** view's **Add notes** mode pulls it straight into the project. Each heading in the file becomes one note (a flat file becomes one). You can drop multiple files at once, set a tag for the whole batch, and pin every imported note to a specific chapter or scene in one shot. See [Import and export](import-and-export.md) for the details.
+
+For a quicker drop-in without the wizard, the Notes view itself has an **Import files** button in the header (and in the empty state). It accepts the same formats — `.docx`, `.txt`, `.md`, `.odt`, `.epub` — and you can multi-select. Each file becomes one note, or one note per heading if the file has them. The whole batch lands as a single undo step, so a regretted bulk import is one `Ctrl/⌘ + Z` away. Use this when you don't need the wizard's anchor / tag / scan options.
 
 ### Tagging
 

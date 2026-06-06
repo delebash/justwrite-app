@@ -116,7 +116,7 @@ export function buildIndex(project, speakers = null) {
       kind: "character",
       title: c.name,
       sub: c.role,
-      body: `${c.oneLiner || ""} ${extras}`.trim(),
+      body: `${c.gender || ""} ${c.pronouns || ""} ${(c.aliases || []).join(" ")} ${c.lifeStatus || ""} ${c.oneLiner || ""} ${extras}`.trim(),
       route: `/characters/${c.id}`,
     });
   }

@@ -129,7 +129,7 @@ export async function smartCast({ characters, voices, task, meta } = {}) {
   const cfg = ai.activeSettingsFor("smartCast") || {};
 
   const charList = characters
-    .map((c) => `- id=${c.id}, name="${c.name}", role="${c.role || ""}", description="${c.oneLiner || ""}"`)
+    .map((c) => `- id=${c.id}, name="${c.name}", role="${c.role || ""}", gender="${c.gender || ""}", pronouns="${c.pronouns || ""}", aliases="${(c.aliases || []).join(", ")}", description="${c.oneLiner || ""}"`)
     .join("\n");
   const voiceList = voices
     .map((v) => `- id="${v.id}", name="${v.name}", gender=${v.gender || "?"}, age=${v.age || "?"}, accent=${v.accent || "?"}, tone="${v.tone || ""}"`)

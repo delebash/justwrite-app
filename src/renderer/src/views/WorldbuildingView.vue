@@ -1,6 +1,7 @@
 <script setup>
 import { computed, ref } from "vue";
 import { useProjectStore } from "../stores/project.js";
+import { useUiStore } from "../stores/ui.js";
 import { useRouter } from "vue-router";
 import PaneHeader from "../components/PaneHeader.vue";
 import Icon from "../components/Icon.vue";
@@ -20,6 +21,7 @@ import JwCheckbox from "@renderer/components/ui/JwCheckbox.vue";
 
 const props = defineProps({ id: { type: String, default: "" } });
 const project = useProjectStore();
+const ui = useUiStore();
 const router = useRouter();
 const article = computed(() => props.id ? project.worldbuildingById(props.id) : null);
 const cat = computed(() => article.value ? project.worldbuildingCategories.find((c) => c.id === article.value.category) : null);
@@ -56,6 +58,13 @@ async function addArticle() {
   router.push(`/worldbuilding/${id}`);
 }
 
+function askTheBook() {
+  if (!article.value) return;
+  ui.openChatPanelFor({
+    mode: "book",
+    question: `Tell me about ${article.value.title}`,
+  });
+}
 function deleteArticle() {
   if (!article.value) return;
   project.removeWorldbuilding(article.value.id);
@@ -153,7 +162,7 @@ function statusSeverity(id) {
 
 function onRowClick(event) {
   const id = event?.data?.id;
-  if (id) router.push(`/worldbuilding/${id}`);
+  if (id) { ui.select("worldbuilding", id); router.push(`/worldbuilding/${id}`); }
 }
 </script>
 
@@ -276,6 +285,10 @@ function onRowClick(event) {
           :value="article.title" @input="update('title', $event.target.value)" />
       </div>
       <div class="pane-actions">
+        <JwButton intent="ghost" size="small" data-chat-toggle @click="askTheBook"
+          v-tooltip.bottom="`Ask the book about ${article.title}`">
+          <Icon name="Chat" :size="14" /> Ask the book
+        </JwButton>
         <JwButton label="Back" intent="ghost" size="small" @click="router.push('/worldbuilding')">
           <template #icon><Icon name="ChevRight" :size="12" style="transform:rotate(180deg)" /></template>
         </JwButton>

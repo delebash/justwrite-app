@@ -84,6 +84,8 @@ A segmented toggle at the top of the page switches between four modes. They show
 
 **Why a writer would care.** Outline is your planning lens — sketch chapter and scene titles before you write anything. Cards are your editing lens — physically arrange the order of scenes inside a chapter. Read is your reviewing lens — see what your prose actually sounds like without the formatting clutter. Most writers default to Edit and dip into the others as needed.
 
+An **Ask the book** button sits at the start of the chapter header's action row in all four modes. Click it and the chat panel opens with the question prefilled to the current chapter ("Tell me about chapter 12 — '…'"). Useful for mid-revision questions like "what foreshadowing have I already laid in this chapter?" or "summarise what just happened" without leaving the editor. The same button is available everywhere — the **Chat** icon in the title bar is the global entry, `Ctrl/⌘ + J` toggles the panel from anywhere.
+
 ### The Outline tree
 
 In Outline mode you can:

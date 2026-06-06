@@ -86,6 +86,10 @@ function buildProfile(character, extras) {
   const parts = [];
   parts.push(character.name || "");
   if (character.role) parts.push(`Role: ${character.role}`);
+  if (character.gender) parts.push(`Gender: ${character.gender}`);
+  if (character.pronouns) parts.push(`Pronouns: ${character.pronouns}`);
+  if (character.lifeStatus) parts.push(`Life status: ${character.lifeStatus}`);
+  if ((character.aliases || []).length) parts.push(`Also known as: ${character.aliases.join(", ")}`);
   if (character.oneLiner) parts.push(`One-liner: ${character.oneLiner}`);
   if (extras?.motivation?.want) parts.push(`Wants: ${extras.motivation.want}`);
   if (extras?.motivation?.need) parts.push(`Needs: ${extras.motivation.need}`);

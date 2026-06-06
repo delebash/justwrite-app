@@ -13,7 +13,7 @@ The difference is structural: Architecture is **three permanent slots**, always 
 
 > *"I'm three chapters in and I already can't remember what I decided about the magic system or why the protagonist is on the road. I need one place to write down the bones of this book before I forget them."*
 
-The **Architecture** view (Manuscript section in the sidebar) houses three documents that every book gets:
+The **Architecture** view (Manuscript section in the sidebar) houses three documents that every book gets. Clicking the section header in the sidebar lands you on a list of all three (Premise / Fabula / Setting) with status at a glance; click a row to edit. The detail header has an **Ask the book** button that opens the chat panel pre-asking about that document — useful for "summarise my premise" or "does the manuscript match the fabula I wrote here?" queries.
 
 ### The three documents
 
@@ -107,6 +107,7 @@ When you click into an article:
 - **Summary** — a short italic one-liner that appears in the list view's title column.
 - **Tag editor** — multi-tag with typeahead from all tags in use across worldbuilding.
 - **Rich-text body** — the full editor toolbar (headings, bold, italic, lists, images, tables, links).
+- **Ask the book** button in the header — opens the chat panel with the question prefilled ("Tell me about {title}") so you can interrogate the manuscript about this article without re-typing it.
 
 ### How to use the category system
 

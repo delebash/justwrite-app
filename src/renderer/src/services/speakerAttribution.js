@@ -288,7 +288,7 @@ export function buildAnchors(segmented, characters) {
 export function formatCharacterList(characters) {
   if (!characters?.length) return "(no characters configured in this project)";
   return characters
-    .map((c) => `- id=${c.id}, name="${c.name}", role="${c.role || ""}"`)
+    .map((c) => `- id=${c.id}, name="${c.name}", role="${c.role || ""}", gender="${c.gender || ""}", pronouns="${c.pronouns || ""}", aliases="${(c.aliases || []).join(", ")}"`)
     .join("\n");
 }
 

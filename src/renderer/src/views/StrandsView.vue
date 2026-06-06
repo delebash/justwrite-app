@@ -6,8 +6,11 @@ import { useUiStore } from "../stores/ui.js";
 import PaneHeader from "../components/PaneHeader.vue";
 import Icon from "../components/Icon.vue";
 import JwButton from "@renderer/components/ui/JwButton.vue";
+import JwInput from "@renderer/components/ui/JwInput.vue";
 import JwSelect from "@renderer/components/ui/JwSelect.vue";
 import JwTextarea from "@renderer/components/ui/JwTextarea.vue";
+import JwTag from "@renderer/components/ui/JwTag.vue";
+import JwTable from "@renderer/components/ui/JwTable.vue";
 import RichEditor from "../components/RichEditor.vue";
 import { EDITOR_TOOLBAR_DOC } from "../services/editorToolbars.js";
 import StatusSelect from "../components/StatusSelect.vue";
@@ -24,10 +27,7 @@ const ui = useUiStore();
 const router = useRouter();
 const modal = ref(null);
 
-// Show one strand at a time — selected from the route param, falling
-// back to the sidebar selection, then the first strand.
-const s = computed(() =>
-  project.strandById(props.id || ui.selections.strands) || project.strands[0]);
+const s = computed(() => props.id ? project.strandById(props.id) : null);
 
 const BEAT_PRESETS = [
   "Inciting", "First turn", "Midpoint",
@@ -35,8 +35,6 @@ const BEAT_PRESETS = [
   "Setup", "Reveal", "Setback", "Refusal",
 ];
 
-// Scenes whose Links → Strands selection includes this strand.
-// Each row also carries its parent chapter so we can label/navigate.
 const scenesInStrand = computed(() => {
   if (!s.value) return [];
   const out = [];
@@ -69,8 +67,6 @@ function update(k, v) { project.updateStrand(s.value.id, { [k]: v }); }
 function updateBeat(beatId, k, v) { project.updateStrandBeat(s.value.id, beatId, { [k]: v }); }
 function removeBeat(beatId) { project.removeStrandBeat(s.value.id, beatId); }
 
-// Each scene picker option encodes both chapter and scene in one string
-// ("chapterId::sceneId") so a flat <select> can drive both fields at once.
 const sceneOptions = computed(() => {
   const out = [];
   for (const c of project.allChapters) {
@@ -119,6 +115,13 @@ async function addStrand() {
   router.push(`/strands/${id}`);
 }
 
+function askTheBook() {
+  if (!s.value) return;
+  ui.openChatPanelFor({
+    mode: "book",
+    question: `Tell me about the narrative strand "${s.value.name}"`,
+  });
+}
 function deleteStrand() {
   const removedId = s.value.id;
   project.removeStrand(removedId);
@@ -163,8 +166,6 @@ async function addBeat() {
   });
 }
 
-// Sort beats by (chapter order, scene index) so the list reads
-// top-to-bottom in story order, finer-grained than chapter alone.
 const sortedBeats = computed(() => {
   if (!s.value) return [];
   const chOrder = new Map(project.allChapters.map((c, i) => [c.id, i]));
@@ -181,136 +182,297 @@ const sortedBeats = computed(() => {
     return sceneIdx(a) - sceneIdx(b);
   });
 });
+
+// ── List mode ────────────────────────────────────────────────────────
+const rows = computed(() => project.strands);
+
+const globalQuery = ref("");
+const selectedStatus = ref(null);
+
+function onGlobalInput(e) { globalQuery.value = e.target.value; }
+function clearAllFilters() {
+  globalQuery.value = "";
+  selectedStatus.value = null;
+}
+
+const statusOptions = computed(() =>
+  project.statuses.map((s) => ({ value: s.id, label: s.label })),
+);
+
+const filteredRows = computed(() => {
+  const rs = rows.value;
+  if (!selectedStatus.value) return rs;
+  return rs.filter((r) => r.status === selectedStatus.value);
+});
+
+const hasActiveFacets = computed(() => !!selectedStatus.value);
+
+function scenesCountFor(strandId) {
+  let count = 0;
+  for (const ch of project.allChapters) {
+    for (const scn of project.scenesFor(ch.id)) {
+      if ((scn.strands || []).includes(strandId)) count++;
+    }
+  }
+  return count;
+}
+
+const columns = [
+  { accessorKey: "name",   header: "Name",   sortable: true, headerStyle: "min-width: 200px" },
+  { accessorKey: "beats",  header: "Beats",  sortable: true, headerStyle: "min-width: 80px" },
+  { accessorKey: "scenes", header: "Scenes", sortable: true, headerStyle: "min-width: 80px" },
+  { accessorKey: "status", header: "Status", sortable: true, headerStyle: "min-width: 120px" },
+];
+
+function statusLabel(id) { return project.statusById(id)?.label || id || ""; }
+function statusSeverity(id) {
+  if (id === "done")   return "success";
+  if (id === "revise") return "accent2";
+  if (id === "draft")  return "info";
+  if (id === "todo")   return "secondary";
+  return "secondary";
+}
+
+function onRowClick(event) {
+  const id = event?.data?.id;
+  if (id) { ui.select("strands", id); router.push(`/strands/${id}`); }
+}
+
+const tableRows = computed(() =>
+  filteredRows.value.map((r) => ({
+    ...r,
+    beats: (r.beats || []).length,
+    scenes: scenesCountFor(r.id),
+  })),
+);
 </script>
 
 <template>
-  <header class="pane-header strand-pane-header">
-    <div class="pane-title">
-      <Breadcrumb :segments="[{ label: 'Narrative strand', to: '/strands' }]" />
-      <div v-if="s" class="strand-name-row">
-        <span v-if="s.color" class="strand-name-dot" :style="{ background: s.color }" :title="s.color" />
-        <input class="strand-name"
-          :value="s.name"
-          placeholder="Narrative strand name"
-          @input="update('name', $event.target.value)" />
+  <!-- ── List mode (no id in URL) ─────────────────────────────── -->
+  <template v-if="!s && !id">
+    <PaneHeader :title="$t('nav.strands')">
+      <JwButton label="New narrative strand" intent="primary" size="small" @click="addStrand">
+        <template #icon><Icon name="Plus" :size="14" /></template>
+      </JwButton>
+    </PaneHeader>
+
+    <div v-if="project.strands.length === 0" class="pane-card" style="display:grid;place-items:center;padding:60px">
+      <div class="t-muted" style="text-align:center">
+        No narrative strands yet.<br />
+        <JwButton intent="primary" style="margin-top:14px" @click="addStrand"><Icon name="Plus" :size="14" /> Create your first narrative strand</JwButton>
       </div>
-      <h1 v-else class="pane-h1">Narrative strands</h1>
     </div>
-    <div class="pane-actions">
-      <JwButton v-if="s" intent="ghost" size="small" @click="modal = 'groups'"><Icon name="GroupIcon" :size="14" /> Groups</JwButton>
-      <JwButton v-if="s" intent="ghost" size="small" @click="deleteStrand">Delete</JwButton>
-      <JwButton intent="primary" size="small" @click="addStrand"><Icon name="Plus" :size="14" /> New narrative strand</JwButton>
-      <StatusSelect v-if="s" :model-value="s.status || ''" @update:model-value="(v) => update('status', v)" />
-    </div>
-  </header>
 
-  <div v-if="!s" class="pane-card">
-    <div class="strand-empty scrollarea">
-      No narrative strands yet. Click <strong>New narrative strand</strong> to add one.
-    </div>
-  </div>
+    <div v-else class="pane-card">
+      <div class="scrollarea" style="padding:18px 22px 40px">
+        <div class="strands-toolbar">
+          <span class="strands-search">
+            <Icon name="Search" :size="13" class="strands-search-icon" />
+            <JwInput
+              :value="globalQuery"
+              placeholder="Search narrative strands…"
+              @input="onGlobalInput"
+              class="strands-search-input"
+            />
+          </span>
+          <JwButton v-if="globalQuery || hasActiveFacets" label="Clear filters" intent="ghost" size="small" @click="clearAllFilters" />
+          <span class="strands-count">{{ filteredRows.length }} of {{ rows.length }}</span>
+        </div>
 
-  <div v-else class="pane-card">
-    <div class="strand-body">
-          <p class="strand-desc">
-            A <strong>narrative strand</strong> is a thread that runs through your manuscript —
-            the main plot, a subplot, a character arc, a thematic spine. Write your synopsis
-            and notes below; add <strong>beats</strong> to mark where the thread turns; tag
-            scenes with this strand via each scene's <strong>Links</strong> panel. Strand
-            membership also feeds the <strong>Relations</strong> graph.
-          </p>
-          <JwTextarea class="strand-blurb"
-            :model-value="s.blurb || ''"
-            placeholder="What is this narrative strand about? (One or two sentences)"
-            :rows="2"
-            auto-resize
-            @update:model-value="(v) => update('blurb', v)" />
-
-          <div class="strand-meta-row">
-            <div class="strand-color-picker">
-              <span class="t-eyebrow" style="font-size:10px;color:var(--muted)">Color</span>
-              <JwColorPicker
-                :model-value="s.color"
-                aria-label="Strand color"
-                @update:model-value="update('color', $event)" />
-            </div>
-            <span class="strand-count">
-              {{ scenesInStrand.length }} scene{{ scenesInStrand.length === 1 ? "" : "s" }}
-            </span>
-          </div>
-
-          <RichEditor
-            :model-value="s.body || ''"
-            placeholder="Write the narrative strand in detail — synopsis, character arcs, beats in prose, anything you want to remember…"
-            variant="inline"
-            :toolbar="EDITOR_TOOLBAR_DOC"
-            :fill="true"
-            @change="(html) => update('body', html)"
-          />
-
-          <div class="strand-below">
-          <!-- Beats — turning points pinned to chapters -->
-          <div class="beats-section">
-            <div class="beats-head">
-              <span class="beats-title">Beats</span>
-              <JwButton intent="ghost" size="small" @click="addBeat">
-                <Icon name="Plus" :size="11" /> Add beat
-              </JwButton>
-            </div>
-
-            <div v-if="(s.beats || []).length === 0" class="beats-empty">
-              No beats yet. Add Inciting / Midpoint / Climax-style turning points so you can see where this narrative strand pays off.
-            </div>
-            <div v-else class="beats-list">
-              <div v-for="b in sortedBeats" :key="b.id" class="beat-row">
-                <button class="beat-chapter"
-                  :class="{ missing: !chapterById(b.chapterId) }"
-                  :aria-label="`Go to ${sceneRefLabel(b)}`"
-                  @click="goBeat(b)">
-                  <span v-if="chapterById(b.chapterId)" class="status-dot" :class="beatSceneStatus(b)" />
-                  <span class="beat-chapter-text">{{ sceneRefLabel(b) }}</span>
-                </button>
-                <div class="beat-body">
-                  <input class="beat-label"
-                    :value="b.label"
-                    placeholder="Beat label (e.g. Midpoint)"
-                    list="beat-presets"
-                    @input="updateBeat(b.id, 'label', $event.target.value)" />
-                  <input class="beat-note"
-                    :value="b.note || ''"
-                    placeholder="Note (optional)"
-                    @input="updateBeat(b.id, 'note', $event.target.value)" />
-                </div>
-                <JwSelect class="beat-rechapter"
-                  :model-value="beatRefValue(b)"
-                  v-tooltip.bottom="'Reassign to a different scene'"
-                  @update:model-value="(v) => setBeatRef(b.id, v)"
-                  :options="[{ label: '(no scene)', value: '' }, ...sceneOptions]" />
-                <JwButton intent="ghost" size="small" class="beat-delete" aria-label="Remove beat" v-tooltip.bottom="'Remove beat'" @click="removeBeat(b.id)">
-                  <Icon name="Trash" :size="14" />
-                </JwButton>
-              </div>
-            </div>
-          </div>
-
-          <!-- Scenes linked to this strand (via the scene Links page) -->
-          <div style="margin-top:22px">
-            <div class="t-eyebrow" style="margin-bottom:10px">Appears in scenes</div>
-            <SceneRefList field="strands" :entity-id="s.id"
-              empty-text="No scenes linked to this narrative strand yet. Open a scene → Links → Narrative strands to add one." />
-          </div>
+        <div class="strands-facets" v-if="statusOptions.length">
+          <div class="strands-facet">
+            <span class="strands-facet-label">Status</span>
+            <button class="strands-chip" :class="{ active: selectedStatus === null }" @click="selectedStatus = null">All</button>
+            <button v-for="st in statusOptions" :key="st.value"
+              class="strands-chip" :class="{ active: selectedStatus === st.value }"
+              @click="selectedStatus = selectedStatus === st.value ? null : st.value">
+              {{ st.label }}
+            </button>
           </div>
         </div>
 
-    <!-- Shared datalist of preset beat labels for autocomplete on every input. -->
-    <datalist id="beat-presets">
-      <option v-for="preset in BEAT_PRESETS" :key="preset" :value="preset" />
-    </datalist>
-  </div>
+        <JwTable
+          :data="tableRows"
+          :columns="columns"
+          data-key="id"
+          row-hover
+          :global-filter="globalQuery"
+          :global-filter-fields="['name', 'blurb']"
+          :pagination="{ pageSize: 20, pageSizeOptions: [10, 20, 50, 100] }"
+          class="strands-table"
+          @row-click="onRowClick"
+        >
+          <template #empty>
+            <div class="strands-empty">No narrative strands match your search.</div>
+          </template>
 
-  <GroupsModal v-if="s && modal === 'groups'"
-    :entity-id="s.id" :entity-name="s.name" entity-kind="strand"
-    @close="modal = null" />
+          <template #name="{ row }">
+            <div class="strands-cell-title">
+              <span v-if="row.color" class="strand-name-dot" :style="{ background: row.color }" />
+              <span class="strands-cell-title-text">{{ row.name }}</span>
+            </div>
+          </template>
+
+          <template #beats="{ row }">
+            <span class="strands-num">{{ row.beats }}</span>
+          </template>
+
+          <template #scenes="{ row }">
+            <span class="strands-num">{{ row.scenes }}</span>
+          </template>
+
+          <template #status="{ row }">
+            <JwTag v-if="row.status" :value="statusLabel(row.status)" :intent="statusSeverity(row.status)" />
+            <span v-else class="strands-status-empty">—</span>
+          </template>
+        </JwTable>
+      </div>
+    </div>
+  </template>
+
+  <!-- ── Detail mode (id present, strand found) ───────────────── -->
+  <template v-else-if="s">
+    <header class="pane-header strand-pane-header">
+      <div class="pane-title">
+        <Breadcrumb :segments="[{ label: 'Narrative strand', to: '/strands' }]" />
+        <div class="strand-name-row">
+          <span v-if="s.color" class="strand-name-dot" :style="{ background: s.color }" :title="s.color" />
+          <input class="strand-name"
+            :value="s.name"
+            placeholder="Narrative strand name"
+            @input="update('name', $event.target.value)" />
+        </div>
+      </div>
+      <div class="pane-actions">
+        <JwButton intent="ghost" size="small" data-chat-toggle @click="askTheBook"
+          v-tooltip.bottom="`Ask the book about ${s.name}`">
+          <Icon name="Chat" :size="14" /> Ask the book
+        </JwButton>
+        <JwButton intent="ghost" size="small" @click="modal = 'groups'"><Icon name="GroupIcon" :size="14" /> Groups</JwButton>
+        <JwButton intent="ghost" size="small" @click="deleteStrand">Delete</JwButton>
+        <JwButton intent="primary" size="small" @click="addStrand"><Icon name="Plus" :size="14" /> New narrative strand</JwButton>
+        <StatusSelect :model-value="s.status || ''" @update:model-value="(v) => update('status', v)" />
+      </div>
+    </header>
+
+    <div class="pane-card">
+      <div class="strand-body">
+            <p class="strand-desc">
+              A <strong>narrative strand</strong> is a thread that runs through your manuscript —
+              the main plot, a subplot, a character arc, a thematic spine. Write your synopsis
+              and notes below; add <strong>beats</strong> to mark where the thread turns; tag
+              scenes with this strand via each scene's <strong>Links</strong> panel. Strand
+              membership also feeds the <strong>Relations</strong> graph.
+            </p>
+            <JwTextarea class="strand-blurb"
+              :model-value="s.blurb || ''"
+              placeholder="What is this narrative strand about? (One or two sentences)"
+              :rows="2"
+              auto-resize
+              @update:model-value="(v) => update('blurb', v)" />
+
+            <div class="strand-meta-row">
+              <div class="strand-color-picker">
+                <span class="t-eyebrow" style="font-size:10px;color:var(--muted)">Color</span>
+                <JwColorPicker
+                  :model-value="s.color"
+                  aria-label="Strand color"
+                  @update:model-value="update('color', $event)" />
+              </div>
+              <span class="strand-count">
+                {{ scenesInStrand.length }} scene{{ scenesInStrand.length === 1 ? "" : "s" }}
+              </span>
+            </div>
+
+            <RichEditor
+              :model-value="s.body || ''"
+              placeholder="Write the narrative strand in detail — synopsis, character arcs, beats in prose, anything you want to remember…"
+              variant="inline"
+              :toolbar="EDITOR_TOOLBAR_DOC"
+              :fill="true"
+              @change="(html) => update('body', html)"
+            />
+
+            <div class="strand-below">
+            <div class="beats-section">
+              <div class="beats-head">
+                <span class="beats-title">Beats</span>
+                <JwButton intent="ghost" size="small" @click="addBeat">
+                  <Icon name="Plus" :size="11" /> Add beat
+                </JwButton>
+              </div>
+
+              <div v-if="(s.beats || []).length === 0" class="beats-empty">
+                No beats yet. Add Inciting / Midpoint / Climax-style turning points so you can see where this narrative strand pays off.
+              </div>
+              <div v-else class="beats-list">
+                <div v-for="b in sortedBeats" :key="b.id" class="beat-row">
+                  <button class="beat-chapter"
+                    :class="{ missing: !chapterById(b.chapterId) }"
+                    :aria-label="`Go to ${sceneRefLabel(b)}`"
+                    @click="goBeat(b)">
+                    <span v-if="chapterById(b.chapterId)" class="status-dot" :class="beatSceneStatus(b)" />
+                    <span class="beat-chapter-text">{{ sceneRefLabel(b) }}</span>
+                  </button>
+                  <div class="beat-body">
+                    <input class="beat-label"
+                      :value="b.label"
+                      placeholder="Beat label (e.g. Midpoint)"
+                      list="beat-presets"
+                      @input="updateBeat(b.id, 'label', $event.target.value)" />
+                    <input class="beat-note"
+                      :value="b.note || ''"
+                      placeholder="Note (optional)"
+                      @input="updateBeat(b.id, 'note', $event.target.value)" />
+                  </div>
+                  <JwSelect class="beat-rechapter"
+                    :model-value="beatRefValue(b)"
+                    v-tooltip.bottom="'Reassign to a different scene'"
+                    @update:model-value="(v) => setBeatRef(b.id, v)"
+                    :options="[{ label: '(no scene)', value: '' }, ...sceneOptions]" />
+                  <JwButton intent="ghost" size="small" class="beat-delete" aria-label="Remove beat" v-tooltip.bottom="'Remove beat'" @click="removeBeat(b.id)">
+                    <Icon name="Trash" :size="14" />
+                  </JwButton>
+                </div>
+              </div>
+            </div>
+
+            <div style="margin-top:22px">
+              <div class="t-eyebrow" style="margin-bottom:10px">Appears in scenes</div>
+              <SceneRefList field="strands" :entity-id="s.id"
+                empty-text="No scenes linked to this narrative strand yet. Open a scene → Links → Narrative strands to add one." />
+            </div>
+            </div>
+          </div>
+
+      <datalist id="beat-presets">
+        <option v-for="preset in BEAT_PRESETS" :key="preset" :value="preset" />
+      </datalist>
+    </div>
+
+    <GroupsModal v-if="modal === 'groups'"
+      :entity-id="s.id" :entity-name="s.name" entity-kind="strand"
+      @close="modal = null" />
+  </template>
+
+  <!-- ── id in URL but strand not found ───────────────────────── -->
+  <template v-else>
+    <header class="pane-header strand-pane-header">
+      <div class="pane-title">
+        <Breadcrumb :segments="[{ label: 'Narrative strand', to: '/strands' }]" />
+        <h1 class="pane-h1">Narrative strand not found</h1>
+      </div>
+      <div class="pane-actions">
+        <JwButton intent="primary" size="small" @click="addStrand"><Icon name="Plus" :size="14" /> New narrative strand</JwButton>
+      </div>
+    </header>
+    <div class="pane-card" style="display:grid;place-items:center;padding:60px">
+      <div class="t-muted" style="text-align:center">
+        This narrative strand no longer exists.<br />
+        <JwButton intent="ghost" style="margin-top:14px" @click="router.push('/strands')">Back to strands</JwButton>
+      </div>
+    </div>
+  </template>
 </template>
 
 <style scoped>
@@ -320,28 +482,14 @@ const sortedBeats = computed(() => {
 }
 .strand-desc strong { color: var(--ink-2); font-weight: 600; }
 
-.strand-empty {
-  padding: 60px 20px;
-  text-align: center;
-  color: var(--muted);
-  font-style: italic;
-  font-size: 13.5px;
-}
-
 .strand-body {
   flex: 1; min-width: 0; min-height: 0;
   display: flex; flex-direction: column; gap: 12px;
   padding: 22px 26px 40px;
 }
-/* The editor and the content below it split the card's remaining height;
-   each scrolls on its own so neither pushes the other off-screen. */
 .strand-below {
   flex: 1; min-height: 0;
   overflow-y: auto;
-}
-
-.strand-head {
-  display: flex; align-items: flex-start; gap: 14px;
 }
 
 .strand-pane-header .pane-title { gap: 2px; }
@@ -504,43 +652,58 @@ const sortedBeats = computed(() => {
 .beat-delete { color: var(--muted); width: 24px; height: 24px; padding: 4px; }
 .beat-delete:hover { color: var(--danger); background: var(--surface-3); }
 
-.strand-chapters {
-  display: flex; flex-wrap: wrap; gap: 5px; align-items: center;
-  padding-top: 8px;
-  border-top: 1px dashed var(--border-soft);
+/* ── List view ─────────────────────────────────────────────────── */
+.strands-toolbar {
+  display: flex; align-items: center; gap: 10px;
+  margin-bottom: 14px;
 }
-.strand-chapters-label {
-  font-size: 10.5px; font-weight: 600;
-  text-transform: uppercase; letter-spacing: 0.08em;
+.strands-search {
+  position: relative; flex: 1; max-width: 360px;
+}
+.strands-search-icon {
+  position: absolute; left: 10px; top: 50%;
+  transform: translateY(-50%);
+  color: var(--muted); pointer-events: none;
+}
+.strands-search-input { width: 100%; padding-left: 30px !important; }
+.strands-count { margin-left: auto; font-family: var(--font-mono); font-size: 11px; color: var(--muted); font-variant-numeric: tabular-nums; }
+
+.strands-facets {
+  display: flex; flex-direction: column;
+  gap: 8px;
+  padding: 10px 0 14px;
+}
+.strands-facet { display: flex; align-items: center; gap: 6px; flex-wrap: wrap; }
+.strands-facet-label {
+  font-family: var(--font-mono);
+  font-size: 10px;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
   color: var(--muted);
-  margin-right: 4px;
+  min-width: 64px;
 }
-.strand-chap {
-  appearance: none; border: 1px solid var(--border);
-  background: var(--surface-2);
-  border-radius: 6px;
-  padding: 3px 8px;
-  display: inline-flex; align-items: center; gap: 5px;
-  font: inherit;
-  font-size: 11.5px;
+.strands-chip {
+  appearance: none;
+  background: transparent;
+  border: 1px solid var(--border);
   color: var(--ink-2);
-  max-width: 240px;
-  cursor: default;
+  padding: 3px 9px;
+  border-radius: 999px;
+  font: 500 11.5px/1.4 var(--font-ui);
+  cursor: pointer;
+  transition: background-color .12s, border-color .12s, color .12s;
 }
-.strand-chap:hover { background: var(--surface-3); color: var(--ink); border-color: var(--border-strong); }
-.strand-chap-num {
-  font-variant-numeric: tabular-nums;
-  color: var(--muted);
-}
-.strand-chap-title {
-  overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+.strands-chip:hover { background: var(--surface-3); border-color: var(--border-strong); }
+.strands-chip.active {
+  background: var(--accent-soft);
+  border-color: var(--accent-line);
+  color: var(--accent-ink);
 }
 
-.strand-chapters-empty {
-  font-size: 11.5px;
-  color: var(--muted);
-  font-style: italic;
-  padding-top: 8px;
-  border-top: 1px dashed var(--border-soft);
-}
+.strands-table { font-size: 13px; }
+.strands-cell-title { display: flex; align-items: center; gap: 7px; cursor: pointer; }
+.strands-cell-title-text { font-family: var(--font-serif); font-size: 14px; color: var(--ink); }
+.strands-num { font-family: var(--font-mono); font-size: 12px; color: var(--ink-2); font-variant-numeric: tabular-nums; }
+.strands-status-empty { color: var(--muted); }
+.strands-empty { padding: 28px; text-align: center; color: var(--muted); font-style: italic; }
 </style>

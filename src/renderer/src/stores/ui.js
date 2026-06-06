@@ -91,6 +91,10 @@ export const useUiStore = defineStore("ui", {
       // Manuscript chat panel (RAG). Single boolean; the panel itself
       // owns its question/answer state.
       chatPanelOpen: false,
+      // When set, the next ChatPanel open should pre-scope to this target
+      // before clearing itself. Shape: { mode: 'book' | 'character',
+      // characterId?, question?, ts }
+      chatRequestedTarget: null,
       // "Previously on your novel" briefing — generated on Home when the
       // writer returns. Cache survives reloads so same-day reopens reuse
       // the same briefing instead of re-billing the LLM. Dismissal is
@@ -179,6 +183,15 @@ export const useUiStore = defineStore("ui", {
     openChatPanel()  { this.chatPanelOpen = true; },
     closeChatPanel() { this.chatPanelOpen = false; },
     toggleChatPanel() { this.chatPanelOpen = !this.chatPanelOpen; },
+    openChatPanelFor(target) {
+      this.chatRequestedTarget = { ...target, ts: Date.now() };
+      this.chatPanelOpen = true;
+    },
+    consumeChatRequestedTarget() {
+      const t = this.chatRequestedTarget;
+      this.chatRequestedTarget = null;
+      return t;
+    },
 
     // ── Resume-from-here briefing ────────────────────────────────────
     setBriefing(payload) {

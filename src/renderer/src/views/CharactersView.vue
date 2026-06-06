@@ -10,6 +10,7 @@ import JwTextarea from "@renderer/components/ui/JwTextarea.vue";
 import JwCheckbox from "@renderer/components/ui/JwCheckbox.vue";
 import JwNumber from "@renderer/components/ui/JwNumber.vue";
 import JwButton from "@renderer/components/ui/JwButton.vue";
+import JwSelect from "@renderer/components/ui/JwSelect.vue";
 import JwTag from "@renderer/components/ui/JwTag.vue";
 import JwTable from "@renderer/components/ui/JwTable.vue";
 import ImagesModal from "../components/ImagesModal.vue";
@@ -47,6 +48,14 @@ const MOTIVATIONS = [
   { k: "truth", label: "Truth they meet",  color: "var(--trait-truth-ink)", bg: "var(--trait-truth-bg)" },
 ];
 const ARC_STEPS = [{ k: "start", label: "Beginning" }, { k: "midpoint", label: "Midpoint" }, { k: "end", label: "End" }];
+const LIFE_STATUS_OPTIONS = [
+  { value: "",          label: "Life status…" },
+  { value: "alive",     label: "Alive" },
+  { value: "deceased",  label: "Deceased" },
+  { value: "missing",   label: "Missing" },
+  { value: "unknown",   label: "Unknown" },
+];
+const LIFE_STATUS_LABEL = Object.fromEntries(LIFE_STATUS_OPTIONS.map((o) => [o.value, o.label]));
 
 async function addCharacter() {
   const name = await promptDialog(NEW_ENTITY_META.characters);
@@ -61,6 +70,18 @@ function deleteCharacter() {
   if (next) { ui.select("characters", next.id); router.push(`/characters/${next.id}`); } else router.push("/characters");
 }
 function updateField(k, v) { project.updateCharacter(ch.value.id, { [k]: v }); }
+
+function talkToCharacter() {
+  if (!ch.value?.id) return;
+  ui.openChatPanelFor({ mode: "character", characterId: ch.value.id });
+}
+function askTheBook() {
+  if (!ch.value) return;
+  ui.openChatPanelFor({
+    mode: "book",
+    question: `Tell me about ${ch.value.name}`,
+  });
+}
 
 // ── Avatar / image drop ─────────────────────────────────────────────
 const characterImages = computed(() => project.imagesFor(ch.value?.id));
@@ -129,6 +150,11 @@ const tagPool = computed(() => {
   for (const c of project.characters) for (const t of (c.tags || [])) out.push(t);
   return out;
 });
+const aliasPool = computed(() => {
+  const out = [];
+  for (const c of project.characters) for (const a of (c.aliases || [])) out.push(a);
+  return out;
+});
 
 // ── List mode: table + facets ────────────────────────────────────────
 // Each row gets the avatar image record resolved for rendering in the Name cell.
@@ -145,6 +171,8 @@ const rows = computed(() =>
 const globalQuery = ref("");
 const selectedStatus = ref(null);
 const selectedMain = ref(null);   // null = All, true = Yes, false = No
+const selectedGender = ref(null);
+const selectedLifeStatus = ref(null);
 const selectedTags = ref(new Set());
 
 function onGlobalInput(e) { globalQuery.value = e.target.value; }
@@ -157,12 +185,19 @@ function clearAllFilters() {
   globalQuery.value = "";
   selectedStatus.value = null;
   selectedMain.value = null;
+  selectedGender.value = null;
+  selectedLifeStatus.value = null;
   selectedTags.value = new Set();
 }
 
 const statusOptions = computed(() =>
   project.statuses.map((s) => ({ value: s.id, label: s.label })),
 );
+const allGenders = computed(() => {
+  const set = new Set();
+  for (const c of project.characters) if (c.gender) set.add(c.gender);
+  return [...set].sort();
+});
 const allTags = computed(() => {
   const set = new Set();
   for (const c of project.characters) for (const t of (c.tags || [])) set.add(t);
@@ -171,10 +206,12 @@ const allTags = computed(() => {
 
 const filteredRows = computed(() => {
   const rs = rows.value;
-  if (selectedStatus.value === null && selectedMain.value === null && selectedTags.value.size === 0) return rs;
+  if (selectedStatus.value === null && selectedMain.value === null && selectedGender.value === null && selectedLifeStatus.value === null && selectedTags.value.size === 0) return rs;
   return rs.filter((r) => {
     if (selectedStatus.value !== null && r.status !== selectedStatus.value) return false;
     if (selectedMain.value !== null && !!r.main !== selectedMain.value) return false;
+    if (selectedGender.value !== null && r.gender !== selectedGender.value) return false;
+    if (selectedLifeStatus.value !== null && (r.lifeStatus || "") !== selectedLifeStatus.value) return false;
     if (selectedTags.value.size > 0) {
       const rt = r.tags || [];
       if (!rt.some((t) => selectedTags.value.has(t))) return false;
@@ -184,15 +221,23 @@ const filteredRows = computed(() => {
 });
 
 const hasActiveFacets = computed(() =>
-  selectedStatus.value !== null || selectedMain.value !== null || selectedTags.value.size > 0,
+  selectedStatus.value !== null || selectedMain.value !== null || selectedGender.value !== null || selectedLifeStatus.value !== null || selectedTags.value.size > 0,
 );
 
+const allLifeStatuses = computed(() => {
+  const set = new Set();
+  for (const c of project.characters) if (c.lifeStatus) set.add(c.lifeStatus);
+  return LIFE_STATUS_OPTIONS.filter((o) => o.value && set.has(o.value));
+});
+
 const columns = [
-  { accessorKey: "name",   header: "Name",   sortable: true, headerStyle: "min-width: 200px" },
-  { accessorKey: "role",   header: "Role",   sortable: true, headerStyle: "min-width: 140px" },
-  { accessorKey: "tags",   header: "Tags",   sortable: false, headerStyle: "min-width: 160px", enableGlobalFilter: true },
-  { accessorKey: "status", header: "Status", sortable: true, headerStyle: "min-width: 120px" },
-  { accessorKey: "main",   header: "Main",   sortable: true, headerStyle: "min-width: 80px" },
+  { accessorKey: "name",     header: "Name",     sortable: true, headerStyle: "min-width: 200px" },
+  { accessorKey: "role",     header: "Role",     sortable: true, headerStyle: "min-width: 140px" },
+  { accessorKey: "gender",   header: "Gender",   sortable: true, headerStyle: "min-width: 100px" },
+  { accessorKey: "pronouns", header: "Pronouns", sortable: true, headerStyle: "min-width: 110px" },
+  { accessorKey: "tags",     header: "Tags",     sortable: false, headerStyle: "min-width: 140px", enableGlobalFilter: true },
+  { accessorKey: "status",   header: "Status",   sortable: true, headerStyle: "min-width: 110px" },
+  { accessorKey: "main",     header: "Main",     sortable: true, headerStyle: "min-width: 70px" },
 ];
 
 function statusLabel(id) { return project.statusById(id)?.label || id || ""; }
@@ -206,7 +251,7 @@ function statusSeverity(id) {
 
 function onRowClick(event) {
   const id = event?.data?.id;
-  if (id) router.push(`/characters/${id}`);
+  if (id) { ui.select("characters", id); router.push(`/characters/${id}`); }
 }
 </script>
 
@@ -276,6 +321,24 @@ function onRowClick(event) {
             <button class="ch-chip" :class="{ active: selectedMain === true }" @click="selectedMain = selectedMain === true ? null : true">Yes</button>
             <button class="ch-chip" :class="{ active: selectedMain === false }" @click="selectedMain = selectedMain === false ? null : false">No</button>
           </div>
+          <div v-if="allGenders.length" class="ch-facet">
+            <span class="ch-facet-label">Gender</span>
+            <button class="ch-chip" :class="{ active: selectedGender === null }" @click="selectedGender = null">All</button>
+            <button v-for="g in allGenders" :key="g"
+              class="ch-chip" :class="{ active: selectedGender === g }"
+              @click="selectedGender = selectedGender === g ? null : g">
+              {{ g }}
+            </button>
+          </div>
+          <div v-if="allLifeStatuses.length" class="ch-facet">
+            <span class="ch-facet-label">Life status</span>
+            <button class="ch-chip" :class="{ active: selectedLifeStatus === null }" @click="selectedLifeStatus = null">All</button>
+            <button v-for="o in allLifeStatuses" :key="o.value"
+              class="ch-chip" :class="{ active: selectedLifeStatus === o.value }"
+              @click="selectedLifeStatus = selectedLifeStatus === o.value ? null : o.value">
+              {{ o.label }}
+            </button>
+          </div>
           <div v-if="allTags.length" class="ch-facet">
             <span class="ch-facet-label">Tags</span>
             <button v-for="t in allTags" :key="t"
@@ -292,7 +355,7 @@ function onRowClick(event) {
           data-key="id"
           row-hover
           :global-filter="globalQuery"
-          :global-filter-fields="['name', 'role', 'oneLiner', 'tags']"
+          :global-filter-fields="['name', 'role', 'gender', 'pronouns', 'aliases', 'oneLiner', 'tags']"
           :pagination="{ pageSize: 20, pageSizeOptions: [10, 20, 50, 100] }"
           class="ch-table"
           @row-click="onRowClick"
@@ -313,6 +376,14 @@ function onRowClick(event) {
 
           <template #role="{ row }">
             <span class="ch-role">{{ row.role || '' }}</span>
+          </template>
+
+          <template #gender="{ row }">
+            <span class="ch-role">{{ row.gender || '' }}</span>
+          </template>
+
+          <template #pronouns="{ row }">
+            <span class="ch-role">{{ row.pronouns || '' }}</span>
           </template>
 
           <template #tags="{ row }">
@@ -346,6 +417,14 @@ function onRowClick(event) {
           @input="updateField('name', $event.target.value)" />
       </div>
       <div class="pane-actions">
+        <JwButton intent="ghost" size="small" data-chat-toggle @click="talkToCharacter"
+          v-tooltip.bottom="`Open chat in character mode, pre-set to ${ch.name}`">
+          <Icon name="Sparkle" :size="14" /> Talk to {{ ch.name?.split(/\s+/)[0] || "character" }}
+        </JwButton>
+        <JwButton intent="ghost" size="small" data-chat-toggle @click="askTheBook"
+          v-tooltip.bottom="`Ask the book about ${ch.name}`">
+          <Icon name="Chat" :size="14" /> Ask the book
+        </JwButton>
         <JwButton intent="ghost" size="small" @click="modal = 'images'"><Icon name="Image" :size="14" /> Images</JwButton>
         <router-link :to="`/characters/${ch.id}/events`" custom v-slot="{ navigate }">
           <JwButton intent="ghost" size="small" @click="navigate"><Icon name="Calendar" :size="14" /> Events</JwButton>
@@ -394,8 +473,17 @@ function onRowClick(event) {
                 <JwCheckbox :model-value="!!ch.excludeFromAi" @update:model-value="(v) => updateField('excludeFromAi', v)" />
                 Exclude from AI
               </label>
+              <JwInput fluid style="max-width:140px" placeholder="Gender"
+                :model-value="ch.gender" @update:model-value="updateField('gender', $event)" />
+              <JwInput fluid style="max-width:140px" placeholder="Pronouns (she/her…)"
+                :model-value="ch.pronouns" @update:model-value="updateField('pronouns', $event)" />
               <JwNumber style="max-width:80px" placeholder="Age" :use-grouping="false"
                 :model-value="ch.age ?? null" @update:model-value="updateField('age', $event ?? null)" />
+              <JwSelect style="max-width:140px"
+                :model-value="ch.lifeStatus || ''"
+                @update:model-value="(v) => updateField('lifeStatus', v)"
+                :options="LIFE_STATUS_OPTIONS"
+                aria-label="Life status" />
             </div>
             <JwTextarea fluid rows="2" style="margin-top:14px;font-family:var(--font-serif);font-style:italic"
               placeholder="One-liner"
@@ -408,6 +496,12 @@ function onRowClick(event) {
           :pool="tagPool"
           :curated="project.tagVocabularies.characters"
           @update:model-value="(v) => updateField('tags', v)" />
+
+        <div class="t-eyebrow ch-aliases-label">Also known as</div>
+        <TagEditor
+          :model-value="ch.aliases || []"
+          :pool="aliasPool"
+          @update:model-value="(v) => updateField('aliases', v)" />
 
         <div style="margin-top:22px">
           <div class="t-eyebrow" style="margin-bottom:10px">Motivation</div>
@@ -521,6 +615,8 @@ function onRowClick(event) {
   margin: 0 0 18px;
 }
 .ch-desc strong { color: var(--ink-2); font-weight: 600; }
+
+.ch-aliases-label { margin: 14px 0 6px; }
 
 .character-pane-header .pane-title { gap: 2px; }
 .character-name {

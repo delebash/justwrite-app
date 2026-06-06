@@ -12,6 +12,7 @@ import { useRouter } from "vue-router";
 import { useProjectStore } from "../stores/project.js";
 import { useAiStore } from "../stores/ai.js";
 import { useAiTasksStore } from "../stores/aiTasks.js";
+import { useUiStore } from "../stores/ui.js";
 import { askManuscript } from "../services/rag/chat.js";
 import { askAsCharacter } from "../services/rag/characterChat.js";
 import { indexStatus } from "../services/rag/indexer.js";
@@ -80,6 +81,7 @@ const router = useRouter();
 const project = useProjectStore();
 const ai = useAiStore();
 const aiTasks = useAiTasksStore();
+const ui = useUiStore();
 
 // Task lookup covers both chat modes — book mode uses "chat", character
 // mode uses "characterChat". We match whichever is currently running.
@@ -175,6 +177,24 @@ watch(open, (v) => {
   if (!v) return;
   const pid = ai.featurePins?.chat?.providerId;
   if (pid) ensureChatModels(pid);
+}, { immediate: true });
+
+// Pre-scoping: openChatPanelFor() stages a target on the ui store and
+// opens the panel. Watching the target itself (not `open`) means the
+// switch lands even when the panel was already open.
+watch(() => ui.chatRequestedTarget, (target) => {
+  if (!target) return;
+  if (target.mode === "character" && target.characterId) {
+    chatMode.value = "character";
+    selectedCharacterId.value = target.characterId;
+  } else if (target.mode === "book") {
+    chatMode.value = "book";
+  }
+  if (target.question) {
+    question.value = target.question;
+    nextTick(() => inputRef.value?.focus());
+  }
+  ui.consumeChatRequestedTarget();
 }, { immediate: true });
 
 // indexStatus() reads the (non-reactive) IDB cache directly, so the computed
@@ -294,30 +314,33 @@ function onDocKeydown(e) {
     close();
   }
 }
-// Click-outside dismissal. Runs in the click bubble phase, so any in-panel
-// @click (and the sidebar "Ask the book" toggle, which fires on its own
-// target first) has already executed by the time we see the event — that's
-// why the sidebar toggle works as a true toggle: it flips open → false
-// before we get here. Exemptions:
-//   - [data-chat-toggle] — the sidebar trigger, so clicking it while
-//     closed doesn't immediately re-close after it just opened.
+// Click-outside dismissal. Listens on mousedown rather than click because
+// Reka's Select removes the dropdown content from the DOM synchronously on
+// selection — by the time a click bubbles to document, target.closest()
+// returns null because the option's ancestors are detached. Mousedown fires
+// before Reka's handler so closest() still walks an intact tree.
+// Exemptions:
+//   - [data-chat-toggle] — toggle triggers (sidebar Ask, TitleBar Chat, per-
+//     entity "Talk to …" buttons). Without this, clicking a toggle while the
+//     panel is open would immediately close it before its own handler ran.
 //   - [role="dialog"]    — portaled modals (IndexBuildModal via AppModal)
 //     teleport outside the panel; clicks inside them aren't "outside".
-//   - [role="listbox"]   — Reka Select popover content (model picker).
+//   - .jw-select-content / [data-reka-popper-content-wrapper] — Reka Select
+//     popover content (character/model pickers) is portaled outside panelRef.
 function onDocClick(e) {
   if (!open.value) return;
   const target = e.target;
   if (!target || !panelRef.value) return;
   if (panelRef.value.contains(target)) return;
   if (target.closest?.("[data-chat-toggle]")) return;
-  if (target.closest?.('[role="dialog"], [role="listbox"]')) return;
+  if (target.closest?.('[role="dialog"], [role="listbox"], .jw-select-content, [data-reka-popper-content-wrapper]')) return;
   close();
 }
 document.addEventListener("keydown", onDocKeydown);
-document.addEventListener("click", onDocClick);
+document.addEventListener("mousedown", onDocClick);
 onBeforeUnmount(() => {
   document.removeEventListener("keydown", onDocKeydown);
-  document.removeEventListener("click", onDocClick);
+  document.removeEventListener("mousedown", onDocClick);
 });
 
 function onIndexBuilt() {
