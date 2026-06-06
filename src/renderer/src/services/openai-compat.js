@@ -47,6 +47,19 @@ export function isDia(provider) {
   return provider?.id === "dia";
 }
 
+// The three models bundled with devnen/Dia-TTS-Server v2.0.0:
+// the original Dia 1.6B plus Nari Labs' Dia2 family. All hot-
+// swappable from one server via /save_settings + /restart_server,
+// same control-plane shape as Chatterbox (same author). Used as a
+// fallback when GET /api/model-registry isn't available — newer
+// server builds may report a longer list there which the UI
+// prefers when present.
+export const DIA_MODELS = [
+  { id: "ttj/dia-1.6b-safetensors", label: "Dia 1.6B",  hint: "~4.4 GB VRAM. Proven dialogue quality, fits comfortably on 8 GB cards." },
+  { id: "nari-labs/Dia2-1B",        label: "Dia2 · 1B", hint: "~3 GB VRAM. Streaming-capable, real-time use." },
+  { id: "nari-labs/Dia2-2B",        label: "Dia2 · 2B", hint: "~5–6 GB VRAM. Highest quality; tight on 8 GB cards if an LLM shares the GPU." },
+];
+
 // devnen/Chatterbox-TTS-Server. Its /v1/audio/speech is a thin OpenAI
 // compatibility layer — only model/voice/input/response_format/speed,
 // no exaggeration/cfg_weight/temperature. The richer engine lives at
@@ -867,6 +880,100 @@ export class OpenAICompatClient {
     );
     if (!res.ok) throw new Error(`model-info failed: ${res.status} ${res.statusText}`);
     return res.json();
+  }
+
+  // ─── Dia control-plane (same shape as Chatterbox — same author) ──────
+  //
+  // devnen/Dia-TTS-Server v2.0.0 added Dia2 alongside the original
+  // Dia 1.6B and made all three hot-swappable. The control-plane
+  // matches Chatterbox: POST /save_settings { model: { repo_id } } +
+  // POST /restart_server, GET /api/model-info for live state. Where
+  // Dia is richer is GET /api/model-registry, which returns the
+  // available model list — we prefer that over the hard-coded
+  // DIA_MODELS so newer server builds with extra models show up
+  // without needing a JustWrite update.
+  async diaSetModel(repoId, { signal, timeoutMs = 90000 } = {}) {
+    const saveRes = await this._fetchWithTimeout(
+      this.nativeUrl("/save_settings"),
+      {
+        method: "POST",
+        headers: this.headers,
+        body: JSON.stringify({ model: { repo_id: repoId } }),
+      },
+      { signal, timeoutMs: 10000 },
+    );
+    if (!saveRes.ok) {
+      const text = await saveRes.text().catch(() => "");
+      throw new Error(`save_settings failed: ${saveRes.status} ${text || saveRes.statusText}`);
+    }
+    const saveJson = await saveRes.json().catch(() => ({}));
+    if (saveJson?.restart_needed === false) return { restarted: false, message: saveJson?.message };
+
+    const restartRes = await this._fetchWithTimeout(
+      this.nativeUrl("/restart_server"),
+      { method: "POST", headers: this.headers },
+      { signal, timeoutMs },
+    );
+    if (!restartRes.ok) {
+      const text = await restartRes.text().catch(() => "");
+      throw new Error(`restart_server failed: ${restartRes.status} ${text || restartRes.statusText}`);
+    }
+    const restartJson = await restartRes.json().catch(() => ({}));
+    return { restarted: true, message: restartJson?.message };
+  }
+
+  // Probe the live state of the loaded Dia model. Shape mirrors
+  // Chatterbox's response — at minimum { loaded, type, device,
+  // sample_rate }; newer builds add per-model metadata like
+  // supports_streaming, supported_languages, etc.
+  async diaModelInfo({ signal, timeoutMs = 5000 } = {}) {
+    const res = await this._fetchWithTimeout(
+      this.nativeUrl("/api/model-info"),
+      { headers: this.authHeaders },
+      { signal, timeoutMs },
+    );
+    if (!res.ok) throw new Error(`model-info failed: ${res.status} ${res.statusText}`);
+    return res.json();
+  }
+
+  // GET /api/model-registry — Dia-only registry of installable
+  // models. Returns the available model list so the dropdown can
+  // grow without code changes. We normalize to the same
+  // { id, label, hint? } shape as DIA_MODELS so the UI can treat
+  // either source uniformly. Returns null on 404 / unparseable so
+  // callers fall back to DIA_MODELS.
+  async diaModelRegistry({ signal, timeoutMs = 5000 } = {}) {
+    try {
+      const res = await this._fetchWithTimeout(
+        this.nativeUrl("/api/model-registry"),
+        { headers: this.authHeaders },
+        { signal, timeoutMs },
+      );
+      if (!res.ok) return null;
+      const json = await res.json();
+      // Accept several shapes — { models: [...] }, { data: [...] }, or bare [...].
+      const arr = Array.isArray(json) ? json
+                : Array.isArray(json?.models) ? json.models
+                : Array.isArray(json?.data)   ? json.data : null;
+      if (!arr) return null;
+      const out = [];
+      for (const m of arr) {
+        if (typeof m === "string") {
+          out.push({ id: m, label: m });
+          continue;
+        }
+        const id = m?.repo_id || m?.id || m?.key;
+        if (!id) continue;
+        out.push({
+          id,
+          label: m?.display_name || m?.name || m?.label || id,
+          hint: m?.description || m?.hint || m?.notes || "",
+        });
+      }
+      return out.length ? out : null;
+    } catch {
+      return null;
+    }
   }
 
   // ─── List voices ────────────────────────────────────────────────────────

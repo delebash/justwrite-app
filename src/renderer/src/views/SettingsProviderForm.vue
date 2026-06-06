@@ -8,7 +8,7 @@
 import { ref, reactive, computed, onBeforeUnmount, onMounted, nextTick, watch } from "vue";
 import { useI18n } from "vue-i18n";
 import { getParamSchema } from "../domain/providerParams.js";
-import { OpenAICompatClient, detectRunner, isChatterbox, CHATTERBOX_MODELS } from "../services/openai-compat.js";
+import { OpenAICompatClient, detectRunner, isChatterbox, isDia, CHATTERBOX_MODELS, DIA_MODELS } from "../services/openai-compat.js";
 import { entryLabel, TIERS, TIER_IDS } from "../services/modelMeta.js";
 import { useAiStore } from "../stores/ai.js";
 import { pushToast } from "../services/toastBridge.js";
@@ -257,6 +257,66 @@ const chatterboxParalingTags = computed(() => {
   if (!info?.supports_paralinguistic_tags) return [];
   return info.available_paralinguistic_tags || [];
 });
+
+// ── Dia model + live engine state (same shape as Chatterbox) ─────
+// devnen/Dia-TTS-Server v2.0.0+ hot-swaps between Dia 1.6B and the
+// Dia2 family via the same /save_settings + /restart_server control
+// plane as Chatterbox. The model list prefers a live
+// GET /api/model-registry response so newer server builds with extra
+// models surface without a JustWrite update; we fall back to the
+// hard-coded DIA_MODELS when the registry endpoint isn't available
+// (pre-v2 servers).
+const isDiaDraft = computed(() => isDia(props.draft));
+const diaModels = ref([...DIA_MODELS]);
+const diaInfo = ref(null);
+const diaInfoError = ref(null);
+const diaApplying = ref(false);
+
+const diaModelOptions = computed(() =>
+  diaModels.value.map((m) => ({ value: m.id, label: m.label })),
+);
+
+async function refreshDiaInfo() {
+  if (!isDiaDraft.value || !props.draft.baseUrl) return;
+  diaInfoError.value = null;
+  const client = new OpenAICompatClient(props.draft);
+  try {
+    const [info, registry] = await Promise.all([
+      client.diaModelInfo().catch((e) => { throw e; }),
+      client.diaModelRegistry().catch(() => null),
+    ]);
+    diaInfo.value = info;
+    if (registry && registry.length) diaModels.value = registry;
+  } catch (e) {
+    diaInfo.value = null;
+    diaInfoError.value = e.message || "Couldn't reach the server.";
+  }
+}
+
+async function applyDiaModel() {
+  if (!isDiaDraft.value) return;
+  const repoId = props.draft.ttsModel;
+  if (!repoId) return;
+  diaApplying.value = true;
+  try {
+    const { restarted } = await new OpenAICompatClient(props.draft).diaSetModel(repoId);
+    pushToast({
+      message: restarted
+        ? `Switched Dia to ${repoId} (hot-swapped).`
+        : `Dia is already running ${repoId}.`,
+    });
+    await refreshDiaInfo();
+  } catch (e) {
+    pushToast({ message: `Couldn't switch model: ${e.message || e}` });
+  } finally {
+    diaApplying.value = false;
+  }
+}
+
+onMounted(() => { if (isDiaDraft.value) refreshDiaInfo(); });
+watch(() => props.draft?.baseUrl, () => {
+  if (isDiaDraft.value) refreshDiaInfo();
+});
 </script>
 
 <template>
@@ -329,7 +389,7 @@ const chatterboxParalingTags = computed(() => {
       </template>
 
       <template v-if="draft.kind === 'tts' || draft.kind === 'both'">
-        <template v-if="!isChatterboxDraft">
+        <template v-if="!isChatterboxDraft && !isDiaDraft">
           <span class="t-muted">{{ $t('settings.providerForm.fieldTtsModel') }}</span>
           <div style="display:flex;gap:6px;align-items:stretch;flex-wrap:wrap">
             <Combobox style="flex:1;min-width:160px"
@@ -438,6 +498,50 @@ const chatterboxParalingTags = computed(() => {
               </div>
               <div v-if="chatterboxInfo.supports_multilingual && chatterboxInfo.supported_languages" class="t-muted" style="margin-top:2px">
                 Languages: {{ Object.keys(chatterboxInfo.supported_languages).join(", ") }}
+              </div>
+            </template>
+          </div>
+        </template>
+
+        <template v-if="isDiaDraft">
+          <div style="grid-column:1/-1;display:flex;align-items:baseline;gap:8px;margin-top:8px;padding-top:10px;border-top:1px dashed var(--border)">
+            <span class="t-eyebrow" style="font-size:10.5px">Dia engine</span>
+            <span class="t-muted" style="font-size:11px">Dia 1.6B and the Dia2 family hot-swap on one server (devnen v2.0+). VRAM grows with model size.</span>
+          </div>
+          <span class="t-muted" title="The model the writer wants loaded — applied to the live server via Apply.">Model</span>
+          <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap">
+            <JwSegmented
+              :model-value="draft.ttsModel || 'ttj/dia-1.6b-safetensors'"
+              :options="diaModelOptions"
+              size="small"
+              aria-label="Dia model"
+              @update:model-value="(v) => draft.ttsModel = v" />
+            <JwButton type="button" intent="primary" size="small"
+              :disabled="diaApplying || !draft.baseUrl || !draft.ttsModel"
+              @click="applyDiaModel"
+              v-tooltip.bottom="'POST /save_settings then /restart_server — first load of a Dia2 model may take 30–90s while it downloads from HuggingFace.'">
+              {{ diaApplying ? "Switching…" : "Apply" }}
+            </JwButton>
+            <JwButton type="button" intent="ghost" size="small"
+              :disabled="diaApplying || !draft.baseUrl"
+              @click="refreshDiaInfo"
+              v-tooltip.bottom="'GET /api/model-info — refresh the live engine state below.'">
+              Refresh
+            </JwButton>
+          </div>
+          <span class="t-muted">Active on server</span>
+          <div style="display:flex;flex-direction:column;gap:4px;font-size:11.5px">
+            <div v-if="diaInfoError" style="color:var(--danger,#c33)">
+              {{ diaInfoError }}
+              <span class="t-muted" style="display:block;margin-top:2px;font-size:10.5px">If you're on devnen Dia-TTS-Server v1.x, model-switching needs v2.0+. Dia 1.6B will still synth from the legacy code path.</span>
+            </div>
+            <div v-else-if="!diaInfo" class="t-muted" style="font-style:italic">
+              Probing…
+            </div>
+            <template v-else>
+              <div>
+                <code>{{ diaInfo.repo_id || diaInfo.type || "unknown" }}</code>
+                <span class="t-muted"> · {{ diaInfo.class_name || "" }} · {{ diaInfo.device || "" }}<span v-if="diaInfo.sample_rate"> · {{ diaInfo.sample_rate }} Hz</span></span>
               </div>
             </template>
           </div>

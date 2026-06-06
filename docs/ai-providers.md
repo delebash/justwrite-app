@@ -188,19 +188,26 @@ Switching models triggers a server reload; the first switch for a model may take
 
 ### Dia (local TTS + expressive dialogue)
 
-A local TTS server from the same author as Chatterbox, focused on expressive multi-speaker dialogue. Strong choice when dialogue-heavy chapters sound flat with Kokoro or OpenAI's voices. Bundles a catalogue of predefined voices and accepts reference clips for prosody guidance — but it isn't a voice-cloning engine; for that, use Chatterbox.
+A local TTS server from the same author as Chatterbox, focused on expressive multi-speaker dialogue. Strong choice when dialogue-heavy chapters sound flat with Kokoro or OpenAI's voices. Ships three swappable models you switch from the provider editor:
 
-1. Install **devnen/Dia-TTS-Server** (Python venv + `pip install -r requirements.txt`, same playbook as Chatterbox).
+- **Dia 1.6B** (default) — proven dialogue quality, ~4.4 GB VRAM, the safe choice for 8 GB cards and the only option on devnen Dia-TTS-Server v1.x.
+- **Dia2-1B** — ~3 GB VRAM, streaming-capable (real-time generation), lightest on resources.
+- **Dia2-2B** — Nari Labs' top-tier dialogue model at ~5–6 GB VRAM; best quality but tight on 8 GB cards if an LLM shares the GPU.
+
+All three are bundled with the same server (devnen v2.0+) and hot-swap without restarting. Bundles a catalogue of predefined voices and accepts reference clips for prosody guidance — but it isn't a voice-cloning engine; for that, use Chatterbox.
+
+1. Install **devnen/Dia-TTS-Server** v2.0.0 or later (Python venv + `pip install -r requirements.txt`, same playbook as Chatterbox).
 2. Start the server — default port is `8003`.
 3. **(Optional)** Drop reference `.wav` / `.mp3` clips into the server's `./reference_audio/` folder (the web UI's "Import" button puts uploads there, so either path works). These act as prosody/style references — not voice clones.
 4. In JustWrite, **Add provider → Preset: Dia**.
 5. Base URL: `http://localhost:8003/v1`.
-6. **Fetch voices** — Dia's bundled predefined voices, any reference clips you've added, and two synthetic mode tokens (**S1** / **S2**) all appear in the cast picker.
-7. Save.
+6. **Pick a model** — Dia 1.6B, Dia2-1B, or Dia2-2B — then click **Apply** to hot-swap the server. First load of a Dia2 model can take 30–90s while it downloads from HuggingFace.
+7. **Fetch voices** — Dia's bundled predefined voices, any reference clips you've added, and two synthetic mode tokens (**S1** / **S2**) all appear in the cast picker.
+8. Save.
 
 **S1 and S2** are Dia's dialogue-mode speaker tokens. Cast a character on S1 and another on S2 in the same chapter to get distinct voices for an exchange even without uploading reference clips — useful for dialogue-heavy chapters where you want fast renders before committing to specific voices.
 
-**When to pick Dia.** Your chapters have a lot of dialogue and you want it to sound like a conversation rather than two slightly different read-alouds. If you specifically need voice cloning, pick Chatterbox instead — Dia's reference clips guide style and prosody, not speaker identity.
+**When to pick Dia.** Your chapters have a lot of dialogue and you want it to sound like a conversation rather than two slightly different read-alouds. If you specifically need voice cloning, pick Chatterbox instead — Dia's reference clips guide style and prosody, not speaker identity. Use Dia 1.6B for the widest compatibility, Dia2-1B for fastest renders, Dia2-2B if you have a 12 GB+ GPU and want the best dialogue model on the stack.
 
 ### Microsoft Edge TTS (built-in, free)
 

@@ -579,9 +579,14 @@ export const DEFAULT_PROVIDERS = [
     // does for Speechmatics. Predefined voices are bundled with the
     // server; reference clones are dropped into ./reference_audio/ (web
     // UI uploads land there too, unlike Chatterbox).
+    //
+    // ttsModel mirrors the active server model.repo_id. Default is
+    // Dia 1.6B because it fits the widest VRAM range (~4.4 GB) and
+    // works on pre-v2 devnen servers; Dia2-1B and Dia2-2B require
+    // devnen v2.0.0+ and are picked from the Settings provider editor.
     id: "dia", name: "Dia (local TTS + dialogue)", kind: "tts",
     baseUrl: "http://localhost:8003/v1",
-    ttsModel: "dia",
+    ttsModel: "ttj/dia-1.6b-safetensors",
     builtIn: true,
   },
   {
