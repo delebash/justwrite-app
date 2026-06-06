@@ -15,6 +15,7 @@ import { OpenAICompatClient } from "./openai-compat.js";
 import { friendlyAiError } from "./aiErrors.js";
 import { runAiStream } from "./aiStream.js";
 import { useAiStore } from "../stores/ai.js";
+import { useStudioStore } from "../stores/studio.js";
 import {
   analyzeSpeakers,
   SYSTEM_BY_TIER_KEY,
@@ -58,10 +59,23 @@ export const SPEAKER_SYSTEM = INLINE_SPEAKER_SYSTEM_GUIDED;
 // StudioView.reanalyze() pushes these directly into the script.
 export async function detectSpeakers({ paragraphs, characters, chapter, task, meta } = {}) {
   const ai = useAiStore();
+  const studio = useStudioStore();
   // Active production config — null for the built-in Default (which
   // falls through to tier-resolved values below). When a named config
   // is active, its `settings` provide per-knob overrides.
   const cfg = ai.activeSettingsFor("speakerAnalysis") || {};
+
+  // Pull the writer's past corrections for characters present in this
+  // analysis. Older corrections involving deleted characters drop out;
+  // most recent stay, capped at 12 so prompts don't blow up on a long-
+  // running project with hundreds of edits.
+  const castIds = new Set((characters || []).map((c) => c.id));
+  const allCorrections = studio.corrections || [];
+  const relevant = [];
+  for (let i = allCorrections.length - 1; i >= 0 && relevant.length < 12; i--) {
+    const c = allCorrections[i];
+    if (c && castIds.has(c.characterId)) relevant.unshift(c);
+  }
 
   // Tier resolution from the resolved model. providerForFeature +
   // modelForFeature already walk featurePins; chatModel is the final
@@ -87,6 +101,7 @@ export async function detectSpeakers({ paragraphs, characters, chapter, task, me
     paragraphs,
     characters,
     chapter,
+    corrections: relevant,
     systemPrompt,
     userTemplate,
     temperature,

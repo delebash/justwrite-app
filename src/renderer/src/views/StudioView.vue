@@ -302,6 +302,26 @@ const analyzeTask = computed(() =>
 );
 const analyzeLoading = computed(() => !!analyzeTask.value);
 
+// Options for the per-line speaker dropdown: Narrator + every project
+// character + Unknown. Recomputes when the character list changes so
+// newly-added cast members appear without a remount.
+const speakerOptions = computed(() => [
+  { label: "Narrator", value: "narrator" },
+  ...project.characters.map((c) => ({ label: c.name, value: c.id })),
+  { label: "Unknown", value: "unknown" },
+]);
+
+// Writer changed a line's speaker. Mark the line as edited (so the row's
+// confidence number swaps for the ✎ marker) and route through
+// studio.editScriptLine, which both patches the script AND records a
+// correction the next Re-analyze will feed back to the LLM.
+function editLineSpeaker(lineIdx, newSpeaker) {
+  studio.editScriptLine(scriptChapter.value, lineIdx, {
+    speaker: newSpeaker,
+    edited: true,
+  });
+}
+
 async function reanalyze() {
   if (!llmProvider.value) { error.value = "No LLM provider configured."; return; }
   if (analyzeLoading.value) return;
@@ -734,10 +754,21 @@ async function confirmDeleteAllRendered() {
       <AiTaskStrip :task="analyzeTask" />
       <div v-if="error" class="banner danger" style="margin-bottom:14px;padding:10px 14px;border-radius:8px">{{ error }}</div>
       <div v-for="(l, i) in studio.scriptFor(scriptChapter) || []" :key="i"
-        style="display:grid;grid-template-columns:140px 1fr auto;gap:14px;padding:12px 0;border-bottom:1px solid var(--border-soft);align-items:start">
+        style="display:grid;grid-template-columns:160px 1fr auto;gap:14px;padding:12px 0;border-bottom:1px solid var(--border-soft);align-items:start">
         <div>
-          <div style="font-size:11.5px;font-weight:600">{{ l.speaker === "narrator" ? "Narrator" : project.characterById(l.speaker)?.name || l.speaker }}</div>
-          <div class="t-muted" style="font-size:10.5px">{{ l.kind }} · {{ Math.round((l.confidence || 0) * 100) }}%</div>
+          <div v-if="l.kind === 'dialogue'" style="display:flex;align-items:center;gap:6px">
+            <JwSelect
+              :modelValue="l.speaker"
+              :options="speakerOptions"
+              style="flex:1;min-width:0"
+              @update:modelValue="(v) => editLineSpeaker(i, v)" />
+            <span v-if="l.edited" v-tooltip.bottom="'You edited this line. Future Re-analyze runs will use it as an example.'"
+              style="font-size:11px;color:var(--accent);line-height:1">✎</span>
+          </div>
+          <div v-else style="font-size:11.5px;font-weight:600">Narrator</div>
+          <div class="t-muted" style="font-size:10.5px;margin-top:4px">
+            {{ l.kind }}<template v-if="!l.edited"> · {{ Math.round((l.confidence || 0) * 100) }}%</template>
+          </div>
         </div>
         <p style="font-family:var(--font-serif);font-size:15px;line-height:1.6;margin:0;color:var(--ink)">{{ l.text }}</p>
       </div>

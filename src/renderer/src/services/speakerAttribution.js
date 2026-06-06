@@ -93,12 +93,31 @@ Output: [{"speaker": "c2", "confidence": 1.0}, {"speaker": "c2", "confidence": 0
 
 export const INLINE_SPEAKER_USER_TEMPLATE = `Characters in this novel:
 {{characters}}
-
+{{corrections}}
 Paragraphs (dialogue segments tagged inline):
 
 {{paragraphs}}
 
 Return only the JSON array, one entry per [D#] in order.`;
+
+// Render the optional "past corrections" block fed into the user prompt
+// before the paragraphs. Each entry is a previously misattributed line
+// the writer manually fixed in Studio's Script tab — we surface the snippet
+// and the correct character id as a few-shot hint. Empty list collapses
+// to an empty string so the prompt has no dangling header.
+export function renderCorrectionsBlock(corrections) {
+  if (!corrections?.length) return "";
+  const lines = corrections.map((c) => {
+    const text = String(c.textSnippet || "").trim();
+    if (!text) return null;
+    return `- ${JSON.stringify(text)} → speaker id "${c.characterId}"`;
+  }).filter(Boolean);
+  if (!lines.length) return "";
+  return `
+Past corrections from the writer (lines you previously misattributed in this story — match these exactly when they appear, and apply the same reasoning to similar lines):
+${lines.join("\n")}
+`;
+}
 
 // Map tier.systemKey → prompt body. The Guided / Direct / Reasoned tiers
 // in modelMeta.js use `systemKey: "guided"` or `systemKey: "direct"`;
@@ -415,6 +434,7 @@ export async function analyzeSpeakers({
   paragraphs,
   characters,
   chapter,
+  corrections,
   systemPrompt,
   userTemplate,
   temperature,
@@ -448,10 +468,12 @@ export async function analyzeSpeakers({
 
   const characterList = formatCharacterList(characters);
   const taggedParagraphs = renderTaggedParagraphs(segmented);
+  const correctionsBlock = renderCorrectionsBlock(corrections);
   const sys = systemPrompt || INLINE_SPEAKER_SYSTEM_GUIDED;
   const tpl = userTemplate || INLINE_SPEAKER_USER_TEMPLATE;
   const userMsg = tpl
     .replace(/\{\{characters\}\}/g, characterList)
+    .replace(/\{\{corrections\}\}/g, correctionsBlock)
     .replace(/\{\{paragraphs\}\}/g, taggedParagraphs);
 
   const { content } = await runAiStream({

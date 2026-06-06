@@ -36,6 +36,7 @@ function save(state) {
       cast: state.cast,
       voices: state.voices,
       scripts: state.scripts,
+      corrections: state.corrections,
       lastScriptChapter: state.lastScriptChapter,
       chapterAudio: persistedAudio,
     }));
@@ -66,6 +67,14 @@ export const useStudioStore = defineStore("studio", {
       // mount so opening Studio → Script lands you where you left off.
       // Null until the user has actually picked one.
       lastScriptChapter: loaded?.lastScriptChapter || null,
+      // Per-project speaker-attribution corrections. Each entry records
+      // a human override of a script line's speaker; the most recent
+      // ones are fed back into the speaker-detection prompt on the next
+      // Re-analyze as few-shot examples ("here are lines you got wrong
+      // last time and what they should have been").
+      // Shape: { characterId, textSnippet, originalSpeaker, chapterId, ts }.
+      // Cap is enforced in editScriptLine.
+      corrections: loaded?.corrections || [],
     };
   },
 
@@ -157,6 +166,48 @@ export const useStudioStore = defineStore("studio", {
     },
     setScript(chapterId, lines) {
       this.scripts = { ...this.scripts, [chapterId]: lines };
+      save(this.$state);
+    },
+    // Patch a single line in a chapter's script. Used by the Script tab's
+    // editable speaker dropdown. When the speaker actually changes on a
+    // dialogue line, also push an entry onto `corrections` so the next
+    // Re-analyze can use it as a few-shot example. Re-analyze itself
+    // overwrites scripts wholesale, so the correction memory is what
+    // persists the human's judgement across runs.
+    editScriptLine(chapterId, lineIdx, patch) {
+      const lines = this.scripts[chapterId];
+      if (!Array.isArray(lines) || !lines[lineIdx]) return;
+      const prev = lines[lineIdx];
+      const next = { ...prev, ...patch };
+      const nextLines = lines.slice();
+      nextLines[lineIdx] = next;
+      this.scripts = { ...this.scripts, [chapterId]: nextLines };
+
+      const changed = patch.speaker != null && patch.speaker !== prev.speaker;
+      if (changed && prev.kind === "dialogue" && next.speaker !== "unknown") {
+        const snippet = String(next.text || "").slice(0, 240);
+        const entry = {
+          characterId: next.speaker,
+          textSnippet: snippet,
+          originalSpeaker: prev.speaker,
+          chapterId,
+          ts: 0, // Date.now() is unavailable in some contexts; rough ordering by array position suffices
+        };
+        // Drop any older correction for the same snippet — keeps the memory tidy
+        // if the writer toggles the same line back and forth.
+        const filtered = this.corrections.filter(
+          (c) => !(c.chapterId === chapterId && c.textSnippet === snippet),
+        );
+        // Cap at 200 so the persisted state doesn't grow unbounded across a
+        // long-running project. Oldest entries fall off first.
+        const MAX = 200;
+        const all = [...filtered, entry];
+        this.corrections = all.length > MAX ? all.slice(all.length - MAX) : all;
+      }
+      save(this.$state);
+    },
+    clearCorrections() {
+      this.corrections = [];
       save(this.$state);
     },
     setLastScriptChapter(chapterId) {

@@ -90,7 +90,7 @@ The **Script** tab does the unglamorous work of figuring out, for every paragrap
 
 - **A chapter dropdown** — pick the chapter you want to analyse. JustWrite remembers your last selection between sessions, so reopening Script lands you where you left off.
 - **A Re-analyze button** — sends the chapter prose to your LLM, which returns a labelled breakdown.
-- **The result display** — each line of the chapter, labelled with: **speaker** (Narrator / character name), **type** (Narration / Dialogue / Interior thought), **confidence percentage**, and the full text of the line.
+- **The result display** — each line of the chapter, labelled with: **speaker** (Narrator / character name), **type** (Narration / Dialogue / Interior thought), **confidence percentage**, and the full text of the line. Dialogue lines have an **editable speaker dropdown** — if the AI got it wrong, click the dropdown and pick the right character (or *Unknown* if it's genuinely ambiguous). Edited lines show a small ✎ marker and drop their confidence number (you've overruled the AI; it doesn't get to claim a percentage anymore).
 
 ### How it works
 
@@ -107,7 +107,24 @@ When you click Re-analyze, JustWrite runs an **inline-tag pipeline**:
 
 The result: a paragraph like *"'I don't know,' she said. She walked to the window."* becomes three script lines — the character's "I don't know," then "she said." in the narrator voice, then the rest of the narration. Previously paragraphs got one speaker assignment apiece, which meant the dialogue tag ("she said.") either stuck on the character voice or pulled the dialogue onto the narrator.
 
-Review the result. If a line is mis-attributed, you can fix the chapter text (clearer dialogue tags help) and re-run. Or open **Speaker Lab** (sidebar → Project section) to tune the pipeline against this chapter, save the tuned config as a named preset, and click **Use as production** so every Re-analyze going forward runs with your settings instead of the built-in defaults.
+Review the result. If a line is mis-attributed, you have three options:
+
+- **Fix the line in place.** Click the speaker dropdown on that line and pick the right character. The line updates immediately and is saved with your project.
+- **Improve the prose, then Re-analyze.** A misattribution usually comes from a confusing dialogue tag. Tightening the prose helps the AI *and* the reader.
+- **Open Speaker Lab** (sidebar → Project section) to tune the pipeline against this chapter, save the tuned config as a named preset, and click **Use as production** so every Re-analyze going forward runs with your settings instead of the built-in defaults.
+
+### The AI learns from your corrections
+
+Every time you fix a speaker on a dialogue line, JustWrite remembers the line and the right speaker as a **correction**. The next time you Re-analyze *any* chapter in this project, the most recent corrections are folded into the LLM prompt as worked examples: *"here are lines you previously misattributed in this story — match these exactly when they appear, and apply the same reasoning to similar lines."*
+
+In practice this means:
+
+- A character whose voice the AI keeps confusing (two characters named Alex; a soft-spoken antagonist the AI keeps assigning to the protagonist) gets unstuck after two or three corrections — subsequent chapters land cleaner without further manual fixes.
+- Your corrections are per-project. A different project starts with a clean slate.
+- Corrections involving characters you've since deleted from the cast quietly drop out — they're useless as examples.
+- Up to 12 of the most recent corrections are sent on each Re-analyze; up to 200 are stored. The cap keeps the prompt small and your prior-art bank focused on recent decisions.
+
+Re-analyze itself doesn't preserve manual edits to specific lines — it overwrites the script wholesale. The **correction memory is what carries your judgement forward** across runs.
 
 Repeat for every chapter you intend to render.
 
