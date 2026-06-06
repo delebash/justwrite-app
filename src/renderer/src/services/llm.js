@@ -211,3 +211,45 @@ function parseJsonObject(text) {
     return {};
   }
 }
+
+// ─── Voice-name gender inference ───────────────────────────────────────
+// Batched fallback for the dictionary in services/voiceGender.js. Given
+// a list of first-name keys (lowercased, e.g. ["gianna","axel","jordan"]),
+// ask the configured LLM which are typically male / female / ambiguous
+// and return a Map<name, "female" | "male" | "neutral">. One round-trip
+// per call; the caller batches everything missing after the offline
+// dictionary pass.
+//
+// Routed through the smartCast feature so it shares Studio's LLM pin
+// and usage tracking, and appears in the global AI status panel.
+// Temperature 0 — this is classification, not creative work.
+export async function inferVoiceGenders({ names, task, meta } = {}) {
+  const unique = Array.from(new Set((names || []).map((n) => String(n || "").trim().toLowerCase()).filter(Boolean)));
+  if (!unique.length) return new Map();
+
+  const systemPrompt = `You classify English first names by typical gender association. Return ONLY a JSON object whose keys are the names I provide (lowercase) and whose values are exactly "female", "male", or "neutral" (for genuinely ambiguous or unisex names like Jordan, Taylor, Casey, Sam). No prose, no markdown.`;
+
+  const userMsg = `Classify each of these first names:\n${unique.map((n) => `- ${n}`).join("\n")}\n\nReturn the JSON object now.`;
+
+  const { content } = await runAiStream({
+    feature: "smartCast",
+    messages: [
+      { role: "system", content: systemPrompt },
+      { role: "user", content: userMsg },
+    ],
+    temperature: 0,
+    extra: { think: false },
+    meta,
+    task: task || { label: `Infer voice gender (${unique.length} name${unique.length === 1 ? "" : "s"})`, meta },
+  });
+
+  const obj = parseJsonObject(content);
+  const out = new Map();
+  for (const [k, v] of Object.entries(obj || {})) {
+    const key = String(k || "").trim().toLowerCase();
+    const val = String(v || "").trim().toLowerCase();
+    if (!key) continue;
+    if (val === "female" || val === "male" || val === "neutral") out.set(key, val);
+  }
+  return out;
+}

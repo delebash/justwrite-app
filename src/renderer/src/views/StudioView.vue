@@ -9,8 +9,8 @@ import Icon from "../components/Icon.vue";
 import Combobox from "../components/Combobox.vue";
 import AiFeatureChip from "../components/AiFeatureChip.vue";
 import { listVoices, preview } from "../services/tts.js";
-import { inferVoiceMetadata } from "../services/voiceGender.js";
-import { smartCast, detectSpeakers } from "../services/llm.js";
+import { inferVoiceMetadata, firstNameKey } from "../services/voiceGender.js";
+import { smartCast, detectSpeakers, inferVoiceGenders } from "../services/llm.js";
 import { extractParagraphsFromHtml } from "../services/speakerAttribution.js";
 import { renderChapter } from "../services/render.js";
 import * as audioStore from "../services/audioStore.js";
@@ -130,6 +130,45 @@ async function pingTtsProvider(p, { mergeVoices = false } = {}) {
           tone:   v.tone   || inferred.tone   || "",
         };
       });
+
+      // Optional LLM fallback for voices still missing a gender after
+      // provider canon / Kokoro pattern / first-name dictionary. Opt-in
+      // via Settings → AI → "Use LLM to guess voice gender". One batch
+      // call covers every unique first-name key on this provider.
+      // Determined names (Michael, OpenAI's "alloy", Kokoro's bf_emma)
+      // are left alone so the LLM can't regress them; only ❓ rows are
+      // sent. mergeVoices below backfills empty fields, so anything the
+      // writer set via the gender chip survives.
+      if (ai.useLlmVoiceGender && ai.readyLlmProviders.length) {
+        const blanks = enriched.filter((v) => !v.gender);
+        const keyByVoice = new Map();
+        const uniqueKeys = new Set();
+        for (const v of blanks) {
+          const key = firstNameKey(v.id) || firstNameKey(v.name);
+          if (!key) continue;
+          keyByVoice.set(v.id, key);
+          uniqueKeys.add(key);
+        }
+        if (uniqueKeys.size) {
+          try {
+            const verdicts = await inferVoiceGenders({
+              names: Array.from(uniqueKeys),
+              meta: { providerId: p.id },
+            });
+            for (const v of enriched) {
+              if (v.gender) continue;
+              const key = keyByVoice.get(v.id);
+              const g = key ? verdicts.get(key) : null;
+              if (g) v.gender = g;
+            }
+          } catch (e) {
+            // Soft-fail: LLM unreachable or response unparseable. The
+            // writer can still click the ❓ chip; nothing else regresses.
+            console.warn("LLM voice-gender inference failed:", e);
+          }
+        }
+      }
+
       studio.mergeVoices(enriched);
     }
     ttsStatus.value = { ...ttsStatus.value, [p.id]: list.length ? "online" : "offline" };

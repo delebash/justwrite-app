@@ -1125,6 +1125,15 @@ const recentColumns = [
                 Embed new and changed scenes a minute after the last edit. Costs nothing on local embedding providers; cloud embeddings will accrue tokens.
               </span>
             </label>
+
+            <span class="t-muted">Guess voice gender with LLM</span>
+            <label style="display:flex;align-items:flex-start;gap:8px;cursor:pointer">
+              <JwCheckbox :model-value="ai.useLlmVoiceGender"
+                @update:model-value="ai.setUseLlmVoiceGender" style="margin-top:2px" />
+              <span style="color:var(--ink-2);font-size:12.5px;line-height:1.45">
+                After Studio fetches voices, any name the built-in dictionary doesn't recognise (Gianna, Axel, fantasy names) gets sent in one batch to your default LLM, which labels each as female / male / neutral. Smart-assign uses these to match characters to voices. Off by default — a no-network alternative is to click the <b>❓</b> chip in Studio's voice library and cycle to the right gender. Manual settings persist across re-fetches; only the truly unknown rows are ever sent to the LLM.
+              </span>
+            </label>
           </div>
         </div>
 

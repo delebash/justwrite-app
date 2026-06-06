@@ -172,6 +172,7 @@ function save(state) {
       labPresets: state.labPresets,
       activeProduction: state.activeProduction,
       autoRebuildRagIndex: state.autoRebuildRagIndex,
+      useLlmVoiceGender: state.useLlmVoiceGender,
     }));
   } catch {}
 }
@@ -227,6 +228,14 @@ export const useAiStore = defineStore("ai", {
       // burns embed tokens on every save against a cloud provider, which
       // the user shouldn't get without opting in.
       autoRebuildRagIndex: loaded?.autoRebuildRagIndex ?? false,
+      // When true, after a voice list is fetched and the offline
+      // first-name dictionary in services/voiceGender.js has labelled what
+      // it can, any voices still missing a gender are sent in one batch
+      // to the default LLM for classification. Default OFF — the writer
+      // can also just click the ❓ chip in Studio's voice library, which
+      // persists and survives re-fetch (mergeVoices only backfills empty
+      // fields).
+      useLlmVoiceGender: loaded?.useLlmVoiceGender ?? false,
       // Usage ledger — every LLM call routed through writerAI (and any
       // future feature that uses recordUsage) appends a row. Aggregates
       // are maintained alongside so a settings page can render totals
@@ -409,6 +418,10 @@ export const useAiStore = defineStore("ai", {
     },
     setAutoRebuildRagIndex(on) {
       this.autoRebuildRagIndex = !!on;
+      save(this.$state);
+    },
+    setUseLlmVoiceGender(on) {
+      this.useLlmVoiceGender = !!on;
       save(this.$state);
     },
     // Pin a tier override for a specific model. Pass null/undefined to

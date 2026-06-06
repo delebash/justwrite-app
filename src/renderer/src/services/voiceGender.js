@@ -58,9 +58,9 @@ const FEMALE_NAMES = new Set([
   "dorothy","edith","eileen","elaine","eleanor","elena","eliza","elizabeth","ella","ellen",
   "ellie","elsa","elsie","emily","emma","erica","erin","esme","esmeralda","esther",
   "ethel","eva","evelyn","faith","fiona","florence","frances","francesca","gabriella","gemma",
-  "georgia","gertrude","gina","gladys","gloria","grace","gwendolyn","hannah","harper","hazel",
+  "georgia","gertrude","gianna","gina","gladys","gloria","grace","gwendolyn","hannah","harper","hazel",
   "heather","heidi","helen","helena","henrietta","holly","ingrid","irene","iris","isabel",
-  "isabella","ivy","jacqueline","jamie","jane","janet","janice","jasmine","jennifer","jessica",
+  "isabella","ivy","jacqueline","jade","jamie","jane","janet","janice","jasmine","jennifer","jessica",
   "jill","joan","joanna","joanne","joy","joyce","judith","judy","julia","julie",
   "june","karen","kate","katherine","kathleen","kathy","katie","kayla","kelly","kim",
   "kimberly","kira","kirsten","kristen","kristina","laura","laurel","lauren","layla","leah",
@@ -82,7 +82,7 @@ const FEMALE_NAMES = new Set([
 const MALE_NAMES = new Set([
   "aaron","abraham","adam","adrian","aidan","alan","albert","alec","alexander","alfred",
   "alvin","ambrose","andre","andrew","andy","angelo","anthony","antonio","archie","arnold",
-  "arthur","austin","barry","ben","benjamin","bennett","bernard","bert","bill","billy",
+  "arthur","austin","axel","barry","ben","benjamin","bennett","bernard","bert","bill","billy",
   "bob","brad","bradley","brandon","brendan","brent","brett","brian","bruce","bryan",
   "byron","caleb","calvin","carl","carlos","cedric","cesar","charles","charlie","chester",
   "chris","christian","christopher","clarence","clark","claude","clifford","clyde","cody","colin",
@@ -98,9 +98,9 @@ const MALE_NAMES = new Set([
   "jasper","jeff","jeffrey","jeremiah","jeremy","jerome","jerry","jesse","jim","joe",
   "joel","john","jonas","jonathan","joseph","joshua","julian","julius","justin","keith",
   "kenneth","kevin","kirk","kyle","lance","larry","laurence","lawrence","lee","leo",
-  "leon","leonard","leroy","levi","lewis","liam","lincoln","logan","louis","lucas",
+  "leon","leonard","leonardo","leroy","levi","lewis","liam","lincoln","logan","louis","lucas",
   "luke","malcolm","marcus","mark","martin","marvin","mason","matthew","maurice","max",
-  "maxwell","melvin","michael","mike","milton","mitchell","monroe","montague","nathan","nathaniel",
+  "maxwell","melvin","michael","mike","miles","milton","mitchell","monroe","montague","nathan","nathaniel",
   "neal","neil","nicholas","noah","noel","norman","oliver","oscar","oswald","owen",
   "patrick","paul","percy","perry","peter","philip","preston","quentin","ralph","randall",
   "randy","raphael","ray","raymond","reginald","rex","richard","rick","robert","roderick",
@@ -118,7 +118,7 @@ function stripExt(name) {
   return name.replace(/\.[a-z0-9]{1,5}$/i, "");
 }
 
-function firstNameKey(raw) {
+export function firstNameKey(raw) {
   if (!raw) return "";
   const trimmed = stripExt(String(raw)).trim().toLowerCase();
   // First token before underscore/space/hyphen. Strips "michael_studio",
