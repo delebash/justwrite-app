@@ -143,15 +143,20 @@ The **Render** tab is the final stage. For each chapter, it sends every script l
 
 ### What you see
 
-- **A list of every chapter** in your manuscript.
-- A **Render button** per chapter (disabled until the chapter has been analysed in the Script tab).
+- **A list of every chapter** in your manuscript, each with a **checkbox** for batch selection.
+- A **batch toolbar** at the top with a **Select all unrendered** master checkbox (picks every chapter that has a script and isn't yet rendered) and a **Render selected (N)** button that runs the picks sequentially.
+- A **Render button** per chapter (disabled until the chapter has been analysed in the Script tab) for one-at-a-time renders.
 - A **progress strip** while rendering — elapsed time, current line / total lines, and a **Cancel** button. It's the same status strip every AI feature in JustWrite uses, so the in-flight render also appears in the header AI status panel and survives navigating away from Studio.
 - Once rendered: **Play / Stop**, **WAV** (download), **Re-render**, and a **Delete** icon per chapter. The chapter row tells you the rendered duration in seconds.
 - A **Delete all rendered (N)** button in the tab toolbar when at least one chapter has been rendered, in case you want to free the disk space the WAVs are taking up before re-rendering with a different cast.
 
 ### How to use it
 
-Work down the chapter list:
+Two flows depending on how much you're rendering at once:
+
+**Batch:** tick **Select all unrendered** (or pick chapters individually), then click **Render selected (N)**. JustWrite walks the list top to bottom, rendering one chapter at a time. **Cancel** on the progress strip stops the current chapter *and* the batch — pick up where you left off by re-ticking the unfinished chapters and clicking Render selected again. Already-rendered chapters can be ticked manually to re-render them (e.g. after a cast change); Select-all skips them by default since the common case is "render the new ones".
+
+**One at a time** (useful when iterating on cast or prose):
 
 1. **Click Render** on Chapter 1.
 2. **Wait.** Longer chapters take several minutes depending on your TTS provider's speed and your machine. A 5,000-word chapter on a local Kokoro server typically renders in 1–3 minutes. Use **Cancel** on the progress strip to stop a render mid-flight (useful when you realise you've assigned the wrong voice).

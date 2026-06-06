@@ -18,6 +18,7 @@ import { confirmDialog } from "../services/dialog.js";
 import JwInput from "@renderer/components/ui/JwInput.vue";
 import JwTag from "@renderer/components/ui/JwTag.vue";
 import JwButton from "@renderer/components/ui/JwButton.vue";
+import JwCheckbox from "@renderer/components/ui/JwCheckbox.vue";
 import JwSelect from "@renderer/components/ui/JwSelect.vue";
 import JwTable from "@renderer/components/ui/JwTable.vue";
 import AiTaskStrip from "../components/AiTaskStrip.vue";
@@ -499,6 +500,64 @@ async function deleteChapterAudio(chapterId) {
   await studio.removeChapterAudio(chapterId);
 }
 
+// ── Render-tab selection ───────────────────────────────────────────────
+// Per-chapter checkboxes drive a bulk-render flow. Selection state is
+// purely UI — doesn't persist across reloads (re-rendering an entire
+// audiobook from a saved tick set isn't a desire path; this is a
+// session-scoped batch tool).
+const selectedRenderIds = ref(new Set());
+
+// What "Select all" targets: chapters that have a script but aren't yet
+// rendered. Already-rendered chapters can still be ticked manually (to
+// re-render after a cast change, say) — Select-all just doesn't preload
+// them, because the common case is "render the new ones".
+const renderableChapterIds = computed(() =>
+  project.allChapters
+    .filter((c) => studio.scriptFor(c.id) && !studio.chapterAudio[c.id])
+    .map((c) => c.id),
+);
+const allRenderableSelected = computed(() => {
+  const ids = renderableChapterIds.value;
+  if (!ids.length) return false;
+  return ids.every((id) => selectedRenderIds.value.has(id));
+});
+
+function toggleSelected(chapterId) {
+  const next = new Set(selectedRenderIds.value);
+  if (next.has(chapterId)) next.delete(chapterId);
+  else next.add(chapterId);
+  selectedRenderIds.value = next;
+}
+function toggleSelectAll(checked) {
+  if (checked) {
+    selectedRenderIds.value = new Set(renderableChapterIds.value);
+  } else {
+    selectedRenderIds.value = new Set();
+  }
+}
+
+// Sequential render loop. We can't parallelise — every render shares
+// `renderingId` and the AiTaskStrip, and most TTS providers rate-limit
+// anyway. Bail on cancel: startRender's catch path flips the task to
+// "cancelled" without throwing, so we detect a cancelled render by the
+// absence of a fresh chapterAudio record after the call and stop.
+async function renderSelected() {
+  if (renderingId.value) return;
+  const ids = project.allChapters
+    .map((c) => c.id)
+    .filter((id) => selectedRenderIds.value.has(id) && studio.scriptFor(id));
+  for (const id of ids) {
+    if (!provider.value) { error.value = "No TTS provider configured."; return; }
+    await startRender(id);
+    // If startRender ended in a cancelled state (no fresh audio record
+    // AND error message is set/cleared by the strip), stop the batch.
+    // The check is loose on purpose — we only want to stop the loop
+    // if the writer cancelled, not if the chapter genuinely had no
+    // output for some other reason.
+    if (!studio.chapterAudio[id]) break;
+  }
+}
+
 async function confirmDeleteAllRendered() {
   const n = renderedCount.value;
   if (!n) return;
@@ -795,8 +854,37 @@ async function confirmDeleteAllRendered() {
     </AiTaskStrip>
     <div v-if="error" class="banner danger" style="margin-bottom:14px;padding:10px 14px;border-radius:8px">{{ error }}</div>
 
+    <!-- Bulk-render toolbar. "Select all" picks every chapter that has a
+         script and isn't already rendered (the common case: render the
+         new ones). Individually ticking a rendered chapter re-renders
+         it — useful after a cast change or script edit. -->
+    <div style="display:flex;align-items:center;gap:10px;padding:10px 14px;margin:6px 0 14px;border:1px solid var(--border-soft);border-radius:10px;background:var(--surface-2)">
+      <JwCheckbox
+        :model-value="allRenderableSelected"
+        :disabled="!renderableChapterIds.length"
+        @update:model-value="toggleSelectAll">
+        <span style="font-size:12.5px;color:var(--ink-2)">
+          Select all unrendered ({{ renderableChapterIds.length }})
+        </span>
+      </JwCheckbox>
+      <span class="t-muted" style="font-size:11.5px;margin-left:auto">
+        <template v-if="selectedRenderIds.size">{{ selectedRenderIds.size }} selected</template>
+        <template v-else>Tick chapters to render in a batch</template>
+      </span>
+      <JwButton intent="primary" size="small"
+        :disabled="!selectedRenderIds.size || !!renderingId || !provider"
+        @click="renderSelected">
+        <Icon name="Mic" :size="11" />
+        {{ renderingId ? "Rendering…" : `Render selected (${selectedRenderIds.size})` }}
+      </JwButton>
+    </div>
+
     <div v-for="c in project.allChapters" :key="c.id"
-      style="display:grid;grid-template-columns:28px 1fr auto;gap:14px;padding:12px 14px;margin:6px 0;border:1px solid var(--border);border-radius:10px;background:var(--surface);align-items:center">
+      style="display:grid;grid-template-columns:28px 28px 1fr auto;gap:14px;padding:12px 14px;margin:6px 0;border:1px solid var(--border);border-radius:10px;background:var(--surface);align-items:center">
+      <JwCheckbox
+        :model-value="selectedRenderIds.has(c.id)"
+        :disabled="!studio.scriptFor(c.id) || !!renderingId"
+        @update:model-value="toggleSelected(c.id)" />
       <span class="t-num t-muted" style="font-size:12px;text-align:right">{{ c.num }}</span>
       <div style="min-width:0">
         <div style="font-weight:500;font-size:13.5px">{{ c.title }}</div>
