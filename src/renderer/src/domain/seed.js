@@ -630,6 +630,44 @@ export const DEFAULT_CAST = {
   characters: {},
 };
 
+// Starter render presets — seeded ONCE per workspace by the studio
+// store on first install (or on first open after Phase 2 shipped for
+// users who haven't yet created any presets). After the seed flag is
+// set the writer fully owns this list: editing, renaming, or deleting
+// any of them is permanent and they never come back.
+//
+// Each preset sets BOTH the Chatterbox-style key (speed_factor) AND
+// the OpenAI-style key (speed) where there's a direct equivalent, so
+// a writer who later switches engines still gets the speed shift.
+// Engine-specific knobs (exaggeration, cfg_weight) stay Chatterbox-
+// only — engines that don't understand them silently no-op (per the
+// OpenAI spec, unknown body fields are ignored).
+//
+// Reference for these values: the Chatterbox knob primer in
+// docs/audio-studio.md → "Tuning the sound".
+export const STARTER_RENDER_PRESETS = [
+  {
+    id: "narration",
+    name: "Narration",
+    params: { speed: 0.95, speed_factor: 0.95, exaggeration: 0.9 },
+  },
+  {
+    id: "dramatic-dialogue",
+    name: "Dramatic Dialogue",
+    params: { exaggeration: 1.5, cfg_weight: 0.4 },
+  },
+  {
+    id: "quiet-reflection",
+    name: "Quiet Reflection",
+    params: { speed: 0.92, speed_factor: 0.92, exaggeration: 0.7, temperature: 0.7 },
+  },
+  {
+    id: "action",
+    name: "Action",
+    params: { speed: 1.05, speed_factor: 1.05, exaggeration: 1.6, cfg_weight: 0.4 },
+  },
+];
+
 export const SCRIPT_CH7 = [
   { speaker: "narrator", confidence: 1.0,  kind: "scene",     text: "Scene i" },
   { speaker: "narrator", confidence: 1.0,  kind: "narration", text: "The customs house at Old Harbor 7 had been condemned for nine years." },

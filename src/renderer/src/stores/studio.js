@@ -1,7 +1,7 @@
 // Studio store — cast assignments, script analyses, render queue.
 
 import { defineStore } from "pinia";
-import { DEFAULT_CAST, SCRIPT_CH7, RENDER_QUEUE } from "../domain/seed.js";
+import { DEFAULT_CAST, SCRIPT_CH7, RENDER_QUEUE, STARTER_RENDER_PRESETS } from "../domain/seed.js";
 import { getItem, setItem } from "../services/storage.js";
 import * as audioStore from "../services/audioStore.js";
 
@@ -11,6 +11,23 @@ function load() {
   try {
     return JSON.parse(getItem(LS_KEY) || "null");
   } catch { return null; }
+}
+
+// Decide whether to drop the starter render presets into a workspace.
+// Three cases produce true:
+//   - Brand-new install (no studio state at all).
+//   - Upgrade from a pre-Phase-2 version (renderPresets field missing
+//     entirely from the saved blob).
+//   - Upgrade from Phase 2 but the writer never created a preset (empty
+//     array AND the seed flag never flipped — this is the "one-time
+//     backfill" path).
+// Once defaultPresetsSeeded is true we never re-seed, so a writer who
+// intentionally deletes every starter doesn't see them come back on
+// the next launch.
+function needsStarterPresets(loaded) {
+  if (!loaded) return true;
+  if (loaded.defaultPresetsSeeded) return false;
+  return !loaded.renderPresets || loaded.renderPresets.length === 0;
 }
 function save(state) {
   try {
@@ -41,6 +58,7 @@ function save(state) {
       chapterAudio: persistedAudio,
       renderPresets: state.renderPresets,
       chapterPresets: state.chapterPresets,
+      defaultPresetsSeeded: state.defaultPresetsSeeded,
     }));
   } catch {}
 }
@@ -83,8 +101,20 @@ export const useStudioStore = defineStore("studio", {
       // { id, name, params } so the writer can save "Tense chapter"
       // and assign it from the Studio Render tab. Chapter assignments
       // live in chapterPresets (chapterId → presetId).
-      renderPresets: loaded?.renderPresets || [],
+      //
+      // Seed semantics: on first install (or first open after Phase 2
+      // shipped, for an existing user who hasn't touched the system
+      // yet) we drop in a small starter library — Narration / Dramatic
+      // Dialogue / Quiet Reflection / Action — pulled from seed.js.
+      // `defaultPresetsSeeded` is a one-shot flag: once it's true we
+      // never seed again, so deleting the starters is permanent and
+      // the writer can't accidentally "lose" their own presets after
+      // an upgrade.
+      renderPresets: needsStarterPresets(loaded)
+        ? [...STARTER_RENDER_PRESETS]
+        : (loaded?.renderPresets || []),
       chapterPresets: loaded?.chapterPresets || {},
+      defaultPresetsSeeded: loaded?.defaultPresetsSeeded || needsStarterPresets(loaded),
     };
   },
 

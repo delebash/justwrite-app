@@ -208,7 +208,7 @@ A rule of thumb for picking the right layer: tweak a **voice's character** on Ti
 
 Use this for voice character: give your narrator a slower speed and lower exaggeration; give the villain higher exaggeration and a looser cfg_weight; give a child character higher temperature for natural prosodic variation.
 
-**Tier 3 — Render presets (per-chapter).** Project-level named bundles — "Tense Scene", "Quiet Reflection", "Battle" — defined in Settings → AI & Audio engines → Render presets. Assign a preset to any chapter via the "Preset:" dropdown on that chapter's row in the Render tab. The preset's params layer over everything else for the whole chapter render.
+**Tier 3 — Render presets (per-chapter).** Project-level named bundles defined in Settings → AI & Audio engines → Render presets. JustWrite ships with four starters — **Narration**, **Dramatic Dialogue**, **Quiet Reflection**, **Action** — so you have working examples to learn from on day one. Edit, rename, or delete them like any preset; deletions are permanent (the starters don't re-seed). Assign a preset to any chapter via the "Preset:" dropdown on that chapter's row in the Render tab. The preset's params layer over everything else for the whole chapter render.
 
 Use this for scene mood: a tense chapter gets all voices 1.05× faster with exaggeration pushed to 1.5; the quiet flashback that follows gets 0.92× speed and exaggeration pulled back to 0.7.
 
