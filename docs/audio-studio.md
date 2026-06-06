@@ -200,6 +200,8 @@ In the browser-only dev build (`npm run dev:vite`), renders are session-only —
 
 Every TTS engine exposes knobs that shape how a voice sounds: speed, expressiveness, how tightly it tracks the reference voice, and so on. JustWrite gives you three layers to set those knobs, applied in order — later layers win, gaps fall through to the layer below.
 
+A rule of thumb for picking the right layer: tweak a **voice's character** on Tier 2, tweak a **scene's mood** on Tier 3, and use the **Render Lab** (below) when you don't yet know which values you want — it's the fastest way to land on something good without burning a full chapter render to audition.
+
 **Tier 1 — Provider defaults.** Set in Settings → AI & Audio engines → provider editor → Engine params. These apply to every render from that provider unless overridden. Chatterbox exposes `speed_factor`, `exaggeration`, `cfg_weight`, `temperature`, `chunk_size`, and `language`; Kokoro exposes `speed`, `response_format`, and `lang_code`; OpenAI exposes `speed`, `response_format`, and `instructions`.
 
 **Tier 2 — Per-voice overrides.** Each row in the Cast voice library has a settings button (⚙). Click it to open "Tune {voice name}" — the same params as Tier 1, with the provider default shown as placeholder text. Anything you set here applies whenever that voice is used, regardless of which chapter. Voices with overrides show the ⚙ button in the accent colour so you can see at a glance which ones you've tuned. Overrides survive provider re-fetches.
@@ -214,7 +216,12 @@ Engines silently ignore params they don't understand — a Chatterbox-tuned pres
 
 ### Render Lab
 
-The **Render Lab** (fourth tab in Studio) is an A/B harness for finding your settings before you commit. Pick a voice, type 1–3 sample sentences, and define one or two parameter axes — for example `exaggeration: 0.8, 1.2, 1.5` crossed with `speed_factor: 0.95, 1.05`. The Lab synthesises every combination in parallel (capped at 16 cells, 2 concurrent to protect local servers) and gives each cell its own audio player for side-by-side listening. The audio you hear in the Lab is exactly what you'll get on a full chapter render — same synthesis code path. Each cell has a "Preset" button to save that combination as a named Render preset, or a "Voice" button to push it onto the voice as a per-voice override.
+**Start here if you're not sure what values you want.** The Render Lab (fourth tab in Studio) is an A/B harness for finding your settings before you commit. Pick a voice, type 1–3 sample sentences, and define one or two parameter axes — for example `exaggeration: 0.8, 1.2, 1.5` crossed with `speed_factor: 0.95, 1.05`. The Lab synthesises every combination in parallel (capped at 16 cells, 2 concurrent to protect local servers) and gives each cell its own audio player for side-by-side listening. The audio you hear in the Lab is exactly what you'll get on a full chapter render — same synthesis code path. The voice's existing Tier 2 overrides apply to every cell as the baseline, so you're tuning *on top of* what you already set, not blowing it away.
+
+Each cell has two save buttons:
+
+- **Preset** — saves the combination as a project-level Render preset. Reach for this when the tweak fits a *scene mood* you'll reuse across chapters ("Tense Scene", "Battle").
+- **Voice** — pushes the combination onto the voice itself as a per-voice override. Reach for this when the tweak fits *how that one voice should always sound* — the narrator's calmness, the villain's intensity.
 
 A rough guide to the Chatterbox knobs writers reach for most often:
 
