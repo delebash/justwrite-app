@@ -139,6 +139,7 @@ const NAV = [
   { id: "trash",     label: "nav.trash",     icon: "Trash" },
   { id: "settings",  label: "nav.settings",  icon: "Settings" },
   { id: "writer-lab", label: "sidebar.nav.writerLab", icon: "Sparkle", path: "/writer-lab", activeName: "writerlab" },
+  { id: "speaker-lab", label: "sidebar.nav.speakerLab", icon: "Comment", path: "/speaker-lab", activeName: "speakerlab" },
   { id: "help",      label: "sidebar.nav.help",       icon: "Help",     path: "/help", activeName: "help" },
 ];
 

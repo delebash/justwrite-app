@@ -14,6 +14,13 @@
 import { OpenAICompatClient } from "./openai-compat.js";
 import { friendlyAiError } from "./aiErrors.js";
 import { runAiStream } from "./aiStream.js";
+import { useAiStore } from "../stores/ai.js";
+import {
+  analyzeSpeakers,
+  SYSTEM_BY_TIER_KEY,
+  INLINE_SPEAKER_SYSTEM_GUIDED,
+  INLINE_SPEAKER_USER_TEMPLATE,
+} from "./speakerAttribution.js";
 
 // ─── Speaker detection ──────────────────────────────────────────────────
 //
@@ -25,50 +32,72 @@ import { runAiStream } from "./aiStream.js";
 // JSON. If the response is malformed we keep the original line and mark
 // confidence low.
 //
-const SPEAKER_SYSTEM = `You are a dialogue analysis assistant for a novelist.
-For each paragraph the user gives you, identify the speaker.
-Return a JSON array, one object per paragraph, in order, with fields:
-  { "speaker": <id>, "confidence": <0..1>, "kind": "narration"|"dialogue"|"interior" }
-Use "narrator" for narration. Use the character id (e.g. "c1") for dialogue.
-Use "interior" for unspoken thoughts of a character. Be conservative — if
-you are uncertain, set confidence below 0.85.`;
+// Backwards-compat re-export. Lab + StudioView use this constant to
+// reset their prompts to "what production uses".
+export const SPEAKER_SYSTEM = INLINE_SPEAKER_SYSTEM_GUIDED;
 
-export async function detectSpeakers({ paragraphs, characters, task, meta } = {}) {
-  const characterList = characters
-    .map((c) => `- id=${c.id}, name="${c.name}", role="${c.role}"`)
-    .join("\n");
+// Production speaker-attribution entry point. Runs the inline-tag
+// pipeline shared with Speaker Lab's Studio panel — paragraphs are
+// split into narration / dialogue segments BEFORE the LLM, only the
+// dialogue segments are attributed, and the result is a per-segment
+// row list (multiple rows per paragraph). Narration is mechanically
+// attributed to the narrator so a paragraph like `"I don't know,"
+// she said.` no longer collapses to one speaker — the dialogue gets
+// the character voice, the tag ("she said.") gets the narrator voice.
+//
+// Tier-aware: at call time we resolve the active model's tier
+// (Guided / Direct / Reasoned) and pull `think`, `confidenceFloor`,
+// and the system prompt body from the tier. Any individual knob can
+// be overridden via `ai.featureConfigs.speakerAnalysis` (the user
+// promotes a tuned Speaker Lab config there). When a key is undefined
+// in the config, the tier-resolved default is used.
+//
+// Returns an array of ready-to-render line objects:
+//   [{ paragraphIdx, kind: "narration"|"dialogue", speaker, confidence,
+//      text, source?, intro?, ... }, ...]
+// StudioView.reanalyze() pushes these directly into the script.
+export async function detectSpeakers({ paragraphs, characters, chapter, task, meta } = {}) {
+  const ai = useAiStore();
+  // Active production config — null for the built-in Default (which
+  // falls through to tier-resolved values below). When a named config
+  // is active, its `settings` provide per-knob overrides.
+  const cfg = ai.activeSettingsFor("speakerAnalysis") || {};
 
-  const userMsg = [
-    "Characters in this novel:",
-    characterList,
-    "",
-    "Paragraphs:",
-    ...paragraphs.map((p, i) => `${i + 1}. ${p}`),
-    "",
-    "Return only the JSON array, no commentary.",
-  ].join("\n");
+  // Tier resolution from the resolved model. providerForFeature +
+  // modelForFeature already walk featurePins; chatModel is the final
+  // fallback when neither a pin nor a default override sets a model.
+  const provider = ai.providerForFeature("speakerAnalysis");
+  const model = ai.modelForFeature("speakerAnalysis") || provider?.chatModel || "";
+  const tier = ai.resolveTier(model) || {};
 
-  // Temperature 0.3 — low for stricter JSON output. runAiStream's default
-  // is 0.7 (for prose generation), which is way too high here: at 0.7 the
-  // model gets creative, mis-attributes lines, and sometimes returns
-  // malformed JSON. Speaker Lab's studio path uses 0.3 and produces
-  // correct attributions; this matches it.
-  // think disabled — JSON-parseable output; reasoning trails would break
-  // the array parse. Spread via `extra` so the OpenAI-compat code path
-  // ignores it as an unknown body field and Ollama honors it on /api/chat.
-  const { content } = await runAiStream({
+  // Default each knob from the tier; let featureConfigs override any
+  // single one. `?? tierFallback` checks for explicit null/undefined so
+  // a deliberate `temperature: 0` or `propagate: false` is respected.
+  const systemPrompt = cfg.systemPrompt
+    || SYSTEM_BY_TIER_KEY[tier.systemKey]
+    || INLINE_SPEAKER_SYSTEM_GUIDED;
+  const userTemplate = cfg.userTemplate || INLINE_SPEAKER_USER_TEMPLATE;
+  const temperature = cfg.temperature ?? 0.2;
+  const think = cfg.think ?? (tier.think === true);
+  const propagate = cfg.propagate ?? true;
+  const useFloor = cfg.useFloor ?? true;
+  const confidenceFloor = cfg.confidenceFloor ?? (tier.floor ?? 0.7);
+
+  return analyzeSpeakers({
+    paragraphs,
+    characters,
+    chapter,
+    systemPrompt,
+    userTemplate,
+    temperature,
+    think,
+    propagate,
+    useFloor,
+    confidenceFloor,
     feature: "speakerAnalysis",
-    messages: [
-      { role: "system", content: SPEAKER_SYSTEM },
-      { role: "user", content: userMsg },
-    ],
-    temperature: 0.3,
-    extra: { think: false },
-    meta,
     task: task || { label: "Script analysis", meta },
+    meta,
   });
-
-  return parseJsonArray(content, paragraphs);
 }
 
 // ─── Smart cast assignment ──────────────────────────────────────────────
@@ -76,29 +105,49 @@ export async function detectSpeakers({ paragraphs, characters, task, meta } = {}
 // Given a list of characters and a list of available voices, ask the LLM
 // to pick the closest voice for each.
 //
-const CAST_SYSTEM = `You are a casting director for an audiobook producer.
+const DEFAULT_CAST_SYSTEM = `You are a casting director for an audiobook producer.
 Given a list of characters with descriptions and a list of available voices
 with descriptors, pick the best voice for each character. Return a JSON
 object mapping characterId -> voiceId. Match on age, gender, tone,
 and accent. Do not invent ids. If no voice fits, omit that character.`;
 
+const DEFAULT_CAST_USER_TEMPLATE = `Characters:
+{{characters}}
+
+Available voices:
+{{voices}}
+
+Return only the JSON object.`;
+
+export const CAST_SYSTEM = DEFAULT_CAST_SYSTEM;
+
 export async function smartCast({ characters, voices, task, meta } = {}) {
+  const ai = useAiStore();
+  // Active production config for smart-cast. Default → built-in
+  // hardcoded values below. Smart-Cast Lab (future) will populate
+  // this with promoted configs the same way Speaker Lab does today.
+  const cfg = ai.activeSettingsFor("smartCast") || {};
+
   const charList = characters
-    .map((c) => `- id=${c.id}, name="${c.name}", role="${c.role}", description="${c.oneLiner}"`)
+    .map((c) => `- id=${c.id}, name="${c.name}", role="${c.role || ""}", description="${c.oneLiner || ""}"`)
     .join("\n");
   const voiceList = voices
     .map((v) => `- id="${v.id}", name="${v.name}", gender=${v.gender || "?"}, age=${v.age || "?"}, accent=${v.accent || "?"}, tone="${v.tone || ""}"`)
     .join("\n");
 
-  // Temperature 0.3 — JSON output; see detectSpeakers above for the same
-  // reasoning. Default 0.7 from runAiStream produces erratic casting.
+  const systemPrompt = cfg?.systemPrompt || DEFAULT_CAST_SYSTEM;
+  const userTemplate = cfg?.userTemplate || DEFAULT_CAST_USER_TEMPLATE;
+  const userMsg = userTemplate
+    .replace(/\{\{characters\}\}/g, charList)
+    .replace(/\{\{voices\}\}/g, voiceList);
+
   const { content } = await runAiStream({
     feature: "smartCast",
     messages: [
-      { role: "system", content: CAST_SYSTEM },
-      { role: "user", content: `Characters:\n${charList}\n\nAvailable voices:\n${voiceList}\n\nReturn only the JSON object.` },
+      { role: "system", content: systemPrompt },
+      { role: "user", content: userMsg },
     ],
-    temperature: 0.3,
+    temperature: cfg?.temperature ?? 0.2,
     extra: { think: false },
     meta,
     task: task || { label: "Smart-assign cast", meta },

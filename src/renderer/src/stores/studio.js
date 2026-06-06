@@ -18,6 +18,7 @@ function save(state) {
       cast: state.cast,
       voices: state.voices,
       scripts: state.scripts,
+      lastScriptChapter: state.lastScriptChapter,
     }));
   } catch {}
 }
@@ -35,6 +36,10 @@ export const useStudioStore = defineStore("studio", {
       // Session-only — Blob URLs don't survive reload. Keyed by chapter id.
       // Shape: { url, blob, duration }.
       chapterAudio: {},
+      // Which chapter the Script tab was last viewing. Restored on
+      // mount so opening Studio → Script lands you where you left off.
+      // Null until the user has actually picked one.
+      lastScriptChapter: loaded?.lastScriptChapter || null,
     };
   },
 
@@ -100,6 +105,10 @@ export const useStudioStore = defineStore("studio", {
     },
     setScript(chapterId, lines) {
       this.scripts = { ...this.scripts, [chapterId]: lines };
+      save(this.$state);
+    },
+    setLastScriptChapter(chapterId) {
+      this.lastScriptChapter = chapterId || null;
       save(this.$state);
     },
     clearScript(chapterId) {

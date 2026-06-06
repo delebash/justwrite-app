@@ -25,6 +25,7 @@ Items are loosely grouped by area and by how concrete they are.
 - **Token budgets per feature.** A per-feature monthly cap that pauses AI calls when exceeded, to prevent surprise bills on cloud providers.
 - **Embedding rebuild status.** The auto-rebuild RAG indicator could be more visible when it's actively running.
 - **Per-model temperature, resolved via tier.** AI services currently hard-code their temperature (0.3 for JSON-output features like speaker analysis and smart-cast, 0.4–0.55 for prose critique, etc.). One value applies regardless of which model runs the call. A more nuanced approach would extend the tier system (`Guided` / `Direct` / `Reasoned`) with a per-tier temperature so that, say, Claude or GPT-4o on Direct could run at 0.4 for a touch more nuance while Qwen3:8B on Guided stays at 0.3 for JSON safety. Services would read `tier.temperature` the same way they currently read `tier.think`.
+- **Smart-Assign Lab.** Speaker Lab already proves the workflow: tune a prompt + temperature, save as a named production config, switch between configs from Settings or the lab. Smart-Assign (`smartCast`) needs the same surface — currently the only override is "Default (built-in)" because there's no UI to populate `savedConfigs.smartCast`. Probably a third tab in Speaker Lab so the two casting-related labs share a sidebar entry, or a popover off the Studio Cast tab. The store, services, and Settings card already accept the data shape; only the lab UI is missing.
 
 ---
 
@@ -32,6 +33,7 @@ Items are loosely grouped by area and by how concrete they are.
 
 - **Better mid-render error recovery.** If a single line fails to render mid-chapter, the chapter currently has to restart. A line-level retry is on the wishlist.
 - **Per-chapter pacing controls.** Speed and pause-between-paragraph settings per chapter would help match narration to the chapter's rhythm.
+- **Render settings surface.** A lot of audio knobs are currently hardcoded in `services/render.js`: `pauseBetween: 0.35` seconds between lines, `sampleRate: 44100` on the AudioContext, WAV-only output (no bitrate / compression knob), and no per-line speed or pitch adjustment. A Render settings card on Studio's Render tab (or in Settings → AI & Audio engines) would expose these — at minimum the pause control, with speed / pitch and an output-format picker as follow-ups.
 
 ---
 

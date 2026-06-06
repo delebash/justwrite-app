@@ -77,9 +77,9 @@ const routes = [
   { path: "/help/:slug?",       name: "Help",          component: () => import("../views/HelpView.vue"), props: true },
 
   { path: "/writer-lab",          name: "WriterLab",      component: () => import("../views/WriterLabView.vue") },
+  { path: "/speaker-lab",         name: "SpeakerLab",     component: () => import("../views/SpeakerLabView.vue") },
 
   // Hidden dev/debug routes — no sidebar entry. Reach via direct hash URL.
-  { path: "/debug/speaker-lab",  name: "SpeakerLab",    component: () => import("../views/SpeakerLabView.vue") },
   { path: "/debug/writer-lab",   name: "WriterLabDebug", component: () => import("../views/WriterLabDebugView.vue") },
 ];
 

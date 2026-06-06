@@ -95,6 +95,70 @@ const AI_FEATURES = [
 ];
 const INHERIT = "__inherit__";
 
+// Per-feature production configs are managed through Speaker Lab (and,
+// eventually, Smart-Assign Lab). Each feature has a list of saved named
+// configs + an active pointer in the ai store. Default (= tier-resolved
+// built-ins) is implicit, represented by activeConfig[key] === null.
+// This list is just the Settings card metadata — the lab UI is the
+// authoritative editing surface; Settings shows what's active and lets
+// you switch without leaving.
+const PROMOTABLE_FEATURES = [
+  {
+    key: "speakerAnalysis",
+    label: "Studio · Speaker analysis",
+    labPath: "/speaker-lab",
+    labLabel: "Speaker Lab",
+    labReady: true,
+  },
+  {
+    key: "smartCast",
+    label: "Studio · Smart-assign",
+    labPath: "/speaker-lab",       // placeholder until Smart-Assign Lab ships
+    labLabel: "Smart-Assign Lab",
+    labReady: false,
+  },
+];
+
+// Each feature has one "production-ready" mode (e.g. speakerAnalysis →
+// inline, smartCast → cast). The active production preset lives in
+// that mode's preset list inside ai.labPresets.
+const PRODUCTION_MODE_OF = { speakerAnalysis: "inline", smartCast: "cast" };
+
+function activeConfigName(key) {
+  return ai.activeProduction?.[key] || "Default";
+}
+function activeConfigEntry(key) {
+  const name = ai.activeProduction?.[key];
+  if (!name) return null;
+  const modeKey = PRODUCTION_MODE_OF[key];
+  const list = ai.labPresets?.[key]?.[modeKey] || [];
+  return list.find((c) => c.name === name) || null;
+}
+function configOptionsFor(key) {
+  const opts = [{ value: "Default", label: "Default (tier-resolved)" }];
+  const modeKey = PRODUCTION_MODE_OF[key];
+  for (const c of ai.labPresets?.[key]?.[modeKey] || []) {
+    opts.push({ value: c.name, label: c.name });
+  }
+  return opts;
+}
+function setActiveConfigByPickerValue(key, value) {
+  ai.setActiveProduction(key, value === "Default" ? null : value);
+}
+function truncatePrompt(s, n = 140) {
+  const v = String(s || "").trim();
+  return v.length > n ? v.slice(0, n) + "…" : v;
+}
+function fmtAgo(ts) {
+  if (!ts) return "";
+  const m = Math.floor((Date.now() - ts) / 60000);
+  if (m < 1) return "just now";
+  if (m < 60) return `${m}m ago`;
+  const h = Math.floor(m / 60);
+  if (h < 24) return `${h}h ago`;
+  return `${Math.floor(h / 24)}d ago`;
+}
+
 // Provider select options — "Inherit default" plus every configured
 // provider. The model column only enables once a specific provider is
 // chosen (inherit means "use the global default's provider AND model").
@@ -174,7 +238,7 @@ const DEBUG_TOOLS = [
     id: "speaker-lab",
     name: "Speaker Lab",
     description: "Test entity extraction & quote attribution against any OpenAI-compatible LLM. Side-by-side runs, two-stage pipelines, live streaming, prompt editing, saved presets.",
-    route: "/debug/speaker-lab",
+    route: "/speaker-lab",
     icon: "Sparkle",
   },
   {
@@ -1049,6 +1113,58 @@ const recentColumns = [
         </div>
 
         <div class="card">
+          <div style="display:flex;align-items:center;gap:10px;margin-bottom:10px">
+            <div class="card-title" style="margin:0">{{ $t('settings.audio.providersCardTitle') }}</div>
+            <span class="t-muted" style="font-size:12px">{{ ai.providers.length }} configured</span>
+            <JwButton :label="$t('settings.audio.addProvider')" intent="primary" size="small" style="margin-left:auto" @click="startNew">
+              <template #icon><Icon name="Plus" :size="12" /></template>
+            </JwButton>
+          </div>
+
+          <div style="display:flex;flex-direction:column;gap:8px">
+            <!-- New-provider edit row (only when adding) -->
+            <SettingsProviderForm v-if="editing === 'new' && draft"
+              :draft="draft" editing-key="new"
+              @save="saveDraft" @cancel="cancelEdit" />
+
+            <template v-for="p in ai.providers" :key="p.id">
+              <!-- Read row -->
+              <div v-if="editing !== p.id" style="display:grid;grid-template-columns:auto minmax(0,1fr) auto auto auto;gap:14px;align-items:center;padding:12px 14px;border:1px solid var(--border);border-radius:10px;background:var(--surface)">
+                <span style="width:36px;height:36px;border-radius:8px;background:var(--surface-3);color:var(--ink-2);display:grid;place-items:center">
+                  <Icon :name="p.kind === 'tts' ? 'Headphones' : p.kind === 'both' ? 'Sparkle' : 'Cpu'" :size="16" />
+                </span>
+                <div style="min-width:0">
+                  <div style="display:flex;gap:8px;align-items:center">
+                    <b style="font-size:13.5px">{{ p.name }}</b>
+                    <span style="font-size:10px;font-weight:600;padding:1px 6px;border-radius:4px;background:var(--surface-3);color:var(--muted);text-transform:uppercase;letter-spacing:0.05em">{{ p.kind }}</span>
+                    <span v-if="p.builtIn" class="chip" style="font-size:10px">built-in</span>
+                  </div>
+                  <div class="t-muted" style="font-family:var(--font-mono);font-size:11px;margin-top:2px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">{{ p.baseUrl }}</div>
+                  <div class="t-muted" style="font-size:11px;margin-top:2px">
+                    <template v-if="p.chatModel">chat: <b>{{ p.chatModel }}</b> · </template>
+                    <template v-if="p.embeddingModel">embed: <b>{{ p.embeddingModel }}</b> · </template>
+                    <template v-if="p.ttsModel">tts: <b>{{ p.ttsModel }}</b> · </template>
+                    <template v-if="p.ttsVoices?.length">{{ p.ttsVoices.length }} voices · </template>
+                    {{ p.apiKey ? "API key set" : "no key" }}
+                  </div>
+                </div>
+                <span style="display:inline-flex;align-items:center;gap:6px;font-size:11.5px">
+                  <span :style="`width:8px;height:8px;border-radius:50%;background:${statusColor(ai.status[p.id])}`" />
+                  {{ statusLabel(ai.status[p.id]) }}
+                </span>
+                <JwButton label="Test" intent="secondary" size="small" @click="pingProvider(p.id)" />
+                <JwButton label="Edit" intent="primary" size="small" @click="startEdit(p)" />
+              </div>
+
+              <!-- Edit row -->
+              <SettingsProviderForm v-else
+                :draft="draft" :editing-key="editing"
+                @save="saveDraft" @cancel="cancelEdit" />
+            </template>
+          </div>
+        </div>
+
+        <div class="card">
           <div class="card-title">{{ $t('settings.audio.routingCardTitle') }}</div>
           <p class="t-muted" style="font-size:12.5px;margin:0 0 14px;line-height:1.55">
             The AI layer acts as an aggregator: each feature can route to any configured provider and model independently. Pick "Inherit default" to fall back to the global Default LLM above. The model list is fetched live from the provider — it'll be empty until you save an API key (or for local providers, until the server is reachable).
@@ -1119,6 +1235,87 @@ const recentColumns = [
           </label>
         </div>
 
+        <!-- Production prompt configs. Each feature has a list of saved
+             named configs + an active pointer. "Default" is the built-in
+             tier-resolved entry, always available. The active config is
+             what services actually use; switching it here takes effect
+             immediately. Saving new configs is done in the lab. -->
+        <div class="card">
+          <div class="card-title">Production prompt configs</div>
+          <p class="t-muted" style="font-size:12.5px;margin:0 0 14px;line-height:1.55">
+            Each AI feature has a list of named production configs and a single <strong>active</strong>
+            one. The active config is what production calls actually run against. <strong>Default</strong>
+            is the built-in entry — it uses the tier-resolved prompts and settings for whatever model
+            the feature is routed to. Switch active here, or open the feature's Lab to tune and save
+            new configs.
+          </p>
+          <div style="display:flex;flex-direction:column;gap:10px">
+            <div v-for="f in PROMOTABLE_FEATURES" :key="f.key"
+                 style="padding:12px 14px;border:1px solid var(--border-soft);border-radius:8px;background:var(--surface)">
+              <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap">
+                <div style="flex:1;min-width:140px">
+                  <div style="font-weight:600;font-size:13px;color:var(--ink)">{{ f.label }}</div>
+                  <div class="t-muted" style="font-size:11px;margin-top:2px">
+                    Active: <b style="color:var(--accent-ink)">{{ activeConfigName(f.key) }}</b>
+                    <span v-if="activeConfigEntry(f.key)?.source">
+                      · from {{ activeConfigEntry(f.key).source }}
+                    </span>
+                    <span v-if="activeConfigEntry(f.key)?.savedAt">
+                      · saved {{ fmtAgo(activeConfigEntry(f.key).savedAt) }}
+                    </span>
+                  </div>
+                </div>
+                <JwSelect
+                  :model-value="activeConfigName(f.key)"
+                  @update:model-value="(v) => setActiveConfigByPickerValue(f.key, v)"
+                  :options="configOptionsFor(f.key)"
+                  style="min-width:200px"
+                  v-tooltip.bottom="'Switch which config powers production calls. Default falls back to tier-resolved built-ins.'" />
+                <router-link :to="f.labPath" custom v-slot="{ navigate }">
+                  <JwButton intent="ghost" size="small" @click="navigate"
+                            v-tooltip.bottom="f.labReady ? `Open ${f.labLabel} to tune and save new configs` : `${f.labLabel} is on the roadmap — no UI to manage smartCast configs yet`">
+                    <Icon name="Sparkle" :size="11" /> {{ f.labReady ? "Manage in " + f.labLabel : "Lab coming soon" }}
+                  </JwButton>
+                </router-link>
+              </div>
+              <!-- Preview: show what the active config will run with.
+                   Default has no settings stored — make that explicit
+                   instead of rendering an empty grid. -->
+              <div v-if="!activeConfigEntry(f.key)"
+                   style="margin-top:10px;padding:10px 14px;border-top:1px solid var(--border-soft);font-size:11.5px;color:var(--muted);font-style:italic">
+                Default · uses the tier-resolved prompts and settings for whichever model the feature is routed to. No fixed values to display.
+              </div>
+              <div v-else
+                   style="margin-top:10px;padding-top:10px;border-top:1px solid var(--border-soft);display:grid;grid-template-columns:130px 1fr;gap:6px 12px;font-size:11.5px;line-height:1.5">
+                <template v-if="activeConfigEntry(f.key).settings?.temperature !== undefined">
+                  <span class="t-muted">temperature</span>
+                  <code style="font-family:var(--font-mono)">{{ activeConfigEntry(f.key).settings.temperature }}</code>
+                </template>
+                <template v-if="activeConfigEntry(f.key).settings?.propagate !== undefined">
+                  <span class="t-muted">anchor propagation</span>
+                  <code style="font-family:var(--font-mono)">{{ activeConfigEntry(f.key).settings.propagate ? "on" : "off" }}</code>
+                </template>
+                <template v-if="activeConfigEntry(f.key).settings?.useFloor !== undefined">
+                  <span class="t-muted">confidence floor</span>
+                  <code style="font-family:var(--font-mono)">{{ activeConfigEntry(f.key).settings.useFloor ? activeConfigEntry(f.key).settings.confidenceFloor : "off" }}</code>
+                </template>
+                <template v-if="activeConfigEntry(f.key).settings?.think !== undefined">
+                  <span class="t-muted">think (Ollama)</span>
+                  <code style="font-family:var(--font-mono)">{{ activeConfigEntry(f.key).settings.think ? "on" : "off" }}</code>
+                </template>
+                <template v-if="activeConfigEntry(f.key).settings?.systemPrompt">
+                  <span class="t-muted">system</span>
+                  <code style="font-family:var(--font-mono);color:var(--ink-2);white-space:pre-wrap;word-break:break-word">{{ truncatePrompt(activeConfigEntry(f.key).settings.systemPrompt) }}</code>
+                </template>
+                <template v-if="activeConfigEntry(f.key).settings?.userTemplate">
+                  <span class="t-muted">user</span>
+                  <code style="font-family:var(--font-mono);color:var(--ink-2);white-space:pre-wrap;word-break:break-word">{{ truncatePrompt(activeConfigEntry(f.key).settings.userTemplate) }}</code>
+                </template>
+              </div>
+            </div>
+          </div>
+        </div>
+
         <!-- Voice canon — chapters that represent the writer's established
              voice. The fingerprint service builds a sample + style summary
              from them and injects it into every writer action's system
@@ -1166,58 +1363,6 @@ const recentColumns = [
               <div style="margin-top:8px;padding:12px 14px;background:var(--surface-2);border-radius:6px;font-family:var(--font-serif);font-size:12.5px;line-height:1.6;color:var(--ink-2);white-space:pre-wrap;max-height:300px;overflow:auto">{{ voicePreview.block }}</div>
             </details>
           </template>
-        </div>
-
-        <div class="card">
-          <div style="display:flex;align-items:center;gap:10px;margin-bottom:10px">
-            <div class="card-title" style="margin:0">{{ $t('settings.audio.providersCardTitle') }}</div>
-            <span class="t-muted" style="font-size:12px">{{ ai.providers.length }} configured</span>
-            <JwButton :label="$t('settings.audio.addProvider')" intent="primary" size="small" style="margin-left:auto" @click="startNew">
-              <template #icon><Icon name="Plus" :size="12" /></template>
-            </JwButton>
-          </div>
-
-          <div style="display:flex;flex-direction:column;gap:8px">
-            <!-- New-provider edit row (only when adding) -->
-            <SettingsProviderForm v-if="editing === 'new' && draft"
-              :draft="draft" editing-key="new"
-              @save="saveDraft" @cancel="cancelEdit" />
-
-            <template v-for="p in ai.providers" :key="p.id">
-              <!-- Read row -->
-              <div v-if="editing !== p.id" style="display:grid;grid-template-columns:auto minmax(0,1fr) auto auto auto;gap:14px;align-items:center;padding:12px 14px;border:1px solid var(--border);border-radius:10px;background:var(--surface)">
-                <span style="width:36px;height:36px;border-radius:8px;background:var(--surface-3);color:var(--ink-2);display:grid;place-items:center">
-                  <Icon :name="p.kind === 'tts' ? 'Headphones' : p.kind === 'both' ? 'Sparkle' : 'Cpu'" :size="16" />
-                </span>
-                <div style="min-width:0">
-                  <div style="display:flex;gap:8px;align-items:center">
-                    <b style="font-size:13.5px">{{ p.name }}</b>
-                    <span style="font-size:10px;font-weight:600;padding:1px 6px;border-radius:4px;background:var(--surface-3);color:var(--muted);text-transform:uppercase;letter-spacing:0.05em">{{ p.kind }}</span>
-                    <span v-if="p.builtIn" class="chip" style="font-size:10px">built-in</span>
-                  </div>
-                  <div class="t-muted" style="font-family:var(--font-mono);font-size:11px;margin-top:2px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">{{ p.baseUrl }}</div>
-                  <div class="t-muted" style="font-size:11px;margin-top:2px">
-                    <template v-if="p.chatModel">chat: <b>{{ p.chatModel }}</b> · </template>
-                    <template v-if="p.embeddingModel">embed: <b>{{ p.embeddingModel }}</b> · </template>
-                    <template v-if="p.ttsModel">tts: <b>{{ p.ttsModel }}</b> · </template>
-                    <template v-if="p.ttsVoices?.length">{{ p.ttsVoices.length }} voices · </template>
-                    {{ p.apiKey ? "API key set" : "no key" }}
-                  </div>
-                </div>
-                <span style="display:inline-flex;align-items:center;gap:6px;font-size:11.5px">
-                  <span :style="`width:8px;height:8px;border-radius:50%;background:${statusColor(ai.status[p.id])}`" />
-                  {{ statusLabel(ai.status[p.id]) }}
-                </span>
-                <JwButton label="Test" intent="secondary" size="small" @click="pingProvider(p.id)" />
-                <JwButton label="Edit" intent="primary" size="small" @click="startEdit(p)" />
-              </div>
-
-              <!-- Edit row -->
-              <SettingsProviderForm v-else
-                :draft="draft" :editing-key="editing"
-                @save="saveDraft" @cancel="cancelEdit" />
-            </template>
-          </div>
         </div>
 
         <div class="card">

@@ -9,6 +9,15 @@
 // in-modal/in-view progress so bug fixes apply everywhere at once.
 // Pass `task` = the task object from `aiTasks.runningTasks`. The strip
 // renders nothing when `task` is null (the typical "not running" case).
+//
+// Slots:
+//   #extra-stats — optional. Lets a caller append feature-specific
+//     metrics next to the standard ones (e.g. Speaker Lab passes a
+//     `words` count and a prompt-vs-completion usage breakdown). The
+//     slot receives `{ task }` so child elements can render against the
+//     current task without re-querying the store. Slot content should
+//     render `<span class="sts-stat">…</span>` chips to match the
+//     standard stats' look.
 
 import { computed } from "vue";
 import { useAiTasksStore } from "../stores/aiTasks.js";
@@ -79,6 +88,9 @@ function openPanel() { tasks.openPanel(); }
       <template v-else>stuck</template>
     </span>
 
+    <!-- Feature-specific extras (Speaker Lab: words + usage breakdown). -->
+    <slot name="extra-stats" :task="task" />
+
     <span class="sts-spacer" />
     <JwButton intent="ghost" size="small" data-ai-status-toggle @click="openPanel" v-tooltip.bottom="'Open full status panel'">
       Details
@@ -90,7 +102,12 @@ function openPanel() { tasks.openPanel(); }
   </div>
 </template>
 
-<style scoped>
+<!-- Not `scoped` — the #extra-stats slot lets call sites render
+     `<span class="sts-stat">…</span>` chips that need to inherit the
+     same chip look as the standard stats. Scoped styles wouldn't
+     reach slot content from the parent component. The `sts-*` class
+     names are unique to this file so global leakage isn't an issue. -->
+<style>
 .sts {
   display: flex; align-items: center; gap: 10px; flex-wrap: wrap;
   padding: 7px 12px;

@@ -1,5 +1,5 @@
 <script setup>
-// Speaker-analysis debug lab. Hidden route: /#/debug/speaker-lab
+// Speaker-analysis lab. Sidebar route: /#/speaker-lab
 //
 // Lets you paste/load text, run a 1- or 2-stage LLM pipeline against any
 // configured OpenAI-compatible provider (Ollama, OpenAI, etc.), tweak the
@@ -13,8 +13,12 @@
 import { ref, reactive, computed, watch } from "vue";
 import { useProjectStore } from "../stores/project.js";
 import { useAiStore } from "../stores/ai.js";
+import { useUiStore } from "../stores/ui.js";
+import { useAiTasksStore } from "../stores/aiTasks.js";
+import { confirmDialog, promptDialog } from "../services/dialog.js";
 import PaneHeader from "../components/PaneHeader.vue";
 import Icon from "../components/Icon.vue";
+import AiTaskStrip from "../components/AiTaskStrip.vue";
 import ModelPicker from "../components/ModelPicker.vue";
 import ProviderSelect from "../components/ProviderSelect.vue";
 import { runAiStream } from "../services/aiStream.js";
@@ -28,6 +32,18 @@ import JwSelect from "@renderer/components/ui/JwSelect.vue";
 
 const project = useProjectStore();
 const ai = useAiStore();
+const ui = useUiStore();
+const aiTasks = useAiTasksStore();
+
+// Find the global aiTasks entry for a given lab run while it's running.
+// streamStage tags every call's task with meta.runLabel so the lab can
+// surface the standard AiTaskStrip (freshness, cancel, details) per
+// run alongside the bespoke metrics row below.
+function taskForRun(run) {
+  return aiTasks.runningTasks.find(
+    (t) => t.feature === "speakerLab" && t.meta?.runLabel === run.label,
+  ) || null;
+}
 
 // ─── Input ───────────────────────────────────────────────────────────
 const inputText = ref("");
@@ -565,48 +581,238 @@ June opened the leather case at the table. She turned the pages slowly, the way 
 
 "This is your father," she said, "to about page sixty. After that, it isn't. Whoever it is uses the same ink. They've gone to some trouble."`;
 
-// ─── Presets (localStorage) ──────────────────────────────────────────
-const PRESETS_KEY = "justwrite:speakerlab:presets";
-const presets = ref(loadPresetsFromStorage());
-const presetName = ref("");
-const presetPickerValue = ref("");
+// ─── Presets (per-mode, store-backed) ────────────────────────────────
+//
+// Each pipeline mode (Studio / Lab / Legacy Studio) maintains its own
+// preset list, scoped to that mode's settings only. Loading a preset
+// never switches mode. Built-in "Default" appears at the top of every
+// list as a sentinel — selecting it resets the panel to that mode's
+// built-in defaults; it can't be edited, renamed, or deleted.
+//
+// For the Studio (inline) panel — the production pipeline — any preset
+// can additionally be marked as the **active production** config. That
+// pointer is what services/llm.js → detectSpeakers reads at runtime.
 
-function loadPresetsFromStorage() {
-  try {
-    const v = JSON.parse(localStorage.getItem(PRESETS_KEY) || "[]");
-    return Array.isArray(v) ? v : [];
-  } catch { return []; }
+const DEFAULT_PRESET_NAME = "Default";
+
+// One-time migration from the old localStorage shape into the store.
+// Old presets captured the full lab state in one entry; we split them
+// across the new per-mode lists so each entry's settings match its
+// mode. After migration the localStorage key is removed so we don't
+// re-import on every reload.
+function migrateLegacyPresets() {
+  const LEGACY_KEY = "justwrite:speakerlab:presets";
+  let legacy = null;
+  try { legacy = JSON.parse(localStorage.getItem(LEGACY_KEY) || "null"); } catch {}
+  if (!Array.isArray(legacy) || !legacy.length) return;
+  for (const p of legacy) {
+    if (!p?.name) continue;
+    const tag = `${p.name} (migrated)`;
+    // Stage entries → lab mode.
+    if (p.stage1 || p.stage2) {
+      ai.saveLabPreset("speakerAnalysis", "lab", tag, {
+        twoStage: !!p.twoStage,
+        stage1: p.stage1 || {},
+        stage2: p.stage2 || {},
+      }, "Migrated from localStorage");
+    }
+    // Studio (inline) settings.
+    if (p.inline) {
+      ai.saveLabPreset("speakerAnalysis", "inline", tag, { ...p.inline }, "Migrated from localStorage");
+    }
+    // Legacy Studio settings.
+    if (p.studio) {
+      ai.saveLabPreset("speakerAnalysis", "studio", tag, { ...p.studio }, "Migrated from localStorage");
+    }
+  }
+  try { localStorage.removeItem(LEGACY_KEY); } catch {}
 }
-function persistPresets() {
-  try { localStorage.setItem(PRESETS_KEY, JSON.stringify(presets.value)); } catch {}
+migrateLegacyPresets();
+
+// Tab/mode metadata. PROMOTABLE_MODE flags which mode's presets can be
+// marked active production (Studio = inline for speakerAnalysis).
+const MODE_INFO = {
+  inline: { label: "Studio", promotable: true,  resetFn: (run) => resetInlinePrompts(run) },
+  lab:    { label: "Lab",    promotable: false, resetFn: (run) => { resetStudioPrompts(run); /* lab uses stage1/2 defaults */ } },
+  studio: { label: "Legacy Studio", promotable: false, resetFn: (run) => resetStudioPrompts(run) },
+};
+
+// Capture the current run's settings for a mode into a settings object.
+function captureModeSettings(run, mode) {
+  if (mode === "inline") {
+    const s = run.inline || {};
+    return {
+      temperature: Number(s.temperature) || 0.2,
+      systemPrompt: String(s.system || "").trim(),
+      userTemplate: String(s.user || "").trim(),
+      propagate: s.propagate !== false,
+      useFloor: s.useFloor !== false,
+      confidenceFloor: Number(s.confidenceFloor) || 0.7,
+      think: s.think === true,
+      tier: s.tier,
+    };
+  }
+  if (mode === "studio") {
+    const s = run.studio || {};
+    return {
+      temperature: Number(s.temperature) || 0.3,
+      systemPrompt: String(s.system || "").trim(),
+      userTemplate: String(s.user || "").trim(),
+      think: s.think === true,
+    };
+  }
+  if (mode === "lab") {
+    return {
+      twoStage: !!run.twoStage,
+      stage1: { ...(run.stage1 || {}) },
+      stage2: { ...(run.stage2 || {}) },
+    };
+  }
+  return {};
 }
 
-function savePresetFor(run) {
-  const name = (presetName.value || prompt("Preset name?") || "").trim();
-  if (!name) return;
-  const snapshot = {
-    name,
-    savedAt: Date.now(),
-    twoStage: run.twoStage,
-    stage1: { ...run.stage1 },
-    stage2: { ...run.stage2 },
-  };
-  const idx = presets.value.findIndex((p) => p.name === name);
-  if (idx >= 0) presets.value.splice(idx, 1, snapshot);
-  else presets.value.push(snapshot);
-  persistPresets();
-  presetName.value = "";
+// Apply a saved preset's settings to the run's panel for that mode.
+function applyModeSettings(run, mode, settings) {
+  if (!settings) return;
+  if (mode === "inline") {
+    const t = run.inline;
+    if (settings.temperature != null)     t.temperature     = Number(settings.temperature);
+    if (settings.systemPrompt != null)    t.system          = settings.systemPrompt;
+    if (settings.userTemplate != null)    t.user            = settings.userTemplate;
+    if (settings.propagate != null)       t.propagate       = !!settings.propagate;
+    if (settings.useFloor != null)        t.useFloor        = !!settings.useFloor;
+    if (settings.confidenceFloor != null) t.confidenceFloor = Number(settings.confidenceFloor);
+    if (settings.think != null)           t.think           = !!settings.think;
+    if (settings.tier != null)            t.tier            = settings.tier;
+  } else if (mode === "studio") {
+    const t = run.studio;
+    if (settings.temperature != null)  t.temperature = Number(settings.temperature);
+    if (settings.systemPrompt != null) t.system      = settings.systemPrompt;
+    if (settings.userTemplate != null) t.user        = settings.userTemplate;
+    if (settings.think != null)        t.think       = !!settings.think;
+  } else if (mode === "lab") {
+    if (settings.twoStage != null) run.twoStage = !!settings.twoStage;
+    if (settings.stage1) Object.assign(run.stage1, settings.stage1);
+    if (settings.stage2) Object.assign(run.stage2, settings.stage2);
+  }
 }
 
-function applyPreset(run, preset) {
-  run.twoStage = !!preset.twoStage;
-  Object.assign(run.stage1, preset.stage1);
-  Object.assign(run.stage2, preset.stage2);
+// Picker options for a mode — Default first, then every saved preset.
+function presetOptionsForMode(mode) {
+  const opts = [{ value: DEFAULT_PRESET_NAME, label: `${DEFAULT_PRESET_NAME} (built-in)` }];
+  const list = ai.labPresets?.speakerAnalysis?.[mode] || [];
+  for (const p of list) opts.push({ value: p.name, label: p.name });
+  return opts;
 }
 
-function deletePreset(name) {
-  presets.value = presets.value.filter((p) => p.name !== name);
-  persistPresets();
+// Per-run × per-mode picker model. We track the picker value separately
+// so changing the picker doesn't immediately overwrite the run's panel
+// (the writer has to hit Load). Each run column gets its own per-mode
+// picker state.
+const presetPickers = reactive({});
+function pickerKey(run, mode) { return `${run.label}::${mode}`; }
+function presetPickerValueFor(run, mode) {
+  return presetPickers[pickerKey(run, mode)] || DEFAULT_PRESET_NAME;
+}
+function setPresetPickerValue(run, mode, value) {
+  presetPickers[pickerKey(run, mode)] = value;
+}
+
+async function saveCurrentAsPreset(run, mode) {
+  const suggested = `Tuned · ${run.label}`;
+  const name = await promptDialog({
+    title: `Save ${MODE_INFO[mode]?.label || mode} preset`,
+    label: "Preset name",
+    defaultValue: suggested,
+    confirmLabel: "Save preset",
+  });
+  if (!name || !name.trim()) return;
+  const trimmed = name.trim();
+  if (trimmed.toLowerCase() === DEFAULT_PRESET_NAME.toLowerCase()) {
+    ui.showToast({ message: `"Default" is reserved — pick another name.` });
+    return;
+  }
+  const existing = (ai.labPresets?.speakerAnalysis?.[mode] || []).find((p) => p.name === trimmed);
+  if (existing) {
+    const yes = await confirmDialog({
+      title: `Replace "${trimmed}"?`,
+      body: `A ${MODE_INFO[mode]?.label || mode} preset named "${trimmed}" already exists. Saving will overwrite it.`,
+      confirmLabel: "Replace",
+    });
+    if (!yes) return;
+  }
+  const settings = captureModeSettings(run, mode);
+  const source = `Speaker Lab · ${run.label}`;
+  ai.saveLabPreset("speakerAnalysis", mode, trimmed, settings, source);
+  setPresetPickerValue(run, mode, trimmed);
+  ui.showToast({ message: `Saved "${trimmed}" to ${MODE_INFO[mode]?.label || mode} presets.` });
+}
+
+function loadPresetIntoRun(run, mode) {
+  const name = presetPickerValueFor(run, mode);
+  if (!name || name === DEFAULT_PRESET_NAME) {
+    // Default → reset the mode's panel to built-in values.
+    MODE_INFO[mode]?.resetFn?.(run);
+    ui.showToast({ message: `Loaded Default ${MODE_INFO[mode]?.label || mode} settings.` });
+    return;
+  }
+  const entry = (ai.labPresets?.speakerAnalysis?.[mode] || []).find((p) => p.name === name);
+  if (!entry) return;
+  applyModeSettings(run, mode, entry.settings);
+  ui.showToast({ message: `Loaded "${name}" into ${MODE_INFO[mode]?.label || mode}.` });
+}
+
+async function deletePresetByPicker(run, mode) {
+  const name = presetPickerValueFor(run, mode);
+  if (!name || name === DEFAULT_PRESET_NAME) return;
+  const yes = await confirmDialog({
+    title: `Delete "${name}"?`,
+    body: `Removes this ${MODE_INFO[mode]?.label || mode} preset. ${
+      mode === PRODUCTION_MODE_FOR_SPEAKER && activeProductionName.value === name
+        ? "It's currently the active production preset — production reverts to Default."
+        : ""
+    }`,
+    confirmLabel: "Delete",
+    danger: true,
+  });
+  if (!yes) return;
+  ai.deleteLabPreset("speakerAnalysis", mode, name);
+  setPresetPickerValue(run, mode, DEFAULT_PRESET_NAME);
+  ui.showToast({ message: `Deleted "${name}".` });
+}
+
+// ── Production marker (Studio mode only) ──────────────────────────
+// The active production preset name lives in ai.activeProduction.
+// Only Studio (inline) presets can be production for speakerAnalysis.
+
+const PRODUCTION_MODE_FOR_SPEAKER = "inline";
+
+const activeProductionName = computed({
+  get: () => ai.activeProduction?.speakerAnalysis || DEFAULT_PRESET_NAME,
+  set: (v) => ai.setActiveProduction("speakerAnalysis", v === DEFAULT_PRESET_NAME ? null : v),
+});
+
+// Total saved presets across every speakerAnalysis mode — drives the
+// "N saved" counter in the toolbar so the writer sees at a glance
+// whether they have anything tuned.
+const totalSavedPresets = computed(() => {
+  const lp = ai.labPresets?.speakerAnalysis || {};
+  return (lp.inline?.length || 0) + (lp.studio?.length || 0) + (lp.lab?.length || 0);
+});
+
+function isProductionPreset(mode, name) {
+  return mode === PRODUCTION_MODE_FOR_SPEAKER && activeProductionName.value === name;
+}
+
+function setPickerAsProduction(run, mode) {
+  if (mode !== PRODUCTION_MODE_FOR_SPEAKER) return;
+  const name = presetPickerValueFor(run, mode);
+  ai.setActiveProduction("speakerAnalysis", name === DEFAULT_PRESET_NAME ? null : name);
+  ui.showToast({
+    message: name === DEFAULT_PRESET_NAME
+      ? `Production reset to Default (tier-resolved).`
+      : `"${name}" is now the active production preset.`,
+  });
 }
 
 // ─── Run columns ─────────────────────────────────────────────────────
@@ -664,7 +870,12 @@ function makeRun(idx) {
         think: initialTier.think, // Ollama think param — set by the current tier; no UI override.
       };
     })(),
-    mode: "inline",      // "lab" | "studio" | "inline"
+    // Default to "inline" (UI-labelled "Studio") — this is the
+    // production speaker-attribution pipeline. The legacy paragraph-
+    // level path is mode === 'studio' (UI-labelled "Legacy Studio");
+    // Lab mode is the two-stage experiment. Internal keys stay as-is
+    // so saved presets continue to load.
+    mode: "inline",      // "lab" | "studio" (legacy) | "inline" (production)
     state: "idle",       // idle | streaming | done | error
     activeStage: 0,      // 0 = none, 1 = stage 1 running, 2 = stage 2 running
     viewStage: 1,        // 1 | 2 — which lab stage's output to display
@@ -709,10 +920,6 @@ function removeRun(run) {
 
 function runAll() {
   for (const r of runs.value) runPipeline(r);
-}
-
-function abortRun(run) {
-  if (run.abort) { try { run.abort.abort(); } catch {} }
 }
 
 // ─── Execution ───────────────────────────────────────────────────────
@@ -1148,8 +1355,9 @@ function copyOutput(run) {
       <JwButton intent="secondary" size="small" @click="addRun" :disabled="runs.length >= 4">
         <Icon name="Plus" :size="12" /> Add column
       </JwButton>
-      <span v-if="presets.length" class="t-muted" style="font-size:11.5px;margin-left:auto">
-        Presets: {{ presets.length }} saved
+      <span v-if="totalSavedPresets" class="t-muted" style="font-size:11.5px;margin-left:auto">
+        Presets: {{ totalSavedPresets }} saved
+        <span v-if="activeProductionName !== 'Default'"> · production: <b>{{ activeProductionName }}</b></span>
       </span>
     </div>
 
@@ -1159,9 +1367,14 @@ function copyOutput(run) {
         <header class="col-head">
           <JwInput v-model="run.label" class="input col-label" />
           <div class="mode-seg" title="Pipeline mode">
+            <!-- Mode labels: 'inline' is the production pipeline (now
+                 labelled "Studio"); 'studio' is the older paragraph-
+                 level approach kept around as a comparison point (now
+                 labelled "Legacy Studio"). Internal keys are unchanged
+                 to keep saved presets and existing code-paths intact. -->
+            <button type="button" class="mode-seg-btn" :class="{ active: run.mode === 'inline' }" @click="run.mode = 'inline'">Studio</button>
             <button type="button" class="mode-seg-btn" :class="{ active: run.mode === 'lab' }" @click="run.mode = 'lab'">Lab</button>
-            <button type="button" class="mode-seg-btn" :class="{ active: run.mode === 'studio' }" @click="run.mode = 'studio'">Studio</button>
-            <button type="button" class="mode-seg-btn" :class="{ active: run.mode === 'inline' }" @click="run.mode = 'inline'">Inline-tag</button>
+            <button type="button" class="mode-seg-btn" :class="{ active: run.mode === 'studio' }" @click="run.mode = 'studio'">Legacy Studio</button>
           </div>
           <JwCheckbox v-if="run.mode === 'lab'" v-model="run.twoStage" class="toggle" :title="run.twoStage ? 'Two-stage pipeline' : 'Single stage'">Two-stage</JwCheckbox>
           <JwButton v-if="runs.length > 1" intent="ghost" size="small" @click="removeRun(run)" v-tooltip.bottom="'Remove this run'">
@@ -1173,9 +1386,31 @@ function copyOutput(run) {
         <fieldset v-if="run.mode === 'studio'" class="stage studio-stage" :class="{ active: run.activeStage === 1 }">
           <legend @click="run.studio.collapsed = !run.studio.collapsed">
             <Icon :name="run.studio.collapsed ? 'ChevRight' : 'ChevDown'" :size="11" />
-            <b>Studio pipeline</b> — single-call speaker attribution
+            <b>Legacy Studio pipeline</b> — single-call paragraph-level attribution
           </legend>
           <div v-if="!run.studio.collapsed" class="stage-body">
+            <!-- Legacy Studio presets (no production marker — this mode
+                 doesn't drive production). -->
+            <div class="preset-row">
+              <span class="preset-row-label">
+                <Icon name="Folder" :size="11" /> Legacy Studio presets
+              </span>
+              <JwSelect class="input"
+                :model-value="presetPickerValueFor(run, 'studio')"
+                @update:model-value="(v) => setPresetPickerValue(run, 'studio', v)"
+                :options="presetOptionsForMode('studio')"
+                style="flex:1;min-width:160px" />
+              <JwButton intent="secondary" size="small" @click="loadPresetIntoRun(run, 'studio')">
+                <Icon name="Download" :size="11" /> Load
+              </JwButton>
+              <JwButton intent="secondary" size="small" @click="saveCurrentAsPreset(run, 'studio')">
+                <Icon name="Plus" :size="11" /> Save as
+              </JwButton>
+              <JwButton v-if="presetPickerValueFor(run, 'studio') !== 'Default'" intent="ghost" size="small"
+                @click="deletePresetByPicker(run, 'studio')">
+                <Icon name="Trash" :size="11" />
+              </JwButton>
+            </div>
             <div class="studio-info">
               <Icon name="Alert" :size="12" />
               <span>
@@ -1193,7 +1428,7 @@ function copyOutput(run) {
                 <span class="t-muted">temp</span>
                 <JwNumber class="input sm temp-input" :step="0.05" :min="0" :max="2" v-model="run.studio.temperature" />
               </label>
-              <JwButton intent="secondary" size="small" @click="resetStudioPrompts(run)" v-tooltip.bottom="'Restore the exact Studio prompt'">
+              <JwButton intent="secondary" size="small" @click="resetStudioPrompts(run)" v-tooltip.bottom="'Restore the exact legacy Studio prompt'">
                 <Icon name="Refresh" :size="11" /> Reset
               </JwButton>
             </div>
@@ -1208,9 +1443,49 @@ function copyOutput(run) {
         <fieldset v-if="run.mode === 'inline'" class="stage inline-stage" :class="{ active: run.activeStage === 1 }">
           <legend @click="run.inline.collapsed = !run.inline.collapsed">
             <Icon :name="run.inline.collapsed ? 'ChevRight' : 'ChevDown'" :size="11" />
-            <b>Inline-tag pipeline</b> — segment-aware attribution
+            <b>Studio pipeline</b> — segment-aware attribution (production target)
           </legend>
           <div v-if="!run.inline.collapsed" class="stage-body">
+            <!-- Per-mode preset row. Each mode (Studio / Lab / Legacy)
+                 maintains its own preset list; loading never switches
+                 mode. The Studio (inline) panel additionally surfaces
+                 the production marker: a green "PRODUCTION" badge on
+                 whichever preset is currently active production, and a
+                 "Use as production" button that promotes the picker's
+                 selection. -->
+            <div class="preset-row">
+              <span class="preset-row-label">
+                <Icon name="Folder" :size="11" /> Studio presets
+              </span>
+              <JwSelect class="input"
+                :model-value="presetPickerValueFor(run, 'inline')"
+                @update:model-value="(v) => setPresetPickerValue(run, 'inline', v)"
+                :options="presetOptionsForMode('inline')"
+                style="flex:1;min-width:160px"
+                v-tooltip.bottom="'Picker for Studio (inline-pipeline) presets. Default resets to built-in values.'" />
+              <span v-if="isProductionPreset('inline', presetPickerValueFor(run, 'inline'))" class="preset-prod-badge"
+                v-tooltip.bottom="'This preset is currently the active production config (Studio → Script uses it).'">
+                <Icon name="Check" :size="10" /> Production
+              </span>
+              <JwButton intent="primary" size="small" @click="setPickerAsProduction(run, 'inline')"
+                :disabled="isProductionPreset('inline', presetPickerValueFor(run, 'inline'))"
+                v-tooltip.bottom="'Make the selected preset the active production config (what Studio → Script runs)'">
+                <Icon name="Check" :size="11" /> Use as production
+              </JwButton>
+              <JwButton intent="secondary" size="small" @click="loadPresetIntoRun(run, 'inline')"
+                v-tooltip.bottom="'Copy the selected preset into this run so you can tweak it'">
+                <Icon name="Download" :size="11" /> Load
+              </JwButton>
+              <JwButton intent="secondary" size="small" @click="saveCurrentAsPreset(run, 'inline')"
+                v-tooltip.bottom="'Save the current Studio settings as a new named preset'">
+                <Icon name="Plus" :size="11" /> Save as
+              </JwButton>
+              <JwButton v-if="presetPickerValueFor(run, 'inline') !== 'Default'" intent="ghost" size="small"
+                @click="deletePresetByPicker(run, 'inline')"
+                v-tooltip.bottom="'Delete the selected preset. If it is production, production reverts to Default.'">
+                <Icon name="Trash" :size="11" />
+              </JwButton>
+            </div>
             <div class="studio-info">
               <Icon name="Alert" :size="12" />
               <span>
@@ -1260,6 +1535,28 @@ function copyOutput(run) {
           </div>
         </fieldset>
 
+        <!-- Lab presets (covers both stages + twoStage toggle). -->
+        <div v-if="run.mode === 'lab'" class="preset-row">
+          <span class="preset-row-label">
+            <Icon name="Folder" :size="11" /> Lab presets
+          </span>
+          <JwSelect class="input"
+            :model-value="presetPickerValueFor(run, 'lab')"
+            @update:model-value="(v) => setPresetPickerValue(run, 'lab', v)"
+            :options="presetOptionsForMode('lab')"
+            style="flex:1;min-width:160px" />
+          <JwButton intent="secondary" size="small" @click="loadPresetIntoRun(run, 'lab')">
+            <Icon name="Download" :size="11" /> Load
+          </JwButton>
+          <JwButton intent="secondary" size="small" @click="saveCurrentAsPreset(run, 'lab')">
+            <Icon name="Plus" :size="11" /> Save as
+          </JwButton>
+          <JwButton v-if="presetPickerValueFor(run, 'lab') !== 'Default'" intent="ghost" size="small"
+            @click="deletePresetByPicker(run, 'lab')">
+            <Icon name="Trash" :size="11" />
+          </JwButton>
+        </div>
+
         <!-- Stage 1 -->
         <fieldset v-if="run.mode === 'lab'" class="stage" :class="{ active: run.activeStage === 1 }">
           <legend @click="run.stage1.collapsed = !run.stage1.collapsed">
@@ -1304,41 +1601,33 @@ function copyOutput(run) {
           </div>
         </fieldset>
 
-        <!-- Presets -->
-        <div class="preset-row">
-          <JwInput class="input sm" v-model="presetName" placeholder="Preset name…" style="flex:1" />
-          <JwButton intent="secondary" size="small" @click="savePresetFor(run)" :disabled="!presetName.trim()" v-tooltip.bottom="'Save current config as preset'">
-            <Icon name="Pencil" :size="11" /> Save
-          </JwButton>
-          <JwSelect class="input sm"
-            :model-value="presetPickerValue"
-            @update:model-value="(v) => { const p = presets.find(x => x.name === v); if (p) applyPreset(run, p); presetPickerValue = ''; }"
-            :options="[{ label: 'Load preset…', value: '' }, ...presets.map(p => ({ label: p.name, value: p.name }))]" />
-        </div>
-
-        <!-- Action row -->
+        <!-- Action row. Cancel lives in the AiTaskStrip below — no Stop
+             button here. The Run button hides while a stream is in
+             flight to avoid kicking off a second run by accident. -->
         <div class="action-row">
           <JwButton v-if="run.state !== 'streaming'" intent="primary" @click="runPipeline(run)" :disabled="!inputText.trim()">
             <Icon name="Play" :size="11" /> Run
-          </JwButton>
-          <JwButton v-else intent="danger" @click="abortRun(run)">
-            <Icon name="Stop" :size="11" /> Stop
           </JwButton>
           <span v-if="run.activeStage" class="badge pulse">Stage {{ run.activeStage }}…</span>
           <span v-else-if="run.state === 'done'" class="badge ok"><Icon name="Check" :size="10" /> Done</span>
           <span v-else-if="run.state === 'error'" class="badge err">Error</span>
         </div>
 
-        <!-- Metrics -->
-        <div class="metrics">
-          <div class="metric"><span class="t-muted">tokens</span><b>{{ fmtNum(run.metrics.tokens) }}</b><i v-if="run.metrics.source === 'approx'" class="t-muted">~</i></div>
-          <div class="metric"><span class="t-muted">tok/s</span><b>{{ fmtRate(run.metrics.tokensPerSec) }}</b></div>
-          <div class="metric"><span class="t-muted">elapsed</span><b>{{ fmtTime(run.metrics.elapsed) }}</b></div>
-          <div class="metric"><span class="t-muted">words</span><b>{{ fmtNum(run.metrics.words) }}</b></div>
-        </div>
-        <div v-if="run.metrics.usage" class="usage-line t-muted">
-          usage: prompt {{ run.metrics.usage.prompt_tokens }} + completion {{ run.metrics.usage.completion_tokens }} = {{ run.metrics.usage.total_tokens }}
-        </div>
+        <!-- Standard AI task strip — gives the run live elapsed (ticks
+             every 500ms regardless of stream activity, fixes the "frozen
+             counter for slow models" the bespoke metrics row used to
+             have), freshness color-coding, panel cancel, and the Details
+             link. The #extra-stats slot adds the lab's diagnostic chips
+             — words and the prompt/completion usage breakdown — using
+             the same chip style as the standard stats. -->
+        <AiTaskStrip :task="taskForRun(run)">
+          <template #extra-stats="{ task }">
+            <span v-if="run.metrics.words" class="sts-stat">{{ fmtNum(run.metrics.words) }} words</span>
+            <span v-if="run.metrics.usage" class="sts-stat" v-tooltip.bottom="'Prompt + completion = total tokens (from the model)'">
+              prompt {{ run.metrics.usage.prompt_tokens }} · completion {{ run.metrics.usage.completion_tokens }}
+            </span>
+          </template>
+        </AiTaskStrip>
 
         <!-- Output tabs -->
         <div class="out-tabs" v-if="run.mode === 'lab' && run.twoStage">
@@ -1426,18 +1715,6 @@ function copyOutput(run) {
       </article>
     </div>
 
-    <!-- ── Preset manager ─────────────────────────────────────────── -->
-    <section v-if="presets.length" class="card preset-mgr">
-      <div class="t-eyebrow" style="margin-bottom:8px">Saved presets</div>
-      <div class="preset-list">
-        <div v-for="p in presets" :key="p.name" class="preset-chip">
-          <span><b>{{ p.name }}</b> · {{ p.twoStage ? '2-stage' : '1-stage' }} · <span class="t-muted">{{ p.stage1.model || '(default)' }}{{ p.twoStage ? ` → ${p.stage2.model || '(default)'}` : '' }}</span></span>
-          <JwButton intent="ghost" size="small" @click="deletePreset(p.name)" v-tooltip.bottom="'Delete preset'">
-            <template #icon><Icon name="Trash" :size="11" /></template>
-          </JwButton>
-        </div>
-      </div>
-    </section>
   </div>
 </template>
 
@@ -1491,13 +1768,6 @@ function copyOutput(run) {
 .lab .badge.pulse { background: var(--accent); color: var(--on-accent); animation: lab-pulse 1.2s ease-in-out infinite; }
 @keyframes lab-pulse { 0%,100% { opacity: 1; } 50% { opacity: 0.6; } }
 
-.lab .metrics { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 8px; padding: 8px 0; border-top: 1px solid var(--border-soft); border-bottom: 1px solid var(--border-soft); }
-@media (max-width: 900px) { .lab .metrics { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
-.lab .metric { display: flex; flex-direction: column; gap: 1px; font-size: 11px; align-items: flex-start; }
-.lab .metric b { font-size: 16px; font-weight: 600; color: var(--ink); }
-.lab .metric i { font-style: normal; font-size: 10px; }
-.lab .usage-line { font-size: 10.5px; }
-
 .lab .out-tabs { display: flex; gap: 4px; align-items: center; }
 .lab .tab { background: none; border: 0; padding: 4px 8px; font-size: 11.5px; color: var(--muted); border-bottom: 2px solid transparent; cursor: pointer; }
 .lab .tab.active { color: var(--ink); border-bottom-color: var(--accent); }
@@ -1521,6 +1791,29 @@ function copyOutput(run) {
   line-height: 1.5;
   color: var(--accent-ink);
   margin-bottom: 4px;
+}
+
+/* Per-mode preset row label (the leading "Studio presets" /
+   "Lab presets" / "Legacy Studio presets" chip). */
+.lab .preset-row-label {
+  display: inline-flex; align-items: center; gap: 5px;
+  font-family: var(--font-mono); font-size: 10px;
+  letter-spacing: 0.12em; text-transform: uppercase;
+  color: var(--muted); font-weight: 600;
+  white-space: nowrap;
+}
+/* Production badge — only ever shown in the Studio (inline) preset row,
+   and only on whichever preset is currently active production. Green
+   tint to read at a glance. */
+.lab .preset-prod-badge {
+  display: inline-flex; align-items: center; gap: 4px;
+  padding: 2px 7px;
+  border-radius: 999px;
+  background: color-mix(in oklab, var(--success-ink, #15803d) 18%, transparent);
+  color: var(--success-ink, #15803d);
+  font-family: var(--font-mono); font-size: 9.5px;
+  letter-spacing: 0.12em; text-transform: uppercase; font-weight: 600;
+  white-space: nowrap;
 }
 .lab .studio-info code {
   font-family: ui-monospace, "SF Mono", Menlo, Consolas, monospace;

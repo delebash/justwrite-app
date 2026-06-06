@@ -10,6 +10,7 @@ import Combobox from "../components/Combobox.vue";
 import AiFeatureChip from "../components/AiFeatureChip.vue";
 import { listVoices, preview } from "../services/tts.js";
 import { smartCast, detectSpeakers } from "../services/llm.js";
+import { extractParagraphsFromHtml } from "../services/speakerAttribution.js";
 import { renderChapter } from "../services/render.js";
 import { confirmDialog } from "../services/dialog.js";
 import JwInput from "@renderer/components/ui/JwInput.vue";
@@ -193,7 +194,18 @@ const voiceColumns = [
 ];
 
 // ── Script analysis ───────────────────────────────────────────────────
-const scriptChapter = ref("ch7");
+// Restore the chapter the user last analyzed; fall back to the first
+// chapter in the project, then the seed sample as a last resort. Persist
+// any future selection so reopening Script lands on the same chapter.
+function pickInitialScriptChapter() {
+  const last = studio.lastScriptChapter;
+  const chapters = project.allChapters || [];
+  if (last && chapters.some((c) => c.id === last)) return last;
+  if (chapters.length) return chapters[0].id;
+  return "ch7";
+}
+const scriptChapter = ref(pickInitialScriptChapter());
+watch(scriptChapter, (v) => { if (v) studio.setLastScriptChapter(v); });
 
 // Speaker analysis runs are tracked in the global task store, keyed by
 // chapter id in the task's meta. The button derives its loading state
@@ -222,50 +234,27 @@ async function reanalyze() {
   // the new result arrives.
   studio.clearScript(chapterId);
   try {
-    // Pull paragraph text from the chapter body. Stripped before extraction:
-    //   1. Headings (h1/h2/h3) and scene titles — structural, not spoken.
-    //   2. Scene-break marks ("* * *") — visual separators, not lines.
-    //   3. Paragraphs that are just a structural marker word like
-    //      "Scene 1", "Chapter II", "Prologue" — same intent.
-    // Either way: not in the script, no LLM tokens spent classifying them,
-    // no audio for them. Matches what read mode shows the reader.
+    // Pull paragraph text from the chapter body. The extractor strips
+    // headings, scene marks, structural-marker paragraphs, and pending
+    // AI revision marks — matches what Read mode and audio render see.
     const html = project.chapterBody[chapterId] || "";
-    const div = document.createElement("div");
-    div.innerHTML = html;
-    div.querySelectorAll("h2.scene-title, p.scene-mark").forEach((el) => { el.remove(); });
-    // Pending AI revisions: never speak the "before" half; speak the
-    // "after" half as plain prose. Same policy as Read mode + export.
-    div.querySelectorAll("del[data-ai-del], .ai-del").forEach((el) => { el.remove(); });
-    div.querySelectorAll("ins[data-ai-ins], .ai-ins").forEach((el) => { el.replaceWith(...el.childNodes); });
-    const paragraphs = Array.from(div.querySelectorAll("p"))
-      .map((el) => el.textContent.trim())
-      .filter((t) => t && !STRUCTURAL_MARKER_RE.test(t));
-
+    const paragraphs = extractParagraphsFromHtml(html);
     const chapter = project.chapterById(chapterId);
+
+    // detectSpeakers now runs the inline-tag pipeline: each paragraph is
+    // split into narration / dialogue segments BEFORE the LLM, the
+    // dialogue segments are individually attributed, and the result is
+    // a ready-to-render line list (multiple lines per paragraph when
+    // dialogue is mixed with narration). The chapter intro is built
+    // inside the pipeline so we pass `chapter` rather than prepending
+    // an intro line here.
     const label = `Script analysis · Ch. ${chapter?.num ?? "?"}`;
-    const annotated = await detectSpeakers({
+    const script = await detectSpeakers({
       paragraphs,
       characters: project.characters,
+      chapter,
       task: { label, meta: { chapterId } },
     });
-
-    // Prepend a narrator-spoken line built from the chapter's metadata
-    // (num + title) so the audiobook opens with "Chapter Seven.
-    // Brackish Cove, at low tide." before the prose starts. Both parts
-    // are optional — skip whichever is missing.
-    const introParts = [];
-    if (chapter?.num != null) introParts.push(`Chapter ${chapter.num}.`);
-    if (chapter?.title) introParts.push(`${chapter.title}.`);
-    const script = [];
-    if (introParts.length) {
-      script.push({
-        speaker: "narrator",
-        kind: "narration",
-        confidence: 1.0,
-        text: introParts.join(" "),
-      });
-    }
-    annotated.forEach((a, i) => { script.push({ ...a, text: paragraphs[i] }); });
     studio.setScript(chapterId, script);
   } catch (e) {
     error.value = e.message;
