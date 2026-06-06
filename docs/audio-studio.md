@@ -194,6 +194,37 @@ In the browser-only dev build (`npm run dev:vite`), renders are session-only —
 
 ---
 
+## Tuning the sound
+
+> *"I want my narrator to sound calmer than the villain — less exaggeration, a touch slower. And for the tense battle chapter, I want everyone pushed a little harder."*
+
+Every TTS engine exposes knobs that shape how a voice sounds: speed, expressiveness, how tightly it tracks the reference voice, and so on. JustWrite gives you three layers to set those knobs, applied in order — later layers win, gaps fall through to the layer below.
+
+**Tier 1 — Provider defaults.** Set in Settings → AI & Audio engines → provider editor → Engine params. These apply to every render from that provider unless overridden. Chatterbox exposes `speed_factor`, `exaggeration`, `cfg_weight`, `temperature`, `chunk_size`, and `language`; Kokoro exposes `speed`, `response_format`, and `lang_code`; OpenAI exposes `speed`, `response_format`, and `instructions`.
+
+**Tier 2 — Per-voice overrides.** Each row in the Cast voice library has a settings button (⚙). Click it to open "Tune {voice name}" — the same params as Tier 1, with the provider default shown as placeholder text. Anything you set here applies whenever that voice is used, regardless of which chapter. Voices with overrides show the ⚙ button in the accent colour so you can see at a glance which ones you've tuned. Overrides survive provider re-fetches.
+
+Use this for voice character: give your narrator a slower speed and lower exaggeration; give the villain higher exaggeration and a looser cfg_weight; give a child character higher temperature for natural prosodic variation.
+
+**Tier 3 — Render presets (per-chapter).** Project-level named bundles — "Tense Scene", "Quiet Reflection", "Battle" — defined in Settings → AI & Audio engines → Render presets. Assign a preset to any chapter via the "Preset:" dropdown on that chapter's row in the Render tab. The preset's params layer over everything else for the whole chapter render.
+
+Use this for scene mood: a tense chapter gets all voices 1.05× faster with exaggeration pushed to 1.5; the quiet flashback that follows gets 0.92× speed and exaggeration pulled back to 0.7.
+
+Engines silently ignore params they don't understand — a Chatterbox-tuned preset applied through an OpenAI render simply no-ops on `exaggeration` rather than erroring.
+
+### Render Lab
+
+The **Render Lab** (fourth tab in Studio) is an A/B harness for finding your settings before you commit. Pick a voice, type 1–3 sample sentences, and define one or two parameter axes — for example `exaggeration: 0.8, 1.2, 1.5` crossed with `speed_factor: 0.95, 1.05`. The Lab synthesises every combination in parallel (capped at 16 cells, 2 concurrent to protect local servers) and gives each cell its own audio player for side-by-side listening. The audio you hear in the Lab is exactly what you'll get on a full chapter render — same synthesis code path. Each cell has a "Preset" button to save that combination as a named Render preset, or a "Voice" button to push it onto the voice as a per-voice override.
+
+A rough guide to the Chatterbox knobs writers reach for most often:
+
+- `speed_factor` — 0.92–1.05 is typical for audiobook narration; above 1.1 it starts to sound rushed.
+- `exaggeration` — 0.8–1.0 for calm narration, 1.3 is the Chatterbox default, 1.4–1.7 for emotional dialogue.
+- `cfg_weight` — lower (0.3–0.4) allows more emotional variance; higher (0.7) locks tightly to the reference voice but can flatten expression.
+- `temperature` — 0.7–0.8 for consistent delivery; higher gives richer prosody but less predictability across takes.
+
+---
+
 ## Putting it together — a complete audiobook workflow
 
 A realistic full-book audiobook session:
