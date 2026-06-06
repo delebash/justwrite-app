@@ -78,30 +78,41 @@ test("hash-routing — Settings → AI engines shows configured providers", asyn
 });
 
 test("theme switcher — clicking a preset tile applies the theme", async () => {
-  // Drive the real Appearance UI: navigate, click the Fine Press tile,
-  // assert that the preset is now active AND a CSS custom property
-  // that the preset patches has changed. The data-testid attribute
-  // on each .preset-tile is the stable selector this test depends on
-  // — don't remove it without updating this assertion path.
+  // Drive the real Appearance UI: switch AWAY from the default (Fine
+  // Press, oxblood / 14) to Studio (teal / 200), assert --accent-h
+  // changed, then switch back to Fine Press and assert it returns.
+  // Tests both directions of the switch — a single one-direction click
+  // would self-pass when the default theme already matches the target.
+  // data-testid attributes on each .preset-tile are the stable
+  // selectors this test depends on; don't remove them without updating
+  // this path.
   await d.navigate("#/settings/appearance");
-  await d.waitUntil(`return !!document.querySelector('[data-testid="theme-preset-fine-press"]');`);
+  await d.waitUntil(`return !!document.querySelector('[data-testid="theme-preset-fine-press"]') && !!document.querySelector('[data-testid="theme-preset-studio"]');`);
 
-  // Read the accent-hue CSS variable BEFORE the click so we can prove
-  // it changed afterwards.
-  const before = await d.exec(`return getComputedStyle(document.documentElement).getPropertyValue('--accent-h').trim();`);
+  // Snapshot the default hue (should be 14 / Fine Press oxblood on a
+  // fresh install) so we can verify the round-trip lands back here.
+  const initial = await d.exec(`return getComputedStyle(document.documentElement).getPropertyValue('--accent-h').trim();`);
+
+  // Click Studio — assert active state AND that the CSS var moves
+  // off the initial value to 200 (teal).
+  await d.click('[data-testid="theme-preset-studio"]');
+  await d.waitUntil(
+    `return document.querySelector('[data-testid="theme-preset-studio"]').classList.contains('active');`,
+    { timeout: 5_000 },
+  );
+  const afterStudio = await d.exec(`return getComputedStyle(document.documentElement).getPropertyValue('--accent-h').trim();`);
+  assert.notEqual(afterStudio, initial, "accent-h should change after clicking Studio");
+  assert.equal(afterStudio, "200", `expected accent-h "200" (teal) after Studio, got "${afterStudio}"`);
+
+  // Click Fine Press — assert active state AND that the var returns
+  // to 14 (oxblood). Proves the switcher works in both directions.
   await d.click('[data-testid="theme-preset-fine-press"]');
-
-  // applyAppearance() writes CSS custom properties synchronously after
-  // the click handler, but the persistence step is async — a short
-  // poll covers any layout-after-paint race.
   await d.waitUntil(
     `return document.querySelector('[data-testid="theme-preset-fine-press"]').classList.contains('active');`,
     { timeout: 5_000 },
   );
-
-  const after = await d.exec(`return getComputedStyle(document.documentElement).getPropertyValue('--accent-h').trim();`);
-  assert.notEqual(after, before, "accent-h CSS variable should change after switching to Fine Press");
-  assert.equal(after, "14", `expected accent-h "14" (oxblood) after Fine Press, got "${after}"`);
+  const afterFinePress = await d.exec(`return getComputedStyle(document.documentElement).getPropertyValue('--accent-h').trim();`);
+  assert.equal(afterFinePress, "14", `expected accent-h "14" (oxblood) after Fine Press, got "${afterFinePress}"`);
 });
 
 test("undo/redo store wires up — keyboard ⌘Z is bound (handler exists)", async () => {

@@ -283,27 +283,28 @@ export const THEME_PRESETS = [
   },
 ];
 
+// Default appearance — mirrors the Fine Press preset. New installs and
+// any persisted state without an explicit preset land here. To pick a
+// different default later, copy that preset's `patch` block over the
+// values below.
 export const DEFAULT_APPEARANCE = {
   mode: "system",
-  preset: "studio",
-  fontPairing: "calm",
-  uiFont: "Geist",
-  displayFont: "Source Serif 4",
-  editorBodyFont: "Source Serif 4",
-  // 200 = teal, matching the Studio preset above. Previously was 14
-  // (Fine Press's oxblood) which left the default state inconsistent —
-  // preset name said Studio but the accent rendered Fine Press red.
-  accentHue: 200,
+  preset: "fine-press",
+  fontPairing: "fine-press",
+  uiFont: "Spline Sans",
+  displayFont: "Fraunces",
+  editorBodyFont: "Fraunces",
+  accentHue: 14,   // oxblood
   goldHue: 80,
   dangerHue: 35,    // functional-colour hues (success/danger/info), DaisyUI-style
   successHue: 150,
   infoHue: 220,
-  appBg: "paperwhite",
-  sidebarBg: "paperwhite",
-  editorPaper: "white",
+  appBg: "neutral",
+  sidebarBg: "neutral",
+  editorPaper: "match",
   editorLayout: "full",
   inlinePaper: false,    // also tint inline rich-text fields with editor-paper
-  inkPalette: "warm",    // text-colour family (matches the Studio preset)
+  inkPalette: "warm",
   uiScale: 1,            // UI size multiplier (0.9 – 1.1)
   sidebarHeadingStyle: "eyebrow",
   sidebarHeadingSize: "s",
@@ -312,9 +313,9 @@ export const DEFAULT_APPEARANCE = {
   // Editor writing defaults (theme-owned; per-doc Writing settings can
   // override each via "Theme default" in that modal).
   editorFontSize: "medium",     // small | medium | big
-  editorLineSpacing: 1.5,
-  editorParaSpacing: 0.5,       // em between paragraphs
-  editorParaIndent: false,
+  editorLineSpacing: 1.7,
+  editorParaSpacing: 0,         // em between paragraphs
+  editorParaIndent: true,
   // Button theming knobs — see BUTTON_RADIUS_PX / BUTTON_DENSITY_PX below.
   btnRadius: "standard",        // sharp | standard | rounded | pill
   btnDensity: "comfy",          // compact | comfy

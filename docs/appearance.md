@@ -10,9 +10,11 @@ This page covers what each control does and when you'd want to change it.
 
 The top of the Appearance section is a row of curated theme tiles. Click a tile to apply a complete bundle of settings — mode, fonts, accents, button shape — in one go. The live preview pane next to it updates instantly.
 
+New installs open in **Fine Press** — Fraunces display + Spline Sans UI, oxblood accent, neutral surfaces, full-width editor with paragraph indent. Other curated tiles: Studio (Geist + teal, white surfaces), Ivory Press (cream paper, italic display), Calm Modern (Geist + teal, neutral surfaces, justified paragraphs), Editorial (Newsreader + indigo, cool surfaces, mono headings).
+
 You can save your own preset once you've tuned things to your liking. A **Save current…** tile appears whenever any individual knob is changed from a preset's baseline.
 
-If at any point things look wrong, the **Reset to defaults** button at the bottom of the page restores every Appearance setting while keeping any saved custom presets.
+If at any point things look wrong, the **Reset to defaults** button at the bottom of the page restores every Appearance setting (Fine Press) while keeping any saved custom presets.
 
 ---
 
