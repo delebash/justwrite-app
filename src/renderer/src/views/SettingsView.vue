@@ -335,6 +335,35 @@ const editing = ref(null);   // id of provider being edited (or "new")
 const draft = ref(null);     // working copy
 const showQuickSetup = ref(false);
 
+// ── Provider usage badges ────────────────────────────────────
+// Shows at-a-glance which features each provider serves, so the
+// "fast" provider's role (Brainstorm / Resume briefing / Recap /
+// Entity sweep / Sensory / Unstuck on the 8 GB Quick Setup tier)
+// is visible without scrolling to the Feature routing card.
+const expandedUsageId = ref(null);
+function toggleUsage(id) {
+  expandedUsageId.value = expandedUsageId.value === id ? null : id;
+}
+function featuresPinnedTo(providerId) {
+  const pins = ai.featurePins || {};
+  return AI_FEATURES.filter((f) => pins[f.key]?.providerId === providerId);
+}
+function providerDefaultRoles(p) {
+  const roles = [];
+  if (ai.defaultLlmId === p.id) roles.push("Default LLM");
+  if (ai.defaultEmbeddingId === p.id) roles.push("Default embedding");
+  if (ai.defaultTtsId === p.id) roles.push("Default TTS");
+  return roles;
+}
+function usageBadgeLabel(p) {
+  const count = featuresPinnedTo(p.id).length;
+  const isDefault = providerDefaultRoles(p).length > 0;
+  if (count > 0 && isDefault) return `default · ${count} pinned`;
+  if (count > 0) return `${count} pinned feature${count === 1 ? "" : "s"}`;
+  if (isDefault) return "default";
+  return "";
+}
+
 function startEdit(provider) {
   editing.value = provider.id;
   draft.value = { ...provider, params: { ...(provider.params || {}) } };
@@ -1169,10 +1198,21 @@ const recentColumns = [
                   <Icon :name="p.kind === 'tts' ? 'Headphones' : p.kind === 'both' ? 'Sparkle' : 'Cpu'" :size="16" />
                 </span>
                 <div style="min-width:0">
-                  <div style="display:flex;gap:8px;align-items:center">
+                  <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap">
                     <b style="font-size:13.5px">{{ p.name }}</b>
                     <span style="font-size:10px;font-weight:600;padding:1px 6px;border-radius:4px;background:var(--surface-3);color:var(--muted);text-transform:uppercase;letter-spacing:0.05em">{{ p.kind }}</span>
                     <span v-if="p.builtIn" class="chip" style="font-size:10px">built-in</span>
+                    <button v-if="usageBadgeLabel(p)"
+                      type="button"
+                      class="chip"
+                      :aria-expanded="expandedUsageId === p.id"
+                      :title="expandedUsageId === p.id ? 'Hide details' : 'Show what uses this provider'"
+                      style="font-size:10px;cursor:pointer;border:none;background:var(--surface-3);color:var(--ink-2);display:inline-flex;align-items:center;gap:4px"
+                      @click="toggleUsage(p.id)">
+                      <Icon name="Sparkle" :size="10" />
+                      {{ usageBadgeLabel(p) }}
+                      <Icon :name="expandedUsageId === p.id ? 'ChevronUp' : 'ChevronDown'" :size="10" />
+                    </button>
                   </div>
                   <div class="t-muted" style="font-family:var(--font-mono);font-size:11px;margin-top:2px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">{{ p.baseUrl }}</div>
                   <div class="t-muted" style="font-size:11px;margin-top:2px">
@@ -1181,6 +1221,18 @@ const recentColumns = [
                     <template v-if="p.ttsModel">tts: <b>{{ p.ttsModel }}</b> · </template>
                     <template v-if="p.ttsVoices?.length">{{ p.ttsVoices.length }} voices · </template>
                     {{ p.apiKey ? "API key set" : "no key" }}
+                  </div>
+                  <div v-if="expandedUsageId === p.id" style="margin-top:8px;padding:8px 10px;border-radius:6px;background:var(--surface-2,var(--surface-3));font-size:12px;line-height:1.55">
+                    <div v-if="providerDefaultRoles(p).length" style="margin-bottom:4px">
+                      <span class="t-muted">Used as:</span>
+                      <b style="margin-left:4px">{{ providerDefaultRoles(p).join(", ") }}</b>
+                    </div>
+                    <div v-if="featuresPinnedTo(p.id).length">
+                      <span class="t-muted">Pinned features ({{ featuresPinnedTo(p.id).length }}):</span>
+                      <ul style="margin:4px 0 0;padding-left:18px;display:flex;flex-direction:column;gap:1px">
+                        <li v-for="f in featuresPinnedTo(p.id)" :key="f.key">{{ f.label }}</li>
+                      </ul>
+                    </div>
                   </div>
                 </div>
                 <span style="display:inline-flex;align-items:center;gap:6px;font-size:11.5px">

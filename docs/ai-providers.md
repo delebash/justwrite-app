@@ -34,7 +34,7 @@ Open **Settings → AI & Audio engines**. The page has three areas:
 
 1. **Defaults** — three pickers for your global default LLM, TTS, and embedding provider.
 2. **Feature routing** — per-feature overrides if you want a specific provider for a specific job.
-3. **Providers list** — every provider you've added; the place to add, edit, test, and remove. The **Quick setup** button at the top of this card runs a one-click wizard that detects your GPU, downloads the right local models, and applies a sensible routing preset (see *Quick setup for local LLM* below).
+3. **Providers list** — every provider you've added; the place to add, edit, test, and remove. The **Quick setup** button at the top of this card runs a one-click wizard that detects your GPU, downloads the right local models, and applies a sensible routing preset (see *Quick setup for local LLM* below). Each provider row carries a small **usage badge** ("default", "N pinned features", or both) — click it to expand a list of every feature routed to that provider, so the role of a secondary provider (e.g. the "fast" Ollama entry the wizard creates on small cards) is visible without scrolling to Feature routing.
 
 ---
 
