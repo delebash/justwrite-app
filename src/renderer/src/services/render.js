@@ -16,9 +16,16 @@ function ctx() {
 // Render a single chapter.
 // Returns { blobs[], buffer, wavBlob, url, duration, skipped[] }.
 // Calls `onProgress({line, total, status})` after each line.
+//
+// Param-override hooks (Phase 1 of the audiobook-tuning system):
+//   - voiceParamsFor(voiceId)  — per-voice overrides from studio.voices[].params
+//   - presetParams             — per-chapter preset (one set for the whole chapter)
+// Both layer on top of provider.params via synthesize()'s merge stack.
 export async function renderChapter({
   provider,        // default TTS provider (used when voiceProvider isn't given)
   voiceProvider,   // optional (voiceId) => provider; lets each voice live on a different engine
+  voiceParamsFor,  // optional (voiceId) => params object
+  presetParams,    // optional chapter-wide preset overrides
   lines,           // [{speaker, kind, text}]
   voiceFor,        // (speakerId) => voiceId | null
   pauseBetween = 0.35,  // seconds of silence between paragraphs
@@ -58,6 +65,8 @@ export async function renderChapter({
         provider: lineProvider,
         voice: voiceId,
         input: line.text,
+        voiceParams: voiceParamsFor ? voiceParamsFor(voiceId) : null,
+        presetParams,
         signal,
       });
       blobs.push(blob);

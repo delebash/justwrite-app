@@ -23,6 +23,7 @@ import JwSelect from "@renderer/components/ui/JwSelect.vue";
 import JwTable from "@renderer/components/ui/JwTable.vue";
 import AiTaskStrip from "../components/AiTaskStrip.vue";
 import AppModal from "../components/AppModal.vue";
+import VoiceParamsModal from "../components/VoiceParamsModal.vue";
 
 const props = defineProps({ tab: { type: String, default: "cast" } });
 
@@ -217,6 +218,7 @@ async function playPreview(voice) {
     const result = await preview({
       provider: provider.value,
       voice: voice.id,
+      voiceParams: voice.params,
       input: "I'm going to go and see if it's there. And if it isn't, I'll have to decide whether to put it back.",
     });
     audio.value = new Audio(result.url);
@@ -313,8 +315,23 @@ function cycleVoiceGender(voice) {
 const voiceColumns = [
   { accessorKey: "name",    header: "Name",   sortable: true, headerStyle: "min-width:110px", cellStyle: "min-width:110px" },
   { accessorKey: "gender",  header: "G",      sortable: true, headerStyle: "width:60px",      cellStyle: "width:60px" },
+  { id: "tune",    accessorKey: "id", header: "", headerStyle: "width:36px", cellStyle: "width:36px" },
   { id: "preview", accessorKey: "id", header: "", headerStyle: "width:44px", cellStyle: "width:44px" },
 ];
+
+// ── Per-voice param overrides (Phase 1 audiobook-tuning) ─────────────
+// Studio's voice library row gets a ⚙ button that opens a modal where
+// the writer tunes provider engine params (speed, exaggeration, etc.)
+// for THAT voice. Overrides cascade over provider.params at synth time
+// (see services/tts.js → mergeParams). Storage is voice.params on the
+// studio store entry — mergeVoices only backfills empty fields so the
+// override survives re-fetch.
+const tuningVoice = ref(null);
+function openVoiceTuner(voice) { tuningVoice.value = voice; }
+function closeVoiceTuner() { tuningVoice.value = null; }
+function hasOverrides(voice) {
+  return !!voice?.params && Object.keys(voice.params).length > 0;
+}
 
 // ── Script analysis ───────────────────────────────────────────────────
 // Restore the chapter the user last analyzed; fall back to the first
@@ -554,6 +571,7 @@ async function startRender(chapterId) {
         const v = studio.voiceById(voiceId);
         return v ? ai.providerById(v.providerId) : null;
       },
+      voiceParamsFor: (voiceId) => studio.voiceById(voiceId)?.params || null,
       lines: script,
       voiceFor: (s) => s === "narrator" ? studio.cast.narrator : studio.cast.characters[s],
       onProgress: (p) => {
@@ -915,12 +933,27 @@ async function confirmDeleteAllRendered() {
           </button>
         </template>
 
+        <template #tune="{ row }">
+          <JwButton intent="ghost" size="small"
+            :class="{ 'voice-tune-active': hasOverrides(row) }"
+            v-tooltip.bottom="hasOverrides(row) ? 'Voice has parameter overrides — click to edit' : 'Tune voice parameters (speed, exaggeration, …)'"
+            @click.stop="openVoiceTuner(row)">
+            <template #icon><Icon name="Settings" :size="11" /></template>
+          </JwButton>
+        </template>
+
         <template #preview="{ row }">
           <JwButton intent="ghost" size="small" :disabled="previewingVoice === row.id" @click.stop="playPreview(row)">
             <template #icon><Icon :name="previewingVoice === row.id ? 'Pause' : 'Play'" :size="11" /></template>
           </JwButton>
         </template>
       </JwTable>
+
+      <VoiceParamsModal
+        v-if="tuningVoice"
+        :voice="tuningVoice"
+        :provider="ai.providerById(tuningVoice.providerId)"
+        @close="closeVoiceTuner" />
     </aside>
   </div>
 
@@ -1180,6 +1213,13 @@ async function confirmDeleteAllRendered() {
     background: var(--surface-3); color: var(--ink-2);
   }
   .voice-gender-chip.is-unset { color: var(--muted); border-style: dashed; }
+
+  /* Highlight the ⚙ tune button on voices that have parameter overrides. */
+  :deep(.voice-tune-active) {
+    color: var(--accent-ink, var(--accent));
+    background: var(--accent-soft);
+    border-radius: 6px;
+  }
 
   .st-cast-desc, .st-script-desc {
     font-size: 12px; line-height: 1.55; color: var(--muted);
