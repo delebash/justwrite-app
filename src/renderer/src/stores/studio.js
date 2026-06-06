@@ -101,9 +101,29 @@ export const useStudioStore = defineStore("studio", {
       save(this.$state);
     },
     mergeVoices(more) {
-      const ids = new Set(this.voices.map((v) => v.id));
-      const additions = more.filter((v) => !ids.has(v.id));
-      this.voices = [...this.voices, ...additions];
+      // Add new voices, AND backfill empty metadata fields on existing ones
+      // — so an upgraded inferrer (or a provider that starts returning
+      // gender it didn't before) eventually fills in cached voices. Writer
+      // overrides via updateVoice still win because we never overwrite a
+      // non-empty field.
+      const byId = new Map(this.voices.map((v) => [v.id, v]));
+      const fillFields = ["gender", "accent", "tone", "age"];
+      for (const incoming of more) {
+        const existing = byId.get(incoming.id);
+        if (!existing) {
+          byId.set(incoming.id, incoming);
+          continue;
+        }
+        let patched = existing;
+        for (const k of fillFields) {
+          if (!existing[k] && incoming[k]) {
+            patched = patched === existing ? { ...existing } : patched;
+            patched[k] = incoming[k];
+          }
+        }
+        if (patched !== existing) byId.set(incoming.id, patched);
+      }
+      this.voices = Array.from(byId.values());
       save(this.$state);
     },
     // Patch a single voice. Used by the voice library's click-to-cycle

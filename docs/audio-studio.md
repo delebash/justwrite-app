@@ -40,7 +40,7 @@ The **Cast** tab is where you pick a voice for each character and for the narrat
 - **A search box** to filter the voice library by name.
 - **The Narrator slot** — a dedicated card. The narrator voice handles all narration, interior thought, and the auto-generated chapter intros.
 - **Character cards** — every character in your Story Bible appears as a card showing name, role, and the currently assigned voice. Unassigned cards have a dashed border and a warning badge so nothing slips through.
-- **Smart-assign button** — calls your LLM to match every character to the best-fitting voice based on name, role description, and gender.
+- **Smart-assign button** — calls your LLM to match every character to the best-fitting voice. The model gets each character's name, role, **gender**, **pronouns**, and any **aliases** (a.k.a.) from your Story Bible, plus each voice's name, gender, age, accent, and tone descriptors. The system prompt explicitly tells it to match on age / gender / tone / accent.
 - **Clear cast button** — resets every assignment.
 
 ### How to use it
@@ -69,6 +69,14 @@ JustWrite tries to fill in each voice's gender automatically when it discovers i
 The gender chip in the voice library is **click-to-cycle**: ❓ → F → M → N (neutral) → unset → back to start. Click whenever the auto-detect is wrong (a stage name like "Vex", a fantasy voice called "Orb-7", or just a guess you disagree with). The override is saved on the voice and used by Smart-assign on subsequent runs.
 
 Why bother? Smart-assign matches characters to voices by gender alongside everything else. A character your auto-detected as the wrong gender will get matched against the wrong voice pool. Fixing the chip once before Smart-assigning is cheaper than re-doing the assignment.
+
+**Both sides of the equation matter.** Smart-assign also uses each character's **Gender** field (set on the character's page in the Story Bible — see [Story bible](story-bible.md#characters)). A character with no gender set gives the LLM no signal on that axis; it'll fall back to inferring from name/role/description, which is hit-and-miss. The pre-flight ritual that produces the best matches:
+
+1. Check the voice library for any ❓ chips → click-cycle to set them.
+2. Open each main character in the Story Bible and confirm **Gender** + **Pronouns** are filled.
+3. Then click Smart-assign.
+
+Existing voices you cached before the auto-detect shipped get backfilled on the next Studio open — JustWrite fills in any blank gender/accent/tone fields from inference but never overwrites a chip you set manually.
 
 ---
 

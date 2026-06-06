@@ -114,13 +114,17 @@ async function pingTtsProvider(p, { mergeVoices = false } = {}) {
     if (mergeVoices && list.length) {
       // Run the metadata inferrer on every newly-discovered voice. Provider-
       // supplied fields (Speechmatics' hardcoded gender/accent/tone) win;
-      // we only fill blanks. Writer can override per-voice in the library.
+      // we only fill blanks. Spreading `...v` last would clobber inference
+      // with the `undefined` Kokoro and friends include for missing fields,
+      // so resolve each field with an explicit fallback chain.
       const enriched = list.map((v) => {
         const inferred = inferVoiceMetadata(v, p.id);
         return {
-          ...inferred,
           ...v,
           providerId: p.id,
+          gender: v.gender || inferred.gender || "",
+          accent: v.accent || inferred.accent || "",
+          tone:   v.tone   || inferred.tone   || "",
         };
       });
       studio.mergeVoices(enriched);
