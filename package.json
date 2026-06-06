@@ -16,7 +16,8 @@
     "release:windows": "node scripts/release.mjs --platform windows",
     "release:macos": "node scripts/release.mjs --platform macos",
     "release:linux": "node scripts/release.mjs --platform linux",
-    "screenshots": "node e2e/capture-direct.mjs"
+    "screenshots": "node e2e/capture-direct.mjs",
+    "test": "npm test --prefix e2e"
   },
   "dependencies": {
     "@ffmpeg/ffmpeg": "^0.12.15",

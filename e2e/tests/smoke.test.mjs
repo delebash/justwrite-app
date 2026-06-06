@@ -77,11 +77,31 @@ test("hash-routing — Settings → AI engines shows configured providers", asyn
   );
 });
 
-test("theme switcher — TODO: drive Appearance UI", { skip: "Pending: needs reka-ui-aware selector for the theme cards. See lib/driver.mjs#click." }, async () => {
-  // Placeholder for an Appearance test that flips the theme via the
-  // real UI and asserts the bg color changes. Heuristics for finding
-  // the theme cards in the reka-ui-built Settings widget are too
-  // fragile right now and need data-testid attributes on the cards.
+test("theme switcher — clicking a preset tile applies the theme", async () => {
+  // Drive the real Appearance UI: navigate, click the Fine Press tile,
+  // assert that the preset is now active AND a CSS custom property
+  // that the preset patches has changed. The data-testid attribute
+  // on each .preset-tile is the stable selector this test depends on
+  // — don't remove it without updating this assertion path.
+  await d.navigate("#/settings/appearance");
+  await d.waitUntil(`return !!document.querySelector('[data-testid="theme-preset-fine-press"]');`);
+
+  // Read the accent-hue CSS variable BEFORE the click so we can prove
+  // it changed afterwards.
+  const before = await d.exec(`return getComputedStyle(document.documentElement).getPropertyValue('--accent-h').trim();`);
+  await d.click('[data-testid="theme-preset-fine-press"]');
+
+  // applyAppearance() writes CSS custom properties synchronously after
+  // the click handler, but the persistence step is async — a short
+  // poll covers any layout-after-paint race.
+  await d.waitUntil(
+    `return document.querySelector('[data-testid="theme-preset-fine-press"]').classList.contains('active');`,
+    { timeout: 5_000 },
+  );
+
+  const after = await d.exec(`return getComputedStyle(document.documentElement).getPropertyValue('--accent-h').trim();`);
+  assert.notEqual(after, before, "accent-h CSS variable should change after switching to Fine Press");
+  assert.equal(after, "14", `expected accent-h "14" (oxblood) after Fine Press, got "${after}"`);
 });
 
 test("undo/redo store wires up — keyboard ⌘Z is bound (handler exists)", async () => {

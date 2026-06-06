@@ -37,6 +37,22 @@ website's `public/screenshots/` folder. Used to refresh the marketing
 shots. Edit `capture-direct.mjs` to change the route list or output
 path.
 
+Before the route loop runs, the script clicks the named theme preset
+in Settings → Appearance so every shot reflects that look. Default is
+**Fine Press**; override with the `JW_THEME` env var:
+
+```bash
+JW_THEME="Fine Press"   npm run capture   # default
+JW_THEME="Studio"       npm run capture
+JW_THEME="Ivory Press"  npm run capture
+JW_THEME="Calm Modern"  npm run capture
+JW_THEME="Editorial"    npm run capture
+```
+
+The value has to match the preset's visible `<b>` label exactly. The
+choice persists into IDB, so subsequent app launches keep the same
+theme until you switch again.
+
 ### `npm test`
 
 Runs the smoke suite (`tests/*.test.mjs`) via Node's built-in test
@@ -51,7 +67,7 @@ tests for speed. Currently:
 | analysis route | KPIs render |
 | studio route | Cast/voice content visible |
 | settings → AI | configured providers visible |
-| theme switcher | *skipped — needs reka-ui-aware selector* |
+| theme switcher | Fine Press preset click flips `--accent-h` from default → `14` |
 | undo/redo binding | keydown handlers respond |
 
 ## How it works

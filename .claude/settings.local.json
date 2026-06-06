@@ -10,7 +10,8 @@
       "Bash(mkdir -p \"E:/Dev/Web/justwrite-website/public/screenshots\")",
       "Bash(cp \"C:/Users/danel/.claude/image-cache/9e5f7cd9-0758-447e-975c-2d71ee0a0776/1.png\" \"E:/Dev/Web/justwrite-website/public/screenshots/editor-light.png\")",
       "Bash(cp \"C:/Users/danel/.claude/image-cache/9e5f7cd9-0758-447e-975c-2d71ee0a0776/3.png\" \"E:/Dev/Web/justwrite-website/public/screenshots/home-light.png\")",
-      "Bash(cp \"C:/Users/danel/.claude/image-cache/9e5f7cd9-0758-447e-975c-2d71ee0a0776/5.png\" \"E:/Dev/Web/justwrite-website/public/screenshots/settings-dark.png\")"
+      "Bash(cp \"C:/Users/danel/.claude/image-cache/9e5f7cd9-0758-447e-975c-2d71ee0a0776/5.png\" \"E:/Dev/Web/justwrite-website/public/screenshots/settings-dark.png\")",
+      "Workflow(deep-research)"
     ]
   }
 }

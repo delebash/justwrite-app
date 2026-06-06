@@ -176,8 +176,9 @@ Run from the repo root unless noted.
 | `npm run release [version]` | Triggers the GitHub Actions release build via `gh workflow run`. Requires the tag to already exist on origin. Interactive `[y/N]` confirm. |
 | `npm run release:windows` · `:macos` · `:linux` | Same as `release` but builds a single platform. |
 | `npm run screenshots` | Runs the e2e screenshot capture (same as `cd e2e && npm run capture`). Drives the prod binary, writes PNGs to `../justwrite-website/public/screenshots/`. Requires `npm run build` first. |
+| `npm test` | Runs the e2e smoke suite (delegates to `npm test --prefix e2e`). Drives the prod binary through every major route and asserts each surface renders. Requires `npm run build` first. |
 
-> There is **no `npm test`** in the root. The e2e harness has its own (`cd e2e && npm test`). No linter or formatter is wired into the dev loop on purpose — writing prose is the priority.
+> No linter or formatter is wired into the dev loop on purpose — writing prose is the priority. Reach for the audit tools below when imports/locals drift, not on every commit.
 
 ---
 
