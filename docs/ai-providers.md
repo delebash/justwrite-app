@@ -79,6 +79,8 @@ The **Quick setup** wizard (in **Settings → AI & Audio engines**, top of the p
 
 **Re-running is safe.** Pick a different tier and rerun — the wizard upserts the same provider ids, so it overwrites cleanly without leaving stale entries behind. You can also fine-tune any of the pins afterward in **Feature routing** without losing the rest of the preset.
 
+**The presets are editable.** Local LLMs ship faster than this app does, so the per-tier model picks live in a **Hardware presets** card right above the providers list — accordion of every tier with inline editing for the default chat model, fast chat model (when applicable), embedding model, the list of models to download, and the estimated download size. Factory tiers can be **Reset** to their built-in defaults; you can **Add custom tier** for a setup the built-in tiers don't cover (e.g. *"My RTX 4090 setup"* with a model line you specifically prefer); custom tiers can be **Deleted**. Quick Setup reads from this card, so anything you change here is what the wizard offers next time. When a new model lands — bigger Qwen, a fresh Mistral, whatever — you point a preset at it without waiting for an app release.
+
 **When Quick setup isn't the right path.** If you've already curated your own model lineup and feature routing, or you need a model that isn't in Ollama's catalogue (TabbyAPI, llama.cpp's `llama-server`, an LM Studio model), skip the wizard and configure the provider manually — see the *Provider walkthroughs* below.
 
 ---

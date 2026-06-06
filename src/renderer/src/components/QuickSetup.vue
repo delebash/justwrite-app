@@ -13,12 +13,12 @@
 
 import { ref, computed, onMounted, onBeforeUnmount } from "vue";
 import { useAiStore } from "../stores/ai.js";
+import { useHardwarePresetsStore } from "../stores/hardwarePresets.js";
 import AppModal from "./AppModal.vue";
 import JwButton from "./ui/JwButton.vue";
 import JwSelect from "./ui/JwSelect.vue";
 import Icon from "./Icon.vue";
 import {
-  QUICK_SETUP_PRESETS,
   QUICK_SETUP_PROVIDER_IDS,
   tierForVramMb,
 } from "../services/quickSetupPresets.js";
@@ -30,6 +30,7 @@ const props = defineProps({
 const emit = defineEmits(["close"]);
 
 const ai = useAiStore();
+const hwPresets = useHardwarePresetsStore();
 
 // ── State ──────────────────────────────────────────────────────────
 const step = ref("detect");                  // detect | noOllama | confirm | pulling | done
@@ -43,9 +44,11 @@ const pullController = ref(null);
 const pullError = ref("");
 
 // ── Derived ────────────────────────────────────────────────────────
-const preset = computed(() => QUICK_SETUP_PRESETS[tier.value]);
+// Presets come from the store, so user edits flow through automatically
+// and custom tiers appear in the dropdown.
+const preset = computed(() => hwPresets.get(tier.value));
 const tierOptions = computed(() =>
-  Object.entries(QUICK_SETUP_PRESETS).map(([k, p]) => ({ value: k, label: p.label })),
+  hwPresets.list.map((p) => ({ value: p.id, label: p.label })),
 );
 const cloudProviders = computed(() => {
   const isLocal = (u) => /\b(localhost|127\.0\.0\.1|0\.0\.0\.0)\b/i.test(String(u || ""));
