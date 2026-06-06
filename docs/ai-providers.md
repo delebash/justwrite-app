@@ -228,7 +228,7 @@ These are optional refinements. The defaults are reasonable for almost every cas
 
 > *"I'm in the Critique modal and the result feels off. I want to try a different model right here without leaving to navigate Settings."*
 
-Every AI page has a small chip in its header showing the current **provider · model** for that feature. Studio shows two — one for the TTS engine, one for the active LLM call (Smart-assign on the Cast tab, Speaker analysis on the Script tab). Critique, Brainstorm, every analysis modal, Reader knowledge, the chat panel — same chip in each. In the chapter editor, the chip sits at the **top of each scene's AI dropdown**, so writer actions (Rewrite, Expand, Tighten, Continue, Line edits) show their routing right above the menu items they apply to.
+Every AI page has a small chip in its header showing the current **provider · model** for that feature. Studio shows two — one for the TTS engine, one for the active LLM call (Smart-assign on the Cast tab, Speaker analysis on the Script tab). Critique, Brainstorm, every analysis modal, Reader knowledge, the chat panel, the Speaker Lab — same chip in each. In the chapter editor, the chip sits at the **top of each scene's AI dropdown**, so writer actions (Rewrite, Expand, Tighten, Continue, Line edits) show their routing right above the menu items they apply to.
 
 **Click the chip** and a small popover opens with two dropdowns: Provider and Model. The Provider dropdown lists *"Inherit default"* (the global LLM default set in Settings) plus every configured LLM-capable provider. The Model dropdown enables once you pick a specific provider; it shows the provider's saved configured-default model plus any models the live `/v1/models` fetch returned (Refresh button alongside if you need to force a re-fetch).
 
@@ -239,6 +239,26 @@ Every AI page has a small chip in its header showing the current **provider · m
 **Dismiss the popover** with Esc, by clicking the chip again, or by clicking anywhere outside it.
 
 **Analysis modals wait for you.** When you open Multi-reader, Entity sweep, Foreshadowing, Plot-hole audit, Reverse outline, Marketing pack, Character audit, Sensory research, Session recap, Stuck diagnostic, or AI-tell scan, the modal opens to an empty-state with a primary "Run" button instead of firing the AI call immediately. That gives you a chance to change the chip routing first — pick a different model, or switch from your default to a faster local one — before spending tokens. Click the Run button when you're ready.
+
+---
+
+## Tuning the speaker-attribution prompt — Speaker Lab and production configs
+
+> *"The Studio Re-analyze pipeline misattributes a few lines in chapter 2 with my current model. I want to try a different temperature or prompt, see if it fixes it, and have that tuned version be what every chapter actually runs against."*
+
+JustWrite ships a **Speaker Lab** in the sidebar (Project section) — a debugging surface that exposes every knob behind Studio → Script → Re-analyze: the system prompt, the user template, temperature, anchor propagation, the confidence floor, Ollama think mode, and the tier (Guided / Direct / Reasoned). Three modes:
+
+- **Studio** — the production pipeline. Tune in here when you want changes to affect what `Studio → Script → Re-analyze` actually does.
+- **Lab** — a two-stage experimental pipeline. For research, not currently a production target.
+- **Legacy Studio** — the older paragraph-level approach, kept around as a comparison point.
+
+**Production configs.** The Studio panel has a row at the top: a picker showing **Default** plus every saved config, a green `PRODUCTION` badge on whichever one is currently active, and a primary **Use as production** button that promotes the picker's selection. The Default config is built-in (uses tier-resolved prompts and settings for whichever model the feature is routed to) and can't be edited or deleted. You can save the lab's current settings under a name (**Save as**, prompts for the name), load a saved config back into the lab to tweak it (**Load**), and switch the active production config without leaving the lab (just change the picker).
+
+**Settings → AI & Audio engines** also shows a *Production prompt configs* card with the same picker — for each feature (Speaker analysis, Smart-assign), it shows the active config name, source, last-saved timestamp, and a preview of every overridden knob (temperature, system, user, propagate, useFloor, confidenceFloor, think). Switch active right from Settings if you don't want to open the lab.
+
+**What it means in practice:** by default, Studio → Script → Re-analyze runs against the tier-resolved built-in prompt (the same one the lab opens to). If you tune the lab against a hard chapter, save it as *"Tuned for Claude"*, and click Use as production, every subsequent Re-analyze runs against that config — across every chapter in the project. Revert to Default any time by setting the picker back to Default and clicking Use as production.
+
+**Smart-Assign**: the same data model exists for `smartCast`, but the Smart-Assign Lab itself isn't built yet (on the roadmap). For now the Smart-Assign row in Settings always says "Default (tier-resolved)" and you can't override it; the data shape is ready when the lab ships.
 
 ---
 

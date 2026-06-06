@@ -62,27 +62,32 @@ The **Cast** tab is where you pick a voice for each character and for the narrat
 
 ## Script — detecting who speaks what
 
-The **Script** tab does the unglamorous work of figuring out, for every paragraph of every chapter, **who is speaking** — the narrator, a specific character (dialogue), or a specific character (interior thought).
+> *"I write paragraphs that mix narration and dialogue — 'I don't know,' she said, and walked to the window. An audiobook needs the dialogue read in her voice and the rest in the narrator's. I don't want to manually split every paragraph."*
 
-This is what makes the eventual audio sound like a proper audiobook with distinct voices per character, rather than a single voice reading the entire text.
+The **Script** tab does the unglamorous work of figuring out, for every paragraph of every chapter, **who is speaking** — the narrator, a specific character (dialogue), or a specific character (interior thought). This is what makes the eventual audio sound like a proper audiobook with distinct voices per character, rather than a single voice reading the entire text.
 
 ### What you see
 
-- **A chapter dropdown** — pick the chapter you want to analyse.
+- **A chapter dropdown** — pick the chapter you want to analyse. JustWrite remembers your last selection between sessions, so reopening Script lands you where you left off.
 - **A Re-analyze button** — sends the chapter prose to your LLM, which returns a labelled breakdown.
 - **The result display** — each line of the chapter, labelled with: **speaker** (Narrator / character name), **type** (Narration / Dialogue / Interior thought), **confidence percentage**, and the full text of the line.
 
 ### How it works
 
-When you click Re-analyze:
+When you click Re-analyze, JustWrite runs an **inline-tag pipeline**:
 
-1. The app pulls the chapter body.
-2. It strips out things that shouldn't be voiced — scene-break ornaments, "Scene 1" labels, structural headings, AI tracked-changes that haven't been accepted yet.
-3. It prepends a **chapter intro** line for the narrator to read: *"Chapter Seven. Brackish Cove, at low tide."* You don't have to write this; it's generated from your chapter number and title.
-4. It sends the cleaned text to your LLM and asks it to label every paragraph.
-5. The result is shown line-by-line.
+1. Pull the chapter body.
+2. Strip things that shouldn't be voiced — scene-break ornaments, "Scene 1" labels, structural headings, AI tracked-changes that haven't been accepted yet.
+3. **Split every paragraph by quote marks** into alternating narration and dialogue segments. Narration parts are mechanically assigned to the narrator — the model never sees them as a candidate for any character voice.
+4. **Tag each dialogue segment** inline (`[D1]`, `[D2]`, …) and send the cleaned, tagged text to your LLM with a list of project characters. The model attributes only the tagged dialogue.
+5. **Anchor propagation** runs as a deterministic safety net: when a narration span contains a dialogue tag like *"Sarah said"* and matches a cast name, the adjacent dialogue segment is anchored to that character before the LLM sees it. Anchors win on tie-break.
+6. **Confidence floor** — any LLM character pick below the configured threshold is demoted to "unknown" so a low-confidence wrong attribution doesn't quietly leak into the audiobook.
+7. Prepend a **chapter intro** for the narrator: *"Chapter Seven. Brackish Cove, at low tide."* Generated from chapter number and title; you don't write it.
+8. Emit a per-segment script: every paragraph explodes into a narrator line for the narration parts and individual lines for each `[D#]` segment with their attributed speaker.
 
-Review the result. If a line is mis-attributed, you can fix the chapter text (clearer dialogue tags help) and re-run.
+The result: a paragraph like *"'I don't know,' she said. She walked to the window."* becomes three script lines — the character's "I don't know," then "she said." in the narrator voice, then the rest of the narration. Previously paragraphs got one speaker assignment apiece, which meant the dialogue tag ("she said.") either stuck on the character voice or pulled the dialogue onto the narrator.
+
+Review the result. If a line is mis-attributed, you can fix the chapter text (clearer dialogue tags help) and re-run. Or open **Speaker Lab** (sidebar → Project section) to tune the pipeline against this chapter, save the tuned config as a named preset, and click **Use as production** so every Re-analyze going forward runs with your settings instead of the built-in defaults.
 
 Repeat for every chapter you intend to render.
 
