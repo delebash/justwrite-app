@@ -96,13 +96,13 @@ The full-fat option. LLM + TTS + embeddings, all in one provider. Pay-as-you-go.
 1. Sign up at **openai.com** and get an API key from the API keys page.
 2. In JustWrite, **Add provider → Preset: OpenAI**.
 3. Paste your API key.
-4. Click **Fetch models** to populate the chat-model dropdown — common picks: `gpt-4o`, `gpt-4o-mini`.
+4. Click **Fetch models** to populate the chat-model dropdown — common picks: `gpt-5.4-mini` for routine work, `gpt-5.4` or `gpt-5.5` for harder reasoning.
 5. Click **Fetch voices** to populate the TTS voice list — `alloy`, `echo`, `fable`, `onyx`, `nova`, `shimmer`.
 6. **Test.** Save.
 
 You're now wired up for every JustWrite AI feature.
 
-**Cost notes.** GPT-4o-mini is inexpensive enough for routine writing assistance; GPT-4o is the better choice for critique and entity sweeps where reasoning quality matters. TTS is priced per character of text.
+**Cost notes.** `gpt-5.4-mini` and `gpt-5.4-nano` are inexpensive enough for routine writing assistance; step up to `gpt-5.4` or `gpt-5.5` for critique and entity sweeps where reasoning quality matters. TTS is priced per character of text.
 
 ### Anthropic Claude (cloud)
 
@@ -111,10 +111,10 @@ Excellent for writing tasks — particularly critique and longer prose work — 
 1. Sign up at **anthropic.com** and get an API key.
 2. **Add provider → Preset: Claude (Anthropic)**.
 3. Paste your `sk-ant-…` key.
-4. The default model is `claude-haiku-4-5`. Change to `claude-sonnet-4-5` or higher for tougher tasks.
+4. The default model is `claude-haiku-4-5`. Step up to `claude-sonnet-4-6` (best price-per-quality for prose work) or `claude-opus-4-8` (top of class on coding and reasoning, ~1.7× Sonnet's input cost) for tougher tasks.
 5. **Test.** Save.
 
-**When to pick Claude.** Long-form prose work, structural critique, anything where you want a model that handles nuance and length well. Many writers prefer Claude for critique even when they use OpenAI for everything else — set Claude as the routing for "Critique" in Settings.
+**When to pick Claude.** Long-form prose work, structural critique, anything where you want a model that handles nuance and length well. Claude tops the major creative-writing leaderboards in 2026 (EQ-Bench, Hemingway-bench), and many writers prefer it for critique even when they use OpenAI for everything else — set Claude as the routing for "Critique" in Settings. If budget matters more than that prose edge, see Gemini below — it scores nearly as well at roughly a third the per-token cost.
 
 ### Google Gemini (cloud)
 
@@ -126,7 +126,7 @@ Gemini through Google's OpenAI-compatible endpoint. LLM only (no TTS). Long cont
 4. The default model is `gemini-2.5-flash`. Swap to `gemini-2.5-pro` for harder tasks.
 5. **Test.** Save.
 
-**When to pick Gemini.** Large-context tasks where the whole manuscript needs to be in the prompt — reverse outline, plot-hole audit, full-book sweeps. Gemini's context window is generous compared to most peers.
+**When to pick Gemini.** Two cases. **Cost-conscious general use** — Gemini 2.5 Pro is roughly a third the per-token price of Claude Sonnet 4.6 with prose scores nearly as good, so it's the strongest value play in the cloud tier. **Large-context tasks** where the whole manuscript needs to be in the prompt — reverse outline, plot-hole audit, full-book sweeps. Gemini's context window is generous compared to most peers.
 
 ### DeepSeek (cloud)
 
@@ -150,7 +150,7 @@ One API key, OpenAI-shaped, routes to virtually every major model on the market 
 4. Click **Fetch models** — the live catalogue populates the dropdown. Model ids take the form `vendor/model-name`, e.g. `anthropic/claude-sonnet-4-6`, `google/gemini-2.5-pro`, `meta-llama/llama-3.1-70b-instruct`.
 5. Pick a chat model. **Test.** Save.
 
-**When to pick OpenRouter.** You want to A/B several models without managing five separate API keys. Or you want a model that doesn't ship with a built-in preset (Mistral, Together, Fireworks, …) — OpenRouter probably proxies it. Routing per feature (Settings → Feature routing) lets you point Critique at Claude, Writer actions at DeepSeek, and Entity sweep at Gemini, all through one key.
+**When to pick OpenRouter.** You want to compare several models side-by-side without managing five separate API keys and billing accounts. Or you want a model that doesn't ship with a built-in preset (Mistral, Together, Fireworks, …) — OpenRouter probably proxies it. Routing per feature (Settings → Feature routing) lets you point Critique at Claude, Writer actions at DeepSeek, and Entity sweep at Gemini, all through one key.
 
 ### Ollama (local, free)
 
@@ -219,7 +219,7 @@ Older guidance (including earlier versions of this page) told 8 GB-card users th
 | RTX 3060 12 GB / 4070 / 5070, RX 6700XT / 7700XT | 12 GB | `qwen3:14b` (Q4_K_M) ~9 GB full-GPU | 14B fits cleanly on GPU here — no offload, ~40–60 tok/s. The 24B at Q3 is a stretch option for tough analysis. |
 | RTX 4060Ti 16GB / 5060Ti 16GB / 4080, RX 7800XT | 16 GB | `qwen3:14b` (Q6_K) or `mistral-small3:24b` (Q4_K_M) ~14 GB | Either better quality on a 14B or a meaningfully stronger 24B at standard quant. |
 | RTX 3090 / 4090 / 7900XTX | 24 GB | `qwen3:32b` (Q5_K_M) ~22 GB, or `gpt-oss:20b` (Q6_K) | At this tier you're approaching cloud-class quality for prose work. |
-| RTX 5090 | 32 GB | `llama3.3:70b` (Q4_K_M) ~42 GB partial offload, or `qwen3:32b` (Q6_K) ~27 GB full | 70B fits comfortably with KV-cache headroom. Genuinely competitive with GPT-4o-mini on writing tasks. |
+| RTX 5090 | 32 GB | `llama3.3:70b` (Q4_K_M) ~42 GB partial offload, or `qwen3:32b` (Q6_K) ~27 GB full | 70B fits comfortably with KV-cache headroom. Genuinely competitive with `gpt-5.4-mini` on writing tasks. |
 | CPU only, 16+ GB RAM | n/a | `qwen3:8b` (Q4_K_M) — the only realistic local option here | Expect 3–8 tok/s. Adequate for short utility calls and brainstorming; painful for prose generation, unusable for critique on long chapters. Route prose-heavy features to cloud. |
 | Apple Silicon (M2/M3/M4) | unified RAM | Same picks as the matching VRAM tier — Macs share RAM with the GPU | On an M-series with 16 GB RAM, treat it like a 12 GB GPU (the OS reserves some). Metal acceleration is excellent in both Ollama and LM Studio. |
 
@@ -434,7 +434,7 @@ Setting "Inherit default" for any feature uses your global Default LLM.
 
 - **Default LLM**: Ollama (free, local, fast for routine work)
 - **Critique**: pinned to Claude (better at structural reasoning)
-- **Entity sweep**: pinned to GPT-4o-mini (cheap and reliable for this specific job)
+- **Entity sweep**: pinned to `gpt-5.4-mini` (cheap and reliable for this specific job)
 - **Writer actions**: inherits default (Ollama)
 - **Manuscript chat**: inherits default
 - **Resume briefing**: inherits default (a fast local model is fine here — it's a short, structured task)

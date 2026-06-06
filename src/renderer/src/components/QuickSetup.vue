@@ -245,7 +245,7 @@ function pctOf(p) {
         <JwSelect v-model="cloudProviderId" :options="cloudOptions" />
         <p v-if="!cloudProviders.length" class="qs-dim qs-mt">
           No cloud provider configured. Critique, plot-hole audit, and similar features will run on the local default model.
-          You can add one later from the providers list.
+          You can add one later under <b>Settings → AI &amp; Audio engines → Cloud · metered</b> — that section has picks (Claude Sonnet 4.6 for prose, Gemini 2.5 Pro for value).
         </p>
       </section>
 

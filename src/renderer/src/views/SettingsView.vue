@@ -365,6 +365,61 @@ function usageBadgeLabel(p) {
   return "";
 }
 
+// Providers list bucketing. Two axes:
+//   • Local vs Cloud — baseUrl loopback OR built-in Edge TTS (no apiKey,
+//     routed through the Rust backend → free from the writer's POV).
+//     Mirrors the predicate ai.js uses for readyLlmProviders so the
+//     bucket here matches "free for me" in routing.
+//   • LLM-or-dual vs TTS-only — dual providers (kind === "both", e.g. OpenAI)
+//     live with the LLMs because LLM is the harder thing to source; writers
+//     looking for chat hit them faster there. A TTS-only bucket then groups
+//     the speech engines (Edge TTS, Kokoro, Chatterbox, Dia, …) by themselves
+//     so "which voice engines do I have?" is a one-glance question.
+function isLocalProvider(p) {
+  if (!p) return false;
+  if (p.id === "edgeTts") return true;
+  return /\b(localhost|127\.0\.0\.1|0\.0\.0\.0)\b/i.test(String(p.baseUrl || ""));
+}
+const localProviders = computed(() => ai.providers.filter(isLocalProvider));
+const cloudProviders = computed(() => ai.providers.filter((p) => !isLocalProvider(p)));
+const localLlm = computed(() => localProviders.value.filter((p) => p.kind !== "tts"));
+const localTts = computed(() => localProviders.value.filter((p) => p.kind === "tts"));
+const cloudLlm = computed(() => cloudProviders.value.filter((p) => p.kind !== "tts"));
+const cloudTts = computed(() => cloudProviders.value.filter((p) => p.kind === "tts"));
+
+// Flat render list — interleaves marker rows ({ type: 'sub', label }),
+// recommendation callouts, empty states, and provider rows. Lets the
+// template iterate once and keep a single row template instead of
+// duplicating it per bucket. Order: Local block (callout? · LLM sub? ·
+// rows · TTS sub? · rows · empty?) then Cloud block (same shape).
+const providerRenderList = computed(() => {
+  const out = [];
+  const pushBucket = (key, label, items) => {
+    if (!items.length) return;
+    out.push({ type: "sub", key: `sub-${key}`, label });
+    for (const p of items) out.push({ type: "row", key: `row-${p.id}`, p });
+  };
+  // ── Local block ──
+  out.push({ type: "section", key: "sec-local", label: "Local · free",
+    subtitle: "Runs on your machine. No API key, no per-token cost, your prose never leaves the box." });
+  if (!localLlm.value.length) out.push({ type: "callout", key: "callout-local", flavor: "local" });
+  pushBucket("local-llm", "LLM", localLlm.value);
+  pushBucket("local-tts", "TTS-only", localTts.value);
+  if (!localLlm.value.length && !localTts.value.length) {
+    out.push({ type: "empty", key: "empty-local", flavor: "local" });
+  }
+  // ── Cloud block ──
+  out.push({ type: "section", key: "sec-cloud", label: "Cloud · metered",
+    subtitle: "Pay per token. Stronger reasoning, no local hardware needed, every call leaves the machine." });
+  if (!cloudLlm.value.some((p) => p.apiKey)) out.push({ type: "callout", key: "callout-cloud", flavor: "cloud" });
+  pushBucket("cloud-llm", "LLM", cloudLlm.value);
+  pushBucket("cloud-tts", "TTS-only", cloudTts.value);
+  if (!cloudLlm.value.length && !cloudTts.value.length) {
+    out.push({ type: "empty", key: "empty-cloud", flavor: "cloud" });
+  }
+  return out;
+});
+
 function startEdit(provider) {
   editing.value = provider.id;
   draft.value = { ...provider, params: { ...(provider.params || {}) } };
@@ -1147,60 +1202,119 @@ const recentColumns = [
               :draft="draft" editing-key="new"
               @save="saveDraft" @cancel="cancelEdit" />
 
-            <template v-for="p in ai.providers" :key="p.id">
-              <!-- Read row -->
-              <div v-if="editing !== p.id" style="display:grid;grid-template-columns:auto minmax(0,1fr) auto auto auto;gap:14px;align-items:center;padding:12px 14px;border:1px solid var(--border);border-radius:10px;background:var(--surface)">
+            <!-- Single render loop over the providerRenderList computed.
+                 Item types: 'section' (Local · free / Cloud · metered eyebrow
+                 with subtitle), 'callout' (suppress-once-configured starter
+                 recommendation), 'sub' (LLM / TTS-only sub-header inside a
+                 section, auto-hidden when its bucket is empty), 'empty'
+                 (placeholder when a whole section has zero providers), and
+                 'row' (the actual provider card; toggles to a SettingsProviderForm
+                 while editing). One row template, no per-bucket duplication. -->
+            <template v-for="item in providerRenderList" :key="item.key">
+              <!-- Section eyebrow (Local · free / Cloud · metered) -->
+              <div v-if="item.type === 'section'"
+                   style="display:flex;align-items:baseline;gap:10px;margin-top:4px"
+                   :style="item.key === 'sec-cloud' ? 'margin-top:14px' : 'margin-top:4px'">
+                <div class="t-eyebrow">{{ item.label }}</div>
+                <span class="t-muted" style="font-size:11.5px">{{ item.subtitle }}</span>
+              </div>
+
+              <!-- Recommendation callout (local) -->
+              <div v-else-if="item.type === 'callout' && item.flavor === 'local'"
+                   style="display:flex;align-items:flex-start;gap:10px;padding:10px 12px;border:1px dashed var(--accent);border-radius:8px;background:var(--accent-soft);font-size:12.5px;line-height:1.5">
+                <Icon name="Sparkle" :size="14" style="margin-top:2px;color:var(--accent-ink)" />
+                <div style="min-width:0">
+                  <b style="color:var(--ink)">Recommended starter — Ollama + qwen3:14b.</b>
+                  Best prose quality you can get under ~10 GB VRAM. On an 8 GB card 14B runs with partial CPU offload; the 8B alternative is noticeably weaker on prose (WritingBench 5.42 vs 14B's 7.02). Pair with <b>Microsoft Edge TTS</b> (built-in below) for ~400 free neural voices — no key, no account.
+                  <div style="margin-top:4px">
+                    <JwButton intent="primary" size="small" @click="showQuickSetup = true">
+                      <template #icon><Icon name="Sparkle" :size="11" /></template>
+                      Open Quick setup
+                    </JwButton>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Recommendation callout (cloud) -->
+              <div v-else-if="item.type === 'callout' && item.flavor === 'cloud'"
+                   style="display:flex;align-items:flex-start;gap:10px;padding:10px 12px;border:1px dashed var(--accent2, var(--accent));border-radius:8px;background:var(--accent2-soft, var(--accent-soft));font-size:12.5px;line-height:1.5">
+                <Icon name="Sparkle" :size="14" style="margin-top:2px;color:var(--accent2-ink, var(--accent-ink))" />
+                <div style="min-width:0">
+                  <b style="color:var(--ink)">Recommended starter — Claude Sonnet 4.6 (best prose) or Gemini 2.5 Pro (best value).</b>
+                  <b>Claude Sonnet 4.6</b> tops the major creative-writing leaderboards in 2026 — the safe pick when prose quality matters most. <b>Gemini 2.5 Pro</b> scores nearly as well and costs roughly a third as much per word — pick it if budget matters more. <b>Claude Haiku 4.5</b> is Anthropic's cheapest tier and is fine for everyday writing. Claude has no TTS — add <b>OpenAI</b> if you also want cloud voice synthesis for the audiobook pipeline.
+                </div>
+              </div>
+
+              <!-- LLM / TTS-only sub-header inside a section -->
+              <div v-else-if="item.type === 'sub'"
+                   style="font-family:var(--font-mono);font-size:10px;font-weight:600;letter-spacing:0.12em;text-transform:uppercase;color:var(--muted);margin-top:6px;padding-left:2px">
+                {{ item.label }}
+              </div>
+
+              <!-- Empty-section placeholder -->
+              <div v-else-if="item.type === 'empty' && item.flavor === 'local'"
+                   class="t-muted" style="font-size:12px;text-align:center;padding:14px;background:var(--surface-2);border-radius:8px;font-style:italic">
+                No local providers configured yet. Run Quick setup, or click "Add provider" and point at <code style="background:var(--surface-3);padding:1px 5px;border-radius:3px">http://localhost:…</code>.
+              </div>
+              <div v-else-if="item.type === 'empty' && item.flavor === 'cloud'"
+                   class="t-muted" style="font-size:12px;text-align:center;padding:14px;background:var(--surface-2);border-radius:8px;font-style:italic">
+                No cloud providers configured. Click "Add provider" and paste an API key from OpenAI, Anthropic, OpenRouter, etc.
+              </div>
+
+              <!-- Provider row (read state) -->
+              <div v-else-if="item.type === 'row' && editing !== item.p.id"
+                   style="display:grid;grid-template-columns:auto minmax(0,1fr) auto auto auto;gap:14px;align-items:center;padding:12px 14px;border:1px solid var(--border);border-radius:10px;background:var(--surface)">
                 <span style="width:36px;height:36px;border-radius:8px;background:var(--surface-3);color:var(--ink-2);display:grid;place-items:center">
-                  <Icon :name="p.kind === 'tts' ? 'Headphones' : p.kind === 'both' ? 'Sparkle' : 'Cpu'" :size="16" />
+                  <Icon :name="item.p.kind === 'tts' ? 'Headphones' : item.p.kind === 'both' ? 'Sparkle' : 'Cpu'" :size="16" />
                 </span>
                 <div style="min-width:0">
                   <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap">
-                    <b style="font-size:13.5px">{{ p.name }}</b>
-                    <span style="font-size:10px;font-weight:600;padding:1px 6px;border-radius:4px;background:var(--surface-3);color:var(--muted);text-transform:uppercase;letter-spacing:0.05em">{{ p.kind }}</span>
-                    <span v-if="p.builtIn" class="chip" style="font-size:10px">built-in</span>
-                    <button v-if="usageBadgeLabel(p)"
+                    <b style="font-size:13.5px">{{ item.p.name }}</b>
+                    <span style="font-size:10px;font-weight:600;padding:1px 6px;border-radius:4px;background:var(--surface-3);color:var(--muted);text-transform:uppercase;letter-spacing:0.05em">{{ item.p.kind }}</span>
+                    <span v-if="item.p.builtIn" class="chip" style="font-size:10px">built-in</span>
+                    <button v-if="usageBadgeLabel(item.p)"
                       type="button"
                       class="chip"
-                      :aria-expanded="expandedUsageId === p.id"
-                      :title="expandedUsageId === p.id ? 'Hide details' : 'Show what uses this provider'"
+                      :aria-expanded="expandedUsageId === item.p.id"
+                      :title="expandedUsageId === item.p.id ? 'Hide details' : 'Show what uses this provider'"
                       style="font-size:10px;cursor:pointer;border:none;background:var(--surface-3);color:var(--ink-2);display:inline-flex;align-items:center;gap:4px"
-                      @click="toggleUsage(p.id)">
+                      @click="toggleUsage(item.p.id)">
                       <Icon name="Sparkle" :size="10" />
-                      {{ usageBadgeLabel(p) }}
-                      <Icon :name="expandedUsageId === p.id ? 'ChevronUp' : 'ChevronDown'" :size="10" />
+                      {{ usageBadgeLabel(item.p) }}
+                      <Icon :name="expandedUsageId === item.p.id ? 'ChevronUp' : 'ChevronDown'" :size="10" />
                     </button>
                   </div>
-                  <div class="t-muted" style="font-family:var(--font-mono);font-size:11px;margin-top:2px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">{{ p.baseUrl }}</div>
+                  <div class="t-muted" style="font-family:var(--font-mono);font-size:11px;margin-top:2px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">{{ item.p.baseUrl }}</div>
                   <div class="t-muted" style="font-size:11px;margin-top:2px">
-                    <template v-if="p.chatModel">chat: <b>{{ p.chatModel }}</b> · </template>
-                    <template v-if="p.embeddingModel">embed: <b>{{ p.embeddingModel }}</b> · </template>
-                    <template v-if="p.ttsModel">tts: <b>{{ p.ttsModel }}</b> · </template>
-                    <template v-if="p.ttsVoices?.length">{{ p.ttsVoices.length }} voices · </template>
-                    {{ p.apiKey ? "API key set" : "no key" }}
+                    <template v-if="item.p.chatModel">chat: <b>{{ item.p.chatModel }}</b> · </template>
+                    <template v-if="item.p.embeddingModel">embed: <b>{{ item.p.embeddingModel }}</b> · </template>
+                    <template v-if="item.p.ttsModel">tts: <b>{{ item.p.ttsModel }}</b> · </template>
+                    <template v-if="item.p.ttsVoices?.length">{{ item.p.ttsVoices.length }} voices · </template>
+                    {{ item.p.apiKey ? "API key set" : "no key" }}
                   </div>
-                  <div v-if="expandedUsageId === p.id" style="margin-top:8px;padding:8px 10px;border-radius:6px;background:var(--surface-2,var(--surface-3));font-size:12px;line-height:1.55">
-                    <div v-if="providerDefaultRoles(p).length" style="margin-bottom:4px">
+                  <div v-if="expandedUsageId === item.p.id" style="margin-top:8px;padding:8px 10px;border-radius:6px;background:var(--surface-2,var(--surface-3));font-size:12px;line-height:1.55">
+                    <div v-if="providerDefaultRoles(item.p).length" style="margin-bottom:4px">
                       <span class="t-muted">Used as:</span>
-                      <b style="margin-left:4px">{{ providerDefaultRoles(p).join(", ") }}</b>
+                      <b style="margin-left:4px">{{ providerDefaultRoles(item.p).join(", ") }}</b>
                     </div>
-                    <div v-if="featuresPinnedTo(p.id).length">
-                      <span class="t-muted">Pinned features ({{ featuresPinnedTo(p.id).length }}):</span>
+                    <div v-if="featuresPinnedTo(item.p.id).length">
+                      <span class="t-muted">Pinned features ({{ featuresPinnedTo(item.p.id).length }}):</span>
                       <ul style="margin:4px 0 0;padding-left:18px;display:flex;flex-direction:column;gap:1px">
-                        <li v-for="f in featuresPinnedTo(p.id)" :key="f.key">{{ f.label }}</li>
+                        <li v-for="f in featuresPinnedTo(item.p.id)" :key="f.key">{{ f.label }}</li>
                       </ul>
                     </div>
                   </div>
                 </div>
                 <span style="display:inline-flex;align-items:center;gap:6px;font-size:11.5px">
-                  <span :style="`width:8px;height:8px;border-radius:50%;background:${statusColor(ai.status[p.id])}`" />
-                  {{ statusLabel(ai.status[p.id]) }}
+                  <span :style="`width:8px;height:8px;border-radius:50%;background:${statusColor(ai.status[item.p.id])}`" />
+                  {{ statusLabel(ai.status[item.p.id]) }}
                 </span>
-                <JwButton label="Test" intent="secondary" size="small" @click="pingProvider(p.id)" />
-                <JwButton label="Edit" intent="primary" size="small" @click="startEdit(p)" />
+                <JwButton label="Test" intent="secondary" size="small" @click="pingProvider(item.p.id)" />
+                <JwButton label="Edit" intent="primary" size="small" @click="startEdit(item.p)" />
               </div>
 
-              <!-- Edit row -->
-              <SettingsProviderForm v-else
+              <!-- Provider row (edit state — swaps in the form) -->
+              <SettingsProviderForm v-else-if="item.type === 'row' && editing === item.p.id"
                 :draft="draft" :editing-key="editing"
                 @save="saveDraft" @cancel="cancelEdit" />
             </template>
