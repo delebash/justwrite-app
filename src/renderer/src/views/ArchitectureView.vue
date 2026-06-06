@@ -28,6 +28,7 @@ function askTheBook() {
   ui.openChatPanelFor({
     mode: "book",
     question: `Tell me about the ${doc.value.id} document`,
+    sourceKey: `ask:arch:${doc.value.id}`,
   });
 }
 

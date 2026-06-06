@@ -63,6 +63,7 @@ function askTheBook() {
   ui.openChatPanelFor({
     mode: "book",
     question: `Tell me about the group "${g.value.name}"`,
+    sourceKey: `ask:group:${g.value.id}`,
   });
 }
 function deleteGroup() {

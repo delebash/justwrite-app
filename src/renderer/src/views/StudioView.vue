@@ -9,6 +9,7 @@ import Icon from "../components/Icon.vue";
 import Combobox from "../components/Combobox.vue";
 import AiFeatureChip from "../components/AiFeatureChip.vue";
 import { listVoices, preview } from "../services/tts.js";
+import { inferVoiceMetadata } from "../services/voiceGender.js";
 import { smartCast, detectSpeakers } from "../services/llm.js";
 import { extractParagraphsFromHtml } from "../services/speakerAttribution.js";
 import { renderChapter } from "../services/render.js";
@@ -61,8 +62,22 @@ function onTabKeydown(e) {
 }
 
 // ── Cast ──────────────────────────────────────────────────────────────
-const activeProviderId = ref(ai.defaultTtsId);
+// Default to the saved TTS pick, but only if it's actually ready (apiKey set
+// or local). Otherwise fall back to the first ready provider, or null.
+function pickInitialTtsId() {
+  const ready = ai.readyTtsProviders;
+  if (ready.some((p) => p.id === ai.defaultTtsId)) return ai.defaultTtsId;
+  return ready[0]?.id || null;
+}
+const activeProviderId = ref(pickInitialTtsId());
 const provider = computed(() => ai.providerById(activeProviderId.value));
+// If the active provider gets removed or its key is cleared while Studio is
+// open, snap to another ready one (or null) so the dropdown never points at
+// a dead entry.
+watch(() => ai.readyTtsProviders.map((p) => p.id).join(","), () => {
+  const stillReady = ai.readyTtsProviders.some((p) => p.id === activeProviderId.value);
+  if (!stillReady) activeProviderId.value = pickInitialTtsId();
+});
 const llmProvider = computed(() => ai.llmProvider);
 const selectedChar = ref(null);
 const loadingVoices = ref(false);
@@ -83,16 +98,63 @@ const smartLoading = computed(() => !!smartCastTask.value);
 
 const engineVoices = computed(() => studio.voices.filter((v) => v.providerId === provider.value?.id));
 
+// Per-provider reachability: 'checking' | 'online' | 'offline'. Pinged on
+// mount and whenever a new provider becomes ready (e.g. writer adds an
+// apiKey from Settings while Studio is open). Offline providers stay in
+// the dropdown — they're still configured, just unreachable right now —
+// labelled "(offline)" so the writer can fix the underlying server rather
+// than wondering where their provider went.
+const ttsStatus = ref({});
+
+async function pingTtsProvider(p, { mergeVoices = false } = {}) {
+  if (!p) return [];
+  ttsStatus.value = { ...ttsStatus.value, [p.id]: "checking" };
+  try {
+    const list = await listVoices(p);
+    if (mergeVoices && list.length) {
+      // Run the metadata inferrer on every newly-discovered voice. Provider-
+      // supplied fields (Speechmatics' hardcoded gender/accent/tone) win;
+      // we only fill blanks. Writer can override per-voice in the library.
+      const enriched = list.map((v) => {
+        const inferred = inferVoiceMetadata(v, p.id);
+        return {
+          ...inferred,
+          ...v,
+          providerId: p.id,
+        };
+      });
+      studio.mergeVoices(enriched);
+    }
+    ttsStatus.value = { ...ttsStatus.value, [p.id]: list.length ? "online" : "offline" };
+    return list;
+  } catch {
+    ttsStatus.value = { ...ttsStatus.value, [p.id]: "offline" };
+    return [];
+  }
+}
+
 async function refreshVoices() {
   if (!provider.value) return;
   loadingVoices.value = true;
   try {
-    const live = await listVoices(provider.value);
-    if (live.length) studio.mergeVoices(live.map((v) => ({ ...v, providerId: provider.value.id })));
+    await pingTtsProvider(provider.value, { mergeVoices: true });
   } finally { loadingVoices.value = false; }
 }
-onMounted(() => { refreshVoices(); });
+
+function pingNonActive() {
+  for (const p of ai.readyTtsProviders) {
+    if (p.id !== activeProviderId.value) pingTtsProvider(p);
+  }
+}
+
+onMounted(() => { refreshVoices(); pingNonActive(); });
 watch(activeProviderId, () => { refreshVoices(); });
+// New ready providers get pinged immediately so the dropdown's offline
+// badge reflects current state without waiting for the writer to click in.
+watch(
+  () => ai.readyTtsProviders.map((p) => p.id).join(","),
+  () => { pingNonActive(); },
+);
 
 function pickVoice(voiceId) {
   if (!selectedChar.value) return;
@@ -185,6 +247,21 @@ function genderSeverity(g) {
   if (g === "male")   return "info";
   if (g === "female") return "accent2";
   return "secondary";
+}
+
+// Click-to-cycle in the voice library's gender column. Auto-inference
+// covers most voices but it can be wrong (Onyx-as-male maps OpenAI's
+// docs, but the writer might disagree). Cycle persists via updateVoice.
+const GENDER_CYCLE = ["female", "male", "neutral", ""];
+function nextGender(current) {
+  const idx = GENDER_CYCLE.indexOf(current || "");
+  return GENDER_CYCLE[(idx + 1) % GENDER_CYCLE.length] || "unset";
+}
+function cycleVoiceGender(voice) {
+  if (!voice?.id) return;
+  const idx = GENDER_CYCLE.indexOf(voice.gender || "");
+  const next = GENDER_CYCLE[(idx + 1) % GENDER_CYCLE.length];
+  studio.updateVoice(voice.id, { gender: next });
 }
 
 const voiceColumns = [
@@ -447,12 +524,27 @@ function downloadChapter(chapterId) {
       <div class="t-eyebrow" style="margin-bottom:8px">Voice library</div>
       <Combobox
         v-model="activeProviderId"
-        :items="ai.ttsProviders"
+        :items="ai.readyTtsProviders"
         item-value="id" item-label="name"
         :searchable="false"
         placeholder="Pick a TTS provider"
         chev-title="Switch voice library provider"
-        style="margin-bottom:10px" />
+        style="margin-bottom:10px">
+        <template #item="{ item, label }">
+          <span class="tts-pick" :class="{ 'is-offline': ttsStatus[item.id] === 'offline' }">
+            <span class="tts-pick-name">{{ label }}</span>
+            <span v-if="ttsStatus[item.id] === 'offline'" class="tts-pick-tag">offline</span>
+            <span v-else-if="ttsStatus[item.id] === 'checking'" class="tts-pick-tag muted">checking…</span>
+          </span>
+        </template>
+      </Combobox>
+      <div v-if="!ai.readyTtsProviders.length" class="t-muted" style="font-size:12px;margin-bottom:10px;padding:10px 12px;border-radius:8px;background:var(--surface-2)">
+        No TTS providers connected yet. Open <strong>Settings → AI providers</strong> and paste a key (or point a local TTS server at JustWrite) to populate the voice library.
+      </div>
+      <div v-else-if="provider && ttsStatus[provider.id] === 'offline'" class="tts-offline-banner" style="font-size:12px;margin-bottom:10px;padding:10px 12px;border-radius:8px;background:var(--accent-soft);color:var(--accent-ink)">
+        <strong>{{ provider.name }}</strong> isn't responding right now. Start the server (or check your key in Settings), then
+        <a href="#" @click.prevent="refreshVoices()" style="color:var(--accent-ink);text-decoration:underline">retry</a>.
+      </div>
       <div style="font-size:11.5px;color:var(--muted);margin-bottom:10px">
         <template v-if="selectedChar">Picking voice for <b style="color:var(--ink)">{{ selectedChar === "narrator" ? "Narrator" : project.characterById(selectedChar)?.name }}</b></template>
         <template v-else>Select a character to assign a voice.</template>
@@ -496,7 +588,15 @@ function downloadChapter(chapterId) {
         </template>
 
         <template #gender="{ row }">
-          <JwTag v-if="row.gender" :value="row.gender[0].toUpperCase()" :intent="genderSeverity(row.gender)" rounded />
+          <button type="button" class="voice-gender-chip"
+            :class="`is-${row.gender || 'unset'}`"
+            v-tooltip.bottom="`Click to cycle gender (${row.gender || 'unset'} → ${nextGender(row.gender)})`"
+            @click.stop="cycleVoiceGender(row)">
+            <template v-if="row.gender === 'female'">F</template>
+            <template v-else-if="row.gender === 'male'">M</template>
+            <template v-else-if="row.gender === 'neutral'">N</template>
+            <template v-else>?</template>
+          </button>
         </template>
 
         <template #preview="{ row }">
@@ -589,6 +689,40 @@ function downloadChapter(chapterId) {
     margin: 0;
   }
   .studio-desc strong { color: var(--ink-2); font-weight: 600; }
+
+  .tts-pick { display: flex; align-items: center; gap: 8px; width: 100%; }
+  .tts-pick.is-offline .tts-pick-name { color: var(--muted); }
+  .tts-pick-name { flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .tts-pick-tag {
+    font-family: var(--font-mono); font-size: 9.5px; letter-spacing: 0.08em;
+    text-transform: uppercase; padding: 2px 6px; border-radius: 4px;
+    background: color-mix(in oklab, var(--accent2) 18%, transparent);
+    color: var(--accent2-ink, var(--ink-2));
+  }
+  .tts-pick-tag.muted { background: var(--surface-3); color: var(--muted); }
+
+  .voice-gender-chip {
+    appearance: none; border: 1px solid var(--border); background: var(--surface);
+    color: var(--ink-2); padding: 0; width: 22px; height: 22px; border-radius: 50%;
+    font-family: var(--font-mono); font-size: 10.5px; font-weight: 600;
+    display: inline-flex; align-items: center; justify-content: center;
+    cursor: pointer; transition: background-color .12s, border-color .12s, color .12s;
+  }
+  .voice-gender-chip:hover { background: var(--surface-2); border-color: var(--border-strong); }
+  .voice-gender-chip.is-female {
+    background: color-mix(in oklab, var(--accent2) 18%, transparent);
+    color: var(--accent2-ink, var(--ink));
+    border-color: color-mix(in oklab, var(--accent2) 40%, transparent);
+  }
+  .voice-gender-chip.is-male {
+    background: color-mix(in oklab, var(--info) 18%, transparent);
+    color: var(--info-ink, var(--ink));
+    border-color: color-mix(in oklab, var(--info) 40%, transparent);
+  }
+  .voice-gender-chip.is-neutral {
+    background: var(--surface-3); color: var(--ink-2);
+  }
+  .voice-gender-chip.is-unset { color: var(--muted); border-style: dashed; }
 
   .st-cast-desc, .st-script-desc {
     font-size: 12px; line-height: 1.55; color: var(--muted);

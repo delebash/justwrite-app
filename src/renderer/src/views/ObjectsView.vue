@@ -51,6 +51,7 @@ function askTheBook() {
   ui.openChatPanelFor({
     mode: "book",
     question: `Tell me about ${obj.value.name}`,
+    sourceKey: `ask:object:${obj.value.id}`,
   });
 }
 function deleteObject() {

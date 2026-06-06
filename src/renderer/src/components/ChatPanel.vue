@@ -305,7 +305,7 @@ function newThread() {
 }
 
 function close() {
-  open.value = false;
+  ui.closeChatPanel();
 }
 
 function onDocKeydown(e) {

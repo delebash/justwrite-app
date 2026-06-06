@@ -255,6 +255,17 @@ export const useAiStore = defineStore("ai", {
         .filter((p) => !!p.apiKey || isLocal(p.baseUrl));
     },
     ttsProviders: (s) => s.providers.filter((p) => p.kind === "tts" || p.kind === "both"),
+    // TTS counterpart to readyLlmProviders above. A built-in TTS entry
+    // (OpenAI, Speechmatics) only counts as ready once the writer has
+    // pasted a key; local servers (Kokoro, Chatterbox) count when their
+    // baseUrl points at localhost — the server may not be running, but
+    // we don't poll on every list to find out.
+    readyTtsProviders: (s) => {
+      const isLocal = (url) => /\b(localhost|127\.0\.0\.1|0\.0\.0\.0)\b/i.test(String(url || ""));
+      return s.providers
+        .filter((p) => p.kind === "tts" || p.kind === "both")
+        .filter((p) => !!p.apiKey || isLocal(p.baseUrl));
+    },
     // Any LLM-capable provider can host embeddings — the embedding
     // model is configured per-provider via the embeddingModel field.
     embeddingProviders: (s) => s.providers.filter((p) => p.kind === "llm" || p.kind === "both"),

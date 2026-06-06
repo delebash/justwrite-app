@@ -73,13 +73,14 @@ function updateField(k, v) { project.updateCharacter(ch.value.id, { [k]: v }); }
 
 function talkToCharacter() {
   if (!ch.value?.id) return;
-  ui.openChatPanelFor({ mode: "character", characterId: ch.value.id });
+  ui.openChatPanelFor({ mode: "character", characterId: ch.value.id, sourceKey: `talk:${ch.value.id}` });
 }
 function askTheBook() {
   if (!ch.value) return;
   ui.openChatPanelFor({
     mode: "book",
     question: `Tell me about ${ch.value.name}`,
+    sourceKey: `ask:character:${ch.value.id}`,
   });
 }
 

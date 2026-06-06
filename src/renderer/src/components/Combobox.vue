@@ -151,7 +151,7 @@ watch(() => filtered.value.length, (n) => {
         :class="{ active: i === state.hover, selected: valueOf(item) === modelValue }"
         @mousedown.prevent="pick(item)"
         @mouseenter="state.hover = i">
-        {{ labelOf(item) }}
+        <slot name="item" :item="item" :label="labelOf(item)">{{ labelOf(item) }}</slot>
       </li>
     </ul>
   </div>

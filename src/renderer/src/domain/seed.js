@@ -578,30 +578,14 @@ export const DEFAULT_PROVIDERS = [
     id: "speechmatics", name: "Speechmatics (cloud TTS)", kind: "tts",
     baseUrl: "https://preview.tts.speechmatics.com",
     ttsModel: "",
-    ttsVoices: ["sarah", "theo", "megan", "jack"],
+    ttsVoices: [
+      { id: "sarah", name: "Sarah", gender: "female", age: "adult", accent: "British",  tone: "warm" },
+      { id: "theo",  name: "Theo",  gender: "male",   age: "adult", accent: "British",  tone: "measured" },
+      { id: "megan", name: "Megan", gender: "female", age: "adult", accent: "American", tone: "bright" },
+      { id: "jack",  name: "Jack",  gender: "male",   age: "adult", accent: "American", tone: "grounded" },
+    ],
     builtIn: true,
   },
-];
-
-export const SAMPLE_VOICES = [
-  { id: "alloy",   providerId: "openai", name: "Alloy",   gender: "neutral", age: "adult", accent: "American", tone: "balanced" },
-  { id: "nova",    providerId: "openai", name: "Nova",    gender: "female",  age: "adult", accent: "American", tone: "expressive" },
-  { id: "onyx",    providerId: "openai", name: "Onyx",    gender: "male",    age: "adult", accent: "American", tone: "rich, deep" },
-  { id: "shimmer", providerId: "openai", name: "Shimmer", gender: "female",  age: "adult", accent: "American", tone: "soft" },
-  { id: "fable",   providerId: "openai", name: "Fable",   gender: "neutral", age: "adult", accent: "British",  tone: "warm, narrative" },
-  { id: "echo",    providerId: "openai", name: "Echo",    gender: "male",    age: "adult", accent: "American", tone: "measured" },
-
-  // Speechmatics preview voices — four English voices, hard-coded because
-  // the API has no /voices endpoint. Metadata mirrors what the docs list.
-  { id: "sarah",   providerId: "speechmatics", name: "Sarah", gender: "female", age: "adult", accent: "British",  tone: "warm" },
-  { id: "theo",    providerId: "speechmatics", name: "Theo",  gender: "male",   age: "adult", accent: "British",  tone: "measured" },
-  { id: "megan",   providerId: "speechmatics", name: "Megan", gender: "female", age: "adult", accent: "American", tone: "bright" },
-  { id: "jack",    providerId: "speechmatics", name: "Jack",  gender: "male",   age: "adult", accent: "American", tone: "grounded" },
-
-  // Kokoro and Chatterbox voices aren't seeded — their servers expose them
-  // via GET /v1/audio/voices (Kokoro: predefined model voices, Chatterbox:
-  // whatever WAV/MP3 files live in its ./voices/ folder). Keeping a static
-  // list here drifts as upstream renames or adds voices.
 ];
 
 // Empty by default — a fresh project starts with no cast assignments

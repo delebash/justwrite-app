@@ -85,6 +85,7 @@ function askTheBook() {
   ui.openChatPanelFor({
     mode: "book",
     question: `Tell me about chapter ${ch.value.num}${ch.value.title ? ` — "${ch.value.title}"` : ""}`,
+    sourceKey: `ask:chapter:${ch.value.id}`,
   });
 }
 const MODES = [

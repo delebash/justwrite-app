@@ -51,6 +51,7 @@ function askTheBook() {
   ui.openChatPanelFor({
     mode: "book",
     question: `Tell me about ${loc.value.name}`,
+    sourceKey: `ask:location:${loc.value.id}`,
   });
 }
 function deleteLocation() {

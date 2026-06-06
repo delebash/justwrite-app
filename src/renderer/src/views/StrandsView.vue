@@ -120,6 +120,7 @@ function askTheBook() {
   ui.openChatPanelFor({
     mode: "book",
     question: `Tell me about the narrative strand "${s.value.name}"`,
+    sourceKey: `ask:strand:${s.value.id}`,
   });
 }
 function deleteStrand() {

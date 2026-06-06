@@ -93,8 +93,12 @@ export const useUiStore = defineStore("ui", {
       chatPanelOpen: false,
       // When set, the next ChatPanel open should pre-scope to this target
       // before clearing itself. Shape: { mode: 'book' | 'character',
-      // characterId?, question?, ts }
+      // characterId?, question?, sourceKey?, ts }
       chatRequestedTarget: null,
+      // Identifies the button that last opened the panel. openChatPanelFor
+      // toggles closed when called with the same sourceKey, so every
+      // contextual entry button acts as a real open/close toggle.
+      chatPanelSourceKey: null,
       // "Previously on your novel" briefing — generated on Home when the
       // writer returns. Cache survives reloads so same-day reopens reuse
       // the same briefing instead of re-billing the LLM. Dismissal is
@@ -181,9 +185,21 @@ export const useUiStore = defineStore("ui", {
     },
 
     openChatPanel()  { this.chatPanelOpen = true; },
-    closeChatPanel() { this.chatPanelOpen = false; },
-    toggleChatPanel() { this.chatPanelOpen = !this.chatPanelOpen; },
+    closeChatPanel() {
+      this.chatPanelOpen = false;
+      this.chatPanelSourceKey = null;
+    },
+    toggleChatPanel() {
+      if (this.chatPanelOpen) this.closeChatPanel();
+      else this.chatPanelOpen = true;
+    },
     openChatPanelFor(target) {
+      const key = target?.sourceKey || null;
+      if (this.chatPanelOpen && key && this.chatPanelSourceKey === key) {
+        this.closeChatPanel();
+        return;
+      }
+      this.chatPanelSourceKey = key;
       this.chatRequestedTarget = { ...target, ts: Date.now() };
       this.chatPanelOpen = true;
     },

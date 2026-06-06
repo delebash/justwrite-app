@@ -1,7 +1,7 @@
 // Studio store — cast assignments, script analyses, render queue.
 
 import { defineStore } from "pinia";
-import { DEFAULT_CAST, SAMPLE_VOICES, SCRIPT_CH7, RENDER_QUEUE } from "../domain/seed.js";
+import { DEFAULT_CAST, SCRIPT_CH7, RENDER_QUEUE } from "../domain/seed.js";
 import { getItem, setItem } from "../services/storage.js";
 
 const LS_KEY = "justwrite:studio";
@@ -28,7 +28,10 @@ export const useStudioStore = defineStore("studio", {
     const loaded = load();
     return {
       cast: loaded?.cast || { ...DEFAULT_CAST },
-      voices: loaded?.voices || [...SAMPLE_VOICES],
+      // Fresh projects start empty; live discovery (`listVoices` in StudioView)
+      // populates from each ready provider's /v1/audio/voices or its static
+      // ttsVoices list. Existing projects keep their persisted voices.
+      voices: loaded?.voices || [],
       // Merge stored scripts over the seed so the demo ch7 script is
       // always available even on a fresh install.
       scripts: { ch7: [...SCRIPT_CH7], ...(loaded?.scripts || {}) },
@@ -101,6 +104,12 @@ export const useStudioStore = defineStore("studio", {
       const ids = new Set(this.voices.map((v) => v.id));
       const additions = more.filter((v) => !ids.has(v.id));
       this.voices = [...this.voices, ...additions];
+      save(this.$state);
+    },
+    // Patch a single voice. Used by the voice library's click-to-cycle
+    // gender chip — and any future per-voice editor.
+    updateVoice(id, patch) {
+      this.voices = this.voices.map((v) => v.id === id ? { ...v, ...patch } : v);
       save(this.$state);
     },
     setScript(chapterId, lines) {

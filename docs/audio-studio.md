@@ -35,8 +35,8 @@ The **Cast** tab is where you pick a voice for each character and for the narrat
 
 ### What you see
 
-- **A TTS provider dropdown** at the top — pick which TTS engine to draw voices from. You can mix and match: assign one character to an OpenAI voice and another to a Kokoro voice if you want.
-- **A voice library** — every voice your selected provider offers. Each voice has a name, a gender tag, and a play button for an audition clip.
+- **A TTS provider dropdown** at the top — pick which TTS engine to draw voices from. Only providers you've actually connected appear here (an API key set, or a local server pointed at JustWrite). Each entry shows a status tag: `CHECKING…` while the dropdown verifies reachability, `OFFLINE` when a server isn't responding or a key looks wrong. Offline providers stay in the list (so you don't lose your selection when a local server is temporarily off) — just dimmed and labelled. If your active provider goes offline, a small banner appears below the dropdown with a **retry** link.
+- **A voice library** — every voice your selected provider offers, discovered live the first time you open Studio (and re-discovered when you switch providers). Each voice has a name, a gender chip, and a play button for an audition clip.
 - **A search box** to filter the voice library by name.
 - **The Narrator slot** — a dedicated card. The narrator voice handles all narration, interior thought, and the auto-generated chapter intros.
 - **Character cards** — every character in your Story Bible appears as a card showing name, role, and the currently assigned voice. Unassigned cards have a dashed border and a warning badge so nothing slips through.
@@ -57,6 +57,18 @@ The **Cast** tab is where you pick a voice for each character and for the narrat
 - **Smart-assign is a starting point, not a verdict.** It does a reasonable job matching gender and rough age but it doesn't know your book the way you do. Review every assignment before rendering.
 - **Voices from different providers can coexist.** If OpenAI has the perfect voice for your protagonist but Kokoro has the right antagonist voice, use both — the pipeline routes each character's line to the correct engine automatically.
 - **Voice cloning** (Chatterbox) lets you drop reference voice clips (WAV or MP3) into Chatterbox's `voices/` folder and use them by filename. Useful for narrating in your own voice, or for matching the tone of a published audiobook.
+
+### Gender tags — auto-detected, click to fix
+
+JustWrite tries to fill in each voice's gender automatically when it discovers it:
+
+- **OpenAI voices** (Alloy, Echo, Fable, Onyx, Nova, Shimmer, and the newer Ash / Coral / Sage / Verse / Ballad) carry OpenAI's published gender (and accent and tone) from a built-in canon.
+- **Kokoro voices** follow a `<region><gender>_<name>` convention — `af_alloy` is American Female, `bm_george` is British Male — which JustWrite parses on import. Accent comes free.
+- **Chatterbox and other freeform voices** are checked against a built-in dictionary of common first names. `sarah.wav` is tagged female, `michael.wav` male. Genuinely ambiguous names (Alex, Jamie, Riley, Sam, Charlie) are deliberately left **unset** rather than being guessed wrong.
+
+The gender chip in the voice library is **click-to-cycle**: ❓ → F → M → N (neutral) → unset → back to start. Click whenever the auto-detect is wrong (a stage name like "Vex", a fantasy voice called "Orb-7", or just a guess you disagree with). The override is saved on the voice and used by Smart-assign on subsequent runs.
+
+Why bother? Smart-assign matches characters to voices by gender alongside everything else. A character your auto-detected as the wrong gender will get matched against the wrong voice pool. Fixing the chip once before Smart-assigning is cheaper than re-doing the assignment.
 
 ---
 

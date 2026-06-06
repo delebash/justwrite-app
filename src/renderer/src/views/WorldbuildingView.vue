@@ -63,6 +63,7 @@ function askTheBook() {
   ui.openChatPanelFor({
     mode: "book",
     question: `Tell me about ${article.value.title}`,
+    sourceKey: `ask:wb:${article.value.id}`,
   });
 }
 function deleteArticle() {

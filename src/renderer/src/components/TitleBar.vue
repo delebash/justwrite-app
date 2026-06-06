@@ -86,8 +86,7 @@ onBeforeUnmount(() => {
 });
 
 function toggleChat() {
-  if (ui.chatPanelOpen) ui.closeChatPanel();
-  else ui.openChatPanelFor({ mode: "book" });
+  ui.openChatPanelFor({ mode: "book", sourceKey: "titlebar" });
 }
 
 async function saveProject() {
