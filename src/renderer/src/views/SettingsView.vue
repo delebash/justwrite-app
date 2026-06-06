@@ -14,6 +14,7 @@ import PaneHeader from "../components/PaneHeader.vue";
 import Icon from "../components/Icon.vue";
 import SettingsProviderForm from "./SettingsProviderForm.vue";
 import StatPill from "../components/StatPill.vue";
+import RenderPresetsCard from "../components/RenderPresetsCard.vue";
 import Combobox from "../components/Combobox.vue";
 import JwInput from "@renderer/components/ui/JwInput.vue";
 import JwTextarea from "@renderer/components/ui/JwTextarea.vue";
@@ -1136,6 +1137,8 @@ const recentColumns = [
             </label>
           </div>
         </div>
+
+        <RenderPresetsCard />
 
         <div class="card">
           <div style="display:flex;align-items:center;gap:10px;margin-bottom:10px">

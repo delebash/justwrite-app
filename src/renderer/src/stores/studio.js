@@ -39,6 +39,8 @@ function save(state) {
       corrections: state.corrections,
       lastScriptChapter: state.lastScriptChapter,
       chapterAudio: persistedAudio,
+      renderPresets: state.renderPresets,
+      chapterPresets: state.chapterPresets,
     }));
   } catch {}
 }
@@ -75,6 +77,14 @@ export const useStudioStore = defineStore("studio", {
       // Shape: { characterId, textSnippet, originalSpeaker, chapterId, ts }.
       // Cap is enforced in editScriptLine.
       corrections: loaded?.corrections || [],
+      // Phase 2 of the audiobook-tuning system: project-level named
+      // "render presets" that layer engine params on top of the
+      // per-voice override on top of the provider default. Stored as
+      // { id, name, params } so the writer can save "Tense chapter"
+      // and assign it from the Studio Render tab. Chapter assignments
+      // live in chapterPresets (chapterId → presetId).
+      renderPresets: loaded?.renderPresets || [],
+      chapterPresets: loaded?.chapterPresets || {},
     };
   },
 
@@ -86,6 +96,14 @@ export const useStudioStore = defineStore("studio", {
     scriptFor: (s) => (chapterId) => s.scripts[chapterId] || null,
     scriptedChapterIds: (s) => Object.keys(s.scripts),
     unassignedCount: (s) => Object.values(s.cast.characters).filter((v) => !v).length,
+    presetById: (s) => (id) => s.renderPresets.find((p) => p.id === id) || null,
+    presetForChapter(s) {
+      return (chapterId) => {
+        const id = s.chapterPresets[chapterId];
+        if (!id) return null;
+        return s.renderPresets.find((p) => p.id === id) || null;
+      };
+    },
 
     /**
      * Map of chapterId → Set<characterId> derived from script analyses.
@@ -220,6 +238,52 @@ export const useStudioStore = defineStore("studio", {
       this.scripts = next;
       save(this.$state);
     },
+    // ── Render presets (Phase 2 audiobook tuning) ─────────────────────
+    // Ids are slugged from the name; name collisions are handled by
+    // appending -2, -3, ... since we can't use Date.now() / Math.random
+    // for stable persistence-friendly ids (both blocked in this codebase
+    // for resume reasons).
+    addRenderPreset({ name, params } = {}) {
+      const clean = name?.trim();
+      if (!clean) return null;
+      const baseId = clean.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "") || "preset";
+      let id = baseId;
+      let n = 2;
+      while (this.renderPresets.some((p) => p.id === id)) {
+        id = `${baseId}-${n}`;
+        n += 1;
+      }
+      this.renderPresets = [...this.renderPresets, { id, name: clean, params: params || {} }];
+      save(this.$state);
+      return id;
+    },
+    updateRenderPreset(id, patch) {
+      this.renderPresets = this.renderPresets.map((p) =>
+        p.id === id ? { ...p, ...patch, params: patch.params ? { ...patch.params } : p.params } : p,
+      );
+      save(this.$state);
+    },
+    removeRenderPreset(id) {
+      this.renderPresets = this.renderPresets.filter((p) => p.id !== id);
+      // Clear any chapter assignments pointing at the removed preset so
+      // a future render falls back to provider+voice defaults instead
+      // of silently no-oping against a stale id.
+      const next = { ...this.chapterPresets };
+      let changed = false;
+      for (const [chId, presetId] of Object.entries(next)) {
+        if (presetId === id) { delete next[chId]; changed = true; }
+      }
+      if (changed) this.chapterPresets = next;
+      save(this.$state);
+    },
+    setChapterPreset(chapterId, presetId) {
+      const next = { ...this.chapterPresets };
+      if (presetId) next[chapterId] = presetId;
+      else delete next[chapterId];
+      this.chapterPresets = next;
+      save(this.$state);
+    },
+
     setChapterAudio(chapterId, audio) {
       // audio = a record from audioStore.saveChapter(), or null to clear.
       const next = { ...this.chapterAudio };

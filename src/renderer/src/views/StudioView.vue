@@ -572,6 +572,7 @@ async function startRender(chapterId) {
         return v ? ai.providerById(v.providerId) : null;
       },
       voiceParamsFor: (voiceId) => studio.voiceById(voiceId)?.params || null,
+      presetParams: studio.presetForChapter(chapterId)?.params || null,
       lines: script,
       voiceFor: (s) => s === "narrator" ? studio.cast.narrator : studio.cast.characters[s],
       onProgress: (p) => {
@@ -1068,6 +1069,19 @@ async function confirmDeleteAllRendered() {
         </div>
         <div v-else-if="!studio.scriptFor(c.id)" class="t-muted" style="font-size:11px;margin-top:2px">
           No script — analyze chapter first
+        </div>
+        <div style="display:flex;align-items:center;gap:6px;margin-top:6px;font-size:11px">
+          <span class="t-muted">Preset:</span>
+          <JwSelect
+            :model-value="studio.chapterPresets[c.id] || ''"
+            :options="[{ label: '— none —', value: '' }, ...studio.renderPresets.map(p => ({ label: p.name, value: p.id }))]"
+            optionLabel="label" optionValue="value"
+            :disabled="!!renderingId"
+            style="min-width:140px"
+            @update:model-value="(v) => studio.setChapterPreset(c.id, v)" />
+          <span v-if="!studio.renderPresets.length" class="t-muted" style="font-size:10.5px;font-style:italic">
+            Define presets in Settings → AI engines → Render presets
+          </span>
         </div>
       </div>
       <div style="display:flex;gap:6px;align-items:center">
