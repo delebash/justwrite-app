@@ -65,9 +65,11 @@ The **Quick setup** wizard (in **Settings → AI & Audio engines**, top of the p
 2. **Probes your local Ollama server.** If Ollama isn't running, the wizard shows the install link and a Recheck button — it does not try to install Ollama itself (too many OS-specific failure modes).
 3. **Picks a hardware preset** — one of CPU / 8 GB / 12 GB / 16 GB / 24 GB / 32 GB. You can override the detected tier from a dropdown.
 4. **Lets you (optionally) pick a cloud provider** for heavy analysis features (Critique, Plot-hole audit, etc.). If you don't have one configured, those features stay local on the heavy model.
-5. **Shows what it's about to download** — typically 1–3 models, ~5–15 GB depending on tier — and lets you confirm before pulling anything.
+5. **Shows what it's about to download AND what the routing will look like** — typically 1–3 models, ~5–15 GB depending on tier — plus a Routing block that lists the heavy model, the fast model (when applicable), and the cloud target (when picked) with the feature counts that will land on each. You see what the wizard will *do* to your setup before clicking Pull.
 6. **Pulls the models** sequentially via Ollama's native API, with per-model progress bars and cancel. Already-installed models are skipped.
-7. **Applies the routing preset.** Creates (or updates) up to two Ollama providers — *"Ollama · qwen3:14b"* and *"Ollama · qwen3:8b (fast)"* on the 8 GB tier, for example — sets your default LLM and embedding provider, and pins each feature to the right model per the recipe documented in *Recommended feature routing by card* below.
+7. **Applies the routing preset.** Creates (or updates) up to two Ollama providers — *"Ollama · qwen3:14b"* and *"Ollama · qwen3:8b (fast)"* on the 8 GB tier, for example — sets your default LLM and embedding provider, and pins each feature to the right model per the recipe documented in *Recommended feature routing by card* below. The wizard tags each provider with its tier so a future re-detection can spot a mismatch.
+
+**Detect-vs-saved mismatch nudge.** If you re-open the wizard and your auto-detected card now matches a different tier than the one your current setup was applied for (typically because you upgraded a GPU), a one-line hint appears in the Hardware section with a "Switch to <new tier>" link. Click it to jump to the new tier in the dropdown; re-run the wizard to overwrite the existing providers and routing for the new hardware.
 
 **What you'll get on an 8 GB card** (the canonical example):
 

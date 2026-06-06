@@ -69,6 +69,45 @@ const allPullsDone = computed(() =>
   pullProgress.value.every((p) => p.status === "done"),
 );
 
+// ── Routing recipe summary ─────────────────────────────────────────
+// Buckets every recipe entry into default / fast / cloud so the
+// confirm step can show counts of what each provider will end up
+// serving once the preset is applied.
+const recipeBuckets = computed(() => {
+  const recipe = preset.value?.recipe || {};
+  const counts = { fast: 0, cloud: 0 };
+  for (const target of Object.values(recipe)) {
+    if (target === "fast") counts.fast++;
+    else if (target === "cloud") counts.cloud++;
+  }
+  return counts;
+});
+const hasFastBucket = computed(() => !!preset.value?.fastChatModel);
+const hasCloudPick = computed(() => !!cloudProviderId.value);
+const cloudFallback = computed(() => recipeBuckets.value.cloud > 0 && !hasCloudPick.value);
+
+// ── Detect-vs-saved mismatch ───────────────────────────────────────
+// If the user has previously applied a Quick Setup preset that's now
+// tagged on a provider, surface a nudge when the auto-detected tier
+// differs — typically a GPU upgrade, sometimes a fresh detection on a
+// machine where the default tier was changed manually.
+const savedTier = computed(() => {
+  const defaultProvider = ai.providers.find((p) => p.id === QUICK_SETUP_PROVIDER_IDS.default);
+  return defaultProvider?.quickSetupTier || null;
+});
+const detectedTier = computed(() => {
+  if (gpu.value?.vramMb) return tierForVramMb(gpu.value.vramMb);
+  return null;
+});
+const tierMismatch = computed(() =>
+  savedTier.value && detectedTier.value &&
+  savedTier.value !== detectedTier.value &&
+  savedTier.value !== tier.value,
+);
+function switchToDetectedTier() {
+  if (detectedTier.value) tier.value = detectedTier.value;
+}
+
 // ── Lifecycle ──────────────────────────────────────────────────────
 onMounted(detect);
 onBeforeUnmount(() => pullController.value?.abort());
@@ -186,6 +225,13 @@ function pctOf(p) {
           </div>
         </div>
         <div v-else-if="detectError" class="qs-dim">{{ detectError }}</div>
+        <div v-if="tierMismatch" class="qs-mismatch">
+          <Icon name="Sparkle" :size="12" />
+          <span>
+            Your current setup was applied for the <b>{{ savedTier }}</b> tier, but your detected card matches <b>{{ detectedTier }}</b>.
+            <button type="button" class="qs-link" @click="switchToDetectedTier">Switch to {{ detectedTier }}</button>
+          </span>
+        </div>
       </section>
 
       <section class="qs-section">
@@ -215,6 +261,31 @@ function pctOf(p) {
         </ul>
         <p class="qs-dim qs-mt">
           Total estimated download: ~{{ preset.estimatedDownloadGb }} GB. Pulls run sequentially; you can cancel mid-way.
+        </p>
+      </section>
+
+      <section v-if="step === 'confirm'" class="qs-section">
+        <div class="qs-section-title">Routing</div>
+        <ul class="qs-routing">
+          <li>
+            <Icon name="Cpu" :size="12" />
+            <span><b>{{ preset.defaultChatModel }}</b> · default for everything not listed below</span>
+          </li>
+          <li v-if="hasFastBucket && recipeBuckets.fast > 0">
+            <Icon name="Sparkle" :size="12" />
+            <span><b>{{ preset.fastChatModel }}</b> (fast) · {{ recipeBuckets.fast }} feature{{ recipeBuckets.fast === 1 ? "" : "s" }}: Brainstorm, Resume briefing, Session recap, Entity sweep, Sensory research, Unstuck moves</span>
+          </li>
+          <li v-if="hasCloudPick">
+            <Icon name="Cloud" :size="12" />
+            <span><b>Cloud</b> · {{ recipeBuckets.cloud }} analysis feature{{ recipeBuckets.cloud === 1 ? "" : "s" }}: Critique, Plot-hole audit, Reverse outline, Multi-reader, etc.</span>
+          </li>
+          <li v-if="cloudFallback" class="qs-dim">
+            <Icon name="Info" :size="12" />
+            <span>{{ recipeBuckets.cloud }} cloud-class features will run on the local default ({{ preset.defaultChatModel }}) since no cloud provider was picked.</span>
+          </li>
+        </ul>
+        <p class="qs-dim qs-mt">
+          Fine-tune any individual feature in Feature routing after setup. The wizard can be re-run with a different tier any time.
         </p>
       </section>
     </div>
@@ -290,6 +361,20 @@ function pctOf(p) {
 .qs-mt { margin-top: 4px; }
 .qs-pulls { margin: 0; padding-left: 0; list-style: none; display: flex; flex-direction: column; gap: 4px; }
 .qs-pulls li { display: flex; align-items: center; gap: 8px; font-family: var(--font-mono, monospace); font-size: 13px; }
+.qs-routing { margin: 0; padding-left: 0; list-style: none; display: flex; flex-direction: column; gap: 6px; }
+.qs-routing li { display: flex; align-items: flex-start; gap: 8px; font-size: 13px; line-height: 1.45; }
+.qs-routing li :first-child { margin-top: 3px; flex-shrink: 0; }
+.qs-mismatch {
+  display: flex; align-items: flex-start; gap: 8px; margin-top: 6px;
+  padding: 8px 10px; border-radius: 6px; font-size: 12.5px; line-height: 1.5;
+  background: var(--surface-2, var(--surface-3)); color: var(--ink-2);
+}
+.qs-mismatch :first-child { margin-top: 2px; flex-shrink: 0; }
+.qs-link {
+  background: none; border: none; padding: 0; margin-left: 4px;
+  color: var(--accent, #4a8); cursor: pointer; font-weight: 600;
+  text-decoration: underline;
+}
 .qs-progress { margin: 0; padding-left: 0; list-style: none; display: flex; flex-direction: column; gap: 14px; }
 .qs-progress-head { display: flex; justify-content: space-between; gap: 8px; margin-bottom: 4px; font-size: 13px; }
 .qs-progress progress { width: 100%; height: 6px; }

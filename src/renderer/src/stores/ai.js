@@ -453,6 +453,10 @@ export const useAiStore = defineStore("ai", {
       const defaultId = providerIds.default;
       const fastId = providerIds.fast;
 
+      // quickSetupTier on each provider lets the wizard later compare
+      // the user's current setup against a freshly-detected VRAM tier
+      // and nudge them when the two have drifted (e.g. upgraded GPU).
+      const tierTag = preset.id || null;
       const defaultEntry = {
         id: defaultId,
         name: `Ollama · ${preset.defaultChatModel}`,
@@ -461,6 +465,7 @@ export const useAiStore = defineStore("ai", {
         apiKey: "",
         chatModel: preset.defaultChatModel,
         embeddingModel: preset.embeddingModel || "",
+        quickSetupTier: tierTag,
       };
       const fastEntry = preset.fastChatModel ? {
         id: fastId,
@@ -469,6 +474,7 @@ export const useAiStore = defineStore("ai", {
         baseUrl,
         apiKey: "",
         chatModel: preset.fastChatModel,
+        quickSetupTier: tierTag,
       } : null;
 
       // Upsert providers — preserve any unrelated fields if the entry
