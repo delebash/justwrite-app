@@ -15,7 +15,7 @@ There are three kinds of provider you might set up:
 | Provider kind | What it does | Examples |
 |---|---|---|
 | **LLM** (chat) | Writing assistance, critique, entity sweeps, smart-cast | OpenAI, Claude, Gemini, DeepSeek, OpenRouter, Ollama, LM Studio |
-| **TTS** (text-to-speech) | Audiobook narration | OpenAI TTS, Kokoro, Chatterbox, Speechmatics |
+| **TTS** (text-to-speech) | Audiobook narration | OpenAI TTS, Kokoro, Chatterbox, Dia, Speechmatics |
 | **Embedding** | "Ask the book" chat — indexes your manuscript for question answering | OpenAI embeddings, any local embedding model |
 
 A provider can speak more than one of these. **OpenAI**, for example, provides LLM + TTS + embeddings in one. **Anthropic**, **Google Gemini**, **DeepSeek**, and **OpenRouter** provide LLM only. **Ollama** provides LLM and embeddings (locally). **Kokoro** provides TTS only.
@@ -177,6 +177,22 @@ A local TTS server that supports voice cloning — drop a reference voice clip i
 7. Save.
 
 **When to pick Chatterbox.** You want to narrate the book in a specific voice — your own, an actor's, the voice of a particular published audiobook. Drop a clip in, fetch, assign.
+
+### Dia (local TTS + expressive dialogue)
+
+A local TTS server from the same author as Chatterbox, focused on expressive multi-speaker dialogue. Strong choice when dialogue-heavy chapters sound flat with Kokoro or OpenAI's voices. Supports voice cloning via reference clips, plus a bundled catalogue of predefined voices.
+
+1. Install **devnen/Dia-TTS-Server** (Python venv + `pip install -r requirements.txt`, same playbook as Chatterbox).
+2. Start the server — default port is `8003`.
+3. **(Optional)** Drop reference `.wav` / `.mp3` clips into the server's `./reference_audio/` folder (the web UI's "Import" button puts uploads there, so either path works).
+4. In JustWrite, **Add provider → Preset: Dia**.
+5. Base URL: `http://localhost:8003/v1`.
+6. **Fetch voices** — Dia's bundled predefined voices, your reference clones, and two synthetic mode tokens (**S1** / **S2**) all appear in the cast picker.
+7. Save.
+
+**S1 and S2** are Dia's dialogue-mode speaker tokens. Cast a character on S1 and another on S2 in the same chapter to get distinct voices for an exchange even without uploading clones — useful for dialogue-heavy chapters where you want fast renders before committing to specific voice clips.
+
+**When to pick Dia.** Your chapters have a lot of dialogue and you want it to sound like a conversation rather than two slightly different read-alouds. Or you want voice cloning with a different model than Chatterbox's.
 
 ### Speechmatics (cloud TTS)
 

@@ -37,6 +37,16 @@ export function isSpeechmatics(provider) {
   return /\.speechmatics\.com(\/|$)/i.test(provider?.baseUrl || "");
 }
 
+// devnen/Dia-TTS-Server. /v1/audio/speech is OpenAI-shaped, but voice
+// listing lives behind two non-standard routes
+// (/get_predefined_voices, /get_reference_files) at the server root —
+// not under /v1. Detected by the seeded provider id rather than the
+// host so a writer who runs Dia on a non-default port still wires up
+// correctly.
+export function isDia(provider) {
+  return provider?.id === "dia";
+}
+
 export class OpenAICompatClient {
   constructor(provider) {
     this.provider = provider;
@@ -644,6 +654,49 @@ export class OpenAICompatClient {
     return res.blob();
   }
 
+  // Dia-TTS-Server doesn't expose /v1/audio/voices. Voices live behind
+  // two custom root-level routes:
+  //   GET /get_predefined_voices  → [{ display_name, filename }, ...]
+  //   GET /get_reference_files    → [filename, ...]  (clones)
+  // Both directories scan on every call, so the writer can drop a new
+  // reference clip in and a refresh in the cast picker picks it up
+  // without restarting Dia. The first two synthetic mode tokens (S1 /
+  // S2) are appended so the writer can immediately render dialogue
+  // mode without first choosing a clip.
+  async _diaVoices({ signal, timeoutMs = 15000 } = {}) {
+    const fetchJson = async (path) => {
+      try {
+        const res = await this._fetchWithTimeout(
+          this.nativeUrl(path),
+          { headers: this.authHeaders },
+          { signal, timeoutMs },
+        );
+        if (!res.ok) return [];
+        return await res.json();
+      } catch { return []; }
+    };
+    const [predefined, references] = await Promise.all([
+      fetchJson("/get_predefined_voices"),
+      fetchJson("/get_reference_files"),
+    ]);
+    const out = [];
+    out.push({ id: "S1", name: "S1 (default speaker)", gender: "neutral" });
+    out.push({ id: "S2", name: "S2 (alternate speaker)", gender: "neutral" });
+    for (const v of Array.isArray(predefined) ? predefined : []) {
+      if (typeof v === "string") {
+        out.push({ id: v, name: v.replace(/\.[^.]+$/, "") });
+      } else if (v?.filename) {
+        out.push({ id: v.filename, name: v.display_name || v.filename });
+      }
+    }
+    for (const f of Array.isArray(references) ? references : []) {
+      if (typeof f === "string") {
+        out.push({ id: f, name: `${f.replace(/\.[^.]+$/, "")} (cloned)` });
+      }
+    }
+    return out;
+  }
+
   // ─── List voices ────────────────────────────────────────────────────────
   //
   // GET /v1/audio/voices — only some services implement this. For services
@@ -654,6 +707,9 @@ export class OpenAICompatClient {
       return this.provider.ttsVoices.map((v) =>
         typeof v === "string" ? { id: v, name: v } : v,
       );
+    }
+    if (isDia(this.provider)) {
+      return this._diaVoices({ signal, timeoutMs });
     }
     try {
       const res = await this._fetchWithTimeout(

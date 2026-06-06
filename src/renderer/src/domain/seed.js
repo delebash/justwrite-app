@@ -568,6 +568,19 @@ export const DEFAULT_PROVIDERS = [
     builtIn: true,
   },
   {
+    // devnen/Dia-TTS-Server — same author as Chatterbox. OpenAI-compatible
+    // /v1/audio/speech, but NO /v1/audio/voices — voices live behind two
+    // custom routes (/get_predefined_voices, /get_reference_files), so
+    // openai-compat.js → isDia() special-cases discovery the same way it
+    // does for Speechmatics. Predefined voices are bundled with the
+    // server; reference clones are dropped into ./reference_audio/ (web
+    // UI uploads land there too, unlike Chatterbox).
+    id: "dia", name: "Dia (local TTS + dialogue)", kind: "tts",
+    baseUrl: "http://localhost:8003/v1",
+    ttsModel: "dia",
+    builtIn: true,
+  },
+  {
     // Speechmatics TTS (preview). Proprietary endpoint shape — voice goes
     // in the URL path, body is { text }. Detected by hostname in
     // openai-compat.js → isSpeechmatics(). Four English voices today

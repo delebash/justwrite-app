@@ -1436,6 +1436,12 @@ const recentColumns = [
                 Install <b>devnen/Chatterbox-TTS-Server</b> (portable Windows build at <a href="https://github.com/devnen/Chatterbox-TTS-Server/releases" target="_blank" rel="noopener" style="color:var(--accent)">github.com/devnen/Chatterbox-TTS-Server/releases</a> — unzip, double-click <code style="background:var(--surface-3);padding:1px 5px;border-radius:3px">start.bat</code>). Base URL <code style="background:var(--surface-3);padding:1px 5px;border-radius:3px">http://localhost:8004/v1</code>. To add a voice, drop a 6–20s reference clip (WAV or MP3) directly into the server's <code style="background:var(--surface-3);padding:1px 5px;border-radius:3px">voices/</code> folder — it'll show up by filename in the cast picker. Note: the web UI's upload form puts files in <code style="background:var(--surface-3);padding:1px 5px;border-radius:3px">reference_audio/</code> instead, which JustWrite doesn't see — move them to <code style="background:var(--surface-3);padding:1px 5px;border-radius:3px">voices/</code> if you upload that way.
               </p>
             </div>
+            <div>
+              <b style="font-size:12.5px;color:var(--ink)">Dia</b>
+              <p style="margin:4px 0 0;line-height:1.55">
+                Install <b>devnen/Dia-TTS-Server</b> (same author as Chatterbox — see <a href="https://github.com/devnen/Dia-TTS-Server" target="_blank" rel="noopener" style="color:var(--accent)">github.com/devnen/Dia-TTS-Server</a>). Base URL <code style="background:var(--surface-3);padding:1px 5px;border-radius:3px">http://localhost:8003/v1</code>. Bundled predefined voices plus reference clones (dropped into <code style="background:var(--surface-3);padding:1px 5px;border-radius:3px">reference_audio/</code> — the web UI's Import button puts them there too). Fetch voices and the catalogue appears alongside the synthetic <b>S1</b> / <b>S2</b> dialogue-mode tokens. Cast different characters on S1 vs S2 to get distinct voices without uploading clips.
+              </p>
+            </div>
           </div>
         </div>
       </div>
