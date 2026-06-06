@@ -10,11 +10,12 @@ import Combobox from "../components/Combobox.vue";
 import AiFeatureChip from "../components/AiFeatureChip.vue";
 import { listVoices, preview } from "../services/tts.js";
 import { inferVoiceMetadata, firstNameKey } from "../services/voiceGender.js";
-import { smartCast, detectSpeakers, inferVoiceGenders } from "../services/llm.js";
+import { smartCast, detectSpeakers, inferVoiceGenders, suggestRenderPreset } from "../services/llm.js";
 import { extractParagraphsFromHtml } from "../services/speakerAttribution.js";
 import { renderChapter } from "../services/render.js";
 import * as audioStore from "../services/audioStore.js";
 import { confirmDialog } from "../services/dialog.js";
+import { pushToast } from "../services/toastBridge.js";
 import JwInput from "@renderer/components/ui/JwInput.vue";
 import JwTag from "@renderer/components/ui/JwTag.vue";
 import JwButton from "@renderer/components/ui/JwButton.vue";
@@ -677,6 +678,48 @@ const allRenderableSelected = computed(() => {
   return ids.every((id) => selectedRenderIds.value.has(id));
 });
 
+// ── LLM-suggested render preset ───────────────────────────────────
+// Tracks the chapter currently being analysed so the per-row Suggest
+// button can flip to "Thinking…" without disabling the others. One
+// suggestion runs at a time (the LLM provider may rate-limit and the
+// AI task panel is single-feature anyway).
+const suggestingPresetFor = ref(null);
+
+async function suggestPresetForChapter(chapterId) {
+  if (suggestingPresetFor.value) return;
+  if (!llmProvider.value) { pushToast({ message: "No LLM provider configured." }); return; }
+  const chapter = project.chapterById(chapterId);
+  if (!chapter) return;
+  const html = project.chapterBody[chapterId] || "";
+  // Strip HTML to plain text — we don't need paragraph structure for a
+  // tone classification, and a 30-char tag adds noise to the LLM input.
+  const text = String(html).replace(/<[^>]+>/g, " ").replace(/\s+/g, " ").trim();
+  if (!text) { pushToast({ message: "This chapter is empty — write some text first." }); return; }
+  if (!studio.renderPresets.length) return;
+
+  suggestingPresetFor.value = chapterId;
+  try {
+    const suggestion = await suggestRenderPreset({
+      chapterText: text,
+      chapterTitle: chapter.title,
+      presets: studio.renderPresets,
+      task: { label: `Suggest preset · Ch. ${chapter.num ?? "?"}`, meta: { chapterId } },
+    });
+    if (!suggestion) {
+      pushToast({ message: "Couldn't decide on a preset — the LLM didn't return a clear pick." });
+      return;
+    }
+    studio.setChapterPreset(chapterId, suggestion.presetId);
+    pushToast({
+      message: `Applied "${suggestion.presetName}" to Ch. ${chapter.num ?? "?"}${suggestion.reason ? ` — ${suggestion.reason}` : ""}`,
+    });
+  } catch (e) {
+    pushToast({ message: `Suggestion failed: ${e?.message || e}` });
+  } finally {
+    suggestingPresetFor.value = null;
+  }
+}
+
 function toggleSelected(chapterId) {
   const next = new Set(selectedRenderIds.value);
   if (next.has(chapterId)) next.delete(chapterId);
@@ -1090,6 +1133,14 @@ async function confirmDeleteAllRendered() {
             :disabled="!!renderingId"
             style="min-width:140px"
             @update:model-value="(v) => studio.setChapterPreset(c.id, v)" />
+          <JwButton v-if="studio.renderPresets.length"
+            intent="ghost" size="small"
+            :disabled="!!renderingId || suggestingPresetFor === c.id || !llmProvider"
+            v-tooltip.bottom="llmProvider ? 'Ask your LLM which preset fits this chapter best' : 'Connect an LLM provider to enable suggestions'"
+            @click="suggestPresetForChapter(c.id)">
+            <template #icon><Icon :name="suggestingPresetFor === c.id ? 'Refresh' : 'Sparkle'" :size="11" /></template>
+            {{ suggestingPresetFor === c.id ? "Thinking…" : "Suggest" }}
+          </JwButton>
           <span v-if="!studio.renderPresets.length" class="t-muted" style="font-size:10.5px;font-style:italic">
             Define presets in Settings → AI engines → Render presets
           </span>

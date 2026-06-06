@@ -212,6 +212,68 @@ function parseJsonObject(text) {
   }
 }
 
+// ─── Render-preset suggestion (per chapter) ────────────────────────────
+// Classification call: given a chapter's text and the names of the
+// project's defined render presets, ask the LLM which preset best fits
+// the chapter's tone. Returns { presetId, presetName, reason } or null
+// if the response doesn't validate against the provided list.
+//
+// Cheap on tokens: we send the first ~2000 chars + last ~1500 chars of
+// the chapter (opening + climax/ending), not the whole thing. Long
+// chapters have the same tone end-to-end most of the time and the LLM
+// doesn't need the middle for a four-way classification.
+//
+// Routed through the smartCast feature pin — same Studio-decision shape
+// as voice-name gender inference. Temperature 0 because this is
+// classification, not generation.
+export async function suggestRenderPreset({ chapterText, chapterTitle, presets, task, meta } = {}) {
+  if (!Array.isArray(presets) || !presets.length) return null;
+  const trimmed = (chapterText || "").trim();
+  if (!trimmed) return null;
+
+  // Sample the chapter — opening + ending, no middle. Cheaper and the
+  // tone signal lives at the ends anyway. Length budget ~3500 chars.
+  const HEAD = 2000, TAIL = 1500;
+  let excerpt;
+  if (trimmed.length <= HEAD + TAIL + 50) {
+    excerpt = trimmed;
+  } else {
+    excerpt = `${trimmed.slice(0, HEAD)}\n\n[…]\n\n${trimmed.slice(-TAIL)}`;
+  }
+
+  const presetList = presets
+    .map((p) => `- "${p.name}"${p.hint ? ` — ${p.hint}` : ""}`)
+    .join("\n");
+  const allowedNames = presets.map((p) => p.name);
+
+  const systemPrompt = `You classify a chapter's tone and pick the best-fit audiobook narration preset from a fixed list. Return ONLY a JSON object: { "preset": "<exact name from the list>", "reason": "<one short sentence>" }. The "preset" value MUST be exactly one of the names provided, character-for-character. No prose, no markdown.`;
+
+  const userMsg = `Available presets:\n${presetList}\n\nChapter${chapterTitle ? ` — "${chapterTitle}"` : ""}:\n${excerpt}\n\nReturn the JSON object now.`;
+
+  const { content } = await runAiStream({
+    feature: "smartCast",
+    messages: [
+      { role: "system", content: systemPrompt },
+      { role: "user", content: userMsg },
+    ],
+    temperature: 0,
+    extra: { think: false },
+    meta,
+    task: task || { label: `Suggest preset${chapterTitle ? ` — ${chapterTitle}` : ""}`, meta },
+  });
+
+  const parsed = parseJsonObject(content);
+  const picked = String(parsed?.preset || "").trim();
+  if (!picked || !allowedNames.includes(picked)) return null;
+  const matchedPreset = presets.find((p) => p.name === picked);
+  if (!matchedPreset) return null;
+  return {
+    presetId: matchedPreset.id,
+    presetName: matchedPreset.name,
+    reason: String(parsed?.reason || "").trim(),
+  };
+}
+
 // ─── Voice-name gender inference ───────────────────────────────────────
 // Batched fallback for the dictionary in services/voiceGender.js. Given
 // a list of first-name keys (lowercased, e.g. ["gianna","axel","jordan"]),

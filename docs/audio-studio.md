@@ -212,6 +212,8 @@ Use this for voice character: give your narrator a slower speed and lower exagge
 
 **Tier 3 — Render presets (per-chapter).** Project-level named bundles defined in Settings → AI & Audio engines → Render presets. JustWrite ships with four starters — **Narration**, **Dramatic Dialogue**, **Quiet Reflection**, **Action** — so you have working examples to learn from on day one. Edit, rename, or delete them like any preset; deletions are permanent (the starters don't re-seed). Assign a preset to any chapter via the "Preset:" dropdown on that chapter's row in the Render tab. The preset's params layer over everything else for the whole chapter render.
 
+The chapter row also has a **Suggest** button next to the dropdown: it sends a short tone-summary of the chapter (opening + ending paragraphs) and the list of your defined preset names to your configured LLM and applies whichever one the model picks, with the reason surfaced as a toast. Useful for backfilling a large book — render-side autopilot you can always override manually.
+
 Use this for scene mood: a tense chapter gets all voices 1.05× faster with exaggeration pushed to 1.5; the quiet flashback that follows gets 0.92× speed and exaggeration pulled back to 0.7.
 
 Engines silently ignore params they don't understand — a Chatterbox-tuned preset applied through an OpenAI render simply no-ops on `exaggeration` rather than erroring.
