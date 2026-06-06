@@ -190,6 +190,7 @@ In the browser-only dev build (`npm run dev:vite`), renders are session-only —
 - **Local TTS engines are dramatically faster** than re-downloading audio from a cloud API. If you plan to render the whole book, a local engine (Kokoro, Chatterbox) is worth setting up.
 - **Improve the prose, then re-render.** Often a misattributed line in the audio comes from a confusing dialogue tag in the text. Fix the prose in the editor, re-analyse the chapter in the Script tab, then Re-render here.
 - **Render is sequential.** You can't render four chapters at once — the Render buttons on other rows disable while one is in flight.
+- **Audio format — leave it on WAV for local engines.** The render pipeline stitches every line into a WAV chapter, then the M4B export re-encodes that to AAC for distribution. Local engines (Chatterbox, Kokoro, Dia) default to WAV input because (a) Chatterbox is on localhost, so the wire size of WAV is free, and (b) feeding the pipeline MP3 stacks two lossy steps before AAC — audible on quiet passages. Cloud TTS providers (OpenAI) default to MP3 because the wire there is real internet and the bytes are billed. Chatterbox's own docs recommend MP3 "for audiobooks", but that's for **distribution** to listeners; the M4B export already handles that.
 
 ---
 
