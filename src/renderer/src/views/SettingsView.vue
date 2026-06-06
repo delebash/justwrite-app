@@ -13,6 +13,7 @@ import { pushToast } from "../services/toastBridge.js";
 import PaneHeader from "../components/PaneHeader.vue";
 import Icon from "../components/Icon.vue";
 import SettingsProviderForm from "./SettingsProviderForm.vue";
+import QuickSetup from "../components/QuickSetup.vue";
 import StatPill from "../components/StatPill.vue";
 import RenderPresetsCard from "../components/RenderPresetsCard.vue";
 import Combobox from "../components/Combobox.vue";
@@ -332,6 +333,7 @@ async function removeCover() {
 
 const editing = ref(null);   // id of provider being edited (or "new")
 const draft = ref(null);     // working copy
+const showQuickSetup = ref(false);
 
 function startEdit(provider) {
   editing.value = provider.id;
@@ -1144,10 +1146,15 @@ const recentColumns = [
           <div style="display:flex;align-items:center;gap:10px;margin-bottom:10px">
             <div class="card-title" style="margin:0">{{ $t('settings.audio.providersCardTitle') }}</div>
             <span class="t-muted" style="font-size:12px">{{ ai.providers.length }} configured</span>
-            <JwButton :label="$t('settings.audio.addProvider')" intent="primary" size="small" style="margin-left:auto" @click="startNew">
+            <JwButton label="Quick setup" intent="secondary" size="small" style="margin-left:auto" @click="showQuickSetup = true">
+              <template #icon><Icon name="Sparkle" :size="12" /></template>
+            </JwButton>
+            <JwButton :label="$t('settings.audio.addProvider')" intent="primary" size="small" @click="startNew">
               <template #icon><Icon name="Plus" :size="12" /></template>
             </JwButton>
           </div>
+
+          <QuickSetup v-if="showQuickSetup" @close="showQuickSetup = false" />
 
           <div style="display:flex;flex-direction:column;gap:8px">
             <!-- New-provider edit row (only when adding) -->

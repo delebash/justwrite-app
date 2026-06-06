@@ -572,6 +572,255 @@ async fn tts_edge_speech(voice: String, text: String) -> Result<Vec<u8>, String>
     .map_err(|e| e.to_string())?
 }
 
+// ─── GPU detection ───────────────────────────────────────────────────
+// Returns best-effort GPU info. Never errors — unknown hardware yields the
+// fallback struct so the renderer always has something to display.
+
+#[derive(Serialize)]
+#[serde(rename_all = "camelCase")]
+struct GpuInfo {
+    vendor: String,  // "nvidia" | "amd" | "apple" | "intel" | "unknown"
+    name: String,
+    vram_mb: u64,    // 0 when detection failed
+}
+
+impl GpuInfo {
+    fn unknown() -> Self {
+        GpuInfo { vendor: "unknown".into(), name: "Unknown GPU".into(), vram_mb: 0 }
+    }
+}
+
+/// Run a subprocess with a 10-second wall-clock timeout.
+/// Returns stdout on success, None if the command was not found, timed out, or
+/// exited non-zero.
+async fn run_cmd(program: &str, args: &[&str]) -> Option<String> {
+    let child = tokio::process::Command::new(program)
+        .args(args)
+        .stdout(std::process::Stdio::piped())
+        .stderr(std::process::Stdio::null())
+        .spawn()
+        .ok()?;
+
+    let output = tokio::time::timeout(
+        std::time::Duration::from_secs(10),
+        child.wait_with_output(),
+    )
+    .await
+    .ok()?
+    .ok()?;
+    if output.status.success() {
+        String::from_utf8(output.stdout).ok()
+    } else {
+        None
+    }
+}
+
+/// Parse nvidia-smi CSV output: "<name>, <mib>" → (name, vram_mb).
+fn parse_nvidia_smi(raw: &str) -> Option<(String, u64)> {
+    let line = raw.lines().next()?.trim();
+    let mut parts = line.splitn(2, ',');
+    let name = parts.next()?.trim().to_string();
+    let vram: u64 = parts.next()?.trim().parse().ok()?;
+    Some((name, vram))
+}
+
+/// Guess vendor from an adapter name string (case-insensitive).
+fn vendor_from_name(name: &str) -> &'static str {
+    let lower = name.to_ascii_lowercase();
+    if lower.contains("amd") || lower.contains("radeon") { return "amd"; }
+    if lower.contains("intel") { return "intel"; }
+    if lower.contains("nvidia") || lower.contains("geforce") { return "nvidia"; }
+    if lower.contains("apple") { return "apple"; }
+    "unknown"
+}
+
+// ── Windows ──────────────────────────────────────────────────────────
+
+#[cfg(target_os = "windows")]
+async fn detect_gpu_impl() -> GpuInfo {
+    // Try NVIDIA first — works on both Windows and Linux.
+    if let Some(raw) = run_cmd(
+        "nvidia-smi",
+        &["--query-gpu=name,memory.total", "--format=csv,noheader,nounits"],
+    )
+    .await
+    {
+        if let Some((name, vram_mb)) = parse_nvidia_smi(&raw) {
+            return GpuInfo { vendor: "nvidia".into(), name, vram_mb };
+        }
+    }
+
+    // Fallback: WMI via PowerShell. AdapterRAM is capped at 4 GB (u32) on
+    // older Windows WDDM drivers — a known OS limitation we accept.
+    let ps_script =
+        "Get-CimInstance Win32_VideoController | Select-Object Name,AdapterRAM | ConvertTo-Json";
+    if let Some(raw) = run_cmd("powershell", &["-NoProfile", "-Command", ps_script]).await {
+        if let Some(info) = parse_wmi_json(&raw) {
+            return info;
+        }
+    }
+
+    GpuInfo::unknown()
+}
+
+#[cfg(target_os = "windows")]
+fn parse_wmi_json(raw: &str) -> Option<GpuInfo> {
+    let v: serde_json::Value = serde_json::from_str(raw.trim()).ok()?;
+    // PowerShell returns an object when there is one adapter, an array for many.
+    let arr: Vec<&serde_json::Value> = if v.is_array() {
+        v.as_array()?.iter().collect()
+    } else {
+        vec![&v]
+    };
+
+    for entry in arr {
+        let name = entry.get("Name")?.as_str().unwrap_or("").trim().to_string();
+        if name.is_empty() { continue; }
+        // Skip the Windows fallback software renderer.
+        if name.contains("Microsoft Basic Display") { continue; }
+        let vendor = vendor_from_name(&name).to_string();
+        // AdapterRAM may be null for some virtual adapters.
+        let vram_mb = entry
+            .get("AdapterRAM")
+            .and_then(|r| r.as_u64())
+            .map(|b| b / 1_048_576)
+            .unwrap_or(0);
+        return Some(GpuInfo { vendor, name, vram_mb });
+    }
+    None
+}
+
+// ── macOS ─────────────────────────────────────────────────────────────
+
+#[cfg(target_os = "macos")]
+async fn detect_gpu_impl() -> GpuInfo {
+    if let Some(raw) = run_cmd("system_profiler", &["SPDisplaysDataType", "-json"]).await {
+        if let Some(info) = parse_system_profiler(&raw) {
+            return info;
+        }
+    }
+    GpuInfo::unknown()
+}
+
+#[cfg(target_os = "macos")]
+fn parse_system_profiler(raw: &str) -> Option<GpuInfo> {
+    use sysinfo::System;
+
+    let v: serde_json::Value = serde_json::from_str(raw.trim()).ok()?;
+    // JSON shape: { "SPDisplaysDataType": [ { "sppci_model": "...", ... }, ... ] }
+    let entries = v.get("SPDisplaysDataType")?.as_array()?;
+    let entry = entries.first()?;
+
+    let name = entry
+        .get("sppci_model")
+        .and_then(|n| n.as_str())
+        .unwrap_or("")
+        .trim()
+        .to_string();
+    if name.is_empty() { return None; }
+
+    let vendor = vendor_from_name(&name).to_string();
+
+    // Discrete GPUs report VRAM under "spdisplays_vram" (e.g. "4 GB").
+    // Apple Silicon has unified memory — the OS allocates dynamically so no
+    // fixed VRAM figure exists. Use total RAM / 2 as a reasonable upper bound.
+    let vram_mb = entry
+        .get("spdisplays_vram")
+        .and_then(|v| v.as_str())
+        .and_then(|s| parse_vram_string(s))
+        .unwrap_or_else(|| {
+            let mut sys = System::new();
+            sys.refresh_memory();
+            sys.total_memory() / 2 / 1_048_576
+        });
+
+    Some(GpuInfo { vendor, name, vram_mb })
+}
+
+/// Parse Apple's display strings like "4 GB", "512 MB", "8 GB".
+#[cfg(target_os = "macos")]
+fn parse_vram_string(s: &str) -> Option<u64> {
+    let s = s.trim().to_ascii_uppercase();
+    if let Some(num) = s.strip_suffix(" GB").or_else(|| s.strip_suffix("GB")) {
+        let gb: f64 = num.trim().parse().ok()?;
+        return Some((gb * 1024.0) as u64);
+    }
+    if let Some(num) = s.strip_suffix(" MB").or_else(|| s.strip_suffix("MB")) {
+        let mb: u64 = num.trim().parse().ok()?;
+        return Some(mb);
+    }
+    None
+}
+
+// ── Linux ─────────────────────────────────────────────────────────────
+
+#[cfg(target_os = "linux")]
+async fn detect_gpu_impl() -> GpuInfo {
+    // NVIDIA — preferred.
+    if let Some(raw) = run_cmd(
+        "nvidia-smi",
+        &["--query-gpu=name,memory.total", "--format=csv,noheader,nounits"],
+    )
+    .await
+    {
+        if let Some((name, vram_mb)) = parse_nvidia_smi(&raw) {
+            return GpuInfo { vendor: "nvidia".into(), name, vram_mb };
+        }
+    }
+
+    // AMD ROCm fallback.
+    if let Some(raw) = run_cmd("rocm-smi", &["--showmeminfo", "vram", "--json"]).await {
+        if let Some(info) = parse_rocm_json(&raw) {
+            return info;
+        }
+    }
+
+    GpuInfo::unknown()
+}
+
+#[cfg(target_os = "linux")]
+fn parse_rocm_json(raw: &str) -> Option<GpuInfo> {
+    // rocm-smi JSON shape: { "card0": { "0": { "VRAM Total Memory (B)": "...", ... }, ... }, ... }
+    // Key names vary by ROCm version; we scan for the first card entry with VRAM info.
+    let v: serde_json::Value = serde_json::from_str(raw.trim()).ok()?;
+    let map = v.as_object()?;
+    for (_card, card_val) in map {
+        if let Some(inner) = card_val.as_object() {
+            for (_idx, idx_val) in inner {
+                if let Some(bytes_str) = idx_val
+                    .get("VRAM Total Memory (B)")
+                    .and_then(|b| b.as_str())
+                {
+                    let bytes: u64 = bytes_str.trim().parse().ok()?;
+                    let name = idx_val
+                        .get("Card series")
+                        .and_then(|n| n.as_str())
+                        .unwrap_or("AMD GPU")
+                        .to_string();
+                    return Some(GpuInfo {
+                        vendor: "amd".into(),
+                        name,
+                        vram_mb: bytes / 1_048_576,
+                    });
+                }
+            }
+        }
+    }
+    None
+}
+
+// ── Fallback for any other OS ─────────────────────────────────────────
+
+#[cfg(not(any(target_os = "windows", target_os = "macos", target_os = "linux")))]
+async fn detect_gpu_impl() -> GpuInfo {
+    GpuInfo::unknown()
+}
+
+#[tauri::command]
+async fn detect_gpu() -> GpuInfo {
+    detect_gpu_impl().await
+}
+
 // ─── Runner ──────────────────────────────────────────────────────────
 
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
@@ -599,6 +848,7 @@ pub fn run() {
             audio_save_as,
             tts_edge_voices,
             tts_edge_speech,
+            detect_gpu,
         ])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");

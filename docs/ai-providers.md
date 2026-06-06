@@ -34,7 +34,7 @@ Open **Settings → AI & Audio engines**. The page has three areas:
 
 1. **Defaults** — three pickers for your global default LLM, TTS, and embedding provider.
 2. **Feature routing** — per-feature overrides if you want a specific provider for a specific job.
-3. **Providers list** — every provider you've added; the place to add, edit, test, and remove.
+3. **Providers list** — every provider you've added; the place to add, edit, test, and remove. The **Quick setup** button at the top of this card runs a one-click wizard that detects your GPU, downloads the right local models, and applies a sensible routing preset (see *Quick setup for local LLM* below).
 
 ---
 
@@ -50,6 +50,36 @@ Most users start with **one** provider and add more later as needed.
 6. Save.
 
 The connection test shows green (Online), yellow (Checking), or red (Offline). Offline usually means a wrong URL, a wrong key, or a local server that isn't running.
+
+---
+
+## Quick setup for local LLM
+
+> *"I want to run AI locally, but every guide tells me to pick a model, figure out the right quantization, install it, then configure four different things in Settings. Just tell me what to do."*
+
+The **Quick setup** wizard (in **Settings → AI & Audio engines**, top of the providers card) does the picking and configuring for you. It detects your GPU, picks the right models for your card, downloads them through Ollama, creates the provider entries, and applies a routing preset that sends each feature to the right model. One click; ~5 minutes of model downloads on a typical card; nothing else to configure.
+
+**What it does, in order:**
+
+1. **Detects your GPU and VRAM** (via `nvidia-smi` on NVIDIA cards, `system_profiler` on macOS, `rocm-smi` on AMD, with a manual picker fallback when detection fails).
+2. **Probes your local Ollama server.** If Ollama isn't running, the wizard shows the install link and a Recheck button — it does not try to install Ollama itself (too many OS-specific failure modes).
+3. **Picks a hardware preset** — one of CPU / 8 GB / 12 GB / 16 GB / 24 GB / 32 GB. You can override the detected tier from a dropdown.
+4. **Lets you (optionally) pick a cloud provider** for heavy analysis features (Critique, Plot-hole audit, etc.). If you don't have one configured, those features stay local on the heavy model.
+5. **Shows what it's about to download** — typically 1–3 models, ~5–15 GB depending on tier — and lets you confirm before pulling anything.
+6. **Pulls the models** sequentially via Ollama's native API, with per-model progress bars and cancel. Already-installed models are skipped.
+7. **Applies the routing preset.** Creates (or updates) up to two Ollama providers — *"Ollama · qwen3:14b"* and *"Ollama · qwen3:8b (fast)"* on the 8 GB tier, for example — sets your default LLM and embedding provider, and pins each feature to the right model per the recipe documented in *Recommended feature routing by card* below.
+
+**What you'll get on an 8 GB card** (the canonical example):
+
+- Default LLM → `qwen3:14b` (prose quality)
+- Brainstorm, Resume briefing, Session recap, Entity sweep, Sensory research, Unstuck moves → `qwen3:8b` (snappier responses where speed matters more than depth)
+- Writer actions, Studio Speaker analysis, Studio Smart-assign, Character chat → inherit the 14B default (reasoning-class work)
+- Critique, Plot-hole audit, Reverse outline, Multi-reader, Character audit, Foreshadowing, Reader knowledge, Voice drift, Beat sheet, Marketing pack, Relationship arc → cloud (if a cloud provider was picked) or default 14B (if not)
+- Embedding → `nomic-embed-text` on the same Ollama endpoint
+
+**Re-running is safe.** Pick a different tier and rerun — the wizard upserts the same provider ids, so it overwrites cleanly without leaving stale entries behind. You can also fine-tune any of the pins afterward in **Feature routing** without losing the rest of the preset.
+
+**When Quick setup isn't the right path.** If you've already curated your own model lineup and feature routing, or you need a model that isn't in Ollama's catalogue (TabbyAPI, llama.cpp's `llama-server`, an LM Studio model), skip the wizard and configure the provider manually — see the *Provider walkthroughs* below.
 
 ---
 
@@ -203,9 +233,13 @@ For an 8 GB GPU running an 8B chat model: `nomic-embed-text` is the safe choice.
 
 ### Recommended feature routing by card
 
-The hardware table above tells you which **model** to use. This section tells you which **features** to pin to which model so the heavier picks only run where they're needed. All of these are configured in **Settings → AI & Audio engines → Feature routing**.
+The hardware table above tells you which **model** to use. This section tells you which **features** to pin to which model so the heavier picks only run where they're needed.
 
-**Two setup steps before you start pinning:**
+> **Shortcut:** the **Quick setup** wizard (see *Quick setup for local LLM* above) applies the routing recipe below for your detected card in one click — providers, defaults, pins and all. The rest of this section is the reference behind what it does, useful if you want to understand or hand-tune the routing.
+
+All of these are configured in **Settings → AI & Audio engines → Feature routing**.
+
+**Two setup steps before you start pinning** (Quick setup does both for you):
 1. Add **two** Ollama / LM Studio providers pointing at the same server but with different default chat models — e.g. *"Ollama (8B fast)"* with `qwen3:8b` and *"Ollama (14B prose)"* with `qwen3:14b`. JustWrite treats each as a separate provider you can pin features to.
 2. Add a cloud provider (Claude, DeepSeek, or Gemini) for the heavy analysis features.
 

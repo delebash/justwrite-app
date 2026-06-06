@@ -437,6 +437,74 @@ export const useAiStore = defineStore("ai", {
     clearModelTier(modelId) {
       this.setModelTier(modelId, null);
     },
+
+    // ── Quick setup wizard ─────────────────────────────────────
+    // Applies a hardware preset in one shot: creates (or updates)
+    // up to two Ollama providers, sets defaults, and rewrites the
+    // feature pins per the recipe. Idempotent — re-running with
+    // a different tier overwrites the same provider ids cleanly.
+    //
+    // preset shape: { defaultChatModel, fastChatModel?, embeddingModel, recipe }
+    //   recipe = { [featureKey]: "default" | "fast" | "cloud" }
+    //   (omitted keys inherit the default LLM)
+    applyQuickSetupPreset({ preset, ollamaBaseUrl, cloudProviderId = null, providerIds }) {
+      if (!preset || !ollamaBaseUrl || !providerIds?.default) return;
+      const baseUrl = ollamaBaseUrl;
+      const defaultId = providerIds.default;
+      const fastId = providerIds.fast;
+
+      const defaultEntry = {
+        id: defaultId,
+        name: `Ollama · ${preset.defaultChatModel}`,
+        kind: "llm",
+        baseUrl,
+        apiKey: "",
+        chatModel: preset.defaultChatModel,
+        embeddingModel: preset.embeddingModel || "",
+      };
+      const fastEntry = preset.fastChatModel ? {
+        id: fastId,
+        name: `Ollama · ${preset.fastChatModel} (fast)`,
+        kind: "llm",
+        baseUrl,
+        apiKey: "",
+        chatModel: preset.fastChatModel,
+      } : null;
+
+      // Upsert providers — preserve any unrelated fields if the entry
+      // already exists (e.g. user renamed it).
+      const upsert = (list, entry) => {
+        const idx = list.findIndex((p) => p.id === entry.id);
+        if (idx < 0) return [...list, entry];
+        const next = [...list];
+        next[idx] = { ...list[idx], ...entry };
+        return next;
+      };
+      let providers = upsert(this.providers, defaultEntry);
+      if (fastEntry) providers = upsert(providers, fastEntry);
+      else providers = providers.filter((p) => p.id !== fastId); // drop stale fast if tier no longer wants one
+
+      this.providers = providers;
+      this.defaultLlmId = defaultId;
+      this.defaultEmbeddingId = defaultId;
+
+      // Rewrite feature pins per the recipe. Unmentioned keys reset
+      // to null (= inherit default) so a re-run is fully idempotent.
+      const nextPins = {};
+      for (const [key, target] of Object.entries(preset.recipe || {})) {
+        if (target === "fast" && fastEntry) {
+          nextPins[key] = { providerId: fastId };
+        } else if (target === "cloud" && cloudProviderId) {
+          nextPins[key] = { providerId: cloudProviderId };
+        } else {
+          nextPins[key] = null;
+        }
+      }
+      this.featurePins = { ...this.featurePins, ...nextPins };
+
+      save(this.$state);
+    },
+
     async ping(id) {
       const p = this.providerById(id);
       if (!p) return false;

@@ -64,7 +64,7 @@ The choice is yours, and you can have several at once. Common options:
 
 - **OpenAI** (paid, cloud) — works for both writing and audiobook narration. Excellent quality. Add your API key in Settings.
 - **Anthropic Claude** (paid, cloud) — writing only. Excellent quality, particularly for critique and longer prose work. Add your `sk-ant-…` key.
-- **Ollama / LM Studio / llama.cpp** (free, local) — writing only. Runs on your own machine. No internet required, no data leaves your computer, no API bills.
+- **Ollama / LM Studio / llama.cpp** (free, local) — writing only. Runs on your own machine. No internet required, no data leaves your computer, no API bills. The **Quick setup** wizard in Settings detects your GPU, downloads the right models for your card, and applies a sensible routing preset in one click — the easiest path to a working local-LLM setup.
 - **Kokoro** (free, local, fast) — audiobook narration only. Small, very fast text-to-speech engine.
 - **Chatterbox** (free, local, voice cloning) — audiobook narration. The only local engine JustWrite supports that does true voice cloning. Drop in a reference voice clip (a WAV or MP3 of your own voice, or any voice you like) and have the book narrated in that voice.
 

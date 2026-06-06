@@ -155,6 +155,14 @@ if (isTauri) {
         safe(invoke("audio_save_as", { srcPath, suggestedName })),
     },
 
+    system: {
+      // Shells out to nvidia-smi / system_profiler / etc. on the Rust
+      // side. Always resolves — returns { vendor:"unknown", vramMb:0 }
+      // rather than throwing when detection fails, so the Quick Setup
+      // wizard can fall through to a manual VRAM picker.
+      detectGpu: () => safe(invoke("detect_gpu")),
+    },
+
     tts: {
       // Microsoft Edge "Read Aloud" TTS via the msedge-tts Rust crate.
       // The renderer can't talk to MS's WebSocket directly because the
