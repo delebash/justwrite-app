@@ -69,7 +69,7 @@ function goOwner(ev) { router.push(EVENTS_KIND_META[ev.ownerKind].detailUrl(ev.o
 </script>
 
 <template>
-  <PaneHeader :eyebrow="$t('panes.timeline.eyebrow')" :title="$t('panes.timeline.title')" />
+  <PaneHeader :eyebrow="$t('panes.timeline.eyebrow')" :title="$t('panes.timeline.title')" help-key="plot-and-time" />
   <div class="pane-card">
     <div class="scrollarea events-pane">
       <div class="events-content">
@@ -82,7 +82,8 @@ function goOwner(ev) { router.push(EVENTS_KIND_META[ev.ownerKind].detailUrl(ev.o
         </p>
 
         <section v-if="allEvents.length === 0" class="events-empty">
-          No events yet. Add events from any character, location, object, group, or the Setting and they'll gather here.
+          <div style="font-size:14px;color:var(--ink);margin-bottom:6px">No events yet.</div>
+          <div style="font-size:12.5px;max-width:400px">Events from characters, locations, objects, groups, and the Setting all gather here in chronological order. Add them via each entity's Events button.</div>
         </section>
 
         <section v-else class="timeline">

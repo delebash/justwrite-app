@@ -18,6 +18,12 @@ import {
   PARTS, NOTES, GROUPS, ARCHITECTURE, WORLDBUILDING, WORLDBUILDING_CATEGORIES,
   SCENES, EVENTS,
 } from "../domain/seed.js";
+import {
+  TUTORIAL_TITLE, TUTORIAL_AUTHOR,
+  TUTORIAL_CHARACTERS, TUTORIAL_LOCATIONS,
+  TUTORIAL_STRAND, TUTORIAL_WORLDBUILDING,
+  TUTORIAL_CHAPTER, TUTORIAL_NOTE,
+} from "../services/tutorialProject.js";
 
 // Multi-project storage:
 //   justwrite:project:<id>       — full snapshot per project
@@ -2013,7 +2019,39 @@ export const useProjectStore = defineStore("project", {
       this._writeRegistry(next);
     },
 
-    createProject({ title = "Untitled project", author = "" } = {}) {
+    // Seed a learn-by-doing project — a real JustWrite project (one
+     // chapter / three scenes / two characters / one location / one
+     // narrative strand with a beat / one worldbuilding article / a
+     // "read me first" note). The user can poke at every surface of
+     // the app without breaking their own work, then delete the project
+     // from the sidebar's project switcher.
+     //
+     // Implemented on top of createProject() + the normal CRUD actions
+     // so it benefits from the same invariants (history, persistence,
+     // multi-project plumbing) the rest of the store relies on.
+     createTutorialProject() {
+       const id = this.createProject({ title: TUTORIAL_TITLE, author: TUTORIAL_AUTHOR });
+
+       for (const c of TUTORIAL_CHARACTERS) this.addCharacter(c);
+       for (const l of TUTORIAL_LOCATIONS) this.addLocation(l);
+       this.addWorldbuilding(TUTORIAL_WORLDBUILDING);
+       this.addNote(TUTORIAL_NOTE);
+
+       const strandId = this.addStrand({ name: TUTORIAL_STRAND.name, color: TUTORIAL_STRAND.color });
+       const chapterId = this.addChapter({ title: TUTORIAL_CHAPTER.title, partId: this.parts[0]?.id, status: "draft" });
+       for (const sc of TUTORIAL_CHAPTER.scenes) this.addScene(chapterId, { title: sc.title, body: sc.body });
+
+       this.addStrandBeat(strandId, {
+         label: TUTORIAL_STRAND.beat.label,
+         note: TUTORIAL_STRAND.beat.note,
+         chapterId,
+       });
+
+       useUiStore().showToast({ message: `Opened "${TUTORIAL_TITLE}". Delete it from the project switcher when you're done.` });
+       return id;
+     },
+
+     createProject({ title = "Untitled project", author = "" } = {}) {
       // Snapshot the current project first so switching away doesn't
       // lose unflushed edits.
       this._persist();

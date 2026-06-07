@@ -39,7 +39,8 @@
   {
     "section": "What's coming",
     "items": [
-      { "slug": "roadmap", "title": "Roadmap", "hint": "Direction, not commitment" }
+      { "slug": "roadmap", "title": "Roadmap", "hint": "Direction, not commitment" },
+      { "slug": "whats-new", "title": "What's new", "hint": "Recent changes worth noticing" }
     ]
   }
 ]

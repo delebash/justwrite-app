@@ -162,7 +162,7 @@ async function exportM4b({ partial = false } = {}) {
 </script>
 
 <template>
-  <PaneHeader :eyebrow="$t('settings.eyebrow')" :title="$t('nav.export')" />
+  <PaneHeader :eyebrow="$t('settings.eyebrow')" :title="$t('nav.export')" help-key="import-and-export" />
 
   <div class="pane-card">
   <div class="scrollarea" style="padding:22px">
@@ -259,7 +259,9 @@ async function exportM4b({ partial = false } = {}) {
             The first export will download the ffmpeg wasm bundle (~10&nbsp;MB) on demand.
           </div>
           <div style="display:flex;gap:10px;align-items:center;margin-top:6px">
-            <JwButton intent="primary" :disabled="exporting || renderedCount === 0" @click="exportM4b()">
+            <JwButton intent="primary" :disabled="exporting || renderedCount === 0"
+              v-tooltip.bottom="renderedCount === 0 ? 'Render chapters in Audio Studio → Render first' : allRendered ? 'Export all chapters as a single M4B audiobook' : `Export partial audiobook from ${renderedCount} rendered chapter${renderedCount === 1 ? '' : 's'}`"
+              @click="exportM4b()">
               <Icon name="Download" :size="13" />
               Export {{ allRendered ? 'full' : `partial (${renderedCount} ch)` }} audiobook
             </JwButton>
@@ -314,7 +316,9 @@ async function exportM4b({ partial = false } = {}) {
             <template v-else>First-time export downloads JSZip (~80&nbsp;KB) on demand.</template>
           </div>
           <div style="display:flex;gap:10px;align-items:center">
-            <JwButton intent="primary" :disabled="exporting || manuscriptStats.chapters === 0" @click="exportManuscript(fmt)">
+            <JwButton intent="primary" :disabled="exporting || manuscriptStats.chapters === 0"
+              v-tooltip.bottom="manuscriptStats.chapters === 0 ? 'Add a chapter first' : `Export as ${FORMATS.find(f => f.id === fmt)?.name}`"
+              @click="exportManuscript(fmt)">
               <Icon name="Download" :size="13" /> Export {{ FORMATS.find(f => f.id === fmt)?.name }}
             </JwButton>
             <span class="t-muted" style="font-size:11.5px">

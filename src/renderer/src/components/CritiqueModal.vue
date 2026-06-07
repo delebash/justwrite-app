@@ -182,7 +182,8 @@ const SEVERITY_META = {
     <section class="ck-section">
       <header>
         <h3>Structure</h3>
-        <JwButton intent="ghost" size="small" :disabled="runningStruct" @click="runStruct">
+        <JwButton intent="ghost" size="small" :disabled="runningStruct" @click="runStruct"
+          v-tooltip.bottom="'Score tension, hook, pacing, and ending — one LLM call'">
           <Icon name="Refresh" :size="12" />
           {{ structure ? "Re-analyze" : (runningStruct ? "Analyzing…" : "Analyze") }}
         </JwButton>
@@ -223,7 +224,8 @@ const SEVERITY_META = {
     <section class="ck-section">
       <header>
         <h3>Notes</h3>
-        <JwButton intent="ghost" size="small" :disabled="runningNotes" @click="runNotes">
+        <JwButton intent="ghost" size="small" :disabled="runningNotes" @click="runNotes"
+          v-tooltip.bottom="'Generate line-level editorial notes — one LLM call'">
           <Icon name="Refresh" :size="12" />
           {{ notes.length ? "Re-run notes" : (runningNotes ? "Drafting notes…" : "Run notes") }}
         </JwButton>

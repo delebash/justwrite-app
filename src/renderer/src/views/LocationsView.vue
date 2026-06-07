@@ -139,7 +139,7 @@ function onRowClick(event) {
 <template>
   <!-- ── List mode (no id in URL) ─────────────────────────────── -->
   <template v-if="!loc && !id">
-    <PaneHeader :eyebrow="$t('panes.locations.eyebrow')" :title="$t('nav.locations')">
+    <PaneHeader :eyebrow="$t('panes.locations.eyebrow')" :title="$t('nav.locations')" help-key="story-bible">
       <JwButton intent="ghost" size="small" @click="sweepOpen = true" v-tooltip.bottom="'Scan the manuscript for new characters, locations, and objects'">
         <Icon name="Sparkle" :size="13" /> Find new entities
       </JwButton>
@@ -150,9 +150,10 @@ function onRowClick(event) {
 
     <!-- Empty state -->
     <div v-if="project.locations.length === 0" class="pane-card" style="display:grid;place-items:center;padding:60px">
-      <div class="t-muted" style="text-align:center">
-        No locations yet.<br />
-        <JwButton intent="primary" style="margin-top:14px" @click="addLocation"><Icon name="Plus" :size="14" /> Create your first location</JwButton>
+      <div class="t-muted" style="text-align:center;max-width:420px">
+        <div style="font-size:14px;color:var(--ink);margin-bottom:6px">No locations yet.</div>
+        <div style="font-size:12.5px;margin-bottom:14px">Places where your scenes happen — linkable from chapters and tracked across the Plot Board.</div>
+        <JwButton intent="primary" @click="addLocation"><Icon name="Plus" :size="14" /> Create your first location</JwButton>
       </div>
     </div>
 

@@ -259,7 +259,7 @@ function onRowClick(event) {
 <template>
   <!-- ── List mode (no id in URL) ─────────────────────────────── -->
   <template v-if="!ch && !id">
-    <PaneHeader :eyebrow="$t('panes.characters.eyebrow')" :title="$t('nav.characters')">
+    <PaneHeader :eyebrow="$t('panes.characters.eyebrow')" :title="$t('nav.characters')" help-key="story-bible">
       <JwButton intent="ghost" size="small" @click="sweepOpen = true" v-tooltip.bottom="'Scan the manuscript for new characters, locations, and objects'">
         <Icon name="Sparkle" :size="13" /> Find new entities
       </JwButton>
@@ -276,9 +276,10 @@ function onRowClick(event) {
 
     <!-- Empty state -->
     <div v-if="project.characters.length === 0" class="pane-card" style="display:grid;place-items:center;padding:60px">
-      <div class="t-muted" style="text-align:center">
-        No characters yet.<br />
-        <JwButton intent="primary" style="margin-top:14px" @click="addCharacter"><Icon name="Plus" :size="14" /> Create your first character</JwButton>
+      <div class="t-muted" style="text-align:center;max-width:420px">
+        <div style="font-size:14px;color:var(--ink);margin-bottom:6px">No characters yet.</div>
+        <div style="font-size:12.5px;margin-bottom:14px">Characters power the Audio Studio cast and appear in chapter speaker tags.</div>
+        <JwButton intent="primary" @click="addCharacter"><Icon name="Plus" :size="14" /> Create your first character</JwButton>
       </div>
     </div>
 

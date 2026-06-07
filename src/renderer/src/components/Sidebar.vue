@@ -72,6 +72,12 @@ function pickProject(id) {
   router.push("/");
 }
 
+function openTutorial() {
+  closeProjectMenu();
+  project.createTutorialProject();
+  router.push("/");
+}
+
 async function newProject() {
   closeProjectMenu();
   const values = await promptDialog({
@@ -792,7 +798,7 @@ function wbDropClass(kind, id) {
         <div class="brand-name">JustWrite</div>
         <div class="brand-sub">v0.1 · local</div>
       </div>
-      <JwButton intent="ghost" v-tooltip.bottom="$t('sidebar.tooltips.toggleSidebar')" :aria-label="$t('sidebar.tooltips.toggleSidebar')" @click="ui.toggleSidebar"><Icon name="SidebarToggle" :size="14" /></JwButton>
+      <JwButton intent="ghost" v-tooltip.bottom="`${$t('sidebar.tooltips.toggleSidebar')} · ⌘\\`" :aria-label="$t('sidebar.tooltips.toggleSidebar')" @click="ui.toggleSidebar"><Icon name="SidebarToggle" :size="14" /></JwButton>
     </div>
     <div class="project-switcher-wrap" ref="projectSwitcherEl">
       <button class="project-switcher" :class="{ open: projectMenuOpen }"
@@ -826,6 +832,10 @@ function wbDropClass(kind, id) {
         </div>
         <button class="project-menu-new" @click="newProject">
           <Icon name="Plus" :size="13" /> {{ $t('sidebar.projectSwitcher.newProject') }}
+        </button>
+        <button class="project-menu-new" @click="openTutorial"
+          v-tooltip.bottom="'A pre-seeded project to learn the app — delete it when you\'re done'">
+          <Icon name="Sparkle" :size="13" /> Try the Tutorial Project
         </button>
       </div>
     </div>

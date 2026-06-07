@@ -113,6 +113,16 @@ export const useUiStore = defineStore("ui", {
       // Off by default — triples token cost. Shift-click on any AI
       // dropdown item is a per-call override regardless of this toggle.
       showVariations: false,
+      // In-app help drawer — when set to a docs slug, JwHelpDrawer
+      // (mounted in App.vue) slides in from the right with that doc.
+      // Null = closed. Not persisted; help is always opened fresh.
+      helpDrawerSlug: null,
+      // "What's new" modal — last app version the user has seen.
+      // Bumped to package.json's version after the modal is dismissed
+      // so the modal only fires on first launch after an upgrade.
+      lastSeenVersion: null,
+      // Cmd+/ keyboard shortcut cheatsheet overlay.
+      shortcutsOpen: false,
       ...saved,
       // Resolve appearance last: wins over the raw spread and folds in any
       // legacy { theme, accentHue } keys from older saves.
@@ -181,6 +191,21 @@ export const useUiStore = defineStore("ui", {
 
     setShowVariations(on) {
       this.showVariations = !!on;
+      this._persist();
+    },
+
+    // ── In-app Help drawer ───────────────────────────────────────────
+    openHelp(slug = "")  { this.helpDrawerSlug = String(slug || ""); },
+    closeHelp()          { this.helpDrawerSlug = null; },
+
+    // ── Shortcut cheatsheet ──────────────────────────────────────────
+    openShortcuts()  { this.shortcutsOpen = true; },
+    closeShortcuts() { this.shortcutsOpen = false; },
+    toggleShortcuts() { this.shortcutsOpen = !this.shortcutsOpen; },
+
+    // ── What's new modal ─────────────────────────────────────────────
+    markVersionSeen(version) {
+      this.lastSeenVersion = String(version || "");
       this._persist();
     },
 

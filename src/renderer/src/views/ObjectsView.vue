@@ -139,7 +139,7 @@ function onRowClick(event) {
 <template>
   <!-- ── List mode (no id in URL) ─────────────────────────────── -->
   <template v-if="!obj && !id">
-    <PaneHeader :eyebrow="$t('panes.objects.eyebrow')" :title="$t('nav.objects')">
+    <PaneHeader :eyebrow="$t('panes.objects.eyebrow')" :title="$t('nav.objects')" help-key="story-bible">
       <JwButton intent="ghost" size="small" @click="sweepOpen = true" v-tooltip.bottom="'Scan the manuscript for new characters, locations, and objects'">
         <Icon name="Sparkle" :size="13" /> Find new entities
       </JwButton>
@@ -150,9 +150,10 @@ function onRowClick(event) {
 
     <!-- Empty state -->
     <div v-if="project.objects.length === 0" class="pane-card" style="display:grid;place-items:center;padding:60px">
-      <div class="t-muted" style="text-align:center">
-        No objects yet.<br />
-        <JwButton intent="primary" style="margin-top:14px" @click="addObject"><Icon name="Plus" :size="14" /> Create your first object</JwButton>
+      <div class="t-muted" style="text-align:center;max-width:420px">
+        <div style="font-size:14px;color:var(--ink);margin-bottom:6px">No objects yet.</div>
+        <div style="font-size:12.5px;margin-bottom:14px">Items and artifacts that move through the story. Link them to scenes to track their journey across the Relations graph.</div>
+        <JwButton intent="primary" @click="addObject"><Icon name="Plus" :size="14" /> Create your first object</JwButton>
       </div>
     </div>
 

@@ -1314,7 +1314,7 @@ function copyOutput(run) {
 </script>
 
 <template>
-  <PaneHeader :eyebrow="$t('panes.speakerLab.eyebrow')" :title="$t('panes.speakerLab.title')" />
+  <PaneHeader :eyebrow="$t('panes.speakerLab.eyebrow')" :title="$t('panes.speakerLab.title')" help-key="audio-studio" />
 
   <div class="lab scrollarea">
     <!-- ── INPUT ──────────────────────────────────────────────────── -->
@@ -1352,7 +1352,8 @@ function copyOutput(run) {
         <Icon name="Sparkle" :size="13" />
         Run {{ runs.length > 1 ? `all ${runs.length}` : "" }}
       </JwButton>
-      <JwButton intent="secondary" size="small" @click="addRun" :disabled="runs.length >= 4">
+      <JwButton intent="secondary" size="small" @click="addRun" :disabled="runs.length >= 4"
+        v-tooltip.bottom="runs.length >= 4 ? 'Maximum of 4 comparison columns' : 'Add a comparison column'">
         <Icon name="Plus" :size="12" /> Add column
       </JwButton>
       <span v-if="totalSavedPresets" class="t-muted" style="font-size:11.5px;margin-left:auto">

@@ -120,7 +120,7 @@ function onRowClick(event) {
 <template>
   <!-- ── List mode (no id in URL) ─────────────────────────────── -->
   <template v-if="!g && !id">
-    <PaneHeader eyebrow="Story world" :title="$t('nav.groups')">
+    <PaneHeader eyebrow="Story world" :title="$t('nav.groups')" help-key="story-bible">
       <JwButton label="New group" intent="primary" size="small" @click="addGroup">
         <template #icon><Icon name="Plus" :size="14" /></template>
       </JwButton>
@@ -128,9 +128,10 @@ function onRowClick(event) {
 
     <!-- Empty state -->
     <div v-if="project.groups.length === 0" class="pane-card" style="display:grid;place-items:center;padding:60px">
-      <div class="t-muted" style="text-align:center">
-        No groups yet.<br />
-        <JwButton intent="primary" style="margin-top:14px" @click="addGroup"><Icon name="Plus" :size="14" /> Create your first group</JwButton>
+      <div class="t-muted" style="text-align:center;max-width:420px">
+        <div style="font-size:14px;color:var(--ink);margin-bottom:6px">No groups yet.</div>
+        <div style="font-size:12.5px;margin-bottom:14px">Factions and organizations. Group members together to see alliances drawn as edges in the Relations graph.</div>
+        <JwButton intent="primary" @click="addGroup"><Icon name="Plus" :size="14" /> Create your first group</JwButton>
       </div>
     </div>
 

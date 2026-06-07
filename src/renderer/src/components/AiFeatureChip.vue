@@ -190,7 +190,7 @@ onBeforeUnmount(() => {
             :disabled="!isPinned"
             :placeholder="isPinned ? 'Pick a model' : 'Follows default'" />
           <button class="afc-refresh"
-            v-tooltip.bottom="'Refresh model list from the provider'"
+            v-tooltip.bottom="isPinned ? 'Refresh model list from the provider' : 'Pin to a specific provider first'"
             :disabled="!isPinned"
             @click.stop="refreshModels(pinnedProviderId)">
             <Icon name="Refresh" :size="11" />

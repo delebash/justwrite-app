@@ -338,7 +338,7 @@ function sceneBadge(beat) {
 </script>
 
 <template>
-  <PaneHeader :eyebrow="$t('panes.plotBoard.eyebrow')" :title="$t('panes.plotBoard.title')" />
+  <PaneHeader :eyebrow="$t('panes.plotBoard.eyebrow')" :title="$t('panes.plotBoard.title')" help-key="plot-and-time" />
 
   <div class="pane-card">
 
@@ -478,7 +478,7 @@ function sceneBadge(beat) {
                   size="small"
                   class="strand-trash-btn"
                   :aria-label="`Delete strand ${strand.name}`"
-                  v-tooltip.bottom="'Delete strand'"
+                  v-tooltip.bottom="'Delete this strand and all its beats'"
                   @click="handleRemoveStrand(strand)"
                 >
                   <Icon name="Trash" :size="13" />
@@ -525,7 +525,7 @@ function sceneBadge(beat) {
                   size="small"
                   class="beat-del-btn"
                   aria-label="Remove beat"
-                  v-tooltip.bottom="'Remove beat'"
+                  v-tooltip.bottom="'Remove this beat from the strand'"
                   @click="handleRemoveBeat(strand.id, beat, $event)"
                 >
                   <Icon name="Close" :size="10" />
@@ -582,7 +582,7 @@ function sceneBadge(beat) {
                   size="small"
                   class="beat-del-btn"
                   aria-label="Remove beat"
-                  v-tooltip.bottom="'Remove beat'"
+                  v-tooltip.bottom="'Remove this beat from the strand'"
                   @click="handleRemoveBeat(strand.id, beat, $event)"
                 >
                   <Icon name="Close" :size="10" />

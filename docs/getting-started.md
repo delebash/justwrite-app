@@ -18,6 +18,10 @@ When you open JustWrite for the very first time, the app loads a small example n
 
 **Feel free to delete it once you understand the layout.** Open **Settings → Backups → Danger zone → Reset workspace** and type `RESET` to clear it out. (You can also just leave it and start a new project alongside it; the sidebar's project switcher at the top of the left rail lets you move between projects.)
 
+### Try the Tutorial Project
+
+If you'd rather explore with a richer example, the sidebar's project switcher has a **"Try the Tutorial Project"** item alongside the usual "+ New project" button. It opens a pre-seeded project with one chapter, three scenes, two characters, a location, a narrative strand with a beat, a worldbuilding article, and a "read me first" note — enough to see how every section connects without building it yourself. It is a real project, so you can edit it freely; when you're done, delete it from the same project switcher.
+
 ---
 
 ## A quick tour
@@ -33,6 +37,8 @@ The sidebar on the left is the main map. It is grouped into five sections:
 Hover any item to see its name. Click to open it. Drag the right edge of the sidebar to resize it; press **Ctrl/⌘ + \\** to hide it entirely (and again to bring it back).
 
 Most sections have a tree under them. Click the chevron next to **Chapters** in the sidebar to see your Parts and chapters. Click the chevron next to **Characters** to see your cast. Each tree has a `+` button to add a new item.
+
+If you're not sure what a pane does, look for the small **`?`** button next to its title. Clicking it opens a help drawer on the right with the docs for that surface — so you can get an answer without leaving the app or switching to a browser tab.
 
 ---
 

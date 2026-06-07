@@ -825,7 +825,7 @@ async function confirmDeleteAllRendered() {
 </script>
 
 <template>
-  <PaneHeader :eyebrow="$t('panes.studio.eyebrow')" :title="$t('nav.studio')">
+  <PaneHeader :eyebrow="$t('panes.studio.eyebrow')" :title="$t('nav.studio')" help-key="audio-studio">
     <!-- TTS engine chip — always shown, since every Studio tab interacts
          with the voice library (preview, render). Provider + model. -->
     <span class="chip" v-tooltip.bottom="'Active TTS provider for voice preview and render. Switch the voice library above to compare engines.'">
@@ -1051,7 +1051,8 @@ async function confirmDeleteAllRendered() {
         </template>
 
         <template #preview="{ row }">
-          <JwButton intent="ghost" size="small" :disabled="previewingVoice === row.id" @click.stop="playPreview(row)">
+          <JwButton intent="ghost" size="small" :disabled="previewingVoice === row.id" @click.stop="playPreview(row)"
+            v-tooltip.bottom="previewingVoice === row.id ? 'Previewing…' : 'Preview this voice'">
             <template #icon><Icon :name="previewingVoice === row.id ? 'Pause' : 'Play'" :size="11" /></template>
           </JwButton>
         </template>
@@ -1070,7 +1071,8 @@ async function confirmDeleteAllRendered() {
     <div style="padding:14px 22px;border-bottom:1px solid var(--border);display:flex;gap:8px;align-items:center">
       <JwSelect v-model="scriptChapter" style="width:auto"
         :options="project.allChapters.map(c => ({ label: `Ch. ${c.num} — ${c.title}`, value: c.id }))" />
-      <JwButton intent="secondary" :disabled="analyzeLoading || batchAnalyzing" @click="reanalyze">
+      <JwButton intent="secondary" :disabled="analyzeLoading || batchAnalyzing" @click="reanalyze"
+        v-tooltip.bottom="'Run speaker detection on this chapter — calls your configured LLM'">
         <Icon :name="analyzeLoading ? 'Refresh' : 'Sparkle'" :size="13" />
         {{ analyzeLoading ? "Analyzing…" : "Re-analyze" }}
       </JwButton>
@@ -1155,7 +1157,7 @@ async function confirmDeleteAllRendered() {
       <JwButton style="margin-left:auto"
         :intent="bulkSuggesting ? 'secondary' : 'primary'" size="small"
         :disabled="(!bulkSuggesting && !chaptersNeedingPreset.length) || !llmProvider"
-        v-tooltip.bottom="bulkSuggesting ? 'Stop after the in-flight chapter finishes' : 'Run LLM Suggest sequentially on every chapter that has a script but no preset'"
+        v-tooltip.bottom="bulkSuggesting ? 'Stop after the in-flight chapter finishes' : !llmProvider ? 'Add an OpenAI-compatible LLM provider in Settings → AI providers' : 'Run LLM Suggest sequentially on every chapter that has a script but no preset'"
         @click="bulkSuggestPresets">
         <template #icon><Icon :name="bulkSuggesting ? 'Stop' : 'Sparkle'" :size="11" /></template>
         {{ bulkSuggesting ? "Stop" : `Suggest for all (${chaptersNeedingPreset.length})` }}
@@ -1181,6 +1183,7 @@ async function confirmDeleteAllRendered() {
       </span>
       <JwButton intent="primary" size="small"
         :disabled="!selectedRenderIds.size || !!renderingId || !provider"
+        v-tooltip.bottom="!provider ? 'Add a TTS provider in Settings → AI providers' : !selectedRenderIds.size ? 'Select at least one chapter to render' : 'Render all selected chapters in sequence'"
         @click="renderSelected">
         <Icon name="Mic" :size="11" />
         {{ renderingId ? "Rendering…" : `Render selected (${selectedRenderIds.size})` }}
@@ -1231,20 +1234,25 @@ async function confirmDeleteAllRendered() {
         <template v-if="!studio.chapterAudio[c.id]">
           <JwButton intent="primary" size="small"
             :disabled="!!renderingId || !studio.scriptFor(c.id)"
+            v-tooltip.bottom="!studio.scriptFor(c.id) ? 'Analyze speakers first (Script tab) to enable render' : 'Render this chapter to audio'"
             @click="startRender(c.id)">
             <Icon :name="renderingId === c.id ? 'Refresh' : 'Mic'" :size="11" />
             {{ renderingId === c.id ? "Rendering…" : "Render" }}
           </JwButton>
         </template>
         <template v-else>
-          <JwButton v-if="playingChapterId === c.id" intent="secondary" size="small" @click="stopPlayback">
+          <JwButton v-if="playingChapterId === c.id" intent="secondary" size="small" @click="stopPlayback"
+            v-tooltip.bottom="'Stop playback'">
             <Icon name="Stop" :size="11" /> Stop
           </JwButton>
-          <JwButton v-else intent="primary" size="small" @click="playChapter(c.id)">
+          <JwButton v-else intent="primary" size="small" @click="playChapter(c.id)"
+            v-tooltip.bottom="'Play this chapter\'s rendered audio'">
             <Icon name="Play" :size="11" /> Play
           </JwButton>
-          <JwButton intent="secondary" size="small" @click="downloadChapter(c.id)"><Icon name="Download" :size="11" /> WAV</JwButton>
-          <JwButton intent="ghost" size="small" :disabled="!!renderingId" @click="reRenderChapter(c.id)">
+          <JwButton intent="secondary" size="small" @click="downloadChapter(c.id)"
+            v-tooltip.bottom="'Download this chapter as a WAV file'"><Icon name="Download" :size="11" /> WAV</JwButton>
+          <JwButton intent="ghost" size="small" :disabled="!!renderingId" @click="reRenderChapter(c.id)"
+            v-tooltip.bottom="'Re-render this chapter — overwrites the existing audio'">
             <Icon name="Refresh" :size="11" /> Re-render
           </JwButton>
           <JwButton intent="ghost" size="small" :disabled="!!renderingId" @click="deleteChapterAudio(c.id)"
@@ -1326,6 +1334,7 @@ async function confirmDeleteAllRendered() {
         <JwButton v-if="!batchAnalyzing"
                   intent="primary"
                   :disabled="!selectedAnalyzeIds.size || !llmProvider"
+                  v-tooltip.bottom="!llmProvider ? 'Add an OpenAI-compatible LLM provider in Settings → AI providers' : !selectedAnalyzeIds.size ? 'Select at least one chapter to analyze' : `Analyze ${selectedAnalyzeIds.size} chapter${selectedAnalyzeIds.size === 1 ? '' : 's'} for speaker attribution`"
                   @click="runBatchAnalyze">
           <Icon name="Sparkle" :size="12" /> Analyze {{ selectedAnalyzeIds.size }} chapter{{ selectedAnalyzeIds.size === 1 ? '' : 's' }}
         </JwButton>

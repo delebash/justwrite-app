@@ -423,7 +423,7 @@ onBeforeUnmount(() => window.removeEventListener("keydown", onKey));
 </script>
 
 <template>
-  <PaneHeader :eyebrow="$t('panes.relations.eyebrow')" :title="$t('panes.relations.title')">
+  <PaneHeader :eyebrow="$t('panes.relations.eyebrow')" :title="$t('panes.relations.title')" help-key="story-bible">
     <div class="relations-toolbar">
       <JwButton intent="ghost" size="small" aria-label="Zoom out" v-tooltip.bottom="'Zoom out (−)'" @click="zoomOut">
         <Icon name="ChevRight" :size="12" style="transform:rotate(180deg)" />
@@ -510,7 +510,10 @@ onBeforeUnmount(() => window.removeEventListener("keydown", onKey));
 
     <!-- Empty state -->
     <div v-if="nodes.length === 0" class="relations-empty">
-      <p>Nothing to connect yet — add characters, locations, or objects to see relationships here.</p>
+      <p>
+        <span style="display:block;font-size:14px;color:var(--ink);margin-bottom:6px">Nothing to connect yet.</span>
+        Add characters, locations, or objects — the Relations graph draws edges automatically from shared scenes, groups, and narrative strands.
+      </p>
     </div>
 
     <!-- Legend — colored dots double as toggles; each row shows the

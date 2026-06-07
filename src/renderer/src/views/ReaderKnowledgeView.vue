@@ -202,7 +202,8 @@ function jumpToChapter(chapterId) {
                   v-tooltip.bottom="'Discard the saved analysis'">
           Clear
         </JwButton>
-        <JwButton v-if="!running" intent="primary" @click="runScan">
+        <JwButton v-if="!running" intent="primary" @click="runScan"
+          v-tooltip.bottom="'Classify each chapter by dramatic irony — one LLM call per chapter'">
           <Icon name="Sparkle" :size="13" />
           {{ hasAny ? "Re-analyse" : "Analyse manuscript" }}
         </JwButton>
@@ -231,7 +232,7 @@ function jumpToChapter(chapterId) {
       <EmptyState
         icon="Eye"
         title="No analysis yet"
-        message="Click Analyse manuscript to walk every chapter and map the gap between reader knowledge and POV knowledge. One LLM call per chapter, sequential — long books take a while." />
+        message="Click Analyse manuscript to map the gap between reader and POV knowledge, chapter by chapter. The coloured chapter strip and growth chart let you see where dramatic irony builds and resolves across the whole manuscript." />
     </div>
 
     <template v-else>

@@ -169,12 +169,21 @@ function onRowClick(event) {
 
 <template>
   <template v-if="!article">
-    <PaneHeader :eyebrow="$t('panes.worldbuilding.eyebrow')" :title="$t('nav.worldbuilding')">
+    <PaneHeader :eyebrow="$t('panes.worldbuilding.eyebrow')" :title="$t('nav.worldbuilding')" help-key="worldbuilding">
       <JwButton label="New article" intent="primary" size="small" @click="addArticle">
         <template #icon><Icon name="Plus" :size="14" /></template>
       </JwButton>
     </PaneHeader>
-    <div class="pane-card">
+    <!-- Empty state -->
+    <div v-if="project.worldbuilding.length === 0" class="pane-card" style="display:grid;place-items:center;padding:60px">
+      <div class="t-muted" style="text-align:center;max-width:420px">
+        <div style="font-size:14px;color:var(--ink);margin-bottom:6px">No worldbuilding articles yet.</div>
+        <div style="font-size:12.5px;margin-bottom:14px">Long-form articles for lore, magic systems, cultures — anything you'd put in an appendix. AI features pull relevant articles as story-world context.</div>
+        <JwButton intent="primary" @click="addArticle"><Icon name="Plus" :size="14" /> Create your first article</JwButton>
+      </div>
+    </div>
+
+    <div v-else class="pane-card">
       <div class="scrollarea" style="padding:18px 22px 40px">
         <p class="wb-desc" style="padding: 0; margin: 0 0 18px">
           A <strong>worldbuilding article</strong> is long-form reference that doesn't belong on

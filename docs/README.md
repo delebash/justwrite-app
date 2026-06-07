@@ -4,7 +4,7 @@ JustWrite is a desktop writing app for novelists. It bundles a clean rich-text e
 
 It runs locally on your own computer. Your manuscript is yours, on your disk, in your hands. AI features are optional and work with whichever provider you prefer — including local engines that never send a word out to the internet.
 
-This guide is written for writers, not engineers. You do not need to know what a "renderer" is to use the app, and you do not need to read this front-to-back. Dip into the section you need.
+This guide is written for writers, not engineers. You do not need to know what a "renderer" is to use the app, and you do not need to read this front-to-back. Dip into the section you need. Every pane in the app also has a small **`?`** button next to its title that opens the relevant docs right inside the app, so you rarely need to leave the app to find an answer.
 
 ---
 
@@ -60,6 +60,7 @@ If you want to plan first:
 
 ### What's coming
 
+- **[What's new](whats-new.md)** — recent changes worth noticing; the same content the in-app "What's new" modal shows on first launch after an upgrade
 - **[Roadmap](roadmap.md)** — items on the table; not promises, just direction
 - **[AI features roadmap](ai-features-roadmap.md)** — AI-specific direction; shipped, deferred, and won't-ship entries with rationales
 

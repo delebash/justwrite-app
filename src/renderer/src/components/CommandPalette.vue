@@ -18,6 +18,7 @@ import { useProjectStore } from "../stores/project.js";
 import { useUiStore } from "../stores/ui.js";
 import { useVersionsStore } from "../stores/versions.js";
 import { promptDialog } from "../services/dialog.js";
+import { HELP_TOC } from "../services/helpDocs.js";
 import Icon from "./Icon.vue";
 
 const router = useRouter();
@@ -143,8 +144,31 @@ const ACTION_ITEMS = computed(() => {
       run: () => project.undo() },
     { id: "act:redo", label: "Redo",                   sublabel: "Action · ⌘Y",  icon: "Refresh",
       run: () => project.redo() },
+    { id: "act:shortcuts", label: "Keyboard shortcuts", sublabel: "Action · ⌘/",  icon: "Help", keywords: "cheatsheet keys hotkeys",
+      run: () => ui.openShortcuts() },
+    { id: "act:help", label: "Help — open drawer",     sublabel: "Action",       icon: "Help", keywords: "docs guide manual",
+      run: () => ui.openHelp("") },
   ];
   return list;
+});
+
+// Help-doc items — one per docs/*.md, indexed by slug + title + hint.
+// Selecting one opens the help drawer rather than navigating.
+const HELP_ITEMS = computed(() => {
+  const out = [];
+  for (const group of HELP_TOC) {
+    for (const item of group.items) {
+      out.push({
+        id: `help:${item.slug}`,
+        label: item.title,
+        sublabel: `Help · ${item.hint}`,
+        icon: "Help",
+        keywords: `${group.section} docs guide help ${item.hint}`,
+        run: () => ui.openHelp(item.slug),
+      });
+    }
+  }
+  return out;
 });
 
 // ─── Match + score ──────────────────────────────────────────────────
@@ -169,6 +193,7 @@ const allItems = computed(() => [
   ...NAV_ITEMS,
   ...ENTITY_ITEMS.value,
   ...ACTION_ITEMS.value,
+  ...HELP_ITEMS.value,
 ]);
 
 const results = computed(() => {

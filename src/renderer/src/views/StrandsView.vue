@@ -251,16 +251,17 @@ const tableRows = computed(() =>
 <template>
   <!-- ── List mode (no id in URL) ─────────────────────────────── -->
   <template v-if="!s && !id">
-    <PaneHeader :title="$t('nav.strands')">
+    <PaneHeader :title="$t('nav.strands')" help-key="plot-and-time">
       <JwButton label="New narrative strand" intent="primary" size="small" @click="addStrand">
         <template #icon><Icon name="Plus" :size="14" /></template>
       </JwButton>
     </PaneHeader>
 
     <div v-if="project.strands.length === 0" class="pane-card" style="display:grid;place-items:center;padding:60px">
-      <div class="t-muted" style="text-align:center">
-        No narrative strands yet.<br />
-        <JwButton intent="primary" style="margin-top:14px" @click="addStrand"><Icon name="Plus" :size="14" /> Create your first narrative strand</JwButton>
+      <div class="t-muted" style="text-align:center;max-width:420px">
+        <div style="font-size:14px;color:var(--ink);margin-bottom:6px">No narrative strands yet.</div>
+        <div style="font-size:12.5px;margin-bottom:14px">Narrative strands are the storylines you're weaving. Tag scenes with a strand and it surfaces on the Plot Board as a coloured lane.</div>
+        <JwButton intent="primary" @click="addStrand"><Icon name="Plus" :size="14" /> Create your first narrative strand</JwButton>
       </div>
     </div>
 

@@ -193,7 +193,7 @@ function clear() {
 
 <template>
   <div class="brainstorm-view">
-    <PaneHeader eyebrow="Planning" title="Brainstorm">
+    <PaneHeader eyebrow="Planning" title="Brainstorm" help-key="brainstorm">
       <AiFeatureChip feature="brainstorm" label="Brainstorm" />
     </PaneHeader>
 
@@ -236,6 +236,7 @@ function clear() {
           label="Generate"
           :loading="running.value"
           :disabled="!canGenerate"
+          v-tooltip.bottom="canGenerate ? 'Generate ideas from your seed prompt' : 'Enter a seed prompt to generate ideas'"
           @click="generate"
         />
         <JwButton
@@ -290,6 +291,7 @@ function clear() {
           label="More like these"
           :loading="running.value"
           :disabled="!canMoreLike"
+          v-tooltip.bottom="canMoreLike ? 'Generate more results similar to your liked items' : 'Thumb-up at least one result to steer the next batch'"
           @click="moreLikeThese"
         />
         <span v-if="likedItems.length === 0 && !running.value" class="brainstorm-hint">

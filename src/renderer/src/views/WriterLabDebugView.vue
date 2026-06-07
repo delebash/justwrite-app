@@ -179,7 +179,7 @@ function notesByGroup(notes) {
 </script>
 
 <template>
-  <PaneHeader :eyebrow="$t('panes.writerLabDebug.eyebrow')" :title="$t('panes.writerLabDebug.title')" />
+  <PaneHeader :eyebrow="$t('panes.writerLabDebug.eyebrow')" :title="$t('panes.writerLabDebug.title')" help-key="writer-lab" />
 
   <div class="pane-card">
    <div class="scrollarea lab">

@@ -1,7 +1,6 @@
 <script setup>
 import { computed, ref, watch, onMounted, nextTick } from "vue";
 import { useRouter, useRoute } from "vue-router";
-import { marked } from "marked";
 import PaneHeader from "../components/PaneHeader.vue";
 import Icon from "../components/Icon.vue";
 import JwButton from "@renderer/components/ui/JwButton.vue";
@@ -12,6 +11,7 @@ import {
   titleForSlug,
   webUrlFor,
 } from "../services/helpDocs.js";
+import { renderHelpMarkdown } from "../services/helpMarkdown.js";
 
 const props = defineProps({ slug: { type: String, default: "" } });
 
@@ -22,38 +22,8 @@ const currentSlug = computed(() => props.slug || "");
 const docTitle = computed(() => titleForSlug(currentSlug.value));
 const webUrl = computed(() => webUrlFor(currentSlug.value));
 
-const renderer = new marked.Renderer();
-const baseLinkRenderer = renderer.link.bind(renderer);
-renderer.link = ({ href, title, tokens }) => {
-  // Rewrite intra-doc links (e.g. "writing.md" → "/help/writing").
-  // Anchors and external links pass through; external get target=_blank.
-  let h = href || "";
-  let internal = false;
-  if (/^[^/:#?]+\.md(#.*)?$/.test(h)) {
-    const [file, anchor = ""] = h.split("#");
-    const slug = file.replace(/\.md$/, "");
-    const realSlug = slug === "README" ? "" : slug;
-    h = `/help${realSlug ? "/" + realSlug : ""}${anchor ? "#" + anchor : ""}`;
-    internal = true;
-  }
-  const html = baseLinkRenderer({ href: h, title, tokens });
-  if (internal) return html.replace("<a ", `<a data-help-link="1" `);
-  if (/^https?:/i.test(h)) {
-    return html.replace("<a ", `<a target="_blank" rel="noopener noreferrer" `);
-  }
-  return html;
-};
-
-marked.setOptions({ renderer, gfm: true, breaks: false });
-
 const rawDoc = computed(() => getDoc(currentSlug.value));
-const renderedHtml = computed(() => {
-  const md = rawDoc.value;
-  if (!md) return "";
-  // Strip the leading H1 — we render the title in the header bar instead.
-  const stripped = md.replace(/^#\s+.+\n+/, "");
-  return marked.parse(stripped);
-});
+const renderedHtml = computed(() => renderHelpMarkdown(rawDoc.value));
 
 const contentEl = ref(null);
 

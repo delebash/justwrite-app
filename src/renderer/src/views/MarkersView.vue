@@ -162,9 +162,10 @@ function closeTellScan() { tellScanOpen.value = false; }
 
     <div v-else class="markers-empty">
       <Icon name="Sparkle" :size="18" />
-      <p v-if="!allMarkers.length">
-        No markers yet. Drop one from the editor toolbar (pin icon) or with <kbd>Alt+M</kbd> while writing.
-      </p>
+      <template v-if="!allMarkers.length">
+        <p style="font-size:14px;color:var(--ink);margin:0">No markers yet.</p>
+        <p style="font-size:12.5px;max-width:400px;margin:0">Markers are in-prose pins for fix-laters, loose threads, and weak passages — they gather here so you can triage them at revision time. Drop one from the editor toolbar (pin icon) or with <kbd>Alt+M</kbd> while writing.</p>
+      </template>
       <p v-else>No markers in this category.</p>
     </div>
   </div>

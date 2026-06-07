@@ -58,7 +58,7 @@ function onRowClick(event) {
 <template>
   <!-- ── List mode (no id in URL) ─────────────────────────────── -->
   <template v-if="!doc && !id">
-    <PaneHeader :eyebrow="$t('panes.architecture.eyebrow')" :title="$t('nav.architecture')" />
+    <PaneHeader :eyebrow="$t('panes.architecture.eyebrow')" :title="$t('nav.architecture')" help-key="worldbuilding" />
 
     <div class="pane-card">
       <div class="scrollarea" style="padding:18px 22px 40px">

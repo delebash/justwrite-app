@@ -1,6 +1,11 @@
 import { defineConfig } from "vite";
 import vue from "@vitejs/plugin-vue";
 import { resolve } from "path";
+import { readFileSync } from "fs";
+
+// Inject the package.json version into the renderer so the
+// "What's new" modal can pin its dismissal to the current build.
+const pkg = JSON.parse(readFileSync(resolve(__dirname, "package.json"), "utf8"));
 
 // Tauri pre-2.x compatible config. The Rust backend lives in `src-tauri/`
 // and is built by the `tauri` CLI; vite only handles the renderer.
@@ -55,6 +60,9 @@ export default defineConfig({
     },
   },
   envPrefix: ["VITE_", "TAURI_"],
+  define: {
+    "import.meta.env.VITE_APP_VERSION": JSON.stringify(pkg.version),
+  },
   build: {
     outDir: resolve(__dirname, "dist"),
     emptyOutDir: true,

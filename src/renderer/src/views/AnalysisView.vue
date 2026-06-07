@@ -466,7 +466,7 @@ const milestoneState = computed(() => {
 </script>
 
 <template>
-  <PaneHeader :eyebrow="$t('settings.eyebrow')" :title="$t('nav.analysis')" />
+  <PaneHeader :eyebrow="$t('settings.eyebrow')" :title="$t('nav.analysis')" help-key="analysis" />
 
   <div class="pane-card">
   <div class="scrollarea" style="padding:22px 26px 60px">
@@ -918,7 +918,8 @@ const milestoneState = computed(() => {
             </div>
             <JwButton intent="ghost" size="small"
                       :disabled="driftExplainingId && driftExplainingId !== hc.chapterId"
-                      @click="explainHot(hc.chapterId)">
+                      @click="explainHot(hc.chapterId)"
+                      v-tooltip.bottom="'Ask your LLM why this chapter\'s metrics are out of range'">
               <Icon name="Sparkle" :size="12" />
               {{ driftExplanations[hc.chapterId]?.text ? 'Hide' : driftExplanations[hc.chapterId]?.running ? 'Diagnosing…' : 'Explain' }}
             </JwButton>

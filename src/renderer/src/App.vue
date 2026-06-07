@@ -13,6 +13,9 @@ import AppDialog from "./components/AppDialog.vue";
 import CommandPalette from "./components/CommandPalette.vue";
 import ProjectReplaceModal from "./components/ProjectReplaceModal.vue";
 import ChatPanel from "./components/ChatPanel.vue";
+import JwHelpDrawer from "./components/JwHelpDrawer.vue";
+import ShortcutCheatsheet from "./components/ShortcutCheatsheet.vue";
+import WhatsNewModal from "./components/WhatsNewModal.vue";
 
 const palette = ref(null);
 
@@ -69,6 +72,12 @@ function onKey(e) {
     ui.toggleSidebar();
     return;
   }
+  // ⌘/ → keyboard shortcut cheatsheet.
+  if (e.key === "/") {
+    e.preventDefault();
+    ui.toggleShortcuts();
+    return;
+  }
   // ⌘Z / ⌘⇧Z (or ⌘Y on Windows) — undo/redo. Stays out of the rich
   // editor's way so paragraph-level edits still hop through prosemirror.
   if (key === "z" && !e.shiftKey) {
@@ -122,5 +131,8 @@ onBeforeUnmount(() => window.removeEventListener("keydown", onKey, { capture: tr
       :initial-term="ui.replaceModal.initialTerm"
       @close="ui.closeProjectReplace()" />
     <ChatPanel v-model="ui.chatPanelOpen" />
+    <JwHelpDrawer />
+    <ShortcutCheatsheet />
+    <WhatsNewModal />
   </div>
 </template>

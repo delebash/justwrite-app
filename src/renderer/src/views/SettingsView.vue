@@ -1025,7 +1025,7 @@ const recentColumns = [
 </script>
 
 <template>
-  <PaneHeader :eyebrow="$t('settings.eyebrow')" :title="$t('settings.title')" />
+  <PaneHeader :eyebrow="$t('settings.eyebrow')" :title="$t('settings.title')" help-key="appearance" />
   <div class="pane-card">
     <div class="scrollarea" style="padding:22px">
     <p class="set-desc">

@@ -762,7 +762,7 @@ watch(() => project.allChapters.map((c) => c.id + ":" + (project.scenesFor(c.id)
       </JwSegmented>
     </div>
   </header>
-  <PaneHeader v-else :eyebrow="$t('panes.chapters.eyebrow')" :title="$t('panes.chapters.emptyTitle')">
+  <PaneHeader v-else :eyebrow="$t('panes.chapters.eyebrow')" :title="$t('panes.chapters.emptyTitle')" help-key="writing">
     <router-link to="/import" custom v-slot="{ navigate }">
       <JwButton intent="ghost" size="small" @click="navigate"><Icon name="Plus" :size="14" /> Import from file</JwButton>
     </router-link>
@@ -791,13 +791,13 @@ watch(() => project.allChapters.map((c) => c.id + ":" + (project.scenesFor(c.id)
           <div class="ol-row-actions">
             <JwButton intent="ghost" size="small"
               :disabled="pi === 0"
-              v-tooltip.bottom="'Move part up'"
+              v-tooltip.bottom="pi === 0 ? 'Already the first part' : 'Move part up'"
               @click="movePart(part.id, -1)">
               <Icon name="ChevRight" :size="12" style="transform:rotate(-90deg)" />
             </JwButton>
             <JwButton intent="ghost" size="small"
               :disabled="pi === project.parts.length - 1"
-              v-tooltip.bottom="'Move part down'"
+              v-tooltip.bottom="pi === project.parts.length - 1 ? 'Already the last part' : 'Move part down'"
               @click="movePart(part.id, 1)">
               <Icon name="ChevRight" :size="12" style="transform:rotate(90deg)" />
             </JwButton>

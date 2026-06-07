@@ -15,6 +15,7 @@ These work from anywhere in the app.
 | **Ctrl/⌘ + P** | Open the Command Palette |
 | **Ctrl/⌘ + J** | Toggle the "Ask the book" chat panel |
 | **Ctrl/⌘ + \\** | Toggle the sidebar open / closed |
+| **Ctrl/⌘ + /** | Open this keyboard shortcut cheatsheet |
 | **Ctrl/⌘ + Z** | Undo |
 | **Ctrl/⌘ + Shift + Z** | Redo |
 | **Ctrl + Y** | Redo (Windows alternative) |

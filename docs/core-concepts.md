@@ -147,6 +147,16 @@ Use `@` liberally. It costs you nothing and it makes the entire Story Bible come
 
 ---
 
+## Finding help in the app
+
+> *"I opened this pane and I have no idea what half these fields are for."*
+
+Every pane's title row has a small **`?`** button. Click it and a drawer slides in from the right with the docs for that surface — no browser, no context switch. The footer of the drawer has **"Open full docs"** (jumps to the full help view inside the app) and **"Open on the web"** if you prefer to browse.
+
+Two other quick-reference tools: **Ctrl/⌘ + /** opens a shortcut cheatsheet overlay, and **Ctrl/⌘ + P** (the command palette) lists every help doc — type a keyword and hit Enter to open the relevant drawer.
+
+---
+
 ## What you do not need to do
 
 Things JustWrite does not require:

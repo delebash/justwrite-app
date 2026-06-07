@@ -502,7 +502,9 @@ defineExpose({ open: () => { open.value = true; }, close });
               <span class="cp-hint-sep">·</span>
               <kbd class="cp-kbd">⇧⏎</kbd> for newline
             </span>
-            <JwButton intent="primary" size="small" :disabled="!question.trim() || running" @click="ask">
+            <JwButton intent="primary" size="small" :disabled="!question.trim() || running"
+              v-tooltip.bottom="question.trim() ? 'Send your question' : 'Type a question to ask'"
+              @click="ask">
               <Icon name="Sparkle" :size="12" /> Ask
             </JwButton>
           </div>

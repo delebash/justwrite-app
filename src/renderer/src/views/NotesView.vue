@@ -237,7 +237,7 @@ function onRowClick(event) {
 <template>
   <!-- ── List mode (no id in URL) ─────────────────────────────── -->
   <template v-if="!n && !id">
-    <PaneHeader :eyebrow="$t('panes.notes.eyebrow')" :title="$t('nav.notes')">
+    <PaneHeader :eyebrow="$t('panes.notes.eyebrow')" :title="$t('nav.notes')" help-key="notes-and-search">
       <JwButton intent="ghost" size="small" :disabled="importing" @click="pickNoteFile"
         v-tooltip.bottom="'Import one or more .docx, .txt, .md, .odt, or .epub files as notes'">
         <Icon name="Note" :size="13" /> {{ importing ? "Importing…" : "Import files" }}
@@ -248,9 +248,10 @@ function onRowClick(event) {
     </PaneHeader>
 
     <div v-if="project.notes.length === 0" class="pane-card" style="display:grid;place-items:center;padding:60px">
-      <div class="t-muted" style="text-align:center">
-        No notes yet.<br />
-        <div style="margin-top:14px;display:inline-flex;gap:8px">
+      <div class="t-muted" style="text-align:center;max-width:420px">
+        <div style="font-size:14px;color:var(--ink);margin-bottom:6px">No notes yet.</div>
+        <div style="font-size:12.5px;margin-bottom:14px">Scratch-pad jottings — pin them to chapters or scenes and they surface in the editor's Notes panel for that spot.</div>
+        <div style="display:inline-flex;gap:8px">
           <JwButton intent="primary" @click="addNote"><Icon name="Plus" :size="14" /> Create your first note</JwButton>
           <JwButton intent="secondary" :disabled="importing" @click="pickNoteFile"><Icon name="Note" :size="14" /> Import from files</JwButton>
         </div>
