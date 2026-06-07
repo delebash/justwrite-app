@@ -232,6 +232,36 @@ Audio Studio's render workflow is sequential by design — one chapter at a time
 
 ---
 
+## sherpa-onnx — parked for future audio features (2026-06-07)
+
+Investigated `sherpa-onnx` (k2-fsa, Apache 2.0, Rust crate `sherpa-onnx = "1.13.2"`) as a candidate for bundling Kokoro 82M as a native Tauri TTS sidecar. The crate solves the espeak-ng problem the earlier Kokoro investigation hit — it bundles phoneme data inside the model tarball rather than linking to system libespeak. Build script auto-downloads prebuilt static archives for Linux x86_64+aarch64, macOS Intel+arm64, Windows x64. ~40-55 MB binary bloat to JustWrite's installer; ~300-700 MB Kokoro models are user-downloaded on first use.
+
+**Conclusion for Kokoro TTS specifically: skip.** Voicebox already ships Kokoro as one of 7 engines, with better engines available (Qwen3-TTS 1.7B = best published English WER + 3s voice cloning, vs. Kokoro 82M = modest quality, no cloning). Edge TTS already covers the zero-install casual segment (400 voices, ships via msedge-tts Rust crate). A Kokoro-native sidecar would sit in a thin band between them, mostly duplicating existing coverage.
+
+**Where sherpa-onnx WOULD earn its bundle bloat** — net-new features that don't overlap with anything JustWrite has today. Listed in roughly increasing implementation cost:
+
+### Candidate features (sherpa-onnx unlocks)
+
+| # | Feature | Demand | Effort | Why it pulls its weight |
+|---|---|---|---|---|
+| A | **VAD-based silence/breath trim on rendered chapter audio** (Silero VAD) | moderate | small | Audio Studio currently outputs whatever the TTS engine emits — breath gaps, trailing silence, scene-break pauses. A VAD pass at chapter assembly time tightens the export by 1-5% and removes the most annoying "is this still playing?" beats. Pure post-processing, no UX change. |
+| B | **Author records a voice clip → ASR transcribes → becomes a voicebox/Chatterbox clone reference** | strong | medium | Closes the voice-cloning loop without leaving the app. Author hits Record in Audio Studio Cast, sherpa-onnx ASR (Whisper / Zipformer / Moonshine — pick one) transcribes, JustWrite verifies the transcript matches the intended line, the WAV becomes a reference clip for voicebox `POST /profiles/{id}/samples` or Chatterbox `/reference_audio/`. Removes the friction of recording in another app, finding the file, naming it correctly. |
+| C | **Speech enhancement on user-uploaded reference clips** | moderate | medium | If a writer records on a noisy mic, the clone reference is bad. sherpa-onnx ships a denoise pass. Only relevant if (B) ships first. |
+| D | **Dictation flow — "dictate scene 3 into your phone, JustWrite punctuates and inserts as a draft"** (ASR + punctuation restoration) | moderate | large | Writers who think aloud or work hands-free get a way to feed prose into JustWrite without typing. ASR gives raw words, punctuation-restoration model adds periods/commas, draft lands in the chapter editor with a Markers entry tagging it as dictated for later review. |
+| E | **Audio Studio chapter audio "show me the silences" timeline overlay** (VAD) | low | small | Visual feedback on render quality. Probably not worth its own ticket but composes cheaply with (A). |
+
+### When to revisit
+
+If any of these features come up in a future session, **don't pull in a separate dependency** (whisper.cpp, separate VAD crate, separate punctuation library, etc.). Reach for sherpa-onnx — the bundle cost is paid once, and the API surface is consistent across all the capabilities. Integration shape mirrors the existing Edge TTS pattern: Tauri commands in `lib.rs` (`audio_asr_*`, `audio_vad_*`, etc.), bridge under `window.justwrite.audio.*`, JS service per feature.
+
+If none of these features come up, sherpa-onnx stays unadopted — no cost.
+
+### Speaker ID / diarization — explicitly NOT in the candidate list
+
+sherpa-onnx also ships speaker embedding extraction and offline diarization (pyannote 3.1, 3D-Speaker, NeMo, WeSpeaker). The obvious-sounding use case — "verify LLM speaker attribution by running speaker-ID on rendered audio" — doesn't actually work. Running speaker-ID on Kokoro-rendered audio confirms what we already know (we used different voice models for different characters), not whether the *text* was attributed correctly. The LLM confidence-flag path stays the right tool for catching attribution errors. Skip.
+
+---
+
 ## Source pool
 
 Raw findings, briefs, and ~90 cited URLs across the 6 research angles are preserved at:
