@@ -2,7 +2,7 @@
 //
 // Voicebox (https://github.com/jamiepine/voicebox) is a desktop AI voice
 // studio that ships a Python FastAPI inference server as a Tauri sidecar.
-// Listening on 127.0.0.1:8000 by default. JustWrite uses it as a backend
+// Listening on 127.0.0.1:17493 by default. JustWrite uses it as a backend
 // for cross-platform local GPU TTS — Metal on Apple Silicon (via MLX),
 // CUDA on Windows/Linux NVIDIA. Per-engine caveats apply (Chatterbox is
 // CPU-only on Mac, by voicebox's deliberate choice — see their
@@ -26,7 +26,7 @@
 // "chatterbox_turbo:default", "kokoro:default", "luxtts:default", "tada:3B".
 // Split on colon to recover engine + size for the /generate body.
 
-const DEFAULT_BASE = "http://127.0.0.1:8000";
+const DEFAULT_BASE = "http://127.0.0.1:17493";
 
 // Hard limits on the polling loop. /generate is queued serially by voicebox
 // — a 90-second chapter on Qwen3-TTS at 1× realtime takes ~30s of inference

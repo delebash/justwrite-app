@@ -400,7 +400,7 @@ const hostOs = computed(() => {
 });
 
 // ── Voicebox install + lifecycle state ──────────────────────────────
-// Probes 127.0.0.1:8000/health on tab open + after install. If voicebox is
+// Probes 127.0.0.1:17493/health on tab open + after install. If voicebox is
 // up and we haven't already called /watchdog/disable this session, we do
 // that once so the server outlives the voicebox GUI window.
 const voiceboxState = ref("checking"); // "checking" | "running" | "down" | "no-bridge"
@@ -412,12 +412,12 @@ async function refreshVoicebox() {
   try {
     // Bypass tauri-bridge's routing fetch for localhost so we don't get
     // weird ipc.localhost recursion. Use plain fetch directly.
-    const res = await fetch("http://127.0.0.1:8000/health", { method: "GET" }).catch(() => null);
+    const res = await fetch("http://127.0.0.1:17493/health", { method: "GET" }).catch(() => null);
     if (res?.ok) {
       voiceboxState.value = "running";
       if (!_watchdogDisabledThisSession) {
         try {
-          await fetch("http://127.0.0.1:8000/watchdog/disable", { method: "POST" });
+          await fetch("http://127.0.0.1:17493/watchdog/disable", { method: "POST" });
           _watchdogDisabledThisSession = true;
         } catch { /* best-effort */ }
       }
@@ -1418,7 +1418,7 @@ const recentColumns = [
              Voicebox (github.com/jamiepine/voicebox) is the managed-engine
              story: one install, multiple TTS models, real GPU on Mac
              (MLX) and NVIDIA (CUDA). The JustWrite provider seed points
-             at 127.0.0.1:8000; this card handles install + lifecycle. -->
+             at 127.0.0.1:17493; this card handles install + lifecycle. -->
         <div class="t-eyebrow" style="margin-top:6px">Local TTS engine</div>
         <div class="card">
           <div style="display:flex;align-items:center;gap:10px;margin-bottom:8px;flex-wrap:wrap">
@@ -1429,7 +1429,7 @@ const recentColumns = [
                 voiceboxState === 'down'    ? 'var(--ink-3, #94a3b8)' :
                 'var(--ink-3, #94a3b8)'
               }`" />
-              <template v-if="voiceboxState === 'running'">Running on 127.0.0.1:8000</template>
+              <template v-if="voiceboxState === 'running'">Running on 127.0.0.1:17493</template>
               <template v-else-if="voiceboxState === 'checking'">Checking…</template>
               <template v-else>Not running</template>
             </span>

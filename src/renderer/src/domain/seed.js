@@ -605,7 +605,7 @@ export const DEFAULT_PROVIDERS = [
   {
     // Voicebox (github.com/jamiepine/voicebox) — desktop AI voice studio
     // that ships a FastAPI inference server as a Tauri sidecar at
-    // 127.0.0.1:8000. Multi-engine (Qwen3-TTS / Chatterbox / Kokoro /
+    // 127.0.0.1:17493. Multi-engine (Qwen3-TTS / Chatterbox / Kokoro /
     // LuxTTS / TADA / etc.) with cross-platform GPU support: MLX on
     // Apple Silicon, CUDA on NVIDIA. Async/polling API — NOT OpenAI-
     // shaped. Routed through services/voicebox.js → VoiceboxClient.
@@ -620,7 +620,7 @@ export const DEFAULT_PROVIDERS = [
     // switch via the provider editor; see VOICEBOX_MODELS in
     // services/voicebox.js for the full list.
     id: "voicebox", name: "Voicebox (local, multi-engine)", kind: "tts",
-    baseUrl: "http://127.0.0.1:8000",
+    baseUrl: "http://127.0.0.1:17493",
     ttsModel: "qwen:1.7B",
     builtIn: true,
   },
