@@ -38,6 +38,12 @@ tokio = { version = "1", features = ["rt", "time", "process"] }
 # estimate Apple Silicon VRAM (unified memory, dynamically allocated by the OS).
 sysinfo = { version = "0.32", default-features = false, features = ["system"] }
 
+# Used by `docker_install` to stream the Docker Desktop installer to disk
+# with progress events. Tauri pulls reqwest in transitively via the http
+# plugin, but we depend on it explicitly here so the API is stable.
+reqwest = { version = "0.12", default-features = false, features = ["rustls-tls", "stream", "json"] }
+futures-util = "0.3"
+
 # Smaller, faster release builds. JustWrite is interactive so we trade
 # longer link times for a smaller installer and tighter LTO.
 [profile.release]

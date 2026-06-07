@@ -23,7 +23,7 @@ use serde_json::Value;
 use std::{fs, path::PathBuf, time::{SystemTime, UNIX_EPOCH}};
 use tauri::{
     ipc::{InvokeBody, Request},
-    AppHandle, Manager,
+    AppHandle, Emitter, Manager,
 };
 use tauri_plugin_dialog::DialogExt;
 
@@ -330,6 +330,29 @@ async fn images_read(path: String) -> Result<String, String> {
 async fn images_delete(path: String) -> Result<bool, String> {
     fs::remove_file(&path).map_err(|e| e.to_string())?;
     Ok(true)
+}
+
+// ─── Folder picker ───────────────────────────────────────────────────
+// Used by Settings → AI providers → Install Docker Desktop → Advanced
+// options → custom install location. Mirrors the existing project_save /
+// project_open pattern of routing every native dialog through a Rust
+// command instead of the JS plugin so we keep a single capability surface.
+
+#[tauri::command]
+async fn pick_directory(
+    app: AppHandle,
+    title: Option<String>,
+    default_path: Option<String>,
+) -> Option<String> {
+    let mut dlg = app
+        .dialog()
+        .file()
+        .set_title(&title.unwrap_or_else(|| "Choose a folder".to_string()));
+    if let Some(p) = default_path.as_deref().filter(|s| !s.is_empty()) {
+        dlg = dlg.set_directory(p);
+    }
+    let picked = dlg.blocking_pick_folder()?;
+    picked.into_path().ok().map(|p| p.display().to_string())
 }
 
 // ─── External opener ─────────────────────────────────────────────────
@@ -821,6 +844,283 @@ async fn detect_gpu() -> GpuInfo {
     detect_gpu_impl().await
 }
 
+
+// ─── Voicebox one-click install ──────────────────────────────────────
+// Voicebox (github.com/jamiepine/voicebox) ships per-platform installers
+// on GitHub Releases. We query the GitHub API for the latest release,
+// pick the asset that matches the host OS+arch, stream-download it with
+// progress events, then hand it to the OS to run (MSI / DMG / AppImage).
+// Same pattern Docker install used; reuses reqwest + futures-util.
+
+#[derive(Deserialize)]
+struct GhRelease {
+    tag_name: String,
+    assets: Vec<GhAsset>,
+}
+
+#[derive(Deserialize)]
+struct GhAsset {
+    name: String,
+    browser_download_url: String,
+    size: u64,
+}
+
+#[derive(Serialize, Clone)]
+#[serde(rename_all = "camelCase")]
+struct VoiceboxProgress {
+    phase: &'static str, // "resolving" | "downloading" | "launching" | "done"
+    downloaded: u64,
+    total: u64,
+}
+
+#[derive(Serialize)]
+#[serde(rename_all = "camelCase")]
+struct VoiceboxInstallResult {
+    ok: bool,
+    phase: String,
+    path: String,
+    message: String,
+    version: String,
+}
+
+/// Decide whether an asset name matches the host OS + arch. Returns a
+/// priority score (higher = better) and 0 for no match — lets us prefer
+/// MSI over EXE on Windows, etc.
+fn voicebox_asset_score(name: &str) -> u32 {
+    let n = name.to_ascii_lowercase();
+
+    #[cfg(target_os = "windows")]
+    {
+        let is_x64 = n.contains("x64") || n.contains("x86_64") || n.contains("amd64");
+        let is_arm = n.contains("arm64") || n.contains("aarch64");
+        #[cfg(target_arch = "x86_64")]
+        let arch_match = is_x64 && !is_arm;
+        #[cfg(target_arch = "aarch64")]
+        let arch_match = is_arm && !is_x64;
+        if !arch_match && (is_x64 || is_arm) {
+            return 0;
+        }
+        if n.ends_with(".msi") { return 100; }
+        if n.ends_with("-setup.exe") { return 90; }
+        if n.ends_with(".exe")  { return 80; }
+        return 0;
+    }
+
+    #[cfg(target_os = "macos")]
+    {
+        if !n.ends_with(".dmg") { return 0; }
+        let is_arm = n.contains("aarch64") || n.contains("arm64");
+        let is_x64 = n.contains("x64") || n.contains("x86_64") || n.contains("amd64") || n.contains("intel");
+        #[cfg(target_arch = "aarch64")]
+        return if is_arm { 100 } else if !is_x64 { 50 } else { 0 };
+        #[cfg(target_arch = "x86_64")]
+        return if is_x64 { 100 } else if !is_arm { 50 } else { 0 };
+    }
+
+    #[cfg(target_os = "linux")]
+    {
+        let is_x64 = n.contains("amd64") || n.contains("x86_64") || n.contains("x64");
+        let is_arm = n.contains("aarch64") || n.contains("arm64");
+        #[cfg(target_arch = "x86_64")]
+        let arch_match = is_x64 && !is_arm;
+        #[cfg(target_arch = "aarch64")]
+        let arch_match = is_arm && !is_x64;
+        if !arch_match && (is_x64 || is_arm) {
+            return 0;
+        }
+        if n.ends_with(".appimage") { return 100; }
+        if n.ends_with(".deb") { return 80; }
+        if n.ends_with(".rpm") { return 70; }
+        return 0;
+    }
+
+    #[cfg(not(any(target_os = "windows", target_os = "macos", target_os = "linux")))]
+    {
+        let _ = n;
+        0
+    }
+}
+
+#[tauri::command]
+async fn voicebox_install(app: AppHandle) -> VoiceboxInstallResult {
+    use futures_util::StreamExt;
+    use std::io::Write;
+
+    let _ = app.emit("voicebox-install-progress", VoiceboxProgress {
+        phase: "resolving", downloaded: 0, total: 0,
+    });
+
+    // 1. Resolve the latest release via the GitHub API.
+    let client = match reqwest::Client::builder()
+        .user_agent("JustWrite/1.0 (voicebox installer)")
+        .timeout(std::time::Duration::from_secs(60))
+        .build()
+    {
+        Ok(c) => c,
+        Err(e) => return VoiceboxInstallResult {
+            ok: false, phase: "error".into(), path: String::new(), version: String::new(),
+            message: format!("HTTP client init failed: {e}"),
+        },
+    };
+    let release: GhRelease = match client
+        .get("https://api.github.com/repos/jamiepine/voicebox/releases/latest")
+        .header("Accept", "application/vnd.github+json")
+        .send().await
+    {
+        Ok(r) if r.status().is_success() => match r.json().await {
+            Ok(j) => j,
+            Err(e) => return VoiceboxInstallResult {
+                ok: false, phase: "error".into(), path: String::new(), version: String::new(),
+                message: format!("could not parse GitHub release JSON: {e}"),
+            },
+        },
+        Ok(r) => return VoiceboxInstallResult {
+            ok: false, phase: "error".into(), path: String::new(), version: String::new(),
+            message: format!("GitHub API returned HTTP {}", r.status()),
+        },
+        Err(e) => return VoiceboxInstallResult {
+            ok: false, phase: "error".into(), path: String::new(), version: String::new(),
+            message: format!("could not reach GitHub API: {e}"),
+        },
+    };
+
+    // 2. Pick the best matching asset for this host.
+    let asset = match release.assets.iter()
+        .map(|a| (voicebox_asset_score(&a.name), a))
+        .filter(|(score, _)| *score > 0)
+        .max_by_key(|(score, _)| *score)
+        .map(|(_, a)| a)
+    {
+        Some(a) => a,
+        None => {
+            // No matching asset — fall back to the releases page in the browser.
+            let _ = open::that("https://github.com/jamiepine/voicebox/releases/latest");
+            return VoiceboxInstallResult {
+                ok: true, phase: "browser-fallback".into(),
+                path: String::new(), version: release.tag_name.clone(),
+                message: "No installer asset matched your platform. Opened the voicebox releases page so you can pick one manually.".into(),
+            };
+        }
+    };
+
+    // 3. Download to temp with progress.
+    let install_path = std::env::temp_dir().join(&asset.name);
+    let res = match client.get(&asset.browser_download_url).send().await {
+        Ok(r) if r.status().is_success() => r,
+        Ok(r) => return VoiceboxInstallResult {
+            ok: false, phase: "error".into(),
+            path: install_path.display().to_string(), version: release.tag_name,
+            message: format!("download failed: HTTP {}", r.status()),
+        },
+        Err(e) => return VoiceboxInstallResult {
+            ok: false, phase: "error".into(),
+            path: install_path.display().to_string(), version: release.tag_name,
+            message: format!("download failed: {e}"),
+        },
+    };
+
+    let total = res.content_length().unwrap_or(asset.size);
+    let mut downloaded: u64 = 0;
+    let mut last_emit: u64 = 0;
+    let mut file = match std::fs::File::create(&install_path) {
+        Ok(f) => f,
+        Err(e) => return VoiceboxInstallResult {
+            ok: false, phase: "error".into(),
+            path: install_path.display().to_string(), version: release.tag_name,
+            message: format!("can't write installer to {}: {e}", install_path.display()),
+        },
+    };
+    let mut stream = res.bytes_stream();
+    while let Some(chunk) = stream.next().await {
+        match chunk {
+            Ok(bytes) => {
+                if let Err(e) = file.write_all(&bytes) {
+                    return VoiceboxInstallResult {
+                        ok: false, phase: "error".into(),
+                        path: install_path.display().to_string(), version: release.tag_name,
+                        message: format!("write error: {e}"),
+                    };
+                }
+                downloaded = downloaded.saturating_add(bytes.len() as u64);
+                if downloaded - last_emit > 256 * 1024 || downloaded == total {
+                    last_emit = downloaded;
+                    let _ = app.emit("voicebox-install-progress", VoiceboxProgress {
+                        phase: "downloading", downloaded, total,
+                    });
+                }
+            }
+            Err(e) => return VoiceboxInstallResult {
+                ok: false, phase: "error".into(),
+                path: install_path.display().to_string(), version: release.tag_name,
+                message: format!("download read failed: {e}"),
+            },
+        }
+    }
+    if let Err(e) = file.sync_all() {
+        return VoiceboxInstallResult {
+            ok: false, phase: "error".into(),
+            path: install_path.display().to_string(), version: release.tag_name,
+            message: format!("flush failed: {e}"),
+        };
+    }
+    drop(file);
+
+    let _ = app.emit("voicebox-install-progress", VoiceboxProgress {
+        phase: "launching", downloaded, total: downloaded.max(total),
+    });
+
+    // 4. Hand off to the OS. On Windows the MSI/EXE spawns and asks for
+    // admin if needed; on macOS `open` mounts the DMG and the user drags
+    // Voicebox.app into /Applications; on Linux .AppImage is made
+    // executable and launched.
+    #[cfg(target_os = "linux")]
+    {
+        use std::os::unix::fs::PermissionsExt;
+        if install_path.extension().and_then(|s| s.to_str()).map(|s| s.eq_ignore_ascii_case("appimage")).unwrap_or(false) {
+            if let Ok(meta) = std::fs::metadata(&install_path) {
+                let mut perms = meta.permissions();
+                perms.set_mode(perms.mode() | 0o111);
+                let _ = std::fs::set_permissions(&install_path, perms);
+            }
+        }
+    }
+    if let Err(e) = open::that(&install_path) {
+        return VoiceboxInstallResult {
+            ok: false, phase: "error".into(),
+            path: install_path.display().to_string(), version: release.tag_name,
+            message: format!("could not launch installer: {e}"),
+        };
+    }
+
+    let _ = app.emit("voicebox-install-progress", VoiceboxProgress {
+        phase: "done", downloaded, total: downloaded.max(total),
+    });
+
+    VoiceboxInstallResult {
+        ok: true, phase: "launched".into(),
+        path: install_path.display().to_string(),
+        version: release.tag_name.clone(),
+        message: voicebox_launched_message(),
+    }
+}
+
+#[cfg(target_os = "windows")]
+fn voicebox_launched_message() -> String {
+    "Voicebox installer is running. Follow its prompts; once Voicebox starts, click Refresh here. JustWrite will detect the server on port 8000.".into()
+}
+#[cfg(target_os = "macos")]
+fn voicebox_launched_message() -> String {
+    "Voicebox disk image opened. Drag Voicebox into Applications, then launch it. Once it's running, click Refresh.".into()
+}
+#[cfg(target_os = "linux")]
+fn voicebox_launched_message() -> String {
+    "Voicebox AppImage launched. If your distro asks where to integrate it, follow the prompts. Once Voicebox is running, click Refresh.".into()
+}
+#[cfg(not(any(target_os = "windows", target_os = "macos", target_os = "linux")))]
+fn voicebox_launched_message() -> String {
+    "Opened the voicebox releases page in your browser.".into()
+}
+
 // ─── Runner ──────────────────────────────────────────────────────────
 
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
@@ -849,6 +1149,8 @@ pub fn run() {
             tts_edge_voices,
             tts_edge_speech,
             detect_gpu,
+            pick_directory,
+            voicebox_install,
         ])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");

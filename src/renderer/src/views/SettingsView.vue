@@ -387,6 +387,98 @@ const localTts = computed(() => localProviders.value.filter((p) => p.kind === "t
 const cloudLlm = computed(() => cloudProviders.value.filter((p) => p.kind !== "tts"));
 const cloudTts = computed(() => cloudProviders.value.filter((p) => p.kind === "tts"));
 
+// Host-OS detection. Used by the voicebox install card to pick the right
+// installer URL per platform. `navigator.platform` is deprecated but still
+// populated by every browser and webview we care about, and gives us
+// cleaner strings than userAgent.
+const hostOs = computed(() => {
+  const ua = (typeof navigator !== "undefined" && (navigator.platform || navigator.userAgent) || "").toLowerCase();
+  if (ua.includes("win")) return "windows";
+  if (ua.includes("mac") || ua.includes("darwin")) return "macos";
+  if (ua.includes("linux")) return "linux";
+  return "unknown";
+});
+
+// ── Voicebox install + lifecycle state ──────────────────────────────
+// Probes 127.0.0.1:8000/health on tab open + after install. If voicebox is
+// up and we haven't already called /watchdog/disable this session, we do
+// that once so the server outlives the voicebox GUI window.
+const voiceboxState = ref("checking"); // "checking" | "running" | "down" | "no-bridge"
+const voiceboxInstall = ref({ busy: false, phase: "", downloaded: 0, total: 0, error: "", message: "", version: "" });
+let _watchdogDisabledThisSession = false;
+
+async function refreshVoicebox() {
+  voiceboxState.value = "checking";
+  try {
+    // Bypass tauri-bridge's routing fetch for localhost so we don't get
+    // weird ipc.localhost recursion. Use plain fetch directly.
+    const res = await fetch("http://127.0.0.1:8000/health", { method: "GET" }).catch(() => null);
+    if (res?.ok) {
+      voiceboxState.value = "running";
+      if (!_watchdogDisabledThisSession) {
+        try {
+          await fetch("http://127.0.0.1:8000/watchdog/disable", { method: "POST" });
+          _watchdogDisabledThisSession = true;
+        } catch { /* best-effort */ }
+      }
+    } else {
+      voiceboxState.value = "down";
+    }
+  } catch {
+    voiceboxState.value = "down";
+  }
+}
+
+async function installVoicebox() {
+  if (voiceboxInstall.value.busy) return;
+  if (!window.justwrite?.voicebox?.install) {
+    // Browser-only dev fallback — open the releases page.
+    window.open("https://github.com/jamiepine/voicebox/releases/latest", "_blank", "noopener,noreferrer");
+    return;
+  }
+  voiceboxInstall.value = { busy: true, phase: "resolving", downloaded: 0, total: 0, error: "", message: "", version: "" };
+  try {
+    const res = await window.justwrite.voicebox.install((p) => {
+      voiceboxInstall.value.phase = p?.phase || voiceboxInstall.value.phase;
+      if (typeof p?.downloaded === "number") voiceboxInstall.value.downloaded = p.downloaded;
+      if (typeof p?.total === "number")      voiceboxInstall.value.total = p.total;
+    });
+    if (res?.ok) {
+      voiceboxInstall.value.phase = "done";
+      voiceboxInstall.value.message = res.message || "Installer launched.";
+      voiceboxInstall.value.version = res.version || "";
+      pushToast({ message: res.message || "Voicebox installer launched." });
+    } else {
+      voiceboxInstall.value.error = res?.message || "Install failed.";
+    }
+  } catch (e) {
+    voiceboxInstall.value.error = String(e?.message || e);
+  } finally {
+    voiceboxInstall.value.busy = false;
+    refreshVoicebox();
+  }
+}
+
+function fmtMb(bytes) {
+  if (!bytes) return "0";
+  return (bytes / (1024 * 1024)).toFixed(0);
+}
+const voiceboxInstallPct = computed(() => {
+  const t = voiceboxInstall.value.total;
+  const d = voiceboxInstall.value.downloaded;
+  if (!t || !d) return 0;
+  return Math.min(100, Math.round((d / t) * 100));
+});
+
+// Probe voicebox whenever the audio tab becomes active. Watch `active`
+// rather than props.section — internal tab state is owned by `active`.
+watch(
+  () => active.value,
+  (s) => { if (s === "audio") refreshVoicebox(); },
+  { immediate: true },
+);
+
+
 // Flat render list — interleaves marker rows ({ type: 'sub', label }),
 // recommendation callouts, empty states, and provider rows. Lets the
 // template iterate once and keep a single row template instead of
@@ -1318,6 +1410,109 @@ const recentColumns = [
                 :draft="draft" :editing-key="editing"
                 @save="saveDraft" @cancel="cancelEdit" />
             </template>
+          </div>
+        </div>
+
+
+        <!-- ─── Voicebox — local multi-engine TTS ─────────────────────
+             Voicebox (github.com/jamiepine/voicebox) is the managed-engine
+             story: one install, multiple TTS models, real GPU on Mac
+             (MLX) and NVIDIA (CUDA). The JustWrite provider seed points
+             at 127.0.0.1:8000; this card handles install + lifecycle. -->
+        <div class="t-eyebrow" style="margin-top:6px">Local TTS engine</div>
+        <div class="card">
+          <div style="display:flex;align-items:center;gap:10px;margin-bottom:8px;flex-wrap:wrap">
+            <div class="card-title" style="margin:0">Voicebox · one-click install</div>
+            <span style="display:inline-flex;align-items:center;gap:6px;font-size:12px;color:var(--ink-2)">
+              <span :style="`width:8px;height:8px;border-radius:50%;background:${
+                voiceboxState === 'running' ? 'var(--success, #10b981)' :
+                voiceboxState === 'down'    ? 'var(--ink-3, #94a3b8)' :
+                'var(--ink-3, #94a3b8)'
+              }`" />
+              <template v-if="voiceboxState === 'running'">Running on 127.0.0.1:8000</template>
+              <template v-else-if="voiceboxState === 'checking'">Checking…</template>
+              <template v-else>Not running</template>
+            </span>
+            <span style="margin-left:auto;display:inline-flex;gap:6px">
+              <JwButton intent="primary" size="small" :disabled="voiceboxInstall.busy || voiceboxState === 'running'" @click="installVoicebox">
+                <template #icon><Icon name="Download" :size="11" /></template>
+                <template v-if="voiceboxInstall.busy && voiceboxInstall.phase === 'resolving'">Resolving…</template>
+                <template v-else-if="voiceboxInstall.busy && voiceboxInstall.phase === 'downloading'">Downloading {{ voiceboxInstallPct }}%</template>
+                <template v-else-if="voiceboxInstall.busy && voiceboxInstall.phase === 'launching'">Launching…</template>
+                <template v-else-if="voiceboxState === 'running'">Already running</template>
+                <template v-else>Install Voicebox</template>
+              </JwButton>
+              <JwButton intent="ghost" size="small" @click="refreshVoicebox">
+                <template #icon><Icon name="RefreshCw" :size="11" /></template>
+                Refresh
+              </JwButton>
+            </span>
+          </div>
+
+          <div style="font-size:12.5px;color:var(--ink-2);margin-bottom:10px;line-height:1.5">
+            One install, multiple engines: <b>Qwen3-TTS</b>, <b>Chatterbox</b>, <b>Kokoro</b>, <b>LuxTTS</b>, <b>HumeAI TADA</b>. Real GPU acceleration cross-platform — <b>Metal on Mac</b> (via MLX) and <b>CUDA on Windows/Linux NVIDIA</b>. JustWrite downloads the right installer from voicebox's GitHub releases and hands it to your OS to run.
+          </div>
+
+          <!-- Per-engine GPU caveat — be honest about Chatterbox on Mac.
+               Writers picking voices in Audio Studio see model hints, but
+               the headline trade-off belongs here at the install gate. -->
+          <div v-if="hostOs === 'macos'" style="padding:10px 12px;border-radius:6px;background:var(--surface-2);font-size:12px;line-height:1.5;margin-bottom:10px">
+            <div style="display:flex;align-items:flex-start;gap:6px">
+              <Icon name="Info" :size="13" style="margin-top:2px;color:var(--accent-ink)" />
+              <div>
+                <b>Mac note:</b> Qwen3-TTS runs on real Metal via MLX. <b>Chatterbox is CPU-only on Mac</b> — voicebox's deliberate decision because of upstream PyTorch/MPS bugs in Chatterbox's ops. If voice cloning matters most to you and you're on Mac, ElevenLabs PVC is the cleaner path.
+              </div>
+            </div>
+          </div>
+
+          <!-- Download progress -->
+          <div v-if="voiceboxInstall.busy"
+               style="display:flex;flex-direction:column;gap:6px;padding:10px 12px;border-radius:8px;border:1px solid var(--accent);background:var(--accent-soft);font-size:12.5px;line-height:1.5;margin-bottom:10px">
+            <div style="display:flex;align-items:center;gap:8px">
+              <Icon name="Download" :size="14" style="color:var(--accent-ink)" />
+              <b v-if="voiceboxInstall.phase === 'resolving'" style="color:var(--ink)">Finding the right installer for your platform…</b>
+              <b v-else-if="voiceboxInstall.phase === 'downloading'" style="color:var(--ink)">Downloading Voicebox…</b>
+              <b v-else-if="voiceboxInstall.phase === 'launching'" style="color:var(--ink)">Launching installer…</b>
+              <b v-else style="color:var(--ink)">Preparing…</b>
+              <span v-if="voiceboxInstall.phase === 'downloading' && voiceboxInstall.total" class="t-muted" style="margin-left:auto;font-family:var(--font-mono);font-size:11.5px">
+                {{ fmtMb(voiceboxInstall.downloaded) }} / {{ fmtMb(voiceboxInstall.total) }} MB
+              </span>
+            </div>
+            <div v-if="voiceboxInstall.phase === 'downloading' && voiceboxInstall.total"
+                 style="height:6px;border-radius:3px;background:var(--surface-3);overflow:hidden">
+              <div :style="`height:100%;width:${voiceboxInstallPct}%;background:var(--accent);transition:width 200ms ease`" />
+            </div>
+          </div>
+
+          <!-- Success callout -->
+          <div v-if="voiceboxInstall.message && !voiceboxInstall.busy"
+               style="display:flex;align-items:flex-start;gap:10px;padding:10px 12px;border:1px solid var(--success, #10b981);border-radius:8px;background:rgba(16, 185, 129, 0.08);font-size:12.5px;line-height:1.55;margin-bottom:10px">
+            <Icon name="Check" :size="14" style="margin-top:2px;color:var(--success, #10b981);flex-shrink:0" />
+            <div style="min-width:0">
+              <div>{{ voiceboxInstall.message }}</div>
+              <div v-if="voiceboxInstall.version" style="margin-top:2px" class="t-muted">Voicebox {{ voiceboxInstall.version }}</div>
+            </div>
+          </div>
+
+          <!-- Error -->
+          <div v-if="voiceboxInstall.error"
+               style="display:flex;align-items:flex-start;gap:10px;padding:10px 12px;border:1px solid var(--danger, #b91c1c);border-radius:8px;background:rgba(220, 38, 38, 0.08);font-size:12.5px;line-height:1.5;margin-bottom:10px;color:var(--danger-ink, var(--danger, #b91c1c))">
+            <Icon name="AlertCircle" :size="14" style="margin-top:2px" />
+            <div style="min-width:0">
+              <b>Install failed.</b>
+              <div style="margin-top:2px;white-space:pre-wrap">{{ voiceboxInstall.error }}</div>
+            </div>
+          </div>
+
+          <!-- "Already running" reminder — tells the writer the provider
+               is wired up and how to start using it. -->
+          <div v-if="voiceboxState === 'running'"
+               style="padding:10px 12px;border-radius:6px;background:var(--surface-2);font-size:12.5px;line-height:1.5">
+            <div style="display:flex;align-items:center;gap:6px;margin-bottom:4px">
+              <Icon name="Sparkle" :size="13" style="color:var(--accent-ink)" />
+              <b>Ready to use.</b>
+            </div>
+            The <b>Voicebox</b> provider is selectable in the TTS dropdown above and in Audio Studio → Cast. Pick a specific engine + model size via the provider editor's <i>TTS model</i> field — see the inline hints for each engine's hardware and quality trade-offs.
           </div>
         </div>
 

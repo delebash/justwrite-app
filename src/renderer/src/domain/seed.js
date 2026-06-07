@@ -603,6 +603,73 @@ export const DEFAULT_PROVIDERS = [
     builtIn: true,
   },
   {
+    // Voicebox (github.com/jamiepine/voicebox) — desktop AI voice studio
+    // that ships a FastAPI inference server as a Tauri sidecar at
+    // 127.0.0.1:8000. Multi-engine (Qwen3-TTS / Chatterbox / Kokoro /
+    // LuxTTS / TADA / etc.) with cross-platform GPU support: MLX on
+    // Apple Silicon, CUDA on NVIDIA. Async/polling API — NOT OpenAI-
+    // shaped. Routed through services/voicebox.js → VoiceboxClient.
+    //
+    // Per-engine caveat worth knowing: Chatterbox is CPU-only on Mac
+    // (voicebox's deliberate decision due to upstream MPS bugs in
+    // Chatterbox's PyTorch ops). Qwen3-TTS on Mac runs on real Metal
+    // via MLX. The provider editor surfaces these caveats per-model.
+    //
+    // Default ttsModel is "qwen:1.7B" — best published English WER of
+    // any open model, cross-platform GPU including Mac. Writers can
+    // switch via the provider editor; see VOICEBOX_MODELS in
+    // services/voicebox.js for the full list.
+    id: "voicebox", name: "Voicebox (local, multi-engine)", kind: "tts",
+    baseUrl: "http://127.0.0.1:8000",
+    ttsModel: "qwen:1.7B",
+    builtIn: true,
+  },
+  {
+    // groxaxo/Qwen3-TTS-Openai-Fastapi — OpenAI-compatible wrapper around
+    // Qwen3-TTS 1.7B. Port matches domain/ttsEngines.js → qwen3-tts. The
+    // engine registry's install card brings up the Docker container.
+    id: "qwen3-tts", name: "Qwen3-TTS (local)", kind: "tts",
+    baseUrl: "http://localhost:8005/v1",
+    ttsModel: "Qwen/Qwen3-TTS-12Hz-1.7B-Base",
+    builtIn: true,
+  },
+  {
+    // neosun/cosyvoice — OpenAI-compatible /v1/audio/speech for the
+    // CosyVoice 3 0.5B model. Voice listing follows a non-standard
+    // `/v1/voices/custom` shape; isCosyvoice3() in openai-compat.js
+    // adapts it.
+    id: "cosyvoice-3", name: "CosyVoice 3 (local)", kind: "tts",
+    baseUrl: "http://localhost:8188/v1",
+    ttsModel: "cosyvoice3-0.5b",
+    builtIn: true,
+  },
+  {
+    // ElevenLabs — the premium cloud audiobook standard. NOT OpenAI-shaped:
+    // auth is `xi-api-key`, voice id goes in the URL path (not body),
+    // `model_id` chooses Flash / Multilingual / v3. Routed through
+    // services/elevenlabs.js → ElevenLabsClient instead of the generic
+    // OpenAICompatClient. ttsVoices is left empty so the client fetches
+    // the live voice library at first open.
+    //
+    // Audio tag hint: writers can embed v3 audio tags inline in the text
+    // ([whispering], [sorrowful], [laughs]) and the model performs them.
+    // Tags only work on the v3 model — Flash + Turbo ignore them.
+    id: "elevenlabs", name: "ElevenLabs (cloud)", kind: "tts",
+    baseUrl: "https://api.elevenlabs.io/v1",
+    ttsModel: "eleven_flash_v2_5",
+    builtIn: true,
+  },
+  {
+    // Speechify SIMBA 3.0 — top-10 on Artificial Analysis TTS, $10/M chars
+    // flat, voice cloning included. Proprietary REST API, not OpenAI-shaped.
+    // Routed through services/speechify.js → SpeechifyClient. ttsVoices
+    // left empty so the client fetches voice metadata at first open.
+    id: "speechify", name: "Speechify (cloud)", kind: "tts",
+    baseUrl: "https://api.sws.speechify.com",
+    ttsModel: "simba-multilingual",
+    builtIn: true,
+  },
+  {
     // Speechmatics TTS (preview). Proprietary endpoint shape — voice goes
     // in the URL path, body is { text }. Detected by hostname in
     // openai-compat.js → isSpeechmatics(). Four English voices today

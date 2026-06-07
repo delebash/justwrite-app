@@ -138,6 +138,100 @@ Surfaced by research but excluded because JustWrite already ships them:
 
 ---
 
+## TTS provider additions (2026-06-06)
+
+Audio Studio research pass. JustWrite already supports OpenAI TTS, Speechmatics, Kokoro, Chatterbox, Dia, and Edge TTS. The following are concrete candidates to add as built-in providers, ordered by ship priority.
+
+| # | Provider | Tier | Ready? | Why |
+|---|---|---|---|---|
+| 1 | **ElevenLabs** (cloud paid) | Premium | yes | The market reference for audiobook TTS. v3 inline audio tags (`[whispering]`, `[laughs]`, `[sad]`), 10k+ voice library, Professional Voice Clone (PVC) for self-narration, multi-speaker single-pass. Studio (their hosted UI) and API are billed at the **same credit rate** (1 char = 1 credit on v3/Multilingual v2; 0.5 on Flash/Turbo) — no need to redirect writers off-app. Seed Flash v2.5 as default (half cost, same voice library), let users opt up to v3 for final renders. Not OpenAI-compatible natively — needs dedicated `ElevenLabsClient`. |
+| 2 | **Qwen3-TTS** (local, Apache 2.0) | Best-balance local | yes | Best published English WER (0.77%) of any open model, RTF 0.87 (faster than realtime), 3-second voice cloning (lowest reference requirement in the field). [groxaxo/Qwen3-TTS-Openai-Fastapi](https://github.com/groxaxo/Qwen3-TTS-Openai-Fastapi) is 198 stars, active March 2026, full `/v1/audio/speech` + `/v1/audio/voices` + streaming + Docker (NVIDIA / ROCm / vLLM-Omni / CPU). Wire to `localhost:8005/v1` by convention; ttsModel `Qwen3-TTS-1.7B` for quality, `Qwen3-TTS-0.6B` for speed. Lowest-friction local addition possible. |
+| 3 | **Speechify SIMBA 3.0** (cloud paid) | Value | yes | $10/M chars flat (~$6 for a 100k-word novel). Ranked #7 of 76 on the Artificial Analysis TTS leaderboard May 2026 — above ElevenLabs, OpenAI, Google, Microsoft on ELO. Includes zero-shot voice cloning, SSML, emotional controls, confirmed commercial rights. Best $/quality in the paid market. Proprietary REST API, not OpenAI-compatible — dedicated client. |
+| 4 | **CosyVoice 3** (local, Apache 2.0) | Style-prompt local | conditional | 0.5B model (~4GB VRAM), natural-language style prompts via the "instruct" mode (`<sad>` / `<angry>` tags + free-text style direction). [neosun100/cosyvoice-docker](https://github.com/neosun100/cosyvoice-docker) supports v3 with `/v1/audio/speech`. Two caveats: (a) `/v1/audio/voices` response shape is non-OpenAI (returns custom voice IDs); JustWrite needs a small adapter in `openai-compat.js` (mirror the existing `isDia()` / `isSpeechmatics()` special-cases). (b) Docker push went stale 6 months ago — single-maintainer risk. Worth shipping but second-tier. Note: "CosyVoice 3.5 / FreeStyle" is not a public release as of June 2026 — couldn't verify it exists outside marketing copy. |
+
+### Deferred / explicitly skipping
+
+| Provider | Verdict | Reason |
+|---|---|---|
+| **Fish Speech S2 Pro** | skip | #1 open on TTS Arena (ELO 1128), 15k inline tags — but **non-commercial open license**; commercial use needs Fish's paid agreement. Collides with the writer-publishes-an-audiobook use case. Adding it would mislead users about what they can ship. |
+| **Higgs Audio v3** (4B, Boson AI) | defer | Released June 2026 — too new. Official SGLang-Omni serving is research-shaped; no community Docker wrapper for v3 (only v2.5); no `/v1/audio/voices` documented; non-commercial license. Boson overwrote HF repo contents in April 2026 (issue #179) — reliability flag. Revisit in 2-3 months. |
+| **Moss-TTS v1.5** (8B, Apache 2.0) | defer | Only model documenting 1-hour stable single-pass generation. Apache 2.0. Community OpenAI wrapper exists. 12-16GB VRAM. Worth a future ticket for power-user "render a whole chapter without segment stitching." |
+| **Orpheus TTS 3B** (Apache 2.0) | defer | Dedicated paralinguistic tokens (`<laugh>`, `<sigh>`, `<gasp>`, `<chuckle>`, `<groan>`, `<sniffle>`) trained into the base — cleaner than Chatterbox's retrofit. English-only base. Worth a future ticket for users specifically wanting Apache-licensed English narrator. |
+| **Zyphra Zonos** | skip | TTS Arena ELO 1000, no version bump in 16 months, RTF 2× (slower than realtime). Numeric emotion knobs are powerful but UX is awkward and the long-form story isn't documented. |
+| **Parler-TTS** | skip | No checkpoint shipped in 22 months. No voice cloning — only 34 trained speakers + text-description approximation. Non-deterministic across runs. Multi-character audiobook impossible. |
+| **Cartesia Sonic 3.5** | skip | Real-time leader (82ms latency) — meaningless for offline audiobook rendering. Quality not ahead of ElevenLabs at long-form. |
+| **WellSaid Labs** | skip | English-only, no voice cloning below Enterprise. Outclassed by ElevenLabs for fiction. |
+
+### Companion documentation work
+
+When ElevenLabs ships, update `docs/audio-studio.md` and `docs/ai-providers.md` to:
+
+1. Recommend ElevenLabs API over Studio (cost is identical, JustWrite integration is better).
+2. Document the **AI-narration distribution path**: ACX/Audible bans AI narration, but **INaudio** (formerly Findaway Voices, Spotify-owned since 2025) explicitly accepts AI-narrated audiobooks with disclosure and pushes to 40+ retailers. Apple Books / Google Play auto-narrate are distribution layers, not production tools (no preview, no file export, 6-month Apple lock-in).
+3. Reference the Authors-Guild-aligned disclosure framing — fits the existing AI Disclosure Statement Generator bet in this same roadmap.
+
+### Investigated and rejected as a "unified install" path: SGLang / SGLang-Omni
+
+Investigated 2026-06-06 as a potential single-stack replacement for the per-model Python server install pain. **Not the win it appears.** Keep recommending Ollama (LLM) + dedicated TTS wrappers per provider.
+
+- **SGLang** (github.com/sgl-project/sglang) is a top-tier OpenAI-compatible LLM server (Llama / Qwen / DeepSeek / Mistral / GLM, often faster than vLLM), but each invocation serves one model only — no equivalent of Ollama's auto-load-on-request. Source install, CUDA 13, Linux-leaning.
+- **SGLang-Omni** (sister project) is currently a **Higgs Audio v3 serving project** that lists Qwen3-TTS / Fish S2-Pro / MOSS-TTS / Voxtral in its model table but has no cookbook docs for them (Issue #201). Does NOT support Kokoro, Chatterbox, Dia, CosyVoice 3, F5-TTS, Orpheus, or any other model JustWrite users currently install. Same one-model-per-process limit. No PyPI; v1.2 blocked. `/v1/audio/voices` not confirmed.
+- A writer wanting Qwen-14B chat + Higgs Audio + Qwen3-TTS would need **three concurrent processes on three ports** under the SGLang stack vs. one Ollama daemon + two Docker containers under the current path. The unified stack is heavier than the per-model approach for typical JustWrite installs.
+
+**Where SGLang-Omni IS right:** the serving path for **Higgs Audio v3 specifically**. If/when Higgs v3 ships as a provider (deferred per the table above), the install docs should route through SGLang-Omni — Boson AI's own serving docs do.
+
+**Watch but don't adopt yet:** **vLLM-Omni** has a broader TTS matrix (includes CosyVoice 3, has `/v1/audio/voices`, batch + WebSocket streaming) and is the stronger candidate for a future "multi-model TTS substrate" story if it stabilizes. **vox-box** (gpustack) is the Windows-friendly multi-backend option — stable PyPI, includes CosyVoice + Dia + Bark + Whisper, but no Higgs/Qwen3-TTS/Fish.
+
+### Investigated 2026-06-06: vLLM-Omni + vox-box don't solve the problem either
+
+Re-investigated as candidates for a "one server, many TTS models" substrate. **Neither works.** Both have the same one-model-per-process limit as SGLang-Omni, and the model coverage gaps are dealbreakers.
+
+- **vLLM-Omni**: Qwen3-TTS, CosyVoice 3, Fish S2, Voxtral, GLM-TTS, MOSS-TTS-Nano, OmniVoice. **Does not support Kokoro / Chatterbox / Dia / Bark / Higgs / Orpheus / F5-TTS / XTTS.** Chatterbox + MOSS-TTS are Q2 2026 roadmap items. **Linux only** — no Windows or macOS. Adopting it would add a 7th server stack, not consolidate the existing 4.
+- **vox-box**: Bark + CosyVoice 1/2 + Dia 1.6B. **No Kokoro, no Chatterbox, no Qwen3-TTS, no CosyVoice 3.** TTS works on Linux + macOS only — Windows gets ASR only. **Last release Dec 2024 — 6+ months silent.** CosyVoice voice cloning has been open as a feature request for over a year, still not shipped.
+
+**Verdict: stick with per-model containers.** The consolidation layer that actually works is **inside JustWrite** — the existing `OpenAICompatClient` + provider picker. No external "multi-model TTS server" project has cracked this in June 2026.
+
+### Real install-pain mitigation candidates (better than chasing a unified server)
+
+If the goal is reducing TTS install friction for non-technical writers, the practical paths:
+
+1. **Ship a `docker-compose.yml` template** in `docs/ai-providers.md` that brings up the user's chosen subset of Kokoro / Chatterbox / Dia / Qwen3-TTS on conventional ports via Compose `profiles:` — `docker compose --profile chatterbox --profile qwen3 up`. Single best UX win for any writer who already has Docker Desktop. Small effort. Also document the `%USERPROFILE%\.wslconfig` cap (`memory=8GB autoMemoryReclaim=gradual`) so Windows users aren't surprised by the WSL2 VM idle cost.
+2. **Detect Docker Desktop in Settings → AI providers** and show "Install Kokoro" / "Install Chatterbox" / "Install Dia" / "Install Qwen3-TTS" buttons that shell out to `docker run` with the canonical config. Heavier lift; would make JustWrite the first writing app to make local-TTS install genuinely one-click.
+3. **Bundle Kokoro as a native Tauri sidecar** (the Edge TTS pattern). Confirmed viable 2026-06-06: Kokoro 82M has mature ONNX Rust bindings (`kokoro-tts` crate v2026.2.1 on crates.io, [Kokoros](https://github.com/lucasjinreal/Kokoros) 784 ⭐ already exposes OpenAI-compatible HTTP on localhost). Cross-platform via ONNX runtime, no Python, ~82 MB in the bundle. The `services/tts.js → isEdgeTts()` branch pattern transfers directly to `isKokoroLocal()`. Chatterbox / Dia / Qwen3-TTS are too big and PyTorch-dependent for this approach — they stay on Docker.
+
+**The two-tier story (3) unlocks:** "Free voices out of the box" — Edge TTS + native Kokoro, **zero setup** — for casual users. "Premium voices" — Chatterbox / Dia / Qwen3-TTS via Docker Compose, opt-in — for users who want voice cloning or specific quality bumps. Most writers stop at tier 1. Ship (3) before (2) and the install-pain problem largely disappears for the median user.
+
+### Investigated 2026-06-06: four community "alt-bundler" projects, all rejected
+
+User-suggested candidates that turned out not to solve the consolidation problem either:
+- **[jamiepine/voicebox](https://github.com/jamiepine/voicebox)** (29.5k ⭐, Jamie Pine of Spacedrive) — legitimate but it's a *competing desktop GUI app* with serial model loading and a custom non-OpenAI API. Worth knowing exists; not adoptable as a backend.
+- **[loserbcc/open-unified-tts](https://github.com/loserbcc/open-unified-tts)** (51 ⭐, alpha, solo dev) — routing proxy whose own quickstart says `docker run kokoro-fastapi`. Adds a Python process *on top of* the same Docker containers. The intelligent text-chunking logic is the only interesting part.
+- **[aivrar/portable-tts-server](https://github.com/aivrar/portable-tts-server)** (2 ⭐, sole contributor) — Windows-only personal tool with subprocess-per-model architecture. Avoids Docker but same conceptual footprint.
+- **[oddmeta/oddtts](https://github.com/oddmeta/oddtts)** (10 ⭐, no license) — micro hobby wrapper for older Chinese-ecosystem models (Bert-VITS2, GPT-SoVITS). Wrong model set.
+
+### Docker memory overhead — verified to be a near-misconception
+
+User worry about Docker memory was investigated factually. Numbers:
+- **Per-container overhead: 5–30 MB.** Essentially zero.
+- **WSL2 VM (Windows Docker Desktop): 2–4 GB idle, FIXED, not per-container.** Cappable via `%USERPROFILE%\.wslconfig` — `memory=8GB` + `autoMemoryReclaim=gradual` releases idle memory back to Windows.
+- **VRAM overhead: zero measurable.** NVIDIA Container Toolkit passes CUDA through directly; throughput delta within noise (~1-2%).
+
+### Design constraint clarified: ONE TTS engine at a time
+
+Audio Studio's render workflow is sequential by design — one chapter at a time, one engine. JustWrite is not intended to keep multiple TTS engines hot simultaneously. **This eliminates the VRAM concern entirely:** any 12 GB+ GPU runs any single engine fine; 8 GB handles Kokoro + small Qwen3-TTS comfortably and Chatterbox at the edge.
+
+**Implication:** Docker Compose with `profiles:` is overkill. A single `docker run` invocation per chosen engine is enough. The right control surface is **the existing Settings → AI providers "active TTS engine" picker** — switching engines should hot-swap the container (stop old, start new) via Tauri shell-out. That's the same UX pattern jamiepine/voicebox uses on the backend (serial-load with per-model unload to free VRAM) — we won't adopt their backend but the design lifts cleanly.
+
+**Updated ship plan, ordered:**
+1. **Bundle Kokoro as native Tauri sidecar** (item 3 above) — biggest UX unlock; Edge TTS + Kokoro together = zero-install audiobook capability for casual writers
+2. **ElevenLabs provider** — premium cloud, highest demand
+3. **Qwen3-TTS provider** via [groxaxo wrapper](https://github.com/groxaxo/Qwen3-TTS-Openai-Fastapi) — best 2026 local option, one-line Docker
+4. **"Hot-swap active engine" UX in Settings** — single container running at a time, picker controls which one
+5. **Speechify provider** — value cloud
+6. **CosyVoice 3 provider** — if/when the non-standard voice-listing adapter is worth the effort
+
+---
+
 ## Source pool
 
 Raw findings, briefs, and ~90 cited URLs across the 6 research angles are preserved at:

@@ -47,6 +47,15 @@ export function isDia(provider) {
   return provider?.id === "dia";
 }
 
+// neosun/cosyvoice — OpenAI-compatible /v1/audio/speech for CosyVoice 3
+// but voice listing returns a non-standard shape at /v1/voices/custom
+// (an array of { id, name }) instead of the OpenAI { data: [...] } envelope
+// that /v1/audio/voices would return. We branch by provider id and adapt
+// in voices() the same way Dia does.
+export function isCosyvoice3(provider) {
+  return provider?.id === "cosyvoice-3";
+}
+
 // The three models bundled with devnen/Dia-TTS-Server v2.0.0:
 // the original Dia 1.6B plus Nari Labs' Dia2 family. All hot-
 // swappable from one server via /save_settings + /restart_server,
@@ -983,6 +992,54 @@ export class OpenAICompatClient {
     }
   }
 
+  // CosyVoice 3 (neosun/cosyvoice-docker) voice listing. Two endpoints:
+  //   GET /v1/voices/custom   → cloned voices the user dropped into the
+  //                             named-volume folder
+  //   GET /v1/models          → list of preset voice tokens baked into the
+  //                             image (we use this as the predefined set
+  //                             since the server doesn't expose a separate
+  //                             /v1/voices route in OpenAI shape)
+  // Both responses can be a bare array, { data: [...] }, or { voices: [...] }.
+  // Predefined first, clones last with a " (clone)" suffix.
+  async _cosyvoice3Voices({ signal, timeoutMs = 15000 } = {}) {
+    const fetchJson = async (path) => {
+      try {
+        const res = await this._fetchWithTimeout(
+          this.url(path),
+          { headers: this.authHeaders },
+          { signal, timeoutMs },
+        );
+        if (!res.ok) return [];
+        return await res.json();
+      } catch { return []; }
+    };
+    const [presetsRaw, customRaw] = await Promise.all([
+      fetchJson("/models"),
+      fetchJson("/voices/custom"),
+    ]);
+    const presets = Array.isArray(presetsRaw) ? presetsRaw
+                  : Array.isArray(presetsRaw?.data)   ? presetsRaw.data
+                  : Array.isArray(presetsRaw?.voices) ? presetsRaw.voices : [];
+    const customs = Array.isArray(customRaw) ? customRaw
+                  : Array.isArray(customRaw?.data)   ? customRaw.data
+                  : Array.isArray(customRaw?.voices) ? customRaw.voices : [];
+    const out = [];
+    for (const p of presets) {
+      const id = typeof p === "string" ? p : (p?.id || p?.name);
+      if (!id) continue;
+      // Filter out non-voice model rows that might appear in /v1/models.
+      if (/^cosyvoice3?-/.test(id)) continue;
+      out.push({ id, name: typeof p === "string" ? p : (p.name || id) });
+    }
+    for (const c of customs) {
+      const id = typeof c === "string" ? c : (c?.id || c?.name);
+      if (!id) continue;
+      const display = typeof c === "string" ? c : (c.name || id);
+      out.push({ id, name: `${display} (clone)` });
+    }
+    return out;
+  }
+
   // ─── List voices ────────────────────────────────────────────────────────
   //
   // GET /v1/audio/voices — only some services implement this. For services
@@ -999,6 +1056,9 @@ export class OpenAICompatClient {
     }
     if (isChatterbox(this.provider)) {
       return this._chatterboxVoices({ signal, timeoutMs });
+    }
+    if (isCosyvoice3(this.provider)) {
+      return this._cosyvoice3Voices({ signal, timeoutMs });
     }
     try {
       const res = await this._fetchWithTimeout(

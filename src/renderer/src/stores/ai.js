@@ -5,8 +5,22 @@
 import { defineStore } from "pinia";
 import { DEFAULT_PROVIDERS } from "../domain/seed.js";
 import { OpenAICompatClient } from "../services/openai-compat.js";
+import { ElevenLabsClient, isElevenLabs } from "../services/elevenlabs.js";
+import { SpeechifyClient, isSpeechify } from "../services/speechify.js";
+import { VoiceboxClient, isVoicebox } from "../services/voicebox.js";
 import { getModelTier, TIERS } from "../services/modelMeta.js";
 import { getItem, setItem } from "../services/storage.js";
+
+// Pick the right ping client for a provider. Providers with proprietary
+// APIs (ElevenLabs, Speechify, Voicebox) get dedicated clients; everything
+// else uses the OpenAI-compat client (which itself special-cases Speechmatics
+// + Edge TTS internally in .ping()).
+function pingClientFor(provider) {
+  if (isElevenLabs(provider)) return new ElevenLabsClient(provider);
+  if (isSpeechify(provider))  return new SpeechifyClient(provider);
+  if (isVoicebox(provider))   return new VoiceboxClient(provider);
+  return new OpenAICompatClient(provider);
+}
 
 const LS_KEY = "justwrite:ai";
 
@@ -515,7 +529,7 @@ export const useAiStore = defineStore("ai", {
       const p = this.providerById(id);
       if (!p) return false;
       this.status = { ...this.status, [id]: "checking" };
-      const ok = await new OpenAICompatClient(p).ping();
+      const ok = await pingClientFor(p).ping();
       this.status = { ...this.status, [id]: ok ? "ok" : "down" };
       return ok;
     },

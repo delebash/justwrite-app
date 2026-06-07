@@ -6,6 +6,9 @@
 // or stitched together for chapter-level rendering.
 
 import { OpenAICompatClient } from "./openai-compat.js";
+import { ElevenLabsClient, isElevenLabs } from "./elevenlabs.js";
+import { SpeechifyClient, isSpeechify } from "./speechify.js";
+import { VoiceboxClient, isVoicebox } from "./voicebox.js";
 
 // Providers that aren't OpenAI-shaped and route through Rust. Right
 // now this is just Edge TTS — the renderer can't reach Microsoft's
@@ -13,6 +16,17 @@ import { OpenAICompatClient } from "./openai-compat.js";
 // spec) so synth and voice listing both go through window.justwrite.
 function isEdgeTts(provider) {
   return provider?.id === "edgeTts";
+}
+
+// Pick the right client for a provider's API shape. Providers with
+// proprietary APIs (ElevenLabs, Speechify, Voicebox) get dedicated clients;
+// everything else uses the OpenAI-compat client which handles its own
+// provider-specific branches internally (Speechmatics, Dia, Chatterbox, …).
+function clientFor(provider) {
+  if (isElevenLabs(provider)) return new ElevenLabsClient(provider);
+  if (isSpeechify(provider))  return new SpeechifyClient(provider);
+  if (isVoicebox(provider))   return new VoiceboxClient(provider);
+  return new OpenAICompatClient(provider);
 }
 
 const cache = new Map();
@@ -77,7 +91,7 @@ export async function synthesize({ provider, voice, input, model, speed = 1.0, s
     // the effective set for this one call. provider.params is the only
     // engine-facing field the client looks at.
     const effectiveProvider = { ...provider, params: mergedParams };
-    const client = new OpenAICompatClient(effectiveProvider);
+    const client = clientFor(effectiveProvider);
     blob = await client.speech({ input, voice, model: model_, speed, signal });
   }
   if (useCache) cache.set(key, blob);
@@ -115,8 +129,7 @@ export async function listVoices(provider, signal) {
       tone: "",
     }));
   }
-  const client = new OpenAICompatClient(provider);
-  return client.voices({ signal });
+  return clientFor(provider).voices({ signal });
 }
 
 export function clearCache() {

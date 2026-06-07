@@ -11,6 +11,7 @@
 
 import { invoke } from "@tauri-apps/api/core";
 import { fetch as tauriFetch } from "@tauri-apps/plugin-http";
+import { listen } from "@tauri-apps/api/event";
 
 const isTauri = typeof window !== "undefined" && "__TAURI_INTERNALS__" in window;
 
@@ -116,6 +117,13 @@ if (isTauri) {
       // Hand a URL to the OS default browser. `window.open` does
       // nothing inside the Tauri webview, so callers must route here.
       openExternal: (url) => safe(invoke("open_external", { target: url })),
+      // Native folder picker. Returns the selected path or null if the
+      // user cancelled. Mirrors the existing project_save/open dialogs —
+      // every native dialog routes through a Rust command, not the JS
+      // dialog plugin, so we keep a single capability surface.
+      pickDirectory: ({ title, defaultPath } = {}) =>
+        invoke("pick_directory", { title, defaultPath })
+          .catch(() => null),
       // Save-as for binary blobs. WebView2 ignores `<a download>` on
       // blob: URLs, so callers must come through here for the desktop
       // app and fall back to the anchor trick on `vite dev` in a browser.
@@ -163,6 +171,33 @@ if (isTauri) {
       detectGpu: () => safe(invoke("detect_gpu")),
     },
 
+    // ── Voicebox install ─────────────────────────────────────────────
+    // Resolves the latest voicebox release on GitHub, picks the asset
+    // matching the host OS+arch, streams the download with progress
+    // events, and hands it to the OS to run (MSI / DMG / AppImage).
+    // Linux falls through to opening the releases page if no matching
+    // binary asset exists.
+    voicebox: {
+      // → { ok, phase, path, version, message } once the installer has
+      //   been spawned (NOT once the user finishes installing).
+      // Pass `onProgress` to subscribe to download events
+      //   ({ phase: "resolving" | "downloading" | "launching" | "done",
+      //      downloaded, total }).
+      install: async (onProgress) => {
+        let unlisten = null;
+        if (onProgress) {
+          unlisten = await listen("voicebox-install-progress", (e) => {
+            try { onProgress(e?.payload || {}); } catch {}
+          });
+        }
+        try {
+          return await invoke("voicebox_install");
+        } finally {
+          if (unlisten) { try { unlisten(); } catch {} }
+        }
+      },
+    },
+
     tts: {
       // Microsoft Edge "Read Aloud" TTS via the msedge-tts Rust crate.
       // The renderer can't talk to MS's WebSocket directly because the
@@ -183,5 +218,6 @@ if (isTauri) {
         },
       },
     },
+
   };
 }

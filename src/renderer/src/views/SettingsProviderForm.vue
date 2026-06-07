@@ -25,6 +25,29 @@ import JwSegmented from "@renderer/components/ui/JwSegmented.vue";
 useI18n();
 const ai = useAiStore();
 
+// ── BYO TTS server install hints ──────────────────────────────────────
+// For local TTS providers JustWrite ships seeds for but doesn't manage
+// (the user installs the server themselves), surface a small one-line
+// link to the canonical install guide for that engine. Voicebox + cloud
+// providers (ElevenLabs / Speechify / OpenAI) get their own surfaces; the
+// hint is null for those.
+const BYO_TTS_GUIDES = {
+  "kokoro":      { url: "https://github.com/remsky/Kokoro-FastAPI",                 label: "remsky/Kokoro-FastAPI", note: "Tiny (82M) ONNX/PyTorch server. OpenAI-compatible /v1/audio/speech. ~6 GB VRAM, CPU-capable." },
+  "chatterbox":  { url: "https://github.com/devnen/Chatterbox-TTS-Server",          label: "devnen/Chatterbox-TTS-Server", note: "Voice cloning + exaggeration/cfg_weight/temperature knobs. JustWrite routes through /tts for the rich body — Render Lab depends on this." },
+  "dia":         { url: "https://github.com/devnen/Dia-TTS-Server",                 label: "devnen/Dia-TTS-Server", note: "Multi-speaker dialogue. Hot-swap between Dia 1.6B / Dia2-1B / Dia2-2B from inside JustWrite via /save_settings + /restart_server." },
+  "qwen3-tts":   { url: "https://github.com/groxaxo/Qwen3-TTS-Openai-Fastapi",      label: "groxaxo/Qwen3-TTS-Openai-Fastapi", note: "Best published English WER (0.77%) of any open model. 3-second voice cloning. Standard OpenAI-compat — no custom adapter needed." },
+  "cosyvoice-3": { url: "https://github.com/neosun100/cosyvoice-docker",            label: "neosun100/cosyvoice-docker", note: "Natural-language style prompts (\"calm on the surface but slightly tense underneath\"). 0.5B Apache 2.0. Voice listing uses /v1/voices/custom — JustWrite adapts the response shape." },
+};
+const byoGuide = computed(() => BYO_TTS_GUIDES[props.draft?.id] || null);
+async function openByoGuide() {
+  if (!byoGuide.value?.url) return;
+  if (window.justwrite?.shell?.openExternal) {
+    window.justwrite.shell.openExternal(byoGuide.value.url);
+  } else {
+    window.open(byoGuide.value.url, "_blank", "noopener,noreferrer");
+  }
+}
+
 const props = defineProps({
   draft: { type: Object, required: true },
   editingKey: { type: String, required: true }, // "new" or provider id
@@ -347,6 +370,20 @@ watch(() => props.draft?.baseUrl, () => {
       <JwSelect v-model="draft.kind" :options="[{ label: $t('settings.providerForm.kindLlm'), value: 'llm' }, { label: $t('settings.providerForm.kindTts'), value: 'tts' }, { label: $t('settings.providerForm.kindBoth'), value: 'both' }]" optionLabel="label" optionValue="value" />
       <span class="t-muted">{{ $t('settings.providerForm.fieldBaseUrl') }}</span>
       <JwInput v-model="draft.baseUrl" placeholder="http://localhost:11434/v1" />
+      <!-- BYO install hint for the local TTS providers we ship seeds for
+           but don't install ourselves. Spans both grid columns so the
+           explanation isn't squashed into the value half. -->
+      <template v-if="byoGuide">
+        <span style="grid-column:1 / -1;display:flex;align-items:flex-start;gap:8px;padding:8px 10px;border-radius:6px;background:var(--surface-2);font-size:12px;line-height:1.55">
+          <Icon name="Info" :size="13" style="margin-top:2px;color:var(--accent-ink);flex-shrink:0" />
+          <span style="min-width:0">
+            <b>Install guide:</b>
+            <a href="#" @click.prevent="openByoGuide" style="color:var(--accent-ink);text-decoration:underline;margin-left:4px">{{ byoGuide.label }}</a>
+            — {{ byoGuide.note }}
+            <span class="t-muted" style="display:block;margin-top:2px">JustWrite doesn't install this server for you. Run it yourself at the baseUrl above; JustWrite connects automatically.</span>
+          </span>
+        </span>
+      </template>
       <span class="t-muted">{{ $t('settings.providerForm.fieldApiKey') }}</span>
       <JwInput v-model="draft.apiKey" type="password" :placeholder="$t('settings.providerForm.fieldApiKeyPlaceholder')" />
 
