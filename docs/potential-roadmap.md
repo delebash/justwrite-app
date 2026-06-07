@@ -262,6 +262,61 @@ sherpa-onnx also ships speaker embedding extraction and offline diarization (pya
 
 ---
 
+## Build our own TTS server — Phase 4 strategic option (2026-06-07)
+
+After two sessions of integrating voicebox and discovering its API gaps + stale OpenAPI + one-person-maintained slow release pace, we considered three alternatives: fork voicebox, rewrite voicebox in Rust, or build our own. **Honest verdict for now: do none of them.** But the strategic option to build our own server is worth preserving in case future product signals warrant it.
+
+### What voicebox actually figured out (the real IP)
+
+The hard problem isn't the API — it's the **build system that turns PyTorch + CUDA + MLX + multiple TTS engines into a single distributable binary per platform.** Voicebox solved this with:
+
+- `backend/build_binary.py` — orchestrates PyInstaller
+- `voicebox-server.spec` — PyInstaller spec bundling every Python dep + native lib (CUDA cuDNN, MLX metallib files, ONNX Runtime, FFmpeg)
+- `requirements.txt` + `requirements-mlx.txt` — separate dependency matrices per backend
+- Separate `voicebox-server-cuda` binary shipping CUDA 12.8 libs (~2 GB)
+- Cross-platform signed binaries
+
+Reproducing that build infrastructure IS the project. Once we'd have it working, adding a new engine is "pip install + register in backends/ + rebuild." Without it, every engine is a week.
+
+### Why we're not doing it now
+
+| Path | Cost | Buys |
+|---|---|---|
+| Use voicebox as-is + fix our client (current path) | ~90 min | Works today. Subject to upstream pace. |
+| Fork voicebox, strip GUI, add our endpoints | 1-2 weeks | We control the API. Inherit upstream's build system. Sync drift cost over time. |
+| Build our own server from scratch | 4-6 weeks v1, 3-6 months parity | Full control. No GUI burden. Could open-source as standalone product. |
+| Hybrid: Rust sherpa-onnx for Kokoro + Python sidecar for everything else | 2-3 weeks for Rust Kokoro, defer Python | Mac users get zero-install Kokoro. Voicebox stays the heavier-engines path. |
+
+The argument FOR doing it: voicebox is one-person maintained (Jamie Pine of Spacedrive), went 6 weeks without commits mid-2026, has API gaps we discovered the hard way, and a TTS server WE control aligns with JustWrite's local-first philosophy. We could even add engines voicebox doesn't (Fish S2 Pro despite license concerns, IndexTTS-2, MOSS-TTS, Higgs v3).
+
+The argument AGAINST doing it now: voicebox works once we fix our client. We have unverified hypotheses about what JustWrite users actually use (cloning? all 7 engines or just 1-2?). Building before we know means we'll build the wrong server.
+
+### The trigger conditions for Phase 4
+
+Only build our own server if:
+
+- **Phase 3 measurement shows real usage** that voicebox can't serve. Specifically:
+  - Voice cloning gets meaningful adoption AND voicebox's cloning quality is limiting writers
+  - Users repeatedly ask for engines voicebox doesn't ship
+  - Voicebox dies / Jamie Pine archives the project
+- **OR a strategic positioning move** — JustWrite wants to be the audiobook-TTS provider, not just consume one
+- **OR engine licensing** — we want to commercially distribute an engine voicebox can't (Fish S2 Pro requires paid agreement; if we have one, we'd want full control)
+
+### If/when we do it: starting points
+
+- **Fork voicebox's `voicebox-server.spec`** — don't reinvent PyInstaller config. Start from their working setup.
+- **Headless from day one** — no Tauri shell, no React frontend. Just FastAPI.
+- **Ship 2-3 engines for v1**, not 7. Pick from real usage: probably Kokoro (cheapest) + Qwen3-TTS (highest quality + cloning) + maybe Chatterbox (paralinguistic tags).
+- **API designed for audiobook rendering** — not voice-acting / streaming agents. Add a `/render_chapter` endpoint that takes a parsed script (list of `{character_id, profile_id, text}` entries) and returns one WAV per character, parallelized within VRAM limits.
+- **Open-source candidate** — a headless audiobook TTS server with a clean API and a small engine matrix could be useful to other audiobook apps (e.g., the marketing site already documents the writer's audiobook flow; this would be a natural extension product).
+- **Naming options**: `audiobook-tts`, `jw-tts`, `bookcast`, or whatever resonates at the time.
+
+### Capture for context preservation
+
+This entire decision is captured in `~/.claude/projects/E--Dev-Web-justwrite-app/memory/project_tts_picks.md` under the "Phased roadmap" section. If a future session is debating "should we build our own TTS server," read both files together before spending a day on architecture design — the answer (probably "not yet") is documented along with the trigger conditions.
+
+---
+
 ## Source pool
 
 Raw findings, briefs, and ~90 cited URLs across the 6 research angles are preserved at:
