@@ -338,7 +338,7 @@ function sceneBadge(beat) {
 </script>
 
 <template>
-  <PaneHeader :eyebrow="$t('panes.plotBoard.eyebrow')" :title="$t('panes.plotBoard.title')" help-key="plot-and-time" />
+  <PaneHeader :eyebrow="$t('panes.plotBoard.eyebrow')" :title="$t('panes.plotBoard.title')" help-key="plot-and-time#plot-board-the-wide-angle-view" />
 
   <div class="pane-card">
 

@@ -120,7 +120,7 @@ function onRowClick(event) {
 <template>
   <!-- ── List mode (no id in URL) ─────────────────────────────── -->
   <template v-if="!g && !id">
-    <PaneHeader eyebrow="Story world" :title="$t('nav.groups')" help-key="story-bible">
+    <PaneHeader eyebrow="Story world" :title="$t('nav.groups')" help-key="story-bible#groups">
       <JwButton label="New group" intent="primary" size="small" @click="addGroup">
         <template #icon><Icon name="Plus" :size="14" /></template>
       </JwButton>

@@ -198,6 +198,15 @@ const expandableChildren = computed(() => ({
 
 const activeSection = computed(() => String(route.name || "").toLowerCase());
 
+// Active-highlight resolver. Most nav items map to a route; a few are
+// overlays (Ask the Book opens the ChatPanel via ui.toggleChatPanel and
+// never changes the route). For those, fall back to the relevant UI flag
+// so the sidebar accurately reflects what the user is looking at.
+function isNavActive(n) {
+  if (n.action === "toggleChatPanel") return ui.chatPanelOpen;
+  return activeSection.value === (n.activeName || n.id).toLowerCase();
+}
+
 function go(id) {
   // NAV entries can carry a `path` override for one-off routes that
   // don't follow the `/<id>` convention (e.g. /debug/writer-lab).
@@ -844,9 +853,9 @@ function wbDropClass(kind, id) {
         <div v-if="n.section" class="nav-section" role="separator">{{ $t(n.section) }}</div>
         <div v-else class="nav-block">
           <button class="nav-item expandable"
-            :class="{ active: activeSection === (n.activeName || n.id).toLowerCase() }"
+            :class="{ active: isNavActive(n) }"
             :aria-expanded="n.expandable ? !!ui.expanded[n.id] : undefined"
-            :aria-current="activeSection === (n.activeName || n.id).toLowerCase() ? 'page' : undefined"
+            :aria-current="isNavActive(n) ? 'page' : undefined"
             :data-chat-toggle="n.id === 'ask' ? '' : null"
             @click="clickParent(n)">
             <span class="nav-icon"><Icon :name="n.icon" :size="15" /></span>
@@ -1077,10 +1086,11 @@ function wbDropClass(kind, id) {
     <button class="rail-toggle" :aria-label="$t('sidebar.tooltips.expandSidebar')" @click="ui.toggleSidebar"><Icon name="SidebarToggle" :size="15" /></button>
     <div style="height:8px" />
     <button v-for="n in NAV.filter(x => x.id)" :key="n.id"
-      class="rail-item" :class="{ active: activeSection === (n.activeName || n.id).toLowerCase() }"
+      class="rail-item" :class="{ active: isNavActive(n) }"
       v-tooltip.bottom="$t(n.label)" :aria-label="$t(n.label)"
-      :aria-current="activeSection === (n.activeName || n.id).toLowerCase() ? 'page' : undefined"
-      @click="go(n.id)">
+      :aria-current="isNavActive(n) ? 'page' : undefined"
+      :data-chat-toggle="n.id === 'ask' ? '' : null"
+      @click="clickParent(n)">
       <Icon :name="n.icon" :size="16" />
     </button>
     <div style="flex:1" />

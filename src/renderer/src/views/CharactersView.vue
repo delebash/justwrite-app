@@ -259,7 +259,7 @@ function onRowClick(event) {
 <template>
   <!-- ── List mode (no id in URL) ─────────────────────────────── -->
   <template v-if="!ch && !id">
-    <PaneHeader :eyebrow="$t('panes.characters.eyebrow')" :title="$t('nav.characters')" help-key="story-bible">
+    <PaneHeader :eyebrow="$t('panes.characters.eyebrow')" :title="$t('nav.characters')" help-key="story-bible#characters">
       <JwButton intent="ghost" size="small" @click="sweepOpen = true" v-tooltip.bottom="'Scan the manuscript for new characters, locations, and objects'">
         <Icon name="Sparkle" :size="13" /> Find new entities
       </JwButton>

@@ -22,6 +22,7 @@ import IndexBuildModal from "./IndexBuildModal.vue";
 import AiTaskStrip from "./AiTaskStrip.vue";
 import AiFeatureChip from "./AiFeatureChip.vue";
 import EmptyState from "./EmptyState.vue";
+import HelpTrigger from "./HelpTrigger.vue";
 import Icon from "./Icon.vue";
 import JwButton from "@renderer/components/ui/JwButton.vue";
 import JwTextarea from "@renderer/components/ui/JwTextarea.vue";
@@ -382,6 +383,7 @@ defineExpose({ open: () => { open.value = true; }, close });
           <JwButton intent="ghost" size="small" @click="close">
             <Icon name="Close" :size="12" /> Close
           </JwButton>
+          <HelpTrigger slug="notes-and-search" label="Ask the book" />
         </div>
       </header>
 

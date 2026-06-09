@@ -44,6 +44,7 @@ const open = computed({
 });
 
 const slug = computed(() => ui.helpDrawerSlug || "");
+const anchor = computed(() => ui.helpDrawerAnchor || "");
 const title = computed(() => titleForSlug(slug.value));
 const rawDoc = computed(() => getDoc(slug.value));
 const renderedHtml = computed(() => renderHelpMarkdown(rawDoc.value));
@@ -51,10 +52,22 @@ const exists = computed(() => hasDoc(slug.value));
 
 const contentEl = ref(null);
 
-watch(slug, async () => {
+// Scroll to the named anchor when the drawer opens with one (or when the
+// slug/anchor changes while open). Falls back to scroll-to-top otherwise.
+// Two nextTicks because v-html mounts the new prose tree on the first tick
+// and querySelector needs the element actually in the DOM on the second.
+watch([slug, anchor], async () => {
   await nextTick();
-  contentEl.value?.scrollTo({ top: 0, behavior: "auto" });
-});
+  await nextTick();
+  const root = contentEl.value;
+  if (!root) return;
+  const a = anchor.value;
+  if (a) {
+    const el = root.querySelector(`[id="${CSS.escape(a)}"]`);
+    if (el) { el.scrollIntoView({ behavior: "auto", block: "start" }); return; }
+  }
+  root.scrollTo({ top: 0, behavior: "auto" });
+}, { immediate: true });
 
 function onContentClick(e) {
   const a = e.target.closest("a[data-help-link]");
@@ -62,10 +75,11 @@ function onContentClick(e) {
   e.preventDefault();
   const href = a.getAttribute("href") || "";
   // Internal help links jump within the drawer rather than navigating
-  // the whole app to the full HelpView.
-  const m = href.match(/^\/help(?:\/([^#]+))?(#.+)?$/);
+  // the whole app to the full HelpView. Preserve any #section anchor
+  // so cross-doc links land on the right heading.
+  const m = href.match(/^\/help(?:\/([^#]+))?(?:#(.+))?$/);
   if (m) {
-    ui.openHelp(m[1] || "");
+    ui.openHelp(m[1] || "", m[2] || "");
     return;
   }
   router.push(href);

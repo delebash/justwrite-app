@@ -762,7 +762,7 @@ watch(() => project.allChapters.map((c) => c.id + ":" + (project.scenesFor(c.id)
       </JwSegmented>
     </div>
   </header>
-  <PaneHeader v-else :eyebrow="$t('panes.chapters.eyebrow')" :title="$t('panes.chapters.emptyTitle')" help-key="writing">
+  <PaneHeader v-else :eyebrow="$t('panes.chapters.eyebrow')" :title="$t('panes.chapters.emptyTitle')" help-key="writing#chapters">
     <router-link to="/import" custom v-slot="{ navigate }">
       <JwButton intent="ghost" size="small" @click="navigate"><Icon name="Plus" :size="14" /> Import from file</JwButton>
     </router-link>

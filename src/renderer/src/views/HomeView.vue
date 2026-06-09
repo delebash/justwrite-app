@@ -12,6 +12,7 @@ import AiTaskStrip from "../components/AiTaskStrip.vue";
 import AiFeatureChip from "../components/AiFeatureChip.vue";
 import JwButton from "@renderer/components/ui/JwButton.vue";
 import SessionRecapModal from "../components/SessionRecapModal.vue";
+import HelpTrigger from "../components/HelpTrigger.vue";
 
 const router = useRouter();
 const project = useProjectStore();
@@ -276,6 +277,7 @@ const strandCount = (id) => allCh.value.filter((c) => (c.strands || []).includes
         <JwButton intent="primary" @click="navigate"><Icon name="Plus" :size="14" /> Quick write</JwButton>
       </router-link>
     </div>
+    <HelpTrigger slug="writing#home" label="Home" class="pane-help" />
   </header>
 
   <div class="pane-card">

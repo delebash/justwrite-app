@@ -14,6 +14,18 @@
 
 import { marked } from "marked";
 
+// Heading text → URL/anchor slug. Mirrors GitHub-style slug rules so
+// "## Locations & places" and a docs link like `story-bible.md#locations--places`
+// resolve to the same id. Strips emoji + punctuation, collapses whitespace.
+export function slugifyHeading(text) {
+  return String(text || "")
+    .toLowerCase()
+    .replace(/[\u{1F300}-\u{1FAFF}\u{1F000}-\u{1F2FF}☀-➿]/gu, "")
+    .replace(/[^\p{L}\p{N}\s-]/gu, "")
+    .trim()
+    .replace(/\s+/g, "-");
+}
+
 const renderer = new marked.Renderer();
 const baseLinkRenderer = renderer.link.bind(renderer);
 renderer.link = ({ href, title, tokens }) => {
@@ -32,6 +44,17 @@ renderer.link = ({ href, title, tokens }) => {
     return html.replace("<a ", `<a target="_blank" rel="noopener noreferrer" `);
   }
   return html;
+};
+
+// Add id="<slug>" to every heading so the drawer can scrollIntoView for a
+// given section. Regular function (not arrow) so `this` binds to the parser
+// context — needed to call this.parser.parseInline on the inline tokens.
+// Strip tags before slugifying so emojis/links don't pollute the id.
+renderer.heading = function headingRenderer({ tokens, depth }) {
+  const inner = this.parser.parseInline(tokens);
+  const plain = String(inner).replace(/<[^>]+>/g, "");
+  const id = slugifyHeading(plain);
+  return `<h${depth}${id ? ` id="${id}"` : ""}>${inner}</h${depth}>\n`;
 };
 
 marked.setOptions({ renderer, gfm: true, breaks: false });

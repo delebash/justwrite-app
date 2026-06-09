@@ -162,7 +162,7 @@ async function exportM4b({ partial = false } = {}) {
 </script>
 
 <template>
-  <PaneHeader :eyebrow="$t('settings.eyebrow')" :title="$t('nav.export')" help-key="import-and-export" />
+  <PaneHeader :eyebrow="$t('settings.eyebrow')" :title="$t('nav.export')" help-key="import-and-export#export" />
 
   <div class="pane-card">
   <div class="scrollarea" style="padding:22px">

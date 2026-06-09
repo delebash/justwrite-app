@@ -28,6 +28,7 @@ import {
 } from "../services/analysis/readerKnowledge.js";
 import Icon from "../components/Icon.vue";
 import AiTaskStrip from "../components/AiTaskStrip.vue";
+import HelpTrigger from "../components/HelpTrigger.vue";
 import AiFeatureChip from "../components/AiFeatureChip.vue";
 import EmptyState from "../components/EmptyState.vue";
 import JwButton from "@renderer/components/ui/JwButton.vue";
@@ -188,6 +189,7 @@ function jumpToChapter(chapterId) {
 <template>
   <div class="rk-pane scrollarea">
     <header class="pane-header">
+      <HelpTrigger slug="reader-knowledge" label="Reader knowledge" class="pane-help-abs" />
       <div class="pane-title">
         <h1 class="pane-h1">Reader knowledge</h1>
         <p class="pane-sub">
@@ -354,7 +356,8 @@ function jumpToChapter(chapterId) {
   display: flex; flex-direction: column;
   gap: 22px;
 }
-.pane-header { display: flex; flex-direction: column; gap: 6px; }
+.pane-header { display: flex; flex-direction: column; gap: 6px; position: relative; }
+.pane-help-abs { position: absolute; top: 0; right: 0; }
 .pane-title { display: flex; flex-direction: column; gap: 4px; }
 .pane-h1 {
   font-family: var(--font-serif); font-size: 28px; font-weight: 500;

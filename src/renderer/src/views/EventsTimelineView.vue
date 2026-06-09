@@ -6,6 +6,7 @@ import { EVENTS_KIND_META } from "../services/eventsKind.js";
 import Icon from "../components/Icon.vue";
 import Breadcrumb from "../components/Breadcrumb.vue";
 import JwButton from "@renderer/components/ui/JwButton.vue";
+import HelpTrigger from "../components/HelpTrigger.vue";
 
 const props = defineProps({
   kind:     { type: String, required: true },
@@ -77,6 +78,7 @@ function goAdd()         { router.push(meta.value.newUrl(props.entityId)); }
         <Icon name="Plus" :size="13" /> Add event
       </JwButton>
     </div>
+    <HelpTrigger slug="plot-and-time#per-entity-events-biographies-and-place-histories" label="Events" class="pane-help" />
   </header>
 
   <div class="pane-card">

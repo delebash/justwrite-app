@@ -237,7 +237,7 @@ function onRowClick(event) {
 <template>
   <!-- ── List mode (no id in URL) ─────────────────────────────── -->
   <template v-if="!n && !id">
-    <PaneHeader :eyebrow="$t('panes.notes.eyebrow')" :title="$t('nav.notes')" help-key="notes-and-search">
+    <PaneHeader :eyebrow="$t('panes.notes.eyebrow')" :title="$t('nav.notes')" help-key="notes-and-search#notes">
       <JwButton intent="ghost" size="small" :disabled="importing" @click="pickNoteFile"
         v-tooltip.bottom="'Import one or more .docx, .txt, .md, .odt, or .epub files as notes'">
         <Icon name="Note" :size="13" /> {{ importing ? "Importing…" : "Import files" }}

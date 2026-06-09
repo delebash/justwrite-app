@@ -169,7 +169,7 @@ function onRowClick(event) {
 
 <template>
   <template v-if="!article">
-    <PaneHeader :eyebrow="$t('panes.worldbuilding.eyebrow')" :title="$t('nav.worldbuilding')" help-key="worldbuilding">
+    <PaneHeader :eyebrow="$t('panes.worldbuilding.eyebrow')" :title="$t('nav.worldbuilding')" help-key="worldbuilding#worldbuilding">
       <JwButton label="New article" intent="primary" size="small" @click="addArticle">
         <template #icon><Icon name="Plus" :size="14" /></template>
       </JwButton>

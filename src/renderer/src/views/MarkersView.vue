@@ -20,6 +20,7 @@ import Icon from "../components/Icon.vue";
 import JwButton from "@renderer/components/ui/JwButton.vue";
 import ForeshadowingScanModal from "../components/ForeshadowingScanModal.vue";
 import AiTellScanModal from "../components/AiTellScanModal.vue";
+import HelpTrigger from "../components/HelpTrigger.vue";
 
 const project = useProjectStore();
 const router = useRouter();
@@ -73,6 +74,7 @@ function closeTellScan() { tellScanOpen.value = false; }
 <template>
   <div class="markers-pane scrollarea">
     <header class="pane-header">
+      <HelpTrigger slug="markers" label="Markers" class="pane-help-abs" />
       <div class="pane-title">
         <h1 class="pane-h1">Markers</h1>
         <p class="pane-sub">
@@ -181,7 +183,8 @@ function closeTellScan() { tellScanOpen.value = false; }
   display: flex; flex-direction: column;
   gap: 24px;
 }
-.pane-header { display: flex; flex-direction: column; gap: 6px; }
+.pane-header { display: flex; flex-direction: column; gap: 6px; position: relative; }
+.pane-help-abs { position: absolute; top: 0; right: 0; }
 .pane-h1 {
   font-family: var(--font-serif);
   font-size: 28px; font-weight: 600;

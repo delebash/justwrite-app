@@ -251,7 +251,7 @@ const tableRows = computed(() =>
 <template>
   <!-- ── List mode (no id in URL) ─────────────────────────────── -->
   <template v-if="!s && !id">
-    <PaneHeader :title="$t('nav.strands')" help-key="plot-and-time">
+    <PaneHeader :title="$t('nav.strands')" help-key="plot-and-time#strands-view-planning-one-thread-in-detail">
       <JwButton label="New narrative strand" intent="primary" size="small" @click="addStrand">
         <template #icon><Icon name="Plus" :size="14" /></template>
       </JwButton>

@@ -423,7 +423,7 @@ onBeforeUnmount(() => window.removeEventListener("keydown", onKey));
 </script>
 
 <template>
-  <PaneHeader :eyebrow="$t('panes.relations.eyebrow')" :title="$t('panes.relations.title')" help-key="story-bible">
+  <PaneHeader :eyebrow="$t('panes.relations.eyebrow')" :title="$t('panes.relations.title')" help-key="story-bible#relations">
     <div class="relations-toolbar">
       <JwButton intent="ghost" size="small" aria-label="Zoom out" v-tooltip.bottom="'Zoom out (−)'" @click="zoomOut">
         <Icon name="ChevRight" :size="12" style="transform:rotate(180deg)" />

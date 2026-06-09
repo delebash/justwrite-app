@@ -117,6 +117,10 @@ export const useUiStore = defineStore("ui", {
       // (mounted in App.vue) slides in from the right with that doc.
       // Null = closed. Not persisted; help is always opened fresh.
       helpDrawerSlug: null,
+      // Optional section anchor for context-sensitive help. When set, the
+      // drawer scrolls the matching heading id into view after render
+      // instead of starting at the top of the doc.
+      helpDrawerAnchor: null,
       // "What's new" modal — last app version the user has seen.
       // Bumped to package.json's version after the modal is dismissed
       // so the modal only fires on first launch after an upgrade.
@@ -195,8 +199,24 @@ export const useUiStore = defineStore("ui", {
     },
 
     // ── In-app Help drawer ───────────────────────────────────────────
-    openHelp(slug = "")  { this.helpDrawerSlug = String(slug || ""); },
-    closeHelp()          { this.helpDrawerSlug = null; },
+    // Open the help drawer. Slug may be "slug" or the convenience form
+     // "slug#anchor" — the anchor is split out and stored separately so
+     // the drawer can scroll the matching heading into view.
+    openHelp(slug = "", anchor = "") {
+      let s = String(slug || "");
+      let a = String(anchor || "");
+      if (!a && s.includes("#")) {
+        const i = s.indexOf("#");
+        a = s.slice(i + 1);
+        s = s.slice(0, i);
+      }
+      this.helpDrawerSlug = s;
+      this.helpDrawerAnchor = a || null;
+    },
+    closeHelp() {
+      this.helpDrawerSlug = null;
+      this.helpDrawerAnchor = null;
+    },
 
     // ── Shortcut cheatsheet ──────────────────────────────────────────
     openShortcuts()  { this.shortcutsOpen = true; },

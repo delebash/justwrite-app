@@ -100,7 +100,7 @@ const KIND_ENTRIES = Object.entries(KIND_META).sort((a, b) => a[1].order - b[1].
 </script>
 
 <template>
-  <PaneHeader :eyebrow="$t('panes.search.eyebrow')" :title="$t('nav.search')" help-key="notes-and-search">
+  <PaneHeader :eyebrow="$t('panes.search.eyebrow')" :title="$t('nav.search')" help-key="notes-and-search#search">
     <span v-if="q && hits.length" class="t-muted" style="font-size:12px">
       {{ hits.length }} {{ hits.length === 1 ? "result" : "results" }}
     </span>
