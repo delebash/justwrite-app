@@ -899,6 +899,7 @@ function emptyMetrics() {
 }
 
 const runs = ref([makeRun(0)]);
+wireTierAutoRefresh(runs.value[0]);
 
 function addRun() {
   if (runs.value.length >= 4) return;
@@ -910,6 +911,7 @@ function addRun() {
   Object.assign(next.stage1, { ...first.stage1, collapsed: false });
   Object.assign(next.stage2, { ...first.stage2, collapsed: false });
   runs.value.push(next);
+  wireTierAutoRefresh(next);
 }
 
 function removeRun(run) {
@@ -1164,6 +1166,17 @@ function resetInlinePrompts(run) {
   run.inline.user = INLINE_SPEAKER_USER;
 }
 
+// Mirror a tier's prompt + think + floor defaults onto the run state
+// WITHOUT persisting a pin. Shared between applyTier (user click) and
+// the model/provider auto-refresh watcher (browsing models).
+function applyTierToRun(run, tierId) {
+  const tier = TIERS[tierId] || TIERS.guided;
+  run.inline.tier = tier.id;
+  run.inline.system = SYSTEM_BY_TIER_KEY[tier.systemKey] || INLINE_SPEAKER_SYSTEM_GUIDED;
+  run.inline.confidenceFloor = tier.floor;
+  run.inline.think = tier.think;
+}
+
 // Applies a tier's prompt + think + floor defaults to the inline-tag
 // stage. Leaves propagate/useFloor toggles alone since those are user
 // preference and orthogonal to tier. Persists the user's pick as a
@@ -1171,14 +1184,26 @@ function resetInlinePrompts(run) {
 // tier on subsequent runs (and other surfaces — Settings, future
 // production paths — pick it up too).
 function applyTier(run, tierId) {
-  const tier = TIERS[tierId] || TIERS.guided;
-  run.inline.tier = tier.id;
-  run.inline.system = SYSTEM_BY_TIER_KEY[tier.systemKey] || INLINE_SPEAKER_SYSTEM_GUIDED;
-  run.inline.confidenceFloor = tier.floor;
-  run.inline.think = tier.think;
+  applyTierToRun(run, tierId);
   // Persist user pick for the currently-selected model so it sticks.
   const modelId = run.inline.model || ai.providerById(run.inline.providerId)?.chatModel;
-  if (modelId) ai.setModelTier(modelId, tier.id);
+  if (modelId) ai.setModelTier(modelId, tierId);
+}
+
+// When the user changes the model or provider in a run, refresh the
+// tier-derived state (segmented control + prompt body + think + floor)
+// from ai.resolveTier(newModel). Honors user pins; does NOT write one.
+// Without this, picking qwen3:8b after qwen3:14b leaves the run on
+// Reasoned + think:true and silently slows 8B runs ~4×.
+function wireTierAutoRefresh(run) {
+  watch(
+    () => [run.inline.providerId, run.inline.model],
+    ([providerId, model]) => {
+      const modelId = model || ai.providerById(providerId)?.chatModel || "";
+      if (!modelId) return;
+      applyTierToRun(run, ai.resolveTier(modelId).id);
+    },
+  );
 }
 
 function speakerName(id) {
