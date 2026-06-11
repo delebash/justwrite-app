@@ -156,7 +156,9 @@ One API key, OpenAI-shaped, routes to virtually every major model on the market 
 
 Runs entire LLMs on your own computer. No API key, no monthly bill, no data leaving your machine.
 
-1. Install Ollama from **ollama.com**.
+> ⚠ **Stick with Ollama v0.24.x for now.** Ollama v0.30.0 (May 2026) swapped to a new llama.cpp backend that auto-allocates GPU layers more conservatively. On cards where a model partially offloads to CPU — most commonly Qwen3:14B on an 8 GB card like the 2070 Super — this halves throughput compared to v0.24. Speaker analysis runs that took ~2 min on v0.24 take ~3.5 min on v0.30.7, and there's no client-side knob (`OLLAMA_FLASH_ATTENTION`, `OLLAMA_KV_CACHE_TYPE`, `num_gpu`) that meaningfully recovers it for this workload. Verified 2026-06-10 against issue [ollama/ollama#16610](https://github.com/ollama/ollama/issues/16610). Grab the v0.24.0 Windows installer from <https://github.com/ollama/ollama/releases/tag/v0.24.0> if you've already upgraded. Revisit when a 0.31+ release notes a fix.
+
+1. Install Ollama from **ollama.com** (pick v0.24.x — see warning above).
 2. Open a terminal and pull a model: `ollama pull llama3.1` (or `qwen2.5`, `mistral`, etc.). For embeddings: `ollama pull mxbai-embed-large`.
 3. Make sure the Ollama service is running.
 4. In JustWrite, **Add provider → Preset: OpenAI-compatible (local)**.
