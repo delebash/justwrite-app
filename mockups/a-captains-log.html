@@ -1,0 +1,310 @@
+<!doctype html>
+<html lang="en" data-theme="light">
+<head>
+  <meta charset="utf-8">
+  <title>A · Captain's Log — JustWrite mockup</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght,SOFT,WONK@0,9..144,300..700,30..100,0..1;1,9..144,300..700,30..100,0..1&family=Spline+Sans:wght@300..700&family=Spline+Sans+Mono:wght@300..600&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="_tokens.css">
+  <script>
+    (function(){ try { const s = localStorage.getItem('jw-mock-theme');
+      if (s === 'light' || s === 'dark') document.documentElement.setAttribute('data-theme', s); } catch (e) {} })();
+  </script>
+  <style>
+    body { display: grid; grid-template-rows: auto 1fr; min-height: 100vh; }
+    .app { display: grid; grid-template-columns: 220px 1fr; flex: 1; min-height: 0; }
+    .sidebar {
+      background: var(--surface-2); border-right: 1px solid var(--border);
+      padding: 1rem 0.9rem; font-family: var(--font-ui);
+    }
+    .side-brand {
+      display: flex; align-items: center; gap: 0.55rem;
+      padding: 0.4rem 0.55rem 1.5rem;
+      font-family: var(--font-serif); font-style: italic;
+      font-size: 18px; color: var(--ink);
+    }
+    .side-brand .mark {
+      width: 26px; height: 26px; border-radius: 5px;
+      background: linear-gradient(135deg, var(--accent), oklch(0.52 0.10 320));
+      color: white; display: grid; place-items: center;
+      font-family: var(--font-serif); font-style: italic; font-weight: 700; font-size: 13px;
+    }
+    .side-section {
+      font-family: var(--font-mono); font-size: 10.5px;
+      letter-spacing: 0.22em; text-transform: uppercase;
+      color: var(--muted); padding: 1rem 0.6rem 0.4rem;
+    }
+    .side-link {
+      display: flex; align-items: center; gap: 0.55rem;
+      padding: 0.4rem 0.55rem; border-radius: 5px;
+      font-size: 13px; color: var(--ink-2); cursor: default;
+    }
+    .side-link.active { background: var(--surface-3); color: var(--ink); }
+    .side-link .ic { width: 14px; height: 14px; border-radius: 3px; background: var(--border-strong); }
+    .side-link.active .ic { background: var(--accent); }
+    .pane { background: var(--bg); overflow-y: auto; }
+    .pane-head {
+      display: flex; align-items: center; justify-content: space-between;
+      padding: 0.85rem 2rem; border-bottom: 1px solid var(--border); background: var(--surface);
+    }
+    .breadcrumb {
+      font-family: var(--font-mono); font-size: 11px;
+      letter-spacing: 0.22em; text-transform: uppercase; color: var(--muted);
+    }
+    .breadcrumb .sep { color: var(--accent); margin: 0 0.55em; }
+    .breadcrumb .now { color: var(--ink); }
+    .pane-actions { display: flex; gap: 0.5rem; }
+    .ctl {
+      font-family: var(--font-mono); font-size: 10.5px;
+      letter-spacing: 0.18em; text-transform: uppercase; color: var(--ink-2);
+      padding: 0.42rem 0.7rem; border: 1px solid var(--border);
+      border-radius: 3px; background: var(--surface);
+    }
+    .ctl:hover { color: var(--accent); border-color: var(--accent); }
+    .ctl.primary { background: var(--ink); color: var(--bg); border-color: var(--ink); }
+    .ctl.primary:hover { background: var(--accent); border-color: var(--accent); color: var(--on-accent); }
+    .log {
+      max-width: 44rem; margin: 0 auto;
+      padding: clamp(4rem, 8vw, 7rem) clamp(1.5rem, 4vw, 3rem) 6rem;
+    }
+    .log-eyebrow {
+      display: inline-flex; align-items: center; gap: 0.7rem;
+      font-family: var(--font-mono); font-size: 11px;
+      letter-spacing: 0.24em; text-transform: uppercase;
+      color: var(--muted); margin: 0 0 1rem;
+    }
+    .log-eyebrow .roman {
+      font-family: var(--font-serif); font-style: italic; color: var(--accent);
+      font-size: 14px; letter-spacing: 0.04em; text-transform: none;
+      font-variation-settings: "SOFT" 70, "WONK" 1;
+    }
+    .log h1 {
+      font-family: var(--font-serif); font-weight: 400;
+      font-size: clamp(2rem, 4vw, 3rem); line-height: 1.05;
+      letter-spacing: -0.025em; color: var(--ink); margin: 0 0 0.4rem;
+    }
+    .log h1 em { font-style: italic; color: var(--accent); font-variation-settings: "SOFT" 70, "WONK" 1; }
+    .log .date {
+      font-family: var(--font-serif); font-style: italic; font-size: 1rem;
+      color: var(--muted); margin: 0 0 2.5rem;
+    }
+    .log .entry {
+      font-family: var(--font-serif); font-size: 1.18rem; line-height: 1.65;
+      color: var(--ink); margin: 0 0 1.4rem;
+    }
+    .log .entry b { font-weight: 500; color: var(--ink); }
+    .log .entry .ac { color: var(--accent); font-style: italic; }
+    .log .entry .num {
+      font-variant-numeric: tabular-nums; font-feature-settings: "tnum"; color: var(--ink);
+    }
+    .log .scene-rule {
+      text-align: center; color: var(--accent);
+      font-family: var(--font-serif); letter-spacing: 1em;
+      padding: 1.8rem 0; opacity: 0.7;
+    }
+    .log .scene-rule::after { content: "* * *"; }
+    .picking {
+      display: grid; grid-template-columns: 1fr; gap: 1.5rem;
+      padding: 1.6rem; margin: 1.6rem 0 2rem;
+      border: 1px solid var(--border-strong); border-radius: var(--r-md);
+      background: var(--surface);
+    }
+    @media (min-width: 720px) { .picking { grid-template-columns: 1fr auto; align-items: center; } }
+    .picking .ch-meta {
+      font-family: var(--font-mono); font-size: 11px;
+      letter-spacing: 0.2em; text-transform: uppercase;
+      color: var(--muted); margin: 0 0 0.45rem;
+    }
+    .picking .ch-meta .dot {
+      display: inline-block; width: 8px; height: 8px; border-radius: 2px;
+      background: var(--status-draft); margin-right: 0.45rem;
+    }
+    .picking .ch-title {
+      font-family: var(--font-serif); font-weight: 500; font-size: 1.3rem;
+      line-height: 1.2; color: var(--ink); margin: 0 0 0.4rem;
+    }
+    .picking .ch-title em { font-style: italic; color: var(--accent); font-variation-settings: "SOFT" 70, "WONK" 1; }
+    .picking .ch-tease {
+      font-family: var(--font-serif); font-style: italic;
+      font-size: 0.95rem; line-height: 1.5; color: var(--ink-2);
+      margin: 0; max-width: 38ch;
+    }
+    .picking .resume {
+      display: inline-flex; align-items: center; gap: 0.55rem;
+      padding: 0.85rem 1.2rem; border-radius: var(--r-sm);
+      background: var(--accent); color: var(--on-accent); border: 1px solid var(--accent);
+      font-family: var(--font-ui); font-weight: 500; font-size: 14px; cursor: pointer;
+    }
+    .picking .resume:hover { background: var(--accent-ink); border-color: var(--accent-ink); }
+    .pending {
+      list-style: none; padding: 0; margin: 1.5rem 0 0;
+      border-top: 1px solid var(--border);
+    }
+    .pending li {
+      display: grid; grid-template-columns: auto 1fr auto; gap: 1rem;
+      align-items: baseline; padding: 0.85rem 0;
+      border-bottom: 1px solid var(--border);
+      font-family: var(--font-ui); font-size: 14px; color: var(--ink-2);
+    }
+    .pending .kind {
+      font-family: var(--font-mono); font-size: 10.5px;
+      letter-spacing: 0.18em; text-transform: uppercase;
+      color: var(--muted); min-width: 7rem;
+    }
+    .pending .kind.fix    { color: oklch(0.62 0.18 25); }
+    .pending .kind.verify { color: oklch(0.65 0.15 200); }
+    .pending .kind.thread { color: oklch(0.55 0.13 280); }
+    .pending .where {
+      font-family: var(--font-mono); font-size: 11px;
+      letter-spacing: 0.06em; color: var(--muted);
+    }
+    .stats-toggle {
+      margin: 3rem 0 1rem; padding: 0;
+      display: inline-flex; align-items: center; gap: 0.6rem;
+      font-family: var(--font-mono); font-size: 11px;
+      letter-spacing: 0.22em; text-transform: uppercase;
+      color: var(--muted); cursor: pointer; background: transparent; border: 0;
+    }
+    .stats-toggle::before { content: "▸"; display: inline-block; transition: transform 0.18s ease; color: var(--accent); }
+    .stats-toggle.open::before { transform: rotate(90deg); }
+    .stats {
+      display: none; grid-template-columns: 1fr; gap: 0;
+      border-top: 1px solid var(--border-strong); margin: 0.5rem 0 0;
+    }
+    .stats.open { display: grid; }
+    @media (min-width: 640px) { .stats.open { grid-template-columns: repeat(3, 1fr); } }
+    .stat { padding: 1rem 1.2rem 1.2rem 0; border-bottom: 1px solid var(--border); }
+    @media (min-width: 640px) {
+      .stat:not(:last-child) { border-right: 1px solid var(--border); padding-right: 1.2rem; }
+    }
+    .stat dt {
+      font-family: var(--font-mono); font-size: 10.5px;
+      letter-spacing: 0.22em; text-transform: uppercase;
+      color: var(--muted); margin-bottom: 0.4rem;
+    }
+    .stat dd {
+      font-family: var(--font-serif); font-size: 1.6rem; line-height: 1;
+      color: var(--ink); margin: 0; font-variant-numeric: tabular-nums;
+    }
+    .stat dd small {
+      font-family: var(--font-ui); font-size: 12px; color: var(--muted); margin-left: 0.3em;
+    }
+    .stat .delta {
+      font-family: var(--font-mono); font-size: 11px;
+      color: oklch(0.6 0.13 150); margin-top: 0.5rem; display: inline-block;
+    }
+  </style>
+</head>
+<body>
+  <div class="mock-chrome">
+    <a class="back" href="index.html">← mockups</a>
+    <span class="badge">A · Captain's Log</span>
+    <button class="theme-btn" type="button" data-theme-toggle aria-label="Toggle theme"><span class="sw"></span></button>
+  </div>
+
+  <div class="app">
+    <aside class="sidebar">
+      <div class="side-brand"><span class="mark">J</span><span><em>JustWrite</em></span></div>
+      <div class="side-section">Manuscript</div>
+      <div class="side-link active"><span class="ic"></span>Home</div>
+      <div class="side-link"><span class="ic"></span>Architecture</div>
+      <div class="side-link"><span class="ic"></span>Premise</div>
+      <div class="side-link"><span class="ic"></span>Setting</div>
+      <div class="side-link"><span class="ic"></span>Chapters</div>
+      <div class="side-section">Story world</div>
+      <div class="side-link"><span class="ic"></span>Characters</div>
+      <div class="side-link"><span class="ic"></span>Locations</div>
+      <div class="side-link"><span class="ic"></span>Objects</div>
+      <div class="side-section">Tools</div>
+      <div class="side-link"><span class="ic"></span>Plot board</div>
+      <div class="side-link"><span class="ic"></span>Audio Studio</div>
+      <div class="side-link"><span class="ic"></span>Analysis</div>
+    </aside>
+
+    <main class="pane">
+      <header class="pane-head">
+        <nav class="breadcrumb">
+          <span>Manuscript</span><span class="sep">→</span><span class="now">The Cartographer's Daughter</span>
+        </nav>
+        <div class="pane-actions">
+          <button class="ctl">Today</button>
+          <button class="ctl">Import</button>
+          <button class="ctl primary">Quick write</button>
+        </div>
+      </header>
+
+      <article class="log">
+        <p class="log-eyebrow"><span class="roman">i.</span><span>Captain's log</span></p>
+        <h1>Picking up <em>Chapter 7</em>.</h1>
+        <p class="date">Sunday, 7 June 2026 — three days since your last session</p>
+
+        <p class="entry">
+          Last time you sat down, you wrote <span class="num">1,247</span>
+          words in <span class="ac">The Ledger</span> — the chapter where Iris
+          finds the folio at low tide. You finished on a partial scene:
+          <em>"the wood was warmer than she'd expected, and the ink had taken."</em>
+        </p>
+        <p class="entry">
+          The book is <span class="num">38,420</span> words long now, of a
+          <span class="num">90,000</span>-word target — <b>43 percent</b> through.
+          You've written on four of the last seven days; your weekday cadence
+          is strongest on Tuesdays.
+        </p>
+
+        <div class="scene-rule" aria-hidden="true"></div>
+
+        <p class="entry">
+          You left two markers behind in <span class="ac">Brackish Cove</span>:
+          a <b>weak passage</b> flag on the harbourmaster's dialogue and a
+          <b>verify</b> on the tide-table. The plot-hole audit also surfaced
+          a dangling thread from Chapter 4 — Iris's brother was set up on page
+          eleven and hasn't been mentioned since.
+        </p>
+        <p class="entry">When you're ready, the next move is the chapter below.</p>
+
+        <div class="picking">
+          <div>
+            <p class="ch-meta"><span class="dot"></span>Draft · 2,140 words · 3 days ago</p>
+            <p class="ch-title">Chapter 7 — <em>The Ledger</em></p>
+            <p class="ch-tease">"…the wood was warmer than she'd expected, and the ink had taken."</p>
+          </div>
+          <button class="resume"><span>Resume writing</span><span>→</span></button>
+        </div>
+
+        <ul class="pending">
+          <li><span class="kind fix">Weak passage</span><span>Harbourmaster's dialogue feels rote.</span><span class="where">ch.6 / scene 4</span></li>
+          <li><span class="kind verify">Verify</span><span>Tide-table at low tide on the equinox.</span><span class="where">ch.7 / scene 2</span></li>
+          <li><span class="kind thread">Dangling thread</span><span>Iris's brother — last mentioned ch.4, pg.11.</span><span class="where">ch.4 / scene 3</span></li>
+        </ul>
+
+        <button class="stats-toggle" type="button" id="statsToggle">Stats for this fortnight</button>
+        <dl class="stats" id="stats">
+          <div class="stat"><dt>Today</dt><dd>0 <small>words</small></dd></div>
+          <div class="stat"><dt>Streak</dt><dd>4 <small>of 7 days</small></dd></div>
+          <div class="stat"><dt>Fortnight</dt><dd>6,318 <small>words</small></dd><span class="delta">↑ 18% vs prior</span></div>
+          <div class="stat"><dt>Goal</dt><dd>43% <small>of 90k</small></dd></div>
+          <div class="stat"><dt>Pace</dt><dd>902 <small>words / writing day</small></dd></div>
+          <div class="stat"><dt>Strongest day</dt><dd>Tue <small>· avg 1,210</small></dd></div>
+        </dl>
+      </article>
+    </main>
+  </div>
+
+  <script>
+    const html = document.documentElement;
+    document.querySelectorAll('[data-theme-toggle]').forEach(btn => {
+      btn.addEventListener('click', () => {
+        const next = html.getAttribute('data-theme') === 'dark' ? 'light' : 'dark';
+        html.setAttribute('data-theme', next);
+        try { localStorage.setItem('jw-mock-theme', next); } catch (e) {}
+      });
+    });
+    document.getElementById('statsToggle').addEventListener('click', (e) => {
+      e.currentTarget.classList.toggle('open');
+      document.getElementById('stats').classList.toggle('open');
+    });
+  </script>
+</body>
+</html>

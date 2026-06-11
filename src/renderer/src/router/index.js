@@ -36,6 +36,7 @@ function entityEventRoutes(prefix, kind, opts = {}) {
 
 const routes = [
   { path: "/",                   name: "Home",          component: () => import("../views/HomeView.vue") },
+  { path: "/home-v2",            name: "HomeShelf",     component: () => import("../views/HomeShelfView.vue") },
 
   // Architecture / Setting events — singleton entity id "setting".
   ...entityEventRoutes("/architecture/setting", "setting", { fixedId: "setting", namePrefix: "setting" }),

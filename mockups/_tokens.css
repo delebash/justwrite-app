@@ -1,0 +1,125 @@
+/* Curated subset of app tokens for mockup pages.
+   Mirrors src/renderer/src/assets/styles/tokens.css so mockups read
+   like the real app and respond to data-theme="dark" the same way. */
+
+:root {
+  --bg:          oklch(0.985 0.004 85);
+  --surface:     oklch(1 0 0);
+  --surface-2:   oklch(0.975 0.004 85);
+  --surface-3:   oklch(0.955 0.005 85);
+  --paper:       oklch(0.99 0.006 85);
+
+  --border:        oklch(0.91 0.005 85);
+  --border-soft:   oklch(0.94 0.004 85);
+  --border-strong: oklch(0.84 0.006 85);
+
+  --ink:    oklch(0.22 0.008 85);
+  --ink-2:  oklch(0.38 0.008 85);
+  --muted:  oklch(0.55 0.008 85);
+  --subtle: oklch(0.72 0.006 85);
+
+  --accent-hue: 14;
+  --accent:      oklch(0.46 0.105 var(--accent-hue));
+  --accent-ink:  oklch(0.40 0.092 var(--accent-hue));
+  --accent-soft: oklch(0.92 0.028 var(--accent-hue));
+  --accent-line: oklch(0.84 0.045 var(--accent-hue));
+
+  --gold:      oklch(0.62 0.085 80);
+  --gold-soft: oklch(0.92 0.045 80);
+
+  --font-ui:    "Spline Sans", ui-sans-serif, -apple-system, BlinkMacSystemFont, "Helvetica Neue", sans-serif;
+  --font-mono:  "Spline Sans Mono", ui-monospace, "SF Mono", Menlo, monospace;
+  --font-serif: "Fraunces", "Iowan Old Style", "Palatino Linotype", Georgia, serif;
+
+  --r-sm: 6px;
+  --r-md: 10px;
+  --r-lg: 14px;
+  --r-xl: 20px;
+
+  --status-todo:   oklch(0.85 0.005 85);
+  --status-draft:  oklch(0.7 0.1 75);
+  --status-revise: oklch(0.65 0.13 30);
+  --status-done:   oklch(0.6 0.13 150);
+
+  --on-accent: white;
+  color-scheme: light dark;
+}
+
+html[data-theme="dark"] {
+  --bg:        oklch(0.16 0.005 250);
+  --surface:   oklch(0.21 0.005 250);
+  --surface-2: oklch(0.185 0.005 250);
+  --surface-3: oklch(0.255 0.006 250);
+  --paper:     oklch(0.225 0.006 80);
+
+  --border:        oklch(0.31 0.007 250);
+  --border-soft:   oklch(0.27 0.005 250);
+  --border-strong: oklch(0.42 0.008 250);
+
+  --ink:    oklch(0.94 0.005 85);
+  --ink-2:  oklch(0.78 0.006 85);
+  --muted:  oklch(0.62 0.007 85);
+  --subtle: oklch(0.48 0.006 85);
+
+  --accent:      oklch(0.68 0.10 var(--accent-hue));
+  --accent-ink:  oklch(0.82 0.07 var(--accent-hue));
+  --accent-soft: oklch(0.30 0.045 var(--accent-hue));
+  --accent-line: oklch(0.42 0.06 var(--accent-hue));
+
+  --gold:      oklch(0.78 0.10 80);
+  --gold-soft: oklch(0.32 0.045 80);
+
+  --status-todo:   oklch(0.42 0.006 85);
+  --status-draft:  oklch(0.72 0.12 75);
+  --status-revise: oklch(0.7 0.15 30);
+  --status-done:   oklch(0.7 0.14 150);
+
+  --on-accent: oklch(0.16 0.005 250);
+}
+
+* { box-sizing: border-box; }
+html, body { margin: 0; padding: 0; }
+body {
+  font-family: var(--font-ui);
+  color: var(--ink);
+  background: var(--bg);
+  font-size: 14px;
+  line-height: 1.5;
+  -webkit-font-smoothing: antialiased;
+  letter-spacing: -0.005em;
+  min-height: 100vh;
+}
+a { color: inherit; text-decoration: none; }
+button { font: inherit; color: inherit; background: transparent; border: 0; cursor: pointer; }
+img { display: block; max-width: 100%; height: auto; }
+
+.mock-chrome {
+  position: sticky;
+  top: 0;
+  z-index: 30;
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 0.7rem 1.5rem;
+  background: color-mix(in oklab, var(--bg) 88%, transparent);
+  backdrop-filter: blur(8px);
+  border-bottom: 1px solid var(--border);
+  font-family: var(--font-mono);
+  font-size: 11px;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  color: var(--muted);
+}
+.mock-chrome a.back { color: var(--accent); text-decoration: none; }
+.mock-chrome a.back:hover { color: var(--ink); }
+.mock-chrome .badge { color: var(--ink); }
+.mock-chrome .theme-btn {
+  display: inline-grid; place-items: center;
+  width: 28px; height: 28px;
+  border: 1px solid var(--border-strong);
+  border-radius: 4px;
+  background: var(--surface);
+}
+.mock-chrome .theme-btn .sw {
+  width: 12px; height: 12px;
+  background: linear-gradient(135deg, var(--accent) 50%, var(--ink-2) 50%);
+  border-radius: 2px;
+}

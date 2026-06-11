@@ -1,0 +1,560 @@
+<!doctype html>
+<html lang="en" data-theme="light">
+<head>
+  <meta charset="utf-8">
+  <title>Home — Square corners — JustWrite mockup</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght,SOFT,WONK@0,9..144,300..700,30..100,0..1;1,9..144,300..700,30..100,0..1&family=Spline+Sans:wght@300..700&family=Spline+Sans+Mono:wght@300..600&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="_tokens.css">
+  <script>
+    (function(){ try { const s = localStorage.getItem('jw-mock-theme');
+      if (s === 'light' || s === 'dark') document.documentElement.setAttribute('data-theme', s); } catch (e) {} })();
+  </script>
+  <style>
+    /* ===========================================================
+       Knob under test: every radius zeroed.
+       Sets card / button / chip / pill / track / dot radii to 0.
+       Layout, palette, type are unchanged from current HomeView.
+       =========================================================== */
+    :root {
+      --r-sm: 0;
+      --r-md: 0;
+      --r-lg: 0;
+      --r-xl: 0;
+    }
+
+    body { display: grid; grid-template-rows: auto 1fr; min-height: 100vh; }
+    .app { display: grid; grid-template-columns: 220px 1fr; flex: 1; min-height: 0; }
+
+    /* Sidebar — kept identical to A/C; radii on links/links zeroed. */
+    .sidebar {
+      background: var(--surface-2); border-right: 1px solid var(--border);
+      padding: 1rem 0.9rem; font-family: var(--font-ui);
+    }
+    .side-brand {
+      display: flex; align-items: center; gap: 0.55rem;
+      padding: 0.4rem 0.55rem 1.5rem;
+      font-family: var(--font-serif); font-style: italic;
+      font-size: 18px; color: var(--ink);
+    }
+    .side-brand .mark {
+      width: 26px; height: 26px; border-radius: 0;
+      background: linear-gradient(135deg, var(--accent), oklch(0.52 0.10 320));
+      color: white; display: grid; place-items: center;
+      font-family: var(--font-serif); font-style: italic; font-weight: 700; font-size: 13px;
+    }
+    .side-section {
+      font-family: var(--font-mono); font-size: 10.5px;
+      letter-spacing: 0.22em; text-transform: uppercase;
+      color: var(--muted); padding: 1rem 0.6rem 0.4rem;
+    }
+    .side-link {
+      display: flex; align-items: center; gap: 0.55rem;
+      padding: 0.4rem 0.55rem; border-radius: 0;
+      font-size: 13px; color: var(--ink-2); cursor: default;
+    }
+    .side-link.active { background: var(--surface-3); color: var(--ink); }
+    .side-link .ic { width: 14px; height: 14px; border-radius: 0; background: var(--border-strong); }
+    .side-link.active .ic { background: var(--accent); }
+
+    .pane { background: var(--bg); display: grid; grid-template-rows: auto 1fr; min-height: 0; }
+
+    /* Pane head */
+    .pane-head {
+      display: flex; align-items: center; justify-content: space-between;
+      padding: 0.85rem 2rem; border-bottom: 1px solid var(--border); background: var(--surface);
+    }
+    .breadcrumb {
+      font-family: var(--font-mono); font-size: 11px;
+      letter-spacing: 0.22em; text-transform: uppercase; color: var(--muted);
+    }
+    .breadcrumb .sep { color: var(--accent); margin: 0 0.55em; }
+    .breadcrumb .now { color: var(--ink); }
+    .pane-actions { display: flex; gap: 0.5rem; }
+    .ctl {
+      font-family: var(--font-mono); font-size: 10.5px;
+      letter-spacing: 0.18em; text-transform: uppercase; color: var(--ink-2);
+      padding: 0.42rem 0.7rem; border: 1px solid var(--border);
+      border-radius: 0; background: var(--surface);
+    }
+    .ctl:hover { color: var(--accent); border-color: var(--accent); }
+    .ctl.primary { background: var(--ink); color: var(--bg); border-color: var(--ink); }
+    .ctl.primary:hover { background: var(--accent); border-color: var(--accent); color: var(--on-accent); }
+
+    /* Scroll body */
+    .pane-body { overflow-y: auto; padding: 16px 22px 60px; }
+    .home-grid {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 16px;
+    }
+    @media (max-width: 1100px) { .home-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+    @media (max-width: 760px)  { .home-grid { grid-template-columns: 1fr; } }
+
+    .card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 0;
+      padding: 18px;
+    }
+    .full { grid-column: 1 / -1; }
+
+    /* ── Pane-header (h1 + buttons) — replicates HomeView's editable serif h1 */
+    .home-pane-h1-input {
+      appearance: none;
+      font-family: var(--font-serif);
+      font-size: 20px; font-weight: 600;
+      letter-spacing: -0.015em;
+      color: var(--ink);
+      border: 1px solid transparent;
+      background: transparent;
+      border-radius: 0;
+      padding: 2px 6px;
+      margin-left: -6px;
+      outline: none;
+    }
+    .home-pane-eyebrow {
+      font-family: var(--font-mono); font-size: 10.5px; font-weight: 600;
+      letter-spacing: 0.06em; text-transform: uppercase; color: var(--muted);
+      display: block; margin-bottom: 2px;
+    }
+
+    /* ── Hero ─────────────────────────────────────────────────── */
+    .hero-card { padding: 24px; }
+    .hero-main {
+      display: flex; gap: 28px; align-items: center; flex-wrap: wrap;
+    }
+    .hero-text { flex: 1; min-width: 280px; }
+    .t-eyebrow {
+      font-family: var(--font-mono); font-size: 10.5px; font-weight: 600;
+      letter-spacing: 0.06em; text-transform: uppercase; color: var(--muted);
+    }
+    .hero-sub { font-size: 13px; color: var(--muted); margin-top: 6px; }
+    .hero-premise {
+      font-family: var(--font-serif);
+      font-size: 15px; line-height: 1.6;
+      color: var(--ink-2); margin: 12px 0 0; max-width: 54ch;
+    }
+
+    /* Goal ring — the underlying circle is geometric (round). Only the
+       stroke-linecap is squared so the progress arc terminates flat. */
+    .goal-ring { display: flex; flex-direction: column; align-items: center; gap: 10px; flex-shrink: 0; }
+    .ring-disc { position: relative; display: grid; place-items: center; }
+    .ring-disc svg { transform: rotate(-90deg); display: block; }
+    .ring-label { position: absolute; inset: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; }
+    .ring-pct { font-family: var(--font-serif); font-size: 38px; font-weight: 500; line-height: 1; letter-spacing: -0.01em; }
+    .ring-sub {
+      font-size: 9.5px; font-weight: 600; letter-spacing: 0.14em;
+      text-transform: uppercase; color: var(--muted); margin-top: 5px;
+    }
+    .ring-words { font-size: 11.5px; color: var(--muted); }
+    .ring-words b { color: var(--ink); font-variant-numeric: tabular-nums; }
+
+    /* Progress bar — was 999px pill; now flat block. */
+    .progress-bar {
+      height: 8px; border-radius: 0; background: var(--surface-3);
+      overflow: hidden; display: flex; margin-top: 18px;
+    }
+    .progress-bar span { display: block; }
+    .progress-legend {
+      display: flex; gap: 14px; margin-top: 8px;
+      font-size: 11.5px; color: var(--muted);
+      flex-wrap: wrap;
+    }
+    .progress-legend i {
+      display: inline-block; width: 8px; height: 8px;
+      border-radius: 0; margin-right: 5px;
+    }
+    .deadline-link { color: inherit; text-decoration: none; margin-left: auto; }
+    .deadline-link:hover { color: var(--accent); text-decoration: underline; }
+
+    /* ── Resume card ──────────────────────────────────────────── */
+    .resume-card {
+      display: grid; grid-template-columns: 1fr auto; gap: 24px; align-items: center;
+      position: relative; overflow: hidden; padding: 22px 24px;
+    }
+    .resume-card::before {
+      content: ""; position: absolute; left: 0; top: 0; bottom: 0; width: 5px;
+      background: linear-gradient(180deg, var(--accent), var(--gold));
+    }
+    .resume-body { min-width: 0; padding-left: 6px; }
+    .resume-lab {
+      font-family: var(--font-mono);
+      font-size: 10.5px; font-weight: 600; letter-spacing: 0.06em;
+      text-transform: uppercase; color: var(--muted);
+    }
+    .resume-h { margin: 7px 0 0; font-family: var(--font-serif); font-size: 20px; font-weight: 600; line-height: 1.25; }
+    .resume-part { color: var(--muted); font-weight: 400; }
+    .resume-ch { color: var(--accent-ink); font-style: italic; font-weight: 500; }
+    .resume-quote {
+      margin: 12px 0 0; max-width: 62ch;
+      font-family: var(--font-serif); font-style: italic;
+      font-size: 14.5px; line-height: 1.6;
+      color: var(--ink-2);
+      padding-left: 14px; border-left: 2px solid var(--accent-line);
+    }
+    .resume-sub { margin-top: 13px; display: flex; flex-wrap: wrap; gap: 8px; align-items: center; font-size: 12px; color: var(--muted); }
+    .resume-sub b { color: var(--ink-2); font-weight: 600; font-variant-numeric: tabular-nums; }
+    .resume-sub .dot-sep { color: var(--subtle); }
+    .resume-today { color: var(--accent-ink); }
+    .resume-cta {
+      display: inline-flex; align-items: center; gap: 0.5rem;
+      padding: 10px 16px;
+      background: var(--gold); color: var(--ink);
+      border: 1px solid var(--gold); border-radius: 0;
+      font-family: var(--font-ui); font-weight: 500; font-size: 14px;
+      cursor: pointer;
+    }
+    .resume-cta:hover { background: color-mix(in oklab, var(--gold), black 12%); }
+
+    /* ── Stat / graph card chrome (matches HomeView) ──────────── */
+    .gcard-h {
+      margin: 0 0 16px;
+      font-family: var(--font-mono);
+      font-size: 10px; letter-spacing: 0.16em; text-transform: uppercase;
+      color: var(--muted);
+      display: flex; align-items: center; gap: 9px;
+    }
+    .gcard-h::after { content: ""; flex: 1; height: 1px; background: var(--border); }
+    .gcard-h .tag {
+      font-family: var(--font-ui); letter-spacing: 0; text-transform: none;
+      font-size: 10px; color: var(--accent);
+      background: var(--accent-soft);
+      border-radius: 0; padding: 2px 9px;
+    }
+    .gstat {
+      font-family: var(--font-serif); font-size: 40px; font-weight: 500;
+      line-height: 1; letter-spacing: -0.01em;
+    }
+    .gstat small {
+      font-family: var(--font-mono); font-size: 11px; color: var(--muted);
+      letter-spacing: 0.05em; margin-left: 6px;
+    }
+    .gkv {
+      display: grid; grid-template-columns: auto 1fr; gap: 7px 16px;
+      margin-top: 16px; font-size: 12.5px;
+    }
+    .gkv .k { color: var(--muted); }
+    .gkv .v {
+      text-align: right; font-family: var(--font-mono); font-size: 12px;
+      font-variant-numeric: tabular-nums;
+    }
+
+    /* Activity ticks — were rounded; now flat blocks. */
+    .gticks {
+      display: flex; gap: 4px; align-items: flex-end;
+      height: 40px; margin-top: 16px;
+    }
+    .gticks i {
+      flex: 1; border-radius: 0; background: var(--surface-3); height: 40%;
+    }
+    .gticks i.on {
+      background: linear-gradient(180deg, var(--accent), var(--accent-ink));
+      height: 100%;
+    }
+    .gticks-cap {
+      margin-top: 8px; font-family: var(--font-mono);
+      font-size: 10.5px; color: var(--muted);
+    }
+    .gtoday-foot {
+      margin-top: 14px; padding-top: 12px;
+      border-top: 1px solid var(--border-soft); display: flex;
+    }
+    .ghost-btn {
+      font-family: var(--font-ui); font-size: 12px;
+      color: var(--ink-2); padding: 4px 10px;
+      border: 1px solid transparent; border-radius: 0; background: transparent;
+      display: inline-flex; align-items: center; gap: 5px;
+    }
+    .ghost-btn:hover { color: var(--accent); background: var(--surface-3); }
+
+    /* Sparkline */
+    .gspark { width: 100%; height: 62px; display: block; }
+
+    /* Cadence DoW bars — were 4px/2px rounded tops; now sharp blocks. */
+    .gdow-bars {
+      display: flex; align-items: flex-end; gap: 7px; height: 74px;
+    }
+    .gdow-bar {
+      flex: 1; border-radius: 0; background: var(--surface-3); min-height: 3px;
+    }
+    .gdow-bar.peak {
+      background: linear-gradient(180deg, var(--gold), color-mix(in oklab, var(--gold), black 28%));
+    }
+    .gdow-lbls { display: flex; gap: 7px; margin-top: 6px; }
+    .gdow-lbls .lbl {
+      flex: 1; text-align: center; font-family: var(--font-mono);
+      font-size: 9.5px; color: var(--muted);
+    }
+
+    /* Narrative strands — round 50% dots → squares; pill tracks → flat. */
+    .gthreads { display: flex; flex-direction: column; }
+    .gthread {
+      display: grid; grid-template-columns: 160px 1fr 52px;
+      align-items: center; gap: 16px; padding: 9px 0;
+    }
+    .gthread + .gthread { border-top: 1px solid var(--border-soft); }
+    .gthread .nm {
+      display: flex; align-items: center; gap: 9px;
+      font-size: 13px; color: var(--ink); min-width: 0; padding-left: 3px;
+    }
+    .gthread .nm .dot {
+      width: 9px; height: 9px; border-radius: 0;
+      flex-shrink: 0;
+      box-shadow: 0 0 0 3px color-mix(in oklab, currentColor 18%, transparent);
+    }
+    .gthread .nm-label {
+      min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+    }
+    .gthread .track {
+      height: 6px; border-radius: 0;
+      background: var(--surface-3); overflow: hidden;
+    }
+    .gthread .fill { display: block; height: 100%; border-radius: 0; }
+    .gthread .ct {
+      text-align: right; font-family: var(--font-mono);
+      font-size: 11px; color: var(--muted);
+    }
+
+    /* Audit note at the bottom */
+    .audit-note {
+      grid-column: 1 / -1;
+      margin-top: 8px; padding: 14px 18px;
+      border: 1px dashed var(--border-strong); border-radius: 0;
+      background: var(--surface-2);
+      font-family: var(--font-mono); font-size: 11px;
+      letter-spacing: 0.14em; text-transform: uppercase; color: var(--muted);
+    }
+    .audit-note b { color: var(--ink-2); }
+  </style>
+</head>
+<body>
+  <div class="mock-chrome">
+    <a class="back" href="index.html">← mockups</a>
+    <span class="badge">Home · square-corner variant</span>
+    <button class="theme-btn" type="button" data-theme-toggle aria-label="Toggle theme"><span class="sw"></span></button>
+  </div>
+
+  <div class="app">
+    <aside class="sidebar">
+      <div class="side-brand"><span class="mark">J</span><span><em>JustWrite</em></span></div>
+      <div class="side-section">Manuscript</div>
+      <div class="side-link active"><span class="ic"></span>Home</div>
+      <div class="side-link"><span class="ic"></span>Architecture</div>
+      <div class="side-link"><span class="ic"></span>Premise</div>
+      <div class="side-link"><span class="ic"></span>Setting</div>
+      <div class="side-link"><span class="ic"></span>Chapters</div>
+      <div class="side-section">Story world</div>
+      <div class="side-link"><span class="ic"></span>Characters</div>
+      <div class="side-link"><span class="ic"></span>Locations</div>
+      <div class="side-link"><span class="ic"></span>Objects</div>
+      <div class="side-section">Tools</div>
+      <div class="side-link"><span class="ic"></span>Plot board</div>
+      <div class="side-link"><span class="ic"></span>Audio Studio</div>
+      <div class="side-link"><span class="ic"></span>Analysis</div>
+    </aside>
+
+    <main class="pane">
+      <header class="pane-head">
+        <nav class="breadcrumb">
+          <span class="home-pane-eyebrow">Manuscript</span>
+          <input class="home-pane-h1-input" value="The Cartographer's Daughter" />
+        </nav>
+        <div class="pane-actions">
+          <button class="ctl">Today</button>
+          <button class="ctl">Import manuscript</button>
+          <button class="ctl primary">Quick write</button>
+        </div>
+      </header>
+
+      <div class="pane-body">
+        <div class="home-grid">
+
+          <!-- Hero -->
+          <section class="card hero-card full">
+            <div class="hero-main">
+              <div class="hero-text">
+                <div class="t-eyebrow">Literary fiction</div>
+                <div class="hero-sub">A novel of charts, salt, and inheritance.</div>
+                <p class="hero-premise">
+                  Iris, a cartographer's daughter, finds a folio at low tide that names a brother she
+                  has not seen in seven years. Set in a coastal town where the sea and the ledger
+                  keep their own kind of memory.
+                </p>
+              </div>
+              <div class="goal-ring">
+                <div class="ring-disc">
+                  <svg width="168" height="168" viewBox="0 0 168 168">
+                    <circle cx="84" cy="84" r="74" fill="none" stroke="var(--surface-3)" stroke-width="11"/>
+                    <!-- linecap=butt squares the progress terminator -->
+                    <circle cx="84" cy="84" r="74" fill="none" stroke="var(--accent)" stroke-width="11"
+                            stroke-linecap="butt"
+                            stroke-dasharray="464.96" stroke-dashoffset="264.96"/>
+                    <circle cx="84" cy="84" r="74" fill="none" stroke="var(--gold)" stroke-width="3"
+                            opacity="0.5" stroke-dasharray="2 8"/>
+                  </svg>
+                  <div class="ring-label">
+                    <div class="ring-pct">43%</div>
+                    <div class="ring-sub">of goal</div>
+                  </div>
+                </div>
+                <div class="ring-words"><b>38,420</b> / 90,000 words</div>
+              </div>
+            </div>
+            <div class="progress-bar">
+              <span style="width:42%; background:var(--status-done)"></span>
+              <span style="width:14%; background:var(--status-revise)"></span>
+              <span style="width:22%; background:var(--status-draft)"></span>
+            </div>
+            <div class="progress-legend">
+              <span><i style="background:var(--status-done)"></i>Done · 6</span>
+              <span><i style="background:var(--status-revise)"></i>Revise · 2</span>
+              <span><i style="background:var(--status-draft)"></i>Draft · 3</span>
+              <span><i style="background:var(--status-todo)"></i>To do · 3</span>
+              <a class="deadline-link" href="#" title="Change deadline in Project settings">Deadline 12 Dec 2026</a>
+            </div>
+          </section>
+
+          <!-- Resume -->
+          <section class="card resume-card full">
+            <div class="resume-body">
+              <div class="resume-lab">Pick up where you left off</div>
+              <h3 class="resume-h">
+                <span class="resume-part">Part I — Salt &amp; Vellum ·</span>
+                <span class="resume-ch">Chapter 7 — The Ledger</span>
+              </h3>
+              <p class="resume-quote">
+                The wood was warmer than she'd expected, and the ink had taken. She set the folio
+                down, pressed her palm flat, and waited for the page to dry — which, she would later
+                realise, was the precise moment her old life ended.
+              </p>
+              <div class="resume-sub">
+                <span><b>2,140</b> words</span>
+                <span class="dot-sep">·</span>
+                <span><b>3</b> scenes</span>
+                <span class="dot-sep">·</span>
+                <span style="color:var(--status-draft)">Draft</span>
+                <span class="dot-sep">·</span>
+                <span class="resume-today">3 days since you wrote</span>
+              </div>
+            </div>
+            <button class="resume-cta">▶ Resume writing</button>
+          </section>
+
+          <!-- Today's session -->
+          <section class="card">
+            <div class="gcard-h">Today's session <span class="tag">live</span></div>
+            <div class="gstat">0<small>words</small></div>
+            <div class="gkv">
+              <span class="k">Streak</span><span class="v">4 days</span>
+              <span class="k">This fortnight</span><span class="v">6,318</span>
+              <span class="k">Avg / day</span><span class="v">451</span>
+            </div>
+            <div class="gticks">
+              <i></i><i class="on"></i><i></i><i class="on"></i>
+              <i></i><i></i><i class="on"></i><i></i>
+              <i class="on"></i><i></i><i></i><i class="on"></i>
+              <i></i><i></i>
+            </div>
+            <div class="gticks-cap">5 of 14 days written</div>
+            <div class="gtoday-foot">
+              <button class="ghost-btn">✦ Wrap up session</button>
+            </div>
+          </section>
+
+          <!-- The fortnight -->
+          <section class="card">
+            <div class="gcard-h">The fortnight</div>
+            <svg class="gspark" viewBox="0 0 100 62" preserveAspectRatio="none">
+              <defs>
+                <linearGradient id="homeSpark" x1="0" x2="0" y1="0" y2="1">
+                  <stop offset="0" stop-color="var(--accent)" stop-opacity="0.28"/>
+                  <stop offset="1" stop-color="var(--accent)" stop-opacity="0"/>
+                </linearGradient>
+              </defs>
+              <polygon
+                points="0,62 0,46 7.7,38 15.4,40 23.1,28 30.8,22 38.5,32 46.2,18 53.9,28 61.6,12 69.3,24 77,8 84.7,22 92.4,30 100,18 100,62"
+                fill="url(#homeSpark)"/>
+              <polyline
+                points="0,46 7.7,38 15.4,40 23.1,28 30.8,22 38.5,32 46.2,18 53.9,28 61.6,12 69.3,24 77,8 84.7,22 92.4,30 100,18"
+                fill="none" stroke="var(--accent)" stroke-width="1.6" vector-effect="non-scaling-stroke"/>
+            </svg>
+            <div class="gkv">
+              <span class="k">Total</span><span class="v">6,318 words</span>
+              <span class="k">Avg / day</span><span class="v">451</span>
+              <span class="k">Peak day</span><span class="v">1,420</span>
+            </div>
+          </section>
+
+          <!-- Cadence -->
+          <section class="card">
+            <div class="gcard-h">Cadence</div>
+            <div class="gdow-bars">
+              <div class="gdow-bar" style="height:24%"></div>
+              <div class="gdow-bar peak" style="height:96%"></div>
+              <div class="gdow-bar" style="height:48%"></div>
+              <div class="gdow-bar" style="height:62%"></div>
+              <div class="gdow-bar" style="height:30%"></div>
+              <div class="gdow-bar" style="height:42%"></div>
+              <div class="gdow-bar" style="height:18%"></div>
+            </div>
+            <div class="gdow-lbls">
+              <span class="lbl">M</span><span class="lbl">T</span><span class="lbl">W</span>
+              <span class="lbl">T</span><span class="lbl">F</span><span class="lbl">S</span><span class="lbl">S</span>
+            </div>
+            <div class="gkv" style="margin-top:16px">
+              <span class="k">Best day</span><span class="v">Tuesday</span>
+              <span class="k">Most words</span><span class="v">avg 1,210</span>
+            </div>
+          </section>
+
+          <!-- Narrative strands -->
+          <section class="card full">
+            <div class="gcard-h">Narrative strands</div>
+            <div class="gthreads">
+              <div class="gthread" style="color: oklch(0.62 0.13 25)">
+                <span class="nm"><span class="dot" style="background: oklch(0.62 0.13 25)"></span><span class="nm-label">Iris's discovery</span></span>
+                <span class="track"><span class="fill" style="width:64%; background: oklch(0.62 0.13 25)"></span></span>
+                <span class="ct">9 ch</span>
+              </div>
+              <div class="gthread" style="color: oklch(0.6 0.1 200)">
+                <span class="nm"><span class="dot" style="background: oklch(0.6 0.1 200)"></span><span class="nm-label">The brother's return</span></span>
+                <span class="track"><span class="fill" style="width:28%; background: oklch(0.6 0.1 200)"></span></span>
+                <span class="ct">4 ch</span>
+              </div>
+              <div class="gthread" style="color: oklch(0.6 0.09 280)">
+                <span class="nm"><span class="dot" style="background: oklch(0.6 0.09 280)"></span><span class="nm-label">Harbour politics</span></span>
+                <span class="track"><span class="fill" style="width:48%; background: oklch(0.6 0.09 280)"></span></span>
+                <span class="ct">7 ch</span>
+              </div>
+              <div class="gthread" style="color: oklch(0.6 0.1 140)">
+                <span class="nm"><span class="dot" style="background: oklch(0.6 0.1 140)"></span><span class="nm-label">The chart itself</span></span>
+                <span class="track"><span class="fill" style="width:36%; background: oklch(0.6 0.1 140)"></span></span>
+                <span class="ct">5 ch</span>
+              </div>
+            </div>
+          </section>
+
+          <div class="audit-note">
+            Knob under test · <b>border-radius: 0</b> across cards · buttons · chips · tracks · DoW bars · status dots · sidebar links · goal-ring stroke-linecap=butt
+          </div>
+
+        </div>
+      </div>
+    </main>
+  </div>
+
+  <script>
+    const html = document.documentElement;
+    document.querySelectorAll('[data-theme-toggle]').forEach(btn => {
+      btn.addEventListener('click', () => {
+        const next = html.getAttribute('data-theme') === 'dark' ? 'light' : 'dark';
+        html.setAttribute('data-theme', next);
+        try { localStorage.setItem('jw-mock-theme', next); } catch (e) {}
+      });
+    });
+  </script>
+</body>
+</html>
