@@ -11,6 +11,14 @@ import { buildManuscript, slug } from "../services/export/manuscript.js";
 import { confirmDialog } from "../services/dialog.js";
 import JwButton from "@renderer/components/ui/JwButton.vue";
 import JwCheckbox from "@renderer/components/ui/JwCheckbox.vue";
+import JwInput from "@renderer/components/ui/JwInput.vue";
+import {
+  buildJustVoiceDoc,
+  describeJustVoiceDoc,
+  sendToJustVoice,
+  loadJustVoiceUrl,
+  saveJustVoiceUrl,
+} from "../services/export/justvoice.js";
 
 const project = useProjectStore();
 const studio = useStudioStore();
@@ -25,6 +33,7 @@ const FORMATS = [
   { id: "docx", name: "DOCX",           sub: "Word-compatible.",                       icon: "Book",       ext: "docx", mime: "application/vnd.openxmlformats-officedocument.wordprocessingml.document" },
   { id: "epub", name: "EPUB",           sub: "Reflowable e-book.",                     icon: "Book",       ext: "epub", mime: "application/epub+zip" },
   { id: "m4b",  name: "M4B audiobook",  sub: "Stitched from Audio Studio renders.",    icon: "Headphones", ext: "m4b",  mime: "audio/mp4" },
+  { id: "justvoice", name: "JustVoice", sub: "Send the cast-ready book to JustVoice.", icon: "Mic",        ext: null,   mime: null },
 ];
 
 // ── Shared state ─────────────────────────────────────────────────────
@@ -77,6 +86,7 @@ const STAGE_LABEL = {
   "composing":       "Composing document…",
   "rendering":       "Rendering pages…",
   "packing":         "Packaging archive…",
+  "sending":         "Sending to JustVoice…",
   "done":            "Done.",
 };
 function stageLabel() { return STAGE_LABEL[exportStage.value] || exportStage.value; }
@@ -109,6 +119,40 @@ async function exportManuscript(fmtId) {
     const ext = FORMATS.find((f) => f.id === fmtId)?.ext || fmtId;
     triggerDownload(blob, `${slug(project.project.title)}.${ext}`);
     ui.showToast({ message: `Exported ${fmtId.toUpperCase()}.` });
+  } catch (err) {
+    exportError.value = err.message || String(err);
+  } finally {
+    resetProgress();
+  }
+}
+
+// ── JustVoice ────────────────────────────────────────────────────────
+const jvUrl = ref(loadJustVoiceUrl());
+const jvResult = ref(null);
+// Doc stats for the pane. Guarded so the manuscript model (a DOM walk
+// over every chapter body) is only built while the JustVoice card is
+// the selected format.
+const jvStats = computed(() => {
+  if (fmt.value !== "justvoice") return null;
+  return describeJustVoiceDoc(buildJustVoiceDoc(project, studio));
+});
+
+async function exportJustVoice() {
+  exportError.value = null;
+  jvResult.value = null;
+  if (!project.allChapters.length) {
+    exportError.value = "Project has no chapters to export.";
+    return;
+  }
+  exporting.value = true;
+  exportStage.value = "composing";
+  try {
+    saveJustVoiceUrl(jvUrl.value);
+    const doc = buildJustVoiceDoc(project, studio);
+    exportStage.value = "sending";
+    const res = await sendToJustVoice({ doc, baseUrl: jvUrl.value });
+    jvResult.value = res;
+    ui.showToast({ message: `Sent "${doc.book.title}" to JustVoice.` });
   } catch (err) {
     exportError.value = err.message || String(err);
   } finally {
@@ -169,11 +213,11 @@ async function exportM4b({ partial = false } = {}) {
     <div style="max-width:920px;display:flex;flex-direction:column;gap:18px">
 
       <p class="ex-desc">
-        <strong>Export</strong> produces a finished file in one of four formats —
-        <strong>PDF</strong> (typeset with cover and TOC), <strong>DOCX</strong> (Word with a live
-        TOC), <strong>EPUB</strong> (e-book for Apple Books / Kobo / Kindle), or
-        <strong>M4B</strong> (audiobook with chapter markers). Pick a format card to see its
-        options; engines are downloaded on first use.
+        <strong>Export</strong> produces a finished file — <strong>PDF</strong> (typeset with
+        cover and TOC), <strong>DOCX</strong> (Word with a live TOC), <strong>EPUB</strong>
+        (e-book for Apple Books / Kobo / Kindle), <strong>M4B</strong> (audiobook with chapter
+        markers) — or sends the whole cast-ready book to <strong>JustVoice</strong> for studio
+        rendering. Pick a format card to see its options; engines are downloaded on first use.
       </p>
 
       <!-- Format picker -->
@@ -274,6 +318,67 @@ async function exportM4b({ partial = false } = {}) {
         </div>
       </template>
 
+      <!-- JustVoice handoff ─────────────────────────────────────────── -->
+      <template v-else-if="fmt === 'justvoice'">
+        <div class="card">
+          <div class="card-title">JustVoice server</div>
+          <p class="t-muted" style="font-size:12.5px;margin:0 0 14px;line-height:1.55">
+            JustVoice is the companion voice-production studio. Sending hands over the whole
+            book — chapters, lines with the speaker attribution from
+            <router-link to="/studio/script" style="color:var(--accent-ink);font-weight:600">Audio Studio → Script</router-link>
+            where you've analyzed it, and the character roster as cast-ready personas.
+            Chapters without a script travel as narrator prose.
+          </p>
+          <div style="display:flex;gap:10px;align-items:center;flex-wrap:wrap">
+            <span class="t-muted" style="font-size:12px">Server URL</span>
+            <JwInput v-model="jvUrl" style="max-width:280px" placeholder="http://127.0.0.1:17494" />
+          </div>
+          <div v-if="jvStats" class="manuscript-stats" style="display:grid;gap:14px;padding:14px;background:var(--surface-2);border-radius:8px;font-size:13px;margin-top:14px;grid-template-columns:repeat(4,minmax(0,1fr))">
+            <div>
+              <div class="t-muted" style="font-size:11px">Chapters</div>
+              <b class="t-num" style="font-size:18px;font-family:var(--font-serif)">{{ jvStats.chapters }}</b>
+            </div>
+            <div>
+              <div class="t-muted" style="font-size:11px">Lines</div>
+              <b class="t-num" style="font-size:18px;font-family:var(--font-serif)">{{ jvStats.lines.toLocaleString() }}</b>
+            </div>
+            <div>
+              <div class="t-muted" style="font-size:11px">Attributed</div>
+              <b class="t-num" style="font-size:18px;font-family:var(--font-serif)">{{ jvStats.attributed.toLocaleString() }}</b>
+            </div>
+            <div>
+              <div class="t-muted" style="font-size:11px">Characters</div>
+              <b class="t-num" style="font-size:18px;font-family:var(--font-serif)">{{ jvStats.characters }}</b>
+            </div>
+          </div>
+        </div>
+
+        <div class="card">
+          <div class="card-title">Send</div>
+          <div style="font-size:12.5px;color:var(--ink-2);margin-bottom:14px;line-height:1.55">
+            JustVoice creates the project with one persona per character — open its Studio
+            to cast voices and render. Re-sending creates a new project there.
+          </div>
+          <div style="display:flex;gap:10px;align-items:center">
+            <JwButton intent="primary" :disabled="exporting || manuscriptStats.chapters === 0"
+              v-tooltip.bottom="manuscriptStats.chapters === 0 ? 'Add a chapter first' : 'POST the book to the JustVoice server'"
+              @click="exportJustVoice()">
+              <Icon name="Mic" :size="13" /> Send to JustVoice
+            </JwButton>
+            <span class="t-muted" style="font-size:11.5px">
+              <template v-if="manuscriptStats.chapters === 0">No chapters yet</template>
+              <template v-else>Targets <code>{{ jvUrl || 'http://127.0.0.1:17494' }}</code></template>
+            </span>
+          </div>
+          <div v-if="jvResult" style="margin-top:14px;padding:12px;background:var(--accent-soft);border:1px solid var(--accent-line);border-radius:8px;font-size:13px">
+            <div><b>Sent.</b> JustVoice project <code>{{ jvResult.project_id }}</code> created.</div>
+            <div v-if="jvResult.warnings?.length" class="t-muted" style="font-size:11.5px;margin-top:6px">
+              {{ jvResult.warnings.join(" · ") }}
+            </div>
+          </div>
+        </div>
+      </template>
+
       <!-- PDF / DOCX / EPUB ─────────────────────────────────────────── -->
       <template v-else>
         <div class="card">
@@ -341,7 +446,7 @@ async function exportM4b({ partial = false } = {}) {
 }
 .ex-desc strong { color: var(--ink-2); font-weight: 600; }
 
-.format-picker { grid-template-columns: repeat(4, minmax(0, 1fr)); }
+.format-picker { grid-template-columns: repeat(5, minmax(0, 1fr)); }
 .manuscript-stats { grid-template-columns: repeat(3, minmax(0, 1fr)); }
 
 @media (max-width: 900px) {
