@@ -488,6 +488,18 @@ export const WORLDBUILDING = [
 
 export const DEFAULT_PROVIDERS = [
   {
+    // Built-in llama.cpp runner (just-llm-runner) — the recommended local
+    // default. JustWrite spawns it as a bundled sidecar: no external install,
+    // no API key. chatModel is blank — the runner loads a GGUF and
+    // llama-server accepts any model id (hit "Fetch models"). See the runner
+    // plan in the JustVoice repo (docs/plans/2026-06-16-builtin-llm-runner.md).
+    id: "local-llamacpp", name: "Built-in (llama.cpp)", kind: "llm",
+    runner: "llamacpp",
+    baseUrl: "http://127.0.0.1:8080/v1",
+    chatModel: "",
+    builtIn: true,
+  },
+  {
     // Generic OpenAI-shaped local LLM (Ollama, LM Studio, llama.cpp, …).
     // chatModel is left blank because every server uses its own ids
     // (e.g. "llama3.1:8b" on Ollama, "auto-detected/path/to.gguf" on
