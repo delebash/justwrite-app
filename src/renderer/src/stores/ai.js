@@ -54,8 +54,13 @@ const MODEL_PRICING = {
   "gpt-4.1":            { in: 2.00,  out: 8.00 },
   "gpt-4.1-mini":       { in: 0.40,  out: 1.60 },
   // Anthropic Claude (cloud — these run through openai-compat shims like
-  // OpenRouter but the bare model id is what surfaces in usage rows)
-  "claude-opus-4-7":    { in: 15.00, out: 75.00 },
+  // OpenRouter but the bare model id is what surfaces in usage rows).
+  // Prices USD per 1M tokens (input / output), verified via the claude-api
+  // reference 2026-06-16. (claude-opus-4-7 was previously wrong at 15/75 —
+  // that's old Opus-3-era pricing; the 4.x Opus tier is 5/25.)
+  "claude-fable-5":     { in: 10.00, out: 50.00 },
+  "claude-opus-4-8":    { in: 5.00,  out: 25.00 },
+  "claude-opus-4-7":    { in: 5.00,  out: 25.00 },
   "claude-sonnet-4-6":  { in: 3.00,  out: 15.00 },
   "claude-haiku-4-5":   { in: 1.00,  out: 5.00 },
   // Google Gemini
