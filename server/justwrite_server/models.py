@@ -464,3 +464,40 @@ class LlmProvider(Base):
     built_in = Column(Boolean, nullable=False, default=False)
     position = Column(Integer, nullable=False, default=0)
     data = Column(Text, nullable=False, default="{}")  # the full provider object
+
+
+# ── Sessions (writing-activity log) ─────────────────────────────────────
+
+
+class SessionDay(Base):
+    """One calendar day's total words written, across all projects — the daily
+    word-count log behind Home / Analysis. Global (per install), not project
+    scoped. A real table replaces the old `justwrite:sessions` kv blob, so the
+    full history is kept (the prior 400-day cap + monthly archive existed only
+    to bound a blob and are gone)."""
+
+    __tablename__ = "sessions"
+
+    day = Column(String, primary_key=True)  # yyyy-mm-dd in the client's local time
+    words = Column(Integer, nullable=False, default=0)
+
+
+class SessionChapterWord(Base):
+    """The last word count already attributed for a chapter — the checkpoint
+    `recordChapterWords` diffs against so a re-count never double-attributes."""
+
+    __tablename__ = "session_chapter_words"
+
+    chapter_id = Column(String, primary_key=True)
+    words = Column(Integer, nullable=False, default=0)
+
+
+class SessionMeta(Base):
+    """Singleton row: the chapter + day that last received a positive delta,
+    driving Home's 'jump to today's chapter'."""
+
+    __tablename__ = "session_meta"
+
+    id = Column(String, primary_key=True, default="singleton")
+    last_write_chapter = Column(String, nullable=True)
+    last_write_day = Column(String, nullable=True)

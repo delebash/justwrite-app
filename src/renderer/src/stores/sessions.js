@@ -1,46 +1,22 @@
 // ============================================================
-// sessions.js — daily word-count tracker.
+// sessions.js — daily word-count tracker, server-backed (/v1/sessions).
 //
-// Each time a chapter's word total changes, we attribute the
-// positive delta to *today*. We keep DAILY granularity for the
-// last MAX_DAYS days; anything older gets rolled into a monthly
-// archive so the store never grows without bound.
+// Hydrates from the server at boot (await boot() before mount), so the
+// synchronous getters have data and the per-chapter checkpoints are loaded
+// before the first edit can attribute a delta. Each chapter word-count change
+// attributes the positive delta to *today*; the server owns the authoritative
+// delta (diffs its stored checkpoint), so a debounced POST of only the latest
+// count per chapter can't double-count.
 //
-// State shape:
-//   days:    { 'yyyy-mm-dd': words }     // ≤ MAX_DAYS entries
-//   months:  { 'yyyy-mm':    { words, days } }  // archive
-//   lastSeen:{ chapterId: lastKnownWordCount }
-//
-// `months[k].days` is the count of distinct writing days in that
-// month (so all-time stats can still compute averages). Daily
-// detail older than the cap is lost — by design; a writing app
-// doesn't need it.
+// State:
+//   days:        { 'yyyy-mm-dd': words }   // full history (a real table now)
+//   chapterWords:{ chapterId: lastCount }  // delta checkpoints
+//   lastWrite:   { chapterId, day } | null // today's chapter pointer
 // ============================================================
 
 import { defineStore } from "pinia";
-import { getItem, setItem } from "../services/storage.js";
 
-const LS_KEY = "justwrite:sessions";
-
-// Number of days of full-resolution history we keep. ~13 months covers
-// every "trailing year" chart someone might reasonably want; anything
-// older is collapsed into the monthly archive.
-const MAX_DAYS = 400;
-
-function load() {
-  try { return JSON.parse(getItem(LS_KEY) || "null"); }
-  catch { return null; }
-}
-function save(state) {
-  try {
-    setItem(LS_KEY, JSON.stringify({
-      days: state.days,
-      months: state.months,
-      lastSeen: state.lastSeen,
-      lastWrite: state.lastWrite,
-    }));
-  } catch {}
-}
+import { clearSessions, getSessions, recordSession } from "../services/sessionsApi.js";
 
 // yyyy-mm-dd in local time so "today" matches the user's clock, not UTC.
 function todayKey(d = new Date()) {
@@ -49,33 +25,37 @@ function todayKey(d = new Date()) {
   const day = String(d.getDate()).padStart(2, "0");
   return `${y}-${m}-${day}`;
 }
-function monthKeyOf(dayKey) {
-  return dayKey.slice(0, 7);
-}
 function dayKeyOffset(offsetDays) {
   const d = new Date();
   d.setDate(d.getDate() + offsetDays);
   return todayKey(d);
 }
 
-// True if `key` (yyyy-mm-dd) is strictly older than `cutoff` (also yyyy-mm-dd).
-// String comparison works because the format is lexicographically ordered.
-function isOlderThan(key, cutoff) {
-  return key < cutoff;
+// Debounced flush of the latest word count per chapter. The server computes
+// the delta from its checkpoint, so sending only the most recent count (not
+// every keystroke's delta) is correct and collapses a typing burst into one PUT.
+const _pending = new Map(); // chapterId -> { words, day }
+const _timers = new Map();
+const FLUSH_MS = 400;
+
+function _scheduleFlush(chapterId) {
+  if (_timers.has(chapterId)) clearTimeout(_timers.get(chapterId));
+  _timers.set(chapterId, setTimeout(() => {
+    _timers.delete(chapterId);
+    const p = _pending.get(chapterId);
+    _pending.delete(chapterId);
+    if (p) recordSession({ chapterId, words: p.words, day: p.day });
+  }, FLUSH_MS));
 }
 
 export const useSessionsStore = defineStore("sessions", {
-  state: () => {
-    const loaded = load() || {};
-    return {
-      days: loaded.days || {},
-      months: loaded.months || {},
-      lastSeen: loaded.lastSeen || {},
-      // { chapterId, day } — the chapter that last received a positive
-      // word delta, and the day it happened. Drives Home's "Today" jump.
-      lastWrite: loaded.lastWrite || null,
-    };
-  },
+  state: () => ({
+    days: {},
+    chapterWords: {},
+    // { chapterId, day } — the chapter that last received a positive delta.
+    lastWrite: null,
+    _booted: false,
+  }),
 
   getters: {
     todayWords: (s) => s.days[todayKey()] || 0,
@@ -84,116 +64,76 @@ export const useSessionsStore = defineStore("sessions", {
     todayChapterId: (s) =>
       s.lastWrite && s.lastWrite.day === todayKey() ? s.lastWrite.chapterId : null,
 
-    // Longest consecutive day-streak with non-zero words, ending today
-    // (today counts if it has any words, otherwise we start from
-    // yesterday so the streak isn't lost mid-day). Bounded by MAX_DAYS
-    // since older detail is no longer in `days`.
+    // Longest consecutive day-streak with non-zero words, ending today (today
+    // counts if it has any words; otherwise we start from yesterday so the
+    // streak isn't lost mid-day).
     streak: (s) => {
       let n = 0;
       const includeToday = (s.days[todayKey()] || 0) > 0;
       let cursor = includeToday ? 0 : -1;
-      while (true) {
-        const key = dayKeyOffset(cursor);
-        if ((s.days[key] || 0) > 0) { n++; cursor--; }
-        else break;
-        if (n >= MAX_DAYS) break;
-      }
+      while ((s.days[dayKeyOffset(cursor)] || 0) > 0) { n++; cursor--; }
       return n;
     },
 
-    /**
-     * All-time totals across both daily entries and the monthly archive.
-     * Lets dashboards show a real "since you started" figure without
-     * keeping every individual day forever.
-     */
+    // All-time totals across the full daily history (a real table holds every
+    // day now, so no monthly archive is needed).
     allTimeTotals: (s) => {
       let totalWords = 0;
       let writingDays = 0;
       for (const w of Object.values(s.days)) {
         if (w > 0) { totalWords += w; writingDays++; }
       }
-      for (const m of Object.values(s.months || {})) {
-        totalWords += m.words || 0;
-        writingDays += m.days || 0;
-      }
       return { totalWords, writingDays };
     },
   },
 
   actions: {
+    /** Hydrate from the server. MUST be awaited before mounting Vue. */
+    async boot() {
+      if (this._booted) return;
+      try {
+        const data = await getSessions();
+        this.days = data.days || {};
+        this.chapterWords = data.chapterWords || {};
+        this.lastWrite = data.lastWrite || null;
+      } catch (err) {
+        console.error("sessions.boot failed:", err);
+      }
+      this._booted = true;
+    },
+
     /**
-     * Note a chapter's new word count. Records the positive delta vs
-     * the last-known count as today's session contribution. Negative
-     * deltas (deletions) are NOT subtracted — that would let a user
-     * trash a chapter and lose their visible progress.
+     * Note a chapter's new word count. Attributes the positive delta vs the
+     * last-known count to today (optimistically, for instant getters); the
+     * server re-derives the same delta authoritatively on flush. Negative
+     * deltas (deletions) are NOT subtracted.
      */
     recordChapterWords(chapterId, words) {
-      const prev = this.lastSeen[chapterId] || 0;
+      const prev = this.chapterWords[chapterId] || 0;
       const delta = Math.max(0, words - prev);
-      this.lastSeen = { ...this.lastSeen, [chapterId]: words };
+      this.chapterWords = { ...this.chapterWords, [chapterId]: words };
       if (delta > 0) {
         const key = todayKey();
         this.days = { ...this.days, [key]: (this.days[key] || 0) + delta };
         this.lastWrite = { chapterId, day: key };
       }
-      // Lazy maintenance — runs in O(days_to_archive) which is 0 on
-      // every call except the first one of a new day.
-      this._archiveOldDays();
-      save(this.$state);
+      _pending.set(chapterId, { words, day: todayKey() });
+      _scheduleFlush(chapterId);
     },
 
     /**
-     * Roll any daily entries older than MAX_DAYS into monthly buckets.
-     * Idempotent — running it on already-archived state is a no-op.
-     * Safe to call frequently.
-     */
-    _archiveOldDays() {
-      const cutoff = dayKeyOffset(-MAX_DAYS);
-      let mutated = false;
-      const days = { ...this.days };
-      const months = { ...this.months };
-      for (const [key, w] of Object.entries(days)) {
-        if (!isOlderThan(key, cutoff)) continue;
-        if (w > 0) {
-          const mk = monthKeyOf(key);
-          const cur = months[mk] || { words: 0, days: 0 };
-          months[mk] = { words: cur.words + w, days: cur.days + 1 };
-        }
-        delete days[key];
-        mutated = true;
-      }
-      if (mutated) {
-        this.days = days;
-        this.months = months;
-      }
-    },
-
-    /**
-     * Return the last `n` days oldest-first, padded with zeros so the
-     * length is always `n`. Item shape: { date, words, dow: 0..6 }.
-     * If `n > MAX_DAYS` it's clamped — the daily archive doesn't go
-     * back any further.
+     * Last `n` days oldest-first, padded with zeros so length is always `n`.
+     * Item shape: { date, words, dow: 0..6 }.
      */
     historyFor(n = 14) {
-      const capped = Math.min(n, MAX_DAYS);
       const out = [];
-      for (let i = capped - 1; i >= 0; i--) {
+      for (let i = n - 1; i >= 0; i--) {
         const date = new Date();
         date.setDate(date.getDate() - i);
         const key = todayKey(date);
         out.push({ date: key, words: this.days[key] || 0, dow: date.getDay() });
       }
       return out;
-    },
-
-    /**
-     * Monthly archive as a sorted list — oldest first. Useful for any
-     * future "all-time by month" chart.
-     */
-    archiveMonths() {
-      return Object.entries(this.months || {})
-        .map(([key, v]) => ({ key, ...v }))
-        .sort((a, b) => a.key.localeCompare(b.key));
     },
 
     /** Average words per weekday across all recorded daily entries. */
@@ -206,7 +146,7 @@ export const useSessionsStore = defineStore("sessions", {
         sums[dow] += w;
         counts[dow]++;
       }
-      return sums.map((s, i) => counts[i] ? Math.round(s / counts[i]) : 0);
+      return sums.map((s, i) => (counts[i] ? Math.round(s / counts[i]) : 0));
     },
 
     /** Aggregate stats over the last `n` days. */
@@ -214,28 +154,24 @@ export const useSessionsStore = defineStore("sessions", {
       const series = this.historyFor(n);
       const total = series.reduce((a, b) => a + b.words, 0);
       const peak = series.reduce((m, b) => Math.max(m, b.words), 0);
-      return {
-        total, peak,
-        avg: series.length ? Math.round(total / series.length) : 0,
-      };
+      return { total, peak, avg: series.length ? Math.round(total / series.length) : 0 };
     },
 
-    /** Wipe the session log (settings → reset). */
-    reset() {
+    /** Wipe the session log (Settings → reset). */
+    async reset() {
+      for (const t of _timers.values()) clearTimeout(t);
+      _timers.clear();
+      _pending.clear();
       this.days = {};
-      this.months = {};
-      this.lastSeen = {};
+      this.chapterWords = {};
       this.lastWrite = null;
-      save(this.$state);
+      await clearSessions();
     },
   },
 });
 
-// Convert the canonical dayKey ordering to "M T W T F S S" with Monday
-// first — handy for the day-of-week chart.
+// "M T W T F S S" with Monday first — for the day-of-week chart.
 export const DOW_LABELS_MONDAY_FIRST = ["M", "T", "W", "T", "F", "S", "S"];
 export function reorderForMonday(sundayFirst) {
   return [...sundayFirst.slice(1), sundayFirst[0]];
 }
-
-export const SESSIONS_MAX_DAYS = MAX_DAYS;

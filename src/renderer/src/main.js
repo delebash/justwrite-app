@@ -15,6 +15,7 @@ import App from "./App.vue";
 import router from "./router/index.js";
 import { bootStorage, getItem } from "./services/storage.js";
 import { hydrateProjects, useProjectStore } from "./stores/project.js";
+import { useSessionsStore } from "./stores/sessions.js";
 import { bootProviders } from "./services/providerBackend.js";
 
 import "./assets/styles/tokens.css";
@@ -50,6 +51,12 @@ import { startAutoRebuildWatcher } from "./services/rag/autoIndex.js";
   app.use(router);
   app.use(i18n);
   app.directive("tooltip", tooltipDirective);
+
+  // The sessions store hydrates from the server (/v1/sessions) before mount, so
+  // its synchronous getters have data and the per-chapter word checkpoints are
+  // loaded before the first edit can attribute a delta.
+  await useSessionsStore(pinia).boot();
+
   app.mount("#app");
 
   // Dev-only test seam: expose the project store so the headless harness can
