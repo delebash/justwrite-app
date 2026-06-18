@@ -110,7 +110,14 @@ Full remaining queue to reach **zero kv**:
   opens (not at boot — most sessions never view it), records via local-append +
   fire-and-forget POST, clears via DELETE. This removed the last `storage.js`
   import from `ai.js`.
-- **version history**: `justwrite:versions` → its own project-scoped table.
+- **version history** ✓ (slice 7): `justwrite:versions` → `chapter_versions`
+  table + `/v1/versions` (GET a project's versions grouped by chapter; PUT a
+  chapter's list wholesale — same replace-all shape as chat). project_id FK
+  cascades on book delete. `services/versionsApi.js`; the store hydrates per
+  project lazily (shared in-flight promise so concurrent ops can't race an empty
+  list), and the VersionHistoryModal calls `ensureLoaded()` on open. Save/delete/
+  restore-undo became async (await ensureLoaded) so a command-palette save
+  without the modal open can't wipe a chapter's existing versions.
 - **model-list cache**: `justwrite:modelList` → drop persistence (re-fetchable
   cache; keep in memory only) — not worth a table.
 - **autosave/backup timestamps**: `justwrite:lastBackupAt` / `lastAutosaveAt` →

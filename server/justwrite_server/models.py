@@ -466,6 +466,29 @@ class ChatMessage(Base):
     error = Column(Text, nullable=True)
 
 
+# ── Chapter version history ─────────────────────────────────────────────
+
+
+class ChapterVersion(Base):
+    """A named, restorable snapshot of one chapter's scenes — the per-chapter
+    version history (separate from undo). Replaces the renderer's
+    `justwrite:versions` kv blob. `scenes` is a JSON snapshot of the chapter's
+    prose (a version artifact, not live queryable data — like a trash payload).
+    project_id FKs projects so deleting a book cascades its versions away;
+    `position` orders newest-first within a chapter."""
+
+    __tablename__ = "chapter_versions"
+
+    project_id = _fk_project()
+    chapter_id = Column(String, primary_key=True)
+    id = Column(String, primary_key=True)                  # version id
+    position = Column(Integer, nullable=False, default=0)  # 0 = newest
+    saved_at = Column(String, nullable=False, default="")
+    label = Column(String, nullable=False, default="")
+    words = Column(Integer, nullable=False, default=0)
+    scenes = Column(Text, nullable=False, default="[]")    # JSON [{id,title,body}]
+
+
 # ── Images (P4) ─────────────────────────────────────────────────────────
 
 

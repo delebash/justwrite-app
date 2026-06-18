@@ -32,6 +32,9 @@ const ui = useUiStore();
 
 const label = ref("");
 const list = computed(() => versions.versionsFor(props.chapterId));
+// Versions are hydrated per project on demand — pull them in when the modal
+// opens so the roster reflects the server's saved snapshots, not an empty list.
+versions.ensureLoaded();
 
 // Modes:
 //   "list" — default roster

@@ -31,6 +31,7 @@ from .api import (
     rag,
     sessions,
     settings,
+    versions,
 )
 from .app_state import AppState, set_state
 from .database import init_db
@@ -60,6 +61,7 @@ def create_app(data_dir: Path | None = None) -> FastAPI:
     app.include_router(sessions.router)
     app.include_router(chat.router)
     app.include_router(settings.router)
+    app.include_router(versions.router)
     app.include_router(rag.router)
     app.include_router(images.router)
     app.include_router(llm_providers.router)
