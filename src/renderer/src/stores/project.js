@@ -30,13 +30,13 @@ import {
 //   projects table (/v1/projects) — book snapshots; the registry is DERIVED
 //                                   from this list (no separate index)
 //   settings.activeProjectId      — id of the currently loaded project
-//   justwrite:project:history     — undo tail (kept global; cleared on switch)
 //   justwrite:project             — LEGACY single-project key, migrated on first load
 //   justwrite:projects:active     — LEGACY active pointer; read once to migrate
 //                                   into settings, then ignored
+// Undo/redo is in-memory only (not persisted across reloads); durable rollback
+// is the per-chapter version history (stores/versions.js).
 const LS_LEGACY_KEY    = "justwrite:project";
 const LS_ACTIVE_KEY    = "justwrite:projects:active";  // legacy; migration read only
-const LS_HISTORY_KEY   = "justwrite:project:history";
 
 const uid = (p) => `${p}_${Date.now().toString(36)}_${Math.random().toString(36).slice(2, 6)}`;
 
@@ -75,11 +75,6 @@ export async function hydrateProjects() {
   }
 }
 
-function loadHistory() {
-  const v = loadJSON(LS_HISTORY_KEY);
-  return Array.isArray(v) ? v : [];
-}
-function saveHistory(tail) { saveJSON(LS_HISTORY_KEY, tail); }
 
 // ── Workspace bundling ────────────────────────────────────────────
 // The autosave file (and the manual "Export backup…" path) contain the
@@ -241,14 +236,11 @@ function getBoot() {
 
   // Chapters now contain scenes instead of a single body. Migrate every
   // existing `chapterBody[id] = html` into a one-scene record so the user's
-  // prose is preserved exactly; clear the old chapterBody and the persisted
-  // history tail (old snapshots referenced the dead field).
+  // prose is preserved exactly; clear the old chapterBody.
   // Gate on boot.snapshot — on a fresh install there is nothing to migrate
   // AND running the migration would set scenes to {}, which would then beat
   // the SCENES seed in the state factory below.
-  let scenesMigrationRan = false;
   if (boot.snapshot && (!loaded.scenes || typeof loaded.scenes !== "object")) {
-    scenesMigrationRan = true;
     loaded.scenes = {};
     const oldBody = (loaded.chapterBody && typeof loaded.chapterBody === "object") ? loaded.chapterBody : {};
     for (const [chId, html] of Object.entries(oldBody)) {
@@ -266,7 +258,7 @@ function getBoot() {
     delete loaded.chapterBody;
   }
 
-  _bootCache = { boot, loaded, scenesMigrationRan };
+  _bootCache = { boot, loaded };
   return _bootCache;
 }
 
@@ -339,11 +331,8 @@ export const TRASH_KINDS = Object.keys(EMPTY_TRASH);
 // the relevant slices onto `past`. Undo pops the latest, replaces the
 // current state with it, and pushes what was current onto `future`.
 //
-// In-memory we keep up to HISTORY_LIMIT snapshots. On disk we keep at
-// most PERSIST_TAIL_SIZE so a recently-closed app can still recover
-// the last few changes without bloating the persisted snapshot. The
-// persist is debounced — a typing session writes once after the user
-// pauses, not on every keystroke.
+// In-memory we keep up to HISTORY_LIMIT snapshots. Undo/redo is NOT persisted
+// across reloads — durable rollback is the per-chapter version history.
 //
 // Keystroke-grain edits coalesce into one snapshot per ~600ms quiescent
 // window (see COALESCED_ACTIONS), so HISTORY_LIMIT roughly maps to
@@ -353,8 +342,6 @@ export const TRASH_KINDS = Object.keys(EMPTY_TRASH);
 // by the project size × HISTORY_LIMIT, so very large projects (200k+
 // words) may want to tune down if RAM becomes a constraint.
 const HISTORY_LIMIT = 1000;
-const PERSIST_TAIL_SIZE = 50;
-const PERSIST_DEBOUNCE_MS = 1500;
 const HISTORY_SLICES = [
   "project", "parts", "scenes",
   "characters", "characterExtras",
@@ -390,9 +377,6 @@ const COALESCED_ACTIONS = new Set([
 
 let lastHistoryAt = 0;
 let lastHistoryAction = null;
-// Debounce handle for history persistence — module-scoped so it
-// survives across action invocations on the same store instance.
-let historyPersistTimer = null;
 
 // User-definable status palette (project-wide, shared by every section
 // that shows status). Seeded with the ids existing entities already use
@@ -412,7 +396,7 @@ const DEFAULT_STATUSES = [
 export const useProjectStore = defineStore("project", {
   state: () => {
     // Lazy bootstrap — see getBoot() for why this can't run at module load.
-    const { boot, loaded, scenesMigrationRan } = getBoot();
+    const { boot, loaded } = getBoot();
     return ({
     project:    { ...PROJECT, ...(loaded.project || {}) },
     strands:  loaded.strands  || [...STRANDS],
@@ -507,14 +491,10 @@ export const useProjectStore = defineStore("project", {
     _activeId: boot.activeId,
     _projects: boot.registry,
 
-    // History — `_past` is hydrated from disk so undo survives reload
-    // (up to PERSIST_TAIL_SIZE entries). `_future` is never persisted:
-    // every edit invalidates it anyway, so there's nothing useful to
-    // restore. `markRaw` keeps Vue from making the snapshots reactive.
-    // If we just rewrote the model from chapterBody → scenes, the
-    // persisted history tail is shaped for the old slices and would
-    // re-introduce the dead field on undo. Discard it.
-    _past:   markRaw(scenesMigrationRan ? [] : loadHistory().map(normalizeStrands)),
+    // History — in-memory only (undo/redo doesn't survive reload; durable
+    // rollback is the per-chapter version history). `markRaw` keeps Vue from
+    // making the snapshots reactive.
+    _past:   markRaw([]),
     _future: markRaw([]),
 
     // Reactive autosave timestamp — ticks each time _persist() runs so
@@ -596,7 +576,6 @@ export const useProjectStore = defineStore("project", {
       if (this._past.length > HISTORY_LIMIT) this._past.shift();
       // Any new edit invalidates the redo stack.
       if (this._future.length) this._future = markRaw([]);
-      this._scheduleHistoryPersist();
     },
     undo() {
       if (!this._past.length) return;
@@ -605,7 +584,6 @@ export const useProjectStore = defineStore("project", {
       applySlices(this, snap);
       lastHistoryAction = null;
       this._persist();
-      this._scheduleHistoryPersist();
       useUiStore().showToast({ message: "Undid last change." });
     },
     redo() {
@@ -615,31 +593,12 @@ export const useProjectStore = defineStore("project", {
       applySlices(this, snap);
       lastHistoryAction = null;
       this._persist();
-      this._scheduleHistoryPersist();
       useUiStore().showToast({ message: "Redid change." });
     },
     clearHistory() {
       this._past = markRaw([]);
       this._future = markRaw([]);
       lastHistoryAction = null;
-      if (historyPersistTimer) { clearTimeout(historyPersistTimer); historyPersistTimer = null; }
-      saveHistory([]);
-    },
-
-    /**
-     * Persist the tail of `_past` to storage on a debounce so a
-     * typing session doesn't write on every keystroke. We only keep
-     * the last PERSIST_TAIL_SIZE entries — that's enough to recover
-     * from a "closed the window after a fat-finger" mishap without
-     * the storage cost of the full 100-step in-memory buffer.
-     */
-    _scheduleHistoryPersist() {
-      if (historyPersistTimer) clearTimeout(historyPersistTimer);
-      historyPersistTimer = setTimeout(() => {
-        historyPersistTimer = null;
-        const tail = this._past.slice(-PERSIST_TAIL_SIZE);
-        saveHistory(tail);
-      }, PERSIST_DEBOUNCE_MS);
     },
 
     // ── Chapters ─────────────────────────────────────────────

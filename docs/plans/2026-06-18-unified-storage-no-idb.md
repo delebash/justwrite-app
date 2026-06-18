@@ -94,7 +94,13 @@ Full remaining queue to reach **zero kv**:
   the most-recent (prefetched by hydrateProjects) instead of re-seeding.
   `ensureActiveProjectPersisted()` (main.js, post-boot) writes the fresh-seed
   row so a brand-new install survives a reload (registry derives from the row).
-- **undo tail** (slice 5): `justwrite:project:history`.
+- **undo tail** ✓ (slice 5): `justwrite:project:history` — **dropped** cross-restart
+  persistence (the plan's offered alternative). Persisting 50 deep-clone snapshot
+  blobs is exactly the opaque-blob anti-pattern the rewrite rejects; in-session
+  undo/redo is unchanged, and durable rollback is the per-chapter version history.
+  Removed loadHistory/saveHistory, `_scheduleHistoryPersist`, the persist
+  constants, and the now-vestigial `scenesMigrationRan` flag (it existed only to
+  discard a stale persisted tail).
 - **usage ledger**: `justwrite:ai:usage` → its own table (a capped log + totals,
   like sessions). Left on kv by slice 3 deliberately.
 - **version history**: `justwrite:versions` → its own project-scoped table.
