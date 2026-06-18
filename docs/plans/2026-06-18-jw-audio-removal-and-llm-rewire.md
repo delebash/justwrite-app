@@ -1,5 +1,35 @@
 # JW audio removal + renderer→gateway rewire (execution plan)
 
+## Status (2026-06-18, admiring-galileo)
+
+- **A — audio pipeline: DONE + verified** (commit `32a53b4`, −7097 lines).
+  Deleted StudioView, SpeakerLabView, render/m4b/audioStore/tts/elevenlabs/
+  speechify/voicebox/voiceGender services, the studio store, and the speaker-
+  analysis/smart-cast LLM service (llm.js/speakerAttribution.js). Writing views
+  degraded to the explicit scene→character links; Export drops M4B (keeps PDF/
+  DOCX/EPUB) and the JustVoice handoff sends prose for JV to self-analyze.
+  /studio + /speaker-lab routes + the SettingsView audio sections removed.
+  build:vite clean; book-smoke + 25-route sweep pass, zero JS errors; all
+  TTS-backend probes gone.
+- **A — TTS provider config plumbing: REMAINING.** The provider *list* still
+  carries TTS entries (seed `DEFAULT_PROVIDERS`) and the config UI still has TTS
+  surfaces, woven through `SettingsView`, `SettingsProviderForm`,
+  `ProviderSelect`, `domain/providerParams.js`, the `ai` store TTS getters
+  (`ttsProviders`/`defaultTtsId`/`useLlmVoiceGender`), and the TTS half of
+  `openai-compat.js` (now dead). Plus dead nav links (CommandPalette `nav:studio`,
+  sidebar Studio/Speaker-Lab). Removing these is mechanical but spans several big
+  views — left as a focused next pass so it doesn't break the writing settings UI
+  unverified. The app is coherent + working with them present (configurable but
+  unused TTS fields). Dead seed exports DEFAULT_CAST/STARTER_RENDER_PRESETS/
+  SCRIPT_CH7/RENDER_QUEUE have zero consumers and can go with it.
+- **B — renderer→gateway rewire: REMAINING (runtime-gated).** Server gateway is
+  built + tested (`b5de7a0`); wiring `openai-compat.js` to it needs a real LLM to
+  verify (chat stream, the Ollama `think:false`/enrichedModels native-endpoint
+  cases). build:vite+sweep can't prove the call path.
+
+---
+
+
 **2026-06-18.** The server-side architecture is built + verified (gateway,
 provider list, runner lifecycle, decision doc). These two renderer-surgery
 items finish realizing it in the running app. Both are scoped here precisely
