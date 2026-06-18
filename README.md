@@ -1,6 +1,6 @@
 # JustWrite
 
-A desktop writing app for novels, with an audio studio that connects to any **OpenAI-compatible** AI provider — Ollama, LM Studio, OpenAI, or anything else that speaks the standard.
+A desktop writing app for novels that connects to any **OpenAI-compatible** AI provider — Ollama, LM Studio, OpenAI, or anything else that speaks the standard.
 
 Built with **Tauri 2 + Vite + Vue 3 + Pinia** (JavaScript renderer, Rust backend).
 
@@ -24,7 +24,7 @@ The app opens on a seed project ("The Cartographer's Daughter") so you can click
 
 ## Features
 
-Eight rooms, one house — organised by what part of the work you're in.
+Seven rooms, one house — organised by what part of the work you're in.
 
 ### ✶ Manuscript — the desk where you write
 
@@ -86,19 +86,10 @@ Eight rooms, one house — organised by what part of the work you're in.
 - **Writer Lab.** Every prompt and parsed result exposed for inspection.
 - **Usage ledger.** Per-feature token + cost estimates.
 
-### ✶ Studio — from cast list to finished audiobook
-
-- **Voice cast.** Map each character — and the narrator — to a voice from any TTS provider.
-- **Smart-cast.** LLM-suggested pairings based on character profile + voice metadata.
-- **Speaker analysis.** Per-chapter, line-by-line, cached.
-- **Render queue.** Per-chapter TTS render with timed silences at speaker changes.
-- **WAV → M4B mux.** Final audiobook with ID3 chapter markers, cover art, and metadata. Plays in Audible, Apple Books, Plex.
-- **Voice cloning.** Drop reference WAV/MP3 files into a Chatterbox server's `./voices/` folder; they appear in the cast picker by filename.
-
 ### ✶ Reflection — two views of the work
 
 - **Home dashboard.** Today's session, streak, fortnight, cadence — and a button that drops you back into the chapter you were last in.
-- **Analysis dashboard.** Project KPIs, 30-day pace chart, 53-week writing-year heatmap, milestones, status donuts, narrative-strand distribution, character-presence heatmap, dialogue vs. narration vs. interior-monologue split.
+- **Analysis dashboard.** Project KPIs, 30-day pace chart, 53-week writing-year heatmap, milestones, status donuts, narrative-strand distribution, character-presence heatmap.
 - **Story-tension timeline.** AI scores the rise and fall across chapters.
 - **Voice-drift report.** Flags chapters reading off-style, with per-chapter Explain.
 - **Reverse outline (StorySnap).** Summarises what each chapter actually does versus what you remember it doing.
@@ -107,13 +98,11 @@ Eight rooms, one house — organised by what part of the work you're in.
 ### ✶ Import & export — what goes in, what comes out
 
 - **Import** DOCX, EPUB, ODT, Markdown, plain text. Chapter auto-detection, image extraction, smart-quote normalisation.
-- **Import as audiobook.** Drop a file straight into Studio for narration.
 - **Import as notes.** Bring research into the Notes section instead of the manuscript.
 - **Entity sweep on import** (optional) to surface new characters and places.
 - **Export PDF.** TOC, part covers, optional cover image.
 - **Export DOCX.** Live auto-refreshing table of contents.
 - **Export EPUB 3.** Nav doc, OPF spine, cover xhtml, JSZip-packaged.
-- **Export M4B audiobook.** Built from rendered chapter audio.
 - **Strip scene markers on export** when you prefer.
 
 ### ✶ Appearance — the room, set up your way
@@ -292,14 +281,12 @@ justwrite-app/
 │           ├── router/index.js
 │           ├── assets/styles/tokens.css
 │           ├── domain/seed.js         ← demo project "The Cartographer's Daughter"
-│           ├── stores/                ← project, ui, ai, studio, sessions
+│           ├── stores/                ← project, ui, ai, sessions
 │           ├── services/
 │           │   ├── tauri-bridge.js    ← exposes window.justwrite
-│           │   ├── openai-compat.js   ← unified HTTP client for every LLM/TTS
-│           │   ├── llm.js, tts.js, render.js, webSpeech.js
+│           │   ├── openai-compat.js   ← unified HTTP client for every LLM call
 │           │   ├── search.js, analysis.js
 │           │   ├── imageStore.js
-│           │   ├── m4b.js
 │           │   └── export/{manuscript,pdf,docx,epub}.js
 │           ├── components/
 │           └── views/
@@ -340,17 +327,15 @@ When adding a new Tauri command:
 
 JustWrite uses one client class for everything: **`OpenAICompatClient`** (`src/renderer/src/services/openai-compat.js`).
 
-Pre-configured presets in Settings → **AI & Audio engines**:
+Pre-configured presets in Settings → **AI engines**:
 
 | Preset                        | Base URL                            | Notes                                                                                                                |
 | ----------------------------- | ----------------------------------- | -------------------------------------------------------------------------------------------------------------------- |
 | OpenAI-compatible (local)     | `http://localhost:11434/v1`         | Generic LLM endpoint. Point at Ollama, LM Studio, llama.cpp, etc. — change the URL to whatever local server you run. |
-| OpenAI                        | `https://api.openai.com/v1`         | LLM + TTS. Add your API key.                                                                                         |
+| OpenAI                        | `https://api.openai.com/v1`         | LLM + embeddings. Add your API key.                                                                                         |
 | Claude (Anthropic)            | `https://api.anthropic.com/v1`      | LLM only, via Anthropic's OpenAI-compatible endpoint. Add your `sk-ant-...` key. Default model: `claude-haiku-4-5`.   |
-| Kokoro (local TTS)            | `http://localhost:8880/v1`          | Small, fast local TTS via Kokoro-FastAPI.                                                                            |
-| Chatterbox                    | `http://localhost:8004/v1`          | Local TTS + voice cloning (devnen/Chatterbox-TTS-Server). Drop reference WAV or MP3 files into the server's `./voices/` folder; they appear in JustWrite's cast picker by filename. |
 
-Add any other OpenAI-style provider — including local TTS servers — via **Add provider**.
+Add any other OpenAI-compatible provider via **Add provider**.
 
 ---
 
@@ -360,7 +345,7 @@ This repo is set up to be developed with [Claude Code](https://claude.com/claude
 
 ### Project context
 
-- **`CLAUDE.md`** at the repo root is the agent's project brief. It captures: active work, the renderer/Rust split, the IPC bridge contract, the Pinia store invariants (snapshot-based undo, soft delete via `state.trash`, coalesced keystroke actions), the OpenAI-compat client, the audio pipeline, the export adapters, the Jw* UI component layer's design contract, and a "Don't" list (no PrimeVue, no `.btn-*` classes, no bypassing `window.justwrite`). Read it before changing renderer code.
+- **`CLAUDE.md`** at the repo root is the agent's project brief. It captures: active work, the renderer/Rust split, the IPC bridge contract, the Pinia store invariants (snapshot-based undo, soft delete via `state.trash`, coalesced keystroke actions), the OpenAI-compat client, the export adapters, the Jw* UI component layer's design contract, and a "Don't" list (no PrimeVue, no `.btn-*` classes, no bypassing `window.justwrite`). Read it before changing renderer code.
 - **`docs/`** is user-facing reference, mirrored to the marketing site. When you ship a feature, update the relevant doc in the same commit (this is enforced by repo convention, not by hooks).
 
 ### Recommended workflow
@@ -431,4 +416,4 @@ For a full pass — run all four tools, triage findings against the actual code 
 
 ## License
 
-Your code, your terms. Voices, models, and APIs are subject to their providers' terms.
+Your code, your terms. Models and APIs are subject to their providers' terms.

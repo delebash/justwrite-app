@@ -31,7 +31,6 @@ The sidebar on the left is the main map. It is grouped into five sections:
 - **Manuscript** — Search, Home, Architecture, Narrative strands, Chapters, Ask the book
 - **Story world** — Characters, Locations, Objects, Groups, Worldbuilding
 - **Planning** — Plot board, Timeline, Notes, Relations
-- **Audio** — Audio Studio
 - **Project** — Analysis, Export, Trash, Settings, Writer Lab
 
 Hover any item to see its name. Click to open it. Drag the right edge of the sidebar to resize it; press **Ctrl/⌘ + \\** to hide it entirely (and again to bring it back).
@@ -64,19 +63,17 @@ Open **Import** from the sidebar's Project section, drag your file onto the page
 
 ## Optional: connect an AI provider
 
-JustWrite's writing tools, audiobook narration, "Ask the book" chat, critique, and entity extraction all use AI. None of them are required — you can write an entire novel in JustWrite with zero AI calls. But if you want to use them, you choose the provider.
+JustWrite's writing tools, "Ask the book" chat, critique, and entity extraction all use AI. None of them are required — you can write an entire novel in JustWrite with zero AI calls. But if you want to use them, you choose the provider.
 
 The choice is yours, and you can have several at once. Common options:
 
-- **OpenAI** (paid, cloud) — works for both writing and audiobook narration. Excellent quality. Add your API key in Settings.
+- **OpenAI** (paid, cloud) — writing. Excellent quality. Add your API key in Settings.
 - **Anthropic Claude** (paid, cloud) — writing only. Excellent quality, particularly for critique and longer prose work. Add your `sk-ant-…` key.
 - **Ollama / LM Studio / llama.cpp** (free, local) — writing only. Runs on your own machine. No internet required, no data leaves your computer, no API bills. The **Quick setup** wizard in Settings detects your GPU, downloads the right models for your card, and applies a sensible routing preset in one click — the easiest path to a working local-LLM setup.
-- **Kokoro** (free, local, fast) — audiobook narration only. Small, very fast text-to-speech engine.
-- **Chatterbox** (free, local, voice cloning) — audiobook narration. The only local engine JustWrite supports that does true voice cloning. Drop in a reference voice clip (a WAV or MP3 of your own voice, or any voice you like) and have the book narrated in that voice.
 
 To add a provider:
 
-1. Open **Settings → AI & Audio engines**.
+1. Open **Settings → AI engines**.
 2. Click **Add provider**.
 3. Choose a preset, paste any API key needed, and click **Test** to confirm the connection.
 

@@ -25,6 +25,10 @@ the user says to do all phases / "do p2–p5" / "do it all" / "without stopping"
 
 ## Active work
 
+**JustWrite is writing-only.** All audio — Studio (cast / script / render), TTS providers, audiobook M4B export — has been removed; voice production lives in the separate **JustVoice** app, which JustWrite drives over an HTTP contract (JustWrite hands JustVoice the prose; JustVoice does its own casting + narration). Do **not** reintroduce TTS, speaker analysis, voice casting, or audio rendering into JustWrite.
+
+LLM calls route through a **server-side gateway** (`/v1/llm/{providerId}/…` on the Python `server/`): the renderer sends a provider id + an OpenAI-shaped body, the server resolves the provider, injects the server-held key, and proxies. The renderer holds no provider keys and calls no provider directly.
+
 PrimeVue has been fully removed in favor of a custom-component layer (`src/renderer/src/components/ui/Jw*.vue`) backed by Reka UI, TanStack Vue Table, Floating UI, and vue-sonner. See **UI components** below for the conventions.
 
 ## Commands
@@ -73,7 +77,6 @@ All in `src/renderer/src/stores/`:
 - `project` — every entity (chapters, characters + extras, locations, objects, groups, notes, strands, worldbuilding, architecture), images, events, trash, and chapter bodies. Owns persistence and undo/redo.
 - `ui` — sidebar, selections, toasts.
 - `ai` — provider registry (OpenAI-compatible endpoints).
-- `studio` — cast, scripts, per-chapter rendered audio, render queue.
 - `sessions` — per-day word count log feeding Home + Analysis Pace.
 
 **Project store invariants worth knowing before mutating it:**
@@ -86,20 +89,7 @@ All in `src/renderer/src/stores/`:
 
 ### AI providers
 
-One client class — **`OpenAICompatClient`** (`services/openai-compat.js`) — speaks `/v1/chat/completions`, `/v1/audio/speech`, `/v1/audio/voices`, `/v1/models`. Used identically for the OpenAI cloud, any OpenAI-compatible local LLM server (Ollama, LM Studio, llama.cpp, …), and any OpenAI-compatible local TTS server added in Settings → AI providers.
-
-**Web Speech** (`services/webSpeech.js`) is a special provider marked `realtimeOnly` — voices come from the OS, preview plays live, and the render pipeline (`services/render.js`) skips realtime-only voices with a "preview-only" reason rather than attempting to file-render.
-
-### Audio / Studio pipeline
-
-`Studio` view has three tabs (Cast / Script / Render). Pipeline lives across several services:
-
-1. **Cast** — voice library, smart-cast LLM call. State in `studio.cast`.
-2. **Script** — LLM speaker analysis per chapter, persisted as `studio.scripts[chapterId]`. `studio.speakersByChapter` is a derived `Map<chapterId, Set<characterId>>` used by Search (folded into chapter body), Outline (speaker chips), and Analysis (cast-presence heatmap).
-3. **Render** — per-line TTS → WAV concat → download. Rendered chapter audio is pushed into `studio.chapterAudio` so `ExportView` can collect it.
-4. **M4B export** (`services/m4b.js`) — per-chapter WAVs → AAC, muxed `.m4b` with chapter markers via lazy-loaded `ffmpeg.wasm`.
-
-`ffmpeg.wasm` needs `SharedArrayBuffer`, which needs cross-origin isolation. The COOP/COEP/CORP headers are set in **both** `vite.config.js` (`server.headers`) and `tauri.conf.json` (`app.security.headers`). Keep them in sync.
+One client class — **`OpenAICompatClient`** (`services/openai-compat.js`) — is a thin client for the **server-side LLM gateway** (`/v1/llm/{providerId}/chat/completions|embeddings|models|ping` on the Python `server/`). The renderer sends the provider id + an OpenAI-shaped body; the server resolves the provider, injects the server-held key, and proxies it (translating to Ollama's native `/api/chat` / `/api/embed` when the provider is an Ollama daemon). Used for the OpenAI cloud, Anthropic / Gemini / DeepSeek / OpenRouter, and any OpenAI-compatible local LLM server (Ollama, LM Studio, llama.cpp, …) added in Settings → AI engines. There is **no TTS** — audio lives in JustVoice (see Active work).
 
 ### Manuscript export
 

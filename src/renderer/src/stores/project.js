@@ -1918,7 +1918,7 @@ export const useProjectStore = defineStore("project", {
       Object.assign(this.$state, normalizeStrands(projectSnap));
       this.clearHistory();
       this._persist();
-      // Caller decides whether to reload; sister stores (AI/studio/sessions)
+      // Caller decides whether to reload; sister stores (AI/sessions)
       // only re-hydrate from IDB at boot, so a workspace restore needs one.
       return { workspaceRestored: hadWorkspace };
     },

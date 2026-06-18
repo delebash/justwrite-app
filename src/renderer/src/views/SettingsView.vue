@@ -822,7 +822,7 @@ const recentColumns = [
     <div class="scrollarea" style="padding:22px">
     <p class="set-desc">
       <strong>Settings</strong> is divided into sections — <strong>Project</strong> (metadata,
-      goals, statuses, deadlines), <strong>AI &amp; Audio engines</strong> (provider setup and
+      goals, statuses, deadlines), <strong>AI engines</strong> (provider setup and
       per-feature routing), <strong>Appearance</strong> (themes, fonts, colours, density),
       <strong>Backups</strong> (autosave path and manual snapshots), and a
       <strong>Danger zone</strong> for resetting the workspace. Nothing here touches your
@@ -2019,7 +2019,7 @@ const recentColumns = [
         <div class="card">
           <div class="card-title">{{ $t('settings.about.appCardTitle') }}</div>
           <p style="font-size:13px;margin:0 0 12px;line-height:1.6">
-            A local-first writing studio for novels — chapters, cast, world, and audio rendering, all stored on your machine.
+            A local-first writing studio for novels — chapters, cast, and world, all stored on your machine.
           </p>
           <div style="display:grid;grid-template-columns:160px 1fr;gap:8px 14px;font-size:13px">
             <span class="t-muted">Runtime</span><span>{{ platformLabel }}</span>

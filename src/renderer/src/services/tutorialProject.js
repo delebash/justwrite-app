@@ -87,7 +87,6 @@ export const TUTORIAL_NOTE = {
 <ul>
 <li>Open <strong>Chapters</strong> in the sidebar and read "The Half-Drawn Map" — it's one chapter with three scenes.</li>
 <li>Click the <strong>?</strong> next to any pane title for help on that surface.</li>
-<li>Open the <strong>Audio Studio</strong> and try analysing the chapter's speakers.</li>
 <li>Open <strong>Architecture → Premise</strong> and write a one-line premise for this story.</li>
 <li>Open the <strong>Plot Board</strong> — "The Phantom Island" strand has one beat already.</li>
 </ul>

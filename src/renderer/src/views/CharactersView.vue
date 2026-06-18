@@ -278,7 +278,7 @@ function onRowClick(event) {
     <div v-if="project.characters.length === 0" class="pane-card" style="display:grid;place-items:center;padding:60px">
       <div class="t-muted" style="text-align:center;max-width:420px">
         <div style="font-size:14px;color:var(--ink);margin-bottom:6px">No characters yet.</div>
-        <div style="font-size:12.5px;margin-bottom:14px">Characters power the Audio Studio cast and appear in chapter speaker tags.</div>
+        <div style="font-size:12.5px;margin-bottom:14px">Characters appear across your chapters and story bible, and link scenes to who's in them.</div>
         <JwButton intent="primary" @click="addCharacter"><Icon name="Plus" :size="14" /> Create your first character</JwButton>
       </div>
     </div>

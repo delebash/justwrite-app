@@ -16,7 +16,6 @@ For context while reading the proposals below. JustWrite already has:
 - **Worldbuilding**: Single-chapter Entity Extraction, Whole-book Entity Sweep with review modal.
 - **Brainstorming**: Name / title / free Brainstorm with "more like these" steering.
 - **Search**: Full RAG (chunker, embeddings, hybrid BM25+cosine), multi-turn "Ask the book" chat with citations, background auto-rebuild.
-- **Audio Studio**: Speaker detection, Smart cast, TTS render to WAV, voice/line preview.
 - **AI control surface**: per-feature provider/model chip in every AI page header (click to change routing inline); global header chip + slide-in AI task panel showing every in-flight call with elapsed, first-token latency, tokens, tokens/s, live/stalling/stuck freshness indicator, expandable preview, cancel; 30-entry history with toast-on-completion. Every AI call survives navigation — close a modal mid-stream and the result still lands where it should.
 - **Deterministic infrastructure (not AI but leverageable)**: markers system (Fix later, Verify, Weak prose, Loose thread, TODO, Idea), per-chapter styleMetrics (sentence length, dialogue ratio, filter words/1k, adverbs/1k, passive/1k, POV hints), session/word-count tracking, soft-delete trash, snapshot-based undo.
 

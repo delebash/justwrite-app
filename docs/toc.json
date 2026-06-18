@@ -21,8 +21,7 @@
   {
     "section": "Producing the book",
     "items": [
-      { "slug": "import-and-export", "title": "Import and export", "hint": "PDF, DOCX, EPUB, M4B" },
-      { "slug": "audio-studio",      "title": "Audio Studio",      "hint": "Cast, Script, Render" },
+      { "slug": "import-and-export", "title": "Import and export", "hint": "PDF, DOCX, EPUB" },
       { "slug": "analysis",          "title": "Analysis",          "hint": "Pace, milestones, style metrics" },
       { "slug": "writer-lab",        "title": "Writer Lab",        "hint": "AI editor-on-call for any passage" }
     ]
@@ -30,7 +29,7 @@
   {
     "section": "Setup and configuration",
     "items": [
-      { "slug": "ai-providers",      "title": "AI providers",      "hint": "OpenAI, Claude, Ollama, LM Studio, Kokoro, Chatterbox" },
+      { "slug": "ai-providers",      "title": "AI providers",      "hint": "OpenAI, Claude, Ollama, LM Studio" },
       { "slug": "appearance",        "title": "Appearance",        "hint": "Theme, fonts, accents, layout" },
       { "slug": "backups-and-data",  "title": "Backups and data",  "hint": "Autosave, snapshots, restoring" },
       { "slug": "keyboard-shortcuts", "title": "Keyboard shortcuts", "hint": "Full reference" }

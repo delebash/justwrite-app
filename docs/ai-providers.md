@@ -1,8 +1,8 @@
 # AI providers
 
-JustWrite uses AI for several features: writing assistance (the scene-strip AI dropdown — Rewrite, Expand, Tighten, Continue, Describe, plus Line edits), critique, entity sweeps, "Ask the book" chat, audiobook narration (TTS), and smart voice assignment. **None of them are required** — you can write an entire novel in JustWrite with zero AI calls.
+JustWrite uses AI for several features: writing assistance (the scene-strip AI dropdown — Rewrite, Expand, Tighten, Continue, Describe, plus Line edits), critique, entity sweeps, and "Ask the book" chat. **None of them are required** — you can write an entire novel in JustWrite with zero AI calls.
 
-If you do want AI features, you choose the provider. JustWrite isn't locked to any vendor. It works with anything that speaks the OpenAI chat-completions protocol — **cloud:** OpenAI, Anthropic Claude, Google Gemini, DeepSeek, OpenRouter (one key, every major model), or any other OpenAI-compatible endpoint; **local:** Ollama, LM Studio, llama.cpp, vLLM, or your own deployment. TTS works the same way — any server that speaks the OpenAI audio protocol.
+If you do want AI features, you choose the provider. JustWrite isn't locked to any vendor. It works with anything that speaks the OpenAI chat-completions protocol — **cloud:** OpenAI, Anthropic Claude, Google Gemini, DeepSeek, OpenRouter (one key, every major model), or any other OpenAI-compatible endpoint; **local:** Ollama, LM Studio, llama.cpp, vLLM, or your own deployment.
 
 You can have several providers configured at once and route different features to different providers.
 
@@ -10,15 +10,14 @@ You can have several providers configured at once and route different features t
 
 ## The big picture
 
-There are three kinds of provider you might set up:
+There are two kinds of provider you might set up:
 
 | Provider kind | What it does | Examples |
 |---|---|---|
-| **LLM** (chat) | Writing assistance, critique, entity sweeps, smart-cast | OpenAI, Claude, Gemini, DeepSeek, OpenRouter, Ollama, LM Studio |
-| **TTS** (text-to-speech) | Audiobook narration | OpenAI TTS, Kokoro, Chatterbox, Dia, Microsoft Edge TTS (built-in), Speechmatics |
+| **LLM** (chat) | Writing assistance, critique, entity sweeps | OpenAI, Claude, Gemini, DeepSeek, OpenRouter, Ollama, LM Studio |
 | **Embedding** | "Ask the book" chat — indexes your manuscript for question answering | OpenAI embeddings, any local embedding model |
 
-A provider can speak more than one of these. **OpenAI**, for example, provides LLM + TTS + embeddings in one. **Anthropic**, **Google Gemini**, **DeepSeek**, and **OpenRouter** provide LLM only. **Ollama** provides LLM and embeddings (locally). **Kokoro** provides TTS only.
+A provider can speak more than one of these. **OpenAI**, for example, provides LLM + embeddings in one. **Anthropic**, **Google Gemini**, **DeepSeek**, and **OpenRouter** provide LLM only. **Ollama** provides LLM and embeddings (locally).
 
 ---
 
@@ -30,11 +29,10 @@ Every scene's **Links** panel and every character / location / object / group / 
 
 ## Where to set this up
 
-Open **Settings → AI & Audio engines**. The page is grouped into three labelled sections so you can jump straight to what you're after:
+Open **Settings → AI engines**. The page is grouped into two labelled sections so you can jump straight to what you're after:
 
 - **Engines** — the providers list (where you add, edit, test, and remove) plus the **Hardware presets** card that owns the Quick Setup wizard's per-tier model picks. The **Quick setup** button at the top of the providers list runs a one-click wizard that detects your GPU, downloads the right local models, and applies a sensible routing preset (see *Quick setup for local LLM* below). Each provider row carries a small **usage badge** ("default", "N pinned features", or both) — click it to expand a list of every feature routed to that provider, so the role of a secondary provider (e.g. the "fast" Ollama entry the wizard creates on small cards) is visible without scrolling to Feature routing.
-- **Routing & cost** — your three global Defaults (LLM, TTS, embedding), the **Feature routing** card for per-feature overrides, the variations editor, and the production-prompt configs surfaced from Speaker Lab.
-- **Audio Studio** — audio-specific knobs that the audiobook pipeline needs: Render presets and the optional voice-gender LLM fallback. Set up your TTS provider here too if you haven't already.
+- **Routing & cost** — your global Defaults (LLM, embedding), the **Feature routing** card for per-feature overrides, and the variations editor.
 
 ---
 
@@ -42,7 +40,7 @@ Open **Settings → AI & Audio engines**. The page is grouped into three labelle
 
 Most users start with **one** provider and add more later as needed.
 
-1. Open **Settings → AI & Audio engines**.
+1. Open **Settings → AI engines**.
 2. Click **Add provider**.
 3. Choose a preset (see below for the common ones) or configure manually.
 4. Paste any API key required.
@@ -57,7 +55,7 @@ The connection test shows green (Online), yellow (Checking), or red (Offline). O
 
 > *"I want to run AI locally, but every guide tells me to pick a model, figure out the right quantization, install it, then configure four different things in Settings. Just tell me what to do."*
 
-The **Quick setup** wizard (in **Settings → AI & Audio engines**, top of the providers card) does the picking and configuring for you. It detects your GPU, picks the right models for your card, downloads them through Ollama, creates the provider entries, and applies a routing preset that sends each feature to the right model. One click; ~5 minutes of model downloads on a typical card; nothing else to configure.
+The **Quick setup** wizard (in **Settings → AI engines**, top of the providers card) does the picking and configuring for you. It detects your GPU, picks the right models for your card, downloads them through Ollama, creates the provider entries, and applies a routing preset that sends each feature to the right model. One click; ~5 minutes of model downloads on a typical card; nothing else to configure.
 
 **What it does, in order:**
 
@@ -75,7 +73,7 @@ The **Quick setup** wizard (in **Settings → AI & Audio engines**, top of the p
 
 - Default LLM → `qwen3:14b` (prose quality)
 - Brainstorm, Resume briefing, Session recap, Entity sweep, Sensory research, Unstuck moves → `qwen3:8b` (snappier responses where speed matters more than depth)
-- Writer actions, Audio Studio Speaker analysis, Audio Studio Smart-assign, Character chat → inherit the 14B default (reasoning-class work)
+- Writer actions, Character chat → inherit the 14B default (reasoning-class work)
 - Critique, Plot-hole audit, Reverse outline, Multi-reader, Character audit, Foreshadowing, Reader knowledge, Voice drift, Beat sheet, Marketing pack, Relationship arc → cloud (if a cloud provider was picked) or default 14B (if not)
 - Embedding → `nomic-embed-text` on the same Ollama endpoint
 
@@ -91,22 +89,21 @@ The **Quick setup** wizard (in **Settings → AI & Audio engines**, top of the p
 
 ### OpenAI (cloud)
 
-The full-fat option. LLM + TTS + embeddings, all in one provider. Pay-as-you-go.
+The full-fat option. LLM + embeddings, all in one provider. Pay-as-you-go.
 
 1. Sign up at **openai.com** and get an API key from the API keys page.
 2. In JustWrite, **Add provider → Preset: OpenAI**.
 3. Paste your API key.
 4. Click **Fetch models** to populate the chat-model dropdown — common picks: `gpt-5.4-mini` for routine work, `gpt-5.4` or `gpt-5.5` for harder reasoning.
-5. Click **Fetch voices** to populate the TTS voice list — `alloy`, `echo`, `fable`, `onyx`, `nova`, `shimmer`.
-6. **Test.** Save.
+5. **Test.** Save.
 
 You're now wired up for every JustWrite AI feature.
 
-**Cost notes.** `gpt-5.4-mini` and `gpt-5.4-nano` are inexpensive enough for routine writing assistance; step up to `gpt-5.4` or `gpt-5.5` for critique and entity sweeps where reasoning quality matters. TTS is priced per character of text.
+**Cost notes.** `gpt-5.4-mini` and `gpt-5.4-nano` are inexpensive enough for routine writing assistance; step up to `gpt-5.4` or `gpt-5.5` for critique and entity sweeps where reasoning quality matters.
 
 ### Anthropic Claude (cloud)
 
-Excellent for writing tasks — particularly critique and longer prose work — through Anthropic's OpenAI-compatible endpoint. LLM only (no TTS).
+Excellent for writing tasks — particularly critique and longer prose work — through Anthropic's OpenAI-compatible endpoint. LLM only.
 
 1. Sign up at **anthropic.com** and get an API key.
 2. **Add provider → Preset: Claude (Anthropic)**.
@@ -118,7 +115,7 @@ Excellent for writing tasks — particularly critique and longer prose work — 
 
 ### Google Gemini (cloud)
 
-Gemini through Google's OpenAI-compatible endpoint. LLM only (no TTS). Long context window — useful for whole-manuscript reads.
+Gemini through Google's OpenAI-compatible endpoint. LLM only. Long context window — useful for whole-manuscript reads.
 
 1. Get an API key from **aistudio.google.com**.
 2. **Add provider → Preset: Gemini (Google)**.
@@ -208,7 +205,7 @@ Older guidance (including earlier versions of this page) told 8 GB-card users th
 
 **What 8B is genuinely fine for:** brainstorming, outlining, single-sentence rewrites, structural one-off prompts, short-input/short-output utility calls.
 
-**What 8B underdelivers on:** Continue-a-scene, Expand-with-sensory-detail, voice consistency, multi-paragraph rewrites, Audio Studio speaker attribution. All of these benefit meaningfully from stepping up to 14B even if it costs partial CPU offload on an 8 GB card.
+**What 8B underdelivers on:** Continue-a-scene, Expand-with-sensory-detail, voice consistency, multi-paragraph rewrites. All of these benefit meaningfully from stepping up to 14B even if it costs partial CPU offload on an 8 GB card.
 
 **What you actually want at the prose threshold:** 32B+. 14B is a meaningful step up from 8B but still not what a novelist would call "great." For full-chapter critique and plot-hole work, route to cloud regardless of local card size.
 
@@ -243,7 +240,7 @@ The hardware table above tells you which **model** to use. This section tells yo
 
 > **Shortcut:** the **Quick setup** wizard (see *Quick setup for local LLM* above) applies the routing recipe below for your detected card in one click — providers, defaults, pins and all. The rest of this section is the reference behind what it does, useful if you want to understand or hand-tune the routing.
 
-All of these are configured in **Settings → AI & Audio engines → Feature routing**.
+All of these are configured in **Settings → AI engines → Feature routing**.
 
 **Two setup steps before you start pinning** (Quick setup does both for you):
 1. Add **two** Ollama / LM Studio providers pointing at the same server but with different default chat models — e.g. *"Ollama (8B fast)"* with `qwen3:8b` and *"Ollama (14B prose)"* with `qwen3:14b`. JustWrite treats each as a separate provider you can pin features to.
@@ -259,8 +256,6 @@ All of these are configured in **Settings → AI & Audio engines → Feature rou
 | Resume briefing | `qwen3:8b` | Short structured output. |
 | Session recap | `qwen3:8b` | Short structured output. |
 | Writer actions | inherit (14B) | Prose generation — accept the slower speed for quality. |
-| Audio Studio · Speaker analysis | inherit (14B) | 8B misses attributions; 14B is the working floor. |
-| Audio Studio · Smart-assign | inherit (14B) | Reasoning-class. |
 | Critique | cloud (Claude / DeepSeek) | Long context, structural reasoning. |
 | Plot-hole audit | cloud | Cross-chapter reasoning. |
 | Reverse outline | cloud | Reads the whole manuscript. |
@@ -274,7 +269,7 @@ Embeddings: `nomic-embed-text` loaded alongside the chat model (~500 MB; fits wi
 
 **Default LLM** → `qwen3:14b` (full GPU, ~40–60 tok/s — no offload).
 
-Same pinning recipe as 8 GB above, but Writer actions and Audio Studio Speaker analysis run much faster locally. Critique and plot-hole audit are still meaningfully better on cloud at this tier — that's a quality call, not a hardware one.
+Same pinning recipe as 8 GB above, but Writer actions run much faster locally. Critique and plot-hole audit are still meaningfully better on cloud at this tier — that's a quality call, not a hardware one.
 
 #### 16 GB card (RTX 4060Ti 16GB / 5060Ti 16GB / 4080)
 
@@ -296,7 +291,7 @@ Cloud routing becomes a personal preference rather than a quality requirement.
 
 #### CPU only
 
-**Default LLM** → `qwen3:8b` Q4_K_M. Pin **Writer actions, Critique, all Audio Studio features, multi-reader, audits** → cloud. Local CPU inference is too slow to be enjoyable for prose generation; spending a few cents on cloud is the right call. Keep Brainstorm / Resume / Recap local — short calls the CPU can handle.
+**Default LLM** → `qwen3:8b` Q4_K_M. Pin **Writer actions, Critique, multi-reader, audits** → cloud. Local CPU inference is too slow to be enjoyable for prose generation; spending a few cents on cloud is the right call. Keep Brainstorm / Resume / Recap local — short calls the CPU can handle.
 
 ### Notes for an 8 GB card
 
@@ -307,103 +302,13 @@ If you have an RTX 2070 / 3060Ti / 3070 (8 GB):
 - **Pin Critique, Plot-hole audit, Reverse outline, Multi-reader panel, Character audit, and Foreshadowing scan to a cloud provider** (Claude, DeepSeek, Gemini). Local 14B with offload technically works but the latency on full-chapter analysis becomes painful, and cloud reasoning quality is meaningfully better.
 - **Embeddings ("Ask the book"):** keep `nomic-embed-text` loaded. ~500 MB alongside the chat model, fits comfortably with the 14B.
 
-### Kokoro (local TTS, free, fast)
-
-A small, fast local TTS engine for audiobook narration.
-
-1. Install Kokoro-FastAPI from its GitHub project page.
-2. Start the server — default port is `8880`.
-3. In JustWrite, **Add provider → Preset: Kokoro (local TTS)**.
-4. Base URL: `http://localhost:8880/v1`.
-5. API key: leave blank.
-6. **Fetch voices.** Save.
-
-**When to pick Kokoro.** You want to narrate an entire audiobook without paying per character to OpenAI. Kokoro is fast enough to render a full novel in a reasonable amount of time on a modern machine.
-
-### Chatterbox (local TTS + voice cloning)
-
-**The only local TTS server JustWrite supports that does true voice cloning.** Ships three swappable models you switch from the provider editor:
-
-- **chatterbox** (Base) — English, 0.5 B parameters, strongest emotion control via the exaggeration and cfg_weight knobs.
-- **chatterbox-turbo** — fastest (350 M), supports paralinguistic tags in the script text: `[laugh]` `[chuckle]` `[sigh]` `[gasp]` `[cough]` `[clear throat]` `[sniff]` `[groan]` `[shush]`.
-- **chatterbox-multilingual** — 0.5 B, 23 languages.
-
-Switching models triggers a server reload; the first switch for a model may take 10–30 seconds while it downloads from HuggingFace.
-
-1. Install Chatterbox-TTS-Server (devnen/Chatterbox-TTS-Server on GitHub).
-2. Start the server — default port is `8004`.
-3. **(Optional)** Drop reference WAV or MP3 files into the server's `voices/` folder or `reference_audio/` folder — both are picked up. The web UI's Import button puts uploads into `reference_audio/`, so either path works. Clone entries appear in the cast picker with a `(clone)` suffix.
-4. In JustWrite, **Add provider → Preset: Chatterbox**.
-5. Base URL: `http://localhost:8004/v1`.
-6. **Pick a model** — Base, Turbo, or Multilingual — then click **Apply** to hot-swap the server.
-7. **Fetch voices** — predefined voices and clones both appear.
-8. (Optional) Open **Engine params** to tune **exaggeration**, **cfg_weight**, **temperature**, **speed_factor**, **chunk_size**, and **language**.
-9. Save.
-
-**When to pick Chatterbox.** You want to narrate the book in a specific voice — your own, an actor's, the voice of a particular published audiobook. Drop a clip in `voices/` or `reference_audio/`, fetch, assign. Use Turbo when you want paralinguistic cues like laughter or sighs baked into the audio; use Base when you want the most expressive emotion control; use Multilingual for non-English manuscripts.
-
-### Dia (local TTS + expressive dialogue)
-
-A local TTS server from the same author as Chatterbox, focused on expressive multi-speaker dialogue. Strong choice when dialogue-heavy chapters sound flat with Kokoro or OpenAI's voices. Ships three swappable models you switch from the provider editor:
-
-- **Dia 1.6B** (default) — proven dialogue quality, ~4.4 GB VRAM, the safe choice for 8 GB cards and the only option on devnen Dia-TTS-Server v1.x.
-- **Dia2-1B** — ~3 GB VRAM, streaming-capable (real-time generation), lightest on resources.
-- **Dia2-2B** — Nari Labs' top-tier dialogue model at ~5–6 GB VRAM; best quality but tight on 8 GB cards if an LLM shares the GPU.
-
-All three are bundled with the same server (devnen v2.0+) and hot-swap without restarting. Bundles a catalogue of predefined voices and accepts reference clips for prosody guidance — but it isn't a voice-cloning engine; for that, use Chatterbox.
-
-1. Install **devnen/Dia-TTS-Server** v2.0.0 or later (Python venv + `pip install -r requirements.txt`, same playbook as Chatterbox).
-2. Start the server — default port is `8003`.
-3. **(Optional)** Drop reference `.wav` / `.mp3` clips into the server's `./reference_audio/` folder (the web UI's "Import" button puts uploads there, so either path works). These act as prosody/style references — not voice clones.
-4. In JustWrite, **Add provider → Preset: Dia**.
-5. Base URL: `http://localhost:8003/v1`.
-6. **Pick a model** — Dia 1.6B, Dia2-1B, or Dia2-2B — then click **Apply** to hot-swap the server. First load of a Dia2 model can take 30–90s while it downloads from HuggingFace.
-7. **Fetch voices** — Dia's bundled predefined voices, any reference clips you've added, and two synthetic mode tokens (**S1** / **S2**) all appear in the cast picker.
-8. Save.
-
-**S1 and S2** are Dia's dialogue-mode speaker tokens. Cast a character on S1 and another on S2 in the same chapter to get distinct voices for an exchange even without uploading reference clips — useful for dialogue-heavy chapters where you want fast renders before committing to specific voices.
-
-**When to pick Dia.** Your chapters have a lot of dialogue and you want it to sound like a conversation rather than two slightly different read-alouds. If you specifically need voice cloning, pick Chatterbox instead — Dia's reference clips guide style and prosody, not speaker identity. Use Dia 1.6B for the widest compatibility, Dia2-1B for fastest renders, Dia2-2B if you have a 12 GB+ GPU and want the best dialogue model on the stack.
-
-### Microsoft Edge TTS (built-in, free)
-
-JustWrite ships with **Microsoft's Edge "Read Aloud" TTS** built in — ~400 neural voices across ~140 locales, no setup, no API key, no account. The voices are the same ones Edge browser's Read Aloud feature uses (Aria, Emma, Guy, Davis, Jenny, Andrew, the multilingual line, plus localised voices for almost every European, Asian, and major African / South American language).
-
-1. In JustWrite, **Add provider → Preset: Microsoft Edge TTS (free)**. Already ready — no fields to fill.
-2. **Fetch voices** — the catalogue appears in the cast picker.
-3. Save.
-
-**Desktop app only.** Edge TTS routes through JustWrite's Rust backend (using the `msedge-tts` crate) because the renderer can't talk to Microsoft's WebSocket endpoint directly. `npm run dev:vite` in a plain browser won't have it; the packaged desktop build always does.
-
-**When to pick Edge TTS.** You want a no-setup multilingual narration option that ships with the app — useful for first-time renders, non-English manuscripts, or pulling in a specific localised voice without standing up another server.
-
-**Caveats.** Microsoft's Read Aloud endpoint is unofficial — it's intended for Edge browser. Microsoft has rotated authentication tokens before (the upstream library breaks; JustWrite ships a fix in a later release). Treat it as solid for everyday narration but keep one of the local engines (Kokoro, Chatterbox, Dia) configured as a fallback if you depend on TTS for production work.
-
-### Speechmatics (cloud TTS)
-
-A cloud TTS preview — four English voices (2 UK, 2 US, male/female), WAV 16 kHz output. Free during preview; paid tier begins later.
-
-1. Sign up at **speechmatics.com** and get an API key.
-2. **Add provider → Preset: Speechmatics (cloud TTS)**.
-3. Paste your key.
-4. The four voices (`sarah`, `theo`, `megan`, `jack`) are already populated — no Fetch step needed.
-5. **Test.** Save.
-
-**When to pick Speechmatics.** Quick cloud narration with no local setup, English-only voices, during the preview window. For full multi-voice casting at scale, Kokoro or OpenAI TTS offer broader voice libraries.
-
-### Web Speech (your operating system's voices)
-
-A special case. JustWrite can preview your OS's built-in voices live (so you can audition them in Audio Studio), but it cannot use them to render audio files. They are flagged as "preview-only" and the render pipeline skips them.
-
-You don't add Web Speech as a provider — it's just there.
-
 ---
 
 ## Routing features to specific providers
 
 The defaults are convenient but limiting. Once you have two or more providers, you may want to send different features to different ones.
 
-In **Settings → AI & Audio engines → Feature routing** you can pin each of twenty-two features to its own provider and model:
+In **Settings → AI engines → Feature routing** you can pin each of twenty features to its own provider and model:
 
 | Feature | What it does |
 |---|---|
@@ -427,8 +332,6 @@ In **Settings → AI & Audio engines → Feature routing** you can pin each of t
 | **Relationship arc** | The Characters view "Relationship arc" modal — chapter-by-chapter warmth / tension / power tracking for a pair of characters |
 | **Marketing pack** | The Analysis dashboard "Marketing pack" modal — logline, three back-cover blurbs, one-page synopsis, three-paragraph elevator pitch |
 | **Multi-reader panel** | The chapter editor's "Multi-reader panel" critique — four reader personas (genre reader / literary critic / agent intern / book-club reader) react to a chapter in parallel |
-| **Audio Studio · Speaker analysis** | Audio Studio → Script → Re-analyze — dialogue-to-character attribution. Reasoning-class; benefits from a larger local model than the writer-actions tier. |
-| **Audio Studio · Smart-assign** | Audio Studio → Cast — auto-assigns TTS voices to characters based on traits. Reasoning-class. |
 
 Setting "Inherit default" for any feature uses your global Default LLM.
 
@@ -443,7 +346,6 @@ Setting "Inherit default" for any feature uses your global Default LLM.
 - **Session recap**: inherits default (same reasoning — short structured output, no need for the heavy provider)
 - **Foreshadowing scan**: pinned to Claude (long-context structural reasoning helps catch subtler setups; runs once per chapter so the per-call cost adds up — pick your battle)
 - **Reader knowledge**: pinned to Claude (same reasoning — sequential per-chapter calls benefit from strong reading comprehension; a smaller model produces noisier facts)
-- **TTS**: Kokoro (free, local, fast)
 
 This pattern keeps day-to-day cost near zero and only spends on the two features where cloud quality genuinely matters.
 
@@ -468,7 +370,7 @@ A **Reset ledger** button clears the log so you can start a fresh accounting per
 
 When editing a provider, you can:
 
-- **Set a Tier** (Guided / Direct / Reasoned) — affects the speaker-attribution pipeline in Audio Studio. Auto-detected by model name; can be pinned manually. Most users never need to touch this.
+- **Set a Tier** (Guided / Direct / Reasoned) — affects how prompts are framed for the model. Auto-detected by model name; can be pinned manually. Most users never need to touch this.
 - **Add a custom system prompt** — overrides JustWrite's default system message for that provider. Advanced.
 - **Adjust temperature and other generation parameters** through the engine parameters block.
 
@@ -480,7 +382,7 @@ These are optional refinements. The defaults are reasonable for almost every cas
 
 > *"I'm in the Critique modal and the result feels off. I want to try a different model right here without leaving to navigate Settings."*
 
-Every AI page has a small chip in its header showing the current **provider · model** for that feature. Audio Studio shows two — one for the TTS engine, one for the active LLM call (Smart-assign on the Cast tab, Speaker analysis on the Script tab). Critique, Brainstorm, every analysis modal, Reader knowledge, the chat panel, the Speaker Lab — same chip in each. In the chapter editor, the chip sits at the **top of each scene's AI dropdown**, so writer actions (Rewrite, Expand, Tighten, Continue, Line edits) show their routing right above the menu items they apply to.
+Every AI page has a small chip in its header showing the current **provider · model** for that feature. Critique, Brainstorm, every analysis modal, Reader knowledge, the chat panel — same chip in each. In the chapter editor, the chip sits at the **top of each scene's AI dropdown**, so writer actions (Rewrite, Expand, Tighten, Continue, Line edits) show their routing right above the menu items they apply to.
 
 **Click the chip** and a small popover opens with two dropdowns: Provider and Model. The Provider dropdown lists *"Inherit default"* (the global LLM default set in Settings) plus every configured LLM-capable provider. The Model dropdown enables once you pick a specific provider; it shows the provider's saved configured-default model plus any models the live `/v1/models` fetch returned (Refresh button alongside if you need to force a re-fetch).
 
@@ -494,31 +396,11 @@ Every AI page has a small chip in its header showing the current **provider · m
 
 ---
 
-## Tuning the speaker-attribution prompt — Speaker Lab and production configs
-
-> *"The Audio Studio Re-analyze pipeline misattributes a few lines in chapter 2 with my current model. I want to try a different temperature or prompt, see if it fixes it, and have that tuned version be what every chapter actually runs against."*
-
-JustWrite ships a **Speaker Lab** in the sidebar (Project section) — a debugging surface that exposes every knob behind Audio Studio → Script → Re-analyze: the system prompt, the user template, temperature, anchor propagation, the confidence floor, Ollama think mode, and the tier (Guided / Direct / Reasoned). Three modes:
-
-- **Audio Studio** — the production pipeline. Tune in here when you want changes to affect what `Audio Studio → Script → Re-analyze` actually does.
-- **Lab** — a two-stage experimental pipeline. For research, not currently a production target.
-- **Legacy Audio Studio** — the older paragraph-level approach, kept around as a comparison point.
-
-**Production configs.** The Audio Studio panel has a row at the top: a picker showing **Default** plus every saved config, a green `PRODUCTION` badge on whichever one is currently active, and a primary **Use as production** button that promotes the picker's selection. The Default config is built-in (uses tier-resolved prompts and settings for whichever model the feature is routed to) and can't be edited or deleted. You can save the lab's current settings under a name (**Save as**, prompts for the name), load a saved config back into the lab to tweak it (**Load**), and switch the active production config without leaving the lab (just change the picker).
-
-**Settings → AI & Audio engines** also shows a *Production prompt configs* card with the same picker — for each feature (Speaker analysis, Smart-assign), it shows the active config name, source, last-saved timestamp, and a preview of every overridden knob (temperature, system, user, propagate, useFloor, confidenceFloor, think). Switch active right from Settings if you don't want to open the lab.
-
-**What it means in practice:** by default, Audio Studio → Script → Re-analyze runs against the tier-resolved built-in prompt (the same one the lab opens to). If you tune the lab against a hard chapter, save it as *"Tuned for Claude"*, and click Use as production, every subsequent Re-analyze runs against that config — across every chapter in the project. Revert to Default any time by setting the picker back to Default and clicking Use as production.
-
-**Smart-Assign**: the same data model exists for `smartCast`, but the Smart-Assign Lab itself isn't built yet (on the roadmap). For now the Smart-Assign row in Settings always says "Default (tier-resolved)" and you can't override it; the data shape is ready when the lab ships.
-
----
-
 ## Watching AI calls
 
 > *"I asked for a critique five minutes ago. Is it still working, or did it freeze? I switched to another chapter to keep writing and now I can't tell what's going on."*
 
-Anything in JustWrite that calls an AI — critique, brainstorm, smart-assign, script analysis, plot-hole scan, "Ask the book", every writer-assist rewrite — registers as a **task** that you can monitor from anywhere in the app. The sparkle icon in the title bar is the doorway.
+Anything in JustWrite that calls an AI — critique, brainstorm, plot-hole scan, "Ask the book", every writer-assist rewrite — registers as a **task** that you can monitor from anywhere in the app. The sparkle icon in the title bar is the doorway.
 
 **The header chip.** A small sparkle icon sits in the title bar. When no calls are in flight it's quiet. When something is running, it gets a pulsing dot and a number showing how many tasks are active. Click it to open the full **AI task panel** from any screen.
 
@@ -537,7 +419,7 @@ Anything in JustWrite that calls an AI — critique, brainstorm, smart-assign, s
 - **A preview toggle** — expand to see the assistant's streaming text in real time as it's produced.
 - **Cancel** — abort the call immediately. Cleaner than closing a modal mid-stream.
 
-**Tasks survive navigation.** This is the headline. Start a critique on Chapter 7, navigate over to Worldbuilding to check a fact, hop into the Plot Board — the call keeps running. When it finishes, the result lands wherever it was supposed to (the critique on the chapter, the smart cast on Audio Studio characters, etc.) and a toast tells you it's done with a **View** action that opens the panel to the just-finished entry. Closing a modal that was waiting for an AI call no longer cancels the call — the call decouples from the modal's lifecycle.
+**Tasks survive navigation.** This is the headline. Start a critique on Chapter 7, navigate over to Worldbuilding to check a fact, hop into the Plot Board — the call keeps running. When it finishes, the result lands wherever it was supposed to (the critique on the chapter, the entity sweep proposals, etc.) and a toast tells you it's done with a **View** action that opens the panel to the just-finished entry. Closing a modal that was waiting for an AI call no longer cancels the call — the call decouples from the modal's lifecycle.
 
 **Recent history.** The bottom of the panel lists the last 30 completed (or cancelled, or failed) tasks with duration, tokens used, and outcome. Useful for spot-checking which model produced which result, or for noticing that your local Ollama keeps timing out on the same feature.
 
@@ -569,7 +451,7 @@ Anything in JustWrite that calls an AI — critique, brainstorm, smart-assign, s
 **OpenAI is charging me unexpectedly.**
 
 - Check **Settings → AI Usage** for the breakdown by feature.
-- The biggest spenders are usually: TTS (per character of text), critique on long chapters, and "Ask the book" if auto-rebuild RAG is on.
+- The biggest spenders are usually: critique on long chapters, and "Ask the book" if auto-rebuild RAG is on.
 - Pin expensive features to cheaper models or local ones.
 
 **An AI call seems hung — should I wait or give up?**
@@ -584,6 +466,5 @@ Anything in JustWrite that calls an AI — critique, brainstorm, smart-assign, s
 ## See also
 
 - **[Writing](writing.md)** — the scene-strip AI dropdown and Critique modal
-- **[Audio Studio](audio-studio.md)** — TTS setup for audiobook narration
 - **[Writer Lab](writer-lab.md)** — the standalone AI workbench
 - **[Notes and search](notes-and-search.md)** — "Ask the book" chat

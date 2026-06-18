@@ -10,7 +10,7 @@ Think of it as an editor on call for any piece of text at any time. The scene-st
 
 ## Setup required
 
-Writer Lab needs an **LLM provider** configured in **Settings → AI & Audio engines**. Any OpenAI-compatible chat provider works — OpenAI, Anthropic Claude, a local Ollama or LM Studio model.
+Writer Lab needs an **LLM provider** configured in **Settings → AI engines**. Any OpenAI-compatible chat provider works — OpenAI, Anthropic Claude, a local Ollama or LM Studio model.
 
 No TTS, no embeddings, no special plugins.
 

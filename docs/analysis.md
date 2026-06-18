@@ -2,7 +2,7 @@
 
 The **Analysis** view (Project section in the sidebar) is a dashboard of objective data about your manuscript — how much you've written, how fast, how the chapters are structured, and what your prose patterns look like.
 
-Most of it is calculated locally from the text. None of it requires an AI provider except for the dialogue-vs-narration breakdown, which uses the Audio Studio speaker analysis.
+Most of it is calculated locally from the text. The AI-powered passes — story tension, reverse outline, beat sheet, plot-hole audit, marketing pack, and the Voice-drift explainer — are opt-in; nothing calls a provider until you ask.
 
 This page won't change anything about your writing. It is a mirror. What you do with what you see is up to you.
 
@@ -245,7 +245,7 @@ A grid: every character along one axis, every chapter along the other. Each cell
 
 Hover a cell for the exact mention count. Click to open the chapter or the character's profile.
 
-Presence is fed by **both** prose mentions (the `@` linking system) **and** the Audio Studio speaker analysis where available. So a character who is referred to in dialogue but never named in narration still shows up if Audio Studio has analysed that chapter.
+Presence is fed by prose mentions (the `@` linking system) and explicit scene → character links.
 
 **Why a writer would care.** This is the structural diagnostic for character distribution. Spot:
 
@@ -253,16 +253,6 @@ Presence is fed by **both** prose mentions (the `@` linking system) **and** the 
 - A **B-plot character** who is only in chapters 4 and 18 — they don't have an arc, they have two appearances.
 - An **ensemble cast chapter** with many lit cells — usually a turning point.
 - A **single-character chapter** at the climax — usually a deliberate intimate moment.
-
-### Dialogue vs. narration breakdown
-
-> *"My climax felt off in feedback, and someone said it was 'too internal.' I want to see if they're right before I rewrite it."*
-
-A stacked bar showing the book-wide split between dialogue, narration, and interior thought as a percentage of word count. Plus a per-chapter row for each chapter that's been analysed.
-
-This section **requires Audio Studio → Script analysis** on at least one chapter. Without that, you get a prompt to run the analysis. With it on every chapter, you get a complete picture.
-
-**Why a writer would care.** Dialogue-heavy chapters and narration-heavy chapters do different work. If your action sequences are mostly narration, that's normal. If your climax is mostly interior thought, that may be the problem you couldn't put a finger on. The per-chapter breakdown shows you which chapters are which.
 
 ### Scenes per chapter
 
@@ -292,10 +282,7 @@ Almost nothing. Specifically:
 - **Style and pacing metrics, scenes per chapter** — all local
 - **Voice drift metrics + sparklines + hot-chapters list** — all local. The optional **Explain** button per hot chapter is one of two AI surfaces in the dashboard
 - **Story tension chart + per-chapter strip** — reads from data already on `chapter.critique.structure`. The **Analyse N chapters** button runs the structural pass on chapters that don't have one yet (the other AI surface in the dashboard)
-- **Cast presence heatmap** — partially. The mention layer is local; the Audio Studio speaker layer requires Audio Studio → Script to have been run, which uses an LLM
-- **Dialogue vs. narration breakdown** — requires Audio Studio → Script
-
-If you don't run Audio Studio analysis, the dashboard still works; the dialogue breakdown just stays empty.
+- **Cast presence heatmap** — all local. Built from the `@` mention layer and explicit scene → character links
 
 ---
 
@@ -303,5 +290,4 @@ If you don't run Audio Studio analysis, the dashboard still works; the dialogue 
 
 - **[Writing](writing.md)** — the editor that feeds the word counts and session log
 - **[Reader knowledge](reader-knowledge.md)** — the dramatic-irony map (separate view, LLM-powered)
-- **[Audio Studio](audio-studio.md)** — the Script analysis that powers cast presence and dialogue breakdown
 - **[Plot and time](plot-and-time.md)** — strand tagging that powers strand distribution

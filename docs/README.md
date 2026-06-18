@@ -1,6 +1,6 @@
 # JustWrite — User Guide
 
-JustWrite is a desktop writing app for novelists. It bundles a clean rich-text editor, a full story bible (characters, places, plot threads, world-building), planning tools (corkboard, plot board, timeline), an analysis dashboard, and a complete audiobook studio that can narrate your book in voices you choose.
+JustWrite is a desktop writing app for novelists. It bundles a clean rich-text editor, a full story bible (characters, places, plot threads, world-building), planning tools (corkboard, plot board, timeline), and an analysis dashboard.
 
 It runs locally on your own computer. Your manuscript is yours, on your disk, in your hands. AI features are optional and work with whichever provider you prefer — including local engines that never send a word out to the internet.
 
@@ -45,15 +45,14 @@ If you want to plan first:
 
 ### Producing the book
 
-- **[Import and export](import-and-export.md)** — bring a manuscript in; export to PDF, DOCX, EPUB, or M4B audiobook
-- **[Audio Studio](audio-studio.md)** — Cast, Script, Render; turning your book into a narrated audiobook
+- **[Import and export](import-and-export.md)** — bring a manuscript in; export to PDF, DOCX, or EPUB
 - **[Analysis](analysis.md)** — pace, milestones, style metrics, cast presence; plus the structural AI passes (story tension, voice drift, reverse outline, beat sheet, plot-hole audit, marketing pack)
 - **[Reader knowledge](reader-knowledge.md)** — a chapter-by-chapter dramatic-irony map: what the reader knows vs. what the POV character knows
 - **[Writer Lab](writer-lab.md)** — an editor-on-call for rewrites, critiques, and entity extraction
 
 ### Setup and configuration
 
-- **[AI providers](ai-providers.md)** — OpenAI, Anthropic Claude, Ollama, LM Studio, Kokoro TTS, Chatterbox TTS, others
+- **[AI providers](ai-providers.md)** — OpenAI, Anthropic Claude, Ollama, LM Studio, others
 - **[Appearance](appearance.md)** — themes, fonts, accents, button shape, editor layout
 - **[Backups and data](backups-and-data.md)** — autosave, snapshots, restoring, reset
 - **[Keyboard shortcuts](keyboard-shortcuts.md)** — the full reference
@@ -70,6 +69,6 @@ If you want to plan first:
 
 - It is not a cloud service. There is no account, no login, no subscription. The app and your project live on your computer.
 - It is not locked to any AI vendor. Every AI feature works with whichever provider you choose, including local engines.
-- It is not a publishing platform. It produces files (PDF, EPUB, DOCX, M4B) that you take to whatever distributor or printer you prefer.
+- It is not a publishing platform. It produces files (PDF, EPUB, DOCX) that you take to whatever distributor or printer you prefer.
 
-Your code, your manuscript, your terms. AI models and TTS engines are subject to their own providers' terms.
+Your code, your manuscript, your terms. AI models are subject to their own providers' terms.

@@ -20,21 +20,11 @@ Items are loosely grouped by area and by how concrete they are.
 
 ---
 
-## AI and audio
+## AI
 
 - **Token budgets per feature.** A per-feature monthly cap that pauses AI calls when exceeded, to prevent surprise bills on cloud providers.
 - **Embedding rebuild status.** The auto-rebuild RAG indicator could be more visible when it's actively running.
-- **Per-model temperature, resolved via tier.** AI services currently hard-code their temperature (0.3 for JSON-output features like speaker analysis and smart-cast, 0.4–0.55 for prose critique, etc.). One value applies regardless of which model runs the call. A more nuanced approach would extend the tier system (`Guided` / `Direct` / `Reasoned`) with a per-tier temperature so that, say, Claude or `gpt-5.5` on Direct could run at 0.4 for a touch more nuance while Qwen3:8B on Guided stays at 0.3 for JSON safety. Services would read `tier.temperature` the same way they currently read `tier.think`.
-- **Smart-Assign Lab.** Speaker Lab already proves the workflow: tune a prompt + temperature, save as a named production config, switch between configs from Settings or the lab. Smart-Assign (`smartCast`) needs the same surface — currently the only override is "Default (built-in)" because there's no UI to populate `savedConfigs.smartCast`. Probably a third tab in Speaker Lab so the two casting-related labs share a sidebar entry, or a popover off the Audio Studio Cast tab. The store, services, and Settings card already accept the data shape; only the lab UI is missing.
-
----
-
-## Audiobook
-
-- **Better mid-render error recovery.** If a single line fails to render mid-chapter, the chapter currently has to restart. A line-level retry is on the wishlist.
-- **Per-chapter pacing controls.** Speed and pause-between-paragraph settings per chapter would help match narration to the chapter's rhythm.
-- **Render settings surface.** A lot of audio knobs are currently hardcoded in `services/render.js`: `pauseBetween: 0.35` seconds between lines, `sampleRate: 44100` on the AudioContext, WAV-only output (no bitrate / compression knob), and no per-line speed or pitch adjustment. A Render settings card on Audio Studio's Render tab (or in Settings → AI & Audio engines) would expose these — at minimum the pause control, with speed / pitch and an output-format picker as follow-ups.
-- **Per-line persistent render cache.** `services/tts.js` already has an in-memory cache keyed on `providerId :: model :: voice :: speed :: paramsHash :: input`, so re-rendering an unchanged chapter is near-instant *in-session*. Persisting that map to disk (alongside the chapter audio under `$APPDATA/JustWrite/audio/<projectId>/cache/`) would carry it across app restarts. The win compounds on long books: changing one preset value re-synths only the lines that actually moved, instead of the whole chapter. Care needed around invalidation (the cache key already captures everything that matters but the on-disk store needs eviction policy + size cap) and around blob lifetime (current blobs are object URLs that die with the session; need to write WAV bytes to disk).
+- **Per-model temperature, resolved via tier.** AI services currently hard-code their temperature (0.3 for JSON-output features, 0.4–0.55 for prose critique, etc.). One value applies regardless of which model runs the call. A more nuanced approach would extend the tier system (`Guided` / `Direct` / `Reasoned`) with a per-tier temperature so that, say, Claude or `gpt-5.5` on Direct could run at 0.4 for a touch more nuance while Qwen3:8B on Guided stays at 0.3 for JSON safety. Services would read `tier.temperature` the same way they currently read `tier.think`.
 
 ---
 
@@ -67,7 +57,7 @@ Items are loosely grouped by area and by how concrete they are.
 A few things JustWrite **isn't** planning to add. Worth saying so:
 
 - **A cloud account.** The local-first model is the whole point. There may be cross-machine sync (see above) but there will not be a JustWrite account you log into.
-- **A built-in publishing pipeline.** JustWrite produces files (EPUB, PDF, DOCX, M4B). What you do with them — Amazon, Apple Books, Kobo, IngramSpark, Findaway Voices — is your business.
+- **A built-in publishing pipeline.** JustWrite produces files (EPUB, PDF, DOCX). What you do with them — Amazon, Apple Books, Kobo, IngramSpark — is your business.
 - **Real-time collaboration.** Same reasons as the no-cloud-account decision. A snapshot you hand to a collaborator works; merging concurrent edits across the wire does not.
 - **Lock-in to any single AI provider.** Every AI feature works with whichever provider you choose. That includes local engines that never call out to the internet.
 

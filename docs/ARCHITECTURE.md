@@ -1,5 +1,7 @@
 # Architecture
 
+> **⚠️ Historical note (2026-06-18):** JustWrite is now writing-only — all audio (Audio Studio, TTS, audiobook render, M4B, Speaker Lab / quote attribution, smart-cast) has moved to the separate **JustVoice** app, which JustWrite drives over an HTTP contract. Sections below that describe an in-app audio / TTS / Speaker-Lab subsystem are retained as project history and no longer reflect the shipping app.
+
 The *why* behind major substrates and design decisions. Pairs with
 [`CLAUDE.md`](../CLAUDE.md) (the *what's where* primer) and
 [`AGENTS.md`](../AGENTS.md) (the *how we do things* conventions). This file

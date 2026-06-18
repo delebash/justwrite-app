@@ -58,16 +58,6 @@ test("hash-routing — Analysis view renders KPI cards", async () => {
   assert.equal(hash, "#/analysis");
 });
 
-test("hash-routing — Studio view loads (Cast tab)", async () => {
-  await d.navigate("#/studio");
-  await d.waitUntil(
-    `return /studio/i.test(document.body.textContent) &&
-            /cast|narrator|voice/i.test(document.body.textContent);`,
-    { timeout: 15_000 },
-  );
-  assert.match(await d.exec("return location.hash;"), /studio/);
-});
-
 test("hash-routing — Settings → AI engines shows configured providers", async () => {
   await d.navigate("#/settings/audio");
   await d.waitUntil(
