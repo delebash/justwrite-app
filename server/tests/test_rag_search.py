@@ -11,8 +11,10 @@ from justwrite_server.rag_search import (
 
 
 def test_tokenize_drops_stopwords_and_singletons():
-    # "what"/"about"/"the" are stop words; single chars are dropped.
-    assert tokenize("What about the brass key") == ["brass", "key"]
+    # "what"/"is"/"the" are stop words; single chars are dropped. (NB: the JS
+    # stop list this is ported from does NOT include "about" — the comment in
+    # bm25.js claiming otherwise is wrong; this port stays faithful to the list.)
+    assert tokenize("What is the brass key") == ["brass", "key"]
     assert tokenize("") == []
     assert tokenize("a I") == []  # both too short / stop words
 
