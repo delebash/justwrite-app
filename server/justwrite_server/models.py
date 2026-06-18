@@ -10,7 +10,7 @@ See docs/plans/2026-06-18-jw-server-migration.md.
 
 from __future__ import annotations
 
-from sqlalchemy import Column, String, Text
+from sqlalchemy import Column, Integer, String, Text
 from sqlalchemy.orm import declarative_base
 
 Base = declarative_base()
@@ -44,3 +44,28 @@ class Project(Base):
     author = Column(String, nullable=False, default="")
     updated_at = Column(String, nullable=False, default="")
     data = Column(Text, nullable=False, default="{}")  # full snapshot JSON
+
+
+class RagMeta(Base):
+    """Per-project RAG index metadata — the embedding model it was built with
+    and the vector dimensionality (so the renderer can detect a model switch)."""
+
+    __tablename__ = "rag_meta"
+
+    project_id = Column(String, primary_key=True)
+    model = Column(String, nullable=False, default="")
+    dims = Column(Integer, nullable=False, default=0)
+
+
+class RagVector(Base):
+    """One embedded manuscript chunk. Moves the RAG index off the renderer
+    (it used to load the whole vector blob and cosine-search in JS) into a
+    per-project table the server searches. `vector` and `chunk` are JSON."""
+
+    __tablename__ = "rag_vectors"
+
+    project_id = Column(String, primary_key=True)
+    chunk_id = Column(String, primary_key=True)
+    sha = Column(String, nullable=False, default="")
+    vector = Column(Text, nullable=False, default="[]")  # JSON number[]
+    chunk = Column(Text, nullable=False, default="{}")   # JSON chunk metadata
