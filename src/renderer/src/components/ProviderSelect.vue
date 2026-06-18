@@ -1,12 +1,12 @@
 <script setup>
 // Standardized AI-provider dropdown. Replaces the repeated:
 //   <select v-model="x"><option v-for="p in ai.llmProviders">…</option></select>
-// that was sprinkled across Settings, Studio, Speaker Lab, and Writer Lab.
+// that was sprinkled across Settings and the writing AI surfaces.
 //
 // Props:
 //   modelValue — provider id (or "" for none)
-//   kind       — "llm" | "tts" | "embedding". Drives which providers
-//                surface; defaults to "llm".
+//   kind       — "llm" | "embedding". Drives which providers surface;
+//                defaults to "llm".
 //   size       — "sm" | "md". Matches the existing .input.sm convention.
 //   includeEmpty — when true, prepends an empty option labelled with
 //                  `emptyLabel`. Useful for "(none)" choices.
@@ -17,7 +17,7 @@ import { useAiStore } from "../stores/ai.js";
 
 const props = defineProps({
   modelValue: { type: String, default: "" },
-  kind:       { type: String, default: "llm" },  // "llm" | "tts" | "embedding"
+  kind:       { type: String, default: "llm" },  // "llm" | "embedding"
   size:       { type: String, default: "sm" },   // "sm" | "md"
   includeEmpty: { type: Boolean, default: false },
   emptyLabel: { type: String, default: "(none)" },
@@ -28,7 +28,6 @@ const emit = defineEmits(["update:modelValue"]);
 const ai = useAiStore();
 
 const providers = computed(() => {
-  if (props.kind === "tts")       return ai.ttsProviders;
   if (props.kind === "embedding") return ai.embeddingProviders;
   return ai.llmProviders;
 });

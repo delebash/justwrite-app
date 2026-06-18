@@ -1,4 +1,4 @@
-// AI store — manages providers (OpenAI-compatible), default LLM and TTS,
+// AI store — manages providers (OpenAI-compatible), the default LLM,
 // connection status, and the usage ledger (tokens + estimated cost per
 // call). Persists via the IDB-backed storage adapter.
 
@@ -17,16 +17,6 @@ function pingClientFor(provider) {
 }
 
 const LS_KEY = "justwrite:ai";
-
-// For each feature, which mode key holds the production-ready presets.
-// Speaker analysis production = the inline (Studio) pipeline; lab two-
-// stage and legacy studio modes don't have a production target.
-// Smart-Assign has a single mode keyed "cast" (no lab UI yet but the
-// data shape is ready for one).
-export const PRODUCTION_MODE_OF = {
-  speakerAnalysis: "inline",
-  smartCast: "cast",
-};
 const LS_USAGE_KEY = "justwrite:ai:usage";
 
 // In-memory cap on the usage log so a long session can't unbounded-bloat
@@ -126,49 +116,6 @@ function load() {
     const have = new Set(v.providers.map((p) => p.id));
     const missing = DEFAULT_PROVIDERS.filter((p) => p.builtIn && !have.has(p.id));
     if (missing.length) v.providers = [...v.providers, ...missing];
-    // Migrations into the current shape (labPresets + activeProduction).
-    // Walk forward through every prior shape we've shipped so a user
-    // doesn't lose work upgrading across versions.
-    v.labPresets = v.labPresets || { speakerAnalysis: { inline: [], studio: [], lab: [] }, smartCast: { cast: [] } };
-    v.activeProduction = v.activeProduction || { speakerAnalysis: null, smartCast: null };
-
-    // Migration 1: very-old flat shape — `featureConfigs.<feature>` was
-    // a single settings object. Lift into the inline preset list.
-    if (v.featureConfigs) {
-      for (const key of ["speakerAnalysis", "smartCast"]) {
-        const legacy = v.featureConfigs[key];
-        if (legacy && typeof legacy === "object") {
-          const name = legacy.source || "Migrated";
-          const modeKey = key === "speakerAnalysis" ? "inline" : "cast";
-          v.labPresets[key] = v.labPresets[key] || {};
-          v.labPresets[key][modeKey] = v.labPresets[key][modeKey] || [];
-          v.labPresets[key][modeKey].push({
-            name, savedAt: legacy.savedAt || Date.now(), source: legacy.source,
-            settings: legacy,
-          });
-          v.activeProduction[key] = name;
-        }
-      }
-      delete v.featureConfigs;
-    }
-    // Migration 2: short-lived `savedConfigs` / `activeConfig` shape.
-    if (v.savedConfigs) {
-      for (const key of ["speakerAnalysis", "smartCast"]) {
-        const list = v.savedConfigs[key] || [];
-        const modeKey = key === "speakerAnalysis" ? "inline" : "cast";
-        v.labPresets[key] = v.labPresets[key] || {};
-        v.labPresets[key][modeKey] = v.labPresets[key][modeKey] || [];
-        for (const entry of list) {
-          if (entry?.name) v.labPresets[key][modeKey].push(entry);
-        }
-      }
-      if (v.activeConfig) {
-        v.activeProduction.speakerAnalysis = v.activeProduction.speakerAnalysis || v.activeConfig.speakerAnalysis || null;
-        v.activeProduction.smartCast      = v.activeProduction.smartCast      || v.activeConfig.smartCast      || null;
-      }
-      delete v.savedConfigs;
-      delete v.activeConfig;
-    }
     return v;
   } catch { return null; }
 }
@@ -195,14 +142,10 @@ function save(state) {
     setItem(LS_KEY, JSON.stringify({
       providers: state.providers,
       defaultLlmId: state.defaultLlmId,
-      defaultTtsId: state.defaultTtsId,
       defaultEmbeddingId: state.defaultEmbeddingId,
       modelTiers: state.modelTiers,
       featurePins: state.featurePins,
-      labPresets: state.labPresets,
-      activeProduction: state.activeProduction,
       autoRebuildRagIndex: state.autoRebuildRagIndex,
-      useLlmVoiceGender: state.useLlmVoiceGender,
     }));
   } catch {}
   // Write-through the provider list to the server (the authoritative store);
@@ -217,7 +160,6 @@ export const useAiStore = defineStore("ai", {
     return {
       providers: initialProviders(loaded),
       defaultLlmId: loaded?.defaultLlmId ?? "openai-compat-local",
-      defaultTtsId: loaded?.defaultTtsId ?? "openai",
       // Default provider used for embeddings (RAG indexing + chat).
       // Same provider can host LLM + embeddings; the model field on the
       // provider determines which embedding model to call.
@@ -236,39 +178,11 @@ export const useAiStore = defineStore("ai", {
       // Settings → AI → Feature defaults, plus the chat panel writes to
       // featurePins.chat directly for in-thread model switching.
       featurePins: loaded?.featurePins ?? { chat: null, critique: null, entitySweep: null, writerAI: null },
-      // Per-feature, per-mode named presets. Each entry:
-      //   { name, savedAt, source?, settings: {...mode-specific keys} }
-      // Built-in "Default" is implicit (sentinel meaning "use the lab's
-      // built-in defaults for that mode" / "use tier-resolved defaults
-      // for production"). The array holds USER-SAVED presets only.
-      //
-      // Mode keys map to the lab's mode segments:
-      //   speakerAnalysis.inline   — Studio (production)
-      //   speakerAnalysis.studio   — Legacy Studio (paragraph-level)
-      //   speakerAnalysis.lab      — Lab (two-stage)
-      //   smartCast.cast           — Smart-Assign (no lab UI yet)
-      labPresets: loaded?.labPresets ?? {
-        speakerAnalysis: { inline: [], studio: [], lab: [] },
-        smartCast: { cast: [] },
-      },
-      // Per feature: name of the preset that drives production. `null`
-      // (or "Default") means "use tier-resolved built-ins." Only presets
-      // from the feature's production mode (see PRODUCTION_MODE_OF
-      // below) can be production.
-      activeProduction: loaded?.activeProduction ?? { speakerAnalysis: null, smartCast: null },
       // When true, services/rag/autoIndex.js silently embeds new/changed
       // scenes a minute after the last edit. Default OFF — auto-firing
       // burns embed tokens on every save against a cloud provider, which
       // the user shouldn't get without opting in.
       autoRebuildRagIndex: loaded?.autoRebuildRagIndex ?? false,
-      // When true, after a voice list is fetched and the offline
-      // first-name dictionary in services/voiceGender.js has labelled what
-      // it can, any voices still missing a gender are sent in one batch
-      // to the default LLM for classification. Default OFF — the writer
-      // can also just click the ❓ chip in Studio's voice library, which
-      // persists and survives re-fetch (mergeVoices only backfills empty
-      // fields).
-      useLlmVoiceGender: loaded?.useLlmVoiceGender ?? false,
       // Usage ledger — every LLM call routed through writerAI (and any
       // future feature that uses recordUsage) appends a row. Aggregates
       // are maintained alongside so a settings page can render totals
@@ -281,7 +195,6 @@ export const useAiStore = defineStore("ai", {
   getters: {
     providerById: (s) => (id) => s.providers.find((p) => p.id === id),
     llmProvider: (s) => s.providers.find((p) => p.id === s.defaultLlmId) || null,
-    ttsProvider: (s) => s.providers.find((p) => p.id === s.defaultTtsId) || null,
     embeddingProvider: (s) => s.providers.find((p) => p.id === s.defaultEmbeddingId) || null,
     llmProviders: (s) => s.providers.filter((p) => p.kind === "llm" || p.kind === "both"),
 
@@ -295,23 +208,6 @@ export const useAiStore = defineStore("ai", {
       return s.providers
         .filter((p) => p.kind === "llm" || p.kind === "both")
         .filter((p) => !!p.apiKey || isLocal(p.baseUrl));
-    },
-    ttsProviders: (s) => s.providers.filter((p) => p.kind === "tts" || p.kind === "both"),
-    // TTS counterpart to readyLlmProviders above. A built-in TTS entry
-    // (OpenAI, Speechmatics) only counts as ready once the writer has
-    // pasted a key; local servers (Kokoro, Chatterbox) count when their
-    // baseUrl points at localhost — the server may not be running, but
-    // we don't poll on every list to find out.
-    readyTtsProviders: (s) => {
-      const isLocal = (url) => /\b(localhost|127\.0\.0\.1|0\.0\.0\.0)\b/i.test(String(url || ""));
-      // Edge TTS routes through Rust (msedge-tts crate) — always ready
-      // when the desktop app is running. No apiKey, no localhost URL.
-      // In browser dev (`vite dev` outside Tauri) the bridge isn't
-      // populated and synth throws a "desktop app only" error.
-      const isEdgeTts = (p) => p.id === "edgeTts";
-      return s.providers
-        .filter((p) => p.kind === "tts" || p.kind === "both")
-        .filter((p) => !!p.apiKey || isLocal(p.baseUrl) || isEdgeTts(p));
     },
     // Any LLM-capable provider can host embeddings — the embedding
     // model is configured per-provider via the embeddingModel field.
@@ -341,26 +237,6 @@ export const useAiStore = defineStore("ai", {
     resolveTier: (s) => (modelId) => {
       const tierId = s.modelTiers[modelId] || getModelTier(modelId);
       return TIERS[tierId] || TIERS.guided;
-    },
-
-    // Look up the active production preset entry for a feature. Returns
-    // `null` for the built-in Default (caller falls through to tier-
-    // resolved defaults). Returns the full preset entry — { name,
-    // savedAt, source, settings } — when a saved preset is active.
-    // Production lives in the feature's production mode (see
-    // PRODUCTION_MODE_OF below in this file).
-    activeProductionEntry: (s) => (featureKey) => {
-      const name = s.activeProduction?.[featureKey];
-      if (!name) return null;
-      const modeKey = PRODUCTION_MODE_OF[featureKey];
-      const list = s.labPresets?.[featureKey]?.[modeKey] || [];
-      return list.find((c) => c.name === name) || null;
-    },
-    // Convenience: just the settings object of the active production
-    // preset, or null when Default is active. Services use this as
-    // the override dictionary on top of their tier-resolved defaults.
-    activeSettingsFor() {
-      return (featureKey) => this.activeProductionEntry(featureKey)?.settings || null;
     },
 
     // Whether the resolved tier came from a user pin or the heuristic —
@@ -394,55 +270,8 @@ export const useAiStore = defineStore("ai", {
       this.featurePins = { ...this.featurePins, [featureKey]: pin || null };
       save(this.$state);
     },
-    // ── Per-feature, per-mode lab presets ──────────────────────────────
-    // Save (or replace) a named preset in the given feature+mode list.
-    // `settings` shape is mode-specific (caller controls):
-    //   speakerAnalysis.inline → full inline-pipeline knob set
-    //   speakerAnalysis.studio → legacy studio settings
-    //   speakerAnalysis.lab    → { twoStage, stage1, stage2 }
-    //   smartCast.cast         → cast-director settings (future Smart-Assign Lab)
-    saveLabPreset(featureKey, modeKey, name, settings, source) {
-      if (!name) return;
-      if (String(name).trim().toLowerCase() === "default") return; // reserved
-      const feature = { ...(this.labPresets?.[featureKey] || {}) };
-      const list = [...(feature[modeKey] || [])];
-      const entry = {
-        name: String(name).trim(),
-        savedAt: Date.now(),
-        source: source || "",
-        settings: settings || {},
-      };
-      const idx = list.findIndex((c) => c.name === entry.name);
-      if (idx >= 0) list[idx] = entry;
-      else list.push(entry);
-      feature[modeKey] = list;
-      this.labPresets = { ...this.labPresets, [featureKey]: feature };
-      save(this.$state);
-    },
-    deleteLabPreset(featureKey, modeKey, name) {
-      if (!name || String(name).toLowerCase() === "default") return;
-      const feature = { ...(this.labPresets?.[featureKey] || {}) };
-      feature[modeKey] = (feature[modeKey] || []).filter((c) => c.name !== name);
-      this.labPresets = { ...this.labPresets, [featureKey]: feature };
-      // If the deleted preset was production, fall back to Default.
-      if (this.activeProduction?.[featureKey] === name) {
-        this.activeProduction = { ...this.activeProduction, [featureKey]: null };
-      }
-      save(this.$state);
-    },
-    setActiveProduction(featureKey, name) {
-      // null / "Default" / "" → built-in (tier-resolved). Any other
-      // name should match a preset in the feature's production-mode list.
-      const resolved = (!name || String(name).toLowerCase() === "default") ? null : name;
-      this.activeProduction = { ...this.activeProduction, [featureKey]: resolved };
-      save(this.$state);
-    },
     setDefaultLlm(id) {
       this.defaultLlmId = id;
-      save(this.$state);
-    },
-    setDefaultTts(id) {
-      this.defaultTtsId = id;
       save(this.$state);
     },
     setDefaultEmbedding(id) {
@@ -451,10 +280,6 @@ export const useAiStore = defineStore("ai", {
     },
     setAutoRebuildRagIndex(on) {
       this.autoRebuildRagIndex = !!on;
-      save(this.$state);
-    },
-    setUseLlmVoiceGender(on) {
-      this.useLlmVoiceGender = !!on;
       save(this.$state);
     },
     // Pin a tier override for a specific model. Pass null/undefined to

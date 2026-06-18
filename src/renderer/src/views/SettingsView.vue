@@ -171,13 +171,6 @@ const SECTIONS = computed(() => [
 // internal lab/inspector views are built.
 const DEBUG_TOOLS = [
   {
-    id: "speaker-lab",
-    name: "Speaker Lab",
-    description: "Test entity extraction & quote attribution against any OpenAI-compatible LLM. Side-by-side runs, two-stage pipelines, live streaming, prompt editing, saved presets.",
-    route: "/speaker-lab",
-    icon: "Sparkle",
-  },
-  {
     id: "writer-lab",
     name: "Writer Lab — model compare",
     description: "Test writerAI actions, line edits, and analysis pipelines against any OpenAI-compatible LLM. Up to 4 columns running in parallel for side-by-side model comparison. Same base controls as the user-facing Writer Lab.",
@@ -281,33 +274,23 @@ function usageBadgeLabel(p) {
   return "";
 }
 
-// Providers list bucketing. Two axes:
-//   • Local vs Cloud — baseUrl loopback OR built-in Edge TTS (no apiKey,
-//     routed through the Rust backend → free from the writer's POV).
-//     Mirrors the predicate ai.js uses for readyLlmProviders so the
-//     bucket here matches "free for me" in routing.
-//   • LLM-or-dual vs TTS-only — dual providers (kind === "both", e.g. OpenAI)
-//     live with the LLMs because LLM is the harder thing to source; writers
-//     looking for chat hit them faster there. A TTS-only bucket then groups
-//     the speech engines (Edge TTS, Kokoro, Chatterbox, Dia, …) by themselves
-//     so "which voice engines do I have?" is a one-glance question.
+// Providers list bucketing — Local vs Cloud. Local = a loopback baseUrl
+// (no apiKey, no per-token cost). Mirrors the predicate ai.js uses for
+// readyLlmProviders so the bucket here matches "free for me" in routing.
 function isLocalProvider(p) {
   if (!p) return false;
-  if (p.id === "edgeTts") return true;
   return /\b(localhost|127\.0\.0\.1|0\.0\.0\.0)\b/i.test(String(p.baseUrl || ""));
 }
-const localProviders = computed(() => ai.providers.filter(isLocalProvider));
-const cloudProviders = computed(() => ai.providers.filter((p) => !isLocalProvider(p)));
-const localLlm = computed(() => localProviders.value);
-const cloudLlm = computed(() => cloudProviders.value);
+const localLlm = computed(() => ai.providers.filter(isLocalProvider));
+const cloudLlm = computed(() => ai.providers.filter((p) => !isLocalProvider(p)));
 
 
 
-// Flat render list — interleaves marker rows ({ type: 'sub', label }),
-// recommendation callouts, empty states, and provider rows. Lets the
-// template iterate once and keep a single row template instead of
-// duplicating it per bucket. Order: Local block (callout? · LLM sub? ·
-// rows · TTS sub? · rows · empty?) then Cloud block (same shape).
+// Flat render list — interleaves section eyebrows, recommendation
+// callouts, empty states, and provider rows. Lets the template iterate
+// once and keep a single row template instead of duplicating it per
+// bucket. Order: Local block (callout? · rows · empty?) then Cloud block
+// (same shape).
 const providerRenderList = computed(() => {
   const out = [];
   // ── Local block ──
@@ -331,7 +314,7 @@ const providerRenderList = computed(() => {
 
 function startEdit(provider) {
   editing.value = provider.id;
-  draft.value = { ...provider, params: { ...(provider.params || {}) } };
+  draft.value = { ...provider };
 }
 
 function startNew() {
@@ -343,21 +326,13 @@ function startNew() {
     baseUrl: "",
     apiKey: "",
     chatModel: "",
-    ttsModel: "",
-    ttsVoices: [],
-    params: {},
+    embeddingModel: "",
   };
 }
 
 function saveDraft() {
   if (!draft.value.id || !draft.value.name || !draft.value.baseUrl) return;
-  // Prune empty / undefined params so we don't ship junk to the engine.
-  const params = {};
-  for (const [k, v] of Object.entries(draft.value.params || {})) {
-    if (v === undefined || v === null || v === "") continue;
-    params[k] = v;
-  }
-  const patch = { ...draft.value, params };
+  const patch = { ...draft.value };
   if (editing.value === "new") {
     ai.addProvider(patch);
   } else {
@@ -1079,13 +1054,12 @@ const recentColumns = [
         </div>
       </div>
 
-      <!-- ── AI & AUDIO ────────────────────────────── -->
-      <!-- Cards are grouped into three sections, separated by t-eyebrow
-           labels: Engines (providers + tier presets), Routing & cost
-           (defaults, per-feature overrides, variations, prod configs),
-           and Audio Studio (audio-specific extras). Voice canon and
-           Quick setup tips sit below the groups since they're general
-           tips / writing-side settings rather than engine plumbing. -->
+      <!-- ── AI ENGINES ────────────────────────────── -->
+      <!-- Cards are grouped into sections, separated by t-eyebrow labels:
+           Engines (providers + tier presets) and Routing & cost (defaults,
+           per-feature overrides). Voice canon and Quick setup tips sit
+           below the groups since they're general tips / writing-side
+           settings rather than engine plumbing. -->
       <div v-else-if="active === 'audio'" style="display:flex;flex-direction:column;gap:14px;min-width:0">
 
         <!-- ─── Engines ─────────────────────────────────────── -->
@@ -1114,11 +1088,10 @@ const recentColumns = [
             <!-- Single render loop over the providerRenderList computed.
                  Item types: 'section' (Local · free / Cloud · metered eyebrow
                  with subtitle), 'callout' (suppress-once-configured starter
-                 recommendation), 'sub' (LLM / TTS-only sub-header inside a
-                 section, auto-hidden when its bucket is empty), 'empty'
-                 (placeholder when a whole section has zero providers), and
-                 'row' (the actual provider card; toggles to a SettingsProviderForm
-                 while editing). One row template, no per-bucket duplication. -->
+                 recommendation), 'empty' (placeholder when a section has zero
+                 providers), and 'row' (the actual provider card; toggles to a
+                 SettingsProviderForm while editing). One row template, no
+                 per-bucket duplication. -->
             <template v-for="item in providerRenderList" :key="item.key">
               <!-- Section eyebrow (Local · free / Cloud · metered) -->
               <div v-if="item.type === 'section'"
@@ -1134,7 +1107,7 @@ const recentColumns = [
                 <Icon name="Sparkle" :size="14" style="margin-top:2px;color:var(--accent-ink)" />
                 <div style="min-width:0">
                   <b style="color:var(--ink)">Recommended starter — Ollama + qwen3:14b.</b>
-                  Best prose quality you can get under ~10 GB VRAM. On an 8 GB card 14B runs with partial CPU offload; the 8B alternative is noticeably weaker on prose (WritingBench 5.42 vs 14B's 7.02). Pair with <b>Microsoft Edge TTS</b> (built-in below) for ~400 free neural voices — no key, no account.
+                  Best prose quality you can get under ~10 GB VRAM. On an 8 GB card 14B runs with partial CPU offload; the 8B alternative is noticeably weaker on prose (WritingBench 5.42 vs 14B's 7.02).
                   <div style="margin-top:4px">
                     <JwButton intent="primary" size="small" @click="showQuickSetup = true">
                       <template #icon><Icon name="Sparkle" :size="11" /></template>
@@ -1150,14 +1123,8 @@ const recentColumns = [
                 <Icon name="Sparkle" :size="14" style="margin-top:2px;color:var(--accent2-ink, var(--accent-ink))" />
                 <div style="min-width:0">
                   <b style="color:var(--ink)">Recommended starter — Claude Sonnet 4.6 (best prose) or Gemini 2.5 Pro (best value).</b>
-                  <b>Claude Sonnet 4.6</b> tops the major creative-writing leaderboards in 2026 — the safe pick when prose quality matters most. <b>Gemini 2.5 Pro</b> scores nearly as well and costs roughly a third as much per word — pick it if budget matters more. <b>Claude Haiku 4.5</b> is Anthropic's cheapest tier and is fine for everyday writing. Claude has no TTS — add <b>OpenAI</b> if you also want cloud voice synthesis for the audiobook pipeline.
+                  <b>Claude Sonnet 4.6</b> tops the major creative-writing leaderboards in 2026 — the safe pick when prose quality matters most. <b>Gemini 2.5 Pro</b> scores nearly as well and costs roughly a third as much per word — pick it if budget matters more. <b>Claude Haiku 4.5</b> is Anthropic's cheapest tier and is fine for everyday writing.
                 </div>
-              </div>
-
-              <!-- LLM / TTS-only sub-header inside a section -->
-              <div v-else-if="item.type === 'sub'"
-                   style="font-family:var(--font-mono);font-size:10px;font-weight:600;letter-spacing:0.12em;text-transform:uppercase;color:var(--muted);margin-top:6px;padding-left:2px">
-                {{ item.label }}
               </div>
 
               <!-- Empty-section placeholder -->
@@ -1174,12 +1141,11 @@ const recentColumns = [
               <div v-else-if="item.type === 'row' && editing !== item.p.id"
                    style="display:grid;grid-template-columns:auto minmax(0,1fr) auto auto auto;gap:14px;align-items:center;padding:12px 14px;border:1px solid var(--border);border-radius:10px;background:var(--surface)">
                 <span style="width:36px;height:36px;border-radius:8px;background:var(--surface-3);color:var(--ink-2);display:grid;place-items:center">
-                  <Icon :name="item.p.kind === 'tts' ? 'Headphones' : item.p.kind === 'both' ? 'Sparkle' : 'Cpu'" :size="16" />
+                  <Icon :name="isLocalProvider(item.p) ? 'Cpu' : 'Sparkle'" :size="16" />
                 </span>
                 <div style="min-width:0">
                   <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap">
                     <b style="font-size:13.5px">{{ item.p.name }}</b>
-                    <span style="font-size:10px;font-weight:600;padding:1px 6px;border-radius:4px;background:var(--surface-3);color:var(--muted);text-transform:uppercase;letter-spacing:0.05em">{{ item.p.kind }}</span>
                     <span v-if="item.p.builtIn" class="chip" style="font-size:10px">built-in</span>
                     <button v-if="usageBadgeLabel(item.p)"
                       type="button"
@@ -1197,8 +1163,6 @@ const recentColumns = [
                   <div class="t-muted" style="font-size:11px;margin-top:2px">
                     <template v-if="item.p.chatModel">chat: <b>{{ item.p.chatModel }}</b> · </template>
                     <template v-if="item.p.embeddingModel">embed: <b>{{ item.p.embeddingModel }}</b> · </template>
-                    <template v-if="item.p.ttsModel">tts: <b>{{ item.p.ttsModel }}</b> · </template>
-                    <template v-if="item.p.ttsVoices?.length">{{ item.p.ttsVoices.length }} voices · </template>
                     {{ item.p.apiKey ? "API key set" : "no key" }}
                   </div>
                   <div v-if="expandedUsageId === item.p.id" style="margin-top:8px;padding:8px 10px;border-radius:6px;background:var(--surface-2,var(--surface-3));font-size:12px;line-height:1.55">
@@ -1403,13 +1367,13 @@ const recentColumns = [
             <div>
               <b style="font-size:12.5px;color:var(--ink)">OpenAI</b>
               <p style="margin:4px 0 0;line-height:1.55">
-                Add your key. Both chat and TTS are supported.
+                Add your key. Used for chat and embeddings.
               </p>
             </div>
             <div>
               <b style="font-size:12.5px;color:var(--ink)">Claude (Anthropic)</b>
               <p style="margin:4px 0 0;line-height:1.55">
-                Get an API key at <a href="https://console.anthropic.com/settings/keys" target="_blank" rel="noopener" style="color:var(--accent)">console.anthropic.com/settings/keys</a> and paste it here. LLM only — no TTS. Default model <code style="background:var(--surface-3);padding:1px 5px;border-radius:3px">claude-haiku-4-5</code> is the cheapest; swap to <code style="background:var(--surface-3);padding:1px 5px;border-radius:3px">claude-sonnet-4-6</code> or <code style="background:var(--surface-3);padding:1px 5px;border-radius:3px">claude-opus-4-7</code> for higher quality. Uses Anthropic's OpenAI-compatible endpoint, so a few advanced fields (<code style="background:var(--surface-3);padding:1px 5px;border-radius:3px">response_format</code>, <code style="background:var(--surface-3);padding:1px 5px;border-radius:3px">seed</code>, etc.) are silently ignored.
+                Get an API key at <a href="https://console.anthropic.com/settings/keys" target="_blank" rel="noopener" style="color:var(--accent)">console.anthropic.com/settings/keys</a> and paste it here. Default model <code style="background:var(--surface-3);padding:1px 5px;border-radius:3px">claude-haiku-4-5</code> is the cheapest; swap to <code style="background:var(--surface-3);padding:1px 5px;border-radius:3px">claude-sonnet-4-6</code> or <code style="background:var(--surface-3);padding:1px 5px;border-radius:3px">claude-opus-4-7</code> for higher quality. Uses Anthropic's OpenAI-compatible endpoint, so a few advanced fields (<code style="background:var(--surface-3);padding:1px 5px;border-radius:3px">response_format</code>, <code style="background:var(--surface-3);padding:1px 5px;border-radius:3px">seed</code>, etc.) are silently ignored.
               </p>
             </div>
           </div>
@@ -1426,7 +1390,7 @@ const recentColumns = [
           </div>
           <p class="t-muted" style="font-size:12.5px;margin:0 0 14px;line-height:1.55">
             Tokens and estimated cost across every AI call — writer actions, critique, brainstorm, entity sweep,
-            Audio Studio smart-cast and speaker analysis, the chat panel, and every analysis pass. Local providers
+            the chat panel, and every analysis pass. Local providers
             (Ollama, LM Studio, llama.cpp) are recorded at $0 — pricing only applies to cloud models in the
             built-in price table.
           </p>

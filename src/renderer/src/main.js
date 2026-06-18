@@ -31,7 +31,7 @@ import { startAutoRebuildWatcher } from "./services/rag/autoIndex.js";
   // Pull the registry + active book into projectApi's cache (the /v1/projects
   // domain API) so the project store's synchronous bootstrap can read them.
   await hydrateProjects();
-  // Pull the configured LLM/TTS provider list off the server (/v1/llm-providers)
+  // Pull the configured LLM provider list off the server (/v1/llm-providers)
   // so the AI store's synchronous bootstrap reads it instead of the kv blob.
   await bootProviders();
 

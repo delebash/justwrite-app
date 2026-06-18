@@ -518,9 +518,9 @@ export const DEFAULT_PROVIDERS = [
     builtIn: true,
   },
   {
-    // Claude via Anthropic's OpenAI-compatible endpoint. LLM-only —
-    // no TTS. Default model is the cheapest Claude (haiku); users can
-    // swap to claude-sonnet-4-6 or claude-opus-4-7 for higher quality.
+    // Claude via Anthropic's OpenAI-compatible endpoint. Default model
+    // is the cheapest Claude (haiku); users can swap to claude-sonnet-4-6
+    // or claude-opus-4-7 for higher quality.
     id: "claude", name: "Claude (Anthropic)", kind: "llm",
     baseUrl: "https://api.anthropic.com/v1",
     chatModel: "claude-haiku-4-5",

@@ -24,9 +24,8 @@ const step = ref("intent");
 // User intent — drives where ingest lands.
 //   "edit"   — chapters append to the current project for continued writing.
 //   "new"    — create a fresh project from the imported chapters.
-//   "narrate" — create a fresh project AND jump to Studio Cast for TTS.
 //   "notes"  — file's sections become notes in the current project.
-// "new"/"narrate" preserve the current project; the new one becomes active.
+// "new" preserves the current project; the new one becomes active.
 const intent = ref("edit");
 
 // Notes intent uses the same parser (one detected section = one note), so
@@ -97,8 +96,8 @@ const newBookTitle = ref("");
 const newBookAuthor = ref("");
 
 // Offer to scan imported chapters for new entities after ingest. On by
-// default for "new" / "narrate" (fresh project = whole cast unmapped);
-// off for "edit" (appending to a project that already has a story bible).
+// default for "new" (fresh project = empty story bible); off for "edit"
+// (appending to a project that already has a story bible).
 const scanAfterImport = ref(false);
 
 // IDs of chapters just imported, handed to the sweep modal so it scans
@@ -240,17 +239,12 @@ function ingest() {
     return;
   }
 
-  if (intent.value === "new" || intent.value === "narrate") {
+  if (intent.value === "new") {
     const title = newBookTitle.value.trim() || fileName.value.replace(/\.[^.]+$/, "") || "Imported book";
     project.createProject({ title, author: newBookAuthor.value.trim() });
     chapterIds = project.importChapters({ chapters: list, status: "draft" }).chapterIds;
-    if (intent.value === "narrate") {
-      nav = "/studio/cast";
-      toast = `Started "${title}" — opening Studio.`;
-    } else {
-      nav = chapterIds[0] ? `/chapters/${chapterIds[0]}` : "/chapters";
-      toast = `Started "${title}" with ${count} chapter${plural}.`;
-    }
+    nav = chapterIds[0] ? `/chapters/${chapterIds[0]}` : "/chapters";
+    toast = `Started "${title}" with ${count} chapter${plural}.`;
   } else {
     // "edit" — append to current project.
     const makeNewPart = partChoice.value === NEW_PART;
@@ -299,7 +293,7 @@ function finishAfterSweep() {
       <p class="im-desc">
         <strong>Import</strong> brings outside files into your project — <code>.docx</code>,
         <code>.epub</code>, <code>.odt</code>, <code>.md</code>, <code>.txt</code>. Choose a mode
-        (add to your current draft, start a new book, narrate as an audiobook, or bring sections
+        (add to your current draft, start a new book, or bring sections
         in as notes), drop the file, review the parser's chapter split, confirm. Embedded images
         are extracted automatically.
       </p>
@@ -327,15 +321,6 @@ function finishAfterSweep() {
                 <div class="intent-sub">Create a fresh project from this file. Your current project stays untouched.</div>
               </div>
             </label>
-            <label class="intent-card" :class="{ active: intent === 'narrate' }"
-              role="radio" :aria-checked="intent === 'narrate'">
-              <input type="radio" v-model="intent" value="narrate" />
-              <Icon name="Play" :size="20" />
-              <div class="intent-body">
-                <div class="intent-title">Narrate as audiobook</div>
-                <div class="intent-sub">Create a fresh project from this file, then drop into Studio Cast for TTS.</div>
-              </div>
-            </label>
             <label class="intent-card" :class="{ active: intent === 'notes' }"
               role="radio" :aria-checked="intent === 'notes'">
               <input type="radio" v-model="intent" value="notes" />
@@ -348,7 +333,7 @@ function finishAfterSweep() {
           </div>
         </section>
 
-        <section class="wiz-section" v-if="intent === 'new' || intent === 'narrate'">
+        <section class="wiz-section" v-if="intent === 'new'">
           <h2 class="wiz-h">New project details</h2>
           <div class="opt-row">
             <span class="opt-label">Title</span>
@@ -497,8 +482,7 @@ function finishAfterSweep() {
           <JwButton intent="ghost" @click="restart">Start over</JwButton>
           <JwButton intent="primary" :disabled="!validChapters.length" @click="ingest">
             <Icon name="Check" :size="13" />
-            {{ intent === "narrate" ? "Import & open Studio"
-              : intent === "new" ? "Create book"
+            {{ intent === "new" ? "Create book"
               : intent === "notes" ? "Import notes"
               : "Import chapters" }}
           </JwButton>

@@ -16,7 +16,7 @@ const OLLAMA_FAST_PROVIDER_ID = "ollama-quick-fast";
 // these — they describe which routing slot a feature falls into, not
 // which model. The slot mapping ("default" / "fast" / "cloud") stays
 // hardcoded; the actual model assignment is user-editable.
-const REASONING_FEATURES = ["writerAI", "speakerAnalysis", "smartCast", "characterChat"];
+const REASONING_FEATURES = ["writerAI", "characterChat"];
 const CLOUD_PREFERRED_FEATURES = [
   "critique", "plotHoles", "reverseOutline", "multiReader",
   "characterAudit", "foreshadowing", "readerKnowledge", "voiceDrift",

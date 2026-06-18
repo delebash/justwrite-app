@@ -1,8 +1,7 @@
 <script setup>
 // Click-to-edit chip showing the resolved provider + model for an AI
-// feature. Mirrors Settings → AI & Audio engines → Feature routing,
-// scoped to a single feature, in the surface where the writer is already
-// looking.
+// feature. Mirrors Settings → AI engines → Feature routing, scoped to a
+// single feature, in the surface where the writer is already looking.
 //
 // Two states only:
 //   - Inherit default → no feature pin. The chip shows the global
@@ -15,8 +14,8 @@
 // the feature globally — Settings stays in sync.
 //
 // Props:
-//   feature  — feature key (e.g. "smartCast", "critique")
-//   label    — optional inline label ("Smart-assign", "Critique"). When
+//   feature  — feature key (e.g. "writerAI", "critique")
+//   label    — optional inline label ("Rewrite", "Critique"). When
 //              omitted the chip shows just "Engine · provider · model".
 //   compact  — drop the leading "Engine ·" word when truthy. Used when
 //              the chip already has a clearly-tied label.

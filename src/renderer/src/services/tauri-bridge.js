@@ -11,7 +11,6 @@
 
 import { invoke } from "@tauri-apps/api/core";
 import { fetch as tauriFetch } from "@tauri-apps/plugin-http";
-import { listen } from "@tauri-apps/api/event";
 
 const isTauri = typeof window !== "undefined" && "__TAURI_INTERNALS__" in window;
 
@@ -20,13 +19,13 @@ if (isTauri) {
   // Route every cross-origin http(s) request through the Tauri http
   // plugin so the call comes from Rust's reqwest. That sidesteps the
   // browser's CORS preflight and our own COEP: require-corp header,
-  // which together would otherwise block any local LLM/TTS server that
+  // which together would otherwise block any local LLM server that
   // doesn't ship CORS headers (LM Studio, Ollama, llama.cpp, …).
   //
   // Passthrough rules — keep the native fetch for anything that's already
   // origin-local or doesn't make sense to route through Rust:
   //   - data:/blob: URLs (in-memory resources)
-  //   - same-origin URLs (the renderer's bundled assets, e.g. ffmpeg core)
+  //   - same-origin URLs (the renderer's bundled assets)
   //   - protocol-relative or path-only URLs (always same-origin)
   //   - Tauri's reserved `*.localhost` custom protocols
   //     (`ipc.localhost`, `tauri.localhost`, `asset.localhost`, …). The
@@ -143,80 +142,12 @@ if (isTauri) {
       },
     },
 
-    audio: {
-      // Persist a rendered chapter WAV to AppData. Bytes ride the raw IPC
-      // body (zero-copy); projectId/chapterId arrive as headers and end
-      // up in the on-disk path so each project's audio lives separately.
-      // Playback uses convertFileSrc on the returned path (see audioStore.js).
-      save: async ({ projectId, chapterId, blob }) => {
-        const bytes = new Uint8Array(await blob.arrayBuffer());
-        const headers = {
-          "x-project-id": projectId,
-          "x-chapter-id": chapterId,
-        };
-        return safe(invoke("audio_save", bytes, { headers }));
-      },
-      delete:       (path)                 => safe(invoke("audio_delete", { path })),
-      clearProject: (projectId)            => safe(invoke("audio_clear_project", { projectId })),
-      // File-to-file copy via native Save As dialog — no bytes through IPC.
-      saveAs:       (srcPath, suggestedName) =>
-        safe(invoke("audio_save_as", { srcPath, suggestedName })),
-    },
-
     system: {
       // Shells out to nvidia-smi / system_profiler / etc. on the Rust
       // side. Always resolves — returns { vendor:"unknown", vramMb:0 }
       // rather than throwing when detection fails, so the Quick Setup
       // wizard can fall through to a manual VRAM picker.
       detectGpu: () => safe(invoke("detect_gpu")),
-    },
-
-    // ── Voicebox install ─────────────────────────────────────────────
-    // Resolves the latest voicebox release on GitHub, picks the asset
-    // matching the host OS+arch, streams the download with progress
-    // events, and hands it to the OS to run (MSI / DMG / AppImage).
-    // Linux falls through to opening the releases page if no matching
-    // binary asset exists.
-    voicebox: {
-      // → { ok, phase, path, version, message } once the installer has
-      //   been spawned (NOT once the user finishes installing).
-      // Pass `onProgress` to subscribe to download events
-      //   ({ phase: "resolving" | "downloading" | "launching" | "done",
-      //      downloaded, total }).
-      install: async (onProgress) => {
-        let unlisten = null;
-        if (onProgress) {
-          unlisten = await listen("voicebox-install-progress", (e) => {
-            try { onProgress(e?.payload || {}); } catch {}
-          });
-        }
-        try {
-          return await invoke("voicebox_install");
-        } finally {
-          if (unlisten) { try { unlisten(); } catch {} }
-        }
-      },
-    },
-
-    tts: {
-      // Microsoft Edge "Read Aloud" TTS via the msedge-tts Rust crate.
-      // The renderer can't talk to MS's WebSocket directly because the
-      // browser-spec WebSocket forbids setting Sec-WebSocket-Version
-      // (which MS requires) — Rust handles the handshake.
-      edge: {
-        voices: () => invoke("tts_edge_voices"),
-        // Returns a Blob in whatever audio format the voice's
-        // suggested_codec specified (MP3 in practice). Web Audio's
-        // decodeAudioData handles it the same as Kokoro/OpenAI output.
-        speech: async ({ voice, text }) => {
-          const bytes = await invoke("tts_edge_speech", { voice, text });
-          // Tauri serializes Vec<u8> as a number[] — fine for ~50KB
-          // per-line chunks, expensive for whole chapters. The render
-          // pipeline calls this per line so we stay in the safe zone.
-          const u8 = bytes instanceof Uint8Array ? bytes : new Uint8Array(bytes);
-          return new Blob([u8], { type: "audio/mpeg" });
-        },
-      },
     },
 
   };
