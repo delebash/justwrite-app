@@ -14,7 +14,7 @@ import { createPinia } from "pinia";
 import App from "./App.vue";
 import router from "./router/index.js";
 import { bootStorage, getItem } from "./services/storage.js";
-import { hydrateProjects } from "./stores/project.js";
+import { hydrateProjects, useProjectStore } from "./stores/project.js";
 
 import "./assets/styles/tokens.css";
 import { tooltipDirective } from "./services/tooltip.js";
@@ -41,11 +41,19 @@ import { startAutoRebuildWatcher } from "./services/rag/autoIndex.js";
   } catch { setI18nLocale(detectLocale()); }
 
   const app = createApp(App);
-  app.use(createPinia());
+  const pinia = createPinia();
+  app.use(pinia);
   app.use(router);
   app.use(i18n);
   app.directive("tooltip", tooltipDirective);
   app.mount("#app");
+
+  // Dev-only test seam: expose the project store so the headless harness can
+  // drive deterministic edits (stripped from production builds by the
+  // import.meta.env.DEV guard — esbuild dead-code-eliminates the branch).
+  if (import.meta.env.DEV) {
+    window.__jwProject = useProjectStore(pinia);
+  }
 
   // Subscribe to project mutations and silently re-embed scenes a minute
   // after the last edit when ai.autoRebuildRagIndex is on. Safe to call

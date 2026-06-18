@@ -5,9 +5,12 @@
 // mounts; the store's sync loaders serve from it; saves debounce a PUT.
 //
 // This replaces the kv blob (justwrite:project:<id>) for project snapshots —
-// books now live in the server's `projects` table and are reachable as real
-// domain resources (GET /v1/projects, GET /v1/projects/{id}, …). The tiny
-// active-id pointer + the undo tail stay in kv (storage.js).
+// books now live in the server's NORMALIZED tables (parts/chapters/scenes/
+// characters/…) and are assembled/decomposed through the aggregate book
+// endpoint: GET /v1/projects/{id}/book returns the whole book as JSON, PUT
+// /v1/projects/{id}/book decomposes a snapshot into the tables. (Legacy blobs
+// are migrated server-side at startup.) The active-id pointer + undo tail stay
+// in kv (storage.js).
 
 import { serverUrl } from "./serverApi.js";
 
@@ -33,7 +36,7 @@ export async function bootProjects(activeId) {
   if (_booted) return;
   if (activeId) {
     try {
-      const snap = await _fetchJson(`/v1/projects/${activeId}`);
+      const snap = await _fetchJson(`/v1/projects/${activeId}/book`);
       if (snap && typeof snap === "object") _snapshots.set(activeId, snap);
     } catch (err) {
       // 404 is normal for a freshly-minted, never-saved active id.
@@ -56,7 +59,7 @@ function _flushPut(id) {
   _putTimers.delete(id);
   const snap = _snapshots.get(id);
   if (snap === undefined) return Promise.resolve();
-  return fetch(serverUrl(`/v1/projects/${id}`), {
+  return fetch(serverUrl(`/v1/projects/${id}/book`), {
     method: "PUT",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify(snap),
@@ -74,7 +77,8 @@ export function putSnapshot(id, snap) {
 export function removeProject(id) {
   _snapshots.delete(id);
   if (_putTimers.has(id)) { clearTimeout(_putTimers.get(id)); _putTimers.delete(id); }
-  _registry = _registry.filter((p) => p.id !== id);
+  // Deletes the project row; child rows cascade via the project_id FK. (The
+  // registry index lives in kv and is maintained by the store, not here.)
   fetch(serverUrl(`/v1/projects/${id}`), { method: "DELETE" }).catch(() => {});
 }
 
@@ -82,7 +86,7 @@ export function removeProject(id) {
 export async function fetchSnapshot(id) {
   if (_snapshots.has(id)) return _snapshots.get(id);
   try {
-    const snap = await _fetchJson(`/v1/projects/${id}`);
+    const snap = await _fetchJson(`/v1/projects/${id}/book`);
     if (snap && typeof snap === "object") {
       _snapshots.set(id, snap);
       return snap;
