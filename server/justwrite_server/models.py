@@ -57,6 +57,21 @@ class KvEntry(Base):
     value = Column(Text, nullable=False)
 
 
+class Setting(Base):
+    """One top-level section of the renderer's settings document — `key` is the
+    section name (ui | ai | hardwarePresets | activeProjectId | …), `value` is
+    its JSON. GET /v1/settings assembles every row into one document; PATCH
+    upserts the sections it's given (each section has a single renderer-side
+    owner that writes it wholesale). Replaces the `justwrite:ui` / `justwrite:ai`
+    / `justwrite:hardwarePresets` kv blobs — values are real JSON the server
+    parses, not the opaque strings kv held."""
+
+    __tablename__ = "settings"
+
+    key = Column(String, primary_key=True)
+    value = Column(Text, nullable=False, default="null")  # JSON value
+
+
 # ── Project root ────────────────────────────────────────────────────────
 
 

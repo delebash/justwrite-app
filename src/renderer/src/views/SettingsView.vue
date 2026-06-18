@@ -6,6 +6,7 @@ import { useUiStore } from "../stores/ui.js";
 import { saveImage, urlFor, hasNativeImages } from "../services/imageStore.js";
 import { promptDialog, confirmDialog } from "../services/dialog.js";
 import { getItem, setItem, clearPrefix, flushPending } from "../services/storage.js";
+import { clearSettings } from "../services/settings.js";
 import { indexStatus } from "../services/rag/indexer.js";
 import { buildVoiceFingerprint } from "../services/voiceFingerprint.js";
 import { pushToast } from "../services/toastBridge.js";
@@ -691,7 +692,8 @@ async function resetWorkspace() {
   if (typed !== "RESET") return;
   try {
     flushPending();
-    await clearPrefix("justwrite:");
+    // Settings now live in the server `settings` table, not kv — clear both.
+    await Promise.allSettled([clearPrefix("justwrite:"), clearSettings()]);
   } catch {}
   location.reload();
 }

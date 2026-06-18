@@ -1,15 +1,16 @@
 // UI store — sidebar collapse, expanded sections, current selections,
 // transient toast notifications. Most state persists across reloads
-// (toasts don't). Backed by the IndexedDB-backed storage adapter; reads
-// are synchronous against the cache that's hydrated at app boot.
+// (toasts don't). Backed by the server settings document (SQL via
+// /v1/settings) under the `ui` section; reads are synchronous against the
+// copy hydrated by bootSettings() at app boot.
 
 import { defineStore } from "pinia";
-import { getItem, setItem } from "../services/storage.js";
+import { readSetting, writeSetting } from "../services/settings.js";
 import { DEFAULT_EDITOR_SETTINGS } from "../services/editorSettings.js";
 import { DEFAULT_APPEARANCE, migrateAppearance } from "../services/appearance.js";
 import { pushToast, clearToasts } from "../services/toastBridge.js";
 
-const LS_KEY = "justwrite:ui";
+const SECTION = "ui";
 
 // Appearance fields that define a "look" — changing any of them (without
 // naming a preset) drops the active preset to "custom".
@@ -24,20 +25,20 @@ function presetPatchFrom(a) {
 }
 
 function load() {
-  try {
-    const saved = JSON.parse(getItem(LS_KEY) || "{}");
-    // Legacy: "cards" used to be a top-level chapter mode; it's now an
-    // edit-mode style. Migrate so the user lands in the same view.
-    if (saved.chapterMode === "cards") {
-      saved.chapterMode = "edit";
-      saved.chapterEditStyle = "cards";
-    }
-    return saved;
-  } catch { return {}; }
+  const raw = readSetting(SECTION);
+  if (!raw || typeof raw !== "object") return {};
+  const saved = { ...raw };
+  // Legacy: "cards" used to be a top-level chapter mode; it's now an
+  // edit-mode style. Migrate so the user lands in the same view.
+  if (saved.chapterMode === "cards") {
+    saved.chapterMode = "edit";
+    saved.chapterEditStyle = "cards";
+  }
+  return saved;
 }
 
 function save(state) {
-  try { setItem(LS_KEY, JSON.stringify(state)); } catch {}
+  writeSetting(SECTION, state);
 }
 
 export const useUiStore = defineStore("ui", {

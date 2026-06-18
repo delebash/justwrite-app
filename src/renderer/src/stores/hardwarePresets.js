@@ -11,21 +11,17 @@
 
 import { defineStore } from "pinia";
 import { FACTORY_PRESETS } from "../services/quickSetupPresets.js";
-import { getItem, setItem } from "../services/storage.js";
+import { readSetting, writeSetting } from "../services/settings.js";
 
-const LS_KEY = "justwrite:hardwarePresets";
+const SECTION = "hardwarePresets";
 
 function load() {
-  try {
-    const raw = getItem(LS_KEY);
-    if (!raw) return null;
-    const parsed = JSON.parse(raw);
-    return parsed && typeof parsed === "object" ? parsed : null;
-  } catch { return null; }
+  const parsed = readSetting(SECTION);
+  return parsed && typeof parsed === "object" ? parsed : null;
 }
 
 function save(state) {
-  try { setItem(LS_KEY, JSON.stringify({ presets: state.presets, order: state.order })); } catch {}
+  writeSetting(SECTION, { presets: state.presets, order: state.order });
 }
 
 function cloneFactory() {

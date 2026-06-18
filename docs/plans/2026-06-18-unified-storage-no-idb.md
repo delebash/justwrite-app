@@ -64,3 +64,41 @@ copy per collection.
     **persists only settled turns** (was: every streamed token via the kv
     debounce) — a whole-thread replace can't run per-token. Mid-stream thread
     switches don't persist under the wrong key (identity captured at ask-time).
+- **Slice 3 — settings ✓.** ui + ai-prefs + hardwarePresets off `justwrite:ui` /
+  `justwrite:ai` / `justwrite:hardwarePresets`.
+  - One `settings` table (key=section, value=JSON), `GET` / `PATCH` / `DELETE
+    /v1/settings` — mirrors JV's GET/PATCH shape. **Shallow per-section upsert,
+    NOT deep merge**: each section has one renderer-side owner that writes it
+    wholesale, and a deep merge would fail to propagate key *deletions* (clearing
+    a `modelTiers` override). Values are real JSON, not kv's opaque strings.
+  - `services/settingsApi.js` + `services/settings.js` (boots the doc into an
+    in-memory copy before mount so Pinia `state:()` reads its section sync;
+    debounced per-section PATCH; unload flush; `clearSettings`). ui/ai/
+    hardwarePresets stores read `readSetting`/`writeSetting`. Providers stay in
+    their own `/v1/llm-providers` table — dropped from the `ai` section entirely
+    (and the dead kv-provider fallback in `initialProviders`).
+  - main.js `await bootSettings()` before hydrateProjects; early appearance reads
+    `readSetting("ui")`. SettingsView "Reset workspace" now also `clearSettings()`.
+
+## Discovered scope (beyond the original staging line)
+
+Enumerating every `justwrite:*` key showed more than the staging line listed.
+Full remaining queue to reach **zero kv**:
+
+- **registry-derive** (slice 4): `justwrite:projects:registry` → derive from the
+  `projects` table; `justwrite:projects:active` → `activeProjectId` settings key.
+- **undo tail** (slice 5): `justwrite:project:history`.
+- **usage ledger**: `justwrite:ai:usage` → its own table (a capped log + totals,
+  like sessions). Left on kv by slice 3 deliberately.
+- **version history**: `justwrite:versions` → its own project-scoped table.
+- **model-list cache**: `justwrite:modelList` → drop persistence (re-fetchable
+  cache; keep in memory only) — not worth a table.
+- **autosave/backup timestamps**: `justwrite:lastBackupAt` / `lastAutosaveAt` →
+  fold into settings (`app` section) when the backup slice lands.
+- **legacy** `justwrite:project` single-key: confirm dead post-P2, then delete.
+- **Reset-workspace cross-cut**: `clearPrefix("justwrite:")` only wipes kv, so
+  since P2 it already leaves the `projects` table behind, and slices 1–3 added
+  sessions/chat/settings to what it misses. Needs a single server-side
+  workspace-wipe (its own slice) — slice 3 wired `clearSettings()` in as a stopgap.
+- Then: delete `services/storage.js`, `/v1/kv` + `kv` table, `idb-keyval`. **JV**
+  next, ending with `idb-keyval` removed there too.

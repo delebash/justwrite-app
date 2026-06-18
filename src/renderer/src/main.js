@@ -13,7 +13,8 @@ import { createApp } from "vue";
 import { createPinia } from "pinia";
 import App from "./App.vue";
 import router from "./router/index.js";
-import { bootStorage, getItem } from "./services/storage.js";
+import { bootStorage } from "./services/storage.js";
+import { bootSettings, readSetting } from "./services/settings.js";
 import { hydrateProjects, useProjectStore } from "./stores/project.js";
 import { useSessionsStore } from "./stores/sessions.js";
 import { bootProviders } from "./services/providerBackend.js";
@@ -29,6 +30,9 @@ import { startAutoRebuildWatcher } from "./services/rag/autoIndex.js";
 // engines that don't support top-level await (esbuild's safari13).
 (async () => {
   await bootStorage();
+  // Pull the settings document (appearance/ui, AI prefs, hardware presets) off
+  // the server (/v1/settings) so the stores' synchronous bootstrap reads it.
+  await bootSettings();
   // Pull the registry + active book into projectApi's cache (the /v1/projects
   // domain API) so the project store's synchronous bootstrap can read them.
   await hydrateProjects();
@@ -36,11 +40,11 @@ import { startAutoRebuildWatcher } from "./services/rag/autoIndex.js";
   // so the AI store's synchronous bootstrap reads it instead of the kv blob.
   await bootProviders();
 
-  // Now that the cache is populated, re-apply the persisted appearance
-  // (migrating any legacy { theme, accentHue } shape) and resolve the
-  // active i18n locale (persisted choice → browser preference → English).
+  // Now that settings are loaded, re-apply the persisted appearance (migrating
+  // any legacy { theme, accentHue } shape) and resolve the active i18n locale
+  // (persisted choice → browser preference → English).
   try {
-    const ui = JSON.parse(getItem("justwrite:ui") || "{}");
+    const ui = readSetting("ui") || {};
     applyAppearance(migrateAppearance(ui));
     setI18nLocale(ui.locale || detectLocale());
   } catch { setI18nLocale(detectLocale()); }

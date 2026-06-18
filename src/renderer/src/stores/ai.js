@@ -7,6 +7,7 @@ import { DEFAULT_PROVIDERS } from "../domain/seed.js";
 import { OpenAICompatClient } from "../services/openai-compat.js";
 import { getModelTier, TIERS } from "../services/modelMeta.js";
 import { getItem, setItem } from "../services/storage.js";
+import { readSetting, writeSetting } from "../services/settings.js";
 import * as providerBackend from "../services/providerBackend.js";
 
 // JustWrite is writing-only — every provider is an LLM/embedding endpoint
@@ -16,7 +17,8 @@ function pingClientFor(provider) {
   return new OpenAICompatClient(provider);
 }
 
-const LS_KEY = "justwrite:ai";
+// AI preferences live in the `ai` settings section; the usage ledger still has
+// its own kv key (its own migration slice).
 const LS_USAGE_KEY = "justwrite:ai:usage";
 
 // In-memory cap on the usage log so a long session can't unbounded-bloat
@@ -105,51 +107,39 @@ function bumpKey(map, key, row) {
   map[key] = existing;
 }
 
+// The `ai` settings section holds only the AI *preferences* (defaults, feature
+// pins, per-model tier overrides, auto-rebuild). Providers live in their own
+// server table (/v1/llm-providers) and never round-trip through settings.
 function load() {
-  try {
-    const v = JSON.parse(getItem(LS_KEY) || "null");
-    if (!v || !Array.isArray(v.providers)) return null;
-    // Merge in any new built-in providers that have been added to the
-    // seed since this snapshot was saved. User edits to existing
-    // providers (or providers they've added by hand) are untouched —
-    // we only append by id, never overwrite.
-    const have = new Set(v.providers.map((p) => p.id));
-    const missing = DEFAULT_PROVIDERS.filter((p) => p.builtIn && !have.has(p.id));
-    if (missing.length) v.providers = [...v.providers, ...missing];
-    return v;
-  } catch { return null; }
+  const v = readSetting("ai");
+  return v && typeof v === "object" ? v : null;
 }
 
-// Providers now live in the server's /v1/llm-providers table, read into a sync
-// cache by bootProviders() before mount. Prefer that list; fall back to the
-// legacy kv blob, then the seeded defaults. New built-ins are appended by id so
-// upgrades pick them up. The first save() write-through migrates kv -> server.
-function initialProviders(loaded) {
+// Providers come from the server's /v1/llm-providers table (read into a sync
+// cache by bootProviders() before mount); fall back to the seeded defaults.
+// New built-ins are appended by id so upgrades pick them up.
+function initialProviders() {
   const fromServer = providerBackend.listProviders();
-  const base = fromServer ?? loaded?.providers ?? [...DEFAULT_PROVIDERS];
+  const base = fromServer ?? [...DEFAULT_PROVIDERS];
   const have = new Set(base.map((p) => p.id));
   const missing = DEFAULT_PROVIDERS.filter((p) => p.builtIn && !have.has(p.id));
   const list = missing.length ? [...base, ...missing] : base;
-  // Seed/sync the server when it had no list yet (fresh install / pre-P5
-  // upgrade) or when new built-ins were merged — so the gateway and any thin
-  // client can route immediately, not only after the user's first edit.
+  // Seed/sync the server when it had no list yet (fresh install) or when new
+  // built-ins were merged — so the gateway and any thin client can route
+  // immediately, not only after the user's first edit.
   if (!fromServer || missing.length) providerBackend.saveProviders(list);
   return list;
 }
 
 function save(state) {
-  try {
-    setItem(LS_KEY, JSON.stringify({
-      providers: state.providers,
-      defaultLlmId: state.defaultLlmId,
-      defaultEmbeddingId: state.defaultEmbeddingId,
-      modelTiers: state.modelTiers,
-      featurePins: state.featurePins,
-      autoRebuildRagIndex: state.autoRebuildRagIndex,
-    }));
-  } catch {}
-  // Write-through the provider list to the server (the authoritative store);
-  // kv above stays as an offline fallback.
+  writeSetting("ai", {
+    defaultLlmId: state.defaultLlmId,
+    defaultEmbeddingId: state.defaultEmbeddingId,
+    modelTiers: state.modelTiers,
+    featurePins: state.featurePins,
+    autoRebuildRagIndex: state.autoRebuildRagIndex,
+  });
+  // Providers are server-authoritative — write the list through to its table.
   try { providerBackend.saveProviders(state.providers); } catch {}
 }
 
@@ -158,7 +148,7 @@ export const useAiStore = defineStore("ai", {
     const loaded = load();
     const usage = loadUsage();
     return {
-      providers: initialProviders(loaded),
+      providers: initialProviders(),
       defaultLlmId: loaded?.defaultLlmId ?? "openai-compat-local",
       // Default provider used for embeddings (RAG indexing + chat).
       // Same provider can host LLM + embeddings; the model field on the
