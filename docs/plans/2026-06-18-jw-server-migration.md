@@ -5,9 +5,9 @@
 JW becomes **Tauri + Vue + FastAPI + SQLite**, the same shape as JustVoice.
 Trigger: manuscripts + the RAG vector index outgrow client-side storage.
 
-Status (2026-06-18): **P0–P2 essentially DONE; P3–P5 partially landed
-server-side.** (Corrected after a file-by-file audit — the earlier "P2 not
-started" line was stale; P2 had in fact been built and wired.) JustWrite runs
+Status (2026-06-18): **P0–P3 DONE; P4–P5 landed server-side, renderer wiring
+unaudited.** (Corrected after a file-by-file audit — the earlier "P2/P3 not
+started" line was stale; both had in fact been built and wired.) JustWrite runs
 **server-backed**: `justwrite:*` config rides `storage.js`→`/v1/kv`, and the
 **book itself lives in the normalized P2 tables** — the renderer's project store
 persists through `projectApi.js`→`/v1/projects/{id}/book` (assemble/decompose),
@@ -52,10 +52,17 @@ not a blob. Execution log + deep audit below.
   still re-PUTs the whole `/book`, async-debounced; typing isn't blocked, but a
   large book re-serializes on each flush) — and full per-entity *write* REST,
   deferred until a mobile client needs it.
-- **P3 — RAG server-side search.** Vectors already persist to SQLite (via P1).
-  Remaining: a `/v1/rag` table + cosine search (numpy now; sqlite-vec later)
-  so the renderer queries instead of loading the whole vector blob at boot;
-  `vectorStore.js` → async (+ indexer/chat).
+- **P3 — DONE** (verified file-by-file 2026-06-18). `/v1/rag` table + endpoints
+  (`api/rag.py`: status/shas/PUT/search/remove/clear) with server-side hybrid
+  BM25 + cosine + RRF (`rag_search.py`, ported line-for-line from the old JS);
+  `test_rag` + `test_rag_search` green. Renderer fully repointed: `vectorStore.js`
+  calls `/v1/rag`, `indexer.js` embeds→PUTs, `chat.js` + `characterChat.js`
+  retrieve via the server search, `autoIndex.js` drives the incremental build —
+  the old client-side vector blob + `bm25.js`/`hybrid.js` are gone (only
+  chat-thread history still rides kv). Contract verified to match on both sides.
+  Remaining: **sqlite-vec** — server `search` loads all vectors and ranks in
+  numpy today (fine for a single book; an ANN index is the scale optimization),
+  same deferred-until-needed shape as P2.5.
 - **P4 — images → server.** `imageStore.js` (Tauri-bridge / data-URL today) →
   a server image endpoint.
 - **P5 — shared `llm-ui` + provider endpoints.** Runner already mounted (P0).
