@@ -49,6 +49,18 @@ export function writeSetting(key, value) {
   }, PATCH_DEBOUNCE_MS));
 }
 
+/** A deep copy of the whole settings document — for the backup bundle. */
+export function getAllSettings() {
+  return JSON.parse(JSON.stringify(_doc));
+}
+
+/** Apply a settings document wholesale (restoring a backup): write every
+ *  section through so each persists and the in-memory copy updates. */
+export function applySettings(doc) {
+  if (!doc || typeof doc !== "object") return;
+  for (const [key, value] of Object.entries(doc)) writeSetting(key, value);
+}
+
 /** Force-flush any pending debounced section writes immediately. Awaitable;
  *  the unload handlers fire it without awaiting. */
 export function flushSettings() {

@@ -10,7 +10,7 @@ import { useUiStore } from "./ui.js";
 import { useSessionsStore } from "./sessions.js";
 import { removeImage as removeImageFile } from "../services/imageStore.js";
 import { getItem, setItem, removeItem, listKeys } from "../services/storage.js";
-import { readSetting, writeSetting } from "../services/settings.js";
+import { readSetting, writeSetting, getAllSettings, applySettings } from "../services/settings.js";
 import * as projectApi from "../services/projectApi.js";
 import { replaceInHtml } from "../services/projectReplace.js";
 import { nextColor, nextHue } from "../services/categoricalColors.js";
@@ -77,33 +77,22 @@ export async function hydrateProjects() {
 
 
 // ── Workspace bundling ────────────────────────────────────────────
-// The autosave file (and the manual "Export backup…" path) contain the
-// active project's snapshot PLUS every non-project `justwrite:*` key
-// (AI providers, sessions, …) tucked under
-// `_workspace`. That makes any single autosave file a one-shot
-// recovery of the whole workspace, not just one project.
+// The autosave file (and the manual "Export backup…" path) carry the active
+// project's snapshot PLUS the renderer's settings document (appearance, AI
+// prefs, hardware presets, …) under `_workspace`, so any single file restores
+// the whole workspace — preferences + project — not just the prose. Server-side
+// collections (sessions, usage, versions, chat) live in the database itself,
+// which is the durable store.
 function workspaceKeysToBundle() {
-  const out = {};
-  for (const k of listKeys("justwrite:")) {
-    // Per-project snapshots and the project registry travel separately;
-    // the undo tail is regenerated on demand.
-    if (k.startsWith("justwrite:project")) continue;
-    const v = getItem(k);
-    if (typeof v === "string") out[k] = v;
-  }
-  return out;
+  return { settings: getAllSettings() };
 }
 
 export function restoreWorkspaceBundle(workspace) {
-  if (!workspace || typeof workspace !== "object") return false;
-  let touched = false;
-  for (const [k, v] of Object.entries(workspace)) {
-    if (typeof v !== "string") continue;
-    if (!k.startsWith("justwrite:") || k.startsWith("justwrite:project")) continue;
-    setItem(k, v);
-    touched = true;
+  if (workspace && typeof workspace.settings === "object" && workspace.settings) {
+    applySettings(workspace.settings);
+    return true;
   }
-  return touched;
+  return false;
 }
 
 // ── Disk autosave (Tauri only) ─────────────────────────────────────
