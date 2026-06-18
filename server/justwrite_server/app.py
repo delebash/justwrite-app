@@ -19,7 +19,7 @@ from fastapi.middleware.cors import CORSMiddleware
 # the same router JustVoice does instead of running it as a separate sidecar.
 from llm_runner import router as llm_runner_router
 
-from .api import health, kv, projects, rag
+from .api import health, images, kv, projects, rag
 from .app_state import AppState, set_state
 from .database import init_db
 from .paths import default_data_dir
@@ -46,5 +46,6 @@ def create_app(data_dir: Path | None = None) -> FastAPI:
     app.include_router(kv.router)
     app.include_router(projects.router)
     app.include_router(rag.router)
+    app.include_router(images.router)
     app.include_router(llm_runner_router)
     return app

@@ -26,7 +26,7 @@ normalized tables.
 
 from __future__ import annotations
 
-from sqlalchemy import Boolean, Column, ForeignKey, Integer, String, Text
+from sqlalchemy import Boolean, Column, ForeignKey, Integer, LargeBinary, String, Text
 from sqlalchemy.orm import declarative_base
 
 Base = declarative_base()
@@ -425,3 +425,21 @@ class RagVector(Base):
     sha = Column(String, nullable=False, default="")
     vector = Column(Text, nullable=False, default="[]")  # JSON number[]
     chunk = Column(Text, nullable=False, default="{}")   # JSON chunk metadata
+
+
+# ── Images (P4) ─────────────────────────────────────────────────────────
+
+
+class ImageBlob(Base):
+    """An uploaded image's bytes, served by /v1/images. The project's `images`
+    table references one by id (the record's `serverId`). A content store —
+    deliberately not project-scoped, so an image survives being moved between
+    entities; moves the renderer off the Tauri FS bridge / data-URL-in-snapshot."""
+
+    __tablename__ = "image_blobs"
+
+    id = Column(String, primary_key=True)
+    name = Column(String, nullable=False, default="")
+    mime = Column(String, nullable=False, default="application/octet-stream")
+    data = Column(LargeBinary, nullable=False)
+    created_at = Column(String, nullable=False, default="")
