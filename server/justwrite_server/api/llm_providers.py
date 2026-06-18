@@ -1,11 +1,11 @@
-"""/v1/llm-providers — the configured LLM/TTS provider list (P5).
+"""/v1/llm-providers — the configured LLM provider list (P5).
 
-Moves the provider registry off the renderer's justwrite:ai kv blob into a
-real, queryable server table (mobile-ready). JW calls providers DIRECTLY from
-the renderer (inference never round-trips the server), so — unlike JustVoice,
-whose server is itself the LLM client and needs an adapter registry — this is a
-plain list resource. Bulk GET/PUT mirror how the AI store owns the whole list
-in memory; per-provider config (which varies by type) round-trips intact.
+Moves the provider registry off the renderer's justwrite:ai kv blob into a real,
+queryable server table (mobile-ready). The server is the LLM client: the renderer
+routes inference through the gateway (/v1/llm/{id}/…, see api/llm.py), which
+resolves the provider here and injects the server-held key — so a thin client
+holds no keys and calls no providers directly. Bulk GET/PUT mirror how the AI
+store owns the whole list in memory; per-provider config round-trips intact.
 """
 
 from __future__ import annotations

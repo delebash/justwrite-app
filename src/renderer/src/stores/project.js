@@ -75,7 +75,7 @@ function saveHistory(tail) { saveJSON(LS_HISTORY_KEY, tail); }
 // ── Workspace bundling ────────────────────────────────────────────
 // The autosave file (and the manual "Export backup…" path) contain the
 // active project's snapshot PLUS every non-project `justwrite:*` key
-// (AI providers, voice cast, render queue, sessions, …) tucked under
+// (AI providers, sessions, …) tucked under
 // `_workspace`. That makes any single autosave file a one-shot
 // recovery of the whole workspace, not just one project.
 function workspaceKeysToBundle() {

@@ -591,7 +591,7 @@ async function restoreFromAutosave(entry) {
   const when = entry.savedAt ? new Date(entry.savedAt).toLocaleString() : "unknown time";
   const yes = await confirmDialog({
     title: `Restore "${entry.title || "project"}" from ${entry.generation}?`,
-    message: `Saved at ${when}. Your current workspace will be overwritten — every project, chapter body, AI provider, and voice cast assignment. Export a backup first if you want to keep what you have.`,
+    message: `Saved at ${when}. Your current workspace will be overwritten — every project, chapter body, and AI provider. Export a backup first if you want to keep what you have.`,
     confirmLabel: "Restore from autosave",
     danger: true,
   });
@@ -675,7 +675,7 @@ async function resetUsageLog() {
 async function resetWorkspace() {
   const yes = await confirmDialog({
     title: "Reset the workspace?",
-    message: "This clears ALL local data — project, chapters, AI providers, voice cast — and reloads the app with the demo seed. This cannot be undone.",
+    message: "This clears ALL local data — project, chapters, AI providers — and reloads the app with the demo seed. This cannot be undone.",
     confirmLabel: "Continue",
     danger: true,
   });
@@ -1913,7 +1913,7 @@ const recentColumns = [
             Every edit is also mirrored to a JSON file on disk within ~10s. Two prior generations
             are kept (<code>.prev.json</code> / <code>.prev2.json</code>) so a bad write or accidental
             reset can be recovered without a manual export. Each file is a full workspace bundle —
-            project, AI providers, voice cast, sessions — so restoring one file brings everything back.
+            project, AI providers, sessions — so restoring one file brings everything back.
             Anything OneDrive / Time Machine / your backup tool watches in this folder will pick it up
             automatically.
           </p>
@@ -1980,7 +1980,7 @@ const recentColumns = [
         <div class="card danger-card">
           <div class="card-title" style="color: var(--danger-ink)">{{ $t('settings.backups.dangerCardTitle') }}</div>
           <p class="t-muted" style="font-size:12.5px;margin:0 0 12px;line-height:1.55">
-            Wipes every <code>justwrite:*</code> key from IndexedDB — project, history, AI providers, voice cast, sessions — and reloads with the demo seed. Take a backup first.
+            Wipes every <code>justwrite:*</code> key from IndexedDB — project, history, AI providers, sessions — and reloads with the demo seed. Take a backup first.
           </p>
           <JwButton label="Reset workspace" intent="danger" @click="resetWorkspace">
             <template #icon><Icon name="Alert" :size="13" /></template>

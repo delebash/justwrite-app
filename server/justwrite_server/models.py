@@ -449,12 +449,12 @@ class ImageBlob(Base):
 
 
 class LlmProvider(Base):
-    """A configured LLM/TTS provider (OpenAI-compatible endpoint) — the list
-    the renderer's AI store reads, moved off the justwrite:ai kv blob. JW calls
-    providers DIRECTLY from the renderer (inference never round-trips the
-    server), so this is a plain list resource, not an adapter registry. Config
-    varies by provider type, so the full object is JSON in `data`; id/name/kind/
-    built_in are columns for queryability."""
+    """A configured LLM provider (OpenAI-compatible endpoint) — the list the
+    renderer's AI store reads, moved off the justwrite:ai kv blob. The server is
+    the LLM client: the gateway (api/llm.py) resolves a provider here and proxies
+    inference, injecting the server-held key. Config varies by provider type, so
+    the full object is JSON in `data`; id/name/kind/built_in are columns for
+    queryability."""
 
     __tablename__ = "llm_providers"
 
