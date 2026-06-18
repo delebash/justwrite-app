@@ -5,9 +5,9 @@
 JW becomes **Tauri + Vue + FastAPI + SQLite**, the same shape as JustVoice.
 Trigger: manuscripts + the RAG vector index outgrow client-side storage.
 
-Status (2026-06-18): **P0–P3 DONE; P4–P5 landed server-side, renderer wiring
-unaudited.** (Corrected after a file-by-file audit — the earlier "P2/P3 not
-started" line was stale; both had in fact been built and wired.) JustWrite runs
+Status (2026-06-18): **P0–P4 DONE; P5's backend done, its shared-`llm-ui`
+adapter is UX-gated.** (Corrected after a file-by-file audit — the earlier
+"P2–P4 not started" line was stale; all had in fact been built and wired.) JustWrite runs
 **server-backed**: `justwrite:*` config rides `storage.js`→`/v1/kv`, and the
 **book itself lives in the normalized P2 tables** — the renderer's project store
 persists through `projectApi.js`→`/v1/projects/{id}/book` (assemble/decompose),
@@ -63,17 +63,31 @@ not a blob. Execution log + deep audit below.
   Remaining: **sqlite-vec** — server `search` loads all vectors and ranks in
   numpy today (fine for a single book; an ANN index is the scale optimization),
   same deferred-until-needed shape as P2.5.
-- **P4 — images → server.** `imageStore.js` (Tauri-bridge / data-URL today) →
-  a server image endpoint.
-- **P5 — shared `llm-ui` + provider endpoints.** Runner already mounted (P0).
-  Remaining: provider CRUD (mirror JV's `llm_providers_api`) + the shared
-  `llm-ui` `ProviderBackend` adapter. UI work — pause for visual direction.
+- **P4 — DONE** (verified file-by-file 2026-06-18). `/v1/images` blob store
+  (`api/images.py`: upload/fetch/delete, base64 — no multipart dep; `ImageBlob`
+  table; `test_images` green). `imageStore.js` repointed: `saveImage` POSTs to
+  `/v1/images` and returns a `{kind:"server", serverId}` record; `urlFor` /
+  `readImageBytes` / `removeImage` resolve it via `/v1/images/{id}`; legacy
+  file/data-URL records still READ for back-compat. Every upload consumer
+  (Characters, cover, RichEditor, ImagesModal, import) goes through `imageStore`;
+  the image *records* round-trip through the P2 `images` table. Project file I/O
+  reconciled: save→export snapshot, open→`loadSnapshot` (→ store → server), with
+  the Tauri disk autosave kept as a one-shot local recovery mirror. (Dead: the
+  Tauri `images_save` write path — `images_read`/`delete` still serve legacy
+  records.)
+- **P5 — backend DONE; shared-UI part UX-gated.** Provider CRUD
+  (`/v1/llm-providers`, `api/llm_providers.py`) + the LLM gateway (`api/llm.py`,
+  `/v1/llm/{id}/…` — inference proxies through the server with the server-held
+  key) are built, wired (`providerBackend.js`, `openai-compat.js`), and tested
+  (`test_llm_providers`, `test_llm_gateway`). **Remaining:** adopt the shared
+  `llm-ui` `ProviderBackend` adapter — UI work, pause for visual direction.
+  (A full file-by-file P5 audit hasn't been done — only the gateway, wired this
+  session, is confirmed end-to-end.)
 
-**Why P2–P5 weren't landed tonight:** each is a substantial renderer change
-that must be wired + verified in the running app (now possible via the new
-harness). Per "right the first time / don't ship unwired code," P1 (the core)
-was taken to a fully-verified state and the verification harness built, rather
-than landing P2–P5 unverified. They are the clear next coding focus.
+**Update (2026-06-18 audit):** P2–P4 were in fact landed + wired in subsequent
+work — this status doc had lagged the code (and was re-verified file-by-file).
+The remaining migration work is P5's shared-`llm-ui` adapter (UX-gated) and the
+deferred scale optimizations (P2.5 incremental writes; sqlite-vec for RAG).
 
 ---
 
