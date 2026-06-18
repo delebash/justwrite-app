@@ -128,10 +128,20 @@ Full remaining queue to reach **zero kv**:
   `localStorage` (`jw.justvoice.url`) — moved to a `justvoiceUrl` settings key
   (a thin client must get it from the server too). No `localStorage.*Item`
   data use remains in the renderer.
-- **legacy** `justwrite:project` single-key: confirm dead post-P2, then delete.
-- **Reset-workspace cross-cut**: `clearPrefix("justwrite:")` only wipes kv, so
-  since P2 it already leaves the `projects` table behind, and slices 1–3 added
-  sessions/chat/settings to what it misses. Needs a single server-side
-  workspace-wipe (its own slice) — slice 3 wired `clearSettings()` in as a stopgap.
-- Then: delete `services/storage.js`, `/v1/kv` + `kv` table, `idb-keyval`. **JV**
-  next, ending with `idb-keyval` removed there too.
+- **legacy** `justwrite:project` single-key + `justwrite:projects:active` kv
+  fallback: ✓ (slice 10b) removed the transitional migration branches.
+- **Reset-workspace cross-cut**: ✓ (slice 10b) `DELETE /v1/workspace` wipes every
+  table in one call (children-first), replacing `clearPrefix("justwrite:")`.
+- **Backup bundle**: ✓ (slice 10a) `_workspace` carries the settings document
+  (`getAllSettings`/`applySettings`) instead of kv keys.
+- **Delete** ✓ (slice 10b): removed `services/storage.js`, `api/kv.py` + the
+  `KvEntry` model (+ `DROP TABLE IF EXISTS kv` migration), `test_kv.py`,
+  `bootStorage` from main.js, and the `idb-keyval` dependency.
+
+## JW status: COMPLETE
+
+Zero `justwrite:*` kv keys, zero `localStorage`/`IndexedDB` data use, no
+`storage.js`. Every datum is a typed SQL resource over a typed API
+(settings, projects, sessions, chat, versions, llm-usage, llm-providers,
+workspace). **Next: JustVoice** — fold `settings.json` into the same SQL
+backend and remove any IndexedDB there, ending with `idb-keyval` gone in JV too.

@@ -5,8 +5,8 @@ import { useProjectStore } from "../stores/project.js";
 import { useUiStore } from "../stores/ui.js";
 import { saveImage, urlFor, hasNativeImages } from "../services/imageStore.js";
 import { promptDialog, confirmDialog } from "../services/dialog.js";
-import { clearPrefix, flushPending } from "../services/storage.js";
-import { clearSettings, readSetting, writeSetting } from "../services/settings.js";
+import { readSetting, writeSetting } from "../services/settings.js";
+import { resetWorkspace as resetWorkspaceApi } from "../services/workspaceApi.js";
 import { indexStatus } from "../services/rag/indexer.js";
 import { buildVoiceFingerprint } from "../services/voiceFingerprint.js";
 import { pushToast } from "../services/toastBridge.js";
@@ -696,9 +696,9 @@ async function resetWorkspace() {
   });
   if (typed !== "RESET") return;
   try {
-    flushPending();
-    // Settings now live in the server `settings` table, not kv — clear both.
-    await Promise.allSettled([clearPrefix("justwrite:"), clearSettings()]);
+    // One server call wipes every table (settings, projects + cascaded rows,
+    // sessions, usage, providers, versions, chat). Reload re-seeds.
+    await resetWorkspaceApi();
   } catch {}
   location.reload();
 }
@@ -1959,12 +1959,12 @@ const recentColumns = [
         <div class="card">
           <div class="card-title">{{ $t('settings.backups.snapshotCardTitle') }}</div>
           <p class="t-muted" style="font-size:12.5px;margin:0 0 14px;line-height:1.55">
-            Your work auto-saves to this device's local storage on every change. To survive a browser reset
-            or move between machines, export a JSON snapshot — it includes every chapter body, every character, the trash bin, and your cast assignments.
+            Your work auto-saves to the local JustWrite server's database on every change. To move between
+            machines — or keep an off-device copy — export a JSON snapshot: it includes every chapter body, every character, the trash bin, and your preferences.
           </p>
           <div style="display:grid;grid-template-columns:140px 1fr;gap:10px 14px;font-size:13px;align-items:center;margin-bottom:12px">
-            <span class="t-muted">Stored locally</span>
-            <span><b>justwrite:project</b> + sibling keys in <code>IndexedDB</code></span>
+            <span class="t-muted">Stored in</span>
+            <span>the local JustWrite server database (<code>SQLite</code>)</span>
             <span class="t-muted">Last backup</span>
             <span>{{ lastBackupLabel }}</span>
             <span class="t-muted">Platform save</span>
@@ -1987,7 +1987,7 @@ const recentColumns = [
         <div class="card danger-card">
           <div class="card-title" style="color: var(--danger-ink)">{{ $t('settings.backups.dangerCardTitle') }}</div>
           <p class="t-muted" style="font-size:12.5px;margin:0 0 12px;line-height:1.55">
-            Wipes every <code>justwrite:*</code> key from IndexedDB — project, history, AI providers, sessions — and reloads with the demo seed. Take a backup first.
+            Wipes the entire workspace database — projects, settings, AI providers, sessions, usage — and reloads with the demo seed. Take a backup first.
           </p>
           <JwButton label="Reset workspace" intent="danger" @click="resetWorkspace">
             <template #icon><Icon name="Alert" :size="13" /></template>

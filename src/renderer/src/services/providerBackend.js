@@ -16,10 +16,10 @@ let _timer = null;
 const PUT_DEBOUNCE_MS = 500;
 
 /**
- * Pull the provider list into the cache. MUST be awaited (after bootStorage,
+ * Pull the provider list into the cache. MUST be awaited (after bootSettings,
  * before mounting Vue) so the AI store's synchronous bootstrap can read it.
- * Leaves the cache null on failure/empty so the store falls back to the kv
- * blob or the seeded defaults (and then write-through migrates them).
+ * Leaves the cache null on failure/empty so the store falls back to the seeded
+ * defaults (and then write-through seeds the server).
  */
 export async function bootProviders() {
   if (_booted) return;

@@ -1,10 +1,10 @@
 """FastAPI application factory for the JustWrite server.
 
-Boots SQLite + AppState, mounts /v1/health, /v1/kv (the key/value seam
-backing the renderer's storage.js), and the SHARED llm-runner router
-in-process (the same router JustVoice mounts — full symmetry). Normalized
-entity APIs replace the kv blob in P2. See
-docs/plans/2026-06-18-jw-server-migration.md.
+Boots SQLite + AppState and mounts the domain APIs (projects, settings,
+sessions, chat, versions, llm-usage, images, RAG, workspace) plus the SHARED
+llm-runner router in-process (the same router JustVoice mounts — full symmetry).
+All renderer state persists here in SQLite — there is no key/value or IndexedDB
+seam. See docs/plans/2026-06-18-unified-storage-no-idb.md.
 """
 
 from __future__ import annotations
@@ -23,7 +23,6 @@ from .api import (
     chat,
     health,
     images,
-    kv,
     llm,
     llm_providers,
     llm_usage,
@@ -32,6 +31,7 @@ from .api import (
     sessions,
     settings,
     versions,
+    workspace,
 )
 from .app_state import AppState, set_state
 from .database import init_db
@@ -56,12 +56,12 @@ def create_app(data_dir: Path | None = None) -> FastAPI:
     )
 
     app.include_router(health.router)
-    app.include_router(kv.router)
     app.include_router(projects.router)
     app.include_router(sessions.router)
     app.include_router(chat.router)
     app.include_router(settings.router)
     app.include_router(versions.router)
+    app.include_router(workspace.router)
     app.include_router(rag.router)
     app.include_router(images.router)
     app.include_router(llm_providers.router)

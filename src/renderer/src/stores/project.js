@@ -9,7 +9,6 @@ import { markRaw } from "vue";
 import { useUiStore } from "./ui.js";
 import { useSessionsStore } from "./sessions.js";
 import { removeImage as removeImageFile } from "../services/imageStore.js";
-import { getItem, setItem, removeItem, listKeys } from "../services/storage.js";
 import { readSetting, writeSetting, getAllSettings, applySettings } from "../services/settings.js";
 import * as projectApi from "../services/projectApi.js";
 import { replaceInHtml } from "../services/projectReplace.js";
@@ -26,17 +25,12 @@ import {
   TUTORIAL_CHAPTER, TUTORIAL_NOTE,
 } from "../services/tutorialProject.js";
 
-// Multi-project storage (post storage-rewrite):
+// Multi-project storage (all server-side SQL — no kv, no IndexedDB):
 //   projects table (/v1/projects) — book snapshots; the registry is DERIVED
 //                                   from this list (no separate index)
 //   settings.activeProjectId      — id of the currently loaded project
-//   justwrite:project             — LEGACY single-project key, migrated on first load
-//   justwrite:projects:active     — LEGACY active pointer; read once to migrate
-//                                   into settings, then ignored
 // Undo/redo is in-memory only (not persisted across reloads); durable rollback
 // is the per-chapter version history (stores/versions.js).
-const LS_LEGACY_KEY    = "justwrite:project";
-const LS_ACTIVE_KEY    = "justwrite:projects:active";  // legacy; migration read only
 
 const uid = (p) => `${p}_${Date.now().toString(36)}_${Math.random().toString(36).slice(2, 6)}`;
 
@@ -46,10 +40,6 @@ function wordCountFromHtml(html) {
   return text ? text.split(/\s+/).length : 0;
 }
 
-function loadJSON(key) { try { return JSON.parse(getItem(key) || "null"); } catch { return null; } }
-function saveJSON(key, val) { try { setItem(key, JSON.stringify(val)); } catch (err) { console.error("project saveJSON failed:", err); } }
-function removeKey(key) { try { removeItem(key); } catch {} }
-
 // Book snapshots live in the server's `projects` table, reached via the domain
 // API (services/projectApi.js). The cache is populated by hydrateProjects()
 // before mount, so loadSnap stays synchronous for the store's bootstrap. The
@@ -58,9 +48,8 @@ function loadSnap(id) { return id ? projectApi.getSnapshot(id) : null; }
 function saveSnap(id, snap) { if (id) projectApi.putSnapshot(id, snap); }
 function removeSnap(id) { if (id) projectApi.removeProject(id); }
 
-// The active project id: settings is authoritative; fall back to the legacy kv
-// pointer once so existing installs keep their place across the migration.
-function loadActiveId() { return readSetting("activeProjectId") ?? loadJSON(LS_ACTIVE_KEY) ?? null; }
+// The active project id lives in the settings document.
+function loadActiveId() { return readSetting("activeProjectId") ?? null; }
 
 // Awaited by main.js after bootSettings() and before mount: pulls the registry
 // + active book into projectApi's cache so the sync bootstrap can read them.
@@ -157,22 +146,6 @@ function bootstrap() {
     return { activeId: id, registry, snapshot: loadSnap(id) };
   }
 
-  // Migrate legacy single-project state into the new layout.
-  const legacy = loadJSON(LS_LEGACY_KEY);
-  if (legacy && legacy.project) {
-    const id = uid("prj");
-    saveSnap(id, legacy);  // writes the project row (the registry derives from it)
-    const entry = {
-      id,
-      title:  legacy.project.title  || "Untitled",
-      author: legacy.project.author || "",
-      savedAt: legacy.savedAt || new Date().toISOString(),
-    };
-    writeSetting("activeProjectId", id);
-    removeKey(LS_LEGACY_KEY);
-    return { activeId: id, registry: [entry], snapshot: legacy };
-  }
-
   // First-ever run: mint an id for the seeded demo. ensureActiveProjectPersisted()
   // (called from main.js after boot) writes its row so it survives a reload.
   const id = uid("prj");
@@ -199,7 +172,7 @@ function bootstrap() {
 // Defer bootstrap (and the migration steps it feeds) into a lazy initialiser
 // that runs once when the state factory first executes. Pinia state factories
 // only run on the first useProjectStore() call, which happens during the
-// app's component setup — well after bootStorage() has populated the cache.
+// app's component setup — well after bootSettings() + hydrateProjects() have run.
 let _bootCache = null;
 function getBoot() {
   if (_bootCache) return _bootCache;

@@ -17,11 +17,11 @@ Key decisions:
   notes when a scene is removed, …) stays in the app layer — exactly where
   the renderer already enforces it — to avoid composite-FK complexity.
 
-`KvEntry` (P1) still backs app-level config the renderer's storage.js writes
-(AI providers, appearance, sessions, studio) until those get their own tables
-(P5). `Project.data` is the legacy P2-shallow snapshot blob, kept only so the
-one-time blob→tables migration (P2.2) can read it; new writes go to the
-normalized tables.
+Every datum has its own typed table now — the old `KvEntry` localStorage seam is
+gone (the storage rewrite, docs/plans/2026-06-18-unified-storage-no-idb.md;
+migrations drop the orphan `kv` table). `Project.data` is the legacy P2-shallow
+snapshot blob, kept only so the one-time blob→tables migration (P2.2) can read
+it; new writes go to the normalized tables.
 """
 
 from __future__ import annotations
@@ -43,18 +43,7 @@ def _fk_project() -> Column:
     )
 
 
-# ── App-level key/value (P1) ────────────────────────────────────────────
-
-
-class KvEntry(Base):
-    """One localStorage-shaped key/value pair — app-level config the renderer
-    writes through storage.js (AI providers, appearance, sessions, studio).
-    Book data has moved to the normalized tables below."""
-
-    __tablename__ = "kv"
-
-    key = Column(String, primary_key=True)
-    value = Column(Text, nullable=False)
+# ── App-level settings ──────────────────────────────────────────────────
 
 
 class Setting(Base):

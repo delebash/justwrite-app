@@ -46,7 +46,6 @@
     "@tiptap/suggestion": "^3.26.0",
     "@tiptap/vue-3": "^3.26.0",
     "docx": "^9.7.1",
-    "idb-keyval": "^6.2.5",
     "jszip": "^3.10.1",
     "mammoth": "^1.12.0",
     "marked": "^18.0.5",

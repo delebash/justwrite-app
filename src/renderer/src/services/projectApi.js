@@ -29,7 +29,7 @@ async function _fetchJson(path, opts) {
 
 /**
  * Load the active book's snapshot into the cache. MUST be awaited (after
- * bootStorage, before mounting Vue) so the store's synchronous bootstrap can
+ * bootSettings, before mounting Vue) so the store's synchronous bootstrap can
  * read it. Resilient: on failure the store falls back to seeding/minting
  * rather than hanging. (The registry index + active-id pointer stay in kv.)
  */

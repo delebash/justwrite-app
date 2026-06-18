@@ -41,6 +41,10 @@ _PROJECT_COLUMNS = {
 
 def migrate_schema(engine: Engine) -> None:
     with engine.begin() as conn:
+        # The legacy app-level key/value table is gone — all renderer state has
+        # its own typed table now. Drop the orphan from upgraded DBs.
+        conn.execute(text("DROP TABLE IF EXISTS kv"))
+
         existing = {row[1] for row in conn.execute(text("PRAGMA table_info(projects)")).fetchall()}
         if not existing:
             return  # no projects table yet (shouldn't happen post create_all)

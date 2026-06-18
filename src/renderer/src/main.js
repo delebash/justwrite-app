@@ -3,9 +3,9 @@
 // stores find the IPC adapter the moment they spin up.
 
 import "./services/tauri-bridge.js";
-// Apply the default appearance synchronously so we don't render with the
-// wrong colour scheme during the IDB hydration tick below. The real
-// persisted appearance is reapplied after bootStorage resolves.
+// Apply the default appearance synchronously so we don't render with the wrong
+// colour scheme during the boot tick below. The real persisted appearance is
+// reapplied once bootSettings() resolves.
 import { applyAppearance, migrateAppearance, DEFAULT_APPEARANCE } from "./services/appearance.js";
 applyAppearance(DEFAULT_APPEARANCE);
 
@@ -13,7 +13,6 @@ import { createApp } from "vue";
 import { createPinia } from "pinia";
 import App from "./App.vue";
 import router from "./router/index.js";
-import { bootStorage } from "./services/storage.js";
 import { bootSettings, readSetting } from "./services/settings.js";
 import { hydrateProjects, useProjectStore } from "./stores/project.js";
 import { useSessionsStore } from "./stores/sessions.js";
@@ -24,12 +23,11 @@ import { tooltipDirective } from "./services/tooltip.js";
 import { i18n, detectLocale, setLocale as setI18nLocale } from "./i18n/index.js";
 import { startAutoRebuildWatcher } from "./services/rag/autoIndex.js";
 
-// Hydrate the storage cache from IndexedDB BEFORE any Pinia store
-// initialises — stores read from the cache synchronously.
+// Hydrate the server-backed caches BEFORE any Pinia store initialises — stores
+// read from them synchronously in `state: () => ({...})`.
 // Wrapped in an async IIFE to keep the build target compatible with
 // engines that don't support top-level await (esbuild's safari13).
 (async () => {
-  await bootStorage();
   // Pull the settings document (appearance/ui, AI prefs, hardware presets) off
   // the server (/v1/settings) so the stores' synchronous bootstrap reads it.
   await bootSettings();
@@ -37,7 +35,7 @@ import { startAutoRebuildWatcher } from "./services/rag/autoIndex.js";
   // domain API) so the project store's synchronous bootstrap can read them.
   await hydrateProjects();
   // Pull the configured LLM provider list off the server (/v1/llm-providers)
-  // so the AI store's synchronous bootstrap reads it instead of the kv blob.
+  // so the AI store's synchronous bootstrap reads it.
   await bootProviders();
 
   // Now that settings are loaded, re-apply the persisted appearance (migrating
