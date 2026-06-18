@@ -53,6 +53,19 @@ def init_db(data_dir: Path) -> Engine:
 
     SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
     Base.metadata.create_all(bind=engine)
+
+    # Idempotent migrations: add columns an upgraded `projects` table lacks,
+    # then decompose any legacy data blob into the normalized tables (P2.2).
+    # Imported here to avoid a database -> migrations -> book_io import cycle.
+    from .migrations import migrate_blobs, migrate_schema
+
+    migrate_schema(engine)
+    db = SessionLocal()
+    try:
+        migrate_blobs(db)
+    finally:
+        db.close()
+
     log.info("Database: %s", _db_path)
     return engine
 
