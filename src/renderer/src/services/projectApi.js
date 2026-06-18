@@ -15,6 +15,7 @@
 import { serverUrl } from "./serverApi.js";
 
 const _snapshots = new Map(); // id -> snapshot object
+let _registry = [];           // [{id,title,author,savedAt}] derived from GET /v1/projects
 let _booted = false;
 
 const PUT_DEBOUNCE_MS = 400;
@@ -34,6 +35,17 @@ async function _fetchJson(path, opts) {
  */
 export async function bootProjects(activeId) {
   if (_booted) return;
+  // The registry is derived from the projects table — pull the list first so
+  // the store's synchronous bootstrap can read it (and fall back to the most
+  // recent project when the active-id pointer is missing).
+  try {
+    const list = await _fetchJson("/v1/projects");
+    if (Array.isArray(list)) {
+      _registry = list.map((p) => ({ id: p.id, title: p.title, author: p.author, savedAt: p.updatedAt }));
+    }
+  } catch (err) {
+    console.error("projectApi.bootProjects registry failed:", err);
+  }
   if (activeId) {
     try {
       const snap = await _fetchJson(`/v1/projects/${activeId}/book`);
@@ -46,6 +58,12 @@ export async function bootProjects(activeId) {
     }
   }
   _booted = true;
+}
+
+/** Sync read of the project registry (derived from the projects table at boot).
+ *  [{ id, title, author, savedAt }], most-recently-updated first. */
+export function listRegistry() {
+  return _registry.map((p) => ({ ...p }));
 }
 
 /** Sync read from the cache (null if not loaded). */
@@ -77,8 +95,8 @@ export function putSnapshot(id, snap) {
 export function removeProject(id) {
   _snapshots.delete(id);
   if (_putTimers.has(id)) { clearTimeout(_putTimers.get(id)); _putTimers.delete(id); }
-  // Deletes the project row; child rows cascade via the project_id FK. (The
-  // registry index lives in kv and is maintained by the store, not here.)
+  // Deletes the project row; child rows cascade via the project_id FK. The
+  // derived registry drops it automatically on the next boot.
   fetch(serverUrl(`/v1/projects/${id}`), { method: "DELETE" }).catch(() => {});
 }
 

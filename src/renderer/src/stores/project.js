@@ -10,6 +10,7 @@ import { useUiStore } from "./ui.js";
 import { useSessionsStore } from "./sessions.js";
 import { removeImage as removeImageFile } from "../services/imageStore.js";
 import { getItem, setItem, removeItem, listKeys } from "../services/storage.js";
+import { readSetting, writeSetting } from "../services/settings.js";
 import * as projectApi from "../services/projectApi.js";
 import { replaceInHtml } from "../services/projectReplace.js";
 import { nextColor, nextHue } from "../services/categoricalColors.js";
@@ -25,15 +26,16 @@ import {
   TUTORIAL_CHAPTER, TUTORIAL_NOTE,
 } from "../services/tutorialProject.js";
 
-// Multi-project storage:
-//   justwrite:project:<id>       — full snapshot per project
-//   justwrite:projects:registry  — [{id,title,author,savedAt}] summary list
-//   justwrite:projects:active    — id of the currently loaded project
-//   justwrite:project            — LEGACY single-project key, migrated on first load
-//   justwrite:project:history    — undo tail (kept global; cleared on project switch)
+// Multi-project storage (post storage-rewrite):
+//   projects table (/v1/projects) — book snapshots; the registry is DERIVED
+//                                   from this list (no separate index)
+//   settings.activeProjectId      — id of the currently loaded project
+//   justwrite:project:history     — undo tail (kept global; cleared on switch)
+//   justwrite:project             — LEGACY single-project key, migrated on first load
+//   justwrite:projects:active     — LEGACY active pointer; read once to migrate
+//                                   into settings, then ignored
 const LS_LEGACY_KEY    = "justwrite:project";
-const LS_REGISTRY_KEY  = "justwrite:projects:registry";
-const LS_ACTIVE_KEY    = "justwrite:projects:active";
+const LS_ACTIVE_KEY    = "justwrite:projects:active";  // legacy; migration read only
 const LS_HISTORY_KEY   = "justwrite:project:history";
 
 const uid = (p) => `${p}_${Date.now().toString(36)}_${Math.random().toString(36).slice(2, 6)}`;
@@ -48,22 +50,29 @@ function loadJSON(key) { try { return JSON.parse(getItem(key) || "null"); } catc
 function saveJSON(key, val) { try { setItem(key, JSON.stringify(val)); } catch (err) { console.error("project saveJSON failed:", err); } }
 function removeKey(key) { try { removeItem(key); } catch {} }
 
-function loadRegistry() {
-  const v = loadJSON(LS_REGISTRY_KEY);
-  return Array.isArray(v) ? v : [];
-}
-// Book snapshots now live in the server's `projects` table, reached via the
-// domain API (services/projectApi.js). The cache is populated by
-// hydrateProjects() before mount, so loadSnap stays synchronous for the
-// store's bootstrap. The registry index + active-id pointer stay in kv.
+// Book snapshots live in the server's `projects` table, reached via the domain
+// API (services/projectApi.js). The cache is populated by hydrateProjects()
+// before mount, so loadSnap stays synchronous for the store's bootstrap. The
+// registry is derived from the same table; the active-id pointer is in settings.
 function loadSnap(id) { return id ? projectApi.getSnapshot(id) : null; }
 function saveSnap(id, snap) { if (id) projectApi.putSnapshot(id, snap); }
 function removeSnap(id) { if (id) projectApi.removeProject(id); }
 
-// Awaited by main.js after bootStorage() and before mount: pulls the active
-// book into projectApi's cache so the sync bootstrap can read it.
+// The active project id: settings is authoritative; fall back to the legacy kv
+// pointer once so existing installs keep their place across the migration.
+function loadActiveId() { return readSetting("activeProjectId") ?? loadJSON(LS_ACTIVE_KEY) ?? null; }
+
+// Awaited by main.js after bootSettings() and before mount: pulls the registry
+// + active book into projectApi's cache so the sync bootstrap can read them.
+// When no active pointer exists yet but projects do, prefetch the most recent
+// so bootstrap can open it without a re-seed flash.
 export async function hydrateProjects() {
-  await projectApi.bootProjects(loadJSON(LS_ACTIVE_KEY));
+  const activeId = loadActiveId();
+  await projectApi.bootProjects(activeId);
+  if (!activeId) {
+    const reg = projectApi.listRegistry();
+    if (reg.length) await projectApi.fetchSnapshot(reg[0].id);
+  }
 }
 
 function loadHistory() {
@@ -141,40 +150,47 @@ if (typeof window !== "undefined") {
 // Decide which project to load on startup. Migrates the legacy single-project
 // key on first run so existing workspaces aren't lost.
 function bootstrap() {
-  let registry = loadRegistry();
-  const activeId = loadJSON(LS_ACTIVE_KEY);
+  const registry = projectApi.listRegistry();  // derived from the projects table
+  const activeId = loadActiveId();
 
-  // Use the persisted activeId even if no project snapshot exists yet —
-  // a brand-new project has an active id from the moment it's minted, but
-  // the snapshot only gets written on the first edit. Requiring both would
-  // make every reload of an un-edited project re-mint a fresh uuid and
-  // orphan anything that's keyed on activeProjectId (RAG index, AI usage
-  // log, sessions, etc.).
+  // Use the persisted activeId even if no project snapshot exists yet — a
+  // brand-new project has an active id from the moment it's minted, but the
+  // snapshot only gets written on the first edit. Requiring both would re-mint
+  // a fresh uuid on every reload of an un-edited project and orphan anything
+  // keyed on activeProjectId (RAG index, AI usage log, sessions, etc.). Persist
+  // the id back to settings to migrate a legacy kv pointer.
   if (activeId) {
+    writeSetting("activeProjectId", activeId);
     return { activeId, registry, snapshot: loadSnap(activeId) };
+  }
+
+  // No active pointer but projects exist (pointer cleared, or an upgrade) —
+  // open the most recent (hydrateProjects prefetched its snapshot) rather than
+  // re-seeding over real work.
+  if (registry.length) {
+    const id = registry[0].id;
+    writeSetting("activeProjectId", id);
+    return { activeId: id, registry, snapshot: loadSnap(id) };
   }
 
   // Migrate legacy single-project state into the new layout.
   const legacy = loadJSON(LS_LEGACY_KEY);
   if (legacy && legacy.project) {
     const id = uid("prj");
-    saveSnap(id, legacy);
+    saveSnap(id, legacy);  // writes the project row (the registry derives from it)
     const entry = {
       id,
       title:  legacy.project.title  || "Untitled",
       author: legacy.project.author || "",
       savedAt: legacy.savedAt || new Date().toISOString(),
     };
-    registry = [entry, ...registry.filter((p) => p.id !== id)];
-    saveJSON(LS_REGISTRY_KEY, registry);
-    saveJSON(LS_ACTIVE_KEY, id);
+    writeSetting("activeProjectId", id);
     removeKey(LS_LEGACY_KEY);
-    return { activeId: id, registry, snapshot: legacy };
+    return { activeId: id, registry: [entry], snapshot: legacy };
   }
 
-  // First-ever run: mint an id for the seeded demo so it appears in the
-  // registry without waiting for the first edit. The state factory will
-  // fill the snapshot from the seed data.
+  // First-ever run: mint an id for the seeded demo. ensureActiveProjectPersisted()
+  // (called from main.js after boot) writes its row so it survives a reload.
   const id = uid("prj");
   const entry = {
     id,
@@ -182,20 +198,19 @@ function bootstrap() {
     author: "Mira Halden",
     savedAt: new Date().toISOString(),
   };
-  registry = [entry];
-  saveJSON(LS_REGISTRY_KEY, registry);
-  saveJSON(LS_ACTIVE_KEY, id);
-  return { activeId: id, registry, snapshot: null };
+  writeSetting("activeProjectId", id);
+  return { activeId: id, registry: [entry], snapshot: null };
 }
 
-// IMPORTANT: bootstrap() reads from the storage cache (services/storage.js),
-// which is empty until bootStorage() runs from main.js's IIFE. ES modules
-// evaluate before main.js's body, so calling bootstrap() at module-load
-// time would silently read null for the persisted activeId / registry /
-// snapshot and mint a fresh project UUID on every full reload — losing
-// the user's chapters, RAG index, sessions, and everything else keyed on
-// activeProjectId. The seed data made this look like persistence on the
-// surface because the demo content reappears each time.
+// IMPORTANT: bootstrap() reads from caches populated before mount — the
+// settings document (services/settings.js → activeProjectId) and projectApi's
+// registry + snapshot cache (services/projectApi.js). Both are empty until
+// main.js's IIFE awaits bootSettings() + hydrateProjects(). ES modules evaluate
+// before main.js's body, so calling bootstrap() at module-load time would
+// silently read null for the active id / registry / snapshot and mint a fresh
+// project UUID on every full reload — losing the user's chapters, RAG index,
+// sessions, and everything else keyed on activeProjectId. The seed data made
+// this look like persistence on the surface because the demo content reappears.
 //
 // Defer bootstrap (and the migration steps it feeds) into a lazy initialiser
 // that runs once when the state factory first executes. Pinia state factories
@@ -1985,15 +2000,23 @@ export const useProjectStore = defineStore("project", {
       if (!this._activeId) this._activeId = uid("prj");
       return this._activeId;
     },
+    // The registry is derived from the projects table, so only the in-memory
+    // mirror is kept here — persistence happens via putSnapshot (writes the
+    // project row) and removeProject (deletes it).
     _writeRegistry(reg) {
       this._projects = reg;
-      saveJSON(LS_REGISTRY_KEY, reg);
+    },
+    // On a brand-new install the seeded demo project lives only in memory until
+    // the first edit. With the registry derived from the projects table, write
+    // its row now (called once from main.js after boot) so it survives a reload.
+    ensureActiveProjectPersisted() {
+      if (this._activeId && !projectApi.getSnapshot(this._activeId)) this._persist();
     },
     _persist() {
       const id = this._ensureActiveId();
       const snap = this.exportSnapshot();
       saveSnap(id, snap);
-      saveJSON(LS_ACTIVE_KEY, id);
+      writeSetting("activeProjectId", id);
       this._lastSavedAt = Date.now();
       // Disk mirror is a full workspace bundle, not just the project, so
       // any single autosave file is one-shot recoverable.
@@ -2094,7 +2117,7 @@ export const useProjectStore = defineStore("project", {
       this._activeId = id;
       Object.assign(this.$state, snap);
       this.clearHistory();
-      saveJSON(LS_ACTIVE_KEY, id);
+      writeSetting("activeProjectId", id);
       useUiStore().showToast({ message: `Switched to "${snap.project?.title || "project"}".` });
     },
 

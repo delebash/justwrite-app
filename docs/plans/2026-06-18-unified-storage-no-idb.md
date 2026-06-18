@@ -85,8 +85,15 @@ copy per collection.
 Enumerating every `justwrite:*` key showed more than the staging line listed.
 Full remaining queue to reach **zero kv**:
 
-- **registry-derive** (slice 4): `justwrite:projects:registry` → derive from the
-  `projects` table; `justwrite:projects:active` → `activeProjectId` settings key.
+- **registry-derive** ✓ (slice 4): `justwrite:projects:registry` was doubly
+  persisted (kv *and* the projects table via putSnapshot) — dropped the kv copy;
+  `projectApi.bootProjects` now also GETs `/v1/projects` into a `listRegistry()`
+  cache the store's `_projects` seeds from. `justwrite:projects:active` →
+  `activeProjectId` settings key (one-time kv-fallback read so existing installs
+  keep their place). New bootstrap branch: no pointer but projects exist → open
+  the most-recent (prefetched by hydrateProjects) instead of re-seeding.
+  `ensureActiveProjectPersisted()` (main.js, post-boot) writes the fresh-seed
+  row so a brand-new install survives a reload (registry derives from the row).
 - **undo tail** (slice 5): `justwrite:project:history`.
 - **usage ledger**: `justwrite:ai:usage` → its own table (a capped log + totals,
   like sessions). Left on kv by slice 3 deliberately.

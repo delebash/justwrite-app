@@ -61,6 +61,11 @@ import { startAutoRebuildWatcher } from "./services/rag/autoIndex.js";
   // loaded before the first edit can attribute a delta.
   await useSessionsStore(pinia).boot();
 
+  // Ensure the active project has a server row — a brand-new install's seeded
+  // demo lives only in memory until its first edit, and the registry is derived
+  // from the projects table, so persist it now to survive a reload.
+  useProjectStore(pinia).ensureActiveProjectPersisted();
+
   app.mount("#app");
 
   // Dev-only test seam: expose the project store so the headless harness can
