@@ -443,3 +443,24 @@ class ImageBlob(Base):
     mime = Column(String, nullable=False, default="application/octet-stream")
     data = Column(LargeBinary, nullable=False)
     created_at = Column(String, nullable=False, default="")
+
+
+# ── LLM providers (P5) ──────────────────────────────────────────────────
+
+
+class LlmProvider(Base):
+    """A configured LLM/TTS provider (OpenAI-compatible endpoint) — the list
+    the renderer's AI store reads, moved off the justwrite:ai kv blob. JW calls
+    providers DIRECTLY from the renderer (inference never round-trips the
+    server), so this is a plain list resource, not an adapter registry. Config
+    varies by provider type, so the full object is JSON in `data`; id/name/kind/
+    built_in are columns for queryability."""
+
+    __tablename__ = "llm_providers"
+
+    id = Column(String, primary_key=True)
+    name = Column(String, nullable=False, default="")
+    kind = Column(String, nullable=False, default="")
+    built_in = Column(Boolean, nullable=False, default=False)
+    position = Column(Integer, nullable=False, default=0)
+    data = Column(Text, nullable=False, default="{}")  # the full provider object

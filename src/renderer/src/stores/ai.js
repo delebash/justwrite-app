@@ -10,6 +10,7 @@ import { SpeechifyClient, isSpeechify } from "../services/speechify.js";
 import { VoiceboxClient, isVoicebox } from "../services/voicebox.js";
 import { getModelTier, TIERS } from "../services/modelMeta.js";
 import { getItem, setItem } from "../services/storage.js";
+import * as providerBackend from "../services/providerBackend.js";
 
 // Pick the right ping client for a provider. Providers with proprietary
 // APIs (ElevenLabs, Speechify, Voicebox) get dedicated clients; everything
@@ -179,6 +180,23 @@ function load() {
   } catch { return null; }
 }
 
+// Providers now live in the server's /v1/llm-providers table, read into a sync
+// cache by bootProviders() before mount. Prefer that list; fall back to the
+// legacy kv blob, then the seeded defaults. New built-ins are appended by id so
+// upgrades pick them up. The first save() write-through migrates kv -> server.
+function initialProviders(loaded) {
+  const fromServer = providerBackend.listProviders();
+  const base = fromServer ?? loaded?.providers ?? [...DEFAULT_PROVIDERS];
+  const have = new Set(base.map((p) => p.id));
+  const missing = DEFAULT_PROVIDERS.filter((p) => p.builtIn && !have.has(p.id));
+  const list = missing.length ? [...base, ...missing] : base;
+  // Seed/sync the server when it had no list yet (fresh install / pre-P5
+  // upgrade) or when new built-ins were merged — so the gateway and any thin
+  // client can route immediately, not only after the user's first edit.
+  if (!fromServer || missing.length) providerBackend.saveProviders(list);
+  return list;
+}
+
 function save(state) {
   try {
     setItem(LS_KEY, JSON.stringify({
@@ -194,6 +212,9 @@ function save(state) {
       useLlmVoiceGender: state.useLlmVoiceGender,
     }));
   } catch {}
+  // Write-through the provider list to the server (the authoritative store);
+  // kv above stays as an offline fallback.
+  try { providerBackend.saveProviders(state.providers); } catch {}
 }
 
 export const useAiStore = defineStore("ai", {
@@ -201,7 +222,7 @@ export const useAiStore = defineStore("ai", {
     const loaded = load();
     const usage = loadUsage();
     return {
-      providers: loaded?.providers ?? [...DEFAULT_PROVIDERS],
+      providers: initialProviders(loaded),
       defaultLlmId: loaded?.defaultLlmId ?? "openai-compat-local",
       defaultTtsId: loaded?.defaultTtsId ?? "openai",
       // Default provider used for embeddings (RAG indexing + chat).

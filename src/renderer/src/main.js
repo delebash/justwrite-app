@@ -15,6 +15,7 @@ import App from "./App.vue";
 import router from "./router/index.js";
 import { bootStorage, getItem } from "./services/storage.js";
 import { hydrateProjects, useProjectStore } from "./stores/project.js";
+import { bootProviders } from "./services/providerBackend.js";
 
 import "./assets/styles/tokens.css";
 import { tooltipDirective } from "./services/tooltip.js";
@@ -30,6 +31,9 @@ import { startAutoRebuildWatcher } from "./services/rag/autoIndex.js";
   // Pull the registry + active book into projectApi's cache (the /v1/projects
   // domain API) so the project store's synchronous bootstrap can read them.
   await hydrateProjects();
+  // Pull the configured LLM/TTS provider list off the server (/v1/llm-providers)
+  // so the AI store's synchronous bootstrap reads it instead of the kv blob.
+  await bootProviders();
 
   // Now that the cache is populated, re-apply the persisted appearance
   // (migrating any legacy { theme, accentHue } shape) and resolve the
