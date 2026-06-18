@@ -1,77 +1,95 @@
-// Storage adapter — swaps localStorage for IndexedDB while keeping the
-// synchronous read/write shape every store was written against.
+// Storage adapter — backs the renderer's localStorage-shaped store with the
+// JustWrite server's /v1/kv table (SQLite) instead of IndexedDB.
 //
-// Why a sync API over an async store: Pinia state initialisers run at
-// module-import time (`state: () => ({ ...load() })`), so we can't await
-// in there. We hydrate every `justwrite:*` key from IDB into an
-// in-memory `cache` once at app boot, before Vue mounts, then back the
-// sync getters with that cache. Writes update the cache immediately and
-// queue a per-key debounced write to IDB so a typing session doesn't
-// hammer the disk.
+// Why a sync API over a network store: Pinia state initialisers run at
+// module-import time (`state: () => ({ ...load() })`), so we can't await in
+// there. bootStorage() bulk-loads every `justwrite:*` key into an in-memory
+// `cache` once at app boot (before Vue mounts); the sync getters serve from
+// that cache. Writes update the cache immediately and queue a per-key
+// debounced PUT/DELETE so a typing session doesn't hammer the server.
 //
-// API mirrors `localStorage`:
-//   getItem(key)       → string | null
-//   setItem(key, val)  → void
-//   removeItem(key)    → void
+// P1 of the server migration (docs/plans/2026-06-18-jw-server-migration.md).
+// The renderer still writes a whole-project snapshot blob under one key here;
+// P2 normalizes it into per-entity rows. Until then, a hard window-close can
+// drop the very last edit if its 50ms-debounced write hasn't flushed —
+// `keepalive` covers small keys on unload, the desktop shell flushes on
+// close, and P2's incremental writes remove the large-blob case entirely.
 //
-// All other behaviours (Object.keys(localStorage), iteration) are
-// replaced by:
-//   listKeys(prefix?)        → string[]    (synchronous, cache-backed)
-//   clearPrefix(prefix)      → Promise<void>
+// Public API (unchanged from the IndexedDB version):
+//   getItem(key)        → string | null      (sync, cache-backed)
+//   setItem(key, val)   → void               (sync; queues a debounced PUT)
+//   removeItem(key)     → void               (sync; queues a debounced DELETE)
+//   listKeys(prefix?)   → string[]           (sync, cache-backed)
+//   clearPrefix(prefix) → Promise<void>
+//   flushPending()      → Promise            (await pending writes)
+//   bootStorage()       → Promise<void>      (await before mounting Vue)
 
-import { createStore, get, set, del, keys as idbKeys } from "idb-keyval";
+import { serverUrl } from "./serverApi.js";
 
 const PREFIX = "justwrite:";
-
-// Dedicated IDB database + object store so we don't share scope with any
-// other consumer in the same origin.
-const store = createStore("justwrite", "kv");
 
 // Synchronous shadow of every justwrite:* key. Populated by bootStorage().
 const cache = new Map();
 let booted = false;
 
 // Per-key debounce timers so a burst of writes from the typing path
-// collapses into one IDB call ~50ms after the last edit.
+// collapses into one server call ~50ms after the last edit.
 const writeTimers = new Map();
 const WRITE_DEBOUNCE_MS = 50;
 
+// JustWrite keys are colon-delimited (`justwrite:project`) with no slashes or
+// spaces, so they're safe unencoded in a path segment. (Encoding the colon to
+// %3A would depend on the server decoding it back; raw is verified to work.)
+function kvUrl(key) {
+  return serverUrl(`/v1/kv/${key}`);
+}
+
+// Flush one key's pending write to the server. Returns the in-flight promise
+// so callers (tests, explicit flushes) can await it; the unload handler
+// ignores the return. `keepalive` lets small writes complete during unload.
 function flushKey(key) {
-  if (!writeTimers.has(key)) return;
+  if (!writeTimers.has(key)) return Promise.resolve();
   clearTimeout(writeTimers.get(key));
   writeTimers.delete(key);
   const val = cache.get(key);
   if (val === undefined) {
-    void del(key, store);
-  } else {
-    void set(key, val, store);
+    return fetch(kvUrl(key), { method: "DELETE", keepalive: true }).catch(() => {});
   }
+  return fetch(kvUrl(key), {
+    method: "PUT",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ value: val }),
+    keepalive: true,
+  }).catch(() => {});
 }
 
 function scheduleWrite(key) {
   const existing = writeTimers.get(key);
   if (existing) clearTimeout(existing);
-  writeTimers.set(key, setTimeout(() => flushKey(key), WRITE_DEBOUNCE_MS));
+  writeTimers.set(key, setTimeout(() => { void flushKey(key); }, WRITE_DEBOUNCE_MS));
 }
 
 /**
- * Boot the storage layer. MUST be awaited before mounting Vue or
- * initialising any Pinia store. Hydrates the in-memory cache from IDB
- * so the synchronous getters have data to serve.
+ * Boot the storage layer. MUST be awaited before mounting Vue or initialising
+ * any Pinia store. Bulk-loads every `justwrite:*` key from the server into the
+ * in-memory cache so the synchronous getters have data to serve. Resilient:
+ * on failure the app boots with an empty cache (defaults) rather than hanging.
  */
 export async function bootStorage() {
   if (booted) return;
-
   try {
-    const ks = await idbKeys(store);
-    for (const k of ks) {
-      if (typeof k !== "string" || !k.startsWith(PREFIX)) continue;
-      cache.set(k, await get(k, store));
+    const res = await fetch(serverUrl("/v1/kv"));
+    if (res.ok) {
+      const all = await res.json();
+      for (const [k, v] of Object.entries(all)) {
+        if (typeof k === "string" && k.startsWith(PREFIX)) cache.set(k, v);
+      }
+    } else {
+      console.error("storage.bootStorage: server returned", res.status);
     }
   } catch (err) {
     console.error("storage.bootStorage failed:", err);
   }
-
   booted = true;
 }
 
@@ -82,14 +100,14 @@ export function getItem(key) {
   return v === undefined ? null : v;
 }
 
-/** Synchronous write. Updates the cache and queues a debounced IDB flush. */
+/** Synchronous write. Updates the cache and queues a debounced server PUT. */
 export function setItem(key, value) {
   const s = typeof value === "string" ? value : String(value);
   cache.set(key, s);
   scheduleWrite(key);
 }
 
-/** Synchronous delete. */
+/** Synchronous delete. Updates the cache and queues a debounced server DELETE. */
 export function removeItem(key) {
   cache.delete(key);
   scheduleWrite(key);
@@ -104,35 +122,29 @@ export function listKeys(prefix = PREFIX) {
   return out;
 }
 
-/** Wipe every key under `prefix`. Awaits the IDB delete so callers can
- *  reload immediately afterwards without losing the writes. */
+/** Wipe every key under `prefix`, locally and on the server. Awaitable so
+ *  callers can reload immediately afterwards without losing the writes. */
 export async function clearPrefix(prefix = PREFIX) {
-  const ks = listKeys(prefix);
-  for (const k of ks) {
+  for (const k of listKeys(prefix)) {
     cache.delete(k);
     if (writeTimers.has(k)) { clearTimeout(writeTimers.get(k)); writeTimers.delete(k); }
-    await del(k, store);
   }
-  // Belt and braces — sweep IDB directly in case the cache missed a key
-  // (e.g. one written by a different tab between hydration and reset).
   try {
-    const allKs = await idbKeys(store);
-    for (const k of allKs) {
-      if (typeof k === "string" && k.startsWith(prefix)) await del(k, store);
-    }
-  } catch {}
+    await fetch(serverUrl(`/v1/kv?prefix=${encodeURIComponent(prefix)}`), { method: "DELETE" });
+  } catch (err) {
+    console.error("storage.clearPrefix failed:", err);
+  }
 }
 
-/** Force-flush any pending debounced writes immediately. Useful before
- *  navigation/reload paths where we can't wait for the next timer tick. */
+/** Force-flush any pending debounced writes immediately. Returns a promise
+ *  callers may await; the unload handlers fire it without awaiting. */
 export function flushPending() {
-  for (const k of [...writeTimers.keys()]) flushKey(k);
+  return Promise.allSettled([...writeTimers.keys()].map((k) => flushKey(k)));
 }
 
-// Flush pending writes on page hide so a closed tab doesn't drop the
-// last 50ms of edits. Doesn't await — pagehide handlers must be sync —
-// but the IDB set() call inside flushKey() will run to completion
-// because IDB writes survive page-unload.
+// Flush pending writes on page hide so a closed tab doesn't drop the last
+// ~50ms of edits. Handlers must be sync; `flushKey` uses `keepalive: true` so
+// small in-flight writes survive unload.
 if (typeof window !== "undefined") {
   window.addEventListener("pagehide", flushPending);
   window.addEventListener("beforeunload", flushPending);
