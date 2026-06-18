@@ -5,7 +5,62 @@
 JW becomes **Tauri + Vue + FastAPI + SQLite**, the same shape as JustVoice.
 Trigger: manuscripts + the RAG vector index outgrow client-side storage.
 
-Status: **scoped, not started.** Largest thread in the cross-app work.
+Status (2026-06-18, admiring-galileo): **P0 + P1 DONE and verified
+end-to-end; P2–P5 not started.** The migration's CORE is achieved —
+JustWrite now runs **server-backed**: all `justwrite:*` data (including the
+RAG vector index, which rides on `storage.js`) persists to SQLite via the
+server. Execution log + deep audit below.
+
+## Execution log + deep audit (2026-06-18)
+
+**Shipped + verified:**
+- **P0** — JW FastAPI + SQLite server skeleton; mounts the shared llm-runner
+  in-process; `justwrite-server serve` CLI. (pytest; live HTTP.)
+- **P1** — `storage.js` re-backed onto the server `/v1/kv` (was IndexedDB) +
+  new `services/serverApi.js`. Whole app now server-backed with **no store
+  changes** (same sync cache + public API).
+- **Headless harness** — `scripts/headless-smoke.mjs` (Playwright + Chromium):
+  drives `vite dev` against the live server, sweeps every route, asserts zero
+  JS errors. The renderer-verification tool the project lacked headless.
+
+**Deep-audit results (all green):**
+- JustVoice: ruff clean; **268 pytest pass** (the 4 fails are container-only —
+  `fastmcp` absent — unrelated to any change here).
+- JW server: ruff clean; **7 pytest pass**; live HTTP (`/v1/health`, `/v1/kv`
+  CRUD, `/v1/llm-runner/manifest`) OK.
+- JW renderer: `build:vite` clean; biome clean; **headless whole-app sweep =
+  26/26 routes render, zero JS errors**; renderer persists
+  `justwrite:projects:*` + `modelList` to `/v1/kv`→SQLite; Node adapter test
+  (boot/PUT/overwrite/DELETE/clearPrefix) OK.
+- `idb-keyval` now has **zero references** in the renderer (storage.js was its
+  only consumer) → a dead dependency, safe to drop from package.json later.
+- Studio/Speaker-Lab `ERR_CONNECTION_REFUSED` in the sweep are to optional
+  external TTS/LLM backends (voicebox :17493, Ollama :11434, …) not running
+  here — expected, unrelated to the migration.
+
+**NOT started — P2–P5 (refinements on the now-working server-backed app; each
+now verifiable via the headless harness):**
+- **P2 — normalize the project blob** into per-entity SQLite tables + REST.
+  Removes the whole-snapshot scaling ceiling. The big project-store renderer
+  rewrite — largest remaining item; do entity-by-entity, verify each via the
+  harness.
+- **P3 — RAG server-side search.** Vectors already persist to SQLite (via P1).
+  Remaining: a `/v1/rag` table + cosine search (numpy now; sqlite-vec later)
+  so the renderer queries instead of loading the whole vector blob at boot;
+  `vectorStore.js` → async (+ indexer/chat).
+- **P4 — images → server.** `imageStore.js` (Tauri-bridge / data-URL today) →
+  a server image endpoint.
+- **P5 — shared `llm-ui` + provider endpoints.** Runner already mounted (P0).
+  Remaining: provider CRUD (mirror JV's `llm_providers_api`) + the shared
+  `llm-ui` `ProviderBackend` adapter. UI work — pause for visual direction.
+
+**Why P2–P5 weren't landed tonight:** each is a substantial renderer change
+that must be wired + verified in the running app (now possible via the new
+harness). Per "right the first time / don't ship unwired code," P1 (the core)
+was taken to a fully-verified state and the verification harness built, rather
+than landing P2–P5 unverified. They are the clear next coding focus.
+
+---
 
 ---
 
