@@ -135,9 +135,6 @@ const NAV = [
   { id: "markers",   label: "sidebar.nav.markers",   icon: "Pin" },
   { id: "relations", label: "sidebar.nav.relations", icon: "Network" },
 
-  { section: "sidebar.sections.audio" },
-  { id: "studio",    label: "nav.studio",    icon: "Headphones" },
-
   { section: "sidebar.sections.project" },
   { id: "analysis",  label: "nav.analysis",  icon: "Chart" },
   { id: "reader-knowledge", label: "sidebar.nav.readerKnowledge", icon: "Eye", path: "/reader-knowledge", activeName: "readerknowledge" },
@@ -145,7 +142,6 @@ const NAV = [
   { id: "trash",     label: "nav.trash",     icon: "Trash" },
   { id: "settings",  label: "nav.settings",  icon: "Settings" },
   { id: "writer-lab", label: "sidebar.nav.writerLab", icon: "Sparkle", path: "/writer-lab", activeName: "writerlab" },
-  { id: "speaker-lab", label: "sidebar.nav.speakerLab", icon: "Comment", path: "/speaker-lab", activeName: "speakerlab" },
   { id: "help",      label: "sidebar.nav.help",       icon: "Help",     path: "/help", activeName: "help" },
 ];
 

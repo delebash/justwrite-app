@@ -270,7 +270,6 @@ function providerDefaultRoles(p) {
   const roles = [];
   if (ai.defaultLlmId === p.id) roles.push("Default LLM");
   if (ai.defaultEmbeddingId === p.id) roles.push("Default embedding");
-  if (ai.defaultTtsId === p.id) roles.push("Default TTS");
   return roles;
 }
 function usageBadgeLabel(p) {
@@ -299,101 +298,9 @@ function isLocalProvider(p) {
 }
 const localProviders = computed(() => ai.providers.filter(isLocalProvider));
 const cloudProviders = computed(() => ai.providers.filter((p) => !isLocalProvider(p)));
-const localLlm = computed(() => localProviders.value.filter((p) => p.kind !== "tts"));
-const localTts = computed(() => localProviders.value.filter((p) => p.kind === "tts"));
-const cloudLlm = computed(() => cloudProviders.value.filter((p) => p.kind !== "tts"));
-const cloudTts = computed(() => cloudProviders.value.filter((p) => p.kind === "tts"));
+const localLlm = computed(() => localProviders.value);
+const cloudLlm = computed(() => cloudProviders.value);
 
-// Host-OS detection. Used by the voicebox install card to pick the right
-// installer URL per platform. `navigator.platform` is deprecated but still
-// populated by every browser and webview we care about, and gives us
-// cleaner strings than userAgent.
-const hostOs = computed(() => {
-  const ua = (typeof navigator !== "undefined" && (navigator.platform || navigator.userAgent) || "").toLowerCase();
-  if (ua.includes("win")) return "windows";
-  if (ua.includes("mac") || ua.includes("darwin")) return "macos";
-  if (ua.includes("linux")) return "linux";
-  return "unknown";
-});
-
-// ── Voicebox install + lifecycle state ──────────────────────────────
-// Probes 127.0.0.1:17493/health on tab open + after install. If voicebox is
-// up and we haven't already called /watchdog/disable this session, we do
-// that once so the server outlives the voicebox GUI window.
-const voiceboxState = ref("checking"); // "checking" | "running" | "down" | "no-bridge"
-const voiceboxInstall = ref({ busy: false, phase: "", downloaded: 0, total: 0, error: "", message: "", version: "" });
-let _watchdogDisabledThisSession = false;
-
-async function refreshVoicebox() {
-  voiceboxState.value = "checking";
-  try {
-    // Bypass tauri-bridge's routing fetch for localhost so we don't get
-    // weird ipc.localhost recursion. Use plain fetch directly.
-    const res = await fetch("http://127.0.0.1:17493/health", { method: "GET" }).catch(() => null);
-    if (res?.ok) {
-      voiceboxState.value = "running";
-      if (!_watchdogDisabledThisSession) {
-        try {
-          await fetch("http://127.0.0.1:17493/watchdog/disable", { method: "POST" });
-          _watchdogDisabledThisSession = true;
-        } catch { /* best-effort */ }
-      }
-    } else {
-      voiceboxState.value = "down";
-    }
-  } catch {
-    voiceboxState.value = "down";
-  }
-}
-
-async function installVoicebox() {
-  if (voiceboxInstall.value.busy) return;
-  if (!window.justwrite?.voicebox?.install) {
-    // Browser-only dev fallback — open the releases page.
-    window.open("https://github.com/jamiepine/voicebox/releases/latest", "_blank", "noopener,noreferrer");
-    return;
-  }
-  voiceboxInstall.value = { busy: true, phase: "resolving", downloaded: 0, total: 0, error: "", message: "", version: "" };
-  try {
-    const res = await window.justwrite.voicebox.install((p) => {
-      voiceboxInstall.value.phase = p?.phase || voiceboxInstall.value.phase;
-      if (typeof p?.downloaded === "number") voiceboxInstall.value.downloaded = p.downloaded;
-      if (typeof p?.total === "number")      voiceboxInstall.value.total = p.total;
-    });
-    if (res?.ok) {
-      voiceboxInstall.value.phase = "done";
-      voiceboxInstall.value.message = res.message || "Installer launched.";
-      voiceboxInstall.value.version = res.version || "";
-      pushToast({ message: res.message || "Voicebox installer launched." });
-    } else {
-      voiceboxInstall.value.error = res?.message || "Install failed.";
-    }
-  } catch (e) {
-    voiceboxInstall.value.error = String(e?.message || e);
-  } finally {
-    voiceboxInstall.value.busy = false;
-    refreshVoicebox();
-  }
-}
-
-function fmtMb(bytes) {
-  if (!bytes) return "0";
-  return (bytes / (1024 * 1024)).toFixed(0);
-}
-const voiceboxInstallPct = computed(() => {
-  const t = voiceboxInstall.value.total;
-  const d = voiceboxInstall.value.downloaded;
-  if (!t || !d) return 0;
-  return Math.min(100, Math.round((d / t) * 100));
-});
-
-// Probe voicebox whenever the audio tab becomes active. Watch `active`
-// rather than props.section — internal tab state is owned by `active`.
-watch(
-  () => active.value,
-  (s) => { if (s === "audio") refreshVoicebox(); },
-  { immediate: true },
-);
 
 
 // Flat render list — interleaves marker rows ({ type: 'sub', label }),
@@ -403,27 +310,20 @@ watch(
 // rows · TTS sub? · rows · empty?) then Cloud block (same shape).
 const providerRenderList = computed(() => {
   const out = [];
-  const pushBucket = (key, label, items) => {
-    if (!items.length) return;
-    out.push({ type: "sub", key: `sub-${key}`, label });
-    for (const p of items) out.push({ type: "row", key: `row-${p.id}`, p });
-  };
   // ── Local block ──
   out.push({ type: "section", key: "sec-local", label: "Local · free",
     subtitle: "Runs on your machine. No API key, no per-token cost, your prose never leaves the box." });
   if (!localLlm.value.length) out.push({ type: "callout", key: "callout-local", flavor: "local" });
-  pushBucket("local-llm", "LLM", localLlm.value);
-  pushBucket("local-tts", "TTS-only", localTts.value);
-  if (!localLlm.value.length && !localTts.value.length) {
+  for (const p of localLlm.value) out.push({ type: "row", key: `row-${p.id}`, p });
+  if (!localLlm.value.length) {
     out.push({ type: "empty", key: "empty-local", flavor: "local" });
   }
   // ── Cloud block ──
   out.push({ type: "section", key: "sec-cloud", label: "Cloud · metered",
     subtitle: "Pay per token. Stronger reasoning, no local hardware needed, every call leaves the machine." });
   if (!cloudLlm.value.some((p) => p.apiKey)) out.push({ type: "callout", key: "callout-cloud", flavor: "cloud" });
-  pushBucket("cloud-llm", "LLM", cloudLlm.value);
-  pushBucket("cloud-tts", "TTS-only", cloudTts.value);
-  if (!cloudLlm.value.length && !cloudTts.value.length) {
+  for (const p of cloudLlm.value) out.push({ type: "row", key: `row-${p.id}`, p });
+  if (!cloudLlm.value.length) {
     out.push({ type: "empty", key: "empty-cloud", flavor: "cloud" });
   }
   return out;
@@ -1331,108 +1231,6 @@ const recentColumns = [
         </div>
 
 
-        <!-- ─── Voicebox — local multi-engine TTS ─────────────────────
-             Voicebox (github.com/jamiepine/voicebox) is the managed-engine
-             story: one install, multiple TTS models, real GPU on Mac
-             (MLX) and NVIDIA (CUDA). The JustWrite provider seed points
-             at 127.0.0.1:17493; this card handles install + lifecycle. -->
-        <div class="t-eyebrow" style="margin-top:6px">Local TTS engine</div>
-        <div class="card">
-          <div style="display:flex;align-items:center;gap:10px;margin-bottom:8px;flex-wrap:wrap">
-            <div class="card-title" style="margin:0">Voicebox · one-click install</div>
-            <span style="display:inline-flex;align-items:center;gap:6px;font-size:12px;color:var(--ink-2)">
-              <span :style="`width:8px;height:8px;border-radius:50%;background:${
-                voiceboxState === 'running' ? 'var(--success, #10b981)' :
-                voiceboxState === 'down'    ? 'var(--ink-3, #94a3b8)' :
-                'var(--ink-3, #94a3b8)'
-              }`" />
-              <template v-if="voiceboxState === 'running'">Running on 127.0.0.1:17493</template>
-              <template v-else-if="voiceboxState === 'checking'">Checking…</template>
-              <template v-else>Not running</template>
-            </span>
-            <span style="margin-left:auto;display:inline-flex;gap:6px">
-              <JwButton intent="primary" size="small" :disabled="voiceboxInstall.busy || voiceboxState === 'running'" @click="installVoicebox">
-                <template #icon><Icon name="Download" :size="11" /></template>
-                <template v-if="voiceboxInstall.busy && voiceboxInstall.phase === 'resolving'">Resolving…</template>
-                <template v-else-if="voiceboxInstall.busy && voiceboxInstall.phase === 'downloading'">Downloading {{ voiceboxInstallPct }}%</template>
-                <template v-else-if="voiceboxInstall.busy && voiceboxInstall.phase === 'launching'">Launching…</template>
-                <template v-else-if="voiceboxState === 'running'">Already running</template>
-                <template v-else>Install Voicebox</template>
-              </JwButton>
-              <JwButton intent="ghost" size="small" @click="refreshVoicebox">
-                <template #icon><Icon name="RefreshCw" :size="11" /></template>
-                Refresh
-              </JwButton>
-            </span>
-          </div>
-
-          <div style="font-size:12.5px;color:var(--ink-2);margin-bottom:10px;line-height:1.5">
-            One install, multiple engines: <b>Qwen3-TTS</b>, <b>Chatterbox</b>, <b>Kokoro</b>, <b>LuxTTS</b>, <b>HumeAI TADA</b>. Real GPU acceleration cross-platform — <b>Metal on Mac</b> (via MLX) and <b>CUDA on Windows/Linux NVIDIA</b>. JustWrite downloads the right installer from voicebox's GitHub releases and hands it to your OS to run.
-          </div>
-
-          <!-- Per-engine GPU caveat — be honest about Chatterbox on Mac.
-               Writers picking voices in Audio Studio see model hints, but
-               the headline trade-off belongs here at the install gate. -->
-          <div v-if="hostOs === 'macos'" style="padding:10px 12px;border-radius:6px;background:var(--surface-2);font-size:12px;line-height:1.5;margin-bottom:10px">
-            <div style="display:flex;align-items:flex-start;gap:6px">
-              <Icon name="Info" :size="13" style="margin-top:2px;color:var(--accent-ink)" />
-              <div>
-                <b>Mac note:</b> Qwen3-TTS runs on real Metal via MLX. <b>Chatterbox is CPU-only on Mac</b> — voicebox's deliberate decision because of upstream PyTorch/MPS bugs in Chatterbox's ops. If voice cloning matters most to you and you're on Mac, ElevenLabs PVC is the cleaner path.
-              </div>
-            </div>
-          </div>
-
-          <!-- Download progress -->
-          <div v-if="voiceboxInstall.busy"
-               style="display:flex;flex-direction:column;gap:6px;padding:10px 12px;border-radius:8px;border:1px solid var(--accent);background:var(--accent-soft);font-size:12.5px;line-height:1.5;margin-bottom:10px">
-            <div style="display:flex;align-items:center;gap:8px">
-              <Icon name="Download" :size="14" style="color:var(--accent-ink)" />
-              <b v-if="voiceboxInstall.phase === 'resolving'" style="color:var(--ink)">Finding the right installer for your platform…</b>
-              <b v-else-if="voiceboxInstall.phase === 'downloading'" style="color:var(--ink)">Downloading Voicebox…</b>
-              <b v-else-if="voiceboxInstall.phase === 'launching'" style="color:var(--ink)">Launching installer…</b>
-              <b v-else style="color:var(--ink)">Preparing…</b>
-              <span v-if="voiceboxInstall.phase === 'downloading' && voiceboxInstall.total" class="t-muted" style="margin-left:auto;font-family:var(--font-mono);font-size:11.5px">
-                {{ fmtMb(voiceboxInstall.downloaded) }} / {{ fmtMb(voiceboxInstall.total) }} MB
-              </span>
-            </div>
-            <div v-if="voiceboxInstall.phase === 'downloading' && voiceboxInstall.total"
-                 style="height:6px;border-radius:3px;background:var(--surface-3);overflow:hidden">
-              <div :style="`height:100%;width:${voiceboxInstallPct}%;background:var(--accent);transition:width 200ms ease`" />
-            </div>
-          </div>
-
-          <!-- Success callout -->
-          <div v-if="voiceboxInstall.message && !voiceboxInstall.busy"
-               style="display:flex;align-items:flex-start;gap:10px;padding:10px 12px;border:1px solid var(--success, #10b981);border-radius:8px;background:rgba(16, 185, 129, 0.08);font-size:12.5px;line-height:1.55;margin-bottom:10px">
-            <Icon name="Check" :size="14" style="margin-top:2px;color:var(--success, #10b981);flex-shrink:0" />
-            <div style="min-width:0">
-              <div>{{ voiceboxInstall.message }}</div>
-              <div v-if="voiceboxInstall.version" style="margin-top:2px" class="t-muted">Voicebox {{ voiceboxInstall.version }}</div>
-            </div>
-          </div>
-
-          <!-- Error -->
-          <div v-if="voiceboxInstall.error"
-               style="display:flex;align-items:flex-start;gap:10px;padding:10px 12px;border:1px solid var(--danger, #b91c1c);border-radius:8px;background:rgba(220, 38, 38, 0.08);font-size:12.5px;line-height:1.5;margin-bottom:10px;color:var(--danger-ink, var(--danger, #b91c1c))">
-            <Icon name="AlertCircle" :size="14" style="margin-top:2px" />
-            <div style="min-width:0">
-              <b>Install failed.</b>
-              <div style="margin-top:2px;white-space:pre-wrap">{{ voiceboxInstall.error }}</div>
-            </div>
-          </div>
-
-          <!-- "Already running" reminder — tells the writer the provider
-               is wired up and how to start using it. -->
-          <div v-if="voiceboxState === 'running'"
-               style="padding:10px 12px;border-radius:6px;background:var(--surface-2);font-size:12.5px;line-height:1.5">
-            <div style="display:flex;align-items:center;gap:6px;margin-bottom:4px">
-              <Icon name="Sparkle" :size="13" style="color:var(--accent-ink)" />
-              <b>Ready to use.</b>
-            </div>
-            The <b>Voicebox</b> provider is selectable in the TTS dropdown above and in Audio Studio → Cast. Pick a specific engine + model size via the provider editor's <i>TTS model</i> field — see the inline hints for each engine's hardware and quality trade-offs.
-          </div>
-        </div>
-
         <HardwarePresetsCard />
 
         <!-- ─── Routing & cost ──────────────────────────────── -->
@@ -1441,7 +1239,7 @@ const recentColumns = [
         <div class="card">
           <div class="card-title">{{ $t('settings.audio.defaultsCardTitle') }}</div>
           <div style="font-size:13px;color:var(--ink-2);margin-bottom:12px">
-            Pick which provider handles writing assistance (LLM) and which handles audio (TTS). Both follow the OpenAI HTTP standard — anything that speaks it works here.
+            Pick which provider handles writing assistance (LLM) and which handles embeddings. Both follow the OpenAI HTTP standard — anything that speaks it works here.
           </div>
           <div style="display:grid;grid-template-columns:160px minmax(0,1fr);gap:10px 14px;align-items:center;font-size:13px">
             <span class="t-muted">{{ $t('settings.audio.fieldDefaultLlm') }}</span>
@@ -1453,15 +1251,6 @@ const recentColumns = [
               :searchable="false"
               placeholder="Pick a provider"
               chev-title="Choose default LLM provider" />
-            <span class="t-muted">{{ $t('settings.audio.fieldDefaultTts') }}</span>
-            <Combobox
-              :model-value="ai.defaultTtsId"
-              @update:model-value="ai.setDefaultTts"
-              :items="ai.ttsProviders"
-              item-value="id" item-label="name"
-              :searchable="false"
-              placeholder="Pick a provider"
-              chev-title="Choose default TTS provider" />
             <span class="t-muted">{{ $t('settings.audio.fieldDefaultEmbedding') }}</span>
             <Combobox
               :model-value="ai.defaultEmbeddingId"
@@ -1477,15 +1266,6 @@ const recentColumns = [
                 @update:model-value="ai.setAutoRebuildRagIndex" />
               <span style="color:var(--ink-2);font-size:12.5px;line-height:1.45">
                 Embed new and changed scenes a minute after the last edit. Costs nothing on local embedding providers; cloud embeddings will accrue tokens.
-              </span>
-            </label>
-
-            <span class="t-muted">Guess voice gender with LLM</span>
-            <label style="display:flex;align-items:flex-start;gap:8px;cursor:pointer">
-              <JwCheckbox :model-value="ai.useLlmVoiceGender"
-                @update:model-value="ai.setUseLlmVoiceGender" style="margin-top:2px" />
-              <span style="color:var(--ink-2);font-size:12.5px;line-height:1.45">
-                After Audio Studio fetches voices, any name the built-in dictionary doesn't recognise (Gianna, Axel, fantasy names) gets sent in one batch to your default LLM, which labels each as female / male / neutral. Smart-assign uses these to match characters to voices. Off by default — a no-network alternative is to click the <b>❓</b> chip in Audio Studio's voice library and cycle to the right gender. Manual settings persist across re-fetches; only the truly unknown rows are ever sent to the LLM.
               </span>
             </label>
           </div>
@@ -1630,24 +1410,6 @@ const recentColumns = [
               <b style="font-size:12.5px;color:var(--ink)">Claude (Anthropic)</b>
               <p style="margin:4px 0 0;line-height:1.55">
                 Get an API key at <a href="https://console.anthropic.com/settings/keys" target="_blank" rel="noopener" style="color:var(--accent)">console.anthropic.com/settings/keys</a> and paste it here. LLM only — no TTS. Default model <code style="background:var(--surface-3);padding:1px 5px;border-radius:3px">claude-haiku-4-5</code> is the cheapest; swap to <code style="background:var(--surface-3);padding:1px 5px;border-radius:3px">claude-sonnet-4-6</code> or <code style="background:var(--surface-3);padding:1px 5px;border-radius:3px">claude-opus-4-7</code> for higher quality. Uses Anthropic's OpenAI-compatible endpoint, so a few advanced fields (<code style="background:var(--surface-3);padding:1px 5px;border-radius:3px">response_format</code>, <code style="background:var(--surface-3);padding:1px 5px;border-radius:3px">seed</code>, etc.) are silently ignored.
-              </p>
-            </div>
-            <div>
-              <b style="font-size:12.5px;color:var(--ink)">Chatterbox</b>
-              <p style="margin:4px 0 0;line-height:1.55">
-                Install <b>devnen/Chatterbox-TTS-Server</b> (portable Windows build at <a href="https://github.com/devnen/Chatterbox-TTS-Server/releases" target="_blank" rel="noopener" style="color:var(--accent)">github.com/devnen/Chatterbox-TTS-Server/releases</a> — unzip, double-click <code style="background:var(--surface-3);padding:1px 5px;border-radius:3px">start.bat</code>). Base URL <code style="background:var(--surface-3);padding:1px 5px;border-radius:3px">http://localhost:8004/v1</code>. Three swappable models — Base, <b>Turbo</b> (fast + paralinguistic tags like <code style="background:var(--surface-3);padding:1px 5px;border-radius:3px">[laugh]</code>), Multilingual (23 languages) — picked from the provider editor; <i>Apply</i> hot-swaps without restarting. Voices come from <b>both</b> the server's <code style="background:var(--surface-3);padding:1px 5px;border-radius:3px">voices/</code> folder (predefined) <b>and</b> <code style="background:var(--surface-3);padding:1px 5px;border-radius:3px">reference_audio/</code> (clones, marked "(clone)" in the picker). Engine knobs — exaggeration, cfg_weight, temperature — live in the provider editor's Engine params section.
-              </p>
-            </div>
-            <div>
-              <b style="font-size:12.5px;color:var(--ink)">Dia</b>
-              <p style="margin:4px 0 0;line-height:1.55">
-                Install <b>devnen/Dia-TTS-Server</b> (same author as Chatterbox — see <a href="https://github.com/devnen/Dia-TTS-Server" target="_blank" rel="noopener" style="color:var(--accent)">github.com/devnen/Dia-TTS-Server</a>). Base URL <code style="background:var(--surface-3);padding:1px 5px;border-radius:3px">http://localhost:8003/v1</code>. Three hot-swappable models — <b>Dia 1.6B</b> (proven, ~4.4 GB VRAM), <b>Dia2-1B</b> (streaming, lightest), <b>Dia2-2B</b> (highest quality, ~5–6 GB VRAM) — picked from the provider editor; <i>Apply</i> hot-swaps without restarting. Bundled predefined voices plus reference clips (dropped into <code style="background:var(--surface-3);padding:1px 5px;border-radius:3px">reference_audio/</code> — the web UI's Import button puts them there too) appear alongside the synthetic <b>S1</b> / <b>S2</b> dialogue-mode tokens. Cast different characters on S1 vs S2 to get distinct voices without uploading clips.
-              </p>
-            </div>
-            <div>
-              <b style="font-size:12.5px;color:var(--ink)">Microsoft Edge TTS</b>
-              <p style="margin:4px 0 0;line-height:1.55">
-                Built in — ~400 neural voices across ~140 locales, free, no API key, no account. Routed through JustWrite's Rust backend (the renderer can't reach Microsoft's WebSocket directly). Desktop app only — <code style="background:var(--surface-3);padding:1px 5px;border-radius:3px">npm run dev:vite</code> in a browser doesn't have it. Add the preset, hit <b>Fetch voices</b>, you're done. Microsoft's endpoint is unofficial and has broken before — keep one local engine configured as a fallback if you rely on TTS.
               </p>
             </div>
           </div>

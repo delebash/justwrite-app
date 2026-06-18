@@ -60,7 +60,6 @@ const NAV_ITEMS = [
   { id: "nav:groups",   label: "Groups",               sublabel: "Factions",            icon: "GroupIcon",  to: "/groups" },
   { id: "nav:world",    label: "Worldbuilding",        sublabel: "Articles",            icon: "Sparkle",    to: "/worldbuilding" },
   { id: "nav:arch",     label: "Architecture",         sublabel: "Setting docs",        icon: "Building",   to: "/architecture" },
-  { id: "nav:studio",   label: "Audio Studio",         sublabel: "Audiobook pipeline",  icon: "Headphones", to: "/studio" },
   { id: "nav:analysis", label: "Analysis",             sublabel: "Pace, style, heatmap",icon: "Chart",      to: "/analysis" },
   { id: "nav:import",   label: "Import",               sublabel: "DOCX / EPUB / TXT",   icon: "Plus",       to: "/import" },
   { id: "nav:export",   label: "Export",               sublabel: "PDF / DOCX / EPUB",   icon: "Export",     to: "/export" },
