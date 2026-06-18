@@ -11,6 +11,7 @@ import { useSessionsStore } from "./sessions.js";
 import { useStudioStore } from "./studio.js";
 import { removeImage as removeImageFile } from "../services/imageStore.js";
 import { getItem, setItem, removeItem, listKeys } from "../services/storage.js";
+import * as projectApi from "../services/projectApi.js";
 import { replaceInHtml } from "../services/projectReplace.js";
 import { nextColor, nextHue } from "../services/categoricalColors.js";
 import {
@@ -32,7 +33,6 @@ import {
 //   justwrite:project            — LEGACY single-project key, migrated on first load
 //   justwrite:project:history    — undo tail (kept global; cleared on project switch)
 const LS_LEGACY_KEY    = "justwrite:project";
-const LS_PROJECT_PREFIX = "justwrite:project:";
 const LS_REGISTRY_KEY  = "justwrite:projects:registry";
 const LS_ACTIVE_KEY    = "justwrite:projects:active";
 const LS_HISTORY_KEY   = "justwrite:project:history";
@@ -53,9 +53,19 @@ function loadRegistry() {
   const v = loadJSON(LS_REGISTRY_KEY);
   return Array.isArray(v) ? v : [];
 }
-function loadSnap(id) { return id ? loadJSON(LS_PROJECT_PREFIX + id) : null; }
-function saveSnap(id, snap) { if (id) saveJSON(LS_PROJECT_PREFIX + id, snap); }
-function removeSnap(id) { if (id) removeKey(LS_PROJECT_PREFIX + id); }
+// Book snapshots now live in the server's `projects` table, reached via the
+// domain API (services/projectApi.js). The cache is populated by
+// hydrateProjects() before mount, so loadSnap stays synchronous for the
+// store's bootstrap. The registry index + active-id pointer stay in kv.
+function loadSnap(id) { return id ? projectApi.getSnapshot(id) : null; }
+function saveSnap(id, snap) { if (id) projectApi.putSnapshot(id, snap); }
+function removeSnap(id) { if (id) projectApi.removeProject(id); }
+
+// Awaited by main.js after bootStorage() and before mount: pulls the active
+// book into projectApi's cache so the sync bootstrap can read it.
+export async function hydrateProjects() {
+  await projectApi.bootProjects(loadJSON(LS_ACTIVE_KEY));
+}
 
 function loadHistory() {
   const v = loadJSON(LS_HISTORY_KEY);
@@ -2086,9 +2096,11 @@ export const useProjectStore = defineStore("project", {
       return id;
     },
 
-    switchProject(id) {
+    async switchProject(id) {
       if (!id || id === this._activeId) return;
-      const snap = normalizeStrands(loadSnap(id));
+      // The target snapshot may not be cached yet — fetch it from the domain
+      // API (fetchSnapshot returns the cached copy when present).
+      const snap = normalizeStrands(await projectApi.fetchSnapshot(id));
       if (!snap) {
         useUiStore().showToast({ message: "That project couldn't be loaded." });
         return;
@@ -2102,7 +2114,7 @@ export const useProjectStore = defineStore("project", {
       useUiStore().showToast({ message: `Switched to "${snap.project?.title || "project"}".` });
     },
 
-    deleteProject(id) {
+    async deleteProject(id) {
       if (!id) return;
       const entry = this._projects.find((p) => p.id === id);
       removeSnap(id);
@@ -2117,7 +2129,7 @@ export const useProjectStore = defineStore("project", {
         const next = this._projects[0];
         if (next) {
           this._activeId = null; // force switchProject() to actually load
-          this.switchProject(next.id);
+          await this.switchProject(next.id);
         } else {
           this._activeId = null;
           this.createProject({ title: "Untitled project" });

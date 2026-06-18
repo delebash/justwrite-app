@@ -27,3 +27,20 @@ class KvEntry(Base):
 
     key = Column(String, primary_key=True)
     value = Column(Text, nullable=False)
+
+
+class Project(Base):
+    """A JustWrite book — a real domain resource, not a blob in the generic kv
+    store. Metadata lives in queryable columns; the full snapshot body lives in
+    the `data` JSON column. Per-entity tables (chapters, characters, …) can be
+    carved out of `data` in a later pass; this already gives a domain table + a
+    `load book → JSON` API and a queryable book list.
+    """
+
+    __tablename__ = "projects"
+
+    id = Column(String, primary_key=True)
+    title = Column(String, nullable=False, default="Untitled")
+    author = Column(String, nullable=False, default="")
+    updated_at = Column(String, nullable=False, default="")
+    data = Column(Text, nullable=False, default="{}")  # full snapshot JSON

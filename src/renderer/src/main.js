@@ -14,6 +14,7 @@ import { createPinia } from "pinia";
 import App from "./App.vue";
 import router from "./router/index.js";
 import { bootStorage, getItem } from "./services/storage.js";
+import { hydrateProjects } from "./stores/project.js";
 
 import "./assets/styles/tokens.css";
 import { tooltipDirective } from "./services/tooltip.js";
@@ -26,6 +27,9 @@ import { startAutoRebuildWatcher } from "./services/rag/autoIndex.js";
 // engines that don't support top-level await (esbuild's safari13).
 (async () => {
   await bootStorage();
+  // Pull the registry + active book into projectApi's cache (the /v1/projects
+  // domain API) so the project store's synchronous bootstrap can read them.
+  await hydrateProjects();
 
   // Now that the cache is populated, re-apply the persisted appearance
   // (migrating any legacy { theme, accentHue } shape) and resolve the
