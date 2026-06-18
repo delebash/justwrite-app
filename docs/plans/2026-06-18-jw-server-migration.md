@@ -5,11 +5,13 @@
 JW becomes **Tauri + Vue + FastAPI + SQLite**, the same shape as JustVoice.
 Trigger: manuscripts + the RAG vector index outgrow client-side storage.
 
-Status (2026-06-18, admiring-galileo): **P0 + P1 DONE and verified
-end-to-end; P2–P5 not started.** The migration's CORE is achieved —
-JustWrite now runs **server-backed**: all `justwrite:*` data (including the
-RAG vector index, which rides on `storage.js`) persists to SQLite via the
-server. Execution log + deep audit below.
+Status (2026-06-18): **P0–P2 essentially DONE; P3–P5 partially landed
+server-side.** (Corrected after a file-by-file audit — the earlier "P2 not
+started" line was stale; P2 had in fact been built and wired.) JustWrite runs
+**server-backed**: `justwrite:*` config rides `storage.js`→`/v1/kv`, and the
+**book itself lives in the normalized P2 tables** — the renderer's project store
+persists through `projectApi.js`→`/v1/projects/{id}/book` (assemble/decompose),
+not a blob. Execution log + deep audit below.
 
 ## Execution log + deep audit (2026-06-18)
 
@@ -38,12 +40,18 @@ server. Execution log + deep audit below.
   external TTS/LLM backends (voicebox :17493, Ollama :11434, …) not running
   here — expected, unrelated to the migration.
 
-**NOT started — P2–P5 (refinements on the now-working server-backed app; each
-now verifiable via the headless harness):**
-- **P2 — normalize the project blob** into per-entity SQLite tables + REST.
-  Removes the whole-snapshot scaling ceiling. The big project-store renderer
-  rewrite — largest remaining item; do entity-by-entity, verify each via the
-  harness.
+**Remaining (each verifiable via the headless harness):**
+- **P2 — DONE.** Schema (`models.py`, ~22 tables), assemble/decompose
+  (`book_io.py`), the boot blob→tables migration (`migrations.py`), and the
+  renderer repoint (`projectApi.js`→`/book`, wired into the project store's
+  `_persist`/boot) are all done, wired, and green (49 pytest). The whole
+  `/v1/projects` resource reads/writes the normalized tables (the legacy
+  `Project.data` blob `/{id}` endpoints were a silent-data-loss trap after
+  normalization — fixed so `/{id}` GET/PUT now alias assemble/decompose).
+  **Remaining under P2:** **P2.5** — incremental per-scene writes (the renderer
+  still re-PUTs the whole `/book`, async-debounced; typing isn't blocked, but a
+  large book re-serializes on each flush) — and full per-entity *write* REST,
+  deferred until a mobile client needs it.
 - **P3 — RAG server-side search.** Vectors already persist to SQLite (via P1).
   Remaining: a `/v1/rag` table + cosine search (numpy now; sqlite-vec later)
   so the renderer queries instead of loading the whole vector blob at boot;

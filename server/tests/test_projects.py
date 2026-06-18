@@ -1,4 +1,9 @@
-"""/v1/projects — the book domain API (a real resource, not the generic kv)."""
+"""/v1/projects — the book domain API (normalized tables, not a blob).
+
+PUT /{id} and PUT /{id}/book both decompose into the per-entity tables; the
+GETs assemble them back. The legacy `Project.data` blob is no longer read or
+written by these endpoints.
+"""
 
 from fastapi.testclient import TestClient
 
@@ -29,17 +34,27 @@ def test_put_get_roundtrip_and_list(tmp_path):
     c = _c(tmp_path)
     assert c.get("/v1/projects").json() == []
 
+    # PUT /{id} is an alias of PUT /book: it decomposes into the normalized
+    # tables. GET /{id} assembles them back. assemble emits the canonical shape
+    # (extra default keys), so assert the meaningful data survived rather than
+    # byte-equality with the minimal input.
     assert c.put("/v1/projects/prj1", json=SNAP).status_code == 204
-    # load book -> full structured JSON, byte-for-byte the snapshot we stored
     got = c.get("/v1/projects/prj1").json()
-    assert got == SNAP
+    assert got["project"]["title"] == "The Cartographer's Daughter"
+    assert got["project"]["author"] == "Mira Halden"
+    assert [p["title"] for p in got["parts"]] == ["Part One"]
+    assert [ch["title"] for ch in got["parts"][0]["chapters"]] == ["Arrival", "The Map"]
+    assert got["scenes"]["ch1"][0]["body"] == "<p>hi</p>"
+    assert [ch["name"] for ch in got["characters"]] == ["Mira"]
+    # /book returns the same assembled snapshot as the /{id} alias.
+    assert c.get("/v1/projects/prj1/book").json() == got
 
     lst = c.get("/v1/projects").json()
     assert len(lst) == 1
     assert lst[0]["id"] == "prj1"
     assert lst[0]["title"] == "The Cartographer's Daughter"
     assert lst[0]["author"] == "Mira Halden"
-    assert lst[0]["updatedAt"]  # camelCase, populated
+    assert lst[0]["updatedAt"] is not None  # camelCase key present
 
 
 def test_chapters_and_characters_extracted(tmp_path):
@@ -54,7 +69,10 @@ def test_chapters_and_characters_extracted(tmp_path):
     }
     assert chapters[1]["sceneCount"] == 0
 
-    assert c.get("/v1/projects/prj1/characters").json() == [{"id": "c1", "name": "Mira"}]
+    chars = c.get("/v1/projects/prj1/characters").json()
+    assert len(chars) == 1
+    assert chars[0]["id"] == "c1"
+    assert chars[0]["name"] == "Mira"
 
 
 def test_get_missing_404(tmp_path):
@@ -65,6 +83,8 @@ def test_get_missing_404(tmp_path):
 def test_persist_across_instances_and_delete(tmp_path):
     _c(tmp_path).put("/v1/projects/prj1", json=SNAP)
     c2 = _c(tmp_path)
+    # A second server instance reads the same SQLite file → the normalized
+    # rows, not the (retired) blob column.
     assert c2.get("/v1/projects/prj1").json()["project"]["author"] == "Mira Halden"
     assert c2.delete("/v1/projects/prj1").status_code == 204
     assert c2.get("/v1/projects").json() == []

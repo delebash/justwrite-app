@@ -1,5 +1,7 @@
 """P2.2 — one-time legacy blob -> normalized tables migration."""
 
+import json
+
 from fastapi.testclient import TestClient
 
 from justwrite_server.app import create_app
@@ -35,15 +37,25 @@ def _book() -> dict:
 def test_legacy_blob_migrates_to_tables(tmp_path):
     c = TestClient(create_app(tmp_path))
     book = _book()
-    # Seed via the legacy blob endpoint (writes projects.data, no child rows).
-    assert c.put("/v1/projects/old1", json=book).status_code == 204
+
+    # Simulate a pre-normalization DB: a Project row carrying the whole book in
+    # the legacy `data` blob, with no child rows. No endpoint writes blobs
+    # anymore (PUT decomposes), so seed it directly through the ORM.
+    from justwrite_server.database import SessionLocal
+    from justwrite_server.migrations import migrate_blobs
+    from justwrite_server.models import Project
+
+    db = SessionLocal()
+    try:
+        db.add(Project(id="old1", title="Legacy", author="Old", data=json.dumps(book)))
+        db.commit()
+    finally:
+        db.close()
+
     # /book sees the project row but no normalized children yet.
     pre = c.get("/v1/projects/old1/book").json()
     assert pre["parts"] == []
     assert pre["characters"] == []
-
-    from justwrite_server.database import SessionLocal
-    from justwrite_server.migrations import migrate_blobs
 
     db = SessionLocal()
     try:

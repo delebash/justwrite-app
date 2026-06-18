@@ -152,6 +152,13 @@ already follow this convention.)
 
 ## Staging (RULE #2 — one slice, verified before the next)
 
+**Status (2026-06-18, verified file-by-file):** P2.1–P2.4 are DONE, wired, and
+green (49 pytest); the whole `/v1/projects` resource is consistent on the
+normalized tables (the legacy blob `/{id}` endpoints were repointed to
+assemble/decompose, closing a silent-data-loss trap). **P2.5 remains**
+(incremental per-scene writes); full per-entity *write* REST is deferred until a
+mobile client needs it.
+
 - **P2.1** Server schema (all tables) + assemble (`GET /book`) + decompose
   (`PUT /book`) transactional upsert with content-diff. pytest: round-trip the
   seed book; assert per-entity rows + byte-stable reassembly. **Inert — does
