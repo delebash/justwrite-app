@@ -2,6 +2,27 @@
 
 This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
 
+## ⛔ RULE #0 — WHEN TOLD "DO IT ALL", DO IT ALL — NO STOPPING
+
+User directive (2026-06-18, stated repeatedly with rising frustration). When
+the user says to do all phases / "do p2–p5" / "do it all" / "without stopping"
+/ "don't ask if you can continue" — execute EVERY phase through to completion
+**in one continuous run**, including the final verification/audit. This
+**OVERRIDES turn boundaries.**
+
+- Do NOT stop at the end of a "turn." Keep going across as many tool calls as
+  it takes until all requested work AND its verification/audit are done.
+- Do NOT checkpoint, give "milestone reports," or summarize progress mid-way.
+- Do NOT ask permission, and never write the soft-permission shape ("I'll
+  proceed unless you'd rather…", "next I'll do X — let me know"). That is the
+  exact behavior being forbidden; it wastes the user's time and money.
+- Commit + verify each phase as you go, then immediately continue to the next.
+- "Try the UX/GUI on your own" means DO it — the LLM-GUI concept already
+  exists in both JV and JW; attempt it, don't defer it.
+- The ONLY reasons to stop early: the whole batch (incl. audit) is finished,
+  OR you are genuinely blocked (a real external dependency, or a destructive
+  irreversible op that needs confirmation).
+
 ## Active work
 
 PrimeVue has been fully removed in favor of a custom-component layer (`src/renderer/src/components/ui/Jw*.vue`) backed by Reka UI, TanStack Vue Table, Floating UI, and vue-sonner. See **UI components** below for the conventions.

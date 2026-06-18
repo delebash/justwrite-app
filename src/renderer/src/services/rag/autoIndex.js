@@ -38,7 +38,7 @@ async function fire() {
   if (!ai.autoRebuildRagIndex) return;
   if (!ai.embeddingProvider) return;
 
-  const status = indexStatus();
+  const status = await indexStatus();
   if (!status.exists || status.entryCount === 0) return;
 
   autoIndexRunning.value = true;

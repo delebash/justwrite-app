@@ -561,13 +561,13 @@ async function pingProvider(id) {
 // index built with a different embedding model than the new provider's
 // model, surface a heads-up — the user can either Rebuild from the chat
 // panel (re-embeds everything against the new model) or switch back.
-function chooseDefaultEmbedding(id) {
+async function chooseDefaultEmbedding(id) {
   const prev = ai.defaultEmbeddingId;
   ai.setDefaultEmbedding(id);
   if (id === prev) return;
   const newProvider = ai.providerById(id);
   const newModel = newProvider?.embeddingModel || "";
-  const status = indexStatus();
+  const status = await indexStatus();
   if (status.exists && status.entryCount > 0 && newModel && status.model && status.model !== newModel) {
     pushToast({
       message: `Embedding model changed. Your manuscript index was built with “${status.model}” — it will keep working with the old model. Hit Rebuild in the chat panel to re-embed against “${newModel}”.`,

@@ -42,7 +42,10 @@ const rows = ref([]);       // [{ id, label, status: "pending"|"working"|"done"|
 const phase = ref("");      // "chunking" | "embedding" | "done" | ""
 const error = ref("");
 const result = ref(null);   // { added, updated, removed }
-const before = computed(() => indexStatus());
+// indexStatus() is async (server-backed) — load the "current index" summary
+// into a ref on mount instead of a computed.
+const before = ref({ exists: false, entryCount: 0, model: "", dims: 0 });
+async function refreshBefore() { before.value = await indexStatus(); }
 // Ref to the AppModal — close through its exposed close() method so
 // the leave transition completes before the parent unmounts us via v-if.
 // Emitting 'close' directly from a footer button skips the transition —
@@ -142,7 +145,7 @@ async function clearAndClose() {
   requestClose();
 }
 
-onMounted(run);
+onMounted(() => { refreshBefore(); run(); });
 
 const totalDone = computed(() => rows.value.filter((r) => r.status === "done").length);
 </script>

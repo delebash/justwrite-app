@@ -14,8 +14,7 @@ import { friendlyAiError } from "../aiErrors.js";
 import { runAiStream } from "../aiStream.js";
 import { useAiStore } from "../../stores/ai.js";
 import { useProjectStore } from "../../stores/project.js";
-import { load } from "./vectorStore.js";
-import { topKHybrid } from "./hybrid.js";
+import { search, status } from "./vectorStore.js";
 
 // ─── Prompt templates ────────────────────────────────────────────────────
 
@@ -134,11 +133,10 @@ export async function askManuscript({
 
   const resolvedEmbedModel = embedModel || resolvedEmbedProvider.embeddingModel || "";
 
-  // ── 2. Load vector store ─────────────────────────────────────────────────
+  // ── 2. Confirm an index exists (server-side) ─────────────────────────────
   const projectId = project.activeProjectId;
-  const store = load(projectId);
-
-  if (!store || Object.keys(store.entries || {}).length === 0) {
+  const st = await status(projectId);
+  if (!st.exists) {
     throw new Error(
       "No index built yet — open Settings → AI providers, configure an embedding " +
       "provider, then use the RAG panel to build the manuscript index.",
@@ -165,7 +163,7 @@ export async function askManuscript({
   }
 
   // ── 4. Retrieve top-k chunks (hybrid: BM25 + cosine, blended via RRF) ────
-  const hits = topKHybrid(store, queryVec, embedQuery, k);
+  const hits = await search(projectId, queryVec, embedQuery, k);
 
   if (!hits.length) {
     throw new Error(

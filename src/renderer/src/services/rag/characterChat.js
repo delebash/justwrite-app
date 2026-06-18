@@ -15,8 +15,7 @@ import { friendlyAiError } from "../aiErrors.js";
 import { runAiStream } from "../aiStream.js";
 import { useAiStore } from "../../stores/ai.js";
 import { useProjectStore } from "../../stores/project.js";
-import { load } from "./vectorStore.js";
-import { topKHybrid } from "./hybrid.js";
+import { search, status } from "./vectorStore.js";
 
 const MAX_HISTORY_MESSAGES = 8;
 
@@ -163,8 +162,8 @@ export async function askAsCharacter({
   const resolvedEmbedModel = embedModel || resolvedEmbedProvider.embeddingModel || "";
 
   const projectId = project.activeProjectId;
-  const store = load(projectId);
-  if (!store || Object.keys(store.entries || {}).length === 0) {
+  const st = await status(projectId);
+  if (!st.exists) {
     throw new Error("No index built yet — open Settings → AI providers, configure an embedding provider, then use the RAG panel to build the manuscript index.");
   }
 
@@ -183,7 +182,7 @@ export async function askAsCharacter({
   const queryVec = Array.isArray(queryVectors?.[0]) ? queryVectors[0] : null;
   if (!queryVec || !queryVec.length) throw new Error("Embedding the question returned an empty vector.");
 
-  const hits = topKHybrid(store, queryVec, embedQuery, k);
+  const hits = await search(projectId, queryVec, embedQuery, k);
   if (!hits.length) throw new Error("No relevant passages found — the index may be empty or built with a different embedding model.");
 
   const recentHistory = history

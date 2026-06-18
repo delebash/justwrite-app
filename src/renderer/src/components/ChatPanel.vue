@@ -198,28 +198,23 @@ watch(() => ui.chatRequestedTarget, (target) => {
   ui.consumeChatRequestedTarget();
 }, { immediate: true });
 
-// indexStatus() reads the (non-reactive) IDB cache directly, so the computed
-// has no signal to recompute when the vector store changes. Bump indexBump
-// from places that mutate the index (build / rebuild / clear / auto-rebuild
-// finish) and touch it inside the computed.
-const indexBump = ref(0);
-const status = computed(() => {
-  indexBump.value; // touch — forces recompute when bumped
-  return indexStatus();
-});
+// indexStatus() now queries the server, so `status` is a ref refreshed on the
+// triggers that change the index (project switch / build / rebuild / clear /
+// auto-rebuild finish) rather than a recomputed local cache read.
+const status = ref({ exists: false, entryCount: 0, model: "", dims: 0 });
+async function refreshStatus() { status.value = await indexStatus(); }
 const hasIndex = computed(() => status.value.exists && status.value.entryCount > 0);
 const hasThread = computed(() => thread.value.length > 0);
-// Wrap the imported ref so the template gets a guaranteed-unwrapped value.
-// Bump indexBump when an auto-rebuild finishes so the scenes-indexed count
-// in the status strip reflects new chunks.
 const isIndexing = computed(() => autoIndexRunning.value);
-watch(autoIndexRunning, (running) => { if (!running) indexBump.value++; });
+watch(autoIndexRunning, (running) => { if (!running) refreshStatus(); });
+refreshStatus();
 
 // Reset (and rehydrate) the thread whenever the active project, mode,
 // or selected character changes — each combo has its own persisted
 // thread so closing and re-opening preserves wherever the writer was.
 watch(() => project.activeProjectId, (pid) => {
   thread.value = loadThread(pid, chatMode.value, selectedCharacterId.value);
+  refreshStatus();
 });
 watch([chatMode, selectedCharacterId], () => {
   thread.value = loadThread(project.activeProjectId, chatMode.value, selectedCharacterId.value);
@@ -349,10 +344,10 @@ function onIndexBuilt() {
   // transition finishes skips AppModal's close timing dance (see
   // AppModal.vue). The user dismisses with the Done button.
   //
-  // Bump indexBump so the status computed re-evaluates against the freshly
-  // written IDB store — otherwise hasIndex stays stuck at false and the
-  // chat panel keeps showing the "No index yet" empty state under the modal.
-  indexBump.value++;
+  // Refresh status against the freshly written server index — otherwise
+  // hasIndex stays stuck at false and the chat panel keeps showing the
+  // "No index yet" empty state under the modal.
+  refreshStatus();
 }
 
 function openCitation(c) {

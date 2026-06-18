@@ -1,201 +1,85 @@
-// Persistent vector store — one store per project, keyed by project id,
-// backed by the existing IDB-based storage adapter.
+// RAG vector store — server-backed client over /v1/rag.
 //
-// Store shape:
-//   {
-//     dims:    number,          — embedding dimensionality
-//     model:   string,          — model id used to build the store
-//     entries: {
-//       [chunkId]: { sha: string, vector: number[], chunk: Chunk }
-//     }
-//   }
-//
-// NOTE: Vectors can be large (1536 dims × 8 bytes × 1000 chunks ≈ 12 MB).
-// The storage adapter stores the JSON-serialised value — acceptable for v1.
+// Was an IDB/kv blob (justwrite:rag:<id>) loaded WHOLE into the browser and
+// hybrid-searched in JS. Now vectors live in the server's rag_vectors table:
+// the renderer embeds chunks via its provider and PUTs them here; retrieval is
+// a server-side hybrid (BM25 + cosine + RRF) search. See
+// server/justwrite_server/api/rag.py + rag_search.py.
 
-import { getItem, setItem, removeItem } from "../storage.js";
+import { serverUrl } from "../serverApi.js";
 
-// ─── Key ──────────────────────────────────────────────────────────────────
-
-export function storageKey(projectId) {
-  return `justwrite:rag:${projectId}`;
+async function _json(path, opts) {
+  const res = await fetch(serverUrl(path), opts);
+  if (!res.ok) throw new Error(`${path} -> ${res.status}`);
+  return res.status === 204 ? null : res.json();
 }
 
-// ─── Lifecycle ────────────────────────────────────────────────────────────
+const _post = (path, body) => _json(path, {
+  method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(body),
+});
 
-/**
- * Load the store for a project from IDB cache.
- * Returns null if no store exists yet.
- *
- * @param {string} projectId
- * @returns {{ dims: number, model: string, entries: object } | null}
- */
-export function load(projectId) {
-  const raw = getItem(storageKey(projectId));
-  if (!raw) return null;
-  try {
-    const parsed = JSON.parse(raw);
-    if (!parsed || typeof parsed !== "object") return null;
-    // Ensure required fields exist.
-    return {
-      dims: parsed.dims || 0,
-      model: parsed.model || "",
-      entries: parsed.entries && typeof parsed.entries === "object" ? parsed.entries : {},
-    };
-  } catch {
-    return null;
-  }
+// ─── Index metadata ─────────────────────────────────────────────────────
+
+/** { exists, count, model, dims } for a project's index. */
+export function status(projectId) {
+  return _json(`/v1/rag/${projectId}/status`);
 }
 
-/**
- * Persist the store to IDB.
- *
- * @param {string} projectId
- * @param {{ dims: number, model: string, entries: object }} store
- */
-export function save(projectId, store) {
-  try {
-    setItem(storageKey(projectId), JSON.stringify(store));
-  } catch (err) {
-    console.error("rag vector store save failed:", err);
-  }
+/** chunkId -> sha map, for incremental diffing. */
+export function shas(projectId) {
+  return _json(`/v1/rag/${projectId}/shas`);
 }
 
-/**
- * Remove the store key for the project.
- *
- * @param {string} projectId
- */
+// ─── Mutations ──────────────────────────────────────────────────────────
+
+/** Upsert a batch of embedded chunks. `items`: [{ chunkId, sha, vector, chunk }]. */
+export function putVectors(projectId, model, items) {
+  return _json(`/v1/rag/${projectId}`, {
+    method: "PUT", headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ model, items }),
+  });
+}
+
+/** Remove a batch of chunk ids. */
+export function removeIds(projectId, ids) {
+  if (!ids?.length) return Promise.resolve();
+  return _post(`/v1/rag/${projectId}/remove`, { ids });
+}
+
+/** Drop the whole index for a project. */
 export function clear(projectId) {
-  removeItem(storageKey(projectId));
+  return _json(`/v1/rag/${projectId}`, { method: "DELETE" });
 }
 
-// ─── Mutations ────────────────────────────────────────────────────────────
+// ─── Retrieval ──────────────────────────────────────────────────────────
 
 /**
- * Insert or replace a single entry in the store (mutates in place).
- *
- * @param {object} store
- * @param {string} chunkId
- * @param {string} sha
- * @param {number[]} vector
- * @param {object} chunk — the full Chunk object
+ * Server-side hybrid (BM25 + cosine + RRF) top-k. Returns
+ * [{ chunk, score, cosScore, bmScore }] — the same shape the old in-JS
+ * topKHybrid produced, so callers are unchanged.
  */
-export function upsert(store, chunkId, sha, vector, chunk) {
-  store.entries[chunkId] = { sha, vector, chunk };
-  // Update dims from the first real vector inserted (or whenever it changes).
-  if (vector.length && store.dims !== vector.length) {
-    store.dims = vector.length;
-  }
+export function search(projectId, vector, queryText, k = 8) {
+  return _post(`/v1/rag/${projectId}/search`, { vector, queryText: queryText || "", k });
 }
 
-/**
- * Remove a single entry from the store (mutates in place).
- *
- * @param {object} store
- * @param {string} chunkId
- */
-export function removeId(store, chunkId) {
-  delete store.entries[chunkId];
-}
-
-// ─── Queries ──────────────────────────────────────────────────────────────
+// ─── Diff ───────────────────────────────────────────────────────────────
 
 /**
- * All stored chunk ids.
+ * Diff fresh chunks against the server's shas map (chunkId -> sha).
  *
- * @param {object} store
- * @returns {string[]}
+ * @param {Record<string,string>} shasMap
+ * @param {Array<{id:string, sha:string}>} freshChunks
+ * @returns {{ toAdd: object[], toUpdate: object[], toRemove: string[] }}
  */
-export function chunkIds(store) {
-  return Object.keys(store.entries || {});
-}
-
-/**
- * Diff the store against a fresh set of chunks.
- *
- * @param {object} store
- * @param {Array<Chunk>} freshChunks
- * @returns {{ toAdd: Chunk[], toUpdate: Chunk[], toRemove: string[] }}
- */
-export function diff(store, freshChunks) {
-  const entries = store.entries || {};
-  const freshById = new Map(freshChunks.map((c) => [c.id, c]));
-
+export function diff(shasMap, freshChunks) {
+  const have = shasMap || {};
+  const freshIds = new Set(freshChunks.map((c) => c.id));
   const toAdd = [];
   const toUpdate = [];
-
   for (const chunk of freshChunks) {
-    const existing = entries[chunk.id];
-    if (!existing) {
-      toAdd.push(chunk);
-    } else if (existing.sha !== chunk.sha) {
-      toUpdate.push(chunk);
-    }
+    if (!(chunk.id in have)) toAdd.push(chunk);
+    else if (have[chunk.id] !== chunk.sha) toUpdate.push(chunk);
   }
-
-  const toRemove = Object.keys(entries).filter((id) => !freshById.has(id));
-
+  const toRemove = Object.keys(have).filter((id) => !freshIds.has(id));
   return { toAdd, toUpdate, toRemove };
-}
-
-// ─── Similarity ───────────────────────────────────────────────────────────
-
-/**
- * Cosine similarity between two equal-length vectors.
- * Returns a value in [-1, 1]; higher is more similar.
- *
- * @param {number[]} a
- * @param {number[]} b
- * @returns {number}
- */
-export function cosine(a, b) {
-  let dot = 0, na = 0, nb = 0;
-  for (let i = 0; i < a.length; i++) {
-    dot += a[i] * b[i];
-    na  += a[i] * a[i];
-    nb  += b[i] * b[i];
-  }
-  const denom = Math.sqrt(na) * Math.sqrt(nb);
-  return denom === 0 ? 0 : dot / denom;
-}
-
-/**
- * Return the top-k most similar chunks to a query vector.
- * Entries whose vector dimensionality doesn't match queryVec are skipped
- * (guard against partial rebuilds after a model switch).
- *
- * @param {object} store
- * @param {number[]} queryVec
- * @param {number} [k=8]
- * @returns {Array<{ chunk: object, score: number }>}
- */
-export function topK(store, queryVec, k = 8) {
-  const qDim = queryVec.length;
-  const results = [];
-
-  for (const entry of Object.values(store.entries || {})) {
-    if (!entry.vector || entry.vector.length !== qDim) continue;
-    results.push({ chunk: entry.chunk, score: cosine(queryVec, entry.vector) });
-  }
-
-  results.sort((a, b) => b.score - a.score);
-  return results.slice(0, k);
-}
-
-/**
- * Per-entry cosine score map. Used by hybrid search to blend with BM25.
- *
- * @param {object} store
- * @param {number[]} queryVec
- * @returns {Map<string, number>}
- */
-export function cosineScores(store, queryVec) {
-  const qDim = queryVec.length;
-  const scores = new Map();
-  for (const [id, entry] of Object.entries(store.entries || {})) {
-    if (!entry.vector || entry.vector.length !== qDim) continue;
-    scores.set(id, cosine(queryVec, entry.vector));
-  }
-  return scores;
 }
