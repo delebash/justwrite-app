@@ -1,27 +1,55 @@
 """ORM model definitions for the JustWrite SQLite database.
 
-P1 (Level 1 of the server migration): a generic key/value table backs the
-renderer's `storage.js` seam — the localStorage-shaped `justwrite:*` keys
-move off IndexedDB into SQLite with minimal store changes. Normalized entity
-tables (chapters, characters, …) replace the blob model in P2. Mirrors
-JustVoice's model conventions (declarative_base, String/Text columns).
-See docs/plans/2026-06-18-jw-server-migration.md.
+P2 normalizes the book domain into real per-entity tables (see
+docs/plans/2026-06-18-jw-p2-normalization-design.md), mirroring JustVoice's
+schema conventions: `position` ints for ordered collections, join tables for
+many-to-many, and JSON-TEXT columns ONLY for genuinely freeform 1:1
+sub-payloads — never a whole entity as a blob.
+
+Key decisions:
+- **Composite PK `(project_id, id)`** on every per-project table. The
+  renderer's ids (`c1`, `ch4`, `scn_…`) must round-trip unchanged, and the
+  seed demo reuses fixed ids that could collide across projects — so an id is
+  unique *within* a project, not globally.
+- **`project_id` FK → projects(id) ON DELETE CASCADE** is the one DB-level
+  constraint; it gives the project-delete cascade. Cross-entity integrity
+  (clearing a chapter's strand refs when a strand is deleted, re-anchoring
+  notes when a scene is removed, …) stays in the app layer — exactly where
+  the renderer already enforces it — to avoid composite-FK complexity.
+
+`KvEntry` (P1) still backs app-level config the renderer's storage.js writes
+(AI providers, appearance, sessions, studio) until those get their own tables
+(P5). `Project.data` is the legacy P2-shallow snapshot blob, kept only so the
+one-time blob→tables migration (P2.2) can read it; new writes go to the
+normalized tables.
 """
 
 from __future__ import annotations
 
-from sqlalchemy import Column, Integer, String, Text
+from sqlalchemy import Boolean, Column, ForeignKey, Integer, String, Text
 from sqlalchemy.orm import declarative_base
 
 Base = declarative_base()
 
 
-class KvEntry(Base):
-    """One localStorage-shaped key/value pair.
+def _fk_project() -> Column:
+    """`project_id` column: part of the composite PK AND the FK that cascades
+    a project delete down to every child row."""
+    return Column(
+        String,
+        ForeignKey("projects.id", ondelete="CASCADE"),
+        primary_key=True,
+        nullable=False,
+    )
 
-    `key` is the renderer's storage key (e.g. `justwrite:project`); `value`
-    is the opaque string the renderer wrote (a JSON blob today).
-    """
+
+# ── App-level key/value (P1) ────────────────────────────────────────────
+
+
+class KvEntry(Base):
+    """One localStorage-shaped key/value pair — app-level config the renderer
+    writes through storage.js (AI providers, appearance, sessions, studio).
+    Book data has moved to the normalized tables below."""
 
     __tablename__ = "kv"
 
@@ -29,21 +57,349 @@ class KvEntry(Base):
     value = Column(Text, nullable=False)
 
 
+# ── Project root ────────────────────────────────────────────────────────
+
+
 class Project(Base):
-    """A JustWrite book — a real domain resource, not a blob in the generic kv
-    store. Metadata lives in queryable columns; the full snapshot body lives in
-    the `data` JSON column. Per-entity tables (chapters, characters, …) can be
-    carved out of `data` in a later pass; this already gives a domain table + a
-    `load book → JSON` API and a queryable book list.
-    """
+    """A JustWrite book. Root metadata lives in typed columns; the book's
+    entities live in the per-project tables below (FK'd to this row)."""
 
     __tablename__ = "projects"
 
     id = Column(String, primary_key=True)
     title = Column(String, nullable=False, default="Untitled")
     author = Column(String, nullable=False, default="")
+    subtitle = Column(String, nullable=False, default="")
+    genre = Column(String, nullable=False, default="")
+    words_goal = Column(Integer, nullable=False, default=0)
+    daily_target = Column(Integer, nullable=False, default=0)
+    words_written = Column(Integer, nullable=False, default=0)
+    started_on = Column(String, nullable=False, default="")
+    deadline = Column(String, nullable=False, default="")
+    premise = Column(Text, nullable=False, default="")
+    world_rules = Column(Text, nullable=False, default="")
+    cover_image = Column(Text, nullable=True)  # JSON imageStore record
     updated_at = Column(String, nullable=False, default="")
-    data = Column(Text, nullable=False, default="{}")  # full snapshot JSON
+    # Legacy P2-shallow snapshot blob — read by the one-time migration (P2.2)
+    # only; normalized writes go to the tables below.
+    data = Column(Text, nullable=False, default="{}")
+
+
+# ── Structure: parts → chapters → scenes ────────────────────────────────
+
+
+class Part(Base):
+    __tablename__ = "parts"
+
+    project_id = _fk_project()
+    id = Column(String, primary_key=True)
+    position = Column(Integer, nullable=False, default=0)
+    title = Column(String, nullable=False, default="")
+
+
+class Chapter(Base):
+    __tablename__ = "chapters"
+
+    project_id = _fk_project()
+    id = Column(String, primary_key=True)
+    part_id = Column(String, nullable=False, default="")  # app-managed ref → parts.id
+    position = Column(Integer, nullable=False, default=0)
+    num = Column(Integer, nullable=False, default=0)
+    title = Column(String, nullable=False, default="")
+    words = Column(Integer, nullable=False, default=0)
+    status = Column(String, nullable=False, default="todo")
+    is_voice_canon = Column(Boolean, nullable=False, default=False)
+    critique = Column(Text, nullable=True)          # JSON AI artifact
+    reader_knowledge = Column(Text, nullable=True)  # JSON AI artifact
+    multi_reader = Column(Text, nullable=True)      # JSON AI artifact
+
+
+class Scene(Base):
+    __tablename__ = "scenes"
+
+    project_id = _fk_project()
+    id = Column(String, primary_key=True)
+    chapter_id = Column(String, nullable=False, default="")  # app-managed ref → chapters.id
+    position = Column(Integer, nullable=False, default=0)
+    title = Column(String, nullable=False, default="")
+    body = Column(Text, nullable=False, default="")  # HTML prose
+
+
+# ── Relationships (join tables) ─────────────────────────────────────────
+
+
+class SceneLink(Base):
+    """Polymorphic scene → entity link (which characters/locations/objects/
+    strands a scene features). The reverse query ("scenes featuring X") is what
+    Relations + speakersByChapter need."""
+
+    __tablename__ = "scene_links"
+
+    project_id = _fk_project()
+    scene_id = Column(String, primary_key=True)
+    kind = Column(String, primary_key=True)  # character|location|object|strand
+    ref_id = Column(String, primary_key=True)
+    position = Column(Integer, nullable=False, default=0)
+
+
+class ChapterStrand(Base):
+    """Which narrative strands a chapter carries (M2M)."""
+
+    __tablename__ = "chapter_strands"
+
+    project_id = _fk_project()
+    chapter_id = Column(String, primary_key=True)
+    strand_id = Column(String, primary_key=True)
+    position = Column(Integer, nullable=False, default=0)
+
+
+class GroupMember(Base):
+    """Polymorphic group membership (characters/locations/objects)."""
+
+    __tablename__ = "group_members"
+
+    project_id = _fk_project()
+    group_id = Column(String, primary_key=True)
+    kind = Column(String, primary_key=True)  # character|location|object|strand
+    ref_id = Column(String, primary_key=True)
+    position = Column(Integer, nullable=False, default=0)
+
+
+# ── Entities ────────────────────────────────────────────────────────────
+
+
+class Character(Base):
+    __tablename__ = "characters"
+
+    project_id = _fk_project()
+    id = Column(String, primary_key=True)
+    position = Column(Integer, nullable=False, default=0)
+    name = Column(String, nullable=False, default="")
+    main = Column(Boolean, nullable=False, default=False)
+    age = Column(Integer, nullable=True)
+    gender = Column(String, nullable=False, default="")
+    pronouns = Column(String, nullable=False, default="")
+    life_status = Column(String, nullable=False, default="")
+    one_liner = Column(Text, nullable=False, default="")
+    role = Column(String, nullable=False, default="")
+    aliases = Column(Text, nullable=False, default="[]")  # JSON string[]
+    tags = Column(Text, nullable=False, default="[]")     # JSON string[]
+    extras = Column(Text, nullable=True)                  # JSON freeform 1:1 (voice/arc/…)
+    audit = Column(Text, nullable=True)                   # JSON AI artifact
+
+
+class Location(Base):
+    __tablename__ = "locations"
+
+    project_id = _fk_project()
+    id = Column(String, primary_key=True)
+    position = Column(Integer, nullable=False, default=0)
+    name = Column(String, nullable=False, default="")
+    kind = Column(String, nullable=False, default="")
+    note = Column(Text, nullable=False, default="")
+    tags = Column(Text, nullable=False, default="[]")  # JSON string[]
+
+
+class StoryObject(Base):
+    __tablename__ = "objects"
+
+    project_id = _fk_project()
+    id = Column(String, primary_key=True)
+    position = Column(Integer, nullable=False, default=0)
+    name = Column(String, nullable=False, default="")
+    kind = Column(String, nullable=False, default="")
+    note = Column(Text, nullable=False, default="")
+    tags = Column(Text, nullable=False, default="[]")  # JSON string[]
+
+
+class Group(Base):
+    __tablename__ = "groups"
+
+    project_id = _fk_project()
+    id = Column(String, primary_key=True)
+    position = Column(Integer, nullable=False, default=0)
+    name = Column(String, nullable=False, default="")
+    blurb = Column(Text, nullable=False, default="")
+    color = Column(String, nullable=False, default="")
+
+
+class Note(Base):
+    __tablename__ = "notes"
+
+    project_id = _fk_project()
+    id = Column(String, primary_key=True)
+    position = Column(Integer, nullable=False, default=0)
+    title = Column(String, nullable=False, default="")
+    body = Column(Text, nullable=False, default="")
+    tag = Column(String, nullable=False, default="note")
+    updated = Column(String, nullable=False, default="")  # display string ("May 22")
+    # Anchor: null (story-wide) | chapter | chapter+scene. App-managed refs.
+    anchor_chapter_id = Column(String, nullable=True)
+    anchor_scene_id = Column(String, nullable=True)
+
+
+class Strand(Base):
+    __tablename__ = "strands"
+
+    project_id = _fk_project()
+    id = Column(String, primary_key=True)
+    position = Column(Integer, nullable=False, default=0)
+    name = Column(String, nullable=False, default="")
+    color = Column(String, nullable=False, default="")
+    blurb = Column(Text, nullable=False, default="")
+    body = Column(Text, nullable=False, default="")
+    status = Column(String, nullable=False, default="open")
+
+
+class StrandBeat(Base):
+    """A turning point on a strand, pinned to a scene within a chapter."""
+
+    __tablename__ = "strand_beats"
+
+    project_id = _fk_project()
+    id = Column(String, primary_key=True)
+    strand_id = Column(String, nullable=False, default="")  # app-managed ref → strands.id
+    position = Column(Integer, nullable=False, default=0)
+    chapter_id = Column(String, nullable=True)
+    scene_id = Column(String, nullable=True)
+    label = Column(String, nullable=False, default="")
+    note = Column(Text, nullable=False, default="")
+
+
+class Worldbuilding(Base):
+    __tablename__ = "worldbuilding"
+
+    project_id = _fk_project()
+    id = Column(String, primary_key=True)
+    position = Column(Integer, nullable=False, default=0)
+    category_id = Column(String, nullable=False, default="")  # app-managed ref → worldbuilding_categories.id
+    title = Column(String, nullable=False, default="")
+    status = Column(String, nullable=False, default="")
+    words = Column(Integer, nullable=False, default=0)
+    summary = Column(Text, nullable=False, default="")
+    body = Column(Text, nullable=False, default="")
+    tags = Column(Text, nullable=False, default="[]")     # JSON string[]
+    related = Column(Text, nullable=False, default="[]")  # JSON id[] ("see also")
+
+
+class WorldbuildingCategory(Base):
+    __tablename__ = "worldbuilding_categories"
+
+    project_id = _fk_project()
+    id = Column(String, primary_key=True)
+    position = Column(Integer, nullable=False, default=0)
+    label = Column(String, nullable=False, default="")
+    icon = Column(String, nullable=False, default="")
+    hue = Column(Integer, nullable=False, default=0)
+
+
+class Status(Base):
+    __tablename__ = "statuses"
+
+    project_id = _fk_project()
+    id = Column(String, primary_key=True)
+    position = Column(Integer, nullable=False, default=0)
+    label = Column(String, nullable=False, default="")
+    color = Column(String, nullable=False, default="")
+
+
+class TagVocab(Base):
+    """One curated tag suggestion, scoped to a kind (characters/locations/…)."""
+
+    __tablename__ = "tag_vocab"
+
+    project_id = _fk_project()
+    id = Column(String, primary_key=True)
+    kind = Column(String, nullable=False, default="")
+    position = Column(Integer, nullable=False, default=0)
+    label = Column(String, nullable=False, default="")
+
+
+class Architecture(Base):
+    """A structural doc (premise / fabula / setting). Fixed-ish small set."""
+
+    __tablename__ = "architecture"
+
+    project_id = _fk_project()
+    id = Column(String, primary_key=True)  # "premise" | "fabula" | "setting" | …
+    position = Column(Integer, nullable=False, default=0)
+    title = Column(String, nullable=False, default="")
+    blurb = Column(Text, nullable=False, default="")
+    status = Column(String, nullable=False, default="")
+    words = Column(Integer, nullable=False, default=0)
+    body = Column(Text, nullable=False, default="")
+
+
+# ── Polymorphic attachments ─────────────────────────────────────────────
+
+
+class Image(Base):
+    """An image attached to any entity (character/location/object/group/
+    setting/…). `data_json` is the imageStore record (path or data-url)."""
+
+    __tablename__ = "images"
+
+    project_id = _fk_project()
+    id = Column(String, primary_key=True)
+    entity_kind = Column(String, nullable=False, default="")
+    entity_id = Column(String, nullable=False, default="")
+    position = Column(Integer, nullable=False, default=0)
+    added_at = Column(Integer, nullable=True)  # epoch ms
+    data = Column(Text, nullable=False, default="{}")  # JSON imageStore record
+
+
+class Event(Base):
+    """A dated event on any entity's timeline (the per-entity event log)."""
+
+    __tablename__ = "events"
+
+    project_id = _fk_project()
+    id = Column(String, primary_key=True)
+    entity_kind = Column(String, nullable=False, default="")
+    entity_id = Column(String, nullable=False, default="")
+    position = Column(Integer, nullable=False, default=0)
+    when = Column(String, nullable=False, default="")  # datetime-local string
+    title = Column(String, nullable=False, default="")
+    note = Column(Text, nullable=False, default="")
+
+
+# ── AI artifacts (freeform, individually addressable) ───────────────────
+
+
+class ProjectArtifact(Base):
+    """Per-project AI-generated artifact. `kind` ∈ reverseOutline | plotHoles |
+    marketingPack | beatSheet | dailyRecap | relationshipArc; `key` = '' for
+    singletons, else dayKey / templateKey / pairKey. Freeform `data_json` —
+    these are model output, genuinely variable-shape; storing one per row makes
+    regenerating one (e.g. a beat sheet) a single-row write, not a book write."""
+
+    __tablename__ = "project_artifacts"
+
+    project_id = _fk_project()
+    kind = Column(String, primary_key=True)
+    key = Column(String, primary_key=True, default="")
+    data = Column(Text, nullable=False, default="{}")  # JSON
+    updated_at = Column(String, nullable=False, default="")
+
+
+# ── Soft delete ─────────────────────────────────────────────────────────
+
+
+class TrashItem(Base):
+    """A soft-deleted entity awaiting restore. Heterogeneous by nature (any
+    kind, plus restore metadata like partId/index), so the payload is JSON —
+    the one legitimate blob: a tombstone, not live queryable data."""
+
+    __tablename__ = "trash"
+
+    project_id = _fk_project()
+    id = Column(String, primary_key=True)
+    kind = Column(String, primary_key=True)  # chapters|scenes|characters|…
+    payload = Column(Text, nullable=False, default="{}")  # JSON entity + restore meta
+    deleted_at = Column(Integer, nullable=True)  # epoch ms
+
+
+# ── RAG (P3) ────────────────────────────────────────────────────────────
 
 
 class RagMeta(Base):

@@ -17,6 +17,7 @@ from typing import Any
 from fastapi import APIRouter, Depends, HTTPException, Response
 from sqlalchemy.orm import Session
 
+from .. import book_io
 from ..database import get_db
 from ..models import Project
 
@@ -72,6 +73,21 @@ async def delete_project(project_id: str, db: Session = Depends(get_db)) -> Resp
     if row is not None:
         db.delete(row)
         db.commit()
+    return Response(status_code=204)
+
+
+@router.get("/{project_id}/book", summary="The full book assembled from the normalized tables")
+async def get_book(project_id: str, db: Session = Depends(get_db)) -> dict:
+    snap = book_io.assemble(db, project_id)
+    if snap is None:
+        raise HTTPException(status_code=404, detail="project not found")
+    return snap
+
+
+@router.put("/{project_id}/book", status_code=204, summary="Replace the book — decompose a snapshot into the normalized tables")
+async def put_book(project_id: str, snapshot: dict, db: Session = Depends(get_db)) -> Response:
+    book_io.decompose(db, project_id, snapshot or {})
+    db.commit()
     return Response(status_code=204)
 
 
