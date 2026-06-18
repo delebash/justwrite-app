@@ -1,20 +1,16 @@
-// Headless smoke for the server-backed renderer (Linux/CI — Playwright +
-// Chromium). Drives `npm run dev:vite` against a running `justwrite-server`
-// and asserts the app boots, renders, and talks to the server with ZERO JS
-// errors. A bootStorage failure logs a console error, so a clean run also
-// proves storage.js reached GET /v1/kv (the P1 server-backed seam).
+// Headless smoke / whole-app sweep for the server-backed renderer (Linux —
+// Playwright + Chromium). Drives `npm run dev:vite` against a running
+// justwrite-server: asserts the app boots, every top-level route renders, and
+// the whole run produces ZERO JS errors. A bootStorage failure logs a console
+// error, so a clean run also proves storage.js reached /v1/kv.
 //
-// This is the *headless* harness (no Tauri). The desktop WebDriver harness in
-// e2e/ drives the built .exe; that one needs Windows + Edge. This one runs
-// anywhere Node + a Chromium build exist.
+// Complements e2e/ (desktop WebDriver via tauri-driver — needs Windows + a
+// built .exe). This one runs headless anywhere Node + a Chromium build exist.
 //
-// Assumes both are already running (the orchestrator in package scripts or a
-// local run starts them):
+// Assumes both are already running (the orchestrator / a local run starts them):
 //   server: justwrite-server serve --port 17495
 //   vite:   npm run dev:vite               (renderer on :1420)
-//
-// Env: JW_APP (default http://localhost:1420), JW_SERVER (default
-//      http://127.0.0.1:17495), JW_CHROME (Chromium binary override).
+// Env: JW_APP, JW_SERVER, JW_CHROME.
 
 import { existsSync, readdirSync } from "node:fs";
 import { createRequire } from "node:module";
@@ -36,7 +32,7 @@ function findChrome() {
       if (existsSync(exe)) return exe;
     }
   }
-  return undefined; // let Playwright resolve its own download
+  return undefined;
 }
 
 const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
@@ -53,6 +49,15 @@ async function waitReady(url, label, tries = 60) {
   throw new Error(`timed out waiting for ${label} at ${url}`);
 }
 
+// Top-level routes (hash) reachable with no required params.
+const ROUTES = [
+  "#/", "#/chapters", "#/search", "#/characters", "#/locations", "#/objects",
+  "#/groups", "#/worldbuilding", "#/strands", "#/plot", "#/timeline", "#/notes",
+  "#/brainstorm", "#/markers", "#/relations", "#/studio", "#/analysis",
+  "#/reader-knowledge", "#/import", "#/export", "#/trash", "#/settings",
+  "#/help", "#/writer-lab", "#/speaker-lab", "#/architecture",
+];
+
 await waitReady(`${SERVER}/v1/health`, "server");
 await waitReady(APP, "vite");
 
@@ -67,43 +72,84 @@ const page = await browser.newPage();
 const errors = [];
 page.on("pageerror", (e) => errors.push("PAGEERROR: " + e.message.slice(0, 200)));
 page.on("console", (m) => {
-  if (m.type() === "error" && !/ERR_CERT|404|favicon/.test(m.text())) {
+  if (m.type() === "error" && !/ERR_CERT|404|favicon|Failed to load resource/.test(m.text())) {
     errors.push("CONSOLE: " + m.text().slice(0, 220));
   }
 });
-// Benign-asset 404s (favicon, optional resources) are noise, not JS errors —
-// excluded above, but surfaced below so they're never silently hidden.
 const notFound = [];
 page.on("response", (r) => {
   if (r.status() === 404) notFound.push(r.url());
 });
+// Failed network requests, classified after the run: to the JW server = a real
+// problem; to anything else (optional external TTS/LLM backends not running
+// here) = benign. Real storage failures still surface — storage.js logs its
+// own console.error, which is NOT excluded above.
+const failedRequests = [];
+page.on("requestfailed", (req) => failedRequests.push({ url: req.url(), err: req.failure()?.errorText || "" }));
 
 let failed = 0;
 try {
   await page.goto(APP, { waitUntil: "networkidle" });
-  await page.waitForTimeout(1500); // let bootStorage + Vue mount settle
-  const bodyChars = await page.evaluate(() => document.body?.innerText?.length || 0);
-  const ok = bodyChars > 0 && errors.length === 0;
-  console.log(`boot: bodyChars=${bodyChars} errors=${errors.length} -> ${ok ? "OK" : "FAIL"}`);
-  errors.slice(0, 8).forEach((e) => console.log("   " + e));
+  await sleep(1500); // bootStorage + Vue mount
+  let mark = errors.length;
+  const bootChars = await page.evaluate(() => document.body?.innerText?.length || 0);
+  let ok = bootChars > 0 && errors.length === mark;
   if (!ok) failed++;
+  console.log(`${ok ? "✓" : "✗"} boot${" ".repeat(16)}chars=${bootChars} errors=${errors.length - mark}`);
+  errors.slice(mark, mark + 5).forEach((e) => console.log("    " + e));
 
-  // Informational: what (if anything) the app persisted through to the server.
+  for (const route of ROUTES) {
+    mark = errors.length;
+    try {
+      await page.evaluate((h) => { window.location.hash = h; }, route);
+      await sleep(550);
+      const chars = await page.evaluate(() => document.querySelector("#app")?.innerText?.length || 0);
+      const newErrs = errors.length - mark;
+      const rok = chars > 0 && newErrs === 0;
+      if (!rok) failed++;
+      console.log(`${rok ? "✓" : "✗"} ${route.padEnd(20)}chars=${chars} errors=${newErrs}`);
+      errors.slice(mark, mark + 4).forEach((e) => console.log("    " + e));
+    } catch (e) {
+      failed++;
+      console.log(`✗ ${route.padEnd(20)}NAV-FAIL ${String(e.message || e).slice(0, 100)}`);
+    }
+  }
+
   try {
     const kv = await (await fetch(`${SERVER}/v1/kv`)).json();
-    console.log(`server kv keys after boot: ${JSON.stringify(Object.keys(kv))}`);
+    console.log(`\nserver kv keys: ${JSON.stringify(Object.keys(kv))}`);
   } catch (e) {
     console.log("kv read failed: " + String(e.message || e).slice(0, 120));
   }
   if (notFound.length) {
-    console.log(`404s (benign, informational): ${JSON.stringify(notFound.map((u) => u.slice(0, 120)))}`);
+    console.log(`404s (benign): ${JSON.stringify([...new Set(notFound.map((u) => u.slice(0, 100)))])}`);
   }
-} catch (e) {
-  failed++;
-  console.log("NAV-FAIL " + String(e.message || e).slice(0, 200));
+  // ERR_ABORTED = a request cancelled by SPA navigation or page teardown
+  // (e.g. a debounced keepalive write still in flight at close — delivered
+  // server-side regardless, as the persisted keys above confirm). Only a real
+  // network error TO THE JW SERVER (connection refused / DNS) is a problem.
+  const realServerFails = [
+    ...new Set(
+      failedRequests
+        .filter((f) => f.url.startsWith(SERVER) && !/ABORTED/.test(f.err))
+        .map((f) => `${f.url} (${f.err})`),
+    ),
+  ];
+  const external = [...new Set(failedRequests.filter((f) => !f.url.startsWith(SERVER)).map((f) => f.url))];
+  if (realServerFails.length) {
+    failed++;
+    console.log(`✗ REAL failed requests to the JW server: ${JSON.stringify(realServerFails)}`);
+  }
+  if (external.length) {
+    console.log(`failed requests to external/optional services (benign — not running here): ${JSON.stringify(external.map((u) => u.slice(0, 50)))}`);
+  }
 } finally {
   await browser.close();
 }
 
-console.log(failed ? "\nHEADLESS SMOKE FAILED" : "\nHEADLESS SMOKE PASSED");
+console.log(
+  failed
+    ? `\nHEADLESS SMOKE FAILED: ${failed} surface(s) errored`
+    : "\nHEADLESS SMOKE PASSED: all routes rendered, zero JS errors",
+);
 process.exit(failed ? 1 : 0);
