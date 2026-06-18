@@ -18,16 +18,21 @@
   sections, Chatterbox/Dia/Edge notes) removed; Sidebar Audio/Speaker-Lab + the
   CommandPalette Studio command removed. build:vite clean; 25-route sweep zero
   JS errors. **All user-visible audio is gone.**
-- **A — provider-EDITOR de-TTS + internal dead code: REMAINING.** Coupled chunk:
-  `SettingsProviderForm` (TTS model/voice/engine-params/test fields + the
-  kind=tts/both selector — ~100 refs), the TTS half of `openai-compat.js`
-  (`speech`/`voices`/`*SetModel`/`*ModelInfo`/`is*`/`*_MODELS`/`*_KNOBS` — now
-  dead), `domain/providerParams.js` TTS knobs, the `ai` store TTS getters
-  (`ttsProviders`/`defaultTtsId`/`setDefaultTts`/`useLlmVoiceGender`), and
-  `ProviderSelect`'s `kind==="tts"` branch. Best done as one pass with the
-  provider-edit form **driven** (the route-sweep doesn't open it), so not rushed
-  blind here. App is coherent + working with them present (a custom provider can
-  still be typed as TTS; the fields are just unused).
+- **A — provider-EDITOR de-TTS + internal dead code: DONE + verified** (commit
+  `3d548c3`, −1590 lines). `SettingsProviderForm` (kind selector + TTS model/
+  voices/engine-params/voice-discovery fields gone; LLM+embedding fields always
+  render), the TTS half of `openai-compat.js` (speech/voices/Chatterbox/Dia/
+  CosyVoice/Speechmatics/Edge detectors + control-plane deleted), deleted
+  `domain/providerParams.js`, the `ai` store TTS getters **and** the dead
+  speaker-analysis/smart-cast lab-preset infra, `ProviderSelect`'s `kind==="tts"`
+  branch, the SettingsView TTS provider-row fields + TTS bucketing/icons + the
+  dead Speaker-Lab debug tool (its `/speaker-lab` route is gone) + stale TTS
+  copy, ImportView's "Narrate as audiobook" intent (→ deleted Studio), the dead
+  audio/voicebox/tts(edge) tauri-bridge methods, dead quickSetup feature keys,
+  and dead TTS/studio/speakerLab i18n keys. **Verified:** build:vite clean;
+  24-route sweep zero JS errors; provider editor **driven** (Add+Edit) shows
+  LLM/embedding fields, zero TTS surface, save+edit work, zero JS errors; server
+  pytest 41 pass.
 - **A — (superseded note) TTS provider config plumbing: REMAINING.** The provider *list* still
   carries TTS entries (seed `DEFAULT_PROVIDERS`) and the config UI still has TTS
   surfaces, woven through `SettingsView`, `SettingsProviderForm`,
@@ -39,10 +44,23 @@
   unverified. The app is coherent + working with them present (configurable but
   unused TTS fields). Dead seed exports DEFAULT_CAST/STARTER_RENDER_PRESETS/
   SCRIPT_CH7/RENDER_QUEUE have zero consumers and can go with it.
-- **B — renderer→gateway rewire: REMAINING (runtime-gated).** Server gateway is
-  built + tested (`b5de7a0`); wiring `openai-compat.js` to it needs a real LLM to
-  verify (chat stream, the Ollama `think:false`/enrichedModels native-endpoint
-  cases). build:vite+sweep can't prove the call path.
+- **B — renderer→gateway rewire: DONE + verified (via mock upstreams).** The
+  gateway gained provider-type-aware routing: Ollama providers translate to
+  `/api/chat` (NDJSON→OpenAI-SSE, `think` lifted top-level, num_ctx 8192) +
+  `/api/embed`; model discovery (LM Studio quant/state, `/v1/models`, Ollama
+  `/api/tags`) moved server-side; a `POST /v1/llm/probe/models` endpoint serves
+  the editor's UNSAVED-draft "Fetch models" (config in the body — no by-id row
+  needed); a `GET /v1/llm/{id}/ping` does a real upstream reachability probe.
+  `openai-compat.js` is now a thin gateway client (`/v1/llm/{id}/…`, no client
+  key, one SSE parser; `probeModels` export for the editor). **Verified:** 13
+  gateway pytest (Ollama translate/stream/embed, enrichment LM-Studio/OpenAI/
+  tags, probe, ping, key injection) + an end-to-end harness driving the real
+  renderer client → gateway → mock OpenAI **and** mock Ollama upstreams (chat
+  stream "Hello world"/"Ollama!", usage normalized, embeddings, probe + by-id
+  model lists, zero JS errors); build:vite + 24-route sweep clean. **Residual
+  real-machine gap** (model behavior, not our code): whether a real Ollama
+  honors `think:false` and real LM Studio quant field names — confirm on a box
+  with those servers.
 
 ---
 
@@ -131,10 +149,14 @@ request), RAG embedding builds an index, and Settings "fetch models" works.
 `build:vite` + sweep only prove it compiles/boots — they cannot prove the call
 path, which is why this is real-machine-gated.
 
-## Why scoped, not executed here
-Both rewrite the core call path / delete a feature woven through the writing
-views. The only honest verification is a real LLM/TTS + the desktop app;
-build+sweep can't catch a silently-wrong Analysis heatmap or a broken stream.
-Shipping them blind is exactly the "rushed/shallow" failure to avoid. The
-server side they depend on is done + tested, so this is execution + runtime QA,
-not design.
+## Update — both executed + verified (2026-06-18, admiring-galileo)
+Both shipped. The verification gap the original scoping worried about was
+closed by standing the stack up in-sandbox: `justwrite-server serve` (:17495)
++ `npm run dev:vite` (:1420) + Playwright/Chromium, driving the **real**
+renderer against **mock upstreams** (an OpenAI-shaped server and an
+Ollama-shaped server) — which exercises every line of our own code (gateway
+routing/translation/enrichment + the renderer's SSE parse), not just a
+build/sweep. What genuinely can't be reproduced without the real servers is
+model *behavior* (does Ollama honor `think:false`; exact LM Studio quant field
+names) — that residual is noted in the status above, and the porting matched
+the renderer's previously-validated logic line-for-line.

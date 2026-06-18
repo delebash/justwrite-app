@@ -7,7 +7,7 @@
 
 import { ref, computed } from "vue";
 import { useI18n } from "vue-i18n";
-import { OpenAICompatClient, detectRunner } from "../services/openai-compat.js";
+import { probeModels, detectRunner } from "../services/openai-compat.js";
 import { entryLabel, TIERS, TIER_IDS } from "../services/modelMeta.js";
 import { useAiStore } from "../stores/ai.js";
 import Combobox from "../components/Combobox.vue";
@@ -27,11 +27,12 @@ const props = defineProps({
 const emit = defineEmits(["save", "cancel"]);
 
 // ── Model discovery — enriched ────────────────────────────────────
-// Uses OpenAICompatClient.enrichedModels() which tries LM Studio's
-// /api/v0/models first (quant + state per entry) and falls back to
-// /v1/models for other servers. Each entry gets a precomputed `label`
-// so the Combobox can show "qwen/qwen3-8b · Q4_K_M · not loaded" while
-// still binding the bare id to draft.chatModel / draft.embeddingModel.
+// Uses probeModels() — the gateway's ad-hoc probe endpoint — because the
+// draft being edited may be UNSAVED (no server row to resolve by id). The
+// server probes the upstream (LM Studio quant/state, /v1/models, Ollama
+// /api/tags) and returns enriched entries; each gets a precomputed `label`
+// so the Combobox can show "qwen/qwen3-8b · Q4_K_M · not loaded" while still
+// binding the bare id to draft.chatModel / draft.embeddingModel.
 // Unfiltered fetch — every model the server reports, regardless of type.
 // Two computeds slice it into the chat and embedding dropdowns so a single
 // Fetch populates both at once (chat hides nomic-embed-* and any voice/ASR
@@ -56,7 +57,7 @@ async function fetchModels() {
   modelsError.value = null;
   modelsLoading.value = true;
   try {
-    const list = await new OpenAICompatClient(props.draft).enrichedModels({ kind: "all" });
+    const list = await probeModels(props.draft, { kind: "all" });
     fetchedModels.value = list.map((entry) => ({ ...entry, label: entryLabel(entry) }));
     if (!list.length) modelsError.value = "Server returned an empty list. Make sure a model is loaded.";
   } catch (e) {

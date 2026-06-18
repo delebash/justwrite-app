@@ -1,28 +1,22 @@
-// OpenAI-compatible client.
+// LLM client — thin front-end to the JustWrite server's gateway.
 //
-// Works with any service that implements the OpenAI HTTP API shape — OpenAI
-// itself (cloud) or any local LLM server that speaks /v1/chat/completions
-// (Ollama, LM Studio, llama.cpp, vLLM, etc.). JustWrite is writing-only;
-// audio/TTS lives in JustVoice, so this client is LLM + embeddings only.
+// The SERVER is the LLM client (see docs/plans/2026-06-18-server-side-llm-
+// architecture.md). This class no longer calls providers directly: every method
+// hits `/v1/llm/{providerId}/…` on the JW server, which looks the provider up in
+// its table, injects the server-held API key, applies any provider-specific
+// quirks (Ollama /api/chat + think:false, model enrichment), and streams the
+// response straight back. So the client holds no keys, speaks one shape
+// (OpenAI), and a thin phone client works identically.
 //
-// Constructor takes a provider object: { baseUrl, apiKey?, chatModel?, embeddingModel? }.
-// All methods accept overrides per call.
+// Constructor takes a provider object; only `provider.id` is used for routing
+// (plus `chatModel` / `embeddingModel` as per-call defaults). baseUrl/apiKey
+// live on the server now.
 
-// All fetches use the global `fetch`. Inside Tauri, `tauri-bridge.js`
-// has replaced `window.fetch` with a routing wrapper that sends external
-// http(s) requests through the Tauri http plugin (no browser CORS, no
-// COEP gating). In a plain browser tab (`npm run dev:vite`) the native
-// fetch is used — local providers need to allow CORS on their end there.
+import { serverUrl } from "./serverApi.js";
 
-// Detects which LLM runner is behind a provider's baseUrl. Drives the
-// /v1/chat/completions vs /api/chat split in chat()/chatStream(). The
-// explicit `provider.runner` override always wins; otherwise we fall back
-// to a URL heuristic. Only Ollama needs special routing today because it
-// is the only runner with a native disable for thinking-mode reasoning
-// (`think: false` on /api/chat, silently ignored on /v1/chat/completions).
-// LM Studio, llama.cpp, vLLM, OpenAI/Claude/Gemini all stay on the
-// OpenAI-compat path — `think` has no effect there, but it's a safe
-// no-op per the OpenAI spec (unknown body params are ignored).
+// URL-runner heuristic, kept for the Settings editor's "API format" hint (pure
+// UI — no network). The gateway does its own server-side detection for routing;
+// this just mirrors it so the editor can show the auto-detected value.
 export function detectRunner(provider) {
   if (provider?.runner) return provider.runner;
   const url = (provider?.baseUrl || "").toLowerCase();
@@ -30,107 +24,56 @@ export function detectRunner(provider) {
   return "openai-compat";
 }
 
+// Fetch a model list for an UNSAVED provider draft (Settings → provider editor
+// "Fetch models"). The draft has no server row to resolve by id, so its config
+// rides in the POST body to the gateway's ad-hoc probe — keeping the key
+// server-bound and the client off direct provider calls.
+//   kind: "chat" strips embedding/whisper/tts ids; "all" returns everything.
+export async function probeModels(draft, { kind = "chat", signal, timeoutMs = 20000 } = {}) {
+  const ctl = new AbortController();
+  const t = setTimeout(() => ctl.abort(), timeoutMs);
+  if (signal) signal.addEventListener?.("abort", () => ctl.abort(), { once: true });
+  try {
+    const res = await fetch(serverUrl("/v1/llm/probe/models"), {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      signal: ctl.signal,
+      body: JSON.stringify({
+        baseUrl: draft?.baseUrl, apiKey: draft?.apiKey, runner: draft?.runner, kind,
+      }),
+    });
+    if (!res.ok) {
+      const text = await res.text().catch(() => "");
+      throw new Error(`Fetch models failed: ${res.status} ${text || res.statusText}`);
+    }
+    const json = await res.json();
+    return Array.isArray(json?.models) ? json.models : [];
+  } finally {
+    clearTimeout(t);
+  }
+}
+
 export class OpenAICompatClient {
   constructor(provider) {
     this.provider = provider;
   }
 
-  get headers() {
-    const h = { "Content-Type": "application/json" };
-    if (this.provider.apiKey) {
-      h["Authorization"] = `Bearer ${this.provider.apiKey}`;
-    }
-    return h;
-  }
-
-  // Auth-only headers for GET requests — Content-Type on a body-less
-  // request is meaningless and some servers (and HTTP clients) misbehave
-  // when they see it without a body.
-  get authHeaders() {
-    return this.provider.apiKey
-      ? { Authorization: `Bearer ${this.provider.apiKey}` }
-      : {};
-  }
-
-  url(path) {
-    const base = this.provider.baseUrl.replace(/\/$/, "");
-    return `${base}${path.startsWith("/") ? path : "/" + path}`;
-  }
-
-  // For non-OpenAI-spec endpoints living *next to* /v1 on the same host
-  // (e.g. LM Studio's /api/v0/models native API). Strips a trailing
-  // "/v1" off the configured baseUrl so the path lands at the host root,
-  // not at /v1/api/v0/models.
-  nativeUrl(path) {
-    const base = this.provider.baseUrl.replace(/\/v1\/?$/, "").replace(/\/$/, "");
-    return `${base}${path.startsWith("/") ? path : "/" + path}`;
-  }
-
-  // ─── Note on Ollama reasoning models ────────────────────────────────
-  //
-  // Ollama hosts reasoning models (Qwen3.5, DeepSeek-R1, …) that emit
-  // reasoning by default. The reliable way to disable thinking is Ollama's
-  // native `think: false` top-level body param. Empirically this is only
-  // honored on /api/chat — /v1/chat/completions silently ignores it and
-  // moves reasoning into a separate `message.reasoning` field, which makes
-  // SSE streams stall (we only consume delta.content) until reasoning is
-  // done. So when `detectRunner(provider) === "ollama"`, chat()/chatStream()
-  // route to /api/chat instead. For every other runner the OpenAI-compat
-  // path is unchanged — `think` in `extra` is spread into the body and
-  // ignored by spec.
-  //
-  // We do NOT auto-inject `think: false` anywhere — thinking is task-
-  // dependent:
-  //   • Structured-JSON tasks (speaker attribution, smart-cast, scene
-  //     parsing, anything parsed as JSON downstream) → callers pass
-  //     `extra: { think: false }` to keep reasoning out of the body.
-  //   • Creative/reasoning tasks (brainstorming, plot suggestions, arc
-  //     analysis, freeform writing assistance) → omit it and let the model
-  //     think; reasoning improves output quality.
-
-  // Wrap any fetch with a hard timeout so a hung transport can't pin a
-  // "Loading…" state forever. We race the fetch against a timeout promise
-  // rather than relying on AbortController alone, because Tauri's http
-  // plugin can't cancel an invoke mid-flight — only between awaits — so
-  // a hung invoke would keep the await blocked past our deadline.
-  // Caller's `signal` (if any) is honored too — whichever fires first wins.
-  async _fetchWithTimeout(url, init, { timeoutMs = 15000, signal } = {}) {
-    const ctl = new AbortController();
-    const onAbort = () => ctl.abort();
-    if (signal) {
-      if (signal.aborted) ctl.abort();
-      else signal.addEventListener("abort", onAbort);
-    }
-    let timer;
-    const timeout = new Promise((_, reject) => {
-      timer = setTimeout(() => {
-        ctl.abort();
-        reject(new Error(`Timed out after ${timeoutMs}ms`));
-      }, timeoutMs);
-    });
-    try {
-      return await Promise.race([
-        fetch(url, { ...init, signal: ctl.signal }),
-        timeout,
-      ]);
-    } finally {
-      clearTimeout(timer);
-      if (signal) signal.removeEventListener("abort", onAbort);
-    }
+  // Gateway URL for this provider + suffix. All calls are same-server (the JW
+  // server), so no Authorization — the gateway injects the server-held key.
+  _gw(suffix) {
+    const id = encodeURIComponent(this.provider?.id || "");
+    return serverUrl(`/v1/llm/${id}/${suffix}`);
   }
 
   // ─── Chat / completion ──────────────────────────────────────────────────
   //
-  // POST /v1/chat/completions (or Ollama /api/chat for runner=ollama).
-  // Returns: assistant message content (string).
-  //
+  // POST /v1/llm/{id}/chat/completions (stream:false). Returns the assistant
+  // message content (string). `extra` (e.g. think, response_format) rides in
+  // the body; the gateway lifts think:false for Ollama providers.
   async chat({ messages, model, temperature = 0.3, signal, extra } = {}) {
-    if (detectRunner(this.provider) === "ollama") {
-      return this._ollamaChat({ messages, model, temperature, signal, extra });
-    }
-    const res = await fetch(this.url("/chat/completions"), {
+    const res = await fetch(this._gw("chat/completions"), {
       method: "POST",
-      headers: this.headers,
+      headers: { "Content-Type": "application/json" },
       signal,
       body: JSON.stringify({
         model: model || this.provider.chatModel,
@@ -150,35 +93,25 @@ export class OpenAICompatClient {
 
   // ─── Streaming chat ─────────────────────────────────────────────────────
   //
-  // POST /v1/chat/completions with stream:true (or Ollama /api/chat with
-  // NDJSON, for runner=ollama). Async generator yielding
-  // { delta, content, usage? } per chunk:
-  //   delta   — new text in this chunk (string, possibly empty)
-  //   content — full accumulated assistant text so far
-  //   usage   — present on the final chunk if the server reports it
-  //             (OpenAI honors stream_options.include_usage; Ollama
-  //             reports counts on the final done:true frame)
-  // Extra body fields can be passed via `extra` (e.g. response_format,
-  // think). The Ollama path lifts `extra.think` to a top-level field.
-  //
+  // POST /v1/llm/{id}/chat/completions with stream:true. The gateway always
+  // emits OpenAI-style SSE (it normalizes Ollama's NDJSON), so there's a single
+  // parser here. Async generator yielding { delta, content, usage? } per chunk:
+  //   delta   — new text in this chunk
+  //   content — full accumulated text so far
+  //   usage   — present on the final chunk when the server reports it
   async *chatStream({ messages, model, temperature = 0.3, signal, extra } = {}) {
-    if (detectRunner(this.provider) === "ollama") {
-      yield* this._ollamaChatStream({ messages, model, temperature, signal, extra });
-      return;
-    }
-    const body = {
-      model: model || this.provider.chatModel,
-      messages,
-      temperature,
-      stream: true,
-      stream_options: { include_usage: true },
-      ...(extra || {}),
-    };
-    const res = await fetch(this.url("/chat/completions"), {
+    const res = await fetch(this._gw("chat/completions"), {
       method: "POST",
-      headers: this.headers,
+      headers: { "Content-Type": "application/json" },
       signal,
-      body: JSON.stringify(body),
+      body: JSON.stringify({
+        model: model || this.provider.chatModel,
+        messages,
+        temperature,
+        stream: true,
+        stream_options: { include_usage: true },
+        ...(extra || {}),
+      }),
     });
     if (!res.ok || !res.body) {
       const text = await res.text().catch(() => "");
@@ -210,6 +143,8 @@ export class OpenAICompatClient {
             if (!payload || payload === "[DONE]") continue;
             let json;
             try { json = JSON.parse(payload); } catch { continue; }
+            // Surface a proxied upstream error rather than ending silently.
+            if (json?.error) throw new Error(json.error.message || "Upstream LLM error");
             const delta = json?.choices?.[0]?.delta?.content || "";
             if (delta) content += delta;
             const usage = json?.usage || undefined;
@@ -222,311 +157,20 @@ export class OpenAICompatClient {
     }
   }
 
-  // ─── Ollama-native chat (non-streaming) ─────────────────────────────────
-  //
-  // POST /api/chat with stream:false. Same return type as chat() — a
-  // string with the assistant content. `extra.think` is lifted to a
-  // top-level field where Ollama honors it; `extra.options` (if any) is
-  // merged into the native `options` object alongside temperature.
-  //
-  async _ollamaChat({ messages, model, temperature, signal, extra } = {}) {
-    const { body } = this._buildOllamaBody({ messages, model, temperature, extra, stream: false });
-    const res = await fetch(this.nativeUrl("/api/chat"), {
-      method: "POST",
-      headers: this.headers,
-      signal,
-      body: JSON.stringify(body),
-    });
-    if (!res.ok) {
-      const text = await res.text().catch(() => "");
-      throw new Error(`Ollama chat error ${res.status}: ${text || res.statusText}`);
-    }
-    const json = await res.json();
-    return json?.message?.content ?? "";
-  }
-
-  // ─── Ollama-native streaming chat ───────────────────────────────────────
-  //
-  // POST /api/chat with stream:true. Ollama streams NDJSON (one JSON
-  // object per line), not SSE — so the parse loop splits on "\n" rather
-  // than "\n\n" + "data:" prefix. Each chunk shape:
-  //   { message: { role, content }, done: false }                  (mid-stream)
-  //   { done: true, prompt_eval_count, eval_count, total_duration } (final)
-  // Translated to the OpenAI-style { delta, content, usage } contract so
-  // callers don't special-case.
-  //
-  async *_ollamaChatStream({ messages, model, temperature, signal, extra } = {}) {
-    const { body } = this._buildOllamaBody({ messages, model, temperature, extra, stream: true });
-    const res = await fetch(this.nativeUrl("/api/chat"), {
-      method: "POST",
-      headers: this.headers,
-      signal,
-      body: JSON.stringify(body),
-    });
-    if (!res.ok || !res.body) {
-      const text = await res.text().catch(() => "");
-      throw new Error(`Ollama chat stream error ${res.status}: ${text || res.statusText}`);
-    }
-
-    const reader = res.body.getReader();
-    const decoder = new TextDecoder();
-    let buffer = "";
-    let content = "";
-
-    try {
-      while (true) {
-        const { value, done } = await reader.read();
-        if (done) break;
-        buffer += decoder.decode(value, { stream: true });
-
-        let nl;
-        // biome-ignore lint/suspicious/noAssignInExpressions: NDJSON line loop — drain buffer one newline at a time.
-        while ((nl = buffer.indexOf("\n")) !== -1) {
-          const line = buffer.slice(0, nl).trim();
-          buffer = buffer.slice(nl + 1);
-          if (!line) continue;
-          let json;
-          try { json = JSON.parse(line); } catch { continue; }
-          const delta = json?.message?.content || "";
-          if (delta) content += delta;
-          let usage;
-          if (json?.done && (json.prompt_eval_count != null || json.eval_count != null)) {
-            const pt = json.prompt_eval_count ?? 0;
-            const ct = json.eval_count ?? 0;
-            usage = { prompt_tokens: pt, completion_tokens: ct, total_tokens: pt + ct };
-          }
-          if (delta || usage) yield { delta, content, usage };
-        }
-      }
-    } finally {
-      try { reader.releaseLock(); } catch {}
-    }
-  }
-
-  // Build the body for an Ollama /api/chat request. Generation knobs
-  // (temperature plus anything in extra.options) live inside `options`;
-  // top-level fields like `think` are first-class on the native endpoint.
-  // Any unrecognized keys in extra are spread top-level too so future
-  // Ollama params (format, keep_alive, …) work without code changes.
-  //
-  // `num_ctx` defaults to 8192 — Ollama's runtime default is 4096
-  // regardless of model capability, which silently truncates the prompt
-  // server-side on long chapters (caught when Mistral-Small:24b only saw
-  // 10/12 dialogue tags from a Halvard/Elen ch6 run). 8K fits a typical
-  // chapter + system prompt + cast list with headroom. Callers can
-  // override via `extra.options.num_ctx`.
-  _buildOllamaBody({ messages, model, temperature, extra, stream }) {
-    const { think, options: extraOptions, ...rest } = extra || {};
-    const body = {
-      model: model || this.provider.chatModel,
-      messages,
-      stream,
-      options: { num_ctx: 8192, temperature, ...(extraOptions || {}) },
-      ...rest,
-    };
-    if (think !== undefined) body.think = think;
-    return { body };
-  }
-
-  // ─── List models — enriched ────────────────────────────────────────────
-  //
-  // Tries LM Studio's /api/v0/models (Beta REST API) first, which returns
-  // per-model `quantization`, `state` ("loaded" / "not-loaded"), `type`
-  // ("llm" / "embedding" / "vlm" / …), and other fields the OpenAI-spec
-  // /v1/models hides. Falls back to /v1/models for any other server.
-  //
-  // Returns: [{ id, quant, state, type, publisher, arch }] — fields are
-  // null when the source didn't provide them. The `kind` option controls
-  // what's filtered:
-  //   "chat" (default) — strip embedding / whisper / tts ids; existing
-  //                       caller default, preserves chat-dropdown behavior
-  //   "all"            — return everything; consumer filters client-side
-  //                       (e.g. SettingsProviderForm does this so its
-  //                       embedding-model Combobox can list nomic-embed-*)
-  //
-  async enrichedModels({ signal, timeoutMs = 15000, kind = "chat" } = {}) {
-    const stripChatPattern = /embed|embedding|whisper|tts/i;
-    const keepId = (id) => kind === "all" || !stripChatPattern.test(id);
-    // Path 1 — LM Studio /api/v1/models (current Beta REST). Returns a
-    // `models` array; each model has a `variants` array of quant names
-    // and a `selected_variant` showing which is currently loaded. We
-    // expand variants so each quant on disk gets its own dropdown row.
-    try {
-      const res = await this._fetchWithTimeout(
-        this.nativeUrl("/api/v1/models"),
-        { headers: this.authHeaders },
-        { signal, timeoutMs },
-      );
-      if (res.ok) {
-        const json = await res.json();
-        const arr = Array.isArray(json?.models) ? json.models
-                  : Array.isArray(json?.data) ? json.data : [];
-        const out = [];
-        for (const m of arr) {
-          // LM Studio types: "llm", "vlm", "embedding", "stt", "tts".
-          if (kind !== "all" && m.type && m.type !== "llm" && m.type !== "vlm") continue;
-          const id = m.key || m.id;
-          if (!id) continue;
-          // Prefer the per-model variants array (one entry per quant on
-          // disk). Fall back to a single entry using top-level quant info
-          // when variants aren't reported.
-          const variants = Array.isArray(m.variants) && m.variants.length
-            ? m.variants
-            : [m.quantization?.name || m.quantization || null];
-          const selected = m.selected_variant || null;
-          for (const v of variants) {
-            const quant = typeof v === "string" ? v : (v?.name || null);
-            out.push({
-              id,
-              variant: quant,
-              quant,
-              state: quant && selected && quant === selected ? "loaded" : "not-loaded",
-              type: m.type || null,
-              publisher: m.publisher || null,
-              arch: m.architecture || m.arch || null,
-            });
-          }
-        }
-        if (out.length) return out;
-        // Empty payload — fall through to older APIs.
-      }
-    } catch {
-      // /api/v1/models unavailable — fall through to /api/v0/models.
-    }
-
-    // Path 2 — LM Studio /api/v0/models (older Beta API). Returns one
-    // entry per model with a single `quantization` string. No variants
-    // array, so we can't enumerate alternate quants this way — kept as
-    // a fallback for LM Studio installs that haven't been upgraded.
-    try {
-      const res = await this._fetchWithTimeout(
-        this.nativeUrl("/api/v0/models"),
-        { headers: this.authHeaders },
-        { signal, timeoutMs },
-      );
-      if (res.ok) {
-        const json = await res.json();
-        const arr = Array.isArray(json?.data) ? json.data : [];
-        return arr
-          .filter((m) => kind === "all" || !m.type || m.type === "llm" || m.type === "vlm")
-          .map((m) => ({
-            id: m.id,
-            variant: m.quantization || null,
-            quant: m.quantization || null,
-            state: m.state || null,
-            type: m.type || null,
-            publisher: m.publisher || null,
-            arch: m.arch || null,
-          }));
-      }
-    } catch {
-      // fall through
-    }
-
-    // Path 3 — generic OpenAI-spec fallback. Quant is unknown from the
-    // server side; ModelPicker will try to parse one from the id (Ollama
-    // tags include it; cloud models don't).
-    const ids = await this.models({ signal, timeoutMs });
-    if (ids.length) {
-      return ids
-        .filter(keepId)
-        .map((id) => ({ id, variant: null, quant: null, state: null, type: null, publisher: null, arch: null }));
-    }
-
-    // Path 4 — Ollama /api/tags fallback. Some Ollama builds return an
-    // empty /v1/models even when models are installed (the OpenAI-compat
-    // path and the native registry can drift — `ollama list` and the GUI
-    // use /api/tags, which stays correct). Try it before reporting empty.
-    let tagsDiag = null;
-    try {
-      const res = await this._fetchWithTimeout(
-        this.nativeUrl("/api/tags"),
-        { headers: this.authHeaders },
-        { signal, timeoutMs },
-      );
-      if (res.ok) {
-        const json = await res.json();
-        const arr = Array.isArray(json?.models) ? json.models : [];
-        const mapped = arr
-          .map((m) => {
-            const id = m?.model || m?.name;
-            if (!id) return null;
-            const quant = m?.details?.quantization_level || null;
-            return { id, variant: quant, quant, state: null, type: null,
-                     publisher: null, arch: m?.details?.family || null };
-          })
-          .filter(Boolean)
-          .filter((e) => keepId(e.id));
-        if (mapped.length) return mapped;
-        tagsDiag = `/api/tags returned ${arr.length} entr${arr.length === 1 ? "y" : "ies"} (after filtering: 0).`;
-      } else {
-        tagsDiag = `/api/tags fallback returned ${res.status} ${res.statusText}.`;
-      }
-    } catch (e) {
-      tagsDiag = `/api/tags fallback unreachable: ${e?.message || e}`;
-    }
-    // Surface the diagnostic so the user can see whether /v1/models is
-    // just broken on their server, or /api/tags is empty too (= the
-    // server genuinely has no models installed for this instance).
-    throw new Error(`Server returned 0 models from /v1/models. ${tagsDiag}`);
-  }
-
-  // ─── List models ────────────────────────────────────────────────────────
-  //
-  // GET /v1/models
-  // Used to populate model dropdowns in Settings.
-  //
-  async models({ signal, timeoutMs = 15000 } = {}) {
-    let res;
-    try {
-      res = await this._fetchWithTimeout(
-        this.url("/models"),
-        { headers: this.authHeaders },
-        { signal, timeoutMs },
-      );
-    } catch (e) {
-      // Network-level failure (DNS, refused, CORS in browser-only mode, our
-      // own timeout, …). Bubble it up so Settings can show what actually
-      // went wrong instead of a misleading "empty list" message.
-      const msg = e?.message || String(e);
-      if (/abort/i.test(msg)) {
-        throw new Error(`Request timed out after ${timeoutMs}ms. Is the Base URL correct and the server running?`);
-      }
-      throw new Error(msg || "Could not reach the server. Is the Base URL correct and the server running?");
-    }
-    if (!res.ok) {
-      const text = await res.text().catch(() => "");
-      throw new Error(`GET /models failed: ${res.status} ${text || res.statusText}`);
-    }
-    const json = await res.json();
-    const list = json?.data || json?.models || [];
-    return list.map((m) => m?.id || m?.name || String(m)).filter(Boolean);
-  }
-
   // ─── Embeddings ─────────────────────────────────────────────────────────
   //
-  // POST /v1/embeddings (OpenAI-shape) or /api/embeddings (Ollama native).
-  // Both accept either a single string or an array of strings; the OpenAI
-  // shape returns { data: [{ embedding: number[] }] }, Ollama returns
-  // { embedding: number[] } for single and { embeddings: number[][] } for
-  // batches. We normalize to always return Array<number[]> in input order.
-  //
-  // Pass `input` as a string or string[]. `model` defaults to the
-  // provider's `embeddingModel` if set.
+  // POST /v1/llm/{id}/embeddings. Accepts a string or string[]; the gateway
+  // normalizes provider quirks (Ollama /api/embed) to the OpenAI
+  // { data: [{ embedding }] } shape. Returns Array<number[]> in input order.
   async embed({ input, model, signal } = {}) {
     if (input == null) throw new Error("embed: input is required.");
     const arr = Array.isArray(input) ? input : [input];
     if (!arr.length) return [];
-    const useModel = model || this.provider.embeddingModel || "";
-
-    if (detectRunner(this.provider) === "ollama") {
-      return this._ollamaEmbed({ input: arr, model: useModel, signal });
-    }
-    const res = await fetch(this.url("/embeddings"), {
+    const res = await fetch(this._gw("embeddings"), {
       method: "POST",
-      headers: this.headers,
+      headers: { "Content-Type": "application/json" },
       signal,
-      body: JSON.stringify({ model: useModel, input: arr }),
+      body: JSON.stringify({ model: model || this.provider.embeddingModel || "", input: arr }),
     });
     if (!res.ok) {
       const text = await res.text().catch(() => "");
@@ -537,56 +181,48 @@ export class OpenAICompatClient {
     return data.map((d) => d?.embedding).filter(Array.isArray);
   }
 
-  async _ollamaEmbed({ input, model, signal } = {}) {
-    // Ollama batches via { input: string[] } at /api/embed; single-shot
-    // legacy is { prompt: string } at /api/embeddings. We use /api/embed
-    // (current API, batch-capable) and fall back to single-shot if the
-    // server doesn't recognize it (older builds).
+  // ─── List models — enriched ────────────────────────────────────────────
+  //
+  // GET /v1/llm/{id}/models. The gateway does the multi-endpoint probe
+  // server-side (LM Studio quant/state, OpenAI /v1/models, Ollama /api/tags)
+  // and returns [{ id, variant, quant, state, type, publisher, arch }].
+  //   kind: "chat" (default) strips embedding/whisper/tts ids; "all" keeps them.
+  async enrichedModels({ signal, timeoutMs = 20000, kind = "chat" } = {}) {
+    const ctl = new AbortController();
+    const t = setTimeout(() => ctl.abort(), timeoutMs);
+    if (signal) signal.addEventListener?.("abort", () => ctl.abort(), { once: true });
     try {
-      const res = await fetch(this.nativeUrl("/api/embed"), {
-        method: "POST",
-        headers: this.headers,
-        signal,
-        body: JSON.stringify({ model, input }),
-      });
-      if (res.ok) {
-        const json = await res.json();
-        const arr = Array.isArray(json?.embeddings) ? json.embeddings : [];
-        if (arr.length) return arr;
-      }
-    } catch { /* fall through to legacy */ }
-
-    // Legacy single-shot — one request per input.
-    const out = [];
-    for (const text of input) {
-      const res = await fetch(this.nativeUrl("/api/embeddings"), {
-        method: "POST",
-        headers: this.headers,
-        signal,
-        body: JSON.stringify({ model, prompt: text }),
-      });
+      const res = await fetch(this._gw(`models?kind=${encodeURIComponent(kind)}`), { signal: ctl.signal });
       if (!res.ok) {
-        const t = await res.text().catch(() => "");
-        throw new Error(`Embeddings error ${res.status}: ${t || res.statusText}`);
+        const text = await res.text().catch(() => "");
+        throw new Error(`Fetch models failed: ${res.status} ${text || res.statusText}`);
       }
       const json = await res.json();
-      const v = Array.isArray(json?.embedding) ? json.embedding : null;
-      if (!v) throw new Error("Embeddings response missing `embedding` field.");
-      out.push(v);
+      return Array.isArray(json?.models) ? json.models : [];
+    } finally {
+      clearTimeout(t);
     }
-    return out;
+  }
+
+  // Bare model-id list (a thin wrapper over enrichedModels for callers that
+  // only need ids).
+  async models({ signal, timeoutMs = 20000 } = {}) {
+    const list = await this.enrichedModels({ signal, timeoutMs, kind: "all" });
+    return list.map((m) => m?.id).filter(Boolean);
   }
 
   // ─── Health check ───────────────────────────────────────────────────────
   //
-  // GET /v1/models with a short timeout — every LLM/embedding endpoint
-  // implements it. Returns true/false.
-  async ping({ timeoutMs = 2500 } = {}) {
+  // GET /v1/llm/{id}/ping — the gateway does one quick upstream probe and
+  // returns { ok }. Reflects PROVIDER reachability, not just the gateway's.
+  async ping({ timeoutMs = 6000 } = {}) {
     const ctl = new AbortController();
     const t = setTimeout(() => ctl.abort(), timeoutMs);
     try {
-      const res = await fetch(this.url("/models"), { headers: this.authHeaders, signal: ctl.signal });
-      return res.ok;
+      const res = await fetch(this._gw("ping"), { signal: ctl.signal });
+      if (!res.ok) return false;
+      const json = await res.json().catch(() => null);
+      return !!json?.ok;
     } catch {
       return false;
     } finally {
