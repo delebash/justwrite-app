@@ -1,39 +1,72 @@
-"""SQLite persistence — SQLAlchemy engine + session factory.
+"""SQLite via SQLAlchemy — primary persistence layer for the JustWrite server.
 
-Mirrors JustVoice's database bootstrap: init_db(data_dir) creates the engine
-at <data_dir>/justwrite.db and the schema. Entity tables (projects, chapters,
-RAG vectors, …) arrive in later phases of the server migration — see
+Mirrors JustVoice's session bootstrap: engine + sessionmaker + a `get_db`
+FastAPI dependency, `check_same_thread=False` so uvicorn's worker threads can
+share the engine, and a per-connection foreign-keys PRAGMA. Entity tables
+live in models.py; init_db creates them. See
 docs/plans/2026-06-18-jw-server-migration.md.
 """
 
 from __future__ import annotations
 
+import logging
 from pathlib import Path
 
-from sqlalchemy import Engine, create_engine
-from sqlalchemy.orm import DeclarativeBase, sessionmaker
+from sqlalchemy import create_engine, event
+from sqlalchemy.engine import Engine
+from sqlalchemy.orm import Session, sessionmaker
 
+from .models import Base
 
-class Base(DeclarativeBase):
-    """Declarative base for all ORM models (none yet — added in P2)."""
+log = logging.getLogger(__name__)
 
-
-_engine: Engine | None = None
+engine: Engine | None = None
 SessionLocal: sessionmaker | None = None
+_db_path: Path | None = None
 
 
 def init_db(data_dir: Path) -> Engine:
-    """Create the SQLite engine + session factory + schema. Idempotent."""
-    global _engine, SessionLocal
+    """Create the engine + session factory + tables. Idempotent; re-inits when
+    a DIFFERENT data_dir is requested so pytest's create_app(tmp_path) doesn't
+    pin every later call to the first dir (the JustVoice guard)."""
+    global engine, SessionLocal, _db_path
+
+    if engine is not None:
+        if _db_path is not None and _db_path.parent == Path(data_dir):
+            return engine
+        engine.dispose()
+        engine = None
+        SessionLocal = None
+
     data_dir.mkdir(parents=True, exist_ok=True)
-    db_path = data_dir / "justwrite.db"
-    _engine = create_engine(f"sqlite:///{db_path}", future=True)
-    SessionLocal = sessionmaker(
-        bind=_engine, autoflush=False, expire_on_commit=False, future=True
+    _db_path = data_dir / "justwrite.db"
+    engine = create_engine(
+        f"sqlite:///{_db_path}",
+        connect_args={"check_same_thread": False},
     )
-    Base.metadata.create_all(_engine)
-    return _engine
+
+    @event.listens_for(engine, "connect")
+    def _enable_foreign_keys(dbapi_connection, _record):
+        cursor = dbapi_connection.cursor()
+        cursor.execute("PRAGMA foreign_keys=ON")
+        cursor.close()
+
+    SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
+    Base.metadata.create_all(bind=engine)
+    log.info("Database: %s", _db_path)
+    return engine
 
 
 def get_engine() -> Engine | None:
-    return _engine
+    return engine
+
+
+def get_db() -> Session:
+    """FastAPI dependency — yield a session, close it on exit."""
+    if SessionLocal is None:
+        raise RuntimeError("Database not initialized — call init_db() during boot")
+    db = SessionLocal()
+    try:
+        yield db
+    finally:
+        db.close()

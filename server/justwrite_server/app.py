@@ -1,9 +1,10 @@
 """FastAPI application factory for the JustWrite server.
 
-P0 skeleton: boots SQLite + AppState, mounts /v1/health and the SHARED
-llm-runner router in-process (the same router JustVoice mounts — full
-symmetry). Entity APIs (projects, chapters, RAG, …) arrive in later phases.
-See docs/plans/2026-06-18-jw-server-migration.md.
+Boots SQLite + AppState, mounts /v1/health, /v1/kv (the key/value seam
+backing the renderer's storage.js), and the SHARED llm-runner router
+in-process (the same router JustVoice mounts — full symmetry). Normalized
+entity APIs replace the kv blob in P2. See
+docs/plans/2026-06-18-jw-server-migration.md.
 """
 
 from __future__ import annotations
@@ -18,7 +19,7 @@ from fastapi.middleware.cors import CORSMiddleware
 # the same router JustVoice does instead of running it as a separate sidecar.
 from llm_runner import router as llm_runner_router
 
-from .api import health
+from .api import health, kv
 from .app_state import AppState, set_state
 from .database import init_db
 from .paths import default_data_dir
@@ -42,5 +43,6 @@ def create_app(data_dir: Path | None = None) -> FastAPI:
     )
 
     app.include_router(health.router)
+    app.include_router(kv.router)
     app.include_router(llm_runner_router)
     return app
