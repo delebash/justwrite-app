@@ -1,7 +1,7 @@
 {
   "$schema": "https://schema.tauri.app/config/2/capability",
   "identifier": "default",
-  "description": "Default capability set for the main window — covers dialog + filesystem so the project save/open and image storage commands work, plus the HTTP plugin so the renderer can reach user-configured AI providers (local LLM/TTS servers) without browser CORS getting in the way.",
+  "description": "Default capability set for the main window — covers dialog + filesystem so the project save/open and image storage commands work, plus the HTTP plugin so the renderer can reach local servers (the JustWrite server and user-configured LLM providers) without browser CORS getting in the way.",
   "windows": ["main"],
   "permissions": [
     "core:default",

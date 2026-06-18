@@ -46,11 +46,6 @@ const TARGETS = [
   { name: "analysis",           hash: "#/analysis",            wait: 3500, scroll: 340 },
   { name: "writer-lab",         hash: "#/writer-lab",          wait: 2500 },
 
-  // Studio
-  { name: "studio",             hash: "#/studio",              wait: 2500 },
-  { name: "studio-script",      hash: "#/studio/script",       wait: 2500 },
-  { name: "studio-render",      hash: "#/studio/render",       wait: 2500 },
-
   // Settings
   { name: "settings-project",   hash: "#/settings/project",    wait: 2500 },
   { name: "settings-ai",        hash: "#/settings/audio",      wait: 2500 },

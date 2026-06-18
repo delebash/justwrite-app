@@ -33,23 +33,6 @@ export default defineConfig({
     port: 1420,
     strictPort: true,
     host: process.env.TAURI_DEV_HOST || false,
-    // ffmpeg.wasm (the M4B audiobook exporter) needs SharedArrayBuffer,
-    // which requires cross-origin isolation. Tauri's webview gets these
-    // from `tauri.conf.json` -> `app.security.headers`; the vite dev
-    // server needs them set here too so `npm run dev:vite` (outside
-    // Tauri) is also isolated.
-    //
-    // COEP is `credentialless` rather than `require-corp` because Tauri's
-    // IPC custom protocol (`http://ipc.localhost/...`) responses don't
-    // carry CORP headers — `require-corp` blocks them and the http
-    // plugin's body-chunk-read loop spins on the broken postMessage
-    // fallback. `credentialless` still grants cross-origin isolation
-    // (SharedArrayBuffer works), just without the explicit CORP opt-in.
-    headers: {
-      "Cross-Origin-Opener-Policy":   "same-origin",
-      "Cross-Origin-Embedder-Policy": "credentialless",
-      "Cross-Origin-Resource-Policy": "cross-origin",
-    },
     fs: {
       // Allow reading docs/*.md from the repo root for the in-app Help
       // viewer — the vite root is `src/renderer/`, so docs/ sits one
@@ -68,18 +51,10 @@ export default defineConfig({
     emptyOutDir: true,
     // Tauri's bundled webview is a current Chromium / WKWebView on each
     // OS; the per-platform targets here keep esbuild from down-leveling.
-    // The macOS fallback (safari17) matches the WKWebView floor Tauri 2
-    // ships against and is high enough that worker bundles using modern
-    // destructuring (ffmpeg.wasm) transpile cleanly under Vite 8.
+    // The macOS floor (safari17) matches the WKWebView version Tauri 2
+    // ships against.
     target: process.env.TAURI_ENV_PLATFORM === "windows" ? "chrome105" : "safari17",
     minify: !process.env.TAURI_ENV_DEBUG ? "esbuild" : false,
     sourcemap: !!process.env.TAURI_ENV_DEBUG,
-  },
-  optimizeDeps: {
-    // Same exclusion as before — ffmpeg.wasm ships its own loader.
-    exclude: ["@ffmpeg/ffmpeg", "@ffmpeg/util"],
-  },
-  worker: {
-    format: "es",
   },
 });

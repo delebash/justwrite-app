@@ -24,16 +24,7 @@
       }
     ],
     "security": {
-      "csp": null,
-      "headers": {
-        "Cross-Origin-Opener-Policy": "same-origin",
-        "Cross-Origin-Embedder-Policy": "credentialless",
-        "Cross-Origin-Resource-Policy": "cross-origin"
-      },
-      "assetProtocol": {
-        "enable": true,
-        "scope": ["$APPDATA/audio/**"]
-      }
+      "csp": null
     }
   },
   "bundle": {
@@ -47,7 +38,7 @@
       "icons/icon.ico"
     ],
     "category": "Productivity",
-    "shortDescription": "Writing app with an audio studio.",
-    "longDescription": "JustWrite is a novel-writing app that pairs a TipTap rich-text editor with an OpenAI-compatible audio studio for turning your manuscript into an audiobook."
+    "shortDescription": "A focused novel-writing app.",
+    "longDescription": "JustWrite is a novel-writing app pairing a distraction-free TipTap rich-text editor with planning tools — outline, characters, locations, worldbuilding — and manuscript export to PDF, DOCX, and EPUB."
   }
 }

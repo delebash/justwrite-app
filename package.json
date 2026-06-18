@@ -1,7 +1,7 @@
 {
   "name": "justwrite",
   "version": "1.0.0",
-  "description": "JustWrite — a writing app for novels, with an audio studio that connects to any OpenAI-compatible AI provider.",
+  "description": "JustWrite — a writing app for novels, with AI assistance from any OpenAI-compatible provider.",
   "private": true,
   "type": "module",
   "scripts": {
@@ -20,8 +20,6 @@
     "test": "npm test --prefix e2e"
   },
   "dependencies": {
-    "@ffmpeg/ffmpeg": "^0.12.15",
-    "@ffmpeg/util": "^0.12.2",
     "@floating-ui/dom": "^1.7.6",
     "@tanstack/vue-table": "^8.21.3",
     "@tauri-apps/api": "^2.11.0",

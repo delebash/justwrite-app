@@ -1,7 +1,7 @@
 [package]
 name = "justwrite"
 version = "1.0.0"
-description = "JustWrite — writing app with an audio studio"
+description = "JustWrite — a novel-writing app"
 authors = ["JustWrite contributors"]
 edition = "2021"
 license = ""
@@ -16,7 +16,7 @@ crate-type = ["lib", "cdylib", "staticlib"]
 tauri-build = { version = "2", features = [] }
 
 [dependencies]
-tauri = { version = "2", features = ["protocol-asset"] }
+tauri = { version = "2" }
 tauri-plugin-dialog = "2"
 tauri-plugin-fs = "2"
 tauri-plugin-http = "2"
@@ -27,22 +27,11 @@ base64 = "0.22"
 # below (Help → "Open on the web", any future "reveal in folder" call).
 open = "5"
 
-# Microsoft Edge "Read Aloud" TTS — ~400 free neural voices across ~140
-# locales, no API key. Used by the `tts_edge_*` commands. Sync API
-# wrapped in `tokio::task::spawn_blocking` so the WebSocket round-trip
-# doesn't block Tauri's async runtime.
-msedge-tts = "0.4"
 tokio = { version = "1", features = ["rt", "time", "process"] }
 
 # Used by `detect_gpu` (macOS path) to read total system RAM so we can
 # estimate Apple Silicon VRAM (unified memory, dynamically allocated by the OS).
 sysinfo = { version = "0.32", default-features = false, features = ["system"] }
-
-# Used by `docker_install` to stream the Docker Desktop installer to disk
-# with progress events. Tauri pulls reqwest in transitively via the http
-# plugin, but we depend on it explicitly here so the API is stable.
-reqwest = { version = "0.12", default-features = false, features = ["rustls-tls", "stream", "json"] }
-futures-util = "0.3"
 
 # Smaller, faster release builds. JustWrite is interactive so we trade
 # longer link times for a smaller installer and tighter LTO.
