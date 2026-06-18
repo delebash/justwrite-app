@@ -1,14 +1,10 @@
 <script setup>
 import { computed, ref } from "vue";
-import { useRouter } from "vue-router";
 import { useProjectStore } from "../stores/project.js";
-import { useStudioStore } from "../stores/studio.js";
 import { useUiStore } from "../stores/ui.js";
 import PaneHeader from "../components/PaneHeader.vue";
 import Icon from "../components/Icon.vue";
-import { makeM4b, fmtDuration } from "../services/m4b.js";
 import { buildManuscript, slug } from "../services/export/manuscript.js";
-import { confirmDialog } from "../services/dialog.js";
 import JwButton from "@renderer/components/ui/JwButton.vue";
 import JwCheckbox from "@renderer/components/ui/JwCheckbox.vue";
 import JwInput from "@renderer/components/ui/JwInput.vue";
@@ -21,26 +17,23 @@ import {
 } from "../services/export/justvoice.js";
 
 const project = useProjectStore();
-const studio = useStudioStore();
 const ui = useUiStore();
-const router = useRouter();
 
 const fmt = ref("pdf");
 const stripSceneStructure = ref(false);
 
+// Audio (M4B) export moved to JustVoice — JustWrite is writing-only and hands
+// the book to JustVoice for any audiobook rendering.
 const FORMATS = [
   { id: "pdf",  name: "PDF",            sub: "Print-ready manuscript with TOC.",       icon: "Export",     ext: "pdf",  mime: "application/pdf" },
   { id: "docx", name: "DOCX",           sub: "Word-compatible.",                       icon: "Book",       ext: "docx", mime: "application/vnd.openxmlformats-officedocument.wordprocessingml.document" },
   { id: "epub", name: "EPUB",           sub: "Reflowable e-book.",                     icon: "Book",       ext: "epub", mime: "application/epub+zip" },
-  { id: "m4b",  name: "M4B audiobook",  sub: "Stitched from Audio Studio renders.",    icon: "Headphones", ext: "m4b",  mime: "audio/mp4" },
-  { id: "justvoice", name: "JustVoice", sub: "Send the cast-ready book to JustVoice.", icon: "Mic",        ext: null,   mime: null },
+  { id: "justvoice", name: "JustVoice", sub: "Send the book to JustVoice for audio.",  icon: "Mic",        ext: null,   mime: null },
 ];
 
 // ── Shared state ─────────────────────────────────────────────────────
 const exporting = ref(false);
 const exportStage = ref("");
-const exportProgress = ref(0);
-const exportLog = ref("");
 const exportError = ref(null);
 
 // ── Manuscript stats (for PDF / DOCX / EPUB) ─────────────────────────
@@ -51,21 +44,11 @@ const manuscriptStats = computed(() => {
   return { chapters, parts, words };
 });
 
-// ── M4B-specific (per-chapter audio) ─────────────────────────────────
-const chapterAudios = computed(() => project.allChapters.map((c) => {
-  const audio = studio.chapterAudio[c.id];
-  return { chapter: c, audio };
-}));
-const renderedCount = computed(() => chapterAudios.value.filter((x) => x.audio).length);
-const totalDuration = computed(() => chapterAudios.value.reduce((sum, x) => sum + (x.audio?.duration || 0), 0));
-const allRendered = computed(() => renderedCount.value === chapterAudios.value.length && chapterAudios.value.length > 0);
-
 // ── Helpers ──────────────────────────────────────────────────────────
 function go(fmtId) {
   fmt.value = fmtId;
   exportError.value = null;
   exportStage.value = "";
-  exportProgress.value = 0;
 }
 function triggerDownload(blob, filename) {
   const url = URL.createObjectURL(blob);
@@ -76,15 +59,12 @@ function triggerDownload(blob, filename) {
 function resetProgress() {
   exporting.value = false;
   exportStage.value = "";
-  exportProgress.value = 0;
-  exportLog.value = "";
 }
 const STAGE_LABEL = {
   "loading-pdfmake": "Loading PDF engine…",
   "loading-docx":    "Loading DOCX engine…",
   "loading-jszip":   "Loading EPUB packager…",
   "composing":       "Composing document…",
-  "rendering":       "Rendering pages…",
   "packing":         "Packaging archive…",
   "sending":         "Sending to JustVoice…",
   "done":            "Done.",
@@ -99,7 +79,6 @@ async function exportManuscript(fmtId) {
   }
   exportError.value = null;
   exporting.value = true;
-  exportProgress.value = 0;
   exportStage.value = "composing";
   try {
     const manuscript = buildManuscript(project, { stripSceneStructure: stripSceneStructure.value });
@@ -129,12 +108,11 @@ async function exportManuscript(fmtId) {
 // ── JustVoice ────────────────────────────────────────────────────────
 const jvUrl = ref(loadJustVoiceUrl());
 const jvResult = ref(null);
-// Doc stats for the pane. Guarded so the manuscript model (a DOM walk
-// over every chapter body) is only built while the JustVoice card is
-// the selected format.
+// Doc stats for the pane. Guarded so the manuscript model (a DOM walk over
+// every chapter body) is only built while the JustVoice card is selected.
 const jvStats = computed(() => {
   if (fmt.value !== "justvoice") return null;
-  return describeJustVoiceDoc(buildJustVoiceDoc(project, studio));
+  return describeJustVoiceDoc(buildJustVoiceDoc(project));
 });
 
 async function exportJustVoice() {
@@ -148,55 +126,11 @@ async function exportJustVoice() {
   exportStage.value = "composing";
   try {
     saveJustVoiceUrl(jvUrl.value);
-    const doc = buildJustVoiceDoc(project, studio);
+    const doc = buildJustVoiceDoc(project);
     exportStage.value = "sending";
     const res = await sendToJustVoice({ doc, baseUrl: jvUrl.value });
     jvResult.value = res;
     ui.showToast({ message: `Sent "${doc.book.title}" to JustVoice.` });
-  } catch (err) {
-    exportError.value = err.message || String(err);
-  } finally {
-    resetProgress();
-  }
-}
-
-// ── M4B ──────────────────────────────────────────────────────────────
-async function exportM4b({ partial = false } = {}) {
-  exportError.value = null;
-  exportProgress.value = 0;
-  exportLog.value = "";
-
-  const pool = chapterAudios.value.filter((x) => x.audio);
-  if (pool.length === 0) {
-    exportError.value = "No chapters have been rendered yet. Open Audio Studio → Render and render at least one chapter.";
-    return;
-  }
-  if (!partial && pool.length < chapterAudios.value.length) {
-    const yes = await confirmDialog({
-      title: "Export anyway?",
-      message: `Only ${pool.length} of ${chapterAudios.value.length} chapters have audio.`,
-      confirmLabel: "Export partial",
-    });
-    if (!yes) return;
-  }
-
-  exporting.value = true;
-  exportStage.value = "rendering";
-  try {
-    const m4b = await makeM4b({
-      chapters: pool.map((x) => ({
-        num: x.chapter.num,
-        title: x.chapter.title,
-        wavBlob: x.audio.blob,
-        duration: x.audio.duration,
-      })),
-      title:  project.project.title,
-      author: project.project.author,
-      onProgress: (p) => { exportProgress.value = p; },
-      onLog:      (line) => { exportLog.value = line; },
-    });
-    triggerDownload(m4b, `${slug(project.project.title)}.m4b`);
-    ui.showToast({ message: `Exported ${pool.length}-chapter audiobook (${fmtDuration(totalDuration.value)}).` });
   } catch (err) {
     exportError.value = err.message || String(err);
   } finally {
@@ -215,9 +149,9 @@ async function exportM4b({ partial = false } = {}) {
       <p class="ex-desc">
         <strong>Export</strong> produces a finished file — <strong>PDF</strong> (typeset with
         cover and TOC), <strong>DOCX</strong> (Word with a live TOC), <strong>EPUB</strong>
-        (e-book for Apple Books / Kobo / Kindle), <strong>M4B</strong> (audiobook with chapter
-        markers) — or sends the whole cast-ready book to <strong>JustVoice</strong> for studio
-        rendering. Pick a format card to see its options; engines are downloaded on first use.
+        (e-book for Apple Books / Kobo / Kindle) — or sends the whole book to
+        <strong>JustVoice</strong> for audiobook production. Pick a format card to see its
+        options; engines are downloaded on first use.
       </p>
 
       <!-- Format picker -->
@@ -240,15 +174,8 @@ async function exportM4b({ partial = false } = {}) {
       <div v-if="exporting" class="card" style="background:var(--accent-soft);border-color:var(--accent-line)">
         <div style="display:flex;justify-content:space-between;font-size:13px;margin-bottom:8px">
           <span><b>{{ stageLabel() }}</b></span>
-          <span class="t-muted" style="font-family:var(--font-mono);font-size:11px">
-            <template v-if="fmt === 'm4b' && exportProgress > 0">{{ Math.round(exportProgress * 100) }}%</template>
-            <template v-if="exportLog">{{ exportLog.slice(0, 60) }}</template>
-          </span>
         </div>
-        <div v-if="fmt === 'm4b'" style="height:6px;background:var(--surface);border-radius:999px;overflow:hidden">
-          <div :style="`width:${exportProgress * 100}%;height:100%;background:var(--accent);transition:width .2s ease`" />
-        </div>
-        <div v-else style="height:6px;background:var(--surface);border-radius:999px;overflow:hidden;position:relative">
+        <div style="height:6px;background:var(--surface);border-radius:999px;overflow:hidden;position:relative">
           <div class="indeterminate" />
         </div>
       </div>
@@ -256,84 +183,20 @@ async function exportM4b({ partial = false } = {}) {
         <Icon name="Alert" :size="14" /> {{ exportError }}
       </div>
 
-      <!-- M4B-specific UI ─────────────────────────────────────────── -->
-      <template v-if="fmt === 'm4b'">
-        <div class="card">
-          <div class="card-title">Source audio</div>
-          <p class="t-muted" style="font-size:12.5px;margin:0 0 14px;line-height:1.55">
-            The M4B is stitched from the per-chapter WAVs you've rendered in Audio Studio.
-            Open <router-link to="/studio/render" style="color:var(--accent-ink);font-weight:600">Audio Studio → Render</router-link> to render chapters, then come back here to export.
-          </p>
-          <div style="display:grid;grid-template-columns:auto 1fr auto;gap:14px;font-size:13px;align-items:center;padding:10px 12px;background:var(--surface-2);border-radius:8px">
-            <div :style="`width:36px;height:36px;border-radius:8px;background:${renderedCount ? 'var(--accent-soft)' : 'var(--surface-3)'};color:${renderedCount ? 'var(--accent)' : 'var(--muted)'};display:grid;place-items:center`">
-              <Icon name="Waveform" :size="16" />
-            </div>
-            <div>
-              <div><b>{{ renderedCount }} of {{ chapterAudios.length }}</b> chapters rendered</div>
-              <div class="t-muted" style="font-size:11.5px">
-                {{ renderedCount ? `${fmtDuration(totalDuration)} of audio queued` : 'No audio yet' }}
-              </div>
-            </div>
-            <router-link to="/studio/render" custom v-slot="{ navigate }">
-              <JwButton intent="secondary" size="small" @click="navigate">
-                <Icon name="Headphones" :size="11" /> Open Audio Studio
-              </JwButton>
-            </router-link>
-          </div>
-
-          <details v-if="renderedCount" style="margin-top:14px">
-            <summary class="t-muted" style="font-size:12px;cursor:pointer">Per-chapter breakdown</summary>
-            <div style="margin-top:10px;display:flex;flex-direction:column;gap:4px">
-              <div v-for="x in chapterAudios" :key="x.chapter.id"
-                style="display:grid;grid-template-columns:28px 1fr auto auto;gap:12px;font-size:12px;padding:6px 10px;border-radius:6px;align-items:center"
-                :style="x.audio ? 'background:var(--surface-2)' : 'opacity:0.55'">
-                <span class="t-num t-muted" style="text-align:right">{{ x.chapter.num }}</span>
-                <span style="overflow:hidden;text-overflow:ellipsis;white-space:nowrap">{{ x.chapter.title }}</span>
-                <span class="t-num t-muted">{{ x.audio ? fmtDuration(x.audio.duration) : '—' }}</span>
-                <span :style="`width:8px;height:8px;border-radius:50%;background:${x.audio ? 'var(--status-done)' : 'var(--border-strong)'}`" />
-              </div>
-            </div>
-          </details>
-        </div>
-
-        <div class="card">
-          <div class="card-title">Export</div>
-          <div style="font-size:12.5px;color:var(--ink-2);margin-bottom:14px;line-height:1.55">
-            ffmpeg.wasm will concatenate the WAVs, transcode to AAC, and embed chapter markers.
-            The first export will download the ffmpeg wasm bundle (~10&nbsp;MB) on demand.
-          </div>
-          <div style="display:flex;gap:10px;align-items:center;margin-top:6px">
-            <JwButton intent="primary" :disabled="exporting || renderedCount === 0"
-              v-tooltip.bottom="renderedCount === 0 ? 'Render chapters in Audio Studio → Render first' : allRendered ? 'Export all chapters as a single M4B audiobook' : `Export partial audiobook from ${renderedCount} rendered chapter${renderedCount === 1 ? '' : 's'}`"
-              @click="exportM4b()">
-              <Icon name="Download" :size="13" />
-              Export {{ allRendered ? 'full' : `partial (${renderedCount} ch)` }} audiobook
-            </JwButton>
-            <span class="t-muted" style="font-size:11.5px">
-              <template v-if="renderedCount === 0">Render chapters first</template>
-              <template v-else-if="allRendered">{{ fmtDuration(totalDuration) }} ready to export</template>
-              <template v-else>{{ chapterAudios.length - renderedCount }} chapters missing</template>
-            </span>
-          </div>
-        </div>
-      </template>
-
       <!-- JustVoice handoff ─────────────────────────────────────────── -->
-      <template v-else-if="fmt === 'justvoice'">
+      <template v-if="fmt === 'justvoice'">
         <div class="card">
           <div class="card-title">JustVoice server</div>
           <p class="t-muted" style="font-size:12.5px;margin:0 0 14px;line-height:1.55">
             JustVoice is the companion voice-production studio. Sending hands over the whole
-            book — chapters, lines with the speaker attribution from
-            <router-link to="/studio/script" style="color:var(--accent-ink);font-weight:600">Audio Studio → Script</router-link>
-            where you've analyzed it, and the character roster as cast-ready personas.
-            Chapters without a script travel as narrator prose.
+            book — chapters as prose and the character roster as cast-ready personas. JustVoice
+            runs its own speaker analysis and casting, then renders the audiobook.
           </p>
           <div style="display:flex;gap:10px;align-items:center;flex-wrap:wrap">
             <span class="t-muted" style="font-size:12px">Server URL</span>
             <JwInput v-model="jvUrl" style="max-width:280px" placeholder="http://127.0.0.1:17494" />
           </div>
-          <div v-if="jvStats" class="manuscript-stats" style="display:grid;gap:14px;padding:14px;background:var(--surface-2);border-radius:8px;font-size:13px;margin-top:14px;grid-template-columns:repeat(4,minmax(0,1fr))">
+          <div v-if="jvStats" class="manuscript-stats" style="display:grid;gap:14px;padding:14px;background:var(--surface-2);border-radius:8px;font-size:13px;margin-top:14px;grid-template-columns:repeat(3,minmax(0,1fr))">
             <div>
               <div class="t-muted" style="font-size:11px">Chapters</div>
               <b class="t-num" style="font-size:18px;font-family:var(--font-serif)">{{ jvStats.chapters }}</b>
@@ -341,10 +204,6 @@ async function exportM4b({ partial = false } = {}) {
             <div>
               <div class="t-muted" style="font-size:11px">Lines</div>
               <b class="t-num" style="font-size:18px;font-family:var(--font-serif)">{{ jvStats.lines.toLocaleString() }}</b>
-            </div>
-            <div>
-              <div class="t-muted" style="font-size:11px">Attributed</div>
-              <b class="t-num" style="font-size:18px;font-family:var(--font-serif)">{{ jvStats.attributed.toLocaleString() }}</b>
             </div>
             <div>
               <div class="t-muted" style="font-size:11px">Characters</div>
@@ -446,7 +305,7 @@ async function exportM4b({ partial = false } = {}) {
 }
 .ex-desc strong { color: var(--ink-2); font-weight: 600; }
 
-.format-picker { grid-template-columns: repeat(5, minmax(0, 1fr)); }
+.format-picker { grid-template-columns: repeat(4, minmax(0, 1fr)); }
 .manuscript-stats { grid-template-columns: repeat(3, minmax(0, 1fr)); }
 
 @media (max-width: 900px) {

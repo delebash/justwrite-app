@@ -53,9 +53,9 @@ async function waitReady(url, label, tries = 60) {
 const ROUTES = [
   "#/", "#/chapters", "#/search", "#/characters", "#/locations", "#/objects",
   "#/groups", "#/worldbuilding", "#/strands", "#/plot", "#/timeline", "#/notes",
-  "#/brainstorm", "#/markers", "#/relations", "#/studio", "#/analysis",
+  "#/brainstorm", "#/markers", "#/relations", "#/analysis",
   "#/reader-knowledge", "#/import", "#/export", "#/trash", "#/settings",
-  "#/help", "#/writer-lab", "#/speaker-lab", "#/architecture",
+  "#/help", "#/writer-lab", "#/architecture",
 ];
 
 await waitReady(`${SERVER}/v1/health`, "server");

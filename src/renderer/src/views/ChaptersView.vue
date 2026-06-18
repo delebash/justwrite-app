@@ -1,7 +1,6 @@
 <script setup>
 import { computed, ref, watch, nextTick, onMounted, onBeforeUnmount } from "vue";
 import { useProjectStore } from "../stores/project.js";
-import { useStudioStore } from "../stores/studio.js";
 import { useUiStore } from "../stores/ui.js";
 import { useRouter } from "vue-router";
 import PaneHeader from "../components/PaneHeader.vue";
@@ -30,17 +29,21 @@ const props = defineProps({
   sceneId: { type: String, default: "" },
 });
 const project = useProjectStore();
-const studio = useStudioStore();
 const ui = useUiStore();
 const router = useRouter();
 
 
-// chapterId → [{ id, name }] of characters detected in the script.
+// chapterId → [{ id, name }] of characters appearing in the chapter, from the
+// explicit scene→character links (state.scenes[*].characters). (Was derived
+// from Audio Studio speaker analysis, removed when audio moved to JustVoice.)
 const speakersByChapter = computed(() => {
-  const map = studio.speakersByChapter;
   const out = {};
-  for (const [chapterId, set] of Object.entries(map)) {
-    out[chapterId] = [...set]
+  for (const ch of project.allChapters) {
+    const ids = new Set();
+    for (const scn of project.scenesFor(ch.id)) {
+      for (const cid of scn.characters || []) ids.add(cid);
+    }
+    out[ch.id] = [...ids]
       .map((id) => project.characterById(id))
       .filter(Boolean)
       .map((c) => ({ id: c.id, name: c.name }));

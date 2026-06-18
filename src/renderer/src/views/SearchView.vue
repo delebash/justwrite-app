@@ -2,7 +2,6 @@
 import { computed, ref, watch, onMounted, onBeforeUnmount, nextTick } from "vue";
 import { useRouter } from "vue-router";
 import { useProjectStore } from "../stores/project.js";
-import { useStudioStore } from "../stores/studio.js";
 import PaneHeader from "../components/PaneHeader.vue";
 import Icon from "../components/Icon.vue";
 import { buildIndex, searchIndex, renderSnippet, KIND_META } from "../services/search.js";
@@ -10,9 +9,21 @@ import { useUiStore } from "../stores/ui.js";
 import JwButton from "@renderer/components/ui/JwButton.vue";
 
 const project = useProjectStore();
-const studio = useStudioStore();
 const ui = useUiStore();
 const router = useRouter();
+
+// chapterId -> Set<characterId> from the explicit scene->character links
+// (was derived from Audio Studio speaker analysis; folded into chapter
+// search so a character's name finds the chapters they appear in).
+const speakersByChapter = computed(() => {
+  const out = {};
+  for (const ch of project.allChapters) {
+    const set = new Set();
+    for (const scn of project.scenesFor(ch.id)) for (const cid of scn.characters || []) set.add(cid);
+    out[ch.id] = set;
+  }
+  return out;
+});
 
 const q = ref("");
 const inputEl = ref(null);
@@ -32,7 +43,7 @@ const index = computed(() => buildIndex({
   strands: project.strands,
   worldbuilding: project.worldbuilding,
   architecture: project.architecture,
-}, studio.speakersByChapter));
+}, speakersByChapter.value));
 
 const hits = computed(() => {
   if (!q.value.trim()) return [];

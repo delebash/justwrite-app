@@ -5,21 +5,14 @@
 import { defineStore } from "pinia";
 import { DEFAULT_PROVIDERS } from "../domain/seed.js";
 import { OpenAICompatClient } from "../services/openai-compat.js";
-import { ElevenLabsClient, isElevenLabs } from "../services/elevenlabs.js";
-import { SpeechifyClient, isSpeechify } from "../services/speechify.js";
-import { VoiceboxClient, isVoicebox } from "../services/voicebox.js";
 import { getModelTier, TIERS } from "../services/modelMeta.js";
 import { getItem, setItem } from "../services/storage.js";
 import * as providerBackend from "../services/providerBackend.js";
 
-// Pick the right ping client for a provider. Providers with proprietary
-// APIs (ElevenLabs, Speechify, Voicebox) get dedicated clients; everything
-// else uses the OpenAI-compat client (which itself special-cases Speechmatics
-// + Edge TTS internally in .ping()).
+// JustWrite is writing-only — every provider is an LLM/embedding endpoint
+// reached through the OpenAI-compat client. (Audio/TTS providers + their
+// proprietary clients were removed when audio moved to JustVoice.)
 function pingClientFor(provider) {
-  if (isElevenLabs(provider)) return new ElevenLabsClient(provider);
-  if (isSpeechify(provider))  return new SpeechifyClient(provider);
-  if (isVoicebox(provider))   return new VoiceboxClient(provider);
   return new OpenAICompatClient(provider);
 }
 

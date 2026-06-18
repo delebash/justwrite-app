@@ -8,7 +8,6 @@ import { defineStore } from "pinia";
 import { markRaw } from "vue";
 import { useUiStore } from "./ui.js";
 import { useSessionsStore } from "./sessions.js";
-import { useStudioStore } from "./studio.js";
 import { removeImage as removeImageFile } from "../services/imageStore.js";
 import { getItem, setItem, removeItem, listKeys } from "../services/storage.js";
 import * as projectApi from "../services/projectApi.js";
@@ -1868,25 +1867,10 @@ export const useProjectStore = defineStore("project", {
       this._persist();
     },
     purgeFromTrash(kind, id) {
-      // Chapter audio is rendered to disk and survives soft-delete on
-      // purpose (restore brings the chapter and its audio back). Purge
-      // is the one-way trip — unlink the WAV here so the AppData audio
-      // dir doesn't grow with orphaned files. Fire-and-forget; the user
-      // doesn't need to wait on a disk delete to see the row vanish.
-      if (kind === "chapters") {
-        useStudioStore().removeChapterAudio(id);
-      }
       this.trash = { ...this.trash, [kind]: (this.trash[kind] || []).filter((x) => x.id !== id) };
       this._persist();
     },
     emptyTrash() {
-      // Same logic as purgeFromTrash for the chapters bucket: bulk
-      // "Empty trash" needs to unlink every rendered WAV for the
-      // chapters being purged.
-      const studio = useStudioStore();
-      for (const ch of this.trash.chapters || []) {
-        studio.removeChapterAudio(ch.id);
-      }
       this.trash = { ...EMPTY_TRASH };
       this._persist();
     },
@@ -2118,11 +2102,6 @@ export const useProjectStore = defineStore("project", {
       if (!id) return;
       const entry = this._projects.find((p) => p.id === id);
       removeSnap(id);
-      // Wipe the project's audio dir on disk + drop any in-memory
-      // chapterAudio records that belong to it. Fire-and-forget; the
-      // dialog has already confirmed the writer's intent and a slow
-      // disk delete shouldn't block the UI.
-      useStudioStore().clearProjectAudio(id);
       this._writeRegistry(this._projects.filter((p) => p.id !== id));
       if (id === this._activeId) {
         // Move to another project, or seed a blank one if none remain.

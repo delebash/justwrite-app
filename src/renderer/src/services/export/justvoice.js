@@ -58,28 +58,9 @@ function voiceHint(c) {
   return bits.length ? bits.join(", ") : null;
 }
 
-/** Lines for one chapter from a stored Script analysis. */
-function linesFromScript(scriptLines) {
-  const lines = [];
-  for (const l of scriptLines || []) {
-    if (l.kind === "scene") {
-      // Scene marker → audible beat on the line before it.
-      if (lines.length) lines[lines.length - 1].pause_after_ms = SCENE_BREAK_PAUSE_MS;
-      continue;
-    }
-    const text = (l.text || "").trim();
-    if (!text) continue;
-    lines.push({
-      character_id: l.speaker || "narrator",
-      text,
-      delivery: null,
-      pause_after_ms: null,
-    });
-  }
-  return lines;
-}
-
-/** Fallback lines from the normalized manuscript blocks (no script yet). */
+/** Lines from the normalized manuscript blocks — every paragraph is a
+ * narrator line, scene breaks become pauses. (JustWrite is writing-only;
+ * JustVoice runs its own speaker analysis + casting on import.) */
 function linesFromManuscriptBlocks(blocks) {
   const lines = [];
   for (const b of blocks || []) {
@@ -98,36 +79,22 @@ function linesFromManuscriptBlocks(blocks) {
 }
 
 /**
- * Build the justwrite/v1 document from the project + studio stores.
- * Pure — no network, no store mutation.
+ * Build the justwrite/v1 document from the project store.
+ * Pure — no network, no store mutation. Chapters travel as narrator prose;
+ * JustVoice does its own speaker attribution + casting on import.
  */
-export function buildJustVoiceDoc(project, studio) {
+export function buildJustVoiceDoc(project) {
   const manuscript = buildManuscript(project);
   const blocksByChapter = {};
   for (const part of manuscript.parts) {
     for (const ch of part.chapters) blocksByChapter[ch.id] = ch.blocks;
   }
 
-  const chapters = project.allChapters.map((c) => {
-    const script = studio.scripts[c.id];
-    const lines = script?.length
-      ? linesFromScript(script)
-      : linesFromManuscriptBlocks(blocksByChapter[c.id]);
-    return { id: c.id, title: c.title || null, lines };
-  });
-
-  // Speakers referenced by scripts that aren't in the roster (deleted
-  // characters, ad-hoc ids) would import as cast-less lines; surface
-  // them so JustVoice still gets a persona to bind.
-  const rosterIds = new Set(project.characters.map((c) => c.id));
-  const strayIds = new Set();
-  for (const ch of chapters) {
-    for (const l of ch.lines) {
-      if (l.character_id && l.character_id !== "narrator" && !rosterIds.has(l.character_id)) {
-        strayIds.add(l.character_id);
-      }
-    }
-  }
+  const chapters = project.allChapters.map((c) => ({
+    id: c.id,
+    title: c.title || null,
+    lines: linesFromManuscriptBlocks(blocksByChapter[c.id]),
+  }));
 
   const characters = [
     { id: "narrator", name: "Narrator", voice_hint: null, notes: "Narration voice for unattributed prose." },
@@ -137,7 +104,6 @@ export function buildJustVoiceDoc(project, studio) {
       voice_hint: voiceHint(c),
       notes: c.oneLiner || null,
     })),
-    ...[...strayIds].map((id) => ({ id, name: id, voice_hint: null, notes: "Speaker referenced by a script but missing from the roster." })),
   ];
 
   return {

@@ -2,7 +2,6 @@
 import { ref, computed, watch, watchEffect } from "vue";
 import { useAiStore } from "../stores/ai.js";
 import { useProjectStore } from "../stores/project.js";
-import { useStudioStore } from "../stores/studio.js";
 import { useUiStore } from "../stores/ui.js";
 import { saveImage, urlFor, hasNativeImages } from "../services/imageStore.js";
 import { promptDialog, confirmDialog } from "../services/dialog.js";
@@ -16,7 +15,6 @@ import SettingsProviderForm from "./SettingsProviderForm.vue";
 import QuickSetup from "../components/QuickSetup.vue";
 import HardwarePresetsCard from "../components/HardwarePresetsCard.vue";
 import StatPill from "../components/StatPill.vue";
-import RenderPresetsCard from "../components/RenderPresetsCard.vue";
 import Combobox from "../components/Combobox.vue";
 import JwInput from "@renderer/components/ui/JwInput.vue";
 import JwTextarea from "@renderer/components/ui/JwTextarea.vue";
@@ -44,22 +42,7 @@ const props = defineProps({ section: { type: String, default: "" } });
 
 const ai = useAiStore();
 const project = useProjectStore();
-const studio = useStudioStore();
 const ui = useUiStore();
-
-async function confirmClearSpeakerCorrections() {
-  const n = studio.corrections?.length || 0;
-  if (!n) return;
-  const yes = await confirmDialog({
-    title: `Clear ${n} speaker correction${n === 1 ? "" : "s"}?`,
-    body: "Future Re-analyze runs will stop using your past speaker overrides as worked examples. Existing scripts (and the lines you've already fixed) are not touched — only the learning memory is wiped.",
-    confirmLabel: "Clear corrections",
-    danger: true,
-  });
-  if (!yes) return;
-  studio.clearCorrections();
-  pushToast({ message: `Cleared ${n} speaker correction${n === 1 ? "" : "s"}.` });
-}
 
 // ── Voice canon ────────────────────────────────────────────────────
 // Chapter picker for the writer's voice canon. Selected chapters
@@ -109,74 +92,8 @@ const AI_FEATURES = [
   { key: "relationshipArc", label: "Relationship arc", hint: "Chapter-by-chapter warmth / tension / power tracking for a pair of characters." },
   { key: "marketingPack",   label: "Marketing pack",   hint: "Logline, back-cover blurbs, synopsis, and elevator pitch for querying and pitching." },
   { key: "multiReader",     label: "Multi-reader panel", hint: "Four distinct reader personas (genre reader / literary critic / agent intern / book-club reader) react to a chapter in parallel." },
-  { key: "smartCast",       label: "Audio Studio · Smart-assign", hint: "Audio Studio → Cast tab. Matches each character to a TTS voice based on role and tone." },
-  { key: "speakerAnalysis", label: "Audio Studio · Speaker analysis", hint: "Audio Studio → Script tab. Tags each paragraph with its speaker (narrator vs character) for the audiobook render." },
 ];
 const INHERIT = "__inherit__";
-
-// Per-feature production configs are managed through Speaker Lab (and,
-// eventually, Smart-Assign Lab). Each feature has a list of saved named
-// configs + an active pointer in the ai store. Default (= tier-resolved
-// built-ins) is implicit, represented by activeConfig[key] === null.
-// This list is just the Settings card metadata — the lab UI is the
-// authoritative editing surface; Settings shows what's active and lets
-// you switch without leaving.
-const PROMOTABLE_FEATURES = [
-  {
-    key: "speakerAnalysis",
-    label: "Audio Studio · Speaker analysis",
-    labPath: "/speaker-lab",
-    labLabel: "Speaker Lab",
-    labReady: true,
-  },
-  {
-    key: "smartCast",
-    label: "Audio Studio · Smart-assign",
-    labPath: "/speaker-lab",       // placeholder until Smart-Assign Lab ships
-    labLabel: "Smart-Assign Lab",
-    labReady: false,
-  },
-];
-
-// Each feature has one "production-ready" mode (e.g. speakerAnalysis →
-// inline, smartCast → cast). The active production preset lives in
-// that mode's preset list inside ai.labPresets.
-const PRODUCTION_MODE_OF = { speakerAnalysis: "inline", smartCast: "cast" };
-
-function activeConfigName(key) {
-  return ai.activeProduction?.[key] || "Default";
-}
-function activeConfigEntry(key) {
-  const name = ai.activeProduction?.[key];
-  if (!name) return null;
-  const modeKey = PRODUCTION_MODE_OF[key];
-  const list = ai.labPresets?.[key]?.[modeKey] || [];
-  return list.find((c) => c.name === name) || null;
-}
-function configOptionsFor(key) {
-  const opts = [{ value: "Default", label: "Default (tier-resolved)" }];
-  const modeKey = PRODUCTION_MODE_OF[key];
-  for (const c of ai.labPresets?.[key]?.[modeKey] || []) {
-    opts.push({ value: c.name, label: c.name });
-  }
-  return opts;
-}
-function setActiveConfigByPickerValue(key, value) {
-  ai.setActiveProduction(key, value === "Default" ? null : value);
-}
-function truncatePrompt(s, n = 140) {
-  const v = String(s || "").trim();
-  return v.length > n ? v.slice(0, n) + "…" : v;
-}
-function fmtAgo(ts) {
-  if (!ts) return "";
-  const m = Math.floor((Date.now() - ts) / 60000);
-  if (m < 1) return "just now";
-  if (m < 60) return `${m}m ago`;
-  const h = Math.floor(m / 60);
-  if (h < 24) return `${h}h ago`;
-  return `${Math.floor(h / 24)}d ago`;
-}
 
 // Provider select options — "Inherit default" plus every configured
 // provider. The model column only enables once a specific provider is
@@ -1643,120 +1560,6 @@ const recentColumns = [
               </span>
             </span>
           </label>
-        </div>
-
-        <!-- Production prompt configs. Each feature has a list of saved
-             named configs + an active pointer. "Default" is the built-in
-             tier-resolved entry, always available. The active config is
-             what services actually use; switching it here takes effect
-             immediately. Saving new configs is done in the lab. -->
-        <div class="card">
-          <div class="card-title">Production prompt configs</div>
-          <p class="t-muted" style="font-size:12.5px;margin:0 0 14px;line-height:1.55">
-            Each AI feature has a list of named production configs and a single <strong>active</strong>
-            one. The active config is what production calls actually run against. <strong>Default</strong>
-            is the built-in entry — it uses the tier-resolved prompts and settings for whatever model
-            the feature is routed to. Switch active here, or open the feature's Lab to tune and save
-            new configs.
-          </p>
-          <div style="display:flex;flex-direction:column;gap:10px">
-            <div v-for="f in PROMOTABLE_FEATURES" :key="f.key"
-                 style="padding:12px 14px;border:1px solid var(--border-soft);border-radius:8px;background:var(--surface)">
-              <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap">
-                <div style="flex:1;min-width:140px">
-                  <div style="font-weight:600;font-size:13px;color:var(--ink)">{{ f.label }}</div>
-                  <div class="t-muted" style="font-size:11px;margin-top:2px">
-                    Active: <b style="color:var(--accent-ink)">{{ activeConfigName(f.key) }}</b>
-                    <span v-if="activeConfigEntry(f.key)?.source">
-                      · from {{ activeConfigEntry(f.key).source }}
-                    </span>
-                    <span v-if="activeConfigEntry(f.key)?.savedAt">
-                      · saved {{ fmtAgo(activeConfigEntry(f.key).savedAt) }}
-                    </span>
-                  </div>
-                </div>
-                <JwSelect
-                  :model-value="activeConfigName(f.key)"
-                  @update:model-value="(v) => setActiveConfigByPickerValue(f.key, v)"
-                  :options="configOptionsFor(f.key)"
-                  style="min-width:200px"
-                  v-tooltip.bottom="'Switch which config powers production calls. Default falls back to tier-resolved built-ins.'" />
-                <router-link :to="f.labPath" custom v-slot="{ navigate }">
-                  <JwButton intent="ghost" size="small" @click="navigate"
-                            v-tooltip.bottom="f.labReady ? `Open ${f.labLabel} to tune and save new configs` : `${f.labLabel} is on the roadmap — no UI to manage smartCast configs yet`">
-                    <Icon name="Sparkle" :size="11" /> {{ f.labReady ? "Manage in " + f.labLabel : "Lab coming soon" }}
-                  </JwButton>
-                </router-link>
-              </div>
-              <!-- Preview: show what the active config will run with.
-                   Default has no settings stored — make that explicit
-                   instead of rendering an empty grid. -->
-              <div v-if="!activeConfigEntry(f.key)"
-                   style="margin-top:10px;padding:10px 14px;border-top:1px solid var(--border-soft);font-size:11.5px;color:var(--muted);font-style:italic">
-                Default · uses the tier-resolved prompts and settings for whichever model the feature is routed to. No fixed values to display.
-              </div>
-              <div v-else
-                   style="margin-top:10px;padding-top:10px;border-top:1px solid var(--border-soft);display:grid;grid-template-columns:130px 1fr;gap:6px 12px;font-size:11.5px;line-height:1.5">
-                <template v-if="activeConfigEntry(f.key).settings?.temperature !== undefined">
-                  <span class="t-muted">temperature</span>
-                  <code style="font-family:var(--font-mono)">{{ activeConfigEntry(f.key).settings.temperature }}</code>
-                </template>
-                <template v-if="activeConfigEntry(f.key).settings?.propagate !== undefined">
-                  <span class="t-muted">anchor propagation</span>
-                  <code style="font-family:var(--font-mono)">{{ activeConfigEntry(f.key).settings.propagate ? "on" : "off" }}</code>
-                </template>
-                <template v-if="activeConfigEntry(f.key).settings?.useFloor !== undefined">
-                  <span class="t-muted">confidence floor</span>
-                  <code style="font-family:var(--font-mono)">{{ activeConfigEntry(f.key).settings.useFloor ? activeConfigEntry(f.key).settings.confidenceFloor : "off" }}</code>
-                </template>
-                <template v-if="activeConfigEntry(f.key).settings?.think !== undefined">
-                  <span class="t-muted">think (Ollama)</span>
-                  <code style="font-family:var(--font-mono)">{{ activeConfigEntry(f.key).settings.think ? "on" : "off" }}</code>
-                </template>
-                <template v-if="activeConfigEntry(f.key).settings?.systemPrompt">
-                  <span class="t-muted">system</span>
-                  <code style="font-family:var(--font-mono);color:var(--ink-2);white-space:pre-wrap;word-break:break-word">{{ truncatePrompt(activeConfigEntry(f.key).settings.systemPrompt) }}</code>
-                </template>
-                <template v-if="activeConfigEntry(f.key).settings?.userTemplate">
-                  <span class="t-muted">user</span>
-                  <code style="font-family:var(--font-mono);color:var(--ink-2);white-space:pre-wrap;word-break:break-word">{{ truncatePrompt(activeConfigEntry(f.key).settings.userTemplate) }}</code>
-                </template>
-              </div>
-            </div>
-          </div>
-        </div>
-
-        <!-- ─── Audio Studio ────────────────────────────────── -->
-        <div class="t-eyebrow" style="margin-top:6px">Audio Studio</div>
-
-        <RenderPresetsCard />
-
-        <!-- Audio Studio · Speaker corrections — per-project memory of dialogue-line
-             overrides the writer made in Audio Studio's Script tab. Fed back into
-             Re-analyze as worked examples. This card surfaces the count and
-             lets the writer wipe it (e.g. after a major character rename or
-             POV change that invalidates old examples). -->
-        <div class="card">
-          <div style="display:flex;align-items:flex-start;gap:14px">
-            <div style="flex:1;min-width:0">
-              <div class="card-title" style="margin-bottom:6px">Audio Studio · Speaker corrections</div>
-              <p class="t-muted" style="font-size:12.5px;margin:0;line-height:1.55">
-                Every time you fix a dialogue speaker in Audio Studio → Script, the line and the correct
-                character are remembered. The 12 most recent are sent as worked examples on the next
-                Re-analyze so the AI stops repeating the same mistakes. Clearing wipes the memory only —
-                existing scripts and the lines you've already fixed are untouched.
-              </p>
-            </div>
-            <div style="display:flex;flex-direction:column;align-items:flex-end;gap:8px;flex-shrink:0">
-              <div style="font-family:var(--font-mono);font-size:11px;color:var(--muted);text-transform:uppercase;letter-spacing:0.08em">stored</div>
-              <div style="font-size:22px;font-weight:600;color:var(--ink);line-height:1">{{ studio.corrections?.length || 0 }}</div>
-              <JwButton intent="danger" size="small"
-                        :disabled="!(studio.corrections?.length)"
-                        @click="confirmClearSpeakerCorrections">
-                <Icon name="Trash" :size="11" /> Clear corrections
-              </JwButton>
-            </div>
-          </div>
         </div>
 
         <!-- Voice canon — chapters that represent the writer's established

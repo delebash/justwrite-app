@@ -2,14 +2,13 @@
 import { computed, ref } from "vue";
 import { useRouter } from "vue-router";
 import { useProjectStore } from "../stores/project.js";
-import { useStudioStore } from "../stores/studio.js";
 import { useSessionsStore } from "../stores/sessions.js";
 import PaneHeader from "../components/PaneHeader.vue";
 import Icon from "../components/Icon.vue";
 import StatPill from "../components/StatPill.vue";
 import {
   statusCounts, strandDistribution, characterPresence,
-  scenesPerChapter, projectKpis, paceSeries, dialogueMix,
+  scenesPerChapter, projectKpis, paceSeries,
 } from "../services/analysis.js";
 import { bookMetrics, POV_LABELS } from "../services/analysis/styleMetrics.js";
 import { computeVoiceDrift, explainVoiceDrift } from "../services/analysis/voiceDrift.js";
@@ -28,7 +27,6 @@ import JwSegmented from "@renderer/components/ui/JwSegmented.vue";
 import JwButton from "@renderer/components/ui/JwButton.vue";
 
 const project = useProjectStore();
-const studio = useStudioStore();
 const sessions = useSessionsStore();
 const router = useRouter();
 
@@ -36,17 +34,10 @@ const allCh = computed(() => project.allChapters);
 const kpis = computed(() => projectKpis(project, allCh.value));
 const status = computed(() => statusCounts(allCh.value));
 const strands = computed(() => strandDistribution(project.strands, allCh.value));
-const presence = computed(() => characterPresence(project.characters, project.characterExtras, allCh.value, project.chapterBody, studio.speakersByChapter));
+// Character presence derives from the prose (chapterBody name-matching) now
+// that Audio Studio speaker analysis is gone.
+const presence = computed(() => characterPresence(project.characters, project.characterExtras, allCh.value, project.chapterBody));
 const scenes = computed(() => scenesPerChapter(allCh.value));
-const dialogue = computed(() => dialogueMix(studio.scripts, allCh.value));
-
-// Mix segments — fixed order + colors, shared by the overall bar, the
-// legend, and the per-chapter rows.
-const MIX_KINDS = [
-  { k: "dialogue",  label: "Dialogue",  color: "oklch(0.64 0.14 255)" },
-  { k: "narration", label: "Narration", color: "oklch(0.70 0.10 155)" },
-  { k: "interior",  label: "Interior",  color: "oklch(0.74 0.12 70)" },
-];
 const pct = (n, total) => (total ? (n / total) * 100 : 0);
 
 // Pace — driven by the session log. Empty until the user writes
@@ -973,46 +964,6 @@ const milestoneState = computed(() => {
             :title="`${row.character.name} · Ch. ${cell.chapter.num} — ${cell.chapter.title}${cell.mentions ? ` · ${cell.mentions} mentions` : ''}`"
             @click="jumpChapter(cell.chapter.id)" />
         </div>
-      </div>
-    </div>
-
-    <!-- Dialogue vs narration -->
-    <div class="card" style="margin-bottom:18px">
-      <div style="display:flex;align-items:center;gap:10px;margin-bottom:6px">
-        <div class="card-title" style="margin:0">Dialogue vs narration</div>
-        <span class="t-muted" style="font-size:11.5px">By word count, from Audio Studio script analysis</span>
-        <span v-if="dialogue.analyzed" style="margin-left:auto;font-size:11.5px;color:var(--muted)">
-          {{ dialogue.overallDialoguePct }}% dialogue · {{ dialogue.analyzed }} ch analyzed
-        </span>
-      </div>
-
-      <template v-if="dialogue.analyzed">
-        <div class="mix-bar mix-bar-lg">
-          <div v-for="m in MIX_KINDS" :key="m.k" class="mix-seg"
-            :style="`width:${pct(dialogue.totals[m.k], dialogue.totals.total)}%;background:${m.color}`"
-            :title="`${m.label}: ${dialogue.totals[m.k].toLocaleString()} words`" />
-        </div>
-        <div style="display:flex;gap:16px;margin-top:8px;font-size:11.5px;color:var(--muted)">
-          <span v-for="m in MIX_KINDS" :key="m.k" style="display:inline-flex;align-items:center;gap:6px">
-            <span :style="`width:10px;height:10px;border-radius:2px;background:${m.color}`" />
-            {{ m.label }} · {{ Math.round(pct(dialogue.totals[m.k], dialogue.totals.total)) }}%
-          </span>
-        </div>
-
-        <div style="margin-top:14px;display:flex;flex-direction:column;gap:7px">
-          <button v-for="row in dialogue.perChapter" :key="row.id" type="button" class="mix-row" @click="jumpChapter(row.id)">
-            <span class="name">{{ row.num }}. {{ row.title }}</span>
-            <div class="mix-bar">
-              <div v-for="m in MIX_KINDS" :key="m.k" class="mix-seg"
-                :style="`width:${pct(row[m.k], row.total)}%;background:${m.color}`"
-                :title="`${m.label}: ${row[m.k].toLocaleString()} words`" />
-            </div>
-            <span class="val">{{ row.dialoguePct }}%</span>
-          </button>
-        </div>
-      </template>
-      <div v-else class="t-muted" style="font-size:12.5px;text-align:center;padding:22px 0;background:var(--surface-2);border-radius:8px">
-        No script analysis yet. Run <b>Audio Studio → Script</b> on a chapter to break down dialogue, narration, and interior.
       </div>
     </div>
 
