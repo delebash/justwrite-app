@@ -6,8 +6,8 @@ import { defineStore } from "pinia";
 import { DEFAULT_PROVIDERS } from "../domain/seed.js";
 import { OpenAICompatClient } from "../services/openai-compat.js";
 import { getModelTier, TIERS } from "../services/modelMeta.js";
-import { getItem, setItem } from "../services/storage.js";
 import { readSetting, writeSetting } from "../services/settings.js";
+import { getUsage, postUsage, clearUsage as clearUsageApi } from "../services/usageApi.js";
 import * as providerBackend from "../services/providerBackend.js";
 
 // JustWrite is writing-only — every provider is an LLM/embedding endpoint
@@ -17,12 +17,9 @@ function pingClientFor(provider) {
   return new OpenAICompatClient(provider);
 }
 
-// AI preferences live in the `ai` settings section; the usage ledger still has
-// its own kv key (its own migration slice).
-const LS_USAGE_KEY = "justwrite:ai:usage";
-
-// In-memory cap on the usage log so a long session can't unbounded-bloat
-// IDB. The oldest rows are trimmed; aggregate totals are kept separately.
+// In-memory cap on the displayed usage log so a long session doesn't grow the
+// reactive list unbounded. The server keeps every row and computes lifetime
+// totals, so trimming the in-memory list never loses cost history.
 const USAGE_LOG_LIMIT = 1000;
 
 // Per-1M-token pricing for known cloud models. Local providers (Ollama,
@@ -63,23 +60,6 @@ function priceFor(modelId) {
     if (id.startsWith(key)) return p;
   }
   return null;
-}
-
-function loadUsage() {
-  try {
-    const v = JSON.parse(getItem(LS_USAGE_KEY) || "null");
-    if (!v || typeof v !== "object") return null;
-    return {
-      log: Array.isArray(v.log) ? v.log : [],
-      totals: v.totals && typeof v.totals === "object" ? v.totals : null,
-    };
-  } catch { return null; }
-}
-
-function saveUsage(log, totals) {
-  try {
-    setItem(LS_USAGE_KEY, JSON.stringify({ log, totals }));
-  } catch {}
 }
 
 function emptyTotals() {
@@ -146,7 +126,6 @@ function save(state) {
 export const useAiStore = defineStore("ai", {
   state: () => {
     const loaded = load();
-    const usage = loadUsage();
     return {
       providers: initialProviders(),
       defaultLlmId: loaded?.defaultLlmId ?? "openai-compat-local",
@@ -173,12 +152,12 @@ export const useAiStore = defineStore("ai", {
       // burns embed tokens on every save against a cloud provider, which
       // the user shouldn't get without opting in.
       autoRebuildRagIndex: loaded?.autoRebuildRagIndex ?? false,
-      // Usage ledger — every LLM call routed through writerAI (and any
-      // future feature that uses recordUsage) appends a row. Aggregates
-      // are maintained alongside so a settings page can render totals
-      // without rewalking the log on every open.
-      usageLog: usage?.log || [],
-      usageTotals: usage?.totals || emptyTotals(),
+      // Usage ledger — hydrated on demand from /v1/llm-usage (Settings → Usage).
+      // recordUsage appends locally for live display and POSTs to the server,
+      // which owns the full history and computes lifetime totals.
+      usageLog: [],
+      usageTotals: emptyTotals(),
+      _usageHydrated: false,
     };
   },
 
@@ -404,14 +383,32 @@ export const useAiStore = defineStore("ai", {
       bumpKey(totals.byFeature, row.feature, row);
       bumpKey(totals.byProvider, row.providerId, row);
       this.usageTotals = totals;
-      saveUsage(this.usageLog, this.usageTotals);
+      // Persist to the server (the authoritative store); local state above is
+      // the live-display copy. The row shape matches the /v1/llm-usage body.
+      postUsage(row);
       return row;
+    },
+
+    // Pull the recent ledger + lifetime totals from the server. Called on demand
+    // (Settings → Usage) so the cost page reflects the full history, not just
+    // this session's recorded calls. Idempotent within a session.
+    async hydrateUsage() {
+      if (this._usageHydrated) return;
+      this._usageHydrated = true;
+      try {
+        const { log, totals } = await getUsage();
+        this.usageLog = Array.isArray(log) ? log : [];
+        this.usageTotals = totals && typeof totals === "object" ? totals : emptyTotals();
+      } catch (err) {
+        this._usageHydrated = false;  // allow a retry on next open
+        console.error("ai.hydrateUsage failed:", err);
+      }
     },
 
     clearUsage() {
       this.usageLog = [];
       this.usageTotals = emptyTotals();
-      saveUsage(this.usageLog, this.usageTotals);
+      clearUsageApi();
     },
   },
 });

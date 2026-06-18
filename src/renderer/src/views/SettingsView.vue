@@ -484,6 +484,11 @@ watchEffect(() => {
   if (active.value === "backups") {
     lastAutosaveAt.value = getItem("justwrite:lastAutosaveAt") || null;
   }
+  // Lazily hydrate the usage ledger from the server the first time the Usage
+  // tab is opened (it's not fetched at boot — most sessions never view it).
+  if (active.value === "usage") {
+    ai.hydrateUsage();
+  }
 });
 
 function safeFilename(title) {

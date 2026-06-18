@@ -26,7 +26,7 @@ normalized tables.
 
 from __future__ import annotations
 
-from sqlalchemy import Boolean, Column, ForeignKey, Integer, LargeBinary, String, Text
+from sqlalchemy import Boolean, Column, Float, ForeignKey, Integer, LargeBinary, String, Text
 from sqlalchemy.orm import declarative_base
 
 Base = declarative_base()
@@ -503,6 +503,25 @@ class LlmProvider(Base):
     built_in = Column(Boolean, nullable=False, default=False)
     position = Column(Integer, nullable=False, default=0)
     data = Column(Text, nullable=False, default="{}")  # the full provider object
+
+
+class LlmUsage(Base):
+    """One recorded LLM call — the cost/token ledger behind Settings → Usage.
+    Replaces the renderer's `justwrite:ai:usage` kv blob. Lifetime totals are
+    computed from these rows with SQL aggregates, so trimming the displayed log
+    never loses cost history the way the old in-memory 1000-row cap did."""
+
+    __tablename__ = "llm_usage"
+
+    id = Column(String, primary_key=True)
+    at = Column(Integer, nullable=False, default=0)             # epoch ms
+    feature = Column(String, nullable=False, default="unknown")
+    provider_id = Column(String, nullable=True)
+    model = Column(String, nullable=True)
+    prompt_tokens = Column(Integer, nullable=False, default=0)
+    completion_tokens = Column(Integer, nullable=False, default=0)
+    cost = Column(Float, nullable=False, default=0.0)
+    meta = Column(Text, nullable=False, default="{}")           # JSON
 
 
 # ── Sessions (writing-activity log) ─────────────────────────────────────

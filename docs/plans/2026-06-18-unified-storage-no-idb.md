@@ -101,8 +101,15 @@ Full remaining queue to reach **zero kv**:
   Removed loadHistory/saveHistory, `_scheduleHistoryPersist`, the persist
   constants, and the now-vestigial `scenesMigrationRan` flag (it existed only to
   discard a stale persisted tail).
-- **usage ledger**: `justwrite:ai:usage` → its own table (a capped log + totals,
-  like sessions). Left on kv by slice 3 deliberately.
+- **usage ledger** ✓ (slice 6): `justwrite:ai:usage` → `llm_usage` table +
+  `/v1/llm-usage` (GET recent log + SQL-computed lifetime totals, POST a row,
+  DELETE all). Totals are computed from the rows (overall + GROUP BY feature/
+  provider), so trimming the displayed log never loses cost history — the old
+  side-totals object existed only because its in-memory log was capped at 1000.
+  `services/usageApi.js`; the ai store hydrates **lazily** when Settings → Usage
+  opens (not at boot — most sessions never view it), records via local-append +
+  fire-and-forget POST, clears via DELETE. This removed the last `storage.js`
+  import from `ai.js`.
 - **version history**: `justwrite:versions` → its own project-scoped table.
 - **model-list cache**: `justwrite:modelList` → drop persistence (re-fetchable
   cache; keep in memory only) — not worth a table.
