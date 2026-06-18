@@ -16,7 +16,7 @@ npm run dev:vite       # Renderer only, in a plain browser tab (no Tauri APIs �
 npm run build:vite     # Renderer build only (Tauri invokes this via `beforeBuildCommand`)
 ```
 
-No test runner, linter, or formatter is configured. Don't invent a `npm test` script.
+Configured tooling (an earlier note here wrongly claimed "none" — verify against `package.json`, don't trust this line blindly): **Biome** (`biome.json` — lint + format; match the file's existing style, don't bulk-reformat unrelated code), an **`e2e/`** WebDriver harness (`tauri-driver` + `msedgedriver` driving the **built desktop binary** — `npm test` runs the smoke suite, `npm run screenshots` the marketing shots; both need a compiled `.exe` + Edge/WebView2, so it is **not** a headless or quick dev gate), and `playwright` as a dependency. There is no lightweight renderer unit-test runner, so for renderer/Rust changes the practical bar stays `npm run build` + `cd src-tauri && cargo check`. The Python **`server/`** (server-mode migration — see `docs/plans/2026-06-18-jw-server-migration.md`) uses **pytest + ruff**.
 
 The Rust crate is built by the Tauri CLI; Vite never sees it. The renderer dev server is fixed at `http://localhost:1420` and `tauri.conf.json` references that URL — keep them in lock-step.
 
