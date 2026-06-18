@@ -11,7 +11,24 @@
   /studio + /speaker-lab routes + the SettingsView audio sections removed.
   build:vite clean; book-smoke + 25-route sweep pass, zero JS errors; all
   TTS-backend probes gone.
-- **A — TTS provider config plumbing: REMAINING.** The provider *list* still
+- **A — TTS provider list + Settings UI + nav: DONE + verified** (commits
+  `8c054c9`, `f321848`). Seed `DEFAULT_PROVIDERS` is LLM/embedding-only; dead
+  seed exports removed; SettingsView TTS UI (Voicebox card + lifecycle, default-
+  TTS dropdown, voice-gender, render-preset/speaker-correction/production-config
+  sections, Chatterbox/Dia/Edge notes) removed; Sidebar Audio/Speaker-Lab + the
+  CommandPalette Studio command removed. build:vite clean; 25-route sweep zero
+  JS errors. **All user-visible audio is gone.**
+- **A — provider-EDITOR de-TTS + internal dead code: REMAINING.** Coupled chunk:
+  `SettingsProviderForm` (TTS model/voice/engine-params/test fields + the
+  kind=tts/both selector — ~100 refs), the TTS half of `openai-compat.js`
+  (`speech`/`voices`/`*SetModel`/`*ModelInfo`/`is*`/`*_MODELS`/`*_KNOBS` — now
+  dead), `domain/providerParams.js` TTS knobs, the `ai` store TTS getters
+  (`ttsProviders`/`defaultTtsId`/`setDefaultTts`/`useLlmVoiceGender`), and
+  `ProviderSelect`'s `kind==="tts"` branch. Best done as one pass with the
+  provider-edit form **driven** (the route-sweep doesn't open it), so not rushed
+  blind here. App is coherent + working with them present (a custom provider can
+  still be typed as TTS; the fields are just unused).
+- **A — (superseded note) TTS provider config plumbing: REMAINING.** The provider *list* still
   carries TTS entries (seed `DEFAULT_PROVIDERS`) and the config UI still has TTS
   surfaces, woven through `SettingsView`, `SettingsProviderForm`,
   `ProviderSelect`, `domain/providerParams.js`, the `ai` store TTS getters
