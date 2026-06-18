@@ -4,6 +4,18 @@
 `docs/plans/2026-06-18-cross-app-runner-and-jw-backend-decision.md`
 (spans both apps). This is the JW-facing summary.
 
+> **⚠️ AMENDED 2026-06-18 (later) — JW moves to SERVER mode (full symmetry).**
+> The deferral below is LIFTED. JW becomes **Tauri + Vue + FastAPI + SQLite**
+> like JV. Trigger: manuscripts will grow large — RAG vectors + the
+> whole-snapshot IndexedDB persistence ceiling + queryable data
+> (notes/worldbuilding/story-bible) + Android-readiness. Changes: runner
+> imported **in-process** (no lazy sidecar); data **IndexedDB → SQLite**;
+> RAG → server-side SQLite vector store (e.g. `sqlite-vec`); `llm-ui` adapter
+> flips Pinia → REST; camelCase wire; reuse JV's sidecar spawn/health/
+> supervise pattern. Keep interactive state (editor, undo stack) client-side,
+> SQLite as the durable layer. Large multi-phase migration — its own plan;
+> not started. The "stays client-side" text below is retained as history.
+
 ## What this means for JustWrite
 
 - **JW stays a client-side app for now.** No external API consumers, so
