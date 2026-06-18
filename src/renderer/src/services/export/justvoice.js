@@ -27,23 +27,18 @@
 // one Block per line, so the book arrives fully cast-ready.
 // ============================================================
 
+import { readSetting, writeSetting } from "../settings.js";
 import { buildManuscript } from "./manuscript.js";
 
 export const DEFAULT_JUSTVOICE_URL = "http://127.0.0.1:17494";
-const URL_STORAGE_KEY = "jw.justvoice.url";
 
 export function loadJustVoiceUrl() {
-  try {
-    return localStorage.getItem(URL_STORAGE_KEY) || DEFAULT_JUSTVOICE_URL;
-  } catch {
-    return DEFAULT_JUSTVOICE_URL;
-  }
+  const url = readSetting("justvoiceUrl");
+  return typeof url === "string" && url ? url : DEFAULT_JUSTVOICE_URL;
 }
 
 export function saveJustVoiceUrl(url) {
-  try {
-    localStorage.setItem(URL_STORAGE_KEY, url || DEFAULT_JUSTVOICE_URL);
-  } catch { /* storage unavailable — non-fatal */ }
+  writeSetting("justvoiceUrl", url || DEFAULT_JUSTVOICE_URL);
 }
 
 // Pause used where a scene break / scene marker sat between lines.

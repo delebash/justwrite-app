@@ -118,10 +118,16 @@ Full remaining queue to reach **zero kv**:
   list), and the VersionHistoryModal calls `ensureLoaded()` on open. Save/delete/
   restore-undo became async (await ensureLoaded) so a command-palette save
   without the modal open can't wipe a chapter's existing versions.
-- **model-list cache**: `justwrite:modelList` → drop persistence (re-fetchable
-  cache; keep in memory only) — not worth a table.
-- **autosave/backup timestamps**: `justwrite:lastBackupAt` / `lastAutosaveAt` →
-  fold into settings (`app` section) when the backup slice lands.
+- **model-list cache** ✓ (slice 8): `justwrite:modelList` → dropped persistence;
+  `useModelList` keeps an in-memory reactive cache rebuilt per session on first
+  pick (a disposable /v1/models cache doesn't earn a SQL home).
+- **autosave/backup timestamps** ✓ (slice 9): `justwrite:lastBackupAt` /
+  `lastAutosaveAt` → `lastBackupAt` / `lastAutosaveAt` settings keys. Removed the
+  last `getItem`/`setItem` from SettingsView.
+- **JustVoice export URL** ✓ (slice 9): `services/export/justvoice.js` used real
+  `localStorage` (`jw.justvoice.url`) — moved to a `justvoiceUrl` settings key
+  (a thin client must get it from the server too). No `localStorage.*Item`
+  data use remains in the renderer.
 - **legacy** `justwrite:project` single-key: confirm dead post-P2, then delete.
 - **Reset-workspace cross-cut**: `clearPrefix("justwrite:")` only wipes kv, so
   since P2 it already leaves the `projects` table behind, and slices 1–3 added

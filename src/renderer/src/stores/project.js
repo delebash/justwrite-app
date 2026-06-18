@@ -133,7 +133,7 @@ function flushDiskAutosave() {
   const jw = typeof window !== "undefined" ? window.justwrite : null;
   if (!jw?.project?.autosave) return;
   jw.project.autosave(pending.id, pending.snap).then((res) => {
-    if (res && res.ok) setItem("justwrite:lastAutosaveAt", new Date().toISOString());
+    if (res && res.ok) writeSetting("lastAutosaveAt", new Date().toISOString());
   }).catch(() => {});
 }
 

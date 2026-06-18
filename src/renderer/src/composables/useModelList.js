@@ -3,10 +3,11 @@
 // without redundant model-list fetches when several pickers share a
 // provider.
 //
-// Persisted to IndexedDB under `justwrite:modelList` so the cache
-// survives page reloads — refetching a 200-model list every time the
-// user opens Settings is wasteful and slow against cloud APIs that
-// charge for /v1/models calls (Anthropic, OpenRouter, …).
+// In-memory only (NOT persisted). It's a cache of provider /v1/models
+// responses — re-fetchable and quick to go stale — so it's rebuilt per
+// session on first pick of each provider rather than stored. (It used to
+// live in IndexedDB under justwrite:modelList; the storage rewrite dropped
+// that rather than give a disposable cache a SQL home.)
 //
 // Cache shape: Record<providerId, ModelEntry[]> where
 //   ModelEntry = { id, quant, state, type, publisher, arch }
@@ -17,26 +18,10 @@
 import { reactive } from "vue";
 import { OpenAICompatClient } from "../services/openai-compat.js";
 import { useAiStore } from "../stores/ai.js";
-import { getItem, setItem } from "../services/storage.js";
 
-const STORAGE_KEY = "justwrite:modelList";
-
-function loadCache() {
-  try {
-    const raw = getItem(STORAGE_KEY);
-    if (!raw) return {};
-    const parsed = JSON.parse(raw);
-    return parsed && typeof parsed === "object" ? parsed : {};
-  } catch { return {}; }
-}
-
-function persist(cache) {
-  try { setItem(STORAGE_KEY, JSON.stringify(cache)); } catch {}
-}
-
-// Reactive cache hydrated from storage at module load — the storage
-// adapter's sync get() returns whatever was put in IDB during boot.
-const modelsByProvider = reactive(loadCache());
+// Reactive cache, empty at session start; populated lazily by ensureModels /
+// refreshModels and shared across all pickers.
+const modelsByProvider = reactive({});
 
 export function useModelList() {
   const ai = useAiStore();
@@ -57,14 +42,13 @@ export function useModelList() {
       // is the user's path to "this is wrong, try again."
       if (!modelsByProvider[providerId]) modelsByProvider[providerId] = [];
     }
-    persist(modelsByProvider);
   }
 
   // Fetch only when the cache is empty for this provider — the lazy
   // path used by SettingsView's auto-load and ChatPanel's on-open
   // refresh. Users still get fresh data on first pick of a new
   // provider, but switching back to a previously-fetched one is
-  // instant (and doesn't re-bill the cloud API).
+  // instant within the session.
   function ensureModels(providerId) {
     if (!providerId) return;
     const cached = modelsByProvider[providerId];

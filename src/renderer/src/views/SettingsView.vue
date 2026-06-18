@@ -5,8 +5,8 @@ import { useProjectStore } from "../stores/project.js";
 import { useUiStore } from "../stores/ui.js";
 import { saveImage, urlFor, hasNativeImages } from "../services/imageStore.js";
 import { promptDialog, confirmDialog } from "../services/dialog.js";
-import { getItem, setItem, clearPrefix, flushPending } from "../services/storage.js";
-import { clearSettings } from "../services/settings.js";
+import { clearPrefix, flushPending } from "../services/storage.js";
+import { clearSettings, readSetting, writeSetting } from "../services/settings.js";
 import { indexStatus } from "../services/rag/indexer.js";
 import { buildVoiceFingerprint } from "../services/voiceFingerprint.js";
 import { pushToast } from "../services/toastBridge.js";
@@ -464,8 +464,8 @@ const backupBusy = ref(false);
 const backupError = ref(null);
 const importMessage = ref(null);
 const importFile = ref(null);
-const lastBackupAt = ref(getItem("justwrite:lastBackupAt") || null);
-const lastAutosaveAt = ref(getItem("justwrite:lastAutosaveAt") || null);
+const lastBackupAt = ref(readSetting("lastBackupAt") || null);
+const lastAutosaveAt = ref(readSetting("lastAutosaveAt") || null);
 const autosaveDir = ref(null);
 
 // Resolve the autosave folder path so users can see where their work
@@ -482,7 +482,7 @@ const autosaveDir = ref(null);
 // doesn't see a stale "Never" right after the first autosave fires.
 watchEffect(() => {
   if (active.value === "backups") {
-    lastAutosaveAt.value = getItem("justwrite:lastAutosaveAt") || null;
+    lastAutosaveAt.value = readSetting("lastAutosaveAt") || null;
   }
   // Lazily hydrate the usage ledger from the server the first time the Usage
   // tab is opened (it's not fetched at boot — most sessions never view it).
@@ -519,7 +519,7 @@ async function exportBackup() {
       setTimeout(() => URL.revokeObjectURL(url), 1000);
     }
     const now = new Date().toISOString();
-    setItem("justwrite:lastBackupAt", now);
+    writeSetting("lastBackupAt", now);
     lastBackupAt.value = now;
     ui.showToast({ message: "Backup saved." });
   } catch (err) {
