@@ -5,8 +5,10 @@
 JW becomes **Tauri + Vue + FastAPI + SQLite**, the same shape as JustVoice.
 Trigger: manuscripts + the RAG vector index outgrow client-side storage.
 
-Status (2026-06-18): **P0–P4 DONE; P5's backend done, its shared-`llm-ui`
-adapter is UX-gated.** (Corrected after a file-by-file audit — the earlier
+Status (2026-06-18): **Migration functionally COMPLETE.** P0–P4 done; P5's
+provider endpoints + gateway + `providerBackend` adapter done; only the shared
+`llm-ui` component library (UX-gated) and the deferred optimizations (P2.5,
+sqlite-vec) remain. (Corrected after a file-by-file audit — the earlier
 "P2–P4 not started" line was stale; all had in fact been built and wired.) JustWrite runs
 **server-backed**: `justwrite:*` config rides `storage.js`→`/v1/kv`, and the
 **book itself lives in the normalized P2 tables** — the renderer's project store
@@ -75,14 +77,17 @@ not a blob. Execution log + deep audit below.
   the Tauri disk autosave kept as a one-shot local recovery mirror. (Dead: the
   Tauri `images_save` write path — `images_read`/`delete` still serve legacy
   records.)
-- **P5 — backend DONE; shared-UI part UX-gated.** Provider CRUD
-  (`/v1/llm-providers`, `api/llm_providers.py`) + the LLM gateway (`api/llm.py`,
-  `/v1/llm/{id}/…` — inference proxies through the server with the server-held
-  key) are built, wired (`providerBackend.js`, `openai-compat.js`), and tested
-  (`test_llm_providers`, `test_llm_gateway`). **Remaining:** adopt the shared
-  `llm-ui` `ProviderBackend` adapter — UI work, pause for visual direction.
-  (A full file-by-file P5 audit hasn't been done — only the gateway, wired this
-  session, is confirmed end-to-end.)
+- **P5 — DONE except the shared UI (UX-gated)** (audited file-by-file
+  2026-06-18). Provider CRUD (`/v1/llm-providers`, `api/llm_providers.py`) + the
+  LLM gateway (`api/llm.py`, `/v1/llm/{id}/…` — inference proxies through the
+  server with the server-held key) are built, wired, and tested
+  (`test_llm_providers`, `test_llm_gateway`). The renderer is repointed: the
+  `providerBackend.js` adapter (bootProviders/listProviders/saveProviders →
+  `/v1/llm-providers`) is consumed by the `ai` store (provider registry off the
+  kv blob), and `openai-compat.js` is a thin gateway client. **Remaining:** the
+  shared **`llm-ui` component library** itself — extracting JW's + JV's provider
+  UI into common components on top of the `providerBackend` seam — isn't built
+  (`llm-ui/` doesn't exist). UI work, cross-repo; pause for visual direction.
 
 **Update (2026-06-18 audit):** P2–P4 were in fact landed + wired in subsequent
 work — this status doc had lagged the code (and was re-verified file-by-file).
