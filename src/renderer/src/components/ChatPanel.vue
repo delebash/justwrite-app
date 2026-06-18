@@ -17,7 +17,7 @@ import { askManuscript } from "../services/rag/chat.js";
 import { askAsCharacter } from "../services/rag/characterChat.js";
 import { indexStatus } from "../services/rag/indexer.js";
 import { autoIndexRunning } from "../services/rag/autoIndex.js";
-import { getItem, setItem } from "../services/storage.js";
+import { fetchThread, putThread } from "../services/chatApi.js";
 import IndexBuildModal from "./IndexBuildModal.vue";
 import AiTaskStrip from "./AiTaskStrip.vue";
 import AiFeatureChip from "./AiFeatureChip.vue";
@@ -29,48 +29,33 @@ import JwTextarea from "@renderer/components/ui/JwTextarea.vue";
 import JwSelect from "@renderer/components/ui/JwSelect.vue";
 import { useModelList } from "../composables/useModelList.js";
 
-// One thread per (project, mode, character) combo. Book mode is
-// keyed without a character id (preserves the pre-character-mode key
-// shape so older threads load unchanged).
-const THREAD_KEY = (pid, mode, characterId) => {
-  if (mode === "character" && characterId) {
-    return `justwrite:rag:thread:${pid}:char:${characterId}`;
-  }
-  return `justwrite:rag:thread:${pid}`;
-};
-// Cap persisted threads at the last 30 messages — long threads waste
-// storage and the model already truncates history to MAX_HISTORY_MESSAGES.
+// One thread per (project, mode, character) combo, persisted server-side
+// (/v1/chat) so closing the panel doesn't lose context. Book mode uses an
+// empty character id.
+//
+// Cap persisted threads at the last 30 messages — long threads waste storage
+// and the model already truncates history to MAX_HISTORY_MESSAGES.
 const MAX_PERSISTED = 30;
 
-function loadThread(projectId, mode, characterId) {
+async function loadThread(projectId, mode, characterId) {
   if (!projectId) return [];
   if (mode === "character" && !characterId) return [];
   try {
-    const raw = getItem(THREAD_KEY(projectId, mode, characterId));
-    if (!raw) return [];
-    const arr = JSON.parse(raw);
-    if (!Array.isArray(arr)) return [];
-    // A pending assistant message persisted from a previous session was
-    // an aborted stream — drop the trailing user+pending pair so the
-    // restored thread doesn't show a question "in flight" forever.
-    let trimmed = [...arr];
-    while (trimmed.length && trimmed[trimmed.length - 1]?.pending) {
-      trimmed.pop();
-      if (trimmed.length && trimmed[trimmed.length - 1]?.role === "user") trimmed.pop();
-    }
-    return trimmed;
-  } catch { return []; }
+    return await fetchThread({ projectId, mode, characterId: characterId || "" });
+  } catch (err) {
+    console.error("ChatPanel.loadThread failed:", err);
+    return [];
+  }
 }
 
-function saveThread(projectId, mode, characterId, items) {
+// Persist a settled thread (replace-all). Only completed turns are stored — a
+// half-streamed assistant message (pending) is never written, so a mid-stream
+// close just restores the last settled state on reload (no "in flight" turn).
+function persistThread(projectId, mode, characterId, items) {
   if (!projectId) return;
   if (mode === "character" && !characterId) return;
-  try {
-    const trimmed = items.slice(-MAX_PERSISTED);
-    setItem(THREAD_KEY(projectId, mode, characterId), JSON.stringify(trimmed));
-  } catch (err) {
-    console.error("ChatPanel.saveThread failed:", err);
-  }
+  const messages = items.filter((m) => !m.pending).slice(-MAX_PERSISTED);
+  putThread({ projectId, mode, characterId: characterId || "", messages });
 }
 
 const props = defineProps({
@@ -160,11 +145,23 @@ const selectedCharacter = computed(
 // thread items:
 //   { role: "user",      content }
 //   { role: "assistant", content, citations: [...], pending?: bool, error?: string }
-const thread = ref(loadThread(project.activeProjectId, "book", null));
+const thread = ref([]);
 const indexModalMode = ref(null); // "build" | "rebuild" | null
 const inputRef = ref(null);
 const threadRef = ref(null);
 const panelRef = ref(null);
+
+// Thread hydration is async (a server fetch) and the user can switch
+// project/mode/character faster than a fetch resolves — a stale load must not
+// clobber a newer one. A monotonic token guards the assignment: only the most
+// recent hydrate writes to `thread`.
+let loadToken = 0;
+async function hydrateThread() {
+  const my = ++loadToken;
+  const loaded = await loadThread(project.activeProjectId, chatMode.value, selectedCharacterId.value);
+  if (my === loadToken) thread.value = loaded;
+}
+hydrateThread();
 
 const open = computed({
   get: () => props.modelValue,
@@ -212,12 +209,12 @@ refreshStatus();
 // Reset (and rehydrate) the thread whenever the active project, mode,
 // or selected character changes — each combo has its own persisted
 // thread so closing and re-opening preserves wherever the writer was.
-watch(() => project.activeProjectId, (pid) => {
-  thread.value = loadThread(pid, chatMode.value, selectedCharacterId.value);
+watch(() => project.activeProjectId, () => {
+  hydrateThread();
   refreshStatus();
 });
 watch([chatMode, selectedCharacterId], () => {
-  thread.value = loadThread(project.activeProjectId, chatMode.value, selectedCharacterId.value);
+  hydrateThread();
   question.value = "";
 });
 
@@ -236,15 +233,15 @@ watch(open, (v) => {
   if (v) nextTick(() => inputRef.value?.focus());
 });
 
-// Auto-scroll to the bottom on new content (new turns or streamed deltas)
-// and persist the thread snapshot. Saving on every keystroke of a streamed
-// delta is fine — setItem is a sync IDB-cached write, cheap at this size.
+// Auto-scroll to the bottom on new content (new turns or streamed deltas).
+// Persistence is NOT here: a streamed delta fires this on every token, and a
+// thread save is a whole-thread replace — we persist only when a turn settles
+// (see ask / newThread) so streaming doesn't hammer the server.
 watch(thread, () => {
   nextTick(() => {
     const el = threadRef.value;
     if (el) el.scrollTop = el.scrollHeight;
   });
-  saveThread(project.activeProjectId, chatMode.value, selectedCharacterId.value, thread.value);
 }, { deep: true });
 
 async function ask() {
@@ -256,6 +253,12 @@ async function ask() {
     thread.value.push({ role: "assistant", content: "", error: "Pick a character first.", pending: false });
     return;
   }
+
+  // Identity of the thread this turn belongs to — captured now so a mid-stream
+  // switch to another thread doesn't persist this turn under the wrong key.
+  const pid = project.activeProjectId;
+  const mode = chatMode.value;
+  const cid = selectedCharacterId.value;
 
   // Snapshot history (everything sent BEFORE this turn) for the API call.
   const history = thread.value
@@ -289,6 +292,13 @@ async function ask() {
   } catch (e) {
     assistantMsg.pending = false;
     if (!isAbort(e)) assistantMsg.error = e?.message || String(e);
+  } finally {
+    // Persist only if the user hasn't switched threads mid-stream — otherwise
+    // thread.value now belongs to a different thread (this turn's array is
+    // detached) and persisting it would clobber the wrong key.
+    if (pid === project.activeProjectId && mode === chatMode.value && cid === selectedCharacterId.value) {
+      persistThread(pid, mode, cid, thread.value);
+    }
   }
 }
 
@@ -296,7 +306,7 @@ function newThread() {
   thread.value = [];
   question.value = "";
   // Wipe the persisted copy too, so the empty state survives a panel close.
-  saveThread(project.activeProjectId, chatMode.value, selectedCharacterId.value, []);
+  persistThread(project.activeProjectId, chatMode.value, selectedCharacterId.value, []);
   nextTick(() => inputRef.value?.focus());
 }
 

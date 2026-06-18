@@ -427,6 +427,30 @@ class RagVector(Base):
     chunk = Column(Text, nullable=False, default="{}")   # JSON chunk metadata
 
 
+# ── Chat (manuscript-RAG threads) ───────────────────────────────────────
+
+
+class ChatMessage(Base):
+    """One turn in a manuscript-RAG chat thread. A thread is identified by
+    (project_id, mode, character_id) — `mode` ∈ book|character, character_id is
+    '' for book mode — and its turns are ordered rows by `position`. The
+    ChatPanel loads a thread on open and replaces it wholesale when a turn
+    settles, so a save is a delete-all-then-insert for that thread key. Replaces
+    the renderer's `justwrite:rag:thread:*` kv blobs; project_id FKs projects so
+    deleting a book cascades its threads away."""
+
+    __tablename__ = "chat_messages"
+
+    project_id = _fk_project()
+    mode = Column(String, primary_key=True)                       # book | character
+    character_id = Column(String, primary_key=True, default="")   # '' for book mode
+    position = Column(Integer, primary_key=True)
+    role = Column(String, nullable=False, default="user")         # user | assistant
+    content = Column(Text, nullable=False, default="")
+    citations = Column(Text, nullable=False, default="[]")        # JSON citation[]
+    error = Column(Text, nullable=True)
+
+
 # ── Images (P4) ─────────────────────────────────────────────────────────
 
 
