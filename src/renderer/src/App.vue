@@ -3,7 +3,6 @@ import { computed, onMounted, onBeforeUnmount, watchEffect, ref } from "vue";
 import { useRoute, useRouter } from "vue-router";
 import { useUiStore } from "./stores/ui.js";
 import { useProjectStore } from "./stores/project.js";
-import { useSessionsStore } from "./stores/sessions.js";
 import { applyAppearance } from "./services/appearance.js";
 import { applyEditorSettings } from "./services/editorSettings.js";
 import TitleBar from "./components/TitleBar.vue";
@@ -23,7 +22,6 @@ const route = useRoute();
 const router = useRouter();
 const ui = useUiStore();
 const project = useProjectStore();
-const sessions = useSessionsStore();
 
 const screenLabel = computed(() => String(route.name || ""));
 
@@ -105,9 +103,6 @@ onMounted(() => {
   // Capture phase so we beat default browser/Tauri accelerators (e.g.
   // Ctrl+P opening the OS print dialog before our palette can intercept).
   window.addEventListener("keydown", onKey, { capture: true });
-  // One-shot migration: roll any pre-existing daily entries older than
-  // the retention cap into the monthly archive. Idempotent.
-  sessions._archiveOldDays();
 });
 onBeforeUnmount(() => window.removeEventListener("keydown", onKey, { capture: true }));
 </script>
