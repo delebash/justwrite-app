@@ -16,6 +16,7 @@ import { serverUrl } from "./serverApi.js";
 
 const _snapshots = new Map(); // id -> snapshot object
 let _registry = [];           // [{id,title,author,savedAt}] derived from GET /v1/projects
+let _registryLoaded = false;  // did the GET /v1/projects at boot actually succeed?
 let _booted = false;
 
 const PUT_DEBOUNCE_MS = 400;
@@ -42,6 +43,7 @@ export async function bootProjects(activeId) {
     const list = await _fetchJson("/v1/projects");
     if (Array.isArray(list)) {
       _registry = list.map((p) => ({ id: p.id, title: p.title, author: p.author, savedAt: p.updatedAt }));
+      _registryLoaded = true;
     }
   } catch (err) {
     console.error("projectApi.bootProjects registry failed:", err);
@@ -64,6 +66,13 @@ export async function bootProjects(activeId) {
  *  [{ id, title, author, savedAt }], most-recently-updated first. */
 export function listRegistry() {
   return _registry.map((p) => ({ ...p }));
+}
+
+/** Whether GET /v1/projects actually succeeded at boot. False means the server
+ *  was unreachable — callers must NOT infer "project absent" from an empty
+ *  registry (it could just be a failed fetch). */
+export function isRegistryLoaded() {
+  return _registryLoaded;
 }
 
 /** Sync read from the cache (null if not loaded). */

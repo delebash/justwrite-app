@@ -1931,7 +1931,15 @@ export const useProjectStore = defineStore("project", {
     // the first edit. With the registry derived from the projects table, write
     // its row now (called once from main.js after boot) so it survives a reload.
     ensureActiveProjectPersisted() {
-      if (this._activeId && !projectApi.getSnapshot(this._activeId)) this._persist();
+      // Persist the seed ONLY when we're sure the active project has no server
+      // row yet (a brand-new mint). Gate on the server-derived registry, and
+      // only when that registry actually loaded — otherwise a failed/late book
+      // fetch (or a server-down-at-boot race) would let us PUT the seed over a
+      // real project (the snapshot is null in both cases). getSnapshot() can't
+      // tell "absent" from "fetch failed"; the registry can.
+      if (!this._activeId || !projectApi.isRegistryLoaded()) return;
+      const onServer = projectApi.listRegistry().some((p) => p.id === this._activeId);
+      if (!onServer) this._persist();
     },
     _persist() {
       const id = this._ensureActiveId();
