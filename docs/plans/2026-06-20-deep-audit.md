@@ -95,3 +95,24 @@ Mostly clean (routing, kind-driven nav filter, i18n fallback, first-run wiring a
 - 🔵 **Root listeners never removed** (`App.vue:129` mousedown, :328 visibilitychange, :333/:335 window events): acceptable for the root component (lives for the app's lifetime), but the switcher-close `mousedown` is registered at setup top-level while the rest are in `onMounted` — inconsistent; move it into `onMounted` for consistency.
 - (boot `/v1/health` fetch here is part of A6's remaining sequential dups.)
 
+
+### Batch 2 — JW `services/` LLM-text helpers, read & compared variant-by-variant
+The mechanical sweep counted these as "clones"; reading the *divergence* found a real bug.
+- 🔴 **BUG — `analysis/entityExtraction.js` `parseJsonLoose` is the lone weak variant.** 13 of 14
+  `parseJsonLoose` defs strip `<think>…</think>` and use `extractBalanced` (brace-matching);
+  entityExtraction alone strips neither and uses a greedy `match(/\{[\s\S]*\}/)`. On reasoning
+  models (deepseek-reasoner, qwen3-thinking — supported) the `{` inside `<think>` reasoning is
+  swallowed → `JSON.parse` fails → **entity extraction silently returns null** while every other
+  analysis feature works. Verified: grep of all 14 defs shows `entityExtraction = think0/balanced0/regex1`,
+  the rest `think1/balanced1`. Fix: replace with the robust shared `parseJsonLoose` (the A1 reconciliation).
+- 🟡 **`htmlToText` scene-mark inconsistency.** 4 files (`critique`, `entityExtraction`, `readerKnowledge`,
+  `threadExtraction`) strip `.ai-del`/`.ai-ins` but not `.scene-mark`; 9 others strip all three. Minor
+  (scene-break dividers are near-empty), but inconsistent prompt input across features on the same chapter.
+- ✅ **Checked, NOT bugs:** `marker-mark` is a TipTap Mark wrapping *real prose* (note lives in
+  data-attrs) → keeping its text is correct. `htmlToText`'s `.ai-del`/`.ai-ins` class selectors work
+  (`aiDiff.js:32,43` renders the class alongside the data-attr). All `.map(async)` are `Promise.all`-wrapped.
+- **Reframes A1:** the dedup is NOT a mechanical lift — it's a *reconciliation to the robust versions*
+  (`parseJsonLoose` w/ `<think>`-strip + `extractBalanced`; `htmlToText` full-strip), which FIXES the
+  entityExtraction bug + the scene-mark drift as a side effect. `htmlToText` has 9 variants, `stripHtml` 4,
+  `tailWords` 4 — each needs the canonical pick chosen deliberately, not auto-merged.
+
