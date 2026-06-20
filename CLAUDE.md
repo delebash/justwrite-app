@@ -37,7 +37,7 @@ PrimeVue has been fully removed in favor of a custom-component layer (`src/rende
 npm install            # JS deps (first run only)
 npm run dev            # Tauri dev — boots Vite + native window. First run compiles the Rust crate (slow); subsequent runs are fast.
 npm run build          # Packaged app for the current OS
-npm run dev:vite       # Renderer only, in a plain browser tab (no Tauri APIs — falls back to IndexedDB / data-URLs)
+npm run dev:vite       # Renderer only, in a plain browser tab (no Tauri APIs — project data still uses the server; images fall back to data-URLs)
 npm run build:vite     # Renderer build only (Tauri invokes this via `beforeBuildCommand`)
 ```
 
@@ -66,9 +66,7 @@ one sanctioned exception to per-domain stores.
 - make `services/serverApi.js` origin-aware and add the fetch wrappers
   (`request`/`safeRequest`/`requestBlob`/`postForm`); rename env
   `VITE_JW_SERVER_URL` → `VITE_SERVER_URL`;
-- move demo seeding (`domain/seed.js`) server-side;
-- doc cleanup: the State/IPC sections below still describe the pre-migration
-  IndexedDB/`idb-keyval` persistence — update them to the server/SQLite reality.
+- move demo seeding (`domain/seed.js`) server-side.
 
 ## Architecture
 
@@ -87,7 +85,7 @@ window.justwrite.project = { save, open, saveTo }
 window.justwrite.images  = { save, read, delete }
 ```
 
-These mirror Rust commands in `src-tauri/src/lib.rs` one-for-one (`project_save`, `project_save_to`, `project_open`, `images_save`, `images_read`, `images_delete`). When `window.justwrite` is undefined (plain `vite dev` in a browser), the renderer falls back to IndexedDB / data-URL paths. **Do not call `invoke()` from views or stores — go through `window.justwrite`** so the browser-only path keeps working.
+These mirror Rust commands in `src-tauri/src/lib.rs` one-for-one (`project_save`, `project_save_to`, `project_open`, `images_save`, `images_read`, `images_delete`). When `window.justwrite` is undefined (plain `vite dev` in a browser), project data still persists to the server via `projectApi`; only images fall back to inline data-URL records. **Do not call `invoke()` from views or stores — go through `window.justwrite`** so the browser-only path keeps working.
 
 When adding a new Tauri command:
 1. Add the `#[tauri::command]` function in `src-tauri/src/lib.rs` and register it in the `invoke_handler![]` list.
@@ -106,9 +104,9 @@ All in `src/renderer/src/stores/`:
 
 **Project store invariants worth knowing before mutating it:**
 
-- Persists the whole snapshot to IndexedDB under key `justwrite:project` on every change (via the `services/storage.js` adapter — a sync, cache-backed wrapper over `idb-keyval`).
+- Persists each project snapshot to the **server** (SQLite via `/v1/projects`) through `services/projectApi.js` (`putSnapshot`/`getSnapshot`; the registry is derived from the projects table). The active project id lives in the settings document (`services/settings.js` → `/v1/settings`). No client-side IndexedDB store — the renderer holds no durable data.
 - Deletes are **soft** — `removeXxx` actions move the entity to `state.trash[kind]` and fire an Undo toast via `uiStore`. `TrashView` handles restore / permanent delete.
-- Undo/redo is **snapshot-based**: every mutating action calls `this._record(actionId)` before mutating, which deep-clones `HISTORY_SLICES` onto `_past`. Limit: 100 in-memory, last 10 persisted as a debounced tail at IndexedDB key `justwrite:project:history`.
+- Undo/redo is **snapshot-based and in-memory only** (not persisted across reloads): every mutating action calls `this._record(actionId)` before mutating, which deep-clones `HISTORY_SLICES` onto `_past` (limit `HISTORY_LIMIT`). Durable rollback comes from the Tauri **disk autosave** (`$APPDATA/projects/<id>.autosave.json`, rotating) + manual Export backup — not from history.
 - Keystroke-grain actions (in `COALESCED_ACTIONS`: `setChapterBody`, `setChapterTitle`, inline title edits, etc.) coalesce into one history entry per ~600ms quiescent window. When adding a new high-frequency mutator, add it to `COALESCED_ACTIONS` or the undo buffer fills instantly.
 - `_past` and `_future` are wrapped in `markRaw()` so Vue does not make snapshots reactive.
 
@@ -122,7 +120,7 @@ One client class — **`OpenAICompatClient`** (`services/openai-compat.js`) — 
 
 ### Image storage
 
-`services/imageStore.js` is the renderer-side facade. When `window.justwrite` exists, images are written via `images_save` to `$APPDATA/JustWrite/images/` and the renderer stores only the absolute path (read back through `images_read` which returns a data URL). Without Tauri, falls back to inline data-URL records stored in the project snapshot (IndexedDB-backed).
+`services/imageStore.js` is the renderer-side facade. When `window.justwrite` exists, images are written via `images_save` to `$APPDATA/JustWrite/images/` and the renderer stores only the absolute path (read back through `images_read` which returns a data URL). Without Tauri, falls back to inline data-URL records stored in the project snapshot (which is itself server/SQLite-backed).
 
 **Caveat:** `images_save` ships bytes as JSON `number[]` over IPC. Fine for reference photos; if uploads grow to multi-MB range, switch to a Tauri Channel.
 

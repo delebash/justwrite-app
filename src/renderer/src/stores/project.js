@@ -1,6 +1,8 @@
 // Project store — entities + chapter bodies + full CRUD.
-// Everything persists via the IDB-backed storage adapter so reloads
-// remember edits without the 5MB localStorage ceiling.
+// Snapshots persist to the server (SQLite via /v1/projects) through
+// services/projectApi.js; the active project id lives in the settings
+// document. Undo/redo is in-memory only; durable rollback is the Tauri
+// disk autosave ($APPDATA/projects). No client-side IndexedDB store.
 // Removals are SOFT — they push to `trash` keyed by kind; restore
 // from TrashView. Each soft-delete fires an Undo toast via uiStore.
 
