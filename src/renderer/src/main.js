@@ -12,7 +12,9 @@ applyAppearance(DEFAULT_APPEARANCE);
 import { createApp } from "vue";
 import { createPinia } from "pinia";
 import App from "./App.vue";
+import ConnectionError from "./components/ConnectionError.vue";
 import router from "./router/index.js";
+import { checkServer } from "./services/connection.js";
 import { bootSettings, readSetting } from "./services/settings.js";
 import { hydrateProjects, useProjectStore } from "./stores/project.js";
 import { useSessionsStore } from "./stores/sessions.js";
@@ -28,6 +30,15 @@ import { startAutoRebuildWatcher } from "./services/rag/autoIndex.js";
 // Wrapped in an async IIFE to keep the build target compatible with
 // engines that don't support top-level await (esbuild's safari13).
 (async () => {
+  // Thin-client guard: the renderer has no data of its own — it all lives in the
+  // Python server. If the server is unreachable, mount a connection-error screen
+  // instead of booting the app (which would render seed/default data and then
+  // silently fail to persist). No defaults are loaded without a live backend.
+  if (!(await checkServer())) {
+    createApp(ConnectionError).mount("#app");
+    return;
+  }
+
   // Pull the settings document (appearance/ui, AI prefs, hardware presets) off
   // the server (/v1/settings) so the stores' synchronous bootstrap reads it.
   await bootSettings();
