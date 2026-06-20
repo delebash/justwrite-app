@@ -36,6 +36,10 @@ about either app's *requirements* forced the differences below.
   app-data dir / breaks imports; do in a deliberate rename PR.
 
 ## Migration queue (ordered safe → risky; verify + commit each)
+
+**Status 2026-06-20:** ✅ #2, #3, #4, #5 done + verified + committed; #1 Biome
+configured (lint cleanup of 56 pre-existing issues pending). ⏳ Remaining: #6, #7,
+#8 (focused refactors — #8 is the big one), #9 doc cleanup, #1 lint cleanup.
 1. **JV** — add `biome.json` (match JW); run Biome, fix lint. *[low]*
 2. **JV** — rename `components/jv/` → `components/ui/`, update imports. *[low, mechanical]*
 3. **Both CSS** — JW move `assets/styles/tokens.css` → renderer root; split into
