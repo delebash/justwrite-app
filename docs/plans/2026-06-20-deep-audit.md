@@ -147,3 +147,37 @@ Careful overall (busy guards, confirm dialogs, abort controllers, honest counts)
 - ✅ Checked clean: the other 3 onCancel handlers (abort-only), smartAssign abort/cancel handling,
   assignVoice/applyAnalyzed error paths, the cast/script/render computeds.
 
+
+### Batch 5 — JV `EnginesView.vue` (1468 ln, full read) — ⏸️ FIXES DEFERRED
+**User direction 2026-06-20: "wait on any fixes [to EnginesView] as we are going to use the
+llm runner consolidated view to replace some of that."** Findings recorded here, **not** applied
+(I had started edits; reverted the file to keep it pristine for the consolidation). Line numbers
+are the committed file's.
+
+- 🔴 **BUG — download rate + ETA never display.** `progressKeyAndRate(p)` (`:379-383`) keys the
+  rate-history off the **progress object** `p`, but the install/load poll loops reassign
+  `progress[key] = {…fresh literal…}` on **every tick** (`:591`, `:698`). So `_rateHistory.get(p)`
+  is a fresh-object miss every poll → rate computes as 0 → `fmtRate`/`fmtEta` render blank for the
+  whole download (user sees "200 / 1500 MB" but never "MB/s" or "3m left"). **Fix:** key `_rateFor`
+  on the **stable** `row.key` string (engineId | engineId/variantId), passed in from the template
+  calls (`:1248-1249`); also clear the entry in `dismissProgressRow` (`:428-432`) + on the
+  completion deletes (`:606`, `:740`). *(NB: this strip likely **survives** the consolidation — it's
+  TTS-model download UI, not LLM — so the bug should be picked up after consolidation lands.)*
+- 🟡 **Wrong comment.** `:341-343` claims the rate cache is a "per-key **WeakMap** keyed on the job
+  state object"; it's actually a plain `new Map()` (`:347`). (Once the fix keys on a string, WeakMap
+  isn't even possible — Map is correct; just fix the prose.)
+- 🟢 **Dead code from the superseded "Slice 2 dropdown-selector" rewrite** (~110 ln; the v7 redesign
+  template at `:848+`/`:1082+` replaced it with per-model rows calling `load`/`unload`/`deleteModel`
+  directly): `contextualAction()` (`:506-557`, **zero refs**), its only consumer `selectedVariantFor()`
+  (`:482-486`), and the write-only `selectedVariants` reactive (`:77`) whose population runs every
+  `refresh()` (`:462-469`) but is read only by the dead `selectedVariantFor`. Also `visibleProviders`
+  computed (`:107-111`, **zero refs**). The header block comment (`:2-23`) still describes the
+  dropdown-selector UX, not the shipped v7 local/online split. *(All grep-verified; if any survives
+  consolidation, delete then.)*
+- 🔵 **Vestigial-but-live (left intact):** `activeKind`/`visibleEngines`/`enginesByKind`/
+  `availableKinds`/`KIND_LABELS` are leftovers of the old per-kind tab system; the v7 template drives
+  visibility via `topTab`+`capLocal`/`capOnline`+`sectionData`. The only surviving real use is
+  `startNewProvider`'s default-draft kind (`:175`) + the `refresh()` snap (`:447-448`). Removing it
+  changes the Add-provider default in an edge case, so it was **not** treated as dead — revisit with
+  the consolidation.
+
