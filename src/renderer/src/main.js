@@ -20,7 +20,8 @@ import { hydrateProjects, useProjectStore } from "./stores/project.js";
 import { useSessionsStore } from "./stores/sessions.js";
 import { bootProviders } from "./services/providerBackend.js";
 
-import "./assets/styles/tokens.css";
+import "./tokens.css";
+import "./styles.css";
 import { tooltipDirective } from "./services/tooltip.js";
 import { i18n, detectLocale, setLocale as setI18nLocale } from "./i18n/index.js";
 import { startAutoRebuildWatcher } from "./services/rag/autoIndex.js";
