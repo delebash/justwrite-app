@@ -117,3 +117,18 @@ The mechanical sweep counted these as "clones"; reading the *divergence* found a
   entityExtraction bug + the scene-mark drift as a side effect. `htmlToText` has 9 variants, `stripHtml` 4,
   `tailWords` 4 — each needs the canonical pick chosen deliberately, not auto-merged.
 
+
+### Batch 3 — JV stores (thin: biggest 233 ln) + empty-catch sweep
+- 🔴 **BUG (fixed) — `stores/renderTasks.js` 10Hz tick runs forever after a failed task.** The
+  `now` tick (100ms) was gated on `running.value.length`, but finished tasks stay in `running[]`
+  for visibility and **failed tasks never auto-dismiss** (`AUTO_DISMISS_MS.failed = null`) — so a
+  lingering failed strip kept the 10Hz tick firing indefinitely, invalidating every `now`-dependent
+  computed app-wide (the exact churn the gate is meant to prevent; cf. CLAUDE.md "10Hz reactive tick").
+  Fix: gate on `running.value.some(t => t.status === "running")`. JW's `aiTasks.js` is NOT affected —
+  it archives finished tasks immediately, so its `order` = running-only and its gate is correct.
+- ✅ Empty catches (35): benign (storage guards, offline-tolerant refreshes). Two minor silent-swallows
+  noted, not bugs: `GenerateView.vue:314` (capability refresh), `SettingsView.vue:410` (debounced save;
+  explicit Save shows a toast).
+- ✅ Feature/usage labels across `analysis/*`: all consistent (verified `threadExtraction→"foreshadowing"`
+  and `entityExtraction→"entitySweep"` are correct extraction/orchestrator splits, not copy-paste bugs).
+
