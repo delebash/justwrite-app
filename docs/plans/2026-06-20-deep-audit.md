@@ -87,3 +87,11 @@ JW: `SettingsView.vue` 2476 · `RichEditor.vue` 2146 · `ChaptersView.vue` 1949 
 Beyond the mechanical sweep above, a per-file read of each view for logic-level
 issues (the RULE #5 strict-diff). Done incrementally, a batch at a time. Batches
 recorded here as completed.
+
+### Batch 1 — JV `App.vue` (boot/nav orchestrator, ~480 ln) — read in full
+Mostly clean (routing, kind-driven nav filter, i18n fallback, first-run wiring all correct;
+`resolveInitialTab` properly fired by the `hydrated` watch at :287). Findings:
+- 🟡 **Dead `HELP_SLUG_BY_VIEW` keys** (`App.vue:150-155`): `train`/`compare`/`cache`/`audio`/`channels`/`webhooks` are no longer route names (they became Labs/Advanced sub-tabs) — `currentHelpSlug` lookups by `route.name` can never hit them. Harmless dead entries; drop or remap to `labs`/`settings`.
+- 🔵 **Root listeners never removed** (`App.vue:129` mousedown, :328 visibilitychange, :333/:335 window events): acceptable for the root component (lives for the app's lifetime), but the switcher-close `mousedown` is registered at setup top-level while the rest are in `onMounted` — inconsistent; move it into `onMounted` for consistency.
+- (boot `/v1/health` fetch here is part of A6's remaining sequential dups.)
+
