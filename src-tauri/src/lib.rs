@@ -20,10 +20,14 @@
 use base64::Engine;
 use serde::{Deserialize, Serialize};
 use serde_json::Value;
+use std::net::{SocketAddr, TcpStream};
+use std::process::{Child, Command};
+use std::sync::Mutex;
+use std::time::{Duration, Instant};
 use std::{fs, path::PathBuf, time::{SystemTime, UNIX_EPOCH}};
 use tauri::{
     ipc::{InvokeBody, Request},
-    AppHandle, Manager,
+    AppHandle, Manager, WindowEvent,
 };
 use tauri_plugin_dialog::DialogExt;
 
@@ -666,14 +670,194 @@ async fn detect_gpu() -> GpuInfo {
     detect_gpu_impl().await
 }
 
+// ─── Python server sidecar ───────────────────────────────────────────
+// JustWrite is now a thin client: all data lives in the Python `server/`
+// (FastAPI + SQLite on :17495). The desktop shell must spawn that server on
+// startup — without it the renderer's boot-time health check fails and shows
+// the connection-error screen. Mirrors JustVoice's sidecar (kept in lock-step;
+// JustVoice is the precedent), trimmed to JustWrite's needs: a single window
+// with no tray, so closing it quits the app and tears the server down.
+
+const SERVER_PORT: u16 = 17495;
+
+struct SidecarState {
+    child: Mutex<Option<Child>>,
+}
+
+impl SidecarState {
+    fn new(child: Option<Child>) -> Self {
+        Self { child: Mutex::new(child) }
+    }
+
+    fn kill_child(&self) {
+        if let Ok(mut guard) = self.child.lock() {
+            if let Some(mut child) = guard.take() {
+                let _ = child.kill();
+            }
+        }
+    }
+}
+
+fn spawn_sidecar() -> std::io::Result<Option<Child>> {
+    // Escape hatch: run the server yourself (`npm run server`) and set this so
+    // the shell doesn't spawn a duplicate / evict your manual one.
+    if std::env::var("JUSTWRITE_DEV_NO_SIDECAR").is_ok() {
+        return Ok(None);
+    }
+
+    if port_in_use(SERVER_PORT) {
+        eprintln!(
+            "[sidecar] port {SERVER_PORT} already in use — evicting the stale \
+             listener before spawning a fresh server"
+        );
+        kill_listeners_on_port(SERVER_PORT);
+        if !wait_for_port_free(SERVER_PORT, Duration::from_secs(5)) {
+            eprintln!(
+                "[sidecar] port {SERVER_PORT} still occupied after eviction; reusing \
+                 the existing server — kill it manually if the UI shows stale data"
+            );
+            return Ok(None);
+        }
+        eprintln!("[sidecar] port {SERVER_PORT} freed");
+    }
+
+    // IMPORTANT: spawn `justwrite-server`, never an unqualified `justwrite` —
+    // the Tauri binary is also `justwrite(.exe)`, and Windows CreateProcessW
+    // searches the running binary's directory first, so that name resolves to
+    // OUR binary, spawning a new desktop window in an infinite loop.
+    let child = if cfg!(debug_assertions) {
+        match Command::new("justwrite-server").arg("serve").spawn() {
+            Ok(child) => child,
+            Err(_) => Command::new("python")
+                .args(["-m", "justwrite_server.cli", "serve"])
+                .spawn()?,
+        }
+    } else {
+        let exe = std::env::current_exe()?;
+        let dir = exe.parent().unwrap_or_else(|| std::path::Path::new("."));
+        let bin = if cfg!(windows) {
+            dir.join("justwrite-server.exe")
+        } else {
+            dir.join("justwrite-server")
+        };
+        Command::new(bin).spawn()?
+    };
+
+    std::thread::spawn(|| {
+        if wait_for_port_up(SERVER_PORT, Duration::from_secs(15)) {
+            eprintln!("[sidecar] server listening on {SERVER_PORT}");
+        } else {
+            eprintln!(
+                "[sidecar] warning: server is not listening on {SERVER_PORT} after \
+                 15s — the UI may show the connection-error screen. Check the server log."
+            );
+        }
+    });
+
+    Ok(Some(child))
+}
+
+fn port_in_use(port: u16) -> bool {
+    let addr = SocketAddr::from(([127, 0, 0, 1], port));
+    TcpStream::connect_timeout(&addr, Duration::from_millis(300)).is_ok()
+}
+
+fn wait_for_port_free(port: u16, timeout: Duration) -> bool {
+    let start = Instant::now();
+    while start.elapsed() < timeout {
+        if !port_in_use(port) {
+            return true;
+        }
+        std::thread::sleep(Duration::from_millis(150));
+    }
+    !port_in_use(port)
+}
+
+fn wait_for_port_up(port: u16, timeout: Duration) -> bool {
+    let start = Instant::now();
+    while start.elapsed() < timeout {
+        if port_in_use(port) {
+            return true;
+        }
+        std::thread::sleep(Duration::from_millis(200));
+    }
+    port_in_use(port)
+}
+
+#[cfg(windows)]
+fn kill_listeners_on_port(port: u16) {
+    let output = match Command::new("netstat").args(["-ano"]).output() {
+        Ok(o) => o,
+        Err(e) => {
+            eprintln!("[sidecar] netstat failed, cannot evict stale server: {e}");
+            return;
+        }
+    };
+    let text = String::from_utf8_lossy(&output.stdout);
+    let needle = format!(":{port}");
+    let mut pids = std::collections::HashSet::new();
+    for line in text.lines() {
+        let cols: Vec<&str> = line.split_whitespace().collect();
+        if cols.len() < 5 || cols[0] != "TCP" || !cols.contains(&"LISTENING") {
+            continue;
+        }
+        if !cols[1].ends_with(&needle) {
+            continue;
+        }
+        if let Ok(pid) = cols[cols.len() - 1].parse::<u32>() {
+            if pid != 0 {
+                pids.insert(pid);
+            }
+        }
+    }
+    for pid in pids {
+        eprintln!("[sidecar] killing stale listener on :{port} (PID {pid})");
+        let _ = Command::new("taskkill")
+            .args(["/F", "/PID", &pid.to_string()])
+            .output();
+    }
+}
+
+#[cfg(not(windows))]
+fn kill_listeners_on_port(port: u16) {
+    let output = match Command::new("lsof")
+        .args(["-nP", &format!("-iTCP:{port}"), "-sTCP:LISTEN", "-t"])
+        .output()
+    {
+        Ok(o) => o,
+        Err(e) => {
+            eprintln!("[sidecar] lsof failed, cannot evict stale server: {e}");
+            return;
+        }
+    };
+    let text = String::from_utf8_lossy(&output.stdout);
+    for pid in text.lines().map(str::trim).filter(|p| !p.is_empty()) {
+        eprintln!("[sidecar] killing stale listener on :{port} (PID {pid})");
+        let _ = Command::new("kill").args(["-9", pid]).output();
+    }
+}
+
 // ─── Runner ──────────────────────────────────────────────────────────
 
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
 pub fn run() {
+    // Bring the Python server up before the webview so the renderer's boot-time
+    // health check (services/connection.js) finds it coming up. If the spawn
+    // fails we still build the window — the renderer surfaces a clear
+    // connection-error screen rather than the app crashing.
+    let sidecar = match spawn_sidecar() {
+        Ok(child) => SidecarState::new(child),
+        Err(e) => {
+            eprintln!("Failed to spawn Python sidecar: {e}");
+            SidecarState::new(None)
+        }
+    };
+
     tauri::Builder::default()
         .plugin(tauri_plugin_dialog::init())
         .plugin(tauri_plugin_fs::init())
         .plugin(tauri_plugin_http::init())
+        .manage(sidecar)
         .invoke_handler(tauri::generate_handler![
             project_save,
             project_save_to,
@@ -690,6 +874,15 @@ pub fn run() {
             detect_gpu,
             pick_directory,
         ])
+        .on_window_event(|window, event| {
+            if let WindowEvent::CloseRequested { .. } = event {
+                // Single window, no tray: closing it quits the app, so tear the
+                // sidecar down with it instead of leaking a Python process.
+                if let Some(state) = window.app_handle().try_state::<SidecarState>() {
+                    state.kill_child();
+                }
+            }
+        })
         .run(tauri::generate_context!())
         .expect("error while running tauri application");
 }
