@@ -117,15 +117,26 @@ JV it sits beside Voices/TTS). Three sub-tabs:
      duplicate Test), Combobox model picker, presets, no-ID/no-tier, key hidden
      for local; the Local engine needs no connection form (Decision 14). GPU
      info is a **top strip**.
-2. **Features** — JW's flat routing table as the base, each row inherit-a-role or
-   override to a specific **provider ▸ model**. Roles (Quick/Accuracy) are
+2. **Features** — JW's flat routing table as the base, each row: a **provider ▸
+   model** pick (inherit-a-role or override) **+ an active production-config
+   selector** (Default / saved configs — Decision 17). Roles (Quick/Accuracy) are
    **optional** and **grounded** (each is itself a provider▸model pick). Expand a
    row to edit inline: **real settings** — temperature · max tokens · reasoning
    (adapter-plumbed today) + **Advanced sampling** (top-p/top-k/repeat/ctx/stop/
    seed — *requires plumbing these through the shared adapter*, currently
    only temp/max_tokens/think exist) — plus system & user prompt, saved as a
-   named production config. "Open in Lab" for compare.
+   named production config. "Open in Lab" for compare. A **Routing & Cost
+   defaults** card at the top: global Default LLM / Default embedding (the
+   inherit targets), Auto-rebuild RAG, Guess-voice-gender, and "Show N variations
+   on every AI action" (Decision 17).
 3. **Usage** — token/cost ledger, per feature + provider.
+
+**Onboarding lives on Providers & models:** a **Quick Setup** wizard (detect HW →
+recommend by live Fit → optional cloud key → models-to-download w/ total size →
+routing preview → Apply) + a **Hardware presets** list (auto-by-Fit primary, with
+**Add / Edit / Delete** named presets — Decision 18) + recommended-starter / tips
+cards (per-app copy). Provider rows show **role badges** (Default LLM / embedding)
+and **N-models / N-voices counts**.
 
 ### The Lab — one per action (LLM *and* TTS), tune → compare → Apply to route
 User direction (2026-06-20): *"a Lab for each type of LLM action … anything that
@@ -177,6 +188,47 @@ extract the server from JV's superset.** Read + lift first; design only the gaps
   headless AI, editable prompts, rich pins, roles, usage parity.
 - **Both adopt:** EnginesView (JV) LLM parts + SettingsView (JW) "AI engines" →
   the same `@delebash/llm-ui` views.
+
+## Gaps vs JW (audit 2026-06-20) — lift + improve, don't clone
+
+Read JW's actual AI settings; what the mocks were missing, with a critical take
+(existing ≠ correct). **User confirmation (2026-06-20):** *"this stuff works and
+we ended up back here mostly, but still if we think about it these jw things may
+be able to be improved upon"* — so the rule is lift the proven UX, then improve
+the weak half with cited reasoning; never blind-clone, never reinvent.
+- **Quick Setup wizard** (`QuickSetup.vue`, `quickSetupPresets.js`,
+  `applyQuickSetupPreset` `ai.js:270`) — **lift the UX, improve the engine:**
+  detect HW → recommend → optional cloud → models-to-download (total size) →
+  routing preview → Apply. JW recommends from static GB-tier buckets + `ollama
+  pull`; **we recommend by live Fit** (`compute_fit`) + HF-GGUF download.
+- **Hardware presets** (`hardwarePresets.js`, `HardwarePresetsCard.vue`) —
+  **lift + improve, keep manual control** (user, 2026-06-20: *"hardware preset i
+  agree but want the option to change add/edit manually just in case"*). Default
+  driver = **live Fit** (`compute_fit`), not a maintained per-tier model table
+  (JW needs the table only because Ollama can't compute fit; we can). **But the
+  named presets stay user-editable** — a presets list with **Add / Edit / Delete**
+  so the user can hand-pin a card→model+routing recipe (offline, pre-probe, or
+  "I know what I want on this rig" cases). So: auto-recommend by Fit is the
+  primary path; the manual preset editor is the escape hatch, always available.
+  Keep the **routing recipe** (feature→fast/default/cloud) in every preset.
+- **Routing & Cost → Defaults** (SettingsView `:1207+`) — **lift:** global Default
+  LLM / Default embedding (the "inherit default" targets) + Auto-rebuild RAG +
+  Guess-voice-gender toggles.
+- **Production prompt configs** (JW screenshot 2026-06-20) — **lift; it's already
+  JV's `ProductionConfig`** (`models.py:329-341`), so this is a *confirmed
+  convergence*, not a JW-only idea. Each feature has a **list of named production
+  configs + a single active one**; the active config is what production calls run
+  against. **Default** = the built-in entry (tier-resolved prompts+settings for
+  whatever model the feature is routed to). Switch active in the Features row, OR
+  open the feature's **Lab** to tune and save new named configs (Apply-to-route =
+  save+activate). A global **"Show N variations on every AI action"** toggle rides
+  alongside (JW has it).
+- **Provider role badges + counts** (`:265`) — **lift:** "Default LLM/embedding"
+  badges per row + N-models/voices counts.
+- **Recommended-starter + Quick-setup-tips** cards — **lift, per-app copy**
+  (prose vs voice picks = feature-catalog level).
+- **Voicebox local-TTS install** — **excluded (old; not used).** TTS = JV native
+  engine pool (Chatterbox/Kokoro/Dia/Qwen3) with Fit.
 
 ## Sequence (per-unit, RULE #5/#7 — one at a time, verify each)
 
@@ -274,6 +326,29 @@ extract the server from JV's superset.** Read + lift first; design only the gaps
     `<think>`) when a provider lacks a reasoning param (Decision 15). Long-text
     actions expose a **chunk size** processing setting. Ref:
     Finrandojin/alexandria-audiobook.
+
+17. **Production prompt configs** (✅ confirmed convergence — JW screenshot +
+    JV `ProductionConfig` `models.py:329-341`) — each feature owns a **list of
+    named production configs and one active**. The active config = what
+    production calls run against. **Default** is the built-in entry
+    (tier-resolved prompts+settings for whatever model the feature is routed
+    to — never an empty box). The Features-tab row shows an **active-config
+    selector** (Default + any saved configs) right beside the provider/model
+    pick; the feature's **Lab** is where new named configs are tuned and saved
+    (Apply-to-route = save the config + set it active). A global **"Show N
+    variations on every AI action"** toggle lives in Routing & Cost defaults
+    (JW has it). One shared implementation; the per-app difference is only
+    *which features* exist (the catalog).
+
+18. **Hardware presets — Fit-driven, manually editable** (✅ user, 2026-06-20:
+    *"i agree but want the option to change add/edit manually just in case"*) —
+    the **primary** path is auto-recommend by **live Fit** (`compute_fit`), so
+    there's no maintained per-tier model table to rot. **But** a **named-presets
+    list with Add / Edit / Delete stays** so the user can hand-author a
+    card→(models + routing recipe) preset for offline / pre-probe / "I know this
+    rig" cases. Each preset carries the **routing recipe** (feature → fast /
+    default / cloud). Auto is primary; manual is the always-available escape
+    hatch — neither is removed.
 
 ## Web UX sources
 - Msty / LM Studio / Jan / Ollama comparison (provider-agnostic mixing, GUI-first
