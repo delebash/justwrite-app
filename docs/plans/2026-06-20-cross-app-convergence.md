@@ -37,9 +37,15 @@ about either app's *requirements* forced the differences below.
 
 ## Migration queue (ordered safe → risky; verify + commit each)
 
-**Status 2026-06-20:** ✅ #2, #3, #4, #5 done + verified + committed; #1 Biome
-configured (lint cleanup of 56 pre-existing issues pending). ⏳ Remaining: #6, #7,
-#8 (focused refactors — #8 is the big one), #9 doc cleanup, #1 lint cleanup.
+**Status 2026-06-20:** ✅ Done + verified + pushed — #2 (folder), #3 (CSS split),
+#4 (theming → appearance.js + dark-mode fix), #5 (origin-aware serverApi), #6
+(fetch-wrapper → services/serverApi.js), #8 (vue-router + lazy routes), #9 (doc
+cleanup), #1 (Biome installed + shared config + organizeImports off + safe fixes).
+⏳ Remaining: **#7** (seed → server — a feature port touching first-run; deferred
+as a focused effort, not rushed) and the **full Biome lint-green pass** — the
+audit found BOTH apps carry pre-existing lint debt (JV ~20 issues; JW ~48 errors
++ 70 warnings) incl. semantic fixes (noGlobalIsFinite/Nan) + 3 single-word
+component names; a careful per-file hygiene pass for each app.
 1. **JV** — add `biome.json` (match JW); run Biome, fix lint. *[low]*
 2. **JV** — rename `components/jv/` → `components/ui/`, update imports. *[low, mechanical]*
 3. **Both CSS** — JW move `assets/styles/tokens.css` → renderer root; split into
