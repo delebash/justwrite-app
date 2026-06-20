@@ -26,7 +26,7 @@ import {
 } from "reka-ui";
 import { useUiStore } from "../stores/ui.js";
 import {
-  getDoc,
+  loadDoc,
   hasDoc,
   titleForSlug,
   webUrlFor,
@@ -46,7 +46,9 @@ const open = computed({
 const slug = computed(() => ui.helpDrawerSlug || "");
 const anchor = computed(() => ui.helpDrawerAnchor || "");
 const title = computed(() => titleForSlug(slug.value));
-const rawDoc = computed(() => getDoc(slug.value));
+const rawDoc = ref(null);
+// Load the doc lazily when the drawer opens / navigates (not at app boot).
+watch(slug, async (s) => { rawDoc.value = s ? await loadDoc(s) : null; }, { immediate: true });
 const renderedHtml = computed(() => renderHelpMarkdown(rawDoc.value));
 const exists = computed(() => hasDoc(slug.value));
 

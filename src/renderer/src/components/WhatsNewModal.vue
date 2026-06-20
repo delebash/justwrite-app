@@ -6,9 +6,9 @@
 //
 // Pinned by ui.lastSeenVersion; markVersionSeen() persists the dismissal.
 
-import { computed, onMounted, ref } from "vue";
+import { onMounted, ref } from "vue";
 import { useUiStore } from "../stores/ui.js";
-import { getDoc } from "../services/helpDocs.js";
+import { loadDoc } from "../services/helpDocs.js";
 import { renderHelpMarkdown } from "../services/helpMarkdown.js";
 import AppModal from "./AppModal.vue";
 import JwButton from "./ui/JwButton.vue";
@@ -21,15 +21,15 @@ const open = ref(false);
 // constant — the real version flows in via build.
 const APP_VERSION = import.meta.env.VITE_APP_VERSION || "1.0.0";
 
-const renderedHtml = computed(() =>
-  renderHelpMarkdown(getDoc("whats-new") || ""),
-);
+const renderedHtml = ref("");
 
-onMounted(() => {
+onMounted(async () => {
   // Show on a clean profile (first run ever) too — that's a fine
   // moment to surface the changelog.
   if (ui.lastSeenVersion !== APP_VERSION) {
     open.value = true;
+    // Lazily load the changelog doc only when we're actually showing it.
+    renderedHtml.value = renderHelpMarkdown((await loadDoc("whats-new")) || "");
   }
 });
 

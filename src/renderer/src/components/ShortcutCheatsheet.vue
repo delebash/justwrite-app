@@ -3,9 +3,9 @@
 // Sourced from docs/keyboard-shortcuts.md so writers see the same
 // reference they get in the marketing-site docs — single source.
 
-import { computed } from "vue";
+import { ref, watch } from "vue";
 import { useUiStore } from "../stores/ui.js";
-import { getDoc } from "../services/helpDocs.js";
+import { loadDoc } from "../services/helpDocs.js";
 import { renderHelpMarkdown } from "../services/helpMarkdown.js";
 import AppModal from "./AppModal.vue";
 import JwButton from "./ui/JwButton.vue";
@@ -13,9 +13,13 @@ import Icon from "./Icon.vue";
 
 const ui = useUiStore();
 
-const renderedHtml = computed(() =>
-  renderHelpMarkdown(getDoc("keyboard-shortcuts") || ""),
-);
+// Load the cheatsheet doc lazily the first time the overlay opens (not at boot).
+const renderedHtml = ref("");
+watch(() => ui.shortcutsOpen, async (o) => {
+  if (o && !renderedHtml.value) {
+    renderedHtml.value = renderHelpMarkdown((await loadDoc("keyboard-shortcuts")) || "");
+  }
+});
 
 function close() { ui.closeShortcuts(); }
 function openInDrawer() {

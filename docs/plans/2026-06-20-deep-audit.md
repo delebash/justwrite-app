@@ -42,7 +42,7 @@ import.meta.glob("../../../../docs/*.md", { eager: true, query: "?raw" })
 ### A6 — 🔴 [JV] Duplicate boot API calls (Playwright-captured)
 On load the same endpoints are fetched by multiple independent callers, uncoordinated:
 - `/v1/settings` ×3 · `/v1/health` ×3 · `/v1/engines` ×2 (**7.4 KB each**) · `/v1/projects` ×2 · `/v1/system/info` ×2
-Sources incl. `stores/onboarding.js:39` (settings), `stores/engines.js:24` + `components/RecommendCard.vue:36` (engines), `App.vue:267` + `services/connection.js` (health). **Fix:** single boot-hydrate that fetches each once and shares; or an in-flight request cache in `services/serverApi`/the `api` store (dedupe concurrent identical GETs).
+Sources incl. `stores/onboarding.js:39` (settings), `stores/engines.js:24` + `components/RecommendCard.vue:36` (engines), `App.vue:267` + `services/connection.js` (health). **Done (partial):** in-flight GET dedupe added to JV `services/serverApi.js` `request()` — collapsed the *concurrent* dups (`/v1/engines` ×2→×1 incl. the 7.4 KB body, `/v1/system/info` ×2→×1). **Remaining (deferred):** sequential dups across boot phases — `/v1/health` ×3 (`connection.js` gate + `App.vue:267` + `OverviewView:116`), `/v1/settings` ×2 (`onboarding.js:39` re-reads the whole doc for `.app` + boot), `/v1/projects` ×2 (activeProject store + `prefs.js:76`). ~2.6 KB; needs a shared boot-hydrate (fetch-once-distribute), per-caller — NOT a TTL cache (the masking anti-pattern the project rules forbid).
 
 ### A7 — 🟡 [JV] `SettingsView.vue:907` persists a setting to `localStorage` "for now"
 Violates the project's no-client-persistence rule (should be `/v1/settings`). Small, contained fix.

@@ -6,7 +6,7 @@ import Icon from "../components/Icon.vue";
 import JwButton from "@renderer/components/ui/JwButton.vue";
 import {
   HELP_TOC,
-  getDoc,
+  loadDoc,
   hasDoc,
   titleForSlug,
   webUrlFor,
@@ -22,7 +22,8 @@ const currentSlug = computed(() => props.slug || "");
 const docTitle = computed(() => titleForSlug(currentSlug.value));
 const webUrl = computed(() => webUrlFor(currentSlug.value));
 
-const rawDoc = computed(() => getDoc(currentSlug.value));
+const rawDoc = ref(null);
+watch(currentSlug, async (s) => { rawDoc.value = await loadDoc(s); }, { immediate: true });
 const renderedHtml = computed(() => renderHelpMarkdown(rawDoc.value));
 
 const contentEl = ref(null);
