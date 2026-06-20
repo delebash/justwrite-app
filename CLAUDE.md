@@ -65,7 +65,7 @@ migrated — CSS split into `tokens.css` + `styles.css` at the renderer root,
 origin-aware `services/serverApi.js` (env `VITE_SERVER_URL`), and demo seeding
 moved server-side (`server/justwrite_server/demo_seed.py` + `seed.py` seed the
 demo project + default LLM providers on boot/reset; the renderer no longer
-carries `domain/seed.js`). Only the cross-app Biome lint-green pass remains.
+carries `domain/seed.js`). Both apps are Biome-green on 2.5.0 with a byte-identical shared config — convergence is complete.
 
 ## Architecture
 
