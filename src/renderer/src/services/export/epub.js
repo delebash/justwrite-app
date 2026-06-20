@@ -42,7 +42,7 @@ const xmlEscape = (s) => String(s ?? "")
   .replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;")
   .replace(/"/g, "&quot;").replace(/'/g, "&apos;");
 
-const uuid = () => "urn:uuid:" + crypto.randomUUID();
+const uuid = () => `urn:uuid:${crypto.randomUUID()}`;
 
 export async function exportEpub({ manuscript, onProgress } = {}) {
   onProgress?.({ stage: "loading-jszip" });

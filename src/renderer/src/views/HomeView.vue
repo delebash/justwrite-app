@@ -97,10 +97,10 @@ function firstParagraph(html) {
   for (const p of div.querySelectorAll("p")) {
     if (p.classList.contains("scene-mark")) continue;
     const t = p.textContent.trim();
-    if (t) return t.length > 240 ? t.slice(0, 240).trim() + "…" : t;
+    if (t) return t.length > 240 ? `${t.slice(0, 240).trim()}…` : t;
   }
   const t = (div.textContent || "").trim();
-  return t.length > 240 ? t.slice(0, 240).trim() + "…" : t;
+  return t.length > 240 ? `${t.slice(0, 240).trim()}…` : t;
 }
 const resumeTeaser = computed(() => firstParagraph(project.chapterBody[resumeId.value]));
 

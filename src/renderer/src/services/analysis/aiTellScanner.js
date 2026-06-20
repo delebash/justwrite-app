@@ -96,9 +96,9 @@ function htmlToText(html) {
   if (!html) return "";
   const div = document.createElement("div");
   div.innerHTML = html;
-  div.querySelectorAll(".ai-del").forEach((el) => el.remove());
-  div.querySelectorAll(".ai-ins").forEach((el) => el.replaceWith(...el.childNodes));
-  div.querySelectorAll(".scene-mark").forEach((el) => el.remove());
+  div.querySelectorAll(".ai-del").forEach((el) => { el.remove(); });
+  div.querySelectorAll(".ai-ins").forEach((el) => { el.replaceWith(...el.childNodes); });
+  div.querySelectorAll(".scene-mark").forEach((el) => { el.remove(); });
   return div.textContent || "";
 }
 
@@ -114,7 +114,7 @@ function sentenceAround(text, at) {
   while (end < text.length && !/[.!?]/.test(text[end])) end++;
   if (end < text.length) end += 1;
   let snippet = text.slice(start, end).trim();
-  if (snippet.length > 220) snippet = snippet.slice(0, 220) + "…";
+  if (snippet.length > 220) snippet = `${snippet.slice(0, 220)}…`;
   return snippet;
 }
 

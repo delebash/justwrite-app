@@ -42,8 +42,6 @@ export async function parseOdt(arrayBuffer) {
   let currentParagraphs = [];
   let listCount = 0;
 
-  // Map from zip href → { href, name, mime, bytes } — populated lazily
-  const imageMap = new Map(); // href → entry (bytes filled after parsing)
   const pendingHrefs = new Set();
 
   function flush() {
@@ -89,7 +87,7 @@ export async function parseOdt(arrayBuffer) {
         continue;
       }
       // h3+ treated as paragraph
-      currentParagraphs.push('<p>' + escapeHtml(getTextContent(el).trim()) + '</p>');
+      currentParagraphs.push(`<p>${escapeHtml(getTextContent(el).trim())}</p>`);
     } else if (local === 'p') {
       // A paragraph may contain inline frames
       const text = getTextContent(el).trim();
@@ -103,13 +101,13 @@ export async function parseOdt(arrayBuffer) {
       }
       if (inlineFrames.length) {
         // Emit text (if any) followed by each image
-        if (text) currentParagraphs.push('<p>' + escapeHtml(text) + '</p>');
+        if (text) currentParagraphs.push(`<p>${escapeHtml(text)}</p>`);
         for (const href of inlineFrames) {
           currentParagraphs.push(`<img src="${href}">`);
           pendingHrefs.add(href);
         }
       } else if (text) {
-        currentParagraphs.push('<p>' + escapeHtml(text) + '</p>');
+        currentParagraphs.push(`<p>${escapeHtml(text)}</p>`);
       }
     } else if (local === 'list') {
       listCount++;

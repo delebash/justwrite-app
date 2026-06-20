@@ -52,7 +52,7 @@ export function stitchChapter(scenes = []) {
  * @returns {Array<{ sceneId: string|null, title: string, body: string, isNew: boolean }>}
  */
 export function splitChapter(html) {
-  if (!html || !html.trim()) return [];
+  if (!html?.trim()) return [];
   const container = document.createElement("div");
   container.innerHTML = html;
 

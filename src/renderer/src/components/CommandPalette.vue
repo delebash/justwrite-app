@@ -80,9 +80,9 @@ const ENTITY_ITEMS = computed(() => {
       to: `/chapters/${c.id}`,
     });
   }
-  for (const x of project.characters) out.push({ id: `c:${x.id}`,  label: x.name, sublabel: `Character${x.role ? " · " + x.role : ""}`, icon: "Users",     to: `/characters/${x.id}` });
-  for (const x of project.locations)  out.push({ id: `l:${x.id}`,  label: x.name, sublabel: `Location${x.kind ? " · " + x.kind : ""}`,  icon: "Pin",       to: `/locations/${x.id}` });
-  for (const x of project.objects)    out.push({ id: `o:${x.id}`,  label: x.name, sublabel: `Object${x.kind ? " · " + x.kind : ""}`,    icon: "Cube",      to: `/objects/${x.id}` });
+  for (const x of project.characters) out.push({ id: `c:${x.id}`,  label: x.name, sublabel: `Character${x.role ? ` · ${x.role}` : ""}`, icon: "Users",     to: `/characters/${x.id}` });
+  for (const x of project.locations)  out.push({ id: `l:${x.id}`,  label: x.name, sublabel: `Location${x.kind ? ` · ${x.kind}` : ""}`,  icon: "Pin",       to: `/locations/${x.id}` });
+  for (const x of project.objects)    out.push({ id: `o:${x.id}`,  label: x.name, sublabel: `Object${x.kind ? ` · ${x.kind}` : ""}`,    icon: "Cube",      to: `/objects/${x.id}` });
   for (const x of project.groups)     out.push({ id: `g:${x.id}`,  label: x.name, sublabel: "Group",                                    icon: "GroupIcon", to: `/groups/${x.id}` });
   for (const x of project.notes)      out.push({ id: `n:${x.id}`,  label: x.title, sublabel: `Note · ${x.tag || ""}`,                   icon: "Note",      to: `/notes/${x.id}` });
   for (const x of project.worldbuilding) out.push({ id: `w:${x.id}`, label: x.title, sublabel: `Worldbuilding · ${x.category || ""}`,   icon: "Sparkle",   to: `/worldbuilding/${x.id}` });
@@ -130,7 +130,7 @@ const ACTION_ITEMS = computed(() => {
         if (label === null) return;
         versions.saveVersion(chId, label || "");
         const title = (project.chapterById(chId)?.title || "").trim();
-        const clip = (s, n = 30) => s.length > n ? s.slice(0, n - 1) + "…" : s;
+        const clip = (s, n = 30) => s.length > n ? `${s.slice(0, n - 1)}…` : s;
         const chapter = title ? clip(title) : "this chapter";
         const message = label
           ? `Saved “${clip(label.trim())}” — ${chapter}`

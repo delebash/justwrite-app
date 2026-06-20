@@ -32,7 +32,7 @@ export function countWords(s) {
 }
 
 export function fmtMs(ms) {
-  if (!ms || !isFinite(ms)) return "—";
+  if (!ms || !Number.isFinite(ms)) return "—";
   if (ms < 1000) return `${Math.round(ms)}ms`;
   return `${(ms / 1000).toFixed(1)}s`;
 }
@@ -46,7 +46,7 @@ export const ACTION_GROUPS = [
       kind: "writerAction",
       key: k,
       label: ACTIONS[k].label,
-      description: ACTIONS[k].instruction.slice(0, 80) + "…",
+      description: `${ACTIONS[k].instruction.slice(0, 80)}…`,
     })),
   },
   {

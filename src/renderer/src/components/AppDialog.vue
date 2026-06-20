@@ -102,7 +102,7 @@ watch(
 
 const canSubmit = computed(() => {
   const d = dialog.value;
-  if (!d || d.kind !== "prompt") return true;
+  if (d?.kind !== "prompt") return true;
   if (d.requireMatch != null) {
     const first = d.fields[0]?.key;
     if (String(values.value[first] ?? "") !== d.requireMatch) return false;

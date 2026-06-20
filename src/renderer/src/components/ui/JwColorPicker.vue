@@ -83,8 +83,8 @@ function onCustomChange(e) {
 
 function onDocMousedown(e) {
   if (!open.value) return;
-  const inTrigger = triggerEl.value && triggerEl.value.contains(e.target);
-  const inPop     = popEl.value && popEl.value.contains(e.target);
+  const inTrigger = triggerEl.value?.contains(e.target);
+  const inPop     = popEl.value?.contains(e.target);
   if (!inTrigger && !inPop) close();
 }
 function onKeydown(e) {

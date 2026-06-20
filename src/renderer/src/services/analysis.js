@@ -155,7 +155,7 @@ export function dialogueMix(scripts, allChapters) {
   const perChapter = [];
   for (const ch of allChapters) {
     const lines = scripts[ch.id];
-    if (!lines || !lines.length) continue;
+    if (!lines?.length) continue;
     const row = { id: ch.id, num: ch.num, title: ch.title, dialogue: 0, narration: 0, interior: 0 };
     for (const l of lines) {
       if (!KINDS.includes(l.kind)) continue;

@@ -35,7 +35,7 @@ const CATEGORY_KEYS = SENSORY_CATEGORIES.map((c) => c.key);
 
 function parseJsonLoose(text) {
   if (!text) return null;
-  let s = text.replace(/```(?:json)?/gi, "").replace(/<think>[\s\S]*?<\/think>/gi, "");
+  const s = text.replace(/```(?:json)?/gi, "").replace(/<think>[\s\S]*?<\/think>/gi, "");
   const objIdx = s.indexOf("{");
   const arrIdx = s.indexOf("[");
   const objectFirst = objIdx !== -1 && (arrIdx === -1 || objIdx < arrIdx);

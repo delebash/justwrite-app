@@ -25,7 +25,7 @@ const props = defineProps({
 });
 const emit = defineEmits(["update:modelValue"]);
 
-function valueOf(item) {
+function getItemValue(item) {
   return typeof item === "string" ? item : item?.[props.itemValue];
 }
 function labelOf(item) {
@@ -34,7 +34,7 @@ function labelOf(item) {
 }
 
 const selectedItem = computed(() =>
-  props.items.find((it) => valueOf(it) === props.modelValue),
+  props.items.find((it) => getItemValue(it) === props.modelValue),
 );
 
 const state = reactive({ open: false, hover: -1 });
@@ -66,13 +66,13 @@ function openIt() {
   if (!props.items.length && !props.freeText) return;
   state.open = true;
   filterText.value = "";
-  state.hover = Math.max(0, props.items.findIndex((it) => valueOf(it) === props.modelValue));
+  state.hover = Math.max(0, props.items.findIndex((it) => getItemValue(it) === props.modelValue));
   nextTick(scrollActive);
 }
 function closeIt() { state.open = false; filterText.value = ""; }
 function toggleIt() { state.open ? closeIt() : openIt(); }
 function pick(item) {
-  emit("update:modelValue", valueOf(item));
+  emit("update:modelValue", getItemValue(item));
   closeIt();
 }
 
@@ -145,10 +145,10 @@ watch(() => filtered.value.length, (n) => {
     </button>
     <ul v-if="state.open && filtered.length" :ref="(el) => (listEl = el)" class="combobox-list"
       role="listbox">
-      <li v-for="(item, i) in filtered" :key="valueOf(item)"
+      <li v-for="(item, i) in filtered" :key="getItemValue(item)"
         role="option"
-        :aria-selected="valueOf(item) === modelValue"
-        :class="{ active: i === state.hover, selected: valueOf(item) === modelValue }"
+        :aria-selected="getItemValue(item) === modelValue"
+        :class="{ active: i === state.hover, selected: getItemValue(item) === modelValue }"
         @mousedown.prevent="pick(item)"
         @mouseenter="state.hover = i">
         <slot name="item" :item="item" :label="labelOf(item)">{{ labelOf(item) }}</slot>

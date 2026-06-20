@@ -22,15 +22,15 @@ function htmlToText(html) {
   if (!html) return "";
   const div = document.createElement("div");
   div.innerHTML = html;
-  div.querySelectorAll(".ai-del").forEach((el) => el.remove());
-  div.querySelectorAll(".ai-ins").forEach((el) => el.replaceWith(...el.childNodes));
-  div.querySelectorAll(".scene-mark").forEach((el) => el.remove());
+  div.querySelectorAll(".ai-del").forEach((el) => { el.remove(); });
+  div.querySelectorAll(".ai-ins").forEach((el) => { el.replaceWith(...el.childNodes); });
+  div.querySelectorAll(".scene-mark").forEach((el) => { el.remove(); });
   return (div.textContent || "").trim();
 }
 
 function parseJsonLoose(text) {
   if (!text) return null;
-  let s = text.replace(/```(?:json)?/gi, "").replace(/<think>[\s\S]*?<\/think>/gi, "");
+  const s = text.replace(/```(?:json)?/gi, "").replace(/<think>[\s\S]*?<\/think>/gi, "");
   const objIdx = s.indexOf("{");
   const arrIdx = s.indexOf("[");
   const objectFirst = objIdx !== -1 && (arrIdx === -1 || objIdx < arrIdx);
@@ -141,7 +141,7 @@ async function runPersona({ persona, html, chapterTitle, chapterNum, signal, pro
   const text = htmlToText(html).trim();
   if (!text) throw new Error("Chapter has no prose to read.");
   const header = chapterTitle
-    ? `Chapter ${chapterNum != null ? chapterNum + " — " : ""}${chapterTitle}\n\n`
+    ? `Chapter ${chapterNum != null ? `${chapterNum} — ` : ""}${chapterTitle}\n\n`
     : "";
 
   const messages = [

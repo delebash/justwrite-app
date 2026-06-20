@@ -36,11 +36,11 @@ const props = defineProps({
 });
 const emit = defineEmits(["update:modelValue"]);
 
-function valueOf(opt) { return opt?.[props.optionValue]; }
+function getValue(opt) { return opt?.[props.optionValue]; }
 function labelOf(opt) { return opt?.[props.optionLabel]; }
 function sublabelOf(opt) { return opt?.[props.optionSublabel]; }
 
-function pick(opt) { emit("update:modelValue", valueOf(opt)); }
+function pick(opt) { emit("update:modelValue", getValue(opt)); }
 
 // JwSegmented drives tabindex from the *selected* value, not the roving
 // focus state, so we use the composable only for key navigation and
@@ -86,16 +86,16 @@ function onKeydown(e, idx) {
       'jw-seg--connected': variant === 'connected',
     }"
     role="radiogroup" :aria-label="ariaLabel">
-    <button v-for="(opt, i) in options" :key="valueOf(opt)"
+    <button v-for="(opt, i) in options" :key="getValue(opt)"
       :ref="(el) => registerItem(i, el)"
       type="button"
       role="radio"
-      :aria-checked="modelValue === valueOf(opt)"
-      :tabindex="modelValue === valueOf(opt) ? 0 : -1"
-      :class="{ active: modelValue === valueOf(opt) }"
+      :aria-checked="modelValue === getValue(opt)"
+      :tabindex="modelValue === getValue(opt) ? 0 : -1"
+      :class="{ active: modelValue === getValue(opt) }"
       @click="pick(opt)"
       @keydown="onKeydown($event, i)">
-      <slot name="option" :option="opt" :selected="modelValue === valueOf(opt)">
+      <slot name="option" :option="opt" :selected="modelValue === getValue(opt)">
         <b>{{ labelOf(opt) }}</b>
         <span v-if="sublabelOf(opt)">{{ sublabelOf(opt) }}</span>
       </slot>

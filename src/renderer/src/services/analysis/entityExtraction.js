@@ -88,13 +88,13 @@ export async function extractEntities({
 
   const existing = [
     "Already in the story bible — DO NOT re-propose:",
-    "Characters: " + (existingCharacters.length ? existingCharacters.map((c) => c.name).join(", ") : "(none)"),
-    "Locations: "  + (existingLocations.length  ? existingLocations.map((l) => l.name).join(", ")  : "(none)"),
-    "Objects: "    + (existingObjects.length    ? existingObjects.map((o) => o.name).join(", ")    : "(none)"),
+    `Characters: ${existingCharacters.length ? existingCharacters.map((c) => c.name).join(", ") : "(none)"}`,
+    `Locations: ${existingLocations.length  ? existingLocations.map((l) => l.name).join(", ")  : "(none)"}`,
+    `Objects: ${existingObjects.length    ? existingObjects.map((o) => o.name).join(", ")    : "(none)"}`,
   ].join("\n");
 
   const header = chapterTitle
-    ? `Chapter ${chapterNum != null ? chapterNum + " — " : ""}${chapterTitle}\n\n`
+    ? `Chapter ${chapterNum != null ? `${chapterNum} — ` : ""}${chapterTitle}\n\n`
     : "";
 
   const messages = [

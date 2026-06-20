@@ -184,7 +184,6 @@ function per1k(count, words) {
 export function chapterMetrics(html) {
   const text = stripHtml(html);
   const paragraphs = splitParagraphs(html);
-  const paraWords = paragraphs.map(wordCount);
   const sentences = splitSentences(text);
   const sentWords = sentences.map(wordCount);
   const words = wordCount(text);

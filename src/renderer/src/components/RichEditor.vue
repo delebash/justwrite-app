@@ -291,7 +291,7 @@ const SceneBoundary = Node.create({
       "div",
       mergeAttributes({ class: "scene-boundary" }, HTMLAttributes, {
         "data-scene-boundary": "true",
-        "data-label": idx != null ? `Scene ${Number(idx) + 1}${title ? " — " + title : ""}` : (title || "New scene"),
+        "data-label": idx != null ? `Scene ${Number(idx) + 1}${title ? ` — ${title}` : ""}` : (title || "New scene"),
       }),
     ];
   },
@@ -710,10 +710,10 @@ async function runWriterAction(actionKey, opts = {}) {
     startVariations({
       runnerFactory: (temperature, signal, onDelta, taskMeta) => fnVariation({
         html, signal, onDelta, temperature,
-        task: { label: `Writer assist · ${labelText.replace(/[…\.]+$/, "")}`, meta: { ...(taskMeta || {}), action: actionKey } },
+        task: { label: `Writer assist · ${labelText.replace(/[….]+$/, "")}`, meta: { ...(taskMeta || {}), action: actionKey } },
       }),
       mode: "replace", from, to, originalHtml: html,
-      eyebrow: `${labelText.replace(/[…\.]+$/, "")} — three variations`,
+      eyebrow: `${labelText.replace(/[….]+$/, "")} — three variations`,
       label: "Pick a variation to apply",
     });
     return;
@@ -942,7 +942,7 @@ const commentPopEl = ref(null);
 function selectionScreenRect() {
   try {
     const sel = window.getSelection();
-    if (sel && sel.rangeCount) {
+    if (sel?.rangeCount) {
       const r = sel.getRangeAt(0).getBoundingClientRect();
       if (r && (r.width || r.height)) return r;
     }

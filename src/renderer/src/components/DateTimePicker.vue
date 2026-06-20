@@ -196,8 +196,8 @@ function toggle() { open.value = !open.value; }
 function close() { open.value = false; }
 function onDocClick(e) {
   if (!open.value) return;
-  const inRoot = rootEl.value && rootEl.value.contains(e.target);
-  const inPop  = popEl.value && popEl.value.contains(e.target);
+  const inRoot = rootEl.value?.contains(e.target);
+  const inPop  = popEl.value?.contains(e.target);
   if (!inRoot && !inPop) close();
 }
 function onKeydown(e) { if (e.key === "Escape" && open.value) { close(); e.stopPropagation(); } }

@@ -70,7 +70,7 @@ export const SearchReplace = Extension.create({
         (dir) =>
         ({ state, dispatch, tr }) => {
           const ps = searchReplacePluginKey.getState(state);
-          if (!ps || !ps.results.length) return false;
+          if (!ps?.results.length) return false;
           let next = ps.current + dir;
           if (next < 0) next = ps.results.length - 1;
           if (next >= ps.results.length) next = 0;
@@ -84,7 +84,7 @@ export const SearchReplace = Extension.create({
         (replaceWith) =>
         ({ state, dispatch, tr }) => {
           const ps = searchReplacePluginKey.getState(state);
-          if (!ps || !ps.results.length) return false;
+          if (!ps?.results.length) return false;
           const m = ps.results[ps.current];
           tr.insertText(replaceWith ?? "", m.from, m.to);
           if (dispatch) dispatch(tr);
@@ -94,7 +94,7 @@ export const SearchReplace = Extension.create({
         (replaceWith) =>
         ({ state, dispatch, tr }) => {
           const ps = searchReplacePluginKey.getState(state);
-          if (!ps || !ps.results.length) return false;
+          if (!ps?.results.length) return false;
           // Replace back-to-front so earlier positions stay valid.
           [...ps.results]
             .sort((a, b) => b.from - a.from)

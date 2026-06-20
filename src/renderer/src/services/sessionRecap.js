@@ -23,9 +23,9 @@ function htmlToText(html) {
   if (!html) return "";
   const div = document.createElement("div");
   div.innerHTML = html;
-  div.querySelectorAll(".ai-del").forEach((el) => el.remove());
-  div.querySelectorAll(".ai-ins").forEach((el) => el.replaceWith(...el.childNodes));
-  div.querySelectorAll(".scene-mark").forEach((el) => el.remove());
+  div.querySelectorAll(".ai-del").forEach((el) => { el.remove(); });
+  div.querySelectorAll(".ai-ins").forEach((el) => { el.replaceWith(...el.childNodes); });
+  div.querySelectorAll(".scene-mark").forEach((el) => { el.remove(); });
   return (div.textContent || "").replace(/\s+\n/g, "\n").trim();
 }
 
@@ -33,7 +33,7 @@ function tailWords(text, maxWords) {
   if (!text) return "";
   const parts = text.split(/\s+/);
   if (parts.length <= maxWords) return text;
-  return "… " + parts.slice(-maxWords).join(" ");
+  return `… ${parts.slice(-maxWords).join(" ")}`;
 }
 
 function todayKey(d = new Date()) {
@@ -47,7 +47,7 @@ function todayKey(d = new Date()) {
 // inline here rather than imported to avoid coupling two service trees.
 function parseJsonLoose(text) {
   if (!text) return null;
-  let s = text.replace(/```(?:json)?/gi, "").replace(/<think>[\s\S]*?<\/think>/gi, "");
+  const s = text.replace(/```(?:json)?/gi, "").replace(/<think>[\s\S]*?<\/think>/gi, "");
   const objIdx = s.indexOf("{");
   const arrIdx = s.indexOf("[");
   const objectFirst = objIdx !== -1 && (arrIdx === -1 || objIdx < arrIdx);

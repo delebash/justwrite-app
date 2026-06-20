@@ -278,7 +278,7 @@ export const useUiStore = defineStore("ui", {
     },
     // Save the current look as a named custom preset and make it active.
     saveCustomPreset(name) {
-      const id = "cp_" + Date.now().toString(36);
+      const id = `cp_${Date.now().toString(36)}`;
       const preset = { id, name: String(name || "").trim() || "Custom", patch: presetPatchFrom(this.appearance) };
       this.customPresets = [...this.customPresets, preset];
       this.appearance = { ...this.appearance, preset: id };

@@ -176,9 +176,9 @@ export function renderWordDiffHtml(oldText, newText) {
   let buf = { kind: null, text: "" };
   function flush() {
     if (!buf.text) { buf = { kind: null, text: "" }; return; }
-    if (buf.kind === "eq") parts.push(escape(buf.text));
-    else if (buf.kind === "ins") parts.push(`<ins class="vdiff-ins">${escape(buf.text)}</ins>`);
-    else if (buf.kind === "del") parts.push(`<del class="vdiff-del">${escape(buf.text)}</del>`);
+    if (buf.kind === "eq") parts.push(escapeHtml(buf.text));
+    else if (buf.kind === "ins") parts.push(`<ins class="vdiff-ins">${escapeHtml(buf.text)}</ins>`);
+    else if (buf.kind === "del") parts.push(`<del class="vdiff-del">${escapeHtml(buf.text)}</del>`);
     buf = { kind: null, text: "" };
   }
   for (const op of ops) {
@@ -213,7 +213,6 @@ export function diffVersions(oldV, newV) {
   const oldScenes = oldV?.scenes || [];
   const newScenes = newV?.scenes || [];
   const oldById = new Map(oldScenes.map((s, idx) => [s.id, { ...s, _idx: idx }]));
-  const newById = new Map(newScenes.map((s, idx) => [s.id, { ...s, _idx: idx }]));
 
   // ── Match scenes across versions ──────────────────────────────────────
   // Stage 1: exact-id matches (the reliable axis when ids survive).
@@ -338,7 +337,7 @@ function sceneDel(s) {
  * is decoupled from the interactive AI diff marks.
  */
 export function renderDiffHtml(diff) {
-  if (!diff || !diff.length) return "<p class=\"vdiff-empty\">No changes between these versions.</p>";
+  if (!diff?.length) return "<p class=\"vdiff-empty\">No changes between these versions.</p>";
   const parts = [];
   for (const scene of diff) {
     const wrapClass = scene.kind === "ins"
@@ -349,11 +348,11 @@ export function renderDiffHtml(diff) {
     parts.push(`<section class="${wrapClass}">`);
     if (scene.titleChange) {
       parts.push(`<h2 class="vdiff-scene-title">`);
-      parts.push(`<del class="vdiff-del">${escape(scene.titleChange.from || "(untitled)")}</del> `);
-      parts.push(`<ins class="vdiff-ins">${escape(scene.titleChange.to || "(untitled)")}</ins>`);
+      parts.push(`<del class="vdiff-del">${escapeHtml(scene.titleChange.from || "(untitled)")}</del> `);
+      parts.push(`<ins class="vdiff-ins">${escapeHtml(scene.titleChange.to || "(untitled)")}</ins>`);
       parts.push(`</h2>`);
     } else if (scene.title) {
-      parts.push(`<h2 class="vdiff-scene-title">${escape(scene.title)}</h2>`);
+      parts.push(`<h2 class="vdiff-scene-title">${escapeHtml(scene.title)}</h2>`);
     }
     for (const p of scene.paragraphs) {
       if (p.kind === "eq") {
@@ -373,7 +372,7 @@ export function renderDiffHtml(diff) {
   return parts.join("");
 }
 
-function escape(s) {
+function escapeHtml(s) {
   return String(s ?? "").replace(/[&<>]/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;" }[c]));
 }
 

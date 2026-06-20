@@ -52,7 +52,7 @@ const pickB = ref(null);
 // stays single-line.
 function clip(s, n = 30) {
   const v = (s || "").trim();
-  return v.length > n ? v.slice(0, n - 1) + "…" : v;
+  return v.length > n ? `${v.slice(0, n - 1)}…` : v;
 }
 function shortStamp(iso) {
   try {

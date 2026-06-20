@@ -35,7 +35,7 @@ renderer.link = ({ href, title, tokens }) => {
     const [file, anchor = ""] = h.split("#");
     const slug = file.replace(/\.md$/, "");
     const realSlug = slug === "README" ? "" : slug;
-    h = `/help${realSlug ? "/" + realSlug : ""}${anchor ? "#" + anchor : ""}`;
+    h = `/help${realSlug ? `/${realSlug}` : ""}${anchor ? `#${anchor}` : ""}`;
     internal = true;
   }
   const html = baseLinkRenderer({ href: h, title, tokens });

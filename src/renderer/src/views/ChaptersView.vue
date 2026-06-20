@@ -199,7 +199,7 @@ const crumbs = computed(() => {
 // return when they navigate back to the chapter heading. Outline
 // shows whole-manuscript structure so it also resets on any chapter
 // switch.
-watch(() => [props.id, props.sceneId], ([newId, newSceneId], [oldId, oldSceneId]) => {
+watch(() => [props.id, props.sceneId], ([_newId, newSceneId], [_oldId, oldSceneId]) => {
   if (newSceneId && newSceneId !== oldSceneId) {
     mode.value = "edit";
     return;
@@ -247,7 +247,7 @@ function addSceneHere() {
 const dragSceneId = ref(null);
 function synopsis(scene) {
   const text = (scene.body || "").replace(/<[^>]+>/g, " ").replace(/\s+/g, " ").trim();
-  return text.length > 180 ? text.slice(0, 180) + "…" : text;
+  return text.length > 180 ? `${text.slice(0, 180)}…` : text;
 }
 function onCardDragStart(id) { dragSceneId.value = id; }
 function onCardDrop(targetId) {
@@ -573,7 +573,7 @@ function snippetFor(chapterId) {
   for (const p of ps) {
     if (p.classList.contains("scene-mark")) continue;
     const t = p.textContent.trim();
-    if (t) return t.length > 220 ? t.slice(0, 220).trim() + "…" : t;
+    if (t) return t.length > 220 ? `${t.slice(0, 220).trim()}…` : t;
   }
   return "";
 }
@@ -712,7 +712,7 @@ watch(() => [props.id, props.sceneId], ([id, sceneId]) => {
 
 // Scenes can be added/removed/reordered while reading. Re-observe so the
 // new anchors participate in highlighting.
-watch(() => project.allChapters.map((c) => c.id + ":" + (project.scenesFor(c.id) || []).length).join("|"), async () => {
+watch(() => project.allChapters.map((c) => `${c.id}:${(project.scenesFor(c.id) || []).length}`).join("|"), async () => {
   if (mode.value !== "read" || readScope.value !== "book") return;
   await nextTick();
   setupBookObserver();

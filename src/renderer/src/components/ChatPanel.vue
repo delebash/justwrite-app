@@ -275,7 +275,7 @@ async function ask() {
       question: q,
       history,
       k: 6,
-      onDelta: (delta, content) => {
+      onDelta: (_delta, content) => {
         assistantMsg.content = content;
       },
       task: { label: chatMode.value === "character"

@@ -17,7 +17,7 @@ export async function exportDocx({ manuscript, onProgress } = {}) {
   const lib = await getDocx();
   const {
     Document, Packer, Paragraph, TextRun, HeadingLevel, AlignmentType,
-    PageBreak, LevelFormat, TableOfContents,
+    PageBreak, TableOfContents,
   } = lib;
 
   onProgress?.({ stage: "composing" });

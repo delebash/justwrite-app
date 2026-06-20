@@ -108,7 +108,7 @@ function flushDiskAutosave() {
   const jw = typeof window !== "undefined" ? window.justwrite : null;
   if (!jw?.project?.autosave) return;
   jw.project.autosave(pending.id, pending.snap).then((res) => {
-    if (res && res.ok) writeSetting("lastAutosaveAt", new Date().toISOString());
+    if (res?.ok) writeSetting("lastAutosaveAt", new Date().toISOString());
   }).catch(() => {});
 }
 
@@ -186,14 +186,14 @@ function getBoot() {
   // "Storylines" was briefly added as a fifth architecture doc and then
   // removed. Strip it from any project that picked it up so it doesn't
   // linger in the sidebar list.
-  if (loaded.architecture && loaded.architecture.storylines) {
+  if (loaded.architecture?.storylines) {
     const { storylines, ...rest } = loaded.architecture;
     loaded.architecture = rest;
   }
 
   // "Global notes" was retired in favour of story-wide entries in the
   // Notes view. Strip it from any project that still carries it.
-  if (loaded.architecture && loaded.architecture.globalnotes) {
+  if (loaded.architecture?.globalnotes) {
     const { globalnotes, ...rest } = loaded.architecture;
     loaded.architecture = rest;
   }
@@ -1873,7 +1873,7 @@ export const useProjectStore = defineStore("project", {
 
     // ── Snapshot ────────────────────────────────────────────
     loadSnapshot(snap) {
-      const hadWorkspace = !!(snap && snap._workspace);
+      const hadWorkspace = !!(snap?._workspace);
       if (hadWorkspace) restoreWorkspaceBundle(snap._workspace);
       // _workspace lives alongside the project fields in the file but isn't
       // part of $state — strip it before assignment so it doesn't leak in.

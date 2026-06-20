@@ -63,7 +63,7 @@ function snippet(html) {
   const div = document.createElement("div");
   div.innerHTML = html;
   const t = (div.textContent || "").trim();
-  return t.length > 120 ? t.slice(0, 120) + "…" : t;
+  return t.length > 120 ? `${t.slice(0, 120)}…` : t;
 }
 
 function openNote(n) {

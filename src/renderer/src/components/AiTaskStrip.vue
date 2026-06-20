@@ -58,7 +58,7 @@ const lastDeltaAgo = computed(() => {
   return Math.max(0, tasks.now - props.task.lastDeltaAt);
 });
 const freshness = computed(() => {
-  if (!props.task || props.task.status !== "streaming") return null;
+  if (props.task?.status !== "streaming") return null;
   const ago = lastDeltaAgo.value;
   if (ago == null) return null;
   if (ago < 3000) return "fresh";

@@ -137,7 +137,7 @@ const anchorOptions = computed(() => {
     const scenes = project.scenesFor(c.id);
     scenes.forEach((s, i) => {
       opts.push({
-        label: `   Ch. ${c.num} · Scene ${i + 1}${s.title ? " — " + s.title : ""}`,
+        label: `   Ch. ${c.num} · Scene ${i + 1}${s.title ? ` — ${s.title}` : ""}`,
         value: `scn:${c.id}:${s.id}`,
       });
     });

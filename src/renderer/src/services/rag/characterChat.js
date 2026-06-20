@@ -89,7 +89,7 @@ function buildUserMessage(question, hits) {
           ? `, scene ${chunk.sceneIdx + 1}`
           : "";
       const header = `Ch. ${chunk.chapterNum} "${chunk.chapterTitle}"${sceneLabel}`;
-      const excerpt = chunk.text.length > 1200 ? chunk.text.slice(0, 1200) + "…" : chunk.text;
+      const excerpt = chunk.text.length > 1200 ? `${chunk.text.slice(0, 1200)}…` : chunk.text;
       return `[${i + 1}] ${header}:\n${excerpt}`;
     })
     .join("\n\n");
@@ -142,7 +142,7 @@ export async function askAsCharacter({
   task,
   meta,
 } = {}) {
-  if (!question || !question.trim()) throw new Error("Question must not be empty.");
+  if (!question?.trim()) throw new Error("Question must not be empty.");
   if (!characterId) throw new Error("Pick a character first.");
 
   const ai = useAiStore();
@@ -180,7 +180,7 @@ export async function askAsCharacter({
     throw friendlyAiError(err, resolvedEmbedProvider);
   }
   const queryVec = Array.isArray(queryVectors?.[0]) ? queryVectors[0] : null;
-  if (!queryVec || !queryVec.length) throw new Error("Embedding the question returned an empty vector.");
+  if (!queryVec?.length) throw new Error("Embedding the question returned an empty vector.");
 
   const hits = await search(projectId, queryVec, embedQuery, k);
   if (!hits.length) throw new Error("No relevant passages found — the index may be empty or built with a different embedding model.");

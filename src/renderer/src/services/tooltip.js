@@ -63,7 +63,7 @@ function setupState(el, content, placement) {
           tooltipEl.style.transform = `translate(${Math.round(x)}px, ${Math.round(y)}px)`;
         });
       });
-      requestAnimationFrame(() => tooltipEl && tooltipEl.classList.add("is-visible"));
+      requestAnimationFrame(() => tooltipEl?.classList.add("is-visible"));
     }, SHOW_DELAY);
   };
 

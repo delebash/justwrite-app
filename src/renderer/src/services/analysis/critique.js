@@ -91,7 +91,7 @@ export async function runCritique({ html, chapterTitle = "", chapterNum = null, 
   const text = htmlToText(html).trim();
   if (!text) throw new Error("This chapter has no prose to critique yet.");
   const header = chapterTitle
-    ? `Chapter ${chapterNum != null ? chapterNum + " — " : ""}${chapterTitle}\n\n`
+    ? `Chapter ${chapterNum != null ? `${chapterNum} — ` : ""}${chapterTitle}\n\n`
     : "";
 
   const messages = [
@@ -158,7 +158,7 @@ export async function runStructuralAnalysis({ html, chapterTitle = "", chapterNu
   const text = htmlToText(html).trim();
   if (!text) throw new Error("This chapter has no prose to analyze yet.");
   const header = chapterTitle
-    ? `Chapter ${chapterNum != null ? chapterNum + " — " : ""}${chapterTitle}\n\n`
+    ? `Chapter ${chapterNum != null ? `${chapterNum} — ` : ""}${chapterTitle}\n\n`
     : "";
 
   const messages = [

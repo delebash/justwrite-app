@@ -57,7 +57,7 @@ function requestClose() { appModal.value?.close(); }
 function rowForChunk(c) {
   return {
     id: c.id,
-    label: `Ch. ${c.chapterNum} — ${c.chapterTitle || "Untitled"}${c.sceneTitle ? " · " + c.sceneTitle : ` · Scene ${c.sceneIdx + 1}`}`,
+    label: `Ch. ${c.chapterNum} — ${c.chapterTitle || "Untitled"}${c.sceneTitle ? ` · ${c.sceneTitle}` : ` · Scene ${c.sceneIdx + 1}`}`,
     status: "pending",
   };
 }
@@ -92,7 +92,7 @@ async function run() {
       // onDelta with an empty string so the panel's freshness indicator
       // stays "live" while we work through the queue.
       onDelta: taskHandle.onDelta,
-      onProgress: ({ phase: p, index, total, chunk, action }) => {
+      onProgress: ({ phase: p, chunk, action }) => {
         phase.value = p;
         if (p === "embedding" && chunk) {
           // First time we see this chunk: append a row.

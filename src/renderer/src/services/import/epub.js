@@ -110,7 +110,7 @@ function findCommonAncestor(body, els) {
 // nested inside a wrapper but we want to slice at the wrapper's child level.
 function ascendTo(el, root) {
   let cur = el;
-  while (cur && cur.parentNode && cur.parentNode !== root) cur = cur.parentNode;
+  while (cur?.parentNode && cur.parentNode !== root) cur = cur.parentNode;
   return cur && cur.parentNode === root ? cur : null;
 }
 
@@ -155,7 +155,7 @@ function splitBodyByFragments(body, navEntries) {
   // whose anchor lives inside it.
   const startByChild = new Map();
   for (let i = 0; i < resolved.length; i++) {
-    const { entry, el } = resolved[i];
+    const { el } = resolved[i];
     const child = el ? ascendTo(el, root) : root.firstElementChild;
     if (!child) continue;
     // First entry with no fragment wins the first child; later entries
@@ -201,7 +201,7 @@ export async function parseEpub(arrayBuffer) {
 
   const imageManifest = {};
   for (const entry of Object.values(manifest)) {
-    if (entry.mediaType && entry.mediaType.startsWith('image/')) {
+    if (entry.mediaType?.startsWith('image/')) {
       imageManifest[entry.href] = entry;
     }
   }
@@ -215,7 +215,7 @@ export async function parseEpub(arrayBuffer) {
   const ncxId = spineEl?.getAttribute('toc');
   const ncxEntry = (ncxId && manifest[ncxId])
     || Object.values(manifest).find(m => m.mediaType === 'application/x-dtbncx+xml');
-  const navManifest = Object.values(manifest).find(m => m.properties && m.properties.split(/\s+/).includes('nav'));
+  const navManifest = Object.values(manifest).find(m => m.properties?.split(/\s+/).includes('nav'));
 
   if (ncxEntry && zip.file(ncxEntry.href)) {
     try {
@@ -266,7 +266,7 @@ export async function parseEpub(arrayBuffer) {
     for (const img of Array.from(body.querySelectorAll('img'))) {
       const src = img.getAttribute('src');
       if (!src) continue;
-      const resolved = resolveHref(xhtmlDir + '_', src); // trick: treat xhtmlDir as base "file"
+      const resolved = resolveHref(`${xhtmlDir}_`, src); // trick: treat xhtmlDir as base "file"
       img.setAttribute('src', resolved);
       referencedImageHrefs.add(resolved);
     }
@@ -329,7 +329,7 @@ export async function parseEpub(arrayBuffer) {
     const entry = imageManifest[href];
     const zipFile = zip.file(href);
     if (!zipFile) continue;
-    const mime = (entry && entry.mediaType) || mimeFromHref(href) || 'application/octet-stream';
+    const mime = (entry?.mediaType) || mimeFromHref(href) || 'application/octet-stream';
     const bytes = await zipFile.async('uint8array');
     const name = href.slice(href.lastIndexOf('/') + 1);
     images.push({ href, name, mime, bytes });

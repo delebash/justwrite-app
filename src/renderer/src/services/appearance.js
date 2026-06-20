@@ -87,7 +87,7 @@ export const PAPER_TINTS = {
 // belongs in the current mode.
 function resolveTint(value, table, mode) {
   if (typeof value === "string" && value.startsWith("#")) return value;
-  const t = (table && table[value]) || (table && (table.neutral || table.match)) || null;
+  const t = (table?.[value]) || (table && (table.neutral || table.match)) || null;
   if (!t) return "";
   if (t.var) return t.var;
   return mode === "dark" ? t.dark : t.light;

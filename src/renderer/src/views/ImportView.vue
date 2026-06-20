@@ -48,7 +48,7 @@ const notesAnchorOptions = computed(() => {
     const scenes = project.scenesFor(c.id) || [];
     scenes.forEach((s, i) => {
       opts.push({
-        label: `   Ch. ${c.num} · Scene ${i + 1}${s.title ? " — " + s.title : ""}`,
+        label: `   Ch. ${c.num} · Scene ${i + 1}${s.title ? ` — ${s.title}` : ""}`,
         value: `scn:${c.id}:${s.id}`,
       });
     });
@@ -84,7 +84,7 @@ const partOptions = computed(() => {
   return opts;
 });
 const partChoice = ref(
-  project.parts && project.parts.length
+  project.parts?.length
     ? project.parts[project.parts.length - 1].id
     : NEW_PART,
 );
@@ -129,7 +129,7 @@ function wordCount(html) {
 function preview(html) {
   if (!html) return "";
   const t = String(html).replace(/<[^>]+>/g, " ").replace(/\s+/g, " ").trim();
-  return t.length > 220 ? t.slice(0, 220) + "…" : t;
+  return t.length > 220 ? `${t.slice(0, 220)}…` : t;
 }
 
 async function onPickFile(e) {

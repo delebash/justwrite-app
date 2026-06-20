@@ -628,7 +628,7 @@ function generationLabel(gen) {
 
 // ── AI usage helpers ────────────────────────────────────────────────
 function fmtUsd(cost) {
-  if (!cost || !isFinite(cost)) return "$0.00";
+  if (!cost || !Number.isFinite(cost)) return "$0.00";
   if (cost < 0.01) return "<$0.01";
   if (cost < 1) return `$${cost.toFixed(3)}`;
   return `$${cost.toFixed(2)}`;

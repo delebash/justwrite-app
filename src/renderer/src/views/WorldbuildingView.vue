@@ -53,7 +53,7 @@ async function addArticle() {
       },
     ],
   });
-  if (!values || !values.title) return;
+  if (!values?.title) return;
   const id = project.addWorldbuilding({ title: values.title, category: values.category || "geography" });
   router.push(`/worldbuilding/${id}`);
 }

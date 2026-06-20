@@ -34,8 +34,8 @@ function onDocMousedown(e) {
   if (!templateMenuOpen.value) return;
   const btn = templateBtnRef.value;
   const menu = templateMenuRef.value;
-  if (btn && btn.contains(e.target)) return;
-  if (menu && menu.contains(e.target)) return;
+  if (btn?.contains(e.target)) return;
+  if (menu?.contains(e.target)) return;
   closeTemplateMenu();
 }
 
@@ -82,7 +82,7 @@ async function handleNewStrand() {
   });
   if (!result) return;
   const name = typeof result === "string" ? result : result.name || result;
-  if (!name || !name.trim()) return;
+  if (!name?.trim()) return;
   project.addStrand({ name: name.trim() });
 }
 
@@ -123,7 +123,7 @@ async function handleAddBeat(strandId, chapterId) {
   });
   if (!result) return;
   const label = typeof result === "string" ? result : result.label || result;
-  if (!label || !label.trim()) return;
+  if (!label?.trim()) return;
   project.addStrandBeat(strandId, { label: label.trim(), note: "", chapterId, sceneId: null });
 }
 

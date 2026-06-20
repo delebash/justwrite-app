@@ -47,7 +47,7 @@ function buildUserMessage(question, hits) {
       const header = `Ch. ${chunk.chapterNum} "${chunk.chapterTitle}"${sceneLabel}`;
       // Truncate very long scenes so we don't blow the context window.
       const excerpt = chunk.text.length > 1200
-        ? chunk.text.slice(0, 1200) + "…"
+        ? `${chunk.text.slice(0, 1200)}…`
         : chunk.text;
       return `[${i + 1}] ${header}:\n${excerpt}`;
     })
@@ -109,7 +109,7 @@ export async function askManuscript({
   meta,
 } = {}) {
   // ── 1. Validate ──────────────────────────────────────────────────────────
-  if (!question || !question.trim()) {
+  if (!question?.trim()) {
     throw new Error("Question must not be empty.");
   }
 
@@ -158,7 +158,7 @@ export async function askManuscript({
   }
 
   const queryVec = Array.isArray(queryVectors?.[0]) ? queryVectors[0] : null;
-  if (!queryVec || !queryVec.length) {
+  if (!queryVec?.length) {
     throw new Error("Embedding the question returned an empty vector.");
   }
 

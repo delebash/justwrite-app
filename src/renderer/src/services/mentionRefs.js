@@ -17,7 +17,7 @@ function snippetAround(chip) {
   const full = (block?.textContent || chip.textContent || "").replace(/\s+/g, " ").trim();
   const label = (chip.textContent || "").trim();
   const at = label ? full.indexOf(label) : -1;
-  if (at < 0) return full.length > SNIPPET_RADIUS * 2 ? full.slice(0, SNIPPET_RADIUS * 2) + "…" : full;
+  if (at < 0) return full.length > SNIPPET_RADIUS * 2 ? `${full.slice(0, SNIPPET_RADIUS * 2)}…` : full;
   const start = Math.max(0, at - SNIPPET_RADIUS);
   const end = Math.min(full.length, at + label.length + SNIPPET_RADIUS);
   return (start > 0 ? "…" : "") + full.slice(start, end) + (end < full.length ? "…" : "");

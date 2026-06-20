@@ -25,9 +25,9 @@ function htmlToText(html) {
   if (!html) return "";
   const div = document.createElement("div");
   div.innerHTML = html;
-  div.querySelectorAll(".ai-del").forEach((el) => el.remove());
-  div.querySelectorAll(".ai-ins").forEach((el) => el.replaceWith(...el.childNodes));
-  div.querySelectorAll(".scene-mark").forEach((el) => el.remove());
+  div.querySelectorAll(".ai-del").forEach((el) => { el.remove(); });
+  div.querySelectorAll(".ai-ins").forEach((el) => { el.replaceWith(...el.childNodes); });
+  div.querySelectorAll(".scene-mark").forEach((el) => { el.remove(); });
   return (div.textContent || "").replace(/\s+\n/g, "\n").trim();
 }
 
@@ -37,7 +37,7 @@ function tailWords(text, maxWords) {
   if (!text) return "";
   const parts = text.split(/\s+/);
   if (parts.length <= maxWords) return text;
-  return "… " + parts.slice(-maxWords).join(" ");
+  return `… ${parts.slice(-maxWords).join(" ")}`;
 }
 
 function daysBetween(fromYmd, toDate = new Date()) {

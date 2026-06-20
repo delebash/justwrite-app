@@ -88,7 +88,7 @@ async function newProject() {
       { key: "author", label: t("sidebar.projectSwitcher.fieldAuthor"), placeholder: t("sidebar.projectSwitcher.fieldAuthorPlaceholder"), optional: true },
     ],
   });
-  if (!values || !values.title) return;
+  if (!values?.title) return;
   project.createProject({ title: values.title, author: values.author || "" });
   router.push("/");
 }
@@ -173,7 +173,7 @@ const expandableChildren = computed(() => ({
   chapters: (project.parts || []).filter(Boolean).map((p) => ({
     partId: p.id,
     group: p.title,
-    items: (p.chapters || []).filter((c) => c && c.id).map((c) => ({ id: c.id, label: c.title, num: c.num, ...navStatus(c.status), words: c.words, partId: p.id })),
+    items: (p.chapters || []).filter((c) => c?.id).map((c) => ({ id: c.id, label: c.title, num: c.num, ...navStatus(c.status), words: c.words, partId: p.id })),
   })),
   characters: [
     { subgroupId: "main",      group: "Main",      items: project.characters.filter((c) => c.main).map((c) => ({ id: c.id, label: c.name, ...navStatus(c.status), subgroupId: "main" })) },
@@ -208,7 +208,7 @@ function go(id) {
   // don't follow the `/<id>` convention (e.g. /debug/writer-lab).
   const entry = NAV.find((n) => n && n.id === id);
   if (entry?.path) { router.push(entry.path); return; }
-  router.push("/" + (id === "home" ? "" : id));
+  router.push(`/${id === "home" ? "" : id}`);
 }
 function clickParent(item) {
   // Expandable sections (chapters, characters, worldbuilding, …) toggle
@@ -282,7 +282,7 @@ function scenesForChapter(chapterId) {
   // Filter out any undefined entries that could sneak in via a corrupted
   // snapshot — they'd crash :key="scn.id" / @click="...scn.id" otherwise.
   return (project.scenesFor(chapterId) || [])
-    .filter((s) => s && s.id)
+    .filter((s) => s?.id)
     .map((s) => ({ ...s, words: sceneWords(s) }));
 }
 function isChapterExpanded(chapterId) { return !!ui.expanded[`chapter:${chapterId}`]; }
@@ -557,7 +557,7 @@ function onDropPart(partId) {
 // Chapter row only accepts other chapters.
 function onDragOverChapter(chapterId, e) {
   const d = drag.value;
-  if (!d || d.kind !== "chapter") return;
+  if (d?.kind !== "chapter") return;
   e.preventDefault();
   e.dataTransfer.dropEffect = "move";
   const r = e.currentTarget.getBoundingClientRect();
@@ -567,7 +567,7 @@ function onDragOverChapter(chapterId, e) {
 function onDropChapter(targetChapterId, targetPartId) {
   const d = drag.value, t = dropTarget.value;
   onDragEnd();
-  if (!d || d.kind !== "chapter" || d.id === targetChapterId) return;
+  if (d?.kind !== "chapter" || d.id === targetChapterId) return;
   const targetPart = project.parts.find((p) => p.id === targetPartId);
   if (!targetPart) return;
   if (d.fromPartId === targetPartId) {
@@ -771,7 +771,7 @@ function onWbDropCat(catId) {
 // Article row only accepts other articles.
 function onWbDragOverArt(artId, e) {
   const d = wbDrag.value;
-  if (!d || d.kind !== "wbart") return;
+  if (d?.kind !== "wbart") return;
   e.preventDefault();
   e.dataTransfer.dropEffect = "move";
   const r = e.currentTarget.getBoundingClientRect();
@@ -781,7 +781,7 @@ function onWbDragOverArt(artId, e) {
 function onWbDropArt(targetArtId, targetCatId) {
   const d = wbDrag.value, t = wbDrop.value;
   onWbDragEnd();
-  if (!d || d.kind !== "wbart" || d.id === targetArtId) return;
+  if (d?.kind !== "wbart" || d.id === targetArtId) return;
   const inCat = project.worldbuilding.filter((a) => a.category === targetCatId);
   const insertBefore = t?.position === "after"
     ? inCat[inCat.findIndex((a) => a.id === targetArtId) + 1]?.id || null

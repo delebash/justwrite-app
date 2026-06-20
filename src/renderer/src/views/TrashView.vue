@@ -58,7 +58,7 @@ function eventParentName(entityId) {
   return null;
 }
 function subOf(kind, item) {
-  if (kind === "chapters")   return item.partId ? "from " + (project.parts.find((p) => p.id === item.partId)?.title || "removed part") : null;
+  if (kind === "chapters")   return item.partId ? `from ${project.parts.find((p) => p.id === item.partId)?.title || "removed part"}` : null;
   if (kind === "scenes") {
     const parent = project.chapterById(item.chapterId);
     return parent ? `from "Ch. ${parent.num} — ${parent.title}"` : "from removed chapter";

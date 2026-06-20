@@ -10,7 +10,7 @@ function linesToHtml(lines) {
   for (const line of lines) {
     if (line.trim() === '') {
       if (current.length) {
-        paragraphs.push('<p>' + escapeHtml(current.join(' ')) + '</p>');
+        paragraphs.push(`<p>${escapeHtml(current.join(' '))}</p>`);
         current = [];
       }
     } else {
@@ -18,7 +18,7 @@ function linesToHtml(lines) {
     }
   }
   if (current.length) {
-    paragraphs.push('<p>' + escapeHtml(current.join(' ')) + '</p>');
+    paragraphs.push(`<p>${escapeHtml(current.join(' '))}</p>`);
   }
   return paragraphs.join('\n');
 }

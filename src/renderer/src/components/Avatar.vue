@@ -31,8 +31,8 @@ watchEffect(async () => {
 });
 
 const style = computed(() => ({
-  width: props.size + "px",
-  height: props.size + "px",
+  width: `${props.size}px`,
+  height: `${props.size}px`,
   borderRadius: Number(props.size) > 60 ? "14px" : "8px",
   background: imgSrc.value
     ? "var(--surface-3)"
@@ -42,7 +42,7 @@ const style = computed(() => ({
   placeItems: "center",
   fontFamily: "var(--font-serif)",
   fontWeight: 600,
-  fontSize: Number(props.size) * 0.36 + "px",
+  fontSize: `${Number(props.size) * 0.36}px`,
   boxShadow: "inset 0 -1px 0 rgba(0,0,0,.1)",
   flexShrink: 0,
   overflow: "hidden",

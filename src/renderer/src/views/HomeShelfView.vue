@@ -45,10 +45,10 @@ function firstParagraph(html, max = 200) {
   for (const p of div.querySelectorAll("p")) {
     if (p.classList.contains("scene-mark")) continue;
     const t = p.textContent.trim();
-    if (t) return t.length > max ? t.slice(0, max).trim() + "…" : t;
+    if (t) return t.length > max ? `${t.slice(0, max).trim()}…` : t;
   }
   const t = (div.textContent || "").trim();
-  return t.length > max ? t.slice(0, max).trim() + "…" : t;
+  return t.length > max ? `${t.slice(0, max).trim()}…` : t;
 }
 
 // Precompute openers once per render so the template doesn't re-walk each

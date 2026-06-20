@@ -23,9 +23,9 @@ function htmlToText(html) {
   if (!html) return "";
   const div = document.createElement("div");
   div.innerHTML = html;
-  div.querySelectorAll(".ai-del").forEach((el) => el.remove());
-  div.querySelectorAll(".ai-ins").forEach((el) => el.replaceWith(...el.childNodes));
-  div.querySelectorAll(".scene-mark").forEach((el) => el.remove());
+  div.querySelectorAll(".ai-del").forEach((el) => { el.remove(); });
+  div.querySelectorAll(".ai-ins").forEach((el) => { el.replaceWith(...el.childNodes); });
+  div.querySelectorAll(".scene-mark").forEach((el) => { el.remove(); });
   return (div.textContent || "").trim();
 }
 function firstParagraph(text, maxWords = 60) {
@@ -33,7 +33,7 @@ function firstParagraph(text, maxWords = 60) {
   const first = text.split(/\n\s*\n/)[0] || text;
   const words = first.split(/\s+/);
   if (words.length <= maxWords) return first;
-  return words.slice(0, maxWords).join(" ") + "…";
+  return `${words.slice(0, maxWords).join(" ")}…`;
 }
 function tailWords(text, max) {
   if (!text) return "";
@@ -44,7 +44,7 @@ function tailWords(text, max) {
 
 function parseJsonLoose(text) {
   if (!text) return null;
-  let s = text.replace(/```(?:json)?/gi, "").replace(/<think>[\s\S]*?<\/think>/gi, "");
+  const s = text.replace(/```(?:json)?/gi, "").replace(/<think>[\s\S]*?<\/think>/gi, "");
   const objIdx = s.indexOf("{");
   const arrIdx = s.indexOf("[");
   const objectFirst = objIdx !== -1 && (arrIdx === -1 || objIdx < arrIdx);

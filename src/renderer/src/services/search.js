@@ -184,7 +184,7 @@ export function buildIndex(project, speakers = null) {
  *   - snippetLen: chars of context per snippet (default 160)
  */
 export function searchIndex(index, query, { kinds, limit = 100, snippetLen = 160 } = {}) {
-  if (!query || !query.trim()) return [];
+  if (!query?.trim()) return [];
   const tokens = tokenize(query);
   if (tokens.length === 0) return [];
 
@@ -243,7 +243,7 @@ function intersect(a, b) {
  * every match in that window so the UI can render <mark> spans.
  */
 function buildSnippet(haystack, lower, tokens, firstIdx, snippetLen) {
-  if (!isFinite(firstIdx) || haystack.length === 0) {
+  if (!Number.isFinite(firstIdx) || haystack.length === 0) {
     return { text: (haystack || "").slice(0, snippetLen), matches: [] };
   }
   const half = Math.floor(snippetLen / 2);

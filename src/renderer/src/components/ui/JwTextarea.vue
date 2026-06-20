@@ -33,7 +33,7 @@ function resize() {
   if (!props.autoResize || !textareaEl.value) return;
   const el = textareaEl.value;
   el.style.height = "auto";
-  el.style.height = el.scrollHeight + "px";
+  el.style.height = `${el.scrollHeight}px`;
 }
 
 function onInput(e) {

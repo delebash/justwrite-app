@@ -44,11 +44,6 @@ export const AiDelMark = Mark.create({
   },
 });
 
-// Escape text for inclusion in HTML before we feed it to insertContent.
-function esc(s) {
-  return String(s ?? "").replace(/[&<>]/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;" }[c]));
-}
-
 // Split a chunk of HTML into top-level paragraph HTML strings. The chunk
 // can come from either the original selection (already HTML) or the
 // LLM's reply (also already HTML — textToHtml wrapped it for us). We

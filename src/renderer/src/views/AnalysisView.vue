@@ -212,7 +212,7 @@ async function explainHot(chapterId) {
       baselineChapterIds: baselineIds,
       divergentMetrics: divergent,
       task: { label: "Voice drift explanation", meta: { chapterId } },
-      onDelta: (delta, content) => {
+      onDelta: (_delta, content) => {
         driftExplanations.value = {
           ...driftExplanations.value,
           [chapterId]: { running: true, text: content || "", error: "" },

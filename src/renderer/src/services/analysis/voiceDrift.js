@@ -177,9 +177,9 @@ function htmlToText(html) {
   if (!html) return "";
   const div = document.createElement("div");
   div.innerHTML = html;
-  div.querySelectorAll(".ai-del").forEach((el) => el.remove());
-  div.querySelectorAll(".ai-ins").forEach((el) => el.replaceWith(...el.childNodes));
-  div.querySelectorAll(".scene-mark").forEach((el) => el.remove());
+  div.querySelectorAll(".ai-del").forEach((el) => { el.remove(); });
+  div.querySelectorAll(".ai-ins").forEach((el) => { el.replaceWith(...el.childNodes); });
+  div.querySelectorAll(".scene-mark").forEach((el) => { el.remove(); });
   return (div.textContent || "").trim();
 }
 
@@ -256,7 +256,7 @@ export async function explainVoiceDrift({
   }
 
   const divergentLines = divergentMetrics
-    .filter((d) => d && d.label)
+    .filter((d) => d?.label)
     .slice(0, 6)
     .map((d) => `- ${d.label}: ${d.direction || ""} (outlier ${d.outlierValue}; baseline ~${d.baselineMean})`);
 
