@@ -11,6 +11,13 @@
       }
     }
   },
+  "assist": {
+    "actions": {
+      "source": {
+        "organizeImports": "off"
+      }
+    }
+  },
   "formatter": { "enabled": false },
   "overrides": [
     {
