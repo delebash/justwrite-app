@@ -19,7 +19,7 @@ about either app's *requirements* forced the differences below.
 | Routing | vue-router, 30 routes, 29 lazy, 23 params | hand-rolled `hashchange` + `<component :is>`, 17 eager imports | arbitrary — JV reinvented a weaker router; adopt vue-router |
 | Server base | `serverApi.js` `SERVER_BASE`, env `VITE_JW_SERVER_URL`, not origin-aware | `config.js` `resolveServerUrl()` (origin-aware), env `VITE_SERVER_URL` | arbitrary — JV logic is correct; unify in `serverApi.js` |
 | Fetch wrapper | none central (scattered in `*Api.js`) | `useApi` store: `request`/`safeRequest`/`requestBlob`/`postForm` | arbitrary — JV pattern correct, but belongs in a service not a store |
-| Seed/demo | client-side `domain/seed.js` | server-side | JW vestige of IndexedDB past; server-side is the thin-client rule |
+| Seed/demo | client-side `domain/seed.js` | server-side | ✅ done — JW moved to `demo_seed.py` + `seed.py` (server seeds on boot/reset; `domain/seed.js` removed) |
 | UI primitives | `components/ui/` (`Jw*`) | `components/jv/` (`Jv*`) | arbitrary folder name — converge on `components/ui/` |
 | Theming | `services/appearance.js` | inlined in `stores/ui.js` | arbitrary — extract to `services/appearance.js` |
 | Lint | `biome.json` | none | gap — JV adds Biome |
@@ -39,13 +39,13 @@ about either app's *requirements* forced the differences below.
 
 **Status 2026-06-20:** ✅ Done + verified + pushed — #2 (folder), #3 (CSS split),
 #4 (theming → appearance.js + dark-mode fix), #5 (origin-aware serverApi), #6
-(fetch-wrapper → services/serverApi.js), #8 (vue-router + lazy routes), #9 (doc
-cleanup), #1 (Biome installed + shared config + organizeImports off + safe fixes).
-⏳ Remaining: **#7** (seed → server — a feature port touching first-run; deferred
-as a focused effort, not rushed) and the **full Biome lint-green pass** — the
-audit found BOTH apps carry pre-existing lint debt (JV ~20 issues; JW ~48 errors
-+ 70 warnings) incl. semantic fixes (noGlobalIsFinite/Nan) + 3 single-word
-component names; a careful per-file hygiene pass for each app.
+(fetch-wrapper → services/serverApi.js), #7 (seed → server), #8 (vue-router +
+lazy routes), #9 (doc cleanup), #1 (Biome installed + shared config +
+organizeImports off + safe fixes). ⏳ Remaining: only the **full Biome
+lint-green pass** — the audit found BOTH apps carry pre-existing lint debt (JV
+~20 issues; JW ~48 errors + 70 warnings) incl. semantic fixes
+(noGlobalIsFinite/Nan) + 3 single-word component names; a careful per-file
+hygiene pass for each app.
 1. **JV** — add `biome.json` (match JW); run Biome, fix lint. *[low]*
 2. **JV** — rename `components/jv/` → `components/ui/`, update imports. *[low, mechanical]*
 3. **Both CSS** — JW move `assets/styles/tokens.css` → renderer root; split into
@@ -55,6 +55,16 @@ component names; a careful per-file hygiene pass for each app.
    `postForm`; rename env `VITE_JW_SERVER_URL` → `VITE_SERVER_URL`. *[med]*
 6. **JV** — move the fetch wrapper from the `api` store into `services/serverApi.js`. *[med-high]*
 7. **JW** — demo seed → server-side; drop the `domain/seed.js` client path. *[med-high]*
+   ✅ Done — the demo book ("Cartographer's Daughter") + the default LLM
+   providers live in `server/justwrite_server/demo_seed.py` + `seed.py`, seeded
+   on the first `serve` boot (and re-seeded after a workspace reset) into the
+   normalized tables via `book_io.decompose`. A `demoSeeded` settings flag makes
+   the demo one-time so a deleted demo stays deleted; the server points
+   `activeProjectId` at it so first run auto-opens it (the "auto-demo" UX is
+   preserved). The renderer dropped `domain/seed.js` entirely — the structural
+   blank-project scaffolding (meta defaults, empty architecture docs, generic
+   worldbuilding categories) stays inline in `stores/project.js`. Tests:
+   `server/tests/test_seed.py` (+ updated `test_workspace.py`).
 8. **JV** — adopt **vue-router** (`createWebHashHistory`, lazy routes, params);
    replace the hand-rolled `hashchange` + `<component :is>`; preserve the
    kind-driven nav filter, deep-link cold-load, and the `?view=dictate` branch. *[high]*

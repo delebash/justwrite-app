@@ -16,11 +16,6 @@ import * as projectApi from "../services/projectApi.js";
 import { replaceInHtml } from "../services/projectReplace.js";
 import { nextColor, nextHue } from "../services/categoricalColors.js";
 import {
-  PROJECT, STRANDS, CHARACTERS, CHARACTER_EXTRAS, LOCATIONS, OBJECTS,
-  PARTS, NOTES, GROUPS, ARCHITECTURE, WORLDBUILDING, WORLDBUILDING_CATEGORIES,
-  SCENES, EVENTS,
-} from "../domain/seed.js";
-import {
   TUTORIAL_TITLE, TUTORIAL_AUTHOR,
   TUTORIAL_CHARACTERS, TUTORIAL_LOCATIONS,
   TUTORIAL_STRAND, TUTORIAL_WORLDBUILDING,
@@ -148,13 +143,17 @@ function bootstrap() {
     return { activeId: id, registry, snapshot: loadSnap(id) };
   }
 
-  // First-ever run: mint an id for the seeded demo. ensureActiveProjectPersisted()
-  // (called from main.js after boot) writes its row so it survives a reload.
+  // Nothing to open. The server seeds the demo project on first run (and points
+  // activeProjectId at it), so reaching here means a genuinely empty workspace —
+  // e.g. every project was deleted, or the server seed is unavailable. Mint a
+  // blank project so the app always has something to show;
+  // ensureActiveProjectPersisted() (called from main.js after boot) writes its
+  // row so it survives a reload.
   const id = uid("prj");
   const entry = {
     id,
-    title: "The Cartographer's Daughter",
-    author: "Mira Halden",
+    title: "Untitled project",
+    author: "",
     savedAt: new Date().toISOString(),
   };
   writeSetting("activeProjectId", id);
@@ -168,8 +167,9 @@ function bootstrap() {
 // before main.js's body, so calling bootstrap() at module-load time would
 // silently read null for the active id / registry / snapshot and mint a fresh
 // project UUID on every full reload — losing the user's chapters, RAG index,
-// sessions, and everything else keyed on activeProjectId. The seed data made
-// this look like persistence on the surface because the demo content reappears.
+// sessions, and everything else keyed on activeProjectId. (Before the seed moved
+// server-side, the client's demo fallback masked this on the surface because the
+// demo content reappeared on every reload.)
 //
 // Defer bootstrap (and the migration steps it feeds) into a lazy initialiser
 // that runs once when the state factory first executes. Pinia state factories
@@ -202,8 +202,8 @@ function getBoot() {
   // existing `chapterBody[id] = html` into a one-scene record so the user's
   // prose is preserved exactly; clear the old chapterBody.
   // Gate on boot.snapshot — on a fresh install there is nothing to migrate
-  // AND running the migration would set scenes to {}, which would then beat
-  // the SCENES seed in the state factory below.
+  // (no snapshot to read an old chapterBody from); the state factory below
+  // supplies the empty scene defaults.
   if (boot.snapshot && (!loaded.scenes || typeof loaded.scenes !== "object")) {
     loaded.scenes = {};
     const oldBody = (loaded.chapterBody && typeof loaded.chapterBody === "object") ? loaded.chapterBody : {};
@@ -357,49 +357,74 @@ const DEFAULT_STATUSES = [
   { id: "abandoned", label: "Abandoned", color: "oklch(0.6 0.02 260)" },
 ];
 
+// ── Blank-project scaffolding ───────────────────────────────────────────
+// The demo content (the "Cartographer's Daughter" book) now lives server-side
+// and is seeded into the database on first run (server/justwrite_server/
+// demo_seed.py — the 2026-06-20 convergence, item #7). What remains here is the
+// genuinely STRUCTURAL shape of an EMPTY project: meta defaults, the three
+// architecture docs as empty skeletons, and the generic worldbuilding
+// categories — the scaffolding createProject() and the boot fallback need when
+// there is no server snapshot to load. None of it is story content.
+
+const BLANK_PROJECT_META = {
+  title: "Untitled",
+  author: "",
+  subtitle: "",
+  genre: "",
+  wordsGoal: 90000,
+  dailyTarget: 1200,
+  wordsWritten: 0,
+  startedOn: "",
+  deadline: "",
+  premise: "",
+  coverImage: null,
+};
+
+// Fresh copy each call so callers never share nested doc objects.
+function blankArchitecture() {
+  return {
+    premise: { id: "premise", title: "Premise", blurb: "The single sentence the novel can be reduced to.", status: "todo", words: 0, body: "" },
+    fabula:  { id: "fabula",  title: "Fabula",  blurb: "The story as it happens in time.",                 status: "todo", words: 0, body: "" },
+    setting: { id: "setting", title: "Setting", blurb: "The world the book occupies.",                      status: "todo", words: 0, body: "" },
+  };
+}
+
+const DEFAULT_WB_CATEGORIES = [
+  { id: "geography", label: "Geography",   icon: "Pin",       hue: 130 },
+  { id: "history",   label: "History",     icon: "Calendar",  hue: 30 },
+  { id: "cultures",  label: "Cultures",    icon: "Users",     hue: 60 },
+  { id: "languages", label: "Languages",   icon: "Quote",     hue: 200 },
+  { id: "factions",  label: "Factions",    icon: "GroupIcon", hue: 270 },
+  { id: "lore",      label: "Lore & myth", icon: "Sparkle",   hue: 320 },
+];
+
 export const useProjectStore = defineStore("project", {
   state: () => {
     // Lazy bootstrap — see getBoot() for why this can't run at module load.
     const { boot, loaded } = getBoot();
     return ({
-    project:    { ...PROJECT, ...(loaded.project || {}) },
-    strands:  loaded.strands  || [...STRANDS],
-    characters: loaded.characters || [...CHARACTERS],
-    characterExtras: { ...CHARACTER_EXTRAS, ...(loaded.characterExtras || {}) },
-    locations:  loaded.locations  || [...LOCATIONS],
-    objects:    loaded.objects    || [...OBJECTS],
-    parts:      loaded.parts      || PARTS.map((p) => ({ ...p, chapters: [...p.chapters] })),
-    notes:      loaded.notes      || [...NOTES],
-    groups:     loaded.groups     || [...GROUPS],
-    architecture: { ...ARCHITECTURE, ...(loaded.architecture || {}) },
-    worldbuilding: loaded.worldbuilding || [...WORLDBUILDING],
-    worldbuildingCategories: loaded.worldbuildingCategories || WORLDBUILDING_CATEGORIES.map((c) => ({ ...c })),
+    project:    { ...BLANK_PROJECT_META, ...(loaded.project || {}) },
+    strands:  loaded.strands  || [],
+    characters: loaded.characters || [],
+    characterExtras: { ...(loaded.characterExtras || {}) },
+    locations:  loaded.locations  || [],
+    objects:    loaded.objects    || [],
+    parts:      loaded.parts      || [{ id: uid("p"), title: "Part One", chapters: [] }],
+    notes:      loaded.notes      || [],
+    groups:     loaded.groups     || [],
+    architecture: { ...blankArchitecture(), ...(loaded.architecture || {}) },
+    worldbuilding: loaded.worldbuilding || [],
+    worldbuildingCategories: loaded.worldbuildingCategories || DEFAULT_WB_CATEGORIES.map((c) => ({ ...c })),
     tagVocabularies: { characters: [], locations: [], objects: [], worldbuilding: [], ...(loaded.tagVocabularies || {}) },
     statuses: loaded.statuses || DEFAULT_STATUSES.map((s) => ({ ...s })),
     // Scenes registry: { [chapterId]: [{ id, title, body, ...links }] }.
-    // Seeded from the SCENES map — chapters not listed there open empty
-    // so the writer can add their own scenes from the overview pane.
-    // The optional Links arrays (characters/locations/objects/strands)
-    // are preserved when present in the seed so Relations / Strand /
-    // entity-detail views light up on a fresh workspace.
-    scenes: loaded.scenes || Object.fromEntries(
-      Object.entries(SCENES).map(([chId, list]) => [
-        chId,
-        list.map((s, i) => ({
-          id: `scn_${chId}_${i + 1}`,
-          title: s.title || "",
-          body: s.body || "",
-          characters: Array.isArray(s.characters) ? [...s.characters] : [],
-          locations:  Array.isArray(s.locations)  ? [...s.locations]  : [],
-          objects:    Array.isArray(s.objects)    ? [...s.objects]    : [],
-          strands:  Array.isArray(s.strands)  ? [...s.strands]  : [],
-        })),
-      ])
-    ),
+    // A fresh project has none; the server-seeded demo (and any saved project)
+    // arrives with scenes already in this shape via the loaded snapshot.
+    scenes: loaded.scenes || {},
     images: loaded.images || {},
-    // Per-entity event log. Seeded only on a fresh install so re-seeding
-    // doesn't clobber user-added events on existing workspaces.
-    events: loaded.events || JSON.parse(JSON.stringify(EVENTS)),
+    // Per-entity event log, keyed by entity id. Empty on a fresh project;
+    // populated from the loaded snapshot otherwise.
+    events: loaded.events || {},
     trash: { ...EMPTY_TRASH, ...(loaded.trash || {}) },
 
     // Per-day session recaps generated by the "Wrap up session" flow.
@@ -2005,13 +2030,13 @@ export const useProjectStore = defineStore("project", {
       this._persist();
       const id = uid("prj");
       const fresh = {
-        project: { ...PROJECT, title, author, coverImage: null, wordsWritten: 0 },
+        project: { ...BLANK_PROJECT_META, title, author, coverImage: null, wordsWritten: 0 },
         strands: [], characters: [], characterExtras: {},
         locations: [], objects: [], groups: [], notes: [],
         parts: [{ id: uid("p"), title: "Part One", chapters: [] }],
-        architecture: { ...ARCHITECTURE },
+        architecture: blankArchitecture(),
         worldbuilding: [],
-        worldbuildingCategories: WORLDBUILDING_CATEGORIES.map((c) => ({ ...c })),
+        worldbuildingCategories: DEFAULT_WB_CATEGORIES.map((c) => ({ ...c })),
         tagVocabularies: { characters: [], locations: [], objects: [], worldbuilding: [] },
         statuses: DEFAULT_STATUSES.map((s) => ({ ...s })),
         scenes: {},

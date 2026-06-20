@@ -280,7 +280,6 @@ justwrite-app/
 │           ├── App.vue
 │           ├── router/index.js
 │           ├── assets/styles/tokens.css
-│           ├── domain/seed.js         ← demo project "The Cartographer's Daughter"
 │           ├── stores/                ← project, ui, ai, sessions
 │           ├── services/
 │           │   ├── tauri-bridge.js    ← exposes window.justwrite

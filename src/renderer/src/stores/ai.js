@@ -3,7 +3,6 @@
 // call). Persists via the IDB-backed storage adapter.
 
 import { defineStore } from "pinia";
-import { DEFAULT_PROVIDERS } from "../domain/seed.js";
 import { OpenAICompatClient } from "../services/openai-compat.js";
 import { getModelTier, TIERS } from "../services/modelMeta.js";
 import { readSetting, writeSetting } from "../services/settings.js";
@@ -96,19 +95,13 @@ function load() {
 }
 
 // Providers come from the server's /v1/llm-providers table (read into a sync
-// cache by bootProviders() before mount); fall back to the seeded defaults.
-// New built-ins are appended by id so upgrades pick them up.
+// cache by bootProviders() before mount). The server seeds the built-in defaults
+// and merges any new ones on every boot (server/justwrite_server/seed.py), so
+// the client just reads the list — no client-side defaults, no write-through
+// seeding. Empty only when the server is unreachable (the connection gate makes
+// that a no-boot anyway).
 function initialProviders() {
-  const fromServer = providerBackend.listProviders();
-  const base = fromServer ?? [...DEFAULT_PROVIDERS];
-  const have = new Set(base.map((p) => p.id));
-  const missing = DEFAULT_PROVIDERS.filter((p) => p.builtIn && !have.has(p.id));
-  const list = missing.length ? [...base, ...missing] : base;
-  // Seed/sync the server when it had no list yet (fresh install) or when new
-  // built-ins were merged — so the gateway and any thin client can route
-  // immediately, not only after the user's first edit.
-  if (!fromServer || missing.length) providerBackend.saveProviders(list);
-  return list;
+  return providerBackend.listProviders() ?? [];
 }
 
 function save(state) {

@@ -59,14 +59,13 @@ documented reason below says otherwise.
 `project` Pinia store — it owns snapshot-based undo/redo across all entities, the
 one sanctioned exception to per-domain stores.
 
-**Deviations still to migrate to the standard** (ordered plan + full audit:
-`docs/plans/2026-06-20-cross-app-convergence.md`):
-- move `assets/styles/tokens.css` → renderer root and split into `tokens.css`
-  (`:root` only) + `styles.css`;
-- make `services/serverApi.js` origin-aware and add the fetch wrappers
-  (`request`/`safeRequest`/`requestBlob`/`postForm`); rename env
-  `VITE_JW_SERVER_URL` → `VITE_SERVER_URL`;
-- move demo seeding (`domain/seed.js`) server-side.
+**Cross-app convergence** (audit + ordered plan:
+`docs/plans/2026-06-20-cross-app-convergence.md`): the structural deviations are
+migrated — CSS split into `tokens.css` + `styles.css` at the renderer root,
+origin-aware `services/serverApi.js` (env `VITE_SERVER_URL`), and demo seeding
+moved server-side (`server/justwrite_server/demo_seed.py` + `seed.py` seed the
+demo project + default LLM providers on boot/reset; the renderer no longer
+carries `domain/seed.js`). Only the cross-app Biome lint-green pass remains.
 
 ## Architecture
 

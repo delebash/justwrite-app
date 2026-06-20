@@ -2,9 +2,11 @@
 
 `DELETE /v1/workspace` is the "Reset workspace" wipe: it clears EVERY data table
 (settings, projects + all cascaded book rows, sessions, usage, providers,
-versions, chat, …) in one call, then the renderer reloads and re-seeds. Replaces
-the renderer's old `clearPrefix("justwrite:")` kv wipe, which since P2 only
-cleared kv and left the SQL tables (projects, sessions, …) behind.
+versions, chat, …) in one call, then re-seeds the demo project + default
+providers so the renderer reloads into a first-run-shaped workspace (the server
+now owns the seed — the renderer used to re-seed itself from domain/seed.js).
+Replaces the renderer's old `clearPrefix("justwrite:")` kv wipe, which since P2
+only cleared kv and left the SQL tables (projects, sessions, …) behind.
 """
 
 from __future__ import annotations
@@ -25,4 +27,10 @@ async def reset_workspace(db: Session = Depends(get_db)) -> Response:
     for table in reversed(Base.metadata.sorted_tables):
         db.execute(table.delete())
     db.commit()
+    # Re-seed the fresh workspace (demo project + default providers) so reset
+    # behaves like first run: the renderer reloads and finds the demo, exactly as
+    # it did when the renderer itself re-seeded from the (now removed) client seed.
+    from ..seed import seed_workspace
+
+    seed_workspace(db)
     return Response(status_code=204)

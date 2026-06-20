@@ -40,7 +40,15 @@ def serve(
 ) -> None:
     """Run the JustWrite server (default 127.0.0.1:17495)."""
     typer.secho(f"{PRODUCT} {VERSION} — http://{host}:{port}/", fg=typer.colors.GREEN)
-    uvicorn.run(create_app(data_dir), host=host, port=port)
+    application = create_app(data_dir)
+    # Seed the demo project + default LLM providers now that the DB is up
+    # (create_app ran init_db). Kept here — and in the workspace-reset handler —
+    # rather than in create_app(), so the pytest suite's create_app(tmp_path)
+    # clients still start from an empty database.
+    from .seed import seed_workspace
+
+    seed_workspace()
+    uvicorn.run(application, host=host, port=port)
 
 
 if __name__ == "__main__":
