@@ -96,6 +96,31 @@ rate/ETA-keyed-on-transient-object class of bug in a second place.
 **Why not fully shared:** forcing TTS engine variants into the GGUF/llama-server
 model is wrong — different runtimes (in-process pool vs subprocess server).
 
+**Corollary — VRAM-fit math stays per-domain (verified 2026-06-20).** The two
+fit calculations are different *problems*, driven by the runtime, not a style
+choice:
+- **LLM** `compute_fit` (`runner.py:89-133`) reads the **GGUF header**
+  (`block_count`, `embedding_length`, `is_moe`, `total_weight_bytes` via
+  `gguf.py`) + hardware VRAM + KV-cache + safety margin to produce a
+  **partial-offload plan** (`-ngl` how many layers on GPU, `--n-cpu-moe` for
+  MoE). A model bigger than VRAM still *runs* (spillover on CPU); probe-and-
+  back-off corrects at spawn. llama.cpp exposes layer offload, and quant variety
+  forces reading real bytes from the file.
+- **TTS** `fitFor` (`EnginesView:917-927`) compares one **static**
+  `vram_min_mb` (declared per engine manifest, e.g. `chatterbox/manifest.py:40`;
+  surfaced as the variant's `vram_mb`) to detected VRAM → a 3-state advisory
+  (ok / tight>80% / no). JV's TTS engines load **whole** onto `device=auto`
+  (`engines/base.py:79`) — no layer-offload knob exists, and fixed models don't
+  need file inspection.
+
+⇒ **Do NOT share the fit computation** (no "fit engine"; each stays behind its
+adapter). They also render in different components (LLM → shared `RunnerStatus`/
+`ModelPicker`; TTS → native JV engine list). The *only* optional shared artifact
+is the visual badge — a normalized `{ level: ok|tight|no, detail }` feeding one
+"fits your hardware" dot, **iff** we want the TTS list and LLM picker to look
+consistent (tooltips still differ: "28/32 layers on GPU" vs "fits in 8 GB / else
+CPU"). Low value, ~3 CSS classes — not a dependency.
+
 **Prereq P0:** normalize the progress shape to camelCase
 `{ phase, bytesDownloaded, bytesTotal, currentFile, error }` at the adapter
 boundary (the two wire shapes differ today — verified above).
