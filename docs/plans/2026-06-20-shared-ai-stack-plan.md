@@ -95,43 +95,57 @@ download **reuses** the shared `DownloadStrip`). Each app registers its **featur
 catalog** (feature keys + default prompts + default tier) onto the shared
 dispatch. Nothing else app-local.
 
-## GUI design — informed by web UX research (2026)
+## GUI design — informed by web UX research + mock rev (mocks: `preview/shared-ai-models-mock.html`, `preview/shared-ai-lab-mock.html`)
 
-Best-in-class local+cloud AI apps (Msty, LM Studio, Jan; LLMFit/whichllm for
-hardware fit) converge on patterns we should adopt. The unified **"AI" area is
-identical in both apps**, four sections:
+Best-in-class local+cloud apps (Msty's provider-agnostic mixing + split-chat
+compare; LM Studio's model browser + settings panel; LLMFit/whichllm fit). The
+unified **"AI / Models" area is a top-level entry, identical in both apps** (in
+JV it sits beside Voices/TTS). Three sub-tabs:
 
-1. **Providers** — *provider-agnostic single list mixing local-free + cloud-paid*
-   (Msty's flagship pattern: "mix local and cloud models in one interface").
-   Capability chips (LLM/embed), status dot + Test, inline edit, "+ Add"
-   (presets: Anthropic / OpenAI / Ollama / LM Studio / "local llama.cpp" / Custom).
-   "local" and "no key — free" badges make the free path obvious.
-2. **Local models (the runner)** — *a browsable catalog → one-click "Download &
-   Run"* (LM Studio's GUI-first model browser), each model showing a **hardware
-   Fit indicator** (LLMFit/whichllm "will it fit" score; our `compute_fit`
-   already accounts for KV-cache + MoE, which whichllm validates as the correct
-   approach). Reuses the shared `DownloadStrip` (phase·bytes·rate·ETA·cancel).
-3. **AI features (feature routing)** — **base = JW's GUI** (the real, visible
-   one): a prominent table, static feature catalog, one row per feature with a
-   flat Provider + Model picker (Inherit-default), provider list split Local·free
-   / Cloud·metered (`SettingsView.vue:75-95,:298-311,:1257`). JV's buried,
-   role-centric, server-`aiCatalog`-driven version (`:1551-1581`) is **replaced**
-   by it. **On top, add JV's backend strengths:** per-feature editable system &
-   user prompt + temperature, savable as **named presets** (LM Studio/Msty: "a
-   preset bundles a system prompt + every parameter into one named package" =
-   JV's `ProductionConfig`); a **Lab** to tune against the real resolved prompt,
-   test, and promote (JV `SpeakerLabView`, generalized); and **optional**
-   Quick/Accuracy roles as the casual two-knob default (a row can inherit a role
-   instead of naming a provider). So JV comes *up* to JW's routing UX; JW gains
-   prompts/Lab/roles.
-4. **Usage** — token/cost ledger, per-feature breakdown.
+1. **Providers & models** — one list mixing **Local·free / Cloud·metered**, and
+   **model management lives PER PROVIDER** (the v1 mistake was a detached "Local
+   models" tab — model mgmt is type-specific):
+   - **Built-in runner** → the *only* Download&Run path: a GGUF catalog with a
+     **hardware Fit score** (0–100, KV-cache/MoE-aware — our `compute_fit`
+     already does this) + reuses the shared download strip.
+   - **Ollama / LM Studio** → list installed (`/api/tags`) + a pull field.
+   - **Cloud** → fetch the model list (`/models`) + pick defaults; **no
+     download**. (Anthropic = curated list, no `/models`.)
+   - **Add/Edit provider** form is **type-adaptive**: cloud shows URL+key+Fetch;
+     local (Ollama/LM Studio) hides the key; the built-in runner needs nothing.
+2. **Features** — JW's flat routing table as the base, each row inherit-a-role or
+   override to a specific **provider ▸ model**. Roles (Quick/Accuracy) are
+   **optional** and **grounded** (each is itself a provider▸model pick). Expand a
+   row to edit inline: **real settings** — temperature · max tokens · reasoning
+   (adapter-plumbed today) + **Advanced sampling** (top-p/top-k/repeat/ctx/stop/
+   seed — *requires plumbing these through the shared adapter*, currently
+   only temp/max_tokens/think exist) — plus system & user prompt, saved as a
+   named production config. "Open in Lab" for compare.
+3. **Usage** — token/cost ledger, per feature + provider.
 
-JustVoice's nav additionally hosts the **Voices / TTS** sections alongside this
-AI area; JustWrite shows only the AI area. Same components, same layout.
+### The Lab — one per action (LLM *and* TTS), tune → compare → Apply to route
+User direction (2026-06-20): *"a Lab for each type of LLM action … anything that
+takes a different prompt or settings … adjust and then apply a setting for the
+routes / default settings."* So every action (speaker attribution, entity/
+object/location extraction, rewrite, critique, …) has its own Lab:
+- **Tune** the action's prompt + the settings sent to the model (its sample
+  input is action-specific — a chapter, a selection, …).
+- **Compare candidates side-by-side** (Msty split-chat): same prompt+settings,
+  different model — free-local vs metered-cloud — with per-column output, tokens,
+  time, cost; pick the winner.
+- **Apply to route** → writes that action's **production config** (model +
+  settings + prompts) = the route's default; shows a `CONFIG` tag on Features;
+  revert anytime.
+- **Generalizes to TTS actions** (JV): the same Lab framework, but the settings
+  panel swaps to the engine's knobs (e.g. Chatterbox exaggeration / cfg-weight /
+  speed + optional style prompt) and compare = audio variants. The Lab/compare/
+  Apply code is shared; only each action's sample input + output rendering (and,
+  for TTS, the settings *schema*) differ.
 
-Casual-vs-power split (keeps it easy): a user can (a) add one provider OR
-one-click a recommended local model, and everything works on Quick/Accuracy
-defaults; power users drop into AI features → Lab to pin models + edit prompts.
+**Casual vs power (keeps it easy):** casual users add one provider OR one-click a
+recommended local model, and everything runs on Quick/Accuracy defaults — never
+touching a prompt. Power users open an action's Lab to compare models, tune the
+prompt + settings, and Apply.
 
 ## The lift (what moves, reuse-not-copy)
 
@@ -168,21 +182,24 @@ defaults; power users drop into AI features → Lab to pin models + edit prompts
    model download **reuses** the shared `DownloadStrip`.
 5. **Delete** the now-duplicated per-app code (no leftover forks).
 
-## Open decisions (need a steer)
+## Decisions — RESOLVED (user, 2026-06-20)
 
-1. **i18n in shared views** — vue-i18n bundled in `@delebash/llm-ui` (JV adopts
-   vue-i18n; JW already has it). Confirm this over host-injected strings.
-2. **AI-area placement** — JV currently has top-level **Engines** (TTS-centric)
-   with an Online-providers tab; JW has **Settings → AI engines**. Proposal for
-   sameness: one shared **"AI"/"Models"** area, identical in both; in JV its nav
-   sits beside Voices/TTS, in JW it's the AI area. (Same components either way;
-   this is just where it mounts.)
-3. **Hardware Fit indicator** — adopt a richer **Fit score** (LLMFit/whichllm
-   style: speed + context + quality + VRAM headroom) for local models, vs the
-   current 3-state ok/tight/no dot. Score is more useful; dot is cheaper.
-4. **Scope/sequencing of the JW feature migration** — ~24 LLM features moving server-
-   side is the largest chunk; confirm doing it as its own phase after the backend
-   + GUI exist (step 2 can land incrementally, feature by feature).
+1. **i18n** — ✅ vue-i18n in both (standard; JV adopts it). Not a per-app choice.
+2. **AI-area placement** — ✅ one shared **top-level "Models" area**, identical in
+   both; in JV it sits beside Voices/TTS.
+3. **Hardware Fit** — ✅ adopt the **richer Fit score** (0–100, KV-cache/MoE-aware).
+4. **JW feature migration** — ⏸️ **held** as its own later phase (after backend +
+   GUI land); migrate incrementally, feature by feature.
+5. **Model management** — ✅ **per-provider** (runner=Download&Run+Fit; Ollama=list
+   +pull; cloud=fetch+pick); no detached "Local models" tab.
+6. **Roles** — ✅ kept, **optional + grounded** (each role = a provider▸model pick).
+7. **Prompt + settings editing** — ✅ inline per-feature **plus** a **per-action
+   Lab** (tune → side-by-side compare → Apply to route). Settings = the full set
+   (requires plumbing top-p/top-k/repeat/ctx/stop through the shared adapter).
+8. **Lab scope** — ✅ one Lab **per action**, LLM *and* TTS (TTS settings = engine
+   knobs); shared framework, per-action sample/output.
+9. **Embeddings/RAG** — ✅ embeddings = shared provider capability; RAG (index +
+   chat) = JW catalog feature (JV may add later).
 
 ## Web UX sources
 - Msty / LM Studio / Jan / Ollama comparison (provider-agnostic mixing, GUI-first
