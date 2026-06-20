@@ -132,3 +132,18 @@ The mechanical sweep counted these as "clones"; reading the *divergence* found a
 - ✅ Feature/usage labels across `analysis/*`: all consistent (verified `threadExtraction→"foreshadowing"`
   and `entityExtraction→"entitySweep"` are correct extraction/orchestrator splits, not copy-paste bugs).
 
+
+### Batch 4 — JV `StudioView.vue` (2690 ln; full script 16–1322 read)
+Careful overall (busy guards, confirm dialogs, abort controllers, honest counts). Two real bugs:
+- 🔴 **CRASH — render-cancel infinite recursion (`renderScene`, ~line 742).** Its task `onCancel`
+  was `() => { abortController.abort(); tasks.cancel(task.id); }`. But `renderTasks.cancel(id)`
+  invokes `onCancel()` *before* `_markStatus(cancelled)`, so status stays "running" and
+  cancel→onCancel→cancel recurses until the stack overflows. **Every other onCancel (7 of them)
+  does abort only.** Fixed: `onCancel: () => abortController.abort()` (store does the transition).
+- 🟠 **Stuck-task leak — `runDiscoverSpeakers` catch called `tasks.dismiss(t.id)`**, but `dismiss`
+  no-ops on a still-"running" task — so a discover failure (501 = no LLM, common right after Analyze)
+  orphaned a "Speaker identification" task in the strip forever + (with the renderTasks fix) kept the
+  elapsed tick alive. Fixed: `tasks.finish(t.id)` (auto-dismisses).
+- ✅ Checked clean: the other 3 onCancel handlers (abort-only), smartAssign abort/cancel handling,
+  assignVoice/applyAnalyzed error paths, the cast/script/render computeds.
+
