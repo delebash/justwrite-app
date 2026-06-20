@@ -67,6 +67,23 @@ moved server-side (`server/justwrite_server/demo_seed.py` + `seed.py` seed the
 demo project + default LLM providers on boot/reset; the renderer no longer
 carries `domain/seed.js`). Both apps are Biome-green on 2.5.0 with a byte-identical shared config — convergence is complete.
 
+### ⛔ LLM-stack convergence (2026-06-20, user directive — global RULE #7)
+
+JustWrite and JustVoice must run the **SAME LLM stack — same Python, same client
+views.** Shared code lives in `just-llm-runner` (providers online/local-free/
+paid, the local runner download/load/spawn, feature dispatch/execution,
+per-feature config **incl. editable system+user prompts**, model roles, usage) +
+`@delebash/llm-ui` (the client views), mounted/imported by BOTH apps. The ONLY
+legitimate differences are JustVoice's **TTS** side and each app's **feature
+catalog** (domain prompts on the same dispatch). It is **NOT** a per-app adapter/
+shim bridging two servers. **JW-specific gap to close:** JW currently executes
+LLM features **client-side** (`services/analysis/*`) so headless JW gets no AI,
+and its prompts are hardcoded + pins are `{provider,model}`-only — JW must move
+feature execution server-side onto the shared dispatch and gain editable prompts,
+rich pins, and model roles. Grounded current-state + target + sequence:
+`docs/plans/2026-06-20-engines-llmui-cutover-boundary.md` (Decision 3). Any LLM
+divergence must be proven file-by-file (RULE #7), never asserted.
+
 ## Architecture
 
 ### Layout

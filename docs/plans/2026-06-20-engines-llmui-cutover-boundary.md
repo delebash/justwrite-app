@@ -1,12 +1,30 @@
 # Engines → shared `llm-ui` cutover boundary (2026-06-20)
 
-The **boundary map** the user asked for before any Phase-2 component build:
-which provider/model surfaces move into the shared adapter-driven
-`@delebash/llm-ui` consolidated view, and which stay native per app. Companion
-to `2026-06-16-thread3-phase2-llm-ui.md` (the contract + adapters, mostly done);
-this doc is the cutover decision layer. **Same file committed in both repos.**
+**⛔ Premise corrected 2026-06-20 (user directive).** This is NOT "two servers
+bridged by per-app `ProviderBackend` adapters + a shared component library." The
+user's words: *"same python file, same client side files/views. The apps should
+be structured and function basically the same way except JustVoice has the
+special TTS side"* and *"don't put some kind of shim for jv vs jw … besides TTS,
+[no] reason why llm features and functions should be different beside use case."*
 
-Scope spans **both apps** (the components are shared):
+So the target is **one shared LLM implementation — same Python AND same client
+views — consumed by both apps**, with only two legitimate differences:
+1. **TTS** — JustVoice-only (engines, voices, render/casting pipeline).
+2. **Feature catalog** — each app registers its own domain features + prompts
+   onto the *same* dispatch (JV: speaker-attribution / smart-assign / preset-
+   suggest / persona-rewrite; JW: critique / plot-holes / entity-sweep / …).
+   Same machinery, different prompt set.
+
+Everything else — provider setup (online / local-free / paid), the local
+llama.cpp runner (download / load / spawn), per-feature config *including
+editable system+user prompts*, model roles, usage — is the **same code**, in
+`just-llm-runner` (Python, mounted by both) + `@delebash/llm-ui` (client views,
+imported by both). See **Decision 3** for the target + sequence. Companion to
+`2026-06-16-thread3-phase2-llm-ui.md` (whose per-app-adapter approach this
+supersedes). **Same file committed in both repos.**
+
+The EnginesView/SettingsView cutover below is then just "which existing surfaces
+get replaced by the shared code":
 - **JustVoice** — `views/EnginesView.vue` (+ `components/ProviderForm.vue`,
   `components/RecommendCard.vue`).
 - **JustWrite** — `views/SettingsView.vue` "AI engines" section (+
@@ -157,27 +175,51 @@ in JV requires **extracting the TTS half into a native "external TTS provider"
 editor** (TTS model / voices / fetch-voices / response_format / chips), wired to
 `settings.engines.external[]` as today. JW needs no such split (no audio).
 
-## Decision 3 — the consolidation unifies provider *management*, NOT LLM *inference* (verified 2026-06-20)
+## Decision 3 — ONE shared LLM stack (same Python, same client views); only TTS + feature catalog differ  *(corrected 2026-06-20 per user; supersedes the prior "justified divergence" version)*
 
-The two apps call LLMs differently today, and the difference is **justified —
-leave it**:
-- **JW renderer-drives** — a thin **gateway proxy** (`api/llm.py:345-357`,
-  `/v1/llm/{providerId}/chat/completions`); prompts built + parsed **client-side**
-  (`services/analysis/*` + `parseJsonLoose`).
-- **JV server-drives** — **no generic gateway**; server-side feature endpoints
-  (`/v1/llm/smart-assign`, `/preset-suggest`, `/v1/llm-roles/recommendations`)
-  over `engines/llm/` adapters + `dispatch.py`, returning typed responses.
-  Required because JV runs **headless** (`justvoice-server serve`, CONTRACT.md /
-  JustWrite-driven) — LLM features can't live only in a renderer.
+**Both apps run headless** (`justvoice-server serve` / `justwrite-server serve`;
+both mount `llm_runner.router` — `app.py:70`: *"the same router JustVoice mounts
+— full symmetry"*) and both are client-server with an API. So "headless"
+justifies **no** divergence — it's the reason both need the stack server-side.
+JV's server-side LLM stack is a **superset** of JW's:
 
-⇒ llm-ui (the `ProviderBackend` adapters + camelCase contract) unifies the
-**client provider-management surface** (forms / lists / pickers / pins / usage),
-absorbing even the server-shape drift (JV per-id REST CRUD `llm_providers_api.py:
-95-178` ↔ JW bulk GET/PUT `providerBackend.js`). It does **not** touch the
-inference path, and shouldn't. The shared **`llm-runner`** unifies the *local
-llama.cpp* runner server-side (both mount `llm_runner.router`); aligning the
-cosmetic drift (`/v1/ai-usage` ↔ `/v1/llm-usage`, pins-API ↔ pins-in-settings)
-is optional cleanup, non-blocking.
+| Capability | JV | JW | → target |
+|---|---|---|---|
+| Feature execution | server `dispatch.py` + `/v1/llm/*` endpoints | client `services/analysis/*` (headless ⇒ no AI) | **shared, server-side** |
+| Per-feature config | `FeaturePinConfig`+`ProductionConfig` (provider+model+tier+role+temperature+**system_prompt+user_prompt**, `models.py:291,329`) | `{provider,model}`+model-tier (`ai.js:142`) | **shared rich config** |
+| Model roles (quick/accuracy) | `LLMRolesSettings` (`models.py:320`) | — | **shared** |
+| Editable prompts | server-side, preset+custom (`extraction_api.py:156-228,323`) | hardcoded in renderer | **shared, editable** |
+| Provider CRUD / detect / classify | server REST + `/detect-local` + `/classify-tier` | bulk PUT + client detect/tier | **shared server API** |
+| Usage | `/v1/ai-usage` | `/v1/llm-usage` | **one name** |
+
+⇒ **Target: lift JV's whole LLM surface into `just-llm-runner` (Python) +
+`@delebash/llm-ui` (client views); both apps mount/import the SAME code.** NOT a
+per-app adapter bridging two servers — there is one server codebase, so there is
+nothing to bridge. This **overrides** thread3's "snake↔camel translation in each
+app's adapter" and the earlier draft of this Decision (which wrongly called the
+divergence justified). The only surviving differences: **TTS** (JV-only) and each
+app's **feature catalog** (domain prompts on the same dispatch).
+
+**Sequence (per-unit, RULE #5/#7):**
+1. Lift JV's LLM backend into `just-llm-runner` (providers+CRUD+detect+classify,
+   `dispatch`, `FeaturePinConfig`/`ProductionConfig`+prompts, roles, usage); JV
+   switches to mounting it — parity-verify JV behaves identically.
+2. JW mounts the same routers; drop its bulk-PUT provider store + client-side
+   feature execution; JW's 18 features become server-side registrations (prompts
+   moved server-side + made editable). JW gains headless AI, editable prompts,
+   rich pins, roles.
+3. Build the shared client views in `@delebash/llm-ui` (provider form, model
+   picker, per-feature config + prompt editor, roles, usage, runner status,
+   download strip, quick-setup); styled via `tokens.css`, one i18n approach (JV
+   adopts vue-i18n). JV `EnginesView` LLM parts + JW `SettingsView` AI-engines
+   both switch to these same files.
+4. JV adds TTS on top (native engines/voices/render; TTS download reuses the
+   shared `DownloadStrip`).
+5. Delete the now-duplicated per-app code.
+
+This is bigger than "shared UI components" — it's the literal "same python +
+client views" mandate. (Decisions 1-2 still hold for the TTS-download strip +
+the TTS form split.)
 
 ---
 
