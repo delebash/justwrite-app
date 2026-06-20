@@ -44,8 +44,20 @@ On load the same endpoints are fetched by multiple independent callers, uncoordi
 - `/v1/settings` ×3 · `/v1/health` ×3 · `/v1/engines` ×2 (**7.4 KB each**) · `/v1/projects` ×2 · `/v1/system/info` ×2
 Sources incl. `stores/onboarding.js:39` (settings), `stores/engines.js:24` + `components/RecommendCard.vue:36` (engines), `App.vue:267` + `services/connection.js` (health). **Done (partial):** in-flight GET dedupe added to JV `services/serverApi.js` `request()` — collapsed the *concurrent* dups (`/v1/engines` ×2→×1 incl. the 7.4 KB body, `/v1/system/info` ×2→×1). **Remaining (deferred):** sequential dups across boot phases — `/v1/health` ×3 (`connection.js` gate + `App.vue:267` + `OverviewView:116`), `/v1/settings` ×2 (`onboarding.js:39` re-reads the whole doc for `.app` + boot), `/v1/projects` ×2 (activeProject store + `prefs.js:76`). ~2.6 KB; needs a shared boot-hydrate (fetch-once-distribute), per-caller — NOT a TTL cache (the masking anti-pattern the project rules forbid).
 
-### A7 — 🟡 [JV] `SettingsView.vue:907` persists a setting to `localStorage` "for now"
-Violates the project's no-client-persistence rule (should be `/v1/settings`). Small, contained fix.
+### A7 — 🟠 [JV] Capture/dictation settings: dead localStorage + client/server model mismatch
+`SettingsView.vue:907-921` loads a `capture` ref from `localStorage`
+(`justvoice:capture_settings`) that **nothing ever writes** (no `setItem`) — so
+the settings never persist. Worse, the client shape doesn't match the server's:
+client `capture` (singular, camelCase: `sttModel:"turbo"`, `llmModel:"1.7B"`,
+`refinementMode:"smart-cleanup"`, `allowAutoPaste`, `defaultPlaybackVoice`) vs
+server `settings.captures` (`CapturesSettings`, snake_case: `stt_model:"whisper-turbo"`,
+`llm_model:"qwen3-llm-0.6b"`, separate `smart_cleanup`/`self_correction`/
+`preserve_technical` bools, `allow_auto_paste`, `default_playback_voice`).
+**Fix (deferred — model reconciliation, not a persistence swap):** align the UI
+option values to the server's variant ids, split `refinementMode` into the
+server's booleans, bind controls to `settings.captures.*` + `@change="saveDebounced"`
+(the established pattern, e.g. `SettingsView.vue:1797`), drop the dead localStorage.
+Rushing it would ship capture options that don't match real engine variants.
 
 ### A8 — 🟡 [JV+JW] God-files (design refactor — needs seam agreement)
 JV: `StudioView.vue` 2690 · `SettingsView.vue` 2600 · `EnginesView.vue` 1467 · `ChapterView.vue` 1439 · `GenerateView.vue` 1278 · `VoicesView.vue` 1227.
