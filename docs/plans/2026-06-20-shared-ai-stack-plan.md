@@ -34,7 +34,10 @@ shared package, bring JW up onto it.
 | Local llama.cpp runner (download/load/spawn) | mounts `llm_runner.router` | mounts `llm_runner_router` | ✅ `just-llm-runner` |
 | Provider adapters (cloud + local) | `engines/llm/{anthropic,gemini,openai_compat,ollama,local_managed}.py` (server, ~1.6k ln) | `api/llm.py` transparent **proxy** (server) | ✗ two impls |
 | **Feature execution** | **server** `engines/llm/dispatch.py` + `/v1/llm/*` endpoints | **client** `services/analysis/*` (17 modules; 16 LLM + 1 local `styleMetrics`) + `services/` + `rag/` = **~24 LLM features** → **headless JW gets no AI** | ✗ |
-| Per-feature config | `FeaturePinConfig` (provider+model+tier+role, `models.py:291`) **+** `ProductionConfig` (+temperature +system_prompt +user_prompt, `models.py:329`, stored `EnginesSettings.production_configs`) | `{provider,model}` + per-model tier (`ai.js:142`) | ✗ |
+| Per-feature provider+model routing GUI | EXISTS but **buried + sparse**: Settings→"AI features" sub-tab, table driven by **server-fetched `aiCatalog`** + 2 extras, role-centric Inherit·Quick/Accuracy (`SettingsView.vue:470,:576-580,:1551-1581`) → often shows ~nothing | **the real one**: static **20-feature** `AI_FEATURES` table, flat provider+model, prominent (`SettingsView.vue:75-95,:1257`) | ✗ — **JW's GUI is the base to carry forward**; JV comes up to it |
+| Tier→reasoning auto · usage-by-feature · QuickSetup | tiers.py · `/v1/ai-usage` · QuickSetup | `aiStream.js:88,129` · `ai.js:70` · `applyQuickSetupPreset` (`ai.js:270`) | ✅ both |
+| Local-free / cloud-paid GUI split | EnginesView online tab | "Local·free"/"Cloud·metered" (`SettingsView.vue:298-311`) | ✅ both |
+| Per-feature config DELTAS (JW lacks) | `ProductionConfig` editable system+user prompt + temperature (`models.py:329-341`) · Quick/Accuracy roles (`models.py:320`) · per-**feature** tier | prompts hardcoded (`critique.js:27,93`), temp hardcoded (`:57,126`), tier per-**model** (`ai.js:135`), no roles | ✗ — add to shared |
 | Model roles (Quick/Accuracy) | `LLMRolesSettings` (`models.py:320`) + `/v1/llm-roles/recommendations` | — | ✗ |
 | **Editable system/user prompts** | server-side, preset + custom, tuned in **Labs** then *promoted* (`SpeakerLabView.vue`; `extraction_api.py:156-228,323`) | hardcoded inline in renderer modules | ✗ |
 | Provider CRUD / detect / classify-tier | server REST `/v1/llm-providers/*` + `/detect-local` + `/classify-tier` | bulk GET/PUT `/v1/llm-providers` (`providerBackend.js`) + client detect/tier | ✗ shape + side |
@@ -83,13 +86,19 @@ identical in both apps**, four sections:
    Fit indicator** (LLMFit/whichllm "will it fit" score; our `compute_fit`
    already accounts for KV-cache + MoE, which whichllm validates as the correct
    approach). Reuses the shared `DownloadStrip` (phase·bytes·rate·ETA·cancel).
-3. **AI features** — *per-feature: provider + model + role + temperature +
-   editable system & user prompt*, savable as **named presets** (LM Studio/Msty:
-   "a preset bundles a system prompt + every parameter into one named package" —
-   exactly JV's `ProductionConfig`). A **Lab** view tunes against the *real*
-   resolved prompt, tests, and promotes to the active preset (JV's
-   `SpeakerLabView` flow, generalized). Quick/Accuracy roles give a two-knob
-   default so casual users never touch prompts.
+3. **AI features (feature routing)** — **base = JW's GUI** (the real, visible
+   one): a prominent table, static feature catalog, one row per feature with a
+   flat Provider + Model picker (Inherit-default), provider list split Local·free
+   / Cloud·metered (`SettingsView.vue:75-95,:298-311,:1257`). JV's buried,
+   role-centric, server-`aiCatalog`-driven version (`:1551-1581`) is **replaced**
+   by it. **On top, add JV's backend strengths:** per-feature editable system &
+   user prompt + temperature, savable as **named presets** (LM Studio/Msty: "a
+   preset bundles a system prompt + every parameter into one named package" =
+   JV's `ProductionConfig`); a **Lab** to tune against the real resolved prompt,
+   test, and promote (JV `SpeakerLabView`, generalized); and **optional**
+   Quick/Accuracy roles as the casual two-knob default (a row can inherit a role
+   instead of naming a provider). So JV comes *up* to JW's routing UX; JW gains
+   prompts/Lab/roles.
 4. **Usage** — token/cost ledger, per-feature breakdown.
 
 JustVoice's nav additionally hosts the **Voices / TTS** sections alongside this
