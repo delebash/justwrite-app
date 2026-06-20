@@ -106,12 +106,17 @@ choice:
   MoE). A model bigger than VRAM still *runs* (spillover on CPU); probe-and-
   back-off corrects at spawn. llama.cpp exposes layer offload, and quant variety
   forces reading real bytes from the file.
-- **TTS** `fitFor` (`EnginesView:917-927`) compares one **static**
-  `vram_min_mb` (declared per engine manifest, e.g. `chatterbox/manifest.py:40`;
-  surfaced as the variant's `vram_mb`) to detected VRAM → a 3-state advisory
-  (ok / tight>80% / no). JV's TTS engines load **whole** onto `device=auto`
-  (`engines/base.py:79`) — no layer-offload knob exists, and fixed models don't
-  need file inspection.
+- **TTS** fit is also **automatic at runtime** — `/v1/engines/{id}/models/
+  recommended` (`engines_models_api.py:95-99`) calls `system_info.detect()` for
+  GPU VRAM and `recommend_for_vram(id, vram)` over the catalog; the client dot
+  `fitFor` (`EnginesView:917-927`) compares the variant's `vram_mb` to detected
+  VRAM (ok / tight>80% / no). The **only** hand-authored input is the per-model
+  VRAM *estimate* curated in `engines/model_catalog.py` (developer-declared, not
+  user-edited). TTS engines load **whole** onto `device=auto`
+  (`engines/base.py:79`) — no layer-offload knob, so a curated estimate + a
+  threshold is sufficient; no need to crack the file open like the GGUF side.
+  (Models aren't bundled — the catalog is curated, each variant downloads on
+  demand, `on_disk`-tracked.)
 
 ⇒ **Do NOT share the fit computation** (no "fit engine"; each stays behind its
 adapter). They also render in different components (LLM → shared `RunnerStatus`/
@@ -151,6 +156,28 @@ asymmetric:
 in JV requires **extracting the TTS half into a native "external TTS provider"
 editor** (TTS model / voices / fetch-voices / response_format / chips), wired to
 `settings.engines.external[]` as today. JW needs no such split (no audio).
+
+## Decision 3 — the consolidation unifies provider *management*, NOT LLM *inference* (verified 2026-06-20)
+
+The two apps call LLMs differently today, and the difference is **justified —
+leave it**:
+- **JW renderer-drives** — a thin **gateway proxy** (`api/llm.py:345-357`,
+  `/v1/llm/{providerId}/chat/completions`); prompts built + parsed **client-side**
+  (`services/analysis/*` + `parseJsonLoose`).
+- **JV server-drives** — **no generic gateway**; server-side feature endpoints
+  (`/v1/llm/smart-assign`, `/preset-suggest`, `/v1/llm-roles/recommendations`)
+  over `engines/llm/` adapters + `dispatch.py`, returning typed responses.
+  Required because JV runs **headless** (`justvoice-server serve`, CONTRACT.md /
+  JustWrite-driven) — LLM features can't live only in a renderer.
+
+⇒ llm-ui (the `ProviderBackend` adapters + camelCase contract) unifies the
+**client provider-management surface** (forms / lists / pickers / pins / usage),
+absorbing even the server-shape drift (JV per-id REST CRUD `llm_providers_api.py:
+95-178` ↔ JW bulk GET/PUT `providerBackend.js`). It does **not** touch the
+inference path, and shouldn't. The shared **`llm-runner`** unifies the *local
+llama.cpp* runner server-side (both mount `llm_runner.router`); aligning the
+cosmetic drift (`/v1/ai-usage` ↔ `/v1/llm-usage`, pins-API ↔ pins-in-settings)
+is optional cleanup, non-blocking.
 
 ---
 
