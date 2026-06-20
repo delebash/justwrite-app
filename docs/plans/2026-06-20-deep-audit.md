@@ -22,6 +22,7 @@ Private helpers pasted verbatim:
 - `htmlToText` — **19 files** (all `services/analysis/*` + `resumeBriefing`, `sessionRecap`, `stuckDiagnostic`, `voiceFingerprint`, `versionDiff`, `writerAI`)
 - `parseJsonLoose` — **14 files** · `tailWords` — 7 · `firstParagraph` — 4 · `stripHtml` — 4
 **Fix:** one `services/analysis/_shared.js` (or `services/llmText.js`); import. ~300–400 lines removed. Mechanical, safe. *Refactor → per-file plan before applying (RULE #5).*
+**✅ Phase 1 done:** `parseJsonLoose` (×14) + `extractBalanced` (×13) reconciled into `services/llmText.js` (the robust version) — **fixes the entityExtraction reasoning-model bug** (batch 2) + dedups those copies. Verified: build + Biome green; a Node test proves the shared parser handles `<think>`-wrapped output (old weak parser failed it). **Remaining (phase 2):** `htmlToText` (9 variants — whitespace differs, reconcile carefully), `tailWords` (4), `firstParagraph` (4), `stripHtml` (4).
 
 ### A2 — 🟠 [JW] Analysis LLM-call scaffold duplication
 Bodies cloned beyond the helpers: `characterAudit.js ↔ marketingPack.js` (100 lines), `↔ reverseOutline.js` (100), `multiReaderCritique ↔ readerKnowledge/plotHoleScan/threadExtraction` (~46 each). `characterAudit.js` is in 14 clones. **Fix:** shared `runJsonAnalysis({ html, system, schema, … })`.
@@ -104,7 +105,7 @@ The mechanical sweep counted these as "clones"; reading the *divergence* found a
   models (deepseek-reasoner, qwen3-thinking — supported) the `{` inside `<think>` reasoning is
   swallowed → `JSON.parse` fails → **entity extraction silently returns null** while every other
   analysis feature works. Verified: grep of all 14 defs shows `entityExtraction = think0/balanced0/regex1`,
-  the rest `think1/balanced1`. Fix: replace with the robust shared `parseJsonLoose` (the A1 reconciliation).
+  the rest `think1/balanced1`. **✅ FIXED** — replaced with the robust shared `parseJsonLoose` in `services/llmText.js` (A1 phase 1); verified by a Node test (reasoning-model `<think>` output now parses; the old weak parser failed the same input).
 - 🟡 **`htmlToText` scene-mark inconsistency.** 4 files (`critique`, `entityExtraction`, `readerKnowledge`,
   `threadExtraction`) strip `.ai-del`/`.ai-ins` but not `.scene-mark`; 9 others strip all three. Minor
   (scene-break dividers are near-empty), but inconsistent prompt input across features on the same chapter.

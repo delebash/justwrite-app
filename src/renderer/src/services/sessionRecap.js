@@ -16,6 +16,7 @@
 //   }
 
 import { runAiStream } from "./aiStream.js";
+import { parseJsonLoose } from "./llmText.js";
 
 // ─── helpers ─────────────────────────────────────────────────────────
 
@@ -41,43 +42,6 @@ function todayKey(d = new Date()) {
   const m = String(d.getMonth() + 1).padStart(2, "0");
   const day = String(d.getDate()).padStart(2, "0");
   return `${y}-${m}-${day}`;
-}
-
-// Same balanced-brace JSON extractor used by analysis/critique.js — kept
-// inline here rather than imported to avoid coupling two service trees.
-function parseJsonLoose(text) {
-  if (!text) return null;
-  const s = text.replace(/```(?:json)?/gi, "").replace(/<think>[\s\S]*?<\/think>/gi, "");
-  const objIdx = s.indexOf("{");
-  const arrIdx = s.indexOf("[");
-  const objectFirst = objIdx !== -1 && (arrIdx === -1 || objIdx < arrIdx);
-  const order = objectFirst ? [["{", "}"], ["[", "]"]] : [["[", "]"], ["{", "}"]];
-  for (const [open, close] of order) {
-    const slice = extractBalanced(s, open, close);
-    if (slice) { try { return JSON.parse(slice); } catch {} }
-  }
-  return null;
-}
-function extractBalanced(s, open, close) {
-  for (let start = s.indexOf(open); start !== -1; start = s.indexOf(open, start + 1)) {
-    let depth = 0, inStr = false, esc = false;
-    for (let i = start; i < s.length; i++) {
-      const c = s[i];
-      if (inStr) {
-        if (esc) esc = false;
-        else if (c === "\\") esc = true;
-        else if (c === '"') inStr = false;
-        continue;
-      }
-      if (c === '"') { inStr = true; continue; }
-      if (c === open) depth++;
-      else if (c === close) {
-        depth--;
-        if (depth === 0) return s.slice(start, i + 1);
-      }
-    }
-  }
-  return null;
 }
 
 // Locate which scene in a chapter contains the given snippet. Used to

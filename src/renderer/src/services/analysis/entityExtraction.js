@@ -7,6 +7,7 @@
 // "Halvard" when there's already a Halvard in the cast.
 
 import { runAiStream } from "../aiStream.js";
+import { parseJsonLoose } from "../llmText.js";
 
 function htmlToText(html) {
   if (!html) return "";
@@ -15,14 +16,6 @@ function htmlToText(html) {
   div.querySelectorAll(".ai-del").forEach((el) => { el.remove(); });
   div.querySelectorAll(".ai-ins").forEach((el) => { el.replaceWith(...el.childNodes); });
   return div.textContent || "";
-}
-
-function parseJsonLoose(text) {
-  if (!text) return null;
-  const trimmed = text.replace(/```(?:json)?/gi, "").trim();
-  const m = trimmed.match(/\{[\s\S]*\}/);
-  if (!m) return null;
-  try { return JSON.parse(m[0]); } catch { return null; }
 }
 
 // Normalize a string for fuzzy duplicate detection: lowercase, strip

@@ -17,6 +17,7 @@
 //   }
 
 import { runAiStream } from "../aiStream.js";
+import { parseJsonLoose } from "../llmText.js";
 
 function htmlToText(html) {
   if (!html) return "";
@@ -26,41 +27,6 @@ function htmlToText(html) {
   div.querySelectorAll(".ai-ins").forEach((el) => { el.replaceWith(...el.childNodes); });
   div.querySelectorAll(".scene-mark").forEach((el) => { el.remove(); });
   return (div.textContent || "").trim();
-}
-
-function parseJsonLoose(text) {
-  if (!text) return null;
-  const s = text.replace(/```(?:json)?/gi, "").replace(/<think>[\s\S]*?<\/think>/gi, "");
-  const objIdx = s.indexOf("{");
-  const arrIdx = s.indexOf("[");
-  const objectFirst = objIdx !== -1 && (arrIdx === -1 || objIdx < arrIdx);
-  const order = objectFirst ? [["{", "}"], ["[", "]"]] : [["[", "]"], ["{", "}"]];
-  for (const [open, close] of order) {
-    const slice = extractBalanced(s, open, close);
-    if (slice) { try { return JSON.parse(slice); } catch {} }
-  }
-  return null;
-}
-function extractBalanced(s, open, close) {
-  for (let start = s.indexOf(open); start !== -1; start = s.indexOf(open, start + 1)) {
-    let depth = 0, inStr = false, esc = false;
-    for (let i = start; i < s.length; i++) {
-      const c = s[i];
-      if (inStr) {
-        if (esc) esc = false;
-        else if (c === "\\") esc = true;
-        else if (c === '"') inStr = false;
-        continue;
-      }
-      if (c === '"') { inStr = true; continue; }
-      if (c === open) depth++;
-      else if (c === close) {
-        depth--;
-        if (depth === 0) return s.slice(start, i + 1);
-      }
-    }
-  }
-  return null;
 }
 
 // ─── Personas ────────────────────────────────────────────────────────
