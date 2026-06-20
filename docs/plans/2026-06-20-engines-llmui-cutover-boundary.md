@@ -100,6 +100,25 @@ model is wrong — different runtimes (in-process pool vs subprocess server).
 `{ phase, bytesDownloaded, bytesTotal, currentFile, error }` at the adapter
 boundary (the two wire shapes differ today — verified above).
 
+**Scope note — `/v1/jobs` vs `/v1/llm-runner/status` (verified 2026-06-20):**
+The shared strip consumes only the *download* signal, and the two sources are
+asymmetric:
+- JV `/v1/jobs/{id}` = a registry of **download/install jobs only** (in-memory
+  `app_state._jobs`, byte-granular; `app_state.py:41`, `engines_models_api.py:230/273`).
+  It does NOT track running models.
+- Runner `/v1/llm-runner/status` = a **single-slot lifecycle**
+  (`idle→downloading→starting→running→error`, coarse `{status,modelId,detail}`;
+  `lifecycle.py`). It spans the whole life of the one LLM, not a job queue.
+- They overlap only on the `downloading` phase. The strip already degrades to an
+  **indeterminate** bar when `bytesTotal === 0` (`EnginesView:1274`), so the
+  runner's coarse downloading maps onto it with no need to add byte-granularity
+  to the runner.
+- TTS *generation/render* and *training* are NOT downloads and stay out of the
+  shared strip — they keep their own server status (`/v1/generate/{id}/status`
+  SSE, `RenderJob`, `/v1/train/{id}`) and surface through the per-app client
+  `renderTasks`/`aiTasks` strip (the UI aggregator), which is unchanged by this
+  cutover.
+
 ## Decision 2 — `LlmProviderForm` is LLM+embedding only; JV's TTS half splits out  *(recommended)*
 
 `ProviderForm.vue` is the only provider editor in either app that carries TTS
