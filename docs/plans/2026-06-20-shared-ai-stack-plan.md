@@ -194,8 +194,11 @@ prompt + settings, and Apply.
 3. **Hardware Fit** — ✅ adopt the **richer Fit score** (0–100, KV-cache/MoE-aware).
 4. **JW feature migration** — ⏸️ **held** as its own later phase (after backend +
    GUI land); migrate incrementally, feature by feature.
-5. **Model management** — ✅ **per-provider** (runner=Download&Run+Fit; Ollama=list
-   +pull; cloud=fetch+pick); no detached "Local models" tab.
+5. **Model management** — ✅ **per-provider, and ALL local providers identical** —
+   Ollama, LM Studio, and the bundled **Local engine** share the same Models
+   section (list · status · Fit · load/download) inside Edit; the built-in is just
+   pre-added (no special "catalog" — corrects the earlier framing). Cloud =
+   fetch + pick (no download). No detached "Local models" tab.
 6. **Roles** — ✅ kept, **optional + grounded** (each role = a provider▸model pick).
 7. **Prompt + settings editing** — ✅ inline per-feature **plus** a **per-action
    Lab** (tune → side-by-side compare → Apply to route). Settings = the full set
@@ -233,10 +236,34 @@ prompt + settings, and Apply.
     **merge timing** (speaker-change / same-speaker pause) are job-level, distinct
     from per-voice. All in the TTS Lab, defaults + reset. JV-only.
 14. **Provider add/edit** — ✅ one inline form that **replaces the read row** (one
-    Test, in the form — no duplicate); one Combobox model picker (free-text +
-    Fetch); provider **presets** (one-click URL+format); **no ID field**
-    (auto-slug); **API-key hidden for local**; **tier kept out of the form**
-    (auto; tune in Lab). GPU info is a top strip, not under the Local engine.
+    Test, in the form — no duplicate; rows are a normal **Edit + Delete** grid,
+    built-in = Edit only); **Where it runs** Local/Online selector (drives the
+    group + whether a key shows); **API format** OpenAI-compatible / Ollama-native
+    (restored — native only for an Ollama daemon, see Decision 15); one Combobox
+    model picker; provider **presets**; **no ID** (auto-slug); **no tier** (auto;
+    tune in Lab). LOCAL providers' form also carries the shared Models section
+    (Decision 5). GPU info is a top strip.
+15. **Reasoning (think) control = a per-provider-mapped setting** (verified): only
+    **Ollama** needs its **native `/api/chat`** to toggle reasoning — its
+    OpenAI-compatible `/v1` can't (that's the sole reason for the "Ollama native"
+    API format). **llama.cpp + cloud control reasoning via request-body params**
+    on `/v1/chat/completions`: llama.cpp `chat_template_kwargs.enable_thinking` /
+    `reasoning_format` / `reasoning_control`; OpenAI `reasoning_effort`; Anthropic
+    `thinking`. ⇒ the user sets one **"Enable thinking"** control (Lab/feature
+    settings) and the **shared adapter maps it** to the right param/endpoint per
+    provider. Sources: ggml-org/llama.cpp server README; ollama/ollama API docs.
+
+16. **Prompt customization (Alexandria-informed)** — each action's **system +
+    user-prompt template** is editable in its Lab, with the **template variables
+    listed** (`{{chapter_text}}`, `{{cast}}`, `{{context}}`, `{{chunk}}`,
+    `{{speaker}}`, …), a **Reset to defaults**, and named production-config
+    presets. Some actions are **multi-stage** — Alexandria ships separate
+    Generation / Review (QC) / Persona prompt sets; an action's Lab can hold a
+    primary prompt **+ an optional review/refine pass** (mirrors JV's "two-pass"
+    configs). Reasoning can also be disabled **portably via banned tokens** (ban
+    `<think>`) when a provider lacks a reasoning param (Decision 15). Long-text
+    actions expose a **chunk size** processing setting. Ref:
+    Finrandojin/alexandria-audiobook.
 
 ## Web UX sources
 - Msty / LM Studio / Jan / Ollama comparison (provider-agnostic mixing, GUI-first
