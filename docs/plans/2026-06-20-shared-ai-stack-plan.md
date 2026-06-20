@@ -18,7 +18,7 @@ The **only** legitimate per-app differences (everything else is shared):
 1. **TTS** — JustVoice-only (engines, voices, render/casting).
 2. **Feature catalog** — each app registers its own features + default prompts
    onto the *same* dispatch (JV: speaker-attribution / smart-assign / preset-
-   suggest / persona-rewrite; JW: critique / plot-holes / entity-sweep / 18
+   suggest / persona-rewrite; JW: critique / plot-holes / entity-sweep / ~24
    total). Same machinery, different prompt set + which provider-tier each
    defaults to.
 
@@ -33,7 +33,7 @@ shared package, bring JW up onto it.
 | Headless server | `justvoice-server serve` | `justwrite-server serve` (`cli.py`; `app.py:70` *"same router JustVoice mounts — full symmetry"*) | ✅ both |
 | Local llama.cpp runner (download/load/spawn) | mounts `llm_runner.router` | mounts `llm_runner_router` | ✅ `just-llm-runner` |
 | Provider adapters (cloud + local) | `engines/llm/{anthropic,gemini,openai_compat,ollama,local_managed}.py` (server, ~1.6k ln) | `api/llm.py` transparent **proxy** (server) | ✗ two impls |
-| **Feature execution** | **server** `engines/llm/dispatch.py` + `/v1/llm/*` endpoints | **client** `services/analysis/*` (18 modules) → **headless JW gets no AI** | ✗ |
+| **Feature execution** | **server** `engines/llm/dispatch.py` + `/v1/llm/*` endpoints | **client** `services/analysis/*` (17 modules; 16 LLM + 1 local `styleMetrics`) + `services/` + `rag/` = **~24 LLM features** → **headless JW gets no AI** | ✗ |
 | Per-feature config | `FeaturePinConfig` (provider+model+tier+role, `models.py:291`) **+** `ProductionConfig` (+temperature +system_prompt +user_prompt, `models.py:329`, stored `EnginesSettings.production_configs`) | `{provider,model}` + per-model tier (`ai.js:142`) | ✗ |
 | Model roles (Quick/Accuracy) | `LLMRolesSettings` (`models.py:320`) + `/v1/llm-roles/recommendations` | — | ✗ |
 | **Editable system/user prompts** | server-side, preset + custom, tuned in **Labs** then *promoted* (`SpeakerLabView.vue`; `extraction_api.py:156-228,323`) | hardcoded inline in renderer modules | ✗ |
@@ -122,7 +122,7 @@ defaults; power users drop into AI features → Lab to pin models + edit prompts
    `engines/llm/*` + settings models + APIs; refactor `local_managed` → the
    shared runner. JV switches to mounting it; **parity-verify JV is byte-for-byte
    behavior-identical** (pytest + a boot/smoke run).
-2. **JW mounts the same routers**; migrate JW's 18 features to server-side
+2. **JW mounts the same routers**; migrate JW's ~24 LLM features to server-side
    registrations on the shared dispatch (prompts moved server-side + editable);
    delete JW's proxy + bulk store. Verify (JW build + server run; features work
    headless).
@@ -146,7 +146,7 @@ defaults; power users drop into AI features → Lab to pin models + edit prompts
 3. **Hardware Fit indicator** — adopt a richer **Fit score** (LLMFit/whichllm
    style: speed + context + quality + VRAM headroom) for local models, vs the
    current 3-state ok/tight/no dot. Score is more useful; dot is cheaper.
-4. **Scope/sequencing of the JW feature migration** — 18 features moving server-
+4. **Scope/sequencing of the JW feature migration** — ~24 LLM features moving server-
    side is the largest chunk; confirm doing it as its own phase after the backend
    + GUI exist (step 2 can land incrementally, feature by feature).
 
@@ -158,3 +158,24 @@ defaults; power users drop into AI features → Lab to pin models + edit prompts
   Studio guide · dev.to contexttree "visual LLM canvas" · tetrate.io system-vs-user prompts
 - Hardware fit ("will it fit", KV-cache/MoE-aware VRAM est): xda-developers LLMFit ·
   github.com/Andyyyy64/whichllm
+
+## Appendix — JW feature catalog (the step-2 migration set, ~24 LLM features)
+
+Each becomes a server-side feature registration (key + default prompt + default
+tier) on the shared dispatch. Grounded from `src/renderer/src/services/` (2026-06-20).
+
+- **Per-chapter analysis:** `critique`, `plotHoleScan`, `characterAudit`,
+  `entityExtraction`, `threadExtraction`, `readerKnowledge`, `relationshipArc`,
+  `voiceDrift`, `aiTellScanner`.
+- **Whole-book sweeps:** `entitySweep` (orchestrates entityExtraction),
+  `foreshadowingScan`, `tensionSweep`, `reverseOutline`, `beatSheet`,
+  `marketingPack`, `multiReaderCritique`.
+- **Writing assistance:** `writerAI` (selection-level), `sensoryResearch`,
+  `voiceFingerprint`.
+- **Workflow/session:** `resumeBriefing`, `sessionRecap`, `stuckDiagnostic`.
+- **RAG:** `rag/chat`, `rag/characterChat`, `rag/indexer` (embeddings).
+- **NOT LLM (stays local, excluded):** `styleMetrics` (deterministic prose metrics).
+
+JV's feature catalog (for symmetry, already server-side): compose, refine,
+persona_rewrite, voice_gender, speaker_attribution, smart_assign, show_notes,
+render_preset_suggest (`dispatch.py` `DEFAULT_FEATURE_ROLES`).
