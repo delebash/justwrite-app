@@ -22,6 +22,31 @@ The **only** legitimate per-app differences (everything else is shared):
    total). Same machinery, different prompt set + which provider-tier each
    defaults to.
 
+### Feature catalog vs feature routing (how shared routing works with different catalogs)
+
+These are two layers — the per-app difference is *only* the first:
+
+- **Feature catalog = DATA (per-app).** The list of features an app has; each
+  entry = `key` + `label` + `description` + default role/tier + **default
+  prompt(s)**. Domain-specific. JV registers its voice features, JW its prose
+  features, a future app its own.
+- **Feature routing = CODE/GUI (shared).** The table that maps each catalog
+  entry → provider+model (or Inherit-default/role), persists the pin, plus the
+  dispatch that resolves it at call time and the Lab that edits prompts. ONE
+  shared implementation that renders *whatever catalog it's handed* — it doesn't
+  know voice from prose.
+
+Flow: each app's server **registers its catalog** with the shared dispatch
+(feature registry) → shared endpoint (`/v1/llm/features`, JV today: the
+`/v1/feature-pins` catalog) returns *that app's* catalog → the shared
+`<FeatureRouting>` component renders one row per entry with a provider/model
+picker → the shared dispatch resolves `production-config > pin > role >
+tier-default` and runs the feature's prompt. So **"different feature routing per
+app" = same routing code, different rows.** Adding/removing a feature = a catalog
+registration (key + default prompt + default role), **zero routing-code change**.
+JV is already catalog-driven from the server (`SettingsView.vue:576,:662`); JW's
+static `AI_FEATURES` (`:75-95`) moves server-side onto the same registry.
+
 ## Current state — grounded (read 2026-06-20, file:line)
 
 JV's server-side AI stack is a **superset**; JW has a thin client-side subset;
