@@ -37,15 +37,19 @@ about either app's *requirements* forced the differences below.
 
 ## Migration queue (ordered safe → risky; verify + commit each)
 
-**Status 2026-06-20:** ✅ Done + verified + pushed — #2 (folder), #3 (CSS split),
-#4 (theming → appearance.js + dark-mode fix), #5 (origin-aware serverApi), #6
-(fetch-wrapper → services/serverApi.js), #7 (seed → server), #8 (vue-router +
-lazy routes), #9 (doc cleanup), #1 (Biome installed + shared config +
-organizeImports off + safe fixes). ⏳ Remaining: only the **full Biome
-lint-green pass** — the audit found BOTH apps carry pre-existing lint debt (JV
-~20 issues; JW ~48 errors + 70 warnings) incl. semantic fixes
-(noGlobalIsFinite/Nan) + 3 single-word component names; a careful per-file
-hygiene pass for each app.
+**Status 2026-06-20:** ✅ ALL DONE + verified + pushed — items #1–#9 plus the
+**full Biome lint-green pass**. Both apps: `biome check` exits 0 on Biome 2.5.0
+(JW bumped 2.4.16 → 2.5.0 to match JV) with a byte-identical shared `biome.json`;
+`build:vite` passes for each. The lint pass cleared the real (not the audit's
+estimated) debt — JW: 177 diagnostics across 65 files (useTemplate ×57,
+useIterableCallbackReturn ×45 forEach→block, useOptionalChain ×42, useConst ×12,
+unused vars/params ×13, noShadowRestrictedNames ×3, noGlobalIsFinite ×3,
+noUselessEscapeInRegex ×2); JV: 47 across 24 files (useTemplate ×26,
+useOptionalChain ×11, noAssignInExpressions ×4, noGlobalIsFinite ×2,
+noGlobalIsNan ×1). `useVueMultiWordComponentNames` (new in 2.5.0) is disabled in
+the shared config — the apps intentionally use single-word UI primitives (Icon,
+Toast, Avatar, Sidebar, Combobox, Breadcrumb) that don't clash with HTML
+elements. **Cross-app convergence is complete.**
 1. **JV** — add `biome.json` (match JW); run Biome, fix lint. *[low]*
 2. **JV** — rename `components/jv/` → `components/ui/`, update imports. *[low, mechanical]*
 3. **Both CSS** — JW move `assets/styles/tokens.css` → renderer root; split into
