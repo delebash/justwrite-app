@@ -105,14 +105,18 @@ JV it sits beside Voices/TTS). Three sub-tabs:
 1. **Providers & models** — one list mixing **Local·free / Cloud·metered**, and
    **model management lives PER PROVIDER** (the v1 mistake was a detached "Local
    models" tab — model mgmt is type-specific):
-   - **Built-in runner** → the *only* Download&Run path: a GGUF catalog with a
-     **hardware Fit score** (0–100, KV-cache/MoE-aware — our `compute_fit`
-     already does this) + reuses the shared download strip.
+   - **Local engine** (renamed from "runner") → the *only* Download&Run path: a
+     GGUF catalog with a **hardware Fit score** (0–100, KV-cache/MoE-aware). Model
+     list/status/load via **llama.cpp router mode** (`GET /models` +
+     `POST /models/load|unload`, `-hf` download) — see Decision 11; our manifest
+     overlays curated picks + Fit. Reuses the shared download strip.
    - **Ollama / LM Studio** → list installed (`/api/tags`) + a pull field.
    - **Cloud** → fetch the model list (`/models`) + pick defaults; **no
      download**. (Anthropic = curated list, no `/models`.)
-   - **Add/Edit provider** form is **type-adaptive**: cloud shows URL+key+Fetch;
-     local (Ollama/LM Studio) hides the key; the built-in runner needs nothing.
+   - **Add/Edit provider** = one inline form that **replaces the read row** (no
+     duplicate Test), Combobox model picker, presets, no-ID/no-tier, key hidden
+     for local; the Local engine needs no connection form (Decision 14). GPU
+     info is a **top strip**.
 2. **Features** — JW's flat routing table as the base, each row inherit-a-role or
    override to a specific **provider ▸ model**. Roles (Quick/Accuracy) are
    **optional** and **grounded** (each is itself a provider▸model pick). Expand a
@@ -200,6 +204,39 @@ prompt + settings, and Apply.
    knobs); shared framework, per-action sample/output.
 9. **Embeddings/RAG** — ✅ embeddings = shared provider capability; RAG (index +
    chat) = JW catalog feature (JV may add later).
+10. **Rename** — ✅ the built-in "runner" is user-facing **"Local engine"** (the
+    technical package stays `just-llm-runner`; API stays `/v1/llm-runner/*`).
+11. **Local-engine model management — lean on llama.cpp router mode** (verified
+    against latest llama.cpp docs): list = `GET /models` (status
+    unloaded/loading/loaded/sleeping/downloading/failed); load/unload =
+    `POST /models/load|unload`; download = `-hf <user>/<model>:<tag>` (auto on
+    first request); multi-model LRU = `--models-max` (default 4); cache via
+    `LLAMA_CACHE`/`--models-dir`; `llama-server --cache-list` also lists cache.
+    ⇒ keep our manifest only for the **curated recommendations + Fit score +
+    pinned build + flag presets**; delete our custom download/cache-scan +
+    single-model load. (`/v1/models` single-mode returns only the loaded model —
+    not a catalog.)
+12. **Settings model** — ✅ **all tunables live in the Lab, per provider, with
+    predefined defaults + Reset-or-tune.** LLM = llama.cpp's full set grouped as
+    llama.cpp groups it (Sampling: temp/top-k/top-p/min-p/dyn-temp/XTC/typical-p/
+    sampler-order · Penalties: repeat/presence/frequency + DRY · Reasoning:
+    enable-think/exclude-reasoning · max-tokens/seed) + a **Custom-JSON
+    pass-through** escape hatch; cloud providers show only the subset they
+    support. Requires plumbing the extra params through the shared adapter
+    (today only temp/max_tokens/think exist).
+13. **TTS settings are two layers + engine-paradigm-branched** (Alexandria ref):
+    **per-voice** adapts to the engine — Chatterbox = numeric knobs
+    (exaggeration/cfg/temp/speed), Qwen3-TTS = a **style instruct** text (no
+    knobs), Kokoro = preset voice + speed — read from the engine capability
+    surface; **render/batch** (device, parallel workers, compile codec,
+    sub-batching min/length-ratio/max-items [0=auto-VRAM], batch seed) +
+    **merge timing** (speaker-change / same-speaker pause) are job-level, distinct
+    from per-voice. All in the TTS Lab, defaults + reset. JV-only.
+14. **Provider add/edit** — ✅ one inline form that **replaces the read row** (one
+    Test, in the form — no duplicate); one Combobox model picker (free-text +
+    Fetch); provider **presets** (one-click URL+format); **no ID field**
+    (auto-slug); **API-key hidden for local**; **tier kept out of the form**
+    (auto; tune in Lab). GPU info is a top strip, not under the Local engine.
 
 ## Web UX sources
 - Msty / LM Studio / Jan / Ollama comparison (provider-agnostic mixing, GUI-first
