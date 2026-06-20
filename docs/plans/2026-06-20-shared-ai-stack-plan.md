@@ -151,22 +151,32 @@ recommended local model, and everything runs on Quick/Accuracy defaults — neve
 touching a prompt. Power users open an action's Lab to compare models, tune the
 prompt + settings, and Apply.
 
-## The lift (what moves, reuse-not-copy)
+## The lift — START from what exists, don't rebuild
 
-- **JV → `just-llm-runner`:** `engines/llm/*` (registry, 4 cloud adapters,
-  dispatch, tiers, usage) + the LLM settings models (`LLMProviderConfig`,
-  `FeaturePinConfig`, `ProductionConfig`, `LLMRolesSettings`) + the LLM APIs
-  (`llm_providers_api`, `feature_pins_api`, `llm_roles_api`, ai-usage, the
-  feature endpoints) + the AI GUI (Settings "AI features", `SpeakerLabView`,
-  `ProviderForm`/online providers). JV's `local_managed.py` is **replaced by**
-  the shared runner (don't keep both).
-- **JW:** drop the client-side feature execution (`services/analysis/*` logic
-  moves server-side as registered features with editable prompts), the bulk-PUT
-  provider store, and the proxy-only `api/llm.py`; mount the shared routers;
-  import the shared GUI. JW **gains** headless AI, editable prompts, rich pins,
-  roles, usage parity — for free.
-- **Both:** EnginesView (JV) LLM parts + SettingsView (JW) "AI engines" → the
-  same `@delebash/llm-ui` views.
+**⛔ Hard-won lesson (2026-06-20):** we reinvented the provider/model UI on JV
+from scratch and iterated (painfully, over many mock rounds) right back to JW's
+existing pattern — the combobox model picker, provider+model feature pins, the
+inline form. **Don't repeat it: extract the client from JW's working components;
+extract the server from JV's superset.** Read + lift first; design only the gaps.
+
+- **Server → `just-llm-runner` (Python), from JV:** `engines/llm/*` (registry, 4
+  cloud adapters, dispatch, tiers, usage) + the LLM settings models
+  (`LLMProviderConfig`, `FeaturePinConfig`, `ProductionConfig`,
+  `LLMRolesSettings`) + the LLM APIs (`llm_providers_api`, `feature_pins_api`,
+  `llm_roles_api`, ai-usage, feature endpoints). `local_managed.py` is
+  **replaced by** the shared runner.
+- **Client → `@delebash/llm-ui` (Vue), from JW (the proven base):** lift JW's
+  `SettingsProviderForm` → provider form, `ProviderSelect`, `ModelPicker`, and the
+  **provider+model feature-routing** + `ai`-store patterns. Add only what JW
+  lacks, from JV: the **Lab** (`SpeakerLabView` → per-action prompt/settings
+  tuner + compare) and **Quick/Accuracy roles**. (The mocks *confirmed* the
+  provider/model surface lands on JW's pattern — lift it, don't redesign.)
+- **JW server gap:** move client-side feature execution (`services/analysis/*`)
+  server-side as registered features w/ editable prompts; drop the bulk-PUT
+  provider store + proxy-only `api/llm.py`; mount the shared routers. JW **gains**
+  headless AI, editable prompts, rich pins, roles, usage parity.
+- **Both adopt:** EnginesView (JV) LLM parts + SettingsView (JW) "AI engines" →
+  the same `@delebash/llm-ui` views.
 
 ## Sequence (per-unit, RULE #5/#7 — one at a time, verify each)
 
@@ -178,10 +188,10 @@ prompt + settings, and Apply.
    registrations on the shared dispatch (prompts moved server-side + editable);
    delete JW's proxy + bulk store. Verify (JW build + server run; features work
    headless).
-3. **Build `@delebash/llm-ui` views** (provider form/list, model picker, AI-
-   features + prompt-editor/Lab, roles, usage, runner status, download strip,
-   quick-setup). JV + JW both replace their per-app AI GUI with these. Verify in
-   each app (real run).
+3. **Build `@delebash/llm-ui` views by EXTRACTING JW's existing components**
+   (`SettingsProviderForm`, `ProviderSelect`, `ModelPicker`, provider+model
+   routing, `ai`-store patterns) — NOT from scratch — then add JV's Lab + roles.
+   JV + JW both replace their per-app AI GUI with these. Verify in each app.
 4. **JV layers TTS** on top — unchanged native engines/voices/render; the TTS
    model download **reuses** the shared `DownloadStrip`.
 5. **Delete** the now-duplicated per-app code (no leftover forks).
