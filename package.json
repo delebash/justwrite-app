@@ -9,6 +9,7 @@
     "build:vite": "vite build",
     "preview:vite": "vite preview",
     "dev": "tauri dev",
+    "server": "cd server && python -m justwrite_server.cli serve",
     "build": "tauri build",
     "tauri": "tauri",
     "bump": "node scripts/bump.mjs",
