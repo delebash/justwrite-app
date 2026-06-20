@@ -45,6 +45,31 @@ Configured tooling (an earlier note here wrongly claimed "none" — verify again
 
 The Rust crate is built by the Tauri CLI; Vite never sees it. The renderer dev server is fixed at `http://localhost:1420` and `tauri.conf.json` references that URL — keep them in lock-step.
 
+## Shared app standard + JustWrite specifics
+
+JustWrite follows the shared **Vue 3 + Tauri 2 app standard** in the global
+`~/.claude/CLAUDE.md` (folder layout · `tokens.css`+`styles.css` · vue-router ·
+origin-aware `services/serverApi.js` + `VITE_SERVER_URL` · per-domain Pinia
+stores · `services/appearance.js` · Biome · server-side seed · connection-gate
+boot). Don't restate it here — this section is JustWrite-specific only. Sibling
+app: JustVoice. When a surface exists in both, they must match unless a
+documented reason below says otherwise.
+
+**JustWrite's justified differences:** dev port **1420**; a single monolithic
+`project` Pinia store — it owns snapshot-based undo/redo across all entities, the
+one sanctioned exception to per-domain stores.
+
+**Deviations still to migrate to the standard** (ordered plan + full audit:
+`docs/plans/2026-06-20-cross-app-convergence.md`):
+- move `assets/styles/tokens.css` → renderer root and split into `tokens.css`
+  (`:root` only) + `styles.css`;
+- make `services/serverApi.js` origin-aware and add the fetch wrappers
+  (`request`/`safeRequest`/`requestBlob`/`postForm`); rename env
+  `VITE_JW_SERVER_URL` → `VITE_SERVER_URL`;
+- move demo seeding (`domain/seed.js`) server-side;
+- doc cleanup: the State/IPC sections below still describe the pre-migration
+  IndexedDB/`idb-keyval` persistence — update them to the server/SQLite reality.
+
 ## Architecture
 
 ### Layout
