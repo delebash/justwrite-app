@@ -1,36 +1,92 @@
-"""/v1/llm-providers — the configured provider list (P5)."""
+"""/v1/llm-providers — JustWrite mounts the SHARED provider-CRUD router
+(llm_runner.llm.provider_api) over its LlmProvider-table ProviderStore, the
+same router JustVoice mounts. This proves JW's store + mount end-to-end through
+its app (the per-provider CRUD that replaced the old bulk GET/PUT). The router's
+own unit tests live in just-llm-runner/tests/test_provider_api.py.
+"""
+
+import json
 
 from fastapi.testclient import TestClient
 
+from justwrite_server import database
 from justwrite_server.app import create_app
+from justwrite_server.models import LlmProvider
+from llm_runner.llm import get_llm_registry
 
 
 def _c(tmp_path):
+    # The registry is a process singleton; reset it so a leaked registration
+    # from another test can't make `registered` flaky.
+    get_llm_registry()._adapters = {}
     return TestClient(create_app(tmp_path))
 
 
 def test_list_starts_empty(tmp_path):
-    assert _c(tmp_path).get("/v1/llm-providers").json() == {"providers": []}
+    body = _c(tmp_path).get("/v1/llm-providers").json()
+    assert body["providers"] == []
+    assert "openai" in body["providerTypes"] and "ollama" in body["providerTypes"]
 
 
-def test_replace_round_trips(tmp_path):
+def test_crud_lifecycle(tmp_path):
     c = _c(tmp_path)
-    providers = [
-        {"id": "openai", "name": "OpenAI", "kind": "both",
-         "baseUrl": "https://api.openai.com/v1", "chatModel": "gpt-4o-mini", "builtIn": True},
-        {"id": "local", "name": "Local", "kind": "llm",
-         "baseUrl": "http://127.0.0.1:8080/v1", "chatModel": "", "builtIn": False, "apiKey": "sk-x"},
-    ]
-    assert c.put("/v1/llm-providers", json={"providers": providers}).status_code == 204
-    got = c.get("/v1/llm-providers").json()["providers"]
-    assert got == providers  # full config (incl. apiKey, baseUrl) round-trips, in order
+
+    # create — persisted + registered live; the key is never echoed.
+    r = c.post("/v1/llm-providers", json={
+        "id": "openai", "name": "OpenAI", "providerType": "openai",
+        "apiKey": "sk-x", "defaultModel": "gpt-4o-mini",
+    })
+    assert r.status_code == 201
+    body = r.json()
+    assert body["hasApiKey"] is True and "apiKey" not in body
+    assert body["registered"] is True and body["providerType"] == "openai"
+    assert "openai" in get_llm_registry().ids()
+
+    # list round-trips the camel shape.
+    lst = c.get("/v1/llm-providers").json()
+    assert [p["id"] for p in lst["providers"]] == ["openai"]
+    assert lst["providers"][0]["defaultModel"] == "gpt-4o-mini"
+
+    # duplicate id + unknown providerType rejected.
+    assert c.post("/v1/llm-providers", json={
+        "id": "openai", "name": "x", "providerType": "openai"}).status_code == 400
+    assert c.post("/v1/llm-providers", json={
+        "id": "z", "name": "x", "providerType": "nope"}).status_code == 400
+
+    # patch — empty apiKey preserves the stored key (write-only field).
+    r = c.patch("/v1/llm-providers/openai", json={
+        "id": "openai", "name": "OpenAI 2", "providerType": "openai",
+        "apiKey": "", "defaultModel": "gpt-4o",
+    })
+    assert r.status_code == 200 and r.json()["name"] == "OpenAI 2"
+    assert r.json()["hasApiKey"] is True and r.json()["defaultModel"] == "gpt-4o"
+
+    # patch missing -> 404.
+    assert c.patch("/v1/llm-providers/nope", json={
+        "id": "nope", "name": "x", "providerType": "openai"}).status_code == 404
+
+    # delete -> removed + deregistered; second delete -> 404.
+    assert c.delete("/v1/llm-providers/openai").json() == {"deleted": True}
+    assert c.get("/v1/llm-providers").json()["providers"] == []
+    assert "openai" not in get_llm_registry().ids()
+    assert c.delete("/v1/llm-providers/openai").status_code == 404
 
 
-def test_replace_is_not_merge(tmp_path):
+def test_blob_stays_gateway_readable(tmp_path):
+    """The store writes a SUPERSET `data` blob so the gateway (api/llm.py, which
+    stays until feature execution moves server-side) keeps resolving providers:
+    baseUrl/apiKey persist, and an ollama providerType writes the `runner` pin
+    the gateway's _is_ollama reads."""
     c = _c(tmp_path)
-    c.put("/v1/llm-providers", json={"providers": [
-        {"id": "a", "name": "A", "kind": "llm"}, {"id": "b", "name": "B", "kind": "llm"}]})
-    c.put("/v1/llm-providers", json={"providers": [{"id": "a", "name": "A2", "kind": "llm"}]})
-    got = c.get("/v1/llm-providers").json()["providers"]
-    assert [p["id"] for p in got] == ["a"]
-    assert got[0]["name"] == "A2"
+    c.post("/v1/llm-providers", json={
+        "id": "oll", "name": "Ollama", "providerType": "ollama",
+        "baseUrl": "http://example.test:11434/v1",
+    })
+    db = database.SessionLocal()
+    try:
+        blob = json.loads(db.get(LlmProvider, "oll").data)
+    finally:
+        db.close()
+    assert blob["baseUrl"] == "http://example.test:11434/v1"
+    assert blob["providerType"] == "ollama"
+    assert blob["runner"] == "ollama"  # gateway _is_ollama pin

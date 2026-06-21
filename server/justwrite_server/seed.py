@@ -122,6 +122,21 @@ def seed_demo_project(db: Session) -> bool:
     return True
 
 
+def _register_seeded_providers() -> None:
+    """Load the seeded providers into the shared LLM adapter registry so
+    dispatch + the /v1/llm-providers `registered` flag work from boot — mirrors
+    JustVoice's boot-time `load_from_configs`. `load_from_configs` swallows
+    per-provider construction errors so a single bad config never blocks boot."""
+    try:
+        from llm_runner.llm import load_from_configs
+
+        from .llm.provider_store import get_provider_store
+
+        load_from_configs(get_provider_store().list())
+    except Exception as e:  # never let registry wiring crash boot / reset
+        log.warning("LLM provider boot registration failed: %s", e)
+
+
 def seed_workspace(db: Session | None = None) -> None:
     """Run every workspace seeder and commit. Opens its own session when none is
     given (the `serve` entrypoint); reuses the caller's session when one is
@@ -141,3 +156,5 @@ def seed_workspace(db: Session | None = None) -> None:
     finally:
         if own:
             db.close()
+    # After the providers are committed, register them with the shared registry.
+    _register_seeded_providers()

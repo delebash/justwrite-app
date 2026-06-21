@@ -21,12 +21,16 @@ def _mock_client(handler):
 
 
 def _seed(c, pid, base, key=None, runner=None):
-    p = {"id": pid, "name": pid, "kind": "llm", "baseUrl": base}
+    # Per-provider POST (the bulk PUT is gone). An ollama runner pin maps to the
+    # native providerType so the store writes the `runner` the gateway reads; the
+    # :11434 URL heuristic still covers providers seeded without an explicit pin.
+    body = {
+        "id": pid, "name": pid, "baseUrl": base,
+        "providerType": "ollama" if runner == "ollama" else "openai-compat",
+    }
     if key:
-        p["apiKey"] = key
-    if runner:
-        p["runner"] = runner
-    assert c.put("/v1/llm-providers", json={"providers": [p]}).status_code == 204
+        body["apiKey"] = key
+    assert c.post("/v1/llm-providers", json=body).status_code == 201
 
 
 def test_chat_proxies_and_injects_server_key(tmp_path, monkeypatch):

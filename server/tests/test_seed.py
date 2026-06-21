@@ -37,9 +37,15 @@ def test_seed_creates_demo_and_providers_and_active_pointer(tmp_path):
 
     providers = c.get("/v1/llm-providers").json()["providers"]
     assert len(providers) == len(DEFAULT_PROVIDERS)
-    ids = {p["id"] for p in providers}
-    assert {"local-llamacpp", "openai", "claude", "openrouter"} <= ids
-    assert all(p["builtIn"] for p in providers)
+    by_id = {p["id"]: p for p in providers}
+    assert {"local-llamacpp", "openai", "claude", "openrouter"} <= set(by_id)
+    # The shared response shape carries providerType (behavior-preserving map:
+    # claude/gemini stay openai-compat until the native adapters are verified).
+    assert by_id["openai"]["providerType"] == "openai"
+    assert by_id["claude"]["providerType"] == "openai-compat"
+    assert by_id["local-llamacpp"]["providerType"] == "local-llamacpp"
+    # Seeded providers are registered into the shared adapter registry at boot.
+    assert all(p["registered"] for p in providers)
 
     # First run opens the demo + records it was seeded.
     settings = c.get("/v1/settings").json()
@@ -99,12 +105,14 @@ def test_deleted_demo_is_not_resurrected(tmp_path):
 
 def test_providers_merge_missing_without_clobbering(tmp_path):
     c = _c(tmp_path)
-    # A user-customized list: one built-in with an edited key, plus a custom row,
-    # and several built-ins absent.
-    c.put("/v1/llm-providers", json={"providers": [
-        {"id": "openai", "name": "OpenAI", "kind": "llm", "builtIn": True, "apiKey": "sk-user"},
-        {"id": "my-ollama", "name": "My box", "kind": "llm", "builtIn": False},
-    ]})
+    # A user-customized list: one built-in id with an edited key, plus a custom
+    # row — added through the per-provider router (the bulk PUT is gone).
+    assert c.post("/v1/llm-providers", json={
+        "id": "openai", "name": "OpenAI", "providerType": "openai", "apiKey": "sk-user",
+    }).status_code == 201
+    assert c.post("/v1/llm-providers", json={
+        "id": "my-ollama", "name": "My box", "providerType": "openai-compat",
+    }).status_code == 201
 
     db = database.SessionLocal()
     try:
@@ -117,7 +125,7 @@ def test_providers_merge_missing_without_clobbering(tmp_path):
     providers = {p["id"]: p for p in c.get("/v1/llm-providers").json()["providers"]}
     # Missing built-ins added; the user's edit + custom row preserved.
     assert "claude" in providers and "local-llamacpp" in providers
-    assert providers["openai"]["apiKey"] == "sk-user"
+    assert providers["openai"]["hasApiKey"] is True  # the user's key survived the merge
     assert providers["my-ollama"]["name"] == "My box"
 
 

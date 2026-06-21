@@ -24,7 +24,6 @@ from .api import (
     health,
     images,
     llm,
-    llm_providers,
     llm_usage,
     projects,
     rag,
@@ -64,8 +63,18 @@ def create_app(data_dir: Path | None = None) -> FastAPI:
     app.include_router(workspace.router)
     app.include_router(rag.router)
     app.include_router(images.router)
-    app.include_router(llm_providers.router)
     app.include_router(llm_usage.router)
     app.include_router(llm.router)
     app.include_router(llm_runner_router)
+    # Shared LLM routers (the same ones JustVoice mounts): storage-free endpoints
+    # (classify-tier / ai-usage / ping / models over the shared registry+ledger)
+    # plus the provider-CRUD router backed by JustWrite's `LlmProvider`-table
+    # ProviderStore. Replaces the old bulk GET/PUT `api/llm_providers.py`.
+    from llm_runner.llm.api import router as llm_shared_api_router
+    from llm_runner.llm.provider_api import make_provider_router
+
+    from .llm.provider_store import get_provider_store
+
+    app.include_router(llm_shared_api_router)
+    app.include_router(make_provider_router(get_provider_store))
     return app
