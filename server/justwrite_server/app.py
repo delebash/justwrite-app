@@ -21,6 +21,7 @@ from llm_runner import router as llm_runner_router
 
 from .api import (
     ai_features,
+    ai_prompts,
     chat,
     health,
     images,
@@ -88,4 +89,5 @@ def create_app(data_dir: Path | None = None) -> FastAPI:
     app.include_router(llm_shared_api_router)
     app.include_router(make_provider_router(get_provider_store))
     app.include_router(ai_features.router)
+    app.include_router(ai_prompts.router)
     return app
