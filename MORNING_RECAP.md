@@ -70,15 +70,47 @@ derives from it.
 - `docs/plans/2026-06-18-unified-storage-no-idb.md` — storage rewrite, no IndexedDB (DONE).
 - `docs/plans/2026-06-18-server-side-llm-architecture.md` — ⚠️ superseded by the 2026-06-20 shared-ai-stack plan.
 
-## Future / backlog
-- **Next:** the Features routing table (provider▸model per feature + roles +
-  defaults + inline prompt tune — the Features sub-tab is a placeholder now),
-  then Quick Setup wizard + hardware presets, then E (streaming + drop the old
-  `/v1/llm` gateway).
-- After JW proves the shared GUI: **JustVoice adopts the identical
-  `@delebash/llm-ui` views, then layers TTS** (the one JV-only difference). JV
-  also still has per-app duplicate prompt/provider machinery to lift to the
-  shared package (same Keystone treatment JW already got).
+## Next up — agreed plan + live constraints (2026-06-21 cont.)
+
+Remaining roadmap, in dependency order. **Core principle (user, reaffirmed): no
+per-app duplication — anything both apps need lives in the SHARED stack.**
+
+1. **Manifest expansion** — the runner catalog has ONE model, so the model
+   catalog + Fit + Quick Setup are thin. Add real GGUF models across VRAM tiers
+   (cpu/low/mid/high) to `llm_runner/runner/runner-manifest.json`.
+   ⚠️ **Blocked in-container:** HF is unreachable from tooling — Bash (even
+   unsandboxed) → "Host not in allowlist: huggingface.co"; WebFetch reaches HF
+   but gets HF's `403` bot-block. Fix: restart the env so a fresh container
+   picks up the network policy, OR user pastes `org/repo:quant` IDs. **Never
+   fabricate model IDs (RULE #4).**
+2. **Quick Setup → shared** + **3. Hardware presets → shared.** These exist
+   today ONLY as JW *client* components (`components/QuickSetup.vue` — an
+   Ollama-pull wizard via `services/ollamaAdmin.js` + `services/quickSetupPresets.js`
+   + `stores/hardwarePresets.js`; `components/HardwarePresetsCard.vue`). That IS
+   the duplication to remove — they belong in `@delebash/llm-ui`, built on the
+   shared runner endpoints already shipped (`/v1/llm-runner/hardware|models|load`
+   + `/v1/ai/routing`), both apps mounting them. QuickSetup's bundled-runner
+   Fit-recommendation is gated on #1's richer manifest; the Ollama-pull wizard is
+   retired (Ollama stays addable via the shared provider form).
+4. **SettingsView cleanup (delete ONLY the duplicated parts).** The `SettingsView.vue`
+   section with `id="audio"` (label "AI engines", lines ~1073–1392) holds BOTH
+   duplicates and keepers:
+   - DELETE (now in `/ai`): the Engines provider list + Add/Quick-setup buttons,
+     the Default-LLM/Default-embedding pickers, the Feature-routing table, the
+     Quick-setup-tips card. Then prune the now-dead script (`AI_FEATURES`,
+     `featureProvider*/featureModel*` helpers, `providerRenderList`, `startNew/
+     startEdit/saveDraft/...`, `SettingsProviderForm`/`Combobox`/`useModelList`
+     imports) + the `"audio"` SECTIONS entry.
+   - KEEP (writing-specific, NOT in `/ai`): **Voice canon**, **Auto-rebuild RAG**
+     toggle, **3-alternative streaming** toggle. QuickSetup + HardwarePresets
+     triggers live in the deleted card, so re-home them via #2/#3 first.
+5. **E — streaming + drop the gateway.** Migrate `writerAI/chat/rag/characterChat`
+   off the client `services/openai-compat.js`→`/v1/llm/...` gateway onto
+   `/v1/ai/stream` (shared `requestStream`), then delete `server/.../api/llm.py`.
+
+After JW proves the shared GUI: **JustVoice adopts the identical `@delebash/llm-ui`
+views + layers TTS**; JV also still has per-app duplicate prompt/provider
+machinery to lift to the shared package (same Keystone treatment JW got).
 
 ## Where detail lives
 - Deep per-task detail → `docs/plans/*`. Architecture + rules → `CLAUDE.md` +
