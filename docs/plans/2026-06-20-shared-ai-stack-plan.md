@@ -402,13 +402,22 @@ needed).
     reverseOutline, marketingPack, multiReader. All SYSTEM prompts single-sourced
     server-side; each verified by endpoint tests + build:vite + Biome + the headless
     smoke (zero JS errors).
-  - ⏳ **Remaining (streaming + non-analysis)** — the STREAMING features
-    (writerAI rewrite/expand/tighten/continue, chat, rag/chat, rag/characterChat)
-    keep the `/v1/llm/...` gateway until a streaming server-side dispatch path
-    lands (`dispatch.chat` is one-shot); then the gateway is deleted. A few other
-    non-analysis `runAiStream` consumers (resumeBriefing, sessionRecap,
-    stuckDiagnostic, sensoryResearch, brainstorm) — audit streaming-vs-not and
-    migrate the non-streaming ones the same way.
+  - ✅ **Streaming dispatch foundation DONE** — `dispatch.chat` is one-shot, so
+    streaming got its own path: `base.StreamDelta` (text deltas + a final
+    usage event), `adapter.stream_chat` reworked to yield it with usage across
+    all 4 adapters (openai_compat `stream_options`, ollama done-frame, anthropic
+    message events, gemini `usageMetadata`), `dispatch.stream_chat` (same
+    resolution + Lab overrides + ledger recording as `chat`), JW's SSE endpoint
+    `POST /v1/ai/stream`, and the renderer helper `runAiFeatureStream`
+    (`services/aiFeature.js`). Verified (shared 49 + JW stream tests + JV 277).
+  - ⏳ **Remaining — streaming FEATURE ports + non-analysis** — wire the
+    interactive features onto `runAiFeatureStream` (prompts → `features.py`):
+    writerAI (rewrite/expand/tighten/continue/applyRule/guidedContinue/describe —
+    + RichEditor live-diff + VariationsModal 3-alt), rag/chat + rag/characterChat
+    (ChatPanel + RAG context). Then **delete the `/v1/llm/...` gateway**
+    (`api/llm.py`). Also audit the non-analysis `runAiStream` consumers
+    (resumeBriefing, sessionRecap, stuckDiagnostic, sensoryResearch, brainstorm):
+    `/v1/ai/run` for the one-shot ones, `/v1/ai/stream` for the live ones.
 - **(4)** `@delebash/llm-ui` against the now-identical endpoints; delete the
   per-app `ProviderBackend` adapter.
 - **(5)** delete dead per-app code.
