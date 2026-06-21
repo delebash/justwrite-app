@@ -131,6 +131,54 @@ Rules:
 
 Return ONLY the JSON object. No preface, no markdown fences, no commentary."""
 
+# ── plotHoleScan.js (scanPlotHoles) ─────────────────────────────────────────
+# The base prompt is server-side; the optional world-rules enforcement section
+# is dynamic per-project, so the client composes it and passes it as
+# {{world_rules_section}} (empty string when the project has no world rules).
+_PLOT_HOLES_SYSTEM = """You audit a novelist's draft for plot holes and continuity drift.
+
+You will be given a chapter-by-chapter digest. For each chapter you'll see the chapter number, title, word count, a short summary, and a TAIL of the chapter's actual prose (the last ~300 words) so you can catch details that don't show up in summaries.
+
+Your job: identify CONTRADICTIONS, TIMELINE PROBLEMS, CONTINUITY DRIFT, and KNOWLEDGE-STATE inconsistencies that the writer should be aware of in revision.
+
+Return ONLY a JSON object:
+
+{
+  "summary": "1-2 sentences on the overall consistency of the book",
+  "findings": [
+    {
+      "severity":    "flag" | "suggest" | "info",
+      "kind":        "contradiction" | "timeline" | "continuity" | "character-knowledge" | "object" | "other",
+      "summary":     "one sentence naming the issue",
+      "chapterNums": [number] (chapters whose content collides),
+      "evidence":    "short verbatim quote naming the collision",
+      "fix":         "one sentence on the cheapest resolution — revise the later chapter, or revise the earlier, or add a bridging sentence"
+    }
+  ]
+}
+
+Severity scale:
+  - "flag"   — clear contradiction or impossibility (an in-prison character speaking to someone in the same chapter; a dead character returning without explanation)
+  - "suggest" — borderline / possible drift (eye-color change between chapters with no on-page reason)
+  - "info"   — minor note for awareness, not a real problem
+
+Kinds:
+  - contradiction — two prose moments that can't both be true
+  - timeline — events happen in an order or pace the text can't support (a year passed but characters reference it as days; a journey that takes hours described as taking days)
+  - continuity — small drift in a detail across chapters (eye colour, scar, weather, season)
+  - character-knowledge — a character acting on information they couldn't yet have
+  - object — an object appears, disappears, or changes (Elena had the locket in Ch.7 but it's never mentioned again, OR she has it in Ch.12 without retrieving it)
+  - other — anything else worth surfacing
+
+Rules:
+  - Be SELECTIVE. A reasonable book has 0-10 findings. Most flagged issues should be real.
+  - Be HONEST. If the book is internally consistent, return findings: [] and a summary saying so. The writer is asking what's broken, not asking you to pad.
+  - The evidence field should be a short verbatim quote from one of the offending chapters. No paraphrasing.
+  - Don't critique the WRITING — only the internal consistency of facts, events, objects, knowledge, and timeline.
+  - Don't flag intentional ambiguity, deliberate withheld information, or unreliable-narrator effects unless something is clearly broken.
+
+Return ONLY the JSON object. No preface, no markdown fences."""
+
 FEATURES: dict[str, dict] = {
     "critique": {
         "feature": "critique",
@@ -156,6 +204,15 @@ FEATURES: dict[str, dict] = {
     "readerKnowledge": {
         "feature": "readerKnowledge",
         "system": _READER_KNOWLEDGE_SYSTEM,
+        "user_template": "{{user_content}}",
+        "temperature": 0.3,
+        "think": False,
+    },
+    "plotHoles": {
+        "feature": "plotHoles",
+        # {{world_rules_section}} = "" or the project's world-rules enforcement
+        # block, composed client-side and substituted in.
+        "system": _PLOT_HOLES_SYSTEM + "{{world_rules_section}}",
         "user_template": "{{user_content}}",
         "temperature": 0.3,
         "think": False,

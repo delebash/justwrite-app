@@ -17,7 +17,7 @@
 //     fix:     one-sentence suggestion for the cheapest resolution
 //   }
 
-import { runAiStream } from "../aiStream.js";
+import { runAiFeature } from "../aiFeature.js";
 import { parseJsonLoose } from "../llmText.js";
 
 function htmlToText(html) {
@@ -55,58 +55,13 @@ export const KIND_LABELS = {
   other:                "Other",
 };
 
-const SYSTEM_BASE = `You audit a novelist's draft for plot holes and continuity drift.
-
-You will be given a chapter-by-chapter digest. For each chapter you'll see the chapter number, title, word count, a short summary, and a TAIL of the chapter's actual prose (the last ~300 words) so you can catch details that don't show up in summaries.
-
-Your job: identify CONTRADICTIONS, TIMELINE PROBLEMS, CONTINUITY DRIFT, and KNOWLEDGE-STATE inconsistencies that the writer should be aware of in revision.
-
-Return ONLY a JSON object:
-
-{
-  "summary": "1-2 sentences on the overall consistency of the book",
-  "findings": [
-    {
-      "severity":    "flag" | "suggest" | "info",
-      "kind":        "contradiction" | "timeline" | "continuity" | "character-knowledge" | "object" | "other",
-      "summary":     "one sentence naming the issue",
-      "chapterNums": [number] (chapters whose content collides),
-      "evidence":    "short verbatim quote naming the collision",
-      "fix":         "one sentence on the cheapest resolution — revise the later chapter, or revise the earlier, or add a bridging sentence"
-    }
-  ]
-}
-
-Severity scale:
-  - "flag"   — clear contradiction or impossibility (an in-prison character speaking to someone in the same chapter; a dead character returning without explanation)
-  - "suggest" — borderline / possible drift (eye-color change between chapters with no on-page reason)
-  - "info"   — minor note for awareness, not a real problem
-
-Kinds:
-  - contradiction — two prose moments that can't both be true
-  - timeline — events happen in an order or pace the text can't support (a year passed but characters reference it as days; a journey that takes hours described as taking days)
-  - continuity — small drift in a detail across chapters (eye colour, scar, weather, season)
-  - character-knowledge — a character acting on information they couldn't yet have
-  - object — an object appears, disappears, or changes (Elena had the locket in Ch.7 but it's never mentioned again, OR she has it in Ch.12 without retrieving it)
-  - other — anything else worth surfacing
-
-Rules:
-  - Be SELECTIVE. A reasonable book has 0-10 findings. Most flagged issues should be real.
-  - Be HONEST. If the book is internally consistent, return findings: [] and a summary saying so. The writer is asking what's broken, not asking you to pad.
-  - The evidence field should be a short verbatim quote from one of the offending chapters. No paraphrasing.
-  - Don't critique the WRITING — only the internal consistency of facts, events, objects, knowledge, and timeline.
-  - Don't flag intentional ambiguity, deliberate withheld information, or unreliable-narrator effects unless something is clearly broken.
-
-Return ONLY the JSON object. No preface, no markdown fences.`;
-
-// Appended to SYSTEM_BASE when the writer has filled in project.worldRules.
-// Lets the model check the manuscript against the writer's explicitly
-// declared in-world constraints (magic-system rules, technology limits,
-// social structures, hard SF physics) in the same pass.
-function systemWithWorldRules(rules) {
+// The base prompt lives server-side (features.py, action "plotHoles"). The
+// optional world-rules enforcement section is dynamic per-project, so it's
+// composed here and sent as the world_rules_section variable.
+function worldRulesSection(rules) {
   const trimmed = String(rules || "").trim();
-  if (!trimmed) return SYSTEM_BASE;
-  return `${SYSTEM_BASE}
+  if (!trimmed) return "";
+  return `
 
 EXTRA: WORLD RULES TO ENFORCE.
 
@@ -123,7 +78,6 @@ End of world rules.`;
 export async function scanPlotHoles({
   project,
   signal,
-  onDelta,
   provider,
   model,
   task,
@@ -164,19 +118,15 @@ export async function scanPlotHoles({
     body.push("");
   }
 
-  const messages = [
-    { role: "system", content: systemWithWorldRules(project.worldRules) },
-    { role: "user", content: body.join("\n") },
-  ];
-
   const chaptersMeta = { ...(meta || {}), totalChapters: chapters.length };
-  const result = await runAiStream({
+  const result = await runAiFeature({
+    action: "plotHoles",
     feature: "plotHoles",
-    messages,
-    temperature: 0.3,
-    extra: { think: false },
+    variables: {
+      user_content: body.join("\n"),
+      world_rules_section: worldRulesSection(project.worldRules),
+    },
     signal,
-    onDelta,
     provider,
     model,
     meta: chaptersMeta,

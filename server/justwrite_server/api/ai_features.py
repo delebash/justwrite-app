@@ -50,7 +50,10 @@ async def run_feature(body: RunRequest) -> RunResponse:
             config=llm_config(),
             feature=spec["feature"],
             messages=messages,
-            system=spec["system"],
+            # System is templated too (Decision 16) — most actions have no system
+            # placeholders so render() returns it unchanged; plotHoles injects the
+            # project's world-rules section.
+            system=render(spec["system"], body.variables),
             temperature=spec.get("temperature", 0.7),
             think=spec.get("think", False),
             provider_override=body.providerId or None,

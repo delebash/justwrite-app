@@ -84,6 +84,20 @@ def test_migrated_actions_render_and_dispatch(tmp_path):
         assert needle in FakeAdapter.last["messages"][0].content  # template rendered the variables
 
 
+def test_plotholes_renders_world_rules_into_system(tmp_path):
+    # plotHoles templates the SYSTEM prompt — the project's world-rules section
+    # is substituted server-side via {{world_rules_section}}.
+    c = _client(tmp_path)
+    r = c.post("/v1/ai/run", json={
+        "action": "plotHoles",
+        "variables": {"user_content": "chapter digest", "world_rules_section": "\n\nEXTRA: magic costs blood."},
+    })
+    assert r.status_code == 200, r.text
+    assert "magic costs blood" in FakeAdapter.last["system"]
+    assert "plot holes" in FakeAdapter.last["system"]  # base prompt still present
+    assert FakeAdapter.last["messages"][0].content == "chapter digest"
+
+
 def test_provider_override_routes_to_named_provider(tmp_path):
     # The Writer Lab runs one action against a specific provider/model override.
     c = _client(tmp_path)
