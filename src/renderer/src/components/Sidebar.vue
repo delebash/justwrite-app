@@ -142,7 +142,7 @@ const NAV = [
   { id: "trash",     label: "nav.trash",     icon: "Trash" },
   { id: "settings",  label: "nav.settings",  icon: "Settings" },
   { id: "writer-lab", label: "sidebar.nav.writerLab", icon: "Sparkle", path: "/writer-lab", activeName: "writerlab" },
-  { id: "ai-settings", label: "sidebar.nav.aiSettings", icon: "Sparkle", path: "/ai-settings", activeName: "aisettings" },
+  { id: "ai", label: "sidebar.nav.ai", icon: "Sparkle", path: "/ai", activeName: "ai" },
   { id: "ai-prompts", label: "sidebar.nav.featurePrompts", icon: "Sparkle", path: "/ai-prompts", activeName: "aiprompts" },
   { id: "help",      label: "sidebar.nav.help",       icon: "Help",     path: "/help", activeName: "help" },
 ];
