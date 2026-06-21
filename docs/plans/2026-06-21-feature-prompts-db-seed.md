@@ -137,3 +137,15 @@ routing key for pins/roles/usage.
 **Autonomous-limit note:** server-side prompt convergence is tested to a high bar.
 The GUI tracks can only be **smoke-verified** autonomously (routes render + zero JS
 errors, NOT visual correctness) — flagged for QC.
+
+**Update (continued same night):** extended JV — `show_notes`, the
+`speaker_attribution` extraction pipeline (guided/direct + user template; both
+`/v1/extraction/config` and the analyze pipeline read from the DB), and `identify`
+are now DB-backed (commits `56ec3c6` + extraction + identify). **JV's only
+remaining code-prompts are the dynamic ones** — `refine`/`compose`/`voice_gender`
+(`refinement.py`, `build_refinement_prompt(flags)`) and `persona_rewrite`
+(`personas_api.py`, built from persona state) — which assemble the prompt from
+flags/state, so they need base-text→DB + assembly-stays-in-code (the features.py
+pattern), not a flat constant move. **So JV server prompt-convergence is complete
+except those dynamic features.** JW remaining unchanged: heavy-context
+server-side, Lab prompt-editor GUI, streaming, and the shared provider GUI + TTS.
