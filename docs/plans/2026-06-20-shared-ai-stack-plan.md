@@ -380,10 +380,20 @@ needed).
   camelCase shape (chatModel→defaultModel, hasApiKey, provider-type selector);
   `quickSetupTier` moved to an ai-prefs `quickSetupTiers` map. **76 server tests
   pass; `npm run build:vite` green; Biome clean on all 13 files.**
-- **(3d)** JW feature-by-feature dispatch migration (`services/analysis/*` →
-  shared server-side dispatch); the async proxy stays until the last consumer
-  moves, then is deleted. Adopt **JW's persistent DB usage** into the shared
-  ledger (host sink) — JV's in-memory ledger changes too (audit finding).
+- **(3d) — partial.**
+  - ✅ **Host-sink DONE** — the shared usage ledger is now a pluggable
+    `UsageSink` (`set_ledger`/`get_ledger`; `UsageEntry.provider_id`; dispatch
+    records the adapter's provider_id). JW installs `JwDbUsageSink` at boot
+    (`justwrite_server/llm/usage_sink.py` + `pricing.py`) so server-side
+    `dispatch.chat` usage persists to its `LlmUsage` table (joins `/v1/llm-usage`;
+    also serves `/v1/ai-usage`). JV keeps the in-memory default. shared 48 / JW 78
+    / JV 277 (4 unrelated fastmcp) pass.
+  - ⏳ **Feature migration PENDING** — move `services/analysis/*` (the ~12
+    non-streaming JSON features, seam `aiStream.js`) onto the shared server-side
+    dispatch one at a time. Couples with moving **feature pins/roles server-side**
+    (today client-side in the `ai` settings blob) so the user's routing applies to
+    server-run features; the async streaming proxy stays for the streaming
+    features (writerAI/chat/rag) until last, then is deleted.
 - **(4)** `@delebash/llm-ui` against the now-identical endpoints; delete the
   per-app `ProviderBackend` adapter.
 - **(5)** delete dead per-app code.
