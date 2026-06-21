@@ -126,9 +126,11 @@ JV it sits beside Voices/TTS). Three sub-tabs:
    seed — *requires plumbing these through the shared adapter*, currently
    only temp/max_tokens/think exist) — plus system & user prompt, saved as a
    named production config. "Open in Lab" for compare. A **Routing & Cost
-   defaults** card at the top: global Default LLM / Default embedding (the
-   inherit targets), Auto-rebuild RAG, Guess-voice-gender, and "Show N variations
-   on every AI action" (Decision 17).
+   defaults** card at the top — **shared LLM plumbing only** (Decision 19): global
+   Default LLM / Default embedding (the inherit targets), roles, and **3-alternative
+   drafting** (Decision 17 — generative actions only, off by default, cost note).
+   App-domain toggles (Auto-rebuild RAG, voice-gender-on-import) are **NOT** here —
+   they live in each app's own settings (Decision 19).
 3. **Usage** — token/cost ledger, per feature + provider.
 
 **Onboarding lives on Providers & models:** a **Quick Setup** wizard (detect HW →
@@ -161,6 +163,45 @@ object/location extraction, rewrite, critique, …) has its own Lab:
 recommended local model, and everything runs on Quick/Accuracy defaults — never
 touching a prompt. Power users open an action's Lab to compare models, tune the
 prompt + settings, and Apply.
+
+## Where every setting lives — information architecture (Decision 19)
+
+The blocker behind "I can't tell what's common vs separate, and where do the tons
+of LLM/TTS settings live" (user, 2026-06-21). The rule: **the shared area governs
+how the LLM is wired; deep tuning lives per-action in the Lab as saved configs;
+app-domain policies live with their domain.** Four homes:
+
+| Home | What lives here | Shared? |
+|---|---|---|
+| **1. Providers & models** (connection) | provider URL/key/API-format · model download/load/Fit · Quick Setup · hardware presets · each provider's default chat/embedding model | **shared** (`@delebash/llm-ui`) |
+| **2. Features** (routing) + **Routing & cost defaults** | per-feature provider▸model + active production config + the few common knobs inline; global inherit targets: Default LLM, Default embedding, roles (Quick/Accuracy), 3-alternative drafting | **shared code, per-app catalog data** |
+| **3. The Lab** (per action) | the *full* knob surface — every LLM sampling/penalty/reasoning param, or every TTS engine knob — + system/user prompt + side-by-side compare → **Apply = save a named production config** | **shared framework** (LLM + TTS) |
+| **4. App domain settings** (each app's own pages) | *policies*: when to auto-run a feature, where output lands, library defaults — JW Auto-rebuild RAG (Manuscript/Chat); JV voice-gender-on-import + per-voice defaults (Voices) | **app-specific** |
+
+**Where the "tons of settings" live = home 3, the Lab, scoped to one action and
+saved as a production config** — NOT a global wall of knobs. The Features row shows
+routing + the few common knobs + "Open in Lab"; the Lab holds the full set and
+freezes it into that feature's config. This is what keeps the surface manageable
+as the knob count grows.
+
+**Decision tree for any new setting** (LLM or TTS):
+1. Defines a connection / model availability? → **Providers & models**.
+2. A global default every feature inherits? → **Routing & cost defaults**.
+3. Specific to one feature/action (model, prompt, sampling/engine knobs)? →
+   **Features row** (common) / **the Lab** (full set → saved config).
+4. A domain policy (when to auto-run, where output goes, library defaults)? →
+   **the app's own settings**, not the shared area.
+
+Litmus test that settles edge cases: *"Would a future app with neither RAG nor
+voices still need this?"* Default LLM → yes (shared). Auto-rebuild RAG / voice-
+gender-on-import → no (app-specific). 3-alternative drafting → yes, any app with
+generative features (shared generation mode).
+
+**TTS (JV-only) maps onto the same homes:** per-voice engine knobs + render/batch
++ merge timing are tuned in the **TTS Lab** (home 3, shared framework, TTS schema)
+and saved as render/voice configs; per-voice **defaults** + the import/gender
+policy live in JV's **Voices** library (home 4). TTS is the JV layer; the Lab
+*framework* is shared, its TTS *content* is JV.
 
 ## The lift — START from what exists, don't rebuild
 
@@ -211,9 +252,11 @@ the weak half with cited reasoning; never blind-clone, never reinvent.
   "I know what I want on this rig" cases). So: auto-recommend by Fit is the
   primary path; the manual preset editor is the escape hatch, always available.
   Keep the **routing recipe** (feature→fast/default/cloud) in every preset.
-- **Routing & Cost → Defaults** (SettingsView `:1207+`) — **lift:** global Default
-  LLM / Default embedding (the "inherit default" targets) + Auto-rebuild RAG +
-  Guess-voice-gender toggles.
+- **Routing & Cost → Defaults** (SettingsView `:1207+`) — **lift the shared part
+  only:** global Default LLM / Default embedding (the "inherit default" targets).
+  **Auto-rebuild RAG and voice-gender-on-import are app-domain policies, NOT shared
+  defaults** — they move to each app's own settings (Decision 19), since they
+  decide *when* to run a feature, not how the LLM is wired.
 - **Production prompt configs** (JW screenshot 2026-06-20) — **lift; it's already
   JV's `ProductionConfig`** (`models.py:329-341`), so this is a *confirmed
   convergence*, not a JW-only idea. Each feature has a **list of named production
@@ -221,8 +264,14 @@ the weak half with cited reasoning; never blind-clone, never reinvent.
   against. **Default** = the built-in entry (tier-resolved prompts+settings for
   whatever model the feature is routed to). Switch active in the Features row, OR
   open the feature's **Lab** to tune and save new named configs (Apply-to-route =
-  save+activate). A global **"Show N variations on every AI action"** toggle rides
-  alongside (JW has it).
+  save+activate). **3-alternative drafting** rides alongside (JW's "Three-alternative
+  streaming", `SettingsView.vue:1286-1313`, key `ui.showVariations`) — **not** a
+  generic "every action" toggle: it runs **generative** actions (JW: Continue /
+  Describe / line edit / Continue-with-direction; JV: Compose / Persona rewrite)
+  as **three concurrent streams** at temps `[0.55,0.7,0.95]` (`writerAI.js:176`),
+  user keeps one and the other two are aborted (`VariationsModal.vue:92-103`).
+  **Off by default — triples cloud token cost, free on local**; shift-click any
+  AI action opts in per-call regardless of the toggle.
 - **Provider role badges + counts** (`:265`) — **lift:** "Default LLM/embedding"
   badges per row + N-models/voices counts.
 - **Recommended-starter + Quick-setup-tips** cards — **lift, per-app copy**
@@ -335,10 +384,13 @@ the weak half with cited reasoning; never blind-clone, never reinvent.
     to — never an empty box). The Features-tab row shows an **active-config
     selector** (Default + any saved configs) right beside the provider/model
     pick; the feature's **Lab** is where new named configs are tuned and saved
-    (Apply-to-route = save the config + set it active). A global **"Show N
-    variations on every AI action"** toggle lives in Routing & Cost defaults
-    (JW has it). One shared implementation; the per-app difference is only
-    *which features* exist (the catalog).
+    (Apply-to-route = save the config + set it active). Separately, **3-alternative
+    drafting** (JW "Three-alternative streaming", `ui.showVariations`) lives in
+    Routing & Cost defaults — it is a **generative-action** cost control (NOT
+    "every action"): runs generative actions as 3 concurrent temp-varied streams,
+    keep one / discard two; **off by default (triples cloud cost, free on local)**;
+    shift-click opts in per-call. One shared implementation; the per-app difference
+    is only *which features* exist (the catalog) and which are generative.
 
 18. **Hardware presets — Fit-driven, manually editable** (✅ user, 2026-06-20:
     *"i agree but want the option to change add/edit manually just in case"*) —
@@ -349,6 +401,92 @@ the weak half with cited reasoning; never blind-clone, never reinvent.
     rig" cases. Each preset carries the **routing recipe** (feature → fast /
     default / cloud). Auto is primary; manual is the always-available escape
     hatch — neither is removed.
+
+19. **Setting homes / shared-vs-app boundary** (✅ user, 2026-06-21: *"i cant tell
+    what is common ui and separate … where do the tons of llm and tts settings
+    live"*) — four homes (full table + decision tree under *"Where every setting
+    lives"*): **(1) Providers & models** (connection) shared · **(2) Features +
+    Routing & cost defaults** (routing + global inherit targets) shared code /
+    per-app catalog · **(3) the Lab** (the full per-action knob+prompt surface →
+    saved production config) shared framework · **(4) app domain settings**
+    (policies: when to auto-run, output destination, library defaults) app-specific.
+    The **tons of settings live in the Lab per action**, not a global page.
+    **Auto-rebuild RAG (JW) and voice-gender-on-import (JV) are home 4** — removed
+    from the shared Routing & cost defaults card. Litmus: *"would a future app with
+    no RAG and no voices need this?"* — no ⇒ app-specific. TTS maps onto the same
+    homes (TTS Lab = home 3 with a TTS schema; per-voice defaults + import policy =
+    home 4 in JV's Voices).
+
+## UI copy — harvested from the apps (source of truth — reuse verbatim in `@delebash/llm-ui`)
+
+The descriptive microcopy below is **copied from the working apps, not invented.**
+The shared UI must carry copy of this quality for every control (user directive
+2026-06-21: *"jw has nice descriptions for everything … be descriptive with the
+wording like jw … just copy it"*). Internal jargon (e.g. `(Phase N)`) is trimmed
+per the design-conformance rule; substance is preserved.
+
+### JW feature catalog — 20 features (verbatim from `SettingsView.vue:75-95` `AI_FEATURES`)
+| Feature | Description (verbatim) |
+|---|---|
+| Manuscript chat | "Ask the book" RAG question/answer mode in the chat panel. |
+| Critique | The Critique modal — line-level notes (flags / suggestions / observations) and the structural pass (tension, hook, pacing, ending). |
+| Entity sweep | Scans chapters for new characters / locations / objects. |
+| Writer actions | The AI dropdown in each scene's strip — Rewrite, Expand, Tighten, Continue, Describe, plus all Line edits. |
+| Brainstorm | The Brainstorm view — name / title / freeform idea generation with thumbs-up steering. |
+| Resume briefing | Generates the Home "Previously on your novel" recap card. |
+| Session recap | End-of-day "Wrap up session" recap + open-thread suggestions. |
+| Foreshadowing scan | Whole-book scan for setups that may not have paid off. |
+| Reader knowledge | Tracks dramatic irony — what the reader knows vs. what the POV character knows, chapter by chapter. |
+| Voice drift explainer | Diagnoses what shifted between an outlier chapter and the writer's baseline voice in the Analysis dashboard. |
+| Unstuck moves | The AI dropdown's "Unstuck — five ways out" diagnostic that proposes goal shift / interrupt / setting / reveal / time cut. |
+| Sensory research | The AI dropdown's "Research feel…" modal — structured sensory pack for a selected subject. |
+| Character audit | Per-character consistency audit (profile + their scenes → flagged actions) on the Characters view. |
+| Reverse outline | Reads the whole draft and produces the act structure the book actually has — plot points, act breaks, per-chapter beats. |
+| Beat sheet overlay | Maps your draft to Save the Cat, Hero's Journey, or 7-Point Story Structure beats. |
+| Plot-hole audit | Whole-book continuity scan for contradictions, timeline issues, and character-knowledge errors. |
+| Character chat | The chat panel's "Talk to a character" mode — first-person, in-voice answers from your cast. |
+| Relationship arc | Chapter-by-chapter warmth / tension / power tracking for a pair of characters. |
+| Marketing pack | Logline, back-cover blurbs, synopsis, and elevator pitch for querying and pitching. |
+| Multi-reader panel | Four distinct reader personas (genre reader / literary critic / agent intern / book-club reader) react to a chapter in parallel. |
+
+### JV feature catalog — 8 features (verbatim from server `feature_pins_api.py:32-69` + renderer `SettingsView.vue:572-574`)
+| Feature | Default role | Description (verbatim) | Source |
+|---|---|---|---|
+| Compose | quick | LLM writes a fresh in-character line from a persona's personality prompt. Drives the Generate view's 🎲 Compose button. | server catalog |
+| Persona rewrite | quick | Rewrites the current text in the persona's character voice for preview-then-accept. Drives the Generate view's ✏️ Rewrite button. | server catalog |
+| Speaker attribution | accuracy | Extracts who-said-what from prose. Drives the Studio Script tab Analyze action. | server catalog |
+| Render preset suggest | accuracy | Classifies chapter tone and picks the matching render preset. Drives the Studio Render tab Suggest button. | server catalog |
+| Show notes | accuracy | Drafts episode show notes (summary, chapter list with speakers) from the project's segments. Drives the podcast Export surface. | server catalog |
+| Smart-assign | accuracy | Matches characters to voices based on age/gender/tone/accent. Drives the Studio Cast tab Smart-assign button. | server catalog |
+| Dictation cleanup (`refine`) | quick | Captures: raw speech → clean text before paste (filler removal, self-corrections, punctuation). | renderer `EXTRA_FEATURES` |
+| Voice gender guess (`voice_gender`) | quick | Voices: labels fetched voices the built-in dictionary doesn't recognise. | renderer `EXTRA_FEATURES` |
+
+⚠️ **JV catalog drift to fix in the cutover** (RULE #3 lifted-but-not-fully-wired):
+`refine` + `voice_gender` are real features — they're in `dispatch.py`
+`DEFAULT_FEATURE_ROLES` (both `quick`) and they have labels+descriptions, **but only
+as a renderer-side `EXTRA_FEATURES` patch** (`SettingsView.vue:572-574`); the
+**server `FEATURE_CATALOG` (`feature_pins_api.py`) omits them** (6 entries, not 8).
+`voice_gender` came over from JW's old Studio (user, 2026-06-21: *"guess voice
+gender should be in jv as it was in jw when jw had studio"*). When the catalog
+moves onto the shared server-side dispatch, **both must become first-class server
+catalog entries** (key + label + description + recommended_tier), not a client
+patch — otherwise headless JV can't route them.
+
+### Provider form — field tooltips (verbatim from `i18n/locales/en.json:337-368`)
+- **API format** (`fieldApiFormatTitle`): "Which request format this provider speaks. OpenAI-compatible covers OpenAI, Anthropic, Google, OpenRouter, DeepSeek, LM Studio, llama.cpp, vLLM — anything that exposes /v1/chat/completions. Pick Ollama only for an Ollama daemon — its native /api/chat is the only path that honors think:false."
+- **Embedding model** (`fieldEmbeddingModelTitle`): "Optional embedding model — fills the RAG (manuscript chat) index. Leave blank if this provider isn't your embedding provider. OpenAI: text-embedding-3-small. Ollama: nomic-embed-text. Anthropic / Google / OpenRouter generally don't expose embedding endpoints — leave blank."
+- **API key** (`fieldApiKeyPlaceholder`): "Optional — leave blank for local providers".
+- **Tier** (`fieldTierTitle`, JW attribution pipeline; JV auto-detects): "Attribution pipeline capability bucket for this model. Auto-picked by name pattern; you can pin a different choice if you know better. **Guided** = scaffolded examples for sub-12B models. **Direct** = strict rules for 12B-class non-reasoning. **Reasoned** = strict rules + implicit reasoning for hybrid models (Qwen3:14B+)."
+
+### Routing & cost defaults (verbatim from `SettingsView.vue`)
+- **Auto-rebuild RAG** (`:1238`): "Embed new and changed scenes a minute after the last edit. Costs nothing on local embedding providers; cloud embeddings will accrue tokens."
+- **3-alternative drafting / "Three-alternative streaming"** (`:1293-1299`, `VariationsModal.vue:153-157`): runs the generative writer actions (Continue, Describe, line edit, Continue with direction) as three parallel streams at temperatures `[0.55, 0.7, 0.95]` (conservative ↔ inventive); the writer clicks **Use this** on the best column and the other two are discarded. "Off by default — variations mode triples token cost." Shift-click any AI dropdown item to opt into variations for one call regardless of the toggle.
+
+### Quick Setup wizard (verbatim from `QuickSetup.vue`)
+- Cloud step (`:247-249`): "No cloud provider configured. Critique, plot-hole audit, and similar features will run on the local default model. You can add one later under Settings → AI engines → Cloud · metered — that section has picks (Claude Sonnet 4.6 for prose, Gemini 2.5 Pro for value)."
+- Download step (`:262-264`): "Total estimated download: ~N GB. Pulls run sequentially; you can cancel mid-way."
+- Routing step (`:272,276,280`): "<default model> · default for everything not listed below"; "<fast model> (fast) · N features: Brainstorm, Resume briefing, Session recap, Entity sweep, Sensory research, Unstuck moves"; "Cloud · N analysis features: Critique, Plot-hole audit, Reverse outline, Multi-reader, etc."
+- Footer (`:287-289`): "Fine-tune any individual feature in Feature routing after setup. The wizard can be re-run with a different tier any time."
 
 ## Web UX sources
 - Msty / LM Studio / Jan / Ollama comparison (provider-agnostic mixing, GUI-first
