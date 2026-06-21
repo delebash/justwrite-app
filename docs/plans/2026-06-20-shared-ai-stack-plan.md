@@ -700,3 +700,37 @@ server-side is a focused lift, not 24 rewrites:
   `aiTellScanner.js:138 scanAiTells`, `styleMetrics.js` (chapter/book metrics),
   `voiceDrift.js:92 computeVoiceDrift` (the numeric drift; only its
   `explainVoiceDrift` narration is LLM).
+
+### 3c + 3d host-sink — grounded JW server shapes (read 2026-06-21, file:line)
+
+What 3c (JW adopts the shared provider router) and 3d's host-sink need, verified
+so both execute the instant the camelCase pass settles the wire shape:
+
+- **JW provider table** (`api/llm_providers.py:29-48`, model `models.py` `LlmProvider`):
+  columns `id`, `name`, `kind`, `built_in`, `position`, **`data`** (the full
+  provider JSON blob — camelCase: `id/name/kind/builtIn/baseUrl/apiKey/chatModel/
+  embeddingModel/quickSetupTier`, per `stores/ai.js:280-298`). GET returns
+  `{providers:[json.loads(data)…]}` ordered by `position`; PUT is **bulk replace**
+  (delete-all + re-insert). ⇒ **JW's `ProviderStore`** (`list/get/add/replace/
+  remove(LLMProviderConfig)`) maps blob↔`LLMProviderConfig` (after the rewrite,
+  camel→camel: `kind`+`runner`→`providerType`, `chatModel`→`defaultModel`,
+  `baseUrl/apiKey/embeddingModel` pass through; keep `position` for ordering).
+  Replacing bulk PUT with the shared per-provider router means the JW **renderer**
+  drops `providerBackend.js`'s debounced bulk PUT (`:43-57`) for per-provider
+  create/update/delete (matches JV + `@delebash/llm-ui`).
+
+- **JW usage ledger** (`api/llm_usage.py`): persistent `LlmUsage` rows + **SQL
+  aggregate totals** (overall + `byFeature`/`byProvider`, `:62-88`) — wire is
+  camelCase (`providerId/promptTokens/completionTokens`). ⚠️ **Path mismatch:** JW
+  serves **`/v1/llm-usage`**; the shared storage-free router serves **`/v1/ai-usage`**
+  over the in-memory ledger (`llm_runner/llm/api.py`). Converge on one path
+  (`/v1/ai-usage`) → JW `services/usageApi.js` updates its path.
+
+- **Host-sink design (the audit's "shared ledger gains a persistence sink"):** the
+  shared `usage.py` ledger is in-memory (cap 200); JW's is DB-persistent. Add a
+  **`UsageSink` Protocol** (`record(row)` · `recent(limit)` · `totals()` · `clear()`)
+  the shared `api.py` usage routes call instead of the module-global deque. JW
+  implements it over `LlmUsage` (reusing the SQL aggregates); JV gets a default
+  in-memory sink (or its own table later). Real work at a genuine boundary —
+  RULE #8 allows it (not a forwarding shim). **JV's ledger changes too** (audit
+  finding) — both apps adopt the sink seam.
