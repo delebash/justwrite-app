@@ -365,14 +365,21 @@ needed).
   it via `engines/llm/provider_store.py` (SettingsProviderStore). Plus the schema
   de-dup (JV's `models.py` imports the 5 config models from the shared package).
   **JV is now fully on the shared backend + shared routers.** 275/275 + CRUD smoke.
-- **(3c) JW adopts the shared provider router — server AND renderer** (not
-  server-only; flagged 2026-06-21): JW server adds a `ProviderStore` over its
-  `LlmProvider` table + registers providers into the shared registry at boot;
-  **replaces** `api/llm_providers.py` (bulk GET/PUT) with the shared router →
-  the JW **renderer** `ai` store must switch from whole-list bulk-PUT to
-  per-provider create/update/delete (matching JV + `@delebash/llm-ui`). Verify via
-  `npm run build` (JW has no renderer unit gate). This is the JW-side cascade to
-  do carefully, not rush.
+- ✅ **(2.5) DONE** — camelCase-native schema rewrite (just-llm-runner `1523b53`,
+  JV `f350b24`): the shared LLM config models dropped pydantic aliases — ONE field
+  name across Python + JSON + JS (`providerType`/`baseUrl`/`apiKey`/`defaultModel`/
+  …), plus a JV settings snake→camel migration. just-llm-runner 48 + JV 277 pass.
+- ✅ **(3c) DONE** — JW adopts the shared provider router, server AND renderer.
+  Server: `justwrite_server/llm/provider_store.py` (`LlmProviderStore` over the
+  `LlmProvider` table; writes a superset `data` blob so the gateway keeps working;
+  providerType derived behavior-preservingly — claude/gemini stay openai-compat
+  pending native-adapter verification, Decision 20), mounts `make_provider_router`
+  + the shared `api.py`, registers providers at boot in `seed.py`; deleted
+  `api/llm_providers.py` (bulk GET/PUT). Renderer: `providerBackend.js` →
+  per-provider CRUD; the `ai` store + form + all 13 consumers moved to the shared
+  camelCase shape (chatModel→defaultModel, hasApiKey, provider-type selector);
+  `quickSetupTier` moved to an ai-prefs `quickSetupTiers` map. **76 server tests
+  pass; `npm run build:vite` green; Biome clean on all 13 files.**
 - **(3d)** JW feature-by-feature dispatch migration (`services/analysis/*` →
   shared server-side dispatch); the async proxy stays until the last consumer
   moves, then is deleted. Adopt **JW's persistent DB usage** into the shared
