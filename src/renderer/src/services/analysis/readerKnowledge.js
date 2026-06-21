@@ -20,7 +20,7 @@
 // sequential LLM calls. Caller renders per-chapter progress and can
 // cancel mid-sweep (partial results stay).
 
-import { runAiStream } from "../aiStream.js";
+import { runAiFeature } from "../aiFeature.js";
 import { parseJsonLoose } from "../llmText.js";
 
 // ─── helpers ─────────────────────────────────────────────────────────
@@ -61,41 +61,9 @@ function condenseFacts(facts, maxItems = 14, maxChars = 140) {
 
 // ─── per-chapter call ────────────────────────────────────────────────
 
-const SYSTEM = `You analyse fiction for dramatic irony — the gap between what the reader knows and what the POV character knows.
-
-You will be given:
-  - what the reader already knows going INTO this chapter (cumulative)
-  - what the POV character already knows going INTO this chapter (cumulative)
-  - the full prose of this chapter
-
-Return ONLY a JSON object with these fields:
-
-{
-  "povCharacter":   string,  // best guess at this chapter's POV character name, or "narrator" if uncertain
-  "newReaderFacts": [string], // 0-6 facts the reader LEARNS this chapter that they didn't know before
-  "newPovFacts":    [string], // 0-6 facts the POV character LEARNS this chapter that they didn't know before
-  "status":         "aligned" | "dramatic-irony" | "reader-confused" | "neutral",
-  "rationale":      string   // 1-2 sentences explaining the classification
-}
-
-Status definitions — be deliberate:
-  - "aligned" — reader and POV know roughly the same things; their knowledge moves in lockstep this chapter
-  - "dramatic-irony" — reader knows something important the POV character does NOT (either newly created this chapter, or sustained from earlier)
-  - "reader-confused" — POV character knows something the reader doesn't (withheld information that ISN'T clearly intentional), OR the chapter introduces ambiguity the reader can't resolve
-  - "neutral" — transitional / setup / world-building chapter where neither alignment nor a meaningful gap is the point
-
-Facts should be one declarative sentence each, short and specific. Examples:
-  - "Marcus is the killer."
-  - "The locket Elena found is a forgery."
-  - "Sarah has been lying about her brother."
-
-Rules:
-  - Be selective. Don't list every detail — only facts that materially shift the reader's or POV's understanding.
-  - Don't restate facts already in the "going-in" lists. Focus on what's NEW this chapter.
-  - If you're unsure whether a fact counts, leave it out — false positives degrade the running model.
-  - The rationale should name the central irony / alignment / confusion in concrete terms, not in genre abstractions.
-
-Return ONLY the JSON object. No preface, no markdown fences, no commentary.`;
+// The prompt lives server-side (features.py, action "readerKnowledge"); the
+// multi-part user message (prior facts + chapter) is assembled below and sent
+// as the user_content variable.
 
 /**
  * Analyse a single chapter's reader-knowledge state.
@@ -119,7 +87,6 @@ export async function analyseChapterKnowledge({
   priorReaderFacts = [],
   priorPovFacts = [],
   signal,
-  onDelta,
   provider,
   model,
   meta = {},
@@ -163,18 +130,11 @@ export async function analyseChapterKnowledge({
   userParts.push(text);
   userParts.push("--- END CHAPTER ---");
 
-  const messages = [
-    { role: "system", content: SYSTEM },
-    { role: "user", content: userParts.join("\n") },
-  ];
-
-  const result = await runAiStream({
+  const result = await runAiFeature({
+    action: "readerKnowledge",
     feature: "readerKnowledge",
-    messages,
-    temperature: 0.3,
-    extra: { think: false },
+    variables: { user_content: userParts.join("\n") },
     signal,
-    onDelta,
     provider,
     model,
     meta,

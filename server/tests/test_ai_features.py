@@ -71,6 +71,19 @@ def test_unknown_action_404(tmp_path):
     assert c.post("/v1/ai/run", json={"action": "nope", "variables": {}}).status_code == 404
 
 
+def test_migrated_actions_render_and_dispatch(tmp_path):
+    c = _client(tmp_path)
+    cases = [
+        ("foreshadowing", {"chapter_label": "Ch 1\n\n", "chapter_text": "He hid the key."}, "He hid the key."),
+        ("critiqueStructure", {"chapter_label": "", "chapter_text": "Tense scene."}, "Tense scene."),
+        ("readerKnowledge", {"user_content": "READER KNOWS: x\n--- BEGIN CHAPTER ---\ny\n--- END CHAPTER ---"}, "BEGIN CHAPTER"),
+    ]
+    for action, variables, needle in cases:
+        r = c.post("/v1/ai/run", json={"action": action, "variables": variables})
+        assert r.status_code == 200, f"{action}: {r.text}"
+        assert needle in FakeAdapter.last["messages"][0].content  # template rendered the variables
+
+
 def test_provider_override_routes_to_named_provider(tmp_path):
     # The Writer Lab runs one action against a specific provider/model override.
     c = _client(tmp_path)

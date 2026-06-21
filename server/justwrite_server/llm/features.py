@@ -56,6 +56,81 @@ Return ONLY the JSON object, no preface, no markdown fences."""
 
 _CHAPTER_USER = "{{chapter_label}}--- BEGIN CHAPTER ---\n{{chapter_text}}\n--- END CHAPTER ---"
 
+# ── threadExtraction.js (foreshadowing) ─────────────────────────────────────
+_FORESHADOWING_SYSTEM = """You are a sharp fiction editor looking for foreshadowing and narrative setups in a chapter.
+
+You will be given one chapter's prose. Identify "setups" — narrative elements the writer has planted that demand a later payoff. Things like:
+
+  - promises or vows ("I'll find him")
+  - distinctive objects placed in a character's hands or environment
+  - questions raised but not answered ("why was the door locked from inside?")
+  - abilities, traits, or constraints established for later use
+  - secrets known to one character but not others
+  - threats issued
+  - debts or obligations declared
+
+Return ONLY a JSON object with one field, "setups":
+
+  {
+    "setups": [
+      {
+        "snippet":  "verbatim phrase from the chapter, 4-15 words",
+        "label":    "short reminder of what's set up (<= 90 chars)",
+        "kind":     "promise" | "object" | "question" | "ability" | "secret" | "threat" | "debt",
+        "keyTerm":  "a single distinctive word or 2-3 word phrase a later chapter would re-use"
+      }
+    ]
+  }
+
+RULES:
+  - Each snippet MUST be copied verbatim from the chapter. No paraphrasing.
+  - Each snippet should be 4-15 words — long enough to find uniquely, short enough to scan.
+  - Each keyTerm should be specific enough that a substring search in later chapters would catch any payoff (proper nouns are ideal: a character name, a place name, a unique object name).
+  - Return at most 8 setups for this chapter — the most interesting ones.
+  - Skip the merely descriptive. A character noticing the weather is not a setup. A character noticing a specific knife on the mantle IS.
+  - If the chapter is mostly resolution or middle-of-scene action with no new setups, return an empty array. Do not invent.
+
+Return ONLY the JSON object, no preface, no markdown fences."""
+
+# ── readerKnowledge.js (analyseChapterKnowledge) ────────────────────────────
+# Its user message is assembled client-side (condensed prior facts + chapter),
+# passed as {{user_content}}; the system prompt is the editable part.
+_READER_KNOWLEDGE_SYSTEM = """You analyse fiction for dramatic irony — the gap between what the reader knows and what the POV character knows.
+
+You will be given:
+  - what the reader already knows going INTO this chapter (cumulative)
+  - what the POV character already knows going INTO this chapter (cumulative)
+  - the full prose of this chapter
+
+Return ONLY a JSON object with these fields:
+
+{
+  "povCharacter":   string,  // best guess at this chapter's POV character name, or "narrator" if uncertain
+  "newReaderFacts": [string], // 0-6 facts the reader LEARNS this chapter that they didn't know before
+  "newPovFacts":    [string], // 0-6 facts the POV character LEARNS this chapter that they didn't know before
+  "status":         "aligned" | "dramatic-irony" | "reader-confused" | "neutral",
+  "rationale":      string   // 1-2 sentences explaining the classification
+}
+
+Status definitions — be deliberate:
+  - "aligned" — reader and POV know roughly the same things; their knowledge moves in lockstep this chapter
+  - "dramatic-irony" — reader knows something important the POV character does NOT (either newly created this chapter, or sustained from earlier)
+  - "reader-confused" — POV character knows something the reader doesn't (withheld information that ISN'T clearly intentional), OR the chapter introduces ambiguity the reader can't resolve
+  - "neutral" — transitional / setup / world-building chapter where neither alignment nor a meaningful gap is the point
+
+Facts should be one declarative sentence each, short and specific. Examples:
+  - "Marcus is the killer."
+  - "The locket Elena found is a forgery."
+  - "Sarah has been lying about her brother."
+
+Rules:
+  - Be selective. Don't list every detail — only facts that materially shift the reader's or POV's understanding.
+  - Don't restate facts already in the "going-in" lists. Focus on what's NEW this chapter.
+  - If you're unsure whether a fact counts, leave it out — false positives degrade the running model.
+  - The rationale should name the central irony / alignment / confusion in concrete terms, not in genre abstractions.
+
+Return ONLY the JSON object. No preface, no markdown fences, no commentary."""
+
 FEATURES: dict[str, dict] = {
     "critique": {
         "feature": "critique",
@@ -69,6 +144,20 @@ FEATURES: dict[str, dict] = {
         "system": _STRUCTURE_SYSTEM,
         "user_template": _CHAPTER_USER,
         "temperature": 0.2,
+        "think": False,
+    },
+    "foreshadowing": {
+        "feature": "foreshadowing",
+        "system": _FORESHADOWING_SYSTEM,
+        "user_template": _CHAPTER_USER,
+        "temperature": 0.3,
+        "think": False,
+    },
+    "readerKnowledge": {
+        "feature": "readerKnowledge",
+        "system": _READER_KNOWLEDGE_SYSTEM,
+        "user_template": "{{user_content}}",
+        "temperature": 0.3,
         "think": False,
     },
 }

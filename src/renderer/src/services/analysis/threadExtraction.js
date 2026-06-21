@@ -23,7 +23,7 @@
 //     keyTerm:  string,   // a distinctive noun/phrase to grep later chapters with
 //   }
 
-import { runAiStream } from "../aiStream.js";
+import { runAiFeature } from "../aiFeature.js";
 import { parseJsonLoose } from "../llmText.js";
 
 function htmlToText(html) {
@@ -39,47 +39,13 @@ const ALLOWED_KINDS = new Set([
   "promise", "object", "question", "ability", "secret", "threat", "debt",
 ]);
 
-const SYSTEM = `You are a sharp fiction editor looking for foreshadowing and narrative setups in a chapter.
-
-You will be given one chapter's prose. Identify "setups" — narrative elements the writer has planted that demand a later payoff. Things like:
-
-  - promises or vows ("I'll find him")
-  - distinctive objects placed in a character's hands or environment
-  - questions raised but not answered ("why was the door locked from inside?")
-  - abilities, traits, or constraints established for later use
-  - secrets known to one character but not others
-  - threats issued
-  - debts or obligations declared
-
-Return ONLY a JSON object with one field, "setups":
-
-  {
-    "setups": [
-      {
-        "snippet":  "verbatim phrase from the chapter, 4-15 words",
-        "label":    "short reminder of what's set up (<= 90 chars)",
-        "kind":     "promise" | "object" | "question" | "ability" | "secret" | "threat" | "debt",
-        "keyTerm":  "a single distinctive word or 2-3 word phrase a later chapter would re-use"
-      }
-    ]
-  }
-
-RULES:
-  - Each snippet MUST be copied verbatim from the chapter. No paraphrasing.
-  - Each snippet should be 4-15 words — long enough to find uniquely, short enough to scan.
-  - Each keyTerm should be specific enough that a substring search in later chapters would catch any payoff (proper nouns are ideal: a character name, a place name, a unique object name).
-  - Return at most 8 setups for this chapter — the most interesting ones.
-  - Skip the merely descriptive. A character noticing the weather is not a setup. A character noticing a specific knife on the mantle IS.
-  - If the chapter is mostly resolution or middle-of-scene action with no new setups, return an empty array. Do not invent.
-
-Return ONLY the JSON object, no preface, no markdown fences.`;
+// The prompt lives server-side (features.py, action "foreshadowing").
 
 export async function extractThreads({
   html,
   chapterTitle = "",
   chapterNum = null,
   signal,
-  onDelta,
   provider,
   model,
   meta = {},
@@ -94,18 +60,11 @@ export async function extractThreads({
     ? `Chapter ${chapterNum != null ? `${chapterNum} — ` : ""}${chapterTitle}\n\n`
     : "";
 
-  const messages = [
-    { role: "system", content: SYSTEM },
-    { role: "user", content: `${header}--- BEGIN CHAPTER ---\n${text}\n--- END CHAPTER ---` },
-  ];
-
-  const result = await runAiStream({
+  const result = await runAiFeature({
+    action: "foreshadowing",
     feature: "foreshadowing",
-    messages,
-    temperature: 0.3,
-    extra: { think: false },
+    variables: { chapter_label: header, chapter_text: text },
     signal,
-    onDelta,
     provider,
     model,
     meta,
