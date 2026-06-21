@@ -149,3 +149,17 @@ flags/state, so they need base-text→DB + assembly-stays-in-code (the features.
 pattern), not a flat constant move. **So JV server prompt-convergence is complete
 except those dynamic features.** JW remaining unchanged: heavy-context
 server-side, Lab prompt-editor GUI, streaming, and the shared provider GUI + TTS.
+
+**Provider GUI — Lab GUI done + integration foundation (2026-06-21 night, cont.):**
+The JW **Lab prompt-editor GUI** shipped — `views/AiPromptsView.vue` + `/ai-prompts`
+route + sidebar nav; screenshot-verified (Playwright), headless smoke green. For the
+**shared provider GUI**, consumption is **decided** (user): vite **alias now**
+(`@delebash/llm-ui` → `../just-llm-runner/ui/src` + `server.fs.allow`, BOTH apps,
+smoke-verified) + **git-dep at release** (note: npm can't git-dep the `ui/` subdir
+natively — publish or use a subdir tool at release). `@delebash/llm-ui` today =
+contract (`types.ts`) + `ProviderBackend` interface, **no Vue components yet**.
+**Component build (unblocked — next):** `LlmProviderForm` (from JW
+`SettingsProviderForm`, adapter-based) → `ModelPicker` / `ProviderSelect` /
+`UsageView` → host `ProviderBackend` adapters (JV REST exists; JW Pinia adapter
+open) → wire JW `SettingsView` AI-engines + JV `EnginesView` → JV external-TTS
+editor. Build each with the Playwright screenshot loop (`scripts/shot.mjs`).

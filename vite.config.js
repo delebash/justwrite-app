@@ -25,6 +25,10 @@ export default defineConfig({
   resolve: {
     alias: {
       "@renderer": resolve(__dirname, "src/renderer/src"),
+      // Shared LLM UI package, consumed from its src for the dev/HMR loop
+      // (alias now). The release form is the git/published dependency in
+      // package.json (later). Sibling repo: ../just-llm-runner/ui.
+      "@delebash/llm-ui": resolve(__dirname, "../just-llm-runner/ui/src"),
     },
   },
   plugins: [vue()],
@@ -39,7 +43,7 @@ export default defineConfig({
       // level up. import.meta.glob in services/helpDocs.js picks them
       // up at build time; this entry keeps the dev server able to
       // serve them too.
-      allow: [resolve(__dirname, "src/renderer"), resolve(__dirname, "docs")],
+      allow: [resolve(__dirname, "src/renderer"), resolve(__dirname, "docs"), resolve(__dirname, "../just-llm-runner/ui")],
     },
   },
   envPrefix: ["VITE_", "TAURI_"],
