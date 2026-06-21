@@ -32,12 +32,23 @@ feature catalog.
 
 **The A–F plan (JustWrite):**
 - A ✅ shared prompt subsystem → `llm_runner`. B ✅ JW server adopts it.
-- C 🔄 shared `@delebash/llm-ui`: **PromptLab done**; still to build — provider
-  form (from JW `SettingsProviderForm`), model picker, provider list, Features
-  routing, Usage view.
-- D ⬜ shared top-level "AI / Models" menu area (Decision 2).
+- C 🔄 shared `@delebash/llm-ui`: **done** — PromptLab, ProviderForm (presets ·
+  where-it-runs · model comboboxes via probe-models · test/save/delete),
+  provider list (local/cloud rows), Usage stats, **and the bundled-runner model
+  catalog** (`GET /v1/llm-runner/models` + `LuModelCatalog.vue`: Model · Params ·
+  Fit · Status · Load/Unload/Download, scoped to `local-llamacpp`). Still to
+  build — **Features routing table** (provider▸model per feature + roles +
+  defaults + inline prompt tune), Quick Setup wizard, hardware presets.
+- D ✅ shared top-level **"AI"** menu area (`/ai` → `AiView` host chrome
+  [PaneHeader + `.pane-card`] wrapping the naked `AiModelsArea`); sidebar entry.
 - E ⬜ JW streaming features (writerAI / rag / characterChat) → `/v1/ai/stream`,
   then delete the old `/v1/llm/...` gateway (`api/llm.py`).
+
+**Model-catalog deferrals** (built but honest gaps — no backend/data yet, NOT
+skipped): numeric Fit score (needs the downloaded GGUF — `compute_fit`), per-
+model delete-from-disk (no runner endpoint), free-form download-by-`repo:quant`
+(manifest `/load` is id-only), and inline model-management for Ollama/LM-Studio
+(they expose no per-model VRAM to score Fit; they keep the Fetch combobox).
 
 ## Active plan docs
 - `docs/plans/2026-06-20-shared-ai-stack-plan.md` — **authoritative** AI-stack plan (20 decisions).
@@ -49,8 +60,14 @@ feature catalog.
 - `docs/plans/2026-06-18-server-side-llm-architecture.md` — ⚠️ superseded by the 2026-06-20 shared-ai-stack plan.
 
 ## Future / backlog
-- Finish C (provider form / model picker / provider list / Features / Usage), then D, then E.
-- After JW proves the shared GUI: **JustVoice adopts the identical `@delebash/llm-ui` views, then layers TTS** (the one JV-only difference).
+- **Next:** the Features routing table (provider▸model per feature + roles +
+  defaults + inline prompt tune — the Features sub-tab is a placeholder now),
+  then Quick Setup wizard + hardware presets, then E (streaming + drop the old
+  `/v1/llm` gateway).
+- After JW proves the shared GUI: **JustVoice adopts the identical
+  `@delebash/llm-ui` views, then layers TTS** (the one JV-only difference). JV
+  also still has per-app duplicate prompt/provider machinery to lift to the
+  shared package (same Keystone treatment JW already got).
 
 ## Where detail lives
 - Deep per-task detail → `docs/plans/*`. Architecture + rules → `CLAUDE.md` +
