@@ -388,12 +388,27 @@ needed).
     `dispatch.chat` usage persists to its `LlmUsage` table (joins `/v1/llm-usage`;
     also serves `/v1/ai-usage`). JV keeps the in-memory default. shared 48 / JW 78
     / JV 277 (4 unrelated fastmcp) pass.
-  - ⏳ **Feature migration PENDING** — move `services/analysis/*` (the ~12
+  - 🔄 **Feature migration IN PROGRESS** — moving `services/analysis/*` (the ~12
     non-streaming JSON features, seam `aiStream.js`) onto the shared server-side
-    dispatch one at a time. Couples with moving **feature pins/roles server-side**
-    (today client-side in the `ai` settings blob) so the user's routing applies to
-    server-run features; the async streaming proxy stays for the streaming
-    features (writerAI/chat/rag) until last, then is deleted.
+    dispatch one at a time. The **pattern is proven end-to-end**:
+    - **Foundation DONE** — `justwrite_server/llm/config.py` (`llm_config()`
+      builds `LLMConfig` from JW settings: providers from the table + pins/default
+      read from the `ai` settings blob — no new server-side pin storage), the
+      server prompt catalog `llm/features.py` (system + user_template + temp/think
+      per action, `{{var}}` renderer), and `POST /v1/ai/run` (renders + dispatches,
+      pins/default honored, provider/model override for the Writer Lab, 501 when
+      unconfigured). Client helper `services/aiFeature.js` (task panel + error
+      wrap; server resolves provider + records usage).
+    - ✅ **critique DONE** — runCritique + runStructuralAnalysis call /v1/ai/run;
+      the two prompts ported to features.py + deleted from the client. Verified
+      (server tests + build + Biome + headless smoke).
+    - ⏳ **Remaining (~11)** — plotHoles, foreshadowing, entitySweep,
+      characterAudit, readerKnowledge, relationshipArc, voiceDrift, beatSheet,
+      reverseOutline, marketingPack, multiReader — same pattern (port each
+      prompt + variable shape to features.py, rewire its `services/analysis/*`
+      file to `runAiFeature`). Each is its own small unit.
+    The async streaming proxy (`/v1/llm/...`) stays for the streaming features
+    (writerAI/chat/rag) until last, then is deleted.
 - **(4)** `@delebash/llm-ui` against the now-identical endpoints; delete the
   per-app `ProviderBackend` adapter.
 - **(5)** delete dead per-app code.
