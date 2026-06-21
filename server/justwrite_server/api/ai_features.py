@@ -28,6 +28,10 @@ router = APIRouter(tags=["ai"], prefix="/v1/ai")
 class RunRequest(BaseModel):
     action: str
     variables: dict = {}
+    # Optional per-call routing override (the Writer Lab runs one action against
+    # several providers/models). Empty → the feature's resolved route.
+    providerId: str = ""
+    model: str = ""
 
 
 class RunResponse(BaseModel):
@@ -49,6 +53,8 @@ async def run_feature(body: RunRequest) -> RunResponse:
             system=spec["system"],
             temperature=spec.get("temperature", 0.7),
             think=spec.get("think", False),
+            provider_override=body.providerId or None,
+            model_override=body.model or None,
         )
     except LLMNotConfiguredError as e:
         # 501 → the UI shows the actionable "wire an LLM provider" message.

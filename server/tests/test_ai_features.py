@@ -69,3 +69,24 @@ def test_run_honors_feature_pin(tmp_path):
 def test_unknown_action_404(tmp_path):
     c = _client(tmp_path)
     assert c.post("/v1/ai/run", json={"action": "nope", "variables": {}}).status_code == 404
+
+
+def test_provider_override_routes_to_named_provider(tmp_path):
+    # The Writer Lab runs one action against a specific provider/model override.
+    c = _client(tmp_path)
+
+    class Fake2:
+        provider_id = "p2"
+        provider_type = "openai-compat"
+        default_model = "m2"
+
+        def chat(self, messages, *, model=None, temperature=0.7, max_tokens=None, system=None, think=False, extra=None):
+            return LLMResponse(text="from-p2", model=model or self.default_model, prompt_tokens=1, completion_tokens=1)
+
+    get_llm_registry().register(Fake2())
+    r = c.post("/v1/ai/run", json={
+        "action": "critique", "variables": {"chapter_text": "x"},
+        "providerId": "p2", "model": "m2",
+    })
+    assert r.status_code == 200, r.text
+    assert r.json()["content"] == "from-p2" and r.json()["model"] == "m2"

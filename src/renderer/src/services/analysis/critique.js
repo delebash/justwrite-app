@@ -8,7 +8,7 @@
 //
 // Both return shapes that drop straight into `chapter.critique`.
 
-import { runAiStream } from "../aiStream.js";
+import { runAiFeature } from "../aiFeature.js";
 import { parseJsonLoose } from "../llmText.js";
 
 function htmlToText(html) {
@@ -23,40 +23,20 @@ function htmlToText(html) {
 }
 
 // ─── Text critique ──────────────────────────────────────────────────
+// The prompt lives server-side now (justwrite_server/llm/features.py, action
+// "critique"); we send the chapter label + text and parse the JSON result.
 
-const CRITIQUE_SYSTEM = `You are a sharp, honest fiction editor giving line-level notes on a single chapter.
-Return a JSON object with one field: "notes" — an array of 4 to 10 critique items.
-Each item: { "severity": "info" | "suggest" | "flag", "category": short label, "message": one sentence }.
-
-Severity scale:
-- "info"    — observation worth noting, no action needed
-- "suggest" — concrete revision idea
-- "flag"    — a clear problem (pacing dip, unearned reveal, voice break, continuity error)
-
-Categories should be short and specific: "pacing", "voice", "dialogue", "POV", "show-don't-tell",
-"opening", "closing", "characterization", "setting", "tension", "stakes", "exposition",
-"redundancy", "clarity".
-
-Be specific — quote a short phrase from the text when calling something out.
-Be honest — if the chapter is genuinely strong, say so briefly in 2-3 "info" notes rather than inventing problems.
-Return ONLY the JSON object, no preface, no markdown fences.`;
-
-export async function runCritique({ html, chapterTitle = "", chapterNum = null, meta = {}, signal, onDelta, provider, model, task } = {}) {
+export async function runCritique({ html, chapterTitle = "", chapterNum = null, meta = {}, signal, provider, model, task } = {}) {
   const text = htmlToText(html).trim();
   if (!text) throw new Error("This chapter has no prose to critique yet.");
   const header = chapterTitle
     ? `Chapter ${chapterNum != null ? `${chapterNum} — ` : ""}${chapterTitle}\n\n`
     : "";
 
-  const messages = [
-    { role: "system", content: CRITIQUE_SYSTEM },
-    { role: "user",   content: `${header}--- BEGIN CHAPTER ---\n${text}\n--- END CHAPTER ---` },
-  ];
-  const result = await runAiStream({
-    feature: "critique",
-    messages, temperature: 0.4,
-    extra: { think: false },
-    signal, onDelta, provider, model, meta,
+  const result = await runAiFeature({
+    action: "critique", feature: "critique",
+    variables: { chapter_label: header, chapter_text: text },
+    signal, provider, model, meta,
     task: task || { label: "Chapter critique notes", meta },
   });
 
@@ -86,45 +66,25 @@ export async function runCritique({ html, chapterTitle = "", chapterNum = null, 
 }
 
 // ─── Structural analysis ────────────────────────────────────────────
-// One LLM call returns a JSON object with the four headline metrics
-// plus a short prose summary. Designed to land in chapter.critique.structure
-// alongside (or independent of) the text notes.
-
-const STRUCTURE_SYSTEM = `You are an experienced fiction editor diagnosing a chapter's structure.
-Return ONLY a JSON object with these fields:
-  "tension":     integer 1..10 (10 = unbearable; 1 = inert)
-  "hookQuality": integer 1..10 (does the opening pull the reader in? 10 = irresistible)
-  "pacing":      "slow" | "balanced" | "fast"
-  "endingClass": "cliffhanger" | "soft" | "closed" | "dead-end"
-                 - cliffhanger: unresolved high-stakes moment that demands the next chapter
-                 - soft: ends on a question or mood that pulls forward but with breathing room
-                 - closed: a complete unit; this chapter could end the book
-                 - dead-end: ends limply, no propulsive force; a smell
-  "summary":     a one- or two-sentence editorial summary of the chapter's structural posture
-
-Be honest. Assess what's on the page, not what could be there.
-Return ONLY the JSON object, no preface, no markdown fences.`;
+// One LLM call returns a JSON object with the four headline metrics plus a
+// short prose summary (lands in chapter.critique.structure). The prompt lives
+// server-side (features.py, action "critiqueStructure"); usage is recorded
+// server-side under the "critique" feature.
 
 const PACING_OPTIONS = ["slow", "balanced", "fast"];
 const ENDING_OPTIONS = ["cliffhanger", "soft", "closed", "dead-end"];
 
-export async function runStructuralAnalysis({ html, chapterTitle = "", chapterNum = null, meta = {}, signal, onDelta, provider, model, task } = {}) {
+export async function runStructuralAnalysis({ html, chapterTitle = "", chapterNum = null, meta = {}, signal, provider, model, task } = {}) {
   const text = htmlToText(html).trim();
   if (!text) throw new Error("This chapter has no prose to analyze yet.");
   const header = chapterTitle
     ? `Chapter ${chapterNum != null ? `${chapterNum} — ` : ""}${chapterTitle}\n\n`
     : "";
 
-  const messages = [
-    { role: "system", content: STRUCTURE_SYSTEM },
-    { role: "user",   content: `${header}--- BEGIN CHAPTER ---\n${text}\n--- END CHAPTER ---` },
-  ];
-  // JSON output — turn thinking off so reasoning doesn't end up in the
-  // body and break the parse on Ollama hybrid models.
-  const result = await runAiStream({
-    feature: "critique", usageFeature: "structural-analysis",
-    messages, temperature: 0.2, extra: { think: false },
-    signal, onDelta, provider, model, meta,
+  const result = await runAiFeature({
+    action: "critiqueStructure", feature: "critique",
+    variables: { chapter_label: header, chapter_text: text },
+    signal, provider, model, meta,
     task: task || { label: "Chapter structure", meta },
   });
 
