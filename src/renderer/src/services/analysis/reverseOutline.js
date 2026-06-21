@@ -18,7 +18,7 @@
 // job. If the book really does follow Save the Cat or 7-point, the
 // model will identify the 3- or 5-act shape that maps to it.
 
-import { runAiStream } from "../aiStream.js";
+import { runAiFeature } from "../aiFeature.js";
 import { parseJsonLoose } from "../llmText.js";
 
 function htmlToText(html) {
@@ -45,35 +45,7 @@ export const STRUCTURE_LABELS = {
   "loose":  "Loose / episodic",
 };
 
-const SYSTEM = `You are a structural editor reading a novelist's complete draft and producing a REVERSE OUTLINE — that is, the act structure the book actually has, not the structure it should have.
-
-You will be given a chapter-by-chapter digest. For each chapter you'll see the chapter number, title, word count, and a short summary or opening snippet. You will NOT see the full prose — you have to read the book through this digest.
-
-Return ONLY a JSON object:
-
-{
-  "structureName": "3-act" | "5-act" | "loose",
-  "summary":      "2-3 sentence overview of the book's shape — what kind of story it tells and where the beats land",
-  "actBreaks":    [ { "afterChapterNum": number, "name": "End of Act I" | "Midpoint" | ... } ],
-  "plotPoints":   [
-    { "name": "Inciting incident" | "Plot point 1" | "Midpoint" | "Plot point 2" | "Climax" | "Resolution" | other,
-      "chapterNum": number,
-      "description": "one sentence naming what specifically happens at this beat" }
-  ],
-  "chapterBeats": [
-    { "chapterNum": number, "beat": "one sentence summarizing this chapter's purpose in the overall structure" }
-  ]
-}
-
-Rules:
-  - Identify the structure the book ACTUALLY does, not the one it "should". Many books are loosely episodic; say so if true.
-  - Plot points: 4-7 entries. Always include an Inciting incident and a Climax if present. Midpoint when identifiable.
-  - actBreaks: 2-4 entries for 3-act / 5-act; can be empty for "loose".
-  - chapterBeats: one entry per chapter, even if the beat is "transition" or "interlude". One short sentence each.
-  - Be honest. If the book has structural issues (no clear inciting incident, no real midpoint, climax that lands too early or not at all), the summary should say so plainly. The writer is asking what shape they have, not what shape they wish they had.
-  - Don't add Save-the-Cat-style beat names unless the book maps to that framework cleanly. "Fun and games" / "All is lost" are framework-specific — only use them if the book really does follow that beat sheet. Otherwise use generic plot-point names.
-
-Return ONLY the JSON object. No preface, no markdown fences.`;
+// The prompt lives server-side (features.py, action "reverseOutline").
 
 /**
  * Build the per-chapter digest. Prefers existing structural-analysis
@@ -106,7 +78,6 @@ function buildChapterDigest(project) {
 export async function generateReverseOutline({
   project,
   signal,
-  onDelta,
   provider,
   model,
   task,
@@ -135,19 +106,12 @@ export async function generateReverseOutline({
     body.push("");
   }
 
-  const messages = [
-    { role: "system", content: SYSTEM },
-    { role: "user", content: body.join("\n") },
-  ];
-
   const outlineMeta = { ...(meta || {}), totalChapters: chapters.length };
-  const result = await runAiStream({
+  const result = await runAiFeature({
+    action: "reverseOutline",
     feature: "reverseOutline",
-    messages,
-    temperature: 0.3,
-    extra: { think: false },
+    variables: { user_content: body.join("\n") },
     signal,
-    onDelta,
     provider,
     model,
     meta: outlineMeta,

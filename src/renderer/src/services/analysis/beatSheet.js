@@ -15,7 +15,7 @@
 //     summary: "1-2 sentences on coverage and gaps"
 //   }
 
-import { runAiStream } from "../aiStream.js";
+import { runAiFeature } from "../aiFeature.js";
 import { parseJsonLoose } from "../llmText.js";
 
 // ─── Templates ───────────────────────────────────────────────────────
@@ -120,42 +120,12 @@ function buildChapterDigest(project) {
 
 // ─── the LLM call ────────────────────────────────────────────────────
 
-const SYSTEM = `You map a novelist's draft chapters to the beats of a named narrative framework.
-
-You will be given:
-  - the framework's beats (key, name, description) in canonical order
-  - the writer's chapter digest (one entry per chapter, with a summary or opening snippet)
-
-Your job: for EACH beat, identify which chapter best fulfils it, or mark it MISSING if no chapter does.
-
-Return ONLY a JSON object:
-
-{
-  "summary": "1-2 sentences on coverage and gaps (e.g. 'The book hits 12 of 15 beats cleanly. The All Is Lost beat is missing — the protagonist's lowest point isn't on the page.')",
-  "mapping": [
-    {
-      "beatKey": string (must match one of the provided keys),
-      "chapterNum": number | null (null = MISSING — no chapter fulfils this beat),
-      "justification": "one short sentence on what specifically in that chapter fulfils this beat, or one sentence on why the book lacks this beat"
-    }
-  ]
-}
-
-Rules:
-  - Return one entry per beat, in the order given. Don't skip beats.
-  - One chapter can be mapped to multiple beats if it really does carry both (compressed openings often do this). Don't force chapters to be unique.
-  - Be honest about MISSING beats. Most drafts genuinely miss 1-3 beats; a clean map of all beats is suspicious. The writer is asking what they have, not what they wish they had.
-  - The justification should quote a specific moment or character action, not a generic claim ("the protagonist commits to the journey" is not enough; "Marcus burns the letter and books the ferry" is enough).
-  - The chapter you pick should genuinely fulfil the beat. If two chapters could, pick the one where the beat lands clearest.
-  - Don't map beats out of order unless the chapters genuinely fall out of canonical order. In that case, flag in the summary that the structure is non-linear.
-
-Return ONLY the JSON object. No preface, no markdown fences.`;
+// The prompt lives server-side (features.py, action "beatSheet").
 
 export async function mapToBeatSheet({
   project,
   templateKey,
   signal,
-  onDelta,
   provider,
   model,
   task,
@@ -190,19 +160,12 @@ export async function mapToBeatSheet({
     chapterLines,
   ].join("\n");
 
-  const messages = [
-    { role: "system", content: SYSTEM },
-    { role: "user", content: userBody },
-  ];
-
   const beatMeta = { ...(meta || {}), templateKey, totalChapters: chapters.length };
-  const result = await runAiStream({
+  const result = await runAiFeature({
+    action: "beatSheet",
     feature: "beatSheet",
-    messages,
-    temperature: 0.3,
-    extra: { think: false },
+    variables: { user_content: userBody },
     signal,
-    onDelta,
     provider,
     model,
     meta: beatMeta,

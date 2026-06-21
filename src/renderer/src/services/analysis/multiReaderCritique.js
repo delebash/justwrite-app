@@ -16,7 +16,7 @@
 //     generatedAt, model
 //   }
 
-import { runAiStream } from "../aiStream.js";
+import { runAiFeature } from "../aiFeature.js";
 import { parseJsonLoose } from "../llmText.js";
 
 function htmlToText(html) {
@@ -30,76 +30,36 @@ function htmlToText(html) {
 }
 
 // ─── Personas ────────────────────────────────────────────────────────
-// Each persona has a deliberately distinct lens so the panel reads as
-// four different perspectives rather than four variants of the same
-// model bias. The system prompt grounds the persona in who they are
-// and what they care about; the JSON contract is identical across all
-// four so the modal can render them uniformly.
+// Four deliberately distinct reader lenses. The persona's system prompt + the
+// shared JSON contract live server-side (features.py, one action per persona);
+// the client keeps only the UI metadata + the action id to dispatch.
 
 export const PERSONAS = [
   {
     key: "genre-reader",
     label: "Genre-savvy reader",
     blurb: "A reader who's read deeply in this genre and is encountering your book cold.",
-    systemBody: `You are a smart reader who has read deeply in this genre. You're encountering this chapter cold — you don't know what came before it or what comes after — but you know what the genre's tropes, expectations, and pleasures are. You're reading FOR the things this genre does well: pacing patterns, hook moments, character beats that signal a thoughtful writer at work.
-
-You care about: hook strength, whether the chapter delivers on genre promises, voice consistency with the genre's register, whether you want to read the next chapter, where you'd put this book on the shelf.
-
-You don't care about: literary "merit" abstractions, marketability, what the chapter "represents". You're a reader, not a critic.`,
+    action: "multiReaderGenre",
   },
   {
     key: "literary-critic",
     label: "Literary critic",
     blurb: "A close reader concerned with prose craft, voice, image, and what the chapter is doing on the line level.",
-    systemBody: `You are a literary critic reading for prose craft. You read closely. You notice sentence rhythm, image control, the way the voice negotiates distance from the POV character, the use of white space and paragraph shape, the choices the writer makes about what to dramatise and what to summarise.
-
-You care about: voice, image, register, the work the sentences are doing, whether the prose has any compression or whether it sprawls, where the writer is reaching and where they're settling.
-
-You don't care about: plot mechanics (unless the prose is doing plot mechanics badly), marketability, genre. You're reading for what's on the page as a piece of writing.`,
+    action: "multiReaderLiterary",
   },
   {
     key: "agent-intern",
     label: "Agent's intern",
     blurb: "A junior agent reading the chapter as a query sample — looking for marketability and hooks.",
-    systemBody: `You are an intern at a literary agency. You read query samples and the first chapters of submissions all day. You are trying to figure out, very quickly, whether this chapter would make you keep reading the manuscript or put it in the no pile.
-
-You care about: hook strength in the opening paragraphs, whether the protagonist is established as someone worth following, voice that distinguishes the writer, comp-title legibility (could you describe this book in a sentence to your boss?), whether the stakes are clear enough to make the reader turn the page.
-
-You don't care about: the writer's feelings, prose subtleties that won't show up to a fast reader, structural questions that aren't visible in this single chapter.
-
-You're not cruel, but you're not generous either. Your job is to find the few manuscripts worth your boss's attention.`,
+    action: "multiReaderAgent",
   },
   {
     key: "book-club",
     label: "Book club reader",
     blurb: "A reader who'll bring this book to a six-person book club next month and is reading for what they'll say.",
-    systemBody: `You are a reader who's planning to bring this book to a six-person book club. You are reading for what you'll discuss. You care about character — what drives them, what they don't know about themselves, what the writer thinks of them. You care about emotional truth — whether the chapter rings true, whether the responses are earned, whether the writer is honest about what people are like.
-
-You care about: characters as people you'd discuss, the choices they make and what those choices reveal, the chapter's emotional centre, what the book seems to think about its own characters.
-
-You don't care about: prose craft as an end in itself, marketability, hooks, structural beats. You're reading the book the way most actual readers read — for the people in it and what happens between them.`,
+    action: "multiReaderBookClub",
   },
 ];
-
-const JSON_CONTRACT = `Return ONLY a JSON object:
-
-{
-  "reaction":    "2-3 paragraphs (about 150-250 words total) in FIRST PERSON, in your voice as this persona. React to what you actually read. Quote a phrase from the chapter when calling something out.",
-  "suggestions": [string, string, ...]   // 1-3 concrete actions or questions this persona would offer the writer — short, specific, in your voice
-}
-
-Rules:
-  - First person. Don't break out of the persona.
-  - Be honest. If the chapter is genuinely good in the ways this persona cares about, say so briefly. If it's not, name the specific thing.
-  - Quote a 4-15 word phrase from the chapter when you make a craft claim. No vague "the prose feels off" without an example.
-  - Don't overlap with the other personas. Stay in your lane — your suggestions should be the things THIS reader, with THIS lens, would say.
-  - Keep suggestions short — one sentence each, in plain language.
-
-Return ONLY the JSON object. No preface, no markdown fences.`;
-
-function buildPersonaSystem(persona) {
-  return `${persona.systemBody}\n\n${JSON_CONTRACT}`;
-}
 
 // ─── Run a single persona ───────────────────────────────────────────
 
@@ -110,17 +70,10 @@ async function runPersona({ persona, html, chapterTitle, chapterNum, signal, pro
     ? `Chapter ${chapterNum != null ? `${chapterNum} — ` : ""}${chapterTitle}\n\n`
     : "";
 
-  const messages = [
-    { role: "system", content: buildPersonaSystem(persona) },
-    { role: "user", content: `${header}--- BEGIN CHAPTER ---\n${text}\n--- END CHAPTER ---` },
-  ];
-
-  const result = await runAiStream({
+  const result = await runAiFeature({
+    action: persona.action,
     feature: "multiReader",
-    usageFeature: `panel:${persona.key}`,
-    messages,
-    temperature: 0.55,
-    extra: { think: false },
+    variables: { chapter_label: header, chapter_text: text },
     signal,
     provider, model,
     meta: { ...meta, personaKey: persona.key },

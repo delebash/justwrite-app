@@ -81,6 +81,11 @@ def test_migrated_actions_render_and_dispatch(tmp_path):
         ("characterAudit", {"user_content": "CHARACTER PROFILE\nName: Mara\nShe smiled coldly."}, "Mara"),
         ("relationshipArc", {"user_content": "PROFILE A — Mara\nPROFILE B — Joss"}, "PROFILE A"),
         ("voiceDrift", {"user_content": "OUTLIER — Ch 5\nlots of dialogue"}, "OUTLIER"),
+        ("beatSheet", {"user_content": "FRAMEWORK: Save the Cat\nCh.1 opening image"}, "FRAMEWORK"),
+        ("reverseOutline", {"user_content": "The book has 5 chapters.\nCh.1 inciting"}, "5 chapters"),
+        ("marketingPack", {"user_content": "TITLE: The Map\nGENRE: thriller"}, "TITLE"),
+        ("multiReaderGenre", {"chapter_label": "Ch 1\n\n", "chapter_text": "A cold hook."}, "A cold hook."),
+        ("multiReaderBookClub", {"chapter_label": "", "chapter_text": "She wept."}, "She wept."),
     ]
     for action, variables, needle in cases:
         r = c.post("/v1/ai/run", json={"action": action, "variables": variables})

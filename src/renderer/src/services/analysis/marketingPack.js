@@ -9,7 +9,7 @@
 // All four are written for querying agents, pitching to publishers,
 // and back-cover copy. The writer can copy each artifact individually.
 
-import { runAiStream } from "../aiStream.js";
+import { runAiFeature } from "../aiFeature.js";
 import { parseJsonLoose } from "../llmText.js";
 
 function htmlToText(html) {
@@ -53,58 +53,11 @@ function buildChapterDigest(project) {
   });
 }
 
-const SYSTEM = `You write marketing copy for a novelist preparing to query agents and pitch publishers.
-
-You will be given:
-  - the book's title, genre, and premise (as the writer has set them)
-  - a chapter-by-chapter digest (titles + word counts + short summaries)
-
-Produce FOUR artifacts that work together — same characters, same stakes, written for the back cover, the query letter, the synopsis, and the elevator pitch.
-
-Return ONLY a JSON object:
-
-{
-  "logline":  "one sentence, 15-30 words, naming protagonist + central conflict + stakes",
-  "blurbs":   [
-    { "angle": "hook",      "text": "~120-180 word back-cover paragraph, hook-driven (leads with the central conflict/question, closes with stakes)" },
-    { "angle": "character", "text": "~120-180 word back-cover paragraph, character-driven (leads with the protagonist, closes with what they stand to lose)" },
-    { "angle": "premise",   "text": "~120-180 word back-cover paragraph, premise-driven (leads with the world or situation, closes with the human pull)" }
-  ],
-  "synopsis": "one-page synopsis (~500-700 words) of the WHOLE plot including the ending, present tense, third person, naming characters by name. This is for a query package — agents need to know the ending.",
-  "pitch":    "3-paragraph elevator pitch (~200-300 words). Paragraph 1: the hook in 1-2 sentences. Paragraph 2: the story's spine — who/what/where/stakes. Paragraph 3: what makes this book matter / why this writer / comp register.",
-  "comps":    [
-    {
-      "title":      "the book's title",
-      "author":     "the author's name",
-      "year":       4-digit year or null,
-      "rationale":  "one sentence naming WHAT specifically this book and the writer's book share — structure, register, subgenre, voice, protagonist archetype — not generic resemblance",
-      "confidence": "high" | "medium" | "low" — your confidence the comp ACTUALLY exists as you've named it
-    }
-  ]
-}
-
-Style rules:
-  - Blurbs and pitch: present tense, third person, prose register.
-  - Synopsis: present tense, third person. INCLUDE the ending. Don't tease.
-  - Logline: one declarative sentence. Protagonist + want + obstacle + stakes.
-  - No "in this novel, ..." / "this is a story about ..." / other meta phrasings. Write IN the world.
-  - Don't use AI-tell phrases ("delved into", "navigated the complexities", "tapestry of", "testament to", "in a world where").
-  - Don't editorialise about quality ("a riveting read", "a poignant exploration"). Show the story.
-  - Don't pad the word counts with filler; the targets are upper bounds.
-
-COMP-TITLE RULES — these are different and matter:
-  - Return 3-6 comps. Quality over quantity. If you only know 3 good ones, return 3.
-  - Agents want comps PUBLISHED IN THE LAST 5 YEARS. Older books are weak comps — only include a "classic" comp if it's genuinely load-bearing.
-  - Prefer mid-list and well-regarded titles to bestsellers. "Like Gone Girl" tells an agent nothing; "like Mona Awad's Bunny for the unstable narrator" tells them everything.
-  - The rationale must name a SPECIFIC craft connection — structure, voice, register, subgenre, protagonist archetype. Not "thriller fans will enjoy".
-  - HALLUCINATION WARNING: you may not know what books actually exist. If you are NOT SURE a title-and-author combination is real, set confidence to "low" and SAY in the rationale that the writer should verify. If you are confident it exists, set "high". If you've heard of one or the other but not both together, "medium". Be honest. Bad comps are worse than fewer comps.
-
-Return ONLY the JSON object. No preface, no markdown fences.`;
+// The prompt lives server-side (features.py, action "marketingPack").
 
 export async function generateMarketingPack({
   project,
   signal,
-  onDelta,
   provider,
   model,
   task,
@@ -134,19 +87,12 @@ export async function generateMarketingPack({
     body.push("");
   }
 
-  const messages = [
-    { role: "system", content: SYSTEM },
-    { role: "user", content: body.join("\n") },
-  ];
-
   const packMeta = { ...(meta || {}), totalChapters: chapters.length };
-  const result = await runAiStream({
+  const result = await runAiFeature({
+    action: "marketingPack",
     feature: "marketingPack",
-    messages,
-    temperature: 0.5,
-    extra: { think: false },
+    variables: { user_content: body.join("\n") },
     signal,
-    onDelta,
     provider,
     model,
     meta: packMeta,
