@@ -357,12 +357,29 @@ needed).
   time, each gaining editable prompts + rich pins + roles; the async proxy stays
   until the last consumer is migrated, then is deleted.
 
-**Sequenced next units:** (3a) shared storage-free router slice (classify-tier/
-usage/ping/models) + JV mounts it; (3b) `ProviderStore` Protocol + shared
-provider-CRUD router + JV mounts (de-dup `llm_providers_api`); (3c) JW implements
-`ProviderStore` over `LlmProvider` + mounts the shared router; (3d) JW
-feature-by-feature dispatch migration; (4) `@delebash/llm-ui` against the now-
-identical endpoints, delete `ProviderBackend`; (5) delete dead per-app code.
+**Sequenced next units:**
+- ✅ **(3a) DONE** — shared storage-free router (`llm_runner/llm/api.py`:
+  classify-tier / ai-usage / ping / models); JV mounts it.
+- ✅ **(3b) DONE** — `ProviderStore` Protocol + `make_provider_router` factory
+  (`llm_runner/llm/provider_api.py`); JV deleted `llm_providers_api.py` and mounts
+  it via `engines/llm/provider_store.py` (SettingsProviderStore). Plus the schema
+  de-dup (JV's `models.py` imports the 5 config models from the shared package).
+  **JV is now fully on the shared backend + shared routers.** 275/275 + CRUD smoke.
+- **(3c) JW adopts the shared provider router — server AND renderer** (not
+  server-only; flagged 2026-06-21): JW server adds a `ProviderStore` over its
+  `LlmProvider` table + registers providers into the shared registry at boot;
+  **replaces** `api/llm_providers.py` (bulk GET/PUT) with the shared router →
+  the JW **renderer** `ai` store must switch from whole-list bulk-PUT to
+  per-provider create/update/delete (matching JV + `@delebash/llm-ui`). Verify via
+  `npm run build` (JW has no renderer unit gate). This is the JW-side cascade to
+  do carefully, not rush.
+- **(3d)** JW feature-by-feature dispatch migration (`services/analysis/*` →
+  shared server-side dispatch); the async proxy stays until the last consumer
+  moves, then is deleted. Adopt **JW's persistent DB usage** into the shared
+  ledger (host sink) — JV's in-memory ledger changes too (audit finding).
+- **(4)** `@delebash/llm-ui` against the now-identical endpoints; delete the
+  per-app `ProviderBackend` adapter.
+- **(5)** delete dead per-app code.
 
 
 ## Decisions — RESOLVED (user, 2026-06-20)
