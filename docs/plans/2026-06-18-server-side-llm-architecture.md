@@ -1,5 +1,7 @@
 # Server-side LLM architecture — JW + JV symmetry (decision)
 
+> ⚠️ **SUPERSEDED** by `docs/plans/2026-06-20-shared-ai-stack-plan.md` (the shared AI-stack convergence — same Python + same client views, not a per-app server). Kept for history.
+
 **2026-06-18.** Settled in conversation after several wrong turns on my part.
 This is the authoritative model; read it before touching the AI/LLM/provider
 path in either app.
