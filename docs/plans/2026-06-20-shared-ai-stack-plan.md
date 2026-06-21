@@ -502,6 +502,48 @@ needed).
     homes (TTS Lab = home 3 with a TTS schema; per-voice defaults + import policy =
     home 4 in JV's Voices).
 
+20. **Provider model — native built-in adapters + OpenAI-compatible + a
+    provider-type selector** (✅ user, 2026-06-21: *"keep what jv has and bring
+    everything else over as openai, make the distinction that antrhopic, gemini
+    are built in adapters vs open ai, so i guess we have a type selector when
+    adding new ai, or will we need more than one gemin adapter setting or
+    anthropic settings?"*). Resolves the adapter set + the add-provider UX.
+    - **Built-in (native) adapters = `anthropic`, `gemini`, `ollama`** (+ the
+      bundled **Local engine**, its own type, Decisions 5/10/11). These hit each
+      provider's *native* endpoint and are the place to map provider-specific
+      params the generic path can't portably express.
+    - **`openai-compatible` = everything else** — the OpenAI cloud itself (its
+      API *is* the standard, so no separate native adapter), plus DeepSeek,
+      OpenRouter, Mistral, Groq, LM Studio, llama.cpp, and any other
+      OpenAI-shaped endpoint.
+    - **A `providerType` selector on Add** picks the adapter. This **extends
+      Decision 14's** 2-way "API format" (OpenAI-compatible / Ollama-native)
+      into the full list: **OpenAI-compatible · Anthropic · Gemini · Ollama ·
+      Local engine**. ("Where it runs" Local/Online still drives the group + key
+      visibility; provider type drives the adapter + which Lab params show.)
+    - **One entry per type** (the user's question, answered): you do **not** add
+      "Gemini Pro" and "Gemini Flash" as two providers — add **one** Gemini entry
+      and **route** features to different Gemini models via feature pins / roles /
+      the per-feature model picker (Decisions 6 + 14). The model is a routing
+      choice, never a reason to clone a provider. (Nuance: `openai-compatible`
+      and `ollama` MAY have several entries when they point at **different base
+      URLs / keys** — e.g. two self-hosted endpoints; the cloud natives
+      Anthropic/Gemini are effectively one each since they share one endpoint+key.)
+    - **What native actually buys us (honest, the user's "what features do we use
+      that native provides over openai?"):** *Ollama* native (`/api/chat`) is
+      **required and exercised today** — its `/v1` OpenAI-compat endpoint can't
+      toggle reasoning (`think`), per Decision 15 (verified). *Anthropic/Gemini*
+      native adapters exist as the **mapping point** for each provider's native
+      request surface (Anthropic `thinking`, Gemini thinking/safety config,
+      prompt caching) — but **current wire-up is a TODO to re-verify against the
+      settled adapter files** (a prior read found the cloud-native adapters take
+      `think` but fall back to plain chat; those files are being rewritten by the
+      camelCase pass, so confirm post-rewrite before claiming the mapping is
+      live). Forward plan = wire Anthropic `thinking` / Gemini config into their
+      native adapters so the single "Enable thinking" control (Decision 15) maps
+      correctly per provider; until then cloud reasoning rides OpenAI-compat body
+      params (`reasoning_effort` etc.) on the openai-compat path.
+
 ## UI copy — harvested from the apps (source of truth — reuse verbatim in `@delebash/llm-ui`)
 
 The descriptive microcopy below is **copied from the working apps, not invented.**
@@ -602,3 +644,59 @@ tier) on the shared dispatch. Grounded from `src/renderer/src/services/` (2026-0
 JV's feature catalog (for symmetry, already server-side): compose, refine,
 persona_rewrite, voice_gender, speaker_attribution, smart_assign, show_notes,
 render_preset_suggest (`dispatch.py` `DEFAULT_FEATURE_ROLES`).
+
+### 3d migration seam — grounded `services/analysis/*` (read 2026-06-21, file:line)
+
+The whole client-side feature layer funnels through **one** function — moving it
+server-side is a focused lift, not 24 rewrites:
+
+- **The seam:** `services/aiStream.js:68-159` `runAiStream({ feature, messages,
+  temperature, extra:{think}, … })`. It resolves provider via
+  `stores/ai.js:181-188 providerForFeature(feature)`, model via `:192-194
+  modelForFeature(feature)` (falls back to the provider's `chatModel`), the
+  `think` default via `:199-202 resolveTier(model)`, then streams through
+  `OpenAICompatClient.chatStream` and records usage (`:143-152`). **Each feature's
+  SYSTEM prompt is a hardcoded JS constant** in its file (e.g.
+  `critique.js:27 CRITIQUE_SYSTEM`, `:93 STRUCTURE_SYSTEM`) — 3d moves these
+  server-side and makes them editable (Decision 16).
+
+- ⚠️ **Routing key ≠ filename** (the gotcha that will bite 3d): the `feature` key
+  passed to `runAiStream` — which is what pins/roles/usage key on, and what the
+  server catalog keys must become — is **not** the file or function name:
+
+  | Routing key (`feature:`) | Client file:line | temp | output |
+  |---|---|---|---|
+  | `critique` | `critique.js:56` (runCritique) + `:125` (runStructuralAnalysis, `usageFeature:"structural-analysis"`) | 0.4 / 0.2 | JSON |
+  | `entitySweep` | `entityExtraction.js:98` (extractEntities, `usageFeature:"entity-extraction"`) | 0.2 | JSON |
+  | `foreshadowing` | `threadExtraction.js:103` (extractThreads) | 0.3 | JSON |
+  | `plotHoles` | `plotHoleScan.js:174` (scanPlotHoles) | 0.3 | JSON |
+  | `marketingPack` | `marketingPack.js:144` | 0.5 | JSON |
+  | `reverseOutline` | `reverseOutline.js:145` | 0.3 | JSON |
+  | `voiceDrift` | `voiceDrift.js:284` (explainVoiceDrift) | 0.4 | JSON |
+  | `beatSheet` | `beatSheet.js:200` | 0.3 | JSON |
+  | `readerKnowledge` | `readerKnowledge.js:172` (analyseChapterKnowledge) | 0.3 | JSON |
+  | `relationshipArc` | `relationshipArc.js:179` | 0.3 | JSON |
+  | `characterAudit` | `characterAudit.js:188` (auditCharacter) | 0.3 | JSON |
+  | `multiReader` | `multiReaderCritique.js:119` (`usageFeature:"panel:<key>"`) | 0.55 | JSON |
+
+- **Shape findings that shape the shared dispatch:** every analysis feature passes
+  `extra:{think:false}` and parses the result with `parseJsonLoose` (`llmText.js`)
+  — i.e. they are **non-streaming JSON** calls with reasoning OFF. So the shared
+  server-side dispatch must support **(a)** a JSON/non-streaming completion path
+  (not only token streaming), **(b)** a **per-feature `think` default** (these
+  default OFF; generative writer actions default ON), and **(c)** a per-feature
+  `temperature` default. These belong in each feature's **Default production
+  config** (Decision 17), not hardcoded.
+
+- **Orchestrators (no own key — call the above):** `entitySweep.js:90
+  scanAllChapters` (→entitySweep), `foreshadowingScan.js:86 scanForDanglingThreads`
+  (→foreshadowing/extractThreads), `tensionSweep.js:16 sweepStoryTension`
+  (→critique/runStructuralAnalysis), `readerKnowledge.js:241 scanReaderKnowledge`
+  (→readerKnowledge), `characterAudit.js:238 auditAllCharacters` (→characterAudit).
+  These stay **client-side** (they're map/reduce loops over chapters); only the
+  inner per-chapter LLM call moves server-side.
+
+- **Deterministic — NOT LLM, stay client-side, excluded from migration:**
+  `aiTellScanner.js:138 scanAiTells`, `styleMetrics.js` (chapter/book metrics),
+  `voiceDrift.js:92 computeVoiceDrift` (the numeric drift; only its
+  `explainVoiceDrift` narration is LLM).
