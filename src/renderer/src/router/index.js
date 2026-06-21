@@ -79,7 +79,7 @@ const routes = [
   { path: "/writer-lab",          name: "WriterLab",      component: () => import("../views/WriterLabView.vue") },
   // The SHARED @delebash/llm-ui "AI / Models" area (Providers & models · Features
   // · Usage) — same view JustVoice mounts; appName passed as a static prop.
-  { path: "/ai-models",           name: "AiModels",       component: () => import("@delebash/llm-ui").then((m) => m.AiModelsArea), props: { appName: "JustWrite" } },
+  { path: "/ai-settings",         name: "AiSettings",     component: () => import("@delebash/llm-ui").then((m) => m.AiModelsArea), props: { appName: "JustWrite" } },
   // The per-feature prompt editor is the SHARED @delebash/llm-ui PromptLab (same
   // view JustVoice will mount). Stopgap route until the shared AI/Models area lands.
   { path: "/ai-prompts",          name: "AiPrompts",      component: () => import("@delebash/llm-ui").then((m) => m.PromptLab) },
