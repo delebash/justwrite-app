@@ -100,3 +100,40 @@ routing key for pins/roles/usage.
    keeps its routing role, prompt fields superseded by the store.
 6. Verify: grep shows no hardcoded prompt constant read at request time; Lab edits
    land in the DB.
+
+## Progress — night of 2026-06-21 (autonomous run)
+
+**Done + tested + pushed (server-side, high bar):**
+- **JW** — `feature_prompts` table + `seed_feature_prompts.py` (prompt text moved
+  out of `features.py`) + `llm/prompt_store.py` + `/v1/ai/run` reads from the DB +
+  `/v1/ai/prompts` editor API (list/get/edit/reset). Commits `3fcd432`, `524ee44`.
+  ruff clean; 86 + 5 server tests pass.
+- **JV** — `FeaturePrompt` table + `engines/llm/prompt_store.py` +
+  `seed_feature_prompts` (boot + workspace reset) + `/v1/ai/prompts` editor API +
+  `smart_assign` & `render_preset_suggest` read from the DB (constants removed,
+  **verbatim-verified** byte-identical). Commit `81304d4`. ruff clean; 280 tests
+  pass (4 pre-existing failures = missing `fastmcp` optional dep, unrelated).
+- **Docs** — this plan + the CLAUDE.md convergence sections, both repos
+  (`9156e10` / `f2389a4`).
+
+**Remaining (not yet done):**
+- **JV one-shot features still on code prompts:** `refine`/`compose`/`voice_gender`
+  (`refinement.py` — `refine` builds its prompt dynamically via
+  `build_refinement_prompt(flags)`: that's assembly-logic + a base prompt, NOT a
+  flat constant), `show_notes` (`projects_api.py`), `persona_rewrite`
+  (`personas_api.py`), `identify` (`extraction/identify.py`).
+- **JV extraction pipeline (`speaker_attribution`):** tier-specific guided/direct +
+  `USER_TEMPLATE` still in `extraction/prompts.py`; the pipeline +
+  `/v1/extraction/config` still read the constants. Migrate to
+  `speaker_attribution.guided`/`.direct` rows (gate: `test_extraction_config`).
+- **JW heavy features** (briefing/recap/plotHoles) still gather context
+  client-side — move server-side for headless.
+- **Lab prompt-editor GUI** (JW + JV): the `/v1/ai/prompts` API exists; the editor
+  view is not built yet.
+- **Streaming** (writerAI/rag/characterChat) → `/v1/ai/stream`.
+- **Shared provider GUI (`@delebash/llm-ui`) + JV TTS editor** — the largest
+  remaining track (`2026-06-20-engines-llmui-cutover-boundary.md`); needs visual QC.
+
+**Autonomous-limit note:** server-side prompt convergence is tested to a high bar.
+The GUI tracks can only be **smoke-verified** autonomously (routes render + zero JS
+errors, NOT visual correctness) — flagged for QC.
