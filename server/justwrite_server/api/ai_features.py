@@ -23,7 +23,8 @@ from llm_runner.llm.base import LLMMessage
 from llm_runner.llm.dispatch import LLMNotConfiguredError, chat, stream_chat
 
 from ..llm.config import llm_config
-from ..llm.features import FEATURES, render
+from ..llm.features import render
+from ..llm.prompt_store import get_prompt_store
 
 router = APIRouter(tags=["ai"], prefix="/v1/ai")
 
@@ -44,21 +45,21 @@ class RunResponse(BaseModel):
 
 @router.post("/run", response_model=RunResponse)
 async def run_feature(body: RunRequest) -> RunResponse:
-    spec = FEATURES.get(body.action)
+    spec = get_prompt_store().get(body.action)
     if spec is None:
         raise HTTPException(status_code=404, detail=f"unknown AI action {body.action!r}")
-    messages = [LLMMessage(role="user", content=render(spec["user_template"], body.variables))]
+    messages = [LLMMessage(role="user", content=render(spec.user_template, body.variables))]
     try:
         resp = chat(
             config=llm_config(),
-            feature=spec["feature"],
+            feature=spec.feature,
             messages=messages,
-            # System is templated too (Decision 16) — most actions have no system
-            # placeholders so render() returns it unchanged; plotHoles injects the
-            # project's world-rules section.
-            system=render(spec["system"], body.variables),
-            temperature=spec.get("temperature", 0.7),
-            think=spec.get("think", False),
+            # System is templated too — most actions have no system placeholders so
+            # render() returns it unchanged; plotHoles injects the project's
+            # world-rules section.
+            system=render(spec.system, body.variables),
+            temperature=spec.temperature,
+            think=spec.think,
             provider_override=body.providerId or None,
             model_override=body.model or None,
         )
@@ -75,21 +76,21 @@ async def stream_feature(body: RunRequest):
     final `data: {"done": true, "promptTokens", "completionTokens"}`, then
     `data: [DONE]`. Errors arrive as `data: {"error": "..."}` (the stream has
     started, so we can't send an HTTP status)."""
-    spec = FEATURES.get(body.action)
+    spec = get_prompt_store().get(body.action)
     if spec is None:
         raise HTTPException(status_code=404, detail=f"unknown AI action {body.action!r}")
-    messages = [LLMMessage(role="user", content=render(spec["user_template"], body.variables))]
-    system = render(spec["system"], body.variables)
+    messages = [LLMMessage(role="user", content=render(spec.user_template, body.variables))]
+    system = render(spec.system, body.variables)
 
     def gen():
         try:
             for delta in stream_chat(
                 config=llm_config(),
-                feature=spec["feature"],
+                feature=spec.feature,
                 messages=messages,
                 system=system,
-                temperature=spec.get("temperature", 0.7),
-                think=spec.get("think", False),
+                temperature=spec.temperature,
+                think=spec.think,
                 provider_override=body.providerId or None,
                 model_override=body.model or None,
             ):

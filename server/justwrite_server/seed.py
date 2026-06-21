@@ -28,6 +28,7 @@ from . import book_io
 from . import database as _db
 from .demo_seed import DEMO_PROJECT_ID, demo_book_snapshot
 from .models import LlmProvider, Setting
+from .seed_feature_prompts import seed_feature_prompts
 
 log = logging.getLogger(__name__)
 
@@ -148,6 +149,7 @@ def seed_workspace(db: Session | None = None) -> None:
         db = _db.SessionLocal()
     try:
         seed_default_providers(db)
+        seed_feature_prompts(db)
         seed_demo_project(db)
         db.commit()
     except Exception as e:  # never let a seed failure crash boot / reset

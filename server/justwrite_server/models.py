@@ -536,6 +536,31 @@ class LlmUsage(Base):
     meta = Column(Text, nullable=False, default="{}")           # JSON
 
 
+# ── Feature prompts (LLM feature catalog — DB-seeded, Lab-editable) ──────
+
+
+class FeaturePrompt(Base):
+    """One feature's prompt — seeded from the seed module and editable in the
+    Lab; the DB is the source of truth (no hardcoded prompt text and no runtime
+    code fallback — see docs/plans/2026-06-21-feature-prompts-db-seed.md).
+
+    `key` is the action id (e.g. "critique", "critiqueStructure"); `feature` is
+    the routing key for pins/roles/usage (several actions can share one).
+    `system` + `user_template` carry the prompt text ({{var}} placeholders the
+    server fills at request time); `temperature`/`think` are per-action defaults.
+    `built_in` marks a seeded row (so the Lab can offer "reset to default")."""
+
+    __tablename__ = "feature_prompts"
+
+    key = Column(String, primary_key=True)
+    feature = Column(String, nullable=False, default="")
+    system = Column(Text, nullable=False, default="")
+    user_template = Column(Text, nullable=False, default="")
+    temperature = Column(Float, nullable=False, default=0.7)
+    think = Column(Boolean, nullable=False, default=False)
+    built_in = Column(Boolean, nullable=False, default=True)
+
+
 # ── Sessions (writing-activity log) ─────────────────────────────────────
 
 

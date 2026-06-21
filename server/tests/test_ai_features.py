@@ -10,6 +10,7 @@ from fastapi.testclient import TestClient
 from justwrite_server import database
 from justwrite_server.app import create_app
 from justwrite_server.models import Setting
+from justwrite_server.seed_feature_prompts import seed_feature_prompts
 from llm_runner.llm import get_llm_registry
 from llm_runner.llm.base import LLMResponse, StreamDelta
 
@@ -41,6 +42,7 @@ def _client(tmp_path, *, default_id="p1", pins=None):
     reg.register(FakeAdapter())
     db = database.SessionLocal()
     try:
+        seed_feature_prompts(db)
         db.add(Setting(key="ai", value=json.dumps({"defaultLlmId": default_id, "featurePins": pins or {}})))
         db.commit()
     finally:
