@@ -1,0 +1,71 @@
+"""/v1/ai/run — server-side feature execution: renders the action's server-side
+prompt template and dispatches through the shared llm_runner dispatch, honoring
+the user's default provider / feature pins from settings.
+"""
+
+import json
+
+from fastapi.testclient import TestClient
+
+from justwrite_server import database
+from justwrite_server.app import create_app
+from justwrite_server.models import Setting
+from llm_runner.llm import get_llm_registry
+from llm_runner.llm.base import LLMResponse
+
+
+class FakeAdapter:
+    provider_id = "p1"
+    provider_type = "openai-compat"
+    default_model = "gpt-4o-mini"
+    last: dict = {}
+
+    def chat(self, messages, *, model=None, temperature=0.7, max_tokens=None, system=None, think=False, extra=None):
+        FakeAdapter.last = {
+            "messages": messages, "system": system, "model": model,
+            "temperature": temperature, "think": think,
+        }
+        return LLMResponse(text='{"notes":[]}', model=model or self.default_model, prompt_tokens=5, completion_tokens=2)
+
+
+def _client(tmp_path, *, default_id="p1", pins=None):
+    c = TestClient(create_app(tmp_path))
+    reg = get_llm_registry()
+    reg._adapters = {}
+    reg.register(FakeAdapter())
+    db = database.SessionLocal()
+    try:
+        db.add(Setting(key="ai", value=json.dumps({"defaultLlmId": default_id, "featurePins": pins or {}})))
+        db.commit()
+    finally:
+        db.close()
+    return c
+
+
+def test_run_critique_dispatches_server_side(tmp_path):
+    c = _client(tmp_path)
+    r = c.post("/v1/ai/run", json={
+        "action": "critique",
+        "variables": {"chapter_label": "Chapter 4 — The Map\n\n", "chapter_text": "He ran."},
+    })
+    assert r.status_code == 200, r.text
+    assert r.json()["content"] == '{"notes":[]}'
+    assert r.json()["model"] == "gpt-4o-mini"
+    # The server rendered the user template + passed the server-side system prompt.
+    user = FakeAdapter.last["messages"][0].content
+    assert "Chapter 4 — The Map" in user and "BEGIN CHAPTER" in user and "He ran." in user
+    assert "fiction editor" in (FakeAdapter.last["system"] or "")
+    assert FakeAdapter.last["think"] is False and FakeAdapter.last["temperature"] == 0.4
+
+
+def test_run_honors_feature_pin(tmp_path):
+    # A pin to a different (unregistered) provider routes there → 501 surfaces
+    # cleanly rather than silently using the default.
+    c = _client(tmp_path, pins={"critique": {"providerId": "ghost"}})
+    r = c.post("/v1/ai/run", json={"action": "critique", "variables": {"chapter_text": "x"}})
+    assert r.status_code == 501
+
+
+def test_unknown_action_404(tmp_path):
+    c = _client(tmp_path)
+    assert c.post("/v1/ai/run", json={"action": "nope", "variables": {}}).status_code == 404
