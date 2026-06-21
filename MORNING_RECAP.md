@@ -92,18 +92,16 @@ per-app duplication — anything both apps need lives in the SHARED stack.**
    + `/v1/ai/routing`), both apps mounting them. QuickSetup's bundled-runner
    Fit-recommendation is gated on #1's richer manifest; the Ollama-pull wizard is
    retired (Ollama stays addable via the shared provider form).
-4. **SettingsView cleanup (delete ONLY the duplicated parts).** The `SettingsView.vue`
-   section with `id="audio"` (label "AI engines", lines ~1073–1392) holds BOTH
-   duplicates and keepers:
-   - DELETE (now in `/ai`): the Engines provider list + Add/Quick-setup buttons,
-     the Default-LLM/Default-embedding pickers, the Feature-routing table, the
-     Quick-setup-tips card. Then prune the now-dead script (`AI_FEATURES`,
-     `featureProvider*/featureModel*` helpers, `providerRenderList`, `startNew/
-     startEdit/saveDraft/...`, `SettingsProviderForm`/`Combobox`/`useModelList`
-     imports) + the `"audio"` SECTIONS entry.
-   - KEEP (writing-specific, NOT in `/ai`): **Voice canon**, **Auto-rebuild RAG**
-     toggle, **3-alternative streaming** toggle. QuickSetup + HardwarePresets
-     triggers live in the deleted card, so re-home them via #2/#3 first.
+4. ✅ **DONE (conservative)** — commit `3e4ea83`. Removed the provably-duplicated
+   parts from `SettingsView.vue`'s `id="audio"` section (provider list,
+   Default-LLM/embedding pickers, Feature-routing table, Quick-setup-tips) + all
+   the dead script behind them + the orphaned `SettingsProviderForm.vue`. KEPT
+   the writing-specific knobs (Quick setup [trigger re-homed to a slim "Local
+   model setup" card], Hardware presets, embeddings/RAG toggle, 3-alt streaming,
+   Voice canon); added an "Open AI menu" pointer; renamed the section "AI
+   engines" → "Writing AI". Deferred tidy: the now-unused `settings.audio.*`
+   i18n keys across locale files (harmless; remove in an i18n sweep). Moving
+   QuickSetup + HardwarePresets fully INTO `/ai` is still #2/#3 (gated on #1).
 5. **E — streaming + drop the gateway.** Migrate `writerAI/chat/rag/characterChat`
    off the client `services/openai-compat.js`→`/v1/llm/...` gateway onto
    `/v1/ai/stream` (shared `requestStream`), then delete `server/.../api/llm.py`.
