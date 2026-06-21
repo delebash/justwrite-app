@@ -1,35 +1,12 @@
-# CLAUDE.md
+# JustWrite — agent instructions
 
-This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
+**A writing app (novels / manuscripts). Tauri 2 + Vue 3 renderer + Python (FastAPI + SQLite) server.** Writing-only — all audio (Studio, TTS, audiobook export) lives in the separate **JustVoice** app, which JustWrite drives over an HTTP contract (JW hands JV the prose; JV does its own casting + narration). Do **not** reintroduce TTS, speaker analysis, voice casting, or audio rendering here.
 
-## ⛔ RULE #0 — WHEN TOLD "DO IT ALL", DO IT ALL — NO STOPPING
+## Read first (every session)
 
-User directive (2026-06-18, stated repeatedly with rising frustration). When
-the user says to do all phases / "do p2–p5" / "do it all" / "without stopping"
-/ "don't ask if you can continue" — execute EVERY phase through to completion
-**in one continuous run**, including the final verification/audit. This
-**OVERRIDES turn boundaries.**
-
-- Do NOT stop at the end of a "turn." Keep going across as many tool calls as
-  it takes until all requested work AND its verification/audit are done.
-- Do NOT checkpoint, give "milestone reports," or summarize progress mid-way.
-- Do NOT ask permission, and never write the soft-permission shape ("I'll
-  proceed unless you'd rather…", "next I'll do X — let me know"). That is the
-  exact behavior being forbidden; it wastes the user's time and money.
-- Commit + verify each phase as you go, then immediately continue to the next.
-- "Try the UX/GUI on your own" means DO it — the LLM-GUI concept already
-  exists in both JV and JW; attempt it, don't defer it.
-- The ONLY reasons to stop early: the whole batch (incl. audit) is finished,
-  OR you are genuinely blocked (a real external dependency, or a destructive
-  irreversible op that needs confirmation).
-
-## Active work
-
-**JustWrite is writing-only.** All audio — Studio (cast / script / render), TTS providers, audiobook M4B export — has been removed; voice production lives in the separate **JustVoice** app, which JustWrite drives over an HTTP contract (JustWrite hands JustVoice the prose; JustVoice does its own casting + narration). Do **not** reintroduce TTS, speaker analysis, voice casting, or audio rendering into JustWrite.
-
-LLM calls route through a **server-side gateway** (`/v1/llm/{providerId}/…` on the Python `server/`): the renderer sends a provider id + an OpenAI-shaped body, the server resolves the provider, injects the server-held key, and proxies. The renderer holds no provider keys and calls no provider directly.
-
-PrimeVue has been fully removed in favor of a custom-component layer (`src/renderer/src/components/ui/Jw*.vue`) backed by Reka UI, TanStack Vue Table, Floating UI, and vue-sonner. See **UI components** below for the conventions.
+- **Global rules:** `~/.claude/CLAUDE.md` — the two PRIORITY rules + RULES #0–8 + the shared Vue 3 + Tauri 2 app standard. They govern; this file does NOT restate them.
+- **`MORNING_RECAP.md`** (this repo) — current + future tasks and the live list of active plan docs. Read it before acting; don't re-litigate decisions recorded there.
+- The memory index (auto-loaded) — open a specific memory file when the task touches it.
 
 ## Commands
 
@@ -59,44 +36,11 @@ documented reason below says otherwise.
 `project` Pinia store — it owns snapshot-based undo/redo across all entities, the
 one sanctioned exception to per-domain stores.
 
-**Cross-app convergence** (audit + ordered plan:
-`docs/plans/2026-06-20-cross-app-convergence.md`): the structural deviations are
-migrated — CSS split into `tokens.css` + `styles.css` at the renderer root,
-origin-aware `services/serverApi.js` (env `VITE_SERVER_URL`), and demo seeding
-moved server-side (`server/justwrite_server/demo_seed.py` + `seed.py` seed the
-demo project + default LLM providers on boot/reset; the renderer no longer
-carries `domain/seed.js`). Both apps are Biome-green on 2.5.0 with a byte-identical shared config — convergence is complete.
-
-### ⛔ LLM-stack convergence (2026-06-20, user directive — global RULE #7)
-
-JustWrite and JustVoice must run the **SAME LLM stack — same Python, same client
-views.** Shared code lives in `just-llm-runner` (providers online/local-free/
-paid, the local runner download/load/spawn, feature dispatch/execution,
-per-feature config **incl. editable system+user prompts**, model roles, usage) +
-`@delebash/llm-ui` (the client views), mounted/imported by BOTH apps. The ONLY
-legitimate differences are JustVoice's **TTS** side and each app's **feature
-catalog** (domain prompts on the same dispatch). It is **NOT** a per-app adapter/
-shim bridging two servers. **JW-specific gap to close:** JW currently executes
-LLM features **client-side** (`services/analysis/*`) so headless JW gets no AI,
-and its prompts are hardcoded + pins are `{provider,model}`-only — JW must move
-feature execution server-side onto the shared dispatch and gain editable prompts,
-rich pins, and model roles. Grounded current-state + target + sequence:
-`docs/plans/2026-06-20-engines-llmui-cutover-boundary.md` (Decision 3).
-
-**Feature-prompt architecture (decided 2026-06-21 —
-`docs/plans/2026-06-21-feature-prompts-db-seed.md`):** designed **headless-first**.
-Prompt text (system + user-prompt template) lives in the **DB**, seeded by the
-seed file like `DEFAULT_PROVIDERS` and **Lab-editable** — **never hardcoded in app
-code, no runtime fallback**. ONE generic feature endpoint (`/v1/ai/run` +
-`/v1/ai/stream`) takes `{feature, data/ids}` and returns a **structured result**;
-the **server** loads the prompt from the DB, runs the feature's assembly
-(per-feature = input contract + context-gathering from the project DB +
-template-fill + result-parse), calls the LLM via the gateway, and parses the
-result. The caller (GUI or headless) sends only the inputs it owns (live editor
-text, or ids); everything derived from stored data is server-side. `features.py`
-holds assembly **logic, not prompt text**.
-
-Any LLM divergence must be proven file-by-file (RULE #7), never asserted.
+> **AI/LLM stack is shared** — `just-llm-runner` (Python) + `@delebash/llm-ui`
+> (Vue), consumed by both apps; only TTS and each app's feature catalog differ.
+> The current cutover state + the active plan docs (authoritative:
+> `docs/plans/2026-06-20-shared-ai-stack-plan.md`) live in `MORNING_RECAP.md`,
+> not here.
 
 ## Architecture
 
@@ -142,7 +86,12 @@ All in `src/renderer/src/stores/`:
 
 ### AI providers
 
-One client class — **`OpenAICompatClient`** (`services/openai-compat.js`) — is a thin client for the **server-side LLM gateway** (`/v1/llm/{providerId}/chat/completions|embeddings|models|ping` on the Python `server/`). The renderer sends the provider id + an OpenAI-shaped body; the server resolves the provider, injects the server-held key, and proxies it (translating to Ollama's native `/api/chat` / `/api/embed` when the provider is an Ollama daemon). Used for the OpenAI cloud, Anthropic / Gemini / DeepSeek / OpenRouter, and any OpenAI-compatible local LLM server (Ollama, LM Studio, llama.cpp, …) added in Settings → AI engines. There is **no TTS** — audio lives in JustVoice (see Active work).
+LLM calls currently route through a server-side gateway — `OpenAICompatClient`
+(`services/openai-compat.js`) → `/v1/llm/{providerId}/chat/completions|embeddings|models|ping`
+on the Python `server/` (server injects the held key + proxies; Ollama native
+when applicable). This is **migrating to the shared `just-llm-runner` dispatch**
+(`/v1/ai/*`) as part of the AI-stack convergence — current cutover state in
+`MORNING_RECAP.md`. No TTS here — audio lives in JustVoice.
 
 ### Manuscript export
 
