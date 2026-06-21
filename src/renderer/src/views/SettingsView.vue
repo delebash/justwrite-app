@@ -7,16 +7,12 @@ import { saveImage, urlFor, hasNativeImages } from "../services/imageStore.js";
 import { promptDialog, confirmDialog } from "../services/dialog.js";
 import { readSetting, writeSetting } from "../services/settings.js";
 import { resetWorkspace as resetWorkspaceApi } from "../services/workspaceApi.js";
-import { indexStatus } from "../services/rag/indexer.js";
 import { buildVoiceFingerprint } from "../services/voiceFingerprint.js";
-import { pushToast } from "../services/toastBridge.js";
 import PaneHeader from "../components/PaneHeader.vue";
 import Icon from "../components/Icon.vue";
-import SettingsProviderForm from "./SettingsProviderForm.vue";
 import QuickSetup from "../components/QuickSetup.vue";
 import HardwarePresetsCard from "../components/HardwarePresetsCard.vue";
 import StatPill from "../components/StatPill.vue";
-import Combobox from "../components/Combobox.vue";
 import JwInput from "@renderer/components/ui/JwInput.vue";
 import JwTextarea from "@renderer/components/ui/JwTextarea.vue";
 import JwCheckbox from "@renderer/components/ui/JwCheckbox.vue";
@@ -33,7 +29,6 @@ import {
 } from "../services/appearance.js";
 import { AVAILABLE_LOCALES, setLocale as setI18nLocale } from "../i18n/index.js";
 import { useI18n } from "vue-i18n";
-import { useModelList } from "../composables/useModelList.js";
 
 import JwTag from "@renderer/components/ui/JwTag.vue";
 import JwTable from "@renderer/components/ui/JwTable.vue";
@@ -64,88 +59,6 @@ function clearCanon() {
   project.clearVoiceCanon();
 }
 const voicePreview = computed(() => buildVoiceFingerprint(project, { targetWords: 600 }));
-
-// Per-feature LLM pin UI. Two selects per feature: provider AND model,
-// independent of the global default. Model list is fetched live from
-// the chosen provider's /v1/models endpoint (cached per-provider by
-// useModelList); if the provider isn't reachable, the model list is
-// empty and the user falls back to the provider's saved chatModel.
-const { modelsFor: featureModelsFor, refreshModels: refreshFeatureModels, ensureModels: ensureFeatureModels } = useModelList();
-
-const AI_FEATURES = [
-  { key: "chat",        label: "Manuscript chat", hint: "\"Ask the book\" RAG question/answer mode in the chat panel." },
-  { key: "critique",    label: "Critique",        hint: "The Critique modal — line-level notes (flags / suggestions / observations) and the structural pass (tension, hook, pacing, ending)." },
-  { key: "entitySweep", label: "Entity sweep",    hint: "Scans chapters for new characters / locations / objects." },
-  { key: "writerAI",    label: "Writer actions",  hint: "The AI dropdown in each scene's strip — Rewrite, Expand, Tighten, Continue, Describe, plus all Line edits." },
-  { key: "brainstorm",  label: "Brainstorm",      hint: "The Brainstorm view — name / title / freeform idea generation with thumbs-up steering." },
-  { key: "briefing",    label: "Resume briefing", hint: "Generates the Home \"Previously on your novel\" recap card." },
-  { key: "recap",       label: "Session recap",   hint: "End-of-day \"Wrap up session\" recap + open-thread suggestions." },
-  { key: "foreshadowing", label: "Foreshadowing scan", hint: "Whole-book scan for setups that may not have paid off." },
-  { key: "readerKnowledge", label: "Reader knowledge", hint: "Tracks dramatic irony — what the reader knows vs. what the POV character knows, chapter by chapter." },
-  { key: "voiceDrift",      label: "Voice drift explainer", hint: "Diagnoses what shifted between an outlier chapter and the writer's baseline voice in the Analysis dashboard." },
-  { key: "unstuck",         label: "Unstuck moves",   hint: "The AI dropdown's \"Unstuck — five ways out\" diagnostic that proposes goal shift / interrupt / setting / reveal / time cut." },
-  { key: "sensory",         label: "Sensory research", hint: "The AI dropdown's \"Research feel…\" modal — structured sensory pack for a selected subject." },
-  { key: "characterAudit",  label: "Character audit",  hint: "Per-character consistency audit (profile + their scenes → flagged actions) on the Characters view." },
-  { key: "reverseOutline",  label: "Reverse outline",  hint: "Reads the whole draft and produces the act structure the book actually has — plot points, act breaks, per-chapter beats." },
-  { key: "beatSheet",       label: "Beat sheet overlay", hint: "Maps your draft to Save the Cat, Hero's Journey, or 7-Point Story Structure beats." },
-  { key: "plotHoles",       label: "Plot-hole audit",  hint: "Whole-book continuity scan for contradictions, timeline issues, and character-knowledge errors." },
-  { key: "characterChat",   label: "Character chat",   hint: "The chat panel's \"Talk to a character\" mode — first-person, in-voice answers from your cast." },
-  { key: "relationshipArc", label: "Relationship arc", hint: "Chapter-by-chapter warmth / tension / power tracking for a pair of characters." },
-  { key: "marketingPack",   label: "Marketing pack",   hint: "Logline, back-cover blurbs, synopsis, and elevator pitch for querying and pitching." },
-  { key: "multiReader",     label: "Multi-reader panel", hint: "Four distinct reader personas (genre reader / literary critic / agent intern / book-club reader) react to a chapter in parallel." },
-];
-const INHERIT = "__inherit__";
-
-// Provider select options — "Inherit default" plus every configured
-// provider. The model column only enables once a specific provider is
-// chosen (inherit means "use the global default's provider AND model").
-const featureProviderOptions = computed(() => {
-  const out = [{ value: INHERIT, label: `Inherit default · ${ai.llmProvider?.name || "—"}` }];
-  for (const p of ai.readyLlmProviders) out.push({ value: p.id, label: p.name });
-  return out;
-});
-
-function featureProviderValue(key) {
-  return ai.featurePins?.[key]?.providerId || INHERIT;
-}
-function featureModelValue(key) {
-  return ai.featurePins?.[key]?.model || "";
-}
-
-function setFeatureProvider(key, providerId) {
-  if (!providerId || providerId === INHERIT) { ai.setFeaturePin(key, null); return; }
-  // New pin: default the model to the provider's saved chatModel so the
-  // pin is immediately usable. User can refine via the model select.
-  const provider = ai.providerById(providerId);
-  ai.setFeaturePin(key, { providerId, model: provider?.defaultModel || "" });
-  ensureFeatureModels(providerId); // fetches only when the cache is empty
-}
-function setFeatureModel(key, model) {
-  const pin = ai.featurePins?.[key];
-  if (!pin?.providerId) return;
-  ai.setFeaturePin(key, { providerId: pin.providerId, model: model || pin.model });
-}
-
-// Model options for one feature row. Empty list when the provider is
-// inheriting; otherwise the provider's saved chatModel comes first
-// (always selectable even if the live fetch failed), then any models
-// the live fetch surfaced. De-duplicated by id.
-function featureModelOptions(key) {
-  const providerId = featureProviderValue(key);
-  if (providerId === INHERIT) return [];
-  const provider = ai.providerById(providerId);
-  const list = featureModelsFor(providerId);
-  const seen = new Set();
-  const out = [];
-  if (provider?.defaultModel) {
-    out.push({ value: provider.defaultModel, label: `${provider.defaultModel} (configured default)` });
-    seen.add(provider.defaultModel);
-  }
-  for (const m of list) {
-    if (m.id && !seen.has(m.id)) { out.push({ value: m.id, label: m.id }); seen.add(m.id); }
-  }
-  return out;
-}
 
 // i18n locale picker — list comes from AVAILABLE_LOCALES; the active
 // value mirrors vue-i18n's reactive `locale` ref so the select reflects
@@ -182,17 +95,6 @@ const DEBUG_TOOLS = [
 
 const active = ref(props.section || "project");
 watch(() => props.section, (s) => { if (s) active.value = s; });
-
-// Lazily fetch model lists for any features that already have a pinned
-// provider when the AI section opens (so the model select isn't blank
-// on first render even though we haven't refreshed yet).
-watchEffect(() => {
-  if (active.value !== "audio") return;
-  for (const f of AI_FEATURES) {
-    const pid = ai.featurePins?.[f.key]?.providerId;
-    if (pid) ensureFeatureModels(pid);
-  }
-});
 
 // ── Project meta editing ───────────────────────────────────────────
 // Patch the store live as the user types; updateProjectMeta is already
@@ -243,143 +145,9 @@ async function removeCover() {
   project.clearCoverImage();
 }
 
-const editing = ref(null);   // id of provider being edited (or "new")
-const draft = ref(null);     // working copy
+// QuickSetup modal trigger (the wizard is a setup shortcut; provider + routing
+// management now lives in the shared AI menu at /ai).
 const showQuickSetup = ref(false);
-
-// ── Provider usage badges ────────────────────────────────────
-// Shows at-a-glance which features each provider serves, so the
-// "fast" provider's role (Brainstorm / Resume briefing / Recap /
-// Entity sweep / Sensory / Unstuck on the 8 GB Quick Setup tier)
-// is visible without scrolling to the Feature routing card.
-const expandedUsageId = ref(null);
-function toggleUsage(id) {
-  expandedUsageId.value = expandedUsageId.value === id ? null : id;
-}
-function featuresPinnedTo(providerId) {
-  const pins = ai.featurePins || {};
-  return AI_FEATURES.filter((f) => pins[f.key]?.providerId === providerId);
-}
-function providerDefaultRoles(p) {
-  const roles = [];
-  if (ai.defaultLlmId === p.id) roles.push("Default LLM");
-  if (ai.defaultEmbeddingId === p.id) roles.push("Default embedding");
-  return roles;
-}
-function usageBadgeLabel(p) {
-  const count = featuresPinnedTo(p.id).length;
-  const isDefault = providerDefaultRoles(p).length > 0;
-  if (count > 0 && isDefault) return `default · ${count} pinned`;
-  if (count > 0) return `${count} pinned feature${count === 1 ? "" : "s"}`;
-  if (isDefault) return "default";
-  return "";
-}
-
-// Providers list bucketing — Local vs Cloud. Local = a loopback baseUrl
-// (no apiKey, no per-token cost). Mirrors the predicate ai.js uses for
-// readyLlmProviders so the bucket here matches "free for me" in routing.
-function isLocalProvider(p) {
-  if (!p) return false;
-  return /\b(localhost|127\.0\.0\.1|0\.0\.0\.0)\b/i.test(String(p.baseUrl || ""));
-}
-const localLlm = computed(() => ai.providers.filter(isLocalProvider));
-const cloudLlm = computed(() => ai.providers.filter((p) => !isLocalProvider(p)));
-
-
-
-// Flat render list — interleaves section eyebrows, recommendation
-// callouts, empty states, and provider rows. Lets the template iterate
-// once and keep a single row template instead of duplicating it per
-// bucket. Order: Local block (callout? · rows · empty?) then Cloud block
-// (same shape).
-const providerRenderList = computed(() => {
-  const out = [];
-  // ── Local block ──
-  out.push({ type: "section", key: "sec-local", label: "Local · free",
-    subtitle: "Runs on your machine. No API key, no per-token cost, your prose never leaves the box." });
-  if (!localLlm.value.length) out.push({ type: "callout", key: "callout-local", flavor: "local" });
-  for (const p of localLlm.value) out.push({ type: "row", key: `row-${p.id}`, p });
-  if (!localLlm.value.length) {
-    out.push({ type: "empty", key: "empty-local", flavor: "local" });
-  }
-  // ── Cloud block ──
-  out.push({ type: "section", key: "sec-cloud", label: "Cloud · metered",
-    subtitle: "Pay per token. Stronger reasoning, no local hardware needed, every call leaves the machine." });
-  if (!cloudLlm.value.some((p) => p.hasApiKey)) out.push({ type: "callout", key: "callout-cloud", flavor: "cloud" });
-  for (const p of cloudLlm.value) out.push({ type: "row", key: `row-${p.id}`, p });
-  if (!cloudLlm.value.length) {
-    out.push({ type: "empty", key: "empty-cloud", flavor: "cloud" });
-  }
-  return out;
-});
-
-function startEdit(provider) {
-  editing.value = provider.id;
-  // The list shape carries no apiKey (write-only) — start the field blank so an
-  // unchanged save preserves the stored key (the server treats "" as "keep
-  // current"; only a typed value replaces it).
-  draft.value = { ...provider, apiKey: "" };
-}
-
-function startNew() {
-  editing.value = "new";
-  draft.value = {
-    id: "",
-    name: "",
-    providerType: "openai-compat",
-    baseUrl: "",
-    apiKey: "",
-    defaultModel: "",
-    embeddingModel: "",
-  };
-}
-
-function saveDraft() {
-  if (!draft.value.id || !draft.value.name || !draft.value.baseUrl) return;
-  const patch = { ...draft.value };
-  if (editing.value === "new") {
-    ai.addProvider(patch);
-  } else {
-    ai.updateProvider(editing.value, patch);
-  }
-  editing.value = null;
-  draft.value = null;
-}
-
-function cancelEdit() { editing.value = null; draft.value = null; }
-
-async function pingProvider(id) {
-  await ai.ping(id);
-}
-
-// Wraps ai.setDefaultEmbedding so changing providers mid-session doesn't
-// silently strand the existing RAG index. If the active project has an
-// index built with a different embedding model than the new provider's
-// model, surface a heads-up — the user can either Rebuild from the chat
-// panel (re-embeds everything against the new model) or switch back.
-async function chooseDefaultEmbedding(id) {
-  const prev = ai.defaultEmbeddingId;
-  ai.setDefaultEmbedding(id);
-  if (id === prev) return;
-  const newProvider = ai.providerById(id);
-  const newModel = newProvider?.embeddingModel || "";
-  const status = await indexStatus();
-  if (status.exists && status.entryCount > 0 && newModel && status.model && status.model !== newModel) {
-    pushToast({
-      message: `Embedding model changed. Your manuscript index was built with “${status.model}” — it will keep working with the old model. Hit Rebuild in the chat panel to re-embed against “${newModel}”.`,
-    }, 9000);
-  }
-}
-
-const statusColor = (s) => ({
-  ok: "var(--success)",
-  down: "var(--danger)",
-  checking: "var(--status-draft)",
-})[s] || "var(--border-strong)";
-
-const statusLabel = (s) => ({
-  ok: "Online", down: "Offline", checking: "Checking…",
-})[s] || "Not checked";
 
 // ── Appearance ─────────────────────────────────────────────────────
 // Curated tables (presets, pairings, tints, ACCENT/GOLD_PRESETS) are
@@ -832,8 +600,9 @@ const recentColumns = [
     <div class="scrollarea" style="padding:22px">
     <p class="set-desc">
       <strong>Settings</strong> is divided into sections — <strong>Project</strong> (metadata,
-      goals, statuses, deadlines), <strong>AI engines</strong> (provider setup and
-      per-feature routing), <strong>Appearance</strong> (themes, fonts, colours, density),
+      goals, statuses, deadlines), <strong>Writing AI</strong> (local-model setup, embeddings,
+      and voice canon — providers &amp; routing live in the AI menu),
+      <strong>Appearance</strong> (themes, fonts, colours, density),
       <strong>Backups</strong> (autosave path and manual snapshots), and a
       <strong>Danger zone</strong> for resetting the workspace. Nothing here touches your
       manuscript prose.
@@ -1065,224 +834,59 @@ const recentColumns = [
       </div>
 
       <!-- ── AI ENGINES ────────────────────────────── -->
-      <!-- Cards are grouped into sections, separated by t-eyebrow labels:
-           Engines (providers + tier presets) and Routing & cost (defaults,
-           per-feature overrides). Voice canon and Quick setup tips sit
-           below the groups since they're general tips / writing-side
-           settings rather than engine plumbing. -->
+      <!-- Provider/routing/model management lives in the shared AI menu (/ai).
+           This section keeps the writing-specific AI settings: local-model setup
+           (Quick setup + Hardware presets), the embeddings/RAG toggle,
+           three-alternative streaming, and Voice canon. -->
       <div v-else-if="active === 'audio'" style="display:flex;flex-direction:column;gap:14px;min-width:0">
 
-        <!-- ─── Engines ─────────────────────────────────────── -->
-        <div class="t-eyebrow" style="margin-top:2px">Engines</div>
-
-        <div class="card">
-          <div style="display:flex;align-items:center;gap:10px;margin-bottom:10px">
-            <div class="card-title" style="margin:0">{{ $t('settings.audio.providersCardTitle') }}</div>
-            <span class="t-muted" style="font-size:12px">{{ ai.providers.length }} configured</span>
-            <JwButton label="Quick setup" intent="secondary" size="small" style="margin-left:auto" @click="showQuickSetup = true">
-              <template #icon><Icon name="Sparkle" :size="12" /></template>
-            </JwButton>
-            <JwButton :label="$t('settings.audio.addProvider')" intent="primary" size="small" @click="startNew">
-              <template #icon><Icon name="Plus" :size="12" /></template>
-            </JwButton>
-          </div>
-
-          <QuickSetup v-if="showQuickSetup" @close="showQuickSetup = false" />
-
-          <div style="display:flex;flex-direction:column;gap:8px">
-            <!-- New-provider edit row (only when adding) -->
-            <SettingsProviderForm v-if="editing === 'new' && draft"
-              :draft="draft" editing-key="new"
-              @save="saveDraft" @cancel="cancelEdit" />
-
-            <!-- Single render loop over the providerRenderList computed.
-                 Item types: 'section' (Local · free / Cloud · metered eyebrow
-                 with subtitle), 'callout' (suppress-once-configured starter
-                 recommendation), 'empty' (placeholder when a section has zero
-                 providers), and 'row' (the actual provider card; toggles to a
-                 SettingsProviderForm while editing). One row template, no
-                 per-bucket duplication. -->
-            <template v-for="item in providerRenderList" :key="item.key">
-              <!-- Section eyebrow (Local · free / Cloud · metered) -->
-              <div v-if="item.type === 'section'"
-                   style="display:flex;align-items:baseline;gap:10px;margin-top:4px"
-                   :style="item.key === 'sec-cloud' ? 'margin-top:14px' : 'margin-top:4px'">
-                <div class="t-eyebrow">{{ item.label }}</div>
-                <span class="t-muted" style="font-size:11.5px">{{ item.subtitle }}</span>
-              </div>
-
-              <!-- Recommendation callout (local) -->
-              <div v-else-if="item.type === 'callout' && item.flavor === 'local'"
-                   style="display:flex;align-items:flex-start;gap:10px;padding:10px 12px;border:1px dashed var(--accent);border-radius:8px;background:var(--accent-soft);font-size:12.5px;line-height:1.5">
-                <Icon name="Sparkle" :size="14" style="margin-top:2px;color:var(--accent-ink)" />
-                <div style="min-width:0">
-                  <b style="color:var(--ink)">Recommended starter — Ollama + qwen3:14b.</b>
-                  Best prose quality you can get under ~10 GB VRAM. On an 8 GB card 14B runs with partial CPU offload; the 8B alternative is noticeably weaker on prose (WritingBench 5.42 vs 14B's 7.02).
-                  <div style="margin-top:4px">
-                    <JwButton intent="primary" size="small" @click="showQuickSetup = true">
-                      <template #icon><Icon name="Sparkle" :size="11" /></template>
-                      Open Quick setup
-                    </JwButton>
-                  </div>
-                </div>
-              </div>
-
-              <!-- Recommendation callout (cloud) -->
-              <div v-else-if="item.type === 'callout' && item.flavor === 'cloud'"
-                   style="display:flex;align-items:flex-start;gap:10px;padding:10px 12px;border:1px dashed var(--accent2, var(--accent));border-radius:8px;background:var(--accent2-soft, var(--accent-soft));font-size:12.5px;line-height:1.5">
-                <Icon name="Sparkle" :size="14" style="margin-top:2px;color:var(--accent2-ink, var(--accent-ink))" />
-                <div style="min-width:0">
-                  <b style="color:var(--ink)">Recommended starter — Claude Sonnet 4.6 (best prose) or Gemini 2.5 Pro (best value).</b>
-                  <b>Claude Sonnet 4.6</b> tops the major creative-writing leaderboards in 2026 — the safe pick when prose quality matters most. <b>Gemini 2.5 Pro</b> scores nearly as well and costs roughly a third as much per word — pick it if budget matters more. <b>Claude Haiku 4.5</b> is Anthropic's cheapest tier and is fine for everyday writing.
-                </div>
-              </div>
-
-              <!-- Empty-section placeholder -->
-              <div v-else-if="item.type === 'empty' && item.flavor === 'local'"
-                   class="t-muted" style="font-size:12px;text-align:center;padding:14px;background:var(--surface-2);border-radius:8px;font-style:italic">
-                No local providers configured yet. Run Quick setup, or click "Add provider" and point at <code style="background:var(--surface-3);padding:1px 5px;border-radius:3px">http://localhost:…</code>.
-              </div>
-              <div v-else-if="item.type === 'empty' && item.flavor === 'cloud'"
-                   class="t-muted" style="font-size:12px;text-align:center;padding:14px;background:var(--surface-2);border-radius:8px;font-style:italic">
-                No cloud providers configured. Click "Add provider" and paste an API key from OpenAI, Anthropic, OpenRouter, etc.
-              </div>
-
-              <!-- Provider row (read state) -->
-              <div v-else-if="item.type === 'row' && editing !== item.p.id"
-                   style="display:grid;grid-template-columns:auto minmax(0,1fr) auto auto auto;gap:14px;align-items:center;padding:12px 14px;border:1px solid var(--border);border-radius:10px;background:var(--surface)">
-                <span style="width:36px;height:36px;border-radius:8px;background:var(--surface-3);color:var(--ink-2);display:grid;place-items:center">
-                  <Icon :name="isLocalProvider(item.p) ? 'Cpu' : 'Sparkle'" :size="16" />
-                </span>
-                <div style="min-width:0">
-                  <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap">
-                    <b style="font-size:13.5px">{{ item.p.name }}</b>
-                    <button v-if="usageBadgeLabel(item.p)"
-                      type="button"
-                      class="chip"
-                      :aria-expanded="expandedUsageId === item.p.id"
-                      :title="expandedUsageId === item.p.id ? 'Hide details' : 'Show what uses this provider'"
-                      style="font-size:10px;cursor:pointer;border:none;background:var(--surface-3);color:var(--ink-2);display:inline-flex;align-items:center;gap:4px"
-                      @click="toggleUsage(item.p.id)">
-                      <Icon name="Sparkle" :size="10" />
-                      {{ usageBadgeLabel(item.p) }}
-                      <Icon :name="expandedUsageId === item.p.id ? 'ChevronUp' : 'ChevronDown'" :size="10" />
-                    </button>
-                  </div>
-                  <div class="t-muted" style="font-family:var(--font-mono);font-size:11px;margin-top:2px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">{{ item.p.baseUrl }}</div>
-                  <div class="t-muted" style="font-size:11px;margin-top:2px">
-                    <template v-if="item.p.defaultModel">chat: <b>{{ item.p.defaultModel }}</b> · </template>
-                    <template v-if="item.p.embeddingModel">embed: <b>{{ item.p.embeddingModel }}</b> · </template>
-                    {{ item.p.hasApiKey ? "API key set" : "no key" }}
-                  </div>
-                  <div v-if="expandedUsageId === item.p.id" style="margin-top:8px;padding:8px 10px;border-radius:6px;background:var(--surface-2,var(--surface-3));font-size:12px;line-height:1.55">
-                    <div v-if="providerDefaultRoles(item.p).length" style="margin-bottom:4px">
-                      <span class="t-muted">Used as:</span>
-                      <b style="margin-left:4px">{{ providerDefaultRoles(item.p).join(", ") }}</b>
-                    </div>
-                    <div v-if="featuresPinnedTo(item.p.id).length">
-                      <span class="t-muted">Pinned features ({{ featuresPinnedTo(item.p.id).length }}):</span>
-                      <ul style="margin:4px 0 0;padding-left:18px;display:flex;flex-direction:column;gap:1px">
-                        <li v-for="f in featuresPinnedTo(item.p.id)" :key="f.key">{{ f.label }}</li>
-                      </ul>
-                    </div>
-                  </div>
-                </div>
-                <span style="display:inline-flex;align-items:center;gap:6px;font-size:11.5px">
-                  <span :style="`width:8px;height:8px;border-radius:50%;background:${statusColor(ai.status[item.p.id])}`" />
-                  {{ statusLabel(ai.status[item.p.id]) }}
-                </span>
-                <JwButton label="Test" intent="secondary" size="small" @click="pingProvider(item.p.id)" />
-                <JwButton label="Edit" intent="primary" size="small" @click="startEdit(item.p)" />
-              </div>
-
-              <!-- Provider row (edit state — swaps in the form) -->
-              <SettingsProviderForm v-else-if="item.type === 'row' && editing === item.p.id"
-                :draft="draft" :editing-key="editing"
-                @save="saveDraft" @cancel="cancelEdit" />
-            </template>
+        <!-- Providers, per-feature routing, and the model catalog moved to the
+             shared AI menu (/#/ai). This section keeps the local-model setup
+             helpers + the writing-specific AI knobs below. -->
+        <div class="card" style="display:flex;align-items:flex-start;gap:10px">
+          <Icon name="Sparkle" :size="16" style="margin-top:2px;color:var(--accent-ink)" />
+          <div style="min-width:0;flex:1">
+            <div style="font-weight:600;font-size:13.5px;color:var(--ink)">Providers, routing &amp; the model catalog moved to the AI menu</div>
+            <p class="t-muted" style="font-size:12.5px;margin:4px 0 0;line-height:1.5">
+              Add AI providers, set per-feature routing, and manage local models in <b>AI</b> (top of the sidebar). This page keeps local-model setup and writing-specific AI settings below.
+            </p>
+            <div style="margin-top:8px">
+              <JwButton label="Open AI menu" intent="primary" size="small" @click="$router.push('/ai')" />
+            </div>
           </div>
         </div>
 
+        <!-- ─── Local model setup ───────────────────────────── -->
+        <div class="t-eyebrow" style="margin-top:6px">Local model setup</div>
+        <div class="card">
+          <div style="display:flex;align-items:center;gap:10px">
+            <div class="card-title" style="margin:0">Quick setup</div>
+            <span class="t-muted" style="font-size:12px;flex:1">Detect your GPU and pull a matching local model set.</span>
+            <JwButton label="Quick setup" intent="secondary" size="small" @click="showQuickSetup = true">
+              <template #icon><Icon name="Sparkle" :size="12" /></template>
+            </JwButton>
+          </div>
+          <QuickSetup v-if="showQuickSetup" @close="showQuickSetup = false" />
+        </div>
 
         <HardwarePresetsCard />
 
         <!-- ─── Routing & cost ──────────────────────────────── -->
-        <div class="t-eyebrow" style="margin-top:6px">Routing &amp; cost</div>
-
+        <!-- ─── Embeddings / RAG ────────────────────────────── -->
+        <div class="t-eyebrow" style="margin-top:6px">Embeddings &amp; RAG</div>
         <div class="card">
-          <div class="card-title">{{ $t('settings.audio.defaultsCardTitle') }}</div>
-          <div style="font-size:13px;color:var(--ink-2);margin-bottom:12px">
-            Pick which provider handles writing assistance (LLM) and which handles embeddings. Both follow the OpenAI HTTP standard — anything that speaks it works here.
-          </div>
-          <div style="display:grid;grid-template-columns:160px minmax(0,1fr);gap:10px 14px;align-items:center;font-size:13px">
-            <span class="t-muted">{{ $t('settings.audio.fieldDefaultLlm') }}</span>
-            <Combobox
-              :model-value="ai.defaultLlmId"
-              @update:model-value="ai.setDefaultLlm"
-              :items="ai.llmProviders"
-              item-value="id" item-label="name"
-              :searchable="false"
-              placeholder="Pick a provider"
-              chev-title="Choose default LLM provider" />
-            <span class="t-muted">{{ $t('settings.audio.fieldDefaultEmbedding') }}</span>
-            <Combobox
-              :model-value="ai.defaultEmbeddingId"
-              @update:model-value="chooseDefaultEmbedding"
-              :items="ai.embeddingProviders"
-              item-value="id" item-label="name"
-              :searchable="false"
-              placeholder="Pick a provider"
-              chev-title="Choose default embedding provider" />
-            <span class="t-muted">{{ $t('settings.audio.fieldAutoRebuild') }}</span>
-            <label style="display:flex;align-items:center;gap:8px;cursor:pointer">
-              <JwCheckbox :model-value="ai.autoRebuildRagIndex"
-                @update:model-value="ai.setAutoRebuildRagIndex" />
-              <span style="color:var(--ink-2);font-size:12.5px;line-height:1.45">
-                Embed new and changed scenes a minute after the last edit. Costs nothing on local embedding providers; cloud embeddings will accrue tokens.
-              </span>
-            </label>
-          </div>
-        </div>
-
-        <div class="card">
-          <div class="card-title">{{ $t('settings.audio.routingCardTitle') }}</div>
-          <p class="t-muted" style="font-size:12.5px;margin:0 0 14px;line-height:1.55">
-            The AI layer acts as an aggregator: each feature can route to any configured provider and model independently. Pick "Inherit default" to fall back to the global Default LLM above. The model list is fetched live from the provider — it'll be empty until you save an API key (or for local providers, until the server is reachable).
+          <div class="card-title">Manuscript index</div>
+          <p class="t-muted" style="font-size:12.5px;margin:4px 0 12px;line-height:1.5">
+            Which provider embeds your manuscript for search and “Ask the book” is set in the <b>AI</b> menu (Default embedding). This toggle controls when re-embedding runs.
           </p>
-          <!-- Header row -->
-          <div style="display:grid;grid-template-columns:minmax(180px,200px) minmax(140px,1fr) minmax(140px,1.4fr);gap:8px 14px;align-items:center;font-size:11px;font-family:var(--font-mono);text-transform:uppercase;letter-spacing:0.08em;color:var(--muted);padding-bottom:6px;border-bottom:1px solid var(--border-soft)">
-            <span>Feature</span>
-            <span>Provider</span>
-            <span>Model</span>
-          </div>
-          <div style="display:grid;grid-template-columns:minmax(180px,200px) minmax(140px,1fr) minmax(140px,1.4fr);gap:10px 14px;align-items:center;font-size:13px;margin-top:10px">
-            <template v-for="f in AI_FEATURES" :key="f.key">
-              <div>
-                <div style="font-weight:500;color:var(--ink)">{{ f.label }}</div>
-                <div class="t-muted" style="font-size:11.5px;margin-top:2px;line-height:1.4">{{ f.hint }}</div>
-              </div>
-              <JwSelect
-                :model-value="featureProviderValue(f.key)"
-                @update:model-value="(v) => setFeatureProvider(f.key, v)"
-                :options="featureProviderOptions" />
-              <div style="display:flex;align-items:center;gap:6px;min-width:0">
-                <JwSelect
-                  style="flex:1;min-width:0"
-                  :model-value="featureModelValue(f.key)"
-                  @update:model-value="(v) => setFeatureModel(f.key, v)"
-                  :options="featureModelOptions(f.key)"
-                  :disabled="featureProviderValue(f.key) === '__inherit__'"
-                  :placeholder="featureProviderValue(f.key) === '__inherit__' ? 'Follows default' : 'Pick a model'" />
-                <JwButton
-                  intent="ghost" size="small"
-                  v-tooltip.bottom="'Refresh model list from the provider'"
-                  :disabled="featureProviderValue(f.key) === '__inherit__'"
-                  @click="refreshFeatureModels(featureProviderValue(f.key))">
-                  <template #icon><Icon name="Refresh" :size="12" /></template>
-                </JwButton>
-              </div>
-            </template>
-          </div>
+          <label style="display:flex;align-items:flex-start;gap:8px;cursor:pointer">
+            <JwCheckbox :model-value="ai.autoRebuildRagIndex"
+              @update:model-value="ai.setAutoRebuildRagIndex" />
+            <span style="color:var(--ink-2);font-size:12.5px;line-height:1.45">
+              <b style="color:var(--ink)">Auto-rebuild the index.</b>
+              Embed new and changed scenes a minute after the last edit. Costs nothing on local embedding providers; cloud embeddings will accrue tokens.
+            </span>
+          </label>
         </div>
 
         <!-- Three-alternative streaming — opt-in cost control for the
@@ -1362,30 +966,6 @@ const recentColumns = [
               <div style="margin-top:8px;padding:12px 14px;background:var(--surface-2);border-radius:6px;font-family:var(--font-serif);font-size:12.5px;line-height:1.6;color:var(--ink-2);white-space:pre-wrap;max-height:300px;overflow:auto">{{ voicePreview.block }}</div>
             </details>
           </template>
-        </div>
-
-        <div class="card">
-          <div class="card-title">Quick setup tips</div>
-          <div class="settings-tips-grid" style="display:grid;grid-template-columns:repeat(2, minmax(0, 1fr));gap:14px;font-size:12.5px;color:var(--ink-2)">
-            <div>
-              <b style="font-size:12.5px;color:var(--ink)">OpenAI-compatible (local)</b>
-              <p style="margin:4px 0 0;line-height:1.55">
-                Point at any local server that speaks the OpenAI HTTP API — Ollama (<code style="background:var(--surface-3);padding:1px 5px;border-radius:3px">:11434/v1</code>), LM Studio (<code style="background:var(--surface-3);padding:1px 5px;border-radius:3px">:1234/v1</code>), llama.cpp (<code style="background:var(--surface-3);padding:1px 5px;border-radius:3px">:8080/v1</code>). Update the Base URL accordingly. No API key needed.
-              </p>
-            </div>
-            <div>
-              <b style="font-size:12.5px;color:var(--ink)">OpenAI</b>
-              <p style="margin:4px 0 0;line-height:1.55">
-                Add your key. Used for chat and embeddings.
-              </p>
-            </div>
-            <div>
-              <b style="font-size:12.5px;color:var(--ink)">Claude (Anthropic)</b>
-              <p style="margin:4px 0 0;line-height:1.55">
-                Get an API key at <a href="https://console.anthropic.com/settings/keys" target="_blank" rel="noopener" style="color:var(--accent)">console.anthropic.com/settings/keys</a> and paste it here. Default model <code style="background:var(--surface-3);padding:1px 5px;border-radius:3px">claude-haiku-4-5</code> is the cheapest; swap to <code style="background:var(--surface-3);padding:1px 5px;border-radius:3px">claude-sonnet-4-6</code> or <code style="background:var(--surface-3);padding:1px 5px;border-radius:3px">claude-opus-4-7</code> for higher quality. Uses Anthropic's OpenAI-compatible endpoint, so a few advanced fields (<code style="background:var(--surface-3);padding:1px 5px;border-radius:3px">response_format</code>, <code style="background:var(--surface-3);padding:1px 5px;border-radius:3px">seed</code>, etc.) are silently ignored.
-              </p>
-            </div>
-          </div>
         </div>
       </div>
 
