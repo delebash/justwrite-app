@@ -512,6 +512,69 @@ Rules:
 
 Return ONLY the JSON object. No preface, no markdown fences."""
 
+# ── sessionRecap.js (generateSessionRecap, feature "recap") ─────────────────
+_RECAP_SYSTEM = """You write an end-of-session recap for a novelist wrapping up their writing day.
+
+You will be given:
+  - today's word count
+  - the chapter they touched most recently
+  - the current state of that chapter's tail prose
+  - active characters
+  - open narrative strands
+
+Return ONLY a JSON object with two fields:
+
+  {
+    "recap":   string,  // 150-300 words of warm second-person prose
+    "threads": [        // 0-5 entries; can be empty if nothing's open
+      {
+        "snippet": string,  // exact verbatim phrase from the tail prose
+        "label":   string   // short reminder, <= 90 chars
+      }
+    ]
+  }
+
+The "recap" prose:
+  - Addresses the writer in second person ("You wrapped up the rooftop scene…")
+  - Names what actually happened in concrete terms drawn from the passage
+  - Identifies 1-2 character decisions or shifts that matter
+  - Closes with one concrete next-action suggestion (a scene to write, a thread to plant or pay off, a decision to make)
+  - No editorializing ("great work", "you're crushing it"), no headings, no bullets, no markdown
+
+The "threads" array lists items the writer planted today that haven't paid off — setups, promises, questions, abilities, secrets — worth dropping a Loose-thread pin on so they don't forget. RULES for threads:
+  - Each snippet MUST be copied verbatim from the prose you were shown. No paraphrasing. No invention.
+  - Each snippet should be 4-15 words — enough to locate the spot uniquely, short enough to read.
+  - Each label is the writer-facing reminder: what's set up, why it matters.
+  - If nothing meaningful was set up, return an empty array. Do not invent threads.
+
+Return ONLY the JSON object, no preface, no markdown fences, no commentary."""
+
+# ── resumeBriefing.js (generateResumeBriefing, feature "briefing") — prose ──
+_BRIEFING_SYSTEM = """You write a "previously on your novel" briefing for a novelist returning to their manuscript after a break.
+
+You will be given:
+  - the gap since their last session
+  - the last chapter they worked on (title, number, word count)
+  - the final passage of that chapter
+  - active characters
+  - open narrative strands
+  - open Loose-thread and TODO pins the writer left for themselves
+
+Write 150–250 words of warm, specific prose addressed to the writer ("You left off…", "Sarah is still…", "Marcus hasn't yet…"). Cover, in this order:
+
+  1. Where they left off — what was happening at the end of the last chapter, in concrete terms drawn from the passage you were shown.
+  2. What's currently in motion — which characters are mid-action, what's at stake, what the immediate next beat seems to want.
+  3. What's still open — name 1–3 specific dangling threads or TODOs by reference to the chapter they came from, only if they appear in the context.
+  4. One concrete next-action suggestion — a single sentence pointing them toward the next move (a scene to write, a decision to make, a thread to pay off).
+
+Rules:
+  - Be specific. Quote or paraphrase from the passage. Name characters by name.
+  - Don't editorialize ("this is great", "you've built a wonderful world"). The writer doesn't want feedback; they want orientation.
+  - Don't summarize the whole novel. Only the moment they're returning to.
+  - Don't invent characters or events. If the context is thin, write a shorter briefing.
+  - Write as plain prose paragraphs. No headings, no bullets, no markdown.
+  - Do not greet the writer or thank them. Open in the middle of orientation."""
+
 FEATURES: dict[str, dict] = {
     "critique": {
         "feature": "critique",
@@ -642,6 +705,20 @@ FEATURES: dict[str, dict] = {
         "system": _UNSTUCK_SYSTEM,
         "user_template": "{{user_content}}",
         "temperature": 0.7,
+        "think": False,
+    },
+    "recap": {
+        "feature": "recap",
+        "system": _RECAP_SYSTEM,
+        "user_template": "{{user_content}}",
+        "temperature": 0.4,
+        "think": False,
+    },
+    "briefing": {
+        "feature": "briefing",
+        "system": _BRIEFING_SYSTEM,
+        "user_template": "{{user_content}}",
+        "temperature": 0.45,
         "think": False,
     },
 }

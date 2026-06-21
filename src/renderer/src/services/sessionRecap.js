@@ -15,7 +15,7 @@
 //     model, providerId, generatedAt
 //   }
 
-import { runAiStream } from "./aiStream.js";
+import { runAiFeature } from "./aiFeature.js";
 import { parseJsonLoose } from "./llmText.js";
 
 // ─── helpers ─────────────────────────────────────────────────────────
@@ -163,47 +163,12 @@ export function buildRecapContext({ project, sessions, maxTailWords = 1200 }) {
 
 // ─── The recap call ──────────────────────────────────────────────────
 
-const RECAP_SYSTEM = `You write an end-of-session recap for a novelist wrapping up their writing day.
-
-You will be given:
-  - today's word count
-  - the chapter they touched most recently
-  - the current state of that chapter's tail prose
-  - active characters
-  - open narrative strands
-
-Return ONLY a JSON object with two fields:
-
-  {
-    "recap":   string,  // 150-300 words of warm second-person prose
-    "threads": [        // 0-5 entries; can be empty if nothing's open
-      {
-        "snippet": string,  // exact verbatim phrase from the tail prose
-        "label":   string   // short reminder, <= 90 chars
-      }
-    ]
-  }
-
-The "recap" prose:
-  - Addresses the writer in second person ("You wrapped up the rooftop scene…")
-  - Names what actually happened in concrete terms drawn from the passage
-  - Identifies 1-2 character decisions or shifts that matter
-  - Closes with one concrete next-action suggestion (a scene to write, a thread to plant or pay off, a decision to make)
-  - No editorializing ("great work", "you're crushing it"), no headings, no bullets, no markdown
-
-The "threads" array lists items the writer planted today that haven't paid off — setups, promises, questions, abilities, secrets — worth dropping a Loose-thread pin on so they don't forget. RULES for threads:
-  - Each snippet MUST be copied verbatim from the prose you were shown. No paraphrasing. No invention.
-  - Each snippet should be 4-15 words — enough to locate the spot uniquely, short enough to read.
-  - Each label is the writer-facing reminder: what's set up, why it matters.
-  - If nothing meaningful was set up, return an empty array. Do not invent threads.
-
-Return ONLY the JSON object, no preface, no markdown fences, no commentary.`;
+// The prompt lives server-side (features.py, action "recap").
 
 export async function generateSessionRecap({
   project,
   sessions,
   signal,
-  onDelta,
   provider,
   model,
   task,
@@ -222,19 +187,12 @@ export async function generateSessionRecap({
     throw err;
   }
 
-  const messages = [
-    { role: "system", content: RECAP_SYSTEM },
-    { role: "user", content: prompt },
-  ];
-
   const recapMeta = { ...(callerMeta || {}), chapterId: meta.chapterId, day: meta.day, totalWords: meta.totalWords };
-  const result = await runAiStream({
+  const result = await runAiFeature({
+    action: "recap",
     feature: "recap",
-    messages,
-    temperature: 0.4,
-    extra: { think: false },
+    variables: { user_content: prompt },
     signal,
-    onDelta,
     provider,
     model,
     meta: recapMeta,

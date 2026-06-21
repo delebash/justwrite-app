@@ -14,7 +14,7 @@
 // The output is 150–250 words of second-person prose addressed to the
 // writer, ending with one concrete next-action suggestion.
 
-import { runAiStream } from "./aiStream.js";
+import { runAiFeature } from "./aiFeature.js";
 import { scanProjectMarkers } from "./markers.js";
 
 // ─── Context composition ───────────────────────────────────────────────
@@ -247,36 +247,12 @@ export function buildBriefingContext({ project, sessions, maxTailWords = 500 }) 
 
 // ─── The briefing call ─────────────────────────────────────────────────
 
-const BRIEFING_SYSTEM = `You write a "previously on your novel" briefing for a novelist returning to their manuscript after a break.
-
-You will be given:
-  - the gap since their last session
-  - the last chapter they worked on (title, number, word count)
-  - the final passage of that chapter
-  - active characters
-  - open narrative strands
-  - open Loose-thread and TODO pins the writer left for themselves
-
-Write 150–250 words of warm, specific prose addressed to the writer ("You left off…", "Sarah is still…", "Marcus hasn't yet…"). Cover, in this order:
-
-  1. Where they left off — what was happening at the end of the last chapter, in concrete terms drawn from the passage you were shown.
-  2. What's currently in motion — which characters are mid-action, what's at stake, what the immediate next beat seems to want.
-  3. What's still open — name 1–3 specific dangling threads or TODOs by reference to the chapter they came from, only if they appear in the context.
-  4. One concrete next-action suggestion — a single sentence pointing them toward the next move (a scene to write, a decision to make, a thread to pay off).
-
-Rules:
-  - Be specific. Quote or paraphrase from the passage. Name characters by name.
-  - Don't editorialize ("this is great", "you've built a wonderful world"). The writer doesn't want feedback; they want orientation.
-  - Don't summarize the whole novel. Only the moment they're returning to.
-  - Don't invent characters or events. If the context is thin, write a shorter briefing.
-  - Write as plain prose paragraphs. No headings, no bullets, no markdown.
-  - Do not greet the writer or thank them. Open in the middle of orientation.`;
+// The prompt lives server-side (features.py, action "briefing").
 
 export async function generateResumeBriefing({
   project,
   sessions,
   signal,
-  onDelta,
   provider,
   model,
   task,
@@ -293,19 +269,12 @@ export async function generateResumeBriefing({
     throw err;
   }
 
-  const messages = [
-    { role: "system", content: BRIEFING_SYSTEM },
-    { role: "user", content: prompt },
-  ];
-
   const briefingMeta = { ...(callerMeta || {}), chapterId: meta.lastChapter.id, daysSince: meta.daysSince };
-  const result = await runAiStream({
+  const result = await runAiFeature({
+    action: "briefing",
     feature: "briefing",
-    messages,
-    temperature: 0.45,
-    extra: { think: false },
+    variables: { user_content: prompt },
     signal,
-    onDelta,
     provider,
     model,
     meta: briefingMeta,

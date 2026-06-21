@@ -44,8 +44,8 @@ DEFAULT_FEATURE_ROLES: dict[str, str] = {
     "sensory": "quick",
     "unstuck": "quick",
     "brainstorm": "quick",
-    "resumeBriefing": "quick",
-    "sessionRecap": "quick",
+    "briefing": "quick",
+    "recap": "quick",
     # interactive streaming features (writerAI/chat/rag) — migrate onto
     # /v1/ai/stream next; gateway stays until then.
     "writerAI": "quick",
