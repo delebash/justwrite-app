@@ -775,3 +775,58 @@ so both execute the instant the camelCase pass settles the wire shape:
   in-memory sink (or its own table later). Real work at a genuine boundary —
   RULE #8 allows it (not a forwarding shim). **JV's ledger changes too** (audit
   finding) — both apps adopt the sink seam.
+
+## 2026-06-21 (night) — session reconciliation + corrections (after re-reading THIS plan)
+
+**Process failure, owned:** I worked a full AI-slice session **without re-reading
+this authoritative plan**, so I re-litigated decisions already RESOLVED above and
+drifted from the architecture. Recorded here so it stops recurring.
+
+**Decisions I wrongly treated as OPEN (already resolved here — do NOT re-ask):**
+- **Menu / AI-area placement = Decision 2 (+ IA Decision 19):** ONE shared
+  **top-level "AI / Models" area**, identical in both apps (JV beside Voices/TTS),
+  sub-tabs **Providers&models / Features / Usage** + a **per-action Lab**. I asked
+  the user "Settings section vs AI-Lab route" — *already answered* (top-level shared
+  area; the full knob/prompt surface = the Lab, home 3).
+- **Feature-invocation = decided:** shared **routing CODE** renders each app's
+  **catalog DATA**; the per-app difference is ONLY the catalog + default tier. I
+  asked "generic `/v1/ai/run` vs JV per-endpoint" — settled answer: the shared
+  dispatch runs each app's registered catalog (JV's is already server-side).
+- **Editable prompts + full knobs = the per-action Lab** (Decisions 7/8/16/17/19),
+  saved as a **production config** — not a bespoke per-app editor.
+
+**This session — what landed + DRIFT vs this plan:**
+- ✅ **Bug fix:** `llm-runner` git pin `95e001e → c9b3615` (both servers); the old
+  pin predated `llm_runner/llm/` → the `ModuleNotFoundError`.
+- ✅ **Server feature-prompts → DB** (advances 3d + Decisions 16/17): JW (all
+  migrated features) + JV (smart_assign, render_preset_suggest, show_notes,
+  speaker_attribution guided+direct, identify). Prompt text out of code → DB,
+  seeded, Lab-editable. Tested (JW 91 / JV 282).
+- ⚠️ **DRIFT — per-app DUPLICATION (violates the Keystone + RULE #7/#8):** I built
+  the prompt store + `/v1/ai/prompts` editor + `feature_prompts` table + `render`
+  as **near-identical copies in JW AND JV**. The Keystone (the "shared mountable
+  router behind a storage Protocol" section) says ONE shared impl behind a host
+  Store Protocol. **CORRECTION:** lift into `llm_runner` (`prompts.py` +
+  `make_prompt_router` [+ `make_feature_router`]); each app keeps only a Store
+  adapter + its catalog; delete the duplicates.
+- ⚠️ **DRIFT — JW-local prompt-editor GUI:** `views/AiPromptsView.vue` + a
+  `/ai-prompts` sidebar item, JW-only. Per Decision 2 + "client views shared in
+  `@delebash/llm-ui`" it belongs in the shared AI area (Features tab + Lab),
+  imported by both. **CORRECTION:** fold into `@delebash/llm-ui`; the sidebar item
+  is a stopgap. (`@delebash/llm-ui` is now vite-aliased in both apps — the
+  foundation for this is in place.)
+- ⚠️ **DRIFT — redundant plan doc:** I created
+  `2026-06-21-one-shared-ai-stack-full-plan.md` (a restatement of THIS plan) before
+  reading this one → **removed**; THIS plan is authoritative. The feature-prompt
+  slice plan (`2026-06-21-feature-prompts-db-seed.md`) stays, but its "no shared
+  PromptStore package" line is **overruled by the Keystone here** — the store
+  machinery IS shared.
+
+**Net:** the prompt-in-DB work is real + useful, but its machinery is duplicated
+where it must be shared and the editor GUI is app-local where it must be shared.
+The corrections realign it to Decisions 1-20 — **no new decisions needed.**
+
+**Rules I broke (re-read): RULE #1** (worked from memory, didn't re-read this
+plan), **RULE #7** (re-litigated settled convergence; copy-paste duplicates vs
+shared extraction), **RULE #8** (per-app duplicate modules), **no-hardcoding**
+(prompts hardcoded before the DB move).
