@@ -575,6 +575,11 @@ Rules:
   - Write as plain prose paragraphs. No headings, no bullets, no markdown.
   - Do not greet the writer or thank them. Open in the middle of orientation."""
 
+# ── BrainstormView.vue (feature "brainstorm") — two system variants ──────────
+_BRAINSTORM_SYSTEM = """You are a creative brainstorming partner for a novelist. The user is generating {{label}} ideas. Reply with 15–20 short suggestions, one per line, no numbering, no commentary, no explanations. Each suggestion stands alone — a name, a phrase, a title — never more than ~6 words. Do not repeat suggestions the user has already seen."""
+
+_BRAINSTORM_PLOT_SYSTEM = """You are a story-craft brainstorming partner for a novelist. The user has described their current situation; you respond with 15-20 distinct {{kind}}, each on its own line. Each item is a single sentence (12-25 words) naming a specific, concrete move — not abstract advice. Mix close-to-obvious moves with wilder ones. No numbering, no commentary, no preface, no explanations. Do not repeat items the user has already seen."""
+
 FEATURES: dict[str, dict] = {
     "critique": {
         "feature": "critique",
@@ -719,6 +724,20 @@ FEATURES: dict[str, dict] = {
         "system": _BRIEFING_SYSTEM,
         "user_template": "{{user_content}}",
         "temperature": 0.45,
+        "think": False,
+    },
+    "brainstorm": {
+        "feature": "brainstorm",
+        "system": _BRAINSTORM_SYSTEM,  # {{label}} filled client-side
+        "user_template": "{{user_content}}",
+        "temperature": 0.9,
+        "think": False,
+    },
+    "brainstormPlot": {
+        "feature": "brainstorm",
+        "system": _BRAINSTORM_PLOT_SYSTEM,  # {{kind}} filled client-side
+        "user_template": "{{user_content}}",
+        "temperature": 0.9,
         "think": False,
     },
 }

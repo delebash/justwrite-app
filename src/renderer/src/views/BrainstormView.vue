@@ -6,7 +6,7 @@ import JwSelect from "@renderer/components/ui/JwSelect.vue";
 import JwTextarea from "@renderer/components/ui/JwTextarea.vue";
 import { useUiStore } from "../stores/ui.js";
 import { useAiTasksStore } from "../stores/aiTasks.js";
-import { runAiStream } from "../services/aiStream.js";
+import { runAiFeature } from "../services/aiFeature.js";
 import AiTaskStrip from "../components/AiTaskStrip.vue";
 import AiFeatureChip from "../components/AiFeatureChip.vue";
 
@@ -81,16 +81,8 @@ function categoryLabel(val) {
   return CATEGORIES.find((c) => c.value === val)?.label || val;
 }
 
-function buildSystemPrompt() {
-  const label = categoryLabel(category.value);
-  // Plot-level brainstorms (next beats, twists) need longer items than
-  // names/titles, so we give the model a different length contract.
-  if (category.value === "next_beat" || category.value === "twist") {
-    const kind = category.value === "twist" ? "plot twists, reveals, or reversals" : "next plot beats — possible moves, escalations, or scene-level developments";
-    return `You are a story-craft brainstorming partner for a novelist. The user has described their current situation; you respond with 15-20 distinct ${kind}, each on its own line. Each item is a single sentence (12-25 words) naming a specific, concrete move — not abstract advice. Mix close-to-obvious moves with wilder ones. No numbering, no commentary, no preface, no explanations. Do not repeat items the user has already seen.`;
-  }
-  return `You are a creative brainstorming partner for a novelist. The user is generating ${label} ideas. Reply with 15–20 short suggestions, one per line, no numbering, no commentary, no explanations. Each suggestion stands alone — a name, a phrase, a title — never more than ~6 words. Do not repeat suggestions the user has already seen.`;
-}
+// The system prompt lives server-side (features.py, actions "brainstorm" /
+// "brainstormPlot"); the label/kind insert is filled per-call below.
 
 function buildUserPrompt(isContinuation) {
   const label = categoryLabel(category.value);
@@ -124,23 +116,23 @@ async function runGenerate(isContinuation) {
   if (running.value) return;
   error.value = "";
   try {
-    let accumulated = "";
-    const { content } = await runAiStream({
+    const isPlot = category.value === "next_beat" || category.value === "twist";
+    const variables = { user_content: buildUserPrompt(isContinuation) };
+    if (isPlot) {
+      variables.kind = category.value === "twist"
+        ? "plot twists, reveals, or reversals"
+        : "next plot beats — possible moves, escalations, or scene-level developments";
+    } else {
+      variables.label = categoryLabel(category.value);
+    }
+    const { content } = await runAiFeature({
+      action: isPlot ? "brainstormPlot" : "brainstorm",
       feature: "brainstorm",
-      usageFeature: `brainstorm:${category.value}`,
-      temperature: 0.9,
-      onDelta(delta) {
-        accumulated += delta;
-      },
-      messages: [
-        { role: "system", content: buildSystemPrompt() },
-        { role: "user",   content: buildUserPrompt(isContinuation) },
-      ],
+      variables,
       task: { label: "Brainstorm", meta: { category: category.value } },
     });
-    accumulated = content || accumulated;
 
-    const lines = parseLines(accumulated);
+    const lines = parseLines(content || "");
     const deduped = [];
     const batchSeen = new Set();
     for (const line of lines) {

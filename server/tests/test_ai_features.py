@@ -96,6 +96,8 @@ def test_migrated_actions_render_and_dispatch(tmp_path):
         ("unstuck", {"user_content": "BEGIN PROSE\nShe stared at the door."}, "stared at the door"),
         ("recap", {"user_content": "Today: 1200 words on Chapter 4."}, "Chapter 4"),
         ("briefing", {"user_content": "Gap: 3 days. Last chapter: The Map."}, "The Map"),
+        ("brainstorm", {"label": "Character names", "user_content": "Seed: exiled queens"}, "exiled queens"),
+        ("brainstormPlot", {"kind": "plot twists", "user_content": "Seed: detective story"}, "detective story"),
     ]
     for action, variables, needle in cases:
         r = c.post("/v1/ai/run", json={"action": action, "variables": variables})
