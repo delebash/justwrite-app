@@ -10,8 +10,6 @@ import { resetWorkspace as resetWorkspaceApi } from "../services/workspaceApi.js
 import { buildVoiceFingerprint } from "../services/voiceFingerprint.js";
 import PaneHeader from "../components/PaneHeader.vue";
 import Icon from "../components/Icon.vue";
-import QuickSetup from "../components/QuickSetup.vue";
-import HardwarePresetsCard from "../components/HardwarePresetsCard.vue";
 import StatPill from "../components/StatPill.vue";
 import JwInput from "@renderer/components/ui/JwInput.vue";
 import JwTextarea from "@renderer/components/ui/JwTextarea.vue";
@@ -144,10 +142,6 @@ async function removeCover() {
   if (!yes) return;
   project.clearCoverImage();
 }
-
-// QuickSetup modal trigger (the wizard is a setup shortcut; provider + routing
-// management now lives in the shared AI menu at /ai).
-const showQuickSetup = ref(false);
 
 // ── Appearance ─────────────────────────────────────────────────────
 // Curated tables (presets, pairings, tints, ACCENT/GOLD_PRESETS) are
@@ -840,15 +834,15 @@ const recentColumns = [
            three-alternative streaming, and Voice canon. -->
       <div v-else-if="active === 'audio'" style="display:flex;flex-direction:column;gap:14px;min-width:0">
 
-        <!-- Providers, per-feature routing, and the model catalog moved to the
-             shared AI menu (/#/ai). This section keeps the local-model setup
-             helpers + the writing-specific AI knobs below. -->
+        <!-- Providers, per-feature routing, the model catalog, Quick Setup, and
+             the model "Fit" view all live in the shared AI menu (/#/ai). This
+             page keeps only the writing-specific AI knobs below. -->
         <div class="card" style="display:flex;align-items:flex-start;gap:10px">
           <Icon name="Sparkle" :size="16" style="margin-top:2px;color:var(--accent-ink)" />
           <div style="min-width:0;flex:1">
-            <div style="font-weight:600;font-size:13.5px;color:var(--ink)">Providers, routing &amp; the model catalog moved to the AI menu</div>
+            <div style="font-weight:600;font-size:13.5px;color:var(--ink)">AI providers, routing &amp; setup moved to the AI menu</div>
             <p class="t-muted" style="font-size:12.5px;margin:4px 0 0;line-height:1.5">
-              Add AI providers, set per-feature routing, and manage local models in <b>AI</b> (top of the sidebar). This page keeps local-model setup and writing-specific AI settings below.
+              Add AI providers, set per-feature routing, run Quick Setup, and manage local models in <b>AI</b> (top of the sidebar). This page keeps the writing-specific AI settings below.
             </p>
             <div style="margin-top:8px">
               <JwButton label="Open AI menu" intent="primary" size="small" @click="$router.push('/ai')" />
@@ -856,22 +850,6 @@ const recentColumns = [
           </div>
         </div>
 
-        <!-- ─── Local model setup ───────────────────────────── -->
-        <div class="t-eyebrow" style="margin-top:6px">Local model setup</div>
-        <div class="card">
-          <div style="display:flex;align-items:center;gap:10px">
-            <div class="card-title" style="margin:0">Quick setup</div>
-            <span class="t-muted" style="font-size:12px;flex:1">Detect your GPU and pull a matching local model set.</span>
-            <JwButton label="Quick setup" intent="secondary" size="small" @click="showQuickSetup = true">
-              <template #icon><Icon name="Sparkle" :size="12" /></template>
-            </JwButton>
-          </div>
-          <QuickSetup v-if="showQuickSetup" @close="showQuickSetup = false" />
-        </div>
-
-        <HardwarePresetsCard />
-
-        <!-- ─── Routing & cost ──────────────────────────────── -->
         <!-- ─── Embeddings / RAG ────────────────────────────── -->
         <div class="t-eyebrow" style="margin-top:6px">Embeddings &amp; RAG</div>
         <div class="card">
