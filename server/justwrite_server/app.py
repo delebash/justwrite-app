@@ -43,6 +43,15 @@ def create_app(data_dir: Path | None = None) -> FastAPI:
     init_db(data_dir)
     set_state(AppState(data_dir))
 
+    # Persist server-side LLM dispatch usage to the LlmUsage table (the shared
+    # ledger's host sink) so it joins JW's cost ledger instead of the in-memory
+    # ring that's lost on restart. JustVoice keeps the in-memory default.
+    from llm_runner.llm.usage import set_ledger
+
+    from .llm.usage_sink import JwDbUsageSink
+
+    set_ledger(JwDbUsageSink())
+
     app = FastAPI(title=PRODUCT, version=VERSION)
     # The Tauri webview origin is cross-origin to the localhost server; the
     # desktop shell routes HTTP through Tauri's plugin (CORS-exempt), but keep
