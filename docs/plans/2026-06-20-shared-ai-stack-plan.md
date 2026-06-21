@@ -388,27 +388,27 @@ needed).
     `dispatch.chat` usage persists to its `LlmUsage` table (joins `/v1/llm-usage`;
     also serves `/v1/ai-usage`). JV keeps the in-memory default. shared 48 / JW 78
     / JV 277 (4 unrelated fastmcp) pass.
-  - 🔄 **Feature migration IN PROGRESS** — moving `services/analysis/*` (the ~12
-    non-streaming JSON features, seam `aiStream.js`) onto the shared server-side
-    dispatch one at a time. The **pattern is proven end-to-end**:
-    - **Foundation DONE** — `justwrite_server/llm/config.py` (`llm_config()`
-      builds `LLMConfig` from JW settings: providers from the table + pins/default
-      read from the `ai` settings blob — no new server-side pin storage), the
-      server prompt catalog `llm/features.py` (system + user_template + temp/think
-      per action, `{{var}}` renderer), and `POST /v1/ai/run` (renders + dispatches,
-      pins/default honored, provider/model override for the Writer Lab, 501 when
-      unconfigured). Client helper `services/aiFeature.js` (task panel + error
-      wrap; server resolves provider + records usage).
-    - ✅ **critique DONE** — runCritique + runStructuralAnalysis call /v1/ai/run;
-      the two prompts ported to features.py + deleted from the client. Verified
-      (server tests + build + Biome + headless smoke).
-    - ⏳ **Remaining (~11)** — plotHoles, foreshadowing, entitySweep,
-      characterAudit, readerKnowledge, relationshipArc, voiceDrift, beatSheet,
-      reverseOutline, marketingPack, multiReader — same pattern (port each
-      prompt + variable shape to features.py, rewire its `services/analysis/*`
-      file to `runAiFeature`). Each is its own small unit.
-    The async streaming proxy (`/v1/llm/...`) stays for the streaming features
-    (writerAI/chat/rag) until last, then is deleted.
+  - ✅ **Analysis features (12/12) DONE** — every `services/analysis/*` feature
+    runs server-side on the shared dispatch (headless JW now gets AI). Foundation:
+    `justwrite_server/llm/config.py` (`llm_config()` from JW settings — providers
+    from the table + pins/default from the `ai` blob, no new pin storage), the
+    server prompt catalog `llm/features.py` (system + user_template templated with
+    `{{var}}`, incl. plotHoles' `{{world_rules_section}}` + multiReader's 4 persona
+    actions), `POST /v1/ai/run` (renders system+user, honors pins/default +
+    Writer-Lab provider override, 501 when unconfigured), client helper
+    `services/aiFeature.js` (task panel + error wrap; server resolves provider +
+    records usage). Migrated: critique (+structure), foreshadowing, readerKnowledge,
+    plotHoles, entitySweep, characterAudit, relationshipArc, voiceDrift, beatSheet,
+    reverseOutline, marketingPack, multiReader. All SYSTEM prompts single-sourced
+    server-side; each verified by endpoint tests + build:vite + Biome + the headless
+    smoke (zero JS errors).
+  - ⏳ **Remaining (streaming + non-analysis)** — the STREAMING features
+    (writerAI rewrite/expand/tighten/continue, chat, rag/chat, rag/characterChat)
+    keep the `/v1/llm/...` gateway until a streaming server-side dispatch path
+    lands (`dispatch.chat` is one-shot); then the gateway is deleted. A few other
+    non-analysis `runAiStream` consumers (resumeBriefing, sessionRecap,
+    stuckDiagnostic, sensoryResearch, brainstorm) — audit streaming-vs-not and
+    migrate the non-streaming ones the same way.
 - **(4)** `@delebash/llm-ui` against the now-identical endpoints; delete the
   per-app `ProviderBackend` adapter.
 - **(5)** delete dead per-app code.
