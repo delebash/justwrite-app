@@ -42,7 +42,7 @@ const INHERIT = "__inherit__";
 // when nothing's pinned (then we display the provider's chatModel).
 const resolvedProvider = computed(() => ai.providerForFeature(props.feature));
 const resolvedModel = computed(() =>
-  ai.modelForFeature(props.feature) || resolvedProvider.value?.chatModel || "—"
+  ai.modelForFeature(props.feature) || resolvedProvider.value?.defaultModel || "—"
 );
 
 // Raw pin state — drives the popover selects.
@@ -74,9 +74,9 @@ const modelOptions = computed(() => {
   const list = modelsFor(pinnedProviderId.value);
   const seen = new Set();
   const out = [];
-  if (provider?.chatModel) {
-    out.push({ value: provider.chatModel, label: `${provider.chatModel} (configured default)` });
-    seen.add(provider.chatModel);
+  if (provider?.defaultModel) {
+    out.push({ value: provider.defaultModel, label: `${provider.defaultModel} (configured default)` });
+    seen.add(provider.defaultModel);
   }
   for (const m of list) {
     if (m.id && !seen.has(m.id)) { out.push({ value: m.id, label: m.id }); seen.add(m.id); }
@@ -90,7 +90,7 @@ function setProvider(providerId) {
     return;
   }
   const p = ai.providerById(providerId);
-  ai.setFeaturePin(props.feature, { providerId, model: p?.chatModel || "" });
+  ai.setFeaturePin(props.feature, { providerId, model: p?.defaultModel || "" });
   // Force a fresh fetch — ensureModels is lazy and would skip if a prior
   // failed attempt left an empty array in the cache. The fetch resolves
   // async; the Model dropdown re-renders when results land.

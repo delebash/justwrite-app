@@ -7,7 +7,7 @@
 
 import { ref, computed } from "vue";
 import { useI18n } from "vue-i18n";
-import { probeModels, detectRunner } from "../services/openai-compat.js";
+import { probeModels } from "../services/openai-compat.js";
 import { entryLabel, TIERS, TIER_IDS } from "../services/modelMeta.js";
 import { useAiStore } from "../stores/ai.js";
 import Combobox from "../components/Combobox.vue";
@@ -32,7 +32,7 @@ const emit = defineEmits(["save", "cancel"]);
 // server probes the upstream (LM Studio quant/state, /v1/models, Ollama
 // /api/tags) and returns enriched entries; each gets a precomputed `label`
 // so the Combobox can show "qwen/qwen3-8b · Q4_K_M · not loaded" while still
-// binding the bare id to draft.chatModel / draft.embeddingModel.
+// binding the bare id to draft.defaultModel / draft.embeddingModel.
 // Unfiltered fetch — every model the server reports, regardless of type.
 // Two computeds slice it into the chat and embedding dropdowns so a single
 // Fetch populates both at once (chat hides nomic-embed-* and any voice/ASR
@@ -70,31 +70,38 @@ async function fetchModels() {
 // ── Tier options for JwSegmented ─────────────────────────────────────
 const TIER_OPTIONS = TIER_IDS.map((id) => ({ value: id, label: TIERS[id].label }));
 
-// ── Runner (LLM endpoint family) ───────────────────────────────────
-// Shows the explicit `draft.runner` if set, otherwise the URL-based
-// auto-detect. Picking from the select writes to `draft.runner`, which
-// pins the explicit choice from then on.
-const runnerValue = computed(() => detectRunner(props.draft));
+// ── Provider type (which adapter handles dispatch) ─────────────────
+// Native built-in adapters for Anthropic / Gemini / Ollama; everything else
+// speaks the OpenAI-compatible HTTP shape (plan Decision 20).
+const PROVIDER_TYPE_OPTIONS = [
+  { value: "openai-compat", label: "OpenAI-compatible" },
+  { value: "anthropic", label: "Anthropic (Claude)" },
+  { value: "gemini", label: "Gemini (Google)" },
+  { value: "ollama", label: "Ollama (native)" },
+  { value: "openai", label: "OpenAI" },
+  { value: "deepseek", label: "DeepSeek" },
+  { value: "openrouter", label: "OpenRouter" },
+];
 
 // ── Tier (attribution-pipeline capability bucket) ──────────────────
 // Resolved tier for the currently-picked chat model. Driven by
 // modelMeta's name heuristic, with an optional user pin in ai.modelTiers.
 // "auto" = heuristic-derived; "pinned" = explicit override.
 const currentTier = computed(() => {
-  const id = props.draft.chatModel;
+  const id = props.draft.defaultModel;
   return id ? ai.resolveTier(id) : null;
 });
 const tierSource = computed(() => {
-  const id = props.draft.chatModel;
+  const id = props.draft.defaultModel;
   return id ? ai.tierSource(id) : "auto";
 });
 function pinTier(tierId) {
-  if (!props.draft.chatModel) return;
-  ai.setModelTier(props.draft.chatModel, tierId);
+  if (!props.draft.defaultModel) return;
+  ai.setModelTier(props.draft.defaultModel, tierId);
 }
 function clearTierPin() {
-  if (!props.draft.chatModel) return;
-  ai.clearModelTier(props.draft.chatModel);
+  if (!props.draft.defaultModel) return;
+  ai.clearModelTier(props.draft.defaultModel);
 }
 
 </script>
@@ -112,12 +119,9 @@ function clearTierPin() {
       <JwInput v-model="draft.apiKey" type="password" :placeholder="$t('settings.providerForm.fieldApiKeyPlaceholder')" />
 
       <template>
-        <span class="t-muted" :title="$t('settings.providerForm.fieldApiFormatTitle')">{{ $t('settings.providerForm.fieldApiFormat') }}</span>
-        <JwSelect :model-value="runnerValue" @update:model-value="draft.runner = $event"
-          :options="[
-            { label: $t('settings.providerForm.runnerOpenai'), value: 'openai-compat' },
-            { label: $t('settings.providerForm.runnerOllama'), value: 'ollama' },
-          ]"
+        <span class="t-muted" :title="$t('settings.providerForm.fieldApiFormatTitle')">Provider type</span>
+        <JwSelect :model-value="draft.providerType || 'openai-compat'" @update:model-value="draft.providerType = $event"
+          :options="PROVIDER_TYPE_OPTIONS"
           optionLabel="label" optionValue="value" />
       </template>
 
@@ -125,12 +129,12 @@ function clearTierPin() {
         <span class="t-muted">{{ $t('settings.providerForm.fieldChatModel') }}</span>
         <div style="display:flex;gap:6px;align-items:stretch;flex-wrap:wrap">
           <Combobox style="flex:1;min-width:160px"
-            v-model="draft.chatModel"
+            v-model="draft.defaultModel"
             :items="chatFetchedModels"
             item-value="id"
             item-label="label"
             free-text
-            :placeholder="chatFetchedModels.length ? `Type to filter or click ▾ to pick from ${chatFetchedModels.length} chat models` : $t('settings.providerForm.chatModelPlaceholder')"
+            :placeholder="chatFetchedModels.length ? `Type to filter or click ▾ to pick from ${chatFetchedModels.length} chat models` : $t('settings.providerForm.defaultModelPlaceholder')"
             :chev-title="chatFetchedModels.length ? $t('settings.providerForm.chevShowFetched') : $t('settings.providerForm.chevFetchFirst')" />
           <JwButton intent="ghost" type="button"
             :disabled="modelsLoading || !draft.baseUrl"
@@ -143,7 +147,7 @@ function clearTierPin() {
           </div>
         </div>
 
-        <template v-if="draft.chatModel">
+        <template v-if="draft.defaultModel">
           <span class="t-muted" :title="$t('settings.providerForm.fieldTierTitle')">{{ $t('settings.providerForm.fieldTier') }}</span>
           <div style="display:flex;gap:6px;align-items:center;flex-wrap:wrap;font-size:11.5px">
             <JwSegmented

@@ -94,7 +94,7 @@ const chatProviderValue = computed({
   set(v) {
     if (!v || v === INHERIT_CHAT) { ai.setFeaturePin("chat", null); return; }
     const p = ai.providerById(v);
-    ai.setFeaturePin("chat", { providerId: v, model: p?.chatModel || "" });
+    ai.setFeaturePin("chat", { providerId: v, model: p?.defaultModel || "" });
     ensureChatModels(v);
   },
 });
@@ -113,9 +113,9 @@ const chatModelOptions = computed(() => {
   const list = chatModelsFor(pid);
   const seen = new Set();
   const out = [];
-  if (provider?.chatModel) {
-    out.push({ value: provider.chatModel, label: `${provider.chatModel} (default)` });
-    seen.add(provider.chatModel);
+  if (provider?.defaultModel) {
+    out.push({ value: provider.defaultModel, label: `${provider.defaultModel} (default)` });
+    seen.add(provider.defaultModel);
   }
   for (const m of list) {
     if (m.id && !seen.has(m.id)) { out.push({ value: m.id, label: m.id }); seen.add(m.id); }

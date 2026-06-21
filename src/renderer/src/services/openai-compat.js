@@ -14,16 +14,6 @@
 
 import { serverUrl } from "./serverApi.js";
 
-// URL-runner heuristic, kept for the Settings editor's "API format" hint (pure
-// UI — no network). The gateway does its own server-side detection for routing;
-// this just mirrors it so the editor can show the auto-detected value.
-export function detectRunner(provider) {
-  if (provider?.runner) return provider.runner;
-  const url = (provider?.baseUrl || "").toLowerCase();
-  if (/:11434(\/|$)/.test(url) || /\bollama\b/.test(url)) return "ollama";
-  return "openai-compat";
-}
-
 // Fetch a model list for an UNSAVED provider draft (Settings → provider editor
 // "Fetch models"). The draft has no server row to resolve by id, so its config
 // rides in the POST body to the gateway's ad-hoc probe — keeping the key
@@ -39,7 +29,7 @@ export async function probeModels(draft, { kind = "chat", signal, timeoutMs = 20
       headers: { "Content-Type": "application/json" },
       signal: ctl.signal,
       body: JSON.stringify({
-        baseUrl: draft?.baseUrl, apiKey: draft?.apiKey, runner: draft?.runner, kind,
+        baseUrl: draft?.baseUrl, apiKey: draft?.apiKey, kind,
       }),
     });
     if (!res.ok) {
@@ -76,7 +66,7 @@ export class OpenAICompatClient {
       headers: { "Content-Type": "application/json" },
       signal,
       body: JSON.stringify({
-        model: model || this.provider.chatModel,
+        model: model || this.provider.defaultModel,
         messages,
         temperature,
         stream: false,
@@ -105,7 +95,7 @@ export class OpenAICompatClient {
       headers: { "Content-Type": "application/json" },
       signal,
       body: JSON.stringify({
-        model: model || this.provider.chatModel,
+        model: model || this.provider.defaultModel,
         messages,
         temperature,
         stream: true,

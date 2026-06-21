@@ -53,7 +53,7 @@ const tierOptions = computed(() =>
 const cloudProviders = computed(() => {
   const isLocal = (u) => /\b(localhost|127\.0\.0\.1|0\.0\.0\.0)\b/i.test(String(u || ""));
   return ai.providers
-    .filter((p) => (p.kind === "llm" || p.kind === "both") && !!p.apiKey && !isLocal(p.baseUrl));
+    .filter((p) => !!p.hasApiKey && !isLocal(p.baseUrl));
 });
 const cloudOptions = computed(() => [
   { value: "", label: "None — keep analysis features local" },
@@ -91,10 +91,7 @@ const cloudFallback = computed(() => recipeBuckets.value.cloud > 0 && !hasCloudP
 // tagged on a provider, surface a nudge when the auto-detected tier
 // differs — typically a GPU upgrade, sometimes a fresh detection on a
 // machine where the default tier was changed manually.
-const savedTier = computed(() => {
-  const defaultProvider = ai.providers.find((p) => p.id === QUICK_SETUP_PROVIDER_IDS.default);
-  return defaultProvider?.quickSetupTier || null;
-});
+const savedTier = computed(() => ai.quickSetupTiers?.[QUICK_SETUP_PROVIDER_IDS.default] || null);
 const detectedTier = computed(() => {
   if (gpu.value?.vramMb) return tierForVramMb(gpu.value.vramMb);
   return null;

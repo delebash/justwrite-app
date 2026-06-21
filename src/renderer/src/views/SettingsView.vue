@@ -117,7 +117,7 @@ function setFeatureProvider(key, providerId) {
   // New pin: default the model to the provider's saved chatModel so the
   // pin is immediately usable. User can refine via the model select.
   const provider = ai.providerById(providerId);
-  ai.setFeaturePin(key, { providerId, model: provider?.chatModel || "" });
+  ai.setFeaturePin(key, { providerId, model: provider?.defaultModel || "" });
   ensureFeatureModels(providerId); // fetches only when the cache is empty
 }
 function setFeatureModel(key, model) {
@@ -137,9 +137,9 @@ function featureModelOptions(key) {
   const list = featureModelsFor(providerId);
   const seen = new Set();
   const out = [];
-  if (provider?.chatModel) {
-    out.push({ value: provider.chatModel, label: `${provider.chatModel} (configured default)` });
-    seen.add(provider.chatModel);
+  if (provider?.defaultModel) {
+    out.push({ value: provider.defaultModel, label: `${provider.defaultModel} (configured default)` });
+    seen.add(provider.defaultModel);
   }
   for (const m of list) {
     if (m.id && !seen.has(m.id)) { out.push({ value: m.id, label: m.id }); seen.add(m.id); }
@@ -305,7 +305,7 @@ const providerRenderList = computed(() => {
   // ── Cloud block ──
   out.push({ type: "section", key: "sec-cloud", label: "Cloud · metered",
     subtitle: "Pay per token. Stronger reasoning, no local hardware needed, every call leaves the machine." });
-  if (!cloudLlm.value.some((p) => p.apiKey)) out.push({ type: "callout", key: "callout-cloud", flavor: "cloud" });
+  if (!cloudLlm.value.some((p) => p.hasApiKey)) out.push({ type: "callout", key: "callout-cloud", flavor: "cloud" });
   for (const p of cloudLlm.value) out.push({ type: "row", key: `row-${p.id}`, p });
   if (!cloudLlm.value.length) {
     out.push({ type: "empty", key: "empty-cloud", flavor: "cloud" });
@@ -315,7 +315,10 @@ const providerRenderList = computed(() => {
 
 function startEdit(provider) {
   editing.value = provider.id;
-  draft.value = { ...provider };
+  // The list shape carries no apiKey (write-only) — start the field blank so an
+  // unchanged save preserves the stored key (the server treats "" as "keep
+  // current"; only a typed value replaces it).
+  draft.value = { ...provider, apiKey: "" };
 }
 
 function startNew() {
@@ -323,10 +326,10 @@ function startNew() {
   draft.value = {
     id: "",
     name: "",
-    kind: "llm",
+    providerType: "openai-compat",
     baseUrl: "",
     apiKey: "",
-    chatModel: "",
+    defaultModel: "",
     embeddingModel: "",
   };
 }
@@ -1153,7 +1156,6 @@ const recentColumns = [
                 <div style="min-width:0">
                   <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap">
                     <b style="font-size:13.5px">{{ item.p.name }}</b>
-                    <span v-if="item.p.builtIn" class="chip" style="font-size:10px">built-in</span>
                     <button v-if="usageBadgeLabel(item.p)"
                       type="button"
                       class="chip"
@@ -1168,9 +1170,9 @@ const recentColumns = [
                   </div>
                   <div class="t-muted" style="font-family:var(--font-mono);font-size:11px;margin-top:2px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">{{ item.p.baseUrl }}</div>
                   <div class="t-muted" style="font-size:11px;margin-top:2px">
-                    <template v-if="item.p.chatModel">chat: <b>{{ item.p.chatModel }}</b> · </template>
+                    <template v-if="item.p.defaultModel">chat: <b>{{ item.p.defaultModel }}</b> · </template>
                     <template v-if="item.p.embeddingModel">embed: <b>{{ item.p.embeddingModel }}</b> · </template>
-                    {{ item.p.apiKey ? "API key set" : "no key" }}
+                    {{ item.p.hasApiKey ? "API key set" : "no key" }}
                   </div>
                   <div v-if="expandedUsageId === item.p.id" style="margin-top:8px;padding:8px 10px;border-radius:6px;background:var(--surface-2,var(--surface-3));font-size:12px;line-height:1.55">
                     <div v-if="providerDefaultRoles(item.p).length" style="margin-bottom:4px">

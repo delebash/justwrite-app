@@ -93,7 +93,7 @@ function colRawResponse(col) {
 
 function colResultModel(col) {
   const provider = ai.providerById(col.providerId);
-  return col.model || provider?.chatModel || ai.llmProvider?.chatModel || "—";
+  return col.model || provider?.defaultModel || ai.llmProvider?.defaultModel || "—";
 }
 
 function isAbort(e) { return e?.name === "AbortError" || /abort/i.test(e?.message || ""); }
@@ -123,7 +123,7 @@ async function runOneColumn(col) {
       model,
       project,
       task: {
-        label: `Writer Lab · ${selectedAction.value.label} · ${col.model || provider?.chatModel || "default"}`,
+        label: `Writer Lab · ${selectedAction.value.label} · ${col.model || provider?.defaultModel || "default"}`,
         meta: { writerLab: true, writerLabRunId: runId, columnId: col.id, actionKey: selectedAction.value.key },
       },
     });

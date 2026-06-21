@@ -36,7 +36,7 @@ watch(() => props.providerId, (id) => { if (id) refreshModels(id); });
 
 const models = computed(() => modelsFor(props.providerId));
 const defaultLabel = computed(() => {
-  const m = ai.providerById(props.providerId)?.chatModel;
+  const m = ai.providerById(props.providerId)?.defaultModel;
   if (!m) return "(provider default)";
   const q = parseQuant(m);
   return q ? `(provider default — ${m} · ${q})` : `(provider default — ${m})`;

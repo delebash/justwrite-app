@@ -111,9 +111,27 @@ function save(state) {
     modelTiers: state.modelTiers,
     featurePins: state.featurePins,
     autoRebuildRagIndex: state.autoRebuildRagIndex,
+    quickSetupTiers: state.quickSetupTiers,
   });
-  // Providers are server-authoritative — write the list through to its table.
-  try { providerBackend.saveProviders(state.providers); } catch {}
+  // Providers are server-authoritative + persisted per-provider by the CRUD
+  // actions (addProvider/updateProvider/removeProvider) — NOT bulk-saved here.
+}
+
+// Build the shared list-shape provider from a form draft. hasApiKey is derived
+// from whether a key was typed (the server confirms it on reconcile);
+// registered is assumed true until the server says otherwise.
+function listShape(draft, prev = null) {
+  return {
+    id: draft.id,
+    name: draft.name || "",
+    providerType: draft.providerType || prev?.providerType || "openai-compat",
+    baseUrl: draft.baseUrl ?? prev?.baseUrl ?? "",
+    defaultModel: draft.defaultModel ?? prev?.defaultModel ?? "",
+    embeddingModel: draft.embeddingModel ?? prev?.embeddingModel ?? "",
+    timeoutSeconds: draft.timeoutSeconds ?? prev?.timeoutSeconds ?? 60,
+    hasApiKey: draft.apiKey ? true : (prev?.hasApiKey ?? false),
+    registered: prev?.registered ?? true,
+  };
 }
 
 export const useAiStore = defineStore("ai", {
@@ -145,6 +163,10 @@ export const useAiStore = defineStore("ai", {
       // burns embed tokens on every save against a cloud provider, which
       // the user shouldn't get without opting in.
       autoRebuildRagIndex: loaded?.autoRebuildRagIndex ?? false,
+      // Per-provider Quick-Setup tier tag (providerId -> tier id). Lives in
+      // ai-prefs, not on the provider — the shared provider contract has no
+      // place for app-specific wizard state. Drives the GPU-upgrade nudge.
+      quickSetupTiers: loaded?.quickSetupTiers ?? {},
       // Usage ledger — hydrated on demand from /v1/llm-usage (Settings → Usage).
       // recordUsage appends locally for live display and POSTs to the server,
       // which owns the full history and computes lifetime totals.
@@ -158,7 +180,9 @@ export const useAiStore = defineStore("ai", {
     providerById: (s) => (id) => s.providers.find((p) => p.id === id),
     llmProvider: (s) => s.providers.find((p) => p.id === s.defaultLlmId) || null,
     embeddingProvider: (s) => s.providers.find((p) => p.id === s.defaultEmbeddingId) || null,
-    llmProviders: (s) => s.providers.filter((p) => p.kind === "llm" || p.kind === "both"),
+    // Every configured provider is an LLM provider now (providerType picks the
+    // adapter; embedding capability is just whether embeddingModel is set).
+    llmProviders: (s) => s.providers,
 
     // Subset of llmProviders that's actually usable right now: local
     // endpoints (no key needed) or cloud providers that have an apiKey
@@ -167,13 +191,11 @@ export const useAiStore = defineStore("ai", {
     // "Claude · claude-haiku-4-5" when the user hasn't configured them.
     readyLlmProviders(s) {
       const isLocal = (url) => /\b(localhost|127\.0\.0\.1|0\.0\.0\.0)\b/i.test(String(url || ""));
-      return s.providers
-        .filter((p) => p.kind === "llm" || p.kind === "both")
-        .filter((p) => !!p.apiKey || isLocal(p.baseUrl));
+      return s.providers.filter((p) => !!p.hasApiKey || isLocal(p.baseUrl));
     },
-    // Any LLM-capable provider can host embeddings — the embedding
-    // model is configured per-provider via the embeddingModel field.
-    embeddingProviders: (s) => s.providers.filter((p) => p.kind === "llm" || p.kind === "both"),
+    // Any provider can host embeddings — the embedding model is configured
+    // per-provider via the embeddingModel field.
+    embeddingProviders: (s) => s.providers,
 
     // Resolve a feature pin to its provider; falls back to the global
     // default LLM provider when no pin is set or the pinned provider is
@@ -213,19 +235,39 @@ export const useAiStore = defineStore("ai", {
   },
 
   actions: {
-    addProvider(provider) {
-      this.providers = [...this.providers, { ...provider, id: provider.id || crypto.randomUUID() }];
-      save(this.$state);
+    // Provider CRUD goes through the shared per-provider router
+    // (providerBackend). Each action updates the local list optimistically for
+    // a snappy UI, fires the request, and reconciles the entry from the
+    // server's authoritative response (hasApiKey / registered).
+    addProvider(draft) {
+      const id = draft.id || crypto.randomUUID();
+      this.providers = [...this.providers, listShape({ ...draft, id })];
+      providerBackend.createProvider({ ...draft, id })
+        .then((created) => this._reconcileProvider(id, created))
+        .catch((err) => {
+          console.error("addProvider failed:", err);
+          this.providers = this.providers.filter((p) => p.id !== id);
+        });
     },
-    updateProvider(id, patch) {
-      this.providers = this.providers.map((p) =>
-        p.id === id ? { ...p, ...patch } : p,
-      );
-      save(this.$state);
+    updateProvider(id, draft) {
+      const prev = this.providers.find((p) => p.id === id);
+      this.providers = this.providers.map((p) => (p.id === id ? listShape({ ...draft, id }, prev) : p));
+      providerBackend.updateProvider(id, draft)
+        .then((updated) => this._reconcileProvider(id, updated))
+        .catch((err) => console.error("updateProvider failed:", err));
     },
     removeProvider(id) {
-      this.providers = this.providers.filter((p) => p.id !== id || p.builtIn);
-      save(this.$state);
+      const prev = this.providers;
+      this.providers = this.providers.filter((p) => p.id !== id);
+      providerBackend.deleteProvider(id).catch((err) => {
+        console.error("removeProvider failed:", err);
+        this.providers = prev; // restore on failure
+      });
+    },
+    // Replace an entry with the server's authoritative shape (keyed by id).
+    _reconcileProvider(id, server) {
+      if (!server) return;
+      this.providers = this.providers.map((p) => (p.id === id ? { ...p, ...server } : p));
     },
     setFeaturePin(featureKey, pin) {
       // pin = null to inherit the default; { providerId, model? } to pin.
@@ -269,62 +311,55 @@ export const useAiStore = defineStore("ai", {
     //   (omitted keys inherit the default LLM)
     applyQuickSetupPreset({ preset, ollamaBaseUrl, cloudProviderId = null, providerIds }) {
       if (!preset || !ollamaBaseUrl || !providerIds?.default) return;
-      const baseUrl = ollamaBaseUrl;
       const defaultId = providerIds.default;
       const fastId = providerIds.fast;
-
-      // quickSetupTier on each provider lets the wizard later compare
-      // the user's current setup against a freshly-detected VRAM tier
-      // and nudge them when the two have drifted (e.g. upgraded GPU).
       const tierTag = preset.id || null;
-      const defaultEntry = {
+
+      // Drafts in the shared provider shape; the quick-setup endpoints are
+      // Ollama daemons (providerType "ollama" → the gateway honors think:false).
+      const defaultDraft = {
         id: defaultId,
         name: `Ollama · ${preset.defaultChatModel}`,
-        kind: "llm",
-        baseUrl,
+        providerType: "ollama",
+        baseUrl: ollamaBaseUrl,
         apiKey: "",
-        chatModel: preset.defaultChatModel,
+        defaultModel: preset.defaultChatModel,
         embeddingModel: preset.embeddingModel || "",
-        quickSetupTier: tierTag,
       };
-      const fastEntry = preset.fastChatModel ? {
+      const fastDraft = preset.fastChatModel ? {
         id: fastId,
         name: `Ollama · ${preset.fastChatModel} (fast)`,
-        kind: "llm",
-        baseUrl,
+        providerType: "ollama",
+        baseUrl: ollamaBaseUrl,
         apiKey: "",
-        chatModel: preset.fastChatModel,
-        quickSetupTier: tierTag,
+        defaultModel: preset.fastChatModel,
       } : null;
 
-      // Upsert providers — preserve any unrelated fields if the entry
-      // already exists (e.g. user renamed it).
-      const upsert = (list, entry) => {
-        const idx = list.findIndex((p) => p.id === entry.id);
-        if (idx < 0) return [...list, entry];
-        const next = [...list];
-        next[idx] = { ...list[idx], ...entry };
-        return next;
+      // Upsert each through the per-provider CRUD (create if new, else update).
+      const upsert = (draft) => {
+        if (this.providers.some((p) => p.id === draft.id)) this.updateProvider(draft.id, draft);
+        else this.addProvider(draft);
       };
-      let providers = upsert(this.providers, defaultEntry);
-      if (fastEntry) providers = upsert(providers, fastEntry);
-      else providers = providers.filter((p) => p.id !== fastId); // drop stale fast if tier no longer wants one
+      upsert(defaultDraft);
+      if (fastDraft) upsert(fastDraft);
+      else if (this.providers.some((p) => p.id === fastId)) this.removeProvider(fastId);
 
-      this.providers = providers;
+      // Tag the tier for the GPU-upgrade nudge (ai-prefs, off the provider).
+      const tiers = { ...this.quickSetupTiers, [defaultId]: tierTag };
+      if (fastDraft) tiers[fastId] = tierTag;
+      else delete tiers[fastId];
+      this.quickSetupTiers = tiers;
+
       this.defaultLlmId = defaultId;
       this.defaultEmbeddingId = defaultId;
 
-      // Rewrite feature pins per the recipe. Unmentioned keys reset
-      // to null (= inherit default) so a re-run is fully idempotent.
+      // Rewrite feature pins per the recipe. Unmentioned keys reset to null
+      // (= inherit default) so a re-run is fully idempotent.
       const nextPins = {};
       for (const [key, target] of Object.entries(preset.recipe || {})) {
-        if (target === "fast" && fastEntry) {
-          nextPins[key] = { providerId: fastId };
-        } else if (target === "cloud" && cloudProviderId) {
-          nextPins[key] = { providerId: cloudProviderId };
-        } else {
-          nextPins[key] = null;
-        }
+        if (target === "fast" && fastDraft) nextPins[key] = { providerId: fastId };
+        else if (target === "cloud" && cloudProviderId) nextPins[key] = { providerId: cloudProviderId };
+        else nextPins[key] = null;
       }
       this.featurePins = { ...this.featurePins, ...nextPins };
 

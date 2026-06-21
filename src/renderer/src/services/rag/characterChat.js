@@ -153,7 +153,7 @@ export async function askAsCharacter({
   const extras = project.characterExtras?.[characterId] || null;
 
   const resolvedLlmProvider = llmProvider || ai.providerForFeature("characterChat") || ai.providerForFeature("chat");
-  const resolvedLlmModel = llmModel || ai.modelForFeature("characterChat") || ai.modelForFeature("chat") || resolvedLlmProvider?.chatModel;
+  const resolvedLlmModel = llmModel || ai.modelForFeature("characterChat") || ai.modelForFeature("chat") || resolvedLlmProvider?.defaultModel;
   const resolvedEmbedProvider = embedProvider || ai.embeddingProvider;
 
   if (!resolvedLlmProvider) throw new Error("No LLM provider configured. Open Settings → AI providers and set a chat provider.");

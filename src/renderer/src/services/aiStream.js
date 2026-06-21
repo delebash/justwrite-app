@@ -84,7 +84,7 @@ export async function runAiStream({
   if (!actualProvider) {
     throw new Error("No LLM provider is configured. Add one in Settings → AI providers.");
   }
-  const actualModel = model || ai.modelForFeature(feature) || actualProvider.chatModel;
+  const actualModel = model || ai.modelForFeature(feature) || actualProvider.defaultModel;
   const tier = ai.resolveTier(actualModel);
   const client = new OpenAICompatClient(actualProvider);
 

@@ -117,7 +117,7 @@ export async function askManuscript({
   const project = useProjectStore();
 
   const resolvedLlmProvider   = llmProvider   || ai.providerForFeature("chat");
-  const resolvedLlmModel      = llmModel      || ai.modelForFeature("chat") || resolvedLlmProvider?.chatModel;
+  const resolvedLlmModel      = llmModel      || ai.modelForFeature("chat") || resolvedLlmProvider?.defaultModel;
   const resolvedEmbedProvider = embedProvider || ai.embeddingProvider;
 
   if (!resolvedLlmProvider) {
