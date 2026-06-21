@@ -26,6 +26,13 @@ import { tooltipDirective } from "./services/tooltip.js";
 import { i18n, detectLocale, setLocale as setI18nLocale } from "./i18n/index.js";
 import { startAutoRebuildWatcher } from "./services/rag/autoIndex.js";
 
+// Shared LLM UI (@delebash/llm-ui) — configure its origin-aware client ONCE with
+// the base the app already resolved, so the shared AI views call the same server
+// endpoints the rest of the app does (no per-app data adapter).
+import { configureLlmUi } from "@delebash/llm-ui";
+import { SERVER_BASE } from "./services/serverApi.js";
+configureLlmUi({ baseUrl: SERVER_BASE });
+
 // Hydrate the server-backed caches BEFORE any Pinia store initialises — stores
 // read from them synchronously in `state: () => ({...})`.
 // Wrapped in an async IIFE to keep the build target compatible with
