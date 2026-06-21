@@ -10,7 +10,7 @@
 // evidence quote, and a one-line reasoning. The shape mirrors
 // chapter.critique.notes so the existing UI patterns translate.
 
-import { runAiStream } from "../aiStream.js";
+import { runAiFeature } from "../aiFeature.js";
 import { parseJsonLoose } from "../llmText.js";
 
 function htmlToText(html) {
@@ -30,44 +30,7 @@ function tailWords(text, max) {
   return `… ${parts.slice(-max).join(" ")}`;
 }
 
-const SYSTEM = `You audit fiction for character consistency.
-
-You will be given:
-  - a character profile (name, role, one-liner, plus optional voice / arc / motivation / backstory / quirks)
-  - a digest of the scenes that feature this character (chapter context + the prose tail of each scene)
-
-Your job: identify ACTIONS, REACTIONS, or DIALOGUE in these scenes that look inconsistent with the established psychology — i.e., not earned by what the writer has set up about the character.
-
-Return ONLY a JSON object:
-
-{
-  "concerns": [
-    {
-      "severity": "flag" | "suggest" | "info",
-      "chapterNum": number,
-      "sceneSummary": "short hint of where in the chapter this occurs",
-      "issue":  "one sentence naming what action looks inconsistent",
-      "quote":  "a 6-15 word verbatim phrase from the prose, the action itself",
-      "reason": "one sentence on why it doesn't fit, citing the established profile",
-      "fix":    "one sentence on the cheapest narrative fix — earn the action, change the action, or revise the profile"
-    }
-  ],
-  "verdict": "consistent" | "minor-drift" | "significant-drift"
-}
-
-Severity scale:
-  - "flag"   — clear inconsistency between the established character and the action
-  - "suggest" — borderline / could be intentional growth but worth a second look
-  - "info"   — small note for the writer's awareness; not a problem on its own
-
-Rules:
-  - Be selective. Don't flag everything. A reasonable book averages 0-4 concerns per main character.
-  - Be honest. If the character is consistent across the scenes, return concerns: [] and verdict: "consistent". The writer's not asking for false flags.
-  - Quote VERBATIM from the prose. No paraphrasing in the quote field.
-  - Don't critique the WRITING — only consistency with the established character.
-  - Character growth and change are EARNED inconsistencies; ignore them unless the scene gives no on-page reason. The reason field should distinguish "uncosted change" from "unearned change".
-
-Return ONLY the JSON object. No preface, no markdown fences.`;
+// The prompt lives server-side (features.py, action "characterAudit").
 
 const SEVERITY_LIST = ["flag", "suggest", "info"];
 
@@ -178,17 +141,11 @@ export async function auditCharacter({
     `SCENES FEATURING THIS CHARACTER (${scenes.length} total)\n\n` +
     sceneBlocks.join("\n\n");
 
-  const messages = [
-    { role: "system", content: SYSTEM },
-    { role: "user", content: userBody },
-  ];
-
   const auditMeta = { ...meta, characterId };
-  const result = await runAiStream({
+  const result = await runAiFeature({
+    action: "characterAudit",
     feature: "characterAudit",
-    messages,
-    temperature: 0.3,
-    extra: { think: false },
+    variables: { user_content: userBody },
     signal,
     provider,
     model,

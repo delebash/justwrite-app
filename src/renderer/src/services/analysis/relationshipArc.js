@@ -14,7 +14,7 @@
 //   { summary, trajectory: "warming"|"cooling"|"escalating"|"defusing"|
 //                          "flipping"|"static", chapters: [...] }
 
-import { runAiStream } from "../aiStream.js";
+import { runAiFeature } from "../aiFeature.js";
 import { parseJsonLoose } from "../llmText.js";
 
 function htmlToText(html) {
@@ -85,41 +85,7 @@ function buildSharedSceneDigest(project, idA, idB) {
   return digest;
 }
 
-const SYSTEM = `You track a relationship between two characters across a novel — chapter by chapter.
-
-You will be given:
-  - Profile A
-  - Profile B
-  - The chapters where both characters appear together, with prose excerpts from the scenes they share
-
-For EACH chapter where they share at least one scene, report:
-  - warmth (1-10): how warm or cold the relationship feels in THIS chapter (1 = open hostility / icy; 5 = neutral / civil; 10 = deep intimacy / trust)
-  - tension (1-10): how taut or calm THIS chapter is between them (1 = entirely calm; 10 = breaking point)
-  - power: who holds the upper hand in THIS chapter — "A" (A dominates), "B" (B dominates), or "eq" (roughly equal / balanced)
-  - moment: one short sentence (8-20 words) naming what specifically shifts or holds between them this chapter
-
-Return ONLY a JSON object:
-
-{
-  "summary":    "2-3 sentences naming the overall shape of this relationship across the book",
-  "trajectory": "warming" | "cooling" | "escalating" | "defusing" | "flipping" | "static",
-  "chapters":   [ { "chapterNum": number, "warmth": int 1-10, "tension": int 1-10, "power": "A"|"B"|"eq", "moment": string } ]
-}
-
-Trajectory definitions:
-  - warming   — warmth rises across the book; coldness gives way to closeness
-  - cooling   — warmth falls across the book; closeness gives way to distance
-  - escalating — tension rises across the book; conflict intensifies
-  - defusing  — tension falls across the book; conflict resolves
-  - flipping  — power dynamic inverts somewhere in the book (A-dominant → B-dominant, or vice versa)
-  - static    — neither warmth, tension, nor power shifts meaningfully
-
-Rules:
-  - The "power" call should reflect agency in THIS chapter — who's setting the terms of the interaction, not who'd win a fight.
-  - The "moment" must be specific to what actually happens in the chapter's shared scenes. No generic "they argue" — say what they argue about and what it costs.
-  - Use only the chapter numbers you were given excerpts for. Don't invent chapters.
-
-Return ONLY the JSON object. No preface, no markdown fences.`;
+// The prompt lives server-side (features.py, action "relationshipArc").
 
 const VALID_TRAJECTORIES = new Set(["warming", "cooling", "escalating", "defusing", "flipping", "static"]);
 const VALID_POWERS = new Set(["A", "B", "eq"]);
@@ -129,7 +95,6 @@ export async function analyseRelationship({
   characterAId,
   characterBId,
   signal,
-  onDelta,
   provider,
   model,
   task,
@@ -169,19 +134,12 @@ export async function analyseRelationship({
     body.push("");
   }
 
-  const messages = [
-    { role: "system", content: SYSTEM },
-    { role: "user", content: body.join("\n") },
-  ];
-
   const arcMeta = { ...(meta || {}), characterAId, characterBId };
-  const result = await runAiStream({
+  const result = await runAiFeature({
+    action: "relationshipArc",
     feature: "relationshipArc",
-    messages,
-    temperature: 0.3,
-    extra: { think: false },
+    variables: { user_content: body.join("\n") },
     signal,
-    onDelta,
     provider,
     model,
     meta: arcMeta,

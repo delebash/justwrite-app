@@ -77,6 +77,10 @@ def test_migrated_actions_render_and_dispatch(tmp_path):
         ("foreshadowing", {"chapter_label": "Ch 1\n\n", "chapter_text": "He hid the key."}, "He hid the key."),
         ("critiqueStructure", {"chapter_label": "", "chapter_text": "Tense scene."}, "Tense scene."),
         ("readerKnowledge", {"user_content": "READER KNOWS: x\n--- BEGIN CHAPTER ---\ny\n--- END CHAPTER ---"}, "BEGIN CHAPTER"),
+        ("entitySweep", {"user_content": "Already in bible: (none)\nHalvard drew his sword."}, "Halvard"),
+        ("characterAudit", {"user_content": "CHARACTER PROFILE\nName: Mara\nShe smiled coldly."}, "Mara"),
+        ("relationshipArc", {"user_content": "PROFILE A — Mara\nPROFILE B — Joss"}, "PROFILE A"),
+        ("voiceDrift", {"user_content": "OUTLIER — Ch 5\nlots of dialogue"}, "OUTLIER"),
     ]
     for action, variables, needle in cases:
         r = c.post("/v1/ai/run", json={"action": action, "variables": variables})

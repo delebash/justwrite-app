@@ -6,7 +6,7 @@
 // We dedupe against existing entity names so the LLM doesn't propose
 // "Halvard" when there's already a Halvard in the cast.
 
-import { runAiStream } from "../aiStream.js";
+import { runAiFeature } from "../aiFeature.js";
 import { parseJsonLoose } from "../llmText.js";
 
 function htmlToText(html) {
@@ -31,24 +31,7 @@ function norm(s) {
     .trim();
 }
 
-const ENTITY_SYSTEM = `You are a story-bible assistant scanning a single chapter of fiction.
-Identify NEW named characters, locations, and objects that appear in the chapter.
-
-Return ONLY a JSON object with three arrays:
-{
-  "characters": [{ "name": <string>, "role": <short label>, "oneLiner": <one sentence>, "evidence": <short quote from text> }],
-  "locations":  [{ "name": <string>, "kind": <short label>, "note": <one sentence>, "evidence": <short quote> }],
-  "objects":    [{ "name": <string>, "kind": <short label>, "note": <one sentence>, "evidence": <short quote> }]
-}
-
-Rules:
-- Only include named entities — proper nouns. Skip "the man", "a sword", "the village".
-- An object is included only if it has narrative weight (named, referenced more than once, or a Chekhov's gun candidate). Skip incidental nouns.
-- For each entity, include a SHORT evidence quote (under 14 words) from the chapter so the human reviewer can verify.
-- One entry per entity even if it appears multiple times.
-- Skip entities listed in the "Already in the story bible" section below — don't re-propose them.
-- If a category is empty, return [] for it.
-- Return ONLY the JSON, no preface, no markdown fences.`;
+// The prompt lives server-side (features.py, action "entitySweep").
 
 /**
  * Scan a chapter and return proposals.
@@ -71,7 +54,6 @@ export async function extractEntities({
   existingObjects = [],
   meta = {},
   signal,
-  onDelta,
   provider,
   model,
   task,
@@ -90,14 +72,11 @@ export async function extractEntities({
     ? `Chapter ${chapterNum != null ? `${chapterNum} — ` : ""}${chapterTitle}\n\n`
     : "";
 
-  const messages = [
-    { role: "system", content: ENTITY_SYSTEM },
-    { role: "user",   content: `${existing}\n\n${header}--- BEGIN CHAPTER ---\n${text}\n--- END CHAPTER ---` },
-  ];
-  const result = await runAiStream({
-    feature: "entitySweep", usageFeature: "entity-extraction",
-    messages, temperature: 0.2, extra: { think: false },
-    signal, onDelta, provider, model, meta,
+  const result = await runAiFeature({
+    action: "entitySweep",
+    feature: "entitySweep",
+    variables: { user_content: `${existing}\n\n${header}--- BEGIN CHAPTER ---\n${text}\n--- END CHAPTER ---` },
+    signal, provider, model, meta,
     task: task || { label: "Entity sweep", meta },
   });
 

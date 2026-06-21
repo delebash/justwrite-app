@@ -18,7 +18,7 @@
 // a 2-3 sentence prose comparison naming the specific shifts. Cheap
 // enough to run per-chapter on demand.
 
-import { runAiStream } from "../aiStream.js";
+import { runAiFeature } from "../aiFeature.js";
 
 // Which metrics from bookMetrics rows are worth tracking for drift.
 // Each entry: { key, label, unit, format }. `format` is a function that
@@ -190,24 +190,7 @@ function tailWords(text, max) {
   return parts.slice(0, max).join(" ");
 }
 
-const EXPLAIN_SYSTEM = `You are a sharp prose editor diagnosing a voice shift between chapters of one writer's novel.
-
-You will be given:
-  - the OUTLIER chapter (the chapter the writer is asking about)
-  - up to 3 sample BASELINE chapters that represent the writer's typical voice in this book
-  - a short list of metrics that diverge between them (e.g. "dialogue ratio higher; filter words lower")
-
-Write 2-4 sentences of plain prose addressed to the writer ("Your voice in this chapter has shifted toward…") naming WHAT specifically differs and HOW it reads on the page. Quote a 4-10 word phrase from the outlier chapter and a contrasting 4-10 word phrase from one of the baseline samples to ground each claim.
-
-Rules:
-  - Be concrete. Don't talk in genre abstractions. Quote actual phrases.
-  - Don't editorialise ("this is great", "you've grown"). Just diagnose.
-  - Don't restate the metric numbers — translate them into prose terms ("more dialogue-driven", "less interiority").
-  - If the chapter is dialogue-heavy: say so and quote a baseline narrative passage to contrast.
-  - If the chapter is narration-heavy: say so and quote a baseline dialogue passage to contrast.
-  - If the shift is small or unclear: say so plainly. Don't manufacture insight.
-
-Return PLAIN PROSE. No headings, no bullets, no markdown, no preface.`;
+// The prompt lives server-side (features.py, action "voiceDrift").
 
 /**
  * Generate a 2-4 sentence diagnosis of why one chapter's voice differs
@@ -227,7 +210,6 @@ export async function explainVoiceDrift({
   baselineChapterIds = [],
   divergentMetrics = [],
   signal,
-  onDelta,
   provider,
   model,
   task,
@@ -274,19 +256,12 @@ export async function explainVoiceDrift({
     body.push(...divergentLines);
   }
 
-  const messages = [
-    { role: "system", content: EXPLAIN_SYSTEM },
-    { role: "user", content: body.join("\n") },
-  ];
-
   const driftMeta = { ...(meta || {}), chapterId: outlierChapterId };
-  const result = await runAiStream({
+  const result = await runAiFeature({
+    action: "voiceDrift",
     feature: "voiceDrift",
-    messages,
-    temperature: 0.4,
-    extra: { think: false },
+    variables: { user_content: body.join("\n") },
     signal,
-    onDelta,
     provider,
     model,
     meta: driftMeta,

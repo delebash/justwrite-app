@@ -179,6 +179,123 @@ Rules:
 
 Return ONLY the JSON object. No preface, no markdown fences."""
 
+# ── entityExtraction.js (extractEntities, feature "entitySweep") ─────────────
+_ENTITY_SYSTEM = """You are a story-bible assistant scanning a single chapter of fiction.
+Identify NEW named characters, locations, and objects that appear in the chapter.
+
+Return ONLY a JSON object with three arrays:
+{
+  "characters": [{ "name": <string>, "role": <short label>, "oneLiner": <one sentence>, "evidence": <short quote from text> }],
+  "locations":  [{ "name": <string>, "kind": <short label>, "note": <one sentence>, "evidence": <short quote> }],
+  "objects":    [{ "name": <string>, "kind": <short label>, "note": <one sentence>, "evidence": <short quote> }]
+}
+
+Rules:
+- Only include named entities — proper nouns. Skip "the man", "a sword", "the village".
+- An object is included only if it has narrative weight (named, referenced more than once, or a Chekhov's gun candidate). Skip incidental nouns.
+- For each entity, include a SHORT evidence quote (under 14 words) from the chapter so the human reviewer can verify.
+- One entry per entity even if it appears multiple times.
+- Skip entities listed in the "Already in the story bible" section below — don't re-propose them.
+- If a category is empty, return [] for it.
+- Return ONLY the JSON, no preface, no markdown fences."""
+
+# ── characterAudit.js (auditCharacter) ──────────────────────────────────────
+_CHARACTER_AUDIT_SYSTEM = """You audit fiction for character consistency.
+
+You will be given:
+  - a character profile (name, role, one-liner, plus optional voice / arc / motivation / backstory / quirks)
+  - a digest of the scenes that feature this character (chapter context + the prose tail of each scene)
+
+Your job: identify ACTIONS, REACTIONS, or DIALOGUE in these scenes that look inconsistent with the established psychology — i.e., not earned by what the writer has set up about the character.
+
+Return ONLY a JSON object:
+
+{
+  "concerns": [
+    {
+      "severity": "flag" | "suggest" | "info",
+      "chapterNum": number,
+      "sceneSummary": "short hint of where in the chapter this occurs",
+      "issue":  "one sentence naming what action looks inconsistent",
+      "quote":  "a 6-15 word verbatim phrase from the prose, the action itself",
+      "reason": "one sentence on why it doesn't fit, citing the established profile",
+      "fix":    "one sentence on the cheapest narrative fix — earn the action, change the action, or revise the profile"
+    }
+  ],
+  "verdict": "consistent" | "minor-drift" | "significant-drift"
+}
+
+Severity scale:
+  - "flag"   — clear inconsistency between the established character and the action
+  - "suggest" — borderline / could be intentional growth but worth a second look
+  - "info"   — small note for the writer's awareness; not a problem on its own
+
+Rules:
+  - Be selective. Don't flag everything. A reasonable book averages 0-4 concerns per main character.
+  - Be honest. If the character is consistent across the scenes, return concerns: [] and verdict: "consistent". The writer's not asking for false flags.
+  - Quote VERBATIM from the prose. No paraphrasing in the quote field.
+  - Don't critique the WRITING — only consistency with the established character.
+  - Character growth and change are EARNED inconsistencies; ignore them unless the scene gives no on-page reason. The reason field should distinguish "uncosted change" from "unearned change".
+
+Return ONLY the JSON object. No preface, no markdown fences."""
+
+# ── relationshipArc.js (analyseRelationship) ────────────────────────────────
+_RELATIONSHIP_SYSTEM = """You track a relationship between two characters across a novel — chapter by chapter.
+
+You will be given:
+  - Profile A
+  - Profile B
+  - The chapters where both characters appear together, with prose excerpts from the scenes they share
+
+For EACH chapter where they share at least one scene, report:
+  - warmth (1-10): how warm or cold the relationship feels in THIS chapter (1 = open hostility / icy; 5 = neutral / civil; 10 = deep intimacy / trust)
+  - tension (1-10): how taut or calm THIS chapter is between them (1 = entirely calm; 10 = breaking point)
+  - power: who holds the upper hand in THIS chapter — "A" (A dominates), "B" (B dominates), or "eq" (roughly equal / balanced)
+  - moment: one short sentence (8-20 words) naming what specifically shifts or holds between them this chapter
+
+Return ONLY a JSON object:
+
+{
+  "summary":    "2-3 sentences naming the overall shape of this relationship across the book",
+  "trajectory": "warming" | "cooling" | "escalating" | "defusing" | "flipping" | "static",
+  "chapters":   [ { "chapterNum": number, "warmth": int 1-10, "tension": int 1-10, "power": "A"|"B"|"eq", "moment": string } ]
+}
+
+Trajectory definitions:
+  - warming   — warmth rises across the book; coldness gives way to closeness
+  - cooling   — warmth falls across the book; closeness gives way to distance
+  - escalating — tension rises across the book; conflict intensifies
+  - defusing  — tension falls across the book; conflict resolves
+  - flipping  — power dynamic inverts somewhere in the book (A-dominant → B-dominant, or vice versa)
+  - static    — neither warmth, tension, nor power shifts meaningfully
+
+Rules:
+  - The "power" call should reflect agency in THIS chapter — who's setting the terms of the interaction, not who'd win a fight.
+  - The "moment" must be specific to what actually happens in the chapter's shared scenes. No generic "they argue" — say what they argue about and what it costs.
+  - Use only the chapter numbers you were given excerpts for. Don't invent chapters.
+
+Return ONLY the JSON object. No preface, no markdown fences."""
+
+# ── voiceDrift.js (explainVoiceDrift) — returns PLAIN PROSE ──────────────────
+_VOICE_DRIFT_SYSTEM = """You are a sharp prose editor diagnosing a voice shift between chapters of one writer's novel.
+
+You will be given:
+  - the OUTLIER chapter (the chapter the writer is asking about)
+  - up to 3 sample BASELINE chapters that represent the writer's typical voice in this book
+  - a short list of metrics that diverge between them (e.g. "dialogue ratio higher; filter words lower")
+
+Write 2-4 sentences of plain prose addressed to the writer ("Your voice in this chapter has shifted toward…") naming WHAT specifically differs and HOW it reads on the page. Quote a 4-10 word phrase from the outlier chapter and a contrasting 4-10 word phrase from one of the baseline samples to ground each claim.
+
+Rules:
+  - Be concrete. Don't talk in genre abstractions. Quote actual phrases.
+  - Don't editorialise ("this is great", "you've grown"). Just diagnose.
+  - Don't restate the metric numbers — translate them into prose terms ("more dialogue-driven", "less interiority").
+  - If the chapter is dialogue-heavy: say so and quote a baseline narrative passage to contrast.
+  - If the chapter is narration-heavy: say so and quote a baseline dialogue passage to contrast.
+  - If the shift is small or unclear: say so plainly. Don't manufacture insight.
+
+Return PLAIN PROSE. No headings, no bullets, no markdown, no preface."""
+
 FEATURES: dict[str, dict] = {
     "critique": {
         "feature": "critique",
@@ -215,6 +332,34 @@ FEATURES: dict[str, dict] = {
         "system": _PLOT_HOLES_SYSTEM + "{{world_rules_section}}",
         "user_template": "{{user_content}}",
         "temperature": 0.3,
+        "think": False,
+    },
+    "entitySweep": {
+        "feature": "entitySweep",
+        "system": _ENTITY_SYSTEM,
+        "user_template": "{{user_content}}",
+        "temperature": 0.2,
+        "think": False,
+    },
+    "characterAudit": {
+        "feature": "characterAudit",
+        "system": _CHARACTER_AUDIT_SYSTEM,
+        "user_template": "{{user_content}}",
+        "temperature": 0.3,
+        "think": False,
+    },
+    "relationshipArc": {
+        "feature": "relationshipArc",
+        "system": _RELATIONSHIP_SYSTEM,
+        "user_template": "{{user_content}}",
+        "temperature": 0.3,
+        "think": False,
+    },
+    "voiceDrift": {
+        "feature": "voiceDrift",
+        "system": _VOICE_DRIFT_SYSTEM,
+        "user_template": "{{user_content}}",
+        "temperature": 0.4,
         "think": False,
     },
 }
