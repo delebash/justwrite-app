@@ -23,7 +23,12 @@ const APP_VERSION = import.meta.env.VITE_APP_VERSION || "1.0.0";
 
 const renderedHtml = ref("");
 
+// Temporarily disabled while QC'ing the AI/Models area (user request). Flip back
+// to true to restore the first-launch-after-upgrade changelog popup.
+const AUTO_SHOW = false;
+
 onMounted(async () => {
+  if (!AUTO_SHOW) return;
   // Show on a clean profile (first run ever) too — that's a fine
   // moment to surface the changelog.
   if (ui.lastSeenVersion !== APP_VERSION) {
