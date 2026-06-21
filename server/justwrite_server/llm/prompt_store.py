@@ -10,21 +10,10 @@ docs/plans/2026-06-21-feature-prompts-db-seed.md.
 
 from __future__ import annotations
 
-from dataclasses import dataclass
+from llm_runner.llm import FeaturePromptRow
 
 from .. import database as _db
 from ..models import FeaturePrompt
-
-
-@dataclass
-class FeaturePromptRow:
-    key: str
-    feature: str
-    system: str
-    user_template: str
-    temperature: float
-    think: bool
-    built_in: bool
 
 
 def _to_row(r: FeaturePrompt) -> FeaturePromptRow:
@@ -40,8 +29,10 @@ def _to_row(r: FeaturePrompt) -> FeaturePromptRow:
 
 
 class FeaturePromptStore:
-    """CRUD over the `feature_prompts` table. Each method opens a short-lived
-    session (mirrors `LlmProviderStore`)."""
+    """JustWrite's host adapter for the shared `PromptStore` Protocol — CRUD over
+    the `feature_prompts` table. Each method opens a short-lived session (mirrors
+    `LlmProviderStore`). The editor + execution routers live in `llm_runner.llm`;
+    this just persists."""
 
     def _session(self):
         if _db.SessionLocal is None:
@@ -89,21 +80,6 @@ class FeaturePromptStore:
             db.commit()
         finally:
             db.close()
-
-    def reset(self, key: str) -> bool:
-        """Lab "reset to default" — delete the row so the next boot/seed restores
-        the seeded default. Returns True if a row was removed."""
-        db = self._session()
-        try:
-            row = db.get(FeaturePrompt, key)
-            if row is None:
-                return False
-            db.delete(row)
-            db.commit()
-            return True
-        finally:
-            db.close()
-
 
 _store = FeaturePromptStore()
 

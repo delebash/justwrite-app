@@ -20,8 +20,6 @@ from fastapi.middleware.cors import CORSMiddleware
 from llm_runner import router as llm_runner_router
 
 from .api import (
-    ai_features,
-    ai_prompts,
     chat,
     health,
     images,
@@ -81,13 +79,20 @@ def create_app(data_dir: Path | None = None) -> FastAPI:
     # (classify-tier / ai-usage / ping / models over the shared registry+ledger)
     # plus the provider-CRUD router backed by JustWrite's `LlmProvider`-table
     # ProviderStore. Replaces the old bulk GET/PUT `api/llm_providers.py`.
+    from llm_runner.llm import make_feature_router, make_prompt_router
     from llm_runner.llm.api import router as llm_shared_api_router
     from llm_runner.llm.provider_api import make_provider_router
 
+    from .llm.config import llm_config
+    from .llm.prompt_store import get_prompt_store
     from .llm.provider_store import get_provider_store
+    from .seed_feature_prompts import DEFAULT_FEATURE_PROMPTS
 
     app.include_router(llm_shared_api_router)
     app.include_router(make_provider_router(get_provider_store))
-    app.include_router(ai_features.router)
-    app.include_router(ai_prompts.router)
+    # Shared per-feature prompt routers (the same ones JustVoice will mount):
+    # the /v1/ai/prompts editor over JW's FeaturePromptStore + seed catalog, and
+    # /v1/ai/run + /v1/ai/stream feature execution over the shared dispatch.
+    app.include_router(make_prompt_router(get_prompt_store, DEFAULT_FEATURE_PROMPTS))
+    app.include_router(make_feature_router(get_prompt_store, llm_config))
     return app
