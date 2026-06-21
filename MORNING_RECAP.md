@@ -34,11 +34,13 @@ feature catalog.
 - A ✅ shared prompt subsystem → `llm_runner`. B ✅ JW server adopts it.
 - C 🔄 shared `@delebash/llm-ui`: **done** — PromptLab, ProviderForm (presets ·
   where-it-runs · model comboboxes via probe-models · test/save/delete),
-  provider list (local/cloud rows), Usage stats, **and the bundled-runner model
-  catalog** (`GET /v1/llm-runner/models` + `LuModelCatalog.vue`: Model · Params ·
-  Fit · Status · Load/Unload/Download, scoped to `local-llamacpp`). Still to
-  build — **Features routing table** (provider▸model per feature + roles +
-  defaults + inline prompt tune), Quick Setup wizard, hardware presets.
+  provider list (local/cloud rows), Usage stats, the bundled-runner model
+  catalog (`GET /v1/llm-runner/models` + `LuModelCatalog.vue`: Model · Params ·
+  Fit · Status · Load/Unload/Download, scoped to `local-llamacpp`), **and the
+  Features routing table** (`/v1/ai/routing` + `FeaturesRouting.vue`: default
+  LLM/embedding + Quick/Accuracy roles + per-feature provider▸model pins; wired
+  so saved routing drives dispatch). Still to build — Quick Setup wizard,
+  hardware presets, and the routing table's named-config / inline tune editor.
 - D ✅ shared top-level **"AI"** menu area (`/ai` → `AiView` host chrome
   [PaneHeader + `.pane-card`] wrapping the naked `AiModelsArea`); sidebar entry.
 - E ⬜ JW streaming features (writerAI / rag / characterChat) → `/v1/ai/stream`,
@@ -49,6 +51,15 @@ skipped): numeric Fit score (needs the downloaded GGUF — `compute_fit`), per-
 model delete-from-disk (no runner endpoint), free-form download-by-`repo:quant`
 (manifest `/load` is id-only), and inline model-management for Ollama/LM-Studio
 (they expose no per-model VRAM to score Fit; they keep the Fetch combobox).
+
+**Features-routing deferrals / cleanup:** named production-configs (the table's
+"Active config" column), the inline tune editor's max-tokens + Lab-compare, and
+the 3-alternative-drafting toggle. **Cleanup owed (RULE #8):** JW's old
+`SettingsView.vue` AI-features section now duplicates the shared Features tab
+(both read/write the same `ai` settings blob) — remove that section + the
+renderer's `AI_FEATURES` once the shared tab is accepted. The server feature
+catalog (`feature_catalog.py`) is the single source; `DEFAULT_FEATURE_ROLES`
+derives from it.
 
 ## Active plan docs
 - `docs/plans/2026-06-20-shared-ai-stack-plan.md` — **authoritative** AI-stack plan (20 decisions).
