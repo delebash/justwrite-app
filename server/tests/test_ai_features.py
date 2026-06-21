@@ -11,7 +11,7 @@ from justwrite_server import database
 from justwrite_server.app import create_app
 from justwrite_server.models import Setting
 from llm_runner.llm import get_llm_registry
-from llm_runner.llm.base import LLMResponse
+from llm_runner.llm.base import LLMResponse, StreamDelta
 
 
 class FakeAdapter:
@@ -26,6 +26,12 @@ class FakeAdapter:
             "temperature": temperature, "think": think,
         }
         return LLMResponse(text='{"notes":[]}', model=model or self.default_model, prompt_tokens=5, completion_tokens=2)
+
+    def stream_chat(self, messages, *, model=None, temperature=0.7, max_tokens=None, system=None, think=False, extra=None):
+        FakeAdapter.last = {"messages": messages, "system": system}
+        yield StreamDelta(text="hi ")
+        yield StreamDelta(text="there")
+        yield StreamDelta(done=True, prompt_tokens=4, completion_tokens=3)
 
 
 def _client(tmp_path, *, default_id="p1", pins=None):
@@ -105,6 +111,24 @@ def test_plotholes_renders_world_rules_into_system(tmp_path):
     assert "magic costs blood" in FakeAdapter.last["system"]
     assert "plot holes" in FakeAdapter.last["system"]  # base prompt still present
     assert FakeAdapter.last["messages"][0].content == "chapter digest"
+
+
+def test_stream_endpoint_emits_sse(tmp_path):
+    c = _client(tmp_path)
+    r = c.post("/v1/ai/stream", json={
+        "action": "critique",
+        "variables": {"chapter_label": "", "chapter_text": "x"},
+    })
+    assert r.status_code == 200
+    body = r.text  # TestClient buffers the streamed body
+    assert '{"delta": "hi "}' in body and '{"delta": "there"}' in body
+    assert '"done": true' in body and '"completionTokens": 3' in body
+    assert "data: [DONE]" in body
+
+
+def test_stream_unknown_action_404(tmp_path):
+    c = _client(tmp_path)
+    assert c.post("/v1/ai/stream", json={"action": "nope", "variables": {}}).status_code == 404
 
 
 def test_provider_override_routes_to_named_provider(tmp_path):

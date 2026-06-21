@@ -13,11 +13,14 @@ they migrate last.
 
 from __future__ import annotations
 
+import json
+
 from fastapi import APIRouter, HTTPException
+from fastapi.responses import StreamingResponse
 from pydantic import BaseModel
 
 from llm_runner.llm.base import LLMMessage
-from llm_runner.llm.dispatch import LLMNotConfiguredError, chat
+from llm_runner.llm.dispatch import LLMNotConfiguredError, chat, stream_chat
 
 from ..llm.config import llm_config
 from ..llm.features import FEATURES, render
@@ -63,3 +66,42 @@ async def run_feature(body: RunRequest) -> RunResponse:
         # 501 → the UI shows the actionable "wire an LLM provider" message.
         raise HTTPException(status_code=501, detail=str(e)) from e
     return RunResponse(content=resp.text, model=resp.model)
+
+
+@router.post("/stream")
+async def stream_feature(body: RunRequest):
+    """Streaming counterpart to /run for the interactive features (writerAI /
+    chat / rag). Emits OpenAI-style SSE: `data: {"delta": "..."}` per chunk, a
+    final `data: {"done": true, "promptTokens", "completionTokens"}`, then
+    `data: [DONE]`. Errors arrive as `data: {"error": "..."}` (the stream has
+    started, so we can't send an HTTP status)."""
+    spec = FEATURES.get(body.action)
+    if spec is None:
+        raise HTTPException(status_code=404, detail=f"unknown AI action {body.action!r}")
+    messages = [LLMMessage(role="user", content=render(spec["user_template"], body.variables))]
+    system = render(spec["system"], body.variables)
+
+    def gen():
+        try:
+            for delta in stream_chat(
+                config=llm_config(),
+                feature=spec["feature"],
+                messages=messages,
+                system=system,
+                temperature=spec.get("temperature", 0.7),
+                think=spec.get("think", False),
+                provider_override=body.providerId or None,
+                model_override=body.model or None,
+            ):
+                if delta.done:
+                    frame = {"done": True, "promptTokens": delta.prompt_tokens, "completionTokens": delta.completion_tokens}
+                else:
+                    frame = {"delta": delta.text}
+                yield f"data: {json.dumps(frame)}\n\n"
+        except LLMNotConfiguredError as e:
+            yield f"data: {json.dumps({'error': str(e)})}\n\n"
+        except Exception as e:  # noqa: BLE001 — surface as an error frame, not a 500
+            yield f"data: {json.dumps({'error': str(e)[:200]})}\n\n"
+        yield "data: [DONE]\n\n"
+
+    return StreamingResponse(gen(), media_type="text/event-stream")

@@ -60,3 +60,83 @@ export async function runAiFeature({ action, feature, variables = {}, provider, 
     throw wrapped;
   }
 }
+
+// Streaming counterpart — POSTs /v1/ai/stream and consumes the SSE frames the
+// server emits (`{delta}` per chunk, a final `{done, promptTokens,
+// completionTokens}`, then `[DONE]`). For the interactive features (writerAI /
+// chat / rag) that show live tokens. Same task-panel + error wrapping; the
+// SERVER records usage (host-sink) so this doesn't. Returns { content, usage }.
+// `onDelta(delta, content)` fires per chunk.
+export async function runAiFeatureStream({ action, feature, variables = {}, provider, model, signal, onDelta, meta, task } = {}) {
+  let handle = null;
+  let effectiveSignal = signal;
+  let effectiveOnDelta = onDelta;
+  if (task) {
+    const tasks = useAiTasksStore();
+    const opts = (typeof task === "object" && task) || {};
+    handle = tasks.start({ feature: feature || action, label: opts.label || action, meta: opts.meta || meta || {} });
+    effectiveSignal = handle.signal;
+    if (signal) {
+      if (signal.aborted) handle.cancel();
+      else signal.addEventListener?.("abort", () => handle.cancel(), { once: true });
+    }
+    const callerOnDelta = onDelta;
+    effectiveOnDelta = (delta, content) => {
+      handle.onDelta(delta, content);
+      if (callerOnDelta) callerOnDelta(delta, content);
+    };
+  }
+
+  const body = { action, variables };
+  if (provider?.id) body.providerId = provider.id;
+  if (model) body.model = model;
+
+  let content = "";
+  let usage = null;
+  try {
+    const res = await fetch(serverUrl("/v1/ai/stream"), {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      signal: effectiveSignal,
+      body: JSON.stringify(body),
+    });
+    if (!res.ok || !res.body) {
+      const text = await res.text().catch(() => "");
+      throw new Error(`AI stream ${action} failed: ${res.status} ${text || res.statusText}`);
+    }
+    const reader = res.body.getReader();
+    const decoder = new TextDecoder();
+    let buffer = "";
+    while (true) {
+      const { value, done } = await reader.read();
+      if (done) break;
+      buffer += decoder.decode(value, { stream: true });
+      let sep;
+      // biome-ignore lint/suspicious/noAssignInExpressions: SSE frame loop.
+      while ((sep = buffer.indexOf("\n\n")) !== -1) {
+        const frame = buffer.slice(0, sep);
+        buffer = buffer.slice(sep + 2);
+        for (const line of frame.split("\n")) {
+          const t = line.trim();
+          if (!t.startsWith("data:")) continue;
+          const payload = t.slice(5).trim();
+          if (!payload || payload === "[DONE]") continue;
+          let json;
+          try { json = JSON.parse(payload); } catch { continue; }
+          if (json.error) throw new Error(json.error);
+          if (json.delta) {
+            content += json.delta;
+            if (effectiveOnDelta) effectiveOnDelta(json.delta, content);
+          }
+          if (json.done) usage = { prompt_tokens: json.promptTokens || 0, completion_tokens: json.completionTokens || 0 };
+        }
+      }
+    }
+    if (handle) handle.finish({ usage, model });
+    return { content, model: model || "", usage };
+  } catch (err) {
+    const wrapped = friendlyAiError(err, provider || null);
+    if (handle) handle.fail(wrapped);
+    throw wrapped;
+  }
+}
