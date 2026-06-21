@@ -14,7 +14,7 @@
 //     movement, social, period
 //   }
 
-import { runAiStream } from "./aiStream.js";
+import { runAiFeature } from "./aiFeature.js";
 import { parseJsonLoose } from "./llmText.js";
 
 // Categories rendered in order in the modal. The "blurb" is shown
@@ -34,30 +34,7 @@ export const SENSORY_CATEGORIES = [
 
 const CATEGORY_KEYS = SENSORY_CATEGORIES.map((c) => c.key);
 
-const SYSTEM = `You are a sensory-research assistant for a novelist. Given a subject — a place, an object, an environment, an experience — produce a structured research pack of short concrete sensory details the writer can pick from and drop into their prose.
-
-Return ONLY a JSON object with these eight string-array fields:
-
-{
-  "smell":       [string, ...],   // 2-5 entries
-  "sound":       [string, ...],   // 2-5 entries
-  "touch":       [string, ...],   // 2-5 entries
-  "temperature": [string, ...],   // 2-5 entries
-  "taste":       [string, ...],   // 1-3 entries (often empty for non-edible subjects)
-  "movement":    [string, ...],   // 2-5 entries — bodies in motion, how the space is navigated
-  "social":      [string, ...],   // 2-5 entries — who is there, what they're doing, the codes they speak in
-  "period":      [string, ...]    // 1-4 entries — period- or setting-specific details a modern reader wouldn't know
-}
-
-RULES for each entry:
-  - Short phrase form. 4-15 words. NOT full sentences.
-  - Concrete and specific. Name the thing. Not "the air smells bad" — "the air smells of tanning oil and wet hair".
-  - Sensory, not interpretive. "the slap of leather against leather" beats "a busy, oppressive workspace".
-  - Period-accurate. If the subject implies a setting (Victorian, medieval, futuristic, contemporary urban, etc.), respect it. If the subject doesn't imply a period, write for contemporary.
-  - The taste field is often [] for subjects with no edible aspect. Don't manufacture entries.
-  - The period field is often [] for contemporary or generic subjects. Don't manufacture.
-
-Return ONLY the JSON object. No preface, no markdown fences, no commentary.`;
+// The prompt lives server-side (features.py, action "sensory").
 
 /**
  * Generate a sensory research pack for the given subject.
@@ -72,7 +49,6 @@ export async function generateSensoryPack({
   subject,
   contextHint = "",
   signal,
-  onDelta,
   provider,
   model,
   task,
@@ -89,19 +65,12 @@ export async function generateSensoryPack({
     parts.push(String(contextHint).slice(0, 500));
   }
 
-  const messages = [
-    { role: "system", content: SYSTEM },
-    { role: "user", content: parts.join("\n") },
-  ];
-
   const sensoryMeta = { ...(meta || {}), subject: trimmed.slice(0, 120) };
-  const result = await runAiStream({
+  const result = await runAiFeature({
+    action: "sensory",
     feature: "sensory",
-    messages,
-    temperature: 0.7,
-    extra: { think: false },
+    variables: { user_content: parts.join("\n") },
     signal,
-    onDelta,
     provider,
     model,
     meta: sensoryMeta,

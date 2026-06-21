@@ -15,7 +15,7 @@
 // short "instruction" that can be fed verbatim into the writerAI
 // continueFrom call as a guided-write direction.
 
-import { runAiStream } from "./aiStream.js";
+import { runAiFeature } from "./aiFeature.js";
 import { parseJsonLoose } from "./llmText.js";
 
 function htmlToText(html) {
@@ -55,39 +55,7 @@ export const MOVE_KIND_BLURBS = {
   timeframe:    "Cut to a different moment — later, earlier, or somewhere else entirely.",
 };
 
-const SYSTEM = `You are a fiction editor helping a stuck writer get moving again.
-
-You will be given the prose leading up to the writer's cursor — the place they're stuck. Your job is to propose FIVE distinct ways the scene could unblock from here. Each move belongs to a different category so the writer gets a real menu, not five variations of the same idea.
-
-The five required categories, in order:
-
-  1. "goal-shift"  — the POV character's goal changes mid-scene (they wanted X; now they want Y)
-  2. "interrupt"   — someone or something interrupts the current action
-  3. "setting"     — the scene moves to a different place, or the setting itself shifts (weather changes, lights go out, etc.)
-  4. "reveal"      — reveal something the POV character doesn't yet know (about another character, about the situation, about themselves)
-  5. "timeframe"   — cut to a different moment (later, earlier, or elsewhere)
-
-For each move, return:
-
-  {
-    "kind":        one of the five strings above (one move per kind, no duplicates),
-    "label":       a 3-7 word headline naming this specific move ("Marcus discovers the locket is fake"),
-    "instruction": a 1-2 sentence direction you would give the AI's continue function to actually write this move (be concrete — name characters, state the specific action, set the new emotional temperature)
-  }
-
-Return ONLY a JSON object:
-
-{
-  "moves": [ {...}, {...}, {...}, {...}, {...} ]
-}
-
-Rules:
-  - Each move must be GROUNDED in the prose you were shown. Name characters who are actually in the scene. Reference the specific situation. No generic suggestions.
-  - The instruction should be specific enough that a 200-word continuation could be written from it cold.
-  - Don't editorialise. Don't explain why the move is good. Just describe what happens.
-  - Don't pick "goal-shift" twice and rename it. The kinds are constraints, not suggestions.
-
-Return ONLY the JSON object. No preface, no markdown fences.`;
+// The prompt lives server-side (features.py, action "unstuck").
 
 /**
  * Generate five unblock moves given the prose leading up to the writer's
@@ -107,7 +75,6 @@ export async function generateUnstuckMoves({
   chapterTitle = "",
   chapterNum = null,
   signal,
-  onDelta,
   provider,
   model,
   task,
@@ -120,21 +87,14 @@ export async function generateUnstuckMoves({
     ? `Chapter ${chapterNum != null ? `${chapterNum} — ` : ""}${chapterTitle}\n\n`
     : "";
 
-  const messages = [
-    { role: "system", content: SYSTEM },
-    { role: "user", content:
-        `${header}--- BEGIN PROSE (writer is stuck at the end of this) ---\n${text}\n--- END PROSE ---`,
-    },
-  ];
-
   const stuckMeta = { ...(meta || {}), kind: "unstuck" };
-  const result = await runAiStream({
+  const result = await runAiFeature({
+    action: "unstuck",
     feature: "unstuck",
-    messages,
-    temperature: 0.7,
-    extra: { think: false },
+    variables: {
+      user_content: `${header}--- BEGIN PROSE (writer is stuck at the end of this) ---\n${text}\n--- END PROSE ---`,
+    },
     signal,
-    onDelta,
     provider,
     model,
     meta: stuckMeta,

@@ -40,11 +40,17 @@ DEFAULT_FEATURE_ROLES: dict[str, str] = {
     "reverseOutline": "accuracy",
     "marketingPack": "accuracy",
     "multiReader": "accuracy",
-    # interactive writing (streaming — still client-side via the gateway for now)
+    # workflow / single-action features (migrated to /v1/ai/run)
+    "sensory": "quick",
+    "unstuck": "quick",
+    "brainstorm": "quick",
+    "resumeBriefing": "quick",
+    "sessionRecap": "quick",
+    # interactive streaming features (writerAI/chat/rag) — migrate onto
+    # /v1/ai/stream next; gateway stays until then.
     "writerAI": "quick",
     "chat": "quick",
     "characterChat": "quick",
-    "brainstorm": "quick",
 }
 
 
