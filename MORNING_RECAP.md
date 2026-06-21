@@ -75,23 +75,26 @@ derives from it.
 Remaining roadmap, in dependency order. **Core principle (user, reaffirmed): no
 per-app duplication — anything both apps need lives in the SHARED stack.**
 
-1. **Manifest expansion** — the runner catalog has ONE model, so the model
-   catalog + Fit + Quick Setup are thin. Add real GGUF models across VRAM tiers
-   (cpu/low/mid/high) to `llm_runner/runner/runner-manifest.json`.
-   ⚠️ **Blocked in-container:** HF is unreachable from tooling — Bash (even
-   unsandboxed) → "Host not in allowlist: huggingface.co"; WebFetch reaches HF
-   but gets HF's `403` bot-block. Fix: restart the env so a fresh container
-   picks up the network policy, OR user pastes `org/repo:quant` IDs. **Never
-   fabricate model IDs (RULE #4).**
-2. **Quick Setup → shared** + **3. Hardware presets → shared.** These exist
-   today ONLY as JW *client* components (`components/QuickSetup.vue` — an
-   Ollama-pull wizard via `services/ollamaAdmin.js` + `services/quickSetupPresets.js`
-   + `stores/hardwarePresets.js`; `components/HardwarePresetsCard.vue`). That IS
-   the duplication to remove — they belong in `@delebash/llm-ui`, built on the
-   shared runner endpoints already shipped (`/v1/llm-runner/hardware|models|load`
-   + `/v1/ai/routing`), both apps mounting them. QuickSetup's bundled-runner
-   Fit-recommendation is gated on #1's richer manifest; the Ollama-pull wizard is
-   retired (Ollama stays addable via the shared provider form).
+1. ✅ **DONE** — manifest now carries 6 user-provided GGUF models (`runner-manifest.json`):
+   Qwen3.5 9B (Q4_K_S/Q4_K_M), Qwen3 14B (Q3_K_M/Q4_K_M), Qwen3.6 27B-MTP (Q4_K_M),
+   + the seed 35B-A3B MoE. VRAM/RAM are coarse Fit estimates. To add more: paste
+   `hf download hf://org/repo/file.gguf` lines (I parse repo+quant) — HF is still
+   bot-blocked for my tooling, so **never fabricate IDs (RULE #4)**; the user
+   provides them or opens HF egress for a fresh session.
+2. ✅ **DONE** — shared **Quick Setup** (Fit-based) shipped in `@delebash/llm-ui`
+   (`ui/src/views/QuickSetup.vue`), mounted atop AiModelsArea's Providers tab; on
+   Apply it sets default+Quick+Accuracy roles via `/v1/ai/routing` and loads the
+   Quick model. JW's Ollama-pull subsystem (QuickSetup.vue + HardwarePresetsCard.vue
+   + ollamaAdmin/quickSetupPresets/hardwarePresets) was **deleted** (commit
+   `46adb65`). Known dead-code follow-up: `stores/ai.js` still has unused
+   `applyQuickSetupPreset` + `quickSetupTiers` (no broken imports) — remove in a
+   core-store pass.
+3. ⬜ **Hardware presets → shared (NEW feature, not a port).** The retired JW one
+   was Ollama tier-recipes; the shared one (Decision 18) is a **manual routing
+   override**: save/apply/edit/delete named routing configs (default + roles +
+   pins) for a specific rig, as a fallback to auto-Fit. Needs a NEW shared presets
+   store + endpoint (host-store pattern, like `/v1/ai/routing`) + UI in
+   AiModelsArea. Build fresh.
 4. ✅ **DONE (conservative)** — commit `3e4ea83`. Removed the provably-duplicated
    parts from `SettingsView.vue`'s `id="audio"` section (provider list,
    Default-LLM/embedding pickers, Feature-routing table, Quick-setup-tips) + all
