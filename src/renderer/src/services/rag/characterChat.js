@@ -12,29 +12,27 @@
 
 import { embedTexts } from "../embedApi.js";
 import { friendlyAiError } from "../aiErrors.js";
-import { runAiStream } from "../aiStream.js";
+import { runAiFeatureStream } from "../aiFeature.js";
 import { useAiStore } from "../../stores/ai.js";
 import { useProjectStore } from "../../stores/project.js";
 import { search, status } from "./vectorStore.js";
 
 const MAX_HISTORY_MESSAGES = 8;
 
-// Build the character's system prompt from their profile fields. We
-// inline as much of the writer's established psychology as we have so
-// the model can stay in voice and refuse questions the character
-// genuinely couldn't answer.
-function buildCharacterSystem(character, extras) {
-  const parts = [];
-  parts.push(`You ARE ${character.name}, a character in a novel. Speak in first person. Answer as this character would actually answer — in their voice, with their knowledge, biases, blind spots, and unspoken fears.`);
-  parts.push("");
-  parts.push("YOUR PROFILE:");
-  if (character.role) parts.push(`Role: ${character.role}`);
-  if (character.gender) parts.push(`Gender: ${character.gender}`);
-  if (character.pronouns) parts.push(`Pronouns: ${character.pronouns}`);
-  if (character.lifeStatus) parts.push(`Life status: ${character.lifeStatus}`);
-  if ((character.aliases || []).length) parts.push(`Also known as: ${character.aliases.join(", ")}`);
-  if (character.age) parts.push(`Age: ${character.age}`);
-  if (character.oneLiner) parts.push(`Self-image (one line): ${character.oneLiner}`);
+// Build the per-character PROFILE block sent as the {{characterProfile}}
+// variable. The framing line + interview RULES live in the server "characterChat"
+// prompt (Lab-editable); this is just the dynamic profile data, prefixed with a
+// newline when present (the template is "YOUR PROFILE:{{characterProfile}}", so an
+// empty profile renders byte-identically to the old client system).
+function buildCharacterProfile(character, extras) {
+  const lines = [];
+  if (character.role) lines.push(`Role: ${character.role}`);
+  if (character.gender) lines.push(`Gender: ${character.gender}`);
+  if (character.pronouns) lines.push(`Pronouns: ${character.pronouns}`);
+  if (character.lifeStatus) lines.push(`Life status: ${character.lifeStatus}`);
+  if ((character.aliases || []).length) lines.push(`Also known as: ${character.aliases.join(", ")}`);
+  if (character.age) lines.push(`Age: ${character.age}`);
+  if (character.oneLiner) lines.push(`Self-image (one line): ${character.oneLiner}`);
 
   if (extras) {
     if (extras.voice) {
@@ -43,45 +41,38 @@ function buildCharacterSystem(character, extras) {
       if (v.accent) vParts.push(`accent: ${v.accent}`);
       if (v.vocabulary) vParts.push(`vocabulary: ${v.vocabulary}`);
       if (v.speechTic) vParts.push(`speech tic: ${v.speechTic}`);
-      if (vParts.length) parts.push(`Voice: ${vParts.join("; ")}`);
-      if (v.sampleLine) parts.push(`Sample of your speech: "${v.sampleLine}"`);
+      if (vParts.length) lines.push(`Voice: ${vParts.join("; ")}`);
+      if (v.sampleLine) lines.push(`Sample of your speech: "${v.sampleLine}"`);
     }
     if (extras.motivation) {
       const m = extras.motivation;
-      if (m.want) parts.push(`What you want: ${m.want}`);
-      if (m.need) parts.push(`What you actually need: ${m.need}`);
-      if (m.lie) parts.push(`The lie you believe: ${m.lie}`);
-      if (m.truth) parts.push(`The truth you eventually meet: ${m.truth}`);
+      if (m.want) lines.push(`What you want: ${m.want}`);
+      if (m.need) lines.push(`What you actually need: ${m.need}`);
+      if (m.lie) lines.push(`The lie you believe: ${m.lie}`);
+      if (m.truth) lines.push(`The truth you eventually meet: ${m.truth}`);
     }
     if (extras.arc) {
       const a = extras.arc;
-      if (a.start) parts.push(`Where you begin the story: ${a.start}`);
-      if (a.midpoint) parts.push(`Where you stand at the midpoint: ${a.midpoint}`);
-      if (a.end) parts.push(`Where you end up: ${a.end}`);
+      if (a.start) lines.push(`Where you begin the story: ${a.start}`);
+      if (a.midpoint) lines.push(`Where you stand at the midpoint: ${a.midpoint}`);
+      if (a.end) lines.push(`Where you end up: ${a.end}`);
     }
     if (extras.backstory) {
-      parts.push(`Backstory (private, never told the reader directly): ${String(extras.backstory).slice(0, 800)}`);
+      lines.push(`Backstory (private, never told the reader directly): ${String(extras.backstory).slice(0, 800)}`);
     }
     if (Array.isArray(extras.quotes) && extras.quotes.length) {
-      parts.push(`Lines you've actually said in the novel:`);
-      for (const q of extras.quotes.slice(0, 4)) parts.push(`  - "${q}"`);
+      lines.push(`Lines you've actually said in the novel:`);
+      for (const q of extras.quotes.slice(0, 4)) lines.push(`  - "${q}"`);
     }
   }
 
-  parts.push("");
-  parts.push("RULES OF THE INTERVIEW:");
-  parts.push("- Answer in first person, in your established voice.");
-  parts.push("- Use the provided excerpts as your memory of what's happened in the book so far. Cite them by bracketed index ([1], [2]) when you reference a specific moment.");
-  parts.push("- You only know what YOU would actually know. If an excerpt describes a scene you weren't present in, DO NOT use its content as your own knowledge. You can acknowledge that you don't know (\"I wasn't there\" / \"I haven't heard about that yet\") if pressed.");
-  parts.push("- Stay in character even when speculating. If you'd lie, lie. If you'd dodge, dodge. If you'd refuse to answer, refuse.");
-  parts.push("- Don't break the fourth wall. Don't refer to the writer, the manuscript, the chapters, or the narrative as a construct. You're a person who exists in this story.");
-  parts.push("- Keep answers reasonably short — usually 1-3 sentences, sometimes a paragraph. Don't lecture.");
-  parts.push("- Never deny being this character. Never call yourself an AI or assistant.");
-  return parts.join("\n");
+  return lines.length ? `\n${lines.join("\n")}` : "";
 }
 
-function buildUserMessage(question, hits) {
-  const excerpts = hits
+// Format ranked hits into the cited excerpt block sent as the {{excerpts}}
+// variable (same shape as manuscript chat; keeps the [1]/[2] refs).
+function formatExcerpts(hits) {
+  return hits
     .map(({ chunk }, i) => {
       const sceneLabel = chunk.sceneTitle
         ? `, scene "${chunk.sceneTitle}"`
@@ -93,15 +84,6 @@ function buildUserMessage(question, hits) {
       return `[${i + 1}] ${header}:\n${excerpt}`;
     })
     .join("\n\n");
-
-  return `The reader is asking you something. Use the excerpts as your memory of events. Answer in character.
-
-Question: ${question}
-
-Memory excerpts (you may or may not have been present for each — judge accordingly):
-${excerpts}
-
-Answer now, as ${"yourself"}.`;
 }
 
 function buildEmbedQuery(question, history, character) {
@@ -190,16 +172,19 @@ export async function askAsCharacter({
     .slice(-MAX_HISTORY_MESSAGES)
     .map((m) => ({ role: m.role, content: m.content }));
 
-  const messages = [
-    { role: "system", content: buildCharacterSystem(character, extras) },
-    ...recentHistory,
-    { role: "user", content: buildUserMessage(question, hits) },
-  ];
-
+  // Server renders the "characterChat" prompt (framing + RULES) from
+  // {{characterName}} + {{characterProfile}} + {{question}} + {{excerpts}},
+  // prepends history, resolves the provider/model, and records usage.
   const chatMeta = { ...(meta || {}), characterId, characterName: character.name };
-  const { content: answer, usage } = await runAiStream({
-    feature: "characterChat", usageFeature: "character-chat",
-    messages, temperature: 0.7,
+  const { content: answer, usage } = await runAiFeatureStream({
+    action: "characterChat", feature: "characterChat",
+    variables: {
+      characterName: character.name,
+      characterProfile: buildCharacterProfile(character, extras),
+      question,
+      excerpts: formatExcerpts(hits),
+    },
+    history: recentHistory, temperature: 0.7,
     signal, onDelta,
     provider: resolvedLlmProvider, model: resolvedLlmModel,
     meta: chatMeta,

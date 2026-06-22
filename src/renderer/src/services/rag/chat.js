@@ -11,33 +11,30 @@
 
 import { embedTexts } from "../embedApi.js";
 import { friendlyAiError } from "../aiErrors.js";
-import { runAiStream } from "../aiStream.js";
+import { runAiFeatureStream } from "../aiFeature.js";
 import { useAiStore } from "../../stores/ai.js";
 import { useProjectStore } from "../../stores/project.js";
 import { search, status } from "./vectorStore.js";
 
-// ─── Prompt templates ────────────────────────────────────────────────────
-
-const SYSTEM_PROMPT =
-  "You are an assistant answering questions about a novel manuscript. " +
-  "Use ONLY the provided excerpts. Cite each claim by chapter using the " +
-  "bracketed reference numbers (e.g. [1], [2]) that appear before each excerpt. " +
-  "When the user asks a follow-up, use prior turns for pronoun/entity context but " +
-  "still cite only from the freshly retrieved excerpts.";
+// ─── Prompt ──────────────────────────────────────────────────────────────
+// The system + outer user template live server-side ("chat" feature_prompts,
+// Lab-editable). The client retrieves chunks and formats the cited {{excerpts}}
+// block (about live data); the server renders the rest from {{question}} +
+// {{excerpts}} and prepends the prior turns.
 
 // Truncation policy: keep at most the last 8 messages (≈ 4 Q/A pairs) from
 // history. Beyond that, retrieval handles long-range memory anyway.
 const MAX_HISTORY_MESSAGES = 8;
 
 /**
- * Build the user message from a question and an array of ranked hits.
+ * Format ranked hits into the cited excerpt block sent as the {{excerpts}}
+ * variable (preserves the [1]/[2] reference numbers the citations panel uses).
  *
- * @param {string} question
  * @param {Array<{ chunk: object, score: number }>} hits
  * @returns {string}
  */
-function buildUserMessage(question, hits) {
-  const excerpts = hits
+function formatExcerpts(hits) {
+  return hits
     .map(({ chunk }, i) => {
       const sceneLabel = chunk.sceneTitle
         ? `, scene "${chunk.sceneTitle}"`
@@ -52,8 +49,6 @@ function buildUserMessage(question, hits) {
       return `[${i + 1}] ${header}:\n${excerpt}`;
     })
     .join("\n\n");
-
-  return `Question: ${question}\n\nExcerpts:\n${excerpts}\n\nAnswer with citations.`;
 }
 
 // ─── Public API ───────────────────────────────────────────────────────────
@@ -171,26 +166,21 @@ export async function askManuscript({
     );
   }
 
-  // ── 5. Build prompt (system + truncated history + final user msg) ────────
+  // ── 5. Recent history — the server prepends these turns; the system + outer
+  //      template are the DB "chat" prompt (Lab-editable). ───────────────────
   const recentHistory = history
     .filter((m) => m && (m.role === "user" || m.role === "assistant") && m.content)
     .slice(-MAX_HISTORY_MESSAGES)
     .map((m) => ({ role: m.role, content: m.content }));
 
-  const messages = [
-    { role: "system", content: SYSTEM_PROMPT },
-    ...recentHistory,
-    { role: "user",   content: buildUserMessage(question, hits) },
-  ];
-
   // ── 6. Stream the answer ─────────────────────────────────────────────────
-  // Lookup is "chat" (provider/model per the user's Settings); ledger
-  // records "rag-chat" so manuscript Q&A shows up distinctly from any
-  // future plain-chat feature.
+  // Server renders the "chat" prompt from {{question}} + {{excerpts}}, prepends
+  // history, resolves the chat provider/model, and records usage (host sink).
   const ragMeta = { ...(meta || {}), question: question.slice(0, 120) };
-  const { content: answer, usage } = await runAiStream({
-    feature: "chat", usageFeature: "rag-chat",
-    messages, temperature: 0.3,
+  const { content: answer, usage } = await runAiFeatureStream({
+    action: "chat", feature: "chat",
+    variables: { question, excerpts: formatExcerpts(hits) },
+    history: recentHistory, temperature: 0.3,
     signal, onDelta,
     provider: resolvedLlmProvider, model: resolvedLlmModel,
     meta: ragMeta,
