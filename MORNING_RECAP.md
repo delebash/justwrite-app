@@ -111,10 +111,13 @@ per-app duplication — anything both apps need lives in the SHARED stack.**
      adapter `embed()` (OpenAICompat `/embeddings` + Ollama `/api/embed`) + `POST
      /v1/ai/embeddings` + tests. The keystone — the shared stack had no
      embeddings, which blocked deleting the gateway's `/embeddings` proxy.
-   - ⬜ **Phase 2** — model-discovery (`useModelList`) + `ai.ping` → the existing
-     `/v1/llm-providers/{id}/models|ping` + `/probe-models` (low-risk).
-   - ⬜ **Phase 3** — RAG embeddings (`rag/indexer.js`, `rag/chat.js`,
-     `rag/characterChat.js`) → `POST /v1/ai/embeddings` (medium).
+   - ✅ **Phase 2** (`096f80f`) — `useModelList` → `GET /v1/llm-providers/{id}/models`
+     (plain ids → cache shape); removed the dead `ai.ping`/`pingClientFor`/`status`
+     + the unused OpenAICompatClient import in ai.js.
+   - ✅ **Phase 3** (`6081c2e`) — RAG embeddings → `services/embedApi.js`
+     (`embedTexts` → `POST /v1/ai/embeddings`); repointed `rag/indexer.js`,
+     `rag/chat.js`, `rag/characterChat.js`; dropped their OpenAICompatClient import
+     (chat path still on `runAiStream` → Phase 4).
    - ⬜ **Phase 4 (HARD, the bulk)** — streaming chat (writerAI `aiStream.js`,
      manuscript `rag/chat.js`, `rag/characterChat.js`) → `/v1/ai/stream`; moves
      CLIENT-side prompt construction into the server `feature_prompts` templates.
