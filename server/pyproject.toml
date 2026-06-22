@@ -17,7 +17,7 @@ dependencies = [
     # Shared local-LLM runner core — same git dependency JustVoice pins.
     # Frozen into the bundle (PyInstaller); dev uses an editable path install
     # (`pip install -e ../../just-llm-runner`). See the cross-app decision doc.
-    "llm-runner @ git+https://github.com/delebash/just-llm-runner.git@e7d2f1ce0e49cc05f828c1c9a5d903a1ea58bbe9",
+    "llm-runner @ git+https://github.com/delebash/just-llm-runner.git@b77341cb993b0d3d3414d781002c081483a6f89c",
 ]
 
 [project.optional-dependencies]
