@@ -88,12 +88,16 @@ per-app duplication — anything both apps need lives in the SHARED stack.**
    + ollamaAdmin/quickSetupPresets/hardwarePresets) was **deleted** (commit
    `46adb65`); the dead `applyQuickSetupPreset`/`quickSetupTiers` were removed in
    Phase 5 (`be43d4c`).
-3. ⬜ **Hardware presets → shared (NEW feature, not a port).** The retired JW one
-   was Ollama tier-recipes; the shared one (Decision 18) is a **manual routing
-   override**: save/apply/edit/delete named routing configs (default + roles +
-   pins) for a specific rig, as a fallback to auto-Fit. Needs a NEW shared presets
-   store + endpoint (host-store pattern, like `/v1/ai/routing`) + UI in
-   AiModelsArea. Build fresh. **(Not yet started — this is the next task.)**
+3. ✅ **Hardware presets → shared DONE** (runner `b77341c`, JW `40a1e91`,
+   2026-06-22). Named routing snapshots (default + roles + per-feature pins),
+   save/apply/rename/delete — switch the whole AI config in one click (Decision
+   18; the manual escape hatch to auto-Fit). Shared `make_routing_presets_router`
+   (CRUD + `/from-current` snapshot + `/{id}/apply` → writes the active
+   RoutingStore) mirrors the `/v1/ai/routing` store pattern; JW `JwRoutingPresetStore`
+   persists them in the `ai` blob (`routingPresets`). UI `RoutingPresets.vue`
+   ("Saved configs") in AiModelsArea's **Features** tab (applying remounts the
+   routing table). Verified: 82 runner + 82 JW pytest, ruff/build/smoke clean,
+   CRUD+apply confirmed on the live server.
 
    **Fit engine ✅ replaced** (just-llm-runner `9737af5`, 2026-06-22): the runner's
    hand-rolled VRAM fit → the **oobabooga GGUF VRAM formula** (re-implemented in
