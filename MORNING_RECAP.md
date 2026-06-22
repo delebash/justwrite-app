@@ -118,10 +118,18 @@ per-app duplication — anything both apps need lives in the SHARED stack.**
      (`embedTexts` → `POST /v1/ai/embeddings`); repointed `rag/indexer.js`,
      `rag/chat.js`, `rag/characterChat.js`; dropped their OpenAICompatClient import
      (chat path still on `runAiStream` → Phase 4).
-   - ⬜ **Phase 4 (HARD, the bulk)** — streaming chat (writerAI `aiStream.js`,
-     manuscript `rag/chat.js`, `rag/characterChat.js`) → `/v1/ai/stream`; moves
-     CLIENT-side prompt construction into the server `feature_prompts` templates.
-     Do feature-by-feature, verifying each against the prompt the client built.
+   - 🔄 **Phase 4 (Option A — prompts into server DB, feature-by-feature):**
+     - ✅ **4a writerAI** (`0a77001` + `6e49081`) — 13 `writerAI.*` feature_prompts
+       (5 actions + guided-continue + 7 rules); `writerAI.js` sends
+       `{action, variables:{passage, voiceCanon[, direction]}}` via
+       `runAiFeatureStream`; instructions deleted client-side; per-call
+       temperature override added for variations. Verified prompts render
+       byte-for-byte vs the old client; `/v1/ai/stream` dispatches it.
+     - ⬜ **4b manuscript chat** (`rag/chat.js`) + **4c character chat**
+       (`rag/characterChat.js`) — these build a prompt from CLIENT-retrieved
+       excerpts + history + question; seed `chat`/`characterChat` prompts and
+       send the excerpts/history/question as variables, then drop `runAiStream`.
+       (VariationsModal already covered — it calls the writerAI fns via a runner.)
    - ⬜ **Phase 5** — delete `api/llm.py` (+ mount), `services/openai-compat.js`,
      `services/providerBackend.js`, `services/aiStream.js`, and the dead
      `stores/ai.js` `applyQuickSetupPreset`/`quickSetupTiers`.
