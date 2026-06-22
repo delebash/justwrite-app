@@ -19,6 +19,34 @@ Goal: JustWrite and JustVoice run the SAME AI stack — `just-llm-runner` (Pytho
 + `@delebash/llm-ui` (plain-JS Vue) — differing ONLY in TTS (JV) and each app's
 feature catalog.
 
+**⚠️ STANDING RULE (user, 2026-06-22): NO JSON blobs in SQL.** Relational /
+fixed-schema data = real columns/rows. JSON is allowed ONLY for genuinely
+freeform data with a cited perf/design reason (embedding vectors → packed binary;
+snapshots/tombstones like `chapter_versions.scenes`/`trash.payload`; variable-
+shape AI artifacts; the heterogeneous settings `ui` doc) — and must be flagged.
+
+**AI config de-blobbed → real tables (2026-06-22, pushed):**
+- **Providers** (`LlmProvider`): the `data` JSON blob → real columns
+  (provider_type/base_url/api_key/default_model/embedding_model/timeout_seconds/
+  **local**). Added the `local` flag (Local/Online grouping, stored not URL-
+  guessed) + server-derived id-from-name (Id field dropped from the form).
+  Migration rebuilds the old blob table; built-ins reseed.
+- **Routing** (`routing_configs` + `routing_pins`): default/roles/pins/presets
+  left the `ai` settings blob for real tables (live row id='active' + named
+  presets; presets fully normalized, own pins rows). `routing_store` +
+  `config.py` table-backed; renderer `services/routingBackend.js` (boot cache +
+  merge-preserving PUT) + `stores/ai.js` persist routing via `/v1/ai/routing`
+  (modelTiers + autoRebuildRagIndex stay in the `ai` doc — genuine prefs). This
+  retired the dual-writer `ai` blob seam (renderer store + shared router).
+- **JV NOT YET de-blobbed** — `SettingsRow.data` still holds providers + pins +
+  roles + production_configs. JV providers are server-internal (renderer uses
+  `/v1/llm-providers`) so they mirror JW Unit 1; JV **routing** needs a bigger
+  convergence (JV mounts NO `/v1/ai/routing` router — its pins/roles flow through
+  the renderer's `llmBackend`→settings; needs the routing+presets routers mounted
+  + `llmBackend`/`QuickSetup` migrated). JV providers are USER data (no seed,
+  `engines.llm` defaults `[]`) so its migration carries a clean-start-vs-preserve
+  decision. This is the next AI-stack phase — do it with JV running + smoke-verified.
+
 **Done + pushed:**
 - `just-llm-runner` split into `runner/` (local llama.cpp) + `llm/` (cloud
   providers + dispatch + prompts, incl. `make_prompt_router`/`make_feature_router`).
