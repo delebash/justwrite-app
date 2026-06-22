@@ -86,15 +86,26 @@ per-app duplication — anything both apps need lives in the SHARED stack.**
    Apply it sets default+Quick+Accuracy roles via `/v1/ai/routing` and loads the
    Quick model. JW's Ollama-pull subsystem (QuickSetup.vue + HardwarePresetsCard.vue
    + ollamaAdmin/quickSetupPresets/hardwarePresets) was **deleted** (commit
-   `46adb65`). Known dead-code follow-up: `stores/ai.js` still has unused
-   `applyQuickSetupPreset` + `quickSetupTiers` (no broken imports) — remove in a
-   core-store pass.
+   `46adb65`); the dead `applyQuickSetupPreset`/`quickSetupTiers` were removed in
+   Phase 5 (`be43d4c`).
 3. ⬜ **Hardware presets → shared (NEW feature, not a port).** The retired JW one
    was Ollama tier-recipes; the shared one (Decision 18) is a **manual routing
    override**: save/apply/edit/delete named routing configs (default + roles +
    pins) for a specific rig, as a fallback to auto-Fit. Needs a NEW shared presets
    store + endpoint (host-store pattern, like `/v1/ai/routing`) + UI in
-   AiModelsArea. Build fresh.
+   AiModelsArea. Build fresh. **(Not yet started — this is the next task.)**
+
+   **Fit engine ✅ replaced** (just-llm-runner `9737af5`, 2026-06-22): the runner's
+   hand-rolled VRAM fit → the **oobabooga GGUF VRAM formula** (re-implemented in
+   `runner/fit.py`, cited; GQA-aware KV via new `gguf.n_kv_heads`; coarse catalog
+   band computes from params×quant so models need no hand-tuned `minVramMb`). OOM
+   back-off stays the safety net. This was an **adopt-before-build research pass**
+   that also added global **RULE #7 §D** (research existing tools before rolling
+   our own). Evaluated + rejected as deps: **llmfit**/**whichllm** (mature MIT
+   recommenders but DB-bound — no arbitrary-GGUF fit, advisory-only) and
+   **llmserve** (pre-alpha v0.0.7 TUI launcher); **llm-checker** NPDL / Ashish
+   tool no-license → not borrowable. Formula chosen because it's data-derived
+   (~19.5k measurements) + license-clean to re-implement.
 4. ✅ **DONE (conservative)** — commit `3e4ea83`. Removed the provably-duplicated
    parts from `SettingsView.vue`'s `id="audio"` section (provider list,
    Default-LLM/embedding pickers, Feature-routing table, Quick-setup-tips) + all
