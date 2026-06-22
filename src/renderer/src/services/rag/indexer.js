@@ -10,7 +10,7 @@
 import { useAiStore } from "../../stores/ai.js";
 import { useProjectStore } from "../../stores/project.js";
 import { friendlyAiError } from "../aiErrors.js";
-import { OpenAICompatClient } from "../openai-compat.js";
+import { embedTexts } from "../embedApi.js";
 import { chunkProjectAsync } from "./chunker.js";
 import { clear, diff, putVectors, removeIds, shas, status } from "./vectorStore.js";
 
@@ -49,7 +49,7 @@ function resolveModel(provider, override) {
  * PUTs each batch to the server; removes `idsToRemove` first.
  */
 async function embedAndPersist({
-  projectId, model, chunksToEmbed, idsToRemove, client, signal, onProgress,
+  projectId, model, chunksToEmbed, idsToRemove, provider, signal, onProgress,
 }) {
   if (idsToRemove.length) await removeIds(projectId, idsToRemove);
 
@@ -60,9 +60,9 @@ async function embedAndPersist({
 
     let vectors;
     try {
-      vectors = await client.embed({ input: batch.map((c) => c.text), model, signal });
+      vectors = await embedTexts({ providerId: provider.id, input: batch.map((c) => c.text), model, signal });
     } catch (err) {
-      throw friendlyAiError(err, client.provider);
+      throw friendlyAiError(err, provider);
     }
     if (!Array.isArray(vectors) || vectors.length !== batch.length) {
       throw new Error("Embeddings response length didn't match the batch size.");
@@ -94,7 +94,6 @@ export async function buildOrUpdateIndex({ signal, onProgress, provider, model }
     throw new Error("No embedding provider configured. Open Settings → AI providers and set an embedding provider.");
   }
   const resolvedModel = resolveModel(resolvedProvider, model);
-  const client = new OpenAICompatClient(resolvedProvider);
   const projectId = project.activeProjectId;
 
   if (onProgress) onProgress({ phase: "chunking" });
@@ -112,7 +111,7 @@ export async function buildOrUpdateIndex({ signal, onProgress, provider, model }
   await embedAndPersist({
     projectId, model: resolvedModel,
     chunksToEmbed: [...toAdd, ...toUpdate], idsToRemove: toRemove,
-    client, signal, onProgress,
+    provider: resolvedProvider, signal, onProgress,
   });
 }
 
@@ -126,7 +125,6 @@ export async function rebuildIndex({ signal, onProgress, provider, model } = {})
     throw new Error("No embedding provider configured. Open Settings → AI providers and set an embedding provider.");
   }
   const resolvedModel = resolveModel(resolvedProvider, model);
-  const client = new OpenAICompatClient(resolvedProvider);
   const projectId = project.activeProjectId;
 
   if (onProgress) onProgress({ phase: "chunking" });
@@ -136,7 +134,7 @@ export async function rebuildIndex({ signal, onProgress, provider, model } = {})
   await embedAndPersist({
     projectId, model: resolvedModel,
     chunksToEmbed: freshChunks, idsToRemove: [],
-    client, signal, onProgress,
+    provider: resolvedProvider, signal, onProgress,
   });
 }
 

@@ -9,7 +9,7 @@
 //   3. Builds a chat prompt with cited excerpts AND any prior turns.
 //   4. Streams the answer; returns { answer, citations, usage }.
 
-import { OpenAICompatClient } from "../openai-compat.js";
+import { embedTexts } from "../embedApi.js";
 import { friendlyAiError } from "../aiErrors.js";
 import { runAiStream } from "../aiStream.js";
 import { useAiStore } from "../../stores/ai.js";
@@ -144,11 +144,11 @@ export async function askManuscript({
   }
 
   // ── 3. Embed the (history-aware) query ───────────────────────────────────
-  const embedClient = new OpenAICompatClient(resolvedEmbedProvider);
   const embedQuery = buildEmbedQuery(question, history);
   let queryVectors;
   try {
-    queryVectors = await embedClient.embed({
+    queryVectors = await embedTexts({
+      providerId: resolvedEmbedProvider.id,
       input: embedQuery,
       model: resolvedEmbedModel,
       signal,

@@ -10,7 +10,7 @@
 // Returns { answer, citations, usage } in the same shape as
 // askManuscript so the ChatPanel can render either flavour with one UI.
 
-import { OpenAICompatClient } from "../openai-compat.js";
+import { embedTexts } from "../embedApi.js";
 import { friendlyAiError } from "../aiErrors.js";
 import { runAiStream } from "../aiStream.js";
 import { useAiStore } from "../../stores/ai.js";
@@ -167,11 +167,11 @@ export async function askAsCharacter({
     throw new Error("No index built yet — open Settings → AI providers, configure an embedding provider, then use the RAG panel to build the manuscript index.");
   }
 
-  const embedClient = new OpenAICompatClient(resolvedEmbedProvider);
   const embedQuery = buildEmbedQuery(question, history, character);
   let queryVectors;
   try {
-    queryVectors = await embedClient.embed({
+    queryVectors = await embedTexts({
+      providerId: resolvedEmbedProvider.id,
       input: embedQuery,
       model: resolvedEmbedModel,
       signal,
