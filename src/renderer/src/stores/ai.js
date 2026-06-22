@@ -3,18 +3,10 @@
 // call). Persists via the IDB-backed storage adapter.
 
 import { defineStore } from "pinia";
-import { OpenAICompatClient } from "../services/openai-compat.js";
 import { getModelTier, TIERS } from "../services/modelMeta.js";
 import { readSetting, writeSetting } from "../services/settings.js";
 import { getUsage, postUsage, clearUsage as clearUsageApi } from "../services/usageApi.js";
 import * as providerBackend from "../services/providerBackend.js";
-
-// JustWrite is writing-only — every provider is an LLM/embedding endpoint
-// reached through the OpenAI-compat client. (Audio/TTS providers + their
-// proprietary clients were removed when audio moved to JustVoice.)
-function pingClientFor(provider) {
-  return new OpenAICompatClient(provider);
-}
 
 // In-memory cap on the displayed usage log so a long session doesn't grow the
 // reactive list unbounded. The server keeps every row and computes lifetime
@@ -144,7 +136,6 @@ export const useAiStore = defineStore("ai", {
       // Same provider can host LLM + embeddings; the model field on the
       // provider determines which embedding model to call.
       defaultEmbeddingId: loaded?.defaultEmbeddingId ?? "openai-compat-local",
-      status: {}, // providerId -> "ok" | "down" | "checking" | undefined
       // Per-model tier overrides (pinned by the user in Settings or the
       // Speaker Lab). Keyed by bare model id, NOT by provider+model — same
       // model on different Ollama instances should share the same tier
@@ -364,15 +355,6 @@ export const useAiStore = defineStore("ai", {
       this.featurePins = { ...this.featurePins, ...nextPins };
 
       save(this.$state);
-    },
-
-    async ping(id) {
-      const p = this.providerById(id);
-      if (!p) return false;
-      this.status = { ...this.status, [id]: "checking" };
-      const ok = await pingClientFor(p).ping();
-      this.status = { ...this.status, [id]: ok ? "ok" : "down" };
-      return ok;
     },
 
     // ── Usage ───────────────────────────────────────────────

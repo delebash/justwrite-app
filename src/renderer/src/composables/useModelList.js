@@ -11,31 +11,31 @@
 //
 // Cache shape: Record<providerId, ModelEntry[]> where
 //   ModelEntry = { id, quant, state, type, publisher, arch }
-// Fields are null when the server didn't provide them. See
-// `OpenAICompatClient.enrichedModels()` for which paths populate which
-// fields (LM Studio native API → full; OpenAI-spec fallback → id only).
+// The shared `/v1/llm-providers/{id}/models` endpoint returns plain model ids
+// (the server-side registry adapter's `models()`), so the enriched fields are
+// null; ModelPicker reads `.id` and renders a quant badge only when present.
 
 import { reactive } from "vue";
-import { OpenAICompatClient } from "../services/openai-compat.js";
-import { useAiStore } from "../stores/ai.js";
+import { serverUrl } from "../services/serverApi.js";
 
 // Reactive cache, empty at session start; populated lazily by ensureModels /
 // refreshModels and shared across all pickers.
 const modelsByProvider = reactive({});
 
 export function useModelList() {
-  const ai = useAiStore();
-
   // Force a re-fetch even when the cache is populated. The Refresh
   // button on ModelPicker (and any explicit user-initiated reload)
-  // calls this.
+  // calls this. Hits the shared provider-models endpoint (server holds the
+  // key + the live adapter); a 404 (unregistered provider) → empty list.
   async function refreshModels(providerId) {
     if (!providerId) return;
-    const provider = ai.providerById(providerId);
-    if (!provider) return;
     try {
-      const list = await new OpenAICompatClient(provider).enrichedModels();
-      modelsByProvider[providerId] = list;
+      const res = await fetch(serverUrl(`/v1/llm-providers/${encodeURIComponent(providerId)}/models`));
+      if (!res.ok) throw new Error(`models -> ${res.status}`);
+      const { models = [] } = await res.json();
+      modelsByProvider[providerId] = models.map((id) => ({
+        id, quant: null, state: null, type: null, publisher: null, arch: null,
+      }));
     } catch {
       // Leave the cache alone on failure — better to show stale results
       // than a blank list while the user is mid-pick. Explicit refresh
