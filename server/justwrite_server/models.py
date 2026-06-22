@@ -500,21 +500,27 @@ class ImageBlob(Base):
 
 
 class LlmProvider(Base):
-    """A configured LLM provider (OpenAI-compatible endpoint) — the list the
-    renderer's AI store reads, moved off the justwrite:ai kv blob. The server is
-    the LLM client: the gateway (api/llm.py) resolves a provider here and proxies
-    inference, injecting the server-held key. Config varies by provider type, so
-    the full object is JSON in `data`; id/name/kind/built_in are columns for
-    queryability."""
+    """A configured LLM provider — every field a real column (the shared
+    `LLMProviderConfig` shape), not a JSON blob. The dispatch resolves a provider
+    by id and the registry constructs an adapter from `provider_type` + `base_url`
+    + the server-held `api_key`. `local` is the explicit Local/Online choice from
+    the form (drives the UI's Local-vs-Cloud grouping); `built_in` marks a seeded
+    row, `position` orders the list."""
 
     __tablename__ = "llm_providers"
 
     id = Column(String, primary_key=True)
     name = Column(String, nullable=False, default="")
-    kind = Column(String, nullable=False, default="")
+    kind = Column(String, nullable=False, default="llm")
     built_in = Column(Boolean, nullable=False, default=False)
     position = Column(Integer, nullable=False, default=0)
-    data = Column(Text, nullable=False, default="{}")  # the full provider object
+    provider_type = Column(String, nullable=False, default="openai-compat")
+    base_url = Column(String, nullable=False, default="")
+    api_key = Column(String, nullable=True)
+    default_model = Column(String, nullable=False, default="")
+    embedding_model = Column(String, nullable=False, default="")
+    timeout_seconds = Column(Integer, nullable=False, default=60)
+    local = Column(Boolean, nullable=False, default=True)
 
 
 class LlmUsage(Base):

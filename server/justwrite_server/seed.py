@@ -33,53 +33,58 @@ from .seed_feature_prompts import seed_feature_prompts
 log = logging.getLogger(__name__)
 
 
-# The built-in LLM providers, ported from the renderer's old
-# `domain/seed.js` DEFAULT_PROVIDERS. `builtIn: true` marks them undeletable in
-# the UI; cloud providers ship with no key (the user adds one in Settings), the
-# local ones need none. Blank `chatModel` means "hit Fetch models" — every local
-# server uses its own ids. The whole object is stored as JSON in LlmProvider.data;
-# id/name/kind/built_in are columns for queryability.
+# The built-in LLM providers, ported from the renderer's old `domain/seed.js`
+# DEFAULT_PROVIDERS. Every field is a real `LlmProvider` column — no JSON blob.
+# `built_in` marks them undeletable in the UI; cloud providers ship with no key
+# (the user adds one in Settings), the local ones need none. Blank
+# `default_model` means "hit Fetch models" — every local server uses its own ids.
+# `provider_type` is the adapter discriminator; claude/gemini keep `openai-compat`
+# (every JW cloud provider uses the OpenAI-compatible endpoint today — the native
+# anthropic/gemini migration is plan Decision 20). `local` is the Local/Online
+# choice that drives the UI grouping.
 DEFAULT_PROVIDERS: list[dict] = [
     {
         # Built-in llama.cpp runner (just-llm-runner) — the recommended local
         # default. Spawned as a bundled sidecar: no external install, no key.
-        "id": "local-llamacpp", "name": "Built-in (llama.cpp)", "kind": "llm",
-        "runner": "llamacpp", "baseUrl": "http://127.0.0.1:8080/v1",
-        "chatModel": "", "builtIn": True,
+        "id": "local-llamacpp", "name": "Built-in (llama.cpp)",
+        "provider_type": "local-llamacpp", "base_url": "http://127.0.0.1:8080/v1", "local": True,
     },
     {
         # Generic OpenAI-shaped local LLM (Ollama, LM Studio, llama.cpp, …).
-        "id": "openai-compat-local", "name": "OpenAI-compatible (local)", "kind": "llm",
-        "runner": "ollama", "baseUrl": "http://localhost:11434/v1",
-        "chatModel": "", "builtIn": True,
+        "id": "openai-compat-local", "name": "OpenAI-compatible (local)",
+        "provider_type": "openai-compat", "base_url": "http://localhost:11434/v1", "local": True,
     },
     {
-        "id": "openai", "name": "OpenAI", "kind": "llm",
-        "baseUrl": "https://api.openai.com/v1", "chatModel": "gpt-4o-mini", "builtIn": True,
+        "id": "openai", "name": "OpenAI",
+        "provider_type": "openai", "base_url": "https://api.openai.com/v1",
+        "default_model": "gpt-4o-mini", "local": False,
     },
     {
         # Claude via Anthropic's OpenAI-compatible endpoint. Default is the
         # cheapest Claude (haiku); users can swap to sonnet/opus for quality.
-        "id": "claude", "name": "Claude (Anthropic)", "kind": "llm",
-        "baseUrl": "https://api.anthropic.com/v1", "chatModel": "claude-haiku-4-5", "builtIn": True,
+        "id": "claude", "name": "Claude (Anthropic)",
+        "provider_type": "openai-compat", "base_url": "https://api.anthropic.com/v1",
+        "default_model": "claude-haiku-4-5", "local": False,
     },
     {
         # Google's OpenAI-compatible Gemini endpoint. The `/v1beta/openai` prefix
         # is Google-specific; url() appends /chat/completions etc. after it.
-        "id": "gemini", "name": "Gemini (Google)", "kind": "llm",
-        "baseUrl": "https://generativelanguage.googleapis.com/v1beta/openai",
-        "chatModel": "gemini-2.5-flash", "builtIn": True,
+        "id": "gemini", "name": "Gemini (Google)",
+        "provider_type": "openai-compat",
+        "base_url": "https://generativelanguage.googleapis.com/v1beta/openai",
+        "default_model": "gemini-2.5-flash", "local": False,
     },
     {
         # DeepSeek's native API speaks OpenAI shape. deepseek-chat is V3.
-        "id": "deepseek", "name": "DeepSeek", "kind": "llm",
-        "baseUrl": "https://api.deepseek.com/v1", "chatModel": "deepseek-chat", "builtIn": True,
+        "id": "deepseek", "name": "DeepSeek",
+        "provider_type": "deepseek", "base_url": "https://api.deepseek.com/v1",
+        "default_model": "deepseek-chat", "local": False,
     },
     {
         # OpenRouter — one key, OpenAI-shaped, routes to virtually any model.
         # Model ids look like `vendor/model-name`; hit Fetch models for the list.
-        "id": "openrouter", "name": "OpenRouter (aggregator)", "kind": "llm",
-        "baseUrl": "https://openrouter.ai/api/v1", "chatModel": "", "builtIn": True,
+        "id": "openrouter", "name": "OpenRouter (aggregator)",
+        "provider_type": "openrouter", "base_url": "https://openrouter.ai/api/v1", "local": False,
     },
 ]
 
@@ -96,10 +101,16 @@ def seed_default_providers(db: Session) -> int:
         db.add(LlmProvider(
             id=p["id"],
             name=str(p.get("name") or ""),
-            kind=str(p.get("kind") or ""),
-            built_in=bool(p.get("builtIn")),
+            kind="llm",
+            built_in=True,
             position=pos,
-            data=json.dumps(p),
+            provider_type=str(p["provider_type"]),
+            base_url=str(p.get("base_url") or ""),
+            api_key=None,
+            default_model=str(p.get("default_model") or ""),
+            embedding_model=str(p.get("embedding_model") or ""),
+            timeout_seconds=int(p.get("timeout_seconds") or 60),
+            local=bool(p["local"]),
         ))
         pos += 1
         added += 1

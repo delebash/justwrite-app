@@ -45,6 +45,18 @@ def migrate_schema(engine: Engine) -> None:
         # its own typed table now. Drop the orphan from upgraded DBs.
         conn.execute(text("DROP TABLE IF EXISTS kv"))
 
+        # `llm_providers` went from a JSON `data` blob to real columns. An
+        # upgraded DB still has the old single-blob table; drop it and recreate
+        # with the typed schema (the built-ins reseed on boot; user-added
+        # providers are re-entered — acceptable, this isn't production).
+        prov_cols = {row[1] for row in conn.execute(text("PRAGMA table_info(llm_providers)")).fetchall()}
+        if "data" in prov_cols:
+            from .models import LlmProvider
+
+            conn.execute(text("DROP TABLE llm_providers"))
+            LlmProvider.__table__.create(bind=conn)
+            log.info("migrate_schema: rebuilt llm_providers blob → typed columns")
+
         existing = {row[1] for row in conn.execute(text("PRAGMA table_info(projects)")).fetchall()}
         if not existing:
             return  # no projects table yet (shouldn't happen post create_all)

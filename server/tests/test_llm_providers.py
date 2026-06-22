@@ -5,8 +5,6 @@ its app (the per-provider CRUD that replaced the old bulk GET/PUT). The router's
 own unit tests live in just-llm-runner/tests/test_provider_api.py.
 """
 
-import json
-
 from fastapi.testclient import TestClient
 
 from justwrite_server import database
@@ -42,10 +40,11 @@ def test_crud_lifecycle(tmp_path):
     assert body["registered"] is True and body["providerType"] == "openai"
     assert "openai" in get_llm_registry().ids()
 
-    # list round-trips the camel shape.
+    # list round-trips the camel shape, incl. the stored Local/Online flag.
     lst = c.get("/v1/llm-providers").json()
     assert [p["id"] for p in lst["providers"]] == ["openai"]
     assert lst["providers"][0]["defaultModel"] == "gpt-4o-mini"
+    assert lst["providers"][0]["local"] is True
 
     # duplicate id + unknown providerType rejected.
     assert c.post("/v1/llm-providers", json={
@@ -72,21 +71,22 @@ def test_crud_lifecycle(tmp_path):
     assert c.delete("/v1/llm-providers/openai").status_code == 404
 
 
-def test_blob_stays_gateway_readable(tmp_path):
-    """The store writes a SUPERSET `data` blob so the gateway (api/llm.py, which
-    stays until feature execution moves server-side) keeps resolving providers:
-    baseUrl/apiKey persist, and an ollama providerType writes the `runner` pin
-    the gateway's _is_ollama reads."""
+def test_provider_columns_persist(tmp_path):
+    """Provider config lands in REAL columns (no JSON blob): base URL, provider
+    type, the write-only key, and the Local/Online flag. The id is derived from
+    the name when the client doesn't send one (#6)."""
     c = _c(tmp_path)
     c.post("/v1/llm-providers", json={
-        "id": "oll", "name": "Ollama", "providerType": "ollama",
-        "baseUrl": "http://example.test:11434/v1",
+        "name": "My Ollama", "providerType": "ollama",
+        "baseUrl": "http://example.test:11434/v1", "apiKey": "sk-1", "local": True,
     })
     db = database.SessionLocal()
     try:
-        blob = json.loads(db.get(LlmProvider, "oll").data)
+        row = db.query(LlmProvider).filter(LlmProvider.id == "my-ollama").one()
+        assert row.base_url == "http://example.test:11434/v1"
+        assert row.provider_type == "ollama"
+        assert row.api_key == "sk-1"
+        assert row.local is True
+        assert not hasattr(row, "data")  # the JSON blob column is gone
     finally:
         db.close()
-    assert blob["baseUrl"] == "http://example.test:11434/v1"
-    assert blob["providerType"] == "ollama"
-    assert blob["runner"] == "ollama"  # gateway _is_ollama pin
