@@ -1,0 +1,351 @@
+<!doctype html>
+<!-- SPDX-License-Identifier: GPL-3.0-or-later
+  AI Settings (the unified "lab" = source of truth) — design mock.
+  Reconciles: Lab as source of truth · per-feature config (generalized
+  SpeakerLab) · Quick/Accuracy roles with per-feature override · presets as the
+  recommendation currency · computed VRAM fit (oobabooga, from real GGUF
+  metadata) · curated recommendations from real testing (no hardcoded catalog) ·
+  optional on-device benchmark. Static mock; numbers are illustrative.
+-->
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>AI Settings — mock</title>
+<style>
+  :root{
+    --bg:#f4efe6; --surface:#fff; --surface-2:#faf7f1; --surface-3:#f0ece3;
+    --line:#e7dfd1; --line-strong:#d8cdb9;
+    --ink:#2a2620; --ink-2:#4c4438; --muted:#928873;
+    --accent:#3a7d63; --accent-soft:#e7f0ea; --accent-ink:#2c5f4b; --accent-line:#bcd7c9;
+    --gold:#a9802f; --gold-soft:#f6eed9; --gold-line:#e4d3ab;
+    --danger:#bb4a30; --danger-soft:#f7e6e1;
+    --r:10px; --r-sm:7px;
+    --mono:"SF Mono",ui-monospace,Menlo,Consolas,monospace;
+    --ui:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif;
+  }
+  *{box-sizing:border-box}
+  body{margin:0;background:var(--bg);font-family:var(--ui);color:var(--ink);font-size:13.5px;line-height:1.5}
+  .wrap{max-width:1080px;margin:0 auto;padding:22px 26px 80px}
+  .eyebrow{font-size:11px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--muted)}
+  h1{font-size:22px;margin:2px 0 0;font-weight:650}
+  .lede{color:var(--muted);font-size:13px;margin:4px 0 0;max-width:70ch}
+  .muted{color:var(--muted)}
+  b{font-weight:650}
+
+  /* hardware card */
+  .hw{display:flex;gap:14px;align-items:flex-start;background:var(--surface);border:1px solid var(--line);border-radius:var(--r);padding:13px 18px;margin-top:14px}
+  .hw-ic{flex:none;width:38px;height:38px;border-radius:9px;background:var(--accent-soft);color:var(--accent-ink);display:grid;place-items:center}
+  .hw-body{flex:1}
+  .hw-head{display:flex;align-items:baseline;gap:10px;margin-bottom:8px}
+  .hw-title{font-size:11px;font-weight:800;letter-spacing:.05em;text-transform:uppercase;color:var(--muted)}
+  .hw-note{margin-left:auto;font-size:11.5px;color:var(--muted)}
+  .hw-stats{display:flex;gap:30px;flex-wrap:wrap}
+  .hw-stat{display:flex;flex-direction:column;gap:1px}
+  .hw-k{font-size:10px;text-transform:uppercase;letter-spacing:.05em;color:var(--muted)}
+  .hw-v{font-size:13.5px;font-weight:650}
+
+  /* tabs */
+  .tabs{display:flex;gap:4px;margin-top:16px;border-bottom:1px solid var(--line)}
+  .tabs a{padding:10px 16px;font-size:13px;font-weight:600;color:var(--ink-2);border-bottom:2px solid transparent;margin-bottom:-1px;cursor:pointer}
+  .tabs a.on{color:var(--ink);border-bottom-color:var(--accent)}
+  .tab{display:none;padding-top:18px}
+  .tab.on{display:block}
+
+  .card{background:var(--surface);border:1px solid var(--line);border-radius:var(--r);padding:15px 17px;margin-bottom:14px}
+  .card-h{display:flex;align-items:baseline;gap:10px;margin-bottom:12px}
+  .card-h b{font-size:14px}
+  .card-h .muted{font-size:11.5px}
+  .right{margin-left:auto}
+  .sec-h{display:flex;align-items:center;gap:10px;margin:20px 0 8px}
+  .sec-h b{font-size:13.5px}
+  .sec-h .muted{font-size:11.5px}
+
+  /* chips */
+  .chip{display:inline-flex;align-items:center;gap:5px;font-size:10px;font-weight:700;letter-spacing:.04em;border-radius:999px;padding:2px 9px;border:1px solid var(--line-strong);color:var(--ink-2);background:var(--surface)}
+  .chip--quick{background:var(--accent-soft);color:var(--accent-ink);border-color:var(--accent-line)}
+  .chip--acc{background:var(--gold-soft);color:var(--gold);border-color:var(--gold-line)}
+  .chip--rec{background:var(--accent-soft);color:var(--accent-ink);border-color:var(--accent-line)}
+  .chip--you{background:var(--surface-3);color:var(--muted)}
+  .fit{display:inline-flex;align-items:center;gap:4px;font-size:10px;font-weight:700;border-radius:999px;padding:2px 9px;border:1px solid var(--line-strong);color:var(--ink-2)}
+  .fit--ok{background:var(--accent-soft);color:var(--accent-ink);border-color:var(--accent-line)}
+  .fit--tight{background:var(--gold-soft);color:var(--gold);border-color:var(--gold-line)}
+  .fit--no{background:var(--danger-soft);color:var(--danger);border-color:#e7c2b6}
+
+  .btn{font:inherit;font-size:12.5px;font-weight:600;border:1px solid var(--line-strong);border-radius:var(--r-sm);padding:6px 13px;background:var(--surface);color:var(--ink-2);cursor:pointer}
+  .btn:hover{background:var(--surface-2)}
+  .btn--p{background:var(--accent);border-color:var(--accent);color:#fff}
+  .btn--sm{padding:4px 10px;font-size:11.5px}
+  .mono{font-family:var(--mono)}
+  .in{font:inherit;font-size:12.5px;border:1px solid var(--line);border-radius:var(--r-sm);padding:7px 9px;background:var(--surface);width:100%}
+  select.in{appearance:auto;cursor:pointer}
+
+  /* preset card */
+  .preset{display:grid;grid-template-columns:auto 1fr auto;gap:12px;align-items:center;border:1px solid var(--line);border-radius:var(--r);padding:11px 14px;margin-top:9px;background:var(--surface)}
+  .preset-ic{width:34px;height:34px;border-radius:8px;background:var(--surface-3);display:grid;place-items:center;color:var(--ink-2)}
+  .preset-name{font-size:13.5px;font-weight:650}
+  .preset-sub{font-size:11.5px;color:var(--muted);margin-top:2px;display:flex;gap:8px;flex-wrap:wrap;align-items:center}
+  .preset-act{display:flex;gap:6px}
+  .meta{font-size:11.5px;color:var(--muted)}
+  .meta b{color:var(--ink-2)}
+
+  /* feature table */
+  table.ft{width:100%;border-collapse:collapse;font-size:12.5px;border:1px solid var(--line);border-radius:var(--r);overflow:hidden}
+  .ft th{text-align:left;font-size:10px;text-transform:uppercase;letter-spacing:.04em;color:var(--muted);font-weight:700;padding:9px 12px;background:var(--surface-2);border-bottom:1px solid var(--line)}
+  .ft td{padding:10px 12px;border-bottom:1px solid var(--line);vertical-align:middle}
+  .ft tr:last-child td{border-bottom:0}
+  .ft .fname{font-weight:600}
+  .ft .fhint{font-size:11px;color:var(--muted);margin-top:1px}
+  .ft .res{font-size:11.5px;color:var(--muted)}
+  .tune{color:var(--accent-ink);cursor:pointer;font-weight:600;white-space:nowrap}
+
+  /* expanded feature lab */
+  .lab{border:1.5px solid var(--accent-line);border-radius:var(--r);background:linear-gradient(var(--accent-soft),transparent 60px);padding:16px;margin-top:10px}
+  .lab-h{display:flex;align-items:center;gap:9px;margin-bottom:4px}
+  .lab-h b{font-size:14px}
+  .grid2{display:grid;grid-template-columns:140px 1fr;gap:9px 12px;align-items:start;margin-top:12px}
+  .fl{font-size:11.5px;color:var(--ink-2);padding-top:7px}
+  textarea.in{resize:vertical;min-height:54px;line-height:1.5;font-size:12px}
+  .row{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
+  .pill{font-size:11px;border:1px solid var(--line-strong);border-radius:999px;padding:3px 11px;cursor:pointer;background:var(--surface);color:var(--ink-2)}
+  .pill.on{background:var(--accent);border-color:var(--accent);color:#fff}
+  .testbox{margin-top:14px;border-top:1px dashed var(--line-strong);padding-top:13px}
+  .result{background:var(--surface-2);border:1px solid var(--line);border-radius:var(--r-sm);padding:10px 12px;margin-top:9px;font-size:12px}
+  .stat{display:inline-flex;gap:5px;font-size:11.5px;color:var(--muted);margin-right:14px}
+  .stat b{color:var(--ink)}
+  .foot{display:flex;align-items:center;gap:10px;margin-top:14px}
+  .note{font-size:11.5px;color:var(--muted);line-height:1.5}
+  .ucards{display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:12px;max-width:620px}
+  .uval{font-size:24px;font-weight:700}
+  .ulabel{font-size:12px;color:var(--muted)}
+  .bench{border:1px solid var(--line);border-radius:var(--r-sm);overflow:hidden;margin-top:10px}
+  .bench table{width:100%;border-collapse:collapse;font-size:12px}
+  .bench th{background:var(--surface-2);text-align:left;padding:7px 11px;font-size:10px;text-transform:uppercase;letter-spacing:.04em;color:var(--muted);border-bottom:1px solid var(--line)}
+  .bench td{padding:7px 11px;border-bottom:1px solid var(--line);font-family:var(--mono);font-size:11.5px}
+  .bench tr:last-child td{border-bottom:0}
+  .best{background:var(--accent-soft)}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div class="eyebrow">AI</div>
+  <h1>AI Settings</h1>
+  <p class="lede">One place to connect providers, pick the models that power each feature, and tune &amp; test them. Everything routes off what you set here — this is the source of truth, shared by JustWrite &amp; JustVoice.</p>
+
+  <!-- hardware -->
+  <div class="hw">
+    <span class="hw-ic"><svg width="20" height="20" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="5.5" y="5.5" width="9" height="9" rx="1.4"/><path d="M8 2.5v3M12 2.5v3M8 14.5v3M12 14.5v3M2.5 8h3M2.5 12h3M14.5 8h3M14.5 12h3" stroke-linecap="round"/></svg></span>
+    <div class="hw-body">
+      <div class="hw-head"><span class="hw-title">Your hardware</span><span class="hw-note">drives Fit + recommendations</span></div>
+      <div class="hw-stats">
+        <div class="hw-stat"><span class="hw-k">GPU</span><span class="hw-v">RTX 2070 SUPER</span></div>
+        <div class="hw-stat"><span class="hw-k">VRAM</span><span class="hw-v">8 GB</span></div>
+        <div class="hw-stat"><span class="hw-k">RAM</span><span class="hw-v">32 GB</span></div>
+        <div class="hw-stat"><span class="hw-k">Accel</span><span class="hw-v">CUDA</span></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- tabs -->
+  <nav class="tabs">
+    <a data-t="providers" onclick="setTab('providers')">Providers</a>
+    <a data-t="models" onclick="setTab('models')">Models</a>
+    <a class="on" data-t="features" onclick="setTab('features')">Features</a>
+    <a data-t="usage" onclick="setTab('usage')">Usage</a>
+  </nav>
+
+  <!-- ===================== FEATURES ===================== -->
+  <section class="tab on" id="tab-features">
+    <p class="note" style="margin:0 0 14px">Each feature inherits a role (<b>Quick</b> or <b>Accuracy</b>) or pins its own model. Open a feature to tune its model, prompts, and params — and test them on real input before promoting.</p>
+
+    <!-- defaults / roles -->
+    <div class="card">
+      <div class="card-h"><b>Defaults · roles</b><span class="muted">the two go-to models features inherit</span></div>
+      <div class="row" style="gap:16px">
+        <div style="flex:1;min-width:220px">
+          <div class="row"><span class="chip chip--quick">QUICK</span><span class="muted">fast · interactive</span></div>
+          <div class="preset" style="margin-top:7px">
+            <span class="preset-ic">▣</span>
+            <div><div class="preset-name">Qwen3 8B · Q4_K_M</div>
+              <div class="preset-sub"><span class="fit fit--ok">Fits</span><span class="meta">Built-in (llama.cpp) · local</span></div></div>
+            <div class="preset-act"><button class="btn btn--sm">Change</button></div>
+          </div>
+        </div>
+        <div style="flex:1;min-width:220px">
+          <div class="row"><span class="chip chip--acc">ACCURACY</span><span class="muted">careful · accuracy-critical</span></div>
+          <div class="preset" style="margin-top:7px">
+            <span class="preset-ic">▣</span>
+            <div><div class="preset-name">Qwen3 14B · Q4_K_M</div>
+              <div class="preset-sub"><span class="fit fit--tight">Tight</span><span class="meta">Built-in (llama.cpp) · local</span></div></div>
+            <div class="preset-act"><button class="btn btn--sm">Change</button></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- feature list -->
+    <div class="sec-h"><b>Features</b><span class="muted">20 · each inherits a role or pins its own model</span></div>
+    <table class="ft">
+      <thead><tr><th>Feature</th><th>Route</th><th>Resolved</th><th></th></tr></thead>
+      <tbody>
+        <tr>
+          <td><div class="fname">Speaker attribution</div><div class="fhint">Who's speaking each line — accuracy-critical.</div></td>
+          <td><select class="in" style="min-width:170px"><option>Inherit · Accuracy</option><option>Inherit · Quick</option><option>Pin a preset…</option></select></td>
+          <td class="res">Qwen3 14B · local</td>
+          <td><span class="tune">▾ tuning open</span></td>
+        </tr>
+        <tr><td colspan="4" style="padding:0;border:0">
+          <!-- expanded lab for speaker attribution -->
+          <div class="lab">
+            <div class="lab-h"><span class="chip chip--acc">ACCURACY</span><b>Speaker attribution</b><span class="muted">— same backend as the live pipeline; what you see here is what it runs</span></div>
+
+            <div class="grid2">
+              <span class="fl">Model</span>
+              <div class="row"><select class="in" style="max-width:300px"><option>Inherit Accuracy role · Qwen3 14B</option><option>Pin: Qwen3 8B</option><option>Pin: Claude (cloud)…</option></select><span class="fit fit--tight">Tight · ~7.6 GB / 8 GB</span></div>
+
+              <span class="fl">System prompt</span>
+              <textarea class="in">You are a precise dialogue-attribution engine. For each line of dialogue, identify the speaking character using the surrounding narration, speaker tags, and conversational turn-taking. Prefer an explicit tag; fall back to alternation only when unambiguous…</textarea>
+
+              <span class="fl">User template</span>
+              <textarea class="in">{{chapter_text}}
+
+Return JSON: [{ "line": n, "speaker": "name|unknown", "confidence": 0–1 }]</textarea>
+
+              <span class="fl">Params</span>
+              <div class="row">
+                <span class="muted" style="font-size:11.5px">Temperature</span><input class="in" style="width:64px" value="0.2">
+                <span class="muted" style="font-size:11.5px">Tier</span>
+                <span class="pill on">Reasoned</span><span class="pill">Guided</span><span class="pill">Direct</span>
+                <span class="muted" style="font-size:11.5px">Confidence floor</span><input class="in" style="width:64px" value="0.55">
+              </div>
+            </div>
+
+            <!-- test -->
+            <div class="testbox">
+              <div class="row"><b style="font-size:12.5px">Test on real input</b><span class="muted" style="font-size:11.5px">— runs the exact config above. ＋ Add column to race a second config.</span></div>
+              <textarea class="in" style="margin-top:8px">"You shouldn't have come," Mara said. He didn't answer. The fire cracked. "Then why did you leave the door open?"</textarea>
+              <div class="row" style="margin-top:8px"><button class="btn btn--p btn--sm">▶ Run</button><button class="btn btn--sm">＋ Add column</button></div>
+              <div class="result">
+                <div class="mono" style="font-size:11.5px;color:var(--ink-2)">L1 → <b>Mara</b> (0.94) · L2 → narration · L3 → narration · L4 → <b>Mara</b> (0.71)</div>
+                <div style="margin-top:8px"><span class="stat"><b>4.1 s</b> elapsed</span><span class="stat"><b>18</b> tok/s</span><span class="stat"><b>820</b> in / <b>96</b> out</span><span class="stat">VRAM <b>7.6 GB</b></span></div>
+              </div>
+            </div>
+
+            <div class="foot">
+              <span class="note">Tuned here ≠ live until you promote. <b>Use as production</b> writes this feature's config — every real run uses it from then on.</span>
+              <span class="right"></span>
+              <button class="btn btn--sm">Save as preset</button>
+              <button class="btn btn--p">Use as production</button>
+            </div>
+          </div>
+        </td></tr>
+
+        <tr><td><div class="fname">Quick compose / rewrite</div><div class="fhint">Interactive prose actions.</div></td>
+          <td><select class="in" style="min-width:170px"><option>Inherit · Quick</option></select></td>
+          <td class="res">Qwen3 8B · local</td><td><span class="tune">✎ Tune</span></td></tr>
+
+        <tr><td><div class="fname">Critique</div><div class="fhint">Line + structural notes.</div></td>
+          <td><select class="in" style="min-width:170px"><option>Inherit · Accuracy</option></select></td>
+          <td class="res">Qwen3 14B · local</td><td><span class="tune">✎ Tune</span></td></tr>
+
+        <tr><td><div class="fname">Manuscript chat</div><div class="fhint">Ask-the-book RAG Q&amp;A.</div></td>
+          <td><select class="in" style="min-width:170px"><option>Pin · Claude (cloud)</option></select></td>
+          <td class="res">claude-haiku-4-5 · cloud</td><td><span class="tune">✎ Tune</span></td></tr>
+      </tbody>
+    </table>
+  </section>
+
+  <!-- ===================== MODELS ===================== -->
+  <section class="tab" id="tab-models">
+    <p class="note" style="margin:0 0 14px">Recommendations are a small set we (or you) <b>actually tested</b> — never a hardcoded catalog. Fit is computed from each model's real GGUF metadata vs your 8&nbsp;GB. Add any model; benchmark it on your machine if you want real numbers.</p>
+
+    <!-- recommend -->
+    <div class="card">
+      <div class="card-h"><b>Quick Setup</b><span class="muted">picks a fast + a careful model that fit your hardware, sets your roles</span><span class="right"></span><button class="btn btn--p btn--sm">Recommend for my hardware ▾</button></div>
+      <div class="note" style="margin-bottom:6px">For an <b>8 GB</b> card we recommend:</div>
+      <div class="preset">
+        <span class="preset-ic">▣</span>
+        <div><div class="preset-name">Qwen3 8B · Q4_K_M <span class="chip chip--quick" style="margin-left:6px">QUICK</span></div>
+          <div class="preset-sub"><span class="fit fit--ok">Fits</span><span class="chip chip--rec">Recommended</span><span class="meta">fast · validated on an 8 GB card</span></div></div>
+        <div class="preset-act"><button class="btn btn--sm">Download</button></div>
+      </div>
+      <div class="preset">
+        <span class="preset-ic">▣</span>
+        <div><div class="preset-name">Qwen3 14B · Q4_K_M <span class="chip chip--acc" style="margin-left:6px">ACCURACY</span></div>
+          <div class="preset-sub"><span class="fit fit--tight">Tight</span><span class="chip chip--rec">Recommended</span><span class="meta">slow but best for speaker attribution — your finding, on 8 GB</span></div></div>
+        <div class="preset-act"><button class="btn btn--sm">Download</button></div>
+      </div>
+      <div class="foot"><span class="note">Apply sets <b>Quick = 8B</b>, <b>Accuracy = 14B</b>; features inherit them. Re-run after a hardware change.</span><span class="right"></span><button class="btn btn--p btn--sm">Apply</button></div>
+    </div>
+
+    <!-- your presets -->
+    <div class="sec-h"><b>Your models &amp; presets</b><span class="muted">downloaded models + saved configs</span><span class="right"></span><button class="btn btn--sm">＋ Add a model</button></div>
+
+    <div class="preset">
+      <span class="preset-ic">✓</span>
+      <div><div class="preset-name">Qwen3 14B · Q4_K_M</div>
+        <div class="preset-sub"><span class="fit fit--tight">Tight</span><span class="chip chip--acc">ACCURACY</span><span class="chip chip--you">Yours · benchmarked</span><span class="meta">≈ 7.6 GB · <b>18 tok/s</b> measured on your card</span></div></div>
+      <div class="preset-act"><button class="btn btn--sm">Benchmark</button><button class="btn btn--sm">Edit</button></div>
+    </div>
+    <div class="preset">
+      <span class="preset-ic">✓</span>
+      <div><div class="preset-name">Qwen3 8B · Q4_K_M</div>
+        <div class="preset-sub"><span class="fit fit--ok">Fits</span><span class="chip chip--quick">QUICK</span><span class="chip chip--you">Yours · benchmarked</span><span class="meta">≈ 5.1 GB · <b>44 tok/s</b> measured</span></div></div>
+      <div class="preset-act"><button class="btn btn--sm">Benchmark</button><button class="btn btn--sm">Edit</button></div>
+    </div>
+
+    <!-- add a model: computed fit hint -->
+    <div class="card" style="margin-top:14px">
+      <div class="card-h"><b>Add a model</b><span class="muted">any GGUF — paste an HF repo + quant; fit is computed from its metadata</span></div>
+      <div class="row">
+        <input class="in mono" style="max-width:360px" value="unsloth/Qwen3.6-27B-MTP-GGUF : Q4_K_M">
+        <span class="fit fit--no">Won't fit · ≈ 18 GB &gt; 8 GB</span>
+        <button class="btn btn--sm">Add anyway</button>
+      </div>
+      <div class="note" style="margin-top:8px">Fit is the oobabooga estimate from the model's real layer/embedding/KV metadata — it tells you if it'll <i>load</i>, not how fast. For speed, benchmark it.</div>
+    </div>
+
+    <!-- optional benchmark -->
+    <div class="card">
+      <div class="card-h"><b>Benchmark on my machine</b><span class="chip" style="margin-left:2px">optional</span><span class="muted">real tok/s + working flags via llama-bench — for when you want numbers, not setup</span></div>
+      <div class="row"><span class="muted" style="font-size:12px">Qwen3 14B · Q4_K_M</span><button class="btn btn--p btn--sm">▶ Run sweep</button></div>
+      <div class="bench">
+        <table>
+          <thead><tr><th>GPU layers</th><th>ctx</th><th>cache</th><th>VRAM</th><th>tok/s</th></tr></thead>
+          <tbody>
+            <tr><td>28 / 40</td><td>4096</td><td>q8_0</td><td>7.9 GB</td><td>12.1</td></tr>
+            <tr class="best"><td>26 / 40</td><td>4096</td><td>q8_0</td><td>7.6 GB</td><td>18.4 ★</td></tr>
+            <tr><td>40 / 40</td><td>4096</td><td>q8_0</td><td>OOM</td><td>—</td></tr>
+          </tbody>
+        </table>
+      </div>
+      <div class="foot"><span class="note">Best working config saved to the preset (26 layers, ~18 tok/s). This is the only place a real benchmark runs — never part of normal setup.</span><span class="right"></span><button class="btn btn--sm">Save to preset</button></div>
+    </div>
+  </section>
+
+  <!-- ===================== PROVIDERS ===================== -->
+  <section class="tab" id="tab-providers">
+    <p class="note" style="margin:0 0 14px">Connect providers — free local or metered cloud. Model lists come from <b>fetching the provider</b>, never a hardcoded name.</p>
+    <div class="sec-h"><b>Local · free</b><span class="muted">runs on your machine, no key</span></div>
+    <div class="preset"><span class="preset-ic">▣</span><div><div class="preset-name">Built-in (llama.cpp)</div><div class="preset-sub mono">http://127.0.0.1:8080/v1 · no key</div></div><div class="preset-act"><span class="meta">● Connected</span><button class="btn btn--sm">Edit</button></div></div>
+    <div class="sec-h"><b>Cloud · metered</b><span class="muted">your API key</span></div>
+    <div class="preset"><span class="preset-ic">✦</span><div><div class="preset-name">Claude (Anthropic)</div><div class="preset-sub mono">https://api.anthropic.com/v1 · <span style="color:var(--danger)">no key — connect to fetch models</span></div></div><div class="preset-act"><span class="meta">○ Not connected</span><button class="btn btn--sm">Connect</button></div></div>
+  </section>
+
+  <!-- ===================== USAGE ===================== -->
+  <section class="tab" id="tab-usage">
+    <div class="ucards">
+      <div class="card" style="margin:0"><div class="uval">2,418</div><div class="ulabel">calls recorded</div></div>
+      <div class="card" style="margin:0"><div class="uval">1.2 M</div><div class="ulabel">tokens · 91% local (free)</div></div>
+      <div class="card" style="margin:0"><div class="uval">Speaker attr.</div><div class="ulabel">busiest · 1,733 calls</div></div>
+    </div>
+  </section>
+</div>
+<script>
+function setTab(t){
+  document.querySelectorAll('.tabs a').forEach(a=>a.classList.toggle('on',a.dataset.t===t));
+  document.querySelectorAll('.tab').forEach(s=>s.classList.toggle('on',s.id==='tab-'+t));
+}
+</script>
+</body>
+</html>
