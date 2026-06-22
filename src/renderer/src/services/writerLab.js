@@ -46,7 +46,7 @@ export const ACTION_GROUPS = [
       kind: "writerAction",
       key: k,
       label: ACTIONS[k].label,
-      description: `${ACTIONS[k].instruction.slice(0, 80)}…`,
+      description: ACTIONS[k].description,
     })),
   },
   {
@@ -134,18 +134,16 @@ export function reconstructPrompt(action, inputText) {
   const text = inputText.trim();
 
   if (action.kind === "writerAction") {
-    const instruction = ACTIONS[action.key]?.instruction || "";
     return {
       system: SYSTEM_BASE_DISPLAY,
-      user: `${instruction}\n\n--- BEGIN PASSAGE ---\n${text}\n--- END PASSAGE ---`,
+      user: `[instruction for "writerAI.${action.key}" is rendered server-side — view/edit it in AI → Feature prompts]\n\n--- BEGIN PASSAGE ---\n${text}\n--- END PASSAGE ---`,
     };
   }
 
   if (action.kind === "rule") {
-    const instruction = PROSE_RULES[action.key]?.instruction || "";
     return {
       system: SYSTEM_BASE_DISPLAY,
-      user: `${instruction}\n\n--- BEGIN PASSAGE ---\n${text}\n--- END PASSAGE ---`,
+      user: `[instruction for "writerAI.rule.${action.key}" is rendered server-side — view/edit it in AI → Feature prompts]\n\n--- BEGIN PASSAGE ---\n${text}\n--- END PASSAGE ---`,
     };
   }
 

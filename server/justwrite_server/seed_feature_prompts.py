@@ -590,6 +590,32 @@ _BRAINSTORM_SYSTEM = """You are a creative brainstorming partner for a novelist.
 
 _BRAINSTORM_PLOT_SYSTEM = """You are a story-craft brainstorming partner for a novelist. The user has described their current situation; you respond with 15-20 distinct {{kind}}, each on its own line. Each item is a single sentence (12-25 words) naming a specific, concrete move — not abstract advice. Mix close-to-obvious moves with wilder ones. No numbering, no commentary, no preface, no explanations. Do not repeat items the user has already seen."""
 
+# writerAI — the selection-level editor actions (Rewrite/Expand/… + line-edit
+# rules + guided Continue). System == the client's old SYSTEM_BASE; `{{voiceCanon}}`
+# is the project voice fingerprint the client sends (already prefixed with "\n\n"
+# when present, "" otherwise) so the rendered system matches the old client prompt
+# byte-for-byte. The action instruction is baked into the user template; the
+# selected text arrives as `{{passage}}`.
+_WRITER_SYSTEM = (
+    "You are an experienced fiction editor helping a novelist revise prose.\n"
+    "You return revisions in the same voice and tense as the source.\n"
+    "Do not add commentary, do not explain your choices, do not greet the user.\n"
+    "Return only the revised prose as plain paragraphs (blank line between paragraphs).\n"
+    "Preserve dialogue formatting and proper nouns."
+    "{{voiceCanon}}"
+)
+
+
+def _writer(instruction: str, temperature: float = 0.7) -> dict:
+    return {
+        "feature": "writerAI",
+        "system": _WRITER_SYSTEM,
+        "user_template": instruction + "\n\n--- BEGIN PASSAGE ---\n{{passage}}\n--- END PASSAGE ---",
+        "temperature": temperature,
+        "think": False,
+    }
+
+
 DEFAULT_FEATURE_PROMPTS: dict[str, dict] = {
     "critique": {
         "feature": "critique",
@@ -750,6 +776,85 @@ DEFAULT_FEATURE_PROMPTS: dict[str, dict] = {
         "temperature": 0.9,
         "think": False,
     },
+    # ── writerAI (selection-level editor actions) ──
+    "writerAI.rewrite": _writer(
+        "Rewrite the passage below to be more vivid and specific while preserving meaning, tense, and voice."
+    ),
+    "writerAI.expand": _writer(
+        "Expand the passage below with sensory detail, interiority, and small actions. Roughly double its length. Keep the same voice and tense."
+    ),
+    "writerAI.tighten": _writer(
+        "Tighten the passage below. Remove filler words, hedges, and redundant phrases. Keep the meaning, voice, and tense intact. The result should be noticeably shorter."
+    ),
+    "writerAI.continue": _writer(
+        "Continue writing from where the passage below ends. Match the voice, tense, and POV. Write 2–4 more paragraphs of prose. Do not summarize or repeat what came before."
+    ),
+    "writerAI.describe": _writer(
+        "The passage below names a subject — a place, person, object, or moment — that the writer wants "
+        "to bring to life on the page. Write 1–2 paragraphs of fresh sensory prose ABOUT that subject: "
+        "sights, sounds, smells, textures, the feel of the air, small specific details that anchor it "
+        "in the body of the scene. Do not repeat or paraphrase the passage. Do not summarize. Match the "
+        "voice, tense, and POV of the passage. Return new prose only — it will be inserted right after "
+        "the passage in the manuscript."
+    ),
+    "writerAI.guided-continue": {
+        "feature": "writerAI",
+        "system": _WRITER_SYSTEM,
+        "user_template": (
+            "Continue writing from where the passage below ends. "
+            "Follow this specific direction the writer has given you: "
+            '"{{direction}}". '
+            "Match the voice, tense, and POV of the passage. Write 2–4 more paragraphs of prose. "
+            "Do not summarize what came before. Do not echo the direction back as a header."
+            "\n\n--- BEGIN PASSAGE ---\n{{passage}}\n--- END PASSAGE ---"
+        ),
+        "temperature": 0.7,
+        "think": False,
+    },
+    # ── writerAI line-edit rules (temperature 0.6) ──
+    "writerAI.rule.show-dont-tell": _writer(
+        "Revise the passage to show rather than tell. Replace statements about emotion or state "
+        '("she was nervous", "he felt cold") with concrete behaviour, body language, sensory detail, '
+        "and revealing dialogue. Keep the same events and voice.",
+        0.6,
+    ),
+    "writerAI.rule.passive-voice": _writer(
+        "Revise the passage to use active voice where it strengthens the prose. Leave passive "
+        "constructions in place when the actor genuinely doesn't matter or when active voice "
+        "would feel forced. Keep meaning, voice, and tense intact.",
+        0.6,
+    ),
+    "writerAI.rule.filter-words": _writer(
+        "Revise the passage to remove filter words — words like saw, heard, felt, noticed, realized, "
+        "thought, watched, looked, when they sit between the POV character and direct perception. "
+        "Show the perception directly. Keep the same events and voice.",
+        0.6,
+    ),
+    "writerAI.rule.dialogue-tags": _writer(
+        'Revise the dialogue tags in the passage. Replace tags like "exclaimed", "retorted", "queried" '
+        'with "said" or "asked", or convert them to action beats that show how the line is delivered. '
+        'Remove adverbs in dialogue tags ("she said angrily"). Preserve the dialogue itself.',
+        0.6,
+    ),
+    "writerAI.rule.sensory-grounding": _writer(
+        "Revise the passage to anchor abstract or interior prose in concrete sensory detail. Where "
+        "the prose drifts into thought, summary, or generality, add a specific image, sound, smell, "
+        "texture, or bodily sensation that puts the POV character back in the room. Do not invent "
+        "new events or change what happens — only the felt texture. Keep voice and tense intact.",
+        0.6,
+    ),
+    "writerAI.rule.sentence-variety": _writer(
+        "Revise the passage to vary sentence length and structure. If sentences are uniformly long, "
+        "break some apart. If uniformly short, combine some with subordination or compound structure. "
+        "Aim for a mix that lets the rhythm breathe. Keep the meaning and voice intact.",
+        0.6,
+    ),
+    "writerAI.rule.prose-tightening": _writer(
+        "Tighten the passage. Cut hedges (just, really, very, somewhat, a bit), redundant phrases, "
+        "and any sentence that doesn't move the scene forward or reveal something. Keep voice and "
+        "key beats. The result should be noticeably shorter.",
+        0.6,
+    ),
 }
 
 def seed_feature_prompts(db: Session) -> int:

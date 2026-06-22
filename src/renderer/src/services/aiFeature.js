@@ -67,7 +67,7 @@ export async function runAiFeature({ action, feature, variables = {}, provider, 
 // chat / rag) that show live tokens. Same task-panel + error wrapping; the
 // SERVER records usage (host-sink) so this doesn't. Returns { content, usage }.
 // `onDelta(delta, content)` fires per chunk.
-export async function runAiFeatureStream({ action, feature, variables = {}, provider, model, signal, onDelta, meta, task } = {}) {
+export async function runAiFeatureStream({ action, feature, variables = {}, provider, model, temperature, signal, onDelta, meta, task } = {}) {
   let handle = null;
   let effectiveSignal = signal;
   let effectiveOnDelta = onDelta;
@@ -90,6 +90,7 @@ export async function runAiFeatureStream({ action, feature, variables = {}, prov
   const body = { action, variables };
   if (provider?.id) body.providerId = provider.id;
   if (model) body.model = model;
+  if (typeof temperature === "number") body.temperature = temperature;
 
   let content = "";
   let usage = null;
