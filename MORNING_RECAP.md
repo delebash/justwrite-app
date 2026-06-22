@@ -105,8 +105,11 @@ per-app duplication — anything both apps need lives in the SHARED stack.**
    engines" → "Writing AI". Deferred tidy: the now-unused `settings.audio.*`
    i18n keys across locale files (harmless; remove in an i18n sweep). Moving
    QuickSetup + HardwarePresets fully INTO `/ai` is still #2/#3 (gated on #1).
-5. 🔄 **E — retire the `/v1/llm` gateway** (5 phases; full plan:
-   `docs/plans/2026-06-22-jw-gateway-retirement.md`).
+5. ✅ **E — `/v1/llm` gateway RETIRED** (all 5 phases done; full plan:
+   `docs/plans/2026-06-22-jw-gateway-retirement.md`). JW's LLM + embeddings now
+   run entirely through the shared `just-llm-runner` dispatch
+   (`/v1/ai/run|stream|embeddings` + `/v1/llm-providers`); the per-app gateway,
+   `openai-compat.js`, and `aiStream.js` are deleted.
    - ✅ **Phase 1 — shared embeddings backend** (just-llm-runner `6c02d5c`):
      adapter `embed()` (OpenAICompat `/embeddings` + Ollama `/api/embed`) + `POST
      /v1/ai/embeddings` + tests. The keystone — the shared stack had no
@@ -125,15 +128,18 @@ per-app duplication — anything both apps need lives in the SHARED stack.**
        `runAiFeatureStream`; instructions deleted client-side; per-call
        temperature override added for variations. Verified prompts render
        byte-for-byte vs the old client; `/v1/ai/stream` dispatches it.
-     - ⬜ **4b manuscript chat** (`rag/chat.js`) + **4c character chat**
-       (`rag/characterChat.js`) — these build a prompt from CLIENT-retrieved
-       excerpts + history + question; seed `chat`/`characterChat` prompts and
-       send the excerpts/history/question as variables, then drop `runAiStream`.
-       (VariationsModal already covered — it calls the writerAI fns via a runner.)
-   - ⬜ **Phase 5** — delete `api/llm.py` (+ mount), `services/openai-compat.js`,
-     `services/providerBackend.js`, `services/aiStream.js`, and the dead
-     `stores/ai.js` `applyQuickSetupPreset`/`quickSetupTiers`.
-   Keep the gateway mounted until Phase 5 so a half-migrated state still works.
+     - ✅ **4b manuscript chat** + **4c character chat** (`a87f7d0`, runner
+       `cf31db8`) — seeded `chat` + `characterChat` prompts; clients retrieve +
+       format the cited `{{excerpts}}` and send `{question, excerpts}` + history
+       via `runAiFeatureStream`. Added multi-turn `history` to `/v1/ai/{run,stream}`
+       (RunRequest + `_history_messages`). characterChat's framing + RULES are
+       Lab-editable; the per-character profile rides in `{{characterProfile}}`.
+       Verified byte-for-byte (chat; characterChat full + name-only).
+   - ✅ **Phase 5** (`be43d4c`) — deleted `api/llm.py` (+ mount + test),
+     `services/openai-compat.js`, `services/aiStream.js`, and the dead
+     `stores/ai.js` `applyQuickSetupPreset`/`quickSetupTiers`. KEPT
+     `providerBackend.js` (it's the shared `/v1/llm-providers` CRUD client, not a
+     gateway consumer — earlier plan was wrong; verified before deleting).
 
 After JW proves the shared GUI: **JustVoice adopts the identical `@delebash/llm-ui`
 views + layers TTS**; JV also still has per-app duplicate prompt/provider
