@@ -103,7 +103,6 @@ function save(state) {
     modelTiers: state.modelTiers,
     featurePins: state.featurePins,
     autoRebuildRagIndex: state.autoRebuildRagIndex,
-    quickSetupTiers: state.quickSetupTiers,
   });
   // Providers are server-authoritative + persisted per-provider by the CRUD
   // actions (addProvider/updateProvider/removeProvider) — NOT bulk-saved here.
@@ -154,10 +153,6 @@ export const useAiStore = defineStore("ai", {
       // burns embed tokens on every save against a cloud provider, which
       // the user shouldn't get without opting in.
       autoRebuildRagIndex: loaded?.autoRebuildRagIndex ?? false,
-      // Per-provider Quick-Setup tier tag (providerId -> tier id). Lives in
-      // ai-prefs, not on the provider — the shared provider contract has no
-      // place for app-specific wizard state. Drives the GPU-upgrade nudge.
-      quickSetupTiers: loaded?.quickSetupTiers ?? {},
       // Usage ledger — hydrated on demand from /v1/llm-usage (Settings → Usage).
       // recordUsage appends locally for live display and POSTs to the server,
       // which owns the full history and computes lifetime totals.
@@ -291,71 +286,6 @@ export const useAiStore = defineStore("ai", {
       this.setModelTier(modelId, null);
     },
 
-    // ── Quick setup wizard ─────────────────────────────────────
-    // Applies a hardware preset in one shot: creates (or updates)
-    // up to two Ollama providers, sets defaults, and rewrites the
-    // feature pins per the recipe. Idempotent — re-running with
-    // a different tier overwrites the same provider ids cleanly.
-    //
-    // preset shape: { defaultChatModel, fastChatModel?, embeddingModel, recipe }
-    //   recipe = { [featureKey]: "default" | "fast" | "cloud" }
-    //   (omitted keys inherit the default LLM)
-    applyQuickSetupPreset({ preset, ollamaBaseUrl, cloudProviderId = null, providerIds }) {
-      if (!preset || !ollamaBaseUrl || !providerIds?.default) return;
-      const defaultId = providerIds.default;
-      const fastId = providerIds.fast;
-      const tierTag = preset.id || null;
-
-      // Drafts in the shared provider shape; the quick-setup endpoints are
-      // Ollama daemons (providerType "ollama" → the gateway honors think:false).
-      const defaultDraft = {
-        id: defaultId,
-        name: `Ollama · ${preset.defaultChatModel}`,
-        providerType: "ollama",
-        baseUrl: ollamaBaseUrl,
-        apiKey: "",
-        defaultModel: preset.defaultChatModel,
-        embeddingModel: preset.embeddingModel || "",
-      };
-      const fastDraft = preset.fastChatModel ? {
-        id: fastId,
-        name: `Ollama · ${preset.fastChatModel} (fast)`,
-        providerType: "ollama",
-        baseUrl: ollamaBaseUrl,
-        apiKey: "",
-        defaultModel: preset.fastChatModel,
-      } : null;
-
-      // Upsert each through the per-provider CRUD (create if new, else update).
-      const upsert = (draft) => {
-        if (this.providers.some((p) => p.id === draft.id)) this.updateProvider(draft.id, draft);
-        else this.addProvider(draft);
-      };
-      upsert(defaultDraft);
-      if (fastDraft) upsert(fastDraft);
-      else if (this.providers.some((p) => p.id === fastId)) this.removeProvider(fastId);
-
-      // Tag the tier for the GPU-upgrade nudge (ai-prefs, off the provider).
-      const tiers = { ...this.quickSetupTiers, [defaultId]: tierTag };
-      if (fastDraft) tiers[fastId] = tierTag;
-      else delete tiers[fastId];
-      this.quickSetupTiers = tiers;
-
-      this.defaultLlmId = defaultId;
-      this.defaultEmbeddingId = defaultId;
-
-      // Rewrite feature pins per the recipe. Unmentioned keys reset to null
-      // (= inherit default) so a re-run is fully idempotent.
-      const nextPins = {};
-      for (const [key, target] of Object.entries(preset.recipe || {})) {
-        if (target === "fast" && fastDraft) nextPins[key] = { providerId: fastId };
-        else if (target === "cloud" && cloudProviderId) nextPins[key] = { providerId: cloudProviderId };
-        else nextPins[key] = null;
-      }
-      this.featurePins = { ...this.featurePins, ...nextPins };
-
-      save(this.$state);
-    },
 
     // ── Usage ───────────────────────────────────────────────
     // Append a usage row. Called by writerAI (and any other AI feature

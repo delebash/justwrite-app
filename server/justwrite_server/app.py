@@ -23,7 +23,6 @@ from .api import (
     chat,
     health,
     images,
-    llm,
     llm_usage,
     projects,
     rag,
@@ -73,7 +72,6 @@ def create_app(data_dir: Path | None = None) -> FastAPI:
     app.include_router(rag.router)
     app.include_router(images.router)
     app.include_router(llm_usage.router)
-    app.include_router(llm.router)
     app.include_router(llm_runner_router)
     # Shared LLM routers (the same ones JustVoice mounts): storage-free endpoints
     # (classify-tier / ai-usage / ping / models over the shared registry+ledger)
