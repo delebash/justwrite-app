@@ -246,16 +246,6 @@
     "preferences": {
       "cardTitle": "Preferences"
     },
-    "audio": {
-      "defaultsCardTitle": "Defaults",
-      "routingCardTitle": "Feature routing",
-      "providersCardTitle": "Providers",
-      "tipsCardTitle": "Quick setup tips",
-      "fieldDefaultLlm": "Default LLM",
-      "fieldDefaultEmbedding": "Default embedding",
-      "fieldAutoRebuild": "Auto-rebuild RAG",
-      "addProvider": "Add provider"
-    },
     "usage": {
       "cardTitle": "AI usage",
       "resetLedger": "Reset ledger",
