@@ -144,6 +144,7 @@ const NAV = [
   { id: "writer-lab", label: "sidebar.nav.writerLab", icon: "Sparkle", path: "/writer-lab", activeName: "writerlab" },
   { id: "ai", label: "sidebar.nav.ai", icon: "Sparkle", path: "/ai", activeName: "ai" },
   { id: "ai-prompts", label: "sidebar.nav.featurePrompts", icon: "Sparkle", path: "/ai-prompts", activeName: "aiprompts" },
+  { id: "feature-workbench", label: "sidebar.nav.featureWorkbench", icon: "Sparkle", path: "/feature-workbench", activeName: "featureworkbench" },
   { id: "help",      label: "sidebar.nav.help",       icon: "Help",     path: "/help", activeName: "help" },
 ];
 
