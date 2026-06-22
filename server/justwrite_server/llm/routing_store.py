@@ -12,7 +12,7 @@ from __future__ import annotations
 
 import json
 
-from llm_runner.llm import RoutingConfig
+from llm_runner.llm import RoutingConfig, RoutingPreset
 from llm_runner.llm.routing_api import FeaturePin, RoleTarget, RoutingDefaults
 
 from .. import database as _db
@@ -104,3 +104,42 @@ _store = JwRoutingStore()
 
 def get_routing_store() -> JwRoutingStore:
     return _store
+
+
+class JwRoutingPresetStore:
+    """RoutingPresetStore over the `ai` settings blob (a `routingPresets` list of
+    named routing snapshots). Read-modify-write preserves the other `ai` keys."""
+
+    def list_presets(self) -> list[RoutingPreset]:
+        out: list[RoutingPreset] = []
+        for p in _read_ai().get("routingPresets") or []:
+            if isinstance(p, dict):
+                try:
+                    out.append(RoutingPreset.model_validate(p))
+                except Exception:  # noqa: BLE001 — skip a corrupt stored preset
+                    continue
+        return out
+
+    def save_preset(self, preset: RoutingPreset) -> None:
+        ai = _read_ai()
+        others = [
+            p for p in (ai.get("routingPresets") or [])
+            if not (isinstance(p, dict) and p.get("id") == preset.id)
+        ]
+        ai["routingPresets"] = [*others, preset.model_dump()]
+        _write_ai(ai)
+
+    def delete_preset(self, preset_id: str) -> None:
+        ai = _read_ai()
+        ai["routingPresets"] = [
+            p for p in (ai.get("routingPresets") or [])
+            if not (isinstance(p, dict) and p.get("id") == preset_id)
+        ]
+        _write_ai(ai)
+
+
+_preset_store = JwRoutingPresetStore()
+
+
+def get_routing_preset_store() -> JwRoutingPresetStore:
+    return _preset_store

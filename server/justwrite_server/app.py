@@ -77,7 +77,12 @@ def create_app(data_dir: Path | None = None) -> FastAPI:
     # (classify-tier / ai-usage / ping / models over the shared registry+ledger)
     # plus the provider-CRUD router backed by JustWrite's `LlmProvider`-table
     # ProviderStore. Replaces the old bulk GET/PUT `api/llm_providers.py`.
-    from llm_runner.llm import make_feature_router, make_prompt_router, make_routing_router
+    from llm_runner.llm import (
+        make_feature_router,
+        make_prompt_router,
+        make_routing_presets_router,
+        make_routing_router,
+    )
     from llm_runner.llm.api import router as llm_shared_api_router
     from llm_runner.llm.provider_api import make_provider_router
 
@@ -85,7 +90,7 @@ def create_app(data_dir: Path | None = None) -> FastAPI:
     from .llm.config import llm_config
     from .llm.prompt_store import get_prompt_store
     from .llm.provider_store import get_provider_store
-    from .llm.routing_store import get_routing_store
+    from .llm.routing_store import get_routing_preset_store, get_routing_store
     from .seed_feature_prompts import DEFAULT_FEATURE_PROMPTS
 
     app.include_router(llm_shared_api_router)
@@ -98,4 +103,7 @@ def create_app(data_dir: Path | None = None) -> FastAPI:
     # Shared feature-routing editor (/v1/ai/routing): default + roles + per-feature
     # pins over JW's RoutingStore (the `ai` settings blob) and JW's catalog.
     app.include_router(make_routing_router(get_routing_store, lambda: FEATURE_CATALOG))
+    # Named routing presets ("hardware presets"): save/apply/edit/delete whole
+    # routing snapshots, applying into the same RoutingStore.
+    app.include_router(make_routing_presets_router(get_routing_preset_store, get_routing_store))
     return app
