@@ -1,5 +1,6 @@
-"""/v1/ai/routing — the Features-tab editor over JW's `ai` settings blob, and
-the config.py wiring that makes saved routing actually drive dispatch."""
+"""/v1/ai/routing — the Features-tab editor over JW's routing tables
+(routing_configs + routing_pins), and the config.py wiring that makes saved
+routing actually drive dispatch. Behavioural: storage-agnostic by design."""
 
 from fastapi.testclient import TestClient
 

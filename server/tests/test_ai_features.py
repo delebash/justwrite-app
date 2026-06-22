@@ -3,13 +3,11 @@ prompt template and dispatches through the shared llm_runner dispatch, honoring
 the user's default provider / feature pins from settings.
 """
 
-import json
 
 from fastapi.testclient import TestClient
 
 from justwrite_server import database
 from justwrite_server.app import create_app
-from justwrite_server.models import Setting
 from justwrite_server.seed_feature_prompts import seed_feature_prompts
 from llm_runner.llm import get_llm_registry
 from llm_runner.llm.base import LLMResponse, StreamDelta
@@ -43,10 +41,18 @@ def _client(tmp_path, *, default_id="p1", pins=None):
     db = database.SessionLocal()
     try:
         seed_feature_prompts(db)
-        db.add(Setting(key="ai", value=json.dumps({"defaultLlmId": default_id, "featurePins": pins or {}})))
         db.commit()
     finally:
         db.close()
+    # Routing lives in real tables now (not the `ai` settings blob) — set the
+    # default + pins through the routing store the dispatch reads.
+    from justwrite_server.llm.routing_store import get_routing_store
+    from llm_runner.llm.routing_api import FeaturePin, RoutingConfig, RoutingDefaults
+
+    get_routing_store().set_routing(RoutingConfig(
+        default=RoutingDefaults(llmId=default_id),
+        pins={k: FeaturePin(**v) for k, v in (pins or {}).items()},
+    ))
     return c
 
 

@@ -542,6 +542,48 @@ class LlmUsage(Base):
     meta = Column(Text, nullable=False, default="{}")           # JSON
 
 
+# ── Routing (default + roles + per-feature pins; live config + presets) ──
+
+
+class RoutingConfigRow(Base):
+    """A routing configuration in real columns — the live config (id='active')
+    AND named presets share this one table (`is_active` + `name` distinguish).
+    Default LLM/embedding + the Quick/Accuracy role targets are columns; the
+    per-feature pins are rows in `routing_pins` (FK). Replaces the routing keys
+    that used to live in the `ai` settings JSON blob (defaultLlmId / llmRoles /
+    featurePins / routingPresets) — config.py reads the active row to drive
+    dispatch; the shared /v1/ai/routing* router reads/writes it."""
+
+    __tablename__ = "routing_configs"
+
+    id = Column(String, primary_key=True)  # 'active' for the live config; else a preset id
+    name = Column(String, nullable=False, default="")
+    is_active = Column(Boolean, nullable=False, default=False)
+    position = Column(Integer, nullable=False, default=0)
+    default_llm_id = Column(String, nullable=False, default="")
+    default_embedding_id = Column(String, nullable=False, default="")
+    quick_provider_id = Column(String, nullable=False, default="")
+    quick_model = Column(String, nullable=False, default="")
+    accuracy_provider_id = Column(String, nullable=False, default="")
+    accuracy_model = Column(String, nullable=False, default="")
+
+
+class RoutingPin(Base):
+    """One feature → provider/model/role pin within a routing config. A row
+    exists only for a feature that actually routes somewhere (explicit provider
+    or an inherited role); "inherit default" is the absence of a row."""
+
+    __tablename__ = "routing_pins"
+
+    config_id = Column(
+        String, ForeignKey("routing_configs.id", ondelete="CASCADE"), primary_key=True
+    )
+    feature = Column(String, primary_key=True)
+    provider_id = Column(String, nullable=False, default="")
+    model = Column(String, nullable=False, default="")
+    role = Column(String, nullable=False, default="")
+
+
 # ── Feature prompts (LLM feature catalog — DB-seeded, Lab-editable) ──────
 
 

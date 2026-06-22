@@ -27,7 +27,7 @@ from sqlalchemy.orm import Session
 from . import book_io
 from . import database as _db
 from .demo_seed import DEMO_PROJECT_ID, demo_book_snapshot
-from .models import LlmProvider, Setting
+from .models import LlmProvider, RoutingConfigRow, Setting
 from .seed_feature_prompts import seed_feature_prompts
 
 log = logging.getLogger(__name__)
@@ -117,6 +117,19 @@ def seed_default_providers(db: Session) -> int:
     return added
 
 
+def seed_default_routing(db: Session) -> bool:
+    """Seed the live routing row (id='active') if missing — default LLM +
+    embedding point at the local OpenAI-compatible provider so a fresh install
+    routes to free local inference. Does NOT commit. Returns True if added."""
+    if db.get(RoutingConfigRow, "active") is not None:
+        return False
+    db.add(RoutingConfigRow(
+        id="active", is_active=True, position=0,
+        default_llm_id="openai-compat-local", default_embedding_id="openai-compat-local",
+    ))
+    return True
+
+
 def seed_demo_project(db: Session) -> bool:
     """Create the demo project once (gated by the `demoSeeded` flag) and point
     `activeProjectId` at it on a fresh workspace. Does NOT commit. Returns True
@@ -160,6 +173,7 @@ def seed_workspace(db: Session | None = None) -> None:
         db = _db.SessionLocal()
     try:
         seed_default_providers(db)
+        seed_default_routing(db)
         seed_feature_prompts(db)
         seed_demo_project(db)
         db.commit()

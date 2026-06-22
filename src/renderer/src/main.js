@@ -19,6 +19,7 @@ import { bootSettings, readSetting } from "./services/settings.js";
 import { hydrateProjects, useProjectStore } from "./stores/project.js";
 import { useSessionsStore } from "./stores/sessions.js";
 import { bootProviders } from "./services/providerBackend.js";
+import { bootRouting } from "./services/routingBackend.js";
 
 import "./tokens.css";
 import "./styles.css";
@@ -56,6 +57,9 @@ configureLlmUi({ baseUrl: SERVER_BASE });
   // Pull the configured LLM provider list off the server (/v1/llm-providers)
   // so the AI store's synchronous bootstrap reads it.
   await bootProviders();
+  // Pull the routing config (default provider + per-feature pins) off the server
+  // (/v1/ai/routing) into its cache so the AI store reads it synchronously too.
+  await bootRouting();
 
   // Now that settings are loaded, re-apply the persisted appearance (migrating
   // any legacy { theme, accentHue } shape) and resolve the active i18n locale

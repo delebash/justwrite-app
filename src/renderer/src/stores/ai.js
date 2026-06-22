@@ -7,6 +7,7 @@ import { getModelTier, TIERS } from "../services/modelMeta.js";
 import { readSetting, writeSetting } from "../services/settings.js";
 import { getUsage, postUsage, clearUsage as clearUsageApi } from "../services/usageApi.js";
 import * as providerBackend from "../services/providerBackend.js";
+import * as routingBackend from "../services/routingBackend.js";
 
 // In-memory cap on the displayed usage log so a long session doesn't grow the
 // reactive list unbounded. The server keeps every row and computes lifetime
@@ -78,10 +79,12 @@ function bumpKey(map, key, row) {
   map[key] = existing;
 }
 
-// The `ai` settings section holds only the AI *preferences* (defaults, feature
-// pins, per-model tier overrides, auto-rebuild). Providers live in their own
-// server table (/v1/llm-providers) and never round-trip through settings.
-function load() {
+// The `ai` settings section holds only the non-routing AI prefs (per-model tier
+// overrides + the RAG auto-rebuild toggle). The default provider/embedding,
+// per-feature pins, and Quick/Accuracy roles live in the routing tables
+// (/v1/ai/routing via routingBackend); providers live in /v1/llm-providers.
+// None of those round-trip through the settings document.
+function loadPrefs() {
   const v = readSetting("ai");
   return v && typeof v === "object" ? v : null;
 }
@@ -96,16 +99,24 @@ function initialProviders() {
   return providerBackend.listProviders() ?? [];
 }
 
-function save(state) {
-  writeSetting("ai", {
+// Persist the routing fields (default provider/embedding + per-feature pins) to
+// the routing tables. The Features tab's Quick/Accuracy roles are preserved by
+// the backend's merge (the AI store doesn't track them).
+function saveRouting(state) {
+  routingBackend.putRoutingPrefs({
     defaultLlmId: state.defaultLlmId,
     defaultEmbeddingId: state.defaultEmbeddingId,
-    modelTiers: state.modelTiers,
     featurePins: state.featurePins,
+  });
+}
+
+// Persist the non-routing AI prefs to the `ai` settings section (its only
+// remaining contents). Providers + routing are server-authoritative elsewhere.
+function savePrefs(state) {
+  writeSetting("ai", {
+    modelTiers: state.modelTiers,
     autoRebuildRagIndex: state.autoRebuildRagIndex,
   });
-  // Providers are server-authoritative + persisted per-provider by the CRUD
-  // actions (addProvider/updateProvider/removeProvider) — NOT bulk-saved here.
 }
 
 // Build the shared list-shape provider from a form draft. hasApiKey is derived
@@ -127,32 +138,36 @@ function listShape(draft, prev = null) {
 
 export const useAiStore = defineStore("ai", {
   state: () => {
-    const loaded = load();
+    const prefs = loadPrefs();
+    // Routing (default provider/embedding + feature pins) comes from the routing
+    // tables via the boot cache — one source of truth shared with the Features
+    // tab; the `ai` settings doc carries only the non-routing prefs below.
+    const routing = routingBackend.getRoutingPrefs();
     return {
       providers: initialProviders(),
-      defaultLlmId: loaded?.defaultLlmId ?? "openai-compat-local",
+      defaultLlmId: routing?.defaultLlmId || "openai-compat-local",
       // Default provider used for embeddings (RAG indexing + chat).
       // Same provider can host LLM + embeddings; the model field on the
       // provider determines which embedding model to call.
-      defaultEmbeddingId: loaded?.defaultEmbeddingId ?? "openai-compat-local",
+      defaultEmbeddingId: routing?.defaultEmbeddingId || "openai-compat-local",
       // Per-model tier overrides (pinned by the user in Settings or the
       // Speaker Lab). Keyed by bare model id, NOT by provider+model — same
       // model on different Ollama instances should share the same tier
       // judgement. Empty by default; the heuristic in modelMeta.js
       // provides the auto-detected tier when nothing is pinned.
-      modelTiers: loaded?.modelTiers ?? {},
+      modelTiers: prefs?.modelTiers ?? {},
       // Per-feature LLM pins. Each key is a feature id (chat | critique |
-      // entitySweep | writerAI); each value is null (= inherit the global
-      // defaultLlmId) or { providerId, model? }. `model` is optional —
-      // when null the provider's own `chatModel` is used. Surfaced in
-      // Settings → AI → Feature defaults, plus the chat panel writes to
-      // featurePins.chat directly for in-thread model switching.
-      featurePins: loaded?.featurePins ?? { chat: null, critique: null, entitySweep: null, writerAI: null },
+      // entitySweep | writerAI | …); each value is null (= inherit the global
+      // defaultLlmId) or { providerId, model?, role? }. Mirrors the routing
+      // tables; the chat panel writes featurePins.chat for in-thread model
+      // switching, AiFeatureChip writes per-feature pins — both persist via
+      // /v1/ai/routing.
+      featurePins: routing?.featurePins ?? { chat: null, critique: null, entitySweep: null, writerAI: null },
       // When true, services/rag/autoIndex.js silently embeds new/changed
       // scenes a minute after the last edit. Default OFF — auto-firing
       // burns embed tokens on every save against a cloud provider, which
       // the user shouldn't get without opting in.
-      autoRebuildRagIndex: loaded?.autoRebuildRagIndex ?? false,
+      autoRebuildRagIndex: prefs?.autoRebuildRagIndex ?? false,
       // Usage ledger — hydrated on demand from /v1/llm-usage (Settings → Usage).
       // recordUsage appends locally for live display and POSTs to the server,
       // which owns the full history and computes lifetime totals.
@@ -258,19 +273,19 @@ export const useAiStore = defineStore("ai", {
     setFeaturePin(featureKey, pin) {
       // pin = null to inherit the default; { providerId, model? } to pin.
       this.featurePins = { ...this.featurePins, [featureKey]: pin || null };
-      save(this.$state);
+      saveRouting(this.$state);
     },
     setDefaultLlm(id) {
       this.defaultLlmId = id;
-      save(this.$state);
+      saveRouting(this.$state);
     },
     setDefaultEmbedding(id) {
       this.defaultEmbeddingId = id;
-      save(this.$state);
+      saveRouting(this.$state);
     },
     setAutoRebuildRagIndex(on) {
       this.autoRebuildRagIndex = !!on;
-      save(this.$state);
+      savePrefs(this.$state);
     },
     // Pin a tier override for a specific model. Pass null/undefined to
     // clear and fall back to the auto-detected tier from modelMeta.
@@ -280,7 +295,7 @@ export const useAiStore = defineStore("ai", {
       if (tierId && TIERS[tierId]) next[modelId] = tierId;
       else delete next[modelId];
       this.modelTiers = next;
-      save(this.$state);
+      savePrefs(this.$state);
     },
     clearModelTier(modelId) {
       this.setModelTier(modelId, null);
