@@ -32,8 +32,12 @@ html[data-theme="dark"] body {
 }
 
 button { font: inherit; cursor: default; }
-/* Native buttons inherit text colour; .jw-btn manages its own colour. */
-button:not(.jw-btn) { color: inherit; }
+/* Native buttons inherit text colour; the styled button families (.jw-btn and
+   the shared @delebash/llm-ui .lu-btn) manage their own colour. Both must be
+   excluded or this reset (specificity 0,1,1 via :not) overrides their own
+   color rules (0,1,0) and forces every lu-btn to --ink — e.g. white-on-accent
+   primary buttons rendered as dark text. */
+button:not(.jw-btn):not(.lu-btn) { color: inherit; }
 input, textarea, select { font: inherit; color: inherit; }
 
 /* Kill the browser-default focus ring on form controls. Every input /
@@ -1355,21 +1359,21 @@ html[data-editor-layout="page"] .rich-editor--manuscript .manuscript-inner.with-
 .jw-btn--ghost:not(:disabled):not(.is-disabled):hover { background: var(--surface-3); }
 
 /* danger — solid danger. Destructive. */
-.jw-btn--danger { background: var(--danger); border-color: var(--danger); color: var(--surface); }
+.jw-btn--danger { background: var(--danger); border-color: var(--danger); color: #fff; }
 .jw-btn--danger:not(:disabled):not(.is-disabled):hover {
   background: color-mix(in oklab, var(--danger) 82%, black);
   border-color: color-mix(in oklab, var(--danger) 82%, black);
 }
 
 /* success — solid success. Positive confirmations. */
-.jw-btn--success { background: var(--status-done); border-color: var(--status-done); color: var(--surface); }
+.jw-btn--success { background: var(--status-done); border-color: var(--status-done); color: #fff; }
 .jw-btn--success:not(:disabled):not(.is-disabled):hover {
   background: color-mix(in oklab, var(--status-done) 82%, black);
   border-color: color-mix(in oklab, var(--status-done) 82%, black);
 }
 
 /* info — solid info. Informational. */
-.jw-btn--info { background: var(--info); border-color: var(--info); color: var(--surface); }
+.jw-btn--info { background: var(--info); border-color: var(--info); color: #fff; }
 .jw-btn--info:not(:disabled):not(.is-disabled):hover {
   background: color-mix(in oklab, var(--info) 82%, black);
   border-color: color-mix(in oklab, var(--info) 82%, black);

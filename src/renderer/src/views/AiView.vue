@@ -11,6 +11,8 @@ import { AiModelsArea } from "@delebash/llm-ui";
 <template>
   <PaneHeader eyebrow="AI" title="Providers, routing &amp; usage" />
   <div class="pane-card">
-    <AiModelsArea />
+    <div class="scrollarea" style="padding: 22px">
+      <AiModelsArea />
+    </div>
   </div>
 </template>

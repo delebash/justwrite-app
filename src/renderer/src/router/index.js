@@ -80,9 +80,10 @@ const routes = [
   // The SHARED @delebash/llm-ui "AI / Models" area (Providers & models · Features
   // · Usage) — same view JustVoice mounts; appName passed as a static prop.
   { path: "/ai",                  name: "Ai",             component: () => import("../views/AiView.vue") },
-  // The per-feature prompt editor is the SHARED @delebash/llm-ui PromptLab (same
-  // view JustVoice will mount). Stopgap route until the shared AI/Models area lands.
-  { path: "/ai-prompts",          name: "AiPrompts",      component: () => import("@delebash/llm-ui").then((m) => m.PromptLab) },
+  // The per-feature prompt editor: the SHARED @delebash/llm-ui PromptLab wrapped
+  // in JW's page chrome (PaneHeader + .pane-card + .scrollarea) so it scrolls and
+  // gets the standard page margins — same boundary as AiView.
+  { path: "/ai-prompts",          name: "AiPrompts",      component: () => import("../views/AiPromptsView.vue") },
 
   // Hidden dev/debug routes — no sidebar entry. Reach via direct hash URL.
   { path: "/debug/writer-lab",   name: "WriterLabDebug", component: () => import("../views/WriterLabDebugView.vue") },
