@@ -10,7 +10,7 @@ import {
 import AppModal from "./AppModal.vue";
 import { UiButton } from "@delebash/llm-ui";
 import JwSelect from "@renderer/components/ui/JwSelect.vue";
-import JwSegmented from "@renderer/components/ui/JwSegmented.vue";
+import { UiSegmented } from "@delebash/llm-ui";
 
 // Options for the segmented controls below. `null` means "follow the
 // project's theme default" for the three tri-state fields (font size,
@@ -52,32 +52,32 @@ function back() { emit("close"); }
 
       <div class="es-row">
         <span class="es-label">Font size</span>
-        <JwSegmented v-model="draft.fontSize" :options="FONT_SIZE_OPTS" aria-label="Font size" />
+        <UiSegmented v-model="draft.fontSize" :options="FONT_SIZE_OPTS" aria-label="Font size" />
       </div>
 
       <div class="es-row">
         <span class="es-label">Paragraph indent</span>
-        <JwSegmented v-model="draft.paragraphIndent" :options="INDENT_OPTS" aria-label="Paragraph indent" />
+        <UiSegmented v-model="draft.paragraphIndent" :options="INDENT_OPTS" aria-label="Paragraph indent" />
       </div>
 
       <div class="es-row">
         <span class="es-label">Capitalize first letter of sentences</span>
-        <JwSegmented v-model="draft.capitalize" :options="BOOL_OPTS" aria-label="Capitalize first letter of sentences" />
+        <UiSegmented v-model="draft.capitalize" :options="BOOL_OPTS" aria-label="Capitalize first letter of sentences" />
       </div>
 
       <div class="es-row">
         <span class="es-label">Line spacing</span>
-        <JwSegmented v-model="draft.lineSpacing" :options="LINE_SPACING_OPTS" aria-label="Line spacing" />
+        <UiSegmented v-model="draft.lineSpacing" :options="LINE_SPACING_OPTS" aria-label="Line spacing" />
       </div>
 
       <div class="es-row">
         <span class="es-label">Paragraph spacing</span>
-        <JwSegmented v-model="draft.paragraphSpacing" :options="PARA_SPACING_OPTS" aria-label="Paragraph spacing" />
+        <UiSegmented v-model="draft.paragraphSpacing" :options="PARA_SPACING_OPTS" aria-label="Paragraph spacing" />
       </div>
 
       <div class="es-row">
         <span class="es-label">Spell check</span>
-        <JwSegmented v-model="draft.spellCheck" :options="BOOL_OPTS" aria-label="Spell check" />
+        <UiSegmented v-model="draft.spellCheck" :options="BOOL_OPTS" aria-label="Spell check" />
       </div>
     </div>
 

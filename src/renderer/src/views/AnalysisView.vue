@@ -23,7 +23,7 @@ import AiFeatureChip from "../components/AiFeatureChip.vue";
 import { useAiStore } from "../stores/ai.js";
 import { useAiTasksStore } from "../stores/aiTasks.js";
 import JwTable from "@renderer/components/ui/JwTable.vue";
-import JwSegmented from "@renderer/components/ui/JwSegmented.vue";
+import { UiSegmented } from "@delebash/llm-ui";
 import { UiButton } from "@delebash/llm-ui";
 
 const project = useProjectStore();
@@ -499,7 +499,7 @@ const milestoneState = computed(() => {
       <div style="display:flex;align-items:center;gap:12px;margin-bottom:8px">
         <div class="card-title" style="margin:0">Pace</div>
         <span class="t-muted" style="font-size:11.5px">Daily words written</span>
-        <JwSegmented
+        <UiSegmented
           style="margin-left:auto"
           :model-value="windowDays"
           :options="WINDOW_OPTIONS"

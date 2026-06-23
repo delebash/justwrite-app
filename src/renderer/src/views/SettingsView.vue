@@ -30,7 +30,7 @@ import { useI18n } from "vue-i18n";
 
 import { UiTag } from "@delebash/llm-ui";
 import JwTable from "@renderer/components/ui/JwTable.vue";
-import JwSegmented from "@renderer/components/ui/JwSegmented.vue";
+import { UiSegmented } from "@delebash/llm-ui";
 
 const props = defineProps({ section: { type: String, default: "" } });
 
@@ -167,7 +167,7 @@ const EDITOR_LINE_OPTIONS = [1.3, 1.4, 1.5, 1.6, 1.7, 1.8, 2];
 const EDITOR_PARA_OPTIONS = [0, 0.3, 0.5, 0.8, 1];
 
 // ── Segmented-control option arrays ───────────────────────────────────
-// Each maps existing constants to { value, label, sublabel? } so JwSegmented
+// Each maps existing constants to { value, label, sublabel? } so UiSegmented
 // can consume them without needing to know internal key shapes.
 const UI_SCALE_OPTIONS = UI_SCALES.map((s) => ({
   value: s.value, label: s.label, sublabel: `${Math.round(s.value * 100)}%`,
@@ -1160,7 +1160,7 @@ const recentColumns = [
           </div>
           <div class="size-row">
             <span class="field-l">Size</span>
-            <JwSegmented
+            <UiSegmented
               class="size-seg" variant="connected"
               :model-value="ap.uiScale"
               :options="UI_SCALE_OPTIONS"
@@ -1170,13 +1170,13 @@ const recentColumns = [
           </div>
           <div class="size-row">
             <span class="field-l">Section heading</span>
-            <JwSegmented
+            <UiSegmented
               class="size-seg" variant="connected"
               :model-value="ap.sidebarHeadingStyle"
               :options="SH_STYLE_OPTIONS"
               aria-label="Sidebar heading style"
               @update:model-value="setAp({ sidebarHeadingStyle: $event })" />
-            <JwSegmented
+            <UiSegmented
               class="size-seg size-seg-narrow" variant="connected"
               :model-value="ap.sidebarHeadingSize"
               :options="SH_SIZE_OPTIONS"
@@ -1186,13 +1186,13 @@ const recentColumns = [
           </div>
           <div class="size-row">
             <span class="field-l">Menu item</span>
-            <JwSegmented
+            <UiSegmented
               class="size-seg" variant="connected"
               :model-value="ap.navItemStyle"
               :options="NAV_STYLE_OPTIONS"
               aria-label="Menu item style"
               @update:model-value="setAp({ navItemStyle: $event })" />
-            <JwSegmented
+            <UiSegmented
               class="size-seg size-seg-narrow" variant="connected"
               :model-value="ap.navItemSize"
               :options="NAV_SIZE_OPTIONS"
@@ -1394,7 +1394,7 @@ const recentColumns = [
           <p class="t-muted" style="font-size:12px;margin:0 0 12px">{{ $t('settings.appearance.editorWritingHint') }}</p>
           <div class="size-row">
             <span class="field-l">{{ $t('settings.appearance.editorFontSizeLabel') }}</span>
-            <JwSegmented
+            <UiSegmented
               class="size-seg" variant="connected"
               :model-value="ap.editorFontSize"
               :options="FONT_SIZE_OPTIONS"
@@ -1403,7 +1403,7 @@ const recentColumns = [
           </div>
           <div class="size-row">
             <span class="field-l">{{ $t('settings.appearance.editorLineSpacingLabel') }}</span>
-            <JwSegmented
+            <UiSegmented
               class="size-seg" variant="connected"
               :model-value="ap.editorLineSpacing"
               :options="LINE_OPTIONS"
@@ -1412,7 +1412,7 @@ const recentColumns = [
           </div>
           <div class="size-row">
             <span class="field-l">{{ $t('settings.appearance.editorParaSpacingLabel') }}</span>
-            <JwSegmented
+            <UiSegmented
               class="size-seg" variant="connected"
               :model-value="ap.editorParaSpacing"
               :options="PARA_OPTIONS"
@@ -1421,7 +1421,7 @@ const recentColumns = [
           </div>
           <div class="size-row">
             <span class="field-l">{{ $t('settings.appearance.editorParaIndentLabel') }}</span>
-            <JwSegmented
+            <UiSegmented
               class="size-seg" variant="connected"
               :model-value="ap.editorParaIndent"
               :options="INDENT_OPTIONS"
@@ -1436,7 +1436,7 @@ const recentColumns = [
           <p class="t-muted" style="font-size:12px;margin:0 0 12px">{{ $t('settings.appearance.buttonStylingHint') }}</p>
           <div class="size-row">
             <span class="field-l">{{ $t('settings.appearance.btnCornerRadiusLabel') }}</span>
-            <JwSegmented
+            <UiSegmented
               class="size-seg" variant="connected"
               :model-value="ap.btnRadius"
               :options="BUTTON_RADIUS_OPTIONS"
@@ -1445,7 +1445,7 @@ const recentColumns = [
           </div>
           <div class="size-row">
             <span class="field-l">{{ $t('settings.appearance.btnDensityLabel') }}</span>
-            <JwSegmented
+            <UiSegmented
               class="size-seg" variant="connected"
               :model-value="ap.btnDensity"
               :options="BUTTON_DENSITY_OPTIONS"
@@ -1454,7 +1454,7 @@ const recentColumns = [
           </div>
           <div class="size-row">
             <span class="field-l">{{ $t('settings.appearance.btnLabelCasingLabel') }}</span>
-            <JwSegmented
+            <UiSegmented
               class="size-seg" variant="connected"
               :model-value="ap.btnLabelCase"
               :options="BUTTON_LABEL_CASE_OPTIONS"
@@ -1757,7 +1757,7 @@ const recentColumns = [
 }
 .tint-swatch.tint-custom :deep(svg) { color: #fff; filter: drop-shadow(0 0 1px rgba(0,0,0,.5)); }
 
-/* Sizing for connected segmented controls in Appearance rows. JwSegmented
+/* Sizing for connected segmented controls in Appearance rows. UiSegmented
    owns the visual variant via variant="connected"; these classes only size
    the control within the .size-row flex container. */
 .size-row { display: flex; align-items: center; gap: 12px; margin-top: 14px; flex-wrap: wrap; }

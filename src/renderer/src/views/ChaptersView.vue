@@ -22,7 +22,7 @@ import { stitchChapter, splitChapter } from "../services/chapterStitch.js";
 import { EDITOR_TOOLBAR_FULL } from "../services/editorToolbars.js";
 import { UiButton } from "@delebash/llm-ui";
 import JwSelect from "@renderer/components/ui/JwSelect.vue";
-import JwSegmented from "@renderer/components/ui/JwSegmented.vue";
+import { UiSegmented } from "@delebash/llm-ui";
 
 const props = defineProps({
   id: { type: String, default: "" },
@@ -751,7 +751,7 @@ watch(() => project.allChapters.map((c) => `${c.id}:${(project.scenesFor(c.id) |
         v-tooltip.bottom="`Ask the book about chapter ${ch.num}`">
         <Icon name="Chat" :size="14" /> Ask the book
       </UiButton>
-      <JwSegmented
+      <UiSegmented
         class="seg-toggle"
         :model-value="mode"
         :options="MODES"
@@ -762,7 +762,7 @@ watch(() => project.allChapters.map((c) => `${c.id}:${(project.scenesFor(c.id) |
           <Icon :name="option.icon" :size="13" />
           <span>{{ option.label }}</span>
         </template>
-      </JwSegmented>
+      </UiSegmented>
     </div>
   </header>
   <PaneHeader v-else :eyebrow="$t('panes.chapters.eyebrow')" :title="$t('panes.chapters.emptyTitle')" help-key="writing#chapters">
@@ -884,7 +884,7 @@ watch(() => project.allChapters.map((c) => `${c.id}:${(project.scenesFor(c.id) |
   <div v-else-if="ch && mode === 'read'" class="pane-card">
    <div class="read-mode">
     <div class="read-scope-bar">
-      <JwSegmented
+      <UiSegmented
         class="seg-toggle"
         :model-value="readScope"
         :options="READ_SCOPE_OPTIONS"
@@ -895,7 +895,7 @@ watch(() => project.allChapters.map((c) => `${c.id}:${(project.scenesFor(c.id) |
           <Icon :name="option.icon" :size="12" />
           <span>{{ option.label }}</span>
         </template>
-      </JwSegmented>
+      </UiSegmented>
     </div>
 
     <!-- Single chapter: existing prev/next paging. -->
@@ -1310,7 +1310,7 @@ watch(() => project.allChapters.map((c) => `${c.id}:${(project.scenesFor(c.id) |
 .chapter-name:hover { border-color: var(--border-soft); }
 .chapter-name:focus { border-color: var(--accent); background: var(--surface); box-shadow: 0 0 0 3px var(--accent-soft); }
 
-/* JwSegmented override — matches the original .seg-toggle look */
+/* UiSegmented override — matches the original .seg-toggle look */
 .seg-toggle :deep(button) {
   font-size: 11.5px; font-weight: 500;
   gap: 5px;

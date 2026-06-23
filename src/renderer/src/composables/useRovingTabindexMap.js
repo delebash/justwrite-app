@@ -21,7 +21,7 @@
  *   roving.get(sectionId).registerItem(i, el)
  */
 
-import { useRovingTabindex } from "./useRovingTabindex.js";
+import { useRovingTabindex } from "@delebash/llm-ui";
 
 export function useRovingTabindexMap(factory) {
   const _map = new Map();
