@@ -908,6 +908,40 @@ DEFAULT_FEATURE_PROMPTS: dict[str, dict] = {
     },
 }
 
+# Feature Workbench nav metadata — a short blurb per action (+ an optional
+# sub-section `group`, so writerAI splits into "Prose actions" / "Line edits"
+# exactly like the Writer Lab). Kept in one place and merged into the entries
+# above so the seeder AND the reset endpoint both restore it. Single-action
+# features carry no blurb here — the workbench falls back to their feature hint.
+# writerAI blurbs are the same copy the Writer Lab shows (services/writerAI.js).
+_ACTION_META: dict[str, dict] = {
+    "writerAI.rewrite": {"group": "Prose actions", "description": "Make the passage more vivid and specific while keeping meaning, tense, and voice."},
+    "writerAI.expand": {"group": "Prose actions", "description": "Add sensory detail, interiority, and small actions — roughly double the length."},
+    "writerAI.tighten": {"group": "Prose actions", "description": "Cut filler, hedges, and redundancy; keep meaning and voice. Noticeably shorter."},
+    "writerAI.continue": {"group": "Prose actions", "description": "Write 2–4 more paragraphs from where the passage ends, matching voice and POV."},
+    "writerAI.describe": {"group": "Prose actions", "description": "Fresh sensory prose about the named subject, to insert after the passage."},
+    "writerAI.guided-continue": {"group": "Prose actions", "description": "Continue the passage following a one-line direction you give."},
+    "writerAI.rule.show-dont-tell": {"group": "Line edits", "description": "Trade told emotion for the body language, behaviour, and dialogue that show it."},
+    "writerAI.rule.passive-voice": {"group": "Line edits", "description": "Switch to active voice where the actor matters; leave agentless passives alone."},
+    "writerAI.rule.filter-words": {"group": "Line edits", "description": "Strip the 'she saw / he heard / I felt' layer so perception lands direct."},
+    "writerAI.rule.dialogue-tags": {"group": "Line edits", "description": "Plainer tags (said) plus action beats; pull adverb-glued tags."},
+    "writerAI.rule.sensory-grounding": {"group": "Line edits", "description": "Anchor abstract or interior prose in the body — sight, sound, smell, touch."},
+    "writerAI.rule.sentence-variety": {"group": "Line edits", "description": "Break up lockstep sentences or join choppy ones so the rhythm breathes."},
+    "writerAI.rule.prose-tightening": {"group": "Line edits", "description": "Cut hedges, filler phrases, and lines that don't move the scene."},
+    "multiReaderGenre": {"description": "A fan of the genre reacts — what delivers, what disappoints."},
+    "multiReaderLiterary": {"description": "A literary critic's read — craft, theme, and prose."},
+    "multiReaderAgent": {"description": "An agent's intern triaging the slush — request or pass, and why."},
+    "multiReaderBookClub": {"description": "A book-club reader — what sparks discussion and divides the room."},
+    "critique": {"description": "Line-level editorial notes — flags, suggestions, and observations."},
+    "critiqueStructure": {"description": "Structural pass — tension, hook, pacing, and how the ending lands."},
+    "brainstorm": {"description": "Freeform idea generation — names, titles, and concepts with thumbs-up steering."},
+    "brainstormPlot": {"description": "Plot-focused ideas — what-ifs, complications, and next beats."},
+}
+for _key, _meta in _ACTION_META.items():
+    if _key in DEFAULT_FEATURE_PROMPTS:
+        DEFAULT_FEATURE_PROMPTS[_key].update(_meta)
+
+
 def seed_feature_prompts(db: Session) -> int:
     """Insert any missing feature-prompt rows from DEFAULT_FEATURE_PROMPTS (merge
     by key). Does NOT commit. Returns the number added. Never clobbers a row the
@@ -925,6 +959,8 @@ def seed_feature_prompts(db: Session) -> int:
             temperature=float(spec.get("temperature", 0.7)),
             think=bool(spec.get("think", False)),
             built_in=True,
+            description=str(spec.get("description") or ""),
+            subgroup=str(spec.get("group") or ""),
         ))
         added += 1
     return added

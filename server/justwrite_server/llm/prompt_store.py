@@ -25,6 +25,8 @@ def _to_row(r: FeaturePrompt) -> FeaturePromptRow:
         temperature=r.temperature,
         think=r.think,
         built_in=r.built_in,
+        description=r.description,
+        group=r.subgroup,  # wire field `group` ↔ DB column `subgroup` (GROUP is reserved)
     )
 
 
@@ -70,6 +72,8 @@ class FeaturePromptStore:
                     temperature=row.temperature,
                     think=row.think,
                     built_in=row.built_in,
+                    description=row.description,
+                    subgroup=row.group,
                 ))
             else:
                 existing.feature = row.feature
@@ -77,6 +81,8 @@ class FeaturePromptStore:
                 existing.user_template = row.user_template
                 existing.temperature = row.temperature
                 existing.think = row.think
+                existing.description = row.description
+                existing.subgroup = row.group
             db.commit()
         finally:
             db.close()

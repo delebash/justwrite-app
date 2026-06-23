@@ -634,6 +634,11 @@ class FeaturePrompt(Base):
     temperature = Column(Float, nullable=False, default=0.7)
     think = Column(Boolean, nullable=False, default=False)
     built_in = Column(Boolean, nullable=False, default=True)
+    # Feature Workbench nav metadata: a short blurb + an optional sub-section
+    # label (e.g. writerAI's "Prose actions" / "Line edits"). Column is
+    # `subgroup` because GROUP is a SQL reserved word; the wire field is `group`.
+    description = Column(Text, nullable=False, default="")
+    subgroup = Column(String, nullable=False, default="")
 
 
 # ── Sessions (writing-activity log) ─────────────────────────────────────
