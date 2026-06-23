@@ -78,6 +78,7 @@ def create_app(data_dir: Path | None = None) -> FastAPI:
     # plus the provider-CRUD router backed by JustWrite's `LlmProvider`-table
     # ProviderStore. Replaces the old bulk GET/PUT `api/llm_providers.py`.
     from llm_runner.llm import (
+        make_feature_presets_router,
         make_feature_router,
         make_prompt_router,
         make_routing_presets_router,
@@ -88,6 +89,7 @@ def create_app(data_dir: Path | None = None) -> FastAPI:
 
     from .feature_catalog import FEATURE_CATALOG
     from .llm.config import llm_config
+    from .llm.feature_preset_store import get_feature_preset_store
     from .llm.prompt_store import get_prompt_store
     from .llm.provider_store import get_provider_store
     from .llm.routing_store import get_routing_preset_store, get_routing_store
@@ -106,4 +108,7 @@ def create_app(data_dir: Path | None = None) -> FastAPI:
     # Named routing presets ("hardware presets"): save/apply/edit/delete whole
     # routing snapshots, applying into the same RoutingStore.
     app.include_router(make_routing_presets_router(get_routing_preset_store, get_routing_store))
+    # Per-feature presets (Feature Workbench save-as/load + use-as-production):
+    # named saved configs over JW's feature_presets table.
+    app.include_router(make_feature_presets_router(get_feature_preset_store))
     return app

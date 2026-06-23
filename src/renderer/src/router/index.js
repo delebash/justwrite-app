@@ -87,9 +87,6 @@ const routes = [
 
   // Hidden dev/debug routes — no sidebar entry. Reach via direct hash URL.
   { path: "/debug/writer-lab",   name: "WriterLabDebug", component: () => import("../views/WriterLabDebugView.vue") },
-  // First-cut preview of the SHARED Feature Workbench (per-feature config + test,
-  // driven off the common catalog via /v1/ai/*). Hidden while we iterate.
-  { path: "/feature-workbench",  name: "FeatureWorkbench", component: () => import("../views/AiWorkbenchView.vue") },
 ];
 
 export default createRouter({

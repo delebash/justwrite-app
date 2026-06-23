@@ -584,6 +584,33 @@ class RoutingPin(Base):
     role = Column(String, nullable=False, default="")
 
 
+# ── Feature presets (Feature Workbench — named saved configs per feature) ──
+
+
+class FeaturePreset(Base):
+    """A named saved AI config for one ACTION (the Feature Workbench's
+    save-as/load). Many per action; `is_active` marks the one currently in
+    production — applying it writes the action's live prompt + routing pin, so the
+    live config the dispatch runs IS the active preset (no separate plumbing).
+    `is_active` + `name` drive the PRODUCTION badge. (`action` is the prompt/action
+    key, e.g. "writerAI.tighten"; the "feature" is just its visual group.)"""
+
+    __tablename__ = "feature_presets"
+
+    id = Column(String, primary_key=True)
+    action = Column(String, nullable=False, default="")
+    name = Column(String, nullable=False, default="")
+    is_active = Column(Boolean, nullable=False, default=False)
+    position = Column(Integer, nullable=False, default=0)
+    provider_id = Column(String, nullable=False, default="")
+    role = Column(String, nullable=False, default="")
+    model = Column(String, nullable=False, default="")
+    system = Column(Text, nullable=False, default="")
+    user_template = Column(Text, nullable=False, default="")
+    temperature = Column(Float, nullable=True)
+    think = Column(Boolean, nullable=False, default=False)
+
+
 # ── Feature prompts (LLM feature catalog — DB-seeded, Lab-editable) ──────
 
 
