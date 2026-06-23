@@ -944,22 +944,14 @@ for _key, _meta in _ACTION_META.items():
 
 def seed_feature_prompts(db: Session) -> int:
     """Insert any missing feature-prompt rows from DEFAULT_FEATURE_PROMPTS (merge
-    by key), and BACKFILL nav metadata (description/subgroup) on existing built-in
-    rows. Does NOT commit. Returns the number added. Never clobbers a row's
-    prompt content — only the new nav-metadata fields the Lab doesn't edit — so a
-    DB seeded before those fields existed gets them on the next boot."""
-    existing = {row.key: row for row in db.query(FeaturePrompt).all()}
+    by key). Does NOT commit. Returns the number added. Never clobbers a row the
+    user edited in the Lab — exactly like `seed_default_providers`. New fields land
+    via a clean reseed (reset the workspace, or migrate_schema rebuilds the seed
+    table) — never by patching existing rows."""
+    existing = {row.key for row in db.query(FeaturePrompt).all()}
     added = 0
     for key, spec in DEFAULT_FEATURE_PROMPTS.items():
-        row = existing.get(key)
-        if row is not None:
-            # Backfill description/subgroup on built-in rows (idempotent). These
-            # are nav metadata, not prompt content, so this never touches a user's
-            # Lab edits to system/user_template/temperature.
-            if row.built_in:
-                desc, grp = str(spec.get("description") or ""), str(spec.get("group") or "")
-                if row.description != desc or row.subgroup != grp:
-                    row.description, row.subgroup = desc, grp
+        if key in existing:
             continue
         db.add(FeaturePrompt(
             key=key,
