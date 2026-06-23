@@ -157,7 +157,7 @@ export const NAV_ITEM_SIZES = [
 // ── Accent / gold presets (hue-based) ────────────────────────────────
 // `goldHue` / GOLD_PRESETS / --gold are the code names for what the UI
 // labels "Accent 2" in Settings → Appearance. The `accent2` intent on
-// JwButton/JwTag pulls from --gold, so re-tinting Accent 2 retints those.
+// UiButton/UiTag pulls from --gold, so re-tinting Accent 2 retints those.
 // --warn-bg / --warn-ink stay tied to goldHue too because actual warning
 // banners (.banner.warn) share the same soft-gold treatment.
 export const ACCENT_PRESETS = [

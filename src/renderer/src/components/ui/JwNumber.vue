@@ -116,9 +116,11 @@ function onKeydown(e) {
   emit("keydown", e);
 }
 
+// Wears the shared .ui-input visual (one input style across the app — no
+// .jw-input fork to drift); .jw-number only adds tabular figures on top.
 const classes = computed(() => [
-  "jw-input", "jw-number",
-  props.size === "small" && "jw-input--small",
+  "ui-input", "jw-number",
+  props.size === "small" && "ui-input--small",
   { "is-invalid": props.invalid },
 ]);
 </script>

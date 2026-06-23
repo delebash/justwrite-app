@@ -1313,111 +1313,13 @@ html[data-editor-layout="page"] .rich-editor--manuscript .manuscript-inner.with-
 
 
 /* ============================================================
-   JwInput / JwTextarea — replaces PrimeVue InputText + Textarea.
-   The .jw-input class styles both <input> and <textarea>; the
-   .jw-textarea additional class only matters for layout
-   (display: block, resize behaviour).
+   JwNumber — locale-aware number <input>. Wears the shared
+   .ui-input visual (from @delebash/llm-ui); .jw-number only adds
+   tabular figures so digits align. The input / textarea / checkbox
+   / tag primitives now live in the shared kit as .ui-* (UiInput,
+   UiTextarea, UiCheckbox, UiTag) — there is no .jw-input fork.
    ============================================================ */
-.jw-input {
-  display: inline-block;
-  width: 100%;
-  padding: 8px 10px;
-  font: inherit;
-  font-size: 13.5px;
-  color: var(--ink);
-  background: var(--surface);
-  border: 1px solid var(--border);
-  border-radius: var(--r-sm);
-  outline: none;
-  transition: border-color .12s, box-shadow .12s, background-color .12s;
-}
-.jw-input::placeholder { color: var(--muted); }
-.jw-input:hover:not(:disabled):not(:focus) { border-color: var(--border-strong); }
-.jw-input:focus {
-  border-color: var(--accent);
-  box-shadow: 0 0 0 3px var(--accent-soft);
-}
-.jw-input:disabled { opacity: 0.55; cursor: not-allowed; background: var(--surface-2); }
-.jw-input.is-invalid {
-  border-color: var(--danger);
-  box-shadow: 0 0 0 3px color-mix(in oklab, var(--danger) 18%, transparent);
-}
-.jw-input--small { padding: 5px 8px; font-size: 12.5px; }
 .jw-number { font-variant-numeric: tabular-nums; }
-
-/* Textarea sits as a block by default and respects rows. Auto-resize
-   mode disables manual resize (the component grows it programmatically). */
-.jw-textarea {
-  display: block;
-  line-height: 1.55;
-  resize: vertical;
-  min-height: 60px;
-}
-.jw-textarea.auto-resize { resize: none; overflow: hidden; }
-
-/* ============================================================
-   JwCheckbox — replaces PrimeVue Checkbox (binary). Custom box
-   so it tints with the accent the way the rest of the app does;
-   the native <input> is visually hidden but stays in the tab
-   order and the source of truth for the checked state.
-   ============================================================ */
-.jw-checkbox {
-  display: inline-flex;
-  align-items: center;
-  gap: 8px;
-  cursor: pointer;
-  user-select: none;
-  font-size: 13px;
-  color: var(--ink);
-}
-.jw-checkbox-input {
-  position: absolute;
-  width: 1px; height: 1px;
-  opacity: 0; pointer-events: none;
-  /* Keep in the document flow so :focus-within works on the label. */
-}
-.jw-checkbox-box {
-  flex: 0 0 auto;
-  width: 16px; height: 16px;
-  display: inline-grid; place-items: center;
-  border: 1px solid var(--border-strong);
-  border-radius: 4px;
-  background: var(--surface);
-  color: transparent;
-  transition: background-color .12s, border-color .12s, color .12s, box-shadow .12s;
-}
-.jw-checkbox-tick { width: 12px; height: 12px; }
-.jw-checkbox.is-checked .jw-checkbox-box {
-  background: var(--accent);
-  border-color: var(--accent);
-  color: var(--on-accent);
-}
-.jw-checkbox-input:focus-visible + .jw-checkbox-box {
-  box-shadow: 0 0 0 3px var(--accent-soft);
-}
-.jw-checkbox.is-disabled { opacity: 0.55; cursor: not-allowed; }
-.jw-checkbox-label { line-height: 1.4; }
-
-/* ============================================================
-   JwTag — replaces PrimeVue Tag. Soft-tint chip in the intent
-   colour; uses the same -bg / -ink token families that banners
-   and status chips already share, so re-tinting in Settings →
-   Appearance retints tags automatically.
-   ============================================================ */
-.jw-tag {
-  display: inline-flex;
-  align-items: center;
-  gap: 4px;
-  padding: 2px 8px;
-  font: 600 11px/1.4 var(--font-ui);
-  border-radius: 4px;
-  white-space: nowrap;
-}
-.jw-tag--primary   { background: var(--accent-soft);  color: var(--accent-ink); }
-.jw-tag--secondary { background: var(--surface-3);    color: var(--ink-2); }
-.jw-tag--success   { background: var(--success-bg);   color: var(--success-ink); }
-.jw-tag--info      { background: var(--info-bg);      color: var(--info-ink); }
-.jw-tag--accent2   { background: var(--warn-bg);      color: var(--warn-ink); } /* gold-tinted; --warn-* tokens are shared with .banner.warn */
 
 /* ============================================================
    JwTooltip — replaces PrimeVue's v-tooltip directive. The
@@ -1501,8 +1403,11 @@ html[data-editor-layout="page"] .rich-editor--manuscript .manuscript-inner.with-
 /* ============================================================
    JwSelect — replaces PrimeVue Select. Headless behaviour from
    Reka UI's Select primitives; visuals live here. Trigger
-   matches .jw-input so a select sits cleanly alongside text
-   inputs in forms. The dropdown is portaled to body and
+   matches the shared .ui-input look so a select sits cleanly
+   alongside text inputs in forms. (Stays JW-local for now: Reka
+   UI doesn't resolve from the llm-ui source alias, so Select
+   convergence waits for the @delebash/ui extraction.) The
+   dropdown is portaled to body and
    positioned by Floating UI (built into Reka UI).
    ============================================================ */
 .jw-select-trigger {
@@ -1676,5 +1581,4 @@ html[data-editor-layout="page"] .rich-editor--manuscript .manuscript-inner.with-
   padding: 0; margin: -1px; overflow: hidden;
   clip: rect(0,0,0,0); white-space: nowrap; border: 0;
 }
-.jw-tag--danger    { background: var(--danger-bg);    color: var(--danger-ink); }
 
