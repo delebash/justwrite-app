@@ -18,7 +18,7 @@ import Icon from "./Icon.vue";
 import AppModal from "./AppModal.vue";
 import EmptyState from "./EmptyState.vue";
 import { UiButton } from "@delebash/llm-ui";
-import JwInput from "@renderer/components/ui/JwInput.vue";
+import { UiInput } from "@delebash/llm-ui";
 
 const props = defineProps({
   chapterId: { type: String, required: true },
@@ -177,7 +177,7 @@ function whenFor(id) {
     <!-- ── LIST mode ────────────────────────────────────────────── -->
     <div v-if="mode === 'list'" class="vh-list-mode">
       <div class="vh-save">
-        <JwInput v-model="label" placeholder="Label this version (optional)…" @keydown.enter="save" />
+        <UiInput v-model="label" placeholder="Label this version (optional)…" @keydown.enter="save" />
         <UiButton intent="primary" @click="save"><Icon name="History" :size="14" /> Save version</UiButton>
       </div>
       <p class="t-muted" style="font-size:11.5px;margin:10px 0 6px">

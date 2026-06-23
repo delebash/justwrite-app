@@ -5,10 +5,10 @@ import { useUiStore } from "../stores/ui.js";
 import { useRouter } from "vue-router";
 import Icon from "../components/Icon.vue";
 import { UiButton } from "@delebash/llm-ui";
-import JwInput from "@renderer/components/ui/JwInput.vue";
-import JwTag from "@renderer/components/ui/JwTag.vue";
+import { UiInput } from "@delebash/llm-ui";
+import { UiTag } from "@delebash/llm-ui";
 import JwTable from "@renderer/components/ui/JwTable.vue";
-import JwCheckbox from "@renderer/components/ui/JwCheckbox.vue";
+import { UiCheckbox } from "@delebash/llm-ui";
 import ImagesModal from "../components/ImagesModal.vue";
 import RichEditor from "../components/RichEditor.vue";
 import { EDITOR_TOOLBAR_SLIM } from "../services/editorToolbars.js";
@@ -147,7 +147,7 @@ function onRowClick(event) {
         <div class="gr-toolbar">
           <span class="gr-search">
             <Icon name="Search" :size="13" class="gr-search-icon" />
-            <JwInput
+            <UiInput
               :value="globalQuery"
               placeholder="Search groups…"
               @input="onGlobalInput"
@@ -198,7 +198,7 @@ function onRowClick(event) {
           </template>
 
           <template #status="{ row }">
-            <JwTag v-if="row.status" :value="statusLabel(row.status)" :intent="statusSeverity(row.status)" />
+            <UiTag v-if="row.status" :value="statusLabel(row.status)" :intent="statusSeverity(row.status)" />
             <span v-else class="gr-status-empty">—</span>
           </template>
         </JwTable>
@@ -256,7 +256,7 @@ function onRowClick(event) {
             @update:model-value="update('color', $event)" />
           <label class="chip" style="cursor:pointer;gap:6px;margin-left:auto"
             v-tooltip.bottom="'Hides this entity from any AI feature that pulls in story-world context.'">
-            <JwCheckbox :model-value="!!g.excludeFromAi" @update:model-value="(v) => update('excludeFromAi', v)" />
+            <UiCheckbox :model-value="!!g.excludeFromAi" @update:model-value="(v) => update('excludeFromAi', v)" />
             Exclude from AI
           </label>
         </div>

@@ -25,7 +25,7 @@ import EmptyState from "./EmptyState.vue";
 import HelpTrigger from "./HelpTrigger.vue";
 import Icon from "./Icon.vue";
 import { UiButton } from "@delebash/llm-ui";
-import JwTextarea from "@renderer/components/ui/JwTextarea.vue";
+import { UiTextarea } from "@delebash/llm-ui";
 import JwSelect from "@renderer/components/ui/JwSelect.vue";
 import { useModelList } from "../composables/useModelList.js";
 
@@ -493,7 +493,7 @@ defineExpose({ open: () => { open.value = true; }, close });
               </UiButton>
             </div>
           </div>
-          <JwTextarea
+          <UiTextarea
             ref="inputRef"
             v-model="question"
             class="cp-textarea"

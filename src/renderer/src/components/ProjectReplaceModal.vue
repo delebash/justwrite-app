@@ -12,8 +12,8 @@ import { scanScenes } from "../services/projectReplace.js";
 import Icon from "./Icon.vue";
 import AppModal from "./AppModal.vue";
 import { UiButton } from "@delebash/llm-ui";
-import JwCheckbox from "@renderer/components/ui/JwCheckbox.vue";
-import JwInput from "@renderer/components/ui/JwInput.vue";
+import { UiCheckbox } from "@delebash/llm-ui";
+import { UiInput } from "@delebash/llm-ui";
 
 const props = defineProps({ initialTerm: { type: String, default: "" } });
 const emit = defineEmits(["close"]);
@@ -48,9 +48,9 @@ function openScene(row) {
 <template>
   <AppModal eyebrow="Manuscript" title="Find &amp; replace in prose" @close="emit('close')">
     <div class="pr-fields">
-      <JwInput v-model="term" placeholder="Find in all chapters…" autofocus />
-      <JwInput v-model="replaceWith" placeholder="Replace with…" />
-      <JwCheckbox v-model="caseSensitive" class="pr-case" title="Match case">Aa</JwCheckbox>
+      <UiInput v-model="term" placeholder="Find in all chapters…" autofocus />
+      <UiInput v-model="replaceWith" placeholder="Replace with…" />
+      <UiCheckbox v-model="caseSensitive" class="pr-case" title="Match case">Aa</UiCheckbox>
     </div>
 
     <div class="pr-summary">

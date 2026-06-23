@@ -13,11 +13,11 @@ import { promptDialog } from "../services/dialog.js";
 import { NEW_ENTITY_META } from "../services/entityMeta.js";
 
 import JwTable from "@renderer/components/ui/JwTable.vue";
-import JwInput from "@renderer/components/ui/JwInput.vue";
-import JwTag from "@renderer/components/ui/JwTag.vue";
+import { UiInput } from "@delebash/llm-ui";
+import { UiTag } from "@delebash/llm-ui";
 import { UiButton } from "@delebash/llm-ui";
-import JwTextarea from "@renderer/components/ui/JwTextarea.vue";
-import JwCheckbox from "@renderer/components/ui/JwCheckbox.vue";
+import { UiTextarea } from "@delebash/llm-ui";
+import { UiCheckbox } from "@delebash/llm-ui";
 
 const props = defineProps({ id: { type: String, default: "" } });
 const project = useProjectStore();
@@ -153,7 +153,7 @@ const columns = [
 
 function statusLabel(id) { return project.statusById(id)?.label || id || ""; }
 function statusSeverity(id) {
-  // Map status ids onto JwTag intents so colors track the editorial palette.
+  // Map status ids onto UiTag intents so colors track the editorial palette.
   if (id === "done")    return "success";
   if (id === "revise")  return "accent2";
   if (id === "draft")   return "info";
@@ -197,7 +197,7 @@ function onRowClick(event) {
         <div class="wb-toolbar">
           <span class="wb-search">
             <Icon name="Search" :size="13" class="wb-search-icon" />
-            <JwInput
+            <UiInput
               :value="globalQuery"
               placeholder="Search articles…"
               @input="onGlobalInput"
@@ -269,12 +269,12 @@ function onRowClick(event) {
 
           <template #tags="{ row }">
             <div class="wb-tags">
-              <JwTag v-for="t in row.tags" :key="t" :value="t" intent="secondary" />
+              <UiTag v-for="t in row.tags" :key="t" :value="t" intent="secondary" />
             </div>
           </template>
 
           <template #status="{ row }">
-            <JwTag v-if="row.status" :value="statusLabel(row.status)" :intent="statusSeverity(row.status)" />
+            <UiTag v-if="row.status" :value="statusLabel(row.status)" :intent="statusSeverity(row.status)" />
             <span v-else class="wb-status-empty">—</span>
           </template>
 
@@ -319,7 +319,7 @@ function onRowClick(event) {
         it's relevant.
       </p>
       <div style="padding:14px 22px;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:16px">
-        <JwInput class="input"
+        <UiInput class="input"
           style="flex:1;font-style:italic;color:var(--muted);font-size:13.5px;border:0;background:transparent;padding:0;font-family:var(--font-serif)"
           placeholder="Summary"
           :value="article.summary" @input="update('summary', $event.target.value)" />
@@ -333,7 +333,7 @@ function onRowClick(event) {
 
       <label class="chip" style="cursor:pointer;gap:6px;padding:8px 14px"
         v-tooltip.bottom="'Hides this entity from any AI feature that pulls in story-world context.'">
-        <JwCheckbox :model-value="!!article.excludeFromAi" @update:model-value="(v) => update('excludeFromAi', v)" />
+        <UiCheckbox :model-value="!!article.excludeFromAi" @update:model-value="(v) => update('excludeFromAi', v)" />
         Exclude from AI
       </label>
 

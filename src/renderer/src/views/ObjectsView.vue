@@ -4,11 +4,11 @@ import { useProjectStore } from "../stores/project.js";
 import { useUiStore } from "../stores/ui.js";
 import { useRouter } from "vue-router";
 import Icon from "../components/Icon.vue";
-import JwInput from "@renderer/components/ui/JwInput.vue";
+import { UiInput } from "@delebash/llm-ui";
 import { UiButton } from "@delebash/llm-ui";
-import JwTag from "@renderer/components/ui/JwTag.vue";
+import { UiTag } from "@delebash/llm-ui";
 import JwTable from "@renderer/components/ui/JwTable.vue";
-import JwCheckbox from "@renderer/components/ui/JwCheckbox.vue";
+import { UiCheckbox } from "@delebash/llm-ui";
 import ImagesModal from "../components/ImagesModal.vue";
 import EntitySweepModal from "../components/EntitySweepModal.vue";
 import RichEditor from "../components/RichEditor.vue";
@@ -169,7 +169,7 @@ function onRowClick(event) {
         <div class="obj-toolbar">
           <span class="obj-search">
             <Icon name="Search" :size="13" class="obj-search-icon" />
-            <JwInput
+            <UiInput
               :value="globalQuery"
               placeholder="Search objects…"
               @input="onGlobalInput"
@@ -237,12 +237,12 @@ function onRowClick(event) {
 
           <template #tags="{ row }">
             <div class="obj-tags">
-              <JwTag v-for="t in row.tags" :key="t" :value="t" intent="secondary" />
+              <UiTag v-for="t in row.tags" :key="t" :value="t" intent="secondary" />
             </div>
           </template>
 
           <template #status="{ row }">
-            <JwTag v-if="row.status" :value="statusLabel(row.status)" :intent="statusSeverity(row.status)" />
+            <UiTag v-if="row.status" :value="statusLabel(row.status)" :intent="statusSeverity(row.status)" />
             <span v-else class="obj-status-empty">—</span>
           </template>
         </JwTable>
@@ -283,7 +283,7 @@ function onRowClick(event) {
           throwaway items don't need an entry. Objects feed the <strong>Relations</strong>
           graph and AI features that draw on story-world context.
         </p>
-        <JwInput fluid placeholder="Kind"
+        <UiInput fluid placeholder="Kind"
           :model-value="obj.kind" @update:model-value="update('kind', $event)" />
         <TagEditor
           :model-value="obj.tags || []"
@@ -292,7 +292,7 @@ function onRowClick(event) {
           @update:model-value="(v) => update('tags', v)" />
         <label class="chip" style="cursor:pointer;gap:6px;align-self:flex-start"
           v-tooltip.bottom="'Hides this entity from any AI feature that pulls in story-world context.'">
-          <JwCheckbox :model-value="!!obj.excludeFromAi" @update:model-value="(v) => update('excludeFromAi', v)" />
+          <UiCheckbox :model-value="!!obj.excludeFromAi" @update:model-value="(v) => update('excludeFromAi', v)" />
           Exclude from AI
         </label>
         <RichEditor

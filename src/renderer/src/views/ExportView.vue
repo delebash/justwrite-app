@@ -6,8 +6,8 @@ import PaneHeader from "../components/PaneHeader.vue";
 import Icon from "../components/Icon.vue";
 import { buildManuscript, slug } from "../services/export/manuscript.js";
 import { UiButton } from "@delebash/llm-ui";
-import JwCheckbox from "@renderer/components/ui/JwCheckbox.vue";
-import JwInput from "@renderer/components/ui/JwInput.vue";
+import { UiCheckbox } from "@delebash/llm-ui";
+import { UiInput } from "@delebash/llm-ui";
 import {
   buildJustVoiceDoc,
   describeJustVoiceDoc,
@@ -194,7 +194,7 @@ async function exportJustVoice() {
           </p>
           <div style="display:flex;gap:10px;align-items:center;flex-wrap:wrap">
             <span class="t-muted" style="font-size:12px">Server URL</span>
-            <JwInput v-model="jvUrl" style="max-width:280px" placeholder="http://127.0.0.1:17494" />
+            <UiInput v-model="jvUrl" style="max-width:280px" placeholder="http://127.0.0.1:17494" />
           </div>
           <div v-if="jvStats" class="manuscript-stats" style="display:grid;gap:14px;padding:14px;background:var(--surface-2);border-radius:8px;font-size:13px;margin-top:14px;grid-template-columns:repeat(3,minmax(0,1fr))">
             <div>
@@ -262,14 +262,14 @@ async function exportJustVoice() {
             </div>
           </div>
 
-          <JwCheckbox v-model="stripSceneStructure" style="display:flex;gap:10px;align-items:flex-start;margin-top:14px;padding:12px;background:var(--surface-2);border-radius:8px;cursor:pointer">
+          <UiCheckbox v-model="stripSceneStructure" style="display:flex;gap:10px;align-items:flex-start;margin-top:14px;padding:12px;background:var(--surface-2);border-radius:8px;cursor:pointer">
             <span>
               <div style="font-size:13px;font-weight:600">Continuous prose</div>
               <div class="t-muted" style="font-size:11.5px;line-height:1.5;margin-top:2px">
                 Strip scene titles and <code style="font-size:10px">* * *</code> scene breaks so each chapter flows as one body of text, like a print novel without ornaments.
               </div>
             </span>
-          </JwCheckbox>
+          </UiCheckbox>
         </div>
 
         <div class="card">

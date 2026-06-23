@@ -8,8 +8,8 @@ import Icon from "../components/Icon.vue";
 import { parseFile, normalizeHtml } from "../services/import/index.js";
 import EntitySweepModal from "../components/EntitySweepModal.vue";
 import { UiButton } from "@delebash/llm-ui";
-import JwInput from "@renderer/components/ui/JwInput.vue";
-import JwCheckbox from "@renderer/components/ui/JwCheckbox.vue";
+import { UiInput } from "@delebash/llm-ui";
+import { UiCheckbox } from "@delebash/llm-ui";
 import JwSelect from "@renderer/components/ui/JwSelect.vue";
 
 const NEW_PART = "__new__";
@@ -337,14 +337,14 @@ function finishAfterSweep() {
           <h2 class="wiz-h">New project details</h2>
           <div class="opt-row">
             <span class="opt-label">Title</span>
-            <JwInput class="part-input" v-model="newBookTitle" placeholder="Book title (defaults to file name)" />
+            <UiInput class="part-input" v-model="newBookTitle" placeholder="Book title (defaults to file name)" />
           </div>
           <div class="opt-row">
             <span class="opt-label">Author</span>
-            <JwInput class="part-input" v-model="newBookAuthor" placeholder="Author (optional)" />
+            <UiInput class="part-input" v-model="newBookAuthor" placeholder="Author (optional)" />
           </div>
           <div class="opt-row">
-            <JwCheckbox v-model="normalize">Clean up smart quotes, em-dashes, ellipses, whitespace</JwCheckbox>
+            <UiCheckbox v-model="normalize">Clean up smart quotes, em-dashes, ellipses, whitespace</UiCheckbox>
           </div>
         </section>
 
@@ -356,13 +356,13 @@ function finishAfterSweep() {
               v-model="partChoice"
               :options="partOptions"
               placeholder="Choose a part" />
-            <JwInput v-if="partChoice === NEW_PART"
+            <UiInput v-if="partChoice === NEW_PART"
               class="part-input"
               v-model="partTitle"
               placeholder="Part title (defaults to file name)" />
           </div>
           <div class="opt-row">
-            <JwCheckbox v-model="normalize">Clean up smart quotes, em-dashes, ellipses, whitespace</JwCheckbox>
+            <UiCheckbox v-model="normalize">Clean up smart quotes, em-dashes, ellipses, whitespace</UiCheckbox>
           </div>
         </section>
 
@@ -370,7 +370,7 @@ function finishAfterSweep() {
           <h2 class="wiz-h">Notes options</h2>
           <div class="opt-row">
             <span class="opt-label">Tag</span>
-            <JwInput class="part-input" v-model="notesTag" placeholder="note" list="jw-notes-tag-list" />
+            <UiInput class="part-input" v-model="notesTag" placeholder="note" list="jw-notes-tag-list" />
             <datalist id="jw-notes-tag-list">
               <option v-for="t in notesTagSuggestions" :key="t" :value="t" />
             </datalist>
@@ -383,7 +383,7 @@ function finishAfterSweep() {
               placeholder="Story-wide" />
           </div>
           <div class="opt-row">
-            <JwCheckbox v-model="normalize">Clean up smart quotes, em-dashes, ellipses, whitespace</JwCheckbox>
+            <UiCheckbox v-model="normalize">Clean up smart quotes, em-dashes, ellipses, whitespace</UiCheckbox>
           </div>
         </section>
 
@@ -456,7 +456,7 @@ function finishAfterSweep() {
           <ol class="ch-list">
             <li v-for="(c, i) in chapters" :key="i" class="ch-row" :class="{ dropped: c.drop }">
               <span class="ch-num">{{ i + 1 }}</span>
-              <JwInput class="ch-title" v-model="c.title" :placeholder="`Untitled ${itemLabel}`" :disabled="c.drop" />
+              <UiInput class="ch-title" v-model="c.title" :placeholder="`Untitled ${itemLabel}`" :disabled="c.drop" />
               <span class="ch-words">{{ wordCount(c.html).toLocaleString() }} w</span>
               <UiButton intent="ghost" size="small" class="ch-drop"
                 @click="dropChapter(i)"
@@ -472,7 +472,7 @@ function finishAfterSweep() {
 
         <section class="wiz-section" v-if="intent !== 'notes'">
           <h2 class="wiz-h">After import</h2>
-          <JwCheckbox v-model="scanAfterImport">Scan the imported chapters for new characters, locations, and objects</JwCheckbox>
+          <UiCheckbox v-model="scanAfterImport">Scan the imported chapters for new characters, locations, and objects</UiCheckbox>
           <span class="t-muted opt-hint" v-if="scanAfterImport">
             Slower for long books — runs one LLM call per chapter. You'll review every proposal before anything is added.
           </span>

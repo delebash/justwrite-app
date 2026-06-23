@@ -6,10 +6,10 @@ import { useUiStore } from "../stores/ui.js";
 import PaneHeader from "../components/PaneHeader.vue";
 import Icon from "../components/Icon.vue";
 import { UiButton } from "@delebash/llm-ui";
-import JwInput from "@renderer/components/ui/JwInput.vue";
+import { UiInput } from "@delebash/llm-ui";
 import JwSelect from "@renderer/components/ui/JwSelect.vue";
-import JwTextarea from "@renderer/components/ui/JwTextarea.vue";
-import JwTag from "@renderer/components/ui/JwTag.vue";
+import { UiTextarea } from "@delebash/llm-ui";
+import { UiTag } from "@delebash/llm-ui";
 import JwTable from "@renderer/components/ui/JwTable.vue";
 import RichEditor from "../components/RichEditor.vue";
 import { EDITOR_TOOLBAR_DOC } from "../services/editorToolbars.js";
@@ -270,7 +270,7 @@ const tableRows = computed(() =>
         <div class="strands-toolbar">
           <span class="strands-search">
             <Icon name="Search" :size="13" class="strands-search-icon" />
-            <JwInput
+            <UiInput
               :value="globalQuery"
               placeholder="Search narrative strands…"
               @input="onGlobalInput"
@@ -324,7 +324,7 @@ const tableRows = computed(() =>
           </template>
 
           <template #status="{ row }">
-            <JwTag v-if="row.status" :value="statusLabel(row.status)" :intent="statusSeverity(row.status)" />
+            <UiTag v-if="row.status" :value="statusLabel(row.status)" :intent="statusSeverity(row.status)" />
             <span v-else class="strands-status-empty">—</span>
           </template>
         </JwTable>
@@ -366,7 +366,7 @@ const tableRows = computed(() =>
               scenes with this strand via each scene's <strong>Links</strong> panel. Strand
               membership also feeds the <strong>Relations</strong> graph.
             </p>
-            <JwTextarea class="strand-blurb"
+            <UiTextarea class="strand-blurb"
               :model-value="s.blurb || ''"
               placeholder="What is this narrative strand about? (One or two sentences)"
               :rows="2"

@@ -7,11 +7,11 @@ import RichEditor from "../components/RichEditor.vue";
 import { EDITOR_TOOLBAR_DOC } from "../services/editorToolbars.js";
 import Icon from "../components/Icon.vue";
 import { UiButton } from "@delebash/llm-ui";
-import JwTag from "@renderer/components/ui/JwTag.vue";
+import { UiTag } from "@delebash/llm-ui";
 import JwTable from "@renderer/components/ui/JwTable.vue";
 import StatusSelect from "../components/StatusSelect.vue";
 import Breadcrumb from "../components/Breadcrumb.vue";
-import JwTextarea from "@renderer/components/ui/JwTextarea.vue";
+import { UiTextarea } from "@delebash/llm-ui";
 import PaneHeader from "../components/PaneHeader.vue";
 
 const props = defineProps({ id: { type: String, default: "" } });
@@ -91,7 +91,7 @@ function onRowClick(event) {
           </template>
 
           <template #status="{ row }">
-            <JwTag v-if="row.status" :value="statusLabel(row.status)" :intent="statusSeverity(row.status)" />
+            <UiTag v-if="row.status" :value="statusLabel(row.status)" :intent="statusSeverity(row.status)" />
             <span v-else class="arch-status-empty">—</span>
           </template>
         </JwTable>
@@ -126,7 +126,7 @@ function onRowClick(event) {
           and <strong>Setting</strong> (world and time-period context). These three slots are
           always present; treat them as the bones the rest of your planning hangs on.
         </p>
-        <JwTextarea fluid class="arch-blurb" rows="2"
+        <UiTextarea fluid class="arch-blurb" rows="2"
           placeholder="Blurb"
           :model-value="doc.blurb" @update:model-value="update('blurb', $event)" />
 

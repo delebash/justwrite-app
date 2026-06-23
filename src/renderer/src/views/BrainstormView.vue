@@ -3,7 +3,7 @@ import { ref, computed } from "vue";
 import PaneHeader from "../components/PaneHeader.vue";
 import { UiButton } from "@delebash/llm-ui";
 import JwSelect from "@renderer/components/ui/JwSelect.vue";
-import JwTextarea from "@renderer/components/ui/JwTextarea.vue";
+import { UiTextarea } from "@delebash/llm-ui";
 import { useUiStore } from "../stores/ui.js";
 import { useAiTasksStore } from "../stores/aiTasks.js";
 import { runAiFeature } from "../services/aiFeature.js";
@@ -209,7 +209,7 @@ function clear() {
 
       <div class="brainstorm-field">
         <label class="brainstorm-label">Seed prompt</label>
-        <JwTextarea
+        <UiTextarea
           v-model="seed"
           :rows="4"
           :placeholder="activeCategory.placeholder"

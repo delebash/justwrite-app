@@ -4,8 +4,8 @@ import { useProjectStore } from "../stores/project.js";
 import Icon from "./Icon.vue";
 import AppModal from "./AppModal.vue";
 import { UiButton } from "@delebash/llm-ui";
-import JwInput from "@renderer/components/ui/JwInput.vue";
-import JwTextarea from "@renderer/components/ui/JwTextarea.vue";
+import { UiInput } from "@delebash/llm-ui";
+import { UiTextarea } from "@delebash/llm-ui";
 
 const props = defineProps({
   entityId: { type: String, required: true },
@@ -26,9 +26,9 @@ function addEvent() {
 <template>
   <AppModal eyebrow="Events" :title="entityName" @close="emit('close')">
     <div class="event-form">
-      <JwInput class="input" v-model="draftWhen" placeholder="When (e.g. Ch. 7, age 9)" />
-      <JwInput class="input" v-model="draftTitle" placeholder="Event title" @keydown.enter="addEvent" />
-      <JwTextarea class="input" v-model="draftNote" placeholder="Notes (optional)" :rows="2" />
+      <UiInput class="input" v-model="draftWhen" placeholder="When (e.g. Ch. 7, age 9)" />
+      <UiInput class="input" v-model="draftTitle" placeholder="Event title" @keydown.enter="addEvent" />
+      <UiTextarea class="input" v-model="draftNote" placeholder="Notes (optional)" :rows="2" />
       <UiButton intent="primary" :disabled="!draftTitle.trim()" @click="addEvent">
         <Icon name="Plus" :size="12" /> Add event
       </UiButton>
@@ -39,12 +39,12 @@ function addEvent() {
     <div v-else style="display:flex;flex-direction:column;gap:10px">
       <div v-for="ev in events" :key="ev.id"
         style="display:grid;grid-template-columns:120px 1fr auto;gap:10px;align-items:flex-start;padding:10px;border:1px solid var(--border);border-radius:8px;background:var(--surface-2)">
-        <JwInput class="input" :value="ev.when" placeholder="—"
+        <UiInput class="input" :value="ev.when" placeholder="—"
           @input="project.updateEvent(entityId, ev.id, { when: $event.target.value })" />
         <div style="display:flex;flex-direction:column;gap:6px">
-          <JwInput class="input" :value="ev.title"
+          <UiInput class="input" :value="ev.title"
             @input="project.updateEvent(entityId, ev.id, { title: $event.target.value })" />
-          <JwTextarea class="input" :value="ev.note" :rows="2" placeholder="Notes…"
+          <UiTextarea class="input" :value="ev.note" :rows="2" placeholder="Notes…"
             @input="project.updateEvent(entityId, ev.id, { note: $event.target.value })" />
         </div>
         <UiButton intent="ghost" size="small" aria-label="Remove event" v-tooltip.bottom="'Remove event'" @click="project.removeEvent(entityId, ev.id)">×</UiButton>

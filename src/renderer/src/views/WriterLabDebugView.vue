@@ -19,7 +19,7 @@ import WriterLabBase from "../components/WriterLabBase.vue";
 import { PACING_LABELS, ENDING_LABELS } from "../services/analysis/critique.js";
 import { dispatchRun, reconstructPrompt, textToHtml, fmtMs } from "../services/writerLab.js";
 import { UiButton } from "@delebash/llm-ui";
-import JwCheckbox from "@renderer/components/ui/JwCheckbox.vue";
+import { UiCheckbox } from "@delebash/llm-ui";
 
 const project = useProjectStore();
 const ai      = useAiStore();
@@ -221,13 +221,13 @@ function notesByGroup(notes) {
             @update:modelValue="col.model = ''"
           />
           <ModelPicker v-model="col.model" :provider-id="col.providerId" />
-          <JwCheckbox
+          <UiCheckbox
             v-model="base.showPreview"
             class="toggle-label"
             :class="{ 'toggle-label--dim': !isProseAction }"
             :title="isProseAction ? 'Show preview while streaming' : 'Preview only available for prose actions'"
             :disabled="!isProseAction"
-          >Preview</JwCheckbox>
+          >Preview</UiCheckbox>
           <UiButton
             intent="ghost"
             size="small"

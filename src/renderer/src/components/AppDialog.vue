@@ -21,7 +21,7 @@ import {
 } from "reka-ui";
 import Icon from "./Icon.vue";
 import { UiButton } from "@delebash/llm-ui";
-import JwInput from "@renderer/components/ui/JwInput.vue";
+import { UiInput } from "@delebash/llm-ui";
 import JwSelect from "@renderer/components/ui/JwSelect.vue";
 
 const { t } = useI18n();
@@ -190,7 +190,7 @@ function onEnter(e, isLastField) {
                 option-label="label"
                 option-value="value"
               />
-              <JwInput
+              <UiInput
                 v-else
                 :id="`dlg-field-${f.key}`"
                 :ref="el => captureFirst(el, i)"

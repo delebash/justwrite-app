@@ -2,7 +2,7 @@
 // Custom checkbox — replaces PrimeVue Checkbox in binary mode (the only
 // mode we use across the app). Wraps a native <input type="checkbox">
 // in a <label> so clicking the label toggles too. Visual rules in
-// tokens.css under the "JwCheckbox" section.
+// tokens.css under the "UiCheckbox" section.
 
 import { computed } from "vue";
 

@@ -13,7 +13,7 @@ import { useProjectStore } from "../stores/project.js";
 import Icon from "./Icon.vue";
 import { ACTION_GROUPS, stripHtml, countWords } from "../services/writerLab.js";
 import { UiButton } from "@delebash/llm-ui";
-import JwTextarea from "@renderer/components/ui/JwTextarea.vue";
+import { UiTextarea } from "@delebash/llm-ui";
 import JwSelect from "@renderer/components/ui/JwSelect.vue";
 
 const props = defineProps({
@@ -111,7 +111,7 @@ function togglePreview(e) {
         Paste prose or load a chapter.
       </span>
     </div>
-    <JwTextarea
+    <UiTextarea
       :value="modelValue.inputText"
       @input="(e) => patch({ inputText: e.target.value })"
       class="input mono"

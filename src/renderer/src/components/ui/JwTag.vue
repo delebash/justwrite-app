@@ -2,7 +2,7 @@
 // Custom tag chip — replaces PrimeVue Tag. Same single-intent API as
 // UiButton (no separate severity/variant axes). Renders as <span> so it
 // composes inside any text or row. Visual rules in tokens.css under
-// the "JwTag" section.
+// the "UiTag" section.
 
 import { computed, useSlots } from "vue";
 

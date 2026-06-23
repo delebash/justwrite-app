@@ -1,7 +1,7 @@
 <script setup>
 // Custom text input — replaces PrimeVue InputText. Thin wrapper around
 // <input>: v-model, size modifier, standard HTML attrs pass through.
-// Visual rules live in tokens.css under the "JwInput / JwTextarea" section.
+// Visual rules live in tokens.css under the "UiInput / UiTextarea" section.
 
 import { computed } from "vue";
 

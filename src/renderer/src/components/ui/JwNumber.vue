@@ -24,7 +24,7 @@ const props = defineProps({
   placeholder:{ type: String, default: "" },
   disabled:   { type: Boolean, default: false },
   readonly:   { type: Boolean, default: false },
-  // Match JwInput's size modifier (small/regular).
+  // Match UiInput's size modifier (small/regular).
   size:       { type: String, default: "regular" },
   name:       { type: String, default: undefined },
   id:         { type: String, default: undefined },

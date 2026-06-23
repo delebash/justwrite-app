@@ -8,7 +8,7 @@ import { promptDialog, confirmDialog } from "../services/dialog.js";
 import { NEW_ENTITY_META } from "../services/entityMeta.js";
 import Icon from "./Icon.vue";
 import { UiButton } from "@delebash/llm-ui";
-import JwInput from "@renderer/components/ui/JwInput.vue";
+import { UiInput } from "@delebash/llm-ui";
 import { useRovingTabindexMap } from "@renderer/composables/useRovingTabindexMap.js";
 
 const { t } = useI18n();
@@ -866,7 +866,7 @@ function wbDropClass(kind, id) {
           <div v-if="n.expandable && ui.expanded[n.id]" class="nav-children">
             <div class="nav-filter">
               <Icon name="Search" :size="11" />
-              <JwInput size="small"
+              <UiInput size="small"
                 :placeholder="$t('sidebar.filter.placeholder', { label: $t(n.label).toLowerCase() })"
                 :modelValue="ui.filters[n.id] || ''"
                 @update:modelValue="ui.setFilter(n.id, $event)"

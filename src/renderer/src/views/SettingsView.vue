@@ -11,9 +11,9 @@ import { buildVoiceFingerprint } from "../services/voiceFingerprint.js";
 import PaneHeader from "../components/PaneHeader.vue";
 import Icon from "../components/Icon.vue";
 import StatPill from "../components/StatPill.vue";
-import JwInput from "@renderer/components/ui/JwInput.vue";
-import JwTextarea from "@renderer/components/ui/JwTextarea.vue";
-import JwCheckbox from "@renderer/components/ui/JwCheckbox.vue";
+import { UiInput } from "@delebash/llm-ui";
+import { UiTextarea } from "@delebash/llm-ui";
+import { UiCheckbox } from "@delebash/llm-ui";
 import JwNumber from "@renderer/components/ui/JwNumber.vue";
 import JwSelect from "@renderer/components/ui/JwSelect.vue";
 import { UiButton } from "@delebash/llm-ui";
@@ -28,7 +28,7 @@ import {
 import { AVAILABLE_LOCALES, setLocale as setI18nLocale } from "../i18n/index.js";
 import { useI18n } from "vue-i18n";
 
-import JwTag from "@renderer/components/ui/JwTag.vue";
+import { UiTag } from "@delebash/llm-ui";
 import JwTable from "@renderer/components/ui/JwTable.vue";
 import JwSegmented from "@renderer/components/ui/JwSegmented.vue";
 
@@ -619,25 +619,25 @@ const recentColumns = [
           </p>
           <div style="display:grid;grid-template-columns:160px minmax(0,1fr);gap:10px 14px;font-size:13px;align-items:center">
             <span class="t-muted">{{ $t('settings.project.fieldTitle') }}</span>
-            <JwInput :model-value="project.project.title"
+            <UiInput :model-value="project.project.title"
               @update:model-value="(v) => setMeta('title', v)" placeholder="Working title" />
             <span class="t-muted">{{ $t('settings.project.fieldAuthor') }}</span>
-            <JwInput :model-value="project.project.author"
+            <UiInput :model-value="project.project.author"
               @update:model-value="(v) => setMeta('author', v)" placeholder="Pen name or legal name" />
             <span class="t-muted">{{ $t('settings.project.fieldSubtitle') }}</span>
-            <JwInput :model-value="project.project.subtitle"
+            <UiInput :model-value="project.project.subtitle"
               @update:model-value="(v) => setMeta('subtitle', v)" placeholder="Optional" />
             <span class="t-muted">{{ $t('settings.project.fieldGenre') }}</span>
-            <JwInput :model-value="project.project.genre"
+            <UiInput :model-value="project.project.genre"
               @update:model-value="(v) => setMeta('genre', v)" placeholder="Literary, mystery, sci-fi…" />
             <span class="t-muted">{{ $t('settings.project.fieldStarted') }}</span>
-            <JwInput :model-value="project.project.startedOn"
+            <UiInput :model-value="project.project.startedOn"
               @update:model-value="(v) => setMeta('startedOn', v)" placeholder="e.g. March 11, 2026" />
             <span class="t-muted">{{ $t('settings.project.fieldDeadline') }}</span>
-            <JwInput :model-value="project.project.deadline"
+            <UiInput :model-value="project.project.deadline"
               @update:model-value="(v) => setMeta('deadline', v)" placeholder="e.g. December 1, 2026" />
             <span class="t-muted" style="align-self:start;padding-top:6px">{{ $t('settings.project.fieldPremise') }}</span>
-            <JwTextarea auto-resize rows="3" :model-value="project.project.premise"
+            <UiTextarea auto-resize rows="3" :model-value="project.project.premise"
               @update:model-value="(v) => setMeta('premise', v)"
               placeholder="One- or two-sentence pitch. Used on the Home dashboard and exports." />
           </div>
@@ -706,7 +706,7 @@ const recentColumns = [
                   </label>
                 </div>
               </div>
-              <JwInput style="max-width:220px" :model-value="s.label"
+              <UiInput style="max-width:220px" :model-value="s.label"
                 @update:model-value="(v) => renameStatus(s.id, v)" placeholder="Status name" />
               <span :style="`font-size:11px;font-weight:600;text-transform:lowercase;color:${s.color}`">{{ s.label }}</span>
               <UiButton intent="ghost" size="small" style="margin-left:auto" v-tooltip.bottom="'Delete status'" @click="deleteStatus(s)">
@@ -728,7 +728,7 @@ const recentColumns = [
           </p>
           <div style="display:flex;flex-direction:column;gap:8px">
             <div v-for="c in project.worldbuildingCategories" :key="c.id" style="display:flex;align-items:center;gap:10px">
-              <JwInput style="max-width:220px" :model-value="c.label"
+              <UiInput style="max-width:220px" :model-value="c.label"
                 @update:model-value="(v) => renameCategory(c.id, v)" placeholder="Category name" />
               <JwColorPicker
                 :model-value="`oklch(0.62 0.13 ${c.hue})`"
@@ -757,7 +757,7 @@ const recentColumns = [
               <div style="display:flex;flex-direction:column;gap:6px">
                 <div v-for="t in project.tagVocabularies[kind.key]" :key="t.id"
                   style="display:flex;align-items:center;gap:10px">
-                  <JwInput style="max-width:280px" :model-value="t.label"
+                  <UiInput style="max-width:280px" :model-value="t.label"
                     @update:model-value="(v) => project.renameTagVocab(kind.key, t.id, v)"
                     :placeholder="$t('settings.tagVocabularies.placeholder')" />
                   <UiButton intent="ghost" size="small" style="margin-left:auto"
@@ -858,7 +858,7 @@ const recentColumns = [
             Which provider embeds your manuscript for search and “Ask the book” is set in the <b>AI</b> menu (Default embedding). This toggle controls when re-embedding runs.
           </p>
           <label style="display:flex;align-items:flex-start;gap:8px;cursor:pointer">
-            <JwCheckbox :model-value="ai.autoRebuildRagIndex"
+            <UiCheckbox :model-value="ai.autoRebuildRagIndex"
               @update:model-value="ai.setAutoRebuildRagIndex" />
             <span style="color:var(--ink-2);font-size:12.5px;line-height:1.45">
               <b style="color:var(--ink)">Auto-rebuild the index.</b>
@@ -884,7 +884,7 @@ const recentColumns = [
           </p>
           <label style="display:flex;gap:10px;align-items:flex-start;padding:8px;cursor:pointer;border-radius:6px"
                  :style="ui.showVariations ? 'background:var(--accent-soft)' : ''">
-            <JwCheckbox
+            <UiCheckbox
               :model-value="ui.showVariations"
               @update:model-value="ui.setShowVariations" />
             <span style="color:var(--ink-2);font-size:13px;line-height:1.45">
@@ -921,7 +921,7 @@ const recentColumns = [
               <label v-for="c in canonChapterOptions" :key="c.id"
                      style="display:flex;gap:10px;align-items:center;padding:6px 10px;cursor:pointer;border-radius:4px"
                      :style="canonHas(c.id) ? 'background:var(--accent-soft)' : ''">
-                <JwCheckbox
+                <UiCheckbox
                   :model-value="canonHas(c.id)"
                   @update:model-value="toggleCanon(c.id)" />
                 <span style="font-family:var(--font-mono);font-size:11px;color:var(--muted);min-width:48px">Ch. {{ c.num }}</span>
@@ -1008,7 +1008,7 @@ const recentColumns = [
               <div class="wb-toolbar" style="margin-bottom:10px">
                 <span class="wb-search">
                   <Icon name="Search" :size="13" class="wb-search-icon" />
-                  <JwInput :value="recentGlobalQuery" placeholder="Search calls…" @input="onRecentInput" class="wb-search-input" />
+                  <UiInput :value="recentGlobalQuery" placeholder="Search calls…" @input="onRecentInput" class="wb-search-input" />
                 </span>
               </div>
               <JwTable
@@ -1233,7 +1233,7 @@ const recentColumns = [
           <!-- Live preview — the button + tag both track the Accent 2 hue. -->
           <div style="display:flex;flex-wrap:wrap;gap:8px;align-items:center;margin-top:14px;padding-top:12px;border-top:1px solid var(--border-soft)">
             <UiButton intent="accent2" size="small" label="Accent 2" />
-            <JwTag intent="accent2" value="Accent 2" />
+            <UiTag intent="accent2" value="Accent 2" />
           </div>
         </div>
 
@@ -1283,9 +1283,9 @@ const recentColumns = [
             <UiButton intent="danger" size="small" label="Danger" />
             <UiButton intent="info" size="small" label="Info" />
             <span style="width:8px" />
-            <JwTag intent="success" value="Done" />
-            <JwTag intent="danger" value="Error" />
-            <JwTag intent="info" value="Note" />
+            <UiTag intent="success" value="Done" />
+            <UiTag intent="danger" value="Error" />
+            <UiTag intent="info" value="Note" />
           </div>
         </div>
 
@@ -1365,7 +1365,7 @@ const recentColumns = [
           </div>
           <div class="inline-paper-row">
             <label>
-              <JwCheckbox :model-value="ap.inlinePaper"
+              <UiCheckbox :model-value="ap.inlinePaper"
                 @update:model-value="(v) => setAp({ inlinePaper: v })" />
               <span>{{ $t('settings.appearance.inlinePaperLabel') }}</span>
             </label>

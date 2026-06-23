@@ -5,7 +5,7 @@ import { useProjectStore } from "../stores/project.js";
 import PaneHeader from "../components/PaneHeader.vue";
 import Icon from "../components/Icon.vue";
 import { UiButton } from "@delebash/llm-ui";
-import JwCheckbox from "@renderer/components/ui/JwCheckbox.vue";
+import { UiCheckbox } from "@delebash/llm-ui";
 
 const project = useProjectStore();
 const router = useRouter();
@@ -524,19 +524,19 @@ onBeforeUnmount(() => window.removeEventListener("keydown", onKey));
         <span class="legend-head-count">Edges</span>
       </div>
       <label :aria-label="`Show characters — ${edgeCounts.character} edges`">
-        <JwCheckbox v-model="showCharacters" />
+        <UiCheckbox v-model="showCharacters" />
         <i class="dot character" aria-hidden="true" />
         <span class="legend-label">Character</span>
         <span class="legend-count" aria-hidden="true">{{ edgeCounts.character }}</span>
       </label>
       <label :aria-label="`Show locations — ${edgeCounts.location} edges`">
-        <JwCheckbox v-model="showLocations" />
+        <UiCheckbox v-model="showLocations" />
         <i class="dot location" aria-hidden="true" />
         <span class="legend-label">Location</span>
         <span class="legend-count" aria-hidden="true">{{ edgeCounts.location }}</span>
       </label>
       <label :aria-label="`Show objects — ${edgeCounts.object} edges`">
-        <JwCheckbox v-model="showObjects" />
+        <UiCheckbox v-model="showObjects" />
         <i class="dot object" aria-hidden="true" />
         <span class="legend-label">Object</span>
         <span class="legend-count" aria-hidden="true">{{ edgeCounts.object }}</span>

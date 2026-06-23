@@ -1,9 +1,9 @@
 <script setup>
 import { computed, ref, watch } from "vue";
-import JwInput from "@renderer/components/ui/JwInput.vue";
+import { UiInput } from "@delebash/llm-ui";
 import { UiButton } from "@delebash/llm-ui";
 import JwSelect from "@renderer/components/ui/JwSelect.vue";
-import JwTag from "@renderer/components/ui/JwTag.vue";
+import { UiTag } from "@delebash/llm-ui";
 import JwTable from "@renderer/components/ui/JwTable.vue";
 import { useProjectStore } from "../stores/project.js";
 import { useUiStore } from "../stores/ui.js";
@@ -263,7 +263,7 @@ function onRowClick(event) {
         <div class="notes-toolbar">
           <span class="notes-search">
             <Icon name="Search" :size="13" class="notes-search-icon" />
-            <JwInput
+            <UiInput
               :value="globalQuery"
               placeholder="Search notes…"
               @input="onGlobalInput"
@@ -313,7 +313,7 @@ function onRowClick(event) {
           </template>
 
           <template #tag="{ row }">
-            <JwTag v-if="row.tag" :value="row.tag" intent="secondary" />
+            <UiTag v-if="row.tag" :value="row.tag" intent="secondary" />
             <span v-else class="notes-tag-empty">—</span>
           </template>
 
@@ -349,7 +349,7 @@ function onRowClick(event) {
             aria-label="Note anchor" />
         </div>
         <div class="note-tag-wrap">
-          <JwInput fluid placeholder="tag"
+          <UiInput fluid placeholder="tag"
             :model-value="n.tag"
             @update:model-value="update('tag', $event)"
             @focus="onTagFocus"

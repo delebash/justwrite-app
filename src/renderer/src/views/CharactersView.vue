@@ -5,13 +5,13 @@ import { useUiStore } from "../stores/ui.js";
 import { useRouter } from "vue-router";
 import Avatar from "../components/Avatar.vue";
 import Icon from "../components/Icon.vue";
-import JwInput from "@renderer/components/ui/JwInput.vue";
-import JwTextarea from "@renderer/components/ui/JwTextarea.vue";
-import JwCheckbox from "@renderer/components/ui/JwCheckbox.vue";
+import { UiInput } from "@delebash/llm-ui";
+import { UiTextarea } from "@delebash/llm-ui";
+import { UiCheckbox } from "@delebash/llm-ui";
 import JwNumber from "@renderer/components/ui/JwNumber.vue";
 import { UiButton } from "@delebash/llm-ui";
 import JwSelect from "@renderer/components/ui/JwSelect.vue";
-import JwTag from "@renderer/components/ui/JwTag.vue";
+import { UiTag } from "@delebash/llm-ui";
 import JwTable from "@renderer/components/ui/JwTable.vue";
 import ImagesModal from "../components/ImagesModal.vue";
 import EntitySweepModal from "../components/EntitySweepModal.vue";
@@ -295,7 +295,7 @@ function onRowClick(event) {
         <div class="ch-toolbar">
           <span class="ch-search">
             <Icon name="Search" :size="13" class="ch-search-icon" />
-            <JwInput
+            <UiInput
               :value="globalQuery"
               placeholder="Search characters…"
               @input="onGlobalInput"
@@ -390,17 +390,17 @@ function onRowClick(event) {
 
           <template #tags="{ row }">
             <div class="ch-tags">
-              <JwTag v-for="t in row.tags" :key="t" :value="t" intent="secondary" />
+              <UiTag v-for="t in row.tags" :key="t" :value="t" intent="secondary" />
             </div>
           </template>
 
           <template #status="{ row }">
-            <JwTag v-if="row.status" :value="statusLabel(row.status)" :intent="statusSeverity(row.status)" />
+            <UiTag v-if="row.status" :value="statusLabel(row.status)" :intent="statusSeverity(row.status)" />
             <span v-else class="ch-status-empty">—</span>
           </template>
 
           <template #main="{ row }">
-            <JwTag v-if="row.main" value="Yes" intent="info" />
+            <UiTag v-if="row.main" value="Yes" intent="info" />
             <span v-else class="ch-status-empty">—</span>
           </template>
         </JwTable>
@@ -464,20 +464,20 @@ function onRowClick(event) {
           </div>
           <div class="character-hero-fields">
             <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap">
-              <JwInput fluid style="max-width:200px" placeholder="Role"
+              <UiInput fluid style="max-width:200px" placeholder="Role"
                 :model-value="ch.role" @update:model-value="updateField('role', $event)" />
               <label class="chip" style="cursor:pointer;gap:6px">
-                <JwCheckbox :model-value="ch.main" @update:model-value="updateField('main', $event)" />
+                <UiCheckbox :model-value="ch.main" @update:model-value="updateField('main', $event)" />
                 Main character
               </label>
               <label class="chip" style="cursor:pointer;gap:6px"
                 v-tooltip.bottom="'Hides this entity from any AI feature that pulls in story-world context.'">
-                <JwCheckbox :model-value="!!ch.excludeFromAi" @update:model-value="(v) => updateField('excludeFromAi', v)" />
+                <UiCheckbox :model-value="!!ch.excludeFromAi" @update:model-value="(v) => updateField('excludeFromAi', v)" />
                 Exclude from AI
               </label>
-              <JwInput fluid style="max-width:140px" placeholder="Gender"
+              <UiInput fluid style="max-width:140px" placeholder="Gender"
                 :model-value="ch.gender" @update:model-value="updateField('gender', $event)" />
-              <JwInput fluid style="max-width:140px" placeholder="Pronouns (she/her…)"
+              <UiInput fluid style="max-width:140px" placeholder="Pronouns (she/her…)"
                 :model-value="ch.pronouns" @update:model-value="updateField('pronouns', $event)" />
               <JwNumber style="max-width:80px" placeholder="Age" :use-grouping="false"
                 :model-value="ch.age ?? null" @update:model-value="updateField('age', $event ?? null)" />
@@ -487,7 +487,7 @@ function onRowClick(event) {
                 :options="LIFE_STATUS_OPTIONS"
                 aria-label="Life status" />
             </div>
-            <JwTextarea fluid rows="2" style="margin-top:14px;font-family:var(--font-serif);font-style:italic"
+            <UiTextarea fluid rows="2" style="margin-top:14px;font-family:var(--font-serif);font-style:italic"
               placeholder="One-liner"
               :model-value="ch.oneLiner" @update:model-value="updateField('oneLiner', $event)" />
           </div>
@@ -511,7 +511,7 @@ function onRowClick(event) {
             <div v-for="i in MOTIVATIONS" :key="i.k"
               :style="`padding:14px;border-radius:10px;background:${i.bg};border:1px solid color-mix(in oklab, ${i.color}, white 60%)`">
               <div :style="`font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:0.06em;color:${i.color};margin-bottom:6px`">{{ i.label }}</div>
-              <JwTextarea fluid rows="2" style="background:transparent;border:0;font-family:var(--font-serif);font-size:14.5px;line-height:1.5"
+              <UiTextarea fluid rows="2" style="background:transparent;border:0;font-family:var(--font-serif);font-size:14.5px;line-height:1.5"
                 :model-value="extras?.motivation?.[i.k] || ''" @update:model-value="updateMotivation(i.k, $event)" />
             </div>
           </div>
@@ -527,7 +527,7 @@ function onRowClick(event) {
                   <span :style="`width:18px;height:18px;border-radius:50%;background:${i === 0 ? 'var(--surface-3)' : i === 1 ? 'var(--accent-soft)' : 'var(--accent)'};color:${i === 2 ? 'white' : 'var(--ink-2)'};display:grid;place-items:center;font-family:var(--font-serif);font-style:italic;font-size:11px;font-weight:600`">{{ i + 1 }}</span>
                   <span class="t-eyebrow">{{ s.label }}</span>
                 </div>
-                <JwTextarea fluid rows="3" style="background:transparent;border:0;font-family:var(--font-serif);font-size:14px;line-height:1.55"
+                <UiTextarea fluid rows="3" style="background:transparent;border:0;font-family:var(--font-serif);font-size:14px;line-height:1.55"
                   :model-value="extras?.arc?.[s.k] || ''" @update:model-value="updateArc(s.k, $event)" />
               </div>
             </div>
@@ -539,19 +539,19 @@ function onRowClick(event) {
           <div class="card tight voice-grid" style="padding:16px;gap:10px 18px;font-size:12.5px">
             <div>
               <div class="t-muted">Accent</div>
-              <JwInput fluid :model-value="extras?.voice?.accent || ''" @update:model-value="updateVoice('accent', $event)" />
+              <UiInput fluid :model-value="extras?.voice?.accent || ''" @update:model-value="updateVoice('accent', $event)" />
             </div>
             <div>
               <div class="t-muted">Vocabulary</div>
-              <JwInput fluid :model-value="extras?.voice?.vocabulary || ''" @update:model-value="updateVoice('vocabulary', $event)" />
+              <UiInput fluid :model-value="extras?.voice?.vocabulary || ''" @update:model-value="updateVoice('vocabulary', $event)" />
             </div>
             <div style="grid-column:1/-1">
               <div class="t-muted">Speech tic</div>
-              <JwInput fluid :model-value="extras?.voice?.tic || ''" @update:model-value="updateVoice('tic', $event)" />
+              <UiInput fluid :model-value="extras?.voice?.tic || ''" @update:model-value="updateVoice('tic', $event)" />
             </div>
             <div style="grid-column:1/-1">
               <div class="t-muted">Sample line</div>
-              <JwTextarea fluid rows="2" :model-value="extras?.voice?.sample || ''" @update:model-value="updateVoice('sample', $event)" />
+              <UiTextarea fluid rows="2" :model-value="extras?.voice?.sample || ''" @update:model-value="updateVoice('sample', $event)" />
             </div>
           </div>
         </div>
@@ -559,7 +559,7 @@ function onRowClick(event) {
         <div style="margin-top:22px">
           <div class="t-eyebrow" style="margin-bottom:10px">Backstory</div>
           <div class="card tight" style="padding:16px">
-            <JwTextarea fluid rows="5" style="font-family:var(--font-serif);font-size:15px;line-height:1.65"
+            <UiTextarea fluid rows="5" style="font-family:var(--font-serif);font-size:15px;line-height:1.65"
               :model-value="extras?.backstory || ''" @update:model-value="updateBackstory($event)" />
           </div>
         </div>

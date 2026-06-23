@@ -6,8 +6,8 @@ import { EVENTS_KIND_META } from "../services/eventsKind.js";
 import Icon from "../components/Icon.vue";
 import Breadcrumb from "../components/Breadcrumb.vue";
 import DateTimePicker from "../components/DateTimePicker.vue";
-import JwInput from "@renderer/components/ui/JwInput.vue";
-import JwTextarea from "@renderer/components/ui/JwTextarea.vue";
+import { UiInput } from "@delebash/llm-ui";
+import { UiTextarea } from "@delebash/llm-ui";
 import { UiButton } from "@delebash/llm-ui";
 
 const props = defineProps({
@@ -94,12 +94,12 @@ function save() {
 
       <label class="field">
         <span class="field-label">Title</span>
-        <JwInput fluid ref="titleRef" v-model="titleStr" placeholder="What happened?" />
+        <UiInput fluid ref="titleRef" v-model="titleStr" placeholder="What happened?" />
       </label>
 
       <label class="field">
         <span class="field-label">Notes</span>
-        <JwTextarea fluid v-model="noteStr" rows="6"
+        <UiTextarea fluid v-model="noteStr" rows="6"
           placeholder="Optional — anything you want to remember about this event." />
       </label>
     </form>
