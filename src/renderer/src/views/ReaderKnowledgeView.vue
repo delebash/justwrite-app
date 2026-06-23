@@ -31,7 +31,7 @@ import AiTaskStrip from "../components/AiTaskStrip.vue";
 import HelpTrigger from "../components/HelpTrigger.vue";
 import AiFeatureChip from "../components/AiFeatureChip.vue";
 import EmptyState from "../components/EmptyState.vue";
-import JwButton from "@renderer/components/ui/JwButton.vue";
+import { UiButton } from "@delebash/llm-ui";
 
 const project = useProjectStore();
 const ui = useUiStore();
@@ -200,18 +200,18 @@ function jumpToChapter(chapterId) {
       <div class="pane-actions">
         <AiFeatureChip feature="readerKnowledge" label="Reader knowledge" />
         <span v-if="lastRunAt && !running" class="rk-stamp">Last run {{ ago(lastRunAt) }}</span>
-        <JwButton v-if="hasAny && !running" intent="ghost" @click="clearAll"
+        <UiButton v-if="hasAny && !running" intent="ghost" @click="clearAll"
                   v-tooltip.bottom="'Discard the saved analysis'">
           Clear
-        </JwButton>
-        <JwButton v-if="!running" intent="primary" @click="runScan"
+        </UiButton>
+        <UiButton v-if="!running" intent="primary" @click="runScan"
           v-tooltip.bottom="'Classify each chapter by dramatic irony — one LLM call per chapter'">
           <Icon name="Sparkle" :size="13" />
           {{ hasAny ? "Re-analyse" : "Analyse manuscript" }}
-        </JwButton>
-        <JwButton v-else intent="danger" @click="cancelScan">
+        </UiButton>
+        <UiButton v-else intent="danger" @click="cancelScan">
           <Icon name="Close" :size="13" /> Cancel
-        </JwButton>
+        </UiButton>
       </div>
     </header>
 

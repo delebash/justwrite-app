@@ -15,7 +15,7 @@ import AiTaskStrip from "./AiTaskStrip.vue";
 import Icon from "./Icon.vue";
 import AppModal from "./AppModal.vue";
 import StatusRow from "./StatusRow.vue";
-import JwButton from "@renderer/components/ui/JwButton.vue";
+import { UiButton } from "@delebash/llm-ui";
 
 const props = defineProps({
   // "build" — incremental (only embed new/changed scenes)
@@ -163,9 +163,9 @@ const totalDone = computed(() => rows.value.filter((r) => r.status === "done").l
         <div class="t-eyebrow">Manuscript index</div>
         <div class="modal-title">{{ mode === "rebuild" ? "Rebuilding index" : "Building index" }}</div>
       </div>
-      <JwButton v-if="running" intent="ghost" size="small" @click="cancel">
+      <UiButton v-if="running" intent="ghost" size="small" @click="cancel">
         <Icon name="Close" :size="12" /> Cancel
-      </JwButton>
+      </UiButton>
     </template>
 
     <p class="idx-desc">
@@ -199,13 +199,13 @@ const totalDone = computed(() => rows.value.filter((r) => r.status === "done").l
     </div>
 
     <template v-if="!running" #footer>
-      <JwButton v-if="before.exists && !result" intent="ghost" size="small" @click="clearAndClose">
+      <UiButton v-if="before.exists && !result" intent="ghost" size="small" @click="clearAndClose">
         Clear index
-      </JwButton>
+      </UiButton>
       <span style="flex:1"></span>
-      <JwButton intent="primary" @click="requestClose">
+      <UiButton intent="primary" @click="requestClose">
         {{ result ? "Done" : "Close" }}
-      </JwButton>
+      </UiButton>
     </template>
   </AppModal>
 </template>

@@ -4,7 +4,7 @@ import { useProjectStore } from "../stores/project.js";
 import { saveImage, urlFor, removeImage, hasNativeImages } from "../services/imageStore.js";
 import Icon from "./Icon.vue";
 import AppModal from "./AppModal.vue";
-import JwButton from "@renderer/components/ui/JwButton.vue";
+import { UiButton } from "@delebash/llm-ui";
 
 const props = defineProps({
   entityId: { type: String, required: true },
@@ -67,7 +67,7 @@ async function remove(img) {
         <div v-else class="image-loading"><Icon name="Image" :size="18" /></div>
         <div class="image-meta">
           <span v-tooltip.bottom="img.name">{{ img.name }}</span>
-          <JwButton intent="ghost" size="small" aria-label="Remove image" v-tooltip.bottom="'Remove image'" @click="remove(img)">×</JwButton>
+          <UiButton intent="ghost" size="small" aria-label="Remove image" v-tooltip.bottom="'Remove image'" @click="remove(img)">×</UiButton>
         </div>
       </div>
       <button type="button" class="image-add" aria-label="Add images" @click="fileInput.click()" :disabled="saving > 0">

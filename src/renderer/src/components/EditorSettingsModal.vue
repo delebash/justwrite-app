@@ -8,7 +8,7 @@ import {
   EDITOR_FONTS, LINE_SPACING_OPTIONS, PARAGRAPH_SPACING_OPTIONS, DEFAULT_EDITOR_SETTINGS,
 } from "../services/editorSettings.js";
 import AppModal from "./AppModal.vue";
-import JwButton from "@renderer/components/ui/JwButton.vue";
+import { UiButton } from "@delebash/llm-ui";
 import JwSelect from "@renderer/components/ui/JwSelect.vue";
 import JwSegmented from "@renderer/components/ui/JwSegmented.vue";
 
@@ -82,8 +82,8 @@ function back() { emit("close"); }
     </div>
 
     <template #footer>
-      <JwButton intent="primary" @click="save">save</JwButton>
-      <JwButton intent="ghost" @click="back">back</JwButton>
+      <UiButton intent="primary" @click="save">save</UiButton>
+      <UiButton intent="ghost" @click="back">back</UiButton>
     </template>
   </AppModal>
 </template>

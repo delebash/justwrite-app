@@ -17,7 +17,7 @@ import { useRouter } from "vue-router";
 import { useProjectStore } from "../stores/project.js";
 import { MARKER_CATEGORIES, categoryById, scanProjectMarkers, removeMarkerFromHtml } from "../services/markers.js";
 import Icon from "../components/Icon.vue";
-import JwButton from "@renderer/components/ui/JwButton.vue";
+import { UiButton } from "@delebash/llm-ui";
 import ForeshadowingScanModal from "../components/ForeshadowingScanModal.vue";
 import AiTellScanModal from "../components/AiTellScanModal.vue";
 import HelpTrigger from "../components/HelpTrigger.vue";
@@ -83,14 +83,14 @@ function closeTellScan() { tellScanOpen.value = false; }
         </p>
       </div>
       <div class="pane-actions">
-        <JwButton intent="secondary" @click="openScan"
+        <UiButton intent="secondary" @click="openScan"
                   v-tooltip.bottom="'Scan the whole manuscript for setups that may not have paid off'">
           <Icon name="Sparkle" :size="13" /> Find dangling threads
-        </JwButton>
-        <JwButton intent="secondary" @click="openTellScan"
+        </UiButton>
+        <UiButton intent="secondary" @click="openTellScan"
                   v-tooltip.bottom="'Deterministic scan for phrases that smell of AI — stock verbs, body-language clichés, hedges. No LLM call.'">
           <Icon name="Eye" :size="13" /> Find AI tells
-        </JwButton>
+        </UiButton>
       </div>
     </header>
 
@@ -153,8 +153,8 @@ function closeTellScan() { tellScanOpen.value = false; }
           <span class="markers-item-cat">{{ categoryById(m.category).label }}</span>
           <span class="markers-item-where">{{ locationLabel(m) }}</span>
           <div class="markers-item-actions">
-            <JwButton intent="ghost" size="small" @click="jumpTo(m)">Jump to</JwButton>
-            <JwButton intent="ghost" size="small" @click="resolve(m)">Resolve</JwButton>
+            <UiButton intent="ghost" size="small" @click="jumpTo(m)">Jump to</UiButton>
+            <UiButton intent="ghost" size="small" @click="resolve(m)">Resolve</UiButton>
           </div>
         </header>
         <div v-if="m.label" class="markers-item-label">{{ m.label }}</div>

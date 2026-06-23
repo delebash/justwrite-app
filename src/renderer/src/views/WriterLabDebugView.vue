@@ -18,7 +18,7 @@ import WriterLabBase from "../components/WriterLabBase.vue";
 
 import { PACING_LABELS, ENDING_LABELS } from "../services/analysis/critique.js";
 import { dispatchRun, reconstructPrompt, textToHtml, fmtMs } from "../services/writerLab.js";
-import JwButton from "@renderer/components/ui/JwButton.vue";
+import { UiButton } from "@delebash/llm-ui";
 import JwCheckbox from "@renderer/components/ui/JwCheckbox.vue";
 
 const project = useProjectStore();
@@ -196,13 +196,13 @@ function notesByGroup(notes) {
 
     <!-- ── COLUMNS TOOLBAR ────────────────────────────────────────────── -->
     <div class="run-row">
-      <JwButton intent="primary" @click="runAll" :disabled="!canRunAll">
+      <UiButton intent="primary" @click="runAll" :disabled="!canRunAll">
         <Icon name="Sparkle" :size="13" />
         Run all{{ columns.length > 1 ? ` (${columns.length})` : "" }}
-      </JwButton>
-      <JwButton intent="secondary" size="small" @click="addColumn" :disabled="columns.length >= 4">
+      </UiButton>
+      <UiButton intent="secondary" size="small" @click="addColumn" :disabled="columns.length >= 4">
         <Icon name="Plus" :size="12" /> Add column
-      </JwButton>
+      </UiButton>
       <span v-if="!selectedAction" class="t-muted" style="font-size:12px">
         Select an operation above.
       </span>
@@ -228,7 +228,7 @@ function notesByGroup(notes) {
             :title="isProseAction ? 'Show preview while streaming' : 'Preview only available for prose actions'"
             :disabled="!isProseAction"
           >Preview</JwCheckbox>
-          <JwButton
+          <UiButton
             intent="ghost"
             size="small"
             @click="removeColumn(col)"
@@ -236,7 +236,7 @@ function notesByGroup(notes) {
             v-tooltip.bottom="'Remove column'"
           >
             <template #icon><Icon name="Trash" :size="13" /></template>
-          </JwButton>
+          </UiButton>
         </div>
 
         <!-- Progress bar -->

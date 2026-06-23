@@ -7,7 +7,7 @@ import { PLOT_TEMPLATES, TEMPLATE_ORDER, applyTemplate } from "../services/plotT
 import { promptDialog, confirmDialog } from "../services/dialog.js";
 import PaneHeader from "../components/PaneHeader.vue";
 import Icon from "../components/Icon.vue";
-import JwButton from "@renderer/components/ui/JwButton.vue";
+import { UiButton } from "@delebash/llm-ui";
 
 const project = useProjectStore();
 const ui = useUiStore();
@@ -353,11 +353,11 @@ function sceneBadge(beat) {
         <div class="empty-actions">
           <!-- Template dropdown in empty state -->
           <div class="dropdown-wrap" style="position:relative">
-            <JwButton intent="primary" ref="templateBtnRef" @click="openTemplateMenu">
+            <UiButton intent="primary" ref="templateBtnRef" @click="openTemplateMenu">
               <Icon name="Sparkle" :size="14" />
               Apply a template
               <Icon name="ChevDown" :size="13" />
-            </JwButton>
+            </UiButton>
             <div v-if="templateMenuOpen" ref="templateMenuRef" class="template-menu">
               <button
                 v-for="id in TEMPLATE_ORDER"
@@ -370,10 +370,10 @@ function sceneBadge(beat) {
               </button>
             </div>
           </div>
-          <JwButton intent="secondary" @click="handleNewStrand">
+          <UiButton intent="secondary" @click="handleNewStrand">
             <Icon name="Plus" :size="14" />
             Start blank
-          </JwButton>
+          </UiButton>
         </div>
       </div>
     </template>
@@ -391,11 +391,11 @@ function sceneBadge(beat) {
       <!-- Toolbar -->
       <div class="toolbar">
         <div style="position:relative">
-          <JwButton intent="secondary" ref="templateBtnRef" @click="openTemplateMenu">
+          <UiButton intent="secondary" ref="templateBtnRef" @click="openTemplateMenu">
             <Icon name="Sparkle" :size="14" />
             Apply template
             <Icon name="ChevDown" :size="13" />
-          </JwButton>
+          </UiButton>
           <div v-if="templateMenuOpen" ref="templateMenuRef" class="template-menu">
             <button
               v-for="id in TEMPLATE_ORDER"
@@ -408,10 +408,10 @@ function sceneBadge(beat) {
             </button>
           </div>
         </div>
-        <JwButton intent="primary" @click="handleNewStrand">
+        <UiButton intent="primary" @click="handleNewStrand">
           <Icon name="Plus" :size="14" />
           New strand
-        </JwButton>
+        </UiButton>
       </div>
 
       <!-- Board scroll container -->
@@ -473,7 +473,7 @@ function sceneBadge(beat) {
                   @blur="onStrandNameBlur(strand, $event)"
                   @keydown="onStrandNameKeydown"
                 />
-                <JwButton
+                <UiButton
                   intent="ghost"
                   size="small"
                   class="strand-trash-btn"
@@ -482,7 +482,7 @@ function sceneBadge(beat) {
                   @click="handleRemoveStrand(strand)"
                 >
                   <Icon name="Trash" :size="13" />
-                </JwButton>
+                </UiButton>
               </div>
               <span class="strand-beat-count">{{ beatCount(strand) }} beat{{ beatCount(strand) === 1 ? "" : "s" }}</span>
             </div>
@@ -520,7 +520,7 @@ function sceneBadge(beat) {
               >
                 <span class="beat-label">{{ beat.label }}</span>
                 <span v-if="sceneBadge(beat)" class="beat-scene" :title="`Pinned to ${sceneBadge(beat)}`">{{ sceneBadge(beat) }}</span>
-                <JwButton
+                <UiButton
                   intent="ghost"
                   size="small"
                   class="beat-del-btn"
@@ -529,7 +529,7 @@ function sceneBadge(beat) {
                   @click="handleRemoveBeat(strand.id, beat, $event)"
                 >
                   <Icon name="Close" :size="10" />
-                </JwButton>
+                </UiButton>
               </div>
               <button
                 v-if="beatsInCell(strand, null).length > 0"
@@ -577,7 +577,7 @@ function sceneBadge(beat) {
               >
                 <span class="beat-label">{{ beat.label }}</span>
                 <span v-if="sceneBadge(beat)" class="beat-scene" :title="`Pinned to ${sceneBadge(beat)}`">{{ sceneBadge(beat) }}</span>
-                <JwButton
+                <UiButton
                   intent="ghost"
                   size="small"
                   class="beat-del-btn"
@@ -586,7 +586,7 @@ function sceneBadge(beat) {
                   @click="handleRemoveBeat(strand.id, beat, $event)"
                 >
                   <Icon name="Close" :size="10" />
-                </JwButton>
+                </UiButton>
               </div>
               <button
                 v-if="beatsInCell(strand, ch.id).length > 0"
@@ -891,7 +891,7 @@ function sceneBadge(beat) {
 }
 /* Keyboard focus rings — :focus-visible only, so mouse-clicking a cell
    doesn't leave a permanent ring behind. Matches the accent-soft pattern
-   used elsewhere in the app (inputs, JwButton, JwSelect). */
+   used elsewhere in the app (inputs, UiButton, JwSelect). */
 .beat-cell:focus { outline: none; }
 .beat-cell:focus-visible {
   outline: none;

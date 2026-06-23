@@ -35,7 +35,7 @@ import { PROSE_RULES, PROSE_RULE_ORDER } from "@renderer/services/writerAI";
 import { useAiTasksStore } from "../stores/aiTasks.js";
 import { useUiStore } from "../stores/ui.js";
 import Icon from "./Icon.vue";
-import JwButton from "@renderer/components/ui/JwButton.vue";
+import { UiButton } from "@delebash/llm-ui";
 import EditorSettingsModal from "./EditorSettingsModal.vue";
 import AiTaskStrip from "./AiTaskStrip.vue";
 
@@ -1638,16 +1638,16 @@ defineExpose({
       <template v-if="commentState.mode === 'edit'">
         <textarea ref="commentInput" v-model="commentState.text" class="comment-pop-input" rows="3" placeholder="Add a comment…" />
         <div class="comment-pop-actions">
-          <JwButton intent="ghost" size="small" @click="closeComment">Cancel</JwButton>
-          <JwButton intent="primary" size="small" @click="saveComment">Save</JwButton>
+          <UiButton intent="ghost" size="small" @click="closeComment">Cancel</UiButton>
+          <UiButton intent="primary" size="small" @click="saveComment">Save</UiButton>
         </div>
       </template>
       <template v-else>
         <div class="comment-pop-text">{{ commentState.text }}</div>
         <div class="comment-pop-actions">
-          <JwButton intent="ghost" size="small" @click="deleteComment">Delete</JwButton>
-          <JwButton intent="ghost" size="small" @click="editComment">Edit</JwButton>
-          <JwButton intent="primary" size="small" @click="closeComment">Close</JwButton>
+          <UiButton intent="ghost" size="small" @click="deleteComment">Delete</UiButton>
+          <UiButton intent="ghost" size="small" @click="editComment">Edit</UiButton>
+          <UiButton intent="primary" size="small" @click="closeComment">Close</UiButton>
         </div>
       </template>
     </div>
@@ -1670,12 +1670,12 @@ defineExpose({
       <input ref="markerLabelInput" v-model="markerState.label" class="marker-pop-input" type="text"
         placeholder="Optional one-line note (Enter to save)" />
       <div class="marker-pop-actions">
-        <JwButton v-if="markerState.mode === 'edit'" intent="ghost" size="small" @click="removeMarkerHere">Resolve</JwButton>
-        <JwButton intent="ghost" size="small" @click="closeMarker">Cancel</JwButton>
-        <JwButton intent="primary" size="small"
+        <UiButton v-if="markerState.mode === 'edit'" intent="ghost" size="small" @click="removeMarkerHere">Resolve</UiButton>
+        <UiButton intent="ghost" size="small" @click="closeMarker">Cancel</UiButton>
+        <UiButton intent="primary" size="small"
           @click="markerState.mode === 'edit' ? saveMarkerEdit() : dropMarker()">
           {{ markerState.mode === "edit" ? "Save" : "Drop marker" }}
-        </JwButton>
+        </UiButton>
       </div>
     </div>
 

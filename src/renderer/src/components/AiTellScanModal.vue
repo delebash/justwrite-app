@@ -17,7 +17,7 @@ import { useProjectStore } from "../stores/project.js";
 import { scanAiTells, TELL_KINDS } from "../services/analysis/aiTellScanner.js";
 import Icon from "./Icon.vue";
 import AppModal from "./AppModal.vue";
-import JwButton from "@renderer/components/ui/JwButton.vue";
+import { UiButton } from "@delebash/llm-ui";
 import EmptyState from "./EmptyState.vue";
 
 const emit = defineEmits(["close"]);
@@ -96,9 +96,9 @@ const KIND_KEYS = Object.keys(TELL_KINDS);
         Scan this chapter for telling-instead-of-showing prose.
         No AI call needed — this runs instantly on your local manuscript.
       </p>
-      <JwButton intent="primary" @click="runScan">
+      <UiButton intent="primary" @click="runScan">
         <Icon name="Sparkle" :size="13" /> Scan for tell
-      </JwButton>
+      </UiButton>
     </div>
 
     <template v-else>
@@ -163,11 +163,11 @@ const KIND_KEYS = Object.keys(TELL_KINDS);
     </template>
 
     <template #footer>
-      <JwButton intent="ghost" @click="runScan">
+      <UiButton intent="ghost" @click="runScan">
         <Icon name="Refresh" :size="12" /> Re-scan
-      </JwButton>
+      </UiButton>
       <span class="at-foot-spacer" />
-      <JwButton intent="primary" @click="emit('close')">Done</JwButton>
+      <UiButton intent="primary" @click="emit('close')">Done</UiButton>
     </template>
   </AppModal>
 </template>

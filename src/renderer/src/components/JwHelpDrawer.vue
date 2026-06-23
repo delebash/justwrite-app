@@ -33,7 +33,7 @@ import {
 } from "../services/helpDocs.js";
 import { renderHelpMarkdown } from "../services/helpMarkdown.js";
 import Icon from "./Icon.vue";
-import JwButton from "./ui/JwButton.vue";
+import { UiButton } from "@delebash/llm-ui";
 
 const ui = useUiStore();
 const router = useRouter();
@@ -132,14 +132,14 @@ function openOnWeb() {
         </div>
 
         <footer class="help-drawer-footer">
-          <JwButton intent="ghost" size="small" @click="openFullDocs" v-if="exists">
+          <UiButton intent="ghost" size="small" @click="openFullDocs" v-if="exists">
             <template #icon><Icon name="Book" :size="13" /></template>
             Open full docs
-          </JwButton>
-          <JwButton intent="ghost" size="small" @click="openOnWeb" v-if="exists">
+          </UiButton>
+          <UiButton intent="ghost" size="small" @click="openOnWeb" v-if="exists">
             <template #icon><Icon name="ExternalLink" :size="13" /></template>
             Open on the web
-          </JwButton>
+          </UiButton>
         </footer>
       </DialogContent>
     </DialogPortal>

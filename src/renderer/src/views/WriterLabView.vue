@@ -14,7 +14,7 @@ import WriterLabBase from "../components/WriterLabBase.vue";
 
 import { PACING_LABELS, ENDING_LABELS } from "../services/analysis/critique.js";
 import { dispatchRun, reconstructPrompt, textToHtml, fmtMs } from "../services/writerLab.js";
-import JwButton from "@renderer/components/ui/JwButton.vue";
+import { UiButton } from "@delebash/llm-ui";
 
 const project = useProjectStore();
 const aiTasks = useAiTasksStore();
@@ -165,13 +165,13 @@ function notesByGroup(notes) {
 
     <!-- ── RUN BUTTON ─────────────────────────────────────────────────── -->
     <div class="run-row">
-      <JwButton intent="primary" @click="run" :disabled="!canRun">
+      <UiButton intent="primary" @click="run" :disabled="!canRun">
         <Icon name="Sparkle" :size="13" />
         Run
-      </JwButton>
-      <JwButton v-if="running" intent="secondary" size="small" @click="cancelRun">
+      </UiButton>
+      <UiButton v-if="running" intent="secondary" size="small" @click="cancelRun">
         Cancel
-      </JwButton>
+      </UiButton>
       <span v-if="!selectedAction" class="t-muted" style="font-size:12px">
         Select an operation above.
       </span>

@@ -17,7 +17,7 @@ import { diffVersions, renderDiffHtml, diffStats } from "../services/versionDiff
 import Icon from "./Icon.vue";
 import AppModal from "./AppModal.vue";
 import EmptyState from "./EmptyState.vue";
-import JwButton from "@renderer/components/ui/JwButton.vue";
+import { UiButton } from "@delebash/llm-ui";
 import JwInput from "@renderer/components/ui/JwInput.vue";
 
 const props = defineProps({
@@ -178,7 +178,7 @@ function whenFor(id) {
     <div v-if="mode === 'list'" class="vh-list-mode">
       <div class="vh-save">
         <JwInput v-model="label" placeholder="Label this version (optional)…" @keydown.enter="save" />
-        <JwButton intent="primary" @click="save"><Icon name="History" :size="14" /> Save version</JwButton>
+        <UiButton intent="primary" @click="save"><Icon name="History" :size="14" /> Save version</UiButton>
       </div>
       <p class="t-muted" style="font-size:11.5px;margin:10px 0 6px">
         Snapshots of this chapter's scenes, kept on this device. Newest first.
@@ -189,10 +189,10 @@ function whenFor(id) {
             <div class="vh-label">{{ v.label || "Untitled version" }}</div>
             <div class="vh-meta">{{ when(v.savedAt) }} · {{ v.words.toLocaleString() }} words · {{ v.scenes.length }} scene{{ v.scenes.length === 1 ? "" : "s" }}</div>
           </div>
-          <JwButton intent="secondary" size="small" @click="compareWithCurrent(v)" v-tooltip.bottom="'See what\'s changed since this version'">
+          <UiButton intent="secondary" size="small" @click="compareWithCurrent(v)" v-tooltip.bottom="'See what\'s changed since this version'">
             <Icon name="Replace" :size="12" /> Compare
-          </JwButton>
-          <JwButton intent="primary" size="small" @click="restore(v)">Restore</JwButton>
+          </UiButton>
+          <UiButton intent="primary" size="small" @click="restore(v)">Restore</UiButton>
           <button class="vh-del" v-tooltip.bottom="'Delete version'" @click="remove(v)"><Icon name="Trash" :size="13" /></button>
         </div>
       </div>
@@ -201,28 +201,28 @@ function whenFor(id) {
         title="No versions saved yet"
         message="Save one before a big revision so you can roll back." />
       <div v-if="list.length >= 2" class="vh-foot">
-        <JwButton intent="ghost" size="small" @click="startPickTwo">
+        <UiButton intent="ghost" size="small" @click="startPickTwo">
           <Icon name="Replace" :size="12" /> Compare two saved versions…
-        </JwButton>
+        </UiButton>
       </div>
     </div>
 
     <!-- ── PICK mode (choose A and B) ───────────────────────────── -->
     <div v-else-if="mode === 'pick'" class="vh-pick-mode">
       <div class="vh-pick-head">
-        <JwButton intent="ghost" size="small" @click="backToList">
+        <UiButton intent="ghost" size="small" @click="backToList">
           <Icon name="ChevRight" :size="12" style="transform:rotate(180deg)" />
           Back
-        </JwButton>
+        </UiButton>
         <span class="t-muted" style="font-size:12px">Pick two versions to compare. A is the older / baseline, B is the newer.</span>
       </div>
       <div class="vh-pick-summary">
         <div><span class="t-eyebrow">A</span><b>{{ pickA ? labelFor(pickA) : "(not selected)" }}</b></div>
         <Icon name="ChevRight" :size="14" />
         <div><span class="t-eyebrow">B</span><b>{{ pickB ? labelFor(pickB) : "(not selected)" }}</b></div>
-        <JwButton intent="primary" size="small" :disabled="!pickA || !pickB" @click="runPickedCompare">
+        <UiButton intent="primary" size="small" :disabled="!pickA || !pickB" @click="runPickedCompare">
           <Icon name="Replace" :size="12" /> Compare
-        </JwButton>
+        </UiButton>
       </div>
       <div class="vh-list">
         <div class="vh-row vh-row--current">
@@ -230,16 +230,16 @@ function whenFor(id) {
             <div class="vh-label">Current draft</div>
             <div class="vh-meta">live working copy</div>
           </div>
-          <JwButton intent="ghost" size="small" class="vh-pick-btn" :class="{ active: pickA === 'current' }" @click="pickAs('A', 'current')">A</JwButton>
-          <JwButton intent="ghost" size="small" class="vh-pick-btn" :class="{ active: pickB === 'current' }" @click="pickAs('B', 'current')">B</JwButton>
+          <UiButton intent="ghost" size="small" class="vh-pick-btn" :class="{ active: pickA === 'current' }" @click="pickAs('A', 'current')">A</UiButton>
+          <UiButton intent="ghost" size="small" class="vh-pick-btn" :class="{ active: pickB === 'current' }" @click="pickAs('B', 'current')">B</UiButton>
         </div>
         <div v-for="v in list" :key="v.id" class="vh-row">
           <div class="vh-main">
             <div class="vh-label">{{ v.label || "Untitled version" }}</div>
             <div class="vh-meta">{{ when(v.savedAt) }} · {{ v.words.toLocaleString() }} words</div>
           </div>
-          <JwButton intent="ghost" size="small" class="vh-pick-btn" :class="{ active: pickA === v.id }" @click="pickAs('A', v.id)">A</JwButton>
-          <JwButton intent="ghost" size="small" class="vh-pick-btn" :class="{ active: pickB === v.id }" @click="pickAs('B', v.id)">B</JwButton>
+          <UiButton intent="ghost" size="small" class="vh-pick-btn" :class="{ active: pickA === v.id }" @click="pickAs('A', v.id)">A</UiButton>
+          <UiButton intent="ghost" size="small" class="vh-pick-btn" :class="{ active: pickB === v.id }" @click="pickAs('B', v.id)">B</UiButton>
         </div>
       </div>
     </div>
@@ -247,10 +247,10 @@ function whenFor(id) {
     <!-- ── DIFF mode ────────────────────────────────────────────── -->
     <div v-else class="vh-diff-mode">
       <div class="vh-diff-head">
-        <JwButton intent="ghost" size="small" @click="backToList">
+        <UiButton intent="ghost" size="small" @click="backToList">
           <Icon name="ChevRight" :size="12" style="transform:rotate(180deg)" />
           Back
-        </JwButton>
+        </UiButton>
         <div class="vh-diff-route">
           <span class="vh-diff-route-side">
             <span class="t-eyebrow">From</span>

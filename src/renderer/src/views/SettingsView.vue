@@ -16,7 +16,7 @@ import JwTextarea from "@renderer/components/ui/JwTextarea.vue";
 import JwCheckbox from "@renderer/components/ui/JwCheckbox.vue";
 import JwNumber from "@renderer/components/ui/JwNumber.vue";
 import JwSelect from "@renderer/components/ui/JwSelect.vue";
-import JwButton from "@renderer/components/ui/JwButton.vue";
+import { UiButton } from "@delebash/llm-ui";
 import JwColorPicker from "@renderer/components/ui/JwColorPicker.vue";
 import {
   ACCENT_PRESETS, GOLD_PRESETS, FUNCTIONAL_PRESETS, PAIRINGS, SURFACE_TINTS, PAPER_TINTS,
@@ -709,15 +709,15 @@ const recentColumns = [
               <JwInput style="max-width:220px" :model-value="s.label"
                 @update:model-value="(v) => renameStatus(s.id, v)" placeholder="Status name" />
               <span :style="`font-size:11px;font-weight:600;text-transform:lowercase;color:${s.color}`">{{ s.label }}</span>
-              <JwButton intent="ghost" size="small" style="margin-left:auto" v-tooltip.bottom="'Delete status'" @click="deleteStatus(s)">
+              <UiButton intent="ghost" size="small" style="margin-left:auto" v-tooltip.bottom="'Delete status'" @click="deleteStatus(s)">
                 <template #icon><Icon name="Trash" :size="13" /></template>
-              </JwButton>
+              </UiButton>
             </div>
             <div v-if="!project.statuses.length" class="t-muted" style="font-size:12.5px;font-style:italic">No statuses yet — add one below.</div>
           </div>
-          <JwButton label="Add status" intent="ghost" style="margin-top:12px" @click="addStatus">
+          <UiButton label="Add status" intent="ghost" style="margin-top:12px" @click="addStatus">
             <template #icon><Icon name="Plus" :size="13" /></template>
-          </JwButton>
+          </UiButton>
         </div>
 
         <!-- ── Worldbuilding categories ─────────────────────── -->
@@ -734,15 +734,15 @@ const recentColumns = [
                 :model-value="`oklch(0.62 0.13 ${c.hue})`"
                 aria-label="Category color"
                 @update:model-value="(v) => recolorCategory(c.id, parseHueFromOklch(v))" />
-              <JwButton intent="ghost" size="small" style="margin-left:auto" v-tooltip.bottom="'Delete category'" @click="deleteCategory(c)">
+              <UiButton intent="ghost" size="small" style="margin-left:auto" v-tooltip.bottom="'Delete category'" @click="deleteCategory(c)">
                 <template #icon><Icon name="Trash" :size="13" /></template>
-              </JwButton>
+              </UiButton>
             </div>
             <div v-if="!project.worldbuildingCategories.length" class="t-muted" style="font-size:12.5px;font-style:italic">No categories yet — add one below.</div>
           </div>
-          <JwButton label="Add category" intent="ghost" style="margin-top:12px" @click="addCategory">
+          <UiButton label="Add category" intent="ghost" style="margin-top:12px" @click="addCategory">
             <template #icon><Icon name="Plus" :size="13" /></template>
-          </JwButton>
+          </UiButton>
         </div>
 
         <!-- ── Tag vocabularies ─────────────────────────────── -->
@@ -760,22 +760,22 @@ const recentColumns = [
                   <JwInput style="max-width:280px" :model-value="t.label"
                     @update:model-value="(v) => project.renameTagVocab(kind.key, t.id, v)"
                     :placeholder="$t('settings.tagVocabularies.placeholder')" />
-                  <JwButton intent="ghost" size="small" style="margin-left:auto"
+                  <UiButton intent="ghost" size="small" style="margin-left:auto"
                     v-tooltip.bottom="$t('common.remove')"
                     @click="project.removeTagVocab(kind.key, t.id)">
                     <template #icon><Icon name="Trash" :size="13" /></template>
-                  </JwButton>
+                  </UiButton>
                 </div>
                 <div v-if="!project.tagVocabularies[kind.key].length"
                   class="t-muted" style="font-size:12.5px;font-style:italic">
                   {{ $t('settings.tagVocabularies.empty') }}
                 </div>
               </div>
-              <JwButton :label="$t('settings.tagVocabularies.addTag')" intent="ghost"
+              <UiButton :label="$t('settings.tagVocabularies.addTag')" intent="ghost"
                 size="small" style="margin-top:8px"
                 @click="project.addTagVocab(kind.key)">
                 <template #icon><Icon name="Plus" :size="13" /></template>
-              </JwButton>
+              </UiButton>
             </div>
           </div>
         </div>
@@ -810,12 +810,12 @@ const recentColumns = [
               </div>
 
               <div style="display:flex;gap:8px;align-items:center;margin-top:4px">
-                <JwButton as="label" intent="primary" :disabled="coverUploading">
+                <UiButton as="label" intent="primary" :disabled="coverUploading">
                   <Icon name="Image" :size="13" />
                   {{ coverUploading ? "Uploading…" : (project.project.coverImage ? "Replace…" : "Choose image…") }}
                   <input type="file" accept="image/*" style="display:none" @change="onPickCover" :disabled="coverUploading" />
-                </JwButton>
-                <JwButton v-if="project.project.coverImage" label="Remove" intent="ghost" @click="removeCover" />
+                </UiButton>
+                <UiButton v-if="project.project.coverImage" label="Remove" intent="ghost" @click="removeCover" />
               </div>
 
               <div class="t-muted" style="font-size:11px;display:inline-flex;gap:5px;align-items:center;font-family:var(--font-mono)">
@@ -845,7 +845,7 @@ const recentColumns = [
               Add AI providers, set per-feature routing, run Quick Setup, and manage local models in <b>AI</b> (top of the sidebar). This page keeps the writing-specific AI settings below.
             </p>
             <div style="margin-top:8px">
-              <JwButton label="Open AI menu" intent="primary" size="small" @click="$router.push('/ai')" />
+              <UiButton label="Open AI menu" intent="primary" size="small" @click="$router.push('/ai')" />
             </div>
           </div>
         </div>
@@ -933,9 +933,9 @@ const recentColumns = [
               <span>{{ project.voiceCanonChapterIds?.length || 0 }} chapter{{ (project.voiceCanonChapterIds?.length || 0) === 1 ? '' : 's' }} in canon</span>
               <span v-if="voicePreview.sampleWordCount">· ~{{ voicePreview.sampleWordCount }} word sample</span>
               <span style="flex:1"></span>
-              <JwButton v-if="project.voiceCanonChapterIds?.length" intent="ghost" size="small" @click="clearCanon">
+              <UiButton v-if="project.voiceCanonChapterIds?.length" intent="ghost" size="small" @click="clearCanon">
                 Clear all
-              </JwButton>
+              </UiButton>
             </div>
             <details v-if="voicePreview.block" style="margin-top:14px">
               <summary style="cursor:pointer;font-family:var(--font-mono);font-size:10px;letter-spacing:0.16em;text-transform:uppercase;color:var(--muted)">
@@ -952,7 +952,7 @@ const recentColumns = [
         <div class="card">
           <div class="card-title">
             {{ $t('settings.usage.cardTitle') }}
-            <JwButton :label="$t('settings.usage.resetLedger')" intent="ghost" size="small" style="margin-left:auto" @click="resetUsageLog"
+            <UiButton :label="$t('settings.usage.resetLedger')" intent="ghost" size="small" style="margin-left:auto" @click="resetUsageLog"
               v-tooltip.bottom="'Clear every recorded call. Future calls start tallying from zero.'" />
           </div>
           <p class="t-muted" style="font-size:12.5px;margin:0 0 14px;line-height:1.55">
@@ -1037,10 +1037,10 @@ const recentColumns = [
         <!-- Presets -->
         <div class="card">
           <div class="card-title">{{ $t('settings.appearance.presetCardTitle') }}
-            <JwButton :label="$t('settings.appearance.resetToDefaults')" intent="ghost" size="small" style="margin-left:auto" @click="resetAppearance"
+            <UiButton :label="$t('settings.appearance.resetToDefaults')" intent="ghost" size="small" style="margin-left:auto" @click="resetAppearance"
               v-tooltip.bottom="'Reset every appearance setting to the default look'">
               <template #icon><Icon name="Refresh" :size="12" /></template>
-            </JwButton>
+            </UiButton>
           </div>
           <p class="t-muted" style="font-size:12px;margin:0 0 12px">Start from a curated look, then fine-tune anything below.</p>
           <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(168px,1fr));gap:10px">
@@ -1094,7 +1094,7 @@ const recentColumns = [
                 <p class="ap-prose">Above her, the deck complained in its joints — and the fog, she now understood, was not weather.</p>
                 <div class="ap-ornament">✦&nbsp;&nbsp;✦&nbsp;&nbsp;✦</div>
                 <div class="ap-controls">
-                  <JwButton intent="primary" size="small">Accent</JwButton>
+                  <UiButton intent="primary" size="small">Accent</UiButton>
                   <span class="chip" style="background:var(--accent-soft);color:var(--accent-ink);border-color:var(--accent-line)">Selected</span>
                 </div>
               </div>
@@ -1232,7 +1232,7 @@ const recentColumns = [
           </div>
           <!-- Live preview — the button + tag both track the Accent 2 hue. -->
           <div style="display:flex;flex-wrap:wrap;gap:8px;align-items:center;margin-top:14px;padding-top:12px;border-top:1px solid var(--border-soft)">
-            <JwButton intent="accent2" size="small" label="Accent 2" />
+            <UiButton intent="accent2" size="small" label="Accent 2" />
             <JwTag intent="accent2" value="Accent 2" />
           </div>
         </div>
@@ -1279,9 +1279,9 @@ const recentColumns = [
           </div>
           <!-- Live preview — buttons and tags re-skin from the hues above (banners + status chips use the same shades). -->
           <div style="display:flex;flex-wrap:wrap;gap:8px;align-items:center;margin-top:16px;padding-top:14px;border-top:1px solid var(--border-soft)">
-            <JwButton intent="success" size="small" label="Success" />
-            <JwButton intent="danger" size="small" label="Danger" />
-            <JwButton intent="info" size="small" label="Info" />
+            <UiButton intent="success" size="small" label="Success" />
+            <UiButton intent="danger" size="small" label="Danger" />
+            <UiButton intent="info" size="small" label="Info" />
             <span style="width:8px" />
             <JwTag intent="success" value="Done" />
             <JwTag intent="danger" value="Error" />
@@ -1294,13 +1294,13 @@ const recentColumns = [
           <div class="card-title">{{ $t('settings.appearance.buttonIntentsCardTitle') }}</div>
           <p class="t-muted" style="font-size:12px;margin:0 0 12px" v-html="$t('settings.appearance.buttonIntentsHint')"></p>
           <div style="display:flex;flex-wrap:wrap;gap:8px;align-items:center">
-            <JwButton intent="primary"   size="small" label="Primary" />
-            <JwButton intent="secondary" size="small" label="Secondary" />
-            <JwButton intent="ghost"     size="small" label="Ghost" />
-            <JwButton intent="success"   size="small" label="Success" />
-            <JwButton intent="danger"    size="small" label="Danger" />
-            <JwButton intent="info"      size="small" label="Info" />
-            <JwButton intent="accent2"   size="small" label="Accent 2" />
+            <UiButton intent="primary"   size="small" label="Primary" />
+            <UiButton intent="secondary" size="small" label="Secondary" />
+            <UiButton intent="ghost"     size="small" label="Ghost" />
+            <UiButton intent="success"   size="small" label="Success" />
+            <UiButton intent="danger"    size="small" label="Danger" />
+            <UiButton intent="info"      size="small" label="Info" />
+            <UiButton intent="accent2"   size="small" label="Accent 2" />
           </div>
         </div>
 
@@ -1463,10 +1463,10 @@ const recentColumns = [
           </div>
           <div style="display:flex;gap:10px;align-items:center;margin-top:14px;padding-top:14px;border-top:1px solid var(--border-soft)">
             <span class="t-muted" style="font-size:11.5px;font-family:var(--font-mono);text-transform:uppercase;letter-spacing:0.08em">{{ $t('settings.appearance.previewLabel') }}</span>
-            <JwButton intent="primary" label="Save" />
-            <JwButton intent="secondary" label="Cancel" />
-            <JwButton intent="ghost" label="Skip" />
-            <JwButton intent="danger" label="Delete" />
+            <UiButton intent="primary" label="Save" />
+            <UiButton intent="secondary" label="Cancel" />
+            <UiButton intent="ghost" label="Skip" />
+            <UiButton intent="danger" label="Delete" />
           </div>
         </div>
 
@@ -1491,9 +1491,9 @@ const recentColumns = [
             <span>{{ lastAutosaveLabel }}</span>
           </div>
           <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap">
-            <JwButton :label="autosaveListShown ? 'Hide autosaves' : 'Restore from autosave…'" intent="primary" :disabled="autosaveListBusy" @click="toggleAutosaveList">
+            <UiButton :label="autosaveListShown ? 'Hide autosaves' : 'Restore from autosave…'" intent="primary" :disabled="autosaveListBusy" @click="toggleAutosaveList">
               <template #icon><Icon name="Folder" :size="13" /></template>
-            </JwButton>
+            </UiButton>
           </div>
           <div v-if="autosaveListShown" style="margin-top:12px">
             <div v-if="autosaveListBusy" class="t-muted" style="font-size:12.5px">Loading…</div>
@@ -1510,7 +1510,7 @@ const recentColumns = [
                   <div><b>{{ entry.title || "Untitled" }}</b> <span class="t-muted">— {{ generationLabel(entry.generation) }}</span></div>
                   <div class="t-muted" style="font-size:12px">{{ autosaveLabel(entry.savedAt) }}</div>
                 </div>
-                <JwButton label="Restore" intent="primary" @click="restoreFromAutosave(entry)" />
+                <UiButton label="Restore" intent="primary" @click="restoreFromAutosave(entry)" />
               </li>
             </ul>
           </div>
@@ -1533,14 +1533,14 @@ const recentColumns = [
           <div v-if="backupError" class="banner danger" style="margin-bottom:10px">{{ backupError }}</div>
           <div v-if="importMessage" class="banner success" style="margin-bottom:10px">{{ importMessage }}</div>
           <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap">
-            <JwButton :label="backupBusy ? 'Exporting…' : 'Export backup…'" intent="primary" :disabled="backupBusy" @click="exportBackup">
+            <UiButton :label="backupBusy ? 'Exporting…' : 'Export backup…'" intent="primary" :disabled="backupBusy" @click="exportBackup">
               <template #icon><Icon name="Export" :size="13" /></template>
-            </JwButton>
-            <JwButton as="label" intent="secondary">
+            </UiButton>
+            <UiButton as="label" intent="secondary">
               <Icon name="Folder" :size="13" />
               Import backup…
               <input type="file" accept="application/json,.json" style="display:none" @change="onImportFile" />
-            </JwButton>
+            </UiButton>
           </div>
         </div>
 
@@ -1549,9 +1549,9 @@ const recentColumns = [
           <p class="t-muted" style="font-size:12.5px;margin:0 0 12px;line-height:1.55">
             Wipes the entire workspace database — projects, settings, AI providers, sessions, usage — and reloads with the demo seed. Take a backup first.
           </p>
-          <JwButton label="Reset workspace" intent="danger" @click="resetWorkspace">
+          <UiButton label="Reset workspace" intent="danger" @click="resetWorkspace">
             <template #icon><Icon name="Alert" :size="13" /></template>
-          </JwButton>
+          </UiButton>
         </div>
       </div>
 

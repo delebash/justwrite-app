@@ -25,7 +25,7 @@ import Icon from "./Icon.vue";
 import AiTaskStrip from "./AiTaskStrip.vue";
 import AiFeatureChip from "./AiFeatureChip.vue";
 import AppModal from "./AppModal.vue";
-import JwButton from "@renderer/components/ui/JwButton.vue";
+import { UiButton } from "@delebash/llm-ui";
 import JwSelect from "@renderer/components/ui/JwSelect.vue";
 
 const emit = defineEmits(["close"]);
@@ -196,10 +196,10 @@ const TRAJECTORY_COLOURS = {
         <label>Character A</label>
         <JwSelect v-model="aId" :options="characterOptions" placeholder="Pick a character" />
       </div>
-      <JwButton intent="ghost" size="small" class="ra-swap" @click="swap"
+      <UiButton intent="ghost" size="small" class="ra-swap" @click="swap"
                 v-tooltip.bottom="'Swap A and B'">
         <Icon name="Refresh" :size="12" />
-      </JwButton>
+      </UiButton>
       <div class="ra-picker">
         <label>Character B</label>
         <JwSelect v-model="bId" :options="characterOptions" placeholder="Pick a character" />
@@ -315,17 +315,17 @@ const TRAJECTORY_COLOURS = {
     </template>
 
     <template #footer>
-      <JwButton v-if="arc && !running" intent="ghost" @click="clearCurrent">
+      <UiButton v-if="arc && !running" intent="ghost" @click="clearCurrent">
         Clear this arc
-      </JwButton>
+      </UiButton>
       <span class="ra-foot-spacer" />
-      <JwButton v-if="arc && !running" intent="ghost" @click="regenerate">
+      <UiButton v-if="arc && !running" intent="ghost" @click="regenerate">
         <Icon name="Refresh" :size="12" /> Regenerate
-      </JwButton>
-      <JwButton v-if="!arc && !running" intent="primary" @click="run">
+      </UiButton>
+      <UiButton v-if="!arc && !running" intent="primary" @click="run">
         <Icon name="Sparkle" :size="12" /> Analyse
-      </JwButton>
-      <JwButton intent="primary" v-if="arc" @click="emit('close')">Done</JwButton>
+      </UiButton>
+      <UiButton intent="primary" v-if="arc" @click="emit('close')">Done</UiButton>
     </template>
   </AppModal>
 </template>

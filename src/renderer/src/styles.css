@@ -32,12 +32,12 @@ html[data-theme="dark"] body {
 }
 
 button { font: inherit; cursor: default; }
-/* Native buttons inherit text colour; the styled button families (.jw-btn and
-   the shared @delebash/llm-ui .lu-btn) manage their own colour. Both must be
-   excluded or this reset (specificity 0,1,1 via :not) overrides their own
-   color rules (0,1,0) and forces every lu-btn to --ink — e.g. white-on-accent
-   primary buttons rendered as dark text. */
-button:not(.jw-btn):not(.lu-btn) { color: inherit; }
+/* Native buttons inherit text colour; the shared .ui-btn family manages its own
+   colour and must be excluded, or this reset (:not specificity 0,1,1) would
+   override .ui-btn's own 0,1,0 colour rules — e.g. white-on-accent primary
+   buttons rendered as dark text. (.ui-btn's CSS ships from @delebash/llm-ui's
+   common/styles.css; this is a redundant safety copy of that reset.) */
+button:not(.ui-btn) { color: inherit; }
 input, textarea, select { font: inherit; color: inherit; }
 
 /* Kill the browser-default focus ring on form controls. Every input /
@@ -1311,85 +1311,6 @@ html[data-editor-layout="page"] .rich-editor--manuscript .manuscript-inner.with-
   color: var(--muted);
 }
 
-/* ============================================================
-   JwButton — replaces PrimeVue Button. Single `intent` prop on
-   the component encodes BOTH semantic role AND visual style, so
-   each intent has its own self-contained CSS rule (no separate
-   variant modifier). Add a new intent here, register it in
-   JwButton.vue's prop docs, done.
-   ============================================================ */
-.jw-btn {
-  display: inline-flex; align-items: center; justify-content: center;
-  gap: 8px;
-  padding: var(--btn-pad-y) var(--btn-pad-x);
-  font: 500 var(--btn-font-size)/1.2 var(--font-ui);
-  text-transform: var(--btn-text-transform);
-  letter-spacing: var(--btn-letter-spacing);
-  border: 1px solid transparent;
-  border-radius: var(--btn-radius);
-  cursor: pointer;
-  user-select: none;
-  white-space: nowrap;
-  background: transparent;
-  transition: background-color .12s, border-color .12s, color .12s, box-shadow .12s;
-}
-.jw-btn:focus-visible {
-  outline: none;
-  box-shadow: 0 0 0 3px var(--accent-soft);
-}
-.jw-btn.is-disabled, .jw-btn:disabled {
-  opacity: 0.5; cursor: not-allowed;
-}
-.jw-btn--small { padding: var(--btn-pad-y-sm) var(--btn-pad-x-sm); font-size: var(--btn-font-size-sm); gap: 6px; }
-.jw-btn-label { display: inline-flex; align-items: center; }
-
-/* primary — solid accent. Main affordance. */
-.jw-btn--primary { background: var(--accent); border-color: var(--accent); color: var(--on-accent); }
-.jw-btn--primary:not(:disabled):not(.is-disabled):hover {
-  background: color-mix(in oklab, var(--accent) 82%, black);
-  border-color: color-mix(in oklab, var(--accent) 82%, black);
-}
-
-/* secondary — outlined neutral. Supporting action (Cancel, Test). */
-.jw-btn--secondary { border-color: var(--border-strong); color: var(--ink-2); }
-.jw-btn--secondary:not(:disabled):not(.is-disabled):hover { background: var(--surface-3); }
-
-/* ghost — no border, no fill. Quiet utility (row icons, list-row Delete). */
-.jw-btn--ghost { color: var(--ink-2); }
-.jw-btn--ghost:not(:disabled):not(.is-disabled):hover { background: var(--surface-3); }
-
-/* danger — solid danger. Destructive. */
-.jw-btn--danger { background: var(--danger); border-color: var(--danger); color: #fff; }
-.jw-btn--danger:not(:disabled):not(.is-disabled):hover {
-  background: color-mix(in oklab, var(--danger) 82%, black);
-  border-color: color-mix(in oklab, var(--danger) 82%, black);
-}
-
-/* success — solid success. Positive confirmations. */
-.jw-btn--success { background: var(--status-done); border-color: var(--status-done); color: #fff; }
-.jw-btn--success:not(:disabled):not(.is-disabled):hover {
-  background: color-mix(in oklab, var(--status-done) 82%, black);
-  border-color: color-mix(in oklab, var(--status-done) 82%, black);
-}
-
-/* info — solid info. Informational. */
-.jw-btn--info { background: var(--info); border-color: var(--info); color: #fff; }
-.jw-btn--info:not(:disabled):not(.is-disabled):hover {
-  background: color-mix(in oklab, var(--info) 82%, black);
-  border-color: color-mix(in oklab, var(--info) 82%, black);
-}
-
-/* accent2 — solid gold. The user's second accent (Accents → Accent 2 in
-   Settings). Not a "warning" colour despite the gold tint; used for
-   secondary emphasis like the Home dashboard's Resume CTA. */
-.jw-btn--accent2 {
-  background: var(--gold); border-color: var(--gold);
-  color: color-mix(in oklab, var(--gold) 22%, black);
-}
-.jw-btn--accent2:not(:disabled):not(.is-disabled):hover {
-  background: color-mix(in oklab, var(--gold) 82%, black);
-  border-color: color-mix(in oklab, var(--gold) 82%, black);
-}
 
 /* ============================================================
    JwInput / JwTextarea — replaces PrimeVue InputText + Textarea.

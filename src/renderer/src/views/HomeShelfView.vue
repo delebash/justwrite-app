@@ -15,7 +15,7 @@ import { useProjectStore } from "../stores/project.js";
 import { useUiStore } from "../stores/ui.js";
 import { useSessionsStore, reorderForMonday } from "../stores/sessions.js";
 import { scanProjectMarkers } from "../services/markers.js";
-import JwButton from "@renderer/components/ui/JwButton.vue";
+import { UiButton } from "@delebash/llm-ui";
 import Icon from "../components/Icon.vue";
 
 const router = useRouter();
@@ -233,12 +233,12 @@ const formLine = computed(() => {
       />
     </div>
     <div class="pane-actions">
-      <JwButton intent="ghost" @click="goToday"><Icon name="Calendar" :size="14" /> Today</JwButton>
+      <UiButton intent="ghost" @click="goToday"><Icon name="Calendar" :size="14" /> Today</UiButton>
       <router-link to="/import" custom v-slot="{ navigate }">
-        <JwButton intent="ghost" @click="navigate"><Icon name="Plus" :size="14" /> Import</JwButton>
+        <UiButton intent="ghost" @click="navigate"><Icon name="Plus" :size="14" /> Import</UiButton>
       </router-link>
       <router-link to="/chapters" custom v-slot="{ navigate }">
-        <JwButton intent="primary" @click="navigate"><Icon name="Plus" :size="14" /> Quick write</JwButton>
+        <UiButton intent="primary" @click="navigate"><Icon name="Plus" :size="14" /> Quick write</UiButton>
       </router-link>
     </div>
   </header>

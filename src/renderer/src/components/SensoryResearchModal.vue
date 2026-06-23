@@ -15,7 +15,7 @@ import Icon from "./Icon.vue";
 import AiTaskStrip from "./AiTaskStrip.vue";
 import AiFeatureChip from "./AiFeatureChip.vue";
 import AppModal from "./AppModal.vue";
-import JwButton from "@renderer/components/ui/JwButton.vue";
+import { UiButton } from "@delebash/llm-ui";
 
 const props = defineProps({
   subject:     { type: String, required: true },
@@ -116,9 +116,9 @@ const totalCount = computed(() =>
 
     <div v-if="error" class="sr-error">
       <Icon name="Alert" :size="13" /> {{ error }}
-      <JwButton intent="ghost" size="small" @click="run">
+      <UiButton intent="ghost" size="small" @click="run">
         <Icon name="Refresh" :size="12" /> Retry
-      </JwButton>
+      </UiButton>
     </div>
 
     <AiTaskStrip v-if="running" :task="myTask" />
@@ -129,9 +129,9 @@ const totalCount = computed(() =>
         Build a structured sensory pack — sights, sounds, smells, textures, tastes — for the
         selected subject. Change the provider in the chip above first if you want.
       </p>
-      <JwButton intent="primary" @click="run">
+      <UiButton intent="primary" @click="run">
         <Icon name="Sparkle" :size="13" /> Research sensory details
-      </JwButton>
+      </UiButton>
     </div>
 
     <template v-else-if="categories.length">
@@ -161,10 +161,10 @@ const totalCount = computed(() =>
     <template #footer>
       <span class="t-muted">{{ totalCount }} phrase{{ totalCount === 1 ? '' : 's' }}</span>
       <span class="sr-foot-spacer" />
-      <JwButton intent="ghost" :disabled="running" @click="run">
+      <UiButton intent="ghost" :disabled="running" @click="run">
         <Icon name="Refresh" :size="12" /> Regenerate
-      </JwButton>
-      <JwButton intent="primary" @click="emit('close')">Done</JwButton>
+      </UiButton>
+      <UiButton intent="primary" @click="emit('close')">Done</UiButton>
     </template>
   </AppModal>
 </template>

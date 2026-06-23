@@ -24,7 +24,7 @@ import AiFeatureChip from "./AiFeatureChip.vue";
 import EmptyState from "./EmptyState.vue";
 import HelpTrigger from "./HelpTrigger.vue";
 import Icon from "./Icon.vue";
-import JwButton from "@renderer/components/ui/JwButton.vue";
+import { UiButton } from "@delebash/llm-ui";
 import JwTextarea from "@renderer/components/ui/JwTextarea.vue";
 import JwSelect from "@renderer/components/ui/JwSelect.vue";
 import { useModelList } from "../composables/useModelList.js";
@@ -385,9 +385,9 @@ defineExpose({ open: () => { open.value = true; }, close });
         <div class="cp-head-actions">
           <AiFeatureChip v-if="chatMode === 'character'" feature="characterChat" label="Talk to character" />
           <AiFeatureChip v-else feature="chat" label="Ask the book" />
-          <JwButton intent="ghost" size="small" @click="close">
+          <UiButton intent="ghost" size="small" @click="close">
             <Icon name="Close" :size="12" /> Close
-          </JwButton>
+          </UiButton>
           <HelpTrigger slug="notes-and-search" label="Ask the book" />
         </div>
       </header>
@@ -422,15 +422,15 @@ defineExpose({ open: () => { open.value = true; }, close });
             <span class="cp-indexing-dot"></span> indexing…
           </span>
           <span class="cp-status-spacer"></span>
-          <JwButton v-if="hasThread" intent="ghost" size="small" @click="newThread" v-tooltip.bottom="'Clear and start fresh'">
+          <UiButton v-if="hasThread" intent="ghost" size="small" @click="newThread" v-tooltip.bottom="'Clear and start fresh'">
             <Icon name="Plus" :size="11" /> New thread
-          </JwButton>
-          <JwButton intent="ghost" size="small" @click="indexModalMode = 'build'" v-tooltip.bottom="'Embed any scenes added or edited since last build'">
+          </UiButton>
+          <UiButton intent="ghost" size="small" @click="indexModalMode = 'build'" v-tooltip.bottom="'Embed any scenes added or edited since last build'">
             <Icon name="Refresh" :size="11" /> Update
-          </JwButton>
-          <JwButton intent="ghost" size="small" @click="indexModalMode = 'rebuild'" v-tooltip.bottom="'Wipe and re-embed everything'">
+          </UiButton>
+          <UiButton intent="ghost" size="small" @click="indexModalMode = 'rebuild'" v-tooltip.bottom="'Wipe and re-embed everything'">
             <Icon name="Refresh" :size="11" /> Rebuild
-          </JwButton>
+          </UiButton>
         </div>
 
         <!-- Thread (user + assistant turns) -->
@@ -484,13 +484,13 @@ defineExpose({ open: () => { open.value = true; }, close });
                 :options="chatModelOptions"
                 :disabled="chatProviderValue === '__inherit__'"
                 :placeholder="chatProviderValue === '__inherit__' ? 'Follows default' : 'Model'" />
-              <JwButton
+              <UiButton
                 intent="ghost" size="small"
                 v-tooltip.bottom="'Refresh model list from the provider'"
                 :disabled="chatProviderValue === '__inherit__'"
                 @click="refreshChatModels(chatProviderValue)">
                 <template #icon><Icon name="Refresh" :size="11" /></template>
-              </JwButton>
+              </UiButton>
             </div>
           </div>
           <JwTextarea
@@ -509,11 +509,11 @@ defineExpose({ open: () => { open.value = true; }, close });
               <span class="cp-hint-sep">·</span>
               <kbd class="cp-kbd">⇧⏎</kbd> for newline
             </span>
-            <JwButton intent="primary" size="small" :disabled="!question.trim() || running"
+            <UiButton intent="primary" size="small" :disabled="!question.trim() || running"
               v-tooltip.bottom="question.trim() ? 'Send your question' : 'Type a question to ask'"
               @click="ask">
               <Icon name="Sparkle" :size="12" /> Ask
-            </JwButton>
+            </UiButton>
           </div>
         </div>
 

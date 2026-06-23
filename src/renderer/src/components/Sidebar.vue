@@ -7,7 +7,7 @@ import { useProjectStore } from "../stores/project.js";
 import { promptDialog, confirmDialog } from "../services/dialog.js";
 import { NEW_ENTITY_META } from "../services/entityMeta.js";
 import Icon from "./Icon.vue";
-import JwButton from "@renderer/components/ui/JwButton.vue";
+import { UiButton } from "@delebash/llm-ui";
 import JwInput from "@renderer/components/ui/JwInput.vue";
 import { useRovingTabindexMap } from "@renderer/composables/useRovingTabindexMap.js";
 
@@ -805,7 +805,7 @@ function wbDropClass(kind, id) {
         <div class="brand-name">JustWrite</div>
         <div class="brand-sub">v0.1 · local</div>
       </div>
-      <JwButton intent="ghost" v-tooltip.bottom="`${$t('sidebar.tooltips.toggleSidebar')} · ⌘\\`" :aria-label="$t('sidebar.tooltips.toggleSidebar')" @click="ui.toggleSidebar"><Icon name="SidebarToggle" :size="14" /></JwButton>
+      <UiButton intent="ghost" v-tooltip.bottom="`${$t('sidebar.tooltips.toggleSidebar')} · ⌘\\`" :aria-label="$t('sidebar.tooltips.toggleSidebar')" @click="ui.toggleSidebar"><Icon name="SidebarToggle" :size="14" /></UiButton>
     </div>
     <div class="project-switcher-wrap" ref="projectSwitcherEl">
       <button class="project-switcher" :class="{ open: projectMenuOpen }"
@@ -871,21 +871,21 @@ function wbDropClass(kind, id) {
                 :modelValue="ui.filters[n.id] || ''"
                 @update:modelValue="ui.setFilter(n.id, $event)"
                 @click.stop />
-              <JwButton v-if="n.expandable === 'chapters'" intent="ghost" class="nav-add" v-tooltip.bottom="$t('sidebar.tooltips.newPart')"
+              <UiButton v-if="n.expandable === 'chapters'" intent="ghost" class="nav-add" v-tooltip.bottom="$t('sidebar.tooltips.newPart')"
                 :aria-label="$t('sidebar.tooltips.newPart')"
                 @click.stop="addPart">
                 <template #icon><Icon name="Plus" :size="11" /></template>
-              </JwButton>
-              <JwButton v-else-if="n.expandable === 'worldbuilding'" intent="ghost" class="nav-add" v-tooltip.bottom="$t('sidebar.tooltips.newCategory')"
+              </UiButton>
+              <UiButton v-else-if="n.expandable === 'worldbuilding'" intent="ghost" class="nav-add" v-tooltip.bottom="$t('sidebar.tooltips.newCategory')"
                 :aria-label="$t('sidebar.tooltips.newCategory')"
                 @click.stop="addWbCategory">
                 <template #icon><Icon name="Plus" :size="11" /></template>
-              </JwButton>
-              <JwButton v-else-if="!n.fixed" intent="ghost" class="nav-add" v-tooltip.bottom="$t('sidebar.tooltips.newItem', { label: $t(n.label).toLowerCase().replace(/s$/, '') })"
+              </UiButton>
+              <UiButton v-else-if="!n.fixed" intent="ghost" class="nav-add" v-tooltip.bottom="$t('sidebar.tooltips.newItem', { label: $t(n.label).toLowerCase().replace(/s$/, '') })"
                 :aria-label="$t('sidebar.tooltips.newItem', { label: $t(n.label).toLowerCase().replace(/s$/, '') })"
                 @click.stop="addItem(n.expandable)">
                 <template #icon><Icon name="Plus" :size="11" /></template>
-              </JwButton>
+              </UiButton>
             </div>
             <!-- Chapters section: parts + chapters with drag-to-reorder. -->
             <template v-if="n.expandable === 'chapters'">
@@ -907,11 +907,11 @@ function wbDropClass(kind, id) {
                     @click.stop
                     @keydown.enter.prevent="$event.target.blur()" />
                   <div class="part-actions">
-                    <JwButton intent="ghost" class="part-action" v-tooltip.bottom="$t('sidebar.tooltips.addChapterToPart')"
+                    <UiButton intent="ghost" class="part-action" v-tooltip.bottom="$t('sidebar.tooltips.addChapterToPart')"
                       :aria-label="$t('sidebar.tooltips.addChapterToPart')"
                       @click.stop="addChapterInPart(g.partId)">
                       <template #icon><Icon name="Plus" :size="11" /></template>
-                    </JwButton>
+                    </UiButton>
                   </div>
                 </div>
                 <template v-for="c in g.items" :key="c.id">
@@ -928,23 +928,23 @@ function wbDropClass(kind, id) {
                     @dragover="onDragOverChapter(c.id, $event)"
                     @drop="onDropChapter(c.id, c.partId)"
                     @dragend="onDragEnd">
-                    <JwButton intent="ghost" class="chapter-chev" :class="{ open: isChapterExpanded(c.id) }"
+                    <UiButton intent="ghost" class="chapter-chev" :class="{ open: isChapterExpanded(c.id) }"
                       v-tooltip.bottom="isChapterExpanded(c.id) ? $t('sidebar.tooltips.collapseScenes') : $t('sidebar.tooltips.showScenes')"
                       :aria-label="isChapterExpanded(c.id) ? $t('sidebar.tooltips.collapseScenes') : $t('sidebar.tooltips.showScenes')"
                       :aria-expanded="isChapterExpanded(c.id)"
                       @mousedown.stop
                       @click.stop="toggleChapterExpand(c.id)">
                       <template #icon><Icon name="ChevRight" :size="14" /></template>
-                    </JwButton>
+                    </UiButton>
                     <span class="nav-child-num">{{ c.num }}</span>
                     <span class="nav-child-label">{{ c.label }}</span>
                     <span class="nav-child-sub t-num">{{ c.words ? c.words.toLocaleString() : '' }}</span>
                     <span class="nav-child-status" :style="c.statusColor ? { color: c.statusColor } : null">{{ c.statusLabel }}</span>
-                    <JwButton intent="ghost" class="chapter-add-scene" v-tooltip.bottom="$t('sidebar.tooltips.addSceneToChapter')"
+                    <UiButton intent="ghost" class="chapter-add-scene" v-tooltip.bottom="$t('sidebar.tooltips.addSceneToChapter')"
                       :aria-label="$t('sidebar.tooltips.addSceneToChapter')"
                       @click.stop="addSceneToChapter(c.id)">
                       <template #icon><Icon name="Plus" :size="11" /></template>
-                    </JwButton>
+                    </UiButton>
                   </div>
                   <template v-if="isChapterExpanded(c.id)">
                     <div v-for="(scn, si) in scenesForChapter(c.id)" :key="scn.id"
@@ -986,14 +986,14 @@ function wbDropClass(kind, id) {
                   @drop="onWbDropCat(g.subgroupId)"
                   @dragend="onWbDragEnd"
                   @dblclick="toggleWbCat(g.subgroupId)">
-                  <JwButton intent="ghost" class="wb-cat-chev" :class="{ open: isWbCatExpanded(g.subgroupId) }"
+                  <UiButton intent="ghost" class="wb-cat-chev" :class="{ open: isWbCatExpanded(g.subgroupId) }"
                     v-tooltip.bottom="isWbCatExpanded(g.subgroupId) ? $t('sidebar.tooltips.collapse') : $t('sidebar.tooltips.expand')"
                     :aria-label="isWbCatExpanded(g.subgroupId) ? $t('sidebar.tooltips.collapseNamed', { name: g.group }) : $t('sidebar.tooltips.expandNamed', { name: g.group })"
                     :aria-expanded="isWbCatExpanded(g.subgroupId)"
                     @mousedown.stop
                     @click.stop="toggleWbCat(g.subgroupId)">
                     <template #icon><Icon name="ChevRight" :size="10" /></template>
-                  </JwButton>
+                  </UiButton>
                   <Icon name="DragHandle" :size="11" class="drag-handle" />
                   <input class="nav-part-title"
                     :value="g.group"
@@ -1005,17 +1005,17 @@ function wbDropClass(kind, id) {
                     @dblclick.stop
                     @keydown.enter.prevent="$event.target.blur()" />
                   <div class="part-actions">
-                    <JwButton intent="ghost" class="part-action" v-tooltip.bottom="$t('sidebar.tooltips.addArticleToCategory')"
+                    <UiButton intent="ghost" class="part-action" v-tooltip.bottom="$t('sidebar.tooltips.addArticleToCategory')"
                       :aria-label="$t('sidebar.tooltips.addArticleToCategory')"
                       @click.stop="addArticleInCat(g.subgroupId)">
                       <template #icon><Icon name="Plus" :size="11" /></template>
-                    </JwButton>
-                    <JwButton v-if="project.worldbuildingCategories.length > 1" intent="ghost" class="part-action part-action-danger"
+                    </UiButton>
+                    <UiButton v-if="project.worldbuildingCategories.length > 1" intent="ghost" class="part-action part-action-danger"
                       v-tooltip.bottom="$t('sidebar.tooltips.deleteCategory')"
                       :aria-label="$t('sidebar.tooltips.deleteCategoryNamed', { name: g.group })"
                       @click.stop="deleteWbCat(g.subgroupId, g.group)">
                       <template #icon><Icon name="Trash" :size="11" /></template>
-                    </JwButton>
+                    </UiButton>
                   </div>
                 </div>
                 <template v-if="isWbCatExpanded(g.subgroupId)">
@@ -1100,7 +1100,7 @@ function wbDropClass(kind, id) {
 /* Worldbuilding category header collapse chevron — inline (flex) rather
    than the absolutely-positioned chapter-chev, since the header row is a
    flexbox. Icon is decorative so pointer events pass to the button.
-   Now rendered as JwButton intent="ghost"; overrides below restore the
+   Now rendered as UiButton intent="ghost"; overrides below restore the
    sidebar-specific dimensions and muted idle color. */
 .wb-cat-chev {
   width: 14px; height: 16px;
@@ -1116,7 +1116,7 @@ function wbDropClass(kind, id) {
 .wb-cat-chev:hover { background: var(--surface-3); color: var(--ink); }
 .wb-cat-chev.open { transform: rotate(90deg); color: var(--ink-2); }
 
-/* When the bespoke sidebar icon-buttons are rendered as JwButton, the
+/* When the bespoke sidebar icon-buttons are rendered as UiButton, the
    .jw-btn base and .jw-btn--ghost rules arrive later in the stylesheet
    and would override the sidebar-specific dimensions (padding, color).
    These double-class selectors restore the intended values without

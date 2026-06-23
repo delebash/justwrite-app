@@ -1,7 +1,7 @@
 <script setup>
 import { ref, computed } from "vue";
 import PaneHeader from "../components/PaneHeader.vue";
-import JwButton from "@renderer/components/ui/JwButton.vue";
+import { UiButton } from "@delebash/llm-ui";
 import JwSelect from "@renderer/components/ui/JwSelect.vue";
 import JwTextarea from "@renderer/components/ui/JwTextarea.vue";
 import { useUiStore } from "../stores/ui.js";
@@ -223,7 +223,7 @@ function clear() {
       <AiTaskStrip :task="myTask" />
 
       <div class="brainstorm-actions">
-        <JwButton
+        <UiButton
           intent="primary"
           label="Generate"
           :loading="running.value"
@@ -231,7 +231,7 @@ function clear() {
           v-tooltip.bottom="canGenerate ? 'Generate ideas from your seed prompt' : 'Enter a seed prompt to generate ideas'"
           @click="generate"
         />
-        <JwButton
+        <UiButton
           v-if="results.length > 0"
           intent="ghost"
           label="Clear"
@@ -278,7 +278,7 @@ function clear() {
       </ul>
 
       <div class="brainstorm-more-row">
-        <JwButton
+        <UiButton
           intent="accent2"
           label="More like these"
           :loading="running.value"

@@ -5,7 +5,7 @@ import { useProjectStore } from "../stores/project.js";
 import { useUiStore } from "../stores/ui.js";
 import PaneHeader from "../components/PaneHeader.vue";
 import Icon from "../components/Icon.vue";
-import JwButton from "@renderer/components/ui/JwButton.vue";
+import { UiButton } from "@delebash/llm-ui";
 import JwInput from "@renderer/components/ui/JwInput.vue";
 import JwSelect from "@renderer/components/ui/JwSelect.vue";
 import JwTextarea from "@renderer/components/ui/JwTextarea.vue";
@@ -252,16 +252,16 @@ const tableRows = computed(() =>
   <!-- ── List mode (no id in URL) ─────────────────────────────── -->
   <template v-if="!s && !id">
     <PaneHeader :title="$t('nav.strands')" help-key="plot-and-time#strands-view-planning-one-thread-in-detail">
-      <JwButton label="New narrative strand" intent="primary" size="small" @click="addStrand">
+      <UiButton label="New narrative strand" intent="primary" size="small" @click="addStrand">
         <template #icon><Icon name="Plus" :size="14" /></template>
-      </JwButton>
+      </UiButton>
     </PaneHeader>
 
     <div v-if="project.strands.length === 0" class="pane-card" style="display:grid;place-items:center;padding:60px">
       <div class="t-muted" style="text-align:center;max-width:420px">
         <div style="font-size:14px;color:var(--ink);margin-bottom:6px">No narrative strands yet.</div>
         <div style="font-size:12.5px;margin-bottom:14px">Narrative strands are the storylines you're weaving. Tag scenes with a strand and it surfaces on the Plot Board as a coloured lane.</div>
-        <JwButton intent="primary" @click="addStrand"><Icon name="Plus" :size="14" /> Create your first narrative strand</JwButton>
+        <UiButton intent="primary" @click="addStrand"><Icon name="Plus" :size="14" /> Create your first narrative strand</UiButton>
       </div>
     </div>
 
@@ -277,7 +277,7 @@ const tableRows = computed(() =>
               class="strands-search-input"
             />
           </span>
-          <JwButton v-if="globalQuery || hasActiveFacets" label="Clear filters" intent="ghost" size="small" @click="clearAllFilters" />
+          <UiButton v-if="globalQuery || hasActiveFacets" label="Clear filters" intent="ghost" size="small" @click="clearAllFilters" />
           <span class="strands-count">{{ filteredRows.length }} of {{ rows.length }}</span>
         </div>
 
@@ -346,13 +346,13 @@ const tableRows = computed(() =>
         </div>
       </div>
       <div class="pane-actions">
-        <JwButton intent="ghost" size="small" data-chat-toggle @click="askTheBook"
+        <UiButton intent="ghost" size="small" data-chat-toggle @click="askTheBook"
           v-tooltip.bottom="`Ask the book about ${s.name}`">
           <Icon name="Chat" :size="14" /> Ask the book
-        </JwButton>
-        <JwButton intent="ghost" size="small" @click="modal = 'groups'"><Icon name="GroupIcon" :size="14" /> Groups</JwButton>
-        <JwButton intent="ghost" size="small" @click="deleteStrand">Delete</JwButton>
-        <JwButton intent="primary" size="small" @click="addStrand"><Icon name="Plus" :size="14" /> New narrative strand</JwButton>
+        </UiButton>
+        <UiButton intent="ghost" size="small" @click="modal = 'groups'"><Icon name="GroupIcon" :size="14" /> Groups</UiButton>
+        <UiButton intent="ghost" size="small" @click="deleteStrand">Delete</UiButton>
+        <UiButton intent="primary" size="small" @click="addStrand"><Icon name="Plus" :size="14" /> New narrative strand</UiButton>
         <StatusSelect :model-value="s.status || ''" @update:model-value="(v) => update('status', v)" />
       </div>
     </header>
@@ -399,9 +399,9 @@ const tableRows = computed(() =>
             <div class="beats-section">
               <div class="beats-head">
                 <span class="beats-title">Beats</span>
-                <JwButton intent="ghost" size="small" @click="addBeat">
+                <UiButton intent="ghost" size="small" @click="addBeat">
                   <Icon name="Plus" :size="11" /> Add beat
-                </JwButton>
+                </UiButton>
               </div>
 
               <div v-if="(s.beats || []).length === 0" class="beats-empty">
@@ -432,9 +432,9 @@ const tableRows = computed(() =>
                     v-tooltip.bottom="'Reassign to a different scene'"
                     @update:model-value="(v) => setBeatRef(b.id, v)"
                     :options="[{ label: '(no scene)', value: '' }, ...sceneOptions]" />
-                  <JwButton intent="ghost" size="small" class="beat-delete" aria-label="Remove beat" v-tooltip.bottom="'Remove beat'" @click="removeBeat(b.id)">
+                  <UiButton intent="ghost" size="small" class="beat-delete" aria-label="Remove beat" v-tooltip.bottom="'Remove beat'" @click="removeBeat(b.id)">
                     <Icon name="Trash" :size="14" />
-                  </JwButton>
+                  </UiButton>
                 </div>
               </div>
             </div>
@@ -465,13 +465,13 @@ const tableRows = computed(() =>
         <h1 class="pane-h1">Narrative strand not found</h1>
       </div>
       <div class="pane-actions">
-        <JwButton intent="primary" size="small" @click="addStrand"><Icon name="Plus" :size="14" /> New narrative strand</JwButton>
+        <UiButton intent="primary" size="small" @click="addStrand"><Icon name="Plus" :size="14" /> New narrative strand</UiButton>
       </div>
     </header>
     <div class="pane-card" style="display:grid;place-items:center;padding:60px">
       <div class="t-muted" style="text-align:center">
         This narrative strand no longer exists.<br />
-        <JwButton intent="ghost" style="margin-top:14px" @click="router.push('/strands')">Back to strands</JwButton>
+        <UiButton intent="ghost" style="margin-top:14px" @click="router.push('/strands')">Back to strands</UiButton>
       </div>
     </div>
   </template>

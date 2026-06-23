@@ -4,7 +4,7 @@ import { useProjectStore } from "../stores/project.js";
 import { useUiStore } from "../stores/ui.js";
 import { useRouter } from "vue-router";
 import Icon from "../components/Icon.vue";
-import JwButton from "@renderer/components/ui/JwButton.vue";
+import { UiButton } from "@delebash/llm-ui";
 import JwInput from "@renderer/components/ui/JwInput.vue";
 import JwTag from "@renderer/components/ui/JwTag.vue";
 import JwTable from "@renderer/components/ui/JwTable.vue";
@@ -121,9 +121,9 @@ function onRowClick(event) {
   <!-- ── List mode (no id in URL) ─────────────────────────────── -->
   <template v-if="!g && !id">
     <PaneHeader eyebrow="Story world" :title="$t('nav.groups')" help-key="story-bible#groups">
-      <JwButton label="New group" intent="primary" size="small" @click="addGroup">
+      <UiButton label="New group" intent="primary" size="small" @click="addGroup">
         <template #icon><Icon name="Plus" :size="14" /></template>
-      </JwButton>
+      </UiButton>
     </PaneHeader>
 
     <!-- Empty state -->
@@ -131,7 +131,7 @@ function onRowClick(event) {
       <div class="t-muted" style="text-align:center;max-width:420px">
         <div style="font-size:14px;color:var(--ink);margin-bottom:6px">No groups yet.</div>
         <div style="font-size:12.5px;margin-bottom:14px">Factions and organizations. Group members together to see alliances drawn as edges in the Relations graph.</div>
-        <JwButton intent="primary" @click="addGroup"><Icon name="Plus" :size="14" /> Create your first group</JwButton>
+        <UiButton intent="primary" @click="addGroup"><Icon name="Plus" :size="14" /> Create your first group</UiButton>
       </div>
     </div>
 
@@ -154,7 +154,7 @@ function onRowClick(event) {
               class="gr-search-input"
             />
           </span>
-          <JwButton v-if="globalQuery || hasActiveFacets" label="Clear filters" intent="ghost" size="small" @click="clearAllFilters" />
+          <UiButton v-if="globalQuery || hasActiveFacets" label="Clear filters" intent="ghost" size="small" @click="clearAllFilters" />
           <span class="gr-count">{{ filteredRows.length }} of {{ rows.length }}</span>
         </div>
 
@@ -217,16 +217,16 @@ function onRowClick(event) {
           @input="update('name', $event.target.value)" />
       </div>
       <div class="pane-actions">
-        <JwButton intent="ghost" size="small" data-chat-toggle @click="askTheBook"
+        <UiButton intent="ghost" size="small" data-chat-toggle @click="askTheBook"
           v-tooltip.bottom="`Ask the book about ${g.name}`">
           <Icon name="Chat" :size="14" /> Ask the book
-        </JwButton>
-        <JwButton intent="ghost" size="small" @click="modal = 'images'"><Icon name="Image" :size="14" /> Images</JwButton>
+        </UiButton>
+        <UiButton intent="ghost" size="small" @click="modal = 'images'"><Icon name="Image" :size="14" /> Images</UiButton>
         <router-link :to="`/groups/${g.id}/events`" custom v-slot="{ navigate }">
-          <JwButton intent="ghost" size="small" @click="navigate"><Icon name="Calendar" :size="14" /> Events</JwButton>
+          <UiButton intent="ghost" size="small" @click="navigate"><Icon name="Calendar" :size="14" /> Events</UiButton>
         </router-link>
-        <JwButton intent="ghost" size="small" @click="deleteGroup">Delete</JwButton>
-        <JwButton intent="primary" size="small" @click="addGroup"><Icon name="Plus" :size="14" /> New group</JwButton>
+        <UiButton intent="ghost" size="small" @click="deleteGroup">Delete</UiButton>
+        <UiButton intent="primary" size="small" @click="addGroup"><Icon name="Plus" :size="14" /> New group</UiButton>
         <StatusSelect :model-value="g.status || ''" @update:model-value="(v) => update('status', v)" />
       </div>
     </header>
@@ -269,11 +269,11 @@ function onRowClick(event) {
             <div class="member-grid">
               <div v-for="(m, mi) in grp.members" :key="`${m.kind}-${m.id}-${mi}`"
                 class="card tight" style="display:flex;align-items:center;gap:10px;padding:12px">
-                <JwButton intent="ghost" size="small" class="member-open" :title="`Open ${m.name}`" @click="goMember(m)">
+                <UiButton intent="ghost" size="small" class="member-open" :title="`Open ${m.name}`" @click="goMember(m)">
                   <template #icon><Icon :name="KIND_ICON[m.kind] || 'Star'" :size="15" /></template>
                   {{ m.name }}
-                </JwButton>
-                <JwButton intent="ghost" size="small" v-tooltip.bottom="'Remove from group'" @click="project.removeGroupMember(g.id, m.kind, m.id)">×</JwButton>
+                </UiButton>
+                <UiButton intent="ghost" size="small" v-tooltip.bottom="'Remove from group'" @click="project.removeGroupMember(g.id, m.kind, m.id)">×</UiButton>
               </div>
             </div>
           </div>
@@ -297,13 +297,13 @@ function onRowClick(event) {
         <h1 class="pane-h1">Group not found</h1>
       </div>
       <div class="pane-actions">
-        <JwButton intent="primary" size="small" @click="addGroup"><Icon name="Plus" :size="14" /> New group</JwButton>
+        <UiButton intent="primary" size="small" @click="addGroup"><Icon name="Plus" :size="14" /> New group</UiButton>
       </div>
     </header>
     <div class="pane-card" style="display:grid;place-items:center;padding:60px">
       <div class="t-muted" style="text-align:center">
         This group no longer exists.<br />
-        <JwButton intent="ghost" style="margin-top:14px" @click="router.push('/groups')">Back to groups</JwButton>
+        <UiButton intent="ghost" style="margin-top:14px" @click="router.push('/groups')">Back to groups</UiButton>
       </div>
     </div>
   </template>

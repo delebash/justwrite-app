@@ -17,7 +17,7 @@ import { useProjectStore } from "../stores/project.js";
 import { useUiStore } from "../stores/ui.js";
 import Icon from "./Icon.vue";
 import AppModal from "./AppModal.vue";
-import JwButton from "@renderer/components/ui/JwButton.vue";
+import { UiButton } from "@delebash/llm-ui";
 
 const props = defineProps({
   chapterId: { type: String, required: true },
@@ -127,9 +127,9 @@ onMounted(async () => {
             <Icon name="Quote" :size="13" />
             <h3>Scene {{ focusedSceneIdx + 1 }}<span v-if="focusedScene.title" class="t-muted"> · {{ focusedScene.title }}</span></h3>
             <span class="t-muted">{{ sceneNotes(focusedScene.id).length }} {{ sceneNotes(focusedScene.id).length === 1 ? "note" : "notes" }}</span>
-            <JwButton class="cn-add" intent="ghost" size="small" @click="addSceneNote(focusedScene, focusedSceneIdx)">
+            <UiButton class="cn-add" intent="ghost" size="small" @click="addSceneNote(focusedScene, focusedSceneIdx)">
               <Icon name="Plus" :size="12" /> Add note
-            </JwButton>
+            </UiButton>
           </header>
           <div v-if="sceneNotes(focusedScene.id).length" class="cn-list">
             <button v-for="n in sceneNotes(focusedScene.id)" :key="n.id"
@@ -157,9 +157,9 @@ onMounted(async () => {
             <Icon name="Book" :size="13" />
             <h3>Chapter-level</h3>
             <span class="t-muted">{{ chapterNotes.length }} {{ chapterNotes.length === 1 ? "note" : "notes" }}</span>
-            <JwButton class="cn-add" intent="ghost" size="small" @click="addChapterNote">
+            <UiButton class="cn-add" intent="ghost" size="small" @click="addChapterNote">
               <Icon name="Plus" :size="12" /> Add note
-            </JwButton>
+            </UiButton>
           </header>
           <div v-if="chapterNotes.length" class="cn-list">
             <button v-for="n in chapterNotes" :key="n.id"
@@ -185,9 +185,9 @@ onMounted(async () => {
             <Icon name="Quote" :size="13" />
             <h3>Scene {{ si + 1 }}<span v-if="scn.title" class="t-muted"> · {{ scn.title }}</span></h3>
             <span class="t-muted">{{ sceneNotes(scn.id).length }} {{ sceneNotes(scn.id).length === 1 ? "note" : "notes" }}</span>
-            <JwButton class="cn-add" intent="ghost" size="small" @click="addSceneNote(scn, si)">
+            <UiButton class="cn-add" intent="ghost" size="small" @click="addSceneNote(scn, si)">
               <Icon name="Plus" :size="12" /> Add note
-            </JwButton>
+            </UiButton>
           </header>
           <div v-if="sceneNotes(scn.id).length" class="cn-list">
             <button v-for="n in sceneNotes(scn.id)" :key="n.id"

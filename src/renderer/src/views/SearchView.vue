@@ -6,7 +6,7 @@ import PaneHeader from "../components/PaneHeader.vue";
 import Icon from "../components/Icon.vue";
 import { buildIndex, searchIndex, renderSnippet, KIND_META } from "../services/search.js";
 import { useUiStore } from "../stores/ui.js";
-import JwButton from "@renderer/components/ui/JwButton.vue";
+import { UiButton } from "@delebash/llm-ui";
 
 const project = useProjectStore();
 const ui = useUiStore();
@@ -115,9 +115,9 @@ const KIND_ENTRIES = Object.entries(KIND_META).sort((a, b) => a[1].order - b[1].
     <span v-if="q && hits.length" class="t-muted" style="font-size:12px">
       {{ hits.length }} {{ hits.length === 1 ? "result" : "results" }}
     </span>
-    <JwButton intent="ghost" size="small" @click="ui.openProjectReplace(q)" v-tooltip.bottom="'Project-wide find & replace in prose · ⌘⇧F'">
+    <UiButton intent="ghost" size="small" @click="ui.openProjectReplace(q)" v-tooltip.bottom="'Project-wide find & replace in prose · ⌘⇧F'">
       <Icon name="Replace" :size="13" /> Replace…
-    </JwButton>
+    </UiButton>
   </PaneHeader>
 
   <!-- Search bar -->
@@ -126,7 +126,7 @@ const KIND_ENTRIES = Object.entries(KIND_META).sort((a, b) => a[1].order - b[1].
       <Icon name="Search" :size="14" />
       <input ref="inputEl" v-model="q" placeholder="Find anywhere in the project — name, prose, note, group, narrative strand…"
         style="flex:1;border:0;outline:0;background:transparent;font:inherit;font-size:13.5px" />
-      <JwButton v-if="q" intent="ghost" size="small" @click="q = ''" style="padding:2px 6px" v-tooltip.bottom="'Clear'" aria-label="Clear search">×</JwButton>
+      <UiButton v-if="q" intent="ghost" size="small" @click="q = ''" style="padding:2px 6px" v-tooltip.bottom="'Clear'" aria-label="Clear search">×</UiButton>
       <span class="kbd-pill">⌘F</span>
     </div>
 

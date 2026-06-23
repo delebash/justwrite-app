@@ -4,7 +4,7 @@ import { useRouter } from "vue-router";
 import { useProjectStore } from "../stores/project.js";
 import PaneHeader from "../components/PaneHeader.vue";
 import Icon from "../components/Icon.vue";
-import JwButton from "@renderer/components/ui/JwButton.vue";
+import { UiButton } from "@delebash/llm-ui";
 import JwCheckbox from "@renderer/components/ui/JwCheckbox.vue";
 
 const project = useProjectStore();
@@ -425,14 +425,14 @@ onBeforeUnmount(() => window.removeEventListener("keydown", onKey));
 <template>
   <PaneHeader :eyebrow="$t('panes.relations.eyebrow')" :title="$t('panes.relations.title')" help-key="story-bible#relations">
     <div class="relations-toolbar">
-      <JwButton intent="ghost" size="small" aria-label="Zoom out" v-tooltip.bottom="'Zoom out (−)'" @click="zoomOut">
+      <UiButton intent="ghost" size="small" aria-label="Zoom out" v-tooltip.bottom="'Zoom out (−)'" @click="zoomOut">
         <Icon name="ChevRight" :size="12" style="transform:rotate(180deg)" />
-      </JwButton>
+      </UiButton>
       <span class="relations-zoom-label">{{ Math.round(zoom * 100) }}%</span>
-      <JwButton intent="ghost" size="small" aria-label="Zoom in" v-tooltip.bottom="'Zoom in (+)'" @click="zoomIn">
+      <UiButton intent="ghost" size="small" aria-label="Zoom in" v-tooltip.bottom="'Zoom in (+)'" @click="zoomIn">
         <Icon name="ChevRight" :size="12" />
-      </JwButton>
-      <JwButton intent="ghost" size="small" v-tooltip.bottom="'Reset view (0)'" @click="resetView">Reset</JwButton>
+      </UiButton>
+      <UiButton intent="ghost" size="small" v-tooltip.bottom="'Reset view (0)'" @click="resetView">Reset</UiButton>
     </div>
   </PaneHeader>
 
@@ -553,9 +553,9 @@ onBeforeUnmount(() => window.removeEventListener("keydown", onKey));
             {{ focusedNeighborCount }} connection{{ focusedNeighborCount === 1 ? '' : 's' }}
           </div>
         </div>
-        <JwButton v-if="pinnedId" intent="ghost" size="small" aria-label="Clear focus" v-tooltip.bottom="'Clear focus (Esc)'" @click="clearPin">
+        <UiButton v-if="pinnedId" intent="ghost" size="small" aria-label="Clear focus" v-tooltip.bottom="'Clear focus (Esc)'" @click="clearPin">
           <Icon name="Close" :size="12" />
-        </JwButton>
+        </UiButton>
       </div>
       <div v-if="!pinnedId" class="relations-focus-hint">Click to pin · click again to open</div>
       <div v-else class="relations-focus-hint">Click node again to open · click empty space to clear</div>

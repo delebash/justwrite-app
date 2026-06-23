@@ -1,7 +1,7 @@
 <script setup>
 import { computed, ref, watch } from "vue";
 import JwInput from "@renderer/components/ui/JwInput.vue";
-import JwButton from "@renderer/components/ui/JwButton.vue";
+import { UiButton } from "@delebash/llm-ui";
 import JwSelect from "@renderer/components/ui/JwSelect.vue";
 import JwTag from "@renderer/components/ui/JwTag.vue";
 import JwTable from "@renderer/components/ui/JwTable.vue";
@@ -238,13 +238,13 @@ function onRowClick(event) {
   <!-- ── List mode (no id in URL) ─────────────────────────────── -->
   <template v-if="!n && !id">
     <PaneHeader :eyebrow="$t('panes.notes.eyebrow')" :title="$t('nav.notes')" help-key="notes-and-search#notes">
-      <JwButton intent="ghost" size="small" :disabled="importing" @click="pickNoteFile"
+      <UiButton intent="ghost" size="small" :disabled="importing" @click="pickNoteFile"
         v-tooltip.bottom="'Import one or more .docx, .txt, .md, .odt, or .epub files as notes'">
         <Icon name="Note" :size="13" /> {{ importing ? "Importing…" : "Import files" }}
-      </JwButton>
-      <JwButton label="New note" intent="primary" size="small" @click="addNote">
+      </UiButton>
+      <UiButton label="New note" intent="primary" size="small" @click="addNote">
         <template #icon><Icon name="Plus" :size="14" /></template>
-      </JwButton>
+      </UiButton>
     </PaneHeader>
 
     <div v-if="project.notes.length === 0" class="pane-card" style="display:grid;place-items:center;padding:60px">
@@ -252,8 +252,8 @@ function onRowClick(event) {
         <div style="font-size:14px;color:var(--ink);margin-bottom:6px">No notes yet.</div>
         <div style="font-size:12.5px;margin-bottom:14px">Scratch-pad jottings — pin them to chapters or scenes and they surface in the editor's Notes panel for that spot.</div>
         <div style="display:inline-flex;gap:8px">
-          <JwButton intent="primary" @click="addNote"><Icon name="Plus" :size="14" /> Create your first note</JwButton>
-          <JwButton intent="secondary" :disabled="importing" @click="pickNoteFile"><Icon name="Note" :size="14" /> Import from files</JwButton>
+          <UiButton intent="primary" @click="addNote"><Icon name="Plus" :size="14" /> Create your first note</UiButton>
+          <UiButton intent="secondary" :disabled="importing" @click="pickNoteFile"><Icon name="Note" :size="14" /> Import from files</UiButton>
         </div>
       </div>
     </div>
@@ -270,7 +270,7 @@ function onRowClick(event) {
               class="notes-search-input"
             />
           </span>
-          <JwButton v-if="globalQuery || hasActiveFacets" label="Clear filters" intent="ghost" size="small" @click="clearAllFilters" />
+          <UiButton v-if="globalQuery || hasActiveFacets" label="Clear filters" intent="ghost" size="small" @click="clearAllFilters" />
           <span class="notes-count">{{ filteredRows.length }} of {{ rows.length }}</span>
         </div>
 
@@ -368,8 +368,8 @@ function onRowClick(event) {
           </ul>
         </div>
         <span class="t-muted" style="font-size:12px;padding:0 8px">Updated {{ n.updated }}</span>
-        <JwButton intent="ghost" size="small" @click="deleteNote">Delete</JwButton>
-        <JwButton intent="primary" size="small" @click="addNote"><Icon name="Plus" :size="14" /> New note</JwButton>
+        <UiButton intent="ghost" size="small" @click="deleteNote">Delete</UiButton>
+        <UiButton intent="primary" size="small" @click="addNote"><Icon name="Plus" :size="14" /> New note</UiButton>
       </div>
     </header>
 
@@ -396,13 +396,13 @@ function onRowClick(event) {
         <h1 class="pane-h1">Note not found</h1>
       </div>
       <div class="pane-actions">
-        <JwButton intent="primary" size="small" @click="addNote"><Icon name="Plus" :size="14" /> New note</JwButton>
+        <UiButton intent="primary" size="small" @click="addNote"><Icon name="Plus" :size="14" /> New note</UiButton>
       </div>
     </header>
     <div class="pane-card" style="display:grid;place-items:center;padding:60px">
       <div class="t-muted" style="text-align:center">
         This note no longer exists.<br />
-        <JwButton intent="ghost" style="margin-top:14px" @click="router.push('/notes')">Back to notes</JwButton>
+        <UiButton intent="ghost" style="margin-top:14px" @click="router.push('/notes')">Back to notes</UiButton>
       </div>
     </div>
   </template>

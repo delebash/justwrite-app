@@ -8,7 +8,7 @@ import Breadcrumb from "../components/Breadcrumb.vue";
 import DateTimePicker from "../components/DateTimePicker.vue";
 import JwInput from "@renderer/components/ui/JwInput.vue";
 import JwTextarea from "@renderer/components/ui/JwTextarea.vue";
-import JwButton from "@renderer/components/ui/JwButton.vue";
+import { UiButton } from "@delebash/llm-ui";
 
 const props = defineProps({
   kind:     { type: String, required: true },
@@ -55,10 +55,10 @@ function save() {
       <h1 class="pane-h1">New event</h1>
     </div>
     <div class="pane-actions">
-      <JwButton intent="ghost" @click="cancel">Cancel</JwButton>
-      <JwButton intent="primary" :disabled="!titleStr.trim()" @click="save">
+      <UiButton intent="ghost" @click="cancel">Cancel</UiButton>
+      <UiButton intent="primary" :disabled="!titleStr.trim()" @click="save">
         <Icon name="Plus" :size="13" /> Add event
-      </JwButton>
+      </UiButton>
     </div>
   </header>
 

@@ -18,7 +18,7 @@ import Icon from "./Icon.vue";
 import AiTaskStrip from "./AiTaskStrip.vue";
 import AiFeatureChip from "./AiFeatureChip.vue";
 import AppModal from "./AppModal.vue";
-import JwButton from "@renderer/components/ui/JwButton.vue";
+import { UiButton } from "@delebash/llm-ui";
 
 const props = defineProps({
   // Plain-text prose tail leading up to the writer's cursor.
@@ -102,9 +102,9 @@ function useMove(move) {
 
     <div v-if="error" class="su-error">
       <Icon name="Alert" :size="13" /> {{ error }}
-      <JwButton intent="ghost" size="small" @click="run">
+      <UiButton intent="ghost" size="small" @click="run">
         <Icon name="Refresh" :size="12" /> Retry
-      </JwButton>
+      </UiButton>
     </div>
 
     <AiTaskStrip v-if="running" :task="myTask" />
@@ -115,9 +115,9 @@ function useMove(move) {
         Five concrete ways out of this stuck moment — goal shift, interrupt, setting change,
         reveal, time cut. Change the provider in the chip above first if you want.
       </p>
-      <JwButton intent="primary" @click="run">
+      <UiButton intent="primary" @click="run">
         <Icon name="Sparkle" :size="13" /> Get unstuck
-      </JwButton>
+      </UiButton>
     </div>
 
     <ul v-else-if="moves.length" class="su-moves">
@@ -129,21 +129,21 @@ function useMove(move) {
         <h4 class="su-move-label">{{ m.label }}</h4>
         <p class="su-move-instr">{{ m.instruction }}</p>
         <div class="su-move-actions">
-          <JwButton intent="primary" size="small" @click="useMove(m)">
+          <UiButton intent="primary" size="small" @click="useMove(m)">
             <Icon name="Play" :size="12" /> Write this
-          </JwButton>
+          </UiButton>
         </div>
       </li>
     </ul>
 
     <template #footer>
-      <JwButton intent="ghost"
+      <UiButton intent="ghost"
                 :disabled="running"
                 @click="run">
         <Icon name="Refresh" :size="12" /> Regenerate
-      </JwButton>
+      </UiButton>
       <span class="su-foot-spacer" />
-      <JwButton intent="ghost" @click="emit('close')">Close</JwButton>
+      <UiButton intent="ghost" @click="emit('close')">Close</UiButton>
     </template>
   </AppModal>
 </template>

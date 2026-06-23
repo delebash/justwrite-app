@@ -24,7 +24,7 @@ import Icon from "./Icon.vue";
 import AiTaskStrip from "./AiTaskStrip.vue";
 import AiFeatureChip from "./AiFeatureChip.vue";
 import AppModal from "./AppModal.vue";
-import JwButton from "@renderer/components/ui/JwButton.vue";
+import { UiButton } from "@delebash/llm-ui";
 import JwSelect from "@renderer/components/ui/JwSelect.vue";
 
 const emit = defineEmits(["close"]);
@@ -145,9 +145,9 @@ if (!mapping.value) run();
 
     <div v-if="error" class="bs-error">
       <Icon name="Alert" :size="13" /> {{ error }}
-      <JwButton intent="ghost" size="small" @click="run">
+      <UiButton intent="ghost" size="small" @click="run">
         <Icon name="Refresh" :size="12" /> Retry
-      </JwButton>
+      </UiButton>
     </div>
 
     <AiTaskStrip v-if="running" :task="myTask" />
@@ -197,14 +197,14 @@ if (!mapping.value) run();
     </template>
 
     <template #footer>
-      <JwButton v-if="mapping && !running" intent="ghost" @click="clearCurrent">
+      <UiButton v-if="mapping && !running" intent="ghost" @click="clearCurrent">
         Clear this mapping
-      </JwButton>
+      </UiButton>
       <span class="bs-foot-spacer" />
-      <JwButton v-if="mapping && !running" intent="ghost" @click="regenerate">
+      <UiButton v-if="mapping && !running" intent="ghost" @click="regenerate">
         <Icon name="Refresh" :size="12" /> Regenerate
-      </JwButton>
-      <JwButton intent="primary" @click="emit('close')">Done</JwButton>
+      </UiButton>
+      <UiButton intent="primary" @click="emit('close')">Done</UiButton>
     </template>
   </AppModal>
 </template>

@@ -21,7 +21,7 @@ import {
 import Icon from "./Icon.vue";
 import AiFeatureChip from "./AiFeatureChip.vue";
 import AppModal from "./AppModal.vue";
-import JwButton from "@renderer/components/ui/JwButton.vue";
+import { UiButton } from "@delebash/llm-ui";
 
 const props = defineProps({
   chapterId: { type: String, required: true },
@@ -150,9 +150,9 @@ const ago = (ts) => {
 
     <div v-if="error" class="mr-error">
       <Icon name="Alert" :size="13" /> {{ error }}
-      <JwButton intent="ghost" size="small" @click="run">
+      <UiButton intent="ghost" size="small" @click="run">
         <Icon name="Refresh" :size="12" /> Retry
-      </JwButton>
+      </UiButton>
     </div>
 
     <div v-else-if="running && !cached" class="mr-loading">
@@ -176,9 +176,9 @@ const ago = (ts) => {
         <strong>agent's intern</strong>, and a <strong>book-club reader</strong>.
         Change the provider in the chip above first if you want.
       </p>
-      <JwButton intent="primary" @click="run">
+      <UiButton intent="primary" @click="run">
         <Icon name="Sparkle" :size="13" /> Read this chapter
-      </JwButton>
+      </UiButton>
     </div>
 
     <div v-else-if="cached" class="mr-grid">
@@ -211,17 +211,17 @@ const ago = (ts) => {
     </div>
 
     <template #footer>
-      <JwButton v-if="cached && !running" intent="ghost" @click="clearPanel">
+      <UiButton v-if="cached && !running" intent="ghost" @click="clearPanel">
         Clear panel
-      </JwButton>
+      </UiButton>
       <span class="mr-foot-spacer" />
-      <JwButton v-if="running" intent="danger" @click="cancel">
+      <UiButton v-if="running" intent="danger" @click="cancel">
         <Icon name="Close" :size="12" /> Cancel
-      </JwButton>
-      <JwButton v-else-if="cached" intent="ghost" @click="regenerate">
+      </UiButton>
+      <UiButton v-else-if="cached" intent="ghost" @click="regenerate">
         <Icon name="Refresh" :size="12" /> Re-run panel
-      </JwButton>
-      <JwButton intent="primary" @click="emit('close')">Done</JwButton>
+      </UiButton>
+      <UiButton intent="primary" @click="emit('close')">Done</UiButton>
     </template>
   </AppModal>
 </template>

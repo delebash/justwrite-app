@@ -10,7 +10,7 @@ import { generateResumeBriefing, buildBriefingContext } from "../services/resume
 import Icon from "../components/Icon.vue";
 import AiTaskStrip from "../components/AiTaskStrip.vue";
 import AiFeatureChip from "../components/AiFeatureChip.vue";
-import JwButton from "@renderer/components/ui/JwButton.vue";
+import { UiButton } from "@delebash/llm-ui";
 import SessionRecapModal from "../components/SessionRecapModal.vue";
 import HelpTrigger from "../components/HelpTrigger.vue";
 
@@ -269,12 +269,12 @@ const strandCount = (id) => allCh.value.filter((c) => (c.strands || []).includes
         @input="project.updateProjectMeta({ title: $event.target.value })" />
     </div>
     <div class="pane-actions">
-      <JwButton intent="ghost" @click="goToday"><Icon name="Calendar" :size="14" /> Today</JwButton>
+      <UiButton intent="ghost" @click="goToday"><Icon name="Calendar" :size="14" /> Today</UiButton>
       <router-link to="/import" custom v-slot="{ navigate }">
-        <JwButton intent="ghost" @click="navigate"><Icon name="Plus" :size="14" /> Import manuscript</JwButton>
+        <UiButton intent="ghost" @click="navigate"><Icon name="Plus" :size="14" /> Import manuscript</UiButton>
       </router-link>
       <router-link to="/chapters" custom v-slot="{ navigate }">
-        <JwButton intent="primary" @click="navigate"><Icon name="Plus" :size="14" /> Quick write</JwButton>
+        <UiButton intent="primary" @click="navigate"><Icon name="Plus" :size="14" /> Quick write</UiButton>
       </router-link>
     </div>
     <HelpTrigger slug="writing#home" label="Home" class="pane-help" />
@@ -359,7 +359,7 @@ const strandCount = (id) => allCh.value.filter((c) => (c.strands || []).includes
           </div>
         </div>
         <div class="resume-cta">
-          <JwButton intent="accent2" @click="resume"><Icon name="Play" :size="14" :fill="true" /> Resume writing</JwButton>
+          <UiButton intent="accent2" @click="resume"><Icon name="Play" :size="14" :fill="true" /> Resume writing</UiButton>
         </div>
       </div>
 
@@ -382,9 +382,9 @@ const strandCount = (id) => allCh.value.filter((c) => (c.strands || []).includes
         <div v-if="briefingError" class="briefing-error">
           <Icon name="Alert" :size="14" />
           <span>{{ briefingError }}</span>
-          <JwButton intent="ghost" size="small" @click="runBriefing">
+          <UiButton intent="ghost" size="small" @click="runBriefing">
             <Icon name="Refresh" :size="12" /> Retry
-          </JwButton>
+          </UiButton>
         </div>
 
         <p v-else-if="briefingText" class="briefing-body">{{ briefingText }}</p>
@@ -396,12 +396,12 @@ const strandCount = (id) => allCh.value.filter((c) => (c.strands || []).includes
             via {{ ui.briefingCache.model }}
           </span>
           <span class="briefing-foot-actions">
-            <JwButton intent="ghost" size="small"
+            <UiButton intent="ghost" size="small"
                       :disabled="briefingRunning"
                       @click="regenerateBriefing"
                       v-tooltip.bottom="'Generate a fresh briefing'">
               <Icon name="Refresh" :size="12" /> Regenerate
-            </JwButton>
+            </UiButton>
           </span>
         </div>
       </div>
@@ -420,13 +420,13 @@ const strandCount = (id) => allCh.value.filter((c) => (c.strands || []).includes
         </div>
         <div class="gticks-cap">{{ streakSquares.filter(Boolean).length }} of 14 days written</div>
         <div class="gtoday-foot">
-          <JwButton intent="ghost" size="small"
+          <UiButton intent="ghost" size="small"
                     :disabled="!canWrapUp"
                     @click="openRecap"
                     v-tooltip.bottom="canWrapUp ? 'Generate an AI recap of what you wrote today and pin any open threads' : 'Write something today to enable a recap'">
             <Icon name="Sparkle" :size="12" />
             {{ hasTodayRecap ? "View today's recap" : "Wrap up session" }}
-          </JwButton>
+          </UiButton>
         </div>
       </div>
 

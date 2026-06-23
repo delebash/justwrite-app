@@ -9,7 +9,7 @@ import JwInput from "@renderer/components/ui/JwInput.vue";
 import JwTextarea from "@renderer/components/ui/JwTextarea.vue";
 import JwCheckbox from "@renderer/components/ui/JwCheckbox.vue";
 import JwNumber from "@renderer/components/ui/JwNumber.vue";
-import JwButton from "@renderer/components/ui/JwButton.vue";
+import { UiButton } from "@delebash/llm-ui";
 import JwSelect from "@renderer/components/ui/JwSelect.vue";
 import JwTag from "@renderer/components/ui/JwTag.vue";
 import JwTable from "@renderer/components/ui/JwTable.vue";
@@ -260,18 +260,18 @@ function onRowClick(event) {
   <!-- ── List mode (no id in URL) ─────────────────────────────── -->
   <template v-if="!ch && !id">
     <PaneHeader :eyebrow="$t('panes.characters.eyebrow')" :title="$t('nav.characters')" help-key="story-bible#characters">
-      <JwButton intent="ghost" size="small" @click="sweepOpen = true" v-tooltip.bottom="'Scan the manuscript for new characters, locations, and objects'">
+      <UiButton intent="ghost" size="small" @click="sweepOpen = true" v-tooltip.bottom="'Scan the manuscript for new characters, locations, and objects'">
         <Icon name="Sparkle" :size="13" /> Find new entities
-      </JwButton>
-      <JwButton intent="ghost" size="small" @click="auditOpen = true" v-tooltip.bottom="'Check whether each main character acts in line with their established psychology'">
+      </UiButton>
+      <UiButton intent="ghost" size="small" @click="auditOpen = true" v-tooltip.bottom="'Check whether each main character acts in line with their established psychology'">
         <Icon name="Users" :size="13" /> Audit consistency
-      </JwButton>
-      <JwButton intent="ghost" size="small" @click="relationshipArcOpen = true" v-tooltip.bottom="'Track how the relationship between two characters moves across the book'">
+      </UiButton>
+      <UiButton intent="ghost" size="small" @click="relationshipArcOpen = true" v-tooltip.bottom="'Track how the relationship between two characters moves across the book'">
         <Icon name="Network" :size="13" /> Relationship arc
-      </JwButton>
-      <JwButton label="New character" intent="primary" size="small" @click="addCharacter">
+      </UiButton>
+      <UiButton label="New character" intent="primary" size="small" @click="addCharacter">
         <template #icon><Icon name="Plus" :size="14" /></template>
-      </JwButton>
+      </UiButton>
     </PaneHeader>
 
     <!-- Empty state -->
@@ -279,7 +279,7 @@ function onRowClick(event) {
       <div class="t-muted" style="text-align:center;max-width:420px">
         <div style="font-size:14px;color:var(--ink);margin-bottom:6px">No characters yet.</div>
         <div style="font-size:12.5px;margin-bottom:14px">Characters appear across your chapters and story bible, and link scenes to who's in them.</div>
-        <JwButton intent="primary" @click="addCharacter"><Icon name="Plus" :size="14" /> Create your first character</JwButton>
+        <UiButton intent="primary" @click="addCharacter"><Icon name="Plus" :size="14" /> Create your first character</UiButton>
       </div>
     </div>
 
@@ -302,7 +302,7 @@ function onRowClick(event) {
               class="ch-search-input"
             />
           </span>
-          <JwButton v-if="globalQuery || hasActiveFacets" label="Clear filters" intent="ghost" size="small" @click="clearAllFilters" />
+          <UiButton v-if="globalQuery || hasActiveFacets" label="Clear filters" intent="ghost" size="small" @click="clearAllFilters" />
           <span class="ch-count">{{ filteredRows.length }} of {{ rows.length }}</span>
         </div>
 
@@ -419,21 +419,21 @@ function onRowClick(event) {
           @input="updateField('name', $event.target.value)" />
       </div>
       <div class="pane-actions">
-        <JwButton intent="ghost" size="small" data-chat-toggle @click="talkToCharacter"
+        <UiButton intent="ghost" size="small" data-chat-toggle @click="talkToCharacter"
           v-tooltip.bottom="`Open chat in character mode, pre-set to ${ch.name}`">
           <Icon name="Sparkle" :size="14" /> Talk to {{ ch.name?.split(/\s+/)[0] || "character" }}
-        </JwButton>
-        <JwButton intent="ghost" size="small" data-chat-toggle @click="askTheBook"
+        </UiButton>
+        <UiButton intent="ghost" size="small" data-chat-toggle @click="askTheBook"
           v-tooltip.bottom="`Ask the book about ${ch.name}`">
           <Icon name="Chat" :size="14" /> Ask the book
-        </JwButton>
-        <JwButton intent="ghost" size="small" @click="modal = 'images'"><Icon name="Image" :size="14" /> Images</JwButton>
+        </UiButton>
+        <UiButton intent="ghost" size="small" @click="modal = 'images'"><Icon name="Image" :size="14" /> Images</UiButton>
         <router-link :to="`/characters/${ch.id}/events`" custom v-slot="{ navigate }">
-          <JwButton intent="ghost" size="small" @click="navigate"><Icon name="Calendar" :size="14" /> Events</JwButton>
+          <UiButton intent="ghost" size="small" @click="navigate"><Icon name="Calendar" :size="14" /> Events</UiButton>
         </router-link>
-        <JwButton intent="ghost" size="small" @click="modal = 'groups'"><Icon name="GroupIcon" :size="14" /> Groups</JwButton>
-        <JwButton intent="ghost" size="small" @click="deleteCharacter">Delete</JwButton>
-        <JwButton intent="primary" size="small" @click="addCharacter"><Icon name="Plus" :size="14" /> New character</JwButton>
+        <UiButton intent="ghost" size="small" @click="modal = 'groups'"><Icon name="GroupIcon" :size="14" /> Groups</UiButton>
+        <UiButton intent="ghost" size="small" @click="deleteCharacter">Delete</UiButton>
+        <UiButton intent="primary" size="small" @click="addCharacter"><Icon name="Plus" :size="14" /> New character</UiButton>
         <StatusSelect :model-value="ch.status || ''" @update:model-value="(v) => updateField('status', v)" />
       </div>
     </header>
@@ -589,13 +589,13 @@ function onRowClick(event) {
         <h1 class="pane-h1">Character not found</h1>
       </div>
       <div class="pane-actions">
-        <JwButton intent="primary" size="small" @click="addCharacter"><Icon name="Plus" :size="14" /> New character</JwButton>
+        <UiButton intent="primary" size="small" @click="addCharacter"><Icon name="Plus" :size="14" /> New character</UiButton>
       </div>
     </header>
     <div class="pane-card" style="display:grid;place-items:center;padding:60px">
       <div class="t-muted" style="text-align:center">
         This character no longer exists.<br />
-        <JwButton intent="ghost" style="margin-top:14px" @click="router.push('/characters')">Back to characters</JwButton>
+        <UiButton intent="ghost" style="margin-top:14px" @click="router.push('/characters')">Back to characters</UiButton>
       </div>
     </div>
   </template>

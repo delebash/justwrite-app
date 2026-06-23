@@ -10,7 +10,7 @@ const props = defineProps({
   modelValue: { type: Boolean, default: false },
   disabled:   { type: Boolean, default: false },
   // Optional inline label rendered after the box. Default slot wins if
-  // both are provided — same convention as JwButton.
+  // both are provided — same convention as UiButton.
   label:      { type: String, default: "" },
   name:       { type: String, default: undefined },
   id:         { type: String, default: undefined },

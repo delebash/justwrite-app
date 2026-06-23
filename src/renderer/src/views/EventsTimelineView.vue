@@ -5,7 +5,7 @@ import { useProjectStore } from "../stores/project.js";
 import { EVENTS_KIND_META } from "../services/eventsKind.js";
 import Icon from "../components/Icon.vue";
 import Breadcrumb from "../components/Breadcrumb.vue";
-import JwButton from "@renderer/components/ui/JwButton.vue";
+import { UiButton } from "@delebash/llm-ui";
 import HelpTrigger from "../components/HelpTrigger.vue";
 
 const props = defineProps({
@@ -70,13 +70,13 @@ function goAdd()         { router.push(meta.value.newUrl(props.entityId)); }
       <h1 class="pane-h1">Events</h1>
     </div>
     <div class="pane-actions">
-      <JwButton intent="ghost" size="small" @click="goBack">
+      <UiButton intent="ghost" size="small" @click="goBack">
         <Icon name="ChevRight" :size="12" style="transform:rotate(180deg)" />
         Back to {{ meta?.label }}
-      </JwButton>
-      <JwButton intent="primary" @click="goAdd">
+      </UiButton>
+      <UiButton intent="primary" @click="goAdd">
         <Icon name="Plus" :size="13" /> Add event
-      </JwButton>
+      </UiButton>
     </div>
     <HelpTrigger slug="plot-and-time#per-entity-events-biographies-and-place-histories" label="Events" class="pane-help" />
   </header>
@@ -104,10 +104,10 @@ function goAdd()         { router.push(meta.value.newUrl(props.entityId)); }
             <div class="timeline-card-title">{{ ev.title || "Untitled event" }}</div>
             <div v-if="ev.note" class="timeline-card-note">{{ ev.note }}</div>
             <div class="timeline-card-actions">
-              <JwButton intent="ghost" size="small" @click="goEdit(ev.id)"
-                :aria-label="`Edit ${ev.title || 'event'}`">edit</JwButton>
-              <JwButton intent="ghost" size="small" @click="remove(ev)"
-                :aria-label="`Delete ${ev.title || 'event'}`">delete</JwButton>
+              <UiButton intent="ghost" size="small" @click="goEdit(ev.id)"
+                :aria-label="`Edit ${ev.title || 'event'}`">edit</UiButton>
+              <UiButton intent="ghost" size="small" @click="remove(ev)"
+                :aria-label="`Delete ${ev.title || 'event'}`">delete</UiButton>
             </div>
           </div>
         </article>

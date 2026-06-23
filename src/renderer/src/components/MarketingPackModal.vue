@@ -18,7 +18,7 @@ import Icon from "./Icon.vue";
 import AiTaskStrip from "./AiTaskStrip.vue";
 import AiFeatureChip from "./AiFeatureChip.vue";
 import AppModal from "./AppModal.vue";
-import JwButton from "@renderer/components/ui/JwButton.vue";
+import { UiButton } from "@delebash/llm-ui";
 
 const emit = defineEmits(["close"]);
 
@@ -133,9 +133,9 @@ function formatComps(comps) {
 
     <div v-if="error" class="mp-error">
       <Icon name="Alert" :size="13" /> {{ error }}
-      <JwButton intent="ghost" size="small" @click="run">
+      <UiButton intent="ghost" size="small" @click="run">
         <Icon name="Refresh" :size="12" /> Retry
-      </JwButton>
+      </UiButton>
     </div>
 
     <AiTaskStrip v-if="running" :task="myTask" />
@@ -146,9 +146,9 @@ function formatComps(comps) {
         Generate a logline, back-cover blurbs, synopsis, and elevator pitch from your manuscript.
         Change the provider in the chip above first if you want.
       </p>
-      <JwButton intent="primary" @click="run">
+      <UiButton intent="primary" @click="run">
         <Icon name="Sparkle" :size="13" /> Generate marketing pack
-      </JwButton>
+      </UiButton>
     </div>
 
     <template v-else-if="pack">
@@ -165,9 +165,9 @@ function formatComps(comps) {
           <span>Logline</span>
           <span class="mp-section-meta">{{ wordCount(pack.logline) }} words</span>
           <span class="mp-spacer" />
-          <JwButton intent="ghost" size="small" @click="copyText(pack.logline, 'Logline')">
+          <UiButton intent="ghost" size="small" @click="copyText(pack.logline, 'Logline')">
             <Icon name="Plus" :size="12" /> Copy
-          </JwButton>
+          </UiButton>
         </div>
         <p class="mp-logline">{{ pack.logline || "(no logline returned)" }}</p>
       </section>
@@ -184,9 +184,9 @@ function formatComps(comps) {
               <span class="mp-blurb-angle">{{ b.label }}</span>
               <span class="mp-section-meta">{{ wordCount(b.text) }} words</span>
               <span class="mp-spacer" />
-              <JwButton intent="ghost" size="small" @click="copyText(b.text, b.label + ' blurb')">
+              <UiButton intent="ghost" size="small" @click="copyText(b.text, b.label + ' blurb')">
                 <Icon name="Plus" :size="12" /> Copy
-              </JwButton>
+              </UiButton>
             </header>
             <p class="mp-blurb-desc">{{ b.description }}</p>
             <p class="mp-blurb-text">{{ b.text || "(no blurb returned)" }}</p>
@@ -200,9 +200,9 @@ function formatComps(comps) {
           <span>One-page synopsis</span>
           <span class="mp-section-meta">{{ wordCount(pack.synopsis) }} words · includes ending</span>
           <span class="mp-spacer" />
-          <JwButton intent="ghost" size="small" @click="copyText(pack.synopsis, 'Synopsis')">
+          <UiButton intent="ghost" size="small" @click="copyText(pack.synopsis, 'Synopsis')">
             <Icon name="Plus" :size="12" /> Copy
-          </JwButton>
+          </UiButton>
         </div>
         <p class="mp-prose">{{ pack.synopsis || "(no synopsis returned)" }}</p>
       </section>
@@ -213,9 +213,9 @@ function formatComps(comps) {
           <span>Elevator pitch</span>
           <span class="mp-section-meta">{{ wordCount(pack.pitch) }} words · 3 paragraphs</span>
           <span class="mp-spacer" />
-          <JwButton intent="ghost" size="small" @click="copyText(pack.pitch, 'Elevator pitch')">
+          <UiButton intent="ghost" size="small" @click="copyText(pack.pitch, 'Elevator pitch')">
             <Icon name="Plus" :size="12" /> Copy
-          </JwButton>
+          </UiButton>
         </div>
         <p class="mp-prose">{{ pack.pitch || "(no pitch returned)" }}</p>
       </section>
@@ -226,9 +226,9 @@ function formatComps(comps) {
           <span>Comp titles</span>
           <span class="mp-section-meta">{{ pack.comps.length }} suggested</span>
           <span class="mp-spacer" />
-          <JwButton intent="ghost" size="small" @click="copyText(formatComps(pack.comps), 'Comp titles')">
+          <UiButton intent="ghost" size="small" @click="copyText(formatComps(pack.comps), 'Comp titles')">
             <Icon name="Plus" :size="12" /> Copy as list
-          </JwButton>
+          </UiButton>
         </div>
         <p class="mp-comp-warning">
           <Icon name="Alert" :size="12" />
@@ -258,14 +258,14 @@ function formatComps(comps) {
     </template>
 
     <template #footer>
-      <JwButton v-if="pack && !running" intent="ghost" @click="clearAll">
+      <UiButton v-if="pack && !running" intent="ghost" @click="clearAll">
         Clear pack
-      </JwButton>
+      </UiButton>
       <span class="mp-foot-spacer" />
-      <JwButton v-if="pack && !running" intent="ghost" @click="regenerate">
+      <UiButton v-if="pack && !running" intent="ghost" @click="regenerate">
         <Icon name="Refresh" :size="12" /> Regenerate
-      </JwButton>
-      <JwButton intent="primary" @click="emit('close')">Done</JwButton>
+      </UiButton>
+      <UiButton intent="primary" @click="emit('close')">Done</UiButton>
     </template>
   </AppModal>
 </template>

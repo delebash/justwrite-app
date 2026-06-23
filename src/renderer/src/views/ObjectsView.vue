@@ -5,7 +5,7 @@ import { useUiStore } from "../stores/ui.js";
 import { useRouter } from "vue-router";
 import Icon from "../components/Icon.vue";
 import JwInput from "@renderer/components/ui/JwInput.vue";
-import JwButton from "@renderer/components/ui/JwButton.vue";
+import { UiButton } from "@delebash/llm-ui";
 import JwTag from "@renderer/components/ui/JwTag.vue";
 import JwTable from "@renderer/components/ui/JwTable.vue";
 import JwCheckbox from "@renderer/components/ui/JwCheckbox.vue";
@@ -140,12 +140,12 @@ function onRowClick(event) {
   <!-- ── List mode (no id in URL) ─────────────────────────────── -->
   <template v-if="!obj && !id">
     <PaneHeader :eyebrow="$t('panes.objects.eyebrow')" :title="$t('nav.objects')" help-key="story-bible#objects">
-      <JwButton intent="ghost" size="small" @click="sweepOpen = true" v-tooltip.bottom="'Scan the manuscript for new characters, locations, and objects'">
+      <UiButton intent="ghost" size="small" @click="sweepOpen = true" v-tooltip.bottom="'Scan the manuscript for new characters, locations, and objects'">
         <Icon name="Sparkle" :size="13" /> Find new entities
-      </JwButton>
-      <JwButton label="New object" intent="primary" size="small" @click="addObject">
+      </UiButton>
+      <UiButton label="New object" intent="primary" size="small" @click="addObject">
         <template #icon><Icon name="Plus" :size="14" /></template>
-      </JwButton>
+      </UiButton>
     </PaneHeader>
 
     <!-- Empty state -->
@@ -153,7 +153,7 @@ function onRowClick(event) {
       <div class="t-muted" style="text-align:center;max-width:420px">
         <div style="font-size:14px;color:var(--ink);margin-bottom:6px">No objects yet.</div>
         <div style="font-size:12.5px;margin-bottom:14px">Items and artifacts that move through the story. Link them to scenes to track their journey across the Relations graph.</div>
-        <JwButton intent="primary" @click="addObject"><Icon name="Plus" :size="14" /> Create your first object</JwButton>
+        <UiButton intent="primary" @click="addObject"><Icon name="Plus" :size="14" /> Create your first object</UiButton>
       </div>
     </div>
 
@@ -176,7 +176,7 @@ function onRowClick(event) {
               class="obj-search-input"
             />
           </span>
-          <JwButton v-if="globalQuery || hasActiveFacets" label="Clear filters" intent="ghost" size="small" @click="clearAllFilters" />
+          <UiButton v-if="globalQuery || hasActiveFacets" label="Clear filters" intent="ghost" size="small" @click="clearAllFilters" />
           <span class="obj-count">{{ filteredRows.length }} of {{ rows.length }}</span>
         </div>
 
@@ -261,17 +261,17 @@ function onRowClick(event) {
           @input="update('name', $event.target.value)" />
       </div>
       <div class="pane-actions">
-        <JwButton intent="ghost" size="small" data-chat-toggle @click="askTheBook"
+        <UiButton intent="ghost" size="small" data-chat-toggle @click="askTheBook"
           v-tooltip.bottom="`Ask the book about ${obj.name}`">
           <Icon name="Chat" :size="14" /> Ask the book
-        </JwButton>
-        <JwButton intent="ghost" size="small" @click="modal = 'images'"><Icon name="Image" :size="14" /> Images</JwButton>
+        </UiButton>
+        <UiButton intent="ghost" size="small" @click="modal = 'images'"><Icon name="Image" :size="14" /> Images</UiButton>
         <router-link :to="`/objects/${obj.id}/events`" custom v-slot="{ navigate }">
-          <JwButton intent="ghost" size="small" @click="navigate"><Icon name="Calendar" :size="14" /> Events</JwButton>
+          <UiButton intent="ghost" size="small" @click="navigate"><Icon name="Calendar" :size="14" /> Events</UiButton>
         </router-link>
-        <JwButton intent="ghost" size="small" @click="modal = 'groups'"><Icon name="GroupIcon" :size="14" /> Groups</JwButton>
-        <JwButton intent="ghost" size="small" @click="deleteObject">Delete</JwButton>
-        <JwButton intent="primary" size="small" @click="addObject"><Icon name="Plus" :size="14" /> New object</JwButton>
+        <UiButton intent="ghost" size="small" @click="modal = 'groups'"><Icon name="GroupIcon" :size="14" /> Groups</UiButton>
+        <UiButton intent="ghost" size="small" @click="deleteObject">Delete</UiButton>
+        <UiButton intent="primary" size="small" @click="addObject"><Icon name="Plus" :size="14" /> New object</UiButton>
         <StatusSelect :model-value="obj.status || ''" @update:model-value="(v) => update('status', v)" />
       </div>
     </header>
@@ -329,13 +329,13 @@ function onRowClick(event) {
         <h1 class="pane-h1">Object not found</h1>
       </div>
       <div class="pane-actions">
-        <JwButton intent="primary" size="small" @click="addObject"><Icon name="Plus" :size="14" /> New object</JwButton>
+        <UiButton intent="primary" size="small" @click="addObject"><Icon name="Plus" :size="14" /> New object</UiButton>
       </div>
     </header>
     <div class="pane-card" style="display:grid;place-items:center;padding:60px">
       <div class="t-muted" style="text-align:center">
         This object no longer exists.<br />
-        <JwButton intent="ghost" style="margin-top:14px" @click="router.push('/objects')">Back to objects</JwButton>
+        <UiButton intent="ghost" style="margin-top:14px" @click="router.push('/objects')">Back to objects</UiButton>
       </div>
     </div>
   </template>

@@ -15,7 +15,7 @@
 import { ref, computed, onMounted, onBeforeUnmount } from "vue";
 import { useAiTasksStore } from "../stores/aiTasks.js";
 import Icon from "./Icon.vue";
-import JwButton from "@renderer/components/ui/JwButton.vue";
+import { UiButton } from "@delebash/llm-ui";
 
 const tasks = useAiTasksStore();
 const openPreviews = ref(new Set());
@@ -132,9 +132,9 @@ const phaseLabel = {
           <div class="t-eyebrow">Status</div>
           <h2>AI tasks</h2>
         </div>
-        <JwButton intent="ghost" size="small" @click="tasks.closePanel()">
+        <UiButton intent="ghost" size="small" @click="tasks.closePanel()">
           <Icon name="Close" :size="12" /> Close
-        </JwButton>
+        </UiButton>
       </header>
 
       <!-- Running tasks ────────────────────────────────────────────── -->
@@ -143,9 +143,9 @@ const phaseLabel = {
           <span>Running</span>
           <span class="aip-section-count">{{ tasks.runningCount }}</span>
           <span class="aip-section-spacer" />
-          <JwButton v-if="tasks.runningCount > 1" intent="ghost" size="small" @click="tasks.cancelAll()">
+          <UiButton v-if="tasks.runningCount > 1" intent="ghost" size="small" @click="tasks.cancelAll()">
             <Icon name="Close" :size="11" /> Cancel all
-          </JwButton>
+          </UiButton>
         </div>
 
         <div v-if="!tasks.runningCount" class="aip-empty">
@@ -157,10 +157,10 @@ const phaseLabel = {
             <span class="aip-task-label">{{ t.label }}</span>
             <span class="aip-task-feature">{{ t.feature }}</span>
             <span class="aip-task-spacer" />
-            <JwButton intent="danger" size="small" @click="tasks.cancel(t.id)">
+            <UiButton intent="danger" size="small" @click="tasks.cancel(t.id)">
               <template #icon><Icon name="Close" :size="11" /></template>
               Cancel
-            </JwButton>
+            </UiButton>
           </div>
 
           <div class="aip-task-stats">
@@ -191,11 +191,11 @@ const phaseLabel = {
           </div>
 
           <div v-if="t.preview" class="aip-task-preview-row">
-            <JwButton intent="ghost" size="small" @click="togglePreview(t.id)">
+            <UiButton intent="ghost" size="small" @click="togglePreview(t.id)">
               <Icon :name="openPreviews.has(t.id) ? 'ChevDown' : 'ChevRight'" :size="11" />
               {{ openPreviews.has(t.id) ? "Hide preview" : "Show preview" }}
               <span class="t-muted" style="font-size:10.5px;margin-left:4px">· {{ t.chars }} chars</span>
-            </JwButton>
+            </UiButton>
             <div v-if="openPreviews.has(t.id)" class="aip-preview">
               <pre>{{ t.preview }}</pre>
             </div>
@@ -213,9 +213,9 @@ const phaseLabel = {
           <span>Recent</span>
           <span class="aip-section-count">{{ tasks.history.length }}</span>
           <span class="aip-section-spacer" />
-          <JwButton v-if="tasks.history.length" intent="ghost" size="small" @click="tasks.clearHistory()">
+          <UiButton v-if="tasks.history.length" intent="ghost" size="small" @click="tasks.clearHistory()">
             <Icon name="Trash" :size="11" /> Clear
-          </JwButton>
+          </UiButton>
         </div>
 
         <div v-if="!tasks.history.length" class="aip-empty aip-empty-small">

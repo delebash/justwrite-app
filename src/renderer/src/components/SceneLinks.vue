@@ -9,7 +9,7 @@ import { useProjectStore } from "../stores/project.js";
 import { promptDialog } from "../services/dialog.js";
 import Icon from "./Icon.vue";
 import DateTimePicker from "./DateTimePicker.vue";
-import JwButton from "@renderer/components/ui/JwButton.vue";
+import { UiButton } from "@delebash/llm-ui";
 
 const props = defineProps({
   chapterId: { type: String, required: true },
@@ -112,7 +112,7 @@ function onBackdrop(e) {
     <div class="links-panel">
       <header class="links-head">
         <h2>Links</h2>
-        <JwButton intent="ghost" aria-label="Close links panel" v-tooltip.bottom="'Close'" @click="emit('close')">×</JwButton>
+        <UiButton intent="ghost" aria-label="Close links panel" v-tooltip.bottom="'Close'" @click="emit('close')">×</UiButton>
       </header>
 
       <div class="links-body scrollarea">

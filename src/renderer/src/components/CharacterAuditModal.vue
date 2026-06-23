@@ -24,7 +24,7 @@ import AppModal from "./AppModal.vue";
 import StatusRow from "./StatusRow.vue";
 import AiTaskStrip from "./AiTaskStrip.vue";
 import EmptyState from "./EmptyState.vue";
-import JwButton from "@renderer/components/ui/JwButton.vue";
+import { UiButton } from "@delebash/llm-ui";
 
 const emit = defineEmits(["close"]);
 
@@ -215,9 +215,9 @@ onMounted(() => {
 
     <div v-if="error" class="ca-error">
       <Icon name="Alert" :size="13" /> {{ error }}
-      <JwButton intent="ghost" size="small" @click="runSweep(false)">
+      <UiButton intent="ghost" size="small" @click="runSweep(false)">
         <Icon name="Refresh" :size="12" /> Retry
-      </JwButton>
+      </UiButton>
     </div>
 
     <AiTaskStrip :task="myTask" />
@@ -244,9 +244,9 @@ onMounted(() => {
         Read every scene this character appears in and audit for consistency against their profile.
         Change the provider in the chip above first if you want.
       </p>
-      <JwButton intent="primary" @click="runSweep(false)">
+      <UiButton intent="primary" @click="runSweep(false)">
         <Icon name="Sparkle" :size="13" /> Audit this character
-      </JwButton>
+      </UiButton>
     </div>
 
     <!-- ── Review phase ──────────────────────────────────────── -->
@@ -304,18 +304,18 @@ onMounted(() => {
     </template>
 
     <template #footer>
-      <JwButton v-if="reviewCharacters.length && !running" intent="ghost" @click="clearAll">
+      <UiButton v-if="reviewCharacters.length && !running" intent="ghost" @click="clearAll">
         Clear saved audit
-      </JwButton>
+      </UiButton>
       <span class="ca-foot-spacer" />
-      <JwButton v-if="!running" intent="ghost" @click="runSweep(true)">
+      <UiButton v-if="!running" intent="ghost" @click="runSweep(true)">
         <Icon name="Refresh" :size="12" />
         {{ reviewCharacters.length ? "Re-audit" : "Run audit" }}
-      </JwButton>
-      <JwButton v-else intent="danger" @click="cancelSweep">
+      </UiButton>
+      <UiButton v-else intent="danger" @click="cancelSweep">
         <Icon name="Close" :size="13" /> Cancel
-      </JwButton>
-      <JwButton intent="primary" @click="emit('close')">Done</JwButton>
+      </UiButton>
+      <UiButton intent="primary" @click="emit('close')">Done</UiButton>
     </template>
   </AppModal>
 </template>

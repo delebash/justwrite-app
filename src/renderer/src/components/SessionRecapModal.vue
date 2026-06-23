@@ -24,7 +24,7 @@ import Icon from "./Icon.vue";
 import AiTaskStrip from "./AiTaskStrip.vue";
 import AiFeatureChip from "./AiFeatureChip.vue";
 import AppModal from "./AppModal.vue";
-import JwButton from "@renderer/components/ui/JwButton.vue";
+import { UiButton } from "@delebash/llm-ui";
 
 const emit = defineEmits(["close"]);
 
@@ -209,9 +209,9 @@ onMounted(() => {
     <div v-else-if="err" class="recap-error">
       <Icon name="Alert" :size="14" />
       <span>{{ err }}</span>
-      <JwButton intent="ghost" size="small" @click="runRecap">
+      <UiButton intent="ghost" size="small" @click="runRecap">
         <Icon name="Refresh" :size="12" /> Retry
-      </JwButton>
+      </UiButton>
     </div>
 
     <div v-else-if="!recap && !running" class="recap-cta-empty">
@@ -220,9 +220,9 @@ onMounted(() => {
         Summarise today's writing and surface open threads worth pinning.
         Change the provider in the chip above first if you want.
       </p>
-      <JwButton intent="primary" @click="runRecap">
+      <UiButton intent="primary" @click="runRecap">
         <Icon name="Sparkle" :size="13" /> Generate session recap
-      </JwButton>
+      </UiButton>
     </div>
 
     <template v-else>
@@ -237,12 +237,12 @@ onMounted(() => {
           Open threads
           <span class="recap-h-count">{{ threads.length }}</span>
           <span class="recap-h-spacer" />
-          <JwButton intent="ghost" size="small"
+          <UiButton intent="ghost" size="small"
                     :disabled="threads.every(t => threadStatus[t.id])"
                     @click="addAllMarkers"
                     v-tooltip.bottom="'Drop Loose-thread markers on all unmarked snippets'">
             <Icon name="Pin" :size="12" /> Pin all
-          </JwButton>
+          </UiButton>
         </div>
         <p class="recap-threads-blurb">
           Snippets the AI flagged as setup-without-payoff in today's writing. Pin one to drop a
@@ -256,12 +256,12 @@ onMounted(() => {
               <p v-if="t.label" class="recap-thread-label">{{ t.label }}</p>
             </div>
             <div class="recap-thread-actions">
-              <JwButton v-if="!threadStatus[t.id]" intent="ghost" size="small"
+              <UiButton v-if="!threadStatus[t.id]" intent="ghost" size="small"
                         :disabled="!t.locatable"
                         @click="addThreadMarker(t)"
                         v-tooltip.bottom="t.locatable ? 'Drop a Loose-thread marker on this phrase in the chapter' : 'Snippet not found in current prose — cannot pin'">
                 <Icon name="Pin" :size="12" /> Pin
-              </JwButton>
+              </UiButton>
               <span v-else-if="threadStatus[t.id] === 'added'" class="recap-thread-status added">
                 <Icon name="Check" :size="12" /> Pinned
               </span>
@@ -276,22 +276,22 @@ onMounted(() => {
 
     <template #footer>
       <div class="recap-foot">
-        <JwButton v-if="recap" intent="ghost" size="small"
+        <UiButton v-if="recap" intent="ghost" size="small"
                   :disabled="running"
                   @click="regenerate">
           <Icon name="Refresh" :size="12" /> Regenerate
-        </JwButton>
-        <JwButton v-if="cached" intent="ghost" size="small"
+        </UiButton>
+        <UiButton v-if="cached" intent="ghost" size="small"
                   :disabled="running"
                   @click="clearAndClose">
           Discard recap
-        </JwButton>
+        </UiButton>
         <span class="recap-foot-spacer" />
-        <JwButton intent="primary"
+        <UiButton intent="primary"
                   :disabled="running"
                   @click="emit('close')">
           Done
-        </JwButton>
+        </UiButton>
       </div>
     </template>
   </AppModal>

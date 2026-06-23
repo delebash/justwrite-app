@@ -7,7 +7,7 @@ import PaneHeader from "../components/PaneHeader.vue";
 import Icon from "../components/Icon.vue";
 import { parseFile, normalizeHtml } from "../services/import/index.js";
 import EntitySweepModal from "../components/EntitySweepModal.vue";
-import JwButton from "@renderer/components/ui/JwButton.vue";
+import { UiButton } from "@delebash/llm-ui";
 import JwInput from "@renderer/components/ui/JwInput.vue";
 import JwCheckbox from "@renderer/components/ui/JwCheckbox.vue";
 import JwSelect from "@renderer/components/ui/JwSelect.vue";
@@ -284,7 +284,7 @@ function finishAfterSweep() {
 <template>
   <PaneHeader :eyebrow="$t('panes.import.eyebrow')" :title="$t('nav.import')" help-key="import-and-export#import">
     <router-link to="/" custom v-slot="{ navigate }">
-      <JwButton intent="ghost" size="small" @click="navigate">Cancel</JwButton>
+      <UiButton intent="ghost" size="small" @click="navigate">Cancel</UiButton>
     </router-link>
   </PaneHeader>
 
@@ -431,10 +431,10 @@ function finishAfterSweep() {
                 <div class="ps-lbl">source</div>
               </div>
             </div>
-            <JwButton intent="ghost" size="small" @click="restart">
+            <UiButton intent="ghost" size="small" @click="restart">
               <Icon name="ChevRight" :size="11" style="transform:rotate(180deg)" />
               Choose a different file
-            </JwButton>
+            </UiButton>
           </div>
 
           <div v-if="warnings.length" class="wiz-warnings">
@@ -458,12 +458,12 @@ function finishAfterSweep() {
               <span class="ch-num">{{ i + 1 }}</span>
               <JwInput class="ch-title" v-model="c.title" :placeholder="`Untitled ${itemLabel}`" :disabled="c.drop" />
               <span class="ch-words">{{ wordCount(c.html).toLocaleString() }} w</span>
-              <JwButton intent="ghost" size="small" class="ch-drop"
+              <UiButton intent="ghost" size="small" class="ch-drop"
                 @click="dropChapter(i)"
                 v-tooltip.bottom="c.drop ? `Keep this ${itemLabel}` : `Drop this ${itemLabel}`">
                 <Icon :name="c.drop ? 'Plus' : 'Trash'" :size="12" />
                 {{ c.drop ? "Keep" : "Drop" }}
-              </JwButton>
+              </UiButton>
               <div class="ch-preview" v-if="!c.drop">{{ preview(c.html) }}</div>
               <div class="ch-preview ch-dropped-msg" v-else>Will not be imported.</div>
             </li>
@@ -479,13 +479,13 @@ function finishAfterSweep() {
         </section>
 
         <section class="wiz-section wiz-actions">
-          <JwButton intent="ghost" @click="restart">Start over</JwButton>
-          <JwButton intent="primary" :disabled="!validChapters.length" @click="ingest">
+          <UiButton intent="ghost" @click="restart">Start over</UiButton>
+          <UiButton intent="primary" :disabled="!validChapters.length" @click="ingest">
             <Icon name="Check" :size="13" />
             {{ intent === "new" ? "Create book"
               : intent === "notes" ? "Import notes"
               : "Import chapters" }}
-          </JwButton>
+          </UiButton>
         </section>
       </div>
     </div>

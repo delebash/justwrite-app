@@ -24,7 +24,7 @@ import Icon from "./Icon.vue";
 import AiTaskStrip from "./AiTaskStrip.vue";
 import AiFeatureChip from "./AiFeatureChip.vue";
 import AppModal from "./AppModal.vue";
-import JwButton from "@renderer/components/ui/JwButton.vue";
+import { UiButton } from "@delebash/llm-ui";
 
 const emit = defineEmits(["close"]);
 
@@ -147,9 +147,9 @@ const ago = (ts) => {
 
     <div v-if="error" class="ro-error">
       <Icon name="Alert" :size="13" /> {{ error }}
-      <JwButton intent="ghost" size="small" @click="run">
+      <UiButton intent="ghost" size="small" @click="run">
         <Icon name="Refresh" :size="12" /> Retry
-      </JwButton>
+      </UiButton>
     </div>
 
     <AiTaskStrip v-if="running" :task="myTask" />
@@ -160,9 +160,9 @@ const ago = (ts) => {
         Read the whole draft and reconstruct the act structure, plot points, and per-chapter
         beats it actually has. Change the provider in the chip above first if you want.
       </p>
-      <JwButton intent="primary" @click="run">
+      <UiButton intent="primary" @click="run">
         <Icon name="Sparkle" :size="13" /> Build reverse outline
-      </JwButton>
+      </UiButton>
     </div>
 
     <template v-else-if="outline">
@@ -219,14 +219,14 @@ const ago = (ts) => {
     </template>
 
     <template #footer>
-      <JwButton v-if="outline && !running" intent="ghost" @click="clearAll">
+      <UiButton v-if="outline && !running" intent="ghost" @click="clearAll">
         Clear outline
-      </JwButton>
+      </UiButton>
       <span class="ro-foot-spacer" />
-      <JwButton v-if="outline && !running" intent="ghost" @click="regenerate">
+      <UiButton v-if="outline && !running" intent="ghost" @click="regenerate">
         <Icon name="Refresh" :size="12" /> Regenerate
-      </JwButton>
-      <JwButton intent="primary" @click="emit('close')">Done</JwButton>
+      </UiButton>
+      <UiButton intent="primary" @click="emit('close')">Done</UiButton>
     </template>
   </AppModal>
 </template>

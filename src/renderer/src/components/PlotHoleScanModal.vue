@@ -19,7 +19,7 @@ import Icon from "./Icon.vue";
 import AiTaskStrip from "./AiTaskStrip.vue";
 import AiFeatureChip from "./AiFeatureChip.vue";
 import AppModal from "./AppModal.vue";
-import JwButton from "@renderer/components/ui/JwButton.vue";
+import { UiButton } from "@delebash/llm-ui";
 import EmptyState from "./EmptyState.vue";
 
 const emit = defineEmits(["close"]);
@@ -185,9 +185,9 @@ const ago = (ts) => {
 
     <div v-if="error" class="ph-error">
       <Icon name="Alert" :size="13" /> {{ error }}
-      <JwButton intent="ghost" size="small" @click="run">
+      <UiButton intent="ghost" size="small" @click="run">
         <Icon name="Refresh" :size="12" /> Retry
-      </JwButton>
+      </UiButton>
     </div>
 
     <AiTaskStrip v-if="running" :task="myTask" />
@@ -198,9 +198,9 @@ const ago = (ts) => {
         Scan the whole book for continuity contradictions, timeline issues, and
         character-knowledge errors. Change the provider in the chip above first if you want.
       </p>
-      <JwButton intent="primary" @click="run">
+      <UiButton intent="primary" @click="run">
         <Icon name="Sparkle" :size="13" /> Scan for plot holes
-      </JwButton>
+      </UiButton>
     </div>
 
     <template v-else-if="audit">
@@ -215,11 +215,11 @@ const ago = (ts) => {
           generated {{ ago(audit.generatedAt) }}
           <template v-if="audit.model"> · via {{ audit.model }}</template>
         </span>
-        <JwButton v-if="dismissedCount" intent="ghost" size="small"
+        <UiButton v-if="dismissedCount" intent="ghost" size="small"
                   @click="showDismissed = !showDismissed"
                   style="margin-left:auto">
           {{ showDismissed ? "Hide dismissed" : "Show dismissed" }}
-        </JwButton>
+        </UiButton>
       </div>
 
       <p v-if="audit.summary" class="ph-summary">{{ audit.summary }}</p>
@@ -263,12 +263,12 @@ const ago = (ts) => {
                 <span class="ph-fix-label">Cheapest fix:</span> {{ f.fix }}
               </p>
               <div class="ph-item-actions">
-                <JwButton v-if="!f.dismissed" intent="ghost" size="small" @click="dismiss(f.id)">
+                <UiButton v-if="!f.dismissed" intent="ghost" size="small" @click="dismiss(f.id)">
                   Dismiss
-                </JwButton>
-                <JwButton v-else intent="ghost" size="small" @click="undismiss(f.id)">
+                </UiButton>
+                <UiButton v-else intent="ghost" size="small" @click="undismiss(f.id)">
                   Undismiss
-                </JwButton>
+                </UiButton>
               </div>
             </li>
           </ul>
@@ -277,14 +277,14 @@ const ago = (ts) => {
     </template>
 
     <template #footer>
-      <JwButton v-if="audit && !running" intent="ghost" @click="clearAll">
+      <UiButton v-if="audit && !running" intent="ghost" @click="clearAll">
         Clear audit
-      </JwButton>
+      </UiButton>
       <span class="ph-foot-spacer" />
-      <JwButton v-if="audit && !running" intent="ghost" @click="regenerate">
+      <UiButton v-if="audit && !running" intent="ghost" @click="regenerate">
         <Icon name="Refresh" :size="12" /> Re-run
-      </JwButton>
-      <JwButton intent="primary" @click="emit('close')">Done</JwButton>
+      </UiButton>
+      <UiButton intent="primary" @click="emit('close')">Done</UiButton>
     </template>
   </AppModal>
 </template>

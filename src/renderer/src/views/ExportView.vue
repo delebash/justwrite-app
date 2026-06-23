@@ -5,7 +5,7 @@ import { useUiStore } from "../stores/ui.js";
 import PaneHeader from "../components/PaneHeader.vue";
 import Icon from "../components/Icon.vue";
 import { buildManuscript, slug } from "../services/export/manuscript.js";
-import JwButton from "@renderer/components/ui/JwButton.vue";
+import { UiButton } from "@delebash/llm-ui";
 import JwCheckbox from "@renderer/components/ui/JwCheckbox.vue";
 import JwInput from "@renderer/components/ui/JwInput.vue";
 import {
@@ -219,11 +219,11 @@ async function exportJustVoice() {
             to cast voices and render. Re-sending creates a new project there.
           </div>
           <div style="display:flex;gap:10px;align-items:center">
-            <JwButton intent="primary" :disabled="exporting || manuscriptStats.chapters === 0"
+            <UiButton intent="primary" :disabled="exporting || manuscriptStats.chapters === 0"
               v-tooltip.bottom="manuscriptStats.chapters === 0 ? 'Add a chapter first' : 'POST the book to the JustVoice server'"
               @click="exportJustVoice()">
               <Icon name="Mic" :size="13" /> Send to JustVoice
-            </JwButton>
+            </UiButton>
             <span class="t-muted" style="font-size:11.5px">
               <template v-if="manuscriptStats.chapters === 0">No chapters yet</template>
               <template v-else>Targets <code>{{ jvUrl || 'http://127.0.0.1:17494' }}</code></template>
@@ -280,11 +280,11 @@ async function exportJustVoice() {
             <template v-else>First-time export downloads JSZip (~80&nbsp;KB) on demand.</template>
           </div>
           <div style="display:flex;gap:10px;align-items:center">
-            <JwButton intent="primary" :disabled="exporting || manuscriptStats.chapters === 0"
+            <UiButton intent="primary" :disabled="exporting || manuscriptStats.chapters === 0"
               v-tooltip.bottom="manuscriptStats.chapters === 0 ? 'Add a chapter first' : `Export as ${FORMATS.find(f => f.id === fmt)?.name}`"
               @click="exportManuscript(fmt)">
               <Icon name="Download" :size="13" /> Export {{ FORMATS.find(f => f.id === fmt)?.name }}
-            </JwButton>
+            </UiButton>
             <span class="t-muted" style="font-size:11.5px">
               <template v-if="manuscriptStats.chapters === 0">No chapters yet</template>
               <template v-else>Saves as <code>{{ slug(project.project.title) }}.{{ FORMATS.find(f => f.id === fmt)?.ext }}</code></template>

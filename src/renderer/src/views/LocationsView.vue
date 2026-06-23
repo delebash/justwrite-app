@@ -5,7 +5,7 @@ import { useUiStore } from "../stores/ui.js";
 import { useRouter } from "vue-router";
 import Icon from "../components/Icon.vue";
 import JwInput from "@renderer/components/ui/JwInput.vue";
-import JwButton from "@renderer/components/ui/JwButton.vue";
+import { UiButton } from "@delebash/llm-ui";
 import JwTag from "@renderer/components/ui/JwTag.vue";
 import JwTable from "@renderer/components/ui/JwTable.vue";
 import JwCheckbox from "@renderer/components/ui/JwCheckbox.vue";
@@ -140,12 +140,12 @@ function onRowClick(event) {
   <!-- ── List mode (no id in URL) ─────────────────────────────── -->
   <template v-if="!loc && !id">
     <PaneHeader :eyebrow="$t('panes.locations.eyebrow')" :title="$t('nav.locations')" help-key="story-bible#locations">
-      <JwButton intent="ghost" size="small" @click="sweepOpen = true" v-tooltip.bottom="'Scan the manuscript for new characters, locations, and objects'">
+      <UiButton intent="ghost" size="small" @click="sweepOpen = true" v-tooltip.bottom="'Scan the manuscript for new characters, locations, and objects'">
         <Icon name="Sparkle" :size="13" /> Find new entities
-      </JwButton>
-      <JwButton label="New location" intent="primary" size="small" @click="addLocation">
+      </UiButton>
+      <UiButton label="New location" intent="primary" size="small" @click="addLocation">
         <template #icon><Icon name="Plus" :size="14" /></template>
-      </JwButton>
+      </UiButton>
     </PaneHeader>
 
     <!-- Empty state -->
@@ -153,7 +153,7 @@ function onRowClick(event) {
       <div class="t-muted" style="text-align:center;max-width:420px">
         <div style="font-size:14px;color:var(--ink);margin-bottom:6px">No locations yet.</div>
         <div style="font-size:12.5px;margin-bottom:14px">Places where your scenes happen — linkable from chapters and tracked across the Plot Board.</div>
-        <JwButton intent="primary" @click="addLocation"><Icon name="Plus" :size="14" /> Create your first location</JwButton>
+        <UiButton intent="primary" @click="addLocation"><Icon name="Plus" :size="14" /> Create your first location</UiButton>
       </div>
     </div>
 
@@ -177,7 +177,7 @@ function onRowClick(event) {
               class="loc-search-input"
             />
           </span>
-          <JwButton v-if="globalQuery || hasActiveFacets" label="Clear filters" intent="ghost" size="small" @click="clearAllFilters" />
+          <UiButton v-if="globalQuery || hasActiveFacets" label="Clear filters" intent="ghost" size="small" @click="clearAllFilters" />
           <span class="loc-count">{{ filteredRows.length }} of {{ rows.length }}</span>
         </div>
 
@@ -262,17 +262,17 @@ function onRowClick(event) {
           @input="update('name', $event.target.value)" />
       </div>
       <div class="pane-actions">
-        <JwButton intent="ghost" size="small" data-chat-toggle @click="askTheBook"
+        <UiButton intent="ghost" size="small" data-chat-toggle @click="askTheBook"
           v-tooltip.bottom="`Ask the book about ${loc.name}`">
           <Icon name="Chat" :size="14" /> Ask the book
-        </JwButton>
-        <JwButton intent="ghost" size="small" @click="modal = 'images'"><Icon name="Image" :size="14" /> Images</JwButton>
+        </UiButton>
+        <UiButton intent="ghost" size="small" @click="modal = 'images'"><Icon name="Image" :size="14" /> Images</UiButton>
         <router-link :to="`/locations/${loc.id}/events`" custom v-slot="{ navigate }">
-          <JwButton intent="ghost" size="small" @click="navigate"><Icon name="Calendar" :size="14" /> Events</JwButton>
+          <UiButton intent="ghost" size="small" @click="navigate"><Icon name="Calendar" :size="14" /> Events</UiButton>
         </router-link>
-        <JwButton intent="ghost" size="small" @click="modal = 'groups'"><Icon name="GroupIcon" :size="14" /> Groups</JwButton>
-        <JwButton intent="ghost" size="small" @click="deleteLocation">Delete</JwButton>
-        <JwButton intent="primary" size="small" @click="addLocation"><Icon name="Plus" :size="14" /> New location</JwButton>
+        <UiButton intent="ghost" size="small" @click="modal = 'groups'"><Icon name="GroupIcon" :size="14" /> Groups</UiButton>
+        <UiButton intent="ghost" size="small" @click="deleteLocation">Delete</UiButton>
+        <UiButton intent="primary" size="small" @click="addLocation"><Icon name="Plus" :size="14" /> New location</UiButton>
         <StatusSelect :model-value="loc.status || ''" @update:model-value="(v) => update('status', v)" />
       </div>
     </header>
@@ -331,13 +331,13 @@ function onRowClick(event) {
         <h1 class="pane-h1">Location not found</h1>
       </div>
       <div class="pane-actions">
-        <JwButton intent="primary" size="small" @click="addLocation"><Icon name="Plus" :size="14" /> New location</JwButton>
+        <UiButton intent="primary" size="small" @click="addLocation"><Icon name="Plus" :size="14" /> New location</UiButton>
       </div>
     </header>
     <div class="pane-card" style="display:grid;place-items:center;padding:60px">
       <div class="t-muted" style="text-align:center">
         This location no longer exists.<br />
-        <JwButton intent="ghost" style="margin-top:14px" @click="router.push('/locations')">Back to locations</JwButton>
+        <UiButton intent="ghost" style="margin-top:14px" @click="router.push('/locations')">Back to locations</UiButton>
       </div>
     </div>
   </template>

@@ -20,7 +20,7 @@ import Icon from "./Icon.vue";
 import AiTaskStrip from "./AiTaskStrip.vue";
 import AiFeatureChip from "./AiFeatureChip.vue";
 import AppModal from "./AppModal.vue";
-import JwButton from "@renderer/components/ui/JwButton.vue";
+import { UiButton } from "@delebash/llm-ui";
 
 const props = defineProps({
   chapterId: { type: String, required: true },
@@ -163,9 +163,9 @@ const SEVERITY_META = {
       </div>
       <div class="ck-header-actions">
         <AiFeatureChip feature="critique" label="Critique" />
-        <JwButton v-if="critique" intent="ghost" size="small" @click="clearAll">
+        <UiButton v-if="critique" intent="ghost" size="small" @click="clearAll">
           <Icon name="Trash" :size="12" /> Clear
-        </JwButton>
+        </UiButton>
       </div>
     </template>
 
@@ -182,11 +182,11 @@ const SEVERITY_META = {
     <section class="ck-section">
       <header>
         <h3>Structure</h3>
-        <JwButton intent="ghost" size="small" :disabled="runningStruct" @click="runStruct"
+        <UiButton intent="ghost" size="small" :disabled="runningStruct" @click="runStruct"
           v-tooltip.bottom="'Score tension, hook, pacing, and ending — one LLM call'">
           <Icon name="Refresh" :size="12" />
           {{ structure ? "Re-analyze" : (runningStruct ? "Analyzing…" : "Analyze") }}
-        </JwButton>
+        </UiButton>
       </header>
       <p class="ck-section-desc">
         Scores the chapter as a whole — tension (rising stakes), hook strength (opening pull),
@@ -224,11 +224,11 @@ const SEVERITY_META = {
     <section class="ck-section">
       <header>
         <h3>Notes</h3>
-        <JwButton intent="ghost" size="small" :disabled="runningNotes" @click="runNotes"
+        <UiButton intent="ghost" size="small" :disabled="runningNotes" @click="runNotes"
           v-tooltip.bottom="'Generate line-level editorial notes — one LLM call'">
           <Icon name="Refresh" :size="12" />
           {{ notes.length ? "Re-run notes" : (runningNotes ? "Drafting notes…" : "Run notes") }}
-        </JwButton>
+        </UiButton>
       </header>
       <p class="ck-section-desc">
         Line-level editor notes across categories like pacing, voice, dialogue, POV, and clarity —

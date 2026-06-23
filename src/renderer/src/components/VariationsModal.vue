@@ -18,7 +18,7 @@ import { useAiTasksStore } from "../stores/aiTasks.js";
 import Icon from "./Icon.vue";
 import AiFeatureChip from "./AiFeatureChip.vue";
 import AppModal from "./AppModal.vue";
-import JwButton from "@renderer/components/ui/JwButton.vue";
+import { UiButton } from "@delebash/llm-ui";
 
 const props = defineProps({
   // Runner contract:
@@ -181,22 +181,22 @@ onBeforeUnmount(cancelAll);
             {{ elapsedSeconds(col) }}s
           </span>
           <span v-else-if="col.error.value" class="va-progress-text">
-            <JwButton intent="ghost" size="small" @click="regenerateColumn(col)">
+            <UiButton intent="ghost" size="small" @click="regenerateColumn(col)">
               <Icon name="Refresh" :size="11" /> Retry
-            </JwButton>
+            </UiButton>
           </span>
           <span v-else-if="col.result.value" class="va-progress-text">
-            <JwButton intent="ghost" size="small" @click="regenerateColumn(col)"
+            <UiButton intent="ghost" size="small" @click="regenerateColumn(col)"
                       v-tooltip.bottom="'Discard this and re-stream just this column'">
               <Icon name="Refresh" :size="11" /> Re-stream
-            </JwButton>
+            </UiButton>
           </span>
           <span class="va-spacer" />
-          <JwButton intent="primary" size="small"
+          <UiButton intent="primary" size="small"
                     :disabled="!col.result.value"
                     @click="useColumn(col)">
             <Icon name="Check" :size="12" /> Use this
-          </JwButton>
+          </UiButton>
         </footer>
       </article>
     </div>
@@ -206,9 +206,9 @@ onBeforeUnmount(cancelAll);
         {{ cols.filter(c => colRunning(c)).length }} of 3 still streaming
       </span>
       <span class="va-foot-spacer" />
-      <JwButton intent="ghost" @click="close">
+      <UiButton intent="ghost" @click="close">
         Cancel all
-      </JwButton>
+      </UiButton>
     </template>
   </AppModal>
 </template>

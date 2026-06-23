@@ -6,7 +6,7 @@ import { useUiStore } from "../stores/ui.js";
 import RichEditor from "../components/RichEditor.vue";
 import { EDITOR_TOOLBAR_DOC } from "../services/editorToolbars.js";
 import Icon from "../components/Icon.vue";
-import JwButton from "@renderer/components/ui/JwButton.vue";
+import { UiButton } from "@delebash/llm-ui";
 import JwTag from "@renderer/components/ui/JwTag.vue";
 import JwTable from "@renderer/components/ui/JwTable.vue";
 import StatusSelect from "../components/StatusSelect.vue";
@@ -108,11 +108,11 @@ function onRowClick(event) {
           :value="doc.title" @input="update('title', $event.target.value)" />
       </div>
       <div class="pane-actions">
-        <JwButton intent="ghost" size="small" data-chat-toggle @click="askTheBook"
+        <UiButton intent="ghost" size="small" data-chat-toggle @click="askTheBook"
           v-tooltip.bottom="`Ask the book about ${doc.title}`">
           <Icon name="Chat" :size="14" /> Ask the book
-        </JwButton>
-        <JwButton v-if="doc.id === 'setting'" intent="ghost" size="small" @click="openEvents"><Icon name="Calendar" :size="14" /> Events</JwButton>
+        </UiButton>
+        <UiButton v-if="doc.id === 'setting'" intent="ghost" size="small" @click="openEvents"><Icon name="Calendar" :size="14" /> Events</UiButton>
         <StatusSelect :model-value="doc.status || ''" @update:model-value="(v) => update('status', v)" />
       </div>
     </header>
@@ -153,7 +153,7 @@ function onRowClick(event) {
     <div class="pane-card" style="display:grid;place-items:center;padding:60px">
       <div class="t-muted" style="text-align:center">
         This architecture document no longer exists.<br />
-        <JwButton intent="ghost" style="margin-top:14px" @click="router.push('/architecture')">Back to architecture</JwButton>
+        <UiButton intent="ghost" style="margin-top:14px" @click="router.push('/architecture')">Back to architecture</UiButton>
       </div>
     </div>
   </template>

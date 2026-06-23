@@ -8,7 +8,7 @@ import { useUiStore } from "../stores/ui.js";
 import { loadDoc } from "../services/helpDocs.js";
 import { renderHelpMarkdown } from "../services/helpMarkdown.js";
 import AppModal from "./AppModal.vue";
-import JwButton from "./ui/JwButton.vue";
+import { UiButton } from "@delebash/llm-ui";
 import Icon from "./Icon.vue";
 
 const ui = useUiStore();
@@ -39,10 +39,10 @@ function openInDrawer() {
     <div class="cheatsheet-body" v-html="renderedHtml" />
 
     <template #footer>
-      <JwButton intent="ghost" size="small" @click="openInDrawer">
+      <UiButton intent="ghost" size="small" @click="openInDrawer">
         <template #icon><Icon name="Book" :size="13" /></template>
         Open in help drawer
-      </JwButton>
+      </UiButton>
     </template>
   </AppModal>
 </template>

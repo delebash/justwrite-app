@@ -20,7 +20,7 @@ import {
   DialogClose,
 } from "reka-ui";
 import Icon from "./Icon.vue";
-import JwButton from "@renderer/components/ui/JwButton.vue";
+import { UiButton } from "@delebash/llm-ui";
 import JwInput from "@renderer/components/ui/JwInput.vue";
 import JwSelect from "@renderer/components/ui/JwSelect.vue";
 
@@ -206,8 +206,8 @@ function onEnter(e, isLastField) {
         </div>
 
         <footer class="app-modal-footer">
-          <JwButton :label="dialog?.cancelLabel || $t('dialog.cancelLabel')" intent="ghost" @click="cancel" />
-          <JwButton
+          <UiButton :label="dialog?.cancelLabel || $t('dialog.cancelLabel')" intent="ghost" @click="cancel" />
+          <UiButton
             :label="dialog?.confirmLabel || $t('dialog.okLabel')"
             :intent="dialog?.danger ? 'danger' : 'primary'"
             :disabled="!canSubmit"

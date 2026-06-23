@@ -3,7 +3,7 @@ import { computed, ref } from "vue";
 import { useProjectStore } from "../stores/project.js";
 import Icon from "./Icon.vue";
 import AppModal from "./AppModal.vue";
-import JwButton from "@renderer/components/ui/JwButton.vue";
+import { UiButton } from "@delebash/llm-ui";
 import JwInput from "@renderer/components/ui/JwInput.vue";
 import JwTextarea from "@renderer/components/ui/JwTextarea.vue";
 
@@ -29,9 +29,9 @@ function addEvent() {
       <JwInput class="input" v-model="draftWhen" placeholder="When (e.g. Ch. 7, age 9)" />
       <JwInput class="input" v-model="draftTitle" placeholder="Event title" @keydown.enter="addEvent" />
       <JwTextarea class="input" v-model="draftNote" placeholder="Notes (optional)" :rows="2" />
-      <JwButton intent="primary" :disabled="!draftTitle.trim()" @click="addEvent">
+      <UiButton intent="primary" :disabled="!draftTitle.trim()" @click="addEvent">
         <Icon name="Plus" :size="12" /> Add event
-      </JwButton>
+      </UiButton>
     </div>
     <div v-if="events.length === 0" class="t-muted" style="font-size:12.5px;text-align:center;padding:24px 0">
       No events yet.
@@ -47,7 +47,7 @@ function addEvent() {
           <JwTextarea class="input" :value="ev.note" :rows="2" placeholder="Notes…"
             @input="project.updateEvent(entityId, ev.id, { note: $event.target.value })" />
         </div>
-        <JwButton intent="ghost" size="small" aria-label="Remove event" v-tooltip.bottom="'Remove event'" @click="project.removeEvent(entityId, ev.id)">×</JwButton>
+        <UiButton intent="ghost" size="small" aria-label="Remove event" v-tooltip.bottom="'Remove event'" @click="project.removeEvent(entityId, ev.id)">×</UiButton>
       </div>
     </div>
   </AppModal>

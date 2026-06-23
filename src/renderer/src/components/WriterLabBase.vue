@@ -12,7 +12,7 @@ import { computed, watch } from "vue";
 import { useProjectStore } from "../stores/project.js";
 import Icon from "./Icon.vue";
 import { ACTION_GROUPS, stripHtml, countWords } from "../services/writerLab.js";
-import JwButton from "@renderer/components/ui/JwButton.vue";
+import { UiButton } from "@delebash/llm-ui";
 import JwTextarea from "@renderer/components/ui/JwTextarea.vue";
 import JwSelect from "@renderer/components/ui/JwSelect.vue";
 
@@ -104,9 +104,9 @@ function togglePreview(e) {
         :model-value="modelValue.loadedChapterId"
         @update:model-value="(v) => loadChapter(v)"
         :options="[{ label: 'Load chapter…', value: '' }, ...project.allChapters.map(ch => ({ label: `Ch. ${ch.num} — ${ch.title}`, value: ch.id }))]" />
-      <JwButton intent="secondary" size="small" @click="clearInput" :disabled="!modelValue.inputText">
+      <UiButton intent="secondary" size="small" @click="clearInput" :disabled="!modelValue.inputText">
         <Icon name="Close" :size="12" /> Clear
-      </JwButton>
+      </UiButton>
       <span class="t-muted" style="font-size:11.5px;margin-left:auto">
         Paste prose or load a chapter.
       </span>

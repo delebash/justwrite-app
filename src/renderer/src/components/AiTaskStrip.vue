@@ -22,7 +22,7 @@
 import { computed } from "vue";
 import { useAiTasksStore } from "../stores/aiTasks.js";
 import Icon from "./Icon.vue";
-import JwButton from "@renderer/components/ui/JwButton.vue";
+import { UiButton } from "@delebash/llm-ui";
 
 const props = defineProps({
   // The task object (from aiTasks.runningTasks) to display, or null when
@@ -92,13 +92,13 @@ function openPanel() { tasks.openPanel(); }
     <slot name="extra-stats" :task="task" />
 
     <span class="sts-spacer" />
-    <JwButton intent="ghost" size="small" data-ai-status-toggle @click="openPanel" v-tooltip.bottom="'Open full status panel'">
+    <UiButton intent="ghost" size="small" data-ai-status-toggle @click="openPanel" v-tooltip.bottom="'Open full status panel'">
       Details
-    </JwButton>
-    <JwButton intent="danger" size="small" @click="onCancel">
+    </UiButton>
+    <UiButton intent="danger" size="small" @click="onCancel">
       <template #icon><Icon name="Close" :size="11" /></template>
       Cancel
-    </JwButton>
+    </UiButton>
   </div>
 </template>
 

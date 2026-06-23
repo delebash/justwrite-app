@@ -24,7 +24,7 @@ import Icon from "./Icon.vue";
 import AppModal from "./AppModal.vue";
 import StatusRow from "./StatusRow.vue";
 import EmptyState from "./EmptyState.vue";
-import JwButton from "@renderer/components/ui/JwButton.vue";
+import { UiButton } from "@delebash/llm-ui";
 
 const emit = defineEmits(["close"]);
 
@@ -249,12 +249,12 @@ const pinnedCount = computed(() => Object.values(pinStatus.value).filter((v) => 
           All <span class="fs-chip-n">{{ proposals.length }}</span>
         </button>
         <span class="fs-filters-spacer" />
-        <JwButton v-if="filter === 'dangling' && danglingCount" intent="ghost" size="small"
+        <UiButton v-if="filter === 'dangling' && danglingCount" intent="ghost" size="small"
                   :disabled="dangling.every(p => pinStatus[p.id])"
                   @click="pinAllDangling"
                   v-tooltip.bottom="'Drop Loose-thread markers on every dangling proposal at once'">
           <Icon name="Pin" :size="12" /> Pin all dangling
-        </JwButton>
+        </UiButton>
       </div>
 
       <div class="fs-groups">
@@ -281,12 +281,12 @@ const pinnedCount = computed(() => Object.values(pinStatus.value).filter((v) => 
               <p class="fs-thread-snippet">"{{ t.snippet }}"</p>
               <p v-if="t.label" class="fs-thread-label">{{ t.label }}</p>
               <div class="fs-thread-actions">
-                <JwButton v-if="!pinStatus[t.id]" intent="ghost" size="small"
+                <UiButton v-if="!pinStatus[t.id]" intent="ghost" size="small"
                           :disabled="!t.locatable"
                           @click="pinThread(t)"
                           v-tooltip.bottom="t.locatable ? 'Drop a Loose-thread marker on this phrase' : 'Snippet not found in current prose'">
                   <Icon name="Pin" :size="12" /> Pin
-                </JwButton>
+                </UiButton>
                 <span v-else-if="pinStatus[t.id] === 'added'" class="fs-pinned">
                   <Icon name="Check" :size="12" /> Pinned
                 </span>
@@ -301,10 +301,10 @@ const pinnedCount = computed(() => Object.values(pinStatus.value).filter((v) => 
     <template #footer>
       <span v-if="pinnedCount" class="t-muted">{{ pinnedCount }} pinned</span>
       <span class="fs-foot-spacer" />
-      <JwButton intent="ghost" @click="runScan">
+      <UiButton intent="ghost" @click="runScan">
         <Icon name="Refresh" :size="12" /> Re-scan
-      </JwButton>
-      <JwButton intent="primary" @click="emit('close')">Done</JwButton>
+      </UiButton>
+      <UiButton intent="primary" @click="emit('close')">Done</UiButton>
     </template>
   </AppModal>
 
@@ -323,9 +323,9 @@ const pinnedCount = computed(() => Object.values(pinStatus.value).filter((v) => 
       </div>
       <div class="fs-header-actions">
         <AiFeatureChip feature="foreshadowing" label="Foreshadowing" />
-        <JwButton v-if="running" intent="ghost" size="small" @click="cancelScan">
+        <UiButton v-if="running" intent="ghost" size="small" @click="cancelScan">
           <Icon name="Close" :size="12" /> Cancel
-        </JwButton>
+        </UiButton>
       </div>
     </template>
 
@@ -347,9 +347,9 @@ const pinnedCount = computed(() => Object.values(pinStatus.value).filter((v) => 
         Scan every chapter for setups that may not have paid off.
         Change the provider in the chip above first if you want.
       </p>
-      <JwButton intent="primary" @click="runScan">
+      <UiButton intent="primary" @click="runScan">
         <Icon name="Sparkle" :size="13" /> Scan for dangling threads
-      </JwButton>
+      </UiButton>
     </div>
 
     <template v-else>

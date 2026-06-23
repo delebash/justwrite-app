@@ -12,7 +12,7 @@ import { useUiStore } from "../stores/ui.js";
 import Icon from "./Icon.vue";
 import AppModal from "./AppModal.vue";
 import EmptyState from "./EmptyState.vue";
-import JwButton from "@renderer/components/ui/JwButton.vue";
+import { UiButton } from "@delebash/llm-ui";
 import JwCheckbox from "@renderer/components/ui/JwCheckbox.vue";
 
 const props = defineProps({
@@ -144,11 +144,11 @@ function originTitle(originChapters) {
     <template #footer>
       <span class="t-muted">{{ totalSelected }} of {{ totalProposed }} selected</span>
       <span style="flex:1"></span>
-      <JwButton intent="ghost" @click="emit('close')">Cancel</JwButton>
-      <JwButton intent="primary" :disabled="totalSelected === 0" @click="commit">
+      <UiButton intent="ghost" @click="emit('close')">Cancel</UiButton>
+      <UiButton intent="primary" :disabled="totalSelected === 0" @click="commit">
         <Icon name="Check" :size="13" />
         Add {{ totalSelected }} to story bible
-      </JwButton>
+      </UiButton>
     </template>
   </AppModal>
 </template>

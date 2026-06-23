@@ -18,7 +18,7 @@ import AiFeatureChip from "./AiFeatureChip.vue";
 import Icon from "./Icon.vue";
 import AppModal from "./AppModal.vue";
 import StatusRow from "./StatusRow.vue";
-import JwButton from "@renderer/components/ui/JwButton.vue";
+import { UiButton } from "@delebash/llm-ui";
 
 const props = defineProps({
   // Optional: limit the sweep to specific chapter ids (Set or array).
@@ -160,9 +160,9 @@ function onReviewCommitted(payload) {
       </div>
       <div class="sweep-header-actions">
         <AiFeatureChip feature="entitySweep" label="Entity sweep" />
-        <JwButton v-if="running" intent="ghost" size="small" @click="cancelSweep">
+        <UiButton v-if="running" intent="ghost" size="small" @click="cancelSweep">
           <Icon name="Close" :size="12" /> Cancel
-        </JwButton>
+        </UiButton>
       </div>
     </template>
 
@@ -184,9 +184,9 @@ function onReviewCommitted(payload) {
         Scan every chapter for new characters, locations, and objects. Change the provider
         in the chip above first if you want.
       </p>
-      <JwButton intent="primary" @click="runSweep">
+      <UiButton intent="primary" @click="runSweep">
         <Icon name="Sparkle" :size="13" /> Scan the manuscript
-      </JwButton>
+      </UiButton>
     </div>
 
     <div v-else class="sweep-list">
@@ -225,7 +225,7 @@ function onReviewCommitted(payload) {
   text-align: center;
 }
 /* Direct child only — without `>`, this also matched the first child of
-   the JwButton's label span (which IS the slot content), recoloring the
+   the UiButton's label span (which IS the slot content), recoloring the
    button text to the same accent as the button background → invisible
    text. The intent is to color just the big Sparkle icon at the top. */
 .sweep-empty > :first-child { color: var(--accent); }

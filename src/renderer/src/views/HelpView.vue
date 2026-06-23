@@ -3,7 +3,7 @@ import { computed, ref, watch, onMounted, nextTick } from "vue";
 import { useRouter, useRoute } from "vue-router";
 import PaneHeader from "../components/PaneHeader.vue";
 import Icon from "../components/Icon.vue";
-import JwButton from "@renderer/components/ui/JwButton.vue";
+import { UiButton } from "@delebash/llm-ui";
 import {
   HELP_TOC,
   loadDoc,
@@ -71,10 +71,10 @@ onMounted(() => {
 <template>
   <div class="help-page">
     <PaneHeader :title="docTitle" :eyebrow="$t('panes.help.eyebrow')">
-      <JwButton intent="secondary" size="small" @click="openOnWeb">
+      <UiButton intent="secondary" size="small" @click="openOnWeb">
         <template #icon><Icon name="ExternalLink" :size="14" /></template>
         Open on the web
-      </JwButton>
+      </UiButton>
     </PaneHeader>
 
     <div class="help-body">

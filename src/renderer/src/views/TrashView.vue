@@ -6,7 +6,7 @@ import { useUiStore } from "../stores/ui.js";
 import PaneHeader from "../components/PaneHeader.vue";
 import Icon from "../components/Icon.vue";
 import { confirmDialog } from "../services/dialog.js";
-import JwButton from "@renderer/components/ui/JwButton.vue";
+import { UiButton } from "@delebash/llm-ui";
 import JwTable from "@renderer/components/ui/JwTable.vue";
 
 const project = useProjectStore();
@@ -128,9 +128,9 @@ const trashColumns = [
     <span class="t-muted" style="font-size:12px">
       {{ totalCount }} item{{ totalCount === 1 ? "" : "s" }}
     </span>
-    <JwButton v-if="totalCount" intent="ghost" @click="emptyAll">
+    <UiButton v-if="totalCount" intent="ghost" @click="emptyAll">
       <Icon name="Trash" :size="13" /> Empty trash
-    </JwButton>
+    </UiButton>
   </PaneHeader>
 
   <div class="pane-card">
@@ -184,12 +184,12 @@ const trashColumns = [
           </template>
           <template #actions="{ row }">
             <div style="display:flex;gap:6px;justify-content:flex-end">
-              <JwButton label="Restore" intent="primary" size="small" @click="restore(s.kind, row.id)">
+              <UiButton label="Restore" intent="primary" size="small" @click="restore(s.kind, row.id)">
                 <template #icon><Icon name="Refresh" :size="11" /></template>
-              </JwButton>
-              <JwButton intent="ghost" size="small" aria-label="Permanently delete" v-tooltip.bottom="'Permanently delete'" @click="purge(s.kind, row.id, titleOf(s.kind, row))">
+              </UiButton>
+              <UiButton intent="ghost" size="small" aria-label="Permanently delete" v-tooltip.bottom="'Permanently delete'" @click="purge(s.kind, row.id, titleOf(s.kind, row))">
                 <template #icon><Icon name="Trash" :size="11" /></template>
-              </JwButton>
+              </UiButton>
             </div>
           </template>
         </JwTable>

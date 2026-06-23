@@ -15,7 +15,7 @@ import { NEW_ENTITY_META } from "../services/entityMeta.js";
 import JwTable from "@renderer/components/ui/JwTable.vue";
 import JwInput from "@renderer/components/ui/JwInput.vue";
 import JwTag from "@renderer/components/ui/JwTag.vue";
-import JwButton from "@renderer/components/ui/JwButton.vue";
+import { UiButton } from "@delebash/llm-ui";
 import JwTextarea from "@renderer/components/ui/JwTextarea.vue";
 import JwCheckbox from "@renderer/components/ui/JwCheckbox.vue";
 
@@ -170,16 +170,16 @@ function onRowClick(event) {
 <template>
   <template v-if="!article">
     <PaneHeader :eyebrow="$t('panes.worldbuilding.eyebrow')" :title="$t('nav.worldbuilding')" help-key="worldbuilding#worldbuilding">
-      <JwButton label="New article" intent="primary" size="small" @click="addArticle">
+      <UiButton label="New article" intent="primary" size="small" @click="addArticle">
         <template #icon><Icon name="Plus" :size="14" /></template>
-      </JwButton>
+      </UiButton>
     </PaneHeader>
     <!-- Empty state -->
     <div v-if="project.worldbuilding.length === 0" class="pane-card" style="display:grid;place-items:center;padding:60px">
       <div class="t-muted" style="text-align:center;max-width:420px">
         <div style="font-size:14px;color:var(--ink);margin-bottom:6px">No worldbuilding articles yet.</div>
         <div style="font-size:12.5px;margin-bottom:14px">Long-form articles for lore, magic systems, cultures — anything you'd put in an appendix. AI features pull relevant articles as story-world context.</div>
-        <JwButton intent="primary" @click="addArticle"><Icon name="Plus" :size="14" /> Create your first article</JwButton>
+        <UiButton intent="primary" @click="addArticle"><Icon name="Plus" :size="14" /> Create your first article</UiButton>
       </div>
     </div>
 
@@ -204,7 +204,7 @@ function onRowClick(event) {
               class="wb-search-input"
             />
           </span>
-          <JwButton v-if="globalQuery || hasActiveFacets" label="Clear filters" intent="ghost" size="small" @click="clearAllFilters" />
+          <UiButton v-if="globalQuery || hasActiveFacets" label="Clear filters" intent="ghost" size="small" @click="clearAllFilters" />
           <span class="wb-count">{{ filteredRows.length }} of {{ rows.length }}</span>
         </div>
 
@@ -295,17 +295,17 @@ function onRowClick(event) {
           :value="article.title" @input="update('title', $event.target.value)" />
       </div>
       <div class="pane-actions">
-        <JwButton intent="ghost" size="small" data-chat-toggle @click="askTheBook"
+        <UiButton intent="ghost" size="small" data-chat-toggle @click="askTheBook"
           v-tooltip.bottom="`Ask the book about ${article.title}`">
           <Icon name="Chat" :size="14" /> Ask the book
-        </JwButton>
-        <JwButton label="Back" intent="ghost" size="small" @click="router.push('/worldbuilding')">
+        </UiButton>
+        <UiButton label="Back" intent="ghost" size="small" @click="router.push('/worldbuilding')">
           <template #icon><Icon name="ChevRight" :size="12" style="transform:rotate(180deg)" /></template>
-        </JwButton>
-        <JwButton label="Delete" intent="ghost" size="small" @click="deleteArticle" />
-        <JwButton label="New article" intent="primary" size="small" @click="addArticle">
+        </UiButton>
+        <UiButton label="Delete" intent="ghost" size="small" @click="deleteArticle" />
+        <UiButton label="New article" intent="primary" size="small" @click="addArticle">
           <template #icon><Icon name="Plus" :size="14" /></template>
-        </JwButton>
+        </UiButton>
         <StatusSelect :model-value="article.status || ''" @update:model-value="(v) => update('status', v)" />
       </div>
     </header>

@@ -1,6 +1,6 @@
 <script setup>
 // Custom tag chip — replaces PrimeVue Tag. Same single-intent API as
-// JwButton (no separate severity/variant axes). Renders as <span> so it
+// UiButton (no separate severity/variant axes). Renders as <span> so it
 // composes inside any text or row. Visual rules in tokens.css under
 // the "JwTag" section.
 

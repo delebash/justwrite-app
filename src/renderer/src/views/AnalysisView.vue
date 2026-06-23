@@ -24,7 +24,7 @@ import { useAiStore } from "../stores/ai.js";
 import { useAiTasksStore } from "../stores/aiTasks.js";
 import JwTable from "@renderer/components/ui/JwTable.vue";
 import JwSegmented from "@renderer/components/ui/JwSegmented.vue";
-import JwButton from "@renderer/components/ui/JwButton.vue";
+import { UiButton } from "@delebash/llm-ui";
 
 const project = useProjectStore();
 const sessions = useSessionsStore();
@@ -709,45 +709,45 @@ const milestoneState = computed(() => {
           <span v-if="analysedTensionRows.length" class="st-pill">
             {{ analysedTensionRows.length }} of {{ tensionRows.length }} chapters analysed
           </span>
-          <JwButton v-if="!tensionRunning.value" intent="ghost" size="small"
+          <UiButton v-if="!tensionRunning.value" intent="ghost" size="small"
                     :disabled="!unanalysedCount && analysedTensionRows.length"
                     @click="runTensionSweep(false)"
                     v-tooltip.bottom="unanalysedCount ? `Analyse ${unanalysedCount} chapter${unanalysedCount === 1 ? '' : 's'} that don't yet have a structural pass` : 'All chapters already analysed'">
             <Icon name="Sparkle" :size="12" />
             {{ unanalysedCount ? `Analyse ${unanalysedCount} chapter${unanalysedCount === 1 ? '' : 's'}` : 'All analysed' }}
-          </JwButton>
-          <JwButton v-if="!tensionRunning.value && analysedTensionRows.length" intent="ghost" size="small"
+          </UiButton>
+          <UiButton v-if="!tensionRunning.value && analysedTensionRows.length" intent="ghost" size="small"
                     @click="runTensionSweep(true)"
                     v-tooltip.bottom="'Re-run on every chapter, replacing prior results'">
             <Icon name="Refresh" :size="12" /> Re-analyse all
-          </JwButton>
-          <JwButton v-if="!tensionRunning.value" intent="ghost" size="small"
+          </UiButton>
+          <UiButton v-if="!tensionRunning.value" intent="ghost" size="small"
                     @click="openReverseOutline"
                     v-tooltip.bottom="'Read the whole draft and produce the act structure the book actually has'">
             <Icon name="Book" :size="12" />
             {{ hasReverseOutline ? 'View reverse outline' : 'Reverse outline' }}
-          </JwButton>
-          <JwButton v-if="!tensionRunning.value" intent="ghost" size="small"
+          </UiButton>
+          <UiButton v-if="!tensionRunning.value" intent="ghost" size="small"
                     @click="openBeatSheet"
                     v-tooltip.bottom="'Map the draft to Save the Cat, Heros Journey, or 7-Point Story Structure'">
             <Icon name="Target" :size="12" />
             {{ hasAnyBeatSheet ? 'View beat sheet' : 'Map to beat sheet' }}
-          </JwButton>
-          <JwButton v-if="!tensionRunning.value" intent="ghost" size="small"
+          </UiButton>
+          <UiButton v-if="!tensionRunning.value" intent="ghost" size="small"
                     @click="openPlotHoles"
                     v-tooltip.bottom="'One-pass continuity audit for contradictions, timeline drift, character-knowledge errors'">
             <Icon name="Alert" :size="12" />
             {{ hasPlotHoles ? `Plot holes (${plotHolesActiveCount})` : 'Plot-hole audit' }}
-          </JwButton>
-          <JwButton v-if="!tensionRunning.value" intent="ghost" size="small"
+          </UiButton>
+          <UiButton v-if="!tensionRunning.value" intent="ghost" size="small"
                     @click="openMarketingPack"
                     v-tooltip.bottom="'Logline, back-cover blurbs, synopsis, and elevator pitch for querying and pitching'">
             <Icon name="Export" :size="12" />
             {{ hasMarketingPack ? 'View marketing pack' : 'Marketing pack' }}
-          </JwButton>
-          <JwButton v-else-if="tensionRunning.value" intent="danger" size="small" @click="cancelTensionSweep">
+          </UiButton>
+          <UiButton v-else-if="tensionRunning.value" intent="danger" size="small" @click="cancelTensionSweep">
             <Icon name="Close" :size="12" /> Cancel
-          </JwButton>
+          </UiButton>
         </span>
       </div>
 
@@ -907,13 +907,13 @@ const milestoneState = computed(() => {
               </button>
               <span class="vd-hot-count">{{ hc.outlierCount }} outlier metrics</span>
             </div>
-            <JwButton intent="ghost" size="small"
+            <UiButton intent="ghost" size="small"
                       :disabled="driftExplainingId && driftExplainingId !== hc.chapterId"
                       @click="explainHot(hc.chapterId)"
                       v-tooltip.bottom="'Ask your LLM why this chapter\'s metrics are out of range'">
               <Icon name="Sparkle" :size="12" />
               {{ driftExplanations[hc.chapterId]?.text ? 'Hide' : driftExplanations[hc.chapterId]?.running ? 'Diagnosing…' : 'Explain' }}
-            </JwButton>
+            </UiButton>
             <div v-if="driftExplanations[hc.chapterId]" class="vd-hot-explain">
               <p v-if="driftExplanations[hc.chapterId].error" class="vd-hot-err">
                 <Icon name="Alert" :size="12" /> {{ driftExplanations[hc.chapterId].error }}
