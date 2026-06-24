@@ -98,6 +98,34 @@ try {
   console.log(`${ok ? "✓" : "✗"} boot${" ".repeat(16)}chars=${bootChars} errors=${errors.length - mark}`);
   errors.slice(mark, mark + 5).forEach((e) => console.log("    " + e));
 
+  // ── App-shell structure guard (the keep-alike discipline shared with
+  // JustVoice; see the global app standard "App shell structure"). Asserts the
+  // shell fills the viewport (height:100% chain, not 100vh) and the rail is
+  // full-height with the rail itself NOT scrolling (a fixed-region + scroll-
+  // middle sidebar) — the regressions that bit JustVoice on 2026-06-24.
+  {
+    const s = await page.evaluate(() => {
+      const stage = document.querySelector(".app-stage");
+      const body = document.querySelector(".app");
+      const rail = document.querySelector(".sidebar");
+      if (!stage || !body || !rail) return { missing: true };
+      return {
+        stageH: Math.round(stage.getBoundingClientRect().height), vh: window.innerHeight,
+        railH: rail.clientHeight, bodyH: body.clientHeight,
+        railSelfScroll: rail.scrollHeight - rail.clientHeight,
+      };
+    });
+    const problems = [];
+    if (s.missing) problems.push(".app-stage / .app / .sidebar missing");
+    else {
+      if (Math.abs(s.stageH - s.vh) > 2) problems.push(`shell ${s.stageH}px != viewport ${s.vh}px (dead space — use a height:100% chain, not 100vh)`);
+      if (Math.abs(s.railH - s.bodyH) > 2) problems.push(`rail ${s.railH}px != body ${s.bodyH}px (rail not full-height — nav would jump between views)`);
+      if (s.railSelfScroll > 2) problems.push(`rail itself scrolls by ${s.railSelfScroll}px (use fixed top + scroll middle + fixed bottom)`);
+    }
+    if (problems.length) { failed++; console.log("✗ shell-structure   " + problems.join(" | ")); }
+    else console.log("✓ shell-structure   fills viewport · rail full-height · single scroller");
+  }
+
   for (const route of ROUTES) {
     mark = errors.length;
     try {
