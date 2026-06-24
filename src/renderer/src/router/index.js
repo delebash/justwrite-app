@@ -76,14 +76,11 @@ const routes = [
   { path: "/settings/:section?", name: "Settings",      component: () => import("../views/SettingsView.vue"), props: true },
   { path: "/help/:slug?",       name: "Help",          component: () => import("../views/HelpView.vue"), props: true },
 
-  { path: "/writer-lab",          name: "WriterLab",      component: () => import("../views/WriterLabView.vue") },
   // The SHARED @delebash/llm-ui "AI / Models" area (Providers & models · Features
-  // · Usage) — same view JustVoice mounts; appName passed as a static prop.
+  // · Usage) — same view JustVoice mounts; appName passed as a static prop. The
+  // Features tab now absorbs per-feature prompt editing + a test panel, so the
+  // standalone Writer Lab + Feature prompts views were removed (2026-06-24).
   { path: "/ai",                  name: "Ai",             component: () => import("../views/AiView.vue") },
-  // The per-feature prompt editor: the SHARED @delebash/llm-ui PromptLab wrapped
-  // in JW's page chrome (PaneHeader + .pane-card + .scrollarea) so it scrolls and
-  // gets the standard page margins — same boundary as AiView.
-  { path: "/ai-prompts",          name: "AiPrompts",      component: () => import("../views/AiPromptsView.vue") },
 
   // Hidden dev/debug routes — no sidebar entry. Reach via direct hash URL.
   { path: "/debug/writer-lab",   name: "WriterLabDebug", component: () => import("../views/WriterLabDebugView.vue") },

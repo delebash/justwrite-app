@@ -63,7 +63,7 @@ const NAV_ITEMS = [
   { id: "nav:analysis", label: "Analysis",             sublabel: "Pace, style, heatmap",icon: "Chart",      to: "/analysis" },
   { id: "nav:import",   label: "Import",               sublabel: "DOCX / EPUB / TXT",   icon: "Plus",       to: "/import" },
   { id: "nav:export",   label: "Export",               sublabel: "PDF / DOCX / EPUB",   icon: "Export",     to: "/export" },
-  { id: "nav:writerlab",label: "Writer Lab",           sublabel: "AI playground",       icon: "Sparkle",    to: "/writer-lab" },
+  { id: "nav:ai",       label: "AI Settings",          sublabel: "Providers · features · usage", icon: "Sparkle", to: "/ai" },
   { id: "nav:trash",    label: "Trash",                sublabel: "Restore deleted",     icon: "Trash",      to: "/trash" },
   { id: "nav:settings", label: "Settings",             sublabel: "Preferences",         icon: "Settings",   to: "/settings" },
   { id: "nav:usage",    label: "AI usage",             sublabel: "Tokens + cost ledger",icon: "Chart",      to: "/settings/usage" },

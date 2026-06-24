@@ -830,3 +830,37 @@ The corrections realign it to Decisions 1-20 — **no new decisions needed.**
 plan), **RULE #7** (re-litigated settled convergence; copy-paste duplicates vs
 shared extraction), **RULE #8** (per-app duplicate modules), **no-hardcoding**
 (prompts hardcoded before the DB move).
+
+---
+
+## Addendum — AI ▸ Features UX pass (2026-06-24)
+
+Resolves the two DRIFT items above and adds one decision. Live state + backlog +
+the JV transfer checklist live in `MORNING_RECAP.md` (06-24 section); this is the
+durable design record.
+
+- **Decision 21 — Canonical naming = POINT-OF-USE.** A feature/action's name in
+  the Features tab must match what the user sees where they invoke it in the app
+  (the button/menu/modal label). Where multiple point-of-use names exist, converge
+  them to ONE and rename every surface. Source of truth: `feature_catalog.py`
+  per-feature `label` + per-action `label` in `seed_feature_prompts.py`
+  (`_ACTION_LABELS`). Examples: line edits drop "Rule"; critique → Notes +
+  Structure; chat → Ask the book; sensory → Research feel.
+- **DRIFT resolved — `AiPromptsView`/`/ai-prompts` + Writer Lab.** The shared
+  `FeatureWorkbench` (Features tab) now owns per-feature prompt editing **and** a
+  test-on-real-input panel, so it supersedes BOTH the standalone PromptLab editor
+  and the Writer Lab run surface. `/ai-prompts` (`AiPromptsView`) and `/writer-lab`
+  (`WriterLabView`) were deleted; `/debug/writer-lab` (multi-model compare) stays.
+- **Shared contract grew (backward-compatible):** `FeatureCatalogEntry.category`
+  (nav group) in `routing_api.py`; `FeaturePromptRow.label` (canonical action
+  name) in `prompts.py`. Both default `""` — non-consumers (JV today) unaffected.
+- **Nav shape:** category → (feature sub-header) → action cards, indented; a
+  per-group **Set-all** route picker (merged onto the category header when the
+  category is a single multi-action feature). Editor inherit option = plain
+  "Inherit default"; role options = "Quick role"/"Accuracy role".
+
+**Still open (backlog, see recap):** remove the preset "save box" + add per-feature
+settings/flags; QuickSetup rethink (card/VRAM chooser + recommendation; JV has TTS
++ LLM); Model-roles → JV card look (descriptions + "used for", shared); App
+Settings → horizontal menu + common sections. **JV transfer checklist** is in the
+recap's 06-24 section.

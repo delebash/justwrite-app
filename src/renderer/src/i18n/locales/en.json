@@ -88,10 +88,6 @@
     "worldbuilding": {
       "eyebrow": "Story world"
     },
-    "writerLab": {
-      "eyebrow": "Tools",
-      "title": "Writer Lab"
-    },
     "writerLabDebug": {
       "eyebrow": "Debug",
       "title": "Writer Lab — model compare"
@@ -122,9 +118,7 @@
       "brainstorm": "Brainstorm",
       "markers": "Markers",
       "relations": "Relations",
-      "writerLab": "Writer Lab",
       "readerKnowledge": "Reader knowledge",
-      "featurePrompts": "Feature prompts",
       "ai": "AI Settings",
       "help": "Help"
     },

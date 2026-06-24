@@ -7,7 +7,65 @@
 
 ---
 
-## ⮕ ACTIVE WORK — read first (2026-06-21)
+## ⮕ ACTIVE WORK — read first (2026-06-24)
+
+**AI ▸ Features UX pass (JW, on `claude/admiring-galileo-il3q0o`).** The shared
+`FeatureWorkbench` (AI Settings ▸ Features) is now the ONE AI config + test
+surface — it absorbed per-feature prompt editing **and** a test-on-real-input
+panel, so the standalone **Writer Lab** (`/writer-lab`) and **Feature prompts**
+(`/ai-prompts`) views were DELETED (views + router + sidebar + command-palette +
+i18n). The dev compare tool at `/debug/writer-lab` stays (multi-model compare,
+reachable via Settings).
+
+**Shipped this pass (committed):**
+- **Canonical naming = POINT-OF-USE (user law, 2026-06-24):** a feature's name in
+  Features must match what the user sees where they use it. Line edits dropped the
+  "Rule" prefix; critique actions = **Notes** + **Structure**; chat = **Ask the
+  book**; sensory = **Research feel**; voiceDrift = **Voice drift**; beatSheet =
+  **Beat sheet**. Driven by `feature_catalog.py` (per-feature `label` + new
+  `category`) + per-action `label` in `seed_feature_prompts.py` (`_ACTION_LABELS`).
+- **Category-grouped nav** with progressive indentation + restored **Set-all**
+  provider/model picker per group. A category that is ONE multi-action feature
+  "merges" (Set-all sits on the category header: Writing, Analysis, Multi-reader
+  panel); multi-feature categories put Set-all on each multi-action feature. Nav
+  widened to 480px; cards stretch (no `width:100%`+margin clipping); left rails.
+- **Shared contract additions (backward-compatible, default ""):**
+  `FeatureCatalogEntry.category` (routing_api) + `FeaturePromptRow.label`
+  (prompts). JW added the `label` column + migration rebuild + store mapping.
+- **Editor picker:** inherit option = plain **"Inherit default"** (dropped the
+  redundant "· role"); role options = "Quick role"/"Accuracy role". Role pickers
+  aligned (fixed chip column). `LuModelPicker` = non-wrapping 2-col grid.
+- **Entity sweep:** ONE name everywhere (the 3 story-bible buttons + modal + the
+  Features card) + a discoverable button on the Analysis dashboard AI-tools row.
+- **Nav rename:** Settings → **App Settings**, AI → **AI Settings**.
+
+**Backlog (user-requested this session — NOT yet built):**
+- **Editor settings/flags:** remove the preset "save box"; add the real per-feature
+  settings/flags each feature needs (research the feature code to enumerate).
+- **QuickSetup rethink:** it doesn't let you choose anything (system-set). Want a
+  popup to choose card/VRAM size with a recommendation (LuModelCatalog/fit). JW
+  LLM first; JV has TWO (TTS + LLM) to reconcile later.
+- **Model roles → JV card look:** richer per-role cards (speed blurb + "used for:
+  <features>" derived from the catalog + trade-off note), keep our LuModelPicker,
+  full width. Same concept both apps → shared component.
+- **App Settings → horizontal menu** like JV + audit common sections each app
+  should have (General · GPU · Logs · Changelog · About · …). Converge the
+  settings shell across JW + JV.
+
+**JV TRANSFER CHECKLIST (when JV adopts the shared AI GUI — make the changes
+correctly):** JV currently runs a PARALLEL, older AI stack and is NOT on
+`FeatureWorkbench`/`AiModelsArea`. To transfer: (1) migrate JV's `/v1/feature-pins`
++ its locally-defined `FeatureCatalogEntry` (tier-based) onto the shared
+`/v1/ai/routing` + `feature_catalog.py` (role-based); (2) JV supplies its own
+catalog values — `category` per feature + per-action `label` (point-of-use names
+for Compose/Rewrite/Analyze/Smart-assign/etc.); (3) align JV's point-of-use
+surfaces to those names; (4) the shared `ProviderForm` needs a TTS capability
+section before JV can drop its forked `ProviderForm.vue`; (5) JV has TWO
+QuickSetups (TTS + LLM) to reconcile with the shared one.
+
+---
+
+## Prior thread — shared AI/LLM stack convergence (2026-06-21)
 
 **Current thread: the shared AI/LLM stack convergence.** JustWrite is the
 **focus app** — build the shared GUI in service of JW first; JustVoice adopts the
@@ -56,7 +114,8 @@ shape AI artifacts; the heterogeneous settings `ui` doc) — and must be flagged
 - JW server adopted the shared prompt subsystem (its per-app duplicates deleted);
   feature prompts are DB-seeded + Lab-editable via `/v1/ai/prompts` + `/v1/ai/run`
   + `/v1/ai/stream`.
-- `PromptLab` mounted at JW `/ai-prompts` — screenshot-verified, native render.
+- ~~`PromptLab` mounted at JW `/ai-prompts`~~ → **REMOVED 2026-06-24** — per-feature
+  prompt editing was absorbed into the Features workbench (see the 06-24 section).
 
 **The A–F plan (JustWrite):**
 - A ✅ shared prompt subsystem → `llm_runner`. B ✅ JW server adopts it.

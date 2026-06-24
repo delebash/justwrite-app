@@ -31,7 +31,7 @@ FEATURE_CATALOG: list[FeatureCatalogEntry] = [
     FeatureCatalogEntry("brainstorm", "Brainstorm", "The Brainstorm view — name / title / freeform idea generation with thumbs-up steering.", "quick", "Drafting tools"),
     # ── Analysis — per-chapter passes ──
     FeatureCatalogEntry("critique", "Critique", "The Critique modal — line-level Notes (flags / suggestions / observations) and the Structure pass (tension, hook, pacing, ending).", "accuracy", "Analysis"),
-    FeatureCatalogEntry("multiReader", "Multi-reader panel", "Four reader personas (genre reader / literary critic / agent intern / book-club reader) react to a chapter in parallel.", "accuracy", "Analysis"),
+    FeatureCatalogEntry("multiReader", "Multi-reader panel", "Four reader personas (genre reader / literary critic / agent intern / book-club reader) react to a chapter in parallel.", "accuracy", "Multi-reader panel"),
     # ── Whole book — draft-wide scans ──
     FeatureCatalogEntry("plotHoles", "Plot-hole audit", "Whole-book continuity scan for contradictions, timeline issues, and character-knowledge errors.", "accuracy", "Whole book"),
     FeatureCatalogEntry("reverseOutline", "Reverse outline", "Reads the whole draft and produces the act structure the book actually has — plot points, act breaks, per-chapter beats.", "accuracy", "Whole book"),

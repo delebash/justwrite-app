@@ -969,18 +969,8 @@ _ACTION_LABELS: dict[str, str] = {
 }
 # Sub-section labels clustering a multi-action feature's actions in the nav
 # (writerAI's "Prose actions" / "Line edits" already carry `group` above).
-_ACTION_SUBGROUPS: dict[str, str] = {
-    "multiReaderGenre": "Multi-reader panel",
-    "multiReaderLiterary": "Multi-reader panel",
-    "multiReaderAgent": "Multi-reader panel",
-    "multiReaderBookClub": "Multi-reader panel",
-    "brainstorm": "Brainstorm",
-    "brainstormPlot": "Brainstorm",
-}
 for _k, _lbl in _ACTION_LABELS.items():
     _ACTION_META.setdefault(_k, {})["label"] = _lbl
-for _k, _grp in _ACTION_SUBGROUPS.items():
-    _ACTION_META.setdefault(_k, {})["group"] = _grp
 
 for _key, _meta in _ACTION_META.items():
     if _key in DEFAULT_FEATURE_PROMPTS:
