@@ -10,7 +10,7 @@ import EntitySweepModal from "../components/EntitySweepModal.vue";
 import { UiButton } from "@delebash/llm-ui";
 import { UiInput } from "@delebash/llm-ui";
 import { UiCheckbox } from "@delebash/llm-ui";
-import JwSelect from "@renderer/components/ui/JwSelect.vue";
+import { UiSelect } from "@delebash/llm-ui";
 
 const NEW_PART = "__new__";
 
@@ -36,7 +36,7 @@ const itemLabelPlural = computed(() => intent.value === "notes" ? "notes" : "cha
 
 // "notes" intent options — applied to every imported note.
 const notesTag = ref("note");
-// notesAnchor encodes the same scheme as NotesView's JwSelect:
+// notesAnchor encodes the same scheme as NotesView's UiSelect:
 //   ""                       → story-wide (null)
 //   "ch:<id>"                → { chapterId }
 //   "scn:<chId>:<sceneId>"   → { chapterId, sceneId }
@@ -352,7 +352,7 @@ function finishAfterSweep() {
           <h2 class="wiz-h">Where should the chapters land?</h2>
           <div class="opt-row">
             <span class="opt-label">Add to part</span>
-            <JwSelect class="part-input"
+            <UiSelect class="part-input"
               v-model="partChoice"
               :options="partOptions"
               placeholder="Choose a part" />
@@ -377,7 +377,7 @@ function finishAfterSweep() {
           </div>
           <div class="opt-row">
             <span class="opt-label">Pin to</span>
-            <JwSelect class="part-input"
+            <UiSelect class="part-input"
               v-model="notesAnchor"
               :options="notesAnchorOptions"
               placeholder="Story-wide" />

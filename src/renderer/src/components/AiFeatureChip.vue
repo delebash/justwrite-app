@@ -24,7 +24,7 @@ import { ref, computed, onMounted, onBeforeUnmount, nextTick } from "vue";
 import { useAiStore } from "../stores/ai.js";
 import { useModelList } from "../composables/useModelList.js";
 import { Icon } from "@delebash/llm-ui";
-import JwSelect from "@renderer/components/ui/JwSelect.vue";
+import { UiSelect } from "@delebash/llm-ui";
 
 const props = defineProps({
   feature: { type: String, required: true },
@@ -173,7 +173,7 @@ onBeforeUnmount(() => {
 
       <div class="afc-pop-row">
         <label class="afc-pop-label">Provider</label>
-        <JwSelect
+        <UiSelect
           :model-value="pinnedProviderId"
           @update:model-value="setProvider"
           :options="providerOptions" />
@@ -182,7 +182,7 @@ onBeforeUnmount(() => {
       <div class="afc-pop-row">
         <label class="afc-pop-label">Model</label>
         <span class="afc-pop-model-wrap">
-          <JwSelect
+          <UiSelect
             :model-value="pinnedModel"
             @update:model-value="setModel"
             :options="modelOptions"

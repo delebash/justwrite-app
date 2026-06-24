@@ -14,7 +14,7 @@ import { Icon } from "@delebash/llm-ui";
 import { ACTION_GROUPS, stripHtml, countWords } from "../services/writerLab.js";
 import { UiButton } from "@delebash/llm-ui";
 import { UiTextarea } from "@delebash/llm-ui";
-import JwSelect from "@renderer/components/ui/JwSelect.vue";
+import { UiSelect } from "@delebash/llm-ui";
 
 const props = defineProps({
   modelValue: {
@@ -100,7 +100,7 @@ function togglePreview(e) {
       </div>
     </div>
     <div class="toolbar">
-      <JwSelect class="input sm"
+      <UiSelect class="input sm"
         :model-value="modelValue.loadedChapterId"
         @update:model-value="(v) => loadChapter(v)"
         :options="[{ label: 'Load chapter…', value: '' }, ...project.allChapters.map(ch => ({ label: `Ch. ${ch.num} — ${ch.title}`, value: ch.id }))]" />

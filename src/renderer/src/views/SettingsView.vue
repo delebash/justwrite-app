@@ -15,7 +15,7 @@ import { UiInput } from "@delebash/llm-ui";
 import { UiTextarea } from "@delebash/llm-ui";
 import { UiCheckbox } from "@delebash/llm-ui";
 import JwNumber from "@renderer/components/ui/JwNumber.vue";
-import JwSelect from "@renderer/components/ui/JwSelect.vue";
+import { UiSelect } from "@delebash/llm-ui";
 import { UiButton } from "@delebash/llm-ui";
 import JwColorPicker from "@renderer/components/ui/JwColorPicker.vue";
 import {
@@ -668,7 +668,7 @@ const recentColumns = [
           <div style="display:grid;grid-template-columns:160px minmax(0,1fr);gap:10px 14px;font-size:13px;align-items:center">
             <span class="t-muted" style="align-self:start;padding-top:6px">{{ $t("settings.language.label") }}</span>
             <div style="display:flex;flex-direction:column;gap:6px;min-width:0">
-              <JwSelect
+              <UiSelect
                 style="max-width:240px"
                 :model-value="ui.locale || activeI18nLocale"
                 @update:model-value="onLocaleChange"
@@ -1140,19 +1140,19 @@ const recentColumns = [
           </div>
           <div style="display:flex;gap:18px;flex-wrap:wrap;margin-top:14px">
             <label class="field"><span class="field-l">UI font</span>
-              <JwSelect :model-value="ap.uiFont" @update:model-value="(v) => setAp({ uiFont: v })"
+              <UiSelect :model-value="ap.uiFont" @update:model-value="(v) => setAp({ uiFont: v })"
                 :options="UI_FONTS.map(f => ({ label: f.label, value: f.label }))"
                 optionLabel="label" optionValue="value" />
               <span class="field-hint">Buttons, menus, and labels.</span>
             </label>
             <label class="field"><span class="field-l">Display font</span>
-              <JwSelect :model-value="ap.displayFont" @update:model-value="(v) => setAp({ displayFont: v })"
+              <UiSelect :model-value="ap.displayFont" @update:model-value="(v) => setAp({ displayFont: v })"
                 :options="DISPLAY_FONTS.map(f => ({ label: f.label, value: f.label }))"
                 optionLabel="label" optionValue="value" />
               <span class="field-hint">Page titles, big numbers, serif headings.</span>
             </label>
             <label class="field"><span class="field-l">Editor body font</span>
-              <JwSelect :model-value="ap.editorBodyFont" @update:model-value="(v) => setAp({ editorBodyFont: v })"
+              <UiSelect :model-value="ap.editorBodyFont" @update:model-value="(v) => setAp({ editorBodyFont: v })"
                 :options="DISPLAY_FONTS.map(f => ({ label: f.label, value: f.label }))"
                 optionLabel="label" optionValue="value" />
               <span class="field-hint">Manuscript prose. Per-document choice can override this in the editor's ⚙ Writing settings.</span>

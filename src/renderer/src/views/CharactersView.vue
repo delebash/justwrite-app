@@ -10,7 +10,7 @@ import { UiTextarea } from "@delebash/llm-ui";
 import { UiCheckbox } from "@delebash/llm-ui";
 import JwNumber from "@renderer/components/ui/JwNumber.vue";
 import { UiButton } from "@delebash/llm-ui";
-import JwSelect from "@renderer/components/ui/JwSelect.vue";
+import { UiSelect } from "@delebash/llm-ui";
 import { UiTag } from "@delebash/llm-ui";
 import JwTable from "@renderer/components/ui/JwTable.vue";
 import ImagesModal from "../components/ImagesModal.vue";
@@ -481,7 +481,7 @@ function onRowClick(event) {
                 :model-value="ch.pronouns" @update:model-value="updateField('pronouns', $event)" />
               <JwNumber style="max-width:80px" placeholder="Age" :use-grouping="false"
                 :model-value="ch.age ?? null" @update:model-value="updateField('age', $event ?? null)" />
-              <JwSelect style="max-width:140px"
+              <UiSelect style="max-width:140px"
                 :model-value="ch.lifeStatus || ''"
                 @update:model-value="(v) => updateField('lifeStatus', v)"
                 :options="LIFE_STATUS_OPTIONS"

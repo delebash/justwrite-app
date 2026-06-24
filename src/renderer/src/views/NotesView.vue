@@ -2,7 +2,7 @@
 import { computed, ref, watch } from "vue";
 import { UiInput } from "@delebash/llm-ui";
 import { UiButton } from "@delebash/llm-ui";
-import JwSelect from "@renderer/components/ui/JwSelect.vue";
+import { UiSelect } from "@delebash/llm-ui";
 import { UiTag } from "@delebash/llm-ui";
 import JwTable from "@renderer/components/ui/JwTable.vue";
 import { useProjectStore } from "../stores/project.js";
@@ -342,7 +342,7 @@ function onRowClick(event) {
       <div class="pane-actions">
         <div class="note-anchor-wrap" v-tooltip.bottom="'Pin this note to a chapter or scene — it appears in that chapter\'s Notes panel'">
           <Icon name="Pin" :size="11" class="note-anchor-icon" />
-          <JwSelect class="note-anchor-select"
+          <UiSelect class="note-anchor-select"
             :model-value="anchorValue"
             @update:model-value="anchorValue = $event"
             :options="anchorOptions"

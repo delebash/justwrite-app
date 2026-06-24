@@ -26,7 +26,7 @@ import AiTaskStrip from "./AiTaskStrip.vue";
 import AiFeatureChip from "./AiFeatureChip.vue";
 import { AppModal } from "@delebash/llm-ui";
 import { UiButton } from "@delebash/llm-ui";
-import JwSelect from "@renderer/components/ui/JwSelect.vue";
+import { UiSelect } from "@delebash/llm-ui";
 
 const emit = defineEmits(["close"]);
 
@@ -194,7 +194,7 @@ const TRAJECTORY_COLOURS = {
     <div class="ra-pickers">
       <div class="ra-picker">
         <label>Character A</label>
-        <JwSelect v-model="aId" :options="characterOptions" placeholder="Pick a character" />
+        <UiSelect v-model="aId" :options="characterOptions" placeholder="Pick a character" />
       </div>
       <UiButton intent="ghost" size="small" class="ra-swap" @click="swap"
                 v-tooltip.bottom="'Swap A and B'">
@@ -202,7 +202,7 @@ const TRAJECTORY_COLOURS = {
       </UiButton>
       <div class="ra-picker">
         <label>Character B</label>
-        <JwSelect v-model="bId" :options="characterOptions" placeholder="Pick a character" />
+        <UiSelect v-model="bId" :options="characterOptions" placeholder="Pick a character" />
       </div>
     </div>
 

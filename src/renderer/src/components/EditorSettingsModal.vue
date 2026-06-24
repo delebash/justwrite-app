@@ -9,7 +9,7 @@ import {
 } from "../services/editorSettings.js";
 import { AppModal } from "@delebash/llm-ui";
 import { UiButton } from "@delebash/llm-ui";
-import JwSelect from "@renderer/components/ui/JwSelect.vue";
+import { UiSelect } from "@delebash/llm-ui";
 import { UiSegmented } from "@delebash/llm-ui";
 
 // Options for the segmented controls below. `null` means "follow the
@@ -46,7 +46,7 @@ function back() { emit("close"); }
     <div class="es-body">
       <div class="es-row">
         <span class="es-label">Font</span>
-        <JwSelect class="es-select" v-model="draft.font"
+        <UiSelect class="es-select" v-model="draft.font"
           :options="EDITOR_FONTS.map(f => ({ label: f.label, value: f.label }))" />
       </div>
 

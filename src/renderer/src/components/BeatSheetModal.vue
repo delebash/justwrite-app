@@ -25,7 +25,7 @@ import AiTaskStrip from "./AiTaskStrip.vue";
 import AiFeatureChip from "./AiFeatureChip.vue";
 import { AppModal } from "@delebash/llm-ui";
 import { UiButton } from "@delebash/llm-ui";
-import JwSelect from "@renderer/components/ui/JwSelect.vue";
+import { UiSelect } from "@delebash/llm-ui";
 
 const emit = defineEmits(["close"]);
 
@@ -133,7 +133,7 @@ if (!mapping.value) run();
     <div class="bs-controls">
       <div class="bs-picker">
         <label class="bs-label">Framework</label>
-        <JwSelect
+        <UiSelect
           v-model="selectedTemplate"
           :options="TEMPLATE_OPTIONS"
           option-label="label"

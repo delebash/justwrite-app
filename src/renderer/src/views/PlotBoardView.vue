@@ -891,7 +891,7 @@ function sceneBadge(beat) {
 }
 /* Keyboard focus rings — :focus-visible only, so mouse-clicking a cell
    doesn't leave a permanent ring behind. Matches the accent-soft pattern
-   used elsewhere in the app (inputs, UiButton, JwSelect). */
+   used elsewhere in the app (inputs, UiButton, UiSelect). */
 .beat-cell:focus { outline: none; }
 .beat-cell:focus-visible {
   outline: none;

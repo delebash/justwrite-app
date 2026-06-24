@@ -21,7 +21,7 @@ import { promptDialog, confirmDialog } from "@delebash/llm-ui";
 import { stitchChapter, splitChapter } from "../services/chapterStitch.js";
 import { EDITOR_TOOLBAR_FULL } from "../services/editorToolbars.js";
 import { UiButton } from "@delebash/llm-ui";
-import JwSelect from "@renderer/components/ui/JwSelect.vue";
+import { UiSelect } from "@delebash/llm-ui";
 import { UiSegmented } from "@delebash/llm-ui";
 
 const props = defineProps({
@@ -836,7 +836,7 @@ watch(() => project.allChapters.map((c) => `${c.id}:${(project.scenesFor(c.id) |
               </span>
               <div class="ol-row-actions">
                 <label v-if="project.parts.length > 1" class="ol-move-to" @click.stop>
-                  <JwSelect class="ol-move-select"
+                  <UiSelect class="ol-move-select"
                     :model-value="part.id"
                     @update:model-value="(v) => moveChapterPart(c.id, v)"
                     :options="project.parts.map(p => ({ label: `Move to: ${p.title}`, value: p.id }))"

@@ -2,7 +2,7 @@
 import { ref, computed } from "vue";
 import PaneHeader from "../components/PaneHeader.vue";
 import { UiButton } from "@delebash/llm-ui";
-import JwSelect from "@renderer/components/ui/JwSelect.vue";
+import { UiSelect } from "@delebash/llm-ui";
 import { UiTextarea } from "@delebash/llm-ui";
 import { useUiStore } from "../stores/ui.js";
 import { useAiTasksStore } from "../stores/aiTasks.js";
@@ -199,7 +199,7 @@ function clear() {
       </p>
       <div class="brainstorm-field">
         <label class="brainstorm-label">Category</label>
-        <JwSelect
+        <UiSelect
           v-model="category"
           :options="CATEGORIES"
           placeholder="Pick a category…"

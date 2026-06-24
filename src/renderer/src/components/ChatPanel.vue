@@ -26,7 +26,7 @@ import { HelpTrigger } from "@delebash/llm-ui";
 import { Icon } from "@delebash/llm-ui";
 import { UiButton } from "@delebash/llm-ui";
 import { UiTextarea } from "@delebash/llm-ui";
-import JwSelect from "@renderer/components/ui/JwSelect.vue";
+import { UiSelect } from "@delebash/llm-ui";
 import { useModelList } from "../composables/useModelList.js";
 
 // One thread per (project, mode, character) combo, persisted server-side
@@ -396,8 +396,8 @@ defineExpose({ open: () => { open.value = true; }, close });
            in character mode. Switching either resets the thread to the
            one persisted under that (mode, character) combo. -->
       <div class="cp-mode-row">
-        <JwSelect v-model="chatMode" :options="MODE_OPTIONS" />
-        <JwSelect v-if="chatMode === 'character'"
+        <UiSelect v-model="chatMode" :options="MODE_OPTIONS" />
+        <UiSelect v-if="chatMode === 'character'"
                   v-model="selectedCharacterId"
                   :options="characterOptions"
                   :placeholder="characterOptions.length ? 'Pick a character' : 'No characters yet'"
@@ -476,9 +476,9 @@ defineExpose({ open: () => { open.value = true; }, close });
         <!-- Question input (pinned to the bottom of the panel) -->
         <div class="cp-input-row">
           <div v-if="showModelPicker" class="cp-model-pick">
-            <JwSelect v-model="chatProviderValue" :options="chatProviderOptions" />
+            <UiSelect v-model="chatProviderValue" :options="chatProviderOptions" />
             <div style="display:flex;align-items:center;gap:4px;min-width:0">
-              <JwSelect
+              <UiSelect
                 style="flex:1;min-width:0"
                 v-model="chatModelValue"
                 :options="chatModelOptions"

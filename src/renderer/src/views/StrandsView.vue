@@ -7,7 +7,7 @@ import PaneHeader from "../components/PaneHeader.vue";
 import { Icon } from "@delebash/llm-ui";
 import { UiButton } from "@delebash/llm-ui";
 import { UiInput } from "@delebash/llm-ui";
-import JwSelect from "@renderer/components/ui/JwSelect.vue";
+import { UiSelect } from "@delebash/llm-ui";
 import { UiTextarea } from "@delebash/llm-ui";
 import { UiTag } from "@delebash/llm-ui";
 import JwTable from "@renderer/components/ui/JwTable.vue";
@@ -427,7 +427,7 @@ const tableRows = computed(() =>
                       placeholder="Note (optional)"
                       @input="updateBeat(b.id, 'note', $event.target.value)" />
                   </div>
-                  <JwSelect class="beat-rechapter"
+                  <UiSelect class="beat-rechapter"
                     :model-value="beatRefValue(b)"
                     v-tooltip.bottom="'Reassign to a different scene'"
                     @update:model-value="(v) => setBeatRef(b.id, v)"
