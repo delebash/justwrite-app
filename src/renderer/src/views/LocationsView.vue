@@ -18,7 +18,7 @@ import GroupsModal from "../components/GroupsModal.vue";
 import TagEditor from "../components/TagEditor.vue";
 import SceneRefList from "../components/SceneRefList.vue";
 import MentionRefList from "../components/MentionRefList.vue";
-import Breadcrumb from "../components/Breadcrumb.vue";
+import { Breadcrumb } from "@delebash/llm-ui";
 import PaneHeader from "../components/PaneHeader.vue";
 import { promptDialog } from "@delebash/llm-ui";
 import { NEW_ENTITY_META } from "../services/entityMeta.js";

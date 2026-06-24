@@ -23,7 +23,7 @@ import AiFeatureChip from "./AiFeatureChip.vue";
 import { Icon } from "@delebash/llm-ui";
 import { AppModal } from "@delebash/llm-ui";
 import StatusRow from "./StatusRow.vue";
-import EmptyState from "./EmptyState.vue";
+import { EmptyState } from "@delebash/llm-ui";
 import { UiButton } from "@delebash/llm-ui";
 
 const emit = defineEmits(["close"]);

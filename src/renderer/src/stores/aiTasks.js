@@ -24,7 +24,7 @@
 
 import { defineStore } from "pinia";
 import { markRaw } from "vue";
-import { pushToast } from "../services/toastBridge.js";
+import { pushToast } from "@delebash/llm-ui";
 
 const HISTORY_LIMIT = 30;
 

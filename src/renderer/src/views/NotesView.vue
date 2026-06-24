@@ -10,7 +10,7 @@ import { useUiStore } from "../stores/ui.js";
 import { useRouter } from "vue-router";
 import { Icon } from "@delebash/llm-ui";
 import RichEditor from "../components/RichEditor.vue";
-import Breadcrumb from "../components/Breadcrumb.vue";
+import { Breadcrumb } from "@delebash/llm-ui";
 import PaneHeader from "../components/PaneHeader.vue";
 import { promptDialog } from "@delebash/llm-ui";
 import { NEW_ENTITY_META } from "../services/entityMeta.js";

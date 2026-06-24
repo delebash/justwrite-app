@@ -11,7 +11,7 @@ import { useProjectStore } from "../stores/project.js";
 import { useUiStore } from "../stores/ui.js";
 import { Icon } from "@delebash/llm-ui";
 import { AppModal } from "@delebash/llm-ui";
-import EmptyState from "./EmptyState.vue";
+import { EmptyState } from "@delebash/llm-ui";
 import { UiButton } from "@delebash/llm-ui";
 import { UiCheckbox } from "@delebash/llm-ui";
 

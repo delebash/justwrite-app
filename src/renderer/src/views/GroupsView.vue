@@ -14,7 +14,7 @@ import RichEditor from "../components/RichEditor.vue";
 import { EDITOR_TOOLBAR_SLIM } from "../services/editorToolbars.js";
 import StatusSelect from "../components/StatusSelect.vue";
 import MentionRefList from "../components/MentionRefList.vue";
-import Breadcrumb from "../components/Breadcrumb.vue";
+import { Breadcrumb } from "@delebash/llm-ui";
 import PaneHeader from "../components/PaneHeader.vue";
 import { promptDialog } from "@delebash/llm-ui";
 import { NEW_ENTITY_META } from "../services/entityMeta.js";

@@ -1239,41 +1239,13 @@ html[data-editor-layout="page"] .rich-editor--manuscript .manuscript-inner.with-
 .jw-number { font-variant-numeric: tabular-nums; }
 
 /* ============================================================
-   JwTooltip — replaces PrimeVue's v-tooltip directive. The
-   element is appended to <body> and positioned with Floating UI
-   via transform. position: fixed keeps it relative to the
-   viewport, matching the floating-ui "fixed" strategy.
-   ============================================================ */
-.jw-tooltip {
-  position: fixed;
-  top: 0; left: 0;
-  background: var(--ink);
-  color: var(--surface);
-  padding: 5px 9px;
-  border-radius: 5px;
-  font: 500 11.5px/1.4 var(--font-ui);
-  pointer-events: none;
-  opacity: 0;
-  z-index: 99999;
-  /* Short tooltips stay on one line (content sets its own width);
-     long ones wrap within max-width so they don't run off the viewport
-     and get clipped by floating-ui's shift middleware. */
-  white-space: normal;
-  max-width: 320px;
-  word-wrap: break-word;
-  box-shadow: var(--shadow-2);
-  transition: opacity .14s;
-}
-.jw-tooltip.is-visible { opacity: 0.96; }
-
-/* ============================================================
    vue-sonner — theme override. Sonner ships its own CSS but
    exposes both per-mode CSS custom properties AND data-attribute
    hooks. We retint via the custom props so theming follows
    tokens.css; visual rhythm (radius, padding, shadow) overrides
    via the data-attr selectors below.
    ============================================================ */
-.jw-toast-host {
+.ui-toaster {
   /* "normal" toast — the default look */
   --normal-bg: var(--ink);
   --normal-text: var(--surface);

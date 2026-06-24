@@ -30,7 +30,7 @@ import { Icon } from "@delebash/llm-ui";
 import AiTaskStrip from "../components/AiTaskStrip.vue";
 import HelpTrigger from "../components/HelpTrigger.vue";
 import AiFeatureChip from "../components/AiFeatureChip.vue";
-import EmptyState from "../components/EmptyState.vue";
+import { EmptyState } from "@delebash/llm-ui";
 import { UiButton } from "@delebash/llm-ui";
 
 const project = useProjectStore();

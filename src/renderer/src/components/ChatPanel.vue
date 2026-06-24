@@ -21,7 +21,7 @@ import { fetchThread, putThread } from "../services/chatApi.js";
 import IndexBuildModal from "./IndexBuildModal.vue";
 import AiTaskStrip from "./AiTaskStrip.vue";
 import AiFeatureChip from "./AiFeatureChip.vue";
-import EmptyState from "./EmptyState.vue";
+import { EmptyState } from "@delebash/llm-ui";
 import HelpTrigger from "./HelpTrigger.vue";
 import { Icon } from "@delebash/llm-ui";
 import { UiButton } from "@delebash/llm-ui";

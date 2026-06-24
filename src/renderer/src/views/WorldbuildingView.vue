@@ -7,7 +7,7 @@ import PaneHeader from "../components/PaneHeader.vue";
 import { Icon } from "@delebash/llm-ui";
 import RichEditor from "../components/RichEditor.vue";
 import StatusSelect from "../components/StatusSelect.vue";
-import Breadcrumb from "../components/Breadcrumb.vue";
+import { Breadcrumb } from "@delebash/llm-ui";
 import TagEditor from "../components/TagEditor.vue";
 import { promptDialog } from "@delebash/llm-ui";
 import { NEW_ENTITY_META } from "../services/entityMeta.js";

@@ -18,7 +18,7 @@ import { scanAiTells, TELL_KINDS } from "../services/analysis/aiTellScanner.js";
 import { Icon } from "@delebash/llm-ui";
 import { AppModal } from "@delebash/llm-ui";
 import { UiButton } from "@delebash/llm-ui";
-import EmptyState from "./EmptyState.vue";
+import { EmptyState } from "@delebash/llm-ui";
 
 const emit = defineEmits(["close"]);
 

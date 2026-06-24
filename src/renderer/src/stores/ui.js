@@ -8,7 +8,7 @@ import { defineStore } from "pinia";
 import { readSetting, writeSetting } from "../services/settings.js";
 import { DEFAULT_EDITOR_SETTINGS } from "../services/editorSettings.js";
 import { DEFAULT_APPEARANCE, migrateAppearance } from "../services/appearance.js";
-import { pushToast, clearToasts } from "../services/toastBridge.js";
+import { pushToast, clearToasts } from "@delebash/llm-ui";
 
 const SECTION = "ui";
 

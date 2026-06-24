@@ -12,7 +12,6 @@ applyAppearance(DEFAULT_APPEARANCE);
 import { createApp } from "vue";
 import { createPinia } from "pinia";
 import App from "./App.vue";
-import ConnectionError from "./components/ConnectionError.vue";
 import router from "./router/index.js";
 import { bootSettings, readSetting } from "./services/settings.js";
 import { hydrateProjects, useProjectStore } from "./stores/project.js";
@@ -22,14 +21,14 @@ import { bootRouting } from "./services/routingBackend.js";
 
 import "./tokens.css";
 import "./styles.css";
-import { tooltipDirective } from "./services/tooltip.js";
+import { tooltipDirective } from "@delebash/llm-ui";
 import { i18n, detectLocale, setLocale as setI18nLocale } from "./i18n/index.js";
 import { startAutoRebuildWatcher } from "./services/rag/autoIndex.js";
 
 // Shared LLM UI (@delebash/llm-ui) — configure its origin-aware client ONCE with
 // the base the app already resolved, so the shared AI views call the same server
 // endpoints the rest of the app does (no per-app data adapter).
-import { configureLlmUi, configureServerApi, checkServer, configureDialog } from "@delebash/llm-ui";
+import { configureLlmUi, configureServerApi, checkServer, configureDialog, ConnectionError } from "@delebash/llm-ui";
 import { SERVER_BASE, resolveBase } from "./services/serverApi.js";
 configureLlmUi({ baseUrl: SERVER_BASE });
 // The shared server transport (request/verbs/safeRequest/...) — JustWrite has no
@@ -46,7 +45,12 @@ configureServerApi({ resolveBase });
   // instead of booting the app (which would render seed/default data and then
   // silently fail to persist). No defaults are loaded without a live backend.
   if (!(await checkServer())) {
-    createApp(ConnectionError).mount("#app");
+    createApp(ConnectionError, {
+      appName: "JustWrite",
+      serverUrl: SERVER_BASE,
+      need: "load and save your work",
+      devHint: "Dev: start it with `npm run server` in the project root, then retry.",
+    }).mount("#app");
     return;
   }
 

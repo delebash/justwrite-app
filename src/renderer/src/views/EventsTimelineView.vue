@@ -4,7 +4,7 @@ import { useRouter } from "vue-router";
 import { useProjectStore } from "../stores/project.js";
 import { EVENTS_KIND_META } from "../services/eventsKind.js";
 import { Icon } from "@delebash/llm-ui";
-import Breadcrumb from "../components/Breadcrumb.vue";
+import { Breadcrumb } from "@delebash/llm-ui";
 import { UiButton } from "@delebash/llm-ui";
 import HelpTrigger from "../components/HelpTrigger.vue";
 

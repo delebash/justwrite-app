@@ -20,7 +20,7 @@ import AiTaskStrip from "./AiTaskStrip.vue";
 import AiFeatureChip from "./AiFeatureChip.vue";
 import { AppModal } from "@delebash/llm-ui";
 import { UiButton } from "@delebash/llm-ui";
-import EmptyState from "./EmptyState.vue";
+import { EmptyState } from "@delebash/llm-ui";
 
 const emit = defineEmits(["close"]);
 

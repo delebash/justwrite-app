@@ -10,7 +10,7 @@ import { UiButton } from "@delebash/llm-ui";
 import { UiTag } from "@delebash/llm-ui";
 import JwTable from "@renderer/components/ui/JwTable.vue";
 import StatusSelect from "../components/StatusSelect.vue";
-import Breadcrumb from "../components/Breadcrumb.vue";
+import { Breadcrumb } from "@delebash/llm-ui";
 import { UiTextarea } from "@delebash/llm-ui";
 import PaneHeader from "../components/PaneHeader.vue";
 

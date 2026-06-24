@@ -65,6 +65,12 @@
   --font-ui:    "Spline Sans", ui-sans-serif, -apple-system, BlinkMacSystemFont, "Helvetica Neue", sans-serif;
   --font-mono:  "Spline Sans Mono", ui-monospace, "SF Mono", Menlo, monospace;
   --font-serif: "Fraunces", "Iowan Old Style", "Palatino Linotype", Georgia, serif;
+  /* Semantic font tokens the shared @delebash/llm-ui shells read (AppModal /
+     AppDialog / EmptyState / HelpDrawer). JustWrite's Fine Press identity uses
+     the serif for headings; body stays the UI sans. (CSS var refs are live, so
+     these track the engine's runtime --font-serif/--font-ui updates.) */
+  --font-display: var(--font-serif);
+  --font-body:    var(--font-ui);
 
   /* Radii --------------------------------------------------- */
   --r-sm: 6px;

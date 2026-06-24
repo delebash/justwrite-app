@@ -16,7 +16,7 @@ import { EDITOR_TOOLBAR_DOC } from "../services/editorToolbars.js";
 import StatusSelect from "../components/StatusSelect.vue";
 import SceneRefList from "../components/SceneRefList.vue";
 import GroupsModal from "../components/GroupsModal.vue";
-import Breadcrumb from "../components/Breadcrumb.vue";
+import { Breadcrumb } from "@delebash/llm-ui";
 import { promptDialog } from "@delebash/llm-ui";
 import { NEW_ENTITY_META } from "../services/entityMeta.js";
 import JwColorPicker from "@renderer/components/ui/JwColorPicker.vue";

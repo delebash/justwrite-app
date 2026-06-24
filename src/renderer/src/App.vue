@@ -7,7 +7,7 @@ import { applyAppearance } from "./services/appearance.js";
 import { applyEditorSettings } from "./services/editorSettings.js";
 import TitleBar from "./components/TitleBar.vue";
 import Sidebar from "./components/Sidebar.vue";
-import Toast from "./components/Toast.vue";
+import { Toast } from "@delebash/llm-ui";
 import { AppDialog } from "@delebash/llm-ui";
 import CommandPalette from "./components/CommandPalette.vue";
 import ProjectReplaceModal from "./components/ProjectReplaceModal.vue";
