@@ -944,6 +944,11 @@ changing a model OR any Plane-1 switch = a stop+respawn reload — see switches 
 run concurrently ONLY columns that differ by Plane-2 only (prompt/temp/json) on the
 same loaded model, or cloud columns (no local spawn). The run scheduler is per
 backend: cloud = parallel, local = a serial queue gated on the runner.
+**Precedent (old JW SpeakerLab, git `32a53b4^`):** its `runAll()` was
+`for (const r of runs) runPipeline(r)` with NO await → all columns fired in
+PARALLEL. That was safe because those columns hit cloud/OpenAI-compat providers
+(no single-local-GPU constraint). So cloud-parallel IS the inherited old behavior;
+the local serial queue is the only new part (the old lab never ran the local runner).
 
 **Testing JV work in JW (temporary scaffold):** JW's catalog has no speaker
 attribution (JV's domain) but the dispatch is shared. Add JV-ish action(s)
