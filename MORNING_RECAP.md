@@ -41,6 +41,14 @@ LLM engine to the GUI + a Compare surface, so models/switches can be tested on r
   **"Low-VRAM mode" toggle = 1-at-a-time opt-in**; idle-TTL unload; keep tiny
   embeddings resident/CPU), **unifying** EngineManager's slots with the runner's
   `--models-max`. Folded into **task #27**.
+  - **Verified 2026-06-24 (don't re-derive):** JV does **NOT** use llama.cpp today —
+    `qwen3_llm/engine.py` uses **transformers** (in-process PyTorch); JV imports the
+    shared `llm_runner.llm` DISPATCH but the llama.cpp **RUNNER** is NOT mounted in JV
+    (that's the pending **U5**). JW+JV are **not** run concurrently (no cross-app VRAM
+    contention). Open Q (decide after report + code re-audit): is TTS+LLM ever truly
+    CONCURRENT, or only sequential (Cast→attribute→render)? If sequential, a simple
+    "unload other kind on load" suffices. Likely an EXTENSION of EngineManager
+    (already does slots/unload/empty_cache) + U5 runner adoption — not a teardown.
 
 **Then continue the build.** Natural path: **#20 per-model tuning UI** (read JV
 `VoiceParamsModal` first — precedent) + **#22/#18 per-action settings/JSON** → **#21
