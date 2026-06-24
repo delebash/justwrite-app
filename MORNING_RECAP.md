@@ -11,13 +11,33 @@
 
 ### ⭐ CURRENT FOCUS — engine switches + all LLM settings, so we can TEST MODELS
 The user wants to move from docs → BUILD: expose everything configurable about the
-LLM engine to the GUI + a Compare surface, so models/switches can be tested on real
-text. **Pick a start from the task list (#19–#25, #11, #18, #22).** Natural path:
-**#19 Plumb `Overrides` through `/v1/llm-runner/load`** (foundation — the endpoint
-takes only `{modelId}` today; `api.py:135`) → **#20 per-model tuning UI** + **#22/#18
-per-action settings/JSON** → **#21 multi-column Compare** + **#24 temp
-speaker_attribution scaffold** (test JV work on the JW book) → **#23 shared AI queue**
-feeds Compare progress. **#11 QuickSetup** can go in parallel.
+LLM engine to the GUI + a Compare surface, so models/switches can be tested on real text.
+
+**STATUS (2026-06-24):**
+- ✅ **#19 DONE** — `Overrides` plumbed through `POST /v1/llm-runner/load`
+  (`LoadRequest` → `Overrides` → `compose_flags` replace-merge → `start_runner`); 98
+  tests pass, ruff clean. Committed (just-llm-runner `e5cecef`).
+- ⏳ **DEEP-RESEARCH WORKFLOW RUNNING** — run `wf_11fa0bf3-5ad` / task `wvx9bjoib`:
+  *"minimize VRAM on a 6–8 GB card while loading/unloading models for different tasks
+  performantly"* (KV-quant, `--n-cpu-moe`, router mode vs per-model spawn vs
+  llama-swap + swap/cold-load latency, warm-vs-cold, embeddings footprint, a concrete
+  model+swap recipe). **User said: HOLD for the report.** Feeds **#27** (router vs
+  spawn architecture), **#11** (QuickSetup recipe), **#20** (tuning-UI defaults). If
+  compacted mid-run: the harness notifies on completion; transcript under
+  `~/.claude/projects/.../subagents/workflows/wf_11fa0bf3-5ad`; resume via the script
+  path in that workflow dir.
+- ⚠️ **CORRECTION (2026-06-24):** llama.cpp HAS router mode (live model swap) — an
+  earlier "swap = restart" claim was wrong (stale prior + shallow research; user
+  caught it). Corrected in the switches doc "Lifecycle (CORRECTED)" + Decision 23.
+  RULE #4 hardened (confidence = trigger; one source ≠ verified) in global CLAUDE.md +
+  the hook reminder (sent to the user's machine).
+
+**Then continue the build.** Natural path: **#20 per-model tuning UI** (read JV
+`VoiceParamsModal` first — precedent) + **#22/#18 per-action settings/JSON** → **#21
+multi-column Compare** (= the Feature editor as a shared `<ConfigColumn>` rendered ×N;
+2-up + horizontal scroll + collapse-nav, Studio-styled) + **#24 temp
+speaker_attribution scaffold** → **#23 shared AI queue**. **#11 QuickSetup** + **#27
+router deep-dive** should wait on the research report.
 
 **Durable docs from this research phase (READ before building the relevant piece):**
 - `just-llm-runner/docs/plans/2026-06-24-llamacpp-switches.md` — every engine switch
