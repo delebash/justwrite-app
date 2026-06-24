@@ -9,6 +9,47 @@
 
 ## ⮕ ACTIVE WORK — read first (2026-06-24)
 
+### ⭐ CURRENT FOCUS — engine switches + all LLM settings, so we can TEST MODELS
+The user wants to move from docs → BUILD: expose everything configurable about the
+LLM engine to the GUI + a Compare surface, so models/switches can be tested on real
+text. **Pick a start from the task list (#19–#25, #11, #18, #22).** Natural path:
+**#19 Plumb `Overrides` through `/v1/llm-runner/load`** (foundation — the endpoint
+takes only `{modelId}` today; `api.py:135`) → **#20 per-model tuning UI** + **#22/#18
+per-action settings/JSON** → **#21 multi-column Compare** + **#24 temp
+speaker_attribution scaffold** (test JV work on the JW book) → **#23 shared AI queue**
+feeds Compare progress. **#11 QuickSetup** can go in parallel.
+
+**Durable docs from this research phase (READ before building the relevant piece):**
+- `just-llm-runner/docs/plans/2026-06-24-llamacpp-switches.md` — every engine switch
+  (what/why/when/which models+features), the verbatim source docker commands, and the
+  **FULL** configurable `llama-server` surface split into **two planes**: load-time
+  engine flags (→ tuning UI / Compare via `Overrides`) vs per-request params
+  (sampling/JSON/reasoning → routing). Cited.
+- `just-llm-runner/docs/plans/2026-06-24-quicksetup-redesign.md` — QuickSetup =
+  **modal popup wizard like JV (LOCKED)**; card/VRAM chooser; editable
+  Default/Quick/Accuracy/Embedding; MoE-aware Fit. Open Qs: "Card" naming, embedding default.
+- `justwrite-app/docs/plans/2026-06-24-local-model-recommendations.md` — model-by-task
+  chart + MoE/offload findings (cited boards, not our testing).
+- `docs/plans/2026-06-20-shared-ai-stack-plan.md` — **Decision 22** (AI queue/progress/
+  cancel is SHARED) + **Decision 23** (testing = multi-column Compare INSIDE Features,
+  not a separate Lab; open fork: full-width vs 2-up).
+- `JustVoice/docs/plans/2026-06-24-audiobook-nlp-competitor-research.md` — Alexandria /
+  audiobook-creator / audiobook-maker / BookNLP2 (committed; **revisit after switches**).
+
+**Key facts that must survive (the "why"):** (1) MoE + `--n-cpu-moe` runs a 35B-A3B on
+a **6 GB** card if RAM ≥ ~24 GB — the budget pick for hard tasks (attribution/extraction).
+(2) Speculative decoding (MTP/ngram) helps **DENSE** models (MTP +40% on dense 27B) but
+**LOSES on the 35B-A3B MoE** in llama.cpp (RTX 3090 benchmark: every spec variant slower
+than baseline) → spec ON for dense, OFF for MoE. (3) **Two config planes:** engine launch
+flags (per-model load) vs per-request sampling/JSON/reasoning (per-action routing) — don't
+conflate.
+
+**Post-compaction safety net installed (2026-06-24):** a global SessionStart hook
+(`/root/.claude/settings.json` → `~/.claude/hooks/inject-recap.sh`) now re-injects the
+HEAD of this recap on every compaction/resume/startup, alongside the existing
+rules-reminder. So work-state reloads automatically. (Persists this session for sure;
+may need re-adding if the container is rebuilt — see chat.)
+
 ### Feature Workbench test panel — now wired to the batch AI system (2026-06-24)
 The Features test "Run" was a bare one-shot `/v1/ai/run` (output + ms only). Now:
 `FeatureWorkbench` takes an optional **`runStream` host-hook** (forwarded by
