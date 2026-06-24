@@ -67,6 +67,14 @@ reachable via Settings).
 - **App Settings common sections (audit):** JW lacks GPU · Logs · Changelog vs JV.
 - **Cleanup:** delete the now-unused `PromptLab.vue`; the routing-presets backend
   endpoints are now UI-less (decide keep vs remove).
+- ✅ **DONE — LuModelPicker fetches provider models** (`/v1/llm-providers/{id}/models`):
+  the model dropdown was a stub ("(provider default)" only); Default LLM / roles /
+  per-action now list the provider's real models. (No live LLM in the dev container,
+  so it shows the saved default there; real providers list models.)
+- **Think-about (design, user 2026-06-24):** consolidate JW's App-Settings
+  **"Writing AI"** section (voice canon · RAG auto-rebuild · 3-variation) INTO the
+  AI Settings area — it's AI-related and AI Settings already hosts the writer
+  features. Ties to per-feature flags: voice-canon / 3-variation as per-action knobs.
 
 **JV TRANSFER CHECKLIST (when JV adopts the shared AI GUI — make the changes
 correctly):** JV currently runs a PARALLEL, older AI stack and is NOT on
