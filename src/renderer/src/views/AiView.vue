@@ -9,19 +9,27 @@ import PaneHeader from "../components/PaneHeader.vue";
 import { AiModelsArea } from "@delebash/llm-ui";
 import WritingAiSettings from "../components/WritingAiSettings.vue";
 import { useAiStore } from "../stores/ai.js";
+import { runAiFeatureStream } from "../services/aiFeature.js";
 
 // The shared AI control writes routing (default LLM/embedding + model + pins)
 // straight to the server. Re-sync the renderer's AI store on the way out so the
 // chat panel + RAG indexer use the just-saved config without a full reload.
 const ai = useAiStore();
 onUnmounted(() => { ai.resyncRouting(); });
+
+// Host runner for the Feature Workbench test panel: streams the action through
+// JW's task system so a test shows live progress + Cancel in the AI tasks strip
+// (the batch list) and reports token usage. Returns { content, usage }.
+function runStream(opts) {
+  return runAiFeatureStream({ ...opts, feature: opts.action, task: { label: `Test · ${opts.action}` } });
+}
 </script>
 
 <template>
   <PaneHeader eyebrow="AI" title="Providers, routing &amp; usage" />
   <div class="pane-card">
     <div class="scrollarea" style="padding: 22px">
-      <AiModelsArea app-tab-label="Writing AI">
+      <AiModelsArea app-tab-label="Writing AI" :run-stream="runStream">
         <template #app-tab><WritingAiSettings /></template>
       </AiModelsArea>
     </div>

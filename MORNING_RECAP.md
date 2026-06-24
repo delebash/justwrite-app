@@ -9,6 +9,20 @@
 
 ## ⮕ ACTIVE WORK — read first (2026-06-24)
 
+### Feature Workbench test panel — now wired to the batch AI system (2026-06-24)
+The Features test "Run" was a bare one-shot `/v1/ai/run` (output + ms only). Now:
+`FeatureWorkbench` takes an optional **`runStream` host-hook** (forwarded by
+`AiModelsArea`); JW's `AiView` passes a wrapper around `runAiFeatureStream`
+(extended to forward the in-editor candidate overrides system/userTemplate/think/
+maxTokens) → the test **streams live, shows word count + token usage, has a
+Cancel button, and registers in JW's AI tasks strip** (the batch list). No hook
+(JV today) → falls back to the one-shot run. **Next:** make the test panel
+**multi-column Compare** (each column = model + switches + prompt; run-all →
+per-column output/words/tps/cost → promote winner) — this is the agreed Lab
+(NOT a separate route) and absorbs the switch-testing (columns differ by
+`n_cpu_moe`/`n_gpu_layers`/`ctx`). Open fork: Compare = full-width mode (rec) vs
+2-up in the editor pane.
+
 ### Platform-settings convergence (NEW thread — authoritative: `docs/plans/2026-06-24-shared-platform-settings.md`)
 
 Most of "App Settings" is **stack infrastructure**, not app content → make it
