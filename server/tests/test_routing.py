@@ -22,7 +22,7 @@ def test_catalog_role_map_matches_feature_catalog():
 def test_get_routing_returns_full_catalog_unpinned(tmp_path):
     c = _c(tmp_path)
     body = c.get("/v1/ai/routing").json()
-    assert body["default"] == {"llmId": "", "model": "", "embeddingId": ""}
+    assert body["default"] == {"llmId": "", "model": "", "embeddingId": "", "embeddingModel": ""}
     feats = {f["key"]: f for f in body["features"]}
     assert set(feats) == {e.key for e in FEATURE_CATALOG}
     assert feats["critique"]["label"] == "Critique"
@@ -33,7 +33,7 @@ def test_get_routing_returns_full_catalog_unpinned(tmp_path):
 def test_put_persists_and_drives_dispatch_config(tmp_path):
     c = _c(tmp_path)
     payload = {
-        "default": {"llmId": "openai", "embeddingId": "openai"},
+        "default": {"llmId": "openai", "embeddingId": "openai", "embeddingModel": "text-embedding-3-small"},
         "quick": {"providerId": "local-llamacpp", "model": "qwen3-4b"},
         "accuracy": {"providerId": "claude", "model": "claude-sonnet-4-6"},
         "pins": {
@@ -45,7 +45,11 @@ def test_put_persists_and_drives_dispatch_config(tmp_path):
     }
     assert c.put("/v1/ai/routing", json=payload).status_code == 200
 
-    feats = {f["key"]: f for f in c.get("/v1/ai/routing").json()["features"]}
+    got = c.get("/v1/ai/routing").json()
+    # The default embedding provider + model round-trip (the Default-embedding picker).
+    assert got["default"]["embeddingId"] == "openai"
+    assert got["default"]["embeddingModel"] == "text-embedding-3-small"
+    feats = {f["key"]: f for f in got["features"]}
     assert feats["critique"]["providerId"] == "openai" and feats["critique"]["model"] == "gpt-4o"
     assert feats["brainstorm"]["role"] == "quick"
     assert feats["chat"]["providerId"] == "" and feats["chat"]["role"] == ""  # dropped

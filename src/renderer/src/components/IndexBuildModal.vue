@@ -74,8 +74,8 @@ async function run() {
     error.value = "No embedding provider configured. Set one in Settings → AI providers.";
     return;
   }
-  if (!provider.embeddingModel) {
-    error.value = `Provider "${provider.name || provider.id}" has no embedding model set. Fill in Settings → AI providers.`;
+  if (!ai.embeddingModelFor(provider)) {
+    error.value = `Provider "${provider.name || provider.id}" has no embedding model set. Set one in AI → Default embedding (or on the provider).`;
     return;
   }
   taskHandle = aiTasks.start({

@@ -34,7 +34,12 @@ def _row_to_config(db, row: RoutingConfigRow) -> RoutingConfig:
         for p in db.query(RoutingPin).filter(RoutingPin.config_id == row.id).all()
     }
     return RoutingConfig(
-        default=RoutingDefaults(llmId=row.default_llm_id, model=row.default_model, embeddingId=row.default_embedding_id),
+        default=RoutingDefaults(
+            llmId=row.default_llm_id,
+            model=row.default_model,
+            embeddingId=row.default_embedding_id,
+            embeddingModel=row.default_embedding_model,
+        ),
         quick=RoleTarget(providerId=row.quick_provider_id, model=row.quick_model),
         accuracy=RoleTarget(providerId=row.accuracy_provider_id, model=row.accuracy_model),
         pins=pins,
@@ -46,6 +51,7 @@ def _apply_config(db, row: RoutingConfigRow, cfg: RoutingConfig) -> None:
     row.default_llm_id = cfg.default.llmId
     row.default_model = cfg.default.model
     row.default_embedding_id = cfg.default.embeddingId
+    row.default_embedding_model = cfg.default.embeddingModel
     row.quick_provider_id = cfg.quick.providerId
     row.quick_model = cfg.quick.model
     row.accuracy_provider_id = cfg.accuracy.providerId

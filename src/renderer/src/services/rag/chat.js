@@ -126,7 +126,7 @@ export async function askManuscript({
     );
   }
 
-  const resolvedEmbedModel = embedModel || resolvedEmbedProvider.embeddingModel || "";
+  const resolvedEmbedModel = embedModel || ai.embeddingModelFor(resolvedEmbedProvider);
 
   // ── 2. Confirm an index exists (server-side) ─────────────────────────────
   const projectId = project.activeProjectId;

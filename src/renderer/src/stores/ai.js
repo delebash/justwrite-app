@@ -106,6 +106,7 @@ function saveRouting(state) {
   routingBackend.putRoutingPrefs({
     defaultLlmId: state.defaultLlmId,
     defaultEmbeddingId: state.defaultEmbeddingId,
+    defaultEmbeddingModel: state.defaultEmbeddingModel,
     featurePins: state.featurePins,
   });
 }
@@ -146,10 +147,12 @@ export const useAiStore = defineStore("ai", {
     return {
       providers: initialProviders(),
       defaultLlmId: routing?.defaultLlmId || "openai-compat-local",
-      // Default provider used for embeddings (RAG indexing + chat).
-      // Same provider can host LLM + embeddings; the model field on the
-      // provider determines which embedding model to call.
+      // Default provider + model used for embeddings (RAG indexing + chat).
+      // The model is the routing override set in AI ▸ Features → Default
+      // embedding (usually typed in — text-embedding-3-small / nomic-embed-text);
+      // empty falls back to the provider's own embeddingModel.
       defaultEmbeddingId: routing?.defaultEmbeddingId || "openai-compat-local",
+      defaultEmbeddingModel: routing?.defaultEmbeddingModel || "",
       // Per-model tier overrides (pinned by the user in Settings or the
       // Speaker Lab). Keyed by bare model id, NOT by provider+model — same
       // model on different Ollama instances should share the same tier
@@ -181,6 +184,18 @@ export const useAiStore = defineStore("ai", {
     providerById: (s) => (id) => s.providers.find((p) => p.id === id),
     llmProvider: (s) => s.providers.find((p) => p.id === s.defaultLlmId) || null,
     embeddingProvider: (s) => s.providers.find((p) => p.id === s.defaultEmbeddingId) || null,
+    // The embedding model for a given provider: the routing override
+    // (defaultEmbeddingModel) when it's the default embedding provider, else that
+    // provider's own embeddingModel. One resolution rule for all RAG callers.
+    embeddingModelFor: (s) => (provider) => {
+      if (!provider) return "";
+      if (provider.id === s.defaultEmbeddingId) return s.defaultEmbeddingModel || provider.embeddingModel || "";
+      return provider.embeddingModel || "";
+    },
+    // The resolved embedding model for the default embedding provider.
+    embeddingModel() {
+      return this.embeddingModelFor(this.embeddingProvider);
+    },
     // Every configured provider is an LLM provider now (providerType picks the
     // adapter; embedding capability is just whether embeddingModel is set).
     llmProviders: (s) => s.providers,
@@ -282,6 +297,19 @@ export const useAiStore = defineStore("ai", {
     setDefaultEmbedding(id) {
       this.defaultEmbeddingId = id;
       saveRouting(this.$state);
+    },
+    // Re-pull routing from the server into the store (+ the routingBackend cache).
+    // The shared AI ▸ Features tab writes routing directly to the server, so after
+    // the user leaves that page this refreshes the default LLM/embedding + model +
+    // pins the renderer-side RAG and chat panel rely on — no full reload needed.
+    async resyncRouting() {
+      await routingBackend.refreshRouting();
+      const r = routingBackend.getRoutingPrefs();
+      if (!r) return;
+      this.defaultLlmId = r.defaultLlmId || this.defaultLlmId;
+      this.defaultEmbeddingId = r.defaultEmbeddingId || this.defaultEmbeddingId;
+      this.defaultEmbeddingModel = r.defaultEmbeddingModel || "";
+      this.featurePins = r.featurePins ?? this.featurePins;
     },
     setAutoRebuildRagIndex(on) {
       this.autoRebuildRagIndex = !!on;

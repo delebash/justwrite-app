@@ -563,6 +563,7 @@ class RoutingConfigRow(Base):
     default_llm_id = Column(String, nullable=False, default="")
     default_model = Column(String, nullable=False, default="")
     default_embedding_id = Column(String, nullable=False, default="")
+    default_embedding_model = Column(String, nullable=False, default="")
     quick_provider_id = Column(String, nullable=False, default="")
     quick_model = Column(String, nullable=False, default="")
     accuracy_provider_id = Column(String, nullable=False, default="")

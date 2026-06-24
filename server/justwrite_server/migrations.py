@@ -86,12 +86,16 @@ def migrate_schema(engine: Engine) -> None:
             FeaturePreset.__table__.create(bind=conn)
             log.info("migrate_schema: rebuilt feature_presets feature → action")
 
-        # `routing_configs` gained `default_model` — the Default LLM can pin a
-        # model (not just a provider), matching the Quick/Accuracy role pickers.
+        # `routing_configs` gained `default_model` + `default_embedding_model` —
+        # the Default LLM and Default embedding can each pin a model (not just a
+        # provider), matching the Quick/Accuracy role pickers.
         rc_cols = {row[1] for row in conn.execute(text("PRAGMA table_info(routing_configs)")).fetchall()}
         if rc_cols and "default_model" not in rc_cols:
             conn.execute(text("ALTER TABLE routing_configs ADD COLUMN default_model VARCHAR NOT NULL DEFAULT ''"))
             log.info("migrate_schema: added routing_configs.default_model")
+        if rc_cols and "default_embedding_model" not in rc_cols:
+            conn.execute(text("ALTER TABLE routing_configs ADD COLUMN default_embedding_model VARCHAR NOT NULL DEFAULT ''"))
+            log.info("migrate_schema: added routing_configs.default_embedding_model")
 
         existing = {row[1] for row in conn.execute(text("PRAGMA table_info(projects)")).fetchall()}
         if not existing:

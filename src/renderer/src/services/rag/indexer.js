@@ -40,8 +40,10 @@ function resolveProvider(ai, override) {
   return override || ai.embeddingProvider;
 }
 
-function resolveModel(provider, override) {
-  return override || provider?.embeddingModel || "";
+// Routing override (AI ▸ Features → Default embedding) wins, then the provider's
+// own embeddingModel — via the store's single resolution rule.
+function resolveModel(ai, provider, override) {
+  return override || ai.embeddingModelFor(provider);
 }
 
 /**
@@ -93,7 +95,7 @@ export async function buildOrUpdateIndex({ signal, onProgress, provider, model }
   if (!resolvedProvider) {
     throw new Error("No embedding provider configured. Open Settings → AI providers and set an embedding provider.");
   }
-  const resolvedModel = resolveModel(resolvedProvider, model);
+  const resolvedModel = resolveModel(ai, resolvedProvider, model);
   const projectId = project.activeProjectId;
 
   if (onProgress) onProgress({ phase: "chunking" });
@@ -124,7 +126,7 @@ export async function rebuildIndex({ signal, onProgress, provider, model } = {})
   if (!resolvedProvider) {
     throw new Error("No embedding provider configured. Open Settings → AI providers and set an embedding provider.");
   }
-  const resolvedModel = resolveModel(resolvedProvider, model);
+  const resolvedModel = resolveModel(ai, resolvedProvider, model);
   const projectId = project.activeProjectId;
 
   if (onProgress) onProgress({ phase: "chunking" });

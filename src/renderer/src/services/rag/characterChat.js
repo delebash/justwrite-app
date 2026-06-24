@@ -141,7 +141,7 @@ export async function askAsCharacter({
   if (!resolvedLlmProvider) throw new Error("No LLM provider configured. Open Settings → AI providers and set a chat provider.");
   if (!resolvedEmbedProvider) throw new Error("No embedding provider configured. Open Settings → AI providers and set an embedding provider.");
 
-  const resolvedEmbedModel = embedModel || resolvedEmbedProvider.embeddingModel || "";
+  const resolvedEmbedModel = embedModel || ai.embeddingModelFor(resolvedEmbedProvider);
 
   const projectId = project.activeProjectId;
   const st = await status(projectId);

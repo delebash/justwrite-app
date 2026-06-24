@@ -71,6 +71,19 @@ reachable via Settings).
   the model dropdown was a stub ("(provider default)" only); Default LLM / roles /
   per-action now list the provider's real models. (No live LLM in the dev container,
   so it shows the saved default there; real providers list models.)
+- ✅ **DONE — Default embedding → provider+model picker (consistent w/ Default LLM):**
+  `RoutingDefaults.embeddingModel` (routing_api) + `routing_configs.default_embedding_model`
+  (ALTER) + store map; RAG honors it (`override → routing default → provider.embeddingModel`
+  via the store's `embeddingModelFor` getter; indexer/chat/characterChat/IndexBuildModal
+  rewired). **`LuModelPicker` gained `editable` (pick-OR-type combobox, reusing `LuCombobox`)
+  + `kind` ("chat"|"embedding", `/embed/i` suggestion filter)** — Decision 14 realized; the
+  main pickers (Default LLM, Default embedding, roles, per-action editor) are now type-able,
+  the compact nav Set-all stays a native `<select>` (its popup escapes the overflow-clipped
+  sticky nav; a combobox list wouldn't). Embeddings are usually typed (text-embedding-3-small /
+  nomic-embed-text; Anthropic/Gemini expose none) — the combobox suggests fetched models AND
+  accepts free text. Also fixed a latent bug: `routingBackend.putRoutingPrefs` omitted
+  `default.model`, so a JW-side routing save silently wiped the Default-LLM model — now merges
+  with the cache; `AiView` re-syncs routing on unmount so picks are live in-session.
 - **Think-about (design, user 2026-06-24):** consolidate JW's App-Settings
   **"Writing AI"** section (voice canon · RAG auto-rebuild · 3-variation) INTO the
   AI Settings area — it's AI-related and AI Settings already hosts the writer
