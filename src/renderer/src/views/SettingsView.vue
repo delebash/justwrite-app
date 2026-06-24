@@ -487,25 +487,6 @@ async function deleteCategory(c) {
           </div>
         </div>
 
-        <!-- ── Preferences (user-level, not project-specific) ─── -->
-        <div class="card">
-          <div class="card-title">{{ $t('settings.preferences.cardTitle') }}</div>
-          <div style="display:grid;grid-template-columns:160px minmax(0,1fr);gap:10px 14px;font-size:13px;align-items:center">
-            <span class="t-muted" style="align-self:start;padding-top:6px">{{ $t("settings.language.label") }}</span>
-            <div style="display:flex;flex-direction:column;gap:6px;min-width:0">
-              <UiSelect
-                style="max-width:240px"
-                :model-value="ui.locale || activeI18nLocale"
-                @update:model-value="onLocaleChange"
-                :options="LOCALE_OPTIONS"
-                option-label="label"
-                option-value="value"
-              />
-              <span class="t-muted" style="font-size:11.5px">{{ $t("settings.language.hint") }}</span>
-            </div>
-          </div>
-        </div>
-
         <!-- ── Statuses ─────────────────────────────────────── -->
         <div class="card">
           <div class="card-title">{{ $t('settings.statuses.cardTitle') }}</div>
@@ -654,6 +635,21 @@ async function deleteCategory(c) {
 
       <!-- ── APPEARANCE ────────────────────────────── -->
       <div v-else-if="active === 'appearance'" style="display:flex;flex-direction:column;gap:14px">
+
+        <!-- Language (UI locale — lives with Appearance, matching JustVoice) -->
+        <div class="card">
+          <div class="card-title">{{ $t("settings.language.label") }}</div>
+          <div style="display:flex;flex-direction:column;gap:6px;min-width:0;max-width:300px;margin-top:8px">
+            <UiSelect
+              :model-value="ui.locale || activeI18nLocale"
+              @update:model-value="onLocaleChange"
+              :options="LOCALE_OPTIONS"
+              option-label="label"
+              option-value="value"
+            />
+            <span class="t-muted" style="font-size:11.5px">{{ $t("settings.language.hint") }}</span>
+          </div>
+        </div>
 
         <!-- Presets -->
         <div class="card">

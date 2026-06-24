@@ -41,8 +41,18 @@ each):
   export/import; Backups tab now = Tauri autosave-restore (app-local) + shared
   `<DataManagement>`. Round-trip tested (runner + JW). JV migration recorded in
   the plan (still on `/v1/backup|restore|admin/factory-reset`).
-- ⏳ **U4 — Shared Server / Logs / Updates / Appearance(+language) / Diagnostics** sections; JW final layout.
-- ⏳ **U5 — JV adoption** + GPU/Hardware → AI menu.
+- 🔄 **U4 — Shared Server / Logs / Updates / Appearance(+language) sections.**
+  - ✅ **Language → Appearance** (was Project → Preferences; matches JV). The
+    now-unused `settings.preferences.cardTitle` i18n key can go in an i18n sweep.
+  - ⏳ **Logs** — shared `make_logs_router` (read the server log file) + a shared
+    `<LogsPanel>` + a JW App-Settings "Logs" tab. (Check JW logs to a file first.)
+  - ⏳ **Updates / Changelog** — shared `<UpdatesPanel>` (version + release notes,
+    Tauri updater) + JW changelog content + an App-Settings "Updates" tab.
+  - ⏳ **General** — fold Server (URL/bind/keep-running) + data location into a
+    "General" tab; JV aligns. (JW's "Server" tab is the seed for this.)
+- ⏳ **U5 — JV adoption** of the shared platform settings (mount `make_data_router`
+  with audio asset dirs; replace JV General/Cache/Logs/Changelog with the shared
+  sections; GPU/Hardware → the AI menu). See the plan's JV transfer checklist.
 
 
 **AI ▸ Features UX pass (JW, on `claude/admiring-galileo-il3q0o`).** The shared
