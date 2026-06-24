@@ -1,4 +1,5 @@
-"""/v1/workspace — the reset-workspace wipe across every table.
+"""/v1/data/reset — the reset-workspace wipe across every table (shared
+`make_data_router`), plus /v1/data/backup + /v1/data/restore round-trip.
 
 Reset wipes every table, then re-seeds the demo project + default providers so
 the renderer reloads into a first-run-shaped workspace (the server owns the seed
@@ -28,7 +29,7 @@ def test_reset_clears_user_data(tmp_path):
     c.put("/v1/versions", json={"projectId": "prj1", "chapterId": "ch1",
                                 "versions": [{"id": "v1", "savedAt": "x", "scenes": []}]})
 
-    assert c.delete("/v1/workspace").status_code == 204
+    assert c.post("/v1/data/reset").status_code == 200
 
     # The user's own rows are gone (the demo is re-seeded in its place).
     assert [p["id"] for p in c.get("/v1/projects").json()] == [DEMO_PROJECT_ID]
@@ -41,7 +42,21 @@ def test_reset_clears_user_data(tmp_path):
 
 def test_reset_is_idempotent_on_empty(tmp_path):
     c = _c(tmp_path)
-    assert c.delete("/v1/workspace").status_code == 204
-    assert c.delete("/v1/workspace").status_code == 204
+    assert c.post("/v1/data/reset").status_code == 200
+    assert c.post("/v1/data/reset").status_code == 200
     # Re-seed stays a single demo across repeated resets.
     assert [p["id"] for p in c.get("/v1/projects").json()] == [DEMO_PROJECT_ID]
+
+
+def test_backup_restore_roundtrip(tmp_path):
+    c = _c(tmp_path)
+    c.put("/v1/projects/prj1", json={"project": {"title": "Backed up"}})
+    # Back up, then mutate.
+    blob = c.get("/v1/data/backup").content
+    assert blob[:2] == b"PK"  # a zip
+    c.put("/v1/projects/prj1", json={"project": {"title": "Changed after backup"}})
+    # Restore brings the project's saved state back.
+    r = c.post("/v1/data/restore", files={"file": ("backup.zip", blob, "application/zip")})
+    assert r.status_code == 200
+    snap = c.get("/v1/projects/prj1").json()
+    assert snap["project"]["title"] == "Backed up"

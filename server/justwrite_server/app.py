@@ -33,10 +33,10 @@ from .api import (
     sessions,
     settings,
     versions,
-    workspace,
 )
 from .app_state import AppState, set_state
 from .auth import BearerAuthMiddleware
+from .data_admin import get_data_router
 from .database import init_db
 from .errors import ApiError, api_exception_handler, http_exception_handler
 from .paths import default_data_dir
@@ -139,7 +139,7 @@ def create_app(data_dir: Path | None = None) -> FastAPI:
     app.include_router(chat.router)
     app.include_router(settings.router)
     app.include_router(versions.router)
-    app.include_router(workspace.router)
+    app.include_router(get_data_router())  # shared backup/restore/reset (/v1/data/*)
     app.include_router(rag.router)
     app.include_router(images.router)
     app.include_router(llm_usage.router)

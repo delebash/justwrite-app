@@ -136,7 +136,7 @@ def test_reset_reseeds_workspace(tmp_path):
     c.put("/v1/projects/prj_user", json={"project": {"title": "Mine"}})
     c.patch("/v1/settings", json={"ui": {"x": 1}})
 
-    assert c.delete("/v1/workspace").status_code == 204
+    assert c.post("/v1/data/reset").status_code == 200
 
     # User project gone; demo re-seeded (reset behaves like first run).
     assert [p["id"] for p in c.get("/v1/projects").json()] == [DEMO_PROJECT_ID]

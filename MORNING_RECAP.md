@@ -31,8 +31,16 @@ each):
   renderer usage cluster (`recordUsage`/`hydrateUsage`/`usageTotals` + `MODEL_PRICING`
   + `services/usageApi.js` — zero consumers; usage is recorded server-side on dispatch,
   so no double-count). App Settings now = Project · Appearance · Server · Backups · About.
-- ⏳ **U3 — Shared Data & Storage** (`make_data_router` backup/restore/reset + `<DataManagement>`;
-  retire JW `DELETE /v1/workspace` + JSON export; record JV migration off `/v1/backup|restore|admin/factory-reset`).
+- ✅ **U3 — Shared Data & Storage.** New shared `llm_runner/platform/` subpackage
+  (the shared backend kit both apps already depend on — not a new package) with
+  `make_data_router`: `GET /v1/data/backup` (VACUUM-INTO ZIP of DB + asset dirs),
+  `POST /v1/data/restore` (table-copy, no live-file swap → cross-platform safe),
+  `POST /v1/data/reset` (host reset callback). Shared `<DataManagement>` component
+  + `requestBlob`/`postForm` client helpers. JW mounts it (`data_admin.py`),
+  retired `DELETE /v1/workspace` + `workspaceApi.js` + the renderer JSON-snapshot
+  export/import; Backups tab now = Tauri autosave-restore (app-local) + shared
+  `<DataManagement>`. Round-trip tested (runner + JW). JV migration recorded in
+  the plan (still on `/v1/backup|restore|admin/factory-reset`).
 - ⏳ **U4 — Shared Server / Logs / Updates / Appearance(+language) / Diagnostics** sections; JW final layout.
 - ⏳ **U5 — JV adoption** + GPU/Hardware → AI menu.
 

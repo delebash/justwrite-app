@@ -4,9 +4,8 @@ import { useAiStore } from "../stores/ai.js";
 import { useProjectStore } from "../stores/project.js";
 import { useUiStore } from "../stores/ui.js";
 import { saveImage, urlFor, hasNativeImages } from "../services/imageStore.js";
-import { promptDialog, confirmDialog } from "@delebash/llm-ui";
+import { promptDialog, confirmDialog, DataManagement } from "@delebash/llm-ui";
 import { readSetting, writeSetting } from "../services/settings.js";
-import { resetWorkspace as resetWorkspaceApi } from "../services/workspaceApi.js";
 import PaneHeader from "../components/PaneHeader.vue";
 import { Icon } from "@delebash/llm-ui";
 import { UiInput } from "@delebash/llm-ui";
@@ -238,11 +237,7 @@ async function resetAppearance() {
 }
 
 // ── Backups ────────────────────────────────────────────────────────
-const backupBusy = ref(false);
 const backupError = ref(null);
-const importMessage = ref(null);
-const importFile = ref(null);
-const lastBackupAt = ref(readSetting("lastBackupAt") || null);
 const lastAutosaveAt = ref(readSetting("lastAutosaveAt") || null);
 const autosaveDir = ref(null);
 
@@ -263,75 +258,6 @@ watchEffect(() => {
     lastAutosaveAt.value = readSetting("lastAutosaveAt") || null;
   }
 });
-
-function safeFilename(title) {
-  const base = (title || "justwrite").replace(/[^\w\d-]+/g, "_").replace(/^_+|_+$/g, "");
-  const stamp = new Date().toISOString().slice(0, 16).replace(/[:T]/g, "-");
-  return `${base || "justwrite"}-${stamp}.json`;
-}
-
-async function exportBackup() {
-  backupBusy.value = true; backupError.value = null;
-  try {
-    const snap = project.exportFullBackup();
-    const name = safeFilename(project.project.title);
-    const jw = window.justwrite;
-    if (jw?.project?.save) {
-      // Tauri build — show the native save dialog so users pick where it lands.
-      const res = await jw.project.save(snap, name);
-      if (res && res.ok === false && !res.cancelled) {
-        throw new Error(res.error || "Save failed");
-      }
-    } else {
-      // Browser fallback — synthesize a download.
-      const blob = new Blob([JSON.stringify(snap, null, 2)], { type: "application/json" });
-      const url = URL.createObjectURL(blob);
-      const a = document.createElement("a");
-      a.href = url; a.download = name;
-      document.body.appendChild(a); a.click(); a.remove();
-      setTimeout(() => URL.revokeObjectURL(url), 1000);
-    }
-    const now = new Date().toISOString();
-    writeSetting("lastBackupAt", now);
-    lastBackupAt.value = now;
-    ui.showToast({ message: "Backup saved." });
-  } catch (err) {
-    backupError.value = err.message || String(err);
-  } finally {
-    backupBusy.value = false;
-  }
-}
-
-async function onImportFile(e) {
-  const file = (e.target.files || [])[0];
-  e.target.value = "";
-  if (!file) return;
-  backupError.value = null;
-  importMessage.value = null;
-  try {
-    const text = await file.text();
-    const snap = JSON.parse(text);
-    if (!snap || typeof snap !== "object" || !snap.project) {
-      throw new Error("This doesn't look like a JustWrite backup (missing `project` field).");
-    }
-    const yes = await confirmDialog({
-      title: `Replace workspace with "${snap.project.title || "untitled"}"?`,
-      message: "Your current data will be overwritten. Export it first if you want to keep it.",
-      confirmLabel: "Replace workspace",
-      danger: true,
-    });
-    if (!yes) return;
-    const { workspaceRestored } = project.loadSnapshot(snap) || {};
-    const chapterCount = Array.isArray(snap.parts)
-      ? snap.parts.reduce((n, p) => n + (p.chapters?.length || 0), 0)
-      : Object.keys(snap.scenes || snap.chapterBody || {}).length;
-    importMessage.value = `Imported "${snap.project.title || "project"}" — ${chapterCount} chapters.`;
-    ui.showToast({ message: "Backup imported." });
-    if (workspaceRestored) scheduleWorkspaceReload();
-  } catch (err) {
-    backupError.value = err.message || String(err);
-  }
-}
 
 // AI / studio / sessions stores only hydrate from IndexedDB at boot, so
 // after restoring workspace keys we need a reload for them to take effect.
@@ -399,44 +325,11 @@ function generationLabel(gen) {
   return gen || "";
 }
 
-async function resetWorkspace() {
-  const yes = await confirmDialog({
-    title: "Reset the workspace?",
-    message: "This clears ALL local data — project, chapters, AI providers — and reloads the app with the demo seed. This cannot be undone.",
-    confirmLabel: "Continue",
-    danger: true,
-  });
-  if (!yes) return;
-  const typed = await promptDialog({
-    title: "Type RESET to confirm",
-    label: "Confirmation",
-    placeholder: "RESET",
-    confirmLabel: "Reset workspace",
-    requireMatch: "RESET",
-    danger: true,
-  });
-  if (typed !== "RESET") return;
-  try {
-    // One server call wipes every table (settings, projects + cascaded rows,
-    // sessions, usage, providers, versions, chat). Reload re-seeds.
-    await resetWorkspaceApi();
-  } catch {}
-  location.reload();
-}
-
-const lastBackupLabel = computed(() => {
-  if (!lastBackupAt.value) return "Never";
-  try { return new Date(lastBackupAt.value).toLocaleString(); } catch { return lastBackupAt.value; }
-});
-
 const lastAutosaveLabel = computed(() => {
   if (!lastAutosaveAt.value) return "Pending — will fire within 10s of the next edit.";
   try { return new Date(lastAutosaveAt.value).toLocaleString(); } catch { return lastAutosaveAt.value; }
 });
 
-// `window` is not on Vue's template proxy — referencing it in the template
-// throws and breaks the render. Expose the bits we need via setup.
-const hasNativeSave = computed(() => !!window.justwrite?.project?.save);
 
 // ── About ──────────────────────────────────────────────────────────
 const platformLabel = computed(() => {
@@ -529,8 +422,8 @@ async function deleteCategory(c) {
     <p class="set-desc">
       <strong>Settings</strong> is divided into sections — <strong>Project</strong> (metadata,
       goals, statuses, deadlines), <strong>Appearance</strong> (themes, fonts, colours, density),
-      <strong>Backups</strong> (autosave path and manual snapshots), and a
-      <strong>Danger zone</strong> for resetting the workspace. AI providers, routing, usage, and
+      <strong>Server</strong> (connection &amp; access), and <strong>Backups</strong> (autosave,
+      full backup / restore, and workspace reset). AI providers, routing, usage, and
       writing-AI settings live in the <strong>AI</strong> menu. Nothing here touches your
       manuscript prose.
     </p>
@@ -1256,6 +1149,7 @@ async function deleteCategory(c) {
               <template #icon><Icon name="Folder" :size="13" /></template>
             </UiButton>
           </div>
+          <div v-if="backupError" class="banner danger" style="margin-top:10px">{{ backupError }}</div>
           <div v-if="autosaveListShown" style="margin-top:12px">
             <div v-if="autosaveListBusy" class="t-muted" style="font-size:12.5px">Loading…</div>
             <div v-else-if="!autosaveList.length" class="t-muted" style="font-size:12.5px">
@@ -1277,43 +1171,10 @@ async function deleteCategory(c) {
           </div>
         </div>
 
-        <div class="card">
-          <div class="card-title">{{ $t('settings.backups.snapshotCardTitle') }}</div>
-          <p class="t-muted" style="font-size:12.5px;margin:0 0 14px;line-height:1.55">
-            Your work auto-saves to the local JustWrite server's database on every change. To move between
-            machines — or keep an off-device copy — export a JSON snapshot: it includes every chapter body, every character, the trash bin, and your preferences.
-          </p>
-          <div style="display:grid;grid-template-columns:140px 1fr;gap:10px 14px;font-size:13px;align-items:center;margin-bottom:12px">
-            <span class="t-muted">Stored in</span>
-            <span>the local JustWrite server database (<code>SQLite</code>)</span>
-            <span class="t-muted">Last backup</span>
-            <span>{{ lastBackupLabel }}</span>
-            <span class="t-muted">Platform save</span>
-            <span>{{ hasNativeSave ? "Native file dialog (Tauri)" : "Browser download" }}</span>
-          </div>
-          <div v-if="backupError" class="banner danger" style="margin-bottom:10px">{{ backupError }}</div>
-          <div v-if="importMessage" class="banner success" style="margin-bottom:10px">{{ importMessage }}</div>
-          <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap">
-            <UiButton :label="backupBusy ? 'Exporting…' : 'Export backup…'" intent="primary" :disabled="backupBusy" @click="exportBackup">
-              <template #icon><Icon name="Export" :size="13" /></template>
-            </UiButton>
-            <UiButton as="label" intent="secondary">
-              <Icon name="Folder" :size="13" />
-              Import backup…
-              <input type="file" accept="application/json,.json" style="display:none" @change="onImportFile" />
-            </UiButton>
-          </div>
-        </div>
-
-        <div class="card danger-card">
-          <div class="card-title" style="color: var(--danger-ink)">{{ $t('settings.backups.dangerCardTitle') }}</div>
-          <p class="t-muted" style="font-size:12.5px;margin:0 0 12px;line-height:1.55">
-            Wipes the entire workspace database — projects, settings, AI providers, sessions, usage — and reloads with the demo seed. Take a backup first.
-          </p>
-          <UiButton label="Reset workspace" intent="danger" @click="resetWorkspace">
-            <template #icon><Icon name="Alert" :size="13" /></template>
-          </UiButton>
-        </div>
+        <!-- Backup / restore / reset — the shared full-DB module (same code +
+             server endpoints in every same-stack app). The autosave card above
+             is JustWrite's Tauri-specific on-disk restore, kept app-local. -->
+        <DataManagement app-name="JustWrite" />
       </div>
 
       <!-- ── ABOUT ─────────────────────────────────── -->
