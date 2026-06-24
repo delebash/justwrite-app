@@ -962,6 +962,29 @@ a tabbed Cast/Script/Render surface of card grids; `CompareView.vue` is a fixed
 2-col A/B audio compare — so the N-column horizontal-scroll strip is NEW layout,
 styled to match Studio's cards, not an existing component to lift wholesale.)
 
+**⭐ THE CONVERGENCE (user's insight, verified file:line 2026-06-24): the Feature
+view's editor pane already IS one Compare column.** Proof in the code, not memory:
+`ui/src/views/FeatureWorkbench.vue:507` presets bar is commented "(SpeakerLab
+parity)"; `JustVoice/.../SpeakerLabView.vue:573` is "JustWrite Speaker Lab parity" —
+both render the SAME row (preset dropdown → ＋ Save as → ✓ Use as production →
+PRODUCTION badge), backed by the same save-config-then-promote model
+(`FeatureWorkbench.vue:334` `useAsProduction` ↔ `SpeakerLabView.vue:407`). One
+FeatureWorkbench editor (lines 501-563) already holds: provider+model picker,
+system/user prompt, temperature, max-tokens, think, presets + promote, AND a test
+panel reporting **model · words · tokens · ms**. That is exactly ONE Speaker Lab
+column. The only structural difference is **COUNT** — the Feature view renders **1**
+(the selected action), the Lab renders **N**.
+
+→ **Compare is therefore NOT a new surface — it's the Feature editor extracted into a
+reusable `<ConfigColumn>` component, rendered ×1 (Features) or ×N (Compare:
+horizontal-scroll strip + hide-nav toggle).** Build = (1) extract the editor pane
+into a shared `<ConfigColumn>` (model + Plane-1 switches + prompt + params + presets +
+promote + per-column test/result); (2) the Feature view uses one, Compare renders many
+in the scroll strip; (3) add the two things neither has yet — **Plane-1 engine
+switches + tokens/sec**. This converges JV's Speaker Lab and JW's Feature/Compare into
+**ONE shared column component** in `@delebash/llm-ui`. (This is what RULE #7 §A should
+have surfaced BEFORE any layout sketch — see the process note below.)
+
 **Why combined, not a separate Lab:** a separate Lab re-fragments the action unit we
 deliberately unified and duplicates the action + input context (RULE #7). Compare is
 a MODE of the Features test panel, not a parallel surface.
