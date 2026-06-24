@@ -17,7 +17,7 @@ import { UiButton } from "@delebash/llm-ui";
 import { UiToggle } from "@delebash/llm-ui";
 import { UiColorPicker } from "@delebash/llm-ui";
 import { PRESET_COLORS } from "@renderer/services/categoricalColors.js";
-import { SERVER_BASE } from "../services/serverApi.js";
+import { SERVER_BASE, serverUrl } from "../services/serverApi.js";
 import {
   ACCENT_PRESETS, GOLD_PRESETS, FUNCTIONAL_PRESETS, PAIRINGS, SURFACE_TINTS, PAPER_TINTS,
   THEME_PRESETS, UI_FONTS, DISPLAY_FONTS, INK_PALETTES, UI_SCALES,
@@ -52,7 +52,7 @@ function onLocaleChange(code) {
 const SECTIONS = computed(() => [
   { id: "project",    label: t("settings.sections.project") },
   { id: "appearance", label: t("settings.sections.appearance") },
-  { id: "server",     label: t("settings.sections.server") },
+  { id: "general",    label: t("settings.sections.general") },
   { id: "backups",    label: t("settings.sections.backups") },
   { id: "logs",       label: t("settings.sections.logs") },
   { id: "about",      label: t("settings.sections.about") },
@@ -70,6 +70,16 @@ const headlessUrl = computed(
   () => SERVER_BASE || (typeof window !== "undefined" ? window.location.origin : ""),
 );
 const authTokens = ref([]);
+
+// Where the server keeps its data (DB + assets) — shown in General so the user
+// knows what to back up / where their work lives. From /v1/health.
+const dataDir = ref("");
+(async () => {
+  try {
+    const r = await fetch(serverUrl("/v1/health"));
+    if (r.ok) dataDir.value = (await r.json()).dataDir || "";
+  } catch { /* offline — leave blank */ }
+})();
 const requireLoopbackAuth = ref(false);
 const newToken = ref("");
 function loadAuthCfg() {
@@ -423,7 +433,7 @@ async function deleteCategory(c) {
     <p class="set-desc">
       <strong>Settings</strong> is divided into sections — <strong>Project</strong> (metadata,
       goals, statuses, deadlines), <strong>Appearance</strong> (themes, fonts, colours, density),
-      <strong>Server</strong> (connection &amp; access), and <strong>Backups</strong> (autosave,
+      <strong>General</strong> (data location &amp; connection), and <strong>Backups</strong> (autosave,
       full backup / restore, and workspace reset). AI providers, routing, usage, and
       writing-AI settings live in the <strong>AI</strong> menu. Nothing here touches your
       manuscript prose.
@@ -1091,7 +1101,17 @@ async function deleteCategory(c) {
       </div>
 
       <!-- ── SERVER (headless + API access) ─────────── -->
-      <div v-else-if="active === 'server'" style="display:flex;flex-direction:column;gap:14px">
+      <div v-else-if="active === 'general'" style="display:flex;flex-direction:column;gap:14px">
+        <div class="card">
+          <div class="card-title">Data location</div>
+          <p class="t-muted" style="font-size:12.5px;margin:4px 0 10px;line-height:1.5">
+            Where the local server keeps your work (database + assets). This is what a backup captures.
+          </p>
+          <div style="display:grid;grid-template-columns:140px 1fr;gap:8px 14px;font-size:13px;align-items:center">
+            <span class="t-muted">Folder</span>
+            <code style="word-break:break-all">{{ dataDir || "—" }}</code>
+          </div>
+        </div>
         <div class="card">
           <div class="card-title">{{ $t('settings.server.headlessTitle') }}</div>
           <p class="t-muted">{{ $t('settings.server.headlessHint') }}</p>

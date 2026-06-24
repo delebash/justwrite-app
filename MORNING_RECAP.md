@@ -51,8 +51,12 @@ each):
     its local `admin_api` logs until U5.)
   - ⏳ **Updates / Changelog** — shared `<UpdatesPanel>` (version + release notes,
     Tauri updater) + JW changelog content + an App-Settings "Updates" tab.
-  - ⏳ **General** — fold Server (URL/bind/keep-running) + data location into a
-    "General" tab; JV aligns. (JW's "Server" tab is the seed for this.)
+  - ✅ **General** — renamed JW's "Server" tab → **General** + added a Data-location
+    card (server DB+assets dir from /v1/health). Holds data location · headless
+    access · API tokens. (keep-running deferred — JW has no Tauri command for it yet.)
+  - ⏳ **Updates / Changelog** — shared `<UpdatesPanel>` (version + release notes,
+    Tauri updater) + JW changelog content + an App-Settings "Updates" tab. Needs a
+    JW changelog source (no CHANGELOG data wired yet — real dependency, not skipped).
 - ⏳ **U5 — JV adoption** of the shared platform settings (mount `make_data_router`
   with audio asset dirs; replace JV General/Cache/Logs/Changelog with the shared
   sections; GPU/Hardware → the AI menu). See the plan's JV transfer checklist.

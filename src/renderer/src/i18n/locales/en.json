@@ -206,7 +206,7 @@
     "sections": {
       "project": "Project",
       "appearance": "Appearance",
-      "server": "Server",
+      "general": "General",
       "backups": "Backups",
       "logs": "Logs",
       "about": "About"
