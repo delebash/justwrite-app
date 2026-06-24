@@ -943,10 +943,16 @@ seeded prompt **temporarily**, so the user can run/compare them on the book alre
 in JW — the "test some of the old audio-Studio portions here" ask. It's a scaffold:
 it moves to JV (or is removed) when JV adopts (U5).
 
-**Open fork (user to pick before build):** Compare = **full-width mode inside the
-Features tab** (hides the nav while comparing — my rec: stays "in Features" but
-roomy for N columns) vs **compact 2-up inside the editor pane** (always visible but
-cramped beyond 2 columns).
+**DECIDED (user, 2026-06-24): 2-up base + horizontal scroll + a collapse-nav toggle
+(best of both worlds).** Compare lives in the Features tab as a MODE. The feature
+nav stays visible by default (~2 full columns fit beside it); the column strip
+**scrolls horizontally** to add/see more — **NOT capped at 2** ("2 columns or as
+many as you want"). A small **"collapse nav" toggle button** hides the nav on demand
+to give the columns full width when the user wants it (so you get B's always-there
+nav AND A's roominess). EVERY column is a **full config** (model + Plane-1 switches +
+prompt + Plane-2 settings) — no primary/secondary asymmetry; each a fixed comfortable
+width, config stacked vertically (model → switches → prompt → output →
+words/tok-s/time/cost → promote).
 
 **Why combined, not a separate Lab:** a separate Lab re-fragments the action unit we
 deliberately unified and duplicates the action + input context (RULE #7). Compare is

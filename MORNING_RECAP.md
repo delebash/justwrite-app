@@ -32,7 +32,7 @@ feeds Compare progress. **#11 QuickSetup** can go in parallel.
   chart + MoE/offload findings (cited boards, not our testing).
 - `docs/plans/2026-06-20-shared-ai-stack-plan.md` — **Decision 22** (AI queue/progress/
   cancel is SHARED) + **Decision 23** (testing = multi-column Compare INSIDE Features,
-  not a separate Lab; open fork: full-width vs 2-up).
+  not a separate Lab; 2-up + horizontal scroll + collapse-nav toggle; every column a full config).
 - `JustVoice/docs/plans/2026-06-24-audiobook-nlp-competitor-research.md` — Alexandria /
   audiobook-creator / audiobook-maker / BookNLP2 (committed; **revisit after switches**).
 
@@ -61,8 +61,8 @@ Cancel button, and registers in JW's AI tasks strip** (the batch list). No hook
 **multi-column Compare** (each column = model + switches + prompt; run-all →
 per-column output/words/tps/cost → promote winner) — this is the agreed Lab
 (NOT a separate route) and absorbs the switch-testing (columns differ by
-`n_cpu_moe`/`n_gpu_layers`/`ctx`). Open fork: Compare = full-width mode (rec) vs
-2-up in the editor pane.
+`n_cpu_moe`/`n_gpu_layers`/`ctx`). Layout DECIDED: 2-up base + horizontal scroll
+(unlimited full-config columns) + a collapse-nav toggle for full-width on demand.
 
 ### Platform-settings convergence (NEW thread — authoritative: `docs/plans/2026-06-24-shared-platform-settings.md`)
 
