@@ -218,6 +218,7 @@
       "audio": "Writing AI",
       "usage": "AI usage",
       "appearance": "Appearance",
+      "server": "Server",
       "backups": "Backups",
       "debug": "Debug",
       "about": "About"
@@ -225,6 +226,20 @@
     "language": {
       "label": "Language",
       "hint": "User-interface language. Date and number formatting follow the same locale."
+    },
+    "server": {
+      "headlessTitle": "Headless access",
+      "headlessHint": "Run the server on its own and open the app in any browser — no desktop install needed. The server hosts the UI at:",
+      "copy": "Copy",
+      "copied": "Headless URL copied",
+      "authTitle": "API access (bearer tokens)",
+      "authHint": "Off by default. Add a token to require an Authorization: Bearer header on every /v1 API call — for when you run the server exposed beyond this machine.",
+      "requireLoopback": "Require a token even on localhost",
+      "noTokens": "No tokens — the API is open (fine for local-only use).",
+      "tokenPlaceholder": "Paste or generate a token",
+      "generate": "Generate",
+      "addToken": "Add token",
+      "removeToken": "Remove token"
     },
     "project": {
       "cardTitle": "Project",

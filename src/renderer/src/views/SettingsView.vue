@@ -17,8 +17,10 @@ import { UiCheckbox } from "@delebash/llm-ui";
 import { UiNumber } from "@delebash/llm-ui";
 import { UiSelect } from "@delebash/llm-ui";
 import { UiButton } from "@delebash/llm-ui";
+import { UiToggle } from "@delebash/llm-ui";
 import { UiColorPicker } from "@delebash/llm-ui";
 import { PRESET_COLORS } from "@renderer/services/categoricalColors.js";
+import { SERVER_BASE } from "../services/serverApi.js";
 import {
   ACCENT_PRESETS, GOLD_PRESETS, FUNCTIONAL_PRESETS, PAIRINGS, SURFACE_TINTS, PAPER_TINTS,
   THEME_PRESETS, UI_FONTS, DISPLAY_FONTS, INK_PALETTES, UI_SCALES,
@@ -75,6 +77,7 @@ const SECTIONS = computed(() => [
   { id: "audio",      label: t("settings.sections.audio") },
   { id: "usage",      label: t("settings.sections.usage") },
   { id: "appearance", label: t("settings.sections.appearance") },
+  { id: "server",     label: t("settings.sections.server") },
   { id: "backups",    label: t("settings.sections.backups") },
   { id: "debug",      label: t("settings.sections.debug") },
   { id: "about",      label: t("settings.sections.about") },
@@ -94,6 +97,52 @@ const DEBUG_TOOLS = [
 
 const active = ref(props.section || "project");
 watch(() => props.section, (s) => { if (s) active.value = s; });
+
+// ── Server: headless access + optional bearer-auth tokens ──────────
+// The server hosts the UI itself (StaticFiles at /), so `justwrite-server
+// serve` + a browser at this origin gives the full app headless. Bearer
+// tokens (the `auth` settings section the middleware reads) gate /v1/* when
+// the server runs exposed; off by default.
+const headlessUrl = computed(
+  () => SERVER_BASE || (typeof window !== "undefined" ? window.location.origin : ""),
+);
+const authTokens = ref([]);
+const requireLoopbackAuth = ref(false);
+const newToken = ref("");
+function loadAuthCfg() {
+  const a = readSetting("auth") || {};
+  authTokens.value = Array.isArray(a.tokens) ? a.tokens.filter((t) => typeof t === "string" && t) : [];
+  requireLoopbackAuth.value = !!a.requireForLoopback;
+}
+loadAuthCfg();
+function saveAuthCfg() {
+  writeSetting("auth", { tokens: authTokens.value, requireForLoopback: requireLoopbackAuth.value });
+}
+function addToken() {
+  const t = newToken.value.trim();
+  newToken.value = "";
+  if (!t || authTokens.value.includes(t)) return;
+  authTokens.value = [...authTokens.value, t];
+  saveAuthCfg();
+}
+function removeToken(t) {
+  authTokens.value = authTokens.value.filter((x) => x !== t);
+  saveAuthCfg();
+}
+function setRequireLoopbackAuth(v) {
+  requireLoopbackAuth.value = !!v;
+  saveAuthCfg();
+}
+function generateToken() {
+  const bytes = crypto.getRandomValues(new Uint8Array(18));
+  newToken.value = Array.from(bytes, (b) => b.toString(16).padStart(2, "0")).join("");
+}
+async function copyHeadlessUrl() {
+  try {
+    await navigator.clipboard.writeText(headlessUrl.value);
+    ui.showToast({ message: t("settings.server.copied") });
+  } catch { /* clipboard blocked — no-op */ }
+}
 
 // ── Project meta editing ───────────────────────────────────────────
 // Patch the store live as the user types; updateProjectMeta is already
@@ -1471,6 +1520,39 @@ const recentColumns = [
           </div>
         </div>
 
+      </div>
+
+      <!-- ── SERVER (headless + API access) ─────────── -->
+      <div v-else-if="active === 'server'" style="display:flex;flex-direction:column;gap:14px">
+        <div class="card">
+          <div class="card-title">{{ $t('settings.server.headlessTitle') }}</div>
+          <p class="t-muted">{{ $t('settings.server.headlessHint') }}</p>
+          <div style="display:flex;align-items:center;gap:10px;margin-top:8px">
+            <code style="flex:1;min-width:0;padding:8px 10px;background:var(--surface-2);border:1px solid var(--border);border-radius:6px;font-size:13px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">{{ headlessUrl }}</code>
+            <UiButton intent="secondary" size="small" @click="copyHeadlessUrl">{{ $t('settings.server.copy') }}</UiButton>
+          </div>
+        </div>
+
+        <div class="card">
+          <div class="card-title">{{ $t('settings.server.authTitle') }}</div>
+          <p class="t-muted">{{ $t('settings.server.authHint') }}</p>
+          <label style="display:flex;align-items:center;gap:10px;margin:10px 0">
+            <UiToggle :model-value="requireLoopbackAuth" @update:model-value="setRequireLoopbackAuth" />
+            <span>{{ $t('settings.server.requireLoopback') }}</span>
+          </label>
+          <div v-if="authTokens.length" style="display:flex;flex-direction:column;gap:6px;margin-bottom:10px">
+            <div v-for="tok in authTokens" :key="tok" style="display:flex;align-items:center;gap:8px">
+              <code style="flex:1;min-width:0;padding:6px 10px;background:var(--surface-2);border:1px solid var(--border);border-radius:6px;font-size:12.5px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">{{ tok }}</code>
+              <UiButton intent="ghost" size="small" :title="$t('settings.server.removeToken')" @click="removeToken(tok)"><Icon name="Close" :size="12" /></UiButton>
+            </div>
+          </div>
+          <p v-else class="t-muted"><em>{{ $t('settings.server.noTokens') }}</em></p>
+          <div style="display:flex;align-items:center;gap:8px">
+            <UiInput v-model="newToken" :placeholder="$t('settings.server.tokenPlaceholder')" style="flex:1" @keydown.enter="addToken" />
+            <UiButton intent="secondary" size="small" @click="generateToken">{{ $t('settings.server.generate') }}</UiButton>
+            <UiButton intent="primary" size="small" :disabled="!newToken.trim()" @click="addToken">{{ $t('settings.server.addToken') }}</UiButton>
+          </div>
+        </div>
       </div>
 
       <!-- ── BACKUPS ───────────────────────────────── -->
