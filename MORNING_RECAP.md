@@ -117,9 +117,18 @@ reachable via Settings).
   don't capture it yet — minor follow-up.)
 - **Per-feature flags (DISCUSS):** beyond max tokens, only feature-specific
   behaviors exist (writerAI 3-variation, voice-canon) — confirm which to expose.
-- **QuickSetup rethink (DISCUSS):** auto-applies system-picked models with no
-  choice. Want the hardware recommendation + editable dropdowns of fitting models.
-  JW LLM first; JV has TWO (TTS + LLM).
+- **QuickSetup rethink (IN DESIGN) — see `docs/plans/2026-06-24-local-model-recommendations.md`.**
+  Decided: modal wizard (like JV) + card/VRAM chooser + pick Card/Quick/Accuracy/Embedding
+  from a benchmark-cited, Fit-filtered (VRAM+RAM, MoE-aware) list; the Lab A/Bs the picks.
+  **Key findings:** model recommendations come from BOARDS not our testing (Qwen3=reasoning/
+  attribution, Mistral Small=JSON/extraction, EQ-Bench=prose [cloud still leads], nomic-embed=embeddings).
+  **MoE offload (`--n-cpu-moe`) runs Qwen3.6-35B-A3B on a 6 GB card (~30 tps, needs ~24 GB RAM)** —
+  far better than dense 8B for hard tasks; `-ncmoe` is MoE-only (doesn't help a dense 14B, which is
+  why 14B is slow on a small card). Switch presets ARE saved (`runner-manifest.json` flagPresets +
+  `process.py` Overrides); the GAP is they're not plumbed through `/v1/llm-runner/load` or exposed in
+  the UI → build a per-local-model tuning UI (n_cpu_moe/n_gpu_layers/ctx + tps readout) to test.
+  Enabler shipped: `/v1/llm-runner/models?vram_mb=` re-scores Fit. User's machine: small card + 32 GB RAM
+  (MoE-capable). JW LLM first; JV has TWO (TTS + LLM).
 - **App Settings common sections (audit):** JW lacks GPU · Logs · Changelog vs JV.
 - **Cleanup:** delete the now-unused `PromptLab.vue`; the routing-presets backend
   endpoints are now UI-less (decide keep vs remove).
