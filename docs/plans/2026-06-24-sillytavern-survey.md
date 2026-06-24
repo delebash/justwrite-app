@@ -16,6 +16,17 @@ with **named presets = the Lab** (save / test-candidate / promote to production)
 knobs: **temperature · max_tokens · think** · local llama.cpp runner with auto-Fit
 (no per-model layer/MoE override UI yet) · JW: RAG ("Ask the book") + story bible.
 
+**Our AI interactions are NOT chat-only** (correction, user 2026-06-24) — "chat"
+is only the transport (we call chat-completion endpoints). The task shapes are:
+(a) **conversational** (Ask-the-book, character chat); (b) **instruct /
+structured-output** — the majority: critique→JSON, **speaker attribution**→
+who-said-what JSON, plot-holes, multi-reader, smart-assign, render-preset-suggest
+(system prompt + a strict JSON/structured result, not a dialogue); (c) **TTS
+conditioning** (JustVoice — natural-language style/emotion *instruction* fed to a
+TTS engine; separate from the LLM stack but a real AI-interaction type to keep in
+the shared design). The big implication: **structured output** matters more than
+exotic samplers (see the adopt list).
+
 ## 1. Sampler parameters — the big gap
 ST exposes ~19 samplers; **most are local-backend-only**. The portability matrix
 (**source-verified** against ST's request builders — `public/scripts/openai.js`
@@ -92,14 +103,51 @@ auto-save on switch). We just removed the whole-routing "Saved configs"
 (RoutingPresets) per the user. If config-switching returns, ST's model is the
 reference: bundle everything, switch in one click, explicit update. Not now — note.
 
+## Whole-picture audit of OUR AI surface (verified 2026-06-24)
+- **JW LLM features** — mostly **structured-output (JSON)**: `seed_feature_prompts`
+  has 36 JSON / "return only" / array directives (critique, plot-holes, multi-reader,
+  beat sheet, marketing pack, reverse outline, foreshadowing, reader-knowledge,
+  voice-drift, character-audit, relationship-arc, entity-sweep). Prose: writerAI,
+  brainstorm. Conversational: chat, characterChat. → **not chat-only; mostly instruct.**
+- **JV LLM features** (6, via the shared dispatch): structured (speaker_attribution,
+  smart_assign, render_preset_suggest), prose (compose, persona_rewrite), show_notes.
+- **JV TTS** — a SEPARATE subsystem (not the LLM dispatch): per-engine `instruct`/
+  style natural-language conditioning (Qwen3 `supports_instruct_field`; Chatterbox
+  exaggeration/cfg_weight), per-engine sampling (temperature/top_k/top_p),
+  `response_format`, voice selection. Its own UI (Generate/Studio + engine manifests).
+
+## Placement / layering — where each setting lives
+| Setting | Layer | Home |
+|---|---|---|
+| base URL · key · provider type · default model · embedding model · timeout | **provider** | `ProviderForm` |
+| which model to fall back to | **default + Quick/Accuracy roles** | Defaults row + role cards |
+| prompt · model pin · temperature · **max_tokens · samplers · structured-output · reasoning-effort** · think | **per feature/action** | `FeatureWorkbench` (the Lab) |
+| GPU layers · MoE CPU-offload · context length (`ctx_len`) | **per local model** | local-model catalog (`local-llamacpp`) |
+| token-budget guard (reads the model's context size) | **dispatch / run** | server |
+| TTS `instruct`/style · engine sampling · voice · response_format | **per engine / per take** | JustVoice Generate/Studio (separate) |
+
+The per-action layer (the Lab) is where generation behavior belongs — different
+features want different behavior (a JSON feature: low temp + JSON mode; brainstorm:
+high temp, freeform). Samplers/structured-output ride in the per-action
+`sampler_params`; the model ROUTE still cascades action-pin → role → default.
+
 ## Prioritized adopt list
-- **HIGH:** per-action `sampler_params` (JSON) + backend-aware sampler UI (top_p,
-  penalties, top_k/min_p, seed, stop); context **token-count + budget guard**
-  (whole-book features); **prompt-preview + token count** in the Lab.
-- **MED:** reasoning-effort enum; story-bible→prompt injection (lorebook-style);
-  a few macros (`random`/`pick`/`date`/`if`).
-- **LOW / skip:** context+instruct templates (we're chat-only), CFG, beam search,
-  Author's Note, full STscript. Connection profiles = note (config-switch is gone).
+- **HIGH #1 — structured output (per action):** force valid JSON/schema —
+  `response_format` (OpenAI) · `format=json` (Ollama) · `grammar`/`json_schema`
+  (llama.cpp/Tabby). 30+ JW + JV features depend on valid JSON and only *ask* in the
+  prompt today; this is the biggest robustness win.
+- **HIGH #2 — per-action `sampler_params` (JSON) + backend-aware UI:** cloud
+  (top_p, frequency/presence_penalty, seed, stop); local adds top_k/min_p/grammar/….
+- **HIGH #3 — context-size + token-budget guard:** per-model context window
+  (`num_ctx`) + token count + padding; protects whole-book features from overflow.
+- **MED:** reasoning-effort enum (upgrade `think`); Lab **prompt-preview + token
+  count**; per-local-model GPU/MoE/ctx flags; story-bible→prompt injection
+  (lorebook-style); a few `render()` macros (`random`/`pick`/`date`/`if`).
+- **LOW / skip:** text-completion instruct/context TEMPLATES (we call chat-completion
+  endpoints; the server applies the chat template — N/A unless we add a raw-completion
+  backend), CFG, beam search, Author's Note, full STscript. Connection profiles =
+  design note (config-switch was removed). TTS conditioning = JV per-engine, no
+  shared-LLM change.
 
 ## Not yet decided
 Whether samplers live per-ACTION (fits the Lab) or also per-ROLE/default;
