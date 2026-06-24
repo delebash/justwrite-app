@@ -864,3 +864,45 @@ settings/flags; QuickSetup rethink (card/VRAM chooser + recommendation; JV has T
 + LLM); Model-roles → JV card look (descriptions + "used for", shared); App
 Settings → horizontal menu + common sections. **JV transfer checklist** is in the
 recap's 06-24 section.
+
+## Decision 22 — the AI task queue / progress / cancel is SHARED (2026-06-24)
+
+**User, 2026-06-24 (and "we already talked about this; it got dropped"):** the
+WHOLE AI stack is shared — that explicitly INCLUDES the AI **progress + queue**
+(in-flight task list, live progress, cancel, the strip UI, and the run-wrapper
+that registers tasks). "It's the same thing." This was decided earlier, never
+written here, so it was dropped — recording in full now (PRIORITY RULE #2).
+
+**Verified forked state (2026-06-24):**
+- JW: `stores/aiTasks.js` (231 ln, Pinia) + `components/AiTaskStrip.vue` (151) +
+  `services/aiFeature.js` (150, `runAiFeature`/`runAiFeatureStream` → registers
+  tasks + streams `/v1/ai/stream`). **46 JW files consume it.**
+- JV: `stores/renderTasks.js` — its header says *"adapted from JustWrite's
+  aiTasks.js pattern … shape matches AiTaskStrip/AiStatusPanel so we can borrow
+  those components"* → a **copy-paste fork** of JW's. (+ `TaskStrip.vue`,
+  `TaskStatusPanel.vue`.)
+- Shared kit `@delebash/llm-ui`: **nothing** — no task/queue/progress.
+
+**Target (the convergence):** ONE shared AI-task system in `@delebash/llm-ui`:
+- the **task store** (running[] + history, elapsed, freshness, cancel) — a Pinia
+  `defineStore` MOVED from JW verbatim (the apps provide the active Pinia), or a
+  reactive-module singleton like `toastBridge` if we want zero Pinia coupling;
+- **`AiTaskStrip`** + **`AiStatusPanel`/`AiStatusButton`** components;
+- **`runAiFeature` / `runAiFeatureStream`** (adapt JW's `serverUrl` → the kit's
+  `llmUiUrl`/`requestStream`; register into the shared store).
+Both apps import them; the `FeatureWorkbench` then uses the shared runner+store
+DIRECTLY (the `runStream` host-hook added 2026-06-24 was a stopgap against the
+JW-local queue — it's replaced by the shared runner).
+
+**Migration:** (1) move the 3 JW files into the kit (verbatim → adapt imports to
+the kit client + kit primitives); (2) sweep JW's ~46 consumers' imports to
+`@delebash/llm-ui` (mechanical); (3) delete JW's local copies (no re-export shims
+— RULE #8); (4) JV deletes `renderTasks.js`/`TaskStrip.vue` copies and adopts the
+shared ones (U5). TTS-render-specific tasks (JV) MAY stay a JV concern if their
+shape genuinely diverges — but the LLM-call task queue is shared.
+
+**Why it matters:** it IS the same thing in both apps (an in-flight LLM-call list
+with progress + cancel); forking it = the copy-paste drift RULE #7 forbids, and
+it's already happened once (JV copied JW). Shared = one implementation, one strip,
+consistent UX, and the FeatureWorkbench/Lab test runs land in the same queue in
+every app.
