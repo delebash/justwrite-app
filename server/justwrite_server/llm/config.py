@@ -28,15 +28,15 @@ from .routing_store import get_routing_store
 DEFAULT_FEATURE_ROLES: dict[str, str] = {e.key: e.role for e in FEATURE_CATALOG}
 
 
-def _roles_from(routing, default_id: str) -> LLMRolesSettings | None:
+def _roles_from(routing, default_id: str, default_model: str) -> LLMRolesSettings | None:
     """Build the Quick/Accuracy role pair from the routing config. A role with a
-    providerId wins; an unset role falls back to the global default provider so
-    unpinned features still resolve."""
+    providerId wins; an unset role falls back to the global default provider +
+    its chosen model (so unpinned features resolve to the Default LLM picker)."""
 
     def target(rt) -> LLMRoleTarget | None:
         if rt and rt.providerId:
             return LLMRoleTarget(providerId=rt.providerId, model=rt.model or "")
-        return LLMRoleTarget(providerId=default_id) if default_id else None
+        return LLMRoleTarget(providerId=default_id, model=default_model) if default_id else None
 
     quick, accuracy = target(routing.quick), target(routing.accuracy)
     if quick is None and accuracy is None:
@@ -62,7 +62,7 @@ def llm_config() -> LLMConfig:
     ]
     # Quick/Accuracy roles if set; otherwise both resolve to the user's single
     # default provider, so any unpinned feature still falls back to it.
-    roles = _roles_from(routing, default_id)
+    roles = _roles_from(routing, default_id, routing.default.model or "")
     return LLMConfig(
         providers=list(get_provider_store().list()),
         feature_pins=feature_pins,

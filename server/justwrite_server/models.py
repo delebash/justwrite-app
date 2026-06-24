@@ -561,6 +561,7 @@ class RoutingConfigRow(Base):
     is_active = Column(Boolean, nullable=False, default=False)
     position = Column(Integer, nullable=False, default=0)
     default_llm_id = Column(String, nullable=False, default="")
+    default_model = Column(String, nullable=False, default="")
     default_embedding_id = Column(String, nullable=False, default="")
     quick_provider_id = Column(String, nullable=False, default="")
     quick_model = Column(String, nullable=False, default="")

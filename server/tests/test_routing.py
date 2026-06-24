@@ -22,7 +22,7 @@ def test_catalog_role_map_matches_feature_catalog():
 def test_get_routing_returns_full_catalog_unpinned(tmp_path):
     c = _c(tmp_path)
     body = c.get("/v1/ai/routing").json()
-    assert body["default"] == {"llmId": "", "embeddingId": ""}
+    assert body["default"] == {"llmId": "", "model": "", "embeddingId": ""}
     feats = {f["key"]: f for f in body["features"]}
     assert set(feats) == {e.key for e in FEATURE_CATALOG}
     assert feats["critique"]["label"] == "Critique"
@@ -62,8 +62,8 @@ def test_put_persists_and_drives_dispatch_config(tmp_path):
 
 def test_default_only_falls_back_to_both_roles(tmp_path):
     c = _c(tmp_path)
-    c.put("/v1/ai/routing", json={"default": {"llmId": "openai", "embeddingId": ""}})
+    c.put("/v1/ai/routing", json={"default": {"llmId": "openai", "model": "gpt-4o", "embeddingId": ""}})
     cfg = llm_config()
-    # No explicit roles → both resolve to the default provider.
-    assert cfg.llm_roles.quick.providerId == "openai"
-    assert cfg.llm_roles.accuracy.providerId == "openai"
+    # No explicit roles → both resolve to the default provider + its chosen model.
+    assert cfg.llm_roles.quick.providerId == "openai" and cfg.llm_roles.quick.model == "gpt-4o"
+    assert cfg.llm_roles.accuracy.providerId == "openai" and cfg.llm_roles.accuracy.model == "gpt-4o"
