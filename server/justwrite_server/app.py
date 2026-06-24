@@ -9,10 +9,14 @@ seam. See docs/plans/2026-06-18-unified-storage-no-idb.md.
 
 from __future__ import annotations
 
+import logging
+import os
 from pathlib import Path
 
-from fastapi import FastAPI
+from fastapi import FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.responses import JSONResponse, RedirectResponse
+from fastapi.staticfiles import StaticFiles
 
 # Shared local-LLM runner core (own repo `just-llm-runner`, git dependency).
 # Imported in-process — JustWrite now has a real Python server, so it mounts
@@ -33,8 +37,11 @@ from .api import (
 )
 from .app_state import AppState, set_state
 from .database import init_db
+from .errors import ApiError, api_exception_handler, http_exception_handler
 from .paths import default_data_dir
 from .version import PRODUCT, VERSION
+
+log = logging.getLogger(__name__)
 
 
 def create_app(data_dir: Path | None = None) -> FastAPI:
@@ -52,15 +59,38 @@ def create_app(data_dir: Path | None = None) -> FastAPI:
     set_ledger(JwDbUsageSink())
 
     app = FastAPI(title=PRODUCT, version=VERSION)
+
+    # Catch-all error envelope — registered BEFORE CORSMiddleware so an
+    # unhandled exception becomes a JSON 500 that flows OUT through CORS and
+    # reaches the browser as a real error (a bare exception handler runs in
+    # Starlette's ServerErrorMiddleware, OUTSIDE CORS, so the browser sees a
+    # CORS block instead). Uniform with JustVoice's server (verified the hard
+    # way there, 2026-06-12).
+    @app.middleware("http")
+    async def _error_envelope(request, call_next):  # noqa: ANN001
+        try:
+            return await call_next(request)
+        except Exception as exc:  # noqa: BLE001 — envelope everything
+            log.exception("unhandled error on %s %s", request.method, request.url.path)
+            return JSONResponse(
+                status_code=500,
+                content={"title": "Internal Server Error", "detail": str(exc)[:300]},
+            )
+
     # The Tauri webview origin is cross-origin to the localhost server; the
     # desktop shell routes HTTP through Tauri's plugin (CORS-exempt), but keep
-    # this permissive for the browser-only dev path.
+    # this permissive for the browser-only dev + headless paths.
     app.add_middleware(
         CORSMiddleware,
         allow_origins=["*"],
         allow_methods=["*"],
         allow_headers=["*"],
     )
+
+    # RFC 7807 problem+json for ApiError + plain HTTPException — one error shape
+    # across both apps' servers (the bearer-auth middleware emits it too).
+    app.add_exception_handler(ApiError, api_exception_handler)
+    app.add_exception_handler(HTTPException, http_exception_handler)
 
     app.include_router(health.router)
     app.include_router(projects.router)
@@ -111,4 +141,40 @@ def create_app(data_dir: Path | None = None) -> FastAPI:
     # Per-feature presets (Feature Workbench save-as/load + use-as-production):
     # named saved configs over JW's feature_presets table.
     app.include_router(make_feature_presets_router(get_feature_preset_store))
+
+    # Headless UI — serve the Vite build (dist/) so `justwrite-server serve` + a
+    # browser at the server's origin gives the full app WITHOUT the Tauri shell
+    # (the renderer's origin-aware serverApi targets window.location.origin).
+    # Uniform with JustVoice. Mounted LAST so every /v1/* router wins first.
+    ui_dir = _locate_ui_dir()
+    if ui_dir is not None:
+        @app.get("/ui", include_in_schema=False)
+        @app.get("/ui/", include_in_schema=False)
+        async def ui_redirect():
+            return RedirectResponse("/")
+
+        app.mount("/", StaticFiles(directory=str(ui_dir), html=True), name="ui")
+        log.info("UI served from %s", ui_dir)
+    else:
+        log.warning(
+            "UI build not found — headless UI disabled. Run `npm run build:vite` "
+            "to produce dist/, or set JUSTWRITE_UI_DIR."
+        )
+
     return app
+
+
+def _locate_ui_dir() -> Path | None:
+    """Find the Vite build output (dist/) across dev + packaged layouts."""
+    candidates: list[Path] = []
+    override = os.environ.get("JUSTWRITE_UI_DIR")
+    if override:
+        candidates.append(Path(override))
+    # Source layout: server/justwrite_server/app.py -> parents[2] is the repo root.
+    candidates.append(Path(__file__).resolve().parents[2] / "dist")
+    # Packaged / cwd fallback.
+    candidates.append(Path.cwd() / "dist")
+    for c in candidates:
+        if c.is_dir() and (c / "index.html").is_file():
+            return c
+    return None
