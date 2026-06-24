@@ -996,6 +996,7 @@ def seed_feature_prompts(db: Session) -> int:
             temperature=float(spec.get("temperature", 0.7)),
             think=bool(spec.get("think", False)),
             built_in=True,
+            max_tokens=int(spec.get("max_tokens", 0) or 0),
             label=str(spec.get("label") or ""),
             description=str(spec.get("description") or ""),
             subgroup=str(spec.get("group") or ""),

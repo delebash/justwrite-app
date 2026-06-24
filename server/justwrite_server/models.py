@@ -634,6 +634,7 @@ class FeaturePrompt(Base):
     user_template = Column(Text, nullable=False, default="")
     temperature = Column(Float, nullable=False, default=0.7)
     think = Column(Boolean, nullable=False, default=False)
+    max_tokens = Column(Integer, nullable=False, default=0)  # 0 → no cap
     built_in = Column(Boolean, nullable=False, default=True)
     # Feature Workbench nav metadata: the action's display name, a short blurb, and
     # an optional sub-section label (e.g. writerAI's "Prose actions" / "Line

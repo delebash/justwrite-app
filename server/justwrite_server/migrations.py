@@ -69,6 +69,13 @@ def migrate_schema(engine: Engine) -> None:
             FeaturePrompt.__table__.create(bind=conn)
             log.info("migrate_schema: rebuilt feature_prompts for label/description/subgroup")
 
+        # feature_prompts gained `max_tokens` (per-action output cap). Re-read cols
+        # (a rebuild above may already have added it) before the ALTER.
+        fp_cols2 = {row[1] for row in conn.execute(text("PRAGMA table_info(feature_prompts)")).fetchall()}
+        if fp_cols2 and "max_tokens" not in fp_cols2:
+            conn.execute(text("ALTER TABLE feature_prompts ADD COLUMN max_tokens INTEGER NOT NULL DEFAULT 0"))
+            log.info("migrate_schema: added feature_prompts.max_tokens")
+
         # `feature_presets` is now keyed per ACTION (was per feature). Rebuild the
         # table when the old `feature` column is present (saved presets re-created).
         fpr_cols = {row[1] for row in conn.execute(text("PRAGMA table_info(feature_presets)")).fetchall()}
