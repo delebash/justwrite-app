@@ -12,7 +12,7 @@ import { Icon } from "@delebash/llm-ui";
 import RichEditor from "../components/RichEditor.vue";
 import Breadcrumb from "../components/Breadcrumb.vue";
 import PaneHeader from "../components/PaneHeader.vue";
-import { promptDialog } from "../services/dialog.js";
+import { promptDialog } from "@delebash/llm-ui";
 import { NEW_ENTITY_META } from "../services/entityMeta.js";
 import { parseFile } from "../services/import/index.js";
 

@@ -4,7 +4,7 @@ import { useAiStore } from "../stores/ai.js";
 import { useProjectStore } from "../stores/project.js";
 import { useUiStore } from "../stores/ui.js";
 import { saveImage, urlFor, hasNativeImages } from "../services/imageStore.js";
-import { promptDialog, confirmDialog } from "../services/dialog.js";
+import { promptDialog, confirmDialog } from "@delebash/llm-ui";
 import { readSetting, writeSetting } from "../services/settings.js";
 import { resetWorkspace as resetWorkspaceApi } from "../services/workspaceApi.js";
 import { buildVoiceFingerprint } from "../services/voiceFingerprint.js";

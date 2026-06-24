@@ -17,7 +17,7 @@ import { useRouter } from "vue-router";
 import { useProjectStore } from "../stores/project.js";
 import { useUiStore } from "../stores/ui.js";
 import { useVersionsStore } from "../stores/versions.js";
-import { promptDialog } from "../services/dialog.js";
+import { promptDialog } from "@delebash/llm-ui";
 import { HELP_TOC } from "../services/helpDocs.js";
 import { Icon } from "@delebash/llm-ui";
 

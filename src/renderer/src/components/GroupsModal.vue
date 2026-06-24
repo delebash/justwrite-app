@@ -1,7 +1,7 @@
 <script setup>
 import { computed } from "vue";
 import { useProjectStore } from "../stores/project.js";
-import { promptDialog } from "../services/dialog.js";
+import { promptDialog } from "@delebash/llm-ui";
 import { Icon } from "@delebash/llm-ui";
 import { AppModal } from "@delebash/llm-ui";
 

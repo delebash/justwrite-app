@@ -8,7 +8,7 @@ import { applyEditorSettings } from "./services/editorSettings.js";
 import TitleBar from "./components/TitleBar.vue";
 import Sidebar from "./components/Sidebar.vue";
 import Toast from "./components/Toast.vue";
-import AppDialog from "./components/AppDialog.vue";
+import { AppDialog } from "@delebash/llm-ui";
 import CommandPalette from "./components/CommandPalette.vue";
 import ProjectReplaceModal from "./components/ProjectReplaceModal.vue";
 import ChatPanel from "./components/ChatPanel.vue";

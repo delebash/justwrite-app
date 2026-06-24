@@ -7,7 +7,7 @@
 
 import { ref, computed, onBeforeUnmount } from "vue";
 import { useProjectStore } from "../stores/project.js";
-import { promptDialog } from "../services/dialog.js";
+import { promptDialog } from "@delebash/llm-ui";
 import { Icon } from "@delebash/llm-ui";
 
 const props = defineProps({

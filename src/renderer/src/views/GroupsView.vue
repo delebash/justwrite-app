@@ -16,7 +16,7 @@ import StatusSelect from "../components/StatusSelect.vue";
 import MentionRefList from "../components/MentionRefList.vue";
 import Breadcrumb from "../components/Breadcrumb.vue";
 import PaneHeader from "../components/PaneHeader.vue";
-import { promptDialog } from "../services/dialog.js";
+import { promptDialog } from "@delebash/llm-ui";
 import { NEW_ENTITY_META } from "../services/entityMeta.js";
 import JwColorPicker from "@renderer/components/ui/JwColorPicker.vue";
 

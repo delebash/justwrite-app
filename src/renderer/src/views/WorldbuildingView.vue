@@ -9,7 +9,7 @@ import RichEditor from "../components/RichEditor.vue";
 import StatusSelect from "../components/StatusSelect.vue";
 import Breadcrumb from "../components/Breadcrumb.vue";
 import TagEditor from "../components/TagEditor.vue";
-import { promptDialog } from "../services/dialog.js";
+import { promptDialog } from "@delebash/llm-ui";
 import { NEW_ENTITY_META } from "../services/entityMeta.js";
 
 import JwTable from "@renderer/components/ui/JwTable.vue";

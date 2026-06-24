@@ -5,7 +5,7 @@ import { useProjectStore, TRASH_KINDS } from "../stores/project.js";
 import { useUiStore } from "../stores/ui.js";
 import PaneHeader from "../components/PaneHeader.vue";
 import { Icon } from "@delebash/llm-ui";
-import { confirmDialog } from "../services/dialog.js";
+import { confirmDialog } from "@delebash/llm-ui";
 import { UiButton } from "@delebash/llm-ui";
 import JwTable from "@renderer/components/ui/JwTable.vue";
 

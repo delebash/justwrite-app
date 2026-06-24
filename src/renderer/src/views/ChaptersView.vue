@@ -17,7 +17,7 @@ import SensoryResearchModal from "../components/SensoryResearchModal.vue";
 import EmptyState from "../components/EmptyState.vue";
 import StatusSelect from "../components/StatusSelect.vue";
 import Breadcrumb from "../components/Breadcrumb.vue";
-import { promptDialog, confirmDialog } from "../services/dialog.js";
+import { promptDialog, confirmDialog } from "@delebash/llm-ui";
 import { stitchChapter, splitChapter } from "../services/chapterStitch.js";
 import { EDITOR_TOOLBAR_FULL } from "../services/editorToolbars.js";
 import { UiButton } from "@delebash/llm-ui";
