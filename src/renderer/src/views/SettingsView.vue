@@ -17,7 +17,8 @@ import { UiCheckbox } from "@delebash/llm-ui";
 import { UiNumber } from "@delebash/llm-ui";
 import { UiSelect } from "@delebash/llm-ui";
 import { UiButton } from "@delebash/llm-ui";
-import JwColorPicker from "@renderer/components/ui/JwColorPicker.vue";
+import { UiColorPicker } from "@delebash/llm-ui";
+import { PRESET_COLORS } from "@renderer/services/categoricalColors.js";
 import {
   ACCENT_PRESETS, GOLD_PRESETS, FUNCTIONAL_PRESETS, PAIRINGS, SURFACE_TINTS, PAPER_TINTS,
   THEME_PRESETS, UI_FONTS, DISPLAY_FONTS, INK_PALETTES, UI_SCALES,
@@ -540,7 +541,7 @@ function addCategory() {
 }
 function renameCategory(id, label) { project.updateWorldbuildingCategory(id, { label }); }
 function recolorCategory(id, hue) { project.updateWorldbuildingCategory(id, { hue }); }
-// Parse the hue number out of an oklch() string emitted by JwColorPicker,
+// Parse the hue number out of an oklch() string emitted by UiColorPicker,
 // since worldbuilding categories store hue as a bare number (the render
 // code reassembles oklch with its own clamped L and C).
 function parseHueFromOklch(s) {
@@ -730,7 +731,7 @@ const recentColumns = [
             <div v-for="c in project.worldbuildingCategories" :key="c.id" style="display:flex;align-items:center;gap:10px">
               <UiInput style="max-width:220px" :model-value="c.label"
                 @update:model-value="(v) => renameCategory(c.id, v)" placeholder="Category name" />
-              <JwColorPicker
+              <UiColorPicker :presets="PRESET_COLORS"
                 :model-value="`oklch(0.62 0.13 ${c.hue})`"
                 aria-label="Category color"
                 @update:model-value="(v) => recolorCategory(c.id, parseHueFromOklch(v))" />

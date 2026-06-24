@@ -19,7 +19,8 @@ import GroupsModal from "../components/GroupsModal.vue";
 import { Breadcrumb } from "@delebash/llm-ui";
 import { promptDialog } from "@delebash/llm-ui";
 import { NEW_ENTITY_META } from "../services/entityMeta.js";
-import JwColorPicker from "@renderer/components/ui/JwColorPicker.vue";
+import { UiColorPicker } from "@delebash/llm-ui";
+import { PRESET_COLORS } from "@renderer/services/categoricalColors.js";
 
 const props = defineProps({ id: { type: String, default: "" } });
 const project = useProjectStore();
@@ -376,7 +377,7 @@ const tableRows = computed(() =>
             <div class="strand-meta-row">
               <div class="strand-color-picker">
                 <span class="t-eyebrow" style="font-size:10px;color:var(--muted)">Color</span>
-                <JwColorPicker
+                <UiColorPicker :presets="PRESET_COLORS"
                   :model-value="s.color"
                   aria-label="Strand color"
                   @update:model-value="update('color', $event)" />

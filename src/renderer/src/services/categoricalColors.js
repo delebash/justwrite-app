@@ -1,4 +1,4 @@
-// Shared categorical color generator used by the JwColorPicker presets
+// Shared categorical color generator used by the UiColorPicker presets
 // and the auto-default for narrative strand and character group colors.
 //
 // Lightness varies with hue: yellows and light greens need a higher L
@@ -29,7 +29,7 @@ export function colorForHue(hue, { chroma = 0.13 } = {}) {
   return `oklch(${L} ${chroma} ${Math.round(hue)})`;
 }
 
-// 12 evenly-spaced hues for the JwColorPicker preset grid (4×3 layout).
+// 12 evenly-spaced hues for the UiColorPicker preset grid (4×3 layout).
 // Combined with naturalLightness, this gives recognizable red / orange /
 // yellow / lime / green / teal / sky / blue / purple / magenta / pink.
 export const PRESET_HUES = [0, 30, 60, 90, 120, 150, 180, 210, 240, 270, 300, 330];
