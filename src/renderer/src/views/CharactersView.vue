@@ -12,7 +12,7 @@ import { UiNumber } from "@delebash/llm-ui";
 import { UiButton } from "@delebash/llm-ui";
 import { UiSelect } from "@delebash/llm-ui";
 import { UiTag } from "@delebash/llm-ui";
-import JwTable from "@renderer/components/ui/JwTable.vue";
+import { UiTable } from "@delebash/llm-ui";
 import ImagesModal from "../components/ImagesModal.vue";
 import EntitySweepModal from "../components/EntitySweepModal.vue";
 import CharacterAuditModal from "../components/CharacterAuditModal.vue";
@@ -351,7 +351,7 @@ function onRowClick(event) {
           </div>
         </div>
 
-        <JwTable
+        <UiTable
           :data="filteredRows"
           :columns="columns"
           data-key="id"
@@ -403,7 +403,7 @@ function onRowClick(event) {
             <UiTag v-if="row.main" value="Yes" intent="info" />
             <span v-else class="ch-status-empty">—</span>
           </template>
-        </JwTable>
+        </UiTable>
       </div>
     </div>
   </template>

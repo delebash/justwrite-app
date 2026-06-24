@@ -4,7 +4,7 @@ import { UiInput } from "@delebash/llm-ui";
 import { UiButton } from "@delebash/llm-ui";
 import { UiSelect } from "@delebash/llm-ui";
 import { UiTag } from "@delebash/llm-ui";
-import JwTable from "@renderer/components/ui/JwTable.vue";
+import { UiTable } from "@delebash/llm-ui";
 import { useProjectStore } from "../stores/project.js";
 import { useUiStore } from "../stores/ui.js";
 import { useRouter } from "vue-router";
@@ -291,7 +291,7 @@ function onRowClick(event) {
           </div>
         </div>
 
-        <JwTable
+        <UiTable
           :data="filteredRows"
           :columns="columns"
           data-key="id"
@@ -324,7 +324,7 @@ function onRowClick(event) {
           <template #updated="{ row }">
             <span>{{ row.updated }}</span>
           </template>
-        </JwTable>
+        </UiTable>
       </div>
     </div>
   </template>

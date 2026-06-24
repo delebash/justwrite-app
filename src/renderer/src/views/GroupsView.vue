@@ -7,7 +7,7 @@ import { Icon } from "@delebash/llm-ui";
 import { UiButton } from "@delebash/llm-ui";
 import { UiInput } from "@delebash/llm-ui";
 import { UiTag } from "@delebash/llm-ui";
-import JwTable from "@renderer/components/ui/JwTable.vue";
+import { UiTable } from "@delebash/llm-ui";
 import { UiCheckbox } from "@delebash/llm-ui";
 import ImagesModal from "../components/ImagesModal.vue";
 import RichEditor from "../components/RichEditor.vue";
@@ -171,7 +171,7 @@ function onRowClick(event) {
           </div>
         </div>
 
-        <JwTable
+        <UiTable
           :data="filteredRows"
           :columns="columns"
           data-key="id"
@@ -201,7 +201,7 @@ function onRowClick(event) {
             <UiTag v-if="row.status" :value="statusLabel(row.status)" :intent="statusSeverity(row.status)" />
             <span v-else class="gr-status-empty">—</span>
           </template>
-        </JwTable>
+        </UiTable>
       </div>
     </div>
   </template>

@@ -30,12 +30,12 @@ export default defineConfig({
       // package.json (later). Sibling repo: ../just-llm-runner/ui.
       "@delebash/llm-ui": resolve(__dirname, "../just-llm-runner/ui/src"),
     },
-    // The aliased kit imports peer deps (vue, reka-ui, marked) by bare
-    // specifier from its own dir; dedupe forces a SINGLE copy from this app's
-    // node_modules (Reka provide/inject + Vue reactivity break with two
-    // instances). marked is pulled transitively via the kit's shared HelpDrawer
-    // markdown renderer (JW still uses its own help components for now).
-    dedupe: ["vue", "reka-ui", "@floating-ui/dom", "pinia", "vue-router", "vue-i18n", "marked", "vue-sonner"],
+    // The aliased kit imports peer deps (vue, reka-ui, marked, @tanstack/vue-table)
+    // by bare specifier from its own dir; dedupe forces a SINGLE copy from this
+    // app's node_modules (Reka provide/inject + Vue reactivity break with two
+    // instances). marked rides the shared HelpDrawer renderer; @tanstack/vue-table
+    // is what the shared UiTable needs.
+    dedupe: ["vue", "reka-ui", "@floating-ui/dom", "pinia", "vue-router", "vue-i18n", "marked", "vue-sonner", "@tanstack/vue-table"],
   },
   plugins: [vue()],
   clearScreen: false,

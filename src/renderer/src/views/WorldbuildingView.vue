@@ -12,7 +12,7 @@ import TagEditor from "../components/TagEditor.vue";
 import { promptDialog } from "@delebash/llm-ui";
 import { NEW_ENTITY_META } from "../services/entityMeta.js";
 
-import JwTable from "@renderer/components/ui/JwTable.vue";
+import { UiTable } from "@delebash/llm-ui";
 import { UiInput } from "@delebash/llm-ui";
 import { UiTag } from "@delebash/llm-ui";
 import { UiButton } from "@delebash/llm-ui";
@@ -89,7 +89,7 @@ const rows = computed(() =>
 // Global search + per-facet filter chips. Category and Status are
 // single-select (a row matches if it's in the selected value); Tags is
 // multi-select with ANY-match semantics. Chips live above the table; the
-// table sees pre-filtered rows so JwTable doesn't have to model facets.
+// table sees pre-filtered rows so UiTable doesn't have to model facets.
 const globalQuery = ref("");
 const selectedCategory = ref(null);
 const selectedStatus = ref(null);
@@ -120,8 +120,8 @@ const allTags = computed(() => {
   return [...set].sort();
 });
 
-// Pre-filter rows by the three facets before handing to JwTable. Global
-// text search stays in JwTable's hands so its filteredRowModel still works.
+// Pre-filter rows by the three facets before handing to UiTable. Global
+// text search stays in UiTable's hands so its filteredRowModel still works.
 const filteredRows = computed(() => {
   const rs = rows.value;
   if (!selectedCategory.value && !selectedStatus.value && selectedTags.value.size === 0) return rs;
@@ -141,7 +141,7 @@ const hasActiveFacets = computed(() =>
   !!selectedCategory.value || !!selectedStatus.value || selectedTags.value.size > 0,
 );
 
-// JwTable column definitions. Each column's accessorKey ties into the
+// UiTable column definitions. Each column's accessorKey ties into the
 // matching slot below (#title, #category, #tags, #status, #words).
 const columns = [
   { accessorKey: "title",     header: "Title",    sortable: true, headerStyle: "min-width: 220px" },
@@ -238,7 +238,7 @@ function onRowClick(event) {
           </div>
         </div>
 
-        <JwTable
+        <UiTable
           :data="filteredRows"
           :columns="columns"
           data-key="id"
@@ -281,7 +281,7 @@ function onRowClick(event) {
           <template #words="{ row }">
             <span class="wb-words">{{ (row.words || 0).toLocaleString() }}</span>
           </template>
-        </JwTable>
+        </UiTable>
       </div>
     </div>
   </template>

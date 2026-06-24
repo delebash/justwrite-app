@@ -29,7 +29,7 @@ import { AVAILABLE_LOCALES, setLocale as setI18nLocale } from "../i18n/index.js"
 import { useI18n } from "vue-i18n";
 
 import { UiTag } from "@delebash/llm-ui";
-import JwTable from "@renderer/components/ui/JwTable.vue";
+import { UiTable } from "@delebash/llm-ui";
 import { UiSegmented } from "@delebash/llm-ui";
 
 const props = defineProps({ section: { type: String, default: "" } });
@@ -979,24 +979,24 @@ const recentColumns = [
             <!-- By feature -->
             <div class="usage-section">
               <div class="usage-section-h">{{ $t('settings.usage.byFeature') }}</div>
-              <JwTable :data="usageByFeature" data-key="key" :columns="byFeatureColumns" class="usage-dt">
+              <UiTable :data="usageByFeature" data-key="key" :columns="byFeatureColumns" class="usage-dt">
                 <template #calls="{ value }">{{ value.toLocaleString() }}</template>
                 <template #promptTokens="{ value }">{{ value.toLocaleString() }}</template>
                 <template #completionTokens="{ value }">{{ value.toLocaleString() }}</template>
                 <template #cost="{ value }">{{ fmtUsd(value) }}</template>
-              </JwTable>
+              </UiTable>
             </div>
 
             <!-- By provider -->
             <div class="usage-section">
               <div class="usage-section-h">{{ $t('settings.usage.byProvider') }}</div>
-              <JwTable :data="usageByProvider" data-key="key" :columns="byProviderColumns" class="usage-dt">
+              <UiTable :data="usageByProvider" data-key="key" :columns="byProviderColumns" class="usage-dt">
                 <template #key="{ value }">{{ providerLabel(value) }}</template>
                 <template #calls="{ value }">{{ value.toLocaleString() }}</template>
                 <template #promptTokens="{ value }">{{ value.toLocaleString() }}</template>
                 <template #completionTokens="{ value }">{{ value.toLocaleString() }}</template>
                 <template #cost="{ value }">{{ fmtUsd(value) }}</template>
-              </JwTable>
+              </UiTable>
             </div>
 
             <!-- Recent calls -->
@@ -1011,7 +1011,7 @@ const recentColumns = [
                   <UiInput :value="recentGlobalQuery" placeholder="Search calls…" @input="onRecentInput" class="wb-search-input" />
                 </span>
               </div>
-              <JwTable
+              <UiTable
                 :data="recentUsageRows"
                 data-key="id"
                 :global-filter="recentGlobalQuery"
@@ -1025,7 +1025,7 @@ const recentColumns = [
                 <template #model="{ value }">{{ value || "—" }}</template>
                 <template #totalTokens="{ value }">{{ value.toLocaleString() }}</template>
                 <template #cost="{ value }">{{ fmtUsd(value) }}</template>
-              </JwTable>
+              </UiTable>
             </div>
           </template>
         </div>

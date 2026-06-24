@@ -8,7 +8,7 @@ import { EDITOR_TOOLBAR_DOC } from "../services/editorToolbars.js";
 import { Icon } from "@delebash/llm-ui";
 import { UiButton } from "@delebash/llm-ui";
 import { UiTag } from "@delebash/llm-ui";
-import JwTable from "@renderer/components/ui/JwTable.vue";
+import { UiTable } from "@delebash/llm-ui";
 import StatusSelect from "../components/StatusSelect.vue";
 import { Breadcrumb } from "@delebash/llm-ui";
 import { UiTextarea } from "@delebash/llm-ui";
@@ -72,7 +72,7 @@ function onRowClick(event) {
 
         <div class="arch-count">{{ rows.length }} documents</div>
 
-        <JwTable
+        <UiTable
           :data="rows"
           :columns="columns"
           data-key="id"
@@ -94,7 +94,7 @@ function onRowClick(event) {
             <UiTag v-if="row.status" :value="statusLabel(row.status)" :intent="statusSeverity(row.status)" />
             <span v-else class="arch-status-empty">—</span>
           </template>
-        </JwTable>
+        </UiTable>
       </div>
     </div>
   </template>

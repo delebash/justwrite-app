@@ -22,7 +22,7 @@ import AiTaskStrip from "../components/AiTaskStrip.vue";
 import AiFeatureChip from "../components/AiFeatureChip.vue";
 import { useAiStore } from "../stores/ai.js";
 import { useAiTasksStore } from "../stores/aiTasks.js";
-import JwTable from "@renderer/components/ui/JwTable.vue";
+import { UiTable } from "@delebash/llm-ui";
 import { UiSegmented } from "@delebash/llm-ui";
 import { UiButton } from "@delebash/llm-ui";
 
@@ -664,7 +664,7 @@ const milestoneState = computed(() => {
       </div>
 
       <!-- Per-chapter style table -->
-      <JwTable
+      <UiTable
         :data="style.rows"
         data-key="chapterId"
         row-hover
@@ -697,7 +697,7 @@ const milestoneState = computed(() => {
         <template #povHint="{ value }">
           <span style="color:var(--muted);font-family:var(--font-mono);font-size:10.5px">{{ POV_LABELS[value] || "—" }}</span>
         </template>
-      </JwTable>
+      </UiTable>
     </div>
 
     <!-- Story tension timeline -->

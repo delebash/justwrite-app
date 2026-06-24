@@ -10,7 +10,7 @@ import { UiInput } from "@delebash/llm-ui";
 import { UiSelect } from "@delebash/llm-ui";
 import { UiTextarea } from "@delebash/llm-ui";
 import { UiTag } from "@delebash/llm-ui";
-import JwTable from "@renderer/components/ui/JwTable.vue";
+import { UiTable } from "@delebash/llm-ui";
 import RichEditor from "../components/RichEditor.vue";
 import { EDITOR_TOOLBAR_DOC } from "../services/editorToolbars.js";
 import StatusSelect from "../components/StatusSelect.vue";
@@ -293,7 +293,7 @@ const tableRows = computed(() =>
           </div>
         </div>
 
-        <JwTable
+        <UiTable
           :data="tableRows"
           :columns="columns"
           data-key="id"
@@ -327,7 +327,7 @@ const tableRows = computed(() =>
             <UiTag v-if="row.status" :value="statusLabel(row.status)" :intent="statusSeverity(row.status)" />
             <span v-else class="strands-status-empty">—</span>
           </template>
-        </JwTable>
+        </UiTable>
       </div>
     </div>
   </template>

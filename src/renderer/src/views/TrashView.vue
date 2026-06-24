@@ -7,7 +7,7 @@ import PaneHeader from "../components/PaneHeader.vue";
 import { Icon } from "@delebash/llm-ui";
 import { confirmDialog } from "@delebash/llm-ui";
 import { UiButton } from "@delebash/llm-ui";
-import JwTable from "@renderer/components/ui/JwTable.vue";
+import { UiTable } from "@delebash/llm-ui";
 
 const project = useProjectStore();
 const ui = useUiStore();
@@ -172,7 +172,7 @@ const trashColumns = [
           <span class="t-muted" style="font-size:11px;font-variant-numeric:tabular-nums">{{ s.items.length }}</span>
           <span style="flex:1;height:1px;background:var(--border-soft);margin-left:8px" />
         </div>
-        <JwTable :data="s.items" data-key="id" :columns="trashColumns" class="trash-dt">
+        <UiTable :data="s.items" data-key="id" :columns="trashColumns" class="trash-dt">
           <template #title="{ row }">
             <div class="trash-title">{{ titleOf(s.kind, row) }}</div>
           </template>
@@ -192,7 +192,7 @@ const trashColumns = [
               </UiButton>
             </div>
           </template>
-        </JwTable>
+        </UiTable>
       </section>
     </div>
   </div>
