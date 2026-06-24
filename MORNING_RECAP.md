@@ -9,6 +9,29 @@
 
 ## ⮕ ACTIVE WORK — read first (2026-06-24)
 
+### Platform-settings convergence (NEW thread — authoritative: `docs/plans/2026-06-24-shared-platform-settings.md`)
+
+Most of "App Settings" is **stack infrastructure**, not app content → make it
+SHARED (components + server modules), placed by-concern in the same home in every
+app; only a thin app-domain slice differs. By-concern homes: **Data** (backup ·
+restore · reset · clear-caches — *one shared SQLite module, same front+back*) ·
+**Server** · Appearance(+language) · **Logs** · **Updates** · About; **Hardware/GPU**
+→ the AI menu (runner-driven), **Cache** → with Data. Unit sequence (verify+commit
+each):
+- ✅ **U1 — AI consolidation + Debug removal.** `AiModelsArea` gained an app-tab
+  slot (`appTabLabel` + `#app-tab`); JW fills it with **Writing AI** (voice canon +
+  RAG auto-rebuild + 3-variation, `components/WritingAiSettings.vue`); App-Settings
+  "Writing AI" tab removed. **Debug** tab + `/debug/writer-lab` + `WriterLabDebugView`
+  + the orphaned `WriterLabBase.vue`/`services/writerLab.js` deleted. Dead i18n keys
+  pruned. App Settings now = Project · AI usage · Appearance · Server · Backups · About.
+- ⏳ **U2 — Usage consolidation** (lift pricing + by-provider to the kit; upgrade the
+  AI-menu Usage tab to the full ledger; remove App-Settings "AI usage").
+- ⏳ **U3 — Shared Data & Storage** (`make_data_router` backup/restore/reset + `<DataManagement>`;
+  retire JW `DELETE /v1/workspace` + JSON export; record JV migration off `/v1/backup|restore|admin/factory-reset`).
+- ⏳ **U4 — Shared Server / Logs / Updates / Appearance(+language) / Diagnostics** sections; JW final layout.
+- ⏳ **U5 — JV adoption** + GPU/Hardware → AI menu.
+
+
 **AI ▸ Features UX pass (JW, on `claude/admiring-galileo-il3q0o`).** The shared
 `FeatureWorkbench` (AI Settings ▸ Features) is now the ONE AI config + test
 surface — it absorbed per-feature prompt editing **and** a test-on-real-input

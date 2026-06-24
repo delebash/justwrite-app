@@ -88,10 +88,6 @@
     "worldbuilding": {
       "eyebrow": "Story world"
     },
-    "writerLabDebug": {
-      "eyebrow": "Debug",
-      "title": "Writer Lab — model compare"
-    },
     "chapters": {
       "eyebrow": "Manuscript",
       "emptyTitle": "No chapters"
@@ -209,12 +205,10 @@
     "eyebrow": "Project",
     "sections": {
       "project": "Project",
-      "audio": "Writing AI",
       "usage": "AI usage",
       "appearance": "Appearance",
       "server": "Server",
       "backups": "Backups",
-      "debug": "Debug",
       "about": "About"
     },
     "language": {
@@ -331,9 +325,6 @@
       "appCardTitle": "JustWrite",
       "workspaceCardTitle": "This workspace",
       "shortcutsCardTitle": "Keyboard shortcuts"
-    },
-    "debug": {
-      "cardTitle": "Debug tools"
     },
     "providerForm": {
       "fieldId": "ID",

@@ -205,7 +205,7 @@ function isNavActive(n) {
 
 function go(id) {
   // NAV entries can carry a `path` override for one-off routes that
-  // don't follow the `/<id>` convention (e.g. /debug/writer-lab).
+  // don't follow the `/<id>` convention.
   const entry = NAV.find((n) => n && n.id === id);
   if (entry?.path) { router.push(entry.path); return; }
   router.push(`/${id === "home" ? "" : id}`);

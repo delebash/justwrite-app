@@ -7,6 +7,7 @@
 import { onUnmounted } from "vue";
 import PaneHeader from "../components/PaneHeader.vue";
 import { AiModelsArea } from "@delebash/llm-ui";
+import WritingAiSettings from "../components/WritingAiSettings.vue";
 import { useAiStore } from "../stores/ai.js";
 
 // The shared AI control writes routing (default LLM/embedding + model + pins)
@@ -20,7 +21,9 @@ onUnmounted(() => { ai.resyncRouting(); });
   <PaneHeader eyebrow="AI" title="Providers, routing &amp; usage" />
   <div class="pane-card">
     <div class="scrollarea" style="padding: 22px">
-      <AiModelsArea />
+      <AiModelsArea app-tab-label="Writing AI">
+        <template #app-tab><WritingAiSettings /></template>
+      </AiModelsArea>
     </div>
   </div>
 </template>

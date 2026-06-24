@@ -81,9 +81,6 @@ const routes = [
   // Features tab now absorbs per-feature prompt editing + a test panel, so the
   // standalone Writer Lab + Feature prompts views were removed (2026-06-24).
   { path: "/ai",                  name: "Ai",             component: () => import("../views/AiView.vue") },
-
-  // Hidden dev/debug routes — no sidebar entry. Reach via direct hash URL.
-  { path: "/debug/writer-lab",   name: "WriterLabDebug", component: () => import("../views/WriterLabDebugView.vue") },
 ];
 
 export default createRouter({
