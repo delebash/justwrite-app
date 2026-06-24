@@ -11,19 +11,10 @@
 // holds it). This is the shape the shared @delebash/llm-ui consumes too, so
 // Unit 4 can drop this per-app file for the shared backend.
 
-import { serverUrl } from "./serverApi.js";
+import { get, post, patch, del } from "@delebash/llm-ui";
 
 let _providers = null; // null = not yet booted
 let _booted = false;
-
-async function _json(path, opts) {
-  const res = await fetch(serverUrl(path), opts);
-  if (!res.ok) {
-    const text = await res.text().catch(() => "");
-    throw new Error(`${opts?.method || "GET"} ${path} failed: ${res.status} ${text || res.statusText}`);
-  }
-  return res.status === 204 ? null : res.json();
-}
 
 // Form draft -> the server's UpsertLLMProviderRequest (camelCase). apiKey is
 // only sent when the field is present; an empty string on PATCH means "keep the
@@ -49,7 +40,7 @@ function _toUpsert(d) {
 export async function bootProviders() {
   if (_booted) return;
   try {
-    const data = await _json("/v1/llm-providers");
+    const data = await get("/v1/llm-providers");
     if (Array.isArray(data?.providers)) _providers = data.providers;
   } catch (err) {
     console.error("providerBackend.bootProviders failed:", err);
@@ -64,23 +55,15 @@ export function listProviders() {
 
 /** POST a new provider; resolves to the created provider (shared shape). */
 export async function createProvider(draft) {
-  return _json("/v1/llm-providers", {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify(_toUpsert(draft)),
-  });
+  return post("/v1/llm-providers", _toUpsert(draft));
 }
 
 /** PATCH an existing provider (full upsert; id immutable). */
 export async function updateProvider(id, draft) {
-  return _json(`/v1/llm-providers/${encodeURIComponent(id)}`, {
-    method: "PATCH",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify(_toUpsert({ ...draft, id })),
-  });
+  return patch(`/v1/llm-providers/${encodeURIComponent(id)}`, _toUpsert({ ...draft, id }));
 }
 
 /** DELETE a provider. */
 export async function deleteProvider(id) {
-  await _json(`/v1/llm-providers/${encodeURIComponent(id)}`, { method: "DELETE" });
+  await del(`/v1/llm-providers/${encodeURIComponent(id)}`);
 }

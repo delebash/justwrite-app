@@ -1,26 +1,20 @@
 // Client for the LLM cost/token ledger (/v1/llm-usage). The AI store hydrates
 // the recent log + lifetime totals on demand (Settings → Usage), records each
 // call with a fire-and-forget POST, and clears with DELETE. Replaces the
-// justwrite:ai:usage kv blob.
+// justwrite:ai:usage kv blob. HTTP via the shared kit transport.
 
-import { serverUrl } from "./serverApi.js";
+import { get, post, del } from "@delebash/llm-ui";
 
 export async function getUsage(limit = 1000) {
-  const res = await fetch(serverUrl(`/v1/llm-usage?limit=${limit}`));
-  if (!res.ok) throw new Error(`/v1/llm-usage -> ${res.status}`);
-  return res.json();
+  return get(`/v1/llm-usage?limit=${limit}`);
 }
 
 export function postUsage(row) {
-  return fetch(serverUrl("/v1/llm-usage"), {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify(row),
-    keepalive: true,
-  }).catch((err) => console.error("usageApi.postUsage failed:", err));
+  return post("/v1/llm-usage", row, { keepalive: true }).catch((err) =>
+    console.error("usageApi.postUsage failed:", err),
+  );
 }
 
 export function clearUsage() {
-  return fetch(serverUrl("/v1/llm-usage"), { method: "DELETE" })
-    .catch((err) => console.error("usageApi.clearUsage failed:", err));
+  return del("/v1/llm-usage").catch((err) => console.error("usageApi.clearUsage failed:", err));
 }

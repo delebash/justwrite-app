@@ -10,19 +10,10 @@
 // Features tab, and the AI store doesn't track them, so a write here must never
 // wipe them.
 
-import { serverUrl } from "./serverApi.js";
+import { get, put } from "@delebash/llm-ui";
 
 let _routing = null; // full RoutingResponse { default, quick, accuracy, features }
 let _booted = false;
-
-async function _json(path, opts) {
-  const res = await fetch(serverUrl(path), opts);
-  if (!res.ok) {
-    const text = await res.text().catch(() => "");
-    throw new Error(`${opts?.method || "GET"} ${path} failed: ${res.status} ${text || res.statusText}`);
-  }
-  return res.status === 204 ? null : res.json();
-}
 
 /**
  * Pull the routing config into the cache. MUST be awaited (after bootProviders,
@@ -31,7 +22,7 @@ async function _json(path, opts) {
 export async function bootRouting() {
   if (_booted) return;
   try {
-    const data = await _json("/v1/ai/routing");
+    const data = await get("/v1/ai/routing");
     if (data && typeof data === "object") _routing = data;
   } catch (err) {
     console.error("routingBackend.bootRouting failed:", err);
@@ -75,11 +66,7 @@ export async function putRoutingPrefs({ defaultLlmId, defaultEmbeddingId, featur
     pins,
   };
   try {
-    const data = await _json("/v1/ai/routing", {
-      method: "PUT",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(body),
-    });
+    const data = await put("/v1/ai/routing", body);
     if (data) _routing = data; // refresh cache (authoritative)
   } catch (err) {
     console.error("routingBackend.putRoutingPrefs failed:", err);

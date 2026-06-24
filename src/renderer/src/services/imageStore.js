@@ -15,7 +15,7 @@
 // an <img src> can use.
 // ============================================================
 
-import { serverUrl } from "./serverApi.js";
+import { serverUrl, post, del, requestBlob } from "@delebash/llm-ui";
 
 const jw = typeof window !== "undefined" ? window.justwrite : null;
 // Legacy desktop images (records with a `path`) still read through the bridge.
@@ -49,16 +49,12 @@ function _base64(buffer) {
 export async function saveImage(file) {
   try {
     const dataBase64 = _base64(await file.arrayBuffer());
-    const res = await fetch(serverUrl("/v1/images"), {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ name: file.name, mime: file.type || "application/octet-stream", dataBase64 }),
+    const { id } = await post("/v1/images", {
+      name: file.name,
+      mime: file.type || "application/octet-stream",
+      dataBase64,
     });
-    if (res.ok) {
-      const { id } = await res.json();
-      return { kind: "server", serverId: id, name: file.name, mime: file.type || "", addedAt: Date.now() };
-    }
-    console.error("imageStore.saveImage: server returned", res.status);
+    return { kind: "server", serverId: id, name: file.name, mime: file.type || "", addedAt: Date.now() };
   } catch (err) {
     console.error("imageStore.saveImage upload failed, falling back to data URL:", err);
   }
@@ -100,7 +96,7 @@ export async function urlFor(image) {
  */
 export async function removeImage(image) {
   if (image?.serverId) {
-    try { await fetch(serverUrl(`/v1/images/${image.serverId}`), { method: "DELETE" }); } catch { /* ignore */ }
+    try { await del(`/v1/images/${image.serverId}`); } catch { /* ignore */ }
     return;
   }
   if (image?.path && hasNativeImages) {
@@ -117,10 +113,11 @@ export async function readImageBytes(image) {
   if (!image) return null;
   if (image.serverId) {
     try {
-      const res = await fetch(serverUrl(`/v1/images/${image.serverId}`));
-      if (!res.ok) return null;
-      const mime = res.headers.get("content-type") || "application/octet-stream";
-      const bytes = new Uint8Array(await res.arrayBuffer());
+      // requestBlob keeps the raw bytes (the json/text transport would corrupt
+      // them); blob.type carries the server's content-type.
+      const blob = await requestBlob("GET", `/v1/images/${image.serverId}`);
+      const mime = blob.type || "application/octet-stream";
+      const bytes = new Uint8Array(await blob.arrayBuffer());
       return { bytes, mime, ext: MIME_TO_EXT[mime] || "bin" };
     } catch (err) {
       console.error("imageStore.readImageBytes failed:", err);

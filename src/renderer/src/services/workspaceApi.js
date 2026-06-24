@@ -1,10 +1,10 @@
 // Client for workspace-level operations (/v1/workspace). resetWorkspace() wipes
 // the entire server database — the "Reset workspace" action — replacing the old
-// clearPrefix("justwrite:") kv wipe (which since P2 only cleared kv and left the
-// SQL tables behind). The caller reloads afterwards to re-seed.
+// clearPrefix("justwrite:") kv wipe. The caller reloads afterwards to re-seed.
+// HTTP via the shared kit transport.
 
-import { serverUrl } from "./serverApi.js";
+import { del } from "@delebash/llm-ui";
 
 export function resetWorkspace() {
-  return fetch(serverUrl("/v1/workspace"), { method: "DELETE" });
+  return del("/v1/workspace");
 }

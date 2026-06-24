@@ -2,25 +2,21 @@
 // persisted server-side. GET returns the whole document; PATCH upserts the given
 // top-level sections (each section has a single owner that writes it wholesale);
 // DELETE clears it (reset workspace). Mirrors JustVoice's GET/PATCH shape.
+// HTTP via the shared kit transport (@delebash/llm-ui).
 
-import { serverUrl } from "./serverApi.js";
+import { get, patch, del } from "@delebash/llm-ui";
 
 export async function getSettings() {
-  const res = await fetch(serverUrl("/v1/settings"));
-  if (!res.ok) throw new Error(`/v1/settings -> ${res.status}`);
-  return res.json();
+  return get("/v1/settings");
 }
 
-export function patchSettings(patch) {
-  return fetch(serverUrl("/v1/settings"), {
-    method: "PATCH",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify(patch),
-    keepalive: true,
-  }).catch((err) => console.error("settingsApi.patch failed:", err));
+export function patchSettings(patchBody) {
+  // keepalive so a flush during pagehide still lands.
+  return patch("/v1/settings", patchBody, { keepalive: true }).catch((err) =>
+    console.error("settingsApi.patch failed:", err),
+  );
 }
 
 export function deleteSettings() {
-  return fetch(serverUrl("/v1/settings"), { method: "DELETE" })
-    .catch((err) => console.error("settingsApi.delete failed:", err));
+  return del("/v1/settings").catch((err) => console.error("settingsApi.delete failed:", err));
 }

@@ -12,7 +12,7 @@
 // are migrated server-side at startup.) The active-id pointer + undo tail stay
 // in kv (storage.js).
 
-import { serverUrl } from "./serverApi.js";
+import { get, put, del } from "@delebash/llm-ui";
 
 const _snapshots = new Map(); // id -> snapshot object
 let _registry = [];           // [{id,title,author,savedAt}] derived from GET /v1/projects
@@ -21,12 +21,6 @@ let _booted = false;
 
 const PUT_DEBOUNCE_MS = 400;
 const _putTimers = new Map();
-
-async function _fetchJson(path, opts) {
-  const res = await fetch(serverUrl(path), opts);
-  if (!res.ok) throw new Error(`${path} -> ${res.status}`);
-  return res.status === 204 ? null : res.json();
-}
 
 /**
  * Load the active book's snapshot into the cache. MUST be awaited (after
@@ -40,7 +34,7 @@ export async function bootProjects(activeId) {
   // the store's synchronous bootstrap can read it (and fall back to the most
   // recent project when the active-id pointer is missing).
   try {
-    const list = await _fetchJson("/v1/projects");
+    const list = await get("/v1/projects");
     if (Array.isArray(list)) {
       _registry = list.map((p) => ({ id: p.id, title: p.title, author: p.author, savedAt: p.updatedAt }));
       _registryLoaded = true;
@@ -50,7 +44,7 @@ export async function bootProjects(activeId) {
   }
   if (activeId) {
     try {
-      const snap = await _fetchJson(`/v1/projects/${activeId}/book`);
+      const snap = await get(`/v1/projects/${activeId}/book`);
       if (snap && typeof snap === "object") _snapshots.set(activeId, snap);
     } catch (err) {
       // 404 is normal for a freshly-minted, never-saved active id.
@@ -86,12 +80,9 @@ function _flushPut(id) {
   _putTimers.delete(id);
   const snap = _snapshots.get(id);
   if (snap === undefined) return Promise.resolve();
-  return fetch(serverUrl(`/v1/projects/${id}/book`), {
-    method: "PUT",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify(snap),
-    keepalive: true,
-  }).catch((err) => console.error("projectApi PUT failed:", err));
+  return put(`/v1/projects/${id}/book`, snap, { keepalive: true }).catch((err) =>
+    console.error("projectApi PUT failed:", err),
+  );
 }
 
 /** Cache the snapshot synchronously, queue a debounced PUT. */
@@ -106,14 +97,14 @@ export function removeProject(id) {
   if (_putTimers.has(id)) { clearTimeout(_putTimers.get(id)); _putTimers.delete(id); }
   // Deletes the project row; child rows cascade via the project_id FK. The
   // derived registry drops it automatically on the next boot.
-  fetch(serverUrl(`/v1/projects/${id}`), { method: "DELETE" }).catch(() => {});
+  del(`/v1/projects/${id}`).catch(() => {});
 }
 
 /** Async load for switching to a project not already in the cache. */
 export async function fetchSnapshot(id) {
   if (_snapshots.has(id)) return _snapshots.get(id);
   try {
-    const snap = await _fetchJson(`/v1/projects/${id}/book`);
+    const snap = await get(`/v1/projects/${id}/book`);
     if (snap && typeof snap === "object") {
       _snapshots.set(id, snap);
       return snap;

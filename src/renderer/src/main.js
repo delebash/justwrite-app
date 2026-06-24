@@ -14,7 +14,6 @@ import { createPinia } from "pinia";
 import App from "./App.vue";
 import ConnectionError from "./components/ConnectionError.vue";
 import router from "./router/index.js";
-import { checkServer } from "./services/connection.js";
 import { bootSettings, readSetting } from "./services/settings.js";
 import { hydrateProjects, useProjectStore } from "./stores/project.js";
 import { useSessionsStore } from "./stores/sessions.js";
@@ -30,9 +29,12 @@ import { startAutoRebuildWatcher } from "./services/rag/autoIndex.js";
 // Shared LLM UI (@delebash/llm-ui) — configure its origin-aware client ONCE with
 // the base the app already resolved, so the shared AI views call the same server
 // endpoints the rest of the app does (no per-app data adapter).
-import { configureLlmUi } from "@delebash/llm-ui";
-import { SERVER_BASE } from "./services/serverApi.js";
+import { configureLlmUi, configureServerApi, checkServer } from "@delebash/llm-ui";
+import { SERVER_BASE, resolveBase } from "./services/serverApi.js";
 configureLlmUi({ baseUrl: SERVER_BASE });
+// The shared server transport (request/verbs/safeRequest/...) — JustWrite has no
+// auth, so only the base resolver is configured.
+configureServerApi({ resolveBase });
 
 // Hydrate the server-backed caches BEFORE any Pinia store initialises — stores
 // read from them synchronously in `state: () => ({...})`.
