@@ -4,7 +4,7 @@ import { useAiStore } from "../stores/ai.js";
 import { useProjectStore } from "../stores/project.js";
 import { useUiStore } from "../stores/ui.js";
 import { saveImage, urlFor, hasNativeImages } from "../services/imageStore.js";
-import { promptDialog, confirmDialog, DataManagement } from "@delebash/llm-ui";
+import { promptDialog, confirmDialog, DataManagement, LogsPanel } from "@delebash/llm-ui";
 import { readSetting, writeSetting } from "../services/settings.js";
 import PaneHeader from "../components/PaneHeader.vue";
 import { Icon } from "@delebash/llm-ui";
@@ -54,6 +54,7 @@ const SECTIONS = computed(() => [
   { id: "appearance", label: t("settings.sections.appearance") },
   { id: "server",     label: t("settings.sections.server") },
   { id: "backups",    label: t("settings.sections.backups") },
+  { id: "logs",       label: t("settings.sections.logs") },
   { id: "about",      label: t("settings.sections.about") },
 ]);
 
@@ -1171,6 +1172,11 @@ async function deleteCategory(c) {
              server endpoints in every same-stack app). The autosave card above
              is JustWrite's Tauri-specific on-disk restore, kept app-local. -->
         <DataManagement app-name="JustWrite" />
+      </div>
+
+      <!-- ── LOGS (shared panel) ───────────────────── -->
+      <div v-else-if="active === 'logs'" style="display:flex;flex-direction:column;gap:14px">
+        <LogsPanel />
       </div>
 
       <!-- ── ABOUT ─────────────────────────────────── -->

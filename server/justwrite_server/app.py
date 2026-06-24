@@ -36,6 +36,8 @@ from .api import (
 )
 from .app_state import AppState, set_state
 from .auth import BearerAuthMiddleware
+from llm_runner.platform import install_file_log, install_log_ring, make_logs_router
+
 from .data_admin import get_data_router
 from .database import init_db
 from .errors import ApiError, api_exception_handler, http_exception_handler
@@ -71,6 +73,10 @@ def create_app(data_dir: Path | None = None) -> FastAPI:
     data_dir = data_dir or default_data_dir()
     init_db(data_dir)
     set_state(AppState(data_dir))
+    # Server logs → in-memory ring (the AI/Logs viewer) + a rotating file that
+    # survives a crash/boot-hang. Shared platform helpers (same in every app).
+    install_log_ring()
+    install_file_log(data_dir / "logs" / "justwrite.log")
 
     # Persist server-side LLM dispatch usage to the LlmUsage table (the shared
     # ledger's host sink) so it joins JW's cost ledger instead of the in-memory
@@ -140,6 +146,7 @@ def create_app(data_dir: Path | None = None) -> FastAPI:
     app.include_router(settings.router)
     app.include_router(versions.router)
     app.include_router(get_data_router())  # shared backup/restore/reset (/v1/data/*)
+    app.include_router(make_logs_router("JustWrite"))  # shared /v1/logs/*
     app.include_router(rag.router)
     app.include_router(images.router)
     app.include_router(llm_usage.router)

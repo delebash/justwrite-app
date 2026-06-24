@@ -208,6 +208,7 @@
       "appearance": "Appearance",
       "server": "Server",
       "backups": "Backups",
+      "logs": "Logs",
       "about": "About"
     },
     "language": {

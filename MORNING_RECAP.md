@@ -44,8 +44,11 @@ each):
 - 🔄 **U4 — Shared Server / Logs / Updates / Appearance(+language) sections.**
   - ✅ **Language → Appearance** (was Project → Preferences; matches JV). The
     now-unused `settings.preferences.cardTitle` i18n key can go in an i18n sweep.
-  - ⏳ **Logs** — shared `make_logs_router` (read the server log file) + a shared
-    `<LogsPanel>` + a JW App-Settings "Logs" tab. (Check JW logs to a file first.)
+  - ✅ **Logs** — lifted JV's log handlers into shared `llm_runner/platform/logs_api.py`
+    (`make_logs_router` + `install_log_ring`/`install_file_log` — in-memory ring for the
+    tail + a rotating file for crash survival) + shared `<LogsPanel>`. JW installs the
+    ring/file at boot, mounts `/v1/logs/*`, and has a **Logs** App-Settings tab. (JV keeps
+    its local `admin_api` logs until U5.)
   - ⏳ **Updates / Changelog** — shared `<UpdatesPanel>` (version + release notes,
     Tauri updater) + JW changelog content + an App-Settings "Updates" tab.
   - ⏳ **General** — fold Server (URL/bind/keep-running) + data location into a
