@@ -17,17 +17,21 @@ LLM engine to the GUI + a Compare surface, so models/switches can be tested on r
 - ✅ **#19 DONE** — `Overrides` plumbed through `POST /v1/llm-runner/load`
   (`LoadRequest` → `Overrides` → `compose_flags` replace-merge → `start_runner`); 98
   tests pass, ruff clean. Committed (just-llm-runner `e5cecef`).
-- ✅ **DEEP-RESEARCH DONE** (run `wf_11fa0bf3-5ad`, 103 agents, 18/25 claims confirmed)
-  → **saved to `just-llm-runner/docs/plans/2026-06-24-small-vram-multimodel-research.md`**
-  (the /tmp output is ephemeral; the doc is the durable copy). Key results: TWO
-  OOM-safe architectures for 6–8 GB+32 GB — **(B) single MoE (35B-A3B + `--n-cpu-moe`)
-  serving both chat+extraction** (cleanest on 6 GB, no swap) or **(A) dual-dense warm +
-  resident/CPU embed + on-demand extraction (LRU/ttl evicted)**; KV-quant `q8_0`+`-fa
-  on` is the core VRAM lever; keep embeddings resident or CPU-only. **⚠️ CORRECTED our
-  earlier claim:** router mode **DOES** auto-evict via LRU at `--models-max` (default
-  4) — "router never auto-evicts" was wrong (from one forum thread; source-code
-  refuted). Feeds **#27** (favors router mode for serving), **#11** (per-card recipe),
-  **#20** (confirmed switch set).
+- ⚠️ **DEEP-RESEARCH was MIS-SCOPED (my error) — the corrected re-run is the PICKUP.**
+  Run `wf_11fa0bf3-5ad` (saved `just-llm-runner/docs/plans/2026-06-24-small-vram-multimodel-research.md`)
+  was locked to **6–8 GB + GENERIC llama.cpp facts**. The REAL question = **how WE
+  implement server model management across the FULL spectrum (8 GB MIN → high VRAM,
+  low → high RAM, CPU-only) + the switching strategy**. (8 GB is our MIN GPU spec;
+  6 GB was the video's *example*.) ➡️ **PICKUP doc:**
+  `just-llm-runner/docs/plans/2026-06-24-server-model-management-brief.md` — has the
+  corrected scope, the **VERIFIED code grounding** (RunnerService spawn-per-model;
+  llama.cpp router mode; JV `EngineManager` per-kind SUBPROCESS slots; JV LLM =
+  transformers not llama.cpp; `register_local_adapter`; `hardware.detect`), the
+  **corrected `/deep-research` question (§1.5)** to run FIRST, and an **UNVERIFIED**
+  tier-matrix hypothesis (do NOT implement from it). **Solid from run 1** (tier-GENERAL,
+  keep): KV-quant `q8_0`+`-fa`, `--n-cpu-moe`, router **LRU-evict at `--models-max`**
+  (corrected the earlier "never evicts" error), llama-swap, embeddings tiny→resident/CPU.
+  **NOT solid:** per-tier model picks + tok/s (extrapolated). Feeds **#27/#11/#20**.
 - ⚠️ **CORRECTION (2026-06-24):** llama.cpp HAS router mode (live model swap) — an
   earlier "swap = restart" claim was wrong (stale prior + shallow research; user
   caught it). Corrected in the switches doc "Lifecycle (CORRECTED)" + Decision 23.

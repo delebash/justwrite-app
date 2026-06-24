@@ -35,6 +35,12 @@ gate MoE picks on **system RAM** (the 35B-A3B needs ~24 GB), not just VRAM.
 
 ## What runs, by hardware tier
 
+> **⚠️ 8 GB VRAM is our MIN supported GPU spec** (user, 2026-06-24); the **6 GB** row
+> below is the video's *example*, possible but not our floor. CPU-only is the no-GPU
+> fallback. These per-tier picks are **not yet verified** — the corrected deep research
+> (`just-llm-runner/docs/plans/2026-06-24-server-model-management-brief.md` §1.5) must
+> confirm them with measured data before we implement.
+
 | Hardware | Hard tasks (attribution, extraction, critique) | Fast/light (brainstorm, drafts) |
 |---|---|---|
 | **CPU-only** | Qwen3.6-35B-A3B (MoE is the CPU hero — 3.6B active) | Qwen3 4–8B dense |
