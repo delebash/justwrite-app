@@ -14,7 +14,7 @@ import StatPill from "../components/StatPill.vue";
 import { UiInput } from "@delebash/llm-ui";
 import { UiTextarea } from "@delebash/llm-ui";
 import { UiCheckbox } from "@delebash/llm-ui";
-import JwNumber from "@renderer/components/ui/JwNumber.vue";
+import { UiNumber } from "@delebash/llm-ui";
 import { UiSelect } from "@delebash/llm-ui";
 import { UiButton } from "@delebash/llm-ui";
 import JwColorPicker from "@renderer/components/ui/JwColorPicker.vue";
@@ -647,14 +647,14 @@ const recentColumns = [
           <div style="display:grid;grid-template-columns:160px minmax(0,1fr);gap:10px 14px;font-size:13px;align-items:center">
             <span class="t-muted" style="align-self:start;padding-top:8px">{{ $t('settings.goals.wordGoal') }}</span>
             <div style="display:flex;flex-direction:column;align-items:flex-start;gap:4px;min-width:0">
-              <JwNumber :min="0" :step="500" style="max-width:160px"
+              <UiNumber :min="0" :step="500" style="max-width:160px"
                 :model-value="project.project.wordsGoal"
                 @update:model-value="(v) => setMetaNumber('wordsGoal', v)" />
               <span class="t-muted" style="font-size:11.5px">{{ $t('settings.goals.wordGoalHint') }}</span>
             </div>
             <span class="t-muted" style="align-self:start;padding-top:8px">{{ $t('settings.goals.dailyTarget') }}</span>
             <div style="display:flex;flex-direction:column;align-items:flex-start;gap:4px;min-width:0">
-              <JwNumber :min="0" :step="50" style="max-width:160px"
+              <UiNumber :min="0" :step="50" style="max-width:160px"
                 :model-value="project.project.dailyTarget ?? 1200"
                 @update:model-value="(v) => setMetaNumber('dailyTarget', v)" />
               <span class="t-muted" style="font-size:11.5px">{{ $t('settings.goals.dailyTargetHint') }}</span>
@@ -1215,7 +1215,7 @@ const recentColumns = [
               @click="setAp({ accentHue: p.hue })">
               <Icon v-if="ap.accentHue === p.hue" name="Check" :size="12" />
             </button>
-            <JwNumber :min="0" :max="360" style="width:74px"
+            <UiNumber :min="0" :max="360" style="width:74px"
               :model-value="ap.accentHue" @update:model-value="(v) => setAp({ accentHue: clampHue(v) })" />
           </div>
           <div class="swatch-row" style="margin-top:8px" role="radiogroup" aria-label="Accent 2">
@@ -1227,7 +1227,7 @@ const recentColumns = [
               @click="setAp({ goldHue: p.hue })">
               <Icon v-if="ap.goldHue === p.hue" name="Check" :size="12" />
             </button>
-            <JwNumber :min="0" :max="360" style="width:74px"
+            <UiNumber :min="0" :max="360" style="width:74px"
               :model-value="ap.goldHue" @update:model-value="(v) => setAp({ goldHue: clampHue(v) })" />
           </div>
           <!-- Live preview — the button + tag both track the Accent 2 hue. -->
@@ -1250,7 +1250,7 @@ const recentColumns = [
               @click="setAp({ successHue: p.hue })">
               <Icon v-if="ap.successHue === p.hue" name="Check" :size="12" />
             </button>
-            <JwNumber :min="0" :max="360" style="width:74px"
+            <UiNumber :min="0" :max="360" style="width:74px"
               :model-value="ap.successHue" @update:model-value="(v) => setAp({ successHue: clampHue(v) })" />
           </div>
           <div class="swatch-row" style="margin-top:8px" role="radiogroup" :aria-label="$t('settings.appearance.dangerLabel')">
@@ -1262,7 +1262,7 @@ const recentColumns = [
               @click="setAp({ dangerHue: p.hue })">
               <Icon v-if="ap.dangerHue === p.hue" name="Check" :size="12" />
             </button>
-            <JwNumber :min="0" :max="360" style="width:74px"
+            <UiNumber :min="0" :max="360" style="width:74px"
               :model-value="ap.dangerHue" @update:model-value="(v) => setAp({ dangerHue: clampHue(v) })" />
           </div>
           <div class="swatch-row" style="margin-top:8px" role="radiogroup" :aria-label="$t('settings.appearance.infoLabel')">
@@ -1274,7 +1274,7 @@ const recentColumns = [
               @click="setAp({ infoHue: p.hue })">
               <Icon v-if="ap.infoHue === p.hue" name="Check" :size="12" />
             </button>
-            <JwNumber :min="0" :max="360" style="width:74px"
+            <UiNumber :min="0" :max="360" style="width:74px"
               :model-value="ap.infoHue" @update:model-value="(v) => setAp({ infoHue: clampHue(v) })" />
           </div>
           <!-- Live preview — buttons and tags re-skin from the hues above (banners + status chips use the same shades). -->

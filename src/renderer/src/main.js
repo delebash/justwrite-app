@@ -28,7 +28,7 @@ import { startAutoRebuildWatcher } from "./services/rag/autoIndex.js";
 // Shared LLM UI (@delebash/llm-ui) — configure its origin-aware client ONCE with
 // the base the app already resolved, so the shared AI views call the same server
 // endpoints the rest of the app does (no per-app data adapter).
-import { configureLlmUi, configureServerApi, checkServer, configureDialog, configureHelp, closeHelp, ConnectionError } from "@delebash/llm-ui";
+import { configureLlmUi, configureServerApi, checkServer, configureDialog, configureHelp, closeHelp, setUiLocale, ConnectionError } from "@delebash/llm-ui";
 import { SERVER_BASE, resolveBase } from "./services/serverApi.js";
 import { loadDoc, hasDoc, titleForSlug, webUrlFor } from "./services/helpDocs.js";
 configureLlmUi({ baseUrl: SERVER_BASE });
@@ -90,8 +90,14 @@ configureHelp({
   try {
     const ui = readSetting("ui") || {};
     applyAppearance(migrateAppearance(ui));
-    setI18nLocale(ui.locale || detectLocale());
-  } catch { setI18nLocale(detectLocale()); }
+    const loc = ui.locale || detectLocale();
+    setI18nLocale(loc);
+    setUiLocale(loc); // kit UiNumber follows the same locale for Intl formatting
+  } catch {
+    const loc = detectLocale();
+    setI18nLocale(loc);
+    setUiLocale(loc);
+  }
 
   // Source the shared AppDialog's default labels from JustWrite's i18n (so the
   // copy lives in en.json, not hardcoded in the kit). Re-call on locale change

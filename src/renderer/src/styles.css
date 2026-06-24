@@ -1228,16 +1228,6 @@ html[data-editor-layout="page"] .rich-editor--manuscript .manuscript-inner.with-
   color: var(--muted);
 }
 
-
-/* ============================================================
-   JwNumber — locale-aware number <input>. Wears the shared
-   .ui-input visual (from @delebash/llm-ui); .jw-number only adds
-   tabular figures so digits align. The input / textarea / checkbox
-   / tag primitives now live in the shared kit as .ui-* (UiInput,
-   UiTextarea, UiCheckbox, UiTag) — there is no .jw-input fork.
-   ============================================================ */
-.jw-number { font-variant-numeric: tabular-nums; }
-
 /* ============================================================
    vue-sonner — theme override. Sonner ships its own CSS but
    exposes both per-mode CSS custom properties AND data-attribute

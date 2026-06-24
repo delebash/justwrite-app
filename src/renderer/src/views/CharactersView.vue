@@ -8,7 +8,7 @@ import { Icon } from "@delebash/llm-ui";
 import { UiInput } from "@delebash/llm-ui";
 import { UiTextarea } from "@delebash/llm-ui";
 import { UiCheckbox } from "@delebash/llm-ui";
-import JwNumber from "@renderer/components/ui/JwNumber.vue";
+import { UiNumber } from "@delebash/llm-ui";
 import { UiButton } from "@delebash/llm-ui";
 import { UiSelect } from "@delebash/llm-ui";
 import { UiTag } from "@delebash/llm-ui";
@@ -479,7 +479,7 @@ function onRowClick(event) {
                 :model-value="ch.gender" @update:model-value="updateField('gender', $event)" />
               <UiInput fluid style="max-width:140px" placeholder="Pronouns (she/her…)"
                 :model-value="ch.pronouns" @update:model-value="updateField('pronouns', $event)" />
-              <JwNumber style="max-width:80px" placeholder="Age" :use-grouping="false"
+              <UiNumber style="max-width:80px" placeholder="Age" :use-grouping="false"
                 :model-value="ch.age ?? null" @update:model-value="updateField('age', $event ?? null)" />
               <UiSelect style="max-width:140px"
                 :model-value="ch.lifeStatus || ''"
