@@ -36,12 +36,35 @@ from .api import (
     workspace,
 )
 from .app_state import AppState, set_state
+from .auth import BearerAuthMiddleware
 from .database import init_db
 from .errors import ApiError, api_exception_handler, http_exception_handler
 from .paths import default_data_dir
 from .version import PRODUCT, VERSION
 
 log = logging.getLogger(__name__)
+
+
+def _read_cors() -> dict:
+    """The `cors` settings section ({origins, originRegex}) read at boot, or {}
+    if unset/unavailable. CORSMiddleware is configured once at app construction
+    (changing it needs a restart — same as JustVoice)."""
+    from .database import SessionLocal
+    from .models import Setting
+
+    if SessionLocal is None:
+        return {}
+    db = SessionLocal()
+    try:
+        row = db.get(Setting, "cors")
+        import json
+
+        return (json.loads(row.value) or {}) if row else {}
+    except Exception as e:  # noqa: BLE001
+        log.warning("cors config read failed (allow-all fallback): %s", e)
+        return {}
+    finally:
+        db.close()
 
 
 def create_app(data_dir: Path | None = None) -> FastAPI:
@@ -77,15 +100,33 @@ def create_app(data_dir: Path | None = None) -> FastAPI:
                 content={"title": "Internal Server Error", "detail": str(exc)[:300]},
             )
 
-    # The Tauri webview origin is cross-origin to the localhost server; the
-    # desktop shell routes HTTP through Tauri's plugin (CORS-exempt), but keep
-    # this permissive for the browser-only dev + headless paths.
-    app.add_middleware(
-        CORSMiddleware,
-        allow_origins=["*"],
-        allow_methods=["*"],
-        allow_headers=["*"],
-    )
+    # Bearer auth — OFF unless tokens are configured in Settings (the `auth`
+    # section). Gates /v1/* only. Added BEFORE CORS so CORS ends up OUTERMOST
+    # (Starlette runs last-added first): CORS then answers preflights before
+    # auth sees them, and wraps auth's 401/403 with CORS headers.
+    app.add_middleware(BearerAuthMiddleware)
+
+    # CORS — settings-driven (the `cors` section: origins / originRegex) so an
+    # exposed/headless server can lock origins down; falls back to allow-all for
+    # the local + dev + headless paths when unset. The Tauri desktop webview
+    # routes HTTP through Tauri's plugin (CORS-exempt) regardless.
+    _cors = _read_cors()
+    if _cors.get("origins") or _cors.get("originRegex"):
+        app.add_middleware(
+            CORSMiddleware,
+            allow_origins=_cors.get("origins") or [],
+            allow_origin_regex=_cors.get("originRegex") or None,
+            allow_credentials=True,
+            allow_methods=["*"],
+            allow_headers=["*"],
+        )
+    else:
+        app.add_middleware(
+            CORSMiddleware,
+            allow_origins=["*"],
+            allow_methods=["*"],
+            allow_headers=["*"],
+        )
 
     # RFC 7807 problem+json for ApiError + plain HTTPException — one error shape
     # across both apps' servers (the bearer-auth middleware emits it too).
