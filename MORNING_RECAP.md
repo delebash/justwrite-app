@@ -24,11 +24,24 @@ reachable via Settings).
   book**; sensory = **Research feel**; voiceDrift = **Voice drift**; beatSheet =
   **Beat sheet**. Driven by `feature_catalog.py` (per-feature `label` + new
   `category`) + per-action `label` in `seed_feature_prompts.py` (`_ACTION_LABELS`).
-- **Category-grouped nav** with progressive indentation + restored **Set-all**
-  provider/model picker per group. A category that is ONE multi-action feature
-  "merges" (Set-all sits on the category header: Writing, Analysis, Multi-reader
-  panel); multi-feature categories put Set-all on each multi-action feature. Nav
-  widened to 480px; cards stretch (no `width:100%`+margin clipping); left rails.
+- **Category-grouped nav** — categories (Writing / Drafting tools / Analysis /
+  Multi-reader panel / Whole book / Characters / Chat / Home) → action cards at a
+  SINGLE indent (a sub-label/group header doesn't push its cards deeper). A
+  **Set-all** provider+model picker per group, **stacked** (provider over model)
+  in a narrow column; a single-feature category "merges" (Set-all on the category
+  header).
+- **Per-action presets = the LAB (kept — this is load-bearing):** save several
+  named presets per action, **test each candidate** (the test panel runs the
+  in-editor prompt via new `/v1/ai/run` `system`/`userTemplate`/`think` overrides,
+  not just the live one), then **Use as production** to promote one. This is WHY
+  Writer Lab + the standalone prompt editor could be retired. The separate
+  whole-routing **"Saved configs"** (RoutingPresets) was removed (that was the
+  "save box" to drop); `PromptLab.vue` is now unused (cleanup pending).
+- **Model roles cards (JV look):** per role — speed blurb + catalog-derived
+  "Used for: …" + our picker + trade-off note. **Full-width** AI area (dropped the
+  1100px cap). One-line **hardware strip** (OS · CPU · Memory · GPU · Accel).
+- **App Settings → horizontal tab strip**, full width (matches JV). Test-panel
+  variable labels humanized (voiceCanon → "Voice canon").
 - **Shared contract additions (backward-compatible, default ""):**
   `FeatureCatalogEntry.category` (routing_api) + `FeaturePromptRow.label`
   (prompts). JW added the `label` column + migration rebuild + store mapping.
@@ -39,18 +52,21 @@ reachable via Settings).
   Features card) + a discoverable button on the Analysis dashboard AI-tools row.
 - **Nav rename:** Settings → **App Settings**, AI → **AI Settings**.
 
-**Backlog (user-requested this session — NOT yet built):**
-- **Editor settings/flags:** remove the preset "save box"; add the real per-feature
-  settings/flags each feature needs (research the feature code to enumerate).
-- **QuickSetup rethink:** it doesn't let you choose anything (system-set). Want a
-  popup to choose card/VRAM size with a recommendation (LuModelCatalog/fit). JW
-  LLM first; JV has TWO (TTS + LLM) to reconcile later.
-- **Model roles → JV card look:** richer per-role cards (speed blurb + "used for:
-  <features>" derived from the catalog + trade-off note), keep our LuModelPicker,
-  full width. Same concept both apps → shared component.
-- **App Settings → horizontal menu** like JV + audit common sections each app
-  should have (General · GPU · Logs · Changelog · About · …). Converge the
-  settings shell across JW + JV.
+**Backlog (this session):**
+- **Default LLM → provider+model picker** (NEXT, agreed): the default is
+  provider-only; add `RoutingDefaults.model` + `config.py` + dispatch default
+  branch (`dispatch.py:155` uses the provider's `default_model`) + swap the
+  provider-only select for the shared picker. Consistency with the role cards.
+- **Max tokens** per action (NEXT): the one real call-knob the editor lacks
+  (adapters accept temperature / max_tokens / think) — column + RunRequest + field.
+- **Per-feature flags (DISCUSS):** beyond max tokens, only feature-specific
+  behaviors exist (writerAI 3-variation, voice-canon) — confirm which to expose.
+- **QuickSetup rethink (DISCUSS):** auto-applies system-picked models with no
+  choice. Want the hardware recommendation + editable dropdowns of fitting models.
+  JW LLM first; JV has TWO (TTS + LLM).
+- **App Settings common sections (audit):** JW lacks GPU · Logs · Changelog vs JV.
+- **Cleanup:** delete the now-unused `PromptLab.vue`; the routing-presets backend
+  endpoints are now UI-less (decide keep vs remove).
 
 **JV TRANSFER CHECKLIST (when JV adopts the shared AI GUI — make the changes
 correctly):** JV currently runs a PARALLEL, older AI stack and is NOT on
