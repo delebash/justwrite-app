@@ -4,7 +4,8 @@ import { useAiStore } from "../stores/ai.js";
 import { useProjectStore } from "../stores/project.js";
 import { useUiStore } from "../stores/ui.js";
 import { saveImage, urlFor, hasNativeImages } from "../services/imageStore.js";
-import { promptDialog, confirmDialog, DataManagement, LogsPanel } from "@delebash/llm-ui";
+import { promptDialog, confirmDialog, DataManagement, LogsPanel, UpdatesPanel, renderHelpMarkdown } from "@delebash/llm-ui";
+import { loadDoc } from "../services/helpDocs.js";
 import { readSetting, writeSetting } from "../services/settings.js";
 import PaneHeader from "../components/PaneHeader.vue";
 import { Icon } from "@delebash/llm-ui";
@@ -55,6 +56,7 @@ const SECTIONS = computed(() => [
   { id: "general",    label: t("settings.sections.general") },
   { id: "backups",    label: t("settings.sections.backups") },
   { id: "logs",       label: t("settings.sections.logs") },
+  { id: "updates",    label: t("settings.sections.updates") },
   { id: "about",      label: t("settings.sections.about") },
 ]);
 
@@ -70,6 +72,16 @@ const headlessUrl = computed(
   () => SERVER_BASE || (typeof window !== "undefined" ? window.location.origin : ""),
 );
 const authTokens = ref([]);
+
+// Updates / changelog — version + the rendered whats-new.md (single-sourced with
+// the WhatsNew modal). Loaded lazily the first time the Updates tab opens.
+const APP_VERSION = import.meta.env.VITE_APP_VERSION || "1.0.0";
+const changelogHtml = ref("");
+watch(active, async (a) => {
+  if (a === "updates" && !changelogHtml.value) {
+    changelogHtml.value = renderHelpMarkdown((await loadDoc("whats-new")) || "");
+  }
+});
 
 // Where the server keeps its data (DB + assets) — shown in General so the user
 // knows what to back up / where their work lives. From /v1/health.
@@ -1197,6 +1209,11 @@ async function deleteCategory(c) {
       <!-- ── LOGS (shared panel) ───────────────────── -->
       <div v-else-if="active === 'logs'" style="display:flex;flex-direction:column;gap:14px">
         <LogsPanel />
+      </div>
+
+      <!-- ── UPDATES (shared panel) ─────────────────── -->
+      <div v-else-if="active === 'updates'" style="display:flex;flex-direction:column;gap:14px">
+        <UpdatesPanel :app-version="APP_VERSION" :changelog-html="changelogHtml" />
       </div>
 
       <!-- ── ABOUT ─────────────────────────────────── -->

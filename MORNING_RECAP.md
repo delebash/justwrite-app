@@ -41,7 +41,10 @@ each):
   export/import; Backups tab now = Tauri autosave-restore (app-local) + shared
   `<DataManagement>`. Round-trip tested (runner + JW). JV migration recorded in
   the plan (still on `/v1/backup|restore|admin/factory-reset`).
-- 🔄 **U4 — Shared Server / Logs / Updates / Appearance(+language) sections.**
+- ✅ **U4 — Shared Server / Logs / Updates / Appearance(+language) sections.**
+  App Settings is now **Project · Appearance · General · Backups · Logs · Updates ·
+  About**. (Cache → lives with Data / the AI menu; Webhooks → deferred, speculative
+  for JW — per the plan.)
   - ✅ **Language → Appearance** (was Project → Preferences; matches JV). The
     now-unused `settings.preferences.cardTitle` i18n key can go in an i18n sweep.
   - ✅ **Logs** — lifted JV's log handlers into shared `llm_runner/platform/logs_api.py`
@@ -54,9 +57,9 @@ each):
   - ✅ **General** — renamed JW's "Server" tab → **General** + added a Data-location
     card (server DB+assets dir from /v1/health). Holds data location · headless
     access · API tokens. (keep-running deferred — JW has no Tauri command for it yet.)
-  - ⏳ **Updates / Changelog** — shared `<UpdatesPanel>` (version + release notes,
-    Tauri updater) + JW changelog content + an App-Settings "Updates" tab. Needs a
-    JW changelog source (no CHANGELOG data wired yet — real dependency, not skipped).
+  - ✅ **Updates / Changelog** — shared `<UpdatesPanel>` (version + rendered
+    changelog html, `#actions` slot for a future Tauri updater) + a JW "Updates" tab
+    that renders `docs/whats-new.md` (single-sourced with the WhatsNew modal).
 - ⏳ **U5 — JV adoption** of the shared platform settings (mount `make_data_router`
   with audio asset dirs; replace JV General/Cache/Logs/Changelog with the shared
   sections; GPU/Hardware → the AI menu). See the plan's JV transfer checklist.
