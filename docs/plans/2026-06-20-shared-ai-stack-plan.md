@@ -954,6 +954,14 @@ prompt + Plane-2 settings) — no primary/secondary asymmetry; each a fixed comf
 width, config stacked vertically (model → switches → prompt → output →
 words/tok-s/time/cost → promote).
 
+**Model the look on JV's Studio** (the user's reference: "just like how jv studio is
+setup, just with more options"). Each column = a **Studio-style config card** in a
+**horizontal-scroll strip**; reuse Studio's card styling + the task-store progress/
+cancel wiring it already uses. (Checked 2026-06-24: `JustVoice/.../StudioView.vue` is
+a tabbed Cast/Script/Render surface of card grids; `CompareView.vue` is a fixed
+2-col A/B audio compare — so the N-column horizontal-scroll strip is NEW layout,
+styled to match Studio's cards, not an existing component to lift wholesale.)
+
 **Why combined, not a separate Lab:** a separate Lab re-fragments the action unit we
 deliberately unified and duplicates the action + input context (RULE #7). Compare is
 a MODE of the Features test panel, not a parallel surface.
