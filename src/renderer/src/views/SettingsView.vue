@@ -9,7 +9,6 @@ import { readSetting, writeSetting } from "../services/settings.js";
 import { resetWorkspace as resetWorkspaceApi } from "../services/workspaceApi.js";
 import PaneHeader from "../components/PaneHeader.vue";
 import { Icon } from "@delebash/llm-ui";
-import StatPill from "../components/StatPill.vue";
 import { UiInput } from "@delebash/llm-ui";
 import { UiTextarea } from "@delebash/llm-ui";
 import { UiCheckbox } from "@delebash/llm-ui";
@@ -53,7 +52,6 @@ function onLocaleChange(code) {
 
 const SECTIONS = computed(() => [
   { id: "project",    label: t("settings.sections.project") },
-  { id: "usage",      label: t("settings.sections.usage") },
   { id: "appearance", label: t("settings.sections.appearance") },
   { id: "server",     label: t("settings.sections.server") },
   { id: "backups",    label: t("settings.sections.backups") },
@@ -264,11 +262,6 @@ watchEffect(() => {
   if (active.value === "backups") {
     lastAutosaveAt.value = readSetting("lastAutosaveAt") || null;
   }
-  // Lazily hydrate the usage ledger from the server the first time the Usage
-  // tab is opened (it's not fetched at boot — most sessions never view it).
-  if (active.value === "usage") {
-    ai.hydrateUsage();
-  }
 });
 
 function safeFilename(title) {
@@ -406,58 +399,6 @@ function generationLabel(gen) {
   return gen || "";
 }
 
-// ── AI usage helpers ────────────────────────────────────────────────
-function fmtUsd(cost) {
-  if (!cost || !Number.isFinite(cost)) return "$0.00";
-  if (cost < 0.01) return "<$0.01";
-  if (cost < 1) return `$${cost.toFixed(3)}`;
-  return `$${cost.toFixed(2)}`;
-}
-function fmtTime(ts) {
-  if (!ts) return "—";
-  const d = new Date(ts);
-  const diff = Date.now() - ts;
-  if (diff < 60_000) return "just now";
-  if (diff < 3_600_000) return `${Math.floor(diff / 60_000)}m ago`;
-  if (diff < 86_400_000) return `${Math.floor(diff / 3_600_000)}h ago`;
-  return d.toLocaleDateString(undefined, { month: "short", day: "numeric", hour: "2-digit", minute: "2-digit" });
-}
-function providerLabel(id) {
-  return ai.providerById(id)?.name || id || "unknown";
-}
-const usageByFeature = computed(() =>
-  Object.entries(ai.usageTotals.byFeature || {})
-    .map(([key, v]) => ({ key, ...v }))
-    .sort((a, b) => b.cost - a.cost || b.calls - a.calls)
-);
-const usageByProvider = computed(() =>
-  Object.entries(ai.usageTotals.byProvider || {})
-    .map(([key, v]) => ({ key, ...v }))
-    .sort((a, b) => b.cost - a.cost || b.calls - a.calls)
-);
-const recentUsageRows = computed(() =>
-  [...(ai.usageLog || [])].reverse().map((r) => ({
-    ...r,
-    totalTokens: (r.promptTokens || 0) + (r.completionTokens || 0),
-    providerName: providerLabel(r.providerId),
-  }))
-);
-const recentGlobalQuery = ref("");
-function onRecentInput(e) {
-  recentGlobalQuery.value = e.target.value;
-}
-
-async function resetUsageLog() {
-  const yes = await confirmDialog({
-    title: "Reset the AI usage ledger?",
-    message: "Clears every recorded call and aggregate. Doesn't affect AI providers or your project data.",
-    confirmLabel: "Reset",
-    danger: true,
-  });
-  if (!yes) return;
-  ai.clearUsage();
-}
-
 async function resetWorkspace() {
   const yes = await confirmDialog({
     title: "Reset the workspace?",
@@ -579,28 +520,6 @@ async function deleteCategory(c) {
   project.removeWorldbuildingCategory(c.id);
 }
 
-// ── AI Usage table column defs ──────────────────────────────────────
-const byFeatureColumns = [
-  { accessorKey: "key",              header: "Feature",    sortable: true, headerStyle: "min-width:160px", cellStyle: "min-width:160px" },
-  { accessorKey: "calls",            header: "Calls",      sortable: true, headerStyle: "text-align:right;width:70px", cellStyle: "text-align:right;width:70px" },
-  { accessorKey: "promptTokens",     header: "Prompt",     sortable: true, headerStyle: "text-align:right;width:90px", cellStyle: "text-align:right;width:90px" },
-  { accessorKey: "completionTokens", header: "Completion", sortable: true, headerStyle: "text-align:right;width:100px", cellStyle: "text-align:right;width:100px" },
-  { accessorKey: "cost",             header: "Cost",       sortable: true, headerStyle: "text-align:right;width:80px", cellStyle: "text-align:right;width:80px" },
-];
-const byProviderColumns = [
-  { accessorKey: "key",              header: "Provider",   sortable: true, headerStyle: "min-width:160px", cellStyle: "min-width:160px" },
-  { accessorKey: "calls",            header: "Calls",      sortable: true, headerStyle: "text-align:right;width:70px", cellStyle: "text-align:right;width:70px" },
-  { accessorKey: "promptTokens",     header: "Prompt",     sortable: true, headerStyle: "text-align:right;width:90px", cellStyle: "text-align:right;width:90px" },
-  { accessorKey: "completionTokens", header: "Completion", sortable: true, headerStyle: "text-align:right;width:100px", cellStyle: "text-align:right;width:100px" },
-  { accessorKey: "cost",             header: "Cost",       sortable: true, headerStyle: "text-align:right;width:80px", cellStyle: "text-align:right;width:80px" },
-];
-const recentColumns = [
-  { accessorKey: "at",          header: "Time",    sortable: true, headerStyle: "width:110px",    cellStyle: "width:110px" },
-  { accessorKey: "feature",     header: "Feature", sortable: true, headerStyle: "min-width:120px", cellStyle: "min-width:120px" },
-  { accessorKey: "model",       header: "Model",   sortable: true, headerStyle: "min-width:130px", cellStyle: "min-width:130px" },
-  { accessorKey: "totalTokens", header: "Tokens",  sortable: true, headerStyle: "text-align:right;width:80px", cellStyle: "text-align:right;width:80px" },
-  { accessorKey: "cost",        header: "Cost",    sortable: true, headerStyle: "text-align:right;width:80px", cellStyle: "text-align:right;width:80px" },
-];
 </script>
 
 <template>
@@ -837,90 +756,6 @@ const recentColumns = [
               </div>
             </div>
           </div>
-        </div>
-      </div>
-
-      <!-- ── AI USAGE ──────────────────────────────── -->
-      <div v-else-if="active === 'usage'" style="display:flex;flex-direction:column;gap:14px">
-        <div class="card">
-          <div class="card-title">
-            {{ $t('settings.usage.cardTitle') }}
-            <UiButton :label="$t('settings.usage.resetLedger')" intent="ghost" size="small" style="margin-left:auto" @click="resetUsageLog"
-              v-tooltip.bottom="'Clear every recorded call. Future calls start tallying from zero.'" />
-          </div>
-          <p class="t-muted" style="font-size:12.5px;margin:0 0 14px;line-height:1.55">
-            Tokens and estimated cost across every AI call — writer actions, critique, brainstorm, entity sweep,
-            the chat panel, and every analysis pass. Local providers
-            (Ollama, LM Studio, llama.cpp) are recorded at $0 — pricing only applies to cloud models in the
-            built-in price table.
-          </p>
-
-          <div v-if="ai.usageTotals.calls === 0" class="t-muted" style="font-size:12px;text-align:center;padding:22px 0;background:var(--surface-2);border-radius:8px;font-style:italic">
-            No AI calls yet. Run something from the scene-strip AI dropdown, the Critique modal, or any analysis feature and it'll show up here.
-          </div>
-
-          <template v-else>
-            <!-- Rollup pills -->
-            <div class="pill-row">
-              <StatPill :value="ai.usageTotals.calls.toLocaleString()" label="calls" />
-              <StatPill :value="ai.totalTokens.toLocaleString()" label="tokens" />
-              <StatPill :value="ai.usageTotals.promptTokens.toLocaleString()" label="prompt" />
-              <StatPill :value="ai.usageTotals.completionTokens.toLocaleString()" label="completion" />
-              <StatPill :value="fmtUsd(ai.totalCost)" label="est. cost" />
-            </div>
-
-            <!-- By feature -->
-            <div class="usage-section">
-              <div class="usage-section-h">{{ $t('settings.usage.byFeature') }}</div>
-              <UiTable :data="usageByFeature" data-key="key" :columns="byFeatureColumns" class="usage-dt">
-                <template #calls="{ value }">{{ value.toLocaleString() }}</template>
-                <template #promptTokens="{ value }">{{ value.toLocaleString() }}</template>
-                <template #completionTokens="{ value }">{{ value.toLocaleString() }}</template>
-                <template #cost="{ value }">{{ fmtUsd(value) }}</template>
-              </UiTable>
-            </div>
-
-            <!-- By provider -->
-            <div class="usage-section">
-              <div class="usage-section-h">{{ $t('settings.usage.byProvider') }}</div>
-              <UiTable :data="usageByProvider" data-key="key" :columns="byProviderColumns" class="usage-dt">
-                <template #key="{ value }">{{ providerLabel(value) }}</template>
-                <template #calls="{ value }">{{ value.toLocaleString() }}</template>
-                <template #promptTokens="{ value }">{{ value.toLocaleString() }}</template>
-                <template #completionTokens="{ value }">{{ value.toLocaleString() }}</template>
-                <template #cost="{ value }">{{ fmtUsd(value) }}</template>
-              </UiTable>
-            </div>
-
-            <!-- Recent calls -->
-            <div class="usage-section">
-              <div class="usage-section-h">
-                {{ $t('settings.usage.recentCalls') }}
-                <span class="t-muted" style="font-weight:400;font-size:11px;margin-left:6px">{{ recentUsageRows.length }}</span>
-              </div>
-              <div class="wb-toolbar" style="margin-bottom:10px">
-                <span class="wb-search">
-                  <Icon name="Search" :size="13" class="wb-search-icon" />
-                  <UiInput :value="recentGlobalQuery" placeholder="Search calls…" @input="onRecentInput" class="wb-search-input" />
-                </span>
-              </div>
-              <UiTable
-                :data="recentUsageRows"
-                data-key="id"
-                :global-filter="recentGlobalQuery"
-                :global-filter-fields="['feature', 'model', 'providerName']"
-                :columns="recentColumns"
-                class="usage-dt"
-                :pagination="{ pageSize: 25, pageSizeOptions: [10, 25, 50] }"
-                :default-sort="{ id: 'at', desc: true }"
-              >
-                <template #at="{ value }">{{ fmtTime(value) }}</template>
-                <template #model="{ value }">{{ value || "—" }}</template>
-                <template #totalTokens="{ value }">{{ value.toLocaleString() }}</template>
-                <template #cost="{ value }">{{ fmtUsd(value) }}</template>
-              </UiTable>
-            </div>
-          </template>
         </div>
       </div>
 

@@ -24,8 +24,13 @@ each):
   "Writing AI" tab removed. **Debug** tab + `/debug/writer-lab` + `WriterLabDebugView`
   + the orphaned `WriterLabBase.vue`/`services/writerLab.js` deleted. Dead i18n keys
   pruned. App Settings now = Project · AI usage · Appearance · Server · Backups · About.
-- ⏳ **U2 — Usage consolidation** (lift pricing + by-provider to the kit; upgrade the
-  AI-menu Usage tab to the full ledger; remove App-Settings "AI usage").
+- ✅ **U2 — Usage consolidation.** Enriched the shared ledger snapshot (cost +
+  by_provider + totals; cost is server-computed in JW's sink via `pricing.cost_for`),
+  upgraded the AI-menu **Usage** tab to the full ledger (rollup + by-feature +
+  by-provider + reset). Removed the App-Settings "AI usage" tab AND the now-dead
+  renderer usage cluster (`recordUsage`/`hydrateUsage`/`usageTotals` + `MODEL_PRICING`
+  + `services/usageApi.js` — zero consumers; usage is recorded server-side on dispatch,
+  so no double-count). App Settings now = Project · Appearance · Server · Backups · About.
 - ⏳ **U3 — Shared Data & Storage** (`make_data_router` backup/restore/reset + `<DataManagement>`;
   retire JW `DELETE /v1/workspace` + JSON export; record JV migration off `/v1/backup|restore|admin/factory-reset`).
 - ⏳ **U4 — Shared Server / Logs / Updates / Appearance(+language) / Diagnostics** sections; JW final layout.

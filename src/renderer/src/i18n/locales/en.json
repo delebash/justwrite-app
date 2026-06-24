@@ -205,7 +205,6 @@
     "eyebrow": "Project",
     "sections": {
       "project": "Project",
-      "usage": "AI usage",
       "appearance": "Appearance",
       "server": "Server",
       "backups": "Backups",
@@ -248,14 +247,6 @@
     },
     "preferences": {
       "cardTitle": "Preferences"
-    },
-    "usage": {
-      "cardTitle": "AI usage",
-      "resetLedger": "Reset ledger",
-      "byFeature": "By feature",
-      "byProvider": "By provider",
-      "recentCalls": "Recent calls",
-      "noCallsYet": "No AI calls yet. Run something from the scene-strip AI dropdown, the Critique modal, or any analysis feature and it'll show up here."
     },
     "appearance": {
       "presetCardTitle": "Theme preset",

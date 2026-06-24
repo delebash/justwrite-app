@@ -1,83 +1,12 @@
-// AI store — manages providers (OpenAI-compatible), the default LLM,
-// connection status, and the usage ledger (tokens + estimated cost per
-// call). Persists via the IDB-backed storage adapter.
+// AI store — providers (OpenAI-compatible), the default LLM + embedding routing,
+// per-feature pins, and per-model tier overrides. Usage is recorded + priced
+// server-side; the AI menu reads it from /v1/ai-usage.
 
 import { defineStore } from "pinia";
 import { getModelTier, TIERS } from "../services/modelMeta.js";
 import { readSetting, writeSetting } from "../services/settings.js";
-import { getUsage, postUsage, clearUsage as clearUsageApi } from "../services/usageApi.js";
 import * as providerBackend from "../services/providerBackend.js";
 import * as routingBackend from "../services/routingBackend.js";
-
-// In-memory cap on the displayed usage log so a long session doesn't grow the
-// reactive list unbounded. The server keeps every row and computes lifetime
-// totals, so trimming the in-memory list never loses cost history.
-const USAGE_LOG_LIMIT = 1000;
-
-// Per-1M-token pricing for known cloud models. Local providers (Ollama,
-// LM Studio, llama.cpp) cost $0 — they get no entry and pricing resolves
-// to zero. Add entries when surfacing a new cloud model in the UI;
-// missing entries return zero (so the ledger is still useful, just
-// without cost columns).
-const MODEL_PRICING = {
-  // OpenAI (USD per 1M tokens — input / output)
-  "gpt-5":              { in: 1.25,  out: 10.00 },
-  "gpt-5-mini":         { in: 0.25,  out: 2.00 },
-  "gpt-5-nano":         { in: 0.05,  out: 0.40 },
-  "gpt-4o":             { in: 2.50,  out: 10.00 },
-  "gpt-4o-mini":        { in: 0.15,  out: 0.60 },
-  "gpt-4.1":            { in: 2.00,  out: 8.00 },
-  "gpt-4.1-mini":       { in: 0.40,  out: 1.60 },
-  // Anthropic Claude (cloud — these run through openai-compat shims like
-  // OpenRouter but the bare model id is what surfaces in usage rows).
-  // Prices USD per 1M tokens (input / output), verified via the claude-api
-  // reference 2026-06-16. (claude-opus-4-7 was previously wrong at 15/75 —
-  // that's old Opus-3-era pricing; the 4.x Opus tier is 5/25.)
-  "claude-fable-5":     { in: 10.00, out: 50.00 },
-  "claude-opus-4-8":    { in: 5.00,  out: 25.00 },
-  "claude-opus-4-7":    { in: 5.00,  out: 25.00 },
-  "claude-sonnet-4-6":  { in: 3.00,  out: 15.00 },
-  "claude-haiku-4-5":   { in: 1.00,  out: 5.00 },
-  // Google Gemini
-  "gemini-2.5-pro":     { in: 1.25,  out: 5.00 },
-  "gemini-2.5-flash":   { in: 0.30,  out: 2.50 },
-};
-
-function priceFor(modelId) {
-  if (!modelId) return null;
-  const id = String(modelId).toLowerCase();
-  // Exact match first; otherwise prefix-match (catches `-2026-01-01` etc.).
-  if (MODEL_PRICING[id]) return MODEL_PRICING[id];
-  for (const [key, p] of Object.entries(MODEL_PRICING)) {
-    if (id.startsWith(key)) return p;
-  }
-  return null;
-}
-
-function emptyTotals() {
-  return {
-    calls: 0,
-    promptTokens: 0,
-    completionTokens: 0,
-    cost: 0,
-    byFeature: {}, // featureKey -> { calls, promptTokens, completionTokens, cost }
-    byProvider: {}, // providerId -> same shape
-  };
-}
-
-function bumpBucket(bucket, row) {
-  bucket.calls += 1;
-  bucket.promptTokens += row.promptTokens || 0;
-  bucket.completionTokens += row.completionTokens || 0;
-  bucket.cost += row.cost || 0;
-}
-
-function bumpKey(map, key, row) {
-  if (!key) return;
-  const existing = map[key] || { calls: 0, promptTokens: 0, completionTokens: 0, cost: 0 };
-  bumpBucket(existing, row);
-  map[key] = existing;
-}
 
 // The `ai` settings section holds only the non-routing AI prefs (per-model tier
 // overrides + the RAG auto-rebuild toggle). The default provider/embedding,
@@ -171,12 +100,6 @@ export const useAiStore = defineStore("ai", {
       // burns embed tokens on every save against a cloud provider, which
       // the user shouldn't get without opting in.
       autoRebuildRagIndex: prefs?.autoRebuildRagIndex ?? false,
-      // Usage ledger — hydrated on demand from /v1/llm-usage (Settings → Usage).
-      // recordUsage appends locally for live display and POSTs to the server,
-      // which owns the full history and computes lifetime totals.
-      usageLog: [],
-      usageTotals: emptyTotals(),
-      _usageHydrated: false,
     };
   },
 
@@ -243,11 +166,6 @@ export const useAiStore = defineStore("ai", {
     // drives the "(auto)" vs "(pinned)" badge in the Settings model picker.
     tierSource: (s) => (modelId) => (s.modelTiers[modelId] ? "pinned" : "auto"),
 
-    // Recent usage entries newest-first (for a "recent activity" list).
-    recentUsage: (s) => (limit = 20) => [...s.usageLog].reverse().slice(0, limit),
-    // Sum of cost across the entire ledger.
-    totalCost: (s) => s.usageTotals.cost || 0,
-    totalTokens: (s) => (s.usageTotals.promptTokens || 0) + (s.usageTotals.completionTokens || 0),
   },
 
   actions: {
@@ -330,72 +248,5 @@ export const useAiStore = defineStore("ai", {
     },
 
 
-    // ── Usage ───────────────────────────────────────────────
-    // Append a usage row. Called by writerAI (and any other AI feature
-    // routed through this ledger) on the final chunk of a chat call.
-    //   feature    — short key like "rewrite", "expand", "critique", …
-    //   providerId — id from the AI store; used for grouping + display
-    //   model      — bare model id (e.g. "gpt-4o-mini"); priced via
-    //                MODEL_PRICING above
-    //   promptTokens / completionTokens — from the server response
-    //   meta       — optional { chapterId, sceneId, label } for the
-    //                future "view recent calls" panel
-    recordUsage({ feature, providerId, model, promptTokens = 0, completionTokens = 0, meta = {} } = {}) {
-      const p = priceFor(model);
-      const cost = p
-        ? (promptTokens / 1_000_000) * p.in + (completionTokens / 1_000_000) * p.out
-        : 0;
-      const row = {
-        id: `u_${Date.now().toString(36)}_${Math.random().toString(36).slice(2, 6)}`,
-        at: Date.now(),
-        feature: feature || "unknown",
-        providerId: providerId || null,
-        model: model || null,
-        promptTokens: Math.max(0, promptTokens | 0),
-        completionTokens: Math.max(0, completionTokens | 0),
-        cost,
-        meta,
-      };
-      const nextLog = [...this.usageLog, row];
-      while (nextLog.length > USAGE_LOG_LIMIT) nextLog.shift();
-      this.usageLog = nextLog;
-      // Update aggregates in place — the totals object isn't rebuilt
-      // from the log so trimmed rows still count toward lifetime totals.
-      const totals = { ...this.usageTotals, byFeature: { ...this.usageTotals.byFeature }, byProvider: { ...this.usageTotals.byProvider } };
-      bumpBucket(totals, row);
-      bumpKey(totals.byFeature, row.feature, row);
-      bumpKey(totals.byProvider, row.providerId, row);
-      this.usageTotals = totals;
-      // Persist to the server (the authoritative store); local state above is
-      // the live-display copy. The row shape matches the /v1/llm-usage body.
-      postUsage(row);
-      return row;
-    },
-
-    // Pull the recent ledger + lifetime totals from the server. Called on demand
-    // (Settings → Usage) so the cost page reflects the full history, not just
-    // this session's recorded calls. Idempotent within a session.
-    async hydrateUsage() {
-      if (this._usageHydrated) return;
-      this._usageHydrated = true;
-      try {
-        const { log, totals } = await getUsage();
-        this.usageLog = Array.isArray(log) ? log : [];
-        this.usageTotals = totals && typeof totals === "object" ? totals : emptyTotals();
-      } catch (err) {
-        this._usageHydrated = false;  // allow a retry on next open
-        console.error("ai.hydrateUsage failed:", err);
-      }
-    },
-
-    clearUsage() {
-      this.usageLog = [];
-      this.usageTotals = emptyTotals();
-      clearUsageApi();
-    },
   },
 });
-
-// Exported for tests / settings pages that want to render the same
-// pricing table the store uses internally.
-export { MODEL_PRICING, priceFor };

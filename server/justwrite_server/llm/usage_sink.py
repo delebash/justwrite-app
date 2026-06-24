@@ -47,10 +47,14 @@ class JwDbUsageSink:
             db.close()
 
     def snapshot(self) -> dict:
-        """Shared-shape snapshot (powers the shared `/v1/ai-usage`). JustWrite's
-        own usage UI reads `/v1/llm-usage` (SQL aggregates with cost); this is
-        the cross-app parity view — calls + tokens per feature, recent log."""
-        empty = {"by_feature": {}, "recent": [], "total_calls": 0}
+        """Shared-shape snapshot (powers the shared `/v1/ai-usage`, which the AI
+        menu's Usage tab renders as the full ledger): calls + tokens + cost per
+        feature AND per provider, totals, and a recent log. Cost is the
+        per-row cost recorded via `pricing.cost_for`."""
+        empty = {
+            "by_feature": {}, "by_provider": {}, "recent": [], "total_calls": 0,
+            "total_cost": 0.0, "total_prompt_tokens": 0, "total_completion_tokens": 0,
+        }
         if _db.SessionLocal is None:
             return empty
         db = _db.SessionLocal()
@@ -59,14 +63,25 @@ class JwDbUsageSink:
         finally:
             db.close()
         by_feature: dict[str, dict] = {}
+        by_provider: dict[str, dict] = {}
+        total_cost = total_p = total_c = 0
         for r in rows:
             agg = by_feature.setdefault(
                 r.feature,
-                {"calls": 0, "errors": 0, "prompt_tokens": 0, "completion_tokens": 0, "duration_ms": 0},
+                {"calls": 0, "errors": 0, "prompt_tokens": 0, "completion_tokens": 0, "duration_ms": 0, "cost": 0.0},
             )
-            agg["calls"] += 1
-            agg["prompt_tokens"] += r.prompt_tokens or 0
-            agg["completion_tokens"] += r.completion_tokens or 0
+            pagg = by_provider.setdefault(
+                r.provider_id or "—",
+                {"calls": 0, "prompt_tokens": 0, "completion_tokens": 0, "cost": 0.0},
+            )
+            for bucket in (agg, pagg):
+                bucket["calls"] += 1
+                bucket["prompt_tokens"] += r.prompt_tokens or 0
+                bucket["completion_tokens"] += r.completion_tokens or 0
+                bucket["cost"] += r.cost or 0.0
+            total_cost += r.cost or 0.0
+            total_p += r.prompt_tokens or 0
+            total_c += r.completion_tokens or 0
         recent = [
             {
                 "feature": r.feature, "model": r.model, "provider_id": r.provider_id,
@@ -75,7 +90,11 @@ class JwDbUsageSink:
             }
             for r in rows[:30]
         ]
-        return {"by_feature": by_feature, "recent": recent, "total_calls": len(rows)}
+        return {
+            "by_feature": by_feature, "by_provider": by_provider, "recent": recent,
+            "total_calls": len(rows), "total_cost": total_cost,
+            "total_prompt_tokens": total_p, "total_completion_tokens": total_c,
+        }
 
     def clear(self) -> None:
         if _db.SessionLocal is None:
