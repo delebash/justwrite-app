@@ -906,3 +906,48 @@ with progress + cancel); forking it = the copy-paste drift RULE #7 forbids, and
 it's already happened once (JV copied JW). Shared = one implementation, one strip,
 consistent UX, and the FeatureWorkbench/Lab test runs land in the same queue in
 every app.
+
+## Decision 23 — model/switch/prompt testing = multi-column Compare INSIDE Features (2026-06-24)
+
+**User, 2026-06-24:** we deleted the standalone Writer Lab on purpose and folded
+testing into Features (the action is the unit; tune/promote where you route it). So
+do NOT re-split into a separate Lab. Instead the Features **test panel grows a
+multi-column "Compare" mode** — the old audio-Studio multi-column feel, living
+inside Features where it belongs.
+
+**The design (one surface absorbs three things we kept circling):**
+- A Compare run = **N columns**, each column a FULL config: **model + engine
+  switches (Plane 1: n_cpu_moe / n_gpu_layers / ctx / kv-type / flags) + prompt +
+  per-request settings (Plane 2: temperature / json-schema / reasoning-budget /
+  maxTokens)**.
+- **Run one action once across all columns**; show per column: **output · word
+  count · tokens/sec · time · cost**. Pick the winner → **promote to production**
+  (sets that model/switches/prompt as the action's routing).
+- This is simultaneously: **model A/B** (the "recommend → test on MY text →
+  promote" loop QuickSetup seeds), **switch testing** (columns that differ only by
+  n_cpu_moe / ngl / ctx / flags, compared by tokens/sec on a real action — so the
+  "switch-testing panel" is NOT separate, it's columns), and **prompt A/B**.
+
+**Dependencies (why this is the build hub):**
+- Needs **`Overrides` plumbed through `POST /v1/llm-runner/load`** (switches doc) so
+  a column can apply its Plane-1 switches and we can measure tokens/sec per split.
+- Test runs register in the **shared AI task queue (Decision 22)** — live progress +
+  cancel + the run lands in the batch strip, in every app.
+- The **per-model tuning UI** (AI ▸ Providers) sets a model's DEFAULT switches;
+  Compare A/Bs variations of them. Same Plane-1 surface, two entry points.
+
+**Testing JV work in JW (temporary scaffold):** JW's catalog has no speaker
+attribution (JV's domain) but the dispatch is shared. Add JV-ish action(s)
+(`speaker_attribution`, maybe `entity_extraction`) to JW's feature catalog + a
+seeded prompt **temporarily**, so the user can run/compare them on the book already
+in JW — the "test some of the old audio-Studio portions here" ask. It's a scaffold:
+it moves to JV (or is removed) when JV adopts (U5).
+
+**Open fork (user to pick before build):** Compare = **full-width mode inside the
+Features tab** (hides the nav while comparing — my rec: stays "in Features" but
+roomy for N columns) vs **compact 2-up inside the editor pane** (always visible but
+cramped beyond 2 columns).
+
+**Why combined, not a separate Lab:** a separate Lab re-fragments the action unit we
+deliberately unified and duplicates the action + input context (RULE #7). Compare is
+a MODE of the Features test panel, not a parallel surface.
