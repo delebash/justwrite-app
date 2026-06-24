@@ -13,7 +13,7 @@
 import { computed } from "vue";
 import { useUiStore } from "../stores/ui.js";
 import { titleForSlug } from "../services/helpDocs.js";
-import Icon from "./Icon.vue";
+import { Icon } from "@delebash/llm-ui";
 
 const props = defineProps({
   slug:  { type: String, required: true },

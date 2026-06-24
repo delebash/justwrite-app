@@ -15,7 +15,7 @@ import { scanAllChapters } from "../services/analysis/entitySweep.js";
 import EntityReviewModal from "./EntityReviewModal.vue";
 import AiTaskStrip from "./AiTaskStrip.vue";
 import AiFeatureChip from "./AiFeatureChip.vue";
-import Icon from "./Icon.vue";
+import { Icon } from "@delebash/llm-ui";
 import AppModal from "./AppModal.vue";
 import StatusRow from "./StatusRow.vue";
 import { UiButton } from "@delebash/llm-ui";

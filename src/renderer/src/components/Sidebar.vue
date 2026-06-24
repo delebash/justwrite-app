@@ -6,7 +6,7 @@ import { useUiStore } from "../stores/ui.js";
 import { useProjectStore } from "../stores/project.js";
 import { promptDialog, confirmDialog } from "../services/dialog.js";
 import { NEW_ENTITY_META } from "../services/entityMeta.js";
-import Icon from "./Icon.vue";
+import { Icon } from "@delebash/llm-ui";
 import { UiButton } from "@delebash/llm-ui";
 import { UiInput } from "@delebash/llm-ui";
 import { useRovingTabindexMap } from "@renderer/composables/useRovingTabindexMap.js";

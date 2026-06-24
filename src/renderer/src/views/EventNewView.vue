@@ -3,7 +3,7 @@ import { computed, ref, onMounted } from "vue";
 import { useRouter } from "vue-router";
 import { useProjectStore } from "../stores/project.js";
 import { EVENTS_KIND_META } from "../services/eventsKind.js";
-import Icon from "../components/Icon.vue";
+import { Icon } from "@delebash/llm-ui";
 import Breadcrumb from "../components/Breadcrumb.vue";
 import DateTimePicker from "../components/DateTimePicker.vue";
 import { UiInput } from "@delebash/llm-ui";

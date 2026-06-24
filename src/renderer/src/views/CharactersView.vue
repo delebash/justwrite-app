@@ -4,7 +4,7 @@ import { useProjectStore } from "../stores/project.js";
 import { useUiStore } from "../stores/ui.js";
 import { useRouter } from "vue-router";
 import Avatar from "../components/Avatar.vue";
-import Icon from "../components/Icon.vue";
+import { Icon } from "@delebash/llm-ui";
 import { UiInput } from "@delebash/llm-ui";
 import { UiTextarea } from "@delebash/llm-ui";
 import { UiCheckbox } from "@delebash/llm-ui";

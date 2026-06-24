@@ -3,7 +3,7 @@ import { computed, ref } from "vue";
 import { useProjectStore } from "../stores/project.js";
 import { useUiStore } from "../stores/ui.js";
 import { useRouter } from "vue-router";
-import Icon from "../components/Icon.vue";
+import { Icon } from "@delebash/llm-ui";
 import { UiInput } from "@delebash/llm-ui";
 import { UiButton } from "@delebash/llm-ui";
 import { UiTag } from "@delebash/llm-ui";

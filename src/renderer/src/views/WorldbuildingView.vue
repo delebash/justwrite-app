@@ -4,7 +4,7 @@ import { useProjectStore } from "../stores/project.js";
 import { useUiStore } from "../stores/ui.js";
 import { useRouter } from "vue-router";
 import PaneHeader from "../components/PaneHeader.vue";
-import Icon from "../components/Icon.vue";
+import { Icon } from "@delebash/llm-ui";
 import RichEditor from "../components/RichEditor.vue";
 import StatusSelect from "../components/StatusSelect.vue";
 import Breadcrumb from "../components/Breadcrumb.vue";

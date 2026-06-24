@@ -20,7 +20,7 @@ import { useAiStore } from "../stores/ai.js";
 import { useAiTasksStore } from "../stores/aiTasks.js";
 import { generateSessionRecap } from "../services/sessionRecap.js";
 import { addMarkerToSceneHtml } from "../services/markers.js";
-import Icon from "./Icon.vue";
+import { Icon } from "@delebash/llm-ui";
 import AiTaskStrip from "./AiTaskStrip.vue";
 import AiFeatureChip from "./AiFeatureChip.vue";
 import AppModal from "./AppModal.vue";

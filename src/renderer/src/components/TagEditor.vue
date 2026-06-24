@@ -23,7 +23,7 @@
 // entity to keep the dropdown signal-only.
 
 import { ref, computed, nextTick } from "vue";
-import Icon from "./Icon.vue";
+import { Icon } from "@delebash/llm-ui";
 
 const props = defineProps({
   modelValue:  { type: Array,  default: () => [] },

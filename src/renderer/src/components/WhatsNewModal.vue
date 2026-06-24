@@ -12,7 +12,7 @@ import { loadDoc } from "../services/helpDocs.js";
 import { renderHelpMarkdown } from "../services/helpMarkdown.js";
 import AppModal from "./AppModal.vue";
 import { UiButton } from "@delebash/llm-ui";
-import Icon from "./Icon.vue";
+import { Icon } from "@delebash/llm-ui";
 
 const ui = useUiStore();
 const open = ref(false);

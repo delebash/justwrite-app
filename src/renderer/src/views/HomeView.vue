@@ -7,7 +7,7 @@ import { useSessionsStore, DOW_LABELS_MONDAY_FIRST, reorderForMonday } from "../
 import { useAiStore } from "../stores/ai.js";
 import { useAiTasksStore } from "../stores/aiTasks.js";
 import { generateResumeBriefing, buildBriefingContext } from "../services/resumeBriefing.js";
-import Icon from "../components/Icon.vue";
+import { Icon } from "@delebash/llm-ui";
 import AiTaskStrip from "../components/AiTaskStrip.vue";
 import AiFeatureChip from "../components/AiFeatureChip.vue";
 import { UiButton } from "@delebash/llm-ui";

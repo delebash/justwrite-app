@@ -6,7 +6,7 @@
 // fiddly native spinner, so arbitrary years (past or far future) are easy.
 import { ref, computed, watch, nextTick, onBeforeUnmount } from "vue";
 import { computePosition, autoUpdate, offset, flip, shift, size } from "@floating-ui/dom";
-import Icon from "./Icon.vue";
+import { Icon } from "@delebash/llm-ui";
 
 const props = defineProps({
   modelValue: { type: String, default: "" },

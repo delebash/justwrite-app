@@ -18,7 +18,7 @@ import { useUiStore } from "../stores/ui.js";
 import { useAiStore } from "../stores/ai.js";
 import { useAiTasksStore } from "../stores/aiTasks.js";
 import { auditAllCharacters } from "../services/analysis/characterAudit.js";
-import Icon from "./Icon.vue";
+import { Icon } from "@delebash/llm-ui";
 import AiFeatureChip from "./AiFeatureChip.vue";
 import AppModal from "./AppModal.vue";
 import StatusRow from "./StatusRow.vue";

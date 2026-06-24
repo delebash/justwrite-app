@@ -15,7 +15,7 @@ import { ref, computed, onMounted } from "vue";
 import { useRouter } from "vue-router";
 import { useProjectStore } from "../stores/project.js";
 import { scanAiTells, TELL_KINDS } from "../services/analysis/aiTellScanner.js";
-import Icon from "./Icon.vue";
+import { Icon } from "@delebash/llm-ui";
 import AppModal from "./AppModal.vue";
 import { UiButton } from "@delebash/llm-ui";
 import EmptyState from "./EmptyState.vue";

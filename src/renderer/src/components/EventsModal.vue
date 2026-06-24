@@ -1,7 +1,7 @@
 <script setup>
 import { computed, ref } from "vue";
 import { useProjectStore } from "../stores/project.js";
-import Icon from "./Icon.vue";
+import { Icon } from "@delebash/llm-ui";
 import AppModal from "./AppModal.vue";
 import { UiButton } from "@delebash/llm-ui";
 import { UiInput } from "@delebash/llm-ui";

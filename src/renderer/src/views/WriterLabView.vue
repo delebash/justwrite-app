@@ -8,7 +8,7 @@ import { ref, computed } from "vue";
 import { useProjectStore } from "../stores/project.js";
 import { useAiTasksStore } from "../stores/aiTasks.js";
 import PaneHeader from "../components/PaneHeader.vue";
-import Icon from "../components/Icon.vue";
+import { Icon } from "@delebash/llm-ui";
 import AiTaskStrip from "../components/AiTaskStrip.vue";
 import WriterLabBase from "../components/WriterLabBase.vue";
 

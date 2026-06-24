@@ -36,7 +36,7 @@ import {
   SelectItemText,
   SelectItemIndicator,
 } from "reka-ui";
-import Icon from "../Icon.vue";
+import { Icon } from "@delebash/llm-ui";
 
 const props = defineProps({
   modelValue: { type: [String, Number, Boolean, Object, null], default: null },

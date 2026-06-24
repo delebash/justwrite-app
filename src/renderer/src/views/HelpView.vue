@@ -2,7 +2,7 @@
 import { computed, ref, watch, onMounted, nextTick } from "vue";
 import { useRouter, useRoute } from "vue-router";
 import PaneHeader from "../components/PaneHeader.vue";
-import Icon from "../components/Icon.vue";
+import { Icon } from "@delebash/llm-ui";
 import { UiButton } from "@delebash/llm-ui";
 import {
   HELP_TOC,

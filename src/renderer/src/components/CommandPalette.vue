@@ -19,7 +19,7 @@ import { useUiStore } from "../stores/ui.js";
 import { useVersionsStore } from "../stores/versions.js";
 import { promptDialog } from "../services/dialog.js";
 import { HELP_TOC } from "../services/helpDocs.js";
-import Icon from "./Icon.vue";
+import { Icon } from "@delebash/llm-ui";
 
 const router = useRouter();
 const project = useProjectStore();

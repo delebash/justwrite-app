@@ -10,7 +10,7 @@
 
 import { computed, watch } from "vue";
 import { useProjectStore } from "../stores/project.js";
-import Icon from "./Icon.vue";
+import { Icon } from "@delebash/llm-ui";
 import { ACTION_GROUPS, stripHtml, countWords } from "../services/writerLab.js";
 import { UiButton } from "@delebash/llm-ui";
 import { UiTextarea } from "@delebash/llm-ui";

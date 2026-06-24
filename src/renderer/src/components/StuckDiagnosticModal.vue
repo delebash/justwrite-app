@@ -14,7 +14,7 @@ import {
   MOVE_KIND_BLURBS,
   MOVE_KIND_LABELS,
 } from "../services/stuckDiagnostic.js";
-import Icon from "./Icon.vue";
+import { Icon } from "@delebash/llm-ui";
 import AiTaskStrip from "./AiTaskStrip.vue";
 import AiFeatureChip from "./AiFeatureChip.vue";
 import AppModal from "./AppModal.vue";

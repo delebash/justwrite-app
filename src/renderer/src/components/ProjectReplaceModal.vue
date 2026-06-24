@@ -9,7 +9,7 @@ import { useProjectStore } from "../stores/project.js";
 import { useUiStore } from "../stores/ui.js";
 import { useRouter } from "vue-router";
 import { scanScenes } from "../services/projectReplace.js";
-import Icon from "./Icon.vue";
+import { Icon } from "@delebash/llm-ui";
 import AppModal from "./AppModal.vue";
 import { UiButton } from "@delebash/llm-ui";
 import { UiCheckbox } from "@delebash/llm-ui";

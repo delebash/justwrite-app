@@ -14,7 +14,7 @@ import { useVersionsStore } from "../stores/versions.js";
 import { useProjectStore } from "../stores/project.js";
 import { useUiStore } from "../stores/ui.js";
 import { diffVersions, renderDiffHtml, diffStats } from "../services/versionDiff.js";
-import Icon from "./Icon.vue";
+import { Icon } from "@delebash/llm-ui";
 import AppModal from "./AppModal.vue";
 import EmptyState from "./EmptyState.vue";
 import { UiButton } from "@delebash/llm-ui";

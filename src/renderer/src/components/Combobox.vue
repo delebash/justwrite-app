@@ -10,7 +10,7 @@
 // to point at the right object fields.
 
 import { ref, reactive, computed, onBeforeUnmount, nextTick, watch } from "vue";
-import Icon from "./Icon.vue";
+import { Icon } from "@delebash/llm-ui";
 
 const props = defineProps({
   modelValue: { type: [String, Number], default: "" },

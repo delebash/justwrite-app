@@ -9,7 +9,7 @@ import { readSetting, writeSetting } from "../services/settings.js";
 import { resetWorkspace as resetWorkspaceApi } from "../services/workspaceApi.js";
 import { buildVoiceFingerprint } from "../services/voiceFingerprint.js";
 import PaneHeader from "../components/PaneHeader.vue";
-import Icon from "../components/Icon.vue";
+import { Icon } from "@delebash/llm-ui";
 import StatPill from "../components/StatPill.vue";
 import { UiInput } from "@delebash/llm-ui";
 import { UiTextarea } from "@delebash/llm-ui";

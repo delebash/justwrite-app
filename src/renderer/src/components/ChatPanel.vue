@@ -23,7 +23,7 @@ import AiTaskStrip from "./AiTaskStrip.vue";
 import AiFeatureChip from "./AiFeatureChip.vue";
 import EmptyState from "./EmptyState.vue";
 import HelpTrigger from "./HelpTrigger.vue";
-import Icon from "./Icon.vue";
+import { Icon } from "@delebash/llm-ui";
 import { UiButton } from "@delebash/llm-ui";
 import { UiTextarea } from "@delebash/llm-ui";
 import JwSelect from "@renderer/components/ui/JwSelect.vue";

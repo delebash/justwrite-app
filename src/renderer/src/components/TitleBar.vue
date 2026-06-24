@@ -4,7 +4,7 @@ import { useRouter } from "vue-router";
 import { useUiStore } from "../stores/ui.js";
 import { useProjectStore } from "../stores/project.js";
 import { THEME_PRESETS } from "../services/appearance.js";
-import Icon from "./Icon.vue";
+import { Icon } from "@delebash/llm-ui";
 import AiStatusButton from "./AiStatusButton.vue";
 
 defineProps({ title: { type: String, default: "JustWrite" } });

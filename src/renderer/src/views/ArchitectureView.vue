@@ -5,7 +5,7 @@ import { useProjectStore } from "../stores/project.js";
 import { useUiStore } from "../stores/ui.js";
 import RichEditor from "../components/RichEditor.vue";
 import { EDITOR_TOOLBAR_DOC } from "../services/editorToolbars.js";
-import Icon from "../components/Icon.vue";
+import { Icon } from "@delebash/llm-ui";
 import { UiButton } from "@delebash/llm-ui";
 import { UiTag } from "@delebash/llm-ui";
 import JwTable from "@renderer/components/ui/JwTable.vue";

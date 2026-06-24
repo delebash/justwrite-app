@@ -16,7 +16,7 @@ import { useUiStore } from "../stores/ui.js";
 import { useSessionsStore, reorderForMonday } from "../stores/sessions.js";
 import { scanProjectMarkers } from "../services/markers.js";
 import { UiButton } from "@delebash/llm-ui";
-import Icon from "../components/Icon.vue";
+import { Icon } from "@delebash/llm-ui";
 
 const router = useRouter();
 const project = useProjectStore();

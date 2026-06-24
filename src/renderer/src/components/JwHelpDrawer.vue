@@ -32,7 +32,7 @@ import {
   webUrlFor,
 } from "../services/helpDocs.js";
 import { renderHelpMarkdown } from "../services/helpMarkdown.js";
-import Icon from "./Icon.vue";
+import { Icon } from "@delebash/llm-ui";
 import { UiButton } from "@delebash/llm-ui";
 
 const ui = useUiStore();

@@ -20,7 +20,7 @@ import { computed, onMounted, watch } from "vue";
 import { useAiStore } from "../stores/ai.js";
 import { useModelList } from "../composables/useModelList.js";
 import { parseQuant, entryLabel } from "../services/modelMeta.js";
-import Icon from "./Icon.vue";
+import { Icon } from "@delebash/llm-ui";
 
 const props = defineProps({
   modelValue: { type: String, default: "" },

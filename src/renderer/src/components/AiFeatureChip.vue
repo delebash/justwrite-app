@@ -23,7 +23,7 @@
 import { ref, computed, onMounted, onBeforeUnmount, nextTick } from "vue";
 import { useAiStore } from "../stores/ai.js";
 import { useModelList } from "../composables/useModelList.js";
-import Icon from "./Icon.vue";
+import { Icon } from "@delebash/llm-ui";
 import JwSelect from "@renderer/components/ui/JwSelect.vue";
 
 const props = defineProps({

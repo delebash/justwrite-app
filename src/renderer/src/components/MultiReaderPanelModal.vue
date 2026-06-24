@@ -18,7 +18,7 @@ import {
   runMultiReaderPanel,
   PERSONAS,
 } from "../services/analysis/multiReaderCritique.js";
-import Icon from "./Icon.vue";
+import { Icon } from "@delebash/llm-ui";
 import AiFeatureChip from "./AiFeatureChip.vue";
 import AppModal from "./AppModal.vue";
 import { UiButton } from "@delebash/llm-ui";

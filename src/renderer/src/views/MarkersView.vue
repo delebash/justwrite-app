@@ -16,7 +16,7 @@ import { computed, ref } from "vue";
 import { useRouter } from "vue-router";
 import { useProjectStore } from "../stores/project.js";
 import { MARKER_CATEGORIES, categoryById, scanProjectMarkers, removeMarkerFromHtml } from "../services/markers.js";
-import Icon from "../components/Icon.vue";
+import { Icon } from "@delebash/llm-ui";
 import { UiButton } from "@delebash/llm-ui";
 import ForeshadowingScanModal from "../components/ForeshadowingScanModal.vue";
 import AiTellScanModal from "../components/AiTellScanModal.vue";

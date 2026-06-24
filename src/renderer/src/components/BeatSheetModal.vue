@@ -20,7 +20,7 @@ import {
   BEAT_TEMPLATES,
   TEMPLATE_OPTIONS,
 } from "../services/analysis/beatSheet.js";
-import Icon from "./Icon.vue";
+import { Icon } from "@delebash/llm-ui";
 import AiTaskStrip from "./AiTaskStrip.vue";
 import AiFeatureChip from "./AiFeatureChip.vue";
 import AppModal from "./AppModal.vue";

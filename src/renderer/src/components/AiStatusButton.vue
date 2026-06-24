@@ -9,7 +9,7 @@
 
 import { computed } from "vue";
 import { useAiTasksStore } from "../stores/aiTasks.js";
-import Icon from "./Icon.vue";
+import { Icon } from "@delebash/llm-ui";
 import AiStatusPanel from "./AiStatusPanel.vue";
 
 const tasks = useAiTasksStore();

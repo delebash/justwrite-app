@@ -10,7 +10,7 @@ import { useRouter } from "vue-router";
 import { useProjectStore } from "../stores/project.js";
 import { EVENTS_KIND_META } from "../services/eventsKind.js";
 import PaneHeader from "../components/PaneHeader.vue";
-import Icon from "../components/Icon.vue";
+import { Icon } from "@delebash/llm-ui";
 
 const project = useProjectStore();
 const router = useRouter();

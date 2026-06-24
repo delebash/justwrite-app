@@ -19,7 +19,7 @@ import {
   DialogTitle,
   DialogClose,
 } from "reka-ui";
-import Icon from "./Icon.vue";
+import { Icon } from "@delebash/llm-ui";
 import { UiButton } from "@delebash/llm-ui";
 import { UiInput } from "@delebash/llm-ui";
 import JwSelect from "@renderer/components/ui/JwSelect.vue";

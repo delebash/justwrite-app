@@ -26,7 +26,7 @@ import {
   STATUS_LABELS,
   STATUS_COLOURS,
 } from "../services/analysis/readerKnowledge.js";
-import Icon from "../components/Icon.vue";
+import { Icon } from "@delebash/llm-ui";
 import AiTaskStrip from "../components/AiTaskStrip.vue";
 import HelpTrigger from "../components/HelpTrigger.vue";
 import AiFeatureChip from "../components/AiFeatureChip.vue";

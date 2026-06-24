@@ -2,7 +2,7 @@
 import { computed, ref, watchEffect } from "vue";
 import { useProjectStore } from "../stores/project.js";
 import { saveImage, urlFor, removeImage, hasNativeImages } from "../services/imageStore.js";
-import Icon from "./Icon.vue";
+import { Icon } from "@delebash/llm-ui";
 import AppModal from "./AppModal.vue";
 import { UiButton } from "@delebash/llm-ui";
 

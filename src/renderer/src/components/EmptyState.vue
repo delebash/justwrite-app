@@ -15,7 +15,7 @@
 //
 // Emits: "action" when the default action button is clicked.
 
-import Icon from "./Icon.vue";
+import { Icon } from "@delebash/llm-ui";
 import { UiButton } from "@delebash/llm-ui";
 
 defineProps({

@@ -6,7 +6,7 @@ import { useUiStore } from "../stores/ui.js";
 import { PLOT_TEMPLATES, TEMPLATE_ORDER, applyTemplate } from "../services/plotTemplates.js";
 import { promptDialog, confirmDialog } from "../services/dialog.js";
 import PaneHeader from "../components/PaneHeader.vue";
-import Icon from "../components/Icon.vue";
+import { Icon } from "@delebash/llm-ui";
 import { UiButton } from "@delebash/llm-ui";
 
 const project = useProjectStore();

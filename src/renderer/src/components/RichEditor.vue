@@ -34,7 +34,7 @@ import VariationsModal from "./VariationsModal.vue";
 import { PROSE_RULES, PROSE_RULE_ORDER } from "@renderer/services/writerAI";
 import { useAiTasksStore } from "../stores/aiTasks.js";
 import { useUiStore } from "../stores/ui.js";
-import Icon from "./Icon.vue";
+import { Icon } from "@delebash/llm-ui";
 import { UiButton } from "@delebash/llm-ui";
 import EditorSettingsModal from "./EditorSettingsModal.vue";
 import AiTaskStrip from "./AiTaskStrip.vue";
