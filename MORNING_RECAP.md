@@ -17,15 +17,17 @@ LLM engine to the GUI + a Compare surface, so models/switches can be tested on r
 - ✅ **#19 DONE** — `Overrides` plumbed through `POST /v1/llm-runner/load`
   (`LoadRequest` → `Overrides` → `compose_flags` replace-merge → `start_runner`); 98
   tests pass, ruff clean. Committed (just-llm-runner `e5cecef`).
-- ⏳ **DEEP-RESEARCH WORKFLOW RUNNING** — run `wf_11fa0bf3-5ad` / task `wvx9bjoib`:
-  *"minimize VRAM on a 6–8 GB card while loading/unloading models for different tasks
-  performantly"* (KV-quant, `--n-cpu-moe`, router mode vs per-model spawn vs
-  llama-swap + swap/cold-load latency, warm-vs-cold, embeddings footprint, a concrete
-  model+swap recipe). **User said: HOLD for the report.** Feeds **#27** (router vs
-  spawn architecture), **#11** (QuickSetup recipe), **#20** (tuning-UI defaults). If
-  compacted mid-run: the harness notifies on completion; transcript under
-  `~/.claude/projects/.../subagents/workflows/wf_11fa0bf3-5ad`; resume via the script
-  path in that workflow dir.
+- ✅ **DEEP-RESEARCH DONE** (run `wf_11fa0bf3-5ad`, 103 agents, 18/25 claims confirmed)
+  → **saved to `just-llm-runner/docs/plans/2026-06-24-small-vram-multimodel-research.md`**
+  (the /tmp output is ephemeral; the doc is the durable copy). Key results: TWO
+  OOM-safe architectures for 6–8 GB+32 GB — **(B) single MoE (35B-A3B + `--n-cpu-moe`)
+  serving both chat+extraction** (cleanest on 6 GB, no swap) or **(A) dual-dense warm +
+  resident/CPU embed + on-demand extraction (LRU/ttl evicted)**; KV-quant `q8_0`+`-fa
+  on` is the core VRAM lever; keep embeddings resident or CPU-only. **⚠️ CORRECTED our
+  earlier claim:** router mode **DOES** auto-evict via LRU at `--models-max` (default
+  4) — "router never auto-evicts" was wrong (from one forum thread; source-code
+  refuted). Feeds **#27** (favors router mode for serving), **#11** (per-card recipe),
+  **#20** (confirmed switch set).
 - ⚠️ **CORRECTION (2026-06-24):** llama.cpp HAS router mode (live model swap) — an
   earlier "swap = restart" claim was wrong (stale prior + shallow research; user
   caught it). Corrected in the switches doc "Lifecycle (CORRECTED)" + Decision 23.
