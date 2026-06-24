@@ -937,6 +937,51 @@ _ACTION_META: dict[str, dict] = {
     "brainstorm": {"description": "Freeform idea generation — names, titles, and concepts with thumbs-up steering."},
     "brainstormPlot": {"description": "Plot-focused ideas — what-ifs, complications, and next beats."},
 }
+
+# Canonical action labels — the ONE name the user sees wherever they meet the
+# action (point-of-use wins, 2026-06-24): the line-edits drop the "Rule" prefix,
+# critique's two actions are "Notes" + "Structure" (matching the Critique modal's
+# headings), etc. Merged into _ACTION_META below. An action with no entry here
+# lets the Feature Workbench derive a name (single-action features fall back to
+# their feature's catalog label).
+_ACTION_LABELS: dict[str, str] = {
+    "writerAI.rewrite": "Rewrite",
+    "writerAI.expand": "Expand",
+    "writerAI.tighten": "Tighten",
+    "writerAI.continue": "Continue",
+    "writerAI.describe": "Describe",
+    "writerAI.guided-continue": "Guided continue",
+    "writerAI.rule.show-dont-tell": "Show don't tell",
+    "writerAI.rule.passive-voice": "Passive voice",
+    "writerAI.rule.filter-words": "Filter words",
+    "writerAI.rule.dialogue-tags": "Dialogue tags",
+    "writerAI.rule.sensory-grounding": "Sensory grounding",
+    "writerAI.rule.sentence-variety": "Sentence variety",
+    "writerAI.rule.prose-tightening": "Prose tightening",
+    "multiReaderGenre": "Genre",
+    "multiReaderLiterary": "Literary",
+    "multiReaderAgent": "Agent",
+    "multiReaderBookClub": "Book club",
+    "critique": "Notes",
+    "critiqueStructure": "Structure",
+    "brainstorm": "Ideas",
+    "brainstormPlot": "Plot",
+}
+# Sub-section labels clustering a multi-action feature's actions in the nav
+# (writerAI's "Prose actions" / "Line edits" already carry `group` above).
+_ACTION_SUBGROUPS: dict[str, str] = {
+    "multiReaderGenre": "Multi-reader panel",
+    "multiReaderLiterary": "Multi-reader panel",
+    "multiReaderAgent": "Multi-reader panel",
+    "multiReaderBookClub": "Multi-reader panel",
+    "brainstorm": "Brainstorm",
+    "brainstormPlot": "Brainstorm",
+}
+for _k, _lbl in _ACTION_LABELS.items():
+    _ACTION_META.setdefault(_k, {})["label"] = _lbl
+for _k, _grp in _ACTION_SUBGROUPS.items():
+    _ACTION_META.setdefault(_k, {})["group"] = _grp
+
 for _key, _meta in _ACTION_META.items():
     if _key in DEFAULT_FEATURE_PROMPTS:
         DEFAULT_FEATURE_PROMPTS[_key].update(_meta)
@@ -961,6 +1006,7 @@ def seed_feature_prompts(db: Session) -> int:
             temperature=float(spec.get("temperature", 0.7)),
             think=bool(spec.get("think", False)),
             built_in=True,
+            label=str(spec.get("label") or ""),
             description=str(spec.get("description") or ""),
             subgroup=str(spec.get("group") or ""),
         ))

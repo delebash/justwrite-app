@@ -151,11 +151,11 @@ function onReviewCommitted(payload) {
   />
 
   <!-- ── SCANNING PHASE ─────────────────────────────────────────────── -->
-  <AppModal v-else eyebrow="Whole-book scan" title="Scanning for new entities"
+  <AppModal v-else eyebrow="Entity sweep" title="Scanning for new entities"
     :closable="!running" @close="emit('close')">
     <template #header>
       <div class="sweep-titleblock">
-        <div class="t-eyebrow">Whole-book scan</div>
+        <div class="t-eyebrow">Entity sweep</div>
         <div class="modal-title">Scanning for new entities</div>
       </div>
       <div class="sweep-header-actions">

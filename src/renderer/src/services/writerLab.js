@@ -61,9 +61,9 @@ export const ACTION_GROUPS = [
   {
     label: "Analysis",
     items: [
-      { kind: "analysis", key: "critique",  label: "Critique notes",      description: "Editorial notes grouped by severity (flag / suggest / info)." },
-      { kind: "analysis", key: "structure", label: "Structural analysis", description: "Tension, hook quality, pacing, ending classification, summary." },
-      { kind: "analysis", key: "entities",  label: "Extract entities",    description: "Propose characters, locations, objects to add to the story bible." },
+      { kind: "analysis", key: "critique",  label: "Notes",       description: "Editorial notes grouped by severity (flag / suggest / info)." },
+      { kind: "analysis", key: "structure", label: "Structure",   description: "Tension, hook quality, pacing, ending classification, summary." },
+      { kind: "analysis", key: "entities",  label: "Entity sweep", description: "Propose characters, locations, objects to add to the story bible." },
     ],
   },
 ];

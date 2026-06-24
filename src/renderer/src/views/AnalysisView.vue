@@ -18,6 +18,7 @@ import ReverseOutlineModal from "../components/ReverseOutlineModal.vue";
 import BeatSheetModal from "../components/BeatSheetModal.vue";
 import PlotHoleScanModal from "../components/PlotHoleScanModal.vue";
 import MarketingPackModal from "../components/MarketingPackModal.vue";
+import EntitySweepModal from "../components/EntitySweepModal.vue";
 import AiTaskStrip from "../components/AiTaskStrip.vue";
 import AiFeatureChip from "../components/AiFeatureChip.vue";
 import { useAiStore } from "../stores/ai.js";
@@ -376,6 +377,12 @@ const marketingPackOpen = ref(false);
 function openMarketingPack() { marketingPackOpen.value = true; }
 function closeMarketingPack() { marketingPackOpen.value = false; }
 const hasMarketingPack = computed(() => !!project.marketingPack);
+
+// Entity sweep modal — discoverable whole-book scan for new characters /
+// locations / objects (also reachable from the Characters/Locations/Objects views).
+const entitySweepOpen = ref(false);
+function openEntitySweep() { entitySweepOpen.value = true; }
+function closeEntitySweep() { entitySweepOpen.value = false; }
 
 // ─── Writing heatmap (365 days) ─────────────────────────────────────
 // Build a 53-week × 7-day grid for the year ending today. Each cell is
@@ -745,6 +752,12 @@ const milestoneState = computed(() => {
             <Icon name="Export" :size="12" />
             {{ hasMarketingPack ? 'View marketing pack' : 'Marketing pack' }}
           </UiButton>
+          <UiButton v-if="!tensionRunning.value" intent="ghost" size="small"
+                    @click="openEntitySweep"
+                    v-tooltip.bottom="'Entity sweep — scan the whole manuscript for new characters, locations, and objects to add to the story bible'">
+            <Icon name="Sparkle" :size="12" />
+            Entity sweep
+          </UiButton>
           <UiButton v-else-if="tensionRunning.value" intent="danger" size="small" @click="cancelTensionSweep">
             <Icon name="Close" :size="12" /> Cancel
           </UiButton>
@@ -839,6 +852,7 @@ const milestoneState = computed(() => {
     <BeatSheetModal v-if="beatSheetOpen" @close="closeBeatSheet" />
     <PlotHoleScanModal v-if="plotHolesOpen" @close="closePlotHoles" />
     <MarketingPackModal v-if="marketingPackOpen" @close="closeMarketingPack" />
+    <EntitySweepModal v-if="entitySweepOpen" @close="closeEntitySweep" @committed="closeEntitySweep" />
 
     <!-- Voice drift -->
     <div v-if="drift.eligible" class="card vd-card" style="margin-bottom:18px">

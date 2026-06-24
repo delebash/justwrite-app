@@ -140,8 +140,8 @@ function onRowClick(event) {
   <!-- ── List mode (no id in URL) ─────────────────────────────── -->
   <template v-if="!loc && !id">
     <PaneHeader :eyebrow="$t('panes.locations.eyebrow')" :title="$t('nav.locations')" help-key="story-bible#locations">
-      <UiButton intent="ghost" size="small" @click="sweepOpen = true" v-tooltip.bottom="'Scan the manuscript for new characters, locations, and objects'">
-        <Icon name="Sparkle" :size="13" /> Find new entities
+      <UiButton intent="ghost" size="small" @click="sweepOpen = true" v-tooltip.bottom="'Entity sweep — scan the whole manuscript for new characters, locations, and objects'">
+        <Icon name="Sparkle" :size="13" /> Entity sweep
       </UiButton>
       <UiButton label="New location" intent="primary" size="small" @click="addLocation">
         <template #icon><Icon name="Plus" :size="14" /></template>

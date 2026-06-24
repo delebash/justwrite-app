@@ -15,7 +15,7 @@
     "import": "Import",
     "export": "Export",
     "trash": "Trash",
-    "settings": "Settings"
+    "settings": "App Settings"
   },
   "common": {
     "save": "Save",
@@ -125,7 +125,7 @@
       "writerLab": "Writer Lab",
       "readerKnowledge": "Reader knowledge",
       "featurePrompts": "Feature prompts",
-      "ai": "AI",
+      "ai": "AI Settings",
       "help": "Help"
     },
     "projectSwitcher": {

@@ -57,17 +57,17 @@ def migrate_schema(engine: Engine) -> None:
             LlmProvider.__table__.create(bind=conn)
             log.info("migrate_schema: rebuilt llm_providers blob → typed columns")
 
-        # `feature_prompts` gained `description` + `subgroup` (the Feature
-        # Workbench card nav). Rebuild the seed table so rows reseed with the new
-        # metadata — same as llm_providers above (not production; any Lab prompt
-        # edits reseed to defaults).
+        # `feature_prompts` gained `description` + `subgroup`, then `label` (the
+        # Feature Workbench card nav — canonical action name). Rebuild the seed
+        # table so rows reseed with the new metadata — same as llm_providers above
+        # (not production; any Lab prompt edits reseed to defaults).
         fp_cols = {row[1] for row in conn.execute(text("PRAGMA table_info(feature_prompts)")).fetchall()}
-        if fp_cols and "description" not in fp_cols:
+        if fp_cols and ("description" not in fp_cols or "label" not in fp_cols):
             from .models import FeaturePrompt
 
             conn.execute(text("DROP TABLE feature_prompts"))
             FeaturePrompt.__table__.create(bind=conn)
-            log.info("migrate_schema: rebuilt feature_prompts for description/subgroup")
+            log.info("migrate_schema: rebuilt feature_prompts for label/description/subgroup")
 
         # `feature_presets` is now keyed per ACTION (was per feature). Rebuild the
         # table when the old `feature` column is present (saved presets re-created).

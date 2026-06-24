@@ -260,8 +260,8 @@ function onRowClick(event) {
   <!-- ── List mode (no id in URL) ─────────────────────────────── -->
   <template v-if="!ch && !id">
     <PaneHeader :eyebrow="$t('panes.characters.eyebrow')" :title="$t('nav.characters')" help-key="story-bible#characters">
-      <UiButton intent="ghost" size="small" @click="sweepOpen = true" v-tooltip.bottom="'Scan the manuscript for new characters, locations, and objects'">
-        <Icon name="Sparkle" :size="13" /> Find new entities
+      <UiButton intent="ghost" size="small" @click="sweepOpen = true" v-tooltip.bottom="'Entity sweep — scan the whole manuscript for new characters, locations, and objects'">
+        <Icon name="Sparkle" :size="13" /> Entity sweep
       </UiButton>
       <UiButton intent="ghost" size="small" @click="auditOpen = true" v-tooltip.bottom="'Check whether each main character acts in line with their established psychology'">
         <Icon name="Users" :size="13" /> Audit consistency
