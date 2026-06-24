@@ -17,7 +17,7 @@ import { useRouter } from "vue-router";
 import { useProjectStore } from "../stores/project.js";
 import { useUiStore } from "../stores/ui.js";
 import { useVersionsStore } from "../stores/versions.js";
-import { promptDialog } from "@delebash/llm-ui";
+import { promptDialog, openHelp } from "@delebash/llm-ui";
 import { HELP_TOC } from "../services/helpDocs.js";
 import { Icon } from "@delebash/llm-ui";
 
@@ -146,7 +146,7 @@ const ACTION_ITEMS = computed(() => {
     { id: "act:shortcuts", label: "Keyboard shortcuts", sublabel: "Action · ⌘/",  icon: "Help", keywords: "cheatsheet keys hotkeys",
       run: () => ui.openShortcuts() },
     { id: "act:help", label: "Help — open drawer",     sublabel: "Action",       icon: "Help", keywords: "docs guide manual",
-      run: () => ui.openHelp("") },
+      run: () => openHelp("") },
   ];
   return list;
 });
@@ -163,7 +163,7 @@ const HELP_ITEMS = computed(() => {
         sublabel: `Help · ${item.hint}`,
         icon: "Help",
         keywords: `${group.section} docs guide help ${item.hint}`,
-        run: () => ui.openHelp(item.slug),
+        run: () => openHelp(item.slug),
       });
     }
   }

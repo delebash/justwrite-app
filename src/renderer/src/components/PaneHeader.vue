@@ -7,7 +7,7 @@
 // opens the JwHelpDrawer scoped to that doc — single source of truth:
 // docs/*.md, identified by the slug in docs/toc.json.
 
-import HelpTrigger from "./HelpTrigger.vue";
+import { HelpTrigger } from "@delebash/llm-ui";
 
 defineProps({
   eyebrow: { type: String, default: "" },

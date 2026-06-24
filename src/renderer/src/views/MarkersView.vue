@@ -20,7 +20,7 @@ import { Icon } from "@delebash/llm-ui";
 import { UiButton } from "@delebash/llm-ui";
 import ForeshadowingScanModal from "../components/ForeshadowingScanModal.vue";
 import AiTellScanModal from "../components/AiTellScanModal.vue";
-import HelpTrigger from "../components/HelpTrigger.vue";
+import { HelpTrigger } from "@delebash/llm-ui";
 
 const project = useProjectStore();
 const router = useRouter();

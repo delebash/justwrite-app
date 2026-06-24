@@ -11,7 +11,7 @@ import {
   titleForSlug,
   webUrlFor,
 } from "../services/helpDocs.js";
-import { renderHelpMarkdown } from "../services/helpMarkdown.js";
+import { renderHelpMarkdown } from "@delebash/llm-ui";
 
 const props = defineProps({ slug: { type: String, default: "" } });
 

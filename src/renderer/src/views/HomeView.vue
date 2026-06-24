@@ -12,7 +12,7 @@ import AiTaskStrip from "../components/AiTaskStrip.vue";
 import AiFeatureChip from "../components/AiFeatureChip.vue";
 import { UiButton } from "@delebash/llm-ui";
 import SessionRecapModal from "../components/SessionRecapModal.vue";
-import HelpTrigger from "../components/HelpTrigger.vue";
+import { HelpTrigger } from "@delebash/llm-ui";
 
 const router = useRouter();
 const project = useProjectStore();

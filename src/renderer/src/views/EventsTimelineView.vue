@@ -6,7 +6,7 @@ import { EVENTS_KIND_META } from "../services/eventsKind.js";
 import { Icon } from "@delebash/llm-ui";
 import { Breadcrumb } from "@delebash/llm-ui";
 import { UiButton } from "@delebash/llm-ui";
-import HelpTrigger from "../components/HelpTrigger.vue";
+import { HelpTrigger } from "@delebash/llm-ui";
 
 const props = defineProps({
   kind:     { type: String, required: true },

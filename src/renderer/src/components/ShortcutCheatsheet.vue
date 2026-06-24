@@ -6,7 +6,7 @@
 import { ref, watch } from "vue";
 import { useUiStore } from "../stores/ui.js";
 import { loadDoc } from "../services/helpDocs.js";
-import { renderHelpMarkdown } from "../services/helpMarkdown.js";
+import { renderHelpMarkdown, openHelp } from "@delebash/llm-ui";
 import { AppModal } from "@delebash/llm-ui";
 import { UiButton } from "@delebash/llm-ui";
 import { Icon } from "@delebash/llm-ui";
@@ -23,7 +23,7 @@ watch(() => ui.shortcutsOpen, async (o) => {
 
 function close() { ui.closeShortcuts(); }
 function openInDrawer() {
-  ui.openHelp("keyboard-shortcuts");
+  openHelp("keyboard-shortcuts");
   close();
 }
 </script>

@@ -12,7 +12,7 @@ import { AppDialog } from "@delebash/llm-ui";
 import CommandPalette from "./components/CommandPalette.vue";
 import ProjectReplaceModal from "./components/ProjectReplaceModal.vue";
 import ChatPanel from "./components/ChatPanel.vue";
-import JwHelpDrawer from "./components/JwHelpDrawer.vue";
+import { HelpDrawer } from "@delebash/llm-ui";
 import ShortcutCheatsheet from "./components/ShortcutCheatsheet.vue";
 import WhatsNewModal from "./components/WhatsNewModal.vue";
 
@@ -126,7 +126,7 @@ onBeforeUnmount(() => window.removeEventListener("keydown", onKey, { capture: tr
       :initial-term="ui.replaceModal.initialTerm"
       @close="ui.closeProjectReplace()" />
     <ChatPanel v-model="ui.chatPanelOpen" />
-    <JwHelpDrawer />
+    <HelpDrawer />
     <ShortcutCheatsheet />
     <WhatsNewModal />
   </div>

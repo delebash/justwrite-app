@@ -9,7 +9,7 @@
 import { onMounted, ref } from "vue";
 import { useUiStore } from "../stores/ui.js";
 import { loadDoc } from "../services/helpDocs.js";
-import { renderHelpMarkdown } from "../services/helpMarkdown.js";
+import { renderHelpMarkdown, openHelp } from "@delebash/llm-ui";
 import { AppModal } from "@delebash/llm-ui";
 import { UiButton } from "@delebash/llm-ui";
 import { Icon } from "@delebash/llm-ui";
@@ -43,7 +43,7 @@ function close() {
   ui.markVersionSeen(APP_VERSION);
 }
 function openFullDocs() {
-  ui.openHelp("whats-new");
+  openHelp("whats-new");
   close();
 }
 </script>

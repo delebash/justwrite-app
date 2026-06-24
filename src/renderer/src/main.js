@@ -28,12 +28,29 @@ import { startAutoRebuildWatcher } from "./services/rag/autoIndex.js";
 // Shared LLM UI (@delebash/llm-ui) — configure its origin-aware client ONCE with
 // the base the app already resolved, so the shared AI views call the same server
 // endpoints the rest of the app does (no per-app data adapter).
-import { configureLlmUi, configureServerApi, checkServer, configureDialog, ConnectionError } from "@delebash/llm-ui";
+import { configureLlmUi, configureServerApi, checkServer, configureDialog, configureHelp, closeHelp, ConnectionError } from "@delebash/llm-ui";
 import { SERVER_BASE, resolveBase } from "./services/serverApi.js";
+import { loadDoc, hasDoc, titleForSlug, webUrlFor } from "./services/helpDocs.js";
 configureLlmUi({ baseUrl: SERVER_BASE });
 // The shared server transport (request/verbs/safeRequest/...) — JustWrite has no
 // auth, so only the base resolver is configured.
 configureServerApi({ resolveBase });
+
+// Shared in-app Help (kit HelpDrawer + HelpTrigger). JustWrite supplies the
+// content adapter over its docs/*.md corpus plus both handoffs: "Open full
+// docs" → the in-app /help reader, "Open on the web" → the public docs site
+// (OS browser via the Tauri shell, window.open in the browser dev path).
+configureHelp({
+  loadDoc,
+  hasDoc,
+  titleForSlug,
+  onOpenFull: (slug) => { router.push(slug ? `/help/${slug}` : "/help"); closeHelp(); },
+  onOpenWeb: (slug) => {
+    const url = webUrlFor(slug);
+    if (window.justwrite?.shell?.openExternal) window.justwrite.shell.openExternal(url);
+    else window.open(url, "_blank", "noopener,noreferrer");
+  },
+});
 
 // Hydrate the server-backed caches BEFORE any Pinia store initialises — stores
 // read from them synchronously in `state: () => ({...})`.

@@ -22,7 +22,7 @@ import IndexBuildModal from "./IndexBuildModal.vue";
 import AiTaskStrip from "./AiTaskStrip.vue";
 import AiFeatureChip from "./AiFeatureChip.vue";
 import { EmptyState } from "@delebash/llm-ui";
-import HelpTrigger from "./HelpTrigger.vue";
+import { HelpTrigger } from "@delebash/llm-ui";
 import { Icon } from "@delebash/llm-ui";
 import { UiButton } from "@delebash/llm-ui";
 import { UiTextarea } from "@delebash/llm-ui";

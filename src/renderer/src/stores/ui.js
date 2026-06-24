@@ -114,14 +114,10 @@ export const useUiStore = defineStore("ui", {
       // Off by default — triples token cost. Shift-click on any AI
       // dropdown item is a per-call override regardless of this toggle.
       showVariations: false,
-      // In-app help drawer — when set to a docs slug, JwHelpDrawer
-      // (mounted in App.vue) slides in from the right with that doc.
-      // Null = closed. Not persisted; help is always opened fresh.
-      helpDrawerSlug: null,
-      // Optional section anchor for context-sensitive help. When set, the
-      // drawer scrolls the matching heading id into view after render
-      // instead of starting at the top of the doc.
-      helpDrawerAnchor: null,
+      // In-app help drawer state now lives in the shared kit (@delebash/llm-ui
+      // services/help.js → helpState / openHelp / closeHelp); the kit HelpDrawer
+      // + HelpTrigger read it directly. configureHelp() in main.js wires the
+      // content adapter + the full-docs / web handoffs.
       // "What's new" modal — last app version the user has seen.
       // Bumped to package.json's version after the modal is dismissed
       // so the modal only fires on first launch after an upgrade.
@@ -199,25 +195,9 @@ export const useUiStore = defineStore("ui", {
       this._persist();
     },
 
-    // ── In-app Help drawer ───────────────────────────────────────────
-    // Open the help drawer. Slug may be "slug" or the convenience form
-     // "slug#anchor" — the anchor is split out and stored separately so
-     // the drawer can scroll the matching heading into view.
-    openHelp(slug = "", anchor = "") {
-      let s = String(slug || "");
-      let a = String(anchor || "");
-      if (!a && s.includes("#")) {
-        const i = s.indexOf("#");
-        a = s.slice(i + 1);
-        s = s.slice(0, i);
-      }
-      this.helpDrawerSlug = s;
-      this.helpDrawerAnchor = a || null;
-    },
-    closeHelp() {
-      this.helpDrawerSlug = null;
-      this.helpDrawerAnchor = null;
-    },
+    // In-app Help drawer state + actions moved to the shared kit
+    // (@delebash/llm-ui → openHelp / closeHelp / helpState). Call those
+    // directly; configureHelp() in main.js wires the content + handoffs.
 
     // ── Shortcut cheatsheet ──────────────────────────────────────────
     openShortcuts()  { this.shortcutsOpen = true; },
