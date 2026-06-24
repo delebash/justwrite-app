@@ -20,7 +20,7 @@ import { useAiTasksStore } from "../stores/aiTasks.js";
 import { auditAllCharacters } from "../services/analysis/characterAudit.js";
 import { Icon } from "@delebash/llm-ui";
 import AiFeatureChip from "./AiFeatureChip.vue";
-import AppModal from "./AppModal.vue";
+import { AppModal } from "@delebash/llm-ui";
 import StatusRow from "./StatusRow.vue";
 import AiTaskStrip from "./AiTaskStrip.vue";
 import EmptyState from "./EmptyState.vue";

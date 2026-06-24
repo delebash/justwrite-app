@@ -10,7 +10,7 @@ import { onMounted, ref } from "vue";
 import { useUiStore } from "../stores/ui.js";
 import { loadDoc } from "../services/helpDocs.js";
 import { renderHelpMarkdown } from "../services/helpMarkdown.js";
-import AppModal from "./AppModal.vue";
+import { AppModal } from "@delebash/llm-ui";
 import { UiButton } from "@delebash/llm-ui";
 import { Icon } from "@delebash/llm-ui";
 

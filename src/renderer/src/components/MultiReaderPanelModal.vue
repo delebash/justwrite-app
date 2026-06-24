@@ -20,7 +20,7 @@ import {
 } from "../services/analysis/multiReaderCritique.js";
 import { Icon } from "@delebash/llm-ui";
 import AiFeatureChip from "./AiFeatureChip.vue";
-import AppModal from "./AppModal.vue";
+import { AppModal } from "@delebash/llm-ui";
 import { UiButton } from "@delebash/llm-ui";
 
 const props = defineProps({

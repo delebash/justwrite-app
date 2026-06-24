@@ -13,7 +13,7 @@ import { useAiTasksStore } from "../stores/aiTasks.js";
 import { buildOrUpdateIndex, rebuildIndex, indexStatus, clearIndex } from "../services/rag/indexer.js";
 import AiTaskStrip from "./AiTaskStrip.vue";
 import { Icon } from "@delebash/llm-ui";
-import AppModal from "./AppModal.vue";
+import { AppModal } from "@delebash/llm-ui";
 import StatusRow from "./StatusRow.vue";
 import { UiButton } from "@delebash/llm-ui";
 

@@ -16,7 +16,7 @@ import { useRouter } from "vue-router";
 import { useProjectStore } from "../stores/project.js";
 import { useUiStore } from "../stores/ui.js";
 import { Icon } from "@delebash/llm-ui";
-import AppModal from "./AppModal.vue";
+import { AppModal } from "@delebash/llm-ui";
 import { UiButton } from "@delebash/llm-ui";
 
 const props = defineProps({

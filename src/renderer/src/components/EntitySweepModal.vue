@@ -16,7 +16,7 @@ import EntityReviewModal from "./EntityReviewModal.vue";
 import AiTaskStrip from "./AiTaskStrip.vue";
 import AiFeatureChip from "./AiFeatureChip.vue";
 import { Icon } from "@delebash/llm-ui";
-import AppModal from "./AppModal.vue";
+import { AppModal } from "@delebash/llm-ui";
 import StatusRow from "./StatusRow.vue";
 import { UiButton } from "@delebash/llm-ui";
 

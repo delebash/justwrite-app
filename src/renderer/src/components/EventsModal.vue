@@ -2,7 +2,7 @@
 import { computed, ref } from "vue";
 import { useProjectStore } from "../stores/project.js";
 import { Icon } from "@delebash/llm-ui";
-import AppModal from "./AppModal.vue";
+import { AppModal } from "@delebash/llm-ui";
 import { UiButton } from "@delebash/llm-ui";
 import { UiInput } from "@delebash/llm-ui";
 import { UiTextarea } from "@delebash/llm-ui";

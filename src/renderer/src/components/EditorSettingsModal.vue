@@ -7,7 +7,7 @@ import { useUiStore } from "../stores/ui.js";
 import {
   EDITOR_FONTS, LINE_SPACING_OPTIONS, PARAGRAPH_SPACING_OPTIONS, DEFAULT_EDITOR_SETTINGS,
 } from "../services/editorSettings.js";
-import AppModal from "./AppModal.vue";
+import { AppModal } from "@delebash/llm-ui";
 import { UiButton } from "@delebash/llm-ui";
 import JwSelect from "@renderer/components/ui/JwSelect.vue";
 import { UiSegmented } from "@delebash/llm-ui";

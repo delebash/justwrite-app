@@ -19,7 +19,7 @@ import { runCritique, runStructuralAnalysis, PACING_LABELS, ENDING_LABELS } from
 import { Icon } from "@delebash/llm-ui";
 import AiTaskStrip from "./AiTaskStrip.vue";
 import AiFeatureChip from "./AiFeatureChip.vue";
-import AppModal from "./AppModal.vue";
+import { AppModal } from "@delebash/llm-ui";
 import { UiButton } from "@delebash/llm-ui";
 
 const props = defineProps({
