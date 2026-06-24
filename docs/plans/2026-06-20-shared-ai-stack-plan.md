@@ -936,6 +936,15 @@ inside Features where it belongs.
 - The **per-model tuning UI** (AI ▸ Providers) sets a model's DEFAULT switches;
   Compare A/Bs variations of them. Same Plane-1 surface, two entry points.
 
+**⛔ Runner constraint (verified 2026-06-24 — shapes the run logic):** the local
+runner is ONE persistent `llama-server` (singleton; switches are launch flags →
+changing a model OR any Plane-1 switch = a stop+respawn reload — see switches doc
+"Lifecycle"). So Compare must **serialize local model/Plane-1-switch columns**
+(load A → run → stop → load B → run…), each showing a "reloading…" state; it may
+run concurrently ONLY columns that differ by Plane-2 only (prompt/temp/json) on the
+same loaded model, or cloud columns (no local spawn). The run scheduler is per
+backend: cloud = parallel, local = a serial queue gated on the runner.
+
 **Testing JV work in JW (temporary scaffold):** JW's catalog has no speaker
 attribution (JV's domain) but the dispatch is shared. Add JV-ish action(s)
 (`speaker_attribution`, maybe `entity_extraction`) to JW's feature catalog + a
