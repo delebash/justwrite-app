@@ -42,7 +42,11 @@ a **6 GB** card if RAM ≥ ~24 GB — the budget pick for hard tasks (attributio
 **LOSES on the 35B-A3B MoE** in llama.cpp (RTX 3090 benchmark: every spec variant slower
 than baseline) → spec ON for dense, OFF for MoE. (3) **Two config planes:** engine launch
 flags (per-model load) vs per-request sampling/JSON/reasoning (per-action routing) — don't
-conflate.
+conflate. (4) **llama.cpp has ROUTER MODE** (`--models-dir`/`--models-preset`/`--models-max`,
+no `-m`) — one server swaps MODELS live (per-model switches via INI, startup-fixed). So
+model-switching is live; only changing a SWITCH VALUE needs a (re)start. Corrected an earlier
+wrong "swap = restart" claim — see switches doc "Lifecycle (CORRECTED)" + **task #27**
+(router-mode vs our spawn-per-model architecture).
 
 **Post-compaction safety net installed (2026-06-24):** a global SessionStart hook
 (`/root/.claude/settings.json` → `~/.claude/hooks/inject-recap.sh`) now re-injects the

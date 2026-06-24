@@ -936,19 +936,18 @@ inside Features where it belongs.
 - The **per-model tuning UI** (AI ▸ Providers) sets a model's DEFAULT switches;
   Compare A/Bs variations of them. Same Plane-1 surface, two entry points.
 
-**⛔ Runner constraint (verified 2026-06-24 — shapes the run logic):** the local
-runner is ONE persistent `llama-server` (singleton; switches are launch flags →
-changing a model OR any Plane-1 switch = a stop+respawn reload — see switches doc
-"Lifecycle"). So Compare must **serialize local model/Plane-1-switch columns**
-(load A → run → stop → load B → run…), each showing a "reloading…" state; it may
-run concurrently ONLY columns that differ by Plane-2 only (prompt/temp/json) on the
-same loaded model, or cloud columns (no local spawn). The run scheduler is per
-backend: cloud = parallel, local = a serial queue gated on the runner.
-**Precedent (old JW SpeakerLab, git `32a53b4^`):** its `runAll()` was
-`for (const r of runs) runPipeline(r)` with NO await → all columns fired in
-PARALLEL. That was safe because those columns hit cloud/OpenAI-compat providers
-(no single-local-GPU constraint). So cloud-parallel IS the inherited old behavior;
-the local serial queue is the only new part (the old lab never ran the local runner).
+**⛔ Runner constraint (CORRECTED 2026-06-24 — earlier version was wrong; see switches
+doc "Lifecycle"):** llama.cpp has **router mode** (one server swaps MODELS live), so
+"any switch = restart" was wrong. The real rule for Compare's scheduler, per backend:
+- **Cloud columns → parallel.**
+- **Different-MODEL local columns → can co-reside up to `--models-max` (VRAM
+  permitting) via router, else a live router swap** (NOT a process restart).
+- **Same-model, different-SWITCH-VALUE local columns → serial** (per-model switches
+  are INI/startup-fixed; no runtime change → each value needs its own (re)start).
+So Compare serializes only the *switch-tuning* columns; model and cloud columns can
+run concurrently. **Precedent (old JW SpeakerLab, git `32a53b4^`):** its `runAll()`
+was `for (const r of runs) runPipeline(r)` (no await) → all columns fired in PARALLEL
+against cloud providers — that's the cloud-parallel path we keep.
 
 **Testing JV work in JW (temporary scaffold):** JW's catalog has no speaker
 attribution (JV's domain) but the dispatch is shared. Add JV-ish action(s)
