@@ -31,6 +31,16 @@ LLM engine to the GUI + a Compare surface, so models/switches can be tested on r
   caught it). Corrected in the switches doc "Lifecycle (CORRECTED)" + Decision 23.
   RULE #4 hardened (confidence = trigger; one source ≠ verified) in global CLAUDE.md +
   the hook reminder (sent to the user's machine).
+- 🧠 **OPEN DESIGN Q (user, 2026-06-24) — cross-kind model memory (JV):** should we
+  unload/load TTS *and* LLM so only one model (any kind) is resident on low-VRAM
+  cards? Verified JV `EngineManager` (manager.py:943) keeps PER-KIND slots
+  (tts|llm|embedding, one each — deliberately allows LLM+TTS resident for speaker
+  attribution). My rec: NOT a hard global-1 (forces reload churn on the
+  attribute→render flow; evicts cheap embeddings; wastes big-card capacity) — instead
+  a **VRAM/RAM-budget-aware coordinator** (evict other-kind slots when over budget;
+  **"Low-VRAM mode" toggle = 1-at-a-time opt-in**; idle-TTL unload; keep tiny
+  embeddings resident/CPU), **unifying** EngineManager's slots with the runner's
+  `--models-max`. Folded into **task #27**.
 
 **Then continue the build.** Natural path: **#20 per-model tuning UI** (read JV
 `VoiceParamsModal` first — precedent) + **#22/#18 per-action settings/JSON** → **#21
