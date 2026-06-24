@@ -53,12 +53,12 @@ reachable via Settings).
 - **Nav rename:** Settings → **App Settings**, AI → **AI Settings**.
 
 **Backlog (this session):**
-- **Default LLM → provider+model picker** (NEXT, agreed): the default is
-  provider-only; add `RoutingDefaults.model` + `config.py` + dispatch default
-  branch (`dispatch.py:155` uses the provider's `default_model`) + swap the
-  provider-only select for the shared picker. Consistency with the role cards.
-- **Max tokens** per action (NEXT): the one real call-knob the editor lacks
-  (adapters accept temperature / max_tokens / think) — column + RunRequest + field.
+- ✅ **DONE — Default LLM → provider+model picker:** `RoutingDefaults.model` +
+  `routing_configs.default_model` (ALTER) + store + `config.py` role fallback +
+  the shared picker. Default now pins a model like the role cards.
+- ✅ **DONE — Max tokens per action:** `feature_prompts.max_tokens` (0 = no cap)
+  + wire shapes + `/v1/ai/{run,stream}` pass it + editor field. (Named presets
+  don't capture it yet — minor follow-up.)
 - **Per-feature flags (DISCUSS):** beyond max tokens, only feature-specific
   behaviors exist (writerAI 3-variation, voice-canon) — confirm which to expose.
 - **QuickSetup rethink (DISCUSS):** auto-applies system-picked models with no
