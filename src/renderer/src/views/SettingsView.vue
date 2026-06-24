@@ -651,12 +651,11 @@ const recentColumns = [
       <strong>Danger zone</strong> for resetting the workspace. Nothing here touches your
       manuscript prose.
     </p>
-    <div class="settings-layout" style="display:grid;grid-template-columns:220px minmax(0,1fr);gap:22px;max-width:1100px">
-      <!-- Section nav -->
-      <nav style="display:flex;flex-direction:column;gap:2px">
+    <div class="settings-layout">
+      <!-- Section tabs — horizontal strip, full width (matches JV's settings) -->
+      <nav class="set-tabs">
         <button v-for="s in SECTIONS" :key="s.id"
-          class="nav-item" :class="{ active: active === s.id }"
-          style="grid-template-columns:1fr"
+          type="button" class="set-tab" :class="{ on: active === s.id }"
           @click="active = s.id">{{ s.label }}</button>
       </nav>
 
@@ -2087,9 +2086,14 @@ const recentColumns = [
 }
 .usage-dt { font-size: 12px; font-variant-numeric: tabular-nums; }
 
+/* Settings = horizontal tab strip on top + full-width content (matches JV). */
+.settings-layout { display: flex; flex-direction: column; gap: 18px; }
+.set-tabs { display: flex; flex-wrap: wrap; gap: 2px; border-bottom: 1px solid var(--border); }
+.set-tab { appearance: none; background: none; border: 0; border-bottom: 2px solid transparent; margin-bottom: -1px; padding: 10px 16px; font: inherit; font-size: 13px; font-weight: 600; color: var(--ink-2); cursor: pointer; }
+.set-tab:hover { color: var(--ink); }
+.set-tab.on { color: var(--ink); border-bottom-color: var(--accent); }
+
 @media (max-width: 900px) {
-  /* Collapse side-nav + content from 220px 1fr → stacked */
-  .settings-layout { grid-template-columns: 1fr !important; }
   /* Mode tiles (3 cols) → 2 cols */
   .settings-mode-grid { grid-template-columns: repeat(2, minmax(0, 1fr)) !important; }
   /* About stats (3 cols) → 2 cols */
