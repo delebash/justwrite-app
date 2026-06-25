@@ -60,6 +60,16 @@ map, what's done/left, how to verify). Below is just the map.
     **residency manager** (= the VRAM-budget planner, #29) sets `--models-max` from detected
     VRAM: big card → co-resident, 1-model card → reload-on-switch. This was the ORIGINAL
     two-planes design (`:232-241`), NOT a fork.
+  - **⭐ SWITCH BASE = TYPE PRESETS (think-twice finding, §6.5).** The switch BASE is NOT a
+    per-model copy — it's **capability/type presets**. The app ALREADY half-does this:
+    `flagPresets.base` + `flagPresets.mtp` (`if model.mtp`, `process.py:243-244`), `is_moe`→
+    `n_cpu_moe` (`process.py:216-223`). Two fixes (both = "no hardcoded"): (1) move `flagPresets`
+    from **hardcoded JSON** (`runner-manifest.json:49-57`) → seeded-editable `switch_presets`
+    table (the last config left un-migrated after the catalog→DB cutover); (2) add a **`moe`
+    preset** + an editable model **`type`** field so "MoE→spec:none/no_mmap" lives ONCE (not the
+    per-model `seed.py:166` override copied onto every MoE model). Resolution: `base → type
+    preset → mtp → per-model override → job → feature`, merged; computed fit (`n_cpu_moe`/`ngl`)
+    stays in `process.py` (not stored). `model_switches` becomes the RARE per-model exception.
   - **Job lab** = multi-column Compare (#21, never built) at job grain — each column = model +
     switch set + the job's test prompt (**reuse a representative feature's prompt**) — +
     **persistent JobPreset** (confirmed: save several named configs per job so you keep what
@@ -72,11 +82,15 @@ map, what's done/left, how to verify). Below is just the map.
     `SwitchRow`/Protocol/`make_switches_router`; the earlier "unified table / least-code" rec
     was a proxy, rejected on merits). Jobs+feature-jobs = editable seed data. Per-feature
     override = explicit-only. JobPreset = persistent.
-  - **OPEN (smaller, non-blocking):** (a) job-delete integrity (rec: un-deletable default +
-    block-delete-while-in-use); (b) job test-prompt source (rec: a `test_feature` on the job
+  - **OPEN (smaller, non-blocking):** (a) job lifecycle — GROUNDED in `provider_api.py:184`
+    (id immutable so renames don't orphan refs) + `provider_api.py:199-206`/`dispatch.py:121-124`
+    (allow delete, graceful fallback): rec = **immutable `job_id` + editable label + allow delete
+    + orphans fall back to a guaranteed default job** (CORRECTS the earlier un-grounded
+    "block-delete-while-in-use"); (b) job test-prompt source (rec: a `test_feature` on the job
     row); (c) lab = new vs shared `unit`-Compare; (d) feature→job scope global vs per-config
-    (rec: global). The feature→job mapping is a best-guess we seed + refine in-app, not
-    blocking. **Plan presented for verification before any build.**
+    (rec: global). Hardcoded re-audit (§13): `flagPresets`+`vramFit` still hardcoded JSON →
+    `switch_presets` to DB (the only real finding); `prefer_local_features` a flag candidate.
+    **Plan presented for verification before any build.**
 - **⭐ NEXT build (#30): the editor UI gap.** NO UI edits `/v1/ai/model-catalog` or
   `/v1/ai/model-switches` yet (only `/v1/ai/recommendations` has an editor tab). NO new
   "Models tab" — grow **`LuModelCatalog`** (the bundled-model list inside the provider

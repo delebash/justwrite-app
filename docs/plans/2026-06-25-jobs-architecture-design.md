@@ -22,7 +22,7 @@ For every model there are THREE questions, and they now all hang off **the job**
 | # | Question | Who answers | Where it lives |
 |---|---|---|---|
 | Q1 | **Will it run on this PC?** | AUTO (hardware) | `fit.coarse_fit`/`compute_fit` + OOM back-off — unchanged, no human input. |
-| Q2 | **How should it run?** (the switches: context size, KV cache, MoE offload, spec decoding…) | AUTO default + human tuning | **Two layers, merged:** the model's own defaults (`model_switches`, built) PLUS a **per-job override** (NEW). This §6 is the corrected design. |
+| Q2 | **How should it run?** (the switches: context size, KV cache, MoE offload, spec decoding…) | AUTO default + human tuning | **Layered + merged (§6):** capability/type **presets** (`base` + `moe` + `mtp`, seeded-editable — extends today's hardcoded `flagPresets`) → rare per-model override → **per-job** override → rare per-feature override → live tuning. The MoE rule lives ONCE on the `moe` preset, not per model. |
 | Q3 | **What is it good FOR?** | HUMAN judgment | `model_recommendations` (job-tagged, built) → pre-fills the job pickers. |
 
 The thing that ties Q2 and Q3 together is the **job**. Today the app routes by
@@ -175,31 +175,40 @@ From the two-planes design (`2026-06-24-llamacpp-switches.md:232-241`):
   on the launch command (`:237-241`). *(Unchanged by this design — already live in
   `feature_prompts`.)*
 
-We are only talking about **Plane 1** here. They layer in three tiers, merged by
-the **already-built** `_merge_overrides(base, user)` (`lifecycle.py:68-79`: user
-wins per field; `extra_flags` concatenated):
+We are only talking about **Plane 1** here. They layer and merge via the
+**already-built** `_merge_overrides(base, user)` (`lifecycle.py:68-79`: user wins
+per field; `extra_flags` concatenated). The base is **capability/type presets**,
+NOT a per-model copy:
 
 ```
-   model defaults        +     job override        +    feature override
-  (model_switches,             (per job, NEW)            (rare, per pin, NEW)
-   built — the base)
-  e.g. MoE → spec:none,        e.g. analysis → ctx 32k    e.g. plotHoles → ctx 64k
-       no_mmap:true            chat     → ctx 8k
-            └──────────────── _merge_overrides ───────────────┘
-                                      ↓
-                       the flags this (model, job) loads with
+  CAPABILITY/TYPE PRESETS     +  per-model    +   per-JOB      +  per-feature   +  live
+  (seeded-editable, by type)     override         override        override         tuning
+   base  → -fa on, KV q8_0       (rare,           analysis→32k    plotHoles→64k    (#19)
+   moe   → spec:none, no_mmap     instance-        chat    →8k     (rare)
+   mtp   → spec:draft-mtp          specific)
+        └──────────────────────── _merge_overrides (later wins) ───────────────────┘
+                                              ↓                + computed fit (n_cpu_moe/ngl)
+                                  the flags this (model, job) loads with
 ```
 
-- **Base = `model_switches`** (built, `models.py:579-598`; seeded
-  `seed.py:163-171`). These are **model-intrinsic** facts — an MoE needs spec OFF
-  regardless of the job (`spec_type=none`, `no_mmap=true` for the 35B-A3B; dense
-  MTP gets `spec_type=draft-mtp`). They travel with the model because they're
-  about its architecture. **`model_switches` stays — it is the base layer, not a
-  mistake.**
-- **Job override** (NEW) — task-shaped flags: `analysis` wants a big context,
-  `chat` a small one. This is the user's "model A @ ctx A vs model A @ ctx B."
-- **Feature override** (NEW, rare) — the per-feature fine-tune from
-  *Routing by feature* / the Feature lab. Most users never touch it.
+- **Base = capability/type PRESETS (extends the existing `flagPresets`).** Today
+  `flagPresets` already has `base` (every model) + `mtp` (applied `if model.mtp`,
+  `process.py:243-244`); `is_moe` drives `n_cpu_moe` (`process.py:216-223`). The
+  problems: `flagPresets` is **hardcoded JSON** (`runner-manifest.json:49-57`) — it
+  never moved to the DB when the catalog did — and there is **no `moe` preset**, so
+  "MoE → `spec_type=none`/`no_mmap`" is hardcoded as a **per-model** override on the
+  35B (`seed.py:166-167`) that every future MoE model would have to repeat. **Fix:**
+  move the presets to **seeded-editable DB** + add a **`moe`** preset keyed to the
+  model's type → the MoE rule lives ONCE; a model just declares its type. (See §6.5.)
+- **Per-model override** — the rare *instance-specific* tweak. After the `moe`/`mtp`
+  presets exist, `model_switches` mostly empties out (it stops carrying type rules);
+  it stays as the escape hatch for a single odd model.
+- **Per-job override** (NEW) — task-shaped flags: `analysis` wants a big context,
+  `chat` a small one. The user's "model A @ ctx A vs model A @ ctx B."
+- **Per-feature override** (NEW, rare) — the per-feature fine-tune in *Routing by
+  feature*. Most users never touch it.
+- **Computed fit** (`n_cpu_moe` count, `n_gpu_layers`, ctx-fit) is **not stored** —
+  `compute_fit` derives it per machine (`process.py:216-223`), then OOM back-off.
 
 ### 6.2 — Same model, two jobs = two router loads
 Because the launch flags differ, `(qwen-14b, chat-switches)` and
@@ -226,8 +235,11 @@ candidates). Reasoned on engineering merits — NOT on line count:
 
 **Recommendation — a child table per owner, each a real FK child of its parent,
 all served by ONE shared store implementation:**
-- `model_switches` (BUILT) **stays** — base layer; `CASCADE` FK → `model_catalog`
-  (`models.py:591-595`). (Not renamed.)
+- `switch_presets` + `switch_preset_switches` (§6.5) — the seeded-editable
+  capability/type presets (`base`/`moe`/`mtp`), `CASCADE` FK to the preset row.
+  *(the base layer; replaces hardcoded `flagPresets`)*
+- `model_switches` (BUILT) **stays** — now the rare *per-model* override (the base
+  moved to type presets); `CASCADE` FK → `model_catalog` (`models.py:591-595`).
 - `job_route_switches (config_id, job, flag_name)` — `CASCADE` FK → `job_routes`.
   *(per-job override; the common case)*
 - `pin_switches (config_id, feature, flag_name)` — `CASCADE` FK → `routing_pins`.
@@ -269,6 +281,37 @@ composite string. Rejected on the merits.
 > **My reasoned recommendation: FK-backed child tables + one shared generic store.**
 > This is the only storage decision blocking the build — your call, but I'd defend
 > this one.
+
+### 6.5 — Model TYPE + capability presets (your "model type, filled from seed") ⭐
+**Your question — "for models do we just have a model type we can manually edit,
+filled from seed; for MoE these are switches" — is right, and it's already
+half-built.** Grounded in the code:
+- `flagPresets` (`runner-manifest.json:49-57`) already has **`base`** (all models)
+  and **`mtp`** (`["--spec-type","draft-mtp","--spec-draft-n-max","3"]`), applied
+  `if model.mtp` (`process.py:243-244`); `is_moe` already drives `n_cpu_moe`
+  (`process.py:216-223`). So switches already derive from model facts — the design
+  is sound, it's the *hardcoding* that's wrong.
+
+**Two fixes (both honor "no hardcoded"):**
+1. **Move the presets to seeded-editable DB.** `flagPresets` is the last hardcoded
+   JSON config left after the catalog→DB cutover. Make it a `switch_presets` table
+   (`base`/`moe`/`mtp` → switch rows), seeded + editable + reset-to-factory, exactly
+   like `model_catalog`/`model_switches`/`model_recommendations`. (Binaries +
+   `vramFit` stay manifest — ship constants, not user data; though `vramFit` is a
+   weaker candidate to also move — see §13.)
+2. **Add a `moe` preset + a model `type`.** Give `model_catalog` an editable
+   **`type`** (e.g. `dense` / `moe`, seeded from arch; `mtp` stays its own bool flag).
+   Resolution applies `base` → the model's type preset (`moe` if `type=moe`) → `mtp`
+   preset (if `mtp`) → per-model override → job → feature. With ordered merge,
+   **`moe` clears spec even on a moe+mtp model** (the 35B-A3B-MTP), so the
+   per-model `spec_type=none` override (`seed.py:166`) **disappears** — the rule
+   lives ONCE on the `moe` preset. Adding a new MoE model = set `type=moe`; it
+   inherits the switches. No per-model copy, no code edit.
+
+**This is the "think twice" answer that CHANGED:** my earlier "`model_switches` is
+the base" was incomplete — the base belongs on **editable type presets**, and
+`model_switches` is only the rare per-model exception. Same FK-child-table storage
+(§6.4), one more owner (`switch_presets`).
 
 ---
 
@@ -411,24 +454,31 @@ data we refine in-app — nothing blocks step 1.)*
 2. **role → job across the seam** — `schema.py`/`dispatch.py`/`routing_api.py` +
    JW `routing_configs`→`job_routes`, drop `routing_pins.role`, the store +
    `config.py`. QuickSetup job pickers. *(Drop+reseed; pytest + ruff + smoke.)*
-3. **Switches layered** — implement the chosen storage (§6.4), wire the
-   `merge(model, job, feature)` resolution into the runner spawn path (the
-   `_merge_overrides` chain already exists). Seed per-job defaults.
+3. **Switches: type presets + layering** — move `flagPresets` → seeded-editable
+   `switch_presets` (`base`/`moe`/`mtp`) + a model `type` field (§6.5); add the
+   override child tables (§6.4); wire `merge(presets → model → job → feature)` into
+   the spawn path (`_merge_overrides` exists). Seed per-job defaults.
 4. **Residency manager (#29)** — VRAM budget → `--models-max`, co-resident vs
    reload, dedup identical combos. (Needs router mode in `RunnerService`, task #27.)
 5. **Job lab (#21)** — Compare at job grain (one `unit`-parameterized component) +
    `JobPreset` + promote. Per-feature switch override lands in *Routing by feature*.
 6. **Editor UI (#30)** — grow `LuModelCatalog` into the model manager (add/edit
-   catalog + per-model base switches). (Independent; can come earlier.)
+   catalog + model `type` + the `switch_presets` + the rare per-model override).
+   (Independent; can come earlier.)
 
 Verification each step: `pytest` + `ruff` (server) + headless smoke (renderer).
 
 ---
 
 ## 12. Still OPEN (smaller points — none block the build)
-- **(a) §2.2 — job-deletion integrity:** keep one **un-deletable default job** +
-  **block delete while a job is in use** (or reassign-on-delete)? *(My recommendation;
-  confirm.)*
+- **(a) §2.2 — job lifecycle (now GROUNDED in the provider precedent).** Match how
+  the app already treats editable entities: **immutable `job_id` + editable label**
+  (`provider_api.py:184` keeps a provider id immutable *precisely so renames don't
+  orphan pins*) → **rename is free**; **allow delete** with the dangling reference
+  handled by **graceful fallback at dispatch** (`provider_api.py:199-206` +
+  `dispatch.py:121-124` already do this for providers) — an orphaned feature
+  resolves to a **guaranteed-present default job**. *(This CORRECTS my earlier
+  un-grounded "block delete while in use" — confirm.)*
 - **(b) §8/§2.9 — the job's test-prompt source:** a `test_feature` column on the
   `jobs` row (which feature's prompt Compare borrows, editable), or pick one per
   Compare run? *(Lean: a `test_feature` on the job row.)*
@@ -437,7 +487,34 @@ Verification each step: `pytest` + `ruff` (server) + headless smoke (renderer).
 - (d) §2.2 — feature→job scope: **GLOBAL** (one classification) vs per-routing-config
   *(lean: global — a feature's task type doesn't change between presets)*.
 
-**Settled:** switch storage (§6.4 FK child tables) · jobs + feature→job are
-user-editable seed data (§2.2) · per-feature override is explicit-model-only (§2.3) ·
-JobPreset is persistent (§2.7). The feature→job mapping is a best-guess we seed and
-refine in-app — not a blocking decision.
+**Settled:** switch storage (§6.4 FK child tables) · type presets replace hardcoded
+`flagPresets` (§6.5) · jobs + feature→job are user-editable seed data (§2.2) ·
+per-feature override is explicit-model-only (§2.3) · JobPreset is persistent (§2.7).
+
+---
+
+## 13. Re-audit for hardcoding + the job definition (user, 2026-06-25)
+
+**Your definition — "a job = name + provider + model + all settings available for
+that model" — confirmed and consistent:** the job's **name** = its editable label;
+**provider + model** = the `job_routes` row; **all settings** = the full Plane-1
+switch surface, shown **resolved** (presets + overrides) in the editor but **stored
+as the job's override delta** so model/type-intrinsic flags aren't copied into every
+job (no unnecessary duplication). A JobPreset saves named variations of this.
+
+**Hardcoded re-audit — what's still hardcoded that the "no hardcoded" rule says
+should be editable seed data:**
+
+| Hardcoded today | file:line | Verdict |
+|---|---|---|
+| `flagPresets` (`base`/`mtp`/turboquant) | `runner-manifest.json:49-57` | → **seeded-editable `switch_presets`** (§6.5). The last config left hardcoded after the catalog→DB cutover. |
+| MoE switch as a **per-model** override | `seed.py:166-167` | → folds into the new **`moe` preset** (lives once, not per model). |
+| `vramFit.tiers` (cpu/low/mid/high MB) | `runner-manifest.json:58-61` | **Weaker candidate** — fit thresholds; could move to editable settings, lower priority. FLAG, not now. |
+| `prefer_local_features` (which features prefer the local runner) | `schema.py:119` | Candidate to become a per-feature/per-job editable flag rather than a hardcoded set. FLAG. |
+| QuickSetup `quick`/`accuracy` role rows | `QuickSetup.vue` ROLE_DEFS | → iterate the **editable `jobs` list** (already in the plan, §10). |
+| Flag **definitions** (the `Overrides` fields) | `process.py:45-93` | **Correctly code-bound** — they ARE the real llama.cpp flags; a user can't invent a flag the engine lacks. NOT a violation. |
+
+So the audit's real finding: **the switch *presets* (`flagPresets`) are the one
+remaining hardcoded thing that should move to DB** — which is exactly §6.5. The job
+set, feature→job map, job→model, recommendations, and all switch *overrides* are
+already editable in this design.
