@@ -27,7 +27,7 @@ from sqlalchemy.orm import Session
 from . import book_io
 from . import database as _db
 from .demo_seed import DEMO_PROJECT_ID, demo_book_snapshot
-from .models import LlmProvider, RoutingConfigRow, Setting
+from .models import LlmProvider, ModelRecommendation, RoutingConfigRow, Setting
 from .seed_feature_prompts import seed_feature_prompts
 
 log = logging.getLogger(__name__)
@@ -117,6 +117,51 @@ def seed_default_providers(db: Session) -> int:
     return added
 
 
+# Factory model recommendations — the curated "this model is good for job Y"
+# rows that pre-fill QuickSetup's role picks. Q3 only (Fit handles Q1, presets
+# Q2). Job keys match dispatch's role names where they overlap ("quick" /
+# "accuracy") so the wizard can lookup-by-role; other jobs are tags the wizard
+# may surface ("prose", "attribution"). `rank` orders candidates within a job
+# (lower = preferred). User edits drop `built_in`, so reset_to_factory restores
+# these cleanly. model ids match the runner manifest (just-llm-runner
+# llm_runner/runner/runner-manifest.json:48-124).
+DEFAULT_RECOMMENDATIONS: list[dict] = [
+    # Quick / interactive — small dense for snappy responses.
+    {"model_id": "qwen3.5-9b-q4_k_s",      "job": "quick",       "rank": 10, "why": "Smallest dense — snappy interactive work."},
+    {"model_id": "qwen3.5-9b-q4_k_m",      "job": "quick",       "rank": 20, "why": "Same 9B, slightly higher quant — still quick on most cards."},
+    # Accuracy / careful passes — bigger dense, and the MoE for low-VRAM users.
+    {"model_id": "qwen3-14b-q4_k_m",       "job": "accuracy",    "rank": 10, "why": "14B dense — best accuracy that fits ≥11 GB VRAM."},
+    {"model_id": "qwen3-14b-q3_k_m",       "job": "accuracy",    "rank": 20, "why": "14B dense, lower quant — fits ≥9 GB."},
+    {"model_id": "qwen3.6-27b-mtp-q4_k_m", "job": "accuracy",    "rank":  5, "why": "27B (MTP) — best accuracy at the high tier (~20 GB+ VRAM)."},
+    {"model_id": "qwen3.6-35b-a3b-mtp",    "job": "accuracy",    "rank": 15, "why": "35B-A3B MoE — runs on 6 GB VRAM via CPU expert offload (needs 24 GB RAM)."},
+    # Attribution — extends the manifest's existing candidateFor tag.
+    {"model_id": "qwen3.6-35b-a3b-mtp",    "job": "attribution", "rank": 10, "why": "MoE 35B-A3B — strong at structured extraction; CPU-offload friendly."},
+]
+
+
+def seed_default_recommendations(db: Session) -> int:
+    """Insert any missing built-in recommendations (merge by (model_id, job)).
+    Does NOT commit. Returns the number added. Never clobbers user edits or
+    user-added rows. Mirrors `seed_default_providers`."""
+    existing = {
+        (row.model_id, row.job)
+        for row in db.query(ModelRecommendation.model_id, ModelRecommendation.job).all()
+    }
+    added = 0
+    for r in DEFAULT_RECOMMENDATIONS:
+        key = (r["model_id"], r["job"])
+        if key in existing:
+            continue
+        db.add(ModelRecommendation(
+            model_id=r["model_id"], job=r["job"],
+            rank=int(r.get("rank") or 100),
+            why=str(r.get("why") or ""),
+            built_in=True,
+        ))
+        added += 1
+    return added
+
+
 def seed_default_routing(db: Session) -> bool:
     """Seed the live routing row (id='active') if missing — default LLM +
     embedding point at the local OpenAI-compatible provider so a fresh install
@@ -174,6 +219,7 @@ def seed_workspace(db: Session | None = None) -> None:
     try:
         seed_default_providers(db)
         seed_default_routing(db)
+        seed_default_recommendations(db)
         seed_feature_prompts(db)
         seed_demo_project(db)
         db.commit()

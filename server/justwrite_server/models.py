@@ -542,6 +542,27 @@ class LlmUsage(Base):
     meta = Column(Text, nullable=False, default="{}")           # JSON
 
 
+# ── Model recommendations (per-model job-tag curation, QuickSetup Q3 layer) ──
+
+
+class ModelRecommendation(Base):
+    """One curated 'model X is good for job Y' record — the editable layer
+    QuickSetup uses to pre-fill role picks (filter by job + Fit-OK, order by
+    rank). PK is (modelId, job) so a model can be ranked for many jobs without
+    duplicating the row. `built_in` marks a seeded row so the editor can offer
+    'reset to factory' (delete user edits + re-seed). Host side of the shared
+    `llm_runner.llm.recommendations_api.RecommendationStore` Protocol — see
+    docs for the Q3 (catalog-curation) vs Q1/Q2 (auto-detected fit/flags) split."""
+
+    __tablename__ = "model_recommendations"
+
+    model_id = Column(String, primary_key=True)
+    job = Column(String, primary_key=True)
+    rank = Column(Integer, nullable=False, default=100)
+    why = Column(Text, nullable=False, default="")
+    built_in = Column(Boolean, nullable=False, default=False)
+
+
 # ── Routing (default + roles + per-feature pins; live config + presets) ──
 
 
