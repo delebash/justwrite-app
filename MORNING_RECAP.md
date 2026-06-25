@@ -60,10 +60,13 @@ map, what's done/left, how to verify). Below is just the map.
     **JobPreset** (mirrors `FeaturePreset` save/active/promote, carries its switch set) →
     promote writes the job's live model + switches. **Naming:** add **"Routing by job"** tab
     LEFT of **"Routing by feature"** (renamed from "Features", `AiModelsArea.vue:140-145`).
-  - **OPEN (need user):** (a) switch storage shape — **unified `switch_overrides(scope,
-    scope_key,flag_name)` table [my rec, renames `model_switches`]** vs separate child tables;
-    (b) the job set + mapping all 19 features; (c) lab = new vs shared `unit`-parameterized
-    Compare. **Plan presented for verification before any build.**
+  - **OPEN (need user):** (a) switch storage — **reasoned rec = FK-backed child tables
+    (`model_switches` stays + `job_route_switches` + `pin_switches`, each a CASCADE FK)
+    served by ONE shared generic store** (preserves the referential integrity we already
+    have; logic shared via the existing `SwitchRow`/Protocol/`make_switches_router`; the
+    earlier "unified table" rec was a "least-code" proxy, rejected on merits); (b) the job
+    set + mapping all 19 features; (c) lab = new vs shared `unit`-parameterized Compare.
+    **Plan presented for verification before any build.**
 - **⭐ NEXT build (#30): the editor UI gap.** NO UI edits `/v1/ai/model-catalog` or
   `/v1/ai/model-switches` yet (only `/v1/ai/recommendations` has an editor tab). NO new
   "Models tab" — grow **`LuModelCatalog`** (the bundled-model list inside the provider

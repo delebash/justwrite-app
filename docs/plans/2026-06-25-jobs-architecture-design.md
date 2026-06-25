@@ -188,41 +188,61 @@ If two jobs resolve to the **same (model + identical switches)**, they are ONE
 load, not two — the planner keys live children by the resolved `(model_id +
 merged-flags)` tuple, so identical combos share a child.
 
-### 6.4 — ⚠️ THE ONE OPEN DECISION FOR YOU: where the override switches are stored
-The *shape* above is settled. The only open question is the **storage layout** for
-the NEW job/feature override switches (and later the preset candidates). Two clean
-options — I recommend **A**:
+### 6.4 — Storage for the override switches (reasoned on the merits)
+The *layering shape* above is settled. The remaining decision is the storage
+layout for the NEW per-job / per-feature override switches (and later the preset
+candidates). Reasoned on engineering merits — NOT on line count:
 
-**Option A (recommended) — ONE unified `switch_overrides` table.**
-`switch_overrides (scope, scope_key, flag_name) → flag_value, built_in`, where
-`scope ∈ {model, job, feature, job_preset, feature_preset}`. The current
-`model_switches` table is **renamed/absorbed** into it as `scope='model'` rows.
-- *Why:* switches are the **identical shape** wherever they attach
-  (`flag_name → flag_value`). One table → one store → one router → one merge path.
-  Resolution is `merge(get('model',M), get('job',J), get('feature',F))`. The lab
-  reads `get('job_preset', id)`; promote copies those rows to `scope='job'`. This
-  is the convergent, least-code answer (RULE #7 — don't build the same child table
-  5×). It is also the rename the you flagged ("rename `model_switches` to match
-  the new design").
-- *Counter-case:* a polymorphic table can't carry a DB-level `FOREIGN KEY` to
-  three different parents, so deleting a model/config/preset won't `CASCADE`-delete
-  its switch rows — the **store code** must clean them up (it already does
-  key-scoped deletes for reset). And the job/feature `scope_key` is a composite
-  (`config_id:job`), slightly less tidy than a native multi-column key.
+> **First cut was wrong.** I first recommended one polymorphic `switch_overrides`
+> table and justified it as "least code / one source." "Least code" is a proxy
+> metric, not a reason (PRIORITY RULE #1). Reasoning to the merits flips the
+> answer.
 
-**Option B — separate child tables.** Keep `model_switches` and add
-`job_route_switches (config_id, job, flag_name)` + `pin_switches (config_id,
-feature, flag_name)` (+ preset variants later), each with a real `CASCADE` FK to
-its parent.
-- *Why:* clean FK integrity + clean composite PKs, matching `model_switches`'s
-  own `CASCADE` FK to `model_catalog` (`models.py:591-595`).
-- *Counter-case:* ~5 near-identical tables + ~5 near-identical stores for one
-  shape — the duplication the user fears ("you build things 10 different ways").
+**Recommendation — a child table per owner, each a real FK child of its parent,
+all served by ONE shared store implementation:**
+- `model_switches` (BUILT) **stays** — base layer; `CASCADE` FK → `model_catalog`
+  (`models.py:591-595`). (Not renamed.)
+- `job_route_switches (config_id, job, flag_name)` — `CASCADE` FK → `job_routes`.
+  *(per-job override; the common case)*
+- `pin_switches (config_id, feature, flag_name)` — `CASCADE` FK → `routing_pins`.
+  *(rare per-feature override)*
+- *(later, with the lab #21)* `job_preset_switches` / `feature_preset_switches` —
+  FK → their preset rows.
 
-> **My recommendation: Option A (unified `switch_overrides`).** It is the single
-> source the user keeps asking for, it's the least code, and orphan-row cleanup in
-> the store is trivial and already the pattern. **Your call — this is the only
-> storage decision blocking the build.**
+**Why, on the merits (each is a reason a senior engineer defends, not a proxy):**
+1. **Referential integrity — and we already HAVE it.** A switch row is meaningless
+   without its owner; we want the DB itself to forbid orphans and `CASCADE`-delete
+   switches when the owner is removed. A real FK does that — `model_switches`
+   already has one (`models.py:591-595`). A single polymorphic table **cannot**
+   carry a FK (one column can't reference three parent tables), so it would
+   *downgrade* the integrity we have today and shove orphan-cleanup into app code.
+   Trading away enforced integrity to reduce table count is the wrong trade.
+2. **No real duplication — the LOGIC is shared once.** The thing that must not be
+   duplicated is behavior (list/upsert/delete/reset/parse/merge). It already lives
+   once: the shared `SwitchRow` + `ModelSwitchStore` Protocol + `make_switches_router`
+   factory (`model_catalog_api.py:99-155`), and the store body
+   (`model_catalog_store.py:112-167`) is generic over `(ORM class, key columns,
+   seed data)` — ONE implementation serves every owner. The separate *table
+   declarations* are a few lines each and describe genuinely **distinct
+   relationships** (model→switches ≠ job→switches ≠ feature→switches). Distinct,
+   correctly-separate declarations are not "duplication"; conflating them via a
+   `scope` discriminator is what trades correctness for a proxy.
+3. **The layering itself kills the duplication that WOULD matter.** Model-intrinsic
+   flags (MoE→`spec_type=none`) live ONCE in `model_switches` and compose into
+   every job via `_merge_overrides` — instead of being copied into each job's
+   override. The model-base layer is the *anti-duplication* home for model facts.
+4. **Clarity at the query.** "switches WHERE `config_id=? AND job=?`" reads off a
+   table whose every row IS a job switch — no `scope` filter, no overloaded
+   composite `scope_key`, no model/job/feature rows mixed in one table.
+
+**Rejected — one polymorphic `switch_overrides(scope, scope_key, flag_name)`
+table.** Its *only* advantage is fewer table declarations (a proxy). It sacrifices
+the FK/`CASCADE` integrity we already have and overloads `scope_key` into a
+composite string. Rejected on the merits.
+
+> **My reasoned recommendation: FK-backed child tables + one shared generic store.**
+> This is the only storage decision blocking the build — your call, but I'd defend
+> this one.
 
 ---
 
@@ -286,12 +306,13 @@ Confirm when building #21.
 | Concern | Today | After |
 |---|---|---|
 | Model catalog | `model_catalog` (`models.py:555-576`) | unchanged |
-| **Model-default switches** | `model_switches` (`models.py:579-598`) | **base layer**; under Option A renamed/absorbed into `switch_overrides` (`scope='model'`) |
+| **Model-default switches** | `model_switches` (`models.py:579-598`) | **stays as-is** — the base layer (FK→`model_catalog` CASCADE). Not renamed. |
 | **Recommendations** | `model_recommendations` job-tagged (`models.py:604-619`) | unchanged (already job-keyed) |
 | **Job → model map** | 2 fixed columns `quick_*`/`accuracy_*` on `routing_configs` (`models.py:644-647`) | **`job_routes` child table** `(config_id, job) → provider_id, model` (mirrors `routing_pins`) |
-| **Job → switch override** | — | NEW (`scope='job'` rows / `job_route_switches`) |
+| **Job → switch override** | — | NEW `job_route_switches (config_id, job, flag_name)`, FK→`job_routes` CASCADE |
 | Per-feature pin | `routing_pins` `(config_id, feature) → provider_id, model, role` (`models.py:650-663`) | `role` column → **`job`**; same shape |
-| Per-feature switch override | — | NEW, rare (`scope='feature'` rows / `pin_switches`) |
+| Per-feature switch override | — | NEW, rare `pin_switches (config_id, feature, flag_name)`, FK→`routing_pins` CASCADE |
+| Switch store/shape/router | shared `SwitchRow`/`ModelSwitchStore`/`make_switches_router` (`model_catalog_api.py:99-155`) | **unchanged** — ONE generic store serves all switch tables (no logic duplication) |
 | Feature catalog | `FeatureCatalogEntry {…, role, category}` (`routing_api.py:88-98`; data `feature_catalog.py:25-53`) | `role` → **`job`** |
 | Dispatch role machinery | `LLMRolesSettings {quick, accuracy}`, `FeaturePinConfig.role`, `LLMConfig.{llm_roles, default_feature_roles}`, `_resolve_role` (`schema.py:60-118`, `dispatch.py:46-57`) | role → **job**: `LLMJobsSettings {jobs: dict}`, `FeaturePinConfig.job`, `LLMConfig.{llm_jobs, default_feature_jobs}`, `_resolve_job` |
 | Wire shapes | `RoleTarget`, `RoutingConfig.{quick,accuracy}`, `FeaturePin.role`, `FeatureRow.{defaultRole,role}`, `RoutingResponse.{quick,accuracy}` (`routing_api.py:29-77`) | `JobTarget`, `RoutingConfig.jobs`, `FeaturePin.job`, `FeatureRow.{defaultJob,job}`, `RoutingResponse.jobs` |
@@ -318,8 +339,10 @@ Confirm when building #21.
 **JW host (`justwrite-app/server/justwrite_server/`):**
 - `models.py:644-647` — drop the `quick_*`/`accuracy_*` columns; add `job_routes`.
 - `models.py:650-663` — `routing_pins.role → job`.
-- `models.py:579-598` — under Option A, `model_switches` → `switch_overrides`
-  (+ scope); under Option B, unchanged + new sibling tables.
+- `models.py:579-598` — `model_switches` unchanged; ADD `job_route_switches` +
+  `pin_switches` sibling child tables (each a CASCADE FK to its parent), served by
+  the existing shared `SwitchRow`/`ModelSwitchStore`/`make_switches_router` via one
+  generic store (§6.4).
 - `feature_catalog.py:25-53` — set each feature's `job` (replaces `role`); map all
   19 to the chosen ~4-job set (the §2.2 content decision).
 - `seed.py` — seed the job catalog + `job_routes` defaults; the switch seeders
@@ -358,7 +381,8 @@ Verification each step: `pytest` + `ruff` (server) + headless smoke (renderer).
 ---
 
 ## 12. Still OPEN (need you)
-- **(a) §6.4 — switch storage: Option A (unified, recommended) or B (separate).**
+- **(a) §6.4 — confirm the switch storage: FK-backed child tables + one shared
+  generic store (my reasoned recommendation), or push back.**
 - **(b) §2.2 — the exact job set + mapping all 19 features to one job each.**
 - (c) §8 — job lab = new component or the same Compare parameterized by `unit`
   (lean: shared component).
