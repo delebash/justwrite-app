@@ -33,11 +33,23 @@ map, what's done/left, how to verify). Below is just the map.
   switches layer UNDER user `Overrides` at spawn. 35B-MoE seeds `spec_type=none`
   (spec hurts MoE); 27B-dense `spec_type=draft-mtp`. Verified live + 98+83 pytest.
   Commits: runner `490e7a5`, JW `c70d44c`.
-- **⭐ NEXT (start here): the editor UI gap.** NO UI edits `/v1/ai/model-catalog` or
-  `/v1/ai/model-switches` yet (only `/v1/ai/recommendations` has an editor tab).
-  Build the **one-screen-per-model editor** (catalog + switches + job tags together)
-  + a **"+ Add model"** path for user-pasted HF GGUFs. Then #27 (router launch), #20
-  (tuning UI + tok/s). (8GB = our MIN; 6GB was the video example.)
+- **🆕 JOBS ARCHITECTURE (2026-06-25 design — DESIGN, not built).** ➡️
+  `docs/plans/2026-06-25-jobs-architecture-design.md`. Decided: **`job` REPLACES `role`**
+  as the routing unit (~4 jobs: chat/prose/extraction/analysis — exact set OPEN); features
+  get a `job` + inherit their job's model; **per-feature override = the existing
+  `FeaturePin`** (resolve LIVE, don't copy). `job` becomes the ONE concept: routing +
+  `model_recommendations.job` tag (today only quick/accuracy consumed → finally real) +
+  Compare unit. **Job lab** = multi-column Compare (#21, never built) at job grain +
+  **JobPreset** (mirrors `FeaturePreset` save/active/promote) → promote sets the job's
+  production model. **Switches stay per-model** (lean). Feature lab (FeatureWorkbench) =
+  the rare per-action fine-tune. OPEN: the job set + per-feature mapping; switches-per-model
+  confirm; job→model storage; lab-new-vs-shared-component. "more to discuss."
+- **⭐ NEXT build (#30): the editor UI gap.** NO UI edits `/v1/ai/model-catalog` or
+  `/v1/ai/model-switches` yet (only `/v1/ai/recommendations` has an editor tab). NO new
+  "Models tab" — grow **`LuModelCatalog`** (the bundled-model list inside the provider
+  form, today download/load only) into the model manager: **+ Add model** (paste HF) +
+  edit catalog fields + edit per-model switches. Then the jobs-architecture build order
+  (job set → role→job in routing/dispatch → Compare+JobPreset → editor). (8GB = MIN.)
 - **DB policy:** drop + reseed, no migrations (pre-release;
   `docs/plans/2026-06-18-unified-storage-no-idb.md:45-49`). Nuke `JW_DATA_DIR` for a clean DB.
 
