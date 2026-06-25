@@ -28,7 +28,7 @@ from . import book_io
 from . import database as _db
 from .demo_seed import DEMO_PROJECT_ID, demo_book_snapshot
 from .models import (
-    LlmProvider, ModelCatalog, ModelRecommendation, ModelSwitch,
+    FeatureJob, Job, LlmProvider, ModelCatalog, ModelRecommendation, ModelSwitch,
     RoutingConfigRow, Setting,
 )
 from .seed_feature_prompts import seed_feature_prompts
@@ -261,6 +261,87 @@ def seed_default_recommendations(db: Session) -> int:
     return added
 
 
+# ── Jobs (the editable routing-unit list) + the feature→job best-guess map ──
+# The job set is a USER-EDITABLE seed (add/rename/remove), not a hardcoded enum.
+# Ids are immutable slugs; labels/descriptions are editable. `chat` is the
+# guaranteed default (jobs_api.DEFAULT_JOB_ID) — orphaned features fall back to it.
+DEFAULT_JOBS: list[dict] = [
+    {"id": "chat", "label": "Chat",
+     "description": "Conversational Q&A over your manuscript and characters — fast, grounded answers.",
+     "position": 0},
+    {"id": "prose", "label": "Prose",
+     "description": "Creative drafting and rewriting — scene text, descriptions, ideas, marketing copy.",
+     "position": 1},
+    {"id": "extraction", "label": "Extraction",
+     "description": "Pulling structured facts out of the text — entities, beats, outlines, relationships.",
+     "position": 2},
+    {"id": "analysis", "label": "Analysis",
+     "description": "Careful reasoning and critique — plot holes, structure, reader reactions, voice drift.",
+     "position": 3},
+]
+
+# Best-guess classification of every feature in feature_catalog.py into one job.
+# A GUESS we seed and refine in-app (the per-feature dropdown) — not load-bearing.
+DEFAULT_FEATURE_JOBS: list[dict] = [
+    # chat — conversational, RAG-grounded.
+    {"feature_key": "chat", "job_id": "chat"},
+    {"feature_key": "characterChat", "job_id": "chat"},
+    # prose — creative generation / rewriting.
+    {"feature_key": "writerAI", "job_id": "prose"},
+    {"feature_key": "sensory", "job_id": "prose"},
+    {"feature_key": "unstuck", "job_id": "prose"},
+    {"feature_key": "brainstorm", "job_id": "prose"},
+    {"feature_key": "marketingPack", "job_id": "prose"},
+    {"feature_key": "briefing", "job_id": "prose"},
+    {"feature_key": "recap", "job_id": "prose"},
+    # extraction — structured facts out of the text.
+    {"feature_key": "entitySweep", "job_id": "extraction"},
+    {"feature_key": "reverseOutline", "job_id": "extraction"},
+    {"feature_key": "beatSheet", "job_id": "extraction"},
+    {"feature_key": "readerKnowledge", "job_id": "extraction"},
+    {"feature_key": "characterAudit", "job_id": "extraction"},
+    {"feature_key": "relationshipArc", "job_id": "extraction"},
+    # analysis — reasoning / critique / judgment.
+    {"feature_key": "critique", "job_id": "analysis"},
+    {"feature_key": "multiReader", "job_id": "analysis"},
+    {"feature_key": "plotHoles", "job_id": "analysis"},
+    {"feature_key": "foreshadowing", "job_id": "analysis"},
+    {"feature_key": "voiceDrift", "job_id": "analysis"},
+]
+
+
+def seed_default_jobs(db: Session) -> int:
+    """Insert any missing built-in jobs (merge by id). Does NOT commit. Never
+    clobbers user edits or user-added jobs. Mirrors `seed_default_providers`."""
+    existing = {row.id for row in db.query(Job.id).all()}
+    added = 0
+    for j in DEFAULT_JOBS:
+        if j["id"] in existing:
+            continue
+        db.add(Job(
+            id=j["id"], label=str(j.get("label") or ""),
+            description=str(j.get("description") or ""),
+            position=int(j.get("position") or 0), built_in=True,
+        ))
+        added += 1
+    return added
+
+
+def seed_default_feature_jobs(db: Session) -> int:
+    """Insert any missing built-in feature→job rows (merge by feature_key). Does
+    NOT commit. Never clobbers user edits or user-added rows."""
+    existing = {row.feature_key for row in db.query(FeatureJob.feature_key).all()}
+    added = 0
+    for fj in DEFAULT_FEATURE_JOBS:
+        if fj["feature_key"] in existing:
+            continue
+        db.add(FeatureJob(
+            feature_key=fj["feature_key"], job_id=str(fj.get("job_id") or ""), built_in=True,
+        ))
+        added += 1
+    return added
+
+
 def seed_default_routing(db: Session) -> bool:
     """Seed the live routing row (id='active') if missing — default LLM +
     embedding point at the local OpenAI-compatible provider so a fresh install
@@ -321,6 +402,8 @@ def seed_workspace(db: Session | None = None) -> None:
         seed_default_catalog(db)
         seed_default_switches(db)
         seed_default_recommendations(db)
+        seed_default_jobs(db)
+        seed_default_feature_jobs(db)
         seed_feature_prompts(db)
         seed_demo_project(db)
         db.commit()

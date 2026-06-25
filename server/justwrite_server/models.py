@@ -663,6 +663,41 @@ class RoutingPin(Base):
     role = Column(String, nullable=False, default="")
 
 
+# ── Jobs (the editable routing-unit list + the feature→job map) ──────────
+
+
+class Job(Base):
+    """One job — the routing unit that replaces the two fixed roles. A small,
+    user-editable list (seeded chat/prose/extraction/analysis). `id` is an
+    IMMUTABLE slug (minted from the label at create) so a rename — which edits
+    only `label` — never orphans the rows that reference it (`feature_jobs`,
+    later `job_routes` + `model_recommendations.job`). `built_in` marks a seeded
+    row. Host side of the shared `llm_runner.llm.jobs_api.JobStore` Protocol."""
+
+    __tablename__ = "jobs"
+
+    id = Column(String, primary_key=True)
+    label = Column(String, nullable=False, default="")
+    description = Column(Text, nullable=False, default="")
+    position = Column(Integer, nullable=False, default=0)
+    built_in = Column(Boolean, nullable=False, default=False)
+
+
+class FeatureJob(Base):
+    """One feature's job classification (the per-feature dropdown). `feature_key`
+    matches `feature_catalog.py`; `job_id` is a `Job.id`. Deliberately NOT a hard
+    FK to `jobs` — deleting a job leaves this a dangling ref that dispatch
+    resolves to the default job (graceful fallback, like an unregistered
+    provider), per the jobs-architecture design. `built_in` marks the seeded
+    best-guess. Host side of the shared `FeatureJobStore` Protocol."""
+
+    __tablename__ = "feature_jobs"
+
+    feature_key = Column(String, primary_key=True)
+    job_id = Column(String, nullable=False, default="")
+    built_in = Column(Boolean, nullable=False, default=False)
+
+
 # ── Feature presets (Feature Workbench — named saved configs per feature) ──
 
 

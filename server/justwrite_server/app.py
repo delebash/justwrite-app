@@ -157,8 +157,10 @@ def create_app(data_dir: Path | None = None) -> FastAPI:
     # ProviderStore. Replaces the old bulk GET/PUT `api/llm_providers.py`.
     from llm_runner.llm import (
         make_catalog_router,
+        make_feature_jobs_router,
         make_feature_presets_router,
         make_feature_router,
+        make_jobs_router,
         make_prompt_router,
         make_recommendations_router,
         make_routing_presets_router,
@@ -178,6 +180,7 @@ def create_app(data_dir: Path | None = None) -> FastAPI:
         get_model_catalog_store,
         get_model_switch_store,
     )
+    from .llm.jobs_store import get_feature_job_store, get_job_store
     from .llm.provider_store import get_provider_store
     from .llm.recommendation_store import get_recommendation_store
     from .llm.routing_store import get_routing_preset_store, get_routing_store
@@ -208,6 +211,11 @@ def create_app(data_dir: Path | None = None) -> FastAPI:
     # /v1/ai/model-switches CRUD; consumed by QuickSetup + RecommendationsEditor.
     app.include_router(make_catalog_router(get_model_catalog_store))
     app.include_router(make_switches_router(get_model_switch_store))
+    # Jobs architecture (job REPLACES role): the editable job list + the
+    # feature→job classification map, both seeded + user-editable.
+    # /v1/ai/jobs (CRUD+reset) + /v1/ai/feature-jobs (GET/PUT/DELETE/reset).
+    app.include_router(make_jobs_router(get_job_store))
+    app.include_router(make_feature_jobs_router(get_feature_job_store))
 
     # Wire the shared RunnerService singleton to read the catalog + per-model
     # switches FROM JW's DB (replacing the runner's manifest fallback). The
