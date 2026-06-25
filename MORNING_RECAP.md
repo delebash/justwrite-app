@@ -33,17 +33,37 @@ map, what's done/left, how to verify). Below is just the map.
   switches layer UNDER user `Overrides` at spawn. 35B-MoE seeds `spec_type=none`
   (spec hurts MoE); 27B-dense `spec_type=draft-mtp`. Verified live + 98+83 pytest.
   Commits: runner `490e7a5`, JW `c70d44c`.
-- **🆕 JOBS ARCHITECTURE (2026-06-25 design — DESIGN, not built).** ➡️
-  `docs/plans/2026-06-25-jobs-architecture-design.md`. Decided: **`job` REPLACES `role`**
-  as the routing unit (~4 jobs: chat/prose/extraction/analysis — exact set OPEN); features
-  get a `job` + inherit their job's model; **per-feature override = the existing
-  `FeaturePin`** (resolve LIVE, don't copy). `job` becomes the ONE concept: routing +
-  `model_recommendations.job` tag (today only quick/accuracy consumed → finally real) +
-  Compare unit. **Job lab** = multi-column Compare (#21, never built) at job grain +
-  **JobPreset** (mirrors `FeaturePreset` save/active/promote) → promote sets the job's
-  production model. **Switches stay per-model** (lean). Feature lab (FeatureWorkbench) =
-  the rare per-action fine-tune. OPEN: the job set + per-feature mapping; switches-per-model
-  confirm; job→model storage; lab-new-vs-shared-component. "more to discuss."
+- **🆕 JOBS ARCHITECTURE (2026-06-25 design — DESIGN, not built; REVISED — switches
+  reconciled).** ➡️ `docs/plans/2026-06-25-jobs-architecture-design.md` (rewritten —
+  read it). Decided: **`job` REPLACES `role`** as the routing unit (~4 jobs:
+  chat/prose/extraction/analysis — exact set OPEN); features get a `job` + inherit their
+  job's **model + switches**; **per-feature override = the existing `FeaturePin`** (resolve
+  LIVE, don't copy — applying a job is ONE write to the job→model map, features show it via
+  live inheritance). `job` = the ONE concept: routing + `model_recommendations.job` tag
+  (today only quick/accuracy consumed → finally real) + Compare unit.
+  - **Storage:** job→model map = a **`job_routes` child table** `(config_id, job)` replacing
+    the 2 fixed `quick_*`/`accuracy_*` columns on `routing_configs` (mirrors `routing_pins`);
+    `routing_pins.role → job`. Role machinery role→job across `schema.py`/`dispatch.py`/
+    `routing_api.py`.
+  - **⭐ SWITCHES — CORRECTED (the old "stay per-model" line was WRONG).** Switches are
+    Plane-1 load-time and **LAYERED**: `model_switches` (built) = the **base default**
+    (model-intrinsic, e.g. MoE→spec:none) + a **per-job override** (NEW: chat ctx 8k vs
+    analysis ctx 32k) + a rare **per-feature override** (NEW) — merged by the **already-built**
+    `_merge_overrides` (`lifecycle.py:68-79`). So the **same model can run different switches
+    per job**; each distinct (model+switches) = its own router load (hot-swap test
+    `2026-06-24-llamacpp-switches.md:460-482`); identical combos dedup to one load. A
+    **residency manager** (= the VRAM-budget planner, #29) sets `--models-max` from detected
+    VRAM: big card → co-resident, 1-model card → reload-on-switch. This was the ORIGINAL
+    two-planes design (`:232-241`), NOT a fork.
+  - **Job lab** = multi-column Compare (#21, never built) at job grain — each column = model +
+    switch set + the job's test prompt (**reuse a representative feature's prompt**) — +
+    **JobPreset** (mirrors `FeaturePreset` save/active/promote, carries its switch set) →
+    promote writes the job's live model + switches. **Naming:** add **"Routing by job"** tab
+    LEFT of **"Routing by feature"** (renamed from "Features", `AiModelsArea.vue:140-145`).
+  - **OPEN (need user):** (a) switch storage shape — **unified `switch_overrides(scope,
+    scope_key,flag_name)` table [my rec, renames `model_switches`]** vs separate child tables;
+    (b) the job set + mapping all 19 features; (c) lab = new vs shared `unit`-parameterized
+    Compare. **Plan presented for verification before any build.**
 - **⭐ NEXT build (#30): the editor UI gap.** NO UI edits `/v1/ai/model-catalog` or
   `/v1/ai/model-switches` yet (only `/v1/ai/recommendations` has an editor tab). NO new
   "Models tab" — grow **`LuModelCatalog`** (the bundled-model list inside the provider
