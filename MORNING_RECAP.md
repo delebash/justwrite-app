@@ -35,16 +35,21 @@ map, what's done/left, how to verify). Below is just the map.
   Commits: runner `490e7a5`, JW `c70d44c`.
 - **🆕 JOBS ARCHITECTURE (2026-06-25 design — DESIGN, not built; REVISED — switches
   reconciled).** ➡️ `docs/plans/2026-06-25-jobs-architecture-design.md` (rewritten —
-  read it). Decided: **`job` REPLACES `role`** as the routing unit (~4 jobs:
-  chat/prose/extraction/analysis — exact set OPEN); features get a `job` + inherit their
-  job's **model + switches**; **per-feature override = the existing `FeaturePin`** (resolve
-  LIVE, don't copy — applying a job is ONE write to the job→model map, features show it via
-  live inheritance). `job` = the ONE concept: routing + `model_recommendations.job` tag
-  (today only quick/accuracy consumed → finally real) + Compare unit.
-  - **Storage:** job→model map = a **`job_routes` child table** `(config_id, job)` replacing
-    the 2 fixed `quick_*`/`accuracy_*` columns on `routing_configs` (mirrors `routing_pins`);
-    `routing_pins.role → job`. Role machinery role→job across `schema.py`/`dispatch.py`/
-    `routing_api.py`.
+  read it). Decided: **`job` REPLACES `role`** as the routing unit. **Jobs are a
+  USER-EDITABLE list** (add/rename/remove), seeded with a 4-guess (chat/prose/extraction/
+  analysis — NOT locked at 4). Each **feature → job** is **seeded best-guess + editable per
+  feature via a dropdown** (we may have guessed wrong) — so the job leaves the hardcoded
+  `feature_catalog.py` and lives in editable data. **⛔ STANDING PRINCIPLE (user): no
+  hardcoded routing/classification — seeded, user-editable data** (like catalog/switches/recs).
+  **Per-feature override = EXPLICIT MODEL ONLY** (the pin DROPS `role`; resolve LIVE, never
+  copy — changing a job's model is ONE write, features show it via live inheritance). `job` =
+  the ONE concept: routing + `model_recommendations.job` tag + Compare unit.
+  - **Storage:** job→model map = **`job_routes` child table** `(config_id, job)` replacing the
+    2 fixed `quick_*`/`accuracy_*` columns (mirrors `routing_pins`); `routing_pins` **drops
+    `role`** (explicit-only). NEW editable tables: **`jobs`** (CRUD list) + **`feature_jobs`**
+    (seeded mapping). Role machinery role→job across `schema.py`/`dispatch.py`/`routing_api.py`
+    (`LLMRolesSettings{quick,accuracy}`→`LLMJobsSettings{jobs:dict}`; `FeaturePinConfig.role`
+    dropped; `default_feature_roles`→`feature_jobs`).
   - **⭐ SWITCHES — CORRECTED (the old "stay per-model" line was WRONG).** Switches are
     Plane-1 load-time and **LAYERED**: `model_switches` (built) = the **base default**
     (model-intrinsic, e.g. MoE→spec:none) + a **per-job override** (NEW: chat ctx 8k vs
@@ -57,16 +62,21 @@ map, what's done/left, how to verify). Below is just the map.
     two-planes design (`:232-241`), NOT a fork.
   - **Job lab** = multi-column Compare (#21, never built) at job grain — each column = model +
     switch set + the job's test prompt (**reuse a representative feature's prompt**) — +
-    **JobPreset** (mirrors `FeaturePreset` save/active/promote, carries its switch set) →
-    promote writes the job's live model + switches. **Naming:** add **"Routing by job"** tab
-    LEFT of **"Routing by feature"** (renamed from "Features", `AiModelsArea.vue:140-145`).
-  - **OPEN (need user):** (a) switch storage — **reasoned rec = FK-backed child tables
-    (`model_switches` stays + `job_route_switches` + `pin_switches`, each a CASCADE FK)
-    served by ONE shared generic store** (preserves the referential integrity we already
-    have; logic shared via the existing `SwitchRow`/Protocol/`make_switches_router`; the
-    earlier "unified table" rec was a "least-code" proxy, rejected on merits); (b) the job
-    set + mapping all 19 features; (c) lab = new vs shared `unit`-parameterized Compare.
-    **Plan presented for verification before any build.**
+    **persistent JobPreset** (confirmed: save several named configs per job so you keep what
+    you tested; mirrors `FeaturePreset` save/active/promote, carries its switch set) → promote
+    writes the job's live model + switches. **Naming:** add **"Routing by job"** tab LEFT of
+    **"Routing by feature"** (renamed from "Features", `AiModelsArea.vue:140-145`).
+  - **SETTLED:** switch storage = **FK-backed child tables** (`model_switches` stays +
+    `job_route_switches` + `pin_switches`, each a CASCADE FK) served by ONE shared generic
+    store (preserves the referential integrity we already have; logic shared via the existing
+    `SwitchRow`/Protocol/`make_switches_router`; the earlier "unified table / least-code" rec
+    was a proxy, rejected on merits). Jobs+feature-jobs = editable seed data. Per-feature
+    override = explicit-only. JobPreset = persistent.
+  - **OPEN (smaller, non-blocking):** (a) job-delete integrity (rec: un-deletable default +
+    block-delete-while-in-use); (b) job test-prompt source (rec: a `test_feature` on the job
+    row); (c) lab = new vs shared `unit`-Compare; (d) feature→job scope global vs per-config
+    (rec: global). The feature→job mapping is a best-guess we seed + refine in-app, not
+    blocking. **Plan presented for verification before any build.**
 - **⭐ NEXT build (#30): the editor UI gap.** NO UI edits `/v1/ai/model-catalog` or
   `/v1/ai/model-switches` yet (only `/v1/ai/recommendations` has an editor tab). NO new
   "Models tab" — grow **`LuModelCatalog`** (the bundled-model list inside the provider

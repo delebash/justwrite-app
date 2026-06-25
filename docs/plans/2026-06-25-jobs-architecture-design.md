@@ -55,41 +55,64 @@ the 19 features.
 
 ## 2. Decisions (user, 2026-06-25)
 
+> **⛔ STANDING PRINCIPLE (user, 2026-06-25): no hardcoded routing/classification —
+> it is SEEDED, USER-EDITABLE data.** "Remember no hardcoded, only seed data that
+> should be user editable in most cases." So the **job set**, each **feature's job**,
+> the **job→model map**, and the **switches** all ship as factory seed rows in the DB
+> and are editable in the UI (merge-by-key seeders + reset-to-factory, exactly like
+> `model_catalog`/`model_switches`/`model_recommendations`). The Python `feature_catalog.py`
+> stays the app-defined *list of which features exist* (code-bound — a feature exists
+> because there's code for it); its **job assignment moves OUT** of that constant into a
+> seeded-editable `feature_jobs` table.
+
 ### 2.1 — `job` REPLACES `role` as the routing unit
 - **Today:** routing stores two fixed role targets, `quick`+`accuracy`
   (wire: `RoutingConfig.quick/accuracy`, `routing_api.py:47-53`; dispatch:
   `LLMRolesSettings {quick, accuracy}`, `schema.py:67-72`; resolve:
   `_resolve_role` does `getattr(roles, role)`, `dispatch.py:46-57`); each feature
-  carries a fallback `role` (`FeatureCatalogEntry.role`, `routing_api.py:97`; e.g.
-  `feature_catalog.py:27`).
-- **After:** a **job → (model + switches) map** (~4 jobs) + **`feature.job`** +
-  dispatch resolves **feature → job → model+switches**. `quick`/`accuracy` retire
-  into the job set.
+  carries a **hardcoded** fallback `role` (`FeatureCatalogEntry.role`,
+  `routing_api.py:97`; e.g. `feature_catalog.py:27`).
+- **After:** a **job → (model + switches) map** + **`feature.job` as editable seed
+  data** + dispatch resolves **feature → job → model+switches**. `quick`/`accuracy`
+  retire into the job set.
 - This is a **rename + reshape across one well-defined seam**, not a fork — the
-  exact files/symbols are listed in §7.
+  exact files/symbols are listed in §10.
 
-### 2.2 — ~4 jobs; the set + per-feature mapping is the ONE thing still OPEN
-Tentative set: **`chat · prose · extraction · analysis`**. It is **not**
-auto-derivable from `role` (2 values) or `category` (8, nav-shaped). It needs a
-deliberate human mapping of all 19 features (`feature_catalog.py:25-53`) to
-exactly one job each. **This is the only content decision left before building.**
+### 2.2 — Jobs are a USER-EDITABLE list, not a locked set of 4 (user, 2026-06-25)
+The job set is **not** hardcoded and **not** capped at 4 — it's a **user-editable
+list** (add / rename / remove), seeded with our best guess **`chat · prose ·
+extraction · analysis`**. Likewise the **feature→job mapping** is **seeded with our
+best guess** (we map all 19 features now) and then **editable per feature via a
+dropdown** — we may have guessed a feature's task type wrong, so the user
+re-classifies it with no code change.
+- **`jobs`** `(job_key → label, description, position, built_in)` — seeded, full CRUD.
+- **`feature_jobs`** `(feature_key → job_key, built_in)` — seeded best-guess mapping;
+  editable per feature (the dropdown, in *Routing by feature*). `feature_catalog.py`
+  stops carrying the job.
+- **Integrity (NEW — needs a rule, §12):** when a user deletes/renames a job that
+  `feature_jobs` + `job_routes` reference, we must not orphan them. Recommended: keep
+  one **un-deletable default job** + **block delete while a job is in use** (or
+  reassign-on-delete); dispatch falls back to the global default LLM if a feature's
+  job is ever missing.
 
-Jobs are an **app-defined catalog** (a small shipped list, like the feature
-catalog), *not* user-CRUD. The user edits which **model+switches** serves each
-job, not the job set itself. (Mirrors how features work: app ships the list,
-user edits the routing.)
+### 2.3 — Per-feature override = EXPLICIT MODEL ONLY (the pin drops its role/job leg)
+Decision (user): the per-feature override is an **explicit provider+model**, NOT
+"inherit a different job." So the pin stops carrying a routing role —
+`FeaturePin.role` (`routing_api.py:44`), `FeaturePinConfig.role` (`schema.py:57`),
+and `routing_pins.role` (`models.py:663`) are **dropped**; the pin is just
+`{providerId, model}`. The pin's "inherit a role" legs in `resolve_pin` /
+`_resolve_action_override` (`dispatch.py:85-88,129-132`) are **removed**.
 
-### 2.3 — Per-feature override = the EXISTING pin, resolved LIVE (never copied)
-`resolve_pin` already does *explicit pin → role → catalog default*
-(`dispatch.py:92-163`). We rename the `role` leg to `job`. A feature's dropdown
-**displays its inherited job model**; choosing another **writes a pin**; reset
-**deletes the pin**.
+Two distinct, editable per-feature controls in *Routing by feature*:
+1. **Job dropdown** (§2.2) — the feature's *classification* → writes `feature_jobs`.
+2. **Model picker** — *inherit* (shows the feature's job model, live) **or** an
+   explicit override → writes / clears a `routing_pins` row.
 
-**"Apply a job's model" = ONE write to the job→model map.** Every feature that
-inherits that job then shows the new model automatically — we never stamp the
-same model into 19 pin rows that later drift (RULE #8). (This is exactly the
-user's "choosing a job sets all the feature dropdowns" — achieved by *live
-inheritance*, not by copying 19 rows.)
+**Resolve LIVE, never copy.** The model picker DISPLAYS the inherited job model; it
+never stamps it. Changing a job's model is ONE write to `job_routes`; every feature
+in that job updates automatically (no 19 drifting copies — RULE #8). New dispatch
+chain: action override → production config → **explicit pin** → **feature → job →
+job route** → prefer-local → first registered.
 
 ### 2.4 — `job` is ONE organizing concept
 Routing unit **and** `model_recommendations.job` tag (already exists → finally
@@ -106,9 +129,12 @@ provider_id, model, role` (`models.py:650-663`). Same precedent, one row per job
 ### 2.6 — Switches are LAYERED (this REPLACES the old "switches stay per-model")
 **See §6 — this is the corrected centerpiece of the revision.**
 
-### 2.7 — The job lab = Compare + JobPreset + promote
-**See §8.** Mirrors the proven per-action preset lifecycle
-(`feature_presets_api.py`).
+### 2.7 — The job lab = Compare + PERSISTENT JobPreset + promote (user, 2026-06-25)
+**See §8.** Confirmed: the job lab is where you **compare model A vs model B with
+different params/switches** for a job — and because you'll try several settings and
+want to **save what you tested instead of guessing again**, a JobPreset is a
+**persistent, named save/load** (many per job, one promoted), mirroring the per-action
+`FeaturePreset` lifecycle (`feature_presets_api.py:28-44,99-103`).
 
 ### 2.8 — Naming: "Routing by job" left of "Routing by feature"
 The AI-area subnav today is `Providers & models · Features · Recommendations ·
@@ -285,15 +311,17 @@ The job lab:
   `2026-06-24-llamacpp-switches.md:235-236`). Run-all → per-column
   output/words/tokens-per-sec → pick a winner. **This half does NOT exist yet**
   (#21; the old Writer/Speaker Lab that did this was removed in #12).
-- **JobPreset** — same lifecycle as `FeaturePreset`, with `unit = job` and
-  **carrying its switch set** (its candidate flags). Build a `JobPreset` store +
+- **JobPreset (persistent, many per job)** — same lifecycle as `FeaturePreset`:
+  several **named saved configs per job** so you keep what you tested and can review
+  it instead of guessing again; one is `active`/promoted. Each carries its candidate
+  switch set (`job_preset_switches`). Build a `JobPreset` store +
   `make_job_presets_router` mirroring `make_feature_presets_router`.
-- **Promote** — writes the job's production **model** (the `job_routes` row) **and
-  its switches** (the `scope='job'` override). After promote, dispatch resolves
-  that job to the promoted model+switches.
-- **Routing by feature** (the existing `FeatureWorkbench`) stays as the **rare
-  per-action fine-tune** — it gains the per-feature switch override (the
-  `scope='feature'` layer).
+- **Promote** — writes the job's production **model** (`job_routes`) **and its
+  switches** (`job_route_switches`). After promote, dispatch resolves that job to the
+  promoted model+switches.
+- **Routing by feature** (the existing `FeatureWorkbench`) holds the **per-feature
+  controls**: the job-classification **dropdown** (§2.3, writes `feature_jobs`) + the
+  explicit-model override + the rare per-feature switch override (`pin_switches`).
 
 Is the lab a NEW component or the **same Compare** parameterized by `unit`
 (action vs job)? Lean: **one Compare component, `unit`-parameterized** (RULE #7).
@@ -310,12 +338,14 @@ Confirm when building #21.
 | **Recommendations** | `model_recommendations` job-tagged (`models.py:604-619`) | unchanged (already job-keyed) |
 | **Job → model map** | 2 fixed columns `quick_*`/`accuracy_*` on `routing_configs` (`models.py:644-647`) | **`job_routes` child table** `(config_id, job) → provider_id, model` (mirrors `routing_pins`) |
 | **Job → switch override** | — | NEW `job_route_switches (config_id, job, flag_name)`, FK→`job_routes` CASCADE |
-| Per-feature pin | `routing_pins` `(config_id, feature) → provider_id, model, role` (`models.py:650-663`) | `role` column → **`job`**; same shape |
+| Per-feature pin | `routing_pins` `(config_id, feature) → provider_id, model, role` (`models.py:650-663`) | `role` column **DROPPED**; pin = explicit `(provider, model)` override only |
 | Per-feature switch override | — | NEW, rare `pin_switches (config_id, feature, flag_name)`, FK→`routing_pins` CASCADE |
 | Switch store/shape/router | shared `SwitchRow`/`ModelSwitchStore`/`make_switches_router` (`model_catalog_api.py:99-155`) | **unchanged** — ONE generic store serves all switch tables (no logic duplication) |
-| Feature catalog | `FeatureCatalogEntry {…, role, category}` (`routing_api.py:88-98`; data `feature_catalog.py:25-53`) | `role` → **`job`** |
-| Dispatch role machinery | `LLMRolesSettings {quick, accuracy}`, `FeaturePinConfig.role`, `LLMConfig.{llm_roles, default_feature_roles}`, `_resolve_role` (`schema.py:60-118`, `dispatch.py:46-57`) | role → **job**: `LLMJobsSettings {jobs: dict}`, `FeaturePinConfig.job`, `LLMConfig.{llm_jobs, default_feature_jobs}`, `_resolve_job` |
-| Wire shapes | `RoleTarget`, `RoutingConfig.{quick,accuracy}`, `FeaturePin.role`, `FeatureRow.{defaultRole,role}`, `RoutingResponse.{quick,accuracy}` (`routing_api.py:29-77`) | `JobTarget`, `RoutingConfig.jobs`, `FeaturePin.job`, `FeatureRow.{defaultJob,job}`, `RoutingResponse.jobs` |
+| Feature catalog (the LIST) | `FeatureCatalogEntry {…, role, category}` (`routing_api.py:88-98`; `feature_catalog.py:25-53`) | drops `role` — stays the **app-defined list of features** (+ label/hint/category) |
+| **Job list** | — | NEW `jobs (job_key → label, description, position, built_in)` — seeded 4-guess, **user CRUD** |
+| **Feature → job map** | hardcoded `feature.role` + `DEFAULT_FEATURE_ROLES` | NEW `feature_jobs (feature_key → job_key, built_in)` — seeded best-guess, **editable per-feature dropdown** |
+| Dispatch role machinery | `LLMRolesSettings {quick, accuracy}`, `FeaturePinConfig.role`, `LLMConfig.{llm_roles, default_feature_roles}`, `_resolve_role` (`schema.py:60-118`, `dispatch.py:46-57`) | `LLMJobsSettings {jobs: dict}` (job map); **`FeaturePinConfig.role` DROPPED** (explicit-only pin); `LLMConfig.{llm_jobs, feature_jobs}` (latter built from the `feature_jobs` table); `_resolve_role→_resolve_job` |
+| Wire shapes | `RoleTarget`, `RoutingConfig.{quick,accuracy}`, `FeaturePin.role`, `FeatureRow.{defaultRole,role}`, `RoutingResponse.{quick,accuracy}` (`routing_api.py:29-77`) | `JobTarget`, `RoutingConfig.jobs` (dict), **`FeaturePin.role` DROPPED** (`{providerId, model}`), `FeatureRow.{defaultJob,job}`, `RoutingResponse.jobs` |
 | Job lab presets | — (`FeaturePreset` exists for actions) | NEW `JobPreset` + router, mirrors `FeaturePreset` |
 | **DB migration** | — | **drop + reseed, no migration** (`2026-06-18-unified-storage-no-idb.md:45-49`) |
 
@@ -328,44 +358,59 @@ Confirm when building #21.
   LLMJobTarget`; `LLMRolesSettings{quick,accuracy}→LLMJobsSettings{jobs:dict}`;
   `LLMConfig.llm_roles→llm_jobs`, `.default_feature_roles→.default_feature_jobs`.
 - `dispatch.py:46-57,85-88,126-140` — `_resolve_role→_resolve_job` (getattr →
-  dict lookup); the role legs of `resolve_pin`/`_resolve_action_override` → job.
+  dict lookup over the job map); **REMOVE** the pin's role legs in
+  `resolve_pin`/`_resolve_action_override` (`:85-88,129-132` — pin is explicit-only);
+  the `default_feature_roles` leg (`:136-140`) becomes feature → job (from
+  `feature_jobs`) → job route.
 - `routing_api.py:29-98` — `RoleTarget→JobTarget`; `RoutingConfig.{quick,
-  accuracy}→jobs`; `FeaturePin.role→job`; `FeatureRow.{defaultRole,role}→
-  {defaultJob,job}`; `FeatureCatalogEntry.role→job`; the GET merge at `:109-126`.
-- NEW: a job catalog (the ~4-job shipped list) + `JobPreset` shape/store/router
-  mirroring `feature_presets_api.py`.
+  accuracy}→jobs` (dict); **`FeaturePin.role` DROPPED** (explicit-only);
+  `FeatureRow.{defaultRole,role}→{defaultJob,job}`; **`FeatureCatalogEntry.role`
+  removed**; the GET merge at `:109-126` joins `feature_jobs`.
+- NEW shared shapes/Protocols/routers (the `RoutingStore` pattern): a **`jobs`**
+  list (user CRUD), a **`feature_jobs`** map (seeded + editable), and a `JobPreset`
+  save/load mirroring `feature_presets_api.py`.
 - The merge mechanism (`lifecycle.py:68-79`) is **already built** — no change.
 
 **JW host (`justwrite-app/server/justwrite_server/`):**
 - `models.py:644-647` — drop the `quick_*`/`accuracy_*` columns; add `job_routes`.
-- `models.py:650-663` — `routing_pins.role → job`.
+- `models.py:650-663` — `routing_pins` **drops `role`** (pin = explicit provider+model).
 - `models.py:579-598` — `model_switches` unchanged; ADD `job_route_switches` +
   `pin_switches` sibling child tables (each a CASCADE FK to its parent), served by
   the existing shared `SwitchRow`/`ModelSwitchStore`/`make_switches_router` via one
   generic store (§6.4).
-- `feature_catalog.py:25-53` — set each feature's `job` (replaces `role`); map all
-  19 to the chosen ~4-job set (the §2.2 content decision).
-- `seed.py` — seed the job catalog + `job_routes` defaults; the switch seeders
-  adopt the chosen storage layout.
-- the routing store + `config.py` `LLMConfig` builder — role→job field names.
+- `feature_catalog.py:25-53` — **remove the per-feature `role`** (the list stays;
+  job moves to data).
+- `seed.py` — NEW `DEFAULT_JOBS` (the 4-guess) + `DEFAULT_FEATURE_JOBS` (best-guess
+  mapping of all 19) + `job_routes` defaults — all merge-by-key seeders; the new
+  switch tables seed alongside `model_switches`.
+- NEW JW tables + stores: `jobs`, `feature_jobs`, `job_routes` (+ switches),
+  `job_presets` (+ switches). The routing store + `config.py` `LLMConfig` builder
+  read jobs/feature-jobs instead of roles.
 
 **Shared UI (`just-llm-runner/ui/src/`):**
 - `AiModelsArea.vue:140-145` — add "Routing by job" tab, rename "Features" →
   "Routing by feature".
-- `QuickSetup.vue` — role pickers → job pickers (same wizard shape, ~4 buckets).
-- `FeatureWorkbench.vue` — "Set all" cascade becomes per-job; gains the
-  per-feature switch override.
+- `QuickSetup.vue` — role pickers → **job pickers iterated from the editable `jobs`
+  list** (not a fixed set).
+- `FeatureWorkbench.vue` (*Routing by feature*) — per feature: a **job dropdown**
+  (writes `feature_jobs`) + the model picker (inherit/explicit) + the rare switch
+  override; "Set all" becomes per-job. Plus a small **job-list editor** (add/rename/
+  remove jobs).
 - NEW: the job **Compare** (#21) — ideally the same Compare component
   parameterized by `unit`.
 
 ---
 
-## 11. Build order (after you pick the §6.4 storage option + the §2.2 job set)
-1. **Job set + `feature.job`** — choose the ~4 jobs, map all 19 features, set them
-   in `feature_catalog.py` + the job catalog + seed. (Content; no behavior yet.)
+## 11. Build order
+*(Switch storage = §6.4 FK child tables; jobs + feature→job ship as editable seed
+data we refine in-app — nothing blocks step 1.)*
+1. **Jobs + feature→job as editable data** — NEW `jobs` (seeded 4-guess, CRUD) +
+   `feature_jobs` (seeded best-guess mapping of all 19, per-feature dropdown) tables +
+   stores + seeders; remove `role` from `feature_catalog.py`. (The mapping is a guess
+   we refine in-app, not a blocking content decision.)
 2. **role → job across the seam** — `schema.py`/`dispatch.py`/`routing_api.py` +
-   JW `routing_configs`→`job_routes`, `routing_pins.role→job`, the store +
-   `config.py`. QuickSetup pickers. *(Drop+reseed; pytest + ruff + smoke.)*
+   JW `routing_configs`→`job_routes`, drop `routing_pins.role`, the store +
+   `config.py`. QuickSetup job pickers. *(Drop+reseed; pytest + ruff + smoke.)*
 3. **Switches layered** — implement the chosen storage (§6.4), wire the
    `merge(model, job, feature)` resolution into the runner spawn path (the
    `_merge_overrides` chain already exists). Seed per-job defaults.
@@ -380,11 +425,19 @@ Verification each step: `pytest` + `ruff` (server) + headless smoke (renderer).
 
 ---
 
-## 12. Still OPEN (need you)
-- **(a) §6.4 — confirm the switch storage: FK-backed child tables + one shared
-  generic store (my reasoned recommendation), or push back.**
-- **(b) §2.2 — the exact job set + mapping all 19 features to one job each.**
-- (c) §8 — job lab = new component or the same Compare parameterized by `unit`
-  (lean: shared component).
+## 12. Still OPEN (smaller points — none block the build)
+- **(a) §2.2 — job-deletion integrity:** keep one **un-deletable default job** +
+  **block delete while a job is in use** (or reassign-on-delete)? *(My recommendation;
+  confirm.)*
+- **(b) §8/§2.9 — the job's test-prompt source:** a `test_feature` column on the
+  `jobs` row (which feature's prompt Compare borrows, editable), or pick one per
+  Compare run? *(Lean: a `test_feature` on the job row.)*
+- (c) §8 — job lab = new component or the **same Compare** parameterized by `unit`
+  *(lean: shared component)*.
+- (d) §2.2 — feature→job scope: **GLOBAL** (one classification) vs per-routing-config
+  *(lean: global — a feature's task type doesn't change between presets)*.
 
-Everything else above is settled design.
+**Settled:** switch storage (§6.4 FK child tables) · jobs + feature→job are
+user-editable seed data (§2.2) · per-feature override is explicit-model-only (§2.3) ·
+JobPreset is persistent (§2.7). The feature→job mapping is a best-guess we seed and
+refine in-app — not a blocking decision.
