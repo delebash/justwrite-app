@@ -33,64 +33,43 @@ map, what's done/left, how to verify). Below is just the map.
   switches layer UNDER user `Overrides` at spawn. 35B-MoE seeds `spec_type=none`
   (spec hurts MoE); 27B-dense `spec_type=draft-mtp`. Verified live + 98+83 pytest.
   Commits: runner `490e7a5`, JW `c70d44c`.
-- **🆕 JOBS ARCHITECTURE (2026-06-25 design — DESIGN, not built; REVISED — switches
-  reconciled).** ➡️ `docs/plans/2026-06-25-jobs-architecture-design.md` (rewritten —
-  read it). Decided: **`job` REPLACES `role`** as the routing unit. **Jobs are a
-  USER-EDITABLE list** (add/rename/remove), seeded with a 4-guess (chat/prose/extraction/
-  analysis — NOT locked at 4). Each **feature → job** is **seeded best-guess + editable per
-  feature via a dropdown** (we may have guessed wrong) — so the job leaves the hardcoded
-  `feature_catalog.py` and lives in editable data. **⛔ STANDING PRINCIPLE (user): no
-  hardcoded routing/classification — seeded, user-editable data** (like catalog/switches/recs).
-  **Per-feature override = EXPLICIT MODEL ONLY** (the pin DROPS `role`; resolve LIVE, never
-  copy — changing a job's model is ONE write, features show it via live inheritance). `job` =
-  the ONE concept: routing + `model_recommendations.job` tag + Compare unit.
-  - **Storage:** job→model map = **`job_routes` child table** `(config_id, job)` replacing the
-    2 fixed `quick_*`/`accuracy_*` columns (mirrors `routing_pins`); `routing_pins` **drops
-    `role`** (explicit-only). NEW editable tables: **`jobs`** (CRUD list) + **`feature_jobs`**
-    (seeded mapping). Role machinery role→job across `schema.py`/`dispatch.py`/`routing_api.py`
-    (`LLMRolesSettings{quick,accuracy}`→`LLMJobsSettings{jobs:dict}`; `FeaturePinConfig.role`
-    dropped; `default_feature_roles`→`feature_jobs`).
-  - **⭐ SWITCHES — CORRECTED (the old "stay per-model" line was WRONG).** Switches are
-    Plane-1 load-time and **LAYERED**: `model_switches` (built) = the **base default**
-    (model-intrinsic, e.g. MoE→spec:none) + a **per-job override** (NEW: chat ctx 8k vs
-    analysis ctx 32k) + a rare **per-feature override** (NEW) — merged by the **already-built**
-    `_merge_overrides` (`lifecycle.py:68-79`). So the **same model can run different switches
-    per job**; each distinct (model+switches) = its own router load (hot-swap test
-    `2026-06-24-llamacpp-switches.md:460-482`); identical combos dedup to one load. A
-    **residency manager** (= the VRAM-budget planner, #29) sets `--models-max` from detected
-    VRAM: big card → co-resident, 1-model card → reload-on-switch. This was the ORIGINAL
-    two-planes design (`:232-241`), NOT a fork.
-  - **⭐ SWITCH BASE = TYPE PRESETS (think-twice finding, §6.5).** The switch BASE is NOT a
-    per-model copy — it's **capability/type presets**. The app ALREADY half-does this:
-    `flagPresets.base` + `flagPresets.mtp` (`if model.mtp`, `process.py:243-244`), `is_moe`→
-    `n_cpu_moe` (`process.py:216-223`). Two fixes (both = "no hardcoded"): (1) move `flagPresets`
-    from **hardcoded JSON** (`runner-manifest.json:49-57`) → seeded-editable `switch_presets`
-    table (the last config left un-migrated after the catalog→DB cutover); (2) add a **`moe`
-    preset** + an editable model **`type`** field so "MoE→spec:none/no_mmap" lives ONCE (not the
-    per-model `seed.py:166` override copied onto every MoE model). Resolution: `base → type
-    preset → mtp → per-model override → job → feature`, merged; computed fit (`n_cpu_moe`/`ngl`)
-    stays in `process.py` (not stored). `model_switches` becomes the RARE per-model exception.
-  - **Job lab** = multi-column Compare (#21, never built) at job grain — each column = model +
-    switch set + the job's test prompt (**reuse a representative feature's prompt**) — +
-    **persistent JobPreset** (confirmed: save several named configs per job so you keep what
-    you tested; mirrors `FeaturePreset` save/active/promote, carries its switch set) → promote
-    writes the job's live model + switches. **Naming:** add **"Routing by job"** tab LEFT of
-    **"Routing by feature"** (renamed from "Features", `AiModelsArea.vue:140-145`).
-  - **SETTLED:** switch storage = **FK-backed child tables** (`model_switches` stays +
-    `job_route_switches` + `pin_switches`, each a CASCADE FK) served by ONE shared generic
-    store (preserves the referential integrity we already have; logic shared via the existing
-    `SwitchRow`/Protocol/`make_switches_router`; the earlier "unified table / least-code" rec
-    was a proxy, rejected on merits). Jobs+feature-jobs = editable seed data. Per-feature
-    override = explicit-only. JobPreset = persistent.
-  - **OPEN (smaller, non-blocking):** (a) job lifecycle — GROUNDED in `provider_api.py:184`
-    (id immutable so renames don't orphan refs) + `provider_api.py:199-206`/`dispatch.py:121-124`
-    (allow delete, graceful fallback): rec = **immutable `job_id` + editable label + allow delete
-    + orphans fall back to a guaranteed default job** (CORRECTS the earlier un-grounded
-    "block-delete-while-in-use"); (b) job test-prompt source (rec: a `test_feature` on the job
-    row); (c) lab = new vs shared `unit`-Compare; (d) feature→job scope global vs per-config
-    (rec: global). Hardcoded re-audit (§13): `flagPresets`+`vramFit` still hardcoded JSON →
-    `switch_presets` to DB (the only real finding); `prefer_local_features` a flag candidate.
-    **Plan presented for verification before any build.**
+- **🆕 JOBS ARCHITECTURE + DATA-DRIVEN SWITCHES — DESIGN COMPLETE → BUILDING.**
+  ➡️ **AUTHORITATIVE: `docs/plans/2026-06-25-jobs-architecture-design.md`** (clean rewrite —
+  read it FIRST; the bullets below are just the map). The chain: **feature → its job → the
+  job's model + switches + sampling.**
+  - **⛔ GOVERNING PRINCIPLE (user): NOTHING hardcoded.** Every value/threshold/name/mapping/
+    flag/preset lives in the **DB**, seeded + user-editable. **No `manifest.json` config, no
+    files on disk.** Code is only the engine (hardware detect · the VRAM fit formula · the flag
+    merge · process spawn). "Add a switch / change a name / change VRAM = a data edit, never code."
+  - **Three buckets:** **Facts** (model type/MoE read from the GGUF `expert_count`, `gguf.py:50-51`;
+    VRAM from the card) → drive auto-choices · **Switches** = Plane-1 CLI flags at spawn
+    (`/v1/llm-runner/load`, `api.py:141-159`) → **reload** · **Sampling** = Plane-2 per-request
+    (temp/max_tokens/JSON/think, `openai_compat.py:114-122`) → **no reload**.
+  - **Jobs** = `job` REPLACES `role`; a **user-editable list** (CRUD), seeded 4-guess
+    (chat/prose/extraction/analysis, not locked). A **job = name + provider + model + switches +
+    sampling.** Immutable `job_id` + editable label (rename free) + allow-delete + default-job
+    fallback (grounded `provider_api.py:184`, `dispatch.py:121-124`).
+  - **Features** = a **job dropdown** per feature (seeded best-guess, editable; job leaves the
+    hardcoded catalog) + per-feature override = **EXPLICIT MODEL ONLY** (pin drops `role`,
+    `routing_api.py:41-44`). Resolve LIVE, never copy.
+  - **Switches = presets by model type** (`base`/`moe`/`dense`/`mtp`/`turboquant`), seeded from
+    research, editable. **No heavy definitions table** — the only per-flag metadata is ONE bit:
+    on/off vs takes-a-value (today `_VALUE_FLAGS` vs `_set_presence`, `process.py:118-146`); a new
+    llama.cpp flag = add data, no code. **VRAM autocompute** fills the 3 fit knobs when unset;
+    **explicit value wins** (`process.py:193,196-219`); computed values **ephemeral, never stored**.
+    Merge: `base→type preset→model override→hardware rule→job→feature→live`, then autocompute
+    (existing `_merge_overrides`). Safe via OOM back-off (`process.py:347-369`).
+  - **Storage:** drop `quick_*`/`accuracy_*` columns → `job_routes`; `routing_pins` drops `role`;
+    NEW editable tables `jobs`, `feature_jobs`, `switch_presets`, `job_presets`; switch child
+    tables all FK-backed, one shared generic store; `model_switches` = rare per-model override.
+    **DELETE** `runner-manifest.json` config (`flagPresets`, dead `vramFit.tiers`); only the
+    editable safety-margin survives. Drop+reseed.
+  - **Residency mgr** (#29) sets `--models-max` (needs router mode #27). **Job lab** (#21) =
+    Compare + persistent JobPreset + promote. **GUI:** "Routing by job" + "Routing by feature"
+    tabs (+ switch-preset dropdown per row), QuickSetup iterates jobs, grow `LuModelCatalog`.
+  - **OPEN (small, non-blocking):** the one-bit home (`flag_catalog` vs per-row) · job test-prompt
+    source · lab component reuse · feature→job scope. **⚠️ role→job touches the SHARED dispatch
+    that JV imports — verify JV before the breaking-rename phase (build phase 2).**
 - **⭐ NEXT build (#30): the editor UI gap.** NO UI edits `/v1/ai/model-catalog` or
   `/v1/ai/model-switches` yet (only `/v1/ai/recommendations` has an editor tab). NO new
   "Models tab" — grow **`LuModelCatalog`** (the bundled-model list inside the provider
