@@ -156,13 +156,17 @@ def create_app(data_dir: Path | None = None) -> FastAPI:
     # plus the provider-CRUD router backed by JustWrite's `LlmProvider`-table
     # ProviderStore. Replaces the old bulk GET/PUT `api/llm_providers.py`.
     from llm_runner.llm import (
+        make_catalog_router,
         make_feature_presets_router,
         make_feature_router,
         make_prompt_router,
         make_recommendations_router,
         make_routing_presets_router,
         make_routing_router,
+        make_switches_router,
     )
+    from llm_runner.runner.lifecycle import configure_service as _configure_runner
+    from llm_runner.runner.schema import ModelEntry, RecommendedFor
     from llm_runner.llm.api import router as llm_shared_api_router
     from llm_runner.llm.provider_api import make_provider_router
 
@@ -170,6 +174,10 @@ def create_app(data_dir: Path | None = None) -> FastAPI:
     from .llm.config import llm_config
     from .llm.feature_preset_store import get_feature_preset_store
     from .llm.prompt_store import get_prompt_store
+    from .llm.model_catalog_store import (
+        get_model_catalog_store,
+        get_model_switch_store,
+    )
     from .llm.provider_store import get_provider_store
     from .llm.recommendation_store import get_recommendation_store
     from .llm.routing_store import get_routing_preset_store, get_routing_store
@@ -195,6 +203,39 @@ def create_app(data_dir: Path | None = None) -> FastAPI:
     # over JW's model_recommendations table. CRUD + reset endpoints:
     # GET/PUT/DELETE /v1/ai/recommendations + POST /v1/ai/recommendations/reset.
     app.include_router(make_recommendations_router(get_recommendation_store))
+    # DB-backed bundled-llama.cpp catalog + per-model spawn-flag switches —
+    # replaces the deleted manifest `models` array. /v1/ai/model-catalog +
+    # /v1/ai/model-switches CRUD; consumed by QuickSetup + RecommendationsEditor.
+    app.include_router(make_catalog_router(get_model_catalog_store))
+    app.include_router(make_switches_router(get_model_switch_store))
+
+    # Wire the shared RunnerService singleton to read the catalog + per-model
+    # switches FROM JW's DB (replacing the runner's manifest fallback). The
+    # catalog_fn returns ModelEntry objects (the runner's existing dataclass
+    # shape); switches_fn returns a {flag_name: flag_value} dict the lifecycle
+    # parses into Overrides that layer UNDER user-supplied Overrides at /load.
+    def _jw_catalog_fn() -> list[ModelEntry]:
+        return [
+            ModelEntry(
+                id=r.id, name=r.name, tier=r.tier,
+                hf_repo=r.hfRepo, quant=r.quant, mmproj=r.mmproj,
+                total_params=r.totalParams or None,
+                active_params=r.activeParams or None,
+                mtp=r.mtp,
+                min_ram_mb=r.minRamMb,
+                recommended_for=RecommendedFor(min_vram_mb=r.minVramMb),
+            )
+            for r in get_model_catalog_store().list()
+        ]
+
+    def _jw_switches_fn(model_id: str) -> dict[str, str]:
+        return {
+            s.flagName: s.flagValue
+            for s in get_model_switch_store().list()
+            if s.modelId == model_id
+        }
+
+    _configure_runner(catalog_fn=_jw_catalog_fn, switches_fn=_jw_switches_fn)
 
     # Headless UI — serve the Vite build (dist/) so `justwrite-server serve` + a
     # browser at the server's origin gives the full app WITHOUT the Tauri shell

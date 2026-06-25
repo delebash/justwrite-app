@@ -542,6 +542,62 @@ class LlmUsage(Base):
     meta = Column(Text, nullable=False, default="{}")           # JSON
 
 
+# ── Built-in llama.cpp catalog (the DB-backed source of truth) ──────────
+#
+# The runner's downloadable model catalog moved off `runner-manifest.json` into
+# this table — so a user can add/edit/curate models without re-shipping the
+# manifest. `runner-manifest.json` keeps only ship data (`llamacpp.binaries`,
+# `flagPresets`, `vramFit`). QuickSetup + the model download list + the runner's
+# /v1/llm-runner/models endpoint all read from this one source. Companion table
+# `model_recommendations` carries the many-per-model job-tag curation.
+
+
+class ModelCatalog(Base):
+    """One downloadable llama.cpp model — catalog fields only. Catalog drives
+    download (`hf_repo` + `quant` resolve a GGUF on HuggingFace; `mmproj` for
+    multimodal) and Fit (`min_vram_mb`/`min_ram_mb`). Per-model switch overrides
+    live in the `model_switches` child table (variable-cardinality, normalized).
+    `built_in` marks seeded rows so the editor can offer 'reset to factory'."""
+
+    __tablename__ = "model_catalog"
+
+    id = Column(String, primary_key=True)
+    name = Column(String, nullable=False, default="")
+    hf_repo = Column(String, nullable=False, default="")
+    quant = Column(String, nullable=False, default="")
+    mmproj = Column(String, nullable=True)  # null = text-only, else mmproj filename
+    total_params = Column(String, nullable=False, default="")   # "35B" etc.
+    active_params = Column(String, nullable=False, default="")  # MoE active count
+    mtp = Column(Boolean, nullable=False, default=False)        # multi-token-prediction GGUF
+    min_vram_mb = Column(Integer, nullable=True)
+    min_ram_mb = Column(Integer, nullable=True)
+    tier = Column(String, nullable=False, default="mid")        # cpu|low-vram-moe|mid|high
+    built_in = Column(Boolean, nullable=False, default=False)
+    position = Column(Integer, nullable=False, default=0)
+
+
+class ModelSwitch(Base):
+    """Per-model llama.cpp spawn-flag override — the variable-cardinality child
+    of `model_catalog`. PK (model_id, flag_name); `flag_value` is text (the
+    runner parses it into the typed `Overrides` field). At spawn, these layer
+    UNDER any user-supplied Overrides (user wins per-field). Examples seeded:
+    35B MoE → spec_type=none (override the mtp:true → draft-mtp default; our
+    research found spec hurts MoE) + no_mmap=true; 27B dense MTP → spec_type=
+    draft-mtp + spec_n_max=3. Names mirror `Overrides` (process.py:44-80) so
+    they map 1:1. `built_in` marks seeded rows."""
+
+    __tablename__ = "model_switches"
+
+    model_id = Column(
+        String,
+        ForeignKey("model_catalog.id", ondelete="CASCADE"),
+        primary_key=True,
+    )
+    flag_name = Column(String, primary_key=True)   # e.g. "spec_type", "no_mmap"
+    flag_value = Column(Text, nullable=False, default="")  # parsed by the runner
+    built_in = Column(Boolean, nullable=False, default=False)
+
+
 # ── Model recommendations (per-model job-tag curation, QuickSetup Q3 layer) ──
 
 

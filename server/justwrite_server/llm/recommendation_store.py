@@ -70,14 +70,22 @@ class JwRecommendationStore:
             db.close()
 
     def reset_to_factory(self) -> None:
-        # Delete every built_in row + re-seed the factory list. User-added rows
-        # (built_in=False) are preserved — the editor's "reset" is FACTORY reset,
-        # not a wipe of the user's own picks.
-        from ..seed import seed_default_recommendations  # local import to avoid cycle
+        # Reset = restore the FACTORY values for every (model_id, job) pair that
+        # ships in DEFAULT_RECOMMENDATIONS, whether the user has touched it or
+        # not. User-ADDED rows (keys NOT in the factory list) are preserved.
+        # Previous bug: filtering by built_in=True caused user-EDITED factory
+        # rows to never be restored (their edit cleared built_in, so reset
+        # skipped them).
+        from ..seed import DEFAULT_RECOMMENDATIONS, seed_default_recommendations  # local import to avoid cycle
 
         db = _session()
         try:
-            db.query(ModelRecommendation).filter(ModelRecommendation.built_in.is_(True)).delete()
+            factory_keys = {(r["model_id"], r["job"]) for r in DEFAULT_RECOMMENDATIONS}
+            for mid, job in factory_keys:
+                row = db.get(ModelRecommendation, (mid, job))
+                if row is not None:
+                    db.delete(row)
+            db.flush()
             seed_default_recommendations(db)
             db.commit()
         finally:
