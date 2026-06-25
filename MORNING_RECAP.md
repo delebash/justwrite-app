@@ -17,15 +17,20 @@ LLM engine to the GUI + a Compare surface, so models/switches can be tested on r
 - ✅ **#19 DONE** — `Overrides` plumbed through `POST /v1/llm-runner/load`
   (`LoadRequest` → `Overrides` → `compose_flags` replace-merge → `start_runner`); 98
   tests pass, ruff clean. Committed (just-llm-runner `e5cecef`).
-- ⏳ **CORRECTED DEEP-RESEARCH RUNNING** (run `wf_41866140-cef`, launched 2026-06-24,
-  during the user's break). The FIRST run `wf_11fa0bf3-5ad` was mis-scoped (6–8 GB +
-  generic facts). The corrected run covers the FULL spectrum (CPU-only / 8 GB MIN / 12 /
-  16 / 24 GB+ NVIDIA / **Apple Silicon unified memory** × 16/32+ GB RAM), the
-  serving/switching ARCHITECTURE + **adopt-vs-build** (how Ollama/LM Studio/GPUStack/etc.
-  implement auto-config + switching), **TTS+LLM+embedding VRAM coordination**, per-task
-  model recs by benchmark, and MoE-vs-dense extraction QUALITY + quant/context/structured-
-  output. **PICKUP when it lands: I write the verified tier matrix + the server design
-  (§4/§5 of the brief), then drive #27/#11/#20/#25/#18.** ➡️ **PICKUP doc:**
+- ✅ **CORRECTED DEEP-RESEARCH DONE** (run `wf_41866140-cef`, 106 agents) → saved
+  `just-llm-runner/docs/plans/2026-06-25-serving-architecture-research.md`. Nailed the
+  ARCHITECTURE/adopt answer; the per-tier MEASURED numbers + model-by-benchmark picks did
+  **NOT** survive verification (still open → a follow-up research pass + the user's own
+  Compare fill them). **DESIGN DRAFTED** (brief §4B): detect → **VRAM-budget planner we
+  BUILD** (adopt **`gguf-parser`** for fit — replaces hand-rolled `fit.py`/`compute_fit`) →
+  coordination via **ADOPT `llama-swap`** (one proxy fronts LLM+embedding+**TTS**, with
+  keep-resident/evict_cost/ttl — the only option that natively coordinates JV's TTS+LLM)
+  — RECOMMENDED over building on router mode. **⚠️ ONE FORK TO CONFIRM with user: adopt
+  llama-swap (bundle a Go sidecar) vs build on llama.cpp router mode (native, llama.cpp-only,
+  more to build).** Apple Silicon special (unified-mem budget ~66–75 %, NO `--n-cpu-moe`
+  benefit, bandwidth-bound). GPUStack v0.x = the production precedent. **PICKUP:** confirm
+  the fork → build planner+detection+(llama-swap|router) → fill model picks/measured numbers
+  via Compare (#21). ➡️ **PICKUP doc:**
   `just-llm-runner/docs/plans/2026-06-24-server-model-management-brief.md` — has the
   corrected scope, the **VERIFIED code grounding** (RunnerService spawn-per-model;
   llama.cpp router mode; JV `EngineManager` per-kind SUBPROCESS slots; JV LLM =
