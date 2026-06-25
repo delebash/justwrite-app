@@ -9,6 +9,30 @@
 
 ## ⮕ ACTIVE WORK — read first (2026-06-24)
 
+### ⮕ NARROWED STEP (2026-06-25 — user: "one step at a time, stop doing too many things")
+**Scope: JW ONLY, NVIDIA ONLY.** Question: how JW swaps models per task + QuickSetup.
+(JV, Mac/Linux, the tuning UI / Compare — all DEFERRED until the JW workflow is right.)
+**Operating mode (user, zero-trust):** I do NOT drive/decide — I present grounded
+recommendations (receipt + counter-case); the USER decides. (See rules-reminder.)
+- **quick vs accuracy = DIFFERENT models** (user confirmed — NOT think-on/off; that's
+  the whole point of model-based routing, swapping models per task).
+- **GROUNDED FINDING (verified this session):** JW dispatch already routes each task/role
+  → its own model (`dispatch.py` resolve_pin: action→quick/accuracy role→default), mounts
+  the runner (`app.py:153`), + has a `local-llamacpp` provider at `127.0.0.1:8080`
+  (`seed.py:49-50`). **BUT the runner spawns SINGLE-model** (`process.py:250` `-m`, no
+  `--models-dir`) and there is **NO auto-load** (no `/v1/llm-runner/load` callers in the
+  task path, no `ensure_load` in dispatch) → **local model-based routing does NOT swap
+  models today** (the one loaded model serves every task regardless of the request's
+  `model` field). The routing is wired; the local runner can't honor it yet.
+- **AWAITING USER DECISION (the fork):** (a) move the JW local runner to llama.cpp
+  **ROUTER MODE** (`--models-dir`/`--models-preset`/`--models-max`; routing then swaps
+  models live; `--models-max 1` on 8GB, higher on bigger) — my recommendation; OR (b)
+  keep single-model + **auto-load** orchestration (stop+respawn per cross-model task —
+  slower, more code). Per-model switch *tuning* stays #19's single-model `/load` path
+  either way. Then **QuickSetup** = pick quick/accuracy/embedding models (editable,
+  Fit-filtered) → write routing roles → configure the runner (`--models-max` by VRAM) →
+  download. (8GB = our MIN; 6GB was the video example.)
+
 ### ⭐ CURRENT FOCUS — engine switches + all LLM settings, so we can TEST MODELS
 The user wants to move from docs → BUILD: expose everything configurable about the
 LLM engine to the GUI + a Compare surface, so models/switches can be tested on real text.
@@ -23,11 +47,14 @@ LLM engine to the GUI + a Compare surface, so models/switches can be tested on r
   **NOT** survive verification (still open → a follow-up research pass + the user's own
   Compare fill them). **DESIGN DRAFTED** (brief §4B): detect → **VRAM-budget planner we
   BUILD** (adopt **`gguf-parser`** for fit — replaces hand-rolled `fit.py`/`compute_fit`) →
-  coordination via **ADOPT `llama-swap`** (one proxy fronts LLM+embedding+**TTS**, with
-  keep-resident/evict_cost/ttl — the only option that natively coordinates JV's TTS+LLM)
-  — RECOMMENDED over building on router mode. **⚠️ ONE FORK TO CONFIRM with user: adopt
-  llama-swap (bundle a Go sidecar) vs build on llama.cpp router mode (native, llama.cpp-only,
-  more to build).** Apple Silicon special (unified-mem budget ~66–75 %, NO `--n-cpu-moe`
+  coordination — **CORRECTED 2026-06-25 (user-caught my bad advice):** llama-swap does
+  NOT manage our TTS (JV's TTS = custom `EngineProcess` API, not OpenAI `/v1/audio/speech`;
+  llama-swap only manages OpenAI-compatible upstreams) → its TTS edge is MOOT. **Cross-kind
+  TTS↔LLM VRAM coordination is OURS to BUILD** (planner orchestrates the LLM runner ⟷ JV
+  `EngineManager` under one budget — no tool does cross-subsystem VRAM arbitration). LLM-swap
+  mechanism: **router mode (native) likely sufficient**; llama-swap only if we want
+  backend-agnostic (non-llama.cpp) LLM serving. The error was a synthesis mistake (had both
+  facts, didn't connect them), not a research gap. Apple Silicon special (unified-mem budget ~66–75 %, NO `--n-cpu-moe`
   benefit, bandwidth-bound). GPUStack v0.x = the production precedent. **PICKUP:** confirm
   the fork → build planner+detection+(llama-swap|router) → fill model picks/measured numbers
   via Compare (#21). ➡️ **PICKUP doc:**
