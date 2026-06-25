@@ -10,28 +10,37 @@
 ## ⮕ ACTIVE WORK — read first (2026-06-24)
 
 ### ⮕ NARROWED STEP (2026-06-25 — user: "one step at a time, stop doing too many things")
-**Scope: JW ONLY, NVIDIA ONLY.** Question: how JW swaps models per task + QuickSetup.
-(JV, Mac/Linux, the tuning UI / Compare — all DEFERRED until the JW workflow is right.)
-**Operating mode (user, zero-trust):** I do NOT drive/decide — I present grounded
+**Scope: JW ONLY, NVIDIA ONLY.** How JW swaps models per task + QuickSetup.
+(JV, Mac/Linux, tuning UI / Compare — DEFERRED until the JW workflow is right.)
+**Operating mode (user, zero-trust):** I do NOT drive/decide — grounded
 recommendations (receipt + counter-case); the USER decides. (See rules-reminder.)
-- **quick vs accuracy = DIFFERENT models** (user confirmed — NOT think-on/off; that's
-  the whole point of model-based routing, swapping models per task).
-- **GROUNDED FINDING (verified this session):** JW dispatch already routes each task/role
-  → its own model (`dispatch.py` resolve_pin: action→quick/accuracy role→default), mounts
-  the runner (`app.py:153`), + has a `local-llamacpp` provider at `127.0.0.1:8080`
-  (`seed.py:49-50`). **BUT the runner spawns SINGLE-model** (`process.py:250` `-m`, no
-  `--models-dir`) and there is **NO auto-load** (no `/v1/llm-runner/load` callers in the
-  task path, no `ensure_load` in dispatch) → **local model-based routing does NOT swap
-  models today** (the one loaded model serves every task regardless of the request's
-  `model` field). The routing is wired; the local runner can't honor it yet.
-- **AWAITING USER DECISION (the fork):** (a) move the JW local runner to llama.cpp
-  **ROUTER MODE** (`--models-dir`/`--models-preset`/`--models-max`; routing then swaps
-  models live; `--models-max 1` on 8GB, higher on bigger) — my recommendation; OR (b)
-  keep single-model + **auto-load** orchestration (stop+respawn per cross-model task —
-  slower, more code). Per-model switch *tuning* stays #19's single-model `/load` path
-  either way. Then **QuickSetup** = pick quick/accuracy/embedding models (editable,
-  Fit-filtered) → write routing roles → configure the runner (`--models-max` by VRAM) →
-  download. (8GB = our MIN; 6GB was the video example.)
+
+**➡️ FULL SESSION DETAIL + HANDOFF:** `docs/plans/2026-06-25-llm-catalog-db-cutover.md`
+(read it first next session — has the Q1/Q2/Q3 model, every decision + why, the file
+map, what's done/left, how to verify). Below is just the map.
+
+- **quick vs accuracy = DIFFERENT models** (NOT think-on/off — the point of model-based routing).
+- **✅ ROUTER MODE — CONFIRMED** (user) for per-task swapping. Hot-swap mechanism
+  empirically verified (`just-llm-runner/docs/plans/2026-06-24-llamacpp-switches.md`
+  §Lifecycle). **Decided but NOT yet implemented** — the runner still spawns
+  single-model; building the `--models-preset` launch in `RunnerService` is **task #27**.
+- **✅ CATALOG / SWITCHES / RECOMMENDATIONS → DB (DONE this session).** The downloadable
+  model catalog moved OFF `runner-manifest.json` (now `models:[]`) INTO host DB tables:
+  `model_catalog` + `model_switches` (normalized child) + `model_recommendations`
+  (job tags). Shared `Protocol`+router per table (the `RoutingStore` pattern); JW stores
+  + merge-by-id seeders; runner reads via injected `catalog_fn`/`switches_fn`
+  (`configure_service` at boot). `/v1/llm-runner/models` is now DB-backed. Per-model
+  switches layer UNDER user `Overrides` at spawn. 35B-MoE seeds `spec_type=none`
+  (spec hurts MoE); 27B-dense `spec_type=draft-mtp`. Verified live + 98+83 pytest.
+  Commits: runner `490e7a5`, JW `c70d44c`.
+- **⭐ NEXT (start here): the editor UI gap.** NO UI edits `/v1/ai/model-catalog` or
+  `/v1/ai/model-switches` yet (only `/v1/ai/recommendations` has an editor tab).
+  Build the **one-screen-per-model editor** (catalog + switches + job tags together)
+  + a **"+ Add model"** path for user-pasted HF GGUFs. Then #27 (router launch), #20
+  (tuning UI + tok/s). (8GB = our MIN; 6GB was the video example.)
+- **DB policy:** drop + reseed, no migrations (pre-release;
+  `docs/plans/2026-06-18-unified-storage-no-idb.md:45-49`). Nuke `JW_DATA_DIR` for a clean DB.
+
 
 ### ⭐ CURRENT FOCUS — engine switches + all LLM settings, so we can TEST MODELS
 The user wants to move from docs → BUILD: expose everything configurable about the
