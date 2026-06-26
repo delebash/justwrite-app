@@ -923,7 +923,7 @@ take effect at the next model load (the resolver reads these tables live). Verif
 4 preset tests; 111 runner pytest; CRUD curl (GET seeded; PUT moe +threads; reset
 restored); smoke.
 
-### 16.6 — #18 JSON + #22 top-p (runner `900e20c`) — grounds §5 (Plane-2); plan Decision 12
+### 16.6 — #18 JSON + #22 top-p (runner `900e20c`) — grounds §6.1 (the Plane-2 def); plan Decision 12
 Per-action Plane-2 via the adapter's existing `extra` hook (no Protocol change):
 `feature_prompts.json_mode` + `top_p` → FeaturePromptRow/PromptOut/PromptUpdate/
 RunRequest + `_plane2_extra` + dispatch.chat/stream_chat `extra` → OpenAICompatAdapter
