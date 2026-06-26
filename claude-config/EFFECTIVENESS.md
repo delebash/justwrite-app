@@ -48,6 +48,30 @@ tally + add any notable catches/misses to the ledger.
 
 ## Catch / miss ledger (detailed — newest first)
 
+### 2026-06-26 — v3 OBSERVATION PERIOD (ongoing — trial, user chose "live with it")
+
+The user accepted v3 (agent-as-judge at the commit boundary) on a TRIAL basis: "live with it
+a while; if it takes too much time I can go back to manually asking." So the genuine question
+now is empirical friction-vs-value. **Track here, during normal work:**
+- **(a) friction** — how long the rules-checker actually adds to a non-trivial code commit
+  (this turn: ~1–1.5 min/run, 2 runs incl. the FAIL→fix loop). Is that acceptable in practice?
+- **(b) real catches** — did the gate block a commit for a GENUINE gap? (v3 already has one: the
+  first run caught this plan-doc + recap stale — the doc-currency miss class.)
+- **(c) false fails** — did it block a *good* commit or demand busywork? (none yet.)
+- **(d) self-cert creep** — did a lazily-spawned/decoy agent let a pass slip back in? (the
+  disclosed residual.)
+If friction outweighs catches: fall back to manual asking (the proven baseline — every real
+correction this project came from the user asking), or narrow the gate to larger commits only.
+
+**First finding (immediately, this turn):** a chained `git add … && git commit …` is
+conservatively GATED even when doc-only — the PreToolUse hook fires BEFORE the `add` runs, so
+the staged tree looks empty → `_commit_files` returns nothing → it defaults to "treat as a code
+commit" (the SAFE direction: over-gate a doc commit rather than under-gate a code one).
+Workaround: run a SEPARATE `git add` first, then `git commit` (then the doc-only/code split is
+visible to the hook). Documented rather than "fixed" — parsing the `add` args from the chained
+command to predict the staged set would be fragile, and erring toward gating is correct. This is
+exactly the kind of real friction the observation period exists to surface.
+
 ### 2026-06-26 — v3: the self-certification hole (user-caught) → commit verdict comes from the AGENT
 
 The deepest catch of the project — and it was the USER, in dialogue, not any gate. After v2 I
