@@ -13,7 +13,7 @@
 **Scope: JW ONLY, NVIDIA ONLY.** How JW swaps models per task + QuickSetup.
 (JV, Mac/Linux, tuning UI / Compare — DEFERRED until the JW workflow is right.)
 **Operating mode (user, zero-trust):** I do NOT drive/decide — grounded
-recommendations (receipt + counter-case); the USER decides. (See rules-reminder.)
+recommendations (receipt + counter-case); the USER decides. (See `~/.claude/CLAUDE.md`.)
 
 **➡️ FULL SESSION DETAIL + HANDOFF:** `docs/plans/2026-06-25-llm-catalog-db-cutover.md`
 (read it first next session — has the Q1/Q2/Q3 model, every decision + why, the file
@@ -191,11 +191,28 @@ model-switching is live; only changing a SWITCH VALUE needs a (re)start. Correct
 wrong "swap = restart" claim — see switches doc "Lifecycle (CORRECTED)" + **task #27**
 (router-mode vs our spawn-per-model architecture).
 
-**Post-compaction safety net installed (2026-06-24):** a global SessionStart hook
-(`/root/.claude/settings.json` → `~/.claude/hooks/inject-recap.sh`) now re-injects the
-HEAD of this recap on every compaction/resume/startup, alongside the existing
-rules-reminder. So work-state reloads automatically. (Persists this session for sure;
-may need re-adding if the container is rebuilt — see chat.)
+**Rule + state re-read is HARD-GATED now (2026-06-26 — replaced the old soft injection).**
+The old soft SessionStart injection (`inject-recap.sh` + `rules-reminder.txt`) and the
+per-turn `verify-first.sh` reminder were DELETED — a soft reminder doesn't force
+compliance (they were present and still ignored). Replaced by hard `Stop`-gate blocks in
+`~/.claude/hooks/verify-gate.py`:
+- **Block 0 (rules/state re-read):** `~/.claude/hooks/arm-rules-gate.sh` (SessionStart —
+  fires on every startup/resume/clear/compact) arms a sentinel recording the transcript
+  length; the gate then BLOCKS the turn until `~/.claude/CLAUDE.md` + this
+  `MORNING_RECAP.md` + the project `CLAUDE.md` have EACH been `Read` IN FULL this session
+  (a real Read tool call — NOT injected: additionalContext caps at 10k chars and the rules
+  file is ~52k, so injection would silently summarize). After any memory reset you cannot
+  finish a turn without re-reading the rules + this recap. Re-arms on every reset; within a
+  continuous session it stays satisfied once read (re-reading an in-context file every turn
+  would be empty theater — the per-turn enforcement is Blocks 1-3).
+- **Block 1** code-claim-with-zero-reads-this-turn · **Block 2** storage/arch reco without a
+  cited precedent (both existing) · **Block 3** a "feature done/shipped" turn that edited
+  code but updated/cited NO doc (docs ship with features, in detail).
+- **Honest limits:** the gate forces the READ and forces a doc to EXIST; it canNOT verify
+  comprehension or that the doc is actually detailed (semantic — still on me + the rule). A
+  container REBUILD that wipes `/root/.claude` removes the hooks themselves — the env must
+  persist/re-provision them (the gate can't self-restore). Fail-open on errors + a 5-reblock
+  fail-safe so a detection bug can't brick the session.
 
 ### Feature Workbench test panel — now wired to the batch AI system (2026-06-24)
 The Features test "Run" was a bare one-shot `/v1/ai/run` (output + ms only). Now:

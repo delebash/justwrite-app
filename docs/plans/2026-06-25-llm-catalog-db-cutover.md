@@ -213,10 +213,12 @@ curl -s localhost:17495/v1/llm-runner/models  | python -m json.tool
 ## 6. Process note (the painful part, for honesty)
 This session went badly on process: I repeatedly proposed before grounding
 (JSON-vs-DB, wide-columns, one-table) and the user had to correct each. A Stop
-**verify-gate** (`~/.claude/hooks/verify-gate.py`) + per-turn injection were built
+**verify-gate** (`~/.claude/hooks/verify-gate.py`) was built
 to mechanically block "code claim with zero reads this turn" AND "storage/arch
-recommendation without a cited precedent." They're live globally + sent to the user
-as files. The deeper fix is discipline: **read the deciding file (e.g. `seed.py`
+recommendation without a cited precedent." (The soft per-turn reminder was later
+REMOVED — 2026-06-26 — and the gate extended to a rules/state re-read gate + a
+docs-with-features gate; everything is a hard gate now. See MORNING_RECAP.) They're
+live globally. The deeper fix is discipline: **read the deciding file (e.g. `seed.py`
 for "where does editable data live") BEFORE recommending, not after pushback.**
 
 ## 7. Superseded
