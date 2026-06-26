@@ -1023,7 +1023,16 @@ just stale) — only an assertion that exercises the behavior catches it. This i
 the precise, non-brittle mechanism for the stale-copy class; a generic "no
 hardcoded lists" hook would be cry-wolf (false positives on legitimate constants).
 
-### 17.2 — The broader copy-paste audit (task #33 → renumbered #32)
+### 17.2 — The broader copy-paste audit (task #33 → renumbered #32) — ⛔ DROPPED
+
+> **DROPPED (user, 2026-06-26): #32 is removed.** The centerpiece finding —
+> converging `LocationsView`↔`ObjectsView` — was rejected on the merits: they are
+> near-identical *today* but are **views likely to diverge** (location- vs
+> object-specific affordances), so folding them into one parameterized component is
+> premature abstraction that would have to be torn back apart later. Parallel views ≠
+> duplicated logic. The **jscpd reuse gate stays** as app dev-tooling for genuinely
+> copy-pasted *logic*; this audit-and-converge task does not. Historical write-up kept
+> below for context.
 
 The user's "what else did you just copy and paste?" is a real instruction: AUDIT
 the app for the stale-copy / should-be-shared class. **Task #32** = audit
@@ -1034,12 +1043,15 @@ features, categories), and any component logic copy-pasted instead of shared.
 Output = the RULE #5 per-unit strict-diff table (component | where it lives |
 should-be-shared? | live source). NOT yet done.
 
-### 17.3 — Jobs as a grid (task #33)
+### 17.3 — Jobs as a grid (task #33) — ✅ DONE (this session)
 
-The user: "make jobs a grid control not cards." The Routing-by-job tab currently
-renders one CARD per job (`RoutingByJob.vue`). Convert to a grid/table (the shared
-`UiTable`, TanStack): job | model picker | "Used for" | actions, one row per job.
-NOT yet done.
+The user: "make jobs a grid control not cards." DONE: `RoutingByJob.vue` now renders
+jobs as a `UiTable` (TanStack) — columns job | model picker | "Used for" | actions
+(Edit/Delete), one row per job — with add/edit via `AppModal`, reusing the
+`RecommendationsEditor` table+modal CRUD pattern (one pattern, not a copy). All prior
+behavior kept: Defaults (LLM + embedding), per-job model picker, add/rename/delete/
+reset, `chat` un-deletable. Verified: build:vite + headless smoke (Routing-by-job tab,
+0 JS errors) + kit jscpd 0.88% < 1.5%.
 
 ### 17.4 — The meta-decision: WHY the rules keep failing, and the only fix that works
 

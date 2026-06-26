@@ -84,6 +84,11 @@ time: present a plan → user approves → I build → user reviews → next pla
   entries** (not a chat plan) — that's what fires the plan/task events.
 
 ## Recently shipped (newest first — detail in the linked doc)
+- **#33 — Routing-by-job is a grid** (kit `RoutingByJob.vue`, this session): jobs render as a
+  `UiTable` (job · model picker · Used-for · Edit/Delete) with add/edit via `AppModal`, reusing
+  the `RecommendationsEditor` table+modal pattern (not a copy). All prior behavior kept (Defaults,
+  per-job model, add/rename/delete/reset, `chat` un-deletable). Verified: build:vite + headless
+  smoke (Routing-by-job tab renders, 0 JS errors) + kit jscpd 0.88% < 1.5%.
 - **Rules-as-checks v3 — the AGENT is the judge at commit** (claude-config `cfb4924`; obs
   note `ac80912`; LIVE): closed the self-certification hole the user found — a CODE `git
   commit` now requires a GENUINE independent rules-checker AGENT all-pass verdict
@@ -109,8 +114,8 @@ time: present a plan → user approves → I build → user reviews → next pla
 - **Recommendations dropdown fix + the reuse gate** (runner `658936e` / JW `ed3b3e6`,
   smoke-verified): the hardcoded `SUGGESTED_JOBS` became the shared **`LuJobSelect`**
   (live `/v1/ai/jobs`), converged across `RecommendationsEditor` + `FeatureWorkbench`;
-  plus **jscpd** as a copy-paste gate + `check-shared-pickers`. → design §17; the jscpd
-  findings (Locations↔Objects duplication) seed **#32**, jobs-as-grid is **#33**.
+  plus **jscpd** as a copy-paste gate + `check-shared-pickers`. → design §17. (Jobs-as-grid
+  is **#33**; the old **#32** view-convergence was DROPPED — see backlog.)
 - **Switch editors + per-action Plane-2** (runner `edeae9a`/`43a40e7`/`900e20c`):
   the **model manager** (#30 — LuModelCatalog +Add/Edit `type`+per-model switches/
   Delete/Reset), the **`switch_presets` editor** (base/moe/mtp bundles editable), and
@@ -178,11 +183,20 @@ real point — "a pro extracts a component, doesn't copy code"): adopted **jscpd
 (made JW's DEAD `threshold:10` config real at 3.5%; kit 1.5%; `npm run dup` both
 repos; in the smoke prelude) + a `check-shared-pickers` structural check (job picker
 only in `LuJobSelect`; fails on a hand-rolled copy). → design §17.5.
-- **#32 (copy-paste audit) — jscpd findings:** kit clean (0.88%); JW renderer 3.04%
-  (221 clones), dominated by **`LocationsView`↔`ObjectsView`** (near-identical entity
-  CRUD views → should be ONE parameterized component) + ImportView↔NotesView, etc.
-  Ratchet the jscpd thresholds down as these converge.
-- **#33** Routing-by-job: jobs as a grid (`UiTable`), not cards.
+- **#32 — DROPPED (user, 2026-06-26):** `LocationsView`↔`ObjectsView` are near-identical
+  TODAY but are intentionally-separate **views that may diverge** (location- vs
+  object-specific affordances) — NOT forced into one shared component (premature
+  abstraction rejected). Parallel views ≠ duplicated logic.
+- **✅ #33 DONE** (this session): Routing-by-job renders jobs as a `UiTable` grid (job · model
+  picker · Used-for · Edit/Delete) + add/edit via `AppModal`, reusing the `RecommendationsEditor`
+  pattern. Verified: build + smoke + kit jscpd.
+- **#34 (user, 2026-06-26) — redundant New-entity flow + UX audit:** clicking **New** on
+  an entity (location/object/character/…) opens a `promptDialog` asking only for the NAME
+  (`services/entityMeta.js` `NEW_ENTITY_META`, used by `addLocation`/`addObject`/… + the
+  sidebar add), THEN shows the detail page — a redundant extra popup. Instead: open the
+  detail page directly (create with a placeholder name) and **validate-before-save** there.
+  **First AUDIT** the whole app for this + any similar double-step / redundant-popup flow
+  and REPORT findings (RULE #5 per-surface table) for review BEFORE changing anything.
 
 **Other:** **#25** curate `model_recommendations` (cited per-job picks). **#28** follow-up
 research (measured per-tier benchmarks — the run-2 gap). **#24** temp speaker_attribution +
