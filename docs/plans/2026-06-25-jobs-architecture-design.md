@@ -533,8 +533,12 @@ data we refine in-app — nothing blocks step 1.)*
    >   them); (b) **applying** the per-job/per-feature override layers at runtime —
    >   they're stored + their tables exist, but the (re)load-per-job trigger is the
    >   residency/router orchestration (step 4 / #27), unverifiable without hardware.
-   > - ⏳ **TODO (UI, non-GPU):** preset/job/feature switch **editor routers + GUI**
-   >   (the "editable" half), folded into the model-manager (#30) + the routing tabs.
+   > - ✅ **EDITORS DONE (non-GPU):** the model manager (#30, `edeae9a`) edits model
+   >   `type` + per-model switches; the `switch_presets` editor (`43a40e7`) edits the
+   >   base/moe/mtp bundles. Per-action **JSON output (#18) + top-p (#22)** shipped
+   >   (`900e20c`, Plane-2 via the adapter `extra`). ⏳ only the **per-job/per-feature
+   >   switch editors** remain — deferred WITH step 4 (they'd be misleading until the
+   >   runtime applies them).
 4. **Residency manager (#29)** — VRAM budget → `--models-max`, co-resident vs
    reload, dedup identical combos. (Needs router mode in `RunnerService`, task #27.)
 5. **Job lab (#21)** — Compare at job grain (one `unit`-parameterized component) +

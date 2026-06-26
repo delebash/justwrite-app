@@ -52,6 +52,13 @@ shared; JustWrite is a thin consumer. Green + pushed.
   reco w/o a cited precedent; Block 3 = "done" + code-edit w/o a doc. Fail-open; 5-reblock failsafe.
 
 ## Recently shipped (newest first — detail in the linked doc)
+- **Switch editors + per-action Plane-2** (runner `edeae9a`/`43a40e7`/`900e20c`):
+  the **model manager** (#30 — LuModelCatalog +Add/Edit `type`+per-model switches/
+  Delete/Reset), the **`switch_presets` editor** (base/moe/mtp bundles editable), and
+  **per-action JSON output (#18) + top-p (#22)** threaded end-to-end (Plane-2, via the
+  adapter's `extra`). Verified: 115 runner + 77 JW pytest, build, smoke, CRUD curls.
+- **§9 jobs GUI** (runner `28d3d6e`): "Routing by job" tab (Defaults + job→model cards
+  + job-list editor) + "Features"→"Routing by feature" rename + `useRouting` composable.
 - **Switches phase — server foundation** (runner `42f4057` data model + `9133c67`
   type presets + layered resolver). `model_catalog.type` + `switch_presets`/
   `preset_switches` + `job_route_switches`/`pin_switches`/`hardware_switches` tables;
@@ -85,23 +92,23 @@ Routing-by-job (with the list) per the app's manage-where-listed pattern. → de
 - **✅ #30 model manager DONE** (runner `edeae9a`, smoke + CRUD-curl verified):
   `LuModelCatalog` grew into a manager — ＋Add model (paste HF repo:quant), Edit
   (catalog fields + the editable `type` + a per-model switches sub-editor), Delete,
-  Reset-catalog. ⏳ left: a `switch_presets` editor (the base/moe/mtp bundles).
+  Reset-catalog. ✅ + a `switch_presets` editor (base/moe/mtp bundles editable, `43a40e7`).
 
-**Switches phase (design §6 — server FOUNDATION built; runtime + UI remain):**
-✅ data model + type presets (base/moe/mtp) + the layered `switch_resolve` resolver
-wired into the runner (runner `42f4057`/`9133c67`). ⏳ left: `flag_catalog` (the one
-on/off-vs-value bit, optional), `job_presets`; the **editor routers + GUI** (make the
-presets/per-job/per-feature switches user-editable); and the **runtime apply** of the
-per-job/feature override layers — gated on **step 4 / #27** (router/residency, needs a
-GPU to verify). → design doc §6 + §11-step-3 STATUS.
+**Switches phase (design §6 — data + presets + editors DONE; runtime is GPU-gated):**
+✅ data model + type presets + `switch_resolve` (runner `42f4057`/`9133c67`); ✅ **editors**
+— model `type` + per-model switches (#30, `edeae9a`) + the `switch_presets` editor
+(`43a40e7`). ⏳ left: `flag_catalog` (optional), `job_presets`, the **per-job/per-feature
+switch editors**, and the **runtime apply** of the per-job/feature override layers — all
+gated on **step 4 / #27** (router/residency, needs a GPU to verify). → design §6 + §11.
 
 **Runner / residency:** **#27** router mode (`RunnerService` `--models-preset`, replaces
 spawn-per-model) → **#29** residency manager (`--models-max`; cross-kind LLM⟷TTS VRAM
 coordination). → `just-llm-runner/docs/plans/2026-06-24-server-model-management-brief.md`.
 
 **Compare / testing:** **#21** job-lab multi-column Compare + persistent JobPreset + promote
-(2-up + horizontal scroll; Decision 23). **#20** per-model tuning UI (n_cpu_moe/n_gpu_layers/
-ctx + tok/s). **#22** per-action sampling/reasoning (Plane 2). **#18** structured-output (JSON) per action.
+(2-up + horizontal scroll; Decision 23 — needs a live model). **#20** per-model tuning UI
+(n_cpu_moe/n_gpu_layers/ctx + tok/s). (✅ **#22** per-action sampling/top-p + **#18**
+structured-output JSON shipped — runner `900e20c`.)
 
 **Other:** **#25** curate `model_recommendations` (cited per-job picks). **#28** follow-up
 research (measured per-tier benchmarks — the run-2 gap). **#24** temp speaker_attribution +
