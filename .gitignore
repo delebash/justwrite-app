@@ -10,3 +10,7 @@ dist/
 report/
 biome_output.json
 biome_parsed.json
+
+# Python bytecode
+__pycache__/
+*.pyc

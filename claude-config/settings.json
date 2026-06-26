@@ -1,5 +1,16 @@
 {
   "hooks": {
+    "PreToolUse": [
+      {
+        "matcher": "Edit|Write|MultiEdit|ExitPlanMode",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "python3 \"$HOME/.claude/hooks/pre-action-check.py\""
+          }
+        ]
+      }
+    ],
     "SessionStart": [
       {
         "hooks": [

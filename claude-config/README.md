@@ -1,70 +1,173 @@
-# claude-config — global Claude Code hard-gate, provisioned per container
+# claude-config — the global rules-as-checks system, provisioned per container
 
-This folder is the **restore source** for the global `~/.claude` configuration
-(rules + enforcement hooks). It exists because **`~/.claude` does not survive a
-fresh Claude-Code-on-the-web container** — only the cloned repo and the org's
+This folder is the **restore source** for the global `~/.claude` configuration: the
+rules, the enforcement hooks, the rules-checker subagent, and the effectiveness
+ledger. It exists because **`~/.claude` does not survive a fresh
+Claude-Code-on-the-web container** — only the cloned repo and the org's
 server-managed settings carry over (see
-`code.claude.com/docs/en/claude-code-on-the-web`, the *"what config carries
-over"* table: `~/.claude/CLAUDE.md → No — lives on your machine, not in the
-repo`). Committing the config here + restoring it with a setup script makes the
-enforcement persist.
+`code.claude.com/docs/en/claude-code-on-the-web`, the *"what config carries over"*
+table: `~/.claude/CLAUDE.md → No`). Committing the config here and restoring it with
+a setup script makes the whole system persist across containers.
+
+## Why this system exists (the problem it solves)
+
+The rules used to be ~50k of prose in `CLAUDE.md`. The failure was never that the
+rules were unknown — they were in context the whole time — it was that they didn't
+**fire at the moment of the decision**. Deep in a task, the live task drives the next
+action and the rules sit there as background. That is a **salience problem, not a
+knowledge problem**, which is why every past fix ("make the rule stronger / add more
+detail") made it worse: more background to not-fire.
+
+The fix (designed with the user, 2026-06-26): **turn the rules into short CHECKS and
+run them at mechanical BOUNDARIES the harness fires automatically** — a hook runs
+every time, whether or not the model "remembers." Three ideas:
+
+1. **Slim the always-loaded rules** to 12 checkable tests (T1–T12) so they're short
+   enough to inject at a boundary; move the full WHY/incidents to a referenced
+   `rules-detail.md` read on demand.
+2. **Fire the checks at events** — before a code change, before/at a plan, and at
+   turn end — via hooks that can *inject* a reminder or *block* the action.
+3. **Use a subagent to do the judgment** a script can't — score a plan/diff against
+   the tests in its own throwaway context (the literal "load rules → check → unload"),
+   and for load-bearing design decisions run a **panel** of 2–3 and compare.
+
+Measure whether it actually helps in `EFFECTIVENESS.md` (catches, false positives,
+and misses), so it can be tuned — and shared with other developers who hit the same
+"agent has the rules but doesn't apply them" problem.
+
+## The vocabulary (so the design is unambiguous)
+
+- **Action = one tool call.** Every Read / Write / Edit / Bash / subagent spawn /
+  ExitPlanMode is one action the harness sees and can fire an event around.
+- **Turn = everything from the user's last message until the model stops.** A turn
+  holds many actions.
+- **Task** = a human label ("phase", "task 1a") the harness does NOT see — *unless*
+  it's tracked as a real `TaskCreate` entry, which DOES fire `TaskCreated` /
+  `TaskCompleted` events (see "Open decision" below).
 
 ## What it provisions
 
 | File | Installed to | Purpose |
 |---|---|---|
-| `CLAUDE.md` | `~/.claude/CLAUDE.md` | The global rules (PRIORITY rules + RULES #0–8 + the Vue3/Tauri app standard). |
-| `settings.json` | `~/.claude/settings.json` | Wires the two hard-gate hooks: `SessionStart → arm-rules-gate.sh`, `Stop → verify-gate.py`. No soft injection. |
-| `hooks/arm-rules-gate.sh` | `~/.claude/hooks/` | SessionStart hook. On every startup/resume/clear/compact, records the transcript length into a sentinel so the Stop gate knows a memory reset happened. |
-| `hooks/verify-gate.py` | `~/.claude/hooks/` | Stop hook. **Block 0**: blocks the turn until `~/.claude/CLAUDE.md` + the project `CLAUDE.md` + `MORNING_RECAP.md` have each been `Read` in full since the last reset. **Block 1**: code claim with zero reads this turn. **Block 2**: storage/arch recommendation with no cited precedent. **Block 3**: a "feature done/shipped" claim that edited code but updated/cited no doc. |
+| `CLAUDE.md` | `~/.claude/CLAUDE.md` | The **slim** rules — the 12 rule-tests (T1–T12) + the enforcement summary. Always loaded. |
+| `rules-detail.md` | `~/.claude/rules-detail.md` | The **full** WHY + every incident + worked examples (the old 50k). Read on demand when a test is ambiguous. |
+| `agents/rules-checker.md` | `~/.claude/agents/` | The rules-checker **subagent** (Opus, read-only): scores a plan/diff against T1–T12, adversarial, returns failures. Panel-aware. |
+| `hooks/pre-action-check.py` | `~/.claude/hooks/` | **PreToolUse** hook: pre-task DENY on the first code change without a rules-pass; NUDGE on every edit; PANEL reminder on `ExitPlanMode`. |
+| `hooks/verify-gate.py` | `~/.claude/hooks/` | **Stop** hook. Blocks 0–5 (see below). |
+| `hooks/arm-rules-gate.sh` | `~/.claude/hooks/` | **SessionStart** hook: arms the Block-0 sentinel on compact/clear/startup (not resume). |
+| `hooks/gate-stats.py` | `~/.claude/hooks/` | Rolls up the gate logs into a tally for `EFFECTIVENESS.md`. |
+| `EFFECTIVENESS.md` | `~/.claude/EFFECTIVENESS.md` | The durable ledger: catches / false positives / misses. |
+| `settings.json` | `~/.claude/settings.json` | Wires the hooks: `SessionStart`, `Stop`, and `PreToolUse` (Edit/Write/MultiEdit/ExitPlanMode). |
 
-The installer also deletes the superseded **soft** reminders
-(`rules-reminder.txt`, `hooks/verify-first.sh`, `hooks/inject-recap.sh`) if a
-base image ever restores them.
+`install.sh` also deletes superseded **soft** reminders if a base image restores them
+(`rules-reminder.txt`, `hooks/verify-first.sh`, `hooks/inject-recap.sh`) — the user's
+law is "never soft, all hard gates."
+
+## The events we hook, and the check at each
+
+There are 31 hook events; these are the ones wired (✋ = can block, 💬 = can inject):
+
+| Event | When | What fires |
+|---|---|---|
+| `SessionStart` | startup / compact / clear | 💬 arm the "context reset → re-read rules" sentinel |
+| `PreToolUse` (Edit/Write/MultiEdit) | before a code change | ✋ **pre-task DENY** (first edit, no rules-pass) · 💬 **per-edit NUDGE** |
+| `PreToolUse` (ExitPlanMode) | before "here is the plan" | 💬 reminder to run the rules-checker **panel** |
+| `Stop` | the turn tries to end | ✋ Blocks 0–5 |
+
+### The Stop gate — Blocks 0–5 (`verify-gate.py`)
+
+- **Block 0** — after a memory reset, the turn is blocked until `~/.claude/CLAUDE.md`
+  + the project `CLAUDE.md` + `MORNING_RECAP.md` have each been **Read in full** (a
+  real Read tool call, never a truncated injection). Disarms on compliance; fail-safe
+  after `MAX_REBLOCKS`.
+- **Block 1** — a code claim (a filename or file:line) with **zero** evidence tools
+  this turn and no honest hedge (answered from memory).
+- **Block 2** — a storage/architecture **recommendation** with no cited precedent.
+- **Block 3** — a **"done/shipped"** claim that edited code but updated/cited no doc.
+- **Block 4** — a **plan/decision announcement** ("here's the plan" / "locked" /
+  "we've decided") with no rules-pass artifact (the checker ran, or tests cited).
+- **Block 5** — **post-task**: the turn **edited code** but ran no rules-pass.
+
+All blocks **fail OPEN** on any error (a broken gate must never brick a session), and
+short-circuit on `stop_hook_active` so each fires at most once per stop-sequence.
+
+### The three check granularities (the user's model)
+
+- **Per-edit → nudge.** Every `Edit`/`Write` gets the 12 tests injected (non-blocking).
+- **Pre-task → deny.** The FIRST code change of a turn is **denied** unless the plan
+  was rules-checked (run the checker, cite the tests, or attest "trivial"). Catches a
+  bad plan *before* it becomes 10 bad files.
+- **Post-task → deny.** A code-editing turn that ends with no rules-pass is **blocked**
+  (Block 5) — check the diff before finishing.
+
+## The rules-checker subagent + the panel
+
+`agents/rules-checker.md` is an Opus, read-only subagent. Hand it a PLAN or a DIFF;
+it scores each of T1–T12 PASS/FAIL/NA with a one-line why (defaults to FAIL when
+uncertain) and returns only the failures. It runs in its own discarded context — the
+literal "load the rules, check this, throw the context away."
+
+**Panel (for load-bearing design):** "design" means BOTH the whole-plan architecture
+(where wrong = days of rewrite) AND component choices (T3 reuse-vs-copy). For those,
+spawn **2–3 independent checkers with diverse lenses** (architecture-fit ·
+reuse/convergence · grounding) and **compare** — any FAIL, or disagreement between
+them, = stop and resolve before locking. The extra checkers are cheap next to a
+rewrite. A routine code-diff post-task check needs only one.
+
+## Effectiveness measurement
+
+The gates log every BLOCK/PASS (`verify-gate.log`) and every nudge/deny
+(`pre-action.log`). `gate-stats.py` rolls those up; `EFFECTIVENESS.md` is the durable
+ledger (the logs are per-container and get wiped). The ledger records **catches**
+(a fire that changed behavior), **false positives** (a fire that was noise), and
+**misses** (a wrong thing NO gate caught — usually the user caught it). Counting the
+misses is the honest part: it's how we tell if the system is actually getting better,
+and each miss becomes the spec for the next gate.
 
 ## How to wire it (one-time, in the environment settings)
 
-In the Claude Code on the web environment settings, set the **Setup script**
-field to:
+Set the **Setup script** field to:
 
 ```bash
 bash "$CLAUDE_PROJECT_DIR/claude-config/install.sh"
 ```
 
-The setup script runs once when a new session starts, **before Claude Code
-launches**, and the resulting filesystem is snapshot-cached — so later sessions
-start with `~/.claude` already in place and the step is skipped. The installer is
-idempotent and **cloud-only by default** (it skips unless
-`CLAUDE_CODE_REMOTE=true`, so it can't clobber a real local `~/.claude`; override
-with `FORCE=1`).
+It runs once before Claude Code launches; the filesystem is snapshot-cached so later
+sessions start with `~/.claude` already in place. Idempotent and **cloud-only by
+default** (skips unless `CLAUDE_CODE_REMOTE=true`; override with `FORCE=1` — never
+clobbers a real local `~/.claude`).
 
-## Honest caveat — user-level settings vs repo `.claude/`
+## Maintenance — the bundle vs live can drift
 
-The docs say that in the cloud, *hooks come from the repo's `.claude/settings.json`
-and server-managed settings*, and that user-level `~/.claude/settings.json`
-"don't carry over." This bundle writes `~/.claude/settings.json` via the setup
-script, and that **works in this environment** (the Block-0 gate has fired live
-after a real reset). If a platform change ever stops loading user-level
-`~/.claude/settings.json` hooks, the fallback is to move the hook *wiring* into a
-repo `.claude/settings.json` (the hook scripts can still live here); the rules
-file would still be provisioned by the setup script.
-
-## Maintenance
-
-This is the **restore source**, not the live config — they can drift. Whenever
-you change the live `~/.claude` (e.g. leaning the rules file), re-sync and commit:
+This is the **restore source**, not the live config. When you change live `~/.claude`,
+re-sync into the bundle and commit:
 
 ```bash
-cp -f ~/.claude/CLAUDE.md            claude-config/CLAUDE.md
-cp -f ~/.claude/settings.json        claude-config/settings.json
-cp -f ~/.claude/hooks/arm-rules-gate.sh claude-config/hooks/arm-rules-gate.sh
-cp -f ~/.claude/hooks/verify-gate.py    claude-config/hooks/verify-gate.py
+for f in CLAUDE.md rules-detail.md EFFECTIVENESS.md settings.json \
+         agents/rules-checker.md hooks/arm-rules-gate.sh hooks/verify-gate.py \
+         hooks/pre-action-check.py hooks/gate-stats.py; do
+  cp -f "$HOME/.claude/$f" "claude-config/$f"
+done
 ```
 
-## Multi-repo note
+And the reverse — to apply a bundle change to the live session immediately (so it
+takes effect without waiting for a new container): `FORCE=1 bash claude-config/install.sh`.
 
-This bundle lives in `justwrite-app`, so the setup-script line above provisions
-when a session's repo is `justwrite-app`. To make the gate global across all
-repos with a single source, either copy this `claude-config/` into each repo, or
-point the environment Setup script at a clone of one canonical copy (needs a
-`GH_TOKEN` env var for the clone). That cross-repo decision is open.
+## Open decision — turn-grain (now) vs task-grain (better)
+
+What's wired uses **turn-grain proxies**: pre-task = the first edit of a turn;
+post-task = turn end. The truer fit for "check at every task begin and end" is
+**task-grain**, using the blockable `TaskCreated` / `TaskCompleted` events — but those
+only fire if every plan task is tracked as a real `TaskCreate` entry. Recommended
+next step: adopt the standing rule "every plan task = one Task entry", add
+`TaskCreated`/`TaskCompleted` hooks that run the checker at the real task boundaries,
+and keep the turn-grain gates as the backstop.
+
+## Honest limits
+
+A script checks **structure** (did a read happen? did a doc land? did a check run?),
+never **meaning** (was it the *right* file? is the design *actually* sound?). The
+subagent + panel add judgment but aren't infallible. The "trivial" escape on the
+pre-task deny is the model's own attestation and could be abused — which is exactly
+why `EFFECTIVENESS.md` tracks misses. The system lowers the failure rate by moving
+checks to boundaries; it does not make the model perfect.

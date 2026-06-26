@@ -46,10 +46,18 @@ shared; JustWrite is a thin consumer. Green + pushed.
   cascade file-by-file before a big refactor; think 4×; verify line-by-line; build the
   clean shared component (don't optimize "JV-safe").
 - **DB policy:** drop + reseed, no migrations (pre-release; `docs/plans/2026-06-18-unified-storage-no-idb.md`).
-- **Hard gates** (`~/.claude/hooks/verify-gate.py`): Block 0 = re-read rules + this recap
-  + project `CLAUDE.md` after a compact/clear/startup (NOT `resume` — that reloads context
-  intact, fixed 2026-06-26); Block 1 = code claim w/ zero reads; Block 2 = storage/arch
-  reco w/o a cited precedent; Block 3 = "done" + code-edit w/o a doc. Fail-open; 5-reblock failsafe.
+- **Hard gates** — now the **rules-as-checks system** (built 2026-06-26, provisioned from
+  `claude-config/`; full detail in `claude-config/README.md`). The rules are the slim
+  **rule-tests T1–T12** (`~/.claude/CLAUDE.md`) + full WHY/incidents in `rules-detail.md`,
+  read on demand. Enforcement at mechanical events: **Stop gate** `verify-gate.py` Blocks
+  0–5 (0 = re-read rules/recap/project-CLAUDE after a compact/clear, NOT resume; 1 = code
+  claim w/ zero reads; 2 = arch reco w/o precedent; 3 = "done"+code w/o a doc; 4 =
+  plan/decision w/o a rules-pass; 5 = code-edit w/o a rules-pass) + a **PreToolUse hook**
+  `pre-action-check.py` (pre-task DENY on the first edit w/o a rules-pass · per-edit nudge ·
+  ExitPlanMode → run the checker panel) + the **rules-checker subagent** (Opus; a 2–3 panel
+  for load-bearing design). Effectiveness tracked in `claude-config/EFFECTIVENESS.md`
+  (catches/false-positives/misses). All fail-open. **Real plan = Plan mode + detailed Task
+  entries** (not a chat plan) — that's what fires the plan/task events.
 
 ## Recently shipped (newest first — detail in the linked doc)
 - **Switch editors + per-action Plane-2** (runner `edeae9a`/`43a40e7`/`900e20c`):

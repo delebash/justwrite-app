@@ -20,6 +20,9 @@ model) on any of:
   BLOCK 2 — STORAGE/ARCHITECTURE RECOMMENDATION made without a cited precedent.
   BLOCK 3 — DOCS-WITH-FEATURES. A "feature done/shipped" claim that edited code this
     turn but neither edited nor cited a doc — docs ship WITH the feature, in detail.
+  BLOCK 4 — PLAN/DECISION ANNOUNCED ("here's the plan" / "locked the plan" /
+    "decided to") with no rules-pass this turn (a rules-checker subagent run, or the
+    tests cited). Plan/decision announcements are EVENTS, the same as "done" (Block 3).
 
 HONEST SCOPE: this catches a MISSING action (didn't read / didn't cite / didn't doc). It
 canNOT verify a read was understood, or that a citation is the RIGHT one — that stays a
@@ -95,6 +98,25 @@ DONE = re.compile(
 DOC_MENTION = re.compile(
     r"\b(recap|morning[_ ]?recap|docs?/plans?|documented|"
     r"updated? the docs?|docs? updated|wrote the docs?|handoff)\b",
+    re.I,
+)
+
+# Block 4 — a PLAN/DECISION announced (an event, like "done"), + the rules-pass escapes.
+PLAN_LOCK = re.compile(
+    r"\bhere'?s? (is )?(the|my|our) plan\b"
+    r"|\bplan is (locked|set|final|finalized|ready)\b"
+    r"|\block(?:ed|ing)?\s+(?:(?:the|this|my|our|it)\s+)?(?:plan|design)\b"
+    r"|\block(?:ed)?\s+down\s+the\s+plan\b"
+    r"|\bthe (locked|final) plan\b|\bplan locked\b|\bdesign is locked\b"
+    r"|\bwe'?ve decided\b|\bwe have decided\b|\b(final|locked) decision\b"
+    r"|\bdecision is (made|final|locked)\b",
+    re.I,
+)
+RULES_PASS = re.compile(
+    r"\brules?[- ]?check(er|ed)?\b|\brules?[- ]?pass(ed|es)?\b"
+    r"|\bchecked against (the )?(rules|rule-tests|tests|T\d)\b"
+    r"|\bagainst (the )?(rule-tests|12 (rule-)?tests)\b"
+    r"|\bT(1[0-2]|[1-9])\b[^\n]{0,40}\b(pass|fail)\b",
     re.I,
 )
 
@@ -245,6 +267,7 @@ def main() -> None:
     evidence = 0
     code_edit = False
     doc_edit = False
+    subagent_ran = False
     texts: list[str] = []
     for e in turn:
         if e.get("type") != "assistant":
@@ -257,6 +280,8 @@ def main() -> None:
                 name = b.get("name") or ""
                 if name in EVIDENCE_TOOLS:
                     evidence += 1
+                if name in ("Task", "Agent"):
+                    subagent_ran = True
                 if name in ("Write", "Edit", "MultiEdit", "NotebookEdit"):
                     fp = (b.get("input") or {}).get("file_path") or ""
                     if fp.endswith(".md"):
@@ -326,8 +351,39 @@ def main() -> None:
         )}))
         sys.exit(0)
 
+    # Block 4 — PLAN/DECISION ANNOUNCED in prose without a rules-pass (turn-grain
+    # backstop; the task-grain version is TaskCreated/TaskCompleted when plan tasks are
+    # tracked). "here's the plan" / "locked the plan" / "we've decided" are EVENTS,
+    # the same as Block 3's "done". rules_passed = the checker ran, or tests are cited.
+    plan_lock = bool(PLAN_LOCK.search(answer))
+    rules_passed = subagent_ran or bool(RULES_PASS.search(answer))
+    if plan_lock and not rules_passed:
+        _log(f"BLOCK plan no-rules-pass subagent={subagent_ran}  answer[:120]={answer[:120]!r}")
+        print(json.dumps({"decision": "block", "reason": (
+            "VERIFY-GATE (plan) — this turn ANNOUNCES a plan/decision ('here's the plan' "
+            "/ 'locked' / 'we've decided') but ran no rules-pass. Before locking a plan or "
+            "a load-bearing decision, run the rules-checker subagent against T1-T12 (Agent "
+            "tool, subagent_type 'rules-checker') and address any FAIL — or state which "
+            "tests you checked it against. Then finish."
+        )}))
+        sys.exit(0)
+
+    # Block 5 — POST-TASK. The turn EDITED CODE but ended with no rules-pass (no
+    # rules-checker run, no tests cited) and no hedge — the result was never checked
+    # against the rules. The cheap escapes: run the checker, cite the tests, or hedge.
+    if code_edit and not rules_passed:
+        _log(f"BLOCK post-task code-edit no-rules-pass  answer[:120]={answer[:120]!r}")
+        print(json.dumps({"decision": "block", "reason": (
+            "VERIFY-GATE (post-task) — this turn edited code but ran no rules-pass. Before "
+            "finishing, run the rules-checker subagent on the diff against T1-T12 (Agent "
+            "tool, subagent_type 'rules-checker') and address any FAIL — or cite the tests "
+            "the change passes (for a trivial change, say so). Then finish."
+        )}))
+        sys.exit(0)
+
     _log(f"PASS code_claim={code_claim} evidence={evidence} reco_arch={reco_arch} "
-         f"has_cite={has_cite} done={done_claim} doc_ok={doc_ok}")
+         f"has_cite={has_cite} done={done_claim} doc_ok={doc_ok} plan_lock={plan_lock} "
+         f"rules_passed={rules_passed} code_edit={code_edit}")
     sys.exit(0)
 
 
