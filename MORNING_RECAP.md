@@ -110,6 +110,15 @@ coordination). → `just-llm-runner/docs/plans/2026-06-24-server-model-managemen
 (n_cpu_moe/n_gpu_layers/ctx + tok/s). (✅ **#22** per-action sampling/top-p + **#18**
 structured-output JSON shipped — runner `900e20c`.)
 
+**🔧 IN FLIGHT (post-compact tail — full detail in design §17):** the
+**Recommendations job dropdown shows a stale hardcoded list** (`RecommendationsEditor`
+`SUGGESTED_JOBS`) — the copy-paste class the user flagged. Fix = the new shared
+**`LuJobSelect`** over live `/v1/ai/jobs`, wired into BOTH `RecommendationsEditor`
+AND `FeatureWorkbench`'s native `<select>`, + a smoke assertion (add a job → it
+appears in the dropdown). **#32** audit the app for the same copy-paste /
+should-be-shared class (RULE #7). **#33** Routing-by-job: jobs as a grid (`UiTable`),
+not cards.
+
 **Other:** **#25** curate `model_recommendations` (cited per-job picks). **#28** follow-up
 research (measured per-tier benchmarks — the run-2 gap). **#24** temp speaker_attribution +
 entity_extraction scaffold. **#23** shared AI task queue → `@delebash/llm-ui`. Per-feature

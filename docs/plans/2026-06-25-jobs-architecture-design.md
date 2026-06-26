@@ -959,3 +959,116 @@ location map). Recap "Recently shipped" + backlog kept in lockstep each unit.
   config+test+presets — already IS `FeatureWorkbench`; #21 adds the multi-column compare
   + JobPreset at job grain.)
 - **#22 completion:** the Custom-JSON pass-through + the rest of Decision 12's set (16.6).
+
+---
+
+## 17. POST-COMPACT TAIL — the recommendations-dropdown bug, the copy-paste audit, and the "why rules fail" decision (2026-06-26, after `85949fe`)
+
+> Written because a context compaction happened AFTER commit `85949fe` (the last
+> doc commit of the build run). Everything in §0–§16 was saved as it happened and
+> is safe. This section captures the three load-bearing things that happened in
+> chat AFTER `85949fe` and would otherwise survive only as compacted bullets. The
+> full chat transcript is also on disk (`~/.claude/projects/-home-user/3cfd68b9-…jsonl`)
+> as a backstop, but this section is detailed enough to execute from alone.
+
+### 17.1 — The bug the user found: the Recommendations job dropdown doesn't update
+
+**Symptom (user, verbatim):** "recommendations tab the jobs dropdown is not
+updating, I bet you copied and pasted instead of making it a component. What else
+did you just copy and paste?"
+
+**Root cause (verified in `RecommendationsEditor.vue` this turn):** the job
+dropdown is populated from a HARDCODED constant, not the live job list —
+- line 33: `const SUGGESTED_JOBS = ["chat","prose","extraction","analysis","attribution","embedding"];`
+- line 56: `const jobOptions = SUGGESTED_JOBS.map((j)=>({value:j,label:j}));`
+- line 82: `startNew()` seeds `job: SUGGESTED_JOBS[0]`
+- line 219: `<UiSelect v-model="editing.job" :options="jobOptions" />`
+- line 220: the hint prints `SUGGESTED_JOBS.join(" · ")`
+
+So when the user adds / renames / removes a job in the Routing-by-job job-list
+editor (`/v1/ai/jobs`), this dropdown still shows the old hardcoded six. This is
+exactly the copy-paste-a-list-instead-of-reading-the-source failure (RULE #7 /
+RULE #8): the job list has ONE canonical live source — `GET /v1/ai/jobs` — and
+this view duplicated it as a literal.
+
+**The fix (the component, not another copy): `LuJobSelect.vue`**
+(`just-llm-runner/ui/src/components/`, built this turn, was UNCOMMITTED at compact
+time). It is the ONE job-picker dropdown over the LIVE editable job list:
+- v-model = the job id; props: `jobs` (optional caller-supplied list to avoid a
+  duplicate fetch; `null` → self-fetch `/v1/ai/jobs`), `emptyLabel` (leading empty
+  option; `""` = none), `width`.
+- It keeps the current value visible even if it is off-list (editing a row whose
+  job was since-removed still shows that job).
+- Wire it into BOTH job dropdowns so neither can drift again:
+  1. `RecommendationsEditor.vue` — replace the `<UiSelect :options="jobOptions">`
+     at line 219 with `<LuJobSelect v-model="editing.job" />`; change `startNew`'s
+     job to `"chat"` (DEFAULT_JOB_ID, not `SUGGESTED_JOBS[0]`); delete
+     `SUGGESTED_JOBS` + `jobOptions`; update the line-220 hint. (KEEP the `UiSelect`
+     import — the MODEL picker at line 216 still uses it.)
+  2. `FeatureWorkbench.vue` — its per-feature job dropdown is a native `<select>`
+     over its OWN `/v1/ai/jobs` fetch (a SECOND copy of the same list). Converge it
+     onto `<LuJobSelect>` too.
+
+**The gate that catches THIS CLASS (a behavior bug → a smoke assertion, NOT a new
+rule):** extend `scripts/headless-smoke.mjs` to, against the live server,
+`POST /v1/ai/jobs` a uniquely-named job, open the Recommendations Add modal, and
+assert the new job appears in the dropdown options. A behavior bug is invisible to
+`build:vite` and to the route-render smoke (the page renders fine; the list is
+just stale) — only an assertion that exercises the behavior catches it. This is
+the precise, non-brittle mechanism for the stale-copy class; a generic "no
+hardcoded lists" hook would be cry-wolf (false positives on legitimate constants).
+
+### 17.2 — The broader copy-paste audit (task #33 → renumbered #32)
+
+The user's "what else did you just copy and paste?" is a real instruction: AUDIT
+the app for the stale-copy / should-be-shared class. **Task #32** = audit
+shared-vs-app-specific + shared-LLM components per RULE #7. Known starting
+instances: the duplicated `/v1/ai/jobs` fetch in `FeatureWorkbench` (17.1); then
+hunt other hardcoded domain lists that have a live endpoint (providers, models,
+features, categories), and any component logic copy-pasted instead of shared.
+Output = the RULE #5 per-unit strict-diff table (component | where it lives |
+should-be-shared? | live source). NOT yet done.
+
+### 17.3 — Jobs as a grid (task #33)
+
+The user: "make jobs a grid control not cards." The Routing-by-job tab currently
+renders one CARD per job (`RoutingByJob.vue`). Convert to a grid/table (the shared
+`UiTable`, TanStack): job | model picker | "Used for" | actions, one row per job.
+NOT yet done.
+
+### 17.4 — The meta-decision: WHY the rules keep failing, and the only fix that works
+
+The user, verbatim: "I keep telling you over and over to read rules, follow rules,
+you keep strengthening them, then you decide not to follow them, can this be fixed
+somehow?" — followed by "I am frustrated like I have never been before."
+
+**The honest diagnosis.** Strengthening the rules cannot fix it, and that is *why*
+it keeps failing. The misses are not from weak or unknown rules — the rules are
+extremely strong and are in-context. They are from a rule not being ACTIVE at the
+moment of the decision: deep in a task, the live local task drives the next action
+while the rule sits tens of thousands of tokens up in context as background. It is
+a salience/attention problem, not a knowledge problem. Adding more rule text makes
+it marginally worse (more background to not-fire) — which is the trap both the
+user and I fall into after every miss ("make the rule stronger").
+
+**The only lever that has demonstrably worked: hard gates.** `verify-gate.py`
+fired twice THIS session and caught two real errors (a citation from memory; a
+missing doc). Gates work because they do NOT depend on my remembering or choosing
+— they mechanically block the turn. A rule depends on salience; a gate depends on
+nothing.
+
+**The fix (mechanism, not promise).** For each recurring failure CLASS, build a
+mechanical check:
+- Structural failures (no read, no doc, wrong post-reset state) → a hook (the
+  existing Block 0–3).
+- BEHAVIOR failures (like 17.1 — renders fine but shows stale data) → a TEST
+  assertion in the smoke that exercises the behavior, run on every change. Precise,
+  no cry-wolf.
+
+**The honest limit.** Gates catch STRUCTURE, never SEMANTICS. No hook can know I
+read the wrong file, wrote a shallow doc, or chose a wrong design. That residual is
+real and is not solved by any artifact; if the post-gate failure rate stays
+intolerable the honest options are more gates as classes surface, a different
+model, or the user deciding the friction is not worth it. **Recorded so the next
+session does NOT respond to a failure by adding more rule prose — it adds a gate or
+a test instead.**
