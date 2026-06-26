@@ -479,16 +479,27 @@ Confirm when building #21.
   `job_presets` (+ switches). The routing store + `config.py` `LLMConfig` builder
   read jobs/feature-jobs instead of roles.
 
-**Shared UI (`just-llm-runner/ui/src/`):**
-- `AiModelsArea.vue:140-145` — add "Routing by job" tab, rename "Features" →
-  "Routing by feature".
-- `QuickSetup.vue` — role pickers → **job pickers iterated from the editable `jobs`
-  list** (not a fixed set).
-- `FeatureWorkbench.vue` (*Routing by feature*) — per feature: a **job dropdown**
-  (writes `feature_jobs`) + the model picker (inherit/explicit) + the rare switch
-  override; "Set all" becomes per-job. Plus a small **job-list editor** (add/rename/
-  remove jobs).
-- NEW: the job **Compare** (#21) — ideally the same Compare component
+**Shared UI (`just-llm-runner/ui/src/`):** ✅ **BUILT (runner `28d3d6e`, smoke-verified)**
+- ✅ `AiModelsArea.vue` — added the "Routing by job" tab + renamed "Features" →
+  "Routing by feature"; subnav is `Providers & models · Routing by job · Routing by
+  feature · Recommendations · Usage`.
+- ✅ NEW `composables/useRouting.js` — the shared routing load/save/mutations both
+  routing tabs consume (RULE #7, not copy-paste).
+- ✅ NEW `views/RoutingByJob.vue` — the verbatim opener + global Defaults (LLM +
+  embedding) + a card per job (job→model + "Used for:") + the **job-list editor**
+  (add/rename/remove/reset over `/v1/ai/jobs`; `chat` un-deletable).
+  **⮕ PLACEMENT CORRECTION (cited, 2026-06-26):** the job-list editor lives HERE
+  (with the job cards), NOT on Routing-by-feature as first drafted — the app's
+  manage-entities-where-listed pattern (the Providers tab `AiModelsArea:154-158` +
+  the Recommendations tab `RecommendationsEditor:169-170` both put Add/Edit/Delete
+  with the list). Routing-by-feature only *consumes* jobs (the per-feature dropdown).
+- ✅ `FeatureWorkbench.vue` (*Routing by feature*) — de-duped: Defaults + job cards
+  moved to RoutingByJob; keeps the per-feature **job dropdown** (writes
+  `feature_jobs`) + the per-action model pin / prompt / test. (`QuickSetup.vue` was
+  already job-native from the move.)
+- ⏳ **NEXT (Switches-phase UI):** the **switch-preset dropdown + per-flag editors**
+  per job/feature on these tabs; the per-model `type`/preset editing in the model
+  manager (#30). NEW: the job **Compare** (#21) — ideally one Compare component
   parameterized by `unit`.
 
 ---

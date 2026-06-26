@@ -143,6 +143,35 @@ try {
     }
   }
 
+  // ── AI-area sub-tab sweep. The route loop renders only the default tab; the AI
+  // area's tabs are in-page (Providers · Routing by job · Routing by feature ·
+  // Recommendations · Usage), so the new RoutingByJob tab + the renamed
+  // Routing-by-feature workbench only mount behind a click. Click each + assert
+  // ZERO JS errors. Re-query per click (the click re-renders → stale handles).
+  try {
+    await page.evaluate(() => { window.location.hash = "#/ai"; });
+    await sleep(800);
+    const tabCount = (await page.$$(".lu-subnav a")).length;
+    console.log(`ai-area: ${tabCount} sub-tabs`);
+    for (let i = 0; i < tabCount; i++) {
+      mark = errors.length;
+      const tabs = await page.$$(".lu-subnav a");
+      if (!tabs[i]) break;
+      const label = (await tabs[i].innerText().catch(() => `tab ${i}`)).trim().replace(/\s+/g, " ");
+      await tabs[i].click();
+      await sleep(600);
+      const chars = await page.evaluate(() => document.querySelector("#app")?.innerText?.length || 0);
+      const newErrs = errors.length - mark;
+      const ok = chars > 0 && newErrs === 0;
+      if (!ok) failed++;
+      console.log(`${ok ? "✓" : "✗"} ai-tab ${label.padEnd(22)}chars=${chars} errors=${newErrs}`);
+      errors.slice(mark, mark + 4).forEach((e) => console.log("    " + e));
+    }
+  } catch (e) {
+    failed++;
+    console.log(`✗ ai-tab sweep   NAV-FAIL ${String(e.message || e).slice(0, 120)}`);
+  }
+
   try {
     const kv = await (await fetch(`${SERVER}/v1/kv`)).json();
     console.log(`\nserver kv keys: ${JSON.stringify(Object.keys(kv))}`);

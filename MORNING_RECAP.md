@@ -77,11 +77,11 @@ shared; JustWrite is a thin consumer. Green + pushed.
 - **#19 `Overrides` through `/v1/llm-runner/load`** (`e5cecef`) — the switch-tuning foundation.
 
 ## Backlog (ordered; pointers where detail exists)
-**Finish jobs in the UI — the §9 GUI gaps deferred during the move:**
-- A dedicated **"Routing by job" tab** + rename the **"Features" tab → "Routing by feature"**
-  + a **job-list editor** (add/rename/remove jobs over the existing `/v1/ai/jobs` CRUD).
-  (Today `FeatureWorkbench`'s Jobs cards + the per-feature job dropdown already do job→model;
-  this is the dedicated surface + the job CRUD UI.) → design doc §9.
+**✅ DONE — the §9 jobs-in-the-UI gaps (runner `28d3d6e`, smoke-verified):** the
+dedicated **"Routing by job" tab** (Defaults + per-job model cards + the **job-list
+editor**: add/rename/remove/reset over `/v1/ai/jobs`), the **"Features" → "Routing by
+feature"** rename, and a shared `useRouting` composable. Job editor placed on
+Routing-by-job (with the list) per the app's manage-where-listed pattern. → design §10.
 - **#30 model-catalog/switches editor UI** — grow `LuModelCatalog` into a manager: **+Add
   model** (paste HF) + edit catalog fields + edit per-model switches. (No UI edits
   `/v1/ai/model-catalog` or `/v1/ai/model-switches` yet.)
