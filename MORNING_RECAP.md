@@ -37,9 +37,13 @@ map, what's done/left, how to verify). Below is just the map.
   ➡️ **AUTHORITATIVE: `docs/plans/2026-06-25-jobs-architecture-design.md`** (clean rewrite —
   read it FIRST; the bullets below are just the map). The chain: **feature → its job → the
   job's model + switches + sampling.**
-  - **⮕ STATUS (2026-06-26) — THE MOVE IS BEING BUILT (job REPLACES role; ALL LLM shared).**
-    The old reverted additive/JW-local version is GONE; this is the real §13 move (user: "just
-    code it … it should drop in to JV or any app, run seed, and it works"), staged + green.
+  - **⮕ STATUS (2026-06-26) — ✅ THE MOVE IS DONE for JW (job REPLACES role; ALL LLM shared),
+    all green + pushed.** The real §13 move (user: "just code it … it should drop in to JV or any
+    app, run seed, and it works"). Commits: just-llm-runner `7232214` (Phase 1) + `5e5005a`
+    (Phases 2-3 GUI/platform); justwrite-app `adec065` (Phase 2 consumer). Verified end-to-end:
+    runner 102 pytest + JW 77 pytest + ruff both; JW renderer build + headless smoke (all routes,
+    zero JS errors) + Features/Recommendations tabs render job cards live; live server job-native
+    (/v1/ai/jobs seeded, routing shape [default,jobs,pins], 7 providers).
     Authoritative plan: `docs/plans/2026-06-26-llm-shared-move-cascade-audit.md` (drop-in build order).
     - **Phase 1 ✅ (just-llm-runner `7232214`, pushed):** the shared package is now the WHOLE
       job-native LLM stack — `db.py` (12 tables, no role/quick/accuracy cols) + `stores.py`
@@ -51,9 +55,13 @@ map, what's done/left, how to verify). Below is just the map.
       `config.py` + `usage_sink`/`pricing` + the 12 LLM tables from `models.py` + the `/v1/llm-usage`
       dup; `data_admin` covers both bases. **JW now has ZERO LLM code except its feature seeds.**
       77 pytest green.
-    - **Phase 3 ⏳ NEXT:** the shared GUI (`FeatureWorkbench` / `QuickSetup` / `LuModelPicker` /
-      `AiModelsArea`) → job-native (role cards → job cards + a "Routing by job" tab), then the JW
-      headless smoke. (The GUI still references quick/accuracy → smoke fails until this lands.)
+    - **Phase 3 ✅ (just-llm-runner `5e5005a`):** the shared GUI is job-native — `LuModelPicker`
+      drops the role options; `FeatureWorkbench` "Jobs" cards + a per-feature job dropdown +
+      explicit pins (resolve pin → feature's job → Default); `QuickSetup` picks a model per job;
+      `RecommendationsEditor` job tags. Plus `make_data_router` two-base backup + the routing
+      FK-order fix. Verified by build + headless smoke + live tab-render. (A dedicated "Routing by
+      job" tab was deferred — the FeatureWorkbench Jobs section already does job→model; the richer
+      job-lab Compare is #21.)
     - **Phase 4 (later, any app):** JV drop-in = delete `engines/llm/*`, call `install_llm` with
       JV's feature seeds, run seed. JV is irrelevant to the JW build (it breaks at the rename; it's
       fixed as a one-call drop-in whenever — user: "i dont care about jv").
