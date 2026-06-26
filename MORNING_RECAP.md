@@ -60,6 +60,19 @@ shared; JustWrite is a thin consumer. Green + pushed.
   entries** (not a chat plan) — that's what fires the plan/task events.
 
 ## Recently shipped (newest first — detail in the linked doc)
+- **Rules-as-checks system** (claude-config `d5e9d52`/`8c36a48`/`ad9a4f9`; activated live
+  this session): the global rules reworked from ~50k of prose into 12 checkable tests
+  (T1–T12) enforced at mechanical events — PreToolUse (pre-task DENY + per-edit nudge),
+  Stop (Blocks 0–5), `TaskCreated`/`TaskCompleted` gates — plus an Opus **rules-checker**
+  subagent (a 2–3 **panel** for load-bearing design) and an effectiveness ledger.
+  Dogfooded: the panel found + fixed **8 issues in the system itself** (incl. a
+  narration-bypass of the blocking gates). → `claude-config/README.md` +
+  `claude-config/EFFECTIVENESS.md`; the meta-rationale is design §17.4.
+- **Recommendations dropdown fix + the reuse gate** (runner `658936e` / JW `ed3b3e6`,
+  smoke-verified): the hardcoded `SUGGESTED_JOBS` became the shared **`LuJobSelect`**
+  (live `/v1/ai/jobs`), converged across `RecommendationsEditor` + `FeatureWorkbench`;
+  plus **jscpd** as a copy-paste gate + `check-shared-pickers`. → design §17; the jscpd
+  findings (Locations↔Objects duplication) seed **#32**, jobs-as-grid is **#33**.
 - **Switch editors + per-action Plane-2** (runner `edeae9a`/`43a40e7`/`900e20c`):
   the **model manager** (#30 — LuModelCatalog +Add/Edit `type`+per-model switches/
   Delete/Reset), the **`switch_presets` editor** (base/moe/mtp bundles editable), and
@@ -161,7 +174,8 @@ GPU/Hardware → the AI menu). → JV checklist in `docs/plans/2026-06-24-shared
    only changing a switch VALUE needs a (re)start.
 
 ## Active plan docs (the index)
-- `docs/plans/2026-06-25-jobs-architecture-design.md` — **authoritative** jobs design (§0–§14).
+- `docs/plans/2026-06-25-jobs-architecture-design.md` — **authoritative** jobs design (§0–§14; + §17 = the dropdown fix / reuse gate / rules-as-checks rationale).
+- `claude-config/README.md` — the **rules-as-checks** system (slim rules + event hooks + rules-checker + metrics); `claude-config/EFFECTIVENESS.md` = the effectiveness ledger.
 - `docs/plans/2026-06-26-llm-shared-move-cascade-audit.md` — the move: drop-in build order + cascade.
 - `docs/plans/2026-06-25-llm-catalog-db-cutover.md` — catalog/switches/recs → DB.
 - `docs/plans/2026-06-24-shared-platform-settings.md` — platform-settings convergence + the JV checklist.
