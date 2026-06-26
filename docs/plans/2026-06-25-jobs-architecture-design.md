@@ -1043,6 +1043,11 @@ NOT yet done.
 
 ### 17.4 — The meta-decision: WHY the rules keep failing, and the only fix that works
 
+> ⮕ This is **DEV-PROCESS / rules-as-checks** track, NOT app work. Canonical home is
+> **Plan 1** (`claude-config/RULES-AS-CHECKS-V2-PLAN.md`) + `claude-config/CLAUDE.md`
+> ("Why this shape") + `EFFECTIVENESS.md`. Kept here only because the §17.1/17.5 app
+> narrative references it. See the recap's "Two plan tracks" index.
+
 The user, verbatim: "I keep telling you over and over to read rules, follow rules,
 you keep strengthening them, then you decide not to follow them, can this be fixed
 somehow?" — followed by "I am frustrated like I have never been before."

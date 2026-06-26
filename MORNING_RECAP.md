@@ -33,6 +33,19 @@ shared; JustWrite is a thin consumer. Green + pushed.
   design) + `docs/plans/2026-06-26-llm-shared-move-cascade-audit.md` (drop-in build
   order + the ~25-file cascade).
 
+## Two plan tracks (the work splits in two; approve + build + review EACH, in sequence)
+The user split the active work into two separate plans (2026-06-26), handled one at a
+time: present a plan → user approves → I build → user reviews → next plan.
+- **PLAN 1 — Dev-process / rules-as-checks** (global; governs every repo).
+  → `claude-config/RULES-AS-CHECKS-V2-PLAN.md` (the v2 refactor plan; panel-reviewed,
+  **NOT yet built** — v1 is LIVE + working). Live-system docs: `claude-config/README.md`
+  + `claude-config/EFFECTIVENESS.md`; the rules themselves: `~/.claude/CLAUDE.md` (slim
+  T1–T12) + `rules-detail.md`. The "why the rules fail" rationale belongs to THIS track.
+- **PLAN 2 — App (JustWrite / JustVoice)** — the product work.
+  → `docs/plans/2026-06-25-jobs-architecture-design.md` (jobs/switches + build log, §0–§17)
+  + the **Backlog** below (#27/#29 router/step-4, #32 component audit, #33 jobs grid,
+  #20/#21…). The dropdown fix / reuse gate / #32 / #33 (§17.1–17.3, 17.5) are app work.
+
 ## Standing rules (load-bearing — do not re-litigate)
 - **NOTHING hardcoded:** every value/threshold/name/mapping/flag/preset lives in the
   **DB**, seeded + user-editable. No `manifest.json` config, no files on disk. Code is
