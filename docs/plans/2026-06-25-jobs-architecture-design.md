@@ -271,7 +271,7 @@ all served by ONE shared store implementation:**
   capability/type presets (`base`/`moe`/`mtp`), `CASCADE` FK to the preset row.
   *(the base layer; replaces hardcoded `flagPresets`)*
 - `model_switches` (BUILT) **stays** — now the rare *per-model* override (the base
-  moved to type presets); `CASCADE` FK → `model_catalog` (`models.py:591-595`).
+  moved to type presets); `CASCADE` FK → `model_catalog` (`db.py:82`, `ModelSwitch`).
 - `job_route_switches (config_id, job, flag_name)` — `CASCADE` FK → `job_routes`.
   *(per-job override; the common case)*
 - `pin_switches (config_id, feature, flag_name)` — `CASCADE` FK → `routing_pins`.
@@ -283,7 +283,7 @@ all served by ONE shared store implementation:**
 1. **Referential integrity — and we already HAVE it.** A switch row is meaningless
    without its owner; we want the DB itself to forbid orphans and `CASCADE`-delete
    switches when the owner is removed. A real FK does that — `model_switches`
-   already has one (`models.py:591-595`). A single polymorphic table **cannot**
+   already has one (`db.py:82`, `ModelSwitch`). A single polymorphic table **cannot**
    carry a FK (one column can't reference three parent tables), so it would
    *downgrade* the integrity we have today and shove orphan-cleanup into app code.
    Trading away enforced integrity to reduce table count is the wrong trade.
@@ -291,7 +291,7 @@ all served by ONE shared store implementation:**
    duplicated is behavior (list/upsert/delete/reset/parse/merge). It already lives
    once: the shared `SwitchRow` + `ModelSwitchStore` Protocol + `make_switches_router`
    factory (`model_catalog_api.py:99-155`), and the store body
-   (`model_catalog_store.py:112-167`) is generic over `(ORM class, key columns,
+   (`stores.py:442`, `ModelSwitchStore`) is generic over `(ORM class, key columns,
    seed data)` — ONE implementation serves every owner. The separate *table
    declarations* are a few lines each and describe genuinely **distinct
    relationships** (model→switches ≠ job→switches ≠ feature→switches). Distinct,
@@ -405,6 +405,18 @@ Confirm when building #21.
 ---
 
 ## 9. The data model — before → after (one place, so it's clear)
+
+> **📍 Current code locations (post-convergence — verified 2026-06-26).** The
+> `models.py:` refs in the "Today" column below are the **pre-move JW locations**,
+> kept as the historical "before". Post-convergence ALL these LLM tables live in
+> shared **`just-llm-runner/llm_runner/llm/db.py`** — `LlmProvider:23 · LlmUsage:43 ·
+> ModelCatalog:61 · ModelSwitch:82 · ModelRecommendation:96 · RoutingConfigRow:110 ·
+> RoutingPin:128 · JobRoute:143 · Job:159 · FeatureJob:173 · FeaturePreset:186 ·
+> FeaturePrompt:205` — and the concrete stores in **`llm/stores.py`** —
+> `ProviderStore:49 · RoutingStore:135 · FeaturePresetStore:218 · PromptStore:275 ·
+> RecommendationStore:321 · ModelCatalogStore:385 · ModelSwitchStore:442 ·
+> JobStore:498 · FeatureJobStore:547`. The new §6 switch tables are added in `db.py`
+> alongside these; their stores reuse the `ModelSwitchStore` generic pattern.
 
 | Concern | Today | After |
 |---|---|---|
