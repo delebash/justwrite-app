@@ -37,14 +37,23 @@ map, what's done/left, how to verify). Below is just the map.
   ➡️ **AUTHORITATIVE: `docs/plans/2026-06-25-jobs-architecture-design.md`** (clean rewrite —
   read it FIRST; the bullets below are just the map). The chain: **feature → its job → the
   job's model + switches + sampling.**
-  - **⮕ STATUS (2026-06-26):** jobs **phase 1 BUILT + committed** on JW's CURRENT (per-app)
-    structure (`jobs`+`feature_jobs` tables/stores/routers, seeded, live-verified). **Now
-    finishing JW jobs on the current structure** (job_routes + feature→job→model resolution in
-    JW's `config.py` + GUI). **The full "all LLM code → shared package" convergence (shared
-    `LlmBase`/stores/config-builder/seed; both apps' `config.py` deleted; default providers =
-    shared seed; reset/backup parity) is a SETTLED DECISION but EXECUTION is DEFERRED to the
-    DEEP AUDIT** (user: "save the decisions, finish jw, then deep audit") — full detail +
-    mechanics in **design doc §13**. JV LLM (not TTS) converges in that audit.
+  - **⮕ STATUS (2026-06-26) — READ design-doc §14 (full handoff) FIRST.** GREEN +
+    committed + pushed: just-llm-runner `3673665`, justwrite-app `1b3ddf9`. **What's BUILT
+    (authorized, ADDITIVE/JW-local):** jobs work in JW — `jobs`+`feature_jobs`+`job_routes`
+    tables/stores/routers (seeded chat/prose/extraction/analysis + all 20 features mapped);
+    `routing_api` has an additive optional `jobs` map; JW `config.py` resolves
+    feature→job→model into dispatch pins, **layered atop the still-present role machinery**.
+    Live-verified; 98+83 pytest.
+  - **⚠️ This is NOT the final design.** TARGET (design doc §0-§13) = ALL LLM code in the
+    shared package + **job REPLACES role** (clean) + JW a thin consumer + only feature DATA
+    per-app. A full-move attempt this session went UNAUTHORIZED, broke the package, and was
+    **reverted** to the green commits above.
+  - **⛔ Before resuming the move: design-doc §14 has (a) the FULL ~25-FILE CASCADE AUDIT
+    (grounded, file-by-file), (b) the STAGED execution plan (each step green), (c) the
+    USER-ENFORCED OPERATING MODE** (stop after units / surface decisions, never barrel; audit
+    the cascade before a big refactor; think 4×; verify line-by-line; don't optimize
+    "JV-safe" — build the clean shared component; JV is irrelevant). Do NOT under-scope or
+    barrel — that's what broke it this session.
   - **⛔ GOVERNING PRINCIPLE (user): NOTHING hardcoded.** Every value/threshold/name/mapping/
     flag/preset lives in the **DB**, seeded + user-editable. **No `manifest.json` config, no
     files on disk.** Code is only the engine (hardware detect · the VRAM fit formula · the flag
