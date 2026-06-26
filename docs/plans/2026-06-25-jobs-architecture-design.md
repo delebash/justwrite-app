@@ -858,3 +858,104 @@ Read this to understand HOW the package ended up reverted, so the same arc isn't
 - **Saved a headers-only handoff first.** The user had to ask twice if it was detailed.
   *Corrective:* the new global rule — handoff docs DEFAULT TO LONG, full prose, executable
   from alone.
+
+---
+
+## 16. BUILD LOG — 2026-06-26 run (every decision, in detail)
+
+Everything below was built, verified, committed + pushed (branch
+`claude/admiring-galileo-il3q0o`). **Grounded in THIS doc + the shared-AI-stack plan
+(`2026-06-20-shared-ai-stack-plan.md`) — NOT the mocks.** The `preview/*-mock.html`
+files (JW `ai-settings-lab-mock.html`, JV `shared-ai-lab-mock.html`) are SUPERSEDED;
+do not build from them. Verification harness each step: `ruff` + `pytest` (server),
+`build:vite` + headless smoke (renderer, zero JS errors), live CRUD `curl`.
+
+### 16.1 — Switch data model (runner `42f4057`) — grounds §6.4/§6.5/§9
+Added to shared `llm/db.py` (additive; drop+reseed): `model_catalog.type` (dense|moe,
+§6.5); `switch_presets` + `preset_switches` (the type/capability bundles replacing the
+hardcoded manifest `flagPresets`, §6.5); `job_route_switches` (FK→job_routes),
+`pin_switches` (FK→routing_pins), `hardware_switches` (the per-job/feature/machine
+override layers, §6.4) — each mirrors `model_switches`, composite FKs via
+`ForeignKeyConstraint`. Verified: `create_all` builds all 17 tables; runner pytest.
+
+### 16.2 — Type-preset resolver (runner `9133c67`) — grounds §6.5
+`seed.DEFAULT_SWITCH_PRESETS` = base (flash_attn/cache_type_k/cache_type_v/mlock) +
+moe (spec_type=none, no_mmap) + mtp (spec_type=draft-mtp, spec_n_max=3), in `Overrides`
+field names; `model_catalog.type` seeded (35B-A3B=moe); `DEFAULT_SWITCHES` emptied (the
+per-model MoE/MTP copies moved ONTO the presets — the §6.5 win). NEW
+`switch_resolve.resolve_model_switches(model_id, hw_key)` layers base → type(moe|dense)
+→ mtp → per-model → per-hardware, wired into the runner `switches_fn` (install.py),
+flowing through the EXISTING tested Override path (no spawn/`compose_flags` change).
+**DECISION (grounded-correct):** the mtp preset is gated on `not moe`, so a MoE+MTP
+model (the 35B-A3B-MTP) keeps `spec:none` — §6.5's stated outcome (the bare "base→type→
+mtp" order alone wouldn't achieve it; the gate does). Verified: 5 resolver tests
+(moe-beats-mtp / dense+mtp→draft-mtp / base-only / per-model-wins / unknown→base);
+107 runner + 77 JW pytest.
+
+### 16.3 — §9 jobs GUI (runner `28d3d6e`) — grounds §2.8 (verbatim copy+order), §9, §10
+`AiModelsArea` subnav → `Providers & models · Routing by job · Routing by feature ·
+Recommendations · Usage` (§2.8). NEW `composables/useRouting.js` (shared routing
+load/save/mutations — both tabs, RULE #7). NEW `views/RoutingByJob.vue` — the §2.8
+verbatim opener, Defaults (LLM+embedding), a card per job (job→model + "Used for:"),
+the job-list editor (add/rename/remove/reset over `/v1/ai/jobs`; `chat` un-deletable).
+`FeatureWorkbench.vue` de-duped (globals → RoutingByJob; removed setJob/setDefaultLlm/
+setDefaultEmbedding/jobUsedFor + the dead globals CSS, cleaned in the verify pass; kept
+the per-feature job dropdown + per-action pin/prompt/test).
+**DECISION + DEVIATION (cited):** the job-list editor lives on **Routing-by-job** (WITH
+the job list), NOT Routing-by-feature as §10 first drafted — the app's
+manage-entities-where-listed pattern (Providers tab `AiModelsArea:154-158` +
+Recommendations tab `RecommendationsEditor:169-170`). §10 updated to match. ⮕ Reverse
+only if you want the editor on Routing-by-feature. Verified: build + smoke (all routes
++ 6 AI tabs, zero JS errors).
+
+### 16.4 — #30 model manager (runner `edeae9a`) — grounds §9, §11-step-6, §6.5
+`LuModelCatalog` → manager: ＋Add model (paste HF repo:quant = the Fork-R add-any-GGUF
+path), per-row Edit (catalog fields + editable `type` + a per-model switches
+sub-editor), Delete, Reset-catalog — on the existing tested `/v1/ai/model-catalog` +
+`/v1/ai/model-switches` routers. Verified: build; CRUD curl (PUT model type=moe + switch
+→ persisted → DELETE → gone, 200s); smoke probe (catalog + add-modal mount, 0 errors).
+
+### 16.5 — switch_presets editor (runner `43a40e7`) — grounds §6.5, §9
+NEW `switch_presets_api.py` (router) + `SwitchPresetStore` (stores.py) +
+`LuSwitchPresets.vue` (collapsible editor in the model manager) — base/moe/mtp bundles
+user-editable + reset-to-factory (the "nothing hardcoded, all editable" loop). Edits
+take effect at the next model load (the resolver reads these tables live). Verified:
+4 preset tests; 111 runner pytest; CRUD curl (GET seeded; PUT moe +threads; reset
+restored); smoke.
+
+### 16.6 — #18 JSON + #22 top-p (runner `900e20c`) — grounds §5 (Plane-2); plan Decision 12
+Per-action Plane-2 via the adapter's existing `extra` hook (no Protocol change):
+`feature_prompts.json_mode` + `top_p` → FeaturePromptRow/PromptOut/PromptUpdate/
+RunRequest + `_plane2_extra` + dispatch.chat/stream_chat `extra` → OpenAICompatAdapter
+merges into the body (response_format + top_p). Editor: Top-p field + JSON toggle.
+Verified: 4 plane-2 tests; 115 runner + 77 JW pytest; fresh-DB PUT round-trip persisted
+jsonMode/topP; smoke.
+**⚠️ GROUNDING GAP (honest, found in the verify pass):** plan **Decision 12** prescribes
+the FULL per-action sampling set (temp/top-k/top-p/min-p/dyn-temp/XTC/typical-p/
+sampler-order · penalties repeat/presence/frequency/DRY · reasoning enable-think/
+exclude-reasoning · max-tokens/seed) **PLUS a Custom-JSON pass-through escape hatch.**
+As built = json_mode + top_p (+ the existing temp/max_tokens/think) — a SUBSET. The
+cheap, decided completion = a per-action **Custom-JSON** field merged into `extra` (the
+escape hatch covers the rest with no per-param plumbing). **TODO — not yet done.**
+
+### 16.7 — Docs (JW `8ba2b1e`/`13c48fe`/…): reconciled the §9/§6.4 detail a prior
+`consolidate` commit had compressed; fixed the pre-convergence `models.py`/
+`model_catalog_store.py` citations → current shared `db.py`/`stores.py` (§6.4 + the §9
+location map). Recap "Recently shipped" + backlog kept in lockstep each unit.
+
+### 16.8 — NOT built yet + why (the honest remainder)
+- **Step 4 — router mode / residency (#27/#29):** the serving-architecture change
+  (`RunnerService` → router `--models-preset`/`--models-max`). **BUILDABLE** (the
+  lifecycle state machine is injectable / offline-testable) — I build it, the USER
+  runs it on a GPU to verify (not a reason to defer building). → brief
+  `just-llm-runner/docs/plans/2026-06-24-server-model-management-brief.md`.
+- **Per-job/per-feature switch editors + their runtime apply:** tables + stores exist;
+  the editors + the (re)load-per-job trigger go WITH step 4 (a switch that does nothing
+  until step 4 is misleading to ship alone).
+- **#21 job-lab Compare:** per plan §143-165 + Decision 23 — multi-column Compare INSIDE
+  Features (2-up + horizontal scroll + collapse-nav; each column a full config) at job
+  grain, reusing a representative feature's prompt (§2.9), + persistent JobPreset +
+  promote (mirrors the FeaturePreset lifecycle). NOT built. (The per-ACTION lab —
+  config+test+presets — already IS `FeatureWorkbench`; #21 adds the multi-column compare
+  + JobPreset at job grain.)
+- **#22 completion:** the Custom-JSON pass-through + the rest of Decision 12's set (16.6).
