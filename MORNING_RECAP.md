@@ -37,6 +37,14 @@ map, what's done/left, how to verify). Below is just the map.
   ➡️ **AUTHORITATIVE: `docs/plans/2026-06-25-jobs-architecture-design.md`** (clean rewrite —
   read it FIRST; the bullets below are just the map). The chain: **feature → its job → the
   job's model + switches + sampling.**
+  - **⮕ STATUS (2026-06-26):** jobs **phase 1 BUILT + committed** on JW's CURRENT (per-app)
+    structure (`jobs`+`feature_jobs` tables/stores/routers, seeded, live-verified). **Now
+    finishing JW jobs on the current structure** (job_routes + feature→job→model resolution in
+    JW's `config.py` + GUI). **The full "all LLM code → shared package" convergence (shared
+    `LlmBase`/stores/config-builder/seed; both apps' `config.py` deleted; default providers =
+    shared seed; reset/backup parity) is a SETTLED DECISION but EXECUTION is DEFERRED to the
+    DEEP AUDIT** (user: "save the decisions, finish jw, then deep audit") — full detail +
+    mechanics in **design doc §13**. JV LLM (not TTS) converges in that audit.
   - **⛔ GOVERNING PRINCIPLE (user): NOTHING hardcoded.** Every value/threshold/name/mapping/
     flag/preset lives in the **DB**, seeded + user-editable. **No `manifest.json` config, no
     files on disk.** Code is only the engine (hardware detect · the VRAM fit formula · the flag

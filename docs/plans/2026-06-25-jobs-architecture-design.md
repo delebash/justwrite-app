@@ -206,3 +206,80 @@ fallback · nothing hardcoded / all DB.
 6. **Model manager UI** (#30) — grow `LuModelCatalog`.
 
 Verification each step: `pytest` + `ruff` (server) + headless smoke (renderer).
+
+---
+
+## 13. Storage convergence — ALL LLM code shared (decisions, 2026-06-25; EXECUTION DEFERRED to the deep audit)
+
+> **Status:** these are SETTLED DECISIONS to execute in the **deep audit**, not now.
+> Per user: *"save this info in detail and decisions, finish jw, then revisit and
+> do another deep audit."* For now JW is finished on its **current** (per-app
+> storage) structure; this convergence + JV's adoption is the audit.
+
+**The decision (user, emphatic, 2026-06-25):** there must be **zero LLM-code
+difference between the apps — ALL of it is shared.** Tables, stores, dispatch, the
+**LLMConfig builder**, the API routers, and the **seed mechanism + shared seed
+data** all live in `just-llm-runner`. The **only** per-app thing is the
+**feature-routing DATA** (which features exist + their job map + their prompts),
+which is DB-driven/seeded. Reasoning: *same LLM functions → same code → shared.*
+Nothing hardcoded — all in DB, seeded, editable.
+
+**Both apps' `config.py` go away:** JustWrite's `llm/config.py` and JustVoice's
+`engines/llm/config.py` (the per-app LLMConfig builders) are replaced by ONE shared
+`config_builder.build_llm_config(feature_catalog)` — the app passes only its
+feature catalog DATA.
+
+**Target file tree (the shared LLM home):**
+```
+just-llm-runner/llm_runner/llm/
+  db.py            # shared SQLAlchemy LlmBase + configure_storage(SessionLocal) + create_all(engine) + EVERY LLM table
+  stores.py        # concrete stores over the shared session (replace every per-app *_store.py)
+  seed.py          # shared seeders + DEFAULT_* SHARED data + configure_app_seed(...) hook for per-app data
+  config_builder.py# build_llm_config(feature_catalog) -> LLMConfig (replaces BOTH apps' config.py)
+  schema.py, dispatch.py, *_api.py   # already shared
+each app keeps ONLY: its feature-catalog DATA + boot wiring (create_all + configure_storage + run shared seed + register its feature data + mount routers) + its OWN domain tables (chapters/voices).
+```
+
+**Tables moving to the shared `LlmBase`:** `llm_providers`, `llm_usage`,
+`model_catalog`, `model_switches`, `model_recommendations`, `routing_configs`,
+`routing_pins`, `jobs`, `feature_jobs`, `job_routes`, `feature_presets`,
+`feature_prompts`. Domain tables (chapters / voices) stay per-app.
+
+**Shared vs per-app SEED split (decided):**
+- **SHARED seed data** (in the shared seed file, identical for both apps): the
+  **job set**, **default providers** (user, 2026-06-25 — same defaults for both;
+  also gives JV defaults it lacks today), the **model catalog**, **switch presets**,
+  **recommendations**.
+- **PER-APP seed data** (registered by the host via `configure_app_seed`): the
+  **feature catalog** + **feature→job map** + **feature prompts**.
+- **User data** (per install, not seeded): the **routing picks** (which model per job).
+
+**Mechanics — VERIFIED 2026-06-25, all straightforward (I'd over-dramatized them):**
+- **Boot order is the obvious one:** `init_db` runs `create_all` (incl. the shared
+  `LlmBase`), THEN `seed_workspace` runs — `cli.py:43` (create_app→init_db) before
+  `cli.py:50` (seed). Create-then-seed; nothing tricky.
+- **No cross-base FKs** → a separate shared `LlmBase` is clean. The only FKs are
+  `projects.id` (domain, `models.py:40`), `model_catalog.id` (LLM→LLM, `:593`),
+  `routing_configs.id` (LLM→LLM, `:658`). No domain↔LLM FK.
+- **Backup/reset = "two bases" is trivial:** `make_data_router` takes ONE `metadata`
+  (`data_api.py:42`, iterated `:111`) and `data_admin._reset` iterates one
+  `Base.metadata` (`:26`). With LLM tables on `LlmBase`, hand BOTH metadatas to the
+  router + reset (a one-line iteration change), else they miss the LLM tables.
+  **Reset + backup must treat LLM identically across apps** (user) — settle in the audit.
+- **Drop the obsolete LLM migrations:** `migrations.py` rebuilds `llm_providers`/
+  `feature_prompts`/`feature_presets`/`routing_configs` for old DB shapes (`:52-98`);
+  under drop+reseed these are obsolete once the tables move — remove them (keep the
+  `projects` domain migrations).
+
+**Mechanism for per-app data in a shared store:** the host calls
+`seed.configure_app_seed(feature_jobs=..., feature_prompts=...)` once at boot; shared
+seeders + shared stores' `reset_to_factory` read it back, so a shared store restores
+an app's factory rows without the shared package hardcoding any app's features.
+
+**Execution staging (in the audit):** (A) move all LLM storage to shared
+behavior-preserving (apps run identically) → (B) role→job rename in the now-shared
+code → (C) the new job features. JV's `config.py` deletion + adoption happens here.
+
+**Note:** an initial Group-A scaffold (`db.py` + `seed.py` + `stores.py` for jobs)
+was drafted while scoping this, then removed when execution was deferred to the
+audit — the design above is the record to rebuild from.
