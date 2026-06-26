@@ -48,6 +48,44 @@ tally + add any notable catches/misses to the ledger.
 
 ## Catch / miss ledger (detailed — newest first)
 
+### 2026-06-26 — v2 build: one registry + commit boundary + anti-skim (+ a LIVE catch)
+
+Built the v2 refactor (plan: `RULES-AS-CHECKS-V2-PLAN.md`): the rules moved into ONE
+registry (`hooks/_rules.py` — regexes + turn-scan + the rule list); `verify-gate`,
+`pre-action-check`, `task-gate` were refactored onto it; a NEW `commit-gate.py` adds the
+commit boundary (HARD-DENY a code commit until docs+verdict; escapes amend/doc-only/
+trivial; anti-loop); the pre-task deny was narrowed (exempt `.md`/trivial); `gate-stats`
+now imports the ids from the registry; and `test_gates.py` became a committed harness
+(7 sections, all green, incl. fail-open-when-`_rules`-unimportable for all four hooks).
+
+**LIVE catch (real save) — the turn-window bug bit me mid-build.** Creating the 8 plan
+tasks as Task entries, the live (v1) `task-gate` BLOCKED `TaskCreated` three times in a
+row even though a `VERDICT: PASS` was in the same message — because an injected user-role
+message (a `<task-notification>` / the transcript-flush race) was being treated as a
+genuine prompt and resetting the "this turn" window, so the rules-pass fell outside it.
+This is exactly the bug v2 fixes (`_rules.is_genuine_user` skips injection wrappers;
+transcript-verified the real shape: `<task-notification>` is a non-meta **string** user
+message). Recorded as the system catching its OWN latent defect during its own rebuild —
+the same shape as the v1 narration catch below. Fixed + covered by a regression test
+(`test_pre_action`: a `<task-notification>` after an edit must NOT re-trigger the deny).
+
+**Panel catch (2 real bugs, pre-ship).** The final 2-Opus diff panel (architecture/parity
++ reuse/grounding lenses) FAILED the build and found two real defects in `commit-gate.py`
+that the committed harness had MISSED: (1) `_classify_commit` skipped `-C` as a single
+token, so `git -C <dir> commit` — the most common scripted form, and the very form the
+harness uses for its own git setup — was classified as not-a-commit → the gate SILENTLY
+never fired (a false-negative hole in the main post-task check); (2) the classifier used
+`"git" in toks` instead of `toks[0]=="git"`, so `man git commit` / `echo git commit` were
+false-positives. Both fixed (skip separated-value global options; require `git` as the
+segment command; resolve `-C` for the staged-tree read) + regression tests added (`git -C
+… commit` must gate; `man`/`echo git commit` must not). The harness was GREEN before the
+panel ran — concrete proof the panel catches the class a unit test structurally can't: a
+*missing* case. Total panel value to date: 8 fixes (v1 dogfood) + 2 (v2) = 10 pre-ship.
+
+Honest note: the per-edit NUDGE fired on every `.md` and `.py` write this build (~25×,
+non-blocking) — working as intended (salience, one line), not cry-wolf. The pre-task
+DENY did NOT fire spuriously on the plan-file `.md` edits (the narrowing held).
+
 ### 2026-06-26 — dogfood: the panel reviewed the system itself (first measured catch)
 
 The first real exercise of the system was running its own **2-checker panel** (Opus,

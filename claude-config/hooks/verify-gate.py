@@ -1,132 +1,60 @@
 #!/usr/bin/env python3
-"""Stop-hook VERIFY-GATE — mechanical enforcement. HARD GATES ONLY (no soft reminders).
+"""Stop-hook VERIFY-GATE — mechanical enforcement via the shared rule registry.
 
-A rule can't fix a discretionary failure (following a rule is optional). This gate is
-NOT discretionary: it runs when the turn tries to FINISH and acts on EVIDENCE in the
-transcript, not on intentions. The user's law: "never do soft — all hard gates."
+HARD GATES ONLY (no soft reminders). A rule can't fix a discretionary failure
+(following a rule is optional). This gate is NOT discretionary: it runs when the turn
+tries to FINISH and acts on EVIDENCE in the transcript, not on intentions. The user's
+law: "never do soft — all hard gates."
 
-It BLOCKS the turn ({"decision":"block","reason":...}; the reason is fed back to the
-model) on any of:
+The rules themselves now live ONCE in `_rules.py` (regexes + turn-scan + the registry);
+this hook is the Stop-event MECHANISM. It BLOCKS the turn ({"decision":"block",
+"reason":...}; the reason is fed back to the model) on:
 
-  BLOCK 0 — RULES/STATE NOT RE-READ AFTER A MEMORY RESET. SessionStart arms a sentinel
-    on compact/clear/startup — NOT on resume, which reloads the transcript intact
-    (arm-rules-gate.sh). Until the FULL global
-    rules (~/.claude/CLAUDE.md), the project CLAUDE.md, and the project MORNING_RECAP.md
-    have EACH been Read (a real Read tool call — never a truncated injection: the rules
-    file is ~52k chars, additionalContext caps at 10k) since that reset, the turn is
-    blocked. This replaces the old SOFT SessionStart/UserPromptSubmit reminders.
-  BLOCK 1 — CODE CLAIM (a source/config filename or path:line) with ZERO evidence tools
-    this turn and no honest hedge (answered from memory).
-  BLOCK 2 — STORAGE/ARCHITECTURE RECOMMENDATION made without a cited precedent.
-  BLOCK 3 — DOCS-WITH-FEATURES. A "feature done/shipped" claim that edited code this
-    turn but neither edited nor cited a doc — docs ship WITH the feature, in detail.
-  BLOCK 4 — PLAN/DECISION ANNOUNCED ("here's the plan" / "locked the plan" /
-    "decided to") with no rules-pass this turn (a rules-checker subagent run, or the
-    tests cited). Plan/decision announcements are EVENTS, the same as "done" (Block 3).
-  BLOCK 5 — POST-TASK: the turn EDITED CODE but ran no rules-pass (the result was never
-    checked). Fires on code-edit EVIDENCE even when the turn ends with no trailing text.
-    A "rules-pass" for the BLOCKING gates = a real subagent run, a cited checker
-    VERDICT, or a trivial attestation — NOT merely saying you'll run the checker.
+  BLOCK 0 (rule id `rules-gate`) — RULES/STATE NOT RE-READ AFTER A MEMORY RESET.
+    SessionStart arms a sentinel on compact/clear/startup — NOT on resume, which reloads
+    the transcript intact (arm-rules-gate.sh). Until the FULL global rules
+    (~/.claude/CLAUDE.md), the project CLAUDE.md, and MORNING_RECAP.md have EACH been
+    Read (a real Read tool call) since that reset, the turn is blocked. This is an
+    EVIDENCE-recheck rule (it self-heals when the Read actually happens) and keeps its
+    bespoke sentinel mechanics here — it is NOT dispatched by run_rules.
+  BLOCK 1-5 — the TEXT-recheck rules, dispatched through `_rules.run_rules("Stop", ctx)`:
+    code-claim · reco · docs-with-features · plan · post-task (see `_rules.py` for each
+    rule's detect + message). KEPT as the turn-grain backstop (the commit-gate adds the
+    heavy semantic check on top; it does not replace these).
 
 HONEST SCOPE: this catches a MISSING action (didn't read / didn't cite / didn't doc). It
 canNOT verify a read was understood, or that a citation is the RIGHT one — that stays a
 semantic, human check. It forces the act; it cannot force comprehension.
 
-Fail-OPEN on every error (exit 0): a broken gate must never brick a session. Block 0
-also fail-safes after MAX_REBLOCKS consecutive re-blocks so a detection bug cannot
-infinite-loop, while still refusing an easy bypass on the normal path.
+Fail-OPEN on every error (exit 0): a broken gate must never brick a session. If the
+shared registry fails to import, this hook warns LOUDLY (stderr) and fails open — a
+registry bug must be VISIBLE, never a silent disablement of every gate. Block 0 also
+fail-safes after MAX_REBLOCKS consecutive re-blocks so a detection bug cannot loop.
 """
 
 from __future__ import annotations
 
 import json
 import os
-import re
 import sys
 import time
 
 _CLAUDE_DIR = os.path.expanduser("~/.claude")     # portable: not hardcoded /root
 LOG = f"{_CLAUDE_DIR}/hooks/verify-gate.log"
 SENTINEL = f"{_CLAUDE_DIR}/hooks/.rules_gate"
-GLOBAL_RULES = f"{_CLAUDE_DIR}/CLAUDE.md"          # always required after a reset
-STATE_DOCS = ("CLAUDE.md", "MORNING_RECAP.md")    # required in cwd when present
-MAX_REBLOCKS = 5                                   # anti-brick fail-safe for Block 0
+MAX_REBLOCKS = 5                                    # anti-brick fail-safe for Block 0
 
-# Tools that constitute real EVIDENCE this turn (read OR authored OR ran).
-EVIDENCE_TOOLS = {
-    "Read", "Grep", "Glob", "WebFetch", "WebSearch", "NotebookRead",
-    "Write", "Edit", "MultiEdit", "NotebookEdit",  # authoring = current knowledge
-}
-# A Bash command counts as evidence only if it reads/tests/builds/inspects.
-BASH_EVIDENCE = re.compile(
-    r"\b(cat|head|tail|sed|awk|rg|grep|ls|find|less|more|jq|git|"
-    r"pytest|ruff|npm|node|cargo|python3?|curl|diff|wc)\b"
-)
-# A source/config filename in the answer = a code claim worth verifying.
-# (.md docs are deliberately EXCLUDED — casual doc mentions shouldn't block;
-#  a specific doc claim written as path:line is still caught by CITE below.)
-CODE_FILE = re.compile(
-    r"\b[\w./-]+\.(py|js|mjs|cjs|ts|tsx|jsx|vue|rs|go|java|rb|c|h|cpp|cc|"
-    r"css|scss|html|sh|bash|sql|toml|ini|cfg|ya?ml|json)\b"
-)
-CITE = re.compile(r"[\w./-]+\.\w+:\d+")       # path:line
-CITE_MD = re.compile(r"[\w./-]+\.md:\d+", re.I)  # a DOC path:line (Block 3 escape)
-HEDGE = re.compile(
-    r"haven'?t (checked|verified|confirmed|read|run|looked|opened)"
-    r"|not (yet )?verified|un-?verified|let me (check|read|verify|look|open)"
-    r"|checking now|i'?ll (verify|check|read|look)|need to (check|verify|read|look)"
-    r"|to verify|before (i|claiming)|no (existing )?precedent",
-    re.I,
-)
-
-# Block 2 — a DESIGN/STORAGE RECOMMENDATION made before grounding it.
-RECO = re.compile(
-    r"\b(i recommend|my recommendation|i suggest|i'?d (recommend|suggest|put|use|go|store|seed)"
-    r"|we should|you should|should (live|go|be|use|seed|store)|let'?s (use|put|store|seed|go)"
-    r"|better to|best to|the right (home|place|fit|spot) is|go with"
-    r"|(put|store|seed) (it|them|these|those|that|the \w+) in)\b",
-    re.I,
-)
-ARCH = re.compile(
-    r"\b(json|database|sqlite|\bdb\b|in-?memory|flat[- ]?file|seed(ed|ing|er)?|schema"
-    r"|\btable\b|indexed-?db|local-?storage|persist(ed|ence)?|migration|manifest)\b",
-    re.I,
-)
-
-# Block 3 — "feature done/shipped" language, and the proof-a-doc-was-handled escapes.
-DONE = re.compile(
-    r"\b(done|shipped|complete[d]?|finished|implemented|landed|wired up|"
-    r"ready to (commit|merge|push)|feature (is )?(done|complete|ready|built))\b",
-    re.I,
-)
-DOC_MENTION = re.compile(
-    r"\b(recap|morning[_ ]?recap|docs?/plans?|documented|"
-    r"updated? the docs?|docs? updated|wrote the docs?|handoff)\b",
-    re.I,
-)
-
-# Block 4 — a PLAN/DECISION announced (an event, like "done"), + the rules-pass escapes.
-PLAN_LOCK = re.compile(
-    r"\bhere'?s? (is )?(the|my|our) plan\b"
-    r"|\bplan is (locked|set|final|finalized|ready)\b"
-    r"|\block(?:ed|ing)?\s+(?:(?:the|this|my|our|it)\s+)?(?:plan|design)\b"
-    r"|\block(?:ed)?\s+down\s+the\s+plan\b"
-    r"|\bthe (locked|final) plan\b|\bplan locked\b|\bdesign is locked\b"
-    r"|\bwe'?ve decided\b|\bwe have decided\b|\b(final|locked) decision\b"
-    r"|\bdecision is (made|final|locked)\b",
-    re.I,
-)
-# A rules-pass that ACTUALLY happened (not merely narrated). For the BLOCKING gates,
-# loose prose like "I'll run the rules-checker next" must NOT count — that was the
-# escape hole the dogfood panel caught. Require a real subagent run (subagent_ran, set
-# in the turn loop), a cited checker VERDICT, or an explicit trivial attestation.
-VERDICT = re.compile(
-    r"\bVERDICT:\s*(PASS|FAIL)\b"
-    r"|\bT(1[0-2]|[1-9])\b[^\n]{0,30}\b(PASS|FAIL)\b[^\n]{0,200}?"
-    r"\bT(1[0-2]|[1-9])\b[^\n]{0,30}\b(PASS|FAIL)\b",
-    re.I,
-)
-TRIVIAL = re.compile(r"\b(trivial|one[- ]?line|typo|comment[- ]?only|dep bump|rename)\b", re.I)
+# Import the shared rule registry from this hook's own directory (on sys.path[0] when
+# run as a script, but be explicit so it resolves from any cwd). A failure here must
+# NOT silently disable the gate — warn loudly + fail open (see main()).
+sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+try:
+    import _rules
+    _RULES_OK = True
+    _IMPORT_ERR = None
+except Exception as _e:  # pragma: no cover - exercised by the fail-open smoke
+    _RULES_OK = False
+    _IMPORT_ERR = _e
 
 
 def _log(msg: str) -> None:
@@ -137,53 +65,6 @@ def _log(msg: str) -> None:
         pass
 
 
-def _is_real_user(e: dict) -> bool:
-    """A genuine human prompt — NOT a tool_result (those are also role=user)."""
-    if e.get("type") != "user" or e.get("isMeta"):
-        return False
-    content = (e.get("message") or {}).get("content")
-    if isinstance(content, str):
-        return bool(content.strip())
-    if isinstance(content, list):
-        has_text = any(isinstance(b, dict) and b.get("type") == "text" for b in content)
-        has_tr = any(isinstance(b, dict) and b.get("type") == "tool_result" for b in content)
-        return has_text and not has_tr
-    return False
-
-
-def _realpath(p: str) -> str:
-    try:
-        return os.path.realpath(p)
-    except Exception:
-        return p
-
-
-def _required_state_files(cwd: str) -> list[str]:
-    """The files that MUST be re-read after a reset: global rules + (if present in
-    cwd) the project CLAUDE.md and MORNING_RECAP.md."""
-    files = [GLOBAL_RULES]
-    if cwd:
-        for name in STATE_DOCS:
-            p = os.path.join(cwd, name)
-            if os.path.isfile(p):
-                files.append(p)
-    return files
-
-
-def _reads_since(entries: list, start_idx: int) -> set:
-    """realpaths of every file Read in entries[start_idx:] (post-reset reads)."""
-    paths = set()
-    for e in entries[start_idx:]:
-        if e.get("type") != "assistant":
-            continue
-        for b in (e.get("message") or {}).get("content") or []:
-            if isinstance(b, dict) and b.get("type") == "tool_use" and b.get("name") == "Read":
-                fp = (b.get("input") or {}).get("file_path")
-                if fp:
-                    paths.add(_realpath(fp))
-    return paths
-
-
 def _disarm() -> None:
     try:
         os.remove(SENTINEL)
@@ -192,7 +73,9 @@ def _disarm() -> None:
 
 
 def _rules_gate(data: dict, entries: list) -> bool:
-    """BLOCK 0. Returns True if it emitted a block (caller must then exit)."""
+    """BLOCK 0 (rule id `rules-gate`). Evidence-recheck + sentinel mechanics live here;
+    the "which files are still unread" judgment comes from _rules.block0_missing.
+    Returns True if it emitted a block (caller must then exit)."""
     if not os.path.exists(SENTINEL):
         return False
     try:
@@ -204,9 +87,7 @@ def _rules_gate(data: dict, entries: list) -> bool:
     except Exception:
         arm_n, blocks, source = 0, 0, ""
 
-    required = _required_state_files(data.get("cwd") or "")
-    read = _reads_since(entries, arm_n)
-    missing = [p for p in required if _realpath(p) not in read]
+    missing = _rules.block0_missing(data, entries, arm_n)
 
     if not missing:
         _disarm()
@@ -244,6 +125,14 @@ def main() -> None:
     except Exception:
         sys.exit(0)  # no/garbled input → allow
 
+    # Registry failed to import → LOUD warn + fail OPEN (never a silent gate-off).
+    if not _RULES_OK:
+        sys.stderr.write(
+            f"⚠ verify-gate: rule registry (_rules.py) failed to import ({_IMPORT_ERR}) "
+            "— the Stop gate is OFF this turn. Fix _rules.py.\n")
+        _log(f"WARN registry import failed: {_IMPORT_ERR}")
+        sys.exit(0)
+
     tpath = data.get("transcript_path")
     if not tpath:
         sys.exit(0)
@@ -260,139 +149,31 @@ def main() -> None:
     if _rules_gate(data, entries):
         sys.exit(0)
 
-    # Loop protection for blocks 1-3: if our block already fired this stop-sequence, allow.
+    # Loop protection for the text rules: if our block already fired this stop-sequence,
+    # allow (the model is mid-fix).
     if data.get("stop_hook_active"):
         sys.exit(0)
 
-    # This turn = everything after the last genuine human prompt.
-    start = 0
-    for i in range(len(entries) - 1, -1, -1):
-        if _is_real_user(entries[i]):
-            start = i + 1
-            break
-    turn = entries[start:]
+    ctx = _rules.build_ctx(data, entries, "Stop")
 
-    evidence = 0
-    code_edit = False
-    doc_edit = False
-    subagent_ran = False
-    texts: list[str] = []
-    for e in turn:
-        if e.get("type") != "assistant":
-            continue
-        for b in (e.get("message") or {}).get("content") or []:
-            if not isinstance(b, dict):
-                continue
-            bt = b.get("type")
-            if bt == "tool_use":
-                name = b.get("name") or ""
-                if name in EVIDENCE_TOOLS:
-                    evidence += 1
-                if name in ("Task", "Agent"):
-                    subagent_ran = True
-                if name in ("Write", "Edit", "MultiEdit", "NotebookEdit"):
-                    fp = (b.get("input") or {}).get("file_path") or ""
-                    if fp.endswith(".md"):
-                        doc_edit = True
-                    elif CODE_FILE.search(fp):
-                        code_edit = True
-                elif name == "Bash":
-                    cmd = (b.get("input") or {}).get("command") or ""
-                    if BASH_EVIDENCE.search(cmd):
-                        evidence += 1
-            elif bt == "text":
-                texts.append(b.get("text") or "")
-
-    answer = "\n".join(texts).strip()
-    if not answer and not code_edit:
-        sys.exit(0)  # nothing said AND nothing changed → nothing to gate
-    # (a code-editing turn that ends with no trailing text is still gated — Block 5)
-
-    hedged = bool(HEDGE.search(answer))
-    has_cite = bool(CITE.search(answer))
-    code_claim = bool(CODE_FILE.search(answer)) or has_cite
-    reco_arch = bool(RECO.search(answer) and ARCH.search(answer))
-    done_claim = bool(DONE.search(answer))
-    doc_ok = doc_edit or bool(CITE_MD.search(answer)) or bool(DOC_MENTION.search(answer))
-
-    # An honest hedge ("haven't verified — checking" / "no precedent") exempts 1-3.
-    if hedged:
-        _log(f"PASS hedged code_claim={code_claim} reco_arch={reco_arch} done={done_claim}")
+    # Nothing said AND nothing changed → nothing to gate. (A code-editing turn that ends
+    # with no trailing text is STILL gated — post-task / Block 5 — via code_edit.)
+    if not ctx["answer"] and not ctx["code_edit"]:
         sys.exit(0)
 
-    # Block 1 — CODE CLAIM with zero evidence tools this turn (answered from memory).
-    if code_claim and evidence == 0:
-        _log(f"BLOCK code-claim no-evidence  answer[:120]={answer[:120]!r}")
-        print(json.dumps({"decision": "block", "reason": (
-            "VERIFY-GATE (code) — this turn claims code (a filename or file:line) but "
-            "used NO evidence tool this turn (Read/Grep/Glob/WebFetch/Write/Edit/"
-            "read-Bash) and did not hedge. The exact failure the user is sick of: "
-            "answering from memory. STOP. Open the file, read it per line, re-answer "
-            "with file:line for every code claim — or say what you have NOT checked."
-        )}))
+    # Blocks 1-5 — the text-recheck rules, from the shared registry. run_rules applies
+    # the hedge exemption (Stop-only) and skips the evidence rule (Block 0, above).
+    fails = _rules.run_rules("Stop", ctx)
+    if fails:
+        rid, inject = fails[0]   # registry order = B1..B5 precedence; one at a time
+        _log(f"BLOCK {rid}  answer[:120]={ctx['answer'][:120]!r}")
+        print(json.dumps({"decision": "block", "reason": inject}))
         sys.exit(0)
 
-    # Block 2 — a STORAGE/ARCHITECTURE RECOMMENDATION made WITHOUT grounding.
-    if reco_arch and (not has_cite or evidence == 0):
-        _log(f"BLOCK reco no-grounding has_cite={has_cite} evidence={evidence}  answer[:120]={answer[:120]!r}")
-        print(json.dumps({"decision": "block", "reason": (
-            "VERIFY-GATE (decision) — this turn RECOMMENDS a storage/architecture "
-            "choice (where data lives / what shape) without grounding it: no precedent "
-            "cited and/or nothing read this turn. Before recommending, OPEN how the app "
-            "ALREADY does this class (the seeder, the existing store/table, the manifest "
-            "loader) and CITE it file:line — or state plainly there is no precedent. Do "
-            "NOT decide before reading the deciding code. (Honest limit: this checks you "
-            "cited A precedent, not that it's the RIGHT one — that's still on you.)"
-        )}))
-        sys.exit(0)
-
-    # Block 3 — DOCS SHIP WITH FEATURES. A "done/shipped" claim that edited code but
-    # neither edited nor cited a doc. Escapes: edit a .md, cite a doc:line, or mention
-    # the recap/docs (or hedge above). Forces detailed docs to land WITH the feature.
-    if done_claim and code_edit and not doc_ok:
-        _log(f"BLOCK docs-with-features done+code no-doc  answer[:120]={answer[:120]!r}")
-        print(json.dumps({"decision": "block", "reason": (
-            "VERIFY-GATE (docs) — this turn claims a feature done/shipped AND edited code, "
-            "but updated or cited NO doc. Docs ship WITH the feature, in DETAIL (full "
-            "prose, not headers): update MORNING_RECAP.md + the relevant docs/plans/*.md "
-            "now — what changed, WHY, file:line, how to verify, what would reverse it — or "
-            "cite the doc:line that already covers it. Then finish."
-        )}))
-        sys.exit(0)
-
-    # Block 4 — PLAN/DECISION ANNOUNCED in prose without a rules-pass (turn-grain
-    # backstop; the task-grain version is TaskCreated/TaskCompleted when plan tasks are
-    # tracked). "here's the plan" / "locked the plan" / "we've decided" are EVENTS,
-    # the same as Block 3's "done". rules_passed = the checker ran, or tests are cited.
-    plan_lock = bool(PLAN_LOCK.search(answer))
-    rules_passed = subagent_ran or bool(VERDICT.search(answer)) or bool(TRIVIAL.search(answer))
-    if plan_lock and not rules_passed:
-        _log(f"BLOCK plan no-rules-pass subagent={subagent_ran}  answer[:120]={answer[:120]!r}")
-        print(json.dumps({"decision": "block", "reason": (
-            "VERIFY-GATE (plan) — this turn ANNOUNCES a plan/decision ('here's the plan' "
-            "/ 'locked' / 'we've decided') but ran no rules-pass. Before locking a plan or "
-            "a load-bearing decision, run the rules-checker subagent against T1-T12 (Agent "
-            "tool, subagent_type 'rules-checker') and address any FAIL — or state which "
-            "tests you checked it against. Then finish."
-        )}))
-        sys.exit(0)
-
-    # Block 5 — POST-TASK. The turn EDITED CODE but ended with no rules-pass (no
-    # rules-checker run, no tests cited) and no hedge — the result was never checked
-    # against the rules. The cheap escapes: run the checker, cite the tests, or hedge.
-    if code_edit and not rules_passed:
-        _log(f"BLOCK post-task code-edit no-rules-pass  answer[:120]={answer[:120]!r}")
-        print(json.dumps({"decision": "block", "reason": (
-            "VERIFY-GATE (post-task) — this turn edited code but ran no rules-pass. Before "
-            "finishing, run the rules-checker subagent on the diff against T1-T12 (Agent "
-            "tool, subagent_type 'rules-checker') and address any FAIL — or cite the tests "
-            "the change passes (for a trivial change, say so). Then finish."
-        )}))
-        sys.exit(0)
-
-    _log(f"PASS code_claim={code_claim} evidence={evidence} reco_arch={reco_arch} "
-         f"has_cite={has_cite} done={done_claim} doc_ok={doc_ok} plan_lock={plan_lock} "
-         f"rules_passed={rules_passed} code_edit={code_edit}")
+    _log(f"PASS code_claim={ctx['code_claim']} evidence={ctx['evidence']} "
+         f"reco_arch={ctx['reco_arch']} has_cite={ctx['has_cite']} done={ctx['done_claim']} "
+         f"doc_ok={ctx['doc_ok']} plan_lock={ctx['plan_lock']} "
+         f"rules_passed={ctx['rules_passed']} code_edit={ctx['code_edit']}")
     sys.exit(0)
 
 

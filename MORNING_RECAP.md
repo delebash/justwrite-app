@@ -37,10 +37,14 @@ shared; JustWrite is a thin consumer. Green + pushed.
 The user split the active work into two separate plans (2026-06-26), handled one at a
 time: present a plan → user approves → I build → user reviews → next plan.
 - **PLAN 1 — Dev-process / rules-as-checks** (global; governs every repo).
-  → `claude-config/RULES-AS-CHECKS-V2-PLAN.md` (the v2 refactor plan; panel-reviewed,
-  **NOT yet built** — v1 is LIVE + working). Live-system docs: `claude-config/README.md`
-  + `claude-config/EFFECTIVENESS.md`; the rules themselves: `~/.claude/CLAUDE.md` (slim
-  T1–T12) + `rules-detail.md`. The "why the rules fail" rationale belongs to THIS track.
+  → `claude-config/RULES-AS-CHECKS-V2-PLAN.md` (the v2 refactor plan). **v2 BUILT +
+  approved (2026-06-26):** one shared registry (`hooks/_rules.py`) + verify-gate /
+  pre-action / task-gate refactored onto it + NEW `commit-gate.py` (commit boundary) +
+  committed `hooks/test_gates.py` harness (7/7 green) + gate-stats imports the ids +
+  docs. ⏳ Going LIVE (`FORCE=1 install.sh`) after the final 2-Opus diff panel; until
+  then the LIVE `~/.claude` is still v1. Live-system docs: `claude-config/README.md` +
+  `claude-config/EFFECTIVENESS.md`; the rules: `~/.claude/CLAUDE.md` (slim T1–T12) +
+  `rules-detail.md`. The "why the rules fail" rationale belongs to THIS track.
 - **PLAN 2 — App (JustWrite / JustVoice)** — the product work.
   → `docs/plans/2026-06-25-jobs-architecture-design.md` (jobs/switches + build log, §0–§17)
   + the **Backlog** below (#27/#29 router/step-4, #32 component audit, #33 jobs grid,

@@ -1,35 +1,46 @@
 #!/usr/bin/env python3
 """PreToolUse companion to the Stop verify-gate — run the rule-tests at the TASK
-boundary, nudge at every edit (the user's 2026-06-26 design).
+boundary, nudge at every edit. Shares the registry/turn-scan in `_rules.py`.
 
-A "task" = the turn (everything since the last real user prompt) — the only
-mechanical boundary available. Three behaviors:
+A "task" = the turn (everything since the last GENUINE user prompt — `_rules.is_genuine_user`
+skips injected user-role messages like <task-notification>/command stdout, which used to
+reset the window and fire a spurious DENY mid-task). Three behaviors:
 
 - **Pre-task (the FIRST Edit/Write/MultiEdit of the turn): DENY** unless a rules-pass
-  already exists this turn — i.e. the rules-checker subagent ran (a Task/Agent call),
-  or the answer cites the tests, or it's attested trivial. This forces the plan to be
-  checked BEFORE the first file is written (catch a bad plan before it's 10 bad files).
-- **Every edit: NUDGE** (non-blocking `additionalContext`) — the rule-tests sit in
-  front of the model at each change.
-- **ExitPlanMode ("here is the plan"): NUDGE** to run the rules-checker on the plan.
+  already exists this turn (the rules-checker subagent ran, the answer cites the tests,
+  or it's attested trivial). NARROWED (design #6): a first edit to a **.md** file, or a
+  **trivial**-attested change, is EXEMPT (nudge only, no deny) — the deny guards a bad
+  CODE plan before it's 10 bad files; it should not cry-wolf on a doc/recap/plan edit.
+- **Every edit: NUDGE** (non-blocking) — a one-line reminder of the rule-tests.
+- **ExitPlanMode ("here is the plan"): NUDGE** to run the rules-checker PANEL on the plan.
 
-Post-task (turn end) is enforced by the Stop verify-gate (Block 5).
+Post-task (turn end) is enforced by the Stop verify-gate; the commit boundary adds the
+heavy semantic check (commit-gate.py).
 
-Output schema verified at code.claude.com/docs/en/hooks (PreToolUse):
+Output schema (PreToolUse), verified at code.claude.com/docs/en/hooks:
   deny  : {"hookSpecificOutput":{"hookEventName":"PreToolUse","permissionDecision":"deny","permissionDecisionReason":"..."}}
   nudge : {"hookSpecificOutput":{"hookEventName":"PreToolUse","additionalContext":"..."}}
-Fail-OPEN on every error (exit 0): a broken hook must never block tool use.
+Fail-OPEN on every error (exit 0): a broken hook must never block tool use. If the shared
+registry won't import, warn LOUDLY and degrade to nudge-only (never deny on a broken gate).
 """
 from __future__ import annotations
 
 import json
 import os
-import re
 import sys
 import time
 
 _CLAUDE_DIR = os.path.expanduser("~/.claude")
 LOG = f"{_CLAUDE_DIR}/hooks/pre-action.log"
+
+sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+try:
+    import _rules
+    _RULES_OK = True
+    _IMPORT_ERR = None
+except Exception as _e:  # pragma: no cover - exercised by the fail-open smoke
+    _RULES_OK = False
+    _IMPORT_ERR = _e
 
 TESTS = (
     "T1 right-not-fast (no proxy justification) · T2 don't-guess (cite file:line/URL, "
@@ -40,20 +51,9 @@ TESTS = (
     "T10 subagents cautious, Opus never Sonnet · T11 docs-ship-with-features · "
     "T12 stack-defaults (plain JS, shared Vue3/Tauri2). Detail: ~/.claude/rules-detail.md."
 )
-
-# A rules-pass already happened this turn: the checker ran, the tests are cited, or
-# a trivial change is attested (the cheap escape so a typo isn't a full checker run).
-# A rules-pass that ACTUALLY happened — used to clear the BLOCKING pre-task DENY, so
-# loose prose ("I'll run the rules-checker") must NOT count (the dogfood-caught hole).
-# Require a real subagent run (detected in _scan_turn), a cited checker VERDICT, or
-# an explicit trivial attestation.
-VERDICT = re.compile(
-    r"\bVERDICT:\s*(PASS|FAIL)\b"
-    r"|\bT(1[0-2]|[1-9])\b[^\n]{0,30}\b(PASS|FAIL)\b[^\n]{0,200}?"
-    r"\bT(1[0-2]|[1-9])\b[^\n]{0,30}\b(PASS|FAIL)\b",
-    re.I,
-)
-TRIVIAL = re.compile(r"\b(trivial|one[- ]?line|typo|comment[- ]?only|dep bump|rename)\b", re.I)
+NUDGE = ("⛔ CODE CHANGE — check it against the rule-tests T1-T12 first (right-not-fast · "
+         "don't-guess · reuse-don't-copy · whole-job · docs-with-it; full list in "
+         "~/.claude/CLAUDE.md).")
 
 
 def _log(msg: str) -> None:
@@ -67,46 +67,6 @@ def _log(msg: str) -> None:
 def _emit(obj: dict) -> None:
     obj["hookEventName"] = "PreToolUse"
     print(json.dumps({"hookSpecificOutput": obj}))
-
-
-def _last_user_idx(entries: list) -> int:
-    for i in range(len(entries) - 1, -1, -1):
-        e = entries[i]
-        if e.get("type") != "user" or e.get("isMeta"):
-            continue
-        c = (e.get("message") or {}).get("content")
-        if isinstance(c, str):
-            if c.strip():
-                return i
-        elif isinstance(c, list):
-            has_text = any(isinstance(b, dict) and b.get("type") == "text" for b in c)
-            has_tr = any(isinstance(b, dict) and b.get("type") == "tool_result" for b in c)
-            if has_text and not has_tr:
-                return i
-    return 0
-
-
-def _scan_turn(entries: list, start: int) -> tuple[int, bool]:
-    """(prior code-edits this turn, rules-pass-present this turn)."""
-    edits = 0
-    rules_pass = False
-    for e in entries[start:]:
-        if e.get("type") != "assistant":
-            continue
-        for b in (e.get("message") or {}).get("content") or []:
-            if not isinstance(b, dict):
-                continue
-            if b.get("type") == "tool_use":
-                name = b.get("name") or ""
-                if name in ("Edit", "Write", "MultiEdit", "NotebookEdit"):
-                    edits += 1
-                if name in ("Task", "Agent"):
-                    rules_pass = True
-            elif b.get("type") == "text":
-                t = b.get("text") or ""
-                if VERDICT.search(t) or TRIVIAL.search(t):
-                    rules_pass = True
-    return edits, rules_pass
 
 
 def main() -> None:
@@ -129,35 +89,46 @@ def main() -> None:
     if tool not in ("Edit", "Write", "MultiEdit"):
         sys.exit(0)
 
+    file_path = (data.get("tool_input") or {}).get("file_path") or ""
+
+    # Registry unavailable → LOUD warn + nudge-only (never deny on a broken gate).
+    if not _RULES_OK:
+        sys.stderr.write(
+            f"⚠ pre-action-check: rule registry (_rules.py) failed to import "
+            f"({_IMPORT_ERR}) — nudging only, no pre-task deny this turn.\n")
+        _log(f"WARN registry import failed: {_IMPORT_ERR}")
+        _emit({"additionalContext": NUDGE})
+        sys.exit(0)
+
     prior_edits, rules_pass = 0, True  # fail-open defaults (no transcript → just nudge)
     tpath = data.get("transcript_path")
     if tpath and os.path.isfile(tpath):
         try:
             with open(tpath, encoding="utf-8") as f:
                 entries = [json.loads(line) for line in f if line.strip()]
-            prior_edits, rules_pass = _scan_turn(entries, _last_user_idx(entries))
+            ctx = _rules.build_ctx(data, entries, "PreToolUse")
+            prior_edits, rules_pass = ctx["edits"], ctx["rules_passed"]
         except Exception:
             prior_edits, rules_pass = 0, True  # parse error → don't block, just nudge
 
-    # PRE-TASK: the first code change of the turn, with no rules-pass yet → DENY.
-    if prior_edits == 0 and not rules_pass:
-        _log("DENY pre-task (first edit, no rules-pass)")
+    # NARROW the pre-task DENY: exempt a first edit that is .md-only (docs/recap/plan) or
+    # trivial-attested (rules_pass already covers the explicit 'trivial'/typo case). The
+    # deny exists to catch a bad CODE plan before it becomes 10 bad files.
+    is_md = file_path.endswith(".md")
+    if prior_edits == 0 and not rules_pass and not is_md:
+        _log(f"DENY pre-task (first code edit, no rules-pass) file={file_path}")
         _emit({"permissionDecision": "deny", "permissionDecisionReason": (
-            "PRE-TASK CHECK — this is the first file change of the task and the plan was "
+            "PRE-TASK CHECK — this is the first CODE change of the task and the plan was "
             "not rules-checked. Before writing, run the rules-checker subagent on your "
             "internal plan (Agent tool, subagent_type 'rules-checker') and address any "
             "FAIL — OR, for a trivial change, say 'trivial' / cite the tests it passes. "
-            "Then write. The 12 tests: " + TESTS)})
+            "(Editing a .md doc is exempt.) Then write. The 12 tests: " + TESTS)})
         sys.exit(0)
 
-    # Every edit gets a SHORT nudge — salience without spam. Repeating the full ~400-char
-    # T1-T12 block per edit was learned-ignore noise (dogfood-caught); the full list lives
-    # in ~/.claude/CLAUDE.md. One line, every edit.
-    _log(f"INJECT {'first' if prior_edits == 0 else 'edit'}")
-    _emit({"additionalContext":
-           "⛔ CODE CHANGE — check it against the rule-tests T1-T12 first (right-not-fast · "
-           "don't-guess · reuse-don't-copy · whole-job · docs-with-it; full list in "
-           "~/.claude/CLAUDE.md)."})
+    # Every edit gets a SHORT nudge — salience without spam (the full T1-T12 lives in
+    # ~/.claude/CLAUDE.md; repeating it per edit was learned-ignore noise).
+    _log(f"INJECT {'first' if prior_edits == 0 else 'edit'} file={file_path}")
+    _emit({"additionalContext": NUDGE})
     sys.exit(0)
 
 

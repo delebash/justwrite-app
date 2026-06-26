@@ -1,39 +1,37 @@
 #!/usr/bin/env python3
-"""TaskCreated / TaskCompleted gate — the TASK-grain pre/post checks (option B).
+"""TaskCreated / TaskCompleted gate — the TASK-grain checks, via the shared registry.
 
 Fires at the REAL task boundaries — but only when plan tasks are tracked as actual
 Task entries (the standing rule: "every plan task = one Task entry"):
 
-  TaskCreated  (task BEGIN) — block unless the plan was rules-checked this turn.
-  TaskCompleted (task END)  — block unless the result was rules-checked this turn.
+  TaskCreated   (task BEGIN) — rule `task-begin-check`: block unless the plan was
+                rules-checked this turn.
+  TaskCompleted (task END)   — rule `task-completeness`: block unless the result was
+                rules-checked this turn, AND (its inject) the checker was fed the FULL
+                acceptance criteria from the plan doc, not the task summary (anti-skim).
 
-"rules-checked this turn" = the rules-checker subagent ran (a Task/Agent tool call),
-OR the tests are cited in the answer, OR a trivial change is attested.
-
-Blocks via exit code 2 (the documented universal block; stderr is fed back to the
-model). Fail-OPEN on any error (exit 0): a broken gate must never brick a session.
-The turn-grain gates (pre-action-check.py first-edit deny + verify-gate Block 5)
+The rules + their messages live in `_rules.py`; this hook is the MECHANISM (exit code 2,
+the documented universal block; stderr is fed back to the model). Fail-OPEN on any error
+(exit 0). The turn-grain gates (pre-action first-edit deny + verify-gate post-task)
 remain the backstop for work that isn't tracked as Tasks.
 """
 from __future__ import annotations
 
 import json
 import os
-import re
 import sys
 import time
 
 LOG = os.path.expanduser("~/.claude/hooks/task-gate.log")
-# A rules-pass that ACTUALLY happened (not narrated) — clears the BLOCKING task gate,
-# so loose prose ("I'll run the checker") must NOT count (dogfood-caught hole). Require
-# a real subagent run (detected in _rules_pass), a cited checker VERDICT, or trivial.
-VERDICT = re.compile(
-    r"\bVERDICT:\s*(PASS|FAIL)\b"
-    r"|\bT(1[0-2]|[1-9])\b[^\n]{0,30}\b(PASS|FAIL)\b[^\n]{0,200}?"
-    r"\bT(1[0-2]|[1-9])\b[^\n]{0,30}\b(PASS|FAIL)\b",
-    re.I,
-)
-TRIVIAL = re.compile(r"\b(trivial|one[- ]?line|typo|comment[- ]?only|dep bump|rename)\b", re.I)
+
+sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+try:
+    import _rules
+    _RULES_OK = True
+    _IMPORT_ERR = None
+except Exception as _e:  # pragma: no cover - exercised by the fail-open smoke
+    _RULES_OK = False
+    _IMPORT_ERR = _e
 
 
 def _log(msg: str) -> None:
@@ -44,45 +42,21 @@ def _log(msg: str) -> None:
         pass
 
 
-def _last_user_idx(entries: list) -> int:
-    for i in range(len(entries) - 1, -1, -1):
-        e = entries[i]
-        if e.get("type") != "user" or e.get("isMeta"):
-            continue
-        c = (e.get("message") or {}).get("content")
-        if isinstance(c, str):
-            if c.strip():
-                return i
-        elif isinstance(c, list):
-            has_text = any(isinstance(b, dict) and b.get("type") == "text" for b in c)
-            has_tr = any(isinstance(b, dict) and b.get("type") == "tool_result" for b in c)
-            if has_text and not has_tr:
-                return i
-    return 0
-
-
-def _rules_pass(entries: list, start: int) -> bool:
-    for e in entries[start:]:
-        if e.get("type") != "assistant":
-            continue
-        for b in (e.get("message") or {}).get("content") or []:
-            if not isinstance(b, dict):
-                continue
-            if b.get("type") == "tool_use" and b.get("name") in ("Task", "Agent"):
-                return True
-            if b.get("type") == "text":
-                t = b.get("text") or ""
-                if VERDICT.search(t) or TRIVIAL.search(t):
-                    return True
-    return False
-
-
 def main() -> None:
     try:
         data = json.loads(sys.stdin.read())
     except Exception:
         sys.exit(0)
-    event = data.get("hook_event_name") or "Task"
+    event = data.get("hook_event_name") or "TaskCreated"
+
+    # Registry unavailable → LOUD warn + fail OPEN (never block on a broken gate).
+    if not _RULES_OK:
+        sys.stderr.write(
+            f"⚠ task-gate: rule registry (_rules.py) failed to import ({_IMPORT_ERR}) "
+            f"— the {event} gate is OFF. Fix _rules.py.\n")
+        _log(f"WARN registry import failed: {_IMPORT_ERR}")
+        sys.exit(0)
+
     tpath = data.get("transcript_path")
     if not (tpath and os.path.isfile(tpath)):
         sys.exit(0)  # fail-open: no transcript → don't block
@@ -92,19 +66,15 @@ def main() -> None:
     except Exception:
         sys.exit(0)
 
-    if _rules_pass(entries, _last_user_idx(entries)):
+    ctx = _rules.build_ctx(data, entries, event)
+    fails = _rules.run_rules(event, ctx)
+    if not fails:
         _log(f"ALLOW {event} (rules-pass present)")
         sys.exit(0)
 
-    begin = "Created" in event
-    phase = "BEGIN (TaskCreated)" if begin else "END (TaskCompleted)"
-    verb = "starting" if begin else "completing"
-    what = "this task's plan" if begin else "what this task produced (the diff)"
-    _log(f"BLOCK {event} no-rules-pass")
-    sys.stderr.write(
-        f"TASK GATE — {phase}. No rules-pass this turn. Run the rules-checker subagent on "
-        f"{what} (Agent tool, subagent_type 'rules-checker') and address any FAIL — or cite "
-        f"the tests it passes / say 'trivial' — before {verb} this task.")
+    rid, inject = fails[0]
+    _log(f"BLOCK {rid} ({event})")
+    sys.stderr.write(inject)
     sys.exit(2)
 
 

@@ -36,14 +36,17 @@ cp -f "$HERE/EFFECTIVENESS.md"          "$DEST/EFFECTIVENESS.md"
 cp -f "$HERE/settings.json"             "$DEST/settings.json"
 mkdir -p "$DEST/agents"
 cp -f "$HERE/agents/rules-checker.md"   "$DEST/agents/rules-checker.md"
+cp -f "$HERE/hooks/_rules.py"           "$DEST/hooks/_rules.py"
 cp -f "$HERE/hooks/arm-rules-gate.sh"   "$DEST/hooks/arm-rules-gate.sh"
 cp -f "$HERE/hooks/verify-gate.py"      "$DEST/hooks/verify-gate.py"
 cp -f "$HERE/hooks/pre-action-check.py" "$DEST/hooks/pre-action-check.py"
 cp -f "$HERE/hooks/task-gate.py"        "$DEST/hooks/task-gate.py"
+cp -f "$HERE/hooks/commit-gate.py"      "$DEST/hooks/commit-gate.py"
 cp -f "$HERE/hooks/gate-stats.py"       "$DEST/hooks/gate-stats.py"
+# _rules.py is IMPORTED (not run) so it needs no +x; the rest are executables.
 chmod +x "$DEST/hooks/arm-rules-gate.sh" "$DEST/hooks/verify-gate.py" \
          "$DEST/hooks/pre-action-check.py" "$DEST/hooks/task-gate.py" \
-         "$DEST/hooks/gate-stats.py"
+         "$DEST/hooks/commit-gate.py" "$DEST/hooks/gate-stats.py"
 
 # Remove the superseded SOFT reminders if a base image ever restores them
 # (replaced by the hard gates; user law: "never do soft").

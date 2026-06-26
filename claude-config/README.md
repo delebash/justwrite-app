@@ -52,10 +52,14 @@ and misses), so it can be tuned — and shared with other developers who hit the
 | `CLAUDE.md` | `~/.claude/CLAUDE.md` | The **slim** rules — the 12 rule-tests (T1–T12) + the enforcement summary. Always loaded. |
 | `rules-detail.md` | `~/.claude/rules-detail.md` | The **full** WHY + every incident + worked examples (the old 50k). Read on demand when a test is ambiguous. |
 | `agents/rules-checker.md` | `~/.claude/agents/` | The rules-checker **subagent** (Opus, read-only): scores a plan/diff against T1–T12, adversarial, returns failures. Panel-aware. |
-| `hooks/pre-action-check.py` | `~/.claude/hooks/` | **PreToolUse** hook: pre-task DENY on the first code change without a rules-pass; NUDGE on every edit; PANEL reminder on `ExitPlanMode`. |
-| `hooks/verify-gate.py` | `~/.claude/hooks/` | **Stop** hook. Blocks 0–5 (see below). |
+| `hooks/_rules.py` | `~/.claude/hooks/` | **The rule REGISTRY (single source).** All shared regexes + the turn-scan + genuine-user detection + the rule list (`id`/`events`/`kind`/`recheck`/`detect`/`inject`) + `run_rules`. Every hook imports it; the `id` is also the gate-stats log-key. Imported, not executed. |
+| `hooks/pre-action-check.py` | `~/.claude/hooks/` | **PreToolUse** hook: pre-task DENY on the first **code** change without a rules-pass (`.md`/trivial exempt); NUDGE on every edit; PANEL reminder on `ExitPlanMode`. |
+| `hooks/verify-gate.py` | `~/.claude/hooks/` | **Stop** hook. Block 0 (sentinel) + Blocks 1–5 via `run_rules("Stop")` (see below). |
+| `hooks/task-gate.py` | `~/.claude/hooks/` | **TaskCreated/TaskCompleted** gate: `task-begin-check` / `task-completeness` via `run_rules` (exit 2). |
+| `hooks/commit-gate.py` | `~/.claude/hooks/` | **PreToolUse(Bash)** commit boundary: HARD-DENY a CODE `git commit` until docs **and** a checker-verdict are present; escapes for `--amend` / doc-only / trivial; anti-loop sentinel. |
 | `hooks/arm-rules-gate.sh` | `~/.claude/hooks/` | **SessionStart** hook: arms the Block-0 sentinel on compact/clear/startup (not resume). |
-| `hooks/gate-stats.py` | `~/.claude/hooks/` | Rolls up the gate logs into a tally for `EFFECTIVENESS.md`. |
+| `hooks/gate-stats.py` | `~/.claude/hooks/` | Rolls up the gate logs into a tally for `EFFECTIVENESS.md` (imports the rule ids from `_rules.py`). |
+| `hooks/test_gates.py` | (bundle only) | The committed harness — `python3 claude-config/hooks/test_gates.py`. Not installed to `~/.claude`. |
 | `EFFECTIVENESS.md` | `~/.claude/EFFECTIVENESS.md` | The durable ledger: catches / false positives / misses. |
 | `settings.json` | `~/.claude/settings.json` | Wires the hooks: `SessionStart`, `Stop`, and `PreToolUse` (Edit/Write/MultiEdit/ExitPlanMode). |
 
@@ -65,14 +69,19 @@ law is "never soft, all hard gates."
 
 ## The events we hook, and the check at each
 
-There are 31 hook events; these are the ones wired (✋ = can block, 💬 = can inject):
+There are 31 hook events; these are the ones wired (✋ = can block, 💬 = can inject).
+Every event runs the SAME registry (`_rules.py`) against its action via `run_rules`
+(except Block 0, which keeps bespoke sentinel mechanics) — the rules are defined once;
+the hooks are just the per-event mechanism.
 
 | Event | When | What fires |
 |---|---|---|
 | `SessionStart` | startup / compact / clear | 💬 arm the "context reset → re-read rules" sentinel |
-| `PreToolUse` (Edit/Write/MultiEdit) | before a code change | ✋ **pre-task DENY** (first edit, no rules-pass) · 💬 **per-edit NUDGE** |
+| `PreToolUse` (Edit/Write/MultiEdit) | before a code change | ✋ **pre-task DENY** (first **code** edit, no rules-pass; `.md`/trivial exempt) · 💬 **per-edit NUDGE** |
 | `PreToolUse` (ExitPlanMode) | before "here is the plan" | 💬 reminder to run the rules-checker **panel** |
-| `Stop` | the turn tries to end | ✋ Blocks 0–5 |
+| `PreToolUse` (Bash `git commit`) | before a commit | ✋ **commit boundary** — HARD-DENY a CODE commit until docs **+** verdict (escapes: `--amend`, doc-only, trivial; anti-loop) |
+| `TaskCreated` / `TaskCompleted` | a tracked task begins/ends | ✋ `task-begin-check` / `task-completeness` (anti-skim: the checker reads the FULL criteria) |
+| `Stop` | the turn tries to end | ✋ Block 0 (sentinel) + Blocks 1–5 (registry) |
 
 ### The Stop gate — Blocks 0–5 (`verify-gate.py`)
 
@@ -93,12 +102,17 @@ short-circuit on `stop_hook_active` so each fires at most once per stop-sequence
 
 ### The three check granularities (the user's model)
 
-- **Per-edit → nudge.** Every `Edit`/`Write` gets the 12 tests injected (non-blocking).
-- **Pre-task → deny.** The FIRST code change of a turn is **denied** unless the plan
+- **Per-edit → nudge.** Every `Edit`/`Write` gets a one-line reminder (non-blocking).
+- **Pre-task → deny.** The FIRST **code** change of a turn is **denied** unless the plan
   was rules-checked (run the checker, cite the tests, or attest "trivial"). Catches a
-  bad plan *before* it becomes 10 bad files.
-- **Post-task → deny.** A code-editing turn that ends with no rules-pass is **blocked**
-  (Block 5) — check the diff before finishing.
+  bad plan *before* it becomes 10 bad files. A first edit to a `.md` doc is exempt (the
+  cry-wolf narrowing).
+- **Post-task → deny (cheap, turn-grain).** A code-editing turn that ends with no
+  rules-pass is **blocked** (Block 5) — the backstop, kept even when nothing is committed.
+- **Commit → HARD-DENY (heavy, the main post-task check).** A CODE `git commit` is the
+  truest "task end" the harness sees; it is blocked until BOTH a doc is updated/cited AND
+  a checker-verdict exists (escapes: `--amend`, a doc-only commit, an attested "trivial").
+  This LAYERS the semantic check on top of Stop; it never replaces it.
 
 ## The rules-checker subagent + the panel
 
@@ -144,8 +158,9 @@ re-sync into the bundle and commit:
 
 ```bash
 for f in CLAUDE.md rules-detail.md EFFECTIVENESS.md settings.json \
-         agents/rules-checker.md hooks/arm-rules-gate.sh hooks/verify-gate.py \
-         hooks/pre-action-check.py hooks/gate-stats.py; do
+         agents/rules-checker.md hooks/_rules.py hooks/arm-rules-gate.sh \
+         hooks/verify-gate.py hooks/pre-action-check.py hooks/task-gate.py \
+         hooks/commit-gate.py hooks/gate-stats.py; do
   cp -f "$HOME/.claude/$f" "claude-config/$f"
 done
 ```

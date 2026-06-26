@@ -94,7 +94,10 @@ changed + the verification result, then stop.
 ## Enforcement — where the tests fire (mechanical, not willpower)
 
 The tests work because they're checked at **boundaries triggered by events**, not
-by me remembering mid-task. All of this is provisioned from the
+by me remembering mid-task. The rules are defined ONCE in `~/.claude/hooks/_rules.py`
+(the regexes + turn-scan + the rule registry: each rule's `id`/`events`/`detect`/
+`inject`); every hook imports it and runs `run_rules(event, ctx)` — the `id` is also
+the gate-stats log-key (one source). All of this is provisioned from the
 `justwrite-app/claude-config/` bundle by `install.sh` (see that folder's README).
 
 - **PreToolUse hook** — `~/.claude/hooks/pre-action-check.py`, wired in
@@ -102,11 +105,18 @@ by me remembering mid-task. All of this is provisioned from the
   - **Pre-task (the FIRST code change of a turn): DENY** unless the plan was already
     rules-checked this turn (the rules-checker ran, the tests are cited, or it's
     attested trivial) — forces the plan-check BEFORE the first file is written (catch
-    a bad plan before it's 10 bad files).
-  - **Every edit: NUDGE** (non-blocking) — injects T1–T12 so they're salient at the
-    change.
+    a bad plan before it's 10 bad files). A first edit to a **`.md`** doc is EXEMPT
+    (the cry-wolf narrowing — a plan/recap/doc edit shouldn't be denied).
+  - **Every edit: NUDGE** (non-blocking, one line) — the rule-tests stay salient.
   - On `ExitPlanMode` ("here is the plan" — a literal event): injects a reminder to
     run the **rules-checker PANEL** on the plan (2–3 independent, compare).
+- **Commit boundary** — `~/.claude/hooks/commit-gate.py`, wired in `settings.json` as a
+  SEPARATE `PreToolUse` `Bash` block. On a CODE `git commit` it is a **HARD DENY** until
+  BOTH a doc was updated/cited AND a checker-verdict exists this turn (the heavy
+  post-task check). Escapes: `git commit --amend`, a doc-only commit, or an attested
+  "trivial". Anti-loop sentinel fail-safes after repeated denies. It LAYERS on top of
+  the Stop gate — never replaces it (a turn that edits then stops-to-ask commits
+  nothing, so Stop's Block 5 stays the backstop).
 - **Stop gate** — `~/.claude/hooks/verify-gate.py` (blocks the turn until satisfied):
   - **Block 0** — after a compact/clear, re-read this file + the project `CLAUDE.md`
     + `MORNING_RECAP.md` (Read tool, IN FULL) before finishing.
@@ -122,11 +132,14 @@ by me remembering mid-task. All of this is provisioned from the
     tests, or hedge.
 - **Task gate** — `~/.claude/hooks/task-gate.py`, wired for `TaskCreated` /
   `TaskCompleted` (the TRUE task begin/end events, when plan tasks are tracked as Task
-  entries): blocks creating or completing a task without a rules-pass this turn (run
-  the checker, cite the tests, or attest trivial). This is the task-grain pre/post
-  check; the PreToolUse first-edit deny + Block 5 are the turn-grain backstop. Standing
-  rule that makes it fire: **every plan task = one Task entry** (a "real plan" = Plan
-  mode + detailed Task entries — see the plan-protocol above).
+  entries): `task-begin-check` blocks creating, `task-completeness` blocks completing,
+  without a rules-pass this turn (run the checker, cite the tests, or attest trivial).
+  **Anti-skim:** `task-completeness`'s instruction is to run the checker on the FULL
+  acceptance criteria of the task — read from the plan doc, NOT the task summary — so the
+  checker reads the detail I might have skimmed (prereq: plan tasks carry explicit
+  acceptance criteria). This is the task-grain pre/post check; the PreToolUse first-edit
+  deny + Block 5 are the turn-grain backstop. Standing rule that makes it fire: **every
+  plan task = one Task entry** (a "real plan" = Plan mode + detailed Task entries).
 - **rules-checker subagent** — `~/.claude/agents/rules-checker.md` (Opus; its own
   discarded context = true "load rules → check → unload"): given a plan or a diff,
   scores each of T1–T12 PASS/FAIL/NA + one-line why, adversarial (defaults to FAIL
