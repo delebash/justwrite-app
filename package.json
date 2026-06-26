@@ -18,7 +18,8 @@
     "release:macos": "node scripts/release.mjs --platform macos",
     "release:linux": "node scripts/release.mjs --platform linux",
     "screenshots": "node e2e/capture-direct.mjs",
-    "test": "npm test --prefix e2e"
+    "test": "npm test --prefix e2e",
+    "dup": "jscpd"
   },
   "dependencies": {
     "@floating-ui/dom": "^1.7.6",

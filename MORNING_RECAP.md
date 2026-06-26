@@ -110,14 +110,20 @@ coordination). → `just-llm-runner/docs/plans/2026-06-24-server-model-managemen
 (n_cpu_moe/n_gpu_layers/ctx + tok/s). (✅ **#22** per-action sampling/top-p + **#18**
 structured-output JSON shipped — runner `900e20c`.)
 
-**🔧 IN FLIGHT (post-compact tail — full detail in design §17):** the
-**Recommendations job dropdown shows a stale hardcoded list** (`RecommendationsEditor`
-`SUGGESTED_JOBS`) — the copy-paste class the user flagged. Fix = the new shared
-**`LuJobSelect`** over live `/v1/ai/jobs`, wired into BOTH `RecommendationsEditor`
-AND `FeatureWorkbench`'s native `<select>`, + a smoke assertion (add a job → it
-appears in the dropdown). **#32** audit the app for the same copy-paste /
-should-be-shared class (RULE #7). **#33** Routing-by-job: jobs as a grid (`UiTable`),
-not cards.
+**✅ DONE — Recommendations job dropdown + the REUSE gate (design §17):** the stale
+hardcoded `SUGGESTED_JOBS` was replaced by the shared **`LuJobSelect`** (live
+`/v1/ai/jobs`), wired into BOTH `RecommendationsEditor` AND `FeatureWorkbench` (which
+had its OWN native `<select>` over jobs — converged). Verified green: build + smoke
+(incl. a behavior gate: add a job → it appears). **Reuse gate** (user-driven, the
+real point — "a pro extracts a component, doesn't copy code"): adopted **jscpd**
+(made JW's DEAD `threshold:10` config real at 3.5%; kit 1.5%; `npm run dup` both
+repos; in the smoke prelude) + a `check-shared-pickers` structural check (job picker
+only in `LuJobSelect`; fails on a hand-rolled copy). → design §17.5.
+- **#32 (copy-paste audit) — jscpd findings:** kit clean (0.88%); JW renderer 3.04%
+  (221 clones), dominated by **`LocationsView`↔`ObjectsView`** (near-identical entity
+  CRUD views → should be ONE parameterized component) + ImportView↔NotesView, etc.
+  Ratchet the jscpd thresholds down as these converge.
+- **#33** Routing-by-job: jobs as a grid (`UiTable`), not cards.
 
 **Other:** **#25** curate `model_recommendations` (cited per-job picks). **#28** follow-up
 research (measured per-tier benchmarks — the run-2 gap). **#24** temp speaker_attribution +

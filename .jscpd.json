@@ -1,5 +1,5 @@
 {
-  "threshold": 10,
+  "threshold": 3.5,
   "minTokens": 50,
   "pattern": "src/renderer/src/**/*.{js,vue}",
   "ignore": ["**/node_modules/**", "**/dist/**"],

@@ -973,6 +973,11 @@ location map). Recap "Recently shipped" + backlog kept in lockstep each unit.
 
 ### 17.1 — The bug the user found: the Recommendations job dropdown doesn't update
 
+> ⮕ The GATE described here is CORRECTED + GENERALIZED in §17.5. The user pointed
+> out (twice) that the real failure was copy-paste-instead-of-reuse, NOT a dropdown
+> bug — a behavior assertion tests the symptom; the reuse gate (jscpd + the picker
+> check) tests the disease. Read §17.5 for the actual gate.
+
 **Symptom (user, verbatim):** "recommendations tab the jobs dropdown is not
 updating, I bet you copied and pasted instead of making it a component. What else
 did you just copy and paste?"
@@ -1072,3 +1077,59 @@ intolerable the honest options are more gates as classes surface, a different
 model, or the user deciding the friction is not worth it. **Recorded so the next
 session does NOT respond to a failure by adding more rule prose — it adds a gate or
 a test instead.**
+
+### 17.5 — The reuse gate, corrected (user, 2026-06-26): symptom → disease → the general principle
+
+Two corrections from the user reshaped what the gate had to be:
+
+1. *"is that specific to dropdown? that was not the point — it should be using a
+   reusable component and not hand-coded each time."* → My first gate (a smoke
+   assertion that the Recommendations dropdown fires a live `GET /v1/ai/jobs`) tests
+   the SYMPTOM (stale data). It does NOT enforce reuse: a freshly hand-rolled
+   `<select v-for="j in jobs">` with live data would PASS it. Wrong target.
+2. *"it really has nothing to do with job picker and everything to do with being a
+   professional software developer who would not copy code — they turn it into a
+   reusable, parameterized component and use it everywhere appropriate; maybe the
+   component has params so it does slightly different things, but is same enough that
+   a new component isn't necessary."* → The rule is the GENERAL copy-paste-vs-extract
+   discipline (RULE #7). The job picker was ONE instance. (LuJobSelect is already
+   built this way — same component, two call sites: FeatureWorkbench passes its own
+   `jobs` + an empty-label option; Recommendations self-fetches with none. Params,
+   not a second component.)
+
+The corrected gate is LAYERED, honest about what each layer can and can't catch:
+
+- **General copy-paste → jscpd (adopted; RULE #7 §D adopt-don't-build).** jscpd v5
+  (jscpd.dev, verified current — modified 2026-06-20) detects literal/near-literal
+  duplicate blocks — the structural signature of "you copied code." **JW ALREADY had
+  `.jscpd.json` + the devDep, but `threshold: 10` (toothless — current 3.04% never
+  tripped it) and NO script ran it: a configured-but-DEAD gate** (itself an instance
+  of §17.4 — a tool adopted but never made to actually run). Made real: JW
+  threshold 10 → **3.5%**; added a matching kit `.jscpd.json` (**1.5%**, baseline
+  0.88%); `npm run dup` in both repos; the JW smoke prelude now runs jscpd and fails
+  over threshold. Thresholds sit just above each baseline so NEW copy-paste fails,
+  and we ratchet them down as duplication is removed.
+  - **What jscpd found (the #32 audit, tool-driven — answers "what else did you copy
+    and paste?"):** the kit is clean (0.88%, 9 tiny clones). JW's renderer holds the
+    real duplication (3.04%, 221 clones), dominated by **`LocationsView.vue` ↔
+    `ObjectsView.vue`** sharing large near-identical blocks (script 195 + 192 + 368
+    tokens; template 88) — the same "entity CRUD view" copied; should be ONE
+    parameterized component/composable. Lesser: ImportView↔NotesView (67),
+    PlotBoardView self-dup, SettingsView/Worldbuilding css. → folded into #32.
+- **Specific established shared components → the narrow structural check**
+  (`ui/scripts/check-shared-pickers.mjs`, offline, in the smoke prelude). A job
+  picker (a hardcoded job-id array OR a hand-rolled `<select>/<option>` over `jobs`)
+  may exist ONLY in `LuJobSelect`. Catches small/diverged copies a token-threshold
+  misses. Proven both ways: passes clean (53 kit files), and FAILS on an injected
+  violation (exit 1, naming both). Extend `RULES[]` as more shared components are
+  established (providers, models — #32).
+- **Behavior that the one component actually works → the smoke assertion**
+  (recs-job-dropdown: opening Add fires a live `GET /v1/ai/jobs` carrying a
+  just-added job). Complementary — catches `LuJobSelect` itself rotting, not reuse.
+- **Honest limit (per §17.4):** jscpd catches LITERAL duplication; "two
+  different-looking blocks that SHOULD be one parameterized component" is SEMANTIC and
+  stays the manual #32 audit (RULE #5 per-component strict-diff). No tool replaces
+  that judgment.
+
+All green: kit `check:pickers` ✓ · kit dup 0.88% < 1.5% ✓ · JW dup 3.04% < 3.5% ✓ ·
+smoke (all routes + 6 AI tabs + the 3 gates) ✓.
