@@ -9,7 +9,8 @@ It BLOCKS the turn ({"decision":"block","reason":...}; the reason is fed back to
 model) on any of:
 
   BLOCK 0 — RULES/STATE NOT RE-READ AFTER A MEMORY RESET. SessionStart arms a sentinel
-    on every startup/resume/clear/compact (arm-rules-gate.sh). Until the FULL global
+    on compact/clear/startup — NOT on resume, which reloads the transcript intact
+    (arm-rules-gate.sh). Until the FULL global
     rules (~/.claude/CLAUDE.md), the project CLAUDE.md, and the project MORNING_RECAP.md
     have EACH been Read (a real Read tool call — never a truncated injection: the rules
     file is ~52k chars, additionalContext caps at 10k) since that reset, the turn is
@@ -169,8 +170,9 @@ def _rules_gate(data: dict, entries: list) -> bool:
             meta = json.load(f)
         arm_n = int(meta.get("line", 0))
         blocks = int(meta.get("blocks", 0))
+        source = str(meta.get("source") or "")
     except Exception:
-        arm_n, blocks = 0, 0
+        arm_n, blocks, source = 0, 0, ""
 
     required = _required_state_files(data.get("cwd") or "")
     read = _reads_since(entries, arm_n)
@@ -188,16 +190,18 @@ def _rules_gate(data: dict, entries: list) -> bool:
 
     try:
         with open(SENTINEL, "w", encoding="utf-8") as f:
-            json.dump({"line": arm_n, "blocks": blocks + 1}, f)
+            json.dump({"line": arm_n, "blocks": blocks + 1, "source": source}, f)
     except Exception:
         pass
 
     files = "\n".join(f"  - {m}" for m in missing)
-    _log(f"BLOCK rules-gate missing={missing}")
+    _log(f"BLOCK rules-gate source={source!r} missing={missing}")
+    what = {"compact": "a compaction", "clear": "a /clear", "startup": "a fresh session"}.get(
+        source, "a memory reset")
     print(json.dumps({"decision": "block", "reason": (
-        "VERIFY-GATE (rules/state) — a memory reset occurred (session start / compact / "
-        "resume / clear). Before ANYTHING else, RE-READ each of these IN FULL, slowly, "
-        "per line, with the Read tool NOW — not from memory, not a summary:\n" + files +
+        f"VERIFY-GATE (rules/state) — {what} occurred (context lost). Before ANYTHING "
+        "else, RE-READ each of these IN FULL, slowly, per line, with the Read tool NOW "
+        "— not from memory, not a summary:\n" + files +
         "\nThen open the plan doc(s) the recap points to for the active task. This gate "
         "keeps blocking until the files above have been read this session."
     )}))

@@ -214,7 +214,8 @@ per-turn `verify-first.sh` reminder were DELETED — a soft reminder doesn't for
 compliance (they were present and still ignored). Replaced by hard `Stop`-gate blocks in
 `~/.claude/hooks/verify-gate.py`:
 - **Block 0 (rules/state re-read):** `~/.claude/hooks/arm-rules-gate.sh` (SessionStart —
-  fires on every startup/resume/clear/compact) arms a sentinel recording the transcript
+  arms on compact/clear/startup, NOT `resume`: a resume reloads the transcript intact, so
+  arming there was cry-wolf, fixed 2026-06-26) arms a sentinel recording the transcript
   length; the gate then BLOCKS the turn until `~/.claude/CLAUDE.md` + this
   `MORNING_RECAP.md` + the project `CLAUDE.md` have EACH been `Read` IN FULL this session
   (a real Read tool call — NOT injected: additionalContext caps at 10k chars and the rules
