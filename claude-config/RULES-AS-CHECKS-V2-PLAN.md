@@ -133,6 +133,41 @@ event (not merely "doesn't brick"). Per-hook duplication (today's state) is the 
 - Re-dogfood with the rules-checker panel (Opus ×2: architecture + correctness lenses).
 - Live: `FORCE=1 install.sh`; confirm the commit hook fires on a real `git commit`.
 
+## Anti-skim — follow the FULL task detail, not the summary (user-requested 2026-06-26)
+Recurring failure: executing a detailed plan, I read a task's SUMMARY and do a small
+part, skipping its detail. This is RULE #6 / T5 (do the whole job); the Affordance Table
+is the existing manual artifact. v2 automates it as a registry rule:
+- **Rule `task-completeness`** (kind: semantic; events: TaskCompleted + commit). At
+  task-end it invokes the rules-checker subagent with TWO inputs: (1) the FULL text of the
+  plan task — its explicit acceptance criteria, read from the plan doc, **NOT the summary**;
+  (2) the diff. The checker scores EACH criterion PASS/FAIL (default FAIL if uncertain) and
+  returns every UNMET one. Any unmet → hold (block completion/commit) + inject the gaps →
+  I finish → re-check → pass. **The checker is the safeguard against MY skimming — it reads
+  the detail I skipped.**
+- **Prereq A — plan tasks = explicit acceptance criteria, not summaries.** Each task
+  enumerates its sub-requirements (e.g. Task 4 = (a) docs-inject (b) hard-DENY (c) escapes
+  trivial/doc-only/--amend (d) anti-loop). The plan-finalize panel verifies every task HAS
+  enumerable criteria; a vague task is a plan defect.
+- **Prereq B — task→plan-section link.** Each `TaskCreate` records which plan section it
+  implements, so `task-completeness` knows which criteria to check against.
+- **Cheap structural pre-filter:** first check the diff touched every file in the task's
+  touch-list (catches "never touched file X"); the checker then judges whether each
+  requirement is actually IMPLEMENTED (touching ≠ implementing).
+- **Honest limit:** semantic — the checker's judgment isn't perfect + needs explicit
+  criteria in the plan. But it reads the FULL detail, catching the "did a small part" class
+  a header-only check never would.
+- **Generalizes to "read docs / check code line by line", not just tasks (user,
+  2026-06-26).** Same lever prevents skimming ANY source: (1) a **citation requirement** —
+  every claim/criterion cites the exact `file:line` you opened (you can't cite accurately
+  without reading it; RULE #1/#5/#6 already mandate this clause), and (2) the **checker
+  independently re-reads** the full source line by line in its own context and verifies each
+  citation/criterion — catching what a skim missed. For audits/refactors, RULE #5's per-unit
+  strict-diff (a cited row per unit, every cell `file:line`) structurally forbids "skim the
+  whole, declare done." This is NOT a new rule — it's the existing citation rules + the
+  checker doing the careful read. The system forces the read + the citation + the checker's
+  re-read; it can't force attention to every line — but two careful reads (citation-forced +
+  the checker's) beat one skim.
+
 ## Panel review (dogfood — ran on THIS plan, 2026-06-26)
 Two independent Opus rules-checkers reviewed this plan:
 - **Architecture lens → FAIL (7), all folded in above:** (1) DON'T move Stop's
