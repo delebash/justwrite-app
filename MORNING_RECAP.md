@@ -37,17 +37,26 @@ map, what's done/left, how to verify). Below is just the map.
   ➡️ **AUTHORITATIVE: `docs/plans/2026-06-25-jobs-architecture-design.md`** (clean rewrite —
   read it FIRST; the bullets below are just the map). The chain: **feature → its job → the
   job's model + switches + sampling.**
-  - **⮕ STATUS (2026-06-26) — READ design-doc §14 (full handoff) FIRST.** GREEN +
-    committed + pushed: just-llm-runner `3673665`, justwrite-app `1b3ddf9`. **What's BUILT
-    (authorized, ADDITIVE/JW-local):** jobs work in JW — `jobs`+`feature_jobs`+`job_routes`
-    tables/stores/routers (seeded chat/prose/extraction/analysis + all 20 features mapped);
-    `routing_api` has an additive optional `jobs` map; JW `config.py` resolves
-    feature→job→model into dispatch pins, **layered atop the still-present role machinery**.
-    Live-verified; 98+83 pytest.
-  - **⚠️ This is NOT the final design.** TARGET (design doc §0-§13) = ALL LLM code in the
-    shared package + **job REPLACES role** (clean) + JW a thin consumer + only feature DATA
-    per-app. A full-move attempt this session went UNAUTHORIZED, broke the package, and was
-    **reverted** to the green commits above.
+  - **⮕ STATUS (2026-06-26) — THE MOVE IS BEING BUILT (job REPLACES role; ALL LLM shared).**
+    The old reverted additive/JW-local version is GONE; this is the real §13 move (user: "just
+    code it … it should drop in to JV or any app, run seed, and it works"), staged + green.
+    Authoritative plan: `docs/plans/2026-06-26-llm-shared-move-cascade-audit.md` (drop-in build order).
+    - **Phase 1 ✅ (just-llm-runner `7232214`, pushed):** the shared package is now the WHOLE
+      job-native LLM stack — `db.py` (12 tables, no role/quick/accuracy cols) + `stores.py`
+      (11 stores) + `seed.py` (shared seed + `configure_app_seed` hook) + `config_builder.py`
+      + `usage_sink.py`/`pricing.py` + **`install_llm()` one-call drop-in**; role→job across
+      schema/dispatch/routing_api/feature_presets. 102 pytest (incl. `test_shared_storage`).
+    - **Phase 2 ✅ (justwrite-app, this commit):** JW is a THIN CONSUMER — one `install_llm(...)`
+      call + its 3 feature seeds (catalog / prompts / feature→job map). Deleted JW's 8 stores +
+      `config.py` + `usage_sink`/`pricing` + the 12 LLM tables from `models.py` + the `/v1/llm-usage`
+      dup; `data_admin` covers both bases. **JW now has ZERO LLM code except its feature seeds.**
+      77 pytest green.
+    - **Phase 3 ⏳ NEXT:** the shared GUI (`FeatureWorkbench` / `QuickSetup` / `LuModelPicker` /
+      `AiModelsArea`) → job-native (role cards → job cards + a "Routing by job" tab), then the JW
+      headless smoke. (The GUI still references quick/accuracy → smoke fails until this lands.)
+    - **Phase 4 (later, any app):** JV drop-in = delete `engines/llm/*`, call `install_llm` with
+      JV's feature seeds, run seed. JV is irrelevant to the JW build (it breaks at the rename; it's
+      fixed as a one-call drop-in whenever — user: "i dont care about jv").
   - **⛔ Before resuming the move: design-doc §14 has (a) the FULL ~25-FILE CASCADE AUDIT
     (grounded, file-by-file), (b) the STAGED execution plan (each step green), (c) the
     USER-ENFORCED OPERATING MODE** (stop after units / surface decisions, never barrel; audit

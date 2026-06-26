@@ -1,8 +1,8 @@
 """FastAPI application factory for the JustWrite server.
 
 Boots SQLite + AppState and mounts the domain APIs (projects, settings,
-sessions, chat, versions, llm-usage, images, RAG, workspace) plus the SHARED
-llm-runner router in-process (the same router JustVoice mounts — full symmetry).
+sessions, chat, versions, images, RAG) plus the SHARED llm-runner router and the
+whole shared LLM stack via install_llm (the same stack JustVoice mounts).
 All renderer state persists here in SQLite — there is no key/value or IndexedDB
 seam. See docs/plans/2026-06-18-unified-storage-no-idb.md.
 """
@@ -27,7 +27,6 @@ from .api import (
     chat,
     health,
     images,
-    llm_usage,
     projects,
     rag,
     sessions,
@@ -77,15 +76,6 @@ def create_app(data_dir: Path | None = None) -> FastAPI:
     # survives a crash/boot-hang. Shared platform helpers (same in every app).
     install_log_ring()
     install_file_log(data_dir / "logs" / "justwrite.log")
-
-    # Persist server-side LLM dispatch usage to the LlmUsage table (the shared
-    # ledger's host sink) so it joins JW's cost ledger instead of the in-memory
-    # ring that's lost on restart. JustVoice keeps the in-memory default.
-    from llm_runner.llm.usage import set_ledger
-
-    from .llm.usage_sink import JwDbUsageSink
-
-    set_ledger(JwDbUsageSink())
 
     app = FastAPI(title=PRODUCT, version=VERSION)
 
@@ -149,101 +139,28 @@ def create_app(data_dir: Path | None = None) -> FastAPI:
     app.include_router(make_logs_router("JustWrite"))  # shared /v1/logs/*
     app.include_router(rag.router)
     app.include_router(images.router)
-    app.include_router(llm_usage.router)
     app.include_router(llm_runner_router)
-    # Shared LLM routers (the same ones JustVoice mounts): storage-free endpoints
-    # (classify-tier / ai-usage / ping / models over the shared registry+ledger)
-    # plus the provider-CRUD router backed by JustWrite's `LlmProvider`-table
-    # ProviderStore. Replaces the old bulk GET/PUT `api/llm_providers.py`.
-    from llm_runner.llm import (
-        make_catalog_router,
-        make_feature_jobs_router,
-        make_feature_presets_router,
-        make_feature_router,
-        make_jobs_router,
-        make_prompt_router,
-        make_recommendations_router,
-        make_routing_presets_router,
-        make_routing_router,
-        make_switches_router,
-    )
-    from llm_runner.runner.lifecycle import configure_service as _configure_runner
-    from llm_runner.runner.schema import ModelEntry, RecommendedFor
-    from llm_runner.llm.api import router as llm_shared_api_router
-    from llm_runner.llm.provider_api import make_provider_router
+    # Drop in the ENTIRE shared LLM stack with ONE call. JustWrite provides only
+    # its DB + its feature seed DATA (catalog / prompts / feature→job map);
+    # install_llm creates the LLM tables, wires storage, mounts every /v1/ai +
+    # /v1/llm-providers router, sets the DB usage sink, and points the bundled
+    # runner's catalog at the DB. The whole LLM stack is shared — nothing else
+    # about LLM lives in JustWrite (design doc §13). See llm_runner.llm.install.
+    from llm_runner.llm import install_llm
 
+    from . import database as _dbmod
     from .feature_catalog import FEATURE_CATALOG
-    from .llm.config import llm_config
-    from .llm.feature_preset_store import get_feature_preset_store
-    from .llm.prompt_store import get_prompt_store
-    from .llm.model_catalog_store import (
-        get_model_catalog_store,
-        get_model_switch_store,
-    )
-    from .llm.jobs_store import get_feature_job_store, get_job_store
-    from .llm.provider_store import get_provider_store
-    from .llm.recommendation_store import get_recommendation_store
-    from .llm.routing_store import get_routing_preset_store, get_routing_store
+    from .seed import DEFAULT_FEATURE_JOBS
     from .seed_feature_prompts import DEFAULT_FEATURE_PROMPTS
 
-    app.include_router(llm_shared_api_router)
-    app.include_router(make_provider_router(get_provider_store))
-    # Shared per-feature prompt routers (the same ones JustVoice will mount):
-    # the /v1/ai/prompts editor over JW's FeaturePromptStore + seed catalog, and
-    # /v1/ai/run + /v1/ai/stream feature execution over the shared dispatch.
-    app.include_router(make_prompt_router(get_prompt_store, DEFAULT_FEATURE_PROMPTS))
-    app.include_router(make_feature_router(get_prompt_store, llm_config))
-    # Shared feature-routing editor (/v1/ai/routing): default + roles + per-feature
-    # pins over JW's RoutingStore (the `ai` settings blob) and JW's catalog.
-    app.include_router(make_routing_router(get_routing_store, lambda: FEATURE_CATALOG))
-    # Named routing presets ("hardware presets"): save/apply/edit/delete whole
-    # routing snapshots, applying into the same RoutingStore.
-    app.include_router(make_routing_presets_router(get_routing_preset_store, get_routing_store))
-    # Per-feature presets (Feature Workbench save-as/load + use-as-production):
-    # named saved configs over JW's feature_presets table.
-    app.include_router(make_feature_presets_router(get_feature_preset_store))
-    # Per-model recommendations (QuickSetup Q3 — "what's this model good FOR")
-    # over JW's model_recommendations table. CRUD + reset endpoints:
-    # GET/PUT/DELETE /v1/ai/recommendations + POST /v1/ai/recommendations/reset.
-    app.include_router(make_recommendations_router(get_recommendation_store))
-    # DB-backed bundled-llama.cpp catalog + per-model spawn-flag switches —
-    # replaces the deleted manifest `models` array. /v1/ai/model-catalog +
-    # /v1/ai/model-switches CRUD; consumed by QuickSetup + RecommendationsEditor.
-    app.include_router(make_catalog_router(get_model_catalog_store))
-    app.include_router(make_switches_router(get_model_switch_store))
-    # Jobs architecture (job REPLACES role): the editable job list + the
-    # feature→job classification map, both seeded + user-editable.
-    # /v1/ai/jobs (CRUD+reset) + /v1/ai/feature-jobs (GET/PUT/DELETE/reset).
-    app.include_router(make_jobs_router(get_job_store))
-    app.include_router(make_feature_jobs_router(get_feature_job_store))
-
-    # Wire the shared RunnerService singleton to read the catalog + per-model
-    # switches FROM JW's DB (replacing the runner's manifest fallback). The
-    # catalog_fn returns ModelEntry objects (the runner's existing dataclass
-    # shape); switches_fn returns a {flag_name: flag_value} dict the lifecycle
-    # parses into Overrides that layer UNDER user-supplied Overrides at /load.
-    def _jw_catalog_fn() -> list[ModelEntry]:
-        return [
-            ModelEntry(
-                id=r.id, name=r.name, tier=r.tier,
-                hf_repo=r.hfRepo, quant=r.quant, mmproj=r.mmproj,
-                total_params=r.totalParams or None,
-                active_params=r.activeParams or None,
-                mtp=r.mtp,
-                min_ram_mb=r.minRamMb,
-                recommended_for=RecommendedFor(min_vram_mb=r.minVramMb),
-            )
-            for r in get_model_catalog_store().list()
-        ]
-
-    def _jw_switches_fn(model_id: str) -> dict[str, str]:
-        return {
-            s.flagName: s.flagValue
-            for s in get_model_switch_store().list()
-            if s.modelId == model_id
-        }
-
-    _configure_runner(catalog_fn=_jw_catalog_fn, switches_fn=_jw_switches_fn)
+    install_llm(
+        app,
+        engine=_dbmod.get_engine(),
+        session_factory=_dbmod.SessionLocal,
+        feature_catalog=FEATURE_CATALOG,
+        feature_prompts=DEFAULT_FEATURE_PROMPTS,
+        feature_jobs=DEFAULT_FEATURE_JOBS,
+    )
 
     # Headless UI — serve the Vite build (dist/) so `justwrite-server serve` + a
     # browser at the server's origin gives the full app WITHOUT the Tauri shell

@@ -317,6 +317,13 @@ audit — the design above is the record to rebuild from.
 *(This is why "one pass" was wrong. Audit grounded in this session's reads. Do NOT start
 the move without re-confirming this list + a per-step plan.)*
 
+> **⮕ RE-CONFIRMED 2026-06-26 against current code → `2026-06-26-llm-shared-move-cascade-audit.md`.**
+> That doc is now authoritative for the move: it confirms this list ~90%, corrects it in 6
+> places (the usage axis `usage_sink.py`+`api/llm_usage.py` was MISSED here; 8 store files =
+> 11 store classes; 20 features not 19; `app.py:195`/`:225-246` rewire points), and reshapes
+> the staging around the finding that **Axis A (storage) is JV-safe while Axis B (role→job)
+> breaks JV**. Read it before touching code.
+
 **Shared `just-llm-runner/llm_runner/llm/`** — NEW: `db.py` (LlmBase + all 12 tables +
 `configure_storage`/`create_all`/`all_tables`), `stores.py` (every concrete store over the
 shared session), `seed.py` (shared `DEFAULT_*` + `configure_app_seed` hook + seeders),

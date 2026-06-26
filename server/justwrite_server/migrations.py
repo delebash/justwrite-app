@@ -45,58 +45,6 @@ def migrate_schema(engine: Engine) -> None:
         # its own typed table now. Drop the orphan from upgraded DBs.
         conn.execute(text("DROP TABLE IF EXISTS kv"))
 
-        # `llm_providers` went from a JSON `data` blob to real columns. An
-        # upgraded DB still has the old single-blob table; drop it and recreate
-        # with the typed schema (the built-ins reseed on boot; user-added
-        # providers are re-entered — acceptable, this isn't production).
-        prov_cols = {row[1] for row in conn.execute(text("PRAGMA table_info(llm_providers)")).fetchall()}
-        if "data" in prov_cols:
-            from .models import LlmProvider
-
-            conn.execute(text("DROP TABLE llm_providers"))
-            LlmProvider.__table__.create(bind=conn)
-            log.info("migrate_schema: rebuilt llm_providers blob → typed columns")
-
-        # `feature_prompts` gained `description` + `subgroup`, then `label` (the
-        # Feature Workbench card nav — canonical action name). Rebuild the seed
-        # table so rows reseed with the new metadata — same as llm_providers above
-        # (not production; any Lab prompt edits reseed to defaults).
-        fp_cols = {row[1] for row in conn.execute(text("PRAGMA table_info(feature_prompts)")).fetchall()}
-        if fp_cols and ("description" not in fp_cols or "label" not in fp_cols):
-            from .models import FeaturePrompt
-
-            conn.execute(text("DROP TABLE feature_prompts"))
-            FeaturePrompt.__table__.create(bind=conn)
-            log.info("migrate_schema: rebuilt feature_prompts for label/description/subgroup")
-
-        # feature_prompts gained `max_tokens` (per-action output cap). Re-read cols
-        # (a rebuild above may already have added it) before the ALTER.
-        fp_cols2 = {row[1] for row in conn.execute(text("PRAGMA table_info(feature_prompts)")).fetchall()}
-        if fp_cols2 and "max_tokens" not in fp_cols2:
-            conn.execute(text("ALTER TABLE feature_prompts ADD COLUMN max_tokens INTEGER NOT NULL DEFAULT 0"))
-            log.info("migrate_schema: added feature_prompts.max_tokens")
-
-        # `feature_presets` is now keyed per ACTION (was per feature). Rebuild the
-        # table when the old `feature` column is present (saved presets re-created).
-        fpr_cols = {row[1] for row in conn.execute(text("PRAGMA table_info(feature_presets)")).fetchall()}
-        if fpr_cols and "action" not in fpr_cols:
-            from .models import FeaturePreset
-
-            conn.execute(text("DROP TABLE feature_presets"))
-            FeaturePreset.__table__.create(bind=conn)
-            log.info("migrate_schema: rebuilt feature_presets feature → action")
-
-        # `routing_configs` gained `default_model` + `default_embedding_model` —
-        # the Default LLM and Default embedding can each pin a model (not just a
-        # provider), matching the Quick/Accuracy role pickers.
-        rc_cols = {row[1] for row in conn.execute(text("PRAGMA table_info(routing_configs)")).fetchall()}
-        if rc_cols and "default_model" not in rc_cols:
-            conn.execute(text("ALTER TABLE routing_configs ADD COLUMN default_model VARCHAR NOT NULL DEFAULT ''"))
-            log.info("migrate_schema: added routing_configs.default_model")
-        if rc_cols and "default_embedding_model" not in rc_cols:
-            conn.execute(text("ALTER TABLE routing_configs ADD COLUMN default_embedding_model VARCHAR NOT NULL DEFAULT ''"))
-            log.info("migrate_schema: added routing_configs.default_embedding_model")
-
         existing = {row[1] for row in conn.execute(text("PRAGMA table_info(projects)")).fetchall()}
         if not existing:
             return  # no projects table yet (shouldn't happen post create_all)

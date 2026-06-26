@@ -5,14 +5,15 @@ from fastapi.testclient import TestClient
 
 from justwrite_server import database
 from justwrite_server.app import create_app
-from justwrite_server.seed_feature_prompts import DEFAULT_FEATURE_PROMPTS, seed_feature_prompts
+from justwrite_server.seed_feature_prompts import DEFAULT_FEATURE_PROMPTS
+from llm_runner.llm import seed as _llm_seed
 
 
 def _client(tmp_path):
     c = TestClient(create_app(tmp_path))
     db = database.SessionLocal()
     try:
-        seed_feature_prompts(db)
+        _llm_seed.seed_default_feature_prompts(db)  # shared seeder reads JW's registered prompts
         db.commit()
     finally:
         db.close()

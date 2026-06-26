@@ -27,10 +27,6 @@ what the client used to build.
 
 from __future__ import annotations
 
-from sqlalchemy.orm import Session
-
-from .models import FeaturePrompt
-
 # ── critique.js (CRITIQUE_SYSTEM / STRUCTURE_SYSTEM) ────────────────────────
 _CRITIQUE_SYSTEM = """You are a sharp, honest fiction editor giving line-level notes on a single chapter.
 Return a JSON object with one field: "notes" — an array of 4 to 10 critique items.
@@ -975,31 +971,3 @@ for _k, _lbl in _ACTION_LABELS.items():
 for _key, _meta in _ACTION_META.items():
     if _key in DEFAULT_FEATURE_PROMPTS:
         DEFAULT_FEATURE_PROMPTS[_key].update(_meta)
-
-
-def seed_feature_prompts(db: Session) -> int:
-    """Insert any missing feature-prompt rows from DEFAULT_FEATURE_PROMPTS (merge
-    by key). Does NOT commit. Returns the number added. Never clobbers a row the
-    user edited in the Lab — exactly like `seed_default_providers`. New fields land
-    via a clean reseed (reset the workspace, or migrate_schema rebuilds the seed
-    table) — never by patching existing rows."""
-    existing = {row.key for row in db.query(FeaturePrompt).all()}
-    added = 0
-    for key, spec in DEFAULT_FEATURE_PROMPTS.items():
-        if key in existing:
-            continue
-        db.add(FeaturePrompt(
-            key=key,
-            feature=str(spec.get("feature") or key),
-            system=str(spec.get("system") or ""),
-            user_template=str(spec.get("user_template") or ""),
-            temperature=float(spec.get("temperature", 0.7)),
-            think=bool(spec.get("think", False)),
-            built_in=True,
-            max_tokens=int(spec.get("max_tokens", 0) or 0),
-            label=str(spec.get("label") or ""),
-            description=str(spec.get("description") or ""),
-            subgroup=str(spec.get("group") or ""),
-        ))
-        added += 1
-    return added

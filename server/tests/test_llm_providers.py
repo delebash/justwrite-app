@@ -9,8 +9,8 @@ from fastapi.testclient import TestClient
 
 from justwrite_server import database
 from justwrite_server.app import create_app
-from justwrite_server.models import LlmProvider
 from llm_runner.llm import get_llm_registry
+from llm_runner.llm.db import LlmProvider
 
 
 def _c(tmp_path):
