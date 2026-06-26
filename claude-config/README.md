@@ -153,15 +153,16 @@ done
 And the reverse — to apply a bundle change to the live session immediately (so it
 takes effect without waiting for a new container): `FORCE=1 bash claude-config/install.sh`.
 
-## Open decision — turn-grain (now) vs task-grain (better)
+## Both grains are wired — task-grain + the standing rule
 
-What's wired uses **turn-grain proxies**: pre-task = the first edit of a turn;
-post-task = turn end. The truer fit for "check at every task begin and end" is
-**task-grain**, using the blockable `TaskCreated` / `TaskCompleted` events — but those
-only fire if every plan task is tracked as a real `TaskCreate` entry. Recommended
-next step: adopt the standing rule "every plan task = one Task entry", add
-`TaskCreated`/`TaskCompleted` hooks that run the checker at the real task boundaries,
-and keep the turn-grain gates as the backstop.
+**Task-grain** (`hooks/task-gate.py`, on the blockable `TaskCreated` / `TaskCompleted`
+events) is the truest "check at every task begin and end": it blocks creating or
+completing a task without a rules-pass this turn (run the checker / cite the tests /
+attest trivial; blocks via exit 2, fail-open). It only fires when plan tasks are
+tracked as real Task entries — hence the **standing rule: every plan task = one Task
+entry**, and a "real plan" = Plan mode + detailed Task entries (see the plan-protocol
+in `CLAUDE.md`). **Turn-grain** (the PreToolUse first-edit deny + verify-gate Block 5)
+stays as the backstop for work that isn't tracked as Tasks.
 
 ## Honest limits
 

@@ -120,6 +120,13 @@ by me remembering mid-task. All of this is provisioned from the
   - **Block 5** — POST-TASK: a turn that edited code but ran no rules-pass (the
     result was never checked against the rules). Escapes: run the checker, cite the
     tests, or hedge.
+- **Task gate** — `~/.claude/hooks/task-gate.py`, wired for `TaskCreated` /
+  `TaskCompleted` (the TRUE task begin/end events, when plan tasks are tracked as Task
+  entries): blocks creating or completing a task without a rules-pass this turn (run
+  the checker, cite the tests, or attest trivial). This is the task-grain pre/post
+  check; the PreToolUse first-edit deny + Block 5 are the turn-grain backstop. Standing
+  rule that makes it fire: **every plan task = one Task entry** (a "real plan" = Plan
+  mode + detailed Task entries — see the plan-protocol above).
 - **rules-checker subagent** — `~/.claude/agents/rules-checker.md` (Opus; its own
   discarded context = true "load rules → check → unload"): given a plan or a diff,
   scores each of T1–T12 PASS/FAIL/NA + one-line why, adversarial (defaults to FAIL

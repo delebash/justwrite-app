@@ -30,6 +30,20 @@
           }
         ]
       }
+    ],
+    "TaskCreated": [
+      {
+        "hooks": [
+          { "type": "command", "command": "python3 \"$HOME/.claude/hooks/task-gate.py\"" }
+        ]
+      }
+    ],
+    "TaskCompleted": [
+      {
+        "hooks": [
+          { "type": "command", "command": "python3 \"$HOME/.claude/hooks/task-gate.py\"" }
+        ]
+      }
     ]
   }
 }

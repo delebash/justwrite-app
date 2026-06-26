@@ -39,9 +39,11 @@ cp -f "$HERE/agents/rules-checker.md"   "$DEST/agents/rules-checker.md"
 cp -f "$HERE/hooks/arm-rules-gate.sh"   "$DEST/hooks/arm-rules-gate.sh"
 cp -f "$HERE/hooks/verify-gate.py"      "$DEST/hooks/verify-gate.py"
 cp -f "$HERE/hooks/pre-action-check.py" "$DEST/hooks/pre-action-check.py"
+cp -f "$HERE/hooks/task-gate.py"        "$DEST/hooks/task-gate.py"
 cp -f "$HERE/hooks/gate-stats.py"       "$DEST/hooks/gate-stats.py"
 chmod +x "$DEST/hooks/arm-rules-gate.sh" "$DEST/hooks/verify-gate.py" \
-         "$DEST/hooks/pre-action-check.py" "$DEST/hooks/gate-stats.py"
+         "$DEST/hooks/pre-action-check.py" "$DEST/hooks/task-gate.py" \
+         "$DEST/hooks/gate-stats.py"
 
 # Remove the superseded SOFT reminders if a base image ever restores them
 # (replaced by the hard gates; user law: "never do soft").
