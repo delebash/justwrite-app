@@ -84,8 +84,22 @@ time: present a plan → user approves → I build → user reviews → next pla
   entries** (not a chat plan) — that's what fires the plan/task events.
 
 ## Recently shipped (newest first — detail in the linked doc)
-- **Rules-as-checks system** (claude-config `d5e9d52`/`8c36a48`/`ad9a4f9`; activated live
-  this session): the global rules reworked from ~50k of prose into 12 checkable tests
+- **Rules-as-checks v3 — the AGENT is the judge at commit** (claude-config `cfb4924`; obs
+  note `ac80912`; LIVE): closed the self-certification hole the user found — a CODE `git
+  commit` now requires a GENUINE independent rules-checker AGENT all-pass verdict
+  (`_rules.agent_pass()` reads PASS/FAIL from the agent's OWN harness result — a tool_result
+  tied to an Agent call, or a `<task-notification>` — NOT from self-typed text). Dogfood: the
+  live gate's first run returned FAIL + caught this recap + the plan doc stale → fixed →
+  re-run PASS. **On TRIAL ("live with it"); friction tracked in `EFFECTIVENESS.md`** (first
+  finding: a chained `git add && git commit` is conservatively gated — stage docs separately).
+- **Rules-as-checks v2 — one shared registry + commit boundary + anti-skim** (claude-config
+  `b43411e`, doc fix `8349e19`): regexes/turn-scan/rule-list moved into ONE `hooks/_rules.py`
+  (killed the triplication; rule id == gate-stats key); verify-gate/pre-action/task-gate
+  refactored onto it; NEW `commit-gate.py`; narrowed the pre-task deny (.md/trivial exempt +
+  task-notification turn-window fix); committed `hooks/test_gates.py` harness. Panel found +
+  fixed 2 commit-classifier bugs pre-ship.
+- **Rules-as-checks v1 — the system** (claude-config `d5e9d52`/`8c36a48`/`ad9a4f9`; activated
+  live): the global rules reworked from ~50k of prose into 12 checkable tests
   (T1–T12) enforced at mechanical events — PreToolUse (pre-task DENY + per-edit nudge),
   Stop (Blocks 0–5), `TaskCreated`/`TaskCompleted` gates — plus an Opus **rules-checker**
   subagent (a 2–3 **panel** for load-bearing design) and an effectiveness ledger.
@@ -199,6 +213,7 @@ GPU/Hardware → the AI menu). → JV checklist in `docs/plans/2026-06-24-shared
 
 ## Active plan docs (the index)
 - `docs/plans/2026-06-25-jobs-architecture-design.md` — **authoritative** jobs design (§0–§14; + §17 = the dropdown fix / reuse gate / rules-as-checks rationale).
+- `claude-config/RULES-AS-CHECKS-V2-PLAN.md` — **Plan 1** (rules-as-checks) + its v2 & v3 **Build-outcome** record (the agent-as-judge fix); shipped + in observation.
 - `claude-config/README.md` — the **rules-as-checks** system (slim rules + event hooks + rules-checker + metrics); `claude-config/EFFECTIVENESS.md` = the effectiveness ledger.
 - `docs/plans/2026-06-26-llm-shared-move-cascade-audit.md` — the move: drop-in build order + cascade.
 - `docs/plans/2026-06-25-llm-catalog-db-cutover.md` — catalog/switches/recs → DB.
