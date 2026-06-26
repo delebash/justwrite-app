@@ -52,6 +52,14 @@ def tx(*msgs) -> str:
         elif kind == "agent":
             f.write(json.dumps({"type": "assistant", "message": {"content": [
                 {"type": "tool_use", "name": "Agent", "input": {}}]}}) + "\n")
+        elif kind == "agent_call":   # assistant Agent tool_use with a specific id (val=id)
+            f.write(json.dumps({"type": "assistant", "message": {"content": [
+                {"type": "tool_use", "name": "Agent", "id": val, "input": {}}]}}) + "\n")
+        elif kind == "tool_result":  # HARNESS-authored tool_result (user role); val=(tool_use_id, text)
+            tuid, text = val
+            f.write(json.dumps({"type": "user", "message": {"content": [
+                {"type": "tool_result", "tool_use_id": tuid,
+                 "content": [{"type": "text", "text": text}]}]}}) + "\n")
     f.close()
     return f.name
 
@@ -194,7 +202,16 @@ def test_commit_gate():
         subprocess.run(["git", "-C", repo, *a], capture_output=True, text=True)
     git("init"); git("config", "user.email", "x@y.z"); git("config", "user.name", "x")
 
+    SENT = f"{home}/.claude/hooks/.commit_gate"
+
+    def _clear_counter():
+        try:
+            os.remove(SENT)   # each cg() scenario is independent — not a real retry loop
+        except Exception:
+            pass
+
     def cg(cmd, *msgs):
+        _clear_counter()
         return hook("commit-gate.py", {"tool_name": "Bash", "tool_input": {"command": cmd},
                     "cwd": repo, "transcript_path": tx(*msgs)}, env=env).stdout
 
@@ -208,9 +225,36 @@ def test_commit_gate():
     assert denied(cg("git commit -m add", ("user", "go")))                           # code/no docs/no verdict
     assert denied(cg("git commit -m add", ("user", "go"), ("text", "VERDICT: PASS")))  # docs still required
     open(f"{repo}/README.md", "w").write("# d\n"); git("add", "README.md")
-    assert denied(cg("git commit -m add", ("user", "go")))                           # verdict still required
-    assert not denied(cg("git commit -m add", ("user", "go"), ("text", "VERDICT: PASS")))  # docs+verdict → allow
-    assert not denied(cg("git commit -m add", ("user", "go"), ("agent", "")))        # docs+subagent → allow
+    assert denied(cg("git commit -m add", ("user", "go")))                           # docs ok, but no genuine agent pass
+    # THE ANTI-SELF-CERT CORE: a TYPED "VERDICT: PASS" must NOT clear a code commit.
+    assert denied(cg("git commit -m add", ("user", "go"), ("text", "VERDICT: PASS all good"))), \
+        "a self-typed verdict must NOT clear the commit"
+    # merely CALLING an agent (an assistant tool_use, no PASS result) also must not clear.
+    assert denied(cg("git commit -m add", ("user", "go"), ("agent", ""))), \
+        "calling an agent without a genuine PASS result must not clear"
+    # GENUINE verdict = inside <result> of a harness-authored <task-notification> (a user-role
+    # entry the main agent cannot forge). PASS → allow; FAIL → block.
+    NOTIF_PASS = ("<task-notification>\n<task-id>x</task-id>\n<result>\nVERDICT: PASS — "
+                  "all rules pass; all docs current\n</result>\n</task-notification>")
+    NOTIF_FAIL = ("<task-notification>\n<task-id>x</task-id>\n<result>\nVERDICT: FAIL (1 failed) "
+                  "— plan doc stale\n</result>\n</task-notification>")
+    assert not denied(cg("git commit -m add", ("user", "go"), ("user", NOTIF_PASS))), \
+        "a GENUINE agent PASS (harness task-notification) must clear"
+    assert denied(cg("git commit -m add", ("user", "go"), ("user", NOTIF_FAIL))), \
+        "a GENUINE agent FAIL must block"
+    # SYNC form: a tool_result tied to an Agent call I made (the shape real agents use here).
+    AID = "toolu_TESTAGENT1"
+    assert not denied(cg("git commit -m add", ("user", "go"), ("agent_call", AID),
+                         ("tool_result", (AID, "scored all rules\nVERDICT: PASS")))), \
+        "a genuine SYNC agent PASS (tool_result tied to an Agent call) must clear"
+    assert denied(cg("git commit -m add", ("user", "go"), ("agent_call", AID),
+                     ("tool_result", (AID, "VERDICT: FAIL (1 failed) — stale doc")))), \
+        "a genuine SYNC agent FAIL must block"
+    # ANTI-FAKE: a tool_result NOT tied to an Agent call (e.g. Reading a doc that literally
+    # contains "VERDICT: PASS" — EFFECTIVENESS.md does!) must NOT count.
+    assert denied(cg("git commit -m add", ("user", "go"),
+                     ("tool_result", ("toolu_READ_doc", "file contents...\nVERDICT: PASS\n...")))), \
+        "a non-agent tool_result (e.g. a Read of a doc) must NOT clear the commit"
     reset_stage(); open(f"{repo}/bar.py", "w").write("y=2\n"); git("add", "bar.py")
     assert not denied(cg("git commit -m 'trivial: rename'", ("user", "go")))         # trivial full-escape
     reset_stage(); open(f"{repo}/n.md", "w").write("# n\n"); git("add", "n.md")
@@ -227,16 +271,20 @@ def test_commit_gate():
     # a WRONG cwd to also prove _git_cwd resolves -C to the right repo.
     reset_stage(); open(f"{repo}/c.py", "w").write("c=1\n")
     subprocess.run(["git", "-C", repo, "add", "c.py"], capture_output=True, text=True)
+    _clear_counter()
     out = hook("commit-gate.py", {"tool_name": "Bash",
                "tool_input": {"command": f"git -C {repo} commit -m c"},
                "cwd": "/tmp", "transcript_path": tx(("user", "go"))}, env=env).stdout
     assert denied(out), "git -C <dir> commit must be gated (panel-caught false-negative)"
     reset_stage(); open(f"{repo}/q.py", "w").write("q=4\n")
     assert denied(cg("git add -A && git commit -m q", ("user", "go")))              # chained add&&commit
+    # anti-loop: counter at max → fail-safe ALLOW. Direct hook() call (NOT cg, which clears).
     git("add", "q.py")
-    with open(f"{home}/.claude/hooks/.commit_gate", "w") as f:
+    with open(SENT, "w") as f:
         json.dump({"denies": 9}, f)
-    assert not denied(cg("git commit -m q", ("user", "go")))                         # anti-loop fail-safe
+    out_al = hook("commit-gate.py", {"tool_name": "Bash", "tool_input": {"command": "git commit -m q"},
+                  "cwd": repo, "transcript_path": tx(("user", "go"))}, env=env).stdout
+    assert not denied(out_al)                                                        # anti-loop fail-safe
     print("5) commit-gate ........ PASS")
 
 

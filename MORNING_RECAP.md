@@ -37,12 +37,16 @@ shared; JustWrite is a thin consumer. Green + pushed.
 The user split the active work into two separate plans (2026-06-26), handled one at a
 time: present a plan → user approves → I build → user reviews → next plan.
 - **PLAN 1 — Dev-process / rules-as-checks** (global; governs every repo).
-  → `claude-config/RULES-AS-CHECKS-V2-PLAN.md` (the v2 refactor plan). **v2 BUILT +
-  approved (2026-06-26):** one shared registry (`hooks/_rules.py`) + verify-gate /
-  pre-action / task-gate refactored onto it + NEW `commit-gate.py` (commit boundary) +
-  committed `hooks/test_gates.py` harness (7/7 green) + gate-stats imports the ids +
-  docs. ⏳ Going LIVE (`FORCE=1 install.sh`) after the final 2-Opus diff panel; until
-  then the LIVE `~/.claude` is still v1. Live-system docs: `claude-config/README.md` +
+  → `claude-config/RULES-AS-CHECKS-V2-PLAN.md`. **v2 SHIPPED (commit `b43411e`)** + **v3
+  SHIPPED (this turn): the AGENT is the judge at commit.** v2 = one shared registry
+  (`hooks/_rules.py`) + verify-gate / pre-action / task-gate refactored onto it +
+  `commit-gate.py` + committed `hooks/test_gates.py` + gate-stats imports the ids. **v3 =
+  the COMMIT boundary now requires a GENUINE independent rules-checker AGENT all-pass
+  verdict** — `agent_pass()` reads PASS/FAIL only from the agent's OWN harness-authored
+  result (a `tool_result` tied to an Agent call, or a `<task-notification>`), NOT from
+  self-typed text — closing the self-certification hole the user found (a typed
+  "VERDICT: PASS" no longer clears a code commit). **The LIVE `~/.claude` is v3**
+  (`FORCE=1 install.sh` applied). Live-system docs: `claude-config/README.md` +
   `claude-config/EFFECTIVENESS.md`; the rules: `~/.claude/CLAUDE.md` (slim T1–T12) +
   `rules-detail.md`. The "why the rules fail" rationale belongs to THIS track.
 - **PLAN 2 — App (JustWrite / JustVoice)** — the product work.
@@ -71,7 +75,10 @@ time: present a plan → user approves → I build → user reviews → next pla
   claim w/ zero reads; 2 = arch reco w/o precedent; 3 = "done"+code w/o a doc; 4 =
   plan/decision w/o a rules-pass; 5 = code-edit w/o a rules-pass) + a **PreToolUse hook**
   `pre-action-check.py` (pre-task DENY on the first edit w/o a rules-pass · per-edit nudge ·
-  ExitPlanMode → run the checker panel) + the **rules-checker subagent** (Opus; a 2–3 panel
+  ExitPlanMode → run the checker panel) + a **commit gate** `commit-gate.py` (PreToolUse Bash:
+  a code `git commit` is HARD-DENIED until docs **+** a GENUINE rules-checker AGENT all-pass
+  verdict — read from the agent's OWN result, not self-typed; v3, closes the self-cert hole) +
+  the **rules-checker subagent** (Opus; a 2–3 panel
   for load-bearing design). Effectiveness tracked in `claude-config/EFFECTIVENESS.md`
   (catches/false-positives/misses). All fail-open. **Real plan = Plan mode + detailed Task
   entries** (not a chat plan) — that's what fires the plan/task events.

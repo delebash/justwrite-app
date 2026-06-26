@@ -79,7 +79,7 @@ the hooks are just the per-event mechanism.
 | `SessionStart` | startup / compact / clear | 💬 arm the "context reset → re-read rules" sentinel |
 | `PreToolUse` (Edit/Write/MultiEdit) | before a code change | ✋ **pre-task DENY** (first **code** edit, no rules-pass; `.md`/trivial exempt) · 💬 **per-edit NUDGE** |
 | `PreToolUse` (ExitPlanMode) | before "here is the plan" | 💬 reminder to run the rules-checker **panel** |
-| `PreToolUse` (Bash `git commit`) | before a commit | ✋ **commit boundary** — HARD-DENY a CODE commit until docs **+** verdict (escapes: `--amend`, doc-only, trivial; anti-loop) |
+| `PreToolUse` (Bash `git commit`) | before a commit | ✋ **commit boundary** — HARD-DENY a CODE commit until docs **+** a *genuine agent* all-pass verdict (parsed from the agent's result, not self-typed; escapes: `--amend`, doc-only, trivial; anti-loop) |
 | `TaskCreated` / `TaskCompleted` | a tracked task begins/ends | ✋ `task-begin-check` / `task-completeness` (anti-skim: the checker reads the FULL criteria) |
 | `Stop` | the turn tries to end | ✋ Block 0 (sentinel) + Blocks 1–5 (registry) |
 
@@ -110,9 +110,13 @@ short-circuit on `stop_hook_active` so each fires at most once per stop-sequence
 - **Post-task → deny (cheap, turn-grain).** A code-editing turn that ends with no
   rules-pass is **blocked** (Block 5) — the backstop, kept even when nothing is committed.
 - **Commit → HARD-DENY (heavy, the main post-task check).** A CODE `git commit` is the
-  truest "task end" the harness sees; it is blocked until BOTH a doc is updated/cited AND
-  a checker-verdict exists (escapes: `--amend`, a doc-only commit, an attested "trivial").
-  This LAYERS the semantic check on top of Stop; it never replaces it.
+  truest "task end" the harness sees; it is blocked until BOTH a doc is updated/cited AND a
+  **genuine independent rules-checker AGENT verdict reads all-pass** — parsed from the
+  agent's OWN result (a harness-authored `<task-notification>`), NOT from a "VERDICT" I type
+  (the anti-self-certification core: a gate that checks my words can be satisfied by my
+  words; only one keyed on a real agent output binds). Escapes: `--amend`, a doc-only
+  commit, an attested "trivial". LAYERS on Stop; never replaces it. Ceiling: the agent can
+  miss — non-skippable, not infallible.
 
 ## The rules-checker subagent + the panel
 

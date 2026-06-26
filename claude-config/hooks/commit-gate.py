@@ -209,10 +209,10 @@ def main() -> None:
             entries = []
 
     ctx = _rules.build_ctx(data, entries, "commit")
-    # A cited VERDICT in the commit message counts toward the semantic (verdict) check.
-    if _rules.VERDICT.search(cmd):
-        ctx["rules_passed"] = True
-    # A 'trivial' attestation (in the message OR this turn) is a FULL escape (below).
+    # A self-typed "VERDICT: PASS" no longer clears a code commit — only a GENUINE
+    # independent-agent verdict does (ctx["agent_pass"], read from a harness-authored
+    # task-notification in build_ctx; the main agent cannot forge a user-role result).
+    # A 'trivial' attestation is still a full escape (cheap path for typo/rename commits).
     trivial = bool(_rules.TRIVIAL.search(cmd)) or bool(_rules.TRIVIAL.search(ctx["answer"]))
 
     files = _commit_files(cmd, _git_cwd(cmd, data.get("cwd") or ""))

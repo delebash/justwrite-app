@@ -48,6 +48,38 @@ tally + add any notable catches/misses to the ledger.
 
 ## Catch / miss ledger (detailed — newest first)
 
+### 2026-06-26 — v3: the self-certification hole (user-caught) → commit verdict comes from the AGENT
+
+The deepest catch of the project — and it was the USER, in dialogue, not any gate. After v2 I
+reported the docs gap "closed." The user pushed: a `VERDICT: PASS` that I *type* clears the
+semantic rules without doing the work — and that isn't docs-specific, it's EVERY text-checked
+rule. Verified: `plan` / `post-task` / `task-begin-check` / `task-completeness` all pass on
+`rules_passed`, which includes my own typed "VERDICT" string (`_rules.py`); `docs-with-features`
+passes if I merely say "recap" (DOC_MENTION); `reco` on a fabricated `file:line`. The ONLY
+genuinely binding gate was Block 0 — because it keys on a real ACTION (were the files actually
+Read), not on my text.
+
+**The principle the dialogue produced:** a gate that checks my TEXT can be satisfied by my text
+— I author it. Only a gate keyed on a real ACTION, or an INDEPENDENT agent's own output, binds.
+The text escapes I built (typed VERDICT, "trivial", DOC_MENTION) reintroduced exactly the
+fakeability the system was meant to kill — the original "rules I can ignore" problem, one level
+up — and I compounded it by repeatedly claiming "closed."
+
+**Fix (v3):** the COMMIT boundary's semantic check now requires a GENUINE independent
+rules-checker AGENT verdict. `agent_pass()` reads "VERDICT: PASS/FAIL" only from inside
+`<result>` of a harness-authored `<task-notification>` (a user-role entry the main agent cannot
+forge) — never from my assistant text. A self-typed verdict no longer clears a code commit; the
+gate forces a real agent to score every rule (incl. "are ALL docs current") and blocks on FAIL.
+Proven by `test_gates.py` (typed verdict → DENY; genuine notification PASS → ALLOW; FAIL → DENY).
+Stop/Task gates keep the lighter self-cert path for now (commit is the hard boundary); they can
+be upgraded identically.
+
+**Honest ceiling (stated plainly this time):** the agent is the judge, and judges miss — the v2
+panel itself scored docs and still missed the stale plan doc. This makes the check
+NON-SKIPPABLE (I can't self-certify past it), not infallible. A decoy agent deliberately told to
+emit PASS would still count — but that's a flagrant, visible act, not a casual self-cert. The
+system raises the cost + visibility of non-compliance; it cannot make the judgment correct.
+
 ### 2026-06-26 — v2 build: one registry + commit boundary + anti-skim (+ a LIVE catch)
 
 Built the v2 refactor (plan: `RULES-AS-CHECKS-V2-PLAN.md`): the rules moved into ONE

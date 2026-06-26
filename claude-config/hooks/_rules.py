@@ -122,6 +122,15 @@ VERDICT = re.compile(
 )
 TRIVIAL = re.compile(r"\b(trivial|one[- ]?line|typo|comment[- ]?only|dep bump|rename)\b", re.I)
 
+# A GENUINE rules-checker verdict comes from a HARNESS-authored <task-notification>
+# (a type:user message the main agent CANNOT write — it emits only assistant messages),
+# inside <result>...</result>. The whole anti-self-certification point: the gate reads
+# the verdict from the AGENT's result, never from my own typed "VERDICT:" text.
+TASK_NOTIF = re.compile(r"<task-notification>", re.I)
+RESULT_TAG = re.compile(r"<result>(.*?)</result>", re.S | re.I)
+_V_PASS = re.compile(r"\bVERDICT:\s*PASS\b", re.I)
+_V_FAIL = re.compile(r"\bVERDICT:\s*FAIL\b", re.I)
+
 # A user-role transcript entry that is actually a SYSTEM/TOOL INJECTION, not a genuine
 # human prompt — so it must NOT be treated as a turn boundary (the live bug: a
 # <task-notification> arriving mid-turn reset the "first edit of the turn" window and
@@ -261,9 +270,66 @@ def scan_turn(entries: list, start: int) -> dict:
     return f
 
 
+def agent_pass(entries: list, start: int):
+    """The latest GENUINE rules-checker verdict this turn: 'pass' / 'fail' / None.
+
+    Genuine = the output of a rules-checker AGENT I spawned, in a HARNESS-authored entry
+    that the main agent cannot forge (the main agent emits only assistant messages). Two
+    real transcript shapes (verified against the live transcript):
+      • SYNC  — a type:user `tool_result` whose `tool_use_id` matches an Agent/Task
+        tool_use I made. The agent-id link is REQUIRED: a Read/Bash tool_result that
+        merely CONTAINS "VERDICT: PASS" (e.g. reading a doc with that text) must NOT count.
+      • ASYNC — inside `<result>` of a type:user `<task-notification>` (only the harness
+        emits those, for an agent that finished).
+    A self-typed "VERDICT:" in MY assistant text is ignored on purpose — that is the whole
+    anti-self-certification point. Latest verdict wins (FAIL → fix → re-run PASS converges).
+    Honest residual: a decoy agent deliberately told to emit PASS would count — but that is
+    a flagrant, visible act in the transcript, not a casual self-cert."""
+    # 1) ids of the Agent/Task calls I made this turn (the rules-checker spawns).
+    agent_ids = set()
+    for e in entries[start:]:
+        if e.get("type") != "assistant":
+            continue
+        for b in (e.get("message") or {}).get("content") or []:
+            if (isinstance(b, dict) and b.get("type") == "tool_use"
+                    and b.get("name") in ("Agent", "Task") and b.get("id")):
+                agent_ids.add(b["id"])
+    # 2) read verdicts only from harness-authored user entries (sync tool_result tied to an
+    #    agent id, or async task-notification result).
+    verdict = None
+    for e in entries[start:]:
+        if e.get("type") != "user" or e.get("isMeta"):
+            continue
+        c = (e.get("message") or {}).get("content")
+        texts = []
+        if isinstance(c, str):
+            if TASK_NOTIF.search(c):
+                texts = RESULT_TAG.findall(c) or [c]
+        elif isinstance(c, list):
+            for b in c:
+                if not isinstance(b, dict):
+                    continue
+                if b.get("type") == "tool_result" and b.get("tool_use_id") in agent_ids:
+                    rc = b.get("content")
+                    if isinstance(rc, str):
+                        texts.append(rc)
+                    elif isinstance(rc, list):
+                        texts.append(" ".join(x.get("text", "") for x in rc
+                                              if isinstance(x, dict) and x.get("type") == "text"))
+                elif b.get("type") == "text" and TASK_NOTIF.search(b.get("text", "")):
+                    texts += RESULT_TAG.findall(b.get("text", ""))
+        for t in texts:
+            if _V_FAIL.search(t):
+                verdict = "fail"
+            elif _V_PASS.search(t):
+                verdict = "pass"
+    return verdict
+
+
 def build_ctx(data: dict, entries: list, event: str) -> dict:
     """The full context every rule's detect() reads. Pure: no side effects."""
-    f = scan_turn(entries, last_user_idx(entries))
+    start = last_user_idx(entries)
+    f = scan_turn(entries, start)
     answer = f["answer"]
     ctx = dict(f)
     ctx["event"] = event
@@ -282,6 +348,10 @@ def build_ctx(data: dict, entries: list, event: str) -> dict:
     # Default to "has code, no docs" so an UNKNOWN commit is gated, never waved through.
     ctx["commit_has_code"] = True
     ctx["commit_docs_ok"] = False
+    # The GENUINE independent-agent verdict this turn (None until a real rules-checker
+    # finishes). Read from the agent's own result, NOT my text — this is what the commit
+    # boundary requires so a self-typed verdict can't clear it.
+    ctx["agent_pass"] = agent_pass(entries, start)
     return ctx
 
 
@@ -298,10 +368,18 @@ def _detect_docs(ctx: dict) -> bool:
 
 
 def _detect_task_completeness(ctx: dict) -> bool:
-    """The result was never checked. At commit, only require it for a code commit
-    (a doc-only commit is an escape — design #4)."""
+    """The result was never independently checked.
+
+    At COMMIT (the genuine boundary): a code commit requires an INDEPENDENT agent's PASS
+    verdict — `ctx["agent_pass"] == "pass"`, read from a harness-authored task-notification.
+    A self-typed "VERDICT: PASS" does NOT clear it (that was the self-certification hole).
+    A doc-only commit / trivial commit is escaped earlier in commit-gate, so this only
+    bites a non-trivial CODE commit.
+
+    At TaskCompleted (finer grain, lighter): the existing rules_passed escape still applies
+    — the commit is the hard boundary."""
     if ctx["event"] == "commit":
-        return ctx["commit_has_code"] and not ctx["rules_passed"]
+        return ctx["commit_has_code"] and ctx.get("agent_pass") != "pass"
     return not ctx["rules_passed"]
 
 
@@ -332,12 +410,14 @@ _POST = ("VERIFY-GATE (post-task) — this turn edited code but ran no rules-pas
 _TBEGIN = ("TASK GATE — BEGIN (TaskCreated). No rules-pass this turn. Run the rules-checker "
            "subagent on this task's plan (Agent tool, subagent_type 'rules-checker') and address "
            "any FAIL — or cite the tests it passes / say 'trivial' — before starting this task.")
-_TDONE = ("TASK GATE — COMPLETENESS. No rules-pass this turn. Run the rules-checker on the diff "
-          "AND on the FULL acceptance criteria of the task(s) this completes — read the criteria "
-          "from the plan doc, NOT the task summary — and confirm EACH criterion is met (the "
-          "checker reads the detail you might have skimmed). Address any unmet criterion / FAIL — "
-          "or cite the tests it passes / say 'trivial'. Also confirm the diff touched every file "
-          "in the task's touch-list. Then complete.")
+_TDONE = ("RULES GATE — INDEPENDENT CHECK REQUIRED. This is a commit/task-completion with no "
+          "genuine all-pass verdict from an independent rules-checker this turn. SPAWN the "
+          "rules-checker subagent (Agent tool, subagent_type 'rules-checker') and have it score "
+          "EVERY rule against the diff AND the FULL acceptance criteria — including 'are ALL "
+          "relevant docs current (the recap + the plan doc's own status), not merely touched'. "
+          "The gate reads the verdict from the AGENT'S OWN result, NOT from text you type — a "
+          "self-written 'VERDICT: PASS' will NOT clear it. If the agent returns FAIL, fix it and "
+          "re-run until its result reads VERDICT: PASS. (Trivial / doc-only commits are exempt.)")
 
 RULES = [
     {"id": "rules-gate", "label": "re-read rules/recap after a reset",

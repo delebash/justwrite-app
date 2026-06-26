@@ -112,11 +112,16 @@ the gate-stats log-key (one source). All of this is provisioned from the
     run the **rules-checker PANEL** on the plan (2–3 independent, compare).
 - **Commit boundary** — `~/.claude/hooks/commit-gate.py`, wired in `settings.json` as a
   SEPARATE `PreToolUse` `Bash` block. On a CODE `git commit` it is a **HARD DENY** until
-  BOTH a doc was updated/cited AND a checker-verdict exists this turn (the heavy
-  post-task check). Escapes: `git commit --amend`, a doc-only commit, or an attested
-  "trivial". Anti-loop sentinel fail-safes after repeated denies. It LAYERS on top of
-  the Stop gate — never replaces it (a turn that edits then stops-to-ask commits
-  nothing, so Stop's Block 5 stays the backstop).
+  BOTH a doc was updated/cited AND a **GENUINE independent rules-checker AGENT verdict**
+  reads all-pass this turn. "Genuine" is the point: the gate reads the verdict from the
+  AGENT's own result (a harness-authored `<task-notification>`), NOT from text I type — a
+  self-written "VERDICT: PASS" does **not** clear it (that was the self-certification hole:
+  a gate that checks my words can be satisfied by my words; only one keyed on a real
+  action/agent-output binds). So a code commit forces: spawn the rules-checker → it scores
+  every rule (incl. "are ALL docs current?") → fix any FAIL → re-run until its result is
+  PASS. Escapes: `git commit --amend`, a doc-only commit, an attested "trivial". Anti-loop
+  sentinel fail-safes after repeated denies. Honest ceiling: the agent can still miss — this
+  makes the check non-skippable, not infallible. LAYERS on Stop; never replaces it.
 - **Stop gate** — `~/.claude/hooks/verify-gate.py` (blocks the turn until satisfied):
   - **Block 0** — after a compact/clear, re-read this file + the project `CLAUDE.md`
     + `MORNING_RECAP.md` (Read tool, IN FULL) before finishing.

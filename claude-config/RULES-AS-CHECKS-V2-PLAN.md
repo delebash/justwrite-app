@@ -229,3 +229,36 @@ TaskCompleted; commit-gate wired); the live commit-gate confirmed firing on a re
 the commit dry-run), my real doc updates were proactive (task P1.7), and the gate checks
 "a doc was touched with the code," NOT "every necessary doc is current," so it cannot
 catch a stale plan doc. The USER caught it; this section is the fix.
+
+## Build outcome — v3 (the self-certification fix: the AGENT is the judge at commit)
+
+After v2 shipped, the user found the real, general hole (logged in `EFFECTIVENESS.md`): the
+semantic rules passed on `rules_passed`, which accepts a **self-typed** "VERDICT: PASS" — so
+I could clear `plan`/`post-task`/`task-completeness`/`docs-with-features` by typing the magic
+words, without doing the work. That is the original "rules I can ignore" problem one level up.
+The principle: a gate that checks my TEXT can be satisfied by my text; only a gate keyed on a
+real ACTION (Block 0) or an INDEPENDENT agent's OWN output binds.
+
+**v3 fix (this change):** the COMMIT boundary's semantic check now requires a GENUINE
+independent rules-checker AGENT verdict, not my text. `_rules.agent_pass()` reads
+"VERDICT: PASS/FAIL" only from harness-authored entries the main agent cannot forge — a
+`tool_result` whose `tool_use_id` matches an Agent/Task call I made (the SYNC shape real
+agents use here), or `<result>` of a `<task-notification>` (ASYNC) — and explicitly NOT from
+a Read/Bash `tool_result` that merely contains the text (so reading a doc with "VERDICT: PASS"
+can't fake it). `_detect_task_completeness` (commit branch) now keys on `ctx["agent_pass"]
+== "pass"`. A code commit therefore forces: spawn the rules-checker → it scores every rule
+(incl. "are ALL docs current") → fix any FAIL → re-run until its result reads PASS.
+
+**Dogfood (it worked, and caught a real gap):** with the gate live, the first real rules-checker
+run on the v3 diff returned **VERDICT: FAIL (3)** — it flagged THIS plan doc and `MORNING_RECAP.md`
+as stale for v3 (the same doc-currency MISS class the user caught manually). That FAIL came from
+the agent, not me; the live commit-gate blocked the commit until fixed (this section + the recap
+update are that fix) and re-run to PASS. Also surfaced + fixed: `agent_pass` initially only read
+the async task-notification shape and missed the SYNC `tool_result` shape real agents use — found
+by inspecting the live transcript, fixed + regression-tested.
+
+**Verification:** `test_gates.py` green (typed verdict → DENY; genuine SYNC tool_result PASS →
+ALLOW, FAIL → DENY; non-agent tool_result → DENY; async notification PASS → ALLOW). `FORCE=1
+install.sh` applied live. **Honest ceiling:** the agent can still miss; this makes the check
+non-skippable, not infallible. Stop/Task gates still allow the lighter self-cert path (commit is
+the hard boundary) — upgradeable identically if wanted.
