@@ -1,10 +1,12 @@
 > **PLAN 1 of 2 — the rules-as-checks / dev-process track.** (Plan 2 = the app work,
-> `docs/plans/2026-06-25-jobs-architecture-design.md`.) **Status: SAVED + panel-reviewed
-> (2 Opus checkers), NOT yet built.** v1 of the system is LIVE and working; this is the
-> v2 refactor. Workflow agreed with the user (2026-06-26): present → user approves →
-> I build → user reviews → then Plan 2. The "why the rules keep failing" rationale (the
-> former jobs-design §17.4) belongs to THIS track — it lives in `claude-config/CLAUDE.md`
-> ("Why this shape") + `claude-config/EFFECTIVENESS.md`.
+> `docs/plans/2026-06-25-jobs-architecture-design.md`.) **Status: BUILT + SHIPPED
+> (2026-06-26, commit `b43411e`).** Approved → built → verified (committed harness 7/7 +
+> a 2-Opus diff panel) → applied live (`FORCE=1 install.sh`) → pushed; v2 is now the LIVE
+> system. **See the "Build outcome" section at the END of this doc** for what actually
+> landed, the deviations from the plan below, and the panel catches. Workflow agreed with
+> the user (2026-06-26): present → approve → build → user reviews → then Plan 2. The "why
+> the rules keep failing" rationale (former jobs-design §17.4) lives in
+> `claude-config/CLAUDE.md` ("Why this shape") + `claude-config/EFFECTIVENESS.md`.
 
 # Plan — Rules-as-checks v2: one rule-registry, run at every event
 
@@ -187,3 +189,43 @@ Two independent Opus rules-checkers reviewed this plan:
   task-notifications reset its turn-window → both fixes are in design #6 / task 3.
 The thesis (one registry + depth-by-cost + commit boundary) survived both panels; the
 revisions are coverage + safety, not a rethink.
+
+## Build outcome (2026-06-26 — what actually landed; commit `b43411e`)
+
+All 8 tasks built, verified, applied live, committed + pushed on
+`claude/admiring-galileo-il3q0o`. Net diff −207 lines (the registry removed the regex
+triplication; `verify-gate.py` alone shed ~355 lines of bespoke blocks).
+
+**Deviations from the plan above (recorded per the "update the plan in the same commit
+series" rule):**
+- **`task-gate.py` was ALSO refactored onto `_rules.py`** — it was NOT in the original
+  Files/touch-list, but leaving its own copies of `VERDICT`/`TRIVIAL`/turn-scan would
+  violate the single-source thesis (T3). Folded in: `task-begin-check` (TaskCreated) +
+  `task-completeness` (TaskCompleted + commit) now run via `run_rules`.
+- **`.gitignore`** needed no change — the repo root already covers `__pycache__/` + `*.pyc`
+  and that reaches the bundle (verified `git ls-files` shows the `.pyc` untracked).
+- **README re-sync list** also gained `task-gate.py` (it was already missing — pre-existing
+  gap fixed, T5).
+- The turn-window bug (design #6) was grounded to its real shape before fixing: a
+  `<task-notification>` is a non-meta **string** user message; `is_genuine_user` skips it
+  (+ `<local-command-stdout>` etc.), `<command-name>` slash commands stay genuine.
+
+**Panel outcome (the dogfood working): the final 2-Opus diff panel FAILED the build and
+found 2 real bugs the committed harness had missed** — both in `commit-gate.py`'s
+`_classify_commit`: (1) `git -C <dir> commit` was a false-NEGATIVE (the `-C` value was
+read as the subcommand → the gate silently never fired on the most common scripted form —
+the very form the harness used for setup, so it passed green); (2) `man git commit` /
+`echo git commit` were false-POSITIVES (`"git" in toks` vs `toks[0]=="git"`). Both fixed
+(skip separated-value global opts; require `git` as the segment command; resolve `-C` for
+the staged-tree read) + regression tests added. Detail in `EFFECTIVENESS.md`.
+
+**Verification:** `claude-config/hooks/test_gates.py` 7/7 green; the 2-Opus panel (above);
+`FORCE=1 install.sh` applied live (8 rule ids armed across Stop/commit/TaskCreated/
+TaskCompleted; commit-gate wired); the live commit-gate confirmed firing on a real
+`git -C … commit` (deny on code-without-docs/verdict; allow on this doc+verdict commit).
+
+**Self-caught MISS (logged in `EFFECTIVENESS.md`):** this plan doc itself shipped stale
+("NOT yet built") in `b43411e` — the docs gate fired only on synthetic inputs (harness +
+the commit dry-run), my real doc updates were proactive (task P1.7), and the gate checks
+"a doc was touched with the code," NOT "every necessary doc is current," so it cannot
+catch a stale plan doc. The USER caught it; this section is the fix.

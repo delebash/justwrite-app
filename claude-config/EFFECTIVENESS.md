@@ -82,6 +82,22 @@ segment command; resolve `-C` for the staged-tree read) + regression tests added
 panel ran — concrete proof the panel catches the class a unit test structurally can't: a
 *missing* case. Total panel value to date: 8 fixes (v1 dogfood) + 2 (v2) = 10 pre-ship.
 
+**MISS (user-caught) — a STALE PLAN DOC shipped right past the docs gate.** Commit
+`b43411e` shipped with `RULES-AS-CHECKS-V2-PLAN.md` still marked "NOT yet built" and with
+no build-outcome record. The docs gate did NOT catch it, and the logs show why: its 3
+`docs-with-features` fires this container were ALL synthetic (2 from the harness =
+`'feature done'`, 1 from the commit dry-run); ZERO fired on the real build — my doc
+updates were proactive (task P1.7), not gate-forced. And the commit-gate's docs rule
+*passed* the real commit because README/CLAUDE/EFFECTIVENESS were staged: it enforces "a
+doc was touched WITH the code," NOT "every necessary doc is current," so a code+docs commit
+sails through while the PLAN doc is stale. The USER caught it ("did your gate trigger
+this?"). This is the structural-vs-semantic ceiling in the open — the gate forces A doc to
+land; it cannot verify completeness. There is no clean mechanical fix ("is the right doc
+current?" is semantic); the procedural fix is the `task-completeness` checker verifying the
+plan doc's status at task-completion — note a DOC-ONLY follow-up commit *escapes* the
+commit-gate, so that check must live at TaskCompleted, not only at commit. Fixed the doc
+(plan banner + a "Build outcome" section) in the follow-up; logged here so it's watched.
+
 Honest note: the per-edit NUDGE fired on every `.md` and `.py` write this build (~25×,
 non-blocking) — working as intended (salience, one line), not cry-wolf. The pre-task
 DENY did NOT fire spuriously on the plan-file `.md` edits (the narrowing held).
