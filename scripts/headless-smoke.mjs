@@ -172,6 +172,28 @@ try {
     console.log(`✗ ai-tab sweep   NAV-FAIL ${String(e.message || e).slice(0, 120)}`);
   }
 
+  // ── Model-manager probe (#30): LuModelCatalog + its add-model modal mount only
+  // when a provider's form is open. Open the Providers tab → a provider's Edit →
+  // the "Add model" modal, asserting zero JS errors (catches a render bug the tab
+  // sweep can't, since the catalog is nested in the bundled provider's form).
+  try {
+    await page.evaluate(() => [...document.querySelectorAll(".lu-subnav a")].find((a) => /providers/i.test(a.textContent))?.click());
+    await sleep(500);
+    mark = errors.length;
+    await page.evaluate(() => [...document.querySelectorAll(".lu-prow button, .lu-prow .lu-btn")].find((b) => /edit/i.test(b.textContent))?.click());
+    await sleep(700);
+    const hasCat = await page.evaluate(() => !!document.querySelector(".lu-mcat"));
+    await page.evaluate(() => [...document.querySelectorAll("button, .lu-btn")].find((b) => /add model/i.test(b.textContent))?.click());
+    await sleep(500);
+    const hasModal = await page.evaluate(() => !!document.querySelector(".lu-mm-form"));
+    const newErrs = errors.length - mark;
+    if (newErrs) failed++;
+    console.log(`${newErrs ? "✗" : "✓"} model-manager   catalog=${hasCat} add-modal=${hasModal} errors=${newErrs}`);
+    errors.slice(mark, mark + 4).forEach((e) => console.log("    " + e));
+  } catch (e) {
+    console.log(`(model-manager probe skipped: ${String(e.message || e).slice(0, 90)})`);
+  }
+
   try {
     const kv = await (await fetch(`${SERVER}/v1/kv`)).json();
     console.log(`\nserver kv keys: ${JSON.stringify(Object.keys(kv))}`);

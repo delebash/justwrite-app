@@ -82,9 +82,10 @@ dedicated **"Routing by job" tab** (Defaults + per-job model cards + the **job-l
 editor**: add/rename/remove/reset over `/v1/ai/jobs`), the **"Features" → "Routing by
 feature"** rename, and a shared `useRouting` composable. Job editor placed on
 Routing-by-job (with the list) per the app's manage-where-listed pattern. → design §10.
-- **#30 model-catalog/switches editor UI** — grow `LuModelCatalog` into a manager: **+Add
-  model** (paste HF) + edit catalog fields + edit per-model switches. (No UI edits
-  `/v1/ai/model-catalog` or `/v1/ai/model-switches` yet.)
+- **✅ #30 model manager DONE** (runner `edeae9a`, smoke + CRUD-curl verified):
+  `LuModelCatalog` grew into a manager — ＋Add model (paste HF repo:quant), Edit
+  (catalog fields + the editable `type` + a per-model switches sub-editor), Delete,
+  Reset-catalog. ⏳ left: a `switch_presets` editor (the base/moe/mtp bundles).
 
 **Switches phase (design §6 — server FOUNDATION built; runtime + UI remain):**
 ✅ data model + type presets (base/moe/mtp) + the layered `switch_resolve` resolver

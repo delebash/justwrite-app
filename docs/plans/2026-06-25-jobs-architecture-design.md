@@ -539,9 +539,12 @@ data we refine in-app — nothing blocks step 1.)*
    reload, dedup identical combos. (Needs router mode in `RunnerService`, task #27.)
 5. **Job lab (#21)** — Compare at job grain (one `unit`-parameterized component) +
    `JobPreset` + promote. Per-feature switch override lands in *Routing by feature*.
-6. **Editor UI (#30)** — grow `LuModelCatalog` into the model manager (add/edit
-   catalog + model `type` + the `switch_presets` + the rare per-model override).
-   (Independent; can come earlier.)
+6. **Editor UI (#30)** — ✅ **BUILT (runner `edeae9a`, smoke + CRUD verified).**
+   `LuModelCatalog` is now the model manager: ＋Add model (paste HF repo:quant),
+   per-row Edit (catalog fields + the editable `type` + a per-model **switches**
+   sub-editor over `/v1/ai/model-switches`), Delete, Reset-catalog — all on the
+   existing tested catalog/switches routers. ⏳ Still TODO: a `switch_presets`
+   editor (the type-preset bundles themselves) — small follow-up on the same shape.
 
 Verification each step: `pytest` + `ruff` (server) + headless smoke (renderer).
 
