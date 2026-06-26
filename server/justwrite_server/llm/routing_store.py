@@ -17,7 +17,7 @@ from llm_runner.llm import RoutingConfig, RoutingPreset
 from llm_runner.llm.routing_api import FeaturePin, RoleTarget, RoutingDefaults
 
 from .. import database as _db
-from ..models import RoutingConfigRow, RoutingPin
+from ..models import JobRoute, RoutingConfigRow, RoutingPin
 
 _ACTIVE_ID = "active"
 
@@ -33,6 +33,10 @@ def _row_to_config(db, row: RoutingConfigRow) -> RoutingConfig:
         p.feature: FeaturePin(providerId=p.provider_id, model=p.model, role=p.role)
         for p in db.query(RoutingPin).filter(RoutingPin.config_id == row.id).all()
     }
+    jobs = {
+        jr.job_id: RoleTarget(providerId=jr.provider_id, model=jr.model)
+        for jr in db.query(JobRoute).filter(JobRoute.config_id == row.id).all()
+    }
     return RoutingConfig(
         default=RoutingDefaults(
             llmId=row.default_llm_id,
@@ -43,6 +47,7 @@ def _row_to_config(db, row: RoutingConfigRow) -> RoutingConfig:
         quick=RoleTarget(providerId=row.quick_provider_id, model=row.quick_model),
         accuracy=RoleTarget(providerId=row.accuracy_provider_id, model=row.accuracy_model),
         pins=pins,
+        jobs=jobs,
     )
 
 
@@ -61,6 +66,11 @@ def _apply_config(db, row: RoutingConfigRow, cfg: RoutingConfig) -> None:
         # Only persist a pin that routes somewhere — "inherit default" is no row.
         if p.providerId or p.role:
             db.add(RoutingPin(config_id=row.id, feature=feature, provider_id=p.providerId, model=p.model, role=p.role))
+    # Replace the job→model map (the jobs architecture); only rows that route.
+    db.query(JobRoute).filter(JobRoute.config_id == row.id).delete()
+    for job_id, t in cfg.jobs.items():
+        if t.providerId:
+            db.add(JobRoute(config_id=row.id, job_id=job_id, provider_id=t.providerId, model=t.model))
 
 
 class JwRoutingStore:

@@ -17,6 +17,7 @@ from llm_runner.llm import LLMConfig
 from llm_runner.llm.schema import FeaturePinConfig, LLMRolesSettings, LLMRoleTarget
 
 from ..feature_catalog import FEATURE_CATALOG
+from .jobs_store import get_feature_job_store
 from .provider_store import get_provider_store
 from .routing_store import get_routing_store
 
@@ -50,6 +51,7 @@ def llm_config() -> LLMConfig:
     default_id = routing.default.llmId or ""
     # A pin routes via an explicit provider OR an inherited role; keep any pin
     # that carries one of those (the store already drops "inherit default").
+    explicit = {key for key, pin in routing.pins.items() if pin.providerId or pin.role}
     feature_pins = [
         FeaturePinConfig(
             feature=key,
@@ -60,6 +62,23 @@ def llm_config() -> LLMConfig:
         for key, pin in routing.pins.items()
         if pin.providerId or pin.role
     ]
+    # Jobs architecture: a feature with no explicit pin inherits its JOB's model.
+    # Resolve feature → job (feature_jobs) → the job's route (routing.jobs) and
+    # inject it as an explicit dispatch pin, so jobs drive routing through the
+    # UNCHANGED shared dispatch (the job layer sits above the role-default
+    # fallback; explicit user pins still win; a job with no route falls through to
+    # the old role behavior). This logic is JW-local — JV's own config.py is
+    # untouched. It MOVES to the shared config_builder in the deep-audit
+    # convergence (design doc §13).
+    feature_jobs = {fj.featureKey: fj.jobId for fj in get_feature_job_store().list()}
+    for feature, job_id in feature_jobs.items():
+        if feature in explicit:
+            continue  # an explicit per-feature pin overrides the job default
+        target = routing.jobs.get(job_id)
+        if target and target.providerId:
+            feature_pins.append(
+                FeaturePinConfig(feature=feature, providerId=target.providerId, model=target.model)
+            )
     # Quick/Accuracy roles if set; otherwise both resolve to the user's single
     # default provider, so any unpinned feature still falls back to it.
     roles = _roles_from(routing, default_id, routing.default.model or "")

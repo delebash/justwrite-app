@@ -698,6 +698,25 @@ class FeatureJob(Base):
     built_in = Column(Boolean, nullable=False, default=False)
 
 
+class JobRoute(Base):
+    """The per-config job→model map: which provider+model serves each job (what
+    QuickSetup / Routing-by-job sets). `config_id` is the routing config ('active'
+    or a preset id); `job_id` is a `Job.id` (soft ref — a deleted job's routes are
+    harmless dangling rows resolved to the default job at dispatch). One row per
+    (config, job). Mirrors `routing_pins`; CASCADE with its config. JW config.py
+    resolves feature → job → this route into the dispatch pins (jobs drive routing
+    without touching the shared dispatch — JV-safe)."""
+
+    __tablename__ = "job_routes"
+
+    config_id = Column(
+        String, ForeignKey("routing_configs.id", ondelete="CASCADE"), primary_key=True
+    )
+    job_id = Column(String, primary_key=True)
+    provider_id = Column(String, nullable=False, default="")
+    model = Column(String, nullable=False, default="")
+
+
 # ── Feature presets (Feature Workbench — named saved configs per feature) ──
 
 
