@@ -33,6 +33,7 @@ BLOCKS = [
     ("reco", "Block 2 — storage/arch reco with no cited precedent"),
     ("docs-with-features", "Block 3 — 'done' + code edit with no doc"),
     ("plan", "Block 4 — plan/decision announced with no rules-pass"),
+    ("post-task", "Block 5 — code edit with no rules-pass"),
 ]
 
 

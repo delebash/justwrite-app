@@ -24,11 +24,13 @@ import sys
 import time
 
 LOG = os.path.expanduser("~/.claude/hooks/task-gate.log")
-RULES_PASS = re.compile(
-    r"\brules?[- ]?check(er|ed)?\b|\brules?[- ]?pass(ed|es)?\b"
-    r"|\bchecked against (the )?(rules|rule-tests|tests|T\d)\b"
-    r"|\bagainst (the )?(rule-tests|12 (rule-)?tests)\b"
-    r"|\bT(1[0-2]|[1-9])\b[^\n]{0,40}\b(pass|fail|✅|❌|n/?a)\b",
+# A rules-pass that ACTUALLY happened (not narrated) — clears the BLOCKING task gate,
+# so loose prose ("I'll run the checker") must NOT count (dogfood-caught hole). Require
+# a real subagent run (detected in _rules_pass), a cited checker VERDICT, or trivial.
+VERDICT = re.compile(
+    r"\bVERDICT:\s*(PASS|FAIL)\b"
+    r"|\bT(1[0-2]|[1-9])\b[^\n]{0,30}\b(PASS|FAIL)\b[^\n]{0,200}?"
+    r"\bT(1[0-2]|[1-9])\b[^\n]{0,30}\b(PASS|FAIL)\b",
     re.I,
 )
 TRIVIAL = re.compile(r"\b(trivial|one[- ]?line|typo|comment[- ]?only|dep bump|rename)\b", re.I)
@@ -70,7 +72,7 @@ def _rules_pass(entries: list, start: int) -> bool:
                 return True
             if b.get("type") == "text":
                 t = b.get("text") or ""
-                if RULES_PASS.search(t) or TRIVIAL.search(t):
+                if VERDICT.search(t) or TRIVIAL.search(t):
                     return True
     return False
 

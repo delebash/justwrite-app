@@ -43,11 +43,14 @@ TESTS = (
 
 # A rules-pass already happened this turn: the checker ran, the tests are cited, or
 # a trivial change is attested (the cheap escape so a typo isn't a full checker run).
-RULES_PASS = re.compile(
-    r"\brules?[- ]?check(er|ed)?\b|\brules?[- ]?pass(ed|es)?\b"
-    r"|\bchecked against (the )?(rules|rule-tests|tests|T\d)\b"
-    r"|\bagainst (the )?(rule-tests|12 (rule-)?tests)\b"
-    r"|\bT(1[0-2]|[1-9])\b[^\n]{0,40}\b(pass|fail|✅|❌|n/?a)\b",
+# A rules-pass that ACTUALLY happened — used to clear the BLOCKING pre-task DENY, so
+# loose prose ("I'll run the rules-checker") must NOT count (the dogfood-caught hole).
+# Require a real subagent run (detected in _scan_turn), a cited checker VERDICT, or
+# an explicit trivial attestation.
+VERDICT = re.compile(
+    r"\bVERDICT:\s*(PASS|FAIL)\b"
+    r"|\bT(1[0-2]|[1-9])\b[^\n]{0,30}\b(PASS|FAIL)\b[^\n]{0,200}?"
+    r"\bT(1[0-2]|[1-9])\b[^\n]{0,30}\b(PASS|FAIL)\b",
     re.I,
 )
 TRIVIAL = re.compile(r"\b(trivial|one[- ]?line|typo|comment[- ]?only|dep bump|rename)\b", re.I)
@@ -101,7 +104,7 @@ def _scan_turn(entries: list, start: int) -> tuple[int, bool]:
                     rules_pass = True
             elif b.get("type") == "text":
                 t = b.get("text") or ""
-                if RULES_PASS.search(t) or TRIVIAL.search(t):
+                if VERDICT.search(t) or TRIVIAL.search(t):
                     rules_pass = True
     return edits, rules_pass
 
@@ -147,13 +150,14 @@ def main() -> None:
             "Then write. The 12 tests: " + TESTS)})
         sys.exit(0)
 
-    # Every edit gets the nudge (salience at the change).
-    when = "first of task (plan checked)" if prior_edits == 0 else "edit"
-    _log(f"INJECT {when}")
+    # Every edit gets a SHORT nudge — salience without spam. Repeating the full ~400-char
+    # T1-T12 block per edit was learned-ignore noise (dogfood-caught); the full list lives
+    # in ~/.claude/CLAUDE.md. One line, every edit.
+    _log(f"INJECT {'first' if prior_edits == 0 else 'edit'}")
     _emit({"additionalContext":
-           "⛔ CODE CHANGE — check this against the rule-tests before it lands (esp. "
-           "T1 right-not-fast, T2 don't-guess, T3 reuse-don't-copy, T5 whole-job, "
-           "T11 docs-with-features): " + TESTS})
+           "⛔ CODE CHANGE — check it against the rule-tests T1-T12 first (right-not-fast · "
+           "don't-guess · reuse-don't-copy · whole-job · docs-with-it; full list in "
+           "~/.claude/CLAUDE.md)."})
     sys.exit(0)
 
 

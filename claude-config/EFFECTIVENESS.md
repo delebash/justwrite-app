@@ -11,7 +11,7 @@ Three signals, two of them mechanical:
 
 1. **Gate fires (mechanical)** — every time the Stop `verify-gate.py` BLOCKs a turn,
    it logs `BLOCK <type>` to `~/.claude/hooks/verify-gate.log`. `gate-stats.py` rolls
-   these up by block (0–4). This is the floor: it counts when a gate *fired*.
+   these up by block (0–5). This is the floor: it counts when a gate *fired*.
 2. **Salience nudges (mechanical)** — `pre-action-check.py` logs each time it injected
    the rule-tests before a code change / plan (`~/.claude/hooks/pre-action.log`).
 3. **Real save vs false positive vs MISS (judgment — recorded by hand below)** — a
@@ -35,7 +35,8 @@ tally + add any notable catches/misses to the ledger.
 | Block 1 — code claim, zero reads | 0 | |
 | Block 2 — arch reco, no precedent | 0 | |
 | Block 3 — "done" + code edit, no doc | 0 | |
-| Block 4 — plan/decision, no rules-pass | 0 | (new this build) |
+| Block 4 — plan/decision, no rules-pass | 0 | |
+| Block 5 — code edit, no rules-pass | 0 | (post-task) |
 | Pre-action salience nudges | 0 | |
 | **Real saves** (gate fire that changed behavior) | — | counted in the ledger |
 | **False positives** (gate fired, was noise) | — | counted in the ledger |
@@ -46,6 +47,44 @@ tally + add any notable catches/misses to the ledger.
 > against a populated log.
 
 ## Catch / miss ledger (detailed — newest first)
+
+### 2026-06-26 — dogfood: the panel reviewed the system itself (first measured catch)
+
+The first real exercise of the system was running its own **2-checker panel** (Opus,
+architecture + correctness lenses) against this bundle before it shipped to the user.
+**It caught 8 distinct issues in the rules system itself — all fixed the same session,
+before the user ever hit them.** That is the loop working: independent checkers found
+what the author (me), mid-build, had rationalized or missed.
+
+Catches (all fixed; re-verified by the test harness):
+1. **Blocking gates were bypassable by NARRATION.** The rules-pass regex matched "I'll
+   run the rules-checker" (intent), so Block 4/5, the pre-task deny, and the task-gate
+   could be cleared by *saying* you'd check, not checking. Fixed: blocking now requires
+   a real subagent run, a cited `VERDICT:` / `T# PASS-FAIL`, or a trivial attestation
+   (loose prose stays only on the non-blocking nudge). The biggest hole — a gate you can
+   talk your way past is not a gate.
+2. **A silent edit-then-stop turn skipped Blocks 1–5** (empty trailing text → early
+   exit). Fixed: Block 5 fires on code-edit evidence even with no trailing text.
+3. **`gate-stats.py` never counted Block 5** — proven empirically by the checker: two
+   real Block-5 fires rolled up as "0 blocks". The measurement was lying about the very
+   gate it tracks. Fixed: added the post-task key.
+4. **Block 5 missing from the verify-gate docstring, EFFECTIVENESS.md, and the "(0–4)"
+   range** — a docs-with-features (T11) + under-counted-ledger (T6) miss *inside the
+   rules system itself*. Fixed across all three.
+5. **The per-edit nudge repeated the full ~400-char block on every edit** — it fired 4×
+   for one batched message, LIVE (the cry-wolf the rules warn against). Fixed: a short
+   one-liner per edit; the full T1–T12 lives in CLAUDE.md.
+6. Dead `✅/❌` regex alternatives (couldn't match after `\b`). Removed.
+
+What the panel CONFIRMED sound (it wasn't all wrong): every hook fail-open, Block 4/5
+wiring + `rules_passed` ordering, all five event names + output schemas (re-verified
+against the docs), `install.sh` completeness, no regex backtracking, the `resume`-skip.
+
+Honest read: the panel is a strong catch mechanism for *structural* and *correctness*
+faults — it found a real bypass-class hole (narration) the author missed. It did NOT,
+and cannot, prove the design is the *right* one semantically; that stays human judgment.
+But "8 real fixes before the user saw them" is the first concrete evidence the system
+earns its keep.
 
 ### 2026-06-26 — session that built this system
 

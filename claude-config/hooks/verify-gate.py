@@ -23,6 +23,10 @@ model) on any of:
   BLOCK 4 — PLAN/DECISION ANNOUNCED ("here's the plan" / "locked the plan" /
     "decided to") with no rules-pass this turn (a rules-checker subagent run, or the
     tests cited). Plan/decision announcements are EVENTS, the same as "done" (Block 3).
+  BLOCK 5 — POST-TASK: the turn EDITED CODE but ran no rules-pass (the result was never
+    checked). Fires on code-edit EVIDENCE even when the turn ends with no trailing text.
+    A "rules-pass" for the BLOCKING gates = a real subagent run, a cited checker
+    VERDICT, or a trivial attestation — NOT merely saying you'll run the checker.
 
 HONEST SCOPE: this catches a MISSING action (didn't read / didn't cite / didn't doc). It
 canNOT verify a read was understood, or that a citation is the RIGHT one — that stays a
@@ -112,13 +116,17 @@ PLAN_LOCK = re.compile(
     r"|\bdecision is (made|final|locked)\b",
     re.I,
 )
-RULES_PASS = re.compile(
-    r"\brules?[- ]?check(er|ed)?\b|\brules?[- ]?pass(ed|es)?\b"
-    r"|\bchecked against (the )?(rules|rule-tests|tests|T\d)\b"
-    r"|\bagainst (the )?(rule-tests|12 (rule-)?tests)\b"
-    r"|\bT(1[0-2]|[1-9])\b[^\n]{0,40}\b(pass|fail)\b",
+# A rules-pass that ACTUALLY happened (not merely narrated). For the BLOCKING gates,
+# loose prose like "I'll run the rules-checker next" must NOT count — that was the
+# escape hole the dogfood panel caught. Require a real subagent run (subagent_ran, set
+# in the turn loop), a cited checker VERDICT, or an explicit trivial attestation.
+VERDICT = re.compile(
+    r"\bVERDICT:\s*(PASS|FAIL)\b"
+    r"|\bT(1[0-2]|[1-9])\b[^\n]{0,30}\b(PASS|FAIL)\b[^\n]{0,200}?"
+    r"\bT(1[0-2]|[1-9])\b[^\n]{0,30}\b(PASS|FAIL)\b",
     re.I,
 )
+TRIVIAL = re.compile(r"\b(trivial|one[- ]?line|typo|comment[- ]?only|dep bump|rename)\b", re.I)
 
 
 def _log(msg: str) -> None:
@@ -296,8 +304,9 @@ def main() -> None:
                 texts.append(b.get("text") or "")
 
     answer = "\n".join(texts).strip()
-    if not answer:
-        sys.exit(0)  # nothing said → nothing to gate
+    if not answer and not code_edit:
+        sys.exit(0)  # nothing said AND nothing changed → nothing to gate
+    # (a code-editing turn that ends with no trailing text is still gated — Block 5)
 
     hedged = bool(HEDGE.search(answer))
     has_cite = bool(CITE.search(answer))
@@ -356,7 +365,7 @@ def main() -> None:
     # tracked). "here's the plan" / "locked the plan" / "we've decided" are EVENTS,
     # the same as Block 3's "done". rules_passed = the checker ran, or tests are cited.
     plan_lock = bool(PLAN_LOCK.search(answer))
-    rules_passed = subagent_ran or bool(RULES_PASS.search(answer))
+    rules_passed = subagent_ran or bool(VERDICT.search(answer)) or bool(TRIVIAL.search(answer))
     if plan_lock and not rules_passed:
         _log(f"BLOCK plan no-rules-pass subagent={subagent_ran}  answer[:120]={answer[:120]!r}")
         print(json.dumps({"decision": "block", "reason": (
