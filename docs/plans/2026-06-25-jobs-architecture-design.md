@@ -157,15 +157,97 @@ Mirrors the proven `FeaturePreset` save/active/promote lifecycle
 
 ## 9. GUI surfaces (shared `@delebash/llm-ui`)
 
-- **QuickSetup** (auto-setup): picks a model per job, sets each job's preset default;
-  iterates the editable `jobs` list (today hardcodes quick/accuracy).
-- **Routing by job** (NEW tab) + **Routing by feature** (renamed from "Features",
-  `AiModelsArea.vue:140-145`): each shows model + a **switch-preset dropdown**
-  (defaulted by auto-setup, user can pick another) + individual flag tweaks +
-  sampling. Routing-by-feature also has the per-feature **job dropdown**, plus a
-  small **job-list editor** (add/rename/remove jobs).
-- **Model manager** (grow `LuModelCatalog`): add/edit models, the model `type`, the
-  presets, per-model overrides.
+> **DETAIL RESTORED 2026-06-26** from the design conversation (recovered from the
+> session transcript after this section had been compressed to bullets that dropped
+> the §2.8 naming detail — the exact tab order and the Jobs-tab explanation copy).
+> This is the full, executable GUI spec; nothing here is to be re-derived.
+
+### 9.0 — The subnav rename (Decision 2.8)
+The AI area (`AiModelsArea.vue:140-145`) subnav is **today**:
+
+`Providers & models · Features · Recommendations · Usage`
+
+It **becomes** — add a **"Routing by job"** tab immediately to the **LEFT** of the
+old Features tab, and **rename "Features" → "Routing by feature"**:
+
+`Providers & models · Routing by job · Routing by feature · Recommendations · Usage`
+
+The rename pairs the two routing surfaces: coarse (by job, the primary surface most
+people use) then fine (by feature, the rare per-action override). The internal tab
+keys: `providers · jobs · features · recommendations · usage` (the `features` key is
+kept for the renamed Routing-by-feature tab to minimise churn; its component stays
+`FeatureWorkbench.vue`).
+
+### 9.1 — Routing by job (NEW tab) — the primary surface
+**Opens with this plain explanation, verbatim (user-authored copy — do not
+paraphrase):**
+
+> "Pick one model per kind of task. Most people only touch this. For fine control
+> of a single feature, use *Routing by feature*."
+
+Contents — **one card per job** (iterating the editable `jobs` list; never a fixed
+quick/accuracy pair). Each job card shows:
+- the job's **label** + its **description** + a muted **"Used for: …"** line listing
+  the features classified into that job (derived from the `feature_jobs` map);
+- a **model picker** (`LuModelPicker`, the shared control) that writes the job→model
+  map (`RoutingConfig.jobs[jobId]` → `job_routes` row). Empty = the job falls back to
+  the **Default LLM**;
+- **(Switches phase — build-order step 3, NOT this slice)** a **switch-preset
+  dropdown** (defaulted by auto-setup; the user can pick another), individual **flag
+  tweaks**, and **sampling** (temperature / max-tokens / JSON / reasoning). Until the
+  Switches phase ships, the job card carries only the model picker.
+
+The global **Defaults** (Default LLM + Default embedding) is the ultimate fallback
+both tabs reference; it lives in the routing config (`RoutingConfig.default`) and is
+edited here (it is currently in the `FeatureWorkbench` globals — it moves onto this
+primary surface as part of building the tab).
+
+**Job lifecycle (Decision, grounded in the provider precedent):** a job has an
+**immutable `job_id`** (a slug minted from the label at create — `jobs_api.py`
+`slugify_job_id`) + an **editable label** (so rename is free and never orphans
+`feature_jobs` / `job_routes` / `model_recommendations` refs, exactly as
+`provider_api.py:184` keeps provider ids immutable). **Delete is allowed**; an
+orphaned feature falls back at dispatch to the guaranteed-present **default job
+`chat`**, which is **un-deletable** (`jobs_api.py` blocks deleting `DEFAULT_JOB_ID`).
+
+### 9.2 — Routing by feature (the renamed "Features" tab = the existing `FeatureWorkbench`)
+The **rare per-action fine-tune** surface. Per feature/action it shows:
+- a **job dropdown** (the feature's classification) → writes the `feature_jobs` map
+  (`/v1/ai/feature-jobs`); seeded best-guess, editable per feature;
+- a **model picker** that **inherits the job's model live** (changing a job's model
+  on Routing-by-job updates every inheriting feature automatically — never copied
+  into N pin rows that drift) **or** takes an **explicit per-feature pin** (the pin is
+  **explicit-model-only** — it no longer carries a role/job);
+- the per-action **prompt** (system + instruction), **params**, **presets** bar
+  (save-as / use-as-production), and the **Test on real input** panel — all already
+  built;
+- the **"Set all"** cascade on a group header becomes **per-job** in effect;
+- **(Switches phase)** a per-feature **switch override** + sampling.
+
+It also hosts the small **job-list editor** (add / rename / remove jobs over the
+existing `/v1/ai/jobs` CRUD) — per the saved §9 placement (the per-feature dropdown
+consumes the job list; this is where a user realises they want a new job category).
+
+### 9.3 — QuickSetup (auto-setup)
+Picks a model per job and sets each job's preset default; **iterates the editable
+`jobs` list** (it previously hardcoded quick/accuracy). Same wizard shape, ~4
+buckets — already job-native after the move.
+
+### 9.4 — Model manager (grow `LuModelCatalog`, task #30)
+Add/edit models, the editable model **`type`** field (feeds the type-preset switch
+layer), the **switch presets**, and per-model overrides. Independent of the tabs
+above; can land any time.
+
+### 9.5 — Job lab / Compare (task #21, the Switches/lab phase)
+Multi-column **Compare** at job grain — each column = a model + a switch set + **the
+job's test prompt**, where the job's test prompt = **a representative feature's
+prompt** for that job (Decision 2.9: "if a feature in a job works, all features in
+that job should work" — e.g. test the `extraction` job with `plotHoles`'s prompt).
+Run-all → per-column output / words / tokens-per-sec → pick a winner. Plus
+**persistent `JobPreset`s** (save the configs you tested) → **promote** one to
+production (writes the job's live model + switches). Mirrors the proven
+`FeaturePreset` save/active/promote lifecycle; lean = ONE Compare component
+parameterised by `unit` (action vs job).
 
 ---
 
