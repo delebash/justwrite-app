@@ -72,6 +72,16 @@ visible to the hook). Documented rather than "fixed" — parsing the `add` args 
 command to predict the staged set would be fragile, and erring toward gating is correct. This is
 exactly the kind of real friction the observation period exists to surface.
 
+**Second finding — a real agent-judge MISS, user-caught:** when the v3 rules-checker ran on the
+commit it scored the recap as "current" and PASSED — but `MORNING_RECAP.md`'s *Recently shipped*
+section was still **v1-only** (no v2, no v3). The USER caught it with a plain "did you update the
+recap?" (fixed in `c20cb44`). This is the honest ceiling in the open: an INDEPENDENT agent still
+misses (it checked the PLAN-1 line + Hard-gates line, judged them sufficient, and didn't audit the
+Recently-shipped section). The recurring pattern of the whole project holds — **the user's direct
+question is the highest-recall check in the system**; the gates + agent raise the floor, they
+don't replace it. Candidate hardening: have the commit checker diff the change against the recap's
+Recently-shipped/Standing-rules sections specifically, not just "is a relevant doc touched."
+
 ### 2026-06-26 — v3: the self-certification hole (user-caught) → commit verdict comes from the AGENT
 
 The deepest catch of the project — and it was the USER, in dialogue, not any gate. After v2 I
