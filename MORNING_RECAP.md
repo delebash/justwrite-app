@@ -52,6 +52,15 @@ shared; JustWrite is a thin consumer. Green + pushed.
   reco w/o a cited precedent; Block 3 = "done" + code-edit w/o a doc. Fail-open; 5-reblock failsafe.
 
 ## Recently shipped (newest first — detail in the linked doc)
+- **Switches phase — server foundation** (runner `42f4057` data model + `9133c67`
+  type presets + layered resolver). `model_catalog.type` + `switch_presets`/
+  `preset_switches` + `job_route_switches`/`pin_switches`/`hardware_switches` tables;
+  `switch_resolve.resolve_model_switches` layers base→type→mtp(not-if-moe)→per-model→
+  per-hardware, wired into the runner `switches_fn` — the **MoE `spec:none` rule lives
+  ONCE on the `moe` preset** (per-model copies removed). 107 runner + 77 JW pytest.
+  ⏳ Remaining: the per-job/feature runtime apply (GPU-gated **step 4 / #27**), the
+  manifest-`flagPresets` removal, and the switch **editor routers + GUI**. →
+  `docs/plans/2026-06-25-jobs-architecture-design.md` §11-step-3 STATUS.
 - **Shared-LLM job move** — see *Current state*.
 - **Catalog / switches / recommendations → DB** (runner `490e7a5` / JW `c70d44c`): the
   downloadable model catalog left `runner-manifest.json` for `model_catalog` +
@@ -77,9 +86,13 @@ shared; JustWrite is a thin consumer. Green + pushed.
   model** (paste HF) + edit catalog fields + edit per-model switches. (No UI edits
   `/v1/ai/model-catalog` or `/v1/ai/model-switches` yet.)
 
-**Switches phase (design §4/§6 — NOT built):** `switch_presets` (by model type) +
-`flag_catalog` (the one on/off-vs-value bit) + per-hardware rules + `job_presets`; per-job
-**switches + sampling** (a job today = provider+model only). → design doc §4/§6.
+**Switches phase (design §6 — server FOUNDATION built; runtime + UI remain):**
+✅ data model + type presets (base/moe/mtp) + the layered `switch_resolve` resolver
+wired into the runner (runner `42f4057`/`9133c67`). ⏳ left: `flag_catalog` (the one
+on/off-vs-value bit, optional), `job_presets`; the **editor routers + GUI** (make the
+presets/per-job/per-feature switches user-editable); and the **runtime apply** of the
+per-job/feature override layers — gated on **step 4 / #27** (router/residency, needs a
+GPU to verify). → design doc §6 + §11-step-3 STATUS.
 
 **Runner / residency:** **#27** router mode (`RunnerService` `--models-preset`, replaces
 spawn-per-model) → **#29** residency manager (`--models-max`; cross-kind LLM⟷TTS VRAM

@@ -507,6 +507,23 @@ data we refine in-app — nothing blocks step 1.)*
    `switch_presets` (`base`/`moe`/`mtp`) + a model `type` field (§6.5); add the
    override child tables (§6.4); wire `merge(presets → model → job → feature)` into
    the spawn path (`_merge_overrides` exists). Seed per-job defaults.
+   > **STATUS (2026-06-26) — server foundation BUILT + verified + pushed:**
+   > - ✅ **Data model** (`db.py`, runner `42f4057`): `model_catalog.type` +
+   >   `switch_presets`/`preset_switches` + `job_route_switches`/`pin_switches`/
+   >   `hardware_switches` (composite FKs). 17 tables create clean.
+   > - ✅ **Type presets + layered resolver** (runner `9133c67`): seeded
+   >   base/moe/mtp presets (replace the manifest `flagPresets`, in `Overrides`
+   >   field names) + `switch_resolve.resolve_model_switches` (base→type→mtp[not if
+   >   moe]→per-model→per-hardware), wired into the runner's `switches_fn` — so the
+   >   MoE `spec:none` rule lives ONCE on the `moe` preset (per-model copies removed
+   >   from `DEFAULT_SWITCHES`). 107 runner + 77 JW pytest green.
+   > - ⏳ **DEFERRED (GPU-gated / step 4):** (a) removing `flagPresets` from the
+   >   manifest's `compose_flags` (redundant-but-harmless today — Overrides replace
+   >   them); (b) **applying** the per-job/per-feature override layers at runtime —
+   >   they're stored + their tables exist, but the (re)load-per-job trigger is the
+   >   residency/router orchestration (step 4 / #27), unverifiable without hardware.
+   > - ⏳ **TODO (UI, non-GPU):** preset/job/feature switch **editor routers + GUI**
+   >   (the "editable" half), folded into the model-manager (#30) + the routing tabs.
 4. **Residency manager (#29)** — VRAM budget → `--models-max`, co-resident vs
    reload, dedup identical combos. (Needs router mode in `RunnerService`, task #27.)
 5. **Job lab (#21)** — Compare at job grain (one `unit`-parameterized component) +
