@@ -231,6 +231,7 @@ GPU/Hardware → the AI menu). → JV checklist in `docs/plans/2026-06-24-shared
    only changing a switch VALUE needs a (re)start.
 
 ## Active plan docs (the index)
+- `docs/plans/2026-06-27-complete-remaining-plan.md` — **★ THE COMPLETE REMAINING-WORK PLAN** (2026-06-27): 13-agent audit of all 17 plan docs + 3 independent confirmers (who caught 20 misses); JV separated to "later"; grouped buildable-here vs GPU-gated. **Start here for "what's left".**
 - `docs/plans/2026-06-25-jobs-architecture-design.md` — **authoritative** jobs design (§0–§14; + §17 = the dropdown fix / reuse gate / rules-as-checks rationale).
 - `claude-config/RULES-AS-CHECKS-V2-PLAN.md` — **Plan 1** (rules-as-checks) + its v2 & v3 **Build-outcome** record (the agent-as-judge fix); shipped + in observation.
 - `claude-config/README.md` — the **rules-as-checks** system (slim rules + event hooks + rules-checker + metrics); `claude-config/EFFECTIVENESS.md` = the effectiveness ledger.
