@@ -102,7 +102,10 @@ dead code. Do NOT remove it.
 (`just-llm-runner/tests/test_recommendations_catalog.py`, 10 cases). **[FIXED]** The recommendations
 editor's native `confirm()` calls are now the kit's `confirmDialog` (native-dialog ban honored), and
 `LuModelPicker`'s dead `showRoles` prop (+ its two inert caller attrs) is removed. The `detect-local`
-and `classify-tier` endpoints are real but have no UI caller.
+and `classify-tier` endpoints are real and wired in JustVoice (`QuickSetup.vue:301`,
+`RecommendCard.vue:40`, `SpeakerLabView.vue:116`) — the "no UI caller" was JW-scoped: JW's shared kit
+UI doesn't call them yet. That's a JW feature gap (auto-discover a local provider; auto-suggest a tier
+on Add-model) needing a UX placement decision, not a stub/bug.
 
 ## Load-bearing decisions made this session
 

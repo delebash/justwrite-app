@@ -36,7 +36,7 @@ not current work). Companion deep-dive: `2026-06-27-switch-param-lab.md` (the la
 
 **Providers / Recs / cleanup:**
 - ✅ FIXED: per-provider-row **"Test"** now POSTs (`AiModelsArea.vue:112`) to match POST `api.py:56` (was a GET → 405)
-- 🟡 `detect-local` (`provider_api.py:208-234`) + `classify-tier` (`api.py:42-53`) — real backends, NO UI caller
+- 🟡 `detect-local` (`provider_api.py:208-234`) + `classify-tier` (`api.py:42-53`) — real backends, wired in **JV** (`QuickSetup.vue:301`, `RecommendCard.vue:40`, `SpeakerLabView.vue:116`) but NOT in JW's shared kit UI. A JW-side FEATURE gap (auto-discover a running local provider; auto-suggest a tier on Add-model), not a bug — needs a UX placement decision, not a mechanical fix.
 - ✅ recommendations + `ModelCatalogStore` backend tests — added (`test_recommendations_catalog.py`, 10 cases: seed/order, upsert new+update, built_in flip, delete, reset-keeps-user, `set_type` preserves built_in) · ✅ `RecommendationsEditor` native `confirm()` → `confirmDialog` (dialog-ban honored)
 - ✅ FIXED: `LuModelPicker` dead `showRoles` prop removed (+ the 2 inert `:show-roles="false"` caller attrs in `RoutingByJob.vue`)
 - ✅ FIXED: FeatureWorkbench **token stat** — JW readers aligned to kit camelCase (`aiFeature.js:139`, `aiTasks.js:145-146`); + decode **tok/s** readout
