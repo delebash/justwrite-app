@@ -1,5 +1,15 @@
 # Session handoff — 2026-06-27 (read this in full after a compact)
 
+> # ⛔⛔ THE #1 OPERATING RULE — read this FIRST, every time ⛔⛔
+> **NEVER act until the user literally types the word "go".** A question is ONLY a question —
+> answer it in words, then STOP and WAIT. Do NOT read/grep, edit, spawn an agent, run a
+> workflow, build, or commit until "go". **"It was only read-only" is NOT an excuse — do not
+> start.** Approval for one step is NOT approval for the next; each new action needs its own go.
+> Companion hard rules: ② show the user any agent/research prompt BEFORE sending it; ③ never
+> stop a running job/agent unless the user says "stop"; ④ always confirm the plan + get the
+> explicit go first; ⑤ never guess — read code line-by-line, cite file:line. *(The user has had
+> to repeat #1 many times across 2026-06-27 — it is the top cause of lost trust. GET IT.)*
+
 > ⛔ **THE ONE PLAN: `just-llm-runner/docs/plans/2026-06-27-MASTER-PLAN.md`.** It folds in
 > EVERYTHING — the switch/preset architecture (Profile+Feature, the shared `<KnobGrid>`, the
 > decision log, the source-verified sampler surface), the model-catalog + Fast/Balanced/Best-dial +

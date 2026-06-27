@@ -1,5 +1,15 @@
 # Morning Recap — JustWrite
 
+> # ⛔⛔ THE #1 OPERATING RULE — read this FIRST, every time ⛔⛔
+> **NEVER act until the user literally types the word "go".** A question is ONLY a question —
+> answer it in words, then STOP and WAIT. Do NOT read/grep, edit, spawn an agent, run a
+> workflow, build, or commit until "go". **"It was only read-only" is NOT an excuse — do not
+> start.** Approval for one step is NOT approval for the next; each new action needs its own go.
+> Companion hard rules: ② show the user any agent/research prompt BEFORE sending it; ③ never
+> stop a running job/agent unless the user says "stop"; ④ always confirm the plan + get the
+> explicit go first; ⑤ never guess — read code line-by-line, cite file:line. *(The user has had
+> to repeat #1 many times across 2026-06-27 — it is the top cause of lost trust. GET IT.)*
+
 > The in-repo session-pickup **MAP** — current state + backlog + an index into the
 > deep docs. Read it after the global `~/.claude/CLAUDE.md` and this repo's
 > `CLAUDE.md`. **This is a map, not a log:** stable architecture + rules live in
