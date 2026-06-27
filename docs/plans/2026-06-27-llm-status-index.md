@@ -35,11 +35,11 @@ not current work). Companion deep-dive: `2026-06-27-switch-param-lab.md` (the la
   🟡 Anthropic ignores `json_mode`
 
 **Providers / Recs / cleanup:**
-- ⚠️ STUB: per-provider-row **"Test" always fails** — GET (`AiModelsArea.vue:109-117`) vs POST (`api.py:56`)
+- ✅ FIXED: per-provider-row **"Test"** now POSTs (`AiModelsArea.vue:112`) to match POST `api.py:56` (was a GET → 405)
 - 🟡 `detect-local` (`provider_api.py:208-234`) + `classify-tier` (`api.py:42-53`) — real backends, NO UI caller
-- ❌ recommendations + `ModelCatalogStore` backend tests — ZERO · 🟡 `RecommendationsEditor.vue:126,144` native `confirm()` (dialog-ban)
-- ⚠️ STUB: `LuModelPicker` `showRoles` prop (`LuModelPicker.vue:23`) — dead role cruft
-- ⚠️ STUB: FeatureWorkbench inline **token stat always 0** — camelCase (`:392-395`) vs snake_case (`aiFeature.js:139`)
+- ❌ recommendations + `ModelCatalogStore` backend tests — ZERO · ✅ `RecommendationsEditor` native `confirm()` → `confirmDialog` (dialog-ban honored)
+- ✅ FIXED: `LuModelPicker` dead `showRoles` prop removed (+ the 2 inert `:show-roles="false"` caller attrs in `RoutingByJob.vue`)
+- ✅ FIXED: FeatureWorkbench **token stat** — JW readers aligned to kit camelCase (`aiFeature.js:139`, `aiTasks.js:145-146`); + decode **tok/s** readout
 - 🟡 dead `ProductionConfig` dispatch layer — `config_builder.py:17-39` never populates it, so the prod-config
   precedence branch (`dispatch.py:59-62,73-77,109-113`) is inert (promote works via the pin+prompt path instead)
 
@@ -73,7 +73,7 @@ per-model switches manager (`LuModelCatalog.vue`; `model_catalog_api.py`) · ✅
 ✅ jobs CRUD (`jobs_api.py:78-124`) · ✅ feature→job map · ✅ routing GET/PUT (`routing_api.py`) · ✅ routing-presets API
 (no UI consumer) · ✅ dispatch job-cascade (`dispatch.py`, `test_llm_dispatch.py` 23 passed) · ✅ job-native LLMConfig +
 `config_builder` · ✅ shared JobStore/FeatureJobStore + seed · ✅ `RoutingByJob.vue` + `FeatureWorkbench.vue` + `LuJobSelect` +
-`useRouting` · ✅ JW end-to-end (`test_routing.py` 10 passed). ⚠️ STUB dead `LuModelPicker.showRoles`.
+`useRouting` · ✅ JW end-to-end (`test_routing.py` 10 passed). ✅ dead `LuModelPicker.showRoles` removed.
 
 ### Switches — tables + resolver + /load + editors + §6.6
 ✅ base/type-preset tables + seed · ✅ `model_catalog.type` · ✅ layered resolver (`switch_resolve.py`, `test_switch_resolve.py`

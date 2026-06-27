@@ -94,9 +94,10 @@ the kit wire contract `client.js:92,112`); fixed by aligning both JW readers to 
 (`aiFeature.js:139`, `aiTasks.js:145-146`) — the only two field-level stream-usage readers in JW.
 There is a dead `ProductionConfig` dispatch precedence layer that
 `config_builder` never populates (promote actually works via the routing pin + prompt row).
-Recommendations and `ModelCatalogStore` have zero backend tests, the recommendations editor uses
-a native `confirm()` (violating the native-dialog ban), and `LuModelPicker` still carries a dead
-`showRoles` prop. The `detect-local` and `classify-tier` endpoints are real but have no UI caller.
+Recommendations and `ModelCatalogStore` have zero backend tests. **[FIXED]** The recommendations
+editor's native `confirm()` calls are now the kit's `confirmDialog` (native-dialog ban honored), and
+`LuModelPicker`'s dead `showRoles` prop (+ its two inert caller attrs) is removed. The `detect-local`
+and `classify-tier` endpoints are real but have no UI caller.
 
 ## Load-bearing decisions made this session
 
