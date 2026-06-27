@@ -98,7 +98,8 @@ and reads for speaker_attribution (`extraction_api.py:147`). JW's `config_builde
 populate it yet — JW's promote uses the pin+prompt path, and the richer per-feature editable-prompt
 `ProductionConfig` is a planned convergence delta to bring to JW (`shared-ai-stack-plan.md:65`), not
 dead code. Do NOT remove it.
-Recommendations and `ModelCatalogStore` have zero backend tests. **[FIXED]** The recommendations
+**[FIXED]** Recommendations and `ModelCatalogStore` now have backend tests
+(`just-llm-runner/tests/test_recommendations_catalog.py`, 10 cases). **[FIXED]** The recommendations
 editor's native `confirm()` calls are now the kit's `confirmDialog` (native-dialog ban honored), and
 `LuModelPicker`'s dead `showRoles` prop (+ its two inert caller attrs) is removed. The `detect-local`
 and `classify-tier` endpoints are real but have no UI caller.
