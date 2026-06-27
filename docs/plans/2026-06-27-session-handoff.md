@@ -251,7 +251,9 @@ The user gave the go: **"fix data loss bug and do phase a-e without stopping unl
 decision."** So this is now a continuous build run, not a wait-for-direction state. Sequence:
 **✅ data-loss fix** (slice 1) → **✅ Phase A COMPLETE** (catalog rebuild + license column + fit
 RAM-gate + `runner-manifest.json`→DB + GGUF-orphan wiring; 148 runner + 77 server tests pass) →
-**▶ Phase B** (Fast/Balanced/Best dial) → C (KnobGrid tuning UI) → D (the LAB: drop model/pin
+**✅ Phase B COMPLETE** (Fast/Balanced/Best dial: `quality.py` resolve_quality + `/v1/ai/job-quality`
++ UiSegmented dial in Routing-by-job + think-off-under-JSON guardrail; 155 runner + smoke) →
+**▶ Phase C** (KnobGrid tuning UI) → D (the LAB: drop model/pin
 switches per D9, wire job_route_switches reader, Compare/ConfigColumn, JobPreset, move LuSwitchPresets
 out of Providers) → E (extraction scaffolds + sampling set). Each slice is verified (pytest+ruff for
 the runner; build:vite + headless smoke for JW) and committed; pause only for a genuine user-only

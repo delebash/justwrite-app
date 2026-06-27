@@ -149,6 +149,15 @@ time: present a plan → user approves → I build → user reviews → next pla
   entries** (not a chat plan) — that's what fires the plan/task events.
 
 ## Recently shipped (newest first — detail in the linked doc)
+- **Phase B COMPLETE** (this session): the **Fast/Balanced/Best dial**. Per job, a
+  3-stop `UiSegmented` dial in Routing-by-job resolves a concrete model for the
+  detected hardware — `resolve_quality(job, quality, hardware)` fit-filters the
+  job's recommendations then walks a size ladder (Fast=smallest, Best=largest,
+  Balanced=median), reproducing the Part-3 matrix; persisted as the job's
+  `{model, quality}`; the explicit picker stays as the advanced/cloud override.
+  Backend `quality.py` + `GET /v1/ai/job-quality` + a think guardrail (force think
+  OFF under json_mode, `prompts._effective_think`). Verified: 155 runner tests +
+  build:vite + smoke. (Master Phase B → COMPLETE.)
 - **Phase A COMPLETE** (this session, `just-llm-runner`): the model catalog + fit
   + the last config-file, all DB-backed. **A1–A6:** `DEFAULT_CATALOG` rebuilt to 11
   rows across the full hardware range (Qwen · Gemma 4 · Mistral · GLM · Llama),
