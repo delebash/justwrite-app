@@ -50,9 +50,12 @@ Part 3 vs evidence, suite (144+ruff). Full detail in the handoff §"Deep audit" 
 **Option B (independent fresh-context panel, 63 agents) — DONE; caught what A missed.** Fresh
 auditors (blind to A) + challengers of A's conclusions; I re-verified each high-value B finding vs
 code. **1 A-error caught (U4: `UpdatesPanel` IS mounted — `SettingsView.vue:7,1216` — reverted)** +
-real A-misses incl. a ⛔ **live DATA-LOSS bug**: `routingBackend.js` (#31, stale role-shape) sends no
-`jobs` on save → `set_routing` (`stores.py:132`) wipes ALL `job_routes` on each default/embedding/pin
-save (#31 elevated to a bug-fix). Also: **GGUF auto-detect = unwired orphan** (§1.2 demoted),
+real A-misses incl. a ⛔ **live DATA-LOSS bug [FIXED 2026-06-27]**: `routingBackend.js` (#31, stale
+role-shape) sent no `jobs` on save → `set_routing` (`stores.py:132`) wiped ALL `job_routes` on each
+default/embedding/pin save (#31 elevated to a bug-fix). **Now fixed** — `putRoutingPrefs` carries the
+cached `jobs` + untracked (action-keyed) `pins` through verbatim, overlays only the store's tracked
+feature pins, drops dead role/quick/accuracy; verified build:vite + smoke. Also: **GGUF auto-detect =
+unwired orphan** (§1.2 demoted),
 `pricing.py` hardcoded USD, `model_catalog` has no `license` column (A2 needs it), Part 3.2 "all
 typed" false, DECIDED §6.6 "freeform string" vs shipped D15 KnobGrid, F#23 ProviderRow doesn't exist,
 `test_prompts` also fails isolation, stale `routing_api` docstring, dead JW QuickSetup fork. B
@@ -146,6 +149,12 @@ time: present a plan → user approves → I build → user reviews → next pla
   entries** (not a chat plan) — that's what fires the plan/task events.
 
 ## Recently shipped (newest first — detail in the linked doc)
+- **#31 DATA-LOSS BUG FIXED** (this session, JW `routingBackend.js` rewrite): a JW default-LLM /
+  embedding / feature-pin save no longer wipes the per-job model routes. The client now sends the
+  full `{default, jobs, pins}` shape — cached `jobs` + untracked action-keyed `pins` carried through
+  verbatim, only the store's tracked feature pins overlaid (set on pin / delete on inherit); dead
+  `role`/`quick`/`accuracy` removed. Verified build:vite + headless smoke (0 JS errors). Master #31
+  → "DATA-LOSS BUG FIXED ✅"; this is the first slice of the continuous data-loss + Phase A–E run.
 - **#33 — Routing-by-job is a grid** (kit `RoutingByJob.vue`, this session): jobs render as a
   `UiTable` (job · model picker · Used-for · Edit/Delete) with add/edit via `AppModal`, reusing
   the `RecommendationsEditor` table+modal pattern (not a copy). All prior behavior kept (Defaults,

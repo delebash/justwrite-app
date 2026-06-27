@@ -1,18 +1,23 @@
 // RoutingBackend — JustWrite's client for the SHARED routing router
 // (/v1/ai/routing, llm_runner.llm.routing_api) — the same surface the shared
-// @delebash/llm-ui Features tab uses. Routing (default provider/embedding +
-// per-feature pins) lives in real server tables now, NOT the `ai` settings blob;
-// this is how the renderer's AI store reads/writes it.
+// @delebash/llm-ui "Routing by job" tab + Feature Workbench use. The full routing
+// config (the default provider/embedding, the per-JOB model routes, and the
+// explicit per-feature/per-action pins) lives in real server tables now, NOT the
+// `ai` settings blob; this is how the renderer's AI store reads/writes it.
 //
 // A synchronous boot cache lets the AI store's bootstrap read the default + pins
-// before Vue mounts (mirrors providerBackend). `putRoutingPrefs` MERGES the
-// store's fields with the cached Quick/Accuracy roles — those are owned by the
-// Features tab, and the AI store doesn't track them, so a write here must never
-// wipe them.
+// before Vue mounts (mirrors providerBackend). The AI store only TRACKS the
+// default LLM/embedding + the per-feature pins — it does NOT track the per-job
+// routes (`jobs`) or any action-keyed pins the shared Workbench can set. So a
+// write here MUST merge back everything the store doesn't own: the server's
+// `set_routing` deletes+rebuilds ALL job_routes and routing_pins from the PUT
+// body, so omitting `jobs` (or dropping untracked pins) would silently WIPE
+// them. `putRoutingPrefs` therefore carries the cached `jobs` + `pins` through
+// untouched and only overlays the store's tracked feature pins.
 
 import { get, put } from "@delebash/llm-ui";
 
-let _routing = null; // full RoutingResponse { default, quick, accuracy, features }
+let _routing = null; // full RoutingResponse { default, jobs, features, pins }
 let _booted = false;
 
 /**
@@ -31,7 +36,7 @@ export async function bootRouting() {
 }
 
 /**
- * Re-pull routing from the server into the cache (the shared Features tab writes
+ * Re-pull routing from the server into the cache (the shared Routing tabs write
  * routing directly, bypassing this cache). Awaited by the AI store's resync so
  * the renderer picks up default LLM/embedding + model + pin changes in-session.
  */
@@ -52,8 +57,8 @@ export function getRoutingPrefs() {
   if (!_routing) return null;
   const featurePins = {};
   for (const f of _routing.features || []) {
-    if (f.providerId || f.role) {
-      featurePins[f.key] = { providerId: f.providerId || "", model: f.model || "", role: f.role || "" };
+    if (f.providerId) {
+      featurePins[f.key] = { providerId: f.providerId || "", model: f.model || "" };
     }
   }
   return {
@@ -65,24 +70,30 @@ export function getRoutingPrefs() {
   };
 }
 
-/** Persist default + feature pins via PUT /v1/ai/routing. Merges the cached
- *  Quick/Accuracy roles so this write never clobbers them. Refreshes the cache
- *  from the server's authoritative response. */
+/** Persist default + feature pins via PUT /v1/ai/routing. MERGES the cached
+ *  per-job routes (`jobs`) and any untracked pins (e.g. the Workbench's
+ *  action-keyed pins) back into the body so a JW save never clobbers what it
+ *  doesn't own — the server rebuilds job_routes + routing_pins from the body,
+ *  so omitting them would wipe them. Refreshes the cache from the server's
+ *  authoritative response. */
 export async function putRoutingPrefs({
   defaultLlmId, defaultModel, defaultEmbeddingId, defaultEmbeddingModel, featurePins,
 }) {
   const cached = _routing || {};
   const cd = cached.default || {};
-  const pins = {};
+  // Start from the cached pins so action-keyed / untracked pins survive, then
+  // overlay the store's tracked feature pins (set when pinned, delete when the
+  // store says "inherit" → null/empty).
+  const pins = { ...(cached.pins || {}) };
   for (const [key, v] of Object.entries(featurePins || {})) {
-    if (v && (v.providerId || v.role)) {
-      pins[key] = { providerId: v.providerId || "", model: v.model || "", role: v.role || "" };
-    }
+    if (v && v.providerId) pins[key] = { providerId: v.providerId || "", model: v.model || "" };
+    else delete pins[key];
   }
   // MERGE the default object with the cache: the AI store tracks only the
   // provider ids + the embedding model, so a `??` fallback preserves the
   // Default-LLM model (and any field this caller doesn't pass) that the shared
-  // Features tab set — otherwise a JW-side save here would silently wipe it.
+  // Routing tab set — otherwise a JW-side save here would silently wipe it.
+  // `jobs` is carried through verbatim — the store never edits per-job routes.
   const body = {
     default: {
       llmId: defaultLlmId ?? cd.llmId ?? "",
@@ -90,8 +101,7 @@ export async function putRoutingPrefs({
       embeddingId: defaultEmbeddingId ?? cd.embeddingId ?? "",
       embeddingModel: defaultEmbeddingModel ?? cd.embeddingModel ?? "",
     },
-    quick: { providerId: cached.quick?.providerId || "", model: cached.quick?.model || "" },
-    accuracy: { providerId: cached.accuracy?.providerId || "", model: cached.accuracy?.model || "" },
+    jobs: cached.jobs || {},
     pins,
   };
   try {

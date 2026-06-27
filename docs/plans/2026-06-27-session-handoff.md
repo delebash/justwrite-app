@@ -122,11 +122,15 @@ into the master (Parts 1/2/3 + Part 4).
 **1 A-error** and **~8 real misses A made**, including a live bug:
 - **A-error: U4.** A said the shared `UpdatesPanel` is "not mounted"; it IS imported + mounted in JW
   `SettingsView.vue:7,1216` (A only checked the kit). **Reverted** → U4 is built.
-- ⛔ **DATA-LOSS BUG (A missed entirely).** `routingBackend.js putRoutingPrefs` (`:86-96`) sends no
-  `jobs` field; the server `set_routing` (`stores.py:132`) deletes every `JobRoute` then re-adds from
-  the empty `cfg.jobs` → **every JW default-LLM / embedding / feature-pin save WIPES all per-job model
-  routes.** This is the stale role-shaped `routingBackend.js` (#31) causing real data loss — #31 is
-  elevated from cosmetic to a bug-fix.
+- ⛔ **DATA-LOSS BUG (A missed entirely) — FIXED 2026-06-27.** `routingBackend.js putRoutingPrefs`
+  used to send no `jobs` field; the server `set_routing` (`stores.py:132`) deletes every `JobRoute`
+  then re-adds from the empty `cfg.jobs` → **every JW default-LLM / embedding / feature-pin save WIPED
+  all per-job model routes** (same hole for untracked action-keyed pins). **Fixed:** `routingBackend.js`
+  rewritten to round-trip the full `{default, jobs, pins}` — cached `jobs` + untracked `pins` carried
+  through verbatim, only the store's tracked feature pins overlaid (set on pin / delete on inherit),
+  dead role/quick/accuracy removed (mirrors the kit's own `useRouting.js:55`/`FeatureWorkbench.vue:274`
+  writers). Verified vs all consumers + build:vite + headless smoke (0 JS errors). Master #31 →
+  "DATA-LOSS BUG FIXED ✅".
 - **GGUF auto-detect is an UNWIRED ORPHAN** (`detect_and_store_model_type` has zero production callers)
   — §1.2 demoted from "shipped".
 - `pricing.py MODEL_PRICING` hardcodes USD rates (not in DB); **`model_catalog` has NO `license`
@@ -241,10 +245,18 @@ line and kills the shell — use the bracket trick `pkill -f "[j]ustwrite_server
 Reset, which now recreates the schema). Verification harness: pytest + ruff for both servers,
 `build:vite` + headless smoke for the renderer.
 
-## What is next (do not assume "build" — the user drives)
+## What is next — BUILD IN PROGRESS (user said go, 2026-06-27)
 
-The user asked for the *verified plan first*, which now exists. They have **not** said "build the
-lab" yet. So the next step is theirs: review the status index and the lab plan, then direct what
+The user gave the go: **"fix data loss bug and do phase a-e without stopping unless necessary for a
+decision."** So this is now a continuous build run, not a wait-for-direction state. Sequence: ✅ the
+data-loss fix (slice 1, shipped above) → Phase A (catalog seed + license column + fit RAM-gate +
+manifest→DB, the master's Phase A) → B (Fast/Balanced/Best dial) → C (KnobGrid tuning UI) → D (the
+LAB: drop model/pin switches per D9, wire job_route_switches reader, Compare/ConfigColumn, JobPreset,
+move LuSwitchPresets out of Providers) → E (extraction scaffolds + sampling set). Each slice is
+verified (pytest+ruff for the runner; build:vite + headless smoke for JW) and committed; pause only
+for a genuine user-only decision (the gated 🔒 items — router-vs-spawn etc. — stay deferred).
+
+Historical note (pre-go): when the lab build does start, the sequence (detail in the lab doc) was: review the status index and the lab plan, then direct what
 to build. When the lab build does start, the sequence (detail in the lab doc) is: extract a shared
 `<ConfigColumn>` from the FeatureWorkbench editor pane; add the switch-string field (mapping to the
 `Overrides` field names + `extra_flags`, surfacing unknowns) and a tokens/sec readout; build the
