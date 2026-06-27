@@ -130,9 +130,16 @@ drafts of this same file.
   Profile dropdown+Test, provider form has no switch editor. Reuse `findChrome()`.
 - `npm run dup` both repos.
 
-## 6. Parked (raise then fold in)
-- **QuickSetup** — the user has a concern; QuickSetup seeds Profiles + uses recommendations.
-  Discuss before S-touching QuickSetup; the rest of Track A is independent of it.
+## 6. QuickSetup — RESOLVED 2026-06-27 (see D16/D17)
+QuickSetup works almost unchanged under Profiles. Today (`QuickSetup.vue`): loads jobs (=Profiles)
++ recommendations + Fit-scored models (`loadAll`:103-125), prefills a **model per Profile** from the
+recommendations matching that Profile id, Fit-filtered (`prefillRoles`:130-147), and on Apply writes
+the Profile→model routes + loads the Default (`apply`:190-236). It **picks models, not switches** —
+each picked Profile's switches pre-fill from the model's type-default (`switch_presets`, via the S3
+GGUF type-detect) and the hardware knobs (`-ngl`/`n_cpu_moe`) are computed at load (D17). Build
+touch-points (in the S2/routing stage, NOT S1): (a) make **Default a Profile** (D16); (b) when a
+Profile's model is set, **pre-fill its switches** from the model type. The rest of Track A (S1, S3,
+S3b, S4–S7) is independent of QuickSetup.
 
 ---
 
@@ -260,6 +267,26 @@ already forwards any key (`openai_compat.py:121`). This **revises D7** (switches
 freeform string) and **resolves §8's storage** (key-value rows). (A) lost on the per-param
 hardcoding the user flagged; (B) lost on no-JSON-in-SQL + worse UX. The user's framing: "when
 llama.cpp adds params like they add switches, we shouldn't need to code anything new."
+
+**D16 — "Default" is a Profile (not a special fallback row).** Today QuickSetup + routing treat the
+Default model as a row apart. Decided: **Default becomes a Profile** like the rest — the catch-all
+engine used by any feature whose Profile has no model, and anything unpinned. One concept all the
+way down; the dispatch fallback just points at the Default Profile.
+
+**D17 — Switches are a MODEL + HARDWARE axis, not a job/Profile axis (clarification, not a change).**
+A real point of confusion, recorded so it's not re-litigated: a Profile is a *job* (chat/prose/…),
+but the **switches** a Profile gets are driven by the **model's type** (moe/dense/mtp → the
+`switch_presets` defaults) + the **hardware** (the computed `-ngl`/`--n-cpu-moe` at load,
+`compute_fit` process.py:178-224) — **never by the job**. So `switch_presets` (base/moe/dense/mtp)
+is KEPT (D9) as the model-type default *source*; a Profile's switches **pre-fill** from the preset
+matching its picked model's type, then are tunable + frozen (D8). QuickSetup does **not** hand-set
+switches — it picks **models that fit** (the Fit score) and the runner computes the hardware knobs
+at load; the moe defaults attach because the *model* is MoE, not because the *job* is "analysis."
+Nothing from the jobs era is lost — the type-default switch logic moves to the pre-fill, and the
+load-time resolver becomes two functions: a **pre-fill** resolver (base→type→mtp, used when a
+Profile's model is set) and **`resolve_profile_switches`** (the Profile's frozen switches + this
+machine's `hardware_switches`, used at load). The load path prefers the Profile's switches when set
+and falls back to the model-level pre-fill resolver otherwise (so it's never broken mid-migration).
 
 ---
 
