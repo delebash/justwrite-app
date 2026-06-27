@@ -11,6 +11,17 @@ This is the detailed, prose pickup record. It is deliberately NOT a bullet summa
 it whole before doing anything, then open the two code-verified docs it points to. Branch
 for all repos: `claude/admiring-galileo-il3q0o`.
 
+> **UPDATE 2 (2026-06-27, evening) — model-catalog research done + committed.** The LLM model
+> catalog + recommendations are decided (two `/deep-research` runs + a 3-reviewer consensus panel):
+> `docs/plans/2026-06-27-model-catalog-research-and-recommendations.md` (full-range catalog: floor
+> CPU 32 GB / GPU 8 GB+32 GB, **no upper cap**; a **COMPLETE per-job × per-tier matrix with NO
+> blank cells**; per-model-type switch sets; the #20 tuning-UI plan) + `-evidence.md` +
+> `2026-06-27-speaker-attribution-llm-research.md` (LLM-CoT attribution recipe). Adds/drops
+> APPROVED by the user; the **seed.py BUILD is pending an explicit go-ahead** (do not build until
+> told). **Standing doc rule (user, 2026-06-27): "save docs" ALWAYS includes THIS handoff +
+> `MORNING_RECAP.md`** — keep both current. Also standing: never stop a running job or launch an
+> expensive run without asking first.
+
 ## What we are doing, and the one thing that matters most (trust)
 
 The active work is the **LLM stack + the job/feature LAB**, and nothing else right now.

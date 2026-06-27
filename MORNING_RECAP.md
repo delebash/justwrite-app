@@ -31,6 +31,22 @@ For where the CODE stands today (done/stub/missing + file:line): `docs/plans/202
 `2026-06-27-switch-param-lab.md` + the design-doc ✅/⏳ markers are **superseded** for switches /
 presets / samplers by the architecture plan above.
 
+**Model catalog + recommendations research (2026-06-27) — the data foundation the lab/QuickSetup/
+routing read from.** `docs/plans/2026-06-27-model-catalog-research-and-recommendations.md`
+(+ `-evidence.md` raw claims): two `/deep-research` runs + a 3-reviewer consensus panel decided
+the local-GGUF catalog across the FULL hardware range — **floor = CPU 32 GB RAM / GPU 8 GB+32 GB,
+NO upper cap**. Final catalog = keep 4 Qwen anchors + **add** Mistral-Small-3.2-24B (dense no-thinking
+JSON extraction) + Gemma-4-12B (2nd 8 GB family) + high-end GLM-4.5-Air (MIT) / Qwen3-235B (Apache,
+cloud-class prose) / Llama-4-Scout; **drop** 2 redundant quant rows; fix the 35B-A3B to a 32 GB-RAM
+floor model. Includes a **COMPLETE per-job × per-tier matrix (no blank cells)**, per-model-type
+**switch sets** (dense = base+MTP; MoE = base + `--n-cpu-moe`, spec = measure-per-machine), and the
+**#20 tuning-UI build plan**. Speaker attribution (LLM): `2026-06-27-speaker-attribution-llm-research.md`
+— LLM zero-shot CoT is SOTA; the whole-chunk numbered-quote recipe + a character-roster step; 8B
+*fails* implicit quotes → route to 35B-A3B+/cloud. Audiobook-converter feature mining parked for JV:
+`JustVoice/docs/plans/2026-06-27-audiobook-tools-research-todo.md`. **adds/drops APPROVED; the seed.py
+BUILD is pending go-ahead.** Micro-decision applied (user can flip): chat floor defaults to the fast
+Qwen3.5-9B + a 35B-A3B "smarter chat" toggle; the other 4 jobs default to 35B-A3B at the floor.
+
 Scope right now is **the LLM stack + the job/feature LAB only — JustVoice is out of scope
 (later)**. The shared-LLM job-native move shipped earlier (job replaced role end-to-end; all
 LLM code lives in `just-llm-runner`; JW is a thin `install_llm` consumer) and JustWrite's LLM
