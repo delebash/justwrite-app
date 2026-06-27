@@ -70,8 +70,10 @@ the old `/v1/llm` gateway is deleted, and QuickSetup was verified to be a real w
 The **lab itself is not built**. `FeatureWorkbench.vue` is only the single-column precursor — it
 has the model pin, prompt, params, the preset→"Use as production" lifecycle, and a test panel,
 and it self-documents "SpeakerLab parity." But there is no `<ConfigColumn>` component, no Compare
-view (the N-column strip), no `JobPreset` at any layer (table, store, router), no switch-string
-field, and no tokens/sec readout. The switch *override* layers compound this: the per-job
+view (the N-column strip), no `JobPreset` at any layer (table, store, router), and no switch-string
+field. (A decode **tok/s** readout now lands in `FeatureWorkbench.vue`'s single-column test panel —
+`tps = completionTokens / (ms/1000)`, prompt tokens excluded as prefill — but the N-column Compare
+strip that would compare tok/s across configs is still unbuilt.) The switch *override* layers compound this: the per-job
 (`JobRouteSwitch`), per-feature (`PinSwitch`), and per-hardware (`HardwareSwitch`) tables exist in
 `db.py` but have **zero readers** — the schema shipped without the wiring — and the §6.6 work to
 rip switch editing out of the Providers tab has not started. The bundled-runner router mode (#27)
@@ -86,9 +88,11 @@ per-provider-row "Test" button always fails because the row issues a GET while t
 POST (`AiModelsArea.vue:109-117` vs `api.py:56`). `extra_flags` from stored switch rows are
 silently dropped (`lifecycle.py:82-92`). The Ollama and Gemini adapters drop `top_p` and
 `response_format` due to wrong nesting (`ollama.py:91-92`, `gemini.py:115-116`), and Anthropic
-ignores `json_mode`. The FeatureWorkbench inline "tokens" stat always reads 0 because the host
-returns camelCase usage while the component reads snake_case (`FeatureWorkbench.vue:392-395` vs
-`aiFeature.js:139`). There is a dead `ProductionConfig` dispatch precedence layer that
+ignores `json_mode`. **[FIXED]** The FeatureWorkbench inline "tokens" stat used to read 0 because
+the JW host returned snake_case usage while the kit reads camelCase (`FeatureWorkbench.vue:422`,
+the kit wire contract `client.js:92,112`); fixed by aligning both JW readers to camelCase
+(`aiFeature.js:139`, `aiTasks.js:145-146`) — the only two field-level stream-usage readers in JW.
+There is a dead `ProductionConfig` dispatch precedence layer that
 `config_builder` never populates (promote actually works via the routing pin + prompt row).
 Recommendations and `ModelCatalogStore` have zero backend tests, the recommendations editor uses
 a native `confirm()` (violating the native-dialog ban), and `LuModelPicker` still carries a dead

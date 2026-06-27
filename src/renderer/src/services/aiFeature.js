@@ -136,7 +136,7 @@ export async function runAiFeatureStream({ action, feature, variables = {}, hist
             content += json.delta;
             if (effectiveOnDelta) effectiveOnDelta(json.delta, content);
           }
-          if (json.done) usage = { prompt_tokens: json.promptTokens || 0, completion_tokens: json.completionTokens || 0 };
+          if (json.done) usage = { promptTokens: json.promptTokens || 0, completionTokens: json.completionTokens || 0 };
         }
       }
     }

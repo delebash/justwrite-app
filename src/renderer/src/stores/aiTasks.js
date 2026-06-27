@@ -142,8 +142,8 @@ export const useAiTasksStore = defineStore("aiTasks", {
       t.status = "done";
       t.finishedAt = now;
       if (result?.usage) {
-        t.tokensIn = result.usage.prompt_tokens || t.tokensIn;
-        t.tokensOut = result.usage.completion_tokens || t.tokensOut;
+        t.tokensIn = result.usage.promptTokens || t.tokensIn;
+        t.tokensOut = result.usage.completionTokens || t.tokensOut;
       }
       if (result?.providerId) t.providerId = result.providerId;
       if (result?.model) t.model = result.model;
