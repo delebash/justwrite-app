@@ -34,6 +34,20 @@
 > master. Status was **panel-verified 2026-06-27** (3 Opus agents, file:line + 144 runner / 77 JW
 > tests pass); the build is **NOT started — pending the user's go.**
 
+**Deep audit of the master — option A (full inline verify) COMPLETE (2026-06-27).** The user pushed
+for a no-skim verification of the master against actual code AND the old docs, read in full. Done
+inline across multiple passes (per-finding log: `just-llm-runner` scratchpad `audit-findings.md`).
+**12 old docs read in full** (the decision-dense + Part-3-backing set) + completed-history
+spot-verified. **Verdict: the master is FAITHFUL — the ONE design contradiction was D9** (the master
+said "build PinSwitch"; the LOCKED design says DROP `pin_switches`+`model_switches`, `job_route_switches`
+is the Profile's switches — **user ruled D9; folded into D1**). Status-staleness also fixed against
+file:line: **#11 QuickSetup is built+job-native** (not "to build"), **U4 partial** (UpdatesPanel
+exists unmounted), **Streaming feature ports = DONE** (all on `/v1/ai/stream`, gateway gone),
+dup-counts (~19/~7), A3 narrowed, #31 cite, PROVIDER_DEFAULTS dup, tiers.py maps. Confirmed
+accurate: D1 wiring, extra_flags, citations, #23/#27/#29/#34/Cache/Hardware/shared-views (not-built),
+Part 3 vs evidence, suite (144+ruff). Full detail in the handoff §"Deep audit" + master Part 4.
+**Next: option B — independent fresh-context agent panel to adversarially re-audit.**
+
 The model-catalog + Fast/Balanced/Best-dial + speaker-attribution research (two `/deep-research`
 runs + reviewer panels) and the resulting decisions are **folded into the master** (Part 1.3 = what
 was decided + why, Part 3 = the per-job×per-tier matrix / per-model-type switch sets / attribution

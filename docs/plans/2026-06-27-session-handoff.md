@@ -66,6 +66,57 @@ stub/bug list, the decisions, the env facts) is the richer pickup context; the m
 authoritative plan + status. Do not re-derive status from the older design docs — their asserted
 ✅/⏳ markers drifted from the code, which is the whole reason we kept losing track.
 
+## Deep audit of the master (2026-06-27) — option A (full inline verify) COMPLETE
+
+The user pushed for a complete, fresh, no-skim verification of the master against the actual code
+AND the old plan docs — run as a slow grind, not a fast pass — because a prior "looks fine" 3-agent
+panel had still missed real gaps. It was done **inline** (me, full session context, reading sources
+IN FULL and re-deriving every claim from code), in multiple passes, checkpointing to a durable log
+(`scratchpad/audit-findings.md`) and folding every confirmed finding straight into the master.
+
+**Coverage:** 12 old docs read IN FULL + cross-checked — `switch-param-lab`,
+`switch-and-preset-architecture`, `jobs-architecture-design` (1175 ln), `shared-ai-stack-plan`
+(1006 ln, Decisions 1-23), `server-model-management-brief`, `serving-architecture-research`,
+`shared-component-architecture`, `shared-platform-settings`, `llm-shared-move-cascade-audit`,
+`llamacpp-switches` (566, backs Part 3.2), `speaker-attribution-llm-research` (Part 3.3),
+`small-vram-multimodel-research` (Part 3.1). The completed-sub-project history docs (06-18
+server-migration/storage/audio/backend, gateway-retirement, cutover/convergence/deep-audit,
+feature-prompts-db-seed, local-model-recommendations, sillytavern-survey, quicksetup-redesign) were
+spot-verified = shipped, no buried outstanding plan. Done-vs-not-done was checked against code across
+Part 1 + the Part 2 F-items; Part 3 against its evidence docs; the runner suite re-run (144 pass +
+ruff clean; `test_plane2_params` isolation failure confirmed).
+
+**The headline finding: exactly ONE design-level contradiction — D9.** The master's old Phase-D1
+said "build the PinSwitch store/resolver/reader," but the LOCKED `switch-and-preset-architecture`
+decision **D9** says DROP `pin_switches` AND `model_switches` and make `job_route_switches` the
+Profile's switches. The master had been built from the code state + the older lab doc and never had
+D9 folded in — so it would have had us build a table the design says to delete. **The user ruled D9
+is correct;** D1 was rewritten to it (drop `model_switches` [UI already gone, backend pending] +
+`pin_switches` [inert, trivial]; `job_route_switches` is the survivor, load-reader pending; keep
+`switch_presets` + `hardware_switches`; fold in freeze-flat D8, Default-as-Profile D16, Profile=job
+naming D12, the model+hardware switch axis D17). This is the lesson the user named — a decision made
+in a design doc MUST be propagated into the master or we get confused later.
+
+**Beyond D9, status-staleness fixed against file:line:** #11 QuickSetup is actually built +
+job-native (not "to build"); U4 Updates/Changelog is partial (shared `UpdatesPanel.vue` exists but
+unmounted; JW `WhatsNewModal.vue` live); the whole "Streaming feature ports" F-item was DONE
+(writerAI/rag-chat/characterChat/voiceFingerprint/resumeBriefing/all analysis features on
+`/v1/ai/stream`, gateway gone, VariationsModal 3-alt built); dup-counts undercounted (htmlToText ~19
+not 9; tailWords ~7 not 4); A3 overstated (RAM already threaded — only the `coarse_fit` GPU-branch
+check remains); #31 `routingBackend.js` citation stale (`:15,93,94`); `PROVIDER_DEFAULTS` is a
+hardcoded duplicate of the seeded providers; `tiers.py` carries hardcoded model→tier maps; plus a
+couple of self-introduced citation imprecisions caught on reverify.
+
+**Confirmed accurate (no change):** D1 switch wiring (`resolve_model_switches` live at load;
+`resolve_profile_switches` uncalled-by-design; `PinSwitch` genuinely zero-reader); `extra_flags`
+wired; the master's other citations; #23/#27/#29/#34/Cache/Hardware-panel/shared-LLM-UI-views all
+genuinely not-built; Part 3 faithfully reflects its evidence docs.
+
+**Verdict:** after the corrections, the master is **faithful and code-accurate**. Every finding is
+folded into the master (Parts 1/2/3) with the audit recorded in **Part 4**. **Next: option B — an
+independent fresh-context agent panel** that re-audits and adversarially challenges these
+conclusions (the one thing a fresh perspective adds that an inline pass can't).
+
 ## What is actually built vs not, in the LLM area (prose summary; the index has the file:line)
 
 JustWrite's LLM stack is, for the most part, genuinely built and tested. Providers work end to
