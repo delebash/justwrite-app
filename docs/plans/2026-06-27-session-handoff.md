@@ -248,13 +248,14 @@ Reset, which now recreates the schema). Verification harness: pytest + ruff for 
 ## What is next — BUILD IN PROGRESS (user said go, 2026-06-27)
 
 The user gave the go: **"fix data loss bug and do phase a-e without stopping unless necessary for a
-decision."** So this is now a continuous build run, not a wait-for-direction state. Sequence: ✅ the
-data-loss fix (slice 1, shipped above) → Phase A (catalog seed + license column + fit RAM-gate +
-manifest→DB, the master's Phase A) → B (Fast/Balanced/Best dial) → C (KnobGrid tuning UI) → D (the
-LAB: drop model/pin switches per D9, wire job_route_switches reader, Compare/ConfigColumn, JobPreset,
-move LuSwitchPresets out of Providers) → E (extraction scaffolds + sampling set). Each slice is
-verified (pytest+ruff for the runner; build:vite + headless smoke for JW) and committed; pause only
-for a genuine user-only decision (the gated 🔒 items — router-vs-spawn etc. — stay deferred).
+decision."** So this is now a continuous build run, not a wait-for-direction state. Sequence:
+**✅ data-loss fix** (slice 1) → **✅ Phase A COMPLETE** (catalog rebuild + license column + fit
+RAM-gate + `runner-manifest.json`→DB + GGUF-orphan wiring; 148 runner + 77 server tests pass) →
+**▶ Phase B** (Fast/Balanced/Best dial) → C (KnobGrid tuning UI) → D (the LAB: drop model/pin
+switches per D9, wire job_route_switches reader, Compare/ConfigColumn, JobPreset, move LuSwitchPresets
+out of Providers) → E (extraction scaffolds + sampling set). Each slice is verified (pytest+ruff for
+the runner; build:vite + headless smoke for JW) and committed; pause only for a genuine user-only
+decision (the gated 🔒 items — router-vs-spawn etc. — stay deferred).
 
 Historical note (pre-go): when the lab build does start, the sequence (detail in the lab doc) was: review the status index and the lab plan, then direct what
 to build. When the lab build does start, the sequence (detail in the lab doc) is: extract a shared

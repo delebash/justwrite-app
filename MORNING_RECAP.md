@@ -149,6 +149,19 @@ time: present a plan → user approves → I build → user reviews → next pla
   entries** (not a chat plan) — that's what fires the plan/task events.
 
 ## Recently shipped (newest first — detail in the linked doc)
+- **Phase A COMPLETE** (this session, `just-llm-runner`): the model catalog + fit
+  + the last config-file, all DB-backed. **A1–A6:** `DEFAULT_CATALOG` rebuilt to 11
+  rows across the full hardware range (Qwen · Gemma 4 · Mistral · GLM · Llama),
+  repo ids + licenses web-verified (Gemma 4 = Apache, GLM-Air = MIT, Llama-4 =
+  Community→flag); `license` column added through the stack; cited per-job
+  recommendations; `coarse_fit` GPU branch now RAM-gates (no 64 GB-MoE offered to a
+  16 GB box). **A7:** `runner-manifest.json` + its loader DELETED — binaries/pin/
+  margin moved to DB tables (`runner_binary`/`runner_setting`, seeded built_in from
+  `runner/config.py` constants), `RunnerConfig` replaces `RunnerManifest`, flag
+  presets come only from the DB `switch_presets` (no duplication), endpoint
+  `/v1/llm-runner/manifest`→`/config`. **GGUF orphan WIRED** (auto-detect type on
+  load). Verified: 148 runner + 77 JW server tests pass + ruff clean; fresh JW
+  server serves the 11-model catalog + DB-backed config. (Master Phase A → COMPLETE.)
 - **#31 DATA-LOSS BUG FIXED** (this session, JW `routingBackend.js` rewrite): a JW default-LLM /
   embedding / feature-pin save no longer wipes the per-job model routes. The client now sends the
   full `{default, jobs, pins}` shape — cached `jobs` + untracked action-keyed `pins` carried through

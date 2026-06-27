@@ -26,7 +26,10 @@ def test_shared_runner_mounted(tmp_path):
     client = TestClient(app)
 
     # The shared runner is mounted in-process — JustWrite gets the same
-    # /v1/llm-runner/* surface JustVoice does.
-    r = client.get("/v1/llm-runner/manifest")
+    # /v1/llm-runner/* surface JustVoice does. (Config is DB-backed now — A7
+    # retired runner-manifest.json; the endpoint is /config, not /manifest.)
+    r = client.get("/v1/llm-runner/config")
     assert r.status_code == 200
-    assert "flagPresets" in r.json()  # camelCase wire from the runner
+    body = r.json()
+    assert "safetyMarginMb" in body  # camelCase wire from the runner
+    assert body["llamacpp"]["binaries"]  # binaries seeded into the DB
