@@ -1,3 +1,5 @@
+> ⛔ **NOT THE CURRENT PLAN.** The ONE current plan is `just-llm-runner/docs/plans/2026-06-27-MASTER-PLAN.md` — everything is folded in there (✅ done + ⬜ outstanding, full detail). This doc is kept as **historical background only** (past plan / design / research / evidence). Read it for context; **plan from the master.**
+
 # All-LLM-shared + role→job move — RE-CONFIRMED cascade audit + staged plan (2026-06-26)
 
 > **Status: AUDIT + PLAN ONLY. No code written.** Produced at the user's request

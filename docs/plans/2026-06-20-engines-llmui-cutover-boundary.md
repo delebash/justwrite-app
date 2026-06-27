@@ -1,3 +1,5 @@
+> ⛔ **NOT THE CURRENT PLAN.** The ONE current plan is `just-llm-runner/docs/plans/2026-06-27-MASTER-PLAN.md` — everything is folded in there (✅ done + ⬜ outstanding, full detail). This doc is kept as **historical background only** (past plan / design / research / evidence). Read it for context; **plan from the master.**
+
 # Engines → shared `llm-ui` cutover boundary (2026-06-20)
 
 **⛔ Premise corrected 2026-06-20 (user directive).** This is NOT "two servers

@@ -38,9 +38,9 @@ one sanctioned exception to per-domain stores.
 
 > **AI/LLM stack is shared** — `just-llm-runner` (Python) + `@delebash/llm-ui`
 > (Vue), consumed by both apps; only TTS and each app's feature catalog differ.
-> The current cutover state + the active plan docs (authoritative:
-> `docs/plans/2026-06-20-shared-ai-stack-plan.md`) live in `MORNING_RECAP.md`,
-> not here.
+> The current cutover state lives in `MORNING_RECAP.md`; the ONE current plan is
+> `just-llm-runner/docs/plans/2026-06-27-MASTER-PLAN.md` (every other `docs/plans/*`
+> doc is bannered historical). Not here.
 
 ## Architecture
 

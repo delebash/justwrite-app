@@ -1,28 +1,26 @@
 # Session handoff — 2026-06-27 (read this in full after a compact)
 
-> **UPDATE (2026-06-27, later the same day):** the switch/preset work was taken much further and is
-> now **LOCKED** in `docs/plans/2026-06-27-switch-and-preset-architecture.md` — the **Profile +
-> Feature** architecture, a shared **`<KnobGrid>`** for switches + samplers, the full decision log
-> **D1–D15**, and the source-verified sampler surface (§8). Read THAT as the current plan + the
-> `MORNING_RECAP.md` "Current state"; this handoff predates the design and is kept only for the
-> earlier context (trust situation, env facts, the code-verified status index).
+> ⛔ **THE ONE PLAN: `just-llm-runner/docs/plans/2026-06-27-MASTER-PLAN.md`.** It folds in
+> EVERYTHING — the switch/preset architecture (Profile+Feature, the shared `<KnobGrid>`, the
+> decision log, the source-verified sampler surface), the model-catalog + Fast/Balanced/Best-dial +
+> attribution research, the code-verified LLM status, and the full outstanding-work backlog — into
+> one detailed doc: **✅ done** (file:line) + **⬜ outstanding** (phased A–G), JustVoice-later §G,
+> reference matrix/switch-sets/attribution-recipe/license-gate in Part 3, provenance in Part 4.
+> **Panel-verified 2026-06-27** (3 agents, file:line + 144 runner / 77 JW tests pass); build NOT
+> started, pending the user's go. Every other `docs/plans/*` doc (both repos) is bannered "⛔ NOT
+> THE CURRENT PLAN" — historical/evidence only. **Only this handoff + `MORNING_RECAP.md` point to
+> the master.**
 
-This is the detailed, prose pickup record. It is deliberately NOT a bullet summary — read
-it whole before doing anything, then open the two code-verified docs it points to. Branch
-for all repos: `claude/admiring-galileo-il3q0o`.
+This is the detailed, prose pickup record — read it whole for the **trust situation**, the
+**verified what's-built-vs-not**, the **stub/bug list**, the **load-bearing decisions**, and the
+**env facts**; then open the master for the plan itself. Branch for all repos:
+`claude/admiring-galileo-il3q0o`.
 
-> **UPDATE 3 (2026-06-27, late) — THE plan to follow is `just-llm-runner/docs/plans/2026-06-27-model-catalog-build-plan.md`** — the readable ✅ COMPLETED vs ⬜ OUTSTANDING master plan (Phases A–G, JV at §G), **panel-verified** (3 agents, file:line + 144 runner / 77 JW tests pass). Build NOT started, pending the user's go. Corrections baked in: A3 RAM-gate = CODE FIX (not confirm); #31 partial (JW `routingBackend.js` still role-shaped); only `PinSwitch` truly zero-reader.
-
-> **UPDATE 2 (2026-06-27, evening) — model-catalog research done + committed.** The LLM model
-> catalog + recommendations are decided (two `/deep-research` runs + a 3-reviewer consensus panel):
-> `docs/plans/2026-06-27-model-catalog-research-and-recommendations.md` (full-range catalog: floor
-> CPU 32 GB / GPU 8 GB+32 GB, **no upper cap**; a **COMPLETE per-job × per-tier matrix with NO
-> blank cells**; per-model-type switch sets; the #20 tuning-UI plan) + `-evidence.md` +
-> `2026-06-27-speaker-attribution-llm-research.md` (LLM-CoT attribution recipe). Adds/drops
-> APPROVED by the user; the **seed.py BUILD is pending an explicit go-ahead** (do not build until
-> told). **Standing doc rule (user, 2026-06-27): "save docs" ALWAYS includes THIS handoff +
-> `MORNING_RECAP.md`** — keep both current. Also standing: never stop a running job or launch an
-> expensive run without asking first.
+> **Standing rules (user, 2026-06-27 — the DEFAULT, do not make them re-ask):** "save docs" ALWAYS
+> includes THIS handoff + `MORNING_RECAP.md` — keep both current. Act only on the literal word
+> **"go"**; **show agent/research prompts before sending** so the user can verify. Never stop a
+> running job or launch an expensive run without asking. The model-catalog adds/drops are APPROVED,
+> but the `seed.py` build is **pending an explicit go** (do not build until told).
 
 ## What we are doing, and the one thing that matters most (trust)
 
@@ -45,27 +43,18 @@ stub.** When a determination is load-bearing, verify it with an independent pass
 `rules-checker` agent, or a verification workflow) — "other yous confirm" — because my own
 unverified word is what broke trust.
 
-## The source of truth (two code-verified docs — read these for status + the plan)
+## The source of truth — the master (status + plan, both folded in)
 
-The reliable record of *what is actually built* is **`docs/plans/2026-06-27-llm-status-index.md`**.
-It was produced by 10 agents that each read the actual code for one LLM area and marked every
-piece done / partial / STUB / missing with file:line, then two independent confirmers re-read
-the code and both returned "trustworthy" (catching only four file:line slips and one dead-code
-note, all folded in). It is the authoritative "where we left off" for the LLM area. Do not
-re-derive status from the older design docs — those carry asserted ✅/⏳ markers that drifted
-from the code, which is the whole reason we kept losing track.
-
-The detailed plan for the focus area is **`docs/plans/2026-06-27-switch-param-lab.md`**. It
-consolidates the lab design that had been buried across `2026-06-20-shared-ai-stack-plan.md`
-Decision 23, `2026-06-25-jobs-architecture-design.md` §8, and the §6.6 decision, into one
-plan with a file:line affordance table and a build sequence. It was reviewed by the
-`rules-checker`, which caught three real errors that are now fixed (see "Decisions" below).
-
-A third doc, `docs/plans/2026-06-27-complete-remaining-plan.md`, is the 339-item audit of all
-17 plan docs. It is **doc-derived, not code-verified** — the user rightly called it untrustworthy
-for done/not-done; keep it only for non-LLM breadth, and prefer the status index for anything LLM.
-
-All three are committed and pushed (local HEAD == origin, `8a198a5`); verified, not asserted.
+The verified status (**what is actually built**, per file:line) and the plan (**what's
+outstanding**) are now BOTH in **`just-llm-runner/docs/plans/2026-06-27-MASTER-PLAN.md`** — Part 1
+= completed/file:line, Part 2 = outstanding (phased A–G). It absorbed the code-verified LLM
+status-index (10 agents + 2 confirmers, "trustworthy"), the switch/param lab plan, and the
+339-item complete-remaining audit; all three now carry the "⛔ NOT THE CURRENT PLAN" banner and are
+kept as historical/evidence only. Status was panel-verified 2026-06-27 (3 agents, file:line + 144
+runner / 77 JW tests pass). The detailed prose in the rest of THIS handoff (what's-built, the
+stub/bug list, the decisions, the env facts) is the richer pickup context; the master is the
+authoritative plan + status. Do not re-derive status from the older design docs — their asserted
+✅/⏳ markers drifted from the code, which is the whole reason we kept losing track.
 
 ## What is actually built vs not, in the LLM area (prose summary; the index has the file:line)
 

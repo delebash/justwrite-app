@@ -1,3 +1,5 @@
+> ⛔ **NOT THE CURRENT PLAN.** The ONE current plan is `just-llm-runner/docs/plans/2026-06-27-MASTER-PLAN.md` — everything is folded in there (✅ done + ⬜ outstanding, full detail). This doc is kept as **historical background only** (past plan / design / research / evidence). Read it for context; **plan from the master.**
+
 # Shared platform settings — same-stack apps (JustWrite + JustVoice + future)
 
 **Authored 2026-06-24 after a RULE #5/#7 cross-app settings audit** (read JW +

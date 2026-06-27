@@ -1,3 +1,5 @@
+> ⛔ **NOT THE CURRENT PLAN.** The ONE current plan is `just-llm-runner/docs/plans/2026-06-27-MASTER-PLAN.md` — everything is folded in there (✅ done + ⬜ outstanding, full detail). This doc is kept as **historical background only** (past plan / design / research / evidence). Read it for context; **plan from the master.**
+
 # Server-side LLM architecture — JW + JV symmetry (decision)
 
 > ⚠️ **SUPERSEDED** by `docs/plans/2026-06-20-shared-ai-stack-plan.md` (the shared AI-stack convergence — same Python + same client views, not a per-app server). Kept for history.

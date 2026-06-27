@@ -1,3 +1,5 @@
+> ⛔ **NOT THE CURRENT PLAN.** The ONE current plan is `just-llm-runner/docs/plans/2026-06-27-MASTER-PLAN.md` — everything is folded in there (✅ done + ⬜ outstanding, full detail). This doc is kept as **historical background only** (past plan / design / research / evidence). Read it for context; **plan from the master.**
+
 # JW LLM-gateway retirement (#5) — migrate consumers to the shared stack, then delete `api/llm.py`
 
 Goal: remove the legacy server-side gateway `server/justwrite_server/api/llm.py`

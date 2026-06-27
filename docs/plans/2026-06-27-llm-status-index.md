@@ -1,3 +1,5 @@
+> ⛔ **NOT THE CURRENT PLAN.** The ONE current plan is `just-llm-runner/docs/plans/2026-06-27-MASTER-PLAN.md` — everything is folded in there (✅ done + ⬜ outstanding, full detail). This doc is kept as **historical background only** (past plan / design / research / evidence). Read it for context; **plan from the master.**
+
 # LLM-Area Status Index — "Where We Left Off" (code-verified 2026-06-27)
 
 **How this was built (so it's trustworthy):** 10 agents each read the **actual code** for one

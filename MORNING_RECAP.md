@@ -10,44 +10,28 @@
 
 ---
 
-## Current state (2026-06-27) — DESIGN LOCKED, about to build
+## Current state (2026-06-27) — DESIGN DONE; build pending the user's go
 
-**The authoritative build plan: `docs/plans/2026-06-27-switch-and-preset-architecture.md`**
-(LOCKED). The **Profile + Feature** architecture:
-- a **Profile** = a named **model + switches** "engine" — the editable list (= the library) AND
-  the routing target a feature points at. (It IS today's `job` + its model + switches; UI-named
-  "Profile", internal code stays `job` — rename deferred.)
-- a **Feature** = system/user **prompt + sampler params + a Profile pointer** + a minimal test.
-- **switches (Plane-1) and samplers (Plane-2) share ONE `<KnobGrid>`** — a key-value editor + a
-  seeded `knob_catalog` (DATA), so a new llama.cpp param needs **no code** (D15). Storage =
-  key-value rows, **no JSON blobs**.
-- carries the full **decision log D1–D15** (with the alternatives kept, not just the landing),
-  the **source-verified Plane-2 sampler surface** (§8, ~30 llama.cpp params), and the **build
-  stages** (Track A in-container · Track B GPU). **Parked:** the user's QuickSetup concern (raise
-  before touching routing).
+> ⛔ **THE ONE PLAN: `just-llm-runner/docs/plans/2026-06-27-MASTER-PLAN.md`.**
+> Everything is in there, in full detail — **✅ what's completed** (file:line) and **⬜ what's
+> outstanding** (phased A–G + the open decisions + JustVoice-later §G), plus the reference
+> per-job×per-tier matrix / switch sets / attribution recipe / license gate (Part 3) and the
+> provenance (Part 4). It is detailed enough to **restart and code from after a compaction.**
+>
+> **Every other doc in `docs/plans/` (both repos) is historical / evidence — each is bannered
+> "⛔ NOT THE CURRENT PLAN" at its top. Do not plan from them; plan from the master.** This
+> recap + `docs/plans/2026-06-27-session-handoff.md` are the ONLY two things that point to the
+> master. Status was **panel-verified 2026-06-27** (3 Opus agents, file:line + 144 runner / 77 JW
+> tests pass); the build is **NOT started — pending the user's go.**
 
-For where the CODE stands today (done/stub/missing + file:line): `docs/plans/2026-06-27-llm-status-index.md`
-(2 confirmers "trustworthy"). Pre-design pickup: `2026-06-27-session-handoff.md`. The older
-`2026-06-27-switch-param-lab.md` + the design-doc ✅/⏳ markers are **superseded** for switches /
-presets / samplers by the architecture plan above.
-
-**Model catalog + recommendations research (2026-06-27) — the data foundation the lab/QuickSetup/
-routing read from.** `docs/plans/2026-06-27-model-catalog-research-and-recommendations.md`
-(+ `-evidence.md` raw claims): two `/deep-research` runs + a 3-reviewer consensus panel decided
-the local-GGUF catalog across the FULL hardware range — **floor = CPU 32 GB RAM / GPU 8 GB+32 GB,
-NO upper cap**. Final catalog = keep 4 Qwen anchors + **add** Mistral-Small-3.2-24B (dense no-thinking
-JSON extraction) + Gemma-4-12B (2nd 8 GB family) + high-end GLM-4.5-Air (MIT) / Qwen3-235B (Apache,
-cloud-class prose) / Llama-4-Scout; **drop** 2 redundant quant rows; fix the 35B-A3B to a 32 GB-RAM
-floor model. Includes a **COMPLETE per-job × per-tier matrix (no blank cells)**, per-model-type
-**switch sets** (dense = base+MTP; MoE = base + `--n-cpu-moe`, spec = measure-per-machine), and the
-**#20 tuning-UI build plan**. Speaker attribution (LLM): `2026-06-27-speaker-attribution-llm-research.md`
-— LLM zero-shot CoT is SOTA; the whole-chunk numbered-quote recipe + a character-roster step; 8B
-*fails* implicit quotes → route to 35B-A3B+/cloud. Audiobook-converter feature mining parked for JV:
-`JustVoice/docs/plans/2026-06-27-audiobook-tools-research-todo.md`. **adds/drops APPROVED; the seed.py
-BUILD is pending go-ahead.** Micro-decision applied (user can flip): chat floor defaults to the fast
-Qwen3.5-9B + a 35B-A3B "smarter chat" toggle; the other 4 jobs default to 35B-A3B at the floor.
-
-**→ THE plan to follow + code from (post-compact pickup): `just-llm-runner/docs/plans/2026-06-27-model-catalog-build-plan.md`** — the readable **✅ COMPLETED vs ⬜ OUTSTANDING** master plan (Phases A–G, JV isolated at §G), **panel-verified 2026-06-27** (3 agents, file:line + 144 runner + 77 JW tests pass), folding in the audited index `docs/plans/2026-06-27-complete-remaining-plan.md` (§0–§7). Key panel corrections baked in: **A3 RAM-gated fit is a CODE FIX** (`coarse_fit` GPU branch + `get_models` ram param — not a "confirm"); **#31 is partial** (JW `routingBackend.js:15,55-56,78-79` still carries quick/accuracy); only **`PinSwitch`** is truly zero-reader (HardwareSwitch has a reader→needs a writer; JobRouteSwitch load-apply pending). Build NOT started — pending your go.
+The model-catalog + Fast/Balanced/Best-dial + speaker-attribution research (two `/deep-research`
+runs + reviewer panels) and the resulting decisions are **folded into the master** (Part 1.3 = what
+was decided + why, Part 3 = the per-job×per-tier matrix / per-model-type switch sets / attribution
+recipe, Part 4 = the sources). Headlines that survive: catalog spans the FULL hardware range
+(**floor = CPU 32 GB RAM / GPU 8 GB+32 GB, NO upper cap**); **add** Mistral-Small-3.2-24B + Gemma-4-12B
++ GLM-4.5-Air (MIT) / Qwen3-235B (Apache) / Llama-4-Scout, **drop** 2 redundant quants, fix the
+35B-A3B to a 32 GB-RAM floor; one **Fast/Balanced/Best dial** per job resolving to (model, think),
+fit-filtered. Adds/drops APPROVED; the `seed.py` build is **pending the user's go**.
 
 Scope right now is **the LLM stack + the job/feature LAB only — JustVoice is out of scope
 (later)**. The shared-LLM job-native move shipped earlier (job replaced role end-to-end; all
@@ -93,9 +77,9 @@ time: present a plan → user approves → I build → user reviews → next pla
   `claude-config/EFFECTIVENESS.md`; the rules: `~/.claude/CLAUDE.md` (slim T1–T12) +
   `rules-detail.md`. The "why the rules fail" rationale belongs to THIS track.
 - **PLAN 2 — App (JustWrite / JustVoice)** — the product work.
-  → `docs/plans/2026-06-25-jobs-architecture-design.md` (jobs/switches + build log, §0–§17)
-  + the **Backlog** below (#27/#29 router/step-4, #32 component audit, #33 jobs grid,
-  #20/#21…). The dropdown fix / reuse gate / #32 / #33 (§17.1–17.3, 17.5) are app work.
+  → the **master plan's Part 2** (all outstanding work, phased A–G: #27/#29 router/residency,
+  #20/#21 lab, #23/#31/#32/#33/#34…) + **§G** (JustVoice-later). The jobs/switches design
+  history lives in `docs/plans/2026-06-25-jobs-architecture-design.md` (bannered historical).
 
 ## Standing rules (load-bearing — do not re-litigate)
 - **NOTHING hardcoded:** every value/threshold/name/mapping/flag/preset lives in the
@@ -190,109 +174,26 @@ time: present a plan → user approves → I build → user reviews → next pla
   GGUF VRAM formula (cited; ~19.5k measurements) replaced the hand-rolled fit.
 - **#19 `Overrides` through `/v1/llm-runner/load`** (`e5cecef`) — the switch-tuning foundation.
 
-## Backlog (ordered; pointers where detail exists)
-**✅ DONE — the §9 jobs-in-the-UI gaps (runner `28d3d6e`, smoke-verified):** the
-dedicated **"Routing by job" tab** (Defaults + per-job model cards + the **job-list
-editor**: add/rename/remove/reset over `/v1/ai/jobs`), the **"Features" → "Routing by
-feature"** rename, and a shared `useRouting` composable. Job editor placed on
-Routing-by-job (with the list) per the app's manage-where-listed pattern. → design §10.
-- **✅ #30 model manager DONE** (runner `edeae9a`, smoke + CRUD-curl verified):
-  `LuModelCatalog` grew into a manager — ＋Add model (paste HF repo:quant), Edit
-  (catalog fields + the editable `type` + a per-model switches sub-editor), Delete,
-  Reset-catalog. ✅ + a `switch_presets` editor (base/moe/mtp bundles editable, `43a40e7`).
+## Backlog (everything is in the master — this is just the pointer)
+The full outstanding-work list — **every # item, phased (A–G), with what · why · file:line ·
+acceptance · verify · gate** — is the master's **Part 2**. JustVoice-later work is the master's
+**§G**. The load-bearing "why" technical facts (MoE `--n-cpu-moe`, MTP spec-decode helps dense /
+machine-dependent on the A3B MoE, the two config planes, router mode) are the master's **Part 3.2**.
+Do not maintain a second backlog here — add/triage items in the master.
 
-**Switches phase (design §6 — data + presets + editors DONE; runtime is GPU-gated):**
-✅ data model + type presets + `switch_resolve` (runner `42f4057`/`9133c67`); ✅ **editors**
-— model `type` + per-model switches (#30, `edeae9a`) + the `switch_presets` editor
-(`43a40e7`). ⏳ left: `flag_catalog` (optional), `job_presets`, the **per-job/per-feature
-switch editors**, and the **runtime apply** of the per-job/feature override layers — all
-gated on **step 4 / #27** (router/residency, needs a GPU to verify). → design §6 + §11.
-
-**Runner / residency:** **#27** router mode (`RunnerService` `--models-preset`, replaces
-spawn-per-model) → **#29** residency manager (`--models-max`; cross-kind LLM⟷TTS VRAM
-coordination). → `just-llm-runner/docs/plans/2026-06-24-server-model-management-brief.md`.
-
-**The switch/param LAB (user, 2026-06-27 — supersedes Decision 23's Providers placement; design §6.6):**
-switches + params are edited/tested ONLY in a Features-style **lab** — model + a **switch-STRING
-textbox** (freeform; no per-flag boxes; a new llama.cpp flag = edit the string, no code/GUI change)
-+ params + prompt → test (tok/s, output) → **save preset** → **promote to production** (same
-lifecycle as feature prompts). **NO switch editing in the Providers tab** — rip out the per-model
-switch sub-editor + the base/moe/mtp preset cards from the model manager. **#21** = that lab
-(multi-column Compare + JobPreset + promote; 2-up + h-scroll; needs a live model to fully test).
-**#20** (a separate per-model tuning UI in Providers) is **FOLDED INTO the lab**, not its own
-screen. (✅ **#22** per-action sampling/top-p + **#18** structured-output JSON shipped — runner `900e20c`.)
-
-**✅ DONE — Recommendations job dropdown + the REUSE gate (design §17):** the stale
-hardcoded `SUGGESTED_JOBS` was replaced by the shared **`LuJobSelect`** (live
-`/v1/ai/jobs`), wired into BOTH `RecommendationsEditor` AND `FeatureWorkbench` (which
-had its OWN native `<select>` over jobs — converged). Verified green: build + smoke
-(incl. a behavior gate: add a job → it appears). **Reuse gate** (user-driven, the
-real point — "a pro extracts a component, doesn't copy code"): adopted **jscpd**
-(made JW's DEAD `threshold:10` config real at 3.5%; kit 1.5%; `npm run dup` both
-repos; in the smoke prelude) + a `check-shared-pickers` structural check (job picker
-only in `LuJobSelect`; fails on a hand-rolled copy). → design §17.5.
-- **#32 — DROPPED (user, 2026-06-26):** `LocationsView`↔`ObjectsView` are near-identical
-  TODAY but are intentionally-separate **views that may diverge** (location- vs
-  object-specific affordances) — NOT forced into one shared component (premature
-  abstraction rejected). Parallel views ≠ duplicated logic.
-- **✅ #33 DONE** (this session): Routing-by-job renders jobs as a `UiTable` grid (job · model
-  picker · Used-for · Edit/Delete) + add/edit via `AppModal`, reusing the `RecommendationsEditor`
-  pattern. Verified: build + smoke + kit jscpd.
-- **#34 (user, 2026-06-26) — redundant New-entity flow + UX audit:** clicking **New** on
-  an entity (location/object/character/…) opens a `promptDialog` asking only for the NAME
-  (`services/entityMeta.js` `NEW_ENTITY_META`, used by `addLocation`/`addObject`/… + the
-  sidebar add), THEN shows the detail page — a redundant extra popup. Instead: open the
-  detail page directly (create with a placeholder name) and **validate-before-save** there.
-  **First AUDIT** the whole app for this + any similar double-step / redundant-popup flow
-  and REPORT findings (RULE #5 per-surface table) for review BEFORE changing anything.
-
-**Other:** **#25** curate `model_recommendations` (cited per-job picks). **#28** follow-up
-research (measured per-tier benchmarks — the run-2 gap). **#24** temp speaker_attribution +
-entity_extraction scaffold. **#23** shared AI task queue → `@delebash/llm-ui`. Per-feature
-flags (writerAI 3-variation / voice-canon — discuss which to expose). Cleanup: unused
-`PromptLab.vue`; the now-UI-less routing-presets endpoints. **Updates/Changelog** panel (U4 ⏳).
-**#26 lean docs** — recap leaned 2026-06-26; CLAUDE.md tightened (Option A) same day.
-
-**JustVoice adoption (later):** JV runs a parallel, older AI stack (NOT on
-`FeatureWorkbench`/`AiModelsArea`). Drop-in = delete `engines/llm/*` + call `install_llm`
-with JV's feature seeds + run seed. Plus: (a) JV supplies its catalog values (`category` +
-per-action point-of-use labels for Compose/Rewrite/Analyze/Smart-assign/…); (b) align JV's
-point-of-use surfaces to those names; (c) the shared `ProviderForm` needs a TTS-capability
-section before JV drops its forked `ProviderForm.vue`; (d) JV has TWO QuickSetups (TTS+LLM)
-to reconcile; (e) **U5** platform settings (mount `make_data_router` with audio asset dirs;
-GPU/Hardware → the AI menu). → JV checklist in `docs/plans/2026-06-24-shared-platform-settings.md`.
-
-**Key technical facts that must survive** (the "why"; full detail in
-`just-llm-runner/docs/plans/2026-06-24-llamacpp-switches.md`):
-1. MoE + `--n-cpu-moe` runs a 35B-A3B on a **6 GB** card if RAM ≥ ~24 GB — the budget pick
-   for hard tasks (attribution/extraction); `-ncmoe` is MoE-only (doesn't help a dense 14B).
-2. Speculative decode (MTP) **helps DENSE** (+40% on a 27B) but **LOSES on the 35B-A3B MoE**
-   in llama.cpp → spec ON for dense, OFF for MoE (seeded: 35B `spec_type=none`, 27B `draft-mtp`).
-3. **Two config planes:** engine launch flags (per-model load → reload) vs per-request
-   sampling/JSON/reasoning (per-action → no reload). Don't conflate.
-4. llama.cpp **router mode** (`--models-preset`/`--models-max`, no `-m`) swaps MODELS live;
-   only changing a switch VALUE needs a (re)start.
-
-## Active plan docs (the index)
-- `docs/plans/2026-06-27-llm-status-index.md` — **★ CODE-VERIFIED LLM STATUS** (2026-06-27): 10 agents read the actual code + 2 confirmers (both "trustworthy") → every LLM piece done/partial/**STUB**/missing with file:line. **THE "where we left off" for LLM.** Caught real stubs (per-row Test always fails; per-job/feature/hardware switch tables have ZERO readers; Ollama/Gemini drop params; JV broken).
-- `docs/plans/2026-06-27-switch-and-preset-architecture.md` — **★ THE CURRENT SWITCH+PRESET PLAN** (PROPOSED, under review 2026-06-27; code-verified + 3-checker panel folded in): full-bundle preset (model+switches+params+prompt) built/tested/saved in the lab + routed to a job; freeze-flat; preset is the loadable unit (new `resolve_preset_switches` + `preset_id` load branch); type-defaults = pre-fill baseline; model identity auto-detected from the GGUF → drives type presets; drop `model_switches`/`job_route_switches`/`pin_switches`; provider form = connection+catalog only. Supersedes the switch/§6.6/JobPreset parts of the two docs below.
-- `docs/plans/2026-06-27-switch-param-lab.md` — the lab MECHANICS (ConfigColumn / Compare / tok-s) — carried forward into the architecture plan above; its switch-placement + JobPreset sections are superseded by it.
-- `docs/plans/2026-06-27-complete-remaining-plan.md` — the 339-item audit of all 17 plan docs (doc-derived, **NOT code-verified** — superseded for the LLM area by the status-index above; keep for non-LLM breadth only).
-- `docs/plans/2026-06-25-jobs-architecture-design.md` — **authoritative** jobs design (§0–§14; + §17 = the dropdown fix / reuse gate / rules-as-checks rationale).
-- `claude-config/RULES-AS-CHECKS-V2-PLAN.md` — **Plan 1** (rules-as-checks) + its v2 & v3 **Build-outcome** record (the agent-as-judge fix); shipped + in observation.
-- `claude-config/README.md` — the **rules-as-checks** system (slim rules + event hooks + rules-checker + metrics); `claude-config/EFFECTIVENESS.md` = the effectiveness ledger.
-- `docs/plans/2026-06-26-llm-shared-move-cascade-audit.md` — the move: drop-in build order + cascade.
-- `docs/plans/2026-06-25-llm-catalog-db-cutover.md` — catalog/switches/recs → DB.
-- `docs/plans/2026-06-24-shared-platform-settings.md` — platform-settings convergence + the JV checklist.
-- `docs/plans/2026-06-20-shared-ai-stack-plan.md` — the 20-decision shared-AI-stack plan.
-- `docs/plans/2026-06-22-jw-gateway-retirement.md` — `/v1/llm` gateway retirement.
-- `docs/plans/2026-06-21-feature-prompts-db-seed.md` — feature-prompts-in-DB design.
-- `docs/plans/2026-06-24-local-model-recommendations.md` — model-by-task chart (cited boards).
-- `just-llm-runner/docs/plans/2026-06-24-server-model-management-brief.md` — runner / residency / router.
-- `just-llm-runner/docs/plans/2026-06-24-llamacpp-switches.md` — every engine switch (two planes), cited.
-- `just-llm-runner/docs/plans/2026-06-24-quicksetup-redesign.md` — the QuickSetup wizard design.
+## Active plan docs (the index) — there is now exactly ONE
+**`just-llm-runner/docs/plans/2026-06-27-MASTER-PLAN.md` is the only current plan.** It folded in
+everything that used to be split across the LLM status-index, the switch/preset architecture, the
+switch-param lab, the 339-item complete-remaining audit, the jobs-architecture design, the
+model-catalog research, the shared-AI-stack plan, the catalog-cutover / gateway-retirement /
+platform-settings / cascade-audit docs, and the runner serving/switches/quicksetup research. **All
+of those still exist in `docs/plans/` (both repos) as historical/evidence and are bannered "⛔ NOT
+THE CURRENT PLAN" — read them for background only.** The two exceptions that are NOT plan docs and
+stay live: `claude-config/README.md` + `EFFECTIVENESS.md` + `RULES-AS-CHECKS-V2-PLAN.md` (the
+separate rules-as-checks track, Plan 1 — unhooked but documented).
 
 ## Where detail lives
-Deep per-task detail → `docs/plans/*` (both repos). Architecture + rules → this repo's
-`CLAUDE.md` + the global `~/.claude/CLAUDE.md`. The JustWrite↔JustVoice HTTP boundary →
-`CONTRACT.md` in the JustVoice repo.
+**The plan detail lives in the ONE master** (`just-llm-runner/docs/plans/2026-06-27-MASTER-PLAN.md`).
+Architecture + rules → this repo's `CLAUDE.md` + the global `~/.claude/CLAUDE.md`. The
+JustWrite↔JustVoice HTTP boundary → `CONTRACT.md` in the JustVoice repo. Other `docs/plans/*` files
+(both repos) are historical background only.

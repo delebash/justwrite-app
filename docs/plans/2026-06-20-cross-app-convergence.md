@@ -1,3 +1,5 @@
+> ⛔ **NOT THE CURRENT PLAN.** The ONE current plan is `just-llm-runner/docs/plans/2026-06-27-MASTER-PLAN.md` — everything is folded in there (✅ done + ⬜ outstanding, full detail). This doc is kept as **historical background only** (past plan / design / research / evidence). Read it for context; **plan from the master.**
+
 # Cross-app convergence: JustVoice ↔ JustWrite (2026-06-20)
 
 **Goal:** both Vue 3 + Tauri 2 apps follow ONE standard — the *"Vue 3 + Tauri 2
