@@ -10,28 +10,39 @@
 
 ---
 
-## Current state (2026-06-26)
+## Current state (2026-06-27) — READ THE HANDOFF FIRST
 
-**The shared-LLM job-native move is DONE** — `job` REPLACES `role`; ALL LLM code is
-shared; JustWrite is a thin consumer. Green + pushed.
+**Pickup doc (read IN FULL): `docs/plans/2026-06-27-session-handoff.md`** — detailed prose
+record of exactly where we are, what's built vs stub/missing, the decisions, the bugs found,
+and the env facts. Then the two **code-verified** sources of truth:
+`docs/plans/2026-06-27-llm-status-index.md` (every LLM piece done/partial/**STUB**/missing +
+file:line; 2 confirmers said "trustworthy") and `docs/plans/2026-06-27-switch-param-lab.md`
+(the LAB plan). Do NOT trust the older design docs' ✅/⏳ markers — they drifted from the
+code, which is why we kept losing track; the status index is the truth.
 
-- **What it is:** the whole LLM stack (the 12 tables, stores, dispatch,
-  `config_builder`, the API routers, the usage sink, pricing, the GUI, the seed
-  mechanism) lives in `just-llm-runner`. Any app drops it in with ONE
-  `install_llm(app, engine, session_factory, feature_catalog, feature_prompts,
-  feature_jobs)` call + its 3 feature seeds. **JW now has zero LLM code except its
-  feature seeds.** `job` (a user-editable list seeded chat/prose/extraction/analysis)
-  replaced the fixed quick/accuracy roles end-to-end (schema/dispatch/routing/GUI).
-- **Commits:** just-llm-runner `7232214` (shared stack + `install_llm`) · `5e5005a`
-  (job-native GUI + two-base backup + FK fix) · `c0ddfc8` (QuickSetup leftover fix).
-  justwrite-app `adec065` (thin consumer) · `a34f955` (rules-gate `resume` fix).
-- **Verified:** runner 102 pytest + JW 77 pytest + ruff (both); JW renderer build +
-  headless smoke (every route, zero JS errors) + live tab-render of the Jobs cards;
-  live server job-native (`/v1/ai/jobs` seeded, routing shape `[default,jobs,pins]`,
-  7 providers).
-- ➡️ **Detail:** `docs/plans/2026-06-25-jobs-architecture-design.md` (§0–§14, the full
-  design) + `docs/plans/2026-06-26-llm-shared-move-cascade-audit.md` (drop-in build
-  order + the ~25-file cascade).
+Scope right now is **the LLM stack + the job/feature LAB only — JustVoice is out of scope
+(later)**. The shared-LLM job-native move shipped earlier (job replaced role end-to-end; all
+LLM code lives in `just-llm-runner`; JW is a thin `install_llm` consumer) and JustWrite's LLM
+stack is largely built + tested. BUT the **LAB is NOT built** (no ConfigColumn / Compare /
+JobPreset / switch-string field / tok-s; `FeatureWorkbench.vue` is only the single-column
+precursor), the per-job/per-feature/per-hardware **switch-override tables have ZERO readers**
+(schema shipped, wiring didn't), the §6.6 "switches are a string in the lab, not in Providers"
+rip-out is not started, and router mode (#27) + residency planner (#29) are unbuilt (the
+single-model baseline is solid). Real stubs/bugs were found (per-row Test always fails;
+Ollama/Gemini drop params; token stat reads 0; dead ProductionConfig layer) — see the index.
+
+**Working bar (the user's standing rule — this is the DEFAULT, do not make them re-ask):** be
+professional, no skim, no quick way out, NEVER guess — read the code line-by-line and cite
+file:line, reuse or make reusable components (never copy-paste logic), nothing hardcoded,
+**save docs without asking** (it's the rule), never mark "done" without the file:line proving
+it isn't a stub, and verify load-bearing calls with an independent pass (the `rules-checker`
+agent or a verification workflow — "other yous confirm").
+
+**Rules-as-checks gates are UNHOOKED** (user's call, 2026-06-26): `~/.claude/settings.json` =
+`{}` so no gate fires (backup at `settings.json.hooked.bak`; re-enable with `FORCE=1 bash
+claude-config/install.sh`). The plain T1–T12 in `~/.claude/CLAUDE.md` still govern, followed by
+reading them. So commits need no rules-checker verdict right now. The Reset bug was fixed
+(`data_admin._reset` drops+recreates+reseeds, not row-delete — commit `677d165`).
 
 ## Two plan tracks (the work splits in two; approve + build + review EACH, in sequence)
 The user split the active work into two separate plans (2026-06-26), handled one at a
