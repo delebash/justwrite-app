@@ -18,17 +18,23 @@ from .models import Base
 
 
 def _reset() -> None:
-    if _db.SessionLocal is None:
+    if _db.engine is None or _db.SessionLocal is None:
         return
     from .seed import seed_workspace
 
+    engine = _db.engine
+    # True drop + reseed (project policy: no migrations). DROP + CREATE recreates
+    # the SCHEMA, not just the rows — so a reset also recovers from schema drift
+    # (e.g. a column added to an LLM table since this DB was first created). A
+    # row-only wipe leaves the stale schema, so the app would still 500 on the
+    # missing column. Covers BOTH bases (domain + the shared LLM tables).
+    Base.metadata.drop_all(bind=engine)
+    LlmBase.metadata.drop_all(bind=engine)
+    Base.metadata.create_all(bind=engine)
+    LlmBase.metadata.create_all(bind=engine)
+
     db = _db.SessionLocal()
     try:
-        # Wipe both bases (domain + the shared LLM tables), children → parents.
-        for meta in (Base.metadata, LlmBase.metadata):
-            for table in reversed(meta.sorted_tables):
-                db.execute(table.delete())
-        db.commit()
         seed_workspace(db)
         db.commit()
     finally:
