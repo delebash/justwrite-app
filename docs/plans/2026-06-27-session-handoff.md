@@ -112,10 +112,35 @@ couple of self-introduced citation imprecisions caught on reverify.
 wired; the master's other citations; #23/#27/#29/#34/Cache/Hardware-panel/shared-LLM-UI-views all
 genuinely not-built; Part 3 faithfully reflects its evidence docs.
 
-**Verdict:** after the corrections, the master is **faithful and code-accurate**. Every finding is
-folded into the master (Parts 1/2/3) with the audit recorded in **Part 4**. **Next: option B — an
-independent fresh-context agent panel** that re-audits and adversarially challenges these
-conclusions (the one thing a fresh perspective adds that an inline pass can't).
+**Verdict (after A):** the master was faithful + code-accurate except D9; every A finding folded
+into the master (Parts 1/2/3 + Part 4).
+
+## Option B (independent fresh-context panel, 63 agents) — DONE, and it was worth it
+
+8 fresh auditors (blind to A's findings) + 8 challengers of A's conclusions + a verify pass; then I
+**re-verified every high-value B finding against code myself** (agents can be wrong too). It caught
+**1 A-error** and **~8 real misses A made**, including a live bug:
+- **A-error: U4.** A said the shared `UpdatesPanel` is "not mounted"; it IS imported + mounted in JW
+  `SettingsView.vue:7,1216` (A only checked the kit). **Reverted** → U4 is built.
+- ⛔ **DATA-LOSS BUG (A missed entirely).** `routingBackend.js putRoutingPrefs` (`:86-96`) sends no
+  `jobs` field; the server `set_routing` (`stores.py:132`) deletes every `JobRoute` then re-adds from
+  the empty `cfg.jobs` → **every JW default-LLM / embedding / feature-pin save WIPES all per-job model
+  routes.** This is the stale role-shaped `routingBackend.js` (#31) causing real data loss — #31 is
+  elevated from cosmetic to a bug-fix.
+- **GGUF auto-detect is an UNWIRED ORPHAN** (`detect_and_store_model_type` has zero production callers)
+  — §1.2 demoted from "shipped".
+- `pricing.py MODEL_PRICING` hardcodes USD rates (not in DB); **`model_catalog` has NO `license`
+  column** though A2 seeds license + §F renders it; **Part 3.2 "all typed" was false**
+  (`--cpu-moe`/RoPE/YaRN/`-sm/-ts/-mg`/`--jinja` ride `extra_flags`); the **DECIDED §6.6 "freeform
+  string"** contradicted the shipped **D15 KnobGrid**; the **F#23 `ProviderRow` dup** doesn't exist;
+  `test_prompts.py` also fails in isolation; a stale Quick/Accuracy docstring in shared
+  `routing_api.py`; a dead JW `components/QuickSetup.vue` fork.
+- **B corroborated A** on D9, #23, #27/#29, #34, Cache/Hardware, shared-views, PROVIDER_DEFAULTS,
+  tiers.py, A7, A3. Of A's 8 challenged conclusions: 3 held (#11, A3, D1), 5 adjusted, 1 (U4) refuted.
+
+All folded into the master (Parts 1/2/3 + the **Part-4 "Option B"** record). Full B output:
+session `tasks/w5kt79rge.output`. **Net: A made the master faithful on design; B caught the
+implementation-reality gaps (a live bug + an orphan + missing schema) A's claim-vs-doc pass didn't.**
 
 ## What is actually built vs not, in the LLM area (prose summary; the index has the file:line)
 

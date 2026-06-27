@@ -46,7 +46,18 @@ exists unmounted), **Streaming feature ports = DONE** (all on `/v1/ai/stream`, g
 dup-counts (~19/~7), A3 narrowed, #31 cite, PROVIDER_DEFAULTS dup, tiers.py maps. Confirmed
 accurate: D1 wiring, extra_flags, citations, #23/#27/#29/#34/Cache/Hardware/shared-views (not-built),
 Part 3 vs evidence, suite (144+ruff). Full detail in the handoff §"Deep audit" + master Part 4.
-**Next: option B — independent fresh-context agent panel to adversarially re-audit.**
+
+**Option B (independent fresh-context panel, 63 agents) — DONE; caught what A missed.** Fresh
+auditors (blind to A) + challengers of A's conclusions; I re-verified each high-value B finding vs
+code. **1 A-error caught (U4: `UpdatesPanel` IS mounted — `SettingsView.vue:7,1216` — reverted)** +
+real A-misses incl. a ⛔ **live DATA-LOSS bug**: `routingBackend.js` (#31, stale role-shape) sends no
+`jobs` on save → `set_routing` (`stores.py:132`) wipes ALL `job_routes` on each default/embedding/pin
+save (#31 elevated to a bug-fix). Also: **GGUF auto-detect = unwired orphan** (§1.2 demoted),
+`pricing.py` hardcoded USD, `model_catalog` has no `license` column (A2 needs it), Part 3.2 "all
+typed" false, DECIDED §6.6 "freeform string" vs shipped D15 KnobGrid, F#23 ProviderRow doesn't exist,
+`test_prompts` also fails isolation, stale `routing_api` docstring, dead JW QuickSetup fork. B
+corroborated A on D9/#23/#27/#29/#34/Cache-Hardware/shared-views/PROVIDER_DEFAULTS/tiers/A7/A3. All
+folded into the master (Parts 1/2/3 + Part-4 "Option B"). Full B output: `tasks/w5kt79rge.output`.
 
 The model-catalog + Fast/Balanced/Best-dial + speaker-attribution research (two `/deep-research`
 runs + reviewer panels) and the resulting decisions are **folded into the master** (Part 1.3 = what
