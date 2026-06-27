@@ -40,7 +40,10 @@ precursor), the per-job/per-feature/per-hardware **switch-override tables have Z
 (schema shipped, wiring didn't), the §6.6 "switches are a string in the lab, not in Providers"
 rip-out is not started, and router mode (#27) + residency planner (#29) are unbuilt (the
 single-model baseline is solid). Real stubs/bugs were found (per-row Test always fails;
-Ollama/Gemini drop params; token stat reads 0; dead ProductionConfig layer) — see the index.
+Ollama/Gemini drop params; token stat reads 0) — see the index. (The "dead ProductionConfig
+layer" entry was re-examined and found MISLABELED: it's a live, tested shared layer consumed by
+JV's speaker_attribution; JW's config_builder just doesn't populate it yet — a planned convergence
+delta, not dead code. Do NOT remove it.)
 
 **Working bar (the user's standing rule — this is the DEFAULT, do not make them re-ask):** be
 professional, no skim, no quick way out, NEVER guess — read the code line-by-line and cite

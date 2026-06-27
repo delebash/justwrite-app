@@ -92,8 +92,12 @@ ignores `json_mode`. **[FIXED]** The FeatureWorkbench inline "tokens" stat used 
 the JW host returned snake_case usage while the kit reads camelCase (`FeatureWorkbench.vue:422`,
 the kit wire contract `client.js:92,112`); fixed by aligning both JW readers to camelCase
 (`aiFeature.js:139`, `aiTasks.js:145-146`) — the only two field-level stream-usage readers in JW.
-There is a dead `ProductionConfig` dispatch precedence layer that
-`config_builder` never populates (promote actually works via the routing pin + prompt row).
+The `ProductionConfig` dispatch precedence layer is NOT dead (earlier note was wrong): it's a live,
+tested shared layer (`test_llm_dispatch.py:69`) that JustVoice populates (`engines/llm/config.py:52`)
+and reads for speaker_attribution (`extraction_api.py:147`). JW's `config_builder` just doesn't
+populate it yet — JW's promote uses the pin+prompt path, and the richer per-feature editable-prompt
+`ProductionConfig` is a planned convergence delta to bring to JW (`shared-ai-stack-plan.md:65`), not
+dead code. Do NOT remove it.
 Recommendations and `ModelCatalogStore` have zero backend tests. **[FIXED]** The recommendations
 editor's native `confirm()` calls are now the kit's `confirmDialog` (native-dialog ban honored), and
 `LuModelPicker`'s dead `showRoles` prop (+ its two inert caller attrs) is removed. The `detect-local`

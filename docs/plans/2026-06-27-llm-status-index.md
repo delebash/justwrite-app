@@ -40,8 +40,13 @@ not current work). Companion deep-dive: `2026-06-27-switch-param-lab.md` (the la
 - ❌ recommendations + `ModelCatalogStore` backend tests — ZERO · ✅ `RecommendationsEditor` native `confirm()` → `confirmDialog` (dialog-ban honored)
 - ✅ FIXED: `LuModelPicker` dead `showRoles` prop removed (+ the 2 inert `:show-roles="false"` caller attrs in `RoutingByJob.vue`)
 - ✅ FIXED: FeatureWorkbench **token stat** — JW readers aligned to kit camelCase (`aiFeature.js:139`, `aiTasks.js:145-146`); + decode **tok/s** readout
-- 🟡 dead `ProductionConfig` dispatch layer — `config_builder.py:17-39` never populates it, so the prod-config
-  precedence branch (`dispatch.py:59-62,73-77,109-113`) is inert (promote works via the pin+prompt path instead)
+- 🟢 NOT dead — `ProductionConfig` was MISCHARACTERIZED here. It's a LIVE, tested shared precedence layer (step 1):
+  `test_llm_dispatch.py:69 test_production_config_wins` asserts it beats a feature pin; exported in `__init__.py`.
+  JustVoice populates the shared `LLMConfig` with it (`engines/llm/config.py:52`) and reads it live for
+  speaker_attribution — model+prompts+tier+temperature (`extraction_api.py:147-157`). What's true is narrower:
+  JW's `config_builder.py:33-39` doesn't populate it YET, because JW's promote uses the pin+prompt path and the
+  richer per-feature editable-prompt/temperature `ProductionConfig` is a PLANNED convergence delta to bring to JW
+  (`shared-ai-stack-plan.md:65` — "✗ — add to shared"). **Do NOT remove it** — that breaks JV + the shared test.
 
 **Shared task queue (#23):** by design JW-local; only the `runStream` hook is shared. Moving the queue into the kit = not done.
 
@@ -134,4 +139,4 @@ The verification found JV's LLM layer **does not work** against the job-native s
 ## Confirm-pass corrections (folded in above)
 Both confirmers = **trustworthy**. Fixes: characterChat port `rag/characterChat.js:179` (not 232-251); rag/chat `rag/chat.js:180`
 (not 200-220); gguf import `lifecycle.py:22` (not :24); the recs/catalog/preset stores live in the **shared kit**
-`just-llm-runner/llm_runner/llm/stores.py`, not a JW-side file (states unchanged). Added: the dead `ProductionConfig` dispatch layer note.
+`just-llm-runner/llm_runner/llm/stores.py`, not a JW-side file (states unchanged). Re-examined the `ProductionConfig` "dead layer" claim and found it WRONG — it's live + tested in the shared pkg and consumed by JV; only unwired in JW's config_builder (corrected above).
