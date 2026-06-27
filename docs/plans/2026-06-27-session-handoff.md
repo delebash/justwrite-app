@@ -11,6 +11,8 @@ This is the detailed, prose pickup record. It is deliberately NOT a bullet summa
 it whole before doing anything, then open the two code-verified docs it points to. Branch
 for all repos: `claude/admiring-galileo-il3q0o`.
 
+> **UPDATE 3 (2026-06-27, late) — THE plan to follow is `just-llm-runner/docs/plans/2026-06-27-model-catalog-build-plan.md`** — the readable ✅ COMPLETED vs ⬜ OUTSTANDING master plan (Phases A–G, JV at §G), **panel-verified** (3 agents, file:line + 144 runner / 77 JW tests pass). Build NOT started, pending the user's go. Corrections baked in: A3 RAM-gate = CODE FIX (not confirm); #31 partial (JW `routingBackend.js` still role-shaped); only `PinSwitch` truly zero-reader.
+
 > **UPDATE 2 (2026-06-27, evening) — model-catalog research done + committed.** The LLM model
 > catalog + recommendations are decided (two `/deep-research` runs + a 3-reviewer consensus panel):
 > `docs/plans/2026-06-27-model-catalog-research-and-recommendations.md` (full-range catalog: floor

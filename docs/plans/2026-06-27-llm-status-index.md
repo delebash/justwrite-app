@@ -23,9 +23,13 @@ not current work). Companion deep-dive: `2026-06-27-switch-param-lab.md` (the la
   ❌ switch-string field + parse/format · ❌ tokens/sec readout · ❌ `JobPreset` (table+store+router+promote)
   · ❌ `job_preset_switches`/`feature_preset_switches` tables · ❌ per-job/feature switch EDITORS
 - ❌ Rip switch editing OUT of Providers (§6.6) — still in `LuModelCatalog.vue:280-288` + `LuSwitchPresets.vue`
-- ⚠️ STUB: per-job (`JobRouteSwitch` `db.py:209`), per-feature (`PinSwitch` `db.py:230`), per-hardware
-  (`HardwareSwitch` `db.py:250`) switch tables — declared, **ZERO readers**
-- ⚠️ STUB: `extra_flags` from stored switch rows silently dropped (`lifecycle.py:82-92`)
+- 🟡 PARTIAL (corrected 2026-06-27 by the status panel — the old "ZERO readers" was stale): per-hardware
+  (`HardwareSwitch`) **HAS a live reader** (`switch_resolve.py:62` → `install.py:106` → `lifecycle.py:209`)
+  — it needs a WRITER/editor, not a reader. per-job (`JobRouteSwitch`) has a resolver
+  (`switch_resolve.py:86`) + write API (`/v1/ai/job-switches`) — only the load-path caller is unwired
+  (GPU-gated residency). per-feature (`PinSwitch` `db.py:230`) is the only **truly zero-reader** table.
+- ✅ FIXED (panel): `extra_flags` from stored switch rows is routed, not dropped (`lifecycle.py:82-104`
+  `_switches_to_overrides` → `process.py:178-179`; commit `703d379`).
 
 **Per-action params** (#22/#18 capability outruns its wiring):
 - ❌ `FeaturePreset` doesn't capture `json_mode`/`top_p`/`max_tokens` (`feature_presets_api.py:28-42`) — preset round-trip gap
@@ -83,7 +87,7 @@ per-model switches manager (`LuModelCatalog.vue`; `model_catalog_api.py`) · ✅
 ### Switches — tables + resolver + /load + editors + §6.6
 ✅ base/type-preset tables + seed · ✅ `model_catalog.type` · ✅ layered resolver (`switch_resolve.py`, `test_switch_resolve.py`
 5 passed) · ✅ switch-presets + per-model switch routers · ✅ `LuSwitchPresets`/per-model sub-editor (both §6.6-slated to delete)
-· ✅ Overrides → `/v1/llm-runner/load` (#19). ⚠️ STUB: per-job/per-feature/per-hardware tables (zero readers); `extra_flags`
+· ✅ Overrides → `/v1/llm-runner/load` (#19). 🟡 switch tables PARTIAL (HardwareSwitch read; JobRouteSwitch resolver+write done, load-apply pending; only PinSwitch zero-reader); ✅ `extra_flags` fixed
 from stored rows dropped. ❌ MISSING: §6.6 rip-out · switch-string field · ConfigColumn · Compare · tok/s · JobPreset (+ its
 switch tables) · per-job/feature editors · runtime apply.
 
@@ -91,7 +95,7 @@ switch tables) · per-job/feature editors · runtime apply.
 ✅ per-action "one column" editor (`FeatureWorkbench.vue:459-530`) · ✅ FeaturePreset CRUD + `/{id}/use` promote — the JobPreset
 precedent (`feature_presets_api.py`, shared store `stores.py:219`, `install.py:67`, table `db.py:291`) · ✅ switch tables schema ·
 ✅ model-level resolver · ✅ Overrides path (#19). ❌ MISSING: ConfigColumn · Compare view · switch-string field · tok/s ·
-JobPreset (all layers) · per-job/feature editors · §6.6 rip-out. 🟡 task-queue via host hook (#23). ⚠️ STUB extra_flags. → full plan: `2026-06-27-switch-param-lab.md`.
+JobPreset (all layers) · per-job/feature editors · §6.6 rip-out. 🟡 task-queue via host hook (#23). ✅ extra_flags fixed. → **master plan: `just-llm-runner/docs/plans/2026-06-27-model-catalog-build-plan.md`** (panel-verified 2026-06-27).
 
 ### QuickSetup (#11) — REAL, not a stub
 ✅ 4-step modal wizard (`QuickSetup.vue:1-403`) · ✅ mounted/reachable · ✅ Fit re-score for an overridden card · ✅ models/hardware/

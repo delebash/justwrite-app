@@ -47,6 +47,8 @@ floor model. Includes a **COMPLETE per-job × per-tier matrix (no blank cells)**
 BUILD is pending go-ahead.** Micro-decision applied (user can flip): chat floor defaults to the fast
 Qwen3.5-9B + a 35B-A3B "smarter chat" toggle; the other 4 jobs default to 35B-A3B at the floor.
 
+**→ THE plan to follow + code from (post-compact pickup): `just-llm-runner/docs/plans/2026-06-27-model-catalog-build-plan.md`** — the readable **✅ COMPLETED vs ⬜ OUTSTANDING** master plan (Phases A–G, JV isolated at §G), **panel-verified 2026-06-27** (3 agents, file:line + 144 runner + 77 JW tests pass), folding in the audited index `docs/plans/2026-06-27-complete-remaining-plan.md` (§0–§7). Key panel corrections baked in: **A3 RAM-gated fit is a CODE FIX** (`coarse_fit` GPU branch + `get_models` ram param — not a "confirm"); **#31 is partial** (JW `routingBackend.js:15,55-56,78-79` still carries quick/accuracy); only **`PinSwitch`** is truly zero-reader (HardwareSwitch has a reader→needs a writer; JobRouteSwitch load-apply pending). Build NOT started — pending your go.
+
 Scope right now is **the LLM stack + the job/feature LAB only — JustVoice is out of scope
 (later)**. The shared-LLM job-native move shipped earlier (job replaced role end-to-end; all
 LLM code lives in `just-llm-runner`; JW is a thin `install_llm` consumer) and JustWrite's LLM

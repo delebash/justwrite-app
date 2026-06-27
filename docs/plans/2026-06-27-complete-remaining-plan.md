@@ -25,6 +25,18 @@ engine + hardware presets · feature-prompts → DB · LuJobSelect + jscpd reuse
 
 ---
 
+## 0.5 NEW since this audit (2026-06-27 evening) — model-catalog research + build
+*This plan was audited before the model-catalog work. Folding it in here; the items below
+update §1/§3 and are detailed executably in `just-llm-runner/docs/plans/2026-06-27-model-catalog-build-plan.md` (Phases A–G).*
+
+- **Model-catalog RESEARCH done** (two `/deep-research` runs + a 3-reviewer consensus panel): `just-llm-runner/docs/plans/2026-06-27-model-catalog-research-and-recommendations.md` (+ `-evidence.md`). **Answers `#25`** (curate recs — the full-range catalog + cited per-job picks) and **`#28` partially** (per-tier model picks decided, but MEASURED tok/s still needs a GPU → the picks are extrapolated; validate in the lab). Full hardware range: floor = **CPU 32 GB / GPU 8 GB+32 GB, NO upper cap**; a **COMPLETE per-job × per-tier matrix (no blank cells)**.
+- **Speaker-attribution LLM research done:** `…/2026-06-27-speaker-attribution-llm-research.md` (zero-shot CoT is SOTA; whole-chunk numbered-quote recipe + character-roster step; 8B fails implicit → 35B-A3B+/cloud). Feeds the attribution feature build (§1g / build-plan Phase E).
+- **NEW buildable-now (build-plan Phases A–B):** **(a) Catalog SEED** — the finalized catalog into `seed.py` `DEFAULT_CATALOG`/`DEFAULT_RECOMMENDATIONS` (keep 4 Qwen + add Mistral-Small-3.2-24B, Gemma-4-12B, GLM-4.5-Air, Llama-4-Scout, Qwen3-235B, Gemma-4-31B, nomic-embed; drop 2 quant rows; 35B-A3B RAM floor 32 GB) + a **RAM-gated fit-filter** (`runner/api.py get_models` must gate on min_ram_mb, not just VRAM). **(b) Fast/Balanced/Best dial** — one per-job quality control resolving to (model, think), fit-filtered; replaces exposing raw model+think toggles; `think` auto-off under JSON schema; attribution = reason-then-emit.
+- **Session stub-fixes DONE (→ belong in §0):** token-stat camel/snake + tok/s readout · provider **Test** GET→POST · RecommendationsEditor `confirm()`→`confirmDialog` · dead `LuModelPicker.showRoles` removed · **recommendations + ModelCatalogStore backend tests** added · Ollama/Gemini adapter `_apply_extra` (params no longer dropped) · `extra_flags` passthrough · **`ProductionConfig` re-examined → NOT dead** (live in JV + the shared dispatch test; corrected the status-index/handoff which wrongly called it dead).
+- **Build-plan Phases C–G RE-MAP onto this audited index** (no duplication): **C** (switch-grid/`KnobGrid` + tuning #20) = §1a/§1b + §2`#20` · **D** (lab Compare #21 + JobPreset + ConfigColumn + wire the ZERO-reader switch-override tables) = §1a · **E** (attribution recipe + #24 scaffold) = §1g + #24 · **F** (router #27, VRAM planner #29, shared task-queue #23, audit #32, routing-grid #33, measured benchmarks #28) = §1/§2/§3 · **G** (JV) = §7.
+
+---
+
 ## 1. BUILDABLE + VERIFIABLE IN THIS CONTAINER NOW (build:vite · headless smoke · pytest)
 
 ### 1a — The switch/param LAB + job Compare  **[#21]** (the "switch lab"; **#20** folded in)
