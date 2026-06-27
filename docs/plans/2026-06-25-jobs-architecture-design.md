@@ -345,6 +345,26 @@ the base" was incomplete — the base belongs on **editable type presets**, and
 `model_switches` is only the rare per-model exception. Same FK-child-table storage
 (§6.4), one more owner (`switch_presets`).
 
+### 6.6 — ⛔ DECISION (user, 2026-06-27): switches live in the LAB, edited as a STRING — NOT in Providers ⭐
+
+**Supersedes** the "per-model tuning UI in AI ▸ Providers" placement (Decision 23 / #20)
+and the per-flag switch **cards** in the model manager. Two firm calls:
+
+1. **Switches + params are tested, saved, and promoted ONLY in the lab** — the
+   Features-style surface (the Compare/preset lab, §8 / #21). The **exact same lifecycle
+   as feature prompts**: edit a config → **test** → **save as a named preset** →
+   **promote to production**. There is **NO switch editing in the Providers tab**
+   (Providers = connecting providers only: keys / URLs). The per-model switch sub-editor
+   + the base/moe/mtp preset **cards** come OUT of the model manager.
+2. **A switch set is a FREEFORM STRING in a textbox**, never a hardcoded box/field per
+   flag. A new llama.cpp flag → typed into the string; **no GUI or code change**. The
+   engine already passes flags through (`Overrides` + `extra_flags` → `compose_flags`);
+   the string feeds that, and the layers merge later-wins. Presets store the string.
+
+So the lab is the ONE config surface: **model + switch-string + params + prompt → test
+(tok/s, output) → save preset → promote** (writes the production model + switches). #20
+(a separate tuning UI in Providers) is **folded into the lab**, not its own screen.
+
 ---
 
 ## 7. The residency manager (= the VRAM-budget planner, task #29)

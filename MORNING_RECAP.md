@@ -169,10 +169,15 @@ gated on **step 4 / #27** (router/residency, needs a GPU to verify). → design 
 spawn-per-model) → **#29** residency manager (`--models-max`; cross-kind LLM⟷TTS VRAM
 coordination). → `just-llm-runner/docs/plans/2026-06-24-server-model-management-brief.md`.
 
-**Compare / testing:** **#21** job-lab multi-column Compare + persistent JobPreset + promote
-(2-up + horizontal scroll; Decision 23 — needs a live model). **#20** per-model tuning UI
-(n_cpu_moe/n_gpu_layers/ctx + tok/s). (✅ **#22** per-action sampling/top-p + **#18**
-structured-output JSON shipped — runner `900e20c`.)
+**The switch/param LAB (user, 2026-06-27 — supersedes Decision 23's Providers placement; design §6.6):**
+switches + params are edited/tested ONLY in a Features-style **lab** — model + a **switch-STRING
+textbox** (freeform; no per-flag boxes; a new llama.cpp flag = edit the string, no code/GUI change)
++ params + prompt → test (tok/s, output) → **save preset** → **promote to production** (same
+lifecycle as feature prompts). **NO switch editing in the Providers tab** — rip out the per-model
+switch sub-editor + the base/moe/mtp preset cards from the model manager. **#21** = that lab
+(multi-column Compare + JobPreset + promote; 2-up + h-scroll; needs a live model to fully test).
+**#20** (a separate per-model tuning UI in Providers) is **FOLDED INTO the lab**, not its own
+screen. (✅ **#22** per-action sampling/top-p + **#18** structured-output JSON shipped — runner `900e20c`.)
 
 **✅ DONE — Recommendations job dropdown + the REUSE gate (design §17):** the stale
 hardcoded `SUGGESTED_JOBS` was replaced by the shared **`LuJobSelect`** (live
