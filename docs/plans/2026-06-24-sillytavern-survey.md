@@ -54,6 +54,13 @@ exotics (top_k, min_p, mirostat, DRY, XTC, …) only when the routed provider is
 Ollama / local-llamacpp. This is the scalable shape ST itself uses (a preset =
 a bag of sampler values) and it cleanly extends the per-action Lab.
 
+> **SUPERSEDED 2026-06-27 (storage shape only — the rest of this recommendation stands):** the
+> per-action sampler set is stored as **key-value rows** (not a JSON field) and edited in a shared
+> **`<KnobGrid>`** (the same component as Profile switches) backed by a seeded `knob_catalog` —
+> see `2026-06-27-switch-and-preset-architecture.md` §8 + D15. Backend-aware UI + the
+> portable/local split + "don't add a column per sampler" all still hold; only the JSON-field
+> idea changed (→ rows, to keep the no-JSON-in-SQL rule and reuse the switch grid).
+
 **Minimum useful first slice:** `top_p`, `stop` (array), `seed`, and
 `frequency_penalty`/`presence_penalty` (cloud) ↔ `repeat_penalty`/`top_k`/`min_p`
 (local). Everything else is a power-user add behind "Advanced (local only)".

@@ -10,15 +10,26 @@
 
 ---
 
-## Current state (2026-06-27) — READ THE HANDOFF FIRST
+## Current state (2026-06-27) — DESIGN LOCKED, about to build
 
-**Pickup doc (read IN FULL): `docs/plans/2026-06-27-session-handoff.md`** — detailed prose
-record of exactly where we are, what's built vs stub/missing, the decisions, the bugs found,
-and the env facts. Then the two **code-verified** sources of truth:
-`docs/plans/2026-06-27-llm-status-index.md` (every LLM piece done/partial/**STUB**/missing +
-file:line; 2 confirmers said "trustworthy") and `docs/plans/2026-06-27-switch-param-lab.md`
-(the LAB plan). Do NOT trust the older design docs' ✅/⏳ markers — they drifted from the
-code, which is why we kept losing track; the status index is the truth.
+**The authoritative build plan: `docs/plans/2026-06-27-switch-and-preset-architecture.md`**
+(LOCKED). The **Profile + Feature** architecture:
+- a **Profile** = a named **model + switches** "engine" — the editable list (= the library) AND
+  the routing target a feature points at. (It IS today's `job` + its model + switches; UI-named
+  "Profile", internal code stays `job` — rename deferred.)
+- a **Feature** = system/user **prompt + sampler params + a Profile pointer** + a minimal test.
+- **switches (Plane-1) and samplers (Plane-2) share ONE `<KnobGrid>`** — a key-value editor + a
+  seeded `knob_catalog` (DATA), so a new llama.cpp param needs **no code** (D15). Storage =
+  key-value rows, **no JSON blobs**.
+- carries the full **decision log D1–D15** (with the alternatives kept, not just the landing),
+  the **source-verified Plane-2 sampler surface** (§8, ~30 llama.cpp params), and the **build
+  stages** (Track A in-container · Track B GPU). **Parked:** the user's QuickSetup concern (raise
+  before touching routing).
+
+For where the CODE stands today (done/stub/missing + file:line): `docs/plans/2026-06-27-llm-status-index.md`
+(2 confirmers "trustworthy"). Pre-design pickup: `2026-06-27-session-handoff.md`. The older
+`2026-06-27-switch-param-lab.md` + the design-doc ✅/⏳ markers are **superseded** for switches /
+presets / samplers by the architecture plan above.
 
 Scope right now is **the LLM stack + the job/feature LAB only — JustVoice is out of scope
 (later)**. The shared-LLM job-native move shipped earlier (job replaced role end-to-end; all
@@ -243,7 +254,8 @@ GPU/Hardware → the AI menu). → JV checklist in `docs/plans/2026-06-24-shared
 
 ## Active plan docs (the index)
 - `docs/plans/2026-06-27-llm-status-index.md` — **★ CODE-VERIFIED LLM STATUS** (2026-06-27): 10 agents read the actual code + 2 confirmers (both "trustworthy") → every LLM piece done/partial/**STUB**/missing with file:line. **THE "where we left off" for LLM.** Caught real stubs (per-row Test always fails; per-job/feature/hardware switch tables have ZERO readers; Ollama/Gemini drop params; JV broken).
-- `docs/plans/2026-06-27-switch-param-lab.md` — **★ THE SWITCH/PARAM + JOB/FEATURE LAB plan** (code-verified, rules-checker-corrected): Decision 23 + §8 + §6.6 consolidated; the lab is NOT built (no ConfigColumn/Compare/JobPreset/switch-string/tok-s).
+- `docs/plans/2026-06-27-switch-and-preset-architecture.md` — **★ THE CURRENT SWITCH+PRESET PLAN** (PROPOSED, under review 2026-06-27; code-verified + 3-checker panel folded in): full-bundle preset (model+switches+params+prompt) built/tested/saved in the lab + routed to a job; freeze-flat; preset is the loadable unit (new `resolve_preset_switches` + `preset_id` load branch); type-defaults = pre-fill baseline; model identity auto-detected from the GGUF → drives type presets; drop `model_switches`/`job_route_switches`/`pin_switches`; provider form = connection+catalog only. Supersedes the switch/§6.6/JobPreset parts of the two docs below.
+- `docs/plans/2026-06-27-switch-param-lab.md` — the lab MECHANICS (ConfigColumn / Compare / tok-s) — carried forward into the architecture plan above; its switch-placement + JobPreset sections are superseded by it.
 - `docs/plans/2026-06-27-complete-remaining-plan.md` — the 339-item audit of all 17 plan docs (doc-derived, **NOT code-verified** — superseded for the LLM area by the status-index above; keep for non-LLM breadth only).
 - `docs/plans/2026-06-25-jobs-architecture-design.md` — **authoritative** jobs design (§0–§14; + §17 = the dropdown fix / reuse gate / rules-as-checks rationale).
 - `claude-config/RULES-AS-CHECKS-V2-PLAN.md` — **Plan 1** (rules-as-checks) + its v2 & v3 **Build-outcome** record (the agent-as-judge fix); shipped + in observation.

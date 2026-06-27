@@ -1,5 +1,12 @@
 # Session handoff — 2026-06-27 (read this in full after a compact)
 
+> **UPDATE (2026-06-27, later the same day):** the switch/preset work was taken much further and is
+> now **LOCKED** in `docs/plans/2026-06-27-switch-and-preset-architecture.md` — the **Profile +
+> Feature** architecture, a shared **`<KnobGrid>`** for switches + samplers, the full decision log
+> **D1–D15**, and the source-verified sampler surface (§8). Read THAT as the current plan + the
+> `MORNING_RECAP.md` "Current state"; this handoff predates the design and is kept only for the
+> earlier context (trust situation, env facts, the code-verified status index).
+
 This is the detailed, prose pickup record. It is deliberately NOT a bullet summary — read
 it whole before doing anything, then open the two code-verified docs it points to. Branch
 for all repos: `claude/admiring-galileo-il3q0o`.
