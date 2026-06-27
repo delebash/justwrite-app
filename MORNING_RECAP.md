@@ -231,7 +231,9 @@ GPU/Hardware → the AI menu). → JV checklist in `docs/plans/2026-06-24-shared
    only changing a switch VALUE needs a (re)start.
 
 ## Active plan docs (the index)
-- `docs/plans/2026-06-27-complete-remaining-plan.md` — **★ THE COMPLETE REMAINING-WORK PLAN** (2026-06-27): 13-agent audit of all 17 plan docs + 3 independent confirmers (who caught 20 misses); JV separated to "later"; grouped buildable-here vs GPU-gated. **Start here for "what's left".**
+- `docs/plans/2026-06-27-llm-status-index.md` — **★ CODE-VERIFIED LLM STATUS** (2026-06-27): 10 agents read the actual code + 2 confirmers (both "trustworthy") → every LLM piece done/partial/**STUB**/missing with file:line. **THE "where we left off" for LLM.** Caught real stubs (per-row Test always fails; per-job/feature/hardware switch tables have ZERO readers; Ollama/Gemini drop params; JV broken).
+- `docs/plans/2026-06-27-switch-param-lab.md` — **★ THE SWITCH/PARAM + JOB/FEATURE LAB plan** (code-verified, rules-checker-corrected): Decision 23 + §8 + §6.6 consolidated; the lab is NOT built (no ConfigColumn/Compare/JobPreset/switch-string/tok-s).
+- `docs/plans/2026-06-27-complete-remaining-plan.md` — the 339-item audit of all 17 plan docs (doc-derived, **NOT code-verified** — superseded for the LLM area by the status-index above; keep for non-LLM breadth only).
 - `docs/plans/2026-06-25-jobs-architecture-design.md` — **authoritative** jobs design (§0–§14; + §17 = the dropdown fix / reuse gate / rules-as-checks rationale).
 - `claude-config/RULES-AS-CHECKS-V2-PLAN.md` — **Plan 1** (rules-as-checks) + its v2 & v3 **Build-outcome** record (the agent-as-judge fix); shipped + in observation.
 - `claude-config/README.md` — the **rules-as-checks** system (slim rules + event hooks + rules-checker + metrics); `claude-config/EFFECTIVENESS.md` = the effectiveness ledger.
