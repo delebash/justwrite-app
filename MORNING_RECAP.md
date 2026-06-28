@@ -149,6 +149,20 @@ time: present a plan → user approves → I build → user reviews → next pla
   entries** (not a chat plan) — that's what fires the plan/task events.
 
 ## Recently shipped (newest first — detail in the linked doc)
+- **Soundness pass + D3 + C2-backend + E2-wins** (this session, after the user
+  flagged E1 slipping 4 passes). **SOUNDNESS PASS (3 agents)** — the dimension the 4
+  fidelity-passes missed (does each item contradict an app's CLAUDE.md / duplicate
+  shipped work / rest on a stale premise): found 5 unsound items, **all in the
+  UNBUILT tail — nothing unsound was built**; built phases confirmed clean. All folded
+  into the master (Part 4 "SOUNDNESS pass"). **D3 JobPreset** — per-job presets +
+  promote (writes live job_route + switches); DELETED the dead config-grain
+  routing-presets (T3). **C2 measure backend** — `POST /v1/llm-runner/measure`
+  (probe → tok/s + VRAM/RAM; injectable). **E2 sampler wiring** — extended plane-2
+  knob_catalog + wired the Workbench sampler KnobGrid `:catalog`. **+ E1 dropped for
+  JW** (JV-stuff ruling). Verified: 162 runner + 77 server tests + build:vite + smoke,
+  all pushed. **Remaining tail (gated):** C2 UI + D2 Compare + D4 (frontend-scale);
+  E2 reasoning-effort/token-guard (open cloud-adapter + tokenizer decisions); real
+  tok/s (🔒 GPU). See master Phase C/D/E + the handoff.
 - **Phase D1 DONE** (this session): the **D9 switch-table cleanup** (user "do it all,
   drop included"). DROPPED `model_switches` (table + `ModelSwitchStore` + the
   `/v1/ai/model-switches` router + the per-model resolver branch + seed + exports +

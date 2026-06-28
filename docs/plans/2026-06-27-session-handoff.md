@@ -255,9 +255,21 @@ RAM-gate + `runner-manifest.json`→DB + GGUF-orphan wiring; 148 runner + 77 ser
 + UiSegmented dial in Routing-by-job + think-off-under-JSON guardrail; 155 runner + smoke) →
 **◐ Phase C: C1 DONE** (knob_catalog tables + `/v1/ai/knob-catalog` + RoutingByJob KnobGrid wired;
 158 runner + smoke), **C2 (per-model Tune & measure UI, #20) REMAINS — real tok/s is GPU-gated** →
-**◐ Phase D: D1 DONE** (D9 drops of model_switches + pin_switches + the resolve_profile_switches
-load-path reader; 159 runner + 77 server tests), **D2 Compare/ConfigColumn + D3 JobPreset + D4
-LuSwitchPresets-move REMAIN** → E (extraction scaffolds + sampling set). Each slice is verified (pytest+ruff for
+**◐ Phase D: D1 + D3 DONE** (D1 = D9 drops + load-reader; D3 = JobPreset + promote, routing-presets
+deleted; 162 runner + 77 server tests), **D2 Compare/ConfigColumn REMAINS, D4 LuSwitchPresets-move
+deferred-until-D2** → **◐ Phase E: E1 dropped (JV-not-JW), E2 sampler-catalog wiring DONE**, E2
+reasoning-effort/token-guard REMAIN (decision-gated). **+ C2 measure-backend DONE; C2 UI remains.**
+**A 3-agent SOUNDNESS pass corrected the unbuilt tail (master Part 4) — nothing unsound was built.**
+
+**The remaining tail + why each is gated (not just "todo"):**
+- **C2 UI** (model-card tune/measure/save) — frontend; the measure BACKEND is done; the save-target is
+  Profile/`hardware_switches` (NOT per-model — that table's gone, D9).
+- **D2 Compare / ConfigColumn** — the big N-column lab frontend; extract `<ConfigColumn>` from
+  FeatureWorkbench (make it a CONSUMER, render ×1 — don't copy); uses C2's measure endpoint to rank.
+- **D4** — move `LuSwitchPresets` out of Providers into D2's lab (deferred until D2 per the user).
+- **E2 reasoning-effort enum + token-budget guard** — depend on OPEN decisions (cloud-native
+  thinking/`thinkingConfig`; the tokenizer for token-count) in the master's ❓ DECISIONS.
+- **Real tok/s / live model spawn / per-job live switch apply** — 🔒 need the user's GPU (+ router mode #27). Each slice is verified (pytest+ruff for
 the runner; build:vite + headless smoke for JW) and committed; pause only for a genuine user-only
 decision (the gated 🔒 items — router-vs-spawn etc. — stay deferred).
 
