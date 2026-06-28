@@ -21,6 +21,66 @@
 > THE CURRENT PLAN" — historical/evidence only. **Only this handoff + `MORNING_RECAP.md` point to
 > the master.**
 
+## ▶▶ RESUME HERE — fresh-context continuation (saved 2026-06-28 for a compaction)
+
+**CONTROLLING DIRECTIVE (user, this session, verbatim): "just do it all no stoping … finish it
+completely all phases."** → **No-stop mode is ON.** Resume building the REMAINING items below WITHOUT
+re-asking; commit + push each slice; verify each. (The usual "act only on the literal word go" #1 rule
+is SUSPENDED for this A–E build by the explicit standing "no stopping" directive — keep going. Still
+confirm a genuinely NEW destructive op or a NEW user-only product decision, e.g. the two E2 decisions
+below.) The user is frustrated/low-trust after the plan's E1 slip; the antidote is verified slices
+(read app rules + code before each, like the soundness pass), not volume.
+
+**GIT:** branch `claude/admiring-galileo-il3q0o`; BOTH repos clean + fully pushed —
+`just-llm-runner @ dec6b39`, `justwrite-app @ c255e9e`.
+
+**DONE this session (all test-verified + pushed):** data-loss #31; **Phase A** (11-model catalog +
+`license` col + fit RAM-gate + **A7 `runner-manifest.json`→DB** + GGUF auto-detect); **Phase B**
+(Fast/Balanced/Best dial + B3 think-guardrail); **C1** knob_catalog; **C2 measure backend**
+(`POST /v1/llm-runner/measure`); **D1** (D9 drops of `model_switches`+`pin_switches` + the
+`resolve_profile_switches` load-reader); **D3** (JobPreset + promote; routing-presets DELETED); **E1
+dropped** (JV-not-JW ruling); **E2 sampler-catalog wiring**. + a **3-agent SOUNDNESS pass** that
+corrected the unbuilt tail (master Part 4) — **nothing unsound was built.** Suites: 162 runner + 77
+JW-server tests, ruff, build:vite, headless smoke — all green.
+
+**REMAINING — build in this order (specs + file:line; design decisions already LOCKED):**
+
+1. **C2 UI (#20)** — model-card "Tune & measure" in the kit `ui/src/components/LuModelCatalog.vue`.
+   Per model: an expander with a Plane-1 `KnobGrid` (pass `:catalog` = knob_catalog plane-1 subset —
+   MIRROR `ui/src/views/RoutingByJob.vue` which fetches `/v1/ai/knob-catalog` + builds `switchCatalog`)
+   + a "Load & measure" button → `POST /v1/llm-runner/load` (modelId + KnobGrid rows as Overrides) →
+   poll `GET /v1/llm-runner/status` until running/error → `POST /v1/llm-runner/measure` → show
+   `tokensPerSec` + `vramTotalMb`/`ramTotalMb`. **SAVE-TARGET (LOCKED by the soundness pass):** NOT
+   "this model's switches" — `model_switches` is GONE (D9). Save the tuned flags to a **Profile**
+   (active job's `job_route_switches` via `PUT /v1/ai/job-switches`) or **`hardware_switches`**
+   (per-GPU), OR keep C2 measure-only and tell the user to set the flags on a job in Routing-by-job
+   (which already has the KnobGrid). Measure BACKEND is DONE. Verify: build:vite + smoke (real tok/s 🔒 GPU).
+2. **D2 Compare / ConfigColumn (#21)** — the N-column lab. EXTRACT a `<ConfigColumn>` from
+   `ui/src/views/FeatureWorkbench.vue` (the model picker + params + sampler KnobGrid `:551` + test/run
+   block) into ONE reusable kit component and **make FeatureWorkbench a CONSUMER (render ×1) — do NOT
+   leave a copy** (T3; soundness pass flagged it). A Compare view renders it ×N; run one action across
+   columns; rank by tok/s (reuse `POST /v1/llm-runner/measure`)·time·cost·quality. Verify: build:vite + smoke; tok/s 🔒.
+3. **D4** — move `LuSwitchPresets` OUT of `LuModelCatalog.vue:17,244` (Providers) INTO D2's lab; delete
+   the import+mount in the same change. Do AFTER D2 (user-deferred). Verify: smoke.
+4. **E2 rest — DECISION-GATED, ask first:** reasoning-effort enum (think bool → low/med/high; MUST keep
+   the B3 json-mode guardrail in `prompts._effective_think`) + token-budget guard + prompt-preview +
+   token-count. Blocked on two OPEN ❓ decisions (master): (a) cloud-native thinking — Anthropic
+   `thinking`/Gemini `thinkingConfig` are accepted-but-IGNORED today (`anthropic.py:88,139`,
+   `gemini.py:132,171`); (b) the tokenizer for token-count. (Story-bible injection = a JW-app task, NOT
+   shared — `render()` already covers the shared side.)
+
+**ENV / RUN (don't re-hunt):**
+- Runner gate: `cd /home/user/just-llm-runner && python -m pytest -q && ruff check`.
+- JW renderer gate: boot `cd /home/user/justwrite-app/server && python -m justwrite_server.cli serve --host 127.0.0.1 --port 17495` (bg) + `cd /home/user/justwrite-app && npm run dev:vite` (bg, :1420), then `cd /home/user/justwrite-app && JW_BASE=http://localhost:1420 node scripts/headless-smoke.mjs`. JW server tests: `cd /home/user/justwrite-app/server && python -m pytest -q && ruff check`. Compile: `cd /home/user/justwrite-app && npm run build:vite`.
+- **Schema changed a lot this session** (job_routes.quality · knob_catalog/knob_option · runner_binary/runner_setting · job_presets/job_preset_switches · DROPPED model_switches/pin_switches). On any existing DB the smoke 500s with "no such column" until you **RESET**: `curl -X POST http://127.0.0.1:17495/v1/data/reset` (drop+recreate+reseed — the standing no-migrations policy).
+- GOTCHAS: idle servers get reclaimed → re-boot them. `pkill`/the bracket-trick kills the shell (exit 144) — use `fuser -k 17495/tcp` to free a port. Bash cwd PERSISTS between calls — `cd` to the correct repo each time (runner pytest from just-llm-runner, JW from justwrite-app; a stray `cd` is why a push once went to the wrong repo). The runner is the EDITABLE source JW imports (`/home/user/just-llm-runner/llm_runner`), so runner edits go live in JW after a server restart. Chromium is prebuilt; the smoke's `findChrome()` auto-locates it.
+
+**THE PLAN = the master** (`just-llm-runner/docs/plans/2026-06-27-MASTER-PLAN.md`). Its Phase C/D/E
+sections carry the soundness-CORRECTED specs (read them, not the pre-soundness wording); Part 4 records
+the soundness pass + all 4 prior verification passes.
+
+---
+
 This is the detailed, prose pickup record — read it whole for the **trust situation**, the
 **verified what's-built-vs-not**, the **stub/bug list**, the **load-bearing decisions**, and the
 **env facts**; then open the master for the plan itself. Branch for all repos:
