@@ -42,7 +42,22 @@
 > **Remaining = the plan's Part 2 outstanding (NOT deviations):** GPU-gated — #27 router / #29 residency /
 > real tok/s / live per-job switch-apply; research — #28 measured benchmarks; and the [IC] backlog F-items
 > (#23 shared AI task queue, license-flag UI, QuickSetup enhancements, shared-LLM-UI views, cleanup/dedup).
-> Decision-gated: router-vs-spawn (#27 — the user's call).
+> **Router-vs-spawn = DECIDED: router** (R1; build GPU-gated) — NOT "the user's call" (that framing was stale).
+>
+> **⛔ THE MASTER IS NOW THE LIVE TASK TRACKER + SINGLE SOURCE OF TRUTH.** Its top section **"LIVE TASK TRACKER"**
+> is the ONLY status authority — **every commit is backed by a task row** (T1–T13 done; T20–T50 remaining). Body
+> ✅/⬜ markers are detail/history. **§1** = doc-conflicts C1–C7 · **§1b** = decision-state R1–R7 (resolved) +
+> O1–O3 (genuinely open) · **§1c** = the A1–16 implementation decisions (each annotated vs the docs). Source docs
+> kept as the verbatim backstop. **WORKFLOW RULE (user): a task row in the plan BEFORE any code; mark it ✅ + its
+> commit sha on push — keep the tracker live; never synthesize status from elsewhere.**
+>
+> **2026-06-28 commits (branch `claude/admiring-galileo-il3q0o`):** runner `0d85b0e` plan-rebuild · `820e597`
+> Compare/ConfigColumn · `5541fd4` FeaturePreset · `e7315f2` audit · `24b6f93` license · `638f6c5` test-iso ·
+> `ce40c1b` no-hardcoding · `b7a57d8` decision-state · `9c3aa3f`+`e7371ff` live-tracker+§1c. JW `27854e4`
+> repoint · `5a7469e` dead-fork · `60d0172` recap/handoff.
+>
+> **RESUME:** read the master's LIVE TASK TRACKER → next in-container item = **T20 QuickSetup enhancements** (my
+> rec). GPU-gated: T40 #27 router build · T41 #29 residency. Open: O1/O2/O3.
 
 ## Current state (2026-06-27) — DESIGN DONE; build pending the user's go
 

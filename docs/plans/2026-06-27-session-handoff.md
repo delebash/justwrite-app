@@ -32,6 +32,13 @@
 > errors), interaction 19/19. **Live status + full outcome → `MORNING_RECAP.md` "Current state (2026-06-28)".**
 > Latest commits: runner `5541fd4`, JW `27854e4`. The A–E "DONE/REMAINING" notes below are the PRE-fix
 > record — kept for history; the recap is authoritative.
+>
+> **2026-06-28 (later) — the master is now the LIVE TASK TRACKER + single source of truth.** Its top section
+> governs status: every commit is backed by a task row (T1–T13 done, T20+ remaining); body markers are
+> detail/history. **§1** conflicts C1–C7 · **§1b** decisions R1–R7 (resolved — **router = R1 DECIDED**, build
+> GPU-gated) + O1–O3 open · **§1c** the A1–16 implementation decisions (each vs the docs). **Workflow: a plan
+> task row BEFORE any code, marked ✅ + commit on push.** Latest commits: runner `e7371ff`, JW `60d0172`.
+> Resume at **T20 QuickSetup enhancements**.
 
 **CONTROLLING DIRECTIVE (user, this session, verbatim): "just do it all no stoping … finish it
 completely all phases."** → **No-stop mode is ON.** Resume building the REMAINING items below WITHOUT
