@@ -149,6 +149,15 @@ time: present a plan → user approves → I build → user reviews → next pla
   entries** (not a chat plan) — that's what fires the plan/task events.
 
 ## Recently shipped (newest first — detail in the linked doc)
+- **Phase D1 DONE** (this session): the **D9 switch-table cleanup** (user "do it all,
+  drop included"). DROPPED `model_switches` (table + `ModelSwitchStore` + the
+  `/v1/ai/model-switches` router + the per-model resolver branch + seed + exports +
+  test) and `pin_switches` (inert table). `job_route_switches` is the survivor;
+  `resolve_profile_switches` (was an orphan) is now wired as the **load-path reader**
+  — `LoadRequest.jobId` → `RunnerService.load(job_id)` → injected
+  `profile_switches_fn` applies the Profile's frozen-flat switches over the model
+  base. Verified: 159 runner + 77 JW server tests + ruff. *(Per-job live apply at
+  scale stays router-mode #27. Schema change → reset existing DBs.)*
 - **Phase C1 DONE** (this session): the **knob_catalog** — `knob_catalog` +
   `knob_option` DB tables (seeded `DEFAULT_KNOBS`: Plane-1 switches + key Plane-2
   samplers, with enum options relational), `GET /v1/ai/knob-catalog`, and the

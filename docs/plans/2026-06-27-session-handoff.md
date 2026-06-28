@@ -255,19 +255,25 @@ RAM-gate + `runner-manifest.json`→DB + GGUF-orphan wiring; 148 runner + 77 ser
 + UiSegmented dial in Routing-by-job + think-off-under-JSON guardrail; 155 runner + smoke) →
 **◐ Phase C: C1 DONE** (knob_catalog tables + `/v1/ai/knob-catalog` + RoutingByJob KnobGrid wired;
 158 runner + smoke), **C2 (per-model Tune & measure UI, #20) REMAINS — real tok/s is GPU-gated** →
-D (the LAB: drop model/pin
-switches per D9, wire job_route_switches reader, Compare/ConfigColumn, JobPreset, move LuSwitchPresets
-out of Providers) → E (extraction scaffolds + sampling set). Each slice is verified (pytest+ruff for
+**◐ Phase D: D1 DONE** (D9 drops of model_switches + pin_switches + the resolve_profile_switches
+load-path reader; 159 runner + 77 server tests), **D2 Compare/ConfigColumn + D3 JobPreset + D4
+LuSwitchPresets-move REMAIN** → E (extraction scaffolds + sampling set). Each slice is verified (pytest+ruff for
 the runner; build:vite + headless smoke for JW) and committed; pause only for a genuine user-only
 decision (the gated 🔒 items — router-vs-spawn etc. — stay deferred).
 
-**⚠️ Pending decision at D1 (asked, but AskUserQuestion failed twice this session — confirm in
-chat):** D1 per the locked D9 ruling DROPS the `model_switches` + `pin_switches` tables AND their
-routers/resolvers/tests — a destructive, hard-to-fully-reverse step (git-reversible, and
-reseed=drop+recreate is the standing policy, so low-risk, but still deleting shipped code/schema).
-Before executing D1: proceed autonomously through the D9 drops, or pause for an explicit "go"? Until
-answered, treat D1 as the pause point — C2 + the NON-destructive parts of D (the job_route_switches
-load-reader wiring, Compare/ConfigColumn, JobPreset, the §6.6 LuSwitchPresets move) can proceed first.
+**D1 destructive-drop decision: ANSWERED — user said "do it all drop included" (2026-06-28). D1 is
+DONE** (drops + load-reader). Remaining open questions to settle before their slices:
+- **E1 (#24) — CONFLICT, do NOT guess:** the master wants temp `speaker_attribution` +
+  `entity_extraction` scaffolds in the JW catalog, but JW's `CLAUDE.md` bans "speaker analysis" here
+  (it's JV's domain; the full attribution feature is master §G), and `entity_extraction` overlaps the
+  existing `entitySweep` feature. → Confirm: does the user want a TEXT-attribution scaffold in JW at
+  all, or is E1 really a JV-side / shared-stack-test concern? (entity_extraction may also be redundant
+  with entitySweep.)
+- **D4 placement:** §6.6 says move `LuSwitchPresets` (base/moe/mtp preset editor) OUT of Providers —
+  but the lab (D2) it should move INTO isn't built yet. → Where should the engine-preset editor live
+  in the meantime (a Routing/AI sub-tab, or defer until D2)?
+- **C2 / D2 / D3 / E2** are buildable but larger / partly GPU-gated (C2's real tok/s needs the user's
+  GPU; D2 Compare + D3 JobPreset are sizable; E2 is the full sampler set). Sequence at the user's call.
 
 Historical note (pre-go): when the lab build does start, the sequence (detail in the lab doc) was: review the status index and the lab plan, then direct what
 to build. When the lab build does start, the sequence (detail in the lab doc) is: extract a shared
