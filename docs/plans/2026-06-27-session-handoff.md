@@ -41,9 +41,10 @@ below.) The user is frustrated/low-trust after the plan's E1 slip; the antidote 
 `resolve_profile_switches` load-reader); **D3** (JobPreset + promote; routing-presets DELETED); **E1
 dropped** (JV-not-JW ruling); **E2 sampler-catalog wiring**; **C2 UI** (model-card "Tune & measure" —
 load with ad-hoc Plane-1 flags + measure tok/s; measure-only per D9); **D2 Compare + ConfigColumn**
-(shared run-config unit; FW refactored to consume it ×1, T3-clean; new Compare lab ranks by tok/s).
-+ a **3-agent SOUNDNESS pass** that corrected the unbuilt tail (master Part 4) — **nothing unsound was
-built.** Suites: 165 runner + 77 JW-server tests, ruff, build:vite, headless smoke — all green.
+(shared run-config unit; FW refactored to consume it ×1, T3-clean; new Compare lab ranks by tok/s);
+**D4** (`LuSwitchPresets` moved out of Providers → Routing-by-job advanced section; §6.6 satisfied —
+**Phase D COMPLETE**). + a **3-agent SOUNDNESS pass** that corrected the unbuilt tail (master Part 4) —
+**nothing unsound was built.** Suites: 165 runner + 77 JW-server tests, ruff, build:vite, headless smoke — all green.
 
 **REMAINING — build in this order (specs + file:line; design decisions already LOCKED):**
 
@@ -68,14 +69,23 @@ built.** Suites: 165 runner + 77 JW-server tests, ruff, build:vite, headless smo
    pytest + ruff, build:vite, headless smoke 0 errors, Playwright interaction 10/10. Deferred (scope):
    per-column prompt + Plane-1 switches; real cross-model tok/s 🔒 GPU. Minor follow-up: streamed result
    "model" stat blank when an action inherits its model. **NEXT = D4.**
-3. **D4** — move `LuSwitchPresets` OUT of `LuModelCatalog.vue:17,244` (Providers) INTO D2's lab; delete
-   the import+mount in the same change. Do AFTER D2 (user-deferred). Verify: smoke.
-4. **E2 rest — DECISION-GATED, ask first:** reasoning-effort enum (think bool → low/med/high; MUST keep
-   the B3 json-mode guardrail in `prompts._effective_think`) + token-budget guard + prompt-preview +
-   token-count. Blocked on two OPEN ❓ decisions (master): (a) cloud-native thinking — Anthropic
-   `thinking`/Gemini `thinkingConfig` are accepted-but-IGNORED today (`anthropic.py:88,139`,
-   `gemini.py:132,171`); (b) the tokenizer for token-count. (Story-bible injection = a JW-app task, NOT
-   shared — `render()` already covers the shared side.)
+3. **D4 — ✅ DONE (2026-06-28).** `LuSwitchPresets` moved out of `LuModelCatalog.vue` (Providers) →
+   `RoutingByJob.vue` as a collapsed "Advanced · engine type presets" `<details>` (conscious placement:
+   it pre-fills the per-Profile switches, so it lives with them, not in Compare). §6.6 satisfied;
+   **Phase D COMPLETE.** Verify: build:vite + smoke (both clean).
+4. **E2 rest — DECISIONS RESOLVED (user: "go with your recommendations" → a1 + b1). NOW BUILDING.**
+   - **(a1) reasoning-effort enum, ALL providers:** `think` bool → an enum (off/low/med/high) mapped to
+     each provider's native reasoning — local llama.cpp `chat_template_kwargs:{enable_thinking}`,
+     Anthropic `thinking:{type,budget_tokens}`, Gemini `thinkingConfig:{thinkingBudget}`, Ollama `think`.
+     **Fixes the verified latent bug: today `think` is honored ONLY by Ollama** (`ollama.py:106-107,151-152`);
+     `openai_compat.py:111,157` (local llama.cpp + OpenAI clouds), `anthropic.py:88,139`, `gemini.py:132,171`
+     all accept-and-DROP it. MUST keep the B3 json-mode guardrail (`prompts._effective_think` — reasoning
+     off under json_mode).
+   - **(b1) token-count = heuristic + GGUF-when-local:** chars÷~3.5 with a safety margin for the
+     context/budget guard (conservative — never under-warn) + the loaded model's GGUF tokenizer when a
+     local model is running; prompt-preview + token-count + budget guard in the lab/workbench. No
+     per-provider count round-trips (latency/deps).
+   - (Story-bible injection = a JW-app task, NOT shared — `render()` already covers the shared side.)
 
 **ENV / RUN (don't re-hunt):**
 - Runner gate: `cd /home/user/just-llm-runner && python -m pytest -q && ruff check`.

@@ -149,6 +149,12 @@ time: present a plan → user approves → I build → user reviews → next pla
   entries** (not a chat plan) — that's what fires the plan/task events.
 
 ## Recently shipped (newest first — detail in the linked doc)
+- **Phase D4 DONE → Phase D COMPLETE** (this session): `LuSwitchPresets` (the base/moe/mtp engine
+  type-preset editor) moved OUT of the Providers tab (`LuModelCatalog.vue`) INTO **Routing-by-job** as a
+  collapsed "Advanced · engine type presets" section — the last switch-editing UI is now out of Providers
+  (§6.6 satisfied). Conscious placement: it pre-fills the per-Profile switches, so it lives with them (not
+  in Compare, which the handoff had suggested). Verified: build:vite + smoke (0 JS errors). **Tail left:
+  E2 (a1+b1) — decisions resolved, building next.**
 - **Phase D2 Compare + ConfigColumn DONE** (this session): the multi-column **Compare lab**.
   New shared `ui/src/components/ConfigColumn.vue` = one runnable config (model + params + Plane-2
   sampler KnobGrid + Run + tok/s readout), owning the run + decode-tok/s math ONCE. New
