@@ -73,7 +73,15 @@ load with ad-hoc Plane-1 flags + measure tok/s; measure-only per D9); **D2 Compa
    `RoutingByJob.vue` as a collapsed "Advanced · engine type presets" `<details>` (conscious placement:
    it pre-fills the per-Profile switches, so it lives with them, not in Compare). §6.6 satisfied;
    **Phase D COMPLETE.** Verify: build:vite + smoke (both clean).
-4. **E2 rest — DECISIONS RESOLVED (user: "go with your recommendations" → a1 + b1). NOW BUILDING.**
+4. **E2 rest — a1 ✅ DONE (2026-06-28); b1 REMAINS (the last tail item).** Decisions resolved (user:
+   "go with your recommendations" → a1 + b1).
+   - **a1 reasoning-effort enum ✅ DONE:** per-action Off/Low/Med/High mapped to each provider's native
+     reasoning (web-verified). Fixed the latent bug (think honored only by Ollama). Threading kept
+     `dispatch.py`+base Protocol UNCHANGED — level rides `extra["reasoning_effort"]` via shared
+     `base.pop_reasoning_effort` + each adapter's `_apply_reasoning`; data field threaded like `top_p`
+     incl. **feature-presets** (also fixed the pre-existing top_p-dropped-in-presets bug). UI: one
+     `UiSelect` in ConfigColumn. Verified: 172 runner pytest + ruff + build:vite + smoke + curl
+     round-trips. Cloud reasoning is key-gated (not exercisable live here).
    - **(a1) reasoning-effort enum, ALL providers:** `think` bool → an enum (off/low/med/high) mapped to
      each provider's native reasoning — local llama.cpp `chat_template_kwargs:{enable_thinking}`,
      Anthropic `thinking:{type,budget_tokens}`, Gemini `thinkingConfig:{thinkingBudget}`, Ollama `think`.
@@ -84,8 +92,25 @@ load with ad-hoc Plane-1 flags + measure tok/s; measure-only per D9); **D2 Compa
    - **(b1) token-count = heuristic + GGUF-when-local:** chars÷~3.5 with a safety margin for the
      context/budget guard (conservative — never under-warn) + the loaded model's GGUF tokenizer when a
      local model is running; prompt-preview + token-count + budget guard in the lab/workbench. No
-     per-provider count round-trips (latency/deps).
+     per-provider count round-trips (latency/deps). **For "exact when local": llama-server exposes a
+     `/tokenize` endpoint — call it when a bundled model is loaded (no tokenizer reimplementation).**
    - (Story-bible injection = a JW-app task, NOT shared — `render()` already covers the shared side.)
+   - **VERIFIED reasoning APIs (web-checked 2026-06-28 — do NOT recall from memory):** Anthropic
+     `thinking:{type:"enabled",budget_tokens:N}` (N≥1024 AND < max_tokens — so bump max_tokens when on);
+     Gemini `thinkingConfig:{thinkingBudget:N}` (0=off, -1=dynamic, 128–32768; omit when off);
+     OpenAI(-compat cloud) `reasoning_effort` body param (none/low/medium/high, model-dep);
+     local llama.cpp `chat_template_kwargs:{enable_thinking:bool}` per-request; Ollama `think` = bool OR
+     level string ("low"/"medium"/"high"/"max"). **Latent bug a1 fixes:** today `think` is honored ONLY
+     by Ollama; `openai_compat.py:111,157` (local + OpenAI clouds), `anthropic.py:88`, `gemini.py` all
+     accept-and-DROP it. **a1 threading (LOCKED):** keep `think:bool` (B3-gated on/off via
+     `_effective_think`) + add explicit `reasoning_effort:str` ("" | low | med | high) on
+     `dispatch.chat/stream_chat` + the 4 adapters + base Protocol (+ the 2 test fakes:
+     `test_prompts.py:76`, `test_llm_dispatch.py:40`). Adapters apply native reasoning ONLY when
+     `think` True; openai_compat branches on `provider_type` (`local-llamacpp`/`openai-compat` →
+     chat_template_kwargs; `openai`/`deepseek`/`openrouter` → reasoning_effort). Effort→budget:
+     low/med/high → anthropic 1024/4096/8192 (+ bump max_tokens to budget+2048), gemini 2048/8192/24576.
+     Data: add `reasoning_effort` to FeaturePromptRow + db col + RunRequest. UI: ONE select
+     (Off/Low/Med/High) in ConfigColumn → sets {think:(≠Off), reasoning_effort}.
 
 **ENV / RUN (don't re-hunt):**
 - Runner gate: `cd /home/user/just-llm-runner && python -m pytest -q && ruff check`.

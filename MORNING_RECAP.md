@@ -149,6 +149,18 @@ time: present a plan → user approves → I build → user reviews → next pla
   entries** (not a chat plan) — that's what fires the plan/task events.
 
 ## Recently shipped (newest first — detail in the linked doc)
+- **Phase E2-a1 DONE — reasoning-effort enum, all providers** (this session): a per-action
+  **Off/Low/Med/High** select mapped to EACH provider's NATIVE reasoning (Anthropic `thinking.budget_tokens`,
+  Gemini `thinkingConfig.thinkingBudget`, OpenAI-compat cloud `reasoning_effort` / local llama.cpp
+  `chat_template_kwargs.enable_thinking`, Ollama bool|level) — **web-verified 2026-06-28, not recalled.**
+  Fixed the latent bug: `think` was honored ONLY by Ollama; the other 3 adapters accept-and-dropped it.
+  Threading kept `dispatch.py` + the base Protocol UNCHANGED (minimal blast on the critical path) — the
+  level rides `extra["reasoning_effort"]` via a shared `base.pop_reasoning_effort` helper + each adapter's
+  `_apply_reasoning`. Data field threaded like `top_p` incl. **feature-presets** (which also fixed a
+  pre-existing top_p-dropped-in-presets bug). UI: one `UiSelect` in ConfigColumn (FW + Compare). B3
+  guardrail preserved (reasoning off under JSON mode). Verified: 172 runner tests (6 new) + ruff +
+  build:vite + headless smoke (0 errors) + curl round-trips + rules-checker (2 findings fixed: docs +
+  preset fidelity). **Tail left: E2-b1 (token-count/preview/budget guard).**
 - **Phase D4 DONE → Phase D COMPLETE** (this session): `LuSwitchPresets` (the base/moe/mtp engine
   type-preset editor) moved OUT of the Providers tab (`LuModelCatalog.vue`) INTO **Routing-by-job** as a
   collapsed "Advanced · engine type presets" section — the last switch-editing UI is now out of Providers
