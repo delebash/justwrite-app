@@ -40,9 +40,10 @@ below.) The user is frustrated/low-trust after the plan's E1 slip; the antidote 
 (`POST /v1/llm-runner/measure`); **D1** (D9 drops of `model_switches`+`pin_switches` + the
 `resolve_profile_switches` load-reader); **D3** (JobPreset + promote; routing-presets DELETED); **E1
 dropped** (JV-not-JW ruling); **E2 sampler-catalog wiring**; **C2 UI** (model-card "Tune & measure" —
-load with ad-hoc Plane-1 flags + measure tok/s; measure-only per D9). + a **3-agent SOUNDNESS pass** that
-corrected the unbuilt tail (master Part 4) — **nothing unsound was built.** Suites: 164 runner + 77
-JW-server tests, ruff, build:vite, headless smoke — all green.
+load with ad-hoc Plane-1 flags + measure tok/s; measure-only per D9); **D2 Compare + ConfigColumn**
+(shared run-config unit; FW refactored to consume it ×1, T3-clean; new Compare lab ranks by tok/s).
++ a **3-agent SOUNDNESS pass** that corrected the unbuilt tail (master Part 4) — **nothing unsound was
+built.** Suites: 165 runner + 77 JW-server tests, ruff, build:vite, headless smoke — all green.
 
 **REMAINING — build in this order (specs + file:line; design decisions already LOCKED):**
 
@@ -57,11 +58,16 @@ JW-server tests, ruff, build:vite, headless smoke — all green.
    per D9 (no per-model switch home; modal points the user to Routing-by-job to persist). Verified: 164
    runner tests + ruff + build:vite + headless smoke (0 JS errors) + live-endpoint curl. Real tok/s +
    the loaded-model Tune path are 🔒 GPU. **NEXT = D2.**
-2. **D2 Compare / ConfigColumn (#21)** — the N-column lab. EXTRACT a `<ConfigColumn>` from
-   `ui/src/views/FeatureWorkbench.vue` (the model picker + params + sampler KnobGrid `:551` + test/run
-   block) into ONE reusable kit component and **make FeatureWorkbench a CONSUMER (render ×1) — do NOT
-   leave a copy** (T3; soundness pass flagged it). A Compare view renders it ×N; run one action across
-   columns; rank by tok/s (reuse `POST /v1/llm-runner/measure`)·time·cost·quality. Verify: build:vite + smoke; tok/s 🔒.
+2. **D2 Compare / ConfigColumn (#21) — ✅ DONE (2026-06-28).** New shared
+   `ui/src/components/ConfigColumn.vue` (model + params + Plane-2 sampler KnobGrid + Run + result/tok/s;
+   owns the run + tok/s math once). New `ui/src/views/Compare.vue` mounted as the "Compare" sub-tab in
+   `AiModelsArea.vue` (N columns, shared input, sequential run, rank by tok/s). **FeatureWorkbench
+   refactored to CONSUME ConfigColumn ×1** (a `columnConfig` computed bridges its draft/samplerRows/pin;
+   old inline editor + runTest GONE — T3-clean, both import the same component). Backend: `/v1/ai/run`
+   returns token usage + accepts ad-hoc `samplers` (same `_plane2_extra` path). Verified: 165 runner
+   pytest + ruff, build:vite, headless smoke 0 errors, Playwright interaction 10/10. Deferred (scope):
+   per-column prompt + Plane-1 switches; real cross-model tok/s 🔒 GPU. Minor follow-up: streamed result
+   "model" stat blank when an action inherits its model. **NEXT = D4.**
 3. **D4** — move `LuSwitchPresets` OUT of `LuModelCatalog.vue:17,244` (Providers) INTO D2's lab; delete
    the import+mount in the same change. Do AFTER D2 (user-deferred). Verify: smoke.
 4. **E2 rest — DECISION-GATED, ask first:** reasoning-effort enum (think bool → low/med/high; MUST keep

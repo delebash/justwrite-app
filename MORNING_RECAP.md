@@ -149,6 +149,17 @@ time: present a plan → user approves → I build → user reviews → next pla
   entries** (not a chat plan) — that's what fires the plan/task events.
 
 ## Recently shipped (newest first — detail in the linked doc)
+- **Phase D2 Compare + ConfigColumn DONE** (this session): the multi-column **Compare lab**.
+  New shared `ui/src/components/ConfigColumn.vue` = one runnable config (model + params + Plane-2
+  sampler KnobGrid + Run + tok/s readout), owning the run + decode-tok/s math ONCE. New
+  `Compare.vue` (a "Compare" AI sub-tab) renders N ConfigColumns for one action with a SHARED
+  input + ranks by tok/s (sequential — local co-residency is GPU-gated). **FeatureWorkbench was
+  refactored to CONSUME ConfigColumn ×1** (a `columnConfig` computed bridges its draft/samplers/pin;
+  the old inline editor + run logic deleted — T3-clean, both import the same unit). Backend:
+  `/v1/ai/run` now returns token usage + accepts ad-hoc per-call `samplers` (same `_plane2_extra`
+  path; also fixed FW's old non-stream tokens:0). Verified: 165 runner tests + ruff + build:vite +
+  headless smoke (0 JS errors) + a Playwright interaction test (10/10) + rules-checker PASS. Real
+  cross-model tok/s 🔒 GPU. **Remaining tail: D4 → E2 (a1+b1).**
 - **Phase C2 UI DONE** (this session): the model-card **"Tune & measure"** in the kit
   `LuModelCatalog.vue` — a `Tune` action (disk/loaded rows) opens a modal with a Plane-1
   `KnobGrid` (`:catalog` from `/v1/ai/knob-catalog`, mirrors Routing-by-job), **pre-filled
