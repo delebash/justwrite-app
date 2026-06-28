@@ -22,7 +22,7 @@
 
 ## Current state (2026-06-27) — DESIGN DONE; build pending the user's go
 
-> ⛔ **THE ONE PLAN: `just-llm-runner/docs/plans/2026-06-27-MASTER-PLAN.md`.**
+> ⛔ **THE ONE PLAN: `just-llm-runner/docs/plans/2026-06-28-MASTER-PLAN.md`.**
 > Everything is in there, in full detail — **✅ what's completed** (file:line) and **⬜ what's
 > outstanding** (phased A–G + the open decisions + JustVoice-later §G), plus the reference
 > per-job×per-tier matrix / switch sets / attribution recipe / license gate (Part 3) and the
@@ -329,7 +329,7 @@ machine-dependent on the A3B MoE, the two config planes, router mode) are the ma
 Do not maintain a second backlog here — add/triage items in the master.
 
 ## Active plan docs (the index) — there is now exactly ONE
-**`just-llm-runner/docs/plans/2026-06-27-MASTER-PLAN.md` is the only current plan.** It folded in
+**`just-llm-runner/docs/plans/2026-06-28-MASTER-PLAN.md` is the only current plan.** It folded in
 everything that used to be split across the LLM status-index, the switch/preset architecture, the
 switch-param lab, the 339-item complete-remaining audit, the jobs-architecture design, the
 model-catalog research, the shared-AI-stack plan, the catalog-cutover / gateway-retirement /
@@ -340,7 +340,7 @@ stay live: `claude-config/README.md` + `EFFECTIVENESS.md` + `RULES-AS-CHECKS-V2-
 separate rules-as-checks track, Plan 1 — unhooked but documented).
 
 ## Where detail lives
-**The plan detail lives in the ONE master** (`just-llm-runner/docs/plans/2026-06-27-MASTER-PLAN.md`).
+**The plan detail lives in the ONE master** (`just-llm-runner/docs/plans/2026-06-28-MASTER-PLAN.md`).
 Architecture + rules → this repo's `CLAUDE.md` + the global `~/.claude/CLAUDE.md`. The
 JustWrite↔JustVoice HTTP boundary → `CONTRACT.md` in the JustVoice repo. Other `docs/plans/*` files
 (both repos) are historical background only.

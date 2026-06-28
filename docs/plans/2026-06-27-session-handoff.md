@@ -10,7 +10,7 @@
 > explicit go first; ⑤ never guess — read code line-by-line, cite file:line. *(The user has had
 > to repeat #1 many times across 2026-06-27 — it is the top cause of lost trust. GET IT.)*
 
-> ⛔ **THE ONE PLAN: `just-llm-runner/docs/plans/2026-06-27-MASTER-PLAN.md`.** It folds in
+> ⛔ **THE ONE PLAN: `just-llm-runner/docs/plans/2026-06-28-MASTER-PLAN.md`.** It folds in
 > EVERYTHING — the switch/preset architecture (Profile+Feature, the shared `<KnobGrid>`, the
 > decision log, the source-verified sampler surface), the model-catalog + Fast/Balanced/Best-dial +
 > attribution research, the code-verified LLM status, and the full outstanding-work backlog — into
@@ -125,7 +125,7 @@ load with ad-hoc Plane-1 flags + measure tok/s; measure-only per D9); **D2 Compa
 - **Schema changed a lot this session** (job_routes.quality · knob_catalog/knob_option · runner_binary/runner_setting · job_presets/job_preset_switches · DROPPED model_switches/pin_switches). On any existing DB the smoke 500s with "no such column" until you **RESET**: `curl -X POST http://127.0.0.1:17495/v1/data/reset` (drop+recreate+reseed — the standing no-migrations policy).
 - GOTCHAS: idle servers get reclaimed → re-boot them. `pkill`/the bracket-trick kills the shell (exit 144) — use `fuser -k 17495/tcp` to free a port. Bash cwd PERSISTS between calls — `cd` to the correct repo each time (runner pytest from just-llm-runner, JW from justwrite-app; a stray `cd` is why a push once went to the wrong repo). The runner is the EDITABLE source JW imports (`/home/user/just-llm-runner/llm_runner`), so runner edits go live in JW after a server restart. Chromium is prebuilt; the smoke's `findChrome()` auto-locates it.
 
-**THE PLAN = the master** (`just-llm-runner/docs/plans/2026-06-27-MASTER-PLAN.md`). Its Phase C/D/E
+**THE PLAN = the master** (`just-llm-runner/docs/plans/2026-06-28-MASTER-PLAN.md`). Its Phase C/D/E
 sections carry the soundness-CORRECTED specs (read them, not the pre-soundness wording); Part 4 records
 the soundness pass + all 4 prior verification passes.
 
@@ -166,7 +166,7 @@ unverified word is what broke trust.
 ## The source of truth — the master (status + plan, both folded in)
 
 The verified status (**what is actually built**, per file:line) and the plan (**what's
-outstanding**) are now BOTH in **`just-llm-runner/docs/plans/2026-06-27-MASTER-PLAN.md`** — Part 1
+outstanding**) are now BOTH in **`just-llm-runner/docs/plans/2026-06-28-MASTER-PLAN.md`** — Part 1
 = completed/file:line, Part 2 = outstanding (phased A–G). It absorbed the code-verified LLM
 status-index (10 agents + 2 confirmers, "trustworthy"), the switch/param lab plan, and the
 339-item complete-remaining audit; all three now carry the "⛔ NOT THE CURRENT PLAN" banner and are
