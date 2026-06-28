@@ -23,6 +23,16 @@
 
 ## ▶▶ RESUME HERE — fresh-context continuation (saved 2026-06-28 for a compaction)
 
+> **⛔ 2026-06-28 UPDATE — the plan + the Compare deviation were FIXED (this supersedes the build-status
+> below).** The prior master was a truncated summary; it was rebuilt to `2026-06-28-MASTER-PLAN.md` (full
+> detail, completeness-checked — 7 condensations restored, long folds 0-gap). The Compare lab (built ~40%
+> wrong vs Decision 23) was rebuilt: one full `<ConfigColumn>` (×1 in Routing-by-feature, ×N in a Compare
+> MODE via `CompareStrip`), separate Compare tab removed; an independent code-vs-plan audit fixed the one
+> remaining gap (FeaturePreset round-trip). **All green:** 174 pytest, build:vite, headless smoke (0 JS
+> errors), interaction 19/19. **Live status + full outcome → `MORNING_RECAP.md` "Current state (2026-06-28)".**
+> Latest commits: runner `5541fd4`, JW `27854e4`. The A–E "DONE/REMAINING" notes below are the PRE-fix
+> record — kept for history; the recap is authoritative.
+
 **CONTROLLING DIRECTIVE (user, this session, verbatim): "just do it all no stoping … finish it
 completely all phases."** → **No-stop mode is ON.** Resume building the REMAINING items below WITHOUT
 re-asking; commit + push each slice; verify each. (The usual "act only on the literal word go" #1 rule

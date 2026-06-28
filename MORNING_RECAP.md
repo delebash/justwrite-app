@@ -20,6 +20,30 @@
 
 ---
 
+## Current state (2026-06-28) — plan rebuilt (truncation fixed) + the big deviation rebuilt + verified
+
+> **The trust reset (2026-06-28):** the prior `2026-06-27-MASTER-PLAN.md` was a TRUNCATED summary that
+> *claimed* full detail — and the Compare lab had been built from it at ~40% of the decided design. Fixed:
+> - **Plan rebuilt** → `2026-06-28-MASTER-PLAN.md` CARRIES the full detail, folded verbatim from the ~12
+>   curated docs, with a COMPLETENESS check (not the accuracy check that missed the truncation 4×): 7
+>   condensations restored, the long folds 0-gap. Conflicts **C1–C7** recorded. Old master bannered
+>   superseded; all pointers repointed. (runner `0d85b0e`, JW `27854e4`)
+> - **Compare/ConfigColumn rebuilt to Decision 23** (C1): ONE full `<ConfigColumn>` (model + Plane-1 switch
+>   KnobGrid + prompt + Plane-2 params + presets/Promote + preview + budget-guard + Run/result w/ cost),
+>   rendered **×1** in Routing-by-feature and **×N** in a Compare **MODE** (`CompareStrip`: 2-up +
+>   horizontal-scroll + collapse-nav, cloud-parallel/local-serial Run-all, promote-the-winner). The separate
+>   Compare tab + `Compare.vue` were removed. (runner `820e597`)
+> - **Independent code-vs-plan audit** (NOT trusting the test suite): A–E all match the plan at file:line
+>   except ONE gap — FeaturePreset dropped `maxTokens`+`jsonMode` on round-trip — now **fixed**
+>   (runner `5541fd4`).
+> - **Verified:** 174 runner pytest + ruff · build:vite · headless smoke (6 AI sub-tabs, 0 JS errors) ·
+>   interaction 19/19. Both repos pushed on `claude/admiring-galileo-il3q0o`.
+>
+> **Remaining = the plan's Part 2 outstanding (NOT deviations):** GPU-gated — #27 router / #29 residency /
+> real tok/s / live per-job switch-apply; research — #28 measured benchmarks; and the [IC] backlog F-items
+> (#23 shared AI task queue, license-flag UI, QuickSetup enhancements, shared-LLM-UI views, cleanup/dedup).
+> Decision-gated: router-vs-spawn (#27 — the user's call).
+
 ## Current state (2026-06-27) — DESIGN DONE; build pending the user's go
 
 > ⛔ **THE ONE PLAN: `just-llm-runner/docs/plans/2026-06-28-MASTER-PLAN.md`.**
