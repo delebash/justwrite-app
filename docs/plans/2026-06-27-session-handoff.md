@@ -253,11 +253,21 @@ decision."** So this is now a continuous build run, not a wait-for-direction sta
 RAM-gate + `runner-manifest.json`→DB + GGUF-orphan wiring; 148 runner + 77 server tests pass) →
 **✅ Phase B COMPLETE** (Fast/Balanced/Best dial: `quality.py` resolve_quality + `/v1/ai/job-quality`
 + UiSegmented dial in Routing-by-job + think-off-under-JSON guardrail; 155 runner + smoke) →
-**▶ Phase C** (KnobGrid tuning UI) → D (the LAB: drop model/pin
+**◐ Phase C: C1 DONE** (knob_catalog tables + `/v1/ai/knob-catalog` + RoutingByJob KnobGrid wired;
+158 runner + smoke), **C2 (per-model Tune & measure UI, #20) REMAINS — real tok/s is GPU-gated** →
+D (the LAB: drop model/pin
 switches per D9, wire job_route_switches reader, Compare/ConfigColumn, JobPreset, move LuSwitchPresets
 out of Providers) → E (extraction scaffolds + sampling set). Each slice is verified (pytest+ruff for
 the runner; build:vite + headless smoke for JW) and committed; pause only for a genuine user-only
 decision (the gated 🔒 items — router-vs-spawn etc. — stay deferred).
+
+**⚠️ Pending decision at D1 (asked, but AskUserQuestion failed twice this session — confirm in
+chat):** D1 per the locked D9 ruling DROPS the `model_switches` + `pin_switches` tables AND their
+routers/resolvers/tests — a destructive, hard-to-fully-reverse step (git-reversible, and
+reseed=drop+recreate is the standing policy, so low-risk, but still deleting shipped code/schema).
+Before executing D1: proceed autonomously through the D9 drops, or pause for an explicit "go"? Until
+answered, treat D1 as the pause point — C2 + the NON-destructive parts of D (the job_route_switches
+load-reader wiring, Compare/ConfigColumn, JobPreset, the §6.6 LuSwitchPresets move) can proceed first.
 
 Historical note (pre-go): when the lab build does start, the sequence (detail in the lab doc) was: review the status index and the lab plan, then direct what
 to build. When the lab build does start, the sequence (detail in the lab doc) is: extract a shared

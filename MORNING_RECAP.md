@@ -149,6 +149,14 @@ time: present a plan → user approves → I build → user reviews → next pla
   entries** (not a chat plan) — that's what fires the plan/task events.
 
 ## Recently shipped (newest first — detail in the linked doc)
+- **Phase C1 DONE** (this session): the **knob_catalog** — `knob_catalog` +
+  `knob_option` DB tables (seeded `DEFAULT_KNOBS`: Plane-1 switches + key Plane-2
+  samplers, with enum options relational), `GET /v1/ai/knob-catalog`, and the
+  Routing-by-job switch KnobGrid wired to render labelled/typed/enum-select inputs.
+  Verified: 158 runner tests + build:vite + smoke. **C2 (per-model Tune & measure,
+  #20) remains — its real tok/s readout is GPU-gated.** NOTE: the new schema
+  (`job_routes.quality` + knob/runner tables) needs a **DB reset** on an existing
+  install (`POST /v1/data/reset`) — the standing drop+reseed-on-schema-change policy.
 - **Phase B COMPLETE** (this session): the **Fast/Balanced/Best dial**. Per job, a
   3-stop `UiSegmented` dial in Routing-by-job resolves a concrete model for the
   detected hardware — `resolve_quality(job, quality, hardware)` fit-filters the
