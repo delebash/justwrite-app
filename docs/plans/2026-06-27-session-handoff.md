@@ -73,8 +73,8 @@ load with ad-hoc Plane-1 flags + measure tok/s; measure-only per D9); **D2 Compa
    `RoutingByJob.vue` as a collapsed "Advanced · engine type presets" `<details>` (conscious placement:
    it pre-fills the per-Profile switches, so it lives with them, not in Compare). §6.6 satisfied;
    **Phase D COMPLETE.** Verify: build:vite + smoke (both clean).
-4. **E2 rest — a1 ✅ DONE (2026-06-28); b1 REMAINS (the last tail item).** Decisions resolved (user:
-   "go with your recommendations" → a1 + b1).
+4. **E2 — ✅ COMPLETE (2026-06-28): a1 + b1 both DONE. THE WHOLE A–E TAIL IS DONE.** Decisions resolved
+   (user: "go with your recommendations" → a1 + b1).
    - **a1 reasoning-effort enum ✅ DONE:** per-action Off/Low/Med/High mapped to each provider's native
      reasoning (web-verified). Fixed the latent bug (think honored only by Ollama). Threading kept
      `dispatch.py`+base Protocol UNCHANGED — level rides `extra["reasoning_effort"]` via shared
@@ -82,6 +82,13 @@ load with ad-hoc Plane-1 flags + measure tok/s; measure-only per D9); **D2 Compa
      incl. **feature-presets** (also fixed the pre-existing top_p-dropped-in-presets bug). UI: one
      `UiSelect` in ConfigColumn. Verified: 172 runner pytest + ruff + build:vite + smoke + curl
      round-trips. Cloud reasoning is key-gated (not exercisable live here).
+   - **b1 prompt-preview + token-count ✅ DONE:** ConfigColumn "Preview & tokens" `<details>` — assembled
+     prompt (`ui/src/tokens.js` `assemblePrompt` mirrors server `render()`) + heuristic count
+     (`estimateTokens` ~chars/3.5) live, upgradable to EXACT on demand via new `POST /v1/llm-runner/tokenize`
+     (`RunnerService.tokenize` proxies the loaded model's /tokenize; graceful `{ok:false}` no-model →
+     heuristic). Wired in FW + Compare (every column previews). Verified: 174 runner pytest (2 new) +
+     ruff + build + smoke + interaction 12/12 ("≈158 tokens" renders). **Deferred (honest):** a HARD
+     context-budget guard needs per-model context-window data we don't have; exact-count is local-only.
    - **(a1) reasoning-effort enum, ALL providers:** `think` bool → an enum (off/low/med/high) mapped to
      each provider's native reasoning — local llama.cpp `chat_template_kwargs:{enable_thinking}`,
      Anthropic `thinking:{type,budget_tokens}`, Gemini `thinkingConfig:{thinkingBudget}`, Ollama `think`.

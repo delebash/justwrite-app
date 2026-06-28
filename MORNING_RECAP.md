@@ -149,6 +149,16 @@ time: present a plan → user approves → I build → user reviews → next pla
   entries** (not a chat plan) — that's what fires the plan/task events.
 
 ## Recently shipped (newest first — detail in the linked doc)
+- **Phase E2-b1 DONE — prompt-preview + token-count → E2 COMPLETE → PHASES A–E ALL DONE** (this session):
+  `ConfigColumn` gained a "Preview & tokens" panel — the **assembled prompt** (system + user template with
+  `{{vars}}` filled; `ui/src/tokens.js` `assemblePrompt` mirrors the server `render()`) + a **token count**:
+  instant heuristic (`estimateTokens` ~chars/3.5) live, upgradable to **exact** on demand via the loaded
+  model's own tokenizer — new `POST /v1/llm-runner/tokenize` (`RunnerService.tokenize` proxies llama-server
+  `/tokenize`; graceful `{ok:false}` with no model → UI keeps the heuristic). Wired in FW + Compare.
+  Verified: 174 runner tests (2 new) + ruff + build:vite + smoke (0 errors) + interaction 12/12. Deferred
+  (honest): a hard context-budget guard needs per-model context-window data we don't have; exact count is
+  local-only. **With this, the entire A–E plan tail is shipped — only Phase F backlog + the 🔒 GPU-gated +
+  🔬 research items remain (see master).**
 - **Phase E2-a1 DONE — reasoning-effort enum, all providers** (this session): a per-action
   **Off/Low/Med/High** select mapped to EACH provider's NATIVE reasoning (Anthropic `thinking.budget_tokens`,
   Gemini `thinkingConfig.thinkingBudget`, OpenAI-compat cloud `reasoning_effort` / local llama.cpp
