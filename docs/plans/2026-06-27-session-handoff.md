@@ -39,22 +39,24 @@ below.) The user is frustrated/low-trust after the plan's E1 slip; the antidote 
 (Fast/Balanced/Best dial + B3 think-guardrail); **C1** knob_catalog; **C2 measure backend**
 (`POST /v1/llm-runner/measure`); **D1** (D9 drops of `model_switches`+`pin_switches` + the
 `resolve_profile_switches` load-reader); **D3** (JobPreset + promote; routing-presets DELETED); **E1
-dropped** (JV-not-JW ruling); **E2 sampler-catalog wiring**. + a **3-agent SOUNDNESS pass** that
-corrected the unbuilt tail (master Part 4) — **nothing unsound was built.** Suites: 162 runner + 77
+dropped** (JV-not-JW ruling); **E2 sampler-catalog wiring**; **C2 UI** (model-card "Tune & measure" —
+load with ad-hoc Plane-1 flags + measure tok/s; measure-only per D9). + a **3-agent SOUNDNESS pass** that
+corrected the unbuilt tail (master Part 4) — **nothing unsound was built.** Suites: 164 runner + 77
 JW-server tests, ruff, build:vite, headless smoke — all green.
 
 **REMAINING — build in this order (specs + file:line; design decisions already LOCKED):**
 
-1. **C2 UI (#20)** — model-card "Tune & measure" in the kit `ui/src/components/LuModelCatalog.vue`.
-   Per model: an expander with a Plane-1 `KnobGrid` (pass `:catalog` = knob_catalog plane-1 subset —
-   MIRROR `ui/src/views/RoutingByJob.vue` which fetches `/v1/ai/knob-catalog` + builds `switchCatalog`)
-   + a "Load & measure" button → `POST /v1/llm-runner/load` (modelId + KnobGrid rows as Overrides) →
-   poll `GET /v1/llm-runner/status` until running/error → `POST /v1/llm-runner/measure` → show
-   `tokensPerSec` + `vramTotalMb`/`ramTotalMb`. **SAVE-TARGET (LOCKED by the soundness pass):** NOT
-   "this model's switches" — `model_switches` is GONE (D9). Save the tuned flags to a **Profile**
-   (active job's `job_route_switches` via `PUT /v1/ai/job-switches`) or **`hardware_switches`**
-   (per-GPU), OR keep C2 measure-only and tell the user to set the flags on a job in Routing-by-job
-   (which already has the KnobGrid). Measure BACKEND is DONE. Verify: build:vite + smoke (real tok/s 🔒 GPU).
+1. **C2 UI (#20) — ✅ DONE (2026-06-28).** Model-card **"Tune & measure"** in the kit
+   `ui/src/components/LuModelCatalog.vue` (a `Tune` action on disk/loaded rows → `AppModal`):
+   Plane-1 `KnobGrid` with `:catalog` (knob_catalog plane-1 subset via `/v1/ai/knob-catalog`, mirrors
+   RoutingByJob), **pre-filled from the model's RESOLVED switches** via a new read-only
+   `GET /v1/ai/model-catalog/switches?modelId=` (reuses `resolve_model_switches`); "Load & measure" →
+   `POST /v1/llm-runner/load` with an ad-hoc **`switches` dict** (new `LoadRequest.switches`, folded in
+   by the EXISTING `lifecycle._switches_to_overrides`+`_merge_overrides` — no client-side flag mapping,
+   unknown keys → extra_flags) → poll `/status` → `POST /measure` → tok/s + VRAM/RAM. **Measure-only**
+   per D9 (no per-model switch home; modal points the user to Routing-by-job to persist). Verified: 164
+   runner tests + ruff + build:vite + headless smoke (0 JS errors) + live-endpoint curl. Real tok/s +
+   the loaded-model Tune path are 🔒 GPU. **NEXT = D2.**
 2. **D2 Compare / ConfigColumn (#21)** — the N-column lab. EXTRACT a `<ConfigColumn>` from
    `ui/src/views/FeatureWorkbench.vue` (the model picker + params + sampler KnobGrid `:551` + test/run
    block) into ONE reusable kit component and **make FeatureWorkbench a CONSUMER (render ×1) — do NOT

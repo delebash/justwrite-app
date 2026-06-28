@@ -149,6 +149,17 @@ time: present a plan → user approves → I build → user reviews → next pla
   entries** (not a chat plan) — that's what fires the plan/task events.
 
 ## Recently shipped (newest first — detail in the linked doc)
+- **Phase C2 UI DONE** (this session): the model-card **"Tune & measure"** in the kit
+  `LuModelCatalog.vue` — a `Tune` action (disk/loaded rows) opens a modal with a Plane-1
+  `KnobGrid` (`:catalog` from `/v1/ai/knob-catalog`, mirrors Routing-by-job), **pre-filled
+  from the model's resolved switches** via a new read-only `GET /v1/ai/model-catalog/switches`
+  (reuses `resolve_model_switches`). "Load & measure" → `POST /v1/llm-runner/load` with an
+  ad-hoc **`switches` dict** (new `LoadRequest.switches`, converted by the EXISTING
+  `_switches_to_overrides`+`_merge_overrides` — no client-side flag mapping) → poll `/status`
+  → `POST /measure` → tok/s + VRAM/RAM. **Measure-only** (per D9 switches live on a Profile,
+  not per-model; the modal points to Routing-by-job to persist). Verified: 164 runner tests +
+  ruff + build:vite + headless smoke (0 JS errors) + live-endpoint curl. Real tok/s 🔒 GPU.
+  **Remaining tail: D2 Compare → D4 → E2 (a1+b1, building now).**
 - **Soundness pass + D3 + C2-backend + E2-wins** (this session, after the user
   flagged E1 slipping 4 passes). **SOUNDNESS PASS (3 agents)** — the dimension the 4
   fidelity-passes missed (does each item contradict an app's CLAUDE.md / duplicate
