@@ -57,20 +57,24 @@ preset-assignment matrix felt wrong sitting at the bottom of the feature/Lab scr
 noting it is "full circle" to the old jobs screen except it is now a PRESET (not an engine/model) with categories assigned
 to it — which is what they wanted. So the assignment matrix was extracted out of `FeatureWorkbench.vue` into a dedicated
 page, `ui/src/views/AssignPresets.vue` (NEW): a global Default preset dropdown plus one dropdown per category, persisting via
-PUT `/v1/ai/preset-assignments/default` and `/category`. The single remaining open question is purely WHERE that page lives
-in the AI sub-nav — a placement/naming call that is the user's to make by feel, not a design change — so `AiModelsArea.vue`
-temporarily mounts `AssignPresets` two ways for the user to compare: variant A reuses the old "Routing by job" tab slot
-renamed to "Routing", variant B is a new "Assignments" tab. Three files are uncommitted (about to be committed/pushed so the
-user can pull and walk through both placements): `AssignPresets.vue` (new), `AiModelsArea.vue` (both variants mounted),
-`FeatureWorkbench.vue` (matrix removed). `FeatureWorkbench.vue` also still carries clearly-identified dead legacy code (the
-old job/pin/promote/feature-preset helpers and the unused `LuModelPicker`/`LuJobSelect` imports — full list in the design
-doc's tracker); the live paths are intact and real, and the dead code comes out in the same cleanup commit as the placement
-decision. Verified this turn: `npm run build:vite` exits 0 and `node scripts/headless-smoke.mjs` passes with zero JS errors
-across all routes and all 8 AI sub-tabs (both new placement variants render clean).
+PUT `/v1/ai/preset-assignments/default` and `/category`. The placement/naming was the user's call to make by feel (not a
+design change), so `AiModelsArea.vue` first mounted `AssignPresets` two ways for the user to compare (variant A = the old
+"Routing by job" tab slot renamed "Routing"; variant B = a new "Assignments" tab; both shipped at runner `7688c71` so the
+user could walk through them). **The user chose: name it "Routing by category", positioned right after Tuning.** That is now
+applied — the variant-A "Routing" tab and section were removed, the surviving tab is `tab==='category'` labelled "Routing by
+category" after "Tuning", and the final AI sub-nav reads: Providers & models · Routing by feature · Tuning · Routing by
+category · Recommendations · Usage · (host app tab). In the same finalize the `FeatureWorkbench.vue` dead legacy code was
+removed (the old job/pin/promote/feature-preset helpers, the `jobs`/`presets`/`saving` refs and their `load()` fetches, the
+set-all helpers, the orphaned `byId`/`providerName`, and the unused `LuModelPicker`/`LuJobSelect`/`ConfigColumn` imports;
+the top-of-file comment was rewritten to the two-mode reality), with the live paths left intact. Verified: `npm run
+build:vite` exits 0 and `node scripts/headless-smoke.mjs` passes with zero JS errors across all routes and now 7 AI sub-tabs
+("Routing by category" renders clean; Routing-by-feature and Tuning still render). The full enumerated removal list lives in
+the design doc's LIVE TRACKER.
 
-**Remaining for this redesign:** (1) user picks the assignment-page placement → remove the losing variant; (2) the
-`FeatureWorkbench.vue` dead-code cleanup + re-verify; (3) QuickSetup auto-generating a ready-made preset per task at first
-run, assigned to each category; (4) the download "use it for ‹task›?" offer + Retune/Retune-all + the load-time
+**Remaining for this redesign:** (1) ✅ placement decided ("Routing by category", after Tuning) + variant A removed; (2) ✅
+`FeatureWorkbench.vue` dead-code cleanup + re-verify (build + smoke clean); (3) QuickSetup auto-generating a ready-made
+preset per task at first run, assigned to each category; (4) the download "use it for ‹task›?" offer + Retune/Retune-all +
+the load-time
 fits/doesn't-fit warning; (5) removing the obsolete "Routing by job" engine screen + the job switch-editor. The user's plan
 is to walk through the build on their own machine and decide by feel as each piece lands.
 
