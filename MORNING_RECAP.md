@@ -78,11 +78,21 @@ The user then walked the build on their own machine (Windows / RTX 2070 SUPER 8 
    re-check).** Root cause: a `class=` on `<UiSelect>` falls through to its `SelectRoot` wrapper, NOT the visible
    `SelectTrigger`, so `max-width` did nothing — the cap is the UiSelect **`width` prop** (`ui-w-{token}`:
    token 110 / id 180 / name 280 / …). Set `width="name"` (280px) + moved "Use in production" next to the dropdown.
-5. **Samplers grid rework — PENDING (the big one, NOT started).** Prefilled checklist from `knob_catalog` (which already
-   has `default_value` / `position` / `kind`, so NO new backend data), common-first by `position`, each row
-   enable/disable + value, add-custom, reset-to-defaults, fixed-height scroll, anchored on llama.cpp; provider-tagging
-   DEFERRED ("research later"); do it ADDITIVELY (a new KnobGrid checklist mode, opt-in) so the other KnobGrid call
-   sites + JustVoice are NOT disturbed.
+5. **Samplers + switches grid rework — DONE (2026-06-29; full prose in the design doc's Trial-4 #5 entry).** The
+   add-a-blank-row sampler/switch editors in `ConfigColumn` are now a **prefilled checklist** from `knob_catalog`. The
+   shared `KnobGrid` got an opt-in `checklist` mode (props `checklist`/`catalogList`/`exclude`/`scrollMax`); the existing
+   add-row UI is the byte-unchanged `v-else`, so the other live consumers (`LuModelCatalog`, `RoutingByJob`) + JustVoice
+   are untouched. Each row = enable/disable checkbox + kind-aware value (enum→select, int/float→number, bool→checkbox
+   only at `"true"`), a per-row ↺ reset-to-default, an `＋ Add custom` row, a footer **Reset to defaults**, in a
+   fixed-height scroll; rows are common-first (the catalog API already returns them ordered). NO backend change (the
+   catalog already has `kind`/`default`/order; the UI reads the RAW rows — wire field is `default`). **⚠ One judgment
+   call made while the user slept (flagged to reverse in seconds):** two `:exclude` lists prevent a double-edit bug —
+   samplers hide `temperature`+`top_p` (already in the params row), switches hide `n_cpu_moe` (the Hardware-fit knob).
+   An excluded knob already set in a preset is NOT dropped — it shows in a raw "Other keys" section. Verified:
+   `build:vite` 0, headless smoke 0 JS errors (Routing-by-feature + LuModelCatalog's legacy grid both render), a
+   dedicated Playwright check green (prefill, order, both excludes, toggle enables the value), ruff + pytest clean. A
+   2-checker rules panel ran on the plan BEFORE coding; findings folded in. Files: `KnobGrid.vue`, `ConfigColumn.vue`,
+   `CompareStrip.vue`, `FeatureWorkbench.vue` (all in `just-llm-runner/ui/src`).
 
 **⛔ Hard rule the user reaffirmed forcefully this session: ZERO decisions on my own — do EXACTLY what's asked, nothing
 adjacent; a question is a question (answer it, do not act); stop and ask on anything ambiguous.** Most of this session's
@@ -92,10 +102,12 @@ churn came from me removing things off a *question* + inventing a prompt-persist
 (it degrades gracefully — scrolls as before — until then). I have the JV repo in scope and CAN verify it; the user said
 NOT to for now.
 
-**Remaining for this redesign (in order):** (1) the user's visual re-check of the preset-dropdown width fix (#4);
-(2) the samplers grid rework (#5, above); (3) the JustVoice AI host flex-fill wrapper; (4) QuickSetup auto-generating a
-ready-made preset per task at first run; (5) the download "use it for ‹task›?" offer + Retune/Retune-all + the load-time
-fits/doesn't-fit warning; (6) deleting the now-unmounted `RoutingByJob.vue` + the job switch-editor.
+**Remaining for this redesign (in order):** (1) the user's visual re-check of BOTH the preset-dropdown width fix (#4)
+and the new samplers/switches checklist (#5) — including whether `temperature`/`top_p`/`n_cpu_moe` should be shown IN
+the grid (delete the matching `:exclude` on the `<KnobGrid>` in `ConfigColumn.vue` to do so); (2) the JustVoice AI host
+flex-fill wrapper; (3) QuickSetup auto-generating a ready-made preset per task at first run; (4) the download "use it
+for ‹task›?" offer + Retune/Retune-all + the load-time fits/doesn't-fit warning; (5) deleting the now-unmounted
+`RoutingByJob.vue` + the job switch-editor.
 
 ---
 
