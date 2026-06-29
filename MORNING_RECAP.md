@@ -94,6 +94,21 @@ The user then walked the build on their own machine (Windows / RTX 2070 SUPER 8 
    2-checker rules panel ran on the plan BEFORE coding; findings folded in. Files: `KnobGrid.vue`, `ConfigColumn.vue`,
    `CompareStrip.vue`, `FeatureWorkbench.vue` (all in `just-llm-runner/ui/src`).
 
+**Knob-catalog expansion + Common/Advanced tiers — DONE (2026-06-29; full plan +
+`just-llm-runner/docs/plans/2026-06-29-knob-catalog-expansion.md`).** After researching llama.cpp's full
+sampler/hardware surface (current `tools/server/README.md` + smcleod guide + llama-param-pal) the user chose
+"full set + Common/Advanced split" + "add the free hardware switches + better help." Added a `tier`
+(common|advanced) column to `knob_catalog`; seeded **15 new rows** — 11 samplers (repeat_last_n, mirostat
+tau/eta, dry base/allowed_length/penalty_last_n, xtc_threshold, dynatemp range/exponent, top_n_sigma,
+min_keep) + 4 already-plumbed switches (ubatch_size, threads_batch, cache_reuse, cont_batching) — all with
+README-cited defaults; clearer novice help on existing switches. The checklist now shows **Common** rows +
+an **"▸ Advanced (N)"** expander (anti-overwhelm). Also fixed a real gap: bool switches now render an
+**On/Off select** (not checkbox-only) so default-on flags (cont_batching, mlock) can be set OFF. NO runner
+code (samplers ride `extra`; the 4 switches are typed `Overrides` fields). **Schema bump → existing installs
+Reset workspace** (drop+reseed policy). Verified: ruff + 179 pytest + build:vite + headless smoke (0 errors,
+LuModelCatalog intact) + a 10/10 Playwright check. Run BEFORE coding: a rules-checker on the plan (caught:
+cite defaults per-value, ship the upgrade story, include bool in reset, write the doc first).
+
 **⛔ Hard rule the user reaffirmed forcefully this session: ZERO decisions on my own — do EXACTLY what's asked, nothing
 adjacent; a question is a question (answer it, do not act); stop and ask on anything ambiguous.** Most of this session's
 churn came from me removing things off a *question* + inventing a prompt-persistence "bubble" — do not repeat that.
