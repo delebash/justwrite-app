@@ -28,10 +28,16 @@ function runStream(opts) {
 <template>
   <PaneHeader eyebrow="AI" title="Providers, routing &amp; usage" />
   <div class="pane-card">
-    <div class="scrollarea" style="padding: 22px">
+    <!-- Flex-fill (NOT the scrolling .scrollarea): the AI area scrolls its own
+         nav + content panes internally; the page itself doesn't scroll. -->
+    <div class="ai-fill">
       <AiModelsArea app-tab-label="Writing AI" :run-stream="runStream">
         <template #app-tab><WritingAiSettings /></template>
       </AiModelsArea>
     </div>
   </div>
 </template>
+
+<style scoped>
+.ai-fill { flex: 1; min-height: 0; display: flex; flex-direction: column; padding: 22px; }
+</style>
