@@ -55,31 +55,47 @@ reworked to speak engine-presets (`74f7819`). Commit chain: `f18e80b` (doc) · `
 `7acb78d` (dispatch) · `5d309be` (first preset UI) · `ecc9e87` (slim routing-by-feature + drop popup) · `74f7819` (Lab is
 the editor).
 
-**What is uncommitted right now, and the one open decision.** After the user reviewed the Lab they said the
-preset-assignment matrix felt wrong sitting at the bottom of the feature/Lab screen and suggested it become its own page,
-noting it is "full circle" to the old jobs screen except it is now a PRESET (not an engine/model) with categories assigned
-to it — which is what they wanted. So the assignment matrix was extracted out of `FeatureWorkbench.vue` into a dedicated
-page, `ui/src/views/AssignPresets.vue` (NEW): a global Default preset dropdown plus one dropdown per category, persisting via
-PUT `/v1/ai/preset-assignments/default` and `/category`. The placement/naming was the user's call to make by feel (not a
-design change), so `AiModelsArea.vue` first mounted `AssignPresets` two ways for the user to compare (variant A = the old
-"Routing by job" tab slot renamed "Routing"; variant B = a new "Assignments" tab; both shipped at runner `7688c71` so the
-user could walk through them). **The user chose: name it "Routing by category", positioned right after Tuning.** That is now
-applied — the variant-A "Routing" tab and section were removed, the surviving tab is `tab==='category'` labelled "Routing by
-category" after "Tuning", and the final AI sub-nav reads: Providers & models · Routing by feature · Tuning · Routing by
-category · Recommendations · Usage · (host app tab). In the same finalize the `FeatureWorkbench.vue` dead legacy code was
-removed (the old job/pin/promote/feature-preset helpers, the `jobs`/`presets`/`saving` refs and their `load()` fetches, the
-set-all helpers, the orphaned `byId`/`providerName`, and the unused `LuModelPicker`/`LuJobSelect`/`ConfigColumn` imports;
-the top-of-file comment was rewritten to the two-mode reality), with the live paths left intact. Verified: `npm run
-build:vite` exits 0 and `node scripts/headless-smoke.mjs` passes with zero JS errors across all routes and now 7 AI sub-tabs
-("Routing by category" renders clean; Routing-by-feature and Tuning still render). The full enumerated removal list lives in
-the design doc's LIVE TRACKER.
+**Current screen + walk-through state (Trial 4, 2026-06-29 — the full blow-by-blow + complete commit chain are in
+the design doc's Trial iteration log).** The earlier "Routing by category" SEPARATE tab (Trial 2) was SUPERSEDED — the
+whole AI area is now ONE page. The **Routing by feature** tab holds everything: the LEFT list is the feature nav with a
+per-category **set-all preset dropdown** (+ a **Reset** that re-inherits) on each category heading; the RIGHT pane is the
+selected feature's **prompt** (the "testing prompt" — it lives in the column, NOT duplicated above) plus the **Tune
+presets** column workbench (one column = full width, "+ Add column" to compare, "Save as preset"). The Tuning and
+Routing-by-category tabs are GONE; the AI sub-nav is now: Providers & models · Routing by feature · Recommendations ·
+Usage · (host app tab). The global Default row was removed (user: "use your recommendation"); the per-category dropdown
+was kept (user: the left nav is otherwise correct).
 
-**Remaining for this redesign:** (1) ✅ placement decided ("Routing by category", after Tuning) + variant A removed; (2) ✅
-`FeatureWorkbench.vue` dead-code cleanup + re-verify (build + smoke clean); (3) QuickSetup auto-generating a ready-made
-preset per task at first run, assigned to each category; (4) the download "use it for ‹task›?" offer + Retune/Retune-all +
-the load-time
-fits/doesn't-fit warning; (5) removing the obsolete "Routing by job" engine screen + the job switch-editor. The user's plan
-is to walk through the build on their own machine and decide by feel as each piece lands.
+The user then walked the build on their own machine (Windows / RTX 2070 SUPER 8 GB) and drove FIVE fixes:
+1. **Page must not scroll — only the nav + content — DONE.** Flex chain (the first `height:100%` attempt FAILED —
+   %-height doesn't resolve through a flex item, so the page still scrolled): `AiView` wraps the area in a flex-fill
+   `.ai-fill` instead of the scrolling `.scrollarea`; `.lu-area` / `.lu-tab-fill` / `.lu-fw` are `flex:1`; panes
+   `overflow-y:auto`. Verified programmatically `pageOverflow 0`. (runner `81d9875`, JW `5877090`.)
+2. **Remove the per-feature engine-preset dropdown — DONE** (runner `1302f88`).
+3. **"Use in production" — DONE.** Always-visible button in the column preset bar; sets the feature's preset
+   (`FeaturePresetRef`); the column preselects + loads the feature's in-production preset on open; reads
+   "✓ In production" when it is the live one. (`1302f88` + `81d9875`.)
+4. **Preset dropdown was full-width — FIX JUST APPLIED (uncommitted-or-just-committed at compaction; needs visual
+   re-check).** Root cause: a `class=` on `<UiSelect>` falls through to its `SelectRoot` wrapper, NOT the visible
+   `SelectTrigger`, so `max-width` did nothing — the cap is the UiSelect **`width` prop** (`ui-w-{token}`:
+   token 110 / id 180 / name 280 / …). Set `width="name"` (280px) + moved "Use in production" next to the dropdown.
+5. **Samplers grid rework — PENDING (the big one, NOT started).** Prefilled checklist from `knob_catalog` (which already
+   has `default_value` / `position` / `kind`, so NO new backend data), common-first by `position`, each row
+   enable/disable + value, add-custom, reset-to-defaults, fixed-height scroll, anchored on llama.cpp; provider-tagging
+   DEFERRED ("research later"); do it ADDITIVELY (a new KnobGrid checklist mode, opt-in) so the other KnobGrid call
+   sites + JustVoice are NOT disturbed.
+
+**⛔ Hard rule the user reaffirmed forcefully this session: ZERO decisions on my own — do EXACTLY what's asked, nothing
+adjacent; a question is a question (answer it, do not act); stop and ask on anything ambiguous.** Most of this session's
+churn came from me removing things off a *question* + inventing a prompt-persistence "bubble" — do not repeat that.
+
+**JV note:** the scroll fix touches the SHARED kit, so JustVoice's AI host needs the same flex-fill wrapper as `AiView`
+(it degrades gracefully — scrolls as before — until then). I have the JV repo in scope and CAN verify it; the user said
+NOT to for now.
+
+**Remaining for this redesign (in order):** (1) the user's visual re-check of the preset-dropdown width fix (#4);
+(2) the samplers grid rework (#5, above); (3) the JustVoice AI host flex-fill wrapper; (4) QuickSetup auto-generating a
+ready-made preset per task at first run; (5) the download "use it for ‹task›?" offer + Retune/Retune-all + the load-time
+fits/doesn't-fit warning; (6) deleting the now-unmounted `RoutingByJob.vue` + the job switch-editor.
 
 ---
 
