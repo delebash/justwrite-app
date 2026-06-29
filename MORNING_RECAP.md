@@ -23,10 +23,13 @@
 ## Current state (2026-06-29) — AI **Lab + Preset** model: redesign of routing/tuning (in progress)
 
 > **The one current design doc for the AI config model is `just-llm-runner/docs/plans/2026-06-29-ai-lab-preset-model.md`.**
-> It is LOCKED and it SUPERSEDES the job-centric routing in the 2026-06-28 master plan (AREA 1/2, the C1/C2/C3/C5
-> lab/switch resolutions, and the whole "Routing by job" engine screen). The master stays authoritative only for the
-> model catalog / Fit / licensing / model research, which this redesign does not touch. Its "LIVE TRACKER" status block
-> is the single source of truth for where this build stands and is kept in full prose — read it before resuming AI work.
+> Its ENTITIES + CASCADE are LOCKED and SUPERSEDE the job-centric routing in the 2026-06-28 master plan (AREA 1/2, the
+> C1/C2/C3/C5 lab/switch resolutions, and the whole "Routing by job" engine screen). The master stays authoritative only
+> for the model catalog / Fit / licensing / model research, which this redesign does not touch. The AI **screen structure**
+> (which tabs, where assignment/tuning live) is being iterated by TRIAL-AND-ERROR (user, 2026-06-29 — "locking sorta of …
+> trial and error testing different designs until we get it correct"), so the doc's **Trial iteration log** is the live
+> authority for the current tabs/layout; the prose below records the stable model, not each trial. Its "LIVE TRACKER"
+> status block is the single source of truth for where the build stands — read it before resuming AI work.
 
 The redesign was worked out with the user over 2026-06-28/29 and replaces the job-centric model. The core idea: **the Lab
 (the Tuning tab) is the single source of truth.** You build and TEST a complete engine config in the Lab and SAVE it as a
