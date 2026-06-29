@@ -20,6 +20,62 @@
 
 ---
 
+## Current state (2026-06-29) — AI **Lab + Preset** model: redesign of routing/tuning (in progress)
+
+> **The one current design doc for the AI config model is `just-llm-runner/docs/plans/2026-06-29-ai-lab-preset-model.md`.**
+> It is LOCKED and it SUPERSEDES the job-centric routing in the 2026-06-28 master plan (AREA 1/2, the C1/C2/C3/C5
+> lab/switch resolutions, and the whole "Routing by job" engine screen). The master stays authoritative only for the
+> model catalog / Fit / licensing / model research, which this redesign does not touch. Its "LIVE TRACKER" status block
+> is the single source of truth for where this build stands and is kept in full prose — read it before resuming AI work.
+
+The redesign was worked out with the user over 2026-06-28/29 and replaces the job-centric model. The core idea: **the Lab
+(the Tuning tab) is the single source of truth.** You build and TEST a complete engine config in the Lab and SAVE it as a
+**preset** (a preset = model + frozen switches + params, with the two hardware fit-knobs `-ngl`/`--n-cpu-moe` auto-computed
+at load, shown in the Lab, and user-overridable). A **feature** is then just a prompt that points at a preset. Presets are
+assigned in bulk by **category** (the visible feature grouping already in the nav), with a global Default underneath and a
+per-feature override on top — the cascade at call time is feature-override → category preset → global Default. The
+Fast/Balanced/Best dial was dropped and the "job" concept was demoted (task-type survives only as the recommendation key);
+there is no model-per-job routing layer anymore. The reasons, the entities, and the screen list are all written out in full
+in the design doc; do not re-litigate them here.
+
+**What is committed and verified (branch `claude/admiring-galileo-il3q0o`, in `just-llm-runner`).** The entire backend is
+done, tested (178 runner pytest + ruff), and pushed: the data model (`engine_presets` plus the `engine_preset_switches` /
+`engine_preset_samplers` children, plus `category_presets` and `feature_preset_refs`) in `llm_runner/llm/db.py`; the preset
+API (`presets_api.py` — CRUD on `/v1/ai/engine-presets` and the default/category/feature assignment layers on
+`/v1/ai/preset-assignments`); the stores (`stores.py`); the cascade resolver (`preset_resolve.py`); and the dispatch wiring
+in `prompts.py`, where `run_feature`/`stream_feature` resolve the preset, overlay it onto the action's spec as an "effective
+spec", and fall back to the legacy job/pin routing when no preset is assigned so nothing breaks mid-migration. The UI rework
+is also committed: Routing-by-feature was slimmed to just the feature's prompt + an engine-preset picker (`ecc9e87`); the
+wrong standalone preset popup (`EnginePresets.vue`) was deleted; and the Lab (Tuning tab) became the preset editor — each
+`ConfigColumn` is a full engine config you Run and then "Save as preset", with `ConfigColumn.vue` + `CompareStrip.vue`
+reworked to speak engine-presets (`74f7819`). Commit chain: `f18e80b` (doc) · `b11f6b5` (data) · `deacca0` (API+resolver) ·
+`7acb78d` (dispatch) · `5d309be` (first preset UI) · `ecc9e87` (slim routing-by-feature + drop popup) · `74f7819` (Lab is
+the editor).
+
+**What is uncommitted right now, and the one open decision.** After the user reviewed the Lab they said the
+preset-assignment matrix felt wrong sitting at the bottom of the feature/Lab screen and suggested it become its own page,
+noting it is "full circle" to the old jobs screen except it is now a PRESET (not an engine/model) with categories assigned
+to it — which is what they wanted. So the assignment matrix was extracted out of `FeatureWorkbench.vue` into a dedicated
+page, `ui/src/views/AssignPresets.vue` (NEW): a global Default preset dropdown plus one dropdown per category, persisting via
+PUT `/v1/ai/preset-assignments/default` and `/category`. The single remaining open question is purely WHERE that page lives
+in the AI sub-nav — a placement/naming call that is the user's to make by feel, not a design change — so `AiModelsArea.vue`
+temporarily mounts `AssignPresets` two ways for the user to compare: variant A reuses the old "Routing by job" tab slot
+renamed to "Routing", variant B is a new "Assignments" tab. Three files are uncommitted (about to be committed/pushed so the
+user can pull and walk through both placements): `AssignPresets.vue` (new), `AiModelsArea.vue` (both variants mounted),
+`FeatureWorkbench.vue` (matrix removed). `FeatureWorkbench.vue` also still carries clearly-identified dead legacy code (the
+old job/pin/promote/feature-preset helpers and the unused `LuModelPicker`/`LuJobSelect` imports — full list in the design
+doc's tracker); the live paths are intact and real, and the dead code comes out in the same cleanup commit as the placement
+decision. Verified this turn: `npm run build:vite` exits 0 and `node scripts/headless-smoke.mjs` passes with zero JS errors
+across all routes and all 8 AI sub-tabs (both new placement variants render clean).
+
+**Remaining for this redesign:** (1) user picks the assignment-page placement → remove the losing variant; (2) the
+`FeatureWorkbench.vue` dead-code cleanup + re-verify; (3) QuickSetup auto-generating a ready-made preset per task at first
+run, assigned to each category; (4) the download "use it for ‹task›?" offer + Retune/Retune-all + the load-time
+fits/doesn't-fit warning; (5) removing the obsolete "Routing by job" engine screen + the job switch-editor. The user's plan
+is to walk through the build on their own machine and decide by feel as each piece lands.
+
+---
+
 ## Current state (2026-06-28) — plan rebuilt (truncation fixed) + the big deviation rebuilt + verified
 
 > **The trust reset (2026-06-28):** the prior `2026-06-27-MASTER-PLAN.md` was a TRUNCATED summary that
