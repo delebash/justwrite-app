@@ -139,12 +139,17 @@ empirically confirmed earlier this session that `/v1/chat/completions` honors a 
 sampler ORDER is dispatchable TODAY** via the "Add custom sampler" escape (name `samplers`, value
 `dry,top_k,min_p,temperature`).
 
-**▶ NEXT TASK (in progress): the sampler-order REORDER UI** — the only remaining polish. A small reorderable control
-in the Samplers section of `ConfigColumn.vue` (the kit, `just-llm-runner/ui/src/components/`) that reads/writes the
-`{name:"samplers", value:"<comma names>"}` entry in the column's `samplers` array (▲▼ or drag to reorder + a
-"custom order" toggle + reset-to-default), so the user doesn't type the order by hand. Backend is fully ready (the
-comma→array split + dispatch are done); this is frontend-only. Verify with `build:vite` + headless smoke + a
-Playwright check; rules-check the diff; commit to `claude/admiring-galileo-il3q0o`.
+**Sampler-order REORDER UI — DONE (2026-06-29; runner `a07f995` UI + `db21518` doc).** A "Custom sampler order"
+control in `ConfigColumn.vue`'s Samplers section: a `UiCheckbox` toggle (off = engine default order), then the
+default chain (`dry · top_k · typ_p · top_p · min_p · xtc · temperature`) as a list with ▲▼ `UiButton`s + Reset; it
+reads/writes the single reserved `{name:"samplers", value:"<comma names>"}` row in the column's `samplers` array via
+the existing `patch('samplers', …)`, so it persists via the preset + dispatches through the backend comma→array
+split. `KnobGrid` got a `reservedKeys` prop so the order key is hidden from the checklist's "Other keys" (managed by
+this control, not double-shown). Verified: build:vite 0 + headless smoke 0 JS errors + a Playwright check 5/5
+(control present; hidden until enabled; default 7-name order; ▼ reorders; `samplers` not in Other keys);
+rules-checked → PASS. **Part 3 fully complete (dispatch + order + reorder UI).** One small follow-up if ever wanted:
+a frontend unit test for the reorder helpers (`moveOrder`/`writeOrder`) — today they're covered only by the
+Playwright run (the backend dispatch IS unit-tested).
 
 **⛔ Hard rule the user reaffirmed forcefully this session: ZERO decisions on my own — do EXACTLY what's asked, nothing
 adjacent; a question is a question (answer it, do not act); stop and ask on anything ambiguous.** Most of this session's
