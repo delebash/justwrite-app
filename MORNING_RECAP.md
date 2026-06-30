@@ -149,6 +149,30 @@ this control, not double-shown). Verified: build:vite 0 + headless smoke 0 JS er
 (control present; hidden until enabled; default 7-name order; ▼ reorders; `samplers` not in Other keys);
 rules-checked → PASS. **Part 3 fully complete (dispatch + order + reorder UI).**
 
+**Samplers UI → flat 3-column grid — DONE (2026-06-30, user decision superseding the Common/Advanced sampler
+split).** The user, after living with the tiered samplers checklist: *"why don't we just not have the extra
+advanced — anyone who is going to change these params is already at advanced … all in one list … split it into 3
+columns, add[s] one to [the] next column and so on."* So the samplers checklist (`ConfigColumn` → `KnobGrid
+:columns="3"`) now shows all ~21 samplers in one flat 3-column grid, flowing row-major (each successive/added knob
+lands in the next column), no Advanced expander. Built as a reusable `KnobGrid` `columns` prop (`>1` → flat
+multi-column grid, no inner scroll); the `tier` field stays (it still orders the list common-first) and the **Engine
+switches** editor keeps its single-column tiered expander (only samplers went flat — switches weren't in scope). This
+ALSO fixed the layout bug the user reported — clicking a sampler checkbox visibly shifted the layout, worse in
+Advanced: enabling rows / expanding Advanced overflowed the inner `max-height:260px` scroll, and on Windows/WebView2
+(classic space-taking scrollbars; headless Chromium uses overlay scrollbars, so it never reproduced in the gate
+despite many attempts) the scrollbar's appearance reflowed the column. The 3-column grid removes the inner scroll
+(all knobs fit; the column becomes the single scroller — honoring "one scroller per area"), and `scrollbar-gutter:
+stable` on `.ui-kg-scroll` + `.lu-fw-edit` reserves scrollbar space as a backstop. Files (all shared kit, runner):
+`KnobGrid.vue` (columns prop + flat multi-col grid + scrollbar-gutter + CSS), `ConfigColumn.vue` (`:columns="3"`),
+`FeatureWorkbench.vue` (`.lu-fw-edit` scrollbar-gutter). Verified: `build:vite` 0 + `node scripts/headless-smoke.mjs`
+PASSED (all routes + AI sub-tabs + the committed `sampler-order` probe still green, 0 JS errors) + screenshot
+confirmed the grid; user confirmed the look. Honest caveat: the WebView2 scrollbar shift itself can't be rendered in
+headless — the structural fix removes the overflow regardless. *Tracked follow-up (non-blocking, rules-checker
+flagged):* the grid is `repeat(3, minmax(0,1fr))` with a fixed 84px value cell — kept at 3 per the user's explicit
+ask; at narrow `ConfigColumn` widths (Compare mode ×N columns) the labels squeeze (they ellipse → no break/JS error).
+If it ever bites, switch `.ui-kg-check.is-cols` to `repeat(auto-fit, minmax(~180px, 1fr))` for a responsive 3→2→1
+fallback (`KnobGrid.vue` ~`.ui-kg-check.is-cols .ui-kg-scroll`).
+
 **Durable coverage for the reorder control — DONE (2026-06-30).** The 5/5 reorder assertions had lived only in an
 ephemeral scratchpad script; the user asked to "make it durable," so the check was promoted into the committed
 renderer gate as a new probe block inside `scripts/headless-smoke.mjs`. That file already hosts the sibling AI-area
