@@ -147,9 +147,33 @@ the existing `patch('samplers', …)`, so it persists via the preset + dispatche
 split. `KnobGrid` got a `reservedKeys` prop so the order key is hidden from the checklist's "Other keys" (managed by
 this control, not double-shown). Verified: build:vite 0 + headless smoke 0 JS errors + a Playwright check 5/5
 (control present; hidden until enabled; default 7-name order; ▼ reorders; `samplers` not in Other keys);
-rules-checked → PASS. **Part 3 fully complete (dispatch + order + reorder UI).** One small follow-up if ever wanted:
-a frontend unit test for the reorder helpers (`moveOrder`/`writeOrder`) — today they're covered only by the
-Playwright run (the backend dispatch IS unit-tested).
+rules-checked → PASS. **Part 3 fully complete (dispatch + order + reorder UI).**
+
+**Durable coverage for the reorder control — DONE (2026-06-30).** The 5/5 reorder assertions had lived only in an
+ephemeral scratchpad script; the user asked to "make it durable," so the check was promoted into the committed
+renderer gate as a new probe block inside `scripts/headless-smoke.mjs`. That file already hosts the sibling AI-area
+interaction probes (model-manager, recs-job-dropdown, the ai-tab sweep), so the reorder check is one more assertion in
+the same single-boot AI-probe sequence — it shares the one browser launch + error-capture already running, and the
+standard renderer gate now covers it with nothing extra to run. *(Rationale corrected after a rules-checker FAIL:
+an earlier draft justified this as "avoiding duplicated boot scaffolding that the smoke's jscpd/REUSE gate
+discourages" — that was wrong on two counts, verified: `.jscpd.json` only scans `src/renderer/src/**`, NOT `scripts/`,
+so jscpd never polices smoke files; and the repo's standalone pattern `scripts/book-smoke.mjs` deliberately re-copies
+`findChrome`/`waitReady` per the `CLAUDE.md` "copy findChrome()" convention — i.e. duplicated boot scaffolding in a
+standalone smoke file is the accepted norm here, not something discouraged. The genuine reason to co-locate is the
+shared boot session beside the other AI probes; `book-smoke.mjs` is standalone because it's a self-contained
+end-to-end book round-trip, whereas the sampler-order check is just one AI-area assertion.)* The probe navigates
+Routing-by-feature ▸ a feature ▸ Samplers, forces the `<details>` open (a collapsed `<details>` `display:none`-hides
+its children so the checkbox isn't actionable), normalizes the toggle to OFF (so the invariant is deterministic
+regardless of any persisted order — `toggleOrder(true)` always re-seeds DEFAULT), then asserts: the control renders,
+the order list is hidden until enabled, enabling shows the engine-default chain (`dry…temperature`), ▼ reorders it
+(dry → position 2), and the reserved `samplers` key is not double-shown as an "Other key". The same pass also fixed a
+latent probe-hygiene bug it surfaced: the model-manager probe opened the Add-model `AppModal` and never closed it,
+leaving a Reka overlay that blocked later probes' actionability (locator) clicks — it now presses Esc to dismiss
+(closable AppModal → Esc clears it), and the sampler-order probe defensively does the same on entry. Verified: full
+`node scripts/headless-smoke.mjs` PASSED — all routes + every AI sub-tab + model-manager + recs-job-dropdown +
+`sampler-order present=true hidden-until-on=true default-chain=true reorder=true no-dup=true errors=0`, with the
+jscpd + shared-picker REUSE gates green. A pure-`node:test` unit of the extracted helpers remains an option but is
+now redundant for regression-catching — the committed probe exercises the real control end-to-end.
 
 **⛔ Hard rule the user reaffirmed forcefully this session: ZERO decisions on my own — do EXACTLY what's asked, nothing
 adjacent; a question is a question (answer it, do not act); stop and ask on anything ambiguous.** Most of this session's

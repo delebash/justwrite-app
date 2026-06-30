@@ -219,6 +219,10 @@ try {
     if (newErrs) failed++;
     console.log(`${newErrs ? "✗" : "✓"} model-manager   catalog=${hasCat} add-modal=${hasModal} errors=${newErrs}`);
     errors.slice(mark, mark + 4).forEach((e) => console.log("    " + e));
+    // Close the Add-model AppModal so its Reka overlay doesn't block later probes'
+    // (actionability) clicks (closable AppModal → Esc dismisses).
+    await page.keyboard.press("Escape").catch(() => {});
+    await sleep(250);
   } catch (e) {
     console.log(`(model-manager probe skipped: ${String(e.message || e).slice(0, 90)})`);
   }
@@ -264,6 +268,61 @@ try {
     if (jobId) await fetch(`${SERVER}/v1/ai/jobs/${encodeURIComponent(jobId)}`, { method: "DELETE" });
   } catch (e) {
     console.log(`(recs-job-dropdown probe skipped: ${String(e.message || e).slice(0, 90)})`);
+  }
+
+  // ── Sampler-order reorder control (#22 / Plane-2). The "Custom sampler order" UI
+  // in ConfigColumn (Routing by feature ▸ pick a feature ▸ Samplers): toggle + ▲▼
+  // list + Reset. Durable cover for the reorder logic that until now lived only in a
+  // scratchpad check. Asserts: the control renders; the order list is hidden until
+  // enabled; enabling writes the engine-default chain (dry…temperature — toggleOrder
+  // always re-seeds DEFAULT, so this is deterministic regardless of any persisted
+  // order); ▼ reorders it (dry → position 2); and the reserved `samplers` key is NOT
+  // double-shown as an "Other key" in the checklist (KnobGrid reservedKeys). Uses
+  // locator clicks (auto-wait/scroll) and FORCES the <details> open (a collapsed
+  // <details> display:none-hides its children, so the checkbox isn't actionable);
+  // fails (not skips) on a throw — the control is deterministically reachable, so a
+  // throw means a real structural regression.
+  try {
+    await page.keyboard.press("Escape").catch(() => {}); // defensive: clear any modal a prior probe left open
+    await page.evaluate(() => { window.location.hash = "#/ai"; });
+    await sleep(500);
+    await page.locator(".lu-subnav a", { hasText: /^Routing by feature$/ }).click();
+    await sleep(700);
+    await page.locator(".lu-fw-card").first().click();
+    await sleep(500);
+    await page.evaluate(() => { const d = document.querySelector(".cc-samplers"); if (d) d.open = true; });
+    await sleep(250);
+    mark = errors.length;
+
+    const orderPresent = (await page.$$eval(".cc-samporder", (e) => e.length)) === 1;
+    const cb = page.locator(".cc-samporder .ui-checkbox").first();
+    // Normalize to OFF so the hidden-until-enabled invariant is testable from a
+    // known state (the loaded config may carry a persisted custom order).
+    if ((await page.$$eval(".cc-samporder-list", (e) => e.length)) > 0) { await cb.click(); await sleep(250); }
+    const hiddenBefore = (await page.$$eval(".cc-samporder-list", (e) => e.length)) === 0;
+    // Enable → toggleOrder(true) seeds the engine-default chain.
+    await cb.click(); await sleep(300);
+    const readNames = () => page.$$eval(".cc-samporder-name", (els) => els.map((e) => e.textContent.replace(/^\s*\d+\.\s*/, "").trim()));
+    const before = await readNames();
+    const defaultOk = before.length === 7 && before[0] === "dry" && before[6] === "temperature";
+    // Move row 1 (dry) down → it swaps with top_k.
+    await page.locator(".cc-samporder-row").first().locator("button", { hasText: "▼" }).click();
+    await sleep(300);
+    const after = await readNames();
+    const reorderOk = after[0] === "top_k" && after[1] === "dry";
+    // The reserved `samplers` key must NOT leak into the checklist "Other keys".
+    const extras = await page.$$eval(".cc-samplers .ui-kg-extra .ui-kg-name input", (els) => els.map((e) => e.value));
+    const notDoubleShown = !extras.includes("samplers");
+
+    const newErrs = errors.length - mark;
+    const ok = orderPresent && hiddenBefore && defaultOk && reorderOk && notDoubleShown && newErrs === 0;
+    if (!ok) failed++;
+    console.log(`${ok ? "✓" : "✗"} sampler-order   present=${orderPresent} hidden-until-on=${hiddenBefore} default-chain=${defaultOk} reorder=${reorderOk} no-dup=${notDoubleShown} errors=${newErrs}`);
+    if (!ok) console.log(`    before=${JSON.stringify(before)} after=${JSON.stringify(after)}`);
+    errors.slice(mark, mark + 4).forEach((e) => console.log("    " + e));
+  } catch (e) {
+    failed++;
+    console.log(`✗ sampler-order  PROBE-FAIL ${String(e.message || e).slice(0, 140)}`);
   }
 
   try {
