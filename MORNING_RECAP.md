@@ -120,11 +120,31 @@ three 2026-06-24 router-leaning docs are bannered with this. SHIPPED the snappy-
 `context_shift` Plane-1 switch (bool, default on) + `cache_reuse` 256, both default-ON via the `base` switch
 preset (applied at model load), wired through Overrides/_parse_switch/_apply (--context-shift / --no-context-shift);
 SWA-safe (llama.cpp auto-disables on Gemma, no crash) + spawn-tested; ruff + 180 pytest + build + smoke clean.
-**⚠ Part 3 (sampler-order UI) is BLOCKED by a verified gap: samplers don't reach production dispatch** —
-`_effective_spec` doesn't apply preset samplers (docstring: "wired in a follow-up") + the UI only GETs
-`/feature-samplers`, never PUTs. So the order UI would be a stub. **Prerequisite = wire samplers→dispatch (merge
-preset/feature samplers in `_plane2_extra`) + persist them from the UI; THEN the order is one entry + a reorder
-list.** This also makes the whole knob-catalog expansion take effect in production — worth doing regardless.
+**Part 3 — sampler dispatch WIRED (2026-06-29; runner `407612b` code + tests, `433b9d1` doc).** The verified gap
+(samplers didn't reach production dispatch) is FIXED. `_plane2_extra(spec, body, preset)` in
+`just-llm-runner/llm_runner/llm/prompts.py` now applies the resolved PRESET's long-tail samplers as the
+lowest-precedence layer (full precedence: per-call `body.samplers` → stored `feature_sampler_params` → the preset's
+`engine_preset_samplers`, each guarded by `not in extra`), and BOTH dispatch call sites (`run_feature` +
+`stream_feature`) pass the resolved `preset` (which `_resolve_preset`/`resolve_feature_preset` already returns as an
+`EnginePresetRow` with `.samplers`). So **every knob from the catalog expansion (top_k, min_p, mirostat, dry, xtc,
+…) now actually takes effect in production**, not just in the in-lab Run test. The reserved **`samplers` key is the
+per-feature sampler ORDER** — a comma-joined name list (`"dry,top_k,min_p,temperature"`) that `_plane2_extra` splits
+into an array for the engine (post-process after all three sampler layers merge). Persistence + load ride the
+PRESET (Save-as-preset → `engine_preset_samplers`; `applyPreset`/`presetToConfig` loads them back into the column),
+so no separate feature-samplers PUT was needed; the per-feature `feature_sampler_params` store still dispatches as
+an override layer. Verified: `ruff` clean + **182 pytest** (2 new: `test_run_applies_preset_samplers_and_order` —
+preset samplers reach `extra` + the order → list; `test_run_body_samplers_override_preset` — body overrides preset);
+empirically confirmed earlier this session that `/v1/chat/completions` honors a per-request `samplers` order
+(garbage↔clean discriminator on stock llama-server). Rules-checked the dispatch diff → PASS. **A per-feature
+sampler ORDER is dispatchable TODAY** via the "Add custom sampler" escape (name `samplers`, value
+`dry,top_k,min_p,temperature`).
+
+**▶ NEXT TASK (in progress): the sampler-order REORDER UI** — the only remaining polish. A small reorderable control
+in the Samplers section of `ConfigColumn.vue` (the kit, `just-llm-runner/ui/src/components/`) that reads/writes the
+`{name:"samplers", value:"<comma names>"}` entry in the column's `samplers` array (▲▼ or drag to reorder + a
+"custom order" toggle + reset-to-default), so the user doesn't type the order by hand. Backend is fully ready (the
+comma→array split + dispatch are done); this is frontend-only. Verify with `build:vite` + headless smoke + a
+Playwright check; rules-check the diff; commit to `claude/admiring-galileo-il3q0o`.
 
 **⛔ Hard rule the user reaffirmed forcefully this session: ZERO decisions on my own — do EXACTLY what's asked, nothing
 adjacent; a question is a question (answer it, do not act); stop and ask on anything ambiguous.** Most of this session's
