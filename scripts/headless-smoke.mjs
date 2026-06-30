@@ -311,7 +311,10 @@ try {
     const after = await readNames();
     const reorderOk = after[0] === "top_k" && after[1] === "dry";
     // The reserved `samplers` key must NOT leak into the checklist "Other keys".
-    const extras = await page.$$eval(".cc-samplers .ui-kg-extra .ui-kg-name input", (els) => els.map((e) => e.value));
+    // NOTE: the UiInput ROOT element carries the .ui-kg-name class (it IS the
+    // <input>), so query .ui-kg-name directly — `.ui-kg-name input` matches nothing
+    // and made this assertion vacuously pass before.
+    const extras = await page.$$eval(".cc-samplers .ui-kg-extra .ui-kg-name", (els) => els.map((e) => e.value));
     const notDoubleShown = !extras.includes("samplers");
 
     const newErrs = errors.length - mark;

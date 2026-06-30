@@ -156,8 +156,10 @@ columns, add[s] one to [the] next column and so on."* So the samplers checklist 
 :columns="3"`) now shows all ~21 samplers in one flat 3-column grid, flowing row-major (each successive/added knob
 lands in the next column), no Advanced expander. Built as a reusable `KnobGrid` `columns` prop (`>1` → flat
 multi-column grid, no inner scroll); the `tier` field stays (it still orders the list common-first) and the **Engine
-switches** editor keeps its single-column tiered expander (only samplers went flat — switches weren't in scope). This
-ALSO fixed the layout bug the user reported — clicking a sampler checkbox visibly shifted the layout, worse in
+switches** editor keeps its single-column tiered expander (only samplers went flat — switches weren't in scope).
+⚠️ **This was BELIEVED to also fix the reported layout shift but did NOT** — the scrollbar root-cause described next was
+later DISPROVEN by measurement (2026-06-30 cont., correction entry below). Recorded for history, the disproven theory was:
+clicking a sampler checkbox visibly shifted the layout, worse in
 Advanced: enabling rows / expanding Advanced overflowed the inner `max-height:260px` scroll, and on Windows/WebView2
 (classic space-taking scrollbars; headless Chromium uses overlay scrollbars, so it never reproduced in the gate
 despite many attempts) the scrollbar's appearance reflowed the column. The 3-column grid removes the inner scroll
@@ -172,6 +174,57 @@ flagged):* the grid is `repeat(3, minmax(0,1fr))` with a fixed 84px value cell �
 ask; at narrow `ConfigColumn` widths (Compare mode ×N columns) the labels squeeze (they ellipse → no break/JS error).
 If it ever bites, switch `.ui-kg-check.is-cols` to `repeat(auto-fit, minmax(~180px, 1fr))` for a responsive 3→2→1
 fallback (`KnobGrid.vue` ~`.ui-kg-check.is-cols .ui-kg-scroll`).
+
+**Samplers grid stability + persistence investigation — IN PROGRESS (2026-06-30 cont.).** The user reported, after
+the 3-column landed, that: (1) clicking a checkbox STILL visibly shifts the layout (worse in Advanced) and the reorder
+control "has the same css problem" so it can't be tested; (2) at narrow widths the columns "kept shrinking" instead of
+staying their size and scrolling ("code smell in your css design"); (3) the samplers should be "scrollable after a
+certain height"; (4) "adding custom samplers doesn't persist to presets." The user re-stated the 8 standing rules
+(never guess; verify line-by-line; reuse components; plan is the live SSOT tracker; don't override design docs —
+notify; docs always full-detail). A live task tracker was created (#67 shift root-cause, #68 persistence, #69
+scroll/shrink, #70 reorder CSS, #71 verify+docs). Findings + actions, each VERIFIED in code (no guessing):
+
+— **#67 (the shift): my earlier scrollbar root-cause is DISPROVEN.** A scroll-chain probe (walking every ancestor of
+`.cc`) shows the ONLY scroller in the AI feature area is `.lu-fw-edit`; it is ALWAYS scrolling (content ~1492px > the
+~712px viewport) with `scrollbar-gutter: stable` already applied; the page itself never scrolls; toggling a sampler
+checkbox changes nothing (no element moves, no scrollbar toggles); the order-reveal only grows height while the
+scrollbar was already present. So the scrollbar never appears/disappears — it cannot be the shift, and
+`scrollbar-gutter` was already on the right (and only) scroller. Net: I cannot reproduce the horizontal shift in
+headless Chromium (it uses overlay scrollbars; even forcing `::-webkit-scrollbar` width did not make it take space),
+which strongly implies the shift is specific to the user's Windows/WebView2 rendering in a way headless does not
+replicate. I am NOT shipping a third guess; #67 is blocked pending a short screen recording or two same-scroll
+before/after screenshots from the user so the exact moving element can be identified.
+
+— **#69 (scroll cap + no column shrink): FIXED + verified.** Restored a stable capped vertical scroll on the
+multi-column samplers grid (was `maxHeight:none` in cols mode → now uses the `scrollMax` cap, 260px, with the
+existing `overflow-y:auto` + `scrollbar-gutter:stable`) so it is "scrollable after a certain height" without shifting.
+Changed the grid from `repeat(3, minmax(0,1fr))` (which let columns collapse to ~112px in a 360px Compare column) to
+`repeat(var(--kg-cols,3), minmax(210px,1fr))` + `overflow-x:auto`, so columns KEEP a usable min width and the grid
+SCROLLS horizontally instead of shrinking (matching the user's "it is off scrollable" — not shrink-to-fit). Verified
+by measurement: single wide column → 3 tracks at 351px each, vertical scroll on, no horizontal scroll; a 366px Compare
+column → 3 tracks HOLD 210px each (no squeeze) with horizontal scroll on. Reused the shared `KnobGrid` `columns` prop
+(no fork). Files: `KnobGrid.vue` (`.ui-kg-scroll` maxHeight now always `scrollMax`; `.ui-kg-check.is-cols .ui-kg-scroll`
+→ `minmax(210px,1fr)` + `overflow-x:auto`).
+
+— **#68 (custom sampler persistence): VERIFIED WORKING — not a save bug.** Empirical end-to-end test (Rule 4): in the
+real UI, "+ Add custom sampler" → typed `zcustomknob=7` → "Save as preset" (inline `.cc-name-in` name field + Enter)
+→ `GET /v1/ai/engine-presets` returns the preset with `samplers:[{flagName:"zcustomknob",flagValue:"7"}]`. So a named
+custom sampler DOES persist through Save-as-preset (backend also independently confirmed via a direct POST/GET curl).
+My first test wrongly reported a failure — it had SELECTOR bugs (the UiInput ROOT element carries the `.ui-kg-name` /
+`.ui-kg-val` class, i.e. it IS the `<input>`; `.ui-kg-name input` matches nothing) and looked for a save DIALOG when
+the flow uses an inline name field. The remaining gap is by DESIGN, not a bug: per-feature sampler edits do NOT
+auto-persist — persistence rides PRESETS (Save-as-preset → `engine_preset_samplers`), there is no per-feature
+`/feature-samplers` PUT (knob-catalog doc §Reorder records this). So if the user added a custom sampler and expected it
+to stick WITHOUT saving a preset, it won't. Whether to add per-feature auto-persist is a DESIGN change → raised with
+the user, not decided unilaterally (Rule 6).
+
+— **Smoke test correctness fix:** the committed `sampler-order` probe's `no-dup` assertion used the same wrong
+`.ui-kg-extra .ui-kg-name input` selector, so it was vacuously always-true. Corrected to query `.ui-kg-name`
+directly (the input). Full `headless-smoke.mjs` still PASSES (all routes + AI sub-tabs + sampler-order probe green).
+
+— **#70 (reorder control):** reproduced — it renders cleanly after #69 (7 rows, names `dry · top_k · typ_p · top_p ·
+min_p · xtc · temperature`, no JS errors) and its rows do not shrink (left-aligned `minmax(140px,200px)` grid). Its
+only remaining issue is the #67 shift on reveal, so #70 is tied to #67 (the recording).
 
 **Durable coverage for the reorder control — DONE (2026-06-30).** The 5/5 reorder assertions had lived only in an
 ephemeral scratchpad script; the user asked to "make it durable," so the check was promoted into the committed
