@@ -109,6 +109,23 @@ Reset workspace** (drop+reseed policy). Verified: ruff + 179 pytest + build:vite
 LuModelCatalog intact) + a 10/10 Playwright check. Run BEFORE coding: a rules-checker on the plan (caught:
 cite defaults per-value, ship the upgrade story, include bool in reset, write the doc first).
 
+**LLM-runner engine decision + snappy-edit defaults (2026-06-29; full detail in
+`just-llm-runner/docs/plans/2026-06-29-knob-catalog-expansion.md` §DECISION).** After fact-checking a hard
+KoboldCpp/TabbyAPI/Aphrodite pitch (most claims outdated/wrong vs current llama.cpp — KV-quant, grammar,
+per-request samplers + sampler ORDER, context-shift, cache-reuse are all already in stock llama.cpp; verified,
+incl. an empirical test that `/v1/chat/completions` honors a per-request `samplers` order), the user CONFIRMED:
+**stay on stock `ggml-org/llama.cpp` + spawn-per-model; router mode deferred** (low-VRAM trap + 1-model common
+case); Kobold/Tabby (EXL2 = GPU-only no-offload, NVIDIA-only)/Aphrodite rejected. **Task #27 resolved.** The
+three 2026-06-24 router-leaning docs are bannered with this. SHIPPED the snappy-edit defaults: a new
+`context_shift` Plane-1 switch (bool, default on) + `cache_reuse` 256, both default-ON via the `base` switch
+preset (applied at model load), wired through Overrides/_parse_switch/_apply (--context-shift / --no-context-shift);
+SWA-safe (llama.cpp auto-disables on Gemma, no crash) + spawn-tested; ruff + 180 pytest + build + smoke clean.
+**⚠ Part 3 (sampler-order UI) is BLOCKED by a verified gap: samplers don't reach production dispatch** —
+`_effective_spec` doesn't apply preset samplers (docstring: "wired in a follow-up") + the UI only GETs
+`/feature-samplers`, never PUTs. So the order UI would be a stub. **Prerequisite = wire samplers→dispatch (merge
+preset/feature samplers in `_plane2_extra`) + persist them from the UI; THEN the order is one entry + a reorder
+list.** This also makes the whole knob-catalog expansion take effect in production — worth doing regardless.
+
 **⛔ Hard rule the user reaffirmed forcefully this session: ZERO decisions on my own — do EXACTLY what's asked, nothing
 adjacent; a question is a question (answer it, do not act); stop and ask on anything ambiguous.** Most of this session's
 churn came from me removing things off a *question* + inventing a prompt-persistence "bubble" — do not repeat that.
