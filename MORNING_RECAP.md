@@ -326,8 +326,18 @@ pytest** (3 new in `test_pricing.py` — reads-DB, edits-take-effect+delete, cas
 `headless-smoke.mjs` (`ai-tab Usage errors=0`) + a live API round-trip (`GET` seeds 14 rows, `PUT gpt-5 → 1.11/2.22`,
 `GET` reflects it) + a UI round-trip probe (set gpt-5 input in the editor → Save → `GET /v1/ai/pricing` returns 7.77).
 **Schema change → existing installs Reset workspace** (drop+reseed). Resolves ai-state-grid open item #7. **Both
-approved hardcoded-value fixes (#74 license, #75 pricing) are now done;** the budget-guard #3 (soft/8192) was NOT
-approved for change — I recommended wiring the real per-model window but left it for the user's call.
+approved hardcoded-value fixes (#74 license, #75 pricing) are now done.**
+
+— **✅ Budget guard (grid item 8 / my audit's #3) DONE (2026-07-01, runner `9e43cbd`; user took the recommendation).**
+Kept SOFT (never a hard block) but killed the silent hardcoded 8192: the budget window now derives from the column's
+OWN `-c` (`ctx_len`) switch — the exact launch value — falling back to the parent's loaded-model ctx, then a **labeled
+"(assumed)"** 8192 the user can still override. The window field shows its source (`(-c)` / `(loaded)` / `(assumed)` /
+`(set)`) so it's honest. Files: `ConfigColumn.vue` (`ctxFromSwitches` / `winOverride` / `windowSource` / `window`).
+Verified: `build:vite` + `headless-smoke` (0 errors) + a probe (no ctx_len → `window (assumed)` 8192; enable ctx_len →
+`window (-c)` 4096). Resolves ai-state-grid item 8. **Think-off = KEEP** (user confirmed the B3 JSON-mode reasoning
+guard stays; no change). **NEXT: json_schema upgrade (O3)** — the user asked to upgrade structured output beyond the
+weak `json_object`; being scoped/built (a per-action JSON schema → `response_format:{type:"json_schema"}` for
+llama.cpp/OpenAI, `responseSchema` for Gemini, best-effort Anthropic).
 
 **Durable coverage for the reorder control — DONE (2026-06-30).** The 5/5 reorder assertions had lived only in an
 ephemeral scratchpad script; the user asked to "make it durable," so the check was promoted into the committed
