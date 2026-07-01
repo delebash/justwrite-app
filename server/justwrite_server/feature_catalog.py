@@ -1,7 +1,6 @@
 """JustWrite's AI feature catalog — the canonical list of routable features with
 their human label, a one-line hint, and the nav category. A per-app feature seed
-(registered with the shared LLM stack via `install_llm`); each feature's JOB
-classification is separate seed DATA (`seed.py` `DEFAULT_FEATURE_JOBS`).
+(registered with the shared LLM stack via `install_llm`).
 
 Server-side + headless-first (the shared `/v1/ai/routing` endpoint serves it).
 """

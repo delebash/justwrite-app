@@ -150,7 +150,6 @@ def create_app(data_dir: Path | None = None) -> FastAPI:
 
     from . import database as _dbmod
     from .feature_catalog import FEATURE_CATALOG
-    from .seed import DEFAULT_FEATURE_JOBS
     from .seed_feature_prompts import DEFAULT_FEATURE_PROMPTS
 
     install_llm(
@@ -159,7 +158,6 @@ def create_app(data_dir: Path | None = None) -> FastAPI:
         session_factory=_dbmod.SessionLocal,
         feature_catalog=FEATURE_CATALOG,
         feature_prompts=DEFAULT_FEATURE_PROMPTS,
-        feature_jobs=DEFAULT_FEATURE_JOBS,
     )
 
     # Headless UI — serve the Vite build (dist/) so `justwrite-server serve` + a

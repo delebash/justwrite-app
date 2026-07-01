@@ -1,10 +1,9 @@
 """Boot-time + reset-time workspace seeding for the JustWrite server.
 
-The LLM seed (providers, catalog, switches, recommendations, jobs, routing, and
-feature prompts) is SHARED — `llm_runner.llm.seed_llm()` seeds it, including the
-feature DATA JustWrite registered via `install_llm` (its feature catalog +
-prompts + the feature→job map below). This module owns only JustWrite's NON-LLM
-seed: the demo project, plus that feature→job DATA (a per-app feature seed).
+The LLM seed (providers, catalog, switches, recommendations, routing, and feature
+prompts) is SHARED — `llm_runner.llm.seed_llm()` seeds it, including the feature
+DATA JustWrite registered via `install_llm` (its feature catalog + prompts). This
+module owns only JustWrite's NON-LLM seed: the demo project.
 """
 
 from __future__ import annotations
@@ -21,37 +20,6 @@ from .demo_seed import DEMO_PROJECT_ID, demo_book_snapshot
 from .models import Setting
 
 log = logging.getLogger(__name__)
-
-
-# JustWrite's feature → job classification — a per-app feature seed (registered
-# with the shared stack via `install_llm`, seeded by the shared seeder). A
-# best-guess, editable in-app. Keys match `feature_catalog.py`.
-DEFAULT_FEATURE_JOBS: list[dict] = [
-    # chat — conversational, RAG-grounded.
-    {"feature_key": "chat", "job_id": "chat"},
-    {"feature_key": "characterChat", "job_id": "chat"},
-    # prose — creative generation / rewriting.
-    {"feature_key": "writerAI", "job_id": "prose"},
-    {"feature_key": "sensory", "job_id": "prose"},
-    {"feature_key": "unstuck", "job_id": "prose"},
-    {"feature_key": "brainstorm", "job_id": "prose"},
-    {"feature_key": "marketingPack", "job_id": "prose"},
-    {"feature_key": "briefing", "job_id": "prose"},
-    {"feature_key": "recap", "job_id": "prose"},
-    # extraction — structured facts out of the text.
-    {"feature_key": "entitySweep", "job_id": "extraction"},
-    {"feature_key": "reverseOutline", "job_id": "extraction"},
-    {"feature_key": "beatSheet", "job_id": "extraction"},
-    {"feature_key": "readerKnowledge", "job_id": "extraction"},
-    {"feature_key": "characterAudit", "job_id": "extraction"},
-    {"feature_key": "relationshipArc", "job_id": "extraction"},
-    # analysis — reasoning / critique / judgment.
-    {"feature_key": "critique", "job_id": "analysis"},
-    {"feature_key": "multiReader", "job_id": "analysis"},
-    {"feature_key": "plotHoles", "job_id": "analysis"},
-    {"feature_key": "foreshadowing", "job_id": "analysis"},
-    {"feature_key": "voiceDrift", "job_id": "analysis"},
-]
 
 
 def seed_demo_project(db: Session) -> bool:

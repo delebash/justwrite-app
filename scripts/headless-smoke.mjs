@@ -227,49 +227,6 @@ try {
     console.log(`(model-manager probe skipped: ${String(e.message || e).slice(0, 90)})`);
   }
 
-  // ── Behavior gate (jobs design §17.1): the Recommendations job dropdown must read
-  // the LIVE job list (LuJobSelect → GET /v1/ai/jobs), NOT a hardcoded copy. Add a
-  // unique job via the API, open the Recommendations "Add" modal, and assert that
-  // opening it (a) fires GET /v1/ai/jobs and (b) the response carries the new job.
-  // A hardcoded list — the bug this replaced — fires NO fetch, so this fails closed.
-  // (Route-render smoke can't catch this: the page renders fine; the list is stale.)
-  try {
-    const label = `zsmoke-${Date.now()}`;
-    const created = await (await fetch(`${SERVER}/v1/ai/jobs`, {
-      method: "POST", headers: { "content-type": "application/json" },
-      body: JSON.stringify({ label, description: "smoke probe" }),
-    })).json();
-    const jobId = (created.rows || []).find((r) => r.label === label)?.id;
-
-    await page.evaluate(() => { window.location.hash = "#/ai"; });
-    await sleep(500);
-    await page.evaluate(() => [...document.querySelectorAll(".lu-subnav a")].find((a) => /recommendation/i.test(a.textContent))?.click());
-    await sleep(600);
-
-    let sawJobsFetch = false, jobsHasNew = false;
-    const onResp = async (r) => {
-      if (r.request().method() === "GET" && /\/v1\/ai\/jobs(\?|$)/.test(r.url())) {
-        sawJobsFetch = true;
-        try { const j = await r.json(); if ((j.rows || []).some((x) => x.id === jobId)) jobsHasNew = true; } catch { /* body gone */ }
-      }
-    };
-    page.on("response", onResp);
-    mark = errors.length;
-    await page.evaluate(() => [...document.querySelectorAll("button, .lu-btn")].find((b) => /add recommendation/i.test(b.textContent))?.click());
-    await sleep(900);
-    page.off("response", onResp);
-
-    const newErrs = errors.length - mark;
-    const ok = jobId && sawJobsFetch && jobsHasNew && newErrs === 0;
-    if (!ok) failed++;
-    console.log(`${ok ? "✓" : "✗"} recs-job-dropdown live-fetch=${sawJobsFetch} has-new-job=${jobsHasNew} errors=${newErrs}`);
-    errors.slice(mark, mark + 4).forEach((e) => console.log("    " + e));
-
-    if (jobId) await fetch(`${SERVER}/v1/ai/jobs/${encodeURIComponent(jobId)}`, { method: "DELETE" });
-  } catch (e) {
-    console.log(`(recs-job-dropdown probe skipped: ${String(e.message || e).slice(0, 90)})`);
-  }
-
   // ── Sampler-order reorder control (#22 / Plane-2). The "Custom sampler order" UI
   // in ConfigColumn (Routing by feature ▸ pick a feature ▸ Samplers): toggle + ▲▼
   // list + Reset. Durable cover for the reorder logic that until now lived only in a
