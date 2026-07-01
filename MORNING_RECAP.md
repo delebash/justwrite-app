@@ -20,6 +20,123 @@
 
 ---
 
+## Current state (2026-07-01) — the **taskKind routing** refactor: kill the job/category duality (IN PROGRESS)
+
+> **The single source of truth for this work is the LIVE STATUS tracker at the top of
+> `just-llm-runner/docs/plans/2026-07-01-taskkind-routing.md` — read its ⛔ LIVE STATUS section FIRST.**
+> This refactor SUPERSEDES the routing/job/category parts of the 2026-06-29 `ai-lab-preset-model.md`
+> doc and the 2026-06-28 master plan. The Lab/preset ENTITIES from the 06-29 doc still stand (a preset
+> = model + frozen switches + params; a feature is a prompt that points at a preset via a cascade);
+> what changes is the ROUTING KEY. The "job" routing layer is now DELETED (not merely demoted); the
+> nav grouping field is renamed `category → group` (display-only, zero routing meaning); and the
+> preset-cascade routing key is renamed `category → taskKind` — an action-keyed taxonomy of nine
+> LLM-work shapes (`prose.generate · prose.edit · ideation · creative.structured · summary.grounded ·
+> extract.structured · judge.scored · chat.grounded · chat.inVoice`) that is the ONE routing key, the
+> recommendation tag, and the QuickSetup unit. The cascade at call time is
+> `FeaturePresetRef`(action override) → `TaskKindPreset`(the action's taskKind) → global default.
+
+This refactor came out of the user's 2026-07-01 decision — after reviewing the two research docs
+(`docs/plans/2026-07-01-llm-work-categories-presets-implementation.md`, the OPERATIVE preset spec = "doc 1",
+and `-spec.md`, the SUPERSEDED "doc 2" whose `summary.grounded` preset wrongly assumes per-feature
+`json_mode`) — that the human-facing feature nav and the LLM routing taxonomy are two different things
+and must not be conflated: "clean up any code, I don't want a mix of job or categories … Renaming files
+or names is what a professional developer would do … Go." Locked decisions (do NOT re-litigate): **D1**
+naming = `group` (nav, display-only) + `taskKind` (the one routing key, action-keyed); **D2** = one
+taxonomy, so `model_recommendations.job` is retagged to `task_kind` with the nine fine values (no coarse
+second taxonomy); **D3** = the Fast/Balanced/Best quality dial is DELETED (it was dropped 06-29 and its
+only UI was already unmounted). The design was validated by five rules-checker passes before any code
+landed (one taskKind cascade, `fit.py` preserved so fit-aware auto-pick survives, action-keyed
+`_task_kind_of`, atomic phasing, JustVoice-safe). The per-file strict-diff touch-list for everything
+below lives in the plan doc — this recap is the map, it points there rather than duplicating it.
+
+**PHASE 1 — DELETE the job routing layer + the quality dial — COMPLETE, VERIFIED, PUSHED.** The entire
+inert `job` routing machinery and the dropped quality dial are gone from the shared package and both host
+apps. In `just-llm-runner` the commits are `2d49180` (the plan doc as the live tracker), `d3aa712` (the
+shared-backend deletion — the six job tables `Job`/`FeatureJob`/`JobRoute`/`JobRouteSwitch`/`JobPreset`/
+`JobPresetSwitch`; the whole files `jobs_api.py`, `job_switches_api.py`, `job_presets_api.py`,
+`quality.py`, `quality_api.py` and their tests; `_resolve_job`; `LLMJobTarget`; `LLMConfig.jobs`/
+`feature_jobs`/`default_job_id`; the `jobs` axis in `routing_api.py`, keeping only `default` + `pins`;
+`switch_resolve.resolve_profile_switches`/`prefill_job_switches`; the `seed.py` job seeders + their
+`seed_llm` calls + the `__init__.py` exports), `d840da7` (the shared-UI half — job methods stripped from
+`useRouting.js`, the `/v1/ai/feature-jobs` fetch + `jobs` axis removed from `FeatureWorkbench.vue`, the
+dead `RoutingByJob.vue` deleted), and `d916e41` (cleanup — removed the dead `loadSwitches`/`featureJobs`
+from `FeatureWorkbench.vue` that still called the now-deleted `/v1/ai/job-switches`, plus three stale
+comments). In `justwrite-app` (this repo): `70f2de1` (the two research docs) → `f35fbc2` (the JW backend
+half — `feature_jobs=` dropped from the `install_llm(...)` call in `app.py`, `DEFAULT_FEATURE_JOBS`
+deleted from `seed.py`, the catalog docstring fixed, the two job-routing tests in
+`server/tests/test_routing.py` rewritten to default+pins) → `4c9b246` (two stale `feature-jobs` comments
+scrubbed). The job layer was proven behaviorally INERT before deletion — `job_routes` was never seeded,
+so `_resolve_job` always returned None and dispatch already fell through to the first registered provider
+— so deleting it changed no real routing behavior. `fit.py`/`coarse_fit` was deliberately KEPT so the
+fit-aware auto-pick is preserved (this answered the user's explicit question about whether auto-pick
+needs to respect VRAM: yes, and that path is untouched). Verification at each step: `just-llm-runner` 180
+pytest + ruff clean; `justwrite-app/server` 76 pytest + ruff clean; `npm run build:vite` compiles the kit
+via the `@delebash/llm-ui` alias; `node scripts/headless-smoke.mjs` PASSED with zero JS errors over every
+route and all five AI sub-tabs. A rules-checker reviewed each diff; the one FAIL (the dead `loadSwitches`
++ stale comments) was fixed in `d916e41`/`4c9b246`. The lesson the checker forced — recorded so it is not
+re-learned — is that **a shared-package change must run the CONSUMERS' gates**: the runner-alone deletion
+looked green in isolation but hard-broke the JustWrite consumer (an `install_llm(feature_jobs=)` TypeError
+plus JW tests and shared UI calling deleted endpoints), so the fix was to complete the JW backend +
+shared-UI cutover and run JW pytest + build + smoke before treating Phase 1 as done.
+
+**PHASE 2 — the RENAMES — IN PROGRESS. Recommendations DONE; the CategoryPreset/taskKind/group renames NOT
+started.** The first Phase-2 sub-unit, `model_recommendations.job → task_kind` (decision D2, one
+taxonomy), is COMPLETE, VERIFIED, PUSHED as `just-llm-runner` `d05e472`: the DB column became `task_kind`,
+`RecommendationRow.job` became `taskKind`, the `RecommendationStore` (`_rec_to_wire`, list order-by, the
+upsert composite key, the `delete(model_id, task_kind)` signature, and the reset loop) and the
+`seed_default_recommendations` seeder were repointed, `SUGGESTED_JOBS` was deleted, and the seeded values
+were retagged from the coarse four (`chat`/`prose`/`extraction`/`analysis`) to the fine work-shapes
+(`chat.grounded` / `prose.generate` / `extract.structured` / `judge.scored`). UI: `RecommendationsEditor.vue`
+now edits `taskKind` (field, table column, filter, sort, and the `/v1/ai/recommendations` query params)
+via a plain `UiInput`, and `LuJobSelect.vue` was deleted — it was the last caller of the deleted
+`/v1/ai/jobs` endpoint. `test_recommendations_catalog.py` was updated to `taskKind` + the new values + the
+new alphabetical order. Verified: 180 runner pytest + ruff; `build:vite`; and a FRESH-server reset +
+headless smoke (the running server was restarted because the schema changed) PASSED with zero JS errors,
+the API confirmed returning `taskKind`-keyed rows.
+
+**PHASE 2/3 — STILL OUTSTANDING (the coupled routing change + the seed). THIS IS THE RESUME POINT after the
+compaction.** These pieces are genuinely coupled and must land together — a partial rename leaves routing
+reading a field that no longer means what it did — so they are ONE unit. In brief (the exact file:line
+touch-list is in the plan doc's LIVE STATUS §"PHASE 2/3"): (a) rename `CategoryPreset → TaskKindPreset`
+(DB class + table, store + singleton + getter, the presets_api Protocol/route/`AssignmentsResponse`,
+`preset_resolve.py`, the `install.py` wiring, and the `FeatureWorkbench.vue` readers); (b) rename
+`_category_of → _task_kind_of` AND make it action-keyed, which is a real BEHAVIOR CHANGE, not a rename —
+`_resolve_preset` must become `task_kind_of(action) or task_kind_of(feature)` so that, e.g., `writerAI.continue`
+(prose.generate) resolves to a different preset than `writerAI.tighten` (prose.edit); (c) rename the nav
+field `category → group` (display-only) across `routing_api.py`, JW `feature_catalog.py`, and the
+`FeatureWorkbench.vue` nav readers; (d) the NEW seed (Phase 3) — a new
+`justwrite-app/server/justwrite_server/seed_presets.py` carrying the eight `DEFAULT_ENGINE_PRESETS`
+(operative doc 1 §4.2), the `FEATURE_TASK_KINDS` action→taskKind map, and the `DEFAULT_TASKKIND_PRESETS`
+assignments, plus shared `seed_default_engine_presets` + `seed_default_taskkind_presets` seeders wired into
+`seed_llm`, `configure_app_seed` growing `engine_presets`/`taskkind_presets`/`feature_task_kinds` (replacing
+the deleted `feature_jobs` slot), `install.py` forwarding them and pointing `_task_kind_of` at
+`app_feature_task_kinds()`, JW `app.py` passing the three, and `seed_feature_prompts.py` gaining the
+per-action temperatures + `json_mode=True` on the JSON actions from doc 1 §4.3. Because this changes DB
+tables it requires `POST /v1/data/reset` (restart the server first — a running server holds the old schema)
++ a fresh-server headless smoke. **PHASE 4** (not started) is the taskKind→preset assignment UI (nine rows +
+a global default), the feature-browse nav staying grouped by the display-only `group`, per-feature-card
+provenance (own override → taskKind → default), plus the deferred, currently-`.catch`-guarded QuickSetup.vue
+`/v1/ai/jobs` cleanup.
+
+**Bonus finding for bug #91 (engine download 404).** `justwrite-app` DOES mount the shared LLM routers via
+`install_llm` (`app.py:156`; the engine-config route is defined at `runner_config_api.py:54` and mounted at
+`install.py:99`), so the editor's HTTP 404 on the user's Windows/RTX-2070 box is almost certainly a STALE
+LOCAL BUILD, not a missing mount — a pull + rebuild should clear it. The full download-fix plan (correct
+cross-platform `DEFAULT_BINARIES`, chip-aware CUDA 12.4-vs-13.3 selection, progress bar, editable
+engine-config panel) is captured separately and its first cut is already committed in `just-llm-runner`
+(`0bc301e` + `201af78` + `5bbef97`); the remaining verify-on-real-hardware work stays open as tasks
+#87–#91. Also open: **#92** — audit that ALL LLM GUI + backend code lives in the shared stack (`just-llm-runner`
++ `@delebash/llm-ui`), not per-app, since the user noted "all llm stuff for jv and jw should be in shared"
+and flagged an AI task-queue that may still need migrating.
+
+**Gates (they RUN in this container):** `just-llm-runner` → `python -m pytest` + `ruff check llm_runner/ tests/`.
+`justwrite-app/server` → `python -m pytest` + `ruff check`. Renderer → from `justwrite-app`, `npm run build:vite`,
+then boot `python -m justwrite_server.cli serve --port 17495` (bg) + `npm run dev:vite` (:1420, bg), `POST
+http://localhost:17495/v1/data/reset` after any schema change (RESTART the server first if the schema changed
+— a running server holds the old schema), then `node scripts/headless-smoke.mjs` (asserts zero JS errors).
+
+---
+
 ## Current state (2026-06-29) — AI **Lab + Preset** model: redesign of routing/tuning (in progress)
 
 > **The one current design doc for the AI config model is `just-llm-runner/docs/plans/2026-06-29-ai-lab-preset-model.md`.**
