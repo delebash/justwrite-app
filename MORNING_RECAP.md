@@ -349,16 +349,55 @@ send). UI: a JSON-schema textarea by the JSON checkbox in `ConfigColumn` (shown 
 invalid hint + `json_schema` in the KnobGrid `reservedKeys`. Verify path: pytest (schema→json_schema; invalid→
 `json_object`; Anthropic drops it) + build + smoke + a round-trip probe. (Full plan also in task #77's description.)
 
-— **✅ Session state (2026-07-01) — SAFE TO COMPACT. Nothing is awaiting user input.** Shipped this session (all on
-`claude/admiring-galileo-il3q0o`, both repos clean + pushed): **#67** checkbox focus-scroll fix (`.ui-checkbox`
-`position:relative`), **#68** persistence decision (keep Save-as-preset), **#69/#70** samplers grid + reorder, **#72**
-sampler-order default 7→9, **#73** stop sequences, **#74** license flag → DB (`use_limited`), **#75** cloud pricing →
-DB + Usage-tab editor, **#3** budget-guard real `-c` (`ctx_len`) window with a labeled fallback. The **ai-state-grid
-audit** of my unapproved "nothing-hardcoded" calls is resolved — items **#6** (license), **#7** (pricing), **#8**
-(budget guard) DONE; the rest were settled by the 06-29 Lab+Preset redesign. **Think-off** = keep (confirmed).
-Discoverability note (not a bug): the model row's **Tune** button only renders when the model is downloaded
-(`LuModelCatalog.vue:365`, status `loaded`/`disk`), so it's hidden until a GGUF is on disk. The only DEFERRED/open item
-is **json_schema (#77)**.
+— **✅ llama.cpp binary DOWNLOAD FIX — cross-platform, chip-aware, progress bar, editable engine config (2026-07-01,
+runner `0bc301e` server + the runner-UI commit).** The user reported "download model is failing and no progress bar"
+(screenshots: the status pill went **"llama.cpp binary" → "failed"** on their Windows / RTX 2070 SUPER CUDA box).
+Root-caused — and VERIFIED against the GitHub releases API + NVIDIA docs this turn, never from memory — to a real data
+bug in TWO layers. **Layer 1** (the download table, `runner/config.py` `DEFAULT_BINARIES`): the Windows CUDA rows
+pointed `asset_url` at `cudart-llama-bin-win-cuda-12.4-x64.zip`, which is the CUDA runtime DLLs ONLY — no
+`llama-server.exe` — so the download and unzip both succeeded and then `binary._find_server_exe` returned None and
+`acquire_binary` raised `RuntimeError: llama-server.exe not found`, surfacing as the bare word "failed"; separately the
+CPU/macOS filenames dropped the build token (404), macOS/Linux ship as `.tar.gz` while `_unzip` was zip-only, and there
+were NO Linux-CPU, AMD/ROCm, or Vulkan rows at all (so those systems fell through to "no binary configured"). **Layer 2**
+(detection, `hardware.detect()`): it only ever set `cuda`/`metal`, always chose `cuda12` (never `cuda13`), and never
+detected AMD or Vulkan — so completing the table without fixing detection would have been hollow. **The fix, in order:**
+(A) a corrected **10-row cross-platform table** — every filename confirmed present on release b9644 via
+`GET api.github.com/.../releases/tags/b9644`, with the build tag interpolated into each name (single source), plus a new
+`BinaryAsset.runtime_url` companion (the cudart DLLs) that `acquire_binary` downloads + unpacks into the same dir, and
+`_unpack` now handles `.tar.gz` (member-sanitized on Python 3.12+) as well as `.zip`; (B) **chip-aware CUDA** —
+`detect()` adds `nvidia-smi compute_cap` (with an old-driver fallback so the GPU is never lost) and `binary._cuda_key`
+picks `cuda13` for Blackwell (compute cap ≥ 10.0 → sm_100/sm_120, which needs CUDA ≥ 12.8) else `cuda12` for older cards
+and unknowns; (C) **AMD/Intel = ROCm/HIP first, Vulkan fallback** (user decision) — detection-gated (ROCm only when its
+runtime is present, else Vulkan), so a HIP build that could not launch is never downloaded, and the NVIDIA fast-path pays
+nothing; (D) a **real progress bar** — `stream_download` reads `Content-Length` and calls `on_progress(downloaded,total)`
+wired through `acquire_binary`/`acquire_model` into the pollable status, rendered by a NEW reusable kit
+`common/components/UiProgress.vue` (the kit had none) in `LuModelCatalog`, which also now surfaces the actual
+`status.error` instead of the bare "failed"; (E) **nothing hardcoded** — a new `/v1/ai/engine-config` CRUD
+(`runner_config_api.py` + `RunnerConfigStore`, following the pricing `make_*_router(get_store)` convention) behind a
+collapsible **Engine binaries (advanced)** editor (`LuRunnerBinaries.vue`, mirroring the inline-editable `PricingEditor`)
+in the Built-in provider form, so the user can paste a corrected asset URL from the llama.cpp releases page (with a link +
+instructions), edit the pinned build + VRAM margin, and Reset to shipped defaults (custom rows preserved). **Schema change
+(`runtime_url` column) → Reset workspace required on real installs** (the dev DB was reset here). Reviewed by two
+independent rules-checker PASS verdicts (server diff + plan) plus a third on the UI diff. **Verified:** 200 runner pytest
++ ruff clean; JW `build:vite` compiles the kit; the headless smoke renders every route incl. the Providers tab with zero
+JS errors; a Playwright probe expanded the panel, edited `windows/cuda12`'s URL, saved (round-tripped the PUT), and Reset
+restored the shipped `llama-b9644-bin-win-cuda-12.4-x64.zip` + its cudart companion; and a forced bad-URL load surfaced a
+real `404 Client Error: Not Found for url: …` in `status.error` — which also proves a valid URL reaches GitHub through the
+proxy, i.e. the corrected URLs will download on the user's machine. Full detail:
+`just-llm-runner/docs/plans/2026-07-01-engine-binaries-download-fix.md`. JustVoice inherits the shared-kit change but was
+NOT verified this session (user's standing scope).
+
+— **✅ Session state (2026-07-01, post-compact) — SAFE TO COMPACT. Nothing is awaiting user input.** THIS session shipped
+the **llama.cpp download fix** (the full entry just above): runner **`0bc301e`** (server — corrected cross-platform table,
+cudart companion + tar.gz unpack, byte-progress plumbing, chip-aware detection, and the editable `/v1/ai/engine-config`
+endpoint) plus the runner **UI commit** (`UiProgress.vue`, `LuRunnerBinaries.vue`, `LuModelCatalog` progress bar + real
+error, `ProviderForm` mount) — both on `claude/admiring-galileo-il3q0o`, verified (200 pytest + ruff, build + smoke, live
+probes). The PRIOR session shipped **#67** checkbox focus-scroll fix, **#68** keep-Save-as-preset, **#69/#70** samplers
+grid + reorder, **#72** sampler-order default 7→9, **#73** stop sequences, **#74** license flag → DB (`use_limited`),
+**#75** cloud pricing → DB + Usage-tab editor, **#3** budget-guard real `-c` (`ctx_len`) window; the **ai-state-grid
+audit** is resolved and **Think-off** = keep. **⚠ Real installs need a Reset workspace** to pick up the schema changes
+this cycle (`use_limited`, `model_pricing`, and now the `runtime_url` column). The only DEFERRED/open item is
+**json_schema (#77)** — do NOT build it without a new explicit "go".
 
 **Durable coverage for the reorder control — DONE (2026-06-30).** The 5/5 reorder assertions had lived only in an
 ephemeral scratchpad script; the user asked to "make it durable," so the check was promoted into the committed

@@ -137,6 +137,7 @@ new visual variants are added as intents in the kit.
 | `UiNumber` | `Intl.NumberFormat` locale-aware grouping (follows `setUiLocale`); reformats on blur; Up/Down step. |
 | `UiTable` | TanStack Vue Table — `:columns`, slot per column `id` for cells, sort/global-filter/pagination, `#empty`, `@row-click`. Needs the `@tanstack/vue-table` peer dep (in `package.json` + `resolve.dedupe`). |
 | `UiColorPicker` | Swatch → popover preset grid + native custom color. Pass `:presets` (JW uses `services/categoricalColors.js` `PRESET_COLORS`). |
+| `UiProgress` | Progress bar — determinate (`:value`/`:max` → % + label) or indeterminate sweep when the total is unknown. Token-styled, `role="progressbar"`. Used for model-download progress. |
 
 ### Shells / services (all from `@delebash/llm-ui`)
 
