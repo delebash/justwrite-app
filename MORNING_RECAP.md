@@ -241,7 +241,9 @@ the flow uses an inline name field. The remaining gap is by DESIGN, not a bug: p
 auto-persist — persistence rides PRESETS (Save-as-preset → `engine_preset_samplers`), there is no per-feature
 `/feature-samplers` PUT (knob-catalog doc §Reorder records this). So if the user added a custom sampler and expected it
 to stick WITHOUT saving a preset, it won't. Whether to add per-feature auto-persist is a DESIGN change → raised with
-the user, not decided unilaterally (Rule 6).
+the user, who **DECIDED (2026-07-01): KEEP Save-as-preset, do NOT add per-feature auto-persist** — the
+`/feature-samplers` PUT idea is dropped (never built). Per-feature edits are intentionally ephemeral until saved into a
+preset.
 
 — **Smoke test correctness fix:** the committed `sampler-order` probe's `no-dup` assertion used the same wrong
 `.ui-kg-extra .ui-kg-name input` selector, so it was vacuously always-true. Corrected to query `.ui-kg-name`
@@ -254,12 +256,13 @@ names `dry · top_k · typ_p · top_p · min_p · xtc · temperature`, no JS err
 `no-dup=true`) stays green. NOTE the still-open **#72** below (the reorder control's DEFAULT chain is 7 names vs
 llama.cpp's 9 — a separate, verified-but-unfixed correctness gap, not a CSS issue).
 
-— **⏸ AWAITING USER INPUT (one open answer):** **#68** — custom samplers persist via Save-as-preset (verified);
-per-feature edits do NOT auto-persist (persistence rides presets by design). Asked the user whether to add per-feature
-auto-persist (a DESIGN change — a new `/feature-samplers` PUT + wiring, would notify/confirm first) or keep
-Save-as-preset as the intended flow. Not yet answered. *(#67 — the checkbox-click shift — is now RESOLVED, see the ✅
-block above: the user narrowed it to `.ui-checkbox`'s hidden input, it was a focus-scroll, fixed in runner `171e0e8`;
-#70 is resolved by the same fix.)*
+— **✅ ALL RESOLVED — nothing is awaiting user input now (2026-07-01).** **#68** — user chose **"keep"**: KEEP
+Save-as-preset as the samplers persistence path; do NOT add per-feature auto-persist. No code change — custom samplers
+already persist correctly through Save-as-preset → `engine_preset_samplers` (verified end-to-end); the `/feature-samplers`
+PUT idea is dropped (never built), per-feature edits stay ephemeral until saved into a preset. **#67** (checkbox-click
+shift) + **#70** (reorder control) — both RESOLVED above via the `.ui-checkbox` focus-scroll fix (runner `171e0e8`).
+Remaining tracked follow-up is **#72** (reorder DEFAULT chain is 7 names vs llama.cpp's 9 — verified, not yet fixed, not
+user-requested) — see the 🐞 block below.
 
 — **🐞 Tracked follow-up (VERIFIED, NOT fixed — do not lose): the reorder control's DEFAULT order is incomplete vs
 llama.cpp.** `ConfigColumn.vue:100` `DEFAULT_SAMPLER_ORDER = ["dry","top_k","typ_p","top_p","min_p","xtc","temperature"]`
