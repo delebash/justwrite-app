@@ -192,8 +192,33 @@ scrollbar was already present. So the scrollbar never appears/disappears — it 
 `scrollbar-gutter` was already on the right (and only) scroller. Net: I cannot reproduce the horizontal shift in
 headless Chromium (it uses overlay scrollbars; even forcing `::-webkit-scrollbar` width did not make it take space),
 which strongly implies the shift is specific to the user's Windows/WebView2 rendering in a way headless does not
-replicate. I am NOT shipping a third guess; #67 is blocked pending a short screen recording or two same-scroll
-before/after screenshots from the user so the exact moving element can be identified.
+replicate. I did NOT ship a third guess — instead the user narrowed it on their WebView2 machine (removing the
+`ui-checkbox-input` class made the shift vanish; re-adding it brought it back), which UNBLOCKED #67.
+
+— **✅ #67 RESOLVED (2026-07-01, runner `171e0e8`).** The cause was a FOCUS-SCROLL on the visually-hidden
+`.ui-checkbox` native input — NOT scrollbars. My earlier headless probes missed it because they toggled the box
+PROGRAMMATICALLY (`input.checked = …` + a `change` event), which never FOCUSES the input, so the focus path never
+ran (that was the missing ingredient). Corrected probe (a real `.focus()` / label click) proved it: `.ui-checkbox-input`
+is `position:absolute` (`just-llm-runner/ui/src/common/styles.css:115`) but its label `.ui-checkbox` was NOT
+`position:relative` (`:114`), so the absolute input anchored to a distant ancestor. When the samplers/switches list is
+scrolled to reach a checkbox, the VISIBLE box scrolls but the hidden input stays STRANDED — measured **1271px** below
+its own box. Clicking the label focuses that stranded input and the browser runs `scrollIntoView` to reveal it, lurching
+the `.lu-fw-edit` / `.pane-card` scroller by **~1263px** — the shift the user saw ("worse in Advanced" = more expanded
+content strands the input further). A pure `input.focus()` (no toggle) scrolling `.pane-card` `0 → 1352` isolated the
+mechanism cleanly. **Fix (one line, shared kit):** add `position: relative` to `.ui-checkbox` so the hidden input is
+anchored to its own label and tracks the visible box (offset 1271px → 8px). Head-to-head candidate test: the one-line
+fix ALONE drops `boxMovedBy` from −1263 to **0** (belt-and-suspenders `+ top:0;left:0` → 3px, input-overlay → 0px were
+measured but unnecessary, so the minimal change shipped). Verified vs the REAL served CSS (no injected style): all 8
+checkboxes across the samplers grid AND the switches Advanced section show `boxMovedBy: 0` with
+`computedPosition=relative`; full `node scripts/headless-smoke.mjs` PASSED (every route + 5 AI sub-tabs +
+sampler-order/model-manager/recs probes, 0 JS errors). It's a SHARED `@delebash/llm-ui` primitive → the fix also lands
+in JustVoice (pure robustness win; JV not re-verified per the user's "not now"). A code comment on `.ui-checkbox` records
+WHY the `position:relative` must stay (it looks deletable). Sibling class-of-bug swept: `UiToggle` is safe (a
+`<button role="switch">`, focus on the visible button, `.ui-toggle` already `position:relative`); the
+`.ui-table-pager-size-label` is a non-focusable sr-only `<label>`; the legacy **`.lu-checkbox`**
+(`just-llm-runner/ui/src/styles.css:50–68`) has the identical unanchored pattern BUT is DEAD CSS (zero refs across
+`*.{js,ts,jsx,tsx,vue,html,mjs}` under `/home/user`) — a pre-`Ui*`-convergence duplicate of `.ui-checkbox`, flagged
+for deletion in a dedup/cleanup pass (T3), not a live bug.
 
 — **#69 (scroll cap + no column shrink): FIXED + verified.** Restored a stable capped vertical scroll on the
 multi-column samplers grid (was `maxHeight:none` in cols mode → now uses the `scrollMax` cap, 260px, with the
@@ -222,17 +247,19 @@ the user, not decided unilaterally (Rule 6).
 `.ui-kg-extra .ui-kg-name input` selector, so it was vacuously always-true. Corrected to query `.ui-kg-name`
 directly (the input). Full `headless-smoke.mjs` still PASSES (all routes + AI sub-tabs + sampler-order probe green).
 
-— **#70 (reorder control):** reproduced — it renders cleanly after #69 (7 rows, names `dry · top_k · typ_p · top_p ·
-min_p · xtc · temperature`, no JS errors) and its rows do not shrink (left-aligned `minmax(140px,200px)` grid). Its
-only remaining issue is the #67 shift on reveal, so #70 is tied to #67 (the recording).
+— **#70 (reorder control): RESOLVED by the #67 fix (2026-07-01).** It already rendered cleanly after #69 (7 rows,
+names `dry · top_k · typ_p · top_p · min_p · xtc · temperature`, no JS errors) with rows that don't shrink (left-aligned
+`minmax(140px,200px)` grid); its only remaining issue was the #67 shift on reveal — and its toggle is the SAME
+`UiCheckbox`, so the `position:relative` anchor fixes it too. The smoke's `sampler-order` probe (`reorder=true`,
+`no-dup=true`) stays green. NOTE the still-open **#72** below (the reorder control's DEFAULT chain is 7 names vs
+llama.cpp's 9 — a separate, verified-but-unfixed correctness gap, not a CSS issue).
 
-— **⏸ AWAITING USER INPUT (do NOT resume these blindly after compaction — the user owes two answers):** (1) **#67**
-— I cannot reproduce the checkbox-click shift in headless (scrollbar theory disproven); it is Windows/WebView2-specific.
-Asked the user for a 3–5s screen recording or two same-scroll before/after screenshots of ONE checkbox click, to
-identify the moving element. Do not ship another guess-fix. (2) **#68** — custom samplers persist via Save-as-preset
-(verified); per-feature edits do NOT auto-persist (persistence rides presets by design). Asked the user whether to add
-per-feature auto-persist (a DESIGN change — a new `/feature-samplers` PUT + wiring, would notify/confirm first) or keep
-Save-as-preset as the intended flow. Neither answered yet as of this compaction.
+— **⏸ AWAITING USER INPUT (one open answer):** **#68** — custom samplers persist via Save-as-preset (verified);
+per-feature edits do NOT auto-persist (persistence rides presets by design). Asked the user whether to add per-feature
+auto-persist (a DESIGN change — a new `/feature-samplers` PUT + wiring, would notify/confirm first) or keep
+Save-as-preset as the intended flow. Not yet answered. *(#67 — the checkbox-click shift — is now RESOLVED, see the ✅
+block above: the user narrowed it to `.ui-checkbox`'s hidden input, it was a focus-scroll, fixed in runner `171e0e8`;
+#70 is resolved by the same fix.)*
 
 — **🐞 Tracked follow-up (VERIFIED, NOT fixed — do not lose): the reorder control's DEFAULT order is incomplete vs
 llama.cpp.** `ConfigColumn.vue:100` `DEFAULT_SAMPLER_ORDER = ["dry","top_k","typ_p","top_p","min_p","xtc","temperature"]`
