@@ -253,26 +253,34 @@ directly (the input). Full `headless-smoke.mjs` still PASSES (all routes + AI su
 names `dry · top_k · typ_p · top_p · min_p · xtc · temperature`, no JS errors) with rows that don't shrink (left-aligned
 `minmax(140px,200px)` grid); its only remaining issue was the #67 shift on reveal — and its toggle is the SAME
 `UiCheckbox`, so the `position:relative` anchor fixes it too. The smoke's `sampler-order` probe (`reorder=true`,
-`no-dup=true`) stays green. NOTE the still-open **#72** below (the reorder control's DEFAULT chain is 7 names vs
-llama.cpp's 9 — a separate, verified-but-unfixed correctness gap, not a CSS issue).
+`no-dup=true`) stays green. **#72** (the reorder control's DEFAULT chain — 7 names vs llama.cpp's 9) is now ALSO
+FIXED (runner `fc090b0`) — see the ✅ block below.
 
 — **✅ ALL RESOLVED — nothing is awaiting user input now (2026-07-01).** **#68** — user chose **"keep"**: KEEP
 Save-as-preset as the samplers persistence path; do NOT add per-feature auto-persist. No code change — custom samplers
 already persist correctly through Save-as-preset → `engine_preset_samplers` (verified end-to-end); the `/feature-samplers`
 PUT idea is dropped (never built), per-feature edits stay ephemeral until saved into a preset. **#67** (checkbox-click
 shift) + **#70** (reorder control) — both RESOLVED above via the `.ui-checkbox` focus-scroll fix (runner `171e0e8`).
-Remaining tracked follow-up is **#72** (reorder DEFAULT chain is 7 names vs llama.cpp's 9 — verified, not yet fixed, not
-user-requested) — see the 🐞 block below.
+**#72** (reorder DEFAULT chain 7→9 names) is now ALSO FIXED (runner `fc090b0`, see the ✅ block below). The only
+remaining OPEN item is the separate top_k/min_p prefill (a UX call, the user's decision), noted in the #72 block.
 
-— **🐞 Tracked follow-up (VERIFIED, NOT fixed — do not lose): the reorder control's DEFAULT order is incomplete vs
-llama.cpp.** `ConfigColumn.vue:100` `DEFAULT_SAMPLER_ORDER = ["dry","top_k","typ_p","top_p","min_p","xtc","temperature"]`
-is **7 names**; llama.cpp's actual default (verified via WebFetch of `tools/server/README.md`) is **9** —
-`penalties;dry;top_n_sigma;top_k;typ_p;top_p;min_p;xtc;temperature`. Since the `samplers` request field is an ordered
-name list and OMITTED names are dropped from the chain, enabling "Custom sampler order" with our default would silently
-DISABLE `penalties` (repeat/presence/frequency) and `top_n_sigma`. Fix (when picked up): make `DEFAULT_SAMPLER_ORDER`
-match llama.cpp's 9-name default, and add `penalties`/`top_n_sigma` to the reorder list. Related (also verified, not
-changed): llama.cpp documents `top_k=40`, `min_p=0.05` defaults but our seed leaves them blank (enabling gives an empty
-box that is dropped at dispatch = engine default) — could prefill the real defaults; that's a UX call for the user.
+— **✅ #72 FIXED (2026-07-01, runner `fc090b0`): the reorder control's DEFAULT order now matches llama.cpp's real
+9-name chain.** Was `ConfigColumn.vue` `DEFAULT_SAMPLER_ORDER = ["dry","top_k","typ_p","top_p","min_p","xtc","temperature"]`
+(7 names). Because the `samplers` request field is an ordered name list where OMITTED names are DROPPED from the chain,
+enabling "Custom sampler order" with the 7-name default silently DISABLED `penalties` (the combined
+repeat/presence/frequency stage) and `top_n_sigma`. **Source-verified (the server README is self-CONTRADICTORY** — its
+request-`samplers` doc shows a 7-name default + "these are all the available values", while its CLI `--samplers` shows
+9; the authoritative source resolves it): `common/common.h` `common_params_sampling.samplers` default = the 9-name
+vector `PENALTIES, DRY, TOP_N_SIGMA, TOP_K, TYPICAL_P, TOP_P, MIN_P, XTC, TEMPERATURE`, and `common/sampling.cpp`
+`common_sampler_types_from_names()` explicitly accepts `"penalties"` and `"top_n_sigma"` as valid request names. So
+`DEFAULT_SAMPLER_ORDER` is now `["penalties","dry","top_n_sigma","top_k","typ_p","top_p","min_p","xtc","temperature"]`
+(the code comment cites common.h/sampling.cpp so it can't drift). The committed smoke `sampler-order` probe
+(`justwrite-app/scripts/headless-smoke.mjs`) was updated to assert the 9-name chain (length 9, penalties→temperature,
+▼ swaps penalties↔dry). Verified: `build:vite` 0 + full `node scripts/headless-smoke.mjs` PASSED
+(`default-chain=true reorder=true no-dup=true errors=0`). **Still OPEN (a separate UX call, NOT fixed — the user's
+decision):** llama.cpp documents `top_k=40`, `min_p=0.05`, `top_p=0.95`, `temperature=0.80` defaults but our seed
+leaves top_k/min_p blank (enabling gives an empty box that is dropped at dispatch = engine default); prefilling the
+real defaults is a UX choice not yet raised/decided — left as-is.
 
 **Durable coverage for the reorder control — DONE (2026-06-30).** The 5/5 reorder assertions had lived only in an
 ephemeral scratchpad script; the user asked to "make it durable," so the check was promoted into the committed

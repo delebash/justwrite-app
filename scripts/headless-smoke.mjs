@@ -274,9 +274,9 @@ try {
   // in ConfigColumn (Routing by feature ▸ pick a feature ▸ Samplers): toggle + ▲▼
   // list + Reset. Durable cover for the reorder logic that until now lived only in a
   // scratchpad check. Asserts: the control renders; the order list is hidden until
-  // enabled; enabling writes the engine-default chain (dry…temperature — toggleOrder
+  // enabled; enabling writes the engine-default chain (penalties…temperature — toggleOrder
   // always re-seeds DEFAULT, so this is deterministic regardless of any persisted
-  // order); ▼ reorders it (dry → position 2); and the reserved `samplers` key is NOT
+  // order); ▼ reorders it (penalties → position 2); and the reserved `samplers` key is NOT
   // double-shown as an "Other key" in the checklist (KnobGrid reservedKeys). Uses
   // locator clicks (auto-wait/scroll) and FORCES the <details> open (a collapsed
   // <details> display:none-hides its children, so the checkbox isn't actionable);
@@ -304,12 +304,16 @@ try {
     await cb.click(); await sleep(300);
     const readNames = () => page.$$eval(".cc-samporder-name", (els) => els.map((e) => e.textContent.replace(/^\s*\d+\.\s*/, "").trim()));
     const before = await readNames();
-    const defaultOk = before.length === 7 && before[0] === "dry" && before[6] === "temperature";
-    // Move row 1 (dry) down → it swaps with top_k.
+    // llama.cpp's real default chain is 9 names (common/common.h
+    // common_params_sampling.samplers): penalties · dry · top_n_sigma · top_k ·
+    // typ_p · top_p · min_p · xtc · temperature. (An earlier 7-name default dropped
+    // penalties + top_n_sigma — #72.)
+    const defaultOk = before.length === 9 && before[0] === "penalties" && before[8] === "temperature";
+    // Move row 1 (penalties) down → it swaps with dry.
     await page.locator(".cc-samporder-row").first().locator("button", { hasText: "▼" }).click();
     await sleep(300);
     const after = await readNames();
-    const reorderOk = after[0] === "top_k" && after[1] === "dry";
+    const reorderOk = after[0] === "dry" && after[1] === "penalties";
     // The reserved `samplers` key must NOT leak into the checklist "Other keys".
     // NOTE: the UiInput ROOT element carries the .ui-kg-name class (it IS the
     // <input>), so query .ui-kg-name directly — `.ui-kg-name input` matches nothing
