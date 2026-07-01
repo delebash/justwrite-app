@@ -301,6 +301,19 @@ Save-as-preset → `GET /v1/ai/engine-presets` returns `{flagName:"stop", flagVa
 Shared kit → JustVoice gets the field too (not re-verified per "not now"). *(Everything else Kobold shows is
 already covered or Kobold-only — not in stock llama.cpp; recorded in the survey answer, not a task.)*
 
+— **✅ #74 License flag → DB (2026-07-01, runner `35d964c`; approved from the ai-state-grid audit of my unapproved
+"nothing-hardcoded" calls).** The hardcoded license-warn regex (`LuModelCatalog.vue`
+`/community|research|non-commercial|llama|gemma|cc-by-nc/i`) is GONE. Added a per-model **`use_limited`** boolean to
+`model_catalog` (`db.py`), threaded through the wire (`CatalogRow.useLimited`), the store both directions
+(`_catalog_to_wire` + upsert), and seeded from the license by a one-time helper `_use_limited()` — the keyword match
+runs ONCE at seed time to populate the flag, which is then DB-stored + editable, so there is NO hardcoded runtime rule.
+The UI reads `m.useLimited` for the ⚠ badge; the add/edit model form gained a **License** input + a **Use-limited**
+checkbox (the form had no license field at all before — a real gap filled). Verified: ruff + **186 pytest** +
+`build:vite` + full `headless-smoke.mjs` (model-manager green, 0 errors) + a live check (after DB reset,
+`GET /v1/ai/model-catalog` returns all 11 rows carrying `useLimited`, ONLY `llama-4-scout` (Llama-Community) flagged —
+correct). **Schema change → existing installs Reset workspace** (drop+reseed policy). Resolves ai-state-grid open item
+#6. **#75 (pricing → DB) is next** (the other approved hardcoded-value fix).
+
 **Durable coverage for the reorder control — DONE (2026-06-30).** The 5/5 reorder assertions had lived only in an
 ephemeral scratchpad script; the user asked to "make it durable," so the check was promoted into the committed
 renderer gate as a new probe block inside `scripts/headless-smoke.mjs`. That file already hosts the sibling AI-area
