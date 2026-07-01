@@ -141,7 +141,7 @@ def create_app(data_dir: Path | None = None) -> FastAPI:
     app.include_router(images.router)
     app.include_router(llm_runner_router)
     # Drop in the ENTIRE shared LLM stack with ONE call. JustWrite provides only
-    # its DB + its feature seed DATA (catalog / prompts / feature→job map);
+    # its DB + its feature seed DATA (catalog / prompts);
     # install_llm creates the LLM tables, wires storage, mounts every /v1/ai +
     # /v1/llm-providers router, sets the DB usage sink, and points the bundled
     # runner's catalog at the DB. The whole LLM stack is shared — nothing else

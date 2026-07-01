@@ -64,7 +64,7 @@ def seed_workspace(db: Session | None = None) -> None:
             return
         db = _db.SessionLocal()
     try:
-        seed_llm(db)           # shared: providers/catalog/switches/recs/jobs/routing/prompts/feature-jobs
+        seed_llm(db)           # shared: providers/catalog/switches/recs/routing/prompts
         seed_demo_project(db)  # JustWrite domain
         db.commit()
     except Exception as e:  # never let a seed failure crash boot / reset
