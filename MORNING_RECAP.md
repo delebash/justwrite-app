@@ -121,11 +121,29 @@ a screenshot of the reworked nav; the live API (8 presets, 9 `taskKinds`, `group
 works, old `/category` → 405); and a JustVoice shared-symbol import check (JV has its OWN `FeatureCatalogEntry`
 and imports none of the renamed symbols — fully insulated). A rules-checker scored the diff PASS on T1–T6 +
 shared-consumer-safety + seed-FK-safety; its one FAIL — the 06-29 `ai-lab-preset-model.md` doc still naming
-the pre-rename symbols as current — was FIXED with a deprecation banner mapping every renamed symbol. **PHASE
-4** (not started) is the taskKind→preset assignment UI (nine rows +
-a global default), the feature-browse nav staying grouped by the display-only `group`, per-feature-card
-provenance (own override → taskKind → default), plus the deferred, currently-`.catch`-guarded QuickSetup.vue
-`/v1/ai/jobs` cleanup.
+the pre-rename symbols as current — was FIXED with a deprecation banner mapping every renamed symbol.
+
+**PHASE 4 — the taskKind assignment UI + card provenance — DONE (except the QuickSetup repoint) — `just-llm-runner`
+`c570b15`.** ⚠ This phase also FIXED a self-inflicted regression: Phase 2/3 (`b04bb72`) had made two UI
+decisions ON MY OWN against the user's designed AI screen — it removed the inline bulk preset-assignment control
+the user's 06-29 Trial-3/4 log had decided to KEEP (inline in Routing-by-feature, not a separate tab; the user
+had corrected that removal once already) and downgraded the card provenance from 3-tier to 2-tier. The user
+caught it, told me to re-read the trial log and fix what I broke, and pre-approved my placement recommendation
+("keep it in the left list, take your recommendation, fix later if needed"). What shipped: a new shared
+`llm_runner/llm/task_kinds_api.py` (canonical `TASK_KINDS` — the nine work-shapes with id+label+description +
+`GET /v1/ai/task-kinds` serving the catalog + the resolved action→taskKind map), mounted in `install.py`; and
+`FeatureWorkbench.vue` with the **3-tier card provenance RESTORED** (own override → the feature's taskKind
+preset → global default, shown as `Continue → Creative prose (voiced) · Generate prose`) and the inline bulk
+assignment RESTORED as a **collapsible "Presets by task kind" panel** at the top of the left list (nine taskKind
+rows, each a preset dropdown via `PUT /preset-assignments/task-kind`, plus a per-row Reset via
+`/clear-features`). Collapsed by default (my one judgment call, user-preapproved) so the feature nav stays
+primary. Verified: 182 runner pytest + ruff (new `test_task_kinds.py`); `build:vite`; headless smoke 0 JS errors;
+live endpoint (9 taskKinds + map); screenshots of both panel states clean; rules-checker PASS on T1–T12. **The
+ONE remaining taskKind item is DEFERRED as a product decision:** `QuickSetup.vue` still calls the deleted
+`/v1/ai/jobs` (`.catch`-guarded → empty, non-breaking) + sends a dead `jobs` PUT field (backend ignores it).
+Repointing it to taskKinds means deciding whether QuickSetup GENERATES a preset per taskKind vs just picks the
+Default model — a real design call the user asked me to stop for, so it's flagged, not guessed (plan doc line 72
+sanctions the stub). Full detail in `just-llm-runner/docs/plans/2026-07-01-taskkind-routing.md` §"PHASE 4".
 
 **Bonus finding for bug #91 (engine download 404).** `justwrite-app` DOES mount the shared LLM routers via
 `install_llm` (`app.py:156`; the engine-config route is defined at `runner_config_api.py:54` and mounted at
