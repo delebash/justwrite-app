@@ -395,9 +395,17 @@ error, `ProviderForm` mount) — both on `claude/admiring-galileo-il3q0o`, verif
 probes). The PRIOR session shipped **#67** checkbox focus-scroll fix, **#68** keep-Save-as-preset, **#69/#70** samplers
 grid + reorder, **#72** sampler-order default 7→9, **#73** stop sequences, **#74** license flag → DB (`use_limited`),
 **#75** cloud pricing → DB + Usage-tab editor, **#3** budget-guard real `-c` (`ctx_len`) window; the **ai-state-grid
-audit** is resolved and **Think-off** = keep. **⚠ Real installs need a Reset workspace** to pick up the schema changes
-this cycle (`use_limited`, `model_pricing`, and now the `runtime_url` column). The only DEFERRED/open item is
-**json_schema (#77)** — do NOT build it without a new explicit "go".
+audit** is resolved and **Think-off** = keep. Also this session: **FIXED** a pre-existing UI bug the rules-checker caught
+(user asked — "#2 fix") — `LuModelCatalog`'s `busy` ref was shared between the row's load/download action and Delete, so
+one button's spinner drove the other; Delete now uses a namespaced `del:<id>` key (verified by `build:vite`). **⚠ Real
+installs need a Reset workspace** to pick up the schema changes this cycle (`use_limited`, `model_pricing`, and now the
+`runtime_url` column). **Deferred follow-ups from the download fix (tracked, none blocking — the editable engine panel is
+the manual escape hatch for each):** **#87** AMD/Intel VRAM detection for the Fit *label* (the *download* selection is
+already correct; only Fit mislabels GPU models "won't fit" on AMD) · **#88** Intel Arc discrete-GPU auto-routing to Vulkan
+· **#89** spawn-time backend retry chain (try the next `_gpu_preference` entry on a spawn failure) · **#90** Linux CUDA
+container/docker binary path (`linux/cuda` is docker-only today → raises NotImplementedError). The only DEFERRED
+**feature** is **json_schema (#77)** — do NOT build it without a new explicit "go". Full detail for all of the above lives
+in `just-llm-runner/docs/plans/2026-07-01-engine-binaries-download-fix.md` (§Fixed follow-up + §Deferred follow-ups).
 
 **Durable coverage for the reorder control — DONE (2026-06-30).** The 5/5 reorder assertions had lived only in an
 ephemeral scratchpad script; the user asked to "make it durable," so the check was promoted into the committed
