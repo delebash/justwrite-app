@@ -312,7 +312,22 @@ checkbox (the form had no license field at all before — a real gap filled). Ve
 `build:vite` + full `headless-smoke.mjs` (model-manager green, 0 errors) + a live check (after DB reset,
 `GET /v1/ai/model-catalog` returns all 11 rows carrying `useLimited`, ONLY `llama-4-scout` (Llama-Community) flagged —
 correct). **Schema change → existing installs Reset workspace** (drop+reseed policy). Resolves ai-state-grid open item
-#6. **#75 (pricing → DB) is next** (the other approved hardcoded-value fix).
+#6.
+
+— **✅ #75 Cloud pricing → DB (2026-07-01, runner `91b6285` backend + UI commit next; approved from the same audit).**
+The hardcoded `pricing.py MODEL_PRICING` dict is no longer the runtime source. Added a seeded **`model_pricing`** table
+(`db.py`: model_id / input_per_m / output_per_m); `pricing.price_for` now reads the **live DB** via a lazy store call
+(`_live_pricing()`), with the renamed `DEFAULT_PRICING` dict kept ONLY as the seed source + a no-DB fallback (bare
+tests / pre-seed boot). New `PricingStore` (`stores.py`) + CRUD router **`/v1/ai/pricing`** (GET/PUT/DELETE,
+`pricing_api.py`), wired in `install.py`; `seed_default_pricing` seeds from the dict (merge-by-id). **UI:** a
+**Cloud pricing** editor (`ui/src/views/PricingEditor.vue`) — an inline-editable table (model id · input $/1M ·
+output $/1M · Save/Delete/Add) — mounted in the **Usage** AI sub-tab (`AiModelsArea.vue`). Verified: ruff + **189
+pytest** (3 new in `test_pricing.py` — reads-DB, edits-take-effect+delete, case-insensitive) + `build:vite` + full
+`headless-smoke.mjs` (`ai-tab Usage errors=0`) + a live API round-trip (`GET` seeds 14 rows, `PUT gpt-5 → 1.11/2.22`,
+`GET` reflects it) + a UI round-trip probe (set gpt-5 input in the editor → Save → `GET /v1/ai/pricing` returns 7.77).
+**Schema change → existing installs Reset workspace** (drop+reseed). Resolves ai-state-grid open item #7. **Both
+approved hardcoded-value fixes (#74 license, #75 pricing) are now done;** the budget-guard #3 (soft/8192) was NOT
+approved for change — I recommended wiring the real per-model window but left it for the user's call.
 
 **Durable coverage for the reorder control — DONE (2026-06-30).** The 5/5 reorder assertions had lived only in an
 ephemeral scratchpad script; the user asked to "make it durable," so the check was promoted into the committed
