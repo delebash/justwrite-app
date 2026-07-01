@@ -79,8 +79,10 @@ looked green in isolation but hard-broke the JustWrite consumer (an `install_llm
 plus JW tests and shared UI calling deleted endpoints), so the fix was to complete the JW backend +
 shared-UI cutover and run JW pytest + build + smoke before treating Phase 1 as done.
 
-**PHASE 2 — the RENAMES — IN PROGRESS. Recommendations DONE; the CategoryPreset/taskKind/group renames NOT
-started.** The first Phase-2 sub-unit, `model_recommendations.job → task_kind` (decision D2, one
+**PHASE 2 — the RENAMES — COMPLETE, VERIFIED, PUSHED.** Both sub-units shipped: (i) the recommendations
+retag as `just-llm-runner` `d05e472`; (ii) the coupled `CategoryPreset → TaskKindPreset` + `category → group`
++ action-keyed resolve + the new seed as `just-llm-runner` `b04bb72` + `justwrite-app` `bb9270a` (detailed in
+PHASE 2/3 below). The first Phase-2 sub-unit, `model_recommendations.job → task_kind` (decision D2, one
 taxonomy), is COMPLETE, VERIFIED, PUSHED as `just-llm-runner` `d05e472`: the DB column became `task_kind`,
 `RecommendationRow.job` became `taskKind`, the `RecommendationStore` (`_rec_to_wire`, list order-by, the
 upsert composite key, the `delete(model_id, task_kind)` signature, and the reset loop) and the
@@ -94,26 +96,33 @@ new alphabetical order. Verified: 180 runner pytest + ruff; `build:vite`; and a 
 headless smoke (the running server was restarted because the schema changed) PASSED with zero JS errors,
 the API confirmed returning `taskKind`-keyed rows.
 
-**PHASE 2/3 — STILL OUTSTANDING (the coupled routing change + the seed). THIS IS THE RESUME POINT after the
-compaction.** These pieces are genuinely coupled and must land together — a partial rename leaves routing
-reading a field that no longer means what it did — so they are ONE unit. In brief (the exact file:line
-touch-list is in the plan doc's LIVE STATUS §"PHASE 2/3"): (a) rename `CategoryPreset → TaskKindPreset`
-(DB class + table, store + singleton + getter, the presets_api Protocol/route/`AssignmentsResponse`,
-`preset_resolve.py`, the `install.py` wiring, and the `FeatureWorkbench.vue` readers); (b) rename
-`_category_of → _task_kind_of` AND make it action-keyed, which is a real BEHAVIOR CHANGE, not a rename —
-`_resolve_preset` must become `task_kind_of(action) or task_kind_of(feature)` so that, e.g., `writerAI.continue`
-(prose.generate) resolves to a different preset than `writerAI.tighten` (prose.edit); (c) rename the nav
-field `category → group` (display-only) across `routing_api.py`, JW `feature_catalog.py`, and the
-`FeatureWorkbench.vue` nav readers; (d) the NEW seed (Phase 3) — a new
-`justwrite-app/server/justwrite_server/seed_presets.py` carrying the eight `DEFAULT_ENGINE_PRESETS`
-(operative doc 1 §4.2), the `FEATURE_TASK_KINDS` action→taskKind map, and the `DEFAULT_TASKKIND_PRESETS`
-assignments, plus shared `seed_default_engine_presets` + `seed_default_taskkind_presets` seeders wired into
-`seed_llm`, `configure_app_seed` growing `engine_presets`/`taskkind_presets`/`feature_task_kinds` (replacing
-the deleted `feature_jobs` slot), `install.py` forwarding them and pointing `_task_kind_of` at
-`app_feature_task_kinds()`, JW `app.py` passing the three, and `seed_feature_prompts.py` gaining the
-per-action temperatures + `json_mode=True` on the JSON actions from doc 1 §4.3. Because this changes DB
-tables it requires `POST /v1/data/reset` (restart the server first — a running server holds the old schema)
-+ a fresh-server headless smoke. **PHASE 4** (not started) is the taskKind→preset assignment UI (nine rows +
+**PHASE 2/3 — the coupled routing change + the seed — COMPLETE, VERIFIED, PUSHED (`just-llm-runner` `b04bb72`,
+`justwrite-app` `bb9270a`).** The rename, the behavior change, and the seed landed together as one unit; the
+exhaustive file-level touch-list + full verification log live in the plan doc's LIVE STATUS §"PHASE 2/3"
+(this recap is the map). What shipped: (a) `CategoryPreset → TaskKindPreset` across the DB table/col, the
+store + getter, the presets_api `TaskKindAssignment` + the route `PUT /preset-assignments/category → /task-kind`
++ `AssignmentsResponse.categories → .taskKinds`, `preset_resolve`, and the `install.py` wiring; (b)
+`_category_of → _task_kind_of` made ACTION-KEYED (reads the app's action→taskKind map + a `writerAI.rule.* →
+prose.edit` prefix rule, never the nav group) plus the real BEHAVIOR CHANGE in `prompts._resolve_preset`
+(`task_kind_of(action) or task_kind_of(feature)`, so writerAI.continue→prose.generate and
+writerAI.tighten→prose.edit route to different presets; the None-guard keeps unwired/test paths on legacy
+routing); (c) nav `category → group` (display-only) in `routing_api`, JW `feature_catalog.py`, and the
+`FeatureWorkbench.vue` nav readers; (d) the NEW seed — `seed_presets.py` (8 engine presets + 9 taskKind
+assignments + the action→taskKind map), the two shared FK-safe seeders wired into `seed_llm`,
+`configure_app_seed`/`install_llm` grown by the three inputs, `app.py` passing them, and
+`seed_feature_prompts.py` given the per-action temps + `json_mode=True` on the JSON actions (doc 1 §4.3;
+json_schema stays deferred as #77). The `FeatureWorkbench.vue` nav now groups by `group` and the
+per-nav-group set-all preset dropdown was RETIRED (it would have written nav-group names into the taskKind
+table); the taskKind→preset assignment surface + full provenance are Phase 4. Verified all-green: runner 180
+pytest + ruff; JW 76 pytest + ruff; an end-to-end seed→resolve harness (the writerAI split, recap→p_extract
+NOT its Home nav-mate, all nine taskKinds resolve, the B3 no-think-under-json invariant); `build:vite`; a
+fresh-server (stale DB deleted) `POST /v1/data/reset` + headless smoke with zero JS errors over every route;
+a screenshot of the reworked nav; the live API (8 presets, 9 `taskKinds`, `group` field, `/task-kind` route
+works, old `/category` → 405); and a JustVoice shared-symbol import check (JV has its OWN `FeatureCatalogEntry`
+and imports none of the renamed symbols — fully insulated). A rules-checker scored the diff PASS on T1–T6 +
+shared-consumer-safety + seed-FK-safety; its one FAIL — the 06-29 `ai-lab-preset-model.md` doc still naming
+the pre-rename symbols as current — was FIXED with a deprecation banner mapping every renamed symbol. **PHASE
+4** (not started) is the taskKind→preset assignment UI (nine rows +
 a global default), the feature-browse nav staying grouped by the display-only `group`, per-feature-card
 provenance (own override → taskKind → default), plus the deferred, currently-`.catch`-guarded QuickSetup.vue
 `/v1/ai/jobs` cleanup.
