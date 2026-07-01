@@ -335,9 +335,30 @@ OWN `-c` (`ctx_len`) switch — the exact launch value — falling back to the p
 `(set)`) so it's honest. Files: `ConfigColumn.vue` (`ctxFromSwitches` / `winOverride` / `windowSource` / `window`).
 Verified: `build:vite` + `headless-smoke` (0 errors) + a probe (no ctx_len → `window (assumed)` 8192; enable ctx_len →
 `window (-c)` 4096). Resolves ai-state-grid item 8. **Think-off = KEEP** (user confirmed the B3 JSON-mode reasoning
-guard stays; no change). **NEXT: json_schema upgrade (O3)** — the user asked to upgrade structured output beyond the
-weak `json_object`; being scoped/built (a per-action JSON schema → `response_format:{type:"json_schema"}` for
-llama.cpp/OpenAI, `responseSchema` for Gemini, best-effort Anthropic).
+guard stays; no change).
+
+— **⏸ DEFERRED (user 2026-07-01, "hold off on the json, maybe do later as feature upgrade"): json_schema / GBNF
+structured-output upgrade (O3 / #18)** — tracked as task **#77**, NOT being built now. Plan is READY (no schema change /
+no workspace reset — reuse the stop-sequences reserved-key pattern): a reserved **`json_schema`** key rides the
+samplers array; in `_plane2_extra`, when JSON mode is on + a valid schema is set, dispatch
+`response_format:{type:"json_schema", json_schema:{name,schema}}` instead of `json_object` (invalid JSON → ignored →
+`json_object`, so a half-typed schema never breaks a call). Adapters: **llama.cpp + OpenAI-compat native**; **Gemini**
+→ `responseSchema` + `responseMimeType`; **Ollama** → `format` = the schema object; **Anthropic** → best-effort drop
+`response_format` (no native equivalent — would need tools; also fixes the latent raw-`response_format`-to-Anthropic
+send). UI: a JSON-schema textarea by the JSON checkbox in `ConfigColumn` (shown when JSON mode on) + a live valid/
+invalid hint + `json_schema` in the KnobGrid `reservedKeys`. Verify path: pytest (schema→json_schema; invalid→
+`json_object`; Anthropic drops it) + build + smoke + a round-trip probe. (Full plan also in task #77's description.)
+
+— **✅ Session state (2026-07-01) — SAFE TO COMPACT. Nothing is awaiting user input.** Shipped this session (all on
+`claude/admiring-galileo-il3q0o`, both repos clean + pushed): **#67** checkbox focus-scroll fix (`.ui-checkbox`
+`position:relative`), **#68** persistence decision (keep Save-as-preset), **#69/#70** samplers grid + reorder, **#72**
+sampler-order default 7→9, **#73** stop sequences, **#74** license flag → DB (`use_limited`), **#75** cloud pricing →
+DB + Usage-tab editor, **#3** budget-guard real `-c` (`ctx_len`) window with a labeled fallback. The **ai-state-grid
+audit** of my unapproved "nothing-hardcoded" calls is resolved — items **#6** (license), **#7** (pricing), **#8**
+(budget guard) DONE; the rest were settled by the 06-29 Lab+Preset redesign. **Think-off** = keep (confirmed).
+Discoverability note (not a bug): the model row's **Tune** button only renders when the model is downloaded
+(`LuModelCatalog.vue:365`, status `loaded`/`disk`), so it's hidden until a GGUF is on disk. The only DEFERRED/open item
+is **json_schema (#77)**.
 
 **Durable coverage for the reorder control — DONE (2026-06-30).** The 5/5 reorder assertions had lived only in an
 ephemeral scratchpad script; the user asked to "make it durable," so the check was promoted into the committed
