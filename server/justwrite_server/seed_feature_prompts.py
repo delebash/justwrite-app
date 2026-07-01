@@ -619,6 +619,7 @@ DEFAULT_FEATURE_PROMPTS: dict[str, dict] = {
         "user_template": _CHAPTER_USER,
         "temperature": 0.4,
         "think": False,
+        "json_mode": True,
     },
     "critiqueStructure": {
         "feature": "critique",
@@ -626,20 +627,23 @@ DEFAULT_FEATURE_PROMPTS: dict[str, dict] = {
         "user_template": _CHAPTER_USER,
         "temperature": 0.2,
         "think": False,
+        "json_mode": True,
     },
     "foreshadowing": {
         "feature": "foreshadowing",
         "system": _FORESHADOWING_SYSTEM,
         "user_template": _CHAPTER_USER,
-        "temperature": 0.3,
+        "temperature": 0.15,
         "think": False,
+        "json_mode": True,
     },
     "readerKnowledge": {
         "feature": "readerKnowledge",
         "system": _READER_KNOWLEDGE_SYSTEM,
         "user_template": "{{user_content}}",
-        "temperature": 0.3,
+        "temperature": 0.15,
         "think": False,
+        "json_mode": True,
     },
     "plotHoles": {
         "feature": "plotHoles",
@@ -649,27 +653,31 @@ DEFAULT_FEATURE_PROMPTS: dict[str, dict] = {
         "user_template": "{{user_content}}",
         "temperature": 0.3,
         "think": False,
+        "json_mode": True,
     },
     "entitySweep": {
         "feature": "entitySweep",
         "system": _ENTITY_SYSTEM,
         "user_template": "{{user_content}}",
-        "temperature": 0.2,
+        "temperature": 0.15,
         "think": False,
+        "json_mode": True,
     },
     "characterAudit": {
         "feature": "characterAudit",
         "system": _CHARACTER_AUDIT_SYSTEM,
         "user_template": "{{user_content}}",
-        "temperature": 0.3,
+        "temperature": 0.15,
         "think": False,
+        "json_mode": True,
     },
     "relationshipArc": {
         "feature": "relationshipArc",
         "system": _RELATIONSHIP_SYSTEM,
         "user_template": "{{user_content}}",
-        "temperature": 0.3,
+        "temperature": 0.15,
         "think": False,
+        "json_mode": True,
     },
     "voiceDrift": {
         "feature": "voiceDrift",
@@ -677,20 +685,23 @@ DEFAULT_FEATURE_PROMPTS: dict[str, dict] = {
         "user_template": "{{user_content}}",
         "temperature": 0.4,
         "think": False,
+        "json_mode": True,
     },
     "beatSheet": {
         "feature": "beatSheet",
         "system": _BEAT_SHEET_SYSTEM,
         "user_template": "{{user_content}}",
-        "temperature": 0.3,
+        "temperature": 0.15,
         "think": False,
+        "json_mode": True,
     },
     "reverseOutline": {
         "feature": "reverseOutline",
         "system": _REVERSE_OUTLINE_SYSTEM,
         "user_template": "{{user_content}}",
-        "temperature": 0.3,
+        "temperature": 0.15,
         "think": False,
+        "json_mode": True,
     },
     "marketingPack": {
         "feature": "marketingPack",
@@ -698,6 +709,7 @@ DEFAULT_FEATURE_PROMPTS: dict[str, dict] = {
         "user_template": "{{user_content}}",
         "temperature": 0.5,
         "think": False,
+        "json_mode": True,
     },
     # multiReader runs a 4-persona panel; one action per persona, all routing to
     # the "multiReader" feature. Each persona's lens + the shared JSON contract
@@ -708,6 +720,7 @@ DEFAULT_FEATURE_PROMPTS: dict[str, dict] = {
         "user_template": _CHAPTER_USER,
         "temperature": 0.55,
         "think": False,
+        "json_mode": True,
     },
     "multiReaderLiterary": {
         "feature": "multiReader",
@@ -715,6 +728,7 @@ DEFAULT_FEATURE_PROMPTS: dict[str, dict] = {
         "user_template": _CHAPTER_USER,
         "temperature": 0.55,
         "think": False,
+        "json_mode": True,
     },
     "multiReaderAgent": {
         "feature": "multiReader",
@@ -722,6 +736,7 @@ DEFAULT_FEATURE_PROMPTS: dict[str, dict] = {
         "user_template": _CHAPTER_USER,
         "temperature": 0.55,
         "think": False,
+        "json_mode": True,
     },
     "multiReaderBookClub": {
         "feature": "multiReader",
@@ -729,27 +744,31 @@ DEFAULT_FEATURE_PROMPTS: dict[str, dict] = {
         "user_template": _CHAPTER_USER,
         "temperature": 0.55,
         "think": False,
+        "json_mode": True,
     },
     "sensory": {
         "feature": "sensory",
         "system": _SENSORY_SYSTEM,
         "user_template": "{{user_content}}",
-        "temperature": 0.7,
+        "temperature": 0.8,
         "think": False,
+        "json_mode": True,
     },
     "unstuck": {
         "feature": "unstuck",
         "system": _UNSTUCK_SYSTEM,
         "user_template": "{{user_content}}",
-        "temperature": 0.7,
+        "temperature": 0.75,
         "think": False,
+        "json_mode": True,
     },
     "recap": {
         "feature": "recap",
         "system": _RECAP_SYSTEM,
         "user_template": "{{user_content}}",
-        "temperature": 0.4,
+        "temperature": 0.2,
         "think": False,
+        "json_mode": True,
     },
     "briefing": {
         "feature": "briefing",
@@ -762,14 +781,14 @@ DEFAULT_FEATURE_PROMPTS: dict[str, dict] = {
         "feature": "brainstorm",
         "system": _BRAINSTORM_SYSTEM,  # {{label}} filled client-side
         "user_template": "{{user_content}}",
-        "temperature": 0.9,
+        "temperature": 1.0,
         "think": False,
     },
     "brainstormPlot": {
         "feature": "brainstorm",
         "system": _BRAINSTORM_PLOT_SYSTEM,  # {{kind}} filled client-side
         "user_template": "{{user_content}}",
-        "temperature": 0.9,
+        "temperature": 1.0,
         "think": False,
     },
     # ── writerAI (selection-level editor actions) ──
@@ -777,13 +796,16 @@ DEFAULT_FEATURE_PROMPTS: dict[str, dict] = {
         "Rewrite the passage below to be more vivid and specific while preserving meaning, tense, and voice."
     ),
     "writerAI.expand": _writer(
-        "Expand the passage below with sensory detail, interiority, and small actions. Roughly double its length. Keep the same voice and tense."
+        "Expand the passage below with sensory detail, interiority, and small actions. Roughly double its length. Keep the same voice and tense.",
+        0.85,
     ),
     "writerAI.tighten": _writer(
-        "Tighten the passage below. Remove filler words, hedges, and redundant phrases. Keep the meaning, voice, and tense intact. The result should be noticeably shorter."
+        "Tighten the passage below. Remove filler words, hedges, and redundant phrases. Keep the meaning, voice, and tense intact. The result should be noticeably shorter.",
+        0.5,
     ),
     "writerAI.continue": _writer(
-        "Continue writing from where the passage below ends. Match the voice, tense, and POV. Write 2–4 more paragraphs of prose. Do not summarize or repeat what came before."
+        "Continue writing from where the passage below ends. Match the voice, tense, and POV. Write 2–4 more paragraphs of prose. Do not summarize or repeat what came before.",
+        0.85,
     ),
     "writerAI.describe": _writer(
         "The passage below names a subject — a place, person, object, or moment — that the writer wants "
@@ -791,7 +813,8 @@ DEFAULT_FEATURE_PROMPTS: dict[str, dict] = {
         "sights, sounds, smells, textures, the feel of the air, small specific details that anchor it "
         "in the body of the scene. Do not repeat or paraphrase the passage. Do not summarize. Match the "
         "voice, tense, and POV of the passage. Return new prose only — it will be inserted right after "
-        "the passage in the manuscript."
+        "the passage in the manuscript.",
+        0.85,
     ),
     "writerAI.guided-continue": {
         "feature": "writerAI",
@@ -804,7 +827,7 @@ DEFAULT_FEATURE_PROMPTS: dict[str, dict] = {
             "Do not summarize what came before. Do not echo the direction back as a header."
             "\n\n--- BEGIN PASSAGE ---\n{{passage}}\n--- END PASSAGE ---"
         ),
-        "temperature": 0.7,
+        "temperature": 0.85,
         "think": False,
     },
     # ── writerAI line-edit rules (temperature 0.6) ──

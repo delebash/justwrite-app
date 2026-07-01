@@ -1,6 +1,10 @@
 """JustWrite's AI feature catalog — the canonical list of routable features with
-their human label, a one-line hint, and the nav category. A per-app feature seed
+their human label, a one-line hint, and the nav group. A per-app feature seed
 (registered with the shared LLM stack via `install_llm`).
+
+The 4th field is the nav `group` (display-only — how features are grouped in the
+UI). It is NOT the routing key: routing is by LLM-work taskKind (see
+seed_presets.FEATURE_TASK_KINDS). The entries below pass it positionally.
 
 Server-side + headless-first (the shared `/v1/ai/routing` endpoint serves it).
 """
@@ -11,10 +15,10 @@ from llm_runner.llm import FeatureCatalogEntry
 
 # label = the ONE canonical name the user sees wherever they meet the feature
 # (point-of-use wins, 2026-06-24): e.g. chat = "Ask the book". hint doubles as the
-# Feature Workbench card blurb. category is the nav group; LIST ORDER here IS the
-# nav order. Multi-action features (writerAI, critique, multiReader, brainstorm)
+# Feature Workbench card blurb. The 4th field is the nav group; LIST ORDER here IS
+# the nav order. Multi-action features (writerAI, critique, multiReader, brainstorm)
 # show their per-action labels (seed_feature_prompts `_ACTION_META`) under the
-# category; single-action features show this label.
+# group; single-action features show this label.
 FEATURE_CATALOG: list[FeatureCatalogEntry] = [
     # ── Writing — the scene-editor AI menu (Rewrite / Expand / … + Line edits) ──
     FeatureCatalogEntry("writerAI", "Writer actions", "The AI menu in each scene's strip — Rewrite, Expand, Tighten, Continue, Describe, plus all Line edits.", "Writing"),

@@ -151,6 +151,11 @@ def create_app(data_dir: Path | None = None) -> FastAPI:
     from . import database as _dbmod
     from .feature_catalog import FEATURE_CATALOG
     from .seed_feature_prompts import DEFAULT_FEATURE_PROMPTS
+    from .seed_presets import (
+        DEFAULT_ENGINE_PRESETS,
+        DEFAULT_TASKKIND_PRESETS,
+        FEATURE_TASK_KINDS,
+    )
 
     install_llm(
         app,
@@ -158,6 +163,12 @@ def create_app(data_dir: Path | None = None) -> FastAPI:
         session_factory=_dbmod.SessionLocal,
         feature_catalog=FEATURE_CATALOG,
         feature_prompts=DEFAULT_FEATURE_PROMPTS,
+        # Routing seed (2026-07-01 taskKind model): the built-in engine presets, the
+        # taskKind→preset assignments, and the action→taskKind map. Routing keys on
+        # taskKind (LLM work), not the FeatureCatalogEntry nav group (display-only).
+        engine_presets=DEFAULT_ENGINE_PRESETS,
+        taskkind_presets=DEFAULT_TASKKIND_PRESETS,
+        feature_task_kinds=FEATURE_TASK_KINDS,
     )
 
     # Headless UI — serve the Vite build (dist/) so `justwrite-server serve` + a
