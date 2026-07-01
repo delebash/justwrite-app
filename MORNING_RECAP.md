@@ -226,6 +226,24 @@ directly (the input). Full `headless-smoke.mjs` still PASSES (all routes + AI su
 min_p · xtc · temperature`, no JS errors) and its rows do not shrink (left-aligned `minmax(140px,200px)` grid). Its
 only remaining issue is the #67 shift on reveal, so #70 is tied to #67 (the recording).
 
+— **⏸ AWAITING USER INPUT (do NOT resume these blindly after compaction — the user owes two answers):** (1) **#67**
+— I cannot reproduce the checkbox-click shift in headless (scrollbar theory disproven); it is Windows/WebView2-specific.
+Asked the user for a 3–5s screen recording or two same-scroll before/after screenshots of ONE checkbox click, to
+identify the moving element. Do not ship another guess-fix. (2) **#68** — custom samplers persist via Save-as-preset
+(verified); per-feature edits do NOT auto-persist (persistence rides presets by design). Asked the user whether to add
+per-feature auto-persist (a DESIGN change — a new `/feature-samplers` PUT + wiring, would notify/confirm first) or keep
+Save-as-preset as the intended flow. Neither answered yet as of this compaction.
+
+— **🐞 Tracked follow-up (VERIFIED, NOT fixed — do not lose): the reorder control's DEFAULT order is incomplete vs
+llama.cpp.** `ConfigColumn.vue:100` `DEFAULT_SAMPLER_ORDER = ["dry","top_k","typ_p","top_p","min_p","xtc","temperature"]`
+is **7 names**; llama.cpp's actual default (verified via WebFetch of `tools/server/README.md`) is **9** —
+`penalties;dry;top_n_sigma;top_k;typ_p;top_p;min_p;xtc;temperature`. Since the `samplers` request field is an ordered
+name list and OMITTED names are dropped from the chain, enabling "Custom sampler order" with our default would silently
+DISABLE `penalties` (repeat/presence/frequency) and `top_n_sigma`. Fix (when picked up): make `DEFAULT_SAMPLER_ORDER`
+match llama.cpp's 9-name default, and add `penalties`/`top_n_sigma` to the reorder list. Related (also verified, not
+changed): llama.cpp documents `top_k=40`, `min_p=0.05` defaults but our seed leaves them blank (enabling gives an empty
+box that is dropped at dispatch = engine default) — could prefill the real defaults; that's a UX call for the user.
+
 **Durable coverage for the reorder control — DONE (2026-06-30).** The 5/5 reorder assertions had lived only in an
 ephemeral scratchpad script; the user asked to "make it durable," so the check was promoted into the committed
 renderer gate as a new probe block inside `scripts/headless-smoke.mjs`. That file already hosts the sibling AI-area
