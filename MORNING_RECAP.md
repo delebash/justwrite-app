@@ -282,6 +282,25 @@ decision):** llama.cpp documents `top_k=40`, `min_p=0.05`, `top_p=0.95`, `temper
 leaves top_k/min_p blank (enabling gives an empty box that is dropped at dispatch = engine default); prefilling the
 real defaults is a UX choice not yet raised/decided — left as-is.
 
+— **✅ #73 Stop sequences ADDED (2026-07-01, runner `6a01e92`).** After the user surveyed KoboldCpp Lite's
+Samplers + Tokens tabs and asked "do we need any of these," the survey found we already cover llama.cpp's full
+sampler set; the ONE genuine gap was **Stop Sequences** (Tokens tab). User: "yes add it go." Built with **NO DB
+schema change / no workspace reset** by REUSING the sampler-ORDER reserved-key pattern: a reserved `stop` row rides
+the samplers array (`feature_sampler_params` per-feature + `engine_preset_samplers` per-preset), so it persists +
+round-trips through the existing preset machinery. **UI:** a dedicated one-per-line `<textarea class="cc-stops-ta">`
+in the Samplers section of `ConfigColumn.vue` (`stopText`/`writeStop`); `stop` added to the KnobGrid `reservedKeys`
+so it is NOT double-shown in the checklist "Other keys". **Dispatch:** `_plane2_extra` (`prompts.py`) normalizes the
+reserved `stop` value → a string ARRAY (newline-split, robust to `_parse_sampler_value`'s numeric coercion — a
+numeric-looking stop like "42" stays "42"). **Adapter mapping, verified from source:** openai-compat + local
+llama.cpp take `stop` natively; Gemini already mapped `stop→stopSequences`; Ollama routes it to `options.stop`;
+Anthropic needed the one adapter change — a new `_map_extra` renames `stop→stop_sequences` (Claude's field) in both
+`chat` + `stream_chat`. **Verified:** ruff + **186 runner pytest** (4 new in `test_plane2_params.py` — split,
+numeric-kept-as-string, blank-dropped, anthropic-rename) + `build:vite` + `node scripts/headless-smoke.mjs`
+(`stop=true` folded into the sampler-order probe) + a Playwright round-trip probe (type multi-line stops →
+Save-as-preset → `GET /v1/ai/engine-presets` returns `{flagName:"stop", flagValue:"END\nUSER:"}`, persisted).
+Shared kit → JustVoice gets the field too (not re-verified per "not now"). *(Everything else Kobold shows is
+already covered or Kobold-only — not in stock llama.cpp; recorded in the survey answer, not a task.)*
+
 **Durable coverage for the reorder control — DONE (2026-06-30).** The 5/5 reorder assertions had lived only in an
 ephemeral scratchpad script; the user asked to "make it durable," so the check was promoted into the committed
 renderer gate as a new probe block inside `scripts/headless-smoke.mjs`. That file already hosts the sibling AI-area

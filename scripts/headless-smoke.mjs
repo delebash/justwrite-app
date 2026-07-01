@@ -320,11 +320,19 @@ try {
     // and made this assertion vacuously pass before.
     const extras = await page.$$eval(".cc-samplers .ui-kg-extra .ui-kg-name", (els) => els.map((e) => e.value));
     const notDoubleShown = !extras.includes("samplers");
+    // Stop sequences (#73) — a reserved `stop` key riding the samplers array,
+    // surfaced as a dedicated one-per-line field and hidden from the checklist.
+    const stopField = (await page.$$eval(".cc-stops-ta", (e) => e.length)) === 1;
+    await page.fill(".cc-stops-ta", "END\nUSER:");
+    await sleep(150);
+    const stopRoundtrip = (await page.$eval(".cc-stops-ta", (e) => e.value)) === "END\nUSER:";
+    const stopNotDup = !(await page.$$eval(".cc-samplers .ui-kg-extra .ui-kg-name", (els) => els.map((e) => e.value))).includes("stop");
+    const stopOk = stopField && stopRoundtrip && stopNotDup;
 
     const newErrs = errors.length - mark;
-    const ok = orderPresent && hiddenBefore && defaultOk && reorderOk && notDoubleShown && newErrs === 0;
+    const ok = orderPresent && hiddenBefore && defaultOk && reorderOk && notDoubleShown && stopOk && newErrs === 0;
     if (!ok) failed++;
-    console.log(`${ok ? "✓" : "✗"} sampler-order   present=${orderPresent} hidden-until-on=${hiddenBefore} default-chain=${defaultOk} reorder=${reorderOk} no-dup=${notDoubleShown} errors=${newErrs}`);
+    console.log(`${ok ? "✓" : "✗"} sampler-order   present=${orderPresent} hidden-until-on=${hiddenBefore} default-chain=${defaultOk} reorder=${reorderOk} no-dup=${notDoubleShown} stop=${stopOk} errors=${newErrs}`);
     if (!ok) console.log(`    before=${JSON.stringify(before)} after=${JSON.stringify(after)}`);
     errors.slice(mark, mark + 4).forEach((e) => console.log("    " + e));
   } catch (e) {
