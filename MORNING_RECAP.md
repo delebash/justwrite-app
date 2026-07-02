@@ -20,6 +20,14 @@
 
 ---
 
+## Current state (2026-07-02) — **user-creatable, testable TASKS** ("jobs, done right"): Phase 1 backend DONE + VERIFIED, awaiting review before the UI phase
+
+> **⛔ The single source of truth for this work is `just-llm-runner/docs/plans/2026-07-02-user-tasks-model.md` — read its ⛔ LIVE STATUS first.** This EVOLVES the 2026-07-01 taskKind routing (below): taskKinds stay the routing key, but become **user-creatable / testable / assignable DB-backed "Tasks"** with a dedicated **Tasks page** — because review found the taskKind layer had no way to be *set up or tested* (testing was per-feature only; a taskKind has no prompt) and nothing was user-editable (the 9 were a hardcoded constant, the feature→task map an in-memory dict). Decision (user, 2026-07-02): "jobs, done right" on the preset foundation — a Task = name/description + an assigned preset (tuned+tested in the Lab against a member feature) + the features assigned to it (one feature→one task, reassignable from both sides); DB-backed, seeded, nothing hardcoded; NOT restoring the deleted job code; user-facing word "Task", internal id stays `taskKind`.
+
+The plan was validated by a 3-reviewer rules-checker panel (all NO-GO on v1 → additive fixes folded) + a confirmatory re-check = GO. **Phase 1 (backend) is COMPLETE + VERIFIED** (full touch-list + probe results in the plan doc's LIVE STATUS): two new tables (`task_kinds`, `feature_task_kinds`), `TaskKindStore` + `FeatureTaskKindStore`, shared `DEFAULT_TASK_KINDS` (the 9 defs moved out of the hardcoded constant), two seeders, `_task_kind_of` now DB→map→prefix, the task-kinds CRUD + feature-assign API, the rewritten test, and the JW sampler-grounding cross-check. Runner 185 pytest + JW 76 pytest + ruff clean; a live probe on a fresh server confirmed 9 tasks + a 37-key map, with create/reassign/delete + the built-in guard + the cascade re-float all working. **Phases 2 (UI: extract a shared `FeatureLab`, build the `TaskKinds.vue` Tasks page, add a per-feature Task dropdown to `FeatureWorkbench`, mount a Tasks sub-tab, preset edit-in-place, a help entry) and 3 (verify + docs) are NOT started — stopped here for the user's review before the UI phase** (go-per-phase). Migration: the new tables auto-create + merge-seed on a plain restart (no workspace reset required for existing installs; dev may reset for a clean re-seed).
+
+---
+
 ## Current state (2026-07-01) — the **taskKind routing** refactor: kill the job/category duality (Phases 1–4 DONE + pushed; ONE deferred product decision)
 
 > **⛔ RESUME CHECKPOINT (written pre-compaction; read this first).** taskKind routing **Phases 1–4 are

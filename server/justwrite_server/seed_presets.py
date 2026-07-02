@@ -22,6 +22,14 @@ Design invariants (2026-07-01 taskKind-routing plan; grounded in the overlay rul
   • JSON ⇒ no think (the B3 guardrail forces `think` off whenever `json_mode` is on).
   • switches=[] → the base/moe/mtp type switch-presets resolve automatically at load;
     the two hardware-fit knobs (-ngl / --n-cpu-moe) auto-compute unless overridden.
+  • Sampler grounding (verified 2026-07-02 vs the knob catalog + the sampler-guide
+    principles): every sampler key below is a real `knob_catalog` plane-2 key (min_p,
+    xtc_probability, xtc_threshold, dry_multiplier, repeat_penalty, repeat_last_n, seed),
+    and the values obey the three principles — XTC ONLY on the creative presets
+    (p_prose_voiced / p_ideation / p_creative_structured); DRY *or* a repeat penalty,
+    never stacked; a pinned `seed` on the deterministic JSON tasks (p_extract / p_judge).
+    These are GROUNDED STARTING defaults, not tuned finals — the Tasks page (Lab) is
+    where each is Run against a member feature and settled (shown there as provenance).
 
 Model per preset = a floor default that runs for everyone (8 GB VRAM + 32 GB RAM);
 bigger rigs swap the model in the Lab. Sampler values are strings (they ride the
