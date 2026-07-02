@@ -59,9 +59,11 @@ one sanctioned exception to per-domain stores.
 ```
 window.justwrite.project = { save, open, saveTo }
 window.justwrite.images  = { save, read, delete }
+window.justwrite.shell   = { pickDirectory, openExternal, saveFile }
+window.justwrite.storage = { getRoot, relocate }   // the portable data root (Rust storage_*)
 ```
 
-These mirror Rust commands in `src-tauri/src/lib.rs` one-for-one (`project_save`, `project_save_to`, `project_open`, `images_save`, `images_read`, `images_delete`). When `window.justwrite` is undefined (plain `vite dev` in a browser), project data still persists to the server via `projectApi`; only images fall back to inline data-URL records. **Do not call `invoke()` from views or stores — go through `window.justwrite`** so the browser-only path keeps working.
+These mirror Rust commands in `src-tauri/src/lib.rs` one-for-one (`project_save`, `project_save_to`, `project_open`, `images_save`, `images_read`, `images_delete`, `pick_directory`, `storage_get_root`, `storage_relocate`). The **data root** is a portable, user-settable folder holding ALL app data (projects DB + images + AI engine + models + logs); `storage_relocate` moves it and respawns the server (see `docs/plans/2026-07-02-portable-data-root-and-engine-install.md`). When `window.justwrite` is undefined (plain `vite dev` in a browser), project data still persists to the server via `projectApi`; only images fall back to inline data-URL records. **Do not call `invoke()` from views or stores — go through `window.justwrite`** so the browser-only path keeps working.
 
 When adding a new Tauri command:
 1. Add the `#[tauri::command]` function in `src-tauri/src/lib.rs` and register it in the `invoke_handler![]` list.

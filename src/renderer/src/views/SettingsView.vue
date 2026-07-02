@@ -55,6 +55,7 @@ const SECTIONS = computed(() => [
   { id: "appearance", label: t("settings.sections.appearance") },
   { id: "general",    label: t("settings.sections.general") },
   { id: "backups",    label: t("settings.sections.backups") },
+  { id: "storage",    label: t("settings.sections.storage") },
   { id: "logs",       label: t("settings.sections.logs") },
   { id: "updates",    label: t("settings.sections.updates") },
   { id: "about",      label: t("settings.sections.about") },
@@ -92,6 +93,39 @@ const dataDir = ref("");
     if (r.ok) dataDir.value = (await r.json()).dataDir || "";
   } catch { /* offline — leave blank */ }
 })();
+
+// ── Storage: the portable data root — ONE folder for all app data (projects,
+// images, the AI engine + models, logs). Desktop-only (Tauri shell); in a plain
+// browser the root is read-only (the dataDir above).
+const storageRoot = ref(null); // { root, default, portable } from the shell
+const relocating = ref(false);
+const storageErr = ref("");
+
+async function loadStorageRoot() {
+  const r = await window.justwrite?.storage?.getRoot?.();
+  storageRoot.value = r && !r.error ? r : null;
+}
+watch(active, (a) => { if (a === "storage") loadStorageRoot(); });
+
+async function changeFolder() {
+  const picked = await window.justwrite?.shell?.pickDirectory?.({ title: "Choose a data folder" });
+  if (!picked) return;
+  const yes = await confirmDialog({
+    title: "Move all app data?",
+    message: `Everything JustWrite saves — projects, images, the AI engine and models, and logs — moves to:\n\n${picked}\n\nThe app restarts when the move finishes.`,
+    confirmLabel: "Move & restart",
+  });
+  if (!yes) return;
+  relocating.value = true;
+  storageErr.value = "";
+  const res = await window.justwrite.storage.relocate(picked);
+  if (res?.ok) {
+    window.location.reload();
+  } else {
+    storageErr.value = res?.error || "Move failed.";
+    relocating.value = false;
+  }
+}
 const requireLoopbackAuth = ref(false);
 const newToken = ref("");
 function loadAuthCfg() {
@@ -1112,18 +1146,33 @@ async function deleteCategory(c) {
 
       </div>
 
-      <!-- ── SERVER (headless + API access) ─────────── -->
-      <div v-else-if="active === 'general'" style="display:flex;flex-direction:column;gap:14px">
+      <!-- ── STORAGE (the portable data root — one folder for ALL app data) ─── -->
+      <div v-else-if="active === 'storage'" style="display:flex;flex-direction:column;gap:14px">
         <div class="card">
           <div class="card-title">Data location</div>
           <p class="t-muted" style="font-size:12.5px;margin:4px 0 10px;line-height:1.5">
-            Where the local server keeps your work (database + assets). This is what a backup captures.
+            One folder holds everything JustWrite saves — your projects, images, the AI engine and
+            downloaded models, and logs. Changing it moves all of that to the new folder and restarts the app.
           </p>
           <div style="display:grid;grid-template-columns:140px 1fr;gap:8px 14px;font-size:13px;align-items:center">
             <span class="t-muted">Folder</span>
-            <code style="word-break:break-all">{{ dataDir || "—" }}</code>
+            <code style="word-break:break-all">{{ (storageRoot && storageRoot.root) || dataDir || "—" }}</code>
+            <template v-if="storageRoot">
+              <span class="t-muted">Type</span>
+              <span>{{ storageRoot.portable ? "Portable — beside the app" : "User folder" }}</span>
+            </template>
           </div>
+          <div v-if="storageRoot" style="margin-top:12px;display:flex;align-items:center;gap:10px;flex-wrap:wrap">
+            <UiButton intent="secondary" size="small" :loading="relocating" @click="changeFolder">Change folder…</UiButton>
+            <span v-if="relocating" class="t-muted" style="font-size:12.5px">Moving your data — the app will restart…</span>
+          </div>
+          <p v-else class="t-muted" style="font-size:12px;margin:10px 0 0">Changing the folder is available in the desktop app.</p>
+          <p v-if="storageErr" style="font-size:12.5px;color:var(--danger,#b91c1c);margin:8px 0 0">{{ storageErr }}</p>
         </div>
+      </div>
+
+      <!-- ── SERVER (headless + API access) ─────────── -->
+      <div v-else-if="active === 'general'" style="display:flex;flex-direction:column;gap:14px">
         <div class="card">
           <div class="card-title">{{ $t('settings.server.headlessTitle') }}</div>
           <p class="t-muted">{{ $t('settings.server.headlessHint') }}</p>
