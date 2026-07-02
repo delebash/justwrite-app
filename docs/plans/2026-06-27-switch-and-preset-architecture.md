@@ -1,4 +1,4 @@
-> ⛔ **NOT THE CURRENT PLAN.** The ONE current plan is `just-llm-runner/docs/plans/2026-06-28-MASTER-PLAN.md` — everything is folded in there (✅ done + ⬜ outstanding, full detail). This doc is kept as **historical background only** (past plan / design / research / evidence). Read it for context; **plan from the master.**
+> ⛔ **NOT THE CURRENT PLAN.** The ONE current plan is `just-llm-runner/docs/plans/2026-06-28-MASTER-PLAN.md` — everything is folded in there (✅ done + ⬜ outstanding, full detail). This doc is kept as **historical background only** (past plan / design / research / evidence). Read it for context; **plan from the master.** **UPDATE 2026-07-02:** the switch/preset surface evolved — the Lab now **seeds switches from the model** (`switchResolve.js` → `ConfigColumn`), the orphaned `LuSwitchPresets.vue` editor was deleted, and `switch_presets` is now the seed/reset/API-only baseline. Current plan for that area: `just-llm-runner/docs/plans/2026-07-02-model-switch-connect.md`.
 
 # Profile + Feature Architecture — LOCKED plan (code-verified 2026-06-27)
 
