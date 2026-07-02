@@ -38,9 +38,11 @@ one sanctioned exception to per-domain stores.
 
 > **AI/LLM stack is shared** — `just-llm-runner` (Python) + `@delebash/llm-ui`
 > (Vue), consumed by both apps; only TTS and each app's feature catalog differ.
-> The current cutover state lives in `MORNING_RECAP.md`; the ONE current plan is
-> `just-llm-runner/docs/plans/2026-06-28-MASTER-PLAN.md` (every other `docs/plans/*`
-> doc is bannered historical). Not here.
+> The current cutover state lives in `MORNING_RECAP.md`; the broad AI-stack roadmap is
+> `just-llm-runner/docs/plans/2026-06-28-MASTER-PLAN.md`, but the **current AI-routing /
+> preset model** is `just-llm-runner/docs/plans/2026-07-02-preset-model-a-resets.md`
+> (Plan A — the task owns the preset; 2-tier cascade: task preset → global default).
+> Other `docs/plans/*` are bannered historical. Not here.
 
 ## Architecture
 
