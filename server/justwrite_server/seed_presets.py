@@ -2,8 +2,8 @@
 
 Passed to `install_llm` (see app.py). ROUTING keys on the LLM-WORK **taskKind**
 (FEATURE_TASK_KINDS), NOT the nav group on FeatureCatalogEntry (which is display-only,
-for the UI). The cascade at dispatch is: a feature's own preset override
-(FeaturePresetRef) → its taskKind's preset (TaskKindPreset) → the global default.
+for the UI). The cascade at dispatch is (2026-07-02 "task owns the preset"): its
+taskKind's preset (TaskKindPreset) → the global default (TaskKindPreset[""]).
 
 Design invariants (2026-07-01 taskKind-routing plan; grounded in the overlay rule
 `prompts._effective_spec`):
