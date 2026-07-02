@@ -21,6 +21,16 @@ def test_health_and_db(tmp_path):
     assert (tmp_path / "justwrite.db").is_file()
 
 
+def test_runner_cache_lives_under_data_dir(tmp_path):
+    # The bundled runner's engine + model cache resolves under the app data dir
+    # (portable root: <data_dir>/ai-cache), not the OS ~/.cache — install_llm
+    # threads data_dir → configure_service(cache_root=...).
+    from llm_runner.runner.lifecycle import get_service
+
+    create_app(tmp_path)
+    assert get_service().cache_root == tmp_path / "ai-cache"
+
+
 def test_shared_runner_mounted(tmp_path):
     app = create_app(tmp_path)
     client = TestClient(app)

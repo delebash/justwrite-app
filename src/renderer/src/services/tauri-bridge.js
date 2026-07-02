@@ -150,5 +150,18 @@ if (isTauri) {
       detectGpu: () => safe(invoke("detect_gpu")),
     },
 
+    storage: {
+      // The portable data root (src-tauri lib.rs). getRoot → { root, default,
+      // portable }. relocate MOVES all app data into a new folder + respawns the
+      // server; the caller should reload the webview once it resolves. Use the
+      // existing shell.pickDirectory to choose the folder first.
+      getRoot: () => safe(invoke("storage_get_root")),
+      relocate: (newPath) =>
+        invoke("storage_relocate", { newPath }).then(
+          () => ({ ok: true }),
+          (e) => ({ ok: false, error: String(e) }),
+        ),
+    },
+
   };
 }

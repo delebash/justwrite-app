@@ -101,7 +101,9 @@ async fn project_save_to(path: String, snapshot: Value) -> Result<SaveOk, String
 // Autosave lands here; rotation keeps two prior generations so a bad write
 // or accidental wipe can be recovered from disk without a manual export.
 fn autosave_dir(app: &AppHandle) -> Result<PathBuf, String> {
-    let mut p = app.path().app_data_dir().map_err(|e| e.to_string())?;
+    // Under the portable data root (was app_data_dir()) so autosaves move with
+    // everything else when the user relocates their data.
+    let mut p = resolve_data_root(app);
     p.push("projects");
     fs::create_dir_all(&p).map_err(|e| e.to_string())?;
     Ok(p)
@@ -357,6 +359,86 @@ async fn pick_directory(
     }
     let picked = dlg.blocking_pick_folder()?;
     picked.into_path().ok().map(|p| p.display().to_string())
+}
+
+// ─── Storage location (the portable data root — user-settable) ───────────────
+// The renderer's Settings → Storage reads storage_get_root, uses the existing
+// pick_directory to choose a folder, then storage_relocate moves everything.
+
+#[derive(Serialize)]
+struct StorageRoot {
+    root: String,
+    default: String,
+    portable: bool,
+}
+
+#[tauri::command]
+fn storage_get_root(app: AppHandle) -> StorageRoot {
+    let root = resolve_data_root(&app);
+    let portable = exe_dir().map(|d| root.starts_with(&d)).unwrap_or(false);
+    StorageRoot {
+        default: default_data_root(&app).to_string_lossy().into_owned(),
+        portable,
+        root: root.to_string_lossy().into_owned(),
+    }
+}
+
+// async so the (possibly multi-GB) copy runs off the main/UI thread, matching the
+// other heavy-IO commands.
+#[tauri::command]
+async fn storage_relocate(app: AppHandle, new_path: String) -> Result<(), String> {
+    let new_root = PathBuf::from(new_path.trim());
+    if new_root.as_os_str().is_empty() {
+        return Err("empty path".into());
+    }
+    let old_root = resolve_data_root(&app);
+    if new_root == old_root {
+        return Ok(());
+    }
+    if !dir_is_writable(new_root.parent().unwrap_or(&new_root)) {
+        return Err(format!("cannot write to {}", new_root.display()));
+    }
+    // Stop the server so nothing holds justwrite.db open during the move.
+    if let Some(state) = app.try_state::<SidecarState>() {
+        state.kill_child();
+    }
+    wait_for_port_free(SERVER_PORT, Duration::from_secs(5));
+
+    let outcome = relocate_data(&app, &old_root, &new_root);
+
+    // ALWAYS bring a server back up — under the new root on success, the old root
+    // on failure — so a failed move never leaves the app serverless.
+    let serve_root = if outcome.is_ok() { &new_root } else { &old_root };
+    if let Some(state) = app.try_state::<SidecarState>() {
+        state.set_child(spawn_sidecar(serve_root).ok().flatten());
+    }
+    outcome
+}
+
+// Crash-safe move. Data is never lost: old_root is deleted only AFTER the pointer
+// commit, so a crash before the commit leaves the old root intact + resolvable.
+fn relocate_data(
+    app: &AppHandle,
+    old_root: &std::path::Path,
+    new_root: &std::path::Path,
+) -> Result<(), String> {
+    // Staging is a SIBLING of new_root (same volume → the finalize rename is
+    // atomic). Append `.jw_moving` to the FULL folder name — with_extension would
+    // clobber a dot already in the name (e.g. `Books.v2` → `Books.jw_moving`).
+    let name = new_root
+        .file_name()
+        .map(|n| n.to_string_lossy().into_owned())
+        .unwrap_or_else(|| "data".to_string());
+    let staging = new_root.with_file_name(format!("{name}.jw_moving"));
+    if staging.exists() {
+        let _ = fs::remove_dir_all(&staging);
+    }
+    copy_dir_all(old_root, &staging).map_err(|e| format!("copy failed: {e}"))?;
+    fs::rename(&staging, new_root).map_err(|e| format!("finalize failed: {e}"))?;
+    // THE commit point — atomic pointer write (tmp + rename inside).
+    write_data_root_pointer(app, new_root).map_err(|e| format!("pointer write failed: {e}"))?;
+    let _ = fs::remove_dir_all(old_root); // redundant now; the pointer already committed
+    Ok(())
 }
 
 // ─── External opener ─────────────────────────────────────────────────
@@ -678,6 +760,97 @@ async fn detect_gpu() -> GpuInfo {
 // JustVoice is the precedent), trimmed to JustWrite's needs: a single window
 // with no tray, so closing it quits the app and tears the server down.
 
+// ─── Data root (the portable, user-settable location for ALL app data) ───────
+// Resolved by the shell BEFORE the server spawns (the server owns the DB + logs
+// and the runner cache under it, via JUSTWRITE_DATA_DIR). Default = a `data/`
+// folder beside the app when writable (portable, like VS Code Portable Mode),
+// else the OS app-data dir so a Program-Files / read-only-bundle install never
+// fails. A tiny `dataroot.txt` pointer, kept OUTSIDE the relocatable root,
+// records a user override; storage_relocate moves everything then flips it.
+
+fn exe_dir() -> Option<PathBuf> {
+    std::env::current_exe().ok().and_then(|e| e.parent().map(|d| d.to_path_buf()))
+}
+
+fn dir_is_writable(dir: &std::path::Path) -> bool {
+    if fs::create_dir_all(dir).is_err() {
+        return false;
+    }
+    let probe = dir.join(".jw_write_probe");
+    match fs::write(&probe, b"x") {
+        Ok(()) => {
+            let _ = fs::remove_file(&probe);
+            true
+        }
+        Err(_) => false,
+    }
+}
+
+fn default_data_root(app: &AppHandle) -> PathBuf {
+    if let Some(dir) = exe_dir() {
+        if dir_is_writable(&dir) {
+            return dir.join("data");
+        }
+    }
+    app.path()
+        .app_data_dir()
+        .unwrap_or_else(|_| PathBuf::from("JustWrite-data"))
+}
+
+// Where the override pointer may live — beside the exe (portable) first, then the
+// OS config dir. Reading tries each; writing picks the first writable one.
+fn pointer_candidates(app: &AppHandle) -> Vec<PathBuf> {
+    let mut v = Vec::new();
+    if let Some(dir) = exe_dir() {
+        v.push(dir.join("dataroot.txt"));
+    }
+    if let Ok(cfg) = app.path().app_config_dir() {
+        v.push(cfg.join("dataroot.txt"));
+    }
+    v
+}
+
+fn resolve_data_root(app: &AppHandle) -> PathBuf {
+    for p in pointer_candidates(app) {
+        if let Ok(s) = fs::read_to_string(&p) {
+            let root = PathBuf::from(s.trim());
+            if !root.as_os_str().is_empty() {
+                return root;
+            }
+        }
+    }
+    default_data_root(app)
+}
+
+fn write_data_root_pointer(app: &AppHandle, root: &std::path::Path) -> std::io::Result<()> {
+    let pointer = pointer_candidates(app)
+        .into_iter()
+        .find(|p| p.parent().map(dir_is_writable).unwrap_or(false))
+        .unwrap_or_else(|| PathBuf::from("dataroot.txt"));
+    if let Some(parent) = pointer.parent() {
+        fs::create_dir_all(parent)?;
+    }
+    // Atomic: write a temp sibling then rename OVER the pointer, so a torn write
+    // (e.g. crash mid-relocation) can never strand the app on a half-written path.
+    let tmp = pointer.with_extension("tmp");
+    fs::write(&tmp, root.to_string_lossy().as_bytes())?;
+    fs::rename(&tmp, &pointer)
+}
+
+fn copy_dir_all(src: &std::path::Path, dst: &std::path::Path) -> std::io::Result<()> {
+    fs::create_dir_all(dst)?;
+    for entry in fs::read_dir(src)? {
+        let entry = entry?;
+        let target = dst.join(entry.file_name());
+        if entry.file_type()?.is_dir() {
+            copy_dir_all(&entry.path(), &target)?;
+        } else {
+            fs::copy(entry.path(), &target)?;
+        }
+    }
+    Ok(())
+}
+
 const SERVER_PORT: u16 = 17495;
 
 struct SidecarState {
@@ -696,9 +869,20 @@ impl SidecarState {
             }
         }
     }
+
+    // Replace the running sidecar (storage_relocate: stop → move data → respawn
+    // under the new root).
+    fn set_child(&self, child: Option<Child>) {
+        if let Ok(mut guard) = self.child.lock() {
+            if let Some(mut old) = guard.take() {
+                let _ = old.kill();
+            }
+            *guard = child;
+        }
+    }
 }
 
-fn spawn_sidecar() -> std::io::Result<Option<Child>> {
+fn spawn_sidecar(data_root: &std::path::Path) -> std::io::Result<Option<Child>> {
     // Escape hatch: run the server yourself (`npm run server`) and set this so
     // the shell doesn't spawn a duplicate / evict your manual one.
     if std::env::var("JUSTWRITE_DEV_NO_SIDECAR").is_ok() {
@@ -725,11 +909,18 @@ fn spawn_sidecar() -> std::io::Result<Option<Child>> {
     // the Tauri binary is also `justwrite(.exe)`, and Windows CreateProcessW
     // searches the running binary's directory first, so that name resolves to
     // OUR binary, spawning a new desktop window in an infinite loop.
+    // The server reads its data dir from JUSTWRITE_DATA_DIR (cli.py serve envvar) —
+    // uniform across all spawn arms, so all app data lands under the portable root.
     let child = if cfg!(debug_assertions) {
-        match Command::new("justwrite-server").arg("serve").spawn() {
+        match Command::new("justwrite-server")
+            .arg("serve")
+            .env("JUSTWRITE_DATA_DIR", data_root)
+            .spawn()
+        {
             Ok(child) => child,
             Err(_) => Command::new("python")
                 .args(["-m", "justwrite_server.cli", "serve"])
+                .env("JUSTWRITE_DATA_DIR", data_root)
                 .spawn()?,
         }
     } else {
@@ -740,7 +931,9 @@ fn spawn_sidecar() -> std::io::Result<Option<Child>> {
         } else {
             dir.join("justwrite-server")
         };
-        Command::new(bin).spawn()?
+        Command::new(bin)
+            .env("JUSTWRITE_DATA_DIR", data_root)
+            .spawn()?
     };
 
     std::thread::spawn(|| {
@@ -841,23 +1034,31 @@ fn kill_listeners_on_port(port: u16) {
 
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
 pub fn run() {
-    // Bring the Python server up before the webview so the renderer's boot-time
-    // health check (services/connection.js) finds it coming up. If the spawn
-    // fails we still build the window — the renderer surfaces a clear
-    // connection-error screen rather than the app crashing.
-    let sidecar = match spawn_sidecar() {
-        Ok(child) => SidecarState::new(child),
-        Err(e) => {
-            eprintln!("Failed to spawn Python sidecar: {e}");
-            SidecarState::new(None)
-        }
-    };
-
     tauri::Builder::default()
         .plugin(tauri_plugin_dialog::init())
         .plugin(tauri_plugin_fs::init())
         .plugin(tauri_plugin_http::init())
-        .manage(sidecar)
+        .setup(|app| {
+            // Resolve the (portable, user-settable) data root with Tauri's OWN
+            // path resolver — that needs the AppHandle, so it runs here rather
+            // than a pre-builder body — then bring the server up UNDER that root
+            // before the webview's connection gate probes it. Lock the choice
+            // into the pointer on first run so later resolves are cheap reads.
+            let handle = app.handle().clone();
+            let root = resolve_data_root(&handle);
+            if pointer_candidates(&handle).iter().all(|p| !p.exists()) {
+                let _ = write_data_root_pointer(&handle, &root);
+            }
+            let sidecar = match spawn_sidecar(&root) {
+                Ok(child) => SidecarState::new(child),
+                Err(e) => {
+                    eprintln!("Failed to spawn Python sidecar: {e}");
+                    SidecarState::new(None)
+                }
+            };
+            app.manage(sidecar);
+            Ok(())
+        })
         .invoke_handler(tauri::generate_handler![
             project_save,
             project_save_to,
@@ -873,6 +1074,8 @@ pub fn run() {
             shell_save_file,
             detect_gpu,
             pick_directory,
+            storage_get_root,
+            storage_relocate,
         ])
         .on_window_event(|window, event| {
             if let WindowEvent::CloseRequested { .. } = event {

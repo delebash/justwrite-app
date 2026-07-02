@@ -169,6 +169,9 @@ def create_app(data_dir: Path | None = None) -> FastAPI:
         engine_presets=DEFAULT_ENGINE_PRESETS,
         taskkind_presets=DEFAULT_TASKKIND_PRESETS,
         feature_task_kinds=FEATURE_TASK_KINDS,
+        # The bundled runner's engine + model cache lives under the app data dir
+        # (<data_dir>/ai-cache) so all on-disk data shares one portable root.
+        data_dir=data_dir,
     )
 
     # Headless UI — serve the Vite build (dist/) so `justwrite-server serve` + a
