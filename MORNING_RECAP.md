@@ -156,7 +156,7 @@ the user's 06-29 Trial-3/4 log had decided to KEEP (inline in Routing-by-feature
 had corrected that removal once already) and downgraded the card provenance from 3-tier to 2-tier. The user
 caught it, told me to re-read the trial log and fix what I broke, and pre-approved my placement recommendation
 ("keep it in the left list, take your recommendation, fix later if needed"). What shipped: a new shared
-`llm_runner/llm/task_kinds_api.py` (canonical `TASK_KINDS` — the nine work-shapes with id+label+description +
+`llm_runner/llm/task_kinds_api.py` (the then-canonical `TASK_KINDS` constant — the nine work-shapes with id+label+description; **SUPERSEDED 2026-07-02 → that constant moved to shared `seed.DEFAULT_TASK_KINDS` and tasks are now DB-backed + user-editable; see the 07-02 section at the top** — plus its
 `GET /v1/ai/task-kinds` serving the catalog + the resolved action→taskKind map), mounted in `install.py`; and
 `FeatureWorkbench.vue` with the **3-tier card provenance RESTORED** (own override → the feature's taskKind
 preset → global default, shown as `Continue → Creative prose (voiced) · Generate prose`) and the inline bulk
