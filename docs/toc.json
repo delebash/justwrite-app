@@ -30,6 +30,7 @@
     "section": "Setup and configuration",
     "items": [
       { "slug": "ai-providers",      "title": "AI providers",      "hint": "OpenAI, Claude, Ollama, LM Studio" },
+      { "slug": "tasks",             "title": "Tasks",             "hint": "Group AI features by work; set + test each task's model" },
       { "slug": "appearance",        "title": "Appearance",        "hint": "Theme, fonts, accents, layout" },
       { "slug": "backups-and-data",  "title": "Backups and data",  "hint": "Autosave, snapshots, restoring" },
       { "slug": "keyboard-shortcuts", "title": "Keyboard shortcuts", "hint": "Full reference" }
