@@ -20,8 +20,26 @@
 
 ---
 
-## Current state (2026-07-01) — the **taskKind routing** refactor: kill the job/category duality (IN PROGRESS)
+## Current state (2026-07-01) — the **taskKind routing** refactor: kill the job/category duality (Phases 1–4 DONE + pushed; ONE deferred product decision)
 
+> **⛔ RESUME CHECKPOINT (written pre-compaction; read this first).** taskKind routing **Phases 1–4 are
+> COMPLETE, VERIFIED, and PUSHED**; both repos are clean and in sync with origin — `just-llm-runner` HEAD
+> `b1f361f`, `justwrite-app` HEAD `55f9b05`, branch `claude/admiring-galileo-il3q0o`. The refactor's core is
+> DONE: the job layer is deleted, `category → group` (nav) + `category → taskKind` (routing) are renamed
+> throughout, the seed ships 8 engine presets + 9 taskKind→preset assignments + the action→taskKind map, and
+> the AI screen has the inline "Presets by task kind" assignment panel + 3-tier card provenance. Phase 4
+> (`c570b15`) ALSO fixed two Phase-2/3 UI regressions I made ON MY OWN (I removed the inline preset-assignment
+> panel + downgraded the provenance without re-reading the 06-29 trial log; the user caught it; the fix restored
+> both). **The ONLY remaining taskKind item is DEFERRED and needs a USER PRODUCT DECISION (task #100):**
+> `QuickSetup.vue` still calls the deleted `/v1/ai/jobs` (`.catch`-guarded → empty, non-breaking) + sends a dead
+> `jobs` PUT field (backend ignores it) — repointing it to taskKinds means deciding whether QuickSetup
+> GENERATES a preset per taskKind (the recommendations→taskKind→preset chain, Fit-aware) or shrinks to just
+> picking the Default model + embedding. **Do NOT guess that direction — wait for the user's call.** Nothing is
+> in flight; nothing uncommitted; safe to compact. **Process lesson, do not re-learn: after any
+> resume/compaction, re-read the 06-29 `ai-lab-preset-model.md` trial log IN FULL before touching the AI screen
+> — bulk assignment lives INLINE in Routing-by-feature, NOT a separate tab (Trial 2 rejected the tab; Trial 3/4
+> folded it inline).**
+>
 > **The single source of truth for this work is the LIVE STATUS tracker at the top of
 > `just-llm-runner/docs/plans/2026-07-01-taskkind-routing.md` — read its ⛔ LIVE STATUS section FIRST.**
 > This refactor SUPERSEDES the routing/job/category parts of the 2026-06-29 `ai-lab-preset-model.md`
