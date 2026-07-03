@@ -28,7 +28,9 @@ Below the grid is the full catalog — every model the app knows about, with its
 license, live Fit, and download/loaded status. From here you can:
 
 - **Load / Download & load** a model (one runs at a time; loading a new one replaces it).
-- **Tune** a downloaded model — load it with custom engine flags and measure decode speed.
+- **Tune** a downloaded model — load it with custom engine flags and measure decode speed
+  on your box. To *keep* a tuned config, use **Send to Tasks Lab** in the Tune window: it
+  opens as a new column in that Task's Lab, where you save it as the Task's preset.
 - **Add model** — point at any Hugging Face GGUF repo and **Read from link** to fill in
   its details from the file before downloading. This is how you run a model outside the
   built-in list.
@@ -41,6 +43,12 @@ unrestricted commercial use.
 
 > Installing the local engine itself (the llama.cpp runtime) is separate — that lives on
 > the **Built-in** provider under **Providers & models**.
+
+> **Recommended samplers come from the model file.** When you pick a model in a Task's
+> **Lab**, its maker-recommended sampler settings (read from the GGUF) seed the sampler
+> grid automatically — the Task keeps its own temperature, and the model fills the
+> secondary knobs (top-k / min-p / top-p / penalties) it leaves blank. What you see in the
+> grid is what runs.
 
 ## Advanced: edit recommendations
 

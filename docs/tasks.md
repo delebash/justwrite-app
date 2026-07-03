@@ -40,6 +40,10 @@ edits the loaded preset in place (no duplicate). **Use for this task** makes the
 preset the one this task runs. Because a task has no prompt of its own, you test it
 through one of its features.
 
+When you **Send to Tasks Lab** from a model's Tune window (on the **Models** tab), the
+tuned model + engine flags arrive here as a **new column** in the first task's Lab —
+alongside the task's current preset, so you can compare them — ready to **Save as preset**.
+
 A feature's preset always comes from its **task** — so on **Routing by feature** the
 preset is shown read-only ("set it on the task"). Change it here, on the task.
 
