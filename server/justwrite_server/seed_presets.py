@@ -49,8 +49,12 @@ DEFAULT_ENGINE_PRESETS: list[dict] = [
     {"id": "p_prose_edit", "name": "Prose editing", "provider_id": "local-llamacpp",
      "model": "qwen3.5-9b-q4_k_m", "temperature": None, "top_p": 0.90, "json_mode": False, "position": 2,
      "samplers": {"min_p": "0.08"}},
+    # Chat default = best-QUALITY-that-fits-at-the-floor (Phase 4, GGUF-grounded model layer):
+    # the 35B-A3B MoE runs at the 8 GB VRAM + 32 GB RAM floor via CPU expert offload (~32B-class
+    # quality) — off the fast 9B, which stays one click away as the Models grid's chat "faster"
+    # pick. (gemma-4-12b also fits the floor but is 12B-dense; 27B, the chat ceiling, needs 16 GB+.)
     {"id": "p_chat", "name": "Interactive chat", "provider_id": "local-llamacpp",
-     "model": "qwen3.5-9b-q4_k_m", "temperature": None, "top_p": 0.90, "json_mode": False, "position": 3,
+     "model": "qwen3.6-35b-a3b-mtp", "temperature": None, "top_p": 0.90, "json_mode": False, "position": 3,
      "samplers": {"min_p": "0.05", "repeat_penalty": "1.05", "repeat_last_n": "64"}},
     {"id": "p_creative_structured", "name": "Structured creative", "provider_id": "local-llamacpp",
      "model": "qwen3.6-35b-a3b-mtp", "temperature": None, "top_p": 0.95, "json_mode": True, "position": 4,

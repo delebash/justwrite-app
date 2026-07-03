@@ -201,30 +201,60 @@ try {
     console.log(`✗ ai-tab sweep   NAV-FAIL ${String(e.message || e).slice(0, 120)}`);
   }
 
-  // ── Model-manager probe (#30): LuModelCatalog + its add-model modal mount only
-  // when a provider's form is open. Open the Providers tab → a provider's Edit →
-  // the "Add model" modal, asserting zero JS errors (catches a render bug the tab
-  // sweep can't, since the catalog is nested in the bundled provider's form).
+  // ── Models-tab probe (Phase 4 — the unified "Models" surface): the per-hardware
+  // grid + the relocated catalog ("Manage all models") + the Add-model modal. Open the
+  // Models tab → assert the grid renders with an `embed` column, the catalog is present,
+  // the 35B-A3B model shows in the grid (the reseeded chat/quality data took, not stale
+  // ranks), and the Add-model modal opens — zero JS errors.
+  try {
+    await page.evaluate(() => [...document.querySelectorAll(".lu-subnav a")].find((a) => /^models$/i.test(a.textContent.trim()))?.click());
+    await sleep(800);
+    mark = errors.length;
+    const grid = await page.evaluate(() => {
+      const cols = [...document.querySelectorAll(".lu-grid thead th")].map((th) => th.textContent.trim());
+      return {
+        hasGrid: !!document.querySelector(".lu-grid"),
+        hasEmbed: cols.some((c) => /embed/i.test(c)),
+        hasCat: !!document.querySelector(".lu-mcat"),
+        has35b: /35B-A3B/i.test(document.querySelector(".lu-grid")?.textContent || ""),
+        youRow: !!document.querySelector(".lu-grid tr.is-you"),
+      };
+    });
+    await page.evaluate(() => [...document.querySelectorAll(".lu-mcat button, .lu-mcat .lu-btn")].find((b) => /add model/i.test(b.textContent))?.click());
+    await sleep(500);
+    const hasModal = await page.evaluate(() => !!document.querySelector(".lu-mm-form"));
+    const newErrs = errors.length - mark;
+    const bad = newErrs || !grid.hasGrid || !grid.hasCat || !grid.hasEmbed || !hasModal;
+    if (bad) failed++;
+    console.log(`${bad ? "✗" : "✓"} models-tab   grid=${grid.hasGrid} catalog=${grid.hasCat} embed-col=${grid.hasEmbed} 35b-in-grid=${grid.has35b} you-row=${grid.youRow} add-modal=${hasModal} errors=${newErrs}`);
+    errors.slice(mark, mark + 4).forEach((e) => console.log("    " + e));
+    // Close the Add-model AppModal so its Reka overlay doesn't block later probes' clicks.
+    await page.keyboard.press("Escape").catch(() => {});
+    await sleep(250);
+  } catch (e) {
+    console.log(`(models-tab probe skipped: ${String(e.message || e).slice(0, 90)})`);
+  }
+
+  // ── Provider-form probe (Phase 4): the built-in provider form now keeps ONLY the
+  // engine-install panel + a pointer to the Models tab — the catalog table moved out.
   try {
     await page.evaluate(() => [...document.querySelectorAll(".lu-subnav a")].find((a) => /providers/i.test(a.textContent))?.click());
     await sleep(500);
     mark = errors.length;
     await page.evaluate(() => [...document.querySelectorAll(".lu-prow button, .lu-prow .lu-btn")].find((b) => /edit/i.test(b.textContent))?.click());
     await sleep(700);
-    const hasCat = await page.evaluate(() => !!document.querySelector(".lu-mcat"));
-    await page.evaluate(() => [...document.querySelectorAll("button, .lu-btn")].find((b) => /add model/i.test(b.textContent))?.click());
-    await sleep(500);
-    const hasModal = await page.evaluate(() => !!document.querySelector(".lu-mm-form"));
+    const pf = await page.evaluate(() => ({
+      engine: !!document.querySelector(".lu-eng"),
+      pointer: !!document.querySelector(".lu-pf-modelsptr"),
+      noCatalog: !document.querySelector(".lu-mcat"),
+    }));
     const newErrs = errors.length - mark;
-    if (newErrs) failed++;
-    console.log(`${newErrs ? "✗" : "✓"} model-manager   catalog=${hasCat} add-modal=${hasModal} errors=${newErrs}`);
+    const bad = newErrs || !pf.engine || !pf.pointer || !pf.noCatalog;
+    if (bad) failed++;
+    console.log(`${bad ? "✗" : "✓"} provider-form   engine=${pf.engine} models-pointer=${pf.pointer} no-catalog=${pf.noCatalog} errors=${newErrs}`);
     errors.slice(mark, mark + 4).forEach((e) => console.log("    " + e));
-    // Close the Add-model AppModal so its Reka overlay doesn't block later probes'
-    // (actionability) clicks (closable AppModal → Esc dismisses).
-    await page.keyboard.press("Escape").catch(() => {});
-    await sleep(250);
   } catch (e) {
-    console.log(`(model-manager probe skipped: ${String(e.message || e).slice(0, 90)})`);
+    console.log(`(provider-form probe skipped: ${String(e.message || e).slice(0, 90)})`);
   }
 
   // ── Sampler-order reorder control (#22 / Plane-2). The "Custom sampler order" UI
