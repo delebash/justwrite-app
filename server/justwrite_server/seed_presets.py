@@ -44,15 +44,17 @@ DEFAULT_ENGINE_PRESETS: list[dict] = [
      "model": "qwen3.6-35b-a3b-mtp", "temperature": None, "top_p": 0.95, "json_mode": False, "position": 0,
      "samplers": {"min_p": "0.05", "xtc_probability": "0.3", "xtc_threshold": "0.1", "dry_multiplier": "0.8"}},
     {"id": "p_ideation", "name": "Ideation", "provider_id": "local-llamacpp",
-     "model": "qwen3.5-9b-q4_k_m", "temperature": None, "top_p": 0.95, "json_mode": False, "position": 1,
+     "model": "qwen3.6-35b-a3b-mtp", "temperature": None, "top_p": 0.95, "json_mode": False, "position": 1,
      "samplers": {"min_p": "0.06", "xtc_probability": "0.5", "xtc_threshold": "0.1", "dry_multiplier": "0.8"}},
     {"id": "p_prose_edit", "name": "Prose editing", "provider_id": "local-llamacpp",
-     "model": "qwen3.5-9b-q4_k_m", "temperature": None, "top_p": 0.90, "json_mode": False, "position": 2,
+     "model": "qwen3.6-35b-a3b-mtp", "temperature": None, "top_p": 0.90, "json_mode": False, "position": 2,
      "samplers": {"min_p": "0.08"}},
-    # Chat default = best-QUALITY-that-fits-at-the-floor (Phase 4, GGUF-grounded model layer):
-    # the 35B-A3B MoE runs at the 8 GB VRAM + 32 GB RAM floor via CPU expert offload (~32B-class
-    # quality) — off the fast 9B, which stays one click away as the Models grid's chat "faster"
-    # pick. (gemma-4-12b also fits the floor but is 12B-dense; 27B, the chat ceiling, needs 16 GB+.)
+    # Every preset now defaults to the SAME model — the 35B-A3B MoE (2026-07-03 model-setup
+    # simplification: one good model, not a per-task split). It is best-QUALITY-that-fits at the
+    # 8 GB VRAM + 32 GB RAM floor via CPU expert offload (~32B-class quality). QuickSetup re-picks
+    # the best that fits YOUR box and writes it onto every task preset; the fast 9B is now a
+    # per-task opt-in (swap it onto a task on the Tasks tab; download it from the model catalog's
+    # Browse). (gemma-4-12b also fits the floor but is 12B-dense; 27B, the chat ceiling, needs 16 GB+.)
     {"id": "p_chat", "name": "Interactive chat", "provider_id": "local-llamacpp",
      "model": "qwen3.6-35b-a3b-mtp", "temperature": None, "top_p": 0.90, "json_mode": False, "position": 3,
      "samplers": {"min_p": "0.05", "repeat_penalty": "1.05", "repeat_last_n": "64"}},
@@ -66,7 +68,7 @@ DEFAULT_ENGINE_PRESETS: list[dict] = [
      "model": "qwen3.6-35b-a3b-mtp", "temperature": None, "top_p": 0.95, "json_mode": True, "position": 6,
      "samplers": {"min_p": "0.05", "seed": "7"}},
     {"id": "p_digest", "name": "Grounded digest", "provider_id": "local-llamacpp",
-     "model": "qwen3.5-9b-q4_k_m", "temperature": None, "top_p": 0.90, "json_mode": False, "position": 7,
+     "model": "qwen3.6-35b-a3b-mtp", "temperature": None, "top_p": 0.90, "json_mode": False, "position": 7,
      "samplers": {"min_p": "0.05"}},
 ]
 
