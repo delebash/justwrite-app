@@ -173,9 +173,8 @@ try {
   }
 
   // ── AI-area sub-tab sweep. The route loop renders only the default tab; the AI
-  // area's tabs are in-page (Providers · Routing by job · Routing by feature ·
-  // Recommendations · Usage), so the new RoutingByJob tab + the renamed
-  // Routing-by-feature workbench only mount behind a click. Click each + assert
+  // area's tabs are in-page (Providers & models · Tasks · Routing by feature · Usage ·
+  // [app]), so the non-default tabs only mount behind a click. Click each + assert
   // ZERO JS errors. Re-query per click (the click re-renders → stale handles).
   try {
     await page.evaluate(() => { window.location.hash = "#/ai"; });
