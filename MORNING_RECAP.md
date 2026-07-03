@@ -20,7 +20,7 @@
 
 ---
 
-## Current state (2026-07-03) — **GGUF-grounded model layer, Phase 1**: SAMPLER SCOPE EXPANDED — ALL DECISIONS SETTLED, build starting
+## Current state (2026-07-03) — **GGUF-grounded model layer**: Phase 1 SHIPPED (green) · Phase 2 next
 
 > **Single source of truth stays `just-llm-runner/docs/plans/2026-07-02-gguf-grounded-model-layer.md` — see its new "## Phase 1 EXPANSION" section for the full detail + the open decisions.** A container restart wiped the working session; the plan itself survived on origin (recovered by fast-forwarding the stale local clone to runner `fde6667` / JW `820c91b`). We resumed on Phase 1. The user reframed *why* P1 stalled: it stopped on the DATA question — which model facts we read and why — and the model's recommended **sampler settings** are one of those facts, so sampler capture is folded INTO Phase 1 (user: "B").
 >
@@ -29,6 +29,8 @@
 > **Verified in code this session:** per-task config sets ONLY temperature (+ think/json) — `seed_feature_prompts.py`, zero non-temperature sampler keys; the fuller set is generic per model (`seed.py:266-310`). Catalog (`seed.py:101-140`) = 11 unmeasured example models; recommendations linked by `model_id` string, no FK (`db.py:156`); Phase 4 grid = a read-time VIEW joining recs × live fit (no merge/replacement).
 >
 > **RESOLVED (2026-07-03) — build starting:** **[OPEN-A → UNIFY NOW]** the per-hardware recommendation grid becomes the single model surface (rows = hardware tiers, cols = functions, cell = fitting model(s) + Download + why; the flat catalog folds in; "Add your own GGUF" stays) — supersedes the plan's earlier "defer the merge." **[OPEN-B → (a)]** temperature stays the only per-task sampler; Option 2 fills the secondary knobs (top_k/min_p/top_p/penalties) from the model file (no good per-*task* secondary data exists to hand-type; low-temp tasks make those knobs near-inert; prose is model-dependent → Option 2 beats a guess; real per-task tuning goes through Tune & measure #28/Phase 5, measured not guessed). Full detail in the plan's "Phase 1 EXPANSION". **Build order: Phase 1 (GGUF metadata from the link — MTP/fit fields + `general.sampling.*` capture), header key-name verification FIRST.** **Standing rule (user, 2026-07-03): update all docs in FULL DETAIL after every phase (compaction safety).**
+>
+> **✅ PHASE 1 SHIPPED (2026-07-03) — code green:** `gguf.py` extended (`GgufMeta` gains context_length / nextn_predict_layers→`is_mtp` / expert_used_count / file_type / `sampling` dict {general.sampling.*} / base_repo_url; array values SKIPPED not materialised; parser split so a local file + a remote BytesIO share ONE `read_gguf_metadata_from_stream`) + new `gguf_remote.py::fetch_gguf_meta(repo,quant)` (range-reads the header reusing `models.select_files`, bounded 24MB + 4× retry, NO new dep). Key names VERIFIED vs 2 real headers; **verified END-TO-END pre-download** on 17GB Qwen3.6-27B (`sampling={temp:1.0,top_k:20,top_p:0.95}`+mtp) + 68GB GLM-4.5-Air (moe 128/8 + mtp, no sampling → `base_repo=zai-org/GLM-4.5-Air` fallback). runner **206 pytest + ruff green**; `fit.py` unchanged (already takes the real inputs; the call-site feed is Phase 2). **Next: Phase 2 (#105) — auto-derive catalog fields (`trained_ctx`/mtp) + store the per-model recommended sampling as a seed-and-show fact.**
 
 ---
 
