@@ -201,32 +201,23 @@ try {
     console.log(`✗ ai-tab sweep   NAV-FAIL ${String(e.message || e).slice(0, 120)}`);
   }
 
-  // ── Models-tab probe (Phase 4 — the unified "Models" surface): the per-hardware
-  // grid + the relocated catalog ("Manage all models") + the Add-model modal. Open the
-  // Models tab → assert the grid renders with an `embed` column, the catalog is present,
-  // the 35B-A3B model shows in the grid (the reseeded chat/quality data took, not stale
-  // ranks), and the Add-model modal opens — zero JS errors.
+  // ── Models-tab probe: after the recommendation grid was deleted (Phase A of the
+  // model-setup simplification), the Models tab hosts the catalog ("Manage all models")
+  // + the Add-model modal. Open the Models tab → assert the catalog renders and the
+  // Add-model modal opens, zero JS errors. (Phase B relocates the catalog under
+  // Providers → Built-in and dissolves this tab; this probe moves with it then.)
   try {
     await page.evaluate(() => [...document.querySelectorAll(".lu-subnav a")].find((a) => /^models$/i.test(a.textContent.trim()))?.click());
     await sleep(800);
     mark = errors.length;
-    const grid = await page.evaluate(() => {
-      const cols = [...document.querySelectorAll(".lu-grid thead th")].map((th) => th.textContent.trim());
-      return {
-        hasGrid: !!document.querySelector(".lu-grid"),
-        hasEmbed: cols.some((c) => /embed/i.test(c)),
-        hasCat: !!document.querySelector(".lu-mcat"),
-        has35b: /35B-A3B/i.test(document.querySelector(".lu-grid")?.textContent || ""),
-        youRow: !!document.querySelector(".lu-grid tr.is-you"),
-      };
-    });
+    const hasCat = await page.evaluate(() => !!document.querySelector(".lu-mcat"));
     await page.evaluate(() => [...document.querySelectorAll(".lu-mcat button, .lu-mcat .lu-btn")].find((b) => /add model/i.test(b.textContent))?.click());
     await sleep(500);
     const hasModal = await page.evaluate(() => !!document.querySelector(".lu-mm-form"));
     const newErrs = errors.length - mark;
-    const bad = newErrs || !grid.hasGrid || !grid.hasCat || !grid.hasEmbed || !hasModal;
+    const bad = newErrs || !hasCat || !hasModal;
     if (bad) failed++;
-    console.log(`${bad ? "✗" : "✓"} models-tab   grid=${grid.hasGrid} catalog=${grid.hasCat} embed-col=${grid.hasEmbed} 35b-in-grid=${grid.has35b} you-row=${grid.youRow} add-modal=${hasModal} errors=${newErrs}`);
+    console.log(`${bad ? "✗" : "✓"} models-tab   catalog=${hasCat} add-modal=${hasModal} errors=${newErrs}`);
     errors.slice(mark, mark + 4).forEach((e) => console.log("    " + e));
     // Close the Add-model AppModal so its Reka overlay doesn't block later probes' clicks.
     await page.keyboard.press("Escape").catch(() => {});
