@@ -201,33 +201,11 @@ try {
     console.log(`✗ ai-tab sweep   NAV-FAIL ${String(e.message || e).slice(0, 120)}`);
   }
 
-  // ── Models-tab probe: after the recommendation grid was deleted (Phase A of the
-  // model-setup simplification), the Models tab hosts the catalog ("Manage all models")
-  // + the Add-model modal. Open the Models tab → assert the catalog renders and the
-  // Add-model modal opens, zero JS errors. (Phase B relocates the catalog under
-  // Providers → Built-in and dissolves this tab; this probe moves with it then.)
-  try {
-    await page.evaluate(() => [...document.querySelectorAll(".lu-subnav a")].find((a) => /^models$/i.test(a.textContent.trim()))?.click());
-    await sleep(800);
-    mark = errors.length;
-    const hasCat = await page.evaluate(() => !!document.querySelector(".lu-mcat"));
-    await page.evaluate(() => [...document.querySelectorAll(".lu-mcat button, .lu-mcat .lu-btn")].find((b) => /add model/i.test(b.textContent))?.click());
-    await sleep(500);
-    const hasModal = await page.evaluate(() => !!document.querySelector(".lu-mm-form"));
-    const newErrs = errors.length - mark;
-    const bad = newErrs || !hasCat || !hasModal;
-    if (bad) failed++;
-    console.log(`${bad ? "✗" : "✓"} models-tab   catalog=${hasCat} add-modal=${hasModal} errors=${newErrs}`);
-    errors.slice(mark, mark + 4).forEach((e) => console.log("    " + e));
-    // Close the Add-model AppModal so its Reka overlay doesn't block later probes' clicks.
-    await page.keyboard.press("Escape").catch(() => {});
-    await sleep(250);
-  } catch (e) {
-    console.log(`(models-tab probe skipped: ${String(e.message || e).slice(0, 90)})`);
-  }
-
-  // ── Provider-form probe (Phase 4): the built-in provider form now keeps ONLY the
-  // engine-install panel + a pointer to the Models tab — the catalog table moved out.
+  // ── Provider-form + catalog probe: the built-in provider form (Providers tab → Edit the
+  // built-in provider) hosts the Local-engine panel + the model catalog, which moved here
+  // (Phase B — the standalone Models tab was dissolved; the recommendation grid was deleted
+  // in Phase A). Assert the engine panel + the installed-first catalog render, the
+  // Browse-catalog toggle + Add-model modal work, the old Models-tab pointer is gone, 0 errors.
   try {
     await page.evaluate(() => [...document.querySelectorAll(".lu-subnav a")].find((a) => /providers/i.test(a.textContent))?.click());
     await sleep(500);
@@ -236,14 +214,20 @@ try {
     await sleep(700);
     const pf = await page.evaluate(() => ({
       engine: !!document.querySelector(".lu-eng"),
-      pointer: !!document.querySelector(".lu-pf-modelsptr"),
-      noCatalog: !document.querySelector(".lu-mcat"),
+      catalog: !!document.querySelector(".lu-mcat"),
+      browse: [...document.querySelectorAll(".lu-mcat button, .lu-mcat .lu-btn")].some((b) => /browse catalog/i.test(b.textContent)),
+      noPointer: !document.querySelector(".lu-pf-modelsptr"),
     }));
+    await page.evaluate(() => [...document.querySelectorAll(".lu-mcat button, .lu-mcat .lu-btn")].find((b) => /add model/i.test(b.textContent))?.click());
+    await sleep(500);
+    const hasModal = await page.evaluate(() => !!document.querySelector(".lu-mm-form"));
     const newErrs = errors.length - mark;
-    const bad = newErrs || !pf.engine || !pf.pointer || !pf.noCatalog;
+    const bad = newErrs || !pf.engine || !pf.catalog || !pf.browse || !pf.noPointer || !hasModal;
     if (bad) failed++;
-    console.log(`${bad ? "✗" : "✓"} provider-form   engine=${pf.engine} models-pointer=${pf.pointer} no-catalog=${pf.noCatalog} errors=${newErrs}`);
+    console.log(`${bad ? "✗" : "✓"} provider-form   engine=${pf.engine} catalog=${pf.catalog} browse=${pf.browse} no-pointer=${pf.noPointer} add-modal=${hasModal} errors=${newErrs}`);
     errors.slice(mark, mark + 4).forEach((e) => console.log("    " + e));
+    await page.keyboard.press("Escape").catch(() => {});
+    await sleep(250);
   } catch (e) {
     console.log(`(provider-form probe skipped: ${String(e.message || e).slice(0, 90)})`);
   }
