@@ -53,6 +53,11 @@ A model's weights download from Hugging Face onto your machine; the catalog only
 them. Some models carry a **use-limited** license (⚠) — free to try, but not for
 unrestricted commercial use, and never chosen as a default.
 
+**Embedding models** also show their **pooling** (mean · cls · last) in the edit form,
+read-only. Pooling is how a model combines its per-word vectors into the single vector
+used for search; each embedding model is trained for one specific kind, so it is set per
+model and can't be changed here — the wrong pooling would quietly make search worse.
+
 > Installing the local engine itself (the llama.cpp runtime) is separate — that lives on
 > the same **Built-in** provider, above the catalog.
 
