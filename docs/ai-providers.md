@@ -224,17 +224,18 @@ Older guidance (including earlier versions of this page) told 8 GB-card users th
 
 ### Embedding ("Ask the book" / RAG)
 
-**Built-in — no setup needed.** JustWrite's bundled llama.cpp engine now serves embeddings itself. The first time you **Build the manuscript index** (or ask a question in **Ask the book**), it downloads `nomic-embed-text` (~100 MB) and keeps it loaded alongside your chat model. So local "Ask the book" works out of the box — you no longer need Ollama or LM Studio just to supply an embedding model. The picks below still apply if you'd rather point embeddings at a different provider (set it in **Settings → AI → Default embedding**).
+**Built-in — no setup needed.** JustWrite's bundled llama.cpp engine now serves embeddings itself. The first time you **Build the manuscript index** (or ask a question in **Ask the book**), it downloads `qwen3-embedding-0.6b` (~0.6 GB) and keeps it loaded alongside your chat model. So local "Ask the book" works out of the box — you no longer need Ollama or LM Studio just to supply an embedding model. The picks below still apply if you'd rather point embeddings at a different provider (set it in **Settings → AI → Default embedding**).
 
-Embedding models are tiny (sub-1 GB) and run alongside your chat model without meaningful VRAM impact. Three solid picks:
+Embedding models are tiny (sub-1 GB) and run alongside your chat model without meaningful VRAM impact. Solid picks:
 
 | Model | Size | Context | Notes |
 |---|---|---|---|
-| `nomic-embed-text` | 137 M (~270 MB) | 8K | Lightweight default. Strong for English prose, multilingual is decent. Fastest. |
+| `qwen3-embedding-0.6b` | 0.6 B (~0.6 GB) | 32K | **Built-in default.** Strong multilingual + English (higher MTEB than nomic); still tiny. Last-token pooling, set automatically. |
+| `nomic-embed-text` | 137 M (~270 MB) | 8K | Lightweight English-first alternative — smallest + fastest; mean pooling. |
 | `bge-m3` | 568 M (~1.2 GB) | 8K | Best multilingual quality. Pick this if your manuscript isn't English, or for long chapters where the 8K window matters. |
 | `mxbai-embed-large` | 335 M (~670 MB) | 512 | Highest English quality at the price of a short context window — JustWrite chunks chapters before embedding, so the small window is usually fine. |
 
-For an 8 GB GPU running an 8B chat model: `nomic-embed-text` is the safe choice. For 12 GB+: any of the three.
+For an 8 GB GPU running an 8B chat model: the built-in `qwen3-embedding-0.6b` (or `nomic-embed-text` if you want the smallest) is a safe choice. For 12 GB+: any of them.
 
 ### Recommended feature routing by card
 
