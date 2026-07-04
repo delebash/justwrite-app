@@ -381,6 +381,22 @@ These are optional refinements. The defaults are reasonable for almost every cas
 
 ---
 
+## Loaded models & GPU memory (built-in engine)
+
+The bundled engine can keep more than one model in GPU memory at once — for example your chat model and the small embedding model that powers *Ask the book* — so it doesn't have to reload a model every time you switch tasks. When you **Edit** the **Built-in** provider, the **Local engine** card shows a **Loaded models** panel with:
+
+- **What's loaded right now** — each model the engine is holding and its state: *loaded* and ready, *sleeping* after sitting idle, or an error if a model failed to start (a failed model stays listed here so you can see what went wrong instead of it vanishing silently), plus how much context and GPU memory each one is using.
+- **GPU memory in use** — how much of your graphics card's memory is currently committed versus free, so you can see how much headroom is left for another model. (Shown only when a GPU with detectable memory is present.)
+
+Two settings let you tune this to your card:
+
+- **Models kept loaded at once** — how many models may share GPU memory together. On a small card, set this to **1** so only one model is loaded at a time (each new one replaces the last); on a card with plenty of memory, a higher number lets your chat and embedding models stay ready side by side. Default: 2. (If you enter less than 1 it's raised to 1 — the engine always keeps at least one model available.)
+- **Unload an idle model after (seconds)** — how long a model sits unused before the engine frees its memory. Set it to **0** to keep models loaded until something else needs the room. Default: 900 (15 minutes).
+
+Change either value, then click **Save**; the new limits apply the next time a model loads.
+
+---
+
 ## Switching provider or model from the page itself
 
 > *"I'm in the Critique modal and the result feels off. I want to try a different model right here without leaving to navigate Settings."*
