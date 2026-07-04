@@ -22,6 +22,18 @@
 
 ## ⛔⛔ SESSION STATE (2026-07-04, EVENING) — READ THIS FIRST after compaction — SERVING/VRAM-MANAGER BUILD: P1 + P2 + P3 SHIPPED, P4 NEXT
 
+> **⚠ RESTART SAFETY — DO THIS BEFORE JUDGING STATE (lesson, 2026-07-04 night — do NOT re-learn).** After a
+> container restart the LOCAL checkout can LAG origin (the fresh container re-cloned/checked-out at an OLDER commit).
+> The durable truth is **ORIGIN, not the local working tree.** So on resume, on BOTH repos, in this order:
+> (1) `git fetch origin claude/admiring-galileo-il3q0o`; (2) compare `git ls-remote origin refs/heads/claude/admiring-galileo-il3q0o`
+> against local `git rev-parse HEAD`; (3) if local is behind, `git pull --ff-only origin claude/admiring-galileo-il3q0o`.
+> **Only THEN** judge what is / isn't built. **What happened this night:** the container resumed on a STALE checkout at
+> the OLD 2026-07-02 commit (runner `040ba46` / JW `a281a80`), so the P3 code + the `2026-07-04-*` plan docs were absent
+> *locally* — and I wrongly announced "the work looks lost." It was NEVER lost: origin had **runner `8b56a9e` / JW
+> `d110dab`** (the P3 commits) the whole time, and a `--ff-only` pull restored everything on disk. **NEVER cry "work
+> lost" from local-only checks — fetch origin FIRST, compare to `ls-remote`, then decide.** Verified-saved checkpoint at
+> this point: runner `8b56a9e`, JW `d110dab`, both branches clean (0 uncommitted / 0 unpushed) and equal to origin.
+
 The serving/VRAM-manager plan is **APPROVED and IN BUILD** (user typed "A and i approve plan go" 2026-07-04). This section is the compaction-recovery MAP; the two source-of-truth docs to READ IN FULL on restart are the **DESIGN** doc `just-llm-runner/docs/plans/2026-07-04-serving-vram-manager.md` and the **IMPLEMENTATION** plan `just-llm-runner/docs/plans/2026-07-04-serving-vram-manager-implementation.md` (the live task tracker). Do NOT re-derive; read those two + this section.
 
 **THE PLAN (structure + what it delivers).** ONE phased plan for the serving/VRAM manager (the user delegated the one-vs-many call to the agent and chose ONE phased plan because the pieces share the `fit.py`/`lifecycle.py`/DB seam). Five phases: **P1** runner→router mode + DB→`.ini` emission; **P2** thin VRAM arbiter (`runner/arbiter.py`) + budget-aware fit; **P3** co-resident embeddings — CLOSES THE EMBEDDING GAP, the first user-verifiable ship, and unblocks the model-surface build #104–112; **P4** resident-set + TTL UI (shared kit); **P5** verify + docs (continuous, per phase). **The JV shared-LLM convergence is a SEPARATE future plan** (captured in the impl plan's "FUTURE" section): remove JV's own LLM stack + wire the shared runner, rework the JV LLM GUI, port the special speaker-extraction features ("later todo"), plus the arbiter hook into JV's `EngineManager.load()` and the §7.2 design-doc correction. NOT built in this plan. **The plan was hardened by a 3-checker rules panel** (architecture-fit · reuse · grounding): grounding PASS (all 30+ file:line citations verified accurate — the prior plan-doc drift did NOT recur), and the two FAIL findings folded — T3 (the `.ini` emitter would have been a second flag renderer → fixed with a shared intermediate) and T5 (the RunnerService→router refactor silently dropped measure/tokenize/status/OOM-recovery + the Lab tuning → fixed by a per-method strict-diff + the items below). **LOCKED DECISION:** the Lab per-load tuning in router mode = **Option A — ephemeral-section re-emit** (write the tuned switches into a temporary `.ini` section, reload that model via the router, measure, revert; NOT a separate single-model spawn). `start_runner`/`compose_flags` stay only for standalone/tests.
