@@ -224,6 +224,8 @@ Older guidance (including earlier versions of this page) told 8 GB-card users th
 
 ### Embedding ("Ask the book" / RAG)
 
+**Built-in — no setup needed.** JustWrite's bundled llama.cpp engine now serves embeddings itself. The first time you **Build the manuscript index** (or ask a question in **Ask the book**), it downloads `nomic-embed-text` (~100 MB) and keeps it loaded alongside your chat model. So local "Ask the book" works out of the box — you no longer need Ollama or LM Studio just to supply an embedding model. The picks below still apply if you'd rather point embeddings at a different provider (set it in **Settings → AI → Default embedding**).
+
 Embedding models are tiny (sub-1 GB) and run alongside your chat model without meaningful VRAM impact. Three solid picks:
 
 | Model | Size | Context | Notes |

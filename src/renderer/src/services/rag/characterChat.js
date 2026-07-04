@@ -154,6 +154,7 @@ export async function askAsCharacter({
   try {
     queryVectors = await embedTexts({
       providerId: resolvedEmbedProvider.id,
+      providerType: resolvedEmbedProvider.providerType,
       input: embedQuery,
       model: resolvedEmbedModel,
       signal,
