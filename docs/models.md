@@ -50,10 +50,15 @@ can:
   (your added models are kept).
 
 A model's weights download from Hugging Face onto your machine; the catalog only lists
-them. Some models carry a **use-limited** license (⚠) — free to try, but not for
-unrestricted commercial use, and never chosen as a default.
+them. The built-in list is a **small curated ladder** — a few chat models per hardware
+tier (dense models that run fully on the GPU → MoE models that offload experts to system
+RAM) plus a few embedding models — every repo, quant, and license verified against Hugging
+Face. It's a starting point, not a limit: **Add model** lets you run anything. Some models
+carry a **use-limited** license (⚠) — free to try, but not for unrestricted commercial
+use, and never chosen as a default.
 
-**Embedding models** also show their **pooling** (mean · cls · last) in the edit form,
+Each model is explicitly marked as a **chat model** or an **embedding model**, so the app
+always knows which is which (it never guesses from the name). **Embedding models** also show their **pooling** (mean · cls · last) in the edit form,
 read-only. Pooling is how a model combines its per-word vectors into the single vector
 used for search; each embedding model is trained for one specific kind, so it is set per
 model and can't be changed here — the wrong pooling would quietly make search worse.
