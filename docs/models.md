@@ -17,10 +17,11 @@ At the top of **Providers & models**, **Run Quick Setup** does the whole first-t
    Quick Setup takes the highest-quality one (the catalog's quality order). It deliberately
    **skips a dense model that only fits by spilling onto the CPU** — that spill makes every
    word slow — unless nothing faster runs, in which case it falls back to the best model that
-   runs at all. You can change the pick before applying; a **Plan for card** selector also
-   re-scores the fit for a different graphics card, so you can plan ahead.
-3. It sets the **embedding model** (used for search and grounded chat — a small model that
-   always runs on the CPU).
+   runs at all. You can change the pick before applying; a **Plan for card** selector
+   re-scores the fit for a different card (8 GB up to 64 GB), so you can plan ahead.
+3. It sets the **embedding model** — used for semantic search and grounded chat. You pick it
+   from a dropdown of the embedding models that fit your box (the most capable one that fits
+   is chosen by default); it runs alongside your chat model.
 
 When you click **Apply**, that one model becomes the default for **every task** — writing,
 chat, extraction, judgment — and it downloads and loads right away. If you've already
