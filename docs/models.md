@@ -51,8 +51,10 @@ its **Lab** to measure the difference.
 Open the **Built-in** provider (under **Providers & models**) to see the catalog — one list
 of every model, with the ones that **fit your machine grouped at the top** and the rest
 below. A **search** box and a **sort** control (by quality, name, or size) help you find
-one. Each row shows the model's size, license, live **Fit** badge (*Fits* / *Tight* / *CPU*
-/ *Won't fit*), whether it's **Downloaded** or **Not downloaded**, and a short description.
+one. Each row shows the model's **type** (*Dense* or *MoE*, plus **MTP** for models with
+multi-token prediction and **Embed** for embedding models), license, live **Fit** badge
+(*Fits* / *Tight* / *CPU* / *Won't fit*), whether it's **Downloaded** or **Not downloaded**,
+and a short description (the parameter count lives in the name and description).
 The model every task currently uses carries a **Default** badge; the embedding model carries
 an **Embedding** badge. From here you can:
 
@@ -64,16 +66,29 @@ an **Embedding** badge. From here you can:
 - **Set as embedding** — makes a downloaded embedding model the one used for search and
   grounded chat.
 - **Tune** a downloaded model — measure its decode speed on your box with custom engine
-  flags. To *keep* a tuned config, use **Send to Tasks Lab** in the Tune window: it opens as
-  a new column in that Task's Lab, where you save it as the Task's preset.
-- **Add model** — point at any Hugging Face GGUF repo and **Read from link** to fill in its
-  details from the file before downloading. This is how you run a model outside the built-in
-  list.
-- **Edit** a model's details — including its plain-language **description**, its **quality
-  rank** (lower = better; the order Quick Setup ranks the fast-enough models by), and an
-  **Embedding model** checkbox (mark it if the model is an embedding/RAG model rather than a
-  chat LLM). **Delete** one you added, or **Reset catalog** to restore the built-ins (your
-  added models are kept).
+  flags, then **Save tune** to keep the config **for this model on this machine**: every
+  later load of that model here uses it automatically (and each machine keeps its own tune,
+  so a data folder moved to another computer never applies the wrong numbers). **Remove
+  saved tune** returns the model to its defaults. Good defaults come pre-filled — including
+  speculative decoding (**MTP**), which turns on automatically for models that support it;
+  set it to *Off* and Save if you don't want it. For a per-*Task* setup instead, **Send to
+  Tasks Lab** opens the config as a new column in that Task's Lab, where you save it as the
+  Task's preset.
+- **Add model** — point at any Hugging Face GGUF repo and **Read from link**: the form lists
+  the repo's **available quants as a dropdown** (each with its download size and a **QAT** /
+  **IQ** label where it applies), pre-picks one that fits your machine (change it, or pick
+  *Custom…* to type your own), and fills the model's details from the file — all before
+  downloading. If the repo ships a **separate MTP draft model** (some models, like Gemma,
+  keep speculative decoding in its own small file), the form detects it and pre-selects the
+  smallest draft; the draft downloads alongside the model on its first MTP load. This is how
+  you run a model outside the built-in list.
+- **Edit** a model's details — its plain-language **description**, its **quality rank**
+  (lower = better; the order Quick Setup ranks the fast-enough models by), and the
+  **what-this-model-is checkboxes**: **MoE** (mixture-of-experts), **MTP** (multi-token
+  prediction — speculative decoding turns on by default when checked or when a draft file
+  is set), and **Embedding** (a search/RAG model rather than a chat LLM). They're
+  auto-detected from the file; override them if you know better. **Delete** one you added,
+  or **Reset catalog** to restore the built-ins (your added models are kept).
 
 A model's weights download from Hugging Face onto your machine; the catalog only lists
 them. The built-in list is a **small curated ladder** — a few chat models per hardware
