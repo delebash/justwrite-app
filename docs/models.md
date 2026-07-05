@@ -10,11 +10,15 @@ tune models yourself.
 At the top of **Providers & models**, **Run Quick Setup** does the whole first-time setup:
 
 1. It detects your hardware (GPU, VRAM, RAM).
-2. It picks the **best-quality model that actually fits your box** — the catalog is ordered
-   by quality, and Quick Setup takes the highest-quality one that runs on your machine
-   (a model that only fits by spilling onto the CPU still counts, it's just slower). You
-   can change the pick before applying; a **Plan for card** selector also re-scores the fit
-   for a different graphics card, so you can plan ahead.
+2. It picks the **most capable model that still runs fast on your box** — not just the
+   biggest that fits. A model streams fast enough when it's a **dense** model that fits
+   entirely in VRAM, or a **mixture-of-experts (MoE)** model whose experts can offload to
+   system RAM (only a fraction runs per word, so the offload stays quick). Among those,
+   Quick Setup takes the highest-quality one (the catalog's quality order). It deliberately
+   **skips a dense model that only fits by spilling onto the CPU** — that spill makes every
+   word slow — unless nothing faster runs, in which case it falls back to the best model that
+   runs at all. You can change the pick before applying; a **Plan for card** selector also
+   re-scores the fit for a different graphics card, so you can plan ahead.
 3. It sets the **embedding model** (used for search and grounded chat — a small model that
    always runs on the CPU).
 
@@ -45,8 +49,8 @@ can:
   details from the file before downloading. This is how you run a model outside the
   built-in list.
 - **Edit** a model's details — including its plain-language **description** and its
-  **quality rank** (lower = better; this is the order Quick Setup uses to pick the best
-  model that fits). **Delete** one you added, or **Reset catalog** to restore the built-ins
+  **quality rank** (lower = better; this is the order Quick Setup ranks the fast-enough
+  models by when it picks). **Delete** one you added, or **Reset catalog** to restore the built-ins
   (your added models are kept).
 
 A model's weights download from Hugging Face onto your machine; the catalog only lists
