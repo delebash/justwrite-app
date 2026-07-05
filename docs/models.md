@@ -34,24 +34,32 @@ its **Lab** to measure the difference.
 
 ## The model catalog
 
-Open the **Built-in** provider (under **Providers & models**) to see the catalog. It's
-**installed-first**: **Your models** lists what you've downloaded — empty on a fresh
-install — and **Browse catalog** reveals the rest of the built-in list to download, plus
-**Add model** for your own. Each row shows the model's size, license, live **Fit** badge
-(*Fits* / *Tight* / *CPU*), on-disk/loaded status, and a short description. From here you
-can:
+Open the **Built-in** provider (under **Providers & models**) to see the catalog — one list
+of every model, with the ones that **fit your machine grouped at the top** and the rest
+below. A **search** box and a **sort** control (by quality, name, or size) help you find
+one. Each row shows the model's size, license, live **Fit** badge (*Fits* / *Tight* / *CPU*
+/ *Won't fit*), whether it's **Downloaded** or **Not downloaded**, and a short description.
+The model every task currently uses carries a **Default** badge; the embedding model carries
+an **Embedding** badge. From here you can:
 
-- **Load / Download & load** a model (one runs at a time; loading a new one replaces it).
-- **Tune** a downloaded model — load it with custom engine flags and measure decode speed
-  on your box. To *keep* a tuned config, use **Send to Tasks Lab** in the Tune window: it
-  opens as a new column in that Task's Lab, where you save it as the Task's preset.
+- **Download** a model — fetches the weights onto your machine. Models load automatically
+  when a task uses them, so there's no separate "load" step; your chat default and the
+  embedding can run together.
+- **Set as default** — makes a downloaded model the one **every task** uses (the same effect
+  as Quick Setup; any task you've re-pointed yourself on the **Tasks** tab keeps its own model).
+- **Set as embedding** — makes a downloaded embedding model the one used for search and
+  grounded chat.
+- **Tune** a downloaded model — measure its decode speed on your box with custom engine
+  flags. To *keep* a tuned config, use **Send to Tasks Lab** in the Tune window: it opens as
+  a new column in that Task's Lab, where you save it as the Task's preset.
 - **Add model** — point at any Hugging Face GGUF repo and **Read from link** to fill in its
-  details from the file before downloading. This is how you run a model outside the
-  built-in list.
-- **Edit** a model's details — including its plain-language **description** and its
-  **quality rank** (lower = better; this is the order Quick Setup ranks the fast-enough
-  models by when it picks). **Delete** one you added, or **Reset catalog** to restore the built-ins
-  (your added models are kept).
+  details from the file before downloading. This is how you run a model outside the built-in
+  list.
+- **Edit** a model's details — including its plain-language **description**, its **quality
+  rank** (lower = better; the order Quick Setup ranks the fast-enough models by), and an
+  **Embedding model** checkbox (mark it if the model is an embedding/RAG model rather than a
+  chat LLM). **Delete** one you added, or **Reset catalog** to restore the built-ins (your
+  added models are kept).
 
 A model's weights download from Hugging Face onto your machine; the catalog only lists
 them. The built-in list is a **small curated ladder** — a few chat models per hardware

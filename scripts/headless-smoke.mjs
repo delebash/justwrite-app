@@ -203,8 +203,8 @@ try {
   // ── Provider-form + catalog probe: the built-in provider form (Providers tab → Edit the
   // built-in provider) hosts the Local-engine panel + the model catalog, which moved here
   // (Phase B — the standalone Models tab was dissolved; the recommendation grid was deleted
-  // in Phase A). Assert the engine panel + the installed-first catalog render, the
-  // Browse-catalog toggle + Add-model modal work, the old Models-tab pointer is gone, 0 errors.
+  // in Phase A). Assert the engine panel + the fit-grouped catalog render, the search + sort
+  // toolbar + Add-model modal work, the old Models-tab pointer is gone, 0 errors.
   try {
     await page.evaluate(() => [...document.querySelectorAll(".lu-subnav a")].find((a) => /providers/i.test(a.textContent))?.click());
     await sleep(500);
@@ -214,16 +214,16 @@ try {
     const pf = await page.evaluate(() => ({
       engine: !!document.querySelector(".lu-eng"),
       catalog: !!document.querySelector(".lu-mcat"),
-      browse: [...document.querySelectorAll(".lu-mcat button, .lu-mcat .lu-btn")].some((b) => /browse catalog/i.test(b.textContent)),
+      search: !!document.querySelector(".lu-mcat-bar input") && !!document.querySelector(".lu-mcat-bar .ui-select-trigger"),
       noPointer: !document.querySelector(".lu-pf-modelsptr"),
     }));
     await page.evaluate(() => [...document.querySelectorAll(".lu-mcat button, .lu-mcat .lu-btn")].find((b) => /add model/i.test(b.textContent))?.click());
     await sleep(500);
     const hasModal = await page.evaluate(() => !!document.querySelector(".lu-mm-form"));
     const newErrs = errors.length - mark;
-    const bad = newErrs || !pf.engine || !pf.catalog || !pf.browse || !pf.noPointer || !hasModal;
+    const bad = newErrs || !pf.engine || !pf.catalog || !pf.search || !pf.noPointer || !hasModal;
     if (bad) failed++;
-    console.log(`${bad ? "✗" : "✓"} provider-form   engine=${pf.engine} catalog=${pf.catalog} browse=${pf.browse} no-pointer=${pf.noPointer} add-modal=${hasModal} errors=${newErrs}`);
+    console.log(`${bad ? "✗" : "✓"} provider-form   engine=${pf.engine} catalog=${pf.catalog} search=${pf.search} no-pointer=${pf.noPointer} add-modal=${hasModal} errors=${newErrs}`);
     errors.slice(mark, mark + 4).forEach((e) => console.log("    " + e));
     await page.keyboard.press("Escape").catch(() => {});
     await sleep(250);
