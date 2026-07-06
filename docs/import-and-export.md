@@ -57,6 +57,7 @@ The **Add notes** mode applies two settings to every note in the batch:
 - **Text normalization** (on by default) — converts curly quotes, em-dashes, ellipses, and whitespace to consistent Unicode. Turn it off if you want to preserve the original character encoding exactly.
 - **Entity sweep** (offered after import) — an AI scan of the new chapters that proposes characters, locations, and objects to add to your Story Bible. You review every proposal individually; nothing is added without your click. Requires an AI provider.
 - **Images** embedded in DOCX, EPUB, and ODT files are extracted and stored alongside the project.
+- **Lists** — bulleted and numbered lists (including nested ones) are preserved on import, from DOCX, EPUB, and ODT alike.
 
 ### When to use which mode
 

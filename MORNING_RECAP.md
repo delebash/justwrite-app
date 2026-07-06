@@ -84,6 +84,22 @@
 > findings RECORDED under F1 (llmBackend adapter era · ProviderForm LLM-half · QuickSetup pin-config
 > half · RecommendCard · the task-queue fork → adopt C3's kit queue). Verified after the fixes:
 > build:vite clean · vitest 28/28 · full headless smoke zero JS errors · runner ruff + 350 pytest.
+> **(6d) POST-COMPACT: E3 — ODT list import — SHIPPED (2026-07-06); the batch is 12 of 13, remaining
+> C2 only (the benchmark re-grounding research; E3 ran first by a recorded order adjustment — small
+> build before the research-days tail).** `parseOdt` now imports `text:list` as TipTap-canonical
+> `<ul>/<ol>` (`<li><p>…</p></li>`, multi-paragraph items, nested lists inside the parent `<li>`),
+> ordered-vs-bullet decided PER NESTING LEVEL from the list styles in content.xml AND styles.xml; the
+> "N lists dropped" warning is gone. The diff checker FAILED the first cut on T2 (ODF semantics written
+> from recall, zero citations — the upstream hard rule) and the remediation FOUND A REAL BUG: ODF 1.2
+> §16.30 says an undefined level uses "the list level style of the NEXT LOWER level" — the first cut
+> wrongly defaulted to bullet; fixed with a pinning test. Spec sections extracted from the downloaded
+> OASIS spec (§16.30/§5.3.2/§5.3.3, URL in the tracker); a GENUINE LibreOffice-produced odt (LO core
+> corpus) was inspected + live-run through parseOdt (three-deep <ol>, li>p shape, zero warnings) —
+> confirming automatic-style + bare-nested-list markup, and that LO's styles.xml carries no list styles
+> (the styles.xml arm is spec-legal coverage for other producers, honestly relabeled). New
+> `services/import/__tests__/odt.test.js` (per-file jsdom env; `jsdom` devDep) — 6 tests over the real
+> parser incl. the §16.30 rule. Verified: vitest **34/34** · build:vite clean · full headless smoke
+> zero JS errors.
 > **(5) POST-COMPACTION DECISIONS (2026-07-06, "i take your rec on d1 and d3, go"):** the ledger's §D is now EMPTY — no open decisions remain anywhere. **D1 DECIDED — Quick Setup keeps writing the picked model onto the EXISTING task presets** (the non-clobber `modelApply.js:75-87` PUT that skips user-re-pointed presets); it does NOT generate a preset per task; closed with zero code; tracker #100 closed (annotated in the current preset-model doc `2026-07-02-preset-model-a-resets.md` §Out-of-scope too). **D3 DECIDED — the stale #71 umbrella verify task is CLOSED**; its build/smoke/docs parts had already shipped in later phases and its only surviving piece — the marketing-screenshots run (`npm run screenshots`, built `.exe` + WebView2) — is folded into the ledger as an unconditional your-box item **G4**. Both recorded in the outstanding master plan (§D closed-section note + the two decided records kept in full + G4 rewritten).
 > **STANDING USER RULES:** held all session (the 10 restated rules + never-code-until-"go"); every phase committed+pushed immediately (the only reason four container resets cost nothing).
 
