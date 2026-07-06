@@ -143,6 +143,24 @@
 > kit layering violation the panel rounds surfaced — needs a go) · F1–F5 (JustVoice) · the §G box
 > checks.** Dev-DB note unchanged: one-time `POST /v1/data/reset` after pulling (the C1 schema column
 > + the C2 rank swap reseed).
+> **(6g) C6 SHIPPED (2026-07-06, on the user's "do c6") — the kit-internal layering fix.** The five
+> llm-endpoint files that violated the common charter (`common/index.js:2-6` — "nothing here may
+> import from ../") moved into the kit's llm layer: `useRouting`/`useRunnerModels`/
+> `useProviderConnect`/`useCatalogMeta` → `ui/src/composables/`, `modelApply` → `ui/src/services/`
+> (git renames; `../../client.js` → `../client.js`; the stale "lives in common/" rationale headers
+> rewritten; importers re-pathed in LuModelCatalog/QuickSetup/ProviderForm; useProviderModels's C5
+> honesty note retired — `listModels` is now the clean llm→llm edge). ZERO public-surface change
+> (neither kit index ever exported the five) and zero JW/JV edits (no app references — verified both
+> ways). Verified: pre-build rules-checker PASS zero failures · build:vite clean · vitest 29/29 ·
+> FULL headless smoke ALL routes + AI sub-tabs ZERO JS errors (provider-form probe drove three moved
+> files live) · the upward-import sweep of `ui/src/common/` returns ZERO — the charter is clean for
+> the first time. Full design + record: the batch tracker §C6. SAME-SESSION EXTRAS: the ledger gained
+> **D4** (the tuning-session discussion item, headlined by the QuickSetup-overwrite concern) and the
+> harness task list was reconciled (14 stale pending entries closed against the ledger); an audit at
+> the user's ask found the untracked leftovers — dead `useRunnerModels.load()/unload()` (prune
+> unblocked when 4b was closed-dropped), the twice-recorded-but-unledgered remote-catalog future, and
+> the never-decided "fast 9B for quick tasks" QuickSetup optional — reported to the user, recording
+> awaits their word.
 > **(5) POST-COMPACTION DECISIONS (2026-07-06, "i take your rec on d1 and d3, go"):** the ledger's §D is now EMPTY — no open decisions remain anywhere. **D1 DECIDED — Quick Setup keeps writing the picked model onto the EXISTING task presets** (the non-clobber `modelApply.js:75-87` PUT that skips user-re-pointed presets); it does NOT generate a preset per task; closed with zero code; tracker #100 closed (annotated in the current preset-model doc `2026-07-02-preset-model-a-resets.md` §Out-of-scope too). **D3 DECIDED — the stale #71 umbrella verify task is CLOSED**; its build/smoke/docs parts had already shipped in later phases and its only surviving piece — the marketing-screenshots run (`npm run screenshots`, built `.exe` + WebView2) — is folded into the ledger as an unconditional your-box item **G4**. Both recorded in the outstanding master plan (§D closed-section note + the two decided records kept in full + G4 rewritten).
 > **STANDING USER RULES:** held all session (the 10 restated rules + never-code-until-"go"); every phase committed+pushed immediately (the only reason four container resets cost nothing).
 
