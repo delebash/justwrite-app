@@ -1,3 +1,4 @@
+
 # On-box tests — profile A/B + switch cost + optimize check (2026-07-06)
 
 **For the local Claude running on the 2070 SUPER box (8 GB VRAM · 32 GB RAM · Ryzen 5700X).**
@@ -148,12 +149,50 @@ curl -s "http://127.0.0.1:17495/v1/ai/model-tunes?modelId=<the-picked-model-id>"
 Confirm rows exist (the sweep saved this machine's tune) and record the reported best tok/s. This is
 the first real-hardware run of the auto-tune sweep.
 
-## RESULTS — fill and return
+## RESULTS — filled 2026-07-06 (desktop session; run on the HAND ini per the user's directive)
 
 ```
-PRE-FLIGHT: ini matches the tuning-session values = Y/N (diffs: …)
-STEP 0 gate: enable_thinking per-request on Gemma = WORKS / NO EFFECT (evidence: …)
-TEST 1: A ttft=__s rate=__ tok/s · B ttft=__s rate=__ tok/s → verdict: ONE profile / TWO profiles
-TEST 2: switch price = __ s (median of __ runs)
-TEST 3 (optional): sweep completed=Y/N · saved rows=Y/N · best tok/s=__ · anything odd: …
+PRE-FLIGHT: ini matches the tuning-session values = Y (verified line-by-line: writer 8192/20/512/512/8/rb0;
+  book-chat 32768/21/512/512/8/rb1024 — no drift; the 65536 ctx line remains commented out).
+
+STEP 0 gate: enable_thinking per-request on Gemma = WORKS
+  (evidence: default → reasoning_content 598ch, content still empty at max_tokens 150, wall 15.9s;
+   {"chat_template_kwargs":{"enable_thinking":false}} → reasoning_content 0ch, no <think>, prose starts
+   immediately, wall 3.9s. Reproduced earlier the same day on the seeded config: 513ch → 0ch.)
+
+TEST 1 (CACHE-BUSTED — unique prompt head per run; the honest autocomplete-shaped number; medians of runs 1-3):
+  A (writer 8k/ncmoe20/rb0):                   ttft=1.68s  rate=31.6 tok/s
+  B (book-chat 32k/ncmoe21/rb1024, think-off): ttft=1.52s  rate=28.3 tok/s
+TEST 1 (AS-WRITTEN, for completeness — prompt-cached, see caveat 3):
+  A ttft=1.51s rate=32.1 · B ttft=1.38s rate=31.3
+→ verdict: ONE profile viable. B's TTFT is EQUAL-OR-BETTER than A (delta −0.17s); decode ratio 0.89
+  (within the 20% tolerance); the gate works. The 32k+rb1024 section with per-request thinking-off
+  serves writer traffic at writer speed on this box.
+
+TEST 2: switch price = 7.7 s (median of 3 explicit /models/unload switches: 7.7 / 7.5 / 8.1).
+  (The 30s-idle-sleep path wasn't separately re-timed this pass; the tuning session measured it 7–12s.)
+
+TEST 3: NOT run as written — deliberate: QuickSetup→Apply on this box triggers the D4 preset clobber
+  (would rewrite the seeded two-model preset split, likely to Qwen via quality_rank 8 < 9). Equivalent
+  evidence already on record: the auto-tune sweep ran twice through the app path earlier today (runner
+  1984d92, review mode): 4 trials, winner n-cpu-moe 22 @ 23.4 tok/s via the 5% tie band, ncmoe 19
+  failed bounded at 240s, 18 pruned monotonically; the save path is unit-tested.
+
+BONUS — seeded (DB-generated ini, app router) vs hand ini, same suite (the day's first run hit the
+  app router before the user's restart): seeded A ttft=1.68s rate=30.5 · seeded B ttft=1.53s rate=25.0
+  → indistinguishable from the hand ini (the B-rate gap sits inside the ±10% MTP-acceptance noise
+  band). Empirical answer to the seeded-vs-original question: same performance, as designed.
+
+INCIDENTS for the design discussion:
+  1. A SLEEPING router child is NOT VRAM-free — the app router's sleeping qwen3.6 child held enough
+     CUDA footprint to OOM the book-chat load twice (native autoload does no eviction; models-max 2
+     was satisfied so nothing was evicted). In-app the arbiter's _admit would have evicted it first —
+     but DIRECT-to-router clients (this test; any external tool pointed at :8080) bypass the arbiter.
+     On an 8 GB card, a sleeping third model can push a maxed profile over the OOM edge.
+  2. Stopping the JW server ORPHANS its router child on Windows — the :8080 llama-server survives and
+     keeps serving the generated ini; the user's "restarted with the correct ini" confusion this
+     session was the orphan still holding the port. Candidate fix: Job-Object/process-group teardown.
+  3. Method caveat for re-runs: the as-written Test 1 repeats one prompt verbatim → runs 1-3 hit the
+     llama prompt cache and TTFT collapses to decode-only; the cache-busted variant is the number that
+     matches real autocomplete traffic (each keystroke burst = a new prefix).
 ```
