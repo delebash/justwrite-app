@@ -169,6 +169,20 @@
 > annotated at `2026-07-03-model-setup-simplification.md:344`). The two cross-reference notes
 > (option-D prior art for D4 · the JV Tasks-page line in F1) remain reported-only; D4 + D5 are in
 > live discussion (recommendations presented, user's picks pending).
+> **(6h) SAME-DAY DISCUSSION OUTCOMES + C8 (2026-07-06).** D4 secondary items DECIDED: the :8080
+> foreign-listener guard = **NOT built, leave as-is** ("3 leave it"; annotated in the tuning doc
+> line 140 too) · the dormant hand-ini sections = **LEAVE them, no pruning** ("4 no pruning leave
+> it"). **D5 = PARKED** ("D5 park it"; the wake-shape recorded on the ledger line). **C8 SHIPPED
+> (runner + JW; record: batch tracker §C8):** QuickSetup is LOCAL-ONLY again by user directive —
+> the "Run models with" selector + the in-wizard connect flow (incl. the hardcoded cloud-preset
+> chips) + the external apply path are REMOVED (a user reversal of the 2026-07-05 Option-2
+> decision); providers connect on the provider list; `detectLocal` pruned with its last consumer;
+> `qs-otherprovider-probe.mjs` deleted; the committed wizard probe got a found-and-fixed (stale
+> hardcoded "Nomic" embed assertion → data-driven vs routing/ladder, + two local-only negatives)
+> and passes 9/9; `models.md` §Quick Setup rewritten local-only. The user's item 3 ("changing
+> default model doesn't actually do anything") was WITHDRAWN ("dont worry about 3"). **Open
+> discussion remaining: D4-1 (the QuickSetup overwrite — options a–d, rec a+c) · D4-2 (one vs two
+> catalog entries — rec keep two).**
 > **(5) POST-COMPACTION DECISIONS (2026-07-06, "i take your rec on d1 and d3, go"):** the ledger's §D is now EMPTY — no open decisions remain anywhere. **D1 DECIDED — Quick Setup keeps writing the picked model onto the EXISTING task presets** (the non-clobber `modelApply.js:75-87` PUT that skips user-re-pointed presets); it does NOT generate a preset per task; closed with zero code; tracker #100 closed (annotated in the current preset-model doc `2026-07-02-preset-model-a-resets.md` §Out-of-scope too). **D3 DECIDED — the stale #71 umbrella verify task is CLOSED**; its build/smoke/docs parts had already shipped in later phases and its only surviving piece — the marketing-screenshots run (`npm run screenshots`, built `.exe` + WebView2) — is folded into the ledger as an unconditional your-box item **G4**. Both recorded in the outstanding master plan (§D closed-section note + the two decided records kept in full + G4 rewritten).
 > **STANDING USER RULES:** held all session (the 10 restated rules + never-code-until-"go"); every phase committed+pushed immediately (the only reason four container resets cost nothing).
 

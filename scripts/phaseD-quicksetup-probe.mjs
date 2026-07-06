@@ -52,6 +52,22 @@ const check = (label, ok, extra = "") => {
 };
 
 try {
+  // The EXPECTED embed, data-driven (fixed 2026-07-06 — the old hardcoded "Nomic" assertion
+  // went stale when the embed quality ladder + the seeded routing default evolved past it).
+  // Mirrors the component's real precedence: routing.default.embeddingModel wins (loadRouting
+  // overrides the prefill), else the lowest-quality_rank FITTING embed (bestEmbedId).
+  const API = process.env.JW_API || "http://127.0.0.1:17495";
+  const routing = await (await fetch(`${API}/v1/ai/routing`)).json();
+  const catalog = (await (await fetch(`${API}/v1/ai/model-catalog`)).json()).rows || [];
+  const fitById = Object.fromEntries(
+    ((await (await fetch(`${API}/v1/llm-runner/models`)).json()).models || []).map((m) => [m.id, m.fit]),
+  );
+  const RUNNABLE = new Set(["ok", "tight", "cpu"]);
+  const fittingEmbeds = catalog.filter((r) => r.embedding && RUNNABLE.has(fitById[r.id]));
+  const bestEmbed = fittingEmbeds.sort((a, b) => (a.qualityRank ?? 100) - (b.qualityRank ?? 100))[0];
+  const expectedEmbedId = routing.default?.embeddingModel || bestEmbed?.id || "";
+  const expectedEmbedName = catalog.find((r) => r.id === expectedEmbedId)?.name || expectedEmbedId;
+
   await page.goto(`${APP}/#/ai`, { waitUntil: "networkidle" });
   // The Providers & models tab is the default; QuickSetup's trigger sits at its top.
   await page.getByRole("button", { name: "Run Quick Setup" }).click();
@@ -63,17 +79,23 @@ try {
   const confirmHtml = await page.content();
   check("confirm shows the 'Default model' pick section", /Default model/.test(confirmHtml));
   check("confirm shows the 'What happens' summary", /What happens when you click Apply/.test(confirmHtml));
-  check("confirm shows the embed line (nomic prefilled)", /Nomic Embed Text/i.test(confirmHtml),
-    "embedding prefill from the catalog's /embed/i model (shown by display name)");
+  check("confirm shows the embed line (expected embed prefilled)", confirmHtml.includes(expectedEmbedName),
+    `expected: ${expectedEmbedName} (routing default, else best-ranked fitting embed)`);
   // The pick on a CPU box is qwen3-14b (best quality that fits); its name carries "14B".
   check("confirm references the picked model (14B best-that-fits)", /14B/.test(confirmHtml));
+  // LOCAL-ONLY shape (C8, 2026-07-06): no provider selector, no in-wizard connect flow.
+  check("confirm has NO 'Run models with' selector (QS is local-only)", !/Run models with/.test(confirmHtml));
+  check("confirm has NO 'Connect a provider' flow (providers connect on the provider list)", !/Connect a provider/.test(confirmHtml));
 
   // Apply — writes the model onto every task preset + sets the embedding + (stubbed) load.
   await page.getByRole("button", { name: "Apply setup" }).click();
   await page.waitForSelector(".lu-qs-summary", { timeout: 12000 });
   const doneHtml = await page.content();
   check("reached the DONE step (apply completed without error)", /Setup applied/.test(doneHtml));
-  check("done summary shows the embedding", /Embedding/.test(doneHtml) && /Nomic Embed Text/i.test(doneHtml));
+  check("done summary shows the embedding", /Embedding/.test(doneHtml) && doneHtml.includes(expectedEmbedName));
+  // The auto-tune offer (2026-07-06) must RENDER on done — it guards on pick.default only
+  // (the old isBundled guard died with the C8 local-only cut; this catches a silent-falsy kill).
+  check("done offers 'Optimize for this PC'", /Optimize for this PC/.test(doneHtml));
   await sleep(300);
 
   console.log(`\npage errors: ${errors.length} · non-benign failed requests: ${badUrls.length}`);

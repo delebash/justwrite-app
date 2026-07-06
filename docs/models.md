@@ -23,23 +23,17 @@ At the top of **Providers & models**, **Run Quick Setup** does the whole first-t
    from a dropdown of the embedding models that fit your box (the most capable one that fits
    is chosen by default); it runs alongside your chat model.
 
-### Run models with — the bundled runner or a provider you connect
-
-By default Quick Setup uses the **bundled runner** — the local engine that downloads and runs
-models on your machine. If you'd rather run models through a provider you already have —
-**Ollama** or **LM Studio** on your machine, or a cloud API like **OpenAI**, **Anthropic**,
-**Gemini**, or **OpenRouter** — use the **Run models with** selector at the top of the wizard.
-Pick a provider you've already connected, or click **+ Connect a provider** to add one right
-here: a detected local server (Ollama / LM Studio) connects in one click; a cloud provider
-takes just its API key. Then choose which of that provider's models to use. Only providers
-that are actually usable appear — a local one, or a cloud one you've given a key. (The
-embedding always runs locally on the bundled runner.)
+Quick Setup is **local-only**: it configures the **bundled runner** — the local engine that
+downloads and runs models on your machine — and nothing else. If you'd rather run models
+through another provider (**Ollama** or **LM Studio** on your machine, or a cloud API),
+connect it on the **provider list** (Providers & models → add a provider) and point tasks at
+it there — the wizard never touches external providers. (The embedding always runs locally
+on the bundled runner.)
 
 When you click **Apply**, that one model becomes the default for **every task** — writing,
-chat, extraction, judgment. On the bundled runner it downloads and loads right away; with an
-external provider **nothing downloads** — the provider serves the model. If you've already
+chat, extraction, judgment — and it downloads and loads right away. If you've already
 changed the model for a particular task yourself (on the **Tasks** tab), Quick Setup leaves
-that task alone, so re-running it is safe.
+that task alone.
 
 That's the intent: you don't pick a model per job. One good model handles everything, and
 each task keeps its own *settings* (temperature, JSON mode, and so on) automatically. If
