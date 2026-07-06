@@ -20,7 +20,7 @@
 
 ---
 
-## ⛔⛔ SESSION STATE (2026-07-06 evening, the model-per-hardware session) — C6/C7/C8 SHIPPED · D4 FULLY DECIDED · ONE-PROFILE LOCKED ON MEASURED DATA · **EXECUTION STARTED: AMENDMENTS A6–A10 FOLDED + A10 RESEARCH DONE + PHASE 1a SHIPPED (runner `4faa39c` · JW `f6f8167`); PHASE 1b AWAITS THE USER'S ADOPT-VS-HAND-FIX WORD; PHASE 2 IS NEXT** — pick up at `just-llm-runner/docs/plans/2026-07-06-model-per-hardware-plan.md` §PHASE 1a RECORD
+## ⛔⛔ SESSION STATE (2026-07-06 evening, the model-per-hardware session) — C6/C7/C8 SHIPPED · D4 FULLY DECIDED · ONE-PROFILE LOCKED ON MEASURED DATA · **EXECUTION STARTED: A6–A10 FOLDED + PHASE 1a SHIPPED (runner `4faa39c` · JW `f6f8167`) · PHASE 1b DECIDED-ADOPT ("il take your rec to adopt dont duplicate" + "go") with the DESIGN WRITTEN + pre-build checker FAIL(4) → ALL FOLDED as 1b-F1..F6 (runner `72d8713`; keystone verified at the b9870 tag) — 1b BUILD is the next code; then Phase 2** — pick up at `just-llm-runner/docs/plans/2026-07-06-model-per-hardware-plan.md` §PHASE 1b DESIGN (+ its amendments) and §PHASE 1a RECORD. Ledger adds this round: **A5** (engine-update surface) · **C9** (model research: Gryphe + unsloth 31B dense + the two HauhauCS ablated builds, guardrails recorded) · **D6** (HF Discover surface + the TurboLLM feature study, later).
 
 > **RESUME RECIPE (updated post-1a):** fetch → compare → `--ff-only` pull on all three repos (ORIGIN
 > IS THE TRUTH); re-read the global rules + this header + the ledger
