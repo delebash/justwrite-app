@@ -14,3 +14,4 @@ biome_parsed.json
 # Python bytecode
 __pycache__/
 *.pyc
+server/build/
