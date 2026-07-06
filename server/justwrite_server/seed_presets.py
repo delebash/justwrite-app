@@ -53,31 +53,36 @@ from __future__ import annotations
 # re-picks for other boxes and writes onto every task preset (D4-1 protection: Phase 2).
 DEFAULT_ENGINE_PRESETS: list[dict] = [
     {"id": "p_prose_voiced", "name": "Creative prose (voiced)", "provider_id": "local-llamacpp",
-     "model": "gemma-4-26b-a4b-qat", "temperature": None, "top_p": 0.95, "json_mode": False, "position": 0,
+     "model": "", "temperature": None, "top_p": 0.95, "json_mode": False, "position": 0,
      "samplers": {"min_p": "0.05", "xtc_probability": "0.3", "xtc_threshold": "0.1", "dry_multiplier": "0.8"}},
     {"id": "p_ideation", "name": "Ideation", "provider_id": "local-llamacpp",
-     "model": "gemma-4-26b-a4b-qat", "temperature": None, "top_p": 0.95, "json_mode": False, "position": 1,
+     "model": "", "temperature": None, "top_p": 0.95, "json_mode": False, "position": 1,
      "samplers": {"min_p": "0.06", "xtc_probability": "0.5", "xtc_threshold": "0.1", "dry_multiplier": "0.8"}},
     {"id": "p_prose_edit", "name": "Prose editing", "provider_id": "local-llamacpp",
-     "model": "gemma-4-26b-a4b-qat", "temperature": None, "top_p": 0.90, "json_mode": False, "position": 2,
+     "model": "", "temperature": None, "top_p": 0.90, "json_mode": False, "position": 2,
      "samplers": {"min_p": "0.08"}},
     {"id": "p_chat", "name": "Interactive chat", "provider_id": "local-llamacpp",
-     "model": "gemma-4-26b-a4b-qat", "temperature": None, "top_p": 0.90, "json_mode": False, "position": 3,
+     "model": "", "temperature": None, "top_p": 0.90, "json_mode": False, "position": 3,
      "samplers": {"min_p": "0.05", "repeat_penalty": "1.05", "repeat_last_n": "64"}},
     {"id": "p_creative_structured", "name": "Structured creative", "provider_id": "local-llamacpp",
-     "model": "gemma-4-26b-a4b-qat", "temperature": None, "top_p": 0.95, "json_mode": True, "position": 4,
+     "model": "", "temperature": None, "top_p": 0.95, "json_mode": True, "position": 4,
      "samplers": {"min_p": "0.05", "xtc_probability": "0.4"}},
     {"id": "p_extract", "name": "Structured extraction", "provider_id": "local-llamacpp",
-     "model": "gemma-4-26b-a4b-qat", "temperature": None, "top_p": 0.90, "json_mode": True, "position": 5,
+     "model": "", "temperature": None, "top_p": 0.90, "json_mode": True, "position": 5,
      "samplers": {"min_p": "0", "seed": "7"}},
     {"id": "p_judge", "name": "Judgment / scoring", "provider_id": "local-llamacpp",
-     "model": "gemma-4-26b-a4b-qat", "temperature": None, "top_p": 0.95, "json_mode": True, "position": 6,
+     "model": "", "temperature": None, "top_p": 0.95, "json_mode": True, "position": 6,
      "samplers": {"min_p": "0.05", "seed": "7"}},
     {"id": "p_digest", "name": "Grounded digest", "provider_id": "local-llamacpp",
-     "model": "gemma-4-26b-a4b-qat", "temperature": None, "top_p": 0.90, "json_mode": False, "position": 7,
+     "model": "", "temperature": None, "top_p": 0.90, "json_mode": False, "position": 7,
      "samplers": {"min_p": "0.05"}},
 ]
 
+# PRESET MODEL SLOTS SHIP EMPTY (user, 2026-07-06: catalog full, selections empty —
+# "no model is automatically set as default … this is all quick setup or manual").
+# Every per-task SETTING below still seeds (temps, samplers, json, think); only the
+# model choice is the user's/wizard's. Dispatch guards the pre-setup state with a
+# run-Quick-Setup message instead of a raw provider error.
 # ── JW's extra model-catalog row + this box's tune seed (install_llm inputs) ──
 # ONE Gemma row (the 2026-07-06 consolidation; the former writing-assistant/book-chat
 # id pair is gone — per-task think flags replaced the split). Facts from the GGUF

@@ -7,7 +7,11 @@ tune models yourself.
 
 ## Quick Setup — one good model that fits
 
-At the top of **Providers & models**, **Run Quick Setup** does the whole first-time setup:
+A fresh install (and a factory reset — they are the same state) ships the catalog **full**
+but every choice **empty**: no task model, no embedding. The "Your setup" strip shows both
+slots as **Not set**, and anything that needs a model before setup answers with "run Quick
+Setup" guidance instead of an error. On the **Built-in server** card, **Run Quick Setup**
+does the whole first-time setup:
 
 1. It detects your hardware (GPU, VRAM, RAM).
 2. It picks the **most capable model that still runs fast on your box** — not just the
