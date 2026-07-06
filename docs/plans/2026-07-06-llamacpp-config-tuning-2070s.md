@@ -3,6 +3,22 @@
 **Status: DONE — tuned ini applied + verified; shared-stack fixes shipped; DB SEEDED (2026-07-06). Backup: `models.ini.bak-2026-07-06`.**
 
 > **DB seeding COMPLETE (2026-07-06, user "seed db" + "no migrations pre-production"; JW `13ba839`, runner `a564ec6`):** the tuned values are now reset-proof SEED DATA. `install_llm` gained `model_catalog_extra` + `model_tunes_seed` (insert-if-missing; a Quick-tune Save is never clobbered); JW seeds two catalog entries over the one Gemma GGUF (ids = the hand-ini section names — router model ids stay continuous), this box's tunes under its `hw_key` (`NVIDIA GeForce RTX 2070 SUPER|8192|16c|31g`), the CPU-embed tune, and all 8 engine presets re-pointed (creative → writer, grounded → book-chat). `migrations.py` deleted per the no-migrations decree — schema drift = drop the dev DB + reseed. **Verified on a fresh DB:** resolved switches for all three ids reproduce the tuned ini exactly (+ auto-MTP `draft-mtp`/`spec_n_max 2`); GGUF + draft resolve from the existing HF cache (no re-download). Remaining user steps: stop hand-launching the manual router when using the app path (:8080), and note QuickSetup's re-pick writes over preset models if run.
+
+> **⛔ CONSOLIDATED TO ONE PROFILE (2026-07-06 evening — the model-per-hardware plan Phase 1; the
+> paragraph above is now HISTORY):** the two seeded catalog entries/launch identities were collapsed
+> into ONE row `gemma-4-26b-a4b-qat` on the measured on-box A/B verdict
+> (`docs/plans/2026-07-06-onbox-profile-ab-test.md` RESULTS: the 32k/rb-1024 config with per-request
+> thinking off serves writer traffic at writer speed — B TTFT 1.52 s vs A 1.68 s cache-busted). The
+> writer-vs-chat difference now lives in per-task `feature_prompts.think` flags (only grounded
+> `chat` thinks; the engine-side cap `reasoning-budget 1024` moved to the runner's BASE switch
+> bundle for every local model); this box's measured tune rows (ncmoe 21 · 512/512 · threads 8 ·
+> ctx 32768) re-keyed to the one id and are now marked DEV-ONLY seed rows with a recorded
+> retirement condition (plan amendment A6 — tunes are user data, not product data). License
+> corrected: Gemma 4 = **Apache-2.0** (first-party HF-API verified on Google's own repos). The hand
+> `models.ini` this doc tuned is UNTOUCHED — its two sections remain the user's manual-router
+> instrument; this doc stays the measured record. Active vehicle:
+> `just-llm-runner/docs/plans/2026-07-06-model-per-hardware-plan.md`.
+
 **Goal:** best `models.ini` settings for the two working AI configs on this machine.
 **Rule for this effort:** investigation is free; nothing runs or gets edited without the user's explicit **"go"**. The tuned values land in `models.ini` only at Phase D, after a shown diff.
 

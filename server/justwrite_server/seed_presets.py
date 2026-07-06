@@ -39,84 +39,92 @@ per-call `extra`). See docs/plans/2026-07-01-llm-work-categories-presets-impleme
 
 from __future__ import annotations
 
-# Model split (2026-07-06 llamacpp tuning session — the measured record is
-# docs/plans/2026-07-06-llamacpp-config-tuning-2070s.md): TWO launch configs of the
-# SAME Gemma 4 26B-A4B GGUF, mirroring the user's proven hand-router sections —
-# creative tasks run the low-latency writer config (ctx 8192, thinking OFF: TTFT
-# 1.7 s / autocomplete 0.9 s measured), grounded/analytical tasks run the research
-# config (ctx 32768, reasoning-budget 1024 as the anti-loop safety cap: 8k-corpus
-# TTFT 15 s, pp 551 t/s at 28k). One GGUF on disk — the HF snapshot is shared, the
-# router keeps at most one child + the embed resident (models-max 2). QuickSetup
-# re-picks for other boxes and writes onto every task preset as before.
+# ONE launch profile (2026-07-06 one-profile lock — executed by the model-per-hardware
+# plan, just-llm-runner/docs/plans/2026-07-06-model-per-hardware-plan.md Phase 1): a
+# single Gemma catalog row + launch config serves every task. Measured basis (on-box
+# A/B, docs/plans/2026-07-06-onbox-profile-ab-test.md RESULTS): the 32k/rb-1024 config
+# with per-request thinking OFF serves writer traffic at writer speed (TTFT 1.52 s vs
+# the dedicated 8k writer section's 1.68 s, cache-busted), so the writer-vs-chat
+# difference lives at the REQUEST layer — feature_prompts.think per action (dispatch
+# sends chat_template_kwargs.enable_thinking both ways to the builtin runner) — not in
+# separate launch identities. reasoning-budget 1024 rides the runner's BASE switch
+# bundle (the universal anti-loop cap), no longer a per-model tune. One GGUF on disk;
+# the router keeps the chat model + the embed resident (models-max 2). QuickSetup
+# re-picks for other boxes and writes onto every task preset (D4-1 protection: Phase 2).
 DEFAULT_ENGINE_PRESETS: list[dict] = [
     {"id": "p_prose_voiced", "name": "Creative prose (voiced)", "provider_id": "local-llamacpp",
-     "model": "writing-assistant-gemma-moe-mtp", "temperature": None, "top_p": 0.95, "json_mode": False, "position": 0,
+     "model": "gemma-4-26b-a4b-qat", "temperature": None, "top_p": 0.95, "json_mode": False, "position": 0,
      "samplers": {"min_p": "0.05", "xtc_probability": "0.3", "xtc_threshold": "0.1", "dry_multiplier": "0.8"}},
     {"id": "p_ideation", "name": "Ideation", "provider_id": "local-llamacpp",
-     "model": "writing-assistant-gemma-moe-mtp", "temperature": None, "top_p": 0.95, "json_mode": False, "position": 1,
+     "model": "gemma-4-26b-a4b-qat", "temperature": None, "top_p": 0.95, "json_mode": False, "position": 1,
      "samplers": {"min_p": "0.06", "xtc_probability": "0.5", "xtc_threshold": "0.1", "dry_multiplier": "0.8"}},
     {"id": "p_prose_edit", "name": "Prose editing", "provider_id": "local-llamacpp",
-     "model": "writing-assistant-gemma-moe-mtp", "temperature": None, "top_p": 0.90, "json_mode": False, "position": 2,
+     "model": "gemma-4-26b-a4b-qat", "temperature": None, "top_p": 0.90, "json_mode": False, "position": 2,
      "samplers": {"min_p": "0.08"}},
     {"id": "p_chat", "name": "Interactive chat", "provider_id": "local-llamacpp",
-     "model": "book-chat-gemma-moe-mtp", "temperature": None, "top_p": 0.90, "json_mode": False, "position": 3,
+     "model": "gemma-4-26b-a4b-qat", "temperature": None, "top_p": 0.90, "json_mode": False, "position": 3,
      "samplers": {"min_p": "0.05", "repeat_penalty": "1.05", "repeat_last_n": "64"}},
     {"id": "p_creative_structured", "name": "Structured creative", "provider_id": "local-llamacpp",
-     "model": "writing-assistant-gemma-moe-mtp", "temperature": None, "top_p": 0.95, "json_mode": True, "position": 4,
+     "model": "gemma-4-26b-a4b-qat", "temperature": None, "top_p": 0.95, "json_mode": True, "position": 4,
      "samplers": {"min_p": "0.05", "xtc_probability": "0.4"}},
     {"id": "p_extract", "name": "Structured extraction", "provider_id": "local-llamacpp",
-     "model": "book-chat-gemma-moe-mtp", "temperature": None, "top_p": 0.90, "json_mode": True, "position": 5,
+     "model": "gemma-4-26b-a4b-qat", "temperature": None, "top_p": 0.90, "json_mode": True, "position": 5,
      "samplers": {"min_p": "0", "seed": "7"}},
     {"id": "p_judge", "name": "Judgment / scoring", "provider_id": "local-llamacpp",
-     "model": "book-chat-gemma-moe-mtp", "temperature": None, "top_p": 0.95, "json_mode": True, "position": 6,
+     "model": "gemma-4-26b-a4b-qat", "temperature": None, "top_p": 0.95, "json_mode": True, "position": 6,
      "samplers": {"min_p": "0.05", "seed": "7"}},
     {"id": "p_digest", "name": "Grounded digest", "provider_id": "local-llamacpp",
-     "model": "book-chat-gemma-moe-mtp", "temperature": None, "top_p": 0.90, "json_mode": False, "position": 7,
+     "model": "gemma-4-26b-a4b-qat", "temperature": None, "top_p": 0.90, "json_mode": False, "position": 7,
      "samplers": {"min_p": "0.05"}},
 ]
 
-# ── JW's extra model-catalog rows + this box's tune seed (install_llm inputs) ──
-# The two Gemma launch configs above as catalog entries: SAME GGUF + MTP draft
-# (one download), different launch tunes. Ids deliberately equal the hand
-# `models.ini` section names so the router model ids stay continuous with the
-# user's manual setup. Facts from the GGUF header (30 layers, 128 experts/8
-# active, trained ctx 262144); min_vram reflects the CPU-expert-offload floor.
+# ── JW's extra model-catalog row + this box's tune seed (install_llm inputs) ──
+# ONE Gemma row (the 2026-07-06 consolidation; the former writing-assistant/book-chat
+# id pair is gone — per-task think flags replaced the split). Facts from the GGUF
+# header (30 layers, 128 experts/8 active, trained ctx 262144); min_vram reflects the
+# CPU-expert-offload floor.
+# License provenance (plan amendment A4): Gemma 4 is Apache-2.0 — verified via the HF
+# API 2026-07-06 on GOOGLE'S OWN repos (api/models/google/gemma-4-26B-A4B-it and
+# api/models/google/gemma-4-26B-A4B-it-qat-q4_0-unquantized — the GGUF's declared
+# base_model — both license:apache-2.0) AND on the repackager
+# (api/models/unsloth/gemma-4-26B-A4B-it-qat-GGUF). Google moved Gemma to Apache-2.0
+# at Gemma 4; EARLIER Gemma generations remain Gemma-Terms (use-limited) — the
+# seed-time license keyword gate in llm_runner/llm/seed.py stays intact for those.
+# quality_rank 9 is REASONED, not instrument-cited (pending the model research).
 DEFAULT_MODEL_CATALOG_EXTRA: list[dict] = [
-    {"id": "writing-assistant-gemma-moe-mtp", "name": "Gemma 4 26B-A4B — writing assistant (8k, no think)",
+    {"id": "gemma-4-26b-a4b-qat", "name": "Gemma 4 26B-A4B (QAT)",
      "hf_repo": "unsloth/gemma-4-26B-A4B-it-qat-GGUF", "quant": "UD-Q4_K_XL",
      "total_params": "26B", "active_params": "4B", "mtp": True, "type": "moe",
      "mtp_draft_file": "MTP/gemma-4-26B-A4B-it-Q4_0-MTP.gguf", "mtp_draft_quant": "Q4_0",
      "trained_ctx": 262144, "min_vram_mb": 4000, "min_ram_mb": 24000,
-     "tier": "low-vram-moe", "license": "Gemma", "quality_rank": 9, "position": 20,
-     "description": "Gemma 4 26B-A4B QAT MoE, tuned as the low-latency in-editor writer: ctx 8192, "
-                    "thinking off, MTP draft. Measured on the 8 GB floor: TTFT 1.7 s, autocomplete 0.9 s, "
-                    "~31 t/s (docs/plans/2026-07-06-llamacpp-config-tuning-2070s.md)."},
-    {"id": "book-chat-gemma-moe-mtp", "name": "Gemma 4 26B-A4B — book chat / research (32k, thinking)",
-     "hf_repo": "unsloth/gemma-4-26B-A4B-it-qat-GGUF", "quant": "UD-Q4_K_XL",
-     "total_params": "26B", "active_params": "4B", "mtp": True, "type": "moe",
-     "mtp_draft_file": "MTP/gemma-4-26B-A4B-it-Q4_0-MTP.gguf", "mtp_draft_quant": "Q4_0",
-     "trained_ctx": 262144, "min_vram_mb": 4000, "min_ram_mb": 24000,
-     "tier": "low-vram-moe", "license": "Gemma", "quality_rank": 9, "position": 21,
-     "description": "Gemma 4 26B-A4B QAT MoE, tuned for grounded research over big context: ctx 32768, "
-                    "reasoning-budget 1024 (anti-loop safety cap), MTP draft. Measured: 8k-corpus TTFT 15 s, "
-                    "prefill 551 t/s sustained to 28k (docs/plans/2026-07-06-llamacpp-config-tuning-2070s.md)."},
+     "tier": "low-vram-moe", "license": "Apache-2.0", "quality_rank": 9, "position": 20,
+     "description": "Gemma 4 26B-A4B QAT MoE with an MTP draft — one config serves writing AND "
+                    "research/chat: 32k context, thinking toggled per task at request time, reasoning "
+                    "capped engine-side. Measured on the 8 GB floor: writer TTFT 1.5-1.7 s at ~31 t/s; "
+                    "8k-corpus chat TTFT 15 s, prefill 551 t/s sustained to 28k "
+                    "(docs/plans/2026-07-06-llamacpp-config-tuning-2070s.md)."},
 ]
 
-# This box's measured starting tunes (per-(model, machine); insert-if-missing so a
-# Quick-tune Save is never clobbered, but a dev-DB reset re-creates the known-good
-# values). ncmoe floors were measured WITH the CPU embed co-resident; batch/ubatch
-# 512/512 was the TTFT winner (64/32 was 8.6x slower); spec_type/spec_n_max ride
-# the auto-MTP switch preset — deliberately NOT duplicated here.
+# ⚠ DEV-ONLY SEED ROWS (plan amendment A6, 2026-07-06 — user: "my tunes being seed data
+# does not make sense … in production it will be an install file"): the author box's
+# MEASURED values, seeded purely so a dev-DB reset doesn't lose them (insert-if-missing;
+# a Quick-tune Save is never clobbered). They key on the FULL machine fingerprint
+# (machine_key = gpu.name|vram|cores|ramGB, e.g. "NVIDIA GeForce RTX 2070 SUPER|8192|
+# 16c|31g" — llm_runner/runner/hardware.py:56-68), so on ANY other machine they are
+# inert rows, NOT hardware-class defaults (a 3060 8GB/32GB box inherits nothing).
+# Tunes are USER data (Tune-modal Save / the auto-tune sweep write the user's DB).
+# RETIREMENT CONDITION (recorded in the model-per-hardware plan §A6): delete these rows
+# once the A7 box-checks pass (the fixed derivation + adaptive sweep reproduce them
+# from scratch on that box); production packaging never ships them regardless.
+# Values: ncmoe 21 = the measured 32k floor WITH the CPU embed co-resident (20 OOMs);
+# batch/ubatch 512/512 was the TTFT winner (64/32 was 8.6x slower); ctx_len 32768 stays
+# per amendment A2 until computed-ctx is box-validated; reasoning-budget moved to the
+# runner's BASE switch bundle (universal cap) — deliberately no longer a tune row;
+# spec_type/spec_n_max ride the auto-MTP switch preset — deliberately NOT duplicated.
 DEFAULT_MODEL_TUNES: list[dict] = [
-    {"model_id": "writing-assistant-gemma-moe-mtp",
-     "flags": {"n_gpu_layers": "99", "n_cpu_moe": "20", "ctx_len": "8192",
-               "batch_size": "512", "ubatch_size": "512", "threads": "8",
-               "reasoning_budget": "0"}},
-    {"model_id": "book-chat-gemma-moe-mtp",
+    {"model_id": "gemma-4-26b-a4b-qat",
      "flags": {"n_gpu_layers": "99", "n_cpu_moe": "21", "ctx_len": "32768",
-               "batch_size": "512", "ubatch_size": "512", "threads": "8",
-               "reasoning_budget": "1024",
-               "reasoning_budget_message": "Taking user constraints into account, I will now output the solution."}},
+               "batch_size": "512", "ubatch_size": "512", "threads": "8"}},
     # CPU embed: frees 684 MB VRAM for the chat model; query latency unchanged
     # (46 ms), bulk index builds still GPU-assisted at ngl 0 (measured 2026-07-06).
     {"model_id": "qwen3-embedding-0.6b", "flags": {"n_gpu_layers": "0"}},

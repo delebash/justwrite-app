@@ -928,7 +928,14 @@ DEFAULT_FEATURE_PROMPTS: dict[str, dict] = {
         ),
         "user_template": "Question: {{question}}\n\nExcerpts:\n{{excerpts}}\n\nAnswer with citations.",
         "temperature": 0.3,
-        "think": False,
+        # The ONE thinking task (2026-07-06 one-profile consolidation — the
+        # model-per-hardware plan, Phase 1): grounded book-chat gets reasoning, capped
+        # engine-side by the base switch bundle's reasoning-budget 1024; every other
+        # action stays think:False and rides the same resident model at writer speed
+        # via the per-request enable_thinking:false toggle (measured on-box, the
+        # ab-test doc RESULTS). characterChat deliberately stays False — fast in-voice
+        # dialogue, not analysis.
+        "think": True,
     },
     # ── Character chat ("talk to your character") ──
     # Framing + interview RULES are server-side (Lab-editable); the client sends
