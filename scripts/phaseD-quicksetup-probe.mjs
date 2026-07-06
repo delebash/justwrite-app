@@ -58,16 +58,20 @@ await page.route("**/v1/llm-runner/auto-tune", (route) => {
   return route.fulfill({ status: 200, contentType: "application/json", body: JSON.stringify(body) });
 });
 // Scenario switch: when tunedPick is armed, the PICK's model-tunes read returns rows —
-// the tuned-machine path (Re-optimize + confirm). Other model ids pass through to the
-// REAL server (the seeded gemma tunes are exactly what makes this box "configured").
+// the tuned-machine path (Re-optimize + confirm). Otherwise tunes read EMPTY: since the
+// wizard preselects the APPLIED model (2026-07-06 — post-reset that's the seeded gemma,
+// whose seeded tune rows would suppress auto-start by design), the auto-start scenario
+// stubs "no tunes for this machine" so the sweep path stays testable.
 let tunedPick = false;
 await page.route("**/v1/ai/model-tunes**", (route) => {
   const url = route.request().url();
-  if (tunedPick && /modelId=qwen3-14b/.test(url)) {
+  const mid = (url.match(/modelId=([^&]+)/) || [])[1] || "probe";
+  if (tunedPick) {
     return route.fulfill({ status: 200, contentType: "application/json",
-      body: JSON.stringify({ modelId: "qwen3-14b", hwKey: "probe", rows: [{ flagName: "n_cpu_moe", flagValue: "4" }] }) });
+      body: JSON.stringify({ modelId: decodeURIComponent(mid), hwKey: "probe", rows: [{ flagName: "n_cpu_moe", flagValue: "4" }] }) });
   }
-  return route.fallback();
+  return route.fulfill({ status: 200, contentType: "application/json",
+    body: JSON.stringify({ modelId: decodeURIComponent(mid), hwKey: "probe", rows: [] }) });
 });
 
 let failed = false;
@@ -110,18 +114,18 @@ try {
   check("confirm shows the 'What happens' summary", /What happens when you click Apply/.test(confirmHtml));
   check("confirm shows the embed line (expected embed prefilled)", confirmHtml.includes(expectedEmbedName),
     `expected: ${expectedEmbedName} (routing default, else best-ranked fitting embed)`);
-  // The pick on a CPU box is qwen3-14b (best quality that fits); its name carries "14B".
-  check("confirm references the picked model (14B best-that-fits)", /14B/.test(confirmHtml));
+  // The wizard PRESELECTS the APPLIED model (2026-07-06 "if model is already applied
+  // then drop down should select that model") — post-reset that's the seeded Gemma
+  // default, so the confirm references it and, with pick == applied and tunes stubbed
+  // empty, there is honestly NOTHING to change → NO changelist panel.
+  check("confirm preselects the APPLIED model (Gemma, the seeded default)", /Gemma 4 26B-A4B/.test(confirmHtml));
+  check("no changelist when the pick IS the applied model (nothing to change)",
+    !/what Apply will change/i.test(confirmHtml));
   // LOCAL-ONLY shape (C8, 2026-07-06): no provider selector, no in-wizard connect flow.
   check("confirm has NO 'Run models with' selector (QS is local-only)", !/Run models with/.test(confirmHtml));
   check("confirm has NO 'Connect a provider' flow (providers connect on the provider list)", !/Connect a provider/.test(confirmHtml));
   // Phase 2: the what-if card planner is gone — the wizard scores the REAL machine.
   check("confirm has NO 'Plan for card' selector (Phase 2 removal)", !/Plan for card/.test(confirmHtml));
-  // D4-1 (a)+(c): the seeded dev DB is a CONFIGURED box (gemma tunes exist for the
-  // currently-pointed model), so the changelist must render and name the re-points.
-  check("confirm shows the D4-1 'what Apply will change' panel (configured box)",
-    /what Apply will change/i.test(confirmHtml));
-  check("changelist names a re-pointing task preset", /re-points from/.test(confirmHtml));
 
   // Apply — writes the model onto every task preset + sets the embedding + (stubbed) load.
   await page.getByRole("button", { name: "Apply setup" }).click();
@@ -145,6 +149,18 @@ try {
   optCancelled = false;
   await page.getByRole("button", { name: "Run Quick Setup" }).click();
   await page.waitForSelector('button:has-text("Apply setup")', { timeout: 12000 });
+  // D4-1 (a)+(c): on a CONFIGURED box (tuned rows), changing the pick away from the
+  // applied model renders the changelist naming every re-pointing task preset.
+  await page.getByRole("combobox").first().click();
+  await page.getByRole("option", { name: /Qwen3\.6 35B/ }).click();
+  await sleep(300);
+  const changedHtml = await page.content();
+  check("confirm shows the D4-1 'what Apply will change' panel once the pick differs",
+    /what Apply will change/i.test(changedHtml));
+  check("changelist names a re-pointing task preset", /re-points from/.test(changedHtml));
+  await page.getByRole("combobox").first().click();
+  await page.getByRole("option", { name: /Gemma 4 26B-A4B \(QAT\)/ }).click();
+  await sleep(200);
   await page.getByRole("button", { name: "Apply setup" }).click();
   await page.waitForSelector(".lu-qs-summary", { timeout: 12000 });
   const doneHtml2 = await page.content();
