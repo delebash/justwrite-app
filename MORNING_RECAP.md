@@ -20,14 +20,25 @@
 
 ---
 
-## ⛔⛔ SESSION STATE (2026-07-06 evening, the model-per-hardware session) — C6/C7/C8 SHIPPED · D4 FULLY DECIDED · ONE-PROFILE LOCKED ON MEASURED DATA · THE MODEL-PER-HARDWARE PLAN IS PANEL-CHECKED, EXECUTION NOT STARTED — pick up at `just-llm-runner/docs/plans/2026-07-06-model-per-hardware-plan.md` §STOPPING POINT
+## ⛔⛔ SESSION STATE (2026-07-06 evening, the model-per-hardware session) — C6/C7/C8 SHIPPED · D4 FULLY DECIDED · ONE-PROFILE LOCKED ON MEASURED DATA · **EXECUTION STARTED: AMENDMENTS A6–A10 FOLDED + A10 RESEARCH DONE + PHASE 1a SHIPPED (runner `4faa39c` · JW `f6f8167`); PHASE 1b AWAITS THE USER'S ADOPT-VS-HAND-FIX WORD; PHASE 2 IS NEXT** — pick up at `just-llm-runner/docs/plans/2026-07-06-model-per-hardware-plan.md` §PHASE 1a RECORD
 
-> **RESUME RECIPE (unchanged):** fetch → compare → `--ff-only` pull on all three repos (ORIGIN IS THE
-> TRUTH); re-read the global rules + this header + the ledger
-> (`just-llm-runner/docs/plans/2026-07-06-outstanding-master-plan.md`, which now points at the ACTIVE
-> vehicle) + **the model-per-hardware plan IN FULL including its PANEL AMENDMENTS + STOPPING POINT**.
-> The go is STANDING ("i will take your recommendations go") — resume at the plan's Phase 1. Nothing
-> else is in flight.
+> **RESUME RECIPE (updated post-1a):** fetch → compare → `--ff-only` pull on all three repos (ORIGIN
+> IS THE TRUTH); re-read the global rules + this header + the ledger
+> (`just-llm-runner/docs/plans/2026-07-06-outstanding-master-plan.md`) + **the model-per-hardware
+> plan IN FULL — amendments A1–A10, the A10 RESEARCH RECORD (+ user-link addendum), and the
+> §PHASE 1a RECORD at the bottom (what shipped + the PHASE 1b pending decision)**. The go is
+> STANDING — next build is **Phase 2** (QuickSetup D4-1 (a)+(c) protection with the A8
+> detection-fix + overwrite confirm, card-dropdown removal, opt-out sweep), which does NOT depend
+> on the 1b choice. **Phase 1b (computed ctx + the sweep-anchor fix) is DELIBERATELY HELD**: the
+> A10 survey found upstream llama.cpp (pinned b9870) ships `--fit`/`llama-fit-params` and our
+> explicit `-ngl`/`--n-cpu-moe` emission SUPPRESSES it — the adopt-vs-hand-fix recommendation is
+> on record in the plan (§A10 design consequence + §PHASE 1a RECORD) and was put to the user in
+> chat; do not build 1b without their answer. Post-1a session additions: ledger **A5** filed (the
+> engine-update surface, from the user's TurboLLM screenshot); the user's three auto-tune links
+> researched into the A10 addendum (TurboLLM = the measured comparable, FSL study-only). Dev-DB
+> note: 1a changed seeds — stale dev DBs need the one-time reset (delete the DB or
+> `POST /v1/data/reset`); the user's box re-seeds its tunes (they remain seed data until the A6
+> retirement condition fires).
 >
 > **WHAT THIS SESSION SHIPPED (all verified + committed + pushed; full detail in the named docs):**
 > **(1) C6** — the five llm-endpoint files moved out of the kit common/ layer (charter clean, zero
