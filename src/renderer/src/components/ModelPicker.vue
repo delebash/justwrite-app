@@ -3,15 +3,12 @@
 // 4 times across SpeakerLabView (Studio, Inline-tag, Stage 1, Stage 2);
 // the quant-badge work made the duplication painful enough to extract.
 //
-// Renders an enriched model list. Two source paths handled in
-// `OpenAICompatClient.enrichedModels()`:
-//   - LM Studio native API (/api/v0/models) — gives explicit
-//     `quantization`, `state` ("loaded" / "not-loaded"), `type` fields per
-//     model. We show the quant directly and tag unloaded models.
-//   - OpenAI-spec /v1/models fallback (Ollama / OpenAI cloud / others) —
-//     returns only id strings; we try to parse a quant suffix from the id
-//     itself (handles Ollama tags like "qwen3:14b-q4_K_M" and LM Studio
-//     GGUF filenames). Cloud models with no quant render plain.
+// Entries come from the shared per-provider cache (composables/useModelList.js),
+// which hits the shared `/v1/llm-providers/{id}/models` endpoint — the server-side
+// registry adapter holds the key and makes the provider call. The endpoint returns
+// plain model ids, so a quant badge renders only when a quant suffix can be parsed
+// from the id itself (services/modelMeta.js `parseQuant` — handles Ollama tags like
+// "qwen3:14b-q4_K_M" and GGUF filenames). Cloud models with no quant render plain.
 //
 // Plus a leading "(provider default — <name> · <quant>)" entry that picks
 // whatever chatModel the user configured in Settings.

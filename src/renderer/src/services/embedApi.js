@@ -1,5 +1,4 @@
-// Client for the shared embeddings endpoint (POST /v1/ai/embeddings) — the
-// runner-stack replacement for the old /v1/llm/{id}/embeddings proxy. The server
+// Client for the shared embeddings endpoint (POST /v1/ai/embeddings). The server
 // holds the key + the live registry adapter; we pass the embedding provider id
 // (the routing default) + model. Returns one vector per input, in order.
 // HTTP via the shared kit transport.

@@ -1,7 +1,8 @@
-// Small helpers for rendering model entries returned by
-// `OpenAICompatClient.enrichedModels()`. Shared between the Speaker Lab's
-// ModelPicker and Settings → AI providers' Combobox so the two views
-// always render the same labels and never drift apart.
+// Small helpers for rendering model entries from the shared per-provider
+// model-list cache (composables/useModelList.js → `/v1/llm-providers/{id}/models`).
+// Consumed by ModelPicker (parseQuant/entryLabel) and the ai store
+// (getModelTier/TIERS) so every surface renders the same labels/tiers and
+// never drifts apart.
 //
 // An "entry" looks like:
 //   { id, quant, state, type, publisher, arch }
