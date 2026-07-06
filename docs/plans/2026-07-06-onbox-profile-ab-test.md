@@ -13,6 +13,25 @@ RESULTS block at the bottom, and give it back to the user to paste into the remo
 second id until a router restart. Let idle-sleep (30 s) free VRAM between sections, or POST
 `/models/unload` first.
 
+## PRE-FLIGHT — confirm which config you're measuring (asked by the user: seeded vs original ini)
+
+Run tests 0–2 against the **hand ini** (the manual router) — it is the instrument on this box, and
+the app's seeded DB values were written FROM it (the seeding session live-verified "resolved switches
+== the tuned ini + auto-MTP"; the only DB-side extras, `context-shift`/`cache-reuse`, are live-proven
+auto-disabled no-ops for Gemma). Test 1's verdict is a DELTA between two sections differing only in
+ctx/ncmoe/rb, so it transfers to the app path. Test 3 exercises the seeded/app path separately.
+
+BUT the ini may have been hand-edited since the 2026-07-06 tuning session — so first CONFIRM the two
+sections still carry the expected values, and record any drift in RESULTS:
+
+| section | ctx-size | n-cpu-moe | batch/ubatch | threads | reasoning-budget |
+|---|---|---|---|---|---|
+| writing-assistant-gemma-moe-mtp | 8192 | 20 | 512/512 | 8 | 0 |
+| book-chat-gemma-moe-mtp | 32768 | 21 | 512/512 | 8 | 1024 |
+
+If the values differ, still run the tests (the A/B delta logic holds), but write the actual values
+into RESULTS so the remote session interprets the numbers against the right config.
+
 ## STEP 0 — the gate: does per-request thinking-off work on Gemma 4?
 
 The one-profile idea only works if thinking can be disabled PER-REQUEST against the 32k section
@@ -132,6 +151,7 @@ the first real-hardware run of the auto-tune sweep.
 ## RESULTS — fill and return
 
 ```
+PRE-FLIGHT: ini matches the tuning-session values = Y/N (diffs: …)
 STEP 0 gate: enable_thinking per-request on Gemma = WORKS / NO EFFECT (evidence: …)
 TEST 1: A ttft=__s rate=__ tok/s · B ttft=__s rate=__ tok/s → verdict: ONE profile / TWO profiles
 TEST 2: switch price = __ s (median of __ runs)
