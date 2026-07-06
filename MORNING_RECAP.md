@@ -20,6 +20,72 @@
 
 ---
 
+## ⛔⛔ SESSION STATE (2026-07-06 evening, the model-per-hardware session) — C6/C7/C8 SHIPPED · D4 FULLY DECIDED · ONE-PROFILE LOCKED ON MEASURED DATA · THE MODEL-PER-HARDWARE PLAN IS PANEL-CHECKED, EXECUTION NOT STARTED — pick up at `just-llm-runner/docs/plans/2026-07-06-model-per-hardware-plan.md` §STOPPING POINT
+
+> **RESUME RECIPE (unchanged):** fetch → compare → `--ff-only` pull on all three repos (ORIGIN IS THE
+> TRUTH); re-read the global rules + this header + the ledger
+> (`just-llm-runner/docs/plans/2026-07-06-outstanding-master-plan.md`, which now points at the ACTIVE
+> vehicle) + **the model-per-hardware plan IN FULL including its PANEL AMENDMENTS + STOPPING POINT**.
+> The go is STANDING ("i will take your recommendations go") — resume at the plan's Phase 1. Nothing
+> else is in flight.
+>
+> **WHAT THIS SESSION SHIPPED (all verified + committed + pushed; full detail in the named docs):**
+> **(1) C6** — the five llm-endpoint files moved out of the kit common/ layer (charter clean, zero
+> public-surface change; tracker §C6). **(2) C7** — the dead `useRunnerModels.load()/unload()` prune
+> (tracker §C7). **(3) C8** — QuickSetup LOCAL-ONLY by user directive (the "Run models with" selector
+> + in-wizard connect flow removed; `detectLocal` pruned; the wizard probe made data-driven and
+> extended; tracker §C8) — **plus the parallel-session SYNC**: the other session shipped auto-tune
+> (runner `1984d92`) touching the same file; the rebase merged clean, which hid a silent-falsy kill
+> (their Optimize block guarded on the `isBundled` computed C8 deleted — in a script-setup template
+> that renders as never-show, no error); fixed in integration (guard → `pick.default`), a tenth probe
+> assertion pins it, and the MERGED tree verified end-to-end (runner ruff + 361 pytest · build ·
+> vitest 29/29 · full smoke · probe 10/10). **(4) the harness task list reconciled** (14 stale
+> entries closed against the ledger) and the design-doc audit filed **C7/D5** on the user's "add 1
+> and 2". **(5) D4 FULLY DECIDED** across the day: headline overwrite protection = **(a)+(c)** (user
+> took the rec); one-launch-profile **LOCKED on measured data**; the :8080 guard NOT built ("3 leave
+> it"); the hand-ini sections stay ("4 no pruning leave it"); **D5 PARKED**; fast-9B **NO**.
+>
+> **THE MODEL-PER-HARDWARE DISCUSSION (the day's design arc — full state lives in the plan doc):**
+> the user challenged the seeded values ("we actually dont know what these values should be") →
+> resolved as the compute/default/measure layering, and the optimize sweep became **OPT-OUT with
+> skip** in QuickSetup (user decision). The **quality-ceiling finding** (live DB): every box ≥6 GB
+> VRAM/32 GB RAM picks the same model (35b-a3b rank 8) — a 64 GB card buys nothing. The user caught a
+> **seed DATA ERROR**: Gemma 4 is **Apache-2.0** (HF-API verified on GOOGLE'S OWN repos, 2026-07-06 —
+> google/gemma-4-26B-A4B-it + the whole family; the seeded `license:"Gemma"`→use_limited=1 at
+> `seed_presets.py:90,99` is wrong; fix rides the plan Phase 1 with first-party provenance). Google's
+> five suggested writing models were HF-API-scored: one doesn't resolve (hallucinated), three
+> no-signal/wrong-posture, **Gryphe StyleTune-V2 the one credible candidate** (evaluate later:
+> leaderboards → Lab). The **profile insight** (tasks ≠ launch profiles) led to the decisive on-box
+> A/B — the handoff doc `docs/plans/2026-07-06-onbox-profile-ab-test.md` (this repo), RESULTS filled
+> by the user's local Claude (`bc614c6`): per-request `enable_thinking:false` WORKS on Gemma 4
+> (598ch→0, wall 15.9s→3.9s), the 32k/rb1024 section serves writer traffic at writer speed
+> (cache-busted TTFT 1.52s vs 1.68s), switch price 7.7s, seeded≈hand-ini indistinguishable — →
+> **user locked ONE profile** (ledger D4 item 1, runner `973faa0`). Two on-box INCIDENTS recorded: a
+> sleeping router child is NOT VRAM-free (direct-to-router clients bypass the arbiter) and **stopping
+> the JW server orphans its llama-server child on Windows** (:8080 survives serving the stale ini —
+> the fix, a Job-Object teardown, rides the plan Phase 4). The user's router-mode question ("doesn't
+> one profile defeat the router?") answered honestly: the router's remaining case = embed
+> co-residency + upstream lifecycle + model switching; profile-switching died, model-switching didn't.
+>
+> **(6) THE PLAN + PANEL (the stop state):** `2026-07-06-model-per-hardware-plan.md` (runner repo,
+> `fbda940` + amendments) — six phases: (1) one-profile consolidation + seed truth (ONE Gemma row,
+> Apache-2.0 + provenance, rb 1024 → the base switch bundle, **ctx → a computed knob**
+> min(trained_ctx, KV-affordable), per-task think flags — models stay a FACTS LIST, switches derive
+> in layers, the user's architecture question answered in decision #2); (2) QuickSetup — card
+> dropdown REMOVED (user took the rec; wire was verified correct), D4-1 (a)+(c) protection, the
+> opt-out sweep (auto-start first-time-only via GET /v1/ai/model-tunes, Skip = the cancel endpoint,
+> Re-optimize when tuned); (3) the class→model map mechanism (tiny table + pickByClassMap in
+> modelPick.js, §10 fallback; contents await the model research); (4) the Windows orphan-child fix
+> (ONE `_spawn_child` seam + Job Object + RouterHandle.job_handle — the panel's catch); (5) the
+> seed-facts audit script (HF-API license check per seeded row, de-circularized via base_model);
+> (6) continuous verify/ship. **A 3-checker PANEL (architecture-fit · reuse · grounding) returned
+> FAIL(1)/FAIL(2)/FAIL(1) — all findings REAL and FOLDED as amendments A1–A5 in the plan doc**, the
+> convergent one being the rb-vs-toggle contradiction with the box-verified comment at
+> `openai_compat.py:106-109` (the 07-06 measurement supersedes it; the comment updates in Phase 1)
+> plus: keep the ctx-32768 tune until computed-ctx is box-validated, the four-Popen-sites reality,
+> the `DEFAULT_MODEL_CATALOG_EXTRA` symbol, and the license-provenance close via Google's own repos.
+> **EXECUTION NOT STARTED** — Phase 1 begins on resume.
+
 ## ⛔ SESSION STATE (2026-07-06, llama-server tuning session) — TUNED + SEEDED + ALL PUSHED · pick up from `docs/plans/2026-07-06-llamacpp-config-tuning-2070s.md`
 
 > **WEB-PICKUP RESUME (2026-07-06 FINAL, refreshed after the auto-tune build):** everything is on origin — JW at this commit · runner **`1984d92`** · JV `453462c`, all trees clean (JV has a stray pre-existing local package-lock diff, ignorable). ⚠ TWO sessions work this branch concurrently (the desktop tuning session + another) — on pickup, `git fetch` + compare BEFORE trusting any local tree; the recap has interleaved entries from both. Auto-tune (runner `1984d92`) is BUILT + live-validated ×2 — plan doc §Auto-tune. This session's COMPLETE record (measurements, router findings, applied fixes, DB seeding) = the plan doc named above. Task→model routing primer: JW's 8 **engine presets** (Settings → AI → Tasks page; `server/justwrite_server/seed_presets.py`) each carry model+samplers per kind of LLM work — now split creative→`writing-assistant-gemma-moe-mtp` / grounded→`book-chat-gemma-moe-mtp`. ⚠ QuickSetup's "pick best model" step writes ONE model over all 8 presets (by design, for fresh boxes) and would also likely pick Qwen (quality_rank 8 < Gemma's 9) — don't run it on this box; the Tasks page restores per-task models if it happens. Open follow-ups: the possible future one-catalog-entry + per-request-reasoning refactor (needs verified wiring); the A4 linux-docker digest capture; the dormant `book-chat-qwen-moe-mtp` + old 12B ini sections are unused (user may prune). **→ FILED AS LEDGER D4 (2026-07-06, user: "we need to add to todo to discuss"):** these follow-ups — headlined by the user's stated concern, verbatim *"QuickSetup re-pick would overwrite the seeded preset models"* — are now the OPEN discussion item **D4** in `just-llm-runner/docs/plans/2026-07-06-outstanding-master-plan.md` §D, which carries the code-verified overwrite mechanism (`modelApply.js:80-84`'s MODE-based non-clobber was built for the fresh-box one-model state; the seeded TWO-model split means a re-pick would rewrite the majority Gemma group and leave the minority — a partial clobber) plus four candidate directions to discuss, none chosen.
