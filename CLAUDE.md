@@ -90,12 +90,18 @@ All in `src/renderer/src/stores/`:
 
 ### AI providers
 
-LLM calls currently route through a server-side gateway — `OpenAICompatClient`
-(`services/openai-compat.js`) → `/v1/llm/{providerId}/chat/completions|embeddings|models|ping`
-on the Python `server/` (server injects the held key + proxies; Ollama native
-when applicable). This is **migrating to the shared `just-llm-runner` dispatch**
-(`/v1/ai/*`) as part of the AI-stack convergence — current cutover state in
-`MORNING_RECAP.md`. No TTS here — audio lives in JustVoice.
+**The legacy gateway is GONE (this section previously described it as current —
+corrected 2026-07-06 after it misled an audit).** ALL LLM traffic goes through the
+shared `just-llm-runner` dispatch mounted by `install_llm` on the Python `server/`:
+feature runs + streaming via `/v1/ai/run` + `/v1/ai/stream` (`services/aiFeature.js`,
+`services/writerAI.js`), embeddings via `/v1/ai/embeddings` (`services/embedApi.js`),
+routing via `/v1/ai/routing` (`services/routingBackend.js`), and provider CRUD via the
+shared `/v1/llm-providers` (`services/providerBackend.js`). There is no
+`services/openai-compat.js` and no `/v1/llm/{providerId}/*` route on the server; the
+string `"openai-compat"` appearing in code is a PROVIDER-TYPE id, not a gateway.
+(Three stale code comments still name the removed `OpenAICompatClient` —
+`components/ModelPicker.vue:7`, `services/modelMeta.js:2`, `services/embedApi.js:2` —
+cleanup tracked in the outstanding master plan.) No TTS here — audio lives in JustVoice.
 
 ### Manuscript export
 
