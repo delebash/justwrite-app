@@ -15,6 +15,8 @@
 //   • the two knobs render + seed from /resident;
 //   • Save sends ONLY {modelsMax, sleepIdleSeconds} (the partial-PUT no-clobber
 //     guard) — captured by intercepting the PUT.
+// Scenario 2 (ledger B1) re-mocks engine/status as NOT installed and asserts the
+// knobs STILL render/seed/Save while the runtime "Loaded models" half is hidden.
 // Zero JS errors throughout. Reuses the smoke's findChrome (never hardcode).
 //
 // Run (server + vite already up, as for headless-smoke):
@@ -60,7 +62,10 @@ const RESIDENT = {
   const browser = await chromium.launch({ executablePath: exe, headless: true, args: ["--no-sandbox"] });
   const page = await browser.newPage();
   const errors = [];
-  page.on("console", (m) => m.type() === "error" && errors.push(m.text()));
+  // Same benign list as headless-smoke/catalog-type-probe: the external fonts fetch
+  // is reset by the container's proxy — a console error, not an app error.
+  const BENIGN = [/fonts\.googleapis\.com/, /fonts\.gstatic\.com/, /net::ERR_CONNECTION_RESET/];
+  page.on("console", (m) => m.type() === "error" && !BENIGN.some((re) => re.test(m.text())) && errors.push(m.text()));
   page.on("pageerror", (e) => errors.push(String(e)));
 
   // Mock the two runner reads the panel makes; capture the knob-save PUT body.
@@ -123,6 +128,34 @@ const RESIDENT = {
     await sleep(500);
     check("Save sends ONLY {modelsMax, sleepIdleSeconds}", putBody && Object.keys(putBody).sort().join(",") === "modelsMax,sleepIdleSeconds", JSON.stringify(putBody));
     check("Save sent the edited modelsMax", putBody && putBody.modelsMax === 2, JSON.stringify(putBody));
+
+    // ── Scenario 2 (ledger B1): engine NOT installed — the two knobs must still render,
+    // seed from /resident, and Save; the RUNTIME half ("Loaded models" + VRAM) must NOT.
+    await page.unroute("**/v1/llm-runner/engine/status");
+    await page.route("**/v1/llm-runner/engine/status", (r) =>
+      r.fulfill({ json: { installed: false, status: "idle", build: "", gpu: "", hasRuntime: false } }));
+    putBody = null;
+    await page.goto(APP, { waitUntil: "domcontentloaded" });
+    await sleep(1500);
+    await page.evaluate(() => { window.location.hash = "#/ai"; });
+    await sleep(800);
+    await page.evaluate(() => [...document.querySelectorAll(".lu-subnav a")].find((a) => /providers/i.test(a.textContent))?.click());
+    await sleep(500);
+    await page.evaluate(() => [...document.querySelectorAll(".lu-prow button, .lu-prow .lu-btn")].find((b) => /edit/i.test(b.textContent))?.click());
+    await sleep(900);
+
+    const pre = await page.evaluate(() => ({
+      notInstalledCopy: document.querySelector(".lu-eng-sub")?.textContent?.includes("Not installed") || false,
+      loadedHead: !!document.querySelector(".lu-eng-res-head"),
+      knobVals: [...document.querySelectorAll(".lu-eng-knob input")].map((e) => e.value),
+    }));
+    check("pre-install: panel shows Not installed", pre.notInstalledCopy);
+    check("pre-install: runtime half hidden (no Loaded-models head)", !pre.loadedHead);
+    check("pre-install: knobs render + seed from /resident", pre.knobVals.length === 2 && pre.knobVals[0] === "3" && pre.knobVals[1] === "300", JSON.stringify(pre.knobVals));
+    await page.locator(".lu-eng-knob input").first().fill("4");
+    await page.locator(".lu-eng-knobs button", { hasText: /save/i }).click();
+    await sleep(500);
+    check("pre-install: Save still PUTs the partial knob body", putBody && putBody.modelsMax === 4 && Object.keys(putBody).sort().join(",") === "modelsMax,sleepIdleSeconds", JSON.stringify(putBody));
 
     const newErrs = errors.length - mark;
     check("zero JS errors", newErrs === 0, errors.slice(mark, mark + 3).join(" | "));

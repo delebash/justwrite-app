@@ -6,7 +6,9 @@
 // "Read from link" → the quant UiSelect renders with size+QAT labels and the
 // recommended pick landed; (c) the MTP-draft section auto-detected the drafts and
 // pre-selected the SMALLEST (the user's measured Q4_0 @ 240MB); (d) the
-// [MoE][MTP][Embedding] checkboxes render (the read-only Type/MTP rows are gone).
+// [MoE][MTP][Embedding] checkboxes render (the read-only Type/MTP rows are gone);
+// (e) B2: the description auto-composes from the read facts into the EMPTY field;
+// (f) B2 no-clobber: a hand-typed description survives a re-read.
 // Reuses findChrome() from headless-smoke.mjs. Prereqs: server :17495 + vite :1420.
 import { existsSync, readdirSync } from "node:fs";
 import { createRequire } from "node:module";
@@ -92,6 +94,30 @@ try {
   check("MTP draft section auto-detected", /MTP draft model/.test(after.text));
   check("smallest draft pre-selected (the user's Q4_0 @ 240MB)",
     after.selects.some((s) => /Q4_0-MTP\.gguf/.test(s)), after.selects.filter((s) => /MTP/.test(s)).join(" || ").slice(0, 140));
+
+  // (e) B2: description auto-composed from the read facts (the field was empty on Add).
+  // The "Draft file" wait above only proves the LISTING landed; the description composes
+  // after the slower header INSPECT — wait for the button to re-enable (loading → done).
+  await page.waitForFunction(() => {
+    const b = [...document.querySelectorAll("button")].find((x) => /read from link/i.test(x.textContent));
+    return b && !b.disabled;
+  }, { timeout: 120000 });
+  await sleep(200);
+  const descBox = page.locator(".lu-mm-form textarea").first();
+  const desc = await descBox.inputValue();
+  check("description auto-composed (non-empty)", desc.trim().length > 0, desc.slice(0, 120));
+  check("description carries the read facts (context/quant/MTP)",
+    /context/.test(desc) && /UD-Q4_K_XL/.test(desc) && /MTP/.test(desc), desc.slice(0, 120));
+
+  // (f) B2 no-clobber: a hand-typed description survives a re-read
+  await descBox.fill("MY OWN WORDS");
+  await page.getByRole("button", { name: "Read from link" }).click();
+  await page.waitForFunction(() => {
+    const b = [...document.querySelectorAll("button")].find((x) => /read from link/i.test(x.textContent));
+    return b && !b.disabled;
+  }, { timeout: 60000 });
+  await sleep(400);
+  check("hand-typed description NOT clobbered by re-read", (await descBox.inputValue()) === "MY OWN WORDS");
 
   console.log(`\npage errors: ${errors.length}`);
   if (errors.length) { console.log(errors.slice(0, 6).join("\n")); failed = true; }
