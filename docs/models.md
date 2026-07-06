@@ -59,6 +59,9 @@ an **Embedding** badge. From here you can:
   as Quick Setup; any task you've re-pointed yourself on the **Tasks** tab keeps its own model).
 - **Set as embedding** — makes a downloaded embedding model the one used for search and
   grounded chat.
+- Until you save a tune, a model **launches with the engine's automatic memory fitting**
+  (it places the model across GPU/CPU for your card at the app-chosen context size); a
+  saved tune replaces that with your measured values.
 - **Tune** a downloaded model — measure its decode speed on your box with custom engine
   flags, then **Save tune** to keep the config **for this model on this machine**: every
   later load of that model here uses it automatically (and each machine keeps its own tune,
