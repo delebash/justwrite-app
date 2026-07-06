@@ -4,6 +4,13 @@
 // (getModelTier/TIERS) so every surface renders the same labels/tiers and
 // never drifts apart.
 //
+// DOCUMENTED MIRROR (2026-07-06 shared-stack audit): the tier table +
+// heuristic here are the renderer-side mirror of the CANONICAL shared copy,
+// `just-llm-runner/llm_runner/llm/tiers.py` (which was ported FROM this file
+// and is what the server dispatch actually classifies with). The renderer
+// keeps a synchronous copy for boot-time UI (tier badges before any request);
+// if the heuristic changes, change tiers.py FIRST and mirror it here.
+//
 // An "entry" looks like:
 //   { id, quant, state, type, publisher, arch }
 // where everything except `id` may be null when the source endpoint

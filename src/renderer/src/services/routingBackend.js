@@ -1,23 +1,23 @@
 // RoutingBackend — JustWrite's client for the SHARED routing router
 // (/v1/ai/routing, llm_runner.llm.routing_api) — the same surface the shared
-// @delebash/llm-ui "Routing by job" tab + Feature Workbench use. The full routing
-// config (the default provider/embedding, the per-JOB model routes, and the
-// explicit per-feature/per-action pins) lives in real server tables now, NOT the
-// `ai` settings blob; this is how the renderer's AI store reads/writes it.
+// @delebash/llm-ui Routing tab + Feature Workbench use. The routing config on
+// the CURRENT wire (llm_runner RoutingConfig) is `{ default, pins }`: the
+// global default LLM/embedding plus explicit per-feature/per-ACTION pins.
+// (The old per-JOB routes left the wire in the task-kind redesign — nothing
+// named `jobs` exists on RoutingConfig/RoutingResponse anymore.)
 //
-// A synchronous boot cache lets the AI store's bootstrap read the default + pins
-// before Vue mounts (mirrors providerBackend). The AI store only TRACKS the
-// default LLM/embedding + the per-feature pins — it does NOT track the per-job
-// routes (`jobs`) or any action-keyed pins the shared Workbench can set. So a
-// write here MUST merge back everything the store doesn't own: the server's
-// `set_routing` deletes+rebuilds ALL job_routes and routing_pins from the PUT
-// body, so omitting `jobs` (or dropping untracked pins) would silently WIPE
-// them. `putRoutingPrefs` therefore carries the cached `jobs` + `pins` through
-// untouched and only overlays the store's tracked feature pins.
+// A synchronous boot cache lets the AI store's bootstrap read the default +
+// pins before Vue mounts (mirrors providerBackend). The AI store only TRACKS
+// the default LLM/embedding + the per-FEATURE pins — it does NOT track the
+// action-keyed pins the shared Workbench can set (e.g. "writerAI.tighten").
+// The server's `set_routing` replaces the stored pins wholesale from the PUT
+// body, so `putRoutingPrefs` MUST merge the cached untracked pins back in and
+// only overlay the store's tracked feature pins — dropping them would silently
+// wipe the Workbench's per-action routes.
 
 import { get, put } from "@delebash/llm-ui";
 
-let _routing = null; // full RoutingResponse { default, jobs, features, pins }
+let _routing = null; // full RoutingResponse { default, features, pins }
 let _booted = false;
 
 /**
@@ -70,12 +70,11 @@ export function getRoutingPrefs() {
   };
 }
 
-/** Persist default + feature pins via PUT /v1/ai/routing. MERGES the cached
- *  per-job routes (`jobs`) and any untracked pins (e.g. the Workbench's
- *  action-keyed pins) back into the body so a JW save never clobbers what it
- *  doesn't own — the server rebuilds job_routes + routing_pins from the body,
- *  so omitting them would wipe them. Refreshes the cache from the server's
- *  authoritative response. */
+/** Persist default + feature pins via PUT /v1/ai/routing. MERGES any untracked
+ *  pins (the Workbench's action-keyed pins) back into the body so a JW save
+ *  never clobbers what it doesn't own — the server replaces stored pins
+ *  wholesale from the body, so omitting them would wipe them. Refreshes the
+ *  cache from the server's authoritative response. */
 export async function putRoutingPrefs({
   defaultLlmId, defaultModel, defaultEmbeddingId, defaultEmbeddingModel, featurePins,
 }) {
@@ -93,7 +92,6 @@ export async function putRoutingPrefs({
   // provider ids + the embedding model, so a `??` fallback preserves the
   // Default-LLM model (and any field this caller doesn't pass) that the shared
   // Routing tab set — otherwise a JW-side save here would silently wipe it.
-  // `jobs` is carried through verbatim — the store never edits per-job routes.
   const body = {
     default: {
       llmId: defaultLlmId ?? cd.llmId ?? "",
@@ -101,7 +99,6 @@ export async function putRoutingPrefs({
       embeddingId: defaultEmbeddingId ?? cd.embeddingId ?? "",
       embeddingModel: defaultEmbeddingModel ?? cd.embeddingModel ?? "",
     },
-    jobs: cached.jobs || {},
     pins,
   };
   try {

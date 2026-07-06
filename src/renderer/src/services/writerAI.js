@@ -1,9 +1,10 @@
 // writerAI — selection-level writing assistance.
 //
 // Each public function takes a string of HTML (or plain text) and returns
-// a Promise that resolves to the LLM's reply. The chat-stream plumbing
-// (provider resolution, cancel signal, friendly errors, token-usage
-// ledger) lives in services/aiStream.js — we only write the prompts.
+// a Promise that resolves to the LLM's reply. The stream plumbing (server-side
+// provider resolution, cancel signal, friendly errors, task-panel
+// registration) is the kit's runAiFeatureStream (@delebash/llm-ui) — we only
+// write the prompt variables.
 
 import { runAiFeatureStream } from "@delebash/llm-ui";
 import { useProjectStore } from "../stores/project.js";

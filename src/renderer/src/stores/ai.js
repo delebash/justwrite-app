@@ -49,23 +49,6 @@ function savePrefs(state) {
   });
 }
 
-// Build the shared list-shape provider from a form draft. hasApiKey is derived
-// from whether a key was typed (the server confirms it on reconcile);
-// registered is assumed true until the server says otherwise.
-function listShape(draft, prev = null) {
-  return {
-    id: draft.id,
-    name: draft.name || "",
-    providerType: draft.providerType || prev?.providerType || "openai-compat",
-    baseUrl: draft.baseUrl ?? prev?.baseUrl ?? "",
-    defaultModel: draft.defaultModel ?? prev?.defaultModel ?? "",
-    embeddingModel: draft.embeddingModel ?? prev?.embeddingModel ?? "",
-    timeoutSeconds: draft.timeoutSeconds ?? prev?.timeoutSeconds ?? 60,
-    hasApiKey: draft.apiKey ? true : (prev?.hasApiKey ?? false),
-    registered: prev?.registered ?? true,
-  };
-}
-
 export const useAiStore = defineStore("ai", {
   state: () => {
     const prefs = loadPrefs();
@@ -169,40 +152,11 @@ export const useAiStore = defineStore("ai", {
   },
 
   actions: {
-    // Provider CRUD goes through the shared per-provider router
-    // (providerBackend). Each action updates the local list optimistically for
-    // a snappy UI, fires the request, and reconciles the entry from the
-    // server's authoritative response (hasApiKey / registered).
-    addProvider(draft) {
-      const id = draft.id || crypto.randomUUID();
-      this.providers = [...this.providers, listShape({ ...draft, id })];
-      providerBackend.createProvider({ ...draft, id })
-        .then((created) => this._reconcileProvider(id, created))
-        .catch((err) => {
-          console.error("addProvider failed:", err);
-          this.providers = this.providers.filter((p) => p.id !== id);
-        });
-    },
-    updateProvider(id, draft) {
-      const prev = this.providers.find((p) => p.id === id);
-      this.providers = this.providers.map((p) => (p.id === id ? listShape({ ...draft, id }, prev) : p));
-      providerBackend.updateProvider(id, draft)
-        .then((updated) => this._reconcileProvider(id, updated))
-        .catch((err) => console.error("updateProvider failed:", err));
-    },
-    removeProvider(id) {
-      const prev = this.providers;
-      this.providers = this.providers.filter((p) => p.id !== id);
-      providerBackend.deleteProvider(id).catch((err) => {
-        console.error("removeProvider failed:", err);
-        this.providers = prev; // restore on failure
-      });
-    },
-    // Replace an entry with the server's authoritative shape (keyed by id).
-    _reconcileProvider(id, server) {
-      if (!server) return;
-      this.providers = this.providers.map((p) => (p.id === id ? { ...p, ...server } : p));
-    },
+    // Provider CRUD lives in the shared kit (the AiModelsArea → ProviderForm
+    // views write /v1/llm-providers directly); this store only READS the list
+    // (boot cache + resync). The old optimistic add/update/remove actions were
+    // dead code once the kit took over editing — removed by the 2026-07-06
+    // everything-LLM-shared audit (C4).
     setFeaturePin(featureKey, pin) {
       // pin = null to inherit the default; { providerId, model? } to pin.
       this.featurePins = { ...this.featurePins, [featureKey]: pin || null };

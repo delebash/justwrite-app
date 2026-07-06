@@ -69,6 +69,21 @@
 > strict-diff proof: 0 non-import changed lines across the swept consumers. JV untouched (mandate); its
 > adoption half (delete the renderTasks/TaskStrip fork, adopt the kit queue, add its CLAUDE.md note)
 > stays recorded under F1/F4.
+> **(6c) POST-COMPACT: C4 — the everything-LLM-shared audit — DONE (2026-07-06); the batch is 11 of
+> 13, remaining C2 → E3.** Full per-unit strict-diff table (kit 16 + runner 29 + JW 15 units + JV 5
+> records) in the batch tracker §C4. Kit + runner are CLEAN (all app-name matches are comments/
+> provenance). Five JW violations found and FIXED in the same commit: the DEAD provider-CRUD chain
+> (`providerBackend.js` reduced to the read-only boot cache + the four dead `stores/ai.js` actions
+> removed — the kit ProviderForm has owned provider editing since the AI consolidation), the
+> zero-consumer `Combobox.vue` fork DELETED (kit `LuCombobox` superseded it), `routingBackend.js`'s
+> stale-wire cleanup (the removed job-routes design's `jobs` field + wipe-hazard comments; the PINS
+> merge stays — the server still replaces pins wholesale), writerAI's phantom `aiStream.js` reference,
+> and the tier heuristic now carries DOCUMENTED-MIRROR cross-notes both sides (canonical = runner
+> `llm/tiers.py`). One new-scope finding FILED as master-plan **C5** (the JW model-picker family →
+> kit: ModelPicker + useModelList + AiFeatureChip + embedApi — needs a go, not built). Five JV
+> findings RECORDED under F1 (llmBackend adapter era · ProviderForm LLM-half · QuickSetup pin-config
+> half · RecommendCard · the task-queue fork → adopt C3's kit queue). Verified after the fixes:
+> build:vite clean · vitest 28/28 · full headless smoke zero JS errors · runner ruff + 350 pytest.
 > **(5) POST-COMPACTION DECISIONS (2026-07-06, "i take your rec on d1 and d3, go"):** the ledger's §D is now EMPTY — no open decisions remain anywhere. **D1 DECIDED — Quick Setup keeps writing the picked model onto the EXISTING task presets** (the non-clobber `modelApply.js:75-87` PUT that skips user-re-pointed presets); it does NOT generate a preset per task; closed with zero code; tracker #100 closed (annotated in the current preset-model doc `2026-07-02-preset-model-a-resets.md` §Out-of-scope too). **D3 DECIDED — the stale #71 umbrella verify task is CLOSED**; its build/smoke/docs parts had already shipped in later phases and its only surviving piece — the marketing-screenshots run (`npm run screenshots`, built `.exe` + WebView2) — is folded into the ledger as an unconditional your-box item **G4**. Both recorded in the outstanding master plan (§D closed-section note + the two decided records kept in full + G4 rewritten).
 > **STANDING USER RULES:** held all session (the 10 restated rules + never-code-until-"go"); every phase committed+pushed immediately (the only reason four container resets cost nothing).
 
