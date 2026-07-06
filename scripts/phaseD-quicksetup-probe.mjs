@@ -36,9 +36,12 @@ page.on("pageerror", (e) => errors.push(`pageerror: ${e}`));
 page.on("requestfailed", (r) => { const u = r.url(); if (!BENIGN.some((re) => re.test(u))) badUrls.push(`failed ${u}`); });
 page.on("response", (r) => { if (r.status() >= 400 && !BENIGN.some((re) => re.test(r.url()))) badUrls.push(`${r.status()} ${r.url()}`); });
 
-// GPU-shaped hardware for the wizard (2026-07-06: chat models REQUIRE a GPU — CPU-only
-// prose is unsupported; this container has no GPU, so the page sees a probe 8 GB card
-// and the /models fits are lifted to what that card would report; embeds unchanged).
+// ⚠ TEST-CASE NOTE (user, 2026-07-06 "just note it in test case"): chat models REQUIRE
+// a GPU in the product (CPU-only prose is unsupported; embeds stay CPU-fine) — this
+// container has NO GPU, so the WIZARD flow is exercised against a stubbed 8 GB card
+// below (the supported hardware class). For REAL load tests on GPU-less machines, the
+// catalog ships `qwen3-0.6b-test` ("Qwen3 0.6B — pipeline test model (CPU)") — a tiny
+// deliberately-loadable model the auto-pick can never choose (rank 99 + the FIT_GPU gate).
 await page.route("**/v1/llm-runner/hardware", async (route) => {
   const real = await (await fetch(`${process.env.JW_API || "http://127.0.0.1:17495"}/v1/llm-runner/hardware`)).json();
   real.gpus = [{ vendor: "nvidia", name: "RTX probe", vramMb: 8192 }];
