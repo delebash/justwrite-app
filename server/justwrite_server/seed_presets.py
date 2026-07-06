@@ -106,15 +106,15 @@ DEFAULT_MODEL_CATALOG_EXTRA: list[dict] = [
                     "8k-corpus chat TTFT 15 s, prefill 551 t/s sustained to 28k."},
 ]
 
-# TUNE ROWS ARE NOT SEEDED — and there is NO restore script either (user, 2026-07-06:
-# "stop trying to automatically do stuff behind the scenes, then i have no idea what
-# is going on"). Tunes are MEASUREMENTS, owned by each (model, machine) pair, and they
-# enter the system ONLY through the visible paths: the wizard's optimize sweep or a
-# Tune-modal Save. After a reset a machine re-earns its numbers the same way. For the
-# record, the author's measured 8GB/32GB gemma values were: n_gpu_layers 99 ·
-# n_cpu_moe 21 · ctx_len 32768 · batch/ubatch 512/512 · threads 8 (+ the 0.6B embed at
-# ngl 0) — reference data for the sweep-parity test, re-enterable by hand in the Tune
-# modal, never injected.
+# TUNE ROWS ARE NOT SEEDED (user, 2026-07-06: "i agree it should not be a defualt
+# seed for everyone"). Tunes are MEASUREMENTS, owned by each (model, machine) pair —
+# they enter through the visible paths (the wizard's optimize sweep, a Tune-modal
+# Save) or, on the author's own box, by MANUALLY running
+# just-llm-runner/scripts/dev-seed-tunes.py (user: "keep it in seed i can run
+# manually" — it never runs automatically; nothing happens behind the scenes). The
+# author's measured 8GB/32GB gemma values, for the sweep-parity test: n_gpu_layers 99
+# · n_cpu_moe 21 · ctx_len 32768 · batch/ubatch 512/512 · threads 8 (+ the 0.6B embed
+# at ngl 0).
 
 # taskKind → preset assignment (the routing default; the `TaskKindPreset` bulk handle).
 # The two chat taskKinds share one preset. Every taskKind maps to exactly one preset.
