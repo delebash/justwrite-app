@@ -40,8 +40,8 @@ page.on("response", (r) => { if (r.status() >= 400 && !BENIGN.some((re) => re.te
 // a GPU in the product (CPU-only prose is unsupported; embeds stay CPU-fine) — this
 // container has NO GPU, so the WIZARD flow is exercised against a stubbed 8 GB card
 // below (the supported hardware class). For REAL load tests on GPU-less machines, the
-// catalog ships `qwen3-0.6b-test` ("Qwen3 0.6B — pipeline test model (CPU)") — a tiny
-// deliberately-loadable model the auto-pick can never choose (rank 99 + the FIT_GPU gate).
+// tiny CPU test model is added via just-llm-runner/scripts/dev-seed-test-model.py
+// (dev/container ONLY — the real seed deliberately does not carry it; user 2026-07-06).
 await page.route("**/v1/llm-runner/hardware", async (route) => {
   const real = await (await fetch(`${process.env.JW_API || "http://127.0.0.1:17495"}/v1/llm-runner/hardware`)).json();
   real.gpus = [{ vendor: "nvidia", name: "RTX probe", vramMb: 8192 }];
