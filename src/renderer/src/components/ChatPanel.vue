@@ -11,7 +11,7 @@ import { ref, computed, watch, nextTick, onBeforeUnmount } from "vue";
 import { useRouter } from "vue-router";
 import { useProjectStore } from "../stores/project.js";
 import { useAiStore } from "../stores/ai.js";
-import { useAiTasksStore } from "../stores/aiTasks.js";
+import { useAiTasksStore, AiTaskStrip, EmptyState, HelpTrigger, Icon, UiButton, UiTextarea, UiSelect } from "@delebash/llm-ui";
 import { useUiStore } from "../stores/ui.js";
 import { askManuscript } from "../services/rag/chat.js";
 import { askAsCharacter } from "../services/rag/characterChat.js";
@@ -19,14 +19,7 @@ import { indexStatus } from "../services/rag/indexer.js";
 import { autoIndexRunning } from "../services/rag/autoIndex.js";
 import { fetchThread, putThread } from "../services/chatApi.js";
 import IndexBuildModal from "./IndexBuildModal.vue";
-import AiTaskStrip from "./AiTaskStrip.vue";
 import AiFeatureChip from "./AiFeatureChip.vue";
-import { EmptyState } from "@delebash/llm-ui";
-import { HelpTrigger } from "@delebash/llm-ui";
-import { Icon } from "@delebash/llm-ui";
-import { UiButton } from "@delebash/llm-ui";
-import { UiTextarea } from "@delebash/llm-ui";
-import { UiSelect } from "@delebash/llm-ui";
 import { useModelList } from "../composables/useModelList.js";
 
 // One thread per (project, mode, character) combo, persisted server-side

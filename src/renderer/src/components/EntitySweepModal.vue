@@ -10,15 +10,11 @@
 
 import { ref, computed, onMounted } from "vue";
 import { useProjectStore } from "../stores/project.js";
-import { useAiTasksStore } from "../stores/aiTasks.js";
+import { useAiTasksStore, AiTaskStrip, Icon, AppModal, UiButton } from "@delebash/llm-ui";
 import { scanAllChapters } from "../services/analysis/entitySweep.js";
 import EntityReviewModal from "./EntityReviewModal.vue";
-import AiTaskStrip from "./AiTaskStrip.vue";
 import AiFeatureChip from "./AiFeatureChip.vue";
-import { Icon } from "@delebash/llm-ui";
-import { AppModal } from "@delebash/llm-ui";
 import StatusRow from "./StatusRow.vue";
-import { UiButton } from "@delebash/llm-ui";
 
 const props = defineProps({
   // Optional: limit the sweep to specific chapter ids (Set or array).

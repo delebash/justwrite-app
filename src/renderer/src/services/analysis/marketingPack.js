@@ -9,7 +9,7 @@
 // All four are written for querying agents, pitching to publishers,
 // and back-cover copy. The writer can copy each artifact individually.
 
-import { runAiFeature } from "../aiFeature.js";
+import { runAiFeature } from "@delebash/llm-ui";
 import { parseJsonLoose } from "../llmText.js";
 
 function htmlToText(html) {

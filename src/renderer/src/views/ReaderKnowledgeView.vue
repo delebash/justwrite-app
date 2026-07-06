@@ -20,18 +20,13 @@ import { useRouter } from "vue-router";
 import { useProjectStore } from "../stores/project.js";
 import { useUiStore } from "../stores/ui.js";
 import { useAiStore } from "../stores/ai.js";
-import { useAiTasksStore } from "../stores/aiTasks.js";
+import { useAiTasksStore, Icon, AiTaskStrip, HelpTrigger, EmptyState, UiButton } from "@delebash/llm-ui";
 import {
   scanReaderKnowledge,
   STATUS_LABELS,
   STATUS_COLOURS,
 } from "../services/analysis/readerKnowledge.js";
-import { Icon } from "@delebash/llm-ui";
-import AiTaskStrip from "../components/AiTaskStrip.vue";
-import { HelpTrigger } from "@delebash/llm-ui";
 import AiFeatureChip from "../components/AiFeatureChip.vue";
-import { EmptyState } from "@delebash/llm-ui";
-import { UiButton } from "@delebash/llm-ui";
 
 const project = useProjectStore();
 const ui = useUiStore();

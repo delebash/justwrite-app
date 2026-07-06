@@ -6,10 +6,9 @@
 // "jw has its card layout, we just put the control in it.")
 import { onUnmounted } from "vue";
 import PaneHeader from "../components/PaneHeader.vue";
-import { AiModelsArea } from "@delebash/llm-ui";
+import { AiModelsArea, runAiFeatureStream } from "@delebash/llm-ui";
 import WritingAiSettings from "../components/WritingAiSettings.vue";
 import { useAiStore } from "../stores/ai.js";
-import { runAiFeatureStream } from "../services/aiFeature.js";
 
 // The shared AI control writes routing (default LLM/embedding + model + pins)
 // straight to the server. Re-sync the renderer's AI store on the way out so the

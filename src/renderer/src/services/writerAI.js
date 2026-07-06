@@ -5,7 +5,7 @@
 // (provider resolution, cancel signal, friendly errors, token-usage
 // ledger) lives in services/aiStream.js — we only write the prompts.
 
-import { runAiFeatureStream } from "./aiFeature.js";
+import { runAiFeatureStream } from "@delebash/llm-ui";
 import { useProjectStore } from "../stores/project.js";
 import { buildVoiceFingerprint } from "./voiceFingerprint.js";
 

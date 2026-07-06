@@ -15,7 +15,7 @@
 // short "instruction" that can be fed verbatim into the writerAI
 // continueFrom call as a guided-write direction.
 
-import { runAiFeature } from "./aiFeature.js";
+import { runAiFeature } from "@delebash/llm-ui";
 import { parseJsonLoose } from "./llmText.js";
 
 function htmlToText(html) {

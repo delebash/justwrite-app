@@ -15,16 +15,12 @@ import { ref, computed, onMounted } from "vue";
 import { useRouter } from "vue-router";
 import { useProjectStore } from "../stores/project.js";
 import { useAiStore } from "../stores/ai.js";
-import { useAiTasksStore } from "../stores/aiTasks.js";
+import { useAiTasksStore, Icon, AiTaskStrip, AppModal, UiButton } from "@delebash/llm-ui";
 import {
   generateReverseOutline,
   STRUCTURE_LABELS,
 } from "../services/analysis/reverseOutline.js";
-import { Icon } from "@delebash/llm-ui";
-import AiTaskStrip from "./AiTaskStrip.vue";
 import AiFeatureChip from "./AiFeatureChip.vue";
-import { AppModal } from "@delebash/llm-ui";
-import { UiButton } from "@delebash/llm-ui";
 
 const emit = defineEmits(["close"]);
 

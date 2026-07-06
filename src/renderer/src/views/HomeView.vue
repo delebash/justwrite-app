@@ -5,14 +5,10 @@ import { useProjectStore } from "../stores/project.js";
 import { useUiStore } from "../stores/ui.js";
 import { useSessionsStore, DOW_LABELS_MONDAY_FIRST, reorderForMonday } from "../stores/sessions.js";
 import { useAiStore } from "../stores/ai.js";
-import { useAiTasksStore } from "../stores/aiTasks.js";
+import { useAiTasksStore, Icon, AiTaskStrip, UiButton, HelpTrigger } from "@delebash/llm-ui";
 import { generateResumeBriefing, buildBriefingContext } from "../services/resumeBriefing.js";
-import { Icon } from "@delebash/llm-ui";
-import AiTaskStrip from "../components/AiTaskStrip.vue";
 import AiFeatureChip from "../components/AiFeatureChip.vue";
-import { UiButton } from "@delebash/llm-ui";
 import SessionRecapModal from "../components/SessionRecapModal.vue";
-import { HelpTrigger } from "@delebash/llm-ui";
 
 const router = useRouter();
 const project = useProjectStore();

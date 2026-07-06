@@ -15,7 +15,7 @@
 //     model, providerId, generatedAt
 //   }
 
-import { runAiFeature } from "./aiFeature.js";
+import { runAiFeature } from "@delebash/llm-ui";
 import { parseJsonLoose } from "./llmText.js";
 
 // ─── helpers ─────────────────────────────────────────────────────────

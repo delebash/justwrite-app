@@ -15,16 +15,11 @@
 import { ref, computed, onMounted } from "vue";
 import { useProjectStore } from "../stores/project.js";
 import { useUiStore } from "../stores/ui.js";
-import { useAiTasksStore } from "../stores/aiTasks.js";
+import { useAiTasksStore, AiTaskStrip, Icon, AppModal, EmptyState, UiButton } from "@delebash/llm-ui";
 import { scanForDanglingThreads } from "../services/analysis/foreshadowingScan.js";
 import { addMarkerToSceneHtml } from "../services/markers.js";
-import AiTaskStrip from "./AiTaskStrip.vue";
 import AiFeatureChip from "./AiFeatureChip.vue";
-import { Icon } from "@delebash/llm-ui";
-import { AppModal } from "@delebash/llm-ui";
 import StatusRow from "./StatusRow.vue";
-import { EmptyState } from "@delebash/llm-ui";
-import { UiButton } from "@delebash/llm-ui";
 
 const emit = defineEmits(["close"]);
 

@@ -6,7 +6,7 @@
 // We dedupe against existing entity names so the LLM doesn't propose
 // "Halvard" when there's already a Halvard in the cast.
 
-import { runAiFeature } from "../aiFeature.js";
+import { runAiFeature } from "@delebash/llm-ui";
 import { parseJsonLoose } from "../llmText.js";
 
 function htmlToText(html) {

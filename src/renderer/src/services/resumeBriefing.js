@@ -14,7 +14,7 @@
 // The output is 150–250 words of second-person prose addressed to the
 // writer, ending with one concrete next-action suggestion.
 
-import { runAiFeature } from "./aiFeature.js";
+import { runAiFeature } from "@delebash/llm-ui";
 import { scanProjectMarkers } from "./markers.js";
 
 // ─── Context composition ───────────────────────────────────────────────

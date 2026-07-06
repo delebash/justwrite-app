@@ -9,13 +9,9 @@
 import { ref, computed, onMounted } from "vue";
 import { useAiStore } from "../stores/ai.js";
 import { useProjectStore } from "../stores/project.js";
-import { useAiTasksStore } from "../stores/aiTasks.js";
+import { useAiTasksStore, AiTaskStrip, Icon, AppModal, UiButton } from "@delebash/llm-ui";
 import { buildOrUpdateIndex, rebuildIndex, indexStatus, clearIndex } from "../services/rag/indexer.js";
-import AiTaskStrip from "./AiTaskStrip.vue";
-import { Icon } from "@delebash/llm-ui";
-import { AppModal } from "@delebash/llm-ui";
 import StatusRow from "./StatusRow.vue";
-import { UiButton } from "@delebash/llm-ui";
 
 const props = defineProps({
   // "build" — incremental (only embed new/changed scenes)

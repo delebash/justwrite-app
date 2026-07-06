@@ -10,7 +10,7 @@
 // evidence quote, and a one-line reasoning. The shape mirrors
 // chapter.critique.notes so the existing UI patterns translate.
 
-import { runAiFeature } from "../aiFeature.js";
+import { runAiFeature } from "@delebash/llm-ui";
 import { parseJsonLoose } from "../llmText.js";
 
 function htmlToText(html) {

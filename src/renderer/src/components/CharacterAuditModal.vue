@@ -16,15 +16,10 @@ import { useRouter } from "vue-router";
 import { useProjectStore } from "../stores/project.js";
 import { useUiStore } from "../stores/ui.js";
 import { useAiStore } from "../stores/ai.js";
-import { useAiTasksStore } from "../stores/aiTasks.js";
+import { useAiTasksStore, Icon, AppModal, AiTaskStrip, EmptyState, UiButton } from "@delebash/llm-ui";
 import { auditAllCharacters } from "../services/analysis/characterAudit.js";
-import { Icon } from "@delebash/llm-ui";
 import AiFeatureChip from "./AiFeatureChip.vue";
-import { AppModal } from "@delebash/llm-ui";
 import StatusRow from "./StatusRow.vue";
-import AiTaskStrip from "./AiTaskStrip.vue";
-import { EmptyState } from "@delebash/llm-ui";
-import { UiButton } from "@delebash/llm-ui";
 
 const emit = defineEmits(["close"]);
 

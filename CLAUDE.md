@@ -93,15 +93,16 @@ All in `src/renderer/src/stores/`:
 **The legacy gateway is GONE (this section previously described it as current —
 corrected 2026-07-06 after it misled an audit).** ALL LLM traffic goes through the
 shared `just-llm-runner` dispatch mounted by `install_llm` on the Python `server/`:
-feature runs + streaming via `/v1/ai/run` + `/v1/ai/stream` (`services/aiFeature.js`,
-`services/writerAI.js`), embeddings via `/v1/ai/embeddings` (`services/embedApi.js`),
-routing via `/v1/ai/routing` (`services/routingBackend.js`), and provider CRUD via the
-shared `/v1/llm-providers` (`services/providerBackend.js`). There is no
+feature runs + streaming via `/v1/ai/run` + `/v1/ai/stream` — called through the
+KIT's `runAiFeature`/`runAiFeatureStream` (`@delebash/llm-ui`; the old JW-local
+`services/aiFeature.js`/`aiErrors.js` moved into the kit 2026-07-06, Decision 22),
+consumed by `services/writerAI.js`, `services/analysis/*`, and `services/rag/*` —
+embeddings via `/v1/ai/embeddings` (`services/embedApi.js`), routing via
+`/v1/ai/routing` (`services/routingBackend.js`), and provider CRUD via the shared
+`/v1/llm-providers` (`services/providerBackend.js`). There is no
 `services/openai-compat.js` and no `/v1/llm/{providerId}/*` route on the server; the
 string `"openai-compat"` appearing in code is a PROVIDER-TYPE id, not a gateway.
-(Three stale code comments still name the removed `OpenAICompatClient` —
-`components/ModelPicker.vue:7`, `services/modelMeta.js:2`, `services/embedApi.js:2` —
-cleanup tracked in the outstanding master plan.) No TTS here — audio lives in JustVoice.
+No TTS here — audio lives in JustVoice.
 
 ### Manuscript export
 
@@ -156,6 +157,7 @@ new visual variants are added as intents in the kit.
 - `HelpDrawer` + `HelpTrigger` + `openHelp`/`closeHelp` (`help.js`) — the `?` affordance + slide-in docs panel. JW wires the content adapter + `onOpenFull`/`onOpenWeb` via `configureHelp()` in `main.js`; the docs corpus stays JW-local (`services/helpDocs.js`).
 - `Toast` + `pushToast`/`clearToasts` (`toastBridge.js`) — vue-sonner host; `ui.showToast({message, action})` delegates to it. JW themes the `.ui-toaster` class in `styles.css`.
 - `tooltipDirective` (`v-tooltip.bottom="'text'"`, registered in `main.js`), `Breadcrumb`, `EmptyState`, `ConnectionError` (props: appName/serverUrl/need/devHint), `Icon`.
+- **The shared AI task queue** (moved from JW 2026-07-06, Decision 22): `useAiTasksStore` (the global in-flight registry — Pinia; `pinia` is a kit peer dep, JW provides the instance), `runAiFeature`/`runAiFeatureStream` (feature-run wrappers over `/v1/ai/run`+`/v1/ai/stream` with task-panel registration + cancel), `friendlyAiError`, and the surfaces `AiTaskStrip` (inline progress strip, `#extra-stats` slot), `AiStatusPanel` (slide-in panel), `AiStatusButton` (TitleBar chip — its title-bar chrome stays host-owned via the `.titlebar-*` button rules).
 - Both `AppModal`/`AppDialog`/`HelpDrawer` are Reka UI Dialog primitives — focus trap, scroll lock, Esc, ARIA free.
 
 Both modal wrappers are Reka UI Dialog primitives — focus trap, scroll lock, Esc, ARIA come free. `AppModal` blocks backdrop click by default; `AppDialog` is dismissable (backdrop/Esc cancel).

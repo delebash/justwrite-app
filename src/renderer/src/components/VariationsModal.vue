@@ -14,11 +14,8 @@
 
 import { ref, onMounted, onBeforeUnmount, computed } from "vue";
 import { VARIATION_TEMPERATURES } from "../services/writerAI.js";
-import { useAiTasksStore } from "../stores/aiTasks.js";
-import { Icon } from "@delebash/llm-ui";
+import { useAiTasksStore, Icon, AppModal, UiButton } from "@delebash/llm-ui";
 import AiFeatureChip from "./AiFeatureChip.vue";
-import { AppModal } from "@delebash/llm-ui";
-import { UiButton } from "@delebash/llm-ui";
 
 const props = defineProps({
   // Runner contract:

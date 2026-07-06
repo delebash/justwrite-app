@@ -17,14 +17,10 @@ import { useProjectStore } from "../stores/project.js";
 import { useUiStore } from "../stores/ui.js";
 import { useSessionsStore } from "../stores/sessions.js";
 import { useAiStore } from "../stores/ai.js";
-import { useAiTasksStore } from "../stores/aiTasks.js";
+import { useAiTasksStore, Icon, AiTaskStrip, AppModal, UiButton } from "@delebash/llm-ui";
 import { generateSessionRecap } from "../services/sessionRecap.js";
 import { addMarkerToSceneHtml } from "../services/markers.js";
-import { Icon } from "@delebash/llm-ui";
-import AiTaskStrip from "./AiTaskStrip.vue";
 import AiFeatureChip from "./AiFeatureChip.vue";
-import { AppModal } from "@delebash/llm-ui";
-import { UiButton } from "@delebash/llm-ui";
 
 const emit = defineEmits(["close"]);
 

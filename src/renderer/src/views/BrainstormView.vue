@@ -1,13 +1,8 @@
 <script setup>
 import { ref, computed } from "vue";
 import PaneHeader from "../components/PaneHeader.vue";
-import { UiButton } from "@delebash/llm-ui";
-import { UiSelect } from "@delebash/llm-ui";
-import { UiTextarea } from "@delebash/llm-ui";
+import { UiButton, UiSelect, UiTextarea, useAiTasksStore, runAiFeature, AiTaskStrip } from "@delebash/llm-ui";
 import { useUiStore } from "../stores/ui.js";
-import { useAiTasksStore } from "../stores/aiTasks.js";
-import { runAiFeature } from "../services/aiFeature.js";
-import AiTaskStrip from "../components/AiTaskStrip.vue";
 import AiFeatureChip from "../components/AiFeatureChip.vue";
 
 const ui = useUiStore();

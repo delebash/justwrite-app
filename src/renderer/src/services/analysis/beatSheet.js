@@ -15,7 +15,7 @@
 //     summary: "1-2 sentences on coverage and gaps"
 //   }
 
-import { runAiFeature } from "../aiFeature.js";
+import { runAiFeature } from "@delebash/llm-ui";
 import { parseJsonLoose } from "../llmText.js";
 
 // ─── Templates ───────────────────────────────────────────────────────

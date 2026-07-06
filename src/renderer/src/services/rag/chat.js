@@ -10,8 +10,7 @@
 //   4. Streams the answer; returns { answer, citations, usage }.
 
 import { embedTexts } from "../embedApi.js";
-import { friendlyAiError } from "../aiErrors.js";
-import { runAiFeatureStream } from "../aiFeature.js";
+import { friendlyAiError, runAiFeatureStream } from "@delebash/llm-ui";
 import { useAiStore } from "../../stores/ai.js";
 import { useProjectStore } from "../../stores/project.js";
 import { search, status } from "./vectorStore.js";

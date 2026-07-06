@@ -18,7 +18,7 @@
 // job. If the book really does follow Save the Cat or 7-point, the
 // model will identify the 3- or 5-act shape that maps to it.
 
-import { runAiFeature } from "../aiFeature.js";
+import { runAiFeature } from "@delebash/llm-ui";
 import { parseJsonLoose } from "../llmText.js";
 
 function htmlToText(html) {

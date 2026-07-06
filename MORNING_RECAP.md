@@ -53,6 +53,22 @@
 > schema GET, PUT round-trip + preserve-on-omit). Heads at the stop: runner **`6e52f49`** · JW **`7a42b11`**
 > · JV **`453462c`** — all clean, all pushed. NOTE for any box pull: the new `feature_prompts.json_schema`
 > column means a stale dev DB needs the one-time `POST /v1/data/reset`.
+> **(6b) POST-COMPACT: C3 SHIPPED (2026-07-06) — the batch is now 10 of 13; remaining C4 → C2 → E3.**
+> The shared AI task queue moved into the kit per Decision 22 (full design + grounded amendments +
+> verification in the tracker §C3): the six files (the five + the discovered `aiErrors.js` dependency)
+> now live in the kit's llm layer (`ui/src/stores/aiTasks.js` · `ui/src/services/aiFeature.js`+
+> `aiErrors.js` — consolidated onto the kit client, which gained `{signal}` + null-until-done usage —
+> · `AiTaskStrip`/`AiStatusPanel`/`AiStatusButton`), exported from the kit index; `pinia ^3.0` is a kit
+> peer dep. JW: all 43 consumers swept (66 import lines; duplicate kit-import lines merged in 25 files),
+> the six locals DELETED (no shims), CLAUDE.md §AI-providers + kit-list updated (the stale E1
+> parenthetical dropped too), and a new `aiFeature.test.js` (8 tests over the REAL kit modules) joins
+> the vitest suite → **28/28**. Fidelity bonus: the task strip's Details-button accent tint was dead CSS
+> since the Jw→Ui button convergence (`:deep(.jw-btn--ghost)` in a non-scoped block) — restored as
+> `.sts .ui-btn--ghost`. Verified: build:vite clean · full headless smoke ZERO JS errors on every route ·
+> residual-reference grep zero · Biome only the 2 pre-existing warnings (stash-proven on HEAD) ·
+> strict-diff proof: 0 non-import changed lines across the swept consumers. JV untouched (mandate); its
+> adoption half (delete the renderTasks/TaskStrip fork, adopt the kit queue, add its CLAUDE.md note)
+> stays recorded under F1/F4.
 > **(5) POST-COMPACTION DECISIONS (2026-07-06, "i take your rec on d1 and d3, go"):** the ledger's §D is now EMPTY — no open decisions remain anywhere. **D1 DECIDED — Quick Setup keeps writing the picked model onto the EXISTING task presets** (the non-clobber `modelApply.js:75-87` PUT that skips user-re-pointed presets); it does NOT generate a preset per task; closed with zero code; tracker #100 closed (annotated in the current preset-model doc `2026-07-02-preset-model-a-resets.md` §Out-of-scope too). **D3 DECIDED — the stale #71 umbrella verify task is CLOSED**; its build/smoke/docs parts had already shipped in later phases and its only surviving piece — the marketing-screenshots run (`npm run screenshots`, built `.exe` + WebView2) — is folded into the ledger as an unconditional your-box item **G4**. Both recorded in the outstanding master plan (§D closed-section note + the two decided records kept in full + G4 rewritten).
 > **STANDING USER RULES:** held all session (the 10 restated rules + never-code-until-"go"); every phase committed+pushed immediately (the only reason four container resets cost nothing).
 

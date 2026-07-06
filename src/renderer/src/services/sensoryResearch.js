@@ -14,7 +14,7 @@
 //     movement, social, period
 //   }
 
-import { runAiFeature } from "./aiFeature.js";
+import { runAiFeature } from "@delebash/llm-ui";
 import { parseJsonLoose } from "./llmText.js";
 
 // Categories rendered in order in the modal. The "blurb" is shown

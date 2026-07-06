@@ -13,15 +13,12 @@
 import { ref, computed, onMounted } from "vue";
 import { useProjectStore } from "../stores/project.js";
 import { useAiStore } from "../stores/ai.js";
-import { useAiTasksStore } from "../stores/aiTasks.js";
+import { useAiTasksStore, Icon, AppModal, UiButton } from "@delebash/llm-ui";
 import {
   runMultiReaderPanel,
   PERSONAS,
 } from "../services/analysis/multiReaderCritique.js";
-import { Icon } from "@delebash/llm-ui";
 import AiFeatureChip from "./AiFeatureChip.vue";
-import { AppModal } from "@delebash/llm-ui";
-import { UiButton } from "@delebash/llm-ui";
 
 const props = defineProps({
   chapterId: { type: String, required: true },

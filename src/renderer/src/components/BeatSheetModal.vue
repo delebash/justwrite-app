@@ -14,18 +14,13 @@ import { ref, computed, watch } from "vue";
 import { useRouter } from "vue-router";
 import { useProjectStore } from "../stores/project.js";
 import { useAiStore } from "../stores/ai.js";
-import { useAiTasksStore } from "../stores/aiTasks.js";
+import { useAiTasksStore, Icon, AiTaskStrip, AppModal, UiButton, UiSelect } from "@delebash/llm-ui";
 import {
   mapToBeatSheet,
   BEAT_TEMPLATES,
   TEMPLATE_OPTIONS,
 } from "../services/analysis/beatSheet.js";
-import { Icon } from "@delebash/llm-ui";
-import AiTaskStrip from "./AiTaskStrip.vue";
 import AiFeatureChip from "./AiFeatureChip.vue";
-import { AppModal } from "@delebash/llm-ui";
-import { UiButton } from "@delebash/llm-ui";
-import { UiSelect } from "@delebash/llm-ui";
 
 const emit = defineEmits(["close"]);
 

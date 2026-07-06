@@ -4,7 +4,7 @@ import { useRouter } from "vue-router";
 import { useProjectStore } from "../stores/project.js";
 import { useSessionsStore } from "../stores/sessions.js";
 import PaneHeader from "../components/PaneHeader.vue";
-import { Icon } from "@delebash/llm-ui";
+import { Icon, AiTaskStrip, useAiTasksStore, UiTable, UiSegmented, UiButton } from "@delebash/llm-ui";
 import StatPill from "../components/StatPill.vue";
 import {
   statusCounts, strandDistribution, characterPresence,
@@ -19,13 +19,8 @@ import BeatSheetModal from "../components/BeatSheetModal.vue";
 import PlotHoleScanModal from "../components/PlotHoleScanModal.vue";
 import MarketingPackModal from "../components/MarketingPackModal.vue";
 import EntitySweepModal from "../components/EntitySweepModal.vue";
-import AiTaskStrip from "../components/AiTaskStrip.vue";
 import AiFeatureChip from "../components/AiFeatureChip.vue";
 import { useAiStore } from "../stores/ai.js";
-import { useAiTasksStore } from "../stores/aiTasks.js";
-import { UiTable } from "@delebash/llm-ui";
-import { UiSegmented } from "@delebash/llm-ui";
-import { UiButton } from "@delebash/llm-ui";
 
 const project = useProjectStore();
 const sessions = useSessionsStore();

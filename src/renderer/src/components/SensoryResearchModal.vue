@@ -9,13 +9,9 @@
 
 import { ref, computed, onMounted } from "vue";
 import { useAiStore } from "../stores/ai.js";
-import { useAiTasksStore } from "../stores/aiTasks.js";
+import { useAiTasksStore, Icon, AiTaskStrip, AppModal, UiButton } from "@delebash/llm-ui";
 import { generateSensoryPack, SENSORY_CATEGORIES } from "../services/sensoryResearch.js";
-import { Icon } from "@delebash/llm-ui";
-import AiTaskStrip from "./AiTaskStrip.vue";
 import AiFeatureChip from "./AiFeatureChip.vue";
-import { AppModal } from "@delebash/llm-ui";
-import { UiButton } from "@delebash/llm-ui";
 
 const props = defineProps({
   subject:     { type: String, required: true },

@@ -18,7 +18,7 @@
 // a 2-3 sentence prose comparison naming the specific shifts. Cheap
 // enough to run per-chapter on demand.
 
-import { runAiFeature } from "../aiFeature.js";
+import { runAiFeature } from "@delebash/llm-ui";
 
 // Which metrics from bookMetrics rows are worth tracking for drift.
 // Each entry: { key, label, unit, format }. `format` is a function that

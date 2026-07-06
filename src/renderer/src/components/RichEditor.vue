@@ -32,12 +32,9 @@ import { Marker, MARKER_CATEGORIES, categoryById } from "@renderer/services/mark
 import * as writerAI from "@renderer/services/writerAI";
 import VariationsModal from "./VariationsModal.vue";
 import { PROSE_RULES, PROSE_RULE_ORDER } from "@renderer/services/writerAI";
-import { useAiTasksStore } from "../stores/aiTasks.js";
+import { useAiTasksStore, Icon, UiButton, AiTaskStrip } from "@delebash/llm-ui";
 import { useUiStore } from "../stores/ui.js";
-import { Icon } from "@delebash/llm-ui";
-import { UiButton } from "@delebash/llm-ui";
 import EditorSettingsModal from "./EditorSettingsModal.vue";
-import AiTaskStrip from "./AiTaskStrip.vue";
 
 const props = defineProps({
   modelValue: { type: String, default: "" },
