@@ -106,16 +106,15 @@ DEFAULT_MODEL_CATALOG_EXTRA: list[dict] = [
                     "8k-corpus chat TTFT 15 s, prefill 551 t/s sustained to 28k."},
 ]
 
-# TUNE ROWS ARE NOT SEEDED (user decision 2026-07-06: "i agree it should not be a
-# defualt seed for everyone"). Tunes are MEASUREMENTS, owned by each (model, machine)
-# pair — the wizard's auto-sweep or a Tune-modal Save writes them. The former dev rows
-# (the author box's gemma values + the CPU-embed row) live in
-# just-llm-runner/scripts/dev-seed-tunes.py — run it on the author's box after a reset
-# to restore them (the server keys the PUT to the machine that runs it). Discovery that
-# forced this: the old seeder stamped the rows with WHATEVER machine ran the seeding,
-# so "inert on other boxes" was false — an 8 GB tune would have applied on a 24 GB card.
-# The user's sweep-parity test (quick-tune vs the hand-tune, their box) decides whether
-# hardware-class starting values ever return — with evidence either way.
+# TUNE ROWS ARE NOT SEEDED — and there is NO restore script either (user, 2026-07-06:
+# "stop trying to automatically do stuff behind the scenes, then i have no idea what
+# is going on"). Tunes are MEASUREMENTS, owned by each (model, machine) pair, and they
+# enter the system ONLY through the visible paths: the wizard's optimize sweep or a
+# Tune-modal Save. After a reset a machine re-earns its numbers the same way. For the
+# record, the author's measured 8GB/32GB gemma values were: n_gpu_layers 99 ·
+# n_cpu_moe 21 · ctx_len 32768 · batch/ubatch 512/512 · threads 8 (+ the 0.6B embed at
+# ngl 0) — reference data for the sweep-parity test, re-enterable by hand in the Tune
+# modal, never injected.
 
 # taskKind → preset assignment (the routing default; the `TaskKindPreset` bulk handle).
 # The two chat taskKinds share one preset. Every taskKind maps to exactly one preset.
