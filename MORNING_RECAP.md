@@ -111,6 +111,28 @@
 > shipped with the table; the honesty boundary holds (published fp16 evals re-ground ORDERING only).
 > Runner ruff + 350 pytest green. **Open after the batch: C5 (filed by C4, needs a go) · F1–F5
 > (JustVoice, mandate-excluded) · the §G box checks.**
+> **(6f) C5 SHIPPED (2026-07-06, on the user's post-batch "go") — PRE-COMPACT STOP #2; THIS is the
+> pickup for the next session (with the tracker's second stopping-point addendum).** The model-picker
+> family moved to the kit through the full discipline: design v1 → a 3-checker PANEL that FAILED it
+> unanimously and correctly (my "ModelPicker.vue mounts in ChatPanel" claim was FALSE — the component
+> was a dead orphan with zero importers; the panel reshaped the design around the REAL duplication:
+> ChatPanel's inline picker vs the chip popover) → design v2 → re-check (one bounded catch: the filed
+> layering item is FIVE files, not two) → implementation. Shipped: kit `useProviderModels` (ONE
+> model-list cache, in-flight-guarded, on the one accessor `listModels`; `LuModelPicker` adopted it) ·
+> kit presentational `LuFeatureChip` (all chip/popover GUI; host owns state) · kit `embedApi`
+> (`embedTexts`/`ensureEmbeddingReady`) · JW `composables/useFeaturePin.js` (the ONE pin binding) ·
+> `AiFeatureChip.vue` rewritten as the thin binding (same props, ~20 consumers untouched; the dead
+> `/settings/audio` foot link now goes to `#/ai`) · ChatPanel's inline picker on the same binding —
+> **which fixed a real bug: in character mode it edited the `chat` pin while the run routed on
+> `characterChat`** · DELETED: `ModelPicker.vue` (dead orphan) + `useModelList.js` + JW `embedApi.js`;
+> `modelMeta.js` is now the tiers mirror only (`parseQuant`/`entryLabel` died with their only, dead,
+> consumer). Verified: build:vite clean · vitest **29/29** (the honest shrink from 34 — dead-helper
+> tests died with their subjects; embedApi's ten behaviors preserved against the REAL kit module) ·
+> full headless smoke zero JS errors · residual greps zero · JV untouched. JW CLAUDE.md (kit inventory
+> + AI-providers) + the runner README updated in the same series. **Open items now: C6 (the FIVE-file
+> kit layering violation the panel rounds surfaced — needs a go) · F1–F5 (JustVoice) · the §G box
+> checks.** Dev-DB note unchanged: one-time `POST /v1/data/reset` after pulling (the C1 schema column
+> + the C2 rank swap reseed).
 > **(5) POST-COMPACTION DECISIONS (2026-07-06, "i take your rec on d1 and d3, go"):** the ledger's §D is now EMPTY — no open decisions remain anywhere. **D1 DECIDED — Quick Setup keeps writing the picked model onto the EXISTING task presets** (the non-clobber `modelApply.js:75-87` PUT that skips user-re-pointed presets); it does NOT generate a preset per task; closed with zero code; tracker #100 closed (annotated in the current preset-model doc `2026-07-02-preset-model-a-resets.md` §Out-of-scope too). **D3 DECIDED — the stale #71 umbrella verify task is CLOSED**; its build/smoke/docs parts had already shipped in later phases and its only surviving piece — the marketing-screenshots run (`npm run screenshots`, built `.exe` + WebView2) — is folded into the ledger as an unconditional your-box item **G4**. Both recorded in the outstanding master plan (§D closed-section note + the two decided records kept in full + G4 rewritten).
 > **STANDING USER RULES:** held all session (the 10 restated rules + never-code-until-"go"); every phase committed+pushed immediately (the only reason four container resets cost nothing).
 

@@ -1,51 +1,12 @@
-// Small helpers for rendering model entries from the shared per-provider
-// model-list cache (composables/useModelList.js → `/v1/llm-providers/{id}/models`).
-// Consumed by ModelPicker (parseQuant/entryLabel) and the ai store
-// (getModelTier/TIERS) so every surface renders the same labels/tiers and
-// never drifts apart.
-//
-// DOCUMENTED MIRROR (2026-07-06 shared-stack audit): the tier table +
-// heuristic here are the renderer-side mirror of the CANONICAL shared copy,
+// The LLM tier registry + heuristic — the renderer-side DOCUMENTED MIRROR
+// (2026-07-06 shared-stack audit) of the CANONICAL shared copy,
 // `just-llm-runner/llm_runner/llm/tiers.py` (which was ported FROM this file
 // and is what the server dispatch actually classifies with). The renderer
 // keeps a synchronous copy for boot-time UI (tier badges before any request);
 // if the heuristic changes, change tiers.py FIRST and mirror it here.
-//
-// An "entry" looks like:
-//   { id, quant, state, type, publisher, arch }
-// where everything except `id` may be null when the source endpoint
-// didn't provide it. Cloud providers and the OpenAI-spec /v1/models
-// fallback always come in with null quant/state.
-
-// Common GGUF quant suffixes encoded in model names. Matches Ollama
-// tags ("qwen3:14b-q4_K_M"), LM Studio filenames ("...Q4_K_M.gguf"),
-// I-quants (IQ3_XS), and a few other vocab quants (BF16, GPTQ, AWQ).
-const QUANT_RE = /(?:^|[-.])((?:I?Q\d+(?:_[A-Z0-9]+)*|F\d+|BF16|GPTQ|AWQ))(?:\.gguf)?$/i;
-
-export function parseQuant(name) {
-  if (!name) return null;
-  const m = String(name).match(QUANT_RE);
-  return m ? m[1].toUpperCase() : null;
-}
-
-// Render an enriched entry as a single-line label. Prefers the explicit
-// `quant` field (LM Studio native API) and falls back to parsing the id
-// (Ollama tags, raw GGUF filenames). Appends "· not loaded" for LM
-// Studio entries whose state isn't "loaded", so the user can see at a
-// glance which models will need JIT-loading on first call. Optionally
-// appends a tier badge — caller passes { tierLabel, tierSource } so
-// modelMeta stays decoupled from the ai store (no circular import).
-export function entryLabel(entry, opts = {}) {
-  if (!entry) return "";
-  const quant = entry.quant || parseQuant(entry.id);
-  const stateBadge = entry.state === "not-loaded" ? " · not loaded" : "";
-  const tierBadge = opts.tierLabel
-    ? ` · ${opts.tierLabel}${opts.tierSource ? ` (${opts.tierSource})` : ""}`
-    : "";
-  return quant
-    ? `${entry.id}  ·  ${quant}${stateBadge}${tierBadge}`
-    : `${entry.id}${stateBadge}${tierBadge}`;
-}
+// Consumed by the ai store (getModelTier/TIERS). The old label helpers
+// (parseQuant/entryLabel) died with their only consumer, the orphaned
+// ModelPicker.vue, in the 2026-07-06 C5 cleanup.
 
 // ─── Tier system ─────────────────────────────────────────────────────────
 //
@@ -72,7 +33,6 @@ export const TIERS = {
   reasoned: { id: "reasoned", label: "Reasoned", systemKey: "direct",   think: true,  floor: 0.5 },
 };
 
-export const TIER_IDS = ["guided", "direct", "reasoned"];
 
 // Pattern-match a model id to its default tier. Pure function — no store
 // access, no provider context, no I/O. Lower-cased once, then checked
@@ -120,9 +80,4 @@ export function getModelTier(modelId) {
   // much; under-scaffolded smaller models silently fail. Bias toward
   // visibly-suboptimal-on-large over silently-bad-on-small.
   return "guided";
-}
-
-// Convenience — resolves to the full tier object instead of just the id.
-export function getModelTierObject(modelId) {
-  return TIERS[getModelTier(modelId)];
 }

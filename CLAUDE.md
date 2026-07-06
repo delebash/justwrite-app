@@ -97,9 +97,12 @@ feature runs + streaming via `/v1/ai/run` + `/v1/ai/stream` — called through t
 KIT's `runAiFeature`/`runAiFeatureStream` (`@delebash/llm-ui`; the old JW-local
 `services/aiFeature.js`/`aiErrors.js` moved into the kit 2026-07-06, Decision 22),
 consumed by `services/writerAI.js`, `services/analysis/*`, and `services/rag/*` —
-embeddings via `/v1/ai/embeddings` (`services/embedApi.js`), routing via
-`/v1/ai/routing` (`services/routingBackend.js`), and provider CRUD via the shared
-`/v1/llm-providers` (`services/providerBackend.js`). There is no
+embeddings via `/v1/ai/embeddings` through the KIT's `embedTexts`/`ensureEmbeddingReady`
+(JW's `services/embedApi.js` moved into the kit at C5, 2026-07-06; `services/rag/*`
+import from `@delebash/llm-ui`), routing via `/v1/ai/routing`
+(`services/routingBackend.js` — JW's read-only pre-mount boot cache), and the provider
+LIST via `services/providerBackend.js` (read-only boot cache; provider CRUD lives in
+the kit's AiModelsArea → ProviderForm). There is no
 `services/openai-compat.js` and no `/v1/llm/{providerId}/*` route on the server; the
 string `"openai-compat"` appearing in code is a PROVIDER-TYPE id, not a gateway.
 No TTS here — audio lives in JustVoice.
@@ -158,6 +161,7 @@ new visual variants are added as intents in the kit.
 - `Toast` + `pushToast`/`clearToasts` (`toastBridge.js`) — vue-sonner host; `ui.showToast({message, action})` delegates to it. JW themes the `.ui-toaster` class in `styles.css`.
 - `tooltipDirective` (`v-tooltip.bottom="'text'"`, registered in `main.js`), `Breadcrumb`, `EmptyState`, `ConnectionError` (props: appName/serverUrl/need/devHint), `Icon`.
 - **The shared AI task queue** (moved from JW 2026-07-06, Decision 22): `useAiTasksStore` (the global in-flight registry — Pinia; `pinia` is a kit peer dep, JW provides the instance), `runAiFeature`/`runAiFeatureStream` (feature-run wrappers over `/v1/ai/run`+`/v1/ai/stream` with task-panel registration + cancel), `friendlyAiError`, and the surfaces `AiTaskStrip` (inline progress strip, `#extra-stats` slot), `AiStatusPanel` (slide-in panel), `AiStatusButton` (TitleBar chip — its title-bar chrome stays host-owned via the `.titlebar-*` button rules).
+- **The model-picker family** (C5, 2026-07-06): `useProviderModels` (THE shared per-provider model-list cache — one cache + one endpoint accessor kit-wide; `LuModelPicker` rides it too), `LuFeatureChip` (the presentational per-feature routing chip + popover — host owns state via props/events + the `#foot` slot), and the embeddings client `embedTexts`/`ensureEmbeddingReady` (ensure-resident for the bundled runner + `POST /v1/ai/embeddings`). JW-side: `components/AiFeatureChip.vue` is the thin STORE BINDING over `LuFeatureChip` (same props as ever — consumers just mount it), and `composables/useFeaturePin.js` is the ONE pin binding shared by the chip and ChatPanel's inline picker. The old JW `ModelPicker.vue`/`useModelList.js`/`services/embedApi.js` are gone.
 - Both `AppModal`/`AppDialog`/`HelpDrawer` are Reka UI Dialog primitives — focus trap, scroll lock, Esc, ARIA free.
 
 Both modal wrappers are Reka UI Dialog primitives — focus trap, scroll lock, Esc, ARIA come free. `AppModal` blocks backdrop click by default; `AppDialog` is dismissable (backdrop/Esc cancel).

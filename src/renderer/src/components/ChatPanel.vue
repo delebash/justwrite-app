@@ -20,7 +20,7 @@ import { autoIndexRunning } from "../services/rag/autoIndex.js";
 import { fetchThread, putThread } from "../services/chatApi.js";
 import IndexBuildModal from "./IndexBuildModal.vue";
 import AiFeatureChip from "./AiFeatureChip.vue";
-import { useModelList } from "../composables/useModelList.js";
+import { INHERIT, useFeaturePin } from "../composables/useFeaturePin.js";
 
 // One thread per (project, mode, character) combo, persisted server-side
 // (/v1/chat) so closing the panel doesn't lose context. Book mode uses an
@@ -71,57 +71,30 @@ const running = computed(() => !!myTask.value);
 
 function isAbort(e) { return e?.name === "AbortError" || /abort/i.test(e?.message || ""); }
 
-// Per-thread provider+model picker. Writes to ai.featurePins.chat —
-// the same key Settings → AI → Feature routing edits. Two selects mirror
-// the aggregator pattern: pick provider, then pick model.
-const { modelsFor: chatModelsFor, refreshModels: refreshChatModels, ensureModels: ensureChatModels } = useModelList();
-const INHERIT_CHAT = "__inherit__";
-
-const chatProviderOptions = computed(() => {
-  const out = [{ value: INHERIT_CHAT, label: `Default · ${ai.llmProvider?.name || "—"}` }];
-  for (const p of ai.readyLlmProviders) out.push({ value: p.id, label: p.name });
-  return out;
-});
-const chatProviderValue = computed({
-  get() { return ai.featurePins?.chat?.providerId || INHERIT_CHAT; },
-  set(v) {
-    if (!v || v === INHERIT_CHAT) { ai.setFeaturePin("chat", null); return; }
-    const p = ai.providerById(v);
-    ai.setFeaturePin("chat", { providerId: v, model: p?.defaultModel || "" });
-    ensureChatModels(v);
-  },
-});
-const chatModelValue = computed({
-  get() { return ai.featurePins?.chat?.model || ""; },
-  set(v) {
-    const pin = ai.featurePins?.chat;
-    if (!pin?.providerId) return;
-    ai.setFeaturePin("chat", { providerId: pin.providerId, model: v || pin.model });
-  },
-});
-const chatModelOptions = computed(() => {
-  const pid = chatProviderValue.value;
-  if (pid === INHERIT_CHAT) return [];
-  const provider = ai.providerById(pid);
-  const list = chatModelsFor(pid);
-  const seen = new Set();
-  const out = [];
-  if (provider?.defaultModel) {
-    out.push({ value: provider.defaultModel, label: `${provider.defaultModel} (default)` });
-    seen.add(provider.defaultModel);
-  }
-  for (const m of list) {
-    if (m.id && !seen.has(m.id)) { out.push({ value: m.id, label: m.id }); seen.add(m.id); }
-  }
-  return out;
-});
-const showModelPicker = computed(() => ai.readyLlmProviders.length > 1);
-
 const question = ref("");
 // "book" = Ask the manuscript (the original chat). "character" = talk
 // to a specific character in the writer's cast (first-person, in-voice).
 const chatMode = ref("book");
 const selectedCharacterId = ref(null);
+
+// Per-thread provider+model picker — bound to the ACTIVE feature's pin
+// (chat | characterChat; the run routes on the same key) through the ONE
+// shared binding (useFeaturePin) the header AiFeatureChip also rides. This
+// row used to duplicate the chip's binding logic AND was hard-bound to the
+// `chat` pin even in character mode, silently editing the wrong feature —
+// both fixed by the C5 convergence.
+const activeChatFeature = computed(() => (chatMode.value === "character" ? "characterChat" : "chat"));
+const {
+  pinnedProviderId: chatProviderId,
+  pinnedModel: chatPinnedModel,
+  providerOptions: chatProviderOptions,
+  modelOptions: chatModelOptions,
+  setProvider: setChatProvider,
+  setModel: setChatModel,
+  refresh: refreshChatModels,
+  ensureModels: ensureChatModels,
+} = useFeaturePin(activeChatFeature);
+const showModelPicker = computed(() => ai.readyLlmProviders.length > 1);
 const MODE_OPTIONS = [
   { value: "book", label: "Ask the book" },
   { value: "character", label: "Talk to a character" },
@@ -161,13 +134,14 @@ const open = computed({
   set: (v) => emit("update:modelValue", v),
 });
 
-// When the panel opens with a pre-existing chat pin, make sure the
-// model list is populated. ensureChatModels only hits the network when
-// the cache is empty — repeat opens are free.
-watch(open, (v) => {
+// When the panel opens (or the mode switches) with a pre-existing pin on
+// the ACTIVE feature, make sure the model list is populated.
+// ensureChatModels only hits the network when the cache is empty — repeat
+// opens are free. (Watches the ACTIVE feature's pin, not a hardcoded
+// `chat` — the same character-mode fix as the picker itself.)
+watch([open, chatProviderId], ([v, pid]) => {
   if (!v) return;
-  const pid = ai.featurePins?.chat?.providerId;
-  if (pid) ensureChatModels(pid);
+  if (pid && pid !== INHERIT) ensureChatModels(pid);
 }, { immediate: true });
 
 // Pre-scoping: openChatPanelFor() stages a target on the ui store and
@@ -469,19 +443,20 @@ defineExpose({ open: () => { open.value = true; }, close });
         <!-- Question input (pinned to the bottom of the panel) -->
         <div class="cp-input-row">
           <div v-if="showModelPicker" class="cp-model-pick">
-            <UiSelect v-model="chatProviderValue" :options="chatProviderOptions" />
+            <UiSelect :model-value="chatProviderId" @update:model-value="setChatProvider" :options="chatProviderOptions" />
             <div style="display:flex;align-items:center;gap:4px;min-width:0">
               <UiSelect
                 style="flex:1;min-width:0"
-                v-model="chatModelValue"
+                :model-value="chatPinnedModel"
+                @update:model-value="setChatModel"
                 :options="chatModelOptions"
-                :disabled="chatProviderValue === '__inherit__'"
-                :placeholder="chatProviderValue === '__inherit__' ? 'Follows default' : 'Model'" />
+                :disabled="chatProviderId === INHERIT"
+                :placeholder="chatProviderId === INHERIT ? 'Follows default' : 'Model'" />
               <UiButton
                 intent="ghost" size="small"
                 v-tooltip.bottom="'Refresh model list from the provider'"
-                :disabled="chatProviderValue === '__inherit__'"
-                @click="refreshChatModels(chatProviderValue)">
+                :disabled="chatProviderId === INHERIT"
+                @click="refreshChatModels()">
                 <template #icon><Icon name="Refresh" :size="11" /></template>
               </UiButton>
             </div>

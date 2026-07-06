@@ -1,40 +1,10 @@
-// modelMeta — pure label/tier helpers (consumed by ModelPicker + the ai store).
+// modelMeta — the renderer-side tier mirror (consumed by the ai store; the
+// canonical copy is the runner's llm/tiers.py). The old parseQuant/entryLabel
+// tests died with those helpers' only consumer (the orphaned ModelPicker.vue,
+// removed by C5).
 import { describe, expect, it } from "vitest";
 
-import { TIERS, entryLabel, getModelTier, parseQuant } from "../modelMeta.js";
-
-describe("parseQuant", () => {
-  it("parses Ollama tags and GGUF filenames", () => {
-    expect(parseQuant("qwen3:14b-q4_K_M")).toBe("Q4_K_M");
-    expect(parseQuant("model-Q5_K_S.gguf")).toBe("Q5_K_S");
-    expect(parseQuant("something-IQ3_XS")).toBe("IQ3_XS");
-    expect(parseQuant("weights-BF16")).toBe("BF16");
-  });
-
-  it("returns null when no quant suffix is encoded", () => {
-    expect(parseQuant("gpt-4o")).toBeNull();
-    expect(parseQuant("")).toBeNull();
-    expect(parseQuant(null)).toBeNull();
-  });
-});
-
-describe("entryLabel", () => {
-  it("prefers the explicit quant field and appends the not-loaded badge", () => {
-    expect(entryLabel({ id: "m", quant: "Q4_0", state: "not-loaded" }))
-      .toBe("m  ·  Q4_0 · not loaded");
-  });
-
-  it("falls back to parsing the id and renders plain when quantless", () => {
-    expect(entryLabel({ id: "qwen3:14b-q4_K_M" })).toBe("qwen3:14b-q4_K_M  ·  Q4_K_M");
-    expect(entryLabel({ id: "gpt-4o" })).toBe("gpt-4o");
-    expect(entryLabel(null)).toBe("");
-  });
-
-  it("appends the tier badge when the caller passes one", () => {
-    expect(entryLabel({ id: "gpt-4o" }, { tierLabel: "Direct", tierSource: "auto" }))
-      .toBe("gpt-4o · Direct (auto)");
-  });
-});
+import { TIERS, getModelTier } from "../modelMeta.js";
 
 describe("getModelTier", () => {
   it("routes reasoning-first families to reasoned", () => {

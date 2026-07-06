@@ -9,8 +9,7 @@
 //   3. Builds a chat prompt with cited excerpts AND any prior turns.
 //   4. Streams the answer; returns { answer, citations, usage }.
 
-import { embedTexts } from "../embedApi.js";
-import { friendlyAiError, runAiFeatureStream } from "@delebash/llm-ui";
+import { embedTexts, friendlyAiError, runAiFeatureStream } from "@delebash/llm-ui";
 import { useAiStore } from "../../stores/ai.js";
 import { useProjectStore } from "../../stores/project.js";
 import { search, status } from "./vectorStore.js";
