@@ -1,6 +1,8 @@
 # llama-server config tuning — RTX 2070 SUPER (8 GB) / Ryzen 5700X
 
-**Status: DONE — tuned ini applied + end-to-end verified; all approved shared-stack fixes implemented (2026-07-06). Backup: `models.ini.bak-2026-07-06`.**
+**Status: DONE — tuned ini applied + verified; shared-stack fixes shipped; DB SEEDED (2026-07-06). Backup: `models.ini.bak-2026-07-06`.**
+
+> **DB seeding COMPLETE (2026-07-06, user "seed db" + "no migrations pre-production"; JW `13ba839`, runner `a564ec6`):** the tuned values are now reset-proof SEED DATA. `install_llm` gained `model_catalog_extra` + `model_tunes_seed` (insert-if-missing; a Quick-tune Save is never clobbered); JW seeds two catalog entries over the one Gemma GGUF (ids = the hand-ini section names — router model ids stay continuous), this box's tunes under its `hw_key` (`NVIDIA GeForce RTX 2070 SUPER|8192|16c|31g`), the CPU-embed tune, and all 8 engine presets re-pointed (creative → writer, grounded → book-chat). `migrations.py` deleted per the no-migrations decree — schema drift = drop the dev DB + reseed. **Verified on a fresh DB:** resolved switches for all three ids reproduce the tuned ini exactly (+ auto-MTP `draft-mtp`/`spec_n_max 2`); GGUF + draft resolve from the existing HF cache (no re-download). Remaining user steps: stop hand-launching the manual router when using the app path (:8080), and note QuickSetup's re-pick writes over preset models if run.
 **Goal:** best `models.ini` settings for the two working AI configs on this machine.
 **Rule for this effort:** investigation is free; nothing runs or gets edited without the user's explicit **"go"**. The tuned values land in `models.ini` only at Phase D, after a shown diff.
 
