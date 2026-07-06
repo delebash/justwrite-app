@@ -18,10 +18,10 @@ Key decisions:
   the renderer already enforces it — to avoid composite-FK complexity.
 
 Every datum has its own typed table now — the old `KvEntry` localStorage seam is
-gone (the storage rewrite, docs/plans/2026-06-18-unified-storage-no-idb.md;
-migrations drop the orphan `kv` table). `Project.data` is the legacy P2-shallow
-snapshot blob, kept only so the one-time blob→tables migration (P2.2) can read
-it; new writes go to the normalized tables.
+gone (the storage rewrite, docs/plans/2026-06-18-unified-storage-no-idb.md).
+`Project.data` is the retired legacy P2-shallow snapshot blob column ("{}" on
+write). Pre-production there are NO migrations (user decree 2026-07-06):
+schema drift = drop the dev DB (or POST /v1/data/reset) + reseed.
 """
 
 from __future__ import annotations

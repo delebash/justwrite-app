@@ -39,37 +39,87 @@ per-call `extra`). See docs/plans/2026-07-01-llm-work-categories-presets-impleme
 
 from __future__ import annotations
 
+# Model split (2026-07-06 llamacpp tuning session — the measured record is
+# docs/plans/2026-07-06-llamacpp-config-tuning-2070s.md): TWO launch configs of the
+# SAME Gemma 4 26B-A4B GGUF, mirroring the user's proven hand-router sections —
+# creative tasks run the low-latency writer config (ctx 8192, thinking OFF: TTFT
+# 1.7 s / autocomplete 0.9 s measured), grounded/analytical tasks run the research
+# config (ctx 32768, reasoning-budget 1024 as the anti-loop safety cap: 8k-corpus
+# TTFT 15 s, pp 551 t/s at 28k). One GGUF on disk — the HF snapshot is shared, the
+# router keeps at most one child + the embed resident (models-max 2). QuickSetup
+# re-picks for other boxes and writes onto every task preset as before.
 DEFAULT_ENGINE_PRESETS: list[dict] = [
     {"id": "p_prose_voiced", "name": "Creative prose (voiced)", "provider_id": "local-llamacpp",
-     "model": "qwen3.6-35b-a3b-mtp", "temperature": None, "top_p": 0.95, "json_mode": False, "position": 0,
+     "model": "writing-assistant-gemma-moe-mtp", "temperature": None, "top_p": 0.95, "json_mode": False, "position": 0,
      "samplers": {"min_p": "0.05", "xtc_probability": "0.3", "xtc_threshold": "0.1", "dry_multiplier": "0.8"}},
     {"id": "p_ideation", "name": "Ideation", "provider_id": "local-llamacpp",
-     "model": "qwen3.6-35b-a3b-mtp", "temperature": None, "top_p": 0.95, "json_mode": False, "position": 1,
+     "model": "writing-assistant-gemma-moe-mtp", "temperature": None, "top_p": 0.95, "json_mode": False, "position": 1,
      "samplers": {"min_p": "0.06", "xtc_probability": "0.5", "xtc_threshold": "0.1", "dry_multiplier": "0.8"}},
     {"id": "p_prose_edit", "name": "Prose editing", "provider_id": "local-llamacpp",
-     "model": "qwen3.6-35b-a3b-mtp", "temperature": None, "top_p": 0.90, "json_mode": False, "position": 2,
+     "model": "writing-assistant-gemma-moe-mtp", "temperature": None, "top_p": 0.90, "json_mode": False, "position": 2,
      "samplers": {"min_p": "0.08"}},
-    # Every preset now defaults to the SAME model — the 35B-A3B MoE (2026-07-03 model-setup
-    # simplification: one good model, not a per-task split). It is best-QUALITY-that-fits at the
-    # 8 GB VRAM + 32 GB RAM floor via CPU expert offload (~32B-class quality). QuickSetup re-picks
-    # the best that fits YOUR box and writes it onto every task preset; the fast 9B is now a
-    # per-task opt-in (swap it onto a task on the Tasks tab; download it from the model catalog's
-    # Browse). (gemma-4-12b also fits the floor but is 12B-dense; 27B, the chat ceiling, needs 16 GB+.)
     {"id": "p_chat", "name": "Interactive chat", "provider_id": "local-llamacpp",
-     "model": "qwen3.6-35b-a3b-mtp", "temperature": None, "top_p": 0.90, "json_mode": False, "position": 3,
+     "model": "book-chat-gemma-moe-mtp", "temperature": None, "top_p": 0.90, "json_mode": False, "position": 3,
      "samplers": {"min_p": "0.05", "repeat_penalty": "1.05", "repeat_last_n": "64"}},
     {"id": "p_creative_structured", "name": "Structured creative", "provider_id": "local-llamacpp",
-     "model": "qwen3.6-35b-a3b-mtp", "temperature": None, "top_p": 0.95, "json_mode": True, "position": 4,
+     "model": "writing-assistant-gemma-moe-mtp", "temperature": None, "top_p": 0.95, "json_mode": True, "position": 4,
      "samplers": {"min_p": "0.05", "xtc_probability": "0.4"}},
     {"id": "p_extract", "name": "Structured extraction", "provider_id": "local-llamacpp",
-     "model": "qwen3.6-35b-a3b-mtp", "temperature": None, "top_p": 0.90, "json_mode": True, "position": 5,
+     "model": "book-chat-gemma-moe-mtp", "temperature": None, "top_p": 0.90, "json_mode": True, "position": 5,
      "samplers": {"min_p": "0", "seed": "7"}},
     {"id": "p_judge", "name": "Judgment / scoring", "provider_id": "local-llamacpp",
-     "model": "qwen3.6-35b-a3b-mtp", "temperature": None, "top_p": 0.95, "json_mode": True, "position": 6,
+     "model": "book-chat-gemma-moe-mtp", "temperature": None, "top_p": 0.95, "json_mode": True, "position": 6,
      "samplers": {"min_p": "0.05", "seed": "7"}},
     {"id": "p_digest", "name": "Grounded digest", "provider_id": "local-llamacpp",
-     "model": "qwen3.6-35b-a3b-mtp", "temperature": None, "top_p": 0.90, "json_mode": False, "position": 7,
+     "model": "book-chat-gemma-moe-mtp", "temperature": None, "top_p": 0.90, "json_mode": False, "position": 7,
      "samplers": {"min_p": "0.05"}},
+]
+
+# ── JW's extra model-catalog rows + this box's tune seed (install_llm inputs) ──
+# The two Gemma launch configs above as catalog entries: SAME GGUF + MTP draft
+# (one download), different launch tunes. Ids deliberately equal the hand
+# `models.ini` section names so the router model ids stay continuous with the
+# user's manual setup. Facts from the GGUF header (30 layers, 128 experts/8
+# active, trained ctx 262144); min_vram reflects the CPU-expert-offload floor.
+DEFAULT_MODEL_CATALOG_EXTRA: list[dict] = [
+    {"id": "writing-assistant-gemma-moe-mtp", "name": "Gemma 4 26B-A4B — writing assistant (8k, no think)",
+     "hf_repo": "unsloth/gemma-4-26B-A4B-it-qat-GGUF", "quant": "UD-Q4_K_XL",
+     "total_params": "26B", "active_params": "4B", "mtp": True, "type": "moe",
+     "mtp_draft_file": "MTP/gemma-4-26B-A4B-it-Q4_0-MTP.gguf", "mtp_draft_quant": "Q4_0",
+     "trained_ctx": 262144, "min_vram_mb": 4000, "min_ram_mb": 24000,
+     "tier": "low-vram-moe", "license": "Gemma", "quality_rank": 9, "position": 20,
+     "description": "Gemma 4 26B-A4B QAT MoE, tuned as the low-latency in-editor writer: ctx 8192, "
+                    "thinking off, MTP draft. Measured on the 8 GB floor: TTFT 1.7 s, autocomplete 0.9 s, "
+                    "~31 t/s (docs/plans/2026-07-06-llamacpp-config-tuning-2070s.md)."},
+    {"id": "book-chat-gemma-moe-mtp", "name": "Gemma 4 26B-A4B — book chat / research (32k, thinking)",
+     "hf_repo": "unsloth/gemma-4-26B-A4B-it-qat-GGUF", "quant": "UD-Q4_K_XL",
+     "total_params": "26B", "active_params": "4B", "mtp": True, "type": "moe",
+     "mtp_draft_file": "MTP/gemma-4-26B-A4B-it-Q4_0-MTP.gguf", "mtp_draft_quant": "Q4_0",
+     "trained_ctx": 262144, "min_vram_mb": 4000, "min_ram_mb": 24000,
+     "tier": "low-vram-moe", "license": "Gemma", "quality_rank": 9, "position": 21,
+     "description": "Gemma 4 26B-A4B QAT MoE, tuned for grounded research over big context: ctx 32768, "
+                    "reasoning-budget 1024 (anti-loop safety cap), MTP draft. Measured: 8k-corpus TTFT 15 s, "
+                    "prefill 551 t/s sustained to 28k (docs/plans/2026-07-06-llamacpp-config-tuning-2070s.md)."},
+]
+
+# This box's measured starting tunes (per-(model, machine); insert-if-missing so a
+# Quick-tune Save is never clobbered, but a dev-DB reset re-creates the known-good
+# values). ncmoe floors were measured WITH the CPU embed co-resident; batch/ubatch
+# 512/512 was the TTFT winner (64/32 was 8.6x slower); spec_type/spec_n_max ride
+# the auto-MTP switch preset — deliberately NOT duplicated here.
+DEFAULT_MODEL_TUNES: list[dict] = [
+    {"model_id": "writing-assistant-gemma-moe-mtp",
+     "flags": {"n_gpu_layers": "99", "n_cpu_moe": "20", "ctx_len": "8192",
+               "batch_size": "512", "ubatch_size": "512", "threads": "8",
+               "reasoning_budget": "0"}},
+    {"model_id": "book-chat-gemma-moe-mtp",
+     "flags": {"n_gpu_layers": "99", "n_cpu_moe": "21", "ctx_len": "32768",
+               "batch_size": "512", "ubatch_size": "512", "threads": "8",
+               "reasoning_budget": "1024",
+               "reasoning_budget_message": "Taking user constraints into account, I will now output the solution."}},
+    # CPU embed: frees 684 MB VRAM for the chat model; query latency unchanged
+    # (46 ms), bulk index builds still GPU-assisted at ngl 0 (measured 2026-07-06).
+    {"model_id": "qwen3-embedding-0.6b", "flags": {"n_gpu_layers": "0"}},
 ]
 
 # taskKind → preset assignment (the routing default; the `TaskKindPreset` bulk handle).

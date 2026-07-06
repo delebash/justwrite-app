@@ -153,6 +153,8 @@ def create_app(data_dir: Path | None = None) -> FastAPI:
     from .seed_feature_prompts import DEFAULT_FEATURE_PROMPTS
     from .seed_presets import (
         DEFAULT_ENGINE_PRESETS,
+        DEFAULT_MODEL_CATALOG_EXTRA,
+        DEFAULT_MODEL_TUNES,
         DEFAULT_TASKKIND_PRESETS,
         FEATURE_TASK_KINDS,
     )
@@ -169,6 +171,11 @@ def create_app(data_dir: Path | None = None) -> FastAPI:
         engine_presets=DEFAULT_ENGINE_PRESETS,
         taskkind_presets=DEFAULT_TASKKIND_PRESETS,
         feature_task_kinds=FEATURE_TASK_KINDS,
+        # JW's tuned Gemma daily drivers (2026-07-06): two catalog rows over one
+        # GGUF + this box's measured starting tunes. Insert-if-missing — a dev-DB
+        # reset re-creates them; user edits / Quick-tune saves never clobbered.
+        model_catalog_extra=DEFAULT_MODEL_CATALOG_EXTRA,
+        model_tunes_seed=DEFAULT_MODEL_TUNES,
         # The bundled runner's engine + model cache lives under the app data dir
         # (<data_dir>/ai-cache) so all on-disk data shares one portable root.
         data_dir=data_dir,

@@ -53,18 +53,10 @@ def init_db(data_dir: Path) -> Engine:
 
     SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
     Base.metadata.create_all(bind=engine)
-
-    # Idempotent migrations: add columns an upgraded `projects` table lacks,
-    # then decompose any legacy data blob into the normalized tables (P2.2).
-    # Imported here to avoid a database -> migrations -> book_io import cycle.
-    from .migrations import migrate_blobs, migrate_schema
-
-    migrate_schema(engine)
-    db = SessionLocal()
-    try:
-        migrate_blobs(db)
-    finally:
-        db.close()
+    # NO migrations (user decree 2026-07-06, pre-production): schema changes are
+    # picked up by dropping the dev DB (or POST /v1/data/reset) + reseeding —
+    # `create_all` builds the current schema from scratch. The old P2-era
+    # migrations.py (projects columns + legacy-blob decompose) was deleted then.
 
     log.info("Database: %s", _db_path)
     return engine
