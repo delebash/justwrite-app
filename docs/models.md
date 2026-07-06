@@ -17,8 +17,10 @@ At the top of **Providers & models**, **Run Quick Setup** does the whole first-t
    Quick Setup takes the highest-quality one (the catalog's quality order). It deliberately
    **skips a dense model that only fits by spilling onto the CPU** — that spill makes every
    word slow — unless nothing faster runs, in which case it falls back to the best model that
-   runs at all. You can change the pick before applying; a **Plan for card** selector
-   re-scores the fit for a different card (8 GB up to 64 GB), so you can plan ahead.
+   runs at all. You can change the pick before applying. If your machine is already set
+   up (mixed per-task models, or saved machine tunes), the confirm step lists **exactly
+   which tasks Apply will change** — and which of your own choices it keeps — before
+   anything is written; your saved machine tunes are never touched.
 3. It sets the **embedding model** — used for semantic search and grounded chat. You pick it
    from a dropdown of the embedding models that fit your box (the most capable one that fits
    is chosen by default); it runs alongside your chat model.
@@ -34,6 +36,12 @@ When you click **Apply**, that one model becomes the default for **every task** 
 chat, extraction, judgment — and it downloads and loads right away. If you've already
 changed the model for a particular task yourself (on the **Tasks** tab), Quick Setup leaves
 that task alone.
+
+After Apply, on a machine with **no saved tune** for the chosen model, a short measured
+**optimize sweep starts automatically** (skippable — Skip keeps everything set up) and
+saves the fastest launch settings for your machine only if they strictly beat the current
+launch. A machine that's already tuned never re-runs it on its own: a **Re-optimize**
+button asks before overwriting your saved settings.
 
 That's the intent: you don't pick a model per job. One good model handles everything, and
 each task keeps its own *settings* (temperature, JSON mode, and so on) automatically. If
