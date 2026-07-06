@@ -90,14 +90,16 @@ DEFAULT_ENGINE_PRESETS: list[dict] = [
 # (api/models/unsloth/gemma-4-26B-A4B-it-qat-GGUF). Google moved Gemma to Apache-2.0
 # at Gemma 4; EARLIER Gemma generations remain Gemma-Terms (use-limited) — the
 # seed-time license keyword gate in llm_runner/llm/seed.py stays intact for those.
-# quality_rank 9 is REASONED, not instrument-cited (pending the model research).
+# quality_rank 5 (2026-07-06 lineup decision): the owner-tested writing best on the
+# target hardware — the curated-for-writing order's top; instrument evidence still
+# pending a Lab A/B (ledger C9).
 DEFAULT_MODEL_CATALOG_EXTRA: list[dict] = [
     {"id": "gemma-4-26b-a4b-qat", "name": "Gemma 4 26B-A4B (QAT)",
      "hf_repo": "unsloth/gemma-4-26B-A4B-it-qat-GGUF", "quant": "UD-Q4_K_XL",
      "total_params": "26B", "active_params": "4B", "mtp": True, "type": "moe",
      "mtp_draft_file": "MTP/gemma-4-26B-A4B-it-Q4_0-MTP.gguf", "mtp_draft_quant": "Q4_0",
      "trained_ctx": 262144, "min_vram_mb": 4000, "min_ram_mb": 24000,
-     "tier": "low-vram-moe", "license": "Apache-2.0", "quality_rank": 9, "position": 20,
+     "tier": "low-vram-moe", "license": "Apache-2.0", "quality_rank": 5, "position": 20,
      "description": "Gemma 4 26B-A4B QAT MoE with an MTP draft — one config serves writing AND "
                     "research/chat: 32k context, thinking toggled per task at request time, reasoning "
                     "capped engine-side. Measured on the 8 GB floor: writer TTFT 1.5-1.7 s at ~31 t/s; "
