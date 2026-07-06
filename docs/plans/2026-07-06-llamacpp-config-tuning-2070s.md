@@ -137,7 +137,7 @@ Continuation ≈ 890-token prompt → 200-token gen; autocomplete ≈ 400-token 
 **Code fixes recommended in `just-llm-runner`:** *(all but the last APPLIED 2026-07-06 — see §Approved fixes below for the full implementation record)*
 - ✅ **Arbiter under-reserve** — fixed via measure-don't-assume true-up (not a constant; see below). Original finding: `process.py:335-341` assumes an `n_gpu_layers 0` load reserves 0 VRAM — measured: a CUDA-build child at ngl 0 still holds **~550 MB** CUDA context (only `--device none` avoids it, at 10× bulk-embed cost).
 - ✅ Seed `DEFAULT_PINNED_BUILD` → b9870 with verified asset URLs (above) + the live DB row.
-- ⬜ (Nice-to-have, NOT done) foreign-listener guard: if :8080 is already held by a non-service llama-server, fail with a clear message instead of a bind error.
+- ~~⬜ foreign-listener guard~~ **✅ DECIDED NO (user, 2026-07-06 D4 discussion: "3 leave it") — NOT built, leave as-is.** The operational rule stands (never run the manual router and the app's local-llamacpp path at the same time); the raw bind error is the accepted failure mode. Do not re-file without a fresh user ask. (Original ask: if :8080 is already held by a non-service llama-server, fail with a clear message instead of a bind error.)
 
 **Hand-ini parity notes:** the DB base preset adds `context-shift` + `cache-reuse 256` (multi-turn/RAG prompt-prefix reuse) which the hand ini lacks — worth adding to the two Gemma sections; conversely the hand ini's `sleep-idle-seconds 30` is the manual-mode substitute for the service's explicit unload. Until the DB cutover is done, don't run the manual router and the app's local-llamacpp path at the same time (:8080 collision / two routers on one 8 GB card).
 
