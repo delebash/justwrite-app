@@ -106,30 +106,16 @@ DEFAULT_MODEL_CATALOG_EXTRA: list[dict] = [
                     "8k-corpus chat TTFT 15 s, prefill 551 t/s sustained to 28k."},
 ]
 
-# ⚠ DEV-ONLY SEED ROWS (plan amendment A6, 2026-07-06 — user: "my tunes being seed data
-# does not make sense … in production it will be an install file"): the author box's
-# MEASURED values, seeded purely so a dev-DB reset doesn't lose them (insert-if-missing;
-# a Quick-tune Save is never clobbered). They key on the FULL machine fingerprint
-# (machine_key = gpu.name|vram|cores|ramGB, e.g. "NVIDIA GeForce RTX 2070 SUPER|8192|
-# 16c|31g" — llm_runner/runner/hardware.py:56-68), so on ANY other machine they are
-# inert rows, NOT hardware-class defaults (a 3060 8GB/32GB box inherits nothing).
-# Tunes are USER data (Tune-modal Save / the auto-tune sweep write the user's DB).
-# RETIREMENT CONDITION (recorded in the model-per-hardware plan §A6): delete these rows
-# once the A7 box-checks pass (the fixed derivation + adaptive sweep reproduce them
-# from scratch on that box); production packaging never ships them regardless.
-# Values: ncmoe 21 = the measured 32k floor WITH the CPU embed co-resident (20 OOMs);
-# batch/ubatch 512/512 was the TTFT winner (64/32 was 8.6x slower); ctx_len 32768 stays
-# per amendment A2 until computed-ctx is box-validated; reasoning-budget moved to the
-# runner's BASE switch bundle (universal cap) — deliberately no longer a tune row;
-# spec_type/spec_n_max ride the auto-MTP switch preset — deliberately NOT duplicated.
-DEFAULT_MODEL_TUNES: list[dict] = [
-    {"model_id": "gemma-4-26b-a4b-qat",
-     "flags": {"n_gpu_layers": "99", "n_cpu_moe": "21", "ctx_len": "32768",
-               "batch_size": "512", "ubatch_size": "512", "threads": "8"}},
-    # CPU embed: frees 684 MB VRAM for the chat model; query latency unchanged
-    # (46 ms), bulk index builds still GPU-assisted at ngl 0 (measured 2026-07-06).
-    {"model_id": "qwen3-embedding-0.6b", "flags": {"n_gpu_layers": "0"}},
-]
+# TUNE ROWS ARE NOT SEEDED (user decision 2026-07-06: "i agree it should not be a
+# defualt seed for everyone"). Tunes are MEASUREMENTS, owned by each (model, machine)
+# pair — the wizard's auto-sweep or a Tune-modal Save writes them. The former dev rows
+# (the author box's gemma values + the CPU-embed row) live in
+# just-llm-runner/scripts/dev-seed-tunes.py — run it on the author's box after a reset
+# to restore them (the server keys the PUT to the machine that runs it). Discovery that
+# forced this: the old seeder stamped the rows with WHATEVER machine ran the seeding,
+# so "inert on other boxes" was false — an 8 GB tune would have applied on a 24 GB card.
+# The user's sweep-parity test (quick-tune vs the hand-tune, their box) decides whether
+# hardware-class starting values ever return — with evidence either way.
 
 # taskKind → preset assignment (the routing default; the `TaskKindPreset` bulk handle).
 # The two chat taskKinds share one preset. Every taskKind maps to exactly one preset.
