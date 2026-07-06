@@ -27,6 +27,8 @@ what the client used to build.
 
 from __future__ import annotations
 
+import json
+
 # ── critique.js (CRITIQUE_SYSTEM / STRUCTURE_SYSTEM) ────────────────────────
 _CRITIQUE_SYSTEM = """You are a sharp, honest fiction editor giving line-level notes on a single chapter.
 Return a JSON object with one field: "notes" — an array of 4 to 10 critique items.
@@ -204,6 +206,41 @@ Rules:
 - Skip entities listed in the "Already in the story bible" section below — don't re-propose them.
 - If a category is empty, return [] for it.
 - Return ONLY the JSON, no preface, no markdown fences."""
+
+# C1: the machine-enforceable mirror of the shape _ENTITY_SYSTEM describes —
+# with json_mode on, the shared dispatch sends this as response_format
+# json_schema (llama.cpp converts it to grammar; OpenAI/Ollama/Gemini map
+# natively), so the model CANNOT emit anything but this shape. The prompt
+# still describes the shape (recorded design: the schema constrains output,
+# it is never injected into the prompt).
+_ENTITY_ITEM = {
+    "type": "object",
+    "properties": {
+        "name": {"type": "string"},
+        "kind": {"type": "string"},
+        "note": {"type": "string"},
+        "evidence": {"type": "string"},
+    },
+    "required": ["name"],
+}
+_ENTITY_SCHEMA = json.dumps({
+    "type": "object",
+    "properties": {
+        "characters": {"type": "array", "items": {
+            "type": "object",
+            "properties": {
+                "name": {"type": "string"},
+                "role": {"type": "string"},
+                "oneLiner": {"type": "string"},
+                "evidence": {"type": "string"},
+            },
+            "required": ["name"],
+        }},
+        "locations": {"type": "array", "items": _ENTITY_ITEM},
+        "objects": {"type": "array", "items": _ENTITY_ITEM},
+    },
+    "required": ["characters", "locations", "objects"],
+})
 
 # ── characterAudit.js (auditCharacter) ──────────────────────────────────────
 _CHARACTER_AUDIT_SYSTEM = """You audit fiction for character consistency.
@@ -662,6 +699,8 @@ DEFAULT_FEATURE_PROMPTS: dict[str, dict] = {
         "temperature": 0.15,
         "think": False,
         "json_mode": True,
+        # C1's seeded end-to-end example: schema-ENFORCED output for the sweep.
+        "json_schema": _ENTITY_SCHEMA,
     },
     "characterAudit": {
         "feature": "characterAudit",
