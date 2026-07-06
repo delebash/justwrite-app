@@ -20,25 +20,27 @@
 
 ---
 
-## ⛔⛔ SESSION STATE (2026-07-06 evening, the model-per-hardware session) — C6/C7/C8 SHIPPED · D4 FULLY DECIDED · ONE-PROFILE LOCKED ON MEASURED DATA · **EXECUTION STARTED: A6–A10 FOLDED + PHASE 1a SHIPPED (runner `4faa39c` · JW `f6f8167`) · PHASE 1b SHIPPED (runner `9b65ebb`+`16a4747` · JW `4685939`: fit-by-omission + kv_affordable ctx + the strict-beat adaptive sweep; design FAIL(4)→folded→re-check PASS; 374 pytest · smoke+probe green) — **PHASE 1 COMPLETE · PHASE 2 SHIPPED (runner `39fb9da`+`38d63ee` · JW `86d881e`: D4-1 changelist + card-dropdown removal + auto-start/Skip/Re-optimize sweep + the reset-loses-extras found-and-fix; probe 18/18) — PHASE 3 SHIPPED (runner `dc97798`: model_class_picks + classPicks on the catalog wire + pickByClassMap map-first pick, placeholder row {6000: qwen3.6-35b-a3b}, 377 pytest · 24/24 truth-table) — PHASE 4 SHIPPED (runner `7fcac3f`: the one `_spawn_child` seam + the kill-on-close Job Object, Win32 facts web-verified after a checker T2 FAIL + ctypes restype/argtypes hardening, 380 pytest; the §G box check "kill the JW server → the child must die" is the SOLE runtime proof, run it on the box before claiming the orphan bug fixed) — **PHASE 5 (the seed-facts audit script, `scripts/seed-facts-audit.py` per the plan §Phase 5 with the A4 de-circularized base_model license check) IS THE NEXT BUILD under the standing "keep coding — continue through all phases" go; Phase 6 (continuous verify) then closes the plan.** A worker restart mid-Phase-4 lost one checker run (re-spawned cleanly — the restart drill held); the wrong-cwd chained-cd footgun struck twice more this stretch (recovered, no damage). — pick up at `just-llm-runner/docs/plans/2026-07-06-model-per-hardware-plan.md` §PHASE 1b DESIGN (+ its amendments) and §PHASE 1a RECORD. Ledger adds this round: **A5** (engine-update surface) · **C9** (model research: Gryphe + unsloth 31B dense + the two HauhauCS ablated builds, guardrails recorded) · **D6** (HF Discover surface + the TurboLLM feature study, later).
+## ⛔⛔ SESSION STATE (2026-07-06 evening, the model-per-hardware session) — C6/C7/C8 SHIPPED · D4 FULLY DECIDED · ONE-PROFILE LOCKED ON MEASURED DATA · **EXECUTION STARTED: A6–A10 FOLDED + PHASE 1a SHIPPED (runner `4faa39c` · JW `f6f8167`) · PHASE 1b SHIPPED (runner `9b65ebb`+`16a4747` · JW `4685939`: fit-by-omission + kv_affordable ctx + the strict-beat adaptive sweep; design FAIL(4)→folded→re-check PASS; 374 pytest · smoke+probe green) — **PHASE 1 COMPLETE · PHASE 2 SHIPPED (runner `39fb9da`+`38d63ee` · JW `86d881e`: D4-1 changelist + card-dropdown removal + auto-start/Skip/Re-optimize sweep + the reset-loses-extras found-and-fix; probe 18/18) — PHASE 3 SHIPPED (runner `dc97798`: model_class_picks + classPicks on the catalog wire + pickByClassMap map-first pick, placeholder row {6000: qwen3.6-35b-a3b}, 377 pytest · 24/24 truth-table) — PHASE 4 SHIPPED (runner `7fcac3f`: the one `_spawn_child` seam + the kill-on-close Job Object, Win32 facts web-verified after a checker T2 FAIL + ctypes restype/argtypes hardening, 380 pytest; the §G box check "kill the JW server → the child must die" is the SOLE runtime proof, run it on the box before claiming the orphan bug fixed) — **PHASE 5 SHIPPED (runner `0f3edac`: `scripts/seed-facts-audit.py`, the standalone stdlib HF tripwire — exists + license + the A4 de-circularized base_model hop + quant/mtp-draft per row, AST literal extraction so it runs with bare python3 and imports neither package; ran in-phase on the corrected seeds: 11 rows, 11 OK, 0 FAIL, incl. Llama-Community→llama3.3 via the alias+base hop and the Gemma row confirmed Apache-2.0 through Google's own base repo) — PHASE 6 EXECUTED (runner `bc42f73`, doc closure): ALL GATES RE-RUN GREEN (runner ruff + 380 pytest + the 11/11 audit · JW build + vitest 29/29 + full headless smoke zero-JS + wizard probe PASS + server ruff + 83 pytest) and the §Phase 6 live round-trips verified ATOMICALLY post-reset (11-row catalog with ONE Gemma · classPicks `[{6000: qwen3.6-35b-a3b-mtp}]` on the wire · 6 tune rows re-seed · engine-presets 8/8 on the one Gemma id · prompts think=True == `["chat"]` · all 9 taskKind assignments) — THE MODEL-PER-HARDWARE PLAN IS CLOSED.** Discipline change mid-stretch (user: "do b"): the per-phase PRE-BUILD rules-check is dropped — the pre-commit DIFF check remains the one agent-verdict gate per code commit (Phase 5's diff verdict: PASS, advisories folded). A worker restart mid-Phase-4 lost one checker run (re-spawned cleanly — the restart drill held); the wrong-cwd chained-cd footgun struck a fourth time in Phase 5 (gates briefly ran in the wrong repo — caught by the wrong pytest count, re-run clean). Ledger adds this round: **A5** (engine-update surface) · **C9** (model research: Gryphe + unsloth 31B dense + the two HauhauCS ablated builds, guardrails recorded) · **D6** (HF Discover surface + the TurboLLM feature study, later).
 
-> **RESUME RECIPE (updated post-1a):** fetch → compare → `--ff-only` pull on all three repos (ORIGIN
-> IS THE TRUTH); re-read the global rules + this header + the ledger
-> (`just-llm-runner/docs/plans/2026-07-06-outstanding-master-plan.md`) + **the model-per-hardware
-> plan IN FULL — amendments A1–A10, the A10 RESEARCH RECORD (+ user-link addendum), and the
-> §PHASE 1a RECORD at the bottom (what shipped + the PHASE 1b pending decision)**. The go is
-> STANDING — next build is **Phase 2** (QuickSetup D4-1 (a)+(c) protection with the A8
-> detection-fix + overwrite confirm, card-dropdown removal, opt-out sweep), which does NOT depend
-> on the 1b choice. **Phase 1b (computed ctx + the sweep-anchor fix) is DELIBERATELY HELD**: the
-> A10 survey found upstream llama.cpp (pinned b9870) ships `--fit`/`llama-fit-params` and our
-> explicit `-ngl`/`--n-cpu-moe` emission SUPPRESSES it — the adopt-vs-hand-fix recommendation is
-> on record in the plan (§A10 design consequence + §PHASE 1a RECORD) and was put to the user in
-> chat; do not build 1b without their answer. Post-1a session additions: ledger **A5** filed (the
-> engine-update surface, from the user's TurboLLM screenshot); the user's three auto-tune links
-> researched into the A10 addendum (TurboLLM = the measured comparable, FSL study-only). Dev-DB
-> note: 1a changed seeds — stale dev DBs need the one-time reset (delete the DB or
-> `POST /v1/data/reset`); the user's box re-seeds its tunes (they remain seed data until the A6
-> retirement condition fires).
+> **RESUME RECIPE (updated at plan closure, 2026-07-06 night):** fetch → compare → `--ff-only`
+> pull on all three repos (ORIGIN IS THE TRUTH); re-read the global rules + this header + the
+> ledger (`just-llm-runner/docs/plans/2026-07-06-outstanding-master-plan.md`, banner now CLOSED)
+> + the model-per-hardware plan's **STATUS header and PHASE 6 RECORD** (the closure state; the
+> per-phase records below it are the shipped history). **There is NO standing build** — the
+> six-phase plan is executed and closed. Next work comes from: (1) the user's **§G box checks**
+> on their Windows machine — kill the JW server → the llama-server child must DIE (the sole
+> runtime proof of the Phase 4 orphan fix) · computed ctx == 32768 on the 2070S · the
+> sweep-from-scratch parity check · an untuned fit-placed load boots · the opt-out sweep UX ·
+> whether `llama-fit-params` ships in the b9870 win zip; or (2) the ledger items **A5**
+> (engine-update surface) · **C9** (model research: Gryphe + unsloth 31B dense + the two HauhauCS
+> ablated builds, guardrails recorded) · **D6** (HF Discover surface + the TurboLLM feature
+> study; FSL-1.1 = study only, never lift code) · the **D4-1 leg-3** factory-default follow-up
+> (filed in the plan's Phase 2 record). Checker discipline going forward (user, "do b"): NO
+> pre-build agent check — grounding + an inline T1–T12 citation before building, ONE genuine
+> diff-checker verdict before each code commit (the commit-gate's requirement). Dev-DB note
+> (still true): the plan changed seeds — a stale dev DB needs the one-time reset (delete the DB
+> or `POST /v1/data/reset`); the user's box re-seeds its tunes on reset (they remain dev-only
+> seed rows until the A6 retirement condition fires — sweep parity proven on that box).
 >
 > **WHAT THIS SESSION SHIPPED (all verified + committed + pushed; full detail in the named docs):**
 > **(1) C6** — the five llm-endpoint files moved out of the kit common/ layer (charter clean, zero
