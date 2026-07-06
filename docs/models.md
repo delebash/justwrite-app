@@ -50,15 +50,24 @@ its **Lab** to measure the difference.
 
 ## The model catalog
 
-Open the **Built-in** provider (under **Providers & models**) to see the catalog — one list
-of every model, with the ones that **fit your machine grouped at the top** and the rest
-below. A **search** box and a **sort** control (by quality, name, or size) help you find
-one. Each row shows the model's **type** (*Dense* or *MoE*, plus **MTP** for models with
-multi-token prediction and **Embed** for embedding models), license, live **Fit** badge
-(*Fits* / *Tight* / *CPU* / *Won't fit*), whether it's **Downloaded** or **Not downloaded**,
-and a short description (the parameter count lives in the name and description).
-The model every task currently uses carries a **Default** badge; the embedding model carries
-an **Embedding** badge. From here you can:
+Open the **Built-in** provider (under **Providers & models**) to see the catalog. A
+**"Your setup"** strip at the top shows the two slots the app needs filled — your **General
+model** (writes prose, chats, extracts) and your **Embedding model** (powers semantic search
+and grounded chat). Quick Setup fills both automatically; setting them by hand, each card
+tells you which section below to pick from, and an unfilled slot shows **Not set**.
+
+The list itself is split into **Chat & writing models** and **Embedding models**, and inside
+each section the models that **fit your machine group at the top** with the rest below. A
+**search** box and a **sort** control (by **benchmark score**, name, or size) help you find
+one — the benchmark order comes from published *general-purpose* tests, so it is not
+writing-specific and doesn't know your hardware; the honest per-machine answer is the
+**Recommended for this PC** badge, which marks the exact model Quick Setup would pick for
+this box. Each row shows the model's **type** (*Dense* or *MoE*, plus **MTP** for models
+with multi-token prediction and **Embed** for embedding models), license, live **Fit**
+badge (*Fits* / *Tight* / *CPU* / *Won't fit*), whether it's **Downloaded** or **Not
+downloaded**, and a short description (the parameter count lives in the name and
+description). The model every task currently uses carries a **Default** badge; the
+embedding model carries an **Embedding** badge. From here you can:
 
 - **Download** a model — fetches the weights onto your machine. Models load automatically
   when a task uses them, so there's no separate "load" step; your chat default and the
@@ -87,7 +96,7 @@ an **Embedding** badge. From here you can:
   keep speculative decoding in its own small file), the form detects it and pre-selects the
   smallest draft; the draft downloads alongside the model on its first MTP load. This is how
   you run a model outside the built-in list.
-- **Edit** a model's details — its plain-language **description**, its **quality rank**
+- **Edit** a model's details — its plain-language **description**, its **benchmark rank**
   (lower = better; the order Quick Setup ranks the fast-enough models by), and the
   **what-this-model-is checkboxes**: **MoE** (mixture-of-experts), **MTP** (multi-token
   prediction — speculative decoding turns on by default when checked or when a draft file
@@ -110,7 +119,17 @@ used for search; each embedding model is trained for one specific kind, so it is
 model and can't be changed here — the wrong pooling would quietly make search worse.
 
 > Installing the local engine itself (the llama.cpp runtime) is separate — that lives on
-> the same **Built-in** provider, above the catalog.
+> the same **Built-in** provider, above the catalog, as one compact row: **Install engine**
+> when it's absent, **Update** and **Uninstall** once installed (uninstalling deletes only
+> the engine binaries — your downloaded models are kept), and **Details** expands the rest
+> (the spawn log, the loaded-models list with its VRAM budget, the two keep-loaded knobs,
+> and the engine-binaries editor). An in-flight install's progress bar and any error stay
+> visible even with Details collapsed.
+
+> For a **cloud or external provider** (OpenAI, Ollama, LM Studio, …) there are no
+> hardcoded model suggestions anywhere: connect it, hit **Fetch**, and pick the chat +
+> embedding models from the provider's own live list. The built-in local provider doesn't
+> show those two fields at all — its models are chosen right here on the catalog.
 
 > **Recommended samplers come from the model file.** When you pick a model in a Task's
 > **Lab**, its maker-recommended sampler settings (read from the GGUF) seed the sampler
