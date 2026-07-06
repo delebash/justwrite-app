@@ -100,6 +100,17 @@
 > `services/import/__tests__/odt.test.js` (per-file jsdom env; `jsdom` devDep) — 6 tests over the real
 > parser incl. the §16.30 rule. Verified: vitest **34/34** · build:vite clean · full headless smoke
 > zero JS errors.
+> **(6e) POST-COMPACT: C2 — the benchmark re-grounding pass — DONE. THE A–E BATCH IS COMPLETE, 13 of
+> 13.** The URL-cited evidence table over all 10 catalog models lives in the batch tracker §C2. One
+> contradiction found and FIXED in the runner seed: **Qwen3.6-35B-A3B now ranks 8, GLM-4.5-Air 10** —
+> both vendors' own cards AND the independent Artificial-Analysis harness (GPQA-Diamond 84.1 vs 73.3)
+> agree; GLM's description drops the unsupported "top" claim (a dev-DB reseed via the usual
+> `POST /v1/data/reset` picks the swap up). The Llama-70B-vs-Qwen3-32B PROSE ordering has no published
+> instrument (EQ-Bench v3's own data checked) and stands as reasoned, honestly annotated; dense-family
+> + embedder ladders supported. Per-task recommendation lines + the on-box `llama-bench` note (§G)
+> shipped with the table; the honesty boundary holds (published fp16 evals re-ground ORDERING only).
+> Runner ruff + 350 pytest green. **Open after the batch: C5 (filed by C4, needs a go) · F1–F5
+> (JustVoice, mandate-excluded) · the §G box checks.**
 > **(5) POST-COMPACTION DECISIONS (2026-07-06, "i take your rec on d1 and d3, go"):** the ledger's §D is now EMPTY — no open decisions remain anywhere. **D1 DECIDED — Quick Setup keeps writing the picked model onto the EXISTING task presets** (the non-clobber `modelApply.js:75-87` PUT that skips user-re-pointed presets); it does NOT generate a preset per task; closed with zero code; tracker #100 closed (annotated in the current preset-model doc `2026-07-02-preset-model-a-resets.md` §Out-of-scope too). **D3 DECIDED — the stale #71 umbrella verify task is CLOSED**; its build/smoke/docs parts had already shipped in later phases and its only surviving piece — the marketing-screenshots run (`npm run screenshots`, built `.exe` + WebView2) — is folded into the ledger as an unconditional your-box item **G4**. Both recorded in the outstanding master plan (§D closed-section note + the two decided records kept in full + G4 rewritten).
 > **STANDING USER RULES:** held all session (the 10 restated rules + never-code-until-"go"); every phase committed+pushed immediately (the only reason four container resets cost nothing).
 
