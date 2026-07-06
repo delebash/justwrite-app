@@ -36,6 +36,28 @@ page.on("pageerror", (e) => errors.push(`pageerror: ${e}`));
 page.on("requestfailed", (r) => { const u = r.url(); if (!BENIGN.some((re) => re.test(u))) badUrls.push(`failed ${u}`); });
 page.on("response", (r) => { if (r.status() >= 400 && !BENIGN.some((re) => re.test(r.url()))) badUrls.push(`${r.status()} ${r.url()}`); });
 
+// GPU-shaped hardware for the wizard (2026-07-06: chat models REQUIRE a GPU — CPU-only
+// prose is unsupported; this container has no GPU, so the page sees a probe 8 GB card
+// and the /models fits are lifted to what that card would report; embeds unchanged).
+await page.route("**/v1/llm-runner/hardware", async (route) => {
+  const real = await (await fetch(`${process.env.JW_API || "http://127.0.0.1:17495"}/v1/llm-runner/hardware`)).json();
+  real.gpus = [{ vendor: "nvidia", name: "RTX probe", vramMb: 8192 }];
+  real.runtimes = { ...(real.runtimes || {}), cuda: true };
+  return route.fulfill({ status: 200, contentType: "application/json", body: JSON.stringify(real) });
+});
+await page.route("**/v1/llm-runner/models**", async (route) => {
+  const real = await (await fetch(`${process.env.JW_API || "http://127.0.0.1:17495"}/v1/llm-runner/models`)).json();
+  real.vramMb = 8192;
+  for (const m of real.models || []) {
+    // What an 8 GB / 32 GB box reports: the MoEs fit, the 12B is tight, big dense won't.
+    if (/embedding|nomic|bge/.test(m.id)) m.fit = "ok";
+    else if (/gemma-4-26b|qwen3\.6-35b|styletune|uncensored/.test(m.id)) m.fit = "ok";
+    else if (/gemma-4-12b/.test(m.id)) m.fit = "tight";
+    else m.fit = "no";
+  }
+  return route.fulfill({ status: 200, contentType: "application/json", body: JSON.stringify(real) });
+});
+
 // Stub the model-load leg so Apply doesn't try to fetch/spawn a real model. Everything
 // else (preset PUTs, routing PUT) hits the real server so we can verify the writes.
 await page.route("**/v1/llm-runner/load", (route) =>

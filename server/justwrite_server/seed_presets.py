@@ -103,8 +103,7 @@ DEFAULT_MODEL_CATALOG_EXTRA: list[dict] = [
      "description": "Gemma 4 26B-A4B QAT MoE with an MTP draft — one config serves writing AND "
                     "research/chat: 32k context, thinking toggled per task at request time, reasoning "
                     "capped engine-side. Measured on the 8 GB floor: writer TTFT 1.5-1.7 s at ~31 t/s; "
-                    "8k-corpus chat TTFT 15 s, prefill 551 t/s sustained to 28k "
-                    "(docs/plans/2026-07-06-llamacpp-config-tuning-2070s.md)."},
+                    "8k-corpus chat TTFT 15 s, prefill 551 t/s sustained to 28k."},
 ]
 
 # ⚠ DEV-ONLY SEED ROWS (plan amendment A6, 2026-07-06 — user: "my tunes being seed data
