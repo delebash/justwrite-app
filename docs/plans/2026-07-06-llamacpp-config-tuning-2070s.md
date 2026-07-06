@@ -170,6 +170,17 @@ The app DB base preset carries `context_shift = true` + `cache_reuse = 256`, whi
 
 **Everything else in the verified switch flow re-passed** after the final ini edit: router healthy, writer pp 355 t/s on a 632-token chat-API prompt, idle-sleep freed the writer, book-chat switch loaded clean and produced thinking (1390 chars) + answer.
 
+## Auto-tune — the methodology productized (built + live-validated 2026-07-06, runner `1984d92`)
+
+**User go: "do it" (after "where would auto-tune go — Tune & measure or QuickSetup?" → both, one engine).** The manual sweep methodology of this plan, downscaled to a one-click job:
+
+- **`runner/autotune.py`** — the sweep job (engine-install pattern: background thread + polled state + cancel): trial ladder = baseline → batch 512/512 (if different) → `n-cpu-moe` anchor+2 / anchor−1 / anchor−2 (anchor = the tune's value, else `lifecycle.preview_fit`'s computed split — a new pure helper). Every trial: `stop → ensure_embedding` (co-resident embed = production-true floor, this plan's key lesson) `→ load → poll → measure(192 tok)`. Endpoints `POST/GET /v1/llm-runner/auto-tune` + `/cancel`, mounted by `install_llm` with `resolve_switches` + `save_tune` DI (the runner never imports llm stores).
+- **Winner rule (live-validated):** best decode tok/s with a **5% tie band resolving to the higher n-cpu-moe** — single measures carry ±10% MTP-acceptance noise (this plan's C1 data), and headroom beats noise-chasing. The probe's `vramTotalMb` is the box TOTAL (useless for ties) — deliberately not used.
+- **MoE-monotonic pruning (live-validated):** below a failed `n-cpu-moe` is skipped WITHOUT loading — the first live run showed the worst failure mode is not a crash but the service's OOM-backoff churn (~5 min of 14-GB reload cycles before timeout); run 2 pruned ncmoe 18 instantly after 19 failed (bounded at the 240 s trial cap).
+- **Tune modal** (`TuneMeasureModal.vue`): Auto-tune button → trial chips narration → the winner FILLS THE GRID for review → the human presses Save tune (nothing auto-saves).
+- **QuickSetup done-step**: "Optimize for this PC (~4 min)" — the fire-and-forget `save:true` variant for users who never open the Tune modal; closable (job finishes server-side).
+- **Live validation ×2 on the seeded Gemma writer** (through the FULL app path — generated ini, b9870, seeded tunes, pinned embed): run 1 exposed the three issues above; run 2 after fixes: baseline 22.8 / ncmoe22 23.4 (tie → 22 by headroom), 19 failed bounded, 18 pruned. 9 offline tests; suite 360 pass; JW build:vite green. Note: the probe's absolute tok/s runs lower than this plan's benchmark numbers (short-prompt overhead folded in) — RELATIVE comparison is what the sweep uses; the tie band absorbs the rest.
+
 ## Decisions locked by the user
 
 1. Big models used **one at a time** (router); embed co-resident. 2. Test data: synthesized. 3. VRAM headroom: push close (~300–400 MB), desktop load to be re-verified. 4. Nothing executes without "go".
