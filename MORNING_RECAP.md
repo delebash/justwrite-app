@@ -160,10 +160,14 @@
 > the user's ask found the untracked leftovers — dead `useRunnerModels.load()/unload()` (prune
 > unblocked when 4b was closed-dropped), the twice-recorded-but-unledgered remote-catalog future, and
 > the never-decided "fast 9B for quick tasks" QuickSetup optional — reported to the user, who then
-> said **"add 1 and 2"** → FILED as ledger **C7** (the dead `load()/unload()` prune — needs a go) and
-> **D5** (the remote curated-catalog product decision); the fast-9B optional and the two
-> cross-reference notes (option-D prior art for D4 · the JV Tasks-page line in F1) remain
-> reported-only.
+> said **"add 1 and 2"** → FILED as ledger **C7** and **D5** (the remote curated-catalog product
+> decision). **C7 then SHIPPED the same day on "do c7"** (runner `51a08a7`; record in the batch
+> tracker §C7): the dead `load()/unload()` exports pruned, loadErr/needsEngine/poller/download
+> kept, stale headers truthed both sides — build clean · vitest 29/29 · full smoke zero errors ·
+> diff-checker PASS. **The fast-9B QuickSetup optional is DECIDED NO** (user, "no 9b quick setup" —
+> annotated at `2026-07-03-model-setup-simplification.md:344`). The two cross-reference notes
+> (option-D prior art for D4 · the JV Tasks-page line in F1) remain reported-only; D4 + D5 are in
+> live discussion (recommendations presented, user's picks pending).
 > **(5) POST-COMPACTION DECISIONS (2026-07-06, "i take your rec on d1 and d3, go"):** the ledger's §D is now EMPTY — no open decisions remain anywhere. **D1 DECIDED — Quick Setup keeps writing the picked model onto the EXISTING task presets** (the non-clobber `modelApply.js:75-87` PUT that skips user-re-pointed presets); it does NOT generate a preset per task; closed with zero code; tracker #100 closed (annotated in the current preset-model doc `2026-07-02-preset-model-a-resets.md` §Out-of-scope too). **D3 DECIDED — the stale #71 umbrella verify task is CLOSED**; its build/smoke/docs parts had already shipped in later phases and its only surviving piece — the marketing-screenshots run (`npm run screenshots`, built `.exe` + WebView2) — is folded into the ledger as an unconditional your-box item **G4**. Both recorded in the outstanding master plan (§D closed-section note + the two decided records kept in full + G4 rewritten).
 > **STANDING USER RULES:** held all session (the 10 restated rules + never-code-until-"go"); every phase committed+pushed immediately (the only reason four container resets cost nothing).
 
