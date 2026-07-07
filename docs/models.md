@@ -41,11 +41,16 @@ chat, extraction, judgment — and it downloads and loads right away. If you've 
 changed the model for a particular task yourself (on the **Tasks** tab), Quick Setup leaves
 that task alone.
 
-After Apply, on a machine with **no saved tune** for the chosen model, a short measured
-**optimize sweep starts automatically** (skippable — Skip keeps everything set up) and
-saves the fastest launch settings for your machine only if they strictly beat the current
-launch. A machine that's already tuned never re-runs it on its own: a **Re-optimize**
-button asks before overwriting your saved settings.
+After Apply, the done step tells you which launch settings this machine got — **no sweep
+ever starts on its own**. A machine with its **own saved tune** keeps it (a **Re-optimize**
+button asks before overwriting). A machine matching a **built-in hardware class** — the
+same video memory and RAM as a machine the config was measured on — starts pre-tuned with
+no sweep. A machine with neither runs on the engine's automatic memory fitting and gets two
+optional measured passes: **Quick optimize (~2 min)**, which tries the most likely settings
+within a time box and keeps the best it finds (and says so honestly when it finds nothing
+faster — the full sweep or the model's Tune dialog go deeper), and **Full optimize**
+(10 minutes or more), which keeps measuring. Either pass saves its result only if it
+strictly beats the current launch, and other AI features pause while one runs.
 
 That's the intent: you don't pick a model per job. One good model handles everything, and
 each task keeps its own *settings* (temperature, JSON mode, and so on) automatically. If
@@ -92,9 +97,18 @@ embedding model carries an **Embedding** badge. From here you can:
   so a data folder moved to another computer never applies the wrong numbers). **Remove
   saved tune** returns the model to its defaults. Good defaults come pre-filled — including
   speculative decoding (**MTP**), which turns on automatically for models that support it;
-  set it to *Off* and Save if you don't want it. For a per-*Task* setup instead, **Send to
-  Tasks Lab** opens the config as a new column in that Task's Lab, where you save it as the
-  Task's preset.
+  set it to *Off* and Save if you don't want it. Values the engine works out for your
+  machine on its own (GPU layers, context size, expert offload) show under the grid as
+  **"Set automatically for this PC"** with an **Add to grid** action — so you always see
+  what the launch will really use, and adding them makes them yours to edit (a saved
+  explicit value then replaces the automatic one for good). After a measurement, **Save for
+  hardware class** keeps the config as the shared starting point for **every PC with the
+  same video memory and RAM** (a machine with its own saved tune still wins), and the
+  **Hardware-class defaults** drawer in the same dialog is the editable library of those
+  class configs: edit one (editing a built-in makes it yours and it sticks), add one for a
+  different class, delete one you added, or **Copy**/**Import** a config as a small piece of
+  text to share between users. For a per-*Task* setup instead, **Send to Tasks Lab** opens
+  the config as a new column in that Task's Lab, where you save it as the Task's preset.
 - **Add model** — point at any Hugging Face GGUF repo and **Read from link**: the form lists
   the repo's **available quants as a dropdown** (each with its download size and a **QAT** /
   **IQ** label where it applies), pre-picks one that fits your machine (change it, or pick

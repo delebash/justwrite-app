@@ -20,7 +20,7 @@
 
 ---
 
-## ⛔⛔ SESSION STATE (2026-07-07, the on-box tune-review + same-day fix-storm session) — CLASS-TUNE LIBRARY + BASE-BUNDLE FIX + QuickSetup POLISH (runner `b5abb91`) **PLUS FIVE MORE SAME-DAY GOES (the GO paragraphs below · design doc ROUNDs 9–13 are the full records): prompt cancel + instant Apply + the engine-button cluster + the n_gpu_layers knob (`bc34717`) · engine update-replaces-old + Reinstall + one Installing… button + no-cpu-download (`2d37bab`) · Load-as-default/Unload + the hardware-change toast (`333bcee`) · cpu rows retired + the stop-first generalized build sweep (`6148eba`) · the Edit-view spacing batch (`5401fca`)**
+## ⛔⛔ SESSION STATE (2026-07-07, the on-box tune-review + same-day fix-storm session) — CLASS-TUNE LIBRARY + BASE-BUNDLE FIX + QuickSetup POLISH (runner `b5abb91`) **PLUS SIX MORE SAME-DAY GOES (the GO paragraphs below · design doc ROUNDs 9–14 are the full records): prompt cancel + instant Apply + the engine-button cluster + the n_gpu_layers knob (`bc34717`) · engine update-replaces-old + Reinstall + one Installing… button + no-cpu-download (`2d37bab`) · Load-as-default/Unload + the hardware-change toast (`333bcee`) · cpu rows retired + the stop-first generalized build sweep (`6148eba`) · the Edit-view spacing batch (`5401fca`) · the ROUND-8 queue-closer: class-tune library CRUD + UI + the ~2-min quick tune + fit-computed Tune-grid values (`0fe1178`)**
 
 > This session was a live on-box review of the Providers/Tune surface. The user walked
 > through the Tune modal for two models and then handed over their authoritative
@@ -100,7 +100,11 @@
 > next to the LLM tag. **[SUPERSEDED SAME DAY — see the GO paragraphs below: Task B's core + the
 > Update button shipped in ROUND 9; Task E in ROUND 11; Fix 2 was scope-checked in ROUND 11 (only
 > the fit-computed-values remainder is still queued); Task C (class-tune CRUD + Lab library) and
-> the ~2-min capped quick tune remain the genuinely open items.]**
+> the ~2-min capped quick tune remain the genuinely open items.]** **[AND CLOSED, same day,
+> later: the SEVENTH GO (ROUND 14, runner `0fe1178`) shipped Task C + the ~2-min quick tune +
+> Fix 2's fit-computed remainder + Task B's done-step messaging — the ROUND-8 queue is EMPTY;
+> what remains open is the verification debt (#114), the two user-deferred notification
+> follow-ups (App-Settings toggle · second toast button), and the parked ledger items.]**
 >
 > **SECOND GO, same day (2026-07-07 — the on-box fallout round; full record: design doc ROUND 9):**
 > the user ran b5abb91 on the box and hit the auto-tune's two-faced cancel bug — *"cant cance tune,
@@ -196,6 +200,39 @@
 > ("also space between provider type and local engine"); 14 px = the file's own .lu-pf-foot
 > idiom. Gate: build:vite clean (CSS-only round). Box check: open Edit on the Built-in server
 > and eyeball both gaps.
+>
+> **SEVENTH GO, same day (2026-07-07 — "lets code the rest go": the ROUND-8 queue closed; full
+> record: design doc ROUND 14, runner `0fe1178`):** "the rest" resolved against the tracker's
+> own queue statements = Task C + the ~2-min quick tune + Fix 2's remainder (the two
+> user-deferred notification follow-ups deliberately excluded and said so up front). SHIPPED:
+> **the class-tune library CRUD** (`/v1/ai/class-tunes` — GET the whole library + this box's
+> server-derived `classKey`; PUT replaces one (model, class) config wholesale, classKey
+> defaulting to this box; DELETE one config; a PUT marks the rows user-owned so the boot
+> seeder never clobbers an edit — the flip side, recorded: a fully DELETED built-in re-seeds
+> on restart, so the UI edits built-ins rather than deleting them); **"Save for hardware
+> class" on a Tune result** (the result card offers keeping the just-measured config as the
+> starting point for every PC of this class — machines with their own saved tune still win);
+> **the LuClassTunes drawer** in the Tune modal (per-model library table: class label +
+> "this PC"/"built-in" tags, Edit-in-KnobGrid, Delete on user rows, Copy/Import as one JSON
+> blob — the LuRunnerBinaries drawer precedent; INTERPRETATION flagged in ROUND 14: the
+> spec's "library table" ships model-scoped inside each Tune dialog, a cross-model mount is
+> one step away if wanted); **the ~2-min quick tune** (autotune `budget_seconds` — checked at
+> the same seams as the cancel flag, aborts an in-flight load, never poisons the ncmoe prune,
+> keeps the strict-beat winner-pick, restores the applied model if a load was left dangling;
+> QuickSetup's done step now renders the truth ladder: own tune → Re-optimize · class tune →
+> "Tuned settings for your hardware were applied ✓" · neither → the computed-defaults truth +
+> BOTH "Quick optimize (~2 min)" and "Full optimize" + the Tune-dialog pointer, per the
+> user's "both lab and 2 min sweep"; a capped run that finds nothing faster says so and
+> points deeper — self-diagnosing); and **Fix 2's last sliver** (resolved-defaults gains
+> `computed` from the runner's fit preview; the Tune grid shows "Set automatically for this
+> PC …" with real ngl/ctx/ncmoe values + an Add-to-grid action — kept OUT of the editable
+> rows so Save tune can't silently pin today's fit, the strict-beat rationale). Gates: runner
+> ruff + import gate + JW build:vite clean (standing "dont run tests" — the SIX new
+> read-verified tests, smoke, probe, curls, diff-checker all owed to #114). Also fixed this
+> go: `docs/models.md`'s Quick Setup section still described the ROUND-9-retired auto-start
+> sweep — the 94aa65d doc sweep missed it (owned in ROUND 14); rewritten to the truth ladder.
+> The chained-cd cwd footgun struck a sixth time (a grep + ruff briefly ran in the wrong
+> repo — both caught by reading output, re-run clean with absolute paths).
 >
 > **THIRD GO, same day (2026-07-07 — the engine install/update batch, tasks #118/#119/#120; full
 > record: design doc ROUND 10):** the user's verbatim batch — *"the engine update should delete the
