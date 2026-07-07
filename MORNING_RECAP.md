@@ -126,6 +126,34 @@
 > restarts mid-build ("missing chat" ×2 — replies died with the restarts before the text flushed);
 > the full on-disk diff was re-read line-by-line before the commit.
 >
+> **FOURTH GO, same day (2026-07-07 — #117 + #113 off the queue; full record: design doc ROUND
+> 11):** on the user's bare "go" against the queued list. **#117 "Load as default" + Unload**
+> (user: "no way to unload lets change set as default to Load as default and have Unload
+> button"): the catalog row's primary action is now "Load as default" and it LOADS — verified
+> pre-build that the old `makeDefault` only re-pointed task presets via the shared
+> `modelApply.setAsDefault` and nothing entered VRAM until first use, so the rename means the
+> ACTION (setAsDefault + `POST /v1/llm-runner/load` + kick the shared poller → the row renders
+> loading→loaded); a new ghost **Unload** action on any LOADED row frees that model's VRAM while
+> the router stays up (backend: `POST /v1/llm-runner/stop` gains an optional `modelId` — the
+> per-model `service.stop(model_id)` existed but HTTP only did the full teardown; no body keeps
+> the old semantics, existing callers unchanged); the dead-reference strip hints renamed too.
+> **#113 / Task E — the hardware-change toast** (the ROUND-7 dispositions: "counts as changed
+> just gpu vram" · "appears dismissinle toast" · fire-once · settings toggle deferred):
+> `ack_hw_fingerprint` persists through the EXISTING engine-config surface (the update_policy
+> pattern; a RunnerSetting row, no new endpoint); AiModelsArea compares `gpu-name|vramMb` on
+> mount — first sight seeds the baseline SILENTLY, a real change writes the new acknowledgment
+> FIRST (fires exactly once, restart-proof) then shows one dismissible info toast with a **Run
+> Quick Setup** action (opens the wizard via the inline mount's exposed openWizard). ONE
+> recorded divergence flagged to the user: the "re-tune current model" choice ships as guidance
+> TEXT in the toast, not a second button (the kit toast exposes one action; the Tune dialog
+> lives inside the Built-in Edit view — a labHandoff-style direct-open is the follow-up if
+> wanted). SCOPE-CHECKED, not built: Fix 2 — the user's own Tune screenshot shows the
+> class-tune knobs already rendering via resolved switches; the remaining gap is only
+> fit-COMPUTED values on a wholly-untuned box/model → stays queued. STILL BLOCKED: the
+> wizard-probe rework (can't be done honestly without RUNNING the probe — a test). Gates: ruff
+> clean + build:vite clean (the standing posture). FILED: #121 (user: top padding on the
+> catalog's "Search models" toolbar row).
+>
 > **THIRD GO, same day (2026-07-07 — the engine install/update batch, tasks #118/#119/#120; full
 > record: design doc ROUND 10):** the user's verbatim batch — *"the engine update should delete the
 > old folder and download the new, the update button should be reinstall this is different thena
