@@ -108,10 +108,13 @@ DEFAULT_MODEL_CATALOG_EXTRA: list[dict] = [
      "samplers": {"top_k": "64", "top_p": "0.95", "temperature": "1"},
      "trained_ctx": 262144, "min_vram_mb": 4000, "min_ram_mb": 24000,
      "tier": "low-vram-moe", "license": "Apache-2.0", "quality_rank": 5, "position": 20,
-     "description": "Gemma 4 26B-A4B QAT MoE with an MTP draft — one config serves writing AND "
-                    "research/chat: 32k context, thinking toggled per task at request time, reasoning "
-                    "capped engine-side. Measured on the 8 GB floor: writer TTFT 1.5-1.7 s at ~31 t/s; "
-                    "8k-corpus chat TTFT 15 s, prefill 551 t/s sustained to 28k."},
+     "architecture": "gemma4", "experts": 128,
+     # description = the file-facts compose (the 2026-07-07 decree: Read-from-link owns
+     # it); the owner's measured numbers live in `notes` — user-owned, never auto-written.
+     "description": "26B mixture-of-experts model · 256k context · MTP draft for faster generation · UD-Q4_K_XL (QAT)",
+     "notes": "One config serves writing AND research/chat: 32k launch context, thinking toggled "
+              "per task at request time, reasoning capped engine-side. Measured on the 8 GB floor: "
+              "writer TTFT 1.5-1.7 s at ~31 t/s; 8k-corpus chat TTFT 15 s, prefill 551 t/s sustained to 28k."},
 ]
 
 # TUNE ROWS ARE NOT SEEDED (user, 2026-07-06: "i agree it should not be a defualt

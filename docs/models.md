@@ -129,13 +129,21 @@ embedding model carries an **Embedding** badge. From here you can:
   keep speculative decoding in its own small file), the form detects it and pre-selects the
   smallest draft; the draft downloads alongside the model on its first MTP load. This is how
   you run a model outside the built-in list.
-- **Edit** a model's details — its plain-language **description**, its **benchmark rank**
-  (lower = better; the order Quick Setup ranks the fast-enough models by), and the
-  **what-this-model-is checkboxes**: **MoE** (mixture-of-experts), **MTP** (multi-token
-  prediction — speculative decoding turns on by default when checked or when a draft file
-  is set), and **Embedding** (a search/RAG model rather than a chat LLM). They're
-  auto-detected from the file; override them if you know better. **Delete** one you added,
-  or **Reset catalog** to restore the built-ins (your added models are kept).
+- **Edit** a model's details. The **description** belongs to the file: **Read from link**
+  regenerates it from what the model actually is (parameters, context, MTP, quant, size) —
+  and your own **Notes** field sits beside it for anything personal (measured speeds, taste,
+  use policy); notes are never touched by reads, downloads, or resets, and show in italics
+  under the description on the model's row. The **auto-detected facts** (architecture,
+  expert count, file size, download size, trained context, recommended samplers) are
+  **saved on the model**, so the form shows them the moment it opens — Read from link just
+  re-verifies them against the live repo (the download size belongs to the selected quant
+  and clears if you pick a different one). The **benchmark rank** (lower = better) and the
+  **what-this-model-is checkboxes** — **MoE**, **MTP** (a selected draft file keeps MTP
+  checked; speculative decoding auto-enables), **Embedding** — round out the form.
+  **Delete** one you added, or **Reset catalog** to restore the built-ins (your added
+  models are kept). Each row also shows its **rank and size** right under the id, so the
+  sort orders are visible, and an empty **Your setup** card offers a **dropdown of the
+  models that fit** — pick one there and it's assigned and loaded without scrolling.
 
 A model's weights download from Hugging Face onto your machine; the catalog only lists
 them. The built-in list is a **small curated ladder, Gemma-first for writing** — Gemma 4
@@ -155,11 +163,23 @@ model and can't be changed here — the wrong pooling would quietly make search 
 
 > Installing the local engine itself (the llama.cpp runtime) is separate — that lives on
 > the same **Built-in** provider, above the catalog, as one compact row: **Install engine**
-> when it's absent, **Update** and **Uninstall** once installed (uninstalling deletes only
-> the engine binaries — your downloaded models are kept), and **Details** expands the rest
-> (the spawn log, the loaded-models list with its VRAM budget, the two keep-loaded knobs,
-> and the engine-binaries editor). An in-flight install's progress bar and any error stay
-> visible even with Details collapsed.
+> when it's absent (the Local engine panel shows its own Install button then too), **Update**
+> and **Uninstall** once installed (uninstalling deletes only the engine binaries — your
+> downloaded models are kept), and **Details** expands the rest (the spawn log, the
+> loaded-models list with its VRAM budget, the two keep-loaded knobs, and the
+> engine-binaries editor). An in-flight install's progress bar and any error stay visible
+> even with Details collapsed. **Test connection** on the Built-in server reports its real
+> health — engine installed, build, how many models the catalog holds — rather than probing
+> a server that hasn't loaded anything yet (models load on first use by design).
+>
+> Below the catalog sit two more editable libraries: **Hardware-class defaults** (the
+> shared per-PC-class launch configs) and **Global launch defaults** — the always-on
+> switch bundles (all models · MoE · dense · speculative decode) that sit underneath every
+> tune, finally visible and editable with a Reset. In a model's **Tune** dialog, every
+> pre-filled value now carries a small tag saying **where it came from** (all models · model
+> type · speculative decode · your PC class · saved tune), the engine-computed values show
+> separately, and a closing line reminds you that anything not listed uses the engine's own
+> defaults — so "what set this switch?" always has an answer.
 
 > For a **cloud or external provider** (OpenAI, Ollama, LM Studio, …) there are no
 > hardcoded model suggestions anywhere: connect it, hit **Fetch**, and pick the chat +

@@ -301,6 +301,42 @@
 > live on their box (the all-models drawer rendering the seeded class row) and their box
 > runs engine b9899 (via Update; the SEED bump is #136).
 >
+> **TENTH GO, same day (2026-07-07 — the full-queue "go", recommendations standing; full
+> record: design doc ROUND 17, runner `768c65a` + this JW commit):** the whole task list in
+> one round. **#140 built as revisited:** the resolver returns per-key ORIGINS (which layer
+> wrote each value); the Tune grid tags every pre-filled row in user language (all models ·
+> model type · speculative decode · your PC class · saved tune) + the closing "Anything not
+> listed here uses the engine's own defaults." (the cont_batching answer); the dormant
+> `hardware_switches` layer is RETIRED (no writer/UI ever existed — resolver + db model
+> dropped, tests re-seated, one replaced by the origins test); the **Global launch
+> defaults** drawer (new LuGlobalSwitches, editable + Reset over the existing
+> switch-presets CRUD) mounts under the class library — q8_0/mlock/no_mmap finally visible
+> AND editable. **#143 + #141 + #146:** model_catalog gains `notes` (user-owned, never
+> auto-written — the curated seed prose incl. the owner's measured numbers MIGRATED there)
+> and the persisted identity facts (architecture · experts · size_label · quant-specific
+> size_bytes); description is LINK-OWNED (Read-from-link regenerates it via the enriched
+> compose; the empty-only guard is gone); the Edit panel reads persisted facts on OPEN
+> (open == Read-from-link at last), sampler order stable; rows show "rank N · size" under
+> the id. **The engine batch:** pin → b9899 (cuda12 pair LIVE-verified by the user's own
+> box; other assets pattern-verified — the container's GitHub egress is session-scoped,
+> recorded honestly in the config comment); the built-in provider's ping + probe-models
+> return COMPOSED health ("engine installed · b9899 · cuda12 · 12 models in the catalog ·
+> models load on first use") so Test connection stops lying (#139); a successful install
+> clears stale "Install the engine first" model errors server-side + kicks the grid
+> refresh (#138 — the red "install engine ↑" heals); the engine panel's not-installed
+> state carries its own Install button (#135). **#144:** empty setup cards get inline
+> pickers (fitting models, best-first, ⚠ on use-limited — manual picks are deliberate),
+> assigning through the same writers. **Decision records (recommendations taken):** #145
+> click = assign+load KEPT (lazy governs automatic behavior, not explicit picks) · #147
+> sleep-idle 900 s KEPT (30 s would bill every pause the ~10 s reload; the user's 30 is a
+> box-local knob setting). **#142 delivered as the audit table** (ROUND 17 §5): rows 3
+> (repo-listing cache) + 5/6 (ONE model_measurements history for Tune results + auto-tune
+> trials) await the user's dispositions; the rest persisted this round or ruled ephemeral.
+> VERIFICATION: runner ruff + FULL pytest 402/402 + JW server ruff + 76/76 + build:vite —
+> the pytest run extended the day's granted precedent under rule-2 diligence (a retired DB
+> layer + a store signature change; recorded for the user's review); smoke/probe/curls owed
+> (#114). BOX NOTE: one dev-DB reset needed to pick up the new columns + migrated seeds.
+>
 > **THIRD GO, same day (2026-07-07 — the engine install/update batch, tasks #118/#119/#120; full
 > record: design doc ROUND 10):** the user's verbatim batch — *"the engine update should delete the
 > old folder and download the new, the update button should be reinstall this is different thena
