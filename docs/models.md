@@ -62,11 +62,16 @@ its **Lab** to measure the difference.
 Open the **Built-in** provider (under **Providers & models**) to see the catalog. A
 **"Your setup"** strip at the top shows the two slots the app needs filled — your **General
 model** (writes prose, chats, extracts) and your **Embedding model** (powers semantic search
-and grounded chat). Quick Setup fills both automatically; setting them by hand, each card
-tells you which section below to pick from, and an unfilled slot shows **Not set**.
+and grounded chat). The app runs these two **side by side**, and each card is that pair's
+control panel: it shows the slot's live state (**● loaded** · **○ loads on first use** ·
+downloading · not downloaded) with its own **Load now** / **Unload** buttons — loading is
+always automatic on first use, so Load now just skips the first wait. Quick Setup fills both
+slots automatically; setting them by hand, each card tells you which section below to pick
+from, and an unfilled slot shows **Not set**.
 
-The list itself is split into **Chat & writing models** and **Embedding models**, and inside
-each section the models that **fit your machine group at the top** with the rest below. A
+The list itself is split into **Chat & writing models** and **Embedding models** — each
+section shows the models that **fit your machine**, and everything that doesn't fit sinks
+to one group at the very bottom, below the embeddings. A
 **search** box and a **sort** control (by **benchmark score**, name, or size) help you find
 one — the benchmark order comes from published *general-purpose* tests, so it is not
 writing-specific and doesn't know your hardware; the honest per-machine answer is the
@@ -86,8 +91,11 @@ embedding model carries an **Embedding** badge. From here you can:
   wait.
 - **Unload** — appears on a loaded model; frees its memory (VRAM) without picking anything
   else. The model loads again on **Load as default** or the next time a task needs it.
-- **Set as embedding** — makes a downloaded embedding model the one used for search and
-  grounded chat.
+- On an **embedding** row, **Load as default** works the same way — it makes that model the
+  one used for search and grounded chat **and loads it right away, alongside your chat
+  model** (the two run together); a loaded embedding gets the same **Unload**.
+- Every model from Hugging Face carries a **Model card ↗** link (on its row and in its Edit
+  dialog) that opens the full details — files, license, the maker's notes — in your browser.
 - Until you save a tune, a model **launches with the engine's automatic memory fitting**
   (it places the model across GPU/CPU for your card at the app-chosen context size); a
   saved tune replaces that with your measured values.

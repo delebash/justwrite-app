@@ -103,6 +103,9 @@ DEFAULT_MODEL_CATALOG_EXTRA: list[dict] = [
      "hf_repo": "unsloth/gemma-4-26B-A4B-it-qat-GGUF", "quant": "UD-Q4_K_XL",
      "total_params": "26B", "active_params": "4B", "mtp": True, "type": "moe",
      "mtp_draft_file": "MTP/gemma-4-26B-A4B-it-Q4_0-MTP.gguf", "mtp_draft_quant": "Q4_0",
+     # samplers = the file's own recommended set (live header read 2026-07-07 — the
+     # read-from-link parity item: the seed ships exactly what Read-from-link detects).
+     "samplers": {"top_k": "64", "top_p": "0.95", "temperature": "1"},
      "trained_ctx": 262144, "min_vram_mb": 4000, "min_ram_mb": 24000,
      "tier": "low-vram-moe", "license": "Apache-2.0", "quality_rank": 5, "position": 20,
      "description": "Gemma 4 26B-A4B QAT MoE with an MTP draft — one config serves writing AND "

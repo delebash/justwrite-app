@@ -259,6 +259,48 @@
 > checks in ROUND 15 (the drawer under the catalog · Add's model dropdown · the
 > import-without-modelId error · the per-model drawer unchanged · the toast untouched).
 >
+> **NINTH GO, same day (2026-07-07 — "i take your recommendations go", the batch round; full
+> record: design doc ROUND 16, runner `011b753` + this JW commit):** the four filed items +
+> the two-model-clarity recommendation, with FIVE more user messages filed mid-go as their
+> own tasks (#135 engine-panel Install button · #136 seed pin → b9899 · #138 the stale
+> "install engine ↑" row-state BUG, screenshot · #139 built-in Test-connection semantics,
+> screenshot · #140 the switch-provenance DISCUSS) and one mid-go reversal honored (#137:
+> the Default-button label experiment reverted on the user's "i forgot you have status of
+> loaded … but we do need unload button" — labels stay plain, the status pill + the existing
+> Unload carry the truth). SHIPPED: **#129** /v1/llm-runner/hardware gains machineKey +
+> classKey (the tuning identities); the AI strip gains a live measured **VRAM used** stat
+> (the /resident poll) + a **Copy debug info** button (OS/GPU/driver/accel/engine build/
+> keys/VRAM/loaded models as one pasteable block). **#130** the catalog's non-fitting models
+> (both kinds) sink to ONE group below the Embedding section. **#131** embed rows get **Load
+> as default** — setAsEmbedding + POST /ensure-embedding, the sanctioned CO-RESIDENT path
+> (never a bare /load that could contend with the chat default) — plus Unload when loaded.
+> **#133** the "Your setup" strip is the pair's CONTROL PANEL: live per-card state (● loaded
+> · ↓ working · ○ loads on first use/search · not downloaded · failed) + Load now/Unload on
+> the same writers as the rows + the one-sentence side-by-side caption (app-neutral — kit
+> copy). **#134** "Model card ↗" links (huggingface.co/<repo>) on every row + the Edit
+> dialog's repo label. **#132 — the read-from-link parity item, TESTS RUN under the user's
+> explicit grant:** a live strict-diff of all 12 seeded rows against real HF header/config
+> reads (the table is in ROUND 16) found the Gemma-family header-mtp=false trap (the draft
+> carries MTP — the user's screenshot bug), ONE seed fact error (GLM-4.5-Air's header says
+> mtp TRUE), trained_ctx missing from all 11 runner rows, samplers never seeded, and bge-m3
+> 568M→567M. Fixed by converging every side on the FILE: the Edit form's MTP OR-gate
+> (header OR draft) + onDraftPick auto-checks MTP + Edit-open auto-loads the repo listing
+> (autopick:false — a background load never mutates the row), float32 sampler cleanup at
+> the one derive boundary ("0.949999988079071" → "0.95"), a boot derive-backfill (a cached
+> model re-seeded without file facts re-derives from the LOCAL header — the user's
+> "Recommended samplers —" screenshot state self-heals on next start), and the seeds updated
+> from the live reads (runner seed.py + this repo's seed_presets.py; _seed_samplers writes
+> the file's recommended samplers on new inserts, built_in=False — byte-identical with the
+> download-time identify). Curated DESCRIPTIONS deliberately stay (they carry the user's own
+> measured numbers — parity applies to FACTS; flagged in ROUND 16). **VERIFICATION (the
+> grant):** runner pytest **402/402** — which also PAYS #114's pytest debt: the nine
+> never-executed ROUND-14 tests (class-tunes CRUD + budget) and the re-seated ROUND 9–12
+> tests all ran for the first time and passed — plus the seed-facts audit 12/12 OK, JW
+> server ruff + 76/76, runner ruff, JW build:vite. Still owed to #114: the headless smoke,
+> the wizard-probe rework, live curls. The user's screenshots meanwhile CONFIRMED ROUND 15
+> live on their box (the all-models drawer rendering the seeded class row) and their box
+> runs engine b9899 (via Update; the SEED bump is #136).
+>
 > **THIRD GO, same day (2026-07-07 — the engine install/update batch, tasks #118/#119/#120; full
 > record: design doc ROUND 10):** the user's verbatim batch — *"the engine update should delete the
 > old folder and download the new, the update button should be reinstall this is different thena
