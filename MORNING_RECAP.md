@@ -337,6 +337,42 @@
 > layer + a store signature change; recorded for the user's review); smoke/probe/curls owed
 > (#114). BOX NOTE: one dev-DB reset needed to pick up the new columns + migrated seeds.
 >
+> **ELEVENTH GO, same day (2026-07-07 — "do 114": THE VERIFIED ROUND; full record: design
+> doc ROUND 18, runner `97c898c` + this JW commit):** the deferred-verification debt of
+> ROUNDs 9–17 PAID, in the dev container (server :17495 + vite :1420, one dev-DB reset; a
+> mid-round session resume re-verified memory against origin before continuing).
+> **(1) Live curls — all green on the wire:** hardware serves machineKey/classKey ·
+> class-tunes CRUD round-trips (the seeded gemma@vram8|ram32 listed; PUT/DELETE work) ·
+> ackHwFingerprint persists · resolved-defaults carries the ORIGINS map live (its first
+> teaching: no_mmap rides the TYPE bundle, not base — a one-word doc imprecision the wire
+> corrected) · the catalog serves the migrated seeds (notes/architecture/experts/composed
+> descriptions) · built-in ping/probe return the composed health (honest engineless copy in
+> the container) · budgetSeconds rides the auto-tune status · **the ROUND-9 prompt-cancel
+> verified LIVE** ("stopping…" → cancelled in seconds; trials honestly engine-not-installed;
+> the download channel never woke) · stop{modelId} 200 · switch-presets round-trips (base 4
+> · moe 1 · mtp 2 — NO dense bundle exists in the seed, so the Global-defaults drawer
+> truthfully shows three sections). **(2) The wizard probe REWORKED + PASS 22/22, zero JS
+> errors** (scripts/phaseD-quicksetup-probe.mjs): the stale auto-start scenario became the
+> ROUND-14 truth ladder (no self-start · the computed-defaults copy · Quick optimize (~2
+> min) with its time-boxed running title · Skip-cancel · the Tune-dialog pointer; scenario
+> 2's absence checks re-pointed at the current titles). FOUND-AND-FIXED in the rework: the
+> old blanket auto-tune stub answered apply()'s ROUND-9 sweep-guard GET with "running" and
+> the REAL "Stop it and apply?" dialog opened — the guard fires exactly as designed; the
+> stub is now an idle→running-on-POST→cancelled state machine. **(3) The full headless
+> smoke — PASS**, every route + the provider form + sampler order, zero JS errors, on the
+> new columns. **(4) Record pytest:** runner 402/402 · JW server 76/76. **(5) The
+> rules-checker verdict on the day's cumulative diff (b5abb91..768c65a): 11 PASS · T10 NA ·
+> T7 FAIL — the FAIL being exactly the smoke/probe debt this round paid** (the verdict
+> predates the runs; its prescribed fix IS ROUND 18); the ROUND-3 "smoke on every UI change
+> regardless of waivers" amendment RE-AFFIRMED as binding. Checker watch items: the
+> lifecycle `stale` name reuse FIXED (→ stale_errors, the round's one code change, 84/84
+> lifecycle tests green); the AiModelsArea QuickSetup-ref-in-loop invariant recorded (holds
+> while exactly one local-llamacpp provider exists); the b9899 non-cuda assets stay
+> pattern-verified until a real non-NVIDIA install. **#114 CLOSED — nothing owed remains**
+> except the GPU-dependent box checks that only the user's machine can run (the ROUND 9–17
+> lists) and the #142 persist dispositions (repo-listing cache · model_measurements
+> history · update-check persistence), which await the user's ruling.
+>
 > **THIRD GO, same day (2026-07-07 — the engine install/update batch, tasks #118/#119/#120; full
 > record: design doc ROUND 10):** the user's verbatim batch — *"the engine update should delete the
 > old folder and download the new, the update button should be reinstall this is different thena

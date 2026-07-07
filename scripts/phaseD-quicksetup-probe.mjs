@@ -69,24 +69,39 @@ await page.route("**/v1/llm-runner/load", (route) =>
 await page.route("**/v1/llm-runner/status", (route) =>
   route.fulfill({ status: 200, contentType: "application/json", body: JSON.stringify({ status: "running", detail: "stubbed" }) }),
 );
-// Phase-2 sweep stubs: the container has no engine, so the auto-tune job is faked.
-// cancelled flips the GET payload so Skip's post-cancel poll shows the terminal state.
+// Sweep stubs: the container has no engine, so the auto-tune job is faked — as a
+// tiny STATE MACHINE (idle → running-on-POST → cancelled), because apply() itself
+// GETs this endpoint as the ROUND-9 Apply-under-sweep guard: a blanket "running"
+// stub would open the real "Stop it and apply?" dialog and block the probe.
+let optStarted = false;
 let optCancelled = false;
+let optBudget = 0;
 await page.route("**/v1/llm-runner/auto-tune/cancel", (route) => {
   optCancelled = true;
-  return route.fulfill({ status: 200, contentType: "application/json", body: JSON.stringify({ ok: true }) });
+  return route.fulfill({ status: 200, contentType: "application/json",
+    body: JSON.stringify({ status: "cancelled", detail: "cancelled", trials: [] }) });
 });
 await page.route("**/v1/llm-runner/auto-tune", (route) => {
-  const body = optCancelled
-    ? { status: "cancelled", detail: "cancelled", trials: [] }
-    : { ok: true, status: "running", detail: "trying baseline…", trials: [] };
+  if (route.request().method() === "POST") {
+    optStarted = true;
+    optCancelled = false;
+    try { optBudget = JSON.parse(route.request().postData() || "{}").budgetSeconds || 0; } catch { optBudget = 0; }
+    return route.fulfill({ status: 200, contentType: "application/json",
+      body: JSON.stringify({ status: "running", detail: "trying baseline…", trials: [], budgetSeconds: optBudget }) });
+  }
+  const body = !optStarted
+    ? { status: "idle", trials: [] }
+    : optCancelled
+      ? { status: "cancelled", detail: "cancelled", trials: [] }
+      : { status: "running", detail: "trying baseline…", trials: [], budgetSeconds: optBudget };
   return route.fulfill({ status: 200, contentType: "application/json", body: JSON.stringify(body) });
 });
 // Scenario switch: when tunedPick is armed, the PICK's model-tunes read returns rows —
-// the tuned-machine path (Re-optimize + confirm). Otherwise tunes read EMPTY: since the
-// wizard preselects the APPLIED model (2026-07-06 — post-reset that's the seeded gemma,
-// whose seeded tune rows would suppress auto-start by design), the auto-start scenario
-// stubs "no tunes for this machine" so the sweep path stays testable.
+// the tuned-machine path (Re-optimize + confirm). Otherwise tunes read EMPTY — the
+// WHOLLY-UNTUNED path (ROUND 9 retired the auto-start; ROUND 14 added the done-step
+// truth ladder): this container's real class (cpu|ram16) matches no seeded class tune,
+// so with tunes stubbed empty the done step must offer BOTH Quick optimize (~2 min)
+// and Full optimize, never a self-started sweep.
 let tunedPick = false;
 await page.route("**/v1/ai/model-tunes**", (route) => {
   const url = route.request().url();
@@ -158,10 +173,22 @@ try {
   const doneHtml = await page.content();
   check("reached the DONE step (apply completed without error)", /Setup applied/.test(doneHtml));
   check("done summary shows the embedding", /Embedding/.test(doneHtml) && doneHtml.includes(expectedEmbedName));
-  // Phase 2 opt-out sweep: the pick (14b) has NO tunes on this box → the sweep
-  // AUTO-STARTS on Apply; the done step shows it running with a Skip button.
-  check("untuned pick AUTO-STARTS the sweep (running state renders)", /Optimizing —/.test(doneHtml));
-  check("the running sweep offers Skip", /Skip/.test(doneHtml));
+  // ROUND 9: Apply NEVER auto-starts the sweep. ROUND 14's truth ladder: this box has
+  // no saved tune (stubbed empty) and no matching class tune (real class cpu|ram16 ≠
+  // the seeded vram8|ram32), so the done step states the computed-defaults truth and
+  // offers BOTH passes ("both lab and 2 min sweep") + the Tune-dialog pointer.
+  check("untuned pick does NOT auto-start (no running sweep)", !/Optimizing for this PC…|Quick optimize — measuring/.test(doneHtml));
+  check("untuned done step states the computed-defaults truth", /No measured settings for this PC yet/.test(doneHtml));
+  check("untuned done step offers Quick optimize (~2 min)", /Quick optimize \(~2 min\)/.test(doneHtml));
+  check("untuned done step offers Full optimize", /Full optimize/.test(doneHtml));
+  check("the caption points at the model's Tune dialog", /Tune dialog/.test(doneHtml));
+  // The quick pass (ROUND 14): explicit click → the time-boxed running copy + Skip.
+  await page.getByRole("button", { name: /Quick optimize/ }).click();
+  await sleep(400);
+  const quickHtml = await page.content();
+  check("Quick optimize renders its own running title", /Quick optimize — measuring…/.test(quickHtml));
+  check("the quick pass states the ~2-minute time box", /time-boxed to about 2 minutes/.test(quickHtml));
+  check("the running quick pass offers Skip", /Skip/.test(quickHtml));
   await page.getByRole("button", { name: "Skip" }).click();
   await sleep(400);
   const skippedHtml = await page.content();
@@ -171,6 +198,7 @@ try {
 
   // ── Scenario 2: the TUNED machine — no auto-start; Re-optimize behind a confirm ──
   tunedPick = true;
+  optStarted = false;
   optCancelled = false;
   await page.getByRole("button", { name: "Run Quick Setup" }).click();
   await page.waitForSelector('button:has-text("Apply setup")', { timeout: 12000 });
@@ -189,7 +217,7 @@ try {
   await page.getByRole("button", { name: "Apply setup" }).click();
   await page.waitForSelector(".lu-qs-summary", { timeout: 12000 });
   const doneHtml2 = await page.content();
-  check("tuned pick does NOT auto-start (no running sweep)", !/Optimizing —/.test(doneHtml2));
+  check("tuned pick does NOT auto-start (no running sweep)", !/Optimizing for this PC…|Quick optimize — measuring/.test(doneHtml2));
   check("tuned pick offers 'Re-optimize' instead", /Re-optimize/.test(doneHtml2));
   await page.getByRole("button", { name: /Re-optimize/ }).click();
   await sleep(300);
