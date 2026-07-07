@@ -185,6 +185,15 @@
 > use. Their box meanwhile CONFIRMED live: "Installed · b9892 · cuda12" (the update took, the
 > panel line clean) and "Load as default" on the catalog rows.
 >
+> **SIXTH GO, same day (2026-07-07 — #121 spacing batch; design doc ROUND 13):** two
+> user-placed gaps on the Built-in Edit view, built on the "go": `.lu-mcat-bar` gains
+> `margin-top: 14px` (between the GENERAL/EMBEDDING strip cards and the Search-models row —
+> the user's corrected placement: "between search models and just above box general model")
+> and the Local engine panel mount gains `.lu-pf-eng { margin-top: 14px }` in ProviderForm
+> ("also space between provider type and local engine"); 14 px = the file's own .lu-pf-foot
+> idiom. Gate: build:vite clean (CSS-only round). Box check: open Edit on the Built-in server
+> and eyeball both gaps.
+>
 > **THIRD GO, same day (2026-07-07 — the engine install/update batch, tasks #118/#119/#120; full
 > record: design doc ROUND 10):** the user's verbatim batch — *"the engine update should delete the
 > old folder and download the new, the update button should be reinstall this is different thena
