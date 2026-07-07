@@ -20,7 +20,7 @@
 
 ---
 
-## ⛔⛔ SESSION STATE (2026-07-07, the on-box tune-review session) — CLASS-TUNE LIBRARY + BASE-BUNDLE FIX + QuickSetup POLISH SHIPPED · runner `b5abb91` · deferred items spec'd in the design doc
+## ⛔⛔ SESSION STATE (2026-07-07, the on-box tune-review + same-day fix-storm session) — CLASS-TUNE LIBRARY + BASE-BUNDLE FIX + QuickSetup POLISH (runner `b5abb91`) **PLUS FIVE MORE SAME-DAY GOES (the GO paragraphs below · design doc ROUNDs 9–13 are the full records): prompt cancel + instant Apply + the engine-button cluster + the n_gpu_layers knob (`bc34717`) · engine update-replaces-old + Reinstall + one Installing… button + no-cpu-download (`2d37bab`) · Load-as-default/Unload + the hardware-change toast (`333bcee`) · cpu rows retired + the stop-first generalized build sweep (`6148eba`) · the Edit-view spacing batch (`5401fca`)**
 
 > This session was a live on-box review of the Providers/Tune surface. The user walked
 > through the Tune modal for two models and then handed over their authoritative
@@ -97,7 +97,10 @@
 > tune, self-diagnosing → Lab). **Task C** — the class-tune CRUD API + the editable Lab library
 > UI. **Task E** — the hardware-change (gpu/vram) dismissible-toast notification (settings toggle
 > its own later todo). Plus the Update-button relabel ("Update available")/recolor (`info`)/move
-> next to the LLM tag.
+> next to the LLM tag. **[SUPERSEDED SAME DAY — see the GO paragraphs below: Task B's core + the
+> Update button shipped in ROUND 9; Task E in ROUND 11; Fix 2 was scope-checked in ROUND 11 (only
+> the fit-computed-values remainder is still queued); Task C (class-tune CRUD + Lab library) and
+> the ~2-min capped quick tune remain the genuinely open items.]**
 >
 > **SECOND GO, same day (2026-07-07 — the on-box fallout round; full record: design doc ROUND 9):**
 > the user ran b5abb91 on the box and hit the auto-tune's two-faced cancel bug — *"cant cance tune,

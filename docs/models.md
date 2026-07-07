@@ -73,11 +73,14 @@ downloaded**, and a short description (the parameter count lives in the name and
 description). The model every task currently uses carries a **Default** badge; the
 embedding model carries an **Embedding** badge. From here you can:
 
-- **Download** a model — fetches the weights onto your machine. Models load automatically
-  when a task uses them, so there's no separate "load" step; your chat default and the
-  embedding can run together.
-- **Set as default** — makes a downloaded model the one **every task** uses (the same effect
-  as Quick Setup; any task you've re-pointed yourself on the **Tasks** tab keeps its own model).
+- **Download** a model — fetches the weights onto your machine. Your chat default and the
+  embedding can run together, and a model also loads on demand when a task needs it.
+- **Load as default** — makes a downloaded model the one **every task** uses (the same effect
+  as Quick Setup; any task you've re-pointed yourself on the **Tasks** tab keeps its own
+  model) **and loads it into memory right away**, so your first write doesn't pay the load
+  wait.
+- **Unload** — appears on a loaded model; frees its memory (VRAM) without picking anything
+  else. The model loads again on **Load as default** or the next time a task needs it.
 - **Set as embedding** — makes a downloaded embedding model the one used for search and
   grounded chat.
 - Until you save a tune, a model **launches with the engine's automatic memory fitting**
