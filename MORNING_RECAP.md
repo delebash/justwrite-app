@@ -152,7 +152,38 @@
 > fit-COMPUTED values on a wholly-untuned box/model → stays queued. STILL BLOCKED: the
 > wizard-probe rework (can't be done honestly without RUNNING the probe — a test). Gates: ruff
 > clean + build:vite clean (the standing posture). FILED: #121 (user: top padding on the
-> catalog's "Search models" toolbar row).
+> catalog's "Search models" toolbar row — placement clarified by the user: the gap goes BETWEEN
+> the General/Embedding strip cards and the Search-models row, not under Local engine; nothing
+> padded yet).
+>
+> **FIFTH GO, same day (2026-07-07 — cpu rows retired + the update-cleanup hardening; full
+> record: design doc ROUND 12):** the user's box testing resolved both open reports — the
+> folder-dates screenshot showed b9870/b9892 were created the NIGHT BEFORE the fixes shipped
+> (both the "still download cpu" and "folder not deleted" observations ran under the OLD code
+> still loaded in the server process; the user then confirmed *"restart fixed"*), and the day's
+> DB reset had re-seeded the pin back to b9870, stranding the b9892 folder. SHIPPED on the
+> user's explicit words: **the cpu rows are RETIRED everywhere** (user: *"deleet — a machine
+> with cpu wont be able to run local llm with any speed"*; scope: *"not cpu version for any of
+> them, nobody said dont download vulkon"*): DEFAULT_BINARIES drops windows/cpu + linux/cpu; a
+> no-GPU box now gets NO engine (select → None, an honest "no binary configured" error) — which
+> also means no LOCAL embeddings on such a box (Ollama/cloud embeds remain); the seeder PRUNES
+> retired built-in rows so the user's existing DB drops its cpu rows on the next server start,
+> no reset (user-ADDED rows, built_in=False, never touched); FIVE binary/select tests re-seated
+> by reading (no-GPU → None; linux cuda-no-vulkan → None; the cross-platform list drops
+> linux/cpu; the gpu-override acquire test re-seated on vulkan; the chain-order test asserts an
+> on-disk cpu leftover is EXCLUDED). **The update-cleanup exe-lock hardening** (proactive):
+> ROUND 10's old-folder delete never stopped the engine, but uninstall's own docstring records
+> that Windows cannot delete a live llama-server's open exe — an update clicked while a model
+> is loaded would fail the delete SILENTLY; the cleanup now STOPS the engine first (the router
+> respawns on the NEW build at the next load, which an engine swap wants anyway) and is
+> GENERALIZED to sweep EVERY non-pinned build dir after any successful install (logs/ + loose
+> files survive; models.ini carry keeps replace_build priority with newest-stale fallback; a
+> dir that survives rmtree logs "files in use?") — the user's stranded b9870 self-heals on
+> their next Reinstall. Gates: ruff clean (no renderer change this round — no build gate
+> needed). Box checks in ROUND 12: no cpu rows in the binaries table after a server restart;
+> Reinstall removes the stranded b9870; update-while-loaded unloads, deletes, respawns on next
+> use. Their box meanwhile CONFIRMED live: "Installed · b9892 · cuda12" (the update took, the
+> panel line clean) and "Load as default" on the catalog rows.
 >
 > **THIRD GO, same day (2026-07-07 — the engine install/update batch, tasks #118/#119/#120; full
 > record: design doc ROUND 10):** the user's verbatim batch — *"the engine update should delete the
