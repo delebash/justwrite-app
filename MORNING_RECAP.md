@@ -20,7 +20,7 @@
 
 ---
 
-## ⛔⛔ SESSION STATE (2026-07-07, the on-box tune-review + same-day fix-storm session) — CLASS-TUNE LIBRARY + BASE-BUNDLE FIX + QuickSetup POLISH (runner `b5abb91`) **PLUS SIX MORE SAME-DAY GOES (the GO paragraphs below · design doc ROUNDs 9–14 are the full records): prompt cancel + instant Apply + the engine-button cluster + the n_gpu_layers knob (`bc34717`) · engine update-replaces-old + Reinstall + one Installing… button + no-cpu-download (`2d37bab`) · Load-as-default/Unload + the hardware-change toast (`333bcee`) · cpu rows retired + the stop-first generalized build sweep (`6148eba`) · the Edit-view spacing batch (`5401fca`) · the ROUND-8 queue-closer: class-tune library CRUD + UI + the ~2-min quick tune + fit-computed Tune-grid values (`0fe1178`)**
+## ⛔⛔ SESSION STATE (2026-07-07, the on-box tune-review + same-day fix-storm session) — CLASS-TUNE LIBRARY + BASE-BUNDLE FIX + QuickSetup POLISH (runner `b5abb91`) **PLUS SEVEN MORE SAME-DAY GOES (the GO paragraphs below · design doc ROUNDs 9–15 are the full records): prompt cancel + instant Apply + the engine-button cluster + the n_gpu_layers knob (`bc34717`) · engine update-replaces-old + Reinstall + one Installing… button + no-cpu-download (`2d37bab`) · Load-as-default/Unload + the hardware-change toast (`333bcee`) · cpu rows retired + the stop-first generalized build sweep (`6148eba`) · the Edit-view spacing batch (`5401fca`) · the ROUND-8 queue-closer: class-tune library CRUD + UI + the ~2-min quick tune + fit-computed Tune-grid values (`0fe1178`) · the cross-model library view + BOTH notification follow-ups closed NOT DOING (`84d1e42`)**
 
 > This session was a live on-box review of the Providers/Tune surface. The user walked
 > through the Tune modal for two models and then handed over their authoritative
@@ -102,9 +102,10 @@
 > the fit-computed-values remainder is still queued); Task C (class-tune CRUD + Lab library) and
 > the ~2-min capped quick tune remain the genuinely open items.]** **[AND CLOSED, same day,
 > later: the SEVENTH GO (ROUND 14, runner `0fe1178`) shipped Task C + the ~2-min quick tune +
-> Fix 2's fit-computed remainder + Task B's done-step messaging — the ROUND-8 queue is EMPTY;
-> what remains open is the verification debt (#114), the two user-deferred notification
-> follow-ups (App-Settings toggle · second toast button), and the parked ledger items.]**
+> Fix 2's fit-computed remainder + Task B's done-step messaging — the ROUND-8 queue is EMPTY.
+> The EIGHTH GO (ROUND 15, runner `84d1e42`) then shipped the cross-model library view and
+> closed BOTH notification follow-ups as NOT DOING (user decision) — what remains open from
+> this whole surface is the verification debt (#114) and the parked ledger items.]**
 >
 > **SECOND GO, same day (2026-07-07 — the on-box fallout round; full record: design doc ROUND 9):**
 > the user ran b5abb91 on the box and hit the auto-tune's two-faced cancel bug — *"cant cance tune,
@@ -233,6 +234,30 @@
 > sweep — the 94aa65d doc sweep missed it (owned in ROUND 14); rewritten to the truth ladder.
 > The chained-cd cwd footgun struck a sixth time (a grep + ruff briefly ran in the wrong
 > repo — both caught by reading output, re-run clean with absolute paths).
+>
+> **EIGHTH GO, same day (2026-07-07 — three dispositions in one message; full record: design
+> doc ROUND 15, runner `84d1e42`):** the user, verbatim: *"2 leave as is remove second toast
+> are mark it as not doing, same with app settings mark not doing, go ahead and do cross
+> model library view"*. **TWO DECISIONS CLOSED, NOT DOING (never re-open):** the
+> hardware-change toast is FINAL as shipped (one "Run Quick Setup" action + the re-tune
+> choice as guidance text — the second toast button will not be built) and the App-Settings
+> enable/disable toggle for the notification will not be built either (this retires the
+> user's own ROUND-7 "add this to todo for later" item, by the same authority that filed
+> it); ROUND 11's divergence note + ROUND 14's Still-open list carry matching [RESOLVED]
+> markers. **SHIPPED — the cross-model library view:** LuClassTunes' `modelId` prop became
+> optional; empty = GLOBAL mode — one audit table of every (model × class) launch config
+> with a Model column (names from one lazy catalog read), Add via a catalog UiSelect
+> (select-only, no free-typed ids), Import honoring the pasted blob's own modelId (required
+> there; the per-model mount keeps targeting its open model), row identity + the Copied-✓
+> flash keyed on (model | class); the knob-catalog fetch + Plane-1 map moved to a tiny
+> shared `ui/src/knobCatalog.js` (TuneMeasureModal refactored onto the same helpers — one
+> map builder kit-wide), and the per-model Delete now uses the row's own modelId (same
+> value there, correct by construction in both modes). Mounted collapsed at the BOTTOM of
+> the Built-in server's Edit view under the catalog (`.lu-pf-ct`, the view's 14 px rhythm);
+> each Tune dialog keeps its scoped drawer — ONE component, two vantage points, no fork.
+> Gate: build:vite clean (no Python touched — the ROUND-13 CSS/JS-only precedent); box
+> checks in ROUND 15 (the drawer under the catalog · Add's model dropdown · the
+> import-without-modelId error · the per-model drawer unchanged · the toast untouched).
 >
 > **THIRD GO, same day (2026-07-07 — the engine install/update batch, tasks #118/#119/#120; full
 > record: design doc ROUND 10):** the user's verbatim batch — *"the engine update should delete the

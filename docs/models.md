@@ -107,8 +107,12 @@ embedding model carries an **Embedding** badge. From here you can:
   **Hardware-class defaults** drawer in the same dialog is the editable library of those
   class configs: edit one (editing a built-in makes it yours and it sticks), add one for a
   different class, delete one you added, or **Copy**/**Import** a config as a small piece of
-  text to share between users. For a per-*Task* setup instead, **Send to Tasks Lab** opens
-  the config as a new column in that Task's Lab, where you save it as the Task's preset.
+  text to share between users. The same library also has an **all-models view** — a
+  collapsed **"Hardware-class defaults — all models"** drawer at the bottom of the Built-in
+  server's Edit page listing every model's class configs in one table (adding a config there
+  starts with picking the model). For a per-*Task* setup instead, **Send to Tasks Lab**
+  opens the config as a new column in that Task's Lab, where you save it as the Task's
+  preset.
 - **Add model** — point at any Hugging Face GGUF repo and **Read from link**: the form lists
   the repo's **available quants as a dropdown** (each with its download size and a **QAT** /
   **IQ** label where it applies), pre-picks one that fits your machine (change it, or pick
