@@ -161,8 +161,12 @@ vitest 29/29 + the FULL headless smoke zero JS errors + the tune-save probe 17/1
   Batches 4, 5, 6** (execute batch-by-batch with full gates; scope itemized there) + **DL-1
   download-speed/ETA display DECIDED+GO** + **DL-2 multithreaded downloads PLAN-ONLY** (user's
   1 Gbit sometimes-slow line is the motive; plan → user approves → build) + **B2-9 NOT covered
-  by the go** (ask one line) + **B1-2** still owed the box's "old engine build" log line (the
-  user was mid-install-testing). No-tests posture on (container gates still run at ship).
+  by the go** (ask one line). **B1-2 CLOSED at pickup** by the user's own diagnosis (a DB-reset
+  disk⇄DB disconnect; "the deleting is fine" — no code change; the disk-based sweep already
+  self-heals at the next install, note + code cites in queue §8). **The queue doc §9 is the
+  LIVE QC queue** — the user is QC-ing shipped batches on their box and dropping findings while
+  the standing go executes ("this should not stop your tasks"); QC-1 (badge wording → the real
+  editor names) is recorded there. No-tests posture on (container gates still run at ship).
 - **THE ledger:** `just-llm-runner/docs/plans/2026-07-06-outstanding-master-plan.md` — every
   genuinely open item across all three repos, twice-verified, sections A–I. **Do not maintain a
   second backlog anywhere, including here.** §I (added 2026-07-08) folds in the 2026-06-28
