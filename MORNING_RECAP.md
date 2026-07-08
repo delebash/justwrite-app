@@ -62,8 +62,8 @@ FULL headless smoke zero JS errors · rules-checker verdict (sha in the git log)
 the queue doc §7.1 (BUILD note appended at ship). `docs/models.md` tuning section rewritten
 to the two-owner law.
 
-**Last code heads (both clean, pushed): runner `8c9ae91` · JW `a6ec7e3`** (commits after these
-are doc-only). **The providers-surface marathon is CLOSED: ROUNDs 1–19 all shipped and
+**Last code heads (both clean, pushed): runner `95f00a1` (the §7.1 ship) · JW `a6ec7e3`**
+(commits after these are doc-only). **The providers-surface marathon is CLOSED: ROUNDs 1–19 all shipped and
 verified, the queue is EMPTY** — full records in
 `just-llm-runner/docs/plans/2026-07-06-providers-surface-redesign.md` (read its STATUS banner +
 the round you need, never the whole 137 KB file). The #142 save-everything dispositions are all
@@ -80,7 +80,7 @@ and the **engine lifecycle row** (install/update/uninstall/reinstall, pin b9899,
 notify). Gates at the last code ship, all green: runner ruff + **409 pytest** · JW build:vite +
 vitest 29/29 + the FULL headless smoke zero JS errors + the tune-save probe 17/17 + live curls.
 
-**Nothing is in flight.** In-container harness tasks #1–#151: all completed.
+**Nothing is in flight.** In-container harness tasks #1–#154: all completed.
 
 ## OPEN WORK — the ONE list and where it lives
 
