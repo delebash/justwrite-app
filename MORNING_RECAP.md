@@ -154,14 +154,15 @@ vitest 29/29 + the FULL headless smoke zero JS errors + the tune-save probe 17/1
 
 - **THE ACTIVE BATCH (2026-07-08):** the user's 52-item list, organized and grounded in
   `just-llm-runner/docs/plans/2026-07-08-big-batch-queue.md` — §0 the list verbatim · §1 the
-  code-verified answers · **§7.1–§7.6 the LOCKED decisions (ALL discussions now decided;
-  E parked)** · §3 batches B1–B6 — **B1 + B2 + B3 (incl. the B3-4/B3-10 remainder) BUILT +
-  shipped (see the BUILD RECORDS there)**. Waiting on the USER: only **B1-2** (the box's
-  engine-log line) + the §7.1 wording trivia (shipped-as-flagged). **Batches 4–6 each need
-  their own go and every item is now unblocked**: B4 fully buildable (B4-4 per §7.3) · B5
-  fully buildable (B5-1 per §7.2, incl. B2-9's set-as-default) · B6-1/2 per §7.4 (B6-3 done —
-  the ledger §J IDEAS section). No-tests posture on (user tests on box; container gates still
-  run at ship).
+  code-verified answers · **§7.1–§7.6 the LOCKED decisions (ALL discussions decided; E parked;
+  the §7.6 flagged interpretations user-BLESSED: "your decisions are fine")** · §3 batches
+  B1–B6 — **B1 + B2 + B3 (incl. the B3-4/B3-10 remainder) BUILT + shipped**. **⛔ THE PICKUP
+  POINT IS THE QUEUE DOC §8** (saved at the user's pre-compact stop): a **STANDING GO on
+  Batches 4, 5, 6** (execute batch-by-batch with full gates; scope itemized there) + **DL-1
+  download-speed/ETA display DECIDED+GO** + **DL-2 multithreaded downloads PLAN-ONLY** (user's
+  1 Gbit sometimes-slow line is the motive; plan → user approves → build) + **B2-9 NOT covered
+  by the go** (ask one line) + **B1-2** still owed the box's "old engine build" log line (the
+  user was mid-install-testing). No-tests posture on (container gates still run at ship).
 - **THE ledger:** `just-llm-runner/docs/plans/2026-07-06-outstanding-master-plan.md` — every
   genuinely open item across all three repos, twice-verified, sections A–I. **Do not maintain a
   second backlog anywhere, including here.** §I (added 2026-07-08) folds in the 2026-06-28
