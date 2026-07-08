@@ -133,10 +133,13 @@ vitest 29/29 + the FULL headless smoke zero JS errors + the tune-save probe 17/1
 - **THE ACTIVE BATCH (2026-07-08):** the user's 52-item list, organized and grounded in
   `just-llm-runner/docs/plans/2026-07-08-big-batch-queue.md` — §0 the list verbatim · §1 the
   code-verified answers · §2 discussions B–F awaiting the user (A became the §7.1 lock, built) ·
-  §3 batches B1–B6 — **B1 + B2 BUILT + shipped (see their BUILD RECORDS there; B1-2 waits on the
-  box's engine-log line, B2-9 on discussion B)**; batches 3–6 each need their own go; discussion
-  B gates B2-9 + B5-1, C gates B4-4, D gates B6-1/2, F gates B6-3. No-tests posture on (user
-  tests on box; container gates still run at ship).
+  §3 batches B1–B6 — **B1 + B2 + B3 BUILT + shipped (see their BUILD RECORDS there)**. Waiting on
+  the USER: B1-2 (the box's engine-log line) · B2-9 (discussion B) · B3-4 (§7.1 sub-question (d),
+  badge wording/surfaces) · **B3-10 (yes/no: show EVERY switch as a resolved row + retire "Add to
+  grid" — the superseded A(3) idea the §7.1 lock didn't adopt)**. Batches 4–6 each need their own
+  go (B4 thin without discussion C: B4-1/2/3 buildable; B5-1 needs discussion B); discussion B
+  gates B2-9 + B5-1, C gates B4-4, D gates B6-1/2, F gates B6-3. No-tests posture on (user tests
+  on box; container gates still run at ship).
 - **THE ledger:** `just-llm-runner/docs/plans/2026-07-06-outstanding-master-plan.md` — every
   genuinely open item across all three repos, twice-verified, sections A–I. **Do not maintain a
   second backlog anywhere, including here.** §I (added 2026-07-08) folds in the 2026-06-28
