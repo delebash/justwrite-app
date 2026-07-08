@@ -162,3 +162,45 @@ FEATURE_TASK_KINDS: dict[str, str] = {
     "chat": "chat.grounded", "characterChat": "chat.inVoice",
     "briefing": "summary.grounded",
 }
+
+
+# §7.3 Lab test samples (2026-07-08) — SYNTHESIZED starting material for the Lab's
+# Sample button, per taskKind (the test-data decision: never real manuscript text).
+# Fill-if-empty per (taskKind, label): a user's edit in the DB sticks across reseeds.
+DEFAULT_TEST_SAMPLES: list[dict] = [
+    # A sample carries EVERY variable its kind's features might expose — the Lab's
+    # merge fills only the names the open prompt actually has, extras are ignored
+    # (writerAI.continue = {passage, voiceCanon}; the edit family = {passage,
+    # direction}; analysis/JSON features = {user_content}).
+    {"taskKind": "prose.generate", "label": "Storm at the lighthouse",
+     "variables": {"passage": "The lighthouse keeper counted the storm's breaths between "
+                              "each sweep of the lamp. The supply boat's light appeared "
+                              "where no boat should be.",
+                   "voiceCanon": "Close third person, past tense; spare coastal imagery.",
+                   "user_content": "The lighthouse keeper counted the storm's breaths between "
+                                   "each sweep of the lamp. Continue the scene as the supply "
+                                   "boat's light appears where no boat should be."}},
+    {"taskKind": "prose.edit", "label": "Flabby paragraph",
+     "variables": {"passage": "It was very really quite windy that day, and the wind, which "
+                              "was blowing hard, made the trees move back and forth a lot in "
+                              "the wind, which she could see happening as she watched it.",
+                   "direction": "Tighten; cut the redundancy; keep her point of view.",
+                   "user_content": "It was very really quite windy that day, and the wind, which "
+                                   "was blowing hard, made the trees move back and forth a lot in "
+                                   "the wind, which she could see happening as she watched it."}},
+    {"taskKind": "ideation", "label": "Premise seed",
+     "variables": {"user_content": "A coastal town where every resident forgets one true thing "
+                                   "each winter — and the new archivist starts writing them down."}},
+    {"taskKind": "chat.grounded", "label": "Continuity question",
+     "variables": {"question": "When did Mira first learn about the ledger, and who told her?",
+                   "excerpts": "Ch. 3: Mira found the ledger's torn page in her father's coat. "
+                               "Ch. 5: 'You knew before the funeral,' Renn said. 'The page told you.'"}},
+    {"taskKind": "extract.structured", "label": "Scene to extract from",
+     "variables": {"user_content": "Renn met Mira at the harbor gate at dusk. He handed her the "
+                                   "brass key from the cannery office, and they argued about "
+                                   "whether to tell Old Harbek before the tide turned."}},
+    {"taskKind": "judge.scored", "label": "Passage to critique",
+     "variables": {"user_content": "The door was opened by Mira. Fear was felt by her as the "
+                                   "room was entered. It was dark. It was cold. Something was "
+                                   "wrong, she thought to herself in her head."}},
+]

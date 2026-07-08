@@ -28,10 +28,14 @@ import { startAutoRebuildWatcher } from "./services/rag/autoIndex.js";
 // Shared LLM UI (@delebash/llm-ui) — configure its origin-aware client ONCE with
 // the base the app already resolved, so the shared AI views call the same server
 // endpoints the rest of the app does (no per-app data adapter).
-import { configureLlmUi, configureServerApi, checkServer, configureDialog, configureExternal, configureHelp, closeHelp, openExternal, setUiLocale, ConnectionError } from "@delebash/llm-ui";
+import { configureLlmUi, configureServerApi, checkServer, configureDialog, configureExternal, configureHelp, configureTestData, closeHelp, openExternal, setUiLocale, ConnectionError } from "@delebash/llm-ui";
 import { SERVER_BASE, resolveBase } from "./services/serverApi.js";
 import { loadDoc, hasDoc, titleForSlug, webUrlFor } from "./services/helpDocs.js";
+import { LAB_TEST_SOURCES } from "./services/labTestData.js";
 configureLlmUi({ baseUrl: SERVER_BASE });
+// The AI Lab's "Insert from…" pickers (§7.3): JW's book material as test data —
+// chapters / characters / locations, read lazily from the live project store.
+configureTestData({ sources: LAB_TEST_SOURCES });
 // The shared server transport (request/verbs/safeRequest/...) — JustWrite has no
 // auth, so only the base resolver is configured.
 configureServerApi({ resolveBase });

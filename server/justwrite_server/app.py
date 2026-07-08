@@ -155,6 +155,7 @@ def create_app(data_dir: Path | None = None) -> FastAPI:
         DEFAULT_ENGINE_PRESETS,
         DEFAULT_MODEL_CATALOG_EXTRA,
         DEFAULT_TASKKIND_PRESETS,
+        DEFAULT_TEST_SAMPLES,
         FEATURE_TASK_KINDS,
     )
 
@@ -174,6 +175,9 @@ def create_app(data_dir: Path | None = None) -> FastAPI:
         # GGUF + this box's measured starting tunes. Insert-if-missing — a dev-DB
         # reset re-creates them; user edits / Quick-tune saves never clobbered.
         model_catalog_extra=DEFAULT_MODEL_CATALOG_EXTRA,
+        # §7.3 Lab test samples — synthesized per-taskKind rows for the Lab's
+        # Sample button; fill-if-empty, so edited rows survive reseeds.
+        test_samples=DEFAULT_TEST_SAMPLES,
         # The bundled runner's engine + model cache lives under the app data dir
         # (<data_dir>/ai-cache) so all on-disk data shares one portable root.
         data_dir=data_dir,
