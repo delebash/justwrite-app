@@ -67,7 +67,8 @@ control panel: a **dropdown that's always there** shows the slot's current model
 different one and it's assigned and the loaded model swaps, no other step — plus the slot's
 live state (**● loaded** · **○ loads on first use** · downloading · not downloaded) with its
 own **Load now** / **Unload** buttons; loading is always automatic on first use, so Load now
-just skips the first wait. The list in each dropdown is the models that fit your machine,
+just skips the first wait. Every download progress bar — model downloads and the engine
+install alike — shows the live **speed and time remaining** next to the byte counts. The list in each dropdown is the models that fit your machine,
 best-ranked first, with the one **we recommend for this PC tagged** — an empty card names
 that recommendation in its hint (the embedding recommendation is the same pick Quick Setup
 makes). Quick Setup fills both slots automatically.
