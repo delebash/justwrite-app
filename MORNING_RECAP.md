@@ -171,17 +171,22 @@ probe committed at `scripts/b4-probe.mjs`), round 3 **VERDICT: PASS**. Gates: ru
 the 6/6 acceptance probe. Full record: queue doc §3 B4 BUILD RECORD. ~~PICKUP: Batches 5+6 under the standing go~~ —
 **SUPERSEDED by the HARD STOP below.**
 
-**⛔⛔ HARD STOP (2026-07-08, after the second compact — the CURRENT state; user verbatim):
-*"dont code anyting on the tasks i am adding we need to discuss, do nothing until i say
-go!!!!"*** Everything is FROZEN until the user's go: the QC-10..16 findings (queue doc §9
-ROUND 2 — recorded + answered in chat, they are DISCUSSION items first), Batch 5, Batch 6,
-B2-9, the DL-2 build. The one exception: **QC-9** (Insert-from picker relevance filtering)
-was built + fully gate-verified BEFORE the stop arrived (under the pre-compact offered
-timing) — vitest 48/48 · probe 7/7 zero page errors · build:vite · FULL smoke zero JS
-errors — and only its bookkeeping (checker verdict → commit/push) completed after. Full
-records: queue doc §9 (QC-9 BUILD RECORD + the §9 ROUND 2 block with QC-10..16 verbatim +
-grounded readings + harness tasks #205–#211). NEXT SESSION: read queue §9 ROUND 2, then
-WAIT for the user's discussion/go — do not resume the batches on the old standing go.
+**⛔⛔ THE STATE AT THE THIRD COMPACT (2026-07-08 — the CURRENT pickup):** the hard stop
+("do nothing until i say go!!!!") ran through a full DISCUSSION round that DECIDED: QC-17
+(engine defaults REMOVED entirely — engine SWITCHES only, samplers untouched; the grid
+shows only value-carrying rows, the user adds switches in global/hardware/model) · QC-10
+yes (grouped headings) · QC-11 remove context_shift+cache_reuse from the catalog · QC-12
+yes (the exact copy) · the QC-15/16 fork → **OPTION A** ("do A"). Then the user: *"stop
+lets save this we need to compact then you can go"* — **a GO IS ARMED for right after the
+compact, covering OPTION A ONLY (the QC-15+16 Tasks-tab cluster)**; its full build scope,
+grounded file:line, gates, and the flagged consequences live in the queue doc §9 "THE
+THIRD-COMPACT POINT" block — READ THAT, re-read TaskKinds.vue in full, then build A.
+Decided-but-NOT-in-the-go (ask one line at the A report): QC-10/11/12/17 (the Tune-grid
+cluster) · QC-13 (Not-installed root-cause) · QC-14 (wrap). Still frozen: B2-9 · the DL-2
+build · Batches 5/6. QC-9 shipped earlier this stretch (checker PASS; runner `115e043`,
+JW `a30cade`). The §9 QC queue stays LIVE — answer conversationally FIRST, always. The
+never-decide decree (twice-verbatim) is in the ⛔ #1 block above — no own decisions of
+ANY size, flags pile up = stop and ask BEFORE building.
 
 **Last code heads (both clean, pushed): runner `7727a61` · JW `0c72483`.** (History: QC
 `1bea5f8`/JW `e65de3a`, DL-1 `cf50ce8`/`4051979`, B3R `e8e69a9`, B3 `3250258`, B2 `b1228fb`,
