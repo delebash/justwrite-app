@@ -20,7 +20,7 @@
 
 ---
 
-## ⛔⛔ SESSION STATE (2026-07-07, the on-box tune-review + same-day fix-storm session) — CLASS-TUNE LIBRARY + BASE-BUNDLE FIX + QuickSetup POLISH (runner `b5abb91`) **PLUS TEN MORE SAME-DAY GOES (the GO paragraphs below · design doc ROUNDs 9–18 are the full records — ALL SHIPPED AND VERIFIED, the queue is EMPTY): prompt cancel + instant Apply + the engine-button cluster + the n_gpu_layers knob (`bc34717`) · engine update-replaces-old + Reinstall + one Installing… button + no-cpu-download (`2d37bab`) · Load-as-default/Unload + the hardware-change toast (`333bcee`) · cpu rows retired + the stop-first generalized build sweep (`6148eba`) · the Edit-view spacing batch (`5401fca`) · the ROUND-8 queue-closer: class-tune library CRUD + UI + the ~2-min quick tune + fit-computed Tune-grid values (`0fe1178`) · the cross-model library view + BOTH notification follow-ups closed NOT DOING (`84d1e42`) · the recommendations-taken batch: read-from-link PARITY (tests run, 402/402) + VRAM/debug strip + embed load parity + the setup-strip control panel + model-card links (`011b753`) · the full-queue round: switch PROVENANCE + the Global-launch-defaults drawer + hardware_switches RETIRED + description/notes split + persisted identity facts + pin b9899 + built-in Test health + the stale-error clear + card pickers (`768c65a`) · THE VERIFIED ROUND (#114 closed): curls + reworked probe 22/22 + full smoke + record pytest + the rules-checker verdict (`97c898c`)** — saved heads at this write: runner `440e741` · JW = this commit; NOTHING in flight; open = the user's GPU box checks + the #142 persist dispositions + the parked ledger items.
+## ⛔⛔ SESSION STATE (2026-07-07, the on-box tune-review + same-day fix-storm session) — CLASS-TUNE LIBRARY + BASE-BUNDLE FIX + QuickSetup POLISH (runner `b5abb91`) **PLUS ELEVEN MORE SAME-DAY GOES (the GO paragraphs below · design doc ROUNDs 9–19 are the full records — ALL SHIPPED AND VERIFIED, the queue is EMPTY): prompt cancel + instant Apply + the engine-button cluster + the n_gpu_layers knob (`bc34717`) · engine update-replaces-old + Reinstall + one Installing… button + no-cpu-download (`2d37bab`) · Load-as-default/Unload + the hardware-change toast (`333bcee`) · cpu rows retired + the stop-first generalized build sweep (`6148eba`) · the Edit-view spacing batch (`5401fca`) · the ROUND-8 queue-closer: class-tune library CRUD + UI + the ~2-min quick tune + fit-computed Tune-grid values (`0fe1178`) · the cross-model library view + BOTH notification follow-ups closed NOT DOING (`84d1e42`) · the recommendations-taken batch: read-from-link PARITY (tests run, 402/402) + VRAM/debug strip + embed load parity + the setup-strip control panel + model-card links (`011b753`) · the full-queue round: switch PROVENANCE + the Global-launch-defaults drawer + hardware_switches RETIRED + description/notes split + persisted identity facts + pin b9899 + built-in Test health + the stale-error clear + card pickers (`768c65a`) · THE VERIFIED ROUND (#114 closed): curls + reworked probe 22/22 + full smoke + record pytest + the rules-checker verdict (`97c898c`) · the #142-dispositions CLOSER: the model_measurements history + Clear button BUILT + verified, repo-listing cache + update-check persistence NOT DOING (`8c9ae91`)** — saved heads at this write: runner `8c9ae91` · JW = this commit; NOTHING in flight; open = the user's GPU box checks + the parked ledger items (the #142 dispositions are ALL closed).
 
 > This session was a live on-box review of the Providers/Tune surface. The user walked
 > through the Tune modal for two models and then handed over their authoritative
@@ -371,7 +371,53 @@
 > pattern-verified until a real non-NVIDIA install. **#114 CLOSED — nothing owed remains**
 > except the GPU-dependent box checks that only the user's machine can run (the ROUND 9–17
 > lists) and the #142 persist dispositions (repo-listing cache · model_measurements
-> history · update-check persistence), which await the user's ruling.
+> history · update-check persistence), which await the user's ruling. **[RESOLVED same
+> day, later — the TWELFTH GO below closed all three.]**
+>
+> **TWELFTH GO, same day (2026-07-07 — the #142-dispositions closer; full record: design
+> doc ROUND 19, runner `8c9ae91` + this JW commit):** the user closed the last three open
+> dispositions in two messages — verbatim *"what is epo-listing cache and update-check
+> persistence, do task model_measurements add a clear button to clear history for these
+> types of things"* (the go for audit rows 5+6 + a Clear affordance) then *"mark model
+> persist and egnine update check as not doing"* (rows 3 + 4 closed NOT DOING — the two
+> things the first message had asked about; recorded verbatim in ROUND 19), plus *"forget
+> answer just build code"* (the requested plan-doc inventory answer was dropped on their
+> word). **TWO DECISIONS CLOSED, NOT DOING (never re-open):** the `model_repo_files`
+> repo-listing cache (the quant/draft dropdowns stay fetch-fresh) and the engine
+> update-check persistence (the last-seen `latest` stays ephemeral in the useEngine ref).
+> **SHIPPED — the measurement history (rows 5+6, ONE table, both producers):**
+> `model_measurements` + relational `measurement_switches` child rows (never a JSON blob;
+> a recorded deviation from the audit's "switches-hash" sketch in the MORE-data direction),
+> the `ModelMeasurementStore` (record/list-newest-first/clear), the
+> `GET/POST/DELETE /v1/ai/model-measurements` router (SERVER-stamped machineKey + epoch-ms
+> `at` — the client never supplies identity or clocks; the class-tunes Protocol-store
+> seam), the auto-tune `record_fn` DI (every OK trial persists as it lands with its label +
+> switches; failed trials measured nothing and record nothing; a RAISING recorder logs and
+> the sweep continues unharmed — pinned by test; QuickSetup's optimize rides the same tuner
+> so audit row 7 is covered free), the Tune modal recording its own "Load & measure"
+> results fire-and-forget (it alone knows the loaded switches — the Save-tune client-write
+> precedent) via the new shared `ui/src/measurements.js` client (the classTunes.js
+> precedent), and the **LuMeasureHistory drawer** in the Tune modal (When · Run · Settings ·
+> tok/s · VRAM, newest first, lazy-loaded; **Clear history** confirms then deletes THIS
+> model's rows — saved tunes + class configs untouched, the copy says so; an open drawer
+> refreshes after a measure and when a sweep finishes). The tables are ADDITIVE —
+> `create_all` creates them at next boot, NO dev-DB reset (live-proven on the existing dev
+> DB). INTERPRETATION flagged in ROUND 19: the history renders per-model in the Tune dialog
+> (a clear button needs a visible history); a cross-model view was deliberately not built.
+> **Found-and-fixed:** `scripts/tune-save-probe.mjs` was STALE-BROKEN (its Plan-B model
+> `qwen3-8b-q4_k_m` left the catalog in the Gemma-first lineup) — rehomed to
+> `gemma-4-12b-qat` + extended with the history scenario. **The stale ledger A5 line**
+> ("engine update surface — NOT BUILT") corrected to SHIPPED with the ROUND 3/10/17 cites.
+> **VERIFICATION (all run, all green):** runner ruff + pytest **409/409** (+7 new
+> measurement tests) · JW build:vite + vitest 29/29 · live curls of the whole endpoint
+> lifecycle on :17495 (server-stamped POST → filtered GET → per-model DELETE → clear-all) ·
+> the FULL headless smoke zero JS errors · **the rehabbed tune-save probe 17/17 zero page
+> errors** (the drawer + Clear observed in the REAL modal through the REAL confirm dialog —
+> the ROUND-3 "observe the changed surface" amendment honored) · the diff rules-checker
+> verdict **PASS** (10 PASS · T6/T10 NA; two advisories recorded in the design doc). Box
+> checks in ROUND 19 (drawer under the class library · measure → row appears + survives
+> restart · sweep trials appear labeled · Clear empties only this model's history). With
+> this go **every #142 disposition is closed** — the decree's audit table has no open rows.
 >
 > **THIRD GO, same day (2026-07-07 — the engine install/update batch, tasks #118/#119/#120; full
 > record: design doc ROUND 10):** the user's verbatim batch — *"the engine update should delete the

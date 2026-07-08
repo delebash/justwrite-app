@@ -118,7 +118,11 @@ embedding model carries an **Embedding** badge. From here you can:
   text to share between users. The same library also has an **all-models view** — a
   collapsed **"Hardware-class defaults — all models"** drawer at the bottom of the Built-in
   server's Edit page listing every model's class configs in one table (adding a config there
-  starts with picking the model). For a per-*Task* setup instead, **Send to Tasks Lab**
+  starts with picking the model). Every measured speed is also **saved for good**: the
+  **Measurement history** drawer in the same dialog lists each **Load & measure** run and
+  each auto-tune trial — when, with which settings, and how fast — and survives closing the
+  dialog and restarting the app; **Clear history** empties it (saved tunes and class configs
+  are never touched by a clear). For a per-*Task* setup instead, **Send to Tasks Lab**
   opens the config as a new column in that Task's Lab, where you save it as the Task's
   preset.
 - **Add model** — point at any Hugging Face GGUF repo and **Read from link**: the form lists

@@ -5,10 +5,15 @@
 // "Tuned for this machine ✓"; (b) a bogus saved flag renders the "unrecognized"
 // badge (the D5 stale-flag degradation — visible, not a mystery load failure);
 // (c) "Remove saved tune" clears it (API rows → 0); (d) "Save tune" persists the
-// grid verbatim (API rows > 0 incl. base defaults like flash_attn). Reuses
-// findChrome() from headless-smoke.mjs (never hardcode the Chromium path).
-// Prereqs: server :17495 (reset DB) + dev:vite :1420 + the stub GGUF
-// (ai-cache/hf/models--unsloth--Qwen3-8B-GGUF/snapshots/fake/qwen3-8b-Q4_K_M.gguf).
+// grid verbatim (API rows > 0 incl. base defaults like flash_attn); (e) the
+// MEASUREMENT HISTORY drawer (#142 rows 5+6, 2026-07-07) renders a pre-seeded
+// measurement and "Clear history" empties it through the confirm dialog (API
+// rows → 0). Reuses findChrome() from headless-smoke.mjs (never hardcode the
+// Chromium path). Model REHOMED 2026-07-07: the Plan-B era `qwen3-8b-q4_k_m`
+// left the catalog in the Gemma-first lineup — the probe now rides the 12B rung.
+// Prereqs: server :17495 (reset DB) + dev:vite :1420 + the stub GGUF at
+// <data>/ai-cache/hf/models--unsloth--gemma-4-12B-it-qat-GGUF/snapshots/fake/
+// gemma-4-12B-it-UD-Q4_K_XL.gguf (any *.gguf whose name contains the quant).
 import { existsSync, readdirSync } from "node:fs";
 import { createRequire } from "node:module";
 
@@ -16,7 +21,7 @@ const require = createRequire(import.meta.url);
 const { chromium } = require("playwright");
 const APP = process.env.JW_APP || "http://localhost:1420";
 const API = process.env.JW_API || "http://127.0.0.1:17495";
-const MODEL = "qwen3-8b-q4_k_m";
+const MODEL = "gemma-4-12b-qat";
 
 function findChrome() {
   if (process.env.JW_CHROME && existsSync(process.env.JW_CHROME)) return process.env.JW_CHROME;
@@ -56,6 +61,16 @@ const seeded = await api("/v1/ai/model-tunes", {
   ] }),
 });
 check("pre-seed: PUT saved 2 rows (server-derived hwKey)", seeded.rows.length === 2, `hwKey=${seeded.hwKey}`);
+
+// ── API pre-seed: one measurement so the history drawer has a row to render ──
+await api(`/v1/ai/model-measurements?modelId=${MODEL}`, { method: "DELETE" });
+const seededHist = await api("/v1/ai/model-measurements", {
+  method: "POST",
+  body: JSON.stringify({ modelId: MODEL, tokensPerSec: 42.5, vramTotalMb: 7168,
+    switches: [{ flagName: "threads", flagValue: "8" }] }),
+});
+check("pre-seed: measurement recorded (server-stamped machineKey)",
+  seededHist.measurements.length === 1 && !!seededHist.measurements[0].machineKey);
 
 const browser = await chromium.launch({ executablePath: findChrome(), args: ["--no-sandbox"] });
 const page = await browser.newPage();
@@ -108,6 +123,25 @@ try {
   check("API rows > 0 after Save (grid verbatim)", afterSave.rows.length > 0, `rows=${names.join(",")}`);
   check("the saved snapshot carries a base default (flash_attn)", names.includes("flash_attn"));
 
+  // (e) the measurement-history drawer: pre-seeded row renders; Clear empties it
+  const hist = page.locator(".lu-mh");
+  check("measurement-history drawer exists in the modal", await hist.isVisible());
+  await hist.locator("summary").click(); // open → lazy-loads the history
+  await sleep(700);
+  check("the pre-seeded measurement renders (tok/s + settings)",
+    (await hist.textContent()).includes("42.5") &&
+    (await hist.textContent()).includes("threads=8"));
+  const clearBtn = hist.getByRole("button", { name: "Clear history" });
+  check("Clear-history button renders", await clearBtn.isVisible());
+  await clearBtn.click();
+  await page.waitForSelector(".ui-dialog__message", { timeout: 5000 });
+  await page.getByRole("button", { name: "Clear history" }).last().click(); // the dialog's confirm
+  await sleep(700);
+  check("the drawer shows the empty state after Clear",
+    (await hist.textContent()).includes("Nothing measured yet"));
+  const afterClear = await api(`/v1/ai/model-measurements?modelId=${MODEL}`);
+  check("API measurements == 0 after Clear", afterClear.measurements.length === 0);
+
   console.log(`\npage errors: ${errors.length}`);
   if (errors.length) { console.log(errors.slice(0, 6).join("\n")); failed = true; }
   console.log(failed ? "\nTUNE-SAVE PROBE: FAIL" : "\nTUNE-SAVE PROBE: PASS");
@@ -116,6 +150,7 @@ try {
   failed = true;
 } finally {
   await api(`/v1/ai/model-tunes?modelId=${MODEL}`, { method: "DELETE" }).catch(() => {});
+  await api(`/v1/ai/model-measurements?modelId=${MODEL}`, { method: "DELETE" }).catch(() => {});
   await browser.close();
   process.exit(failed ? 1 : 0);
 }
