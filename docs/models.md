@@ -129,9 +129,11 @@ embedding model carries an **Embedding** badge. From here you can:
   with a **Refresh from defaults** button that loads today's defaults into the grid for you
   to review, measure, and Apply; nothing changes until you do. The dialog's badge tells you
   **how** the model got its config: **Auto-tuned on this PC ✓** (the sweep's winner, applied
-  unedited), **Hand-tuned on this PC ✓**, **Class default for this PC** (no config of its
-  own — it starts from your hardware class's shared one), or **Untuned** — and the same
-  badge shows on the model's **row in the catalog** (untuned rows just carry none).
+  unedited), **Hand-tuned on this PC ✓**, or **Untuned — using the layered defaults** (the
+  badge never claims the config comes from one single layer — the rows themselves show which
+  layer set each value). A model with no config of its own but a saved class config shows a
+  **Hardware-class default** badge on its **row in the catalog** (tuned rows show their
+  Auto-/Hand-tuned badge there; untuned rows just carry none).
   **Remove applied
   config** sits right beside Apply in the dialog's footer — it returns the model to its
   live defaults, also reloading a running model. In the dialog, only the **switch grid scrolls**
@@ -139,29 +141,31 @@ embedding model carries an **Embedding** badge. From here you can:
   below it**, no scrolling to find them. **Auto-tune** asks before it starts: the measured
   sweep can take **4 to 30 minutes depending on your hardware** (it usually gives the best
   results for a model that hasn't been tuned yet, and you can cancel after any trial).
-  **Every engine switch is a visible row** — the grid lists the whole switch catalog, each
-  row labeled with **where its value comes from** (*all models* · *model type* ·
-  *speculative decode* · *your PC class* · *your applied config* · *computed for this PC* ·
-  *engine default*), so "what set this switch?" always has an answer and nothing is hidden
-  behind a button (the old "Add to grid" step is gone — values the engine works out for
+  **Every engine switch is one flat, visible row** — the grid lists the whole switch
+  catalog with no expanders and no checkboxes: each row is the switch's name with **where
+  its value comes from** right under it (*Global launch default* · *Hardware-class
+  default* · *your applied config* · *computed for this PC* · *engine default* — the same
+  names as the editors they point at), so "what set this switch?" always has an answer and
+  nothing is hidden (the old "Add to grid" step is gone — values the engine works out for
   your machine, like GPU layers and context size, are ordinary pre-filled rows now, and
-  Apply keeps them with the rest). Set rows come pre-filled — including speculative
+  Apply keeps them with the rest). Set rows carry their value — including speculative
   decoding (**MTP**), which turns on automatically for models that support it; set it to
-  *Off* and Apply if you don't want it. Unchecked rows simply use the engine's own
-  defaults; ticking one makes it yours. After a measurement, **Save for
+  *Off* and Apply if you don't want it. An unset row shows the engine's own default as a
+  muted hint — **type a value to make it yours, clear the value (or pick "engine default")
+  to give it back**. After a measurement, **Save for
   hardware class** keeps the config as the shared starting point for **every PC with the
   same video memory and RAM** (a machine with its own applied config still wins), and the
-  **"Hardware-class defaults ↗"** link in the same dialog opens the editable library of
-  this model's class configs as its own dialog: edit one (editing a built-in makes it
-  yours and it sticks), add one for a different class, delete one you added, or
-  **Copy**/**Import** a config as a small piece of text to share between users — a
+  **"Hardware-class defaults ↗"** link in the same dialog opens **this model's class
+  config straight in its editor** — your PC's class row when one exists, otherwise a new
+  config prefilled with your class — no list to click through; a
   **"Global launch defaults ↗"** link beside it opens the always-on switch bundles the
-  same way, so nothing is edited embedded in the Tune dialog itself. The class library
-  also has an **all-models view** — the
-  **"Hardware-class defaults…"** button under the catalog on the Built-in provider's Edit
-  page opens **the library**, every saved config in one table where **each row is one
-  model × one PC class** (there is no single tune covering all models; adding a config
-  there starts with picking the model). Every measured speed is also **saved for
+  same way, so nothing is edited embedded in the Tune dialog itself. The full **library**
+  lives on the Built-in provider's Edit page — the **"Hardware-class defaults…"** button
+  there opens every saved config in one table where **each row is one model × one PC
+  class** (there is no single tune covering all models; adding a config there starts with
+  picking the model), with **Copy**/**Import** to share a config between users as a small
+  piece of text; while you edit or import there, the editor takes the screen by itself and
+  Cancel brings the table back. Every measured speed is also **saved for
   good**: the
   **Measurement history** drawer in the same dialog lists each **Load & measure** run and
   each auto-tune trial — when, with which settings, and how fast — and survives closing the
