@@ -68,6 +68,13 @@ vitest 29/29 + the FULL headless smoke zero JS errors + the tune-save probe 17/1
 
 ## OPEN WORK — the ONE list and where it lives
 
+- **THE ACTIVE BATCH (2026-07-08):** the user's 52-item list, organized and grounded in
+  `just-llm-runner/docs/plans/2026-07-08-big-batch-queue.md` — §0 the list verbatim · §1 the
+  code-verified answers (incl. the dead per-preset launch-switch plane, the apiKey root cause,
+  the Tauri-link cause) · §2 discussions A–F awaiting the user (A = tuning-flow consolidation,
+  first) · §3 batches B1–B6 · §5 clarifications needed (#9, #34). NOTHING BUILT YET — each batch
+  needs its own go; no-tests posture is on (user tests on box; container build/smoke still gate
+  ships).
 - **THE ledger:** `just-llm-runner/docs/plans/2026-07-06-outstanding-master-plan.md` — every
   genuinely open item across all three repos, twice-verified, sections A–I. **Do not maintain a
   second backlog anywhere, including here.** §I (added 2026-07-08) folds in the 2026-06-28
