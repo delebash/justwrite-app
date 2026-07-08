@@ -75,8 +75,24 @@ task entry). **B1-2 (#7 engine-update leftover) still waits on the box's engine-
 record: the queue doc §3 "B1 BUILD RECORD". Gates: runner ruff + 411 pytest · JW vitest 30/30 ·
 build:vite · FULL headless smoke zero JS errors · rules-checker VERDICT: PASS.
 
-**Last code heads (both clean, pushed): runner `ea28e07` · JW `167b399`** (the B1 ship; commits
-after these are doc-only). **The providers-surface marathon is CLOSED: ROUNDs 1–19 all shipped and
+**GO (2026-07-08, night) — BATCH 2 (providers & catalog UI) SHIPPED** (the user's bare "go"
+after the post-B1 compact = the next buildable queue unit; B2-9 excluded, gated on discussion
+B). Seven items, all kit/runner: #3 "Built-in server" → "Built-in provider" (+ a seeder
+name-refresh so existing DBs rename at next boot UNLESS the user renamed the row — container-
+proven live, no reset) · #4 the Run-Quick-Setup band moved to the TOP of the built-in card
+(interpretation flagged in the record) · #5 the "Your setup" slot dropdowns are ALWAYS visible
+(change = the same assign+load writers; the recommended embed — QuickSetup's exact shared pick —
+is tagged in the list and named in the empty hint) · #6 Hardware-class defaults + Global launch
+defaults became AppModal popups (both components gained an `expanded` prop; drawers elsewhere
+unchanged) · #8 the Local-engine panel got Uninstall beside its Installed line (shared useEngine
+action) · #10 a "Model Catalog" heading · #11 accent-band section headers · #12c/d "Read from
+link" → **"Load model info from HF"** (info-blue, moved above the quant dropdown, "— no download"
+tail dropped). Full record: the queue doc §3 "B2 BUILD RECORD". Gates: runner ruff + 412 pytest ·
+JW vitest 30/30 · build:vite · FULL headless smoke zero JS errors · a 9/9 B2 surface probe +
+4 screenshots · rules-checker VERDICT: PASS.
+
+**Last code heads (both clean, pushed): runner `b1228fb` (the B2 ship — kit + runner only, no
+JW code) · JW `167b399` (the B1 ship; JW commits after it are doc-only).** **The providers-surface marathon is CLOSED: ROUNDs 1–19 all shipped and
 verified, the queue is EMPTY** — full records in
 `just-llm-runner/docs/plans/2026-07-06-providers-surface-redesign.md` (read its STATUS banner +
 the round you need, never the whole 137 KB file). The #142 save-everything dispositions are all
@@ -100,10 +116,10 @@ vitest 29/29 + the FULL headless smoke zero JS errors + the tune-save probe 17/1
 - **THE ACTIVE BATCH (2026-07-08):** the user's 52-item list, organized and grounded in
   `just-llm-runner/docs/plans/2026-07-08-big-batch-queue.md` — §0 the list verbatim · §1 the
   code-verified answers · §2 discussions B–F awaiting the user (A became the §7.1 lock, built) ·
-  §3 batches B1–B6 — **B1 BUILT + shipped (see its BUILD RECORD there; B1-2 waits on the box's
-  engine-log line)**; batches 2–6 each need their own go; discussion B gates B2-9 + B5-1, C gates
-  B4-4, D gates B6-1/2, F gates B6-3. No-tests posture on (user tests on box; container gates
-  still run at ship).
+  §3 batches B1–B6 — **B1 + B2 BUILT + shipped (see their BUILD RECORDS there; B1-2 waits on the
+  box's engine-log line, B2-9 on discussion B)**; batches 3–6 each need their own go; discussion
+  B gates B2-9 + B5-1, C gates B4-4, D gates B6-1/2, F gates B6-3. No-tests posture on (user
+  tests on box; container gates still run at ship).
 - **THE ledger:** `just-llm-runner/docs/plans/2026-07-06-outstanding-master-plan.md` — every
   genuinely open item across all three repos, twice-verified, sections A–I. **Do not maintain a
   second backlog anywhere, including here.** §I (added 2026-07-08) folds in the 2026-06-28

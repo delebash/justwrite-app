@@ -10,8 +10,8 @@ tune models yourself.
 A fresh install (and a factory reset — they are the same state) ships the catalog **full**
 but every choice **empty**: no task model, no embedding. The "Your setup" strip shows both
 slots as **Not set**, and anything that needs a model before setup answers with "run Quick
-Setup" guidance instead of an error. On the **Built-in server** card, **Run Quick Setup**
-does the whole first-time setup:
+Setup" guidance instead of an error. At the top of the **Built-in provider** card, **Run
+Quick Setup** does the whole first-time setup:
 
 1. It detects your hardware (GPU, VRAM, RAM).
 2. It picks the **most capable model that still runs fast on your box** — not just the
@@ -63,11 +63,14 @@ Open the **Built-in** provider (under **Providers & models**) to see the catalog
 **"Your setup"** strip at the top shows the two slots the app needs filled — your **General
 model** (writes prose, chats, extracts) and your **Embedding model** (powers semantic search
 and grounded chat). The app runs these two **side by side**, and each card is that pair's
-control panel: it shows the slot's live state (**● loaded** · **○ loads on first use** ·
-downloading · not downloaded) with its own **Load now** / **Unload** buttons — loading is
-always automatic on first use, so Load now just skips the first wait. Quick Setup fills both
-slots automatically; setting them by hand, each card tells you which section below to pick
-from, and an unfilled slot shows **Not set**.
+control panel: a **dropdown that's always there** shows the slot's current model — pick a
+different one and it's assigned and the loaded model swaps, no other step — plus the slot's
+live state (**● loaded** · **○ loads on first use** · downloading · not downloaded) with its
+own **Load now** / **Unload** buttons; loading is always automatic on first use, so Load now
+just skips the first wait. The list in each dropdown is the models that fit your machine,
+best-ranked first, with the one **we recommend for this PC tagged** — an empty card names
+that recommendation in its hint (the embedding recommendation is the same pick Quick Setup
+makes). Quick Setup fills both slots automatically.
 
 The list itself is split into **Chat & writing models** and **Embedding models** — each
 section shows the models that **fit your machine**, and everything that doesn't fit sinks
@@ -129,44 +132,45 @@ embedding model carries an **Embedding** badge. From here you can:
   **Hardware-class defaults** drawer in the same dialog is the editable library of those
   class configs: edit one (editing a built-in makes it yours and it sticks), add one for a
   different class, delete one you added, or **Copy**/**Import** a config as a small piece of
-  text to share between users. The same library also has an **all-models view** — a
-  collapsed **"Hardware-class defaults — all models"** drawer at the bottom of the Built-in
-  server's Edit page listing every model's class configs in one table (adding a config there
-  starts with picking the model). Every measured speed is also **saved for good**: the
+  text to share between users. The same library also has an **all-models view** — the
+  **"Hardware-class defaults…"** button under the catalog on the Built-in provider's Edit
+  page opens it as a dialog listing every model's class configs in one table (adding a
+  config there starts with picking the model). Every measured speed is also **saved for
+  good**: the
   **Measurement history** drawer in the same dialog lists each **Load & measure** run and
   each auto-tune trial — when, with which settings, and how fast — and survives closing the
   dialog and restarting the app; **Clear history** empties it (applied configs and class
   configs are never touched by a clear).
-- **Add model** — point at any Hugging Face GGUF repo and **Read from link**: the form lists
-  the repo's **available quants as a dropdown** (each with its download size and a **QAT** /
+- **Add model** — point at any Hugging Face GGUF repo and click **Load model info from HF**
+  (right under the repo field, above the quant picker): the form lists the repo's
+  **available quants as a dropdown** (each with its download size and a **QAT** /
   **IQ** label where it applies), pre-picks one that fits your machine (change it, or pick
   *Custom…* to type your own), and fills the model's details from the file — all before
   downloading. If the repo ships a **separate MTP draft model** (some models, like Gemma,
   keep speculative decoding in its own small file), the form detects it and pre-selects the
   smallest draft; the draft downloads alongside the model on its first MTP load. This is how
   you run a model outside the built-in list.
-- **Edit** a model's details. The **description** belongs to the file: **Read from link**
-  regenerates it from what the model actually is (parameters, context, MTP, quant, size) —
-  and your own **Notes** field sits beside it for anything personal (measured speeds, taste,
-  use policy); notes are never touched by reads, downloads, or resets, and show in italics
-  under the description on the model's row. The **auto-detected facts** (architecture,
-  expert count, file size, download size, trained context, recommended samplers) are
-  **saved on the model**, so the form shows them the moment it opens — Read from link just
-  re-verifies them against the live repo (the download size belongs to the selected quant
-  and clears if you pick a different one). The **benchmark rank** (lower = better) and the
-  **what-this-model-is checkboxes** — **MoE**, **MTP** (a selected draft file keeps MTP
-  checked; speculative decoding auto-enables), **Embedding** — round out the form.
-  **Delete** one you added, or **Reset catalog** to restore the built-ins (your added
-  models are kept). Each row also shows its **rank and size** right under the id, so the
-  sort orders are visible, and an empty **Your setup** card offers a **dropdown of the
-  models that fit** — pick one there and it's assigned and loaded without scrolling.
+- **Edit** a model's details. The **description** belongs to the file: **Load model info
+  from HF** regenerates it from what the model actually is (parameters, context, MTP, quant,
+  size) — and your own **Notes** field sits beside it for anything personal (measured
+  speeds, taste, use policy); notes are never touched by reads, downloads, or resets, and
+  show in italics under the description on the model's row. The **auto-detected facts**
+  (architecture, expert count, file size, download size, trained context, recommended
+  samplers) are **saved on the model**, so the form shows them the moment it opens — Load
+  model info from HF just re-verifies them against the live repo (the download size belongs
+  to the selected quant and clears if you pick a different one). The **benchmark rank**
+  (lower = better) and the **what-this-model-is checkboxes** — **MoE**, **MTP** (a selected
+  draft file keeps MTP checked; speculative decoding auto-enables), **Embedding** — round
+  out the form. **Delete** one you added, or **Reset catalog** to restore the built-ins
+  (your added models are kept). Each row also shows its **rank and size** right under the
+  id, so the sort orders are visible.
 
 A model's weights download from Hugging Face onto your machine; the catalog only lists
 them. The built-in list is a **small curated ladder, Gemma-first for writing** — Gemma 4
 dense rungs for small and large cards, the Gemma 4 26B-A4B MoE as the tested default, one
 Qwen MoE alternative, plus a few embedding models — every repo, quant, license, **and file
 size** verified against Hugging Face, so each built-in row shows its real **file size and
-download size from the start** (no download or Read-from-link needed first). Two rows are **deliberate choices, never auto-picked**: a community
+download size from the start** (no download or info-load needed first). Two rows are **deliberate choices, never auto-picked**: a community
 prose style-tune (Gryphe) and an **uncensored** build for fiction whose dark, gory, or adult
 scenes hit stock refusals — you pick those yourself. It's a starting point, not a limit:
 **Add model** lets you run anything. Some models carry a **use-limited** license (⚠) — free
@@ -182,17 +186,18 @@ model and can't be changed here — the wrong pooling would quietly make search 
 > the same **Built-in** provider, above the catalog, as one compact row: **Install engine**
 > when it's absent (the Local engine panel shows its own Install button then too), **Update**
 > and **Uninstall** once installed (uninstalling deletes only the engine binaries — your
-> downloaded models are kept), and **Details** expands the rest (the spawn log, the
-> loaded-models list with its VRAM budget, the two keep-loaded knobs, and the
+> downloaded models are kept; the Local engine panel carries the same Uninstall button
+> right beside its "Installed · build · gpu" line), and **Details** expands the rest (the
+> spawn log, the loaded-models list with its VRAM budget, the two keep-loaded knobs, and the
 > engine-binaries editor). An in-flight install's progress bar and any error stay visible
-> even with Details collapsed. **Test connection** on the Built-in server reports its real
+> even with Details collapsed. **Test connection** on the Built-in provider reports its real
 > health — engine installed, build, how many models the catalog holds — rather than probing
 > a server that hasn't loaded anything yet (models load on first use by design).
 >
-> Below the catalog sit two more editable libraries: **Hardware-class defaults** (the
-> shared per-PC-class launch configs) and **Global launch defaults** — the always-on
-> switch bundles (all models · MoE · dense · speculative decode) that sit underneath every
-> tune, finally visible and editable with a Reset. In a model's **Tune** dialog, every
+> Under the catalog, two buttons open the other editable libraries as dialogs:
+> **Hardware-class defaults…** (the shared per-PC-class launch configs) and **Global launch
+> defaults…** — the always-on switch bundles (all models · MoE · dense · speculative decode)
+> that sit underneath every tune, visible and editable with a Reset. In a model's **Tune** dialog, every
 > pre-filled value now carries a small tag saying **where it came from** (all models · model
 > type · speculative decode · your PC class · saved tune), the engine-computed values show
 > separately, and a closing line reminds you that anything not listed uses the engine's own
