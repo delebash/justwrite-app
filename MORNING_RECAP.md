@@ -129,9 +129,25 @@ JW vitest 30/30 · build:vite · FULL headless smoke zero JS errors · a **14/14
 drift round-trip against a moved global default; DB left as found) + screenshots · rules-checker
 VERDICT: PASS.
 
-**Last code heads (both clean, pushed): runner `e8e69a9` (the B3-remainder ship; B3 was
-`3250258`, B2 `b1228fb` — all kit/runner only, no JW code) · JW `167b399` (the B1 ship; JW
-commits after it are doc-only).** **The providers-surface marathon is CLOSED: ROUNDs 1–19 all shipped and
+**GO (2026-07-08, post-pickup) — DL-1 + the Tune QC cluster SHIPPED.** DL-1 (the queue §8
+go): download **speed + ETA on both progress bars** — a new pure kit tracker
+(`downloadRate.js`, window-smoothed Δbytes/Δt over the existing polls, byte-regression
+reset; `fmtBytes` converged to one source), no server change; 8 new vitest cases; a 4/4
+synthetic-feed probe observed all three bar mounts (runner `cf50ce8`, JW `4051979`,
+checker PASS). Then the user QC'd the B3R Tune surfaces live and the **QC cluster (queue
+§9, QC-1..8)** rebuilt them to the discussed design: KnobGrid gained a LEDGER mode (every
+switch one flat visible row, flag name + origin under it, set-by-value — no checkboxes, no
+per-row resets, no Advanced expander), real editor names on every tag, a truthful header
+badge, a one-sentence lede, the per-model class popup opens straight in its editor, the
+global library edits one-thing-at-a-time, both help texts trimmed (16/16 probe, checker
+PASS; runner `1bea5f8`, JW `e65de3a`). MID-CLUSTER INCIDENT, recorded in §9: I built
+through the user's QC messages without answering them — they stopped me ("stop doing"),
+got the full account, and ACCEPTED the four flagged decisions ("thats fine continue");
+standing lesson: **QC messages get a conversational answer BEFORE any build.** Full
+records: queue doc §8 (DL-1) + §9 (the cluster + acceptance).
+
+**Last code heads (both clean, pushed): runner `1bea5f8` · JW `e65de3a`.** (History: B3R
+`e8e69a9`, B3 `3250258`, B2 `b1228fb`, B1 JW `167b399`.) **The providers-surface marathon is CLOSED: ROUNDs 1–19 all shipped and
 verified, the queue is EMPTY** — full records in
 `just-llm-runner/docs/plans/2026-07-06-providers-surface-redesign.md` (read its STATUS banner +
 the round you need, never the whole 137 KB file). The #142 save-everything dispositions are all
