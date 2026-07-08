@@ -11,7 +11,7 @@ import {
   titleForSlug,
   webUrlFor,
 } from "../services/helpDocs.js";
-import { renderHelpMarkdown } from "@delebash/llm-ui";
+import { openExternal, renderHelpMarkdown } from "@delebash/llm-ui";
 
 const props = defineProps({ slug: { type: String, default: "" } });
 
@@ -29,24 +29,24 @@ const renderedHtml = computed(() => renderHelpMarkdown(rawDoc.value));
 const contentEl = ref(null);
 
 function onContentClick(e) {
-  const a = e.target.closest("a[data-help-link]");
+  const a = e.target.closest("a[href]");
   if (!a) return;
-  e.preventDefault();
   const href = a.getAttribute("href") || "";
-  router.push(href);
+  if (a.hasAttribute("data-help-link")) {
+    e.preventDefault();
+    router.push(href);
+    return;
+  }
+  // External doc links carry target=_blank, which the Tauri webview swallows —
+  // route through the shared opener (configured to the shell bridge in main.js).
+  if (/^https?:/i.test(href)) {
+    e.preventDefault();
+    openExternal(href);
+  }
 }
 
 function openOnWeb() {
-  // Tauri's webview swallows window.open for external URLs — route
-  // through the bridge command so the OS browser actually opens.
-  // The browser-only dev path (no window.justwrite) falls back to
-  // a plain window.open which works there.
-  const url = webUrl.value;
-  if (window.justwrite?.shell?.openExternal) {
-    window.justwrite.shell.openExternal(url);
-  } else {
-    window.open(url, "_blank", "noopener,noreferrer");
-  }
+  openExternal(webUrl.value);
 }
 
 function go(slug) {

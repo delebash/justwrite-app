@@ -247,7 +247,7 @@ async function ask() {
       },
       task: { label: chatMode.value === "character"
         ? `Character chat · ${(project.characters || []).find(c => c.id === selectedCharacterId.value)?.name || "Character"}`
-        : "Ask the manuscript",
+        : "Ask the book",
         meta: { mode: chatMode.value, characterId: selectedCharacterId.value } },
     };
     const result = chatMode.value === "character"
@@ -338,10 +338,10 @@ defineExpose({ open: () => { open.value = true; }, close });
 
 <template>
   <transition name="cp-slide">
-    <aside v-if="open" ref="panelRef" class="chat-panel" role="dialog" aria-label="Ask the manuscript">
+    <aside v-if="open" ref="panelRef" class="chat-panel" role="dialog" aria-label="Ask the book">
       <header class="cp-head">
         <div>
-          <div class="t-eyebrow">{{ chatMode === "character" ? "Talk to a character" : "Ask the manuscript" }}</div>
+          <div class="t-eyebrow">{{ chatMode === "character" ? "Talk to a character" : "Ask the book" }}</div>
           <h2>
             <template v-if="chatMode === 'character'">
               {{ selectedCharacter?.name || "Pick a character" }}

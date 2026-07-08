@@ -64,6 +64,18 @@ describe("ensureEmbeddingReady", () => {
     );
   });
 
+  it("re-ensures when the requested embedding model changes (#9)", async () => {
+    routes({ embed: { embeddings: [[1]] } });
+    // first search with model A lazy-loads; a repeat with A reuses the cache…
+    await embedTexts({ providerId: "b", providerType: "local-llamacpp", model: "embed-a", input: "x" });
+    await embedTexts({ providerId: "b", providerType: "local-llamacpp", model: "embed-a", input: "y" });
+    expect(ensureCalls()).toBe(1);
+    // …but switching to model B must re-ensure (the old cache replayed "ready"
+    // for the previous model and the first embed after a switch failed).
+    await embedTexts({ providerId: "b", providerType: "local-llamacpp", model: "embed-b", input: "z" });
+    expect(ensureCalls()).toBe(2);
+  });
+
   it("accepts a sleeping resident (reloads on next request)", async () => {
     routes({ resident: { models: [{ id: "nomic", status: "sleeping" }] } });
     await expect(ensureEmbeddingReady("builtin", "local-llamacpp")).resolves.toBeUndefined();

@@ -108,13 +108,17 @@ describe("runAiFeatureStream — onDelta + task registry", () => {
 });
 
 describe("runAiFeature (non-stream)", () => {
-  it("POSTs /v1/ai/run and returns { content, model }", async () => {
-    const fetchMock = vi.fn(async () => jsonResponse({ content: "result", model: "m1" }));
+  it("POSTs /v1/ai/run and returns { content, model } + usage passthrough", async () => {
+    const fetchMock = vi.fn(async () =>
+      jsonResponse({ content: "result", model: "m1", promptTokens: 3, completionTokens: 7, cost: 0.01 }));
     vi.stubGlobal("fetch", fetchMock);
     const out = await runAiFeature({ action: "critique", variables: { a: 1 } });
-    expect(out).toEqual({ content: "result", model: "m1" });
+    // Usage/cost ride along for callers that display them (the Lab readout, #36);
+    // { content, model } destructuring keeps working for every prior caller.
+    expect(out).toEqual({ content: "result", model: "m1", promptTokens: 3, completionTokens: 7, cost: 0.01 });
     const [url, opts] = fetchMock.mock.calls[0];
     expect(String(url)).toContain("/v1/ai/run");
+    // Lab-only overrides are absent unless set — the body stays minimal.
     expect(JSON.parse(opts.body)).toEqual({ action: "critique", variables: { a: 1 } });
   });
 

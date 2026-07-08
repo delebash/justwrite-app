@@ -28,13 +28,23 @@ import { startAutoRebuildWatcher } from "./services/rag/autoIndex.js";
 // Shared LLM UI (@delebash/llm-ui) — configure its origin-aware client ONCE with
 // the base the app already resolved, so the shared AI views call the same server
 // endpoints the rest of the app does (no per-app data adapter).
-import { configureLlmUi, configureServerApi, checkServer, configureDialog, configureHelp, closeHelp, setUiLocale, ConnectionError } from "@delebash/llm-ui";
+import { configureLlmUi, configureServerApi, checkServer, configureDialog, configureExternal, configureHelp, closeHelp, openExternal, setUiLocale, ConnectionError } from "@delebash/llm-ui";
 import { SERVER_BASE, resolveBase } from "./services/serverApi.js";
 import { loadDoc, hasDoc, titleForSlug, webUrlFor } from "./services/helpDocs.js";
 configureLlmUi({ baseUrl: SERVER_BASE });
 // The shared server transport (request/verbs/safeRequest/...) — JustWrite has no
 // auth, so only the base resolver is configured.
 configureServerApi({ resolveBase });
+
+// External links (kit anchors + help docs + our own views) — the Tauri webview
+// swallows target=_blank/window.open, so route through the shell bridge; the
+// browser dev path (no window.justwrite) keeps window.open via the kit fallback.
+configureExternal({
+  open: (url) => {
+    if (window.justwrite?.shell?.openExternal) window.justwrite.shell.openExternal(url);
+    else window.open(url, "_blank", "noopener,noreferrer");
+  },
+});
 
 // Shared in-app Help (kit HelpDrawer + HelpTrigger). JustWrite supplies the
 // content adapter over its docs/*.md corpus plus both handoffs: "Open full
@@ -45,11 +55,7 @@ configureHelp({
   hasDoc,
   titleForSlug,
   onOpenFull: (slug) => { router.push(slug ? `/help/${slug}` : "/help"); closeHelp(); },
-  onOpenWeb: (slug) => {
-    const url = webUrlFor(slug);
-    if (window.justwrite?.shell?.openExternal) window.justwrite.shell.openExternal(url);
-    else window.open(url, "_blank", "noopener,noreferrer");
-  },
+  onOpenWeb: (slug) => openExternal(webUrlFor(slug)),
 });
 
 // Hydrate the server-backed caches BEFORE any Pinia store initialises — stores
