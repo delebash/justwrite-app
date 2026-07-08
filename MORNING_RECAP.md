@@ -108,6 +108,13 @@ vitest 29/29 + the FULL headless smoke zero JS errors + the tune-save probe 17/1
   the USER decides; don't barrel (stop after units, surface decisions); audit the full
   cascade file-by-file before a big refactor; think 4×; verify line-by-line; build the
   clean shared component (don't optimize "JV-safe").
+- **Subagent delegation (re-permitted 2026-07-08, supersedes the 2026-06-09 disable):** I MAY
+  spawn **Opus** subagents for mechanical / well-scoped tasks I judge Opus does as well as me —
+  the user's reason: I (Fable) am better at design + decision-making, so those stay with me;
+  parallelizable grunt work can go to Opus. **The MAIN chat window stays Fable — do NOT switch
+  the conversational model to Opus** (the user's Claude Code window auto-flipped to Opus and
+  they reverted it); Opus is per-*subagent* only (set the Agent `model: "opus"` per spawn — it's
+  independent of the window model). Never Sonnet (global T10).
 - **DB policy:** drop + reseed, no migrations (pre-release;
   `docs/plans/2026-06-18-unified-storage-no-idb.md`). Additive-only schema changes (new
   tables) need no reset — `create_all` picks them up on boot.
