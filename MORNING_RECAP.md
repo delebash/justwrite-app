@@ -214,6 +214,11 @@ vitest 29/29 + the FULL headless smoke zero JS errors + the tune-save probe 17/1
   the changed surface**; checker discipline per the user's "do b": NO pre-build agent check
   (grounding + inline T1–T12 citation before building), **ONE genuine diff rules-checker
   verdict before each CODE commit** (doc-only commits exempt).
+- **Don't cram (user decree 2026-07-08, queue doc §9 QC-7):** hierarchy + breathing room on
+  every surface; ONE short lede sentence max on a working surface (detail behind the help
+  affordance); one fact shown once; one primary thing on screen per mode. Born from the Tune
+  modal's two-paragraph lede + doubled names + stacked list-and-editor ("you cram stuff
+  together … everywhere").
 - **The cwd footgun (struck ~10 times):** never chain `cd` inside compound commands and never
   rely on the shared shell cwd across parallel Bash calls — every command gets its own
   explicit absolute-path `cd`; trust the OUTPUT, never a bare exit code.
