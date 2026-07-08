@@ -119,21 +119,35 @@ embedding model carries an **Embedding** badge. From here you can:
   machine** and — if the model is running right now — it **reloads immediately**, so what
   you applied is always what's actually running; a **toast confirms the moment it's done**.
   Every later load uses it automatically (and each machine keeps its own config, so a data
-  folder moved to another computer never applies the wrong numbers). While a config is
-  applied, the dialog shows a clear **Applied on this PC ✓** badge, and **Remove applied
+  folder moved to another computer never applies the wrong numbers). **Applying is a
+  deliberate snapshot: the model takes ownership of everything you see.** From that moment
+  it stops following later changes to the global or hardware-class defaults — what you
+  measured is what keeps running (both defaults libraries say so right in their help text).
+  If the defaults DO change under an applied config, the dialog tells you the next time you
+  open it — *"Defaults have changed since you applied this config — N values differ"* —
+  with a **Refresh from defaults** button that loads today's defaults into the grid for you
+  to review, measure, and Apply; nothing changes until you do. The dialog's badge tells you
+  **how** the model got its config: **Auto-tuned on this PC ✓** (the sweep's winner, applied
+  unedited), **Hand-tuned on this PC ✓**, **Class default for this PC** (no config of its
+  own — it starts from your hardware class's shared one), or **Untuned** — and the same
+  badge shows on the model's **row in the catalog** (untuned rows just carry none).
+  **Remove applied
   config** sits right beside Apply in the dialog's footer — it returns the model to its
-  defaults, also reloading a running model. In the dialog, only the **switch grid scrolls**
+  live defaults, also reloading a running model. In the dialog, only the **switch grid scrolls**
   (in its own capped area) — the load/measure progress and the **tok/s result stay in view
   below it**, no scrolling to find them. **Auto-tune** asks before it starts: the measured
   sweep can take **4 to 30 minutes depending on your hardware** (it usually gives the best
   results for a model that hasn't been tuned yet, and you can cancel after any trial).
-  Good defaults come pre-filled — including speculative
+  **Every engine switch is a visible row** — the grid lists the whole switch catalog, each
+  row labeled with **where its value comes from** (*all models* · *model type* ·
+  *speculative decode* · *your PC class* · *your applied config* · *computed for this PC* ·
+  *engine default*), so "what set this switch?" always has an answer and nothing is hidden
+  behind a button (the old "Add to grid" step is gone — values the engine works out for
+  your machine, like GPU layers and context size, are ordinary pre-filled rows now, and
+  Apply keeps them with the rest). Set rows come pre-filled — including speculative
   decoding (**MTP**), which turns on automatically for models that support it; set it to
-  *Off* and Apply if you don't want it. Values the engine works out for your machine on
-  its own (GPU layers, context size, expert offload) show under the grid as **"Set
-  automatically for this PC"** with an **Add to grid** action — so you always see what the
-  launch will really use, and adding them makes them yours to edit (an applied explicit
-  value then replaces the automatic one for good). After a measurement, **Save for
+  *Off* and Apply if you don't want it. Unchecked rows simply use the engine's own
+  defaults; ticking one makes it yours. After a measurement, **Save for
   hardware class** keeps the config as the shared starting point for **every PC with the
   same video memory and RAM** (a machine with its own applied config still wins), and the
   **"Hardware-class defaults ↗"** link in the same dialog opens the editable library of
@@ -208,11 +222,10 @@ model and can't be changed here — the wrong pooling would quietly make search 
 > Under the catalog, two buttons open the other editable libraries as dialogs:
 > **Hardware-class defaults…** (the shared per-PC-class launch configs) and **Global launch
 > defaults…** — the always-on switch bundles (all models · MoE · dense · speculative decode)
-> that sit underneath every tune, visible and editable with a Reset. In a model's **Tune** dialog, every
-> pre-filled value now carries a small tag saying **where it came from** (all models · model
-> type · speculative decode · your PC class · saved tune), the engine-computed values show
-> separately, and a closing line reminds you that anything not listed uses the engine's own
-> defaults — so "what set this switch?" always has an answer.
+> that sit underneath every tune, visible and editable with a Reset. Both libraries carry
+> the same standing note: **models with an applied config keep their saved values** — a
+> change in a library reaches them only when you refresh or remove their applied config in
+> Tune & measure (a model without one always follows the libraries live).
 
 > For a **cloud or external provider** (OpenAI, Ollama, LM Studio, …) there are no
 > hardcoded model suggestions anywhere: connect it, hit **Fetch**, and pick the chat +

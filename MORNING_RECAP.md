@@ -108,8 +108,30 @@ adopted; needs your yes/no). Full record: the queue doc §3 "B3 BUILD RECORD". G
 ruff + 412 pytest · JW vitest 30/30 · build:vite · FULL headless smoke zero JS errors · an 8/8
 Tune-modal probe (fake cached GGUF, removed after) + screenshots · rules-checker VERDICT: PASS.
 
-**Last code heads (both clean, pushed): runner `3250258` (the B3 ship; B2 was `b1228fb` — both
-kit/runner only, no JW code) · JW `167b399` (the B1 ship; JW commits after it are doc-only).** **The providers-surface marathon is CLOSED: ROUNDs 1–19 all shipped and
+**GO (2026-07-08, post-compact) — ALL DISCUSSIONS DECIDED + the BATCH-3 REMAINDER SHIPPED.**
+The discussion session locked everything that was open: **B** (set-as-default covers every role
+the provider can serve, same flow local/online; the overwrite choice "all vs keep-my-customized";
+pickers REMOVED per the user) → queue doc **§7.2**; **C** (test-data registry) → **§7.3**; **D**
+(streaming all-on, no per-task knob + `return_progress`) → **§7.4**; **F** (roadmap holds; IDEAS
+section created in THE ledger, §J) → **§7.5**; and after the user's pushback that **B3-10 was
+never decided** ("the add to grid is just confusing"), the snapshot discussion ran to a real
+decision → **§7.6**: Apply = the model takes ownership of its whole launch config (no live
+inheritance after apply; the user's word), every switch a visible origin-tagged row, Add-to-grid
+retired, standing captions on both defaults libraries, and a drift notice + "Refresh from
+defaults" backed by an apply-time baseline (new ADDITIVE `model_tune_baselines` table — NO
+reset). **B3-4 badges** shipped with it (Auto-tuned/Hand-tuned derived by matching the applied
+rows against the autotune trials already in the measurement history — no schema change; modal
+header + catalog rows; new `/v1/ai/model-tunes/state` + kit `tuneState.js`, one wording source).
+The Tune grid is now KnobGrid's existing CHECKLIST mode over the whole knob catalog (reuse, not
+a new grid; set advanced knobs auto-promote out of the collapsed expander). Full record: the
+queue doc **§7.2–§7.6 + the B3-REMAINDER BUILD RECORD**. Gates: runner ruff + **416 pytest** ·
+JW vitest 30/30 · build:vite · FULL headless smoke zero JS errors · a **14/14 B3R probe** (real
+drift round-trip against a moved global default; DB left as found) + screenshots · rules-checker
+VERDICT: PASS.
+
+**Last code heads (both clean, pushed): runner `e8e69a9` (the B3-remainder ship; B3 was
+`3250258`, B2 `b1228fb` — all kit/runner only, no JW code) · JW `167b399` (the B1 ship; JW
+commits after it are doc-only).** **The providers-surface marathon is CLOSED: ROUNDs 1–19 all shipped and
 verified, the queue is EMPTY** — full records in
 `just-llm-runner/docs/plans/2026-07-06-providers-surface-redesign.md` (read its STATUS banner +
 the round you need, never the whole 137 KB file). The #142 save-everything dispositions are all
@@ -132,14 +154,14 @@ vitest 29/29 + the FULL headless smoke zero JS errors + the tune-save probe 17/1
 
 - **THE ACTIVE BATCH (2026-07-08):** the user's 52-item list, organized and grounded in
   `just-llm-runner/docs/plans/2026-07-08-big-batch-queue.md` — §0 the list verbatim · §1 the
-  code-verified answers · §2 discussions B–F awaiting the user (A became the §7.1 lock, built) ·
-  §3 batches B1–B6 — **B1 + B2 + B3 BUILT + shipped (see their BUILD RECORDS there)**. Waiting on
-  the USER: B1-2 (the box's engine-log line) · B2-9 (discussion B) · B3-4 (§7.1 sub-question (d),
-  badge wording/surfaces) · **B3-10 (yes/no: show EVERY switch as a resolved row + retire "Add to
-  grid" — the superseded A(3) idea the §7.1 lock didn't adopt)**. Batches 4–6 each need their own
-  go (B4 thin without discussion C: B4-1/2/3 buildable; B5-1 needs discussion B); discussion B
-  gates B2-9 + B5-1, C gates B4-4, D gates B6-1/2, F gates B6-3. No-tests posture on (user tests
-  on box; container gates still run at ship).
+  code-verified answers · **§7.1–§7.6 the LOCKED decisions (ALL discussions now decided;
+  E parked)** · §3 batches B1–B6 — **B1 + B2 + B3 (incl. the B3-4/B3-10 remainder) BUILT +
+  shipped (see the BUILD RECORDS there)**. Waiting on the USER: only **B1-2** (the box's
+  engine-log line) + the §7.1 wording trivia (shipped-as-flagged). **Batches 4–6 each need
+  their own go and every item is now unblocked**: B4 fully buildable (B4-4 per §7.3) · B5
+  fully buildable (B5-1 per §7.2, incl. B2-9's set-as-default) · B6-1/2 per §7.4 (B6-3 done —
+  the ledger §J IDEAS section). No-tests posture on (user tests on box; container gates still
+  run at ship).
 - **THE ledger:** `just-llm-runner/docs/plans/2026-07-06-outstanding-master-plan.md` — every
   genuinely open item across all three repos, twice-verified, sections A–I. **Do not maintain a
   second backlog anywhere, including here.** §I (added 2026-07-08) folds in the 2026-06-28
