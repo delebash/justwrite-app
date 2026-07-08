@@ -111,10 +111,10 @@ vitest 29/29 + the FULL headless smoke zero JS errors + the tune-save probe 17/1
 - **Subagent delegation (re-permitted 2026-07-08, supersedes the 2026-06-09 disable):** I MAY
   spawn **Opus** subagents for mechanical / well-scoped tasks I judge Opus does as well as me —
   the user's reason: I (Fable) am better at design + decision-making, so those stay with me;
-  parallelizable grunt work can go to Opus. **The MAIN chat window stays Fable — do NOT switch
-  the conversational model to Opus** (the user's Claude Code window auto-flipped to Opus and
-  they reverted it); Opus is per-*subagent* only (set the Agent `model: "opus"` per spawn — it's
-  independent of the window model). Never Sonnet (global T10).
+  parallelizable grunt work can go to Opus. **The chat-window model is the USER's to set — I
+  CANNOT change it; only the user does** (their window auto-flipped to Opus and they reverted it
+  themselves). Opus is ONLY ever a per-*subagent* model I set on a spawned Agent (`model: "opus"`),
+  orthogonal to whatever the window runs. Never Sonnet (global T10).
 - **DB policy:** drop + reseed, no migrations (pre-release;
   `docs/plans/2026-06-18-unified-storage-no-idb.md`). Additive-only schema changes (new
   tables) need no reset — `create_all` picks them up on boot.
