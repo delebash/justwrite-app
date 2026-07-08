@@ -32,8 +32,10 @@ now:
 1. **Full detail is still written, ONCE, as it happens** — each go's complete record (decisions
    verbatim, file:line touch-lists, verification results, full prose, no bullets-as-truncation)
    lands in the RELEVANT `docs/plans/*` doc (e.g. the providers-surface design doc's ROUND
-   sections). The user's rule 1 (no shortening, no summarizing) is unchanged — only the
-   *location* of the detail is fixed to the plan doc instead of being duplicated here.
+   sections). **Rule 1 as revised by the user 2026-07-08:** the DETAIL DOCS (plans, handoff)
+   still carry full detail — no shortening, truncating, or bullets — after each phase or commit;
+   **`MORNING_RECAP.md` and `CLAUDE.md` MAY summarize, as long as they point to those detailed
+   docs.** So this map summarizing here is now explicitly sanctioned, not a tolerated exception.
 2. **This file gets a SHORT pointer paragraph per go** — what shipped, the commit shas, where
    the full record lives, what's open. A few sentences, never the full narrative twice.
 3. **History never accumulates here.** When a stretch of work closes, its pointer paragraphs
