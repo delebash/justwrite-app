@@ -117,10 +117,17 @@ embedding model carries an **Embedding** badge. From here you can:
   flags, then **Apply**. A confirmation first tells you exactly which tasks the change
   reaches (they all share the model), then the config is kept **for this model on this
   machine** and — if the model is running right now — it **reloads immediately**, so what
-  you applied is always what's actually running. Every later load uses it automatically
-  (and each machine keeps its own config, so a data folder moved to another computer never
-  applies the wrong numbers). **Remove applied config** returns the model to its defaults,
-  also reloading a running model. Good defaults come pre-filled — including speculative
+  you applied is always what's actually running; a **toast confirms the moment it's done**.
+  Every later load uses it automatically (and each machine keeps its own config, so a data
+  folder moved to another computer never applies the wrong numbers). While a config is
+  applied, the dialog shows a clear **Applied on this PC ✓** badge, and **Remove applied
+  config** sits right beside Apply in the dialog's footer — it returns the model to its
+  defaults, also reloading a running model. In the dialog, only the **switch grid scrolls**
+  (in its own capped area) — the load/measure progress and the **tok/s result stay in view
+  below it**, no scrolling to find them. **Auto-tune** asks before it starts: the measured
+  sweep can take **4 to 30 minutes depending on your hardware** (it usually gives the best
+  results for a model that hasn't been tuned yet, and you can cancel after any trial).
+  Good defaults come pre-filled — including speculative
   decoding (**MTP**), which turns on automatically for models that support it; set it to
   *Off* and Apply if you don't want it. Values the engine works out for your machine on
   its own (GPU layers, context size, expert offload) show under the grid as **"Set
@@ -129,13 +136,17 @@ embedding model carries an **Embedding** badge. From here you can:
   value then replaces the automatic one for good). After a measurement, **Save for
   hardware class** keeps the config as the shared starting point for **every PC with the
   same video memory and RAM** (a machine with its own applied config still wins), and the
-  **Hardware-class defaults** drawer in the same dialog is the editable library of those
-  class configs: edit one (editing a built-in makes it yours and it sticks), add one for a
-  different class, delete one you added, or **Copy**/**Import** a config as a small piece of
-  text to share between users. The same library also has an **all-models view** — the
+  **"Hardware-class defaults ↗"** link in the same dialog opens the editable library of
+  this model's class configs as its own dialog: edit one (editing a built-in makes it
+  yours and it sticks), add one for a different class, delete one you added, or
+  **Copy**/**Import** a config as a small piece of text to share between users — a
+  **"Global launch defaults ↗"** link beside it opens the always-on switch bundles the
+  same way, so nothing is edited embedded in the Tune dialog itself. The class library
+  also has an **all-models view** — the
   **"Hardware-class defaults…"** button under the catalog on the Built-in provider's Edit
-  page opens it as a dialog listing every model's class configs in one table (adding a
-  config there starts with picking the model). Every measured speed is also **saved for
+  page opens **the library**, every saved config in one table where **each row is one
+  model × one PC class** (there is no single tune covering all models; adding a config
+  there starts with picking the model). Every measured speed is also **saved for
   good**: the
   **Measurement history** drawer in the same dialog lists each **Load & measure** run and
   each auto-tune trial — when, with which settings, and how fast — and survives closing the

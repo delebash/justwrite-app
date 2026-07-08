@@ -91,8 +91,25 @@ tail dropped). Full record: the queue doc §3 "B2 BUILD RECORD". Gates: runner r
 JW vitest 30/30 · build:vite · FULL headless smoke zero JS errors · a 9/9 B2 surface probe +
 4 screenshots · rules-checker VERDICT: PASS.
 
-**Last code heads (both clean, pushed): runner `b1228fb` (the B2 ship — kit + runner only, no
-JW code) · JW `167b399` (the B1 ship; JW commits after it are doc-only).** **The providers-surface marathon is CLOSED: ROUNDs 1–19 all shipped and
+**GO (2026-07-08, late night) — BATCH 3 (Tune & measure UX) SHIPPED** (the user's bare "go" =
+the next buildable queue unit). Six built, all kit: #13 the spec-decode right-edge indent
+root-caused (per-row content-sized origin columns) — KnobGrid add-row rows are now ONE uniform
+shape with the origin tag stacked under the name; #14a Apply/Remove fire a kit toast; #16 Remove
+sits in the footer beside Apply + the "Applied on this PC ✓" badge reads big; #18 Auto-tune
+confirms first (4–30 minutes copy); #19 the modal's embedded class-tunes drawer became
+"Hardware-class defaults ↗" + "Global launch defaults ↗" links opening the B2-4 popups (the
+per-model one scoped via modelId); #21 only the switch grid scrolls — progress + the tok/s
+result stay pinned in view; #22-copy the library header no longer implies one-tune-for-all-
+models. **B3-7 (#20/#34) verified already resolved by §7.1's Send-to-Lab deletion** (a new
+compare column clones the host surface's own config — CompareStrip.vue:39). **EXCLUDED, waiting
+on the user: B3-4** (provenance badges — §7.1 open sub-question (d)) and **B3-10** (the
+all-switches grid + Add-to-grid retirement — the superseded A(3) proposal the §7.1 lock never
+adopted; needs your yes/no). Full record: the queue doc §3 "B3 BUILD RECORD". Gates: runner
+ruff + 412 pytest · JW vitest 30/30 · build:vite · FULL headless smoke zero JS errors · an 8/8
+Tune-modal probe (fake cached GGUF, removed after) + screenshots · rules-checker VERDICT: PASS.
+
+**Last code heads (both clean, pushed): runner `3250258` (the B3 ship; B2 was `b1228fb` — both
+kit/runner only, no JW code) · JW `167b399` (the B1 ship; JW commits after it are doc-only).** **The providers-surface marathon is CLOSED: ROUNDs 1–19 all shipped and
 verified, the queue is EMPTY** — full records in
 `just-llm-runner/docs/plans/2026-07-06-providers-surface-redesign.md` (read its STATUS banner +
 the round you need, never the whole 137 KB file). The #142 save-everything dispositions are all
