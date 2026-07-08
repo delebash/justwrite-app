@@ -93,7 +93,11 @@ embedding model carries an **Embedding** badge. From here you can:
   else. The model loads again on **Load as default** or the next time a task needs it.
 - On an **embedding** row, **Load as default** works the same way — it makes that model the
   one used for search and grounded chat **and loads it right away, alongside your chat
-  model** (the two run together); a loaded embedding gets the same **Unload**.
+  model** (the two run together); a loaded embedding gets the same **Unload**. You don't
+  have to pre-load it, though: the embedding model **loads itself on first use** — the next
+  search or Ask-the-book question downloads (if needed) and loads it, with a "Preparing the
+  embedding model" entry in the AI task panel while it happens. Switching to a different
+  embedding model works the same way: the next search loads the new one.
 - Every model from Hugging Face carries a **Model card ↗** link (on its row and in its Edit
   dialog) that opens the full details — files, license, the maker's notes — in your browser.
 - **Engine switches belong to the model, not to tasks** — that's the one rule of the
@@ -160,8 +164,9 @@ embedding model carries an **Embedding** badge. From here you can:
 A model's weights download from Hugging Face onto your machine; the catalog only lists
 them. The built-in list is a **small curated ladder, Gemma-first for writing** — Gemma 4
 dense rungs for small and large cards, the Gemma 4 26B-A4B MoE as the tested default, one
-Qwen MoE alternative, plus a few embedding models — every repo, quant, and license verified
-against Hugging Face. Two rows are **deliberate choices, never auto-picked**: a community
+Qwen MoE alternative, plus a few embedding models — every repo, quant, license, **and file
+size** verified against Hugging Face, so each built-in row shows its real **file size and
+download size from the start** (no download or Read-from-link needed first). Two rows are **deliberate choices, never auto-picked**: a community
 prose style-tune (Gryphe) and an **uncensored** build for fiction whose dark, gory, or adult
 scenes hit stock refusals — you pick those yourself. It's a starting point, not a limit:
 **Add model** lets you run anything. Some models carry a **use-limited** license (⚠) — free

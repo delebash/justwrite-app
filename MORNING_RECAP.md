@@ -62,8 +62,21 @@ FULL headless smoke zero JS errors · rules-checker verdict (sha in the git log)
 the queue doc §7.1 (BUILD note appended at ship). `docs/models.md` tuning section rewritten
 to the two-owner law.
 
-**Last code heads (both clean, pushed): runner `95f00a1` (the §7.1 ship) · JW `a6ec7e3`**
-(commits after these are doc-only). **The providers-surface marathon is CLOSED: ROUNDs 1–19 all shipped and
+**GO (2026-07-08, late evening) — BATCH 1 (bugs) SHIPPED** (the user's bare "go" after the §7.1
+compact point = the next buildable queue unit). Eight of nine items: #1 apiKey loss (online-locked
+types + never-null-on-edit + regression test) · #12a dead model-card links in Tauri (new kit
+`openExternal` seam, all kit anchors + help-doc links + JW's two inline copies converged) · #12b
+real size facts seeded for all 11 catalog rows (harvested via the app's own inspector; existing
+DBs fill-empty at next boot, NO reset) · #27 preset dropdown selects the just-saved preset · #36
+Lab runs register in the AI task panel (+ one-shot Cancel now real) · #45 "Ask the book" labels ·
+#48 nav double-listing (root cause CORRECTED: seeded preset names ≈ task labels; collapsed when
+equal) · #9 embed lazy-load (the ensure cache keyed by model + a "Preparing the embedding model"
+task entry). **B1-2 (#7 engine-update leftover) still waits on the box's engine-log line.** Full
+record: the queue doc §3 "B1 BUILD RECORD". Gates: runner ruff + 411 pytest · JW vitest 30/30 ·
+build:vite · FULL headless smoke zero JS errors · rules-checker VERDICT: PASS.
+
+**Last code heads (both clean, pushed): runner `ea28e07` · JW `167b399`** (the B1 ship; commits
+after these are doc-only). **The providers-surface marathon is CLOSED: ROUNDs 1–19 all shipped and
 verified, the queue is EMPTY** — full records in
 `just-llm-runner/docs/plans/2026-07-06-providers-surface-redesign.md` (read its STATUS banner +
 the round you need, never the whole 137 KB file). The #142 save-everything dispositions are all
@@ -80,17 +93,17 @@ and the **engine lifecycle row** (install/update/uninstall/reinstall, pin b9899,
 notify). Gates at the last code ship, all green: runner ruff + **409 pytest** · JW build:vite +
 vitest 29/29 + the FULL headless smoke zero JS errors + the tune-save probe 17/17 + live curls.
 
-**Nothing is in flight.** In-container harness tasks #1–#154: all completed.
+**Nothing is in flight.** In-container harness tasks #1–#163: all completed.
 
 ## OPEN WORK — the ONE list and where it lives
 
 - **THE ACTIVE BATCH (2026-07-08):** the user's 52-item list, organized and grounded in
   `just-llm-runner/docs/plans/2026-07-08-big-batch-queue.md` — §0 the list verbatim · §1 the
-  code-verified answers (incl. the dead per-preset launch-switch plane, the apiKey root cause,
-  the Tauri-link cause) · §2 discussions A–F awaiting the user (A = tuning-flow consolidation,
-  first) · §3 batches B1–B6 · §5 clarifications needed (#9, #34). NOTHING BUILT YET — each batch
-  needs its own go; no-tests posture is on (user tests on box; container build/smoke still gate
-  ships).
+  code-verified answers · §2 discussions B–F awaiting the user (A became the §7.1 lock, built) ·
+  §3 batches B1–B6 — **B1 BUILT + shipped (see its BUILD RECORD there; B1-2 waits on the box's
+  engine-log line)**; batches 2–6 each need their own go; discussion B gates B2-9 + B5-1, C gates
+  B4-4, D gates B6-1/2, F gates B6-3. No-tests posture on (user tests on box; container gates
+  still run at ship).
 - **THE ledger:** `just-llm-runner/docs/plans/2026-07-06-outstanding-master-plan.md` — every
   genuinely open item across all three repos, twice-verified, sections A–I. **Do not maintain a
   second backlog anywhere, including here.** §I (added 2026-07-08) folds in the 2026-06-28
