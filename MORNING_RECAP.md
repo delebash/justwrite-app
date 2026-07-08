@@ -48,6 +48,20 @@ now:
 
 ## CURRENT STATE (2026-07-08)
 
+**GO (2026-07-08, evening) — §7.1 switches⇄params build SHIPPED** (the locked decision in
+`just-llm-runner/docs/plans/2026-07-08-big-batch-queue.md` §7.1, decided over a 6-round
+discussion recorded there + §6): the dead per-preset launch-switch storage is DELETED
+(`EnginePresetSwitch` + `ngl/n_cpu_moe` overrides — schema/stores/seed/API/tests), the Lab
+column's switch grid is gone (an **"Engine switches ↗"** link opens the ONE editor,
+`TuneMeasureModal`, for the column's model; sampler/params editing unchanged), the modal's
+"Save tune" became **Apply** (blast-radius confirm naming affected tasks → write → IMMEDIATE
+reload when the model is running; Remove reloads too), and "Send to Tasks Lab" + the
+`labHandoff` channel are removed (resolves queue items #20 + #34 by deletion). Existing DBs
+keep the orphan table inert — NO reset needed. Gates: runner ruff + 409 pytest · build:vite ·
+FULL headless smoke zero JS errors · rules-checker verdict (sha in the git log). Full record:
+the queue doc §7.1 (BUILD note appended at ship). `docs/models.md` tuning section rewritten
+to the two-owner law.
+
 **Last code heads (both clean, pushed): runner `8c9ae91` · JW `a6ec7e3`** (commits after these
 are doc-only). **The providers-surface marathon is CLOSED: ROUNDs 1–19 all shipped and
 verified, the queue is EMPTY** — full records in

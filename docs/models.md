@@ -96,22 +96,32 @@ embedding model carries an **Embedding** badge. From here you can:
   model** (the two run together); a loaded embedding gets the same **Unload**.
 - Every model from Hugging Face carries a **Model card ↗** link (on its row and in its Edit
   dialog) that opens the full details — files, license, the maker's notes — in your browser.
-- Until you save a tune, a model **launches with the engine's automatic memory fitting**
-  (it places the model across GPU/CPU for your card at the app-chosen context size); a
-  saved tune replaces that with your measured values.
+- **Engine switches belong to the model, not to tasks** — that's the one rule of the
+  whole tuning system. A loaded model is one engine process with one set of launch
+  switches, shared by **every task that uses it**; what a *task* owns is how the model is
+  **asked** (temperature, max tokens, JSON, thinking, samplers — on the Tasks tab, no
+  reload needed). So there is exactly **one place to set engine switches: the model's
+  Tune & measure dialog** — opened from the model's row in the catalog, or from a Lab
+  column's **Engine switches ↗** link (same dialog, same config).
+- Until you apply a config, a model **launches with the engine's automatic memory fitting**
+  (it places the model across GPU/CPU for your card at the app-chosen context size); an
+  applied config replaces that with your measured values.
 - **Tune** a downloaded model — measure its decode speed on your box with custom engine
-  flags, then **Save tune** to keep the config **for this model on this machine**: every
-  later load of that model here uses it automatically (and each machine keeps its own tune,
-  so a data folder moved to another computer never applies the wrong numbers). **Remove
-  saved tune** returns the model to its defaults. Good defaults come pre-filled — including
-  speculative decoding (**MTP**), which turns on automatically for models that support it;
-  set it to *Off* and Save if you don't want it. Values the engine works out for your
-  machine on its own (GPU layers, context size, expert offload) show under the grid as
-  **"Set automatically for this PC"** with an **Add to grid** action — so you always see
-  what the launch will really use, and adding them makes them yours to edit (a saved
-  explicit value then replaces the automatic one for good). After a measurement, **Save for
+  flags, then **Apply**. A confirmation first tells you exactly which tasks the change
+  reaches (they all share the model), then the config is kept **for this model on this
+  machine** and — if the model is running right now — it **reloads immediately**, so what
+  you applied is always what's actually running. Every later load uses it automatically
+  (and each machine keeps its own config, so a data folder moved to another computer never
+  applies the wrong numbers). **Remove applied config** returns the model to its defaults,
+  also reloading a running model. Good defaults come pre-filled — including speculative
+  decoding (**MTP**), which turns on automatically for models that support it; set it to
+  *Off* and Apply if you don't want it. Values the engine works out for your machine on
+  its own (GPU layers, context size, expert offload) show under the grid as **"Set
+  automatically for this PC"** with an **Add to grid** action — so you always see what the
+  launch will really use, and adding them makes them yours to edit (an applied explicit
+  value then replaces the automatic one for good). After a measurement, **Save for
   hardware class** keeps the config as the shared starting point for **every PC with the
-  same video memory and RAM** (a machine with its own saved tune still wins), and the
+  same video memory and RAM** (a machine with its own applied config still wins), and the
   **Hardware-class defaults** drawer in the same dialog is the editable library of those
   class configs: edit one (editing a built-in makes it yours and it sticks), add one for a
   different class, delete one you added, or **Copy**/**Import** a config as a small piece of
@@ -121,10 +131,8 @@ embedding model carries an **Embedding** badge. From here you can:
   starts with picking the model). Every measured speed is also **saved for good**: the
   **Measurement history** drawer in the same dialog lists each **Load & measure** run and
   each auto-tune trial — when, with which settings, and how fast — and survives closing the
-  dialog and restarting the app; **Clear history** empties it (saved tunes and class configs
-  are never touched by a clear). For a per-*Task* setup instead, **Send to Tasks Lab**
-  opens the config as a new column in that Task's Lab, where you save it as the Task's
-  preset.
+  dialog and restarting the app; **Clear history** empties it (applied configs and class
+  configs are never touched by a clear).
 - **Add model** — point at any Hugging Face GGUF repo and **Read from link**: the form lists
   the repo's **available quants as a dropdown** (each with its download size and a **QAT** /
   **IQ** label where it applies), pre-picks one that fits your machine (change it, or pick
