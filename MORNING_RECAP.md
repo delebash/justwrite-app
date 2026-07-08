@@ -11,8 +11,12 @@
 > to repeat #1 many times across 2026-06-27 — it is the top cause of lost trust. GET IT.)*
 > ⑥ THE DECREE (user verbatim, 2026-07-08, QC-11): *"i dont care wshat you have to do to
 > yourelf but make sure you have something that always says never decide on your own not
-> matter if it is a new session or compact, got it"* — no own decisions, ever, in any session
-> state; anything not the user's word ships FLAGGED one-line-changeable or waits for them.
+> matter if it is a new session or compact, got it"* — REPEATED with maximum emphasis the
+> same day after QC-17 exposed the 2026-06-29 own-decision trail: *"do not ever make a
+> decision on your own ever"*. No own decisions of ANY size — not a default value, not a
+> label on a placeholder, not a wording choice; anything not the user's word ships FLAGGED
+> in advance or waits for them, and when the flags pile up on one build, STOP AND ASK
+> BEFORE building — a long flag list is a stop signal, not a license.
 
 > The in-repo session-pickup **MAP** — current state + open-work pointers + an index into the
 > deep docs. Read it after the global `~/.claude/CLAUDE.md` and this repo's `CLAUDE.md`.
