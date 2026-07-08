@@ -3,6 +3,8 @@
 // #29 "features … one column, make it 2 and move the Preset & test line … to the second column"
 // #35 "don't make a specific advance section in the switches … one column"
 // #30 "sample button with some sample data we have in database" + §7.3 Insert-from pickers.
+// QC-9 "does it make sense to drop character info for generate prose?" — NO: a picker
+//   renders only when its source can fill one of the open feature's boxes.
 // findChrome copied from scripts/headless-smoke.mjs per JW CLAUDE.md.
 import { existsSync, readdirSync } from "node:fs";
 import { createRequire } from "node:module";
@@ -106,8 +108,19 @@ const b44 = await page.evaluate(() => {
 });
 check("#30 Sample button exists and fills the test input from the DB",
   b44.sampleBtn && b44.filled && before !== b44.text, b44.text);
-check("§7.3 Insert-from pickers render for the registered JW sources (3)",
-  b44.sources === 3, `sources=${b44.sources}`);
+
+// QC-9: on a prose feature ({passage, voiceCanon}) the character/location sources
+// can't fill any box — ONLY the chapter picker may render (the user's sentence:
+// "does it make sense to drop character info for generate prose?" — no).
+const qc9a = await page.evaluate(() => {
+  const labels = [...document.querySelectorAll(".lu-fw-testin .lu-field > label")].map((l) => l.textContent.trim());
+  const triggers = [...document.querySelectorAll(".lu-fw-testin-h .ui-select-trigger")].map((t) => t.textContent.trim());
+  return { labels, triggers };
+});
+check("QC-9 prose feature: chapter picker only — no character/location pickers",
+  qc9a.triggers.length === 1 && /chapter/i.test(qc9a.triggers[0] || "")
+    && !qc9a.triggers.some((t) => /character|location/i.test(t)),
+  JSON.stringify(qc9a));
 
 // Checker-caught fix (2026-07-08): Insert-from-CHAPTER must actually FILL the
 // {{passage}} writing features, not just render. Clear the passage var, open
@@ -137,6 +150,23 @@ const chapFill = await page.evaluate(() => {
 check("checker-fix: Insert-from-chapter FILLS the passage on a writing feature",
   !!picked && chapFill.length > 20, `chapter="${picked}" passage="${chapFill}"`);
 await page.screenshot({ path: `${OUT}/b4-tasks.png` });
+
+// QC-9 (the other direction): on a user_content feature ALL THREE sources can
+// fill — the pickers must come BACK (relevance filtering, not blanket hiding).
+await page.evaluate(() => {
+  [...document.querySelectorAll(".lu-fw-list .lu-fw-card")]
+    .find((c) => c.textContent.includes("Structured extraction"))?.click();
+});
+await sleep(1200);
+const qc9b = await page.evaluate(() => {
+  const labels = [...document.querySelectorAll(".lu-fw-testin .lu-field > label")].map((l) => l.textContent.trim());
+  const triggers = [...document.querySelectorAll(".lu-fw-testin-h .ui-select-trigger")].map((t) => t.textContent.trim());
+  return { labels, triggers };
+});
+check("QC-9 user_content feature: all three pickers render (chapter + character + location)",
+  qc9b.triggers.length === 3
+    && ["chapter", "character", "location"].every((k) => qc9b.triggers.some((t) => new RegExp(k, "i").test(t))),
+  JSON.stringify(qc9b));
 
 // #35: the Lab column's sampler grid is ONE flat column (no Advanced, no multi-column).
 await page.evaluate(() => {

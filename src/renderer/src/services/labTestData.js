@@ -23,6 +23,10 @@ export const LAB_TEST_SOURCES = [
     id: "chapters",
     label: "chapter",
     kind: "chapter",
+    // QC-9: the names fetch() emits. The Lab renders this picker only on
+    // features with at least one of these boxes (or via the 1×1 bridge) —
+    // keep in lockstep with fetch()'s variables.
+    provides: ["passage", "user_content", "chapter_text", "chapter_label"],
     list() {
       // Chapters live inside parts — `allChapters` (project.js getter) is the
       // one flat view; there is no root `chapters` state.
@@ -43,6 +47,10 @@ export const LAB_TEST_SOURCES = [
     id: "characters",
     label: "character",
     kind: "character",
+    // QC-9: a profile is user_content-shaped — it can't fill a prose passage,
+    // so the picker stays OFF prose features (the user's "does it make sense
+    // to drop character info for generate prose?" — no).
+    provides: ["user_content"],
     list() {
       const p = useProjectStore();
       return (p.characters || []).map((c) => ({ id: c.id, label: c.name || "Unnamed" }));
@@ -58,6 +66,7 @@ export const LAB_TEST_SOURCES = [
     id: "locations",
     label: "location",
     kind: "location",
+    provides: ["user_content"],
     list() {
       const p = useProjectStore();
       return (p.locations || []).map((l) => ({ id: l.id, label: l.name || "Unnamed" }));

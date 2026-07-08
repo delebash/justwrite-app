@@ -242,3 +242,9 @@ model and can't be changed here — the wrong pooling would quietly make search 
 > grid automatically — the Task keeps its own temperature, and the model fills the
 > secondary knobs (top-k / min-p / top-p / penalties) it leaves blank. What you see in the
 > grid is what runs.
+
+> **Filling the Lab's Test input.** The **Sample** button fills the boxes with editable
+> sample data stored in the app's database (click again for the next sample), and the
+> **"Insert from chapter / character / location…"** pickers pull real material from your
+> open book. A picker only appears when that material can actually fill one of the open
+> feature's boxes — a prose feature offers chapters, not character profiles.

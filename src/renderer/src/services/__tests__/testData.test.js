@@ -7,6 +7,7 @@ import { beforeEach, describe, expect, it } from "vitest";
 import {
   configureTestData,
   mergeVariables,
+  sourceCanFill,
   testDataSources,
 } from "@delebash/llm-ui/common/services/testData.js";
 
@@ -36,6 +37,35 @@ describe("mergeVariables", () => {
     const n = mergeVariables(vars, { passage: "P", user_content: "U" });
     expect(n).toBe(1);
     expect(vars.passage).toBe("P");
+  });
+});
+
+// QC-9 (queue §9): a picker renders only when its source can fill one of the
+// open prompt's boxes — mirrors mergeVariables (exact names + the 1×1 bridge).
+describe("sourceCanFill", () => {
+  const chapters = { id: "chapters", provides: ["passage", "user_content", "chapter_text", "chapter_label"] };
+  const characters = { id: "characters", provides: ["user_content"] };
+
+  it("offers a source when an exact-name fill exists on a multi-var prompt", () => {
+    expect(sourceCanFill(chapters, ["passage", "voiceCanon"])).toBe(true);
+  });
+
+  it("hides a source that cannot fill any box (the QC-9 case: character info on generate prose)", () => {
+    expect(sourceCanFill(characters, ["passage", "voiceCanon"])).toBe(false);
+  });
+
+  it("offers a single-name source on a single-var prompt via the bridge", () => {
+    expect(sourceCanFill(characters, ["text"])).toBe(true);
+    expect(sourceCanFill(characters, ["user_content"])).toBe(true);
+  });
+
+  it("does NOT bridge a multi-name source onto a no-match single-var prompt", () => {
+    expect(sourceCanFill(chapters, ["question"])).toBe(false);
+  });
+
+  it("always offers a source that declares no provides list (undeclared hosts keep the old behavior)", () => {
+    expect(sourceCanFill({ id: "legacy" }, ["passage"])).toBe(true);
+    expect(sourceCanFill({ id: "legacy", provides: [] }, ["passage"])).toBe(true);
   });
 });
 

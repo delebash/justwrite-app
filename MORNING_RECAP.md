@@ -9,6 +9,10 @@
 > stop a running job/agent unless the user says "stop"; ④ always confirm the plan + get the
 > explicit go first; ⑤ never guess — read code line-by-line, cite file:line. *(The user has had
 > to repeat #1 many times across 2026-06-27 — it is the top cause of lost trust. GET IT.)*
+> ⑥ THE DECREE (user verbatim, 2026-07-08, QC-11): *"i dont care wshat you have to do to
+> yourelf but make sure you have something that always says never decide on your own not
+> matter if it is a new session or compact, got it"* — no own decisions, ever, in any session
+> state; anything not the user's word ships FLAGGED one-line-changeable or waits for them.
 
 > The in-repo session-pickup **MAP** — current state + open-work pointers + an index into the
 > deep docs. Read it after the global `~/.claude/CLAUDE.md` and this repo's `CLAUDE.md`.
@@ -160,10 +164,20 @@ round 1 caught the Insert-from `{{passage}}` name-mismatch (fixed + probe extend
 chapter fill + 5 new vitest cases), round 2 caught the record's stale numbers (fixed +
 probe committed at `scripts/b4-probe.mjs`), round 3 **VERDICT: PASS**. Gates: runner ruff +
 419 pytest · JW server 76 pytest · vitest 43/43 · build:vite · FULL smoke zero JS errors ·
-the 6/6 acceptance probe. Full record: queue doc §3 B4 BUILD RECORD. **⛔ PICKUP AFTER THE
-SECOND COMPACT: the queue doc §8 "ROUND STATE AT THE SECOND COMPACT" note — Batches 5 + 6
-remain under the standing go; B2-9 + the DL-2 build still need the user's word; §9 QC queue
-live.**
+the 6/6 acceptance probe. Full record: queue doc §3 B4 BUILD RECORD. ~~PICKUP: Batches 5+6 under the standing go~~ —
+**SUPERSEDED by the HARD STOP below.**
+
+**⛔⛔ HARD STOP (2026-07-08, after the second compact — the CURRENT state; user verbatim):
+*"dont code anyting on the tasks i am adding we need to discuss, do nothing until i say
+go!!!!"*** Everything is FROZEN until the user's go: the QC-10..16 findings (queue doc §9
+ROUND 2 — recorded + answered in chat, they are DISCUSSION items first), Batch 5, Batch 6,
+B2-9, the DL-2 build. The one exception: **QC-9** (Insert-from picker relevance filtering)
+was built + fully gate-verified BEFORE the stop arrived (under the pre-compact offered
+timing) — vitest 48/48 · probe 7/7 zero page errors · build:vite · FULL smoke zero JS
+errors — and only its bookkeeping (checker verdict → commit/push) completed after. Full
+records: queue doc §9 (QC-9 BUILD RECORD + the §9 ROUND 2 block with QC-10..16 verbatim +
+grounded readings + harness tasks #205–#211). NEXT SESSION: read queue §9 ROUND 2, then
+WAIT for the user's discussion/go — do not resume the batches on the old standing go.
 
 **Last code heads (both clean, pushed): runner `7727a61` · JW `0c72483`.** (History: QC
 `1bea5f8`/JW `e65de3a`, DL-1 `cf50ce8`/`4051979`, B3R `e8e69a9`, B3 `3250258`, B2 `b1228fb`,
@@ -192,12 +206,11 @@ vitest 29/29 + the FULL headless smoke zero JS errors + the tune-save probe 17/1
   `just-llm-runner/docs/plans/2026-07-08-big-batch-queue.md` — §0 the list verbatim · §1 the
   code-verified answers · **§7.1–§7.6 the LOCKED decisions (ALL discussions decided; E parked;
   the §7.6 flagged interpretations user-BLESSED: "your decisions are fine")** · §3 batches
-  B1–B6 — **B1 + B2 + B3 (incl. the B3-4/B3-10 remainder) BUILT + shipped**. **⛔ THE PICKUP
-  POINT IS THE QUEUE DOC §8** (saved at the user's pre-compact stop): a **STANDING GO on
-  Batches 4, 5, 6** (execute batch-by-batch with full gates; scope itemized there) + **DL-1
-  download-speed/ETA display DECIDED+GO** + **DL-2 multithreaded downloads PLAN-ONLY** (user's
-  1 Gbit sometimes-slow line is the motive; plan → user approves → build) + **B2-9 NOT covered
-  by the go** (ask one line). **B1-2 CLOSED at pickup** by the user's own diagnosis (a DB-reset
+  B1–B6 — **B1 + B2 + B3 (incl. the B3-4/B3-10 remainder) + B4 BUILT + shipped**. **⛔ THE
+  §8 STANDING GO ON BATCHES 5+6 IS FROZEN by the user's hard stop (2026-07-08, verbatim in
+  the CURRENT STATE block above): "do nothing until i say go"** — the queue doc §9 ROUND 2
+  items (QC-10..16) are discussion-first; DL-2 stays PLAN-ONLY; B2-9 still needs its own
+  word. Nothing builds until the user's go. **B1-2 CLOSED at pickup** by the user's own diagnosis (a DB-reset
   disk⇄DB disconnect; "the deleting is fine" — no code change; the disk-based sweep already
   self-heals at the next install, note + code cites in queue §8). **The queue doc §9 is the
   LIVE QC queue** — the user is QC-ing shipped batches on their box and dropping findings while
@@ -255,6 +268,10 @@ vitest 29/29 + the FULL headless smoke zero JS errors + the tune-save probe 17/1
   affordance); one fact shown once; one primary thing on screen per mode. Born from the Tune
   modal's two-paragraph lede + doubled names + stacked list-and-editor ("you cram stuff
   together … everywhere").
+- **No naming popups (user decree 2026-07-08, queue doc §9 QC-15 — "make this a rule"):**
+  creating or renaming a thing never goes through a name-popup — every entity opens its ONE
+  add/edit form directly, where the name is a plain field editable at any time, and the form
+  refuses to save until its required assignments are set.
 - **The cwd footgun (struck ~10 times):** never chain `cd` inside compound commands and never
   rely on the shared shell cwd across parallel Bash calls — every command gets its own
   explicit absolute-path `cd`; trust the OUTPUT, never a bare exit code.
