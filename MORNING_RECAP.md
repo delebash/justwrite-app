@@ -146,8 +146,28 @@ got the full account, and ACCEPTED the four flagged decisions ("thats fine conti
 standing lesson: **QC messages get a conversational answer BEFORE any build.** Full
 records: queue doc §8 (DL-1) + §9 (the cluster + acceptance).
 
-**Last code heads (both clean, pushed): runner `1bea5f8` · JW `e65de3a`.** (History: B3R
-`e8e69a9`, B3 `3250258`, B2 `b1228fb`, B1 JW `167b399`.) **The providers-surface marathon is CLOSED: ROUNDs 1–19 all shipped and
+**GO (2026-07-08, the round continues) — DL-2 PLAN + BATCH 4 SHIPPED.** DL-2: the
+segmented-downloads plan doc committed (`docs/plans/2026-07-08-segmented-downloads-plan.md`,
+runner `70ec856`) with live-verified facts (CloudFront 206 range support; container 1-vs-4
+test 15.2→22.9 MiB/s, byte-identical reassembly; the user's settings requirement folded) —
+**awaits the user's go before any build**. Batch 4 (runner `7727a61`, JW `0c72483`): #28
+add-picker on the Features heading · #29 two-column task pane + Lab full-width below · #35
+one flat sampler column (KnobGrid `flat` prop) · #30/§7.3 the test-data registry end to end
+(additive `test_samples`+`test_sample_vars` tables, store/router/seed seam, kit
+`configureTestData`+`mergeVariables`, FeatureLab Sample + Insert-from pickers, JW
+chapter/character/location sources + 6 synthesized seeded samples). Three checker rounds:
+round 1 caught the Insert-from `{{passage}}` name-mismatch (fixed + probe extended to a REAL
+chapter fill + 5 new vitest cases), round 2 caught the record's stale numbers (fixed +
+probe committed at `scripts/b4-probe.mjs`), round 3 **VERDICT: PASS**. Gates: runner ruff +
+419 pytest · JW server 76 pytest · vitest 43/43 · build:vite · FULL smoke zero JS errors ·
+the 6/6 acceptance probe. Full record: queue doc §3 B4 BUILD RECORD. **⛔ PICKUP AFTER THE
+SECOND COMPACT: the queue doc §8 "ROUND STATE AT THE SECOND COMPACT" note — Batches 5 + 6
+remain under the standing go; B2-9 + the DL-2 build still need the user's word; §9 QC queue
+live.**
+
+**Last code heads (both clean, pushed): runner `7727a61` · JW `0c72483`.** (History: QC
+`1bea5f8`/JW `e65de3a`, DL-1 `cf50ce8`/`4051979`, B3R `e8e69a9`, B3 `3250258`, B2 `b1228fb`,
+B1 JW `167b399`.) **The providers-surface marathon is CLOSED: ROUNDs 1–19 all shipped and
 verified, the queue is EMPTY** — full records in
 `just-llm-runner/docs/plans/2026-07-06-providers-surface-redesign.md` (read its STATUS banner +
 the round you need, never the whole 137 KB file). The #142 save-everything dispositions are all
