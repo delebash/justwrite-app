@@ -395,9 +395,17 @@ repointed; b4's superseded QC-9 check rewritten to the QC-35 law. NEW committed
 headline miscount — it is **37** (A=7/B=13/C=11/D=4/E=2), recorded. Gates all green:
 vitest 61/61 · build:vite · FULL smoke zero JS errors · qc-quintet 22/22 · b4 · b5 ·
 qc35-probe · JW pytest 76 + ruff · runner pytest 449 + ruff · biome. Full record:
-queue doc tail "QC-35 (#232) BUILD RECORD". Next per the recorded order: the Q3
-findings table (~45 flagged JW toasts, per-surface verdicts) rides with this window,
-then B6 (#201–#203), then #235 LAST.
+queue doc tail "QC-35 (#232) BUILD RECORD". **Shipped: runner `d024067` · JW
+`d982316`, both pushed, both trees clean.** The diff rules-checker VERDICT: PASS
+(zero failures; its two non-blocking notes — the inert `direction` key on the
+prose.edit sample and the record's row arithmetic — fixed pre-commit). **The Q3
+TOAST FINDINGS TABLE also SHIPPED this window (doc-only, runner `f1e1f3c`)** — all
+42 remaining JW toast sites enumerated per the toast law at the queue doc's tail: 23
+recommended keeps, 16 kill candidates, 3 design-word items (#40 version-delete
+recovery · #41 replace-count placement · #42 the reload pair) — **awaiting the
+user's per-surface verdicts; nothing culled.** Next per the recorded order: B6
+(#201–#203, streaming + return_progress per §7.4 + QC-30b's three strips), then
+#235 LAST.
 
 **⛔⛔ THE STATE AT THE TENTH COMPACT (2026-07-09 — the CURRENT pickup; supersedes the
 ninth block below). NO code changed this window** — live QC + bookkeeping only: five
