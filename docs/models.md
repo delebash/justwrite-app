@@ -122,7 +122,7 @@ embedding model carries an **Embedding** badge. From here you can:
   Every later load uses it automatically (and each machine keeps its own config, so a data
   folder moved to another computer never applies the wrong numbers). **Applying is a
   deliberate snapshot: the model takes ownership of everything you see.** From that moment
-  it stops following later changes to the global or hardware-class defaults — what you
+  it stops following later changes to the global or hardware/model class defaults — what you
   measured is what keeps running (both defaults libraries say so right in their help text).
   If the defaults DO change under an applied config, the dialog tells you the next time you
   open it — *"Defaults have changed since you applied this config — N values differ"* —
