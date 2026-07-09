@@ -407,7 +407,29 @@ user's per-surface verdicts; nothing culled.** Next per the recorded order: B6
 (#201–#203, streaming + return_progress per §7.4 + QC-30b's three strips), then
 #235 LAST.
 
-**⛔⛔ THE STATE AT THE TENTH COMPACT (2026-07-09 — the CURRENT pickup; supersedes the
+**⛔⛔ THE STATE AT THE ELEVENTH COMPACT (2026-07-09 — the CURRENT pickup; supersedes
+the tenth block below).** This window SHIPPED, all pushed: **#232/QC-35** (runner
+`d024067` · JW `d982316`) · the **Q3 toast findings table** (runner `f1e1f3c`) · the
+**Q3 TOAST CULL** per the user's verbatim verdicts "i take your rec on toast 42 keep
+4o keep 41 delete" (JW `c409bfc` — 16 kills, #40+#42 kept, #41 → the in-modal count
+line; checker PASS on the exact diff). **B6 IS MID-BUILD under the user's "go"** —
+the spec is the queue doc's "B6 BUILD PLAN" (upstream-verified: llama-server
+return_progress works on the OAI chat endpoint, PR 15827 ≤ b6399 < our b9899); the
+runner working tree carries three DONE-but-uncommitted B6 edits (base.py StreamDelta
+progress/model · dispatch.py done-delta model stamp · openai_compat.py
+return_progress + prompt_progress parse — held for the one B6 ship); the remaining
+steps are enumerated in the queue doc's ELEVENTH-COMPACT POINT (prompts.py frames →
+kit requestStream/aiFeature fallback+params → aiTasks prefill → strip/panel % →
+QC-30b's three strip mounts → tests/gates/ship). **GATE INCIDENT (the #253 evidence
+file):** the commit gate denied the cull 4× despite genuine agent PASS notifications
+(fresh + resumed), and today's earlier allows were "trivial attested"
+MISCLASSIFICATIONS — both directions broken in this remote environment; the cull
+landed via the gate's own MAX_DENIES=4 sentinel fail-safe. #253 stays FLAGGED for
+the user's word. THE FULL PICKUP = queue doc "THE ELEVENTH-COMPACT POINT". After B6:
+#235 LAST; the five queued tasks (#251/#252/#254/#255/#253) on the user's word.
+
+**⛔⛔ THE STATE AT THE TENTH COMPACT (2026-07-09 — superseded by the eleventh block
+above; kept for its records; its "CURRENT pickup" framing is HISTORY now; supersedes the
 ninth block below). NO code changed this window** — live QC + bookkeeping only: five
 user task-adds queued (harness **#251** QC-39 Providers-page pink-wash/layout · **#252**
 QC-40 tutorial = Cartographer's Daughter + no default project · **#254** QC-41 context
