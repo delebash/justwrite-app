@@ -2,7 +2,7 @@
 // implementation behind the Lab's Sample button and Insert-from pickers.
 // Checker-caught 2026-07-08: this had no unit test while a name-mismatch bug
 // shipped twice; these cases lock the contract.
-import { beforeEach, describe, expect, it } from "vitest";
+import { beforeEach, describe, expect, it, vi } from "vitest";
 
 import {
   configureTestData,
@@ -10,6 +10,17 @@ import {
   sourceCanFill,
   testDataSources,
 } from "@delebash/llm-ui/common/services/testData.js";
+
+vi.mock("../../stores/project", () => ({
+  useProjectStore: () => ({
+    allChapters: [{ id: "ch1", title: "Ch 1" }],
+    scenes: { ch1: [{ body: "<p>Sea text</p>" }] },
+    characters: [{ id: "c1", name: "Mira", role: "archivist", description: "guarded", notes: "" }],
+    locations: [{ id: "l1", name: "Harbor", description: "salt and rope" }],
+  }),
+}));
+
+import { LAB_TEST_SOURCES } from "../labTestData.js";
 
 describe("mergeVariables", () => {
   it("fills exact-name matches and ignores extras", () => {
@@ -66,6 +77,47 @@ describe("sourceCanFill", () => {
   it("always offers a source that declares no provides list (undeclared hosts keep the old behavior)", () => {
     expect(sourceCanFill({ id: "legacy" }, ["passage"])).toBe(true);
     expect(sourceCanFill({ id: "legacy", provides: [] }, ["passage"])).toBe(true);
+  });
+});
+
+// QC-24 (2026-07-09, "character chat has no data to insert" + "the other[s] may
+// not have correct insert from pickers"): the JW sources must cover the chat
+// features' variables, and every declared `provides` name must actually be
+// emitted by fetch() (the lockstep the chapters comment demands).
+describe("LAB_TEST_SOURCES (QC-24 coverage)", () => {
+  const byId = Object.fromEntries(LAB_TEST_SOURCES.map((s) => [s.id, s]));
+
+  // The chapters source strips TipTap HTML via a detached DOM node; the vitest
+  // environment is node (no document) — a minimal tag-stripping stand-in.
+  beforeEach(() => {
+    globalThis.document = {
+      createElement: () => ({
+        _t: "",
+        set innerHTML(html) { this._t = String(html || "").replace(/<[^>]*>/g, ""); },
+        get textContent() { return this._t; },
+      }),
+    };
+  });
+
+  it("keeps every source's provides list in lockstep with fetch()'s emitted names", () => {
+    const firstId = { chapters: "ch1", characters: "c1", locations: "l1" };
+    for (const src of LAB_TEST_SOURCES) {
+      const emitted = Object.keys(src.fetch(firstId[src.id]).variables);
+      for (const name of src.provides) expect(emitted, `${src.id} emits ${name}`).toContain(name);
+    }
+  });
+
+  it("offers the character picker on In-character chat's exact variables and fills them", () => {
+    const vars = ["question", "excerpts", "characterName", "characterProfile"];
+    expect(sourceCanFill(byId.characters, vars)).toBe(true);
+    const got = byId.characters.fetch("c1").variables;
+    expect(got.characterName).toBe("Mira");
+    expect(got.characterProfile).toContain("archivist");
+  });
+
+  it("offers the chapter picker on the chat features' {question, excerpts} and fills excerpts", () => {
+    expect(sourceCanFill(byId.chapters, ["question", "excerpts"])).toBe(true);
+    expect(byId.chapters.fetch("ch1").variables.excerpts).toBe("Sea text");
   });
 });
 

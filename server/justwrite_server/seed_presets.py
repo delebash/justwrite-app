@@ -177,6 +177,7 @@ DEFAULT_TEST_SAMPLES: list[dict] = [
                               "each sweep of the lamp. The supply boat's light appeared "
                               "where no boat should be.",
                    "voiceCanon": "Close third person, past tense; spare coastal imagery.",
+                   "direction": "Continue the scene as the light draws closer; keep the dread quiet.",
                    "user_content": "The lighthouse keeper counted the storm's breaths between "
                                    "each sweep of the lamp. Continue the scene as the supply "
                                    "boat's light appears where no boat should be."}},
@@ -203,4 +204,54 @@ DEFAULT_TEST_SAMPLES: list[dict] = [
      "variables": {"user_content": "The door was opened by Mira. Fear was felt by her as the "
                                    "room was entered. It was dark. It was cold. Something was "
                                    "wrong, she thought to herself in her head."}},
+    # QC-24 (2026-07-09, user: "the data inserts on the task features is still not
+    # fixed" + "the other[s] may not have correct insert from pickers"): the per-task
+    # audit found members whose variables NO sample matched, and three kinds with no
+    # sample at all. New (taskKind, label) rows seed ADDITIVELY on existing DBs
+    # (fill-if-empty is per pair), so these reach a live box without a reset —
+    # extending an existing row's variables would NOT (user edits stick).
+    {"taskKind": "prose.generate", "label": "Guided continuation",
+     # writerAI.guided-continue exposes {direction, passage, voiceCanon}; the
+     # pre-existing "Storm at the lighthouse" row gained `direction` above, but
+     # fill-if-empty SKIPS existing (taskKind, label) pairs on a live DB — this
+     # NEW row is what actually reaches existing boxes (checker-caught).
+     "variables": {"passage": "The tide had taken the last of the light when Mira reached "
+                              "the cannery office. The brass key turned, but the door was "
+                              "already unlatched.",
+                   "direction": "Continue the scene: someone has been here first; keep it quiet and close.",
+                   "voiceCanon": "Close third person, past tense; spare coastal imagery."}},
+    {"taskKind": "judge.scored", "label": "Chapter to critique",
+     # The critique/multi-reader members read {chapter_label, chapter_text}, which
+     # the "Passage to critique" row (user_content) matched 0 of.
+     "variables": {"chapter_label": "Chapter 3 — The Ledger",
+                   "chapter_text": "Mira spread the torn page on the cannery desk. The columns "
+                                   "were her father's hand until the ink changed, mid-entry, to "
+                                   "a script she had seen once before — on the harbor-master's "
+                                   "warning nailed to the gate the winter the boats stayed out."}},
+    {"taskKind": "extract.structured", "label": "Chapter to scan",
+     # foreshadowing reads {chapter_label, chapter_text} — unmatched by the
+     # user_content scene row.
+     "variables": {"chapter_label": "Chapter 5 — Before the Funeral",
+                   "chapter_text": "Renn waited under the cannery awning while the bell counted "
+                                   "the hour. 'You knew before the funeral,' he said when Mira "
+                                   "reached him. 'The page told you.' She did not deny it; she "
+                                   "asked instead who else could read the older script."}},
+    {"taskKind": "chat.inVoice", "label": "Ask Mira in character",
+     # In-character chat exposes {question, excerpts, characterName, characterProfile}
+     # — it had NO sample (and, pre-QC-24, no insertable source either).
+     "variables": {"question": "What did you feel when you first saw the ledger's torn page?",
+                   "excerpts": "Ch. 3: Mira found the ledger's torn page in her father's coat. "
+                               "Ch. 5: 'You knew before the funeral,' Renn said.",
+                   "characterName": "Mira",
+                   "characterProfile": "Harbor archivist, 34. Guarded, dry-witted; keeps grief "
+                                       "private. Distrusts Old Harbek; protective of Renn."}},
+    {"taskKind": "creative.structured", "label": "Scene seed",
+     "variables": {"user_content": "A sensory pass target: the cannery office at dusk — brass "
+                                   "key cold in Mira's palm, tide turning below the floorboards, "
+                                   "the smell of rope and old paper."}},
+    {"taskKind": "summary.grounded", "label": "Recent chapters digest",
+     "variables": {"user_content": "Ch. 3: Mira finds the ledger's torn page in her father's "
+                                   "coat. Ch. 4: the harbor closes early; Old Harbek warns her "
+                                   "off. Ch. 5: Renn reveals he knew before the funeral, and "
+                                   "they agree to open the cannery office at dusk."}},
 ]

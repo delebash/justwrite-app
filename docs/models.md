@@ -37,15 +37,18 @@ it there — the wizard never touches external providers. (The embedding always 
 on the bundled runner.)
 
 **Set as default, on any provider.** Every provider row — the built-in, a local server, or
-a cloud API — carries a **Set as default** button, and it's the same flow everywhere. It
-makes that provider the default for your AI tasks (they run on the provider's chat model),
-and — when the provider has an **embedding model** set — the search/embeddings provider
-too; when it doesn't, the dialog says in one line that your embeddings stay where they are.
-Before applying you choose what happens to tasks you already customized: leave them on
-their own models (the default), or tick **Also overwrite tasks I customized** to repoint
-everything. The built-in needs an assigned chat model first (pick one in the catalog, or
-run Quick Setup); any other provider needs its **Default model** filled in on its Edit
-form.
+a cloud API — carries a **Set as default** button, and it's the same flow everywhere. The
+provider your tasks currently run on is marked with a green **Default** tag on its row, and
+its button reads **Default ✓** (still clickable — that's where the overwrite option lives).
+Setting a default makes that provider the one your AI tasks run on (the provider's chat
+model), and — when the provider has an **embedding model** set — the search/embeddings
+provider too; the built-in's dialog reads your actual embedding setup, so when a local
+embedding is already serving it says so ("already runs here — unchanged") instead of
+claiming none is set. Before applying you choose what happens to tasks you already
+customized: leave them on their own models (the default), or tick **Also overwrite tasks I
+customized** to repoint everything. The built-in needs an assigned chat model first (pick
+one in the catalog, or run Quick Setup); any other provider needs its **Default model**
+filled in on its Edit form.
 
 When you click **Apply**, that one model becomes the default for **every task** — writing,
 chat, extraction, judgment — and it downloads and loads right away. If you've already
@@ -266,5 +269,14 @@ model and can't be changed here — the wrong pooling would quietly make search 
 > **Filling the Lab's Test input.** The **Sample** button fills the boxes with editable
 > sample data stored in the app's database (click again for the next sample), and the
 > **"Insert from chapter / character / location…"** pickers pull real material from your
-> open book. A picker only appears when that material can actually fill one of the open
-> feature's boxes — a prose feature offers chapters, not character profiles.
+> open book. Every task has at least one sample, and the pickers cover every task's boxes:
+> the chat tasks take a chapter's prose as their excerpts, and In-character chat fills its
+> character name + profile from a real character. All the fill controls sit together on
+> one row above the boxes. A picker only appears when that material can actually fill one
+> of the open feature's boxes — a prose feature offers chapters, not character profiles.
+
+> **Watching a Lab run.** Running a test shows the same AI progress strip used everywhere
+> else in the app — elapsed time, first-token latency, tokens/sec, and a Cancel button —
+> and the run also appears in the title-bar AI status panel. Stopping **Optimize for this
+> PC** takes effect immediately: the sweep stops scheduling trials the moment you click
+> Skip, even while the engine is still winding a trial down.

@@ -25,8 +25,10 @@ export const LAB_TEST_SOURCES = [
     kind: "chapter",
     // QC-9: the names fetch() emits. The Lab renders this picker only on
     // features with at least one of these boxes (or via the 1×1 bridge) —
-    // keep in lockstep with fetch()'s variables.
-    provides: ["passage", "user_content", "chapter_text", "chapter_label"],
+    // keep in lockstep with fetch()'s variables. `excerpts` (QC-24): the two
+    // chat features ({question, excerpts}) had NO insertable source at all —
+    // a chapter's prose is the natural test stand-in for retrieved excerpts.
+    provides: ["passage", "user_content", "chapter_text", "chapter_label", "excerpts"],
     list() {
       // Chapters live inside parts — `allChapters` (project.js getter) is the
       // one flat view; there is no root `chapters` state.
@@ -40,7 +42,7 @@ export const LAB_TEST_SOURCES = [
       // Emit EVERY name the features expose (checker-caught 2026-07-08: the
       // writing features use {{passage}}, not {{user_content}} — same fix as
       // the seeded samples): the merge fills only what the open prompt has.
-      return { variables: { passage: text, user_content: text, chapter_text: text, chapter_label: c?.title || "" } };
+      return { variables: { passage: text, user_content: text, chapter_text: text, chapter_label: c?.title || "", excerpts: text } };
     },
   },
   {
@@ -49,8 +51,10 @@ export const LAB_TEST_SOURCES = [
     kind: "character",
     // QC-9: a profile is user_content-shaped — it can't fill a prose passage,
     // so the picker stays OFF prose features (the user's "does it make sense
-    // to drop character info for generate prose?" — no).
-    provides: ["user_content"],
+    // to drop character info for generate prose?" — no). characterName /
+    // characterProfile (QC-24): In-character chat exposes exactly those two
+    // boxes and had NO insertable source — a real character fills them.
+    provides: ["user_content", "characterName", "characterProfile"],
     list() {
       const p = useProjectStore();
       return (p.characters || []).map((c) => ({ id: c.id, label: c.name || "Unnamed" }));
@@ -59,7 +63,11 @@ export const LAB_TEST_SOURCES = [
       const p = useProjectStore();
       const c = (p.characters || []).find((x) => x.id === id) || {};
       const profile = [c.role, c.description, c.notes].filter(Boolean).join("\n");
-      return { variables: { user_content: `${c.name || ""}\n${profile}`.trim() } };
+      return { variables: {
+        user_content: `${c.name || ""}\n${profile}`.trim(),
+        characterName: c.name || "",
+        characterProfile: profile,
+      } };
     },
   },
   {

@@ -250,16 +250,43 @@ root-cause at the line before any fix), **QC-23** (the shared AI progress strip 
 missing from the Tasks-Lab surface — B4-2 rework suspected of dropping the AiTaskStrip
 mount, unverified until read). Records: queue §9.
 
-**⛔⛔ THE STATE AT THE FIFTH COMPACT (2026-07-09 — the CURRENT pickup):** the user
-asked "we need to compact are we at a good stoping point" — the answer was "after
-DL-2's verdict lands", it landed **PASS**, DL-2 committed+pushed with this save.
-**Units 1–4 of the fourth-compact "do it all" go are ALL SHIPPED**; the go REMAINS
-STANDING for: (1) the QC quartet #218–#221 (QC-20 default-provider indicator ·
-QC-21 false no-embedding line · QC-22 optimize stop · QC-23 the missing shared
-progress strip — flagged sequencing: before Batch 5), (2) Batch 5 (#193–#200),
-(3) Batch 6 (#201–#203). THE FULL PICKUP lives in the queue doc §9 **"THE
-FIFTH-COMPACT POINT"** — read that block first post-compact, then build in order
-under the standing disciplines. QC stays answer-first, always.
+**GO (2026-07-09, the standing "do it all" continuing post-fifth-compact) — THE QC
+QUINTET SHIPPED** (tasks #218–#222, one cluster; QC-24 arrived live mid-grounding —
+"the data inserts on the task features is still not fixed… the other[s] may not have
+correct insert from pickers" — answered first, folded in on the user's "contine as you
+are" + "go"). **QC-20**: the provider list tags the current default row (green Default
+tag from the same dominant pair the dialog reads — a new UNGATED
+`currentDefaultProviderId` on the shared modelApply) and its button reads "Default ✓"
+(kept CLICKABLE — my first disabled cut made QC-21's dialog unreachable; corrected).
+**QC-21**: the built-in's set-as-default dialog reads the ROUTING default, so it now
+says "Your embedding (<model>) already runs here — unchanged" instead of the false
+no-embedding line (live-proven: qwen3-embedding-8b). **QC-22**: the optimize-stop wedge
+root-caused at the line — the cancel teardown blocked on the service's router lock
+behind queued failing-trial loads and only wrote "cancelled" AFTER — fixed
+state-FIRST + a sweep-generation guard + a between-trials fast-path; three pytest
+recreations incl. the user's exact blocked-teardown shape. **QC-23**: the shared
+AiTaskStrip now mounts on Lab runs (per-column task via the runAiFeature meta seam;
+B1-6's registration was intact — only the mount was missing), replacing the bare
+"Running…". **QC-24**: audit-first sweep of EVERY task (the user's two reports + four
+more broken members found: grounded chat's zero pickers, the critique family's +
+foreshadowing's 0-var samples, two kinds with no sample) — chapters source now
+provides/emits `excerpts`, characters provides/emits `characterName`+
+`characterProfile`, five NEW additive sample rows (reach existing DBs without reset;
+proven live), and the fill affordances moved to ONE row below the Test-input header
+(the wrap scatter was the "two drop downs and no sample"). Gates: runner ruff + 439
+pytest · JW server 76 pytest · vitest 57/57 · build:vite · the NEW committed
+`scripts/qc-quintet-probe.mjs` 22/22 · b4+b29 probes repointed off the superseded
+layout and green · dl2+switch probes · FULL smoke zero JS errors · rules-checker
+verdict at the commit. Full record: queue doc §9 "QC QUINTET BUILD RECORD" (all flags
++ both audit tables).
+
+**⛔⛔ THE STATE AT THE SIXTH COMPACT (2026-07-09 — the CURRENT pickup):** the user:
+*"when you get to a stopping point we should compact"* — the QC quintet ship IS that
+stopping point; this save ships with it. **Units 1–4 + the QC quintet are ALL
+SHIPPED**; the go REMAINS STANDING for: (1) **Batch 5** (#193–#200), (2) **Batch 6**
+(#201–#203). THE FULL PICKUP lives in the queue doc §9 **"THE SIXTH-COMPACT POINT"**
+— read that block first post-compact, then build in order under the standing
+disciplines. QC stays answer-first, always.
 
 **⛔⛔ THE STATE AT THE FOURTH COMPACT (2026-07-09 — superseded by the paragraph above;
 kept for the go's wording):** the user:

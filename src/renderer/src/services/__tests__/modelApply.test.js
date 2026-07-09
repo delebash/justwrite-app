@@ -17,7 +17,12 @@ vi.mock("@delebash/llm-ui/composables/useRouting.js", () => ({
 
 import { request } from "@delebash/llm-ui/client.js";
 
-import { setAsDefault } from "@delebash/llm-ui/services/modelApply.js";
+import {
+  currentDefaultId,
+  currentDefaultProviderId,
+  refreshApplied,
+  setAsDefault,
+} from "@delebash/llm-ui/services/modelApply.js";
 
 const ASSIGN_URL = "/v1/ai/preset-assignments";
 const PRESETS_URL = "/v1/ai/engine-presets";
@@ -91,5 +96,33 @@ describe("setAsDefault — §7.2 overwrite choice", () => {
     await setAsDefault("local-llamacpp", "gemma", { overwrite: true });
     // The three already on (local-llamacpp, gemma) are skipped; the two others move.
     expect(putCalls().map((p) => p.id).sort()).toEqual(["p-custom", "p-samename"]);
+  });
+});
+
+// QC-20 (2026-07-09, "the default provider is not set for llama after running
+// quicksetup"): the provider LIST tags its current-default row via the UNGATED
+// currentDefaultProviderId — the local gate stays on currentDefaultId only (it
+// exists so a cloud default can't false-match a same-id LOCAL catalog row).
+describe("refreshApplied — currentDefaultProviderId (QC-20)", () => {
+  it("exposes a LOCAL dominant pair on both refs", async () => {
+    await refreshApplied();
+    expect(currentDefaultProviderId.value).toBe("local-llamacpp");
+    expect(currentDefaultId.value).toBe("gemma");
+  });
+
+  it("exposes an ONLINE dominant's provider ungated while the model badge stays gated", async () => {
+    const fx = fixture();
+    for (const p of fx.presets) {
+      if (p.providerId === "local-llamacpp") Object.assign(p, { providerId: "openrouter", model: "kimi" });
+    }
+    request.mockImplementation(async (url) => {
+      if (url === ASSIGN_URL) return fx.assignments;
+      if (url === PRESETS_URL) return { presets: fx.presets };
+      if (url === ROUTING_URL) return { default: {} };
+      throw new Error(`unmocked ${url}`);
+    });
+    await refreshApplied();
+    expect(currentDefaultProviderId.value).toBe("openrouter"); // the row tag follows it
+    expect(currentDefaultId.value).toBe("");                   // the catalog badge stays local-gated
   });
 });

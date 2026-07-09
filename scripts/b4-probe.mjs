@@ -83,13 +83,13 @@ check("#29 two columns (features | preset & test-against), Lab full-width below"
 let sampleReady = false;
 for (let i = 0; i < 16 && !sampleReady; i++) {
   sampleReady = await page.evaluate(() =>
-    [...document.querySelectorAll(".lu-fw-testin-h button")].some((b) => b.textContent.trim() === "Sample"));
+    [...document.querySelectorAll(".lu-fw-testin-fill button")].some((b) => b.textContent.trim() === "Sample"));
   if (!sampleReady) await sleep(500);
 }
 const diag = await page.evaluate(() => ({
   active: document.querySelector(".lu-fw-card.is-active")?.textContent.trim().slice(0, 40),
   testin: !!document.querySelector(".lu-fw-testin"),
-  hdr: [...document.querySelectorAll(".lu-fw-testin-h button")].map((b) => b.textContent.trim().slice(0, 24)),
+  hdr: [...document.querySelectorAll(".lu-fw-testin-fill button")].map((b) => b.textContent.trim().slice(0, 24)),
 }));
 console.log("DIAG:", JSON.stringify(diag));
 const before = await page.evaluate(() => {
@@ -97,14 +97,14 @@ const before = await page.evaluate(() => {
   return ta ? ta.value : null;
 });
 await page.evaluate(() => {
-  [...document.querySelectorAll(".lu-fw-testin-h button")].find((b) => b.textContent.trim() === "Sample")?.click();
+  [...document.querySelectorAll(".lu-fw-testin-fill button")].find((b) => b.textContent.trim() === "Sample")?.click();
 });
 await sleep(800);
 const b44 = await page.evaluate(() => {
   const ta = document.querySelector(".lu-fw-testin textarea");
-  const srcs = [...document.querySelectorAll(".lu-fw-testin-h .ui-select-trigger")];
+  const srcs = [...document.querySelectorAll(".lu-fw-testin-fill .ui-select-trigger")];
   return {
-    sampleBtn: [...document.querySelectorAll(".lu-fw-testin-h button")].some((b) => b.textContent.trim() === "Sample"),
+    sampleBtn: [...document.querySelectorAll(".lu-fw-testin-fill button")].some((b) => b.textContent.trim() === "Sample"),
     filled: (ta?.value || "").length > 20,
     text: (ta?.value || "").slice(0, 60),
     sources: srcs.length,
@@ -118,7 +118,7 @@ check("#30 Sample button exists and fills the test input from the DB",
 // "does it make sense to drop character info for generate prose?" — no).
 const qc9a = await page.evaluate(() => {
   const labels = [...document.querySelectorAll(".lu-fw-testin .lu-field > label")].map((l) => l.textContent.trim());
-  const triggers = [...document.querySelectorAll(".lu-fw-testin-h .ui-select-trigger")].map((t) => t.textContent.trim());
+  const triggers = [...document.querySelectorAll(".lu-fw-testin-fill .ui-select-trigger")].map((t) => t.textContent.trim());
   return { labels, triggers };
 });
 check("QC-9 prose feature: chapter picker only — no character/location pickers",
@@ -135,7 +135,7 @@ await page.evaluate(() => {
   set.call(ta, "");
   ta.dispatchEvent(new Event("input", { bubbles: true }));
 });
-await page.click('.lu-fw-testin-h .ui-select-trigger:has-text("Insert from chapter")');
+await page.click('.lu-fw-testin-fill .ui-select-trigger:has-text("Insert from chapter")');
 await sleep(700);
 const picked = await page.evaluate(() => {
   const opts = [...document.querySelectorAll("[role=option]")];
@@ -164,7 +164,7 @@ await page.evaluate(() => {
 await sleep(1200);
 const qc9b = await page.evaluate(() => {
   const labels = [...document.querySelectorAll(".lu-fw-testin .lu-field > label")].map((l) => l.textContent.trim());
-  const triggers = [...document.querySelectorAll(".lu-fw-testin-h .ui-select-trigger")].map((t) => t.textContent.trim());
+  const triggers = [...document.querySelectorAll(".lu-fw-testin-fill .ui-select-trigger")].map((t) => t.textContent.trim());
   return { labels, triggers };
 });
 check("QC-9 user_content feature: all three pickers render (chapter + character + location)",

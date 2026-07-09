@@ -138,8 +138,10 @@ try {
     routingAfter.default?.embeddingId === temp.id && routingAfter.default?.embeddingModel === "b29-embed",
     JSON.stringify(routingAfter.default));
 
-  // Overwrite apply: the customized task moves too.
-  await page.locator('.lu-prow:has-text("B29 Probe")').locator('button:has-text("Set as default")').click();
+  // Overwrite apply: the customized task moves too. (QC-20: after the keep-mode
+  // apply the temp row IS the default — its button now reads "Default ✓", still
+  // clickable; the overwrite checkbox in the dialog is exactly this path.)
+  await page.locator('.lu-prow:has-text("B29 Probe")').locator('button:has-text("Default ✓")').click();
   await sleep(400);
   await page.locator('.ui-modal :text("Also overwrite tasks I customized")').click();
   await page.locator('.ui-modal button:has-text("Set as default")').click();
