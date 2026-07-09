@@ -372,8 +372,28 @@ item) is BLOCKED on the user's word (relationshipArc auto-pair? location-picker 
 + the #234 toast tail + two flagged defaults (#236 label "AI tasks", #230 tail=5); asking
 next. Then B6 (#201–#203), then #235 LAST.
 
-**⛔⛔ THE STATE AT THE NINTH COMPACT (2026-07-09 — the CURRENT pickup;
-supersedes the eighth block below for what's DONE).** This window shipped, all
+**⛔⛔ THE STATE AT THE TENTH COMPACT (2026-07-09 — the CURRENT pickup; supersedes the
+ninth block below). NO code changed this window** — live QC + bookkeeping only: five
+user task-adds queued (harness **#251** QC-39 Providers-page pink-wash/layout · **#252**
+QC-40 tutorial = Cartographer's Daughter + no default project · **#254** QC-41 context
+menu redo to the AI-menu scope-law + Windows-11 grammar · **#255** QC-42 Quick Setup
+built-in-only label · **#253** hook-fix, flagged) and **#232 UNBLOCKED** — the "four
+blocking questions" were ALREADY-DECIDED items my ninth-compact handoff mis-filed as
+open and re-asked; the user's justified anger + the correction are recorded (queue doc
+§9, the ANSWERED block; nothing changed: sample-only · location picker removed ·
+findings-table-first for the ~45 toasts · "AI tasks" + 5-row tail). **The user's final
+word this window: "lets go commit what you need to and get going" — THE GO IS ARMED:
+post-compact, build #232 FIRST** (spec: queue doc §9 QC-35 section), then B6
+(#201–#203), then #235 LAST; the five new tasks slot on the user's word at a natural
+seam. THE FULL PICKUP = queue doc §9 **"THE TENTH-COMPACT POINT"**. Genuinely open,
+user-owned, do NOT nag: the unasked DECIDED-ONCE bullet keep/strike · superpowers
+install authorization (canonical source obra/superpowers-marketplace, sandbox needs
+their word) · new-task sequencing. Doc-only commits this window: runner
+`cae73df`/`3c0d6f4`/`8ab33b1`+tail, JW `54b1b0f`/`251e7d6`+this. **Code heads unchanged:
+runner `472d9ab` · JW `879ddb8`.**
+
+**⛔⛔ THE STATE AT THE NINTH COMPACT (2026-07-09 — superseded by the tenth block above;
+its "four open questions" framing was WRONG, see the tenth).** This window shipped, all
 committed + pushed (both repos clean): **#237** (think-twice hooks, `8fc5738`,
 LIVE) · **QC-25** (disk-read engine pin, `55d57ad`) · **the QC cluster**
 (#224–#236 minus #232, runner `472d9ab` / JW `879ddb8` / recap `0dd3613`) —
