@@ -315,7 +315,24 @@ under an installed b9934) — ANSWERED with the root cause at the line (update_c
 the reseeded PIN, lifecycle.py:487; the pin-keyed Update would DOWNGRADE), recorded in
 queue §9, task #223 queued AFTER B5 per your word.
 
-**⛔⛔ THE STATE AT THE SEVENTH COMPACT (2026-07-09 — the CURRENT pickup):** the user:
+**⛔⛔ THE STATE AT THE EIGHTH COMPACT (2026-07-09 — the CURRENT pickup):** this
+window was the user's live QC/design session — NO code commits (heads stay
+runner `82edf7e` · JW `aaefeb4` + doc-only commits). QC-26..QC-38 (tasks
+#224–#236) answered + recorded; THE RETHINK the user ordered ran (four themes:
+truth over machinery · the user can see, don't narrate · one mechanism reused ·
+the book is the data); EVERY cluster decision is now the user's word (toast law
+· page-related-undo law · the 34-action test-input table + sample law · reset
+includes features · sidebar AI-queue item · beatSheet default framework ·
+relationshipArc sample-only · #235 book-wide page undo = YES, LAST). QC-25's
+grounding is complete, spec REVISED (boot+post-install pin heal, disk-read
+update_check), no code yet. **THE ORDER post-compact: QC-25 (#223) → the QC
+cluster (#224–#236, one verdict-gated ship) → B6 (#201–#203, QC-30b strips
+folded into B6-2) → #235 LAST (real plan first).** THE FULL PICKUP lives in the
+queue doc §9 **"THE EIGHTH-COMPACT POINT"** — read that block first post-compact.
+QC stays answer-first, always.
+
+**⛔⛔ THE STATE AT THE SEVENTH COMPACT (2026-07-09 — superseded by the eighth
+block above):** the user:
 *"when you get to a stoping point we need to stop … compact i mean"* — the B5 ship IS
 that stopping point; this save ships with it. **Units 1–4 + the QC quintet + Batch 5 are
 ALL SHIPPED**; the go REMAINS STANDING for: (1) **QC-25** (task #223, the user's "add to
