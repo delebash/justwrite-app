@@ -5,6 +5,10 @@
 // #30 "sample button with some sample data we have in database" + §7.3 Insert-from pickers.
 // QC-9 "does it make sense to drop character info for generate prose?" — NO: a picker
 //   renders only when its source can fill one of the open feature's boxes.
+// OPTION A (QC-15/16): "remove it, this is stupid" (the Default-preset fallback row) ·
+//   "no special popup just plan easy form" (in-pane create + inline rename; Save refuses
+//   until name AND preset are set) · honest move affordances ("Move a feature here…",
+//   options name the task each feature comes from).
 // findChrome copied from scripts/headless-smoke.mjs per JW CLAUDE.md.
 import { existsSync, readdirSync } from "node:fs";
 import { createRequire } from "node:module";
@@ -189,6 +193,106 @@ const b43 = await page.evaluate(() => {
 check("#35 samplers: ONE flat column — no Advanced section, no column spread",
   b43.grid && b43.rows > 5 && b43.oneColumn && !b43.advToggle && !b43.multiCol, JSON.stringify(b43));
 await page.screenshot({ path: `${OUT}/b4-samplers.png` });
+
+// ── OPTION A (QC-15/16, 2026-07-09) ─────────────────────────────────────────
+// A1: the Default-preset fallback row is GONE; "Reset all" survives in the aside.
+const a1 = await page.evaluate(() => ({
+  fallback: !!document.querySelector(".lu-tk-default-k"),
+  resetAll: [...document.querySelectorAll(".lu-fw-list button")].some((b) => b.textContent.includes("Reset all to defaults")),
+}));
+check("A1 QC-15: no Default-preset fallback row; Reset-all survives", !a1.fallback && a1.resetAll, JSON.stringify(a1));
+
+// A2: the add-picker is honest — "Move a feature here…" + every option names the
+// task the feature would come FROM.
+const a2 = await page.evaluate(() => {
+  const h = [...document.querySelectorAll(".lu-tk-sec-h")].find((x) => x.textContent.includes("Features in this task"));
+  return { trigger: h?.querySelector(".ui-select-trigger")?.textContent.trim() || "" };
+});
+check("A2 QC-16: picker reads 'Move a feature here…'", /move a feature here/i.test(a2.trigger), JSON.stringify(a2));
+// The custom class doesn't reach the DOM (UiSelect fragment root) — scope by the
+// Features heading, whose only select IS the add-picker (proven by A2 above).
+await page.click(".lu-tk-sec-h .ui-select-trigger");
+await sleep(600);
+const a2b = await page.evaluate(() => {
+  const opts = [...document.querySelectorAll("[role=option]")].map((o) => o.textContent.trim());
+  return { count: opts.length, fromCount: opts.filter((t) => /— from /.test(t)).length };
+});
+await page.keyboard.press("Escape");
+await sleep(300);
+check("A2b QC-16: every offered feature says which task it comes from",
+  a2b.count > 1 && a2b.fromCount === a2b.count - 1, JSON.stringify(a2b));
+
+// A3: "+ New task" opens the IN-PANE form — no popup dialog — with Save disabled.
+await page.click(".lu-tk-new");
+await sleep(600);
+const a3 = await page.evaluate(() => ({
+  dialog: !!document.querySelector("[role=dialog]"),
+  form: !!document.querySelector(".lu-tk-createform"),
+  saveDisabled: [...document.querySelectorAll(".lu-tk-createactions button")]
+    .find((x) => x.textContent.trim() === "Save")?.disabled ?? null,
+}));
+check("A3 QC-15: + New task = in-pane form, NO popup, Save disabled while empty",
+  !a3.dialog && a3.form && a3.saveDisabled === true, JSON.stringify(a3));
+
+// A4: name alone does not enable Save — a preset is REQUIRED ("user cant actually
+// save a new task with the save button unless preset is assigned").
+await page.fill(".lu-tk-createform input.ui-input", "Probe task A");
+await sleep(300);
+const a4a = await page.evaluate(() => [...document.querySelectorAll(".lu-tk-createactions button")]
+  .find((x) => x.textContent.trim() === "Save")?.disabled);
+await page.click(".lu-tk-createform .ui-select-trigger");
+await sleep(600);
+await page.evaluate(() => {
+  const first = [...document.querySelectorAll("[role=option]")][0];
+  first?.dispatchEvent(new PointerEvent("pointerup", { bubbles: true }));
+  first?.click();
+});
+await sleep(400);
+const a4b = await page.evaluate(() => [...document.querySelectorAll(".lu-tk-createactions button")]
+  .find((x) => x.textContent.trim() === "Save")?.disabled);
+check("A4 QC-15: Save disabled until a preset is picked", a4a === true && a4b === false,
+  `nameOnly=${a4a} withPreset=${a4b}`);
+
+// A5: create round-trip — Save creates + selects the new task; the header name
+// field shows it.
+await page.evaluate(() => {
+  [...document.querySelectorAll(".lu-tk-createactions button")].find((x) => x.textContent.trim() === "Save")?.click();
+});
+await sleep(1000);
+const a5 = await page.evaluate(() => ({
+  activeCard: document.querySelector(".lu-fw-card.is-active")?.textContent.trim().slice(0, 40) || "",
+  nameField: document.querySelector("input.lu-tk-name")?.value || "",
+}));
+check("A5 QC-15: create round-trip selects the new task",
+  a5.activeCard.includes("Probe task A") && a5.nameField === "Probe task A", JSON.stringify(a5));
+
+// A6: rename is the inline field — type, blur, the list card updates. No popup.
+await page.fill("input.lu-tk-name", "Probe task B");
+await page.evaluate(() => document.querySelector("input.lu-tk-name")?.blur());
+await sleep(900);
+const a6 = await page.evaluate(() => ({
+  renamed: [...document.querySelectorAll(".lu-fw-card")].some((c) => c.textContent.includes("Probe task B")),
+  oldGone: ![...document.querySelectorAll(".lu-fw-card")].some((c) => c.textContent.includes("Probe task A")),
+  dialog: !!document.querySelector("[role=dialog]"),
+}));
+check("A6 QC-15: inline rename saves on blur (no popup)", a6.renamed && a6.oldGone && !a6.dialog, JSON.stringify(a6));
+await page.screenshot({ path: `${OUT}/a-tasks.png` });
+
+// Cleanup: delete the probe task (through its own confirm dialog) so the DB is
+// left as found.
+await page.evaluate(() => {
+  [...document.querySelectorAll(".lu-fw-edit .lu-fw-h button")].find((b) => b.textContent.trim() === "Delete")?.click();
+});
+await sleep(700);
+await page.evaluate(() => {
+  const dlg = document.querySelector("[role=dialog]");
+  const btns = [...(dlg?.querySelectorAll("button") || [])];
+  btns.reverse().find((b) => b.textContent.trim() && !/cancel/i.test(b.textContent))?.click();
+});
+await sleep(900);
+const a7 = await page.evaluate(() =>
+  ![...document.querySelectorAll(".lu-fw-card")].some((c) => c.textContent.includes("Probe task B")));
+check("A7 cleanup: probe task deleted — DB left as found", a7);
 
 console.log(`\npage errors: ${errors.length}`);
 errors.slice(0, 5).forEach((e) => console.log("  " + e));

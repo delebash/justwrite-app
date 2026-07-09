@@ -171,22 +171,30 @@ probe committed at `scripts/b4-probe.mjs`), round 3 **VERDICT: PASS**. Gates: ru
 the 6/6 acceptance probe. Full record: queue doc §3 B4 BUILD RECORD. ~~PICKUP: Batches 5+6 under the standing go~~ —
 **SUPERSEDED by the HARD STOP below.**
 
-**⛔⛔ THE STATE AT THE THIRD COMPACT (2026-07-08 — the CURRENT pickup):** the hard stop
-("do nothing until i say go!!!!") ran through a full DISCUSSION round that DECIDED: QC-17
-(engine defaults REMOVED entirely — engine SWITCHES only, samplers untouched; the grid
-shows only value-carrying rows, the user adds switches in global/hardware/model) · QC-10
-yes (grouped headings) · QC-11 remove context_shift+cache_reuse from the catalog · QC-12
-yes (the exact copy) · the QC-15/16 fork → **OPTION A** ("do A"). Then the user: *"stop
-lets save this we need to compact then you can go"* — **a GO IS ARMED for right after the
-compact, covering OPTION A ONLY (the QC-15+16 Tasks-tab cluster)**; its full build scope,
-grounded file:line, gates, and the flagged consequences live in the queue doc §9 "THE
-THIRD-COMPACT POINT" block — READ THAT, re-read TaskKinds.vue in full, then build A.
-Decided-but-NOT-in-the-go (ask one line at the A report): QC-10/11/12/17 (the Tune-grid
-cluster) · QC-13 (Not-installed root-cause) · QC-14 (wrap). Still frozen: B2-9 · the DL-2
-build · Batches 5/6. QC-9 shipped earlier this stretch (checker PASS; runner `115e043`,
-JW `a30cade`). The §9 QC queue stays LIVE — answer conversationally FIRST, always. The
-never-decide decree (twice-verbatim) is in the ⛔ #1 block above — no own decisions of
-ANY size, flags pile up = stop and ask BEFORE building.
+**GO (2026-07-09, post-third-compact) — OPTION A SHIPPED; the switch cluster is the same
+go's second half.** After the compact the user held ("dont code yet"), QC'd on: **QC-18**
+(switch value editors → plain text/number everywhere plane-1; help carries what a switch
+does + its accepted values; the q8_0/f16 dropdowns were my seeded curation — the verified
+llama.cpp cache-type set is 9 values, our dropdown offered 3) and **QC-19** (rename
+"Hardware-class defaults" — exact label still the user's pick), both recorded in queue §9
+(runner `82f09a7`). Then the go: *"…yes i mean all switches not samplers, now go"* +
+design confirmations (Tune & measure = the SAME free-row editor as Global/Hardware, ✕
+removes a row = engine's own default, grouped under section headers like the Global
+bundles layout, NO per-section Save — its single Apply stays). **OPTION A (QC-15+16) is
+BUILT + VERIFIED:** fallback row gone (Reset-all survives) · in-pane create form, Save
+disabled until name+preset · inline always-editable name field · honest "Move a feature
+here…"/"— from <task>" affordances + toasts · "⚠ no preset" instead of "inherits
+default". Gates: vitest 48/48 · build:vite · b4-probe **15/15 zero page errors** (7 new A
+checks, committed) · FULL smoke zero JS errors · rules-checker **VERDICT: PASS**. Full
+record: queue doc §9 "A BUILD RECORD". **IN PROGRESS under the same go: the switch
+cluster QC-17+18+10+11+12** (Tune & measure → grouped free-row editor; plain text/number
+values; engine-default concept removed from catalog data + UI; context_shift/cache_reuse
+out of the catalog; the QC-12 samplers line). Still needing their own word: QC-13
+(Not-installed root-cause) · QC-14 (wrap) · QC-19's exact label. Still frozen: B2-9 · the
+DL-2 build · Batches 5/6. The §9 QC queue stays LIVE — answer conversationally FIRST,
+always; when the user asks for a response, STOP the turn and answer (mid-turn text does
+not reach them — 2026-07-09 lesson). The never-decide decree (twice-verbatim) is in the
+⛔ #1 block above.
 
 **Last code heads (both clean, pushed): runner `7727a61` · JW `0c72483`.** (History: QC
 `1bea5f8`/JW `e65de3a`, DL-1 `cf50ce8`/`4051979`, B3R `e8e69a9`, B3 `3250258`, B2 `b1228fb`,
