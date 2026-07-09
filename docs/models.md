@@ -277,7 +277,10 @@ model and can't be changed here — the wrong pooling would quietly make search 
 
 > **Watching a Lab run.** Running a test shows the same AI progress strip used everywhere
 > else in the app — elapsed time, first-token latency, tokens/sec, and a Cancel button —
-> and the run also appears in the title-bar AI status panel. Stopping **Optimize for this
+> and the run also appears in the title-bar AI status panel. On the built-in provider the
+> wait before the first token is a real percentage too: the strip reads **"reading prompt
+> N%"** while the engine works through your prompt (cloud providers don't report this, so
+> there the strip shows elapsed time until the first token lands). Stopping **Optimize for this
 > PC** takes effect immediately: the sweep stops scheduling trials the moment you click
 > Skip, even while the engine is still winding a trial down.
 

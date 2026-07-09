@@ -407,8 +407,28 @@ user's per-surface verdicts; nothing culled.** Next per the recorded order: B6
 (#201–#203, streaming + return_progress per §7.4 + QC-30b's three strips), then
 #235 LAST.
 
-**⛔⛔ THE STATE AT THE ELEVENTH COMPACT (2026-07-09 — the CURRENT pickup; supersedes
-the tenth block below).** This window SHIPPED, all pushed: **#232/QC-35** (runner
+**GO (2026-07-09, post-eleventh-compact) — B6 (#201–#203) SHIPPED** under the standing
+"go", per the queue doc's "B6 BUILD PLAN": **streaming ON everywhere** — `runAiFeature`
+keeps its exact call-site contract but runs the STREAM transport under the hood with the
+full ask-param body (all 16 callers untouched), with the §7.4 automatic fallback (retry
+once via /run ONLY on a zero-frames transport failure — never an in-stream {error},
+never abort, never after frames arrived); the stream done frame now carries model+cost
+(dispatch stamps the resolved model); **return_progress** on the builtin engine emits
+real prompt-eval progress the strip + panel render as "reading prompt N%" (`task.prefill`,
+cleared on first token; the visual against a real model = a your-box check); QC-30b's
+three strip mounts landed (MultiReader · Variations per-column · voiceDrift Explain).
+Two findings-first fixes en route: the qc-quintet QC-23 legs' probe drift (stubbed the
+superseded /run transport) and a REAL QC-28 regression (Add-switch rows landed at the
+TOP — KnobGrid's unmapped-row fallback pointed at the first group after the TUNE_GROUPS
+reorder; explicit `fallback-group="applied"` now). Gates all green: runner ruff + 452
+pytest · JW server 76 · vitest 70/70 · build:vite · FULL smoke zero JS errors · qc35 ·
+b4 · b5 · qc-quintet 22/22 · dl2 · b29 · switch. Full record: queue doc tail **"B6 BUILD
+RECORD"** (incl. three small flags: Variations strip placement · the "reading prompt N%"
+copy · the pre-frame-throw fallback classifier). Next per the recorded order: **#235
+LAST** (real plan first); #251/#252/#254/#255/#253 on the user's word.
+
+**⛔⛔ THE STATE AT THE ELEVENTH COMPACT (2026-07-09 — superseded by the B6 GO above;
+its "B6 IS MID-BUILD" framing is HISTORY now; supersedes the tenth block below).** This window SHIPPED, all pushed: **#232/QC-35** (runner
 `d024067` · JW `d982316`) · the **Q3 toast findings table** (runner `f1e1f3c`) · the
 **Q3 TOAST CULL** per the user's verbatim verdicts "i take your rec on toast 42 keep
 4o keep 41 delete" (JW `c409bfc` — 16 kills, #40+#42 kept, #41 → the in-modal count
