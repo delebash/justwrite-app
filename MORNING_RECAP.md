@@ -372,7 +372,24 @@ item) is BLOCKED on the user's word (relationshipArc auto-pair? location-picker 
 + the #234 toast tail + two flagged defaults (#236 label "AI tasks", #230 tail=5); asking
 next. Then B6 (#201–#203), then #235 LAST.
 
-**⛔⛔ THE STATE AT THE EIGHTH COMPACT (2026-07-09 — the CURRENT pickup):** this
+**⛔⛔ THE STATE AT THE NINTH COMPACT (2026-07-09 — the CURRENT pickup;
+supersedes the eighth block below for what's DONE).** This window shipped, all
+committed + pushed (both repos clean): **#237** (think-twice hooks, `8fc5738`,
+LIVE) · **QC-25** (disk-read engine pin, `55d57ad`) · **the QC cluster**
+(#224–#236 minus #232, runner `472d9ab` / JW `879ddb8` / recap `0dd3613`) —
+rules-checker PASS after it caught a real stuck-badge bug I fixed. **⛔ #232
+(the 34-action test-input table — the last cluster item) IS BLOCKED ON THE
+USER'S WORD:** four questions were put to them (relationshipArc sample-only vs
+auto-pair · remove the location picker · #234 toast-tail stop-vs-cull-hard ·
+confirm the "AI tasks" label + 5-row history tail) — AskUserQuestion died twice
+to restarts so they're surfaced as plain text; DO NOT decide them. THE FULL
+PICKUP + the four questions verbatim live in the queue doc §9 **"THE
+NINTH-COMPACT POINT"** — read that block first post-compact. Order after their
+answer: **#232 → B6 (#201–#203) → #235 LAST**. Everything else below (the
+eighth block) is history now.
+
+**⛔⛔ THE STATE AT THE EIGHTH COMPACT (2026-07-09 — superseded by the ninth
+block above):** this
 window was the user's live QC/design session — NO code commits (heads stay
 runner `82edf7e` · JW `aaefeb4` + doc-only commits). QC-26..QC-38 (tasks
 #224–#236) answered + recorded; THE RETHINK the user ordered ran (four themes:
