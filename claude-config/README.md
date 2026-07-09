@@ -53,8 +53,8 @@ and misses), so it can be tuned — and shared with other developers who hit the
 | `rules-detail.md` | `~/.claude/rules-detail.md` | The **full** WHY + every incident + worked examples (the old 50k). Read on demand when a test is ambiguous. |
 | `agents/rules-checker.md` | `~/.claude/agents/` | The rules-checker **subagent** (Opus, read-only): scores a plan/diff against T1–T12, adversarial, returns failures. Panel-aware. |
 | `hooks/_rules.py` | `~/.claude/hooks/` | **The rule REGISTRY (single source).** All shared regexes + the turn-scan + genuine-user detection + the rule list (`id`/`events`/`kind`/`recheck`/`detect`/`inject`) + `run_rules`. Every hook imports it; the `id` is also the gate-stats log-key. Imported, not executed. |
-| `hooks/pre-action-check.py` | `~/.claude/hooks/` | **PreToolUse** hook: pre-task DENY on the first **code** change without a rules-pass (`.md`/trivial exempt); NUDGE on every edit; PANEL reminder on `ExitPlanMode`. |
-| `hooks/verify-gate.py` | `~/.claude/hooks/` | **Stop** hook. Block 0 (sentinel) + Blocks 1–5 via `run_rules("Stop")` (see below). |
+| `hooks/pre-action-check.py` | `~/.claude/hooks/` | **PreToolUse** hook: pre-task DENY on the first **code** change without a rules-pass AND (#237) a cited plan/spec line + a `RISK:` doubt (`.md`/explicit-"trivial" exempt); NUDGE on every edit; PANEL reminder on `ExitPlanMode`. |
+| `hooks/verify-gate.py` | `~/.claude/hooks/` | **Stop** hook. Block 0 (sentinel) + Blocks 1–6 via `run_rules("Stop")` (see below). |
 | `hooks/task-gate.py` | `~/.claude/hooks/` | **TaskCreated/TaskCompleted** gate: `task-begin-check` / `task-completeness` via `run_rules` (exit 2). |
 | `hooks/commit-gate.py` | `~/.claude/hooks/` | **PreToolUse(Bash)** commit boundary: HARD-DENY a CODE `git commit` until docs **and** a checker-verdict are present; escapes for `--amend` / doc-only / trivial; anti-loop sentinel. |
 | `hooks/arm-rules-gate.sh` | `~/.claude/hooks/` | **SessionStart** hook: arms the Block-0 sentinel on compact/clear/startup (not resume). |
@@ -77,13 +77,13 @@ the hooks are just the per-event mechanism.
 | Event | When | What fires |
 |---|---|---|
 | `SessionStart` | startup / compact / clear | 💬 arm the "context reset → re-read rules" sentinel |
-| `PreToolUse` (Edit/Write/MultiEdit) | before a code change | ✋ **pre-task DENY** (first **code** edit, no rules-pass; `.md`/trivial exempt) · 💬 **per-edit NUDGE** |
+| `PreToolUse` (Edit/Write/MultiEdit) | before a code change | ✋ **pre-task DENY** (first **code** edit: needs a rules-pass AND — #237 — a cited plan/spec line + a `RISK:` doubt in the turn text; `.md`/explicit-"trivial" exempt) · 💬 **per-edit NUDGE** |
 | `PreToolUse` (ExitPlanMode) | before "here is the plan" | 💬 reminder to run the rules-checker **panel** |
 | `PreToolUse` (Bash `git commit`) | before a commit | ✋ **commit boundary** — HARD-DENY a CODE commit until docs **+** a *genuine agent* all-pass verdict (parsed from the agent's result, not self-typed; escapes: `--amend`, doc-only, trivial; anti-loop) |
 | `TaskCreated` / `TaskCompleted` | a tracked task begins/ends | ✋ `task-begin-check` / `task-completeness` (anti-skim: the checker reads the FULL criteria) |
-| `Stop` | the turn tries to end | ✋ Block 0 (sentinel) + Blocks 1–5 (registry) |
+| `Stop` | the turn tries to end | ✋ Block 0 (sentinel) + Blocks 1–6 (registry) |
 
-### The Stop gate — Blocks 0–5 (`verify-gate.py`)
+### The Stop gate — Blocks 0–6 (`verify-gate.py`)
 
 - **Block 0** — after a memory reset, the turn is blocked until `~/.claude/CLAUDE.md`
   + the project `CLAUDE.md` + `MORNING_RECAP.md` have each been **Read in full** (a
@@ -93,9 +93,17 @@ the hooks are just the per-event mechanism.
   this turn and no honest hedge (answered from memory).
 - **Block 2** — a storage/architecture **recommendation** with no cited precedent.
 - **Block 3** — a **"done/shipped"** claim that edited code but updated/cited no doc.
-- **Block 4** — a **plan/decision announcement** ("here's the plan" / "locked" /
-  "we've decided") with no rules-pass artifact (the checker ran, or tests cited).
+- **Block 4** — a **plan/design LOCK** ("here's the plan" / "locked" / "we've decided")
+  without a **GENUINE agent verdict** this turn (#237 hardened: the typed-tests /
+  'trivial' self-citation escape is closed at lock grain — the same `agent_pass`
+  mechanism the commit gate uses). A turn that merely RECORDS the user's own decision
+  and says so ("the user's decision/word") is not my design and passes.
 - **Block 5** — **post-task**: the turn **edited code** but ran no rules-pass.
+- **Block 6** — **second pass** (#237): a **PROPOSAL** turn ("I propose/recommend",
+  "here's the design", or un-attributed lock language) that does not end with an
+  explicit **"SECOND PASS —"** section (what the second look changed/confirmed · what
+  it re-verified · the sharpest remaining doubt). Numbered AFTER post-task so the
+  historical Block 0–5 references in the incident records stay truthful.
 
 All blocks **fail OPEN** on any error (a broken gate must never brick a session), and
 short-circuit on `stop_hook_active` so each fires at most once per stop-sequence.
@@ -104,9 +112,14 @@ short-circuit on `stop_hook_active` so each fires at most once per stop-sequence
 
 - **Per-edit → nudge.** Every `Edit`/`Write` gets a one-line reminder (non-blocking).
 - **Pre-task → deny.** The FIRST **code** change of a turn is **denied** unless the plan
-  was rules-checked (run the checker, cite the tests, or attest "trivial"). Catches a
-  bad plan *before* it becomes 10 bad files. A first edit to a `.md` doc is exempt (the
-  cry-wolf narrowing).
+  was rules-checked (run the checker, cite the tests) AND (#237, the think-twice check)
+  the turn's own text already states **what plan/spec line is being executed**
+  (doc.md:line / §-section / the queue-plan doc item / the user's words) **plus one
+  `RISK:` line** on what could be wrong — the second look at the keyboard, before the
+  write. Catches a bad plan *before* it becomes 10 bad files. A first edit to a `.md`
+  doc is exempt (the cry-wolf narrowing); a genuinely trivial change needs the EXPLICIT
+  word "trivial" (the loose family — "rename", "one-line" — no longer skips the check,
+  since those words appear in ordinary task names).
 - **Post-task → deny (cheap, turn-grain).** A code-editing turn that ends with no
   rules-pass is **blocked** (Block 5) — the backstop, kept even when nothing is committed.
 - **Commit → HARD-DENY (heavy, the main post-task check).** A CODE `git commit` is the

@@ -17,10 +17,12 @@ this hook is the Stop-event MECHANISM. It BLOCKS the turn ({"decision":"block",
     Read (a real Read tool call) since that reset, the turn is blocked. This is an
     EVIDENCE-recheck rule (it self-heals when the Read actually happens) and keeps its
     bespoke sentinel mechanics here — it is NOT dispatched by run_rules.
-  BLOCK 1-5 — the TEXT-recheck rules, dispatched through `_rules.run_rules("Stop", ctx)`:
-    code-claim · reco · docs-with-features · plan · post-task (see `_rules.py` for each
-    rule's detect + message). KEPT as the turn-grain backstop (the commit-gate adds the
-    heavy semantic check on top; it does not replace these).
+  BLOCK 1-6 — the TEXT-recheck rules, dispatched through `_rules.run_rules("Stop", ctx)`:
+    code-claim · reco · docs-with-features · plan · post-task · second-pass (see
+    `_rules.py` for each rule's detect + message). KEPT as the turn-grain backstop (the
+    commit-gate adds the heavy semantic check on top; it does not replace these).
+    #237 (2026-07-09): `plan` now requires a GENUINE agent verdict at lock grain, and
+    Block 6 `second-pass` requires an explicit "SECOND PASS —" section on proposals.
 
 HONEST SCOPE: this catches a MISSING action (didn't read / didn't cite / didn't doc). It
 canNOT verify a read was understood, or that a citation is the RIGHT one — that stays a
@@ -161,11 +163,11 @@ def main() -> None:
     if not ctx["answer"] and not ctx["code_edit"]:
         sys.exit(0)
 
-    # Blocks 1-5 — the text-recheck rules, from the shared registry. run_rules applies
+    # Blocks 1-6 — the text-recheck rules, from the shared registry. run_rules applies
     # the hedge exemption (Stop-only) and skips the evidence rule (Block 0, above).
     fails = _rules.run_rules("Stop", ctx)
     if fails:
-        rid, inject = fails[0]   # registry order = B1..B5 precedence; one at a time
+        rid, inject = fails[0]   # registry order = B1..B6 precedence; one at a time
         _log(f"BLOCK {rid}  answer[:120]={ctx['answer'][:120]!r}")
         print(json.dumps({"decision": "block", "reason": inject}))
         sys.exit(0)
@@ -173,7 +175,9 @@ def main() -> None:
     _log(f"PASS code_claim={ctx['code_claim']} evidence={ctx['evidence']} "
          f"reco_arch={ctx['reco_arch']} has_cite={ctx['has_cite']} done={ctx['done_claim']} "
          f"doc_ok={ctx['doc_ok']} plan_lock={ctx['plan_lock']} "
-         f"rules_passed={ctx['rules_passed']} code_edit={ctx['code_edit']}")
+         f"rules_passed={ctx['rules_passed']} code_edit={ctx['code_edit']} "
+         f"proposal={ctx.get('proposal')} second_pass={ctx.get('second_pass')} "
+         f"agent_pass={ctx.get('agent_pass')}")
     sys.exit(0)
 
 

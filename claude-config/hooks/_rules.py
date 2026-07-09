@@ -122,6 +122,57 @@ VERDICT = re.compile(
 )
 TRIVIAL = re.compile(r"\b(trivial|one[- ]?line|typo|comment[- ]?only|dep bump|rename)\b", re.I)
 
+# ---- #237 think-twice regexes (2026-07-09) ---------------------------------
+# WHY: the user's finding — "when I asked you to think twice you change severla
+# decsions" — a second pass empirically changes outcomes, and a text rule alone
+# decays ("if it is a rule you just ingore it halft the time"). These power the
+# three #237 gates: the hardened plan rule, the second-pass rule (Block 6), and
+# the pre-edit plan-line check in pre-action-check.py.
+#
+# A PROPOSAL put to the user (a design/approach/fix I authored). Broader than a
+# plan LOCK: every proposal must END with an explicit "SECOND PASS —" section.
+PROPOSAL = re.compile(
+    r"\b(i propose|my proposal|proposed (design|approach|fix|change|spec|upgrade)"
+    r"|here'?s (the |my )?(design|approach|proposal)"
+    r"|i recommend|my recommendation|recommended (approach|design|fix|order))\b",
+    re.I,
+)
+# The section marker itself ("SECOND PASS — what changed / what re-verified /
+# sharpest remaining doubt"). A pasted marker with no re-derivation defeats its
+# own purpose — that residual stays semantic, same honest ceiling as everywhere.
+SECOND_PASS = re.compile(r"\bsecond pass\b", re.I)
+# Provenance escape on the plan rule: a turn that merely RECORDS the USER's own
+# decision is not my design and needs no checker. Writing this when the decider
+# was actually me is a flagrant lie in the transcript — same class as the
+# decoy-agent residual documented on agent_pass, visible, not a casual self-cert.
+USER_DECIDED = re.compile(
+    r"\b(the user('s)? (decision|word|words|call|pick)|user[- ]decided"
+    r"|per the user|user, verbatim|the user('s)? said"
+    r"|you decided|your (decision|call|word|words))\b",
+    re.I,
+)
+# What a first code edit must cite: the governing artifact being executed — a
+# doc path:line, a §-section, the plan/queue doc by name, or the user's word.
+PLAN_REF = re.compile(
+    r"[\w./-]+\.md:\d+|§\s?[\dA-Z]|\bqueue doc\b|\bplan doc\b"
+    r"|\bper the (revised |committed )?(plan|spec)\b"
+    r"|\bexecuting[^\n]{0,120}(plan|spec|doc)\b"
+    r"|\b(the user('s)? (word|words|verbatim|instruction)|user, verbatim)\b",
+    re.I,
+)
+# ...and the one-line doubt it must carry ("RISK: <what could be wrong>").
+# No ASCII hyphen in the class after "risk" — it would match the boilerplate
+# word "risk-free" (checker-caught); the prescribed form is "RISK:".
+RISK_LINE = re.compile(
+    r"\brisk\s*[:—–]|\bwhat could (be|go) wrong\b|\bcould be wrong\s*[:—–-]"
+    r"|\bfailure mode\s*[:—–-]",
+    re.I,
+)
+# The EXPLICIT trivial attestation for the pre-edit plan-line check. Deliberately
+# narrower than TRIVIAL: words like "rename"/"one-line" appear in ordinary task
+# names (a build turn for a rename task would silently skip the check).
+TRIVIAL_EXPLICIT = re.compile(r"\btrivial\b", re.I)
+
 # A GENUINE rules-checker verdict comes from a HARNESS-authored <task-notification>
 # (a type:user message the main agent CANNOT write — it emits only assistant messages),
 # inside <result>...</result>. The whole anti-self-certification point: the gate reads
@@ -237,7 +288,7 @@ def last_user_idx(entries: list) -> int:
 def scan_turn(entries: list, start: int) -> dict:
     """Raw facts about the assistant's actions since `start`:
     evidence count, code/doc edits, edit count, whether a subagent ran, joined text."""
-    f = {"evidence": 0, "edits": 0, "code_edit": False,
+    f = {"evidence": 0, "edits": 0, "code_edits": 0, "code_edit": False,
          "doc_edit": False, "subagent_ran": False, "answer": ""}
     texts = []
     for e in entries[start:]:
@@ -260,6 +311,7 @@ def scan_turn(entries: list, start: int) -> dict:
                         f["doc_edit"] = True
                     elif CODE_FILE.search(fp):
                         f["code_edit"] = True
+                        f["code_edits"] += 1
                 elif name == "Bash":
                     cmd = (b.get("input") or {}).get("command") or ""
                     if BASH_EVIDENCE.search(cmd):
@@ -341,6 +393,16 @@ def build_ctx(data: dict, entries: list, event: str) -> dict:
     ctx["doc_ok"] = f["doc_edit"] or bool(CITE_MD.search(answer)) or bool(DOC_MENTION.search(answer))
     ctx["plan_lock"] = bool(PLAN_LOCK.search(answer))
     ctx["rules_passed"] = f["subagent_ran"] or bool(VERDICT.search(answer)) or bool(TRIVIAL.search(answer))
+    # #237 think-twice facts. `proposal` = authored-proposal language, OR lock
+    # language NOT attributed to the user (a "the user decided X" record turn is
+    # not my proposal; "I propose X" always is, even when quoting the user).
+    ctx["user_decided"] = bool(USER_DECIDED.search(answer))
+    ctx["proposal"] = bool(PROPOSAL.search(answer)) or (
+        ctx["plan_lock"] and not ctx["user_decided"])
+    ctx["second_pass"] = bool(SECOND_PASS.search(answer))
+    ctx["plan_ref"] = bool(PLAN_REF.search(answer))
+    ctx["risk_line"] = bool(RISK_LINE.search(answer))
+    ctx["trivial_explicit"] = bool(TRIVIAL_EXPLICIT.search(answer))
     # Block 0 (Stop, evidence-recheck) — filled by verify-gate via block0_missing when a
     # sentinel exists; default empty so the rule passes when no reset is pending.
     ctx["missing"] = []
@@ -398,11 +460,21 @@ _DOCS = ("VERIFY-GATE (docs) — code changed but NO doc was updated or cited. D
          "feature, in DETAIL (full prose, not headers): update MORNING_RECAP.md + the relevant "
          "docs/plans/*.md now — what changed, WHY, file:line, how to verify, what would reverse "
          "it — or cite the doc:line that already covers it. Then finish.")
-_PLAN = ("VERIFY-GATE (plan) — this turn ANNOUNCES a plan/decision ('here's the plan' / 'locked' "
-         "/ 'we've decided') but ran no rules-pass. Before locking a plan or a load-bearing "
-         "decision, run the rules-checker subagent against T1-T12 (Agent tool, subagent_type "
-         "'rules-checker') and address any FAIL — or state which tests you checked it against. "
-         "Then finish.")
+_PLAN = ("VERIFY-GATE (plan) — this turn LOCKS a plan/decision ('here's the plan' / 'locked' / "
+         "'we've decided') without a GENUINE rules-checker AGENT verdict this turn. Think-twice "
+         "law (#237): for a design lock, self-citing the tests no longer clears this — SPAWN the "
+         "rules-checker (Agent tool, subagent_type 'rules-checker'; a 2-3 PANEL for load-bearing "
+         "design) and address any FAIL. The gate reads the verdict from the AGENT's own result, "
+         "not from text you type. Also END the proposal with its 'SECOND PASS —' section (Block "
+         "6). If this turn merely RECORDS the user's own decision, attribute it explicitly "
+         "('the user's decision/word'). Then finish.")
+_SECOND = ("VERIFY-GATE (second pass) — this turn puts a PROPOSAL to the user without an "
+           "explicit second pass. Think-twice law (#237): re-derive the proposal from scratch "
+           "before shipping it, then END it with a 'SECOND PASS —' section stating (a) what the "
+           "second look CHANGED or confirmed, (b) what it re-verified at file:line, and (c) the "
+           "sharpest remaining doubt. Evidence this pays: the 2026-07-09 rethink changed five "
+           "locked-looking decisions. Write the section honestly — a pasted marker with no "
+           "re-derivation defeats its own purpose. Then finish.")
 _POST = ("VERIFY-GATE (post-task) — this turn edited code but ran no rules-pass. Before finishing, "
          "run the rules-checker subagent on the diff against T1-T12 (Agent tool, subagent_type "
          "'rules-checker') and address any FAIL — or cite the tests the change passes (for a "
@@ -436,14 +508,28 @@ RULES = [
      "events": ["Stop", "commit"], "kind": "structural", "recheck": "text", "hedge_exempt": True,
      "detect": _detect_docs,
      "inject": _DOCS},
-    {"id": "plan", "label": "plan/decision announced with no rules-pass",
+    # #237 hardening: a plan/design LOCK requires the GENUINE independent-agent
+    # verdict (same agent_pass mechanism as the commit gate) — the typed-tests /
+    # 'trivial' self-citation escape is CLOSED at lock grain. A turn recording
+    # the USER's own decision (user_decided provenance) is not my design → pass.
+    {"id": "plan", "label": "plan/design locked with no genuine agent verdict",
      "events": ["Stop"], "kind": "semantic", "recheck": "text", "hedge_exempt": True,
-     "detect": lambda ctx: ctx["plan_lock"] and not ctx["rules_passed"],
+     "detect": lambda ctx: (ctx["plan_lock"] and not ctx.get("user_decided")
+                            and ctx.get("agent_pass") != "pass"),
      "inject": _PLAN},
     {"id": "post-task", "label": "code edit with no rules-pass",
      "events": ["Stop"], "kind": "semantic", "recheck": "text", "hedge_exempt": True,
      "detect": lambda ctx: ctx["code_edit"] and not ctx["rules_passed"],
      "inject": _POST},
+    # #237 Block 6: every proposal ends with an explicit "SECOND PASS —" section.
+    # Structural (the section's PRESENCE is checkable); its honesty stays semantic.
+    # Not hedge-exempt: a proposal the user will read needs its second pass even
+    # when the turn hedges elsewhere. Sits AFTER post-task so the historical
+    # Block 0-5 numbering in incident records stays truthful.
+    {"id": "second-pass", "label": "proposal without an explicit second pass",
+     "events": ["Stop"], "kind": "structural", "recheck": "text", "hedge_exempt": False,
+     "detect": lambda ctx: bool(ctx.get("proposal")) and not ctx.get("second_pass"),
+     "inject": _SECOND},
     {"id": "task-begin-check", "label": "task begin with no rules-pass",
      "events": ["TaskCreated"], "kind": "semantic", "recheck": "text", "hedge_exempt": False,
      "detect": lambda ctx: not ctx["rules_passed"],

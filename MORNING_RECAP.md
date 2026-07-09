@@ -315,6 +315,24 @@ under an installed b9934) — ANSWERED with the root cause at the line (update_c
 the reseeded PIN, lifecycle.py:487; the pin-keyed Update would DOWNGRADE), recorded in
 queue §9, task #223 queued AFTER B5 per your word.
 
+**GO (2026-07-09, post-eighth-compact) — #237 THINK-TWICE HOOKS SHIPPED FIRST (the
+user's pick when asked, per the queue doc's order addendum: "#237 first"), so QC-25 +
+the cluster + B6 + #235 all build under the hardened gates.** v4 of the rules-as-checks
+system, built in `claude-config/` and applied LIVE via install.sh: (1) **Block 4
+hardened** — a plan/design LOCK now requires the GENUINE independent-agent verdict (the
+v3 commit-gate `agent_pass` mechanism); typed tests/'trivial' no longer clear it; a turn
+RECORDING the user's own decision ("the user's decision/word") passes. (2) **Block 6
+added** — every PROPOSAL turn must end with a literal "SECOND PASS —" section (what the
+second look changed/confirmed · re-verified at file:line · sharpest remaining doubt).
+(3) **Pre-edit plan-line check** — the first code edit of a turn denies until the turn
+text cites the plan/spec line being executed + one "RISK:" line; explicit-"trivial"/.md
+exempt. Five interpretation flags recorded in the build record (F1 lock-grain scoping ·
+F2 user-decided escape · F3 hedge exemptions unchanged · F4 the literal markers · F5
+Block-6 numbering). Gates: the committed harness ALL 7 suites PASS · live-fire probe on
+the INSTALLED hooks observed all three surfaces fire AND clear · rules-checker verdict
+at the commit. Full record: queue doc §9 **"#237 BUILD RECORD"**. EFFECTIVENESS.md
+carries the v4 ledger entry + three watch-items for the trial.
+
 **⛔⛔ THE STATE AT THE EIGHTH COMPACT (2026-07-09 — the CURRENT pickup):** this
 window was the user's live QC/design session — NO code commits (heads stay
 runner `82edf7e` · JW `aaefeb4` + doc-only commits). QC-26..QC-38 (tasks
@@ -458,20 +476,24 @@ vitest 29/29 + the FULL headless smoke zero JS errors + the tune-save probe 17/1
   (data dir `/root/.local/share/JustWrite`) + `npm run dev:vite` (:1420); Chromium via the
   smoke's `findChrome()` — never hardcode the browser path.
 - **Hard gates** — the **rules-as-checks system** (built 2026-06-26, provisioned from
-  `claude-config/`; full detail in `claude-config/README.md`). The rules are the slim
-  **rule-tests T1–T12** (`~/.claude/CLAUDE.md`) + full WHY/incidents in `rules-detail.md`,
-  read on demand. Enforcement at mechanical events: **Stop gate** `verify-gate.py` Blocks
-  0–5 (0 = re-read rules/recap/project-CLAUDE after a compact/clear, NOT resume; 1 = code
-  claim w/ zero reads; 2 = arch reco w/o precedent; 3 = "done"+code w/o a doc; 4 =
-  plan/decision w/o a rules-pass; 5 = code-edit w/o a rules-pass) + a **PreToolUse hook**
-  `pre-action-check.py` (pre-task DENY on the first edit w/o a rules-pass · per-edit nudge ·
-  ExitPlanMode → run the checker panel) + a **commit gate** `commit-gate.py` (PreToolUse Bash:
-  a code `git commit` is HARD-DENIED until docs **+** a GENUINE rules-checker AGENT all-pass
-  verdict — read from the agent's OWN result, not self-typed; v3, closes the self-cert hole) +
-  the **rules-checker subagent** (Opus; a 2–3 panel
+  `claude-config/`; full detail in `claude-config/README.md`; **v4 "think-twice" 2026-07-09,
+  #237**). The rules are the slim **rule-tests T1–T12** (`~/.claude/CLAUDE.md`) + full
+  WHY/incidents in `rules-detail.md`, read on demand. Enforcement at mechanical events:
+  **Stop gate** `verify-gate.py` Blocks 0–6 (0 = re-read rules/recap/project-CLAUDE after a
+  compact/clear, NOT resume; 1 = code claim w/ zero reads; 2 = arch reco w/o precedent; 3 =
+  "done"+code w/o a doc; 4 = plan/design LOCK w/o a GENUINE agent verdict — v4: self-typed
+  tests no longer clear; user-decided provenance passes; 5 = code-edit w/o a rules-pass;
+  6 = a PROPOSAL w/o an explicit "SECOND PASS —" section — v4) + a **PreToolUse hook**
+  `pre-action-check.py` (pre-task DENY on the first code edit w/o a rules-pass AND — v4 —
+  a cited plan/spec line + a "RISK:" doubt in the turn text; explicit-"trivial"/.md exempt ·
+  per-edit nudge · ExitPlanMode → run the checker panel) + a **commit gate** `commit-gate.py`
+  (PreToolUse Bash: a code `git commit` is HARD-DENIED until docs **+** a GENUINE
+  rules-checker AGENT all-pass verdict — read from the agent's OWN result, not self-typed;
+  v3, closes the self-cert hole) + the **rules-checker subagent** (Opus; a 2–3 panel
   for load-bearing design). Effectiveness tracked in `claude-config/EFFECTIVENESS.md`
-  (catches/false-positives/misses). All fail-open. **Real plan = Plan mode + detailed Task
-  entries** (not a chat plan) — that's what fires the plan/task events.
+  (catches/false-positives/misses; the v4 entry lists the trial watch-items). All fail-open.
+  **Real plan = Plan mode + detailed Task entries** (not a chat plan) — that's what fires
+  the plan/task events.
 
 ## ACTIVE DOC INDEX (open on demand, not at boot)
 

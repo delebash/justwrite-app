@@ -11,7 +11,7 @@ Three signals, two of them mechanical:
 
 1. **Gate fires (mechanical)** — every time the Stop `verify-gate.py` BLOCKs a turn,
    it logs `BLOCK <type>` to `~/.claude/hooks/verify-gate.log`. `gate-stats.py` rolls
-   these up by block (0–5). This is the floor: it counts when a gate *fired*.
+   these up by block (0–6). This is the floor: it counts when a gate *fired*.
 2. **Salience nudges (mechanical)** — `pre-action-check.py` logs each time it injected
    the rule-tests before a code change / plan (`~/.claude/hooks/pre-action.log`).
 3. **Real save vs false positive vs MISS (judgment — recorded by hand below)** — a
@@ -35,8 +35,9 @@ tally + add any notable catches/misses to the ledger.
 | Block 1 — code claim, zero reads | 0 | |
 | Block 2 — arch reco, no precedent | 0 | |
 | Block 3 — "done" + code edit, no doc | 0 | |
-| Block 4 — plan/decision, no rules-pass | 0 | |
+| Block 4 — plan/design lock, no genuine agent verdict | 0 | (#237 hardened 2026-07-09: self-typed tests no longer clear) |
 | Block 5 — code edit, no rules-pass | 0 | (post-task) |
+| Block 6 — proposal without a SECOND PASS section | 0 | (#237, added 2026-07-09) |
 | Pre-action salience nudges | 0 | |
 | **Real saves** (gate fire that changed behavior) | — | counted in the ledger |
 | **False positives** (gate fired, was noise) | — | counted in the ledger |
@@ -47,6 +48,44 @@ tally + add any notable catches/misses to the ledger.
 > against a populated log.
 
 ## Catch / miss ledger (detailed — newest first)
+
+### 2026-07-09 — v4: the THINK-TWICE upgrade (#237, user-ordered)
+
+Born from the user's direct finding during the 2026-07-09 QC marathon: *"when I asked you to
+think twice you change severla decsions … if it is a rule you just ingore it halft the time."*
+A user-ordered second pass over one evening's proposals changed FIVE locked-looking decisions
+(the QC-25 heal seam would have clobbered deliberate downgrades; toast-undo died as ephemera;
+QC-30b folded into B6-2; the one-entry-per-user-action law; the zero-toast failure path) —
+empirical proof a second pass changes outcomes, and that a text rule alone does not produce
+one. v4 wires the second pass into the same anti-self-certification machinery v3 proved at
+the commit boundary:
+
+1. **Block 4 hardened** — a plan/design LOCK ("here's the plan"/"locked"/"we've decided") now
+   requires the GENUINE independent-agent verdict (`agent_pass`, the v3 mechanism), not a
+   self-typed tests citation. Escape: a turn that merely RECORDS the user's own decision and
+   says so ("the user's decision/word" — the user-decided provenance escape; lying about WHO
+   decided is a flagrant transcript act, the same visible-residual class as a decoy agent).
+2. **Block 6 added (`second-pass`)** — any PROPOSAL turn ("I propose/recommend", "here's the
+   design", or un-attributed lock language) must end with a literal "SECOND PASS —" section:
+   what the second look changed/confirmed, what it re-verified, the sharpest remaining doubt.
+   Structural check (the section's presence); its honesty stays semantic — same ceiling as v3.
+3. **Pre-edit plan-line check** — the FIRST code edit of a turn now also requires, in the
+   turn's own text: a citation of the governing plan/spec line being executed (doc.md:line /
+   §-section / the queue-plan doc item / the user's words) AND one "RISK:" line on what could
+   be wrong. Exemptions: `.md` edits, an EXPLICIT "trivial" (deliberately narrower than the
+   loose TRIVIAL family — "rename"/"one-line" appear in ordinary task names and would have
+   silently skipped it).
+
+Numbering note: `second-pass` was slotted AFTER post-task (Block 6) precisely so every
+Block 0–5 reference in the incident records above stays truthful. **Watch during the trial:**
+(a) false fires of Block 6 on conversational answers (PROPOSAL regex breadth), (b) whether
+pre-edit RISK lines are honest doubts or boilerplate (the trivially-gameable half — the
+literal word "risk-free" matching RISK_LINE — was checker-caught at build time and fixed;
+an honest-looking boilerplate line remains possible), (c) whether the user-decided escape
+gets stretched. All three are the v4 analogues of v3's self-cert creep. Also checker-caught
+at build time and fixed before the first commit: the pre-edit deny window counted .md edits,
+so a doc-edit-first turn (the normal record-first pattern) bypassed the first-CODE-edit
+check — the window now counts prior CODE edits only (`scan_turn` `code_edits`).
 
 ### 2026-06-26 — v3 OBSERVATION PERIOD (ongoing — trial, user chose "live with it")
 

@@ -6,11 +6,13 @@ A "task" = the turn (everything since the last GENUINE user prompt — `_rules.i
 skips injected user-role messages like <task-notification>/command stdout, which used to
 reset the window and fire a spurious DENY mid-task). Three behaviors:
 
-- **Pre-task (the FIRST Edit/Write/MultiEdit of the turn): DENY** unless a rules-pass
-  already exists this turn (the rules-checker subagent ran, the answer cites the tests,
-  or it's attested trivial). NARROWED (design #6): a first edit to a **.md** file, or a
-  **trivial**-attested change, is EXEMPT (nudge only, no deny) — the deny guards a bad
-  CODE plan before it's 10 bad files; it should not cry-wolf on a doc/recap/plan edit.
+- **Pre-task (the FIRST CODE edit of the turn — prior .md edits don't open the
+  window): DENY** unless a rules-pass already exists this turn (the rules-checker
+  subagent ran, the answer cites the tests) AND (#237) the turn text cites the
+  plan/spec line being executed plus one 'RISK:' doubt. NARROWED (design #6): a first
+  edit to a **.md** file, or an EXPLICITLY 'trivial'-attested change, is EXEMPT (nudge
+  only, no deny) — the deny guards a bad CODE plan before it's 10 bad files; it should
+  not cry-wolf on a doc/recap/plan edit.
 - **Every edit: NUDGE** (non-blocking) — a one-line reminder of the rule-tests.
 - **ExitPlanMode ("here is the plan"): NUDGE** to run the rules-checker PANEL on the plan.
 
@@ -100,34 +102,57 @@ def main() -> None:
         _emit({"additionalContext": NUDGE})
         sys.exit(0)
 
-    prior_edits, rules_pass = 0, True  # fail-open defaults (no transcript → just nudge)
+    # fail-open defaults (no transcript → just nudge). The deny window counts prior
+    # CODE edits only (checker-caught: counting .md edits let a doc-edit-first turn
+    # bypass the first-CODE-edit check — and record-first is the normal work pattern).
+    prior_code_edits, rules_pass, plan_ref, risk_line, trivial = 0, True, True, True, True
     tpath = data.get("transcript_path")
     if tpath and os.path.isfile(tpath):
         try:
             with open(tpath, encoding="utf-8") as f:
                 entries = [json.loads(line) for line in f if line.strip()]
             ctx = _rules.build_ctx(data, entries, "PreToolUse")
-            prior_edits, rules_pass = ctx["edits"], ctx["rules_passed"]
+            prior_code_edits, rules_pass = ctx["code_edits"], ctx["rules_passed"]
+            plan_ref, risk_line = ctx["plan_ref"], ctx["risk_line"]
+            trivial = ctx["trivial_explicit"]
         except Exception:
-            prior_edits, rules_pass = 0, True  # parse error → don't block, just nudge
+            prior_code_edits, rules_pass = 0, True  # parse error → don't block, just nudge
+            plan_ref, risk_line, trivial = True, True, True
 
     # NARROW the pre-task DENY: exempt a first edit that is .md-only (docs/recap/plan) or
-    # trivial-attested (rules_pass already covers the explicit 'trivial'/typo case). The
-    # deny exists to catch a bad CODE plan before it becomes 10 bad files.
+    # EXPLICITLY trivial-attested. The deny exists to catch a bad CODE plan before it
+    # becomes 10 bad files. #237 (think-twice) adds the plan-line check: the first code
+    # edit must be preceded, in the turn's own text, by (a) a citation of the governing
+    # plan/spec line being executed and (b) one 'RISK:' line on what could be wrong —
+    # the second look at the keyboard, BEFORE the write, that empirically changes
+    # decisions. ONE combined deny lists everything missing (compliance = one round).
     is_md = file_path.endswith(".md")
-    if prior_edits == 0 and not rules_pass and not is_md:
-        _log(f"DENY pre-task (first code edit, no rules-pass) file={file_path}")
-        _emit({"permissionDecision": "deny", "permissionDecisionReason": (
-            "PRE-TASK CHECK — this is the first CODE change of the task and the plan was "
-            "not rules-checked. Before writing, run the rules-checker subagent on your "
-            "internal plan (Agent tool, subagent_type 'rules-checker') and address any "
-            "FAIL — OR, for a trivial change, say 'trivial' / cite the tests it passes. "
-            "(Editing a .md doc is exempt.) Then write. The 12 tests: " + TESTS)})
-        sys.exit(0)
+    if prior_code_edits == 0 and not is_md and not trivial:
+        needs = []
+        if not rules_pass:
+            needs.append(
+                "• The plan was not rules-checked: run the rules-checker subagent on your "
+                "internal plan (Agent tool, subagent_type 'rules-checker') and address any "
+                "FAIL — or cite the tests it passes. The 12 tests: " + TESTS)
+        if not (plan_ref and risk_line):
+            needs.append(
+                "• THINK-TWICE (#237): state in your turn text, before this edit — (a) WHAT "
+                "you are executing: cite the governing plan/spec line (doc.md:line, a "
+                "§-section, the queue/plan doc item, or the user's words), and (b) one "
+                "'RISK: <what could be wrong with this change>' line. Look at the plan line "
+                "again as you write them — that second look is the point.")
+        if needs:
+            _log(f"DENY pre-task (first code edit; missing={len(needs)}) file={file_path}")
+            _emit({"permissionDecision": "deny", "permissionDecisionReason": (
+                "PRE-TASK CHECK — this is the first CODE change of the task. Before it "
+                "runs:\n\n" + "\n\n".join(needs) +
+                "\n\nThen retry the edit. (A .md edit is exempt; a genuinely trivial "
+                "change: say 'trivial'.)")})
+            sys.exit(0)
 
     # Every edit gets a SHORT nudge — salience without spam (the full T1-T12 lives in
     # ~/.claude/CLAUDE.md; repeating it per edit was learned-ignore noise).
-    _log(f"INJECT {'first' if prior_edits == 0 else 'edit'} file={file_path}")
+    _log(f"INJECT {'first' if prior_code_edits == 0 else 'edit'} file={file_path}")
     _emit({"additionalContext": NUDGE})
     sys.exit(0)
 

@@ -103,10 +103,13 @@ the gate-stats log-key (one source). All of this is provisioned from the
 - **PreToolUse hook** — `~/.claude/hooks/pre-action-check.py`, wired in
   `settings.json` for `Edit`/`Write`/`MultiEdit`/`ExitPlanMode`:
   - **Pre-task (the FIRST code change of a turn): DENY** unless the plan was already
-    rules-checked this turn (the rules-checker ran, the tests are cited, or it's
-    attested trivial) — forces the plan-check BEFORE the first file is written (catch
-    a bad plan before it's 10 bad files). A first edit to a **`.md`** doc is EXEMPT
-    (the cry-wolf narrowing — a plan/recap/doc edit shouldn't be denied).
+    rules-checked this turn (the rules-checker ran, the tests are cited) AND — **#237,
+    the think-twice check (2026-07-09)** — the turn's own text already cites the
+    plan/spec line being executed (doc.md:line / §-section / the queue-plan doc item /
+    the user's words) plus one **`RISK:`** line on what could be wrong: the second look
+    at the keyboard, BEFORE the write. Forces the plan-check before the first file is
+    written (catch a bad plan before it's 10 bad files). A first edit to a **`.md`**
+    doc is EXEMPT (the cry-wolf narrowing); trivial needs the EXPLICIT word "trivial".
   - **Every edit: NUDGE** (non-blocking, one line) — the rule-tests stay salient.
   - On `ExitPlanMode` ("here is the plan" — a literal event): injects a reminder to
     run the **rules-checker PANEL** on the plan (2–3 independent, compare).
@@ -129,12 +132,19 @@ the gate-stats log-key (one source). All of this is provisioned from the
   - **Block 2** — a storage/architecture recommendation with no cited precedent.
   - **Block 3** — a "done / shipped" claim that edited code but updated/cited no doc.
   - **Block 4** — a "here's the plan / locked the plan / decided to" turn with no
-    rules-pass artifact (a rules-checker verdict, or the cited tests). *(Plan and
-    decision announcements ARE events — Block 3 already proves phrase-triggers work
-    for "done".)*
+    **GENUINE agent verdict** (#237 hardened 2026-07-09: a self-typed tests citation
+    or 'trivial' no longer clears a design LOCK — the gate reads `agent_pass` from the
+    agent's own result, the commit-gate mechanism). A turn that merely RECORDS the
+    user's own decision and attributes it ("the user's decision/word") passes.
   - **Block 5** — POST-TASK: a turn that edited code but ran no rules-pass (the
     result was never checked against the rules). Escapes: run the checker, cite the
     tests, or hedge.
+  - **Block 6** — SECOND PASS (#237): a PROPOSAL turn ("I propose/recommend", "here's
+    the design", or un-attributed lock language) that does not end with an explicit
+    **"SECOND PASS —"** section: what the second look CHANGED or confirmed · what it
+    re-verified at file:line · the sharpest remaining doubt. Born from the user's
+    2026-07-09 finding that an ordered second pass changed five locked-looking
+    decisions; a text rule alone decays, so the section is gated, not remembered.
 - **Task gate** — `~/.claude/hooks/task-gate.py`, wired for `TaskCreated` /
   `TaskCompleted` (the TRUE task begin/end events, when plan tasks are tracked as Task
   entries): `task-begin-check` blocks creating, `task-completeness` blocks completing,

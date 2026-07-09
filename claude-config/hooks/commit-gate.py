@@ -16,7 +16,7 @@ keep it hard). ESCAPES (reuse the existing rules_passed set, not a stricter one)
   - a DOC-ONLY commit (every staged path is .md)    → allowed (no code → rules inert)
   - an attested 'trivial' commit (TRIVIAL/VERDICT in the message or this turn)  → allowed
 
-The Stop gate (verify-gate Blocks 0-5) STAYS as the turn-grain backstop — this ADDS the
+The Stop gate (verify-gate Blocks 0-6) STAYS as the turn-grain backstop — this ADDS the
 semantic check; it never replaces the cheap structural Stop gates (a turn that edits code
 then stops-to-ask commits nothing, so without Stop there'd be zero post-task check).
 

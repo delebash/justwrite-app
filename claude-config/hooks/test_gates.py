@@ -5,7 +5,7 @@ Run:  python3 claude-config/hooks/test_gates.py     (exits non-zero on any failu
 
 Tests, against whatever hooks dir this file lives in (bundle OR live ~/.claude):
   1. the `_rules` registry  — armed events, ids, regexes, genuine-user, per-event subset
-  2. verify-gate (Stop)     — Block 0 sentinel loop + Blocks 1-5 behavior
+  2. verify-gate (Stop)     — Block 0 sentinel loop + Blocks 1-6 behavior (#237 incl.)
   3. pre-action (PreToolUse)— narrowed first-edit deny + .md/trivial exempt + window fix
   4. task-gate              — TaskCreated/TaskCompleted block/allow
   5. commit-gate            — docs+verdict for code · trivial/doc-only/amend escape · anti-loop
@@ -84,11 +84,34 @@ def test_registry():
     r = load_rules()
     assert set(r.armed_events()) == {"Stop", "commit", "TaskCreated", "TaskCompleted"}, r.armed_events()
     assert r.RULE_IDS == ["rules-gate", "code-claim", "reco", "docs-with-features",
-                          "plan", "post-task", "task-begin-check", "task-completeness"], r.RULE_IDS
+                          "plan", "post-task", "second-pass",
+                          "task-begin-check", "task-completeness"], r.RULE_IDS
     # VERDICT: accepts real verdicts, rejects narration (the dogfood-caught hole)
     assert r.VERDICT.search("VERDICT: PASS") and r.VERDICT.search("T1 PASS, T2 FAIL")
     for s in ("I'll run the rules-checker next", "let me run the rules-checker", "the plan looks good"):
         assert not r.VERDICT.search(s), s
+    # #237 regexes — proposals, the SECOND PASS marker, user-decided provenance,
+    # the pre-edit plan-ref + RISK line, the explicit-trivial attestation.
+    for s in ("I propose we split the store", "my recommendation is B", "I recommend option A",
+              "here's the design: one table", "proposed approach: heal at boot"):
+        assert r.PROPOSAL.search(s), s
+    for s in ("the user proposed this earlier", "a counter-proposal from upstream docs"):
+        assert not r.PROPOSAL.search(s), s
+    assert r.SECOND_PASS.search("SECOND PASS — re-derived; changed the heal seam")
+    assert not r.SECOND_PASS.search("a second look at the file")
+    for s in ("the user's decision", "user-decided", "per the user", "your call", "the user said so"):
+        assert r.USER_DECIDED.search(s), s
+    assert not r.USER_DECIDED.search("we decided to use SQLite")
+    for s in ("per docs/plans/2026-07-08-big-batch-queue.md:3361", "executing queue doc §9 QC-25",
+              "per the revised spec", "§7.2 locks this", "the user's words: heal at boot"):
+        assert r.PLAN_REF.search(s), s
+    assert not r.PLAN_REF.search("editing lifecycle.py:487 now")
+    for s in ("RISK: the heal could clobber a deliberate downgrade",
+              "what could be wrong: the poll races the install", "failure mode: stale pin"):
+        assert r.RISK_LINE.search(s), s
+    assert not r.RISK_LINE.search("this lowers risk overall")
+    assert not r.RISK_LINE.search("a risk-free change")   # boilerplate loophole (checker-caught)
+    assert r.TRIVIAL_EXPLICIT.search("trivial: typo") and not r.TRIVIAL_EXPLICIT.search("rename the tab")
     # genuine-user: a real prompt yes; injected wrappers no
     U = lambda s: {"type": "user", "message": {"content": s}}
     assert r.is_genuine_user(U("yes do it"))
@@ -105,6 +128,32 @@ def test_registry():
     assert "post-task" in [i for i, _ in r.run_rules("Stop", c)]
     c["hedged"] = True
     assert "post-task" not in [i for i, _ in r.run_rules("Stop", c)]   # hedge exempts at Stop
+    # #237 plan hardening: a LOCK without a genuine agent verdict fires even with
+    # rules_passed True (typed tests / 'trivial' no longer clear a design lock)...
+    p = dict(base); p["plan_lock"] = True; p["rules_passed"] = True; p["agent_pass"] = None
+    assert "plan" in [i for i, _ in r.run_rules("Stop", p)]
+    p["agent_pass"] = "pass"                       # ...a GENUINE agent PASS clears it...
+    assert "plan" not in [i for i, _ in r.run_rules("Stop", p)]
+    p["agent_pass"] = None; p["user_decided"] = True   # ...and so does user-decided provenance.
+    assert "plan" not in [i for i, _ in r.run_rules("Stop", p)]
+    # #237 second-pass: a proposal without the section fires; the section clears it;
+    # NOT hedge-exempt (a hedged proposal still needs its second pass).
+    s = dict(base); s["proposal"] = True; s["second_pass"] = False
+    assert "second-pass" in [i for i, _ in r.run_rules("Stop", s)]
+    s["hedged"] = True
+    assert "second-pass" in [i for i, _ in r.run_rules("Stop", s)]
+    s["second_pass"] = True
+    assert "second-pass" not in [i for i, _ in r.run_rules("Stop", s)]
+    # proposal derivation: lock language alone counts UNLESS attributed to the user;
+    # authored "I propose" counts even WITH user attribution elsewhere in the turn.
+    d = r.build_ctx({}, [{"type": "user", "message": {"content": "q"}},
+                         {"type": "assistant", "message": {"content": [
+                             {"type": "text", "text": "We've decided: the toast law. The user's decision."}]}}], "Stop")
+    assert d["plan_lock"] and d["user_decided"] and not d["proposal"]
+    d2 = r.build_ctx({}, [{"type": "user", "message": {"content": "q"}},
+                          {"type": "assistant", "message": {"content": [
+                              {"type": "text", "text": "Per the user's word on scope, I propose the heal runs at boot."}]}}], "Stop")
+    assert d2["proposal"], "authored proposal language must count despite user attribution"
     tc = r.build_ctx({}, [{"type": "user", "message": {"content": "hi"}}], "TaskCreated")
     tc["rules_passed"] = False
     assert [i for i, _ in r.run_rules("TaskCreated", tc)] == ["task-begin-check"]
@@ -117,7 +166,7 @@ def test_registry():
 
 
 # ==========================================================================
-# 2) verify-gate (Stop) — Blocks 1-5 + Block 0 sentinel
+# 2) verify-gate (Stop) — Blocks 1-6 + Block 0 sentinel
 # ==========================================================================
 def test_verify_gate():
     home = tempfile.mkdtemp(); os.makedirs(f"{home}/.claude/hooks", exist_ok=True)
@@ -130,7 +179,24 @@ def test_verify_gate():
     assert not blocked(vg(("user", "go"), ("edit", "x.py"), ("text", "VERDICT: PASS")))
     assert blocked(vg(("user", "go"), ("edit", "x.py")))                            # silent edit still gated
     assert blocked(vg(("user", "go"), ("text", "Here's the plan: do x")))           # plan
-    assert not blocked(vg(("user", "go"), ("text", "Here's the plan. VERDICT: PASS")))
+    # #237 FLIP: a TYPED "VERDICT: PASS" no longer clears a plan/design LOCK — only a
+    # genuine agent verdict does (the self-citation escape is closed at lock grain).
+    assert blocked(vg(("user", "go"), ("text", "Here's the plan. VERDICT: PASS")))
+    NOTIF = ("<task-notification>\n<task-id>x</task-id>\n<result>\nVERDICT: PASS — all "
+             "rules pass\n</result>\n</task-notification>")
+    assert not blocked(vg(("user", "go"),
+                          ("text", "Here's the plan: do x. SECOND PASS — re-derived it; "
+                                   "confirmed the shape; sharpest doubt: none."),
+                          ("user", NOTIF))), \
+        "a genuine agent PASS + the SECOND PASS section must clear a locked plan"
+    # #237 Block 6: a proposal without an explicit second pass is blocked; the
+    # section clears it; a user-decided RECORD turn is not a proposal at all.
+    assert blocked(vg(("user", "go"), ("text", "I recommend option B — it heals at boot.")))
+    assert not blocked(vg(("user", "go"),
+                          ("text", "I recommend option B — it heals at boot. SECOND PASS — "
+                                   "re-checked both sides; changed nothing; doubt: none.")))
+    assert not blocked(vg(("user", "go"),
+                          ("text", "We've decided the toast law — the user's decision, recorded.")))
     assert blocked(vg(("user", "go"), ("text", "the bug is in server/foo.py")))     # code-claim
     assert not blocked(vg(("user", "go"), ("text", "server/foo.py but I haven't verified")))  # hedge
     assert not blocked(vg(("user", "go"), ("text", "")))                            # nothing → pass
@@ -165,10 +231,21 @@ def test_pre_action():
                     "tool_input": {"file_path": file_path}, "transcript_path": tx(*msgs)}).stdout
     assert denied(pa("a.py", ("user", "build")))                        # first code edit → deny
     assert not denied(pa("NOTES.md", ("user", "build")))               # .md exempt → nudge
-    assert not denied(pa("a.py", ("user", "build"), ("text", "VERDICT: PASS")))
-    assert not denied(pa("a.py", ("user", "build"), ("agent", "")))
-    assert not denied(pa("a.py", ("user", "build"), ("text", "trivial typo")))
-    assert not denied(pa("b.py", ("user", "build"), ("edit", "a.py")))  # second edit, no deny
+    # #237 FLIP: a rules-pass alone no longer clears the first code edit — the turn
+    # text must ALSO cite the plan/spec line being executed + carry a RISK line.
+    assert denied(pa("a.py", ("user", "build"), ("text", "VERDICT: PASS")))
+    assert denied(pa("a.py", ("user", "build"), ("agent", "")))
+    assert not denied(pa("a.py", ("user", "build"),
+                         ("text", "VERDICT: PASS — executing queue doc §9 QC-25. "
+                                  "RISK: the heal could clobber a deliberate downgrade.")))
+    assert not denied(pa("a.py", ("user", "build"), ("text", "trivial typo")))  # explicit trivial
+    # loose TRIVIAL words ("rename") satisfy rules_pass but NOT the explicit-trivial
+    # exemption — the think-twice check still fires without the plan-ref + RISK.
+    assert denied(pa("a.py", ("user", "build"), ("text", "rename the tab per plan")))
+    assert not denied(pa("b.py", ("user", "build"), ("edit", "a.py")))  # second CODE edit, no deny
+    # the deny window counts CODE edits only (checker-caught): a doc edit earlier in
+    # the turn must NOT open the window — the first CODE edit is still gated.
+    assert denied(pa("a.py", ("user", "build"), ("edit", "NOTES.md")))
     # the live bug: a <task-notification> after an edit must NOT reset the window
     assert not denied(pa("b.py", ("user", "build"), ("edit", "a.py"),
                          ("user", "<task-notification>\n<task-id>z</task-id>")))
@@ -297,7 +374,8 @@ def test_gate_stats():
     env = dict(os.environ, HOME=home)
     # write one BLOCK line per rule id, spread across two log files
     with open(f"{home}/.claude/hooks/verify-gate.log", "w") as f:
-        for rid in ["rules-gate", "code-claim", "reco", "docs-with-features", "plan", "post-task"]:
+        for rid in ["rules-gate", "code-claim", "reco", "docs-with-features", "plan",
+                    "post-task", "second-pass"]:
             f.write(f"2026-06-26 BLOCK {rid} x\n")
     with open(f"{home}/.claude/hooks/task-gate.log", "w") as f:
         for rid in ["task-begin-check", "task-completeness"]:
@@ -305,7 +383,7 @@ def test_gate_stats():
     out = subprocess.run([PY, f"{HOOKS}/gate-stats.py"], capture_output=True, text=True, env=env).stdout
     for rid in r.RULE_IDS:                       # EVERY id must roll up
         assert rid in out, f"gate-stats missing {rid}\n{out}"
-    assert "blocks): 8" in out, out             # 8 ids, one each
+    assert "blocks): 9" in out, out             # 9 ids, one each
     print("6) gate-stats ......... PASS")
 
 
