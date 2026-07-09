@@ -198,8 +198,15 @@ proven live 44→42 knobs); KnobGrid's ledger mode deleted; the QC-12 samplers l
 below the lede's Apply. Gates: runner ruff + 420 pytest · vitest 48/48 · build:vite ·
 the NEW committed `scripts/switch-probe.mjs` 8/8 zero page errors · b4-probe 15/15 ·
 FULL smoke zero JS errors · rules-checker verdict at the commit. Full record: queue doc
-§9 "SWITCH-CLUSTER BUILD RECORD". Still needing their own word: QC-13 (Not-installed
-root-cause) · QC-14 (wrap) · QC-19's exact label. Still frozen: B2-9 · the DL-2 build ·
+§9 "SWITCH-CLUSTER BUILD RECORD". **QC-13 + QC-14 + QC-19 then SHIPPED on the user's
+next bare "go":** QC-13 root-caused (useEngine's null pre-fetch state read as
+not-installed — now an honest "Checking the engine…" + Install gated on a FETCHED
+answer + a retry until one lands; if the box still shows the false line, the next
+evidence is the Settings → Logs line) · QC-14 (`.lu-fw-card-label` wraps — the
+nowrap/ellipsis truncation is gone) · QC-19 (every "Hardware-class default(s)" →
+**"Hardware/model class default(s)"**, the user's anchor label verbatim — kit strings,
+models.md, the probe; "Save for hardware class" kept, flagged). Full record: queue doc
+§9 "QC-13 + QC-14 + QC-19 BUILD RECORD". Still frozen: B2-9 · the DL-2 build ·
 Batches 5/6. The §9 QC queue stays LIVE — answer conversationally FIRST, always; when
 the user asks for a response, STOP the turn and answer (mid-turn text does not reach
 them — 2026-07-09 lesson). The never-decide decree (twice-verbatim) is in the ⛔ #1

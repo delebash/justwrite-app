@@ -132,7 +132,7 @@ embedding model carries an **Embedding** badge. From here you can:
   unedited), **Hand-tuned on this PC ✓**, or **Untuned — using the layered defaults** (the
   badge never claims the config comes from one single layer — the rows themselves show which
   layer set each value). A model with no config of its own but a saved class config shows a
-  **Hardware-class default** badge on its **row in the catalog** (tuned rows show their
+  **Hardware/model class default** badge on its **row in the catalog** (tuned rows show their
   Auto-/Hand-tuned badge there; untuned rows just carry none).
   **Remove applied
   config** sits right beside Apply in the dialog's footer — it returns the model to its
@@ -146,7 +146,7 @@ embedding model carries an **Embedding** badge. From here you can:
   **✕ to remove the row**. A removed switch simply isn't sent — the engine handles it its
   own way, exactly like leaving a flag off the command line — and **＋ Add switch** puts
   one in (any engine flag can be typed, even one the catalog doesn't list). Rows sit
-  **grouped under a heading per source** — *Your applied config* · *Hardware-class
+  **grouped under a heading per source** — *Your applied config* · *Hardware/model class
   default* · *Global launch defaults* · *Computed for this PC* — so "what set this
   switch?" is answered by the section it sits in (values the engine works out for your
   machine, like GPU layers, are ordinary rows under *Computed for this PC*, and Apply
@@ -157,12 +157,12 @@ embedding model carries an **Embedding** badge. From here you can:
   its rows) and Apply if you don't want it. After a measurement, **Save for
   hardware class** keeps the config as the shared starting point for **every PC with the
   same video memory and RAM** (a machine with its own applied config still wins), and the
-  **"Hardware-class defaults ↗"** link in the same dialog opens **this model's class
+  **"Hardware/model class defaults ↗"** link in the same dialog opens **this model's class
   config straight in its editor** — your PC's class row when one exists, otherwise a new
   config prefilled with your class — no list to click through; a
   **"Global launch defaults ↗"** link beside it opens the always-on switch bundles the
   same way, so nothing is edited embedded in the Tune dialog itself. The full **library**
-  lives on the Built-in provider's Edit page — the **"Hardware-class defaults…"** button
+  lives on the Built-in provider's Edit page — the **"Hardware/model class defaults…"** button
   there opens every saved config in one table where **each row is one model × one PC
   class** (there is no single tune covering all models; adding a config there starts with
   picking the model), with **Copy**/**Import** to share a config between users as a small
@@ -227,7 +227,7 @@ model and can't be changed here — the wrong pooling would quietly make search 
 > a server that hasn't loaded anything yet (models load on first use by design).
 >
 > Under the catalog, two buttons open the other editable libraries as dialogs:
-> **Hardware-class defaults…** (the shared per-PC-class launch configs) and **Global launch
+> **Hardware/model class defaults…** (the shared per-PC-class launch configs) and **Global launch
 > defaults…** — the always-on switch bundles (all models · MoE · dense · speculative decode)
 > that sit underneath every tune, visible and editable with a Reset. Both libraries carry
 > the same standing note: **models with an applied config keep their saved values** — a

@@ -78,13 +78,40 @@ const sw0 = await page.evaluate(async () => {
 check("SW0 QC-11/17: existing DB curated — rows removed, no stored engine defaults/options, help carries values",
   sw0.removed && sw0.noDefaults && sw0.noOptions && sw0.helpValues, JSON.stringify(sw0));
 
-// Navigate: AI area → Providers tab → Edit the built-in provider (the smoke's path).
+// Navigate: AI area. First QC-14 on the Routing-by-feature tab, then Providers.
 await page.evaluate(() => { window.location.hash = "#/ai"; });
 await sleep(1200);
+
+// QC-14 ("wrap the text better now the control are very wide"): the nav card
+// labels WRAP — no nowrap/ellipsis truncation.
+await page.evaluate(() => [...document.querySelectorAll(".lu-subnav a")].find((a) => /routing by feature/i.test(a.textContent))?.click());
+await sleep(900);
+const qc14 = await page.evaluate(() => {
+  const label = document.querySelector(".lu-fw-card-label");
+  if (!label) return { label: false };
+  const cs = getComputedStyle(label);
+  return { label: true, whiteSpace: cs.whiteSpace, overflow: cs.textOverflow };
+});
+check("QC-14: feature-card labels wrap (no nowrap/ellipsis truncation)",
+  qc14.label && qc14.whiteSpace !== "nowrap" && qc14.overflow !== "ellipsis", JSON.stringify(qc14));
+await page.screenshot({ path: `${OUT}/qc14-routing.png` });
+
 await page.evaluate(() => [...document.querySelectorAll(".lu-subnav a")].find((a) => /providers/i.test(a.textContent))?.click());
 await sleep(600);
 await page.evaluate(() => [...document.querySelectorAll(".lu-prow button, .lu-prow .lu-btn")].find((b) => /edit/i.test(b.textContent))?.click());
 await sleep(900);
+
+// QC-13: the Local-engine panel never LIES about install state — with the status
+// FETCHED (this container: not installed) it says so; it must never render the
+// claim without a fetched status (the pre-fetch state reads "Checking the engine…").
+const qc13 = await page.evaluate(() => {
+  const sub = document.querySelector(".lu-eng-sub")?.textContent.trim() || "";
+  return {
+    sub: sub.slice(0, 60),
+    honest: /^(Installed|Not installed|Checking the engine|Installing)/.test(sub),
+  };
+});
+check("QC-13: the engine panel shows only honest states (fetched or checking)", qc13.honest, JSON.stringify(qc13));
 
 // Open the Tune & measure modal from the first catalog row's Tune action.
 await page.evaluate(() => [...document.querySelectorAll(".lu-mcat button")].find((b) => b.textContent.trim() === "Tune")?.click());
@@ -109,7 +136,7 @@ check("SW1 QC-17: Tune grid = only set rows, ✕ on every row, + Add switch, zer
 
 // SW2 (QC-10): rows grouped under the user-named headings; NO per-section Save
 // inside the grid (the modal's ONE Apply lives in the footer).
-const GROUPS = ["Your applied config", "Hardware-class default", "Global launch defaults", "Computed for this PC"];
+const GROUPS = ["Your applied config", "Hardware/model class default", "Global launch defaults", "Computed for this PC"];
 const sw2 = await page.evaluate(() => {
   const heads = [...document.querySelectorAll(".lu-tune .ui-kg-group-h")].map((h) => h.textContent.trim());
   const gridButtons = [...document.querySelectorAll(".lu-tune-scroll button")].map((b) => b.textContent.trim());
