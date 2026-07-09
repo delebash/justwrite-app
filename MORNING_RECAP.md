@@ -219,8 +219,17 @@ a disk-resolving write path would let a pin-bump Update skip its download and th
 sweep-delete the only engine); 5 new pytest cases incl. the user's exact disk-b9929/
 pin-b9899 state → installed:true, build b9929. Full record: queue doc §9 "QC-13 BACKEND
 BUILD RECORD". Gates: ruff + 425 pytest · probes · full smoke · checker verdict at the
-commit. Remaining units of the armed go, in order: B2-9 (§7.2) → DL-2 (its plan doc) →
-Batch 5 → Batch 6.
+commit. **Unit 3, B2-9, SHIPPED next** — "Set as default" on EVERY provider row (one
+flow local/online per §7.2): the ONE shared writer (`modelApply.setAsDefault`) gained
+the overwrite choice (keep-my-customized default = only presets on the current default
+PAIR move; overwrite = every task preset), the confirm dialog carries the embedding
+small print + the "Also overwrite tasks I customized" checkbox, and both guards ship
+(built-in → "pick manually or run Quick Setup" with a working wizard button; other rows
+→ set the Default model in Edit). 4 new vitest cases (52/52) + the committed
+`scripts/b29-probe.mjs` live round-trip **8/8 zero page errors** (guard → keep-mode with
+a hand-customized survivor → embed leg → overwrite → built-in guard → full DB restore).
+Full record: queue doc §9 "B2-9 BUILD RECORD". Remaining units of the armed go, in
+order: DL-2 (its plan doc) → Batch 5 → Batch 6.
 
 **⛔⛔ THE STATE AT THE FOURTH COMPACT (2026-07-09 — superseded by the paragraph above;
 kept for the go's wording):** the user:

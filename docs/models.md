@@ -36,6 +36,17 @@ connect it on the **provider list** (Providers & models → add a provider) and 
 it there — the wizard never touches external providers. (The embedding always runs locally
 on the bundled runner.)
 
+**Set as default, on any provider.** Every provider row — the built-in, a local server, or
+a cloud API — carries a **Set as default** button, and it's the same flow everywhere. It
+makes that provider the default for your AI tasks (they run on the provider's chat model),
+and — when the provider has an **embedding model** set — the search/embeddings provider
+too; when it doesn't, the dialog says in one line that your embeddings stay where they are.
+Before applying you choose what happens to tasks you already customized: leave them on
+their own models (the default), or tick **Also overwrite tasks I customized** to repoint
+everything. The built-in needs an assigned chat model first (pick one in the catalog, or
+run Quick Setup); any other provider needs its **Default model** filled in on its Edit
+form.
+
 When you click **Apply**, that one model becomes the default for **every task** — writing,
 chat, extraction, judgment — and it downloads and loads right away. If you've already
 changed the model for a particular task yourself (on the **Tasks** tab), Quick Setup leaves
