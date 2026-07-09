@@ -14,7 +14,9 @@ import { buildVoiceFingerprint } from "./voiceFingerprint.js";
 // measured voice block (prefixed with a blank line) when canonical chapters are
 // marked, else "". The server's writerAI system template is
 // "<base>{{voiceCanon}}", so this reproduces the old client system exactly.
-function voiceCanonVar() {
+// Exported: the Lab's passage picker sends the SAME voiceCanon a real writer
+// run sends (QC-35 composer reuse).
+export function voiceCanonVar() {
   try {
     const project = useProjectStore();
     const fp = buildVoiceFingerprint(project);

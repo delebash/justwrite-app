@@ -55,15 +55,15 @@ function buildChapterDigest(project) {
 
 // The prompt lives server-side (features.py, action "marketingPack").
 
-export async function generateMarketingPack({
-  project,
-  signal,
-  provider,
-  model,
-  task,
-  meta,
-} = {}) {
-  if (!project) throw new Error("generateMarketingPack: project store is required.");
+/**
+ * Compose the marketingPack input (title/genre/premise + the chapter digest)
+ * from the live project. THE composer for both the real run below and the
+ * Lab's "From this book" fill (QC-35: one source, no copies).
+ *
+ * @returns {{ variables: {user_content}, totalChapters: number }}
+ */
+export function composeMarketingPackInput(project) {
+  if (!project) throw new Error("composeMarketingPackInput: project store is required.");
   const chapters = buildChapterDigest(project);
   const eligible = chapters.filter((c) => c.summary && c.summary.trim().length > 0);
   if (eligible.length < 3) {
@@ -87,11 +87,25 @@ export async function generateMarketingPack({
     body.push("");
   }
 
-  const packMeta = { ...(meta || {}), totalChapters: chapters.length };
+  return { variables: { user_content: body.join("\n") }, totalChapters: chapters.length };
+}
+
+export async function generateMarketingPack({
+  project,
+  signal,
+  provider,
+  model,
+  task,
+  meta,
+} = {}) {
+  if (!project) throw new Error("generateMarketingPack: project store is required.");
+  const { variables, totalChapters } = composeMarketingPackInput(project);
+
+  const packMeta = { ...(meta || {}), totalChapters };
   const result = await runAiFeature({
     action: "marketingPack",
     feature: "marketingPack",
-    variables: { user_content: body.join("\n") },
+    variables,
     signal,
     provider,
     model,
@@ -140,7 +154,7 @@ export async function generateMarketingPack({
     synopsis,
     pitch,
     comps,
-    totalChapters: chapters.length,
+    totalChapters,
     raw: result.content,
     model: result.model,
     providerId: result.providerId,

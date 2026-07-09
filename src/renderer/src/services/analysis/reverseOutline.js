@@ -75,15 +75,15 @@ function buildChapterDigest(project) {
   });
 }
 
-export async function generateReverseOutline({
-  project,
-  signal,
-  provider,
-  model,
-  task,
-  meta,
-} = {}) {
-  if (!project) throw new Error("generateReverseOutline: project store is required.");
+/**
+ * Compose the reverseOutline input (the chapter-by-chapter digest with the
+ * structural-analysis metadata lines) from the live project. THE composer for
+ * both the real run below and the Lab's "From this book" fill (QC-35).
+ *
+ * @returns {{ variables: {user_content}, totalChapters: number }}
+ */
+export function composeReverseOutlineInput(project) {
+  if (!project) throw new Error("composeReverseOutlineInput: project store is required.");
   const chapters = buildChapterDigest(project);
   const eligible = chapters.filter((c) => c.summary && c.summary.trim().length > 0);
   if (eligible.length < 3) {
@@ -106,11 +106,25 @@ export async function generateReverseOutline({
     body.push("");
   }
 
-  const outlineMeta = { ...(meta || {}), totalChapters: chapters.length };
+  return { variables: { user_content: body.join("\n") }, totalChapters: chapters.length };
+}
+
+export async function generateReverseOutline({
+  project,
+  signal,
+  provider,
+  model,
+  task,
+  meta,
+} = {}) {
+  if (!project) throw new Error("generateReverseOutline: project store is required.");
+  const { variables, totalChapters } = composeReverseOutlineInput(project);
+
+  const outlineMeta = { ...(meta || {}), totalChapters };
   const result = await runAiFeature({
     action: "reverseOutline",
     feature: "reverseOutline",
-    variables: { user_content: body.join("\n") },
+    variables,
     signal,
     provider,
     model,
@@ -161,7 +175,7 @@ export async function generateReverseOutline({
     actBreaks,
     plotPoints,
     chapterBeats,
-    totalChapters: chapters.length,
+    totalChapters,
     raw: result.content,
     model: result.model,
     providerId: result.providerId,

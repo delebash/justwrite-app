@@ -13,6 +13,7 @@
 import { embedTexts, friendlyAiError, runAiFeatureStream } from "@delebash/llm-ui";
 import { useAiStore } from "../../stores/ai.js";
 import { useProjectStore } from "../../stores/project.js";
+import { formatExcerpts } from "./excerpts.js";
 import { search, status } from "./vectorStore.js";
 
 const MAX_HISTORY_MESSAGES = 8;
@@ -22,7 +23,9 @@ const MAX_HISTORY_MESSAGES = 8;
 // prompt (Lab-editable); this is just the dynamic profile data, prefixed with a
 // newline when present (the template is "YOUR PROFILE:{{characterProfile}}", so an
 // empty profile renders byte-identically to the old client system).
-function buildCharacterProfile(character, extras) {
+// Exported: the Lab's character picker sends the SAME profile a real run
+// sends (QC-35 — the buildCharacterProfile reuse pattern IS the law's origin).
+export function buildCharacterProfile(character, extras) {
   const lines = [];
   if (character.role) lines.push(`Role: ${character.role}`);
   if (character.gender) lines.push(`Gender: ${character.gender}`);
@@ -67,22 +70,8 @@ function buildCharacterProfile(character, extras) {
   return lines.length ? `\n${lines.join("\n")}` : "";
 }
 
-// Format ranked hits into the cited excerpt block sent as the {{excerpts}}
-// variable (same shape as manuscript chat; keeps the [1]/[2] refs).
-function formatExcerpts(hits) {
-  return hits
-    .map(({ chunk }, i) => {
-      const sceneLabel = chunk.sceneTitle
-        ? `, scene "${chunk.sceneTitle}"`
-        : chunk.sceneIdx != null
-          ? `, scene ${chunk.sceneIdx + 1}`
-          : "";
-      const header = `Ch. ${chunk.chapterNum} "${chunk.chapterTitle}"${sceneLabel}`;
-      const excerpt = chunk.text.length > 1200 ? `${chunk.text.slice(0, 1200)}…` : chunk.text;
-      return `[${i + 1}] ${header}:\n${excerpt}`;
-    })
-    .join("\n\n");
-}
+// formatExcerpts lives in ./excerpts.js — shared with manuscript chat and the
+// Lab's test-input picker (QC-35: one formatter, no copies).
 
 function buildEmbedQuery(question, history, character) {
   const lastUser = [...history].reverse().find((m) => m?.role === "user");

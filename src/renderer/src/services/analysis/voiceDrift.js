@@ -19,6 +19,7 @@
 // enough to run per-chapter on demand.
 
 import { runAiFeature } from "@delebash/llm-ui";
+import { bookMetrics } from "./styleMetrics.js";
 
 // Which metrics from bookMetrics rows are worth tracking for drift.
 // Each entry: { key, label, unit, format }. `format` is a function that
@@ -193,29 +194,45 @@ function tailWords(text, max) {
 // The prompt lives server-side (features.py, action "voiceDrift").
 
 /**
- * Generate a 2-4 sentence diagnosis of why one chapter's voice differs
- * from the project baseline.
+ * Derive the explain-call context from a computeVoiceDrift result: the
+ * baseline = the 3 LOWEST-driftScore chapters (most typical of the writer's
+ * voice), and the metrics where the given chapter is an outlier. THE one
+ * derivation for AnalysisView's explain button and the Lab's chapter picker.
  *
- * @param {object} opts
- * @param {object} opts.project              project store
- * @param {string} opts.outlierChapterId
- * @param {string[]} opts.baselineChapterIds  — typically the 3 chapters with the smallest driftScore
- * @param {Array} opts.divergentMetrics       — [{ label, outlierValue, baselineMean, direction }]
- * @param {AbortSignal} [opts.signal]
- * @param {(d,c)=>void} [opts.onDelta]
+ * @returns {{ baselineChapterIds: string[], divergentMetrics: Array }}
  */
-export async function explainVoiceDrift({
+export function deriveVoiceDriftContext(drift, outlierChapterId) {
+  const baselineChapterIds = [...(drift?.chapters || [])]
+    .filter((c) => c.chapterId !== outlierChapterId)
+    .sort((a, b) => a.driftScore - b.driftScore)
+    .slice(0, 3)
+    .map((c) => c.chapterId);
+  const divergentMetrics = [];
+  for (const m of drift?.metrics || []) {
+    const out = m.outliers.find((o) => o.chapterId === outlierChapterId);
+    if (!out) continue;
+    const direction = out.z > 0 ? "higher" : "lower";
+    const baselineMean = m.format ? m.format(m.mean) : m.mean.toFixed(1);
+    const outlierValue = m.format ? m.format(out.value) : out.value.toFixed(1);
+    divergentMetrics.push({ label: m.label, direction, baselineMean, outlierValue });
+  }
+  return { baselineChapterIds, divergentMetrics };
+}
+
+/**
+ * Compose the voiceDrift input (outlier prose + baseline excerpts + the
+ * divergent-metric lines). THE composer for both the real explain call below
+ * and the Lab's chapter picker (QC-35: one source, no copies).
+ *
+ * @returns {{ variables: {user_content} }}
+ */
+export function composeVoiceDriftBody({
   project,
   outlierChapterId,
   baselineChapterIds = [],
   divergentMetrics = [],
-  signal,
-  provider,
-  model,
-  task,
-  meta,
 } = {}) {
-  if (!project || !outlierChapterId) throw new Error("explainVoiceDrift: project + outlierChapterId required.");
+  if (!project || !outlierChapterId) throw new Error("composeVoiceDriftBody: project + outlierChapterId required.");
 
   const outlierHtml = project.chapterBody[outlierChapterId] || "";
   const outlierText = tailWords(htmlToText(outlierHtml), 1100);
@@ -256,11 +273,57 @@ export async function explainVoiceDrift({
     body.push(...divergentLines);
   }
 
+  return { variables: { user_content: body.join("\n") } };
+}
+
+/**
+ * Compose the voiceDrift input for one chapter straight from the project —
+ * computes the style rows + drift analytics and auto-derives the baselines
+ * and divergent metrics exactly as the Analysis view's explain button does.
+ * The Lab's chapter-picker entry point.
+ */
+export function composeVoiceDriftInput(project, outlierChapterId) {
+  if (!project) throw new Error("composeVoiceDriftInput: project store is required.");
+  const rows = bookMetrics(project.allChapters, project.chapterBody).rows;
+  const drift = computeVoiceDrift(rows);
+  if (!drift.eligible) throw new Error("Need at least three chapters with prose to compare voice.");
+  const { baselineChapterIds, divergentMetrics } = deriveVoiceDriftContext(drift, outlierChapterId);
+  return composeVoiceDriftBody({ project, outlierChapterId, baselineChapterIds, divergentMetrics });
+}
+
+/**
+ * Generate a 2-4 sentence diagnosis of why one chapter's voice differs
+ * from the project baseline.
+ *
+ * @param {object} opts
+ * @param {object} opts.project              project store
+ * @param {string} opts.outlierChapterId
+ * @param {string[]} opts.baselineChapterIds  — typically the 3 chapters with the smallest driftScore
+ * @param {Array} opts.divergentMetrics       — [{ label, outlierValue, baselineMean, direction }]
+ * @param {AbortSignal} [opts.signal]
+ * @param {(d,c)=>void} [opts.onDelta]
+ */
+export async function explainVoiceDrift({
+  project,
+  outlierChapterId,
+  baselineChapterIds = [],
+  divergentMetrics = [],
+  signal,
+  provider,
+  model,
+  task,
+  meta,
+} = {}) {
+  if (!project || !outlierChapterId) throw new Error("explainVoiceDrift: project + outlierChapterId required.");
+  const { variables } = composeVoiceDriftBody({
+    project, outlierChapterId, baselineChapterIds, divergentMetrics,
+  });
+
   const driftMeta = { ...(meta || {}), chapterId: outlierChapterId };
   const result = await runAiFeature({
     action: "voiceDrift",
     feature: "voiceDrift",
-    variables: { user_content: body.join("\n") },
+    variables,
     signal,
     provider,
     model,

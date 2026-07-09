@@ -122,16 +122,17 @@ function buildChapterDigest(project) {
 
 // The prompt lives server-side (features.py, action "beatSheet").
 
-export async function mapToBeatSheet({
-  project,
-  templateKey,
-  signal,
-  provider,
-  model,
-  task,
-  meta,
-} = {}) {
-  if (!project) throw new Error("mapToBeatSheet: project store is required.");
+/**
+ * Compose the beatSheet input (framework beats + chapter digest) from the
+ * live project. THE composer for both the real mapping below and the Lab's
+ * "From this book" fill — the Lab passes the modal's default framework
+ * (TEMPLATE_OPTIONS[0], the same expression BeatSheetModal seeds its picker
+ * with; the user's decided default for the compose button).
+ *
+ * @returns {{ variables: {user_content}, totalChapters: number, template: object }}
+ */
+export function composeBeatSheetInput(project, templateKey = TEMPLATE_OPTIONS[0].value) {
+  if (!project) throw new Error("composeBeatSheetInput: project store is required.");
   const template = BEAT_TEMPLATES[templateKey];
   if (!template) throw new Error(`Unknown beat template: ${templateKey}`);
 
@@ -160,11 +161,26 @@ export async function mapToBeatSheet({
     chapterLines,
   ].join("\n");
 
-  const beatMeta = { ...(meta || {}), templateKey, totalChapters: chapters.length };
+  return { variables: { user_content: userBody }, totalChapters: chapters.length, template };
+}
+
+export async function mapToBeatSheet({
+  project,
+  templateKey,
+  signal,
+  provider,
+  model,
+  task,
+  meta,
+} = {}) {
+  if (!project) throw new Error("mapToBeatSheet: project store is required.");
+  const { variables, totalChapters, template } = composeBeatSheetInput(project, templateKey);
+
+  const beatMeta = { ...(meta || {}), templateKey, totalChapters };
   const result = await runAiFeature({
     action: "beatSheet",
     feature: "beatSheet",
-    variables: { user_content: userBody },
+    variables,
     signal,
     provider,
     model,

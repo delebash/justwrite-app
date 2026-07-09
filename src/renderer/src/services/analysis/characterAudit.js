@@ -103,32 +103,22 @@ function buildSceneDigest(project, characterId) {
  * @param {string} [opts.model]
  * @param {object} [opts.meta]
  */
-export async function auditCharacter({
-  project,
-  characterId,
-  signal,
-  provider,
-  model,
-  meta = {},
-  task,
-} = {}) {
-  if (!project) throw new Error("auditCharacter: project store is required.");
+/**
+ * Compose one character's audit input (the profile block + the digest of the
+ * scenes that feature them). THE composer for both the real audit below and
+ * the Lab's character picker (QC-35: one source, no copies). Returns null
+ * when the character has no linked scenes (the audit's no-scenes case).
+ *
+ * @returns {{ variables: {user_content}, sceneCount: number, character: object } | null}
+ */
+export function composeCharacterAuditInput(project, characterId) {
+  if (!project) throw new Error("composeCharacterAuditInput: project store is required.");
   const character = (project.characters || []).find((c) => c.id === characterId);
   if (!character) throw new Error("Character not found.");
   const extras = project.characterExtras?.[characterId] || null;
 
   const scenes = buildSceneDigest(project, characterId);
-  if (!scenes.length) {
-    return {
-      character: { id: character.id, name: character.name, main: !!character.main },
-      concerns: [],
-      verdict: "no-scenes",
-      noteCount: 0,
-      generatedAt: Date.now(),
-      model: null,
-      providerId: null,
-    };
-  }
+  if (!scenes.length) return null;
 
   const profile = buildProfileText(character, extras);
   const sceneBlocks = scenes.map((s) => {
@@ -141,11 +131,39 @@ export async function auditCharacter({
     `SCENES FEATURING THIS CHARACTER (${scenes.length} total)\n\n` +
     sceneBlocks.join("\n\n");
 
+  return { variables: { user_content: userBody }, sceneCount: scenes.length, character };
+}
+
+export async function auditCharacter({
+  project,
+  characterId,
+  signal,
+  provider,
+  model,
+  meta = {},
+  task,
+} = {}) {
+  if (!project) throw new Error("auditCharacter: project store is required.");
+  const composed = composeCharacterAuditInput(project, characterId);
+  if (!composed) {
+    const character = (project.characters || []).find((c) => c.id === characterId);
+    return {
+      character: { id: character.id, name: character.name, main: !!character.main },
+      concerns: [],
+      verdict: "no-scenes",
+      noteCount: 0,
+      generatedAt: Date.now(),
+      model: null,
+      providerId: null,
+    };
+  }
+  const { variables, sceneCount, character } = composed;
+
   const auditMeta = { ...meta, characterId };
   const result = await runAiFeature({
     action: "characterAudit",
     feature: "characterAudit",
-    variables: { user_content: userBody },
+    variables,
     signal,
     provider,
     model,
@@ -180,7 +198,7 @@ export async function auditCharacter({
     concerns,
     verdict,
     noteCount: concerns.length,
-    sceneCount: scenes.length,
+    sceneCount,
     raw: result.content,
     generatedAt: Date.now(),
     model: result.model,

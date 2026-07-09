@@ -96,7 +96,7 @@ await sleep(500);
 
 // ── Tasks tab — QC-24 + QC-23 ──
 await page.evaluate(() => {
-  [...document.querySelectorAll(".lu-subnav a")].find((a) => a.textContent.trim() === "Tasks")?.click();
+  [...document.querySelectorAll(".lu-subnav a")].find((a) => a.textContent.trim() === "Routing by task")?.click();
 });
 await sleep(2000);
 

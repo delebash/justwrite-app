@@ -70,6 +70,29 @@ export const MOVE_KIND_BLURBS = {
  * @param {object} [opts.provider]
  * @param {string} [opts.model]
  */
+/**
+ * Compose the unstuck input (the framed prose the writer is stuck at the end
+ * of). THE composer for both the real call below and the Lab's chapter picker
+ * (QC-35: one source, no copies). Throws the same no-prose error the call
+ * always raised.
+ *
+ * @returns {{ variables: {user_content} }}
+ */
+export function composeUnstuckInput({ contextText, chapterTitle = "", chapterNum = null } = {}) {
+  const text = String(contextText || "").trim();
+  if (!text) throw new Error("There's no prose to brainstorm from yet — write a few lines first.");
+
+  const header = chapterTitle
+    ? `Chapter ${chapterNum != null ? `${chapterNum} — ` : ""}${chapterTitle}\n\n`
+    : "";
+
+  return {
+    variables: {
+      user_content: `${header}--- BEGIN PROSE (writer is stuck at the end of this) ---\n${text}\n--- END PROSE ---`,
+    },
+  };
+}
+
 export async function generateUnstuckMoves({
   contextText,
   chapterTitle = "",
@@ -80,20 +103,13 @@ export async function generateUnstuckMoves({
   task,
   meta,
 } = {}) {
-  const text = String(contextText || "").trim();
-  if (!text) throw new Error("There's no prose to brainstorm from yet — write a few lines first.");
-
-  const header = chapterTitle
-    ? `Chapter ${chapterNum != null ? `${chapterNum} — ` : ""}${chapterTitle}\n\n`
-    : "";
+  const { variables } = composeUnstuckInput({ contextText, chapterTitle, chapterNum });
 
   const stuckMeta = { ...(meta || {}), kind: "unstuck" };
   const result = await runAiFeature({
     action: "unstuck",
     feature: "unstuck",
-    variables: {
-      user_content: `${header}--- BEGIN PROSE (writer is stuck at the end of this) ---\n${text}\n--- END PROSE ---`,
-    },
+    variables,
     signal,
     provider,
     model,

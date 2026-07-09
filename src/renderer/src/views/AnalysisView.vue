@@ -11,7 +11,7 @@ import {
   scenesPerChapter, projectKpis, paceSeries,
 } from "../services/analysis.js";
 import { bookMetrics, POV_LABELS } from "../services/analysis/styleMetrics.js";
-import { computeVoiceDrift, explainVoiceDrift } from "../services/analysis/voiceDrift.js";
+import { computeVoiceDrift, deriveVoiceDriftContext, explainVoiceDrift } from "../services/analysis/voiceDrift.js";
 import { sweepStoryTension } from "../services/analysis/tensionSweep.js";
 import { PACING_LABELS, ENDING_LABELS } from "../services/analysis/critique.js";
 import ReverseOutlineModal from "../components/ReverseOutlineModal.vue";
@@ -184,29 +184,15 @@ async function explainHot(chapterId) {
     ...driftExplanations.value,
     [chapterId]: { running: true, text: "", error: "" },
   };
-  // Baseline = the 3 LOWEST-driftScore chapters (most typical of the
-  // writer's voice in this book).
-  const baselineIds = [...d.chapters]
-    .filter((c) => c.chapterId !== chapterId)
-    .sort((a, b) => a.driftScore - b.driftScore)
-    .slice(0, 3)
-    .map((c) => c.chapterId);
-  // Divergent metrics — those where this chapter is an outlier.
-  const divergent = [];
-  for (const m of d.metrics) {
-    const out = m.outliers.find((o) => o.chapterId === chapterId);
-    if (!out) continue;
-    const direction = out.z > 0 ? "higher" : "lower";
-    const baselineMean = m.format ? m.format(m.mean) : m.mean.toFixed(1);
-    const outlierValue = m.format ? m.format(out.value) : out.value.toFixed(1);
-    divergent.push({ label: m.label, direction, baselineMean, outlierValue });
-  }
+  // Baseline (3 lowest-driftScore chapters) + divergent metrics — the shared
+  // derivation in voiceDrift.js (the Lab's composer rides the same one).
+  const { baselineChapterIds, divergentMetrics } = deriveVoiceDriftContext(d, chapterId);
   try {
     const result = await explainVoiceDrift({
       project,
       outlierChapterId: chapterId,
-      baselineChapterIds: baselineIds,
-      divergentMetrics: divergent,
+      baselineChapterIds,
+      divergentMetrics,
       task: { label: "Voice drift explanation", meta: { chapterId } },
       onDelta: (_delta, content) => {
         driftExplanations.value = {

@@ -31,11 +31,13 @@ import { startAutoRebuildWatcher } from "./services/rag/autoIndex.js";
 import { configureLlmUi, configureServerApi, checkServer, configureDialog, configureExternal, configureHelp, configureTestData, closeHelp, openExternal, setUiLocale, ConnectionError } from "@delebash/llm-ui";
 import { SERVER_BASE, resolveBase } from "./services/serverApi.js";
 import { loadDoc, hasDoc, titleForSlug, webUrlFor } from "./services/helpDocs.js";
-import { LAB_TEST_SOURCES } from "./services/labTestData.js";
+import { LAB_TEST_ACTIONS, LAB_TEST_SOURCES } from "./services/labTestData.js";
 configureLlmUi({ baseUrl: SERVER_BASE });
-// The AI Lab's "Insert from…" pickers (§7.3): JW's book material as test data —
-// chapters / characters / locations, read lazily from the live project store.
-configureTestData({ sources: LAB_TEST_SOURCES });
+// The AI Lab's test-input affordances (§7.3 + QC-35): JW's book material
+// (chapters / characters, read lazily from the live stores) plus the
+// per-action declaration table — pickers, "From this book" composers, and
+// the sample labels that fit each action's prompt contract.
+configureTestData({ sources: LAB_TEST_SOURCES, actions: LAB_TEST_ACTIONS });
 // The shared server transport (request/verbs/safeRequest/...) — JustWrite has no
 // auth, so only the base resolver is configured.
 configureServerApi({ resolveBase });

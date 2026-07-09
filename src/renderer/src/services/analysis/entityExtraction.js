@@ -45,18 +45,21 @@ function norm(s) {
  * @param {{name: string}[]} opts.existingObjects
  * @returns {Promise<{characters: Proposal[], locations: Proposal[], objects: Proposal[]}>}
  */
-export async function extractEntities({
+/**
+ * Compose one chapter's entitySweep input (the already-in-the-bible block +
+ * the framed chapter prose). THE composer for both the real extraction below
+ * and the Lab's chapter picker (QC-35: one source, no copies). Throws the
+ * same no-prose error the extraction always raised.
+ *
+ * @returns {{ variables: {user_content} }}
+ */
+export function composeEntitySweepInput({
   html,
   chapterTitle = "",
   chapterNum = null,
   existingCharacters = [],
   existingLocations = [],
   existingObjects = [],
-  meta = {},
-  signal,
-  provider,
-  model,
-  task,
 } = {}) {
   const text = htmlToText(html).trim();
   if (!text) throw new Error("This chapter has no prose to scan yet.");
@@ -72,10 +75,30 @@ export async function extractEntities({
     ? `Chapter ${chapterNum != null ? `${chapterNum} — ` : ""}${chapterTitle}\n\n`
     : "";
 
+  return { variables: { user_content: `${existing}\n\n${header}--- BEGIN CHAPTER ---\n${text}\n--- END CHAPTER ---` } };
+}
+
+export async function extractEntities({
+  html,
+  chapterTitle = "",
+  chapterNum = null,
+  existingCharacters = [],
+  existingLocations = [],
+  existingObjects = [],
+  meta = {},
+  signal,
+  provider,
+  model,
+  task,
+} = {}) {
+  const { variables } = composeEntitySweepInput({
+    html, chapterTitle, chapterNum, existingCharacters, existingLocations, existingObjects,
+  });
+
   const result = await runAiFeature({
     action: "entitySweep",
     feature: "entitySweep",
-    variables: { user_content: `${existing}\n\n${header}--- BEGIN CHAPTER ---\n${text}\n--- END CHAPTER ---` },
+    variables,
     signal, provider, model, meta,
     task: task || { label: "Entity sweep", meta },
   });

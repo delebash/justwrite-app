@@ -75,15 +75,17 @@ ${trimmed.slice(0, 4000)}
 End of world rules.`;
 }
 
-export async function scanPlotHoles({
-  project,
-  signal,
-  provider,
-  model,
-  task,
-  meta,
-} = {}) {
-  if (!project) throw new Error("scanPlotHoles: project store is required.");
+/**
+ * Compose the plotHoles input from the live project — the whole-book digest
+ * (summary + prose tail per chapter) plus the world-rules enforcement section.
+ * THE composer for both the real scan below and the Lab's "From this book"
+ * test fill (QC-35: one source, no copies). Throws the same too-few-chapters
+ * error the scan always raised.
+ *
+ * @returns {{ variables: {user_content, world_rules_section}, totalChapters: number }}
+ */
+export function composePlotHolesInput(project) {
+  if (!project) throw new Error("composePlotHolesInput: project store is required.");
 
   const chapters = project.allChapters.map((c) => {
     const struct = c.critique?.structure;
@@ -118,14 +120,31 @@ export async function scanPlotHoles({
     body.push("");
   }
 
-  const chaptersMeta = { ...(meta || {}), totalChapters: chapters.length };
-  const result = await runAiFeature({
-    action: "plotHoles",
-    feature: "plotHoles",
+  return {
     variables: {
       user_content: body.join("\n"),
       world_rules_section: worldRulesSection(project.worldRules),
     },
+    totalChapters: chapters.length,
+  };
+}
+
+export async function scanPlotHoles({
+  project,
+  signal,
+  provider,
+  model,
+  task,
+  meta,
+} = {}) {
+  if (!project) throw new Error("scanPlotHoles: project store is required.");
+  const { variables, totalChapters } = composePlotHolesInput(project);
+
+  const chaptersMeta = { ...(meta || {}), totalChapters };
+  const result = await runAiFeature({
+    action: "plotHoles",
+    feature: "plotHoles",
+    variables,
     signal,
     provider,
     model,
@@ -155,7 +174,7 @@ export async function scanPlotHoles({
   return {
     summary,
     findings,
-    totalChapters: chapters.length,
+    totalChapters,
     raw: result.content,
     model: result.model,
     providerId: result.providerId,

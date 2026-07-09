@@ -80,29 +80,24 @@ function condenseFacts(facts, maxItems = 14, maxChars = 140) {
  * @param {string} [opts.model]
  * @param {object} [opts.meta]
  */
-export async function analyseChapterKnowledge({
+/**
+ * Compose one chapter's readerKnowledge input (the two condensed going-in
+ * fact lists + the chapter prose). THE composer for both the real per-chapter
+ * call below and the Lab's chapter picker (QC-35: one source, no copies —
+ * an empty prior state renders the composer's own honest "(nothing — first
+ * chapter…)" lines). Returns null when the chapter has no prose.
+ *
+ * @returns {{ variables: {user_content} } | null}
+ */
+export function composeReaderKnowledgeInput({
   html,
   chapterTitle = "",
   chapterNum = null,
   priorReaderFacts = [],
   priorPovFacts = [],
-  signal,
-  provider,
-  model,
-  meta = {},
-  task,
 } = {}) {
   const text = htmlToText(html).trim();
-  if (!text) {
-    return {
-      povCharacter: "",
-      newReaderFacts: [],
-      newPovFacts: [],
-      status: "neutral",
-      rationale: "",
-      empty: true,
-    };
-  }
+  if (!text) return null;
 
   const reader = condenseFacts(priorReaderFacts);
   const pov    = condenseFacts(priorPovFacts);
@@ -130,10 +125,39 @@ export async function analyseChapterKnowledge({
   userParts.push(text);
   userParts.push("--- END CHAPTER ---");
 
+  return { variables: { user_content: userParts.join("\n") } };
+}
+
+export async function analyseChapterKnowledge({
+  html,
+  chapterTitle = "",
+  chapterNum = null,
+  priorReaderFacts = [],
+  priorPovFacts = [],
+  signal,
+  provider,
+  model,
+  meta = {},
+  task,
+} = {}) {
+  const composed = composeReaderKnowledgeInput({
+    html, chapterTitle, chapterNum, priorReaderFacts, priorPovFacts,
+  });
+  if (!composed) {
+    return {
+      povCharacter: "",
+      newReaderFacts: [],
+      newPovFacts: [],
+      status: "neutral",
+      rationale: "",
+      empty: true,
+    };
+  }
+
   const result = await runAiFeature({
     action: "readerKnowledge",
     feature: "readerKnowledge",
-    variables: { user_content: userParts.join("\n") },
+    variables: composed.variables,
     signal,
     provider,
     model,

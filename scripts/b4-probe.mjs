@@ -50,7 +50,7 @@ await page.evaluate(() => { window.location.hash = "#/ai"; });
 await sleep(1500);
 await page.evaluate(() => {
   [...document.querySelectorAll(".lu-subnav button, .lu-subnav a, [role=tab], button")]
-    .find((b) => b.textContent.trim() === "Tasks")?.click();
+    .find((b) => b.textContent.trim() === "Routing by task")?.click();
 });
 await sleep(2000);
 
@@ -155,22 +155,28 @@ check("checker-fix: Insert-from-chapter FILLS the passage on a writing feature",
   !!picked && chapFill.length > 20, `chapter="${picked}" passage="${chapFill}"`);
 await page.screenshot({ path: `${OUT}/b4-tasks.png` });
 
-// QC-9 (the other direction): on a user_content feature ALL THREE sources can
-// fill — the pickers must come BACK (relevance filtering, not blanket hiding).
+// QC-35 (supersedes the QC-9 all-three-pickers check): affordances are
+// PER-ACTION declarations now — a composed user_content feature offers its own
+// composer path (a picker running it, the "From this book" button, or Sample);
+// the generic always-on picker set is gone and the location picker no longer
+// exists anywhere (no prompt consumes a location — the user's word).
 await page.evaluate(() => {
   [...document.querySelectorAll(".lu-fw-list .lu-fw-card")]
     .find((c) => c.textContent.includes("Structured extraction"))?.click();
 });
 await sleep(1200);
-const qc9b = await page.evaluate(() => {
-  const labels = [...document.querySelectorAll(".lu-fw-testin .lu-field > label")].map((l) => l.textContent.trim());
-  const triggers = [...document.querySelectorAll(".lu-fw-testin-fill .ui-select-trigger")].map((t) => t.textContent.trim());
-  return { labels, triggers };
+const qc35 = await page.evaluate(() => {
+  const fill = document.querySelector(".lu-fw-testin-fill");
+  const triggers = fill ? [...fill.querySelectorAll(".ui-select-trigger")].map((t) => t.textContent.trim()) : [];
+  const buttons = fill ? [...fill.querySelectorAll("button")].map((b) => b.textContent.trim()) : [];
+  return { hasFillRow: !!fill, triggers, buttons };
 });
-check("QC-9 user_content feature: all three pickers render (chapter + character + location)",
-  qc9b.triggers.length === 3
-    && ["chapter", "character", "location"].every((k) => qc9b.triggers.some((t) => new RegExp(k, "i").test(t))),
-  JSON.stringify(qc9b));
+check("QC-35 composed feature: a declared affordance renders (picker / From this book / Sample)",
+  qc35.hasFillRow
+    && (qc35.triggers.length > 0 || qc35.buttons.some((b) => b === "From this book" || b === "Sample")),
+  JSON.stringify(qc35));
+check("QC-35: the location picker is gone everywhere",
+  !qc35.triggers.some((t) => /location/i.test(t)), JSON.stringify(qc35.triggers));
 
 // #35: the Lab column's sampler grid is ONE flat column (no Advanced, no multi-column).
 await page.evaluate(() => {

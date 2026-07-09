@@ -164,94 +164,329 @@ FEATURE_TASK_KINDS: dict[str, str] = {
 }
 
 
-# §7.3 Lab test samples (2026-07-08) — SYNTHESIZED starting material for the Lab's
-# Sample button, per taskKind (the test-data decision: never real manuscript text).
-# Fill-if-empty per (taskKind, label): a user's edit in the DB sticks across reseeds.
+# §7.3 Lab test samples (2026-07-08; REAUTHORED per the QC-35 SAMPLE LAW,
+# 2026-07-09 — the user's order: "for the sample read the prompt to figure out
+# what it is looking for so you create correct sample"). Every row below is
+# authored against its action's own prompt contract (the "You will be given:"
+# block in seed_feature_prompts.py) and shaped exactly like what that feature's
+# COMPOSER sends at a real run. Rows are SYNTHESIZED (never real manuscript
+# text) and per taskKind; the renderer's per-action declaration table
+# (labTestData.js LAB_TEST_ACTIONS) names which label(s) fit each action.
+# Fill-if-empty per (taskKind, label): a user's edit sticks across reseeds; NEW
+# labels reach existing DBs additively; superseded mis-shaped rows are dropped
+# from this list (they linger inert on live DBs — no declaration references
+# them — and fresh DBs never get them).
+_SAMPLE_CHAPTER_PROSE = (
+    "Mira spread the torn page on the cannery desk. The columns were her "
+    "father's hand until the ink changed, mid-entry, to a script she had seen "
+    "once before — on the harbor-master's warning nailed to the gate the "
+    "winter the boats stayed out. She copied the three legible words into her "
+    "notebook and locked the page in the drawer with the brass key. Below the "
+    "floorboards the tide turned, and somewhere along the quay a door she "
+    "could not place clicked shut."
+)
+_SAMPLE_CHAPTER_PROSE_2 = (
+    "Renn waited under the cannery awning while the bell counted the hour. "
+    "'You knew before the funeral,' he said when Mira reached him. 'The page "
+    "told you.' She did not deny it; she asked instead who else could read "
+    "the older script. Renn looked at the water a long time before he "
+    "answered, and the answer was a name neither of them had said aloud "
+    "since the boats stayed out: Old Harbek."
+)
+
 DEFAULT_TEST_SAMPLES: list[dict] = [
-    # A sample carries EVERY variable its kind's features might expose — the Lab's
-    # merge fills only the names the open prompt actually has, extras are ignored
-    # (writerAI.continue = {passage, voiceCanon}; the edit family = {passage,
-    # direction}; analysis/JSON features = {user_content}).
+    # ── prose.generate (writerAI continue/expand/describe/guided-continue:
+    # {{passage}} at selection grain + {{voiceCanon}}; guided-continue adds
+    # the typed {{direction}} — the sample provides one) ──
     {"taskKind": "prose.generate", "label": "Storm at the lighthouse",
      "variables": {"passage": "The lighthouse keeper counted the storm's breaths between "
                               "each sweep of the lamp. The supply boat's light appeared "
                               "where no boat should be.",
                    "voiceCanon": "Close third person, past tense; spare coastal imagery.",
-                   "direction": "Continue the scene as the light draws closer; keep the dread quiet.",
-                   "user_content": "The lighthouse keeper counted the storm's breaths between "
-                                   "each sweep of the lamp. Continue the scene as the supply "
-                                   "boat's light appears where no boat should be."}},
-    {"taskKind": "prose.edit", "label": "Flabby paragraph",
-     "variables": {"passage": "It was very really quite windy that day, and the wind, which "
-                              "was blowing hard, made the trees move back and forth a lot in "
-                              "the wind, which she could see happening as she watched it.",
-                   "direction": "Tighten; cut the redundancy; keep her point of view.",
-                   "user_content": "It was very really quite windy that day, and the wind, which "
-                                   "was blowing hard, made the trees move back and forth a lot in "
-                                   "the wind, which she could see happening as she watched it."}},
-    {"taskKind": "ideation", "label": "Premise seed",
-     "variables": {"user_content": "A coastal town where every resident forgets one true thing "
-                                   "each winter — and the new archivist starts writing them down."}},
-    {"taskKind": "chat.grounded", "label": "Continuity question",
-     "variables": {"question": "When did Mira first learn about the ledger, and who told her?",
-                   "excerpts": "Ch. 3: Mira found the ledger's torn page in her father's coat. "
-                               "Ch. 5: 'You knew before the funeral,' Renn said. 'The page told you.'"}},
-    {"taskKind": "extract.structured", "label": "Scene to extract from",
-     "variables": {"user_content": "Renn met Mira at the harbor gate at dusk. He handed her the "
-                                   "brass key from the cannery office, and they argued about "
-                                   "whether to tell Old Harbek before the tide turned."}},
-    {"taskKind": "judge.scored", "label": "Passage to critique",
-     "variables": {"user_content": "The door was opened by Mira. Fear was felt by her as the "
-                                   "room was entered. It was dark. It was cold. Something was "
-                                   "wrong, she thought to herself in her head."}},
-    # QC-24 (2026-07-09, user: "the data inserts on the task features is still not
-    # fixed" + "the other[s] may not have correct insert from pickers"): the per-task
-    # audit found members whose variables NO sample matched, and three kinds with no
-    # sample at all. New (taskKind, label) rows seed ADDITIVELY on existing DBs
-    # (fill-if-empty is per pair), so these reach a live box without a reset —
-    # extending an existing row's variables would NOT (user edits stick).
+                   "direction": "Continue the scene as the light draws closer; keep the dread quiet."}},
     {"taskKind": "prose.generate", "label": "Guided continuation",
-     # writerAI.guided-continue exposes {direction, passage, voiceCanon}; the
-     # pre-existing "Storm at the lighthouse" row gained `direction` above, but
-     # fill-if-empty SKIPS existing (taskKind, label) pairs on a live DB — this
-     # NEW row is what actually reaches existing boxes (checker-caught).
      "variables": {"passage": "The tide had taken the last of the light when Mira reached "
                               "the cannery office. The brass key turned, but the door was "
                               "already unlatched.",
                    "direction": "Continue the scene: someone has been here first; keep it quiet and close.",
                    "voiceCanon": "Close third person, past tense; spare coastal imagery."}},
-    {"taskKind": "judge.scored", "label": "Chapter to critique",
-     # The critique/multi-reader members read {chapter_label, chapter_text}, which
-     # the "Passage to critique" row (user_content) matched 0 of.
-     "variables": {"chapter_label": "Chapter 3 — The Ledger",
-                   "chapter_text": "Mira spread the torn page on the cannery desk. The columns "
-                                   "were her father's hand until the ink changed, mid-entry, to "
-                                   "a script she had seen once before — on the harbor-master's "
-                                   "warning nailed to the gate the winter the boats stayed out."}},
-    {"taskKind": "extract.structured", "label": "Chapter to scan",
-     # foreshadowing reads {chapter_label, chapter_text} — unmatched by the
-     # user_content scene row.
-     "variables": {"chapter_label": "Chapter 5 — Before the Funeral",
-                   "chapter_text": "Renn waited under the cannery awning while the bell counted "
-                                   "the hour. 'You knew before the funeral,' he said when Mira "
-                                   "reached him. 'The page told you.' She did not deny it; she "
-                                   "asked instead who else could read the older script."}},
-    {"taskKind": "chat.inVoice", "label": "Ask Mira in character",
-     # In-character chat exposes {question, excerpts, characterName, characterProfile}
-     # — it had NO sample (and, pre-QC-24, no insertable source either).
+    # ── prose.edit (writerAI rewrite/tighten + the 7 line-edit rules:
+    # {{passage}} + {{voiceCanon}}) ──
+    {"taskKind": "prose.edit", "label": "Flabby paragraph",
+     "variables": {"passage": "It was very really quite windy that day, and the wind, which "
+                              "was blowing hard, made the trees move back and forth a lot in "
+                              "the wind, which she could see happening as she watched it."}},
+    # ── ideation (brainstorm/brainstormPlot: {{user_content}} is the
+    # BrainstormView buildUserPrompt shape — Category/Seed + the output line;
+    # {{label}}/{{kind}} are the client-filled SYSTEM variables) ──
+    {"taskKind": "ideation", "label": "Brainstorm seed",
+     "variables": {"user_content": "Category: Character names\n"
+                                   "Seed: coastal-archivist family names — weathered, bookish, "
+                                   "northern harbor town\n\n"
+                                   "Output 15–20 fresh suggestions, one per line.",
+                   "label": "character name",
+                   "kind": "next plot beats — possible moves, escalations, or scene-level developments"}},
+    # ── judge.scored ──
+    # critique / critiqueStructure / multiReader×4: {{chapter_label}} renders
+    # directly before "--- BEGIN CHAPTER ---", so the label carries the run
+    # header's trailing blank line ("Chapter N — Title\n\n").
+    {"taskKind": "judge.scored", "label": "Chapter for critique",
+     "variables": {"chapter_label": "Chapter 3 — The Ledger\n\n",
+                   "chapter_text": _SAMPLE_CHAPTER_PROSE}},
+    # plotHoles: the composePlotHolesInput shape — book line + per-chapter
+    # "=== Chapter N ===" blocks with Summary + prose Tail; the system
+    # prompt's optional {{world_rules_section}} ships with one rule set.
+    {"taskKind": "judge.scored", "label": "Book digest (plot holes)",
+     "variables": {"user_content": "The book has 3 chapters totalling 2,700 words.\n"
+                                   "\n"
+                                   "=== Chapter 1 — The Harbor Gate (900 words) ===\n"
+                                   "Summary: Mira returns for her father's funeral and finds the harbor sealed at dusk.\n"
+                                   "Tail (last ~300 words of prose):\n"
+                                   "Mira signed the harbor ledger with the date the ferryman gave her — the ninth of "
+                                   "March — and walked up through the fog to a house that no longer smelled of her "
+                                   "father. His coat still hung on the door. In its pocket, a torn page.\n"
+                                   "\n"
+                                   "=== Chapter 2 — The Ledger (900 words) ===\n"
+                                   "Summary: The torn page shows a second handwriting; Mira locks it in the cannery office.\n"
+                                   "Tail (last ~300 words of prose):\n"
+                                   "The columns were her father's hand until the ink changed mid-entry. Mira locked the "
+                                   "page in the drawer with the brass key and pocketed the key on its red cord. It was "
+                                   "the tenth of March; the funeral was in the morning.\n"
+                                   "\n"
+                                   "=== Chapter 3 — Before the Funeral (900 words) ===\n"
+                                   "Summary: Renn admits he knew about the page before the funeral; they plan to open the office.\n"
+                                   "Tail (last ~300 words of prose):\n"
+                                   "'You knew before the funeral,' Renn said — though the funeral was a week past now, "
+                                   "and Mira could not remember giving the brass key back to Old Harbek, who wore it "
+                                   "on his belt when he passed them at the gate.\n",
+                   "world_rules_section": "\n\nEXTRA: WORLD RULES TO ENFORCE.\n\n"
+                                          "The writer has explicitly stated the following rules this world enforces. "
+                                          "When you scan the manuscript, ALSO check whether any chapter violates these "
+                                          "rules without an on-page explanation.\n\nWorld rules (verbatim from the "
+                                          "writer):\n\"\"\"\nOnly one brass key to the cannery office exists.\n\"\"\"\n\n"
+                                          "End of world rules."}},
+    # voiceDrift: the composeVoiceDriftBody shape — OUTLIER block, BASELINE
+    # block(s), then the divergent-metric lines.
+    {"taskKind": "judge.scored", "label": "Voice drift comparison",
+     "variables": {"user_content": "OUTLIER — Chapter 4 — \"The Inquest\"\n"
+                                   "The inquest was convened on the eleventh. Testimony was taken from the ferryman "
+                                   "and from the harbor-master. It was determined that the ledger had been altered. "
+                                   "It was noted that the key had not been recovered. The proceedings were adjourned.\n"
+                                   "\n"
+                                   "BASELINE — Chapter 2 — \"The Ledger\"\n"
+                                   f"{_SAMPLE_CHAPTER_PROSE}\n"
+                                   "\n"
+                                   "BASELINE — Chapter 3 — \"Before the Funeral\"\n"
+                                   f"{_SAMPLE_CHAPTER_PROSE_2}\n"
+                                   "\n"
+                                   "Metrics that differ:\n"
+                                   "- Passive / 1k: higher (outlier 41.2; baseline ~6.5)\n"
+                                   "- Avg sentence length: lower (outlier 9.8; baseline ~17.4)\n"
+                                   "- Dialogue ratio: lower (outlier 0%; baseline ~28%)"}},
+    # ── extract.structured ──
+    # foreshadowing: {{chapter_label}} (with the run header's "\n\n") + prose.
+    {"taskKind": "extract.structured", "label": "Chapter for foreshadowing",
+     "variables": {"chapter_label": "Chapter 5 — Before the Funeral\n\n",
+                   "chapter_text": _SAMPLE_CHAPTER_PROSE_2}},
+    # entitySweep: the composeEntitySweepInput shape — the bible block, then
+    # the framed chapter.
+    {"taskKind": "extract.structured", "label": "Chapter for entity sweep",
+     "variables": {"user_content": "Already in the story bible — DO NOT re-propose:\n"
+                                   "Characters: Mira, Renn\n"
+                                   "Locations: (none)\n"
+                                   "Objects: (none)\n"
+                                   "\n"
+                                   "Chapter 5 — Before the Funeral\n\n"
+                                   "--- BEGIN CHAPTER ---\n"
+                                   f"{_SAMPLE_CHAPTER_PROSE_2}\n"
+                                   "--- END CHAPTER ---"}},
+    # readerKnowledge: the composeReaderKnowledgeInput shape — the two
+    # going-in fact lists, then the framed chapter.
+    {"taskKind": "extract.structured", "label": "Reader knowledge chapter",
+     "variables": {"user_content": "READER ALREADY KNOWS (going in):\n"
+                                   "- The ledger's torn page carries a second, older handwriting.\n"
+                                   "- Old Harbek wears a brass key on his belt.\n"
+                                   "\n"
+                                   "POV CHARACTER ALREADY KNOWS (going in):\n"
+                                   "- The ledger's torn page carries a second, older handwriting.\n"
+                                   "\n"
+                                   "Chapter 5 — Before the Funeral\n\n"
+                                   "--- BEGIN CHAPTER ---\n"
+                                   f"{_SAMPLE_CHAPTER_PROSE_2}\n"
+                                   "--- END CHAPTER ---"}},
+    # characterAudit: the composeCharacterAuditInput shape — profile block +
+    # the scene digest with per-scene chapter headers.
+    {"taskKind": "extract.structured", "label": "Character audit scenes",
+     "variables": {"user_content": "CHARACTER PROFILE\n"
+                                   "Name: Mira\n"
+                                   "Role: Harbor archivist\n"
+                                   "Age: 34\n"
+                                   "One-liner: Guarded and dry-witted; keeps grief private.\n"
+                                   "Motivation: Find who altered her father's ledger.\n"
+                                   "\n"
+                                   "SCENES FEATURING THIS CHARACTER (2 total)\n"
+                                   "\n"
+                                   "--- Chapter 3 — The Ledger · Scene 1 ---\n"
+                                   f"{_SAMPLE_CHAPTER_PROSE}\n"
+                                   "\n"
+                                   "--- Chapter 5 — Before the Funeral · Scene 1 ---\n"
+                                   f"{_SAMPLE_CHAPTER_PROSE_2}"}},
+    # relationshipArc (sample + type ONLY, the user's word): the
+    # analyseRelationship shape — two profiles + the shared-chapter blocks.
+    {"taskKind": "extract.structured", "label": "Relationship arc pair",
+     "variables": {"user_content": "PROFILE A — Mira\n"
+                                   "Mira\n"
+                                   "Role: Harbor archivist\n"
+                                   "One-liner: Guarded and dry-witted; keeps grief private.\n"
+                                   "Wants: To find who altered her father's ledger.\n"
+                                   "\n"
+                                   "PROFILE B — Renn\n"
+                                   "Renn\n"
+                                   "Role: Ferryman's son\n"
+                                   "One-liner: Loyal, watchful; says less than he knows.\n"
+                                   "Wants: To keep Mira from asking Old Harbek directly.\n"
+                                   "\n"
+                                   "SHARED CHAPTERS (2 total):\n"
+                                   "\n"
+                                   "=== Ch. 3 — The Ledger (1 shared scene) ===\n"
+                                   f"{_SAMPLE_CHAPTER_PROSE}\n"
+                                   "\n"
+                                   "=== Ch. 5 — Before the Funeral (1 shared scene) ===\n"
+                                   f"{_SAMPLE_CHAPTER_PROSE_2}\n"}},
+    # beatSheet: the composeBeatSheetInput shape — FRAMEWORK + BEATS + digest
+    # (the 7-point framework keeps the sample compact; any of the three ships).
+    {"taskKind": "extract.structured", "label": "Beat sheet framework",
+     "variables": {"user_content": "FRAMEWORK: 7-Point Story Structure\n"
+                                   "Dan Wells's compressed framework. Easy to apply, especially good for short novels and series planning.\n"
+                                   "\n"
+                                   "BEATS (in canonical order):\n"
+                                   "- \"hook\" — Hook: The protagonist's starting state — the inverse of their ending state.\n"
+                                   "- \"plot-turn-1\" — Plot Turn 1: The event that calls the protagonist out of the ordinary world.\n"
+                                   "- \"pinch-1\" — Pinch 1: First major pressure from the antagonistic force. Often raises stakes.\n"
+                                   "- \"midpoint\" — Midpoint: The protagonist shifts from reactive to active.\n"
+                                   "- \"pinch-2\" — Pinch 2: Second major pressure. The plan falls apart; the mentor often dies here.\n"
+                                   "- \"plot-turn-2\" — Plot Turn 2: The protagonist gets what they need to resolve the story.\n"
+                                   "- \"resolution\" — Resolution: The protagonist executes; the story's questions are answered.\n"
+                                   "\n"
+                                   "CHAPTER DIGEST (3 chapters):\n"
+                                   "Ch. 1 — The Harbor Gate (900 words)\n"
+                                   "Mira returns for her father's funeral and finds the harbor sealed at dusk.\n"
+                                   "\n"
+                                   "Ch. 2 — The Ledger (900 words)\n"
+                                   "The torn page shows a second handwriting; Mira locks it in the cannery office.\n"
+                                   "\n"
+                                   "Ch. 3 — Before the Funeral (900 words)\n"
+                                   "Renn admits he knew about the page; they plan to open the office together."}},
+    # reverseOutline: the composeReverseOutlineInput shape — book line +
+    # "Chapter digest:" with the tension/pacing/ending metadata parentheses.
+    {"taskKind": "extract.structured", "label": "Reverse outline digest",
+     "variables": {"user_content": "The book has 3 chapters totalling 2,700 words.\n"
+                                   "\n"
+                                   "Chapter digest:\n"
+                                   "Ch. 1 — The Harbor Gate (900 words · tension 4/10, balanced pacing, soft ending)\n"
+                                   "Mira returns for her father's funeral and finds the harbor sealed at dusk.\n"
+                                   "\n"
+                                   "Ch. 2 — The Ledger (900 words · tension 6/10, slow pacing, cliffhanger ending)\n"
+                                   "The torn page shows a second handwriting; Mira locks it in the cannery office.\n"
+                                   "\n"
+                                   "Ch. 3 — Before the Funeral (900 words · tension 7/10, balanced pacing, soft ending)\n"
+                                   "Renn admits he knew about the page; they plan to open the office together.\n"}},
+    # recap (extraction-preset member): the buildRecapContext shape — project
+    # line, today's words, the chapter tail, cast + strands.
+    {"taskKind": "extract.structured", "label": "Session recap context",
+     "variables": {"user_content": "Novel: The Salt Ledger (Mystery)\n"
+                                   "Premise: A harbor archivist unpicks who altered her dead father's ledger.\n"
+                                   "\n"
+                                   "Today the writer added roughly 1,200 words to this manuscript.\n"
+                                   "The chapter they touched most recently: Chapter 5 — \"Before the Funeral\" (now 2,400 words total).\n"
+                                   "\n"
+                                   "Current state of that chapter (last ~1200 words — most likely overlaps with what they wrote today):\n"
+                                   f"{_SAMPLE_CHAPTER_PROSE_2}\n"
+                                   "\n"
+                                   "Active characters in/around this chapter:\n"
+                                   "- Mira: Harbor archivist — she/her — Guarded and dry-witted; keeps grief private.\n"
+                                   "- Renn: Ferryman's son — he/him — Loyal, watchful; says less than he knows.\n"
+                                   "\n"
+                                   "Open narrative strands:\n"
+                                   "- The older script: who else can read it, and why it appears in the ledger.\n"}},
+    # ── creative.structured ──
+    # sensory: the generateSensoryPack shape — "Subject:" + optional context.
+    {"taskKind": "creative.structured", "label": "Sensory subject",
+     "variables": {"user_content": "Subject: the cannery office at dusk — brass key cold in the palm, "
+                                   "tide turning below the floorboards, rope and old paper\n"
+                                   "\n"
+                                   "Broader setting / world context:\n"
+                                   "A remote northern fishing town, 1920s; kerosene light, tarred timber, "
+                                   "everything owned by the harbor cooperative."}},
+    # marketingPack: the composeMarketingPackInput shape — TITLE/GENRE/PREMISE
+    # + the chapter digest.
+    {"taskKind": "creative.structured", "label": "Marketing pack digest",
+     "variables": {"user_content": "TITLE: The Salt Ledger\n"
+                                   "GENRE: Mystery\n"
+                                   "PREMISE: A harbor archivist unpicks who altered her dead father's ledger.\n"
+                                   "\n"
+                                   "CHAPTER DIGEST (3 chapters):\n"
+                                   "\n"
+                                   "Ch. 1 — The Harbor Gate (900 words)\n"
+                                   "Mira returns for her father's funeral and finds the harbor sealed at dusk.\n"
+                                   "\n"
+                                   "Ch. 2 — The Ledger (900 words)\n"
+                                   "The torn page shows a second handwriting; Mira locks it in the cannery office.\n"
+                                   "\n"
+                                   "Ch. 3 — Before the Funeral (900 words)\n"
+                                   "Renn admits he knew about the page; they plan to open the office together.\n"}},
+    # unstuck: the composeUnstuckInput shape — header + the BEGIN/END PROSE frame.
+    {"taskKind": "creative.structured", "label": "Stuck prose",
+     "variables": {"user_content": "Chapter 5 — Before the Funeral\n\n"
+                                   "--- BEGIN PROSE (writer is stuck at the end of this) ---\n"
+                                   f"{_SAMPLE_CHAPTER_PROSE_2}\n"
+                                   "--- END PROSE ---"}},
+    # ── summary.grounded (briefing): the buildBriefingContext shape — gap
+    # line, last chapter, the tail passage, cast, strands, pins. ──
+    {"taskKind": "summary.grounded", "label": "Resume briefing context",
+     "variables": {"user_content": "Novel: The Salt Ledger (Mystery)\n"
+                                   "Premise: A harbor archivist unpicks who altered her dead father's ledger.\n"
+                                   "\n"
+                                   "The writer last worked on this manuscript 3 days ago.\n"
+                                   "Last chapter touched: Chapter 5 — \"Before the Funeral\" (2,400 words).\n"
+                                   "\n"
+                                   "Final passage of that chapter (tail):\n"
+                                   f"{_SAMPLE_CHAPTER_PROSE_2}\n"
+                                   "\n"
+                                   "Active characters in or near this chapter:\n"
+                                   "- Mira: Harbor archivist — she/her — Guarded and dry-witted; keeps grief private.\n"
+                                   "- Renn: Ferryman's son — he/him — Loyal, watchful; says less than he knows.\n"
+                                   "\n"
+                                   "Open narrative strands:\n"
+                                   "- The older script: who else can read it, and why it appears in the ledger.\n"
+                                   "\n"
+                                   "Open threads & TODOs from nearby chapters (writer's own pins):\n"
+                                   "- (Ch.5) Loose thread: who else can read the older script\n"
+                                   "- (Ch.4) TODO: establish when Old Harbek got a key\n"}},
+    # ── chat.grounded: {{question}} + {{excerpts}} in the run formatter's
+    # cited [1]/[2] byte-shape (rag/excerpts.js). ──
+    {"taskKind": "chat.grounded", "label": "Cited excerpts question",
+     "variables": {"question": "When did Mira first learn about the ledger, and who told her?",
+                   "excerpts": "[1] Ch. 3 \"The Ledger\", scene \"The Torn Page\":\n"
+                               f"{_SAMPLE_CHAPTER_PROSE}\n"
+                               "\n"
+                               "[2] Ch. 5 \"Before the Funeral\", scene 1:\n"
+                               f"{_SAMPLE_CHAPTER_PROSE_2}"}},
+    # ── chat.inVoice: the two chat variables plus {{characterName}} +
+    # {{characterProfile}} in the buildCharacterProfile line shape (leading
+    # newline; "Role:"/"Self-image" rows — what a real run sends). ──
+    {"taskKind": "chat.inVoice", "label": "Ask Mira in character (cited)",
      "variables": {"question": "What did you feel when you first saw the ledger's torn page?",
-                   "excerpts": "Ch. 3: Mira found the ledger's torn page in her father's coat. "
-                               "Ch. 5: 'You knew before the funeral,' Renn said.",
+                   "excerpts": "[1] Ch. 3 \"The Ledger\", scene \"The Torn Page\":\n"
+                               f"{_SAMPLE_CHAPTER_PROSE}\n"
+                               "\n"
+                               "[2] Ch. 5 \"Before the Funeral\", scene 1:\n"
+                               f"{_SAMPLE_CHAPTER_PROSE_2}",
                    "characterName": "Mira",
-                   "characterProfile": "Harbor archivist, 34. Guarded, dry-witted; keeps grief "
-                                       "private. Distrusts Old Harbek; protective of Renn."}},
-    {"taskKind": "creative.structured", "label": "Scene seed",
-     "variables": {"user_content": "A sensory pass target: the cannery office at dusk — brass "
-                                   "key cold in Mira's palm, tide turning below the floorboards, "
-                                   "the smell of rope and old paper."}},
-    {"taskKind": "summary.grounded", "label": "Recent chapters digest",
-     "variables": {"user_content": "Ch. 3: Mira finds the ledger's torn page in her father's "
-                                   "coat. Ch. 4: the harbor closes early; Old Harbek warns her "
-                                   "off. Ch. 5: Renn reveals he knew before the funeral, and "
-                                   "they agree to open the cannery office at dusk."}},
+                   "characterProfile": "\nRole: Harbor archivist\n"
+                                       "Pronouns: she/her\n"
+                                       "Age: 34\n"
+                                       "Self-image (one line): Guarded and dry-witted; keeps grief private.\n"
+                                       "What you want: To find who altered your father's ledger.\n"
+                                       "The lie you believe: That grief is a private ledger no one else may read."}},
 ]

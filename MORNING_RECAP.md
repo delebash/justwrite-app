@@ -372,6 +372,33 @@ item) is BLOCKED on the user's word (relationshipArc auto-pair? location-picker 
 + the #234 toast tail + two flagged defaults (#236 label "AI tasks", #230 tail=5); asking
 next. Then B6 (#201–#203), then #235 LAST.
 
+**GO (2026-07-09, post-tenth-compact) — #232 (QC-35, the 37-action test-input table)
+SHIPPED** per the armed go ("lets go commit what you need to and get going") and the
+committed BUILD PLAN + BUILD RECORD in the queue doc's tail. The kit's Lab test-input
+machinery is now PER-ACTION declarations (`configureTestData({sources, actions})` +
+`testDataAction`): the generic user_content matching, `sourceCanFill`, and BOTH 1×1
+bridges are DELETED; merge is exact-name only; FeatureLab renders only what the open
+action declares — its pickers, a "From this book" compose button that runs the
+feature's OWN composer over the live project (honest refusals toast), and Sample over
+the declared labels. Thirteen composer seams extracted from the JW run paths and
+re-called by them (plotHoles/reverseOutline/beatSheet/marketingPack/readerKnowledge/
+entitySweep/characterAudit/voiceDrift+derivation/unstuck/formatExcerpts→rag/excerpts.js/
+buildCharacterProfile/voiceCanonVar exports); the location picker is GONE (user's
+word); relationshipArc is sample+type only; beatSheet's compose uses the modal's
+default framework; A-group fills carry the run's exact "Chapter N — Title\n\n" header
+(a real shape bug fixed); B-group fills are passage-grain (first non-empty scene) +
+the run's voiceCanon; the samples seed was reauthored to the SAMPLE LAW (18 new
+composer-shaped rows, additive; 7 mis-shaped rows dropped from seed). PROBE DRIFT
+fixed findings-first: qc-quintet + b4 still clicked the pre-QC-29 "Tasks" tab label —
+repointed; b4's superseded QC-9 check rewritten to the QC-35 law. NEW committed
+`scripts/qc35-probe.mjs` (13/13 live). Checker round 1 caught the spec's "34 actions"
+headline miscount — it is **37** (A=7/B=13/C=11/D=4/E=2), recorded. Gates all green:
+vitest 61/61 · build:vite · FULL smoke zero JS errors · qc-quintet 22/22 · b4 · b5 ·
+qc35-probe · JW pytest 76 + ruff · runner pytest 449 + ruff · biome. Full record:
+queue doc tail "QC-35 (#232) BUILD RECORD". Next per the recorded order: the Q3
+findings table (~45 flagged JW toasts, per-surface verdicts) rides with this window,
+then B6 (#201–#203), then #235 LAST.
+
 **⛔⛔ THE STATE AT THE TENTH COMPACT (2026-07-09 — the CURRENT pickup; supersedes the
 ninth block below). NO code changed this window** — live QC + bookkeeping only: five
 user task-adds queued (harness **#251** QC-39 Providers-page pink-wash/layout · **#252**

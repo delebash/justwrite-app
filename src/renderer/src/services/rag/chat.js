@@ -12,6 +12,7 @@
 import { embedTexts, friendlyAiError, runAiFeatureStream } from "@delebash/llm-ui";
 import { useAiStore } from "../../stores/ai.js";
 import { useProjectStore } from "../../stores/project.js";
+import { formatExcerpts } from "./excerpts.js";
 import { search, status } from "./vectorStore.js";
 
 // ─── Prompt ──────────────────────────────────────────────────────────────
@@ -24,30 +25,8 @@ import { search, status } from "./vectorStore.js";
 // history. Beyond that, retrieval handles long-range memory anyway.
 const MAX_HISTORY_MESSAGES = 8;
 
-/**
- * Format ranked hits into the cited excerpt block sent as the {{excerpts}}
- * variable (preserves the [1]/[2] reference numbers the citations panel uses).
- *
- * @param {Array<{ chunk: object, score: number }>} hits
- * @returns {string}
- */
-function formatExcerpts(hits) {
-  return hits
-    .map(({ chunk }, i) => {
-      const sceneLabel = chunk.sceneTitle
-        ? `, scene "${chunk.sceneTitle}"`
-        : chunk.sceneIdx != null
-          ? `, scene ${chunk.sceneIdx + 1}`
-          : "";
-      const header = `Ch. ${chunk.chapterNum} "${chunk.chapterTitle}"${sceneLabel}`;
-      // Truncate very long scenes so we don't blow the context window.
-      const excerpt = chunk.text.length > 1200
-        ? `${chunk.text.slice(0, 1200)}…`
-        : chunk.text;
-      return `[${i + 1}] ${header}:\n${excerpt}`;
-    })
-    .join("\n\n");
-}
+// formatExcerpts lives in ./excerpts.js — shared with characterChat and the
+// Lab's test-input picker (QC-35: one formatter, no copies).
 
 // ─── Public API ───────────────────────────────────────────────────────────
 
