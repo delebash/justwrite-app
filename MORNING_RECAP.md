@@ -186,15 +186,24 @@ disabled until name+preset · inline always-editable name field · honest "Move 
 here…"/"— from <task>" affordances + toasts · "⚠ no preset" instead of "inherits
 default". Gates: vitest 48/48 · build:vite · b4-probe **15/15 zero page errors** (7 new A
 checks, committed) · FULL smoke zero JS errors · rules-checker **VERDICT: PASS**. Full
-record: queue doc §9 "A BUILD RECORD". **IN PROGRESS under the same go: the switch
-cluster QC-17+18+10+11+12** (Tune & measure → grouped free-row editor; plain text/number
-values; engine-default concept removed from catalog data + UI; context_shift/cache_reuse
-out of the catalog; the QC-12 samplers line). Still needing their own word: QC-13
-(Not-installed root-cause) · QC-14 (wrap) · QC-19's exact label. Still frozen: B2-9 · the
-DL-2 build · Batches 5/6. The §9 QC queue stays LIVE — answer conversationally FIRST,
-always; when the user asks for a response, STOP the turn and answer (mid-turn text does
-not reach them — 2026-07-09 lesson). The never-decide decree (twice-verbatim) is in the
-⛔ #1 block above.
+record: queue doc §9 "A BUILD RECORD". **The SWITCH CLUSTER (QC-17+18+10+11+12) SHIPPED
+in the same go:** Tune & measure = the SAME free-row editor as Global/Hardware (only set
+switches render · ✕ removes a row = the engine's own behavior · "＋ Add switch"),
+grouped under the four user-named headings; ALL plane-1 value editors are plain
+text/number boxes (the q8_0/f16 dropdowns died; hover help carries accepted values — the
+cache-type 9-value set verified upstream); the engine-default concept is OUT of the
+catalog DATA too (plane-1 default_value + options removed; context_shift/cache_reuse
+rows deleted; the knob seeder now SYNCS built-in rows so existing DBs converge on boot —
+proven live 44→42 knobs); KnobGrid's ledger mode deleted; the QC-12 samplers line sits
+below the lede's Apply. Gates: runner ruff + 420 pytest · vitest 48/48 · build:vite ·
+the NEW committed `scripts/switch-probe.mjs` 8/8 zero page errors · b4-probe 15/15 ·
+FULL smoke zero JS errors · rules-checker verdict at the commit. Full record: queue doc
+§9 "SWITCH-CLUSTER BUILD RECORD". Still needing their own word: QC-13 (Not-installed
+root-cause) · QC-14 (wrap) · QC-19's exact label. Still frozen: B2-9 · the DL-2 build ·
+Batches 5/6. The §9 QC queue stays LIVE — answer conversationally FIRST, always; when
+the user asks for a response, STOP the turn and answer (mid-turn text does not reach
+them — 2026-07-09 lesson). The never-decide decree (twice-verbatim) is in the ⛔ #1
+block above.
 
 **Last code heads (both clean, pushed): runner `7727a61` · JW `0c72483`.** (History: QC
 `1bea5f8`/JW `e65de3a`, DL-1 `cf50ce8`/`4051979`, B3R `e8e69a9`, B3 `3250258`, B2 `b1228fb`,

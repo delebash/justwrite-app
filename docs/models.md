@@ -141,18 +141,20 @@ embedding model carries an **Embedding** badge. From here you can:
   below it**, no scrolling to find them. **Auto-tune** asks before it starts: the measured
   sweep can take **4 to 30 minutes depending on your hardware** (it usually gives the best
   results for a model that hasn't been tuned yet, and you can cancel after any trial).
-  **Every engine switch is one flat, visible row** — the grid lists the whole switch
-  catalog with no expanders and no checkboxes: each row is the switch's name with **where
-  its value comes from** right under it (*Global launch default* · *Hardware-class
-  default* · *your applied config* · *computed for this PC* · *engine default* — the same
-  names as the editors they point at), so "what set this switch?" always has an answer and
-  nothing is hidden (the old "Add to grid" step is gone — values the engine works out for
-  your machine, like GPU layers and context size, are ordinary pre-filled rows now, and
-  Apply keeps them with the rest). Set rows carry their value — including speculative
-  decoding (**MTP**), which turns on automatically for models that support it; set it to
-  *Off* and Apply if you don't want it. An unset row shows the engine's own default as a
-  muted hint — **type a value to make it yours, clear the value (or pick "engine default")
-  to give it back**. After a measurement, **Save for
+  **The grid shows only the switches that are actually set** — the same simple editor as
+  the two defaults libraries: each row is a switch name and a plain value box, with an
+  **✕ to remove the row**. A removed switch simply isn't sent — the engine handles it its
+  own way, exactly like leaving a flag off the command line — and **＋ Add switch** puts
+  one in (any engine flag can be typed, even one the catalog doesn't list). Rows sit
+  **grouped under a heading per source** — *Your applied config* · *Hardware-class
+  default* · *Global launch defaults* · *Computed for this PC* — so "what set this
+  switch?" is answered by the section it sits in (values the engine works out for your
+  machine, like GPU layers, are ordinary rows under *Computed for this PC*, and Apply
+  keeps them with the rest). Values are plain text or numbers — **hover a row for what
+  the switch does and which values it accepts** (the KV cache types, for example, accept
+  f32, f16, bf16, q8_0, q4_0, q4_1, iq4_nl, q5_0, q5_1). Speculative decoding (**MTP**)
+  turns on automatically for models that support it; set *spec_type* to none (or remove
+  its rows) and Apply if you don't want it. After a measurement, **Save for
   hardware class** keeps the config as the shared starting point for **every PC with the
   same video memory and RAM** (a machine with its own applied config still wins), and the
   **"Hardware-class defaults ↗"** link in the same dialog opens **this model's class
