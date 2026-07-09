@@ -13,7 +13,6 @@
 
 import { ref, computed } from "vue";
 import { useProjectStore } from "../stores/project.js";
-import { useUiStore } from "../stores/ui.js";
 import { useAiTasksStore, Icon, AiTaskStrip, AppModal, UiButton } from "@delebash/llm-ui";
 import { runCritique, runStructuralAnalysis, PACING_LABELS, ENDING_LABELS } from "../services/analysis/critique.js";
 import AiFeatureChip from "./AiFeatureChip.vue";
@@ -24,7 +23,6 @@ const props = defineProps({
 const emit = defineEmits(["close"]);
 
 const project = useProjectStore();
-const ui = useUiStore();
 const aiTasks = useAiTasksStore();
 
 const ch = computed(() => project.chapterById(props.chapterId));
@@ -135,7 +133,6 @@ async function runStruct() {
 
 function clearAll() {
   project.clearChapterCritique(props.chapterId);
-  ui.showToast({ message: "Critique cleared." });
 }
 
 const SEVERITY_META = {

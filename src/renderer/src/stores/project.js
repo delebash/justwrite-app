@@ -3,8 +3,9 @@
 // services/projectApi.js; the active project id lives in the settings
 // document. Undo/redo is in-memory only; durable rollback is the Tauri
 // disk autosave ($APPDATA/projects). No client-side IndexedDB store.
-// Removals are SOFT — they push to `trash` keyed by kind; restore
-// from TrashView. Each soft-delete fires an Undo toast via uiStore.
+// Removals are SOFT — they push to `trash` keyed by kind; recovery is
+// ⌘Z (tracked history actions) + TrashView restore. No delete toast
+// (the QC-37 toast law — the row visibly leaves).
 
 import { defineStore } from "pinia";
 import { markRaw } from "vue";
@@ -573,7 +574,6 @@ export const useProjectStore = defineStore("project", {
       applySlices(this, snap);
       lastHistoryAction = null;
       this._persist();
-      useUiStore().showToast({ message: "Undid last change." });
     },
     redo() {
       if (!this._future.length) return;
@@ -582,7 +582,6 @@ export const useProjectStore = defineStore("project", {
       applySlices(this, snap);
       lastHistoryAction = null;
       this._persist();
-      useUiStore().showToast({ message: "Redid change." });
     },
     clearHistory() {
       this._past = markRaw([]);
@@ -617,7 +616,6 @@ export const useProjectStore = defineStore("project", {
           ? { ...part, chapters: part.chapters.filter((c) => c.id !== id) }
           : part);
         const next = { ...this.scenes }; delete next[id]; this.scenes = next;
-        this._toast(`Deleted "${chapter.title}"`, "chapters", id);
         this._persist();
         return;
       }
@@ -964,7 +962,6 @@ export const useProjectStore = defineStore("project", {
           ? { ...n, anchor: { chapterId } }
           : n);
       this._recomputeChapterWords(chapterId);
-      this._toast(`Removed scene${scene.title ? ` "${scene.title}"` : ""}`, "scenes", sceneId);
       this._persist();
     },
     moveScene(chapterId, sceneId, dir) {
@@ -1214,7 +1211,6 @@ export const useProjectStore = defineStore("project", {
       this._pushTrash("characters", { ...c, extras: this.characterExtras[id] });
       this.characters = this.characters.filter((x) => x.id !== id);
       const ce = { ...this.characterExtras }; delete ce[id]; this.characterExtras = ce;
-      this._toast(`Deleted "${c.name}"`, "characters", id);
       this._persist();
     },
     updateCharacter(id, patch) { this._record("updateCharacter"); this.characters = this.characters.map((c) => c.id === id ? { ...c, ...patch } : c); this._persist(); },
@@ -1382,7 +1378,6 @@ export const useProjectStore = defineStore("project", {
       if (!l) return;
       this._pushTrash("locations", { ...l });
       this.locations = this.locations.filter((x) => x.id !== id);
-      this._toast(`Deleted "${l.name}"`, "locations", id);
       this._persist();
     },
     updateLocation(id, patch) { this._record("updateLocation"); this.locations = this.locations.map((l) => l.id === id ? { ...l, ...patch } : l); this._persist(); },
@@ -1395,7 +1390,6 @@ export const useProjectStore = defineStore("project", {
       if (!o) return;
       this._pushTrash("objects", { ...o });
       this.objects = this.objects.filter((x) => x.id !== id);
-      this._toast(`Deleted "${o.name}"`, "objects", id);
       this._persist();
     },
     updateObject(id, patch) { this._record("updateObject"); this.objects = this.objects.map((o) => o.id === id ? { ...o, ...patch } : o); this._persist(); },
@@ -1418,7 +1412,6 @@ export const useProjectStore = defineStore("project", {
       if (!n) return;
       this._pushTrash("notes", { ...n });
       this.notes = this.notes.filter((x) => x.id !== id);
-      this._toast(`Deleted "${n.title}"`, "notes", id);
       this._persist();
     },
     updateNote(id, patch) {
@@ -1473,7 +1466,6 @@ export const useProjectStore = defineStore("project", {
       if (!a) return;
       this._pushTrash("worldbuilding", { ...a });
       this.worldbuilding = this.worldbuilding.filter((x) => x.id !== id);
-      this._toast(`Deleted "${a.title}"`, "worldbuilding", id);
       this._persist();
     },
     updateWorldbuilding(id, patch) { this._record("updateWorldbuilding"); this.worldbuilding = this.worldbuilding.map((a) => a.id === id ? { ...a, ...patch } : a); this._persist(); },
@@ -1554,7 +1546,6 @@ export const useProjectStore = defineStore("project", {
       const next = { ...this.tagVocabularies };
       next[kind] = list.filter((t) => t.id !== id);
       this.tagVocabularies = next;
-      this._toast(`Removed tag "${tag.label}"`, "tagVocab", id);
       this._persist();
     },
 
@@ -1589,7 +1580,6 @@ export const useProjectStore = defineStore("project", {
           return list.includes(id) ? { ...c, strands: list.filter((x) => x !== id) } : c;
         }),
       }));
-      this._toast(`Deleted narrative strand "${s.name}"`, "strands", id);
       this._persist();
     },
     updateStrand(id, patch) { this._record("updateStrand"); this.strands = this.strands.map((s) => s.id === id ? { ...s, ...patch } : s); this._persist(); },
@@ -1660,7 +1650,6 @@ export const useProjectStore = defineStore("project", {
       if (!g) return;
       this._pushTrash("groups", { ...g });
       this.groups = this.groups.filter((x) => x.id !== id);
-      this._toast(`Deleted "${g.name}"`, "groups", id);
       this._persist();
     },
     updateGroup(id, patch) { this._record("updateGroup"); this.groups = this.groups.map((g) => g.id === id ? { ...g, ...patch } : g); this._persist(); },
@@ -1736,17 +1725,12 @@ export const useProjectStore = defineStore("project", {
       // the event used to live.
       this._pushTrash("events", { ...ev, entityId, index: idx });
       this.events = { ...this.events, [entityId]: list.filter((e) => e.id !== eventId) };
-      this._toast(`Removed event "${ev.title || "Untitled event"}"`, "events", eventId);
       this._persist();
     },
 
     // ── Trash ───────────────────────────────────────────────
     _pushTrash(kind, item) {
       this.trash = { ...this.trash, [kind]: [...(this.trash[kind] || []), { ...item, deletedAt: Date.now() }] };
-    },
-    _toast(message, kind, id) {
-      const ui = useUiStore();
-      ui.showToast({ message, action: { label: "Undo", fn: () => this.restoreFromTrash(kind, id) } });
     },
     restoreFromTrash(kind, id) {
       const list = this.trash[kind] || [];
@@ -1859,7 +1843,6 @@ export const useProjectStore = defineStore("project", {
       // Entities still referencing this id simply resolve to "unset"
       // (statusById → null), so no sweep is needed.
       this.statuses = this.statuses.filter((x) => x.id !== id);
-      this._toast(`Deleted status "${s.label}"`, "statuses", id);
       this._persist();
     },
     reorderStatusDefs(ids) {
@@ -2020,7 +2003,6 @@ export const useProjectStore = defineStore("project", {
          chapterId,
        });
 
-       useUiStore().showToast({ message: `Opened "${TUTORIAL_TITLE}". Delete it from the project switcher when you're done.` });
        return id;
      },
 
@@ -2055,7 +2037,6 @@ export const useProjectStore = defineStore("project", {
       Object.assign(this.$state, fresh);
       this.clearHistory();
       this._persist();
-      useUiStore().showToast({ message: `Created "${title}".` });
       return id;
     },
 
@@ -2074,12 +2055,10 @@ export const useProjectStore = defineStore("project", {
       Object.assign(this.$state, snap);
       this.clearHistory();
       writeSetting("activeProjectId", id);
-      useUiStore().showToast({ message: `Switched to "${snap.project?.title || "project"}".` });
     },
 
     async deleteProject(id) {
       if (!id) return;
-      const entry = this._projects.find((p) => p.id === id);
       removeSnap(id);
       this._writeRegistry(this._projects.filter((p) => p.id !== id));
       if (id === this._activeId) {
@@ -2093,7 +2072,6 @@ export const useProjectStore = defineStore("project", {
           this.createProject({ title: "Untitled project" });
         }
       }
-      if (entry) useUiStore().showToast({ message: `Deleted "${entry.title}".` });
     },
   },
 });

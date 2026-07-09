@@ -29,14 +29,17 @@ const caseSensitive = ref(false);
 const preview = computed(() => scanScenes(project, term.value.trim(), caseSensitive.value));
 const canReplace = computed(() => term.value.trim().length > 0 && preview.value.total > 0);
 
+// The replace result reports on the modal's own summary line (durable, right
+// where the user is looking) — not a toast (QC-37, the user's #41 verdict).
+const lastResult = ref("");
 function replaceAll() {
   if (!canReplace.value) return;
   const n = project.replaceInScenes(term.value.trim(), replaceWith.value, { caseSensitive: caseSensitive.value });
-  ui.showToast({ message: `Replaced ${n} ${n === 1 ? "match" : "matches"} across the manuscript.` });
+  lastResult.value = `Replaced ${n} ${n === 1 ? "match" : "matches"} across the manuscript.`;
 }
 function replaceRow(row) {
   const n = project.replaceInScene(row.chapterId, row.sceneId, term.value.trim(), replaceWith.value, { caseSensitive: caseSensitive.value });
-  if (n) ui.showToast({ message: `Replaced ${n} in ${row.chapterNum}.${row.sceneIdx}.` });
+  if (n) lastResult.value = `Replaced ${n} in ${row.chapterNum}.${row.sceneIdx}.`;
 }
 function openScene(row) {
   ui.select("chapters", row.chapterId);
@@ -60,6 +63,7 @@ function openScene(row) {
       </span>
       <span v-else-if="term.trim()" class="t-muted">No matches</span>
       <span v-else class="t-muted">Type a term to search every chapter's prose. @-mention chips are left untouched.</span>
+      <span v-if="lastResult" class="pr-done">{{ lastResult }}</span>
     </div>
 
     <div v-if="preview.rows.length" class="pr-list">
@@ -92,6 +96,7 @@ function openScene(row) {
 .pr-fields .input { flex: 1; min-width: 0; }
 .pr-case { display: inline-flex; align-items: center; gap: 4px; font-size: 12px; color: var(--muted); cursor: pointer; flex: none; }
 .pr-summary { margin: 12px 0 8px; font-size: 12.5px; color: var(--ink-2); }
+.pr-done { margin-left: 10px; color: var(--status-done); font-weight: 600; }
 .pr-list { display: flex; flex-direction: column; gap: 6px; overflow: auto; }
 .pr-row { display: flex; align-items: stretch; gap: 8px; }
 .pr-row-main {

@@ -135,11 +135,6 @@ async function onAvatarDrop(e) {
       dropSaving.value--;
     }
   }
-  if (!dropError.value) {
-    ui.showToast({ message: files.length === 1
-      ? `Added image to ${ch.value.name}.`
-      : `Added ${files.length} images to ${ch.value.name}.` });
-  }
 }
 function updateMotivation(k, v) { project.setCharacterExtras(ch.value.id, { motivation: { ...(extras.value?.motivation || {}), [k]: v } }); }
 function updateArc(k, v) { project.setCharacterExtras(ch.value.id, { arc: { ...(extras.value?.arc || {}), [k]: v } }); }

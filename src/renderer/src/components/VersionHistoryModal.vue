@@ -47,9 +47,9 @@ const mode = ref("list");
 const pickA = ref(null);
 const pickB = ref(null);
 
-// Toasts include the chapter title + label/date so the user can confirm
-// the action hit the right snapshot. Truncate long strings so the toast
-// stays single-line.
+// The one surviving toast (#40, delete + Undo — the only recovery for a
+// deleted version) names the snapshot by its version label/date; truncate
+// long labels so it stays single-line.
 function clip(s, n = 30) {
   const v = (s || "").trim();
   return v.length > n ? `${v.slice(0, n - 1)}…` : v;
@@ -62,9 +62,6 @@ function shortStamp(iso) {
     return `${date}, ${time}`;
   } catch { return iso || ""; }
 }
-function chapterLabel() {
-  return clip(props.chapterTitle) || "this chapter";
-}
 function versionLabel(v) {
   return v.label ? `“${clip(v.label)}”` : `version from ${shortStamp(v.savedAt)}`;
 }
@@ -73,15 +70,10 @@ function save() {
   const userLabel = label.value;
   versions.saveVersion(props.chapterId, userLabel);
   label.value = "";
-  const message = userLabel
-    ? `Saved “${clip(userLabel)}” — ${chapterLabel()}`
-    : `Saved version of ${chapterLabel()}`;
-  ui.showToast({ message });
 }
 
 function restore(v) {
   versions.restoreVersion(props.chapterId, v.id);
-  ui.showToast({ message: `Restored ${versionLabel(v)}` });
   emit("close");
 }
 

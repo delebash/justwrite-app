@@ -2,7 +2,6 @@
 import { computed, ref, onMounted, onUnmounted, nextTick } from "vue";
 import { useRouter } from "vue-router";
 import { useProjectStore } from "../stores/project.js";
-import { useUiStore } from "../stores/ui.js";
 import { PLOT_TEMPLATES, TEMPLATE_ORDER, applyTemplate } from "../services/plotTemplates.js";
 import { promptDialog, confirmDialog } from "@delebash/llm-ui";
 import PaneHeader from "../components/PaneHeader.vue";
@@ -10,7 +9,6 @@ import { Icon } from "@delebash/llm-ui";
 import { UiButton } from "@delebash/llm-ui";
 
 const project = useProjectStore();
-const ui = useUiStore();
 const router = useRouter();
 
 // ── Computed data ────────────────────────────────────────────────────
@@ -66,7 +64,6 @@ async function handleApplyTemplate(templateId) {
   if (!tpl) return;
   const strandId = applyTemplate(project, templateId);
   if (!strandId) return;
-  ui.showToast({ message: `Applied "${tpl.label}" — ${tpl.beats.length} beats added.` });
   await nextTick();
   const el = document.querySelector(`[data-strand-id="${strandId}"]`);
   if (el) el.scrollIntoView({ behavior: "smooth", block: "nearest" });

@@ -85,7 +85,7 @@ All in `src/renderer/src/stores/`:
 **Project store invariants worth knowing before mutating it:**
 
 - Persists each project snapshot to the **server** (SQLite via `/v1/projects`) through `services/projectApi.js` (`putSnapshot`/`getSnapshot`; the registry is derived from the projects table). The active project id lives in the settings document (`services/settings.js` → `/v1/settings`). No client-side IndexedDB store — the renderer holds no durable data.
-- Deletes are **soft** — `removeXxx` actions move the entity to `state.trash[kind]` and fire an Undo toast via `uiStore`. `TrashView` handles restore / permanent delete.
+- Deletes are **soft** — `removeXxx` actions move the entity to `state.trash[kind]`; recovery is ⌘Z (deletes are tracked history actions) and `TrashView` restore / permanent delete. No delete toast (the QC-37 toast law, 2026-07-09: the row visibly leaves, and undo never rides an ephemeral surface).
 - Undo/redo is **snapshot-based and in-memory only** (not persisted across reloads): every mutating action calls `this._record(actionId)` before mutating, which deep-clones `HISTORY_SLICES` onto `_past` (limit `HISTORY_LIMIT`). Durable rollback comes from the Tauri **disk autosave** (`$APPDATA/projects/<id>.autosave.json`, rotating) + manual Export backup — not from history.
 - Keystroke-grain actions (in `COALESCED_ACTIONS`: `setChapterBody`, `setChapterTitle`, inline title edits, etc.) coalesce into one history entry per ~600ms quiescent window. When adding a new high-frequency mutator, add it to `COALESCED_ACTIONS` or the undo buffer fills instantly.
 - `_past` and `_future` are wrapped in `markRaw()` so Vue does not make snapshots reactive.

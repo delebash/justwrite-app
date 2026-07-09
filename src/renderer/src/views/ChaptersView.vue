@@ -519,7 +519,6 @@ async function splitChapterHere() {
   if (newId) {
     ui.select("chapters", newId);
     router.push(`/chapters/${newId}`);
-    ui.showToast({ message: `Split into "${title}".` });
   }
 }
 

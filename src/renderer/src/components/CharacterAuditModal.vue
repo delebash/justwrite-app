@@ -14,7 +14,6 @@
 import { ref, computed, onMounted } from "vue";
 import { useRouter } from "vue-router";
 import { useProjectStore } from "../stores/project.js";
-import { useUiStore } from "../stores/ui.js";
 import { useAiStore } from "../stores/ai.js";
 import { useAiTasksStore, Icon, AppModal, AiTaskStrip, EmptyState, UiButton } from "@delebash/llm-ui";
 import { auditAllCharacters } from "../services/analysis/characterAudit.js";
@@ -24,7 +23,6 @@ import StatusRow from "./StatusRow.vue";
 const emit = defineEmits(["close"]);
 
 const project = useProjectStore();
-const ui = useUiStore();
 const ai = useAiStore();
 const router = useRouter();
 const aiTasks = useAiTasksStore();
@@ -122,7 +120,6 @@ function clearAll() {
   project.clearAllCharacterAudits();
   rows.value = rows.value.map((r) => ({ ...r, status: "pending", reason: "" }));
   expanded.value = new Set();
-  ui.showToast({ message: "Audit cleared." });
 }
 
 function toggleExpand(id) {

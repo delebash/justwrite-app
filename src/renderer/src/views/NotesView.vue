@@ -113,13 +113,6 @@ async function onFileChange(event) {
       ui.showToast({ message: "Nothing to import." });
       return;
     }
-    const noteCount = noteIds.length;
-    const fileCount = files.length - failures.length;
-    let message;
-    if (noteCount === 1) message = `Imported "${noteInputs[0].title}".`;
-    else if (fileCount === 1) message = `Imported ${noteCount} notes from ${files[0].name}.`;
-    else message = `Imported ${noteCount} notes from ${fileCount} files.`;
-    ui.showToast({ message });
     for (const w of warnings.slice(0, 2)) ui.showToast({ message: w });
     for (const f of failures.slice(0, 2)) ui.showToast({ message: `Skipped ${f}` });
     ui.select("notes", noteIds[0]);

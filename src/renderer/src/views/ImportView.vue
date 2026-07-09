@@ -2,7 +2,6 @@
 import { ref, computed } from "vue";
 import { useRouter } from "vue-router";
 import { useProjectStore } from "../stores/project.js";
-import { useUiStore } from "../stores/ui.js";
 import PaneHeader from "../components/PaneHeader.vue";
 import { Icon } from "@delebash/llm-ui";
 import { parseFile, normalizeHtml } from "../services/import/index.js";
@@ -16,7 +15,6 @@ const NEW_PART = "__new__";
 
 const router = useRouter();
 const project = useProjectStore();
-const ui = useUiStore();
 
 // Wizard steps: "intent" → "preview" → done (navigates away).
 const step = ref("intent");
@@ -220,11 +218,8 @@ const pendingNav = ref(null);
 function ingest() {
   const list = validChapters.value;
   if (!list.length) return;
-  const count = list.length;
-  const plural = count === 1 ? "" : "s";
   let chapterIds = [];
   let nav = "/chapters";
-  let toast = "";
 
   if (intent.value === "notes") {
     const { noteIds } = project.importNotes({
@@ -233,8 +228,6 @@ function ingest() {
       anchor: anchorFromKey(notesAnchor.value),
     });
     nav = noteIds[0] ? `/notes/${noteIds[0]}` : "/notes";
-    toast = `Imported ${count} note${plural}.`;
-    ui.showToast({ message: toast });
     router.push(nav);
     return;
   }
@@ -244,7 +237,6 @@ function ingest() {
     project.createProject({ title, author: newBookAuthor.value.trim() });
     chapterIds = project.importChapters({ chapters: list, status: "draft" }).chapterIds;
     nav = chapterIds[0] ? `/chapters/${chapterIds[0]}` : "/chapters";
-    toast = `Started "${title}" with ${count} chapter${plural}.`;
   } else {
     // "edit" — append to current project.
     const makeNewPart = partChoice.value === NEW_PART;
@@ -255,18 +247,16 @@ function ingest() {
       status: "draft",
     }).chapterIds;
     nav = chapterIds[0] ? `/chapters/${chapterIds[0]}` : "/chapters";
-    toast = `Imported ${count} chapter${plural}.`;
   }
 
   if (scanAfterImport.value && chapterIds.length) {
     // Show the sweep modal in-place; nav happens when its review is
     // dismissed (committed or closed).
-    pendingNav.value = { route: nav, toast };
+    pendingNav.value = { route: nav };
     sweepChapterIds.value = chapterIds;
     return;
   }
 
-  ui.showToast({ message: toast });
   router.push(nav);
 }
 
@@ -275,7 +265,6 @@ function finishAfterSweep() {
   const target = pendingNav.value;
   pendingNav.value = null;
   if (target) {
-    if (target.toast) ui.showToast({ message: target.toast });
     router.push(target.route);
   }
 }
