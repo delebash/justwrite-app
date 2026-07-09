@@ -333,6 +333,23 @@ the INSTALLED hooks observed all three surfaces fire AND clear · rules-checker 
 at the commit. Full record: queue doc §9 **"#237 BUILD RECORD"**. EFFECTIVENESS.md
 carries the v4 ledger entry + three watch-items for the trial.
 
+**GO (2026-07-09, the order continuing) — QC-25 (#223) SHIPPED** per the revised
+spec: `update_check`'s `current` = the DISK-resolved installed build (shared new
+`_installed_build` helper; pin only as the nothing-installed fallback) — the DB-reset
+regression (pin b9899 under installed b9934 → false "update available" whose click
+would have downgraded + sweep-deleted the newer engine) dies; the pin **heals upward
+at BOOT + POST-INSTALL only, never on a poll** (a `save_pin` seam through
+`configure_service`, wired in `install.py` to the same `runner_setting.pinned_build`
+row the API writes; post-install heal runs AFTER the sweep so a deliberate pin-
+downgrade Reinstall survives); UI unchanged (updateToLatest's `replaceBuild` now
+carries the real disk build automatically). Gates: ruff · runner pytest **449** (7 new
+recreations incl. the user's exact disk/pin shape, the deliberate pin-bump, the
+never-on-poll law, the downgrade-survives-install proof) · JW server 76 · FULL smoke
+zero JS errors · the LIVE end-to-end observed in-container (fake b9939 on disk → boot
+healed the real DB pin, status/update-check followed the disk; container fully
+restored after) · rules-checker verdict at the commit. Full record: queue doc §9
+**"QC-25 BUILD RECORD"**. Next per the order: the QC cluster (#224–#236), one ship.
+
 **⛔⛔ THE STATE AT THE EIGHTH COMPACT (2026-07-09 — the CURRENT pickup):** this
 window was the user's live QC/design session — NO code commits (heads stay
 runner `82edf7e` · JW `aaefeb4` + doc-only commits). QC-26..QC-38 (tasks
