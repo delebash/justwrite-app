@@ -14,7 +14,7 @@
 
 import { ref, onMounted, onBeforeUnmount, computed } from "vue";
 import { VARIATION_TEMPERATURES } from "../services/writerAI.js";
-import { useAiTasksStore, Icon, AppModal, UiButton } from "@delebash/llm-ui";
+import { useAiTasksStore, Icon, AiTaskStrip, AppModal, UiButton } from "@delebash/llm-ui";
 import AiFeatureChip from "./AiFeatureChip.vue";
 
 const props = defineProps({
@@ -152,6 +152,15 @@ onBeforeUnmount(cancelAll);
       more inventive). Click <strong>Use this</strong> on whichever column reads best — the chosen
       result lands as the usual accept/reject diff in your manuscript. The other two are discarded.
     </p>
+
+    <!-- QC-30b: the shared strip is THE progress surface — one per running
+         column (the CritiqueModal one-strip-per-task precedent); the columns
+         share a label, so a chip names each strip's variation. -->
+    <AiTaskStrip v-for="col in cols" :key="`strip-${col.index}`" :task="colTask(col)">
+      <template #extra-stats>
+        <span class="sts-stat">variation {{ col.index + 1 }}</span>
+      </template>
+    </AiTaskStrip>
 
     <div class="va-grid">
       <article v-for="col in cols" :key="col.index" class="va-col" :data-temp="col.temperature">

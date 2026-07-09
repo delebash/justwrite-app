@@ -2,7 +2,10 @@
 // can't pin deterministically: the null-until-done usage semantics (callers
 // surface usage to the UI and must distinguish "not reported" from zero), the
 // (delta, accumulatedContent) onDelta contract, the friendly error wrapping,
-// and the task-registry integration (start → finish/fail → history archive).
+// the task-registry integration (start → finish/fail → history archive), and
+// — §7.4 B6 — runAiFeature's stream-under-the-hood transport with its
+// automatic /run fallback (zero-frames transport errors ONLY: never an
+// in-stream {error} frame, never an abort, never after frames arrived).
 //
 // The kit modules are imported REAL via the source alias (subpath — the
 // whole-kit index.js pulls .vue files the node env can't parse); only the
@@ -66,14 +69,29 @@ describe("runAiFeatureStream — usage semantics (null-until-done)", () => {
   it("returns a truthy zeros usage when a done frame arrives WITHOUT counts", async () => {
     vi.stubGlobal("fetch", vi.fn(async () => streamResponse([{ delta: "x" }, { done: true }, "[DONE]"])));
     const out = await runAiFeatureStream({ action: "chat" });
-    expect(out.usage).toEqual({ promptTokens: 0, completionTokens: 0 });
+    expect(out.usage).toEqual({ promptTokens: 0, completionTokens: 0, model: "", cost: 0 });
   });
 
-  it("returns the real counts from the done frame", async () => {
+  it("returns the counts + model + cost from the done frame (§7.4 — the stream carries everything /run carries)", async () => {
     vi.stubGlobal("fetch", vi.fn(async () =>
-      streamResponse([{ delta: "hi" }, { done: true, promptTokens: 5, completionTokens: 7 }, "[DONE]"])));
+      streamResponse([{ delta: "hi" }, { done: true, promptTokens: 5, completionTokens: 7, model: "m1", cost: 0.02 }, "[DONE]"])));
     const out = await runAiFeatureStream({ action: "chat" });
-    expect(out.usage).toEqual({ promptTokens: 5, completionTokens: 7 });
+    expect(out.usage).toEqual({ promptTokens: 5, completionTokens: 7, model: "m1", cost: 0.02 });
+    // The RESOLVED model from the done frame is the return's model too.
+    expect(out.model).toBe("m1");
+  });
+
+  it("forwards the ask-params the one-shot wrapper takes (§7.4 — the wrappers no longer diverge)", async () => {
+    const fetchMock = vi.fn(async () => streamResponse([{ done: true }, "[DONE]"]));
+    vi.stubGlobal("fetch", fetchMock);
+    await runAiFeatureStream({
+      action: "chat", providerId: "p1", topP: 0.9, jsonMode: true,
+      reasoningEffort: "high", samplers: [{ flagName: "top_k", flagValue: "40" }],
+    });
+    expect(JSON.parse(fetchMock.mock.calls[0][1].body)).toEqual({
+      action: "chat", variables: {}, providerId: "p1", topP: 0.9, jsonMode: true,
+      reasoningEffort: "high", samplers: [{ flagName: "top_k", flagValue: "40" }],
+    });
   });
 });
 
@@ -139,24 +157,134 @@ describe("runAiFeatureStream — onDelta + task registry", () => {
   });
 });
 
-describe("runAiFeature (non-stream)", () => {
-  it("POSTs /v1/ai/run and returns { content, model } + usage passthrough", async () => {
-    const fetchMock = vi.fn(async () =>
-      jsonResponse({ content: "result", model: "m1", promptTokens: 3, completionTokens: 7, cost: 0.01 }));
+// A body whose reader yields one chunk of frames, then dies with a transport
+// error — the "connection dropped mid-stream" shape for the fallback matrix.
+function dyingBody(frames) {
+  const text = frames.map((f) => `data: ${JSON.stringify(f)}\n\n`).join("");
+  const bytes = new TextEncoder().encode(text);
+  let step = 0;
+  return {
+    getReader: () => ({
+      read: async () => {
+        if (step++ === 0) return { done: false, value: bytes };
+        throw new TypeError("network error");
+      },
+    }),
+  };
+}
+
+describe("runAiFeature — streams under the hood (§7.4 B6-1)", () => {
+  it("POSTs /v1/ai/stream ONCE and returns the /run-shaped contract from the done frame", async () => {
+    const fetchMock = vi.fn(async () => streamResponse([
+      { delta: "res" }, { delta: "ult" },
+      { done: true, promptTokens: 3, completionTokens: 7, model: "m1", cost: 0.01 },
+      "[DONE]",
+    ]));
     vi.stubGlobal("fetch", fetchMock);
     const out = await runAiFeature({ action: "critique", variables: { a: 1 } });
-    // Usage/cost ride along for callers that display them (the Lab readout, #36);
-    // { content, model } destructuring keeps working for every prior caller.
+    // The exact pre-B6 call-site contract — every prior caller keeps working.
     expect(out).toEqual({ content: "result", model: "m1", promptTokens: 3, completionTokens: 7, cost: 0.01 });
+    expect(fetchMock).toHaveBeenCalledTimes(1);
     const [url, opts] = fetchMock.mock.calls[0];
-    expect(String(url)).toContain("/v1/ai/run");
+    expect(String(url)).toContain("/v1/ai/stream");
     // Lab-only overrides are absent unless set — the body stays minimal.
     expect(JSON.parse(opts.body)).toEqual({ action: "critique", variables: { a: 1 } });
   });
 
-  it("wraps an HTTP failure via friendlyAiError (status hint surfaced)", async () => {
+  it("sends the FULL ask-param body to the stream endpoint", async () => {
+    const fetchMock = vi.fn(async () => streamResponse([{ done: true }, "[DONE]"]));
+    vi.stubGlobal("fetch", fetchMock);
+    await runAiFeature({
+      action: "critique", providerId: "p1", model: "m2", temperature: 0.2, topP: 0.9,
+      jsonMode: true, reasoningEffort: "low", think: false, maxTokens: 512,
+      samplers: [{ flagName: "top_k", flagValue: "40" }],
+    });
+    expect(JSON.parse(fetchMock.mock.calls[0][1].body)).toEqual({
+      action: "critique", variables: {}, providerId: "p1", model: "m2",
+      temperature: 0.2, topP: 0.9, jsonMode: true, reasoningEffort: "low",
+      think: false, maxTokens: 512, samplers: [{ flagName: "top_k", flagValue: "40" }],
+    });
+  });
+
+  it("falls back ONCE to /v1/ai/run on a pre-stream HTTP error (zero frames)", async () => {
+    const fetchMock = vi.fn()
+      .mockResolvedValueOnce({ ok: false, status: 503, body: null, text: async () => "unavailable" })
+      .mockResolvedValueOnce(jsonResponse({ content: "result", model: "m1", promptTokens: 3, completionTokens: 7, cost: 0.01 }));
+    vi.stubGlobal("fetch", fetchMock);
+    const out = await runAiFeature({ action: "critique" });
+    expect(out).toEqual({ content: "result", model: "m1", promptTokens: 3, completionTokens: 7, cost: 0.01 });
+    expect(fetchMock).toHaveBeenCalledTimes(2);
+    expect(String(fetchMock.mock.calls[0][0])).toContain("/v1/ai/stream");
+    expect(String(fetchMock.mock.calls[1][0])).toContain("/v1/ai/run");
+  });
+
+  it("falls back on a network TypeError (fetch never connected)", async () => {
+    const fetchMock = vi.fn()
+      .mockRejectedValueOnce(new TypeError("Failed to fetch"))
+      .mockResolvedValueOnce(jsonResponse({ content: "ok", model: "m1" }));
+    vi.stubGlobal("fetch", fetchMock);
+    const out = await runAiFeature({ action: "critique" });
+    expect(out.content).toBe("ok");
+    expect(fetchMock).toHaveBeenCalledTimes(2);
+  });
+
+  it("does NOT fall back on an in-stream {error} frame — a provider error is identical on both paths", async () => {
+    const fetchMock = vi.fn(async () => streamResponse([{ error: "boom 500" }]));
+    vi.stubGlobal("fetch", fetchMock);
+    await expect(runAiFeature({ action: "critique" })).rejects.toThrow();
+    expect(fetchMock).toHaveBeenCalledTimes(1);
+  });
+
+  it("does NOT fall back on abort", async () => {
+    const fetchMock = vi.fn(async () => {
+      const e = new Error("The user aborted a request.");
+      e.name = "AbortError";
+      throw e;
+    });
+    vi.stubGlobal("fetch", fetchMock);
+    await expect(runAiFeature({ action: "critique" })).rejects.toThrow();
+    expect(fetchMock).toHaveBeenCalledTimes(1);
+  });
+
+  it("does NOT fall back once frames have arrived (mid-stream drop ≠ retry — tokens were already spent)", async () => {
+    const fetchMock = vi.fn(async () => ({ ok: true, status: 200, body: dyingBody([{ delta: "part" }]), text: async () => "" }));
+    vi.stubGlobal("fetch", fetchMock);
+    await expect(runAiFeature({ action: "critique" })).rejects.toThrow();
+    expect(fetchMock).toHaveBeenCalledTimes(1);
+  });
+
+  it("wraps an HTTP failure via friendlyAiError when the fallback fails too (status hint surfaced)", async () => {
     vi.stubGlobal("fetch", vi.fn(async () => jsonResponse({ detail: "nope" }, { status: 429 })));
     await expect(runAiFeature({ action: "critique" }))
       .rejects.toThrow(/Rate-limited/);
+  });
+});
+
+describe("prefill — prompt-eval progress (§7.4 B6-2)", () => {
+  it("a {progress} frame reaches the task as prefill; the first delta clears it", async () => {
+    const tasks = useAiTasksStore();
+    const handle = tasks.start({ feature: "critique", label: "Critique" });
+    handle.setPrefill(0.4);
+    expect(tasks.taskById(handle.id).prefill).toBe(0.4);
+    // Generation started — prefill is over.
+    handle.onDelta("tok", "tok");
+    expect(tasks.taskById(handle.id).prefill).toBeNull();
+    // Straggler progress frames after the first token are ignored.
+    handle.setPrefill(0.9);
+    expect(tasks.taskById(handle.id).prefill).toBeNull();
+    tasks.cancel(handle.id);
+  });
+
+  it("requestStream routes {progress} frames to onProgress, not onDelta", async () => {
+    vi.stubGlobal("fetch", vi.fn(async () => streamResponse([
+      { progress: 0.25 }, { progress: 1 }, { delta: "x" }, { done: true }, "[DONE]",
+    ])));
+    const { requestStream } = await import("@delebash/llm-ui/client.js");
+    const deltas = [];
+    const progresses = [];
+    await requestStream("/v1/ai/stream", { action: "chat" },
+      (d) => deltas.push(d), { onProgress: (p) => progresses.push(p) });
+    expect(progresses).toEqual([0.25, 1]);
+    expect(deltas).toEqual(["x"]);
   });
 });

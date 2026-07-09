@@ -242,6 +242,9 @@ const TREND_COLOURS = {
 
 const tensionTask = computed(() => aiTasks.runningTasks.find((t) => t.feature === "critique"));
 const tensionRunning = computed(() => !!tensionTask.value);
+// QC-30b: the voice-drift Explain leg gets the shared strip too (same
+// pattern as tensionTask above; explainHot registers feature "voiceDrift").
+const driftTask = computed(() => aiTasks.runningTasks.find((t) => t.feature === "voiceDrift"));
 const tensionRunningChapterId = ref(null);
 const tensionError = ref("");
 
@@ -893,6 +896,7 @@ const milestoneState = computed(() => {
       <!-- Hot chapters list -->
       <div v-if="drift.hotChapters.length" class="vd-hot">
         <div class="vd-hot-h">Hot chapters</div>
+        <AiTaskStrip :task="driftTask" />
         <ul class="vd-hot-list">
           <li v-for="hc in drift.hotChapters" :key="hc.chapterId" class="vd-hot-row">
             <div class="vd-hot-main">

@@ -13,7 +13,7 @@
 import { ref, computed, onMounted } from "vue";
 import { useProjectStore } from "../stores/project.js";
 import { useAiStore } from "../stores/ai.js";
-import { useAiTasksStore, Icon, AppModal, UiButton } from "@delebash/llm-ui";
+import { useAiTasksStore, Icon, AiTaskStrip, AppModal, UiButton } from "@delebash/llm-ui";
 import {
   runMultiReaderPanel,
   PERSONAS,
@@ -44,6 +44,8 @@ const myTasks = computed(() =>
   )
 );
 const running = computed(() => myTasks.value.length > 0);
+// QC-30b: the shared strip is THE progress surface — one entry per QC-31.
+const myTask = computed(() => myTasks.value[0] || null);
 
 const panel = computed(() => cached.value?.panel || []);
 
@@ -143,6 +145,8 @@ const ago = (ts) => {
       standard Critique modal gives one editorial pass, the panel gives four perspectives — see
       where the chapter works for each kind of reader and where it doesn't.
     </p>
+
+    <AiTaskStrip :task="myTask" />
 
     <div v-if="error" class="mr-error">
       <Icon name="Alert" :size="13" /> {{ error }}

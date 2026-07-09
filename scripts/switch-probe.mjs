@@ -171,16 +171,19 @@ await sleep(400);
 const after = await page.evaluate(() => document.querySelectorAll(".lu-tune .ui-kg-row").length);
 check("SW4 QC-17: ✕ removes the row", after === before - 1, `rows ${before} → ${after}`);
 
-// SW5: "+ Add switch" adds a blank row that lands under "Your applied config"
-// (the first group — new rows are yours; they become exactly that on Apply).
+// SW5 (QC-28, task #226 — supersedes the under-'Your applied config' placement
+// this leg once asserted): "+ Add switch" APPENDS the new blank row at the
+// BOTTOM of the grid.
 await page.evaluate(() => [...document.querySelectorAll(".lu-tune button")].find((b) => /add switch/i.test(b.textContent))?.click());
 await sleep(400);
 const sw5 = await page.evaluate(() => {
-  const heads = [...document.querySelectorAll(".lu-tune .ui-kg-group-h")].map((h) => h.textContent.trim());
-  return { rows: document.querySelectorAll(".lu-tune .ui-kg-row").length, yours: heads.includes("Your applied config") };
+  const rows = [...document.querySelectorAll(".lu-tune .ui-kg-row")];
+  const last = rows[rows.length - 1];
+  const lastInputs = [...(last?.querySelectorAll("input.ui-input") || [])];
+  return { rows: rows.length, lastBlank: lastInputs.some((i) => !i.value.trim()) };
 });
-check("SW5 QC-17/10: + Add switch adds a row under 'Your applied config'",
-  sw5.rows === after + 1 && sw5.yours, JSON.stringify(sw5));
+check("SW5 QC-28: + Add switch APPENDS a blank row at the BOTTOM",
+  sw5.rows === after + 1 && sw5.lastBlank, JSON.stringify(sw5));
 
 // SW6 (QC-12): the samplers line sits below the lede's Apply — the user's copy.
 const sw6 = await page.evaluate(() =>

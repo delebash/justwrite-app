@@ -169,11 +169,21 @@ check("QC-24: Structured extraction's pickers + Sample share the one fill row", 
 check("QC-24: nothing scattered onto the header line; all controls below it",
   !q24c.headerHasControls && q24c.allBelowHeader === true);
 
-// ── QC-23: a Lab run shows the SHARED AiTaskStrip (delayed /v1/ai/run stub) ──
-await page.route("**/v1/ai/run", async (route) => {
+// ── QC-23: a Lab run shows the SHARED AiTaskStrip (delayed /v1/ai/stream stub —
+// §7.4 B6-1: the one-shot wrapper streams under the hood, so the Lab run POSTs
+// /v1/ai/stream; the stub answers in the SSE frame shape incl. a progress
+// frame and the done frame's model/cost) ──
+const sseBody = (frames) =>
+  frames.map((f) => `data: ${typeof f === "string" ? f : JSON.stringify(f)}\n\n`).join("");
+await page.route("**/v1/ai/stream", async (route) => {
   await sleep(1800);
-  await route.fulfill({ status: 200, contentType: "application/json",
-    body: JSON.stringify({ content: "probe-ok", model: "probe-model", promptTokens: 3, completionTokens: 5, cost: 0 }) });
+  await route.fulfill({ status: 200, contentType: "text/event-stream",
+    body: sseBody([
+      { progress: 0.5 },
+      { delta: "probe-" }, { delta: "ok" },
+      { done: true, promptTokens: 3, completionTokens: 5, model: "probe-model", cost: 0 },
+      "[DONE]",
+    ]) });
 });
 await page.evaluate(() => {
   [...document.querySelectorAll(".cc-run button")].find((b) => b.textContent.includes("Run"))?.click();
