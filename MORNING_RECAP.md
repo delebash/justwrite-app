@@ -350,6 +350,28 @@ healed the real DB pin, status/update-check followed the disk; container fully
 restored after) · rules-checker verdict at the commit. Full record: queue doc §9
 **"QC-25 BUILD RECORD"**. Next per the order: the QC cluster (#224–#236), one ship.
 
+**GO (2026-07-09, the order continuing) — THE QC CLUSTER SHIPPED (12 of 13 items;
+#232 deferred on a user flag).** runner `472d9ab` · JW `879ddb8`. Built to the
+user's §9 decisions: #224 LuFeatureChip stripped to provenance-only · #225 per-task
+Reset undoes feature moves (both directions) · #226 Tune add-switch/applied rows to
+the bottom · #227 "Tasks"→"Routing by task" + copy · #228 completion/failure toasts
+gone → a DURABLE red badge on the titlebar chip + new sidebar "AI tasks" item
+(cleared on panel open) · #229 batch = ONE task entry with n/m progress + one-cancel-
+aborts-the-loop (ReaderKnowledge, MultiReader; RK's own Cancel removed) · #230 panel
+history capped to a 5-row tail · #231 the stuck-tooltip root fix (kill on detached
+anchor + scroll/pointerdown/Escape + focus-visible) · #233 AI-page-local ⌘Z (global
+book-undo bails on /ai via a new pageUndoScopes registry; TaskKinds owns a local
+inverse stack) · #234 the toast-law cull of the CLEAR visible-outcome cases (the ~45
+debatable JW-app toasts FLAGGED for the user's per-surface verdict, not culled) · #236
+the sidebar AI-queue doorway. The rules-checker caught a real bug (the failure badge
+stuck red because togglePanel didn't clear it) — fixed + a vitest case added, re-verdict
+PASS. Gates: runner ruff + storage pytest · vitest 59/59 · build:vite · FULL smoke zero
+JS errors · rules-checker VERDICT: PASS (round 2). Full record: queue doc §9
+"QC-CLUSTER" marker. **STILL OPEN: #232** (the 34-action test-input table — the largest
+item) is BLOCKED on the user's word (relationshipArc auto-pair? location-picker removal?)
++ the #234 toast tail + two flagged defaults (#236 label "AI tasks", #230 tail=5); asking
+next. Then B6 (#201–#203), then #235 LAST.
+
 **⛔⛔ THE STATE AT THE EIGHTH COMPACT (2026-07-09 — the CURRENT pickup):** this
 window was the user's live QC/design session — NO code commits (heads stay
 runner `82edf7e` · JW `aaefeb4` + doc-only commits). QC-26..QC-38 (tasks
