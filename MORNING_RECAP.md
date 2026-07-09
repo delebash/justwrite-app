@@ -525,6 +525,15 @@ vitest 29/29 + the FULL headless smoke zero JS errors + the tune-save probe 17/1
   creating or renaming a thing never goes through a name-popup — every entity opens its ONE
   add/edit form directly, where the name is a plain field editable at any time, and the form
   refuses to save until its required assignments are set.
+- **Design work loads the design law FIRST (user order 2026-07-09, queue doc §9 QC-41 —
+  "dont you have a design plugin or something you shoold always load when designing stuff,
+  why dont you automatically use it"):** before ANY UI-design work, load the design law —
+  precedent-before-pattern (the JV CLAUDE.md RULE #1 method, shared) + the design-conformance
+  checklist + don't-cram — and NAME, in writing, the existing precedent surface + a
+  real-world reference before designing; the user's reference screenshots are the spec. No
+  app-UI design skill exists in this session (SearchSkills-verified 2026-07-09), so this law
+  IS the loadout. Born from the B5-5 context menu shipping selection-gated against the AI
+  menu's own enable/disable precedent.
 - **The cwd footgun (struck ~10 times):** never chain `cd` inside compound commands and never
   rely on the shared shell cwd across parallel Bash calls — every command gets its own
   explicit absolute-path `cd`; trust the OUTPUT, never a bare exit code.

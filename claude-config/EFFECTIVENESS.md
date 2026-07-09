@@ -87,6 +87,25 @@ at build time and fixed before the first commit: the pre-edit deny window counte
 so a doc-edit-first turn (the normal record-first pattern) bypassed the first-CODE-edit
 check — the window now counts prior CODE edits only (`scan_turn` `code_edits`).
 
+**First trial findings (2026-07-09, live, hours after install):** two `task-begin-check`
+false fires on a plain task-add, both TURN-WINDOW shapes rather than rule logic. (1) A
+harness **"Tool loaded."** reply to a ToolSearch call is a plain-text user entry with NO
+wrapper tag, so `is_genuine_user` counted it as a genuine human prompt and RESET the turn
+window (`INJECTED_USER` at `_rules.py:191-195` is anchored to known wrapper tags;
+`last_user_idx` at `:280-285`) — the tests citation written one message earlier fell
+outside `scan_turn` and the gate denied. ToolSearch post-dates v4: a new transcript shape,
+exactly the class the INJECTED_USER comment warns about. (2) A citation written in the
+SAME assistant message as the gated tool call is not yet flushed to the transcript when
+the PreToolUse-style hook reads it — the rules-pass must live in a PRIOR message.
+Operating rule until fixed: cite the tests (or "trivial") in a message BEFORE the one
+making the gated call, and re-cite after any mid-turn user message (each genuine one
+resets the window — correctly). Candidate fix (a code change — awaits the user's word,
+queued as a harness task): teach `INJECTED_USER` the ToolSearch-reply shape + audit other
+no-wrapper harness injections ("Tool loaded", task-tool reminders), and record the
+same-message flush lag in the README's operating notes. Scored: 2 false-positives, 0
+misses — the deny text itself was accurate ("no rules-pass *visible* this turn"), the
+window was wrong.
+
 ### 2026-06-26 — v3 OBSERVATION PERIOD (ongoing — trial, user chose "live with it")
 
 The user accepted v3 (agent-as-judge at the commit boundary) on a TRIAL basis: "live with it
