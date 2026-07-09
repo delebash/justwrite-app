@@ -16,7 +16,7 @@
 //     generatedAt, model
 //   }
 
-import { runAiFeature } from "@delebash/llm-ui";
+import { runAiFeature, useAiTasksStore } from "@delebash/llm-ui";
 import { parseJsonLoose } from "../llmText.js";
 
 function htmlToText(html) {
@@ -124,14 +124,29 @@ export async function runMultiReaderPanel({
   provider,
   model,
   meta = {},
-  task,
 } = {}) {
+  // QC-31: the four-persona panel is ONE user action → ONE task entry with
+  // n/4 progress; the entry's Cancel (strip/panel) aborts all four personas
+  // through the shared signal.
+  const aiTasks = useAiTasksStore();
+  const handle = aiTasks.start({
+    feature: "multiReader",
+    label: "Multi-reader critique",
+    meta: { ...meta, kind: "multiReader" },
+  });
+  handle.setProgress(0, PERSONAS.length);
+  if (signal) {
+    if (signal.aborted) handle.cancel();
+    else signal.addEventListener?.("abort", () => handle.cancel(), { once: true });
+  }
+  let settled = 0;
+
   const tasks = PERSONAS.map(async (persona) => {
     onPersonaPhase?.(persona.key, "start");
     try {
       const r = await runPersona({
         persona, html, chapterTitle, chapterNum,
-        signal, provider, model, meta, task,
+        signal: handle.signal, provider, model, meta, task: false,
       });
       onPersonaPhase?.(persona.key, "done", r);
       return r;
@@ -148,10 +163,15 @@ export async function runMultiReaderPanel({
         error: err?.message || String(err),
         generatedAt: Date.now(),
       };
+    } finally {
+      settled += 1;
+      handle.setProgress(settled, PERSONAS.length);
     }
   });
 
   const panel = await Promise.all(tasks);
+  // A cancel already archived the entry (finish becomes a no-op there).
+  handle.finish({});
 
   return {
     panel,

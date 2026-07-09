@@ -20,7 +20,7 @@
 // sequential LLM calls. Caller renders per-chapter progress and can
 // cancel mid-sweep (partial results stay).
 
-import { runAiFeature } from "@delebash/llm-ui";
+import { runAiFeature, useAiTasksStore } from "@delebash/llm-ui";
 import { parseJsonLoose } from "../llmText.js";
 
 // ─── helpers ─────────────────────────────────────────────────────────
@@ -205,7 +205,6 @@ export async function scanReaderKnowledge({
   provider,
   model,
   chapterFilter,
-  task,
 } = {}) {
   if (!project) throw new Error("scanReaderKnowledge: project store is required.");
 
@@ -213,6 +212,22 @@ export async function scanReaderKnowledge({
     if (chapterFilter?.ids) return chapterFilter.ids.has(c.id);
     return true;
   });
+
+  // QC-31: the whole sweep is ONE user action → ONE task entry. The handle's
+  // signal threads through every per-chapter call, so the strip/panel Cancel
+  // aborts the entire loop; per-chapter progress renders as n/m on the entry.
+  const aiTasks = useAiTasksStore();
+  const handle = aiTasks.start({
+    feature: "readerKnowledge",
+    label: "Reader knowledge",
+    meta: { kind: "readerKnowledge" },
+  });
+  handle.setProgress(0, allChapters.length);
+  if (signal) {
+    if (signal.aborted) handle.cancel();
+    else signal.addEventListener?.("abort", () => handle.cancel(), { once: true });
+  }
+  const runSignal = handle.signal;
 
   const accumulatedReader = [];
   const accumulatedPov = [];
@@ -222,7 +237,7 @@ export async function scanReaderKnowledge({
   let scanned = 0;
 
   for (const ch of allChapters) {
-    if (signal?.aborted) break;
+    if (runSignal.aborted) break;
 
     const html = project.chapterBody[ch.id] || "";
 
@@ -239,9 +254,9 @@ export async function scanReaderKnowledge({
         chapterNum: ch.num,
         priorReaderFacts: accumulatedReader,
         priorPovFacts: accumulatedPov,
-        signal, provider, model,
+        signal: runSignal, provider, model,
         meta: { chapterId: ch.id, kind: "readerKnowledge" },
-        task,
+        task: false,
       });
 
       if (r.empty) {
@@ -297,7 +312,7 @@ export async function scanReaderKnowledge({
       });
     } catch (err) {
       const msg = String(err?.message || err || "");
-      if (signal?.aborted || /abort/i.test(msg)) break;
+      if (runSignal.aborted || /abort/i.test(msg)) break;
       skipped.push({ id: ch.id, num: ch.num, title: ch.title, reason: msg.slice(0, 200) });
       completed += 1;
       onProgress?.({
@@ -306,7 +321,11 @@ export async function scanReaderKnowledge({
         completed, total: allChapters.length, reason: msg.slice(0, 200),
       });
     }
+    handle.setProgress(completed, allChapters.length);
   }
+
+  // A cancel already archived the entry (finish becomes a no-op there).
+  handle.finish({});
 
   return {
     perChapter,

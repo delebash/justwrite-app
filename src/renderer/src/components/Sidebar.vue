@@ -4,7 +4,7 @@ import { useRoute, useRouter } from "vue-router";
 import { useI18n } from "vue-i18n";
 import { useUiStore } from "../stores/ui.js";
 import { useProjectStore } from "../stores/project.js";
-import { promptDialog, confirmDialog } from "@delebash/llm-ui";
+import { promptDialog, confirmDialog, useAiTasksStore } from "@delebash/llm-ui";
 import { NEW_ENTITY_META } from "../services/entityMeta.js";
 import { Icon } from "@delebash/llm-ui";
 import { UiButton } from "@delebash/llm-ui";
@@ -142,6 +142,11 @@ const NAV = [
   { id: "trash",     label: "nav.trash",     icon: "Trash" },
   { id: "settings",  label: "nav.settings",  icon: "Settings" },
   { id: "ai", label: "sidebar.nav.ai", icon: "Sparkle", path: "/ai", activeName: "ai" },
+  // QC-38: the AI queue's main-menu doorway — opens the shared AI-tasks panel
+  // (the Ask-the-book nav→panel precedent) and carries the same live
+  // running/error badge as the titlebar chip. Label default "AI tasks"
+  // (FLAGGED — matches the panel's title; "AI queue" on the user's word).
+  { id: "ai-tasks", label: "sidebar.nav.aiTasks", icon: "Sparkle", action: "toggleAiTasksPanel" },
   { id: "help",      label: "sidebar.nav.help",       icon: "Help",     path: "/help", activeName: "help" },
 ];
 
@@ -200,8 +205,14 @@ const activeSection = computed(() => String(route.name || "").toLowerCase());
 // so the sidebar accurately reflects what the user is looking at.
 function isNavActive(n) {
   if (n.action === "toggleChatPanel") return ui.chatPanelOpen;
+  if (n.action === "toggleAiTasksPanel") return aiTasks.panelOpen;
   return activeSection.value === (n.activeName || n.id).toLowerCase();
 }
+
+// QC-38: the AI-tasks nav row carries the same live signal as the titlebar
+// chip — the unseen-error count wins (red), else the running count.
+const aiTasks = useAiTasksStore();
+const aiTasksBadge = computed(() => aiTasks.unseenErrors || aiTasks.runningCount || 0);
 
 function go(id) {
   // NAV entries can carry a `path` override for one-off routes that
@@ -853,9 +864,12 @@ function wbDropClass(kind, id) {
             :aria-expanded="n.expandable ? !!ui.expanded[n.id] : undefined"
             :aria-current="isNavActive(n) ? 'page' : undefined"
             :data-chat-toggle="n.id === 'ask' ? '' : null"
+            :data-ai-status-toggle="n.id === 'ai-tasks' ? '' : null"
             @click="clickParent(n)">
             <span class="nav-icon"><Icon :name="n.icon" :size="15" /></span>
             <span class="nav-label">{{ $t(n.label) }}</span>
+            <span v-if="n.id === 'ai-tasks' && aiTasksBadge" class="nav-count"
+              :class="{ 'nav-count-error': aiTasks.unseenErrors }">{{ aiTasksBadge }}</span>
             <span v-if="n.kbd" class="kbd-pill">{{ n.kbd }}</span>
             <span v-if="n.expandable" class="nav-chev" :class="{ open: ui.expanded[n.id] }">
               <Icon name="ChevRight" :size="12" />
@@ -1086,8 +1100,11 @@ function wbDropClass(kind, id) {
       v-tooltip.bottom="$t(n.label)" :aria-label="$t(n.label)"
       :aria-current="isNavActive(n) ? 'page' : undefined"
       :data-chat-toggle="n.id === 'ask' ? '' : null"
+      :data-ai-status-toggle="n.id === 'ai-tasks' ? '' : null"
       @click="clickParent(n)">
       <Icon :name="n.icon" :size="16" />
+      <span v-if="n.id === 'ai-tasks' && aiTasksBadge" class="rail-dot"
+        :class="{ 'rail-dot-error': aiTasks.unseenErrors }" />
     </button>
     <div style="flex:1" />
     <div class="rail-avatar">MH</div>
@@ -1095,6 +1112,23 @@ function wbDropClass(kind, id) {
 </template>
 
 <style>
+/* QC-38: the AI-tasks nav row's live badge (running count, red on unseen
+   failures — the same durable signal as the titlebar chip). */
+.nav-count {
+  font-family: var(--font-mono, monospace);
+  font-size: 9.5px; font-weight: 700; line-height: 1;
+  padding: 2px 6px; border-radius: 999px;
+  background: var(--accent-soft); color: var(--accent-ink);
+}
+.nav-count-error { background: var(--danger-ink, #b91c1c); color: var(--surface, #fff); }
+.rail-item { position: relative; }
+.rail-dot {
+  position: absolute; top: 4px; right: 4px;
+  width: 7px; height: 7px; border-radius: 50%;
+  background: var(--accent);
+}
+.rail-dot-error { background: var(--danger-ink, #b91c1c); }
+
 /* Worldbuilding category header collapse chevron — inline (flex) rather
    than the absolutely-positioned chapter-chev, since the header row is a
    flexbox. Icon is decorative so pointer events pass to the button.

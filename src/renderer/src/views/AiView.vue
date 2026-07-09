@@ -4,17 +4,28 @@
 // / usage) is the naked, token-styled component dropped inside JW's card. Same
 // control JustVoice mounts in its own page chrome. (Boundary, per the user:
 // "jw has its card layout, we just put the control in it.")
-import { onUnmounted } from "vue";
+import { onMounted, onUnmounted } from "vue";
 import PaneHeader from "../components/PaneHeader.vue";
 import { AiModelsArea, runAiFeatureStream } from "@delebash/llm-ui";
 import WritingAiSettings from "../components/WritingAiSettings.vue";
 import { useAiStore } from "../stores/ai.js";
+import { useUiStore } from "../stores/ui.js";
 
 // The shared AI control writes routing (default LLM/embedding + model + pins)
 // straight to the server. Re-sync the renderer's AI store on the way out so the
 // chat panel + RAG indexer use the just-saved config without a full reload.
 const ai = useAiStore();
-onUnmounted(() => { ai.resyncRouting(); });
+const ui = useUiStore();
+
+// QC-36 (the page-related-undo law): claim the /ai route as an undo scope so
+// the global ⌘Z book-undo bails here — the AI Routing page owns its OWN undo
+// (the kit's Routing-by-task tab has a local inverse stack). Without this,
+// ⌘Z on this page would silently revert an off-screen book mutation.
+onMounted(() => { ui.registerPageUndoScope("/ai"); });
+onUnmounted(() => {
+  ui.unregisterPageUndoScope("/ai");
+  ai.resyncRouting();
+});
 
 // Host runner for the Feature Workbench test panel: streams the action through
 // JW's task system so a test shows live progress + Cancel in the AI tasks strip

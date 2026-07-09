@@ -78,14 +78,20 @@ function onKey(e) {
   }
   // ⌘Z / ⌘⇧Z (or ⌘Y on Windows) — undo/redo. Stays out of the rich
   // editor's way so paragraph-level edits still hop through prosemirror.
+  // QC-36 (the page-related-undo law): the GLOBAL book undo must NEVER
+  // fire from a page that owns its own undo — else ⌘Z on the AI Routing
+  // page silently reverts an off-screen book mutation. Pages with a local
+  // stack register themselves in `ui.pageUndoScopes`; here we bail so their
+  // own keydown handler (page-scoped) takes it. (The rich editor is the
+  // original precedent — same idea, its own ⌘Z.)
   if (key === "z" && !e.shiftKey) {
-    if (focusedInRichEditor()) return;
+    if (focusedInRichEditor() || ui.isPageUndoScoped(route.path)) return;
     e.preventDefault();
     project.undo();
     return;
   }
   if ((key === "z" && e.shiftKey) || key === "y") {
-    if (focusedInRichEditor()) return;
+    if (focusedInRichEditor() || ui.isPageUndoScoped(route.path)) return;
     e.preventDefault();
     project.redo();
     return;

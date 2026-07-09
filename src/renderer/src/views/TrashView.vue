@@ -89,8 +89,9 @@ function ago(ts) {
 }
 
 function restore(kind, id) {
+  // QC-37 (toast law): the row leaves the Trash list in place — the outcome
+  // is visible right here, so no toast.
   project.restoreFromTrash(kind, id);
-  ui.showToast({ message: "Restored." });
 }
 async function purge(kind, id, name) {
   const yes = await confirmDialog({
@@ -100,8 +101,7 @@ async function purge(kind, id, name) {
     danger: true,
   });
   if (!yes) return;
-  project.purgeFromTrash(kind, id);
-  ui.showToast({ message: "Permanently deleted." });
+  project.purgeFromTrash(kind, id);  // row leaves the list — visible (QC-37)
 }
 async function emptyAll() {
   const yes = await confirmDialog({
@@ -111,8 +111,7 @@ async function emptyAll() {
     danger: true,
   });
   if (!yes) return;
-  project.emptyTrash();
-  ui.showToast({ message: "Trash emptied." });
+  project.emptyTrash();  // the whole list empties — visible (QC-37)
 }
 
 const trashColumns = [

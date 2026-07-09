@@ -47,7 +47,6 @@ function goToTasks() {
 
 <template>
   <LuFeatureChip
-    readonly
     :feature="feature"
     :label="label"
     :compact="compact"

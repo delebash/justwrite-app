@@ -177,11 +177,9 @@ function onCardKey(e, strandId, beat) {
 
 async function handleRemoveBeat(strandId, beat, e) {
   e.stopPropagation();
+  // QC-37 (toast law): the beat visibly leaves the board — no toast. (⌘Z
+  // still recovers it; the removal itself is the outcome the user sees.)
   project.removeStrandBeat(strandId, beat.id);
-  // Beats live in the global undo history (no Trash entry), so a quick
-  // toast pointing at ⌘Z is enough — confirmDialog would be over-friction
-  // for a one-line item the user can recover instantly.
-  ui.showToast({ message: `Removed beat "${beat.label || 'untitled'}".` });
 }
 
 // ── Drag and drop ────────────────────────────────────────────────────
@@ -296,8 +294,8 @@ function onDrop(e, targetStrandId, targetChapterId) {
   } else {
     project.updateStrandBeat(srcStrandId, beatId, patch);
   }
-
-  ui.showToast({ message: "Beat moved." });
+  // QC-37 (toast law): the drop lands the beat where the user dragged it —
+  // the move is visible, no toast needed.
 }
 
 // ── Helpers ──────────────────────────────────────────────────────────

@@ -116,6 +116,7 @@
       "relations": "Relations",
       "readerKnowledge": "Reader knowledge",
       "ai": "AI Settings",
+      "aiTasks": "AI tasks",
       "help": "Help"
     },
     "projectSwitcher": {

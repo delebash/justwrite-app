@@ -1114,7 +1114,7 @@ watch(() => project.allChapters.map((c) => `${c.id}:${(project.scenesFor(c.id) |
             </div>
             <button class="ai-strip-item" :disabled="aiRunning || !hasSelection" @click="callAi('rewrite', $event)">
               <div class="ai-strip-label">Rewrite</div>
-              <div class="ai-strip-desc">Rewrite the passage to be more vivid and specific while preserving meaning, tense, and voice. Selection-only because a whole-scene rewrite is too transformative for one click — use the Tasks tab's Lab for that.</div>
+              <div class="ai-strip-desc">Rewrite the passage to be more vivid and specific while preserving meaning, tense, and voice. Selection-only because a whole-scene rewrite is too transformative for one click — use the Routing-by-task Lab for that.</div>
             </button>
             <button class="ai-strip-item" :disabled="aiRunning || !hasSelection" @click="callAi('expand', $event)">
               <div class="ai-strip-label">Expand</div>

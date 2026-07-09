@@ -8,7 +8,7 @@ import { defineStore } from "pinia";
 import { readSetting, writeSetting } from "../services/settings.js";
 import { DEFAULT_EDITOR_SETTINGS } from "../services/editorSettings.js";
 import { DEFAULT_APPEARANCE, migrateAppearance } from "../services/appearance.js";
-import { pushToast, clearToasts } from "@delebash/llm-ui";
+import { pushToast, clearToasts, useAiTasksStore } from "@delebash/llm-ui";
 
 const SECTION = "ui";
 
@@ -89,6 +89,11 @@ export const useUiStore = defineStore("ui", {
       // Project find & replace modal — `open` summons the shared modal
       // mounted at App level; `initialTerm` pre-fills the search input.
       replaceModal: { open: false, initialTerm: "" },
+      // QC-36 (the page-related-undo law): route paths that own a LOCAL undo
+      // stack — the global ⌘Z book-undo bails on these so the page's own
+      // scoped handler takes it (a page's ⌘Z must never revert an off-screen
+      // book mutation). A page registers/unregisters itself on mount/unmount.
+      pageUndoScopes: [],
       // Manuscript chat panel (RAG). Single boolean; the panel itself
       // owns its question/answer state.
       chatPanelOpen: false,
@@ -218,6 +223,24 @@ export const useUiStore = defineStore("ui", {
     toggleChatPanel() {
       if (this.chatPanelOpen) this.closeChatPanel();
       else this.chatPanelOpen = true;
+    },
+    // QC-36: a page with its own undo stack registers its route prefix so the
+    // global ⌘Z bails there. Prefix match (a page + its sub-routes share the
+    // scope). Idempotent register; unregister on unmount.
+    registerPageUndoScope(prefix) {
+      if (prefix && !this.pageUndoScopes.includes(prefix)) this.pageUndoScopes.push(prefix);
+    },
+    unregisterPageUndoScope(prefix) {
+      this.pageUndoScopes = this.pageUndoScopes.filter((p) => p !== prefix);
+    },
+    isPageUndoScoped(path) {
+      return this.pageUndoScopes.some((p) => path === p || path.startsWith(`${p}/`));
+    },
+    // QC-38: the sidebar "AI tasks" nav item opens the shared AI-tasks panel
+    // (the same panel the titlebar chip toggles) — thin delegation so the
+    // sidebar's existing `ui[item.action]()` dispatch works unchanged.
+    toggleAiTasksPanel() {
+      useAiTasksStore().togglePanel();
     },
     openChatPanelFor(target) {
       const key = target?.sourceKey || null;

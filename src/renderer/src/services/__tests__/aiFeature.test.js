@@ -85,7 +85,7 @@ describe("runAiFeatureStream — onDelta + task registry", () => {
     expect(calls).toEqual([["a", "a"], ["b", "ab"]]);
   });
 
-  it("task: true registers, streams, finishes into history with tokens + a toast", async () => {
+  it("task: true registers, streams, finishes into history — with NO toast (QC-30, the toast law)", async () => {
     vi.stubGlobal("fetch", vi.fn(async () =>
       streamResponse([{ delta: "out" }, { done: true, promptTokens: 3, completionTokens: 7 }, "[DONE]"])));
     const tasks = useAiTasksStore();
@@ -93,17 +93,49 @@ describe("runAiFeatureStream — onDelta + task registry", () => {
     expect(tasks.runningCount).toBe(0);
     expect(tasks.history).toHaveLength(1);
     expect(tasks.history[0]).toMatchObject({ label: "Critique", status: "done", tokensOut: 7 });
-    expect(pushToast).toHaveBeenCalledTimes(1);
-    expect(pushToast.mock.calls[0][0].message).toMatch(/Critique — done in/);
+    // The strip + the panel are THE outcome surfaces; completions never toast.
+    expect(pushToast).not.toHaveBeenCalled();
   });
 
-  it("an error frame throws the friendly wrap and archives an error task", async () => {
+  it("an error frame throws the friendly wrap, archives an error task, and badges durably — no failure toast (QC-37)", async () => {
     vi.stubGlobal("fetch", vi.fn(async () => streamResponse([{ error: "boom 500" }])));
     const tasks = useAiTasksStore();
     await expect(runAiFeatureStream({ action: "chat", task: true }))
       .rejects.toThrow(/Couldn't reach the LLM/);
     expect(tasks.runningCount).toBe(0);
     expect(tasks.history[0].status).toBe("error");
+    expect(pushToast).not.toHaveBeenCalled();
+    // Failure signals DURABLY: the titlebar chip badge holds until the panel
+    // is opened (viewing acknowledges).
+    expect(tasks.unseenErrors).toBe(1);
+    tasks.openPanel();
+    expect(tasks.unseenErrors).toBe(0);
+  });
+
+  it("togglePanel clears the durable error badge on OPEN (the chip + sidebar path — checker-caught)", async () => {
+    // The titlebar chip AND the sidebar item open via togglePanel, NOT
+    // openPanel — a per-place `panelOpen = true` left the red badge stuck.
+    const tasks = useAiTasksStore();
+    tasks.unseenErrors = 3;
+    tasks.panelOpen = false;
+    tasks.togglePanel();                 // opens
+    expect(tasks.panelOpen).toBe(true);
+    expect(tasks.unseenErrors).toBe(0);  // cleared on open, not just via openPanel
+    tasks.togglePanel();                 // closes — no spurious re-clear needed
+    expect(tasks.panelOpen).toBe(false);
+  });
+
+  it("a batch owner reports n/m through the handle; one cancel aborts the shared signal (QC-31)", async () => {
+    const tasks = useAiTasksStore();
+    const handle = tasks.start({ feature: "readerKnowledge", label: "Reader knowledge" });
+    handle.setProgress(3, 13);
+    expect(tasks.taskById(handle.id).progress).toEqual({ done: 3, total: 13 });
+    let aborted = false;
+    handle.signal.addEventListener("abort", () => { aborted = true; });
+    tasks.cancel(handle.id);
+    expect(aborted).toBe(true);
+    expect(tasks.runningCount).toBe(0);
+    expect(tasks.history[0].status).toBe("cancelled");
   });
 });
 

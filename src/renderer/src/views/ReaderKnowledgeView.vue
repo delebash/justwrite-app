@@ -165,15 +165,11 @@ async function runScan() {
   }
 }
 
-function cancelScan() {
-  if (myTask.value) aiTasks.cancel(myTask.value.id);
-  runningChapterId.value = null;
-}
-
 function clearAll() {
+  // QC-37 (toast law): the view empties in place — the cleared state is
+  // visible, so no toast.
   project.clearAllReaderKnowledge();
   selectedId.value = null;
-  ui.showToast({ message: "Reader-knowledge analysis cleared." });
 }
 
 function jumpToChapter(chapterId) {
@@ -199,13 +195,12 @@ function jumpToChapter(chapterId) {
                   v-tooltip.bottom="'Discard the saved analysis'">
           Clear
         </UiButton>
+        <!-- QC-31: no view-local Cancel — the progress strip below (and the
+             AI-tasks panel) own cancel, and one Cancel stops the WHOLE sweep. -->
         <UiButton v-if="!running" intent="primary" @click="runScan"
           v-tooltip.bottom="'Classify each chapter by dramatic irony — one LLM call per chapter'">
           <Icon name="Sparkle" :size="13" />
           {{ hasAny ? "Re-analyse" : "Analyse manuscript" }}
-        </UiButton>
-        <UiButton v-else intent="danger" @click="cancelScan">
-          <Icon name="Close" :size="13" /> Cancel
         </UiButton>
       </div>
     </header>

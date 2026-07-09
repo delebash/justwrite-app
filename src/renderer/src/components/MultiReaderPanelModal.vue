@@ -35,10 +35,9 @@ const cached = computed(() => ch.value?.multiReader || null);
 const error = ref("");
 const liveColumns = ref(null);  // null until first run; map { personaKey: 'running' | 'done' | 'error' }
 
-// Find every persona task currently running for THIS chapter. Each of
-// the 4 personas registers its own task in the global aiTasks store
-// (feature "multiReader" + meta.chapterId + meta.personaKey), so we
-// filter by chapter and let the modal aggregate.
+// Find this chapter's multi-reader task. QC-31 (#229): the whole 4-persona
+// panel is now ONE task entry (feature "multiReader" + meta.chapterId), not
+// four — so the filter matches that single running entry for this chapter.
 const myTasks = computed(() =>
   aiTasks.runningTasks.filter(
     (t) => t.feature === "multiReader" && t.meta?.chapterId === props.chapterId
