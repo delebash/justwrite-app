@@ -209,7 +209,21 @@ the DATABASE pin, reverted to b9899 by a DB reset, so the check never looks at t
 actually on disk); the fix (the user's design: "check the path and if path exe exist
 assume engine is installed") is fully specified in queue §9 "QC-13, the REAL leg".
 
-**⛔⛔ THE STATE AT THE FOURTH COMPACT (2026-07-09 — the CURRENT pickup):** the user:
+**GO (2026-07-09, post-fourth-compact — the armed "do it all" EXECUTING, unit by unit):**
+**Unit 2, the QC-13 backend fix, SHIPPED** — the engine install check now follows the
+DISK per the user's law ("check the path and if path exe exist assume engine is
+installed"): a new read-path resolver in `binary.py` (pinned build first, else the
+newest on-disk build holding the exe) feeds status/spawn/uninstall; `engine_status.build`
+reports the build actually on disk; install/update still target the pin (load-bearing:
+a disk-resolving write path would let a pin-bump Update skip its download and then
+sweep-delete the only engine); 5 new pytest cases incl. the user's exact disk-b9929/
+pin-b9899 state → installed:true, build b9929. Full record: queue doc §9 "QC-13 BACKEND
+BUILD RECORD". Gates: ruff + 425 pytest · probes · full smoke · checker verdict at the
+commit. Remaining units of the armed go, in order: B2-9 (§7.2) → DL-2 (its plan doc) →
+Batch 5 → Batch 6.
+
+**⛔⛔ THE STATE AT THE FOURTH COMPACT (2026-07-09 — superseded by the paragraph above;
+kept for the go's wording):** the user:
 *"ok so do b2-9 that we settled, dl-2 ok where wil you add the settings? do batches 5
 and 6, do it all"* + *"we need to compact first, so save then go"* — **a GO IS ARMED
 for right after the compact covering EVERYTHING left**: (1) ship the pending QC-14 redo

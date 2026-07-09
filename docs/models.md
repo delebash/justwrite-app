@@ -222,7 +222,10 @@ model and can't be changed here — the wrong pooling would quietly make search 
 > right beside its "Installed · build · gpu" line), and **Details** expands the rest (the
 > spawn log, the loaded-models list with its VRAM budget, the two keep-loaded knobs, and the
 > engine-binaries editor). An in-flight install's progress bar and any error stay visible
-> even with Details collapsed. **Test connection** on the Built-in provider reports its real
+> even with Details collapsed. The installed check reads your **disk**, not a stored
+> setting: if the engine folder holds the engine, the app reports it installed and shows
+> that folder's version — so resetting the app's data can never make an engine that is
+> already on disk read "Not installed". **Test connection** on the Built-in provider reports its real
 > health — engine installed, build, how many models the catalog holds — rather than probing
 > a server that hasn't loaded anything yet (models load on first use by design).
 >
