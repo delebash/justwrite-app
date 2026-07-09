@@ -228,8 +228,38 @@ small print + the "Also overwrite tasks I customized" checkbox, and both guards 
 → set the Default model in Edit). 4 new vitest cases (52/52) + the committed
 `scripts/b29-probe.mjs` live round-trip **8/8 zero page errors** (guard → keep-mode with
 a hand-customized survivor → embed leg → overwrite → built-in guard → full DB restore).
-Full record: queue doc §9 "B2-9 BUILD RECORD". Remaining units of the armed go, in
-order: DL-2 (its plan doc) → Batch 5 → Batch 6.
+Full record: queue doc §9 "B2-9 BUILD RECORD". **Unit 4, DL-2, SHIPPED next** —
+segmented (multithreaded) downloads per the committed plan: `stream_download` grew the
+segmented mode behind the capability gate (ranges + length + size ≥ floor, else the
+UNCHANGED single-stream path — off IS the rollback), workers write into ONE
+preallocated file at their offsets, per-segment retries RESUME from bytes written,
+sha256 after assembly (same contract), progress through the SAME seam so DL-1's bars
+just climb faster; both consumers (engine + models) ride `download_kwargs(config)`;
+the four DB-backed settings seeded additively (proven live on the dev DB) and
+surfaced in the engine panel's Details; 11 new pytest cases against a real in-process
+Range server (436 total); the live container check downloaded the 639 MB embed GGUF
+through the app path in ~12 s with the assembled sha equal to the upstream HF oid.
+Full record: queue doc §9 "DL-2 BUILD RECORD"; the plan doc's banner says BUILT.
+**Live QC while DL-2 built (answered first, tasks created, queued right after DL-2 —
+flagged sequencing): QC-20** (no row shows WHICH provider is the default after
+QuickSetup — display gap, the data is right), **QC-21** (the set-as-default dialog
+falsely says "no embedding model set" on the built-in — my B2-9 bug, reads the row
+field instead of the routing default; root cause confirmed), **QC-22** ("stopping the
+optimize pc does not work" — stuck at "stopping…" with a failed baseline trial;
+root-cause at the line before any fix), **QC-23** (the shared AI progress strip is
+missing from the Tasks-Lab surface — B4-2 rework suspected of dropping the AiTaskStrip
+mount, unverified until read). Records: queue §9.
+
+**⛔⛔ THE STATE AT THE FIFTH COMPACT (2026-07-09 — the CURRENT pickup):** the user
+asked "we need to compact are we at a good stoping point" — the answer was "after
+DL-2's verdict lands", it landed **PASS**, DL-2 committed+pushed with this save.
+**Units 1–4 of the fourth-compact "do it all" go are ALL SHIPPED**; the go REMAINS
+STANDING for: (1) the QC quartet #218–#221 (QC-20 default-provider indicator ·
+QC-21 false no-embedding line · QC-22 optimize stop · QC-23 the missing shared
+progress strip — flagged sequencing: before Batch 5), (2) Batch 5 (#193–#200),
+(3) Batch 6 (#201–#203). THE FULL PICKUP lives in the queue doc §9 **"THE
+FIFTH-COMPACT POINT"** — read that block first post-compact, then build in order
+under the standing disciplines. QC stays answer-first, always.
 
 **⛔⛔ THE STATE AT THE FOURTH COMPACT (2026-07-09 — superseded by the paragraph above;
 kept for the go's wording):** the user:

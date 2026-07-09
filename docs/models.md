@@ -231,8 +231,12 @@ model and can't be changed here — the wrong pooling would quietly make search 
 > and **Uninstall** once installed (uninstalling deletes only the engine binaries — your
 > downloaded models are kept; the Local engine panel carries the same Uninstall button
 > right beside its "Installed · build · gpu" line), and **Details** expands the rest (the
-> spawn log, the loaded-models list with its VRAM budget, the two keep-loaded knobs, and the
-> engine-binaries editor). An in-flight install's progress bar and any error stay visible
+> spawn log, the loaded-models list with its VRAM budget, the two keep-loaded knobs, the
+> **download settings**, and the engine-binaries editor). Downloads are **segmented** by
+> default: one file is fetched as several parallel connections, so one slow server path
+> can't cap the whole download — the settings let you turn it off, change how many
+> connections run, the size floor below which files stay single-stream, and the retries
+> per connection. An in-flight install's progress bar and any error stay visible
 > even with Details collapsed. The installed check reads your **disk**, not a stored
 > setting: if the engine folder holds the engine, the app reports it installed and shows
 > that folder's version — so resetting the app's data can never make an engine that is
