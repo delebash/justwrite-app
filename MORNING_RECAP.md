@@ -340,7 +340,8 @@ the user asks for a response, STOP the turn and answer (mid-turn text does not r
 them — 2026-07-09 lesson). The never-decide decree (twice-verbatim) is in the ⛔ #1
 block above.
 
-**Last code heads (both clean, pushed): runner `7727a61` · JW `0c72483`.** (History: QC
+**Last code heads (both clean, pushed): runner `82edf7e` · JW `aaefeb4` (the B5 ship).**
+(History: QC quintet runner `67acffd`/JW `0ea1383`, units 1–4 `7727a61`/`0c72483`, QC
 `1bea5f8`/JW `e65de3a`, DL-1 `cf50ce8`/`4051979`, B3R `e8e69a9`, B3 `3250258`, B2 `b1228fb`,
 B1 JW `167b399`.) **The providers-surface marathon is CLOSED: ROUNDs 1–19 all shipped and
 verified, the queue is EMPTY** — full records in
