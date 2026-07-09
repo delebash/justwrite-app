@@ -199,15 +199,28 @@ below the lede's Apply. Gates: runner ruff + 420 pytest · vitest 48/48 · build
 the NEW committed `scripts/switch-probe.mjs` 8/8 zero page errors · b4-probe 15/15 ·
 FULL smoke zero JS errors · rules-checker verdict at the commit. Full record: queue doc
 §9 "SWITCH-CLUSTER BUILD RECORD". **QC-13 + QC-14 + QC-19 then SHIPPED on the user's
-next bare "go":** QC-13 root-caused (useEngine's null pre-fetch state read as
-not-installed — now an honest "Checking the engine…" + Install gated on a FETCHED
-answer + a retry until one lands; if the box still shows the false line, the next
-evidence is the Settings → Logs line) · QC-14 (`.lu-fw-card-label` wraps — the
-nowrap/ellipsis truncation is gone) · QC-19 (every "Hardware-class default(s)" →
-**"Hardware/model class default(s)"**, the user's anchor label verbatim — kit strings,
-models.md, the probe; "Save for hardware class" kept, flagged). Full record: queue doc
-§9 "QC-13 + QC-14 + QC-19 BUILD RECORD". Still frozen: B2-9 · the DL-2 build ·
-Batches 5/6. The §9 QC queue stays LIVE — answer conversationally FIRST, always; when
+next bare "go"** (record: queue §9) — and the user's live QC then CORRECTED two of them:
+**QC-14 was REDONE** (my first read was wrong — the user meant the nav COLUMN is too
+wide because descriptions never wrap; the real fix is the 380px column cap in
+common/styles.css, probe-measured 380px/2-line wrap, screenshot sent) and **QC-13's REAL
+leg surfaced with user evidence**: their disk has `llamacpp/b9929` while the app says
+"Not installed" — root cause CONFIRMED at `binary.py:116` (the exe path is built from
+the DATABASE pin, reverted to b9899 by a DB reset, so the check never looks at the b9929
+actually on disk); the fix (the user's design: "check the path and if path exe exist
+assume engine is installed") is fully specified in queue §9 "QC-13, the REAL leg".
+
+**⛔⛔ THE STATE AT THE FOURTH COMPACT (2026-07-09 — the CURRENT pickup):** the user:
+*"ok so do b2-9 that we settled, dl-2 ok where wil you add the settings? do batches 5
+and 6, do it all"* + *"we need to compact first, so save then go"* — **a GO IS ARMED
+for right after the compact covering EVERYTHING left**: (1) ship the pending QC-14 redo
+diff (verdict-gated), (2) the QC-13 backend fix ("do it all" read as covering it —
+flagged), (3) B2-9 per §7.2, (4) the DL-2 build per its committed plan (settings answer:
+four DB-backed rows — segmentsEnabled/segmentCount/segmentMinBytes/segmentRetries — in
+the Local engine panel's Details area), (5) Batch 5 (#193–#200), (6) Batch 6
+(#201–#203). THE FULL PICKUP SCOPE, grounded + ordered, lives in the queue doc §9
+**"THE FOURTH-COMPACT POINT"** — read that block first, then §7.2/§7.4/the DL-2 plan/§0
+per unit as each builds. Nothing stays frozen except future QC (answer conversationally
+FIRST, always). The §9 QC queue stays LIVE — answer conversationally FIRST, always; when
 the user asks for a response, STOP the turn and answer (mid-turn text does not reach
 them — 2026-07-09 lesson). The never-decide decree (twice-verbatim) is in the ⛔ #1
 block above.

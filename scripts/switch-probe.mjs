@@ -82,18 +82,24 @@ check("SW0 QC-11/17: existing DB curated — rows removed, no stored engine defa
 await page.evaluate(() => { window.location.hash = "#/ai"; });
 await sleep(1200);
 
-// QC-14 ("wrap the text better now the control are very wide"): the nav card
-// labels WRAP — no nowrap/ellipsis truncation.
+// QC-14 ("the tasks where very wide becuase you did not wrap the text earlier"):
+// the nav COLUMN caps (≤ ~400px) so card text wraps early — one-line descriptions
+// must not drag the column to 40% of the window; a long description renders on
+// MULTIPLE lines.
 await page.evaluate(() => [...document.querySelectorAll(".lu-subnav a")].find((a) => /routing by feature/i.test(a.textContent))?.click());
 await sleep(900);
 const qc14 = await page.evaluate(() => {
-  const label = document.querySelector(".lu-fw-card-label");
-  if (!label) return { label: false };
-  const cs = getComputedStyle(label);
-  return { label: true, whiteSpace: cs.whiteSpace, overflow: cs.textOverflow };
+  const list = document.querySelector(".lu-fw-list");
+  const descs = [...document.querySelectorAll(".lu-fw-card-desc")];
+  const long = descs.find((d) => d.textContent.trim().length > 60);
+  const lines = long ? Math.round(long.getBoundingClientRect().height / parseFloat(getComputedStyle(long).lineHeight)) : 0;
+  return {
+    listWidth: list ? Math.round(list.getBoundingClientRect().width) : -1,
+    longDescLines: lines,
+  };
 });
-check("QC-14: feature-card labels wrap (no nowrap/ellipsis truncation)",
-  qc14.label && qc14.whiteSpace !== "nowrap" && qc14.overflow !== "ellipsis", JSON.stringify(qc14));
+check("QC-14: nav column ≤ 400px and a long description wraps onto multiple lines",
+  qc14.listWidth > 0 && qc14.listWidth <= 400 && qc14.longDescLines >= 2, JSON.stringify(qc14));
 await page.screenshot({ path: `${OUT}/qc14-routing.png` });
 
 await page.evaluate(() => [...document.querySelectorAll(".lu-subnav a")].find((a) => /providers/i.test(a.textContent))?.click());
