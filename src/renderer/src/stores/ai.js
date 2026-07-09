@@ -74,8 +74,9 @@ export const useAiStore = defineStore("ai", {
       // Per-feature LLM pins. Each key is a feature id (chat | critique |
       // entitySweep | writerAI | …); each value is null (= inherit the global
       // defaultLlmId) or { providerId, model?, role? }. Mirrors the routing
-      // tables; the chat panel writes featurePins.chat for in-thread model
-      // switching, AiFeatureChip writes per-feature pins — both persist via
+      // tables. Since B5-1 (§7.2) NO renderer surface writes pins — the chip
+      // is read-only provenance; pins are edited only in the shared Feature
+      // Workbench. The store still mirrors them for guards; they persist via
       // /v1/ai/routing.
       featurePins: routing?.featurePins ?? { chat: null, critique: null, entitySweep: null, writerAI: null },
       // When true, services/rag/autoIndex.js silently embeds new/changed

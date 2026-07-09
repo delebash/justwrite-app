@@ -37,7 +37,27 @@ export const AiDelMark = Mark.create({
   name: "aiDel",
   inclusive: false,
   excludes: "aiIns",
-  addAttributes() { return { changeId: changeIdAttr }; },
+  // B5-6 ROOT CAUSE (#42): StarterKit's Strike mark ALSO parses <del> tags,
+  // and at default priority it won — every AI original round-tripped into a
+  // plain <s> strike, so accept/reject found no aiDel ranges and the struck
+  // text stayed behind forever (the user's "it leaves a strike through").
+  // Higher priority puts this rule first; bare <del>/<s> still parse as
+  // Strike.
+  priority: 1000,
+  addAttributes() {
+    return {
+      changeId: changeIdAttr,
+      // B5-6 (#42): accepting with "keep strikethrough" RESOLVES the del mark
+      // instead of deleting its text — the original stays visible as
+      // track-changes history. Resolved dels are excluded from the pending-
+      // changes machinery; "Clear all strikethroughs" removes them.
+      resolved: {
+        default: false,
+        parseHTML: (el) => el.hasAttribute("data-ai-resolved"),
+        renderHTML: (attrs) => (attrs.resolved ? { "data-ai-resolved": "" } : {}),
+      },
+    };
+  },
   parseHTML() { return [{ tag: "del[data-ai-del]" }]; },
   renderHTML({ HTMLAttributes }) {
     return ["del", { "data-ai-del": "", class: "ai-del", ...HTMLAttributes }, 0];
@@ -86,12 +106,18 @@ function buildDiffHtml(changeId, originalHtml, newHtml) {
 
 // Walk the doc for every position covered by a mark of the given type
 // with a matching change-id. Returns an array of { from, to } ranges
-// (text-level, not block-level), sorted ascending.
-function findRanges(doc, markName, changeId) {
+// (text-level, not block-level), sorted ascending. Resolved (kept-
+// strikethrough) dels are excluded unless `includeResolved` — they are
+// history, not pending changes.
+function findRanges(doc, markName, changeId, { includeResolved = false } = {}) {
   const ranges = [];
   doc.descendants((node, pos) => {
     if (!node.isText) return;
-    const mark = node.marks.find((m) => m.type.name === markName && (!changeId || m.attrs.changeId === changeId));
+    const mark = node.marks.find(
+      (m) => m.type.name === markName
+        && (!changeId || m.attrs.changeId === changeId)
+        && (includeResolved || !m.attrs.resolved),
+    );
     if (mark) ranges.push({ from: pos, to: pos + node.nodeSize });
   });
   return ranges;
@@ -169,17 +195,31 @@ export const AiDiff = Extension.create({
           return chain().insertContentAt(pos, html).run();
         },
 
-      // Accept a single change: keep <ins> content (unwrap mark), drop
-      // <del> ranges entirely.
+      // Accept a single change: keep <ins> content (unwrap mark). The
+      // original either DROPS (replace mode) or stays as a RESOLVED
+      // strikethrough (keepOriginal — the #42 track-changes setting).
       acceptChange:
-        (changeId) =>
+        (changeId, { keepOriginal = false } = {}) =>
         ({ tr, state, dispatch }) => {
           const ins = mergeRanges(findRanges(state.doc, "aiIns", changeId));
-          const del = mergeRanges(findRanges(state.doc, "aiDel", changeId)).map((r) => expandRangeToContainingBlock(state.doc, r));
-          // Delete <del> ranges from highest to lowest position so earlier
-          // ones don't shift later ones.
-          for (const r of [...del].sort((a, b) => b.from - a.from)) {
-            tr.delete(tr.mapping.map(r.from), tr.mapping.map(r.to));
+          if (keepOriginal) {
+            // Mark the original resolved in place — text-level ranges (a
+            // resolution marks text; only deletions expand to blocks).
+            // remove-then-add: aiDel's custom `excludes: "aiIns"` drops the
+            // default SELF-exclusion, so a bare addMark would NEST a resolved
+            // mark inside the pending one and the change would stay pending.
+            const delType = state.schema.marks.aiDel;
+            for (const r of mergeRanges(findRanges(state.doc, "aiDel", changeId))) {
+              tr.removeMark(r.from, r.to, delType);
+              tr.addMark(r.from, r.to, delType.create({ changeId, resolved: true }));
+            }
+          } else {
+            const del = mergeRanges(findRanges(state.doc, "aiDel", changeId)).map((r) => expandRangeToContainingBlock(state.doc, r));
+            // Delete <del> ranges from highest to lowest position so earlier
+            // ones don't shift later ones.
+            for (const r of [...del].sort((a, b) => b.from - a.from)) {
+              tr.delete(tr.mapping.map(r.from), tr.mapping.map(r.to));
+            }
           }
           // Unwrap surviving <ins> ranges (positions remapped through tr).
           const insType = state.schema.marks.aiIns;
@@ -209,20 +249,21 @@ export const AiDiff = Extension.create({
         },
 
       // Bulk-accept / reject every pending change in the document.
+      // (Resolved strikethroughs are history — not "pending", not touched.)
       acceptAllChanges:
-        () =>
+        (opts = {}) =>
         ({ chain, state }) => {
           const ids = new Set();
           state.doc.descendants((node) => {
             for (const m of node.marks) {
-              if (m.type.name === "aiIns" || m.type.name === "aiDel") {
+              if ((m.type.name === "aiIns" || m.type.name === "aiDel") && !m.attrs.resolved) {
                 if (m.attrs.changeId) ids.add(m.attrs.changeId);
               }
             }
           });
           if (!ids.size) return false;
           let c = chain();
-          for (const id of ids) c = c.acceptChange(id);
+          for (const id of ids) c = c.acceptChange(id, opts);
           return c.run();
         },
 
@@ -232,7 +273,7 @@ export const AiDiff = Extension.create({
           const ids = new Set();
           state.doc.descendants((node) => {
             for (const m of node.marks) {
-              if (m.type.name === "aiIns" || m.type.name === "aiDel") {
+              if ((m.type.name === "aiIns" || m.type.name === "aiDel") && !m.attrs.resolved) {
                 if (m.attrs.changeId) ids.add(m.attrs.changeId);
               }
             }
@@ -242,19 +283,59 @@ export const AiDiff = Extension.create({
           for (const id of ids) c = c.rejectChange(id);
           return c.run();
         },
+
+      // B5-6 (#42): "we need a way to easily remove all strike throughs to
+      // clean up the chapter". Deletes EVERY strikethrough — resolved
+      // history, pending originals, AND plain <s> strikes (the pre-fix AI
+      // runs left originals as plain Strike marks — see the priority note
+      // above — so the user's existing chapters carry those). Unwraps the
+      // <ins> partners of pending ones (deleting a pending original IS
+      // accepting it). Ins-only changes (continuations) stay pending.
+      clearAllStrikethroughs:
+        () =>
+        ({ tr, state, dispatch }) => {
+          const del = mergeRanges([
+            ...findRanges(state.doc, "aiDel", null, { includeResolved: true }),
+            ...findRanges(state.doc, "strike", null),
+          ]).map((r) => expandRangeToContainingBlock(state.doc, r));
+          if (!del.length) return false;
+          // Which changes lose their original → their ins unwraps below.
+          const delIds = new Set();
+          state.doc.descendants((node) => {
+            for (const m of node.marks) {
+              if (m.type.name === "aiDel" && m.attrs.changeId) delIds.add(m.attrs.changeId);
+            }
+          });
+          const insRanges = [];
+          state.doc.descendants((node, pos) => {
+            if (!node.isText) return;
+            const m = node.marks.find((x) => x.type.name === "aiIns" && delIds.has(x.attrs.changeId));
+            if (m) insRanges.push({ from: pos, to: pos + node.nodeSize });
+          });
+          for (const r of [...del].sort((a, b) => b.from - a.from)) {
+            tr.delete(tr.mapping.map(r.from), tr.mapping.map(r.to));
+          }
+          const insType = state.schema.marks.aiIns;
+          for (const r of mergeRanges(insRanges)) {
+            tr.removeMark(tr.mapping.map(r.from), tr.mapping.map(r.to), insType);
+          }
+          if (dispatch) dispatch(tr);
+          return true;
+        },
     };
   },
 });
 
 // Probe the editor state for whether any pending changes exist — drives
 // the visibility of the "Accept all / Reject all" header buttons.
+// Resolved (kept) strikethroughs are history, not pending — excluded.
 export function hasPendingChanges(editor) {
   if (!editor) return false;
   let found = false;
   editor.state.doc.descendants((node) => {
     if (found) return false;
     for (const m of node.marks) {
-      if (m.type.name === "aiIns" || m.type.name === "aiDel") { found = true; return false; }
+      if ((m.type.name === "aiIns" || m.type.name === "aiDel") && !m.attrs.resolved) { found = true; return false; }
     }
   });
   return found;
@@ -268,11 +349,27 @@ export function listPendingChanges(editor) {
   const out = [];
   editor.state.doc.descendants((node, pos) => {
     for (const m of node.marks) {
-      if ((m.type.name === "aiIns" || m.type.name === "aiDel") && m.attrs.changeId && !seen.has(m.attrs.changeId)) {
+      if ((m.type.name === "aiIns" || m.type.name === "aiDel") && !m.attrs.resolved
+          && m.attrs.changeId && !seen.has(m.attrs.changeId)) {
         seen.add(m.attrs.changeId);
         out.push({ changeId: m.attrs.changeId, pos });
       }
     }
   });
   return out;
+}
+
+// Any strikethrough at all — pending original, resolved history, or a plain
+// <s> strike (the pre-fix AI leftovers) — drives the "Clear all
+// strikethroughs" affordance's enablement (#42).
+export function hasStrikethroughs(editor) {
+  if (!editor) return false;
+  let found = false;
+  editor.state.doc.descendants((node) => {
+    if (found) return false;
+    for (const m of node.marks) {
+      if (m.type.name === "aiDel" || m.type.name === "strike") { found = true; return false; }
+    }
+  });
+  return found;
 }

@@ -27,6 +27,11 @@ export const DEFAULT_EDITOR_SETTINGS = {
   lineSpacing: null,       // 1 | 1.3 | 1.4 | 1.5 | 2 | null
   paragraphSpacing: null,  // 0 | 0.5 | 1 | 1.5 | 2 | null  (em)
   spellCheck: true,
+  // B5-6 (#42): accepting an AI change keeps the original as a strikethrough
+  // (track-changes history, removed later via "Clear all strikethroughs") vs
+  // replacing it outright. Default = keep, per the user's "it leaves a strike
+  // through of the original text, this is good".
+  keepStrikethroughOnAccept: true,
 };
 
 export const LINE_SPACING_OPTIONS = [1, 1.3, 1.4, 1.5, 2];

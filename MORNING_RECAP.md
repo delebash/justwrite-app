@@ -280,13 +280,48 @@ layout and green · dl2+switch probes · FULL smoke zero JS errors · rules-chec
 verdict at the commit. Full record: queue doc §9 "QC QUINTET BUILD RECORD" (all flags
 + both audit tables).
 
-**⛔⛔ THE STATE AT THE SIXTH COMPACT (2026-07-09 — the CURRENT pickup):** the user:
-*"when you get to a stopping point we should compact"* — the QC quintet ship IS that
-stopping point; this save ships with it. **Units 1–4 + the QC quintet are ALL
-SHIPPED**; the go REMAINS STANDING for: (1) **Batch 5** (#193–#200), (2) **Batch 6**
-(#201–#203). THE FULL PICKUP lives in the queue doc §9 **"THE SIXTH-COMPACT POINT"**
-— read that block first post-compact, then build in order under the standing
-disciplines. QC stays answer-first, always.
+**GO (2026-07-09, the standing "do it all" continuing post-sixth-compact) — BATCH 5
+SHIPPED** (tasks #193–#200, one verdict-gated cluster). **B5-1** (§7.2): the per-surface
+model pickers are GONE — ChatPanel's bottom picker row deleted, and the header/menu chips
+became READ-ONLY "runs on" provenance chips fed by a new runner endpoint
+`GET /v1/ai/resolved-route` that mirrors the run path via its own functions (the
+duplicated override block in `chat`/`stream_chat` extracted into one `resolve_route`);
+clicking a chip opens the Tasks tab. The grounding find: the chat services resolved
+provider/model CLIENT-side from legacy pins and BYPASSED the task preset — both now ride
+the server cascade. `useFeaturePin.js` + `ProviderSelect.vue` deleted. **B5-2**: the
+stale-surface audit (11-row findings table in the record) — fixes incl. the dead
+`.jw-btn` selectors that had silently stopped styling sidebar buttons (kit renders
+`.ui-btn`), stale "Settings → AI providers" copy, "Writers Lab" copy pointing at the
+removed view. **B5-3**: "New chat" + a confirming "Delete chat" (real server delete;
+delete-current interpretation FLAGGED — say the word if you want a multi-chat list).
+**B5-4**: the Ask-the-book nav row reads accent + semibold in both sidebar variants.
+**B5-5**: right-click a selection in the scene editor → the AI actions + line edits +
+Cut/Copy/Paste/comment; a bare right-click keeps the native menu (spell-check stays).
+**B5-6 with THE #42 ROOT CAUSE**: StarterKit's Strike mark parsed `<del>` and outranked
+`aiDel`, so every AI original became a plain `<s>` strike accept couldn't remove — THAT
+is why accepting "left a strikethrough" on your box. Fixed (parse priority), then built
+your asks on top: a "Keep original as strikethrough when accepting" editor setting
+(default ON per your words), resolved strikes excluded from pending, "Clear all
+strikethroughs" on the AI menu (also clears the pre-fix `<s>` leftovers your chapters
+carry), and read mode hides all struck text. **B5-7**: the completion toast's word is
+"View task queue", and editor runs show their notice on the scene editor's BOTTOM BAR
+(right of the word count) instead of a toast, with ✕ dismiss. Gates: runner ruff + 442
+pytest · JW server 76 · vitest 57/57 · build:vite · the NEW committed
+`scripts/b5-probe.mjs` 21/21 zero page errors (every §0 sentence asserted live; DB
+restored to the byte) · b4 + b29 + qc-quintet + switch + dl2 probes · FULL smoke zero JS
+errors · rules-checker verdict at the commit. Full record: queue doc §9 "B5 BUILD
+RECORD". **QC-25 arrived live mid-build** (engine "Update available" after a DB reset
+under an installed b9934) — ANSWERED with the root cause at the line (update_check reads
+the reseeded PIN, lifecycle.py:487; the pin-keyed Update would DOWNGRADE), recorded in
+queue §9, task #223 queued AFTER B5 per your word.
+
+**⛔⛔ THE STATE AT THE SEVENTH COMPACT (2026-07-09 — the CURRENT pickup):** the user:
+*"when you get to a stoping point we need to stop … compact i mean"* — the B5 ship IS
+that stopping point; this save ships with it. **Units 1–4 + the QC quintet + Batch 5 are
+ALL SHIPPED**; the go REMAINS STANDING for: (1) **QC-25** (task #223, the user's "add to
+task after b5"), (2) **Batch 6** (#201–#203). THE FULL PICKUP lives in the queue doc §9
+**"THE SEVENTH-COMPACT POINT"** — read that block first post-compact, then build in
+order under the standing disciplines. QC stays answer-first, always.
 
 **⛔⛔ THE STATE AT THE FOURTH COMPACT (2026-07-09 — superseded by the paragraph above;
 kept for the go's wording):** the user:

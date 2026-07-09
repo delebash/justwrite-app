@@ -82,8 +82,6 @@ function buildEmbedQuery(question, history) {
  * @param {number}      [opts.k=6]            — number of chunks to retrieve
  * @param {AbortSignal} [opts.signal]
  * @param {Function}    [opts.onDelta]         — (delta: string, content: string) => void
- * @param {object}      [opts.llmProvider]     — override; defaults to ai.llmProvider
- * @param {string}      [opts.llmModel]        — override
  * @param {object}      [opts.embedProvider]   — override; defaults to ai.embeddingProvider
  * @param {string}      [opts.embedModel]      — override
  * @returns {Promise<{ answer: string, citations: Array<{ index: number, chunk: object, score: number }>, usage: object | null }>}
@@ -94,8 +92,6 @@ export async function askManuscript({
   k = 6,
   signal,
   onDelta,
-  llmProvider,
-  llmModel,
   embedProvider,
   embedModel,
   task,
@@ -109,18 +105,16 @@ export async function askManuscript({
   const ai      = useAiStore();
   const project = useProjectStore();
 
-  const resolvedLlmProvider   = llmProvider   || ai.providerForFeature("chat");
-  const resolvedLlmModel      = llmModel      || ai.modelForFeature("chat") || resolvedLlmProvider?.defaultModel;
+  // The LLM provider/model is NOT resolved here (B5-1, §7.2): the server run
+  // path owns it (the chat task's preset → dispatch fallback). A client-side
+  // pin resolution here used to silently bypass the task preset. Embeddings
+  // are a different rail — the embed call below is client-orchestrated, so
+  // its provider still resolves here.
   const resolvedEmbedProvider = embedProvider || ai.embeddingProvider;
 
-  if (!resolvedLlmProvider) {
-    throw new Error(
-      "No LLM provider configured. Open Settings → AI providers and set a chat provider.",
-    );
-  }
   if (!resolvedEmbedProvider) {
     throw new Error(
-      "No embedding provider configured. Open Settings → AI providers and set an embedding provider.",
+      "No embedding provider configured. Open AI Settings and set an embedding provider.",
     );
   }
 
@@ -131,8 +125,7 @@ export async function askManuscript({
   const st = await status(projectId);
   if (!st.exists) {
     throw new Error(
-      "No index built yet — open Settings → AI providers, configure an embedding " +
-      "provider, then use the RAG panel to build the manuscript index.",
+      "No index built yet — open Ask the book and build the manuscript index first.",
     );
   }
 
@@ -174,14 +167,14 @@ export async function askManuscript({
 
   // ── 6. Stream the answer ─────────────────────────────────────────────────
   // Server renders the "chat" prompt from {{question}} + {{excerpts}}, prepends
-  // history, resolves the chat provider/model, and records usage (host sink).
+  // history, resolves the chat provider/model (task preset → default — no
+  // client override), and records usage (host sink).
   const ragMeta = { ...(meta || {}), question: question.slice(0, 120) };
   const { content: answer, usage } = await runAiFeatureStream({
     action: "chat", feature: "chat",
     variables: { question, excerpts: formatExcerpts(hits) },
     history: recentHistory, temperature: 0.3,
     signal, onDelta,
-    provider: resolvedLlmProvider, model: resolvedLlmModel,
     meta: ragMeta,
     task: task || { label: "Ask the book", meta: ragMeta },
   });

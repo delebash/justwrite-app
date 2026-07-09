@@ -103,8 +103,6 @@ function buildEmbedQuery(question, history, character) {
  * @param {number} [opts.k=6]
  * @param {AbortSignal} [opts.signal]
  * @param {(d,c)=>void} [opts.onDelta]
- * @param {object} [opts.llmProvider]
- * @param {string} [opts.llmModel]
  * @param {object} [opts.embedProvider]
  * @param {string} [opts.embedModel]
  */
@@ -115,8 +113,6 @@ export async function askAsCharacter({
   k = 6,
   signal,
   onDelta,
-  llmProvider,
-  llmModel,
   embedProvider,
   embedModel,
   task,
@@ -132,19 +128,20 @@ export async function askAsCharacter({
   if (!character) throw new Error("Character not found.");
   const extras = project.characterExtras?.[characterId] || null;
 
-  const resolvedLlmProvider = llmProvider || ai.providerForFeature("characterChat") || ai.providerForFeature("chat");
-  const resolvedLlmModel = llmModel || ai.modelForFeature("characterChat") || ai.modelForFeature("chat") || resolvedLlmProvider?.defaultModel;
+  // The LLM provider/model is NOT resolved here (B5-1, §7.2): the server run
+  // path owns it (the characterChat task's preset → dispatch fallback). Only
+  // the embedding rail resolves client-side (the embed call below is
+  // client-orchestrated).
   const resolvedEmbedProvider = embedProvider || ai.embeddingProvider;
 
-  if (!resolvedLlmProvider) throw new Error("No LLM provider configured. Open Settings → AI providers and set a chat provider.");
-  if (!resolvedEmbedProvider) throw new Error("No embedding provider configured. Open Settings → AI providers and set an embedding provider.");
+  if (!resolvedEmbedProvider) throw new Error("No embedding provider configured. Open AI Settings and set an embedding provider.");
 
   const resolvedEmbedModel = embedModel || ai.embeddingModelFor(resolvedEmbedProvider);
 
   const projectId = project.activeProjectId;
   const st = await status(projectId);
   if (!st.exists) {
-    throw new Error("No index built yet — open Settings → AI providers, configure an embedding provider, then use the RAG panel to build the manuscript index.");
+    throw new Error("No index built yet — open Ask the book and build the manuscript index first.");
   }
 
   const embedQuery = buildEmbedQuery(question, history, character);
@@ -173,7 +170,8 @@ export async function askAsCharacter({
 
   // Server renders the "characterChat" prompt (framing + RULES) from
   // {{characterName}} + {{characterProfile}} + {{question}} + {{excerpts}},
-  // prepends history, resolves the provider/model, and records usage.
+  // prepends history, resolves the provider/model (task preset → default —
+  // no client override), and records usage.
   const chatMeta = { ...(meta || {}), characterId, characterName: character.name };
   const { content: answer, usage } = await runAiFeatureStream({
     action: "characterChat", feature: "characterChat",
@@ -185,7 +183,6 @@ export async function askAsCharacter({
     },
     history: recentHistory, temperature: 0.7,
     signal, onDelta,
-    provider: resolvedLlmProvider, model: resolvedLlmModel,
     meta: chatMeta,
     task: task || { label: "Character chat", meta: chatMeta },
   });

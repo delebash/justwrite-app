@@ -67,7 +67,7 @@ async function run() {
   phase.value = "";
   const provider = ai.embeddingProvider;
   if (!provider) {
-    error.value = "No embedding provider configured. Set one in Settings → AI providers.";
+    error.value = "No embedding provider configured. Set one in AI Settings.";
     return;
   }
   if (!ai.embeddingModelFor(provider)) {

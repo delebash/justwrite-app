@@ -2,25 +2,23 @@
 // Manuscript-RAG chat panel.
 //
 // Slide-in panel from the right. Maintains a multi-turn thread per project,
-// persisted to IDB so closing the panel doesn't lose context. Each user
-// question is embedded (with the prior user turn prepended for pronoun
-// /entity context), top-K scenes are retrieved, and the LLM streams an
-// answer with citations. "New thread" clears.
+// persisted server-side (/v1/chat) so closing the panel doesn't lose context.
+// Each user question is embedded (with the prior user turn prepended for
+// pronoun/entity context), top-K scenes are retrieved, and the LLM streams an
+// answer with citations.
 
 import { ref, computed, watch, nextTick, onBeforeUnmount } from "vue";
 import { useRouter } from "vue-router";
 import { useProjectStore } from "../stores/project.js";
-import { useAiStore } from "../stores/ai.js";
-import { useAiTasksStore, AiTaskStrip, EmptyState, HelpTrigger, Icon, UiButton, UiTextarea, UiSelect } from "@delebash/llm-ui";
+import { useAiTasksStore, AiTaskStrip, EmptyState, HelpTrigger, Icon, UiButton, UiTextarea, UiSelect, confirmDialog } from "@delebash/llm-ui";
 import { useUiStore } from "../stores/ui.js";
 import { askManuscript } from "../services/rag/chat.js";
 import { askAsCharacter } from "../services/rag/characterChat.js";
 import { indexStatus } from "../services/rag/indexer.js";
 import { autoIndexRunning } from "../services/rag/autoIndex.js";
-import { fetchThread, putThread } from "../services/chatApi.js";
+import { fetchThread, putThread, deleteThread } from "../services/chatApi.js";
 import IndexBuildModal from "./IndexBuildModal.vue";
 import AiFeatureChip from "./AiFeatureChip.vue";
-import { INHERIT, useFeaturePin } from "../composables/useFeaturePin.js";
 
 // One thread per (project, mode, character) combo, persisted server-side
 // (/v1/chat) so closing the panel doesn't lose context. Book mode uses an
@@ -58,7 +56,6 @@ const emit = defineEmits(["update:modelValue"]);
 
 const router = useRouter();
 const project = useProjectStore();
-const ai = useAiStore();
 const aiTasks = useAiTasksStore();
 const ui = useUiStore();
 
@@ -72,29 +69,15 @@ const running = computed(() => !!myTask.value);
 function isAbort(e) { return e?.name === "AbortError" || /abort/i.test(e?.message || ""); }
 
 const question = ref("");
-// "book" = Ask the manuscript (the original chat). "character" = talk
+// "book" = Ask the book (the original chat). "character" = talk
 // to a specific character in the writer's cast (first-person, in-voice).
 const chatMode = ref("book");
 const selectedCharacterId = ref(null);
 
-// Per-thread provider+model picker — bound to the ACTIVE feature's pin
-// (chat | characterChat; the run routes on the same key) through the ONE
-// shared binding (useFeaturePin) the header AiFeatureChip also rides. This
-// row used to duplicate the chip's binding logic AND was hard-bound to the
-// `chat` pin even in character mode, silently editing the wrong feature —
-// both fixed by the C5 convergence.
-const activeChatFeature = computed(() => (chatMode.value === "character" ? "characterChat" : "chat"));
-const {
-  pinnedProviderId: chatProviderId,
-  pinnedModel: chatPinnedModel,
-  providerOptions: chatProviderOptions,
-  modelOptions: chatModelOptions,
-  setProvider: setChatProvider,
-  setModel: setChatModel,
-  refresh: refreshChatModels,
-  ensureModels: ensureChatModels,
-} = useFeaturePin(activeChatFeature);
-const showModelPicker = computed(() => ai.readyLlmProviders.length > 1);
+// The in-panel provider+model PICKER is gone (B5-1, §7.2 — the user: "i am
+// not sure if we even want a provider model selector in the app besides what
+// we have for task and feature" → REMOVE). The header AiFeatureChip is now a
+// read-only "runs on" provenance chip; routing is edited on the Tasks tab.
 const MODE_OPTIONS = [
   { value: "book", label: "Ask the book" },
   { value: "character", label: "Talk to a character" },
@@ -133,16 +116,6 @@ const open = computed({
   get: () => props.modelValue,
   set: (v) => emit("update:modelValue", v),
 });
-
-// When the panel opens (or the mode switches) with a pre-existing pin on
-// the ACTIVE feature, make sure the model list is populated.
-// ensureChatModels only hits the network when the cache is empty — repeat
-// opens are free. (Watches the ACTIVE feature's pin, not a hardcoded
-// `chat` — the same character-mode fix as the picker itself.)
-watch([open, chatProviderId], ([v, pid]) => {
-  if (!v) return;
-  if (pid && pid !== INHERIT) ensureChatModels(pid);
-}, { immediate: true });
 
 // Pre-scoping: openChatPanelFor() stages a target on the ui store and
 // opens the panel. Watching the target itself (not `open`) means the
@@ -269,11 +242,31 @@ async function ask() {
   }
 }
 
-function newThread() {
+// "New chat" (#46 — renamed from "New thread"): clear and start fresh.
+function newChat() {
   thread.value = [];
   question.value = "";
   // Wipe the persisted copy too, so the empty state survives a panel close.
   persistThread(project.activeProjectId, chatMode.value, selectedCharacterId.value, []);
+  nextTick(() => inputRef.value?.focus());
+}
+
+// "Delete chat" (#46): remove this conversation's stored record entirely —
+// destructive, so it confirms first. One chat per (project, mode, character)
+// combo today, so this deletes the CURRENT combo's conversation.
+async function deleteChat() {
+  const yes = await confirmDialog({
+    title: "Delete this chat?",
+    message: chatMode.value === "character"
+      ? `Delete the saved conversation with ${selectedCharacter.value?.name || "this character"}? This can't be undone.`
+      : "Delete the saved Ask-the-book conversation? This can't be undone.",
+    confirmLabel: "Delete chat",
+    danger: true,
+  });
+  if (!yes) return;
+  thread.value = [];
+  question.value = "";
+  deleteThread({ projectId: project.activeProjectId, mode: chatMode.value, characterId: selectedCharacterId.value });
   nextTick(() => inputRef.value?.focus());
 }
 
@@ -298,7 +291,7 @@ function onDocKeydown(e) {
 //     panel is open would immediately close it before its own handler ran.
 //   - [role="dialog"]    — portaled modals (IndexBuildModal via AppModal)
 //     teleport outside the panel; clicks inside them aren't "outside".
-//   - .jw-select-content / [data-reka-popper-content-wrapper] — Reka Select
+//   - .ui-select-content / [data-reka-popper-content-wrapper] — Reka Select
 //     popover content (character/model pickers) is portaled outside panelRef.
 function onDocClick(e) {
   if (!open.value) return;
@@ -306,7 +299,7 @@ function onDocClick(e) {
   if (!target || !panelRef.value) return;
   if (panelRef.value.contains(target)) return;
   if (target.closest?.("[data-chat-toggle]")) return;
-  if (target.closest?.('[role="dialog"], [role="listbox"], .jw-select-content, [data-reka-popper-content-wrapper]')) return;
+  if (target.closest?.('[role="dialog"], [role="listbox"], .ui-select-content, [data-reka-popper-content-wrapper]')) return;
   close();
 }
 document.addEventListener("keydown", onDocKeydown);
@@ -389,8 +382,11 @@ defineExpose({ open: () => { open.value = true; }, close });
             <span class="cp-indexing-dot"></span> indexing…
           </span>
           <span class="cp-status-spacer"></span>
-          <UiButton v-if="hasThread" intent="ghost" size="small" @click="newThread" v-tooltip.bottom="'Clear and start fresh'">
-            <Icon name="Plus" :size="11" /> New thread
+          <UiButton v-if="hasThread" intent="ghost" size="small" @click="newChat" v-tooltip.bottom="'Clear and start fresh'">
+            <Icon name="Plus" :size="11" /> New chat
+          </UiButton>
+          <UiButton v-if="hasThread" intent="ghost" size="small" @click="deleteChat" v-tooltip.bottom="'Delete this saved conversation'">
+            <Icon name="Trash" :size="11" /> Delete chat
           </UiButton>
           <UiButton intent="ghost" size="small" @click="indexModalMode = 'build'" v-tooltip.bottom="'Embed any scenes added or edited since last build'">
             <Icon name="Refresh" :size="11" /> Update
@@ -442,25 +438,6 @@ defineExpose({ open: () => { open.value = true; }, close });
 
         <!-- Question input (pinned to the bottom of the panel) -->
         <div class="cp-input-row">
-          <div v-if="showModelPicker" class="cp-model-pick">
-            <UiSelect :model-value="chatProviderId" @update:model-value="setChatProvider" :options="chatProviderOptions" />
-            <div style="display:flex;align-items:center;gap:4px;min-width:0">
-              <UiSelect
-                style="flex:1;min-width:0"
-                :model-value="chatPinnedModel"
-                @update:model-value="setChatModel"
-                :options="chatModelOptions"
-                :disabled="chatProviderId === INHERIT"
-                :placeholder="chatProviderId === INHERIT ? 'Follows default' : 'Model'" />
-              <UiButton
-                intent="ghost" size="small"
-                v-tooltip.bottom="'Refresh model list from the provider'"
-                :disabled="chatProviderId === INHERIT"
-                @click="refreshChatModels()">
-                <template #icon><Icon name="Refresh" :size="11" /></template>
-              </UiButton>
-            </div>
-          </div>
           <UiTextarea
             ref="inputRef"
             v-model="question"
@@ -618,12 +595,6 @@ defineExpose({ open: () => { open.value = true; }, close });
   flex-shrink: 0;
 }
 .cp-input-row:focus-within { border-color: var(--accent); }
-.cp-model-pick {
-  display: grid; grid-template-columns: 1fr 1fr; gap: 6px;
-  padding-bottom: 6px; margin-bottom: 2px;
-  border-bottom: 1px solid var(--border-soft);
-}
-.cp-model-pick :deep(.jw-select-trigger) { padding: 4px 8px; font-size: 12.5px; }
 .cp-textarea {
   width: 100%; box-sizing: border-box;
   appearance: none; border: 0; outline: 0; background: transparent; resize: none;

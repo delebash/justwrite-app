@@ -95,7 +95,7 @@ export async function buildOrUpdateIndex({ signal, onProgress, provider, model }
 
   const resolvedProvider = resolveProvider(ai, provider);
   if (!resolvedProvider) {
-    throw new Error("No embedding provider configured. Open Settings → AI providers and set an embedding provider.");
+    throw new Error("No embedding provider configured. Open AI Settings and set an embedding provider.");
   }
   const resolvedModel = resolveModel(ai, resolvedProvider, model);
   const projectId = project.activeProjectId;
@@ -126,7 +126,7 @@ export async function rebuildIndex({ signal, onProgress, provider, model } = {})
 
   const resolvedProvider = resolveProvider(ai, provider);
   if (!resolvedProvider) {
-    throw new Error("No embedding provider configured. Open Settings → AI providers and set an embedding provider.");
+    throw new Error("No embedding provider configured. Open AI Settings and set an embedding provider.");
   }
   const resolvedModel = resolveModel(ai, resolvedProvider, model);
   const projectId = project.activeProjectId;

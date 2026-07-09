@@ -849,7 +849,7 @@ function wbDropClass(kind, id) {
         <div v-if="n.section" class="nav-section" role="separator">{{ $t(n.section) }}</div>
         <div v-else class="nav-block">
           <button class="nav-item expandable"
-            :class="{ active: isNavActive(n) }"
+            :class="{ active: isNavActive(n), 'nav-item-accent': n.id === 'ask' }"
             :aria-expanded="n.expandable ? !!ui.expanded[n.id] : undefined"
             :aria-current="isNavActive(n) ? 'page' : undefined"
             :data-chat-toggle="n.id === 'ask' ? '' : null"
@@ -1082,7 +1082,7 @@ function wbDropClass(kind, id) {
     <button class="rail-toggle" :aria-label="$t('sidebar.tooltips.expandSidebar')" @click="ui.toggleSidebar"><Icon name="SidebarToggle" :size="15" /></button>
     <div style="height:8px" />
     <button v-for="n in NAV.filter(x => x.id)" :key="n.id"
-      class="rail-item" :class="{ active: isNavActive(n) }"
+      class="rail-item" :class="{ active: isNavActive(n), 'nav-item-accent': n.id === 'ask' }"
       v-tooltip.bottom="$t(n.label)" :aria-label="$t(n.label)"
       :aria-current="isNavActive(n) ? 'page' : undefined"
       :data-chat-toggle="n.id === 'ask' ? '' : null"
@@ -1115,15 +1115,15 @@ function wbDropClass(kind, id) {
 .wb-cat-chev.open { transform: rotate(90deg); color: var(--ink-2); }
 
 /* When the bespoke sidebar icon-buttons are rendered as UiButton, the
-   .jw-btn base and .jw-btn--ghost rules arrive later in the stylesheet
+   .ui-btn base and intent rules arrive later in the stylesheet
    and would override the sidebar-specific dimensions (padding, color).
    These double-class selectors restore the intended values without
    touching tokens.css. */
-.jw-btn.wb-cat-chev        { padding: 0; color: var(--muted); }
-.jw-btn.chapter-chev       { padding: 0; color: var(--muted); }
-.jw-btn.chapter-add-scene  { padding: 0; color: var(--muted); }
-.jw-btn.part-action        { padding: 0; color: var(--muted); }
-.jw-btn.nav-add            { padding: 0; color: var(--muted); }
+.ui-btn.wb-cat-chev        { padding: 0; color: var(--muted); }
+.ui-btn.chapter-chev       { padding: 0; color: var(--muted); }
+.ui-btn.chapter-add-scene  { padding: 0; color: var(--muted); }
+.ui-btn.part-action        { padding: 0; color: var(--muted); }
+.ui-btn.nav-add            { padding: 0; color: var(--muted); }
 
 .project-switcher-wrap { position: relative; }
 .project-switcher { cursor: pointer; text-align: left; width: calc(100% - 20px); }

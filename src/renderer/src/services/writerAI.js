@@ -64,7 +64,7 @@ const ACTIONS = {
 // Surgical, single-issue revisions a writer might run on a final pass —
 // line editing in the professional editorial sense (between developmental
 // editing and copyediting). Surfaced in the editor AI dropdown and in
-// Writers Lab under "Line edits".
+// the Tasks tab's Lab under "Line edits".
 
 export const PROSE_RULES = {
   "show-dont-tell": {
@@ -116,6 +116,15 @@ export const PROSE_RULES = {
 // that the three columns read distinctly without any feeling forced.
 export const VARIATION_TEMPERATURES = [0.55, 0.7, 0.95];
 
+
+// B5-7 (#43): every writerAI run is an editor run — its completion notice
+// renders on the scene editor's bottom bar, not as a toast. Stamp the task
+// meta so the kit's task store skips the success toast (failures still toast).
+function editorTask(task, fallbackLabel, meta) {
+  const base = task || { label: fallbackLabel, meta };
+  return { ...base, meta: { ...(base.meta || meta || {}), silentToast: true } };
+}
+
 async function runAction(actionKey, { html, signal, onDelta, meta, provider, model, temperature, task } = {}) {
   const action = ACTIONS[actionKey];
   if (!action) throw new Error(`Unknown action: ${actionKey}`);
@@ -130,7 +139,7 @@ async function runAction(actionKey, { html, signal, onDelta, meta, provider, mod
     variables: { passage: source, voiceCanon: voiceCanonVar() },
     temperature: typeof temperature === "number" ? temperature : undefined,
     signal, onDelta, provider, model, meta,
-    task: task || { label: `Writer assist · ${action.label}`, meta },
+    task: editorTask(task, `Writer assist · ${action.label}`, meta),
   });
   return { html: textToHtml(result.content), raw: result.content, usage: result.usage };
 }
@@ -171,7 +180,7 @@ export async function guidedContinue({ html, instruction, signal, onDelta, meta,
     variables: { passage: source, direction: trimmed, voiceCanon: voiceCanonVar() },
     temperature: typeof temperature === "number" ? temperature : undefined,
     signal, onDelta, provider, model, meta,
-    task: task || { label: "Writer assist · Continue", meta },
+    task: editorTask(task, "Writer assist · Continue (guided)", meta),
   });
   return { html: textToHtml(result.content), raw: result.content, usage: result.usage };
 }
@@ -188,7 +197,7 @@ export async function applyRule(ruleKey, { html, signal, onDelta, meta, provider
     variables: { passage: source, voiceCanon: voiceCanonVar() },
     temperature: typeof temperature === "number" ? temperature : undefined,
     signal, onDelta, provider, model, meta,
-    task: task || { label: `Writer assist · ${rule.label}`, meta },
+    task: editorTask(task, `Writer assist · ${rule.label}`, meta),
   });
   return { html: textToHtml(result.content), raw: result.content, usage: result.usage };
 }

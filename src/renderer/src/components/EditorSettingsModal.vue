@@ -79,6 +79,12 @@ function back() { emit("close"); }
         <span class="es-label">Spell check</span>
         <UiSegmented v-model="draft.spellCheck" :options="BOOL_OPTS" aria-label="Spell check" />
       </div>
+
+      <div class="es-row">
+        <span class="es-label">Keep original as strikethrough when accepting an AI change</span>
+        <UiSegmented v-model="draft.keepStrikethroughOnAccept" :options="BOOL_OPTS"
+          aria-label="Keep original as strikethrough when accepting an AI change" />
+      </div>
     </div>
 
     <template #footer>

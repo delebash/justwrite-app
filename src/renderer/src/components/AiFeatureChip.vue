@@ -1,19 +1,17 @@
 <script setup>
-// AiFeatureChip — JustWrite's STORE BINDING for the kit's presentational
-// LuFeatureChip (C5). Same name + props as the pre-C5 component so its ~20
-// consumers stay untouched. ALL chip/popover/backdrop GUI lives in the kit;
-// this file only maps the ai store's resolution + pin state onto the kit's
-// props/events (through useFeaturePin — the same binding ChatPanel's inline
-// picker uses) and supplies the manage-routing foot link.
-//
-// Two states only:
-//   - Inherit default → no feature pin; the chip shows the global default.
-//   - Pinned → the chip shows (and edits) the feature's own provider+model.
-// Writes go through ai.setFeaturePin — the same backing store Settings edits.
+// AiFeatureChip — JustWrite's binding for the kit's LuFeatureChip, now in
+// READ-ONLY provenance mode (B5-1, §7.2: per-surface model pickers removed;
+// "The Tasks tab + Feature workbench remain the only editors"). Same name +
+// props as before so its ~19 consumers stay untouched — but the chip no
+// longer edits a pin. It shows what the feature's task RUNS ON right now —
+// the server-resolved route (task preset → dispatch fallback) from
+// GET /v1/ai/resolved-route via the kit's useResolvedRoute cache — and
+// clicking it navigates to the Tasks tab, where routing is edited.
 
-import { toRef } from "vue";
-import { LuFeatureChip } from "@delebash/llm-ui";
-import { useFeaturePin } from "../composables/useFeaturePin.js";
+import { computed, unref, watchEffect } from "vue";
+import { useRouter } from "vue-router";
+import { LuFeatureChip, useResolvedRoute } from "@delebash/llm-ui";
+import { useAiStore } from "../stores/ai.js";
 
 const props = defineProps({
   feature: { type: String, required: true },
@@ -21,32 +19,39 @@ const props = defineProps({
   compact: { type: Boolean, default: false },
 });
 
-const {
-  resolvedProvider, resolvedModel,
-  pinnedProviderId, pinnedModel, isPinned,
-  providerOptions, modelOptions,
-  setProvider, setModel, refresh,
-} = useFeaturePin(toRef(props, "feature"));
+const router = useRouter();
+const ai = useAiStore();
+const { routeFor, ensureRoute } = useResolvedRoute();
+
+// `feature` can change on a live mount (ChatPanel flips chat ⇄ characterChat)
+// — watchEffect re-ensures whenever it does.
+watchEffect(() => { ensureRoute(unref(props.feature)); });
+
+const route = computed(() => routeFor(props.feature));
+const providerName = computed(() => {
+  const r = route.value;
+  if (!r) return "…";
+  if (!r.configured) return "Not set up";
+  return ai.providerById(r.providerId)?.name || r.providerId || "—";
+});
+const model = computed(() => {
+  const r = route.value;
+  if (!r) return "…";
+  return r.configured ? (r.model || "—") : "run Quick Setup";
+});
+
+function goToTasks() {
+  router.push("/ai");
+}
 </script>
 
 <template>
   <LuFeatureChip
+    readonly
     :feature="feature"
     :label="label"
     :compact="compact"
-    :resolved-provider-name="resolvedProvider?.name || '—'"
-    :resolved-model="resolvedModel"
-    :pinned="isPinned"
-    :pinned-provider-id="pinnedProviderId"
-    :pinned-model="pinnedModel"
-    :provider-options="providerOptions"
-    :model-options="modelOptions"
-    @select-provider="setProvider"
-    @select-model="setModel"
-    @refresh="refresh">
-    <template #foot="{ close }">
-      Changes update the <b>{{ label || feature }}</b> routing everywhere this
-      feature runs. <router-link to="/ai" @click="close()">Manage all routing in Settings →</router-link>
-    </template>
-  </LuFeatureChip>
+    :resolved-provider-name="providerName"
+    :resolved-model="model"
+    @navigate="goToTasks" />
 </template>

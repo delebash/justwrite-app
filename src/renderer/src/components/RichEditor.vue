@@ -27,13 +27,14 @@ import { SearchReplace, searchReplacePluginKey } from "@renderer/services/search
 import { buildMentionExtension } from "@renderer/services/editorMentions";
 import { EDITOR_TOOLBAR_FULL } from "@renderer/services/editorToolbars";
 import { saveImage, urlFor } from "@renderer/services/imageStore";
-import { AiDiff, hasPendingChanges, listPendingChanges } from "@renderer/services/aiDiff";
+import { AiDiff, hasPendingChanges, hasStrikethroughs, listPendingChanges } from "@renderer/services/aiDiff";
 import { Marker, MARKER_CATEGORIES, categoryById } from "@renderer/services/markers";
 import * as writerAI from "@renderer/services/writerAI";
 import VariationsModal from "./VariationsModal.vue";
 import { PROSE_RULES, PROSE_RULE_ORDER } from "@renderer/services/writerAI";
 import { useAiTasksStore, Icon, UiButton, AiTaskStrip } from "@delebash/llm-ui";
 import { useUiStore } from "../stores/ui.js";
+import { DEFAULT_EDITOR_SETTINGS } from "../services/editorSettings.js";
 import EditorSettingsModal from "./EditorSettingsModal.vue";
 
 const props = defineProps({
@@ -559,15 +560,20 @@ function shouldUseVariations(callerShift) {
 // inline accept/reject overlay. Recomputed on every doc/selection update.
 const pendingCount = ref(0);
 const currentChangeId = ref(null);
+// Any AI strikethrough at all (pending or resolved) — enables the scene
+// strip's "Clear all strikethroughs" item (#42).
+const strikeCount = ref(0);
 
 function syncDiffState(ed) {
   const list = listPendingChanges(ed);
   pendingCount.value = list.length;
+  strikeCount.value = hasStrikethroughs(ed) ? 1 : 0;
   // If the cursor is inside an aiIns or aiDel mark, surface its
   // changeId so the inline overlay can show Accept / Reject buttons
-  // for just that change.
+  // for just that change. Resolved (kept) strikethroughs are history —
+  // the cursor inside one must NOT offer Accept/Reject.
   const marks = ed.state.selection.$from.marks?.() || [];
-  const aiMark = marks.find((m) => m.type.name === "aiIns" || m.type.name === "aiDel");
+  const aiMark = marks.find((m) => (m.type.name === "aiIns" || m.type.name === "aiDel") && !m.attrs.resolved);
   currentChangeId.value = aiMark?.attrs?.changeId || null;
 }
 
@@ -609,7 +615,7 @@ const ACTION_LABELS = {
 // Actions that can fall back to the whole document when nothing is
 // selected. Rewrite/Expand stay selection-only because applying them to
 // a full scene is destructive at a scale users typically want to think
-// about (load in Writers Lab, compare passes) rather than fire from a
+// about (run it in the Tasks tab's Lab, compare passes) rather than fire from a
 // one-click menu.
 const ACTIONS_WHOLE_SCENE_FALLBACK = new Set(["tighten"]);
 
@@ -780,15 +786,68 @@ function grabContextBeforeCursor(limit = 800) {
   return text;
 }
 
+// --- Right-click context menu (B5-5, #41) -----------------------------
+// "highlight a sentence right click and choose your ai action, maybe some
+// other items on context menu as well". Scene editor (manuscript variant)
+// only, and ONLY when a selection exists — a bare right-click keeps the
+// native menu so spell-check suggestions stay reachable. The header AI
+// menu (scene strip) remains the full surface; this is the quick path.
+const ctxMenu = ref({ open: false, x: 0, y: 0 });
+const ctxMenuEl = ref(null);
+
+const CTX_AI_ACTIONS = [
+  { key: "rewrite",  label: "Rewrite" },
+  { key: "expand",   label: "Expand" },
+  { key: "describe", label: "Describe" },
+  { key: "tighten",  label: "Tighten" },
+];
+
+function onEditorContextMenu(e) {
+  if (props.variant !== "manuscript") return;
+  if (aiRunning.value) return;
+  if (!hasSelection.value) return; // native menu (spell check) for bare clicks
+  e.preventDefault();
+  ctxMenu.value = { open: true, x: e.clientX, y: e.clientY };
+  // Clamp into the viewport once the menu has a size.
+  nextTick(() => {
+    const el = ctxMenuEl.value;
+    if (!el) return;
+    const r = el.getBoundingClientRect();
+    const x = Math.min(ctxMenu.value.x, window.innerWidth - r.width - 8);
+    const y = Math.min(ctxMenu.value.y, window.innerHeight - r.height - 8);
+    ctxMenu.value = { open: true, x: Math.max(8, x), y: Math.max(8, y) };
+  });
+}
+function closeCtxMenu() { ctxMenu.value = { open: false, x: 0, y: 0 }; }
+function ctxRun(fn, ...args) { closeCtxMenu(); fn(...args); }
+// Esc must close the menu wherever focus sits (the menu's own keydown only
+// fires when focus is inside it) — document-level listener while open.
+function onCtxDocKey(e) {
+  if (e.key === "Escape" && ctxMenu.value.open) { closeCtxMenu(); e.stopPropagation(); }
+}
+watch(() => ctxMenu.value.open, (open) => {
+  if (open) document.addEventListener("keydown", onCtxDocKey, true);
+  else document.removeEventListener("keydown", onCtxDocKey, true);
+});
+onBeforeUnmount(() => document.removeEventListener("keydown", onCtxDocKey, true));
+
+// #42: accept honors the editor setting — keep the original as a resolved
+// strikethrough (track-changes history) or replace it outright.
+const keepOnAccept = computed(() => {
+  const v = ui.editorSettings?.keepStrikethroughOnAccept;
+  return v === undefined ? DEFAULT_EDITOR_SETTINGS.keepStrikethroughOnAccept : !!v;
+});
+
 function acceptCurrentChange() {
   if (!currentChangeId.value || !editor.value) return;
-  editor.value.chain().focus().acceptChange(currentChangeId.value).run();
+  editor.value.chain().focus().acceptChange(currentChangeId.value, { keepOriginal: keepOnAccept.value }).run();
 }
 function rejectCurrentChange() {
   if (!currentChangeId.value || !editor.value) return;
   editor.value.chain().focus().rejectChange(currentChangeId.value).run();
 }
-function acceptAllAiChanges() { editor.value?.chain().focus().acceptAllChanges().run(); }
+function acceptAllAiChanges() { editor.value?.chain().focus().acceptAllChanges({ keepOriginal: keepOnAccept.value }).run(); }
+function clearAllStrikethroughs() { editor.value?.chain().focus().clearAllStrikethroughs().run(); }
 function rejectAllAiChanges() { editor.value?.chain().focus().rejectAllChanges().run(); }
 
 // ◀ Prev / Next ▶ navigation between pending AI changes. Steps through
@@ -1431,6 +1490,8 @@ defineExpose({
   runWriterAction,
   runProsePass,
   runGuidedContinue,
+  clearAllStrikethroughs,
+  strikeCount,
   grabUnstuckContext,
   grabSensorySubject,
   insertSensoryPhrase,
@@ -1610,7 +1671,7 @@ defineExpose({
       </template>
     </div>
 
-    <div v-if="variant === 'manuscript'" class="manuscript scrollarea" ref="manuscriptEl">
+    <div v-if="variant === 'manuscript'" class="manuscript scrollarea" ref="manuscriptEl" @contextmenu="onEditorContextMenu">
       <div class="manuscript-inner" @click="onBodyClick">
         <div v-if="runningHead" class="page-runninghead">{{ runningHead }}</div>
         <editor-content :editor="editor" />
@@ -1627,6 +1688,26 @@ defineExpose({
     </div>
 
     <input ref="fileInput" type="file" accept="image/*" style="display:none" @change="onImagePicked" />
+
+    <!-- Right-click context menu (#41) — selection-gated quick path to the
+         AI actions + edit ops. Backdrop click / Esc / any item closes it. -->
+    <div v-if="ctxMenu.open" class="ctx-backdrop" @mousedown="closeCtxMenu" @contextmenu.prevent="closeCtxMenu" />
+    <div v-if="ctxMenu.open" ref="ctxMenuEl" class="ctx-menu" role="menu"
+      :style="{ left: `${ctxMenu.x}px`, top: `${ctxMenu.y}px` }"
+      @keydown.escape="closeCtxMenu">
+      <div class="ctx-section">AI — on the selection</div>
+      <button v-for="a in CTX_AI_ACTIONS" :key="a.key" class="ctx-item" role="menuitem"
+        @click="ctxRun(runWriterAction, a.key)">{{ a.label }}</button>
+      <div class="ctx-divider" />
+      <div class="ctx-section">Line edits</div>
+      <button v-for="r in PROSE_RULES_LIST" :key="r.key" class="ctx-item" role="menuitem"
+        @click="ctxRun(runProsePass, r.key)">{{ r.label }}</button>
+      <div class="ctx-divider" />
+      <button class="ctx-item" role="menuitem" @click="ctxRun(doCut)">Cut</button>
+      <button class="ctx-item" role="menuitem" @click="ctxRun(doCopy)">Copy</button>
+      <button class="ctx-item" role="menuitem" @click="ctxRun(doPaste)">Paste</button>
+      <button class="ctx-item" role="menuitem" @click="ctxRun(openCommentEditor)">Add comment</button>
+    </div>
 
     <EditorSettingsModal v-if="settingsOpen" @close="settingsOpen = false" />
 
@@ -1864,6 +1945,33 @@ defineExpose({
   padding: 10px;
   display: flex; flex-direction: column; gap: 8px;
 }
+
+/* Right-click context menu (#41) — same popover idiom as .comment-pop. */
+.ctx-backdrop { position: fixed; inset: 0; z-index: 199; background: transparent; }
+.ctx-menu {
+  position: fixed; z-index: 200;
+  min-width: 180px; max-height: min(70vh, 480px); overflow-y: auto;
+  background: var(--surface);
+  border: 1px solid var(--border-strong);
+  border-radius: 10px;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, .22);
+  padding: 6px;
+  display: flex; flex-direction: column; gap: 1px;
+}
+.ctx-section {
+  font-family: var(--font-mono); font-size: 9.5px;
+  letter-spacing: 0.1em; text-transform: uppercase;
+  color: var(--muted); font-weight: 600;
+  padding: 5px 8px 3px;
+}
+.ctx-item {
+  display: block; width: 100%; text-align: left;
+  border: 0; background: transparent; cursor: pointer;
+  padding: 5px 8px; border-radius: 6px;
+  font-family: var(--font-ui); font-size: 12.5px; color: var(--ink);
+}
+.ctx-item:hover { background: var(--surface-2); }
+.ctx-divider { height: 1px; background: var(--border-soft); margin: 4px 2px; }
 .comment-pop-input {
   width: 100%; resize: vertical; min-height: 56px;
   border: 1px solid var(--border); border-radius: 7px;

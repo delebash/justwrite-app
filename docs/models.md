@@ -280,3 +280,12 @@ model and can't be changed here — the wrong pooling would quietly make search 
 > and the run also appears in the title-bar AI status panel. Stopping **Optimize for this
 > PC** takes effect immediately: the sweep stops scheduling trials the moment you click
 > Skip, even while the engine is still winding a trial down.
+
+> **Where a feature's model shows up in the app.** Writing surfaces (Ask the book, the
+> scene editor's AI menu, the analysis tools) carry a small read-only **"runs on"** chip
+> naming the provider + model that feature's task uses right now — resolved by the server
+> exactly the way a run resolves it, so the chip can never disagree with reality. The chip
+> is provenance, not a picker: clicking it takes you to the **Tasks** tab, which — together
+> with the feature workbench — is the only place routing is edited. (The old per-surface
+> provider/model dropdowns are gone; they edited a side channel that the task's preset
+> overrode anyway.)

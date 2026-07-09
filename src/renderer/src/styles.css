@@ -238,6 +238,13 @@ html.sidebar-resizing .app { transition: none; }
 .nav-item.active .nav-icon { color: var(--accent); }
 .nav-item .nav-icon { color: var(--muted); display: grid; place-items: center start; }
 .nav-item .nav-label { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+/* Ask the Book (#47) — the AI entry point reads louder than ordinary nav rows:
+   accent ink + icon and a semibold label ("bigger or bolder or in color" —
+   the color + bolder pair). Applies in both sidebar variants. */
+.nav-item.nav-item-accent { color: var(--accent-ink); font-weight: 600; }
+.nav-item.nav-item-accent .nav-icon { color: var(--accent); }
+.nav-item.nav-item-accent:hover { background: var(--accent-soft); }
+.rail-item.nav-item-accent { color: var(--accent); }
 .nav-item .count {
   font-size: 10.5px; color: var(--muted);
   font-variant-numeric: tabular-nums;

@@ -17,7 +17,7 @@ import SensoryResearchModal from "../components/SensoryResearchModal.vue";
 import { EmptyState } from "@delebash/llm-ui";
 import StatusSelect from "../components/StatusSelect.vue";
 import { Breadcrumb } from "@delebash/llm-ui";
-import { promptDialog, confirmDialog } from "@delebash/llm-ui";
+import { promptDialog, confirmDialog, useAiTasksStore } from "@delebash/llm-ui";
 import { stitchChapter, splitChapter } from "../services/chapterStitch.js";
 import { EDITOR_TOOLBAR_FULL } from "../services/editorToolbars.js";
 import { UiButton } from "@delebash/llm-ui";
@@ -169,7 +169,9 @@ function readBody(chId) {
   // Pending AI revisions are authoring chrome — strip from the read view:
   // delete the "before" entirely, unwrap the "after" so only the candidate
   // prose remains. Any paragraph left empty after the del-strip is removed.
-  div.querySelectorAll("del[data-ai-del], .ai-del").forEach((el) => { el.remove(); });
+  // #42: strikethroughs never show in read mode — AI dels (pending or kept)
+  // AND plain <s> strikes (pre-fix AI runs left originals as plain Strike).
+  div.querySelectorAll("del[data-ai-del], .ai-del, s, strike").forEach((el) => { el.remove(); });
   div.querySelectorAll("ins[data-ai-ins], .ai-ins").forEach((el) => { el.replaceWith(...el.childNodes); });
   div.querySelectorAll("p").forEach((p) => {
     if (!p.textContent.trim() && !p.querySelector("img")) p.remove();
@@ -380,6 +382,27 @@ function callAi(key, e) {
 function callProse(key, e) {
   aiStripOpen.value = false;
   editorRef.value?.runProsePass?.(key, { shiftKey: !!e?.shiftKey });
+}
+// #42: any AI strikethrough (pending original or kept history) enables the
+// clean-up item; the command lives in the editor's aiDiff extension.
+const hasStrikes = computed(() => (editorRef.value?.strikeCount || 0) > 0);
+
+// B5-7 (#43): the AI-complete notice lives HERE, on the editor's bottom bar
+// (right of the word count), instead of a toast — writerAI tasks register
+// with silentToast and this bar shows the latest completion since mount.
+// "View task queue" opens the shared AI status panel; ✕ dismisses.
+const aiTasks = useAiTasksStore();
+const noticeSince = Date.now();
+const dismissedNoticeId = ref(null);
+const aiNotice = computed(() => {
+  const h = (aiTasks.history || []).find(
+    (x) => x.feature === "writerAI" && x.status === "done" && x.finishedAt >= noticeSince,
+  );
+  return h && h.id !== dismissedNoticeId.value ? h : null;
+});
+function callClearStrikethroughs() {
+  aiStripOpen.value = false;
+  editorRef.value?.clearAllStrikethroughs?.();
 }
 function onAiStripDocMousedown(e) {
   if (!aiStripOpen.value) return;
@@ -1091,7 +1114,7 @@ watch(() => project.allChapters.map((c) => `${c.id}:${(project.scenesFor(c.id) |
             </div>
             <button class="ai-strip-item" :disabled="aiRunning || !hasSelection" @click="callAi('rewrite', $event)">
               <div class="ai-strip-label">Rewrite</div>
-              <div class="ai-strip-desc">Rewrite the passage to be more vivid and specific while preserving meaning, tense, and voice. Selection-only because a whole-scene rewrite is too transformative for one click — use Writers Lab for that.</div>
+              <div class="ai-strip-desc">Rewrite the passage to be more vivid and specific while preserving meaning, tense, and voice. Selection-only because a whole-scene rewrite is too transformative for one click — use the Tasks tab's Lab for that.</div>
             </button>
             <button class="ai-strip-item" :disabled="aiRunning || !hasSelection" @click="callAi('expand', $event)">
               <div class="ai-strip-label">Expand</div>
@@ -1136,6 +1159,12 @@ watch(() => project.allChapters.map((c) => `${c.id}:${(project.scenesFor(c.id) |
                 <div class="ai-strip-desc">{{ r.description }}</div>
               </button>
             </template>
+            <div class="ai-strip-divider"></div>
+            <div class="ai-strip-section">Clean up</div>
+            <button class="ai-strip-item" :disabled="!hasStrikes" @click="callClearStrikethroughs">
+              <div class="ai-strip-label">Clear all strikethroughs</div>
+              <div class="ai-strip-desc">Remove every struck-through original left behind by accepted AI changes (and the originals of still-pending ones — that accepts them). The new text stays.</div>
+            </button>
           </div>
         </div>
         <StatusSelect
@@ -1229,6 +1258,12 @@ watch(() => project.allChapters.map((c) => `${c.id}:${(project.scenesFor(c.id) |
         <b class="t-num" style="color:var(--ink)">{{ sceneWordCount.toLocaleString() }}</b> words ·
         <b class="t-num" style="color:var(--ink)">{{ sceneCharCount.toLocaleString() }}</b> characters
         <span v-if="continuousMode" style="margin-left:6px">· chapter</span>
+      </span>
+      <span v-if="aiNotice" class="ai-done-note">
+        <Icon name="Sparkle" :size="11" />
+        <span>{{ aiNotice.label }} — done in {{ (aiNotice.durationMs / 1000).toFixed(1) }}s<template v-if="aiNotice.tokensOut"> · {{ aiNotice.tokensOut.toLocaleString() }} tokens</template></span>
+        <button class="ai-done-link" @click="aiTasks.openPanel()">View task queue</button>
+        <button class="ai-done-x" aria-label="Dismiss" @click="dismissedNoticeId = aiNotice.id">✕</button>
       </span>
       <span style="margin-left:auto">Autosaves to local storage</span>
     </div>
@@ -1624,7 +1659,23 @@ watch(() => project.allChapters.map((c) => `${c.id}:${(project.scenesFor(c.id) |
   display: flex; align-items: center; gap: 8px;
   flex-shrink: 0;
 }
-.scene-strip-actions :deep(.jw-btn.is-active) {
+/* B5-7 — the bottom-bar AI-complete notice (right of the word count). */
+.ai-done-note {
+  display: inline-flex; align-items: center; gap: 6px;
+  color: var(--ink-2);
+}
+.ai-done-link {
+  border: 0; background: transparent; cursor: pointer;
+  color: var(--accent-ink); font-size: 11.5px; padding: 0;
+  text-decoration: underline; text-underline-offset: 2px;
+}
+.ai-done-x {
+  border: 0; background: transparent; cursor: pointer;
+  color: var(--muted); font-size: 10px; padding: 0 2px; line-height: 1;
+}
+.ai-done-x:hover { color: var(--ink); }
+
+.scene-strip-actions :deep(.ui-btn.is-active) {
   background: var(--accent-soft);
   color: var(--accent-ink);
 }
