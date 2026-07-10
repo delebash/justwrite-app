@@ -261,3 +261,53 @@ RelationsView.vue:162-163) so every derived line in the cards is real data;
 rerankers, query rewriting (HyDE/multi-query), and agentic lookup tools were
 surveyed and deferred — each adds a model call or latency on writer
 hardware before the corpus gap is even fixed.
+
+## 8. The import→extraction connection (the user's follow-up, 2026-07-10)
+
+The user asked whether GraphRAG's Local Search relates to OUR entity
+extraction (import a PDF book → propose characters/objects). It does —
+directly: the import + entity sweep IS the "graph construction" half of
+GraphRAG for imported books (for hand-built projects the user constructs the
+graph themselves). And grounding it exposed a REAL gap:
+
+**What the sweep produces today (verified):** the per-chapter LLM scan
+(`entityExtraction.js:48-130`, prompt `seed_feature_prompts.py:191-206`,
+schema-enforced) proposes characters/locations/objects with name, role/kind,
+oneLiner/note, and an evidence quote; the review modal's accept path
+(`EntityReviewModal.vue:60-70`) then creates BARE entities:
+`addCharacter({name, role, oneLiner})` / `addLocation({name, kind, note})` /
+`addObject({name, kind, note})`. **No scene links are ever set** — the sweep
+UI even knows the originating chapters at review time
+(`EntitySweepModal.vue:168`) and drops that provenance on accept. No aliases
+either.
+
+**Why this matters to the RAG plan:** the relations web (shared
+scenes/groups/strands) is what the character cards' co-appearance and
+TEMPORAL lines derive from, and what the Relations graph draws. For an
+IMPORTED book the sweep is the only graph-builder — so today an imported
+book yields a bible of bare names: the Relations graph stays empty, and the
+future RAG cards would carry a name + one line and no "where/with whom"
+data. "Where is X" would stay unanswerable for imported books even after
+Moves 1–3 ship.
+
+**Proposed improvement (E-moves — extraction; awaits the user's go):**
+- **E1 — keep the provenance through accept.** When an entity proposal is
+  accepted, also set the presence links (`scene.characters` /
+  `.locations` / `.objects`) for the scenes it appears in. Mechanism: a
+  deterministic name/alias scan of scene text — the SAME word-boundary
+  matcher Move 2's pinning needs (ONE shared matcher, T3) — not an extra
+  LLM call; the LLM already found the names, linking is string matching.
+- **E2 — a "link backfill" sweep.** A one-shot reviewable pass over ALL
+  scenes proposing entity-presence links for projects that predate links
+  (imported books AND old hand-built manuscripts). Same matcher; review
+  list + tick-to-apply like the entity sweep; populates the Relations graph
+  and makes the RAG cards rich retroactively.
+- **E3 — the sweep prompt also proposes aliases** (small schema addition:
+  `aliases: []` per character) — improves dedupe, pinning, and the E1/E2
+  matcher for nickname-heavy prose.
+- **E4 (later, defer) — relationship extraction proper** (GraphRAG's edge
+  labels: "sister of", "employer of") into character extras/notes — heavier,
+  LLM-driven, only worth it after E1-E3 prove out.
+
+Sequencing: E1+E3 ride naturally WITH the RAG build (they share the
+matcher); E2 is a small follow-on using the same pieces.
