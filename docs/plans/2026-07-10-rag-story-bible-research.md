@@ -413,3 +413,55 @@ above; (2) pin 1-hop relations or named-entity-only (rec: named-only);
 (3) a per-entity hide-from-AI flag (rec: defer); (4) sqlite-vec migration
 timing (rec: park); (5) add .pdf as an import format, given extraction
 messiness (needs their word either way).
+
+## 11. Fourth pass (the user's "one more just in case", 2026-07-10)
+
+Per the user's instruction — one more look, no forced changes. What it
+GENUINELY changed, and what stands:
+
+**11.1 — Move 0 upgraded from prefixes to per-model TEMPLATES.** The user's
+Quick Setup screenshots showed the catalog carries FOUR embedding models
+(Nomic v1.5 137M · Qwen3 Embedding 0.6B · BGE-M3 567M · Qwen3 Embedding 8B),
+and their formats differ MATERIALLY (web-verified): Qwen3-Embedding is
+instruction-aware on the QUERY side only — "Instruct: {task}\nQuery: {q}",
+documents encoded plain — and correct instruction use measures ~+22%
+retrieval relevance (https://arxiv.org/pdf/2506.05176,
+https://medium.com/@oliversmithth852/building-a-production-rag-system-qwen3-embeddings-reranking-and-vector-database-insights-9c114c5f9da8);
+BGE-M3 needs NO prefixes on either side
+(https://dipkumar.dev/posts/rag/instruction-aware-embeddings/); nomic needs
+BOTH sides prefixed (§9.1). So the catalog field is
+`embed_templates: {document, query}` (template strings with a {text} slot;
+empty = pass-through), seeded per model. Consequence: the user's CURRENT
+box (8B picked by the wizard) is ALSO running without its query
+instruction — a second live instance of the same degradation class,
+whatever embed model is active.
+
+**11.2 — the Quick Setup embed-pick BUG (user-reported, task filed, fix
+AFTER the RAG build).** Screenshots: the wizard recommends Qwen3 Embedding
+8B on the 8GB-VRAM 2070S; the user's intent is 0.6B on that box. Grounded:
+`bestEmbedId()` = pickLowestQuality over ALL runnable embeds
+(QuickSetup.vue:109-116) — pure quality_rank, no size/fit floor;
+FIT_RUNNABLE includes tight/cpu and embeds are deliberately CPU-fine
+(modelPick.js:27-31), so the better-ranked 8B wins everywhere; the chat
+side has a fast-enough rule (modelPick.js:39-42), the embed side has none —
+while the dialog's own copy says "a smaller embed is fine". Harness task
+filed with the full grounding; sequenced after the RAG build per the user's
+word; the fix forces an index rebuild (mismatch guard handles it).
+
+**11.3 — decisions closed by the user this pass:** PDF import = NOT NOW
+(open decision #5 closed; the list in §10 drops to four). ALSO ANSWERED
+(the user's container question): staying in the cloud container is fine for
+THIS build — the acceptance probe asserts retrieval RANKINGS, which run
+end-to-end in-container (CPU llama.cpp + a small embed model, or asserting
+the rank layer over recorded vectors); what the container can never test is
+GPU speed/feel, Windows packaging (the e2e harness needs the built .exe +
+WebView2), and the user's real manuscript — those stay your-box checks,
+same split as the §G tuning items. A local session helps for THOSE, not for
+this build.
+
+**11.4 — what stands unchanged (the honest no-change list):** the build
+list (§10) is otherwise final — Moves 0-3, E1/E2/E3/E5, the probe gate,
+the parked set; no new moves found; the §9.1 framing tightens (nomic is one
+of four embed rows, "the default" is whatever the wizard picked — the
+prefix/template fix covers all of them); decisions #2-#4 still await the
+user's word.
