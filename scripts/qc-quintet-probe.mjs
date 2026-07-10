@@ -37,7 +37,40 @@ const check = (name, ok, note = "") => {
 const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
 
 const API = process.env.JW_API || "http://127.0.0.1:17495";
-const routing = await (await fetch(`${API}/v1/ai/routing`)).json();
+const api = async (path, opts = {}) => {
+  const r = await fetch(`${API}${path}`, {
+    headers: { "Content-Type": "application/json" },
+    ...opts,
+    body: opts.body ? JSON.stringify(opts.body) : undefined,
+  });
+  try { return await r.json(); } catch { return {}; }
+};
+
+// Self-sufficient state (2026-07-10): a factory DB ships presets with EMPTY
+// models and no routing default (this container's DB reset with the box), but
+// QC-20/21 assert the DEFAULT-tag/dialog law — so the probe configures its
+// own pair (built-in + qc-probe-model, embedding qc-probe-embed) and restores
+// the snapshot before exiting. Ambient DB state must never decide a probe.
+const origPresets = (await api("/v1/ai/engine-presets")).presets || [];
+const origRouting = await api("/v1/ai/routing");
+const providers = (await api("/v1/llm-providers")).providers || [];
+const builtinId = (providers.find((p) => p.providerType === "local-llamacpp") || providers[0] || {}).id || "local-llamacpp";
+for (const p of origPresets) {
+  await api(`/v1/ai/engine-presets/${p.id}`, { method: "PUT", body: { ...p, providerId: builtinId, model: "qc-probe-model" } });
+}
+await api("/v1/ai/routing", { method: "PUT", body: {
+  default: { ...(origRouting.default || {}), providerId: builtinId, model: "qc-probe-model",
+             embeddingId: "local-llamacpp", embeddingModel: "qc-probe-embed" },
+  pins: origRouting.pins || {},
+} });
+async function restoreDb() {
+  for (const p of origPresets) {
+    await api(`/v1/ai/engine-presets/${p.id}`, { method: "PUT", body: p }).catch(() => {});
+  }
+  await api("/v1/ai/routing", { method: "PUT", body: { default: origRouting.default, pins: origRouting.pins || {} } }).catch(() => {});
+}
+
+const routing = await api("/v1/ai/routing");
 const localEmbed = routing?.default?.embeddingId === "local-llamacpp" ? (routing.default.embeddingModel || "") : "";
 
 const browser = await chromium.launch({ executablePath: findChrome(), headless: true, args: ["--no-sandbox"] });
@@ -214,4 +247,5 @@ check("zero page errors", errors.length === 0, errors.join(" | ").slice(0, 300))
 const passed = results.filter((r) => r.ok).length;
 console.log(`\n${passed}/${results.length} checks passed`);
 await browser.close();
+await restoreDb();
 process.exit(passed === results.length ? 0 : 1);

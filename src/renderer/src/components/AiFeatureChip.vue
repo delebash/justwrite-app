@@ -31,13 +31,16 @@ const route = computed(() => routeFor(props.feature));
 const providerName = computed(() => {
   const r = route.value;
   if (!r) return "…";
-  if (!r.configured) return "Not set up";
+  // Not-configured copy is provider-NEUTRAL (user, 2026-07-10, pick "b"):
+  // the old "run Quick Setup" pushed the local-only wizard at users who
+  // want an online provider. Clicking already opens the AI settings page.
+  if (!r.configured) return "No model set";
   return ai.providerById(r.providerId)?.name || r.providerId || "—";
 });
 const model = computed(() => {
   const r = route.value;
   if (!r) return "…";
-  return r.configured ? (r.model || "—") : "run Quick Setup";
+  return r.configured ? (r.model || "—") : "open AI settings";
 });
 
 function goToTasks() {

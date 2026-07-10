@@ -135,8 +135,10 @@ try {
   const chip = panel.locator(".afc-chip");
   check("B5-1 chip present in the header", (await chip.count()) === 1);
   const chipText = await chip.textContent();
+  // Not-configured copy = "No model set · open AI settings" (user pick "b",
+  // 2026-07-10 — the local-only "run Quick Setup" push is gone).
   check("B5-1 §7.2: the chip shows the SERVER-resolved model (task preset truth)",
-    routeTruth.configured ? chipText.includes(routeTruth.model) : /Quick Setup/i.test(chipText),
+    routeTruth.configured ? chipText.includes(routeTruth.model) : /No model set/.test(chipText),
     `chip="${chipText.trim()}" vs route=${routeTruth.model}`);
 
   await chip.click();

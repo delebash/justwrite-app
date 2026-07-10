@@ -427,6 +427,26 @@ RECORD"** (incl. three small flags: Variations strip placement · the "reading p
 copy · the pre-frame-throw fallback classifier). Next per the recorded order: **#235
 LAST** (real plan first); #251/#252/#254/#255/#253 on the user's word.
 
+**GO (2026-07-10, mid-batch interrupt) — QC-43 THE CHIP FIX SHIPPED** on the user's
+live words ("just leave them but make them work" · "i ran quick setup and it still is
+not shwoing corerectly, i guess try to fix" · copy pick "b"). Root cause: the chip
+cache's `invalidateRoutes()` had ZERO callers — no routing write ever told the chips,
+so Quick Setup left every chip stale until an app restart. Fix: the kit client
+notifies subscribers after every successful non-GET request; `useResolvedRoute`
+self-subscribes and drops its whole cache on ANY such write — the checker's
+FAIL(2) round rejected a three-family allow-list that missed two live
+route-changers (provider PATCH/DELETE + routing PUT); any-write is the shipped
+shape — drift-proof, no per-writer wiring; the
+not-configured copy is now provider-neutral ("No model set · open AI settings" — the
+local-only "run Quick Setup" push is gone). Verified: vitest 73/73 · build · FULL
+smoke · the NEW committed `scripts/chip-probe.mjs` 5/5 (incl. the no-reload update
+end-to-end) · the online-provider resolution leg · the probe fleet (b5 + qc-quintet
+repointed off the old copy/ambient-DB assumptions, findings-first). Full record +
+the three same-window diagnoses AWAITING THE USER'S WORD (MTP stale-seed heal ·
+chat ensure-resident · server-console tab): queue doc tail **"QC-43"**. The five
+queued tasks (#251/#252/#254/#255/#253) remain the active batch — #253 grounding
+mid-flight, QC-39 mockups next.
+
 **⛔⛔ THE STATE AT THE ELEVENTH COMPACT (2026-07-09 — superseded by the B6 GO above;
 its "B6 IS MID-BUILD" framing is HISTORY now; supersedes the tenth block below).** This window SHIPPED, all pushed: **#232/QC-35** (runner
 `d024067` · JW `d982316`) · the **Q3 toast findings table** (runner `f1e1f3c`) · the
