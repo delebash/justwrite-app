@@ -165,3 +165,30 @@ store-driven content change) — behavior identical BEFORE this rework, left
 unchanged; the probe's redo-survival leg is editor-free and the unit suite
 covers the store mechanics. A future echo-suppression is a candidate fix on
 the user's word.
+
+## FOLLOW-UP, SHIPPED 2026-07-10 — the editor echo is dead
+
+The very next go (the user's "redoing a prose undo, why cant this work?"
+followed by "we need to compact first" armed it, interpretation flagged in the
+queue doc). Root cause pinned in the installed library, not our sync logic:
+TipTap v3 (3.27.1 here) changed `setContent`'s second parameter from the v2
+boolean `emitUpdate` to an options object whose `emitUpdate` DEFAULTS TO TRUE
+(verified at node_modules/@tiptap/core/dist/index.js:1211), so RichEditor's
+store→editor sync — written as `setContent(incoming, false)` to mean "apply
+silently" — had silently become emit-on-set: every ⌘Z content revert bounced
+back out through @change into setSceneBody / applyStitchedChapter, re-recorded,
+and cleared the just-armed redo. Two layers shipped: (1) the sync watch now
+passes the v3 options form `{ emitUpdate: false }` (RichEditor.vue) — restores
+the code's own written intent, and benefits all nine RichEditor mounts (the
+same echo was clearing redo for Notes/Locations/Objects/Groups/Worldbuilding/
+Architecture/Strands bodies in their own domains); (2) no-op guards in the
+store — applyStitchedChapter returns before `_record` when the incoming
+records are identical to the current scenes (mirroring the writer's own
+semantics: a new scene, a reorder, a removal, or an effective-title change is
+never a no-op), and setSceneBody gets the sibling guard (flagged extension —
+the same defect class on the single-scene path). Verification: two new unit
+cases (the echo recreation — an identical write after an undo records nothing
+and keeps redo armed; a real change still records and kills redo) and the
+probe's new Leg 1c (type → ⌘Z → ⌘⇧Z restores the typing with the editor OPEN
+throughout — the user's exact QC scenario); undo-probe 19/19. The paragraph
+above stays as history; its "candidate fix" is this one.

@@ -260,6 +260,42 @@ describe("per-domain page-related undo (#235)", () => {
     expect(store.characters.find((c) => c.id === cid).audit).toBeUndefined();
   });
 
+  it("echo guard: an identical stitched write records nothing and keeps redo armed", () => {
+    const store = useProjectStore();
+    const { chId } = seedChapter(store);
+    store.setSceneBody(chId, store.scenes[chId][0].id, "<p>typed</p>");
+    store.undoFor(["manuscript"]);
+    expect(store.canRedoFor(["manuscript"])).toBe(true);
+
+    // The editor-echo shape: the open editor re-applies EXACTLY the scenes
+    // the undo just restored (pre-fix this re-recorded and killed the redo).
+    const cur = store.scenes[chId][0];
+    store.applyStitchedChapter(chId, [{ sceneId: cur.id, title: cur.title, body: cur.body, isNew: false }]);
+    expect((store._past.manuscript || []).length).toBe(0); // nothing recorded
+    expect(store.canRedoFor(["manuscript"])).toBe(true); // redo survives
+
+    store.redoFor(["manuscript"]);
+    expect(store.scenes[chId][0].body).toBe("<p>typed</p>");
+
+    // A REAL stitched change still records (and, the iron rule, kills redo).
+    store.undoFor(["manuscript"]);
+    store.applyStitchedChapter(chId, [{ sceneId: cur.id, title: cur.title, body: "<p>really new</p>", isNew: false }]);
+    expect(store.scenes[chId][0].body).toBe("<p>really new</p>");
+    expect(store.canRedoFor(["manuscript"])).toBe(false);
+  });
+
+  it("echo guard: an identical setSceneBody records nothing", () => {
+    const store = useProjectStore();
+    const { chId, scnId } = seedChapter(store);
+    store.setSceneBody(chId, scnId, "<p>x</p>");
+    store.undoFor(["manuscript"]);
+    expect(store.canRedoFor(["manuscript"])).toBe(true);
+
+    store.setSceneBody(chId, scnId, ""); // identical to the undone body
+    expect((store._past.manuscript || []).length).toBe(0);
+    expect(store.canRedoFor(["manuscript"])).toBe(true);
+  });
+
   it("caps each domain's history independently at the limit", () => {
     const store = useProjectStore();
     for (let i = 0; i < 1005; i++) store.addStatusDef({ label: `s${i}` });

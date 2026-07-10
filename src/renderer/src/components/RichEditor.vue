@@ -472,12 +472,18 @@ const hasComments = computed(() => {
   return found;
 });
 
-// Keep external value changes in sync (e.g. switching the selected entity).
+// Keep external value changes in sync (e.g. switching the selected entity,
+// or a page-related undo/redo reverting the body under an open editor).
+// emitUpdate MUST stay false: a store-driven setContent that emitted would
+// bounce straight back out through @change into the store's write path,
+// re-recording history and clearing a just-armed redo (the editor echo).
+// TipTap v3 takes an options object here — the old v2-style boolean second
+// arg is silently ignored and the default became emit-on-set.
 watch(() => props.modelValue, (val) => {
   if (!editor.value) return;
   const incoming = toHtml(val);
   if (incoming !== editor.value.getHTML()) {
-    editor.value.commands.setContent(incoming, false);
+    editor.value.commands.setContent(incoming, { emitUpdate: false });
     syncCounts(editor.value);
   }
 });

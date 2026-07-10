@@ -448,7 +448,29 @@ chat ensure-resident · server-console tab): queue doc tail **"QC-43"**. The fiv
 queued tasks (#251/#252/#254/#255/#253) remain the active batch — #253 grounding
 mid-flight, QC-39 mockups next.
 
-**⛔ THE STATE AT THE FOURTEENTH COMPACT (2026-07-10 — the CURRENT pickup):**
+**GO (2026-07-10, post-fourteenth-compact) — THE EDITOR-ECHO REDO FIX SHIPPED**
+(the armed go: the user's "redoing a prose undo, why cant this work?" + "we
+need to compact first"). Root cause pinned in the LIBRARY, not our sync chain:
+TipTap v3 (3.27.1) changed `setContent`'s second param from the v2 boolean
+`emitUpdate` to an options object defaulting `emitUpdate: true` (verified at
+node_modules/@tiptap/core/dist/index.js:1211), so RichEditor's store→editor
+sync — written v2-style as `setContent(incoming, false)` = "apply silently" —
+had silently become emit-on-set: every ⌘Z content revert bounced back through
+@change → setSceneBody/applyStitchedChapter → `_record`, clearing the fresh
+redo (all nine RichEditor mounts, every entity page). Fix, two layers: the
+watch now passes `{ emitUpdate: false }` (restores the written intent;
+keystrokes still emit — user transactions are untouched), and the store skips
+identical writes (applyStitchedChapter no-op guard mirroring the writer's
+semantics + the flagged setSceneBody sibling). Gates all green: vitest 88/88
+(2 new echo cases) · build · undo-probe **19/19** with the new in-editor
+type→⌘Z→⌘⇧Z leg (editor OPEN throughout — the user's exact QC) · FULL smoke
+zero JS errors · the whole probe fleet · biome · JW pytest 79 + ruff. Full
+record: queue doc tail **"EDITOR-ECHO REDO FIX BUILD RECORD"**; the plan doc's
+limitation note carries the FOLLOW-UP closure. Remaining on the user's word
+only: #256 research · the three QC-43 diagnoses.
+
+**⛔ THE STATE AT THE FOURTEENTH COMPACT (2026-07-10 — superseded by the
+echo-fix GO above; its "GO armed" framing is HISTORY now):**
 #235 shipped (the GO paragraph below); THE QUEUE IS EMPTY. **The GO armed for
 right after the compact: the EDITOR-ECHO REDO FIX** (the user asked "redoing a
 prose undo, why cant this work?", the fix was offered, their word: "we need to

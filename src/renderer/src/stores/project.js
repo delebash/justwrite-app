@@ -1053,8 +1053,17 @@ export const useProjectStore = defineStore("project", {
     // being in COALESCED_ACTIONS — the writer's undo lands on the previous
     // quiescent state of the whole chapter, not one scene at a time.
     applyStitchedChapter(chapterId, records) {
-      this._record("applyStitchedChapter");
       const prev = this.scenes[chapterId] || [];
+      // A write that would change nothing must not touch history or persist:
+      // the scene editor's store→editor sync can bounce content straight back
+      // through @change (the editor echo), and recording it would push a junk
+      // entry and clear a just-armed redo. Mirrors the writer below exactly —
+      // a new scene (no matching sceneId), a reorder, or a removal is never a
+      // no-op; the effective title is `r.title || existing.title`.
+      if (records.length === prev.length && records.every((r, i) =>
+        r.sceneId === prev[i].id && r.body === prev[i].body &&
+        (r.title || prev[i].title) === prev[i].title)) return;
+      this._record("applyStitchedChapter");
       const prevById = new Map(prev.map((s) => [s.id, s]));
       const next = [];
       for (const r of records) {
@@ -1074,6 +1083,10 @@ export const useProjectStore = defineStore("project", {
       this._persist();
     },
     setSceneBody(chapterId, sceneId, html) {
+      // Same echo law as applyStitchedChapter above: an identical body write
+      // records nothing (single-scene mode's store→editor sync path).
+      const cur = (this.scenes[chapterId] || []).find((s) => s.id === sceneId);
+      if (cur && cur.body === html) return;
       this._record("setSceneBody");
       this.scenes = {
         ...this.scenes,

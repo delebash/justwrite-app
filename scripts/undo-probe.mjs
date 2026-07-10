@@ -4,12 +4,11 @@
 // 1. THE HAZARD SCENARIO the user named: prose typed on /chapters + a character
 //    rename on /characters → ⌘Z on /chapters reverts ONLY the prose; ⌘Z on
 //    /characters reverts ONLY the name; redo works per-page and SURVIVES edits
-//    in other domains (F9). Note: redoing a PROSE undo while the scene editor
-//    is open dies to the editor's stitch write-back (ChaptersView:304 re-records
-//    on the store-driven content change, clearing the fresh redo) — behavior
-//    identical BEFORE #235 (the same echo cleared the old global future), so
-//    the redo-survival leg here uses the editor-free characters domain; the
-//    store-level manuscript redo mechanics are covered by the unit suite.
+//    in other domains (F9). Leg 1c then proves the 2026-07-10 editor-echo fix:
+//    redoing a PROSE undo with the scene editor OPEN works — RichEditor's
+//    store→editor sync sets content with emitUpdate:false (TipTap v3) and the
+//    store skips identical scene writes, so the old echo (setContent → @change
+//    → re-record → redo cleared, identical pre-#235) is dead.
 // 2. GLOBAL SURFACE: a find-and-replace run from /search (the ⌘⇧F modal) lands
 //    in the manuscript domain — ⌘Z on /search does nothing; ⌘Z on /chapters
 //    reverts it.
@@ -178,6 +177,27 @@ try {
   await pressRedo();
   check("characters redo SURVIVES the manuscript edit (per-domain futures, F9)",
     (await page.locator("input.character-name").inputValue()) === "Renamed Probe");
+
+  // ── Leg 1c: IN-EDITOR prose redo — the editor-echo fix ───────────────────
+  // Type, undo, redo with the scene editor OPEN the whole time. Pre-fix the
+  // ⌘Z content revert made the editor re-emit and re-record, clearing the
+  // fresh redo; this leg is the user's exact "redoing a prose undo" QC.
+  await goto("#/chapters/ch1/s1");
+  const ed3 = page.locator(".ProseMirror").first();
+  await ed3.waitFor({ timeout: 8000 });
+  await ed3.click();
+  await page.keyboard.press("Control+End").catch(() => {});
+  await page.keyboard.type(" echo-check", { delay: 15 });
+  await sleep(1000); // coalescing window closes
+  await pressUndo();
+  check("in-editor ⌘Z reverts the typing (store→editor sync still applies)",
+    !(await editorText()).includes("echo-check"));
+  await pressRedo();
+  check("in-editor ⌘⇧Z RESTORES the typing (the editor echo is dead)",
+    (await editorText()).includes("echo-check"));
+  await pressUndo(); // net-zero: leave the doc as leg 2 expects
+  check("…and the redo→undo round-trip stays healthy",
+    !(await editorText()).includes("echo-check"));
 
   // ── Leg 2: global surface — find&replace from /search ─────────────────────
   await goto("#/search");
