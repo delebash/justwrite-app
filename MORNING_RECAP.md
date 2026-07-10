@@ -511,7 +511,13 @@ panel's rich-note flattening is ACCEPTED — "plain-text editing flattens
 rich-formatted notes, fine as is" (no read-only mode; QC-45 fully closed);
 and ledger C9 (model-quality research) is ⛔ NOT DOING — "c9 mark as not
 doing" (marked in the outstanding-master-plan §C9). Full record: queue doc
-tail ("THE SEVENTEENTH-COMPACT POINT").
+tail ("THE SEVENTEENTH-COMPACT POINT"). THEN the user opened the next
+thread: **RAG research** ("make jw rag work better — it only scans scenes") —
+findings + proposal in `docs/plans/2026-07-10-rag-story-bible-research.md`
+(corpus is scenes-only at chunker.js:46-81; BM25+cosine+RRF hybrid ALREADY
+shipped server-side, NOT sqlite-vec; proposal = bible cards + Novelcrafter-
+style entity pinning + scene link headers; 4 open decisions). AWAITING the
+user's go — nothing built.
 
 **GO (2026-07-10 late evening, post-fifteenth-compact — superseded by the
 paragraph above) — I1 + I4 LANDED (both
