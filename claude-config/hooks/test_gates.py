@@ -90,6 +90,61 @@ def test_registry():
     assert r.VERDICT.search("VERDICT: PASS") and r.VERDICT.search("T1 PASS, T2 FAIL")
     for s in ("I'll run the rules-checker next", "let me run the rules-checker", "the plan looks good"):
         assert not r.VERDICT.search(s), s
+    # tests_cited (#253 recurrence, 2026-07-10): a PROSE citation of >=3 distinct
+    # T-numbers is a rules-pass at the light gates (the injects always asked for
+    # "cite the tests"; VERDICT alone rejected the prose form and blocked live).
+    assert r.tests_cited("T1 the final shape is right. T2 verified at x.py:10. T5 whole job enumerated.")
+    assert r.tests_cited("T1 ok, T2 ok, T3 ok, T12 ok")
+    assert not r.tests_cited("the T1-T12 rule-tests govern this")      # a range mention: 2 distinct
+    assert not r.tests_cited("T5 covers this; also T5 again and T5")   # one test repeated
+    assert not r.tests_cited("see T4 and T7")                          # two distinct — below the bar
+    # ...and it feeds rules_passed end-to-end through build_ctx.
+    pc = r.build_ctx({}, [{"type": "user", "message": {"content": "go"}},
+                          {"type": "assistant", "message": {"content": [
+                              {"type": "text", "text": "T1 right shape. T3 one source. T7 gates run."}]}}], "TaskCreated")
+    assert pc["rules_passed"], "a 3-distinct prose tests-citation must clear the light gates"
+    assert [] == r.run_rules("TaskCreated", pc)
+    # THE ATTEST CHANNEL (#253, 2026-07-10): mid-turn assistant TEXT flushes
+    # unreliably in the remote harness (live evidence: 2 of ~6 text messages
+    # present vs 23/23 thinking blocks), so the AFFIRMATIVE escapes also read
+    # thinking — a citation/attestation carried in a thinking block clears the
+    # light gates + the pre-edit plan-ref/RISK check...
+    th = r.build_ctx({}, [{"type": "user", "message": {"content": "go"}},
+                          {"type": "assistant", "message": {"content": [
+                              {"type": "thinking", "thinking":
+                               "T1 right shape. T2 verified at x.py:9. T7 suites pass. "
+                               "Executing the queue doc item. RISK: the regex could over-match. trivial"}]}}],
+                     "TaskCreated")
+    assert th["rules_passed"] and th["plan_ref"] and th["risk_line"] and th["trivial_explicit"]
+    assert [] == r.run_rules("TaskCreated", th)
+    # ...while the VIOLATION detectors never read thinking — exploratory
+    # "here's the plan" / "I recommend" in thinking must not fire a block.
+    tv = r.build_ctx({}, [{"type": "user", "message": {"content": "go"}},
+                          {"type": "assistant", "message": {"content": [
+                              {"type": "thinking", "thinking":
+                               "here's the plan: split the store. I recommend option B. we've decided."}]}}],
+                     "Stop")
+    assert not tv["plan_lock"] and not tv["proposal"] and not tv["reco_arch"]
+    assert [] == r.run_rules("Stop", tv)
+    # THE PAYLOAD CHANNEL (#253): a citation carried in the gated call's OWN
+    # description (TaskCreate subject/description) clears the light gates —
+    # the one channel deterministically present at hook time...
+    pd = r.build_ctx({"tool_input": {"description": "T1 right shape. T2 at x.py:9. T5 whole job."}},
+                     [{"type": "user", "message": {"content": "go"}}], "TaskCreated")
+    assert pd["rules_passed"]
+    assert [] == r.run_rules("TaskCreated", pd)
+    # ...but CONTENT-bearing keys never feed attest (checker-caught leak: an
+    # Edit whose new_string contains the tokens must NOT satisfy the pre-edit
+    # escapes — editing the gate files would otherwise self-void the deny).
+    pe = r.build_ctx({"tool_name": "Edit", "tool_input": {
+                          "file_path": "x.py",
+                          "new_string": "trivial RISK: doc.md:1 T1 T2 T5 per the plan"}},
+                     [{"type": "user", "message": {"content": "go"}}], "PreToolUse")
+    assert not pe["rules_passed"] and not pe["trivial_explicit"]
+    assert not pe["risk_line"] and not pe["plan_ref"]
+    # _payload_text defensive branches: non-dict tool_input / missing data.
+    assert r._payload_text({"tool_input": "notadict"}) == ""
+    assert r._payload_text({}) == "" and r._payload_text(None) == ""
     # #237 regexes — proposals, the SECOND PASS marker, user-decided provenance,
     # the pre-edit plan-ref + RISK line, the explicit-trivial attestation.
     for s in ("I propose we split the store", "my recommendation is B", "I recommend option A",
@@ -165,6 +220,29 @@ def test_registry():
                           {"type": "assistant", "message": {"content": [
                               {"type": "text", "text": "Per the user's word on scope, I propose the heal runs at boot."}]}}], "Stop")
     assert d2["proposal"], "authored proposal language must count despite user attribution"
+    # agent_pass cross-turn spawn (#253, 2026-07-10): an async checker spawned
+    # LAST turn delivering its verdict THIS turn (tool_result tied to the old
+    # Agent tool_use id) must count — the spawn id set spans the whole
+    # transcript; the verdict must still be in-window (a verdict BEFORE the
+    # turn boundary does not count).
+    xt = [
+        {"type": "assistant", "message": {"content": [
+            {"type": "tool_use", "name": "Agent", "id": "spawn_old"}]}},
+        {"type": "user", "message": {"content": "new turn starts here"}},
+        {"type": "user", "message": {"content": [
+            {"type": "tool_result", "tool_use_id": "spawn_old",
+             "content": "VERDICT: PASS — all rules pass"}]}},
+    ]
+    assert r.agent_pass(xt, r.last_user_idx(xt)) == "pass"
+    xt_stale = [
+        {"type": "assistant", "message": {"content": [
+            {"type": "tool_use", "name": "Agent", "id": "spawn_old"}]}},
+        {"type": "user", "message": {"content": [
+            {"type": "tool_result", "tool_use_id": "spawn_old",
+             "content": "VERDICT: PASS — all rules pass"}]}},
+        {"type": "user", "message": {"content": "new turn starts here"}},
+    ]
+    assert r.agent_pass(xt_stale, r.last_user_idx(xt_stale)) is None
     tc = r.build_ctx({}, [{"type": "user", "message": {"content": "hi"}}], "TaskCreated")
     tc["rules_passed"] = False
     assert [i for i, _ in r.run_rules("TaskCreated", tc)] == ["task-begin-check"]

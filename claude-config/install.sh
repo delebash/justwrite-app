@@ -52,4 +52,13 @@ chmod +x "$DEST/hooks/arm-rules-gate.sh" "$DEST/hooks/verify-gate.py" \
 # (replaced by the hard gates; user law: "never do soft").
 rm -f "$DEST/rules-reminder.txt" "$DEST/hooks/verify-first.sh" "$DEST/hooks/inject-recap.sh"
 
+# Superpowers plugin (user-authorized 2026-07-10: "make superpowers permenant").
+# Best-effort: the claude CLI may be absent or offline in some environments —
+# the gates must still provision, so plugin failures never fail the script.
+if command -v claude >/dev/null 2>&1; then
+  claude plugin marketplace add obra/superpowers-marketplace >/dev/null 2>&1 || true
+  claude plugin install superpowers@superpowers-marketplace >/dev/null 2>&1 || true
+  echo "claude-config: superpowers plugin ensured (best-effort)"
+fi
+
 echo "claude-config: provisioned $DEST (hard-gate hooks + rules)"

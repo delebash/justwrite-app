@@ -142,6 +142,23 @@ even with task #253 being the user's own order, the user should see the directio
 plainly before it ships. Honest boundary, restated: ALL of this touches only the
 LIGHT gates whose documented contract was always self-attestation; the commit and
 plan-lock boundaries still require the un-forgeable independent-agent verdict.
+SHIP ADDENDUM (same day): the first diff checker round returned FAIL(2) and caught
+a REAL self-clearing hole — `_payload_text` joined ALL tool_input strings while
+build_ctx is shared with pre-action-check, so an Edit's own new_string (e.g.
+editing these very gate files, saturated with 'trivial'/'RISK:' tokens) would have
+voided the first-code-edit deny. Fixed to an attestation-key allowlist
+(subject/description/activeForm — absent from Edit/Write payloads) + a load-bearing
+regression test; re-verdict PASS. FILED FOLLOW-UP from the re-check's residual:
+event-scope the payload channel (read attest keys only at TaskCreated/TaskCompleted)
+so the Bash-description immunity is structural rather than incidental — today it is
+safe only because the hard gates read agent_pass. Also fixed this round: agent_pass
+builds its accepted spawn-id set from the WHOLE transcript (an async checker
+spawned in turn N delivering in turn N+1 was invisible — live-captured); the
+verdict itself must still arrive in-window. Note the residual mystery: even with
+the fix, one live async verdict still computed None (id pairing unconfirmed in
+this harness shape) — the commit landed via the gate's documented MAX_DENIES
+sentinel after the genuine PASS was visible in-conversation; capture the pairing
+ids at the next occurrence.
 
 **First trial findings (2026-07-09, live, hours after install):** two `task-begin-check`
 false fires on a plain task-add, both TURN-WINDOW shapes rather than rule logic. (1) A

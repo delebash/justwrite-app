@@ -121,6 +121,20 @@ VERDICT = re.compile(
     re.I,
 )
 TRIVIAL = re.compile(r"\b(trivial|one[- ]?line|typo|comment[- ]?only|dep bump|rename)\b", re.I)
+# A PROSE tests-citation ("T1 <why> · T2 <why> · T5 <why>") — the format the
+# task-begin/post-task injects always ASKED for ("cite the tests it passes") but
+# VERDICT never accepted (it requires literal PASS/FAIL words). #253 recurrence,
+# 2026-07-10: two live task-gate denials fired on exactly this mismatch — the
+# turn text cited eight T-numbers with reasons and was still blocked. Three or
+# more DISTINCT T-numbers = a deliberate citation (ordinary prose says "T1–T12"
+# — two distinct — or names one test); the hard boundaries (commit, plan lock)
+# are unaffected — they read agent_pass, never this.
+TESTS_CITED_TOKEN = re.compile(r"\bT(1[0-2]|[1-9])\b")
+
+
+def tests_cited(text: str) -> bool:
+    return len(set(TESTS_CITED_TOKEN.findall(text or ""))) >= 3
+
 
 # ---- #237 think-twice regexes (2026-07-09) ---------------------------------
 # WHY: the user's finding — "when I asked you to think twice you change severla
@@ -259,6 +273,28 @@ def block0_missing(data: dict, entries: list, arm_n: int) -> list:
 # Turn boundary + turn scan (shared by every hook).
 # --------------------------------------------------------------------------
 
+def _payload_text(data: dict) -> str:
+    """The me-authored ATTESTATION strings inside the HOOK PAYLOAD's tool_input
+    — ONLY the keys that carry a task's own stated plan (a TaskCreate
+    subject/description/activeForm), NEVER content-bearing keys. build_ctx is
+    shared with pre-action-check, so joining ALL values would let an Edit's own
+    old_string/new_string satisfy the first-code-edit deny — editing the gate
+    files themselves (saturated with 'trivial'/'RISK:'/doc:line tokens) would
+    silently void the #237 second-look (checker-caught, 2026-07-10). The
+    allowlisted keys are absent from Edit/Write payloads, so the pre-edit gate
+    never sees payload text at all. This is the one attest source that is
+    deterministically present at hook time (#253: the remote harness strips
+    thinking content and flushes mid-turn text unreliably)."""
+    try:
+        ti = (data or {}).get("tool_input") or {}
+        if not isinstance(ti, dict):
+            return ""
+        keys = ("subject", "description", "activeForm")
+        return " ".join(str(ti[k]) for k in keys if isinstance(ti.get(k), str))
+    except Exception:
+        return ""
+
+
 def _user_text(e: dict):
     """(text, has_tool_result) for a non-meta user entry, else (None, False)."""
     if e.get("type") != "user" or e.get("isMeta"):
@@ -299,11 +335,17 @@ def last_user_idx(entries: list) -> int:
 
 
 def scan_turn(entries: list, start: int) -> dict:
-    """Raw facts about the assistant's actions since `start`:
-    evidence count, code/doc edits, edit count, whether a subagent ran, joined text."""
+    """Raw facts about the assistant's actions since `start`: evidence count,
+    code/doc edits, edit count, whether a subagent ran, joined text — plus the
+    joined THINKING text (#253, 2026-07-10: in the remote harness, assistant
+    TEXT blocks flush to the transcript unreliably mid-turn — a live window
+    showed 2 of ~6 text messages present against 23/23 thinking and 21/21
+    tool_use blocks — so thinking is the one authored channel a mid-turn gate
+    can depend on)."""
     f = {"evidence": 0, "edits": 0, "code_edits": 0, "code_edit": False,
-         "doc_edit": False, "subagent_ran": False, "answer": ""}
+         "doc_edit": False, "subagent_ran": False, "answer": "", "thinking": ""}
     texts = []
+    thinks = []
     for e in entries[start:]:
         if e.get("type") != "assistant":
             continue
@@ -311,7 +353,9 @@ def scan_turn(entries: list, start: int) -> dict:
             if not isinstance(b, dict):
                 continue
             bt = b.get("type")
-            if bt == "tool_use":
+            if bt == "thinking":
+                thinks.append(b.get("thinking") or "")
+            elif bt == "tool_use":
                 name = b.get("name") or ""
                 if name in EVIDENCE_TOOLS:
                     f["evidence"] += 1
@@ -332,6 +376,7 @@ def scan_turn(entries: list, start: int) -> dict:
             elif bt == "text":
                 texts.append(b.get("text") or "")
     f["answer"] = "\n".join(texts).strip()
+    f["thinking"] = "\n".join(thinks).strip()
     return f
 
 
@@ -350,9 +395,15 @@ def agent_pass(entries: list, start: int):
     anti-self-certification point. Latest verdict wins (FAIL → fix → re-run PASS converges).
     Honest residual: a decoy agent deliberately told to emit PASS would count — but that is
     a flagrant, visible act in the transcript, not a casual self-cert."""
-    # 1) ids of the Agent/Task calls I made this turn (the rules-checker spawns).
+    # 1) ids of the Agent/Task calls I made — from the WHOLE transcript, not just
+    # this turn (#253 second resolution, 2026-07-10: an async checker spawned in
+    # turn N delivers its verdict in turn N+1 as a tool_result whose tool_use_id
+    # points at the PRIOR turn's Agent call; a window-scoped id set made that
+    # genuine verdict invisible — live-captured at transcript idx 35315). The
+    # verdict itself must still arrive IN-WINDOW (the loop below scans
+    # entries[start:]), so recency is preserved; only the spawn may be older.
     agent_ids = set()
-    for e in entries[start:]:
+    for e in entries:
         if e.get("type") != "assistant":
             continue
         for b in (e.get("message") or {}).get("content") or []:
@@ -405,7 +456,26 @@ def build_ctx(data: dict, entries: list, event: str) -> dict:
     ctx["done_claim"] = bool(DONE.search(answer))
     ctx["doc_ok"] = f["doc_edit"] or bool(CITE_MD.search(answer)) or bool(DOC_MENTION.search(answer))
     ctx["plan_lock"] = bool(PLAN_LOCK.search(answer))
-    ctx["rules_passed"] = f["subagent_ran"] or bool(VERDICT.search(answer)) or bool(TRIVIAL.search(answer))
+    # THE ATTEST CHANNEL (#253, 2026-07-10): visible text + thinking + the gated
+    # call's ALLOWLISTED tool_input keys (subject/description/activeForm — see
+    # _payload_text; NEVER content-bearing keys, so an Edit's own new_string can
+    # never satisfy the pre-edit second-look). Feeds ONLY the AFFIRMATIVE
+    # escapes — the rules-pass signals and the pre-edit plan-ref/RISK/trivial
+    # attestations — never the violation detectors. WHY three sources
+    # (live-probed in the remote harness this day): mid-turn assistant TEXT
+    # flushes unreliably (2 of ~6 messages present), thinking blocks flush but
+    # their content is STRIPPED (empty string, signature only), while the hook
+    # payload is deterministically present at hook time. A description-carried
+    # citation is me-authored self-attestation — acceptable ONLY at these light
+    # gates (the hard boundaries read agent_pass, never this). So: cite the
+    # tests / 'trivial' in the gated call's own description field and the gate
+    # can always see it; text/thinking still count where they flush. The
+    # VIOLATION detectors (code_claim / reco / done / plan_lock / proposal /
+    # second_pass / user_decided) stay on the VISIBLE answer only: exploratory
+    # thinking or tool args must never false-fire a block the user can't see.
+    attest = f"{answer}\n{f['thinking']}\n{_payload_text(data)}"
+    ctx["rules_passed"] = (f["subagent_ran"] or bool(VERDICT.search(attest))
+                           or bool(TRIVIAL.search(attest)) or tests_cited(attest))
     # #237 think-twice facts. `proposal` = authored-proposal language, OR lock
     # language NOT attributed to the user (a "the user decided X" record turn is
     # not my proposal; "I propose X" always is, even when quoting the user).
@@ -413,9 +483,9 @@ def build_ctx(data: dict, entries: list, event: str) -> dict:
     ctx["proposal"] = bool(PROPOSAL.search(answer)) or (
         ctx["plan_lock"] and not ctx["user_decided"])
     ctx["second_pass"] = bool(SECOND_PASS.search(answer))
-    ctx["plan_ref"] = bool(PLAN_REF.search(answer))
-    ctx["risk_line"] = bool(RISK_LINE.search(answer))
-    ctx["trivial_explicit"] = bool(TRIVIAL_EXPLICIT.search(answer))
+    ctx["plan_ref"] = bool(PLAN_REF.search(attest))
+    ctx["risk_line"] = bool(RISK_LINE.search(attest))
+    ctx["trivial_explicit"] = bool(TRIVIAL_EXPLICIT.search(attest))
     # Block 0 (Stop, evidence-recheck) — filled by verify-gate via block0_missing when a
     # sentinel exists; default empty so the rule passes when no reset is pending.
     ctx["missing"] = []
@@ -490,11 +560,15 @@ _SECOND = ("VERIFY-GATE (second pass) — this turn puts a PROPOSAL to the user 
            "re-derivation defeats its own purpose. Then finish.")
 _POST = ("VERIFY-GATE (post-task) — this turn edited code but ran no rules-pass. Before finishing, "
          "run the rules-checker subagent on the diff against T1-T12 (Agent tool, subagent_type "
-         "'rules-checker') and address any FAIL — or cite the tests the change passes (for a "
-         "trivial change, say so). Then finish.")
+         "'rules-checker') and address any FAIL — or cite the tests the change passes (at least "
+         "three T-numbers with reasons, e.g. 'T1 … T2 … T5 …'; for a trivial change, say so). "
+         "Then finish.")
 _TBEGIN = ("TASK GATE — BEGIN (TaskCreated). No rules-pass this turn. Run the rules-checker "
            "subagent on this task's plan (Agent tool, subagent_type 'rules-checker') and address "
-           "any FAIL — or cite the tests it passes / say 'trivial' — before starting this task.")
+           "any FAIL — or cite the tests it passes (at least three T-numbers with reasons, e.g. "
+           "'T1 … T2 … T5 …', or 'T1 PASS, T2 PASS') / say 'trivial' — IN A MESSAGE BEFORE the "
+           "gated call (same-message text may not be flushed to the transcript when this gate "
+           "runs) — before starting this task.")
 _TDONE = ("RULES GATE — INDEPENDENT CHECK REQUIRED. This is a commit/task-completion with no "
           "genuine all-pass verdict from an independent rules-checker this turn. SPAWN the "
           "rules-checker subagent (Agent tool, subagent_type 'rules-checker') and have it score "
