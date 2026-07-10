@@ -188,9 +188,22 @@ _V_FAIL = re.compile(r"\bVERDICT:\s*FAIL\b", re.I)
 # fired a spurious pre-task DENY). Anchored to the wrapper tag at the start of the
 # message. `<command-name>` (slash commands the user typed) and plain text stay
 # genuine; verified against the real transcript shapes.
+#
+# #253 (2026-07-10, evidence: the full 31k-entry live-transcript sweep in the queue
+# doc's #253 record): the CURRENT harness records ToolSearch replies as tool_results
+# and hook feedback as isMeta — both already excluded — and every bare plain-text
+# user entry in the sweep was a genuine prompt. The three plain-text prefixes below
+# are DEFENSIVE: they are the 2026-07-09 EFFECTIVENESS-recorded injection shapes
+# ("Tool loaded." reset the turn window as a bare user entry pre-restart), kept so a
+# harness that ever emits them bare again cannot reset the window. No genuine human
+# prompt starts with these strings.
 INJECTED_USER = re.compile(
     r"^\s*<(task-notification|task-reminder|system-reminder|local-command-stdout"
-    r"|local-command-stderr|bash-input|bash-stdout|bash-stderr|post-tool-use)\b",
+    r"|local-command-stderr|bash-input|bash-stdout|bash-stderr|post-tool-use"
+    r"|local-command-caveat)\b"
+    r"|^\s*Tool loaded\."
+    r"|^\s*The task tools haven'?t been used recently"
+    r"|^\s*\[SYSTEM NOTIFICATION",
     re.I,
 )
 

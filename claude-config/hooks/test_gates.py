@@ -119,6 +119,17 @@ def test_registry():
     for s in ("<task-notification>\n<task-id>x</task-id>", "<local-command-stdout>set</local-command-stdout>",
               "<system-reminder>x</system-reminder>"):
         assert not r.is_genuine_user(U(s)), s
+    # #253 defensive shapes (2026-07-10): the EFFECTIVENESS-recorded bare
+    # injections must never reset the turn window, even though the CURRENT
+    # harness records them as tool_results/isMeta (the live-sweep finding —
+    # see the queue doc's #253 record).
+    for s in ("Tool loaded.",
+              "The task tools haven't been used recently. If you're working on tasks...",
+              "[SYSTEM NOTIFICATION - NOT USER INPUT]\n<task-notification>x",
+              "<local-command-caveat>Caveat: local commands</local-command-caveat>"):
+        assert not r.is_genuine_user(U(s)), s
+    # ...while a prompt that merely MENTIONS those strings mid-text stays genuine.
+    assert r.is_genuine_user(U("why does it say Tool loaded. in the log?"))
     assert not r.is_genuine_user({"type": "user", "isMeta": True, "message": {"content": "x"}})
     assert not r.is_genuine_user({"type": "user", "message": {"content": [{"type": "tool_result", "content": "x"}]}})
     # per-event subset via run_rules

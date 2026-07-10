@@ -87,6 +87,29 @@ at build time and fixed before the first commit: the pre-edit deny window counte
 so a doc-edit-first turn (the normal record-first pattern) bypassed the first-CODE-edit
 check — the window now counts prior CODE edits only (`scan_turn` `code_edits`).
 
+**#253 resolution (2026-07-10, evidence: the full 31,389-entry live-transcript sweep
+recorded in the queue doc's #253 record):** the two 2026-07-09 finding-shapes did NOT
+reproduce against the current (post-container-restart) harness — ToolSearch replies now
+arrive as `tool_result` blocks (already excluded by `is_genuine_user`'s has-tool-result
+check), hook feedback and command caveats arrive `isMeta: true` (already excluded), and
+EVERY bare plain-text user entry in the sweep was a genuine human prompt. Assistant
+texts are PRESENT in this transcript (1,945 text blocks, longest 8,064 chars), refuting
+the recorded "long assistant texts are ABSENT in the remote environment" claim for the
+current environment — the text-citation escapes CAN fire here, and the 2026-07-10 B6
+window's code commits cleared the commit gate on genuine in-turn agent verdicts. The
+shipped fix is therefore DEFENSIVE hardening, not a rework: `INJECTED_USER` gained the
+three historically-recorded bare shapes ("Tool loaded." · the task-tools reminder ·
+"[SYSTEM NOTIFICATION") plus `<local-command-caveat>`, so a harness that ever emits
+them bare again cannot reset the turn window; no genuine prompt starts with those
+strings (mid-text mentions stay genuine — harness-tested both ways). The same-message
+flush lag stands as an OPERATING NOTE (a PreToolUse hook reads the transcript before
+the current message flushes — cite the rules-pass in a message BEFORE the gated call);
+it is harness behavior, not fixable in a hook. The 2026-07-09 eleventh-window commit-
+gate incident (4× deny despite genuine verdicts + "trivial attested" misclassifications)
+remains attributed to the PRE-restart harness transcript shape — it did not reproduce
+in the B6 window; if it recurs, capture the transcript tail at the moment of denial
+before touching the gate.
+
 **First trial findings (2026-07-09, live, hours after install):** two `task-begin-check`
 false fires on a plain task-add, both TURN-WINDOW shapes rather than rule logic. (1) A
 harness **"Tool loaded."** reply to a ToolSearch call is a plain-text user entry with NO
