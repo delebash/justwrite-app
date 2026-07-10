@@ -469,7 +469,47 @@ record: queue doc tail **"EDITOR-ECHO REDO FIX BUILD RECORD"**; the plan doc's
 limitation note carries the FOLLOW-UP closure. Remaining on the user's word
 only: #256 research · the three QC-43 diagnoses.
 
-**GO (2026-07-10 late evening, post-fifteenth-compact) — I1 + I4 LANDED (both
+**GO (2026-07-10 night, post-sixteenth-compact) — THE USER'S THREE ANSWERS
+EXECUTED** (verbatim: "1 it seems to switch now, but i have reset the database
+twice and restarted and i still have untitled project. 2 is there any reason
+not to strip it for ai reasons? 3 not sure what you mean. Notes for scene you
+have as detach it need to be delete a note not detach."). **(1) THE
+ZERO-PROJECT LAW** — the phantom "Untitled project" was the RENDERER's mint
+(bootstrap empty-registry fallback + deleteProject last-branch +
+_ensureActiveId), re-created + re-persisted on every boot after a workspace
+reset, so reset could never win. Killed: bootstrap returns null (no mint);
+zero projects is a valid state whose home is /welcome (main.js guard on EVERY
+navigation while the registry is empty; allowlist /welcome·/ai·/help — the
+routes Welcome's own CTAs target); deleteProject-last blanks in-memory via the
+shared blankSnapshot() (extracted from createProject — one source) with no
+row; createProject/switchProject gate their outgoing-persist on an active id
+(else the welcome CTAs would re-mint through _ensureActiveId — the tutorial
+path was probed for exactly this). ADJACENT FIX (flagged, not user-worded):
+ui.projectTitle was a DEAD constant pinned to "The Cartographer's Daughter" —
+the TitleBar never showed the real project title; App.vue now binds the
+project store's title (app name when zero projects), dead key deleted. QC-47
+switcher: user confirms "it seems to switch now" — closed, hardening not
+built. **(2) SCENE MARKS: KEEP** (recorded decision, deep-audit A1 closed):
+the mark is the literal manuscript-standard "* * *" line — it tells the model
+a scene cut is deliberate; stripping would glue scenes and worsen
+critique/pacing/knowledge judgments; ~3 tokens per break; no prompt/parser
+depends on it. Flips on the user's word. **(3) PANEL ✕ = DELETE** (user's
+order): SceneNotesPanel's per-note action now removeNote → Trash (soft, no
+confirm — NotesView precedent; no toast — QC-37; Trash icon — Sidebar
+precedent; anchor preserved in trash, so delete ≠ detach; unanchoring lives in
+NotesView's anchor picker; the panel-CLOSE ✕ untouched). Docs same commits:
+notes-and-search.md · whats-new.md (panel + tutorial entries) ·
+getting-started.md:24 · seed.py/test_seed.py comments · NEW plan doc
+docs/plans/2026-07-10-zero-project-welcome-and-panel-delete.md (the T8
+remedy). Gates: vitest 94 · build · FULL smoke zero-errors · NEW zero-project
+probe 16/16 (incl. no-phantom-after-/ai + tutorial-from-zero) · panel
+delete-leg 10/10 · undo-probe 19/19 · JW server pytest 80 + ruff · biome. DB
+restored byte-exact after probes. Note: the sidebar switcher can't delete the
+ACTIVE project, so delete-last is store/reset-reachable only (probe drives the
+store seam). Full record: queue doc tail.
+
+**GO (2026-07-10 late evening, post-fifteenth-compact — superseded by the
+paragraph above) — I1 + I4 LANDED (both
 delegated builds verified independently + checker-verdicted; JW `21c253d` I1 +
 `7430079` I4, runner `cdb6fbc`) · the QC-45/46 DESIGN PASS SENT AND PICKED ·
 QC-47 REPRO RAN.** **I1**: 16 htmlToText + 6

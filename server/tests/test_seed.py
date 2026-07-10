@@ -1,8 +1,8 @@
 """Workspace seeding — the default LLM providers the server creates on a fresh
 install, and the ON-DEMAND demo book (QC-40, user 2026-07-10: the demo is no
 longer seeded at boot — a fresh install has NO projects and the renderer lands
-in its blank "Untitled project" fallback; "Try tutorial project" creates the
-demo via POST /v1/projects/demo).
+on its welcome screen; "Try tutorial project" creates the demo via
+POST /v1/projects/demo).
 
 seed_workspace() opens its own session from database.SessionLocal, which
 create_app(tmp_path) wired up via init_db — so constructing a client first
@@ -31,7 +31,7 @@ def test_seed_creates_providers_but_no_demo(tmp_path):
     seed_workspace()
 
     # QC-40: no demo project, no active pointer — the fresh workspace is EMPTY
-    # (the renderer mints its blank "Untitled project" fallback).
+    # (the renderer shows the welcome screen; zero projects is a valid state).
     assert c.get("/v1/projects").json() == []
     settings = c.get("/v1/settings").json()
     assert "activeProjectId" not in settings
@@ -158,7 +158,7 @@ def test_reset_reseeds_workspace(tmp_path):
     assert c.post("/v1/data/reset").status_code == 200
 
     # User project gone; reset behaves like first run — an EMPTY workspace
-    # (QC-40: no demo, the renderer mints its blank fallback), providers back.
+    # (QC-40: no demo; the renderer lands on the welcome screen), providers back.
     assert c.get("/v1/projects").json() == []
     settings = c.get("/v1/settings").json()
     assert "ui" not in settings

@@ -178,9 +178,13 @@ function onEditKeydown(e, n) {
   }
 }
 
-// Detach = the existing unanchor semantics; the note leaves this scope's list.
-function detach(n) {
-  project.updateNote(n.id, { anchor: null });
+// Delete (user's order, 2026-07-10: "need to be delete a note not detach") —
+// a soft delete to Trash via removeNote, no confirm (NotesView's own delete
+// has none) and no toast (QC-37): the card visibly leaves, and the note is
+// recoverable from the Trash view. Unanchoring still lives in the Notes
+// view's anchor picker ("Story-wide").
+function removeNote(n) {
+  project.removeNote(n.id);
 }
 
 // The one deliberate navigation.
@@ -246,9 +250,9 @@ function manageAll() {
                   <Icon name="Pencil" :size="12" />
                 </button>
                 <button type="button" class="sp-note-act"
-                  v-tooltip.bottom="isScene ? 'Detach from scene' : 'Detach note'" aria-label="Detach note"
-                  @click="detach(n)">
-                  <Icon name="Close" :size="12" />
+                  v-tooltip.bottom="'Delete note'" aria-label="Delete note"
+                  @click="removeNote(n)">
+                  <Icon name="Trash" :size="12" />
                 </button>
               </span>
             </div>

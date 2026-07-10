@@ -138,20 +138,12 @@ function bootstrap() {
     return { activeId: id, registry, snapshot: loadSnap(id) };
   }
 
-  // Nothing to open. Since QC-40 a fresh install ships with NO projects (the
-  // demo book is created only when "Try tutorial project" is clicked), so this
-  // fallback IS the first-run landing: mint a blank "Untitled project" so the
-  // app always has something to show. ensureActiveProjectPersisted() (called
-  // from main.js after boot) writes its row so it survives a reload.
-  const id = uid("prj");
-  const entry = {
-    id,
-    title: "Untitled project",
-    author: "",
-    savedAt: new Date().toISOString(),
-  };
-  writeSetting("activeProjectId", id);
-  return { activeId: id, registry: [entry], snapshot: null };
+  // Nothing to open. Zero projects is a VALID state (user, 2026-07-10 — the
+  // old mint here resurrected a phantom "Untitled project" after every
+  // workspace reset): don't mint anything. The main.js router guard makes
+  // /welcome the app's home while the registry is empty, and the welcome
+  // screen's own CTAs (new project / tutorial) create the first real project.
+  return { activeId: null, registry: [], snapshot: null };
 }
 
 // IMPORTANT: bootstrap() reads from caches populated before mount — the
@@ -531,6 +523,38 @@ const DEFAULT_WB_CATEGORIES = [
   { id: "factions",  label: "Factions",    icon: "GroupIcon", hue: 270 },
   { id: "lore",      label: "Lore & myth", icon: "Sparkle",   hue: 320 },
 ];
+
+// The ONE blank-project state shape — used by createProject() and by
+// deleteProject()'s last-project branch (which resets the in-memory state
+// without minting a registry row). Fresh copies each call.
+function blankSnapshot({ title = "Untitled", author = "" } = {}) {
+  return {
+    project: { ...BLANK_PROJECT_META, title, author, coverImage: null, wordsWritten: 0 },
+    strands: [], characters: [], characterExtras: {},
+    locations: [], objects: [], groups: [], notes: [],
+    parts: [{ id: uid("p"), title: "Part One", chapters: [] }],
+    architecture: blankArchitecture(),
+    worldbuilding: [],
+    worldbuildingCategories: DEFAULT_WB_CATEGORIES.map((c) => ({ ...c })),
+    tagVocabularies: { characters: [], locations: [], objects: [], worldbuilding: [] },
+    statuses: DEFAULT_STATUSES.map((s) => ({ ...s })),
+    scenes: {},
+    images: {}, events: {},
+    trash: { ...EMPTY_TRASH },
+    dailyRecaps: {},
+    reverseOutline: null,
+    beatSheets: {},
+    plotHoles: null,
+    chapterCritiques: {},
+    chapterReaderKnowledge: {},
+    chapterMultiReader: {},
+    characterAudits: {},
+    voiceCanonChapterIds: [],
+    relationshipArcs: {},
+    marketingPack: null,
+    worldRules: "",
+  };
+}
 
 export const useProjectStore = defineStore("project", {
   state: () => {
@@ -2164,38 +2188,13 @@ export const useProjectStore = defineStore("project", {
     },
 
      createProject({ title = "Untitled project", author = "" } = {}) {
-      // Snapshot the current project first so switching away doesn't
-      // lose unflushed edits.
-      this._persist();
+      // Snapshot the current project first so switching away doesn't lose
+      // unflushed edits — unless there IS no current project (zero-project
+      // state): persisting then would mint a phantom row via _ensureActiveId.
+      if (this._activeId) this._persist();
       const id = uid("prj");
-      const fresh = {
-        project: { ...BLANK_PROJECT_META, title, author, coverImage: null, wordsWritten: 0 },
-        strands: [], characters: [], characterExtras: {},
-        locations: [], objects: [], groups: [], notes: [],
-        parts: [{ id: uid("p"), title: "Part One", chapters: [] }],
-        architecture: blankArchitecture(),
-        worldbuilding: [],
-        worldbuildingCategories: DEFAULT_WB_CATEGORIES.map((c) => ({ ...c })),
-        tagVocabularies: { characters: [], locations: [], objects: [], worldbuilding: [] },
-        statuses: DEFAULT_STATUSES.map((s) => ({ ...s })),
-        scenes: {},
-        images: {}, events: {},
-        trash: { ...EMPTY_TRASH },
-        dailyRecaps: {},
-        reverseOutline: null,
-        beatSheets: {},
-        plotHoles: null,
-        chapterCritiques: {},
-        chapterReaderKnowledge: {},
-        chapterMultiReader: {},
-        characterAudits: {},
-        voiceCanonChapterIds: [],
-        relationshipArcs: {},
-        marketingPack: null,
-        worldRules: "",
-      };
       this._activeId = id;
-      Object.assign(this.$state, fresh);
+      Object.assign(this.$state, blankSnapshot({ title, author }));
       this.clearHistory();
       this._persist();
       return id;
@@ -2210,8 +2209,10 @@ export const useProjectStore = defineStore("project", {
         useUiStore().showToast({ message: "That project couldn't be loaded." });
         return;
       }
-      // Persist the outgoing project before swapping.
-      this._persist();
+      // Persist the outgoing project before swapping — unless there is none
+      // (zero-project state, e.g. "Try tutorial" from the welcome screen):
+      // persisting then would mint a phantom row via _ensureActiveId.
+      if (this._activeId) this._persist();
       this._activeId = id;
       Object.assign(this.$state, snap);
       this.clearHistory();
@@ -2223,14 +2224,19 @@ export const useProjectStore = defineStore("project", {
       removeSnap(id);
       this._writeRegistry(this._projects.filter((p) => p.id !== id));
       if (id === this._activeId) {
-        // Move to another project, or seed a blank one if none remain.
         const next = this._projects[0];
         if (next) {
           this._activeId = null; // force switchProject() to actually load
           await this.switchProject(next.id);
         } else {
+          // Last project deleted → the zero-project state (user, 2026-07-10:
+          // no more auto-minted "Untitled project"). Blank the in-memory
+          // state WITHOUT persisting — no row, no registry entry; the router
+          // guard sends the user to /welcome, whose CTAs create the next one.
           this._activeId = null;
-          this.createProject({ title: "Untitled project" });
+          Object.assign(this.$state, blankSnapshot());
+          this.clearHistory();
+          writeSetting("activeProjectId", null);
         }
       }
     },

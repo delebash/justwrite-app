@@ -15,8 +15,9 @@ shows once; reopen it anytime from the Help page.
 **Scene notes beside the editor.** The Notes buttons on a scene and on the
 chapter toolbar now open a panel docked next to your prose instead of
 navigating away: jot a note in the composer and it's pinned to that scene,
-click a note to edit it in place, and detach with ✕. Managing the full notes
-list stays in the Notes view ("Manage all notes ↗").
+click a note to edit it in place, and delete with the trash button (it moves
+to Trash, so nothing is lost by accident). Managing the full notes list stays
+in the Notes view ("Manage all notes ↗").
 
 **Page-related undo.** Ctrl/⌘ + Z now undoes changes to the page you're on — character edits on Characters, manuscript changes on Chapters — and never silently reverts something from another page. Each page's redo also survives work you do elsewhere, and the title-bar Undo button tells you when the current page has nothing to undo. Redoing an undone prose change works with the scene editor open, too — previously the open editor could quietly swallow the redo.
 
@@ -26,7 +27,7 @@ list stays in the Notes view ("Manage all notes ↗").
 
 **What's new modal.** When you open JustWrite after an upgrade, a modal shows you what changed in the new version — dismissible, and keyed to the version number so it only shows once.
 
-**Tutorial project.** The **sidebar's project switcher menu → "Try tutorial project"** opens *The Cartographer's Daughter* — a complete small demo novel (characters, locations, chapters, plot strands, events) created on demand, so a fresh install starts in your own blank project instead. It is a real project you can poke at without touching your own work; delete it from the same switcher when you're done, and the button brings it back fresh any time.
+**Tutorial project.** The **sidebar's project switcher menu → "Try tutorial project"** opens *The Cartographer's Daughter* — a complete small demo novel (characters, locations, chapters, plot strands, events) created on demand, so a fresh install starts clean on the welcome screen instead. It is a real project you can poke at without touching your own work; delete it from the same switcher when you're done, and the button brings it back fresh any time.
 
 **Better empty states.** Every catalog (Characters / Locations / Objects / Groups / Notes / Strands / Worldbuilding) now explains what the surface is for and where it connects, rather than just "No characters yet."
 

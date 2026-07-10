@@ -21,7 +21,7 @@ The very first time you open JustWrite, a **welcome screen** greets you. It sums
 
 The same screen introduces the optional AI features: **Run Quick Setup** installs a free local model that runs privately on your own PC, **Connect an online provider** points JustWrite at any OpenAI-compatible service, and you can skip both — everything is available later in AI settings. The welcome screen shows once; you can reopen it any time from the **Help** page (sidebar → Help → "Show welcome screen").
 
-Behind it, your workspace starts as a blank **Untitled project**. The sidebar's project switcher at the top of the left rail is where you rename it, create more projects, and move between them.
+A fresh workspace has **no projects yet** — the welcome screen is where the first one is born, and it stays your home screen until one exists. Once you have projects, the sidebar's project switcher at the top of the left rail is where you rename them, create more, and move between them.
 
 ### Try tutorial project
 

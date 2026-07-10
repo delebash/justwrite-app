@@ -129,15 +129,33 @@ configureHelp({
   const pinia = createPinia();
   app.use(pinia);
 
-  // QC-46 — first-run welcome screen. On the FIRST navigation of a cold load,
-  // if it targets the root ("", "#", "#/" all normalise to path "/") and the
-  // welcome screen hasn't been dismissed (the `welcomeSeen` setting), redirect
-  // to /welcome. Runs ONCE, so later in-app navigations to "/" (e.g. right
-  // after creating a project) are never intercepted; an explicit deep-link
-  // (any non-root hash — probes, "open chapter X") passes straight through.
-  // Existing users upgrading have no `welcomeSeen` key, so they see it once.
+  // QC-46 — the welcome screen owns two redirect rules:
+  //
+  // 1. THE ZERO-PROJECT LAW (user, 2026-07-10 — bootstrap() no longer mints a
+  //    blank "Untitled project"): while the registry is EMPTY (fresh install,
+  //    workspace reset, last project deleted), /welcome is the app's only
+  //    home — every data route needs a project. Checked on EVERY navigation
+  //    (deliberately NOT behind the run-once gate below: a mid-session reset
+  //    must still redirect). The allowlist is exactly the project-independent
+  //    surfaces the welcome screen itself links to: the AI setup page
+  //    (/ai?quicksetup=1, /ai) and Help (which hosts "Show welcome screen").
+  //
+  // 2. First-run redirect: on the FIRST navigation of a cold load, if it
+  //    targets the root ("", "#", "#/" all normalise to path "/") and the
+  //    screen hasn't been dismissed (`welcomeSeen`), show it once. Later
+  //    in-app navigations to "/" (e.g. right after creating a project) are
+  //    never intercepted; explicit deep-links pass straight through.
+  //    Existing users upgrading have no `welcomeSeen` key, so they see it once.
+  const PROJECTLESS_ROUTES = ["/welcome", "/ai", "/help"];
   let welcomeChecked = false;
   router.beforeEach((to) => {
+    const project = useProjectStore(pinia);
+    if (
+      !project.projectsList.length &&
+      !PROJECTLESS_ROUTES.some((p) => to.path === p || to.path.startsWith(`${p}/`))
+    ) {
+      return "/welcome";
+    }
     if (welcomeChecked) return true;
     welcomeChecked = true;
     if (to.path === "/" && !readSetting("welcomeSeen")) return "/welcome";
@@ -153,9 +171,10 @@ configureHelp({
   // loaded before the first edit can attribute a delta.
   await useSessionsStore(pinia).boot();
 
-  // Ensure the active project has a server row — a brand-new install's seeded
-  // demo lives only in memory until its first edit, and the registry is derived
-  // from the projects table, so persist it now to survive a reload.
+  // Ensure the active project has a server row — a freshly created project
+  // lives only in memory until its first edit, and the registry is derived
+  // from the projects table, so persist it now to survive a reload. No-op in
+  // the zero-project state (null active id).
   useProjectStore(pinia).ensureActiveProjectPersisted();
 
   app.mount("#app");

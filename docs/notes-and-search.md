@@ -75,12 +75,14 @@ docked beside the editor**, so you never leave the scene you're writing:
 
 Jot your thought in the composer and press **Add note** (or ⌘Enter) — the
 note is created already pinned to that scope, and it appears right there in
-the panel. Click a note's text to edit it in place; the small **✕** detaches
-it (the note becomes story-wide, it isn't deleted). The panel is a quick
+the panel. Click a note's text to edit it in place; the small **trash
+button** deletes it (a soft delete — the note moves to the Trash view, where
+you can restore it). To unpin a note without deleting it, use the anchor
+picker in the Notes view and choose "Story-wide". The panel is a quick
 plain-text surface — a note with rich formatting from the Notes view keeps
 its formatting unless you edit it here. For everything else — renaming,
-tagging, deleting — the panel's **Manage all notes ↗** link opens the Notes
-view.
+tagging, re-anchoring — the panel's **Manage all notes ↗** link opens the
+Notes view.
 
 If you later delete the scene a note is pinned to, the note stays with its
 chapter (you'll still find it from the chapter's Notes panel and the Notes

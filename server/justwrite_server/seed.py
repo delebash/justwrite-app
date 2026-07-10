@@ -4,11 +4,12 @@ The LLM seed (providers, catalog, switches, recommendations, routing, and featur
 prompts) is SHARED — `llm_runner.llm.seed_llm()` seeds it, including the feature
 DATA JustWrite registered via `install_llm` (its feature catalog + prompts). This
 module owns only JustWrite's NON-LLM piece: the demo book, which since QC-40
-(user, 2026-07-10, option 1) is NOT seeded at boot — a fresh install lands in the
-renderer's blank "Untitled project" fallback, and the demo is created only when
-the user clicks "Try tutorial project" (POST /v1/projects/demo → the helper
-below). The old `demoSeeded` gate flag is no longer written; existing DBs keep
-the inert row.
+(user, 2026-07-10, option 1) is NOT seeded at boot — a fresh install has ZERO
+projects and the renderer lands on its welcome screen (the old blank
+"Untitled project" mint is gone since the zero-project law, same day), and the
+demo is created only when the user clicks "Try tutorial project"
+(POST /v1/projects/demo → the helper below). The old `demoSeeded` gate flag is
+no longer written; existing DBs keep the inert row.
 """
 
 from __future__ import annotations
@@ -55,7 +56,7 @@ def seed_workspace(db: Session | None = None) -> None:
     given (the `serve` entrypoint); reuses the caller's session when one is
     passed (the workspace-reset handler, after its wipe). The demo book is NOT
     seeded here (QC-40) — a fresh/reset workspace ships with no projects and the
-    renderer lands in its blank "Untitled project" fallback.
+    renderer lands on its welcome screen (zero projects is a valid state).
 
     Requires `install_llm` to have run first (it registers JW's feature data the
     shared seeder reads) — true for both the `serve` boot and `create_app` tests.

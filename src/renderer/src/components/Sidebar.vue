@@ -93,7 +93,14 @@ async function deleteProject(id, title) {
     danger: true,
   });
   if (!yes) return;
-  project.deleteProject(id);
+  await project.deleteProject(id);
+  // Last project gone → the zero-project state; /welcome owns it (the router
+  // guard would force this on the next navigation anyway — go there now so
+  // the user isn't left on a blanked data page).
+  if (!project.projectsList.length) {
+    closeProjectMenu();
+    router.push("/welcome");
+  }
 }
 
 function onDocClick(e) {

@@ -25,6 +25,14 @@ const project = useProjectStore();
 
 const screenLabel = computed(() => String(route.name || ""));
 
+// TitleBar title = the OPEN project's title, live (one source: the project
+// store — the same field the sidebar switcher shows). The old ui.projectTitle
+// was a dead constant pinned to the demo book's name. With zero projects
+// (fresh install / post-reset — /welcome is home) show the app name instead.
+const barTitle = computed(() =>
+  project.projectsList.length ? (project.project.title || "Untitled") : "JustWrite",
+);
+
 // True when the focused element belongs to the rich editor (TipTap puts
 // `contenteditable=true` on its root). That editor has its own
 // undo/redo via prosemirror history, so we don't want to intercept ⌘Z
@@ -117,7 +125,7 @@ onBeforeUnmount(() => window.removeEventListener("keydown", onKey, { capture: tr
 
 <template>
   <div class="app-stage">
-    <TitleBar :title="ui.projectTitle" />
+    <TitleBar :title="barTitle" />
     <div class="app" :class="{ collapsed: ui.sidebarCollapsed }"
       :style="ui.sidebarCollapsed ? null : `grid-template-columns: ${ui.sidebarWidth}px 1fr`">
       <Sidebar />

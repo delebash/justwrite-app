@@ -45,7 +45,6 @@ export const useUiStore = defineStore("ui", {
   state: () => {
     const saved = load();
     return {
-      projectTitle: "The Cartographer's Daughter",
       sidebarCollapsed: false,
       sidebarWidth: 280,         // user-resizable; persisted
       expanded: { chapters: true },
