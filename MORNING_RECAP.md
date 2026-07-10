@@ -488,7 +488,11 @@ Settings→Storage "Disk usage" card + docs/storage.md "Reclaiming disk space"
 build · FULL smoke · runner pytest 469 + ruff · JW server 80 + ruff); one
 genuine checker verdict per code commit. **QC-45/46**: six live-injected
 mockups sent; THE USER PICKED (verbatim "W-A hero,N-B side panel") — and BOTH
-ARE BUILT (delegated builds, coordinator-verified + combined-tree gates):
+ARE SHIPPED (QC-45 JW `a42907c` · QC-46 JW `a96bfe8` + runner `5677cd3`;
+delegated builds, coordinator-verified + combined-tree gates; the checker
+rounds caught three real defects pre-push — the dropped Sidebar promptDialog
+import, the panel's text-helper fork converged onto services/text.js, the
+stale notes help doc — all fixed, re-verdict PASS):
 QC-45 = SceneNotesPanel.vue, the docked in-place scene/chapter notes panel
 (ChapterNotesModal DELETED — adding a note never navigates; rich-note
 edit-flattening + the notes-domain ⌘Z asymmetry FLAGGED, awaiting the user);
