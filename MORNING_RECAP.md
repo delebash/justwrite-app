@@ -469,8 +469,25 @@ record: queue doc tail **"EDITOR-ECHO REDO FIX BUILD RECORD"**; the plan doc's
 limitation note carries the FOLLOW-UP closure. Remaining on the user's word
 only: #256 research · the three QC-43 diagnoses.
 
+**GO (2026-07-10 evening — the CURRENT state; full pickup = the queue doc tail
+"THE FIFTEENTH-COMPACT POINT" + its UPDATE, read that first):** the user's big
+go ("Do I4, I1, 253, superpowers, qc43 a,b,c" + "make superpowers permenant,
+payload-channel piece ship it" + the Opus-delegation rules + "add to task =
+queue only" + DECIDED-ONCE struck for ask-when-unsure + QC-46 DECIDED welcome
+screen). SHIPPED+PUSHED: the editor-echo redo fix (JW `4c9a793`) · #253
+complete (JW `2bd4b57` — attest channel, checker FAIL→fixed→PASS, the leak
+caught + closed) · superpowers installed + permanent (install.sh) · QC-43
+a+b+c ALL SHIPPED (runner `a094143` + `e523ada`, three checker PASSes —
+stale-seed boot-heal · server-side chat ensure-resident · the Server-console
+tab, screenshot sent). QUEUED by their word: QC-45 scene-notes rethink ·
+QC-46 welcome-screen design · QC-47 switcher BUG (grounding recorded).
+REMAINING from the go: I4 · I1 (agents dispatched) · the two design passes ·
+QC-47 repro. Records: queue doc §"THE 2026-07-10 EVENING GO" + "#253 SECOND
+RESOLUTION" + "ALL THREE ARE BUILT" + the FIFTEENTH point.
+
 **⛔ THE STATE AT THE FOURTEENTH COMPACT (2026-07-10 — superseded by the
-echo-fix GO above; its "GO armed" framing is HISTORY now):**
+evening-go paragraph above AND the echo-fix GO; its "GO armed" framing is
+HISTORY now):**
 #235 shipped (the GO paragraph below); THE QUEUE IS EMPTY. **The GO armed for
 right after the compact: the EDITOR-ECHO REDO FIX** (the user asked "redoing a
 prose undo, why cant this work?", the fix was offered, their word: "we need to
