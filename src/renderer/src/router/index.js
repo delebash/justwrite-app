@@ -89,6 +89,11 @@ const routes = [
   { path: "/settings/:section?", name: "Settings",      component: () => import("../views/SettingsView.vue"), props: true, meta: { undoDomains: ["meta", "statuses", "tagVocab"] } },
   { path: "/help/:slug?",       name: "Help",          component: () => import("../views/HelpView.vue"), props: true },
 
+  // QC-46 — the first-run welcome screen (the user's "W-A hero" pick). No
+  // undoDomains: it edits no book data, so ⌘Z / the TitleBar Undo stay inert
+  // here. The first-run redirect to it lives in main.js (a run-once guard).
+  { path: "/welcome",           name: "Welcome",       component: () => import("../views/WelcomeView.vue") },
+
   // The SHARED @delebash/llm-ui "AI / Models" area (Providers & models · Features
   // · Usage) — same view JustVoice mounts; appName passed as a static prop. The
   // Features tab now absorbs per-feature prompt editing + a test panel, so the

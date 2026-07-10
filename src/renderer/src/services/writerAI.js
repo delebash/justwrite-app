@@ -8,6 +8,7 @@
 
 import { runAiFeatureStream } from "@delebash/llm-ui";
 import { useProjectStore } from "../stores/project.js";
+import { textToHtml } from "./text.js";
 import { buildVoiceFingerprint } from "./voiceFingerprint.js";
 
 // The voice-canon fingerprint as a server-prompt variable: the project's
@@ -35,19 +36,9 @@ function htmlToText(html) {
   return div.textContent || "";
 }
 
-// Wrap the LLM reply back into HTML so the editor can drop it in. The
-// model returns plain text with paragraph breaks; we split on blank
-// lines and wrap each paragraph in <p>.
-function textToHtml(text) {
-  if (!text) return "";
-  const esc = (s) => s.replace(/[&<>]/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;" }[c]));
-  return text
-    .split(/\n{2,}/)
-    .map((p) => p.trim())
-    .filter(Boolean)
-    .map((p) => `<p>${esc(p).replace(/\n/g, "<br>")}</p>`)
-    .join("");
-}
+// Wrapping the LLM reply back into editor HTML (blank-line paragraphs,
+// single newlines as <br>) is the shared textToHtml's default grammar
+// (services/text.js).
 
 // ─── Action metadata ─────────────────────────────────────────────────────
 // Labels for the editor AI dropdown. The PROMPTS (system base + per-action

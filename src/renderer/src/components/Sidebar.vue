@@ -5,6 +5,7 @@ import { useI18n } from "vue-i18n";
 import { useUiStore } from "../stores/ui.js";
 import { useProjectStore } from "../stores/project.js";
 import { promptDialog, confirmDialog, useAiTasksStore } from "@delebash/llm-ui";
+import { promptNewProject, openTutorialProject } from "../services/projectStart.js";
 import { NEW_ENTITY_META } from "../services/entityMeta.js";
 import { Icon } from "@delebash/llm-ui";
 import { UiButton } from "@delebash/llm-ui";
@@ -72,26 +73,16 @@ function pickProject(id) {
   router.push("/");
 }
 
+// Both flows live in services/projectStart.js — ONE source shared with the
+// QC-46 welcome screen (dialog shape + i18n keys + create/open + go Home).
 async function openTutorial() {
   closeProjectMenu();
-  // QC-40: opens the FULL demo book, created on demand by the server.
-  const id = await project.openDemoProject();
-  if (id) router.push("/");
+  await openTutorialProject();
 }
 
 async function newProject() {
   closeProjectMenu();
-  const values = await promptDialog({
-    title: t("sidebar.projectSwitcher.newProjectTitle"),
-    confirmLabel: t("sidebar.projectSwitcher.newProjectConfirm"),
-    fields: [
-      { key: "title",  label: t("sidebar.projectSwitcher.fieldTitle"), placeholder: t("sidebar.projectSwitcher.fieldTitlePlaceholder") },
-      { key: "author", label: t("sidebar.projectSwitcher.fieldAuthor"), placeholder: t("sidebar.projectSwitcher.fieldAuthorPlaceholder"), optional: true },
-    ],
-  });
-  if (!values?.title) return;
-  project.createProject({ title: values.title, author: values.author || "" });
-  router.push("/");
+  await promptNewProject();
 }
 
 async function deleteProject(id, title) {

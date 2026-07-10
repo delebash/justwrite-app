@@ -14,7 +14,14 @@ The first launch may take a few seconds longer than usual while the app sets up 
 
 ## Your first project
 
-When you open JustWrite for the very first time, you land in a blank **Untitled project** — your own workspace, ready to write in. Nothing is pre-filled; the sidebar's project switcher at the top of the left rail is where you rename it, create more projects, and move between them.
+The very first time you open JustWrite, a **welcome screen** greets you. It sums up what the app does — chapters & scenes, the story bible, plot strands & timeline, AI assistance, goals & pace, export — and offers the two ways to begin:
+
+- **Start a new project** — give it a title and (optionally) an author, and you're writing.
+- **Try the tutorial project** — opens *The Cartographer's Daughter*, a short guided book (more below).
+
+The same screen introduces the optional AI features: **Run Quick Setup** installs a free local model that runs privately on your own PC, **Connect an online provider** points JustWrite at any OpenAI-compatible service, and you can skip both — everything is available later in AI settings. The welcome screen shows once; you can reopen it any time from the **Help** page (sidebar → Help → "Show welcome screen").
+
+Behind it, your workspace starts as a blank **Untitled project**. The sidebar's project switcher at the top of the left rail is where you rename it, create more projects, and move between them.
 
 ### Try tutorial project
 

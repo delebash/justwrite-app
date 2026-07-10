@@ -128,6 +128,22 @@ configureHelp({
   const app = createApp(App);
   const pinia = createPinia();
   app.use(pinia);
+
+  // QC-46 — first-run welcome screen. On the FIRST navigation of a cold load,
+  // if it targets the root ("", "#", "#/" all normalise to path "/") and the
+  // welcome screen hasn't been dismissed (the `welcomeSeen` setting), redirect
+  // to /welcome. Runs ONCE, so later in-app navigations to "/" (e.g. right
+  // after creating a project) are never intercepted; an explicit deep-link
+  // (any non-root hash — probes, "open chapter X") passes straight through.
+  // Existing users upgrading have no `welcomeSeen` key, so they see it once.
+  let welcomeChecked = false;
+  router.beforeEach((to) => {
+    if (welcomeChecked) return true;
+    welcomeChecked = true;
+    if (to.path === "/" && !readSetting("welcomeSeen")) return "/welcome";
+    return true;
+  });
+
   app.use(router);
   app.use(i18n);
   app.directive("tooltip", tooltipDirective);

@@ -63,12 +63,28 @@ Because Notes use the same rich-text editor as chapters, you can `@`-mention any
 
 By default a note is **story-wide** — it lives in the Notes view, anchored to nothing in particular. You can pin a note to a specific chapter or scene with the anchor picker in the note header (the pin icon to the left of the tag field). The picker is a chapter-and-scene list — pick any to re-anchor, or pick "Story-wide" to unanchor.
 
-A pinned note shows up where you'd expect to find it:
+A pinned note shows up where you'd expect to find it — in a **notes panel
+docked beside the editor**, so you never leave the scene you're writing:
 
-- The chapter editor toolbar's **Notes** button opens a **chapter-wide** view that lists every note anchored anywhere in this chapter — at the chapter level or to any of its scenes — grouped by section.
-- The scene strip's **Notes** button opens a **scene-focused** view that lists only the notes pinned to that specific scene.
+- The scene strip's **Notes** button opens the panel scoped to that scene:
+  its pinned notes as cards, with a composer at the top.
+- The chapter editor toolbar's **Notes** button opens the same panel in
+  **chapter scope** — a Chapter-level section plus one section per scene,
+  each with its own composer, covering every note anchored anywhere in the
+  chapter.
 
-In both views the "Add note" button creates a new note already pre-anchored to the right scope, so writing a quick note while you're in a scene takes one click. If you later delete the scene a note is pinned to, the note re-anchors up to the parent chapter so it's not silently orphaned.
+Jot your thought in the composer and press **Add note** (or ⌘Enter) — the
+note is created already pinned to that scope, and it appears right there in
+the panel. Click a note's text to edit it in place; the small **✕** detaches
+it (the note becomes story-wide, it isn't deleted). The panel is a quick
+plain-text surface — a note with rich formatting from the Notes view keeps
+its formatting unless you edit it here. For everything else — renaming,
+tagging, deleting — the panel's **Manage all notes ↗** link opens the Notes
+view.
+
+If you later delete the scene a note is pinned to, the note stays with its
+chapter (you'll still find it from the chapter's Notes panel and the Notes
+view), and restoring the scene from Trash reunites them.
 
 ---
 

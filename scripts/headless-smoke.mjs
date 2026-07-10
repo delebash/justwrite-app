@@ -58,7 +58,7 @@ const ROUTES = [
   "#/groups", "#/worldbuilding", "#/strands", "#/plot", "#/timeline", "#/notes",
   "#/brainstorm", "#/markers", "#/relations", "#/analysis",
   "#/reader-knowledge", "#/import", "#/export", "#/trash", "#/settings",
-  "#/help", "#/ai", "#/architecture",
+  "#/help", "#/ai", "#/architecture", "#/welcome",
 ];
 
 await waitReady(`${SERVER}/v1/health`, "server");

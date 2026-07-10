@@ -6,6 +6,18 @@ Recent changes worth noticing. Older entries fall off the bottom — see the [Ro
 
 ## v1.0.0 — 2026-06
 
+**A welcome screen on first run.** A fresh JustWrite now opens on a welcome
+page: start a new project or the tutorial book with one click, see what the
+app does at a glance, and — if you want the AI features — run Quick Setup
+(local, uses your PC) or connect an online provider right from there. It
+shows once; reopen it anytime from the Help page.
+
+**Scene notes beside the editor.** The Notes buttons on a scene and on the
+chapter toolbar now open a panel docked next to your prose instead of
+navigating away: jot a note in the composer and it's pinned to that scene,
+click a note to edit it in place, and detach with ✕. Managing the full notes
+list stays in the Notes view ("Manage all notes ↗").
+
 **Page-related undo.** Ctrl/⌘ + Z now undoes changes to the page you're on — character edits on Characters, manuscript changes on Chapters — and never silently reverts something from another page. Each page's redo also survives work you do elsewhere, and the title-bar Undo button tells you when the current page has nothing to undo. Redoing an undone prose change works with the scene editor open, too — previously the open editor could quietly swallow the redo.
 
 **In-app help drawer.** Every pane now has a small `?` next to its title that opens a side panel with the docs for that surface — no more hunting the marketing site.

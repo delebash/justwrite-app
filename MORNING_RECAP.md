@@ -487,13 +487,22 @@ Settings→Storage "Disk usage" card + docs/storage.md "Reclaiming disk space"
 (ships in-app via helpDocs). Gates green on everything (vitest 88 · biome ·
 build · FULL smoke · runner pytest 469 + ruff · JW server 80 + ruff); one
 genuine checker verdict per code commit. **QC-45/46**: six live-injected
-mockups sent; THE USER PICKED (verbatim "W-A hero,N-B side panel") — QC-46 =
-the W-A Paper-hero welcome screen, QC-45 = the N-B docked scene-notes side
-panel; builds next. **QC-47**: the switcher bug DOES NOT REPRODUCE in the
+mockups sent; THE USER PICKED (verbatim "W-A hero,N-B side panel") — and BOTH
+ARE BUILT (delegated builds, coordinator-verified + combined-tree gates):
+QC-45 = SceneNotesPanel.vue, the docked in-place scene/chapter notes panel
+(ChapterNotesModal DELETED — adding a note never navigates; rich-note
+edit-flattening + the notes-domain ⌘Z asymmetry FLAGGED, awaiting the user);
+QC-46 = WelcomeView.vue on /welcome, the W-A first-run screen (run-once
+cold-boot redirect on `welcomeSeen`; start flows extracted to the ONE
+services/projectStart.js shared with the Sidebar; kit AiModelsArea gained
+autoOpenQuickSetup for the `/ai?quicksetup=1` deep link — JV inherits it
+inert; reopen button on the Help page; docs/getting-started.md updated).
+**QC-47**: the switcher bug DOES NOT REPRODUCE in the
 container (8/8 probe legs green, content verified both directions); suspects
 ranked + one discriminating question for the user's box recorded. Full
-records: queue doc tail (I1/I4 BUILD RECORDs · the design-pass + picks · the
-QC-47 repro). Filed follow-ups unchanged + new triage flags above.
+records: queue doc tail (I1/I4 + QC-45 + QC-46 BUILD RECORDs · the
+design-pass + picks · the QC-47 repro). Filed follow-ups unchanged + new
+triage flags above.
 
 **GO (2026-07-10 evening — superseded by the paragraph above; full pickup =
 the queue doc tail "THE FIFTEENTH-COMPACT POINT" + its UPDATEs):** the user's big

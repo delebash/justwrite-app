@@ -19,6 +19,7 @@
 
 import { computed, nextTick, reactive, ref } from "vue";
 import { useRouter } from "vue-router";
+import { htmlToText, textToHtml } from "../services/text.js";
 import { useProjectStore } from "../stores/project.js";
 import { Icon } from "@delebash/llm-ui";
 import { UiButton } from "@delebash/llm-ui";
@@ -106,31 +107,14 @@ const showSectionHeaders = computed(() => !isScene.value);
 
 // ── HTML ↔ plain text ────────────────────────────────────────────────
 // note.body is HTML (NotesView authors it through RichEditor). This panel is a
-// plain-text quick surface: display strips tags (keeping paragraph/line breaks
-// as newlines), and saving wraps lines back into <p> so a note still round-
-// trips through NotesView. Rich formatting authored in NotesView is flattened
-// if edited here — acceptable for a quick scene-note surface.
-function htmlToText(html) {
-  if (!html) return "";
-  const div = document.createElement("div");
-  div.innerHTML = html
-    .replace(/<\/(p|div|h[1-6]|li)>/gi, "\n")
-    .replace(/<br\s*\/?>/gi, "\n");
-  return (div.textContent || "").replace(/\n{3,}/g, "\n\n").trim();
-}
-function escapeHtml(s) {
-  return s.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
-}
-function textToHtml(text) {
-  const t = (text || "").trim();
-  if (!t) return "";
-  return t
-    .split(/\n+/)
-    .map((line) => line.trim())
-    .filter(Boolean)
-    .map((line) => `<p>${escapeHtml(line)}</p>`)
-    .join("");
-}
+// plain-text quick surface: display strips tags keeping block boundaries as
+// newlines (the shared htmlToText's blockNewlines mode), and saving wraps each
+// line back into <p> (the shared textToHtml's lineAsParagraph grammar) so a
+// note still round-trips through NotesView. Rich formatting authored in
+// NotesView is flattened if edited here — acceptable for a quick scene-note
+// surface.
+const noteText = (html) => htmlToText(html, { blockNewlines: true });
+const noteHtml = (text) => textToHtml(text, { lineAsParagraph: true });
 // Title from the note's first line — first ~8 words, no ellipsis. Only shown in
 // NotesView's table (the cards here show the body); derived once, at creation.
 function deriveTitle(text) {
@@ -139,7 +123,7 @@ function deriveTitle(text) {
   return words.join(" ") || "Untitled note";
 }
 function bodyText(n) {
-  return htmlToText(n.body) || "Empty note.";
+  return noteText(n.body) || "Empty note.";
 }
 
 // ── Add (one composer per section) ───────────────────────────────────
@@ -151,7 +135,7 @@ function addFromDraft(section) {
   // new card appears in place below.
   project.addNote({
     title: deriveTitle(text),
-    body: textToHtml(text),
+    body: noteHtml(text),
     anchor: section.anchor,
   });
   drafts[section.key] = "";
@@ -169,13 +153,13 @@ const editingId = ref("");
 const editingText = ref("");
 async function startEdit(n) {
   editingId.value = n.id;
-  editingText.value = htmlToText(n.body);
+  editingText.value = noteText(n.body);
   await nextTick();
   panelEl.value?.querySelector(".sp-note-edit")?.focus();
 }
 function commitEdit(n) {
   if (editingId.value !== n.id) return;
-  const next = textToHtml(editingText.value);
+  const next = noteHtml(editingText.value);
   if (next !== (n.body || "")) project.updateNote(n.id, { body: next });
   editingId.value = "";
   editingText.value = "";

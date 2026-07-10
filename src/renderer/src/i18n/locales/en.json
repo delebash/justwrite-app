@@ -355,5 +355,31 @@
       "btnCancel": "Cancel",
       "btnSave": "Save"
     }
+  },
+  "welcome": {
+    "eyebrow": "Welcome to",
+    "wordmark": "JustWrite",
+    "tagline": "Everything a novel needs — the writing, the world, the plan — in one quiet place.",
+    "startNew": "Start a new project",
+    "tutorial": "Try the tutorial project",
+    "tutorialSub": "a short guided book",
+    "features": {
+      "chapters": { "title": "Chapters & scenes", "body": "Organize the manuscript; write in a clean, focused editor." },
+      "bible": { "title": "Story bible", "body": "Characters, locations, objects, worldbuilding — all linked to your prose." },
+      "plot": { "title": "Plot strands & timeline", "body": "Track arcs and beats across the whole book." },
+      "ai": { "title": "AI assistance", "body": "Critique, chat with your book, analysis — runs locally or online, your choice." },
+      "goals": { "title": "Goals & pace", "body": "Word-count goals, writing sessions, progress analysis." },
+      "export": { "title": "Export", "body": "PDF, DOCX and EPUB — a manuscript ready to send." }
+    },
+    "aiHeading": "Optional: set up the AI features",
+    "aiBody": "JustWrite's AI runs where you choose — on this PC, private and free, or through an online provider.",
+    "quickSetup": "Run Quick Setup",
+    "quickSetupSub": "local — uses this PC",
+    "connectProvider": "Connect an online provider",
+    "connectProviderSub": "OpenAI-compatible",
+    "skip": "Skip for now — you can set this up anytime in {link}.",
+    "skipLink": "AI settings",
+    "footer": "This screen shows once — reopen it anytime from Help.",
+    "reopen": "Show welcome screen"
   }
 }
