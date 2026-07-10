@@ -311,3 +311,105 @@ Moves 1–3 ship.
 
 Sequencing: E1+E3 ride naturally WITH the RAG build (they share the
 matcher); E2 is a small follow-on using the same pieces.
+
+## 9. Completeness pass (the user's "make sure we have everything", 2026-07-10)
+
+A final sweep over the WHOLE RAG + extraction surface produced five findings
+— one of them a live quality bug:
+
+**9.1 — MOVE 0 (new, first in line): the nomic prefix bug.** The seeded
+default embedder is nomic-embed-text v1.5 (llm_runner seed.py:231-235, mean
+pooling). Nomic's official card REQUIRES task-instruction prefixes —
+documents embedded as `search_document: <text>`, queries as
+`search_query: <text>`; "without prefixes, embedding quality degrades"
+(https://huggingface.co/nomic-ai/nomic-embed-text-v1.5,
+https://huggingface.co/nomic-ai/nomic-embed-text-v1.5-GGUF,
+https://docs.nomic.ai/atlas/embeddings-and-retrieval/generate-embeddings).
+Grep-verified: NO prefix handling exists anywhere in the embed path (runner
+llm_runner/llm/*, kit ui/src — zero hits for search_document/search_query);
+both chunks and questions embed bare. This degrades today's cosine leg for
+every user on the default model — part of the reported "not doing very
+well" independent of the corpus gap. RIGHT SHAPE (catalog-driven, like the
+rest of the stack): the model-catalog row gains optional
+`embed_prefixes: {document, query}` (seeded for nomic; empty for models that
+need none); the kit `embedTexts` gains a `taskType: "document"|"query"`
+option; the server applies the model's prefix. Callers: indexer.js embeds
+with taskType document, chat.js/characterChat.js with query. COST: doc
+vectors change → ONE full rebuild — which is why Move 0 must ship WITH
+Move 1 (cards also want a rebuild; the user rebuilds once).
+
+**9.2 — imported books are single-scene chapters.** `importChapters`
+(stores/project.js:939-943) wraps each imported chapter's ENTIRE html as one
+scene. Consequences: RAG chunks for imported books are whole chapters (one
+diluted embedding each), and the excerpt formatter truncates at 1200 chars
+(excerpts.js:24-26) — the LLM literally sees only each imported chapter's
+opening. Also E1/E2 links + temporal card lines land at chapter grain. FIX
+(E5, new): scene-break detection on import — split imported chapter HTML on
+the standard break markers ("* * *", "#", blank-line runs) into real
+scenes. This also makes Move 4's sub-scene windowing mostly unnecessary for
+imported books at typical scene lengths.
+
+**9.3 — PDF import does not exist today (correction).** The user described
+"import a pdf book"; the Import view accepts `.docx/.epub/.odt/.txt/.md`
+only (ImportView.vue:384). Whether to ADD .pdf ingestion (text-layer
+extraction; reflowing print-formatted PDFs into prose is inherently messy)
+is a separate product decision — OPEN, the user's word (#5 below).
+
+**9.4 — confirmed non-gaps:** the multi-chapter sweep already merges
+same-name proposals across chapters (EntitySweepModal.vue:167); adding card
+chunks needs NO forced rebuild by itself (the sha-diff adds them
+incrementally — indexer.js:112-119) though Move 0 forces one anyway;
+deleting an entity removes its card via the same diff (toRemove). FUTURE
+CONSUMER recorded, not built: the same pinner could inject bible cards into
+the WRITING assistant's scene actions (Novelcrafter injects codex into
+prose generation) — cheap later because the matcher is shared.
+
+**9.5 — online providers + online embedders (the user's question).** The
+embed rail is already provider-agnostic: the indexer and both chats resolve
+`ai.embeddingProvider` + `embeddingModelFor` (indexer.js:38-46,
+chat.js:92-100), so an OpenAI/other online embedding model works TODAY
+through the same path, and the IndexModelMismatchError machinery
+(indexer.js:22-34) already forces the required rebuild on a switch. Is
+online BETTER? On the evidence, no meaningful retrieval gain: Nomic's
+published MTEB results show nomic-embed-text v1 OUTPERFORMING OpenAI
+text-embedding-ada-002 and text-embedding-3-small on retrieval
+(https://www.nomic.ai/news/nomic-embed-text-v1,
+https://arxiv.org/abs/2402.01613) — the local default is genuinely
+competitive at novel scale. Online embedding adds per-token cost, network
+latency on every ask AND every auto-reindex, and sends manuscript text
+off-machine (a real privacy consideration for writers). VERDICT: the local
+embedder is not the bottleneck — the corpus (Moves 1-3) and the prefix bug
+(Move 0) are; fix those first, keep local as the recommendation, and online
+embedders remain a working option for users who choose them (Move 0's
+catalog-driven prefixes naturally no-op for models that need none).
+
+## 10. THE CONSOLIDATED BUILD LIST (everything needed; awaits the go)
+
+- **Move 0** — model-aware embed task prefixes (catalog-driven), fixes the
+  live nomic degradation. One rebuild, shared with Move 1.
+- **Move 1** — story-bible card chunks (characters with temporal
+  appearances/voice-parameterized profile builder, locations, objects,
+  groups, worldbuilding, notes, strands, architecture, events) + kind-aware
+  citation labels/navigation + the chat prompt notes excerpts may be Story
+  Bible entries.
+- **Move 2** — deterministic entity pinning (shared word-boundary
+  name/alias matcher; token budget; exact-name > alias priority).
+- **Move 3** — scene chunks gain a `links` line (BM25 + excerpt visible,
+  embeddings untouched).
+- **E1** — sweep accept also sets scene presence links (same matcher).
+- **E2** — reviewable link-backfill sweep for existing/imported projects.
+- **E3** — sweep proposes aliases (schema addition).
+- **E5** — scene-break splitting on import.
+- **Acceptance gate** — the canned-question retrieval probe over the demo
+  book ("who is X / where is Y in Ch N / what group is Z in / who runs the
+  customs house"), run on the DEFAULT embedder with prefixes on.
+- **PARKED/DEFERRED** (unchanged): sqlite-vec+FTS5 migration · sub-scene
+  windowing (Move 4) · rerankers/query-rewrite · E4 relationship labels ·
+  the ~500-token always-on global digest · writerAI pinning · PDF import
+  (open decision #5).
+
+Open decisions for the user now number FIVE: (1) go/no-go on the build list
+above; (2) pin 1-hop relations or named-entity-only (rec: named-only);
+(3) a per-entity hide-from-AI flag (rec: defer); (4) sqlite-vec migration
+timing (rec: park); (5) add .pdf as an import format, given extraction
+messiness (needs their word either way).
