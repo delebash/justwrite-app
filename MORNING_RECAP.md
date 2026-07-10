@@ -506,7 +506,12 @@ probe 16/16 (incl. no-phantom-after-/ai + tutorial-from-zero) · panel
 delete-leg 10/10 · undo-probe 19/19 · JW server pytest 80 + ruff · biome. DB
 restored byte-exact after probes. Note: the sidebar switcher can't delete the
 ACTIVE project, so delete-last is store/reset-reachable only (probe drives the
-store seam). Full record: queue doc tail.
+store seam). CLOSED AFTER THE SHIP (the user's words, same window): the
+panel's rich-note flattening is ACCEPTED — "plain-text editing flattens
+rich-formatted notes, fine as is" (no read-only mode; QC-45 fully closed);
+and ledger C9 (model-quality research) is ⛔ NOT DOING — "c9 mark as not
+doing" (marked in the outstanding-master-plan §C9). Full record: queue doc
+tail ("THE SEVENTEENTH-COMPACT POINT").
 
 **GO (2026-07-10 late evening, post-fifteenth-compact — superseded by the
 paragraph above) — I1 + I4 LANDED (both
