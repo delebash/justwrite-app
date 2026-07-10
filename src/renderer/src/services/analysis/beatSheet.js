@@ -17,6 +17,7 @@
 
 import { runAiFeature } from "@delebash/llm-ui";
 import { parseJsonLoose } from "../llmText.js";
+import { htmlToText } from "../text.js";
 
 // ─── Templates ───────────────────────────────────────────────────────
 
@@ -83,15 +84,6 @@ export const TEMPLATE_OPTIONS = Object.entries(BEAT_TEMPLATES).map(([key, t]) =>
 
 // ─── helpers ─────────────────────────────────────────────────────────
 
-function htmlToText(html) {
-  if (!html) return "";
-  const div = document.createElement("div");
-  div.innerHTML = html;
-  div.querySelectorAll(".ai-del").forEach((el) => { el.remove(); });
-  div.querySelectorAll(".ai-ins").forEach((el) => { el.replaceWith(...el.childNodes); });
-  div.querySelectorAll(".scene-mark").forEach((el) => { el.remove(); });
-  return (div.textContent || "").trim();
-}
 function firstParagraph(text, maxWords = 60) {
   if (!text) return "";
   const first = text.split(/\n\s*\n/)[0] || text;

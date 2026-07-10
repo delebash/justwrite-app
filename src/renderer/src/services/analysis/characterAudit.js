@@ -12,23 +12,7 @@
 
 import { runAiFeature } from "@delebash/llm-ui";
 import { parseJsonLoose } from "../llmText.js";
-
-function htmlToText(html) {
-  if (!html) return "";
-  const div = document.createElement("div");
-  div.innerHTML = html;
-  div.querySelectorAll(".ai-del").forEach((el) => { el.remove(); });
-  div.querySelectorAll(".ai-ins").forEach((el) => { el.replaceWith(...el.childNodes); });
-  div.querySelectorAll(".scene-mark").forEach((el) => { el.remove(); });
-  return (div.textContent || "").trim();
-}
-
-function tailWords(text, max) {
-  if (!text) return "";
-  const parts = text.split(/\s+/);
-  if (parts.length <= max) return text;
-  return `… ${parts.slice(-max).join(" ")}`;
-}
+import { htmlToText, tailWords } from "../text.js";
 
 // The prompt lives server-side (features.py, action "characterAudit").
 
@@ -85,7 +69,7 @@ function buildSceneDigest(project, characterId) {
         chapterTitle: ch.title || "",
         sceneIdx: si,
         sceneTitle: scn.title || "",
-        sceneText: tailWords(text, 700),
+        sceneText: tailWords(text, 700, { ellipsis: true }),
       });
     }
   }

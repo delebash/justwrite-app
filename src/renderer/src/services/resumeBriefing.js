@@ -16,29 +16,9 @@
 
 import { runAiFeature } from "@delebash/llm-ui";
 import { scanProjectMarkers } from "./markers.js";
+import { htmlToText, tailWords } from "./text.js";
 
 // ─── Context composition ───────────────────────────────────────────────
-
-// Strip HTML and any pending AI-diff marks so the model sees the prose
-// the writer would see, not the editor scaffolding.
-function htmlToText(html) {
-  if (!html) return "";
-  const div = document.createElement("div");
-  div.innerHTML = html;
-  div.querySelectorAll(".ai-del").forEach((el) => { el.remove(); });
-  div.querySelectorAll(".ai-ins").forEach((el) => { el.replaceWith(...el.childNodes); });
-  div.querySelectorAll(".scene-mark").forEach((el) => { el.remove(); });
-  return (div.textContent || "").replace(/\s+\n/g, "\n").trim();
-}
-
-// Cap a string to roughly N words from the tail (the most recent prose
-// is what matters for "where did I leave off").
-function tailWords(text, maxWords) {
-  if (!text) return "";
-  const parts = text.split(/\s+/);
-  if (parts.length <= maxWords) return text;
-  return `… ${parts.slice(-maxWords).join(" ")}`;
-}
 
 function daysBetween(fromYmd, toDate = new Date()) {
   if (!fromYmd) return null;
@@ -98,10 +78,10 @@ export function buildBriefingContext({ project, sessions, maxTailWords = 500 }) 
   // Last chapter's prose tail.
   const sceneRows = project.scenesFor(lastChapter.id) || [];
   const fullProse = sceneRows
-    .map((s) => htmlToText(s.body))
+    .map((s) => htmlToText(s.body, { tidyLines: true }))
     .filter(Boolean)
     .join("\n\n");
-  const tail = tailWords(fullProse, maxTailWords);
+  const tail = tailWords(fullProse, maxTailWords, { ellipsis: true });
 
   // Active characters: main cast + anyone @-linked in the last chapter.
   const sceneCharIds = new Set(

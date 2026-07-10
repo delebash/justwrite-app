@@ -14,6 +14,8 @@
 // hear. For first ship the deterministic pass is the headline; the
 // LLM-augmented pass can be a follow-up.
 
+import { htmlToText } from "../text.js";
+
 // ─── Phrase library ─────────────────────────────────────────────────
 // Each entry: { pattern: RegExp (case-insensitive, global flag added
 // automatically), kind, blurb }. `kind` groups findings in the UI.
@@ -92,16 +94,6 @@ export const TELL_KINDS = {
 
 // ─── Helpers ────────────────────────────────────────────────────────
 
-function htmlToText(html) {
-  if (!html) return "";
-  const div = document.createElement("div");
-  div.innerHTML = html;
-  div.querySelectorAll(".ai-del").forEach((el) => { el.remove(); });
-  div.querySelectorAll(".ai-ins").forEach((el) => { el.replaceWith(...el.childNodes); });
-  div.querySelectorAll(".scene-mark").forEach((el) => { el.remove(); });
-  return div.textContent || "";
-}
-
 // Find the sentence containing offset `at` within `text`. Returns the
 // trimmed sentence (capped at ~200 chars) so the writer can read the
 // match in context without opening the chapter.
@@ -148,7 +140,7 @@ export function scanAiTells(project) {
     let chapterScanned = false;
     for (let si = 0; si < scenes.length; si++) {
       const scn = scenes[si];
-      const text = htmlToText(scn.body);
+      const text = htmlToText(scn.body, { trim: false });
       if (!text || text.length < 20) continue;
       chapterScanned = true;
       for (const entry of COMPILED) {

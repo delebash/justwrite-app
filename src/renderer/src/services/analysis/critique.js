@@ -10,24 +10,14 @@
 
 import { runAiFeature } from "@delebash/llm-ui";
 import { parseJsonLoose } from "../llmText.js";
-
-function htmlToText(html) {
-  if (!html) return "";
-  const div = document.createElement("div");
-  div.innerHTML = html;
-  // Strip pending AI diff marks so the LLM doesn't critique its own
-  // earlier suggestions back to itself.
-  div.querySelectorAll(".ai-del").forEach((el) => { el.remove(); });
-  div.querySelectorAll(".ai-ins").forEach((el) => { el.replaceWith(...el.childNodes); });
-  return div.textContent || "";
-}
+import { htmlToText } from "../text.js";
 
 // ─── Text critique ──────────────────────────────────────────────────
 // The prompt lives server-side now (justwrite_server/llm/features.py, action
 // "critique"); we send the chapter label + text and parse the JSON result.
 
 export async function runCritique({ html, chapterTitle = "", chapterNum = null, meta = {}, signal, provider, model, task } = {}) {
-  const text = htmlToText(html).trim();
+  const text = htmlToText(html, { stripSceneMarks: false, trim: false }).trim();
   if (!text) throw new Error("This chapter has no prose to critique yet.");
   const header = chapterTitle
     ? `Chapter ${chapterNum != null ? `${chapterNum} — ` : ""}${chapterTitle}\n\n`
@@ -75,7 +65,7 @@ const PACING_OPTIONS = ["slow", "balanced", "fast"];
 const ENDING_OPTIONS = ["cliffhanger", "soft", "closed", "dead-end"];
 
 export async function runStructuralAnalysis({ html, chapterTitle = "", chapterNum = null, meta = {}, signal, provider, model, task } = {}) {
-  const text = htmlToText(html).trim();
+  const text = htmlToText(html, { stripSceneMarks: false, trim: false }).trim();
   if (!text) throw new Error("This chapter has no prose to analyze yet.");
   const header = chapterTitle
     ? `Chapter ${chapterNum != null ? `${chapterNum} — ` : ""}${chapterTitle}\n\n`

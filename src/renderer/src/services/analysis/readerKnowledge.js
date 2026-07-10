@@ -22,17 +22,9 @@
 
 import { runAiFeature, useAiTasksStore } from "@delebash/llm-ui";
 import { parseJsonLoose } from "../llmText.js";
+import { htmlToText } from "../text.js";
 
 // ─── helpers ─────────────────────────────────────────────────────────
-
-function htmlToText(html) {
-  if (!html) return "";
-  const div = document.createElement("div");
-  div.innerHTML = html;
-  div.querySelectorAll(".ai-del").forEach((el) => { el.remove(); });
-  div.querySelectorAll(".ai-ins").forEach((el) => { el.replaceWith(...el.childNodes); });
-  return (div.textContent || "").trim();
-}
 
 export const STATUS_OPTIONS = ["aligned", "dramatic-irony", "reader-confused", "neutral"];
 
@@ -96,7 +88,7 @@ export function composeReaderKnowledgeInput({
   priorReaderFacts = [],
   priorPovFacts = [],
 } = {}) {
-  const text = htmlToText(html).trim();
+  const text = htmlToText(html, { stripSceneMarks: false }).trim();
   if (!text) return null;
 
   const reader = condenseFacts(priorReaderFacts);

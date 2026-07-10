@@ -19,16 +19,8 @@
 
 import { runAiFeature } from "@delebash/llm-ui";
 import { parseJsonLoose } from "../llmText.js";
+import { htmlToText, tailWords } from "../text.js";
 
-function htmlToText(html) {
-  if (!html) return "";
-  const div = document.createElement("div");
-  div.innerHTML = html;
-  div.querySelectorAll(".ai-del").forEach((el) => { el.remove(); });
-  div.querySelectorAll(".ai-ins").forEach((el) => { el.replaceWith(...el.childNodes); });
-  div.querySelectorAll(".scene-mark").forEach((el) => { el.remove(); });
-  return (div.textContent || "").trim();
-}
 function firstParagraph(text, maxWords = 60) {
   if (!text) return "";
   const first = text.split(/\n\s*\n/)[0] || text;
@@ -36,13 +28,6 @@ function firstParagraph(text, maxWords = 60) {
   if (words.length <= maxWords) return first;
   return `${words.slice(0, maxWords).join(" ")}…`;
 }
-function tailWords(text, max) {
-  if (!text) return "";
-  const parts = text.split(/\s+/);
-  if (parts.length <= max) return text;
-  return parts.slice(-max).join(" ");
-}
-
 const SEVERITY_LIST = ["flag", "suggest", "info"];
 const KIND_LIST = ["contradiction", "timeline", "continuity", "character-knowledge", "object", "other"];
 

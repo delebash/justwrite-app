@@ -8,15 +8,7 @@
 
 import { runAiFeature } from "@delebash/llm-ui";
 import { parseJsonLoose } from "../llmText.js";
-
-function htmlToText(html) {
-  if (!html) return "";
-  const div = document.createElement("div");
-  div.innerHTML = html;
-  div.querySelectorAll(".ai-del").forEach((el) => { el.remove(); });
-  div.querySelectorAll(".ai-ins").forEach((el) => { el.replaceWith(...el.childNodes); });
-  return div.textContent || "";
-}
+import { htmlToText } from "../text.js";
 
 // Normalize a string for fuzzy duplicate detection: lowercase, strip
 // punctuation, collapse whitespace. "The Old Lighthouse" and "Old
@@ -61,7 +53,7 @@ export function composeEntitySweepInput({
   existingLocations = [],
   existingObjects = [],
 } = {}) {
-  const text = htmlToText(html).trim();
+  const text = htmlToText(html, { stripSceneMarks: false, trim: false }).trim();
   if (!text) throw new Error("This chapter has no prose to scan yet.");
 
   const existing = [

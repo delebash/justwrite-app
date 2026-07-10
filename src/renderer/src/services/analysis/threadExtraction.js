@@ -25,15 +25,7 @@
 
 import { runAiFeature } from "@delebash/llm-ui";
 import { parseJsonLoose } from "../llmText.js";
-
-function htmlToText(html) {
-  if (!html) return "";
-  const div = document.createElement("div");
-  div.innerHTML = html;
-  div.querySelectorAll(".ai-del").forEach((el) => { el.remove(); });
-  div.querySelectorAll(".ai-ins").forEach((el) => { el.replaceWith(...el.childNodes); });
-  return (div.textContent || "").replace(/\s+\n/g, "\n").trim();
-}
+import { htmlToText } from "../text.js";
 
 const ALLOWED_KINDS = new Set([
   "promise", "object", "question", "ability", "secret", "threat", "debt",
@@ -51,7 +43,7 @@ export async function extractThreads({
   meta = {},
   task,
 } = {}) {
-  const text = htmlToText(html).trim();
+  const text = htmlToText(html, { stripSceneMarks: false, tidyLines: true }).trim();
   if (!text) {
     return { setups: [], raw: "" };
   }

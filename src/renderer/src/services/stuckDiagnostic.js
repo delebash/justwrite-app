@@ -17,23 +17,7 @@
 
 import { runAiFeature } from "@delebash/llm-ui";
 import { parseJsonLoose } from "./llmText.js";
-
-function htmlToText(html) {
-  if (!html) return "";
-  const div = document.createElement("div");
-  div.innerHTML = html;
-  div.querySelectorAll(".ai-del").forEach((el) => { el.remove(); });
-  div.querySelectorAll(".ai-ins").forEach((el) => { el.replaceWith(...el.childNodes); });
-  div.querySelectorAll(".scene-mark").forEach((el) => { el.remove(); });
-  return (div.textContent || "").trim();
-}
-
-function tailWords(text, max) {
-  if (!text) return "";
-  const parts = text.split(/\s+/);
-  if (parts.length <= max) return text;
-  return `… ${parts.slice(-max).join(" ")}`;
-}
+import { htmlToText, tailWords } from "./text.js";
 
 export const MOVE_KINDS = [
   "goal-shift", "interrupt", "setting", "reveal", "timeframe",
@@ -155,5 +139,5 @@ export async function generateUnstuckMoves({
 export function extractContextTail(html, maxWords = 900) {
   const text = htmlToText(html);
   if (!text) return "";
-  return tailWords(text, maxWords);
+  return tailWords(text, maxWords, { ellipsis: true });
 }

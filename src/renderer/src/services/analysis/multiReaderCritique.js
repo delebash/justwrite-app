@@ -18,16 +18,7 @@
 
 import { runAiFeature, useAiTasksStore } from "@delebash/llm-ui";
 import { parseJsonLoose } from "../llmText.js";
-
-function htmlToText(html) {
-  if (!html) return "";
-  const div = document.createElement("div");
-  div.innerHTML = html;
-  div.querySelectorAll(".ai-del").forEach((el) => { el.remove(); });
-  div.querySelectorAll(".ai-ins").forEach((el) => { el.replaceWith(...el.childNodes); });
-  div.querySelectorAll(".scene-mark").forEach((el) => { el.remove(); });
-  return (div.textContent || "").trim();
-}
+import { htmlToText } from "../text.js";
 
 // ─── Personas ────────────────────────────────────────────────────────
 // Four deliberately distinct reader lenses. The persona's system prompt + the

@@ -19,6 +19,7 @@
 // enough to run per-chapter on demand.
 
 import { runAiFeature } from "@delebash/llm-ui";
+import { htmlToText } from "../text.js";
 import { bookMetrics } from "./styleMetrics.js";
 
 // Which metrics from bookMetrics rows are worth tracking for drift.
@@ -173,16 +174,6 @@ export function computeVoiceDrift(rows = []) {
 }
 
 // ─── Optional LLM explainer ──────────────────────────────────────────
-
-function htmlToText(html) {
-  if (!html) return "";
-  const div = document.createElement("div");
-  div.innerHTML = html;
-  div.querySelectorAll(".ai-del").forEach((el) => { el.remove(); });
-  div.querySelectorAll(".ai-ins").forEach((el) => { el.replaceWith(...el.childNodes); });
-  div.querySelectorAll(".scene-mark").forEach((el) => { el.remove(); });
-  return (div.textContent || "").trim();
-}
 
 function tailWords(text, max) {
   if (!text) return "";

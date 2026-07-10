@@ -17,25 +17,9 @@
 
 import { runAiFeature } from "@delebash/llm-ui";
 import { parseJsonLoose } from "./llmText.js";
+import { htmlToText, tailWords } from "./text.js";
 
 // ─── helpers ─────────────────────────────────────────────────────────
-
-function htmlToText(html) {
-  if (!html) return "";
-  const div = document.createElement("div");
-  div.innerHTML = html;
-  div.querySelectorAll(".ai-del").forEach((el) => { el.remove(); });
-  div.querySelectorAll(".ai-ins").forEach((el) => { el.replaceWith(...el.childNodes); });
-  div.querySelectorAll(".scene-mark").forEach((el) => { el.remove(); });
-  return (div.textContent || "").replace(/\s+\n/g, "\n").trim();
-}
-
-function tailWords(text, maxWords) {
-  if (!text) return "";
-  const parts = text.split(/\s+/);
-  if (parts.length <= maxWords) return text;
-  return `… ${parts.slice(-maxWords).join(" ")}`;
-}
 
 function todayKey(d = new Date()) {
   const y = d.getFullYear();
@@ -53,7 +37,7 @@ function findSceneForSnippet(project, chapterId, snippet) {
   if (!clean) return null;
   const scenes = project.scenesFor(chapterId) || [];
   for (const scn of scenes) {
-    const text = htmlToText(scn.body).replace(/\s+/g, " ");
+    const text = htmlToText(scn.body, { tidyLines: true }).replace(/\s+/g, " ");
     if (text.includes(clean)) return scn.id;
   }
   return null;
@@ -73,8 +57,8 @@ export function buildRecapContext({ project, sessions, maxTailWords = 1200 }) {
   }
 
   const sceneRows = project.scenesFor(chapter.id) || [];
-  const fullProse = sceneRows.map((s) => htmlToText(s.body)).filter(Boolean).join("\n\n");
-  const tail = tailWords(fullProse, maxTailWords);
+  const fullProse = sceneRows.map((s) => htmlToText(s.body, { tidyLines: true })).filter(Boolean).join("\n\n");
+  const tail = tailWords(fullProse, maxTailWords, { ellipsis: true });
 
   const todayWords = sessions.todayWords || 0;
 
