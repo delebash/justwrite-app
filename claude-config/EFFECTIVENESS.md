@@ -110,6 +110,39 @@ remains attributed to the PRE-restart harness transcript shape — it did not re
 in the B6 window; if it recurs, capture the transcript tail at the moment of denial
 before touching the gate.
 
+**#253 SECOND resolution (2026-07-10 evening — it recurred; the tail was captured
+live per the instruction above, and the diagnosis REVISES the paragraph above):**
+five task-gate denials in one window, three distinct causes, none of them the
+recorded INJECTED_USER shapes. (1) FORMAT: two denials fired on a genuine PROSE
+tests-citation ("T1 <why> … T12 <why>", eight distinct T-numbers) because
+`rules_passed` accepted only VERDICT-shaped text ("T1 PASS…" pairs / "VERDICT:
+PASS") or "trivial" — the injects' own wording ("cite the tests it passes") never
+said so. Fixed in-contract: `tests_cited()` (≥3 DISTINCT T-numbers) now clears the
+LIGHT gates, and both injects state the accepted forms explicitly. (2) FLUSH: two
+denials had the citation in the SAME message as the gated call (the recorded
+operating note, violated). (3) THE REAL ENVIRONMENT SHAPE, live-probed with the
+turn window open: mid-turn assistant TEXT flushes to the transcript UNRELIABLY
+(2 of ~6 text messages present against 23/23 thinking and 21/21 tool_use blocks),
+and thinking blocks are present but their `thinking` field is STRIPPED EMPTY in
+this remote harness — so neither text nor thinking is a dependable mid-turn
+citation carrier; the B6-window "texts are PRESENT (1,945 blocks)" evidence above
+was dominated by CROSS-turn text (flushed at turn end), which is why Stop-grain
+gates work while mid-turn PreToolUse/Task gates starve. The dependable channels
+are tool_use entries and user-side entries (which is exactly why `agent_pass` —
+the hard-boundary mechanism — has kept working throughout). BUILT: the `attest`
+channel (text + thinking + the gated call's own `tool_input` strings via
+`_payload_text`) feeding ONLY the affirmative escapes, never the violation
+detectors; all 7 harness suites pass. STATUS: the tests_cited + inject-wording
+half is INSTALLED; the payload-channel half is BUILT + TESTED but UNCOMMITTED and
+awaiting the user's explicit word — the sandbox's auto-mode classifier denied a
+(throwaway, diagnostic) live-hook patch mid-diagnosis and flagged the session's
+gate-edit series as self-modification warranting user review. That flag is fair:
+every #253 iteration moves the gate toward accepting what the agent produces, and
+even with task #253 being the user's own order, the user should see the direction
+plainly before it ships. Honest boundary, restated: ALL of this touches only the
+LIGHT gates whose documented contract was always self-attestation; the commit and
+plan-lock boundaries still require the un-forgeable independent-agent verdict.
+
 **First trial findings (2026-07-09, live, hours after install):** two `task-begin-check`
 false fires on a plain task-add, both TURN-WINDOW shapes rather than rule logic. (1) A
 harness **"Tool loaded."** reply to a ToolSearch call is a plain-text user entry with NO

@@ -741,12 +741,11 @@ vitest 29/29 + the FULL headless smoke zero JS errors + the tune-save probe 17/1
   creating or renaming a thing never goes through a name-popup — every entity opens its ONE
   add/edit form directly, where the name is a plain field editable at any time, and the form
   refuses to save until its required assignments are set.
-- **THE DECIDED-ONCE RULE (user, 2026-07-09 — "why are yo asking me this we already made
-  decsiions on thee?"):** a decision recorded as the user's word is FINAL — cite the record
-  and proceed; NEVER re-ask or re-surface it as an "open question" (that is re-litigation,
-  which this file's charter already forbids). Flags/questions are ONLY for genuinely NEW,
-  undecided items. Born from the four "#232 blocking questions" that were all already
-  decided in the record and got re-asked across two compactions.
+- **ASK WHEN UNSURE (user, 2026-07-10 — replacing the struck DECIDED-ONCE bullet, their
+  word: "THE DECIDED-ONCE RULE remove, if you are unsure i would rather you ask"):** clearly
+  recorded decisions still stand and are not re-litigated (the recap charter), but when I'm
+  UNSURE whether something was decided, or what exactly was decided, ASK the user rather
+  than assume either way. The 2026-07-09 unasked rule-bullet is struck per their word.
 - **Design work loads the design law FIRST (user order 2026-07-09, queue doc §9 QC-41 —
   "dont you have a design plugin or something you shoold always load when designing stuff,
   why dont you automatically use it"):** before ANY UI-design work, load the design law —
