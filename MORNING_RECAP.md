@@ -469,8 +469,34 @@ record: queue doc tail **"EDITOR-ECHO REDO FIX BUILD RECORD"**; the plan doc's
 limitation note carries the FOLLOW-UP closure. Remaining on the user's word
 only: #256 research · the three QC-43 diagnoses.
 
-**GO (2026-07-10 evening — the CURRENT state; full pickup = the queue doc tail
-"THE FIFTEENTH-COMPACT POINT" + its UPDATE, read that first):** the user's big
+**GO (2026-07-10 late evening, post-fifteenth-compact) — I1 + I4 LANDED (both
+delegated builds verified independently + checker-verdicted; JW `21c253d` I1 +
+`7430079` I4, runner `cdb6fbc`) · the QC-45/46 DESIGN PASS SENT AND PICKED ·
+QC-47 REPRO RAN.** **I1**: 16 htmlToText + 6
+tailWords call sites converged onto the ONE shared
+`src/renderer/src/services/text.js` (options byte-mapped per deleted local
+body, zero behavior change; count corrected 19→20; four+one genuine variants
+stay local — two flagged as suspected latent bugs: writerAI's no-strip,
+voiceDrift's HEAD-taking tailWords); the ledger's tests-fail-in-isolation row
+VERIFIED STALE (both files pass alone; closed, no code change); judgment legs
+(popup audit · CSS promotion · ratchets · runJsonAnalysis · useEntityCrudView)
+remain queued. **I4**: shared `llm_runner/platform` GET /v1/disk/usage +
+runner spawn-logs/models-cache clear endpoints (unload-first refusal as 200
+{ok:false} — kit-transport-grounded, checker-concurred) + the JW
+Settings→Storage "Disk usage" card + docs/storage.md "Reclaiming disk space"
+(ships in-app via helpDocs). Gates green on everything (vitest 88 · biome ·
+build · FULL smoke · runner pytest 469 + ruff · JW server 80 + ruff); one
+genuine checker verdict per code commit. **QC-45/46**: six live-injected
+mockups sent; THE USER PICKED (verbatim "W-A hero,N-B side panel") — QC-46 =
+the W-A Paper-hero welcome screen, QC-45 = the N-B docked scene-notes side
+panel; builds next. **QC-47**: the switcher bug DOES NOT REPRODUCE in the
+container (8/8 probe legs green, content verified both directions); suspects
+ranked + one discriminating question for the user's box recorded. Full
+records: queue doc tail (I1/I4 BUILD RECORDs · the design-pass + picks · the
+QC-47 repro). Filed follow-ups unchanged + new triage flags above.
+
+**GO (2026-07-10 evening — superseded by the paragraph above; full pickup =
+the queue doc tail "THE FIFTEENTH-COMPACT POINT" + its UPDATEs):** the user's big
 go ("Do I4, I1, 253, superpowers, qc43 a,b,c" + "make superpowers permenant,
 payload-channel piece ship it" + the Opus-delegation rules + "add to task =
 queue only" + DECIDED-ONCE struck for ask-when-unsure + QC-46 DECIDED welcome
