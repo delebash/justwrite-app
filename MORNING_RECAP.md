@@ -448,6 +448,17 @@ chat ensure-resident · server-console tab): queue doc tail **"QC-43"**. The fiv
 queued tasks (#251/#252/#254/#255/#253) remain the active batch — #253 grounding
 mid-flight, QC-39 mockups next.
 
+**⛔ THE STATE AT THE FOURTEENTH COMPACT (2026-07-10 — the CURRENT pickup):**
+#235 shipped (the GO paragraph below); THE QUEUE IS EMPTY. **The GO armed for
+right after the compact: the EDITOR-ECHO REDO FIX** (the user asked "redoing a
+prose undo, why cant this work?", the fix was offered, their word: "we need to
+compact first" — read as compact-then-build, interpretation flagged). THE FULL
+PICKUP + the grounded spec (ChaptersView:304 echo; suppress store-driven update
+emission + a no-op guard in applyStitchedChapter; extend undo-probe with the
+in-editor type→⌘Z→⌘⇧Z leg) lives in the queue doc tail **"THE
+FOURTEENTH-COMPACT POINT"** — read that block first post-compact. Still on the
+user's word only: #256 research · the three QC-43 diagnoses.
+
 **GO (2026-07-10, post-thirteenth-compact) — #235 PAGE-RELATED UNDO SHIPPED**
 (the last queued item, built to the approved real plan
 `docs/plans/2026-07-10-page-related-undo.md` — plan panel-checked, 2 FAILs
