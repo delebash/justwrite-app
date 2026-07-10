@@ -101,19 +101,63 @@ pure-RAG-over-everything (index the bible and hope similarity ranks the card
 first) — strictly weaker than pinning for named entities and identical
 otherwise, so we take both: index cards AND pin on name match.
 
+**Three more precedents examined on the third pass (2026-07-10, the user's
+"one more pass"):**
+- **SillyTavern World Info / lorebooks** — the second big deterministic-
+  injection precedent: entries fire on keyword match against recent chat,
+  under a TOKEN BUDGET with per-entry priority ordering, and only the
+  entry's content (standalone prose) is injected. Sources:
+  https://docs.sillytavern.app/usage/core-concepts/worldinfo/,
+  https://rentry.co/world-info-encyclopedia. Adopted from it: the pin cap
+  becomes a pin BUDGET (tokens, not just a count) with priority
+  exact-name > alias; and cards must read as standalone prose.
+- **Microsoft GraphRAG** — extract a knowledge graph from text, embed
+  entity/relationship summaries, answer entity questions via "Local Search"
+  (the entity + fan-out to its graph neighbors). Sources:
+  https://github.com/microsoft/graphrag/blob/main/docs/index.md,
+  https://www.microsoft.com/en-us/research/publication/from-local-to-global-a-graph-rag-approach-to-query-focused-summarization/,
+  https://arxiv.org/pdf/2408.08921. The insight for US: GraphRAG's expensive
+  step (LLM-extracting the graph) is FREE here — the story bible IS a
+  human-curated knowledge graph. This proposal is literally GraphRAG Local
+  Search with a hand-built graph: entity cards = entity summaries, pinning +
+  (optional) 1-hop relations = the local-search fan-out, the existing RRF
+  hybrid = the retrieval layer. That both validates the design and gives
+  open-decision #2 (pin 1-hop neighbors or not) literature on both sides.
+- **The long-context alternative ("don't retrieve — include the whole
+  bible")** — considered and NOT chosen as the primary mechanism. A typical
+  bible digest (~10-15k tokens) fits the locked 32k window, and llama.cpp's
+  per-slot prefix cache (cache_prompt, on by default: the server skips
+  prefill for the longest common prefix between consecutive requests on a
+  slot — https://github.com/ggml-org/llama.cpp/discussions/13606,
+  https://github.com/ggml-org/llama.cpp/discussions/8860) would amortize it
+  within a chat session. Rejected because: it stops scaling when the bible
+  grows; a monolithic blob can't carry per-source [n] citations (the
+  citations panel is load-bearing UX); the prefix cache breaks whenever any
+  OTHER feature (critique, extraction…) runs on the same slot between asks,
+  re-billing the full prompt eval on writer hardware; and it does nothing
+  for locating PROSE evidence. RECORDED as a possible later complement in
+  miniature: an always-on "global digest" (premise + main-cast one-liners,
+  ~500 tokens — SillyTavern's "global entries" pattern) placed as a stable
+  prompt prefix.
+
 ## 4. THE PROPOSAL (awaits the user's go — nothing built)
 
 **Move 1 — index the story bible as first-class "card" chunks** (the big
 one). Extend `chunkProject()` with synthetic documents per entity, each with
 `kind` + `entityId` metadata:
 - **Character card** — assembled by the SAME `buildCharacterProfile()` the
-  character chat already uses (one source, no copy), PLUS derived relations:
-  group memberships (names), co-appearance ("shares scenes with Bren (Ch 3,
-  7), Maren (Ch 7)" — from `scene.characters`), locations they appear at,
-  strand beats naming them, their per-entity events, and an appearances line
-  ("appears in Ch 1 Sc 2 'The customs house' …"). This is exactly the
-  "relations links and groups" web the user built — flattened into prose the
-  retriever and the LLM can use.
+  character chat already uses, PARAMETERIZED for voice (third pass: the
+  existing builder addresses the character in second person — "What you
+  want:" — which is right for the interview persona and wrong for an index
+  card; one builder, a `voice: "second"|"third"` option, no copy), PLUS
+  derived relations: group memberships (names), co-appearance, strand beats
+  naming them, their per-entity events, and a TEMPORAL appearances section
+  (third pass — "where is X" is a timeline question, so each appearance line
+  pairs place and company: "Ch 1 Sc 2 'The customs house' — at Customs
+  House, with Bren", from the scene's `characters`/`locations`/`objects`/POV
+  links, SceneLinks.vue:66-88). This is exactly the "relations links and
+  groups" web the user built — flattened into standalone prose the retriever
+  and the LLM can use.
 - **Location / Object cards** — name, kind, note, tags + which
   scenes/chapters reference them + group memberships.
 - **Group cards** — name, blurb, member list (with kinds).
@@ -127,16 +171,20 @@ one). Extend `chunkProject()` with synthetic documents per entity, each with
 - Costs: one-time index rebuild (new chunk ids); ongoing upkeep is free (the
   existing sha-diff + the all-mutations auto-watcher).
 
-**Move 2 — deterministic entity pinning (the Novelcrafter move).** At ask
-time, scan the question + recent turns for entity names/aliases (the store
-holds every name — a word-boundary match over a few hundred strings is
-sub-millisecond, client-side). Any hit → that entity's card is PINNED into
-the excerpts regardless of retrieval rank (first-degree relations optional,
-flag at build). The k retrieved slots then carry prose evidence + whatever
-else ranks. "Who is Aria?" becomes: her card (pinned) + her scenes
-(retrieved) — the generic-guess failure mode is structurally gone. This also
-upgrades follow-ups ("what does SHE want") since cards ride history-aware
-pinning from prior turns.
+**Move 2 — deterministic entity pinning (the Novelcrafter/SillyTavern
+move).** At ask time, scan the question + recent turns for entity
+names/aliases (the store holds every name — a word-boundary match over a few
+hundred strings is sub-millisecond, client-side). Any hit → that entity's
+card is PINNED into the excerpts regardless of retrieval rank, as a normal
+[n]-cited excerpt (citations UX unchanged). Pinning runs under a TOKEN
+BUDGET with priority ordering (third pass, the SillyTavern pattern):
+exact-name matches outrank alias matches, and pinned cards can never crowd
+out prose evidence (budget ≈ 2-3 cards). First-degree relations fan-out
+optional — open decision #2. "Who is Aria?" becomes: her card (pinned) + her
+scenes (retrieved) — the generic-guess failure mode is structurally gone.
+This also upgrades follow-ups ("what does SHE want") since cards ride
+history-aware pinning from prior turns, and character chat can reuse the
+same pinner for OTHER characters named mid-interview.
 
 **Move 3 — scene chunks carry their links.** (Refined on the second pass —
 the first draft said "prepend the header into the indexed text", which would
@@ -190,3 +238,26 @@ per ask) so pinned cards never crowd out prose evidence; (b) card retrieval
 quality vs prose is unmeasured — the build must include a canned-question
 retrieval probe over the demo book (assert the right card pins/ranks for
 "who is X / where is Y / what group is Z in") before it ships.
+
+## 7. Third-pass notes (the user's "one more pass", 2026-07-10)
+
+The user asked for one more pass with fresh research ("the concept is just to
+make rag work better"). What it CHANGED: (1) character-card appearances
+became TEMPORAL lines (place + company per scene) because "where is X" is a
+timeline question a static relations blob can't answer; (2) the pin cap
+became a token BUDGET with exact-name>alias priority (the SillyTavern World
+Info pattern); (3) `buildCharacterProfile` reuse is now specified as a voice
+parameter (second person for the interview, third person for the card) —
+one source, not a copy; (4) the options-considered set grew by three
+precedents with sources (§3): SillyTavern lorebooks, Microsoft GraphRAG
+(whose Local Search this design IS, minus the extraction cost — our graph
+is hand-curated), and the long-context "include the whole bible"
+alternative, examined against llama.cpp's verified prefix-cache behavior
+and NOT chosen (scaling, per-source citations, cross-feature cache
+fragility), with a ~500-token always-on "global digest" recorded as a
+possible later complement. What it CONFIRMED: Moves 1+2+3 stand as the
+build; scenes carry all three link kinds + POV (SceneLinks.vue:66-88,
+RelationsView.vue:162-163) so every derived line in the cards is real data;
+rerankers, query rewriting (HyDE/multi-query), and agentic lookup tools were
+surveyed and deferred — each adds a model call or latency on writer
+hardware before the corpus gap is even fixed.
