@@ -12,7 +12,7 @@ Recent changes worth noticing. Older entries fall off the bottom — see the [Ro
 
 **What's new modal.** When you open JustWrite after an upgrade, a modal shows you what changed in the new version — dismissible, and keyed to the version number so it only shows once.
 
-**Tutorial Project.** A pre-seeded JustWrite project — one chapter, three scenes, two characters, a location, a narrative strand with a beat, a worldbuilding article, and a "read me first" note. Open it from the **sidebar's project switcher menu → "Try the Tutorial Project"**. It is a real project you can poke at without touching your own work; delete it from the same switcher when you're done.
+**Tutorial project.** The **sidebar's project switcher menu → "Try tutorial project"** opens *The Cartographer's Daughter* — a complete small demo novel (characters, locations, chapters, plot strands, events) created on demand, so a fresh install starts in your own blank project instead. It is a real project you can poke at without touching your own work; delete it from the same switcher when you're done, and the button brings it back fresh any time.
 
 **Better empty states.** Every catalog (Characters / Locations / Objects / Groups / Notes / Strands / Worldbuilding) now explains what the surface is for and where it connects, rather than just "No characters yet."
 

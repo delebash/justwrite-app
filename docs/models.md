@@ -10,8 +10,10 @@ tune models yourself.
 A fresh install (and a factory reset — they are the same state) ships the catalog **full**
 but every choice **empty**: no task model, no embedding. The "Your setup" strip shows both
 slots as **Not set**, and anything that needs a model before setup answers with "run Quick
-Setup" guidance instead of an error. At the top of the **Built-in provider** card, **Run
-Quick Setup** does the whole first-time setup:
+Setup" guidance instead of an error. The **Built-in provider** is the permanent section at
+the top of the **Providers & models** tab — its whole control panel is always on the page
+(no Edit click) — and the **Run Quick Setup** band at its top (marked **For the Local
+built-in provider**) does the whole first-time setup:
 
 1. It detects your hardware (GPU, VRAM, RAM).
 2. It picks the **most capable model that still runs fast on your box** — not just the
@@ -52,8 +54,8 @@ filled in on its Edit form.
 
 When you click **Apply**, that one model becomes the default for **every task** — writing,
 chat, extraction, judgment — and it downloads and loads right away. If you've already
-changed the model for a particular task yourself (on the **Tasks** tab), Quick Setup leaves
-that task alone.
+changed the model for a particular task yourself (on the **Routing by task** tab), Quick
+Setup leaves that task alone.
 
 After Apply, the done step tells you which launch settings this machine got — **no sweep
 ever starts on its own**. A machine with its **own saved tune** keeps it (a **Re-optimize**
@@ -73,7 +75,8 @@ its **Lab** to measure the difference.
 
 ## The model catalog
 
-Open the **Built-in** provider (under **Providers & models**) to see the catalog. A
+The catalog lives inside the **Built-in provider** section — always on the **Providers &
+models** page, nothing to open. A
 **"Your setup"** strip at the top shows the two slots the app needs filled — your **General
 model** (writes prose, chats, extracts) and your **Embedding model** (powers semantic search
 and grounded chat). The app runs these two **side by side**, and each card is that pair's
@@ -104,9 +107,9 @@ embedding model carries an **Embedding** badge. From here you can:
 - **Download** a model — fetches the weights onto your machine. Your chat default and the
   embedding can run together, and a model also loads on demand when a task needs it.
 - **Load as default** — makes a downloaded model the one **every task** uses (the same effect
-  as Quick Setup; any task you've re-pointed yourself on the **Tasks** tab keeps its own
-  model) **and loads it into memory right away**, so your first write doesn't pay the load
-  wait.
+  as Quick Setup; any task you've re-pointed yourself on the **Routing by task** tab keeps
+  its own model) **and loads it into memory right away**, so your first write doesn't pay
+  the load wait.
 - **Unload** — appears on a loaded model; frees its memory (VRAM) without picking anything
   else. The model loads again on **Load as default** or the next time a task needs it.
 - On an **embedding** row, **Load as default** works the same way — it makes that model the
@@ -176,7 +179,7 @@ embedding model carries an **Embedding** badge. From here you can:
   config prefilled with your class — no list to click through; a
   **"Global launch defaults ↗"** link beside it opens the always-on switch bundles the
   same way, so nothing is edited embedded in the Tune dialog itself. The full **library**
-  lives on the Built-in provider's Edit page — the **"Hardware/model class defaults…"** button
+  lives on the Built-in provider section — the **"Hardware/model class defaults…"** button
   there opens every saved config in one table where **each row is one model × one PC
   class** (there is no single tune covering all models; adding a config there starts with
   picking the model), with **Copy**/**Import** to share a config between users as a small

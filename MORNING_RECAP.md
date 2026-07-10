@@ -447,6 +447,39 @@ chat ensure-resident · server-console tab): queue doc tail **"QC-43"**. The fiv
 queued tasks (#251/#252/#254/#255/#253) remain the active batch — #253 grounding
 mid-flight, QC-39 mockups next.
 
+**GO (2026-07-10, post-twelfth-compact) — QC-39(b) + QC-40 + QC-41 + QC-42
+SHIPPED as one verdict-gated cluster**, built to the user's decisions verbatim
+(queue doc TWELFTH-POINT ADDENDUM: "b is fine for the providers" · "qc-40
+option 1, qc-41 option 1 … qc-42 your rec"). **QC-39(b)**: the built-in provider
+is PROMOTED out of the provider accordion into its own permanent top section on
+Providers & models — Quick-Setup band at its top, identity header (Default tag +
+Set-as-default), and the full old Edit contents rendered bare (new ProviderForm
+`permanent` prop); every other provider (local openai-compat included) stays in
+the grouped list below; the page-scale accent-soft (pink) washes are GONE at
+their two sources (.lu-pform + .lu-msection — neutral surfaces, accent at
+chip/focus scale per the picked mockup); the old row's engine cluster
+(Update available/Reinstall) moved onto the Local-engine panel — no affordance
+dropped. **QC-42**: "For the Local built-in provider" sits right of Run Quick
+Setup, bigger than the description (the user's exact copy). **QC-40 (option 1)**:
+the demo book no longer seeds at boot — a fresh install/reset lands in the blank
+"Untitled project" fallback; the sidebar switcher offers exactly "New project…"
++ "Try tutorial project", which creates The Cartographer's Daughter ON DEMAND
+(new POST /v1/projects/demo, fixed id, reset-safe, re-creatable after delete)
+and opens it; the old client mini tutorial seed (services/tutorialProject.js +
+createTutorialProject) is DELETED per the user's word. **QC-41 (option 1)**: the
+scene editor's right-click menu ALWAYS opens; items enable/disable by the
+AI-menu scope-law (greyed selection-only rows + "Highlight text first to
+enable"); Windows-11 row grammar (icons + ⌘/Ctrl shortcut hints + separators);
+the bottom "Show browser menu (spell check)" row arms a one-shot native
+passthrough (sticky at the menu bottom). Gates all green: vitest 73/73 · build ·
+FULL smoke zero JS errors · JW pytest 77 + ruff · runner pytest 452 + ruff ·
+biome · the NEW committed scripts/qcbatch-probe.mjs **22/22** (incl. the live
+tutorial create-and-open + the passthrough round-trip) · the whole probe fleet
+(b5/qc-quintet/b29/dl2 repointed findings-first off the deleted row/superseded
+menu law) · three screenshots sent. Full record + flags: queue doc tail
+**"QC-39/40/41/42 BUILD RECORD"**. Next per the recorded order: **#235 LAST**
+(real plan first); the three QC-43 diagnoses still await the user's word.
+
 **⛔⛔ THE STATE AT THE ELEVENTH COMPACT (2026-07-09 — superseded by the B6 GO above;
 its "B6 IS MID-BUILD" framing is HISTORY now; supersedes the tenth block below).** This window SHIPPED, all pushed: **#232/QC-35** (runner
 `d024067` · JW `d982316`) · the **Q3 toast findings table** (runner `f1e1f3c`) · the

@@ -1,16 +1,16 @@
 """/v1/data/reset — the reset-workspace wipe across every table (shared
 `make_data_router`), plus /v1/data/backup + /v1/data/restore round-trip.
 
-Reset wipes every table, then re-seeds the demo project + default providers so
-the renderer reloads into a first-run-shaped workspace (the server owns the seed
-now — see test_seed.py). These tests assert the USER's data is gone; the seeded
-demo coming back is covered by test_seed.test_reset_reseeds_workspace.
+Reset wipes every table, then re-seeds the default providers so the renderer
+reloads into a first-run-shaped workspace (the server owns the seed now — see
+test_seed.py). Since QC-40 first-run means NO projects — the demo book is
+created only on demand (POST /v1/projects/demo). These tests assert the USER's
+data is gone and nothing project-shaped comes back.
 """
 
 from fastapi.testclient import TestClient
 
 from justwrite_server.app import create_app
-from justwrite_server.demo_seed import DEMO_PROJECT_ID
 
 
 def _c(tmp_path):
@@ -30,8 +30,8 @@ def test_reset_clears_user_data(tmp_path):
 
     assert c.post("/v1/data/reset").status_code == 200
 
-    # The user's own rows are gone (the demo is re-seeded in its place).
-    assert [p["id"] for p in c.get("/v1/projects").json()] == [DEMO_PROJECT_ID]
+    # The user's own rows are gone; no project is re-seeded (QC-40).
+    assert c.get("/v1/projects").json() == []
     assert "ui" not in c.get("/v1/settings").json()
     assert c.get("/v1/sessions").json() == {"days": {}, "chapterWords": {}, "lastWrite": None}
     assert c.get("/v1/chat", params={"projectId": "prj1", "mode": "book"}).json() == {"messages": []}
@@ -42,8 +42,8 @@ def test_reset_is_idempotent_on_empty(tmp_path):
     c = _c(tmp_path)
     assert c.post("/v1/data/reset").status_code == 200
     assert c.post("/v1/data/reset").status_code == 200
-    # Re-seed stays a single demo across repeated resets.
-    assert [p["id"] for p in c.get("/v1/projects").json()] == [DEMO_PROJECT_ID]
+    # Repeated resets keep the workspace empty of projects (QC-40).
+    assert c.get("/v1/projects").json() == []
 
 
 def test_backup_restore_roundtrip(tmp_path):

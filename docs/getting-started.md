@@ -12,15 +12,13 @@ The first launch may take a few seconds longer than usual while the app sets up 
 
 ---
 
-## The seed project
+## Your first project
 
-When you open JustWrite for the very first time, the app loads a small example novel called *The Cartographer's Daughter*. This is a real, complete (small) project — characters, locations, chapters, plot strands, events — so you can click through every screen without having to build anything first.
+When you open JustWrite for the very first time, you land in a blank **Untitled project** — your own workspace, ready to write in. Nothing is pre-filled; the sidebar's project switcher at the top of the left rail is where you rename it, create more projects, and move between them.
 
-**Feel free to delete it once you understand the layout.** Open **Settings → Backups → Danger zone → Reset workspace** and type `RESET` to clear it out. (You can also just leave it and start a new project alongside it; the sidebar's project switcher at the top of the left rail lets you move between projects.)
+### Try tutorial project
 
-### Try the Tutorial Project
-
-If you'd rather explore with a richer example, the sidebar's project switcher has a **"Try the Tutorial Project"** item alongside the usual "+ New project" button. It opens a pre-seeded project with one chapter, three scenes, two characters, a location, a narrative strand with a beat, a worldbuilding article, and a "read me first" note — enough to see how every section connects without building it yourself. It is a real project, so you can edit it freely; when you're done, delete it from the same project switcher.
+If you'd rather explore with a complete example first, the project switcher has a **"Try tutorial project"** item alongside the usual "+ New project" button. It opens *The Cartographer's Daughter* — a real, complete (small) novel with characters, locations, chapters, plot strands, and events — so you can click through every screen without building anything yourself. It is created only when you ask for it, it is a real project you can edit freely, and when you're done you can delete it from the same switcher (the button brings it back fresh any time).
 
 ---
 

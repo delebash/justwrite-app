@@ -72,10 +72,11 @@ function pickProject(id) {
   router.push("/");
 }
 
-function openTutorial() {
+async function openTutorial() {
   closeProjectMenu();
-  project.createTutorialProject();
-  router.push("/");
+  // QC-40: opens the FULL demo book, created on demand by the server.
+  const id = await project.openDemoProject();
+  if (id) router.push("/");
 }
 
 async function newProject() {
@@ -850,8 +851,8 @@ function wbDropClass(kind, id) {
           <Icon name="Plus" :size="13" /> {{ $t('sidebar.projectSwitcher.newProject') }}
         </button>
         <button class="project-menu-new" @click="openTutorial"
-          v-tooltip.bottom="'A pre-seeded project to learn the app — delete it when you\'re done'">
-          <Icon name="Sparkle" :size="13" /> Try the Tutorial Project
+          v-tooltip.bottom="$t('sidebar.projectSwitcher.tutorialTooltip')">
+          <Icon name="Sparkle" :size="13" /> {{ $t('sidebar.projectSwitcher.tutorialProject') }}
         </button>
       </div>
     </div>

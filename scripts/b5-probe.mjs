@@ -9,8 +9,11 @@
 // #47 "make ask the book … bolder or in color" → the nav row carries the accent
 //   treatment (semibold + accent ink).
 // #41 "highlight a sentence right click and choose your ai action" → the context
-//   menu appears on a selection right-click (with AI actions + edit ops) and does
-//   NOT appear without a selection (native menu keeps spell-check reachable).
+//   menu appears on a selection right-click (with AI actions + edit ops). QC-41
+//   (option 1, user 2026-07-10) superseded the old no-selection law: the menu now
+//   ALWAYS opens — selection-only items disabled + the "Highlight text first"
+//   hint, and the bottom "Show browser menu" passthrough row keeps the native
+//   spell-check menu reachable (deep checks live in qcbatch-probe.mjs).
 // #42 strikethrough management → a seeded pending change counts as pending while a
 //   resolved strikethrough does NOT; Accept (default keep-strikethrough) resolves
 //   the original in place; read mode hides strikethroughs; "Clear all
@@ -252,9 +255,16 @@ try {
   await sleep(200);
   await firstPara.click({ button: "right" });
   await sleep(400);
-  check("B5-5 #41: right-click WITHOUT a selection keeps the native menu (no app menu)",
-    (await page.locator(".ctx-menu").count()) === 0);
+  // QC-41 (option 1): the menu ALWAYS opens; without a selection the
+  // selection-only rows are disabled with the scope hint, and the passthrough
+  // row is present.
+  check("B5-5/QC-41: right-click WITHOUT a selection opens the menu — selection rows disabled + hint + passthrough row",
+    (await page.locator(".ctx-menu").count()) === 1
+    && (await page.locator('.ctx-item:has-text("Rewrite")').isDisabled())
+    && (await page.locator('.ctx-section-hint:has-text("Highlight text first")').count()) === 1
+    && (await page.locator('.ctx-item:has-text("Show browser menu")').count()) === 1);
   await page.keyboard.press("Escape");
+  await sleep(300);
 
   // ── B5-7: completion notice on the bottom bar, not a toast ─────────────────
   await page.route("**/v1/ai/stream", async (route) => {

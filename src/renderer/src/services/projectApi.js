@@ -12,7 +12,7 @@
 // are migrated server-side at startup.) The active-id pointer + undo tail stay
 // in kv (storage.js).
 
-import { get, put, del } from "@delebash/llm-ui";
+import { get, post, put, del } from "@delebash/llm-ui";
 
 const _snapshots = new Map(); // id -> snapshot object
 let _registry = [];           // [{id,title,author,savedAt}] derived from GET /v1/projects
@@ -98,6 +98,15 @@ export function removeProject(id) {
   // Deletes the project row; child rows cascade via the project_id FK. The
   // derived registry drops it automatically on the next boot.
   del(`/v1/projects/${id}`).catch(() => {});
+}
+
+/** QC-40 — "Try tutorial project": the server creates (or returns) the demo
+ *  book on demand. Returns {id, title, author, created}. Drops any stale
+ *  cached snapshot for the id so a post-delete re-create fetches fresh. */
+export async function createDemoProject() {
+  const meta = await post("/v1/projects/demo", {});
+  if (meta?.created) _snapshots.delete(meta.id);
+  return meta;
 }
 
 /** Async load for switching to a project not already in the cache. */

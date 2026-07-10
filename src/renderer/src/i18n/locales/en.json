@@ -135,7 +135,9 @@
       "deleteProjectMessage": "This removes it from this device permanently. Export a backup first if you might want it back.",
       "deleteProjectConfirm": "Delete project",
       "deleteTooltip": "Delete {title}",
-      "deleteAriaLabel": "Delete project {title}"
+      "deleteAriaLabel": "Delete project {title}",
+      "tutorialProject": "Try tutorial project",
+      "tutorialTooltip": "Opens The Cartographer's Daughter — a full demo book to explore. Delete it from this menu when you're done."
     },
     "tooltips": {
       "dragToResize": "Drag to resize",

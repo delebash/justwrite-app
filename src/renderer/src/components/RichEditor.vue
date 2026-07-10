@@ -786,26 +786,36 @@ function grabContextBeforeCursor(limit = 800) {
   return text;
 }
 
-// --- Right-click context menu (B5-5, #41) -----------------------------
-// "highlight a sentence right click and choose your ai action, maybe some
-// other items on context menu as well". Scene editor (manuscript variant)
-// only, and ONLY when a selection exists — a bare right-click keeps the
-// native menu so spell-check suggestions stay reachable. The header AI
-// menu (scene strip) remains the full surface; this is the quick path.
+// --- Right-click context menu (B5-5 #41; redesigned QC-41, user option 1) --
+// The menu ALWAYS opens (the selection gate is gone — it made a bare
+// right-click look broken), and items enable/disable by what they need, the
+// AI-menu scope-law (ChaptersView's ai-strip grammar: scope group headers, a
+// greyed item + "Highlight text first to enable" hint). Rows follow the
+// user's Windows-11 reference: compact rows with a leading icon, a
+// right-aligned shortcut hint, thin group separators — and the bottom
+// passthrough row ("Show more options" grammar) keeps the BROWSER's own menu
+// (spell-check suggestions) reachable: it arms a one-shot passthrough, so the
+// next right-click is native. The header AI menu (scene strip) remains the
+// full surface; this is the quick path.
 const ctxMenu = ref({ open: false, x: 0, y: 0 });
 const ctxMenuEl = ref(null);
+const ctxNativeOnce = ref(false); // armed by the "Show browser menu" row
 
-const CTX_AI_ACTIONS = [
+// Scope split mirrors the ai-strip sections: Rewrite/Expand/Describe are
+// selection-only (a whole-scene rewrite is too transformative for one click);
+// Tighten runs on the selection or the whole scene.
+const CTX_AI_SELECTION = [
   { key: "rewrite",  label: "Rewrite" },
   { key: "expand",   label: "Expand" },
   { key: "describe", label: "Describe" },
+];
+const CTX_AI_ANY = [
   { key: "tighten",  label: "Tighten" },
 ];
 
 function onEditorContextMenu(e) {
   if (props.variant !== "manuscript") return;
-  if (aiRunning.value) return;
-  if (!hasSelection.value) return; // native menu (spell check) for bare clicks
+  if (ctxNativeOnce.value) { ctxNativeOnce.value = false; return; } // the browser menu, once
   e.preventDefault();
   ctxMenu.value = { open: true, x: e.clientX, y: e.clientY };
   // Clamp into the viewport once the menu has a size.
@@ -819,6 +829,7 @@ function onEditorContextMenu(e) {
   });
 }
 function closeCtxMenu() { ctxMenu.value = { open: false, x: 0, y: 0 }; }
+function ctxShowBrowserMenu() { ctxNativeOnce.value = true; closeCtxMenu(); }
 function ctxRun(fn, ...args) { closeCtxMenu(); fn(...args); }
 // Esc must close the menu wherever focus sits (the menu's own keydown only
 // fires when focus is inside it) — document-level listener while open.
@@ -1689,24 +1700,55 @@ defineExpose({
 
     <input ref="fileInput" type="file" accept="image/*" style="display:none" @change="onImagePicked" />
 
-    <!-- Right-click context menu (#41) — selection-gated quick path to the
-         AI actions + edit ops. Backdrop click / Esc / any item closes it. -->
+    <!-- Right-click context menu (#41, QC-41 option 1) — always opens; items
+         enable/disable by scope (the AI-menu law); Windows-11 row grammar
+         (icon · label · shortcut hint · separators); the bottom passthrough
+         row keeps the browser's spell-check menu reachable. Backdrop click /
+         Esc / any item closes it. -->
     <div v-if="ctxMenu.open" class="ctx-backdrop" @mousedown="closeCtxMenu" @contextmenu.prevent="closeCtxMenu" />
     <div v-if="ctxMenu.open" ref="ctxMenuEl" class="ctx-menu" role="menu"
       :style="{ left: `${ctxMenu.x}px`, top: `${ctxMenu.y}px` }"
       @keydown.escape="closeCtxMenu">
-      <div class="ctx-section">AI — on the selection</div>
-      <button v-for="a in CTX_AI_ACTIONS" :key="a.key" class="ctx-item" role="menuitem"
-        @click="ctxRun(runWriterAction, a.key)">{{ a.label }}</button>
+      <div class="ctx-section">
+        Selection only
+        <span v-if="!hasSelection" class="ctx-section-hint">Highlight text first to enable</span>
+      </div>
+      <button v-for="a in CTX_AI_SELECTION" :key="a.key" class="ctx-item" role="menuitem"
+        :disabled="aiRunning || !hasSelection" @click="ctxRun(runWriterAction, a.key)">
+        <Icon name="Sparkle" :size="13" class="ctx-ic" /><span class="ctx-label">{{ a.label }}</span>
+      </button>
+      <div class="ctx-section">Selection or whole scene</div>
+      <button v-for="a in CTX_AI_ANY" :key="a.key" class="ctx-item" role="menuitem"
+        :disabled="aiRunning" @click="ctxRun(runWriterAction, a.key)">
+        <Icon name="Sparkle" :size="13" class="ctx-ic" /><span class="ctx-label">{{ a.label }}</span>
+      </button>
       <div class="ctx-divider" />
-      <div class="ctx-section">Line edits</div>
+      <div class="ctx-section">Line edits <span class="ctx-section-hint">Selection, or whole scene if none</span></div>
       <button v-for="r in PROSE_RULES_LIST" :key="r.key" class="ctx-item" role="menuitem"
-        @click="ctxRun(runProsePass, r.key)">{{ r.label }}</button>
+        :disabled="aiRunning" @click="ctxRun(runProsePass, r.key)">
+        <Icon name="Pencil" :size="13" class="ctx-ic" /><span class="ctx-label">{{ r.label }}</span>
+      </button>
       <div class="ctx-divider" />
-      <button class="ctx-item" role="menuitem" @click="ctxRun(doCut)">Cut</button>
-      <button class="ctx-item" role="menuitem" @click="ctxRun(doCopy)">Copy</button>
-      <button class="ctx-item" role="menuitem" @click="ctxRun(doPaste)">Paste</button>
-      <button class="ctx-item" role="menuitem" @click="ctxRun(openCommentEditor)">Add comment</button>
+      <button class="ctx-item" role="menuitem" :disabled="!hasSelection" @click="ctxRun(doCut)">
+        <Icon name="Cut" :size="13" class="ctx-ic" /><span class="ctx-label">Cut</span><kbd class="ctx-kbd">{{ sc("mod+X") }}</kbd>
+      </button>
+      <button class="ctx-item" role="menuitem" :disabled="!hasSelection" @click="ctxRun(doCopy)">
+        <Icon name="Copy" :size="13" class="ctx-ic" /><span class="ctx-label">Copy</span><kbd class="ctx-kbd">{{ sc("mod+C") }}</kbd>
+      </button>
+      <button class="ctx-item" role="menuitem" @click="ctxRun(doPaste)">
+        <Icon name="Paste" :size="13" class="ctx-ic" /><span class="ctx-label">Paste</span><kbd class="ctx-kbd">{{ sc("mod+V") }}</kbd>
+      </button>
+      <button class="ctx-item" role="menuitem" :disabled="!hasSelection" @click="ctxRun(openCommentEditor)">
+        <Icon name="Comment" :size="13" class="ctx-ic" /><span class="ctx-label">Add comment</span>
+      </button>
+      <!-- The Windows-11 "Show more options" grammar: we cannot open the
+           browser's own menu programmatically, so this arms a one-shot
+           passthrough — the NEXT right-click is the native menu (with
+           spell-check suggestions). Sticky at the menu's bottom so the
+           spell-check door stays visible when the item list scrolls. -->
+      <button class="ctx-item ctx-item-passthrough" role="menuitem" @click="ctxShowBrowserMenu">
+        <span class="ctx-label">Show browser menu (spell check)</span><kbd class="ctx-kbd">right-click again</kbd>
+      </button>
     </div>
 
     <EditorSettingsModal v-if="settingsOpen" @close="settingsOpen = false" />
@@ -1946,11 +1988,13 @@ defineExpose({
   display: flex; flex-direction: column; gap: 8px;
 }
 
-/* Right-click context menu (#41) — same popover idiom as .comment-pop. */
+/* Right-click context menu (#41, QC-41) — same popover idiom as .comment-pop;
+   Windows-11 compact row grammar: leading icon · label · right-aligned
+   shortcut hint; disabled rows grey out (the AI-menu scope-law). */
 .ctx-backdrop { position: fixed; inset: 0; z-index: 199; background: transparent; }
 .ctx-menu {
   position: fixed; z-index: 200;
-  min-width: 180px; max-height: min(70vh, 480px); overflow-y: auto;
+  min-width: 220px; max-height: min(70vh, 480px); overflow-y: auto;
   background: var(--surface);
   border: 1px solid var(--border-strong);
   border-radius: 10px;
@@ -1964,13 +2008,30 @@ defineExpose({
   color: var(--muted); font-weight: 600;
   padding: 5px 8px 3px;
 }
+.ctx-section-hint {
+  text-transform: none; letter-spacing: 0; font-family: var(--font-ui);
+  font-weight: 500; font-size: 10px; font-style: italic; margin-left: 6px;
+}
 .ctx-item {
-  display: block; width: 100%; text-align: left;
+  display: flex; align-items: center; gap: 8px; width: 100%; text-align: left;
   border: 0; background: transparent; cursor: pointer;
   padding: 5px 8px; border-radius: 6px;
   font-family: var(--font-ui); font-size: 12.5px; color: var(--ink);
 }
-.ctx-item:hover { background: var(--surface-2); }
+.ctx-ic { color: var(--muted); flex: none; }
+.ctx-label { flex: 1; min-width: 0; }
+.ctx-kbd {
+  flex: none; font-family: var(--font-ui); font-size: 10.5px;
+  color: var(--muted); background: none; border: 0; padding: 0;
+}
+.ctx-item:hover:not(:disabled) { background: var(--surface-2); }
+.ctx-item:disabled { color: var(--muted); cursor: default; }
+.ctx-item:disabled .ctx-ic { opacity: .5; }
+.ctx-item-passthrough {
+  position: sticky; bottom: -6px; flex-shrink: 0;
+  background: var(--surface); border-top: 1px solid var(--border-soft);
+  border-radius: 0; margin: 3px -6px -6px; padding: 8px 14px; width: auto;
+}
 .ctx-divider { height: 1px; background: var(--border-soft); margin: 4px 2px; }
 .comment-pop-input {
   width: 100%; resize: vertical; min-height: 56px;

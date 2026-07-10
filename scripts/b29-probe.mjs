@@ -152,8 +152,10 @@ try {
   check("B29-6 §7.2 overwrite: EVERY task preset repoints, customized included", allMoved);
 
   // Built-in guard: the dominant is now the temp provider → no local pick → the
-  // recorded offer "pick manually or run Quick Setup".
-  await page.locator('.lu-prow:has-text("Built-in provider")').locator('button:has-text("Set as default")').click();
+  // recorded offer "pick manually or run Quick Setup". (QC-39 promoted the
+  // built-in out of the row list — its Set-as-default lives in the permanent
+  // section header now.)
+  await page.locator('.lu-builtin .lu-builtin-head').locator('button:has-text("Set as default")').click();
   await sleep(600);
   const biText = await page.locator(".ui-modal").textContent();
   check("B29-7 built-in guard: 'Assign a chat model first' + Run Quick Setup offered",

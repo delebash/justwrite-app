@@ -84,26 +84,28 @@ try { await page.click('button:has-text("Got it")', { timeout: 1500 }); } catch 
 await page.evaluate(() => { window.location.hash = "#/ai"; });
 await sleep(2000);
 
-// ── QC-20: the built-in row is tagged Default; its button reads already-set ──
+// ── QC-20: the built-in surface is tagged Default; its button reads already-set.
+// QC-39 (b) promoted the built-in OUT of the row list into the permanent
+// .lu-builtin top section — the tag + Set-as-default now live in its header
+// (same law, new home).
 const q20 = await page.evaluate(() => {
-  const row = [...document.querySelectorAll(".lu-prow")].find((r) => r.textContent.includes("Built-in provider"));
-  if (!row) return { found: false };
-  const tag = row.querySelector(".lu-prow-name .ui-tag");
-  const btns = [...row.querySelectorAll(".lu-prow-actions button")].map((b) => b.textContent.trim());
+  const head = document.querySelector(".lu-builtin .lu-builtin-head");
+  if (!head) return { found: false };
+  const tag = head.querySelector(".ui-tag");
+  const btns = [...head.querySelectorAll("button")].map((b) => b.textContent.trim());
   return {
     found: true,
     tagged: tag?.textContent.trim() === "Default",
     btnLabel: btns.find((t) => t.includes("Default ✓") || t.includes("Set as default")) || "",
   };
 });
-check("QC-20: built-in provider row found", q20.found);
-check("QC-20: the current default row carries the Default tag", !!q20.tagged);
+check("QC-20: built-in provider section found (promoted, QC-39)", q20.found);
+check("QC-20: the current default surface carries the Default tag", !!q20.tagged);
 check("QC-20: its Set-as-default affordance reads already-set (Default ✓)", q20.btnLabel === "Default ✓", q20.btnLabel);
 
 // ── QC-21: the dialog on the built-in tells the truth about the embedding ──
 await page.evaluate(() => {
-  const row = [...document.querySelectorAll(".lu-prow")].find((r) => r.textContent.includes("Built-in provider"));
-  [...(row?.querySelectorAll(".lu-prow-actions button") || [])]
+  [...(document.querySelectorAll(".lu-builtin .lu-builtin-head button") || [])]
     .find((b) => b.textContent.includes("Default ✓") || b.textContent.includes("Set as default"))?.click();
 });
 await sleep(800);
@@ -111,7 +113,7 @@ const q21 = await page.evaluate(() => {
   const lines = [...document.querySelectorAll(".lu-sd-line")].map((p) => p.textContent.trim());
   return { open: lines.length > 0, lines };
 });
-check("QC-21: the set-as-default dialog opened from the default row", q21.open);
+check("QC-21: the set-as-default dialog opened from the default surface", q21.open);
 if (localEmbed) {
   check(`QC-21: the dialog says the embedding (${localEmbed}) already runs here — unchanged`,
     q21.lines.some((l) => l.includes("already runs here — unchanged") && l.includes(localEmbed)),

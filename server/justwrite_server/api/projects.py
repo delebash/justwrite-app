@@ -41,6 +41,22 @@ async def list_projects(db: Session = Depends(get_db)) -> list[dict]:
     ]
 
 
+@router.post("/demo", summary="Create (or return) the tutorial demo book on demand")
+async def create_demo(db: Session = Depends(get_db)) -> dict:
+    """QC-40: the demo book — "The Cartographer's Daughter" — is no longer
+    seeded at boot; the renderer's "Try tutorial project" button creates it HERE
+    on demand. Fixed id: never duplicated, and re-creatable after the user
+    deletes it. Returns the metadata the renderer needs to register + open it."""
+    from ..demo_seed import DEMO_PROJECT_ID
+    from ..seed import create_demo_project
+
+    created = create_demo_project(db)
+    if created:
+        db.commit()
+    row = db.get(Project, DEMO_PROJECT_ID)
+    return {"id": row.id, "title": row.title, "author": row.author, "created": created}
+
+
 @router.get("/{project_id}", summary="The full book as structured JSON (alias of /book)")
 async def get_project(project_id: str, db: Session = Depends(get_db)) -> dict:
     return _assemble_or_404(db, project_id)

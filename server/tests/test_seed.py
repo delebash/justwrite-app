@@ -1,6 +1,8 @@
-"""Workspace seeding — the demo project + default LLM providers the server
-creates on a fresh install (item #7 of the 2026-06-20 convergence; the seed
-moved out of the renderer's domain/seed.js into server-side seed.py).
+"""Workspace seeding — the default LLM providers the server creates on a fresh
+install, and the ON-DEMAND demo book (QC-40, user 2026-07-10: the demo is no
+longer seeded at boot — a fresh install has NO projects and the renderer lands
+in its blank "Untitled project" fallback; "Try tutorial project" creates the
+demo via POST /v1/projects/demo).
 
 seed_workspace() opens its own session from database.SessionLocal, which
 create_app(tmp_path) wired up via init_db — so constructing a client first
@@ -20,7 +22,7 @@ def _c(tmp_path):
     return TestClient(create_app(tmp_path))
 
 
-def test_seed_creates_demo_and_providers_and_active_pointer(tmp_path):
+def test_seed_creates_providers_but_no_demo(tmp_path):
     c = _c(tmp_path)
     # Nothing until seeded — create_app stays pure so the rest of the suite
     # starts empty.
@@ -28,9 +30,12 @@ def test_seed_creates_demo_and_providers_and_active_pointer(tmp_path):
 
     seed_workspace()
 
-    projects = c.get("/v1/projects").json()
-    assert [p["id"] for p in projects] == [DEMO_PROJECT_ID]
-    assert projects[0]["title"] == "The Cartographer's Daughter"
+    # QC-40: no demo project, no active pointer — the fresh workspace is EMPTY
+    # (the renderer mints its blank "Untitled project" fallback).
+    assert c.get("/v1/projects").json() == []
+    settings = c.get("/v1/settings").json()
+    assert "activeProjectId" not in settings
+    assert "demoSeeded" not in settings
 
     providers = c.get("/v1/llm-providers").json()["providers"]
     assert len(providers) == len(DEFAULT_PROVIDERS)
@@ -44,10 +49,26 @@ def test_seed_creates_demo_and_providers_and_active_pointer(tmp_path):
     # Seeded providers are registered into the shared adapter registry at boot.
     assert all(p["registered"] for p in providers)
 
-    # First run opens the demo + records it was seeded.
-    settings = c.get("/v1/settings").json()
-    assert settings["activeProjectId"] == DEMO_PROJECT_ID
-    assert settings["demoSeeded"] is True
+
+def test_demo_created_on_demand(tmp_path):
+    c = _c(tmp_path)
+    seed_workspace()
+
+    # The tutorial button's endpoint creates the demo with its fixed id…
+    r = c.post("/v1/projects/demo").json()
+    assert r == {"id": DEMO_PROJECT_ID, "title": "The Cartographer's Daughter",
+                 "author": "Mira Halden", "created": True}
+    assert [p["id"] for p in c.get("/v1/projects").json()] == [DEMO_PROJECT_ID]
+    # …a second click returns the SAME project (never a duplicate)…
+    r2 = c.post("/v1/projects/demo").json()
+    assert r2["created"] is False and r2["id"] == DEMO_PROJECT_ID
+    assert len(c.get("/v1/projects").json()) == 1
+    # …and after the user deletes it, the button can bring it back.
+    assert c.delete(f"/v1/projects/{DEMO_PROJECT_ID}").status_code == 204
+    assert c.post("/v1/projects/demo").json()["created"] is True
+    assert [p["id"] for p in c.get("/v1/projects").json()] == [DEMO_PROJECT_ID]
+    # It never touches the active pointer — the renderer switches itself.
+    assert "activeProjectId" not in c.get("/v1/settings").json()
 
 
 def test_demo_book_has_full_structure(tmp_path):
@@ -87,16 +108,17 @@ def test_seed_is_idempotent(tmp_path):
     c = _c(tmp_path)
     seed_workspace()
     seed_workspace()  # second boot
-    # Demo not duplicated; providers not duplicated.
-    assert [p["id"] for p in c.get("/v1/projects").json()] == [DEMO_PROJECT_ID]
+    # Still no projects (QC-40); providers not duplicated.
+    assert c.get("/v1/projects").json() == []
     assert len(c.get("/v1/llm-providers").json()["providers"]) == len(DEFAULT_PROVIDERS)
 
 
-def test_deleted_demo_is_not_resurrected(tmp_path):
+def test_boot_never_resurrects_a_deleted_demo(tmp_path):
     c = _c(tmp_path)
     seed_workspace()
+    c.post("/v1/projects/demo")
     assert c.delete(f"/v1/projects/{DEMO_PROJECT_ID}").status_code == 204
-    seed_workspace()  # next boot must respect the deletion (demoSeeded flag set)
+    seed_workspace()  # next boot seeds nothing (QC-40) — the deletion stands
     assert c.get("/v1/projects").json() == []
 
 
@@ -135,9 +157,10 @@ def test_reset_reseeds_workspace(tmp_path):
 
     assert c.post("/v1/data/reset").status_code == 200
 
-    # User project gone; demo re-seeded (reset behaves like first run).
-    assert [p["id"] for p in c.get("/v1/projects").json()] == [DEMO_PROJECT_ID]
+    # User project gone; reset behaves like first run — an EMPTY workspace
+    # (QC-40: no demo, the renderer mints its blank fallback), providers back.
+    assert c.get("/v1/projects").json() == []
     settings = c.get("/v1/settings").json()
     assert "ui" not in settings
-    assert settings["demoSeeded"] is True
+    assert "demoSeeded" not in settings
     assert len(c.get("/v1/llm-providers").json()["providers"]) == len(DEFAULT_PROVIDERS)

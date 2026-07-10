@@ -54,9 +54,9 @@ try {
   await page.evaluate(() => { window.location.hash = "#/ai"; });
   await sleep(1200);
 
-  // Open the Built-in provider's Edit view → the engine panel's Details drawer.
-  await page.locator('.lu-prow:has-text("Built-in provider")').locator('button:has-text("Edit")').click();
-  await sleep(900);
+  // The engine panel lives in the PERMANENT built-in section (QC-39 promoted it
+  // out of the row list — no Edit click needed) → open its Details drawer.
+  await page.locator(".lu-builtin .lu-eng").waitFor({ timeout: 8000 });
   await page.locator('.lu-eng button:has-text("Details")').click();
   await sleep(600);
 

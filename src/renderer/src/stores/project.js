@@ -16,12 +16,6 @@ import { readSetting, writeSetting, getAllSettings, applySettings } from "../ser
 import * as projectApi from "../services/projectApi.js";
 import { replaceInHtml } from "../services/projectReplace.js";
 import { nextColor, nextHue } from "../services/categoricalColors.js";
-import {
-  TUTORIAL_TITLE, TUTORIAL_AUTHOR,
-  TUTORIAL_CHARACTERS, TUTORIAL_LOCATIONS,
-  TUTORIAL_STRAND, TUTORIAL_WORLDBUILDING,
-  TUTORIAL_CHAPTER, TUTORIAL_NOTE,
-} from "../services/tutorialProject.js";
 
 // Multi-project storage (all server-side SQL — no kv, no IndexedDB):
 //   projects table (/v1/projects) — book snapshots; the registry is DERIVED
@@ -144,12 +138,11 @@ function bootstrap() {
     return { activeId: id, registry, snapshot: loadSnap(id) };
   }
 
-  // Nothing to open. The server seeds the demo project on first run (and points
-  // activeProjectId at it), so reaching here means a genuinely empty workspace —
-  // e.g. every project was deleted, or the server seed is unavailable. Mint a
-  // blank project so the app always has something to show;
-  // ensureActiveProjectPersisted() (called from main.js after boot) writes its
-  // row so it survives a reload.
+  // Nothing to open. Since QC-40 a fresh install ships with NO projects (the
+  // demo book is created only when "Try tutorial project" is clicked), so this
+  // fallback IS the first-run landing: mint a blank "Untitled project" so the
+  // app always has something to show. ensureActiveProjectPersisted() (called
+  // from main.js after boot) writes its row so it survives a reload.
   const id = uid("prj");
   const entry = {
     id,
@@ -1937,9 +1930,10 @@ export const useProjectStore = defineStore("project", {
     _writeRegistry(reg) {
       this._projects = reg;
     },
-    // On a brand-new install the seeded demo project lives only in memory until
-    // the first edit. With the registry derived from the projects table, write
-    // its row now (called once from main.js after boot) so it survives a reload.
+    // On a brand-new install the minted blank project lives only in memory
+    // until the first edit. With the registry derived from the projects table,
+    // write its row now (called once from main.js after boot) so it survives a
+    // reload.
     ensureActiveProjectPersisted() {
       // Persist the seed ONLY when we're sure the active project has no server
       // row yet (a brand-new mint). Gate on the server-derived registry, and
@@ -1975,36 +1969,23 @@ export const useProjectStore = defineStore("project", {
       this._writeRegistry(next);
     },
 
-    // Seed a learn-by-doing project — a real JustWrite project (one
-     // chapter / three scenes / two characters / one location / one
-     // narrative strand with a beat / one worldbuilding article / a
-     // "read me first" note). The user can poke at every surface of
-     // the app without breaking their own work, then delete the project
-     // from the sidebar's project switcher.
-     //
-     // Implemented on top of createProject() + the normal CRUD actions
-     // so it benefits from the same invariants (history, persistence,
-     // multi-project plumbing) the rest of the store relies on.
-     createTutorialProject() {
-       const id = this.createProject({ title: TUTORIAL_TITLE, author: TUTORIAL_AUTHOR });
-
-       for (const c of TUTORIAL_CHARACTERS) this.addCharacter(c);
-       for (const l of TUTORIAL_LOCATIONS) this.addLocation(l);
-       this.addWorldbuilding(TUTORIAL_WORLDBUILDING);
-       this.addNote(TUTORIAL_NOTE);
-
-       const strandId = this.addStrand({ name: TUTORIAL_STRAND.name, color: TUTORIAL_STRAND.color });
-       const chapterId = this.addChapter({ title: TUTORIAL_CHAPTER.title, partId: this.parts[0]?.id, status: "draft" });
-       for (const sc of TUTORIAL_CHAPTER.scenes) this.addScene(chapterId, { title: sc.title, body: sc.body });
-
-       this.addStrandBeat(strandId, {
-         label: TUTORIAL_STRAND.beat.label,
-         note: TUTORIAL_STRAND.beat.note,
-         chapterId,
-       });
-
-       return id;
-     },
+    // QC-40 (user, 2026-07-10): "Try tutorial project" opens the FULL demo
+    // book — "The Cartographer's Daughter" — created ON DEMAND by the server
+    // (POST /v1/projects/demo, fixed id: never duplicated, re-creatable after
+    // a delete). This replaced the old client-side mini tutorial seed
+    // (services/tutorialProject.js, deleted with it).
+    async openDemoProject() {
+      const meta = await projectApi.createDemoProject();
+      if (!meta?.id) return null;
+      if (!this._projects.some((p) => p.id === meta.id)) {
+        this._writeRegistry([
+          { id: meta.id, title: meta.title, author: meta.author, savedAt: new Date().toISOString() },
+          ...this._projects,
+        ]);
+      }
+      await this.switchProject(meta.id);
+      return meta.id;
+    },
 
      createProject({ title = "Untitled project", author = "" } = {}) {
       // Snapshot the current project first so switching away doesn't
