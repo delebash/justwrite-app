@@ -19,6 +19,29 @@ Your work is never at risk: the move only takes effect once the copy has fully
 finished, and if anything goes wrong the app keeps using the old folder. Large
 model files make the move take a while — that's expected.
 
+## Reclaiming disk space
+
+The **Disk usage** card under **Settings → Storage** shows where your data
+folder's space goes: the downloaded AI models, the local engine, the server
+logs, the engine's own start-up logs, and your project database — plus how much
+free space the disk has left.
+
+Two of those can be cleared right from the card:
+
+- **Models cache — Clear…** removes the downloaded model files. This is always
+  safe: your models stay in the catalog and simply re-download the next time
+  they're used. If a model is currently loaded, JustWrite asks you to unload it
+  first (on the AI page) before clearing. This is usually where most of the
+  space goes — model files run to several gigabytes each.
+- **Engine spawn logs — Clear…** removes the local engine's start-up logs.
+  They're only useful when diagnosing a model that won't load, and they
+  accumulate over time.
+
+The other rows are managed where they live: the **engine** itself is installed,
+updated, and removed on the AI page; the **server logs** have their own
+retention controls in **Settings → Logs**; and the **database** is your actual
+work — it's never cleared from here.
+
 ## The local AI engine
 
 The bundled local models run on a small **llama.cpp engine**. Installing it is

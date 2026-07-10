@@ -43,3 +43,19 @@ def test_shared_runner_mounted(tmp_path):
     body = r.json()
     assert "safetyMarginMb" in body  # camelCase wire from the runner
     assert body["llamacpp"]["binaries"]  # binaries seeded into the DB
+
+
+def test_disk_usage_mounted(tmp_path):
+    # The shared platform disk-usage router is mounted over the same data_dir (the
+    # reclaim-disk Settings panel reads it). Every bucket key is present, and the DB
+    # the server just created is counted in the `database` bucket.
+    app = create_app(tmp_path)
+    client = TestClient(app)
+
+    r = client.get("/v1/disk/usage")
+    assert r.status_code == 200
+    body = r.json()
+    for k in ("database", "appLogs", "modelsCache", "engineBuilds", "spawnLogs", "total", "diskFree", "diskTotal"):
+        assert k in body
+    assert body["database"] > 0  # justwrite.db exists after create_app
+    assert body["diskTotal"] > 0

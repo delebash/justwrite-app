@@ -19,6 +19,7 @@ import { UiToggle } from "@delebash/llm-ui";
 import { UiColorPicker } from "@delebash/llm-ui";
 import { PRESET_COLORS } from "@renderer/services/categoricalColors.js";
 import { SERVER_BASE, serverUrl } from "../services/serverApi.js";
+import { get, post, fmtBytes } from "@delebash/llm-ui";
 import {
   ACCENT_PRESETS, GOLD_PRESETS, FUNCTIONAL_PRESETS, PAIRINGS, SURFACE_TINTS, PAPER_TINTS,
   THEME_PRESETS, UI_FONTS, DISPLAY_FONTS, INK_PALETTES, UI_SCALES,
@@ -105,7 +106,71 @@ async function loadStorageRoot() {
   const r = await window.justwrite?.storage?.getRoot?.();
   storageRoot.value = r && !r.error ? r : null;
 }
-watch(active, (a) => { if (a === "storage") loadStorageRoot(); });
+
+// ── Disk usage: the on-disk footprint + the two reclaim actions. Sizes come from
+// the shared platform GET /v1/disk/usage; the Clear actions call the runner's own
+// reclaim endpoints. Loaded when the Storage section opens, refreshed after a clear.
+const diskUsage = ref(null); // { database, appLogs, modelsCache, engineBuilds, spawnLogs, total, diskFree, diskTotal }
+const diskBusy = ref("");    // which reclaim op is running: "models" | "spawn" | "" (idle)
+const diskErr = ref("");     // a refusal / failure message shown inline
+
+async function loadDiskUsage() {
+  try {
+    diskUsage.value = await get("/v1/disk/usage");
+  } catch {
+    diskUsage.value = null; // offline — the rows stay em-dashes
+  }
+}
+
+// Loading state = an em-dash per row; a real 0 formats as "0 MB" (the kit's
+// fmtBytes returns "" for 0). fmtBytes stays the ONE source for the number.
+function diskSize(n) {
+  if (diskUsage.value == null) return "—";
+  return fmtBytes(n) || "0 MB";
+}
+
+async function clearModelsCache() {
+  const size = fmtBytes(diskUsage.value?.modelsCache) || "0 MB";
+  const yes = await confirmDialog({
+    title: "Clear downloaded models?",
+    message: `This frees ${size} of downloaded model files. Your models stay in the catalog and re-download automatically the next time they're used.`,
+    confirmLabel: "Clear models cache",
+  });
+  if (!yes) return;
+  diskBusy.value = "models";
+  diskErr.value = "";
+  try {
+    const res = await post("/v1/llm-runner/models-cache/clear");
+    if (res?.ok === false) {
+      diskErr.value =
+        res.detail === "unload models first"
+          ? "A model is loaded — unload it first (AI page → Unload), then try again."
+          : res.detail || "Couldn't clear the models cache.";
+    }
+  } catch {
+    diskErr.value = "Couldn't clear the models cache.";
+  } finally {
+    diskBusy.value = "";
+    await loadDiskUsage();
+  }
+}
+
+async function clearSpawnLogs() {
+  diskBusy.value = "spawn";
+  diskErr.value = "";
+  try {
+    await post("/v1/llm-runner/spawn-logs/clear");
+  } catch {
+    diskErr.value = "Couldn't clear the engine logs.";
+  } finally {
+    diskBusy.value = "";
+    await loadDiskUsage();
+  }
+}
+
+// Immediate so a direct deep-link to #/settings/storage loads both cards too (the
+// tab-click path already re-triggers this).
+watch(active, (a) => { if (a === "storage") { loadStorageRoot(); loadDiskUsage(); } }, { immediate: true });
 
 async function changeFolder() {
   const picked = await window.justwrite?.shell?.pickDirectory?.({ title: "Choose a data folder" });
@@ -1168,6 +1233,48 @@ async function deleteCategory(c) {
           </div>
           <p v-else class="t-muted" style="font-size:12px;margin:10px 0 0">Changing the folder is available in the desktop app.</p>
           <p v-if="storageErr" style="font-size:12.5px;color:var(--danger,#b91c1c);margin:8px 0 0">{{ storageErr }}</p>
+        </div>
+
+        <!-- Disk usage — where the data folder's space goes + the reclaim actions
+             (sizes from GET /v1/disk/usage; deletes via the runner endpoints). -->
+        <div class="card">
+          <div class="card-title">Disk usage</div>
+          <p class="t-muted" style="font-size:12.5px;margin:4px 0 10px;line-height:1.5">
+            Where your data folder's space goes. Downloaded models and engine logs can be cleared to
+            reclaim space — your projects, settings and work are never touched.
+          </p>
+          <div style="display:grid;grid-template-columns:140px 1fr;gap:10px 14px;font-size:13px;align-items:center">
+            <span class="t-muted">Models cache</span>
+            <div style="display:flex;align-items:center;gap:12px;flex-wrap:wrap">
+              <span>{{ diskSize(diskUsage?.modelsCache) }}</span>
+              <UiButton intent="secondary" size="small" :loading="diskBusy === 'models'" :disabled="!!diskBusy" @click="clearModelsCache">Clear…</UiButton>
+            </div>
+
+            <span class="t-muted">Engine builds</span>
+            <div style="display:flex;align-items:center;gap:12px;flex-wrap:wrap">
+              <span>{{ diskSize(diskUsage?.engineBuilds) }}</span>
+              <span class="t-muted" style="font-size:12px">Managed on the AI page</span>
+            </div>
+
+            <span class="t-muted">Server logs</span>
+            <div style="display:flex;align-items:center;gap:12px;flex-wrap:wrap">
+              <span>{{ diskSize(diskUsage?.appLogs) }}</span>
+              <span class="t-muted" style="font-size:12px">Managed in the Logs section</span>
+            </div>
+
+            <span class="t-muted">Engine spawn logs</span>
+            <div style="display:flex;align-items:center;gap:12px;flex-wrap:wrap">
+              <span>{{ diskSize(diskUsage?.spawnLogs) }}</span>
+              <UiButton intent="secondary" size="small" :loading="diskBusy === 'spawn'" :disabled="!!diskBusy" @click="clearSpawnLogs">Clear…</UiButton>
+            </div>
+
+            <span class="t-muted">Database</span>
+            <span>{{ diskSize(diskUsage?.database) }}</span>
+
+            <span class="t-muted">Free disk space</span>
+            <span>{{ diskSize(diskUsage?.diskFree) }}</span>
+          </div>
+          <p v-if="diskErr" style="font-size:12.5px;color:var(--danger,#b91c1c);margin:10px 0 0">{{ diskErr }}</p>
         </div>
       </div>
 

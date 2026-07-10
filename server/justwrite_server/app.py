@@ -35,7 +35,7 @@ from .api import (
 )
 from .app_state import AppState, set_state
 from .auth import BearerAuthMiddleware
-from llm_runner.platform import install_file_log, install_log_ring, make_logs_router
+from llm_runner.platform import install_file_log, install_log_ring, make_disk_router, make_logs_router
 
 from .data_admin import get_data_router
 from .database import init_db
@@ -137,6 +137,7 @@ def create_app(data_dir: Path | None = None) -> FastAPI:
     app.include_router(versions.router)
     app.include_router(get_data_router())  # shared backup/restore/reset (/v1/data/*)
     app.include_router(make_logs_router("JustWrite"))  # shared /v1/logs/*
+    app.include_router(make_disk_router(data_dir))  # shared /v1/disk/usage (reclaim-disk panel)
     app.include_router(rag.router)
     app.include_router(images.router)
     app.include_router(llm_runner_router)
