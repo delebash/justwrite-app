@@ -85,8 +85,8 @@ All in `src/renderer/src/stores/`:
 **Project store invariants worth knowing before mutating it:**
 
 - Persists each project snapshot to the **server** (SQLite via `/v1/projects`) through `services/projectApi.js` (`putSnapshot`/`getSnapshot`; the registry is derived from the projects table). The active project id lives in the settings document (`services/settings.js` → `/v1/settings`). No client-side IndexedDB store — the renderer holds no durable data.
-- Deletes are **soft** — `removeXxx` actions move the entity to `state.trash[kind]`; recovery is ⌘Z (deletes are tracked history actions) and `TrashView` restore / permanent delete. No delete toast (the QC-37 toast law, 2026-07-09: the row visibly leaves, and undo never rides an ephemeral surface).
-- Undo/redo is **snapshot-based and in-memory only** (not persisted across reloads): every mutating action calls `this._record(actionId)` before mutating, which deep-clones `HISTORY_SLICES` onto `_past` (limit `HISTORY_LIMIT`). Durable rollback comes from the Tauri **disk autosave** (`$APPDATA/projects/<id>.autosave.json`, rotating) + manual Export backup — not from history.
+- Deletes are **soft** — `removeXxx` actions move the entity to `state.trash[kind]`; recovery is ⌘Z on the owner's page (deletes are tracked history actions) and `TrashView` restore / permanent delete. No delete toast (the QC-37 toast law, 2026-07-09: the row visibly leaves, and undo never rides an ephemeral surface).
+- Undo/redo is **PAGE-RELATED, snapshot-based, in-memory only** (#235, 2026-07-10 — full design: `docs/plans/2026-07-10-page-related-undo.md`): history is partitioned into 13 disjoint data domains (`DOMAIN_SLICES`); every recorded action maps to exactly ONE domain (`ACTION_DOMAINS`; image actions take the owner kind), `this._record(actionId)` deep-clones only that domain's slices onto `_past[domain]` (trash captured per-kind, images per-entity-key; limit `HISTORY_LIMIT` per domain), and `undoFor/redoFor/canUndoFor(domains)` — driven by `route.meta.undoDomains` in the router — pop the newest entry among the current page's domains. The four per-entity AI artifacts (`chapterCritiques`/`chapterReaderKnowledge`/`chapterMultiReader`/`characterAudits`) are top-level keyed maps OUTSIDE the history domains (server wire shape matches — book_io decomposes/recomposes them as maps); readers get them via the `allChapters` decoration + `*For` getters. When adding a mutating action, add it to `ACTION_DOMAINS` (an unmapped action warns and records nothing). Durable rollback comes from the Tauri **disk autosave** (`$APPDATA/projects/<id>.autosave.json`, rotating) + manual Export backup — not from history.
 - Keystroke-grain actions (in `COALESCED_ACTIONS`: `setChapterBody`, `setChapterTitle`, inline title edits, etc.) coalesce into one history entry per ~600ms quiescent window. When adding a new high-frequency mutator, add it to `COALESCED_ACTIONS` or the undo buffer fills instantly.
 - `_past` and `_future` are wrapped in `markRaw()` so Vue does not make snapshots reactive.
 
@@ -121,7 +121,7 @@ No TTS here — audio lives in JustVoice.
 
 ### Routing & shortcuts
 
-Hash router (`createWebHashHistory`) — see `router/index.js` for the full route list. Global shortcuts: ⌘F focuses search, ⌘\ toggles sidebar, ⌘Z / ⌘⇧Z (or ⌘Y) undo/redo (disabled inside the rich editor — TipTap owns its own history there).
+Hash router (`createWebHashHistory`) — see `router/index.js` for the full route list, including each route's `meta.undoDomains` (the #235 page-related-undo map). Global shortcuts: ⌘F focuses search, ⌘\ toggles sidebar, ⌘Z / ⌘⇧Z (or ⌘Y) page-scoped undo/redo (inert on routes with no `undoDomains`; disabled inside the rich editor — TipTap owns its own history there).
 
 ## Conventions
 

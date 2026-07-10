@@ -43,12 +43,15 @@ const completedCount = ref(0);
 const expanded = ref(new Set()); // character ids expanded in review phase
 
 function initRows() {
-  rows.value = (project.characters || []).filter((c) => c.main).map((c) => ({
-    id: c.id,
-    name: c.name,
-    status: c.audit ? "done" : "pending",
-    reason: c.audit ? `${c.audit.noteCount} concern${c.audit.noteCount === 1 ? "" : "s"}` : "",
-  }));
+  rows.value = (project.characters || []).filter((c) => c.main).map((c) => {
+    const audit = project.auditFor(c.id);
+    return {
+      id: c.id,
+      name: c.name,
+      status: audit ? "done" : "pending",
+      reason: audit ? `${audit.noteCount} concern${audit.noteCount === 1 ? "" : "s"}` : "",
+    };
+  });
   rowById.value = new Map(rows.value.map((r) => [r.id, r]));
   completedCount.value = rows.value.filter((r) => r.status === "done").length;
 }
@@ -61,7 +64,7 @@ function cancelSweep() {
 }
 
 // Are we currently running OR have we never started?
-const everRan = computed(() => rows.value.some((r) => project.characters.find((c) => c.id === r.id)?.audit));
+const everRan = computed(() => rows.value.some((r) => project.auditFor(r.id)));
 const phase = computed(() => {
   if (running.value) return "scanning";
   if (everRan.value) return "review";
@@ -136,15 +139,16 @@ function jumpToCharacter(id) {
   router.push(`/characters/${id}`);
 }
 
-// The reviewable list — characters that have an audit on them.
+// The reviewable list — main characters with a persisted audit (read via
+// auditFor; audits live in the store's keyed map since #235).
 const reviewCharacters = computed(() => {
   return (project.characters || [])
-    .filter((c) => c.main && c.audit)
+    .filter((c) => c.main && project.auditFor(c.id))
     .map((c) => ({
       id: c.id,
       name: c.name,
       role: c.role || "",
-      audit: c.audit,
+      audit: project.auditFor(c.id),
     }));
 });
 

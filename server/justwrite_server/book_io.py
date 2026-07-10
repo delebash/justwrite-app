@@ -133,6 +133,17 @@ def decompose(db: Session, project_id: str, snap: dict) -> None:
     saved_at = _s(snap.get("savedAt"))
     voice_canon = set(snap.get("voiceCanonChapterIds") or [])
 
+    # #235: the four per-entity AI artifacts now arrive as top-level keyed
+    # maps (chapterCritiques / chapterReaderKnowledge / chapterMultiReader /
+    # characterAudits) — the renderer relocated them off the entity objects so
+    # undo can't drag them. A legacy snapshot (old export/backup) may still
+    # embed them on the chapter/character objects: accept either, map first.
+    # Storage is unchanged — they land on the same entity-row columns.
+    critiques_map = snap.get("chapterCritiques") or {}
+    rk_map = snap.get("chapterReaderKnowledge") or {}
+    mr_map = snap.get("chapterMultiReader") or {}
+    audits_map = snap.get("characterAudits") or {}
+
     # parts → chapters → chapter_strands
     for pi, part in enumerate(snap.get("parts") or []):
         pid = _s(part.get("id"))
@@ -143,9 +154,9 @@ def decompose(db: Session, project_id: str, snap: dict) -> None:
                 project_id=project_id, id=chid, part_id=pid, position=ci,
                 num=_i(ch.get("num")), title=_s(ch.get("title")), words=_i(ch.get("words")),
                 status=_s(ch.get("status") or "todo"), is_voice_canon=chid in voice_canon,
-                critique=_json_or_none(ch.get("critique")),
-                reader_knowledge=_json_or_none(ch.get("readerKnowledge")),
-                multi_reader=_json_or_none(ch.get("multiReader")),
+                critique=_json_or_none(critiques_map.get(chid, ch.get("critique"))),
+                reader_knowledge=_json_or_none(rk_map.get(chid, ch.get("readerKnowledge"))),
+                multi_reader=_json_or_none(mr_map.get(chid, ch.get("multiReader"))),
             ))
             for li, sid in enumerate(ch.get("strands") or []):
                 db.add(ChapterStrand(project_id=project_id, chapter_id=chid, strand_id=_s(sid), position=li))
@@ -171,7 +182,8 @@ def decompose(db: Session, project_id: str, snap: dict) -> None:
             pronouns=_s(c.get("pronouns")), life_status=_s(c.get("lifeStatus")),
             one_liner=_s(c.get("oneLiner")), role=_s(c.get("role")),
             aliases=json.dumps(c.get("aliases") or []), tags=json.dumps(c.get("tags") or []),
-            extras=_json_or_none(extras_map.get(cid)), audit=_json_or_none(c.get("audit")),
+            extras=_json_or_none(extras_map.get(cid)),
+            audit=_json_or_none(audits_map.get(cid, c.get("audit"))),
         ))
 
     for i, loc in enumerate(snap.get("locations") or []):
@@ -296,16 +308,21 @@ def assemble(db: Session, project_id: str) -> dict | None:
         strands_by_ch.setdefault(cs.chapter_id, []).append(cs.strand_id)
     chapters_by_part: dict[str, list] = {}
     voice_canon: list[str] = []
+    # #235: the per-entity AI artifacts come back as top-level keyed maps, not
+    # embedded on the entity objects (they live outside the renderer's undo).
+    chapter_critiques: dict[str, dict] = {}
+    chapter_rk: dict[str, dict] = {}
+    chapter_mr: dict[str, dict] = {}
     for ch in ordered(Chapter):
         scenes_by_ch.setdefault(ch.id, [])  # every chapter has a (possibly empty) scene list
         c = {"id": ch.id, "num": ch.num, "title": ch.title, "words": ch.words,
              "status": ch.status, "strands": strands_by_ch.get(ch.id, [])}
         if ch.critique is not None:
-            c["critique"] = json.loads(ch.critique)
+            chapter_critiques[ch.id] = json.loads(ch.critique)
         if ch.reader_knowledge is not None:
-            c["readerKnowledge"] = json.loads(ch.reader_knowledge)
+            chapter_rk[ch.id] = json.loads(ch.reader_knowledge)
         if ch.multi_reader is not None:
-            c["multiReader"] = json.loads(ch.multi_reader)
+            chapter_mr[ch.id] = json.loads(ch.multi_reader)
         if ch.is_voice_canon:
             voice_canon.append(ch.id)
         chapters_by_part.setdefault(ch.part_id, []).append(c)
@@ -313,13 +330,14 @@ def assemble(db: Session, project_id: str) -> dict | None:
 
     characters = []
     extras: dict[str, dict] = {}
+    character_audits: dict[str, dict] = {}
     for c in ordered(Character):
         obj = {"id": c.id, "main": c.main, "age": c.age, "gender": c.gender,
                "pronouns": c.pronouns, "aliases": json.loads(c.aliases),
                "lifeStatus": c.life_status, "oneLiner": c.one_liner, "role": c.role,
                "name": c.name, "tags": json.loads(c.tags)}
         if c.audit is not None:
-            obj["audit"] = json.loads(c.audit)
+            character_audits[c.id] = json.loads(c.audit)
         characters.append(obj)
         if c.extras is not None:
             extras[c.id] = json.loads(c.extras)
@@ -429,6 +447,8 @@ def assemble(db: Session, project_id: str) -> dict | None:
         "images": images, "events": events, "statuses": statuses, "trash": trash,
         "dailyRecaps": daily_recaps, "reverseOutline": reverse_outline,
         "beatSheets": beat_sheets, "plotHoles": plot_holes,
+        "chapterCritiques": chapter_critiques, "chapterReaderKnowledge": chapter_rk,
+        "chapterMultiReader": chapter_mr, "characterAudits": character_audits,
         "voiceCanonChapterIds": voice_canon, "relationshipArcs": relationship_arcs,
         "marketingPack": marketing_pack, "worldRules": proj.world_rules, "savedAt": proj.updated_at,
     }

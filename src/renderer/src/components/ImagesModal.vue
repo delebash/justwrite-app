@@ -7,6 +7,9 @@ import { AppModal } from "@delebash/llm-ui";
 import { UiButton } from "@delebash/llm-ui";
 
 const props = defineProps({
+  // The owning entity's undo domain ("characters" | "locations" | "objects"
+  // | "groups") — image edits are undone on the owner's page (#235).
+  kind: { type: String, required: true },
   entityId: { type: String, required: true },
   entityName: { type: String, default: "Item" },
 });
@@ -41,7 +44,7 @@ async function onFiles(e) {
     saving.value++;
     try {
       const rec = await saveImage(f);
-      project.addImage(props.entityId, rec);
+      project.addImage(props.kind, props.entityId, rec);
     } catch (err) {
       error.value = err.message;
     } finally {
@@ -54,7 +57,7 @@ async function onFiles(e) {
 async function remove(img) {
   // Tell the disk-store first so we can unlink before forgetting the record.
   await removeImage(img);
-  project.removeImage(props.entityId, img.id);
+  project.removeImage(props.kind, props.entityId, img.id);
 }
 </script>
 

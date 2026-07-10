@@ -88,3 +88,78 @@ def test_persist_across_instances_and_delete(tmp_path):
     assert c2.get("/v1/projects/prj1").json()["project"]["author"] == "Mira Halden"
     assert c2.delete("/v1/projects/prj1").status_code == 204
     assert c2.get("/v1/projects").json() == []
+
+
+def test_ai_artifact_maps_roundtrip_and_legacy_lift(tmp_path):
+    """#235: the four per-entity AI artifacts travel as top-level keyed maps
+    (chapterCritiques / chapterReaderKnowledge / chapterMultiReader /
+    characterAudits) and never come back embedded on the entity objects.
+    A legacy snapshot that still embeds them ingests into the same columns."""
+    c = _c(tmp_path)
+
+    # New wire shape: maps in, maps out, entities clean.
+    snap = {
+        "project": {"title": "Artifacts"},
+        "parts": [{"id": "p1", "title": "P", "chapters": [
+            {"id": "ch1", "num": 1, "title": "A", "words": 0, "status": "draft", "strands": []},
+        ]}],
+        "scenes": {"ch1": []},
+        "characters": [{"id": "c1", "name": "Mira"}],
+        "chapterCritiques": {"ch1": {"notes": [{"message": "tighten"}]}},
+        "chapterReaderKnowledge": {"ch1": {"status": "ok"}},
+        "chapterMultiReader": {"ch1": {"panel": [1, 2]}},
+        "characterAudits": {"c1": {"noteCount": 2}},
+    }
+    assert c.put("/v1/projects/prj_art", json=snap).status_code == 204
+    got = c.get("/v1/projects/prj_art").json()
+    assert got["chapterCritiques"] == {"ch1": {"notes": [{"message": "tighten"}]}}
+    assert got["chapterReaderKnowledge"] == {"ch1": {"status": "ok"}}
+    assert got["chapterMultiReader"] == {"ch1": {"panel": [1, 2]}}
+    assert got["characterAudits"] == {"c1": {"noteCount": 2}}
+    assert "critique" not in got["parts"][0]["chapters"][0]
+    assert "audit" not in got["characters"][0]
+
+    # Legacy shape: embedded on the entities (an old export/backup) — the
+    # decompose fallback lifts them into the same columns, so the GET emits
+    # the map shape.
+    legacy = {
+        "project": {"title": "Legacy"},
+        "parts": [{"id": "p1", "title": "P", "chapters": [
+            {"id": "chL", "num": 1, "title": "Old", "words": 0, "status": "draft", "strands": [],
+             "critique": {"notes": [{"message": "legacy"}]}},
+        ]}],
+        "scenes": {"chL": []},
+        "characters": [{"id": "cL", "name": "N", "audit": {"noteCount": 1}}],
+    }
+    assert c.put("/v1/projects/prj_leg", json=legacy).status_code == 204
+    got = c.get("/v1/projects/prj_leg").json()
+    assert got["chapterCritiques"] == {"chL": {"notes": [{"message": "legacy"}]}}
+    assert got["characterAudits"] == {"cL": {"noteCount": 1}}
+    assert "critique" not in got["parts"][0]["chapters"][0]
+
+
+def test_trashed_entity_artifact_rides_the_tombstone(tmp_path):
+    """#235 checker catch: a TRASHED chapter's artifact travels inside its
+    opaque trash payload (the durable carrier) — the live maps only cover
+    live ids, so a map entry for a non-live id is dropped, not resurrected."""
+    c = _c(tmp_path)
+    snap = {
+        "project": {"title": "Trashed"},
+        "parts": [{"id": "p1", "title": "P", "chapters": []}],
+        "scenes": {},
+        "characters": [],
+        "trash": {
+            "chapters": [{"id": "chT", "num": 1, "title": "Gone", "words": 0, "status": "draft",
+                          "strands": [], "scenes": [], "partId": "p1", "deletedAt": 1,
+                          "critique": {"notes": [{"message": "carried"}]}}],
+            "scenes": [], "characters": [], "locations": [], "objects": [], "groups": [],
+            "notes": [], "strands": [], "worldbuilding": [], "events": [], "statuses": [], "tagVocab": [],
+        },
+        # A stale live-map entry for the trashed id — must NOT survive
+        # (the tombstone copy is the one source for non-live entities).
+        "chapterCritiques": {"chT": {"notes": [{"message": "stale-live-copy"}]}},
+    }
+    assert c.put("/v1/projects/prj_tomb", json=snap).status_code == 204
+    got = c.get("/v1/projects/prj_tomb").json()
+    assert got["trash"]["chapters"][0]["critique"] == {"notes": [{"message": "carried"}]}
+    assert got["chapterCritiques"] == {}

@@ -360,7 +360,8 @@ gone → a DURABLE red badge on the titlebar chip + new sidebar "AI tasks" item
 aborts-the-loop (ReaderKnowledge, MultiReader; RK's own Cancel removed) · #230 panel
 history capped to a 5-row tail · #231 the stuck-tooltip root fix (kill on detached
 anchor + scroll/pointerdown/Escape + focus-visible) · #233 AI-page-local ⌘Z (global
-book-undo bails on /ai via a new pageUndoScopes registry; TaskKinds owns a local
+book-undo bails on /ai via a pageUndoScopes registry — SUPERSEDED by #235's
+route-meta mechanism 2026-07-10, registry deleted; TaskKinds owns a local
 inverse stack) · #234 the toast-law cull of the CLEAR visible-outcome cases (the ~45
 debatable JW-app toasts FLAGGED for the user's per-surface verdict, not culled) · #236
 the sidebar AI-queue doorway. The rules-checker caught a real bug (the failure badge
@@ -446,6 +447,38 @@ the three same-window diagnoses AWAITING THE USER'S WORD (MTP stale-seed heal ·
 chat ensure-resident · server-console tab): queue doc tail **"QC-43"**. The five
 queued tasks (#251/#252/#254/#255/#253) remain the active batch — #253 grounding
 mid-flight, QC-39 mockups next.
+
+**GO (2026-07-10, post-thirteenth-compact) — #235 PAGE-RELATED UNDO SHIPPED**
+(the last queued item, built to the approved real plan
+`docs/plans/2026-07-10-page-related-undo.md` — plan panel-checked, 2 FAILs
+resolved pre-approval, re-verdict PASS; the user's two picks via questions:
+undo model = "by the page's data", the four AI writers stop recording). The
+project store's ONE global history is now 13 disjoint per-domain stacks
+(DOMAIN_SLICES/ACTION_DOMAINS; trash captured per-kind with its owner, images
+per-entity-key via an owner-kind arg on add/removeImage); `route.meta.undoDomains`
+maps every page; ⌘Z + the TitleBar buttons + the palette all scope to the
+current page (closing the #233 hole where the BUTTONS still fired global undo
+from /ai — the pageUndoScopes registry is deleted, /ai simply carries no
+domains); per-domain redo survives other-domain edits; the four per-entity AI
+artifacts RELOCATED to top-level keyed maps outside history (lift-on-load
+migration on all three snapshot routes + trash; allChapters decoration keeps
+every reader working; CharacterAuditModal reads auditFor) — and the probe's
+persisted-shape check caught that the SERVER decomposes snapshots, so book_io
+now accepts/emits the four maps on the wire (columns unchanged, legacy
+embedded accepted, NO reset). removeStrand's parts sweep + removeScene's note
+re-anchor dropped (single-domain law; both readers verified tolerant);
+EventsModal.vue + the two dead chapter-strand actions deleted. Gates all
+green: vitest 85/85 (12 NEW history cases incl. the lift migration + no-clobber)
+· build · FULL smoke zero JS errors · JW pytest 78 (new round-trip case) + ruff
+· runner pytest 452 + ruff (untouched) · biome on the diff · the NEW committed
+scripts/undo-probe.mjs **16/16** (the user's exact hazard scenario live, the
+/search find&replace leg, inert pages, the lifted-critique render assert) · the
+whole probe fleet green. Known same-before behavior, recorded: redoing a PROSE
+undo while the scene editor is open dies to the editor's stitch write-back
+(ChaptersView:304) — identical pre-#235, candidate future fix on the user's
+word. Full record + flags F1–F11: the queue doc tail **"#235 BUILD RECORD"**.
+With #235 shipped THE QUEUE IS EMPTY — remaining: #256 research (user's word)
++ the three QC-43 diagnoses awaiting the user's word.
 
 **GO (2026-07-10, post-twelfth-compact) — QC-39(b) + QC-40 + QC-41 + QC-42
 SHIPPED as one verdict-gated cluster**, built to the user's decisions verbatim

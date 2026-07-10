@@ -128,7 +128,7 @@ async function onAvatarDrop(e) {
     dropSaving.value++;
     try {
       const rec = await saveImage(f);
-      project.addImage(ch.value.id, rec);
+      project.addImage("characters", ch.value.id, rec);
     } catch (err) {
       dropError.value = err.message || String(err);
     } finally {
@@ -572,7 +572,7 @@ function onRowClick(event) {
       </div>
     </div>
 
-    <ImagesModal v-if="modal === 'images'" :entity-id="ch.id" :entity-name="ch.name" @close="modal = null" />
+    <ImagesModal v-if="modal === 'images'" kind="characters" :entity-id="ch.id" :entity-name="ch.name" @close="modal = null" />
     <GroupsModal v-if="modal === 'groups'" :entity-id="ch.id" :entity-name="ch.name" entity-kind="character" @close="modal = null" />
   </template>
 

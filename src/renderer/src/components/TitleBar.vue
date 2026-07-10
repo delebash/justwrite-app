@@ -13,6 +13,10 @@ const project = useProjectStore();
 const router = useRouter();
 const jw = window.justwrite;
 
+// The current page's undo domains (#235) — the Undo/Redo buttons are scoped
+// exactly like ⌘Z (App.vue): they can only pop this page's data domains.
+const undoDomains = computed(() => router.currentRoute.value.meta.undoDomains || []);
+
 // ── Theme preset switcher dropdown ──────────────────────────────────
 // Shows built-in presets + the user's saved custom presets.
 const themeOpen = ref(false);
@@ -173,10 +177,12 @@ async function openProject() {
       <button @click="openProject" v-tooltip.bottom="'Open project…'"><Icon name="Folder" :size="13" /></button>
       <button @click="saveProject" v-tooltip.bottom="'Save project as…'"><Icon name="Download" :size="13" /></button>
       <span class="titlebar-divider" />
-      <button @click="project.undo" :disabled="!project.canUndo" v-tooltip.bottom="`Undo${project.canUndo ? '' : ' (nothing to undo)'} · ⌘Z`">
+      <button data-undo @click="project.undoFor(undoDomains)" :disabled="!project.canUndoFor(undoDomains)"
+        v-tooltip.bottom="project.canUndoFor(undoDomains) ? 'Undo · ⌘Z' : 'Nothing to undo on this page'">
         <Icon name="Refresh" :size="13" style="transform:scaleX(-1)" />
       </button>
-      <button @click="project.redo" :disabled="!project.canRedo" v-tooltip.bottom="`Redo${project.canRedo ? '' : ' (nothing to redo)'} · ⌘⇧Z`">
+      <button data-redo @click="project.redoFor(undoDomains)" :disabled="!project.canRedoFor(undoDomains)"
+        v-tooltip.bottom="project.canRedoFor(undoDomains) ? 'Redo · ⌘⇧Z' : 'Nothing to redo on this page'">
         <Icon name="Refresh" :size="13" />
       </button>
       <span class="titlebar-divider" />

@@ -68,11 +68,7 @@ See [Plot and time](plot-and-time.md) for a deeper walkthrough.
 
 > *"I just deleted that chapter and immediately regretted it. It's gone, isn't it."*
 
-When you delete a chapter, a character, a note, a strand — anything — JustWrite does not actually destroy it. It moves the item to the **Trash**.
-
-You will see a small toast pop up at the bottom of the screen with an **Undo** button. Click it within a few seconds and the deletion never happened.
-
-If you miss the toast, open **Trash** from the sidebar's Project section. Every soft-deleted item from every category is sitting there with a **Restore** button. Items stay in Trash indefinitely; you decide when (or whether) to empty it.
+When you delete a chapter, a character, a note, a strand — anything — JustWrite does not actually destroy it. It moves the item to the **Trash**. The row visibly leaves the list, and there are two ways back: press **Ctrl/⌘ + Z** on that page to undo the delete on the spot, or open **Trash** from the sidebar's Project section — every soft-deleted item from every category is sitting there with a **Restore** button. Items stay in Trash indefinitely; you decide when (or whether) to empty it.
 
 This means you can experiment fearlessly. Delete a chapter you don't think is working; if you change your mind a week later, restore it.
 
@@ -84,13 +80,14 @@ The only thing that actually destroys an item is clicking the trash-can icon ins
 
 > *"I renamed a bunch of things and moved some scenes around and now everything feels wrong. I just want to go back to how it was ten minutes ago."*
 
-JustWrite remembers the last hundred changes you made and lets you walk backwards through them with **Ctrl/⌘ + Z**. Redo with **Ctrl/⌘ + Shift + Z** (or **Ctrl + Y** on Windows).
+Undo in JustWrite is **page-related**: **Ctrl/⌘ + Z** undoes changes to the data the page you're looking at owns, and never silently reverts something happening on another page. Undo on Characters walks back character edits; undo on Chapters walks back manuscript changes; a character edit can never vanish while you're looking at your chapters. Redo with **Ctrl/⌘ + Shift + Z** (or **Ctrl + Y** on Windows), and each page's redo survives work you do elsewhere.
 
 A few details worth knowing:
 
-- Undo covers structural changes (delete a chapter, rename a character, move a beat on the plot board) and small edits across the whole project.
-- Inside the manuscript editor, undo is handled by the editor itself (this is why your typing doesn't jam up the global undo history). Each chapter's editor has its own undo log.
-- When you close the app, the last ten history steps are saved. The other ninety are only kept while the app is open.
+- Undo follows the **data**, not where you made the change. A chapter renamed from the sidebar, or a project-wide find-and-replace run from Search, is undone on the Chapters page — the place that data lives.
+- Inside the manuscript editor, undo is handled by the editor itself (this is why your typing doesn't jam up the page history). Each chapter's editor has its own undo log.
+- Pages that don't own book data — Search, Import, Export, Trash, Analysis — have nothing of their own to undo; the title-bar Undo button greys out there and tells you so.
+- History lives in memory for the current session (each page keeps a deep buffer — roughly ten minutes of continuous typing before the oldest step falls off). Durable rollback across sessions is the per-chapter version history plus autosave, below.
 
 In short: edit freely. There is almost always a way back.
 

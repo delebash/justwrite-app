@@ -287,7 +287,7 @@ function onRowClick(event) {
         </div>
       </div>
     </div>
-    <ImagesModal v-if="modal === 'images'" :entity-id="g.id" :entity-name="g.name" @close="modal = null" />
+    <ImagesModal v-if="modal === 'images'" kind="groups" :entity-id="g.id" :entity-name="g.name" @close="modal = null" />
   </template>
 
   <!-- ── id in URL but group not found ─────────────────────────── -->

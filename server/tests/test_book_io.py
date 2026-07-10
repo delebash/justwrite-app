@@ -27,11 +27,18 @@ def _canonical_book() -> dict:
         "parts": [
             {"id": "p1", "title": "The Inheritance", "chapters": [
                 {"id": "ch1", "num": 1, "title": "What the door remembers", "words": 120,
-                 "status": "done", "strands": ["s1", "s2"],
-                 "critique": {"generatedAt": "x", "notes": [{"severity": "low", "message": "tighten"}]}},
+                 "status": "done", "strands": ["s1", "s2"]},
                 {"id": "ch2", "num": 2, "title": "An inventory", "words": 0, "status": "todo", "strands": []},
             ]},
         ],
+        # #235: the per-entity AI artifacts travel as top-level keyed maps,
+        # never embedded on the chapter/character objects. assemble always
+        # emits all four (empty when unset), so the canonical shape carries
+        # all four too.
+        "chapterCritiques": {"ch1": {"generatedAt": "x", "notes": [{"severity": "low", "message": "tighten"}]}},
+        "chapterReaderKnowledge": {},
+        "chapterMultiReader": {},
+        "characterAudits": {"c1": {"verdict": "consistent", "concerns": []}},
         "scenes": {
             "ch1": [
                 {"id": "scn1", "title": "The key", "body": "<p>The key turned.</p>",
@@ -44,8 +51,7 @@ def _canonical_book() -> dict:
         "characters": [
             {"id": "c1", "main": True, "age": 31, "gender": "", "pronouns": "she/her",
              "aliases": ["El"], "lifeStatus": "alive", "oneLiner": "Cartographer's daughter.",
-             "role": "Protagonist", "name": "Elen Vael", "tags": ["lead"],
-             "audit": {"verdict": "consistent", "concerns": []}},
+             "role": "Protagonist", "name": "Elen Vael", "tags": ["lead"]},
             {"id": "c2", "main": False, "age": None, "gender": "m", "pronouns": "he/him",
              "aliases": [], "lifeStatus": "deceased", "oneLiner": "Left a ledger.",
              "role": "Father", "name": "Idris Vael", "tags": []},

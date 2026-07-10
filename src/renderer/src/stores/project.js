@@ -175,7 +175,7 @@ function getBoot() {
   const boot = bootstrap();
   const loaded = boot.snapshot || {};
 
-  normalizeStrands(loaded);
+  normalizeSnapshot(loaded);
 
   // "Storylines" was briefly added as a fifth architecture doc and then
   // removed. Strip it from any project that picked it up so it doesn't
@@ -276,6 +276,55 @@ function normalizeStrands(snap) {
   }
   return snap;
 }
+
+// #235: the four per-entity AI artifacts (critique / readerKnowledge /
+// multiReader on chapters, audit on characters) moved OFF the entity objects
+// into top-level keyed maps so undo can never drag them (they used to live
+// inside the history slices). Lift any embedded blobs a legacy snapshot
+// still carries — chapters in parts AND in trash, characters likewise; an
+// embedded value only fills a gap (an existing top-level value wins). Always
+// (re)assigns the four maps so a project switch can't inherit the previous
+// project's artifacts through Object.assign.
+function liftAiArtifacts(snap) {
+  if (!snap || typeof snap !== "object") return snap;
+  const critiques = { ...(snap.chapterCritiques || {}) };
+  const readerKnowledge = { ...(snap.chapterReaderKnowledge || {}) };
+  const multiReader = { ...(snap.chapterMultiReader || {}) };
+  const audits = { ...(snap.characterAudits || {}) };
+  const liftChapter = (c) => {
+    if (!c || (!c.critique && !c.readerKnowledge && !c.multiReader)) return c;
+    const { critique, readerKnowledge: rk, multiReader: mr, ...rest } = c;
+    if (critique && !critiques[c.id]) critiques[c.id] = critique;
+    if (rk && !readerKnowledge[c.id]) readerKnowledge[c.id] = rk;
+    if (mr && !multiReader[c.id]) multiReader[c.id] = mr;
+    return rest;
+  };
+  const liftCharacter = (c) => {
+    if (!c?.audit) return c;
+    const { audit, ...rest } = c;
+    if (!audits[c.id]) audits[c.id] = audit;
+    return rest;
+  };
+  if (Array.isArray(snap.parts)) {
+    snap.parts = snap.parts.map((p) => ({ ...p, chapters: (p.chapters || []).map(liftChapter) }));
+  }
+  if (Array.isArray(snap.characters)) snap.characters = snap.characters.map(liftCharacter);
+  // Trash entries are deliberately NOT lifted: the tombstone payload is the
+  // DURABLE carrier for a trashed entity's artifacts (the server persists the
+  // maps only for live ids — book_io consumes them while walking live rows),
+  // so the blob rides the opaque payload and restoreFromTrash re-maps it.
+  snap.chapterCritiques = critiques;
+  snap.chapterReaderKnowledge = readerKnowledge;
+  snap.chapterMultiReader = multiReader;
+  snap.characterAudits = audits;
+  return snap;
+}
+
+// The one normalize pass every snapshot goes through, on all three load
+// routes (boot, loadSnapshot, switchProject).
+function normalizeSnapshot(snap) {
+  return liftAiArtifacts(normalizeStrands(snap));
+}
 const EMPTY_TRASH = {
   chapters: [], scenes: [], characters: [], locations: [], objects: [],
   groups: [], notes: [], strands: [], worldbuilding: [],
@@ -285,38 +334,129 @@ const EMPTY_TRASH = {
 export const TRASH_KINDS = Object.keys(EMPTY_TRASH);
 
 // ── Undo/redo ────────────────────────────────────────────────────────
-// Snapshot-based history: before each mutation we push a deep clone of
-// the relevant slices onto `past`. Undo pops the latest, replaces the
-// current state with it, and pushes what was current onto `future`.
+// PAGE-RELATED history (#235, the user's law: "undo should always be page
+// related, not global"). Snapshot-based like before, but partitioned into
+// disjoint DATA DOMAINS: each recorded action belongs to exactly one domain,
+// its entry deep-clones only that domain's slices, and every domain keeps its
+// own past/future stack. `undoFor(domains)` — driven by the current route's
+// `meta.undoDomains` — pops the newest entry among the page's domains, so
+// ⌘Z on a page can only ever revert that page's data. Because the domains
+// never share a slice (trash is captured per-kind, images per-entity), an
+// undo in one domain can never clobber a newer change in another.
 //
-// In-memory we keep up to HISTORY_LIMIT snapshots. Undo/redo is NOT persisted
-// across reloads — durable rollback is the per-chapter version history.
+// In-memory only (NOT persisted across reloads) — durable rollback is the
+// per-chapter version history. Keystroke-grain edits coalesce into one
+// snapshot per ~600ms quiescent window (see COALESCED_ACTIONS), so
+// HISTORY_LIMIT (per domain) roughly maps to ~10 min of continuous typing
+// before the oldest manuscript step falls off. Entries clone one domain,
+// not the whole book, so memory is far below the old global model.
 //
-// Keystroke-grain edits coalesce into one snapshot per ~600ms quiescent
-// window (see COALESCED_ACTIONS), so HISTORY_LIMIT roughly maps to
-// minutes of writing: 100 ≈ 1 min, 500 ≈ 5 min, 1000 ≈ 10 min of
-// continuous typing before the oldest undo step falls off. Marathon
-// sessions benefit from the bigger ceiling; the memory cost is bounded
-// by the project size × HISTORY_LIMIT, so very large projects (200k+
-// words) may want to tune down if RAM becomes a constraint.
+// Full design + the per-action domain table:
+// docs/plans/2026-07-10-page-related-undo.md
 const HISTORY_LIMIT = 1000;
-const HISTORY_SLICES = [
-  "project", "parts", "scenes",
-  "characters", "characterExtras",
-  "locations", "objects", "groups", "notes", "strands",
-  "architecture", "worldbuilding", "worldbuildingCategories", "tagVocabularies", "statuses",
-  "images", "events",
-  "trash",
-];
-function cloneSlices(state) {
-  // Cheap structural clone via JSON. The slices contain only plain
-  // objects (no Maps/Sets/Dates), so this is safe and fast.
+
+// Domain → the state it captures. Plain names are whole slices; dotted
+// "trash.<kind>" captures one trash list (each kind belongs to its owner
+// domain). Image actions additionally capture "images.<entityId>" via
+// _record's imagesKey opt — images have no page of their own, so an image
+// edit belongs to its owner entity's domain. Disjoint + total over the
+// old HISTORY_SLICES; the disjointness is the ordering-safety proof.
+const DOMAIN_SLICES = {
+  manuscript:    ["parts", "scenes", "trash.chapters", "trash.scenes"],
+  characters:    ["characters", "characterExtras", "trash.characters"],
+  locations:     ["locations", "trash.locations"],
+  objects:       ["objects", "trash.objects"],
+  groups:        ["groups", "trash.groups"],
+  notes:         ["notes", "trash.notes"],
+  strands:       ["strands", "trash.strands"],
+  worldbuilding: ["worldbuilding", "worldbuildingCategories", "trash.worldbuilding"],
+  architecture:  ["architecture"],
+  meta:          ["project"],
+  statuses:      ["statuses", "trash.statuses"],
+  tagVocab:      ["tagVocabularies", "trash.tagVocab"],
+  events:        ["events", "trash.events"],
+};
+
+// Every recorded action → its one domain. addImage/removeImage are absent
+// on purpose: their domain is the caller-passed owner kind (opts.domain).
+const ACTION_DOMAINS = {
+  addChapter: "manuscript", removeChapter: "manuscript", setChapterWords: "manuscript",
+  setChapterStatus: "manuscript", setChapterTitle: "manuscript", importChapters: "manuscript",
+  splitChapterAtScene: "manuscript", addScene: "manuscript", updateScene: "manuscript",
+  applyStitchedChapter: "manuscript", setSceneBody: "manuscript", setSceneTitle: "manuscript",
+  removeScene: "manuscript", moveScene: "manuscript", addPart: "manuscript",
+  updatePart: "manuscript", removePart: "manuscript", movePart: "manuscript",
+  moveChapterToPart: "manuscript", moveChapter: "manuscript", reorderParts: "manuscript",
+  reorderChaptersInPart: "manuscript", replaceInScenes: "manuscript", replaceInScene: "manuscript",
+  restoreChapterScenes: "manuscript", reorderScenes: "manuscript",
+  addCharacter: "characters", removeCharacter: "characters", updateCharacter: "characters",
+  setCharacterExtras: "characters", reorderCharacters: "characters",
+  addLocation: "locations", removeLocation: "locations", updateLocation: "locations",
+  reorderLocations: "locations",
+  addObject: "objects", removeObject: "objects", updateObject: "objects", reorderObjects: "objects",
+  addGroup: "groups", removeGroup: "groups", updateGroup: "groups",
+  addGroupMember: "groups", removeGroupMember: "groups", reorderGroups: "groups",
+  addNote: "notes", removeNote: "notes", updateNote: "notes", importNotes: "notes",
+  reorderNotes: "notes",
+  addStrand: "strands", removeStrand: "strands", updateStrand: "strands",
+  addStrandBeat: "strands", updateStrandBeat: "strands", removeStrandBeat: "strands",
+  moveBeat: "strands", reorderStrands: "strands",
+  addWorldbuilding: "worldbuilding", removeWorldbuilding: "worldbuilding",
+  updateWorldbuilding: "worldbuilding", moveWorldbuilding: "worldbuilding",
+  reorderWorldbuilding: "worldbuilding", addWorldbuildingCategory: "worldbuilding",
+  updateWorldbuildingCategory: "worldbuilding", removeWorldbuildingCategory: "worldbuilding",
+  reorderWorldbuildingCategories: "worldbuilding",
+  updateArchitecture: "architecture",
+  updateProjectMeta: "meta", setCoverImage: "meta", clearCoverImage: "meta",
+  addStatusDef: "statuses", updateStatusDef: "statuses", removeStatusDef: "statuses",
+  reorderStatusDefs: "statuses",
+  addTagVocab: "tagVocab", renameTagVocab: "tagVocab", removeTagVocab: "tagVocab",
+  addEvent: "events", updateEvent: "events", removeEvent: "events",
+};
+
+// Monotonic stamp on every stack push — undoFor/redoFor pick the highest
+// top across the page's domains, so "most recent first" holds across
+// domains without a shared array.
+let historySeq = 0;
+
+function readSliceKey(state, key) {
+  if (key.startsWith("trash.")) return state.trash[key.slice(6)];
+  if (key.startsWith("images.")) return state.images[key.slice(7)];
+  return state[key];
+}
+
+// Deep-clone the given keys (whole slices + dotted sub-keys). JSON clone is
+// safe: the slices hold only plain objects. `undefined` survives as-is so a
+// restore can DELETE a sub-key that didn't exist before (images.<id>).
+function captureKeys(state, keys) {
   const out = {};
-  for (const k of HISTORY_SLICES) out[k] = JSON.parse(JSON.stringify(state[k]));
+  for (const k of keys) {
+    const v = readSliceKey(state, k);
+    out[k] = v === undefined ? undefined : JSON.parse(JSON.stringify(v));
+  }
   return out;
 }
-function applySlices(state, snap) {
-  for (const k of HISTORY_SLICES) state[k] = snap[k];
+
+function domainKeys(domain, imagesKey) {
+  const keys = [...DOMAIN_SLICES[domain]];
+  if (imagesKey != null) keys.push(`images.${imagesKey}`);
+  return keys;
+}
+
+function applyDomainSlices(state, slices) {
+  for (const [k, v] of Object.entries(slices)) {
+    if (k.startsWith("trash.")) {
+      state.trash = { ...state.trash, [k.slice(6)]: v };
+    } else if (k.startsWith("images.")) {
+      const id = k.slice(7);
+      const next = { ...state.images };
+      if (v === undefined) delete next[id];
+      else next[id] = v;
+      state.images = next;
+    } else {
+      state[k] = v;
+    }
+  }
 }
 
 // Some mutations fire on every keystroke (chapter body, inline title
@@ -445,6 +585,18 @@ export const useProjectStore = defineStore("project", {
     // cleared and regenerated.
     plotHoles: loaded.plotHoles || null,
 
+    // The per-chapter / per-character AI artifacts (#235, user law: generated
+    // results never enter undo history). These used to live ON the chapter/
+    // character objects inside history slices — which meant an unrelated
+    // same-domain undo silently reverted a fresh result. Now they are keyed
+    // maps OUTSIDE the history domains, like every other AI artifact here;
+    // liftAiArtifacts() migrates legacy snapshots on load. Readers get them
+    // via the allChapters decoration + the *For getters.
+    chapterCritiques: loaded.chapterCritiques || {},
+    chapterReaderKnowledge: loaded.chapterReaderKnowledge || {},
+    chapterMultiReader: loaded.chapterMultiReader || {},
+    characterAudits: loaded.characterAudits || {},
+
     // Voice canon — chapter ids the writer has marked as
     // representative of their established voice. The fingerprint
     // service uses these to build a sample + style summary that's
@@ -474,11 +626,12 @@ export const useProjectStore = defineStore("project", {
     _activeId: boot.activeId,
     _projects: boot.registry,
 
-    // History — in-memory only (undo/redo doesn't survive reload; durable
-    // rollback is the per-chapter version history). `markRaw` keeps Vue from
-    // making the snapshots reactive.
-    _past:   markRaw([]),
-    _future: markRaw([]),
+    // History — per-domain stacks (#235): domain → [{seq, slices}], in-memory
+    // only (undo/redo doesn't survive reload; durable rollback is the
+    // per-chapter version history). `markRaw` keeps Vue from making the
+    // snapshots reactive.
+    _past:   markRaw({}),
+    _future: markRaw({}),
 
     // Reactive autosave timestamp — ticks each time _persist() runs so
     // the sidebar "Autosaved · 5s ago" indicator stays live. Not part
@@ -497,6 +650,13 @@ export const useProjectStore = defineStore("project", {
       // (the seed used to bake counts like "scenes: 5" before scenes were
       // first-class).
       scenes: (s.scenes[c.id] || []).length,
+      // The relocated AI artifacts (#235) merge back onto the chapter view
+      // here, so every existing reader (critique pill, analysis composers,
+      // the modals) keeps its `c.critique` shape while the blobs live
+      // outside the undo domains.
+      critique: s.chapterCritiques[c.id],
+      readerKnowledge: s.chapterReaderKnowledge[c.id],
+      multiReader: s.chapterMultiReader[c.id],
     }))),
     chapterById:       (s) => (id) => s.allChapters.find((c) => c.id === id),
     // Reader/exporter facade: each chapter rendered as a single HTML
@@ -532,8 +692,13 @@ export const useProjectStore = defineStore("project", {
     imagesFor:         (s) => (id) => s.images[id] || [],
     eventsFor:         (s) => (id) => s.events[id] || [],
     trashCount:        (s) => Object.values(s.trash).reduce((n, list) => n + list.length, 0),
-    canUndo:           (s) => s._past.length > 0,
-    canRedo:           (s) => s._future.length > 0,
+    // Page-scoped (#235): callers pass the current route's meta.undoDomains.
+    canUndoFor:        (s) => (domains) => (domains || []).some((d) => (s._past[d] || []).length > 0),
+    canRedoFor:        (s) => (domains) => (domains || []).some((d) => (s._future[d] || []).length > 0),
+    critiqueFor:       (s) => (chapterId) => s.chapterCritiques[chapterId] || null,
+    readerKnowledgeFor:(s) => (chapterId) => s.chapterReaderKnowledge[chapterId] || null,
+    multiReaderFor:    (s) => (chapterId) => s.chapterMultiReader[chapterId] || null,
+    auditFor:          (s) => (characterId) => s.characterAudits[characterId] || null,
     projectsList:      (s) => s._projects,
     activeProjectId:   (s) => s._activeId,
     statusById:        (s) => (id) => s.statuses.find((x) => x.id === id) || null,
@@ -542,12 +707,21 @@ export const useProjectStore = defineStore("project", {
   actions: {
     // ── History ─────────────────────────────────────────────
     /**
-     * Record the current state as a history entry. Call BEFORE making
-     * the mutation. `actionId` is used for keystroke coalescing — calls
-     * with the same actionId within COALESCE_WINDOW_MS reuse the most
-     * recent snapshot.
+     * Record a history entry in the acting domain. Call BEFORE making the
+     * mutation. `actionId` keys both the domain lookup (ACTION_DOMAINS) and
+     * keystroke coalescing — calls with the same actionId within
+     * COALESCE_WINDOW_MS reuse the most recent snapshot.
+     * opts.domain — the owner kind for owner-dynamic actions (addImage/
+     *   removeImage), which aren't in ACTION_DOMAINS.
+     * opts.imagesKey — the entityId whose images list this action touches;
+     *   captured as an extra "images.<id>" key in the entry.
      */
-    _record(actionId) {
+    _record(actionId, opts = {}) {
+      const domain = opts.domain || ACTION_DOMAINS[actionId];
+      if (!domain || !DOMAIN_SLICES[domain]) {
+        console.warn(`[undo] unmapped history action "${actionId}" — not recorded`);
+        return;
+      }
       const now = Date.now();
       const isCoalescing = COALESCED_ACTIONS.has(actionId)
         && lastHistoryAction === actionId
@@ -555,30 +729,50 @@ export const useProjectStore = defineStore("project", {
       lastHistoryAt = now;
       lastHistoryAction = actionId;
       if (isCoalescing) return;
-      this._past.push(cloneSlices(this));
-      if (this._past.length > HISTORY_LIMIT) this._past.shift();
-      // Any new edit invalidates the redo stack.
-      if (this._future.length) this._future = markRaw([]);
+      if (!this._past[domain]) this._past[domain] = [];
+      const stack = this._past[domain];
+      stack.push({ seq: ++historySeq, slices: captureKeys(this, domainKeys(domain, opts.imagesKey)) });
+      if (stack.length > HISTORY_LIMIT) stack.shift();
+      // A new edit invalidates the redo stack of ITS domain only.
+      if (this._future[domain]?.length) this._future[domain] = [];
     },
-    undo() {
-      if (!this._past.length) return;
-      const snap = this._past.pop();
-      this._future.push(cloneSlices(this));
-      applySlices(this, snap);
+    // Pop the newest entry among the given domains (the current page's
+    // meta.undoDomains). Entries are single-domain, so applying one can
+    // never touch another domain's newer state.
+    undoFor(domains) {
+      const domain = this._newestDomain(this._past, domains);
+      if (!domain) return;
+      const entry = this._past[domain].pop();
+      if (!this._future[domain]) this._future[domain] = [];
+      this._future[domain].push({ seq: ++historySeq, slices: captureKeys(this, Object.keys(entry.slices)) });
+      applyDomainSlices(this, entry.slices);
       lastHistoryAction = null;
       this._persist();
     },
-    redo() {
-      if (!this._future.length) return;
-      const snap = this._future.pop();
-      this._past.push(cloneSlices(this));
-      applySlices(this, snap);
+    redoFor(domains) {
+      const domain = this._newestDomain(this._future, domains);
+      if (!domain) return;
+      const entry = this._future[domain].pop();
+      if (!this._past[domain]) this._past[domain] = [];
+      this._past[domain].push({ seq: ++historySeq, slices: captureKeys(this, Object.keys(entry.slices)) });
+      applyDomainSlices(this, entry.slices);
       lastHistoryAction = null;
       this._persist();
+    },
+    // The domain whose stack top carries the highest seq — i.e. the most
+    // recently stacked change among the page's domains.
+    _newestDomain(stacks, domains) {
+      let best = null;
+      let bestSeq = -1;
+      for (const d of domains || []) {
+        const top = stacks[d]?.[stacks[d].length - 1];
+        if (top && top.seq > bestSeq) { best = d; bestSeq = top.seq; }
+      }
+      return best;
     },
     clearHistory() {
-      this._past = markRaw([]);
-      this._future = markRaw([]);
+      this._past = markRaw({});
+      this._future = markRaw({});
       lastHistoryAction = null;
     },
 
@@ -604,7 +798,16 @@ export const useProjectStore = defineStore("project", {
         if (idx < 0) continue;
         const chapter = p.chapters[idx];
         const sceneList = this.scenes[id] || [];
-        this._pushTrash("chapters", { ...chapter, partId: p.id, scenes: sceneList });
+        // The AI artifacts ride the tombstone — the durable carrier across
+        // the server round-trip (the maps persist only for LIVE ids), and
+        // restoreFromTrash re-maps them. COPY, don't move: the in-memory map
+        // entry keeps a same-session ⌘Z of this delete artifact-complete.
+        this._pushTrash("chapters", {
+          ...chapter, partId: p.id, scenes: sceneList,
+          critique: this.chapterCritiques[id],
+          readerKnowledge: this.chapterReaderKnowledge[id],
+          multiReader: this.chapterMultiReader[id],
+        });
         this.parts = this.parts.map((part) => part.id === p.id
           ? { ...part, chapters: part.chapters.filter((c) => c.id !== id) }
           : part);
@@ -625,87 +828,44 @@ export const useProjectStore = defineStore("project", {
       this.parts = this.parts.map((p) => ({ ...p, chapters: p.chapters.map((c) => c.id === id ? { ...c, status } : c) }));
       this._persist();
     },
-    setChapterStrands(id, strands) {
-      this._record("setChapterStrands");
-      const next = Array.isArray(strands) ? [...new Set(strands)] : [];
-      this.parts = this.parts.map((p) => ({ ...p, chapters: p.chapters.map((c) => c.id === id ? { ...c, strands: next } : c) }));
-      this._persist();
-    },
-    toggleChapterStrand(id, strandId) {
-      this._record("toggleChapterStrand");
-      this.parts = this.parts.map((p) => ({
-        ...p,
-        chapters: p.chapters.map((c) => {
-          if (c.id !== id) return c;
-          const current = Array.isArray(c.strands) ? c.strands : [];
-          const next = current.includes(strandId)
-            ? current.filter((x) => x !== strandId)
-            : [...current, strandId];
-          return { ...c, strands: next };
-        }),
-      }));
-      this._persist();
-    },
-    // Persist a critique blob on a chapter. Shape (not strictly enforced):
+    // Persist a critique blob for a chapter. Shape (not strictly enforced):
     //   { generatedAt, model, notes: [{ severity, category, message }],
     //     structure: { tension, hookQuality, pacing, endingClass, summary } }
     // Either half can be present without the other (text critique and
-    // structural analysis are independent LLM calls).
+    // structural analysis are independent LLM calls). Keyed map outside the
+    // undo domains (#235 artifact law) — Clear is the management surface;
+    // readers see it through the allChapters decoration.
     setChapterCritique(id, critique) {
-      this._record("setChapterCritique");
-      this.parts = this.parts.map((p) => ({
-        ...p,
-        chapters: p.chapters.map((c) => (c.id === id ? { ...c, critique } : c)),
-      }));
+      this.chapterCritiques = { ...this.chapterCritiques, [id]: critique };
       this._persist();
     },
     clearChapterCritique(id) {
-      this._record("clearChapterCritique");
-      this.parts = this.parts.map((p) => ({
-        ...p,
-        chapters: p.chapters.map((c) => {
-          if (c.id !== id) return c;
-          const { critique, ...rest } = c;
-          return rest;
-        }),
-      }));
+      if (!this.chapterCritiques[id]) return;
+      const next = { ...this.chapterCritiques };
+      delete next[id];
+      this.chapterCritiques = next;
       this._persist();
     },
-    // Persist a reader-knowledge entry on a chapter. Shape:
+    // Persist a reader-knowledge entry for a chapter. Shape:
     //   { povCharacter, newReaderFacts, newPovFacts, status, rationale,
     //     totalReaderKnown, totalPovKnown, activeIronyCount,
     //     generatedAt, model }
     // Written per-chapter as the sequential sweep walks the manuscript
-    // so the user sees partial results immediately on cancel.
+    // so the user sees partial results immediately on cancel. Keyed map
+    // outside the undo domains (#235 artifact law).
     setChapterReaderKnowledge(id, readerKnowledge) {
-      this._record("setChapterReaderKnowledge");
-      this.parts = this.parts.map((p) => ({
-        ...p,
-        chapters: p.chapters.map((c) => (c.id === id ? { ...c, readerKnowledge } : c)),
-      }));
+      this.chapterReaderKnowledge = { ...this.chapterReaderKnowledge, [id]: readerKnowledge };
       this._persist();
     },
     clearChapterReaderKnowledge(id) {
-      this._record("clearChapterReaderKnowledge");
-      this.parts = this.parts.map((p) => ({
-        ...p,
-        chapters: p.chapters.map((c) => {
-          if (c.id !== id) return c;
-          const { readerKnowledge, ...rest } = c;
-          return rest;
-        }),
-      }));
+      if (!this.chapterReaderKnowledge[id]) return;
+      const next = { ...this.chapterReaderKnowledge };
+      delete next[id];
+      this.chapterReaderKnowledge = next;
       this._persist();
     },
     clearAllReaderKnowledge() {
-      this._record("clearAllReaderKnowledge");
-      this.parts = this.parts.map((p) => ({
-        ...p,
-        chapters: p.chapters.map((c) => {
-          const { readerKnowledge, ...rest } = c;
-          return rest;
-        }),
-      }));
+      this.chapterReaderKnowledge = {};
       this._persist();
     },
     setChapterTitle(id, title) {
@@ -946,14 +1106,11 @@ export const useProjectStore = defineStore("project", {
         ...this.scenes,
         [chapterId]: list.filter((s) => s.id !== sceneId),
       };
-      // Notes anchored to this scene re-bind to the parent chapter so the
-      // writer's annotations aren't silently orphaned. Restoring the scene
-      // from trash won't auto-re-attach them (anchors stay at chapter
-      // level) — that's the trade for keeping the notes findable now.
-      this.notes = this.notes.map((n) =>
-        n.anchor?.sceneId === sceneId
-          ? { ...n, anchor: { chapterId } }
-          : n);
+      // Notes anchored to this scene keep their anchor untouched (#235:
+      // this action stays inside the manuscript domain). Readers tolerate
+      // the dangling sceneId — notesForChapter matches on chapterId alone,
+      // and NotesView's anchor label degrades to "Ch. N" — and restoring
+      // the scene from trash makes the anchor fully valid again.
       this._recomputeChapterWords(chapterId);
       this._persist();
     },
@@ -1201,36 +1358,31 @@ export const useProjectStore = defineStore("project", {
       this._record("removeCharacter");
       const c = this.characters.find((x) => x.id === id);
       if (!c) return;
-      this._pushTrash("characters", { ...c, extras: this.characterExtras[id] });
+      // The audit rides the tombstone (see removeChapter — same carrier law).
+      this._pushTrash("characters", { ...c, extras: this.characterExtras[id], audit: this.characterAudits[id] });
       this.characters = this.characters.filter((x) => x.id !== id);
       const ce = { ...this.characterExtras }; delete ce[id]; this.characterExtras = ce;
       this._persist();
     },
     updateCharacter(id, patch) { this._record("updateCharacter"); this.characters = this.characters.map((c) => c.id === id ? { ...c, ...patch } : c); this._persist(); },
     setCharacterExtras(id, extras) { this._record("setCharacterExtras"); this.characterExtras = { ...this.characterExtras, [id]: { ...(this.characterExtras[id] || {}), ...extras } }; this._persist(); },
-    // Persist a consistency-audit result on a character. Shape:
+    // Persist a consistency-audit result for a character. Shape:
     //   { concerns: [...], verdict, sceneCount, generatedAt, model }
-    // Mirrors the chapter.critique pattern.
+    // Keyed map outside the undo domains (#235 artifact law); readers use
+    // the auditFor getter (characters carry no embedded audit anymore).
     setCharacterAudit(id, audit) {
-      this._record("setCharacterAudit");
-      this.characters = this.characters.map((c) => c.id === id ? { ...c, audit } : c);
+      this.characterAudits = { ...this.characterAudits, [id]: audit };
       this._persist();
     },
     clearCharacterAudit(id) {
-      this._record("clearCharacterAudit");
-      this.characters = this.characters.map((c) => {
-        if (c.id !== id) return c;
-        const { audit, ...rest } = c;
-        return rest;
-      });
+      if (!this.characterAudits[id]) return;
+      const next = { ...this.characterAudits };
+      delete next[id];
+      this.characterAudits = next;
       this._persist();
     },
     clearAllCharacterAudits() {
-      this._record("clearAllCharacterAudits");
-      this.characters = this.characters.map((c) => {
-        const { audit, ...rest } = c;
-        return rest;
-      });
+      this.characterAudits = {};
       this._persist();
     },
     // Reverse outline ("StorySnap") — one structural artifact per
@@ -1321,27 +1473,18 @@ export const useProjectStore = defineStore("project", {
       this._persist();
     },
     // Multi-reader panel critique persisted per chapter. Sits alongside
-    // chapter.critique (the single-pass critique) and chapter.readerKnowledge
-    // (the dramatic-irony tracker) — three independent revision lenses on
-    // the same chapter.
+    // the critique (single-pass) and reader-knowledge (dramatic irony)
+    // artifacts — three independent revision lenses on the same chapter.
+    // Keyed map outside the undo domains (#235 artifact law).
     setChapterMultiReader(id, payload) {
-      this._record("setChapterMultiReader");
-      this.parts = this.parts.map((p) => ({
-        ...p,
-        chapters: p.chapters.map((c) => (c.id === id ? { ...c, multiReader: payload } : c)),
-      }));
+      this.chapterMultiReader = { ...this.chapterMultiReader, [id]: payload };
       this._persist();
     },
     clearChapterMultiReader(id) {
-      this._record("clearChapterMultiReader");
-      this.parts = this.parts.map((p) => ({
-        ...p,
-        chapters: p.chapters.map((c) => {
-          if (c.id !== id) return c;
-          const { multiReader, ...rest } = c;
-          return rest;
-        }),
-      }));
+      if (!this.chapterMultiReader[id]) return;
+      const next = { ...this.chapterMultiReader };
+      delete next[id];
+      this.chapterMultiReader = next;
       this._persist();
     },
     dismissPlotHole(findingId) {
@@ -1565,14 +1708,11 @@ export const useProjectStore = defineStore("project", {
       if (!s) return;
       this._pushTrash("strands", { ...s });
       this.strands = this.strands.filter((x) => x.id !== id);
-      // Clear dangling refs so chapter rows don't render a dead strand id.
-      this.parts = this.parts.map((p) => ({
-        ...p,
-        chapters: p.chapters.map((c) => {
-          const list = Array.isArray(c.strands) ? c.strands : [];
-          return list.includes(id) ? { ...c, strands: list.filter((x) => x !== id) } : c;
-        }),
-      }));
+      // Chapter refs to this strand stay put (#235: this action stays inside
+      // the strands domain). Both readers of chapter.strands tolerate a
+      // dangling id (Home counts by iterating live strands; Analysis falls
+      // back on strandById(...)?.color) — and a restore from trash now gets
+      // its chapter refs back for free, which the old sweep lost forever.
       this._persist();
     },
     updateStrand(id, patch) { this._record("updateStrand"); this.strands = this.strands.map((s) => s.id === id ? { ...s, ...patch } : s); this._persist(); },
@@ -1697,9 +1837,13 @@ export const useProjectStore = defineStore("project", {
     },
 
     // ── Images / Events ─────────────────────────────────────
-    addImage(entityId, image) { this._record("addImage"); const id = uid("img"); this.images = { ...this.images, [entityId]: [...(this.images[entityId] || []), { id, addedAt: Date.now(), ...image }] }; this._persist(); },
-    removeImage(entityId, imageId) {
-      this._record("removeImage");
+    // Image edits belong to their OWNER's undo domain (#235): callers pass
+    // the owning kind ("characters" | "locations" | "objects" | "groups"),
+    // and the entry captures only this entity's images list (per-key), so
+    // image undo rides the owner page without cross-entity clobber.
+    addImage(kind, entityId, image) { this._record("addImage", { domain: kind, imagesKey: entityId }); const id = uid("img"); this.images = { ...this.images, [entityId]: [...(this.images[entityId] || []), { id, addedAt: Date.now(), ...image }] }; this._persist(); },
+    removeImage(kind, entityId, imageId) {
+      this._record("removeImage", { domain: kind, imagesKey: entityId });
       const list = this.images[entityId] || [];
       const target = list.find((i) => i.id === imageId);
       if (target) removeImageFile(target).catch(() => {});  // fire-and-forget unlink
@@ -1734,7 +1878,7 @@ export const useProjectStore = defineStore("project", {
       const { deletedAt, ...rest } = item;
       switch (kind) {
         case "chapters": {
-          const { partId, body, scenes: savedScenes, ...chapter } = rest;
+          const { partId, body, scenes: savedScenes, critique, readerKnowledge, multiReader, ...chapter } = rest;
           const exists = this.parts.some((p) => p.id === partId);
           this.parts = this.parts.map((p) => p.id === partId
             ? { ...p, chapters: [...p.chapters, chapter] }
@@ -1756,6 +1900,18 @@ export const useProjectStore = defineStore("project", {
             nextScenes = [{ id: uid("scn"), title: "", body: "" }];
           }
           this.scenes = { ...this.scenes, [chapter.id]: nextScenes };
+          // Re-map the artifacts the tombstone carried (gap-fill — a live
+          // map value, e.g. regenerated since the delete, wins over the
+          // older payload copy).
+          if (critique && !this.chapterCritiques[chapter.id]) {
+            this.chapterCritiques = { ...this.chapterCritiques, [chapter.id]: critique };
+          }
+          if (readerKnowledge && !this.chapterReaderKnowledge[chapter.id]) {
+            this.chapterReaderKnowledge = { ...this.chapterReaderKnowledge, [chapter.id]: readerKnowledge };
+          }
+          if (multiReader && !this.chapterMultiReader[chapter.id]) {
+            this.chapterMultiReader = { ...this.chapterMultiReader, [chapter.id]: multiReader };
+          }
           break;
         }
         case "events": {
@@ -1796,9 +1952,12 @@ export const useProjectStore = defineStore("project", {
           break;
         }
         case "characters": {
-          const { extras, ...c } = rest;
+          const { extras, audit, ...c } = rest;
           this.characters = [...this.characters, c];
           if (extras) this.characterExtras = { ...this.characterExtras, [c.id]: extras };
+          if (audit && !this.characterAudits[c.id]) {
+            this.characterAudits = { ...this.characterAudits, [c.id]: audit };
+          }
           break;
         }
         default:
@@ -1854,7 +2013,7 @@ export const useProjectStore = defineStore("project", {
       // _workspace lives alongside the project fields in the file but isn't
       // part of $state — strip it before assignment so it doesn't leak in.
       const { _workspace, ...projectSnap } = snap || {};
-      Object.assign(this.$state, normalizeStrands(projectSnap));
+      Object.assign(this.$state, normalizeSnapshot(projectSnap));
       this.clearHistory();
       this._persist();
       // Caller decides whether to reload; sister stores (AI/sessions)
@@ -1881,6 +2040,10 @@ export const useProjectStore = defineStore("project", {
         reverseOutline: this.reverseOutline,
         beatSheets: this.beatSheets,
         plotHoles: this.plotHoles,
+        chapterCritiques: this.chapterCritiques,
+        chapterReaderKnowledge: this.chapterReaderKnowledge,
+        chapterMultiReader: this.chapterMultiReader,
+        characterAudits: this.characterAudits,
         voiceCanonChapterIds: this.voiceCanonChapterIds,
         relationshipArcs: this.relationshipArcs,
         marketingPack: this.marketingPack,
@@ -2009,6 +2172,10 @@ export const useProjectStore = defineStore("project", {
         reverseOutline: null,
         beatSheets: {},
         plotHoles: null,
+        chapterCritiques: {},
+        chapterReaderKnowledge: {},
+        chapterMultiReader: {},
+        characterAudits: {},
         voiceCanonChapterIds: [],
         relationshipArcs: {},
         marketingPack: null,
@@ -2025,7 +2192,7 @@ export const useProjectStore = defineStore("project", {
       if (!id || id === this._activeId) return;
       // The target snapshot may not be cached yet — fetch it from the domain
       // API (fetchSnapshot returns the cached copy when present).
-      const snap = normalizeStrands(await projectApi.fetchSnapshot(id));
+      const snap = normalizeSnapshot(await projectApi.fetchSnapshot(id));
       if (!snap) {
         useUiStore().showToast({ message: "That project couldn't be loaded." });
         return;

@@ -76,24 +76,26 @@ function onKey(e) {
     ui.toggleShortcuts();
     return;
   }
-  // ⌘Z / ⌘⇧Z (or ⌘Y on Windows) — undo/redo. Stays out of the rich
-  // editor's way so paragraph-level edits still hop through prosemirror.
-  // QC-36 (the page-related-undo law): the GLOBAL book undo must NEVER
-  // fire from a page that owns its own undo — else ⌘Z on the AI Routing
-  // page silently reverts an off-screen book mutation. Pages with a local
-  // stack register themselves in `ui.pageUndoScopes`; here we bail so their
-  // own keydown handler (page-scoped) takes it. (The rich editor is the
-  // original precedent — same idea, its own ⌘Z.)
+  // ⌘Z / ⌘⇧Z (or ⌘Y on Windows) — PAGE-RELATED undo/redo (#235): each route
+  // declares the data domains it owns in meta.undoDomains, and undo here can
+  // only pop those domains' stacks — never an off-screen page's change.
+  // Stays out of the rich editor's way (TipTap owns its own ⌘Z), and a page
+  // with NO domains (Search, Trash, /ai with its kit-local stack, …) gets no
+  // preventDefault either, so native text-field undo keeps working there.
   if (key === "z" && !e.shiftKey) {
-    if (focusedInRichEditor() || ui.isPageUndoScoped(route.path)) return;
+    if (focusedInRichEditor()) return;
+    const domains = route.meta.undoDomains || [];
+    if (!domains.length) return;
     e.preventDefault();
-    project.undo();
+    project.undoFor(domains);
     return;
   }
   if ((key === "z" && e.shiftKey) || key === "y") {
-    if (focusedInRichEditor() || ui.isPageUndoScoped(route.path)) return;
+    if (focusedInRichEditor()) return;
+    const domains = route.meta.undoDomains || [];
+    if (!domains.length) return;
     e.preventDefault();
-    project.redo();
+    project.redoFor(domains);
     return;
   }
 }

@@ -319,7 +319,7 @@ function onRowClick(event) {
         </div>
       </div>
     </div>
-    <ImagesModal v-if="modal === 'images'" :entity-id="loc.id" :entity-name="loc.name" @close="modal = null" />
+    <ImagesModal v-if="modal === 'images'" kind="locations" :entity-id="loc.id" :entity-name="loc.name" @close="modal = null" />
     <GroupsModal v-if="modal === 'groups'" :entity-id="loc.id" :entity-name="loc.name" entity-kind="location" @close="modal = null" />
   </template>
 
