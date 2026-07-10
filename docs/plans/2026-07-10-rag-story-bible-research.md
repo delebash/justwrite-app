@@ -138,13 +138,17 @@ else ranks. "Who is Aria?" becomes: her card (pinned) + her scenes
 upgrades follow-ups ("what does SHE want") since cards ride history-aware
 pinning from prior turns.
 
-**Move 3 — scene chunks carry their links.** Prepend a one-line header into
-each scene chunk's indexed text — "Ch. 7 Sc. 2 'The customs house' —
-characters: Aria, Bren; location: Customs House" — from the scene's link
-fields. BM25 and the embedding then connect pronoun-heavy prose to entity
-names, and the LLM sees the header in the excerpt (fixes "what location is
-this scene in" even when the prose never names it). One-time re-embed (every
-scene sha changes).
+**Move 3 — scene chunks carry their links.** (Refined on the second pass —
+the first draft said "prepend the header into the indexed text", which would
+perturb every scene's EMBEDDING with name lists.) The refined shape: the
+chunk gains a separate `links` line ("characters: Aria, Bren; location:
+Customs House", from the scene's link fields); the server's BM25 scores over
+text + links (one-line change where `api/rag.py:101-107` builds the item
+text), the excerpt formatter renders the header for the LLM, and the
+EMBEDDED text stays pure prose — keyword matching and the prompt get the
+entity names, semantic vectors stay unpolluted, and no re-embed is needed at
+all (vectors unchanged; only the stored chunk JSON gains a field). Fixes
+"what location is this scene in" even when the prose never names it.
 
 **Move 4 (optional, flagged) — retrieval-mix + granularity levers.** Reserve
 1-2 of the k slots for bible cards when entities are detected; consider
@@ -170,3 +174,19 @@ bible.
    only scenes have the exclude flag (chunker.js:61). Recommendation: defer —
    no bible-level flag exists yet; add only if the user wants it.
 4. sqlite-vec + FTS5 migration: park (recommended) or schedule now?
+
+## 6. Second-pass notes (the re-derivation, 2026-07-10)
+
+Re-deriving the fix from scratch confirmed the two-pronged shape: pinning
+alone misses un-named entity questions ("who runs the customs house?" — needs
+retrieval over cards), and cards-in-the-index alone can lose vague phrasings
+to prose ranking — so Moves 1+2 are both load-bearing, not redundant. The
+second look CHANGED Move 3 (links as a separate BM25+excerpt field instead of
+embedded text — see the refined text above; strictly better and cheaper: no
+re-embed). New risks the second look surfaced, for the build spec: (a)
+common-word character names ("Rose", "Grace") could over-pin — the matcher
+needs word-boundary + capitalization heuristics and a pin cap (≤2-3 entities
+per ask) so pinned cards never crowd out prose evidence; (b) card retrieval
+quality vs prose is unmeasured — the build must include a canned-question
+retrieval probe over the demo book (assert the right card pins/ranks for
+"who is X / where is Y / what group is Z in") before it ships.
