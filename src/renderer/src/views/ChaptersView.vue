@@ -11,7 +11,7 @@ import SceneLinks from "../components/SceneLinks.vue";
 import VersionHistoryModal from "../components/VersionHistoryModal.vue";
 import CritiqueModal from "../components/CritiqueModal.vue";
 import MultiReaderPanelModal from "../components/MultiReaderPanelModal.vue";
-import ChapterNotesModal from "../components/ChapterNotesModal.vue";
+import SceneNotesPanel from "../components/SceneNotesPanel.vue";
 import StuckDiagnosticModal from "../components/StuckDiagnosticModal.vue";
 import SensoryResearchModal from "../components/SensoryResearchModal.vue";
 import { EmptyState } from "@delebash/llm-ui";
@@ -75,14 +75,12 @@ const linksOpen = ref(false);
 const versionsOpen = ref(false);
 const critiqueOpen = ref(false);
 const multiReaderOpen = ref(false);
-const notesOpen = ref(false);
-// notesChapterId is the chapter the modal renders for — usually the
-// active chapter, but the outline view opens chips for scenes in other
-// chapters too, so it's a separate ref instead of reading ch.value.
-const notesChapterId = ref("");
-// "chapter" → scroll to chapter-level section; a sceneId → scroll to
-// that scene's section. Set before opening the modal.
-const notesFocus = ref("chapter");
+const notesPanelOpen = ref(false);
+// The docked notes panel's fixed scope: "scene" (the active scene's notes) or
+// "chapter" (chapter-level + a section per scene). The chapter/scene it renders
+// for comes from the live active context (ch / activeScene) — every opener
+// navigates there first, so the inspector always matches the editor.
+const notesPanelScope = ref("scene");
 function askTheBook() {
   if (!ch.value) return;
   ui.openChatPanelFor({
@@ -216,11 +214,19 @@ const chapterNotesCount = computed(() => ch.value
 const activeSceneNotesCount = computed(() => activeScene.value
   ? project.notesForScene(activeScene.value.id).length
   : 0);
+// Opens the docked notes panel. `focus` = "chapter" for chapter scope, or a
+// sceneId for scene scope. Navigates into edit mode for the target first so the
+// panel — which docks inside the edit-mode editor — is on screen; this also
+// serves the outline note-count badges, which can target other chapters/scenes.
 function openNotesPanel(chapterId, focus = "chapter") {
   if (!chapterId) return;
-  notesChapterId.value = chapterId;
-  notesFocus.value = focus;
-  notesOpen.value = true;
+  const sid = focus && focus !== "chapter" ? focus : "";
+  ui.select("chapters", chapterId);
+  notesPanelScope.value = sid ? "scene" : "chapter";
+  const target = sid ? `/chapters/${chapterId}/${sid}` : `/chapters/${chapterId}`;
+  if (router.currentRoute.value.path !== target) router.push(target);
+  mode.value = "edit";
+  notesPanelOpen.value = true;
 }
 function openChapterNotes() {
   if (ch.value) openNotesPanel(ch.value.id, "chapter");
@@ -974,7 +980,10 @@ watch(() => project.allChapters.map((c) => `${c.id}:${(project.scenesFor(c.id) |
   </div>
 
   <!-- ── EDIT MODE (default) ──────────────────────────────────── -->
-  <div v-else-if="ch" class="pane-card">
+  <!-- When the docked notes panel opens, .has-side-panel flips the card to a
+       row so the editor column (.chapters-edit-main) shrinks beside it. -->
+  <div v-else-if="ch" class="pane-card" :class="{ 'has-side-panel': notesPanelOpen }">
+   <div class="chapters-edit-main">
     <div style="padding:10px 22px;border-bottom:1px solid var(--border);display:grid;grid-template-columns:1fr auto 1fr;align-items:center;gap:12px">
       <div style="display:flex;gap:12px;align-items:center;justify-self:start">
         <UiButton intent="ghost" size="small"
@@ -1266,6 +1275,13 @@ watch(() => project.allChapters.map((c) => `${c.id}:${(project.scenesFor(c.id) |
       </span>
       <span style="margin-left:auto">Autosaves to local storage</span>
     </div>
+   </div>
+
+   <SceneNotesPanel v-if="notesPanelOpen && ch"
+     :chapter-id="ch.id"
+     :scope="notesPanelScope"
+     :scene-id="activeScene?.id || ''"
+     @close="notesPanelOpen = false" />
   </div>
 
   <div v-else class="pane-card" style="display:grid;place-items:center;padding:60px">
@@ -1290,11 +1306,6 @@ watch(() => project.allChapters.map((c) => `${c.id}:${(project.scenesFor(c.id) |
   <MultiReaderPanelModal v-if="multiReaderOpen && ch"
     :chapter-id="ch.id"
     @close="multiReaderOpen = false" />
-
-  <ChapterNotesModal v-if="notesOpen && notesChapterId"
-    :chapter-id="notesChapterId"
-    :initial-focus="notesFocus"
-    @close="notesOpen = false" />
 
   <StuckDiagnosticModal v-if="stuckOpen"
     :context-text="stuckContextText"
@@ -1327,6 +1338,18 @@ watch(() => project.allChapters.map((c) => `${c.id}:${(project.scenesFor(c.id) |
   grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr);
 }
 .chapter-pane-header .pane-actions { grid-column: 2; }
+
+/* ── Edit-mode layout: editor column + docked notes panel ──────
+   The card is a flex column by default; .chapters-edit-main fills it and
+   stacks the toolbar/editor/footer as before. When the notes panel opens,
+   .has-side-panel flips the card to a row so the editor column takes the
+   remaining width (shrinking) and the panel holds its fixed 336px. */
+.chapters-edit-main {
+  flex: 1; min-width: 0; min-height: 0;
+  display: flex; flex-direction: column;
+}
+.pane-card.has-side-panel { flex-direction: row; }
+
 .chapter-name {
   appearance: none;
   font-family: var(--font-serif);
