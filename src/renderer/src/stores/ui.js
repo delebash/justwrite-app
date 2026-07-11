@@ -123,6 +123,11 @@ export const useUiStore = defineStore("ui", {
       lastSeenVersion: null,
       // Cmd+/ keyboard shortcut cheatsheet overlay.
       shortcutsOpen: false,
+      // One-time AI setup prompt — opened by projectStart.js right after the
+      // user's FIRST project is created/opened (gated on the `aiSetupPrompted`
+      // setting). Transient (never persisted): the once-ever gate lives in the
+      // setting, this flag only controls the modal's mount at App level.
+      aiSetupPromptOpen: false,
       ...saved,
       // Resolve appearance last: wins over the raw spread and folds in any
       // legacy { theme, accentHue } keys from older saves.
@@ -202,6 +207,10 @@ export const useUiStore = defineStore("ui", {
     openShortcuts()  { this.shortcutsOpen = true; },
     closeShortcuts() { this.shortcutsOpen = false; },
     toggleShortcuts() { this.shortcutsOpen = !this.shortcutsOpen; },
+
+    // ── One-time AI setup prompt (post-first-project) ────────────────
+    openAiSetupPrompt()  { this.aiSetupPromptOpen = true; },
+    closeAiSetupPrompt() { this.aiSetupPromptOpen = false; },
 
     // ── What's new modal ─────────────────────────────────────────────
     markVersionSeen(version) {

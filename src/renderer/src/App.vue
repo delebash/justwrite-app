@@ -12,6 +12,7 @@ import { Toast } from "@delebash/llm-ui";
 import { AppDialog } from "@delebash/llm-ui";
 import CommandPalette from "./components/CommandPalette.vue";
 import ProjectReplaceModal from "./components/ProjectReplaceModal.vue";
+import AiSetupDialog from "./components/AiSetupDialog.vue";
 import ChatPanel from "./components/ChatPanel.vue";
 import { HelpDrawer } from "@delebash/llm-ui";
 import ShortcutCheatsheet from "./components/ShortcutCheatsheet.vue";
@@ -150,6 +151,7 @@ onBeforeUnmount(() => window.removeEventListener("keydown", onKey, { capture: tr
     <ProjectReplaceModal v-if="ui.replaceModal.open"
       :initial-term="ui.replaceModal.initialTerm"
       @close="ui.closeProjectReplace()" />
+    <AiSetupDialog v-if="ui.aiSetupPromptOpen" @close="ui.closeAiSetupPrompt()" />
     <ChatPanel v-model="ui.chatPanelOpen" />
     <HelpDrawer />
     <ShortcutCheatsheet />

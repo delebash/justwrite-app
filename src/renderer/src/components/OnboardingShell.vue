@@ -6,31 +6,23 @@
 // "Untitled" project's chrome (the old bug: the Sidebar always mounted and bound to
 // a blank BLANK_PROJECT_META project).
 //
-// A slim header (wordmark + always-visible Start / Tutorial) wraps the same
-// <router-view> the projectless routes render into (/welcome, /ai, /help). The
-// persistent CTAs are the fix for the AI-setup dead end: "Run Quick Setup" → /ai no
-// longer strands the user, because Start-a-project / Try-the-tutorial are one click
-// away in the header — and creating/opening a project flips `hasActiveProject`, which
-// swaps this shell for the real app.
-//
-// promptNewProject / openTutorialProject are the SAME shared flows the welcome hero
-// and the sidebar switcher run (services/projectStart.js — one source), so the three
-// entry points can never drift.
-import { UiButton } from "@delebash/llm-ui";
-import { promptNewProject, openTutorialProject } from "../services/projectStart.js";
+// A slim header (just the wordmark) wraps the same <router-view> the projectless
+// routes render into (/welcome, /ai, /help). The old header carried duplicate
+// Start / Tutorial CTAs — removed 2026-07-11: they doubled the welcome hero's own
+// CTAs, and starting a project now happens ONLY from the welcome hero. The wordmark
+// links back to /welcome so /ai and /help (reachable projectless) are never a dead
+// end. Creating/opening a project flips `hasActiveProject`, which swaps this shell
+// for the real app.
+import { RouterLink } from "vue-router";
 </script>
 
 <template>
   <div class="ob-stage">
     <header class="ob-header">
-      <div class="ob-brand">
+      <RouterLink to="/welcome" class="ob-brand">
         <div class="brand-mark">J</div>
         <div class="brand-name">{{ $t("welcome.wordmark") }}</div>
-      </div>
-      <div class="ob-actions">
-        <UiButton intent="primary" size="small" @click="promptNewProject">{{ $t("welcome.startNew") }}</UiButton>
-        <UiButton intent="secondary" size="small" @click="openTutorialProject">{{ $t("welcome.tutorial") }}</UiButton>
-      </div>
+      </RouterLink>
     </header>
     <div class="ob-body">
       <slot />
@@ -52,20 +44,23 @@ import { promptNewProject, openTutorialProject } from "../services/projectStart.
   flex: none;
   display: flex;
   align-items: center;
-  justify-content: space-between;
   gap: 16px;
   padding: 9px 20px;
   border-bottom: 1px solid var(--border-soft);
   background: var(--surface);
 }
+/* .brand-mark / .brand-name are global (styles.css) — shared with the Sidebar
+   brand, so the onboarding header matches the real app chrome. */
 .ob-brand {
   display: flex;
   align-items: center;
-  gap: 9px;
+  gap: 10px;
+  text-decoration: none;
+  color: inherit;
+  border-radius: var(--r-sm, 6px);
 }
-.ob-actions {
-  display: flex;
-  gap: 8px;
+.ob-brand:hover .brand-name {
+  color: var(--accent);
 }
 .ob-body {
   flex: 1;

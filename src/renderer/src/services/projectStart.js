@@ -7,19 +7,38 @@
 //
 // Uses the router singleton (the same instance main.js installs — the
 // configureHelp onOpenFull precedent, main.js:63) and the imperative i18n
-// `t` (i18n/index.js:46); the store is resolved lazily so this module can be
+// `t` (i18n/index.js:46); the stores are resolved lazily so this module can be
 // imported before Pinia is active.
 
 import { promptDialog } from "@delebash/llm-ui";
 import router from "../router/index.js";
 import { t } from "../i18n/index.js";
 import { useProjectStore } from "../stores/project.js";
+import { useUiStore } from "../stores/ui.js";
+import { readSetting, writeSetting } from "./settings.js";
+
+/**
+ * Offer AI setup ONCE, right after the user's very first project is created or
+ * opened. `wasFirstProject` is captured BEFORE the create/open so an existing
+ * user adding a second project never sees it; the `aiSetupPrompted` setting is
+ * the once-ever gate (survives reloads and a delete-all-then-recreate). Opening
+ * the dialog is deferred to the ui store so it mounts at App level (surviving
+ * the OnboardingShell → real-app swap the new project triggers).
+ */
+function maybePromptAiSetup(wasFirstProject) {
+  if (!wasFirstProject) return;
+  if (readSetting("aiSetupPrompted")) return;
+  writeSetting("aiSetupPrompted", true);
+  useUiStore().openAiSetupPrompt();
+}
 
 /**
  * Prompt for a title/author and create a fresh project, then go Home.
  * Resolves true when a project was created, false on cancel/empty title.
  */
 export async function promptNewProject() {
+  const store = useProjectStore();
+  const wasFirstProject = store.projectsList.length === 0;
   const values = await promptDialog({
     title: t("sidebar.projectSwitcher.newProjectTitle"),
     confirmLabel: t("sidebar.projectSwitcher.newProjectConfirm"),
@@ -29,8 +48,9 @@ export async function promptNewProject() {
     ],
   });
   if (!values?.title) return false;
-  useProjectStore().createProject({ title: values.title, author: values.author || "" });
+  store.createProject({ title: values.title, author: values.author || "" });
   router.push("/");
+  maybePromptAiSetup(wasFirstProject);
   return true;
 }
 
@@ -39,7 +59,12 @@ export async function promptNewProject() {
  * server), then go Home. Resolves true when it opened.
  */
 export async function openTutorialProject() {
-  const id = await useProjectStore().openDemoProject();
-  if (id) router.push("/");
+  const store = useProjectStore();
+  const wasFirstProject = store.projectsList.length === 0;
+  const id = await store.openDemoProject();
+  if (id) {
+    router.push("/");
+    maybePromptAiSetup(wasFirstProject);
+  }
   return !!id;
 }

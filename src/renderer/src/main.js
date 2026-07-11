@@ -136,9 +136,11 @@ configureHelp({
   //    workspace reset, last project deleted), /welcome is the app's only
   //    home — every data route needs a project. Checked on EVERY navigation
   //    (deliberately NOT behind the run-once gate below: a mid-session reset
-  //    must still redirect). The allowlist is exactly the project-independent
-  //    surfaces the welcome screen itself links to: the AI setup page
-  //    (/ai?quicksetup=1, /ai) and Help (which hosts "Show welcome screen").
+  //    must still redirect). The allowlist is the project-independent surfaces
+  //    that stay reachable with no project loaded: the AI setup page
+  //    (/ai?quicksetup=1, /ai — deep-links + the post-first-project AI dialog)
+  //    and Help. Both render inside the OnboardingShell, whose brand links back
+  //    to /welcome so they never dead-end.
   //
   // 2. First-run redirect: on the FIRST navigation of a cold load, if it
   //    targets the root ("", "#", "#/" all normalise to path "/") and the

@@ -363,23 +363,27 @@
     "startNew": "Start a new project",
     "tutorial": "Try the tutorial project",
     "tutorialSub": "a short guided book",
+    "sectionLabel": "Everything in one place",
     "features": {
-      "chapters": { "title": "Chapters & scenes", "body": "Organize the manuscript; write in a clean, focused editor." },
-      "bible": { "title": "Story bible", "body": "Characters, locations, objects, worldbuilding — all linked to your prose." },
-      "plot": { "title": "Plot strands & timeline", "body": "Track arcs and beats across the whole book." },
-      "ai": { "title": "AI assistance", "body": "Critique, chat with your book, analysis — runs locally or online, your choice." },
-      "goals": { "title": "Goals & pace", "body": "Word-count goals, writing sessions, progress analysis." },
-      "export": { "title": "Export", "body": "PDF, DOCX and EPUB — a manuscript ready to send." }
+      "chapters": { "title": "Chapters & scenes", "body": "Draft in a calm, focused editor and shape the manuscript chapter by chapter." },
+      "bible": { "title": "Story bible", "body": "Characters, locations, objects and worldbuilding — every detail linked back to your prose." },
+      "plot": { "title": "Plot & strands", "body": "Follow arcs, beats and subplots as strands running through the whole book." },
+      "timeline": { "title": "Timeline & events", "body": "Lay out what happens when, and keep your chronology straight." },
+      "ai": { "title": "AI assistance", "body": "Critique, chat with your book and deep analysis — running locally or online, your choice." },
+      "goals": { "title": "Goals & pace", "body": "Set word-count goals, log writing sessions and watch your momentum build." },
+      "search": { "title": "Search & replace", "body": "Find anything across the manuscript, and rename or fix it in one sweep." },
+      "notes": { "title": "Notes & brainstorm", "body": "Capture ideas, research and loose threads without leaving your project." },
+      "export": { "title": "Export", "body": "Produce PDF, DOCX and EPUB — a clean manuscript ready to send." }
     },
-    "aiHeading": "Optional: set up the AI features",
-    "aiBody": "JustWrite's AI runs where you choose — on this PC, private and free, or through an online provider.",
-    "quickSetup": "Run Quick Setup",
-    "quickSetupSub": "local — uses this PC",
-    "connectProvider": "Connect an online provider",
-    "connectProviderSub": "OpenAI-compatible",
-    "skip": "Skip for now — you can set this up anytime in {link}.",
-    "skipLink": "AI settings",
-    "footer": "This screen shows once — reopen it anytime from Help.",
-    "reopen": "Show welcome screen"
+    "aiSetup": {
+      "eyebrow": "Optional",
+      "title": "Set up AI features",
+      "body": "JustWrite's AI runs where you choose — on this PC, private and free, or through an online provider. You can set this up anytime from the AI page.",
+      "quickSetup": "Run Quick Setup",
+      "quickSetupSub": "Local — uses this PC, private & free",
+      "connectProvider": "Connect an online provider",
+      "connectProviderSub": "OpenAI-compatible endpoint",
+      "skip": "Skip for now"
+    }
   }
 }

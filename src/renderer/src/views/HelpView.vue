@@ -49,15 +49,6 @@ function openOnWeb() {
   openExternal(webUrl.value);
 }
 
-// QC-46 — reopen the first-run welcome screen. The footer copy there says
-// "reopen it anytime from Help", and the shared kit HelpDrawer has no
-// host-action extension point (only doc-specific Open-full/Open-web), so the
-// affordance lives on JW's Help page. Explicit nav always renders /welcome
-// regardless of the welcomeSeen flag.
-function showWelcome() {
-  router.push("/welcome");
-}
-
 function go(slug) {
   router.push(slug ? `/help/${slug}` : "/help");
 }
@@ -80,10 +71,6 @@ onMounted(() => {
 <template>
   <div class="help-page">
     <PaneHeader :title="docTitle" :eyebrow="$t('panes.help.eyebrow')">
-      <UiButton intent="secondary" size="small" @click="showWelcome">
-        <template #icon><Icon name="Star" :size="14" /></template>
-        {{ $t('welcome.reopen') }}
-      </UiButton>
       <UiButton intent="secondary" size="small" @click="openOnWeb">
         <template #icon><Icon name="ExternalLink" :size="14" /></template>
         Open on the web
