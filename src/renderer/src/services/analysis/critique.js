@@ -8,8 +8,7 @@
 //
 // Both return shapes that drop straight into `chapter.critique`.
 
-import { runAiFeature } from "@delebash/llm-ui";
-import { parseJsonLoose } from "../llmText.js";
+import { runJsonAnalysis } from "../runJson.js";
 import { htmlToText } from "../text.js";
 
 // ─── Text critique ──────────────────────────────────────────────────
@@ -23,14 +22,13 @@ export async function runCritique({ html, chapterTitle = "", chapterNum = null, 
     ? `Chapter ${chapterNum != null ? `${chapterNum} — ` : ""}${chapterTitle}\n\n`
     : "";
 
-  const result = await runAiFeature({
+  const { result, parsed } = await runJsonAnalysis({
     action: "critique", feature: "critique",
     variables: { chapter_label: header, chapter_text: text },
     signal, provider, model, meta,
     task: task || { label: "Chapter critique notes", meta },
   });
 
-  const parsed = parseJsonLoose(result.content);
   // Tolerate both shapes: {"notes":[…]} (the prompt asks for this) AND a
   // bare top-level array of note objects (which some models give anyway).
   const rawNotes = Array.isArray(parsed?.notes)
@@ -71,14 +69,13 @@ export async function runStructuralAnalysis({ html, chapterTitle = "", chapterNu
     ? `Chapter ${chapterNum != null ? `${chapterNum} — ` : ""}${chapterTitle}\n\n`
     : "";
 
-  const result = await runAiFeature({
+  const { result, parsed } = await runJsonAnalysis({
     action: "critiqueStructure", feature: "critique",
     variables: { chapter_label: header, chapter_text: text },
     signal, provider, model, meta,
     task: task || { label: "Chapter structure", meta },
   });
 
-  const parsed = parseJsonLoose(result.content) || {};
   const tension = clamp1to10(parsed.tension);
   const hookQuality = clamp1to10(parsed.hookQuality);
   const pacing = PACING_OPTIONS.includes(parsed.pacing) ? parsed.pacing : "balanced";

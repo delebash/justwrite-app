@@ -20,8 +20,8 @@
 // sequential LLM calls. Caller renders per-chapter progress and can
 // cancel mid-sweep (partial results stay).
 
-import { runAiFeature, useAiTasksStore } from "@delebash/llm-ui";
-import { parseJsonLoose } from "../llmText.js";
+import { useAiTasksStore } from "@delebash/llm-ui";
+import { runJsonAnalysis } from "../runJson.js";
 import { htmlToText } from "../text.js";
 
 // ─── helpers ─────────────────────────────────────────────────────────
@@ -146,7 +146,7 @@ export async function analyseChapterKnowledge({
     };
   }
 
-  const result = await runAiFeature({
+  const { result, parsed } = await runJsonAnalysis({
     action: "readerKnowledge",
     feature: "readerKnowledge",
     variables: composed.variables,
@@ -157,7 +157,6 @@ export async function analyseChapterKnowledge({
     task: task || { label: "Reader knowledge", meta },
   });
 
-  const parsed = parseJsonLoose(result.content) || {};
   const status = STATUS_OPTIONS.includes(parsed.status) ? parsed.status : "neutral";
   const newReaderFacts = Array.isArray(parsed.newReaderFacts)
     ? parsed.newReaderFacts.map((s) => String(s || "").trim()).filter(Boolean).slice(0, 8)

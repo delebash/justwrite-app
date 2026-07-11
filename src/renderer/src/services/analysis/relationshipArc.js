@@ -14,8 +14,7 @@
 //   { summary, trajectory: "warming"|"cooling"|"escalating"|"defusing"|
 //                          "flipping"|"static", chapters: [...] }
 
-import { runAiFeature } from "@delebash/llm-ui";
-import { parseJsonLoose } from "../llmText.js";
+import { runJsonAnalysis } from "../runJson.js";
 import { htmlToText, tailWords } from "../text.js";
 
 export const TRAJECTORY_LABELS = {
@@ -120,7 +119,7 @@ export async function analyseRelationship({
   }
 
   const arcMeta = { ...(meta || {}), characterAId, characterBId };
-  const result = await runAiFeature({
+  const { result, parsed } = await runJsonAnalysis({
     action: "relationshipArc",
     feature: "relationshipArc",
     variables: { user_content: body.join("\n") },
@@ -131,7 +130,6 @@ export async function analyseRelationship({
     task: task || { label: "Relationship arc", meta: arcMeta },
   });
 
-  const parsed = parseJsonLoose(result.content) || {};
   const summary = typeof parsed.summary === "string" ? parsed.summary.trim().slice(0, 600) : "";
   const trajectory = VALID_TRAJECTORIES.has(parsed.trajectory) ? parsed.trajectory : "static";
 

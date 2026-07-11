@@ -17,8 +17,7 @@
 //     fix:     one-sentence suggestion for the cheapest resolution
 //   }
 
-import { runAiFeature } from "@delebash/llm-ui";
-import { parseJsonLoose } from "../llmText.js";
+import { runJsonAnalysis } from "../runJson.js";
 import { htmlToText, tailWords } from "../text.js";
 
 function firstParagraph(text, maxWords = 60) {
@@ -126,7 +125,7 @@ export async function scanPlotHoles({
   const { variables, totalChapters } = composePlotHolesInput(project);
 
   const chaptersMeta = { ...(meta || {}), totalChapters };
-  const result = await runAiFeature({
+  const { result, parsed } = await runJsonAnalysis({
     action: "plotHoles",
     feature: "plotHoles",
     variables,
@@ -137,7 +136,6 @@ export async function scanPlotHoles({
     task: task || { label: "Plot hole scan", meta: chaptersMeta },
   });
 
-  const parsed = parseJsonLoose(result.content) || {};
   const summary = typeof parsed.summary === "string" ? parsed.summary.trim().slice(0, 600) : "";
   const rawFindings = Array.isArray(parsed.findings) ? parsed.findings : [];
 

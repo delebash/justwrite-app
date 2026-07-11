@@ -14,8 +14,7 @@
 //     movement, social, period
 //   }
 
-import { runAiFeature } from "@delebash/llm-ui";
-import { parseJsonLoose } from "./llmText.js";
+import { runJsonAnalysis } from "./runJson.js";
 
 // Categories rendered in order in the modal. The "blurb" is shown
 // under each section header — sets the writer's expectation for what
@@ -66,7 +65,7 @@ export async function generateSensoryPack({
   }
 
   const sensoryMeta = { ...(meta || {}), subject: trimmed.slice(0, 120) };
-  const result = await runAiFeature({
+  const { result, parsed } = await runJsonAnalysis({
     action: "sensory",
     feature: "sensory",
     variables: { user_content: parts.join("\n") },
@@ -77,7 +76,6 @@ export async function generateSensoryPack({
     task: task || { label: "Sensory research", meta: sensoryMeta },
   });
 
-  const parsed = parseJsonLoose(result.content) || {};
   const pack = {};
   for (const key of CATEGORY_KEYS) {
     const arr = Array.isArray(parsed[key]) ? parsed[key] : [];

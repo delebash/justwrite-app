@@ -15,8 +15,7 @@
 //     summary: "1-2 sentences on coverage and gaps"
 //   }
 
-import { runAiFeature } from "@delebash/llm-ui";
-import { parseJsonLoose } from "../llmText.js";
+import { runJsonAnalysis } from "../runJson.js";
 import { htmlToText } from "../text.js";
 
 // ─── Templates ───────────────────────────────────────────────────────
@@ -169,7 +168,7 @@ export async function mapToBeatSheet({
   const { variables, totalChapters, template } = composeBeatSheetInput(project, templateKey);
 
   const beatMeta = { ...(meta || {}), templateKey, totalChapters };
-  const result = await runAiFeature({
+  const { result, parsed } = await runJsonAnalysis({
     action: "beatSheet",
     feature: "beatSheet",
     variables,
@@ -180,7 +179,6 @@ export async function mapToBeatSheet({
     task: task || { label: "Beat sheet", meta: beatMeta },
   });
 
-  const parsed = parseJsonLoose(result.content) || {};
   const summary = typeof parsed.summary === "string" ? parsed.summary.trim().slice(0, 600) : "";
 
   const rawMapping = Array.isArray(parsed.mapping) ? parsed.mapping : [];

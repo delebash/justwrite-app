@@ -15,8 +15,7 @@
 //     model, providerId, generatedAt
 //   }
 
-import { runAiFeature } from "@delebash/llm-ui";
-import { parseJsonLoose } from "./llmText.js";
+import { runJsonAnalysis } from "./runJson.js";
 import { htmlToText, tailWords } from "./text.js";
 
 // ─── helpers ─────────────────────────────────────────────────────────
@@ -172,7 +171,7 @@ export async function generateSessionRecap({
   }
 
   const recapMeta = { ...(callerMeta || {}), chapterId: meta.chapterId, day: meta.day, totalWords: meta.totalWords };
-  const result = await runAiFeature({
+  const { result, parsed } = await runJsonAnalysis({
     action: "recap",
     feature: "recap",
     variables: { user_content: prompt },
@@ -183,7 +182,6 @@ export async function generateSessionRecap({
     task: task || { label: "Session recap", meta: recapMeta },
   });
 
-  const parsed = parseJsonLoose(result.content) || {};
   const text = typeof parsed.recap === "string" ? parsed.recap.trim() : "";
   const rawThreads = Array.isArray(parsed.threads) ? parsed.threads : [];
 

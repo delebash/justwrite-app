@@ -10,8 +10,7 @@
 // evidence quote, and a one-line reasoning. The shape mirrors
 // chapter.critique.notes so the existing UI patterns translate.
 
-import { runAiFeature } from "@delebash/llm-ui";
-import { parseJsonLoose } from "../llmText.js";
+import { runJsonAnalysis } from "../runJson.js";
 import { htmlToText, tailWords } from "../text.js";
 
 // The prompt lives server-side (features.py, action "characterAudit").
@@ -144,7 +143,7 @@ export async function auditCharacter({
   const { variables, sceneCount, character } = composed;
 
   const auditMeta = { ...meta, characterId };
-  const result = await runAiFeature({
+  const { result, parsed } = await runJsonAnalysis({
     action: "characterAudit",
     feature: "characterAudit",
     variables,
@@ -155,7 +154,6 @@ export async function auditCharacter({
     task: task || { label: "Character audit", meta: auditMeta },
   });
 
-  const parsed = parseJsonLoose(result.content) || {};
   const rawConcerns = Array.isArray(parsed.concerns) ? parsed.concerns : [];
 
   const concerns = rawConcerns

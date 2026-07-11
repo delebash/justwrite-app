@@ -6,8 +6,7 @@
 // We dedupe against existing entity names so the LLM doesn't propose
 // "Halvard" when there's already a Halvard in the cast.
 
-import { runAiFeature } from "@delebash/llm-ui";
-import { parseJsonLoose } from "../llmText.js";
+import { runJsonAnalysis } from "../runJson.js";
 import { htmlToText, normalizeName as norm } from "../text.js";
 // norm(): "The Old Lighthouse" and "Old Lighthouse" still differ — we don't
 // try to be clever; the writer can edit names in the review list before
@@ -77,7 +76,7 @@ export async function extractEntities({
     html, chapterTitle, chapterNum, existingCharacters, existingLocations, existingObjects,
   });
 
-  const result = await runAiFeature({
+  const { parsed } = await runJsonAnalysis({
     action: "entitySweep",
     feature: "entitySweep",
     variables,
@@ -85,7 +84,6 @@ export async function extractEntities({
     task: task || { label: "Entity sweep", meta },
   });
 
-  const parsed = parseJsonLoose(result.content) || {};
   const knownChar = new Set(existingCharacters.map((c) => norm(c.name)));
   const knownLoc  = new Set(existingLocations.map((l) => norm(l.name)));
   const knownObj  = new Set(existingObjects.map((o) => norm(o.name)));

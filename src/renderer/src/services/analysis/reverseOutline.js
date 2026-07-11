@@ -18,8 +18,7 @@
 // job. If the book really does follow Save the Cat or 7-point, the
 // model will identify the 3- or 5-act shape that maps to it.
 
-import { runAiFeature } from "@delebash/llm-ui";
-import { parseJsonLoose } from "../llmText.js";
+import { runJsonAnalysis } from "../runJson.js";
 import { htmlToText } from "../text.js";
 
 function firstParagraph(text, maxWords = 60) {
@@ -112,7 +111,7 @@ export async function generateReverseOutline({
   const { variables, totalChapters } = composeReverseOutlineInput(project);
 
   const outlineMeta = { ...(meta || {}), totalChapters };
-  const result = await runAiFeature({
+  const { result, parsed } = await runJsonAnalysis({
     action: "reverseOutline",
     feature: "reverseOutline",
     variables,
@@ -123,7 +122,6 @@ export async function generateReverseOutline({
     task: task || { label: "Reverse outline", meta: outlineMeta },
   });
 
-  const parsed = parseJsonLoose(result.content) || {};
   const structureName = ["3-act", "5-act", "loose"].includes(parsed.structureName)
     ? parsed.structureName
     : "loose";

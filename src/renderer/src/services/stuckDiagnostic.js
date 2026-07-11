@@ -15,8 +15,7 @@
 // short "instruction" that can be fed verbatim into the writerAI
 // continueFrom call as a guided-write direction.
 
-import { runAiFeature } from "@delebash/llm-ui";
-import { parseJsonLoose } from "./llmText.js";
+import { runJsonAnalysis } from "./runJson.js";
 import { htmlToText, tailWords } from "./text.js";
 
 export const MOVE_KINDS = [
@@ -90,7 +89,7 @@ export async function generateUnstuckMoves({
   const { variables } = composeUnstuckInput({ contextText, chapterTitle, chapterNum });
 
   const stuckMeta = { ...(meta || {}), kind: "unstuck" };
-  const result = await runAiFeature({
+  const { result, parsed } = await runJsonAnalysis({
     action: "unstuck",
     feature: "unstuck",
     variables,
@@ -101,7 +100,6 @@ export async function generateUnstuckMoves({
     task: task || { label: "Stuck diagnostic", meta: stuckMeta },
   });
 
-  const parsed = parseJsonLoose(result.content) || {};
   const raw = Array.isArray(parsed.moves) ? parsed.moves : Array.isArray(parsed) ? parsed : [];
 
   const seenKinds = new Set();

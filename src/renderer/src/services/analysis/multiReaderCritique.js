@@ -16,8 +16,8 @@
 //     generatedAt, model
 //   }
 
-import { runAiFeature, useAiTasksStore } from "@delebash/llm-ui";
-import { parseJsonLoose } from "../llmText.js";
+import { useAiTasksStore } from "@delebash/llm-ui";
+import { runJsonAnalysis } from "../runJson.js";
 import { htmlToText } from "../text.js";
 
 // ─── Personas ────────────────────────────────────────────────────────
@@ -61,7 +61,7 @@ async function runPersona({ persona, html, chapterTitle, chapterNum, signal, pro
     ? `Chapter ${chapterNum != null ? `${chapterNum} — ` : ""}${chapterTitle}\n\n`
     : "";
 
-  const result = await runAiFeature({
+  const { result, parsed } = await runJsonAnalysis({
     action: persona.action,
     feature: "multiReader",
     variables: { chapter_label: header, chapter_text: text },
@@ -71,7 +71,6 @@ async function runPersona({ persona, html, chapterTitle, chapterNum, signal, pro
     task: task || { label: "Multi-reader critique", meta: { ...meta, personaKey: persona.key } },
   });
 
-  const parsed = parseJsonLoose(result.content) || {};
   const reaction = typeof parsed.reaction === "string" ? parsed.reaction.trim().slice(0, 2000) : "";
   const suggestions = Array.isArray(parsed.suggestions)
     ? parsed.suggestions.map((s) => String(s || "").trim()).filter(Boolean).slice(0, 4)

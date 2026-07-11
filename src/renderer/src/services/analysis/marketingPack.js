@@ -9,8 +9,7 @@
 // All four are written for querying agents, pitching to publishers,
 // and back-cover copy. The writer can copy each artifact individually.
 
-import { runAiFeature } from "@delebash/llm-ui";
-import { parseJsonLoose } from "../llmText.js";
+import { runJsonAnalysis } from "../runJson.js";
 import { htmlToText } from "../text.js";
 
 function firstParagraph(text, maxWords = 60) {
@@ -94,7 +93,7 @@ export async function generateMarketingPack({
   const { variables, totalChapters } = composeMarketingPackInput(project);
 
   const packMeta = { ...(meta || {}), totalChapters };
-  const result = await runAiFeature({
+  const { result, parsed } = await runJsonAnalysis({
     action: "marketingPack",
     feature: "marketingPack",
     variables,
@@ -105,7 +104,6 @@ export async function generateMarketingPack({
     task: task || { label: "Marketing pack", meta: packMeta },
   });
 
-  const parsed = parseJsonLoose(result.content) || {};
   const logline = typeof parsed.logline === "string" ? parsed.logline.trim().slice(0, 400) : "";
   const synopsis = typeof parsed.synopsis === "string" ? parsed.synopsis.trim() : "";
   const pitch = typeof parsed.pitch === "string" ? parsed.pitch.trim() : "";

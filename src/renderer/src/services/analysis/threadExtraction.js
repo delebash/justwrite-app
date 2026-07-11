@@ -23,8 +23,7 @@
 //     keyTerm:  string,   // a distinctive noun/phrase to grep later chapters with
 //   }
 
-import { runAiFeature } from "@delebash/llm-ui";
-import { parseJsonLoose } from "../llmText.js";
+import { runJsonAnalysis } from "../runJson.js";
 import { htmlToText } from "../text.js";
 
 const ALLOWED_KINDS = new Set([
@@ -52,7 +51,7 @@ export async function extractThreads({
     ? `Chapter ${chapterNum != null ? `${chapterNum} — ` : ""}${chapterTitle}\n\n`
     : "";
 
-  const result = await runAiFeature({
+  const { result, parsed } = await runJsonAnalysis({
     action: "foreshadowing",
     feature: "foreshadowing",
     variables: { chapter_label: header, chapter_text: text },
@@ -63,7 +62,6 @@ export async function extractThreads({
     task: task || { label: "Thread extraction", meta },
   });
 
-  const parsed = parseJsonLoose(result.content) || {};
   const rawSetups = Array.isArray(parsed.setups) ? parsed.setups : Array.isArray(parsed) ? parsed : [];
 
   const setups = [];
