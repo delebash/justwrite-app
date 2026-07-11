@@ -124,7 +124,11 @@ try {
   // The EXPECTED embed, data-driven (fixed 2026-07-06 — the old hardcoded "Nomic" assertion
   // went stale when the embed quality ladder + the seeded routing default evolved past it).
   // Mirrors the component's real precedence: routing.default.embeddingModel wins (loadRouting
-  // overrides the prefill), else the lowest-quality_rank FITTING embed (bestEmbedId).
+  // overrides the auto-fill), else the #274 LEFTOVER-aware pick (modelPick.pickBestEmbedId):
+  // the embed CO-RESIDES with the chat model, so eligibility = tier "cpu" (always) OR
+  // minVram <= the stubbed 8 GB card minus the chat pick's floor. The chat pick post-reset
+  // is the APPLIED seeded Gemma default (hard-asserted at "confirm preselects the APPLIED
+  // model" below). NOTE the stub marks every embed's fit "ok", so runnability never filters.
   const API = process.env.JW_API || "http://127.0.0.1:17495";
   // Deterministic start: reset to the SEEDED state (pre-production decree) — the D4-1
   // "configured box" assertions depend on it (all presets on the seeded gemma + this
@@ -132,14 +136,23 @@ try {
   await fetch(`${API}/v1/data/reset`, { method: "POST" });
   const routing = await (await fetch(`${API}/v1/ai/routing`)).json();
   const catalog = (await (await fetch(`${API}/v1/ai/model-catalog`)).json()).rows || [];
-  const fitById = Object.fromEntries(
-    ((await (await fetch(`${API}/v1/llm-runner/models`)).json()).models || []).map((m) => [m.id, m.fit]),
-  );
-  const RUNNABLE = new Set(["ok", "tight", "cpu"]);
-  const fittingEmbeds = catalog.filter((r) => r.embedding && RUNNABLE.has(fitById[r.id]));
-  const bestEmbed = fittingEmbeds.sort((a, b) => (a.qualityRank ?? 100) - (b.qualityRank ?? 100))[0];
+  const chatRow = catalog.find((r) => r.id === "gemma-4-26b-a4b-qat");
+  const leftoverMb = Math.max(0, 8192 - (chatRow?.minVramMb || 0));
+  const embeds = catalog.filter((r) => r.embedding);
+  const eligible = embeds.filter((r) => r.tier === "cpu" || (r.minVramMb || 0) <= leftoverMb);
+  // Mirror both branches of the real rule: eligible → lowest quality rank; none
+  // eligible → the least-minVram candidate (dormant while the CPU band is seeded).
+  const bestEmbed = eligible.length
+    ? eligible.sort((a, b) => (a.qualityRank ?? 100) - (b.qualityRank ?? 100))[0]
+    : embeds.sort((a, b) => ((a.minVramMb || 0) - (b.minVramMb || 0)) || ((a.qualityRank ?? 100) - (b.qualityRank ?? 100)))[0];
   const expectedEmbedId = routing.default?.embeddingModel || bestEmbed?.id || "";
   const expectedEmbedName = catalog.find((r) => r.id === expectedEmbedId)?.name || expectedEmbedId;
+  // The #274 acceptance leg: on the 8 GB stub beside the seeded Gemma (floor 4000 →
+  // leftover 4192) the derived default must be the 0.6B — the 8B (7000) AND the 4B
+  // (4500) both exceed the leftover, and the 0.6B (rank 58) leads the CPU band over
+  // bge-m3 (60). A seed drift that breaks the ladder fails here loudly.
+  check("#274 leg: the 8GB-stub default embed is the 0.6B (leftover rule, not the raw card)",
+    expectedEmbedId === "qwen3-embedding-0.6b", `derived: ${expectedEmbedId || "(none)"}`);
 
   await page.goto(`${APP}/#/ai`, { waitUntil: "networkidle" });
   // The Providers & models tab is the default; QuickSetup's trigger sits at its top.

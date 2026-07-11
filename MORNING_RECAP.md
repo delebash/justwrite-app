@@ -537,15 +537,24 @@ array's proxy), and the T8 docs (whats-new · the notes-and-search help
 section · models.md embed-template fields). Gates all green: vitest 135 ·
 build · FULL smoke · the whole probe fleet · biome · JW pytest 82 + ruff ·
 runner pytest 476 + ruff. Full record: queue doc tail **"RAG + EXTRACTION
-BUILD RECORD — THE SHIP"**. **THE ACTIVE GO IS NOW #274 (2026-07-11, the
-user: "i agree with your rec on 274…" + "go"):** the leftover-VRAM embed
-pick in the SHARED picker + the Qwen3-Embedding-4B catalog row — fully
-grounded and speced, NOT yet built (the user called the compact at the
-stopping point). Their two questions answered + one NEW OPEN placement
-question flagged (embed CPU-vs-GPU guarantee — wants their word). THE FULL
-PICKUP = queue doc tail **"THE TWENTIETH-COMPACT POINT"** — the complete
-build spec, every verified fact (4B file sizes, ctx, ranks), and the
-post-compact order. Read that block first after the compact.
+BUILD RECORD — THE SHIP"**. **#274 SHIPPED (2026-07-11, post-compact, after the user's
+ordered third pass "lets be safe and do one more pass"):** the embed pick is
+leftover-VRAM aware in the ONE shared `pickBestEmbedId` (QuickSetup +
+LuModelCatalog converge; CPU-band embeds always qualify), the
+Qwen3-Embedding-4B row + template seeded (floor 4500 FLAGGED — keeps the
+user's 8GB box on the 0.6B default per their words "should be 0.6B"), the
+0.6B rank 65→58 (else bge-m3 silently wins the CPU band; reset-only on
+existing DBs), and the third pass's two finds folded in (embed prefill moved
+after the wizard's dominant reconcile; the catalog card's leftover reads the
+APPLIED chat first). Gates: truth-table 37/37 · runner pytest 477 + ruff ·
+vitest 135 · build · phaseD probe 26/26 (the wizard itself rendered the 0.6B
+on the 8GB stub) · FULL smoke · b29 · qc-quintet 22/22 (first-run 20/22 =
+phaseD-reset zero-project fallout, demo book restored — order note in the
+record) · checker verdict at the commit. Full record: queue doc tail
+**"#274 BUILD RECORD"**. OPEN on the user's word: the embed CPU-placement
+guarantee; their live 4B-on-CPU question answered with the A/B recipe
+(record + chat); "make the 4b my default" = one seed value + two test
+expectations.
 
 **GO (2026-07-10 late evening, post-fifteenth-compact — superseded by the
 paragraph above) — I1 + I4 LANDED (both
