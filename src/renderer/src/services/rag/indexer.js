@@ -64,6 +64,7 @@ async function embedAndPersist({
       vectors = await embedTexts({
         providerId: provider.id, providerType: provider.providerType,
         input: batch.map((c) => c.text), model, signal,
+        taskType: "document",
       });
     } catch (err) {
       throw friendlyAiError(err, provider);

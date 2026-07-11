@@ -142,6 +142,7 @@ export async function askAsCharacter({
       input: embedQuery,
       model: resolvedEmbedModel,
       signal,
+      taskType: "query",
     });
   } catch (err) {
     throw friendlyAiError(err, resolvedEmbedProvider);

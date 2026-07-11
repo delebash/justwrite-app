@@ -108,7 +108,21 @@ describe("embedTexts", () => {
       EMBED_URL,
       expect.objectContaining({
         method: "POST",
-        body: { providerId: "p", model: "", input: ["one"] },
+        body: { providerId: "p", model: "", input: ["one"], taskType: "" },
+      }),
+    );
+  });
+
+  it("forwards taskType so the server applies the model's embed template (Move 0)", async () => {
+    routes({ embed: { embeddings: [[1]] } });
+    await embedTexts({
+      providerId: "p", providerType: "openai-compat", model: "nomic-embed-text",
+      input: ["chunk"], taskType: "document",
+    });
+    expect(request).toHaveBeenCalledWith(
+      EMBED_URL,
+      expect.objectContaining({
+        body: { providerId: "p", model: "nomic-embed-text", input: ["chunk"], taskType: "document" },
       }),
     );
   });
