@@ -537,9 +537,15 @@ array's proxy), and the T8 docs (whats-new · the notes-and-search help
 section · models.md embed-template fields). Gates all green: vitest 135 ·
 build · FULL smoke · the whole probe fleet · biome · JW pytest 82 + ruff ·
 runner pytest 476 + ruff. Full record: queue doc tail **"RAG + EXTRACTION
-BUILD RECORD — THE SHIP"**. Next per the user's sequencing: **task #274**
-(the Quick Setup embed-pick bug — the exact size/fit rule wants the user's
-word before building).
+BUILD RECORD — THE SHIP"**. **THE ACTIVE GO IS NOW #274 (2026-07-11, the
+user: "i agree with your rec on 274…" + "go"):** the leftover-VRAM embed
+pick in the SHARED picker + the Qwen3-Embedding-4B catalog row — fully
+grounded and speced, NOT yet built (the user called the compact at the
+stopping point). Their two questions answered + one NEW OPEN placement
+question flagged (embed CPU-vs-GPU guarantee — wants their word). THE FULL
+PICKUP = queue doc tail **"THE TWENTIETH-COMPACT POINT"** — the complete
+build spec, every verified fact (4B file sizes, ctx, ranks), and the
+post-compact order. Read that block first after the compact.
 
 **GO (2026-07-10 late evening, post-fifteenth-compact — superseded by the
 paragraph above) — I1 + I4 LANDED (both
