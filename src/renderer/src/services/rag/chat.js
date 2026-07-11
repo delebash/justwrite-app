@@ -12,6 +12,8 @@
 import { embedTexts, friendlyAiError, runAiFeatureStream } from "@delebash/llm-ui";
 import { useAiStore } from "../../stores/ai.js";
 import { useProjectStore } from "../../stores/project.js";
+import { buildEntityCards } from "./cards.js";
+import { combinePinsAndHits, pickPinnedCards } from "./entityMatcher.js";
 import { formatExcerpts } from "./excerpts.js";
 import { search, status } from "./vectorStore.js";
 
@@ -138,6 +140,17 @@ export async function askManuscript({
     );
   }
 
+  // ── 4b. Deterministic entity pinning (Move 2) ────────────────────────────
+  // Entities NAMED in the question (or recent turns) get their story-bible
+  // card injected as the leading excerpts regardless of retrieval rank —
+  // built by the SAME cards.js builder the index used, so a pinned card is
+  // byte-identical to its indexed twin. Retrieval keeps its k (pins are
+  // additive); a card that also ranked drops from the retrieved list.
+  const combined = combinePinsAndHits(
+    pickPinnedCards({ question, history, project, cards: buildEntityCards(project) }),
+    hits,
+  );
+
   // ── 5. Recent history — the server prepends these turns; the system + outer
   //      template are the DB "chat" prompt (Lab-editable). ───────────────────
   const recentHistory = history
@@ -152,7 +165,7 @@ export async function askManuscript({
   const ragMeta = { ...(meta || {}), question: question.slice(0, 120) };
   const { content: answer, usage } = await runAiFeatureStream({
     action: "chat", feature: "chat",
-    variables: { question, excerpts: formatExcerpts(hits) },
+    variables: { question, excerpts: formatExcerpts(combined) },
     history: recentHistory, temperature: 0.3,
     signal, onDelta,
     meta: ragMeta,
@@ -164,11 +177,14 @@ export async function askManuscript({
   // (the most human-interpretable number — "85% match"). The RRF blend
   // score is what determined RANK, but it'd display as ~0.02 which
   // isn't meaningful to a reader. bmScore is kept for debugging only.
-  const citations = hits.map(({ chunk, cosScore, bmScore }, i) => ({
+  // Pinned bible cards carry `pinned: true` instead of a score (the panel
+  // shows "pinned"). Indexes match the [n] refs in the prompt.
+  const citations = combined.map(({ chunk, cosScore, bmScore, pinned }, i) => ({
     index: i + 1,   // 1-based to match the [1] refs in the prompt
     chunk,
     score: cosScore ?? 0,
     bmScore,
+    pinned: !!pinned,
   }));
 
   return { answer, citations, usage };

@@ -15,6 +15,7 @@ import { removeImage as removeImageFile } from "../services/imageStore.js";
 import { readSetting, writeSetting, getAllSettings, applySettings } from "../services/settings.js";
 import * as projectApi from "../services/projectApi.js";
 import { replaceInHtml } from "../services/projectReplace.js";
+import { splitHtmlIntoScenes } from "../services/sceneSplit.js";
 import { nextColor, nextHue } from "../services/categoricalColors.js";
 
 // Multi-project storage (all server-side SQL — no kv, no IndexedDB):
@@ -375,6 +376,7 @@ const ACTION_DOMAINS = {
   addChapter: "manuscript", removeChapter: "manuscript", setChapterWords: "manuscript",
   setChapterStatus: "manuscript", setChapterTitle: "manuscript", importChapters: "manuscript",
   splitChapterAtScene: "manuscript", addScene: "manuscript", updateScene: "manuscript",
+  applyScenePresenceLinks: "manuscript",
   applyStitchedChapter: "manuscript", setSceneBody: "manuscript", setSceneTitle: "manuscript",
   removeScene: "manuscript", moveScene: "manuscript", addPart: "manuscript",
   updatePart: "manuscript", removePart: "manuscript", movePart: "manuscript",
@@ -936,11 +938,20 @@ export const useProjectStore = defineStore("project", {
       const newChapters = list.map((c, i) => {
         const id = uid("ch");
         chapterIds.push(id);
-        const sceneId = uid("scn");
         const title = c.title || `Chapter ${i + 1}`;
-        // Single-scene chapters mirror the chapter title onto the scene
-        // so the scene strip isn't a row of blank placeholders.
-        nextScenes[id] = [{ id: sceneId, title, body: c.html || "" }];
+        // E5 (RAG build): split imported HTML into real scenes on the
+        // standard break markers ("* * *", "#", <hr>…) — an unmarked
+        // chapter keeps today's exact single-scene shape, with the chapter
+        // title mirrored onto the scene so the scene strip isn't a row of
+        // blank placeholders. Marked chapters get one scene per segment
+        // (untitled — the markers carry no names).
+        const segments = splitHtmlIntoScenes(c.html || "");
+        // Single segment: the splitter's body — byte-identical to the input
+        // when unmarked (the no-marker fast path returns the original html),
+        // marker-stripped when markers collapsed to one scene.
+        nextScenes[id] = segments.length > 1
+          ? segments.map((seg) => ({ id: uid("scn"), title: "", body: seg.body }))
+          : [{ id: uid("scn"), title, body: segments[0]?.body ?? (c.html || "") }];
         return {
           id,
           num: 0, // filled by _renumberChapters
@@ -1065,6 +1076,35 @@ export const useProjectStore = defineStore("project", {
           s.id === sceneId ? { ...s, ...patch } : s),
       };
       this._persist();
+    },
+    // E1/E2 (RAG build): batch-apply entity PRESENCE links onto scenes —
+    // entries = [{ chapterId, sceneId, field: "characters"|"locations"|
+    // "objects", id }]. ONE history entry for the whole batch (a sweep
+    // accept can set links across dozens of scenes; per-scene updateScene
+    // calls would flood the manuscript undo stack). Merges — an id already
+    // on the scene is never duplicated; unknown scenes are skipped.
+    applyScenePresenceLinks(entries = []) {
+      const valid = entries.filter((e) =>
+        e && e.chapterId && e.sceneId && e.id &&
+        ["characters", "locations", "objects"].includes(e.field));
+      if (!valid.length) return 0;
+      this._record("applyScenePresenceLinks");
+      let applied = 0;
+      const next = { ...this.scenes };
+      for (const e of valid) {
+        const list = next[e.chapterId];
+        if (!list) continue;
+        next[e.chapterId] = list.map((s) => {
+          if (s.id !== e.sceneId) return s;
+          const cur = Array.isArray(s[e.field]) ? s[e.field] : [];
+          if (cur.includes(e.id)) return s;
+          applied++;
+          return { ...s, [e.field]: [...cur, e.id] };
+        });
+      }
+      this.scenes = next;
+      this._persist();
+      return applied;
     },
     // Continuous-chapter editor write path. Takes the array of records
     // produced by splitChapter() (services/chapterStitch.js) and updates

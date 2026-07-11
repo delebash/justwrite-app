@@ -17,6 +17,7 @@
 // label overlaps with a proposal) are filtered out so the sweep doesn't
 // surface threads the writer has already noted.
 
+import { normalizeName as norm, textMentionsTerm } from "../text.js";
 import { extractThreads } from "./threadExtraction.js";
 import { scanProjectMarkers } from "../markers.js";
 
@@ -42,26 +43,10 @@ function findSceneIdForSnippet(project, chapterId, snippet) {
   return null;
 }
 
-// Cheap normalization for fuzzy comparison of snippets / labels.
-function norm(s) {
-  return String(s || "").toLowerCase().replace(/[^\p{Letter}\p{Number}\s]/gu, "").replace(/\s+/g, " ").trim();
-}
-
-// Substring search in a chapter's plain text for the keyTerm. Returns
-// true if the term appears (case-insensitive). Single-word terms must
-// match as a word boundary so "key" doesn't match "monkey"; multi-word
-// terms can match as substrings since they're already distinctive.
-function chapterMentionsTerm(chapterText, keyTerm) {
-  if (!keyTerm) return false;
-  const t = chapterText.toLowerCase();
-  const k = keyTerm.toLowerCase().trim();
-  if (!k) return false;
-  if (/\s/.test(k)) return t.includes(k);
-  // Word-boundary match for single tokens.
-  const re = new RegExp(`(?:^|[^\\p{Letter}\\p{Number}])${escapeRe(k)}(?:[^\\p{Letter}\\p{Number}]|$)`, "u");
-  return re.test(t);
-}
-function escapeRe(s) { return s.replace(/[.*+?^${}()|[\]\\]/g, "\\$&"); }
+// norm() + chapterMentionsTerm() converged into services/text.js
+// (normalizeName / textMentionsTerm — the RAG-build panel catch, 2026-07-11):
+// this file's word-boundary "key"/"monkey" guard IS the shared primitive now.
+const chapterMentionsTerm = (chapterText, keyTerm) => textMentionsTerm(chapterText, keyTerm);
 
 // Skip a proposal if an existing Loose-thread / TODO marker already
 // covers it — overlap by snippet substring or by label match.

@@ -151,7 +151,7 @@ def create_app(data_dir: Path | None = None) -> FastAPI:
 
     from . import database as _dbmod
     from .feature_catalog import FEATURE_CATALOG
-    from .seed_feature_prompts import DEFAULT_FEATURE_PROMPTS
+    from .seed_feature_prompts import DEFAULT_FEATURE_PROMPTS, FEATURE_PROMPT_HEALS
     from .seed_presets import (
         DEFAULT_ENGINE_PRESETS,
         DEFAULT_MODEL_CATALOG_EXTRA,
@@ -179,6 +179,9 @@ def create_app(data_dir: Path | None = None) -> FastAPI:
         # §7.3 Lab test samples — synthesized per-taskKind rows for the Lab's
         # Sample button; fill-if-empty, so edited rows survive reseeds.
         test_samples=DEFAULT_TEST_SAMPLES,
+        # Prompt stale-heals (RAG build): revised seed prompts reach existing
+        # DBs only when the row still carries the old exact seed text.
+        feature_prompt_heals=FEATURE_PROMPT_HEALS,
         # The bundled runner's engine + model cache lives under the app data dir
         # (<data_dir>/ai-cache) so all on-disk data shares one portable root.
         data_dir=data_dir,

@@ -521,9 +521,16 @@ cards + entity pinning + scene links + the E extraction moves + E5 import
 scene-splitting; Quick Setup embed-pick BUG grounded → harness task #274,
 sequenced after). **THE GO IS ARMED (2026-07-11, user verbatim: "i will
 take your recs, we need to compact first")** — recs taken: named-entity-only
-pinning, hide-flag deferred, sqlite-vec parked, PDF import not now. Pickup:
-queue doc tail "THE EIGHTEENTH-COMPACT POINT" → read the research doc IN
-FULL → PANEL-check the build plan → build across BOTH repos.
+pinning, hide-flag deferred, sqlite-vec parked, PDF import not now. **THE
+BUILD IS NOW EXECUTING and is most of the way through (2026-07-11, the
+nineteenth compact):** the panel-checked plan is
+`docs/plans/2026-07-11-rag-story-bible-build.md` (tasks #275–#282); Move 0
+(embed templates) SHIPPED verdict-gated (runner `49b367a` + JW `38d0f85`);
+Moves 1/2/3 + E5 + E1/E3 are BUILT, verdict-cleared, and committed with the
+nineteenth save; **E2 (LinkBackfillModal) + T7 (rag-probe + FULL smoke +
+fleet + biome) + T8 (docs) are the post-compact remainder.** Pickup: queue
+doc tail **"THE NINETEENTH-COMPACT POINT"** — it carries the full state,
+the exact pickup order, and the environment lessons.
 
 **GO (2026-07-10 late evening, post-fifteenth-compact — superseded by the
 paragraph above) — I1 + I4 LANDED (both

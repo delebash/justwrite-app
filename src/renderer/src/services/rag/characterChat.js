@@ -13,62 +13,17 @@
 import { embedTexts, friendlyAiError, runAiFeatureStream } from "@delebash/llm-ui";
 import { useAiStore } from "../../stores/ai.js";
 import { useProjectStore } from "../../stores/project.js";
+import { buildEntityCards } from "./cards.js";
+import { combinePinsAndHits, pickPinnedCards } from "./entityMatcher.js";
 import { formatExcerpts } from "./excerpts.js";
 import { search, status } from "./vectorStore.js";
 
 const MAX_HISTORY_MESSAGES = 8;
 
-// Build the per-character PROFILE block sent as the {{characterProfile}}
-// variable. The framing line + interview RULES live in the server "characterChat"
-// prompt (Lab-editable); this is just the dynamic profile data, prefixed with a
-// newline when present (the template is "YOUR PROFILE:{{characterProfile}}", so an
-// empty profile renders byte-identically to the old client system).
-// Exported: the Lab's character picker sends the SAME profile a real run
-// sends (QC-35 — the buildCharacterProfile reuse pattern IS the law's origin).
-export function buildCharacterProfile(character, extras) {
-  const lines = [];
-  if (character.role) lines.push(`Role: ${character.role}`);
-  if (character.gender) lines.push(`Gender: ${character.gender}`);
-  if (character.pronouns) lines.push(`Pronouns: ${character.pronouns}`);
-  if (character.lifeStatus) lines.push(`Life status: ${character.lifeStatus}`);
-  if ((character.aliases || []).length) lines.push(`Also known as: ${character.aliases.join(", ")}`);
-  if (character.age) lines.push(`Age: ${character.age}`);
-  if (character.oneLiner) lines.push(`Self-image (one line): ${character.oneLiner}`);
-
-  if (extras) {
-    if (extras.voice) {
-      const v = extras.voice;
-      const vParts = [];
-      if (v.accent) vParts.push(`accent: ${v.accent}`);
-      if (v.vocabulary) vParts.push(`vocabulary: ${v.vocabulary}`);
-      if (v.speechTic) vParts.push(`speech tic: ${v.speechTic}`);
-      if (vParts.length) lines.push(`Voice: ${vParts.join("; ")}`);
-      if (v.sampleLine) lines.push(`Sample of your speech: "${v.sampleLine}"`);
-    }
-    if (extras.motivation) {
-      const m = extras.motivation;
-      if (m.want) lines.push(`What you want: ${m.want}`);
-      if (m.need) lines.push(`What you actually need: ${m.need}`);
-      if (m.lie) lines.push(`The lie you believe: ${m.lie}`);
-      if (m.truth) lines.push(`The truth you eventually meet: ${m.truth}`);
-    }
-    if (extras.arc) {
-      const a = extras.arc;
-      if (a.start) lines.push(`Where you begin the story: ${a.start}`);
-      if (a.midpoint) lines.push(`Where you stand at the midpoint: ${a.midpoint}`);
-      if (a.end) lines.push(`Where you end up: ${a.end}`);
-    }
-    if (extras.backstory) {
-      lines.push(`Backstory (private, never told the reader directly): ${String(extras.backstory).slice(0, 800)}`);
-    }
-    if (Array.isArray(extras.quotes) && extras.quotes.length) {
-      lines.push(`Lines you've actually said in the novel:`);
-      for (const q of extras.quotes.slice(0, 4)) lines.push(`  - "${q}"`);
-    }
-  }
-
-  return lines.length ? `\n${lines.join("\n")}` : "";
-}
+// buildCharacterProfile lives in ./profile.js (leaf module — Move 1);
+// re-exported here so the QC-35 Lab test-data import site keeps working.
+export { buildCharacterProfile } from "./profile.js";
+import { buildCharacterProfile } from "./profile.js";
 
 // formatExcerpts lives in ./excerpts.js — shared with manuscript chat and the
 // Lab's test-input picker (QC-35: one formatter, no copies).
@@ -153,6 +108,17 @@ export async function askAsCharacter({
   const hits = await search(projectId, queryVec, embedQuery, k);
   if (!hits.length) throw new Error("No relevant passages found — the index may be empty or built with a different embedding model.");
 
+  // Move 2: pin cards for OTHER entities named mid-interview ("what does
+  // Bren think of you?") — the interviewee is excluded; their full profile
+  // already IS the system prompt.
+  const combined = combinePinsAndHits(
+    pickPinnedCards({
+      question, history, project, cards: buildEntityCards(project),
+      excludeEntityId: characterId,
+    }),
+    hits,
+  );
+
   const recentHistory = history
     .filter((m) => m && (m.role === "user" || m.role === "assistant") && m.content)
     .slice(-MAX_HISTORY_MESSAGES)
@@ -169,7 +135,7 @@ export async function askAsCharacter({
       characterName: character.name,
       characterProfile: buildCharacterProfile(character, extras),
       question,
-      excerpts: formatExcerpts(hits),
+      excerpts: formatExcerpts(combined),
     },
     history: recentHistory, temperature: 0.7,
     signal, onDelta,
@@ -177,10 +143,11 @@ export async function askAsCharacter({
     task: task || { label: "Character chat", meta: chatMeta },
   });
 
-  const citations = hits.map((h, i) => ({
+  const citations = combined.map((h, i) => ({
     index: i + 1,
     chunk: h.chunk,
-    score: h.score,
+    score: h.score ?? 0,
+    pinned: !!h.pinned,
   }));
 
   return { answer, citations, usage };

@@ -9,6 +9,7 @@
 import { ref, computed, watch } from "vue";
 import { useProjectStore } from "../stores/project.js";
 import { useUiStore } from "../stores/ui.js";
+import { proposeSceneLinks } from "../services/rag/entityMatcher.js";
 import { Icon } from "@delebash/llm-ui";
 import { AppModal } from "@delebash/llm-ui";
 import { EmptyState } from "@delebash/llm-ui";
@@ -53,25 +54,52 @@ function setAll(kind, on) {
   rows.value[kind] = rows.value[kind].map((r) => ({ ...r, accept: on }));
 }
 
+// Aliases arrive from the sweep as an array (E3) and are edited here as a
+// comma-separated string — normalize either shape.
+function parseAliases(value) {
+  if (Array.isArray(value)) return value.map((a) => String(a).trim()).filter(Boolean);
+  return String(value || "").split(",").map((a) => a.trim()).filter(Boolean);
+}
+
 function commit() {
   let added = 0;
+  // E1 (RAG build): the sweep KNOWS which chapters each entity came from —
+  // keep that provenance through accept by scanning the origin chapters'
+  // scenes for the accepted names/aliases (the shared matcher, no LLM) and
+  // setting the scene presence links in ONE batched store action.
+  const accepted = [];
   for (const r of rows.value.characters) {
     if (!r.accept) continue;
-    project.addCharacter({ name: r.name, role: r.role, oneLiner: r.oneLiner });
+    const aliases = parseAliases(r.aliases);
+    const id = project.addCharacter({ name: r.name, role: r.role, oneLiner: r.oneLiner, aliases });
+    accepted.push({ kind: "character", entityId: id, name: r.name, aliases, origins: r.originChapters || [] });
     added++;
   }
   for (const r of rows.value.locations) {
     if (!r.accept) continue;
-    project.addLocation({ name: r.name, kind: r.kind, note: r.note });
+    const id = project.addLocation({ name: r.name, kind: r.kind, note: r.note });
+    accepted.push({ kind: "location", entityId: id, name: r.name, aliases: [], origins: r.originChapters || [] });
     added++;
   }
   for (const r of rows.value.objects) {
     if (!r.accept) continue;
-    project.addObject({ name: r.name, kind: r.kind, note: r.note });
+    const id = project.addObject({ name: r.name, kind: r.kind, note: r.note });
+    accepted.push({ kind: "object", entityId: id, name: r.name, aliases: [], origins: r.originChapters || [] });
     added++;
   }
-  ui.showToast({ message: `Added ${added} ${added === 1 ? "entity" : "entities"} to the story bible.` });
-  emit("committed", { added });
+
+  const originIds = new Set(accepted.flatMap((a) => a.origins.map((oc) => oc.id)));
+  let linked = 0;
+  if (originIds.size) {
+    const proposals = proposeSceneLinks(project, accepted, { chapterIds: originIds });
+    linked = project.applyScenePresenceLinks(proposals);
+  }
+
+  ui.showToast({
+    message: `Added ${added} ${added === 1 ? "entity" : "entities"} to the story bible.` +
+      (linked ? ` Linked to ${linked} scene${linked === 1 ? "" : "s"}.` : ""),
+  });
+  emit("committed", { added, linked });
   emit("close");
 }
 
@@ -126,6 +154,13 @@ function originTitle(originChapters) {
                 <input class="er-primary" v-model="r[sec.primary]" :placeholder="sec.primary" :disabled="!r.accept" />
               </div>
               <input class="er-blurb" v-model="r[sec.blurb]" :placeholder="sec.blurb" :disabled="!r.accept" />
+              <!-- E3: the sweep proposes aliases for characters — editable
+                   (comma-separated) before accept; they feed dedupe, pinning,
+                   and the scene-link matcher. -->
+              <input v-if="sec.key === 'characters'" class="er-blurb"
+                :value="Array.isArray(r.aliases) ? r.aliases.join(', ') : (r.aliases || '')"
+                placeholder="aliases (comma-separated)" :disabled="!r.accept"
+                @input="r.aliases = $event.target.value" />
               <div v-if="r.originChapters?.length" class="er-origins" v-tooltip.bottom="originTitle(r.originChapters)">
                 <span class="er-origin-lbl">Found in</span>
                 <span v-for="oc in r.originChapters.slice(0, 6)" :key="oc.id" class="er-origin-chip">Ch. {{ oc.num }}</span>

@@ -14,18 +14,10 @@
 // downside is a few wasted output tokens per duplicate. Worth it for the
 // 3-4× wall-clock speed-up on a long book.
 
+import { normalizeName as normName } from "../text.js";
 import { extractEntities } from "./entityExtraction.js";
 
 const DEFAULT_CONCURRENCY = 4;
-
-function normName(s) {
-  return String(s || "")
-    .toLowerCase()
-    .normalize("NFC")
-    .replace(/[^\p{Letter}\p{Number}\s]/gu, "")
-    .replace(/\s+/g, " ")
-    .trim();
-}
 
 // Merge a freshly-scanned chapter's proposals into the running aggregate.
 // Same-name proposals get their `originChapters` list extended; the first
@@ -48,6 +40,15 @@ function mergeProposals(into, fresh, chapter) {
         // Backfill empty fields from later mentions.
         for (const f of ["role", "kind", "oneLiner", "note"]) {
           if (!existing[f] && item[f]) existing[f] = item[f];
+        }
+        // E3: aliases UNION across chapters (different chapters may use
+        // different nicknames for the same person).
+        if (Array.isArray(item.aliases) && item.aliases.length) {
+          const have = new Set((existing.aliases || []).map(normName));
+          existing.aliases = [
+            ...(existing.aliases || []),
+            ...item.aliases.filter((a) => !have.has(normName(a))),
+          ];
         }
       } else {
         list.push({ ...item, originChapters: [ref] });

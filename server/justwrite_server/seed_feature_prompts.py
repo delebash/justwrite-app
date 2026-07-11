@@ -193,7 +193,7 @@ Identify NEW named characters, locations, and objects that appear in the chapter
 
 Return ONLY a JSON object with three arrays:
 {
-  "characters": [{ "name": <string>, "role": <short label>, "oneLiner": <one sentence>, "evidence": <short quote from text> }],
+  "characters": [{ "name": <string>, "role": <short label>, "oneLiner": <one sentence>, "aliases": [<other names/nicknames the text uses for them>], "evidence": <short quote from text> }],
   "locations":  [{ "name": <string>, "kind": <short label>, "note": <one sentence>, "evidence": <short quote> }],
   "objects":    [{ "name": <string>, "kind": <short label>, "note": <one sentence>, "evidence": <short quote> }]
 }
@@ -203,6 +203,7 @@ Rules:
 - An object is included only if it has narrative weight (named, referenced more than once, or a Chekhov's gun candidate). Skip incidental nouns.
 - For each entity, include a SHORT evidence quote (under 14 words) from the chapter so the human reviewer can verify.
 - One entry per entity even if it appears multiple times.
+- A character's "aliases" lists OTHER names the chapter uses for the same person (nicknames, titles, surnames used alone); [] when the text uses only one name.
 - Skip entities listed in the "Already in the story bible" section below — don't re-propose them.
 - If a category is empty, return [] for it.
 - Return ONLY the JSON, no preface, no markdown fences."""
@@ -232,6 +233,10 @@ _ENTITY_SCHEMA = json.dumps({
                 "name": {"type": "string"},
                 "role": {"type": "string"},
                 "oneLiner": {"type": "string"},
+                # E3 (RAG build): other names the text uses for the same person —
+                # feeds dedupe, ask-time pinning, and the scene-link matcher.
+                # Character-only; _ENTITY_ITEM (locations/objects) has no aliases.
+                "aliases": {"type": "array", "items": {"type": "string"}},
                 "evidence": {"type": "string"},
             },
             "required": ["name"],
@@ -921,7 +926,9 @@ DEFAULT_FEATURE_PROMPTS: dict[str, dict] = {
         "feature": "chat",
         "system": (
             "You are an assistant answering questions about a novel manuscript. "
-            "Use ONLY the provided excerpts. Cite each claim by chapter using the "
+            "Use ONLY the provided excerpts. Excerpts labeled 'Story Bible' are the "
+            "author's own reference notes about a character, place, or other story "
+            "element; the rest are manuscript passages. Cite each claim using the "
             "bracketed reference numbers (e.g. [1], [2]) that appear before each excerpt. "
             "When the user asks a follow-up, use prior turns for pronoun/entity context but "
             "still cite only from the freshly retrieved excerpts."
@@ -1040,3 +1047,43 @@ for _k, _lbl in _ACTION_LABELS.items():
 for _key, _meta in _ACTION_META.items():
     if _key in DEFAULT_FEATURE_PROMPTS:
         DEFAULT_FEATURE_PROMPTS[_key].update(_meta)
+
+# ── Prompt stale-heals (the QC-43a pattern for prompts, RAG build 2026-07-11) ──
+# Prompt seeding is insert-if-missing, so a seed-text REVISION can't reach an
+# existing DB by itself. Each entry lists a key's OLD exact system texts; the
+# runner's generic heal loop refreshes system + json_schema from the CURRENT
+# spec ONLY when the row still carries one of these byte-exact — a user-edited
+# prompt is never touched. HOST data, passed via install_llm (the old strings
+# never enter the shared runner seed).
+FEATURE_PROMPT_HEALS: dict[str, list[str]] = {
+    # Pre-Move-1 "chat": before the excerpts could contain Story Bible cards.
+    "chat": [
+        "You are an assistant answering questions about a novel manuscript. "
+        "Use ONLY the provided excerpts. Cite each claim by chapter using the "
+        "bracketed reference numbers (e.g. [1], [2]) that appear before each excerpt. "
+        "When the user asks a follow-up, use prior turns for pronoun/entity context but "
+        "still cite only from the freshly retrieved excerpts."
+    ],
+    # Pre-E3 "entitySweep": before characters carried aliases (the heal also
+    # refreshes json_schema, so the schema gains the aliases property too).
+    "entitySweep": [
+        """You are a story-bible assistant scanning a single chapter of fiction.
+Identify NEW named characters, locations, and objects that appear in the chapter.
+
+Return ONLY a JSON object with three arrays:
+{
+  "characters": [{ "name": <string>, "role": <short label>, "oneLiner": <one sentence>, "evidence": <short quote from text> }],
+  "locations":  [{ "name": <string>, "kind": <short label>, "note": <one sentence>, "evidence": <short quote> }],
+  "objects":    [{ "name": <string>, "kind": <short label>, "note": <one sentence>, "evidence": <short quote> }]
+}
+
+Rules:
+- Only include named entities — proper nouns. Skip "the man", "a sword", "the village".
+- An object is included only if it has narrative weight (named, referenced more than once, or a Chekhov's gun candidate). Skip incidental nouns.
+- For each entity, include a SHORT evidence quote (under 14 words) from the chapter so the human reviewer can verify.
+- One entry per entity even if it appears multiple times.
+- Skip entities listed in the "Already in the story bible" section below — don't re-propose them.
+- If a category is empty, return [] for it.
+- Return ONLY the JSON, no preface, no markdown fences."""
+    ],
+}

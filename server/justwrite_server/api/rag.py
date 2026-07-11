@@ -99,11 +99,15 @@ async def search(project_id: str, body: RagSearchBody, db: Session = Depends(get
     items = []
     for r in rows:
         chunk = json.loads(r.chunk)
+        # BM25 scores over text + the scene's entity-links line (Move 3) so
+        # "who/where" terms hit scenes whose prose never names the entity;
+        # vectors and the returned chunk are untouched.
+        links = chunk.get("links", "")
         items.append(
             {
                 "id": r.chunk_id,
                 "vector": json.loads(r.vector),
-                "text": chunk.get("text", ""),
+                "text": f"{chunk.get('text', '')} {links}" if links else chunk.get("text", ""),
                 "chunk": chunk,
             }
         )

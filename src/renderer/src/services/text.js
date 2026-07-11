@@ -62,6 +62,40 @@ export function textToHtml(text, { lineAsParagraph = false } = {}) {
     .join("");
 }
 
+// Normalize a name/label for fuzzy comparison: lowercase, NFC, strip
+// punctuation, collapse whitespace. THE one normalizer (RAG build panel
+// catch, 2026-07-11) — this body used to live as three byte-identical
+// copies in entityExtraction.js, entitySweep.js, and foreshadowingScan.js;
+// they import this now, as does the RAG entity matcher. Never re-copy it.
+export function normalizeName(s) {
+  return String(s || "")
+    .toLowerCase()
+    .normalize("NFC")
+    .replace(/[^\p{Letter}\p{Number}\s]/gu, "")
+    .replace(/\s+/g, " ")
+    .trim();
+}
+
+function escapeRe(s) {
+  return s.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+}
+
+// Does `text` mention `term`? Single-token terms must match at a word
+// boundary so "key" doesn't match "monkey"; multi-word terms match as
+// substrings since they're already distinctive. Extracted from
+// foreshadowingScan's chapterMentionsTerm (the precedent) so the RAG entity
+// matcher shares ONE primitive. `caseSensitive: true` keeps the term's own
+// capitalization (the common-word name guard).
+export function textMentionsTerm(text, term, { caseSensitive = false } = {}) {
+  if (!term) return false;
+  const t = caseSensitive ? String(text || "") : String(text || "").toLowerCase();
+  const k = (caseSensitive ? String(term) : String(term).toLowerCase()).trim();
+  if (!k) return false;
+  if (/\s/.test(k)) return t.includes(k);
+  const re = new RegExp(`(?:^|[^\\p{Letter}\\p{Number}])${escapeRe(k)}(?:[^\\p{Letter}\\p{Number}]|$)`, "u");
+  return re.test(t);
+}
+
 // Last `max` whitespace-separated words of `text` — the most recent prose is
 // what matters for "where did I leave off". Returns `text` unchanged when it
 // is short enough; `ellipsis: true` prefixes "… " when truncation happened.

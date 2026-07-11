@@ -8,20 +8,10 @@
 
 import { runAiFeature } from "@delebash/llm-ui";
 import { parseJsonLoose } from "../llmText.js";
-import { htmlToText } from "../text.js";
-
-// Normalize a string for fuzzy duplicate detection: lowercase, strip
-// punctuation, collapse whitespace. "The Old Lighthouse" and "Old
-// Lighthouse" still differ — we don't try to be clever; the writer can
-// edit names in the review list before accepting.
-function norm(s) {
-  return String(s || "")
-    .toLowerCase()
-    .normalize("NFC")
-    .replace(/[^\p{Letter}\p{Number}\s]/gu, "")
-    .replace(/\s+/g, " ")
-    .trim();
-}
+import { htmlToText, normalizeName as norm } from "../text.js";
+// norm(): "The Old Lighthouse" and "Old Lighthouse" still differ — we don't
+// try to be clever; the writer can edit names in the review list before
+// accepting. (The normalizer body converged into services/text.js, 2026-07-11.)
 
 // The prompt lives server-side (features.py, action "entitySweep").
 
@@ -117,6 +107,12 @@ export async function extractEntities({
         oneLiner: typeof item?.oneLiner === "string" ? item.oneLiner.trim() : "",
         note: typeof item?.note === "string" ? item.note.trim() : "",
         evidence: typeof item?.evidence === "string" ? item.evidence.trim() : "",
+        // E3: other names the text uses for the same person (characters only;
+        // the prompt/schema propose them). Validated to a clean string list,
+        // never the entity's own name.
+        aliases: Array.isArray(item?.aliases)
+          ? item.aliases.map((a) => String(a).trim()).filter((a) => a && norm(a) !== k)
+          : [],
       });
     }
     return out;

@@ -92,3 +92,20 @@ def test_edit_changes_what_run_sends(tmp_path):
 def test_reset_unknown_default_400(tmp_path):
     c = _client(tmp_path)
     assert c.post("/v1/ai/prompts/custom-thing/reset").status_code == 400
+
+
+def test_entity_sweep_schema_has_character_aliases_only():
+    """E3 (RAG build): the entitySweep json_schema proposes aliases on the
+    CHARACTER item only — locations/objects (the shared _ENTITY_ITEM) must
+    not grow an aliases field."""
+    import json
+
+    from justwrite_server.seed_feature_prompts import DEFAULT_FEATURE_PROMPTS
+
+    schema = json.loads(DEFAULT_FEATURE_PROMPTS["entitySweep"]["json_schema"])
+    char_props = schema["properties"]["characters"]["items"]["properties"]
+    assert char_props["aliases"] == {"type": "array", "items": {"type": "string"}}
+    for kind in ("locations", "objects"):
+        assert "aliases" not in schema["properties"][kind]["items"]["properties"]
+    # The prompt text describes the same field.
+    assert "aliases" in DEFAULT_FEATURE_PROMPTS["entitySweep"]["system"]

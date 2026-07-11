@@ -14,6 +14,7 @@ import { useAiTasksStore, AiTaskStrip, EmptyState, HelpTrigger, Icon, UiButton, 
 import { useUiStore } from "../stores/ui.js";
 import { askManuscript } from "../services/rag/chat.js";
 import { askAsCharacter } from "../services/rag/characterChat.js";
+import { citationLabel } from "../services/rag/excerpts.js";
 import { indexStatus } from "../services/rag/indexer.js";
 import { autoIndexRunning } from "../services/rag/autoIndex.js";
 import { fetchThread, putThread, deleteThread } from "../services/chatApi.js";
@@ -320,9 +321,23 @@ function onIndexBuilt() {
   refreshStatus();
 }
 
+// A story-bible card citation navigates to the entity's own page (Move 1);
+// architecture doc ids ARE the route param (/architecture/premise). Scene
+// citations keep the chapter navigation.
+const CARD_ROUTES = {
+  character: "characters", location: "locations", object: "objects",
+  group: "groups", worldbuilding: "worldbuilding", note: "notes",
+  strand: "strands", architecture: "architecture",
+};
 function openCitation(c) {
-  if (!c?.chunk?.chapterId) return;
-  router.push(`/chapters/${c.chunk.chapterId}`);
+  const chunk = c?.chunk;
+  if (chunk?.kind && CARD_ROUTES[chunk.kind]) {
+    router.push(`/${CARD_ROUTES[chunk.kind]}/${chunk.entityId}`);
+    close();
+    return;
+  }
+  if (!chunk?.chapterId) return;
+  router.push(`/chapters/${chunk.chapterId}`);
   close();
 }
 
@@ -418,16 +433,14 @@ defineExpose({ open: () => { open.value = true; }, close });
                 <div class="cp-bubble cp-bubble-assistant">{{ m.content || (m.pending ? "…" : "") }}</div>
                 <div v-if="m.citations && m.citations.length" class="cp-cites">
                   <ol class="cp-cite-list">
+                    <!-- ONE label source: citationLabel(chunk) — the same string the
+                         LLM saw before its excerpt (the old inline chapter template
+                         was a drifted duplicate; converged, Move 1). -->
                     <li v-for="c in m.citations" :key="c.index" class="cp-cite" @click="openCitation(c)">
                       <span class="cp-cite-num">[{{ c.index }}]</span>
-                      <span class="cp-cite-meta">
-                        <b>Ch. {{ c.chunk.chapterNum }}</b>
-                        <span class="cp-cite-ch">{{ c.chunk.chapterTitle || "Untitled" }}</span>
-                        <span v-if="c.chunk.sceneTitle || c.chunk.sceneIdx != null" class="cp-cite-sc">
-                          · {{ c.chunk.sceneTitle || `Scene ${c.chunk.sceneIdx + 1}` }}
-                        </span>
-                      </span>
-                      <span class="cp-cite-score">{{ (c.score * 100).toFixed(0) }}%</span>
+                      <span class="cp-cite-meta">{{ citationLabel(c.chunk) }}</span>
+                      <span v-if="c.pinned" class="cp-cite-score" title="Pinned from the story bible — this entity was named in your question">pinned</span>
+                      <span v-else class="cp-cite-score">{{ (c.score * 100).toFixed(0) }}%</span>
                     </li>
                   </ol>
                 </div>

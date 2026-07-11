@@ -10,6 +10,7 @@ import { promptDialog } from "@delebash/llm-ui";
 import { Icon } from "@delebash/llm-ui";
 import DateTimePicker from "./DateTimePicker.vue";
 import { UiButton } from "@delebash/llm-ui";
+import { POV_OPTIONS } from "../services/povOptions.js";
 
 const props = defineProps({
   chapterId: { type: String, required: true },
@@ -24,14 +25,8 @@ const scene = computed(() => {
   return list.find((s) => s.id === props.sceneId) || null;
 });
 
-const POV_OPTIONS = [
-  { value: "first",            label: "First person" },
-  { value: "secondary-first",  label: "Secondary first person" },
-  { value: "limited-third",    label: "Limited third person" },
-  { value: "omniscient-third", label: "Omniscient third person" },
-  { value: "objective-third",  label: "Objective third person" },
-  { value: "second",           label: "Second person" },
-];
+// POV_OPTIONS moved to services/povOptions.js (one source — the RAG card
+// lines render the same labels).
 
 function update(patch) {
   if (!scene.value) return;

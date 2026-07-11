@@ -1,7 +1,10 @@
 // Manuscript chunker — splits a project into per-scene Chunk objects for RAG
-// indexing. Two exports:
+// indexing, plus the story-bible CARD chunks (Move 1 — cards.js builds them;
+// one chunk per entity, ids "card:<kind>:<entityId>"). Two exports:
 //   chunkProject(project)       — sync, no sha (fast path for diff checks)
 //   chunkProjectAsync(project)  — async, fills sha via crypto.subtle
+
+import { buildEntityCards, sceneLinksLine } from "./cards.js";
 
 // Strip all AI diff marks and scene-break decorations from an HTML string,
 // returning trimmed plain text with runs of whitespace collapsed to a single
@@ -72,10 +75,20 @@ export function chunkProject(project) {
         sceneIdx: si,
         sceneTitle: scene.title || "",
         text,
+        // Move 3: the scene's entity links as names — BM25 scores over
+        // text+links server-side and the excerpt shows the line; the
+        // EMBEDDED text stays pure prose (vectors unpolluted).
+        links: sceneLinksLine(project, scene),
         sha: "",
       });
     }
   }
+
+  // Story-bible cards ride the same index (Move 1). The sha-diff adds them
+  // incrementally and the all-mutations auto-watcher re-embeds an edited
+  // entity's card like any changed chunk; deleting an entity removes its
+  // card via the same diff (toRemove).
+  chunks.push(...buildEntityCards(project));
 
   return chunks;
 }
@@ -91,7 +104,10 @@ export async function chunkProjectAsync(project) {
   const chunks = chunkProject(project);
   await Promise.all(
     chunks.map(async (chunk) => {
-      chunk.sha = await sha1Hex(chunk.text);
+      // Scene shas cover text + links so a link edit re-uploads the chunk
+      // (the server copy can never go stale; the redundant same-text re-embed
+      // is one scene per edit — negligible). Cards sha their text alone.
+      chunk.sha = await sha1Hex(chunk.links != null ? `${chunk.text}\n${chunk.links}` : chunk.text);
     }),
   );
   return chunks;

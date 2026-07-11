@@ -6,6 +6,28 @@ Recent changes worth noticing. Older entries fall off the bottom — see the [Ro
 
 ## v1.0.0 — 2026-06
 
+**Ask the book knows your story bible.** Grounded chat used to see only your
+prose — "who is X?" came back as a guess from scenes. Now every character,
+location, object, group, worldbuilding article, note, strand, and
+architecture doc is part of the searchable index as a "Story Bible" entry,
+naming an entity in your question pins its entry into the answer's sources
+(marked "pinned" in the citations), scene excerpts carry their linked
+characters/location/objects/POV even when the prose doesn't name them, and
+clicking a Story Bible citation jumps to that entity's page. If you already
+built a book index, open Ask the book and hit **Rebuild** once (it also
+self-heals on the next index update) — the embedding models now apply their
+proper task instructions, which sharpens search for everyone.
+
+**Imports split into real scenes.** Importing a manuscript now detects the
+standard scene-break markers ("* * *", "#", a horizontal rule) and creates
+one scene per section instead of one giant scene per chapter — so search,
+chat excerpts, and scene links work at the right grain on imported books.
+
+**The entity sweep keeps its receipts.** Accepting a proposed character,
+location, or object now also links it to the scenes it appears in (the
+Relations graph fills in instead of staying empty), and character proposals
+include the nicknames/aliases the text uses — editable before you accept.
+
 **A welcome screen on first run.** A fresh JustWrite now opens on a welcome
 page: start a new project or the tutorial book with one click, see what the
 app does at a glance, and — if you want the AI features — run Quick Setup

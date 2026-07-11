@@ -65,6 +65,27 @@ def test_search_skips_mismatched_dims(tmp_path):
     assert c.post("/v1/rag/p1/search", json={"vector": [1.0, 0.0], "k": 5}).json() == []
 
 
+def test_search_bm25_scores_scene_links(tmp_path):
+    """Move 3 (RAG build): a query term that appears ONLY in a scene chunk's
+    `links` line (its entity names) still ranks that chunk via the BM25 leg —
+    "where is X" works even when the prose never names the place."""
+    c = _c(tmp_path)
+    c.put("/v1/rag/p1", json={"model": "m", "items": [
+        {"chunkId": "a", "sha": "1", "vector": [1.0, 0.0],
+         "chunk": {"id": "a", "text": "She waited by the desk.",
+                   "links": "Characters: Aria · Location: Customs House"}},
+        {"chunkId": "b", "sha": "1", "vector": [1.0, 0.0],
+         "chunk": {"id": "b", "text": "A quiet morning with nothing.", "links": ""}},
+    ]})
+    # Identical vectors → cosine ties; only the links text can separate them.
+    res = c.post("/v1/rag/p1/search", json={
+        "vector": [1.0, 0.0], "queryText": "customs house", "k": 2}).json()
+    assert res[0]["chunk"]["id"] == "a"
+    assert res[0]["bmScore"] > 0
+    # Chunks with no links field (pre-Move-3 rows, cards) still search fine.
+    assert res[1]["chunk"]["id"] == "b"
+
+
 def test_projects_isolated(tmp_path):
     c = _c(tmp_path)
     c.put("/v1/rag/p1", json={"model": "m", "items": [
