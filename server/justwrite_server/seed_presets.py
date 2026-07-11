@@ -102,7 +102,7 @@ DEFAULT_MODEL_CATALOG_EXTRA: list[dict] = [
     {"id": "gemma-4-26b-a4b-qat", "name": "Gemma 4 26B-A4B (QAT)",
      "hf_repo": "unsloth/gemma-4-26B-A4B-it-qat-GGUF", "quant": "UD-Q4_K_XL",
      "total_params": "26B", "active_params": "4B", "mtp": True, "type": "moe",
-     "mtp_draft_file": "MTP/gemma-4-26B-A4B-it-Q4_0-MTP.gguf", "mtp_draft_quant": "Q4_0",
+     "mtp_draft_file": "MTP/mtp-gemma-4-26B-A4B-it-Q4_0.gguf", "mtp_draft_quant": "Q4_0",
      # samplers = the file's own recommended set (live header read 2026-07-07 — the
      # read-from-link parity item: the seed ships exactly what Read-from-link detects).
      "samplers": {"top_k": "64", "top_p": "0.95", "temperature": "1"},
