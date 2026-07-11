@@ -8,7 +8,7 @@
 
 import { runAiFeatureStream } from "@delebash/llm-ui";
 import { useProjectStore } from "../stores/project.js";
-import { textToHtml } from "./text.js";
+import { htmlToText, textToHtml } from "./text.js";
 import { buildVoiceFingerprint } from "./voiceFingerprint.js";
 
 // The voice-canon fingerprint as a server-prompt variable: the project's
@@ -26,15 +26,11 @@ export function voiceCanonVar() {
   return "";
 }
 
-// Strip HTML tags for prompts that work on plain text (passive voice
-// rules, sentence variety, etc. — we don't want the LLM rewriting <em>
-// into "em").
-function htmlToText(html) {
-  if (!html) return "";
-  const div = document.createElement("div");
-  div.innerHTML = html;
-  return div.textContent || "";
-}
+// htmlToText/textToHtml come from the shared services/text.js. The calls
+// below pass { stripSceneMarks: false, trim: false } to preserve writerAI's
+// prior behavior; the shared htmlToText additionally strips pending AI-diff
+// marks (.ai-del/.ai-ins) so the model never rewrites its own suggestions
+// back to itself (the I1 latent-bug fix — the local copy never did).
 
 // Wrapping the LLM reply back into editor HTML (blank-line paragraphs,
 // single newlines as <br>) is the shared textToHtml's default grammar
@@ -121,7 +117,7 @@ function editorTask(task, fallbackLabel, meta) {
 async function runAction(actionKey, { html, signal, onDelta, meta, provider, model, temperature, task } = {}) {
   const action = ACTIONS[actionKey];
   if (!action) throw new Error(`Unknown action: ${actionKey}`);
-  const source = htmlToText(html);
+  const source = htmlToText(html, { stripSceneMarks: false, trim: false });
   if (!source.trim()) throw new Error("There's nothing to work on.");
 
   // The prompt (system + instruction) is rendered server-side from the
@@ -161,7 +157,7 @@ export function describe(opts)  { return runAction("describe", opts); }
  * @param {string} [opts.model]
  */
 export async function guidedContinue({ html, instruction, signal, onDelta, meta, provider, model, temperature, task } = {}) {
-  const source = htmlToText(html);
+  const source = htmlToText(html, { stripSceneMarks: false, trim: false });
   if (!source.trim()) throw new Error("There's nothing to continue from.");
   const trimmed = String(instruction || "").trim();
   if (!trimmed) throw new Error("Guided Continue needs a one-line direction.");
@@ -181,7 +177,7 @@ export async function guidedContinue({ html, instruction, signal, onDelta, meta,
 export async function applyRule(ruleKey, { html, signal, onDelta, meta, provider, model, temperature, task } = {}) {
   const rule = PROSE_RULES[ruleKey];
   if (!rule) throw new Error(`Unknown rule: ${ruleKey}`);
-  const source = htmlToText(html);
+  const source = htmlToText(html, { stripSceneMarks: false, trim: false });
   if (!source.trim()) throw new Error("There's nothing to work on.");
 
   // Instruction lives server-side in "writerAI.rule.<key>" (seeded at 0.6).

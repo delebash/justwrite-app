@@ -6,10 +6,12 @@
 // trimming, line tidying; "…" truncation prefix). Single source of truth
 // here (the llmText.js convergence, applied to prose input prep); import
 // instead of redefining. Genuine variants stay local where the behavior
-// really differs: writerAI.js and versionDiff.js keep the AI diff marks
-// (htmlToText only — writerAI's textToHtml converged here),
-// voiceFingerprint.js collapses ALL whitespace, labTestData.js collapses
-// blank-line runs, and voiceDrift.js's tailWords takes the HEAD of the text.
+// really differs: versionDiff.js keeps the AI diff marks (it diffs raw
+// stored content, not an LLM prompt), voiceFingerprint.js collapses ALL
+// whitespace, labTestData.js collapses blank-line runs, and voiceDrift.js's
+// tailWords takes the HEAD of the text. (writerAI.js converged onto this
+// module — its local copy was a latent bug: it never stripped AI marks
+// from prompts.)
 
 // Strip an HTML chapter/scene body down to plain text. Always removes
 // pending AI-diff marks (.ai-del dropped, .ai-ins unwrapped) so an LLM never
