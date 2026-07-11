@@ -727,6 +727,14 @@ export const useProjectStore = defineStore("project", {
     auditFor:          (s) => (characterId) => s.characterAudits[characterId] || null,
     projectsList:      (s) => s._projects,
     activeProjectId:   (s) => s._activeId,
+    // True once a project is loaded. `_activeId` is null in exactly the zero-
+    // project states — a fresh workspace, a post-reset DB, or the last project
+    // deleted — and createProject/openDemoProject/switchProject set it (boot's
+    // ensureActiveProjectPersisted is a no-op while null, so it never mints).
+    // Drives App.vue's shell-vs-onboarding branch: the project Sidebar + data nav
+    // mount ONLY when this is true, so the zero-project state can't render a
+    // phantom "Untitled" project's chrome.
+    hasActiveProject:  (s) => s._activeId != null,
     statusById:        (s) => (id) => s.statuses.find((x) => x.id === id) || null,
   },
 

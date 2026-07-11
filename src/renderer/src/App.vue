@@ -7,6 +7,7 @@ import { applyAppearance } from "./services/appearance.js";
 import { applyEditorSettings } from "./services/editorSettings.js";
 import TitleBar from "./components/TitleBar.vue";
 import Sidebar from "./components/Sidebar.vue";
+import OnboardingShell from "./components/OnboardingShell.vue";
 import { Toast } from "@delebash/llm-ui";
 import { AppDialog } from "@delebash/llm-ui";
 import CommandPalette from "./components/CommandPalette.vue";
@@ -126,7 +127,10 @@ onBeforeUnmount(() => window.removeEventListener("keydown", onKey, { capture: tr
 <template>
   <div class="app-stage">
     <TitleBar :title="barTitle" />
-    <div class="app" :class="{ collapsed: ui.sidebarCollapsed }"
+    <!-- The project shell (Sidebar + data nav) mounts ONLY with a project loaded;
+         otherwise the projectless onboarding shell renders the same routed view
+         (welcome / ai / help) with a slim header — no phantom "Untitled". -->
+    <div v-if="project.hasActiveProject" class="app" :class="{ collapsed: ui.sidebarCollapsed }"
       :style="ui.sidebarCollapsed ? null : `grid-template-columns: ${ui.sidebarWidth}px 1fr`">
       <Sidebar />
       <main class="main" :data-screen-label="screenLabel">
@@ -135,6 +139,11 @@ onBeforeUnmount(() => window.removeEventListener("keydown", onKey, { capture: tr
         </router-view>
       </main>
     </div>
+    <OnboardingShell v-else>
+      <router-view v-slot="{ Component }">
+        <component :is="Component" />
+      </router-view>
+    </OnboardingShell>
     <Toast />
     <AppDialog />
     <CommandPalette ref="palette" />
