@@ -513,11 +513,17 @@ and ledger C9 (model-quality research) is ⛔ NOT DOING — "c9 mark as not
 doing" (marked in the outstanding-master-plan §C9). Full record: queue doc
 tail ("THE SEVENTEENTH-COMPACT POINT"). THEN the user opened the next
 thread: **RAG research** ("make jw rag work better — it only scans scenes") —
-findings + proposal in `docs/plans/2026-07-10-rag-story-bible-research.md`
-(corpus is scenes-only at chunker.js:46-81; BM25+cosine+RRF hybrid ALREADY
-shipped server-side, NOT sqlite-vec; proposal = bible cards + Novelcrafter-
-style entity pinning + scene link headers; 4 open decisions). AWAITING the
-user's go — nothing built.
+findings + FOUR passes of design in
+`docs/plans/2026-07-10-rag-story-bible-research.md` (THE SPEC: corpus is
+scenes-only; the RRF hybrid already exists server-side, NOT sqlite-vec; the
+live Move-0 embed-template bug — nomic/Qwen3 prefixes never applied; bible
+cards + entity pinning + scene links + the E extraction moves + E5 import
+scene-splitting; Quick Setup embed-pick BUG grounded → harness task #274,
+sequenced after). **THE GO IS ARMED (2026-07-11, user verbatim: "i will
+take your recs, we need to compact first")** — recs taken: named-entity-only
+pinning, hide-flag deferred, sqlite-vec parked, PDF import not now. Pickup:
+queue doc tail "THE EIGHTEENTH-COMPACT POINT" → read the research doc IN
+FULL → PANEL-check the build plan → build across BOTH repos.
 
 **GO (2026-07-10 late evening, post-fifteenth-compact — superseded by the
 paragraph above) — I1 + I4 LANDED (both
