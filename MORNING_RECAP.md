@@ -554,7 +554,23 @@ record) · checker verdict at the commit. Full record: queue doc tail
 **"#274 BUILD RECORD"**. OPEN on the user's word: the embed CPU-placement
 guarantee; their live 4B-on-CPU question answered with the A/B recipe
 (record + chat); "make the 4b my default" = one seed value + two test
-expectations.
+expectations. **Shipped: runner `fa436a7` · JW `04e5813`, both pushed, both
+trees clean.**
+
+**⛔ THE STATE AT THE TWENTY-FIRST COMPACT (2026-07-11) — NOTHING ARMED,
+NO STANDING GO.** #274 is shipped + closed (the paragraph above); the whole
+52-item batch + every QC cluster + #235 + #237 + the RAG build + #274 are all
+SHIPPED. The user asked for the full open-work inventory this window and got
+it (delivered from the ledger §A–J); the biggest real remaining build is **F1
+JustVoice convergence**, everything else is a user decision (the two #274
+follow-ups · I2 cloud caching · #256 spell-check), a your-box check (§G),
+parked (D5/D6/I3/I5/EmbeddingGemma), NOT DOING (C9), or an idea (§J1–J3). THE
+FULL PICKUP — state, the two #274 follow-ups, the saved 4B-vs-0.6B A/B recipe,
+the whole inventory, the environment lessons, and the post-compact order (no
+armed go; answer questions first, then WAIT for the user to name the next
+item) — lives in the queue doc tail **"THE TWENTY-FIRST-COMPACT POINT"**. Read
+that block first after the compact. The authoritative open-work source stays
+the ledger `just-llm-runner/docs/plans/2026-07-06-outstanding-master-plan.md`.
 
 **GO (2026-07-10 late evening, post-fifteenth-compact — superseded by the
 paragraph above) — I1 + I4 LANDED (both
