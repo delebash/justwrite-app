@@ -402,7 +402,11 @@ the JW series), each code commit verdict-gated. Both repos on
 - **F4** prompt changes reach existing DBs via a QC-43a-style
   exact-old-text heal; user-edited prompts never touched.
 - **F5** the common-word pin guard (capitalized-form requirement for
-  single-token names).
+  single-token names) — REFINED at build: the capitalization requirement
+  applies only when the text uses capitals at all; an all-lowercase question
+  ("who is rose?" — the lazy-typing chat norm) still matches, because
+  capitalization carries no signal there. "The rose garden" (capitals
+  present, occurrence lowercase) still never pins Rose.
 - **F6** scene-chunk sha covers text+links (stale-proof server copy; one
   redundant same-text embed per link edit).
 - **F7** the E2 backfill entry point placement + label.
