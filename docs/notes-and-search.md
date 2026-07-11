@@ -155,6 +155,8 @@ A different feature in the same neighbourhood: the **Ask the book** chat panel (
 
 Both the keyboard shortcut and the sidebar item **toggle** the panel — press once to open, again to close. Clicking outside the panel also closes it.
 
+The answers know your **story bible**, not just your prose. Every character, location, object, group, worldbuilding article, note, plot strand, and architecture doc is part of the searchable index as a "Story Bible" entry. Name an entity in your question — *"who is Maren?"* — and her entry is pinned into the answer's sources (marked **pinned** in the citations), so the model always sees your own notes about her, not just a guess from scenes; follow-ups like *"what does she want?"* keep the pin. Clicking a Story Bible citation opens that entity's page; scene citations open the chapter. Scene excerpts also carry their linked characters, location, objects, and point of view, so the answer stays grounded even in scenes where the prose never names them — which is also why keeping scene links tidy pays off (the **Link scenes** button on the Analysis page proposes any missing ones from your prose, no AI involved).
+
 Ask the book requires an AI provider and an embedding model. See [AI providers](ai-providers.md) for setup.
 
 ---

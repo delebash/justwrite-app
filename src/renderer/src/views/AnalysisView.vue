@@ -19,6 +19,7 @@ import BeatSheetModal from "../components/BeatSheetModal.vue";
 import PlotHoleScanModal from "../components/PlotHoleScanModal.vue";
 import MarketingPackModal from "../components/MarketingPackModal.vue";
 import EntitySweepModal from "../components/EntitySweepModal.vue";
+import LinkBackfillModal from "../components/LinkBackfillModal.vue";
 import AiFeatureChip from "../components/AiFeatureChip.vue";
 import { useAiStore } from "../stores/ai.js";
 
@@ -367,6 +368,13 @@ const hasMarketingPack = computed(() => !!project.marketingPack);
 const entitySweepOpen = ref(false);
 function openEntitySweep() { entitySweepOpen.value = true; }
 function closeEntitySweep() { entitySweepOpen.value = false; }
+
+// Link backfill modal (E2, RAG build) — the no-LLM review pass that links
+// existing bible entities to the scenes that mention them. Lives beside the
+// entity sweep: sweep finds NEW entities, backfill links the ones you have.
+const linkBackfillOpen = ref(false);
+function openLinkBackfill() { linkBackfillOpen.value = true; }
+function closeLinkBackfill() { linkBackfillOpen.value = false; }
 
 // ─── Writing heatmap (365 days) ─────────────────────────────────────
 // Build a 53-week × 7-day grid for the year ending today. Each cell is
@@ -742,6 +750,12 @@ const milestoneState = computed(() => {
             <Icon name="Sparkle" :size="12" />
             Entity sweep
           </UiButton>
+          <UiButton v-if="!tensionRunning.value" intent="ghost" size="small"
+                    @click="openLinkBackfill"
+                    v-tooltip.bottom="'Link scenes — match every story-bible name and alias against your prose (no AI) and review which scenes should be linked to which entities'">
+            <Icon name="Pin" :size="12" />
+            Link scenes
+          </UiButton>
           <UiButton v-else-if="tensionRunning.value" intent="danger" size="small" @click="cancelTensionSweep">
             <Icon name="Close" :size="12" /> Cancel
           </UiButton>
@@ -837,6 +851,7 @@ const milestoneState = computed(() => {
     <PlotHoleScanModal v-if="plotHolesOpen" @close="closePlotHoles" />
     <MarketingPackModal v-if="marketingPackOpen" @close="closeMarketingPack" />
     <EntitySweepModal v-if="entitySweepOpen" @close="closeEntitySweep" @committed="closeEntitySweep" />
+    <LinkBackfillModal v-if="linkBackfillOpen" @close="closeLinkBackfill" @applied="closeLinkBackfill" />
 
     <!-- Voice drift -->
     <div v-if="drift.eligible" class="card vd-card" style="margin-bottom:18px">

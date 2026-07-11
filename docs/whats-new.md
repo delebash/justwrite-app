@@ -27,6 +27,9 @@ chat excerpts, and scene links work at the right grain on imported books.
 location, or object now also links it to the scenes it appears in (the
 Relations graph fills in instead of staying empty), and character proposals
 include the nicknames/aliases the text uses — editable before you accept.
+For the entities you already have, a new **Link scenes** button on the
+Analysis page runs a no-AI pass over the whole book and proposes every
+missing scene link for review — nothing applies until you confirm.
 
 **A welcome screen on first run.** A fresh JustWrite now opens on a welcome
 page: start a new project or the tutorial book with one click, see what the

@@ -207,8 +207,13 @@ async function ask() {
     .map((m) => ({ role: m.role, content: m.content }));
 
   thread.value.push({ role: "user", content: q });
-  const assistantMsg = { role: "assistant", content: "", citations: [], pending: true };
-  thread.value.push(assistantMsg);
+  thread.value.push({ role: "assistant", content: "", citations: [], pending: true });
+  // Mutate the turn through the array's REACTIVE proxy: writes on the raw
+  // pushed object bypass Vue's set trap, so the settle (citations/pending)
+  // could land without ever triggering a re-render — the answer then looked
+  // stuck "pending, no citations" until some unrelated update repainted
+  // (surfaced by the rag-probe's instant stub stream, 2026-07-11).
+  const assistantMsg = thread.value[thread.value.length - 1];
   question.value = "";
 
   try {

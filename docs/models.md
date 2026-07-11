@@ -231,6 +231,16 @@ read-only. Pooling is how a model combines its per-word vectors into the single 
 used for search; each embedding model is trained for one specific kind, so it is set per
 model and can't be changed here — the wrong pooling would quietly make search worse.
 
+Embedding rows in the edit form also carry two **task templates** — *Document template*
+and *Query template* — because some embedding models are trained to see a task prefix and
+search noticeably better with it (nomic wants `search_document:` / `search_query:` on the
+two sides; the Qwen3 embeddings want an instruction line on the query side; BGE-M3 wants
+nothing). The catalog seeds each model's published wording with a `{text}` placeholder,
+and every index build wraps your scenes with the document side while every search/chat
+question gets the query side — automatically, per model. Both fields are editable; leave
+one empty and that side embeds raw. If you edit a template after building an index, hit
+**Rebuild** in Ask the book once so the stored vectors match the new wording.
+
 > Installing the local engine itself (the llama.cpp runtime) is separate — that lives on
 > the same **Built-in** provider, above the catalog, as one compact row: **Install engine**
 > when it's absent (the Local engine panel shows its own Install button then too), **Update**

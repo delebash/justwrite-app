@@ -140,9 +140,12 @@ function originTitle(originChapters) {
           <Icon :name="sec.icon" :size="13" />
           <h3>{{ sec.label }}</h3>
           <span class="t-muted">{{ counts[sec.key] }} of {{ rows[sec.key].length }} selected</span>
+          <!-- .tb-text has no global definition (it lives only in RichEditor's
+               scoped block) — the resolving modifier is .tb-btn.wide, which
+               sizes the button to its text (checker note, 2026-07-11). -->
           <div class="er-section-h-actions">
-            <button type="button" class="tb-btn tb-text" @click="setAll(sec.key, true)">All</button>
-            <button type="button" class="tb-btn tb-text" @click="setAll(sec.key, false)">None</button>
+            <button type="button" class="tb-btn wide" @click="setAll(sec.key, true)">All</button>
+            <button type="button" class="tb-btn wide" @click="setAll(sec.key, false)">None</button>
           </div>
         </header>
         <div class="er-list">

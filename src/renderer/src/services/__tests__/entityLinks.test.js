@@ -98,6 +98,40 @@ describe("applyScenePresenceLinks (E1 — the batched store action)", () => {
   });
 });
 
+describe("E2 link backfill (whole-book proposals → ticked apply)", () => {
+  it("scans the whole book unscoped and applies exactly the ticked links", () => {
+    const { store, chId } = seededStore();
+    const ch2 = store.addChapter({ title: "Departure" });
+    const scn2 = store.scenesFor(ch2)[0]?.id || store.addScene(ch2);
+    store.setSceneBody(ch2, scn2, "<p>Aria left the Customs House at dawn.</p>");
+    store.clearHistory();
+    const entities = [
+      { kind: "character", entityId: "c1", name: "Aria", aliases: [] },
+      { kind: "location", entityId: "l1", name: "Customs House", aliases: [] },
+    ];
+    // No chapterIds scope = the E2 whole-book pass (E1 passes origin scopes).
+    const proposals = proposeSceneLinks(store, entities);
+    expect(proposals.map((p) => `${p.chapterId}:${p.field}:${p.id}`).sort()).toEqual([
+      `${chId}:characters:c1`, `${chId}:locations:l1`,
+      `${ch2}:characters:c1`, `${ch2}:locations:l1`,
+    ].sort());
+    // The modal's tick model: the user unticks one row; only ticked rows apply.
+    const ticked = proposals.filter((p) => !(p.chapterId === ch2 && p.id === "c1"));
+    const applied = store.applyScenePresenceLinks(
+      ticked.map((p) => ({ chapterId: p.chapterId, sceneId: p.sceneId, field: p.field, id: p.id })),
+    );
+    expect(applied).toBe(3);
+    expect(store.scenesFor(chId)[0].characters).toEqual(["c1"]);
+    expect(store.scenesFor(chId)[0].locations).toEqual(["l1"]);
+    expect(store.scenesFor(ch2)[0].characters || []).toEqual([]); // the unticked link stayed off
+    expect(store.scenesFor(ch2)[0].locations).toEqual(["l1"]);
+    // Re-running the scan proposes nothing that is already set.
+    const again = proposeSceneLinks(store, entities);
+    expect(again).toHaveLength(1);
+    expect(again[0]).toMatchObject({ chapterId: ch2, field: "characters", id: "c1" });
+  });
+});
+
 describe("extractEntities alias validation (E3)", () => {
   it("keeps a clean alias list and drops self-referential/blank entries", async () => {
     runAiFeature.mockResolvedValueOnce({

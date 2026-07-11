@@ -522,15 +522,24 @@ scene-splitting; Quick Setup embed-pick BUG grounded → harness task #274,
 sequenced after). **THE GO IS ARMED (2026-07-11, user verbatim: "i will
 take your recs, we need to compact first")** — recs taken: named-entity-only
 pinning, hide-flag deferred, sqlite-vec parked, PDF import not now. **THE
-BUILD IS NOW EXECUTING and is most of the way through (2026-07-11, the
-nineteenth compact):** the panel-checked plan is
-`docs/plans/2026-07-11-rag-story-bible-build.md` (tasks #275–#282); Move 0
-(embed templates) SHIPPED verdict-gated (runner `49b367a` + JW `38d0f85`);
-Moves 1/2/3 + E5 + E1/E3 are BUILT, verdict-cleared, and committed with the
-nineteenth save; **E2 (LinkBackfillModal) + T7 (rag-probe + FULL smoke +
-fleet + biome) + T8 (docs) are the post-compact remainder.** Pickup: queue
-doc tail **"THE NINETEENTH-COMPACT POINT"** — it carries the full state,
-the exact pickup order, and the environment lessons.
+BUILD IS COMPLETE (2026-07-11, the twentieth window):** the panel-checked
+plan is `docs/plans/2026-07-11-rag-story-bible-build.md` (tasks #275–#282,
+ALL complete). Move 0 shipped runner `49b367a` + JW `38d0f85`; Moves 1/2/3 +
+E5 + E1/E3 shipped JW `34cd632`; the final window shipped **E2**
+(LinkBackfillModal — the "Link scenes" review pass beside Entity sweep on
+the Analysis toolbar, F7 label flagged), the committed acceptance probe
+`scripts/rag-probe.mjs` (**18/18** — deterministic stub provider on the
+seeded nomic id so the Move-0 templates genuinely fire; byte-verified
+restore), a probe-caught **pre-existing ChatPanel bug FIXED** (the raw
+pushed message object bypassed Vue reactivity, so a settled answer could
+sit without citations until an unrelated repaint — now mutated through the
+array's proxy), and the T8 docs (whats-new · the notes-and-search help
+section · models.md embed-template fields). Gates all green: vitest 135 ·
+build · FULL smoke · the whole probe fleet · biome · JW pytest 82 + ruff ·
+runner pytest 476 + ruff. Full record: queue doc tail **"RAG + EXTRACTION
+BUILD RECORD — THE SHIP"**. Next per the user's sequencing: **task #274**
+(the Quick Setup embed-pick bug — the exact size/fit rule wants the user's
+word before building).
 
 **GO (2026-07-10 late evening, post-fifteenth-compact — superseded by the
 paragraph above) — I1 + I4 LANDED (both
