@@ -36,7 +36,7 @@ async function fire() {
 
   const ai = useAiStore();
   if (!ai.autoRebuildRagIndex) return;
-  if (!ai.embeddingProvider) return;
+  if (!(await ai.ensureEmbeddingDefaults())) return; // self-heal a failed boot fetch (2026-07-11)
 
   const status = await indexStatus();
   if (!status.exists || status.entryCount === 0) return;

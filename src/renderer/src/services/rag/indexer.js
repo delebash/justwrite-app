@@ -53,11 +53,23 @@ async function embedAndPersist({
   projectId, model, chunksToEmbed, idsToRemove, provider, signal, onProgress,
 }) {
   if (idsToRemove.length) await removeIds(projectId, idsToRemove);
+  const items = await embedBatches({ chunks: chunksToEmbed, model, provider, signal, onProgress });
+  await putInBatches(projectId, model, items);
+  if (onProgress) onProgress({ phase: "done" });
+}
 
-  const total = chunksToEmbed.length;
+/**
+ * Embed `chunks` in batches; returns the PUT-ready items. Pure compute — it never
+ * mutates the index, so a caller can stage a FULL replacement before destroying
+ * anything (the non-destructive rebuild, 2026-07-11). Stops early on abort and
+ * returns what it has; the caller decides what an incomplete stage means.
+ */
+async function embedBatches({ chunks, model, provider, signal, onProgress }) {
+  const total = chunks.length;
+  const items = [];
   for (let batchStart = 0; batchStart < total; batchStart += EMBED_BATCH_SIZE) {
     if (signal?.aborted) break;
-    const batch = chunksToEmbed.slice(batchStart, batchStart + EMBED_BATCH_SIZE);
+    const batch = chunks.slice(batchStart, batchStart + EMBED_BATCH_SIZE);
 
     let vectors;
     try {
@@ -73,18 +85,24 @@ async function embedAndPersist({
       throw new Error("Embeddings response length didn't match the batch size.");
     }
 
-    const items = batch.map((chunk, i) => ({
-      chunkId: chunk.id, sha: chunk.sha, vector: vectors[i], chunk,
-    }));
-    await putVectors(projectId, model, items);
-
+    for (let i = 0; i < batch.length; i++) {
+      items.push({ chunkId: batch[i].id, sha: batch[i].sha, vector: vectors[i], chunk: batch[i] });
+    }
     if (onProgress) {
       for (let i = 0; i < batch.length; i++) {
         onProgress({ phase: "embedding", index: batchStart + i + 1, total, chunk: batch[i] });
       }
     }
   }
-  if (onProgress) onProgress({ phase: "done" });
+  return items;
+}
+
+// PUT in the same batch size the embeds used — one huge body would balloon the
+// request (a book of vectors is ~20 MB as JSON).
+async function putInBatches(projectId, model, items) {
+  for (let i = 0; i < items.length; i += EMBED_BATCH_SIZE) {
+    await putVectors(projectId, model, items.slice(i, i + EMBED_BATCH_SIZE));
+  }
 }
 
 // ─── Public API ───────────────────────────────────────────────────────────
@@ -94,6 +112,8 @@ export async function buildOrUpdateIndex({ signal, onProgress, provider, model }
   const ai = useAiStore();
   const project = useProjectStore();
 
+  // Self-heal a failed routing boot fetch before resolving (2026-07-11).
+  if (!provider) await ai.ensureEmbeddingDefaults();
   const resolvedProvider = resolveProvider(ai, provider);
   if (!resolvedProvider) {
     throw new Error("No embedding provider configured. Open AI Settings and set an embedding provider.");
@@ -125,6 +145,8 @@ export async function rebuildIndex({ signal, onProgress, provider, model } = {})
   const ai = useAiStore();
   const project = useProjectStore();
 
+  // Self-heal a failed routing boot fetch before resolving (2026-07-11).
+  if (!provider) await ai.ensureEmbeddingDefaults();
   const resolvedProvider = resolveProvider(ai, provider);
   if (!resolvedProvider) {
     throw new Error("No embedding provider configured. Open AI Settings and set an embedding provider.");
@@ -135,12 +157,22 @@ export async function rebuildIndex({ signal, onProgress, provider, model } = {})
   if (onProgress) onProgress({ phase: "chunking" });
   const freshChunks = await chunkProjectAsync(project);
 
-  await clear(projectId);
-  await embedAndPersist({
-    projectId, model: resolvedModel,
-    chunksToEmbed: freshChunks, idsToRemove: [],
+  // Stage the WHOLE replacement first; clear only once every chunk embedded
+  // (2026-07-11). The old clear-then-embed order destroyed the index whenever
+  // the embed leg failed mid-build — a crashed local model cost the user their
+  // 77-scene index — and a mid-build Cancel did the same. Now a failure or
+  // cancel anywhere during embedding leaves the existing index untouched.
+  const items = await embedBatches({
+    chunks: freshChunks, model: resolvedModel,
     provider: resolvedProvider, signal, onProgress,
   });
+  if (signal?.aborted) {
+    if (onProgress) onProgress({ phase: "done" });
+    return; // cancelled mid-embed → the existing index stays as it was
+  }
+  await clear(projectId);
+  await putInBatches(projectId, resolvedModel, items);
+  if (onProgress) onProgress({ phase: "done" });
 }
 
 /** Remove the RAG index for the active project. */

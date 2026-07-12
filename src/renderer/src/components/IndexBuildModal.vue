@@ -65,7 +65,10 @@ async function run() {
   result.value = null;
   rows.value = [];
   phase.value = "";
-  const provider = ai.embeddingProvider;
+  // Resolve through the self-heal (2026-07-11): a failed routing boot fetch used
+  // to leave the legacy fallback provider here and fail with "has no embedding
+  // model set" even though the server's routing was fine.
+  const provider = await ai.ensureEmbeddingDefaults();
   if (!provider) {
     error.value = "No embedding provider configured. Set one in AI Settings.";
     return;

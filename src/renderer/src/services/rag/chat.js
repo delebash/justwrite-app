@@ -90,8 +90,9 @@ export async function askManuscript({
   // path owns it (the chat task's preset → dispatch fallback). A client-side
   // pin resolution here used to silently bypass the task preset. Embeddings
   // are a different rail — the embed call below is client-orchestrated, so
-  // its provider still resolves here.
-  const resolvedEmbedProvider = embedProvider || ai.embeddingProvider;
+  // its provider still resolves here, through the self-heal (2026-07-11: a
+  // failed routing boot fetch must not brick embeddings for the session).
+  const resolvedEmbedProvider = embedProvider || (await ai.ensureEmbeddingDefaults());
 
   if (!resolvedEmbedProvider) {
     throw new Error(

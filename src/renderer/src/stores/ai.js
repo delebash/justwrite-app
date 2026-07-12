@@ -58,12 +58,15 @@ export const useAiStore = defineStore("ai", {
     const routing = routingBackend.getRoutingPrefs();
     return {
       providers: initialProviders(),
-      defaultLlmId: routing?.defaultLlmId || "openai-compat-local",
+      // Fallback = the BUILT-IN provider (2026-07-11; was the legacy Ollama-port
+      // "openai-compat-local", which pointed a routing-less boot at a provider with
+      // no models and broke Build index with "has no embedding model set").
+      defaultLlmId: routing?.defaultLlmId || "local-llamacpp",
       // Default provider + model used for embeddings (RAG indexing + chat).
       // The model is the routing override set in AI ▸ Features → Default
       // embedding (usually typed in — text-embedding-3-small / nomic-embed-text);
       // empty falls back to the provider's own embeddingModel.
-      defaultEmbeddingId: routing?.defaultEmbeddingId || "openai-compat-local",
+      defaultEmbeddingId: routing?.defaultEmbeddingId || "local-llamacpp",
       defaultEmbeddingModel: routing?.defaultEmbeddingModel || "",
       // Per-model tier overrides (pinned by the user in Settings or the
       // Speaker Lab). Keyed by bare model id, NOT by provider+model — same
@@ -183,6 +186,28 @@ export const useAiStore = defineStore("ai", {
       this.defaultEmbeddingId = r.defaultEmbeddingId || this.defaultEmbeddingId;
       this.defaultEmbeddingModel = r.defaultEmbeddingModel || "";
       this.featurePins = r.featurePins ?? this.featurePins;
+    },
+    // Point-of-use freshness + self-heal (2026-07-11, two rounds): every RAG entry
+    // point resolves its embedding provider through THIS. It ALWAYS re-pulls routing
+    // first — the shared kit UI writes the embedding default server-side
+    // (setAsEmbedding), which this store never hears about, and the earlier
+    // only-when-unusable resync left a USABLE-but-stale default: "rebuild with the 4B"
+    // silently re-embedded with the 0.6B. One local GET per RAG action is noise next
+    // to the embedding work itself, and a FAILED resync keeps the current values
+    // (resyncRouting no-ops on a bad fetch) — so this also still heals the original
+    // cold-boot race where the boot cache came up empty. The provider list is
+    // re-pulled only when the resolved record is missing entirely.
+    async ensureEmbeddingDefaults() {
+      try {
+        await this.resyncRouting();
+        if (!this.embeddingProvider) {
+          await providerBackend.refreshProviders();
+          this.providers = providerBackend.listProviders() ?? this.providers;
+        }
+      } catch (err) {
+        console.error("ensureEmbeddingDefaults resync failed:", err);
+      }
+      return this.embeddingProvider;
     },
     setAutoRebuildRagIndex(on) {
       this.autoRebuildRagIndex = !!on;

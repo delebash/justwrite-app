@@ -165,4 +165,22 @@ describe("embedTexts", () => {
     });
     expect(await embedTexts({ providerId: "b", providerType: "local-llamacpp", input: "x" })).toEqual([[7]]);
   });
+
+  it("retries ONCE through a transient failure — the router-bounce window (2026-07-11)", async () => {
+    // Switching the embedding default re-emits the .ini and BOUNCES the router; the
+    // first batch after a switch used to surface that ~2s window as "Bad gateway".
+    // The retry re-ensures (which waits for the child) and re-sends once.
+    let embedAttempts = 0;
+    routes({
+      embed: () => {
+        embedAttempts += 1;
+        if (embedAttempts === 1) return Promise.reject(new Error("502 Bad gateway"));
+        return { embeddings: [[5, 5]] };
+      },
+    });
+    expect(await embedTexts({ providerId: "b", providerType: "local-llamacpp", input: "x" }))
+      .toEqual([[5, 5]]);
+    expect(embedAttempts).toBe(2);
+    expect(ensureCalls()).toBe(2); // the retry re-ensured before re-sending
+  });
 });

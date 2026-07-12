@@ -75,8 +75,8 @@ export async function askAsCharacter({
   // The LLM provider/model is NOT resolved here (B5-1, §7.2): the server run
   // path owns it (the characterChat task's preset → dispatch fallback). Only
   // the embedding rail resolves client-side (the embed call below is
-  // client-orchestrated).
-  const resolvedEmbedProvider = embedProvider || ai.embeddingProvider;
+  // client-orchestrated), through the self-heal (2026-07-11).
+  const resolvedEmbedProvider = embedProvider || (await ai.ensureEmbeddingDefaults());
 
   if (!resolvedEmbedProvider) throw new Error("No embedding provider configured. Open AI Settings and set an embedding provider.");
 

@@ -23,11 +23,32 @@ let _booted = false;
  */
 export async function bootProviders() {
   if (_booted) return;
+  // A cold app boot can race the server's own seeding/migration — one failed GET
+  // here used to leave the session without provider records (2026-07-11 routing
+  // twin). Retry briefly; the connection gate has already verified /health answers.
+  for (let attempt = 0; attempt < 3 && _providers === null; attempt += 1) {
+    if (attempt) await new Promise((resolve) => setTimeout(resolve, 700));
+    try {
+      const data = await get("/v1/llm-providers");
+      if (Array.isArray(data?.providers)) _providers = data.providers;
+    } catch (err) {
+      console.error("providerBackend.bootProviders failed:", err);
+    }
+  }
+  _booted = true;
+}
+
+/**
+ * Re-pull the provider list into the cache — the self-heal half of the boot cache
+ * (2026-07-11): when the boot fetch failed, the AI store's ensureEmbeddingDefaults
+ * calls this so one bad boot can't brick provider resolution for the session.
+ */
+export async function refreshProviders() {
   try {
     const data = await get("/v1/llm-providers");
     if (Array.isArray(data?.providers)) _providers = data.providers;
   } catch (err) {
-    console.error("providerBackend.bootProviders failed:", err);
+    console.error("providerBackend.refreshProviders failed:", err);
   }
   _booted = true;
 }
