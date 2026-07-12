@@ -608,13 +608,14 @@ first, then WAIT. Authoritative open-work: the ledger §A–J.
 **GO (2026-07-12) — THE I1 JUDGMENT LEGS SHIPPED** (user: "i will take your rec
 on voice drift, do css, rule 5, you plan let opus do all the work"; plan-mode
 plan panel-checked ×2, committed at `docs/plans/2026-07-12-i1-css-popup-voicedrift.md`;
-built by Opus agents after the user-directed hook change). Four commits:
-`b904ff5` voiceDrift→shared TAIL tailWords · `bfcd48e` the `.entity-*` CSS
+built by Opus agents after the user-directed hook change). Four commits
+(shas POST-REBASE — see the SYNCED+PUSHED record ending this paragraph):
+`5f1fa30` voiceDrift→shared TAIL tailWords · `8491321` the `.entity-*` CSS
 promotion (7 views + Architecture leaves onto ONE styles.css family, −760/+306,
-zero-visual-change screenshot-proven) · `e4ca0db` the pre-task-deny **sidechain
+zero-visual-change screenshot-proven) · `3f457f9` the pre-task-deny **sidechain
 bypass** (user's word — subagent checker verdicts land in the coordinator's
 transcript, so the deny was a deadlock for delegated builds; main-session gates
-unchanged; test_gates 7/7) · `849eae4` the RULE-5 popup audit #34 (eleven
+unchanged; test_gates 7/7) · `a575715` the RULE-5 popup audit #34 (eleven
 name-popup→detail double-steps → DIRECT→FORM + `?new=1` focus-and-select;
 worldbuilding kept its popup — F6 verified its detail form has no category
 selector; whats-new entry shipped). Gates per commit: vitest 135 · build ·
@@ -623,15 +624,24 @@ genuine Opus diff-checker PASS ×2. DB restored byte-exact. Full record: the
 queue doc tail "I1 JUDGMENT LEGS BUILD RECORD"; follow-ups recorded there
 (SettingsView `.wb-search*` fragment · palette `?new` parity · the 7 inline
 focus-watches ride the `useEntityCrudView` decision · popup-probe promotion).
-**⛔ NOT PUSHED — committed locally only, awaiting the user's explicit push word
-(the twenty-second-compact ship-discipline: push is the irreversible step and
-waits for "ship it"/"push").** At this compact-point: JW is **ahead 5** of
-origin (`b904ff5`·`bfcd48e`·`e4ca0db`·`849eae4` + the recap commit); runner is
-**ahead 1** (`821ed53`, the doc record; committer identity fixed + `git config
-user.email noreply@anthropic.com` pinned in both repos). Both trees clean, both
-in sync locally, everything gate-verified. FIRST action next session (or on the
-user's word now): **`git push -u origin claude/admiring-galileo-il3q0o` in BOTH
-repos** — nothing else is pending.
+**✅ SYNCED + PUSHED (2026-07-12) — the user directed a pull+sync+push after a
+sibling session pushed onto the same branch.** Both repos had DIVERGED: JW origin
+advanced `7a12276→4799e2b` (the sibling's "routing self-heal at point of use,
+non-destructive rebuild, reset = clean slate"), runner `7102268→29a193e` (the
+sibling's "2026-07-11 embed/VRAM incident chain — placement guarantee, honest
+ledger, fail-fast, swap-aware eviction"). I REBASED my unpushed commits onto each
+new origin tip — NOT a force-push; the sibling's commits stay untouched as my base,
+fully preserved. JW's 5 replayed CLEAN (zero overlapping files — sibling touched
+RAG/boot/stores, I touched voiceDrift/entity-views/CSS/hooks/docs); runner's 1 doc
+commit hit the ONE expected conflict (both sessions appended a build record to the
+queue doc) — resolved additively, BOTH records kept (sibling's 2026-07-11 then mine
+2026-07-12, `---` between). Re-verified the integrated JW tree before pushing:
+build:vite · vitest **136/136** (the +1 over 135 is the sibling's new embedApi
+case) · biome clean. Pushed plain `-u` (fast-forward, no force): **JW
+`4799e2b..24750d2`** (post-rebase shas `5f1fa30`·`8491321`·`3f457f9`·`a575715` +
+recap `24750d2`, then this SYNCED-record doc commit on top) · **runner
+`29a193e..fd72047`**. Both branches now **0 ahead / 0 behind** origin, both trees
+clean, committer `noreply@anthropic.com`. Nothing pending.
 
 **GO (2026-07-10 late evening, post-fifteenth-compact — superseded by the
 paragraph above) — I1 + I4 LANDED (both
