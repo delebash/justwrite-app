@@ -720,16 +720,19 @@ one-line tombstone left; the closed record is in git history + the providers-sur
 **A5** "still open" banner ref fixed (A5 shipped 2026-07-06/07); the **I1** entry corrected
 (text.test.js DONE; gate ratchets DEFERRED per "dont do gates"; the I1 shas set to the post-rebase
 values `5f1fa30`/`8491321`/`3f457f9`/`a575715`). **THE VERIFIED CURRENT OPEN LIST — authoritative =
-the ledger §F/G/I/J:** buildable now = the armed **kit `requestBlob` kit-only unify** (verified still
-duplicated: `client.js:65,80` path-first vs the DEAD method-first `serverApi.js:127,137`;
-`index.js:14` + `common/index.js:64` export both; `postForm` shares the identical shadow) ·
+the ledger §F/G/I/J:** **kit `requestBlob` kit-only unify — ✅ SHIPPED (runner `d796b0e`, push held):** dead method-first
+`serverApi.js:127` deleted + dropped from `common/index.js:64` → ONE path-first `requestBlob` (client's);
+verified JW vitest 139 · JW+JV build:vite · JW smoke every-route errors=0 · rules-checker PASS · DB
+byte-exact `0be0e2ef`. Still buildable:
 **rag-probe re-author** (`rag-probe.mjs:47-50`, still keyed to the old Cartographer prose) ·
 **F1 JustVoice convergence** (verified STILL BROKEN — `JustVoice/server/justvoice/models.py:26`
 imports `LLMRolesSettings`, which the runner defines NOWHERE → live ImportError).
 **`useEntityCrudView` — DECIDED NOT DOING** (user, 2026-07-12: "just leave it as is and take it
 off list"; grounded — only the `?new` watch is 7/7 identical, WB async-popup add + Notes no-status
-make a broad composable a wash), so no open entity-view decision remains. JV follow-ups (when JV is worked): the 6 method-first
-`requestBlob` callers + the `justwrite` import adapter → `book.json` zip + ledger F2–F5. Your-box
+make a broad composable a wash), so no open entity-view decision remains. JV follow-ups (when JV is worked, per ledger **F1-a**): the 6 method-first
+`requestBlob` callers + **the AUTH divergence** (the surviving client blob transport is auth-FREE; JV
+authenticates → needs an auth-capable path-first blob transport) + **`postForm`** (same dead-duplicate +
+JV auth-break) + the `justwrite` import adapter → `book.json` zip + ledger F2–F5. Your-box
 §G. Parked/ideas: I2 · I3 · I5 · I6 · #256 spell-check · D5/D6 · J1–J3. **REMOVED:** C9 (user's
 word); gate ratchets (DEFERRED, "dont do gates"). Nothing running; push HELD.
 
