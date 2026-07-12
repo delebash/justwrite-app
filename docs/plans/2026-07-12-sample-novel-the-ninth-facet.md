@@ -209,7 +209,10 @@ Rules-checker on the diff: run at commit (commit-gate). **NOT PUSHED.**
 
 **JV follow-up (JV outstanding — NOT done here):** rewrite JV's `justwrite` import adapter
 (`/home/user/JustVoice/server/justvoice/api/projects_api.py:783,804`) to read the exported `book.json` zip
-instead of the dropped live `justwrite/v1` POST. **Still open (user's call):** the SIZING of the sample.
+instead of the dropped live `justwrite/v1` POST. **SIZING — DECIDED (user, 2026-07-12): a SEPARATE bulk
+stress-test book.** *The Ninth Facet* stays the crafted ~6.5k-word tutorial (good first-run experience); a
+separate large book is authored purely for the 20×-import stress test. The per-project import (Phase 2)
+enables loading it many times. Build TBD on the user's go (size + shape to confirm).
 
 ---
 
@@ -256,13 +259,15 @@ app-origin POST **200**, cross-site GET **200**, exactly one intentional 403 in 
 byte-exact `0be0e2ef`. This corrects the BUILD RECORD's "Rules-checker: run at commit" line above (the
 checker ran, FAILed, and was remediated). **Still NOT PUSHED — push HELD for the user's word.**
 
-**Two tracked follow-ups (from the remediation):**
-1. **Renderer-side file-kind→server migration before export (P2.1-T5, deferred per the user's "Accept +
-   defer").** In `bookTransfer.exportProject`, before the server GET, walk the active project's images +
-   `coverImage`; for any legacy `{kind:"file",path}` record readable via the desktop bridge
-   (`imageStore.readImageBytes`), re-upload the bytes (`imageStore.saveImage` → server-kind), replace the
-   store record (needs a per-entity image-replace action; `setCoverImage` covers the cover) and flush a
-   direct `putSnapshot` before the export. Legacy-only; closes the "save ALL data" gap for pre-P4 projects.
+**Follow-ups (from the remediation):**
+1. **Renderer-side file-kind→server migration before export (P2.1-T5) — ⛔ DROPPED, not needed (user,
+   2026-07-12).** The user's word: *"this is not production so i am reseting db so we dont need migration,
+   correct?"* — correct. A `{kind:"file",path}` image only exists in a pre-P4 DB that was never re-saved;
+   the current app never writes file-kind (`imageStore.saveImage` → server/data-URL only), and a DB reset
+   (the standing drop-and-reseed, no-migrations policy) wipes any that existed and re-seeds server-kind. So
+   on a reset pre-release DB, NO file-kind image survives to reach export → the migration is unnecessary.
+   The "Accept + defer" thus resolves to "not needed." (The `book_io` externalize behavior + honest
+   docstrings are unchanged and correct; only this follow-up is retired.)
 2. **Kit `requestBlob` DUPLICATE (T3 one-source-of-truth).** The kit ships TWO `requestBlob` signatures —
    path-first `client.js:65` (the public export) and method-first `common/services/serverApi.js:127` (the
    "app standard" transport, and what JustVoice's `projects.js:87,176` call). Unify to one signature
