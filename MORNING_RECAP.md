@@ -725,10 +725,10 @@ duplicated: `client.js:65,80` path-first vs the DEAD method-first `serverApi.js:
 `index.js:14` + `common/index.js:64` export both; `postForm` shares the identical shadow) ·
 **rag-probe re-author** (`rag-probe.mjs:47-50`, still keyed to the old Cartographer prose) ·
 **F1 JustVoice convergence** (verified STILL BROKEN — `JustVoice/server/justvoice/models.py:26`
-imports `LLMRolesSettings`, which the runner defines NOWHERE → live ImportError). ONE open
-DECISION = **`useEntityCrudView`** (proposed shared composable, `deep-audit.md:36` — factor ~41
-lines of duplicated entity-view CRUD-list logic; docs-only, never built; the 7 inline `?new`
-focus-watches converge into it if built). JV follow-ups (when JV is worked): the 6 method-first
+imports `LLMRolesSettings`, which the runner defines NOWHERE → live ImportError).
+**`useEntityCrudView` — DECIDED NOT DOING** (user, 2026-07-12: "just leave it as is and take it
+off list"; grounded — only the `?new` watch is 7/7 identical, WB async-popup add + Notes no-status
+make a broad composable a wash), so no open entity-view decision remains. JV follow-ups (when JV is worked): the 6 method-first
 `requestBlob` callers + the `justwrite` import adapter → `book.json` zip + ledger F2–F5. Your-box
 §G. Parked/ideas: I2 · I3 · I5 · I6 · #256 spell-check · D5/D6 · J1–J3. **REMOVED:** C9 (user's
 word); gate ratchets (DEFERRED, "dont do gates"). Nothing running; push HELD.
