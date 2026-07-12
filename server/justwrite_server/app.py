@@ -24,6 +24,7 @@ from fastapi.staticfiles import StaticFiles
 from llm_runner import router as llm_runner_router
 
 from .api import (
+    book_transfer,
     chat,
     health,
     images,
@@ -35,6 +36,7 @@ from .api import (
 )
 from .app_state import AppState, set_state
 from .auth import BearerAuthMiddleware
+from .csrf import CsrfOriginMiddleware
 from llm_runner.platform import install_file_log, install_log_ring, make_disk_router, make_logs_router
 
 from .data_admin import get_data_router
@@ -124,6 +126,10 @@ def create_app(data_dir: Path | None = None) -> FastAPI:
             allow_headers=["*"],
         )
 
+    # CSRF: reject cross-site browser POSTs to /v1 (no token — can't lock anyone
+    # out). Reuses the CORS origins as the allowlist; added last → runs outermost.
+    app.add_middleware(CsrfOriginMiddleware, extra_origins=_cors.get("origins") or [])
+
     # RFC 7807 problem+json for ApiError + plain HTTPException — one error shape
     # across both apps' servers (the bearer-auth middleware emits it too).
     app.add_exception_handler(ApiError, api_exception_handler)
@@ -131,6 +137,7 @@ def create_app(data_dir: Path | None = None) -> FastAPI:
 
     app.include_router(health.router)
     app.include_router(projects.router)
+    app.include_router(book_transfer.router)  # per-project zip export/import (/v1/projects/*)
     app.include_router(sessions.router)
     app.include_router(chat.router)
     app.include_router(settings.router)

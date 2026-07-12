@@ -482,12 +482,16 @@ async fn shell_save_file(
     let title = decode_b64_header("x-save-title").unwrap_or_else(|| "Save file".to_string());
     let filter_name = decode_b64_header("x-filter-name").unwrap_or_else(|| "File".to_string());
     let filter_ext = decode_b64_header("x-filter-ext").unwrap_or_default();
+    let default_dir = decode_b64_header("x-save-dir").unwrap_or_default();
 
     let mut dialog = app
         .dialog()
         .file()
         .set_title(&title)
         .set_file_name(&suggested);
+    if !default_dir.is_empty() {
+        dialog = dialog.set_directory(&default_dir);
+    }
     if !filter_ext.is_empty() {
         let exts: Vec<&str> = filter_ext.split(',').filter(|s| !s.is_empty()).collect();
         if !exts.is_empty() {
@@ -501,6 +505,47 @@ async fn shell_save_file(
     let path_buf: PathBuf = file_path.into_path().map_err(|e| e.to_string())?;
     fs::write(&path_buf, buffer).map_err(|e| e.to_string())?;
     Ok(SaveOk { ok: true, path: path_buf.display().to_string() })
+}
+
+// ─── Native "open a file" dialog ─────────────────────────────────────
+// Returns the picked file's bytes (base64) + its folder, so the renderer can
+// upload them to the server (e.g. picking a `<book>.zip` to import). `dir` comes
+// back so each chooser can remember its own last location.
+
+#[tauri::command]
+async fn pick_file(
+    app: AppHandle,
+    title: Option<String>,
+    filter_name: Option<String>,
+    filter_ext: Option<String>,
+    default_dir: Option<String>,
+) -> Result<Value, String> {
+    let mut dialog = app
+        .dialog()
+        .file()
+        .set_title(&title.unwrap_or_else(|| "Open file".to_string()));
+    if let Some(ext) = filter_ext.as_deref().filter(|s| !s.is_empty()) {
+        let exts: Vec<&str> = ext.split(',').filter(|s| !s.is_empty()).collect();
+        if !exts.is_empty() {
+            dialog = dialog.add_filter(&filter_name.unwrap_or_else(|| "File".to_string()), &exts);
+        }
+    }
+    if let Some(d) = default_dir.as_deref().filter(|s| !s.is_empty()) {
+        dialog = dialog.set_directory(d);
+    }
+
+    let Some(file_path) = dialog.blocking_pick_file() else {
+        return Err("cancelled".into());
+    };
+    let path_buf: PathBuf = file_path.into_path().map_err(|e| e.to_string())?;
+    let bytes = fs::read(&path_buf).map_err(|e| e.to_string())?;
+    let name = path_buf.file_name().and_then(|s| s.to_str()).unwrap_or("").to_string();
+    let dir = path_buf.parent().map(|p| p.display().to_string()).unwrap_or_default();
+    Ok(serde_json::json!({
+        "name": name,
+        "dir": dir,
+        "dataBase64": base64::engine::general_purpose::STANDARD.encode(&bytes),
+    }))
 }
 
 // ─── GPU detection ───────────────────────────────────────────────────
@@ -1074,6 +1119,7 @@ pub fn run() {
             shell_save_file,
             detect_gpu,
             pick_directory,
+            pick_file,
             storage_get_root,
             storage_relocate,
         ])

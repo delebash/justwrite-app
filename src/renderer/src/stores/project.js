@@ -2105,11 +2105,6 @@ export const useProjectStore = defineStore("project", {
       // only re-hydrate from IDB at boot, so a workspace restore needs one.
       return { workspaceRestored: hadWorkspace };
     },
-    // Full backup bundle — what gets written to disk and what the manual
-    // export downloads. Project snapshot + every non-project workspace key.
-    exportFullBackup() {
-      return { ...this.exportSnapshot(), _workspace: workspaceKeysToBundle() };
-    },
     exportSnapshot() {
       return {
         project: this.project, parts: this.parts, scenes: this.scenes,
@@ -2222,17 +2217,27 @@ export const useProjectStore = defineStore("project", {
     // (POST /v1/projects/demo, fixed id: never duplicated, re-creatable after
     // a delete). This replaced the old client-side mini tutorial seed
     // (services/tutorialProject.js, deleted with it).
-    async openDemoProject() {
-      const meta = await projectApi.createDemoProject();
+    // Register a server-created project (demo OR imported) into the in-memory
+    // registry and switch to it. The shared core for openDemoProject +
+    // openImportedProject.
+    async _registerAndOpen(meta) {
       if (!meta?.id) return null;
       if (!this._projects.some((p) => p.id === meta.id)) {
         this._writeRegistry([
-          { id: meta.id, title: meta.title, author: meta.author, savedAt: new Date().toISOString() },
+          { id: meta.id, title: meta.title || "Untitled", author: meta.author || "", savedAt: new Date().toISOString() },
           ...this._projects,
         ]);
       }
       await this.switchProject(meta.id);
       return meta.id;
+    },
+    async openDemoProject() {
+      return this._registerAndOpen(await projectApi.createDemoProject());
+    },
+    // Open a project just imported from a .zip — POST /v1/projects/import already
+    // created it server-side and returned its { id, title }.
+    async openImportedProject(meta) {
+      return this._registerAndOpen(meta);
     },
 
      createProject({ title = "Untitled project", author = "" } = {}) {

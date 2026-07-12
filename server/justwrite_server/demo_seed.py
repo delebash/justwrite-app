@@ -48,6 +48,21 @@ def load_sample(name: str = DEFAULT_SAMPLE) -> dict:
         return json.load(f)
 
 
+def load_sample_images(name: str = DEFAULT_SAMPLE) -> dict[str, bytes]:
+    """Every file under samples/<name>/images/ as {filename: bytes} — the image
+    payload the export/import format carries alongside book.json. Empty when the
+    sample ships no images/ folder (the bundled sample is image-less today)."""
+    img_dir = _SAMPLES_DIR / name / "images"
+    if not img_dir.is_dir():
+        return {}
+    return {p.name: p.read_bytes() for p in img_dir.iterdir() if p.is_file()}
+
+
 def demo_book_snapshot() -> dict:
     """The tutorial sample as the snapshot `book_io.decompose` consumes."""
     return load_sample(DEFAULT_SAMPLE)
+
+
+def demo_sample_images() -> dict[str, bytes]:
+    """The tutorial sample's image files (empty for the image-less bundled book)."""
+    return load_sample_images(DEFAULT_SAMPLE)

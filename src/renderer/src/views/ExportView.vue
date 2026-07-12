@@ -8,13 +8,6 @@ import { buildManuscript, slug } from "../services/export/manuscript.js";
 import { UiButton } from "@delebash/llm-ui";
 import { UiCheckbox } from "@delebash/llm-ui";
 import { UiInput } from "@delebash/llm-ui";
-import {
-  buildJustVoiceDoc,
-  describeJustVoiceDoc,
-  sendToJustVoice,
-  loadJustVoiceUrl,
-  saveJustVoiceUrl,
-} from "../services/export/justvoice.js";
 
 const project = useProjectStore();
 const ui = useUiStore();
@@ -22,13 +15,14 @@ const ui = useUiStore();
 const fmt = ref("pdf");
 const stripSceneStructure = ref(false);
 
-// Audio (M4B) export moved to JustVoice — JustWrite is writing-only and hands
-// the book to JustVoice for any audiobook rendering.
+// Audio / audiobook lives in the separate JustVoice app — JustWrite is
+// writing-only. To hand a book to JustVoice, export it (Settings → Backups →
+// "Export this book") and open the .zip there; there is no live server handoff
+// from this view anymore.
 const FORMATS = [
   { id: "pdf",  name: "PDF",            sub: "Print-ready manuscript with TOC.",       icon: "Export",     ext: "pdf",  mime: "application/pdf" },
   { id: "docx", name: "DOCX",           sub: "Word-compatible.",                       icon: "Book",       ext: "docx", mime: "application/vnd.openxmlformats-officedocument.wordprocessingml.document" },
   { id: "epub", name: "EPUB",           sub: "Reflowable e-book.",                     icon: "Book",       ext: "epub", mime: "application/epub+zip" },
-  { id: "justvoice", name: "JustVoice", sub: "Send the book to JustVoice for audio.",  icon: "Mic",        ext: null,   mime: null },
 ];
 
 // ── Shared state ─────────────────────────────────────────────────────
@@ -66,7 +60,6 @@ const STAGE_LABEL = {
   "loading-jszip":   "Loading EPUB packager…",
   "composing":       "Composing document…",
   "packing":         "Packaging archive…",
-  "sending":         "Sending to JustVoice…",
   "done":            "Done.",
 };
 function stageLabel() { return STAGE_LABEL[exportStage.value] || exportStage.value; }
@@ -105,38 +98,6 @@ async function exportManuscript(fmtId) {
   }
 }
 
-// ── JustVoice ────────────────────────────────────────────────────────
-const jvUrl = ref(loadJustVoiceUrl());
-const jvResult = ref(null);
-// Doc stats for the pane. Guarded so the manuscript model (a DOM walk over
-// every chapter body) is only built while the JustVoice card is selected.
-const jvStats = computed(() => {
-  if (fmt.value !== "justvoice") return null;
-  return describeJustVoiceDoc(buildJustVoiceDoc(project));
-});
-
-async function exportJustVoice() {
-  exportError.value = null;
-  jvResult.value = null;
-  if (!project.allChapters.length) {
-    exportError.value = "Project has no chapters to export.";
-    return;
-  }
-  exporting.value = true;
-  exportStage.value = "composing";
-  try {
-    saveJustVoiceUrl(jvUrl.value);
-    const doc = buildJustVoiceDoc(project);
-    exportStage.value = "sending";
-    const res = await sendToJustVoice({ doc, baseUrl: jvUrl.value });
-    jvResult.value = res;
-    ui.showToast({ message: `Sent "${doc.book.title}" to JustVoice.` });
-  } catch (err) {
-    exportError.value = err.message || String(err);
-  } finally {
-    resetProgress();
-  }
-}
 </script>
 
 <template>
@@ -148,9 +109,8 @@ async function exportJustVoice() {
 
       <p class="ex-desc">
         <strong>Export</strong> produces a finished file — <strong>PDF</strong> (typeset with
-        cover and TOC), <strong>DOCX</strong> (Word with a live TOC), <strong>EPUB</strong>
-        (e-book for Apple Books / Kobo / Kindle) — or sends the whole book to
-        <strong>JustVoice</strong> for audiobook production. Pick a format card to see its
+        cover and TOC), <strong>DOCX</strong> (Word with a live TOC), or <strong>EPUB</strong>
+        (e-book for Apple Books / Kobo / Kindle). Pick a format card to see its
         options; engines are downloaded on first use.
       </p>
 
@@ -183,63 +143,8 @@ async function exportJustVoice() {
         <Icon name="Alert" :size="14" /> {{ exportError }}
       </div>
 
-      <!-- JustVoice handoff ─────────────────────────────────────────── -->
-      <template v-if="fmt === 'justvoice'">
-        <div class="card">
-          <div class="card-title">JustVoice server</div>
-          <p class="t-muted" style="font-size:12.5px;margin:0 0 14px;line-height:1.55">
-            JustVoice is the companion voice-production studio. Sending hands over the whole
-            book — chapters as prose and the character roster as cast-ready personas. JustVoice
-            runs its own speaker analysis and casting, then renders the audiobook.
-          </p>
-          <div style="display:flex;gap:10px;align-items:center;flex-wrap:wrap">
-            <span class="t-muted" style="font-size:12px">Server URL</span>
-            <UiInput v-model="jvUrl" style="max-width:280px" placeholder="http://127.0.0.1:17494" />
-          </div>
-          <div v-if="jvStats" class="manuscript-stats" style="display:grid;gap:14px;padding:14px;background:var(--surface-2);border-radius:8px;font-size:13px;margin-top:14px;grid-template-columns:repeat(3,minmax(0,1fr))">
-            <div>
-              <div class="t-muted" style="font-size:11px">Chapters</div>
-              <b class="t-num" style="font-size:18px;font-family:var(--font-serif)">{{ jvStats.chapters }}</b>
-            </div>
-            <div>
-              <div class="t-muted" style="font-size:11px">Lines</div>
-              <b class="t-num" style="font-size:18px;font-family:var(--font-serif)">{{ jvStats.lines.toLocaleString() }}</b>
-            </div>
-            <div>
-              <div class="t-muted" style="font-size:11px">Characters</div>
-              <b class="t-num" style="font-size:18px;font-family:var(--font-serif)">{{ jvStats.characters }}</b>
-            </div>
-          </div>
-        </div>
-
-        <div class="card">
-          <div class="card-title">Send</div>
-          <div style="font-size:12.5px;color:var(--ink-2);margin-bottom:14px;line-height:1.55">
-            JustVoice creates the project with one persona per character — open its Studio
-            to cast voices and render. Re-sending creates a new project there.
-          </div>
-          <div style="display:flex;gap:10px;align-items:center">
-            <UiButton intent="primary" :disabled="exporting || manuscriptStats.chapters === 0"
-              v-tooltip.bottom="manuscriptStats.chapters === 0 ? 'Add a chapter first' : 'POST the book to the JustVoice server'"
-              @click="exportJustVoice()">
-              <Icon name="Mic" :size="13" /> Send to JustVoice
-            </UiButton>
-            <span class="t-muted" style="font-size:11.5px">
-              <template v-if="manuscriptStats.chapters === 0">No chapters yet</template>
-              <template v-else>Targets <code>{{ jvUrl || 'http://127.0.0.1:17494' }}</code></template>
-            </span>
-          </div>
-          <div v-if="jvResult" style="margin-top:14px;padding:12px;background:var(--accent-soft);border:1px solid var(--accent-line);border-radius:8px;font-size:13px">
-            <div><b>Sent.</b> JustVoice project <code>{{ jvResult.project_id }}</code> created.</div>
-            <div v-if="jvResult.warnings?.length" class="t-muted" style="font-size:11.5px;margin-top:6px">
-              {{ jvResult.warnings.join(" · ") }}
-            </div>
-          </div>
-        </div>
-      </template>
-
       <!-- PDF / DOCX / EPUB ─────────────────────────────────────────── -->
-      <template v-else>
+      <template>
         <div class="card">
           <div class="card-title">Manuscript</div>
           <p class="t-muted" style="font-size:12.5px;margin:0 0 14px;line-height:1.55">

@@ -32,32 +32,43 @@ The Backups section shows you the **path** where this is stored on your machine.
 
 ---
 
-## Manual snapshot export and import
+## Exporting and importing a book
 
-> *"I'm about to tear this chapter apart and reorganize the whole middle act. I want a copy I can go back to if I hate where it ends up."*
+> *"I want to move this book to my other computer, hand it to someone, or keep a copy I can come back to."*
 
-For more permanent archiving:
+A single book travels as a **`.zip` named after it** — e.g. `The Ninth Facet.zip` — which unzips to a `The Ninth Facet/` folder holding `book.json` (all the text, structure, and Story Bible, plus the trash bin) and an `images/` folder (character avatars, location photos, the cover).
 
-### Export snapshot
+### Export this book
 
-Click **Export snapshot** in the Backups section. JustWrite produces a single JSON file containing **everything** — every chapter body, every character and Story Bible item, the trash bin, your AI provider list, your voice cast, your writing session log, the lot. It's a complete portable copy of the project.
+In **Settings → Backups → This book**, click **Export this book…**. A native Save dialog opens — defaulting to your data folder, and remembering wherever you last saved — so you choose where the `.zip` goes.
 
-In the desktop app, a native Save dialog opens so you can pick where to put it. In the browser-only version, the file downloads to your Downloads folder.
+### Import a book
 
-The timestamp of the last manual snapshot is shown so you can see when you last archived.
+Click **Import a book…** and pick a `.zip`. It comes in as a **new** book — your current books are untouched — so you can import the same file many times, and each becomes its own project. (This is exactly how the bundled sample works: it's shipped as one of these folders.)
 
-### Import snapshot
+Export/import is a **desktop** feature — it needs the native file dialogs — so the browser-only build shows a note instead of the buttons.
 
-Click **Import backup**. Pick a previously exported `.json` file. JustWrite shows you the project title and chapter count from the file before doing anything. If you confirm, **the current workspace is replaced** with the snapshot's contents.
+### When to use it
 
-### When to use snapshots
+- **Before switching machines** — export, copy the `.zip`, import on the other computer.
+- **As a shareable artifact** — hand the `.zip` to a collaborator; they import it and see your exact book, Story Bible and all.
+- **As a routine archive** — keep dated `.zip`s wherever suits your paranoia.
 
-- **Before any major restructuring** — a heavy rewrite, a chapter split, an aggressive edit.
-- **Before switching machines** — export, copy the file to the new machine, import.
-- **As a routine archive** — once a week, once a milestone, however suits your paranoia.
-- **As a shareable artifact** — give a snapshot to a collaborator so they can open your exact project (Story Bible and all).
+---
 
-The autosave on disk and the manual snapshots are complementary. Autosave is your moment-to-moment safety net; snapshots are your archives.
+## Whole-workspace backup & restore
+
+> *"I want ONE file with everything — all my books, providers, and settings — to move between machines or keep off-device."*
+
+**Settings → Backups → Backup & restore** is a bigger hammer than a single book: **Export backup** produces a ZIP of the entire database (every book + AI providers + settings), and **Import backup** restores one, **replacing all current data**. On the desktop app the export opens a Save dialog (default: your data folder, last location remembered); in the browser it downloads to Downloads.
+
+Use the whole-workspace backup to move your entire setup; use the per-book `.zip` above to move or share a single book. Autosave (above) is your moment-to-moment net; these are your archives.
+
+---
+
+## The data folder
+
+All of JustWrite's data — your books, images, the AI engine and its models, and logs — lives in **one data folder**. It defaults to a folder beside the app itself (portable), and you can move it to any drive from **Settings → Backups → Data folder → Change data folder…** (the same control as Settings → Storage). Moving it relocates everything and restarts the app.
 
 ---
 

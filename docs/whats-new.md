@@ -4,6 +4,10 @@ Recent changes worth noticing. Older entries fall off the bottom — see the [Ro
 
 ---
 
+## v1.3.0 — 2026-07
+
+**Move a book between computers — or share it.** New **Export this book** / **Import a book** buttons in Settings → Backups save a book as a single `.zip` (named after it) and read one back as a **new** project — the whole thing, images and all. Import the same file as many times as you like; each becomes its own book. And every save now lets you **choose where it goes** — defaulting to your data folder and remembering where you last saved — for the per-book export, the whole-workspace backup, and the data-folder location alike.
+
 ## v1.2.0 — 2026-07
 
 **A new tutorial novel — *The Ninth Facet*.** "Try tutorial project" now opens a fresh sample: a magitech guild-adventure with a full cast, locations, objects, factions, a worldbuilding bible, plot strands, and real full-length chapters — a richer starting point for exploring every screen than the old sample. It works exactly as before: a normal editable project, created on demand, deletable and re-creatable any time.

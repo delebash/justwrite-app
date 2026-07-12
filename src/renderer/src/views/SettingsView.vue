@@ -7,6 +7,7 @@ import { saveImage, urlFor, hasNativeImages } from "../services/imageStore.js";
 import { promptDialog, confirmDialog, DataManagement, LogsPanel, UpdatesPanel, renderHelpMarkdown } from "@delebash/llm-ui";
 import { loadDoc } from "../services/helpDocs.js";
 import { readSetting, writeSetting } from "../services/settings.js";
+import { exportProject, importProject, saveBackupBlob, canTransferBooks } from "../services/bookTransfer.js";
 import PaneHeader from "../components/PaneHeader.vue";
 import { Icon } from "@delebash/llm-ui";
 import { UiInput } from "@delebash/llm-ui";
@@ -191,6 +192,40 @@ async function changeFolder() {
     relocating.value = false;
   }
 }
+// ── Per-project export / import: a book travels as a single <title>.zip ──
+const transferBusy = ref("");   // "export" | "import" | ""
+const transferErr = ref(null);
+
+async function exportThisProject() {
+  transferErr.value = null;
+  transferBusy.value = "export";
+  try {
+    const res = await exportProject(project._activeId, project.project.title);
+    if (res?.ok) ui.showToast({ message: "Book exported." });
+    else if (res && !res.cancelled) transferErr.value = res.error || "Export failed.";
+  } catch (err) {
+    transferErr.value = err.message || String(err);
+  } finally {
+    transferBusy.value = "";
+  }
+}
+
+async function importAProject() {
+  transferErr.value = null;
+  transferBusy.value = "import";
+  try {
+    const meta = await importProject();
+    if (meta?.id) {
+      await project.openImportedProject(meta);
+      ui.showToast({ message: `Imported “${meta.title || "book"}”.` });
+    }
+  } catch (err) {
+    transferErr.value = err.message || String(err);
+  } finally {
+    transferBusy.value = "";
+  }
+}
+
 const requireLoopbackAuth = ref(false);
 const newToken = ref("");
 function loadAuthCfg() {
@@ -378,6 +413,7 @@ const autosaveDir = ref(null);
 watchEffect(() => {
   if (active.value === "backups") {
     lastAutosaveAt.value = readSetting("lastAutosaveAt") || null;
+    loadStorageRoot();  // Task A: the data-folder chooser lives in this tab too.
   }
 });
 
@@ -1356,10 +1392,52 @@ async function deleteCategory(c) {
           </div>
         </div>
 
+        <!-- Task A: the data folder (ALL app data) — choosable here too; the same
+             relocate as Settings → Storage, surfaced beside the on-disk autosave. -->
+        <div v-if="storageRoot" class="card">
+          <div class="card-title">Data folder</div>
+          <p class="t-muted" style="font-size:12.5px;margin:0 0 10px;line-height:1.55">
+            Where JustWrite keeps <strong>everything</strong> — your books, images, the AI engine and
+            models, and logs. Defaults to the app's own folder; move it to a drive of your choice.
+          </p>
+          <code style="word-break:break-all">{{ storageRoot.root }}</code>
+          <span class="t-muted" style="font-size:11px;margin-left:6px">{{ storageRoot.portable ? "· portable, beside the app" : "· user folder" }}</span>
+          <div style="margin-top:10px">
+            <UiButton intent="secondary" size="small" :disabled="relocating" @click="changeFolder()">
+              {{ relocating ? "Moving…" : "Change data folder…" }}
+            </UiButton>
+          </div>
+          <p v-if="storageErr" class="banner danger" style="margin-top:8px">{{ storageErr }}</p>
+        </div>
+
+        <!-- Per-project export / import — a book travels as a single <title>.zip
+             (book.json + images/ inside). Desktop-only (native save/open dialog);
+             the browser shows a note. -->
+        <div class="card">
+          <div class="card-title">This book</div>
+          <p class="t-muted" style="font-size:12.5px;margin:0 0 12px;line-height:1.55">
+            <strong>Export</strong> the current book as a single <code>.zip</code> — its text, structure, and
+            images — to move it to another computer or share it, then <strong>Import</strong> a
+            <code>.zip</code> back as a new book. Each chooser remembers where you last saved.
+          </p>
+          <div v-if="transferErr" class="banner danger" style="margin-bottom:10px">{{ transferErr }}</div>
+          <div v-if="canTransferBooks" style="display:flex;gap:10px;flex-wrap:wrap">
+            <UiButton intent="primary" :disabled="!!transferBusy || !project._activeId" @click="exportThisProject()">
+              <template #icon><Icon name="Download" :size="13" /></template>
+              {{ transferBusy === 'export' ? 'Exporting…' : 'Export this book…' }}
+            </UiButton>
+            <UiButton intent="secondary" :disabled="!!transferBusy" @click="importAProject()">
+              <template #icon><Icon name="Folder" :size="13" /></template>
+              {{ transferBusy === 'import' ? 'Importing…' : 'Import a book…' }}
+            </UiButton>
+          </div>
+          <p v-else class="t-muted" style="font-size:12px;margin:0">Available in the desktop app.</p>
+        </div>
+
         <!-- Backup / restore / reset — the shared full-DB module (same code +
              server endpoints in every same-stack app). The autosave card above
              is JustWrite's Tauri-specific on-disk restore, kept app-local. -->
-        <DataManagement app-name="JustWrite" />
+        <DataManagement app-name="JustWrite" :save-file="canTransferBooks ? saveBackupBlob : null" />
       </div>
 
       <!-- ── LOGS (shared panel) ───────────────────── -->

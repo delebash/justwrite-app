@@ -21,7 +21,7 @@ from sqlalchemy.orm import Session
 
 from . import book_io
 from . import database as _db
-from .demo_seed import DEMO_PROJECT_ID, demo_book_snapshot
+from .demo_seed import DEMO_PROJECT_ID, demo_book_snapshot, demo_sample_images
 from .models import Project
 
 log = logging.getLogger(__name__)
@@ -36,7 +36,9 @@ def create_demo_project(db: Session) -> bool:
         return False
     snap = demo_book_snapshot()
     snap["savedAt"] = datetime.now(timezone.utc).isoformat()
-    book_io.decompose(db, DEMO_PROJECT_ID, snap)
+    # ONE "decompose a book (+ its image files)" core, shared with /v1/projects/import
+    # (the sample ships image-less today, so demo_sample_images() is usually empty).
+    book_io.import_book_snapshot(db, snap, demo_sample_images(), DEMO_PROJECT_ID)
     return True
 
 

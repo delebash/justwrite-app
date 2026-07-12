@@ -17,7 +17,11 @@ docs/plans/2026-06-18-jw-p2-normalization-design.md.
 
 from __future__ import annotations
 
+import base64
 import json
+import re
+import uuid
+from datetime import datetime, timezone
 
 from sqlalchemy.orm import Session
 
@@ -30,6 +34,7 @@ from .models import (
     Group,
     GroupMember,
     Image,
+    ImageBlob,
     Location,
     Note,
     Part,
@@ -452,3 +457,122 @@ def assemble(db: Session, project_id: str) -> dict | None:
         "voiceCanonChapterIds": voice_canon, "relationshipArcs": relationship_arcs,
         "marketingPack": marketing_pack, "worldRules": proj.world_rules, "savedAt": proj.updated_at,
     }
+
+
+# ── portable image transfer (zip export / import) ────────────────────────────
+# A project exports as a zip whose images travel as FILES under images/, not as
+# ImageBlob ids (which are local to one DB). `externalize_images` rewrites each
+# image record to a file reference and hands back the bytes; `internalize_images`
+# does the inverse — re-uploads the bytes as fresh ImageBlobs — so a book can be
+# re-imported as a NEW project on any machine. `import_book_snapshot` is the ONE
+# "decompose a book (+ its image files)" core shared by the /v1/projects/import
+# endpoint AND the sample seeder (`seed.create_demo_project`).
+
+_MIME_EXT = {
+    "image/png": "png", "image/jpeg": "jpg", "image/jpg": "jpg", "image/webp": "webp",
+    "image/gif": "gif", "image/svg+xml": "svg", "image/bmp": "bmp", "image/avif": "avif",
+}
+
+
+def _ext_for(mime: str) -> str:
+    return _MIME_EXT.get((mime or "").lower(), "bin")
+
+
+def _map_image_records(snap: dict, fn) -> dict:
+    """Return a shallow copy of `snap` with every image record — the per-entity
+    `images` arrays AND the project `coverImage` (the only two holders) — passed
+    through `fn(record) -> record`."""
+    out = dict(snap)
+    out["images"] = {
+        eid: [fn(rec) for rec in (lst or [])]
+        for eid, lst in (snap.get("images") or {}).items()
+    }
+    proj = dict(snap.get("project") or {})
+    if proj.get("coverImage"):
+        proj["coverImage"] = fn(proj["coverImage"])
+    out["project"] = proj
+    return out
+
+
+def _record_bytes(db: Session, rec: dict) -> tuple[bytes, str] | None:
+    """(bytes, mime) for an image record the SERVER can resolve — a server-kind
+    record (its bytes live in an ImageBlob) or an inline data-URL. Returns None
+    for a legacy `{kind:"file", path}` record: `path` is a renderer-local Tauri
+    path only the renderer's bridge can read, so the server cannot externalize
+    it (see externalize_images for how such a record is handled)."""
+    sid = rec.get("serverId")
+    if sid:
+        blob = db.get(ImageBlob, sid)
+        if blob is not None:
+            return blob.data, (rec.get("mime") or blob.mime or "application/octet-stream")
+        return None
+    data_url = rec.get("dataUrl")
+    if data_url:
+        m = re.match(r"^data:([^;]+);base64,(.*)$", data_url, re.DOTALL)
+        if m:
+            return base64.b64decode(m.group(2)), m.group(1)
+    return None
+
+
+def externalize_images(db: Session, snap: dict) -> tuple[dict, dict[str, bytes]]:
+    """Rewrite every server-resolvable image record (server-kind or inline
+    data-URL) to reference a file under images/, returning the rewritten snapshot
+    + `{filename: bytes}`. A legacy `{kind:"file", path}` record is UNRESOLVABLE
+    server-side (its path is renderer-local) so it's left as-is: its record still
+    travels in book.json, but its bytes do NOT enter the zip. The current app only
+    ever writes server-kind + data-URL images (imageStore.saveImage), so this gap
+    is legacy-only; a renderer-side file->server migration is the tracked
+    follow-up to close it fully."""
+    files: dict[str, bytes] = {}
+
+    def take(rec: dict) -> dict:
+        got = _record_bytes(db, rec) if rec else None
+        if got is None:
+            return rec
+        raw, mime = got
+        # serverId is globally unique → collision-free filenames across entities.
+        stem = rec.get("serverId") or rec.get("id") or str(uuid.uuid4())
+        fname = f"{stem}.{_ext_for(mime)}"
+        files[fname] = raw
+        return {
+            "id": rec.get("id"),
+            "addedAt": rec.get("addedAt"),
+            "name": rec.get("name", ""),
+            "mime": rec.get("mime") or mime,
+            "file": fname,
+        }
+
+    return _map_image_records(snap, take), files
+
+
+def internalize_images(db: Session, snap: dict, files: dict[str, bytes]) -> dict:
+    """Inverse of `externalize_images`: re-upload each file-referencing record's
+    bytes as a fresh ImageBlob and rewrite the record to a server-kind record.
+    Records with no `file` (e.g. an already-inline data-URL) pass through."""
+    now = datetime.now(timezone.utc).isoformat()
+
+    def put(rec: dict) -> dict:
+        fname = rec.get("file") if rec else None
+        raw = files.get(fname) if fname else None
+        if raw is None:
+            return rec
+        mime = rec.get("mime") or "application/octet-stream"
+        blob_id = str(uuid.uuid4())
+        db.add(ImageBlob(id=blob_id, name=rec.get("name", ""), mime=mime, data=raw, created_at=now))
+        return {
+            "id": rec.get("id"),
+            "addedAt": rec.get("addedAt"),
+            "name": rec.get("name", ""),
+            "mime": mime,
+            "kind": "server",
+            "serverId": blob_id,
+        }
+
+    return _map_image_records(snap, put)
+
+
+def import_book_snapshot(db: Session, snap: dict, files: dict[str, bytes], project_id: str) -> None:
+    """Decompose a book snapshot (+ its exported image `files`) into `project_id`,
+    creating fresh ImageBlobs for its images. The ONE core the per-project import
+    endpoint AND the sample seeder both call. Does NOT commit."""
+    decompose(db, project_id, internalize_images(db, snap, files or {}))

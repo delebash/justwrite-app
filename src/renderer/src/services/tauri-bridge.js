@@ -129,7 +129,7 @@ if (isTauri) {
       // Bytes ride the raw IPC body; suggested filename + dialog title +
       // a single file-type filter come through base64 headers so non-
       // ASCII names survive transport.
-      saveFile: async ({ blob, suggestedName, title, filterName, filterExt }) => {
+      saveFile: async ({ blob, suggestedName, title, filterName, filterExt, defaultDir }) => {
         const buf = await blob.arrayBuffer();
         const bytes = new Uint8Array(buf);
         const b64 = (s) => btoa(unescape(encodeURIComponent(s)));
@@ -138,8 +138,14 @@ if (isTauri) {
         if (title)         headers["x-save-title"] = b64(title);
         if (filterName)    headers["x-filter-name"] = b64(filterName);
         if (filterExt)     headers["x-filter-ext"] = b64(filterExt);
+        if (defaultDir)    headers["x-save-dir"] = b64(defaultDir);
         return safe(invoke("shell_save_file", bytes, { headers }));
       },
+      // Native "open a file" dialog. Resolves { name, dir, dataBase64 } for the
+      // picked file (e.g. a <book>.zip to import) or { ok:false, cancelled:true }.
+      // `dir` lets the caller remember this chooser's last location.
+      pickFile: ({ title, filterName, filterExt, defaultDir } = {}) =>
+        safe(invoke("pick_file", { title, filterName, filterExt, defaultDir })),
     },
 
     system: {
