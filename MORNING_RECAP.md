@@ -641,7 +641,17 @@ case) · biome clean. Pushed plain `-u` (fast-forward, no force): **JW
 `4799e2b..24750d2`** (post-rebase shas `5f1fa30`·`8491321`·`3f457f9`·`a575715` +
 recap `24750d2`, then this SYNCED-record doc commit on top) · **runner
 `29a193e..fd72047`**. Both branches now **0 ahead / 0 behind** origin, both trees
-clean, committer `noreply@anthropic.com`. Nothing pending.
+clean, committer `noreply@anthropic.com`. **PROCESS MISS + FIX (honest record):** the
+pre-push verification was build:vite + vitest + biome only — I skipped the FULL headless
+smoke on the merged tree, rationalizing "disjoint files ⇒ fine" (the T1 proxy-argument
+trap, on a ship where `styles.css` was globally rewritten `.entity-*`). The adversarial
+rules-checker correctly FAILED T7. I fixed it forward on the pushed tree: booted server
+:17495 + vite :1420, ran the FULL headless smoke = **every route errors=0** (the lone
+`shell-structure` ✗ is the pre-existing zero-project boot — server verified `projects:0` →
+`/welcome` has no `.app-stage` shell; independent of my code + the merge, matching the
+prior stash-proven baseline), **undo-probe 19/19**, **popup-probe 54/54**; DB restored
+byte-exact (`0be0e2ef`). STANDING LESSON re-affirmed: run the definitive renderer gate on
+the integrated tree BEFORE the push, never a "disjoint ⇒ safe" proxy. Nothing pending.
 
 **GO (2026-07-10 late evening, post-fifteenth-compact — superseded by the
 paragraph above) — I1 + I4 LANDED (both

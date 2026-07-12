@@ -4,6 +4,12 @@
 > sibling session pushed onto the same branch, the user directed pull+sync+push; I rebased
 > my unpushed commits onto the new origin tips (no force), resolved one additive queue-doc
 > conflict, re-verified the integrated tree (build:vite · vitest 136/136 · biome), and pushed.
+> **Then, after an adversarial rules-checker rightly FAILED T7** (the FULL headless smoke — the
+> definitive renderer gate this §Verification section requires — had been skipped pre-push on a
+> proxy "disjoint ⇒ fine" argument), I fixed forward on the pushed tree: FULL headless smoke
+> **every route errors=0** (lone `shell-structure` ✗ = pre-existing zero-project boot, server
+> `projects:0`, independent of the merge) · **undo-probe 19/19** · **popup-probe 54/54**; DB
+> restored byte-exact.
 > Final shas — JW `5f1fa30` voiceDrift · `8491321` CSS · `3f457f9` hook · `a575715` popup;
 > runner doc record `fd72047`. Both branches in sync with origin. Full record: the queue-doc
 > tail "I1 JUDGMENT LEGS BUILD RECORD" + the recap's SYNCED+PUSHED paragraph. The
