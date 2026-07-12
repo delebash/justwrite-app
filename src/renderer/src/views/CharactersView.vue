@@ -280,66 +280,66 @@ function onRowClick(event) {
 
     <div v-else class="pane-card">
       <div class="scrollarea" style="padding:18px 22px 40px">
-        <p class="ch-desc">
+        <p class="entity-desc ch-desc">
           A <strong>character</strong> is anyone in your story worth tracking — protagonist,
           antagonist, side cast. Fill in motivation, arc, voice, and backstory as you need them;
           every field is optional. Characters feed the <strong>Relations</strong> graph, the
           <strong>Cast presence</strong> heatmap, and AI features that draw on story-world context.
         </p>
         <!-- Toolbar -->
-        <div class="ch-toolbar">
-          <span class="ch-search">
-            <Icon name="Search" :size="13" class="ch-search-icon" />
+        <div class="entity-toolbar">
+          <span class="entity-search">
+            <Icon name="Search" :size="13" class="entity-search-icon" />
             <UiInput
               :value="globalQuery"
               placeholder="Search characters…"
               @input="onGlobalInput"
-              class="ch-search-input"
+              class="entity-search-input"
             />
           </span>
           <UiButton v-if="globalQuery || hasActiveFacets" label="Clear filters" intent="ghost" size="small" @click="clearAllFilters" />
-          <span class="ch-count">{{ filteredRows.length }} of {{ rows.length }}</span>
+          <span class="entity-count">{{ filteredRows.length }} of {{ rows.length }}</span>
         </div>
 
         <!-- Facets -->
-        <div class="ch-facets" v-if="statusOptions.length || allTags.length">
-          <div v-if="statusOptions.length" class="ch-facet">
-            <span class="ch-facet-label">Status</span>
-            <button class="ch-chip" :class="{ active: selectedStatus === null }" @click="selectedStatus = null">All</button>
+        <div class="entity-facets" v-if="statusOptions.length || allTags.length">
+          <div v-if="statusOptions.length" class="entity-facet">
+            <span class="entity-facet-label">Status</span>
+            <button class="entity-chip" :class="{ active: selectedStatus === null }" @click="selectedStatus = null">All</button>
             <button v-for="s in statusOptions" :key="s.value"
-              class="ch-chip" :class="{ active: selectedStatus === s.value }"
+              class="entity-chip" :class="{ active: selectedStatus === s.value }"
               @click="selectedStatus = selectedStatus === s.value ? null : s.value">
               {{ s.label }}
             </button>
           </div>
-          <div class="ch-facet">
-            <span class="ch-facet-label">Main</span>
-            <button class="ch-chip" :class="{ active: selectedMain === null }" @click="selectedMain = null">All</button>
-            <button class="ch-chip" :class="{ active: selectedMain === true }" @click="selectedMain = selectedMain === true ? null : true">Yes</button>
-            <button class="ch-chip" :class="{ active: selectedMain === false }" @click="selectedMain = selectedMain === false ? null : false">No</button>
+          <div class="entity-facet">
+            <span class="entity-facet-label">Main</span>
+            <button class="entity-chip" :class="{ active: selectedMain === null }" @click="selectedMain = null">All</button>
+            <button class="entity-chip" :class="{ active: selectedMain === true }" @click="selectedMain = selectedMain === true ? null : true">Yes</button>
+            <button class="entity-chip" :class="{ active: selectedMain === false }" @click="selectedMain = selectedMain === false ? null : false">No</button>
           </div>
-          <div v-if="allGenders.length" class="ch-facet">
-            <span class="ch-facet-label">Gender</span>
-            <button class="ch-chip" :class="{ active: selectedGender === null }" @click="selectedGender = null">All</button>
+          <div v-if="allGenders.length" class="entity-facet">
+            <span class="entity-facet-label">Gender</span>
+            <button class="entity-chip" :class="{ active: selectedGender === null }" @click="selectedGender = null">All</button>
             <button v-for="g in allGenders" :key="g"
-              class="ch-chip" :class="{ active: selectedGender === g }"
+              class="entity-chip" :class="{ active: selectedGender === g }"
               @click="selectedGender = selectedGender === g ? null : g">
               {{ g }}
             </button>
           </div>
-          <div v-if="allLifeStatuses.length" class="ch-facet">
-            <span class="ch-facet-label">Life status</span>
-            <button class="ch-chip" :class="{ active: selectedLifeStatus === null }" @click="selectedLifeStatus = null">All</button>
+          <div v-if="allLifeStatuses.length" class="entity-facet">
+            <span class="entity-facet-label">Life status</span>
+            <button class="entity-chip" :class="{ active: selectedLifeStatus === null }" @click="selectedLifeStatus = null">All</button>
             <button v-for="o in allLifeStatuses" :key="o.value"
-              class="ch-chip" :class="{ active: selectedLifeStatus === o.value }"
+              class="entity-chip" :class="{ active: selectedLifeStatus === o.value }"
               @click="selectedLifeStatus = selectedLifeStatus === o.value ? null : o.value">
               {{ o.label }}
             </button>
           </div>
-          <div v-if="allTags.length" class="ch-facet">
-            <span class="ch-facet-label">Tags</span>
+          <div v-if="allTags.length" class="entity-facet">
+            <span class="entity-facet-label">Tags</span>
             <button v-for="t in allTags" :key="t"
-              class="ch-chip" :class="{ active: selectedTags.has(t) }"
+              class="entity-chip" :class="{ active: selectedTags.has(t) }"
               @click="toggleTag(t)">
               {{ t }}
             </button>
@@ -354,11 +354,11 @@ function onRowClick(event) {
           :global-filter="globalQuery"
           :global-filter-fields="['name', 'role', 'gender', 'pronouns', 'aliases', 'oneLiner', 'tags']"
           :pagination="{ pageSize: 20, pageSizeOptions: [10, 20, 50, 100] }"
-          class="ch-table"
+          class="entity-table"
           @row-click="onRowClick"
         >
           <template #empty>
-            <div class="ch-empty">No characters match your search.</div>
+            <div class="entity-empty">No characters match your search.</div>
           </template>
 
           <template #name="{ row }">
@@ -372,31 +372,31 @@ function onRowClick(event) {
           </template>
 
           <template #role="{ row }">
-            <span class="ch-role">{{ row.role || '' }}</span>
+            <span class="entity-cell-sub">{{ row.role || '' }}</span>
           </template>
 
           <template #gender="{ row }">
-            <span class="ch-role">{{ row.gender || '' }}</span>
+            <span class="entity-cell-sub">{{ row.gender || '' }}</span>
           </template>
 
           <template #pronouns="{ row }">
-            <span class="ch-role">{{ row.pronouns || '' }}</span>
+            <span class="entity-cell-sub">{{ row.pronouns || '' }}</span>
           </template>
 
           <template #tags="{ row }">
-            <div class="ch-tags">
+            <div class="entity-tags">
               <UiTag v-for="t in row.tags" :key="t" :value="t" intent="secondary" />
             </div>
           </template>
 
           <template #status="{ row }">
             <UiTag v-if="row.status" :value="statusLabel(row.status)" :intent="statusSeverity(row.status)" />
-            <span v-else class="ch-status-empty">—</span>
+            <span v-else class="entity-status-empty">—</span>
           </template>
 
           <template #main="{ row }">
             <UiTag v-if="row.main" value="Yes" intent="info" />
-            <span v-else class="ch-status-empty">—</span>
+            <span v-else class="entity-status-empty">—</span>
           </template>
         </UiTable>
       </div>
@@ -405,10 +405,10 @@ function onRowClick(event) {
 
   <!-- ── Detail mode (id present, character found) ────────────── -->
   <template v-else-if="ch">
-    <header class="pane-header character-pane-header">
+    <header class="pane-header entity-pane-header">
       <div class="pane-title">
         <Breadcrumb :segments="[{ label: ch.main ? 'Main character' : 'Secondary character', to: '/characters' }]" />
-        <input class="character-name"
+        <input class="entity-name"
           :value="ch.name"
           placeholder="Character name"
           @input="updateField('name', $event.target.value)" />
@@ -435,7 +435,7 @@ function onRowClick(event) {
 
     <div class="pane-card">
       <div class="scrollarea" style="padding:24px 28px 40px">
-        <p class="ch-desc">
+        <p class="entity-desc ch-desc">
           A <strong>character</strong> is anyone in your story worth tracking — protagonist,
           antagonist, side cast. Fill in motivation, arc, voice, and backstory as you need them;
           every field is optional. Characters feed the <strong>Relations</strong> graph, the
@@ -578,7 +578,7 @@ function onRowClick(event) {
 
   <!-- ── id in URL but character not found (deleted / bad link) ── -->
   <template v-else>
-    <header class="pane-header character-pane-header">
+    <header class="pane-header entity-pane-header">
       <div class="pane-title">
         <Breadcrumb :segments="[{ label: 'Character', to: '/characters' }]" />
         <h1 class="pane-h1">Character not found</h1>
@@ -607,31 +607,10 @@ function onRowClick(event) {
 </template>
 
 <style scoped>
-.ch-desc {
-  font-size: 14px; line-height: 1.55; color: var(--muted);
-  margin: 0 0 18px;
-}
-.ch-desc strong { color: var(--ink-2); font-weight: 600; }
+/* Composes with the global .entity-desc (base margin 0). */
+.ch-desc { margin: 0 0 18px; }
 
 .ch-aliases-label { margin: 14px 0 6px; }
-
-.character-pane-header .pane-title { gap: 2px; }
-.character-name {
-  appearance: none;
-  font-family: var(--font-serif);
-  font-size: 20px; font-weight: 600;
-  letter-spacing: -0.015em;
-  color: var(--ink);
-  border: 1px solid transparent;
-  background: transparent;
-  border-radius: 6px;
-  padding: 2px 6px;
-  margin-left: -6px;
-  outline: none;
-  min-width: 0;
-}
-.character-name:hover { border-color: var(--border-soft); }
-.character-name:focus { border-color: var(--accent); background: var(--surface); box-shadow: 0 0 0 3px var(--accent-soft); }
 
 .avatar-drop {
   position: relative;
@@ -689,55 +668,8 @@ function onRowClick(event) {
   .voice-grid { grid-template-columns: 1fr; }
 }
 
-/* ── List view ─────────────────────────────────────────────────── */
-.ch-toolbar {
-  display: flex; align-items: center; gap: 10px;
-  margin-bottom: 14px;
-}
-.ch-search {
-  position: relative; flex: 1; max-width: 360px;
-}
-.ch-search-icon {
-  position: absolute; left: 10px; top: 50%;
-  transform: translateY(-50%);
-  color: var(--muted); pointer-events: none;
-}
-.ch-search-input { width: 100%; padding-left: 30px !important; }
-.ch-count { margin-left: auto; font-family: var(--font-mono); font-size: 11px; color: var(--muted); font-variant-numeric: tabular-nums; }
-
-.ch-facets {
-  display: flex; flex-direction: column;
-  gap: 8px;
-  padding: 10px 0 14px;
-}
-.ch-facet { display: flex; align-items: center; gap: 6px; flex-wrap: wrap; }
-.ch-facet-label {
-  font-family: var(--font-mono);
-  font-size: 10px;
-  text-transform: uppercase;
-  letter-spacing: 0.08em;
-  color: var(--muted);
-  min-width: 64px;
-}
-.ch-chip {
-  appearance: none;
-  background: transparent;
-  border: 1px solid var(--border);
-  color: var(--ink-2);
-  padding: 3px 9px;
-  border-radius: 999px;
-  font: 500 11.5px/1.4 var(--font-ui);
-  cursor: pointer;
-  transition: background-color .12s, border-color .12s, color .12s;
-}
-.ch-chip:hover { background: var(--surface-3); border-color: var(--border-strong); }
-.ch-chip.active {
-  background: var(--accent-soft);
-  border-color: var(--accent-line);
-  color: var(--accent-ink);
-}
-
-.ch-table { font-size: 13px; }
+/* ── List view (shared shape = the global .entity-* family; only the
+      avatar name-cell stays local) ─────────────────────────────── */
 .ch-cell-name {
   display: flex; align-items: center; gap: 10px; cursor: pointer;
 }
@@ -748,8 +680,4 @@ function onRowClick(event) {
   overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
   max-width: 340px;
 }
-.ch-role { font-size: 12.5px; color: var(--ink-2); }
-.ch-tags { display: flex; gap: 4px; flex-wrap: wrap; }
-.ch-status-empty { color: var(--muted); }
-.ch-empty { padding: 28px; text-align: center; color: var(--muted); font-style: italic; }
 </style>

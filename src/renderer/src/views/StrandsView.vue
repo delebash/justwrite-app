@@ -268,26 +268,26 @@ const tableRows = computed(() =>
 
     <div v-else class="pane-card">
       <div class="scrollarea" style="padding:18px 22px 40px">
-        <div class="strands-toolbar">
-          <span class="strands-search">
-            <Icon name="Search" :size="13" class="strands-search-icon" />
+        <div class="entity-toolbar">
+          <span class="entity-search">
+            <Icon name="Search" :size="13" class="entity-search-icon" />
             <UiInput
               :value="globalQuery"
               placeholder="Search narrative strands…"
               @input="onGlobalInput"
-              class="strands-search-input"
+              class="entity-search-input"
             />
           </span>
           <UiButton v-if="globalQuery || hasActiveFacets" label="Clear filters" intent="ghost" size="small" @click="clearAllFilters" />
-          <span class="strands-count">{{ filteredRows.length }} of {{ rows.length }}</span>
+          <span class="entity-count">{{ filteredRows.length }} of {{ rows.length }}</span>
         </div>
 
-        <div class="strands-facets" v-if="statusOptions.length">
-          <div class="strands-facet">
-            <span class="strands-facet-label">Status</span>
-            <button class="strands-chip" :class="{ active: selectedStatus === null }" @click="selectedStatus = null">All</button>
+        <div class="entity-facets" v-if="statusOptions.length">
+          <div class="entity-facet">
+            <span class="entity-facet-label">Status</span>
+            <button class="entity-chip" :class="{ active: selectedStatus === null }" @click="selectedStatus = null">All</button>
             <button v-for="st in statusOptions" :key="st.value"
-              class="strands-chip" :class="{ active: selectedStatus === st.value }"
+              class="entity-chip" :class="{ active: selectedStatus === st.value }"
               @click="selectedStatus = selectedStatus === st.value ? null : st.value">
               {{ st.label }}
             </button>
@@ -302,17 +302,17 @@ const tableRows = computed(() =>
           :global-filter="globalQuery"
           :global-filter-fields="['name', 'blurb']"
           :pagination="{ pageSize: 20, pageSizeOptions: [10, 20, 50, 100] }"
-          class="strands-table"
+          class="entity-table"
           @row-click="onRowClick"
         >
           <template #empty>
-            <div class="strands-empty">No narrative strands match your search.</div>
+            <div class="entity-empty">No narrative strands match your search.</div>
           </template>
 
           <template #name="{ row }">
-            <div class="strands-cell-title">
+            <div class="entity-cell-inline">
               <span v-if="row.color" class="strand-name-dot" :style="{ background: row.color }" />
-              <span class="strands-cell-title-text">{{ row.name }}</span>
+              <span class="entity-cell-title-text">{{ row.name }}</span>
             </div>
           </template>
 
@@ -326,7 +326,7 @@ const tableRows = computed(() =>
 
           <template #status="{ row }">
             <UiTag v-if="row.status" :value="statusLabel(row.status)" :intent="statusSeverity(row.status)" />
-            <span v-else class="strands-status-empty">—</span>
+            <span v-else class="entity-status-empty">—</span>
           </template>
         </UiTable>
       </div>
@@ -335,12 +335,12 @@ const tableRows = computed(() =>
 
   <!-- ── Detail mode (id present, strand found) ───────────────── -->
   <template v-else-if="s">
-    <header class="pane-header strand-pane-header">
+    <header class="pane-header entity-pane-header">
       <div class="pane-title">
         <Breadcrumb :segments="[{ label: 'Narrative strand', to: '/strands' }]" />
         <div class="strand-name-row">
           <span v-if="s.color" class="strand-name-dot" :style="{ background: s.color }" :title="s.color" />
-          <input class="strand-name"
+          <input class="entity-name"
             :value="s.name"
             placeholder="Narrative strand name"
             @input="update('name', $event.target.value)" />
@@ -360,7 +360,7 @@ const tableRows = computed(() =>
 
     <div class="pane-card">
       <div class="strand-body">
-            <p class="strand-desc">
+            <p class="entity-desc">
               A <strong>narrative strand</strong> is a thread that runs through your manuscript —
               the main plot, a subplot, a character arc, a thematic spine. Write your synopsis
               and notes below; add <strong>beats</strong> to mark where the thread turns; tag
@@ -460,7 +460,7 @@ const tableRows = computed(() =>
 
   <!-- ── id in URL but strand not found ───────────────────────── -->
   <template v-else>
-    <header class="pane-header strand-pane-header">
+    <header class="pane-header entity-pane-header">
       <div class="pane-title">
         <Breadcrumb :segments="[{ label: 'Narrative strand', to: '/strands' }]" />
         <h1 class="pane-h1">Narrative strand not found</h1>
@@ -479,12 +479,6 @@ const tableRows = computed(() =>
 </template>
 
 <style scoped>
-.strand-desc {
-  font-size: 14px; line-height: 1.55; color: var(--muted);
-  margin: 0;
-}
-.strand-desc strong { color: var(--ink-2); font-weight: 600; }
-
 .strand-body {
   flex: 1; min-width: 0; min-height: 0;
   display: flex; flex-direction: column; gap: 12px;
@@ -495,7 +489,6 @@ const tableRows = computed(() =>
   overflow-y: auto;
 }
 
-.strand-pane-header .pane-title { gap: 2px; }
 .strand-name-row {
   display: flex; align-items: center; gap: 8px;
   min-width: 0;
@@ -505,23 +498,6 @@ const tableRows = computed(() =>
   box-shadow: inset 0 0 0 1px var(--shadow-soft);
   flex: none;
 }
-.strand-name {
-  appearance: none;
-  font-family: var(--font-serif);
-  font-size: 20px; font-weight: 600;
-  letter-spacing: -0.015em;
-  color: var(--ink);
-  border: 1px solid transparent;
-  background: transparent;
-  border-radius: 6px;
-  padding: 2px 6px;
-  margin-left: -6px;
-  outline: none;
-  min-width: 0;
-}
-.strand-name:hover { border-color: var(--border-soft); }
-.strand-name:focus { border-color: var(--accent); background: var(--surface); box-shadow: 0 0 0 3px var(--accent-soft); }
-
 .strand-blurb {
   appearance: none;
   width: 100%;
@@ -655,58 +631,6 @@ const tableRows = computed(() =>
 .beat-delete { color: var(--muted); width: 24px; height: 24px; padding: 4px; }
 .beat-delete:hover { color: var(--danger); background: var(--surface-3); }
 
-/* ── List view ─────────────────────────────────────────────────── */
-.strands-toolbar {
-  display: flex; align-items: center; gap: 10px;
-  margin-bottom: 14px;
-}
-.strands-search {
-  position: relative; flex: 1; max-width: 360px;
-}
-.strands-search-icon {
-  position: absolute; left: 10px; top: 50%;
-  transform: translateY(-50%);
-  color: var(--muted); pointer-events: none;
-}
-.strands-search-input { width: 100%; padding-left: 30px !important; }
-.strands-count { margin-left: auto; font-family: var(--font-mono); font-size: 11px; color: var(--muted); font-variant-numeric: tabular-nums; }
-
-.strands-facets {
-  display: flex; flex-direction: column;
-  gap: 8px;
-  padding: 10px 0 14px;
-}
-.strands-facet { display: flex; align-items: center; gap: 6px; flex-wrap: wrap; }
-.strands-facet-label {
-  font-family: var(--font-mono);
-  font-size: 10px;
-  text-transform: uppercase;
-  letter-spacing: 0.08em;
-  color: var(--muted);
-  min-width: 64px;
-}
-.strands-chip {
-  appearance: none;
-  background: transparent;
-  border: 1px solid var(--border);
-  color: var(--ink-2);
-  padding: 3px 9px;
-  border-radius: 999px;
-  font: 500 11.5px/1.4 var(--font-ui);
-  cursor: pointer;
-  transition: background-color .12s, border-color .12s, color .12s;
-}
-.strands-chip:hover { background: var(--surface-3); border-color: var(--border-strong); }
-.strands-chip.active {
-  background: var(--accent-soft);
-  border-color: var(--accent-line);
-  color: var(--accent-ink);
-}
-
-.strands-table { font-size: 13px; }
-.strands-cell-title { display: flex; align-items: center; gap: 7px; cursor: pointer; }
-.strands-cell-title-text { font-family: var(--font-serif); font-size: 14px; color: var(--ink); }
+/* List view: shared shape = global .entity-*; only the number cell stays local */
 .strands-num { font-family: var(--font-mono); font-size: 12px; color: var(--ink-2); font-variant-numeric: tabular-nums; }
-.strands-status-empty { color: var(--muted); }
-.strands-empty { padding: 28px; text-align: center; color: var(--muted); font-style: italic; }
 </style>

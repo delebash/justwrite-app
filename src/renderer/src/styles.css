@@ -1011,6 +1011,101 @@ html[data-editor-layout="page"] .rich-editor--manuscript .manuscript-inner.with-
 .col-list-header .input { padding: 4px 10px; font-size: 12px; height: 28px; }
 
 /* ============================================================
+   Entity library (list + detail) — the canonical story-bible view
+   family. One source for the toolbar/search/facet/chip/table list
+   shape and the detail name-input/desc pattern shared by Characters,
+   Locations, Objects, Groups, Notes, Strands, Worldbuilding (+ the
+   Architecture table leaves). Promoted from the views' byte-identical
+   scoped copies 2026-07-12 (docs/plans/2026-07-12-i1-css-popup-
+   voicedrift.md Task 2); genuine per-view variants stay scoped.
+   ============================================================ */
+
+/* Detail: the inline-editable name input + header/desc pattern */
+.entity-pane-header .pane-title { gap: 2px; }
+.entity-name {
+  appearance: none;
+  font-family: var(--font-serif);
+  font-size: 20px; font-weight: 600;
+  letter-spacing: -0.015em;
+  color: var(--ink);
+  border: 1px solid transparent;
+  background: transparent;
+  border-radius: 6px;
+  padding: 2px 6px;
+  margin-left: -6px;
+  outline: none;
+  min-width: 0;
+}
+.entity-name:hover { border-color: var(--border-soft); }
+.entity-name:focus { border-color: var(--accent); background: var(--surface); box-shadow: 0 0 0 3px var(--accent-soft); }
+.entity-desc {
+  font-size: 14px; line-height: 1.55; color: var(--muted);
+  margin: 0;
+}
+.entity-desc strong { color: var(--ink-2); font-weight: 600; }
+
+/* List: toolbar → search → count, facet chip rows, the table cells */
+.entity-toolbar {
+  display: flex; align-items: center; gap: 10px;
+  margin-bottom: 14px;
+}
+.entity-search {
+  position: relative; flex: 1; max-width: 360px;
+}
+.entity-search-icon {
+  position: absolute; left: 10px; top: 50%;
+  transform: translateY(-50%);
+  color: var(--muted); pointer-events: none;
+}
+.entity-search-input { width: 100%; padding-left: 30px !important; }
+.entity-count { margin-left: auto; font-family: var(--font-mono); font-size: 11px; color: var(--muted); font-variant-numeric: tabular-nums; }
+
+.entity-facets {
+  display: flex; flex-direction: column;
+  gap: 8px;
+  padding: 10px 0 14px;
+}
+.entity-facet { display: flex; align-items: center; gap: 6px; flex-wrap: wrap; }
+.entity-facet-label {
+  font-family: var(--font-mono);
+  font-size: 10px;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--muted);
+  min-width: 64px;
+}
+.entity-chip {
+  appearance: none;
+  background: transparent;
+  border: 1px solid var(--border);
+  color: var(--ink-2);
+  padding: 3px 9px;
+  border-radius: 999px;
+  font: 500 11.5px/1.4 var(--font-ui);
+  cursor: pointer;
+  transition: background-color .12s, border-color .12s, color .12s;
+}
+.entity-chip:hover { background: var(--surface-3); border-color: var(--border-strong); }
+.entity-chip.active {
+  background: var(--accent-soft);
+  border-color: var(--accent-line);
+  color: var(--accent-ink);
+}
+
+.entity-table { font-size: 13px; }
+.entity-cell-title {
+  display: flex; flex-direction: column; gap: 2px; cursor: pointer;
+}
+.entity-cell-inline {
+  display: flex; align-items: center; gap: 7px; cursor: pointer;
+}
+.entity-cell-title-text { font-family: var(--font-serif); font-size: 14px; color: var(--ink); }
+.entity-cell-sub { font-size: 12.5px; color: var(--ink-2); }
+.entity-tags { display: flex; gap: 4px; flex-wrap: wrap; }
+.entity-status-empty { color: var(--muted); }
+.entity-empty { padding: 28px; text-align: center; color: var(--muted); font-style: italic; }
+
+/* ============================================================
    Charts (analysis)
    ============================================================ */
 

@@ -137,7 +137,7 @@ try {
   await sleep(1000); // let the coalescing window close + the store record
 
   await goto("#/characters/c1");
-  const nameInput = page.locator("input.character-name");
+  const nameInput = page.locator("input.entity-name");
   await nameInput.waitFor({ timeout: 8000 });
   await nameInput.fill("Renamed Probe");
   await sleep(400);
@@ -151,16 +151,16 @@ try {
 
   await goto("#/characters/c1");
   check("…and the character rename SURVIVES it",
-    (await page.locator("input.character-name").inputValue()) === "Renamed Probe");
+    (await page.locator("input.entity-name").inputValue()) === "Renamed Probe");
 
   await pressUndo();
   check("⌘Z on /characters reverts the rename",
-    (await page.locator("input.character-name").inputValue()) === "Mira Probe");
+    (await page.locator("input.entity-name").inputValue()) === "Mira Probe");
 
   // ── Redo, per-domain, survives other-domain edits (F9, editor-free) ──────
   await pressRedo();
   check("⌘⇧Z on /characters redoes the rename",
-    (await page.locator("input.character-name").inputValue()) === "Renamed Probe");
+    (await page.locator("input.entity-name").inputValue()) === "Renamed Probe");
   await pressUndo(); // back to "Mira Probe", characters future armed again
   await goto("#/chapters/ch1/s1");
   const ed2 = page.locator(".ProseMirror").first();
@@ -176,7 +176,7 @@ try {
   await goto("#/characters/c1");
   await pressRedo();
   check("characters redo SURVIVES the manuscript edit (per-domain futures, F9)",
-    (await page.locator("input.character-name").inputValue()) === "Renamed Probe");
+    (await page.locator("input.entity-name").inputValue()) === "Renamed Probe");
 
   // ── Leg 1c: IN-EDITOR prose redo — the editor-echo fix ───────────────────
   // Type, undo, redo with the scene editor OPEN the whole time. Pre-fix the

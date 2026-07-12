@@ -62,7 +62,7 @@ function onRowClick(event) {
 
     <div class="pane-card">
       <div class="scrollarea" style="padding:18px 22px 40px">
-        <p class="arch-desc" style="margin: 0 0 18px">
+        <p class="entity-desc" style="margin: 0 0 18px">
           <strong>Architecture</strong> holds your book's three foundation documents —
           <strong>Premise</strong> (one paragraph: what the book is about),
           <strong>Fabula</strong> (the cause-and-effect chain of events in story chronology),
@@ -77,22 +77,22 @@ function onRowClick(event) {
           :columns="columns"
           data-key="id"
           row-hover
-          class="arch-table"
+          class="entity-table"
           @row-click="onRowClick"
         >
           <template #title="{ row }">
-            <div class="arch-cell-title">
-              <span class="arch-cell-title-text">{{ row.title }}</span>
+            <div class="entity-cell-title">
+              <span class="entity-cell-title-text">{{ row.title }}</span>
             </div>
           </template>
 
           <template #blurb="{ row }">
-            <span class="arch-cell-blurb">{{ row.blurb || '—' }}</span>
+            <span class="entity-cell-sub">{{ row.blurb || '—' }}</span>
           </template>
 
           <template #status="{ row }">
             <UiTag v-if="row.status" :value="statusLabel(row.status)" :intent="statusSeverity(row.status)" />
-            <span v-else class="arch-status-empty">—</span>
+            <span v-else class="entity-status-empty">—</span>
           </template>
         </UiTable>
       </div>
@@ -119,7 +119,7 @@ function onRowClick(event) {
 
     <div class="pane-card">
       <div class="arch-wrap scrollarea">
-        <p class="arch-desc">
+        <p class="entity-desc">
           <strong>Architecture</strong> holds your book's three foundation documents —
           <strong>Premise</strong> (one paragraph: what the book is about),
           <strong>Fabula</strong> (the cause-and-effect chain of events in story chronology),
@@ -160,12 +160,6 @@ function onRowClick(event) {
 </template>
 
 <style scoped>
-.arch-desc {
-  font-size: 14px; line-height: 1.55; color: var(--muted);
-  margin: 0;
-}
-.arch-desc strong { color: var(--ink-2); font-weight: 600; }
-
 .arch-wrap {
   flex: 1;
   min-height: 0;
@@ -196,12 +190,6 @@ function onRowClick(event) {
   font-size: 14px;
 }
 
-/* ── List view ─────────────────────────────────────────────────── */
+/* List view: shared shapes = global .entity-*; only the doc count stays local. */
 .arch-count { font-family: var(--font-mono); font-size: 11px; color: var(--muted); font-variant-numeric: tabular-nums; margin-bottom: 14px; }
-.arch-table { font-size: 13px; }
-.arch-cell-title { display: flex; flex-direction: column; gap: 2px; cursor: pointer; }
-.arch-cell-title-text { font-family: var(--font-serif); font-size: 14px; color: var(--ink); }
-.arch-cell-blurb { font-size: 12.5px; color: var(--ink-2); }
-.arch-status-empty { color: var(--muted); }
-.arch-empty { padding: 28px; text-align: center; color: var(--muted); font-style: italic; }
 </style>

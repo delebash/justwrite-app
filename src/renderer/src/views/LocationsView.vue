@@ -159,7 +159,7 @@ function onRowClick(event) {
 
     <div v-else class="pane-card">
       <div class="scrollarea" style="padding:18px 22px 40px">
-        <p class="loc-desc" style="margin: 0 0 18px">
+        <p class="entity-desc" style="margin: 0 0 18px">
           A <strong>location</strong> is a place that appears in your story — a city, a tavern,
           a starship interior, an abandoned house. Use an entry when the place shows up in more
           than one scene and you want a single source of truth for its layout, history, and
@@ -167,44 +167,44 @@ function onRowClick(event) {
           that draw on story-world context.
         </p>
         <!-- Toolbar -->
-        <div class="loc-toolbar">
-          <span class="loc-search">
-            <Icon name="Search" :size="13" class="loc-search-icon" />
+        <div class="entity-toolbar">
+          <span class="entity-search">
+            <Icon name="Search" :size="13" class="entity-search-icon" />
             <UiInput
               :value="globalQuery"
               placeholder="Search locations…"
               @input="onGlobalInput"
-              class="loc-search-input"
+              class="entity-search-input"
             />
           </span>
           <UiButton v-if="globalQuery || hasActiveFacets" label="Clear filters" intent="ghost" size="small" @click="clearAllFilters" />
-          <span class="loc-count">{{ filteredRows.length }} of {{ rows.length }}</span>
+          <span class="entity-count">{{ filteredRows.length }} of {{ rows.length }}</span>
         </div>
 
         <!-- Facets -->
-        <div class="loc-facets" v-if="allKinds.length || statusOptions.length || allTags.length">
-          <div v-if="allKinds.length" class="loc-facet">
-            <span class="loc-facet-label">Kind</span>
-            <button class="loc-chip" :class="{ active: selectedKind === null }" @click="selectedKind = null">All</button>
+        <div class="entity-facets" v-if="allKinds.length || statusOptions.length || allTags.length">
+          <div v-if="allKinds.length" class="entity-facet">
+            <span class="entity-facet-label">Kind</span>
+            <button class="entity-chip" :class="{ active: selectedKind === null }" @click="selectedKind = null">All</button>
             <button v-for="k in allKinds" :key="k"
-              class="loc-chip" :class="{ active: selectedKind === k }"
+              class="entity-chip" :class="{ active: selectedKind === k }"
               @click="selectedKind = selectedKind === k ? null : k">
               {{ k }}
             </button>
           </div>
-          <div v-if="statusOptions.length" class="loc-facet">
-            <span class="loc-facet-label">Status</span>
-            <button class="loc-chip" :class="{ active: selectedStatus === null }" @click="selectedStatus = null">All</button>
+          <div v-if="statusOptions.length" class="entity-facet">
+            <span class="entity-facet-label">Status</span>
+            <button class="entity-chip" :class="{ active: selectedStatus === null }" @click="selectedStatus = null">All</button>
             <button v-for="s in statusOptions" :key="s.value"
-              class="loc-chip" :class="{ active: selectedStatus === s.value }"
+              class="entity-chip" :class="{ active: selectedStatus === s.value }"
               @click="selectedStatus = selectedStatus === s.value ? null : s.value">
               {{ s.label }}
             </button>
           </div>
-          <div v-if="allTags.length" class="loc-facet">
-            <span class="loc-facet-label">Tags</span>
+          <div v-if="allTags.length" class="entity-facet">
+            <span class="entity-facet-label">Tags</span>
             <button v-for="t in allTags" :key="t"
-              class="loc-chip" :class="{ active: selectedTags.has(t) }"
+              class="entity-chip" :class="{ active: selectedTags.has(t) }"
               @click="toggleTag(t)">
               {{ t }}
             </button>
@@ -219,32 +219,32 @@ function onRowClick(event) {
           :global-filter="globalQuery"
           :global-filter-fields="['name', 'tags']"
           :pagination="{ pageSize: 20, pageSizeOptions: [10, 20, 50, 100] }"
-          class="loc-table"
+          class="entity-table"
           @row-click="onRowClick"
         >
           <template #empty>
-            <div class="loc-empty">No locations match your search.</div>
+            <div class="entity-empty">No locations match your search.</div>
           </template>
 
           <template #name="{ row }">
-            <div class="loc-cell-title">
-              <span class="loc-cell-title-text">{{ row.name }}</span>
+            <div class="entity-cell-title">
+              <span class="entity-cell-title-text">{{ row.name }}</span>
             </div>
           </template>
 
           <template #kind="{ row }">
-            <span class="loc-kind">{{ row.kind || '' }}</span>
+            <span class="entity-cell-sub">{{ row.kind || '' }}</span>
           </template>
 
           <template #tags="{ row }">
-            <div class="loc-tags">
+            <div class="entity-tags">
               <UiTag v-for="t in row.tags" :key="t" :value="t" intent="secondary" />
             </div>
           </template>
 
           <template #status="{ row }">
             <UiTag v-if="row.status" :value="statusLabel(row.status)" :intent="statusSeverity(row.status)" />
-            <span v-else class="loc-status-empty">—</span>
+            <span v-else class="entity-status-empty">—</span>
           </template>
         </UiTable>
       </div>
@@ -253,10 +253,10 @@ function onRowClick(event) {
 
   <!-- ── Detail mode (id present, location found) ─────────────── -->
   <template v-else-if="loc">
-    <header class="pane-header location-pane-header">
+    <header class="pane-header entity-pane-header">
       <div class="pane-title">
         <Breadcrumb :segments="[{ label: 'Location', to: '/locations' }]" />
-        <input class="location-name"
+        <input class="entity-name"
           :value="loc.name"
           placeholder="Location name"
           @input="update('name', $event.target.value)" />
@@ -278,7 +278,7 @@ function onRowClick(event) {
     </header>
     <div class="pane-card">
       <div style="padding:24px 28px 40px;display:flex;flex-direction:column;gap:14px;flex:1;min-height:0">
-        <p class="loc-desc">
+        <p class="entity-desc">
           A <strong>location</strong> is a place that appears in your story — a city, a tavern,
           a starship interior, an abandoned house. Use an entry when the place shows up in more
           than one scene and you want a single source of truth for its layout, history, and
@@ -325,7 +325,7 @@ function onRowClick(event) {
 
   <!-- ── id in URL but location not found ─────────────────────── -->
   <template v-else>
-    <header class="pane-header location-pane-header">
+    <header class="pane-header entity-pane-header">
       <div class="pane-title">
         <Breadcrumb :segments="[{ label: 'Location', to: '/locations' }]" />
         <h1 class="pane-h1">Location not found</h1>
@@ -347,84 +347,3 @@ function onRowClick(event) {
     @committed="sweepOpen = false" />
 </template>
 
-<style scoped>
-.loc-desc {
-  font-size: 14px; line-height: 1.55; color: var(--muted);
-  margin: 0;
-}
-.loc-desc strong { color: var(--ink-2); font-weight: 600; }
-
-.location-pane-header .pane-title { gap: 2px; }
-.location-name {
-  appearance: none;
-  font-family: var(--font-serif);
-  font-size: 20px; font-weight: 600;
-  letter-spacing: -0.015em;
-  color: var(--ink);
-  border: 1px solid transparent;
-  background: transparent;
-  border-radius: 6px;
-  padding: 2px 6px;
-  margin-left: -6px;
-  outline: none;
-  min-width: 0;
-}
-.location-name:hover { border-color: var(--border-soft); }
-.location-name:focus { border-color: var(--accent); background: var(--surface); box-shadow: 0 0 0 3px var(--accent-soft); }
-
-/* ── List view ─────────────────────────────────────────────────── */
-.loc-toolbar {
-  display: flex; align-items: center; gap: 10px;
-  margin-bottom: 14px;
-}
-.loc-search {
-  position: relative; flex: 1; max-width: 360px;
-}
-.loc-search-icon {
-  position: absolute; left: 10px; top: 50%;
-  transform: translateY(-50%);
-  color: var(--muted); pointer-events: none;
-}
-.loc-search-input { width: 100%; padding-left: 30px !important; }
-.loc-count { margin-left: auto; font-family: var(--font-mono); font-size: 11px; color: var(--muted); font-variant-numeric: tabular-nums; }
-
-.loc-facets {
-  display: flex; flex-direction: column;
-  gap: 8px;
-  padding: 10px 0 14px;
-}
-.loc-facet { display: flex; align-items: center; gap: 6px; flex-wrap: wrap; }
-.loc-facet-label {
-  font-family: var(--font-mono);
-  font-size: 10px;
-  text-transform: uppercase;
-  letter-spacing: 0.08em;
-  color: var(--muted);
-  min-width: 64px;
-}
-.loc-chip {
-  appearance: none;
-  background: transparent;
-  border: 1px solid var(--border);
-  color: var(--ink-2);
-  padding: 3px 9px;
-  border-radius: 999px;
-  font: 500 11.5px/1.4 var(--font-ui);
-  cursor: pointer;
-  transition: background-color .12s, border-color .12s, color .12s;
-}
-.loc-chip:hover { background: var(--surface-3); border-color: var(--border-strong); }
-.loc-chip.active {
-  background: var(--accent-soft);
-  border-color: var(--accent-line);
-  color: var(--accent-ink);
-}
-
-.loc-table { font-size: 13px; }
-.loc-cell-title { display: flex; flex-direction: column; gap: 2px; cursor: pointer; }
-.loc-cell-title-text { font-family: var(--font-serif); font-size: 14px; color: var(--ink); }
-.loc-kind { font-size: 12.5px; color: var(--ink-2); }
-.loc-tags { display: flex; gap: 4px; flex-wrap: wrap; }
-.loc-status-empty { color: var(--muted); }
-.loc-empty { padding: 28px; text-align: center; color: var(--muted); font-style: italic; }
-</style>

@@ -185,7 +185,7 @@ function onRowClick(event) {
 
     <div v-else class="pane-card">
       <div class="scrollarea" style="padding:18px 22px 40px">
-        <p class="wb-desc" style="padding: 0; margin: 0 0 18px">
+        <p class="entity-desc wb-desc" style="padding: 0; margin: 0 0 18px">
           A <strong>worldbuilding article</strong> is long-form reference that doesn't belong on
           a character, location, or object sheet — a magic system, a kingdom's history, an
           invented language, a calendar, a religion. Organise articles by category, tag them
@@ -194,44 +194,44 @@ function onRowClick(event) {
         </p>
 
         <!-- Global search + filter reset -->
-        <div class="wb-toolbar">
-          <span class="wb-search">
-            <Icon name="Search" :size="13" class="wb-search-icon" />
+        <div class="entity-toolbar">
+          <span class="entity-search">
+            <Icon name="Search" :size="13" class="entity-search-icon" />
             <UiInput
               :value="globalQuery"
               placeholder="Search articles…"
               @input="onGlobalInput"
-              class="wb-search-input"
+              class="entity-search-input"
             />
           </span>
           <UiButton v-if="globalQuery || hasActiveFacets" label="Clear filters" intent="ghost" size="small" @click="clearAllFilters" />
-          <span class="wb-count">{{ filteredRows.length }} of {{ rows.length }}</span>
+          <span class="entity-count">{{ filteredRows.length }} of {{ rows.length }}</span>
         </div>
 
         <!-- Facet filter chips: Category (single), Status (single), Tags (multi). -->
-        <div class="wb-facets" v-if="categoryOptions.length || statusOptions.length || allTags.length">
-          <div v-if="categoryOptions.length" class="wb-facet">
-            <span class="wb-facet-label">Category</span>
-            <button class="wb-chip" :class="{ active: !selectedCategory }" @click="selectedCategory = null">All</button>
+        <div class="entity-facets" v-if="categoryOptions.length || statusOptions.length || allTags.length">
+          <div v-if="categoryOptions.length" class="entity-facet">
+            <span class="entity-facet-label">Category</span>
+            <button class="entity-chip" :class="{ active: !selectedCategory }" @click="selectedCategory = null">All</button>
             <button v-for="c in categoryOptions" :key="c.value"
-              class="wb-chip" :class="{ active: selectedCategory === c.value }"
+              class="entity-chip" :class="{ active: selectedCategory === c.value }"
               @click="selectedCategory = selectedCategory === c.value ? null : c.value">
               {{ c.label }}
             </button>
           </div>
-          <div v-if="statusOptions.length" class="wb-facet">
-            <span class="wb-facet-label">Status</span>
-            <button class="wb-chip" :class="{ active: !selectedStatus }" @click="selectedStatus = null">All</button>
+          <div v-if="statusOptions.length" class="entity-facet">
+            <span class="entity-facet-label">Status</span>
+            <button class="entity-chip" :class="{ active: !selectedStatus }" @click="selectedStatus = null">All</button>
             <button v-for="s in statusOptions" :key="s.value"
-              class="wb-chip" :class="{ active: selectedStatus === s.value }"
+              class="entity-chip" :class="{ active: selectedStatus === s.value }"
               @click="selectedStatus = selectedStatus === s.value ? null : s.value">
               {{ s.label }}
             </button>
           </div>
-          <div v-if="allTags.length" class="wb-facet">
-            <span class="wb-facet-label">Tags</span>
+          <div v-if="allTags.length" class="entity-facet">
+            <span class="entity-facet-label">Tags</span>
             <button v-for="t in allTags" :key="t"
-              class="wb-chip" :class="{ active: selectedTags.has(t) }"
+              class="entity-chip" :class="{ active: selectedTags.has(t) }"
               @click="toggleTag(t)">
               {{ t }}
             </button>
@@ -246,16 +246,16 @@ function onRowClick(event) {
           :global-filter="globalQuery"
           :global-filter-fields="['title', 'summary', 'tags']"
           :pagination="{ pageSize: 20, pageSizeOptions: [10, 20, 50, 100] }"
-          class="wb-table"
+          class="entity-table"
           @row-click="onRowClick"
         >
           <template #empty>
-            <div class="wb-empty">No articles match your search.</div>
+            <div class="entity-empty">No articles match your search.</div>
           </template>
 
           <template #title="{ row }">
-            <div class="wb-cell-title">
-              <span class="wb-cell-title-text">{{ row.title }}</span>
+            <div class="entity-cell-title">
+              <span class="entity-cell-title-text">{{ row.title }}</span>
               <span v-if="row.summary" class="wb-cell-title-sum">{{ row.summary }}</span>
             </div>
           </template>
@@ -268,14 +268,14 @@ function onRowClick(event) {
           </template>
 
           <template #tags="{ row }">
-            <div class="wb-tags">
+            <div class="entity-tags">
               <UiTag v-for="t in row.tags" :key="t" :value="t" intent="secondary" />
             </div>
           </template>
 
           <template #status="{ row }">
             <UiTag v-if="row.status" :value="statusLabel(row.status)" :intent="statusSeverity(row.status)" />
-            <span v-else class="wb-status-empty">—</span>
+            <span v-else class="entity-status-empty">—</span>
           </template>
 
           <template #words="{ row }">
@@ -287,10 +287,10 @@ function onRowClick(event) {
   </template>
 
   <template v-else>
-    <header class="pane-header wb-pane-header">
+    <header class="pane-header entity-pane-header">
       <div class="pane-title">
         <Breadcrumb :segments="[{ label: cat?.label || 'Worldbuilding', to: '/worldbuilding' }]" />
-        <input class="wb-title"
+        <input class="entity-name"
           placeholder="Article title"
           :value="article.title" @input="update('title', $event.target.value)" />
       </div>
@@ -311,7 +311,7 @@ function onRowClick(event) {
     </header>
 
     <div class="pane-card">
-      <p class="wb-desc">
+      <p class="entity-desc wb-desc">
         A <strong>worldbuilding article</strong> is long-form reference that doesn't belong on
         a character, location, or object sheet — a magic system, a kingdom's history, an
         invented language, a calendar, a religion. Organise articles by category, tag them
@@ -347,83 +347,10 @@ function onRowClick(event) {
 </template>
 
 <style scoped>
-.wb-desc {
-  font-size: 14px; line-height: 1.55; color: var(--muted);
-  padding: 14px 22px 0;
-  margin: 0;
-}
-.wb-desc strong { color: var(--ink-2); font-weight: 600; }
+/* Shared shapes = global .entity-*; wb-desc composes its padding on top. */
+.wb-desc { padding: 14px 22px 0; }
 
-.wb-pane-header .pane-title { gap: 2px; }
-.wb-title {
-  appearance: none;
-  font-family: var(--font-serif);
-  font-size: 20px; font-weight: 600;
-  letter-spacing: -0.015em;
-  color: var(--ink);
-  border: 1px solid transparent;
-  background: transparent;
-  border-radius: 6px;
-  padding: 2px 6px;
-  margin-left: -6px;
-  outline: none;
-  min-width: 0;
-}
-.wb-title:hover { border-color: var(--border-soft); }
-.wb-title:focus { border-color: var(--accent); background: var(--surface); box-shadow: 0 0 0 3px var(--accent-soft); }
-
-/* ── List view ─────────────────────────────────────────────────── */
-.wb-toolbar {
-  display: flex; align-items: center; gap: 10px;
-  margin-bottom: 14px;
-}
-.wb-search {
-  position: relative; flex: 1; max-width: 360px;
-}
-.wb-search-icon {
-  position: absolute; left: 10px; top: 50%;
-  transform: translateY(-50%);
-  color: var(--muted); pointer-events: none;
-}
-.wb-search-input { width: 100%; padding-left: 30px !important; }
-.wb-count { margin-left: auto; font-family: var(--font-mono); font-size: 11px; color: var(--muted); font-variant-numeric: tabular-nums; }
-
-/* Facet filter chips — Category / Status / Tags rows above the table. */
-.wb-facets {
-  display: flex; flex-direction: column;
-  gap: 8px;
-  padding: 10px 0 14px;
-}
-.wb-facet { display: flex; align-items: center; gap: 6px; flex-wrap: wrap; }
-.wb-facet-label {
-  font-family: var(--font-mono);
-  font-size: 10px;
-  text-transform: uppercase;
-  letter-spacing: 0.08em;
-  color: var(--muted);
-  min-width: 64px;
-}
-.wb-chip {
-  appearance: none;
-  background: transparent;
-  border: 1px solid var(--border);
-  color: var(--ink-2);
-  padding: 3px 9px;
-  border-radius: 999px;
-  font: 500 11.5px/1.4 var(--font-ui);
-  cursor: pointer;
-  transition: background-color .12s, border-color .12s, color .12s;
-}
-.wb-chip:hover { background: var(--surface-3); border-color: var(--border-strong); }
-.wb-chip.active {
-  background: var(--accent-soft);
-  border-color: var(--accent-line);
-  color: var(--accent-ink);
-}
-
-.wb-table { font-size: 13px; }
-.wb-cell-title { display: flex; flex-direction: column; gap: 2px; cursor: pointer; }
-.wb-cell-title-text { font-family: var(--font-serif); font-size: 14px; color: var(--ink); }
+/* List view: shared shapes = global .entity-*; only these per-view cells stay local. */
 .wb-cell-title-sum {
   font-size: 12px; color: var(--muted); line-height: 1.4;
   overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
@@ -441,9 +368,5 @@ function onRowClick(event) {
   color:      oklch(var(--tile-ink-l, 0.35) var(--tile-ink-c, 0.05) var(--h));
 }
 
-.wb-tags { display: flex; gap: 4px; flex-wrap: wrap; }
-
-.wb-status-empty { color: var(--muted); }
 .wb-words { font-family: var(--font-mono); font-size: 11.5px; font-variant-numeric: tabular-nums; color: var(--ink-2); }
-.wb-empty { padding: 28px; text-align: center; color: var(--muted); font-style: italic; }
 </style>

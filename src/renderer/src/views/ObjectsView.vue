@@ -159,51 +159,51 @@ function onRowClick(event) {
 
     <div v-else class="pane-card">
       <div class="scrollarea" style="padding:18px 22px 40px">
-        <p class="obj-desc" style="margin: 0 0 18px">
+        <p class="entity-desc" style="margin: 0 0 18px">
           An <strong>object</strong> is a significant prop — a weapon, a letter, a relic, a
           vehicle. File one when the thing carries weight in the plot or recurs across scenes;
           throwaway items don't need an entry. Objects feed the <strong>Relations</strong>
           graph and AI features that draw on story-world context.
         </p>
         <!-- Toolbar -->
-        <div class="obj-toolbar">
-          <span class="obj-search">
-            <Icon name="Search" :size="13" class="obj-search-icon" />
+        <div class="entity-toolbar">
+          <span class="entity-search">
+            <Icon name="Search" :size="13" class="entity-search-icon" />
             <UiInput
               :value="globalQuery"
               placeholder="Search objects…"
               @input="onGlobalInput"
-              class="obj-search-input"
+              class="entity-search-input"
             />
           </span>
           <UiButton v-if="globalQuery || hasActiveFacets" label="Clear filters" intent="ghost" size="small" @click="clearAllFilters" />
-          <span class="obj-count">{{ filteredRows.length }} of {{ rows.length }}</span>
+          <span class="entity-count">{{ filteredRows.length }} of {{ rows.length }}</span>
         </div>
 
         <!-- Facets -->
-        <div class="obj-facets" v-if="allKinds.length || statusOptions.length || allTags.length">
-          <div v-if="allKinds.length" class="obj-facet">
-            <span class="obj-facet-label">Kind</span>
-            <button class="obj-chip" :class="{ active: selectedKind === null }" @click="selectedKind = null">All</button>
+        <div class="entity-facets" v-if="allKinds.length || statusOptions.length || allTags.length">
+          <div v-if="allKinds.length" class="entity-facet">
+            <span class="entity-facet-label">Kind</span>
+            <button class="entity-chip" :class="{ active: selectedKind === null }" @click="selectedKind = null">All</button>
             <button v-for="k in allKinds" :key="k"
-              class="obj-chip" :class="{ active: selectedKind === k }"
+              class="entity-chip" :class="{ active: selectedKind === k }"
               @click="selectedKind = selectedKind === k ? null : k">
               {{ k }}
             </button>
           </div>
-          <div v-if="statusOptions.length" class="obj-facet">
-            <span class="obj-facet-label">Status</span>
-            <button class="obj-chip" :class="{ active: selectedStatus === null }" @click="selectedStatus = null">All</button>
+          <div v-if="statusOptions.length" class="entity-facet">
+            <span class="entity-facet-label">Status</span>
+            <button class="entity-chip" :class="{ active: selectedStatus === null }" @click="selectedStatus = null">All</button>
             <button v-for="s in statusOptions" :key="s.value"
-              class="obj-chip" :class="{ active: selectedStatus === s.value }"
+              class="entity-chip" :class="{ active: selectedStatus === s.value }"
               @click="selectedStatus = selectedStatus === s.value ? null : s.value">
               {{ s.label }}
             </button>
           </div>
-          <div v-if="allTags.length" class="obj-facet">
-            <span class="obj-facet-label">Tags</span>
+          <div v-if="allTags.length" class="entity-facet">
+            <span class="entity-facet-label">Tags</span>
             <button v-for="t in allTags" :key="t"
-              class="obj-chip" :class="{ active: selectedTags.has(t) }"
+              class="entity-chip" :class="{ active: selectedTags.has(t) }"
               @click="toggleTag(t)">
               {{ t }}
             </button>
@@ -218,32 +218,32 @@ function onRowClick(event) {
           :global-filter="globalQuery"
           :global-filter-fields="['name', 'tags']"
           :pagination="{ pageSize: 20, pageSizeOptions: [10, 20, 50, 100] }"
-          class="obj-table"
+          class="entity-table"
           @row-click="onRowClick"
         >
           <template #empty>
-            <div class="obj-empty">No objects match your search.</div>
+            <div class="entity-empty">No objects match your search.</div>
           </template>
 
           <template #name="{ row }">
-            <div class="obj-cell-title">
-              <span class="obj-cell-title-text">{{ row.name }}</span>
+            <div class="entity-cell-title">
+              <span class="entity-cell-title-text">{{ row.name }}</span>
             </div>
           </template>
 
           <template #kind="{ row }">
-            <span class="obj-kind">{{ row.kind || '' }}</span>
+            <span class="entity-cell-sub">{{ row.kind || '' }}</span>
           </template>
 
           <template #tags="{ row }">
-            <div class="obj-tags">
+            <div class="entity-tags">
               <UiTag v-for="t in row.tags" :key="t" :value="t" intent="secondary" />
             </div>
           </template>
 
           <template #status="{ row }">
             <UiTag v-if="row.status" :value="statusLabel(row.status)" :intent="statusSeverity(row.status)" />
-            <span v-else class="obj-status-empty">—</span>
+            <span v-else class="entity-status-empty">—</span>
           </template>
         </UiTable>
       </div>
@@ -252,10 +252,10 @@ function onRowClick(event) {
 
   <!-- ── Detail mode (id present, object found) ───────────────── -->
   <template v-else-if="obj">
-    <header class="pane-header object-pane-header">
+    <header class="pane-header entity-pane-header">
       <div class="pane-title">
         <Breadcrumb :segments="[{ label: 'Object', to: '/objects' }]" />
-        <input class="object-name"
+        <input class="entity-name"
           :value="obj.name"
           placeholder="Object name"
           @input="update('name', $event.target.value)" />
@@ -277,7 +277,7 @@ function onRowClick(event) {
     </header>
     <div class="pane-card">
       <div style="padding:24px 28px 40px;display:flex;flex-direction:column;gap:14px;flex:1;min-height:0">
-        <p class="obj-desc">
+        <p class="entity-desc">
           An <strong>object</strong> is a significant prop — a weapon, a letter, a relic, a
           vehicle. File one when the thing carries weight in the plot or recurs across scenes;
           throwaway items don't need an entry. Objects feed the <strong>Relations</strong>
@@ -323,7 +323,7 @@ function onRowClick(event) {
 
   <!-- ── id in URL but object not found ───────────────────────── -->
   <template v-else>
-    <header class="pane-header object-pane-header">
+    <header class="pane-header entity-pane-header">
       <div class="pane-title">
         <Breadcrumb :segments="[{ label: 'Object', to: '/objects' }]" />
         <h1 class="pane-h1">Object not found</h1>
@@ -345,84 +345,3 @@ function onRowClick(event) {
     @committed="sweepOpen = false" />
 </template>
 
-<style scoped>
-.obj-desc {
-  font-size: 14px; line-height: 1.55; color: var(--muted);
-  margin: 0;
-}
-.obj-desc strong { color: var(--ink-2); font-weight: 600; }
-
-.object-pane-header .pane-title { gap: 2px; }
-.object-name {
-  appearance: none;
-  font-family: var(--font-serif);
-  font-size: 20px; font-weight: 600;
-  letter-spacing: -0.015em;
-  color: var(--ink);
-  border: 1px solid transparent;
-  background: transparent;
-  border-radius: 6px;
-  padding: 2px 6px;
-  margin-left: -6px;
-  outline: none;
-  min-width: 0;
-}
-.object-name:hover { border-color: var(--border-soft); }
-.object-name:focus { border-color: var(--accent); background: var(--surface); box-shadow: 0 0 0 3px var(--accent-soft); }
-
-/* ── List view ─────────────────────────────────────────────────── */
-.obj-toolbar {
-  display: flex; align-items: center; gap: 10px;
-  margin-bottom: 14px;
-}
-.obj-search {
-  position: relative; flex: 1; max-width: 360px;
-}
-.obj-search-icon {
-  position: absolute; left: 10px; top: 50%;
-  transform: translateY(-50%);
-  color: var(--muted); pointer-events: none;
-}
-.obj-search-input { width: 100%; padding-left: 30px !important; }
-.obj-count { margin-left: auto; font-family: var(--font-mono); font-size: 11px; color: var(--muted); font-variant-numeric: tabular-nums; }
-
-.obj-facets {
-  display: flex; flex-direction: column;
-  gap: 8px;
-  padding: 10px 0 14px;
-}
-.obj-facet { display: flex; align-items: center; gap: 6px; flex-wrap: wrap; }
-.obj-facet-label {
-  font-family: var(--font-mono);
-  font-size: 10px;
-  text-transform: uppercase;
-  letter-spacing: 0.08em;
-  color: var(--muted);
-  min-width: 64px;
-}
-.obj-chip {
-  appearance: none;
-  background: transparent;
-  border: 1px solid var(--border);
-  color: var(--ink-2);
-  padding: 3px 9px;
-  border-radius: 999px;
-  font: 500 11.5px/1.4 var(--font-ui);
-  cursor: pointer;
-  transition: background-color .12s, border-color .12s, color .12s;
-}
-.obj-chip:hover { background: var(--surface-3); border-color: var(--border-strong); }
-.obj-chip.active {
-  background: var(--accent-soft);
-  border-color: var(--accent-line);
-  color: var(--accent-ink);
-}
-
-.obj-table { font-size: 13px; }
-.obj-cell-title { display: flex; flex-direction: column; gap: 2px; cursor: pointer; }
-.obj-cell-title-text { font-family: var(--font-serif); font-size: 14px; color: var(--ink); }
-.obj-kind { font-size: 12.5px; color: var(--ink-2); }
-.obj-tags { display: flex; gap: 4px; flex-wrap: wrap; }
-.obj-status-empty { color: var(--muted); }
-.obj-empty { padding: 28px; text-align: center; color: var(--muted); font-style: italic; }
-</style>

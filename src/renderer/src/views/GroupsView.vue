@@ -138,34 +138,34 @@ function onRowClick(event) {
 
     <div v-else class="pane-card">
       <div class="scrollarea" style="padding:18px 22px 40px">
-        <p class="gr-desc" style="margin: 0 0 18px">
+        <p class="entity-desc" style="margin: 0 0 18px">
           A <strong>group</strong> is a cluster of characters, locations, objects, or narrative
           strands that belong together — a faction, a family, a crew. Members are added from each
           entity's own <strong>Groups</strong> button; shared membership draws edges between
           members in the <strong>Relations</strong> graph.
         </p>
         <!-- Toolbar -->
-        <div class="gr-toolbar">
-          <span class="gr-search">
-            <Icon name="Search" :size="13" class="gr-search-icon" />
+        <div class="entity-toolbar">
+          <span class="entity-search">
+            <Icon name="Search" :size="13" class="entity-search-icon" />
             <UiInput
               :value="globalQuery"
               placeholder="Search groups…"
               @input="onGlobalInput"
-              class="gr-search-input"
+              class="entity-search-input"
             />
           </span>
           <UiButton v-if="globalQuery || hasActiveFacets" label="Clear filters" intent="ghost" size="small" @click="clearAllFilters" />
-          <span class="gr-count">{{ filteredRows.length }} of {{ rows.length }}</span>
+          <span class="entity-count">{{ filteredRows.length }} of {{ rows.length }}</span>
         </div>
 
         <!-- Facets -->
-        <div class="gr-facets" v-if="statusOptions.length">
-          <div class="gr-facet">
-            <span class="gr-facet-label">Status</span>
-            <button class="gr-chip" :class="{ active: selectedStatus === null }" @click="selectedStatus = null">All</button>
+        <div class="entity-facets" v-if="statusOptions.length">
+          <div class="entity-facet">
+            <span class="entity-facet-label">Status</span>
+            <button class="entity-chip" :class="{ active: selectedStatus === null }" @click="selectedStatus = null">All</button>
             <button v-for="s in statusOptions" :key="s.value"
-              class="gr-chip" :class="{ active: selectedStatus === s.value }"
+              class="entity-chip" :class="{ active: selectedStatus === s.value }"
               @click="selectedStatus = selectedStatus === s.value ? null : s.value">
               {{ s.label }}
             </button>
@@ -180,17 +180,17 @@ function onRowClick(event) {
           :global-filter="globalQuery"
           :global-filter-fields="['name']"
           :pagination="{ pageSize: 20, pageSizeOptions: [10, 20, 50, 100] }"
-          class="gr-table"
+          class="entity-table"
           @row-click="onRowClick"
         >
           <template #empty>
-            <div class="gr-empty">No groups match your search.</div>
+            <div class="entity-empty">No groups match your search.</div>
           </template>
 
           <template #name="{ row }">
-            <div class="gr-cell-title">
+            <div class="entity-cell-inline">
               <span v-if="row.color" class="gr-color-dot" :style="{ background: row.color }"></span>
-              <span class="gr-cell-title-text">{{ row.name }}</span>
+              <span class="entity-cell-title-text">{{ row.name }}</span>
             </div>
           </template>
 
@@ -200,7 +200,7 @@ function onRowClick(event) {
 
           <template #status="{ row }">
             <UiTag v-if="row.status" :value="statusLabel(row.status)" :intent="statusSeverity(row.status)" />
-            <span v-else class="gr-status-empty">—</span>
+            <span v-else class="entity-status-empty">—</span>
           </template>
         </UiTable>
       </div>
@@ -209,10 +209,10 @@ function onRowClick(event) {
 
   <!-- ── Detail mode (id present, group found) ─────────────────── -->
   <template v-else-if="g">
-    <header class="pane-header group-pane-header">
+    <header class="pane-header entity-pane-header">
       <div class="pane-title">
         <Breadcrumb :segments="[{ label: 'Group', to: '/groups' }]" />
-        <input class="group-name"
+        <input class="entity-name"
           :value="g.name"
           placeholder="Group name"
           @input="update('name', $event.target.value)" />
@@ -233,7 +233,7 @@ function onRowClick(event) {
     </header>
     <div class="pane-card">
       <div style="padding:24px 28px 40px;display:flex;flex-direction:column;gap:14px;flex:1;min-height:0">
-        <p class="gr-desc">
+        <p class="entity-desc">
           A <strong>group</strong> is a cluster of characters, locations, objects, or narrative
           strands that belong together — a faction, a family, a crew. Members are added from each
           entity's own <strong>Groups</strong> button; the page below collects everything that's
@@ -292,7 +292,7 @@ function onRowClick(event) {
 
   <!-- ── id in URL but group not found ─────────────────────────── -->
   <template v-else>
-    <header class="pane-header group-pane-header">
+    <header class="pane-header entity-pane-header">
       <div class="pane-title">
         <Breadcrumb :segments="[{ label: 'Group', to: '/groups' }]" />
         <h1 class="pane-h1">Group not found</h1>
@@ -311,30 +311,6 @@ function onRowClick(event) {
 </template>
 
 <style scoped>
-.gr-desc {
-  font-size: 14px; line-height: 1.55; color: var(--muted);
-  margin: 0;
-}
-.gr-desc strong { color: var(--ink-2); font-weight: 600; }
-
-.group-pane-header .pane-title { gap: 2px; }
-.group-name {
-  appearance: none;
-  font-family: var(--font-serif);
-  font-size: 20px; font-weight: 600;
-  letter-spacing: -0.015em;
-  color: var(--ink);
-  border: 1px solid transparent;
-  background: transparent;
-  border-radius: 6px;
-  padding: 2px 6px;
-  margin-left: -6px;
-  outline: none;
-  min-width: 0;
-}
-.group-name:hover { border-color: var(--border-soft); }
-.group-name:focus { border-color: var(--accent); background: var(--surface); box-shadow: 0 0 0 3px var(--accent-soft); }
-
 .group-color-picker {
   display: flex; align-items: center; gap: 10px;
   margin-top: 10px;
@@ -369,59 +345,8 @@ function onRowClick(event) {
 .member-open:hover .member-name { color: var(--accent); }
 .member-open:hover .member-icon { background: var(--accent-soft); color: var(--accent-ink); }
 
-/* ── List view ─────────────────────────────────────────────────── */
-.gr-toolbar {
-  display: flex; align-items: center; gap: 10px;
-  margin-bottom: 14px;
-}
-.gr-search {
-  position: relative; flex: 1; max-width: 360px;
-}
-.gr-search-icon {
-  position: absolute; left: 10px; top: 50%;
-  transform: translateY(-50%);
-  color: var(--muted); pointer-events: none;
-}
-.gr-search-input { width: 100%; padding-left: 30px !important; }
-.gr-count { margin-left: auto; font-family: var(--font-mono); font-size: 11px; color: var(--muted); font-variant-numeric: tabular-nums; }
-
-.gr-facets {
-  display: flex; flex-direction: column;
-  gap: 8px;
-  padding: 10px 0 14px;
-}
-.gr-facet { display: flex; align-items: center; gap: 6px; flex-wrap: wrap; }
-.gr-facet-label {
-  font-family: var(--font-mono);
-  font-size: 10px;
-  text-transform: uppercase;
-  letter-spacing: 0.08em;
-  color: var(--muted);
-  min-width: 64px;
-}
-.gr-chip {
-  appearance: none;
-  background: transparent;
-  border: 1px solid var(--border);
-  color: var(--ink-2);
-  padding: 3px 9px;
-  border-radius: 999px;
-  font: 500 11.5px/1.4 var(--font-ui);
-  cursor: pointer;
-  transition: background-color .12s, border-color .12s, color .12s;
-}
-.gr-chip:hover { background: var(--surface-3); border-color: var(--border-strong); }
-.gr-chip.active {
-  background: var(--accent-soft);
-  border-color: var(--accent-line);
-  color: var(--accent-ink);
-}
-
-.gr-table { font-size: 13px; }
-.gr-cell-title { display: flex; align-items: center; gap: 7px; cursor: pointer; }
+/* List view: shared shape = global .entity-*; only the color dot +
+   member count stay local */
 .gr-color-dot { width: 10px; height: 10px; border-radius: 50%; flex: none; }
-.gr-cell-title-text { font-family: var(--font-serif); font-size: 14px; color: var(--ink); }
 .gr-member-count { font-family: var(--font-mono); font-size: 13px; color: var(--ink-2); display: block; text-align: center; }
-.gr-status-empty { color: var(--muted); }
-.gr-empty { padding: 28px; text-align: center; color: var(--muted); font-style: italic; }
 </style>

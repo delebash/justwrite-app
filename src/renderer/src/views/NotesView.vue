@@ -253,31 +253,31 @@ function onRowClick(event) {
 
     <div v-else class="pane-card">
       <div class="scrollarea" style="padding:18px 22px 40px">
-        <div class="notes-toolbar">
-          <span class="notes-search">
-            <Icon name="Search" :size="13" class="notes-search-icon" />
+        <div class="entity-toolbar">
+          <span class="entity-search">
+            <Icon name="Search" :size="13" class="entity-search-icon" />
             <UiInput
               :value="globalQuery"
               placeholder="Search notes…"
               @input="onGlobalInput"
-              class="notes-search-input"
+              class="entity-search-input"
             />
           </span>
           <UiButton v-if="globalQuery || hasActiveFacets" label="Clear filters" intent="ghost" size="small" @click="clearAllFilters" />
-          <span class="notes-count">{{ filteredRows.length }} of {{ rows.length }}</span>
+          <span class="entity-count">{{ filteredRows.length }} of {{ rows.length }}</span>
         </div>
 
-        <div class="notes-facets">
-          <div class="notes-facet">
-            <span class="notes-facet-label">Anchor</span>
-            <button class="notes-chip" :class="{ active: selectedAnchor === null }" @click="selectedAnchor = null">All</button>
-            <button class="notes-chip" :class="{ active: selectedAnchor === 'storywide' }" @click="selectedAnchor = selectedAnchor === 'storywide' ? null : 'storywide'">Story-wide</button>
-            <button class="notes-chip" :class="{ active: selectedAnchor === 'anchored' }" @click="selectedAnchor = selectedAnchor === 'anchored' ? null : 'anchored'">Anchored</button>
+        <div class="entity-facets">
+          <div class="entity-facet">
+            <span class="entity-facet-label">Anchor</span>
+            <button class="entity-chip" :class="{ active: selectedAnchor === null }" @click="selectedAnchor = null">All</button>
+            <button class="entity-chip" :class="{ active: selectedAnchor === 'storywide' }" @click="selectedAnchor = selectedAnchor === 'storywide' ? null : 'storywide'">Story-wide</button>
+            <button class="entity-chip" :class="{ active: selectedAnchor === 'anchored' }" @click="selectedAnchor = selectedAnchor === 'anchored' ? null : 'anchored'">Anchored</button>
           </div>
-          <div v-if="allTags.length" class="notes-facet">
-            <span class="notes-facet-label">Tags</span>
+          <div v-if="allTags.length" class="entity-facet">
+            <span class="entity-facet-label">Tags</span>
             <button v-for="t in allTags" :key="t"
-              class="notes-chip" :class="{ active: selectedTags.has(t) }"
+              class="entity-chip" :class="{ active: selectedTags.has(t) }"
               @click="toggleTag(t)">
               {{ t }}
             </button>
@@ -292,22 +292,22 @@ function onRowClick(event) {
           :global-filter="globalQuery"
           :global-filter-fields="['title', 'tag']"
           :pagination="{ pageSize: 20, pageSizeOptions: [10, 20, 50, 100] }"
-          class="notes-table"
+          class="entity-table"
           @row-click="onRowClick"
         >
           <template #empty>
-            <div class="notes-empty">No notes match your search.</div>
+            <div class="entity-empty">No notes match your search.</div>
           </template>
 
           <template #title="{ row }">
-            <div class="notes-cell-title">
-              <span class="notes-cell-title-text">{{ row.title }}</span>
+            <div class="entity-cell-title">
+              <span class="entity-cell-title-text">{{ row.title }}</span>
             </div>
           </template>
 
           <template #tag="{ row }">
             <UiTag v-if="row.tag" :value="row.tag" intent="secondary" />
-            <span v-else class="notes-tag-empty">—</span>
+            <span v-else class="entity-status-empty">—</span>
           </template>
 
           <template #anchor="{ row }">
@@ -324,10 +324,10 @@ function onRowClick(event) {
 
   <!-- ── Detail mode (id present, note found) ─────────────────── -->
   <template v-else-if="n">
-    <header class="pane-header note-pane-header">
+    <header class="pane-header entity-pane-header">
       <div class="pane-title">
         <Breadcrumb :segments="[{ label: 'Note', to: '/notes' }]" />
-        <input class="note-title"
+        <input class="entity-name"
           :value="n.title"
           placeholder="Note title"
           @input="update('title', $event.target.value)" />
@@ -367,7 +367,7 @@ function onRowClick(event) {
     </header>
 
     <div class="pane-card">
-      <p class="note-desc">
+      <p class="entity-desc note-desc">
         A <strong>note</strong> is anything that doesn't fit one of the structured surfaces —
         research clippings, half-formed scene ideas, cut prose, beta feedback, a thought you want
         to come back to. Tag it to find it later; pin it to a chapter or scene above so it
@@ -383,7 +383,7 @@ function onRowClick(event) {
 
   <!-- ── id in URL but note not found ─────────────────────────── -->
   <template v-else>
-    <header class="pane-header note-pane-header">
+    <header class="pane-header entity-pane-header">
       <div class="pane-title">
         <Breadcrumb :segments="[{ label: 'Note', to: '/notes' }]" />
         <h1 class="pane-h1">Note not found</h1>
@@ -405,30 +405,8 @@ function onRowClick(event) {
 </template>
 
 <style scoped>
-.note-desc {
-  font-size: 14px; line-height: 1.55; color: var(--muted);
-  padding: 16px 22px 0;
-  margin: 0;
-}
-.note-desc strong { color: var(--ink-2); font-weight: 600; }
-
-.note-pane-header .pane-title { gap: 2px; }
-.note-title {
-  appearance: none;
-  font-family: var(--font-serif);
-  font-size: 20px; font-weight: 600;
-  letter-spacing: -0.015em;
-  color: var(--ink);
-  border: 1px solid transparent;
-  background: transparent;
-  border-radius: 6px;
-  padding: 2px 6px;
-  margin-left: -6px;
-  outline: none;
-  min-width: 0;
-}
-.note-title:hover { border-color: var(--border-soft); }
-.note-title:focus { border-color: var(--accent); background: var(--surface); box-shadow: 0 0 0 3px var(--accent-soft); }
+/* Shared shapes = global .entity-*; note-desc composes its padding on top. */
+.note-desc { padding: 16px 22px 0; }
 
 .note-anchor-wrap {
   position: relative;
@@ -467,58 +445,5 @@ function onRowClick(event) {
 }
 .note-tag-suggest-item.active { background: var(--accent-soft); color: var(--accent-ink); }
 
-/* ── List view ─────────────────────────────────────────────────── */
-.notes-toolbar {
-  display: flex; align-items: center; gap: 10px;
-  margin-bottom: 14px;
-}
-.notes-search {
-  position: relative; flex: 1; max-width: 360px;
-}
-.notes-search-icon {
-  position: absolute; left: 10px; top: 50%;
-  transform: translateY(-50%);
-  color: var(--muted); pointer-events: none;
-}
-.notes-search-input { width: 100%; padding-left: 30px !important; }
-.notes-count { margin-left: auto; font-family: var(--font-mono); font-size: 11px; color: var(--muted); font-variant-numeric: tabular-nums; }
-
-.notes-facets {
-  display: flex; flex-direction: column;
-  gap: 8px;
-  padding: 10px 0 14px;
-}
-.notes-facet { display: flex; align-items: center; gap: 6px; flex-wrap: wrap; }
-.notes-facet-label {
-  font-family: var(--font-mono);
-  font-size: 10px;
-  text-transform: uppercase;
-  letter-spacing: 0.08em;
-  color: var(--muted);
-  min-width: 64px;
-}
-.notes-chip {
-  appearance: none;
-  background: transparent;
-  border: 1px solid var(--border);
-  color: var(--ink-2);
-  padding: 3px 9px;
-  border-radius: 999px;
-  font: 500 11.5px/1.4 var(--font-ui);
-  cursor: pointer;
-  transition: background-color .12s, border-color .12s, color .12s;
-}
-.notes-chip:hover { background: var(--surface-3); border-color: var(--border-strong); }
-.notes-chip.active {
-  background: var(--accent-soft);
-  border-color: var(--accent-line);
-  color: var(--accent-ink);
-}
-
-.notes-table { font-size: 13px; }
-.notes-cell-title { display: flex; flex-direction: column; gap: 2px; cursor: pointer; }
-.notes-cell-title-text { font-family: var(--font-serif); font-size: 14px; color: var(--ink); }
-.notes-tag-empty { color: var(--muted); }
 .notes-anchor-cell { font-size: 12.5px; color: var(--muted); }
-.notes-empty { padding: 28px; text-align: center; color: var(--muted); font-style: italic; }
 </style>
