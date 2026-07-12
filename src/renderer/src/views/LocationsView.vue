@@ -1,8 +1,8 @@
 <script setup>
-import { computed, ref } from "vue";
+import { computed, ref, watch, nextTick } from "vue";
 import { useProjectStore } from "../stores/project.js";
 import { useUiStore } from "../stores/ui.js";
-import { useRouter } from "vue-router";
+import { useRoute, useRouter } from "vue-router";
 import { Icon } from "@delebash/llm-ui";
 import { UiInput } from "@delebash/llm-ui";
 import { UiButton } from "@delebash/llm-ui";
@@ -20,13 +20,12 @@ import SceneRefList from "../components/SceneRefList.vue";
 import MentionRefList from "../components/MentionRefList.vue";
 import { Breadcrumb } from "@delebash/llm-ui";
 import PaneHeader from "../components/PaneHeader.vue";
-import { promptDialog } from "@delebash/llm-ui";
-import { NEW_ENTITY_META } from "../services/entityMeta.js";
 
 const props = defineProps({ id: { type: String, default: "" } });
 const project = useProjectStore();
 const ui = useUiStore();
 const router = useRouter();
+const route = useRoute();
 const sweepOpen = ref(false);
 
 // When id is present → detail mode. When absent → list mode.
@@ -41,10 +40,21 @@ const tagPool = computed(() => {
   return out;
 });
 
-async function addLocation() {
-  const name = await promptDialog(NEW_ENTITY_META.locations);
-  if (!name) return;
-  const id = project.addLocation({ name }); ui.select("locations", id); router.push(`/locations/${id}`);
+// The detail name input, focused + selected when we arrive via "+ New"
+// (?new=1) so the first keystroke replaces the default "Untitled …"; the
+// query is then stripped so a reload doesn't re-select.
+const nameInput = ref(null);
+watch(() => route.query.new, (isNew) => {
+  if (!isNew) return;
+  nextTick(() => {
+    nameInput.value?.focus();
+    nameInput.value?.select?.();
+    router.replace({ query: {} });
+  });
+}, { immediate: true });
+
+function addLocation() {
+  const id = project.addLocation(); ui.select("locations", id); router.push(`/locations/${id}?new=1`);
 }
 function askTheBook() {
   if (!loc.value) return;
@@ -256,7 +266,7 @@ function onRowClick(event) {
     <header class="pane-header entity-pane-header">
       <div class="pane-title">
         <Breadcrumb :segments="[{ label: 'Location', to: '/locations' }]" />
-        <input class="entity-name"
+        <input class="entity-name" ref="nameInput"
           :value="loc.name"
           placeholder="Location name"
           @input="update('name', $event.target.value)" />

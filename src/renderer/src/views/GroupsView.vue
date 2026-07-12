@@ -1,8 +1,8 @@
 <script setup>
-import { computed, ref } from "vue";
+import { computed, ref, watch, nextTick } from "vue";
 import { useProjectStore } from "../stores/project.js";
 import { useUiStore } from "../stores/ui.js";
-import { useRouter } from "vue-router";
+import { useRoute, useRouter } from "vue-router";
 import { Icon } from "@delebash/llm-ui";
 import { UiButton } from "@delebash/llm-ui";
 import { UiInput } from "@delebash/llm-ui";
@@ -16,8 +16,6 @@ import StatusSelect from "../components/StatusSelect.vue";
 import MentionRefList from "../components/MentionRefList.vue";
 import { Breadcrumb } from "@delebash/llm-ui";
 import PaneHeader from "../components/PaneHeader.vue";
-import { promptDialog } from "@delebash/llm-ui";
-import { NEW_ENTITY_META } from "../services/entityMeta.js";
 import { UiColorPicker } from "@delebash/llm-ui";
 import { PRESET_COLORS } from "@renderer/services/categoricalColors.js";
 
@@ -25,6 +23,7 @@ const props = defineProps({ id: { type: String, default: "" } });
 const project = useProjectStore();
 const ui = useUiStore();
 const router = useRouter();
+const route = useRoute();
 
 const g = computed(() => props.id ? project.groupById(props.id) : null);
 const modal = ref(null);
@@ -54,10 +53,21 @@ const memberGroups = computed(() => {
 });
 
 function update(k, v) { project.updateGroup(g.value.id, { [k]: v }); }
-async function addGroup() {
-  const name = await promptDialog(NEW_ENTITY_META.groups);
-  if (!name) return;
-  const id = project.addGroup({ name }); ui.select("groups", id); router.push(`/groups/${id}`);
+// The detail name input, focused + selected when we arrive via "+ New"
+// (?new=1) so the first keystroke replaces the default "Untitled …"; the
+// query is then stripped so a reload doesn't re-select.
+const nameInput = ref(null);
+watch(() => route.query.new, (isNew) => {
+  if (!isNew) return;
+  nextTick(() => {
+    nameInput.value?.focus();
+    nameInput.value?.select?.();
+    router.replace({ query: {} });
+  });
+}, { immediate: true });
+
+function addGroup() {
+  const id = project.addGroup(); ui.select("groups", id); router.push(`/groups/${id}?new=1`);
 }
 function askTheBook() {
   if (!g.value) return;
@@ -212,7 +222,7 @@ function onRowClick(event) {
     <header class="pane-header entity-pane-header">
       <div class="pane-title">
         <Breadcrumb :segments="[{ label: 'Group', to: '/groups' }]" />
-        <input class="entity-name"
+        <input class="entity-name" ref="nameInput"
           :value="g.name"
           placeholder="Group name"
           @input="update('name', $event.target.value)" />

@@ -1,8 +1,8 @@
 <script setup>
-import { computed, ref } from "vue";
+import { computed, ref, watch, nextTick } from "vue";
 import { useProjectStore } from "../stores/project.js";
 import { useUiStore } from "../stores/ui.js";
-import { useRouter } from "vue-router";
+import { useRoute, useRouter } from "vue-router";
 import Avatar from "../components/Avatar.vue";
 import { Icon } from "@delebash/llm-ui";
 import { UiInput } from "@delebash/llm-ui";
@@ -24,14 +24,13 @@ import SceneRefList from "../components/SceneRefList.vue";
 import MentionRefList from "../components/MentionRefList.vue";
 import { Breadcrumb } from "@delebash/llm-ui";
 import PaneHeader from "../components/PaneHeader.vue";
-import { promptDialog } from "@delebash/llm-ui";
 import { saveImage } from "../services/imageStore.js";
-import { NEW_ENTITY_META } from "../services/entityMeta.js";
 
 const props = defineProps({ id: { type: String, default: "" } });
 const project = useProjectStore();
 const ui = useUiStore();
 const router = useRouter();
+const route = useRoute();
 const sweepOpen = ref(false);
 const auditOpen = ref(false);
 const relationshipArcOpen = ref(false);
@@ -57,12 +56,23 @@ const LIFE_STATUS_OPTIONS = [
 ];
 const LIFE_STATUS_LABEL = Object.fromEntries(LIFE_STATUS_OPTIONS.map((o) => [o.value, o.label]));
 
-async function addCharacter() {
-  const name = await promptDialog(NEW_ENTITY_META.characters);
-  if (!name) return;
-  const id = project.addCharacter({ name });
+// The detail name input, focused + selected when we arrive via "+ New"
+// (?new=1) so the first keystroke replaces the default "Untitled …"; the
+// query is then stripped so a reload doesn't re-select.
+const nameInput = ref(null);
+watch(() => route.query.new, (isNew) => {
+  if (!isNew) return;
+  nextTick(() => {
+    nameInput.value?.focus();
+    nameInput.value?.select?.();
+    router.replace({ query: {} });
+  });
+}, { immediate: true });
+
+function addCharacter() {
+  const id = project.addCharacter();
   ui.select("characters", id);
-  router.push(`/characters/${id}`);
+  router.push(`/characters/${id}?new=1`);
 }
 function deleteCharacter() {
   project.removeCharacter(ch.value.id);
@@ -408,7 +418,7 @@ function onRowClick(event) {
     <header class="pane-header entity-pane-header">
       <div class="pane-title">
         <Breadcrumb :segments="[{ label: ch.main ? 'Main character' : 'Secondary character', to: '/characters' }]" />
-        <input class="entity-name"
+        <input class="entity-name" ref="nameInput"
           :value="ch.name"
           placeholder="Character name"
           @input="updateField('name', $event.target.value)" />

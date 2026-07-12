@@ -237,20 +237,20 @@ function clickParent(item) {
 }
 function clickChild(parentId, childId) { ui.select(parentId, childId); router.push(`/${parentId}/${childId}`); }
 
-async function addItem(parentId) {
-  const meta = NEW_ENTITY_META[parentId] || { title: t("sidebar.actions.newItemFallbackTitle"), label: t("sidebar.actions.newItemFallbackLabel"), confirmLabel: t("sidebar.actions.newItemFallbackConfirm") };
-  const name = await promptDialog(meta);
-  if (!name) return;
+// DIRECT→FORM (the app's CommandPalette precedent): create default-named
+// and land on the detail form with the name focused (?new=1). No naming
+// popup — the detail page's name input is the one place the name is typed.
+function addItem(parentId) {
   let id;
   switch (parentId) {
-    case "characters":    id = project.addCharacter({ name }); break;
-    case "locations":     id = project.addLocation({ name }); break;
-    case "objects":       id = project.addObject({ name }); break;
-    case "groups":        id = project.addGroup({ name }); break;
-    case "strands":       id = project.addStrand({ name }); break;
-    case "notes":         id = project.addNote({ title: name }); break;
+    case "characters":    id = project.addCharacter(); break;
+    case "locations":     id = project.addLocation(); break;
+    case "objects":       id = project.addObject(); break;
+    case "groups":        id = project.addGroup(); break;
+    case "strands":       id = project.addStrand(); break;
+    case "notes":         id = project.addNote(); break;
   }
-  if (id) { ui.select(parentId, id); router.push(`/${parentId}/${id}`); }
+  if (id) { ui.select(parentId, id); router.push(`/${parentId}/${id}?new=1`); }
 }
 
 // ── Parts & chapter creation ─────────────────────────────
@@ -268,16 +268,9 @@ async function addPart() {
   if (!title) return;
   project.addPart({ title });
 }
-async function addChapterInPart(partId) {
-  const title = await promptDialog({
-    title: t("sidebar.actions.newChapterTitle"),
-    label: t("sidebar.actions.newChapterLabel"),
-    placeholder: t("sidebar.actions.newChapterPlaceholder"),
-    confirmLabel: t("sidebar.actions.newChapterConfirm"),
-  });
-  if (!title) return;
-  const id = project.addChapter({ title, partId });
-  if (id) { ui.select("chapters", id); router.push(`/chapters/${id}`); }
+function addChapterInPart(partId) {
+  const id = project.addChapter({ partId });
+  if (id) { ui.select("chapters", id); router.push(`/chapters/${id}?new=1`); }
 }
 function updatePartTitle(id, value) { project.updatePart(id, { title: value }); }
 
@@ -301,20 +294,11 @@ function clickScene(chapterId, sceneId) {
   ui.select("chapters", chapterId);
   router.push(`/chapters/${chapterId}/${sceneId}`);
 }
-async function addSceneToChapter(chapterId) {
-  const values = await promptDialog({
-    title: t("sidebar.actions.newSceneTitle"),
-    confirmLabel: t("sidebar.actions.newSceneConfirm"),
-    fields: [{
-      key: "title",
-      label: t("sidebar.actions.newSceneLabel"),
-      placeholder: t("sidebar.actions.newScenePlaceholder"),
-      optional: true,
-    }],
-  });
-  if (!values) return;
-  const title = (values.title || "").trim();
-  const sceneId = project.addScene(chapterId, title ? { title } : {});
+// Matches the in-view precedent addSceneHere (ChaptersView) — DIRECT→editor.
+// The scene title is optional and editable in the scene strip on arrival,
+// so no naming popup is needed.
+function addSceneToChapter(chapterId) {
+  const sceneId = project.addScene(chapterId, {});
   ui.expanded = { ...ui.expanded, [`chapter:${chapterId}`]: true };
   ui.select("chapters", chapterId);
   router.push(`/chapters/${chapterId}/${sceneId}`);

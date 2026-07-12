@@ -1,6 +1,6 @@
 <script setup>
-import { computed, ref } from "vue";
-import { useRouter } from "vue-router";
+import { computed, ref, watch, nextTick } from "vue";
+import { useRoute, useRouter } from "vue-router";
 import { useProjectStore } from "../stores/project.js";
 import { useUiStore } from "../stores/ui.js";
 import PaneHeader from "../components/PaneHeader.vue";
@@ -18,7 +18,6 @@ import SceneRefList from "../components/SceneRefList.vue";
 import GroupsModal from "../components/GroupsModal.vue";
 import { Breadcrumb } from "@delebash/llm-ui";
 import { promptDialog } from "@delebash/llm-ui";
-import { NEW_ENTITY_META } from "../services/entityMeta.js";
 import { UiColorPicker } from "@delebash/llm-ui";
 import { PRESET_COLORS } from "@renderer/services/categoricalColors.js";
 
@@ -26,6 +25,7 @@ const props = defineProps({ id: { type: String, default: "" } });
 const project = useProjectStore();
 const ui = useUiStore();
 const router = useRouter();
+const route = useRoute();
 const modal = ref(null);
 
 const s = computed(() => props.id ? project.strandById(props.id) : null);
@@ -108,12 +108,23 @@ function goBeat(b) {
   router.push(b.sceneId ? `/chapters/${b.chapterId}/${b.sceneId}` : `/chapters/${b.chapterId}`);
 }
 
-async function addStrand() {
-  const name = await promptDialog(NEW_ENTITY_META.strands);
-  if (!name) return;
-  const id = project.addStrand({ name });
+// The detail name input, focused + selected when we arrive via "+ New"
+// (?new=1) so the first keystroke replaces the default "Untitled …"; the
+// query is then stripped so a reload doesn't re-select.
+const nameInput = ref(null);
+watch(() => route.query.new, (isNew) => {
+  if (!isNew) return;
+  nextTick(() => {
+    nameInput.value?.focus();
+    nameInput.value?.select?.();
+    router.replace({ query: {} });
+  });
+}, { immediate: true });
+
+function addStrand() {
+  const id = project.addStrand();
   ui.select("strands", id);
-  router.push(`/strands/${id}`);
+  router.push(`/strands/${id}?new=1`);
 }
 
 function askTheBook() {
@@ -340,7 +351,7 @@ const tableRows = computed(() =>
         <Breadcrumb :segments="[{ label: 'Narrative strand', to: '/strands' }]" />
         <div class="strand-name-row">
           <span v-if="s.color" class="strand-name-dot" :style="{ background: s.color }" :title="s.color" />
-          <input class="entity-name"
+          <input class="entity-name" ref="nameInput"
             :value="s.name"
             placeholder="Narrative strand name"
             @input="update('name', $event.target.value)" />

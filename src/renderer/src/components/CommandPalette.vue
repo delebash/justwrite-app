@@ -95,13 +95,11 @@ const ENTITY_ITEMS = computed(() => {
 // own dialog without competing for focus with the palette input.
 const ACTION_ITEMS = computed(() => {
   const list = [
-    { id: "act:newChapter", label: "New chapter…",     sublabel: "Action",       icon: "Plus", keywords: "create add",
-      run: async () => {
-        const title = await promptDialog({ title: "New chapter", label: "Chapter title", confirmLabel: "Create chapter" });
-        if (!title) return;
-        const id = project.addChapter({ title });
+    { id: "act:newChapter", label: "New chapter",      sublabel: "Action",       icon: "Plus", keywords: "create add",
+      run: () => {
+        const id = project.addChapter({});
         ui.select("chapters", id);
-        router.push(`/chapters/${id}`);
+        router.push(`/chapters/${id}?new=1`);
       } },
     { id: "act:newPart", label: "New part…",           sublabel: "Action",       icon: "Plus",
       run: async () => {

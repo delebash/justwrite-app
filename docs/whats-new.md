@@ -4,6 +4,10 @@ Recent changes worth noticing. Older entries fall off the bottom — see the [Ro
 
 ---
 
+## v1.1.0 — 2026-07
+
+**+ New opens the new entry directly — name ready to type.** Creating a character, location, object, group, note, or narrative strand no longer pops up a box asking for a name first. **+ New** (from a list header or the sidebar) makes the entry and takes you straight to its page with its name selected — just start typing to replace the placeholder, then fill in the rest. New chapters work the same way, landing in the editor with the title focused. Changed your mind? It's an ordinary row you can delete, or press Ctrl/⌘ + Z on its page to undo the creation. (Worldbuilding articles still ask first — that popup is where you pick the article's category.)
+
 ## v1.0.0 — 2026-06
 
 **Ask the book knows your story bible.** Grounded chat used to see only your

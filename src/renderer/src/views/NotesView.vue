@@ -1,5 +1,5 @@
 <script setup>
-import { computed, ref, watch } from "vue";
+import { computed, ref, watch, nextTick } from "vue";
 import { UiInput } from "@delebash/llm-ui";
 import { UiButton } from "@delebash/llm-ui";
 import { UiSelect } from "@delebash/llm-ui";
@@ -7,19 +7,18 @@ import { UiTag } from "@delebash/llm-ui";
 import { UiTable } from "@delebash/llm-ui";
 import { useProjectStore } from "../stores/project.js";
 import { useUiStore } from "../stores/ui.js";
-import { useRouter } from "vue-router";
+import { useRoute, useRouter } from "vue-router";
 import { Icon } from "@delebash/llm-ui";
 import RichEditor from "../components/RichEditor.vue";
 import { Breadcrumb } from "@delebash/llm-ui";
 import PaneHeader from "../components/PaneHeader.vue";
-import { promptDialog } from "@delebash/llm-ui";
-import { NEW_ENTITY_META } from "../services/entityMeta.js";
 import { parseFile } from "../services/import/index.js";
 
 const props = defineProps({ id: { type: String, default: "" } });
 const project = useProjectStore();
 const ui = useUiStore();
 const router = useRouter();
+const route = useRoute();
 
 const n = computed(() => props.id ? project.noteById(props.id) : null);
 
@@ -65,10 +64,21 @@ function onTagKeydown(e) {
   }
 }
 
-async function addNote() {
-  const title = await promptDialog(NEW_ENTITY_META.notes);
-  if (!title) return;
-  const id = project.addNote({ title }); ui.select("notes", id); router.push(`/notes/${id}`);
+// The detail title input, focused + selected when we arrive via "+ New"
+// (?new=1) so the first keystroke replaces the default "Untitled …"; the
+// query is then stripped so a reload doesn't re-select.
+const nameInput = ref(null);
+watch(() => route.query.new, (isNew) => {
+  if (!isNew) return;
+  nextTick(() => {
+    nameInput.value?.focus();
+    nameInput.value?.select?.();
+    router.replace({ query: {} });
+  });
+}, { immediate: true });
+
+function addNote() {
+  const id = project.addNote(); ui.select("notes", id); router.push(`/notes/${id}?new=1`);
 }
 
 const fileInput = ref(null);
@@ -327,7 +337,7 @@ function onRowClick(event) {
     <header class="pane-header entity-pane-header">
       <div class="pane-title">
         <Breadcrumb :segments="[{ label: 'Note', to: '/notes' }]" />
-        <input class="entity-name"
+        <input class="entity-name" ref="nameInput"
           :value="n.title"
           placeholder="Note title"
           @input="update('title', $event.target.value)" />

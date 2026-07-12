@@ -2,7 +2,7 @@
 import { computed, ref, watch, nextTick, onMounted, onBeforeUnmount } from "vue";
 import { useProjectStore } from "../stores/project.js";
 import { useUiStore } from "../stores/ui.js";
-import { useRouter } from "vue-router";
+import { useRoute, useRouter } from "vue-router";
 import PaneHeader from "../components/PaneHeader.vue";
 import { Icon } from "@delebash/llm-ui";
 import RichEditor from "../components/RichEditor.vue";
@@ -31,6 +31,7 @@ const props = defineProps({
 const project = useProjectStore();
 const ui = useUiStore();
 const router = useRouter();
+const route = useRoute();
 
 
 // chapterId → [{ id, name }] of characters appearing in the chapter, from the
@@ -338,17 +339,24 @@ function removeScene(scene) {
 }
 
 // ── CRUD ─────────────────────────────────────────────────────────────
-async function addChapter() {
-  const title = await promptDialog({
-    title: "New chapter",
-    label: "Chapter title",
-    placeholder: "e.g. The Cartographer",
-    confirmLabel: "Create chapter",
+// Arriving via "+ New" (?new=1) — the create handlers below push
+// /chapters/<id>?new=1 after minting a default (untitled) chapter. Focus +
+// select the chapter-title input so the first keystroke names it, then strip
+// the query so a reload doesn't re-select. (Matches the entity views' create.)
+const nameInput = ref(null);
+watch(() => route.query.new, (isNew) => {
+  if (!isNew) return;
+  nextTick(() => {
+    nameInput.value?.focus();
+    nameInput.value?.select?.();
+    router.replace({ query: {} });
   });
-  if (!title) return;
-  const id = project.addChapter({ title });
+}, { immediate: true });
+
+function addChapter() {
+  const id = project.addChapter({});
   ui.select("chapters", id);
-  router.push(`/chapters/${id}`);
+  router.push(`/chapters/${id}?new=1`);
   mode.value = "edit";
 }
 function deleteChapter() {
@@ -543,16 +551,9 @@ async function addPart() {
   if (!title) return;
   project.addPart({ title });
 }
-async function addChapterToPart(partId) {
-  const title = await promptDialog({
-    title: "New chapter",
-    label: "Chapter title",
-    placeholder: "e.g. The first crossing",
-    confirmLabel: "Create chapter",
-  });
-  if (!title) return;
-  const id = project.addChapter({ title, partId });
-  if (id) { ui.select("chapters", id); router.push(`/chapters/${id}`); mode.value = "edit"; }
+function addChapterToPart(partId) {
+  const id = project.addChapter({ partId });
+  if (id) { ui.select("chapters", id); router.push(`/chapters/${id}?new=1`); mode.value = "edit"; }
 }
 async function addSceneToChapter(chapterId) {
   const values = await promptDialog({
@@ -764,7 +765,7 @@ watch(() => project.allChapters.map((c) => `${c.id}:${(project.scenesFor(c.id) |
           :value="activeScene.title"
           :placeholder="`Scene ${activeSceneIdx + 1} title (optional)`"
           @input="onSceneTitleInput(activeScene.id, $event.target.value)" />
-        <input v-else class="chapter-name"
+        <input v-else class="chapter-name" ref="nameInput"
           :value="ch.title"
           placeholder="Chapter title"
           @input="updateTitle(ch.id, $event.target.value)" />
