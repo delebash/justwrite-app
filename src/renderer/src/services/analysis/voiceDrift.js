@@ -19,7 +19,7 @@
 // enough to run per-chapter on demand.
 
 import { runAiFeature } from "@delebash/llm-ui";
-import { htmlToText } from "../text.js";
+import { htmlToText, tailWords } from "../text.js";
 import { bookMetrics } from "./styleMetrics.js";
 
 // Which metrics from bookMetrics rows are worth tracking for drift.
@@ -174,13 +174,6 @@ export function computeVoiceDrift(rows = []) {
 }
 
 // ─── Optional LLM explainer ──────────────────────────────────────────
-
-function tailWords(text, max) {
-  if (!text) return "";
-  const parts = text.split(/\s+/);
-  if (parts.length <= max) return text;
-  return parts.slice(0, max).join(" ");
-}
 
 // The prompt lives server-side (features.py, action "voiceDrift").
 

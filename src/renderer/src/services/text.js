@@ -8,10 +8,10 @@
 // instead of redefining. Genuine variants stay local where the behavior
 // really differs: versionDiff.js keeps the AI diff marks (it diffs raw
 // stored content, not an LLM prompt), voiceFingerprint.js collapses ALL
-// whitespace, labTestData.js collapses blank-line runs, and voiceDrift.js's
-// tailWords takes the HEAD of the text. (writerAI.js converged onto this
-// module — its local copy was a latent bug: it never stripped AI marks
-// from prompts.)
+// whitespace, and labTestData.js collapses blank-line runs. (writerAI.js and
+// voiceDrift.js converged onto this module — writerAI's local copy was a
+// latent bug that never stripped AI marks from prompts; voiceDrift's local
+// tailWords took the HEAD of the text despite its name.)
 
 // Strip an HTML chapter/scene body down to plain text. Always removes
 // pending AI-diff marks (.ai-del dropped, .ai-ins unwrapped) so an LLM never
