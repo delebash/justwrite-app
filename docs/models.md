@@ -27,13 +27,12 @@ built-in provider**) does the whole first-time setup:
    up (mixed per-task models, or saved machine tunes), the confirm step lists **exactly
    which tasks Apply will change** — and which of your own choices it keeps — before
    anything is written; your saved machine tunes are never touched.
-3. It sets the **embedding model** — used for semantic search and grounded chat. Because it
-   runs **alongside** your chat model, the default is the most capable embedding that fits
-   **what's left of your graphics card after the chat model** — a big embedding that
-   technically fits the card alone would starve the chat model sharing it. The small
-   embeddings run fine on the CPU, so they always qualify and every machine gets a working
-   default. The dropdown still lists every embedding that runs on your box — picking a
-   bigger one is a deliberate choice.
+3. It sets the **embedding model** — used for semantic search and grounded chat. The
+   embedding runs on the **CPU**, leaving your graphics card free for the chat model, so the
+   default is the **most capable embedding your system memory supports** — a higher-quality
+   embedding on a well-equipped machine, and a smaller, faster one on a machine with less
+   RAM, so every machine gets a working default. The dropdown still lists every embedding
+   that runs on your box — picking a different one is a deliberate choice.
 
 Quick Setup is **local-only**: it configures the **bundled runner** — the local engine that
 downloads and runs models on your machine — and nothing else. If you'd rather run models

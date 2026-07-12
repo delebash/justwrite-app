@@ -147,12 +147,16 @@ try {
     : embeds.sort((a, b) => ((a.minVramMb || 0) - (b.minVramMb || 0)) || ((a.qualityRank ?? 100) - (b.qualityRank ?? 100)))[0];
   const expectedEmbedId = routing.default?.embeddingModel || bestEmbed?.id || "";
   const expectedEmbedName = catalog.find((r) => r.id === expectedEmbedId)?.name || expectedEmbedId;
-  // The #274 acceptance leg: on the 8 GB stub beside the seeded Gemma (floor 4000 →
-  // leftover 4192) the derived default must be the 0.6B — the 8B (7000) AND the 4B
-  // (4500) both exceed the leftover, and the 0.6B (rank 58) leads the CPU band over
-  // bge-m3 (60). A seed drift that breaks the ladder fails here loudly.
-  check("#274 leg: the 8GB-stub default embed is the 0.6B (leftover rule, not the raw card)",
-    expectedEmbedId === "qwen3-embedding-0.6b", `derived: ${expectedEmbedId || "(none)"}`);
+  // Embed-ladder leg — DATA-DERIVED, no pinned model id (2026-07-12): the default embed is
+  // whatever the live catalog's tier/RAM/quality selects, so changing a seed default needs NO
+  // probe edit. The seed-ladder CORRECTNESS itself (the 4B leads the CPU band on a capable box;
+  // a sub-8GB-RAM box falls back to the 0.6B) is asserted ONCE, data-driven, in the runner's
+  // test_embed_catalog_ladder_and_the_4b_row — the single source of truth. Here we assert only
+  // that the derivation produced a VALID embedding default; the wizard's rendering of it is
+  // checked below via the name.
+  check("embed-ladder: the 8GB stub derives a valid embedding default (data-driven, no literal)",
+    !!expectedEmbedId && embeds.some((r) => r.id === expectedEmbedId),
+    `derived: ${expectedEmbedId || "(none)"}`);
 
   await page.goto(`${APP}/#/ai`, { waitUntil: "networkidle" });
   // The Providers & models tab is the default; QuickSetup's trigger sits at its top.
