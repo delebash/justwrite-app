@@ -605,6 +605,34 @@ spawn failure). Possibly-later = I2 cloud caching · #256 spell-check · D5/D6 �
 F2/F3 · I3/I5/I6 · J1/J2/J3. NOT DOING = C9. **NO ARMED GO** — answer questions
 first, then WAIT. Authoritative open-work: the ledger §A–J.
 
+**GO (2026-07-12) — THE I1 JUDGMENT LEGS SHIPPED** (user: "i will take your rec
+on voice drift, do css, rule 5, you plan let opus do all the work"; plan-mode
+plan panel-checked ×2, committed at `docs/plans/2026-07-12-i1-css-popup-voicedrift.md`;
+built by Opus agents after the user-directed hook change). Four commits:
+`b904ff5` voiceDrift→shared TAIL tailWords · `bfcd48e` the `.entity-*` CSS
+promotion (7 views + Architecture leaves onto ONE styles.css family, −760/+306,
+zero-visual-change screenshot-proven) · `e4ca0db` the pre-task-deny **sidechain
+bypass** (user's word — subagent checker verdicts land in the coordinator's
+transcript, so the deny was a deadlock for delegated builds; main-session gates
+unchanged; test_gates 7/7) · `849eae4` the RULE-5 popup audit #34 (eleven
+name-popup→detail double-steps → DIRECT→FORM + `?new=1` focus-and-select;
+worldbuilding kept its popup — F6 verified its detail form has no category
+selector; whats-new entry shipped). Gates per commit: vitest 135 · build ·
+biome · undo-probe 19/19 · NEW popup-probe 54/54 · FULL smoke zero errors ·
+genuine Opus diff-checker PASS ×2. DB restored byte-exact. Full record: the
+queue doc tail "I1 JUDGMENT LEGS BUILD RECORD"; follow-ups recorded there
+(SettingsView `.wb-search*` fragment · palette `?new` parity · the 7 inline
+focus-watches ride the `useEntityCrudView` decision · popup-probe promotion).
+**⛔ NOT PUSHED — committed locally only, awaiting the user's explicit push word
+(the twenty-second-compact ship-discipline: push is the irreversible step and
+waits for "ship it"/"push").** At this compact-point: JW is **ahead 5** of
+origin (`b904ff5`·`bfcd48e`·`e4ca0db`·`849eae4` + the recap commit); runner is
+**ahead 1** (`821ed53`, the doc record; committer identity fixed + `git config
+user.email noreply@anthropic.com` pinned in both repos). Both trees clean, both
+in sync locally, everything gate-verified. FIRST action next session (or on the
+user's word now): **`git push -u origin claude/admiring-galileo-il3q0o` in BOTH
+repos** — nothing else is pending.
+
 **GO (2026-07-10 late evening, post-fifteenth-compact — superseded by the
 paragraph above) — I1 + I4 LANDED (both
 delegated builds verified independently + checker-verdicted; JW `21c253d` I1 +
