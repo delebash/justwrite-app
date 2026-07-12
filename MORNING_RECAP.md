@@ -653,6 +653,82 @@ prior stash-proven baseline), **undo-probe 19/19**, **popup-probe 54/54**; DB re
 byte-exact (`0be0e2ef`). STANDING LESSON re-affirmed: run the definitive renderer gate on
 the integrated tree BEFORE the push, never a "disjoint ⇒ safe" proxy. Nothing pending.
 
+**GO (2026-07-12) — DATA-DRIVEN SAMPLE NOVEL: PHASE 1 BUILT + VERIFIED (committed
+locally, NOT pushed); PHASE 2 PENDING.** The user asked for "a better sample novel
+than the Cartographer's Daughter" and it grew, through a long design conversation,
+into three things (all decided WITH the user, verbatim decisions below). **Phase 1
+(the data-driven sample + the novel) is DONE this session; Phase 2 (per-project
+export/import + remove the JV post) is the next session's work.** Full design + build
+order + verified-seam facts: `docs/plans/2026-07-12-sample-novel-the-ninth-facet.md`.
+
+**The design — user decisions (verbatim-ish):** "data driven" (the sample must not be
+hardcoded Python) · "one full export that covers importing into another jw app, jv can
+then just load this folder and parse what it needs" · "book1 folder book2 folder …
+export location defaults to jw data folder but user can choose another" · "no zip leave
+it as folder" · "i dont like the server post … remove it from jw" (the JW→JV live POST) ·
+"no shared component it does not make sense" (per-project export/import is **JW-local**,
+not a shared kit component — JV's own project + JV-imports-a-JW-book are different and
+OUT OF SCOPE) · "no demo seed, demo just opens book in samples folder … **normal editable
+project just like it is now**" (= the tutorial still creates a normal editable project;
+only the CONTENT source moved from hardcoded Python to a data file; `create_demo_project`
+mechanism unchanged) · "dont worry about jv, add that to the jv stuff we still have
+outstanding" · "do it right, do not take shortcuts, check code."
+
+**Phase 1 SHIPPED (committed locally, awaiting the push word):** the demo is now
+**data-driven** — samples ship as exported book folders `samples/<name>/book.json`
+(+ an `images/` folder when a book has images), the exact `exportSnapshot()`/
+`book_io.decompose` shape; `demo_seed.py` went from a 536-line hardcoded module to a
+~50-line loader (`load_sample(name)` → `json.load`; `demo_book_snapshot()` returns
+`DEFAULT_SAMPLE`; `DEMO_PROJECT_ID` renamed `prj_demo_cartographer` → `prj_sample_ninth_facet`);
+`seed.py:create_demo_project` UNCHANGED (still `decompose`). The bundled sample is **"The
+Ninth Facet" (Tamsin Vale)** — a magitech guild-adventure (Facets = magic tiered into
+Artifice/Schools/deep Fold+Hour; a party clears a folded, hour-looping manufactory), Act-I:
+2 parts / 4 chapters / **12 full scenes ~6,480 words of real prose** (vs the old demo's
+50–150-word excerpts), 8 characters (3 full extras), 7 locations, 6 objects, 5 groups,
+5 strands with scene-anchored beats, 8 worldbuilding articles, events, statuses. Authored
+via a scratchpad generator (NOT committed) → only `book.json` ships. `test_seed.py` made
+**content-agnostic** (asserts load + round-trip + minted scene-ids + extras⊆chars +
+strand→scene links, not specific counts — swap the sample, tests stay green). Ripples:
+qcbatch id+title, SettingsView running-head, project.js comments, docs (getting-started,
+whats-new v1.2.0, backups-and-data, README) + a **repo-wide `grep Cartographer` strict-diff
+sweep** (the rules-checker FAILED the first, targeted-only pass — the `en.json:140`
+tutorialTooltip was a live regression; fixed all 6 current-state refs; dated-history +
+own-fixture + flagged refs recorded as STAY). Gates: ruff · **pytest 83** · book.json
+decompose round-trip · build:vite · **FULL headless smoke every route errors=0** (sample
+seeded+active) · undo-probe 19/19 · qcbatch 22/22 · genuine rules-checker verdict at the
+commit. DB restored byte-exact `0be0e2ef`. **FLAGGED follow-up:** `rag-probe.mjs` is a
+content-coupled acceptance probe keyed to the OLD Cartographer prose (Margaret/Brass
+weight) — id updated + flagged in-file (`:47-48`); re-author to the new book (Old Sedge /
+the Gattick line) OR decouple onto its own fixture (a feature probe, not a boot gate).
+
+**PENDING — Phase 2 + open decisions (next session):**
+1. **Phase 2 — per-project JSON export/import (JW-local):** Export a project → a
+   **folder** `<book-slug>/book.json` (+ `images/` when it has images — images are SERVER
+   bytes `imageStore.js:52-57,77`, NOT in the JSON, fetch via `readImageBytes`→`/v1/images/{id}`),
+   default dir = `storage_get_root` (`lib.rs:376`), user picks another via `pick_directory`
+   (`lib.rs:347`). Import a folder → a NEW project (reuse `exportSnapshot` inverse +
+   `PUT /v1/projects/<new-id>` = decompose + re-upload images). **Needs TWO new Rust
+   commands** (`lib.rs` has `std::fs` arbitrary-path write `:90,97,314` + `create_dir_all`
+   `:108,248` but NO folder-write command) + bridge methods + renderer UI. Browser caveat:
+   folder-of-files write is desktop-only; the browser dev path can't (flag it).
+2. **Remove the JV server POST from JW:** `services/export/justvoice.js` (builds a special
+   `justwrite/v1` narration doc + live-POSTs to a running JV, `:142`) + its `ExportView.vue`
+   card. **JV-side is OUT OF SCOPE — record in JV outstanding:** JV's `justwrite` import
+   adapter (`/home/user/JustVoice/server/justvoice/api/projects_api.py:783,804`) must be
+   rewritten to read `book.json` instead of `justwrite/v1` (JV loses the JW handoff until
+   then — acceptable per "most users won't run both at once").
+3. **SIZING (OPEN — the user's call):** a normal novel is ~**80–100k words** (fantasy
+   trends 90–120k+), ~25–40 chapters of 2–4k. The current sample is ~6.5k (a crafted Act-I
+   slice) — a good tutorial but small. The user wants to **stress-test by importing it 20×**
+   (→ 20 novels). DECIDE: grow *The Ninth Facet* to full novel size (real data-volume
+   stress; huge authoring) vs keep the crafted slice (tests 20-project handling, less data)
+   vs a separate bulk stress-test book. Phase 2's import is what enables the 20× load.
+4. `rag-probe` re-author/decouple; the `cleanup` (dead `exportFullBackup()` `project.js:2110`,
+   already-fixed stale `backups-and-data.md` JSON-snapshot section).
+
+**Push HELD for the user's explicit word.** First action next session (or on the word
+now): nothing to push until Phase 1 is committed + the user says push; then continue Phase 2.
+
 **GO (2026-07-10 late evening, post-fifteenth-compact — superseded by the
 paragraph above) — I1 + I4 LANDED (both
 delegated builds verified independently + checker-verdicted; JW `21c253d` I1 +

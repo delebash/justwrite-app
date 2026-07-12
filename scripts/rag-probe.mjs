@@ -43,7 +43,13 @@ const { chromium } = require("playwright");
 const BASE = process.env.JW_BASE || "http://localhost:1420";
 const API = process.env.JW_API || "http://127.0.0.1:17495";
 const STUB_PORT = 8977;
-const DEMO_ID = "prj_demo_cartographer";
+// ⛔ CONTENT-COUPLED FIXTURE (2026-07-12): the stub extraction responses,
+// scene-title matchers, and expected entities (Margaret / Brass weight) below
+// are keyed to the OLD "Cartographer's Daughter" sample. The sample is now
+// "The Ninth Facet"; the id is updated but the entity-sweep legs will FAIL
+// until re-authored to the new prose (Old Sedge / the Gattick line) OR the
+// probe is decoupled onto its own dedicated fixture book. Follow-up.
+const DEMO_ID = "prj_sample_ninth_facet";
 const EMBED_MODEL = "nomic-embed-text"; // seeded catalog id — its template row must fire
 
 function findChrome() {

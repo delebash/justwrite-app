@@ -486,7 +486,7 @@ const DEFAULT_STATUSES = [
 ];
 
 // ── Blank-project scaffolding ───────────────────────────────────────────
-// The demo content (the "Cartographer's Daughter" book) now lives server-side
+// The sample content (the bundled "The Ninth Facet" book) now lives server-side
 // and is seeded into the database on first run (server/justwrite_server/
 // demo_seed.py — the 2026-06-20 convergence, item #7). What remains here is the
 // genuinely STRUCTURAL shape of an EMPTY project: meta defaults, the three
@@ -2218,7 +2218,7 @@ export const useProjectStore = defineStore("project", {
     },
 
     // QC-40 (user, 2026-07-10): "Try tutorial project" opens the FULL demo
-    // book — "The Cartographer's Daughter" — created ON DEMAND by the server
+    // book — "The Ninth Facet" — created ON DEMAND by the server
     // (POST /v1/projects/demo, fixed id: never duplicated, re-creatable after
     // a delete). This replaced the old client-side mini tutorial seed
     // (services/tutorialProject.js, deleted with it).

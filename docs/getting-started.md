@@ -17,7 +17,7 @@ The first launch may take a few seconds longer than usual while the app sets up 
 The very first time you open JustWrite, a **welcome screen** greets you. It sums up what the app does — chapters & scenes, the story bible, plot strands & timeline, AI assistance, goals & pace, export — and offers the two ways to begin:
 
 - **Start a new project** — give it a title and (optionally) an author, and you're writing.
-- **Try the tutorial project** — opens *The Cartographer's Daughter*, a short guided book (more below).
+- **Try the tutorial project** — opens *The Ninth Facet*, a complete sample novel (more below).
 
 The same screen introduces the optional AI features: **Run Quick Setup** installs a free local model that runs privately on your own PC, **Connect an online provider** points JustWrite at any OpenAI-compatible service, and you can skip both — everything is available later in AI settings. The welcome screen shows once; you can reopen it any time from the **Help** page (sidebar → Help → "Show welcome screen").
 
@@ -25,7 +25,7 @@ A fresh workspace has **no projects yet** — the welcome screen is where the fi
 
 ### Try tutorial project
 
-If you'd rather explore with a complete example first, the project switcher has a **"Try tutorial project"** item alongside the usual "+ New project" button. It opens *The Cartographer's Daughter* — a real, complete (small) novel with characters, locations, chapters, plot strands, and events — so you can click through every screen without building anything yourself. It is created only when you ask for it, it is a real project you can edit freely, and when you're done you can delete it from the same switcher (the button brings it back fresh any time).
+If you'd rather explore with a complete example first, the project switcher has a **"Try tutorial project"** item alongside the usual "+ New project" button. It opens *The Ninth Facet* — a real, complete sample novel (a magitech guild-adventure) with characters, locations, objects, groups, worldbuilding, chapters, plot strands, and events — so you can click through every screen without building anything yourself. It is created only when you ask for it, it is a real project you can edit freely, and when you're done you can delete it from the same switcher (the button brings it back fresh any time).
 
 ---
 

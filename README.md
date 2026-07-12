@@ -16,7 +16,7 @@ npm run dev            # Vite HMR + a native Tauri window
 npm run build          # Packaged app for the current OS
 ```
 
-The app opens on a seed project ("The Cartographer's Daughter") so you can click through every screen immediately.
+A fresh install opens on the welcome screen; **Try tutorial project** loads *The Ninth Facet*, a complete sample book, so you can click through every screen immediately.
 
 > **First run is slow.** Tauri compiles the Rust crate the first time. Subsequent dev launches are fast.
 

@@ -1,8 +1,13 @@
 """Workspace seeding — the default LLM providers the server creates on a fresh
-install, and the ON-DEMAND demo book (QC-40, user 2026-07-10: the demo is no
-longer seeded at boot — a fresh install has NO projects and the renderer lands
-on its welcome screen; "Try tutorial project" creates the demo via
-POST /v1/projects/demo).
+install, and the ON-DEMAND sample book (QC-40, user 2026-07-10: not seeded at
+boot — a fresh install has NO projects and the renderer lands on its welcome
+screen; "Try tutorial project" creates the sample via POST /v1/projects/demo).
+
+The sample is DATA-DRIVEN (2026-07-12): its content is a bundled book folder
+(`samples/<name>/book.json`), not hardcoded Python. So these tests assert the
+MECHANISM and the STRUCTURE — the sample loads, creates a normal editable
+project, and round-trips — not the specific book. Swap the sample folder and
+they stay green.
 
 seed_workspace() opens its own session from database.SessionLocal, which
 create_app(tmp_path) wired up via init_db — so constructing a client first
@@ -13,7 +18,7 @@ from fastapi.testclient import TestClient
 
 from justwrite_server import book_io, database
 from justwrite_server.app import create_app
-from justwrite_server.demo_seed import DEMO_PROJECT_ID, demo_book_snapshot
+from justwrite_server.demo_seed import DEMO_PROJECT_ID, demo_book_snapshot, list_samples
 from justwrite_server.seed import seed_workspace
 from llm_runner.llm.seed import DEFAULT_PROVIDERS, seed_default_providers
 
@@ -54,10 +59,13 @@ def test_demo_created_on_demand(tmp_path):
     c = _c(tmp_path)
     seed_workspace()
 
-    # The tutorial button's endpoint creates the demo with its fixed id…
+    # The tutorial button's endpoint creates the sample project with its fixed
+    # id, carrying whatever title/author the bundled sample declares (content-
+    # agnostic — swap the sample folder and this stays green)…
     r = c.post("/v1/projects/demo").json()
-    assert r == {"id": DEMO_PROJECT_ID, "title": "The Cartographer's Daughter",
-                 "author": "Mira Halden", "created": True}
+    assert r["id"] == DEMO_PROJECT_ID and r["created"] is True
+    assert isinstance(r["title"], str) and r["title"]
+    assert "author" in r
     assert [p["id"] for p in c.get("/v1/projects").json()] == [DEMO_PROJECT_ID]
     # …a second click returns the SAME project (never a duplicate)…
     r2 = c.post("/v1/projects/demo").json()
@@ -71,7 +79,11 @@ def test_demo_created_on_demand(tmp_path):
     assert "activeProjectId" not in c.get("/v1/settings").json()
 
 
-def test_demo_book_has_full_structure(tmp_path):
+def test_sample_round_trips_as_an_editable_project(tmp_path):
+    # The bundled sample decomposes into a project and assembles back — a valid,
+    # editable book. Checks are SHAPE-only (content-agnostic), so any exported
+    # book dropped into samples/ passes; the fixtures below verify the seams the
+    # renderer depends on (minted scene ids, extras keys, strand→scene links).
     _c(tmp_path)
     db = database.SessionLocal()
     try:
@@ -81,27 +93,41 @@ def test_demo_book_has_full_structure(tmp_path):
     finally:
         db.close()
 
-    assert len(snap["parts"]) == 3
-    assert sum(len(p["chapters"]) for p in snap["parts"]) == 13
-    assert len(snap["characters"]) == 8
-    assert len(snap["locations"]) == 6
-    assert len(snap["objects"]) == 5
-    assert len(snap["strands"]) == 5
-    assert len(snap["groups"]) == 3
-    assert len(snap["notes"]) == 3
-    assert len(snap["worldbuilding"]) == 5
-    assert len(snap["worldbuildingCategories"]) == 6
-    assert len(snap["statuses"]) == 7
-    # Character extras survive for the three characters that have them.
-    assert set(snap["characterExtras"]) == {"c1", "c3", "c4"}
-    # Scene ids are minted scn_{chId}_{i+1}, and a strand beat references one.
-    assert snap["scenes"]["ch4"][0]["id"] == "scn_ch4_1"
-    s2 = next(s for s in snap["strands"] if s["id"] == "s2")
-    assert s2["beats"][0]["sceneId"] == "scn_ch4_1"
-    # Scene links round-trip.
-    assert snap["scenes"]["ch1"][2]["characters"] == ["c1", "c2"]
-    # Per-entity events, including the "setting" world timeline.
-    assert len(snap["events"]["setting"]) == 6
+    # Non-empty core structure.
+    assert snap["project"]["title"]
+    assert snap["parts"] and sum(len(p["chapters"]) for p in snap["parts"]) >= 1
+    assert snap["characters"]
+    all_scene_ids = {s["id"] for ch in snap["scenes"].values() for s in ch}
+    assert all_scene_ids  # at least one scene
+
+    # Scene ids are minted scn_{chId}_{i+1}.
+    for ch_id, scenes in snap["scenes"].items():
+        for i, s in enumerate(scenes):
+            assert s["id"] == f"scn_{ch_id}_{i + 1}"
+
+    # Character extras only exist for real characters.
+    char_ids = {c["id"] for c in snap["characters"]}
+    assert set(snap["characterExtras"]) <= char_ids
+
+    # Every strand beat that names a scene points at a scene that exists.
+    for strand in snap["strands"]:
+        for beat in strand.get("beats", []):
+            if beat.get("sceneId"):
+                assert beat["sceneId"] in all_scene_ids, f"dangling beat {beat['id']}"
+
+
+def test_a_sample_is_bundled():
+    # A bundled sample folder exists (samples/<name>/book.json) and the default
+    # one loads as a valid snapshot with the exact keys book_io consumes.
+    assert list_samples(), "no bundled sample folders found under samples/"
+    snap = demo_book_snapshot()
+    assert set(snap) == {
+        "project", "parts", "scenes", "characters", "characterExtras", "locations",
+        "objects", "groups", "strands", "notes", "architecture", "worldbuilding",
+        "worldbuildingCategories", "tagVocabularies", "statuses", "images", "events",
+        "trash", "dailyRecaps", "reverseOutline", "beatSheets", "plotHoles",
+        "voiceCanonChapterIds", "relationshipArcs", "marketingPack", "worldRules",
+    }
 
 
 def test_seed_is_idempotent(tmp_path):

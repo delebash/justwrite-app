@@ -4,6 +4,12 @@ Recent changes worth noticing. Older entries fall off the bottom — see the [Ro
 
 ---
 
+## v1.2.0 — 2026-07
+
+**A new tutorial novel — *The Ninth Facet*.** "Try tutorial project" now opens a fresh sample: a magitech guild-adventure with a full cast, locations, objects, factions, a worldbuilding bible, plot strands, and real full-length chapters — a richer starting point for exploring every screen than the old sample. It works exactly as before: a normal editable project, created on demand, deletable and re-creatable any time.
+
+*(Under the hood the sample is now just data — an exported book folder shipped with the app — so samples can be swapped or added without code changes.)*
+
 ## v1.1.0 — 2026-07
 
 **+ New opens the new entry directly — name ready to type.** Creating a character, location, object, group, note, or narrative strand no longer pops up a box asking for a name first. **+ New** (from a list header or the sidebar) makes the entry and takes you straight to its page with its name selected — just start typing to replace the placeholder, then fill in the rest. New chapters work the same way, landing in the editor with the title focused. Changed your mind? It's an ordinary row you can delete, or press Ctrl/⌘ + Z on its page to undo the creation. (Worldbuilding articles still ask first — that popup is where you pick the article's category.)
@@ -56,7 +62,7 @@ in the Notes view ("Manage all notes ↗").
 
 **What's new modal.** When you open JustWrite after an upgrade, a modal shows you what changed in the new version — dismissible, and keyed to the version number so it only shows once.
 
-**Tutorial project.** The **sidebar's project switcher menu → "Try tutorial project"** opens *The Cartographer's Daughter* — a complete small demo novel (characters, locations, chapters, plot strands, events) created on demand, so a fresh install starts clean on the welcome screen instead. It is a real project you can poke at without touching your own work; delete it from the same switcher when you're done, and the button brings it back fresh any time.
+**Tutorial project.** The **sidebar's project switcher menu → "Try tutorial project"** opens *The Ninth Facet* — a complete sample novel (characters, locations, objects, groups, worldbuilding, chapters, plot strands, events) created on demand, so a fresh install starts clean on the welcome screen instead. It is a real project you can poke at without touching your own work; delete it from the same switcher when you're done, and the button brings it back fresh any time.
 
 **Better empty states.** Every catalog (Characters / Locations / Objects / Groups / Notes / Strands / Worldbuilding) now explains what the surface is for and where it connects, rather than just "No characters yet."
 

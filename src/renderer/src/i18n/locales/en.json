@@ -128,7 +128,7 @@
       "newProjectTitle": "New project",
       "newProjectConfirm": "Create",
       "fieldTitle": "Project title",
-      "fieldTitlePlaceholder": "e.g. The Cartographer's Daughter",
+      "fieldTitlePlaceholder": "e.g. The Ninth Facet",
       "fieldAuthor": "Author (optional)",
       "fieldAuthorPlaceholder": "Your name",
       "deleteProjectTitle": "Delete project \"{title}\"?",
@@ -137,7 +137,7 @@
       "deleteTooltip": "Delete {title}",
       "deleteAriaLabel": "Delete project {title}",
       "tutorialProject": "Try tutorial project",
-      "tutorialTooltip": "Opens The Cartographer's Daughter — a full demo book to explore. Delete it from this menu when you're done."
+      "tutorialTooltip": "Opens The Ninth Facet — a complete sample book to explore. Delete it from this menu when you're done."
     },
     "tooltips": {
       "dragToResize": "Drag to resize",

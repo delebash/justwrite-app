@@ -1,0 +1,1171 @@
+{
+ "project": {
+  "title": "The Ninth Facet",
+  "author": "Tamsin Vale",
+  "subtitle": "Book One of the Commission Hall",
+  "genre": "Fantasy — magitech adventure",
+  "wordsGoal": 105000,
+  "dailyTarget": 1500,
+  "wordsWritten": 9600,
+  "startedOn": "May 2, 2026",
+  "deadline": "March 1, 2027",
+  "premise": "In a guild-city where magic is one shattered art tiered into Facets, a mid-rank adventuring party takes a routine commission to clear a collapsed magitech manufactory and finds it folded out of space and looping the same hour — with a survivor inside who remembers them from turns they have not lived.",
+  "coverImage": null
+ },
+ "parts": [
+  {
+   "id": "p1",
+   "title": "The Commission",
+   "chapters": [
+    {
+     "id": "ch1",
+     "num": 1,
+     "title": "Brass Rank",
+     "words": 2600,
+     "status": "done",
+     "strands": [
+      "s1",
+      "s3"
+     ]
+    },
+    {
+     "id": "ch2",
+     "num": 2,
+     "title": "Bigger Inside",
+     "words": 2500,
+     "status": "done",
+     "strands": [
+      "s1",
+      "s2"
+     ]
+    }
+   ]
+  },
+  {
+   "id": "p2",
+   "title": "The Hour",
+   "chapters": [
+    {
+     "id": "ch3",
+     "num": 3,
+     "title": "The Same Hour",
+     "words": 2700,
+     "status": "draft",
+     "strands": [
+      "s2",
+      "s3",
+      "s4"
+     ]
+    },
+    {
+     "id": "ch4",
+     "num": 4,
+     "title": "The Keystone",
+     "words": 2400,
+     "status": "draft",
+     "strands": [
+      "s2",
+      "s5"
+     ]
+    }
+   ]
+  }
+ ],
+ "scenes": {
+  "ch1": [
+   {
+    "id": "scn_ch1_1",
+    "title": "A lamp that will not lie",
+    "body": "<p>The lamp on Cael's bench was lying, and it was doing it beautifully.</p>\n<p>A courier had brought it in that morning wrapped in a shirt, the way people brought things they were embarrassed to be attached to. It was a good lamp — Concern-made, the brass turned on a proper lathe, the lumen-cell seated square. By every rule she had ever been taught it should have thrown a clean, cold light for another twenty years. Instead it guttered, brightened, guttered, like a person trying to remember a name.</p>\n<p>\"You flicker in company,\" she told it, \"and you're steady when you're alone. So it isn't the cell.\"</p>\n<p>She said it out loud because the shop was empty and because saying a fault out loud was half of finding it. Her father had done the same, at this same bench, for thirty years, and the habit had outlived him the way the salt smell of the harbor outlived the tide. His stool still stood by the window. She had not moved it. She had not sat on it either.</p>\n<p>The trade way to fix a lying lamp was to swap the cell, bill for the cell, and send it home. Any brass-rank artificer in Threnn could do it blind. Cael turned the lamp over, thumbed the sigil-plate open, and did not swap the cell, because she already knew the cell was fine. She knew it the way she knew the weather was about to turn — a pressure under the back teeth, a note just below hearing.</p>\n<p>That was the part she never billed for. The part she never mentioned.</p>\n<p>She took the resonance fork down from its nail. It was an ugly thing, older than the shop, two tines of grey steel on a stub of horn, and it had been her one true inheritance in the sense that no one else had wanted it. She held it a hand's breadth from the lamp and did not strike it.</p>\n<p>It rang anyway. Faint, and wrong, a note that leaned.</p>\n<p>Cael let out a breath she'd been holding since the courier left. There it was. The lamp wasn't broken. It was <em>tuned</em> — tuned to a note that wasn't in the room, a note from somewhere the fork could hear and she was not supposed to be able to. A lamp built to sit still in the ordinary Facet, quietly listening for a deeper one, and flinching every time it caught the edge of it.</p>\n<p>Somebody had made this lamp sensitive on purpose. Or something near where it had been made had leaked.</p>\n<p>She wrapped the fork in a cloth before its ringing could settle into her jaw, and she stood for a moment with both hands flat on the cool brass, feeling the flicker come and go under her palms like a pulse. If she took it to the Schools they would call her a liar. If she took it to the Wardens they would take the lamp, and then they would take a closer look at the woman who had known, at a glance, what a lamp was listening to.</p>\n<p>So she did what she always did. She swapped the cell it didn't need, so the bill would make sense. She filed the sigil-plate a hair to deafen it, so it would stop flinching in company. She wrote <em>cell fatigue — replaced</em> on the ticket, in the careful hand of a woman who could not afford to be interesting, and she set the lamp on the shelf for collection, steady now, and honest, and a little less than it had been.</p>\n<p>\"There,\" she said. \"Now you'll get on.\"</p>\n<p>The lamp threw a clean cold light and told no one anything, which was, Cael had decided a long time ago, the only safe way to be made.</p>",
+    "characters": [
+     "c1"
+    ],
+    "locations": [
+     "l1"
+    ],
+    "objects": [
+     "o1"
+    ],
+    "strands": [
+     "s3"
+    ]
+   },
+   {
+    "id": "scn_ch1_2",
+    "title": "The slate board",
+    "body": "<p>The Commission Hall smelled of chalk and wet wool and the particular ambition of people waiting to be chosen. Cael found her Company where she always found them: under the slate board, arguing.</p>\n<p>\"It is not a matter of pride,\" Iven was saying, in the voice he used when it was entirely a matter of pride. \"It is a matter of category. Manufactory Nine is a structural clearance. That is brass work. We are — arguably — silver.\"</p>\n<p>\"We're brass,\" Brick said, comfortably, without looking up from the apple he was quartering with a knife the length of Cael's forearm. \"Board says brass. We eat brass wages. That makes us brass.\"</p>\n<p>\"We are <em>capable</em> of silver.\"</p>\n<p>\"So's a lot of folk. Board doesn't rank what you can do. Ranks what you've done.\"</p>\n<p>Nettle was sitting on the board's frame itself, six feet up, where no one had seen her climb. \"The Nine pays double,\" she said, to the room in general. \"It's been on the slate eleven weeks and nobody's taken it. That's not a brass job that pays double. That's a job somebody wants gone.\"</p>\n<p>Cael read the chalk. <em>Manufactory Nine, Ash District. Structural survey &amp; clearance. Lumen Concern, sealed. Rank: brass. Fee: 2×.</em> She did not like the seal. A Concern seal on a clearance meant the Concern wanted a receipt more than it wanted the work — wanted to be able to say, later, to someone, that a licensed party had gone in and found nothing.</p>\n<p>Under the back teeth, faint, the pressure turned.</p>\n<p>\"Ferren.\" Haldane Threll had come down the length of the Hall without seeming to cross it, which was a trick of hers Cael had never worked out. Mistress of Commissions, grey-coated, a face like a closed ledger. \"Your Company's short a job this month.\"</p>\n<p>\"We're choosy,\" said Brick.</p>\n<p>\"You're broke,\" said Threll, not unkindly. \"The Nine wants a party by week's end. It's straightforward. Concern lost the building nine years ago to a collapse; they've finally decided to clear the lot and sell the ground. Someone reputable walks it, certifies it empty and safe, signs the token, collects double.\" She looked at Cael when she said <em>reputable</em>, which Cael tried not to read anything into and read everything into anyway.</p>\n<p>Across the Hall, two people were not queuing. A Concern clerk in a good coat, watching the board without appearing to. And by the door, grey on grey, hands folded, a Warden — not looking at anyone, which was how you knew a Warden was looking at everyone.</p>\n<p>Cael's mouth had gone dry. \"Why's it still on the board at eleven weeks if it's straightforward?\"</p>\n<p>\"Because it's dull and it's in the Ash District and it pays in Concern scrip until certification,\" Threll said. \"Parties want glory or coin up front. You want neither. You want a clean job and to be left alone. I have read you correctly for six years, Ferren; do not disappoint me by developing standards now.\"</p>\n<p>Iven opened his mouth, presumably to reclassify something. Brick got there first.</p>\n<p>\"We'll take it,\" he said, and quartered the last of the apple, and handed Cael the seedless middle, which was the piece she liked, which he had never once mentioned knowing.</p>\n<p>Threll produced the commission-token — a brass chit, warm from her pocket, the Concern seal biting one face and the Hall's biting the other. She set it in Cael's palm.</p>\n<p>It hummed. Low, and level, and wrong, exactly the note the lamp had leaned toward all morning. Cael closed her hand around it before her face could do anything, and smiled the small careful smile of a woman collecting a dull job, and did not look at the Warden by the door.</p>",
+    "characters": [
+     "c1",
+     "c2",
+     "c3",
+     "c4",
+     "c6"
+    ],
+    "locations": [
+     "l2"
+    ],
+    "objects": [
+     "o5"
+    ],
+    "strands": [
+     "s1"
+    ]
+   },
+   {
+    "id": "scn_ch1_3",
+    "title": "Kettle Lane, after dark",
+    "body": "<p>Nettle walked her home, which meant Nettle appeared beside her on Kettle Lane without having been there a moment before, matching her stride as if she'd been there the whole time.</p>\n<p>\"You went white,\" Nettle said. \"At the board. When Threll gave you the token.\"</p>\n<p>\"It's cold in the Hall.\"</p>\n<p>\"It's the warmest room in the district. They vent the lumen furnace under the floor.\" Nettle wasn't looking at her. Nettle was looking at the lamps coming up along the lane as the light went, one after another, a soft cold blue blooming down toward the harbor. \"You do that. Go somewhere behind your eyes. I've watched you do it over a busted lock and a full purse. I never worked out what you're listening for.\"</p>\n<p>Cael turned the token over in her pocket. It had not stopped humming. It would not stop humming until she was well away from it, and she could not be well away from it, because it was the seal on a job that would feed the four of them through the winter.</p>\n<p>\"Can I ask you something,\" Cael said, \"and you don't make it a thing.\"</p>\n<p>\"My favorite kind of question.\"</p>\n<p>\"The gaps you cross. The ones on the roofs, the one over the Cutwater last spring — six feet of open air, and you were on the far side of it before you jumped.\"</p>\n<p>Nettle's stride hitched, very slightly, the first ungraceful thing Cael had ever seen her do. \"Luck,\" she said. \"Good feet. My gran's bead.\" She touched the river-worn charm at her throat, a habit so old she plainly didn't know she was doing it. \"Why.\"</p>\n<p>\"No reason. Long day.\" Because you and I are the same, Cael did not say. Because whatever you feel when you cross a gap that isn't there, I feel when I put my hand on a lamp that's listening to something under the world, and neither of us is supposed to be able to, and one of us has learned to hide it and the other hasn't noticed she has anything to hide.</p>\n<p>They walked. The token hummed against her hip. Somewhere behind them, a soft cold blue lamp caught the edge of it and guttered, once, and steadied, and told no one anything.</p>\n<p>\"Ash District tomorrow,\" Nettle said, at the door of the glimmerworks, and grinned, and was gone before Cael's key was in the lock — not vanished, nothing so grand, just around a corner faster than a person could go, into a gap in the evening that closed behind her like water.</p>",
+    "characters": [
+     "c1",
+     "c4"
+    ],
+    "locations": [
+     "l3"
+    ],
+    "objects": [
+     "o5"
+    ],
+    "strands": [
+     "s3"
+    ]
+   }
+  ],
+  "ch2": [
+   {
+    "id": "scn_ch2_1",
+    "title": "The road to the Nine",
+    "body": "<p>The Ash District had been the bright edge of Threnn once, back when the Concern's manufactories ran day and night and the whole quarter glowed like a banked fire. Now the lumen-lamps along the Nine Road stood at long intervals, half of them dark, and the light between them was the ordinary grey of a city that had stopped paying attention.</p>\n<p>\"The lamps thin out the closer we get,\" Iven noted. He had his coat collar up and his School manner on, which meant he was uneasy and disguising it as observation. \"Someone's stopped maintaining the line.\"</p>\n<p>\"Someone's stopped everything,\" Brick said. Gudgeon rode his shoulder, the great enchanted head of the maul wrapped in sacking so it wouldn't catch the light and worry people. \"Nine years. You'd think the Concern would've cleared its own lot sooner.\"</p>\n<p>At the last inhabited corner an old road-warden sat outside a watch-hut, not the grey-cloaked kind but the ordinary kind, a pensioner with a lantern and a ledger of who came and went. Old Sedge, the plate on the hut said, though the man didn't offer his name and Cael didn't ask. He looked at the commission-token Brick showed him, and he looked at the four of them a good while longer.</p>\n<p>\"You're for the Nine,\" Sedge said. It wasn't a question. \"Concern's fourth party.\"</p>\n<p>\"Board said we were the first,\" said Iven.</p>\n<p>\"Board says a lot.\" Sedge spat, precisely, into the gutter. \"Three went in before you, over the years. Signed my ledger going. None of 'em signed it coming out that I saw, and I see everything comes down this road. Maybe they left another way.\" He did not sound like a man who believed there was another way. \"You'll want to be out before the light's full gone. Place doesn't like the dark. Or it likes it too much. I never worked out which.\"</p>\n<p>Nettle had drifted ahead while he talked, the way she did, and now she was standing at the mouth of the yard where the Nine's broken silhouette blocked the last of the sky — standing there, and then she wasn't, and then she was ten feet further on, on the far side of a fallen gate that a person would have had to climb.</p>\n<p>She looked back, startled, as if her own feet had surprised her. Her hand had gone to the bead at her throat.</p>\n<p>Under Cael's back teeth the pressure turned, and turned, and did not stop turning. The fork in her satchel — wrapped, deafened, silent for a decade — gave a single, muffled ring, like a struck note heard through a wall.</p>\n<p>\"Cael?\" Iven, sharp. \"You've gone the color of the road.\"</p>\n<p>\"I'm fine.\" She made herself walk toward the gate, toward Nettle, toward the dark bulk of the thing the Concern wanted certified empty. \"Let's get it done and get out. Sedge is right about the light.\"</p>",
+    "characters": [
+     "c1",
+     "c2",
+     "c3",
+     "c4"
+    ],
+    "locations": [
+     "l4"
+    ],
+    "objects": [
+     "o6"
+    ],
+    "strands": [
+     "s1"
+    ]
+   },
+   {
+    "id": "scn_ch2_2",
+    "title": "Bigger inside",
+    "body": "<p>The door of Manufactory Nine was an ordinary door in an ordinary wall of soot-black brick, and it opened onto a room that could not have fit inside the building.</p>\n<p>Brick went first, because that was what Brick was for, Gudgeon unwrapped now and throwing back the light of Iven's summoned flame in dull red flakes. He took three steps and stopped so suddenly that Nettle walked into his back.</p>\n<p>\"That's not right,\" he said, slowly. \"Cael. Come look and tell me why that's not right, because I can't.\"</p>\n<p>The manufactory floor ran away from them further than the building was wide. Cael had stood in the yard; she had paced the outer wall while Iven fussed the door-sigil; she knew to the yard how big the Nine was. And the room in front of her was bigger than the yard. Ranks of dead glimmer-looms marched off into a dark that had a horizon. Off to the left a stair went up to a gallery that, by the geometry of the outside, would have to be standing in the street.</p>\n<p>\"It's folded,\" Iven said. His School voice had gone very quiet. \"I've read of it. I never — it's a Fold. Space, bent back on itself. The inside is larger than the out because the inside doesn't <em>agree</em> with the out.\" He laughed, once, without humor. \"This is not a structural clearance. Threll sent us to certify a deep-Facet wound as an empty warehouse.\"</p>\n<p>\"Wardens' work,\" Brick said. \"That's Wardens' work, that is. We should turn round.\"</p>\n<p>\"The token's Concern-sealed,\" Nettle said. \"We turn round, we don't get paid, and the Concern gets to say a party went in and lost its nerve. And they send a fourth.\" She hadn't moved from the doorway. She was gripping the frame. \"Or a fifth.\"</p>\n<p>Cael barely heard them. She had her hand in her satchel, on the wrapped fork, and through three folds of cloth it was screaming.</p>\n<p>Not ringing. Screaming — a note so high and so wrong it had gone past sound into a pressure that filled her skull and pushed at the backs of her eyes, the small under-the-teeth hum she had managed and hidden and filed down her whole life turned suddenly to a siren she could not deafen. She dragged the fork out. The cloth had scorched brown around it. The grey steel tines were blurred with the speed of their own shaking.</p>\n<p>\"Cael.\" Iven was staring at the fork. At her face. Putting things together with the terrible quickness of a clever man who has just realized he has been wrong about a category for years. \"Cael. How did you know the lamp was listening. This morning. How did you know the token hummed.\"</p>\n<p>\"Later,\" Cael said, through her teeth, and the fork screamed, and somewhere out in the folded dark, far off among the dead looms, a single candle was burning that no one had lit.</p>",
+    "characters": [
+     "c1",
+     "c2",
+     "c3",
+     "c4"
+    ],
+    "locations": [
+     "l5"
+    ],
+    "objects": [
+     "o1"
+    ],
+    "strands": [
+     "s2"
+    ]
+   },
+   {
+    "id": "scn_ch2_3",
+    "title": "The candle that un-burns",
+    "body": "<p>They went toward the candle because it was the only light in the folded dark that wasn't theirs, and because Cael's fork pointed at it — the screaming softened by a hair when she aimed the tines that way, like a compass easing when it finds the pole.</p>\n<p>It sat on an overturned crate in a cleared space among the looms, a plain tallow candle burned down to a thumb's width, its flame steady in air that should have had a draft. Beside it lay a knife, a tin cup, a heel of bread gone hard. Someone had made a small camp here. Recently. The bread was days old at most.</p>\n<p>\"Three parties,\" Brick said, quietly. \"Sedge said three went in.\"</p>\n<p>Iven crouched by the candle, careful not to touch, his Ward-sense out — Cael could feel it, a cool geometry laid over the air, the one School discipline she'd always half-envied. \"The wax,\" he said. \"Watch the wax.\"</p>\n<p>They watched. The candle burned. A bead of tallow swelled at the rim, brimmed, and ran down the side — and stopped, and drew back up, and climbed the candle, and sank into the pool at the wick, and the candle was a hair taller than it had been. The flame ate the wax. The wax un-ate itself. The thumb's width of tallow did not shrink.</p>\n<p>Nobody said anything for a moment. Cael became aware that she had stopped breathing.</p>\n<p>\"Do it again,\" she said. \"Brick. Your hand. The old scratch on the back of your hand, from the gate.\"</p>\n<p>Brick turned his hand over. He had caught it on the fallen gate coming in — a shallow red graze across two knuckles, an hour old, already scabbing. As they watched it lifted. The scab lifted and thinned and became a bright bead of blood, and the bead sank back into the skin, and the graze closed to a red line, and the red line paled, and his hand was whole and unmarked as it had been that morning before they ever reached the Nine.</p>\n<p>\"Hour,\" Iven breathed. \"Not just Fold. <em>Hour.</em> The place isn't only bent in space. It's caught in time. It's — running the same stretch, over and over, and pulling everything in it back to the start.\" He looked up, and for the first time since Cael had known him there was no lecture in his face at all, only a clever man doing sums that frightened him. \"How long a stretch? An hour? A day? How long have we —\"</p>\n<p>\"We just walked in,\" Nettle said. \"We've been in here — what, a quarter hour.\"</p>\n<p>\"Have we,\" said Iven.</p>\n<p>The candle burned. The wax climbed. And out beyond the ring of their light, from the direction Cael's fork had been pointing all along, a voice said, conversationally, out of the folded dark:</p>\n<p>\"You always find the candle first. Every time. I've started leaving it lit for you.\"</p>",
+    "characters": [
+     "c1",
+     "c2",
+     "c3",
+     "c4"
+    ],
+    "locations": [
+     "l5"
+    ],
+    "objects": [],
+    "strands": [
+     "s2"
+    ]
+   }
+  ],
+  "ch3": [
+   {
+    "id": "scn_ch3_1",
+    "title": "Twice through the same door",
+    "body": "<p>\"Don't answer it,\" Iven said, low and fast, gripping Cael's sleeve. \"We don't know what it is. We map first. We prove what's happening before we talk to it.\"</p>\n<p>It was, Cael thought, the most sensible thing anyone had said since they came in, and it was terrifying that a School mage was the one saying it, because it meant Iven was as far off the edge of what he knew as the rest of them.</p>\n<p>So they mapped. Brick took a nail and scratched a tally into the iron leg of the nearest loom — one stroke — and they walked a slow circuit through the folded dark, past the candle, past a second door that opened onto the same manufactory floor from the wrong side, past a window that looked out on the yard in daylight though it had been dusk when they entered. They came back to the loom. Brick's single tally was gone. The iron was unmarked.</p>\n<p>He scratched it again. Two strokes, this time, and pressed hard, and said, \"There. Nobody tell me I miscounted,\" and they walked the circuit again, and came back, and the iron was smooth.</p>\n<p>\"It resets,\" Iven said. He had gone somewhere very calm, the calm of a man holding a fact too large to feel yet. \"Matter resets. The candle, Brick's hand, the tally. The Hour pulls everything back to the start of the loop. Everything <em>in</em> it.\" He looked at his own hands, turning them over. \"But not us. We remember the circuit. We remember the candle. Why do we remember and the iron doesn't?\"</p>\n<p>\"Because we're alive,\" Nettle said. She had her back to a loom and her charm in her fist. \"Or because we came from outside. Or —\" She stopped. \"I don't know why I said that. I don't know how I'd know that.\"</p>\n<p>Cael did. She was beginning to, anyway, in the place behind her teeth where she had spent her whole life not-knowing things on purpose. The Hour reset the world. It did not reset the people who could feel the deeper Facets, because those people were, in some way she had no word for, standing slightly outside the loom themselves. Nettle, who crossed gaps that weren't there. Herself, who heard what lamps were listening to.</p>\n<p>She set her hand flat on the iron leg where Brick's tally kept vanishing, and she let the fork ring against her palm, and she felt the loop turn under her hand like a great wheel going round — felt where it started, felt where it would drag them back to, felt, faint and terrible, that it had been turning a very, very long time.</p>\n<p>\"It's about an hour,\" she said. \"The loop. A little under. It starts when someone crosses the threshold, and it ends —\" she swallowed — \"it ends, and starts again, and anyone inside who can't feel it forgets the whole turn and lives it fresh. That's why the parties never came out. They're not dead. They're still walking in. Every hour. For nine years.\"</p>\n<p>\"Then how,\" said Iven, very quietly, \"does the thing at the candle remember us?\"</p>",
+    "characters": [
+     "c1",
+     "c2",
+     "c3",
+     "c4"
+    ],
+    "locations": [
+     "l5"
+    ],
+    "objects": [],
+    "strands": [
+     "s4"
+    ]
+   },
+   {
+    "id": "scn_ch3_2",
+    "title": "The woman who was waiting",
+    "body": "<p>She was sitting on the crate by the candle when they came back to it, as if she had been there the whole time, which — Cael was beginning to understand — she had, in every sense the word could bear.</p>\n<p>A woman of middle years, or she wore the face of one; grey coming in at the temples of hair that had been dark, a Concern surveyor's coat gone soft and pale with age, boots mended and re-mended with wire. She had a stopped pocket-watch open in one hand and she was not looking at it. She was looking at Cael, and her eyes were the steadiest thing in the folded dark.</p>\n<p>\"Odeline Marran,\" she said. \"Ode. Fourth survey, Lumen Concern, the year the Nine came down. You'll be the — \" she tilted her head, considering — \"the fifty-first party, I think, or near it. I stopped keeping the count on the outside years ago. You're the one that matters, though. You've been the one that matters for eleven turns now.\"</p>\n<p>\"You know us,\" Brick said. \"You called Cael by — nobody said our names.\"</p>\n<p>\"You've told me your names sixty times, big man. You just haven't done it yet, this turn.\" Ode smiled, and it was a kind smile, and the loneliest thing Cael had ever seen. \"It's all right. It's a lot. It was a lot for me too, the first hundred hours. You get a shape for it eventually. You have to, or you go the way the third party went, and I'd rather you didn't. There were four of them. They're still in the east gallery. They think it's the day they arrived. It's kinder not to visit.\"</p>\n<p>She held up the watch. Its hands stood at seven minutes past some hour, frozen, and around the frozen hands the whole ruin turned.</p>\n<p>\"It stopped when the loop caught,\" she said. \"Seven past. It starts here, it ends at the top of the hour, it comes back to seven past. I've had a long time to learn the shape of one hour, artificer. A long time. And in all of it you are the first person to walk in through that door already able to hear it.\" She looked at Cael's fork, still shivering in her hand. \"You've been hiding that your whole life, haven't you. Don't. Not in here. In here it's the only thing that's going to get any of us out.\"</p>\n<p>Cael's throat had closed. Behind her she could feel the others go still — Iven, who had guessed; Brick, who was catching up; Nettle, who had gone white, because Nettle was hearing, for the first time, someone say out loud the thing Nettle had never let herself think about the gaps she crossed.</p>\n<p>\"Get us out how,\" Cael managed.</p>\n<p>Ode closed the watch. \"That's the long part,\" she said. \"Sit down. We have exactly as much time as we've always had, and we've always had enough, if we're quick. Let me tell you what the Nine was really making, before it fell.\"</p>",
+    "characters": [
+     "c1",
+     "c5"
+    ],
+    "locations": [
+     "l5"
+    ],
+    "objects": [
+     "o4"
+    ],
+    "strands": [
+     "s2"
+    ]
+   },
+   {
+    "id": "scn_ch3_3",
+    "title": "The Whole",
+    "body": "<p>\"You were taught the Facets like a ladder,\" Ode said. \"Brass artifice at the bottom. The Schools in the middle. And at the top, if your teachers were honest, which mine weren't, the deep two — Fold and Hour, space and time, that the Wardens bury and don't let anyone climb to. A ladder. Rungs. Separate things, and you pick one and you stay on it.\"</p>\n<p>\"That's the law,\" Iven said. \"That's — that's the first thing they teach. The Facets are distinct disciplines. You can't cross them.\"</p>\n<p>\"You can't cross them <em>now</em>,\" Ode said. \"Because someone took an axe to something that was never a ladder. It was a wheel. One art, whole, turning — and it was broken, on purpose, a long time before Threnn, and the pieces were tiered and taught as separate so that only the safe, small piece, the artifice, would ever be common. So no one would ever again hold the Whole.\" She said it without drama, the way you'd describe a wall. \"The histories in the Cloister call it the Sundering. The Concern didn't know that word. The Concern just knew that here, in the Ash District, the ground remembered being unbroken, and if you built a manufactory over that spot and dug a lumen-well deep enough, you could tap it. A place where the Facets bleed back into each other. Where a shard of the Whole still sits in the rock like a splinter in a thumb.\"</p>\n<p>She stood, and walked to the edge of the candle-light, and the others followed because there was nothing else to do, and she pointed down through a broken grate in the manufactory floor into a shaft that went further than the fork could hear the bottom of.</p>\n<p>Down there, faint, was a light that was every color the eye could hold and one it couldn't.</p>\n<p>\"The Keystone,\" Ode said. \"The Concern dug for lumen and struck the Whole. It started bleeding. Space folded. Time caught. The building came down in the first turn of the loop and it's been coming down every turn since, and I've been standing here for nine years of hours trying to work out how to reach a thing that resets itself to the bottom of a shaft every time I get close.\" She turned to Cael. \"And now a woman walks in who can hear exactly where the note is. So. Artificer. That splinter is un-breaking the world one folded room at a time, and it has all the time there has ever been to do it in. What do you say we go down there and decide whether to pull it out.\"</p>\n<p>The fork in Cael's hand had stopped screaming. Pointed down the shaft, at the Keystone, at the un-shattering heart of everything she had spent her life pretending she couldn't feel, it had gone perfectly, terribly still — a struck note, held, resolving at last into the thing it had always been reaching for.</p>\n<p>\"That note,\" Cael said, unsteadily. \"The one I've heard under everything since I was a girl. That's it. That's what I've been hearing. It's been calling the whole time.\"</p>\n<p>\"Yes,\" said Ode, gently. \"It calls all of us who can hear it. It called me down a road in the Ash District nine years ago.\" She put her old, wire-mended hand on Cael's shoulder. \"The trick, and I say this as the one person alive who knows — the trick is deciding whether to answer. Now. Before the hour turns. I'll want to know about the Gattick line while we walk — whether the Concern ever ran the second shaft they were surveying when I — well. Later. Come down. Bring the flame. And whatever you do, don't let the mage touch it first; he'll want to understand it, and this isn't a thing you get to understand before you decide.\"</p>",
+    "characters": [
+     "c1",
+     "c5"
+    ],
+    "locations": [
+     "l5"
+    ],
+    "objects": [
+     "o1",
+     "o3"
+    ],
+    "strands": [
+     "s2"
+    ]
+   }
+  ],
+  "ch4": [
+   {
+    "id": "scn_ch4_1",
+    "title": "Working the hour",
+    "body": "<p>Reaching the Keystone was a problem with four moving parts and less than an hour to solve it in, and — Ode pointed out, briskly, as they worked — they had solved it eleven times already; they simply couldn't remember, because the last eleven times the hour had turned before they got out, and reset everyone who couldn't hold the deep Facets back to the top of the stairs.</p>\n<p>\"So we do it fast,\" she said, \"and we do it in the right order, and this time the person carrying it is one of the ones the loop can't reset. That's you, artificer. That's the change. That's why this is the turn that matters.\"</p>\n<p>They worked it like a job, because a job was the one thing the Kettle-Iron Company knew how to do. Nettle went first — down the shaft in a series of blinks, gaps that shouldn't be there and were, her charm blazing at her throat, Ode calling the timing because Ode had watched the shaft fold and unfold a thousand times and knew to the breath when each drop would hold. Brick anchored the rope Nettle couldn't carry, Gudgeon wedged across the grate, taking a weight that would have pulled a lesser tool through the floor. Iven laid a Ward across the bottom of the shaft — not to hold the Keystone, he'd finally understood, but to hold the <em>time</em> steady in one small bubble, a School discipline bent to a purpose no School would sanction, sweat standing on his face as he held a second still against an hour that wanted to turn.</p>\n<p>And Cael went down into the light.</p>\n<p>Up close the Keystone was small — a shard the size of a thumb, exactly as Ode had said, and it did not look like the engine of anything. It looked like a chip of grey rock with a crack of impossible color running through it, and it sat in the raw stone of the shaft-bottom humming the note she had heard under lamps and locks and the whole of her hidden life, and when she reached for it every instinct she'd built for twenty-six years told her to pull her hand back, to file it down, to write <em>cell fatigue — replaced</em> and walk away and be a little less than she was so that no one would ever look too closely.</p>\n<p>\"Now, Cael,\" Iven's voice came down the shaft, cracking with strain. \"I cannot hold the hour much — now —\"</p>\n<p>She stopped hiding. For the first time in her life, on purpose, wide open, she let the deep Facet fill her hand the way it had always wanted to — and the note answered, and the crack of color leaned toward her like a plant toward light, and she closed her fingers around the shard of the Whole and it came out of the stone as easily as a splinter from a thumb.</p>\n<p>The humming stopped. Every sound in the Nine stopped. And in the enormous ringing silence, up at the top of the shaft, a great many boots came through the door at once.</p>",
+    "characters": [
+     "c1",
+     "c2",
+     "c3",
+     "c4",
+     "c5"
+    ],
+    "locations": [
+     "l5"
+    ],
+    "objects": [
+     "o1",
+     "o6",
+     "o3"
+    ],
+    "strands": [
+     "s2"
+    ]
+   },
+   {
+    "id": "scn_ch4_2",
+    "title": "Concern and Cloister",
+    "body": "<p>They came in from both ends of the folded floor at the same moment, which — Cael would think later — was the only fair thing about it: the two powers that had circled the Nine for nine years, arriving to find the one turn of the hour in which someone had actually pulled the splinter out.</p>\n<p>From the yard door, Concern men in good coats, and behind them Consul Auberon Vasht himself, who had not walked into the Ash District in a decade and had walked in tonight because his instruments had finally gone quiet. \"You have it,\" he said, looking at Cael's closed fist with a hunger he didn't trouble to hide. \"Careful, artificer. You are holding the single most valuable object in Threnn, and you have no idea how to keep it working. I do. Name your fee. The Concern is generous to reasonable people.\"</p>\n<p>From the far door, grey on grey, no boots at all where there should have been boots: Warden Ophra Kell, alone, hands folded, exactly as she had stood by the Hall door two days and a thousand hours ago. She did not look at the Keystone. She looked at Cael.</p>\n<p>\"It doesn't work,\" Kell said, to Vasht, without heat. \"It bleeds. It has been bleeding for nine years and it took nine years of a good surveyor's life\"— a small nod to Ode —\"and three parties besides. It is not an asset, Consul. It is a wound. The Order will take it to the Cloister and it will be buried where it can bleed into nothing, as the Sundering intended.\" And then, to Cael, in the same even voice, the thing Cael had spent her whole life crossing streets to avoid: \"You pulled it out with your bare hand. Do you know how few living people could do that? I have been looking for you since you were a lamp-mender who knew too much. Give me the shard, and come to the Cloister, and let us make you safe.\"</p>\n<p>Safe. The Warden word for buried.</p>\n<p>Ode's hand found Cael's free one and gripped it, hard. \"The hour's turning,\" Ode murmured, under the two of them, under all of it. \"Six minutes. When it turns, everyone in here who can't hold the deep goes back to the stairs and forgets — Vasht, his men, all of them. But not you. Not me. Not the mage while he holds his Ward, and not the scout while she holds her charm. In six minutes this room empties itself of every person who wants to take that thing from you, and you will be standing here holding it and free to walk out the door with the whole of your life in your fist.\" She squeezed. \"Or hand it to the Consul, or the Warden, and be paid, or be safe, and let it go on bleeding, or let it go on buried. You have six minutes and one turn of the hour to decide, and you are the first person in nine years who gets to.\"</p>\n<p>Vasht was still talking. Kell was still watching. The candle, somewhere behind them, burned and un-burned. And Cael Ferren, brass rank, lamp-mender, who had never once in her life let anyone see what she could do, opened her hand a crack and looked at the impossible color and felt the whole broken wheel of the world lean toward her, waiting to be answered.</p>",
+    "characters": [
+     "c1",
+     "c5",
+     "c7",
+     "c8"
+    ],
+    "locations": [
+     "l5"
+    ],
+    "objects": [],
+    "strands": [
+     "s5"
+    ]
+   },
+   {
+    "id": "scn_ch4_3",
+    "title": "What they carried out",
+    "body": "<p>The hour turned.</p>\n<p>It turned the way Ode had said it would — a great soft wheeling, felt more than heard, and between one breath and the next the folded floor was empty of Concern men. Vasht was gone mid-word, reset to the threshold, walking in again somewhere behind them already forgetting he had ever reached the candle. Warden Kell was gone. The looms stood dead and dark. The candle, on its crate, burned a thumb's width tall.</p>\n<p>Five of them stood in the ringing quiet: an artificer, a mage grey-faced and swaying from a Ward held too long, a front-liner with a maul, a scout with her fist locked round a river-worn bead, and a surveyor who had waited nine years of hours for exactly this and could not quite believe it had come.</p>\n<p>\"Out,\" Cael said. \"Now. While the door remembers being a door.\"</p>\n<p>They went out the way they'd come in, and this time the room let them, and the ordinary door of Manufactory Nine opened onto the ordinary yard, and the dusk was exactly the dusk they had left — no time passed at all on the outside, because inside there had only ever been the one hour, turning. Old Sedge was in his hut. He looked up, and counted them, and Cael watched him count five where four had gone in, and watched him decide, in the way of a man who saw everything and reported little, to say nothing about it.</p>\n<p>Ode stood in the yard with her face turned up to a sky she hadn't seen change in nine years, and wept without any sound, and Brick put his coat around her shoulders without a word.</p>\n<p>Cael's fist was still closed. She could feel the Keystone through her fingers, the note gone quiet now that she held it, the crack of color waiting. Vasht would come for it; the Concern did not forget a wound it wanted to sell. Kell would come for it, and for her; the Wardens did not forget a person who could hold the deep. She had walked into the Nine that morning a woman whose entire craft was making things a little less than they were so no one would look, and she was walking out with the un-broken heart of the world in her hand and no idea at all what she was going to do with it.</p>\n<p>\"So,\" Iven said, hoarse, propped on Brick's arm. \"We certify it empty and safe, do we? Collect our double fee?\"</p>\n<p>Despite everything, Cael laughed — a short, cracked, astonished sound, the first honest noise she'd made in front of them in six years. \"No,\" she said. She unwrapped the fork, and looked at it, ugly and grey and true, and did not put it away. \"No, I don't think we do.\"</p>\n<p>Behind them the Nine sat in the falling dark, empty now, and quiet, and — for the first turn in nine years — not looping at all. Ahead of them the lumen-lamps of Threnn came up one by one along the Nine Road, cold and blue and blind, listening, every one of them, to a note that had just walked out through the door and started for home.</p>",
+    "characters": [
+     "c1",
+     "c2",
+     "c3",
+     "c4",
+     "c5"
+    ],
+    "locations": [
+     "l4"
+    ],
+    "objects": [
+     "o3"
+    ],
+    "strands": [
+     "s2"
+    ]
+   }
+  ]
+ },
+ "characters": [
+  {
+   "id": "c1",
+   "main": true,
+   "name": "Cael Ferren",
+   "role": "Protagonist",
+   "age": 26,
+   "oneLiner": "A brass-rank artificer who can feel the deep Facets — and has spent her life hiding it."
+  },
+  {
+   "id": "c2",
+   "main": true,
+   "name": "Iven Sarraz",
+   "role": "Party mage",
+   "age": 29,
+   "oneLiner": "School-trained, proud of it, and privately certain artifice is just plumbing."
+  },
+  {
+   "id": "c3",
+   "main": true,
+   "name": "Brick Halvorn",
+   "role": "Party front-liner",
+   "age": 34,
+   "oneLiner": "Ex-quarryman with an enchanted maul named Gudgeon and the patience of stone."
+  },
+  {
+   "id": "c4",
+   "main": true,
+   "name": "Nettle",
+   "role": "Party scout",
+   "age": 22,
+   "oneLiner": "Blinks across gaps she shouldn't be able to cross, and calls it luck."
+  },
+  {
+   "id": "c5",
+   "main": true,
+   "name": "Odeline Marran",
+   "role": "The survivor",
+   "age": null,
+   "oneLiner": "Has been living the same hour long enough to stop counting. Answers to Ode."
+  },
+  {
+   "id": "c6",
+   "main": false,
+   "name": "Haldane Threll",
+   "role": "Guild handler",
+   "age": 51,
+   "oneLiner": "Mistress of Commissions. Assigns the jobs, and knows more than the board admits."
+  },
+  {
+   "id": "c7",
+   "main": false,
+   "name": "Auberon Vasht",
+   "role": "Antagonist",
+   "age": 58,
+   "oneLiner": "Consul of the Lumen Concern. Owned the manufactory. Wants what's buried in it."
+  },
+  {
+   "id": "c8",
+   "main": false,
+   "name": "Ophra Kell",
+   "role": "Warden",
+   "age": 44,
+   "oneLiner": "Sworn to bury deep-Facet finds — and to take the people who can feel them."
+  }
+ ],
+ "characterExtras": {
+  "c1": {
+   "voice": {
+    "accent": "Low Threnn, dropped consonants when tired.",
+    "vocabulary": "Trade-plain. Names tools before feelings.",
+    "tic": "Explains a thing by how it's built.",
+    "sample": "It's not broken. It's tuned to a note that isn't there anymore."
+   },
+   "arc": {
+    "start": "Keeps her head down at brass rank and never lets the hum show.",
+    "midpoint": "Uses the deep Facet on purpose for the first time, to save the others.",
+    "end": "Stops hiding what she is — and inherits the problem of the Whole."
+   },
+   "motivation": {
+    "want": "A quiet, paid, unremarkable career at the Commission Hall.",
+    "need": "To stop treating the thing she can do as a defect to be hidden.",
+    "lie": "That the hum is a sickness the Wardens are right to cut out.",
+    "truth": "That the hum is the last true compass to a magic the world broke on purpose."
+   },
+   "backstory": "Raised over her father's glimmerworks in Kettle Lane. Sat the School entrance twice; passed the craft and failed the theory, because the theory is wrong and she could feel it. Took brass rank at the Hall to eat. Has never told anyone that deep-Facet work sets her teeth ringing like a struck fork.",
+   "tags": [
+    "protagonist",
+    "artificer",
+    "deep-touched",
+    "hides it"
+   ],
+   "skills": [
+    "Glimmerwork repair",
+    "Reading a room's lumen by ear",
+    "Lying by omission"
+   ],
+   "weaknesses": [
+    "Flinches from Wardens",
+    "Undercharges for good work",
+    "Can't leave a broken thing alone"
+   ],
+   "symbols": [
+    "The resonance fork",
+    "Her father's empty workbench",
+    "A brass rank-token she keeps polishing"
+   ],
+   "quotes": [
+    "It's tuned to a note that isn't there anymore.",
+    "Everyone in this room can hear the lamp. I can hear what the lamp is standing on.",
+    "Don't tell the Wardens. Don't tell anyone. Hand me the light."
+   ],
+   "beats": [
+    {
+     "ch": 1,
+     "beat": "Mends the impossible lamp; hides the hum from a customer."
+    },
+    {
+     "ch": 2,
+     "beat": "Her fork screams inside the folded ruin."
+    },
+    {
+     "ch": 3,
+     "beat": "Ode names what Cael is; the secret cracks open."
+    },
+    {
+     "ch": 4,
+     "beat": "Uses the deep Facet on purpose to reach the Keystone."
+    }
+   ]
+  },
+  "c2": {
+   "voice": {
+    "accent": "Academy-clipped, softening over the book.",
+    "vocabulary": "Precise, faintly lecturing.",
+    "tic": "Corrects terminology mid-sentence.",
+    "sample": "It isn't 'magic wire,' it's a bound Ward-lattice, and the distinction matters."
+   },
+   "arc": {
+    "start": "Believes the Schools are the only real magic and artifice is a trade.",
+    "midpoint": "Watches a brass artificer do what no School taught, and can't unsee it.",
+    "end": "Concedes the Facets are one — and that his certainty cost them time."
+   },
+   "motivation": {
+    "want": "To be proven the cleverest person in any room.",
+    "need": "To trust a colleague he was raised to look down on.",
+    "lie": "That rank is the same as worth.",
+    "truth": "That Cael's ear is a better instrument than his degree."
+   },
+   "tags": [
+    "mage",
+    "academy-proud",
+    "ward + flame",
+    "softens"
+   ],
+   "quotes": [
+    "The distinction matters.",
+    "I was wrong about the wall. I would like that noted, and then never mentioned again."
+   ],
+   "beats": [
+    {
+     "ch": 1,
+     "beat": "Argues rank at the Hall; takes the job to prove a point."
+    },
+    {
+     "ch": 3,
+     "beat": "His reset Ward proves the loop — against his own theory."
+    },
+    {
+     "ch": 4,
+     "beat": "Holds the Ward that buys Cael the seconds she needs."
+    }
+   ]
+  },
+  "c3": {
+   "voice": {
+    "accent": "Quarry-country, slow and warm.",
+    "vocabulary": "Short. Concrete. Kind.",
+    "tic": "Names his maul like a person.",
+    "sample": "Gudgeon and me'll go first. That's what we're for."
+   },
+   "arc": {
+    "start": "The party's ballast — muscle, patience, and nobody's idea of clever.",
+    "midpoint": "Keeps the tally that proves the hour is repeating — the clever thing, done plainly.",
+    "end": "Carries Ode out; carries the others, as always."
+   },
+   "motivation": {
+    "want": "Steady work and a hot meal at the end of it.",
+    "need": "To believe he's more than the thing that stands in front.",
+    "lie": "That thinking is for the others.",
+    "truth": "That noticing is thinking, and he never stops noticing."
+   },
+   "tags": [
+    "front-liner",
+    "enchanted arms",
+    "ex-quarryman",
+    "the ballast"
+   ],
+   "quotes": [
+    "That's what we're for.",
+    "I counted it four times so nobody could tell me I miscounted once."
+   ],
+   "beats": [
+    {
+     "ch": 1,
+     "beat": "Vouches for the party when the board balks."
+    },
+    {
+     "ch": 2,
+     "beat": "First through the folded door."
+    },
+    {
+     "ch": 3,
+     "beat": "His scratch-tally is the loop's smoking gun."
+    }
+   ]
+  }
+ },
+ "locations": [
+  {
+   "id": "l1",
+   "name": "Ferren's Glimmerworks",
+   "kind": "Workshop",
+   "note": "Cael's shop on Kettle Lane; her father's bench still by the window, still empty."
+  },
+  {
+   "id": "l2",
+   "name": "The Commission Hall",
+   "kind": "Guild",
+   "note": "Where parties are ranked brass, silver, gold, and jobs go up on the slate board."
+  },
+  {
+   "id": "l3",
+   "name": "Threnn",
+   "kind": "City",
+   "note": "Built over older ruins; lit by lumen-lamps that never quite go out."
+  },
+  {
+   "id": "l4",
+   "name": "Manufactory Nine",
+   "kind": "Ruin",
+   "note": "A Lumen Concern glimmerworks that collapsed nine years ago. The commission."
+  },
+  {
+   "id": "l5",
+   "name": "The Folded Interior",
+   "kind": "Anomaly",
+   "note": "Inside the Nine: rooms bigger than the building, and an hour that will not end."
+  },
+  {
+   "id": "l6",
+   "name": "The Counting House",
+   "kind": "Institution",
+   "note": "The Lumen Concern's seat. Vasht keeps the ledgers and the lawyers."
+  },
+  {
+   "id": "l7",
+   "name": "The Warden Cloister",
+   "kind": "Institution",
+   "note": "Where deep-Facet finds are taken to be forgotten. And the people who find them."
+  }
+ ],
+ "objects": [
+  {
+   "id": "o1",
+   "name": "The resonance fork",
+   "kind": "Tool",
+   "note": "Cael's tuning fork. Rings on its own near a deep Facet — her secret sense, made a thing she can point at."
+  },
+  {
+   "id": "o2",
+   "name": "Gudgeon",
+   "kind": "Weapon",
+   "note": "Brick's enchanted maul. Heavier than it should be; steadier than it should be."
+  },
+  {
+   "id": "o3",
+   "name": "The Keystone",
+   "kind": "Relic",
+   "note": "A shard of the Whole. Where it sits, the Facets bleed back into one another."
+  },
+  {
+   "id": "o4",
+   "name": "Ode's watch",
+   "kind": "Relic",
+   "note": "A stopped pocket-watch, hands frozen at the minute the loop began."
+  },
+  {
+   "id": "o5",
+   "name": "Commission-token",
+   "kind": "Token",
+   "note": "The brass chit that seals a Hall contract. Cael's hums faintly if you know to listen."
+  },
+  {
+   "id": "o6",
+   "name": "Nettle's charm",
+   "kind": "Trinket",
+   "note": "A river-worn bead she says is lucky. It is a Fold-trinket, and she does not know it."
+  }
+ ],
+ "groups": [
+  {
+   "id": "g1",
+   "name": "The Kettle-Iron Company",
+   "blurb": "A modest mid-rank party: an artificer, a mage, a front-liner, a scout.",
+   "color": "oklch(0.68 0.12 55)",
+   "members": [
+    {
+     "kind": "character",
+     "id": "c1",
+     "name": "Cael Ferren"
+    },
+    {
+     "kind": "character",
+     "id": "c2",
+     "name": "Iven Sarraz"
+    },
+    {
+     "kind": "character",
+     "id": "c3",
+     "name": "Brick Halvorn"
+    },
+    {
+     "kind": "character",
+     "id": "c4",
+     "name": "Nettle"
+    }
+   ]
+  },
+  {
+   "id": "g2",
+   "name": "The Commission Hall",
+   "blurb": "The adventurers' guild. Ranks parties by the deepest Facet they can hold.",
+   "color": "oklch(0.6 0.09 250)",
+   "members": [
+    {
+     "kind": "character",
+     "id": "c6",
+     "name": "Haldane Threll"
+    },
+    {
+     "kind": "location",
+     "id": "l2",
+     "name": "The Commission Hall"
+    },
+    {
+     "kind": "object",
+     "id": "o5",
+     "name": "Commission-token"
+    }
+   ]
+  },
+  {
+   "id": "g3",
+   "name": "The Lumen Concern",
+   "blurb": "Threnn's magitech house. Refines lumen, sells glimmerwork, buries its failures.",
+   "color": "oklch(0.62 0.14 30)",
+   "members": [
+    {
+     "kind": "character",
+     "id": "c7",
+     "name": "Auberon Vasht"
+    },
+    {
+     "kind": "location",
+     "id": "l6",
+     "name": "The Counting House"
+    },
+    {
+     "kind": "location",
+     "id": "l4",
+     "name": "Manufactory Nine"
+    }
+   ]
+  },
+  {
+   "id": "g4",
+   "name": "The Warden Order",
+   "blurb": "Sworn to keep the deep Facets buried — and to take the deep-touched.",
+   "color": "oklch(0.5 0.05 280)",
+   "members": [
+    {
+     "kind": "character",
+     "id": "c8",
+     "name": "Ophra Kell"
+    },
+    {
+     "kind": "location",
+     "id": "l7",
+     "name": "The Warden Cloister"
+    }
+   ]
+  },
+  {
+   "id": "g5",
+   "name": "The Schools",
+   "blurb": "The academy of spellcraft: Flame, Ward, Mind, Green. Iven's alma mater.",
+   "color": "oklch(0.66 0.1 150)",
+   "members": [
+    {
+     "kind": "character",
+     "id": "c2",
+     "name": "Iven Sarraz"
+    }
+   ]
+  }
+ ],
+ "strands": [
+  {
+   "id": "s1",
+   "name": "The Commission",
+   "color": "oklch(0.72 0.12 60)",
+   "status": "open",
+   "blurb": "A routine job to clear Manufactory Nine — that turns out to be anything but.",
+   "beats": [
+    {
+     "id": "b_s1_1",
+     "chapterId": "ch1",
+     "sceneId": "scn_ch1_2",
+     "label": "Inciting",
+     "note": "The Kettle-Iron Company takes the Nine off the slate board."
+    }
+   ]
+  },
+  {
+   "id": "s2",
+   "name": "The Whole",
+   "color": "oklch(0.7 0.1 300)",
+   "status": "open",
+   "blurb": "The shattered art, un-shattering. The Keystone at the heart of the ruin.",
+   "beats": [
+    {
+     "id": "b_s2_1",
+     "chapterId": "ch2",
+     "sceneId": "scn_ch2_2",
+     "label": "Turn",
+     "note": "Cael's fork screams; the ruin is a deep-Facet wound, not a collapse."
+    },
+    {
+     "id": "b_s2_2",
+     "chapterId": "ch3",
+     "sceneId": "scn_ch3_3",
+     "label": "Midpoint",
+     "note": "Ode names the Sundering, the Whole, and the Keystone."
+    }
+   ]
+  },
+  {
+   "id": "s3",
+   "name": "Cael's Hum",
+   "color": "oklch(0.74 0.11 90)",
+   "status": "open",
+   "blurb": "The sense she's hidden all her life, and what it costs to use it in the open.",
+   "beats": [
+    {
+     "id": "b_s3_1",
+     "chapterId": "ch1",
+     "sceneId": "scn_ch1_1",
+     "label": "Refusal",
+     "note": "She mends the impossible lamp but hides how she knew."
+    },
+    {
+     "id": "b_s3_2",
+     "chapterId": "ch3",
+     "sceneId": "scn_ch3_3",
+     "label": "Reveal",
+     "note": "Ode has the same sense; Cael stops being able to deny it."
+    }
+   ]
+  },
+  {
+   "id": "s4",
+   "name": "The Same Hour",
+   "color": "oklch(0.72 0.09 200)",
+   "status": "open",
+   "blurb": "The loop, and the woman who has lived inside it long enough to map it.",
+   "beats": [
+    {
+     "id": "b_s4_1",
+     "chapterId": "ch3",
+     "sceneId": "scn_ch3_1",
+     "label": "Discovery",
+     "note": "A candle un-burns; Brick's tally proves the hour repeats."
+    }
+   ]
+  },
+  {
+   "id": "s5",
+   "name": "Concern & Cloister",
+   "color": "oklch(0.6 0.06 20)",
+   "status": "open",
+   "blurb": "The two powers that want the Keystone — to sell it, or to bury it and Cael with it.",
+   "beats": [
+    {
+     "id": "b_s5_1",
+     "chapterId": "ch4",
+     "sceneId": "scn_ch4_2",
+     "label": "Arrival",
+     "note": "Vasht's people and Warden Kell reach the Nine at once."
+    }
+   ]
+  }
+ ],
+ "notes": [
+  {
+   "id": "n1",
+   "title": "Loop rules (keep consistent)",
+   "body": "One hour, reset at the same minute (Ode's watch). Matter resets; memory does not, for anyone deep-touched. The un-deep forget across a reset unless anchored to a deep-touched person.",
+   "tag": "worldbuilding",
+   "updated": "Jun 14"
+  },
+  {
+   "id": "n2",
+   "title": "Don't over-explain the Facets in Act I",
+   "body": "Cael doesn't have the vocabulary. Ode gives the names in ch3. Before that, sensation only.",
+   "tag": "structure",
+   "updated": "Jun 9"
+  },
+  {
+   "id": "n3",
+   "title": "Vasht wants it working, Kell wants it gone",
+   "body": "The two antagonists are not allies. The collision at the Nine is three-way, not two.",
+   "tag": "plot",
+   "updated": "Jun 20"
+  },
+  {
+   "id": "n4",
+   "title": "Cael undercharges",
+   "body": "Running character note — pays off when she can't afford to walk away from the commission.",
+   "tag": "character",
+   "updated": "Jun 22"
+  }
+ ],
+ "architecture": {
+  "premise": {
+   "id": "premise",
+   "title": "Premise",
+   "blurb": "The one sentence.",
+   "status": "done",
+   "words": 60,
+   "body": "A magitech artificer who can secretly feel the deep, forbidden Facets of magic takes a routine guild job in a ruin that is folded out of space and stuck in a single looping hour."
+  },
+  "fabula": {
+   "id": "fabula",
+   "title": "Fabula",
+   "blurb": "The story in order.",
+   "status": "draft",
+   "words": 320,
+   "body": "Part One — The Commission: the party takes the Nine and finds it wrong.\n\nPart Two — The Hour: the loop, the survivor, the Keystone, and the choice."
+  },
+  "setting": {
+   "id": "setting",
+   "title": "Setting",
+   "blurb": "The world.",
+   "status": "draft",
+   "words": 210,
+   "body": "The guild-city of Threnn, lit by lumen, ranked by the Commission Hall. Magic is one shattered art tiered into Facets; the deep ones are lost or forbidden."
+  }
+ },
+ "worldbuilding": [
+  {
+   "id": "wb1",
+   "category": "lore",
+   "title": "The Facets",
+   "tags": [
+    "magic"
+   ],
+   "status": "done",
+   "words": 260,
+   "summary": "Magic is one art, shattered and tiered.",
+   "body": "Threnn names magic in Facets, cheapest to deepest. Most people only ever touch the shallow end. The Commission Hall ranks its parties by the deepest Facet they can safely hold.",
+   "related": [
+    "wb2",
+    "wb3",
+    "wb4"
+   ]
+  },
+  {
+   "id": "wb2",
+   "category": "lore",
+   "title": "Artifice & lumen",
+   "tags": [
+    "magic",
+    "magitech"
+   ],
+   "status": "done",
+   "words": 240,
+   "summary": "The common Facet: magic engineered into things.",
+   "body": "Glimmerwork — sigils cut into brass and glass and clockwork, run on refined lumen. Lamps, lifts, ward-locks, arms. Artificers are tradespeople, not mages, and the city runs on them.",
+   "related": [
+    "wb1"
+   ]
+  },
+  {
+   "id": "wb3",
+   "category": "lore",
+   "title": "The Schools",
+   "tags": [
+    "magic"
+   ],
+   "status": "draft",
+   "words": 190,
+   "summary": "Academy spellcraft: Flame, Ward, Mind, Green.",
+   "body": "Mages who channel a Facet directly through years of study. Status-proud, and quietly threatened by how much of the city artifice now does without them.",
+   "related": [
+    "wb1"
+   ]
+  },
+  {
+   "id": "wb4",
+   "category": "lore",
+   "title": "The Deep Facets: Fold & Hour",
+   "tags": [
+    "magic",
+    "forbidden"
+   ],
+   "status": "draft",
+   "words": 300,
+   "summary": "Space and time. Rare, feared, mostly lost.",
+   "body": "Fold bends distance — gates, pockets, rooms bigger inside than out, a blink across a gap. Hour bends time — loops, stasis, foresight, decay. The Wardens keep both buried, and take the rare people born able to feel them.",
+   "related": [
+    "wb1",
+    "wb5"
+   ]
+  },
+  {
+   "id": "wb5",
+   "category": "history",
+   "title": "The Sundering & the Whole",
+   "tags": [
+    "history",
+    "myth"
+   ],
+   "status": "draft",
+   "words": 280,
+   "summary": "Why the Facets are separate at all.",
+   "body": "Before Threnn, magic was one undivided Whole. It was shattered — the histories disagree whether by disaster or design — and tiered so only the tame Facet stayed common. Something is now pulling the pieces back together.",
+   "related": [
+    "wb4"
+   ]
+  },
+  {
+   "id": "wb6",
+   "category": "geography",
+   "title": "Threnn",
+   "tags": [
+    "setting"
+   ],
+   "status": "done",
+   "words": 220,
+   "summary": "The guild-city, built on older ruins.",
+   "body": "A city of lumen-light and lane-guilds, raised over stone nobody living quarried. The Commission Hall sits at its heart; the Lumen Concern owns its bright edges.",
+   "related": [
+    "wb7"
+   ]
+  },
+  {
+   "id": "wb7",
+   "category": "factions",
+   "title": "The Commission Hall & ranks",
+   "tags": [
+    "faction"
+   ],
+   "status": "draft",
+   "words": 200,
+   "summary": "The adventurers' guild and its brass-silver-gold ladder.",
+   "body": "Parties take commissions off the slate board and are ranked by the deepest Facet they can handle. Brass is common work; gold is nearly myth. The Kettle-Iron Company is stuck at the brass-silver line.",
+   "related": [
+    "wb6"
+   ]
+  },
+  {
+   "id": "wb8",
+   "category": "factions",
+   "title": "The Warden Order",
+   "tags": [
+    "faction"
+   ],
+   "status": "draft",
+   "words": 200,
+   "summary": "The order that buries the deep — and the deep-touched.",
+   "body": "The Wardens answer to no guild. When a deep-Facet find surfaces, they take it to the Cloister to be forgotten. They take the people who can feel it, too. Cael has crossed the street to avoid them all her life.",
+   "related": [
+    "wb4"
+   ]
+  }
+ ],
+ "worldbuildingCategories": [
+  {
+   "id": "geography",
+   "label": "Geography",
+   "icon": "Pin",
+   "hue": 130
+  },
+  {
+   "id": "history",
+   "label": "History",
+   "icon": "Calendar",
+   "hue": 30
+  },
+  {
+   "id": "cultures",
+   "label": "Cultures",
+   "icon": "Users",
+   "hue": 60
+  },
+  {
+   "id": "languages",
+   "label": "Languages",
+   "icon": "Quote",
+   "hue": 200
+  },
+  {
+   "id": "factions",
+   "label": "Factions",
+   "icon": "GroupIcon",
+   "hue": 270
+  },
+  {
+   "id": "lore",
+   "label": "Magic & lore",
+   "icon": "Sparkle",
+   "hue": 320
+  }
+ ],
+ "tagVocabularies": {
+  "characters": [],
+  "locations": [],
+  "objects": [],
+  "worldbuilding": []
+ },
+ "statuses": [
+  {
+   "id": "todo",
+   "label": "To do",
+   "color": "var(--status-todo)"
+  },
+  {
+   "id": "draft",
+   "label": "Draft",
+   "color": "var(--status-draft)"
+  },
+  {
+   "id": "revise",
+   "label": "Revise",
+   "color": "var(--status-revise)"
+  },
+  {
+   "id": "done",
+   "label": "Done",
+   "color": "var(--status-done)"
+  },
+  {
+   "id": "open",
+   "label": "Open",
+   "color": "oklch(0.66 0.13 250)"
+  },
+  {
+   "id": "resolved",
+   "label": "Resolved",
+   "color": "oklch(0.62 0.14 150)"
+  },
+  {
+   "id": "abandoned",
+   "label": "Abandoned",
+   "color": "oklch(0.6 0.02 260)"
+  }
+ ],
+ "images": {},
+ "events": {
+  "setting": [
+   {
+    "id": "ev_set_1",
+    "when": "0900-01-01T00:00",
+    "title": "The Sundering",
+    "note": "Long before Threnn, the one Whole art of magic is shattered — by disaster or design, the histories disagree — and tiered into separate Facets so only the tame artifice stays common."
+   },
+   {
+    "id": "ev_set_2",
+    "when": "1740-04-11T09:00",
+    "title": "The Commission Hall is chartered",
+    "note": "Threnn's guilds formalize the adventuring trade: parties ranked brass, silver, gold by the deepest Facet they can hold."
+   },
+   {
+    "id": "ev_set_3",
+    "when": "2011-06-02T08:00",
+    "title": "The Lumen Concern charters Manufactory Nine",
+    "note": "Built in the Ash District over ground that 'remembers being unbroken.' The lumen-well is dug deeper than any before it."
+   },
+   {
+    "id": "ev_set_4",
+    "when": "2017-09-19T19:07",
+    "title": "The Nine strikes the Whole and comes down",
+    "note": "The deep well taps a shard of the Whole. Space folds, time catches; the building collapses in the first turn of the loop and has been collapsing every turn since."
+   },
+   {
+    "id": "ev_set_5",
+    "when": "2026-05-04T16:00",
+    "title": "The Kettle-Iron Company takes the commission",
+    "note": "Eleven weeks on the slate board, sealed by the Concern, the Nine finally goes to a brass party that wants a quiet job and no questions."
+   }
+  ],
+  "c1": [
+   {
+    "id": "ev_c1_1",
+    "when": "2000-02-14T05:00",
+    "title": "Born over the glimmerworks",
+    "note": "Kettle Lane, Threnn. Her father's shop below, his workbench by the window."
+   },
+   {
+    "id": "ev_c1_2",
+    "when": "2018-09-01T09:00",
+    "title": "Sits the School entrance — twice",
+    "note": "Passes the craft, fails the theory both times, because she can feel that the theory is wrong and can't say so."
+   },
+   {
+    "id": "ev_c1_3",
+    "when": "2020-03-10T10:00",
+    "title": "Takes brass rank at the Commission Hall",
+    "note": "To eat. Tells no one that deep-Facet work sets her teeth ringing."
+   }
+  ],
+  "c5": [
+   {
+    "id": "ev_c5_1",
+    "when": "2017-09-19T19:07",
+    "title": "The loop catches Ode",
+    "note": "Fourth survey, Lumen Concern. Her pocket-watch stops at seven minutes past. She has been living the same hour ever since."
+   }
+  ],
+  "o4": [
+   {
+    "id": "ev_o4_1",
+    "when": "2017-09-19T19:07",
+    "title": "The watch stops",
+    "note": "Hands frozen at seven past the hour — the minute the loop began. Ode reads the loop's shape off it."
+   }
+  ],
+  "o3": [
+   {
+    "id": "ev_o3_1",
+    "when": "2026-05-04T19:44",
+    "title": "The Keystone is pulled from the stone",
+    "note": "Cael reaches it bare-handed on the turn that matters, and the humming stops for the first time in nine years."
+   }
+  ]
+ },
+ "trash": {},
+ "dailyRecaps": {},
+ "reverseOutline": null,
+ "beatSheets": {},
+ "plotHoles": null,
+ "voiceCanonChapterIds": [],
+ "relationshipArcs": {},
+ "marketingPack": null,
+ "worldRules": ""
+}

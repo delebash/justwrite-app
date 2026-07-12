@@ -826,7 +826,7 @@ async function deleteCategory(c) {
             </div>
             <div class="ap-main">
               <div class="ap-page">
-                <div v-if="ap.editorLayout === 'page'" class="ap-runninghead">The Cartographer's Daughter</div>
+                <div v-if="ap.editorLayout === 'page'" class="ap-runninghead">The Ninth Facet</div>
                 <div class="ap-eyebrow">Chapter 12</div>
                 <div class="ap-h">The First Crossing</div>
                 <p class="ap-prose">She pressed her thumb to the vellum where the coastline should have been, and felt only the cold weave of the cloth.</p>

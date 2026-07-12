@@ -17,7 +17,7 @@
 //   passthrough (the next right-click is the browser's own menu).
 // QC-40 (option 1): the sidebar project menu offers exactly "New project…" +
 //   "Try tutorial project"; clicking the tutorial creates (on demand) and OPENS
-//   "The Cartographer's Daughter". The probe restores the active project and
+//   "The Ninth Facet". The probe restores the active project and
 //   leaves the demo in the state it found it (modulo pristine re-creation).
 //
 // Run: JW server :17495 + vite :1420 up, then `node scripts/qcbatch-probe.mjs`.
@@ -63,7 +63,7 @@ const browser = await chromium.launch({ executablePath: findChrome(), headless: 
 const page = await browser.newPage({ viewport: { width: 1440, height: 1000 } });
 page.on("pageerror", (e) => pageErrors.push(String(e)));
 
-const DEMO_ID = "prj_demo_cartographer";
+const DEMO_ID = "prj_sample_ninth_facet";
 const origSettings = await api("/v1/settings");
 const demoWasPresent = ((await api("/v1/projects")) || []).some((p) => p.id === DEMO_ID);
 
@@ -260,8 +260,8 @@ try {
   const q40open = await page.evaluate(() => ({
     title: document.querySelector(".project-switcher .ttl")?.textContent.trim() || "",
   }));
-  check("QC-40: the tutorial button creates + OPENS 'The Cartographer's Daughter' (on demand, no boot seed)",
-    q40open.title === "The Cartographer's Daughter", q40open.title);
+  check("QC-40: the tutorial button creates + OPENS 'The Ninth Facet' (on demand, no boot seed)",
+    q40open.title === "The Ninth Facet", q40open.title);
   const serverHasDemo = ((await api("/v1/projects")) || []).some((p) => p.id === DEMO_ID);
   check("QC-40: the demo book exists server-side under its fixed id", serverHasDemo);
 } finally {
