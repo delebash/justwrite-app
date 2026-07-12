@@ -212,7 +212,31 @@ Rules-checker on the diff: run at commit (commit-gate). **NOT PUSHED.**
 instead of the dropped live `justwrite/v1` POST. **SIZING — DECIDED (user, 2026-07-12): a SEPARATE bulk
 stress-test book.** *The Ninth Facet* stays the crafted ~6.5k-word tutorial (good first-run experience); a
 separate large book is authored purely for the 20×-import stress test. The per-project import (Phase 2)
-enables loading it many times. Build TBD on the user's go (size + shape to confirm).
+enables loading it many times.
+
+**BULK STRESS BOOK — BUILT + VERIFIED (2026-07-12).** *The Salt-Iron Road* (by "Neve Aubermont") — a full
+secondary-world political-adventure novel: **32 chapters / 3 parts / ~83,035 words** (real prose, not
+filler) + a complete story bible (15 characters w/ 4 long-form extras, 12 locations, 6 objects, 6
+factions, 8 worldbuilding articles, 6 plot strands with scene-anchored beats, events, mixed
+done/revise/draft statuses). Ships as **`server/justwrite_server/samples/The Salt-Iron Road.zip`**
+(unzips to `The Salt-Iron Road/book.json` — the app's own export shape). Per the user (2026-07-12): "one
+full novel just like real world … put it in samples folder so i can import it manually … book x, book y
+… not throwaway." It is **NOT auto-imported** — the seeder loads only `DEFAULT_SAMPLE` (the-ninth-facet),
+and `list_samples()` skips a `.zip` file, so the book is inert until the user picks it via Settings →
+Backups → **Import a book…**; each import mints a NEW project (verified: two imports → two distinct
+`prj_*` ids), so it can be loaded 20× to stress data volume. **Authoring** (not in the repo, matching the
+Ninth Facet convention): a scratchpad generator authored the design spec (premise + bible + 32-ch
+outline), 8 Opus subagents drafted the chapter prose from it (2 of the 10 spawns instant-bailed on
+injected-context noise and were re-dispatched), and a scratchpad assembler (`assemble_book.py`) reused the
+Ninth Facet as a framework template (statuses/categories/empty-defaults verbatim), encoded the new bible,
+parsed the drafts into parts/chapters/scenes, and emitted the zip. **Two shape bugs caught by an
+in-process decompose test before shipping** (group `members` must be `{kind,id,name}` dicts not id-strings;
+`architecture` values must be doc dicts not strings) — fixed, then re-verified. **VERIFIED in-container:**
+static integrity (keys match the template, all 32 chapters scene-keyed, referential integrity across
+statuses/wb-categories/strand-beats/group-members) · in-process `import_book_snapshot`→`assemble` round-trip
+(32 ch, 83,035 w) · **live** `POST /v1/projects/import` ×2 → two distinct projects, then `GET
+…/export` back = 32 ch / 83,035 w intact. DB restored byte-exact `0be0e2ef`. No app code changed — the
+deliverable is one data zip. To edit the book: import it, edit in-app, re-export over the zip.
 
 ---
 
