@@ -1,5 +1,15 @@
 # I1 tail cleanup — voiceDrift TAIL · CSS-clone promotion · RULE-5 new-entity-popup audit (#34)
 
+> **✅ SHIPPED + PUSHED (2026-07-12).** All three tasks built + gate-verified. After a
+> sibling session pushed onto the same branch, the user directed pull+sync+push; I rebased
+> my unpushed commits onto the new origin tips (no force), resolved one additive queue-doc
+> conflict, re-verified the integrated tree (build:vite · vitest 136/136 · biome), and pushed.
+> Final shas — JW `5f1fa30` voiceDrift · `8491321` CSS · `3f457f9` hook · `a575715` popup;
+> runner doc record `fd72047`. Both branches in sync with origin. Full record: the queue-doc
+> tail "I1 JUDGMENT LEGS BUILD RECORD" + the recap's SYNCED+PUSHED paragraph. The
+> "Push: user's word only" note below was the discipline followed — push happened on the
+> user's word.
+
 ## Context
 
 The user's go (2026-07-12, verbatim): *"i will take your rec on voice drift, do css, rule 5, you plan let opus do all the work."* Three items, all ledger §I1 judgment legs (`just-llm-runner/docs/plans/2026-07-06-outstanding-master-plan.md:223-253`). Grounding: two Opus Explore sweeps this session (CSS strict-diff · create-flow census), findings folded below with file:line.
