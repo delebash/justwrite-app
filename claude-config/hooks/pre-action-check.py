@@ -15,6 +15,13 @@ reset the window and fire a spurious DENY mid-task). Three behaviors:
   not cry-wolf on a doc/recap/plan edit.
 - **Every edit: NUDGE** (non-blocking) — a one-line reminder of the rule-tests.
 - **ExitPlanMode ("here is the plan"): NUDGE** to run the rules-checker PANEL on the plan.
+- **SUBAGENT BYPASS (user-directed 2026-07-12):** a SIDECHAIN edit (a delegated build
+  agent) skips the pre-task DENY — subagents structurally cannot clear it (their
+  rules-checker verdicts arrive as task-notifications in the COORDINATOR's transcript,
+  never their own, so the deny was a deadlock, not a check). The coordinator runs the
+  checker/panel before delegating; Stop gate + commit-gate still enforce at the
+  main-session boundaries. Detection: the transcript tail is sidechain entries while a
+  subagent acts (`isSidechain` on the newest assistant/user entry).
 
 Post-task (turn end) is enforced by the Stop verify-gate; the commit boundary adds the
 heavy semantic check (commit-gate.py).
@@ -106,6 +113,7 @@ def main() -> None:
     # CODE edits only (checker-caught: counting .md edits let a doc-edit-first turn
     # bypass the first-CODE-edit check — and record-first is the normal work pattern).
     prior_code_edits, rules_pass, plan_ref, risk_line, trivial = 0, True, True, True, True
+    sidechain = False
     tpath = data.get("transcript_path")
     if tpath and os.path.isfile(tpath):
         try:
@@ -115,6 +123,13 @@ def main() -> None:
             prior_code_edits, rules_pass = ctx["code_edits"], ctx["rules_passed"]
             plan_ref, risk_line = ctx["plan_ref"], ctx["risk_line"]
             trivial = ctx["trivial_explicit"]
+            # SUBAGENT BYPASS (user-directed 2026-07-12): while a subagent acts, the
+            # transcript tail is its sidechain entries — skip the pre-task deny for it
+            # (see the module docstring; nudge still fires below).
+            for e in reversed(entries):
+                if e.get("type") in ("assistant", "user"):
+                    sidechain = bool(e.get("isSidechain"))
+                    break
         except Exception:
             prior_code_edits, rules_pass = 0, True  # parse error → don't block, just nudge
             plan_ref, risk_line, trivial = True, True, True
@@ -127,7 +142,9 @@ def main() -> None:
     # the second look at the keyboard, BEFORE the write, that empirically changes
     # decisions. ONE combined deny lists everything missing (compliance = one round).
     is_md = file_path.endswith(".md")
-    if prior_code_edits == 0 and not is_md and not trivial:
+    if sidechain and prior_code_edits == 0 and not is_md:
+        _log(f"BYPASS pre-task deny (sidechain/subagent edit) file={file_path}")
+    if prior_code_edits == 0 and not is_md and not trivial and not sidechain:
         needs = []
         if not rules_pass:
             needs.append(
