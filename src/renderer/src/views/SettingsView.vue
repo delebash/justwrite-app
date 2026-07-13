@@ -8,6 +8,7 @@ import { promptDialog, confirmDialog, DataManagement, LogsPanel, UpdatesPanel, r
 import { loadDoc } from "../services/helpDocs.js";
 import { readSetting, writeSetting } from "../services/settings.js";
 import { exportProject, importProject, saveBackupBlob, canTransferBooks } from "../services/bookTransfer.js";
+import { serverDataDir, chooserDir, rememberDir } from "../services/chooserDirs.js";
 import * as autosaveApi from "../services/autosaveApi.js";
 import PaneHeader from "../components/PaneHeader.vue";
 import { Icon } from "@delebash/llm-ui";
@@ -20,7 +21,7 @@ import { UiButton } from "@delebash/llm-ui";
 import { UiToggle } from "@delebash/llm-ui";
 import { UiColorPicker } from "@delebash/llm-ui";
 import { PRESET_COLORS } from "@renderer/services/categoricalColors.js";
-import { SERVER_BASE, serverUrl } from "../services/serverApi.js";
+import { SERVER_BASE } from "../services/serverApi.js";
 import { get, post, fmtBytes } from "@delebash/llm-ui";
 import {
   ACCENT_PRESETS, GOLD_PRESETS, FUNCTIONAL_PRESETS, PAIRINGS, SURFACE_TINTS, PAPER_TINTS,
@@ -88,13 +89,12 @@ watch(active, async (a) => {
 });
 
 // Where the server keeps its data (DB + assets) — shown in General so the user
-// knows what to back up / where their work lives. From /v1/health.
+// knows what to back up / where their work lives. The ONE reader of /v1/health's
+// dataDir is chooserDirs.serverDataDir() (also the default folder every chooser
+// opens at) — converged so there's a single cached fetch.
 const dataDir = ref("");
 (async () => {
-  try {
-    const r = await fetch(serverUrl("/v1/health"));
-    if (r.ok) dataDir.value = (await r.json()).dataDir || "";
-  } catch { /* offline — leave blank */ }
+  dataDir.value = await serverDataDir();
 })();
 
 // ── Storage: the portable data root — ONE folder for all app data (projects,
@@ -398,15 +398,46 @@ async function resetAppearance() {
 const backupError = ref(null);
 const lastAutosaveAt = ref(readSetting("lastAutosaveAt") || null);
 const autosaveDir = ref(null);
+const autosaveDirBusy = ref(false);
+// The autosave-folder picker is desktop-only (needs the native folder dialog).
+const canPickAutosaveFolder = !!(typeof window !== "undefined" && window.justwrite?.shell?.pickDirectory);
 
 // Resolve the autosave folder path so users can see where their work
 // is being mirrored to disk (served by the Python server; works in browser-dev too).
-(async () => {
+async function refreshAutosaveDir() {
   try {
     const res = await autosaveApi.getAutosaveDir();
     if (res && typeof res.dir === "string") autosaveDir.value = res.dir;
   } catch {}
-})();
+}
+refreshAutosaveDir();
+
+// D3a: let the user move the autosave folder. The native folder dialog opens at
+// the CURRENT autosave folder (never the OS home — chooserDir guarantees a real
+// path); the server migrates the existing rotating files into the chosen folder
+// (autosave.py put_autosave_dir). Remember-last under the shared "autosave"
+// chooser key (folder-path config that survives a workspace reset, D3b).
+async function changeAutosaveFolder() {
+  if (!canPickAutosaveFolder) return;
+  autosaveDirBusy.value = true;
+  backupError.value = null;
+  try {
+    const defaultPath = autosaveDir.value || (await chooserDir("autosave"));
+    const picked = await window.justwrite.shell.pickDirectory({
+      title: "Choose an autosave folder",
+      defaultPath,
+    });
+    if (!picked) return;
+    await autosaveApi.putAutosaveDir(picked);
+    rememberDir("autosave", picked);
+    await refreshAutosaveDir();
+    if (autosaveListShown.value) await refreshAutosaveList(); // the list reads the new folder
+  } catch (err) {
+    backupError.value = err.message || String(err);
+  } finally {
+    autosaveDirBusy.value = false;
+  }
+}
 
 // Re-read the timestamp on every tab switch into Backups so the user
 // doesn't see a stale "Never" right after the first autosave fires.
@@ -441,10 +472,57 @@ async function refreshAutosaveList() {
   try {
     const res = await autosaveApi.listAutosaves();
     autosaveList.value = Array.isArray(res) ? res : [];
+    autosaveSelected.value = {}; // drop any stale checkbox state after the list changes
   } catch (err) {
     backupError.value = err.message || String(err);
   } finally {
     autosaveListBusy.value = false;
+  }
+}
+
+// ── Select + delete autosaves (P4) ─────────────────────────────────
+// Per-row checkbox selection (key -> bool) drives "Delete selected"; "Delete all"
+// clears the folder. Both confirm first (kit confirmDialog) and, per the QC-37
+// toast law, give NO toast — the row(s) visibly leaving the list is the feedback.
+const autosaveSelected = ref({});
+const selectedAutosaveKeys = computed(() =>
+  autosaveList.value.map((e) => e.key).filter((k) => autosaveSelected.value[k]),
+);
+
+async function removeSelectedAutosaves() {
+  const keys = selectedAutosaveKeys.value;
+  if (!keys.length) return;
+  const yes = await confirmDialog({
+    title: `Delete ${keys.length} autosave${keys.length === 1 ? "" : "s"}?`,
+    message: "The selected on-disk autosave files are permanently removed. This can't be undone.",
+    confirmLabel: "Delete",
+    danger: true,
+  });
+  if (!yes) return;
+  backupError.value = null;
+  try {
+    for (const k of keys) await autosaveApi.deleteAutosave(k);
+    await refreshAutosaveList();
+  } catch (err) {
+    backupError.value = err.message || String(err);
+  }
+}
+
+async function removeAllAutosaves() {
+  if (!autosaveList.value.length) return;
+  const yes = await confirmDialog({
+    title: "Delete all autosaves?",
+    message: "Every on-disk autosave file is permanently removed. This can't be undone.",
+    confirmLabel: "Delete all",
+    danger: true,
+  });
+  if (!yes) return;
+  backupError.value = null;
+  try {
+    await autosaveApi.deleteAllAutosaves();
+    await refreshAutosaveList();
+  } catch (err) {
+    backupError.value = err.message || String(err);
   }
 }
 
@@ -1368,6 +1446,7 @@ async function deleteCategory(c) {
             <UiButton :label="autosaveListShown ? 'Hide autosaves' : 'Restore from autosave…'" intent="primary" :disabled="autosaveListBusy" @click="toggleAutosaveList">
               <template #icon><Icon name="Folder" :size="13" /></template>
             </UiButton>
+            <UiButton v-if="canPickAutosaveFolder" label="Change folder…" intent="secondary" :disabled="autosaveDirBusy" @click="changeAutosaveFolder" />
           </div>
           <div v-if="backupError" class="banner danger" style="margin-top:10px">{{ backupError }}</div>
           <div v-if="autosaveListShown" style="margin-top:12px">
@@ -1381,6 +1460,10 @@ async function deleteCategory(c) {
                 :key="entry.key"
                 style="display:flex;align-items:center;gap:10px;padding:8px 10px;border:1px solid var(--border, #ddd);border-radius:6px;font-size:13px"
               >
+                <UiCheckbox
+                  :model-value="!!autosaveSelected[entry.key]"
+                  @update:model-value="(v) => (autosaveSelected[entry.key] = v)"
+                />
                 <div style="flex:1;min-width:0">
                   <div><b>{{ entry.title || "Untitled" }}</b> <span class="t-muted">— {{ generationLabel(entry.generation) }}</span></div>
                   <div class="t-muted" style="font-size:12px">{{ autosaveLabel(entry.savedAt) }}</div>
@@ -1388,6 +1471,10 @@ async function deleteCategory(c) {
                 <UiButton label="Restore" intent="primary" @click="restoreFromAutosave(entry)" />
               </li>
             </ul>
+            <div v-if="autosaveList.length && !autosaveListBusy" style="display:flex;gap:8px;margin-top:10px;flex-wrap:wrap">
+              <UiButton label="Delete selected" intent="danger" size="small" :disabled="!selectedAutosaveKeys.length" @click="removeSelectedAutosaves" />
+              <UiButton label="Delete all" intent="danger" size="small" @click="removeAllAutosaves" />
+            </div>
           </div>
         </div>
 

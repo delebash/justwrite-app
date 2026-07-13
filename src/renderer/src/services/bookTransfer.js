@@ -14,7 +14,7 @@
 // ============================================================
 
 import { post, requestBlob } from "@delebash/llm-ui";
-import { readSetting, writeSetting } from "./settings.js";
+import { chooserDir, rememberDir } from "./chooserDirs.js";
 
 const jw = typeof window !== "undefined" ? window.justwrite : null;
 export const canTransferBooks = !!(jw?.shell?.saveFile && jw?.shell?.pickFile);
@@ -25,17 +25,6 @@ export const canTransferBooks = !!(jw?.shell?.saveFile && jw?.shell?.pickFile);
 function safeTitle(title) {
   const s = (title || "").replace(/[<>:"/\\|?*]/g, "").trim().replace(/\.+$/, "");
   return s || "book";
-}
-
-async function chooserDir(key) {
-  const dirs = readSetting("chooserDirs") || {};
-  if (dirs[key]) return dirs[key];
-  const root = await jw?.storage?.getRoot?.();
-  return root && !root.error ? root.root : undefined;
-}
-function rememberDir(key, dir) {
-  if (!dir) return;
-  writeSetting("chooserDirs", { ...(readSetting("chooserDirs") || {}), [key]: dir });
 }
 
 /**

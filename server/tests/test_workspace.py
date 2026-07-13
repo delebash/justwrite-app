@@ -38,6 +38,25 @@ def test_reset_clears_user_data(tmp_path):
     assert c.get("/v1/versions", params={"projectId": "prj1"}).json() == {}
 
 
+def test_reset_preserves_folder_path_config(tmp_path):
+    # D3b: the workspace reset (/v1/data/reset drops + reseeds every table) must NOT
+    # reset a user-changed folder path. autosaveDir + chooserDirs survive; other
+    # settings are wiped.
+    c = _c(tmp_path)
+    target = tmp_path / "my-autosaves"
+    c.put("/v1/projects/autosave-dir", json={"dir": str(target)})
+    c.patch("/v1/settings", json={"chooserDirs": {"export": "/x/exports"}, "ui": {"x": 1}})
+
+    assert c.post("/v1/data/reset").status_code == 200
+
+    # The autosave folder still points where the user put it.
+    assert c.get("/v1/projects/autosave-dir").json()["dir"] == str(target)
+    doc = c.get("/v1/settings").json()
+    assert doc.get("autosaveDir") == str(target)
+    assert doc.get("chooserDirs") == {"export": "/x/exports"}
+    assert "ui" not in doc  # non-path workspace data is gone
+
+
 def test_reset_is_idempotent_on_empty(tmp_path):
     c = _c(tmp_path)
     assert c.post("/v1/data/reset").status_code == 200

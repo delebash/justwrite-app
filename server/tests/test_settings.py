@@ -55,3 +55,16 @@ def test_persist_across_instances_and_clear(tmp_path):
     assert c2.get("/v1/settings").json() == {"ui": {"sidebarCollapsed": True}}
     assert c2.delete("/v1/settings").status_code == 204
     assert c2.get("/v1/settings").json() == {}
+
+
+def test_clear_preserves_folder_path_config(tmp_path):
+    # D3b: a user-changed folder path never resets. DELETE /v1/settings keeps the
+    # folder-path whitelist (autosaveDir + chooserDirs) and wipes everything else.
+    c = _c(tmp_path)
+    c.patch("/v1/settings", json={"ui": {"x": 1}, "chooserDirs": {"backup": "/data/backups"}})
+    c.put("/v1/projects/autosave-dir", json={"dir": str(tmp_path / "as")})  # writes the autosaveDir row
+    assert c.delete("/v1/settings").status_code == 204
+    doc = c.get("/v1/settings").json()
+    assert "ui" not in doc  # non-path workspace data wiped
+    assert doc["chooserDirs"] == {"backup": "/data/backups"}  # remembered dirs survive
+    assert doc["autosaveDir"] == str(tmp_path / "as")  # autosave folder survives

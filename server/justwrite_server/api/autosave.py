@@ -19,6 +19,7 @@ from __future__ import annotations
 
 import json
 import os
+import shutil
 from pathlib import Path
 
 from fastapi import APIRouter, Depends, HTTPException, Response
@@ -184,13 +185,39 @@ async def get_autosave_dir(db: Session = Depends(get_db)) -> dict:
     return {"dir": str(_resolve_dir(db))}
 
 
-@router.put("/autosave-dir", summary="Set the autosave folder (creates it)")
+def _migrate_autosaves(old_dir: Path, new_dir: Path) -> None:
+    """D3a (2026-07-13): when the autosave folder changes, MOVE the existing rotating
+    files into the new folder so a folder change never loses the user's autosaves.
+    Best-effort — a failed move must not fail the PUT; never clobbers a file already
+    in the new folder. `shutil.move` (not os.replace) so a move across drives works.
+    Only the 3 rotation generations move; the transient `.autosave.tmp.json` doesn't."""
+    try:
+        if old_dir == new_dir or not old_dir.is_dir():
+            return
+    except OSError:
+        return
+    suffixes = tuple(_GEN_SUFFIX.values())
+    for entry in old_dir.iterdir():
+        try:
+            if not entry.is_file() or not entry.name.endswith(suffixes):
+                continue
+            target = new_dir / entry.name
+            if target.exists():
+                continue  # don't clobber an autosave already in the new folder
+            shutil.move(str(entry), str(target))
+        except OSError:
+            continue  # best-effort, per file
+
+
+@router.put("/autosave-dir", summary="Set the autosave folder (creates it; migrates existing files)")
 async def put_autosave_dir(body: dict, db: Session = Depends(get_db)) -> dict:
     new_dir = (body or {}).get("dir")
     if not isinstance(new_dir, str) or not new_dir.strip():
         raise HTTPException(status_code=400, detail="dir is required")
+    old_dir = _resolve_dir(db)  # the folder in use BEFORE the change (from the setting)
     p = Path(new_dir)
     p.mkdir(parents=True, exist_ok=True)
+    _migrate_autosaves(old_dir, p)  # D3a: carry the user's autosaves to the new folder
     encoded = json.dumps(new_dir)
     row = db.get(Setting, "autosaveDir")
     if row is None:

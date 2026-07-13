@@ -5,6 +5,8 @@ renderer depends on: 3-generation rotation, list newest-first, read/delete/
 delete-all, snapshot round-trip, id sanitization, and the autosave-dir setting.
 """
 
+from pathlib import Path
+
 from fastapi.testclient import TestClient
 
 from justwrite_server.app import create_app
@@ -119,6 +121,41 @@ def test_autosave_dir_default_and_override(tmp_path):
 def test_autosave_dir_rejects_empty(tmp_path):
     c = _c(tmp_path)
     assert c.put("/v1/projects/autosave-dir", json={"dir": "  "}).status_code == 400
+
+
+def test_autosave_dir_change_migrates_existing_files(tmp_path):
+    # D3a: changing the folder MOVES the existing rotating files into the new folder
+    # (so a folder change never loses the user's autosaves), leaving none behind.
+    c = _c(tmp_path)
+    c.post("/v1/projects/prj1/autosave", json=_snap("A", "t1"))
+    c.post("/v1/projects/prj1/autosave", json=_snap("B", "t2"))  # current=B, prev=A
+    old_dir = Path(c.get("/v1/projects/autosave-dir").json()["dir"])
+    assert (old_dir / "prj1.autosave.json").is_file()
+    assert (old_dir / "prj1.autosave.prev.json").is_file()
+
+    target = tmp_path / "moved-autosaves"
+    assert c.put("/v1/projects/autosave-dir", json={"dir": str(target)}).status_code == 200
+    # Files now live in the new folder...
+    assert (target / "prj1.autosave.json").is_file()
+    assert (target / "prj1.autosave.prev.json").is_file()
+    # ...and no longer in the old one.
+    assert not (old_dir / "prj1.autosave.json").exists()
+    assert not (old_dir / "prj1.autosave.prev.json").exists()
+    # Still readable through the API (which now reads the new folder), content intact.
+    assert c.get("/v1/projects/autosaves/prj1__current").json()["project"]["title"] == "B"
+    assert c.get("/v1/projects/autosaves/prj1__prev").json()["project"]["title"] == "A"
+
+
+def test_autosave_dir_change_does_not_clobber(tmp_path):
+    # Migration never overwrites an autosave already present in the new folder.
+    c = _c(tmp_path)
+    c.post("/v1/projects/prj1/autosave", json=_snap("OLD", "t1"))
+    target = tmp_path / "dest"
+    target.mkdir()
+    (target / "prj1.autosave.json").write_text('{"project": {"title": "KEEP"}}', encoding="utf-8")
+    assert c.put("/v1/projects/autosave-dir", json={"dir": str(target)}).status_code == 200
+    # The pre-existing file in the new folder is preserved, not clobbered.
+    assert c.get("/v1/projects/autosaves/prj1__current").json()["project"]["title"] == "KEEP"
 
 
 def test_autosaves_route_not_shadowed_by_project_get(tmp_path):

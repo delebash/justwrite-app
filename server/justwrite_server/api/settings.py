@@ -23,6 +23,15 @@ from ..models import Setting
 
 router = APIRouter(tags=["settings"], prefix="/v1/settings")
 
+# D3b (2026-07-13, user): a user-changed FOLDER PATH never resets. These setting
+# keys are folder-path CONFIG, not workspace data — `autosaveDir` (the autosave
+# folder) and `chooserDirs` (every remembered file/folder-dialog location) — and
+# survive a workspace reset the way the data root already does (via the Rust
+# dataroot.txt pointer kept outside the wiped root). BOTH reset paths preserve
+# them: DELETE /v1/settings here, and the shared /v1/data/reset in data_admin.py
+# (which imports this whitelist so there's one source of truth).
+PRESERVED_FOLDER_KEYS = ("autosaveDir", "chooserDirs")
+
 
 def _read_all(db: Session) -> dict[str, Any]:
     out: dict[str, Any] = {}
@@ -52,8 +61,12 @@ async def patch_settings(patch: dict[str, Any], db: Session = Depends(get_db)) -
     return _read_all(db)
 
 
-@router.delete("", status_code=204, summary="Clear the whole settings document (reset workspace)")
+@router.delete("", status_code=204, summary="Clear the settings document (reset workspace), keeping folder-path config")
 async def clear_settings(db: Session = Depends(get_db)) -> Response:
-    db.query(Setting).delete(synchronize_session=False)
+    # D3b: wipe every section EXCEPT the folder-path config whitelist — a
+    # user-changed folder path never resets.
+    db.query(Setting).filter(Setting.key.notin_(PRESERVED_FOLDER_KEYS)).delete(
+        synchronize_session=False
+    )
     db.commit()
     return Response(status_code=204)

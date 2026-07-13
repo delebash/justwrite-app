@@ -9,6 +9,9 @@ import { afterAll, beforeAll, beforeEach, describe, expect, it, vi } from "vites
 vi.mock("@delebash/llm-ui", () => ({
   requestBlob: vi.fn(async () => new Blob(["ZIPBYTES"], { type: "application/zip" })),
   post: vi.fn(async () => ({ id: "prj_new", title: "My Book" })),
+  // bookTransfer now pulls chooserDir/rememberDir from chooserDirs.js, which reads
+  // the default folder from GET /v1/health via the kit `get`.
+  get: vi.fn(async () => ({ dataDir: "/data" })),
 }));
 vi.mock("../settings.js", () => ({
   readSetting: vi.fn(() => null),

@@ -14,7 +14,7 @@ from llm_runner.llm import LlmBase
 from llm_runner.platform import make_data_router
 
 from . import database as _db
-from .models import Base
+from .models import Base, Setting
 
 
 def _stop_runner_best_effort() -> None:
@@ -33,12 +33,27 @@ def _stop_runner_best_effort() -> None:
 def _reset() -> None:
     if _db.engine is None or _db.SessionLocal is None:
         return
+    from .api.settings import PRESERVED_FOLDER_KEYS
     from .seed import seed_workspace
 
     # Unload models FIRST, while the config they were spawned from still exists.
     _stop_runner_best_effort()
 
     engine = _db.engine
+
+    # D3b (2026-07-13, user): a user-changed FOLDER PATH never resets. Capture the
+    # folder-path config rows (autosaveDir / chooserDirs) BEFORE the drop and
+    # re-insert them AFTER the reseed, so a relocated autosave folder + remembered
+    # chooser locations survive a workspace reset (the data root already survives
+    # via the Rust dataroot.txt pointer). Same whitelist as DELETE /v1/settings.
+    preserved: dict[str, str] = {}
+    pre = _db.SessionLocal()
+    try:
+        for row in pre.query(Setting).filter(Setting.key.in_(PRESERVED_FOLDER_KEYS)).all():
+            preserved[row.key] = row.value
+    finally:
+        pre.close()
+
     # True drop + reseed (project policy: no migrations). DROP + CREATE recreates
     # the SCHEMA, not just the rows — so a reset also recovers from schema drift
     # (e.g. a column added to an LLM table since this DB was first created). A
@@ -52,6 +67,13 @@ def _reset() -> None:
     db = _db.SessionLocal()
     try:
         seed_workspace(db)
+        # Restore the preserved folder-path config (user value wins over any seed).
+        for key, value in preserved.items():
+            existing = db.get(Setting, key)
+            if existing is None:
+                db.add(Setting(key=key, value=value))
+            else:
+                existing.value = value
         db.commit()
     finally:
         db.close()
