@@ -8,6 +8,7 @@ import { promptDialog, confirmDialog, DataManagement, LogsPanel, UpdatesPanel, r
 import { loadDoc } from "../services/helpDocs.js";
 import { readSetting, writeSetting } from "../services/settings.js";
 import { exportProject, importProject, saveBackupBlob, canTransferBooks } from "../services/bookTransfer.js";
+import * as autosaveApi from "../services/autosaveApi.js";
 import PaneHeader from "../components/PaneHeader.vue";
 import { Icon } from "@delebash/llm-ui";
 import { UiInput } from "@delebash/llm-ui";
@@ -399,12 +400,11 @@ const lastAutosaveAt = ref(readSetting("lastAutosaveAt") || null);
 const autosaveDir = ref(null);
 
 // Resolve the autosave folder path so users can see where their work
-// is being mirrored to disk. Only populated under Tauri.
+// is being mirrored to disk (served by the Python server; works in browser-dev too).
 (async () => {
   try {
-    const res = await window.justwrite?.project?.autosaveDir?.();
-    if (typeof res === "string") autosaveDir.value = res;
-    else if (res && res.ok !== false && typeof res.path === "string") autosaveDir.value = res.path;
+    const res = await autosaveApi.getAutosaveDir();
+    if (res && typeof res.dir === "string") autosaveDir.value = res.dir;
   } catch {}
 })();
 
@@ -437,11 +437,10 @@ async function toggleAutosaveList() {
 }
 
 async function refreshAutosaveList() {
-  if (!window.justwrite?.project?.autosaveList) return;
   autosaveListBusy.value = true; backupError.value = null;
   try {
-    const res = await window.justwrite.project.autosaveList();
-    autosaveList.value = Array.isArray(res) ? res : (res?.ok === false ? [] : (res || []));
+    const res = await autosaveApi.listAutosaves();
+    autosaveList.value = Array.isArray(res) ? res : [];
   } catch (err) {
     backupError.value = err.message || String(err);
   } finally {
@@ -460,9 +459,9 @@ async function restoreFromAutosave(entry) {
   });
   if (!yes) return;
   try {
-    const snap = await window.justwrite.project.autosaveRead(entry.path);
-    if (!snap || typeof snap !== "object" || snap.ok === false || !snap.project) {
-      throw new Error(snap?.error || "Couldn't read the autosave file.");
+    const snap = await autosaveApi.readAutosave(entry.key);
+    if (!snap || typeof snap !== "object" || !snap.project) {
+      throw new Error("Couldn't read the autosave file.");
     }
     const { workspaceRestored } = project.loadSnapshot(snap) || {};
     ui.showToast({ message: `Restored "${snap.project.title || "project"}".` });
@@ -1379,7 +1378,7 @@ async function deleteCategory(c) {
             <ul v-else style="list-style:none;padding:0;margin:0;display:flex;flex-direction:column;gap:6px">
               <li
                 v-for="entry in autosaveList"
-                :key="entry.path"
+                :key="entry.key"
                 style="display:flex;align-items:center;gap:10px;padding:8px 10px;border:1px solid var(--border, #ddd);border-radius:6px;font-size:13px"
               >
                 <div style="flex:1;min-width:0">

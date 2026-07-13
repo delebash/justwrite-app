@@ -14,6 +14,7 @@ import { useSessionsStore } from "./sessions.js";
 import { removeImage as removeImageFile } from "../services/imageStore.js";
 import { readSetting, writeSetting, getAllSettings, applySettings } from "../services/settings.js";
 import * as projectApi from "../services/projectApi.js";
+import * as autosaveApi from "../services/autosaveApi.js";
 import { replaceInHtml } from "../services/projectReplace.js";
 import { splitHtmlIntoScenes } from "../services/sceneSplit.js";
 import { nextColor, nextHue } from "../services/categoricalColors.js";
@@ -77,40 +78,43 @@ export function restoreWorkspaceBundle(workspace) {
   return false;
 }
 
-// ── Disk autosave (Tauri only) ─────────────────────────────────────
-// IndexedDB is the primary store, but it lives inside the webview's
-// profile — a "clear site data" or webview reset wipes it. Mirror every
-// snapshot to $APPDATA/projects/<id>.autosave.json on a debounce so the
-// user's work survives that, and so OS-level backups (OneDrive, Time
-// Machine, …) pick the file up. Two prior generations are kept by the
-// Rust side via rotation.
+// ── Disk autosave (server-owned) ─────────────────────────────────────
+// The server (SQLite via PUT /v1/projects/{id}/book) is the primary store.
+// This mirrors every snapshot to a rotating <data-root>/projects/<id>.autosave.json
+// (or the autosaveDir setting) via POST /v1/projects/{id}/autosave, on a 10s
+// debounce, so the work survives a DB wipe and OS-level backups (OneDrive, Time
+// Machine, …) pick the file up. Two prior generations are kept server-side by
+// rotation; the close/unload flush passes { keepalive: true }. Runs in
+// browser-dev now (no Tauri needed) — the write is a plain fetch to the server.
 const DISK_AUTOSAVE_DEBOUNCE_MS = 10000;
 let _diskAutosaveTimer = null;
 let _diskAutosavePending = null;
 
 function scheduleDiskAutosave(id, snap) {
   if (typeof window === "undefined") return;
-  if (!window.justwrite?.project?.autosave) return; // browser-only dev path
   _diskAutosavePending = { id, snap };
   if (_diskAutosaveTimer) clearTimeout(_diskAutosaveTimer);
-  _diskAutosaveTimer = setTimeout(flushDiskAutosave, DISK_AUTOSAVE_DEBOUNCE_MS);
+  _diskAutosaveTimer = setTimeout(() => flushDiskAutosave(), DISK_AUTOSAVE_DEBOUNCE_MS);
 }
 
-function flushDiskAutosave() {
+function flushDiskAutosave(opts = {}) {
   if (_diskAutosaveTimer) { clearTimeout(_diskAutosaveTimer); _diskAutosaveTimer = null; }
   const pending = _diskAutosavePending;
   _diskAutosavePending = null;
   if (!pending) return;
-  const jw = typeof window !== "undefined" ? window.justwrite : null;
-  if (!jw?.project?.autosave) return;
-  jw.project.autosave(pending.id, pending.snap).then((res) => {
+  // POST the snapshot to the server, which owns the rotating on-disk file. The
+  // close/unload path passes { keepalive: true } so the request can finish after
+  // the document starts unloading (best-effort — see lib.rs CloseRequested drain).
+  autosaveApi.postAutosave(pending.id, pending.snap, opts).then((res) => {
     if (res?.ok) writeSetting("lastAutosaveAt", new Date().toISOString());
   }).catch(() => {});
 }
 
 if (typeof window !== "undefined") {
-  window.addEventListener("pagehide", flushDiskAutosave);
-  window.addEventListener("beforeunload", flushDiskAutosave);
+  // Best-effort capture of the last edit when the app/tab closes — keepalive lets
+  // the POST outlive the document (matches projectApi's book PUT on pagehide).
+  window.addEventListener("pagehide", () => flushDiskAutosave({ keepalive: true }));
+  window.addEventListener("beforeunload", () => flushDiskAutosave({ keepalive: true }));
 }
 
 // Decide which project to load on startup. Migrates the legacy single-project

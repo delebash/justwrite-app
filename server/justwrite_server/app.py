@@ -24,6 +24,7 @@ from fastapi.staticfiles import StaticFiles
 from llm_runner import router as llm_runner_router
 
 from .api import (
+    autosave,
     book_transfer,
     chat,
     health,
@@ -136,6 +137,11 @@ def create_app(data_dir: Path | None = None) -> FastAPI:
     app.add_exception_handler(HTTPException, http_exception_handler)
 
     app.include_router(health.router)
+    # Mounted BEFORE projects.router so the literal /autosaves + /autosave-dir
+    # segments win over projects' catch-all /{project_id} (FastAPI matches in
+    # registration order). The renderer already PUTs snapshots to the DB; this
+    # owns the extra rotating on-disk JSON mirror (moved off Rust 2026-07-13).
+    app.include_router(autosave.router)
     app.include_router(projects.router)
     app.include_router(book_transfer.router)  # per-project zip export/import (/v1/projects/*)
     app.include_router(sessions.router)

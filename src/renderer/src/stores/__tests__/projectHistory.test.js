@@ -21,6 +21,15 @@ vi.mock("../../services/projectApi.js", () => ({
   isRegistryLoaded: vi.fn(() => true),
   createDemoProject: vi.fn(async () => null),
 }));
+vi.mock("../../services/autosaveApi.js", () => ({
+  postAutosave: vi.fn(async () => ({ ok: true })),
+  listAutosaves: vi.fn(async () => []),
+  readAutosave: vi.fn(async () => null),
+  deleteAutosave: vi.fn(async () => {}),
+  deleteAllAutosaves: vi.fn(async () => {}),
+  getAutosaveDir: vi.fn(async () => ({ dir: "" })),
+  putAutosaveDir: vi.fn(async () => ({ dir: "" })),
+}));
 vi.mock("../../services/imageStore.js", () => ({
   removeImage: vi.fn(async () => {}),
 }));

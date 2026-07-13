@@ -736,6 +736,22 @@ JV auth-break) + the `justwrite` import adapter → `book.json` zip + ledger F2�
 §G. Parked/ideas: I2 · I3 · I5 · I6 · #256 spell-check · D5/D6 · J1–J3. **REMOVED:** C9 (user's
 word); gate ratchets (DEFERRED, "dont do gates"). Nothing running; push HELD.
 
+**GO (2026-07-13) — RUST→SERVER MINIMIZATION + AUTOSAVE-TO-SERVER + CHOOSERS + SAMPLES + #293 (IN
+PROGRESS, push HELD).** User: "move everything that doesn't need to be rust to server" + autosave/backup
+folder choosers (default data dir, remember-last, and **no user-changed folder path ever resets**) +
+samples→`<data>/samples/` + #293. Plan (panel-checked ×5, fixes folded): **`docs/plans/2026-07-13-rust-minimization-and-choosers.md`** —
+phases P0–P7; decisions D1–D5 (D5 = autosave keepalive POST + a `CloseRequested` drain; D2 = delete the
+legacy image cmds; D3a = migrate autosave files on folder change; D3b = folder paths are config, survive
+workspace reset; D4/A = samples materialize). **SHIPPED so far (local, push HELD):** #293 → kit `2f423ec`
+(embed-card refresh on first resident tick); **P0+P2** → JW `8b92c58` (deleted 5 dead/legacy Tauri commands,
+images fully server-side, −436 lines; rebased cleanly onto the user's `45e756d` seed push); **P1+D5**
+autosave→server (new `server/justwrite_server/api/autosave.py` = 7 endpoints; `services/autosaveApi.js`;
+`stores/project.js` repointed + keepalive close-flush; Rust `project_autosave*` deleted + the D5 drain;
+verified pytest 102 · vitest 139 · build · smoke · live-curl — committing). **NEXT:** P3+P4 (data-dir
+choosers via `/v1/health.dataDir` + shared `chooserDirs.js` + autosave folder picker + autosave select/delete
+UI) · P5 (samples) · P7 (full verify + user-facing whats-new + ledger). End state: Rust 17→~8 commands
+(native dialogs + OS browser + spawn/relocate only); autosave + images + samples all server-owned.
+
 **PENDING — Phase 2 + open decisions (next session) — ⚠ SUPERSEDED by the REGROUND above; Phase 2 shipped, only item 4 (rag-probe) survives:**
 1. **Phase 2 — per-project JSON export/import (JW-local):** Export a project → a
    **folder** `<book-slug>/book.json` (+ `images/` when it has images — images are SERVER
