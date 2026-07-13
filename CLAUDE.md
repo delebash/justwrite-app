@@ -59,13 +59,12 @@ one sanctioned exception to per-domain stores.
 `src/renderer/src/services/tauri-bridge.js` is a side-effect import in `main.js`. It detects `window.__TAURI_INTERNALS__` and populates `window.justwrite` with:
 
 ```
-window.justwrite.project = { save, open, saveTo }
-window.justwrite.images  = { save, read, delete }
+window.justwrite.project = { save, open }
 window.justwrite.shell   = { pickDirectory, openExternal, saveFile }
 window.justwrite.storage = { getRoot, relocate }   // the portable data root (Rust storage_*)
 ```
 
-These mirror Rust commands in `src-tauri/src/lib.rs` one-for-one (`project_save`, `project_save_to`, `project_open`, `images_save`, `images_read`, `images_delete`, `pick_directory`, `storage_get_root`, `storage_relocate`). The **data root** is a portable, user-settable folder holding ALL app data (projects DB + images + AI engine + models + logs); `storage_relocate` moves it and respawns the server (see `docs/plans/2026-07-02-portable-data-root-and-engine-install.md`). When `window.justwrite` is undefined (plain `vite dev` in a browser), project data still persists to the server via `projectApi`; only images fall back to inline data-URL records. **Do not call `invoke()` from views or stores — go through `window.justwrite`** so the browser-only path keeps working.
+These mirror Rust commands in `src-tauri/src/lib.rs` one-for-one (`project_save`, `project_open`, `pick_directory`, `storage_get_root`, `storage_relocate`). The **data root** is a portable, user-settable folder holding ALL app data (projects DB + images + AI engine + models + logs); `storage_relocate` moves it and respawns the server (see `docs/plans/2026-07-02-portable-data-root-and-engine-install.md`). When `window.justwrite` is undefined (plain `vite dev` in a browser), project data still persists to the server via `projectApi`, and images upload to the server via `imageStore` (inline data-URL fallback only when the server is unreachable). **Do not call `invoke()` from views or stores — go through `window.justwrite`** so the browser-only path keeps working.
 
 When adding a new Tauri command:
 1. Add the `#[tauri::command]` function in `src-tauri/src/lib.rs` and register it in the `invoke_handler![]` list.
@@ -115,9 +114,9 @@ No TTS here — audio lives in JustVoice.
 
 ### Image storage
 
-`services/imageStore.js` is the renderer-side facade. When `window.justwrite` exists, images are written via `images_save` to `$APPDATA/JustWrite/images/` and the renderer stores only the absolute path (read back through `images_read` which returns a data URL). Without Tauri, falls back to inline data-URL records stored in the project snapshot (which is itself server/SQLite-backed).
+`services/imageStore.js` is the renderer-side facade. Images are uploaded to the JustWrite server (`POST /v1/images`) and referenced by id (rendered via `<img src="…/v1/images/{id}">`); when the server is unreachable it falls back to inline data-URL records stored in the project snapshot (itself server/SQLite-backed). The legacy Tauri-FS on-disk path was removed — pre-P4 file records no longer resolve.
 
-**Caveat:** `images_save` ships bytes as JSON `number[]` over IPC. Fine for reference photos; if uploads grow to multi-MB range, switch to a Tauri Channel.
+**Caveat:** uploads send image bytes as base64 JSON (`dataBase64`). Fine for reference photos; if uploads grow to multi-MB range, switch to a binary/streaming endpoint.
 
 ### Routing & shortcuts
 

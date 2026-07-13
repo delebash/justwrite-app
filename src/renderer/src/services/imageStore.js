@@ -3,12 +3,13 @@
 //
 // P4: images now live in the JustWrite SERVER (/v1/images) — uploaded as
 // bytes, referenced by id, rendered via <img src="…/v1/images/{id}">. This
-// replaces the Tauri-FS bridge + data-URL-in-snapshot paths (both still
-// READ for back-compat with records written before P4).
+// replaced the Tauri-FS bridge; the legacy on-disk `{path}` records are no
+// longer read (that path was removed — pre-P4 file records no longer resolve,
+// and a DB reset clears them). Inline data-URL records are still READ for
+// back-compat.
 //
 // Stored "image" record shapes:
 //   server (new):  { id, addedAt, name, mime, kind: "server", serverId }
-//   legacy file:   { id, addedAt, name, kind: "file", path }
 //   legacy inline: { id, addedAt, name, kind: "dataurl", dataUrl }
 //
 // Callers don't branch on `kind`; they call `urlFor(image)` and get something
@@ -16,13 +17,6 @@
 // ============================================================
 
 import { serverUrl, post, del, requestBlob } from "@delebash/llm-ui";
-
-const jw = typeof window !== "undefined" ? window.justwrite : null;
-// Legacy desktop images (records with a `path`) still read through the bridge.
-export const hasNativeImages = !!(jw?.images?.read);
-
-// In-memory cache of resolved URLs for legacy disk-backed images (write-once).
-const urlCache = new Map();
 
 const MIME_TO_EXT = {
   "image/jpeg": "jpg", "image/jpg": "jpg", "image/png": "png",
@@ -68,40 +62,25 @@ export async function saveImage(file) {
 
 /**
  * Resolve an image record to something an <img> tag can render. Server records
- * map to a direct HTTP URL; data-URL records pass through; legacy disk records
- * hop through the Tauri bridge.
+ * map to a direct HTTP URL; data-URL records pass through. (Legacy on-disk
+ * `{path}` records are no longer resolvable — that path was removed post-P4.)
  */
 export async function urlFor(image) {
   if (!image) return "";
   if (image.dataUrl) return image.dataUrl;
   if (image.serverId) return serverUrl(`/v1/images/${image.serverId}`);
-  if (image.path && hasNativeImages) {
-    if (urlCache.has(image.path)) return urlCache.get(image.path);
-    try {
-      const url = await jw.images.read(image.path);
-      urlCache.set(image.path, url);
-      return url;
-    } catch (err) {
-      console.error("imageStore.urlFor failed:", err);
-      return null;
-    }
-  }
   return "";
 }
 
 /**
- * Best-effort cleanup. Server records are DELETEd; legacy disk records are
- * unlinked via the bridge; data URLs just vanish with the record. Errors are
- * swallowed — the project store forgets the image either way.
+ * Best-effort cleanup. Server records are DELETEd; data URLs just vanish with
+ * the record. Errors are swallowed — the project store forgets the image
+ * either way.
  */
 export async function removeImage(image) {
   if (image?.serverId) {
     try { await del(`/v1/images/${image.serverId}`); } catch { /* ignore */ }
     return;
-  }
-  if (image?.path && hasNativeImages) {
-    urlCache.delete(image.path);
-    try { await jw.images.delete(image.path); } catch { /* ignore */ }
   }
 }
 

@@ -3,7 +3,7 @@ import { ref, computed, watch, watchEffect } from "vue";
 import { useAiStore } from "../stores/ai.js";
 import { useProjectStore } from "../stores/project.js";
 import { useUiStore } from "../stores/ui.js";
-import { saveImage, urlFor, hasNativeImages } from "../services/imageStore.js";
+import { saveImage, urlFor } from "../services/imageStore.js";
 import { promptDialog, confirmDialog, DataManagement, LogsPanel, UpdatesPanel, renderHelpMarkdown } from "@delebash/llm-ui";
 import { loadDoc } from "../services/helpDocs.js";
 import { readSetting, writeSetting } from "../services/settings.js";
@@ -762,7 +762,7 @@ async function deleteCategory(c) {
               <div v-if="project.project.coverImage" style="font-size:12.5px">
                 <div><b>{{ project.project.coverImage.name || "cover" }}</b></div>
                 <div class="t-muted" style="font-size:11.5px;margin-top:2px">
-                  {{ project.project.coverImage.path ? "Saved to disk" : "Stored inline" }}
+                  {{ project.project.coverImage.serverId ? "JustWrite server" : "Stored inline" }}
                 </div>
               </div>
               <div v-else class="t-muted" style="font-size:12.5px;font-style:italic">
@@ -783,8 +783,8 @@ async function deleteCategory(c) {
               </div>
 
               <div class="t-muted" style="font-size:11px;display:inline-flex;gap:5px;align-items:center;font-family:var(--font-mono)">
-                <Icon :name="hasNativeImages ? 'Check' : 'Alert'" :size="11" />
-                {{ hasNativeImages ? "Cover is saved to your app folder." : "Browser preview — cover lives in IndexedDB as a data URL." }}
+                <Icon name="Check" :size="11" />
+                Cover is saved with your project.
               </div>
             </div>
           </div>
@@ -1460,7 +1460,7 @@ async function deleteCategory(c) {
           <div style="display:grid;grid-template-columns:160px 1fr;gap:8px 14px;font-size:13px">
             <span class="t-muted">Runtime</span><span>{{ platformLabel }}</span>
             <span class="t-muted">Renderer</span><span>Vue 3 + Pinia</span>
-            <span class="t-muted">Image storage</span><span>{{ hasNativeImages ? "Native file system" : "IndexedDB data URLs" }}</span>
+            <span class="t-muted">Image storage</span><span>JustWrite server</span>
           </div>
         </div>
 

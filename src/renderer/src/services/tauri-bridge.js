@@ -1,12 +1,12 @@
 // ============================================================
 // tauri-bridge.js — adapter that exposes the same
-// `window.justwrite.{project,images}` API the Vue app already calls,
-// routing every call through Tauri's `invoke()`.
+// `window.justwrite.project` (+ shell / storage) API the Vue app already
+// calls, routing every call through Tauri's `invoke()`.
 //
 // Lives as a side-effect import in main.js so `window.justwrite` is
 // populated before any Pinia store mounts. Outside a Tauri webview
 // (e.g. plain `vite dev` in a browser tab) this is a no-op and the
-// renderer falls back to its IndexedDB / data-URL paths.
+// renderer falls back to its server / data-URL paths.
 // ============================================================
 
 import { invoke } from "@tauri-apps/api/core";
@@ -82,8 +82,6 @@ if (isTauri) {
         safe(invoke("project_save", { snapshot, suggestedName })),
       open: () =>
         safe(invoke("project_open")),
-      saveTo: (path, snapshot) =>
-        invoke("project_save_to", { path, snapshot }),
       autosave: (projectId, snapshot) =>
         safe(invoke("project_autosave", { projectId, snapshot })),
       autosaveDir: () =>
@@ -92,24 +90,6 @@ if (isTauri) {
         safe(invoke("project_autosave_list")),
       autosaveRead: (path) =>
         safe(invoke("project_autosave_read", { path })),
-    },
-
-    images: {
-      // Bytes ride as the raw invoke body (zero-copy, no number[] JSON
-      // blowup). Filename goes through a base64 header so non-ASCII
-      // names survive transport — HTTP headers aren't UTF-8 safe.
-      save: ({ name, buffer }) => {
-        const bytes = buffer instanceof Uint8Array ? buffer : new Uint8Array(buffer);
-        // btoa() only accepts Latin-1; the encodeURIComponent/unescape
-        // dance is the canonical browser idiom for UTF-8-safe base64.
-        const nameB64 = btoa(unescape(encodeURIComponent(name)));
-        return invoke("images_save", bytes, { headers: { "x-image-name": nameB64 } });
-      },
-      read: (path) =>
-        invoke("images_read", { path }),
-      delete: (path) =>
-        invoke("images_delete", { path }).then(() => ({ ok: true }),
-                                                (e) => ({ ok: false, error: String(e) })),
     },
 
     shell: {
@@ -146,14 +126,6 @@ if (isTauri) {
       // `dir` lets the caller remember this chooser's last location.
       pickFile: ({ title, filterName, filterExt, defaultDir } = {}) =>
         safe(invoke("pick_file", { title, filterName, filterExt, defaultDir })),
-    },
-
-    system: {
-      // Shells out to nvidia-smi / system_profiler / etc. on the Rust
-      // side. Always resolves — returns { vendor:"unknown", vramMb:0 }
-      // rather than throwing when detection fails, so the Quick Setup
-      // wizard can fall through to a manual VRAM picker.
-      detectGpu: () => safe(invoke("detect_gpu")),
     },
 
     storage: {

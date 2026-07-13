@@ -307,12 +307,11 @@ The renderer never calls `invoke()` directly. `src/renderer/src/services/tauri-b
 
 ```js
 window.justwrite = {
-  project: { save, open, saveTo },
-  images:  { save, read, delete },
+  project: { save, open },
 };
 ```
 
-The Rust commands live in `src-tauri/src/lib.rs` and mirror the JS contract one-for-one (`project_save`, `images_save`, …). Outside Tauri (e.g. plain `npm run dev:vite` in a browser tab), `window.justwrite` stays undefined and the renderer falls back to its IndexedDB / data-URL paths.
+The Rust commands live in `src-tauri/src/lib.rs` and mirror the JS contract one-for-one (`project_save`, `project_open`, …). Outside Tauri (e.g. plain `npm run dev:vite` in a browser tab), `window.justwrite` stays undefined and the renderer falls back to its server / data-URL paths.
 
 When adding a new Tauri command:
 

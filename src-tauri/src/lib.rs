@@ -2,19 +2,14 @@
 // JustWrite — Tauri 2 backend commands.
 //
 // Mirrors the Electron IPC contract one-for-one so the renderer-side
-// `window.justwrite.{project,images}` API stays unchanged:
+// `window.justwrite.project` API stays unchanged:
 //
 //   project_save(snapshot, suggested_name)   — native save dialog
-//   project_save_to(path, snapshot)          — silent write to known path
 //   project_open()                           — native open dialog
 //   project_autosave(project_id, snapshot)   — silent rotating autosave to AppData
 //   project_autosave_dir()                   — absolute path of the autosave folder
 //   project_autosave_list()                  — every autosave file as { projectId, title, savedAt, generation, path }
 //   project_autosave_read(path)              — parsed snapshot at an absolute path
-//
-//   images_save(name, buffer)   — write bytes to AppData/images/, return record
-//   images_read(path)           — read bytes, return data URL
-//   images_delete(path)         — unlink
 // ============================================================
 
 use base64::Engine;
@@ -24,7 +19,7 @@ use std::net::{SocketAddr, TcpStream};
 use std::process::{Child, Command};
 use std::sync::Mutex;
 use std::time::{Duration, Instant};
-use std::{fs, path::PathBuf, time::{SystemTime, UNIX_EPOCH}};
+use std::{fs, path::PathBuf};
 use tauri::{
     ipc::{InvokeBody, Request},
     AppHandle, Manager, WindowEvent,
@@ -44,19 +39,6 @@ struct OpenOk {
     ok: bool,
     path: String,
     snapshot: Value,
-}
-
-#[derive(Serialize, Deserialize)]
-#[serde(rename_all = "camelCase")]
-struct ImageRecord {
-    /// Absolute path on disk. The renderer stores this verbatim — it's
-    /// opaque, only ever passed back into `images_read` / `images_delete`.
-    path: String,
-    /// Sanitized filename, displayed in the Images modal.
-    name: String,
-    /// ms since epoch when this image was added — matches the renderer's
-    /// `Date.now()` shape so it sorts correctly without conversion.
-    added_at: u128,
 }
 
 // ─── Project save / open ─────────────────────────────────────────────
@@ -89,13 +71,6 @@ async fn project_save(
     let json = serde_json::to_string_pretty(&snapshot).map_err(|e| e.to_string())?;
     fs::write(&path_buf, json).map_err(|e| e.to_string())?;
     Ok(SaveOk { ok: true, path: path_buf.display().to_string() })
-}
-
-#[tauri::command]
-async fn project_save_to(path: String, snapshot: Value) -> Result<SaveOk, String> {
-    let json = serde_json::to_string_pretty(&snapshot).map_err(|e| e.to_string())?;
-    fs::write(&path, json).map_err(|e| e.to_string())?;
-    Ok(SaveOk { ok: true, path })
 }
 
 // Autosave lands here; rotation keeps two prior generations so a bad write
@@ -240,104 +215,6 @@ async fn project_open(app: AppHandle) -> Result<OpenOk, String> {
     Ok(OpenOk { ok: true, path: path_buf.display().to_string(), snapshot })
 }
 
-// ─── Image storage ───────────────────────────────────────────────────
-
-fn images_dir(app: &AppHandle) -> Result<PathBuf, String> {
-    let mut p = app.path().app_data_dir().map_err(|e| e.to_string())?;
-    p.push("images");
-    fs::create_dir_all(&p).map_err(|e| e.to_string())?;
-    Ok(p)
-}
-
-fn now_millis() -> u128 {
-    SystemTime::now().duration_since(UNIX_EPOCH).map(|d| d.as_millis()).unwrap_or(0)
-}
-
-fn safe_filename(name: &str) -> String {
-    let cleaned: String = name
-        .chars()
-        .map(|c| if c.is_ascii_alphanumeric() || c == '.' || c == '-' || c == '_' { c } else { '_' })
-        .collect();
-    if cleaned.is_empty() { "image".to_string() } else { cleaned }
-}
-
-fn mime_for_ext(ext: &str) -> &'static str {
-    match ext.to_ascii_lowercase().as_str() {
-        "png" => "image/png",
-        "jpg" | "jpeg" => "image/jpeg",
-        "gif" => "image/gif",
-        "webp" => "image/webp",
-        "svg" => "image/svg+xml",
-        "bmp" => "image/bmp",
-        "heic" => "image/heic",
-        "avif" => "image/avif",
-        _ => "application/octet-stream",
-    }
-}
-
-#[tauri::command]
-async fn images_save(
-    app: AppHandle,
-    // Bytes ride in as the raw IPC body (zero-copy on the JS side, no
-    // number[] JSON blowup). The original filename comes in as a
-    // base64-encoded `x-image-name` header so non-ASCII names survive
-    // the HTTP header transport.
-    request: Request<'_>,
-) -> Result<ImageRecord, String> {
-    let InvokeBody::Raw(buffer) = request.body() else {
-        return Err("images_save expects a raw binary body".into());
-    };
-
-    let name_header = request
-        .headers()
-        .get("x-image-name")
-        .and_then(|v| v.to_str().ok())
-        .ok_or("missing x-image-name header")?;
-    let name_bytes = base64::engine::general_purpose::STANDARD
-        .decode(name_header)
-        .map_err(|e| format!("x-image-name not valid base64: {e}"))?;
-    let name = String::from_utf8(name_bytes)
-        .map_err(|e| format!("x-image-name not valid utf-8: {e}"))?;
-
-    let dir = images_dir(&app)?;
-    let safe = safe_filename(&name);
-    let ext = std::path::Path::new(&safe)
-        .extension()
-        .and_then(|s| s.to_str())
-        .unwrap_or("bin")
-        .to_string();
-
-    let now = now_millis();
-    let id = format!("img_{now}");
-    let filename = format!("{id}.{ext}");
-    let path = dir.join(&filename);
-    fs::write(&path, buffer).map_err(|e| e.to_string())?;
-
-    Ok(ImageRecord {
-        path: path.display().to_string(),
-        name: safe,
-        added_at: now,
-    })
-}
-
-#[tauri::command]
-async fn images_read(path: String) -> Result<String, String> {
-    let bytes = fs::read(&path).map_err(|e| e.to_string())?;
-    let ext = std::path::Path::new(&path)
-        .extension()
-        .and_then(|s| s.to_str())
-        .unwrap_or("");
-    let mime = mime_for_ext(ext);
-    let b64 = base64::engine::general_purpose::STANDARD.encode(&bytes);
-    Ok(format!("data:{mime};base64,{b64}"))
-}
-
-#[tauri::command]
-async fn images_delete(path: String) -> Result<bool, String> {
-    fs::remove_file(&path).map_err(|e| e.to_string())?;
-    Ok(true)
-}
-
 // ─── Folder picker ───────────────────────────────────────────────────
 // Used by Settings → AI providers → Install Docker Desktop → Advanced
 // options → custom install location. Mirrors the existing project_save /
@@ -459,8 +336,8 @@ async fn open_external(target: String) -> Result<bool, String> {
 // ─── Generic binary save (Save-As) ───────────────────────────────────
 // WebView2 ignores `<a download>` on blob: URLs, so any "Save as WAV /
 // PDF / EPUB / …" button in the renderer routes here. Bytes ride the
-// raw IPC body (zero-copy, same pattern as `images_save`); the suggested
-// filename and a single file-type filter come in as base64 headers.
+// raw IPC body (zero-copy); the suggested filename and a single file-type
+// filter come in as base64 headers.
 
 #[tauri::command]
 async fn shell_save_file(
@@ -546,255 +423,6 @@ async fn pick_file(
         "dir": dir,
         "dataBase64": base64::engine::general_purpose::STANDARD.encode(&bytes),
     }))
-}
-
-// ─── GPU detection ───────────────────────────────────────────────────
-// Returns best-effort GPU info. Never errors — unknown hardware yields the
-// fallback struct so the renderer always has something to display.
-
-#[derive(Serialize)]
-#[serde(rename_all = "camelCase")]
-struct GpuInfo {
-    vendor: String,  // "nvidia" | "amd" | "apple" | "intel" | "unknown"
-    name: String,
-    vram_mb: u64,    // 0 when detection failed
-}
-
-impl GpuInfo {
-    fn unknown() -> Self {
-        GpuInfo { vendor: "unknown".into(), name: "Unknown GPU".into(), vram_mb: 0 }
-    }
-}
-
-/// Run a subprocess with a 10-second wall-clock timeout.
-/// Returns stdout on success, None if the command was not found, timed out, or
-/// exited non-zero.
-async fn run_cmd(program: &str, args: &[&str]) -> Option<String> {
-    let child = tokio::process::Command::new(program)
-        .args(args)
-        .stdout(std::process::Stdio::piped())
-        .stderr(std::process::Stdio::null())
-        .spawn()
-        .ok()?;
-
-    let output = tokio::time::timeout(
-        std::time::Duration::from_secs(10),
-        child.wait_with_output(),
-    )
-    .await
-    .ok()?
-    .ok()?;
-    if output.status.success() {
-        String::from_utf8(output.stdout).ok()
-    } else {
-        None
-    }
-}
-
-/// Parse nvidia-smi CSV output: "<name>, <mib>" → (name, vram_mb).
-fn parse_nvidia_smi(raw: &str) -> Option<(String, u64)> {
-    let line = raw.lines().next()?.trim();
-    let mut parts = line.splitn(2, ',');
-    let name = parts.next()?.trim().to_string();
-    let vram: u64 = parts.next()?.trim().parse().ok()?;
-    Some((name, vram))
-}
-
-/// Guess vendor from an adapter name string (case-insensitive).
-fn vendor_from_name(name: &str) -> &'static str {
-    let lower = name.to_ascii_lowercase();
-    if lower.contains("amd") || lower.contains("radeon") { return "amd"; }
-    if lower.contains("intel") { return "intel"; }
-    if lower.contains("nvidia") || lower.contains("geforce") { return "nvidia"; }
-    if lower.contains("apple") { return "apple"; }
-    "unknown"
-}
-
-// ── Windows ──────────────────────────────────────────────────────────
-
-#[cfg(target_os = "windows")]
-async fn detect_gpu_impl() -> GpuInfo {
-    // Try NVIDIA first — works on both Windows and Linux.
-    if let Some(raw) = run_cmd(
-        "nvidia-smi",
-        &["--query-gpu=name,memory.total", "--format=csv,noheader,nounits"],
-    )
-    .await
-    {
-        if let Some((name, vram_mb)) = parse_nvidia_smi(&raw) {
-            return GpuInfo { vendor: "nvidia".into(), name, vram_mb };
-        }
-    }
-
-    // Fallback: WMI via PowerShell. AdapterRAM is capped at 4 GB (u32) on
-    // older Windows WDDM drivers — a known OS limitation we accept.
-    let ps_script =
-        "Get-CimInstance Win32_VideoController | Select-Object Name,AdapterRAM | ConvertTo-Json";
-    if let Some(raw) = run_cmd("powershell", &["-NoProfile", "-Command", ps_script]).await {
-        if let Some(info) = parse_wmi_json(&raw) {
-            return info;
-        }
-    }
-
-    GpuInfo::unknown()
-}
-
-#[cfg(target_os = "windows")]
-fn parse_wmi_json(raw: &str) -> Option<GpuInfo> {
-    let v: serde_json::Value = serde_json::from_str(raw.trim()).ok()?;
-    // PowerShell returns an object when there is one adapter, an array for many.
-    let arr: Vec<&serde_json::Value> = if v.is_array() {
-        v.as_array()?.iter().collect()
-    } else {
-        vec![&v]
-    };
-
-    for entry in arr {
-        let name = entry.get("Name")?.as_str().unwrap_or("").trim().to_string();
-        if name.is_empty() { continue; }
-        // Skip the Windows fallback software renderer.
-        if name.contains("Microsoft Basic Display") { continue; }
-        let vendor = vendor_from_name(&name).to_string();
-        // AdapterRAM may be null for some virtual adapters.
-        let vram_mb = entry
-            .get("AdapterRAM")
-            .and_then(|r| r.as_u64())
-            .map(|b| b / 1_048_576)
-            .unwrap_or(0);
-        return Some(GpuInfo { vendor, name, vram_mb });
-    }
-    None
-}
-
-// ── macOS ─────────────────────────────────────────────────────────────
-
-#[cfg(target_os = "macos")]
-async fn detect_gpu_impl() -> GpuInfo {
-    if let Some(raw) = run_cmd("system_profiler", &["SPDisplaysDataType", "-json"]).await {
-        if let Some(info) = parse_system_profiler(&raw) {
-            return info;
-        }
-    }
-    GpuInfo::unknown()
-}
-
-#[cfg(target_os = "macos")]
-fn parse_system_profiler(raw: &str) -> Option<GpuInfo> {
-    use sysinfo::System;
-
-    let v: serde_json::Value = serde_json::from_str(raw.trim()).ok()?;
-    // JSON shape: { "SPDisplaysDataType": [ { "sppci_model": "...", ... }, ... ] }
-    let entries = v.get("SPDisplaysDataType")?.as_array()?;
-    let entry = entries.first()?;
-
-    let name = entry
-        .get("sppci_model")
-        .and_then(|n| n.as_str())
-        .unwrap_or("")
-        .trim()
-        .to_string();
-    if name.is_empty() { return None; }
-
-    let vendor = vendor_from_name(&name).to_string();
-
-    // Discrete GPUs report VRAM under "spdisplays_vram" (e.g. "4 GB").
-    // Apple Silicon has unified memory — the OS allocates dynamically so no
-    // fixed VRAM figure exists. Use total RAM / 2 as a reasonable upper bound.
-    let vram_mb = entry
-        .get("spdisplays_vram")
-        .and_then(|v| v.as_str())
-        .and_then(|s| parse_vram_string(s))
-        .unwrap_or_else(|| {
-            let mut sys = System::new();
-            sys.refresh_memory();
-            sys.total_memory() / 2 / 1_048_576
-        });
-
-    Some(GpuInfo { vendor, name, vram_mb })
-}
-
-/// Parse Apple's display strings like "4 GB", "512 MB", "8 GB".
-#[cfg(target_os = "macos")]
-fn parse_vram_string(s: &str) -> Option<u64> {
-    let s = s.trim().to_ascii_uppercase();
-    if let Some(num) = s.strip_suffix(" GB").or_else(|| s.strip_suffix("GB")) {
-        let gb: f64 = num.trim().parse().ok()?;
-        return Some((gb * 1024.0) as u64);
-    }
-    if let Some(num) = s.strip_suffix(" MB").or_else(|| s.strip_suffix("MB")) {
-        let mb: u64 = num.trim().parse().ok()?;
-        return Some(mb);
-    }
-    None
-}
-
-// ── Linux ─────────────────────────────────────────────────────────────
-
-#[cfg(target_os = "linux")]
-async fn detect_gpu_impl() -> GpuInfo {
-    // NVIDIA — preferred.
-    if let Some(raw) = run_cmd(
-        "nvidia-smi",
-        &["--query-gpu=name,memory.total", "--format=csv,noheader,nounits"],
-    )
-    .await
-    {
-        if let Some((name, vram_mb)) = parse_nvidia_smi(&raw) {
-            return GpuInfo { vendor: "nvidia".into(), name, vram_mb };
-        }
-    }
-
-    // AMD ROCm fallback.
-    if let Some(raw) = run_cmd("rocm-smi", &["--showmeminfo", "vram", "--json"]).await {
-        if let Some(info) = parse_rocm_json(&raw) {
-            return info;
-        }
-    }
-
-    GpuInfo::unknown()
-}
-
-#[cfg(target_os = "linux")]
-fn parse_rocm_json(raw: &str) -> Option<GpuInfo> {
-    // rocm-smi JSON shape: { "card0": { "0": { "VRAM Total Memory (B)": "...", ... }, ... }, ... }
-    // Key names vary by ROCm version; we scan for the first card entry with VRAM info.
-    let v: serde_json::Value = serde_json::from_str(raw.trim()).ok()?;
-    let map = v.as_object()?;
-    for (_card, card_val) in map {
-        if let Some(inner) = card_val.as_object() {
-            for (_idx, idx_val) in inner {
-                if let Some(bytes_str) = idx_val
-                    .get("VRAM Total Memory (B)")
-                    .and_then(|b| b.as_str())
-                {
-                    let bytes: u64 = bytes_str.trim().parse().ok()?;
-                    let name = idx_val
-                        .get("Card series")
-                        .and_then(|n| n.as_str())
-                        .unwrap_or("AMD GPU")
-                        .to_string();
-                    return Some(GpuInfo {
-                        vendor: "amd".into(),
-                        name,
-                        vram_mb: bytes / 1_048_576,
-                    });
-                }
-            }
-        }
-    }
-    None
-}
-
-// ── Fallback for any other OS ─────────────────────────────────────────
-
-#[cfg(not(any(target_os = "windows", target_os = "macos", target_os = "linux")))]
-async fn detect_gpu_impl() -> GpuInfo {
-    GpuInfo::unknown()
-}
-
-#[tauri::command]
-async fn detect_gpu() -> GpuInfo {
-    detect_gpu_impl().await
 }
 
 // ─── Python server sidecar ───────────────────────────────────────────
@@ -1106,18 +734,13 @@ pub fn run() {
         })
         .invoke_handler(tauri::generate_handler![
             project_save,
-            project_save_to,
             project_open,
             project_autosave,
             project_autosave_dir,
             project_autosave_list,
             project_autosave_read,
-            images_save,
-            images_read,
-            images_delete,
             open_external,
             shell_save_file,
-            detect_gpu,
             pick_directory,
             pick_file,
             storage_get_root,

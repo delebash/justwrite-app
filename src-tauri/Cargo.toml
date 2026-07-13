@@ -27,12 +27,6 @@ base64 = "0.22"
 # below (Help → "Open on the web", any future "reveal in folder" call).
 open = "5"
 
-tokio = { version = "1", features = ["rt", "time", "process"] }
-
-# Used by `detect_gpu` (macOS path) to read total system RAM so we can
-# estimate Apple Silicon VRAM (unified memory, dynamically allocated by the OS).
-sysinfo = { version = "0.32", default-features = false, features = ["system"] }
-
 # Smaller, faster release builds. JustWrite is interactive so we trade
 # longer link times for a smaller installer and tighter LTO.
 [profile.release]

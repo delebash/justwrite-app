@@ -1,7 +1,7 @@
 <script setup>
 import { computed, ref, watchEffect } from "vue";
 import { useProjectStore } from "../stores/project.js";
-import { saveImage, urlFor, removeImage, hasNativeImages } from "../services/imageStore.js";
+import { saveImage, urlFor, removeImage } from "../services/imageStore.js";
 import { Icon } from "@delebash/llm-ui";
 import { AppModal } from "@delebash/llm-ui";
 import { UiButton } from "@delebash/llm-ui";
@@ -21,8 +21,8 @@ const fileInput = ref(null);
 const error = ref(null);
 const saving = ref(0);
 
-// Resolved src URLs per image id — populated asynchronously for disk-backed
-// images, synchronously for data-URL records.
+// Resolved src URLs per image id — server records map to a direct URL,
+// data-URL records pass through (both resolved via urlFor).
 const urlMap = ref({});
 watchEffect(async () => {
   const list = images.value;
@@ -55,7 +55,7 @@ async function onFiles(e) {
 }
 
 async function remove(img) {
-  // Tell the disk-store first so we can unlink before forgetting the record.
+  // Tell the store first (server DELETE) before forgetting the record.
   await removeImage(img);
   project.removeImage(props.kind, props.entityId, img.id);
 }
@@ -81,10 +81,8 @@ async function remove(img) {
     <input ref="fileInput" type="file" accept="image/*" multiple style="display:none" @change="onFiles" />
 
     <div class="image-storage-note">
-      <Icon :name="hasNativeImages ? 'Check' : 'Alert'" :size="11" />
-      {{ hasNativeImages
-        ? "Images saved to disk in your app folder."
-        : "Browser preview — images are embedded in the IndexedDB project snapshot as data URLs." }}
+      <Icon name="Check" :size="11" />
+      Images are saved with your project.
     </div>
   </AppModal>
 </template>
