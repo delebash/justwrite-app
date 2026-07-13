@@ -75,6 +75,7 @@ def create_app(data_dir: Path | None = None) -> FastAPI:
     data_dir = data_dir or default_data_dir()
     init_db(data_dir)
     set_state(AppState(data_dir))
+    _materialize_samples(data_dir)
     # Server logs → in-memory ring (the AI/Logs viewer) + a rotating file that
     # survives a crash/boot-hang. Shared platform helpers (same in every app).
     install_log_ring()
@@ -220,6 +221,39 @@ def create_app(data_dir: Path | None = None) -> FastAPI:
         )
 
     return app
+
+
+def _materialize_samples(data_dir: Path) -> None:
+    """Best-effort one-time copy of the bundled samples into `<data_dir>/samples/`.
+
+    So the demo/tutorial loader reads samples from the portable data root (which a
+    `storage_relocate` already carries) instead of the Python package. Copies via a
+    temp dir + atomic rename so a crash mid-copy can never leave an empty/partial
+    `<data>/samples/` (same crash-safety idiom as the autosave write). NEVER crashes
+    boot: a missing/partial source is tolerated — `demo_seed`'s read-time fallback
+    still serves the bundled source directly.
+    """
+    from .demo_seed import _bundled_samples_dir, _dir_has_sample
+
+    dest = data_dir / "samples"
+    if dest.exists():
+        return  # already materialized (or a partial one — read-fallback covers it)
+    src = _bundled_samples_dir()
+    if not _dir_has_sample(src):
+        return  # no bundled source to copy from (packaged w/o the resource yet)
+    try:
+        import shutil
+        import tempfile
+
+        tmp_parent = Path(tempfile.mkdtemp(dir=data_dir, prefix=".samples-tmp-"))
+        try:
+            staged = tmp_parent / "samples"
+            shutil.copytree(src, staged)
+            os.replace(staged, dest)  # atomic — dest was absent; same filesystem
+        finally:
+            shutil.rmtree(tmp_parent, ignore_errors=True)
+    except Exception as e:  # noqa: BLE001 — a copy failure must never crash boot
+        log.warning("sample materialize skipped (%s): %s", data_dir, e)
 
 
 def _locate_ui_dir() -> Path | None:
