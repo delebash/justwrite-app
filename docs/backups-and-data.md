@@ -68,7 +68,7 @@ Use the whole-workspace backup to move your entire setup; use the per-book `.zip
 
 ## The data folder
 
-All of JustWrite's data — your books, images, the AI engine and its models, and logs — lives in **one data folder**. It defaults to a folder beside the app itself (portable), and you can move it to any drive from **Settings → Backups → Data folder → Change data folder…** (the same control as Settings → Storage). Moving it relocates everything and restarts the app.
+All of JustWrite's data — your books, images, the AI engine and its models, and logs — lives in **one data folder**. It defaults to a folder beside the app itself (portable), and you can move it to any drive from **Settings → Storage → Data location → Change folder…**. Moving it relocates everything and restarts the app. (The Backups section shows the same path read-only, with a link over to Storage, so the autosave folder — which sits inside the data folder by default — has context.)
 
 ---
 

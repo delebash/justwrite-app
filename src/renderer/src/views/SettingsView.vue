@@ -444,7 +444,7 @@ async function changeAutosaveFolder() {
 watchEffect(() => {
   if (active.value === "backups") {
     lastAutosaveAt.value = readSetting("lastAutosaveAt") || null;
-    loadStorageRoot();  // Task A: the data-folder chooser lives in this tab too.
+    loadStorageRoot();  // Backups shows the data-folder path read-only (relocate lives in Storage).
   }
 });
 
@@ -1433,8 +1433,8 @@ async function deleteCategory(c) {
             are kept (<code>.prev.json</code> / <code>.prev2.json</code>) so a bad write or accidental
             reset can be recovered without a manual export. Each file is a full workspace bundle —
             project, AI providers, sessions — so restoring one file brings everything back.
-            Anything OneDrive / Time Machine / your backup tool watches in this folder will pick it up
-            automatically.
+            By default it lives inside your data folder (shown below); anything OneDrive / Time Machine /
+            your backup tool watches in this folder will pick it up automatically.
           </p>
           <div style="display:grid;grid-template-columns:140px 1fr;gap:10px 14px;font-size:13px;align-items:center;margin-bottom:12px">
             <span class="t-muted">Folder</span>
@@ -1478,22 +1478,21 @@ async function deleteCategory(c) {
           </div>
         </div>
 
-        <!-- Task A: the data folder (ALL app data) — choosable here too; the same
-             relocate as Settings → Storage, surfaced beside the on-disk autosave. -->
+        <!-- Read-only pointer to the data folder (ALL app data), here only to give
+             the autosave path above its context (autosave defaults to a subfolder of
+             this root). The relocate control has ONE home now — Settings → Storage —
+             so this deep-links there instead of duplicating the live chooser. -->
         <div v-if="storageRoot" class="card">
           <div class="card-title">Data folder</div>
-          <p class="t-muted" style="font-size:12.5px;margin:0 0 10px;line-height:1.55">
-            Where JustWrite keeps <strong>everything</strong> — your books, images, the AI engine and
-            models, and logs. Defaults to the app's own folder; move it to a drive of your choice.
+          <p style="font-size:13px;margin:0 0 8px;line-height:1.6">
+            <code style="word-break:break-all">{{ storageRoot.root }}</code>
+            <span class="t-muted" style="font-size:11px;margin-left:6px">{{ storageRoot.portable ? "· portable, beside the app" : "· user folder" }}</span>
           </p>
-          <code style="word-break:break-all">{{ storageRoot.root }}</code>
-          <span class="t-muted" style="font-size:11px;margin-left:6px">{{ storageRoot.portable ? "· portable, beside the app" : "· user folder" }}</span>
-          <div style="margin-top:10px">
-            <UiButton intent="secondary" size="small" :disabled="relocating" @click="changeFolder()">
-              {{ relocating ? "Moving…" : "Change data folder…" }}
-            </UiButton>
-          </div>
-          <p v-if="storageErr" class="banner danger" style="margin-top:8px">{{ storageErr }}</p>
+          <p class="t-muted" style="font-size:12.5px;margin:0;line-height:1.5">
+            Everything JustWrite saves lives here — your books, images, the AI engine and models, and
+            logs — and the autosave folder above sits inside it by default. Move it from
+            <UiButton intent="ghost" size="small" style="vertical-align:baseline" @click="active = 'storage'">Settings → Storage</UiButton>.
+          </p>
         </div>
 
         <!-- Per-project export / import — a book travels as a single <title>.zip
