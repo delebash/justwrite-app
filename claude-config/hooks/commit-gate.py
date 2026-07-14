@@ -221,13 +221,18 @@ def main() -> None:
         md = [f for f in files if f.endswith(".md")]
         ctx["commit_has_code"] = bool(code)
         ctx["commit_docs_ok"] = bool(md) or ctx["doc_ok"]
+        ctx["commit_low_risk"] = _rules.commit_low_risk(files)
     else:
         # Couldn't inspect / nothing detected → conservative: gate as a code commit.
         ctx["commit_has_code"] = True
         ctx["commit_docs_ok"] = ctx["doc_ok"]
+        ctx["commit_low_risk"] = False   # can't inspect → HIGH (default)
 
     # FULL escapes (design #4) — allow the commit outright, before the rules run:
-    #   doc-only commit (no code staged) · an attested 'trivial' commit.
+    #   doc-only (no code staged) · attested 'trivial' · RISK-TIER low-risk (every
+    #   code file is test infra / copy data, nothing under the gate's own tree).
+    #   Any product/storage/DB/Rust/migration file never matches LOW_RISK, so a
+    #   HIGH commit still needs BOTH docs and the genuine independent-agent verdict.
     # (`--amend`/`--dry-run`/`--help` were already handled as 'escape' above.)
     if not ctx["commit_has_code"]:
         _clear_counter()
@@ -236,6 +241,10 @@ def main() -> None:
     if trivial:
         _clear_counter()
         _log("ALLOW commit (trivial attested)")
+        sys.exit(0)
+    if ctx["commit_low_risk"]:
+        _clear_counter()
+        _log("ALLOW commit (low-risk: tests/copy only)")
         sys.exit(0)
 
     # A CODE commit: require BOTH docs (docs-with-features) AND a verdict (task-completeness).

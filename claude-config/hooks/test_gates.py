@@ -251,6 +251,19 @@ def test_registry():
     assert set(i for i, _ in r.run_rules("commit", cm)) == {"docs-with-features", "task-completeness"}
     cm["commit_has_code"] = False
     assert r.run_rules("commit", cm) == []                 # doc-only → inert
+    # risk tier — commit_low_risk (generic, default-HIGH). LOW only when EVERY code
+    # file is test infra / copy DATA and nothing is under the gate's own tree.
+    assert r.commit_low_risk(["server/tests/test_x.py", "docs/a.md"])       # tests (+doc) → low
+    assert r.commit_low_risk(["src/renderer/src/__tests__/a.test.js"])      # __tests__ → low
+    assert r.commit_low_risk(["scripts/rag-probe.mjs"])                     # harness script → low
+    assert r.commit_low_risk(["src/renderer/src/i18n/en.json"])            # copy DATA → low
+    assert not r.commit_low_risk(["latest.py"])            # substring trap: not a test → high
+    assert not r.commit_low_risk(["src/renderer/src/i18n/index.js"])       # logic under i18n → high
+    assert not r.commit_low_risk(["a.test.js", "server/stores.py"])       # mixed → high
+    assert not r.commit_low_risk(["server/justwrite_server/api/settings.py"])   # product → high
+    assert not r.commit_low_risk(["claude-config/hooks/test_gates.py"])   # gate's own tree → high
+    assert not r.commit_low_risk(["claude-config/hooks/commit-gate.py"])  # gate logic → high
+    assert not r.commit_low_risk([])                       # no code → not low (doc-only handled elsewhere)
     print("1) registry ........... PASS")
 
 
@@ -451,6 +464,28 @@ def test_commit_gate():
     out_al = hook("commit-gate.py", {"tool_name": "Bash", "tool_input": {"command": "git commit -m q"},
                   "cwd": repo, "transcript_path": tx(("user", "go"))}, env=env).stdout
     assert not denied(out_al)                                                        # anti-loop fail-safe
+    # RISK TIER — a low-risk commit (tests/copy only) full-escapes: no docs, no verdict.
+    reset_stage(); open(f"{repo}/foo.test.js", "w").write("t\n"); git("add", "foo.test.js")
+    assert not denied(cg("git commit -m t", ("user", "go"))), "low-risk test-file commit escapes"
+    reset_stage(); os.makedirs(f"{repo}/server/tests", exist_ok=True)
+    open(f"{repo}/server/tests/test_x.py", "w").write("x\n"); git("add", "server/tests/test_x.py")
+    assert not denied(cg("git commit -m t", ("user", "go"))), "low-risk tests/ dir commit escapes"
+    reset_stage(); os.makedirs(f"{repo}/src/i18n", exist_ok=True)
+    open(f"{repo}/src/i18n/en.json", "w").write("{}\n"); git("add", "src/i18n/en.json")
+    assert not denied(cg("git commit -m copy", ("user", "go"))), "copy DATA file commit escapes"
+    # DEFAULT-HIGH — the panel's holes, locked as denial tests:
+    reset_stage(); open(f"{repo}/latest.py", "w").write("l=1\n"); git("add", "latest.py")
+    assert denied(cg("git commit -m l", ("user", "go"))), "latest.py is NOT a test → HIGH"
+    reset_stage(); os.makedirs(f"{repo}/src/i18n", exist_ok=True)
+    open(f"{repo}/src/i18n/index.js", "w").write("export const x=1\n"); git("add", "src/i18n/index.js")
+    assert denied(cg("git commit -m i", ("user", "go"))), "logic under i18n/ → HIGH"
+    reset_stage(); os.makedirs(f"{repo}/claude-config/hooks", exist_ok=True)
+    open(f"{repo}/claude-config/hooks/test_gates.py", "w").write("t\n")
+    git("add", "claude-config/hooks/test_gates.py")
+    assert denied(cg("git commit -m g", ("user", "go"))), "the gate's own harness → HIGH (no self-weakening)"
+    reset_stage(); open(f"{repo}/a.test.js", "w").write("t\n"); open(f"{repo}/stores.py", "w").write("s=1\n")
+    git("add", "a.test.js", "stores.py")
+    assert denied(cg("git commit -m m", ("user", "go"))), "mixed low+high → HIGH"
     print("5) commit-gate ........ PASS")
 
 

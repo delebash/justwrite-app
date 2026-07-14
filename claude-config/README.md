@@ -56,7 +56,7 @@ and misses), so it can be tuned — and shared with other developers who hit the
 | `hooks/pre-action-check.py` | `~/.claude/hooks/` | **PreToolUse** hook: pre-task DENY on the first **code** change without a rules-pass AND (#237) a cited plan/spec line + a `RISK:` doubt (`.md`/explicit-"trivial" exempt); NUDGE on every edit; PANEL reminder on `ExitPlanMode`. |
 | `hooks/verify-gate.py` | `~/.claude/hooks/` | **Stop** hook. Block 0 (sentinel) + Blocks 1–6 via `run_rules("Stop")` (see below). |
 | `hooks/task-gate.py` | `~/.claude/hooks/` | **TaskCreated/TaskCompleted** gate: `task-begin-check` / `task-completeness` via `run_rules` (exit 2). |
-| `hooks/commit-gate.py` | `~/.claude/hooks/` | **PreToolUse(Bash)** commit boundary: HARD-DENY a CODE `git commit` until docs **and** a checker-verdict are present; escapes for `--amend` / doc-only / trivial; anti-loop sentinel. |
+| `hooks/commit-gate.py` | `~/.claude/hooks/` | **PreToolUse(Bash)** commit boundary: HARD-DENY a **HIGH-risk** CODE `git commit` until docs **and** a checker-verdict are present; escapes for `--amend` / doc-only / trivial / low-risk (tests·copy); anti-loop sentinel. |
 | `hooks/arm-rules-gate.sh` | `~/.claude/hooks/` | **SessionStart** hook: arms the Block-0 sentinel on compact/clear/startup (not resume). |
 | `hooks/gate-stats.py` | `~/.claude/hooks/` | Rolls up the gate logs into a tally for `EFFECTIVENESS.md` (imports the rule ids from `_rules.py`). |
 | `hooks/test_gates.py` | (bundle only) | The committed harness — `python3 claude-config/hooks/test_gates.py`. Not installed to `~/.claude`. |
@@ -79,7 +79,7 @@ the hooks are just the per-event mechanism.
 | `SessionStart` | startup / compact / clear | 💬 arm the "context reset → re-read rules" sentinel |
 | `PreToolUse` (Edit/Write/MultiEdit) | before a code change | ✋ **pre-task DENY** (first **code** edit: needs a rules-pass AND — #237 — a cited plan/spec line + a `RISK:` doubt in the turn text; `.md`/explicit-"trivial" exempt) · 💬 **per-edit NUDGE** |
 | `PreToolUse` (ExitPlanMode) | before "here is the plan" | 💬 reminder to run the rules-checker **panel** |
-| `PreToolUse` (Bash `git commit`) | before a commit | ✋ **commit boundary** — HARD-DENY a CODE commit until docs **+** a *genuine agent* all-pass verdict (parsed from the agent's result, not self-typed; escapes: `--amend`, doc-only, trivial; anti-loop) |
+| `PreToolUse` (Bash `git commit`) | before a commit | ✋ **commit boundary** — HARD-DENY a **HIGH-risk** CODE commit until docs **+** a *genuine agent* all-pass verdict (parsed from the agent's result, not self-typed; risk tier: low-risk tests/copy full-escape, default-HIGH; escapes: `--amend`, doc-only, trivial, low-risk; anti-loop) |
 | `TaskCreated` / `TaskCompleted` | a tracked task begins/ends | ✋ `task-begin-check` / `task-completeness` (anti-skim: the checker reads the FULL criteria) |
 | `Stop` | the turn tries to end | ✋ Block 0 (sentinel) + Blocks 1–6 (registry) |
 
@@ -127,8 +127,11 @@ short-circuit on `stop_hook_active` so each fires at most once per stop-sequence
   **genuine independent rules-checker AGENT verdict reads all-pass** — parsed from the
   agent's OWN result (a harness-authored `<task-notification>`), NOT from a "VERDICT" I type
   (the anti-self-certification core: a gate that checks my words can be satisfied by my
-  words; only one keyed on a real agent output binds). Escapes: `--amend`, a doc-only
-  commit, an attested "trivial". LAYERS on Stop; never replaces it. Ceiling: the agent can
+  words; only one keyed on a real agent output binds). **RISK-TIERED (2026-07-14): the
+  docs+verdict requirement is HIGH-risk only; a low-risk commit (all code files test infra /
+  copy DATA, nothing under the gate's tree) full-escapes — generic `LOW_RISK` allowlist,
+  default-HIGH on mixed/unknown.** Escapes: `--amend`, a doc-only commit, an attested
+  "trivial", a low-risk (tests/copy) commit. LAYERS on Stop; never replaces it. Ceiling: the agent can
   miss — non-skippable, not infallible.
 
 ## The rules-checker subagent + the panel

@@ -49,6 +49,22 @@ tally + add any notable catches/misses to the ledger.
 
 ## Catch / miss ledger (detailed — newest first)
 
+### 2026-07-14 — RISK-TIERED commit boundary (user-ordered follow-up)
+
+The commit boundary's docs+verdict HARD-DENY now applies only to HIGH-risk commits; a
+LOW-risk commit — every code file is test infra or copy DATA, nothing under the gate's own
+tree — full-escapes it (alongside doc-only / trivial). The tier is a GENERIC `LOW_RISK`
+allowlist in `_rules.py` (`commit_low_risk`) — names no task/project; default-HIGH on
+mixed/unknown, so storage/DB/Rust/migrations/product code always stay HIGH. Motivation: the
+uniform checker tax on pure test/copy commits ("verify takes forever … it sits for an
+hour"). Vetted by a 3-lens rules-checker panel BEFORE locking — it caught two real allowlist
+holes (an i18n `.js` logic file matched the copy dir-pattern; the gate's own `test_gates.py`
+matched `test_*.py`), both closed by tightening (data-extensions-only copy; a `GATE_TREE`
+guard) and pinned as denial-tests. Harness: all 7 suites green incl. the new risk-tier
+asserts. **WATCH:** whether the LOW tier's narrow scope (pure test/copy only) actually cuts
+the felt friction, or whether a broader "middle tier" is later wanted; and any real commit
+mis-tiered LOW that should have been HIGH (none expected — default-HIGH).
+
 ### 2026-07-09 — v4: the THINK-TWICE upgrade (#237, user-ordered)
 
 Born from the user's direct finding during the 2026-07-09 QC marathon: *"when I asked you to

@@ -66,6 +66,23 @@ CODE_FILE = re.compile(
     r"\b[\w./-]+\.(py|js|mjs|cjs|ts|tsx|jsx|vue|rs|go|java|rb|c|h|cpp|cc|"
     r"css|scss|html|sh|bash|sql|toml|ini|cfg|ya?ml|json)\b"
 )
+# --- commit-gate RISK TIER (generic; names no task/project) ------------------
+# A commit is "low-risk" only when EVERY code file matches LOW_RISK: test infra
+# and copy DATA. Path-segment / basename-anchored, NEVER a bare substring (so
+# `latest.py` / `contest.py` are not mistaken for tests). This is an ALLOWLIST of
+# universal conventions — everything else (storage, migrations, Rust, DB, UI,
+# services, any product code, in any repo) is HIGH by DEFAULT, nothing to enumerate.
+LOW_RISK = re.compile(
+    r"(^|/)tests?/|(^|/)__tests__/|(^|/)e2e/"                          # test dirs
+    r"|(^|/)test_[^/]+\.py$|(^|/)[^/]+_test\.py$|(^|/)conftest\.py$"    # python tests
+    r"|\.(test|spec)\.[cm]?[jt]sx?$"                                   # js/ts tests
+    r"|(^|/)[^/]*-(probe|smoke)\.mjs$"                                 # harness scripts
+    r"|(^|/)(locales?|i18n|lang)/[^/]*\.(json|po|pot|ftl|csv|ya?ml|txt)$",  # copy DATA only
+    re.I,
+)
+# The gate's OWN tree is NEVER low-risk — a commit here (incl. its test harness)
+# keeps the full checker so the gate can't be weakened via a "low-risk" escape.
+GATE_TREE = re.compile(r"(^|/)(claude-config/hooks|\.claude/hooks)/")
 CITE = re.compile(r"[\w./-]+\.\w+:\d+")            # path:line
 CITE_MD = re.compile(r"[\w./-]+\.md:\d+", re.I)    # a DOC path:line (docs-rule escape)
 HEDGE = re.compile(
@@ -134,6 +151,21 @@ TESTS_CITED_TOKEN = re.compile(r"\bT(1[0-2]|[1-9])\b")
 
 def tests_cited(text: str) -> bool:
     return len(set(TESTS_CITED_TOKEN.findall(text or ""))) >= 3
+
+
+def commit_low_risk(files) -> bool:
+    """True iff this commit is entirely LOW blast-radius: it has code, touches
+    NOTHING under the gate's own tree, and EVERY code file matches LOW_RISK (test
+    infra + copy data). Reuses CODE_FILE for the code filter (one source, can't
+    drift from commit-gate's own `code = [...CODE_FILE...]`). Default-HIGH: an
+    uninspectable / empty / mixed / gate-tree / product commit returns False.
+    Generic — names no task or project."""
+    code = [f for f in files if CODE_FILE.search(f)]
+    if not code:
+        return False                                   # no code → doc-only handled upstream
+    if any(GATE_TREE.search(f) for f in files):
+        return False                                   # the gate's own tree is never low-risk
+    return all(LOW_RISK.search(f) for f in code)       # every code file must be low-risk
 
 
 # ---- #237 think-twice regexes (2026-07-09) ---------------------------------
@@ -493,6 +525,7 @@ def build_ctx(data: dict, entries: list, event: str) -> dict:
     # Default to "has code, no docs" so an UNKNOWN commit is gated, never waved through.
     ctx["commit_has_code"] = True
     ctx["commit_docs_ok"] = False
+    ctx["commit_low_risk"] = False   # commit-gate overrides after inspecting the staged tree
     # The GENUINE independent-agent verdict this turn (None until a real rules-checker
     # finishes). Read from the agent's own result, NOT my text — this is what the commit
     # boundary requires so a self-typed verdict can't clear it.

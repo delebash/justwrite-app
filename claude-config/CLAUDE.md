@@ -120,9 +120,13 @@ the gate-stats log-key (one source). All of this is provisioned from the
   AGENT's own result (a harness-authored `<task-notification>`), NOT from text I type — a
   self-written "VERDICT: PASS" does **not** clear it (that was the self-certification hole:
   a gate that checks my words can be satisfied by my words; only one keyed on a real
-  action/agent-output binds). So a code commit forces: spawn the rules-checker → it scores
+  action/agent-output binds). So a **HIGH-risk** code commit forces: spawn the rules-checker → it scores
   every rule (incl. "are ALL docs current?") → fix any FAIL → re-run until its result is
-  PASS. Escapes: `git commit --amend`, a doc-only commit, an attested "trivial". Anti-loop
+  PASS. **RISK-TIERED (2026-07-14):** that requirement is HIGH-risk only; a LOW-risk commit
+  (every code file test infra or copy DATA, nothing under the gate's own tree) full-escapes
+  it — a GENERIC `LOW_RISK` allowlist in `_rules.py` (names no task), default-HIGH on
+  mixed/unknown so storage/DB/Rust/migrations/product code always stay HIGH. Escapes: `git
+  commit --amend`, a doc-only commit, an attested "trivial", a low-risk (tests/copy) commit. Anti-loop
   sentinel fail-safes after repeated denies. Honest ceiling: the agent can still miss — this
   makes the check non-skippable, not infallible. LAYERS on Stop; never replaces it.
 - **Stop gate** — `~/.claude/hooks/verify-gate.py` (blocks the turn until satisfied):
