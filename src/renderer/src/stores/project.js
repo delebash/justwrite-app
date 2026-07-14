@@ -515,9 +515,9 @@ const BLANK_PROJECT_META = {
 // Fresh copy each call so callers never share nested doc objects.
 function blankArchitecture() {
   return {
-    premise: { id: "premise", title: "Premise", blurb: "The single sentence the novel can be reduced to.", status: "todo", words: 0, body: "" },
-    fabula:  { id: "fabula",  title: "Fabula",  blurb: "The story as it happens in time.",                 status: "todo", words: 0, body: "" },
-    setting: { id: "setting", title: "Setting", blurb: "The world the book occupies.",                      status: "todo", words: 0, body: "" },
+    premise: { id: "premise", title: "Premise", status: "todo", words: 0, body: "" },
+    fabula:  { id: "fabula",  title: "Fabula",  status: "todo", words: 0, body: "" },
+    setting: { id: "setting", title: "Setting", status: "todo", words: 0, body: "" },
   };
 }
 

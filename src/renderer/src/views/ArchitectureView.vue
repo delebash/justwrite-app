@@ -11,13 +11,22 @@ import { UiTag } from "@delebash/llm-ui";
 import { UiTable } from "@delebash/llm-ui";
 import StatusSelect from "../components/StatusSelect.vue";
 import { Breadcrumb } from "@delebash/llm-ui";
-import { UiTextarea } from "@delebash/llm-ui";
 import PaneHeader from "../components/PaneHeader.vue";
 
 const props = defineProps({ id: { type: String, default: "" } });
 const project = useProjectStore();
 const ui = useUiStore();
 const router = useRouter();
+
+// The three foundation docs are a FIXED set — their name and their "what this is"
+// line are not per-book data (they never change), so both are hardcoded here rather
+// than stored/edited. The body (the rich editor) is the only thing the user writes.
+const ARCH_DOCS = {
+  premise: { title: "Premise", description: "The whole novel in one sentence — the core conflict and its resolution." },
+  fabula:  { title: "Fabula",  description: "The events of the story in logical, chronological order — cause and effect." },
+  setting: { title: "Setting", description: "The place, time, and social context the story unfolds in." },
+};
+function docMeta(id) { return ARCH_DOCS[id] || { title: id, description: "" }; }
 
 const doc = computed(() => props.id ? project.architecture[props.id] : null);
 
@@ -35,9 +44,9 @@ function askTheBook() {
 const rows = computed(() => Object.values(project.architecture).filter(Boolean));
 
 const columns = [
-  { accessorKey: "title",  header: "Title",  sortable: true,  headerStyle: "min-width: 180px" },
-  { accessorKey: "blurb",  header: "Blurb",  sortable: false, headerStyle: "min-width: 260px" },
-  { accessorKey: "status", header: "Status", sortable: true,  headerStyle: "min-width: 120px" },
+  { accessorKey: "title",       header: "Title",       sortable: true,  headerStyle: "min-width: 180px" },
+  { accessorKey: "description",  header: "Description", sortable: false, headerStyle: "min-width: 260px" },
+  { accessorKey: "status",      header: "Status",      sortable: true,  headerStyle: "min-width: 120px" },
 ];
 
 function statusLabel(id) { return project.statusById(id)?.label || id || ""; }
@@ -62,14 +71,6 @@ function onRowClick(event) {
 
     <div class="pane-card">
       <div class="scrollarea" style="padding:18px 22px 40px">
-        <p class="entity-desc" style="margin: 0 0 18px">
-          <strong>Architecture</strong> holds your book's three foundation documents —
-          <strong>Premise</strong> (one paragraph: what the book is about),
-          <strong>Fabula</strong> (the cause-and-effect chain of events in story chronology),
-          and <strong>Setting</strong> (world and time-period context). These three slots are
-          always present; treat them as the bones the rest of your planning hangs on.
-        </p>
-
         <div class="arch-count">{{ rows.length }} documents</div>
 
         <UiTable
@@ -82,12 +83,12 @@ function onRowClick(event) {
         >
           <template #title="{ row }">
             <div class="entity-cell-title">
-              <span class="entity-cell-title-text">{{ row.title }}</span>
+              <span class="entity-cell-title-text">{{ docMeta(row.id).title }}</span>
             </div>
           </template>
 
-          <template #blurb="{ row }">
-            <span class="entity-cell-sub">{{ row.blurb || '—' }}</span>
+          <template #description="{ row }">
+            <span class="entity-cell-sub">{{ docMeta(row.id).description || '—' }}</span>
           </template>
 
           <template #status="{ row }">
@@ -104,8 +105,7 @@ function onRowClick(event) {
     <header class="pane-header arch-pane-header">
       <div class="pane-title">
         <Breadcrumb :segments="[{ label: 'Architecture', to: '/architecture' }]" />
-        <input class="input arch-title"
-          :value="doc.title" @input="update('title', $event.target.value)" />
+        <h1 class="arch-title">{{ docMeta(doc.id).title }}</h1>
       </div>
       <div class="pane-actions">
         <UiButton intent="ghost" size="small" data-chat-toggle @click="askTheBook"
@@ -119,16 +119,7 @@ function onRowClick(event) {
 
     <div class="pane-card">
       <div class="arch-wrap scrollarea">
-        <p class="entity-desc">
-          <strong>Architecture</strong> holds your book's three foundation documents —
-          <strong>Premise</strong> (one paragraph: what the book is about),
-          <strong>Fabula</strong> (the cause-and-effect chain of events in story chronology),
-          and <strong>Setting</strong> (world and time-period context). These three slots are
-          always present; treat them as the bones the rest of your planning hangs on.
-        </p>
-        <UiTextarea fluid class="arch-blurb" rows="2"
-          placeholder="Blurb"
-          :model-value="doc.blurb" @update:model-value="update('blurb', $event)" />
+        <p class="arch-desc">{{ docMeta(doc.id).description }}</p>
 
         <RichEditor
           :model-value="doc.body"
@@ -169,25 +160,20 @@ function onRowClick(event) {
   gap: 14px;
 }
 .arch-pane-header .pane-title { gap: 4px; }
-.arch-pane-header .arch-title {
-  border: 0;
-  background: transparent;
-  padding: 0;
-  height: auto;
-}
 .arch-title {
   font-family: var(--font-serif);
   font-size: 22px;
   font-weight: 600;
-  border: 0;
-  background: transparent;
-  padding: 0;
+  margin: 0;
+  line-height: 1.2;
 }
-.arch-blurb {
+/* Fixed "what this section is" line — a hint, not editable, not stored. */
+.arch-desc {
   font-family: var(--font-serif);
   font-style: italic;
   color: var(--ink-2);
   font-size: 14px;
+  margin: 0;
 }
 
 /* List view: shared shapes = global .entity-*; only the doc count stays local. */

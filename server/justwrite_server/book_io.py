@@ -250,7 +250,7 @@ def decompose(db: Session, project_id: str, snap: dict) -> None:
     for i, (aid, doc) in enumerate((snap.get("architecture") or {}).items()):
         doc = doc or {}
         db.add(Architecture(project_id=project_id, id=_s(aid), position=i, title=_s(doc.get("title")),
-                            blurb=_s(doc.get("blurb")), status=_s(doc.get("status")),
+                            status=_s(doc.get("status")),
                             words=_i(doc.get("words")), body=_s(doc.get("body"))))
 
     for entity_id, img_list in (snap.get("images") or {}).items():
@@ -402,7 +402,7 @@ def assemble(db: Session, project_id: str) -> dict | None:
 
     architecture: dict[str, dict] = {}
     for a in ordered(Architecture):
-        architecture[a.id] = {"id": a.id, "title": a.title, "blurb": a.blurb,
+        architecture[a.id] = {"id": a.id, "title": a.title,
                               "status": a.status, "words": a.words, "body": a.body}
 
     images: dict[str, list] = {}

@@ -272,7 +272,7 @@ function architectureCards(project) {
     if (!body) continue; // an untouched architecture doc has nothing to index
     out.push({
       id: `card:architecture:${key}`, kind: "architecture", entityId: key,
-      title: doc.title || key, text: [`${doc.title || key} — ${doc.blurb || ""}`.trim(), body].join("\n"), sha: "",
+      title: doc.title || key, text: [doc.title || key, body].join("\n"), sha: "",
     });
   }
   return out;

@@ -164,7 +164,7 @@ export function buildIndex(project, speakers = null) {
       id: `architecture:${id}`,
       kind: "architecture",
       title: doc.title,
-      sub: doc.blurb,
+      sub: "",
       body: stripHtml(doc.body),
       route: `/architecture`,
     });

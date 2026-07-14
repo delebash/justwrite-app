@@ -79,8 +79,8 @@ def _canonical_book() -> dict:
             {"id": "s2", "name": "The Ledger", "color": "blue", "blurb": "b2", "body": "", "status": "open", "beats": []},
         ],
         "architecture": {
-            "premise": {"id": "premise", "title": "Premise", "blurb": "one line", "status": "done", "words": 18, "body": "..."},
-            "setting": {"id": "setting", "title": "Setting", "blurb": "world", "status": "draft", "words": 90, "body": "..."},
+            "premise": {"id": "premise", "title": "Premise", "status": "done", "words": 18, "body": "..."},
+            "setting": {"id": "setting", "title": "Setting", "status": "draft", "words": 90, "body": "..."},
         },
         "worldbuilding": [
             {"id": "wb1", "category": "geography", "title": "North Coast", "tags": ["setting"], "status": "done",

@@ -328,7 +328,6 @@ class Architecture(Base):
     id = Column(String, primary_key=True)  # "premise" | "fabula" | "setting" | …
     position = Column(Integer, nullable=False, default=0)
     title = Column(String, nullable=False, default="")
-    blurb = Column(Text, nullable=False, default="")
     status = Column(String, nullable=False, default="")
     words = Column(Integer, nullable=False, default=0)
     body = Column(Text, nullable=False, default="")
