@@ -77,21 +77,13 @@ if (isTauri) {
     platform: "tauri",
     version: "2",
 
-    project: {
-      save: (snapshot, suggestedName) =>
-        safe(invoke("project_save", { snapshot, suggestedName })),
-      open: () =>
-        safe(invoke("project_open")),
-    },
-
     shell: {
       // Hand a URL to the OS default browser. `window.open` does
       // nothing inside the Tauri webview, so callers must route here.
       openExternal: (url) => safe(invoke("open_external", { target: url })),
       // Native folder picker. Returns the selected path or null if the
-      // user cancelled. Mirrors the existing project_save/open dialogs —
-      // every native dialog routes through a Rust command, not the JS
-      // dialog plugin, so we keep a single capability surface.
+      // user cancelled. Every native dialog routes through a Rust command,
+      // not the JS dialog plugin, so we keep a single capability surface.
       pickDirectory: ({ title, defaultPath } = {}) =>
         invoke("pick_directory", { title, defaultPath })
           .catch(() => null),

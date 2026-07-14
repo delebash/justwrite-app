@@ -1,11 +1,8 @@
 // ============================================================
 // JustWrite — Tauri 2 backend commands.
 //
-// Mirrors the Electron IPC contract one-for-one so the renderer-side
-// `window.justwrite.project` API stays unchanged:
-//
-//   project_save(snapshot, suggested_name)   — native save dialog
-//   project_open()                           — native open dialog
+// Exposes the `window.justwrite` (shell / storage) API the Vue app calls,
+// routing each call through Tauri's invoke().
 // ============================================================
 
 use base64::Engine;
@@ -31,68 +28,10 @@ struct SaveOk {
     path: String,
 }
 
-#[derive(Serialize, Deserialize)]
-struct OpenOk {
-    ok: bool,
-    path: String,
-    snapshot: Value,
-}
-
-// ─── Project save / open ─────────────────────────────────────────────
-
-#[tauri::command]
-async fn project_save(
-    app: AppHandle,
-    snapshot: Value,
-    suggested_name: Option<String>,
-) -> Result<SaveOk, String> {
-    let default = suggested_name
-        .filter(|s| !s.is_empty())
-        .map(|s| format!("{s}.jw.json"))
-        .unwrap_or_else(|| "project.jw.json".to_string());
-
-    // tauri-plugin-dialog v2 returns FilePath enum; blocking_* variants run
-    // synchronously which is fine here because this command itself is async.
-    let path = app
-        .dialog()
-        .file()
-        .set_title("Save JustWrite project")
-        .set_file_name(&default)
-        .add_filter("JustWrite project", &["json"])
-        .blocking_save_file();
-
-    let Some(file_path) = path else {
-        return Err("cancelled".into());
-    };
-    let path_buf: PathBuf = file_path.into_path().map_err(|e| e.to_string())?;
-    let json = serde_json::to_string_pretty(&snapshot).map_err(|e| e.to_string())?;
-    fs::write(&path_buf, json).map_err(|e| e.to_string())?;
-    Ok(SaveOk { ok: true, path: path_buf.display().to_string() })
-}
-
-#[tauri::command]
-async fn project_open(app: AppHandle) -> Result<OpenOk, String> {
-    let path = app
-        .dialog()
-        .file()
-        .set_title("Open JustWrite project")
-        .add_filter("JustWrite project", &["json"])
-        .blocking_pick_file();
-
-    let Some(file_path) = path else {
-        return Err("cancelled".into());
-    };
-    let path_buf: PathBuf = file_path.into_path().map_err(|e| e.to_string())?;
-    let text = fs::read_to_string(&path_buf).map_err(|e| e.to_string())?;
-    let snapshot: Value = serde_json::from_str(&text).map_err(|e| e.to_string())?;
-    Ok(OpenOk { ok: true, path: path_buf.display().to_string(), snapshot })
-}
-
 // ─── Folder picker ───────────────────────────────────────────────────
 // Used by Settings → AI providers → Install Docker Desktop → Advanced
-// options → custom install location. Mirrors the existing project_save /
-// project_open pattern of routing every native dialog through a Rust
-// command instead of the JS plugin so we keep a single capability surface.
+// options → custom install location. Every native dialog routes through a
+// Rust command instead of the JS plugin so we keep a single capability surface.
 
 #[tauri::command]
 async fn pick_directory(
@@ -611,8 +550,6 @@ pub fn run() {
             Ok(())
         })
         .invoke_handler(tauri::generate_handler![
-            project_save,
-            project_open,
             open_external,
             shell_save_file,
             pick_directory,

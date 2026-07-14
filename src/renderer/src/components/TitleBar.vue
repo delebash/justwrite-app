@@ -11,7 +11,6 @@ defineProps({ title: { type: String, default: "JustWrite" } });
 const ui = useUiStore();
 const project = useProjectStore();
 const router = useRouter();
-const jw = window.justwrite;
 
 // The current page's undo domains (#235) — the Undo/Redo buttons are scoped
 // exactly like ⌘Z (App.vue): they can only pop this page's data domains.
@@ -91,32 +90,6 @@ onBeforeUnmount(() => {
 function toggleChat() {
   ui.openChatPanelFor({ mode: "book", sourceKey: "titlebar" });
 }
-
-async function saveProject() {
-  if (!jw?.project?.save) {
-    alert("Save is only available in the Electron desktop build.");
-    return;
-  }
-  const result = await jw.project.save(project.exportSnapshot(), project.project.title);
-  if (result && !result.ok) {
-    console.error("saveProject failed:", result.error);
-    ui.showToast({ message: `Couldn't save project — ${result.error || "unknown error"}` });
-  }
-}
-
-async function openProject() {
-  if (!jw?.project?.open) {
-    alert("Open is only available in the Electron desktop build.");
-    return;
-  }
-  const res = await jw.project.open();
-  if (res?.ok && res.snapshot) {
-    project.loadSnapshot(res.snapshot);
-  } else if (res && !res.cancelled) {
-    console.error("openProject failed:", res?.error);
-    ui.showToast({ message: `Couldn't open project — ${res?.error || "unknown error"}` });
-  }
-}
 </script>
 
 <template>
@@ -173,9 +146,6 @@ async function openProject() {
           </button>
         </div>
       </div>
-      <span class="titlebar-divider" />
-      <button @click="openProject" v-tooltip.bottom="'Open project…'"><Icon name="Folder" :size="13" /></button>
-      <button @click="saveProject" v-tooltip.bottom="'Save project as…'"><Icon name="Download" :size="13" /></button>
       <span class="titlebar-divider" />
       <button data-undo @click="project.undoFor(undoDomains)" :disabled="!project.canUndoFor(undoDomains)"
         v-tooltip.bottom="project.canUndoFor(undoDomains) ? 'Undo · ⌘Z' : 'Nothing to undo on this page'">
