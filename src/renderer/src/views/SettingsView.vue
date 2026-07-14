@@ -22,7 +22,7 @@ import { UiToggle } from "@delebash/llm-ui";
 import { UiColorPicker } from "@delebash/llm-ui";
 import { PRESET_COLORS } from "@renderer/services/categoricalColors.js";
 import { SERVER_BASE } from "../services/serverApi.js";
-import { get, post, fmtBytes } from "@delebash/llm-ui";
+import { get, post, fmtBytes, refreshRunnerModels } from "@delebash/llm-ui";
 import {
   ACCENT_PRESETS, GOLD_PRESETS, FUNCTIONAL_PRESETS, PAIRINGS, SURFACE_TINTS, PAPER_TINTS,
   THEME_PRESETS, UI_FONTS, DISPLAY_FONTS, INK_PALETTES, UI_SCALES,
@@ -135,7 +135,7 @@ async function clearModelsCache() {
   const size = fmtBytes(diskUsage.value?.modelsCache) || "0 MB";
   const yes = await confirmDialog({
     title: "Clear downloaded models?",
-    message: `This frees ${size} of downloaded model files. Your models stay in the catalog and re-download automatically the next time they're used.`,
+    message: `This frees ${size} of downloaded model files. Your models stay in the catalog, and your default and per-task model choices are kept — each re-downloads automatically the next time it's used.`,
     confirmLabel: "Clear models cache",
   });
   if (!yes) return;
@@ -154,6 +154,10 @@ async function clearModelsCache() {
   } finally {
     diskBusy.value = "";
     await loadDiskUsage();
+    // Re-stat the shared model catalog so cleared models flip from "disk" (→ "Re-download")
+    // to "missing" (→ "Download") — the AI-page catalog singleton doesn't re-fetch on its
+    // own after an out-of-band cache clear from this tab.
+    refreshRunnerModels();
   }
 }
 
