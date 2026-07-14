@@ -56,6 +56,22 @@ now:
 
 ## CURRENT STATE (2026-07-08)
 
+**GO (2026-07-14) — UNIT 1 SHIPPED: per-feature preset OVERRIDE tier RESTORED (3-tier
+cascade).** Reverses Plan A's 2026-07-02 2-tier collapse (the removal misread the user's
+intent — they always wanted fine-grain per-feature control; user: "it was always intended
+for feature to be fine grain control" + "go with your rec"). The live cascade is again
+**feature override → task preset → global default**: recovered `FeaturePresetRef` +
+store + 3-tier `resolve_feature_preset` + the override API (`PUT /preset-assignments/feature`)
++ a per-feature Preset dropdown on Routing by feature + `resolved-route.presetSource`; two
+improvements over the literal recovery (fall-through-on-dangling, preset-delete drops its
+overrides); 1:1 preset-name alignment to task labels. Runner `fb03302` + this UI/naming
+commit. **The current AI-routing/preset model doc is now
+`just-llm-runner/docs/plans/2026-07-14-feature-override-and-reasoning-plan.md`** (the
+2026-07-02 Plan-A doc carries a superseded-cascade banner; that plan's Unit 2 — the
+thinking/reasoning system — is next). Gates: runner+JW pytest+ruff · build:vite · FULL
+smoke zero JS errors · switch-probe · live curl `presetSource:"feature"` · rules-checker
+PASS (2 rounds).
+
 **GO (2026-07-08, evening) — §7.1 switches⇄params build SHIPPED** (the locked decision in
 `just-llm-runner/docs/plans/2026-07-08-big-batch-queue.md` §7.1, decided over a 6-round
 discussion recorded there + §6): the dead per-preset launch-switch storage is DELETED
@@ -1175,8 +1191,9 @@ vitest 29/29 + the FULL headless smoke zero JS errors + the tune-save probe 17/1
   — sections A–I; §I is the master-plan tail folded 2026-07-08.
 - **Providers/models surface:** `just-llm-runner/docs/plans/2026-07-06-providers-surface-redesign.md`
   — ROUNDs 1–19 full records + the parked list + per-round box checks. Banner + needed round only.
-- **Current AI-routing / preset model:** `just-llm-runner/docs/plans/2026-07-02-preset-model-a-resets.md`
-  (Plan A — the task owns the preset; 2-tier cascade task → global default).
+- **Current AI-routing / preset model:** `just-llm-runner/docs/plans/2026-07-14-feature-override-and-reasoning-plan.md`
+  (3-tier cascade restored 2026-07-14: feature override → task preset → global default; the
+  2026-07-02 Plan-A doc's reset/edit-in-place story stands, its 2-tier cascade reverted).
 - **Model-per-hardware execution (closed):** `just-llm-runner/docs/plans/2026-07-06-model-per-hardware-plan.md`
   — the one-profile consolidation, fit-by-omission, sweep, class map, orphan-child fix; phase records.
 - **On-box tuning evidence:** `docs/plans/2026-07-06-llamacpp-config-tuning-2070s.md` +

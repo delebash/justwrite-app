@@ -11,8 +11,9 @@ You'll find Tasks under **Settings → AI → Tasks**.
 ## What a task holds
 
 - **A name and description** — what this kind of work is.
-- **An engine preset** — the model + samplers that runs for it. A task with no preset
-  of its own falls back to the **Default preset**.
+- **An engine preset** — the model + samplers its features run by default. The preset a
+  feature actually runs cascades through three tiers: **its own per-feature override**
+  (if set) → **its task's preset** → the **Default preset**.
 - **Its features** — every AI feature assigned to this task. One feature belongs to
   exactly one task.
 
@@ -44,17 +45,21 @@ When you **Send to Tasks Lab** from a model's Tune window (on the **Models** tab
 tuned model + engine flags arrive here as a **new column** in the first task's Lab —
 alongside the task's current preset, so you can compare them — ready to **Save as preset**.
 
-A feature's preset always comes from its **task** — so on **Routing by feature** the
-preset is shown read-only ("set it on the task"). Change it here, on the task.
+On **Routing by feature** you can give a single feature its **own preset override** — the
+**Preset** dropdown there sets a preset for **that feature only** (or pick **— inherit
+from task —** to drop the override and follow the task again). To change every feature in
+a task at once, set the task's preset here, or use **Use for this task** in the Lab.
 
 ## Reset to defaults
 
-Three levels, all of which **keep your custom tasks and custom presets**:
+Several levels, all of which **keep your custom tasks and custom presets**:
 
 - **Reset all to defaults** (by the Default preset, at the bottom of the task list) —
   restores the built-in presets, the built-in task names/descriptions, and every
-  task→preset and feature→task assignment (including the Default preset).
+  task→preset, feature→task, and per-feature override (clears them all).
 - **Reset** (next to a built-in task's **Rename**) — restores just that task's name,
   description, and preset. Its features stay where they are.
-- **↺** (next to a feature's **Task** on **Routing by feature**) — sends that one
-  feature back to its default task.
+- **↺ next to a feature's Preset** (on **Routing by feature**) — clears just that
+  feature's per-feature override, so it follows its task's preset again.
+- **↺ next to a feature's Task** (on **Routing by feature**) — the full per-feature
+  reset: clears its preset override AND sends it back to its default task.

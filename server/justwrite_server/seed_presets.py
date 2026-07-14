@@ -52,13 +52,13 @@ from __future__ import annotations
 # the router keeps the chat model + the embed resident (models-max 2). QuickSetup
 # re-picks for other boxes and writes onto every task preset (D4-1 protection: Phase 2).
 DEFAULT_ENGINE_PRESETS: list[dict] = [
-    {"id": "p_prose_voiced", "name": "Creative prose (voiced)", "provider_id": "local-llamacpp",
+    {"id": "p_prose_voiced", "name": "Generate prose", "name_was": "Creative prose (voiced)", "provider_id": "local-llamacpp",
      "model": "", "temperature": None, "top_p": 0.95, "json_mode": False, "position": 0,
      "samplers": {"min_p": "0.05", "xtc_probability": "0.3", "xtc_threshold": "0.1", "dry_multiplier": "0.8"}},
     {"id": "p_ideation", "name": "Ideation", "provider_id": "local-llamacpp",
      "model": "", "temperature": None, "top_p": 0.95, "json_mode": False, "position": 1,
      "samplers": {"min_p": "0.06", "xtc_probability": "0.5", "xtc_threshold": "0.1", "dry_multiplier": "0.8"}},
-    {"id": "p_prose_edit", "name": "Prose editing", "provider_id": "local-llamacpp",
+    {"id": "p_prose_edit", "name": "Edit prose", "name_was": "Prose editing", "provider_id": "local-llamacpp",
      "model": "", "temperature": None, "top_p": 0.90, "json_mode": False, "position": 2,
      "samplers": {"min_p": "0.08"}},
     {"id": "p_chat", "name": "Interactive chat", "provider_id": "local-llamacpp",
@@ -70,10 +70,10 @@ DEFAULT_ENGINE_PRESETS: list[dict] = [
     {"id": "p_extract", "name": "Structured extraction", "provider_id": "local-llamacpp",
      "model": "", "temperature": None, "top_p": 0.90, "json_mode": True, "position": 5,
      "samplers": {"min_p": "0", "seed": "7"}},
-    {"id": "p_judge", "name": "Judgment / scoring", "provider_id": "local-llamacpp",
+    {"id": "p_judge", "name": "Judgment & scoring", "name_was": "Judgment / scoring", "provider_id": "local-llamacpp",
      "model": "", "temperature": None, "top_p": 0.95, "json_mode": True, "position": 6,
      "samplers": {"min_p": "0.05", "seed": "7"}},
-    {"id": "p_digest", "name": "Grounded digest", "provider_id": "local-llamacpp",
+    {"id": "p_digest", "name": "Grounded summary", "name_was": "Grounded digest", "provider_id": "local-llamacpp",
      "model": "", "temperature": None, "top_p": 0.90, "json_mode": False, "position": 7,
      "samplers": {"min_p": "0.05"}},
 ]
