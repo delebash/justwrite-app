@@ -56,6 +56,30 @@ now:
 
 ## CURRENT STATE (2026-07-15)
 
+**⛔⛔ COMPACT POINT (2026-07-15, evening) — READ FIRST POST-COMPACT.** The **one-downloader
+consolidation** is **BUILT + VERIFIED + COMMITTED** (behind its own rules-checker verdict;
+PUSH held for the user's word). User's order: "regardless of what we download engine model
+whatever … reuse the control … stop repeating code". Shipped: ONE `createDownloadTask`
+composable + ONE `DownloadBar.vue` (its caption reuses the existing `progressCaption`, no
+fork); **Quick Setup adopts them fully** — three tasks (engineTask when the engine isn't
+installed, chatTask waiting on the engine, embedTask in parallel) — and the two domain
+singletons (`useEngine` · `useRunnerModels`) KEEP their pollers (merit-flagged: their poll
+subjects — a mutating models list, a 4-shape install — aren't finite self-started tasks) but
+reuse the ONE `progressCaption`, gain **cancel** (`useEngine.cancel()` → the engine panel's
+install bar; the catalog LOAD row → `/stop`), and `useRunnerModels` SPLITS its merged
+progress into `loadProgress` + `downloadProgress` (the lying shared label is dead). TWO server
+additions: NEW `POST /engine/install/cancel` (+ `_engine_cancel` worker event, `DownloadCancelled`
+→ not-installed idle) and a **true load-abort** (`cancel_check = model_id not in _resident` at the
+load's weights+MTP-draft download; `_run_load` catches cancel with no error state). Built ON TOP of
+runner `cf0fc59` / JW `af2a363`, SUBSUMING builder-1's uncommitted two-parallel-bars QuickSetup
+(fully replaced by the three-task version). Gates: runner pytest 509 (+3) · ruff · build:vite ·
+vitest **157** (+12 useDownloadTask) · headless smoke zero JS errors (pre-existing jscpd red only)
+· the extended Playwright driver **16/16 with screenshots read** (A three-bars, B engine cancel→
+retry→done, C catalog dual-channel different bytes). Shipped-as-flagged lean: embed-failure still
+advances to done with an honest note. Standing protocol (memory: [[fable-decides-opus-executes]]):
+Fable decides/plans, Opus executes code+tests+commits; **hard go-gate ON — nothing runs without the
+user's literal "go".** Full record: the plan doc's **ONE-DOWNLOADER CONSOLIDATION** section.
+
 > **Re-split 2026-07-15 (doc-sweep).** This section had grown to ~40 GO paragraphs
 > (2026-07-08 → 2026-07-14, all shipped + pushed) — ~4.5× the protocol's 25 KB ceiling.
 > Per the RECAP PROTOCOL above, they were collapsed into the summary below; their
@@ -82,10 +106,15 @@ by me this time.** TWO PROCESS LESSONS → memory: nobody ever LOOKED at the bui
 whole pipeline was green and wrong — [[verify-ui-layout-visually]] rewritten), and I wrote
 the "maybe fold this into Routing by feature" doubt into my own approval note and never
 asked it. Full record: the plan doc's **⛔ CORRECTION** section. **QuickSetup follow-on (same
-day):** Quick Setup's apply step now shows **two parallel download bars** (chat + embed at
+day):** Quick Setup's apply step now shows **parallel download bars** (chat + embed at
 once, each with its own Cancel/Retry — cancelling keeps the downloaded part), the **embed
 actually downloads during Apply**, and a successful Retry now advances the wizard; full record
-in the plan doc's **QUICKSETUP FOLLOW-ON** section.
+in the plan doc's **QUICKSETUP FOLLOW-ON** section. **One-downloader (same day, next):** those
+bars are now the ONE shared `DownloadBar` driven by the ONE `createDownloadTask` composable, so
+engine, model, and embed downloads reuse the same control everywhere — **Quick Setup installs
+the engine too** (its own third bar on a fresh-install first run) and **every bar (engine,
+model-load, model-download, embed) cancels and retries**; full record in the plan doc's
+**ONE-DOWNLOADER CONSOLIDATION** section.
 
 **GO (2026-07-15, same day: "go" + "keep going until its done" + "push") — THE ONE-SOURCE
 PRESET REWRITE IS BUILT, VERIFIED, COMMITTED + PUSHED.** Runner `8081539`; JW = this commit +

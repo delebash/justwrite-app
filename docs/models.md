@@ -33,7 +33,7 @@ built-in provider**) does the whole first-time setup:
    embedding on a well-equipped machine, and a smaller, faster one on a machine with less
    RAM, so every machine gets a working default. The dropdown still lists every embedding
    that runs on your box — picking a different one is a deliberate choice.
-4. It **downloads both models at the same time** — your general model and the search
+4. It **downloads everything at the same time** — the general model and the search
    (embedding) model run in **parallel, each with its own progress bar** showing the size,
    speed and time remaining, in plain language ("Downloading the model", "Loading it into
    your graphics card"). Each bar has its own **Cancel** and **Retry**: cancelling one keeps
@@ -43,6 +43,16 @@ built-in provider**) does the whole first-time setup:
    loads its weights, while the search model downloads beside it). Apply finishes with
    **both models present**, so your first sentence and your first "Ask the book" question
    don't pay a silent download wait.
+
+   **First run, engine not installed?** If the local engine (the program that actually runs
+   models) isn't installed yet, Quick Setup installs it too — as a **third progress bar** at
+   the top ("The engine"), with the **same Cancel and Retry** as the model bars. The engine
+   and the search model download in parallel right away; your general model waits its turn
+   ("Waiting for the engine…") and starts the moment the engine is ready. It's the same shared
+   download control everywhere — Quick Setup, the model catalog, and the Local engine panel all
+   use one bar, so downloading anything (engine, model, or embedding) always cancels and retries
+   the same way. If you cancel the engine, the model bar says so and continues once you retry the
+   engine.
 
 Quick Setup is **local-only**: it configures the **bundled runner** — the local engine that
 downloads and runs models on your machine — and nothing else. If you'd rather run models
