@@ -48,6 +48,20 @@ chmod +x "$DEST/hooks/arm-rules-gate.sh" "$DEST/hooks/verify-gate.py" \
          "$DEST/hooks/pre-action-check.py" "$DEST/hooks/task-gate.py" \
          "$DEST/hooks/commit-gate.py" "$DEST/hooks/gate-stats.py"
 
+# WINDOWS INTERPRETER FIX: on Windows `python3` resolves ONLY to the
+# Microsoft-Store App-Execution-Alias stub (WindowsApps\python3.exe), which
+# prints "Python was not found..." and exits non-zero — so every hook that
+# shells out to `python3` silently fails. The real interpreter there is
+# `python`. On Linux/macOS (incl. the Claude-Code-on-the-web container)
+# `python3` is correct and `python` may be missing or Python 2, so the bundle
+# stays `python3` and we rewrite the two provisioned files ONLY on Windows.
+case "$(uname -s 2>/dev/null)" in
+  MINGW*|MSYS*|CYGWIN*|Windows_NT)
+    sed -i 's/\bpython3\b/python/g' "$DEST/settings.json" "$DEST/hooks/arm-rules-gate.sh"
+    echo "claude-config: Windows detected — hook interpreter set to 'python'"
+    ;;
+esac
+
 # Remove the superseded SOFT reminders if a base image ever restores them
 # (replaced by the hard gates; user law: "never do soft").
 rm -f "$DEST/rules-reminder.txt" "$DEST/hooks/verify-first.sh" "$DEST/hooks/inject-recap.sh"

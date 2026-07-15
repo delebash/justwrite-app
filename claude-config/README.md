@@ -171,6 +171,24 @@ sessions start with `~/.claude` already in place. Idempotent and **cloud-only by
 default** (skips unless `CLAUDE_CODE_REMOTE=true`; override with `FORCE=1` — never
 clobbers a real local `~/.claude`).
 
+### Windows local install (the interpreter difference)
+
+The web container runs **Linux**, where the hooks correctly invoke `python3`. On a
+**local Windows** machine `python3` resolves only to the Microsoft-Store
+App-Execution-Alias stub (`WindowsApps\python3.exe`) — it prints *"Python was not
+found…"* and exits non-zero, so every gate silently fails. The real interpreter there
+is `python`. `install.sh` therefore detects Windows (`uname -s` → `MINGW*`/`MSYS*`/
+`CYGWIN*`) and **rewrites `python3`→`python`** in the two provisioned files that invoke
+it (`settings.json` + `hooks/arm-rules-gate.sh`) while leaving the committed bundle as
+`python3` for its Linux target. So the local path is just:
+
+```bash
+FORCE=1 bash claude-config/install.sh   # Windows: auto-sets the hook interpreter to `python`
+```
+
+(The one manual command not covered by the rewrite is the bundle-only harness on
+line 62 — run it as `python claude-config/hooks/test_gates.py` on Windows.)
+
 ## Maintenance — the bundle vs live can drift
 
 This is the **restore source**, not the live config. When you change live `~/.claude`,
