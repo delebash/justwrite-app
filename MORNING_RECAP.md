@@ -46,17 +46,23 @@ now:
    docs.** So this map summarizing here is now explicitly sanctioned, not a tolerated exception.
    **1b — WHAT "full detail" MEANS (scoped 2026-07-15, user's ask "does that cut the time"):**
    the record answers exactly five questions — **what changed · WHY · file:line · how to verify ·
-   what would reverse it** — plus what is still OPEN. In full prose, no truncation: that part
-   stays, because it is what a future session actually needs and it is NOT where the time goes.
-   What is now OUT: retrospective narrative, measured-cost anecdotes, lessons essays, and
-   meta-commentary about the process. **The evidence for the cut (2026-07-15):** a 136-line
-   ledger entry took FIVE checker rounds; the code passed at round 1, and rounds 2-5 (~28 of 36
-   minutes) fact-checked *prose*. All four false claims the checker found lived in the narrative
-   padding; **zero** were in the file:line technical record. So the padding is not merely slow —
-   it is where the errors breed. Same rule, sharper scope: the detail that prevents mistakes is
-   kept, the storytelling that generates them is gone. (Rewritten to this shape, that entry went
-   137 → 84 lines with every technical fact intact.) Durable form: `claude-config/EFFECTIVENESS.md`,
-   the 2026-07-15 entry, lesson 4.
+   what would reverse it** — plus what is still OPEN. In full prose, no truncation. OUT:
+   retrospective narrative, measured-cost anecdotes, lessons essays, meta-commentary. Rewritten
+   to this shape a 136-line entry became 84 with every technical fact intact.
+   **⚠ HONEST GROUNDS — a second pass overturned this rule's first rationale, keep the correction
+   visible.** I originally justified the cut as "the padding is where the errors breed: all four
+   false claims lived in the narrative, zero in the file:line record." **That was itself false** —
+   an unverified claim written INTO the rule against unverified claims. The audit: essentially
+   every defect the checker caught that day lived in the TECHNICAL record — the sweep table, its
+   file:line column (stale 3×), the volatile log counts, the "Verified:" line, the docstring
+   promises, the WHY. **Zero were in the padding.** So cutting narrative saves READING cost — a
+   real but modest win — and would not have prevented a single round. The thing that actually
+   prevents them is mechanical, not editorial: **pin every claim with a test** (`test_ledger_refs`
+   re-checks each cited file:line and fails the suite on a stale one — it killed a class that had
+   cost three checker rounds, and caught the next one within minutes), **quote invariants, never
+   volatile measurements**, and **enumerate units with an unfiltered command**. Keep 1b for
+   brevity's own sake; do not believe it makes the record truer. Durable form:
+   `claude-config/EFFECTIVENESS.md`, the 2026-07-15 entry.
 2. **This file gets a SHORT pointer paragraph per go** — what shipped, the commit shas, where
    the full record lives, what's open. A few sentences, never the full narrative twice.
 3. **History never accumulates here.** When a stretch of work closes, its pointer paragraphs

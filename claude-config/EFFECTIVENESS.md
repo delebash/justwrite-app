@@ -195,10 +195,19 @@ tracked copies.
 3. **Never quote a volatile measurement as a present-tense fact; quote the invariant.** Two
    drafts cited a log's line count — the verification runs append to that very log, so each
    count was stale before it was read.
-4. **Records: technical detail in full, narrative padding at zero.** Rounds 2-5 (~28 of the
-   36 minutes) fact-checked *prose*, not code — the code passed at round 1. All four false
-   claims lived in the retrospective storytelling; none in the file:line record. Detail docs
-   carry what changed · WHY · file:line · how to verify · what reverses it — and stop.
+4. **Records: technical detail in full, narrative padding at zero — but for READING cost, not
+   because padding is where errors breed.** The first draft of this lesson claimed "all four
+   false claims lived in the retrospective storytelling; none in the file:line record." **A
+   second pass found that false** — an unverified claim inside the lesson about unverified
+   claims. The audit: nearly every defect lived in the TECHNICAL record — the sweep table, its
+   file:line column (stale three times), the volatile log counts, the "Verified:" line, the
+   docstring promises, the WHY. Essentially none in the padding. So brevity would not have
+   saved one round. **What actually kills these is mechanical: pin each claim with a test**
+   (`test_ledger_refs` re-checks every cited file:line and fails the suite on a stale one — it
+   ended a class that had cost three rounds and caught the next instance within minutes),
+   **quote invariants not volatile measurements, and enumerate with an unfiltered command.**
+   Detail docs still carry what changed · WHY · file:line · how to verify · what reverses it —
+   and stop — because it is less to read, which is worth having on its own.
 
 **Foot-gun:** `E:\Dev\Web\claude-config` is a 4th clone (same remote, stale at `fc89bba`)
 carrying the old hook; running its `install.sh` resurrects the bug. Delete or pull it.
