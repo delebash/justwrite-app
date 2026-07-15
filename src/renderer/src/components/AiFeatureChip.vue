@@ -6,7 +6,8 @@
 // longer edits a pin. It shows what the feature's task RUNS ON right now —
 // the server-resolved route (task preset → dispatch fallback) from
 // GET /v1/ai/resolved-route via the kit's useResolvedRoute cache — and
-// clicking it navigates to the Tasks tab, where routing is edited.
+// clicking it navigates to the Tasks tab, where routing is edited. When mounted
+// with :editable (ChatPanel), the kit chip instead opens its preset edit doorway.
 
 import { computed, unref, watchEffect } from "vue";
 import { useRouter } from "vue-router";
@@ -17,6 +18,8 @@ const props = defineProps({
   feature: { type: String, required: true },
   label:   { type: String, default: "" },
   compact: { type: Boolean, default: false },
+  // Opt-in edit doorway — passed straight through to the kit chip (false = read-only).
+  editable: { type: Boolean, default: false },
 });
 
 const router = useRouter();
@@ -55,5 +58,7 @@ function goToTasks() {
     :compact="compact"
     :resolved-provider-name="providerName"
     :resolved-model="model"
+    :editable="editable"
+    :route="route"
     @navigate="goToTasks" />
 </template>

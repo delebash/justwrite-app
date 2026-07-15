@@ -13,7 +13,7 @@
 import { existsSync, readdirSync } from "node:fs";
 import { createRequire } from "node:module";
 
-const require = createRequire("/home/user/justwrite-app/scripts/headless-smoke.mjs");
+const require = createRequire(import.meta.url);
 const { chromium } = require("playwright");
 
 function findChrome() {
@@ -58,16 +58,17 @@ const builtinId = (providers.find((p) => p.providerType === "local-llamacpp") ||
 for (const p of origPresets) {
   await api(`/v1/ai/engine-presets/${p.id}`, { method: "PUT", body: { ...p, providerId: builtinId, model: "qc-probe-model" } });
 }
+// 2026-07-15 one-source: the routing PUT body is {default} only — the pins tier no
+// longer fires in JW (it never populates feature_pins), so the wire carries no pins.
 await api("/v1/ai/routing", { method: "PUT", body: {
   default: { ...(origRouting.default || {}), providerId: builtinId, model: "qc-probe-model",
              embeddingId: "local-llamacpp", embeddingModel: "qc-probe-embed" },
-  pins: origRouting.pins || {},
 } });
 async function restoreDb() {
   for (const p of origPresets) {
     await api(`/v1/ai/engine-presets/${p.id}`, { method: "PUT", body: p }).catch(() => {});
   }
-  await api("/v1/ai/routing", { method: "PUT", body: { default: origRouting.default, pins: origRouting.pins || {} } }).catch(() => {});
+  await api("/v1/ai/routing", { method: "PUT", body: { default: origRouting.default } }).catch(() => {});
 }
 
 const routing = await api("/v1/ai/routing");
@@ -129,21 +130,24 @@ await page.evaluate(() => {
 });
 await sleep(500);
 
-// ── Tasks tab — QC-24 + QC-23 ──
+// ── Routing-by-feature tab — QC-24 + QC-23 (2026-07-15: the task tier is gone; the
+// per-action test affordances live on the Workbench, selected by action card) ──
 await page.evaluate(() => {
-  [...document.querySelectorAll(".lu-subnav a")].find((a) => a.textContent.trim() === "Routing by task")?.click();
+  [...document.querySelectorAll(".lu-subnav a")].find((a) => a.textContent.trim() === "Routing by feature")?.click();
 });
 await sleep(2000);
 
+// Select an ACTION by its nav-card label (replaces the old per-task open).
 async function openTask(label) {
   await page.evaluate((l) => {
-    [...document.querySelectorAll(".lu-fw-card")].find((c) => c.querySelector(".lu-fw-card-label")?.textContent.trim().startsWith(l))?.click();
+    [...document.querySelectorAll(".lu-fw-list .lu-fw-card")]
+      .find((c) => (c.querySelector(".lu-fw-card-label")?.textContent.trim() || "").startsWith(l))?.click();
   }, label);
   await sleep(1500);
 }
 
-// QC-24a: In-character chat — Sample present + fills all four boxes.
-await openTask("In-character chat");
+// QC-24a: Character chat (characterChat action) — Sample present + fills all four boxes.
+await openTask("Character chat");
 const q24a = await page.evaluate(() => {
   const fill = document.querySelector(".lu-fw-testin-fill");
   const header = document.querySelector(".lu-fw-testin-h");
@@ -174,8 +178,8 @@ check("QC-24: Sample fills Character profile", (q24fill["Character profile"] || 
 check("QC-24: Sample fills Question + Excerpts",
   (q24fill.Question || "").length > 10 && (q24fill.Excerpts || "").length > 10);
 
-// QC-24b: Grounded chat — the chapter picker now applies ({question, excerpts}).
-await openTask("Grounded chat");
+// QC-24b: Ask the book (chat action) — the chapter picker now applies ({question, excerpts}).
+await openTask("Ask the book");
 const q24b = await page.evaluate(() => {
   const fill = document.querySelector(".lu-fw-testin-fill");
   const pickers = fill ? [...fill.querySelectorAll(".ui-select-trigger")] : [];
@@ -188,8 +192,8 @@ const q24b = await page.evaluate(() => {
 check("QC-24: Grounded chat offers the chapter picker (was: NONE)", q24b.chapterPicker, `pickers=${q24b.pickerCount}`);
 check("QC-24: Grounded chat has a Sample button", q24b.hasSample);
 
-// QC-24c: Structured extraction — every picker + Sample in the ONE row.
-await openTask("Structured extraction");
+// QC-24c: Entity sweep (a structured-extraction action) — every picker + Sample in the ONE row.
+await openTask("Entity sweep");
 const q24c = await page.evaluate(() => {
   const fill = document.querySelector(".lu-fw-testin-fill");
   if (!fill) return { hasFillRow: false };

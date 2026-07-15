@@ -3,8 +3,9 @@ their human label, a one-line hint, and the nav group. A per-app feature seed
 (registered with the shared LLM stack via `install_llm`).
 
 The 4th field is the nav `group` (display-only — how features are grouped in the
-UI). It is NOT the routing key: routing is by LLM-work taskKind (see
-seed_presets.FEATURE_TASK_KINDS). The entries below pass it positionally.
+UI). It is NOT the routing key: each action routes via its own preset ref (see
+seed_presets.DEFAULT_FEATURE_PRESETS, 2026-07-15 one-source model). The entries
+below pass it positionally.
 
 Server-side + headless-first (the shared `/v1/ai/routing` endpoint serves it).
 """

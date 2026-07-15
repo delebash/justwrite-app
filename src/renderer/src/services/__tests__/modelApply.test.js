@@ -1,8 +1,11 @@
 // The KIT modelApply writer (B2-9, queue §7.2) — the ONE set-as-default path shared
 // by the catalog Default button, QuickSetup, and the provider rows' "Set as default".
-// Under test: the §7.2 overwrite choice — keep-my-customized (default: a task whose
-// preset provider/model differs from the CURRENT default pair is hand-picked and
-// keeps its routing) vs overwrite (every task preset repoints). The kit module is
+// Under test: the §7.2 overwrite choice — keep-my-customized (default: a preset whose
+// provider/model differs from the CURRENT default pair is hand-picked and keeps its
+// routing) vs overwrite (every assigned preset repoints). 2026-07-15 one-source rewrite:
+// the task tier is gone — `dominantOf` walks `assignments.features` (action→presetId)
+// values + `defaultPresetId`, so the fixture below keys the assignment map by ACTION.
+// The kit module is
 // imported REAL via the alias subpath (the embedApi.test.js precedent); only the kit
 // client transport + the routing composable are mocked.
 import { beforeEach, describe, expect, it, vi } from "vitest";
@@ -30,12 +33,19 @@ const ROUTING_URL = "/v1/ai/routing";
 
 // The seeded-ish shape: three presets on the current default pair (local gemma),
 // one hand-picked to OpenAI, one on the SAME model name under a DIFFERENT provider
-// (the §7.2 pair rule: provider OR model differing = customized).
+// (the §7.2 pair rule: provider OR model differing = customized). `features` is the
+// one-source per-ACTION assignment map (action key → preset id); its values are what
+// `dominantOf` walks, so the four actions below point at the four non-default presets.
 function fixture() {
   return {
     assignments: {
       defaultPresetId: "p-default",
-      taskKinds: { write: "p-write", chat: "p-chat", custom: "p-custom", same: "p-samename" },
+      features: {
+        "writerAI.rewrite": "p-write",
+        chat: "p-chat",
+        brainstorm: "p-custom",
+        critique: "p-samename",
+      },
     },
     presets: [
       { id: "p-default", name: "Default", position: 0, providerId: "local-llamacpp", model: "gemma" },
@@ -78,14 +88,14 @@ describe("setAsDefault — §7.2 overwrite choice", () => {
     }
   });
 
-  it("keeps every other per-task setting on the PUT body (only routing changes)", async () => {
+  it("keeps every other preset setting on the PUT body (only routing changes)", async () => {
     await setAsDefault("openrouter", "kimi");
     const def = putCalls().find((p) => p.id === "p-default");
     expect(def.body.name).toBe("Default");
     expect(def.body.position).toBe(0);
   });
 
-  it("overwrite: EVERY task preset repoints, customized included", async () => {
+  it("overwrite: EVERY assigned preset repoints, customized included", async () => {
     await setAsDefault("openrouter", "kimi", { overwrite: true });
     expect(putCalls().map((p) => p.id).sort()).toEqual(
       ["p-chat", "p-custom", "p-default", "p-samename", "p-write"],

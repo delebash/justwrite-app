@@ -61,7 +61,24 @@ now:
 > Per the RECAP PROTOCOL above, they were collapsed into the summary below; their
 > verbatim text is appended to `docs/plans/2026-07-08-recap-archive.md` (and lives in git
 > history). Per-go detail stays in the plan docs named in the ACTIVE DOC INDEX.
-> **Nothing new is armed — answer questions first, then wait for the user's word.**
+
+**GO (2026-07-15, same day: "go" + "keep going until its done" + "push") — THE ONE-SOURCE
+PRESET REWRITE IS BUILT, VERIFIED, COMMITTED + PUSHED.** Runner `8081539`; JW = this commit +
+its claude-config sibling (rebased onto the doc-sweep). Executed by Opus subagents per the
+user's protocol, each stage spot-verified. The task tier, prompt-row params, `_effective_spec`,
+the dormant sampler + FeaturePreset systems, JW's pin plumbing, and PromptLab are GONE (no
+legacy fallbacks — the user's word); action → preset is the one source; the shared
+`FeaturePinConfig`/`resolve_pin` contract is KEPT (JustVoice-live). Gates all green: runner
+pytest 506 · JW server 107 · vitest 145 · build ✓ · FULL smoke zero JS errors (isolated temp
+DB, live data untouched) · NEW presets-probe 22/22 incl. the flattening pin · the repointed
+fleet green (3 pre-existing/environmental reds, root-caused). **Full record: the plan doc's
+BUILD RECORD — `just-llm-runner/docs/plans/2026-07-15-preset-one-source-rewrite.md`; the
+approval + panel history live there too.** Docs shipped with it: `docs/presets.md` (replaces
+tasks.md), models.md swept, CLAUDE.md pointer, the 2026-07-14 plan bannered. OPEN after this
+go: the USER's box checks (local High chat stops at the hardware cap; new-Anthropic run
+clean) · `docs/ai-providers.md` still teaches the 3-tier/read-only-chip model (the doc-sweep
+predated this rewrite by hours — needs a one-source re-sweep) · the claude-config
+subagent-hook bypass follow-up.
 
 **Heads at this re-split:** JW `49ad7b5` · runner `493f8ef` — both clean, 0-ahead / 0-behind origin.
 

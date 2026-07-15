@@ -363,8 +363,8 @@ defineExpose({ open: () => { open.value = true; }, close });
           </h2>
         </div>
         <div class="cp-head-actions">
-          <AiFeatureChip v-if="chatMode === 'character'" feature="characterChat" label="Talk to character" />
-          <AiFeatureChip v-else feature="chat" label="Ask the book" />
+          <AiFeatureChip v-if="chatMode === 'character'" feature="characterChat" label="Talk to character" editable />
+          <AiFeatureChip v-else feature="chat" label="Ask the book" editable />
           <UiButton intent="ghost" size="small" @click="close">
             <Icon name="Close" :size="12" /> Close
           </UiButton>

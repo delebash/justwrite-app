@@ -57,16 +57,21 @@ describe("useResolvedRoute — write invalidation (chips update without a reload
     expect(routeFor("critique")).toMatchObject({ configured: true, model: "picked-by-quicksetup" });
   });
 
-  it("EVERY non-GET kit write invalidates (providers/routing/task-kinds/anything); GETs do NOT", async () => {
+  it("EVERY non-GET kit write invalidates (providers/routing/presets/assignments/anything); GETs do NOT", async () => {
     // Any-write invalidation is the checker-corrected final shape: the first
     // cut allow-listed three endpoint families and missed two live
     // route-changers (/v1/llm-providers PATCH/DELETE mutates the provider
-    // registry resolved-route reads; /v1/ai/routing PUT feeds resolve_pin).
+    // registry resolved-route reads; a preset/assignment write repoints what a
+    // run resolves to). 2026-07-15 one-source rewrite: the task tier is gone —
+    // the live route-changers are the per-action ref PUT + the engine-preset
+    // writes (params live only on presets now), so the legs below drive THOSE.
     const fetchMock = vi.fn(async () => jsonResponse({ providerId: "p", model: "m", configured: true }));
     vi.stubGlobal("fetch", fetchMock);
     for (const [path, method] of [
-      ["/v1/ai/task-kinds/feature", "PUT"],
-      ["/v1/ai/preset-assignments/task-kind", "PUT"],
+      ["/v1/ai/preset-assignments/feature", "PUT"],
+      ["/v1/ai/preset-assignments/default", "PUT"],
+      ["/v1/ai/engine-presets/pr1", "PUT"],
+      ["/v1/ai/engine-presets/pr1/reset", "POST"],
       ["/v1/llm-providers/p1", "DELETE"],
       ["/v1/ai/routing", "PUT"],
       ["/v1/ai/prompts/greet", "PUT"],
@@ -80,5 +85,29 @@ describe("useResolvedRoute — write invalidation (chips update without a reload
     await ensureRoute("chat");
     await request("/v1/ai/engine-presets");
     expect(routeFor("chat")).toMatchObject({ model: "m" });
+  });
+
+  // 2026-07-15 one-source wire: resolved-route rows carry presetSource
+  // ("assigned" | "default") + presetId/presetName — the two-tier resolution
+  // (the action's ref → the global default preset; the task tier is gone). The
+  // cache preserves the whole row verbatim (presentation is the consumer's job),
+  // so a provenance chip reads the tier straight from the cached row.
+  // NB: the resolved-route SERVER endpoint also gained optional providerId/model
+  // OVERRIDE params (a Lab column asking for its pinned route's cap) — the
+  // composable's chip path never passes them (verified: no consumer forwards
+  // override through the cache), so that leg is exercised live in
+  // scripts/presets-probe.mjs against the running server, not mocked here.
+  it("caches the one-source resolved-route row verbatim, presetSource included", async () => {
+    const row = {
+      feature: "critique", action: "", providerId: "local-llamacpp", model: "gemma",
+      presetId: "p_judge", presetName: "Judgment & scoring", presetSource: "assigned",
+      configured: true,
+    };
+    const fetchMock = vi.fn(async () => jsonResponse(row));
+    vi.stubGlobal("fetch", fetchMock);
+    await ensureRoute("critique");
+    expect(routeFor("critique")).toMatchObject({
+      presetId: "p_judge", presetName: "Judgment & scoring", presetSource: "assigned",
+    });
   });
 });

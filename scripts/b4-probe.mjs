@@ -1,30 +1,41 @@
-// B4 probe — asserts the USER'S WORDS directly (the acceptance-diff discipline):
-// #28 "move add a feature to same line as feature in this task"
-// #29 "features … one column, make it 2 and move the Preset & test line … to the second column"
-// #35 "don't make a specific advance section in the switches … one column"
-// #30 "sample button with some sample data we have in database" + §7.3 Insert-from pickers.
-// QC-9 "does it make sense to drop character info for generate prose?" — NO: a picker
-//   renders only when its source can fill one of the open feature's boxes.
-// OPTION A (QC-15/16): "remove it, this is stupid" (the Default-preset fallback row) ·
-//   "no special popup just plan easy form" (in-pane create + inline rename; Save refuses
-//   until name AND preset are set) · honest move affordances ("Move a feature here…",
-//   options name the task each feature comes from).
+// B4 probe — the Presets-page LAYOUT / UX-invariant acceptance (2026-07-15 one-source
+// rewrite). The TaskKinds page this probe originally asserted is DELETED; the Presets
+// page is its successor and this probe is repointed to it. It keeps B4's "acceptance-diff
+// discipline" for the PAGE STRUCTURE + the Option-A create/rename/delete UX:
+//   #28  the assign-a-feature picker sits ON the "Features using this preset" heading line;
+//   #29  REPLACED (was: two columns) → the detail is a SINGLE pane; the two-column
+//        task layout is gone with the task tier. FLAGGED design change.
+//   A1   no Default-preset fallback row; "Reset all to defaults" survives in the aside;
+//   A2   the assign picker reads "Assign a feature here…" and every option names the
+//        preset the feature comes FROM (honest move provenance);
+//   A3   "+ New preset" opens an IN-PANE form (no popup) with Save disabled while empty;
+//   A4   REPLACED (was: a preset is required to Save) → the create form is NAME-ONLY now
+//        (a preset owns its own params; there is no preset-of-a-preset). Name alone
+//        enables Save, and the form carries NO preset picker. FLAGGED design change.
+//   A5-A7 create round-trip · inline rename on blur · delete cleanup.
+// The per-ACTION test-input affordances (old #30/QC-9/QC-35/#35 checks) moved off this
+// page: qc35-probe.mjs owns them on the Routing-by-feature Workbench, and
+// headless-smoke.mjs owns the one-flat-column sampler grid. The functional create/assign
+// flow is also covered end-to-end by presets-probe.mjs; here the focus is the LAYOUT diff.
 // findChrome copied from scripts/headless-smoke.mjs per JW CLAUDE.md.
 import { existsSync, readdirSync } from "node:fs";
 import { createRequire } from "node:module";
 
-const require = createRequire("/home/user/justwrite-app/scripts/headless-smoke.mjs");
+const require = createRequire(import.meta.url);
 const { chromium } = require("playwright");
-const OUT = "/tmp/claude-0/-home-user/3cfd68b9-10db-5b2c-8f07-e258fb196800/scratchpad";
 
 function findChrome() {
   if (process.env.JW_CHROME && existsSync(process.env.JW_CHROME)) return process.env.JW_CHROME;
-  for (const root of ["/opt/pw-browsers", `${process.env.HOME || ""}/.cache/ms-playwright`]) {
-    if (!existsSync(root)) continue;
+  const roots = ["/opt/pw-browsers", `${process.env.HOME || ""}/.cache/ms-playwright`,
+    `${process.env.LOCALAPPDATA || ""}/ms-playwright`];
+  for (const root of roots) {
+    if (!root || !existsSync(root)) continue;
     for (const dir of readdirSync(root)) {
       if (!dir.startsWith("chromium") || dir.includes("headless_shell")) continue;
-      const exe = `${root}/${dir}/chrome-linux/chrome`;
-      if (existsSync(exe)) return exe;
+      for (const sub of ["chrome-linux/chrome", "chrome-win64/chrome.exe", "chrome-win/chrome.exe"]) {
+        const exe = `${root}/${dir}/${sub}`;
+        if (existsSync(exe)) return exe;
+      }
     }
   }
   return undefined;
@@ -33,7 +44,7 @@ function findChrome() {
 const results = [];
 const check = (name, ok, note = "") => {
   results.push({ name, ok });
-  console.log(`${ok ? "✓" : "✗"} ${name}${note ? ` — ${note}` : ""}`);
+  console.log(`${ok ? "✓" : "✗"} ${name}${note ? ` — ${String(note).slice(0, 200)}` : ""}`);
 };
 const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
 
@@ -45,190 +56,68 @@ page.on("pageerror", (e) => errors.push(e.message.slice(0, 200)));
 await page.goto("http://localhost:1420", { waitUntil: "networkidle" });
 await sleep(1500);
 try { await page.click('button:has-text("Got it")', { timeout: 1500 }); } catch { /* none */ }
-// The Tasks tab lives in the AI area.
+
+// The Presets tab lives in the AI area.
 await page.evaluate(() => { window.location.hash = "#/ai"; });
 await sleep(1500);
 await page.evaluate(() => {
-  [...document.querySelectorAll(".lu-subnav button, .lu-subnav a, [role=tab], button")]
-    .find((b) => b.textContent.trim() === "Routing by task")?.click();
+  [...document.querySelectorAll(".lu-subnav a")].find((a) => a.textContent.trim() === "Presets")?.click();
 });
 await sleep(2000);
 
-// #28: the add-a-feature picker sits ON the "Features in this task" heading line.
+// #28: the assign-a-feature picker sits ON the "Features using this preset" heading line.
 const b41 = await page.evaluate(() => {
-  const h = [...document.querySelectorAll(".lu-tk-sec-h")].find((x) => x.textContent.includes("Features in this task"));
+  const h = [...document.querySelectorAll(".lu-tk-sec-h")].find((x) => x.textContent.includes("Features using this preset"));
   return { headerHasAdd: !!h?.querySelector(".ui-select-trigger"), strayAddBelow: !!document.querySelector(".lu-tk-members ~ .ui-select-trigger") };
 });
-check("#28 Add-a-feature is ON the Features heading line", b41.headerHasAdd && !b41.strayAddBelow, JSON.stringify(b41));
+check("#28 Assign-a-feature is ON the Features heading line", b41.headerHasAdd && !b41.strayAddBelow, JSON.stringify(b41));
 
-// #29: two columns — Features left, Preset & test right; the Lab spans below.
-const b42 = await page.evaluate(() => {
-  const cols = document.querySelector(".lu-tk-cols");
-  if (!cols) return { cols: false };
-  const secs = [...cols.querySelectorAll(":scope > .lu-tk-sec")];
-  const [a, b] = secs.map((s) => s.getBoundingClientRect());
-  return {
-    cols: true, sections: secs.length,
-    left: secs[0]?.textContent.includes("Features in this task"),
-    right: secs[1]?.textContent.includes("Preset & test") && secs[1]?.textContent.includes("Test against"),
-    sideBySide: a && b && Math.abs(a.top - b.top) < 8 && b.left > a.right - 4,
-    labBelow: !!document.querySelector(".lu-tk-cols ~ .lu-tk-sec .lu-fw-tune"),
-  };
-});
-check("#29 two columns (features | preset & test-against), Lab full-width below",
-  b42.cols && b42.sections === 2 && b42.left && b42.right && b42.sideBySide && b42.labBelow, JSON.stringify(b42));
-
-// #30/§7.3: the Sample button fills the vars from the DB sample; Insert-from pickers render.
-// Wait FOR the button (the samples fetch lands async) instead of a fixed sleep.
-let sampleReady = false;
-for (let i = 0; i < 16 && !sampleReady; i++) {
-  sampleReady = await page.evaluate(() =>
-    [...document.querySelectorAll(".lu-fw-testin-fill button")].some((b) => b.textContent.trim() === "Sample"));
-  if (!sampleReady) await sleep(500);
-}
-const diag = await page.evaluate(() => ({
-  active: document.querySelector(".lu-fw-card.is-active")?.textContent.trim().slice(0, 40),
-  testin: !!document.querySelector(".lu-fw-testin"),
-  hdr: [...document.querySelectorAll(".lu-fw-testin-fill button")].map((b) => b.textContent.trim().slice(0, 24)),
+// #29 REPLACED (design change, flagged): the detail is a SINGLE pane — the old
+// two-column task layout (.lu-tk-cols) is gone with the task tier; the members list
+// and the Lab stack vertically in the one edit pane.
+const b42 = await page.evaluate(() => ({
+  twoCol: !!document.querySelector(".lu-tk-cols"),
+  singlePane: !!document.querySelector(".lu-fw-edit"),
+  sections: document.querySelectorAll(".lu-fw-edit .lu-tk-sec").length,
 }));
-console.log("DIAG:", JSON.stringify(diag));
-const before = await page.evaluate(() => {
-  const ta = document.querySelector(".lu-fw-testin textarea");
-  return ta ? ta.value : null;
-});
-await page.evaluate(() => {
-  [...document.querySelectorAll(".lu-fw-testin-fill button")].find((b) => b.textContent.trim() === "Sample")?.click();
-});
-await sleep(800);
-const b44 = await page.evaluate(() => {
-  const ta = document.querySelector(".lu-fw-testin textarea");
-  const srcs = [...document.querySelectorAll(".lu-fw-testin-fill .ui-select-trigger")];
-  return {
-    sampleBtn: [...document.querySelectorAll(".lu-fw-testin-fill button")].some((b) => b.textContent.trim() === "Sample"),
-    filled: (ta?.value || "").length > 20,
-    text: (ta?.value || "").slice(0, 60),
-    sources: srcs.length,
-  };
-});
-check("#30 Sample button exists and fills the test input from the DB",
-  b44.sampleBtn && b44.filled && before !== b44.text, b44.text);
+check("#29 (was 2-col) NEW: single detail pane, no .lu-tk-cols two-column layout",
+  !b42.twoCol && b42.singlePane && b42.sections >= 1, JSON.stringify(b42));
 
-// QC-9: on a prose feature ({passage, voiceCanon}) the character/location sources
-// can't fill any box — ONLY the chapter picker may render (the user's sentence:
-// "does it make sense to drop character info for generate prose?" — no).
-const qc9a = await page.evaluate(() => {
-  const labels = [...document.querySelectorAll(".lu-fw-testin .lu-field > label")].map((l) => l.textContent.trim());
-  const triggers = [...document.querySelectorAll(".lu-fw-testin-fill .ui-select-trigger")].map((t) => t.textContent.trim());
-  return { labels, triggers };
-});
-check("QC-9 prose feature: chapter picker only — no character/location pickers",
-  qc9a.triggers.length === 1 && /chapter/i.test(qc9a.triggers[0] || "")
-    && !qc9a.triggers.some((t) => /character|location/i.test(t)),
-  JSON.stringify(qc9a));
-
-// Checker-caught fix (2026-07-08): Insert-from-CHAPTER must actually FILL the
-// {{passage}} writing features, not just render. Clear the passage var, open
-// the chapter picker, choose the first chapter, assert the textarea fills.
-await page.evaluate(() => {
-  const ta = document.querySelector(".lu-fw-testin textarea");
-  const set = Object.getOwnPropertyDescriptor(window.HTMLTextAreaElement.prototype, "value").set;
-  set.call(ta, "");
-  ta.dispatchEvent(new Event("input", { bubbles: true }));
-});
-await page.click('.lu-fw-testin-fill .ui-select-trigger:has-text("Insert from chapter")');
-await sleep(700);
-const picked = await page.evaluate(() => {
-  const opts = [...document.querySelectorAll("[role=option]")];
-  const first = opts.find((o) => !/Insert from/.test(o.textContent));
-  if (!first) return null;
-  const label = first.textContent.trim().slice(0, 30);
-  first.dispatchEvent(new PointerEvent("pointerup", { bubbles: true }));
-  first.click();
-  return label;
-});
-await sleep(900);
-const chapFill = await page.evaluate(() => {
-  const ta = document.querySelector(".lu-fw-testin textarea");
-  return (ta?.value || "").slice(0, 50);
-});
-check("checker-fix: Insert-from-chapter FILLS the passage on a writing feature",
-  !!picked && chapFill.length > 20, `chapter="${picked}" passage="${chapFill}"`);
-await page.screenshot({ path: `${OUT}/b4-tasks.png` });
-
-// QC-35 (supersedes the QC-9 all-three-pickers check): affordances are
-// PER-ACTION declarations now — a composed user_content feature offers its own
-// composer path (a picker running it, the "From this book" button, or Sample);
-// the generic always-on picker set is gone and the location picker no longer
-// exists anywhere (no prompt consumes a location — the user's word).
-await page.evaluate(() => {
-  [...document.querySelectorAll(".lu-fw-list .lu-fw-card")]
-    .find((c) => c.textContent.includes("Structured extraction"))?.click();
-});
-await sleep(1200);
-const qc35 = await page.evaluate(() => {
-  const fill = document.querySelector(".lu-fw-testin-fill");
-  const triggers = fill ? [...fill.querySelectorAll(".ui-select-trigger")].map((t) => t.textContent.trim()) : [];
-  const buttons = fill ? [...fill.querySelectorAll("button")].map((b) => b.textContent.trim()) : [];
-  return { hasFillRow: !!fill, triggers, buttons };
-});
-check("QC-35 composed feature: a declared affordance renders (picker / From this book / Sample)",
-  qc35.hasFillRow
-    && (qc35.triggers.length > 0 || qc35.buttons.some((b) => b === "From this book" || b === "Sample")),
-  JSON.stringify(qc35));
-check("QC-35: the location picker is gone everywhere",
-  !qc35.triggers.some((t) => /location/i.test(t)), JSON.stringify(qc35.triggers));
-
-// #35: the Lab column's sampler grid is ONE flat column (no Advanced, no multi-column).
-await page.evaluate(() => {
-  const d = [...document.querySelectorAll(".cc-samplers")];
-  for (const el of d) el.open = true;
-});
-await sleep(600);
-const b43 = await page.evaluate(() => {
-  const grid = document.querySelector(".cc-samplers .ui-kg-check");
-  if (!grid) return { grid: false };
-  const rows = [...grid.querySelectorAll(".ui-kg-crow")];
-  const lefts = new Set(rows.map((r) => Math.round(r.getBoundingClientRect().left)));
-  return {
-    grid: true, rows: rows.length,
-    oneColumn: lefts.size === 1,
-    advToggle: !!grid.querySelector(".ui-kg-advtoggle"),
-    multiCol: grid.classList.contains("is-cols"),
-  };
-});
-check("#35 samplers: ONE flat column — no Advanced section, no column spread",
-  b43.grid && b43.rows > 5 && b43.oneColumn && !b43.advToggle && !b43.multiCol, JSON.stringify(b43));
-await page.screenshot({ path: `${OUT}/b4-samplers.png` });
-
-// ── OPTION A (QC-15/16, 2026-07-09) ─────────────────────────────────────────
-// A1: the Default-preset fallback row is GONE; "Reset all" survives in the aside.
+// A1: no Default-preset fallback row; "Reset all" survives in the aside.
 const a1 = await page.evaluate(() => ({
   fallback: !!document.querySelector(".lu-tk-default-k"),
   resetAll: [...document.querySelectorAll(".lu-fw-list button")].some((b) => b.textContent.includes("Reset all to defaults")),
 }));
 check("A1 QC-15: no Default-preset fallback row; Reset-all survives", !a1.fallback && a1.resetAll, JSON.stringify(a1));
 
-// A2: the add-picker is honest — "Move a feature here…" + every option names the
-// task the feature would come FROM.
-const a2 = await page.evaluate(() => {
-  const h = [...document.querySelectorAll(".lu-tk-sec-h")].find((x) => x.textContent.includes("Features in this task"));
-  return { trigger: h?.querySelector(".ui-select-trigger")?.textContent.trim() || "" };
-});
-check("A2 QC-16: picker reads 'Move a feature here…'", /move a feature here/i.test(a2.trigger), JSON.stringify(a2));
-// The custom class doesn't reach the DOM (UiSelect fragment root) — scope by the
-// Features heading, whose only select IS the add-picker (proven by A2 above).
-await page.click(".lu-tk-sec-h .ui-select-trigger");
+// A2: create a fresh EMPTY preset so its assign picker offers every feature with
+// its "— from <preset>" provenance (an occupied built-in would show fewer).
+await page.click(".lu-tk-new");
 await sleep(600);
-const a2b = await page.evaluate(() => {
-  const opts = [...document.querySelectorAll("[role=option]")].map((o) => o.textContent.trim());
-  return { count: opts.length, fromCount: opts.filter((t) => /— from /.test(t)).length };
-});
-await page.keyboard.press("Escape");
+await page.fill(".lu-tk-createform input.ui-input", "Probe layout A");
 await sleep(300);
-check("A2b QC-16: every offered feature says which task it comes from",
-  a2b.count > 1 && a2b.fromCount === a2b.count - 1, JSON.stringify(a2b));
+// A4 REPLACED (design change, flagged): NAME ALONE enables Save (name-only create —
+// no preset picker in the form; a preset is not composed of another preset).
+const a4 = await page.evaluate(() => ({
+  saveEnabled: [...document.querySelectorAll(".lu-tk-createactions button")]
+    .find((x) => x.textContent.trim() === "Save")?.disabled === false,
+  presetPickerInForm: !!document.querySelector(".lu-tk-createform .ui-select-trigger"),
+}));
+check("A4 (was preset-required) NEW: name-only create — Save enabled by name; no preset picker in the form",
+  a4.saveEnabled && !a4.presetPickerInForm, JSON.stringify(a4));
+await page.evaluate(() => {
+  [...document.querySelectorAll(".lu-tk-createactions button")].find((x) => x.textContent.trim() === "Save")?.click();
+});
+await sleep(1000);
+// A5: create round-trip selects the new preset (its inline name field shows it).
+const a5 = await page.evaluate(() => ({
+  activeCard: document.querySelector(".lu-fw-card.is-active")?.textContent.trim().slice(0, 40) || "",
+  nameField: document.querySelector("input.lu-tk-name")?.value || "",
+}));
+check("A5 QC-15: create round-trip selects the new preset",
+  a5.activeCard.includes("Probe layout A") && a5.nameField === "Probe layout A", JSON.stringify(a5));
 
-// A3: "+ New task" opens the IN-PANE form — no popup dialog — with Save disabled.
+// A3: re-open the create form to assert the in-pane, no-popup, Save-disabled-while-empty shape.
 await page.click(".lu-tk-new");
 await sleep(600);
 const a3 = await page.evaluate(() => ({
@@ -237,68 +126,60 @@ const a3 = await page.evaluate(() => ({
   saveDisabled: [...document.querySelectorAll(".lu-tk-createactions button")]
     .find((x) => x.textContent.trim() === "Save")?.disabled ?? null,
 }));
-check("A3 QC-15: + New task = in-pane form, NO popup, Save disabled while empty",
+check("A3 QC-15: + New preset = in-pane form, NO popup, Save disabled while empty",
   !a3.dialog && a3.form && a3.saveDisabled === true, JSON.stringify(a3));
+// Cancel back to the created preset.
+await page.evaluate(() => [...document.querySelectorAll(".lu-tk-createactions button")].find((b) => b.textContent.trim() === "Cancel")?.click());
+await sleep(500);
+await page.evaluate(() => {
+  [...document.querySelectorAll(".lu-fw-list .lu-fw-card")]
+    .find((c) => c.textContent.includes("Probe layout A"))?.click();
+});
+await sleep(800);
 
-// A4: name alone does not enable Save — a preset is REQUIRED ("user cant actually
-// save a new task with the save button unless preset is assigned").
-await page.fill(".lu-tk-createform input.ui-input", "Probe task A");
-await sleep(300);
-const a4a = await page.evaluate(() => [...document.querySelectorAll(".lu-tk-createactions button")]
-  .find((x) => x.textContent.trim() === "Save")?.disabled);
-await page.click(".lu-tk-createform .ui-select-trigger");
+// A2b: the empty preset's assign picker reads "Assign a feature here…" and every
+// offered feature names the preset it comes FROM.
+const a2 = await page.evaluate(() => {
+  const h = [...document.querySelectorAll(".lu-tk-sec-h")].find((x) => x.textContent.includes("Features using this preset"));
+  return { trigger: h?.querySelector(".ui-select-trigger")?.textContent.trim() || "" };
+});
+check("A2 QC-16: picker reads 'Assign a feature here…'", /assign a feature here/i.test(a2.trigger), JSON.stringify(a2));
+await page.click(".lu-fw-edit .lu-tk-sec-h .ui-select-trigger");
 await sleep(600);
-await page.evaluate(() => {
-  const first = [...document.querySelectorAll("[role=option]")][0];
-  first?.dispatchEvent(new PointerEvent("pointerup", { bubbles: true }));
-  first?.click();
+const a2b = await page.evaluate(() => {
+  const opts = [...document.querySelectorAll("[role=option]")].map((o) => o.textContent.trim());
+  return { count: opts.length, fromCount: opts.filter((t) => /— from /.test(t)).length };
 });
-await sleep(400);
-const a4b = await page.evaluate(() => [...document.querySelectorAll(".lu-tk-createactions button")]
-  .find((x) => x.textContent.trim() === "Save")?.disabled);
-check("A4 QC-15: Save disabled until a preset is picked", a4a === true && a4b === false,
-  `nameOnly=${a4a} withPreset=${a4b}`);
-
-// A5: create round-trip — Save creates + selects the new task; the header name
-// field shows it.
-await page.evaluate(() => {
-  [...document.querySelectorAll(".lu-tk-createactions button")].find((x) => x.textContent.trim() === "Save")?.click();
-});
-await sleep(1000);
-const a5 = await page.evaluate(() => ({
-  activeCard: document.querySelector(".lu-fw-card.is-active")?.textContent.trim().slice(0, 40) || "",
-  nameField: document.querySelector("input.lu-tk-name")?.value || "",
-}));
-check("A5 QC-15: create round-trip selects the new task",
-  a5.activeCard.includes("Probe task A") && a5.nameField === "Probe task A", JSON.stringify(a5));
+await page.keyboard.press("Escape");
+await sleep(300);
+check("A2b QC-16: every offered feature says which preset it comes from",
+  a2b.count > 1 && a2b.fromCount === a2b.count - 1, JSON.stringify(a2b));
 
 // A6: rename is the inline field — type, blur, the list card updates. No popup.
-await page.fill("input.lu-tk-name", "Probe task B");
+await page.fill("input.lu-tk-name", "Probe layout B");
 await page.evaluate(() => document.querySelector("input.lu-tk-name")?.blur());
 await sleep(900);
 const a6 = await page.evaluate(() => ({
-  renamed: [...document.querySelectorAll(".lu-fw-card")].some((c) => c.textContent.includes("Probe task B")),
-  oldGone: ![...document.querySelectorAll(".lu-fw-card")].some((c) => c.textContent.includes("Probe task A")),
+  renamed: [...document.querySelectorAll(".lu-fw-card")].some((c) => c.textContent.includes("Probe layout B")),
+  oldGone: ![...document.querySelectorAll(".lu-fw-card")].some((c) => c.textContent.includes("Probe layout A")),
   dialog: !!document.querySelector("[role=dialog]"),
 }));
 check("A6 QC-15: inline rename saves on blur (no popup)", a6.renamed && a6.oldGone && !a6.dialog, JSON.stringify(a6));
-await page.screenshot({ path: `${OUT}/a-tasks.png` });
 
-// Cleanup: delete the probe task (through its own confirm dialog) so the DB is
-// left as found.
+// A7: delete the probe preset (custom-only Delete → its confirm) so the DB is left as found.
 await page.evaluate(() => {
   [...document.querySelectorAll(".lu-fw-edit .lu-fw-h button")].find((b) => b.textContent.trim() === "Delete")?.click();
 });
 await sleep(700);
 await page.evaluate(() => {
-  const dlg = document.querySelector("[role=dialog]");
+  const dlg = document.querySelector('[role=dialog], [role=alertdialog]');
   const btns = [...(dlg?.querySelectorAll("button") || [])];
   btns.reverse().find((b) => b.textContent.trim() && !/cancel/i.test(b.textContent))?.click();
 });
 await sleep(900);
 const a7 = await page.evaluate(() =>
-  ![...document.querySelectorAll(".lu-fw-card")].some((c) => c.textContent.includes("Probe task B")));
-check("A7 cleanup: probe task deleted — DB left as found", a7);
+  ![...document.querySelectorAll(".lu-fw-card")].some((c) => c.textContent.includes("Probe layout B")));
+check("A7 cleanup: probe preset deleted — DB left as found", a7);
 
 console.log(`\npage errors: ${errors.length}`);
 errors.slice(0, 5).forEach((e) => console.log("  " + e));

@@ -26,7 +26,7 @@
 import { existsSync, readdirSync } from "node:fs";
 import { createRequire } from "node:module";
 
-const require = createRequire("/home/user/justwrite-app/scripts/headless-smoke.mjs");
+const require = createRequire(import.meta.url);
 const { chromium } = require("playwright");
 const API = "http://127.0.0.1:17495";
 
@@ -144,15 +144,21 @@ try {
     routeTruth.configured ? chipText.includes(routeTruth.model) : /No model set/.test(chipText),
     `chip="${chipText.trim()}" vs route=${routeTruth.model}`);
 
+  // 2026-07-15 one-source rewrite (T6): the ChatPanel chips are now mounted
+  // :editable — the click-to-edit preset doorway is RESTORED on the one-source
+  // model. So clicking the chip opens its edit popover (.afc-pop, portalled) and
+  // does NOT navigate away. (This supersedes the earlier B5-1 read-only assertion
+  // that the click opened the Tasks tab; other chip mounts stay read-only — see
+  // chip-probe on the Analysis surface.)
+  const hashBefore = await page.evaluate(() => window.location.hash);
   await chip.click();
   await sleep(700);
   const popCount = await page.locator(".afc-pop").count();
   const hashAfter = await page.evaluate(() => window.location.hash);
-  check("B5-1 §7.2: clicking the chip EDITS NOTHING — no popover; it opens the Tasks area (#/ai)",
-    popCount === 0 && hashAfter.startsWith("#/ai"), `hash=${hashAfter} pop=${popCount}`);
+  check("B5-1 T6: clicking the editable ChatPanel chip opens its preset edit doorway (.afc-pop), no navigation",
+    popCount === 1 && hashAfter === hashBefore, `hash=${hashAfter} pop=${popCount}`);
 
-  // The panel is fixed-position and SURVIVES the navigation — close it with
-  // Esc first, then re-open from the nav (a bare toggle click would close it).
+  // Close the doorway, then re-open the panel from the nav.
   await page.keyboard.press("Escape");
   await sleep(400);
   await page.evaluate(() => { window.location.hash = "#/"; });

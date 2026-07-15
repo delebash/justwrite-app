@@ -190,3 +190,39 @@ def test_reset_reseeds_workspace(tmp_path):
     assert "ui" not in settings
     assert "demoSeeded" not in settings
     assert len(c.get("/v1/llm-providers").json()["providers"]) == len(DEFAULT_PROVIDERS)
+
+
+def test_seed_presets_refs_and_samples(tmp_path):
+    """The 2026-07-15 one-source mint: 10 built-in presets, 37 per-action refs, the
+    catch-all default, and one test-sample row per (action, blob). Every count is
+    DERIVED from the seed source, never hardcoded."""
+    from justwrite_server import seed_presets as SP
+    from llm_runner.llm import stores
+
+    _c(tmp_path)
+    seed_workspace()
+
+    presets = stores.get_engine_preset_store().list()
+    refs = stores.get_feature_preset_ref_store().list()
+    samples = stores.get_test_sample_store().list_for_action()
+
+    # 10 built-in presets, exactly the mint ids.
+    assert {p.id for p in presets} == {d["id"] for d in SP.DEFAULT_ENGINE_PRESETS}
+    assert len(presets) == len(SP.DEFAULT_ENGINE_PRESETS) == 10
+    # every preset carries its OWN temperature (no None abstains any more).
+    assert all(p.temperature is not None for p in presets)
+
+    # 37 per-action refs, exactly the mint map; each points at a real preset.
+    assert refs == SP.DEFAULT_FEATURE_PRESETS
+    assert len(refs) == 37
+    ids = {p.id for p in presets}
+    assert all(pid in ids for pid in refs.values())
+
+    # the catch-all default preset (⚑3).
+    assert stores.get_default_preset_id() == SP.DEFAULT_PRESET_ID == "p_prose_edit"
+
+    # test samples: ONE row per (action, blob) — the count is derived from the list,
+    # and every seeded action has at least one sample (the author-once fan-out).
+    expected = sum(len(r["actions"]) for r in SP.DEFAULT_TEST_SAMPLES)
+    assert len(samples) == expected
+    assert {r["action"] for r in samples} == set(refs)

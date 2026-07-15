@@ -168,10 +168,10 @@ def create_app(data_dir: Path | None = None) -> FastAPI:
     from .seed_feature_prompts import DEFAULT_FEATURE_PROMPTS, FEATURE_PROMPT_HEALS
     from .seed_presets import (
         DEFAULT_ENGINE_PRESETS,
+        DEFAULT_FEATURE_PRESETS,
         DEFAULT_MODEL_CATALOG_EXTRA,
-        DEFAULT_TASKKIND_PRESETS,
+        DEFAULT_PRESET_ID,
         DEFAULT_TEST_SAMPLES,
-        FEATURE_TASK_KINDS,
     )
 
     install_llm(
@@ -180,18 +180,19 @@ def create_app(data_dir: Path | None = None) -> FastAPI:
         session_factory=_dbmod.SessionLocal,
         feature_catalog=FEATURE_CATALOG,
         feature_prompts=DEFAULT_FEATURE_PROMPTS,
-        # Routing seed (2026-07-01 taskKind model): the built-in engine presets, the
-        # taskKind→preset assignments, and the action→taskKind map. Routing keys on
-        # taskKind (LLM work), not the FeatureCatalogEntry nav group (display-only).
+        # Preset seed (2026-07-15 one-source model): the built-in engine presets +
+        # the per-ACTION preset refs (action→preset_id — the one source of what an
+        # action runs) + the catch-all default preset. The action's preset owns model +
+        # every tunable; the FeatureCatalogEntry nav group stays display-only.
         engine_presets=DEFAULT_ENGINE_PRESETS,
-        taskkind_presets=DEFAULT_TASKKIND_PRESETS,
-        feature_task_kinds=FEATURE_TASK_KINDS,
+        feature_presets=DEFAULT_FEATURE_PRESETS,
+        default_preset_id=DEFAULT_PRESET_ID,
         # JW's tuned Gemma daily drivers (2026-07-06): two catalog rows over one
         # GGUF + this box's measured starting tunes. Insert-if-missing — a dev-DB
         # reset re-creates them; user edits / Quick-tune saves never clobbered.
         model_catalog_extra=DEFAULT_MODEL_CATALOG_EXTRA,
-        # §7.3 Lab test samples — synthesized per-taskKind rows for the Lab's
-        # Sample button; fill-if-empty, so edited rows survive reseeds.
+        # §7.3 Lab test samples — synthesized per-ACTION rows for the Lab's Sample
+        # button; fill-if-empty, so edited rows survive reseeds.
         test_samples=DEFAULT_TEST_SAMPLES,
         # Prompt stale-heals (RAG build): revised seed prompts reach existing
         # DBs only when the row still carries the old exact seed text.

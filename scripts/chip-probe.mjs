@@ -13,7 +13,7 @@
 import { existsSync, readdirSync } from "node:fs";
 import { createRequire } from "node:module";
 
-const require = createRequire("/home/user/justwrite-app/scripts/headless-smoke.mjs");
+const require = createRequire(import.meta.url);
 const { chromium } = require("playwright");
 const API = "http://127.0.0.1:17495";
 
@@ -93,38 +93,41 @@ try {
   check("C2 honest cache: an out-of-app write leaves the chip stale (no invalidation)",
     t.includes("No model set"), t);
 
-  // C3 — ONE real in-app routing write: Routing by task → open a task → Reset
-  // (QC-27; PUTs/POSTs through the kit client → the write listener fires).
+  // C3 — ONE real in-app routing write: Routing by feature → pick an action →
+  // reassign its preset (2026-07-15 one-source: PUT /preset-assignments/feature
+  // through the kit client → the write listener fires). This repoints the
+  // feature's REF but keeps every preset's CONTENTS (all presets still carry
+  // chip-probe-model), so C3b can see the configured model. (The old surface was
+  // the deleted "Routing by task" per-task Reset; a preset Reset today would
+  // re-seed the empty-model factory state and honestly stay unconfigured.)
   await page.evaluate(() => { window.location.hash = "#/ai"; });
   await sleep(1500);
   await page.evaluate(() => {
-    [...document.querySelectorAll(".lu-subnav a")].find((a) => a.textContent.trim() === "Routing by task")?.click();
+    [...document.querySelectorAll(".lu-subnav a")].find((a) => a.textContent.trim() === "Routing by feature")?.click();
   });
   await sleep(2000);
   await page.evaluate(() => {
-    document.querySelector(".lu-fw-card")?.click();
+    document.querySelector(".lu-fw-list .lu-fw-card")?.click();
   });
   await sleep(1500);
-  // EXACT "Reset" = the per-task reset (QC-27: repoints the assignment, keeps
-  // preset CONTENTS). "Reset all to defaults" would re-seed the presets to the
-  // factory empty-model state and the server would honestly stay unconfigured
-  // (the first probe run clicked that one — debug-capture-caught).
-  const clickedReset = await page.evaluate(() => {
-    const btn = [...document.querySelectorAll("button")].find((b) => b.textContent.trim() === "Reset");
-    if (!btn) return false;
-    btn.click();
-    return true;
-  });
-  await sleep(600);
-  // Confirm dialog if one opened (the QC-27 reset confirms).
-  await page.evaluate(() => {
-    const dlg = document.querySelector('[role="dialog"]');
-    if (!dlg) return;
-    const yes = [...dlg.querySelectorAll("button")].find((b) => /reset|confirm|ok|yes/i.test(b.textContent));
-    yes?.click();
-  });
+  // Open the per-action Preset select and pick a named preset (not the "— default
+  // preset —" sentinel) → PUT /preset-assignments/feature.
+  const clickedReset = await (async () => {
+    try {
+      await page.click(".lu-fw-runs .ui-select-trigger");
+      await sleep(500);
+      return await page.evaluate(() => {
+        const opt = [...document.querySelectorAll("[role=option]")]
+          .find((o) => !/default preset/i.test(o.textContent));
+        if (!opt) return false;
+        opt.dispatchEvent(new PointerEvent("pointerup", { bubbles: true }));
+        opt.click();
+        return true;
+      });
+    } catch { return false; }
+  })();
   await sleep(1500);
-  check("C3a: an in-app routing write was made (task Reset clicked)", clickedReset);
+  check("C3a: an in-app routing write was made (feature preset reassigned)", clickedReset);
 
   // …and back to the chip surface — SPA navigation, NO reload.
   await page.evaluate(() => { window.location.hash = "#/analysis"; });
@@ -141,8 +144,8 @@ try {
   for (const p of origPresets) {
     await api(`/v1/ai/engine-presets/${p.id}`, { method: "PUT", body: p }).catch(() => {});
   }
-  for (const [taskKind, presetId] of Object.entries(origAssignments.taskKinds || {})) {
-    await api("/v1/ai/preset-assignments/task-kind", { method: "PUT", body: { taskKind, presetId } }).catch(() => {});
+  for (const [featureKey, presetId] of Object.entries(origAssignments.features || {})) {
+    await api("/v1/ai/preset-assignments/feature", { method: "PUT", body: { featureKey, presetId } }).catch(() => {});
   }
 }
 

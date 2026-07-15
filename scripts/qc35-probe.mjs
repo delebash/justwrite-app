@@ -30,37 +30,32 @@ page.on("pageerror", (e) => pageErrors.push(String(e)));
 
 await page.goto(`${BASE}/#/ai`, { waitUntil: "networkidle" });
 await sleep(1500);
+// 2026-07-15 one-source rewrite: the task tier is gone. The per-action test-input
+// affordances (QC-35) now live on the "Routing by feature" Workbench, where the LEFT
+// nav lists ACTIONS directly (grouped by feature, display-only). Selecting an action
+// mounts its <FeatureLab> — the SAME test-input markup the task pane used to host.
 await page.evaluate(() => {
-  [...document.querySelectorAll(".lu-subnav a")].find((a) => a.textContent.trim() === "Routing by task")?.click();
+  [...document.querySelectorAll(".lu-subnav a")].find((a) => a.textContent.trim() === "Routing by feature")?.click();
 });
 await sleep(2000);
 
-async function openTask(label) {
-  await page.evaluate((l) => {
-    [...document.querySelectorAll(".lu-fw-card")].find((c) => c.querySelector(".lu-fw-card-label")?.textContent.trim().startsWith(l))?.click();
+// The old task grouping is gone — every action card is present in the one nav, so
+// "opening a task" is a no-op now; the action is selected directly (openFeature).
+async function openTask(_label) { /* no task tier — actions are selected directly */ }
+
+// Select the ACTION by its nav-card label (the Workbench's per-action selection —
+// replaces the task pane's "Test against" dropdown).
+async function openFeature(label) {
+  const hit = await page.evaluate((l) => {
+    const card = [...document.querySelectorAll(".lu-fw-list .lu-fw-card")]
+      .find((c) => (c.querySelector(".lu-fw-card-label")?.textContent.trim() || "").toLowerCase().startsWith(l.toLowerCase()));
+    if (!card) return null;
+    const label = card.querySelector(".lu-fw-card-label")?.textContent.trim();
+    card.click();
+    return label;
   }, label);
   await sleep(1200);
-}
-// The Lab's action is the task pane's "Test against" select (TaskKinds.vue).
-// Reka selects need a REAL pointer click on the trigger + pointerup on the
-// option (the b4-probe technique).
-async function pickOption(matcher) {
-  const hit = await page.evaluate((m) => {
-    const opt = [...document.querySelectorAll("[role=option]")]
-      .find((o) => o.textContent.trim().toLowerCase().includes(m.toLowerCase()));
-    if (!opt) return null;
-    const label = opt.textContent.trim();
-    opt.dispatchEvent(new PointerEvent("pointerup", { bubbles: true }));
-    opt.click();
-    return label;
-  }, matcher);
-  await sleep(1000);
   return hit;
-}
-async function openFeature(label) {
-  await page.click(".lu-tk-testrow .ui-select-trigger");
-  await sleep(500);
-  return pickOption(label);
 }
 async function fillState() {
   return page.evaluate(() => {
@@ -156,7 +151,9 @@ check("foreshadowing: chapter_text filled", (st.boxes["Chapter text"] || "").len
 
 // ── 5. Freeform: brainstorm has NO pickers/compose; Sample provides the
 //       client-filled {{label}} variable too. ──
-await openTask("Ideation");
+// brainstorm's action label is "Ideas" (the "Brainstorm" feature's Ideas action).
+const featBrain = await openFeature("Ideas");
+check("ideation (brainstorm): action selected in the Lab", featBrain != null, featBrain);
 st = await fillState();
 check("ideation (brainstorm): no pickers, no compose — typed or Sample",
   st.triggers.length === 0 && !st.buttons.includes("From this book"), st.buttons.join(" · "));

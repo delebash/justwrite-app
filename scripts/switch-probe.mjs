@@ -15,7 +15,7 @@
 import { existsSync, mkdirSync, readdirSync, rmSync, writeFileSync } from "node:fs";
 import { createRequire } from "node:module";
 
-const require = createRequire("/home/user/justwrite-app/scripts/headless-smoke.mjs");
+const require = createRequire(import.meta.url);
 const { chromium } = require("playwright");
 const OUT = "/tmp/claude-0/-home-user/3cfd68b9-10db-5b2c-8f07-e258fb196800/scratchpad";
 

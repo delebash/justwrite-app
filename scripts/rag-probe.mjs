@@ -169,8 +169,9 @@ const origPresets = (await api("/v1/ai/engine-presets")).presets || [];
 const origAssignments = await api("/v1/ai/preset-assignments");
 const demoWasPresent = ((await api("/v1/projects")) || []).some((p) => p.id === DEMO_ID);
 
-// The presets the cascade can resolve to (assigned to a task or the default).
-const assignedIds = new Set(Object.values(origAssignments.taskKinds || {}).filter(Boolean));
+// The presets the cascade can resolve to (a feature's ref or the default). 2026-07-15
+// one-source: the assignment map is `features` (action→presetId); the task tier is gone.
+const assignedIds = new Set(Object.values(origAssignments.features || {}).filter(Boolean));
 if (origAssignments.defaultPresetId) assignedIds.add(origAssignments.defaultPresetId);
 
 // ── Setup: stub provider + routing + presets + a fresh demo book ──────────

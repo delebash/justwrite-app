@@ -42,16 +42,17 @@ def test_edit_then_reset_round_trips(tmp_path):
     # Edit the critique system prompt — persists to the DB.
     r = c.put("/v1/ai/prompts/critique", json={
         "feature": "critique", "system": "EDITED PROMPT", "userTemplate": "{{chapter_text}}",
-        "temperature": 0.1, "think": False,
     })
     assert r.status_code == 200, r.text
-    assert r.json()["system"] == "EDITED PROMPT" and r.json()["temperature"] == 0.1
+    assert r.json()["system"] == "EDITED PROMPT"
+    # Tunables are GONE from the prompt wire (2026-07-15 — they live on the preset).
+    assert "temperature" not in r.json()
     # The edit is read back (DB is the source of truth).
     assert c.get("/v1/ai/prompts/critique").json()["system"] == "EDITED PROMPT"
-    # Reset restores the seeded default.
+    # Reset restores the seeded default text + its JSON contract.
     r = c.post("/v1/ai/prompts/critique/reset")
     assert r.status_code == 200, r.text
-    assert "fiction editor" in r.json()["system"] and r.json()["temperature"] == 0.4
+    assert "fiction editor" in r.json()["system"] and r.json()["jsonMode"] is True
 
 
 def test_edit_changes_what_run_sends(tmp_path):
@@ -83,7 +84,7 @@ def test_edit_changes_what_run_sends(tmp_path):
     finally:
         db.close()
 
-    c.put("/v1/ai/prompts/critique", json={"system": "LAB-EDITED SYSTEM", "userTemplate": "{{chapter_text}}", "temperature": 0.4})
+    c.put("/v1/ai/prompts/critique", json={"system": "LAB-EDITED SYSTEM", "userTemplate": "{{chapter_text}}"})
     r = c.post("/v1/ai/run", json={"action": "critique", "variables": {"chapter_text": "x"}})
     assert r.status_code == 200, r.text
     assert Fake.last["system"] == "LAB-EDITED SYSTEM"

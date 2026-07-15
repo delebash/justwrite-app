@@ -19,7 +19,7 @@ class FakeAdapter:
     default_model = "gpt-4o-mini"
     last: dict = {}
 
-    def chat(self, messages, *, model=None, temperature=0.7, max_tokens=None, system=None, think=False, extra=None):
+    def chat(self, messages, *, model=None, temperature=None, max_tokens=None, system=None, think=False, extra=None):
         FakeAdapter.last = {
             "messages": messages, "system": system, "model": model,
             "temperature": temperature, "think": think,
@@ -33,7 +33,7 @@ class FakeAdapter:
         yield StreamDelta(done=True, prompt_tokens=4, completion_tokens=3)
 
 
-def _client(tmp_path, *, default_id="p1", pins=None):
+def _client(tmp_path, *, default_id="p1"):
     c = TestClient(create_app(tmp_path))
     reg = get_llm_registry()
     reg._adapters = {}
@@ -44,15 +44,13 @@ def _client(tmp_path, *, default_id="p1", pins=None):
         db.commit()
     finally:
         db.close()
-    # Routing lives in the shared routing store (real tables) — set the default +
-    # pins through the store the dispatch reads.
+    # Routing lives in the shared routing store (real tables) — set the global default
+    # provider the dispatch reads. Per-feature pins are gone (2026-07-15 — the action's
+    # preset owns routing); no preset is seeded here, so critique takes the no-preset route.
     from llm_runner.llm import stores
-    from llm_runner.llm.routing_api import FeaturePin, RoutingConfig, RoutingDefaults
+    from llm_runner.llm.routing_api import RoutingConfig, RoutingDefaults
 
-    stores.get_routing_store().set_routing(RoutingConfig(
-        default=RoutingDefaults(llmId=default_id),
-        pins={k: FeaturePin(**v) for k, v in (pins or {}).items()},
-    ))
+    stores.get_routing_store().set_routing(RoutingConfig(default=RoutingDefaults(llmId=default_id)))
     return c
 
 
@@ -69,14 +67,18 @@ def test_run_critique_dispatches_server_side(tmp_path):
     user = FakeAdapter.last["messages"][0].content
     assert "Chapter 4 — The Map" in user and "BEGIN CHAPTER" in user and "He ran." in user
     assert "fiction editor" in (FakeAdapter.last["system"] or "")
-    assert FakeAdapter.last["think"] is False and FakeAdapter.last["temperature"] == 0.4
+    # No preset seeded here → the no-preset route: temperature is NOT sent (None → the
+    # adapter omits it, never fabricated), think off. (Preset-param plumbing is proven
+    # in the runner suite + the seed-count tests.)
+    assert FakeAdapter.last["think"] is False and FakeAdapter.last["temperature"] is None
 
 
-def test_run_honors_feature_pin(tmp_path):
-    # A pin to a different (unregistered) provider routes there → 501 surfaces
-    # cleanly rather than silently using the default.
-    c = _client(tmp_path, pins={"critique": {"providerId": "ghost"}})
-    r = c.post("/v1/ai/run", json={"action": "critique", "variables": {"chapter_text": "x"}})
+def test_run_unregistered_provider_override_501(tmp_path):
+    # A request provider override to an unregistered provider surfaces 501 cleanly (the
+    # Lab's per-call route override; JW per-feature pins are gone 2026-07-15).
+    c = _client(tmp_path)
+    r = c.post("/v1/ai/run", json={"action": "critique", "variables": {"chapter_text": "x"},
+                                   "providerId": "ghost"})
     assert r.status_code == 501
 
 

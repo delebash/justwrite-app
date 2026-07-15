@@ -18,7 +18,7 @@ Each entry is keyed by an ACTION id and carries:
                    to "critique").
   system         — the system prompt (verbatim from the client).
   user_template  — the user message, with {{var}} placeholders the caller fills.
-  temperature / think — per-action generation defaults.
+  json_mode / json_schema — the action's JSON CONTRACT (all tunables live on the preset).
 
 Prompts are ported verbatim from the renderer's `services/analysis/*` SYSTEM
 constants so behavior is identical; the user_template's input framing matches
@@ -644,13 +644,11 @@ _WRITER_SYSTEM = (
 )
 
 
-def _writer(instruction: str, temperature: float = 0.7) -> dict:
+def _writer(instruction: str) -> dict:
     return {
         "feature": "writerAI",
         "system": _WRITER_SYSTEM,
         "user_template": instruction + "\n\n--- BEGIN PASSAGE ---\n{{passage}}\n--- END PASSAGE ---",
-        "temperature": temperature,
-        "think": False,
     }
 
 
@@ -659,32 +657,24 @@ DEFAULT_FEATURE_PROMPTS: dict[str, dict] = {
         "feature": "critique",
         "system": _CRITIQUE_SYSTEM,
         "user_template": _CHAPTER_USER,
-        "temperature": 0.4,
-        "think": False,
         "json_mode": True,
     },
     "critiqueStructure": {
         "feature": "critique",
         "system": _STRUCTURE_SYSTEM,
         "user_template": _CHAPTER_USER,
-        "temperature": 0.2,
-        "think": False,
         "json_mode": True,
     },
     "foreshadowing": {
         "feature": "foreshadowing",
         "system": _FORESHADOWING_SYSTEM,
         "user_template": _CHAPTER_USER,
-        "temperature": 0.15,
-        "think": False,
         "json_mode": True,
     },
     "readerKnowledge": {
         "feature": "readerKnowledge",
         "system": _READER_KNOWLEDGE_SYSTEM,
         "user_template": "{{user_content}}",
-        "temperature": 0.15,
-        "think": False,
         "json_mode": True,
     },
     "plotHoles": {
@@ -693,16 +683,12 @@ DEFAULT_FEATURE_PROMPTS: dict[str, dict] = {
         # block, composed client-side and substituted in.
         "system": _PLOT_HOLES_SYSTEM + "{{world_rules_section}}",
         "user_template": "{{user_content}}",
-        "temperature": 0.3,
-        "think": False,
         "json_mode": True,
     },
     "entitySweep": {
         "feature": "entitySweep",
         "system": _ENTITY_SYSTEM,
         "user_template": "{{user_content}}",
-        "temperature": 0.15,
-        "think": False,
         "json_mode": True,
         # C1's seeded end-to-end example: schema-ENFORCED output for the sweep.
         "json_schema": _ENTITY_SCHEMA,
@@ -711,48 +697,36 @@ DEFAULT_FEATURE_PROMPTS: dict[str, dict] = {
         "feature": "characterAudit",
         "system": _CHARACTER_AUDIT_SYSTEM,
         "user_template": "{{user_content}}",
-        "temperature": 0.15,
-        "think": False,
         "json_mode": True,
     },
     "relationshipArc": {
         "feature": "relationshipArc",
         "system": _RELATIONSHIP_SYSTEM,
         "user_template": "{{user_content}}",
-        "temperature": 0.15,
-        "think": False,
         "json_mode": True,
     },
     "voiceDrift": {
         "feature": "voiceDrift",
         "system": _VOICE_DRIFT_SYSTEM,
         "user_template": "{{user_content}}",
-        "temperature": 0.4,
-        "think": False,
         "json_mode": True,
     },
     "beatSheet": {
         "feature": "beatSheet",
         "system": _BEAT_SHEET_SYSTEM,
         "user_template": "{{user_content}}",
-        "temperature": 0.15,
-        "think": False,
         "json_mode": True,
     },
     "reverseOutline": {
         "feature": "reverseOutline",
         "system": _REVERSE_OUTLINE_SYSTEM,
         "user_template": "{{user_content}}",
-        "temperature": 0.15,
-        "think": False,
         "json_mode": True,
     },
     "marketingPack": {
         "feature": "marketingPack",
         "system": _MARKETING_SYSTEM,
         "user_template": "{{user_content}}",
-        "temperature": 0.5,
-        "think": False,
         "json_mode": True,
     },
     # multiReader runs a 4-persona panel; one action per persona, all routing to
@@ -762,78 +736,58 @@ DEFAULT_FEATURE_PROMPTS: dict[str, dict] = {
         "feature": "multiReader",
         "system": _MR_GENRE_BODY + "\n\n" + _MR_JSON_CONTRACT,
         "user_template": _CHAPTER_USER,
-        "temperature": 0.55,
-        "think": False,
         "json_mode": True,
     },
     "multiReaderLiterary": {
         "feature": "multiReader",
         "system": _MR_LITERARY_BODY + "\n\n" + _MR_JSON_CONTRACT,
         "user_template": _CHAPTER_USER,
-        "temperature": 0.55,
-        "think": False,
         "json_mode": True,
     },
     "multiReaderAgent": {
         "feature": "multiReader",
         "system": _MR_AGENT_BODY + "\n\n" + _MR_JSON_CONTRACT,
         "user_template": _CHAPTER_USER,
-        "temperature": 0.55,
-        "think": False,
         "json_mode": True,
     },
     "multiReaderBookClub": {
         "feature": "multiReader",
         "system": _MR_BOOKCLUB_BODY + "\n\n" + _MR_JSON_CONTRACT,
         "user_template": _CHAPTER_USER,
-        "temperature": 0.55,
-        "think": False,
         "json_mode": True,
     },
     "sensory": {
         "feature": "sensory",
         "system": _SENSORY_SYSTEM,
         "user_template": "{{user_content}}",
-        "temperature": 0.8,
-        "think": False,
         "json_mode": True,
     },
     "unstuck": {
         "feature": "unstuck",
         "system": _UNSTUCK_SYSTEM,
         "user_template": "{{user_content}}",
-        "temperature": 0.75,
-        "think": False,
         "json_mode": True,
     },
     "recap": {
         "feature": "recap",
         "system": _RECAP_SYSTEM,
         "user_template": "{{user_content}}",
-        "temperature": 0.2,
-        "think": False,
         "json_mode": True,
     },
     "briefing": {
         "feature": "briefing",
         "system": _BRIEFING_SYSTEM,
         "user_template": "{{user_content}}",
-        "temperature": 0.45,
-        "think": False,
     },
     "brainstorm": {
         "feature": "brainstorm",
         "system": _BRAINSTORM_SYSTEM,  # {{label}} filled client-side
         "user_template": "{{user_content}}",
-        "temperature": 1.0,
-        "think": False,
     },
     "brainstormPlot": {
         "feature": "brainstorm",
         "system": _BRAINSTORM_PLOT_SYSTEM,  # {{kind}} filled client-side
         "user_template": "{{user_content}}",
-        "temperature": 1.0,
-        "think": False,
     },
     # ── writerAI (selection-level editor actions) ──
     "writerAI.rewrite": _writer(
@@ -841,15 +795,12 @@ DEFAULT_FEATURE_PROMPTS: dict[str, dict] = {
     ),
     "writerAI.expand": _writer(
         "Expand the passage below with sensory detail, interiority, and small actions. Roughly double its length. Keep the same voice and tense.",
-        0.85,
     ),
     "writerAI.tighten": _writer(
         "Tighten the passage below. Remove filler words, hedges, and redundant phrases. Keep the meaning, voice, and tense intact. The result should be noticeably shorter.",
-        0.5,
     ),
     "writerAI.continue": _writer(
         "Continue writing from where the passage below ends. Match the voice, tense, and POV. Write 2–4 more paragraphs of prose. Do not summarize or repeat what came before.",
-        0.85,
     ),
     "writerAI.describe": _writer(
         "The passage below names a subject — a place, person, object, or moment — that the writer wants "
@@ -858,7 +809,6 @@ DEFAULT_FEATURE_PROMPTS: dict[str, dict] = {
         "in the body of the scene. Do not repeat or paraphrase the passage. Do not summarize. Match the "
         "voice, tense, and POV of the passage. Return new prose only — it will be inserted right after "
         "the passage in the manuscript.",
-        0.85,
     ),
     "writerAI.guided-continue": {
         "feature": "writerAI",
@@ -871,52 +821,43 @@ DEFAULT_FEATURE_PROMPTS: dict[str, dict] = {
             "Do not summarize what came before. Do not echo the direction back as a header."
             "\n\n--- BEGIN PASSAGE ---\n{{passage}}\n--- END PASSAGE ---"
         ),
-        "temperature": 0.85,
-        "think": False,
     },
     # ── writerAI line-edit rules (temperature 0.6) ──
     "writerAI.rule.show-dont-tell": _writer(
         "Revise the passage to show rather than tell. Replace statements about emotion or state "
         '("she was nervous", "he felt cold") with concrete behaviour, body language, sensory detail, '
         "and revealing dialogue. Keep the same events and voice.",
-        0.6,
     ),
     "writerAI.rule.passive-voice": _writer(
         "Revise the passage to use active voice where it strengthens the prose. Leave passive "
         "constructions in place when the actor genuinely doesn't matter or when active voice "
         "would feel forced. Keep meaning, voice, and tense intact.",
-        0.6,
     ),
     "writerAI.rule.filter-words": _writer(
         "Revise the passage to remove filter words — words like saw, heard, felt, noticed, realized, "
         "thought, watched, looked, when they sit between the POV character and direct perception. "
         "Show the perception directly. Keep the same events and voice.",
-        0.6,
     ),
     "writerAI.rule.dialogue-tags": _writer(
         'Revise the dialogue tags in the passage. Replace tags like "exclaimed", "retorted", "queried" '
         'with "said" or "asked", or convert them to action beats that show how the line is delivered. '
         'Remove adverbs in dialogue tags ("she said angrily"). Preserve the dialogue itself.',
-        0.6,
     ),
     "writerAI.rule.sensory-grounding": _writer(
         "Revise the passage to anchor abstract or interior prose in concrete sensory detail. Where "
         "the prose drifts into thought, summary, or generality, add a specific image, sound, smell, "
         "texture, or bodily sensation that puts the POV character back in the room. Do not invent "
         "new events or change what happens — only the felt texture. Keep voice and tense intact.",
-        0.6,
     ),
     "writerAI.rule.sentence-variety": _writer(
         "Revise the passage to vary sentence length and structure. If sentences are uniformly long, "
         "break some apart. If uniformly short, combine some with subordination or compound structure. "
         "Aim for a mix that lets the rhythm breathe. Keep the meaning and voice intact.",
-        0.6,
     ),
     "writerAI.rule.prose-tightening": _writer(
         "Tighten the passage. Cut hedges (just, really, very, somewhat, a bit), redundant phrases, "
         "and any sentence that doesn't move the scene forward or reveal something. Keep voice and "
         "key beats. The result should be noticeably shorter.",
-        0.6,
     ),
     # ── RAG manuscript chat ("Ask the book") ──
     # System + outer template are server-side (Lab-editable); the client retrieves
@@ -934,15 +875,8 @@ DEFAULT_FEATURE_PROMPTS: dict[str, dict] = {
             "still cite only from the freshly retrieved excerpts."
         ),
         "user_template": "Question: {{question}}\n\nExcerpts:\n{{excerpts}}\n\nAnswer with citations.",
-        "temperature": 0.3,
-        # The ONE thinking task (2026-07-06 one-profile consolidation — the
-        # model-per-hardware plan, Phase 1): grounded book-chat gets reasoning, capped
-        # engine-side by the base switch bundle's reasoning-budget 1024; every other
-        # action stays think:False and rides the same resident model at writer speed
-        # via the per-request enable_thinking:false toggle (measured on-box, the
-        # ab-test doc RESULTS). characterChat deliberately stays False — fast in-voice
-        # dialogue, not analysis.
-        "think": True,
+        # Reasoning lives on the p_chat engine preset (think on/medium, 2026-07-15) —
+        # NOT here; this row carries only the prompt text + its JSON contract.
     },
     # ── Character chat ("talk to your character") ──
     # Framing + interview RULES are server-side (Lab-editable); the client sends
@@ -975,8 +909,6 @@ DEFAULT_FEATURE_PROMPTS: dict[str, dict] = {
             "Answer in character.\n\nQuestion: {{question}}\n\nMemory excerpts (you may or may not "
             "have been present for each — judge accordingly):\n{{excerpts}}\n\nAnswer now, as yourself."
         ),
-        "temperature": 0.7,
-        "think": False,
     },
 }
 

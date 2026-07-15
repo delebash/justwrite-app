@@ -14,7 +14,7 @@
 import { existsSync, readdirSync } from "node:fs";
 import { createRequire } from "node:module";
 
-const require = createRequire("/home/user/justwrite-app/scripts/headless-smoke.mjs");
+const require = createRequire(import.meta.url);
 const { chromium } = require("playwright");
 const API = "http://127.0.0.1:17495";
 
@@ -51,11 +51,13 @@ const api = async (path, opts = {}) => {
 const origPresets = (await api("/v1/ai/engine-presets")).presets || [];
 const origAssignments = await api("/v1/ai/preset-assignments");
 const origRouting = await api("/v1/ai/routing");
-const assignedIds = new Set(Object.values(origAssignments.taskKinds || {}).filter(Boolean));
+// 2026-07-15 one-source: the assignment map is `features` (action→presetId); the
+// task tier is gone. The presets the cascade can resolve to = the assigned ones + default.
+const assignedIds = new Set(Object.values(origAssignments.features || {}).filter(Boolean));
 if (origAssignments.defaultPresetId) assignedIds.add(origAssignments.defaultPresetId);
 const taskPresets = origPresets.filter((p) => assignedIds.has(p.id));
-if (!taskPresets.length) { console.error("no task presets on this DB — cannot probe"); process.exit(1); }
-// The current default pair = the dominant across the task presets (the writer's rule).
+if (!taskPresets.length) { console.error("no assigned presets on this DB — cannot probe"); process.exit(1); }
+// The current default pair = the dominant across the assigned presets (the writer's rule).
 const counts = {};
 for (const p of taskPresets) counts[p.model] = (counts[p.model] || 0) + 1;
 const dominant = taskPresets.slice().sort((a, b) => a.position - b.position)
@@ -121,7 +123,7 @@ try {
   const dlg = await page.locator(".ui-modal").textContent();
   check("B29-3 dialog: names the provider + chat model, embedding line present, overwrite choice present",
     /B29 Probe/.test(dlg) && /b29-chat/.test(dlg) && /embeddings \(search\) provider/i.test(dlg)
-    && /b29-embed/.test(dlg) && /overwrite tasks I customized/i.test(dlg));
+    && /b29-embed/.test(dlg) && /overwrite presets I customized/i.test(dlg));
   await page.locator('.ui-modal button:has-text("Set as default")').click();
   await sleep(1500);
 
@@ -143,7 +145,7 @@ try {
   // clickable; the overwrite checkbox in the dialog is exactly this path.)
   await page.locator('.lu-prow:has-text("B29 Probe")').locator('button:has-text("Default ✓")').click();
   await sleep(400);
-  await page.locator('.ui-modal :text("Also overwrite tasks I customized")').click();
+  await page.locator('.ui-modal :text("Also overwrite presets I customized")').click();
   await page.locator('.ui-modal button:has-text("Set as default")').click();
   await sleep(1500);
   const afterOver = (await api("/v1/ai/engine-presets")).presets || [];

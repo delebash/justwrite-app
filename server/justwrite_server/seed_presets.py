@@ -1,40 +1,28 @@
-"""Engine presets + taskKind→preset assignments + the action→taskKind map.
+"""Engine presets + the per-ACTION preset refs (the ONE-SOURCE model, 2026-07-15).
 
-Passed to `install_llm` (see app.py). ROUTING keys on the LLM-WORK **taskKind**
-(FEATURE_TASK_KINDS), NOT the nav group on FeatureCatalogEntry (which is display-only,
-for the UI). The cascade at dispatch is (2026-07-02 "task owns the preset"): its
-taskKind's preset (TaskKindPreset) → the global default (TaskKindPreset[""]).
+Passed to `install_llm` (see app.py). The ACTION is the base; its preset is the truth
+— `DEFAULT_FEATURE_PRESETS` maps each action -> its preset id, and `DEFAULT_PRESET_ID`
+is the catch-all for an unassigned action. There is NO task tier: an action points
+straight at a preset (the shared runner resolves ref -> default at dispatch).
 
-Design invariants (2026-07-01 taskKind-routing plan; grounded in the overlay rule
-`prompts._effective_spec`):
-  • taskKind = LLM work, not nav group. `writerAI.continue` (prose.generate) and
-    `writerAI.tighten` (prose.edit) route to DIFFERENT presets even though they share
-    the "Writing" nav group — the split is the whole point of keying on taskKind.
-  • A preset's members share `json_mode` (the overlay makes `json_mode = preset.jsonMode`),
-    so a JSON action can't inherit a prose preset. `recap` therefore lives with
-    extraction (`p_extract`), not with its Home nav-mate `briefing` (prose) — its LLM
-    work is "emit faithful structured JSON," which matches extraction. Clearest example
-    of work-category ≠ nav-group.
-  • Presets set `temperature=None`; the per-action temperature stays on the
-    FeaturePrompt (see seed_feature_prompts.py) — else a shared preset would flatten
-    e.g. critique 0.40 / critiqueStructure 0.20 to one value. The preset owns model +
-    top_p + json_mode + reasoning + long-tail samplers; temperature stays per-action.
-  • JSON ⇒ no think (the B3 guardrail forces `think` off whenever `json_mode` is on).
-  • switches=[] → the base/moe/mtp type switch-presets resolve automatically at load;
-    the two hardware-fit knobs (-ngl / --n-cpu-moe) auto-compute unless overridden.
-  • Sampler grounding (verified 2026-07-02 vs the knob catalog + the sampler-guide
-    principles): every sampler key below is a real `knob_catalog` plane-2 key (min_p,
-    xtc_probability, xtc_threshold, dry_multiplier, repeat_penalty, repeat_last_n, seed),
-    and the values obey the three principles — XTC ONLY on the creative presets
-    (p_prose_voiced / p_ideation / p_creative_structured); DRY *or* a repeat penalty,
-    never stacked; a pinned `seed` on the deterministic JSON tasks (p_extract / p_judge).
-    These are GROUNDED STARTING defaults, not tuned finals — the Tasks page (Lab) is
-    where each is Run against a member feature and settled (shown there as provenance).
+The PRESET owns the model + EVERY tunable — provider/model, temperature, top_p,
+max_tokens, samplers, think + reasoning level. The JSON CONTRACT (`json_mode`/
+`json_schema`) stays on the ACTION (seed_feature_prompts.py) because the app's parsers
+are per-action; presets carry NO json field. NOTHING else stores a tunable.
 
-Model per preset = a floor default that runs for everyone (8 GB VRAM + 32 GB RAM);
-bigger rigs swap the model in the Lab. Sampler values are strings (they ride the
-per-call `extra`). See docs/plans/2026-07-01-llm-work-categories-presets-implementation.md
-(operative spec, §4.2/§4.3) + just-llm-runner/docs/plans/2026-07-01-taskkind-routing.md.
+  • The action is display-shelved under a nav group (FeatureCatalogEntry.group), but
+    routing is the action's own ref — `writerAI.continue` -> p_prose_voiced and
+    `writerAI.tighten` -> p_prose_edit even though both live under "Writing".
+  • Every preset carries ITS OWN temperature (2026-07-15 — presets are the one source;
+    no None-temperature abstains any more). Members of a preset run at ITS temperature.
+  • Sampler grounding (real `knob_catalog` plane-2 keys: min_p, xtc_*, dry_multiplier,
+    repeat_penalty, repeat_last_n, seed): XTC only on the creative presets; DRY *or* a
+    repeat penalty, never stacked; a pinned `seed` on the deterministic JSON presets.
+  • Reasoning: "Grounded chat" (p_chat) think=on/medium (2026-07-14); all others off.
+
+Model per preset ships EMPTY ("" — QuickSetup/manual fills it, user 2026-07-06); a
+bigger rig swaps it in the Lab. Sampler values are strings (they ride the per-call
+`extra`). See just-llm-runner/docs/plans/2026-07-15-preset-one-source-rewrite.md.
 """
 
 from __future__ import annotations
@@ -45,37 +33,48 @@ from __future__ import annotations
 # A/B, docs/plans/2026-07-06-onbox-profile-ab-test.md RESULTS): the 32k/rb-1024 config
 # with per-request thinking OFF serves writer traffic at writer speed (TTFT 1.52 s vs
 # the dedicated 8k writer section's 1.68 s, cache-busted), so the writer-vs-chat
-# difference lives at the REQUEST layer — feature_prompts.think per action (dispatch
-# sends chat_template_kwargs.enable_thinking both ways to the builtin runner) — not in
-# separate launch identities. reasoning-budget 1024 rides the runner's BASE switch
-# bundle (the universal anti-loop cap), no longer a per-model tune. One GGUF on disk;
-# the router keeps the chat model + the embed resident (models-max 2). QuickSetup
-# re-picks for other boxes and writes onto every task preset (D4-1 protection: Phase 2).
+# difference lives at the REQUEST layer — the task PRESET's think (U2-T3, 2026-07-14:
+# moved off feature_prompts.think onto p_chat; dispatch sends chat_template_kwargs.
+# enable_thinking both ways to the builtin runner) — not in separate launch identities.
+# The Gemma-class reasoning_budget 1024 is the reasoning RESOLVER's per-request CAP now
+# (U2-T4: read as DATA, no longer a launch flag). One GGUF on disk; the router keeps the
+# chat model + the embed resident (models-max 2). QuickSetup re-picks for other boxes
+# and writes onto every task preset (D4-1 protection: Phase 2).
 DEFAULT_ENGINE_PRESETS: list[dict] = [
     {"id": "p_prose_voiced", "name": "Generate prose", "name_was": "Creative prose (voiced)", "provider_id": "local-llamacpp",
-     "model": "", "temperature": None, "top_p": 0.95, "json_mode": False, "position": 0,
+     "model": "", "temperature": 0.85, "top_p": 0.95, "position": 0,
      "samplers": {"min_p": "0.05", "xtc_probability": "0.3", "xtc_threshold": "0.1", "dry_multiplier": "0.8"}},
-    {"id": "p_ideation", "name": "Ideation", "provider_id": "local-llamacpp",
-     "model": "", "temperature": None, "top_p": 0.95, "json_mode": False, "position": 1,
-     "samplers": {"min_p": "0.06", "xtc_probability": "0.5", "xtc_threshold": "0.1", "dry_multiplier": "0.8"}},
     {"id": "p_prose_edit", "name": "Edit prose", "name_was": "Prose editing", "provider_id": "local-llamacpp",
-     "model": "", "temperature": None, "top_p": 0.90, "json_mode": False, "position": 2,
+     "model": "", "temperature": 0.6, "top_p": 0.90, "position": 1,
      "samplers": {"min_p": "0.08"}},
-    {"id": "p_chat", "name": "Interactive chat", "provider_id": "local-llamacpp",
-     "model": "", "temperature": None, "top_p": 0.90, "json_mode": False, "position": 3,
+    {"id": "p_ideation", "name": "Ideation", "provider_id": "local-llamacpp",
+     "model": "", "temperature": 1.0, "top_p": 0.95, "position": 2,
+     "samplers": {"min_p": "0.06", "xtc_probability": "0.5", "xtc_threshold": "0.1", "dry_multiplier": "0.8"}},
+    # p_chat is the ONE thinking preset (U2-T3, 2026-07-14): grounded book-chat's reasoning
+    # intent lives HERE — think ON at level Medium, resolved + hardware-capped by the
+    # reasoning resolver. p_character_chat stays think-off (fast in-voice dialogue).
+    {"id": "p_chat", "name": "Grounded chat", "name_was": "Interactive chat", "provider_id": "local-llamacpp",
+     "model": "", "temperature": 0.3, "top_p": 0.90, "position": 3,
+     "think": True, "reasoning_effort": "medium",
      "samplers": {"min_p": "0.05", "repeat_penalty": "1.05", "repeat_last_n": "64"}},
-    {"id": "p_creative_structured", "name": "Structured creative", "provider_id": "local-llamacpp",
-     "model": "", "temperature": None, "top_p": 0.95, "json_mode": True, "position": 4,
-     "samplers": {"min_p": "0.05", "xtc_probability": "0.4"}},
-    {"id": "p_extract", "name": "Structured extraction", "provider_id": "local-llamacpp",
-     "model": "", "temperature": None, "top_p": 0.90, "json_mode": True, "position": 5,
-     "samplers": {"min_p": "0", "seed": "7"}},
-    {"id": "p_judge", "name": "Judgment & scoring", "name_was": "Judgment / scoring", "provider_id": "local-llamacpp",
-     "model": "", "temperature": None, "top_p": 0.95, "json_mode": True, "position": 6,
-     "samplers": {"min_p": "0.05", "seed": "7"}},
+    {"id": "p_character_chat", "name": "Character chat", "provider_id": "local-llamacpp",
+     "model": "", "temperature": 0.7, "top_p": 0.90, "position": 4,
+     "samplers": {"min_p": "0.05", "repeat_penalty": "1.05", "repeat_last_n": "64"}},
     {"id": "p_digest", "name": "Grounded summary", "name_was": "Grounded digest", "provider_id": "local-llamacpp",
-     "model": "", "temperature": None, "top_p": 0.90, "json_mode": False, "position": 7,
+     "model": "", "temperature": 0.45, "top_p": 0.90, "position": 5,
      "samplers": {"min_p": "0.05"}},
+    {"id": "p_extract", "name": "Structured extraction", "provider_id": "local-llamacpp",
+     "model": "", "temperature": 0.15, "top_p": 0.90, "position": 6,
+     "samplers": {"min_p": "0", "seed": "7"}},
+    {"id": "p_creative_structured", "name": "Structured creative", "provider_id": "local-llamacpp",
+     "model": "", "temperature": 0.75, "top_p": 0.95, "position": 7,
+     "samplers": {"min_p": "0.05", "xtc_probability": "0.4"}},
+    {"id": "p_judge", "name": "Judgment & scoring", "name_was": "Judgment / scoring", "provider_id": "local-llamacpp",
+     "model": "", "temperature": 0.3, "top_p": 0.95, "position": 8,
+     "samplers": {"min_p": "0.05", "seed": "7"}},
+    {"id": "p_reader_panels", "name": "Reader panels", "provider_id": "local-llamacpp",
+     "model": "", "temperature": 0.55, "top_p": 0.95, "position": 9,
+     "samplers": {"min_p": "0.05", "seed": "7"}},
 ]
 
 # PRESET MODEL SLOTS SHIP EMPTY (user, 2026-07-06: catalog full, selections empty —
@@ -127,41 +126,62 @@ DEFAULT_MODEL_CATALOG_EXTRA: list[dict] = [
 # · n_cpu_moe 21 · ctx_len 32768 · batch/ubatch 512/512 · threads 8 (+ the 0.6B embed
 # at ngl 0).
 
-# taskKind → preset assignment (the routing default; the `TaskKindPreset` bulk handle).
-# The two chat taskKinds share one preset. Every taskKind maps to exactly one preset.
-DEFAULT_TASKKIND_PRESETS: list[dict] = [
-    {"task_kind": "prose.generate",      "preset_id": "p_prose_voiced"},
-    {"task_kind": "ideation",            "preset_id": "p_ideation"},
-    {"task_kind": "prose.edit",          "preset_id": "p_prose_edit"},
-    {"task_kind": "chat.grounded",       "preset_id": "p_chat"},
-    {"task_kind": "chat.inVoice",        "preset_id": "p_chat"},
-    {"task_kind": "creative.structured", "preset_id": "p_creative_structured"},
-    {"task_kind": "extract.structured",  "preset_id": "p_extract"},
-    {"task_kind": "judge.scored",        "preset_id": "p_judge"},
-    {"task_kind": "summary.grounded",    "preset_id": "p_digest"},
-]
-
-# action id → LLM-work taskKind. writerAI splits here; every writerAI.rule.* also
-# falls to prose.edit via the install.py prefix rule (the listed ones are explicit).
-FEATURE_TASK_KINDS: dict[str, str] = {
-    "writerAI.continue": "prose.generate", "writerAI.expand": "prose.generate",
-    "writerAI.describe": "prose.generate", "writerAI.guided-continue": "prose.generate",
-    "writerAI.rewrite": "prose.edit", "writerAI.tighten": "prose.edit",
-    "writerAI.rule.show-dont-tell": "prose.edit", "writerAI.rule.passive-voice": "prose.edit",
-    "writerAI.rule.filter-words": "prose.edit", "writerAI.rule.dialogue-tags": "prose.edit",
-    "brainstorm": "ideation", "brainstormPlot": "ideation",
-    "sensory": "creative.structured", "marketingPack": "creative.structured", "unstuck": "creative.structured",
-    "entitySweep": "extract.structured", "reverseOutline": "extract.structured",
-    "beatSheet": "extract.structured", "readerKnowledge": "extract.structured",
-    "characterAudit": "extract.structured", "relationshipArc": "extract.structured",
-    "foreshadowing": "extract.structured", "recap": "extract.structured",
-    "critique": "judge.scored", "critiqueStructure": "judge.scored",
-    "multiReaderGenre": "judge.scored", "multiReaderLiterary": "judge.scored",
-    "multiReaderAgent": "judge.scored", "multiReaderBookClub": "judge.scored",
-    "plotHoles": "judge.scored", "voiceDrift": "judge.scored",
-    "chat": "chat.grounded", "characterChat": "chat.inVoice",
-    "briefing": "summary.grounded",
+# ── the per-ACTION preset refs (action -> preset_id — the ONE source of what an action
+# runs) + the catch-all default. writerAI splits here (continue -> Generate prose,
+# tighten -> Edit prose); every writerAI.rule.* is listed EXPLICITLY (no prefix magic).
+# 37 refs across the 10 presets. ──
+DEFAULT_FEATURE_PRESETS: dict[str, str] = {
+    # Generate prose
+    "writerAI.continue": "p_prose_voiced",
+    "writerAI.expand": "p_prose_voiced",
+    "writerAI.describe": "p_prose_voiced",
+    "writerAI.guided-continue": "p_prose_voiced",
+    # Edit prose (rewrite + tighten + the 7 line-edit rules)
+    "writerAI.rewrite": "p_prose_edit",
+    "writerAI.tighten": "p_prose_edit",
+    "writerAI.rule.show-dont-tell": "p_prose_edit",
+    "writerAI.rule.passive-voice": "p_prose_edit",
+    "writerAI.rule.filter-words": "p_prose_edit",
+    "writerAI.rule.dialogue-tags": "p_prose_edit",
+    "writerAI.rule.sensory-grounding": "p_prose_edit",
+    "writerAI.rule.sentence-variety": "p_prose_edit",
+    "writerAI.rule.prose-tightening": "p_prose_edit",
+    # Ideation
+    "brainstorm": "p_ideation",
+    "brainstormPlot": "p_ideation",
+    # Grounded chat (the one thinking preset) / Character chat
+    "chat": "p_chat",
+    "characterChat": "p_character_chat",
+    # Grounded summary
+    "briefing": "p_digest",
+    # Structured extraction
+    "entitySweep": "p_extract",
+    "reverseOutline": "p_extract",
+    "beatSheet": "p_extract",
+    "readerKnowledge": "p_extract",
+    "characterAudit": "p_extract",
+    "relationshipArc": "p_extract",
+    "foreshadowing": "p_extract",
+    "recap": "p_extract",
+    # Structured creative
+    "unstuck": "p_creative_structured",
+    "sensory": "p_creative_structured",
+    "marketingPack": "p_creative_structured",
+    # Judgment & scoring
+    "plotHoles": "p_judge",
+    "critique": "p_judge",
+    "voiceDrift": "p_judge",
+    "critiqueStructure": "p_judge",
+    # Reader panels
+    "multiReaderGenre": "p_reader_panels",
+    "multiReaderLiterary": "p_reader_panels",
+    "multiReaderAgent": "p_reader_panels",
+    "multiReaderBookClub": "p_reader_panels",
 }
+
+# The catch-all default preset for an action with no ref (custom actions before
+# assignment; every seeded action above ships a ref). Plan mint ⚑3: "Edit prose".
+DEFAULT_PRESET_ID: str = "p_prose_edit"
 
 
 # §7.3 Lab test samples (2026-07-08; REAUTHORED per the QC-35 SAMPLE LAW,
@@ -170,9 +190,9 @@ FEATURE_TASK_KINDS: dict[str, str] = {
 # authored against its action's own prompt contract (the "You will be given:"
 # block in seed_feature_prompts.py) and shaped exactly like what that feature's
 # COMPOSER sends at a real run. Rows are SYNTHESIZED (never real manuscript
-# text) and per taskKind; the renderer's per-action declaration table
-# (labTestData.js LAB_TEST_ACTIONS) names which label(s) fit each action.
-# Fill-if-empty per (taskKind, label): a user's edit sticks across reseeds; NEW
+# text). Each blob is authored ONCE below with an `actions` list — the seeder fans
+# it to every action that shares the shape (mirrors the renderer's labTestData.js
+# LAB_TEST_ACTIONS map). Fill-if-empty per (action, label): a user's edit sticks; NEW
 # labels reach existing DBs additively; superseded mis-shaped rows are dropped
 # from this list (they linger inert on live DBs — no declaration references
 # them — and fresh DBs never get them).
@@ -198,13 +218,13 @@ DEFAULT_TEST_SAMPLES: list[dict] = [
     # ── prose.generate (writerAI continue/expand/describe/guided-continue:
     # {{passage}} at selection grain + {{voiceCanon}}; guided-continue adds
     # the typed {{direction}} — the sample provides one) ──
-    {"taskKind": "prose.generate", "label": "Storm at the lighthouse",
+    {"actions": ['writerAI.expand', 'writerAI.continue', 'writerAI.describe', 'writerAI.guided-continue'], "label": "Storm at the lighthouse",
      "variables": {"passage": "The lighthouse keeper counted the storm's breaths between "
                               "each sweep of the lamp. The supply boat's light appeared "
                               "where no boat should be.",
                    "voiceCanon": "Close third person, past tense; spare coastal imagery.",
                    "direction": "Continue the scene as the light draws closer; keep the dread quiet."}},
-    {"taskKind": "prose.generate", "label": "Guided continuation",
+    {"actions": ['writerAI.expand', 'writerAI.continue', 'writerAI.describe', 'writerAI.guided-continue'], "label": "Guided continuation",
      "variables": {"passage": "The tide had taken the last of the light when Mira reached "
                               "the cannery office. The brass key turned, but the door was "
                               "already unlatched.",
@@ -212,14 +232,14 @@ DEFAULT_TEST_SAMPLES: list[dict] = [
                    "voiceCanon": "Close third person, past tense; spare coastal imagery."}},
     # ── prose.edit (writerAI rewrite/tighten + the 7 line-edit rules:
     # {{passage}} + {{voiceCanon}}) ──
-    {"taskKind": "prose.edit", "label": "Flabby paragraph",
+    {"actions": ['writerAI.rewrite', 'writerAI.tighten', 'writerAI.rule.show-dont-tell', 'writerAI.rule.passive-voice', 'writerAI.rule.filter-words', 'writerAI.rule.dialogue-tags', 'writerAI.rule.sensory-grounding', 'writerAI.rule.sentence-variety', 'writerAI.rule.prose-tightening'], "label": "Flabby paragraph",
      "variables": {"passage": "It was very really quite windy that day, and the wind, which "
                               "was blowing hard, made the trees move back and forth a lot in "
                               "the wind, which she could see happening as she watched it."}},
     # ── ideation (brainstorm/brainstormPlot: {{user_content}} is the
     # BrainstormView buildUserPrompt shape — Category/Seed + the output line;
     # {{label}}/{{kind}} are the client-filled SYSTEM variables) ──
-    {"taskKind": "ideation", "label": "Brainstorm seed",
+    {"actions": ['brainstorm', 'brainstormPlot'], "label": "Brainstorm seed",
      "variables": {"user_content": "Category: Character names\n"
                                    "Seed: coastal-archivist family names — weathered, bookish, "
                                    "northern harbor town\n\n"
@@ -230,13 +250,13 @@ DEFAULT_TEST_SAMPLES: list[dict] = [
     # critique / critiqueStructure / multiReader×4: {{chapter_label}} renders
     # directly before "--- BEGIN CHAPTER ---", so the label carries the run
     # header's trailing blank line ("Chapter N — Title\n\n").
-    {"taskKind": "judge.scored", "label": "Chapter for critique",
+    {"actions": ['critique', 'critiqueStructure', 'multiReaderGenre', 'multiReaderLiterary', 'multiReaderAgent', 'multiReaderBookClub'], "label": "Chapter for critique",
      "variables": {"chapter_label": "Chapter 3 — The Ledger\n\n",
                    "chapter_text": _SAMPLE_CHAPTER_PROSE}},
     # plotHoles: the composePlotHolesInput shape — book line + per-chapter
     # "=== Chapter N ===" blocks with Summary + prose Tail; the system
     # prompt's optional {{world_rules_section}} ships with one rule set.
-    {"taskKind": "judge.scored", "label": "Book digest (plot holes)",
+    {"actions": ['plotHoles'], "label": "Book digest (plot holes)",
      "variables": {"user_content": "The book has 3 chapters totalling 2,700 words.\n"
                                    "\n"
                                    "=== Chapter 1 — The Harbor Gate (900 words) ===\n"
@@ -267,7 +287,7 @@ DEFAULT_TEST_SAMPLES: list[dict] = [
                                           "End of world rules."}},
     # voiceDrift: the composeVoiceDriftBody shape — OUTLIER block, BASELINE
     # block(s), then the divergent-metric lines.
-    {"taskKind": "judge.scored", "label": "Voice drift comparison",
+    {"actions": ['voiceDrift'], "label": "Voice drift comparison",
      "variables": {"user_content": "OUTLIER — Chapter 4 — \"The Inquest\"\n"
                                    "The inquest was convened on the eleventh. Testimony was taken from the ferryman "
                                    "and from the harbor-master. It was determined that the ledger had been altered. "
@@ -285,12 +305,12 @@ DEFAULT_TEST_SAMPLES: list[dict] = [
                                    "- Dialogue ratio: lower (outlier 0%; baseline ~28%)"}},
     # ── extract.structured ──
     # foreshadowing: {{chapter_label}} (with the run header's "\n\n") + prose.
-    {"taskKind": "extract.structured", "label": "Chapter for foreshadowing",
+    {"actions": ['foreshadowing'], "label": "Chapter for foreshadowing",
      "variables": {"chapter_label": "Chapter 5 — Before the Funeral\n\n",
                    "chapter_text": _SAMPLE_CHAPTER_PROSE_2}},
     # entitySweep: the composeEntitySweepInput shape — the bible block, then
     # the framed chapter.
-    {"taskKind": "extract.structured", "label": "Chapter for entity sweep",
+    {"actions": ['entitySweep'], "label": "Chapter for entity sweep",
      "variables": {"user_content": "Already in the story bible — DO NOT re-propose:\n"
                                    "Characters: Mira, Renn\n"
                                    "Locations: (none)\n"
@@ -302,7 +322,7 @@ DEFAULT_TEST_SAMPLES: list[dict] = [
                                    "--- END CHAPTER ---"}},
     # readerKnowledge: the composeReaderKnowledgeInput shape — the two
     # going-in fact lists, then the framed chapter.
-    {"taskKind": "extract.structured", "label": "Reader knowledge chapter",
+    {"actions": ['readerKnowledge'], "label": "Reader knowledge chapter",
      "variables": {"user_content": "READER ALREADY KNOWS (going in):\n"
                                    "- The ledger's torn page carries a second, older handwriting.\n"
                                    "- Old Harbek wears a brass key on his belt.\n"
@@ -316,7 +336,7 @@ DEFAULT_TEST_SAMPLES: list[dict] = [
                                    "--- END CHAPTER ---"}},
     # characterAudit: the composeCharacterAuditInput shape — profile block +
     # the scene digest with per-scene chapter headers.
-    {"taskKind": "extract.structured", "label": "Character audit scenes",
+    {"actions": ['characterAudit'], "label": "Character audit scenes",
      "variables": {"user_content": "CHARACTER PROFILE\n"
                                    "Name: Mira\n"
                                    "Role: Harbor archivist\n"
@@ -333,7 +353,7 @@ DEFAULT_TEST_SAMPLES: list[dict] = [
                                    f"{_SAMPLE_CHAPTER_PROSE_2}"}},
     # relationshipArc (sample + type ONLY, the user's word): the
     # analyseRelationship shape — two profiles + the shared-chapter blocks.
-    {"taskKind": "extract.structured", "label": "Relationship arc pair",
+    {"actions": ['relationshipArc'], "label": "Relationship arc pair",
      "variables": {"user_content": "PROFILE A — Mira\n"
                                    "Mira\n"
                                    "Role: Harbor archivist\n"
@@ -355,7 +375,7 @@ DEFAULT_TEST_SAMPLES: list[dict] = [
                                    f"{_SAMPLE_CHAPTER_PROSE_2}\n"}},
     # beatSheet: the composeBeatSheetInput shape — FRAMEWORK + BEATS + digest
     # (the 7-point framework keeps the sample compact; any of the three ships).
-    {"taskKind": "extract.structured", "label": "Beat sheet framework",
+    {"actions": ['beatSheet'], "label": "Beat sheet framework",
      "variables": {"user_content": "FRAMEWORK: 7-Point Story Structure\n"
                                    "Dan Wells's compressed framework. Easy to apply, especially good for short novels and series planning.\n"
                                    "\n"
@@ -379,7 +399,7 @@ DEFAULT_TEST_SAMPLES: list[dict] = [
                                    "Renn admits he knew about the page; they plan to open the office together."}},
     # reverseOutline: the composeReverseOutlineInput shape — book line +
     # "Chapter digest:" with the tension/pacing/ending metadata parentheses.
-    {"taskKind": "extract.structured", "label": "Reverse outline digest",
+    {"actions": ['reverseOutline'], "label": "Reverse outline digest",
      "variables": {"user_content": "The book has 3 chapters totalling 2,700 words.\n"
                                    "\n"
                                    "Chapter digest:\n"
@@ -393,7 +413,7 @@ DEFAULT_TEST_SAMPLES: list[dict] = [
                                    "Renn admits he knew about the page; they plan to open the office together.\n"}},
     # recap (extraction-preset member): the buildRecapContext shape — project
     # line, today's words, the chapter tail, cast + strands.
-    {"taskKind": "extract.structured", "label": "Session recap context",
+    {"actions": ['recap'], "label": "Session recap context",
      "variables": {"user_content": "Novel: The Salt Ledger (Mystery)\n"
                                    "Premise: A harbor archivist unpicks who altered her dead father's ledger.\n"
                                    "\n"
@@ -411,7 +431,7 @@ DEFAULT_TEST_SAMPLES: list[dict] = [
                                    "- The older script: who else can read it, and why it appears in the ledger.\n"}},
     # ── creative.structured ──
     # sensory: the generateSensoryPack shape — "Subject:" + optional context.
-    {"taskKind": "creative.structured", "label": "Sensory subject",
+    {"actions": ['sensory'], "label": "Sensory subject",
      "variables": {"user_content": "Subject: the cannery office at dusk — brass key cold in the palm, "
                                    "tide turning below the floorboards, rope and old paper\n"
                                    "\n"
@@ -420,7 +440,7 @@ DEFAULT_TEST_SAMPLES: list[dict] = [
                                    "everything owned by the harbor cooperative."}},
     # marketingPack: the composeMarketingPackInput shape — TITLE/GENRE/PREMISE
     # + the chapter digest.
-    {"taskKind": "creative.structured", "label": "Marketing pack digest",
+    {"actions": ['marketingPack'], "label": "Marketing pack digest",
      "variables": {"user_content": "TITLE: The Salt Ledger\n"
                                    "GENRE: Mystery\n"
                                    "PREMISE: A harbor archivist unpicks who altered her dead father's ledger.\n"
@@ -436,14 +456,14 @@ DEFAULT_TEST_SAMPLES: list[dict] = [
                                    "Ch. 3 — Before the Funeral (900 words)\n"
                                    "Renn admits he knew about the page; they plan to open the office together.\n"}},
     # unstuck: the composeUnstuckInput shape — header + the BEGIN/END PROSE frame.
-    {"taskKind": "creative.structured", "label": "Stuck prose",
+    {"actions": ['unstuck'], "label": "Stuck prose",
      "variables": {"user_content": "Chapter 5 — Before the Funeral\n\n"
                                    "--- BEGIN PROSE (writer is stuck at the end of this) ---\n"
                                    f"{_SAMPLE_CHAPTER_PROSE_2}\n"
                                    "--- END PROSE ---"}},
     # ── summary.grounded (briefing): the buildBriefingContext shape — gap
     # line, last chapter, the tail passage, cast, strands, pins. ──
-    {"taskKind": "summary.grounded", "label": "Resume briefing context",
+    {"actions": ['briefing'], "label": "Resume briefing context",
      "variables": {"user_content": "Novel: The Salt Ledger (Mystery)\n"
                                    "Premise: A harbor archivist unpicks who altered her dead father's ledger.\n"
                                    "\n"
@@ -465,7 +485,7 @@ DEFAULT_TEST_SAMPLES: list[dict] = [
                                    "- (Ch.4) TODO: establish when Old Harbek got a key\n"}},
     # ── chat.grounded: {{question}} + {{excerpts}} in the run formatter's
     # cited [1]/[2] byte-shape (rag/excerpts.js). ──
-    {"taskKind": "chat.grounded", "label": "Cited excerpts question",
+    {"actions": ['chat'], "label": "Cited excerpts question",
      "variables": {"question": "When did Mira first learn about the ledger, and who told her?",
                    "excerpts": "[1] Ch. 3 \"The Ledger\", scene \"The Torn Page\":\n"
                                f"{_SAMPLE_CHAPTER_PROSE}\n"
@@ -475,7 +495,7 @@ DEFAULT_TEST_SAMPLES: list[dict] = [
     # ── chat.inVoice: the two chat variables plus {{characterName}} +
     # {{characterProfile}} in the buildCharacterProfile line shape (leading
     # newline; "Role:"/"Self-image" rows — what a real run sends). ──
-    {"taskKind": "chat.inVoice", "label": "Ask Mira in character (cited)",
+    {"actions": ['characterChat'], "label": "Ask Mira in character (cited)",
      "variables": {"question": "What did you feel when you first saw the ledger's torn page?",
                    "excerpts": "[1] Ch. 3 \"The Ledger\", scene \"The Torn Page\":\n"
                                f"{_SAMPLE_CHAPTER_PROSE}\n"

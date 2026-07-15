@@ -1,6 +1,7 @@
 // AI store — providers (OpenAI-compatible), the default LLM + embedding routing,
-// per-feature pins, and per-model tier overrides. Usage is recorded + priced
-// server-side; the AI menu reads it from /v1/ai-usage.
+// and per-model tier overrides. Usage is recorded + priced server-side; the AI
+// menu reads it from /v1/ai-usage. (Per-feature pins died in the 2026-07-15
+// one-source rewrite — each action routes via its preset ref, server-side.)
 
 import { defineStore } from "pinia";
 import { getModelTier, TIERS } from "../services/modelMeta.js";
@@ -9,10 +10,10 @@ import * as providerBackend from "../services/providerBackend.js";
 import * as routingBackend from "../services/routingBackend.js";
 
 // The `ai` settings section holds only the non-routing AI prefs (per-model tier
-// overrides + the RAG auto-rebuild toggle). The default provider/embedding,
-// per-feature pins, and Quick/Accuracy roles live in the routing tables
-// (/v1/ai/routing via routingBackend); providers live in /v1/llm-providers.
-// None of those round-trip through the settings document.
+// overrides + the RAG auto-rebuild toggle). The default provider/embedding
+// lives in the routing tables (/v1/ai/routing via routingBackend); providers
+// live in /v1/llm-providers. None of those round-trip through the settings
+// document.
 function loadPrefs() {
   const v = readSetting("ai");
   return v && typeof v === "object" ? v : null;
@@ -28,15 +29,12 @@ function initialProviders() {
   return providerBackend.listProviders() ?? [];
 }
 
-// Persist the routing fields (default provider/embedding + per-feature pins) to
-// the routing tables. The Features tab's Quick/Accuracy roles are preserved by
-// the backend's merge (the AI store doesn't track them).
+// Persist the routing default (provider/embedding) to the routing tables.
 function saveRouting(state) {
   routingBackend.putRoutingPrefs({
     defaultLlmId: state.defaultLlmId,
     defaultEmbeddingId: state.defaultEmbeddingId,
     defaultEmbeddingModel: state.defaultEmbeddingModel,
-    featurePins: state.featurePins,
   });
 }
 
@@ -52,7 +50,7 @@ function savePrefs(state) {
 export const useAiStore = defineStore("ai", {
   state: () => {
     const prefs = loadPrefs();
-    // Routing (default provider/embedding + feature pins) comes from the routing
+    // Routing (the default provider/embedding) comes from the routing
     // tables via the boot cache — one source of truth shared with the Features
     // tab; the `ai` settings doc carries only the non-routing prefs below.
     const routing = routingBackend.getRoutingPrefs();
@@ -74,14 +72,6 @@ export const useAiStore = defineStore("ai", {
       // judgement. Empty by default; the heuristic in modelMeta.js
       // provides the auto-detected tier when nothing is pinned.
       modelTiers: prefs?.modelTiers ?? {},
-      // Per-feature LLM pins. Each key is a feature id (chat | critique |
-      // entitySweep | writerAI | …); each value is null (= inherit the global
-      // defaultLlmId) or { providerId, model?, role? }. Mirrors the routing
-      // tables. Since B5-1 (§7.2) NO renderer surface writes pins — the chip
-      // is read-only provenance; pins are edited only in the shared Feature
-      // Workbench. The store still mirrors them for guards; they persist via
-      // /v1/ai/routing.
-      featurePins: routing?.featurePins ?? { chat: null, critique: null, entitySweep: null, writerAI: null },
       // When true, services/rag/autoIndex.js silently embeds new/changed
       // scenes a minute after the last edit. Default OFF — auto-firing
       // burns embed tokens on every save against a cloud provider, which
@@ -123,22 +113,14 @@ export const useAiStore = defineStore("ai", {
     // per-provider via the embeddingModel field.
     embeddingProviders: (s) => s.providers,
 
-    // Resolve a feature pin to its provider; falls back to the global
-    // default LLM provider when no pin is set or the pinned provider is
-    // gone. Use this in feature services instead of `llmProvider`.
-    providerForFeature: (s) => (featureKey) => {
-      const pin = s.featurePins?.[featureKey];
-      if (pin?.providerId) {
-        const hit = s.providers.find((p) => p.id === pin.providerId);
-        if (hit) return hit;
-      }
+    // The configured-guard the analysis modals use ("is AI set up at all?").
+    // Since the 2026-07-15 one-source rewrite routing is server-side (each
+    // action's preset ref) — this returns the default LLM provider, which is
+    // exactly the "something is configured" signal the guards need. The
+    // featureKey parameter is kept so ten call sites stay honest about WHICH
+    // feature they're guarding.
+    providerForFeature: (s) => (_featureKey) => {
       return s.providers.find((p) => p.id === s.defaultLlmId) || null;
-    },
-    // The model id for a feature pin, or null when the pinned provider's
-    // own chatModel should be used (the common case — most pins just
-    // change provider, not model).
-    modelForFeature: (s) => (featureKey) => {
-      return s.featurePins?.[featureKey]?.model || null;
     },
 
     // Resolve a model id to its tier — user override wins, else the
@@ -161,11 +143,6 @@ export const useAiStore = defineStore("ai", {
     // (boot cache + resync). The old optimistic add/update/remove actions were
     // dead code once the kit took over editing — removed by the 2026-07-06
     // everything-LLM-shared audit (C4).
-    setFeaturePin(featureKey, pin) {
-      // pin = null to inherit the default; { providerId, model? } to pin.
-      this.featurePins = { ...this.featurePins, [featureKey]: pin || null };
-      saveRouting(this.$state);
-    },
     setDefaultLlm(id) {
       this.defaultLlmId = id;
       saveRouting(this.$state);
@@ -175,9 +152,9 @@ export const useAiStore = defineStore("ai", {
       saveRouting(this.$state);
     },
     // Re-pull routing from the server into the store (+ the routingBackend cache).
-    // The shared AI ▸ Features tab writes routing directly to the server, so after
-    // the user leaves that page this refreshes the default LLM/embedding + model +
-    // pins the renderer-side RAG and chat panel rely on — no full reload needed.
+    // The shared AI views write routing directly to the server, so after the user
+    // leaves that page this refreshes the default LLM/embedding + model the
+    // renderer-side RAG and chat panel rely on — no full reload needed.
     async resyncRouting() {
       await routingBackend.refreshRouting();
       const r = routingBackend.getRoutingPrefs();
@@ -185,7 +162,6 @@ export const useAiStore = defineStore("ai", {
       this.defaultLlmId = r.defaultLlmId || this.defaultLlmId;
       this.defaultEmbeddingId = r.defaultEmbeddingId || this.defaultEmbeddingId;
       this.defaultEmbeddingModel = r.defaultEmbeddingModel || "";
-      this.featurePins = r.featurePins ?? this.featurePins;
     },
     // Point-of-use freshness + self-heal (2026-07-11, two rounds): every RAG entry
     // point resolves its embedding provider through THIS. It ALWAYS re-pulls routing

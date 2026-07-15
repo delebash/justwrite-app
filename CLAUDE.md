@@ -41,9 +41,12 @@ one sanctioned exception to per-domain stores.
 > The current cutover state lives in `MORNING_RECAP.md`; OPEN AI-stack work lives in
 > `just-llm-runner/docs/plans/2026-07-06-outstanding-master-plan.md` (THE one ledger,
 > sections A–I), and the **current AI-routing / preset model** is
-> `just-llm-runner/docs/plans/2026-07-14-feature-override-and-reasoning-plan.md`
-> (**3-tier cascade** restored 2026-07-14: feature override → task preset → global default;
-> the 2026-07-02 Plan-A doc's reset/edit-in-place story stands, but its 2-tier cascade was reverted).
+> `just-llm-runner/docs/plans/2026-07-15-preset-one-source-rewrite.md`
+> (**one-source model**, 2026-07-15: the task tier is DELETED — each action points at ONE
+> engine preset (`feature_preset_refs`, seeded full) which owns the model + every tunable
+> incl. think/reasoning; the action keeps only its prompt text + JSON contract; one
+> `default_preset_id` RunnerSetting catches unassigned customs. The 2026-07-14 plan's
+> Unit-2 reasoning BACKEND stands; its task-tier language is superseded).
 > The old roadmap (`2026-06-28-MASTER-PLAN.md`, bannered fully historical 2026-07-08)
 > and the other `docs/plans/*` are history/evidence. Not here.
 

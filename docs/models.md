@@ -8,7 +8,7 @@ tune models yourself.
 ## Quick Setup — one good model that fits
 
 A fresh install (and a factory reset — they are the same state) ships the catalog **full**
-but every choice **empty**: no task model, no embedding. The "Your setup" strip shows both
+but every choice **empty**: no chat model, no embedding. The "Your setup" strip shows both
 slots as **Not set**, and anything that needs a model before setup answers with "run Quick
 Setup" guidance instead of an error. The **Built-in provider** is the permanent section at
 the top of the **Providers & models** tab — its whole control panel is always on the page
@@ -24,8 +24,8 @@ built-in provider**) does the whole first-time setup:
    **skips a dense model that only fits by spilling onto the CPU** — that spill makes every
    word slow — unless nothing faster runs, in which case it falls back to the best model that
    runs at all. You can change the pick before applying. If your machine is already set
-   up (mixed per-task models, or saved machine tunes), the confirm step lists **exactly
-   which tasks Apply will change** — and which of your own choices it keeps — before
+   up (mixed per-preset models, or saved machine tunes), the confirm step lists **exactly
+   which presets Apply will change** — and which of your own choices it keeps — before
    anything is written; your saved machine tunes are never touched.
 3. It sets the **embedding model** — used for semantic search and grounded chat. The
    embedding runs on the **CPU**, leaving your graphics card free for the chat model, so the
@@ -37,28 +37,28 @@ built-in provider**) does the whole first-time setup:
 Quick Setup is **local-only**: it configures the **bundled runner** — the local engine that
 downloads and runs models on your machine — and nothing else. If you'd rather run models
 through another provider (**Ollama** or **LM Studio** on your machine, or a cloud API),
-connect it on the **provider list** (Providers & models → add a provider) and point tasks at
+connect it on the **provider list** (Providers & models → add a provider) and point presets at
 it there — the wizard never touches external providers. (The embedding always runs locally
 on the bundled runner.)
 
 **Set as default, on any provider.** Every provider row — the built-in, a local server, or
 a cloud API — carries a **Set as default** button, and it's the same flow everywhere. The
-provider your tasks currently run on is marked with a green **Default** tag on its row, and
+provider your presets currently run on is marked with a green **Default** tag on its row, and
 its button reads **Default ✓** (still clickable — that's where the overwrite option lives).
-Setting a default makes that provider the one your AI tasks run on (the provider's chat
+Setting a default makes that provider the one your AI features run on (the provider's chat
 model), and — when the provider has an **embedding model** set — the search/embeddings
 provider too; the built-in's dialog reads your actual embedding setup, so when a local
 embedding is already serving it says so ("already runs here — unchanged") instead of
-claiming none is set. Before applying you choose what happens to tasks you already
-customized: leave them on their own models (the default), or tick **Also overwrite tasks I
+claiming none is set. Before applying you choose what happens to presets you already
+customized: leave them on their own models (the default), or tick **Also overwrite presets I
 customized** to repoint everything. The built-in needs an assigned chat model first (pick
 one in the catalog, or run Quick Setup); any other provider needs its **Default model**
 filled in on its Edit form.
 
-When you click **Apply**, that one model becomes the default for **every task** — writing,
+When you click **Apply**, that one model becomes the default for **every preset** — writing,
 chat, extraction, judgment — and it downloads and loads right away. If you've already
-changed the model for a particular task yourself (on the **Routing by task** tab), Quick
-Setup leaves that task alone.
+changed the model on a particular preset yourself (on the **Presets** tab), Quick
+Setup leaves that preset alone.
 
 After Apply, the done step tells you which launch settings this machine got — **no sweep
 ever starts on its own**. A machine with its **own saved tune** keeps it (a **Re-optimize**
@@ -72,8 +72,8 @@ faster — the full sweep or the model's Tune dialog go deeper), and **Full opti
 strictly beats the current launch, and other AI features pause while one runs.
 
 That's the intent: you don't pick a model per job. One good model handles everything, and
-each task keeps its own *settings* (temperature, JSON mode, and so on) automatically. If
-you later want a faster model for a specific task, swap it in on the **Tasks** tab and use
+each preset keeps its own *settings* (temperature, samplers, reasoning) automatically. If
+you later want a faster model for specific work, swap it in on that **Preset** and use
 its **Lab** to measure the difference.
 
 ## The model catalog
@@ -104,17 +104,17 @@ this box. Each row shows the model's **type** (*Dense* or *MoE*, plus **MTP** fo
 with multi-token prediction and **Embed** for embedding models), license, live **Fit**
 badge (*Fits* / *Tight* / *CPU* / *Won't fit*), whether it's **Downloaded** or **Not
 downloaded**, and a short description (the parameter count lives in the name and
-description). The model every task currently uses carries a **Default** badge; the
+description). The model every preset currently uses carries a **Default** badge; the
 embedding model carries an **Embedding** badge. From here you can:
 
 - **Download** a model — fetches the weights onto your machine. Your chat default and the
-  embedding can run together, and a model also loads on demand when a task needs it.
-- **Load as default** — makes a downloaded model the one **every task** uses (the same effect
-  as Quick Setup; any task you've re-pointed yourself on the **Routing by task** tab keeps
+  embedding can run together, and a model also loads on demand when a feature needs it.
+- **Load as default** — makes a downloaded model the one **every preset** uses (the same effect
+  as Quick Setup; any preset you've re-pointed yourself on the **Presets** tab keeps
   its own model) **and loads it into memory right away**, so your first write doesn't pay
   the load wait.
 - **Unload** — appears on a loaded model; frees its memory (VRAM) without picking anything
-  else. The model loads again on **Load as default** or the next time a task needs it.
+  else. The model loads again on **Load as default** or the next time a feature needs it.
 - On an **embedding** row, **Load as default** works the same way — it makes that model the
   one used for search and grounded chat **and loads it right away, alongside your chat
   model** (the two run together); a loaded embedding gets the same **Unload**. You don't
@@ -124,10 +124,10 @@ embedding model carries an **Embedding** badge. From here you can:
   embedding model works the same way: the next search loads the new one.
 - Every model from Hugging Face carries a **Model card ↗** link (on its row and in its Edit
   dialog) that opens the full details — files, license, the maker's notes — in your browser.
-- **Engine switches belong to the model, not to tasks** — that's the one rule of the
+- **Engine switches belong to the model, not to presets** — that's the one rule of the
   whole tuning system. A loaded model is one engine process with one set of launch
-  switches, shared by **every task that uses it**; what a *task* owns is how the model is
-  **asked** (temperature, max tokens, JSON, thinking, samplers — on the Tasks tab, no
+  switches, shared by **every preset that uses it**; what a *preset* owns is how the model is
+  **asked** (temperature, max tokens, thinking, samplers — on the Presets tab, no
   reload needed). So there is exactly **one place to set engine switches: the model's
   Tune & measure dialog** — opened from the model's row in the catalog, or from a Lab
   column's **Engine switches ↗** link (same dialog, same config).
@@ -135,7 +135,7 @@ embedding model carries an **Embedding** badge. From here you can:
   (it places the model across GPU/CPU for your card at the app-chosen context size); an
   applied config replaces that with your measured values.
 - **Tune** a downloaded model — measure its decode speed on your box with custom engine
-  flags, then **Apply**. A confirmation first tells you exactly which tasks the change
+  flags, then **Apply**. A confirmation first tells you exactly which presets the change
   reaches (they all share the model), then the config is kept **for this model on this
   machine** and — if the model is running right now — it **reloads immediately**, so what
   you applied is always what's actually running; a **toast confirms the moment it's done**.
@@ -276,17 +276,17 @@ one empty and that side embeds raw. If you edit a template after building an ind
 > embedding models from the provider's own live list. The built-in local provider doesn't
 > show those two fields at all — its models are chosen right here on the catalog.
 
-> **Recommended samplers come from the model file.** When you pick a model in a Task's
+> **Recommended samplers come from the model file.** When you pick a model in a Preset's
 > **Lab**, its maker-recommended sampler settings (read from the GGUF) seed the sampler
-> grid automatically — the Task keeps its own temperature, and the model fills the
+> grid automatically — the preset keeps its own temperature, and the model fills the
 > secondary knobs (top-k / min-p / top-p / penalties) it leaves blank. What you see in the
 > grid is what runs.
 
 > **Filling the Lab's Test input.** The **Sample** button fills the boxes with editable
 > sample data stored in the app's database (click again for the next sample), and the
 > **"Insert from chapter / character / location…"** pickers pull real material from your
-> open book. Every task has at least one sample, and the pickers cover every task's boxes:
-> the chat tasks take a chapter's prose as their excerpts, and In-character chat fills its
+> open book. Every feature has at least one sample, and the pickers cover every feature's boxes:
+> the chat features take a chapter's prose as their excerpts, and In-character chat fills its
 > character name + profile from a real character. All the fill controls sit together on
 > one row above the boxes. A picker only appears when that material can actually fill one
 > of the open feature's boxes — a prose feature offers chapters, not character profiles.
@@ -302,9 +302,11 @@ one empty and that side embeds raw. If you edit a template after building an ind
 
 > **Where a feature's model shows up in the app.** Writing surfaces (Ask the book, the
 > scene editor's AI menu, the analysis tools) carry a small read-only **"runs on"** chip
-> naming the provider + model that feature's task uses right now — resolved by the server
-> exactly the way a run resolves it, so the chip can never disagree with reality. The chip
-> is provenance, not a picker: clicking it takes you to the **Tasks** tab, which — together
-> with the feature workbench — is the only place routing is edited. (The old per-surface
-> provider/model dropdowns are gone; they edited a side channel that the task's preset
+> naming the provider + model that feature's preset uses right now — resolved by the server
+> exactly the way a run resolves it, so the chip can never disagree with reality. On most
+> surfaces the chip is provenance: clicking it takes you to AI settings, where the **Presets**
+> tab and the feature workbench are the only places routing is edited. The two chat chips
+> (Ask the book / Talk to character) go one further — clicking them opens an **edit doorway**
+> naming the preset and how many features share it. (The old per-surface
+> provider/model dropdowns are gone; they edited a side channel that the preset
 > overrode anyway.)

@@ -1,65 +1,67 @@
-# Tasks
+# Presets
 
-A **task** is a kind of LLM work — "generate prose", "edit prose", "structured
-extraction", "judgment & scoring", and so on. Every AI feature in the app is assigned
-to a task, and each task points at an **engine preset** (a model plus its samplers).
-Grouping features by the *work they do* — rather than by where they sit in the menus —
-lets one well-tuned preset serve everything of the same shape.
+A **preset** is a named engine configuration — the model a feature runs on plus every
+tunable: temperature, top-p, max tokens, samplers, and the **Reasoning** dial (whether it
+thinks, and how hard). Every AI feature in the app points at exactly one preset, and
+features that should run with the same settings simply share one — edit the preset once
+and everything using it follows. **The preset is the one source of truth for engine
+settings** (2026-07-15): nothing else in the app stores a tunable.
 
-You'll find Tasks under **Settings → AI → Tasks**.
+You'll find Presets under **Settings → AI → Presets**.
 
-## What a task holds
+## What a preset holds
 
-- **A name and description** — what this kind of work is.
-- **An engine preset** — the model + samplers its features run by default. The preset a
-  feature actually runs cascades through three tiers: **its own per-feature override**
-  (if set) → **its task's preset** → the **Default preset**.
-- **Its features** — every AI feature assigned to this task. One feature belongs to
-  exactly one task.
+- **A name** — "Generate prose", "Judgment & scoring", "Reader panels", …
+- **The model** — the provider + model its features run on.
+- **Every tunable** — temperature, top-p, max tokens, the long-tail samplers, and the
+  Reasoning level (Off / Low / Medium / High / XHigh / Max).
+- **Its features** — shown as "used by N features", with the member list in the detail
+  pane. A feature always points at some preset (or the **default preset** if unassigned).
+
+What a preset does **not** hold: the feature's prompt text and its **JSON contract**
+(whether the app parses that feature's output as structured JSON). Those belong to the
+feature itself — re-pointing a feature at a different preset can never break its own
+parser. The Lab shows the contract as a read-only badge, with an ephemeral "test as JSON"
+toggle for experiments that is never saved.
 
 ## Create, rename, delete
 
-- **New task** adds one of your own — for a kind of work the built-in set doesn't
-  cover. Give it a name, then assign features and a preset.
-- **Rename** changes its name; **Delete** removes a task you made. The built-in tasks
-  can be renamed and re-pointed but not deleted (use **Reset**, or **Reset all**, to
-  restore them). Deleting a task returns its features to their original tasks.
+- **＋ New preset** adds one of your own: name it (that's all the form needs), then set
+  its model and values in the Lab below and assign features to it.
+- The **name is the field at the top of the detail pane** — edit it right there.
+- **Delete** removes a preset you made; its features fall to the default preset. The
+  built-in presets can be renamed and re-tuned but not deleted — **Reset** (one preset)
+  or **↺ Reset all** (everything) restores the shipped state while keeping your custom
+  presets.
 
 ## Assign features
 
-In a task's **Features** list, **+ Add a feature** moves a feature into this task, and
-**Move to…** on any member sends it to a different task. A feature always has a task,
-so you reassign rather than remove. (You can also change a single feature's task from
-**Routing by feature**.)
+In a preset's **Features** list, **＋ Assign a feature** points a feature at this preset,
+and **Move to…** on any member sends it to a different one. You can also set a single
+feature's preset from **Routing by feature** — its **Preset** dropdown lists the library
+plus "— default preset —" (which clears the assignment so the feature follows the default).
 
-## Set up and test a task's preset
+## Test and tune
 
-Pick a task's **Preset**, then **Test against** one of its member features to run that
-preset on a real prompt — tune the model and samplers in the Lab and compare columns.
-Save your work two ways: **Save as preset** makes a new reusable preset, and **Update**
-edits the loaded preset in place (no duplicate). **Use for this task** makes the shown
-preset the one this task runs. Because a task has no prompt of its own, you test it
-through one of its features.
+The Lab at the bottom of the page **is** the preset's editor: the column shows this
+preset's actual values, **Update** writes them back to this preset, and **Save as preset**
+makes a new one instead. Pick **Test against** to run the preset on one of its member
+features' real prompts and compare columns. The same Lab on **Routing by feature** tests a
+single feature; its "Use for this feature" points that feature at the tested preset.
 
-When you **Send to Tasks Lab** from a model's Tune window (on the **Models** tab), the
-tuned model + engine flags arrive here as a **new column** in the first task's Lab —
-alongside the task's current preset, so you can compare them — ready to **Save as preset**.
+The two chat chips (Ask the book / Talk to character) are also **edit doorways**: click
+one to change that feature's model and Reasoning level right there — the popover names the
+preset it edits and how many features share it before you save.
 
-On **Routing by feature** you can give a single feature its **own preset override** — the
-**Preset** dropdown there sets a preset for **that feature only** (or pick **— inherit
-from task —** to drop the override and follow the task again). To change every feature in
-a task at once, set the task's preset here, or use **Use for this task** in the Lab.
+## Reasoning
+
+The Reasoning dial lives on the preset. On a **local** run the level's token budget is
+capped by your hardware's tested bound (the effective value is shown wherever the level
+is picked); on cloud providers each level maps to that provider's own control — the
+per-provider mapping is an editable table on the provider's form.
 
 ## Reset to defaults
 
-Several levels, all of which **keep your custom tasks and custom presets**:
-
-- **Reset all to defaults** (by the Default preset, at the bottom of the task list) —
-  restores the built-in presets, the built-in task names/descriptions, and every
-  task→preset, feature→task, and per-feature override (clears them all).
-- **Reset** (next to a built-in task's **Rename**) — restores just that task's name,
-  description, and preset. Its features stay where they are.
-- **↺ next to a feature's Preset** (on **Routing by feature**) — clears just that
-  feature's per-feature override, so it follows its task's preset again.
-- **↺ next to a feature's Task** (on **Routing by feature**) — the full per-feature
-  reset: clears its preset override AND sends it back to its default task.
+- **↺ Reset all** (bottom of the preset list) — restores the built-in presets, every
+  feature assignment, and the default preset. Custom presets survive.
+- **Reset** (on a built-in preset) — restores just that preset's name and values.
