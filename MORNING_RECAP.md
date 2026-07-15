@@ -76,9 +76,9 @@ BUILD RECORD — `just-llm-runner/docs/plans/2026-07-15-preset-one-source-rewrit
 approval + panel history live there too.** Docs shipped with it: `docs/presets.md` (replaces
 tasks.md), models.md swept, CLAUDE.md pointer, the 2026-07-14 plan bannered. OPEN after this
 go: the USER's box checks (local High chat stops at the hardware cap; new-Anthropic run
-clean) · `docs/ai-providers.md` still teaches the 3-tier/read-only-chip model (the doc-sweep
-predated this rewrite by hours — needs a one-source re-sweep) · the claude-config
-subagent-hook bypass follow-up.
+clean) · the claude-config subagent-hook bypass follow-up. (`docs/ai-providers.md`'s
+3-tier/read-only-chip sections — stale for the hours between the doc-sweep and this rewrite —
+were re-swept to the one-source model in the same push.)
 
 **Heads at this re-split:** JW `49ad7b5` · runner `493f8ef` — both clean, 0-ahead / 0-behind origin.
 

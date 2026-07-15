@@ -32,8 +32,8 @@ Every scene's **Links** panel and every character / location / object / group / 
 Open the **AI** page — the Sparkle icon in the sidebar (from Settings, the *"writing-AI settings live in the AI menu"* note points here too). It's organized into tabs across the top:
 
 - **Providers & models** — your built-in (local) provider at the top, then any providers you've added (where you add, edit, test, and remove), plus the **Quick setup** wizard, the **Model catalog**, and the hardware/tuning libraries. Each provider row shows a **Default** tag when it's your current default, with a **Set as default** button.
-- **Routing by task** — set the model (a saved *preset*) for each broad kind of work — writing, chat, extraction, judgment. The coarse dial most people use.
-- **Routing by feature** — override a single feature's model when you want finer control than its task gives.
+- **Presets** — the saved engine configs (model + temperature + samplers + the Reasoning dial). Every feature points at one preset; features with the same settings share one, so editing a preset retunes everything that uses it. The coarse dial most people use.
+- **Routing by feature** — point a single feature at a different preset when it needs its own settings.
 - **Usage** — cost and call tracking (see *AI usage and cost tracking* below).
 - **Server console** — the built-in engine's live log, for troubleshooting.
 
@@ -314,13 +314,9 @@ If you have an RTX 2070 / 3060Ti / 3070 (8 GB):
 
 The default model is convenient but limiting. Once you have two or more providers, you may want to send different features to different ones.
 
-JustWrite routes AI in **three tiers**, most-specific first:
+JustWrite routes AI with **one rule**: every feature points at a **preset** (the model plus all its settings), and a feature with no assignment falls to the **default preset**. Features that should run the same simply share a preset — the app ships with ten, grouped by the kind of work (prose generation, editing, judgment, extraction, chat, …).
 
-1. **A feature's own override** (set on **Routing by feature**) — wins when present.
-2. **The feature's task preset** (set on **Routing by task**) — every feature belongs to a broad task (writing, chat, extraction, judgment); set the task's model once and all its features follow.
-3. **The global default** — the fallback when neither is set.
-
-So the usual flow is: set your default, tune a few *tasks* under **Routing by task**, and only reach for **Routing by feature** when one specific feature needs its own model. These are the twenty routable features:
+So the usual flow is: set your default provider, retune a shared preset on the **Presets** tab when a whole family should change, and use **Routing by feature** to point one feature at a different preset when it needs its own settings. These are the twenty routable features:
 
 | Feature | What it does |
 |---|---|
@@ -345,19 +341,19 @@ So the usual flow is: set your default, tune a few *tasks* under **Routing by ta
 | **Marketing pack** | The Analysis dashboard "Marketing pack" modal — logline, three back-cover blurbs, one-page synopsis, three-paragraph elevator pitch |
 | **Multi-reader panel** | The chapter editor's "Multi-reader panel" critique — four reader personas (genre reader / literary critic / agent intern / book-club reader) react to a chapter in parallel |
 
-A feature with no override follows its task preset; a task with no preset follows your global default.
+A feature with no assigned preset follows the default preset.
 
 **A common routing setup**:
 
 - **Default LLM**: Ollama (free, local, fast for routine work)
-- **Critique**: pinned to Claude (better at structural reasoning)
-- **Entity sweep**: pinned to `gpt-5.4-mini` (cheap and reliable for this specific job)
+- **Critique**: its preset points at Claude (better at structural reasoning)
+- **Entity sweep**: on its own preset pointing at `gpt-5.4-mini` (cheap and reliable for this specific job)
 - **Writer actions**: inherits default (Ollama)
 - **Manuscript chat**: inherits default
 - **Resume briefing**: inherits default (a fast local model is fine here — it's a short, structured task)
 - **Session recap**: inherits default (same reasoning — short structured output, no need for the heavy provider)
-- **Foreshadowing scan**: pinned to Claude (long-context structural reasoning helps catch subtler setups; runs once per chapter so the per-call cost adds up — pick your battle)
-- **Reader knowledge**: pinned to Claude (same reasoning — sequential per-chapter calls benefit from strong reading comprehension; a smaller model produces noisier facts)
+- **Foreshadowing scan**: its preset points at Claude (long-context structural reasoning helps catch subtler setups; runs once per chapter so the per-call cost adds up — pick your battle)
+- **Reader knowledge**: same preset as the scan above (sequential per-chapter calls benefit from strong reading comprehension; a smaller model produces noisier facts)
 
 This pattern keeps day-to-day cost near zero and only spends on the two features where cloud quality genuinely matters.
 
@@ -412,7 +408,7 @@ Change either value, then click **Save**; the new limits apply the next time a m
 
 Every AI page has a small chip in its header showing the current **provider · model** for that feature. Critique, Brainstorm, every analysis modal, Reader knowledge, the chat panel — same chip in each. In the chapter editor, the chip sits at the **top of each scene's AI dropdown**, so writer actions (Rewrite, Expand, Tighten, Continue, Line edits) show their routing right above the menu items they apply to.
 
-The chip is **read-only** — a "runs on" indicator, not an editor. Its tooltip names the task the feature belongs to, and **clicking it opens the AI page** so you can change the routing under **Routing by task** or **Routing by feature**. (Earlier versions let you edit the model from a popover on the chip; routing now lives in one place — the AI page — so the same change can't drift between surfaces.)
+On most surfaces the chip is **read-only** — a "runs on" indicator; **clicking it opens the AI page**, where the **Presets** tab and **Routing by feature** are the routing editors. The two chat chips (Ask the book / Talk to character) go one further: clicking them opens a small **edit popover** where you can change that feature's model and Reasoning level in place — the popover names the preset it edits and how many features share it before you save.
 
 **Analysis modals wait for you.** When you open Multi-reader, Entity sweep, Foreshadowing, Plot-hole audit, Reverse outline, Marketing pack, Character audit, Sensory research, Session recap, Stuck diagnostic, or AI-tell scan, the modal opens to an empty-state with a primary "Run" button instead of firing the AI call immediately. That gives you a chance to check the routing chip first — and change it on the AI page if you want a different model — before spending tokens. Click the Run button when you're ready.
 
