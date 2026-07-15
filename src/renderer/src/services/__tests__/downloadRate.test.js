@@ -9,6 +9,7 @@ import {
   fmtBytes,
   fmtEta,
   fmtSpeed,
+  progressCaption,
   rateSuffix,
 } from "@delebash/llm-ui/common/services/downloadRate.js";
 
@@ -85,5 +86,16 @@ describe("formatters", () => {
     expect(rateSuffix(0, 0, 0)).toBe("");
     expect(rateSuffix(5 * MB, 100 * MB, 0)).toBe(" · 5.0 MB/s"); // unknown total → no ETA
     expect(rateSuffix(5 * MB, 100 * MB, 700 * MB)).toBe(" · 5.0 MB/s · ~2m left");
+  });
+});
+
+describe("progressCaption", () => {
+  it("builds phase · done / total + the rate suffix (the shared bar caption)", () => {
+    expect(progressCaption("Downloading the model", 500 * MB, 4200 * MB, " · 22 MB/s · ~2m left"))
+      .toBe("Downloading the model · 500 MB / 4.1 GB · 22 MB/s · ~2m left");
+  });
+  it("drops the total when it is unknown, and is bare phase with no bytes", () => {
+    expect(progressCaption("Loading it into your graphics card", 0, 0)).toBe("Loading it into your graphics card");
+    expect(progressCaption("Working", 90 * MB, 0)).toBe("Working · 90 MB");
   });
 });

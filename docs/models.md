@@ -33,6 +33,16 @@ built-in provider**) does the whole first-time setup:
    embedding on a well-equipped machine, and a smaller, faster one on a machine with less
    RAM, so every machine gets a working default. The dropdown still lists every embedding
    that runs on your box — picking a different one is a deliberate choice.
+4. It **downloads both models at the same time** — your general model and the search
+   (embedding) model run in **parallel, each with its own progress bar** showing the size,
+   speed and time remaining, in plain language ("Downloading the model", "Loading it into
+   your graphics card"). Each bar has its own **Cancel** and **Retry**: cancelling one keeps
+   whatever it has already downloaded (Retry picks up where it stopped) and leaves the other
+   download running. A model is several gigabytes, so a first run takes a few minutes; a
+   model already on disk is skipped (if your general model is already downloaded it still
+   loads its weights, while the search model downloads beside it). Apply finishes with
+   **both models present**, so your first sentence and your first "Ask the book" question
+   don't pay a silent download wait.
 
 Quick Setup is **local-only**: it configures the **bundled runner** — the local engine that
 downloads and runs models on your machine — and nothing else. If you'd rather run models

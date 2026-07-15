@@ -81,7 +81,11 @@ vitest **145** · build · FULL smoke zero JS errors · probe 31/31 · **screens
 by me this time.** TWO PROCESS LESSONS → memory: nobody ever LOOKED at the built UI (the
 whole pipeline was green and wrong — [[verify-ui-layout-visually]] rewritten), and I wrote
 the "maybe fold this into Routing by feature" doubt into my own approval note and never
-asked it. Full record: the plan doc's **⛔ CORRECTION** section.
+asked it. Full record: the plan doc's **⛔ CORRECTION** section. **QuickSetup follow-on (same
+day):** Quick Setup's apply step now shows **two parallel download bars** (chat + embed at
+once, each with its own Cancel/Retry — cancelling keeps the downloaded part), the **embed
+actually downloads during Apply**, and a successful Retry now advances the wizard; full record
+in the plan doc's **QUICKSETUP FOLLOW-ON** section.
 
 **GO (2026-07-15, same day: "go" + "keep going until its done" + "push") — THE ONE-SOURCE
 PRESET REWRITE IS BUILT, VERIFIED, COMMITTED + PUSHED.** Runner `8081539`; JW = this commit +
