@@ -49,141 +49,163 @@ tally + add any notable catches/misses to the ledger.
 
 ## Catch / miss ledger (detailed — newest first)
 
-### 2026-07-15 — MISS (the worst class yet): a gate that silently never fired, and the cost was absorbed instead of reported
+### 2026-07-15 — MISS: a gate whose escape hatch was welded shut (never fired; cost was absorbed, not reported)
 
-**The miss.** The SUBAGENT BYPASS added 2026-07-12 detected a delegated agent by looking
-for `isSidechain` entries at the tail of the transcript the hook receives. The harness
-passes the **main session transcript** even for a subagent's tool call (an agent's own
-turns live in a separate `<session-dir>/subagents/agent-*.jsonl`), and the main transcript
-carries no sidechain entries — so the condition was **never true once**. Every delegated
-builder's first code Edit/Write was DENIED, and no builder could ever clear the deny (its
-rules-checker verdict arrives in the coordinator's transcript, not its own — the exact
-deadlock the bypass was written to prevent).
+**The miss.** The SUBAGENT BYPASS (added 2026-07-12) detected a delegated agent via
+`isSidechain` entries in the transcript the hook receives. The harness passes the MAIN
+session transcript even for a subagent's call — an agent's turns live in
+`<session-dir>/subagents/agent-<agent_id>.jsonl` — so the condition was **never true
+once**. Every delegated builder's first code Edit/Write was denied, and no builder could
+clear it (its checker verdict lands in its own transcript, which no gate read): the exact
+deadlock the bypass existed to prevent.
 
-**Why it went unnoticed for days: a workaround existed.** Builders discovered they could
-apply code through Bash (python exact-string-replacement scripts) — a path the hook does
-not gate. The work completed, the gates stayed green, and the failure showed up only as
-*time*: writing a patch script that carries whole file contents as string literals costs
-3-10× the output tokens of an Edit, plus rediscovery of the trick each run (heredoc/quoting
-debugging). Measured on the 2026-07-15 one-downloader build: **66 minutes wall-clock for a
-task whose actual code work was ~30** — ~12 min of patch-script tax + ~18 min of two
-blocking rules-checker spawns (one of them only needed *because* of the deny), the rest
-real. Two prior builders that day paid the same tax.
+**Why it hid: a workaround existed.** Builders applied code via python patch-scripts
+through Bash, which the hook doesn't gate. Work completed, gates stayed green, and the
+defect surfaced only as TIME — a patch script carries whole files as string literals,
+~3-10x the output tokens of an Edit. Measured: the one-downloader build took 66 minutes
+for ~30 minutes of code work. I found the gap, filed it as an "infra follow-up", and
+spawned two more builders through it. The user: *"you should have let me know this is a
+prob and fix it it should be we dont just say ok thats fine and waste time"*. **A
+working-but-degraded path is a bug to surface, not absorb.**
 
-**The compounding error was mine, and the user named it.** I found this gap during the
-morning's build, wrote it into the build record as an "infra follow-up", and then spawned
-two more builders straight through the broken path without telling the user it was costing
-real time on every task. Their verdict, verbatim: *"you should have let me know this is a
-prob and fix it it should be we dont just say ok thats fine and waste time"*. A
-working-but-degraded path is a **bug to surface immediately**, not a footnote — the
-workaround is what hid the defect.
+**The fix.** Detection keys on the payload's own `agent_id`, captured live from both sides
+before any logic was written (user: *"capture first, then narrowest fix"*):
+subagent → `agent_id` + `agent_type` present; coordinator → neither; both carry the same
+MAIN `transcript_path` (the root cause, proven). Payload-only: the transcript-tail scan is
+deleted, not ported — dead here, and self-defeating in the only harness where it would run
+(it would bypass the deny for the COORDINATOR right after any subagent returns).
 
-**The fix (2026-07-15).** Detection now keys on the hook payload's own `agent_id`.
-Live-captured from both sides before writing any logic (the user's instruction: *"capture
-first, then narrowest fix"*) — a subagent's payload carries `agent_id` + `agent_type`, the
-coordinator's carries neither, so the discriminator is exact and the coordinator's own
-first code edit stays gated exactly as before. An earlier draft used an approximate
-"an agent transcript was written recently" signal; the permission classifier flagged it as
-a deliberate widening of the bypass, the user chose capture-first over approving it, and
-the capture made the approximation unnecessary. **The classifier was right and the slower
-path was the correct one** — worth remembering the next time a gate change "obviously"
-needs a heuristic.
+**The defect class, swept per-unit** — *a hook reads `transcript_path` assuming it belongs
+to the caller*. Enumerate with unfiltered **`grep -rn transcript_path hooks/`** (a `*.py`
+scope hides the `.sh` unit — that mistake cost two checker rounds):
 
-**Turned into gates:** 4 regression cases in `test_gates.py::test_pre_action` — an
-`agent_id` payload bypasses; `agent_type` alone does NOT (only the per-call marker
-counts); an empty `agent_id` stays gated; the `isSidechain` fallback still works. The
-bypass log line records `keys=` from the payload, so if a harness ever renames `agent_id`
-the symptom (denied builders) arrives with the new marker's name attached.
-
-**Verified:** the REAL captured payload (all 12 keys) replayed through the fixed hook
-against a zero-prior-code-edit transcript → BYPASS fires, logged with the full key set;
-the same payload minus `agent_id` → still DENIED. Gate suite 7/7 from both tracked
-copies. *(First pass of this claim was overstated — it cited "real payloads" while
-actually testing a 4-key synthetic one; the diff checker caught it. Recorded because it
-is the same evidentiary sin as the bug: green synthetic, live never exercised.)*
-
-**THE DEFECT CLASS, SWEPT PER-UNIT.** The class is *"a hook reads `transcript_path`
-assuming it belongs to the caller"* — false for a delegated agent's call. Enumerate with
-**`grep -rn transcript_path hooks/`** — unfiltered. Round 2 caught my first sweep auditing
-2 of the gates and reporting it as complete; round 3 caught the retry still one short,
-because I enumerated with `hooks/*.py`, a scope that structurally cannot see the `.sh`
-unit. **Twice in one fix, the miss was an enumeration that made a unit invisible — the same
-shape as the original bug, whose condition could never be true.** All five, verified at
-file:line:
-
-| Gate | reads at | wired to | subagent-affected? | disposition |
+| Gate | reads at | wired to | affected? | disposition |
 |---|---|---|---|---|
-| `pre-action-check.py` | :171 | PreToolUse `Edit\|Write\|MultiEdit\|ExitPlanMode` | **YES** — fired on every builder's first code edit | **FIXED** — payload `agent_id` bypass |
-| `commit-gate.py` | :203 | PreToolUse `Bash` | **YES, live** — a builder's `git commit` is judged on the COORDINATOR's transcript; its own verdict is invisible; escapes only by burning `MAX_DENIES=4` | **OPEN 2** — fix written, classifier-blocked, awaits the user's go |
-| `task-gate.py` | :60 | `TaskCreated` / `TaskCompleted` | **LATENT** — identical mechanism: a delegated agent's task event would compute `rules_passed` from the coordinator's turn and block with exit 2. Evidence is an INFERENCE, not proof: every entry in `task-gate.log`, across all timestamps, is a 5-line same-second harness signature (BLOCK task-begin → ALLOW TaskCreated → BLOCK task-completeness → ALLOW ×2) consistent with `test_gates.py`; the file grows by exactly 5 lines per suite run — **including this fix's own verification runs**, so its line count is evidence of nothing and is deliberately not cited here (three drafts of this row cited a count; all three were stale or false by the time they were read — the instrument was contaminated by the measurement). The log records no `agent_id` or provenance, so it **cannot prove** no real Task event ever fired. LATENT rests on that signature + "builders execute specs rather than plan" | **OPEN 3** — same one-line fix as OPEN 2; same user go |
-| `verify-gate.py` | :138 | **`Stop` only** — `SubagentStop` is NOT wired (`grep -c SubagentStop settings.json` → 0) | **NO** — a subagent's turn-end never invokes it | **UNAFFECTED**, by wiring |
-| `arm-rules-gate.sh` | :44 | `SessionStart` | **NO** — SessionStart is main-session-only (a subagent never triggers one), and it only records a line count into the Block-0 sentinel; it never blocks | **UNAFFECTED**, by wiring |
+| `pre-action-check.py` | :190 | PreToolUse Edit/Write/MultiEdit | **YES** | **BYPASSED, not read-through** — a subagent's edit skips the deny (payload `agent_id`). It still builds ctx from the MAIN transcript, so `prior_code_edits` counts the *coordinator's* edits; the bypass makes that moot (a subagent never reaches the deny), but the unit is honestly "bypassed", not "fixed" |
+| `commit-gate.py` | :299 | PreToolUse Bash | **YES, live** — a builder's commit judged on the coordinator's transcript; own verdict invisible; escaped only via `MAX_DENIES=4` | **FIXED** — reads the agent's own transcript (`_rules.agent_transcript`) |
+| `task-gate.py` | :65 | TaskCreated / TaskCompleted | **LATENT** — same mechanism | **FIXED** — same helper |
+| `verify-gate.py` | :138 | **Stop only** (`SubagentStop` not wired) | **NO** — a subagent's turn-end never invokes it | UNAFFECTED, by wiring |
+| `arm-rules-gate.sh` | :44 | SessionStart | **NO** — main-session only; only counts lines into the Block-0 sentinel, never blocks | UNAFFECTED, by wiring |
 
-**THE DIFF CHECKER CAUGHT FOUR THINGS ON THIS VERY FIX — two are still OPEN and belong
-to the user.** Logged here because a fix to the gate system that skipped its own gate
-would be the joke writing itself. (Round 2 found the incomplete sweep above — the fix for
-"I only audited half of it" was one grep. That is the T6 lesson in one line: enumerate the
-units first, then diff each; never report an aggregate.)
+**The commit/task fix STRENGTHENS the gates** (user's go, 2026-07-15): they now read the
+agent's OWN transcript, so a builder's real checker verdict counts instead of being
+invisible. One shared helper `_rules.agent_transcript(data)`; path derives only from the
+payload's session transcript + `agent_id` and must exist, else falls back — never another
+agent's verdict.
 
-1. **OPEN — the bypass SHAPE was never re-derived (T4).** The capture invalidated the
-   2026-07-12 premise. The hook builds `ctx` from the MAIN transcript even for an agent's
-   call, so a subagent's first edit is judged against the COORDINATOR's turn. Therefore:
-   if the coordinator ran the checker + wrote the plan-ref + RISK before delegating, the
-   builder's edit **already passes with no bypass at all**; the bypass is load-bearing
-   ONLY when the coordinator did *not* check — precisely the case the gate exists to
-   bite. It quietly converts "I check before delegating" (asserted in CLAUDE.md, enforced
-   by nothing) into "delegation is an unconditional escape from the pre-task gate." The
-   user approved the bypass POLICY explicitly ("don't force a second pre-build check
-   inside the builder") and it ships on that word — but they approved it believing the
-   builder couldn't otherwise clear the gate, and that premise is now false. **Their call:
-   keep the escape · drop it and let the coordinator's own check cover the builder (it
-   provably does) · or gate at the Agent-spawn boundary instead.** Counter-argument for
-   keeping it: `rules_passed` is turn-scoped, so a user message arriving mid-build resets
-   the window and would strand a running builder — the bypass makes delegation robust to
-   that. Not decided here.
-2. **OPEN — `commit-gate.py` has the identical defect, on a live path.** It reads
-   `data["transcript_path"]` (the MAIN transcript) and gates a code commit on
-   `ctx["agent_pass"]`. A builder subagent's `git commit` is therefore judged against the
-   COORDINATOR's transcript — its own rules-checker verdict lands in
-   `subagents/agent-<id>.jsonl` and is **invisible**, so a builder can never clear the
-   boundary no matter how many checkers it runs, and escapes only by burning
-   `MAX_DENIES=4`. This is live under the user's own protocol (Opus subagents do the
-   commits). The narrow fix — read the agent's own transcript when `agent_id` is present,
-   which *preserves* the check rather than bypassing it — was attempted and correctly
-   **blocked by the permission classifier** as an unapproved change to a HARD-DENY
-   boundary. Awaiting the user's go.
-3. **OPEN — `task-gate.py:60` is the same trap, latent** (see the table). Same one-line
-   fix, same user go; listed separately because it is unobserved rather than live, and
-   because "unobserved" is exactly the word that hid the original bug for days.
-4. **FIXED — three self-inflicted honesty defects the checker caught in this very entry:**
-   the T7 "real payloads" overstatement (it was a 4-key synthetic); the half-done sweep
-   that reported items 1–2 as the whole story; and a **flatly false claim** — that
-   `task-gate.log` held "only the 14:59:28 test run", when it in fact spans many
-   timestamps including an earlier day's. I had read the tail and written it up as the
-   file. Every one of the three erred in the direction that made the work look better.
-   That is the tell worth keeping: **when an error is convenient, suspect it was never
-   checked.** A fourth defect rode on the fix itself: both replacements for that sentence
-   quoted an exact line count, and each was stale before it was read — the suite runs that
-   verify this fix append to the very log being cited. **Never quote a volatile
-   measurement as a present-tense fact; quote the invariant.** It took the checker four
-   rounds to drive that sentence honest, which is three rounds more than it should have.
+**Why pre-action BYPASSES where commit/task READ THROUGH.** At pre-edit time a subagent
+has no deterministic attest channel, so a read-through would strand it: assistant text
+flushes unreliably mid-turn (#253) — demonstrated ON THIS FIX, where a first Edit was
+denied for a plan-ref + RISK that were already written and an identical retry passed —
+thinking blocks flush with content stripped, and `_payload_text`'s allowlist covers
+TaskCreate keys that an Edit payload doesn't have. At the COMMIT boundary the evidence is
+a harness-authored tool_result, durably in the agent's own transcript: deterministic, so
+that gate reads through. **A prior recorded reason ("the turn window resets when the user
+types mid-build") was FALSE and this fix's own helper refutes it** — redirecting
+pre-action would point `last_user_idx` at the builder's delegation prompt, where the
+user's typing never appears. Corrected because a rationale that survives only until
+someone checks it is exactly how the original bug shipped.
 
-**A fourth copy of this repo is a live foot-gun:** `E:\Dev\Web\claude-config` (same
-remote, stuck at `fc89bba`) still carries the OLD sidechain-only hook. `self-update.sh`
-pulls `~/.claude/claude-config`, so the default path is safe — but anyone running the
-stale clone's `install.sh` silently resurrects the bug. Delete it or pull it.
+**Two defects the code-scoped checker found in THIS fix, both fixed:** (1) the helper's
+docstring promised "never another agent's verdict" while the code interpolated `agent_id`
+into a path unsanitized — on Windows `..` canonicalizes lexically, so `a/../agent-<other>`
+would have resolved to a sibling's transcript and passed isfile(). Not reachable (ids are
+harness-generated), but an unenforced "never" in a security docstring is this system's own
+failure mode in miniature; `_ID_OK` now enforces it, with a traversal test. (2) The
+transcript redirect silently widened the commit gate's `trivial` escape: `ctx["answer"]`
+became a BUILDER's whole run, where an incidental "renamed the prop" in thousands of words
+would have FULL-escaped docs+verdict. The answer-side escape is now `TRIVIAL_EXPLICIT`
+(the literal word); the commit MESSAGE keeps the loose form, where it is a deliberate
+attestation. **A fix to a gate can open a hole in it — check the blast radius of the
+context you swap.**
 
-**The classifier was right twice in one session** (once on an approximate-heuristic
-draft, once on the commit-gate reach) and both times the slower path was correct. Worth
-remembering the next time a gate change "obviously" needs a heuristic or "obviously"
-extends to the sibling gate.
+**(5) The message-extractor missed `-am`, breaking a LEGITIMATE escape** — the first draft
+matched only a bare `-m`, so `git commit -am 'trivial: typo'` lost its attestation and got
+denied (fail-safe direction, but a false contract). `_M_SEP`/`_M_GLUED` now follow getopt:
+`-m` takes the cluster REMAINDER if any (`-ma x` → message `a`, `x` is a pathspec), else the
+next argv (`-am 'msg'`). Verified against every form incl. `--message=`, glued `-m"x"`, and
+`--amend` (must not read as a message). **A probe of my own caught that the checker's
+prescribed `-ma` handling was itself wrong** — worth remembering that the checker is a
+reviewer, not an oracle; its prescriptions get verified too.
 
-**Classification:** a **miss** of a new kind — not "a gate failed to catch a bad change"
-but "a gate silently did the opposite of its purpose, and the damage was pure wasted time,
-which no gate measures." The general lesson for this system: **every bypass/escape needs a
-test that proves it FIRES**, not just tests that prove the deny works. A gate whose escape
-hatch is welded shut looks identical to a working gate from the outside — green, blocking,
-and quietly expensive.
+**(6) The "reuses `_classify_commit`, so they can't drift" claim was false — it was a COPY,
+and it had already drifted.** `_commit_message` duplicated the segment→shlex→skip-globals
+walk verbatim; `_commit_files` knew the `-am`/`-ma` forms and the copy didn't — which IS
+defect (5). Extracted `_git_commit_argv(cmd)`: ONE generator, consumed by `_classify_commit`
+and `_commit_message`. The claim is now true by construction rather than by assertion.
+
+**(3) The message channel was reading the whole command — a live escape, caught by the
+checker while auditing the blast radius of (2).** `TRIVIAL` ran over `cmd`, which includes
+the staged PATHS: `git add src/rename/index.js && git commit -m "feat: big refactor"`
+matched `\brename\b` on a *directory name* and full-escaped docs AND verdict. The escape's
+entire rationale is that "trivial" in the MESSAGE is a deliberate attestation — reading it
+from a path is the opposite. Now `_commit_message(cmd)` extracts the `-m`/`--message` text
+only (both consume the ONE parser `_git_commit_argv`, so the claim is true by construction — see (6); `-F -` heredocs
+aren't in `cmd`, so they yield no message and cannot escape — the safe direction). Pinned:
+a trivial word in a path must be DENIED; in the message it still escapes.
+
+**(4) The commit gate's own docstring documented escapes that didn't exist and missed ones
+that did** — it advertised a `VERDICT` escape (the exact self-certification hole v3
+closed), omitted the LOW-RISK tier entirely, and described the no-code escape as "every
+staged path is .md" when the predicate is really "nothing matches `CODE_FILE`". Rewritten
+as the exhaustive contract. **RESIDUAL, recorded not fixed:** `CODE_FILE` needs a dotted
+extension, so extension-less infra (Makefile, Dockerfile, LICENSE, .gitignore) and
+.ps1/.bat/.tf ride the no-code escape. Widening it has its own blast radius — the user's
+call, not a sleepwalk.
+
+**OPEN — two MORE copies of the git-command walk survive, PRE-EXISTING and out of this
+change's authorized scope (the user's go was "change commit-gate and task-gate to read the
+agent's own transcript", not "refactor the commit-gate parser"). Both are real defects, so
+they are recorded, not waved off — the user's call:**
+- `commit-gate.py` `_commit_files` — a THIRD cluster dialect (`-(a|am|ma)`) over the RAW
+  `cmd`. Its trailing word-boundary means `-sam`/`-amv` carry `-a` but do NOT match, so the unstaged-tracked read
+  is skipped, `files` can come back docs-only, and **the doc-only FULL escape can fire on a
+  commit that stages code.** Under-strict.
+- `commit-gate.py` `_git_cwd` — re-implements the segment prologue with **no subcommand
+  bound**, so `git commit -C HEAD~1` (a real flag) misreads a commit-ish as a repo dir, and
+  `git -C /other/repo log && git commit -m 'x'` inspects the WRONG repo's staged tree →
+  docs-only there → doc-only escape on a code commit.
+- Fix shape (checker's, sound): `_git_commit_argv` yields `(globals, argv)` per commit
+  segment; `_git_cwd` consumes the globals region bounded to that segment; `_commit_files`
+  tests `-a`/`--all` off the parsed argv with the same getopt cluster form as `_M_SEP` — no
+  raw-`cmd` regex. Pin `-sam`, `-amv`, `git commit -C HEAD~1`, and the cross-segment `-C`.
+
+**The pattern across (1)-(6): every defect was a claim that outlived its check.** A
+docstring's "never", a rationale, an escape's description, a line number — each was true
+when written and false when read, and none had a test. The durable rule: **if a security
+doc asserts a property, the code enforces it and a test pins it — or the sentence comes
+out.**
+
+**Gates added:** 9 regression cases in `test_gates.py` — `agent_id` bypasses · `agent_type`
+alone does not · empty `agent_id` gated · payload `isSidechain` works · a transcript
+sidechain entry must NOT bypass · a builder's own genuine PASS clears its commit · its own
+FAIL still blocks · no verdict still gated · a missing agent transcript falls back.
+Verified: the real captured 12-key payload replayed through the live hook bypasses (logged
+with the full key set); the same payload minus `agent_id` is denied; suite 7/7 from both
+tracked copies.
+
+**Lessons (the durable part):**
+1. **Every bypass/escape needs a test that proves it FIRES** — not only tests that the deny
+   works. A gate with a welded-shut escape looks identical to a working one: green,
+   blocking, quietly expensive.
+2. **When an error is convenient, suspect it was never checked.** The diff checker ran 5
+   adversarial rounds on this fix and caught, in my own write-up: a "real payloads" claim
+   that tested a 4-key synthetic; a sweep covering 2 of 5 units; a flatly false log claim
+   read from a tail; and two stale line counts. Every error flattered the work.
+3. **Never quote a volatile measurement as a present-tense fact; quote the invariant.** Two
+   drafts cited a log's line count — the verification runs append to that very log, so each
+   count was stale before it was read.
+4. **Records: technical detail in full, narrative padding at zero.** Rounds 2-5 (~28 of the
+   36 minutes) fact-checked *prose*, not code — the code passed at round 1. All four false
+   claims lived in the retrospective storytelling; none in the file:line record. Detail docs
+   carry what changed · WHY · file:line · how to verify · what reverses it — and stop.
+
+**Foot-gun:** `E:\Dev\Web\claude-config` is a 4th clone (same remote, stale at `fc89bba`)
+carrying the old hook; running its `install.sh` resurrects the bug. Delete or pull it.
+
+**The classifier was right three times** this session (an approximate-heuristic draft, and
+twice on reaching into a HARD-DENY boundary without the user naming the mechanism). Each
+time the slower path was correct.
 
 ### 2026-07-14 — RISK-TIERED commit boundary (user-ordered follow-up)
 

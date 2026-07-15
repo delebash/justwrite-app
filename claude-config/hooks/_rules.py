@@ -478,6 +478,51 @@ def agent_pass(entries: list, start: int):
     return verdict
 
 
+# A harness agent id, strictly. No separators, no dots — so it can never traverse out of
+# the subagents/ dir when interpolated into a path (see agent_transcript's docstring).
+_ID_OK = re.compile(r"[A-Za-z0-9_-]+")
+
+
+def agent_transcript(data: dict) -> str:
+    """The OWN transcript of the delegated agent making this call, or "".
+
+    THE shared fix for the 2026-07-15 defect class — *a hook reads `transcript_path`
+    assuming it belongs to the caller*. It does not: the harness passes the MAIN session
+    transcript even for a subagent's tool call, while the agent's own turns land at
+    `<session-dir>/subagents/agent-<agent_id>.jsonl` (live-captured; see
+    pre-action-check.py's docstring).
+
+    A gate that judges the AGENT's own work — its text, its doc edits, its checker
+    verdict — must read THIS file; on the main transcript all of it is invisible, which
+    made the commit boundary un-clearable for a builder (it could run checkers all day
+    while `agent_pass` read the coordinator's turn, escaping only by burning the
+    anti-loop counter). Reading the right file PRESERVES the check rather than bypassing
+    it: exactly ONE diff-checker before a commit — the user's rule — now actually
+    enforced against the agent doing the committing.
+
+    Every caller is one line:  `agent_transcript(data) or data.get("transcript_path")`.
+    The path derives ONLY from the payload's own session transcript + agent_id, is
+    format-checked, and must exist — a missing/rogue id falls back to prior behavior,
+    never to another agent's verdict.
+
+    The `_ID_OK` guard is why that last clause is TRUE rather than merely asserted
+    (checker-caught 2026-07-15): `agent_id` is interpolated into a path, and on Windows
+    `..` canonicalizes LEXICALLY without the intermediate dirs existing — so a
+    separator-bearing id like `a/../agent-<other>` would resolve to ANOTHER agent's
+    transcript and pass isfile(). Not reachable today (agent_id is harness-generated, not
+    model-controllable; forging the payload implies code execution already), but this
+    file's whole thesis is that a gate keyed on words can be satisfied by words — an
+    unenforced "never" in a security docstring is that same failure in miniature. So the
+    code enforces it.
+    """
+    agent_id = data.get("agent_id")
+    tpath = data.get("transcript_path") or ""
+    if not agent_id or not _ID_OK.fullmatch(str(agent_id)) or not tpath.endswith(".jsonl"):
+        return ""
+    p = os.path.join(tpath[: -len(".jsonl")], "subagents", f"agent-{agent_id}.jsonl")
+    return p if os.path.isfile(p) else ""
+
+
 def build_ctx(data: dict, entries: list, event: str) -> dict:
     """The full context every rule's detect() reads. Pure: no side effects."""
     start = last_user_idx(entries)

@@ -44,6 +44,19 @@ now:
    still carry full detail — no shortening, truncating, or bullets — after each phase or commit;
    **`MORNING_RECAP.md` and `CLAUDE.md` MAY summarize, as long as they point to those detailed
    docs.** So this map summarizing here is now explicitly sanctioned, not a tolerated exception.
+   **1b — WHAT "full detail" MEANS (scoped 2026-07-15, user's ask "does that cut the time"):**
+   the record answers exactly five questions — **what changed · WHY · file:line · how to verify ·
+   what would reverse it** — plus what is still OPEN. In full prose, no truncation: that part
+   stays, because it is what a future session actually needs and it is NOT where the time goes.
+   What is now OUT: retrospective narrative, measured-cost anecdotes, lessons essays, and
+   meta-commentary about the process. **The evidence for the cut (2026-07-15):** a 136-line
+   ledger entry took FIVE checker rounds; the code passed at round 1, and rounds 2-5 (~28 of 36
+   minutes) fact-checked *prose*. All four false claims the checker found lived in the narrative
+   padding; **zero** were in the file:line technical record. So the padding is not merely slow —
+   it is where the errors breed. Same rule, sharper scope: the detail that prevents mistakes is
+   kept, the storytelling that generates them is gone. (Rewritten to this shape, that entry went
+   137 → 84 lines with every technical fact intact.) Durable form: `claude-config/EFFECTIVENESS.md`,
+   the 2026-07-15 entry, lesson 4.
 2. **This file gets a SHORT pointer paragraph per go** — what shipped, the commit shas, where
    the full record lives, what's open. A few sentences, never the full narrative twice.
 3. **History never accumulates here.** When a stretch of work closes, its pointer paragraphs
@@ -80,36 +93,23 @@ advances to done with an honest note. Standing protocol (memory: [[fable-decides
 Fable decides/plans, Opus executes code+tests+commits; **hard go-gate ON — nothing runs without the
 user's literal "go".** Full record: the plan doc's **ONE-DOWNLOADER CONSOLIDATION** section.
 
-**GO (2026-07-15) — THE SUBAGENT-HOOK GAP IS FIXED (it was costing ~2-3× on every delegated
-build).** The user's challenge — *"1 hour 6 mins … something is very wrong … we are doing
-something extreemely inefficiant"* — was right, and the accounting proved it: of the
-one-downloader build's 66 minutes, the code work was ~30; the rest was ~12 min of
-patch-script tax + ~18 min of two BLOCKING rules-checker spawns. Root cause, verified live:
-the PreToolUse pre-action hook's **SUBAGENT BYPASS never fired once**. It looked for
-`isSidechain` at the tail of the transcript it receives, but the harness passes the **MAIN**
-session transcript even for a subagent's tool call (an agent's own turns live in
-`<session-dir>/subagents/agent-*.jsonl`) — so every builder's first code Edit/Write was
-DENIED and no builder could clear it (its checker verdict lands in the coordinator's
-transcript, not its own — the deadlock the bypass existed to prevent). Builders fell back to
-applying code via python patch-scripts through Bash, which the hook doesn't gate: work
-completed, gates stayed green, and the defect showed up only as TIME. **The user's process
-lesson, verbatim: "you should have let me know this is a prob and fix it it should be we dont
-just say ok thats fine and waste time"** — I'd found this gap in the morning, filed it as an
-"infra follow-up", and spawned two more builders through the broken path. A
-working-but-degraded path is a bug to SURFACE, not absorb. **The fix:** detection now keys on
-the hook payload's own `agent_id` — captured live from both sides FIRST (the user's
-"capture first, then narrowest fix"; an earlier draft used an approximate active-agent
-heuristic, the permission classifier flagged it as a widening, and the capture made the
-heuristic unnecessary — the classifier was right). A subagent's payload carries
-`agent_id`+`agent_type`; the coordinator's carries neither, so the coordinator's own first
-code edit stays gated exactly as before. Verified: live hooks — subagent ALLOWED /
-coordinator DENIED; gate suite 7/7 from BOTH the standalone clone and JW's vendored copy
-(+4 new regression cases: `agent_id` bypasses · `agent_type` alone does not · empty
-`agent_id` stays gated · the isSidechain fallback still works). **The general lesson, now in
-EFFECTIVENESS.md: every bypass/escape needs a test that proves it FIRES** — a gate with a
-welded-shut escape hatch looks identical to a working one from outside: green, blocking, and
-quietly expensive. Shipped to BOTH provisioners (new local sessions pull the standalone repo
-via `self-update.sh`; web containers install JW's vendored `claude-config/`).
+**GO (2026-07-15) — THE SUBAGENT-HOOK GAP IS FIXED; delegated builds stop paying a ~2-3x
+tax.** The user's challenge ("1 hour 6 mins ... something is very wrong") was right: of the
+one-downloader build's 66 minutes, code work was ~30. Root cause: the PreToolUse hook's
+SUBAGENT BYPASS **never fired once** — it read `isSidechain` from the transcript it
+receives, but the harness passes the MAIN transcript even for a subagent's call. Every
+builder's first code Edit/Write was denied and no builder could clear it, so they applied
+code via python patch-scripts through Bash (3-10x the tokens of an Edit). Now keyed on the
+payload's `agent_id` (live-captured both ways). Same defect class fixed in `commit-gate.py`
++ `task-gate.py` — they now read the agent's OWN transcript, so a builder's real checker
+verdict COUNTS instead of being invisible (it previously escaped only by burning 4 denials):
+this **strengthens** those gates. Shipped to both provisioners: claude-config `2e79f8f` +
+this repo's vendored copy (local sessions self-update; web containers install from
+`claude-config/`). **Process lesson (user, verbatim): "you should have let me know this is a
+prob and fix it it should be we dont just say ok thats fine and waste time"** — I found this
+gap in the morning, filed it as a follow-up, and ran two more builders through it. A
+working-but-degraded path is a bug to SURFACE, not absorb. **Full record + the 5-unit gate
+table + the 4 durable lessons: `claude-config/EFFECTIVENESS.md`, the 2026-07-15 entry.**
 
 > **Re-split 2026-07-15 (doc-sweep).** This section had grown to ~40 GO paragraphs
 > (2026-07-08 → 2026-07-14, all shipped + pushed) — ~4.5× the protocol's 25 KB ceiling.

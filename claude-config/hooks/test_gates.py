@@ -19,6 +19,7 @@ from __future__ import annotations
 import importlib.util
 import json
 import os
+import re
 import subprocess
 import sys
 import tempfile
@@ -34,9 +35,18 @@ def load_rules():
     return m
 
 
-def tx(*msgs) -> str:
-    """Build a throwaway transcript .jsonl. msg = (kind, value)."""
-    f = tempfile.NamedTemporaryFile("w", suffix=".jsonl", delete=False)
+def tx(*msgs, path=None) -> str:
+    """Build a throwaway transcript .jsonl. msg = (kind, value).
+
+    `path=` writes at an exact location instead of a temp name — needed to place a
+    delegated agent's OWN transcript at <main-without-.jsonl>/subagents/agent-<id>.jsonl,
+    the layout the real harness uses and that the gates now read (_rules.agent_transcript).
+    """
+    if path:
+        os.makedirs(os.path.dirname(path), exist_ok=True)
+        f = open(path, "w")
+    else:
+        f = tempfile.NamedTemporaryFile("w", suffix=".jsonl", delete=False)
     for kind, val in msgs:
         if kind == "user":
             f.write(json.dumps({"type": "user", "message": {"content": val}}) + "\n")
@@ -84,6 +94,36 @@ def blocked(out: str) -> bool:
 # ==========================================================================
 # 1) the registry
 # ==========================================================================
+def test_ledger_refs():
+    """EFFECTIVENESS.md's sweep table cites file:line — assert every ref is still TRUE.
+
+    Born 2026-07-15 from the same defect recurring THREE times in one fix: each edit to a
+    hook's docstring shifted the code below it and silently invalidated the table's
+    citation — the fix invalidating its own evidence. The ledger's own lesson is "if a doc
+    asserts a property, the code enforces it and a test pins it, or the sentence comes
+    out." This is that test. A stale ref now fails the suite instead of surviving until a
+    reader checks by hand.
+    """
+    led = os.path.join(os.path.dirname(HOOKS), "EFFECTIVENESS.md")
+    if not os.path.isfile(led):
+        print("0) ledger refs ........ SKIP (no EFFECTIVENESS.md beside hooks/)")
+        return
+    with open(led, encoding="utf-8") as f:
+        rows = re.findall(r"\| `([\w.-]+)` \| :(\d+) \|", f.read())
+    assert rows, "the sweep table should carry file:line rows"
+    for fname, ln in rows:
+        path = f"{HOOKS}/{fname}"
+        assert os.path.isfile(path), f"ledger cites a missing file: {fname}"
+        with open(path, encoding="utf-8") as f:
+            lines = f.read().splitlines()
+        n = int(ln)
+        assert n <= len(lines), f"{fname}:{n} is past EOF ({len(lines)} lines)"
+        assert "tpath = " in lines[n - 1], (
+            f"STALE LEDGER REF {fname}:{n} — that line is {lines[n-1].strip()[:60]!r}, "
+            f"not the transcript read the sweep table claims")
+    print(f"0) ledger refs ........ PASS ({len(rows)} rows verified)")
+
+
 def test_registry():
     r = load_rules()
     assert set(r.armed_events()) == {"Stop", "commit", "TaskCreated", "TaskCompleted"}, r.armed_events()
@@ -465,6 +505,84 @@ def test_commit_gate():
     assert denied(cg("git commit -m add", ("user", "go"),
                      ("tool_result", ("toolu_READ_doc", "file contents...\nVERDICT: PASS\n...")))), \
         "a non-agent tool_result (e.g. a Read of a doc) must NOT clear the commit"
+    # SUBAGENT COMMIT (2026-07-15 defect class): a delegated agent's commit must be judged
+    # on the AGENT's OWN transcript. Its checker verdict lands in
+    # <session>/subagents/agent-<id>.jsonl; reading the MAIN transcript made this boundary
+    # UN-CLEARABLE for a builder (it escaped only by burning MAX_DENIES). This
+    # STRENGTHENS the gate — the agent's real verdict now counts.
+    def cg_agent(cmd, agent_id, main_msgs, agent_msgs=None):
+        _clear_counter()
+        main = tx(*main_msgs)
+        if agent_msgs is not None:
+            tx(*agent_msgs, path=os.path.join(main[: -len(".jsonl")], "subagents",
+                                              f"agent-{agent_id}.jsonl"))
+        return hook("commit-gate.py", {"tool_name": "Bash", "tool_input": {"command": cmd},
+                    "cwd": repo, "transcript_path": main, "agent_id": agent_id}, env=env).stdout
+    AID2 = "toolu_BUILDERAGENT"
+    # the agent's OWN transcript carries its genuine verdict; the coordinator's has none
+    assert not denied(cg_agent("git commit -m add", "abc123", (("user", "go"),),
+                               (("user", "build it"), ("agent_call", AID2),
+                                ("tool_result", (AID2, "scored the diff\nVERDICT: PASS"))))), \
+        "a builder's OWN genuine verdict must clear its commit (was invisible → deadlock)"
+    assert denied(cg_agent("git commit -m add", "abc123", (("user", "go"),),
+                           (("user", "build it"), ("agent_call", AID2),
+                            ("tool_result", (AID2, "VERDICT: FAIL (1 failed) — stale doc"))))), \
+        "a builder's OWN genuine FAIL must still block its commit"
+    assert denied(cg_agent("git commit -m add", "abc123", (("user", "go"),),
+                           (("user", "build it"),))), \
+        "a builder with NO verdict in its own transcript is still gated"
+    # a rogue/missing agent id must fall back to the main transcript, never to another
+    # agent's verdict — the coordinator's transcript here has no verdict → still denied
+    assert denied(cg_agent("git commit -m add", "no-such-agent", (("user", "go"),))), \
+        "a missing agent transcript falls back to the main transcript (still gated)"
+    # TRAVERSAL: a separator-bearing agent_id must NOT reach another agent's transcript.
+    # Windows canonicalizes '..' lexically, so 'a/../agent-<other>' would otherwise resolve
+    # to a sibling's file and pass isfile(). Not reachable (ids are harness-generated) —
+    # but the docstring promises "never another agent's verdict", so the CODE enforces it.
+    tx(("user", "b"), ("agent_call", AID2), ("tool_result", (AID2, "VERDICT: PASS")),
+       path=os.path.join(tx(("user", "seed"))[: -len(".jsonl")], "subagents", "agent-victim.jsonl"))
+    main_t = tx(("user", "go"))
+    os.makedirs(os.path.join(main_t[: -len(".jsonl")], "subagents"), exist_ok=True)
+    tx(("user", "b"), ("agent_call", AID2), ("tool_result", (AID2, "VERDICT: PASS")),
+       path=os.path.join(main_t[: -len(".jsonl")], "subagents", "agent-other.jsonl"))
+    _clear_counter()
+    out = hook("commit-gate.py", {"tool_name": "Bash", "tool_input": {"command": "git commit -m add"},
+               "cwd": repo, "transcript_path": main_t, "agent_id": "x/../agent-other"}, env=env).stdout
+    assert denied(out), "a traversing agent_id must NOT borrow another agent's verdict"
+    # the ANSWER-side trivial escape is the LITERAL word only: a builder's prose saying
+    # "rename"/"typo" must NOT full-escape the commit boundary (the loose TRIVIAL still
+    # applies to the commit MESSAGE, which is a deliberate attestation).
+    reset_stage(); open(f"{repo}/qux.py", "w").write("q=1\n"); git("add", "qux.py")
+    assert denied(cg("git commit -m add", ("user", "go"),
+                     ("text", "I renamed the prop and fixed a typo in the one-line helper"))), \
+        "loose trivial words in prose must NOT escape the commit gate"
+    assert not denied(cg("git commit -m add", ("user", "go"), ("text", "this one is trivial"))), \
+        "an explicit 'trivial' attestation still escapes"
+    # the MESSAGE-side loose escape reads the -m TEXT ONLY, never the whole command:
+    # a trivial-family word in a staged PATH is an accident of naming, not an attestation.
+    reset_stage(); os.makedirs(f"{repo}/src/rename", exist_ok=True)
+    open(f"{repo}/src/rename/index.js", "w").write("a=1\n"); git("add", "src/rename/index.js")
+    assert denied(cg("git add src/rename/index.js && git commit -m 'feat: big refactor'",
+                     ("user", "go"))), \
+        "a trivial-family word in a PATH must NOT escape (only the -m message counts)"
+    assert not denied(cg("git commit -m 'trivial: drop a stale comment'", ("user", "go"))), \
+        "the loose TRIVIAL family in the -m MESSAGE is still a deliberate attestation"
+    assert not denied(cg('git commit -m "rename the prop"', ("user", "go"))), \
+        "loose TRIVIAL in the message escapes (message channel stays loose by design)"
+    # SHORT-FLAG CLUSTERS carry the message: the first draft matched only a bare -m, so
+    # `-am 'trivial: typo'` silently lost its LEGITIMATE escape (fail-safe, but a false
+    # contract). getopt semantics: -m takes the cluster REMAINDER if any, else the next argv.
+    assert not denied(cg("git commit -am 'trivial: typo'", ("user", "go"))), \
+        "-am carries the message — a legitimate trivial attestation must still escape"
+    assert not denied(cg('git commit -m"trivial: glued"', ("user", "go"))), \
+        "-m\"msg\" (glued) carries the message"
+    assert not denied(cg("git commit --message=trivial-eq-form", ("user", "go"))), \
+        "--message=msg carries the message"
+    reset_stage(); os.makedirs(f"{repo}/src/rename", exist_ok=True)
+    open(f"{repo}/src/rename/b.js", "w").write("b=1\n"); git("add", "src/rename/b.js")
+    assert denied(cg("git add src/rename/b.js && git commit -am 'feat: big refactor'",
+                     ("user", "go"))), \
+        "the path-escape stays closed on the combined -am form too"
     reset_stage(); open(f"{repo}/bar.py", "w").write("y=2\n"); git("add", "bar.py")
     assert not denied(cg("git commit -m 'trivial: rename'", ("user", "go")))         # trivial full-escape
     reset_stage(); open(f"{repo}/n.md", "w").write("# n\n"); git("add", "n.md")
@@ -578,6 +696,7 @@ def test_fail_open():
 
 
 if __name__ == "__main__":
+    test_ledger_refs()
     test_registry()
     test_verify_gate()
     test_pre_action()

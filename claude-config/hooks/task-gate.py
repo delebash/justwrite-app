@@ -57,7 +57,12 @@ def main() -> None:
         _log(f"WARN registry import failed: {_IMPORT_ERR}")
         sys.exit(0)
 
-    tpath = data.get("transcript_path")
+    # A DELEGATED AGENT's task event is judged on the AGENT's OWN transcript
+    # (2026-07-15, same defect class as commit-gate: the harness passes the MAIN
+    # transcript even for a subagent's call, so the agent's own rules-pass would be
+    # invisible and this gate would block it with exit 2 on the coordinator's turn
+    # state). Falls back to the main transcript for a main-session event.
+    tpath = _rules.agent_transcript(data) or data.get("transcript_path")
     if not (tpath and os.path.isfile(tpath)):
         sys.exit(0)  # fail-open: no transcript → don't block
     try:

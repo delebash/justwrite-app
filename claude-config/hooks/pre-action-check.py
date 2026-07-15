@@ -42,15 +42,34 @@ reset the window and fire a spurious DENY mid-task). Three behaviors:
   `_subagent_call`). The bypass log records the payload keys, so a harness rename of
   `agent_id` surfaces as denied builders + a keys= line naming the new marker.
 
-  **KNOWN OPEN ISSUE (checker-caught 2026-07-15, user's call — see EFFECTIVENESS.md):**
-  because ctx is built from the MAIN transcript, a coordinator that ran the checker +
-  cited the plan + RISK before delegating ALREADY clears this deny for its builder with
-  no bypass at all. So the bypass only bites when the coordinator did NOT check — the
-  very case the gate is for. It ships on the user's explicit policy ("don't force a
-  second pre-build check inside the builder"), and it makes delegation robust to a user
-  message landing mid-build (which resets the turn window and would otherwise strand a
-  running builder). Whether to keep, narrow, or move it to the Agent-spawn boundary is
-  the user's decision, not this file's.
+  **WHY A BYPASS HERE, WHEN commit-gate/task-gate INSTEAD READ THE AGENT'S OWN TRANSCRIPT
+  (`_rules.agent_transcript`)?** Because at PRE-EDIT time a subagent has no deterministic
+  way to attest, so a read-through would strand it — a real asymmetry, not a preference:
+    · Assistant TEXT flushes to the transcript UNRELIABLY mid-turn (#253, ~2 of 6 messages
+      present). Demonstrated on this very fix: a first Edit was DENIED for "missing" a
+      plan-ref + RISK that were already written; an immediate retry with IDENTICAL text
+      passed. The gate read a transcript the text had not reached yet.
+    · Thinking blocks flush but their content is STRIPPED (signature only).
+    · `_payload_text`'s allowlist (subject/description/activeForm) exists for exactly this
+      reason — but those keys belong to TaskCreate; an Edit/Write payload has none, and
+      widening it to Edit's own keys would let a file's new_string satisfy its own gate.
+  So a builder can do everything right and still be denied on a flush race, with no
+  channel to prove compliance. At the COMMIT boundary none of that applies: the verdict is
+  a harness-authored tool_result, durably in the agent's own transcript — deterministic,
+  which is why that gate reads through instead of bypassing.
+
+  Corrected 2026-07-15 (checker-caught): the previously recorded reason — "the turn window
+  resets when the user types mid-build, stranding the builder" — was FALSE, and this
+  diff's own helper is what refutes it. Redirecting this hook to the agent's transcript
+  would make `last_user_idx` resolve to the BUILDER's delegation prompt, where the user's
+  main-session typing never appears; the window would be stable. The flush race is the
+  true reason. Recorded because a rationale that survives only until someone checks it is
+  how the original bug shipped.
+
+  HONEST SCOPE: this is a BYPASS, not a read-through — for a subagent's edit this hook
+  still builds ctx from the MAIN transcript, so `prior_code_edits` counts the
+  COORDINATOR's edits. The bypass makes that moot (a subagent never reaches the deny), but
+  the unit is "bypassed", not "fixed", for the transcript-ownership class.
 
 Post-task (turn end) is enforced by the Stop verify-gate; the commit boundary adds the
 heavy semantic check (commit-gate.py).
