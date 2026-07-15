@@ -36,7 +36,7 @@ The sidebar on the left is the main map. It is grouped into five sections:
 - **Manuscript** — Search, Home, Architecture, Narrative strands, Chapters, Ask the book
 - **Story world** — Characters, Locations, Objects, Groups, Worldbuilding
 - **Planning** — Plot board, Timeline, Notes, Relations
-- **Project** — Analysis, Export, Trash, Settings, Writer Lab
+- **Project** — Analysis, Export, Trash, Settings
 
 Hover any item to see its name. Click to open it. Drag the right edge of the sidebar to resize it; press **Ctrl/⌘ + \\** to hide it entirely (and again to bring it back).
 
@@ -78,7 +78,7 @@ The choice is yours, and you can have several at once. Common options:
 
 To add a provider:
 
-1. Open **Settings → AI engines**.
+1. Open the **AI** page (the Sparkle icon in the sidebar).
 2. Click **Add provider**.
 3. Choose a preset, paste any API key needed, and click **Test** to confirm the connection.
 
@@ -132,7 +132,7 @@ The first `npm run dev` compiles the Rust crate and is slow; every subsequent la
 | `npm install` | JS dependencies (first run only) |
 | `npm run dev` | Tauri dev — Vite HMR + a native window |
 | `npm run build` | Packaged app for the current OS |
-| `npm run dev:vite` | Renderer only, in a plain browser tab (no Tauri APIs — falls back to IndexedDB / data-URLs) |
+| `npm run dev:vite` | Renderer only, in a plain browser tab (no Tauri APIs — project data still uses the server; images fall back to data-URLs) |
 | `npm run build:vite` | Renderer build only (Tauri invokes this via `beforeBuildCommand`) |
 | `npm run bump <version>` | Update the version number in `package.json`, `src-tauri/Cargo.toml`, and `src-tauri/tauri.conf.json` |
 | `npm run release` | Trigger the GitHub Actions cross-platform release build (manual only) |

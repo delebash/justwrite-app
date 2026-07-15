@@ -153,7 +153,7 @@ Leave it off if you want scenes to remain visibly separated (some writers and in
 
 ### Audiobook (JustVoice)
 
-JustWrite is writing-only — it doesn't render audio itself. To produce an audiobook, the Export view's **Send to JustVoice** card hands your finished manuscript to **JustVoice**, the companion voice-production app, which handles casting, narration, and audiobook export.
+JustWrite is writing-only — it doesn't render audio itself. To produce an audiobook, export the book (**Settings → Backups → Export this book…**, a single `.zip`) and open it in **JustVoice**, the companion voice-production app, which handles casting, narration, and audiobook export. (There's no longer a live "Send to JustVoice" handoff from the Export view — the `.zip` is the handoff.)
 
 ### Manuscript stats panel
 
@@ -187,7 +187,7 @@ For a novel ready to publish:
 1. **Set metadata and cover.**
 2. **Export EPUB** for Apple Books, Kobo, and Kindle (via Kindle Previewer).
 3. **Export DOCX** if your publishing path needs it (some print-on-demand services prefer it).
-4. **Optional**: send the book to **JustVoice** to produce an audiobook.
+4. **Optional**: export the book (Settings → Backups) and open the `.zip` in **JustVoice** to produce an audiobook.
 
 ---
 

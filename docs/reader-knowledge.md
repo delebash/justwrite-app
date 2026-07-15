@@ -100,7 +100,7 @@ Don't run it after every typo — it's a structural lens, not a line-edit tool.
 
 ## Routing the AI provider
 
-The Reader knowledge analysis is its own routable feature in **Settings → AI → Feature routing**: **Reader knowledge**. A stronger cloud model (Claude, GPT-4) materially improves the accuracy of the fact extraction over smaller local models — the task requires real reading comprehension, not just text manipulation. If you're cost-conscious, pin only this feature to the heavier model and leave Writer actions / Critique on a cheaper one.
+The Reader knowledge analysis is its own routable feature — pick its model under **Routing by feature** on the AI settings page. A stronger cloud model (Claude, GPT-4) materially improves the accuracy of the fact extraction over smaller local models — the task requires real reading comprehension, not just text manipulation. If you're cost-conscious, pin only this feature to the heavier model and leave Writer actions / Critique on a cheaper one.
 
 The footer of each chapter entry records which model produced that analysis.
 

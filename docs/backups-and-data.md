@@ -2,7 +2,7 @@
 
 JustWrite keeps your work in three places so you don't lose it:
 
-1. **In the app's local storage** (instant, on every change)
+1. **In the app's database** (instant, on every change — a local SQLite database in your data folder)
 2. **In a JSON file on disk** (within about 10 seconds, with three generations kept)
 3. **In manually-exported snapshots** (whenever you ask)
 
@@ -113,12 +113,12 @@ Almost no normal use case needs this button. If you're considering it for any re
 
 For the technically curious:
 
-- **Local storage** lives in your browser engine's IndexedDB, scoped to JustWrite. It's instant, always-on, and survives app restarts.
+- **The app database** is a local SQLite file inside your data folder, written by JustWrite's built-in server. It's instant, always-on, and survives app restarts. (There is no browser IndexedDB store — the app keeps no durable data in the browser engine.)
 - **Autosave on disk** lives in your operating system's app data folder under a JustWrite directory. The Backups section shows the exact path.
 - **Snapshots** are wherever you saved them.
-- **Images** for character avatars, location photos, the cover image, etc., live under the same app data folder as autosave (when you run the desktop app) or as data URLs in the project snapshot (when you run in a browser).
+- **Images** for character avatars, location photos, the cover image, etc., are stored by the built-in server under your data folder and referenced by id — with an inline data-URL fallback saved in the project snapshot when the server is briefly unreachable.
 
-You can move a JustWrite project from one computer to another by copying the autosave folder, by exporting/importing a snapshot, or both. There is no cloud account to sync.
+You can move a JustWrite project from one computer to another by exporting it — the per-book `.zip` or the whole-workspace backup above — or by pointing a cloud-sync tool at your data folder. There is no cloud account to sync.
 
 ---
 

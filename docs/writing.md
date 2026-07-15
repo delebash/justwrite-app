@@ -255,7 +255,7 @@ The dropdown groups actions by what they operate on, so you can tell at a glance
 
 ### Whole-passage actions
 
-- **Rewrite** — same meaning, different prose. Useful when you know the scene works but the wording feels stale. *Selection only* — for whole-scene rewrites, use Writer Lab where you can compare passes side-by-side.
+- **Rewrite** — same meaning, different prose. Useful when you know the scene works but the wording feels stale. *Selection only* — select the whole scene to rewrite it wholesale, or shift-click any AI action for three side-by-side variations to compare.
 - **Expand** — adds sensory detail, interiority, small physical actions. Roughly doubles the length. *Selection only.*
 - **Describe** — additive. Treats the highlighted text as a *subject* (a place, person, object, or moment) and writes 1–2 paragraphs of fresh sensory prose **about** it, inserted right after the selection. The original passage stays untouched. Use it when you've named something but haven't brought it to life on the page — highlight "the old market" and get 200 words of sights, smells, and textures dropped in after. *Selection only.*
 - **Research feel…** — Describe's structured sibling. Returns a research pack of short concrete sensory phrases the writer browses and selectively drops in. See below.

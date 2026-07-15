@@ -10,7 +10,7 @@ Research-driven catalog of AI features worth considering for JustWrite. Cross-re
 
 For context while reading the proposals below. JustWrite already has:
 
-- **Drafting**: Rewrite, Expand, Tighten, Continue, Describe (scene-strip AI dropdown, Writer Lab).
+- **Drafting**: Rewrite, Expand, Tighten, Continue, Describe (scene-strip AI dropdown).
 - **Line edits**: Show don't tell, Passive Voice, Filter Words, Dialogue Tags, Sensory Grounding, Sentence Variety, Prose Tightening — all with accept/reject diff UI.
 - **Analysis**: Chapter Critique notes, Structural Analysis (tension 1–10, hookQuality 1–10, pacing, endingClass, summary).
 - **Worldbuilding**: Single-chapter Entity Extraction, Whole-book Entity Sweep with review modal.

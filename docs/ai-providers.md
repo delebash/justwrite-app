@@ -29,10 +29,13 @@ Every scene's **Links** panel and every character / location / object / group / 
 
 ## Where to set this up
 
-Open **Settings → AI engines**. The page is grouped into two labelled sections so you can jump straight to what you're after:
+Open the **AI** page — the Sparkle icon in the sidebar (from Settings, the *"writing-AI settings live in the AI menu"* note points here too). It's organized into tabs across the top:
 
-- **Engines** — the providers list (where you add, edit, test, and remove) plus the **Hardware presets** card that owns the Quick Setup wizard's per-tier model picks. The **Quick setup** button at the top of the providers list runs a one-click wizard that detects your GPU, downloads the right local models, and applies a sensible routing preset (see *Quick setup for local LLM* below). Each provider row carries a small **usage badge** ("default", "N pinned features", or both) — click it to expand a list of every feature routed to that provider, so the role of a secondary provider (e.g. the "fast" Ollama entry the wizard creates on small cards) is visible without scrolling to Feature routing.
-- **Routing & cost** — your global Defaults (LLM, embedding), the **Feature routing** card for per-feature overrides, and the variations editor.
+- **Providers & models** — your built-in (local) provider at the top, then any providers you've added (where you add, edit, test, and remove), plus the **Quick setup** wizard, the **Model catalog**, and the hardware/tuning libraries. Each provider row shows a **Default** tag when it's your current default, with a **Set as default** button.
+- **Routing by task** — set the model (a saved *preset*) for each broad kind of work — writing, chat, extraction, judgment. The coarse dial most people use.
+- **Routing by feature** — override a single feature's model when you want finer control than its task gives.
+- **Usage** — cost and call tracking (see *AI usage and cost tracking* below).
+- **Server console** — the built-in engine's live log, for troubleshooting.
 
 ---
 
@@ -40,7 +43,7 @@ Open **Settings → AI engines**. The page is grouped into two labelled sections
 
 Most users start with **one** provider and add more later as needed.
 
-1. Open **Settings → AI engines**.
+1. Open the **AI** page (Sparkle icon in the sidebar).
 2. Click **Add provider**.
 3. Choose a preset (see below for the common ones) or configure manually.
 4. Paste any API key required.
@@ -55,7 +58,7 @@ The connection test shows green (Online), yellow (Checking), or red (Offline). O
 
 > *"I want to run AI locally, but every guide tells me to pick a model, figure out the right quantization, install it, then configure four different things in Settings. Just tell me what to do."*
 
-The **Quick setup** wizard (in **Settings → AI engines**, top of the providers card) does the picking and configuring for you. It detects your GPU, picks the right models for your card, downloads them through Ollama, creates the provider entries, and applies a routing preset that sends each feature to the right model. One click; ~5 minutes of model downloads on a typical card; nothing else to configure.
+The **Quick setup** wizard (on the **AI** page, Providers & models tab) does the picking and configuring for you. It detects your GPU, picks the right models for your card, downloads them through Ollama, creates the provider entries, and applies a routing preset that sends each feature to the right model. One click; ~5 minutes of model downloads on a typical card; nothing else to configure.
 
 **What it does, in order:**
 
@@ -77,7 +80,7 @@ The **Quick setup** wizard (in **Settings → AI engines**, top of the providers
 - Critique, Plot-hole audit, Reverse outline, Multi-reader, Character audit, Foreshadowing, Reader knowledge, Voice drift, Beat sheet, Marketing pack, Relationship arc → cloud (if a cloud provider was picked) or default 14B (if not)
 - Embedding → `nomic-embed-text` on the same Ollama endpoint
 
-**Re-running is safe.** Pick a different tier and rerun — the wizard upserts the same provider ids, so it overwrites cleanly without leaving stale entries behind. You can also fine-tune any of the pins afterward in **Feature routing** without losing the rest of the preset.
+**Re-running is safe.** Pick a different tier and rerun — the wizard upserts the same provider ids, so it overwrites cleanly without leaving stale entries behind. You can also fine-tune any of them afterward under **Routing by feature** without losing the rest of the preset.
 
 **The presets are editable.** Local LLMs ship faster than this app does, so the per-tier model picks live in a **Hardware presets** card right above the providers list — accordion of every tier with inline editing for the default chat model, fast chat model (when applicable), embedding model, the list of models to download, and the estimated download size. Factory tiers can be **Reset** to their built-in defaults; you can **Add custom tier** for a setup the built-in tiers don't cover (e.g. *"My RTX 4090 setup"* with a model line you specifically prefer); custom tiers can be **Deleted**. Quick Setup reads from this card, so anything you change here is what the wizard offers next time. When a new model lands — bigger Qwen, a fresh Mistral, whatever — you point a preset at it without waiting for an app release.
 
@@ -147,7 +150,7 @@ One API key, OpenAI-shaped, routes to virtually every major model on the market 
 4. Click **Fetch models** — the live catalogue populates the dropdown. Model ids take the form `vendor/model-name`, e.g. `anthropic/claude-sonnet-4-6`, `google/gemini-2.5-pro`, `meta-llama/llama-3.1-70b-instruct`.
 5. Pick a chat model. **Test.** Save.
 
-**When to pick OpenRouter.** You want to compare several models side-by-side without managing five separate API keys and billing accounts. Or you want a model that doesn't ship with a built-in preset (Mistral, Together, Fireworks, …) — OpenRouter probably proxies it. Routing per feature (Settings → Feature routing) lets you point Critique at Claude, Writer actions at DeepSeek, and Entity sweep at Gemini, all through one key.
+**When to pick OpenRouter.** You want to compare several models side-by-side without managing five separate API keys and billing accounts. Or you want a model that doesn't ship with a built-in preset (Mistral, Together, Fireworks, …) — OpenRouter probably proxies it. Routing per feature (the **Routing by feature** tab) lets you point Critique at Claude, Writer actions at DeepSeek, and Entity sweep at Gemini, all through one key.
 
 ### Ollama (local, free)
 
@@ -243,7 +246,7 @@ The hardware table above tells you which **model** to use. This section tells yo
 
 > **Shortcut:** the **Quick setup** wizard (see *Quick setup for local LLM* above) applies the routing recipe below for your detected card in one click — providers, defaults, pins and all. The rest of this section is the reference behind what it does, useful if you want to understand or hand-tune the routing.
 
-All of these are configured in **Settings → AI engines → Feature routing**.
+All of these are configured under **Routing by feature** on the AI page.
 
 **Two setup steps before you start pinning** (Quick setup does both for you):
 1. Add **two** Ollama / LM Studio providers pointing at the same server but with different default chat models — e.g. *"Ollama (8B fast)"* with `qwen3:8b` and *"Ollama (14B prose)"* with `qwen3:14b`. JustWrite treats each as a separate provider you can pin features to.
@@ -309,9 +312,15 @@ If you have an RTX 2070 / 3060Ti / 3070 (8 GB):
 
 ## Routing features to specific providers
 
-The defaults are convenient but limiting. Once you have two or more providers, you may want to send different features to different ones.
+The default model is convenient but limiting. Once you have two or more providers, you may want to send different features to different ones.
 
-In **Settings → AI engines → Feature routing** you can pin each of twenty features to its own provider and model:
+JustWrite routes AI in **three tiers**, most-specific first:
+
+1. **A feature's own override** (set on **Routing by feature**) — wins when present.
+2. **The feature's task preset** (set on **Routing by task**) — every feature belongs to a broad task (writing, chat, extraction, judgment); set the task's model once and all its features follow.
+3. **The global default** — the fallback when neither is set.
+
+So the usual flow is: set your default, tune a few *tasks* under **Routing by task**, and only reach for **Routing by feature** when one specific feature needs its own model. These are the twenty routable features:
 
 | Feature | What it does |
 |---|---|
@@ -336,7 +345,7 @@ In **Settings → AI engines → Feature routing** you can pin each of twenty fe
 | **Marketing pack** | The Analysis dashboard "Marketing pack" modal — logline, three back-cover blurbs, one-page synopsis, three-paragraph elevator pitch |
 | **Multi-reader panel** | The chapter editor's "Multi-reader panel" critique — four reader personas (genre reader / literary critic / agent intern / book-club reader) react to a chapter in parallel |
 
-Setting "Inherit default" for any feature uses your global Default LLM.
+A feature with no override follows its task preset; a task with no preset follows your global default.
 
 **A common routing setup**:
 
@@ -397,21 +406,15 @@ Change either value, then click **Save**; the new limits apply the next time a m
 
 ---
 
-## Switching provider or model from the page itself
+## Seeing which model a feature runs on
 
-> *"I'm in the Critique modal and the result feels off. I want to try a different model right here without leaving to navigate Settings."*
+> *"I'm in the Critique modal — which model is this actually about to use?"*
 
 Every AI page has a small chip in its header showing the current **provider · model** for that feature. Critique, Brainstorm, every analysis modal, Reader knowledge, the chat panel — same chip in each. In the chapter editor, the chip sits at the **top of each scene's AI dropdown**, so writer actions (Rewrite, Expand, Tighten, Continue, Line edits) show their routing right above the menu items they apply to.
 
-**Click the chip** and a small popover opens with two dropdowns: Provider and Model. The Provider dropdown lists *"Inherit default"* (the global LLM default set in Settings) plus every configured LLM-capable provider. The Model dropdown enables once you pick a specific provider; it shows the provider's saved configured-default model plus any models the live `/v1/models` fetch returned (Refresh button alongside if you need to force a re-fetch).
+The chip is **read-only** — a "runs on" indicator, not an editor. Its tooltip names the task the feature belongs to, and **clicking it opens the AI page** so you can change the routing under **Routing by task** or **Routing by feature**. (Earlier versions let you edit the model from a popover on the chip; routing now lives in one place — the AI page — so the same change can't drift between surfaces.)
 
-**The chip is a clearer surface for the same Feature routing in Settings.** Whatever you pick here is written to the same per-feature pin. Pinning Critique to Anthropic from the Critique modal also routes Multi-reader (which uses the `critique` feature key) to Anthropic — that's expected behavior, since both flow through the same feature.
-
-**Visual cue:** the chip's tint changes when a pin is set, so you can tell at a glance whether the feature is following the global default or has been explicitly routed.
-
-**Dismiss the popover** with Esc, by clicking the chip again, or by clicking anywhere outside it.
-
-**Analysis modals wait for you.** When you open Multi-reader, Entity sweep, Foreshadowing, Plot-hole audit, Reverse outline, Marketing pack, Character audit, Sensory research, Session recap, Stuck diagnostic, or AI-tell scan, the modal opens to an empty-state with a primary "Run" button instead of firing the AI call immediately. That gives you a chance to change the chip routing first — pick a different model, or switch from your default to a faster local one — before spending tokens. Click the Run button when you're ready.
+**Analysis modals wait for you.** When you open Multi-reader, Entity sweep, Foreshadowing, Plot-hole audit, Reverse outline, Marketing pack, Character audit, Sensory research, Session recap, Stuck diagnostic, or AI-tell scan, the modal opens to an empty-state with a primary "Run" button instead of firing the AI call immediately. That gives you a chance to check the routing chip first — and change it on the AI page if you want a different model — before spending tokens. Click the Run button when you're ready.
 
 ---
 
@@ -485,5 +488,4 @@ Anything in JustWrite that calls an AI — critique, brainstorm, plot-hole scan,
 ## See also
 
 - **[Writing](writing.md)** — the scene-strip AI dropdown and Critique modal
-- **[Writer Lab](writer-lab.md)** — the standalone AI workbench
 - **[Notes and search](notes-and-search.md)** — "Ask the book" chat

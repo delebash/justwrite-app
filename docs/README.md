@@ -48,7 +48,6 @@ If you want to plan first:
 - **[Import and export](import-and-export.md)** — bring a manuscript in; export to PDF, DOCX, or EPUB
 - **[Analysis](analysis.md)** — pace, milestones, style metrics, cast presence; plus the structural AI passes (story tension, voice drift, reverse outline, beat sheet, plot-hole audit, marketing pack)
 - **[Reader knowledge](reader-knowledge.md)** — a chapter-by-chapter dramatic-irony map: what the reader knows vs. what the POV character knows
-- **[Writer Lab](writer-lab.md)** — an editor-on-call for rewrites, critiques, and entity extraction
 
 ### Setup and configuration
 
