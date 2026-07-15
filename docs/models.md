@@ -57,7 +57,7 @@ filled in on its Edit form.
 
 When you click **Apply**, that one model becomes the default for **every preset** — writing,
 chat, extraction, judgment — and it downloads and loads right away. If you've already
-changed the model on a particular preset yourself (on the **Presets** tab), Quick
+changed the model on a particular preset yourself (under **Routing by feature**), Quick
 Setup leaves that preset alone.
 
 After Apply, the done step tells you which launch settings this machine got — **no sweep
@@ -110,7 +110,7 @@ embedding model carries an **Embedding** badge. From here you can:
 - **Download** a model — fetches the weights onto your machine. Your chat default and the
   embedding can run together, and a model also loads on demand when a feature needs it.
 - **Load as default** — makes a downloaded model the one **every preset** uses (the same effect
-  as Quick Setup; any preset you've re-pointed yourself on the **Presets** tab keeps
+  as Quick Setup; any preset you've re-pointed yourself under **Routing by feature** keeps
   its own model) **and loads it into memory right away**, so your first write doesn't pay
   the load wait.
 - **Unload** — appears on a loaded model; frees its memory (VRAM) without picking anything
@@ -127,7 +127,8 @@ embedding model carries an **Embedding** badge. From here you can:
 - **Engine switches belong to the model, not to presets** — that's the one rule of the
   whole tuning system. A loaded model is one engine process with one set of launch
   switches, shared by **every preset that uses it**; what a *preset* owns is how the model is
-  **asked** (temperature, max tokens, thinking, samplers — on the Presets tab, no
+  **asked** (temperature, max tokens, thinking, samplers — in the preset, edited in
+  the Routing-by-feature Lab, no
   reload needed). So there is exactly **one place to set engine switches: the model's
   Tune & measure dialog** — opened from the model's row in the catalog, or from a Lab
   column's **Engine switches ↗** link (same dialog, same config).
@@ -304,8 +305,8 @@ one empty and that side embeds raw. If you edit a template after building an ind
 > scene editor's AI menu, the analysis tools) carry a small read-only **"runs on"** chip
 > naming the provider + model that feature's preset uses right now — resolved by the server
 > exactly the way a run resolves it, so the chip can never disagree with reality. On most
-> surfaces the chip is provenance: clicking it takes you to AI settings, where the **Presets**
-> tab and the feature workbench are the only places routing is edited. The two chat chips
+> surfaces the chip is provenance: clicking it takes you to AI settings, where
+> **Routing by feature** is the only place routing is edited. The two chat chips
 > (Ask the book / Talk to character) go one further — clicking them opens an **edit doorway**
 > naming the preset and how many features share it. (The old per-surface
 > provider/model dropdowns are gone; they edited a side channel that the preset

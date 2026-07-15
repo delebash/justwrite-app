@@ -62,6 +62,27 @@ now:
 > verbatim text is appended to `docs/plans/2026-07-08-recap-archive.md` (and lives in git
 > history). Per-go detail stays in the plan docs named in the ACTIVE DOC INDEX.
 
+**⛔ CORRECTION (2026-07-15, after the user SAW the built UI) — THE PRESETS PAGE IS DELETED;
+`Routing by feature` is the ONE routing surface.** The user's verdict: *"task kind should
+not even exist anymore … it looks to me like you just renamed tasks to presets"* · *"we
+should only have routing by feature and it works the same way originally"*. They were right:
+I'd concluded "the preset IS the group" and then wrongly built it a group-management page —
+structurally TaskKinds.vue renamed. Shipped: Presets.vue + its tab deleted; the duplicate
+top preset dropdown deleted (the Lab bar is THE control); the ORIGINAL **"Use in
+production"** + `● in production` restored (my rename and the task era's both reverted —
+verified in git at `1302f88`, not memory); per-feature **Reset to default** back as a real
+red button (right-aligned, resets ref AND reloads the form); `↺ Reset presets to defaults`
+moved to the list footer; **Writing AI** tab moved beside Routing by feature; b4-probe
+deleted, presets-probe rewritten (**31/31**). **A REAL PRE-EXISTING BUG found + fixed:**
+`csrf.py` never allowlisted the server's OWN origin, so every write from the server-hosted
+(headless `serve` + browser) UI 403'd — same-origin is not a CSRF vector; now derived
+per-request (`test_csrf.py` 4/4 + a new regression). Gates: JW server **108** + ruff ·
+vitest **145** · build · FULL smoke zero JS errors · probe 31/31 · **screenshots reviewed
+by me this time.** TWO PROCESS LESSONS → memory: nobody ever LOOKED at the built UI (the
+whole pipeline was green and wrong — [[verify-ui-layout-visually]] rewritten), and I wrote
+the "maybe fold this into Routing by feature" doubt into my own approval note and never
+asked it. Full record: the plan doc's **⛔ CORRECTION** section.
+
 **GO (2026-07-15, same day: "go" + "keep going until its done" + "push") — THE ONE-SOURCE
 PRESET REWRITE IS BUILT, VERIFIED, COMMITTED + PUSHED.** Runner `8081539`; JW = this commit +
 its claude-config sibling (rebased onto the doc-sweep). Executed by Opus subagents per the

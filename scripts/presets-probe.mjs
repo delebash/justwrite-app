@@ -1,21 +1,27 @@
-// Presets-page acceptance probe (2026-07-15 one-source rewrite, plan T5/T8).
-// Drives the rebuilt "Presets" page END-TO-END on the live app (dev:vite :1420 +
-// server :17495) and pins the flattening regression the rewrite kills:
-//   P1  list shows 10 built-in presets, each with a "used by N" member count;
-//   P2  create a preset (QC-15 in-pane form — Save disabled until named);
-//   P3  assign a feature to it — a member row appears AND the moved-from preset's
-//       "used by N" drops by one (the refs are the one source of membership);
-//   P4  inline rename (the header IS the field; blur saves);
-//   P5  per-preset Reset on a built-in;
-//   P6  Reset all restores the 10 seeds + 37 refs (the custom preset is dropped);
-//   P7  THE FLATTENING PIN — open Judgment & scoring's Lab (test against critique):
-//       the column's Temp equals the PRESET's temperature (0.3, "Judgment &
-//       scoring") NOT critique's old per-action 0.4; change ONLY Reasoning and
-//       Update the preset; then the preset's temperature STAYS 0.3 (the flattening
-//       is dead structurally — one preset, one temperature) while think/level
-//       changed, and plotHoles (a sibling member) still resolves to p_judge.
+// Preset-workflow acceptance probe (2026-07-15 one-source rewrite; REBUILT the same
+// day for the user's correction: the separate Presets page was DELETED — Routing by
+// feature is the ONE routing surface, and the Lab bar is the ONE preset control,
+// restored to its original 1302f88 shape). Drives the live app (dev:vite :1420 +
+// server :17495):
+//   N1  the AI subnav has NO "Presets" tab; "Routing by feature" opens;
+//   N2  the feature nav cards carry "→ <preset> · assigned/default" provenance;
+//   N3  the selected action's Lab bar preselects the production preset and shows
+//       the "● in production" marker; the old top assignment row is GONE;
+//   N4  loading a DIFFERENT preset shows the ORIGINAL "Use in production" button
+//       (the task-era + rewrite renames are dead); clicking it assigns the feature
+//       (PUT ref → resolved-route says assigned) and the nav card updates;
+//   N5  ＋ Save as preset creates one (adopted into the bar) and 🗑 deletes it;
+//   N6  "↺ Reset presets to defaults" (relocated from the deleted page) restores
+//       the 10 built-ins + 37 refs;
+//   N7  THE FLATTENING PIN — Plot-hole audit's column Temp equals the PRESET's 0.3
+//       (its old per-action 0.3 and critique's 0.4 are both deleted); a
+//       reasoning-only Update leaves temperature at 0.3 while think/level land;
+//       its SIBLING on the same preset (critique) still resolves to p_judge.
+// NOTE on labels: a nav card shows the ACTION's seeded label, not its key —
+// critique renders as "Notes" under the "Critique" heading. Drive by the exact
+// label ("Plot-hole audit" = plotHoles) and assert the selection took.
 // findChrome copied from scripts/headless-smoke.mjs per JW CLAUDE.md (JW_CHROME
-// override honored). Every write is API-restored (POST /engine-presets/reset).
+// honored). Every write is API-restored (POST /engine-presets/reset + ref replay).
 import { existsSync, readdirSync } from "node:fs";
 import { createRequire } from "node:module";
 
@@ -86,10 +92,18 @@ async function confirmActiveDialog(page) {
   await sleep(1200);
 }
 
+async function selectActionCard(page, exactLabel) {
+  return page.evaluate((lbl) => {
+    const card = [...document.querySelectorAll(".lu-fw-list .lu-fw-card")]
+      .find((c) => (c.querySelector(".lu-fw-card-label")?.textContent || "").trim() === lbl);
+    if (!card) return false;
+    card.click();
+    return true;
+  }, exactLabel);
+}
+
 // ── snapshot for restore ──
 const origAssign = await api("/v1/ai/preset-assignments");
-// Idempotency: drop any leftover CUSTOM presets from a prior run (Reset-all keeps
-// custom presets by design, so they'd accumulate on a reused DB).
 for (const p of ((await api("/v1/ai/engine-presets")).presets || []).filter((x) => !x.builtIn)) {
   await api(`/v1/ai/engine-presets/${p.id}`, { method: "DELETE" }).catch(() => {});
 }
@@ -99,187 +113,183 @@ const browser = await chromium.launch({ executablePath: findChrome(), headless: 
 const page = await browser.newPage({ viewport: { width: 1500, height: 1000 } });
 const errors = [];
 page.on("pageerror", (e) => errors.push(e.message.slice(0, 200)));
+const writes = [];
+if (process.env.PROBE_TRACE) page.on("request", (r) => { if (r.method() !== "GET" && /\/v1\//.test(r.url())) writes.push(`${r.method()} ${r.url()} :: ${String(r.postData()||"").slice(0,60)}`); });
 
 try {
   await page.goto(APP, { waitUntil: "networkidle" });
   await sleep(1500);
   try { await page.click('button:has-text("Got it")', { timeout: 1200 }); } catch { /* none */ }
 
-  // Open the AI area → Presets tab.
   await page.evaluate(() => { window.location.hash = "#/ai"; });
   await sleep(1500);
-  const onPresets = await page.evaluate(() => {
-    const a = [...document.querySelectorAll(".lu-subnav a")].find((x) => x.textContent.trim() === "Presets");
-    if (a) { a.click(); return true; }
-    return false;
-  });
-  check("Presets tab exists and opens", onPresets);
-  await sleep(1800);
 
-  // ── P1: list = 10 presets, each with a "used by N" count ──
-  const p1 = await page.evaluate(() => {
-    const cards = [...document.querySelectorAll(".lu-fw-list .lu-fw-card")];
-    return {
-      count: cards.length,
-      models: cards.map((c) => c.querySelector(".lu-fw-card-model")?.textContent.trim() || ""),
-    };
+  // ── N1: no Presets tab; Routing by feature opens ──
+  const nav = await page.evaluate(() => {
+    const links = [...document.querySelectorAll(".lu-subnav a")].map((a) => a.textContent.trim());
+    const rbf = [...document.querySelectorAll(".lu-subnav a")].find((a) => a.textContent.trim() === "Routing by feature");
+    rbf?.click();
+    return { links, opened: !!rbf };
   });
-  check("P1: the list shows 10 presets", p1.count === 10, `count=${p1.count}`);
-  check("P1: every preset row shows a 'used by N' member count",
-    p1.count > 0 && p1.models.every((m) => /used by \d+ feature/.test(m)),
-    p1.models.slice(0, 3).join(" · "));
+  check("N1: the Presets tab is GONE from the subnav", !nav.links.includes("Presets"), nav.links.join(" · "));
+  check("N1: Routing by feature opens", nav.opened);
+  await sleep(2000);
 
-  // ── P2: create a preset (QC-15 in-pane form; Save disabled until named) ──
-  await page.evaluate(() => document.querySelector(".lu-tk-new")?.click());
-  await sleep(700);
-  const saveDisabledBefore = await page.evaluate(() =>
-    [...document.querySelectorAll(".lu-tk-createactions button")]
-      .find((b) => b.textContent.trim() === "Save")?.disabled ?? null);
-  check("P2: create form opens with Save disabled until a name is typed", saveDisabledBefore === true);
-  await page.fill(".lu-tk-createform input.ui-input", "Probe preset Z");
-  await sleep(300);
-  const saveEnabled = await page.evaluate(() =>
-    [...document.querySelectorAll(".lu-tk-createactions button")]
-      .find((b) => b.textContent.trim() === "Save")?.disabled === false);
-  check("P2: Save enables once a name is typed", saveEnabled);
-  await page.evaluate(() =>
-    [...document.querySelectorAll(".lu-tk-createactions button")].find((b) => b.textContent.trim() === "Save")?.click());
-  await sleep(1200);
-  const afterCreate = await page.evaluate(() => ({
-    count: document.querySelectorAll(".lu-fw-list .lu-fw-card").length,
-    selName: document.querySelector("input.lu-tk-name")?.value || "",
+  // ── N2: nav cards carry preset provenance ──
+  const n2 = await page.evaluate(() => {
+    const cards = [...document.querySelectorAll(".lu-fw-list .lu-fw-card-model")].map((m) => m.textContent.trim());
+    return { count: cards.length, withProv: cards.filter((t) => /· (assigned|default)$/.test(t)).length, sample: cards[0] || "" };
+  });
+  check("N2: every nav card shows '→ preset · assigned/default'", n2.count > 0 && n2.withProv === n2.count,
+    `${n2.withProv}/${n2.count} · "${n2.sample}"`);
+
+  // ── N3: select Plot-hole audit (plotHoles → p_judge) — the bar preselects
+  // production; the old top row is gone ──
+  check("N3: the Plot-hole audit action card selects", await selectActionCard(page, "Plot-hole audit"));
+  await sleep(2000);
+  const n3 = await page.evaluate(() => ({
+    oldTopRow: !!document.querySelector(".lu-fw-runs"),
+    barPreset: document.querySelector(".cc-presets .ui-select-trigger")?.textContent.trim() || "",
+    inProd: !!document.querySelector(".cc-presets .cc-inprod"),
+    useInProdVisible: [...document.querySelectorAll(".cc-presets button")].some((b) => b.textContent.trim() === "Use in production"),
   }));
-  check("P2: the new preset is added (11) and selected", afterCreate.count === 11 && afterCreate.selName === "Probe preset Z",
-    `count=${afterCreate.count} name="${afterCreate.selName}"`);
+  check("N3: the old top assignment row is GONE", !n3.oldTopRow);
+  check("N3: the Lab bar preselects the production preset (Judgment & scoring)",
+    /Judgment & scoring/.test(n3.barPreset), n3.barPreset);
+  check("N3: the '● in production' marker shows (original 1302f88 state)", n3.inProd);
+  check("N3: 'Use in production' is hidden while the loaded preset IS production", !n3.useInProdVisible);
 
-  // ── P3: assign a feature to the new (empty) preset → member appears, source count drops ──
-  const countsBefore = await page.evaluate(() =>
-    [...document.querySelectorAll(".lu-fw-list .lu-fw-card")].map((c) => ({
-      name: c.querySelector(".lu-fw-card-label")?.textContent.replace("built-in", "").trim() || "",
-      n: Number((c.querySelector(".lu-fw-card-model")?.textContent.match(/used by (\d+)/) || [])[1] || 0),
-    })));
-  // The assign select is the only UiSelect in the empty preset's detail pane (no
-  // members yet → the "Test against" row + FeatureLab are absent). Its class
-  // (.lu-tk-add) merges onto the trigger itself (Reka SelectRoot is renderless),
-  // so target the trigger inside the "Features using this preset" section header.
-  const assignedLabel = await pickReka(page, ".lu-fw-edit .lu-tk-sec-h .ui-select-trigger", " — from ");
-  check("P3: an assignable feature option was picked", assignedLabel != null, assignedLabel);
-  await sleep(800);
-  const p3 = await page.evaluate(() => ({
-    members: document.querySelectorAll(".lu-tk-members .lu-tk-member").length,
-    counts: [...document.querySelectorAll(".lu-fw-list .lu-fw-card")].map((c) => ({
-      name: c.querySelector(".lu-fw-card-label")?.textContent.replace("built-in", "").trim() || "",
-      n: Number((c.querySelector(".lu-fw-card-model")?.textContent.match(/used by (\d+)/) || [])[1] || 0),
-    })),
-  }));
-  const totalBefore = countsBefore.reduce((s, c) => s + c.n, 0);
-  const totalAfter = p3.counts.reduce((s, c) => s + c.n, 0);
-  const someDropped = countsBefore.some((b) => {
-    const a = p3.counts.find((x) => x.name === b.name);
-    return a && a.n === b.n - 1;
-  });
-  check("P3: a member row appears in the target preset", p3.members === 1, `members=${p3.members}`);
-  check("P3: the moved-from preset's 'used by' count dropped by one (total conserved)",
-    someDropped && totalAfter === totalBefore, `before=${totalBefore} after=${totalAfter} dropped=${someDropped}`);
-
-  // ── P4: inline rename (the header IS the field; blur saves) ──
-  await page.fill("input.lu-tk-name", "Probe preset Z2");
-  await page.evaluate(() => document.querySelector("input.lu-tk-name")?.blur());
-  await sleep(1000);
-  const renamed = await page.evaluate(() =>
-    [...document.querySelectorAll(".lu-fw-list .lu-fw-card-label")].some((l) => l.textContent.includes("Probe preset Z2")));
-  check("P4: inline rename updates the list card", renamed);
-
-  // ── P5: per-preset Reset on a built-in ──
-  await page.evaluate(() => {
-    const card = [...document.querySelectorAll(".lu-fw-list .lu-fw-card")]
-      .find((c) => /Judgment & scoring/.test(c.querySelector(".lu-fw-card-label")?.textContent || ""));
-    card?.click();
-  });
-  await sleep(1000);
-  const resetClicked = await page.evaluate(() => {
-    const btn = [...document.querySelectorAll(".lu-fw-edit .lu-fw-h button")].find((b) => b.textContent.trim() === "Reset");
-    if (!btn) return false;
-    btn.click();
-    return true;
-  });
-  await confirmActiveDialog(page);
-  const p5msg = await page.evaluate(() => document.querySelector(".lu-fw-msg")?.textContent || "");
-  check("P5: per-preset Reset on a built-in ran", resetClicked && /reset/i.test(p5msg), p5msg);
-
-  // ── P6: Reset all → the 10 built-in presets + 37 refs restored (custom presets are
-  // KEPT by design — the plan: "Your custom presets are kept"). ──
-  await page.evaluate(() => document.querySelector(".lu-tk-resetall")?.click());
-  await confirmActiveDialog(page);
-  await sleep(1500);
-  const p6presets = (await api("/v1/ai/engine-presets")).presets || [];
-  const builtIns = p6presets.filter((p) => p.builtIn);
-  const asg = await api("/v1/ai/preset-assignments");
-  check("P6: Reset all restores the 10 built-in presets (custom presets kept)",
-    builtIns.length === 10, `builtIns=${builtIns.length} total=${p6presets.length}`);
-  check("P6: Reset all restores 37 seeded feature refs",
-    Object.keys(asg.features || {}).length === 37, `refs=${Object.keys(asg.features || {}).length}`);
-
-  // ── P7: THE FLATTENING PIN ──────────────────────────────────────────────────
-  // Select Judgment & scoring (p_judge). testAgainst defaults to critique (first
-  // member alphabetically). The Lab column seeds Temp FROM THE PRESET (0.3), not
-  // from critique's old per-action 0.4 — that per-action tunable is deleted.
+  // ── N7 first half: THE FLATTENING PIN (Plot-hole audit is on p_judge) ──
   const presetBefore = (await api("/v1/ai/engine-presets")).presets.find((p) => p.id === "p_judge");
-  check("P7: p_judge seeds at temperature 0.3 (the mint)", presetBefore?.temperature === 0.3, `temp=${presetBefore?.temperature}`);
-  await page.evaluate(() => {
-    const card = [...document.querySelectorAll(".lu-fw-list .lu-fw-card")]
-      .find((c) => /Judgment & scoring/.test(c.querySelector(".lu-fw-card-label")?.textContent || ""));
-    card?.click();
-  });
-  await sleep(2000); // FeatureLab + ConfigColumn mount, apply-preset loads the column
+  check("N7: p_judge seeds at temperature 0.3 (the mint)", presetBefore?.temperature === 0.3, `temp=${presetBefore?.temperature}`);
   const colTemp = await page.evaluate(() => {
     const field = [...document.querySelectorAll(".cc-params .cc-num")]
       .find((f) => f.querySelector("label")?.textContent.trim().startsWith("Temp"));
     return field?.querySelector("input")?.value ?? null;
   });
-  check("P7: the Lab column's Temp equals the PRESET's temperature (0.3), NOT critique's old 0.4",
+  check("N7: the column's Temp equals the PRESET's 0.3 (the per-action tunables are dead)",
     String(colTemp) === "0.3", `column Temp=${colTemp}`);
-
-  // resolved-route for plotHoles BEFORE — routing provenance (a p_judge sibling).
-  const rrBefore = await api("/v1/ai/resolved-route?feature=plotHoles");
-
-  // Change ONLY Reasoning → Medium, then Update the preset.
+  const rrBefore = await api("/v1/ai/resolved-route?feature=critique");
   const pickedLevel = await pickReka(page, ".cc-reason .ui-select-trigger", "Medium");
-  check("P7: Reasoning set to Medium in the column", /medium/i.test(pickedLevel || ""), pickedLevel);
+  check("N7: Reasoning set to Medium in the column", /medium/i.test(pickedLevel || ""), pickedLevel);
   const updateClicked = await page.evaluate(() => {
     const btn = [...document.querySelectorAll(".cc-presets button")].find((b) => b.textContent.trim() === "Update");
     if (!btn) return false;
     btn.click();
     return true;
   });
-  check("P7: 'Update' (write THIS preset) was clicked", updateClicked);
+  check("N7: 'Update' (write THIS preset) was clicked", updateClicked);
   await sleep(1500);
-
-  // The one source: p_judge's temperature STAYED 0.3 (flattening dead), reasoning changed.
   const presetAfter = (await api("/v1/ai/engine-presets")).presets.find((p) => p.id === "p_judge");
-  check("P7 (THE PIN): editing ONLY Reasoning left p_judge.temperature at 0.3 — no flattening",
+  check("N7 (THE PIN): a reasoning-only Update left p_judge.temperature at 0.3 — no flattening",
     presetAfter?.temperature === 0.3, `temp after=${presetAfter?.temperature}`);
-  check("P7: the reasoning edit DID land (think on, level medium)",
+  check("N7: the reasoning edit DID land (think on, level medium)",
     presetAfter?.think === true && presetAfter?.reasoningEffort === "medium",
     `think=${presetAfter?.think} level=${presetAfter?.reasoningEffort}`);
+  const rrAfterEdit = await api("/v1/ai/resolved-route?feature=critique");
+  check("N7: the SIBLING (critique) still resolves to p_judge (assigned), routing untouched",
+    rrAfterEdit.presetId === "p_judge" && rrAfterEdit.presetSource === "assigned"
+      && rrAfterEdit.model === rrBefore.model && rrAfterEdit.providerId === rrBefore.providerId,
+    `presetId=${rrAfterEdit.presetId} source=${rrAfterEdit.presetSource}`);
 
-  // plotHoles (a sibling member) still resolves to p_judge — routing intact; since it
-  // shares the one preset, its temperature is structurally 0.3 (resolved-route carries
-  // routing provenance, not the temp field: the temp is on the preset, the one source).
-  const rrAfter = await api("/v1/ai/resolved-route?feature=plotHoles");
-  check("P7: plotHoles still resolves to preset p_judge (assigned)",
-    rrAfter.presetId === "p_judge" && rrAfter.presetSource === "assigned",
-    `presetId=${rrAfter.presetId} source=${rrAfter.presetSource}`);
-  check("P7: plotHoles' routing (preset/provider/model) is unchanged by the reasoning edit",
-    rrAfter.presetId === rrBefore.presetId && rrAfter.model === rrBefore.model && rrAfter.providerId === rrBefore.providerId,
-    `before=${rrBefore.presetId}/${rrBefore.model} after=${rrAfter.presetId}/${rrAfter.model}`);
+  // ── N4: reassign via THE original control — load another preset → Use in production ──
+  const loaded = await pickReka(page, ".cc-presets .ui-select-trigger", "Generate prose");
+  check("N4: a different preset loads into the column", /Generate prose/.test(loaded || ""), loaded);
+  const n4state = await page.evaluate(() => ({
+    inProd: !!document.querySelector(".cc-presets .cc-inprod"),
+    btn: [...document.querySelectorAll(".cc-presets button")].find((b) => b.textContent.trim() === "Use in production")?.textContent.trim() || "",
+  }));
+  check("N4: the ORIGINAL 'Use in production' button appears (renames dead)", n4state.btn === "Use in production");
+  check("N4: the '● in production' marker cleared (loaded ≠ production)", !n4state.inProd);
+  await page.evaluate(() => {
+    [...document.querySelectorAll(".cc-presets button")].find((b) => b.textContent.trim() === "Use in production")?.click();
+  });
+  await sleep(1500);
+  const rrPh = await api("/v1/ai/resolved-route?feature=plotHoles");
+  check("N4: clicking it ASSIGNS the feature (resolved-route: p_prose_voiced · assigned)",
+    rrPh.presetId === "p_prose_voiced" && rrPh.presetSource === "assigned",
+    `presetId=${rrPh.presetId} source=${rrPh.presetSource}`);
+  const n4after = await page.evaluate(() => ({
+    inProd: !!document.querySelector(".cc-presets .cc-inprod"),
+    card: [...document.querySelectorAll(".lu-fw-list .lu-fw-card")]
+      .find((c) => (c.querySelector(".lu-fw-card-label")?.textContent || "").trim() === "Plot-hole audit")
+      ?.querySelector(".lu-fw-card-model")?.textContent.trim() || "",
+  }));
+  check("N4: the marker returns (loaded preset IS now production)", n4after.inProd);
+  check("N4: the nav card updates to 'Generate prose · assigned'", /Generate prose · assigned/.test(n4after.card), n4after.card);
+  // restore plotHoles → Judgment & scoring through the same control
+  await pickReka(page, ".cc-presets .ui-select-trigger", "Judgment & scoring");
+  await page.evaluate(() => {
+    [...document.querySelectorAll(".cc-presets button")].find((b) => b.textContent.trim() === "Use in production")?.click();
+  });
+  await sleep(1200);
+
+  // ── N4b: the labeled per-feature "Reset to default" (the original affordance;
+  // the user's 2026-07-15 word: a real button, resets the WHOLE form) ──
+  const resetFeatBtn = await page.evaluate(() => {
+    const btn = [...document.querySelectorAll(".lu-fw-h button")].find((b) => b.textContent.trim() === "Reset to default");
+    if (!btn) return false;
+    btn.click();
+    return true;
+  });
+  check("N4b: a labeled 'Reset to default' button sits in the action header", resetFeatBtn);
+  await sleep(1800); // ref clears + FeatureLab remounts (labEpoch)
+  const rrReset = await api("/v1/ai/resolved-route?feature=plotHoles");
+  check("N4b: it clears the assignment (plotHoles → the default preset, source=default)",
+    rrReset.presetSource === "default", `presetId=${rrReset.presetId} source=${rrReset.presetSource}`);
+  const n4b = await page.evaluate(() => ({
+    barPreset: document.querySelector(".cc-presets .ui-select-trigger")?.textContent.trim() || "",
+    inProd: !!document.querySelector(".cc-presets .cc-inprod"),
+    resetGone: ![...document.querySelectorAll(".lu-fw-h button")].some((b) => b.textContent.trim() === "Reset to default"),
+  }));
+  check("N4b: the form RELOADED onto the default preset (bar + ● marker; button gone)",
+    n4b.inProd && n4b.resetGone && n4b.barPreset.length > 0, JSON.stringify(n4b));
+  // restore critique's seeded assignment for the rest of the run
+  await api("/v1/ai/preset-assignments/feature", { method: "PUT", body: { featureKey: "plotHoles", presetId: "p_judge" } });
+  await sleep(600);
+
+  // ── N5: ＋ Save as preset creates; 🗑 deletes ──
+  await page.evaluate(() => {
+    [...document.querySelectorAll(".cc-presets button")].find((b) => b.textContent.trim() === "＋ Save as preset")?.click();
+  });
+  await sleep(400);
+  await page.fill(".cc-presets .cc-name-in input, .cc-presets input", "Probe preset Z");
+  await page.keyboard.press("Enter");
+  await sleep(1500);
+  const created = ((await api("/v1/ai/engine-presets")).presets || []).find((p) => p.name === "Probe preset Z");
+  check("N5: ＋ Save as preset created it", !!created, created?.id || "not found");
+  const adopted = await page.evaluate(() => document.querySelector(".cc-presets .ui-select-trigger")?.textContent.trim() || "");
+  check("N5: the bar adopted the new preset (#27)", /Probe preset Z/.test(adopted), adopted);
+  await page.evaluate(() => {
+    [...document.querySelectorAll(".cc-presets button")].find((b) => b.title === "Delete this preset")?.click();
+  });
+  await sleep(1500);
+  const goneAfterDelete = !((await api("/v1/ai/engine-presets")).presets || []).some((p) => p.name === "Probe preset Z");
+  check("N5: 🗑 deleted it", goneAfterDelete);
+
+  // ── N6: the relocated Reset (aside footer) ──
+  const resetBtn = await page.evaluate(() => {
+    const btn = document.querySelector(".lu-fw-aside-foot button");
+    if (!btn) return "";
+    const t = btn.textContent.trim();
+    btn.click();
+    return t;
+  });
+  check("N6: '↺ Reset presets to defaults' lives at the list footer", /Reset presets to defaults/.test(resetBtn), resetBtn);
+  await confirmActiveDialog(page);
+  await sleep(1500);
+  const p6presets = (await api("/v1/ai/engine-presets")).presets || [];
+  const asg = await api("/v1/ai/preset-assignments");
+  check("N6: Reset restores the 10 built-ins", p6presets.filter((p) => p.builtIn).length === 10,
+    `builtIns=${p6presets.filter((p) => p.builtIn).length}`);
+  check("N6: Reset restores 37 seeded feature refs", Object.keys(asg.features || {}).length === 37,
+    `refs=${Object.keys(asg.features || {}).length}`);
 
   check("zero page errors", errors.length === 0, errors.join(" | ").slice(0, 300));
 } finally {
+  if (process.env.PROBE_TRACE) console.log(`\n--- WRITES ---\n${writes.join("\n")}`);
   await browser.close();
-  // Restore factory seeds (presets + refs + default).
   await api("/v1/ai/engine-presets/reset", { method: "POST" }).catch(() => {});
-  // Belt-and-suspenders: re-assert the original refs if the snapshot had custom ones.
   for (const [k, pid] of Object.entries(origAssign.features || {})) {
     await api("/v1/ai/preset-assignments/feature", { method: "PUT", body: { featureKey: k, presetId: pid } }).catch(() => {});
   }

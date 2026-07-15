@@ -32,8 +32,7 @@ Every scene's **Links** panel and every character / location / object / group / 
 Open the **AI** page — the Sparkle icon in the sidebar (from Settings, the *"writing-AI settings live in the AI menu"* note points here too). It's organized into tabs across the top:
 
 - **Providers & models** — your built-in (local) provider at the top, then any providers you've added (where you add, edit, test, and remove), plus the **Quick setup** wizard, the **Model catalog**, and the hardware/tuning libraries. Each provider row shows a **Default** tag when it's your current default, with a **Set as default** button.
-- **Presets** — the saved engine configs (model + temperature + samplers + the Reasoning dial). Every feature points at one preset; features with the same settings share one, so editing a preset retunes everything that uses it. The coarse dial most people use.
-- **Routing by feature** — point a single feature at a different preset when it needs its own settings.
+- **Routing by feature** — the one routing surface. Every feature points at a **preset** (the saved engine config: model + temperature + samplers + the Reasoning dial); features with the same settings share one, so editing a preset retunes everything that uses it. The Lab under each feature is where presets are created, tuned, and put in production.
 - **Usage** — cost and call tracking (see *AI usage and cost tracking* below).
 - **Server console** — the built-in engine's live log, for troubleshooting.
 
@@ -316,7 +315,7 @@ The default model is convenient but limiting. Once you have two or more provider
 
 JustWrite routes AI with **one rule**: every feature points at a **preset** (the model plus all its settings), and a feature with no assignment falls to the **default preset**. Features that should run the same simply share a preset — the app ships with ten, grouped by the kind of work (prose generation, editing, judgment, extraction, chat, …).
 
-So the usual flow is: set your default provider, retune a shared preset on the **Presets** tab when a whole family should change, and use **Routing by feature** to point one feature at a different preset when it needs its own settings. These are the twenty routable features:
+So the usual flow is: set your default provider, and on **Routing by feature** load a preset into the Lab to retune it (every feature sharing it follows) or **Use in production** to point one feature at a different preset. These are the twenty routable features:
 
 | Feature | What it does |
 |---|---|
@@ -408,7 +407,7 @@ Change either value, then click **Save**; the new limits apply the next time a m
 
 Every AI page has a small chip in its header showing the current **provider · model** for that feature. Critique, Brainstorm, every analysis modal, Reader knowledge, the chat panel — same chip in each. In the chapter editor, the chip sits at the **top of each scene's AI dropdown**, so writer actions (Rewrite, Expand, Tighten, Continue, Line edits) show their routing right above the menu items they apply to.
 
-On most surfaces the chip is **read-only** — a "runs on" indicator; **clicking it opens the AI page**, where the **Presets** tab and **Routing by feature** are the routing editors. The two chat chips (Ask the book / Talk to character) go one further: clicking them opens a small **edit popover** where you can change that feature's model and Reasoning level in place — the popover names the preset it edits and how many features share it before you save.
+On most surfaces the chip is **read-only** — a "runs on" indicator; **clicking it opens the AI page**, where **Routing by feature** is the routing editor. The two chat chips (Ask the book / Talk to character) go one further: clicking them opens a small **edit popover** where you can change that feature's model and Reasoning level in place — the popover names the preset it edits and how many features share it before you save.
 
 **Analysis modals wait for you.** When you open Multi-reader, Entity sweep, Foreshadowing, Plot-hole audit, Reverse outline, Marketing pack, Character audit, Sensory research, Session recap, Stuck diagnostic, or AI-tell scan, the modal opens to an empty-state with a primary "Run" button instead of firing the AI call immediately. That gives you a chance to check the routing chip first — and change it on the AI page if you want a different model — before spending tokens. Click the Run button when you're ready.
 

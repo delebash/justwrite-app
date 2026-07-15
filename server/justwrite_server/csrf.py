@@ -11,6 +11,14 @@ smoke catches immediately.
 Allowed:
 - no `Origin` header — non-browser clients AND the Tauri webview (server calls go
   through the Tauri HTTP plugin / reqwest, which sends no browser `Origin`);
+- SAME-ORIGIN — the `Origin` equals the server's own origin. A page the server
+  itself served is not a cross-site vector by definition, and this is the headless
+  mode (`justwrite-server serve` + a browser, the dist/ mount in app.py): browsers
+  DO send `Origin` on same-origin mutations, so without this every write from the
+  self-hosted UI 403'd. (Found 2026-07-15 driving the server-hosted UI: the exact
+  "missing app origin blocking the app itself" failure this docstring predicted —
+  the smoke never caught it because it runs against the dev origin, which was
+  allowlisted.) Derived per-request from the URL, so any host/port works.
 - an `Origin` in the app allowlist (the dev + Tauri origins, PLUS any origins
   configured for CORS — one allowlist, reused, not a second list);
 - any non-mutating method (GET/HEAD/OPTIONS) — not the CSRF vector, and CORS
@@ -43,10 +51,16 @@ class CsrfOriginMiddleware(BaseHTTPMiddleware):
         super().__init__(app)
         self._allow = _APP_ORIGINS | frozenset(o for o in (extra_origins or ()) if o)
 
+    def _same_origin(self, request) -> str:
+        """The server's OWN origin for this request (scheme://host[:port]) — a page
+        we served ourselves. Read from the URL so it follows whatever host/port the
+        server actually runs on (17495, a test port, a LAN bind)."""
+        return f"{request.url.scheme}://{request.url.netloc}"
+
     async def dispatch(self, request, call_next):
         if request.method in _MUTATING and request.url.path.startswith("/v1"):
             origin = request.headers.get("origin")
-            if origin and origin not in self._allow:
+            if origin and origin not in self._allow and origin != self._same_origin(request):
                 return JSONResponse(
                     status_code=403,
                     content={

@@ -26,6 +26,18 @@ def test_no_origin_and_app_origin_allowed(tmp_path):
                  headers={"origin": "http://localhost:1420"}).status_code == 204
 
 
+def test_same_origin_mutation_allowed(tmp_path):
+    """The SERVER-HOSTED UI (headless mode: `serve` + a browser on the dist/ mount)
+    is same-origin, and browsers DO send Origin on same-origin mutations. Without
+    the same-origin allowance every write from that UI 403'd (found 2026-07-15
+    driving the server-hosted UI; the dev-origin smoke never hit it). The origin is
+    derived per-request, so a non-default host/port works too."""
+    c = _c(tmp_path)
+    r = c.put("/v1/projects/s/book", json={"project": {"title": "T"}},
+              headers={"origin": "http://testserver"})  # TestClient's own origin
+    assert r.status_code == 204
+
+
 def test_cross_site_read_allowed(tmp_path):
     c = _c(tmp_path)
     c.put("/v1/projects/x/book", json={"project": {"title": "T"}})
