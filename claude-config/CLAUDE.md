@@ -111,6 +111,18 @@ the gate-stats log-key (one source). All of this is provisioned from the
     written (catch a bad plan before it's 10 bad files). A first edit to a **`.md`**
     doc is EXEMPT (the cry-wolf narrowing); trivial needs the EXPLICIT word "trivial".
   - **Every edit: NUDGE** (non-blocking, one line) — the rule-tests stay salient.
+  - **SUBAGENT BYPASS** — a delegated agent's edit skips the pre-task DENY (it cannot
+    clear it: its checker verdict lands in the COORDINATOR's transcript, never its
+    own). *I* run the checker/panel BEFORE delegating; Stop + commit-gate still bind.
+    Keyed on the payload's `agent_id` (present only for an agent's call — captured
+    live 2026-07-15). **The 2026-07-15 incident:** the original detection read
+    `isSidechain` from the transcript the hook receives, but the harness passes the
+    MAIN transcript even for an agent's call — so the bypass NEVER fired, every
+    builder's Edit/Write was denied, and builders fell back to python-patch-scripts
+    via Bash: a ~2-3× wall-clock multiplier on delegated builds, unnoticed for days
+    because a workaround existed. **The lesson (user, verbatim): "you should have let
+    me know this is a prob and fix it it should be we dont just say ok thats fine and
+    waste time"** — a working-but-degraded path is a BUG to surface, not to absorb.
   - On `ExitPlanMode` ("here is the plan" — a literal event): injects a reminder to
     run the **rules-checker PANEL** on the plan (2–3 independent, compare).
 - **Commit boundary** — `~/.claude/hooks/commit-gate.py`, wired in `settings.json` as a

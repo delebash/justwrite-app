@@ -82,7 +82,11 @@ LOW_RISK = re.compile(
 )
 # The gate's OWN tree is NEVER low-risk — a commit here (incl. its test harness)
 # keeps the full checker so the gate can't be weakened via a "low-risk" escape.
-GATE_TREE = re.compile(r"(^|/)(claude-config/hooks|\.claude/hooks)/")
+GATE_TREE = re.compile(
+    r"(^|/)(claude-config/hooks|\.claude/hooks)/"                      # vendored subdir + installed
+    r"|(^|/)hooks/(_rules|commit-gate|verify-gate|pre-action-check"    # standalone repo: named
+    r"|task-gate|gate-stats|test_gates|arm-rules-gate|self-update)\."  # gate files at hooks/ root
+)
 CITE = re.compile(r"[\w./-]+\.\w+:\d+")            # path:line
 CITE_MD = re.compile(r"[\w./-]+\.md:\d+", re.I)    # a DOC path:line (docs-rule escape)
 HEDGE = re.compile(

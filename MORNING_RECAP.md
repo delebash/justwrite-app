@@ -80,6 +80,37 @@ advances to done with an honest note. Standing protocol (memory: [[fable-decides
 Fable decides/plans, Opus executes code+tests+commits; **hard go-gate ON — nothing runs without the
 user's literal "go".** Full record: the plan doc's **ONE-DOWNLOADER CONSOLIDATION** section.
 
+**GO (2026-07-15) — THE SUBAGENT-HOOK GAP IS FIXED (it was costing ~2-3× on every delegated
+build).** The user's challenge — *"1 hour 6 mins … something is very wrong … we are doing
+something extreemely inefficiant"* — was right, and the accounting proved it: of the
+one-downloader build's 66 minutes, the code work was ~30; the rest was ~12 min of
+patch-script tax + ~18 min of two BLOCKING rules-checker spawns. Root cause, verified live:
+the PreToolUse pre-action hook's **SUBAGENT BYPASS never fired once**. It looked for
+`isSidechain` at the tail of the transcript it receives, but the harness passes the **MAIN**
+session transcript even for a subagent's tool call (an agent's own turns live in
+`<session-dir>/subagents/agent-*.jsonl`) — so every builder's first code Edit/Write was
+DENIED and no builder could clear it (its checker verdict lands in the coordinator's
+transcript, not its own — the deadlock the bypass existed to prevent). Builders fell back to
+applying code via python patch-scripts through Bash, which the hook doesn't gate: work
+completed, gates stayed green, and the defect showed up only as TIME. **The user's process
+lesson, verbatim: "you should have let me know this is a prob and fix it it should be we dont
+just say ok thats fine and waste time"** — I'd found this gap in the morning, filed it as an
+"infra follow-up", and spawned two more builders through the broken path. A
+working-but-degraded path is a bug to SURFACE, not absorb. **The fix:** detection now keys on
+the hook payload's own `agent_id` — captured live from both sides FIRST (the user's
+"capture first, then narrowest fix"; an earlier draft used an approximate active-agent
+heuristic, the permission classifier flagged it as a widening, and the capture made the
+heuristic unnecessary — the classifier was right). A subagent's payload carries
+`agent_id`+`agent_type`; the coordinator's carries neither, so the coordinator's own first
+code edit stays gated exactly as before. Verified: live hooks — subagent ALLOWED /
+coordinator DENIED; gate suite 7/7 from BOTH the standalone clone and JW's vendored copy
+(+4 new regression cases: `agent_id` bypasses · `agent_type` alone does not · empty
+`agent_id` stays gated · the isSidechain fallback still works). **The general lesson, now in
+EFFECTIVENESS.md: every bypass/escape needs a test that proves it FIRES** — a gate with a
+welded-shut escape hatch looks identical to a working one from outside: green, blocking, and
+quietly expensive. Shipped to BOTH provisioners (new local sessions pull the standalone repo
+via `self-update.sh`; web containers install JW's vendored `claude-config/`).
+
 > **Re-split 2026-07-15 (doc-sweep).** This section had grown to ~40 GO paragraphs
 > (2026-07-08 → 2026-07-14, all shipped + pushed) — ~4.5× the protocol's 25 KB ceiling.
 > Per the RECAP PROTOCOL above, they were collapsed into the summary below; their

@@ -15,13 +15,42 @@ reset the window and fire a spurious DENY mid-task). Three behaviors:
   not cry-wolf on a doc/recap/plan edit.
 - **Every edit: NUDGE** (non-blocking) — a one-line reminder of the rule-tests.
 - **ExitPlanMode ("here is the plan"): NUDGE** to run the rules-checker PANEL on the plan.
-- **SUBAGENT BYPASS (user-directed 2026-07-12):** a SIDECHAIN edit (a delegated build
-  agent) skips the pre-task DENY — subagents structurally cannot clear it (their
-  rules-checker verdicts arrive as task-notifications in the COORDINATOR's transcript,
-  never their own, so the deny was a deadlock, not a check). The coordinator runs the
-  checker/panel before delegating; Stop gate + commit-gate still enforce at the
-  main-session boundaries. Detection: the transcript tail is sidechain entries while a
-  subagent acts (`isSidechain` on the newest assistant/user entry).
+- **SUBAGENT BYPASS (user-directed 2026-07-12; detection FIXED 2026-07-15):** a
+  delegated build agent's edit skips the pre-task DENY — subagents structurally cannot
+  clear it (their rules-checker verdicts arrive as task-notifications in the
+  COORDINATOR's transcript, never their own, so the deny was a deadlock, not a check).
+  The coordinator runs the checker/panel before delegating; Stop gate + commit-gate
+  still enforce at the main-session boundaries.
+
+  **The 2026-07-15 incident — the bypass never once fired.** The original detection
+  looked for `isSidechain` entries at the tail of the RECEIVED transcript. But the
+  harness hands this hook the **main session transcript** even for a subagent's tool
+  call (a subagent's own turns live in a SEPARATE
+  `<session-dir>/subagents/agent-*.jsonl`), and the main transcript carries no
+  sidechain entries — so every delegated builder's Edit/Write was DENIED all day.
+  Builders fell back to applying code via python patch-scripts through Bash: a
+  measured ~2-3x wall-clock multiplier on every build task (66 min for a task whose
+  code work was ~30).
+
+  **Detection is now the payload's own `agent_id`** — LIVE-CAPTURED 2026-07-15 from
+  both sides, which is why this is precise and not a widening:
+    subagent Edit  -> {..., "agent_id": "a94e6dedd...", "agent_type": "general-purpose"}
+    coordinator Edit -> {...} with NO agent_id / agent_type key at all
+  So `data["agent_id"]` is TRUE exactly for a delegated agent's call and never for the
+  main session's — the coordinator's own first code edit stays gated as before.
+  Detection is PAYLOAD-ONLY (the old transcript-tail scan is gone — see
+  `_subagent_call`). The bypass log records the payload keys, so a harness rename of
+  `agent_id` surfaces as denied builders + a keys= line naming the new marker.
+
+  **KNOWN OPEN ISSUE (checker-caught 2026-07-15, user's call — see EFFECTIVENESS.md):**
+  because ctx is built from the MAIN transcript, a coordinator that ran the checker +
+  cited the plan + RISK before delegating ALREADY clears this deny for its builder with
+  no bypass at all. So the bypass only bites when the coordinator did NOT check — the
+  very case the gate is for. It ships on the user's explicit policy ("don't force a
+  second pre-build check inside the builder"), and it makes delegation robust to a user
+  message landing mid-build (which resets the turn window and would otherwise strand a
+  running builder). Whether to keep, narrow, or move it to the Agent-spawn boundary is
+  the user's decision, not this file's.
 
 Post-task (turn end) is enforced by the Stop verify-gate; the commit boundary adds the
 heavy semantic check (commit-gate.py).
@@ -78,6 +107,31 @@ def _emit(obj: dict) -> None:
     print(json.dumps({"hookSpecificOutput": obj}))
 
 
+def _subagent_call(data: dict) -> str:
+    """Reason string when THIS tool call belongs to a delegated subagent, else ''.
+
+    PAYLOAD-ONLY, on purpose. `agent_id` is the harness's own per-call marker: present
+    for a subagent's call, absent for the main session's (live-captured both ways
+    2026-07-15 — see the module docstring). It is authoritative, so no heuristic is
+    needed and the coordinator's own first code edit is untouched.
+
+    The 2026-07-12 transcript-TAIL scan is deliberately GONE (checker-caught
+    2026-07-15): it is dead on this harness (the received transcript is always the
+    main one, which carries no sidechain entries) AND self-defeating in the only world
+    where it would run — a harness that inlined sidechain entries into the main
+    transcript would make it bypass the deny for the COORDINATOR whenever the newest
+    entry happens to be a sidechain one, i.e. right after any subagent returns, a very
+    common moment to start editing. A dead branch that can only misfire is worse than
+    no branch. `isSidechain` on the PAYLOAD is kept: same authority as `agent_id`, and
+    it cannot be spoofed by transcript contents.
+    """
+    if data.get("agent_id"):
+        return f"agent_id={data['agent_id']}"
+    if data.get("isSidechain"):
+        return "payload:isSidechain"
+    return ""
+
+
 def main() -> None:
     try:
         data = json.loads(sys.stdin.read())
@@ -113,7 +167,7 @@ def main() -> None:
     # CODE edits only (checker-caught: counting .md edits let a doc-edit-first turn
     # bypass the first-CODE-edit check — and record-first is the normal work pattern).
     prior_code_edits, rules_pass, plan_ref, risk_line, trivial = 0, True, True, True, True
-    sidechain = False
+    entries = []
     tpath = data.get("transcript_path")
     if tpath and os.path.isfile(tpath):
         try:
@@ -123,16 +177,12 @@ def main() -> None:
             prior_code_edits, rules_pass = ctx["code_edits"], ctx["rules_passed"]
             plan_ref, risk_line = ctx["plan_ref"], ctx["risk_line"]
             trivial = ctx["trivial_explicit"]
-            # SUBAGENT BYPASS (user-directed 2026-07-12): while a subagent acts, the
-            # transcript tail is its sidechain entries — skip the pre-task deny for it
-            # (see the module docstring; nudge still fires below).
-            for e in reversed(entries):
-                if e.get("type") in ("assistant", "user"):
-                    sidechain = bool(e.get("isSidechain"))
-                    break
         except Exception:
             prior_code_edits, rules_pass = 0, True  # parse error → don't block, just nudge
             plan_ref, risk_line, trivial = True, True, True
+    # SUBAGENT BYPASS (user-directed 2026-07-12; detection fixed 2026-07-15) — see the
+    # module docstring and _subagent_call. The nudge still fires below.
+    subagent = _subagent_call(data)
 
     # NARROW the pre-task DENY: exempt a first edit that is .md-only (docs/recap/plan) or
     # EXPLICITLY trivial-attested. The deny exists to catch a bad CODE plan before it
@@ -142,9 +192,12 @@ def main() -> None:
     # the second look at the keyboard, BEFORE the write, that empirically changes
     # decisions. ONE combined deny lists everything missing (compliance = one round).
     is_md = file_path.endswith(".md")
-    if sidechain and prior_code_edits == 0 and not is_md:
-        _log(f"BYPASS pre-task deny (sidechain/subagent edit) file={file_path}")
-    if prior_code_edits == 0 and not is_md and not trivial and not sidechain:
+    if subagent and prior_code_edits == 0 and not is_md:
+        # keys= names the payload shape: if a harness renames agent_id, builders start
+        # getting denied again and this line says what the new marker is called.
+        _log(f"BYPASS pre-task deny (subagent edit: {subagent}; "
+             f"keys={','.join(sorted(data))}) file={file_path}")
+    if prior_code_edits == 0 and not is_md and not trivial and not subagent:
         needs = []
         if not rules_pass:
             needs.append(

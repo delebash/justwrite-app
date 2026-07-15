@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """Committed gate harness for the rules-as-checks system.
 
-Run:  python3 claude-config/hooks/test_gates.py     (exits non-zero on any failure)
+Run:  python3 hooks/test_gates.py     (exits non-zero on any failure)
 
 Tests, against whatever hooks dir this file lives in (bundle OR live ~/.claude):
   1. the `_rules` registry  — armed events, ids, regexes, genuine-user, per-event subset
@@ -43,6 +43,10 @@ def tx(*msgs) -> str:
         elif kind == "text":
             f.write(json.dumps({"type": "assistant", "message": {"content": [
                 {"type": "text", "text": val}]}}) + "\n")
+        elif kind == "sidechain_text":  # an assistant entry FLAGGED as a subagent's
+            f.write(json.dumps({"type": "assistant", "isSidechain": True,
+                                "message": {"content": [
+                                    {"type": "text", "text": val}]}}) + "\n")
         elif kind == "edit":
             f.write(json.dumps({"type": "assistant", "message": {"content": [
                 {"type": "tool_use", "name": "Edit", "input": {"file_path": val}}]}}) + "\n")
@@ -263,6 +267,14 @@ def test_registry():
     assert not r.commit_low_risk(["server/justwrite_server/api/settings.py"])   # product → high
     assert not r.commit_low_risk(["claude-config/hooks/test_gates.py"])   # gate's own tree → high
     assert not r.commit_low_risk(["claude-config/hooks/commit-gate.py"])  # gate logic → high
+    # standalone-repo layout (the bundle root IS the config): hooks/ at repo root must
+    # also count as gate-tree, else `hooks/test_gates.py` matches LOW_RISK and the gate
+    # self-weakens. Named-file alternation stays precise — a product `src/hooks/` misses.
+    assert not r.commit_low_risk(["hooks/test_gates.py"])                 # standalone gate harness → high
+    assert not r.commit_low_risk(["hooks/commit-gate.py"])                # standalone gate logic → high
+    assert r.GATE_TREE.search("hooks/commit-gate.py")                     # standalone layout matches
+    assert r.GATE_TREE.search("hooks/self-update.sh")                     # ...incl. the self-update hook
+    assert not r.GATE_TREE.search("src/hooks/useModels.js")              # a product hooks/ dir does NOT
     assert not r.commit_low_risk([])                       # no code → not low (doc-only handled elsewhere)
     print("1) registry ........... PASS")
 
@@ -272,7 +284,7 @@ def test_registry():
 # ==========================================================================
 def test_verify_gate():
     home = tempfile.mkdtemp(); os.makedirs(f"{home}/.claude/hooks", exist_ok=True)
-    env = dict(os.environ, HOME=home)   # no sentinel → Block 0 inert
+    env = dict(os.environ, HOME=home, USERPROFILE=home)   # no sentinel → Block 0 inert
 
     def vg(*msgs):
         return hook("verify-gate.py", {"transcript_path": tx(*msgs), "cwd": home,
@@ -328,10 +340,29 @@ def test_verify_gate():
 # 3) pre-action (PreToolUse)
 # ==========================================================================
 def test_pre_action():
-    def pa(file_path, *msgs, tool="Edit"):
-        return hook("pre-action-check.py", {"tool_name": tool,
-                    "tool_input": {"file_path": file_path}, "transcript_path": tx(*msgs)}).stdout
+    def pa(file_path, *msgs, tool="Edit", extra=None):
+        payload = {"tool_name": tool, "tool_input": {"file_path": file_path},
+                   "transcript_path": tx(*msgs)}
+        payload.update(extra or {})
+        return hook("pre-action-check.py", payload).stdout
     assert denied(pa("a.py", ("user", "build")))                        # first code edit → deny
+    # SUBAGENT BYPASS (2026-07-15 regression — the bypass never fired for a YEAR of
+    # builds because it read isSidechain from the MAIN transcript the harness passes
+    # for a subagent's call). The real discriminator, live-captured from both sides:
+    # a delegated agent's payload carries agent_id; the coordinator's carries none.
+    assert not denied(pa("a.py", ("user", "build"), extra={"agent_id": "a94e6dedd"})), \
+        "a subagent's first code edit must BYPASS the pre-task deny (it cannot clear it)"
+    assert denied(pa("a.py", ("user", "build"), extra={"agent_type": "general-purpose"})), \
+        "agent_type alone must NOT bypass — only the per-call agent_id marker does"
+    assert denied(pa("a.py", ("user", "build"), extra={"agent_id": ""})), \
+        "an empty agent_id is the main session — stays gated"
+    assert not denied(pa("a.py", ("user", "build"), extra={"isSidechain": True})), \
+        "payload isSidechain fallback still bypasses"
+    # The transcript-TAIL sidechain scan was REMOVED (checker-caught): dead on this
+    # harness, and in the only harness where it would run it bypasses the deny for the
+    # COORDINATOR right after any subagent returns. Detection is payload-only now.
+    assert denied(pa("a.py", ("user", "build"), ("sidechain_text", "agent was here"))), \
+        "a sidechain entry in the TRANSCRIPT must NOT bypass — payload markers only"
     assert not denied(pa("NOTES.md", ("user", "build")))               # .md exempt → nudge
     # #237 FLIP: a rules-pass alone no longer clears the first code edit — the turn
     # text must ALSO cite the plan/spec line being executed + carry a RISK line.
@@ -375,7 +406,7 @@ def test_task_gate():
 def test_commit_gate():
     repo = tempfile.mkdtemp(); home = tempfile.mkdtemp()
     os.makedirs(f"{home}/.claude/hooks", exist_ok=True)
-    env = dict(os.environ, HOME=home)
+    env = dict(os.environ, HOME=home, USERPROFILE=home)
 
     def git(*a):
         subprocess.run(["git", "-C", repo, *a], capture_output=True, text=True)
@@ -495,7 +526,7 @@ def test_commit_gate():
 def test_gate_stats():
     r = load_rules()
     home = tempfile.mkdtemp(); os.makedirs(f"{home}/.claude/hooks", exist_ok=True)
-    env = dict(os.environ, HOME=home)
+    env = dict(os.environ, HOME=home, USERPROFILE=home)
     # write one BLOCK line per rule id, spread across two log files
     with open(f"{home}/.claude/hooks/verify-gate.log", "w") as f:
         for rid in ["rules-gate", "code-claim", "reco", "docs-with-features", "plan",
@@ -523,7 +554,7 @@ def test_fail_open():
         import shutil
         shutil.copy(f"{HOOKS}/{name}", f"{d}/{name}")
     home = tempfile.mkdtemp(); os.makedirs(f"{home}/.claude/hooks", exist_ok=True)
-    env = dict(os.environ, HOME=home)
+    env = dict(os.environ, HOME=home, USERPROFILE=home)
 
     def run_broken(name, payload):
         return subprocess.run([PY, f"{d}/{name}"], input=json.dumps(payload),
