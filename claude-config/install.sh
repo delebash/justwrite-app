@@ -8,14 +8,22 @@
 # table: "Your user ~/.claude/CLAUDE.md -> No (lives on your machine, not in the
 # repo)". So without this, the hard gate + rules vanish on every fresh container.
 #
-# HOW TO WIRE IT (one-time): in the Claude Code on the web environment settings,
-# set the **Setup script** field to:
+# HOW TO WIRE IT — this is its OWN repo (github.com/delebash/claude-config), no
+# longer vendored inside a product repo. See README.md for the full walkthrough.
 #
-#     bash "$CLAUDE_PROJECT_DIR/claude-config/install.sh"
+#   LOCAL machine (persistent ~/.claude):
+#       git clone https://github.com/delebash/claude-config "$HOME/.claude/claude-config"
+#       FORCE=1 bash "$HOME/.claude/claude-config/install.sh"
+#     install.sh wires a SessionStart hook (hooks/self-update.sh) that pulls this
+#     clone + re-provisions on each NEW session, so rule changes land on their own.
 #
-# The setup script runs once when a new session starts, BEFORE Claude Code
-# launches, and the resulting filesystem is snapshot-cached, so later sessions
-# start with ~/.claude already in place (no re-run). Idempotent; safe to re-run.
+#   REMOTE (Claude Code on the web): add `delebash/claude-config` as a repo in the
+#   environment (alongside your project repo), then set the **Setup script** to run
+#   the checked-out copy's installer (path depends on the env's multi-repo layout;
+#   see README). Each fresh container checks the repo out and provisions ~/.claude;
+#   snapshot-cached so later sessions start ready. No auto-pull needed there.
+#
+# Idempotent; safe to re-run.
 #
 # CLOUD-ONLY BY DEFAULT: skips unless CLAUDE_CODE_REMOTE=true, so running it on
 # your own machine cannot clobber your real ~/.claude. Override with FORCE=1.
@@ -40,13 +48,14 @@ cp -f "$HERE/hooks/_rules.py"           "$DEST/hooks/_rules.py"
 cp -f "$HERE/hooks/arm-rules-gate.sh"   "$DEST/hooks/arm-rules-gate.sh"
 cp -f "$HERE/hooks/verify-gate.py"      "$DEST/hooks/verify-gate.py"
 cp -f "$HERE/hooks/pre-action-check.py" "$DEST/hooks/pre-action-check.py"
-cp -f "$HERE/hooks/task-gate.py"        "$DEST/hooks/task-gate.py"
 cp -f "$HERE/hooks/commit-gate.py"      "$DEST/hooks/commit-gate.py"
 cp -f "$HERE/hooks/gate-stats.py"       "$DEST/hooks/gate-stats.py"
+cp -f "$HERE/hooks/self-update.sh"      "$DEST/hooks/self-update.sh"
 # _rules.py is IMPORTED (not run) so it needs no +x; the rest are executables.
-chmod +x "$DEST/hooks/arm-rules-gate.sh" "$DEST/hooks/verify-gate.py" \
-         "$DEST/hooks/pre-action-check.py" "$DEST/hooks/task-gate.py" \
-         "$DEST/hooks/commit-gate.py" "$DEST/hooks/gate-stats.py"
+chmod +x "$DEST/hooks/arm-rules-gate.sh" "$DEST/hooks/self-update.sh" \
+         "$DEST/hooks/verify-gate.py" "$DEST/hooks/pre-action-check.py" \
+         "$DEST/hooks/commit-gate.py" \
+         "$DEST/hooks/gate-stats.py"
 
 # WINDOWS INTERPRETER FIX: on Windows `python3` resolves ONLY to the
 # Microsoft-Store App-Execution-Alias stub (WindowsApps\python3.exe), which
@@ -55,6 +64,8 @@ chmod +x "$DEST/hooks/arm-rules-gate.sh" "$DEST/hooks/verify-gate.py" \
 # `python`. On Linux/macOS (incl. the Claude-Code-on-the-web container)
 # `python3` is correct and `python` may be missing or Python 2, so the bundle
 # stays `python3` and we rewrite the two provisioned files ONLY on Windows.
+# self-update.sh re-runs this installer each new session, so the rewrite
+# self-heals on a persistent Windows machine.
 case "$(uname -s 2>/dev/null)" in
   MINGW*|MSYS*|CYGWIN*|Windows_NT)
     sed -i 's/\bpython3\b/python/g' "$DEST/settings.json" "$DEST/hooks/arm-rules-gate.sh"
@@ -65,6 +76,9 @@ esac
 # Remove the superseded SOFT reminders if a base image ever restores them
 # (replaced by the hard gates; user law: "never do soft").
 rm -f "$DEST/rules-reminder.txt" "$DEST/hooks/verify-first.sh" "$DEST/hooks/inject-recap.sh"
+# 2026-07-15 strip: the task gate is DELETED (its wiring is gone from settings.json, but
+# a stale hook file on a machine provisioned earlier is a foot-gun — remove it actively).
+rm -f "$DEST/hooks/task-gate.py"
 
 # Superpowers plugin (user-authorized 2026-07-10: "make superpowers permenant").
 # Best-effort: the claude CLI may be absent or offline in some environments —

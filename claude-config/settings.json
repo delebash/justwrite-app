@@ -1,4 +1,22 @@
 {
+  "_comment": [
+    "STRIPPED 2026-07-15 on the user's NAMED go: 'delete the commit gate, the task",
+    "gates, and Stop blocks 1-5; keep Block 0 and Block 6; pre-action becomes",
+    "nudge-only; provision the rules; push everything' + 'if you rec keep commit gate",
+    "for sub agent then do so'. Decided by LIFETIME LOGS, not theory:",
+    "  - commit gate: 25 decisions ever, 15 of them its own word-escape bug, 6 blocks;",
+    "    KEPT for DELEGATED-agent commits only (the hook self-scopes on agent_id).",
+    "  - task gates: 29 of 39 log lines were its own test suite. DELETED.",
+    "  - Stop blocks 1-5: 15 fires, every one a regex over the agent's own prose.",
+    "    DELETED. Blocks 0 (re-read after reset: 4 fires, 4 fixes) and 6 (second pass:",
+    "    3 fires, 3 changed answers) KEPT - both check something real.",
+    "  - pre-action: the first-edit DENY checked words and false-fired on flush races;",
+    "    now NUDGE-ONLY (R1-R5 salience, no blocking, no transcript reads).",
+    "THE LAW: a gate may check an ACT, never a WORD. What replaces the deleted gates:",
+    "tests (~2.6 min fleet), ONE rules-checker per task on the real diff, and the two",
+    "habits - ASK when unsure, LOOK at what you built. Full record: CLAUDE.md",
+    "'Enforcement' + EFFECTIVENESS.md (2026-07-15)."
+  ],
   "hooks": {
     "PreToolUse": [
       {
@@ -26,6 +44,10 @@
           {
             "type": "command",
             "command": "bash \"$HOME/.claude/hooks/arm-rules-gate.sh\""
+          },
+          {
+            "type": "command",
+            "command": "bash \"$HOME/.claude/hooks/self-update.sh\""
           }
         ]
       }
@@ -37,20 +59,6 @@
             "type": "command",
             "command": "python3 \"$HOME/.claude/hooks/verify-gate.py\""
           }
-        ]
-      }
-    ],
-    "TaskCreated": [
-      {
-        "hooks": [
-          { "type": "command", "command": "python3 \"$HOME/.claude/hooks/task-gate.py\"" }
-        ]
-      }
-    ],
-    "TaskCompleted": [
-      {
-        "hooks": [
-          { "type": "command", "command": "python3 \"$HOME/.claude/hooks/task-gate.py\"" }
         ]
       }
     ]

@@ -4,7 +4,7 @@
 
 ## Read first (every session)
 
-- **Global rules:** `~/.claude/CLAUDE.md` — the two PRIORITY rules + RULES #0–8 + the shared Vue 3 + Tauri 2 app standard. They govern; this file does NOT restate them.
+- **Global rules:** `~/.claude/CLAUDE.md` — the five checks **R1–R5** + the two habits (ask when unsure · look at what you built) + the act-not-word law; detail + the shared Vue 3 + Tauri 2 app standard in `~/.claude/rules-detail.md`. They govern; this file does NOT restate them.
 - **`MORNING_RECAP.md`** (this repo) — current + future tasks and the live list of active plan docs. Read it before acting; don't re-litigate decisions recorded there.
 - The memory index (auto-loaded) — open a specific memory file when the task touches it.
 

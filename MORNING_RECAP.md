@@ -117,6 +117,8 @@ gap in the morning, filed it as a follow-up, and ran two more builders through i
 working-but-degraded path is a bug to SURFACE, not absorb. **Full record + the 5-unit gate
 table + the 4 durable lessons: `claude-config/EFFECTIVENESS.md`, the 2026-07-15 entry.**
 
+**GO (2026-07-15, late) — THE GATE STRIP + RULES CUT (the user's named go).** Rules 12→5 (**R1–R5** + two habits + the act-not-word law; `~/.claude/CLAUDE.md` is now 80 lines). Gates decided by LIFETIME logs: Stop keeps **Block 0** (re-read after reset; 4 fires/4 fixes), **Block 1** (a code claim needs evidence tools that turn — the user's save: "you often check docs or memory which we find dont align with actual code"), and **Block 6** (second pass; 3 fires/3 changed answers); **commit-gate fires ONLY for delegated-agent commits** (main session ungated — 15 of its 25 lifetime decisions were its own word-escape bug); **task gates deleted** (29 of 39 log lines were its own test suite); **pre-action is nudge-only**. Checker cadence: ONE per task on the diff; plan checks tiered (1 routine / 3-lens load-bearing). **Prose regrowth now FAILS the suite** (`test_gates.py::test_loaded_surfaces` — size budgets on every context-loaded surface). Full record: claude-config `rules-detail.md` "THE STRIP" + `EFFECTIVENESS.md` 2026-07-15.
+
 > **Re-split 2026-07-15 (doc-sweep).** This section had grown to ~40 GO paragraphs
 > (2026-07-08 → 2026-07-14, all shipped + pushed) — ~4.5× the protocol's 25 KB ceiling.
 > Per the RECAP PROTOCOL above, they were collapsed into the summary below; their
@@ -322,25 +324,7 @@ TOC entry. `whats-new.md` + `backups-and-data.md` (export/autosave) verified cur
 - **Dev stack in this container:** server `python -m justwrite_server.cli serve --port 17495`
   (data dir `/root/.local/share/JustWrite`) + `npm run dev:vite` (:1420); Chromium via the
   smoke's `findChrome()` — never hardcode the browser path.
-- **Hard gates** — the **rules-as-checks system** (built 2026-06-26, provisioned from
-  `claude-config/`; full detail in `claude-config/README.md`; **v4 "think-twice" 2026-07-09,
-  #237**). The rules are the slim **rule-tests T1–T12** (`~/.claude/CLAUDE.md`) + full
-  WHY/incidents in `rules-detail.md`, read on demand. Enforcement at mechanical events:
-  **Stop gate** `verify-gate.py` Blocks 0–6 (0 = re-read rules/recap/project-CLAUDE after a
-  compact/clear, NOT resume; 1 = code claim w/ zero reads; 2 = arch reco w/o precedent; 3 =
-  "done"+code w/o a doc; 4 = plan/design LOCK w/o a GENUINE agent verdict — v4: self-typed
-  tests no longer clear; user-decided provenance passes; 5 = code-edit w/o a rules-pass;
-  6 = a PROPOSAL w/o an explicit "SECOND PASS —" section — v4) + a **PreToolUse hook**
-  `pre-action-check.py` (pre-task DENY on the first code edit w/o a rules-pass AND — v4 —
-  a cited plan/spec line + a "RISK:" doubt in the turn text; explicit-"trivial"/.md exempt ·
-  per-edit nudge · ExitPlanMode → run the checker panel) + a **commit gate** `commit-gate.py`
-  (PreToolUse Bash: a code `git commit` is HARD-DENIED until docs **+** a GENUINE
-  rules-checker AGENT all-pass verdict — read from the agent's OWN result, not self-typed;
-  v3, closes the self-cert hole) + the **rules-checker subagent** (Opus; a 2–3 panel
-  for load-bearing design). Effectiveness tracked in `claude-config/EFFECTIVENESS.md`
-  (catches/false-positives/misses; the v4 entry lists the trial watch-items). All fail-open.
-  **Real plan = Plan mode + detailed Task entries** (not a chat plan) — that's what fires
-  the plan/task events.
+- **Hard gates (STRIPPED 2026-07-15, the user's named go):** Stop **Block 0** (re-read rules/recap after compact/clear — a real Read), **Block 1** (a code claim needs evidence tools that turn), **Block 6** (a proposal ends with "SECOND PASS —"), and a **commit gate for DELEGATED-agent commits only** (docs + a genuine checker verdict from the builder's own transcript). Pre-action is a one-line R1–R5 nudge; plan checks are tiered (1 routine / 3-lens load-bearing); ONE checker per task on the diff. Everything else deleted on lifetime logs — record: claude-config `rules-detail.md` ("THE STRIP") + `EFFECTIVENESS.md`. `test_gates.py` pins ledger refs, escape-fires, and loaded-surface size budgets.
 
 ## ACTIVE DOC INDEX (open on demand, not at boot)
 

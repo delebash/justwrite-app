@@ -391,3 +391,67 @@ not a style choice — converge it when you touch it.
   server-served path) (background), then `node scripts/<smoke>.mjs`. Never write
   "no renderer/E2E gate" or "not runnable in this container" — boot the two
   processes and run the smoke.
+
+
+---
+
+# 2026-07-15 — THE STRIP (the full record; the slim file carries only the checks)
+
+The user, after the gate system consumed an entire working day: *"i dont even know what
+1 and 2 do or why... i was just trying to solve a problem"* · *"the extra time and loop
+makes the detail not worth it"* · *"you jump and tend to skim and take the easiest path
+instead of the right one"* (restoring R1 hours after I cut it) · the named go: *"delete
+the commit gate, the task gates, and Stop blocks 1-5; keep Block 0 and Block 6;
+pre-action becomes nudge-only; provision the rules; push everything"* + *"if you rec
+keep commit gate for sub agent then do so."*
+
+**Decided by LIFETIME LOGS, not theory.** commit-gate: 25 decisions ever, 15 of them its
+own word-escape bug (`\btrivial\b` matched the word in prose that merely DISCUSSED the
+escape — even "this is NOT a trivial change" cleared it), 6 blocks ever → kept for
+DELEGATED-agent commits only. task-gate: 29 of 39 log lines were its own test suite →
+deleted. Stop blocks 1-5: 15 fires, every one a regex over my own answer text, plus
+repeated false positives → deleted. Block 0 (re-read rules/recap after a reset): 4
+fires, 4 fixes, 0 false positives → kept. Block 6 (second pass on proposals): 3 fires,
+3 materially changed answers — incl. discovering the commit gate was open — → kept, the
+user's explicit call. pre-action deny: denied compliant turns on a transcript-flush
+race and taxed every delegated build ~2-3x via its subagent gap → nudge-only.
+
+**The 12 → 5 mapping (nothing lost silently):** T1→R1 (user-restored; + T4's
+adopt-before-build folded in) · T2→R2 · T3→R3 · T5+T6+T8(save-detail)+T11(user docs)→R4
+· T7→R5 · T8(read-first)→Block 0 · T9→the ASK habit (incl. confirm-destructive) ·
+T10(Opus-never-Sonnet)→the Enforcement section, as a setting · T12(stack defaults)→this
+file's app-standard section, unchanged. Blocks 1-5 substance: B1→R2+the checker ·
+B2→the plan checker · B3→R4+the delegated commit gate · B4→the ExitPlanMode nudge
+(act-triggered, not prose-triggered) · B5→the once-per-task checker.
+
+**The plan checker is TIERED (decided same day):** a routine plan gets ONE
+rules-checker; a LOAD-BEARING plan (wrong = rewrite: storage/schema, architecture,
+cross-repo contracts, large deletions) gets THREE, one per lens (architecture-fit ·
+reuse/convergence · grounding), compared — disagreement resolves before locking. Three
+because the lenses are distinct axes and parallel wall-clock is flat; the record: the
+one-source-rewrite panel found 6 pre-code defects incl. a boot-breaking storage hole
+corroborated by two lenses independently. Checkers do NOT catch wrong intent — the
+Presets-page failure passed a green panel; only asking the user catches intent.
+
+**Incidents worth their tags (the compressed names used in the slim file):**
+- *the guessed-seed trap* (R1): I guessed "it's the seed" twice; cProfile settled it in
+  seconds — the skipped decision is the common failure, not the bad one.
+- *the convenient-error tell* (R2): every false claim the checker caught that day made
+  the work look BETTER — a route count, a statement count, "real payloads" that were
+  synthetic, a tail-read written up as the file, two stale line counts.
+- *the drift-is-the-bug* (R3): `_commit_message` copied `_classify_commit`'s parser
+  "so they can't drift"; the copy had ALREADY drifted, and the drift WAS the `-am` bug.
+- *the scoped-enumeration trap* (R4): a `hooks/*.py` grep structurally hid the `.sh`
+  unit — twice the sweep was "complete" and one unit short. Unfiltered, always.
+- *the welded-escape lesson* (R5): the subagent bypass never fired once in its life —
+  no test ever proved it COULD fire. Green deny-tests looked identical to a working
+  gate.
+- *frequency is not hit-rate* (meta): I nearly deleted R1 and the second pass by
+  ranking rules on checker-FAIL counts. Preventive checks leave no trace when they
+  work. Never rank a preventive check by its catch count.
+
+**What replaced the deleted machinery:** tests (~2.6 min fleet) · ONE rules-checker per
+task on the real diff · the tiered plan checker · the two habits. Honest exposure,
+accepted knowingly: nothing mechanical now forces the main session's checker — if
+discipline lapses, the failure is silent, which is the same exposure as before minus
+the false confidence.

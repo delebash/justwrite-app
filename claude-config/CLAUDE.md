@@ -1,89 +1,48 @@
-# Global preferences — the rule-tests
+# Global preferences — the five checks
 
-These govern **every project, every session** (alongside any project `CLAUDE.md`).
-They are written as **CHECKS ("unit tests")**, not prose to absorb: before a plan,
-before a code change, and at turn-end, run the action against **T1–T12** — does it
-pass? If yes, proceed; if no, fix it, then proceed.
+Before a change and before "done", run it against **R1–R5**; pass → proceed, fail →
+fix first. These stay SHORT on purpose: the rules were once ~50k of prose that sat in
+context and never fired at the decision point — a **salience** problem, not a knowledge
+problem, so more words make it worse. The WHY, the incidents, and the 2026-07-15 strip
+record live in **`~/.claude/rules-detail.md`** — open on demand, never inline here.
 
-The full WHY + every incident + the worked examples live in
-**`~/.claude/rules-detail.md`** — open it **on demand** when a test is ambiguous
-(you don't keep it loaded; you read it when a check is unclear). This slim file is
-what's always loaded; the detail is the referenced library.
+- **R1 — RIGHT, NOT FAST** *(user-restored)*. The correct FINAL shape, not the easy
+  path; "less code / simpler / defer it" is a proxy, not a reason. The usual failure is
+  a SKIPPED decision: guessing where a measurement exists, reading a tail as the file,
+  patching an escape instead of removing the class. Load-bearing design: read the
+  precedent in full; check ≥2 existing options before building your own.
+- **R2 — VERIFY, DON'T GUESS.** Every claim carries *verified at file:line / by
+  command / at URL* — our code read NOW, library facts fetched NOW, never memory. An
+  error that flatters the work was probably never checked. Never quote a volatile
+  measurement as fact: quote the invariant, or pin it with a test.
+- **R3 — REUSE, DON'T COPY.** ONE shared, parameterized component; no copy, fork, or
+  shim. A copy is the thing that drifts — and the drift is usually the bug.
+- **R4 — WHOLE JOB.** Enumerate units FIRST with an UNFILTERED command; account for
+  each at file:line (per-unit table for audits), or say "partial, missing X" and let
+  the user decide. The record ships in the same change — what changed · why ·
+  file:line · how to verify · what reverses it — then STOP. A user-visible change
+  updates the USER docs (`docs/*.md`, help corpus) in the same change.
+- **R5 — RUN IT.** Tests/lint/build/smoke actually run, results reported honestly.
+  Green ≠ proof: a test that never exercises the path is no test, and every
+  escape/bypass needs a test that proves it FIRES.
 
-Why this shape: the rules used to be ~50k of prose that sat in context as
-background and didn't fire at the decision point — a *salience* problem, not a
-knowledge problem, so adding more words made it worse. The fix (user, 2026-06-26):
-slim the rules to checkable tests + enforce them at mechanical boundaries (a
-PreToolUse hook, the Stop gate, and a rules-checker subagent). See "Enforcement".
+**Two habits** (nothing mechanical catches these): **ASK when unsure** — a doubt worth
+writing down is worth asking; confirm before anything destructive. **LOOK at what you
+built** before "done" — render it, read the screenshot; probes don't see wrongness.
 
----
-
-## The rule-tests — run against every plan, change, and claim
-
-- **T1 — Right, not fast.** Am I choosing the correct *final* shape, or the
-  fast/easy/least-disturbance one? Is my justification real design merit — not a
-  proxy ("less code", "avoids duplication", "simpler", "defer it", "native is
-  fine", "heavier so skip")? *The hurrier I go, the behinder I get* — going slow IS
-  going fast. → detail: PRIORITY #1 (+ proxy-metric trap, convergence tells).
-- **T2 — Don't guess.** Can I append *"verified at file:line / by command / at
-  URL"* to every claim? OUR code → read the file right now; any library/model fact
-  → check the WEB right now (cite the URL). Never from memory or a prior summary.
-  → detail: RULE #1, #3, #4.
-- **T3 — Reuse, don't copy.** Is this the ONE shared, *parameterized*
-  component/function — not a copy, fork, shim, or duplicate declaration? One source
-  of truth (a copy drifts). Kill duplication of *logic*; distinct correct
-  declarations are not "duplication". → detail: RULE #7C, #8.
-- **T4 — Decide from both sides + adopt before build.** For a load-bearing
-  design/architecture call: did I read all sides + the existing **precedent** IN
-  FULL *this turn* and compare on the merits, with "same" as the default? Did I
-  check what already EXISTS (≥2 named options with URLs — the Options-considered
-  note) before writing it myself? → detail: RULE #7A/B/D.
-- **T5 — Whole job.** Before "done": did I build the **Affordance Table** (source
-  file:line → each affordance → present? file:line), every row ✅ (or honestly
-  "partial, missing X/Y/Z")? Don't decide what's important — the user already did.
-  → detail: RULE #6.
-- **T6 — Audit = strict-diff.** For audit/review/refactor/sweep/check/verify of a
-  multi-unit target: decompose + list every unit first, then a **per-unit file:line
-  strict-diff table** — never an aggregate "looks fine / high confidence". → detail:
-  RULE #5.
-- **T7 — Verify by running.** After a change, did I run the project's
-  tests/lint/build/smoke and report results honestly (passed / failed / skipped)?
-  → detail: Working style; per-app harness in the project `CLAUDE.md`.
-- **T8 — Handoff (read first, save detail).** Session start: read this file + the
-  recap (+ any touched plan doc) IN FULL — not from memory. As load-bearing
-  findings/decisions land, save them in **FULL PROSE (not bullets/headers)** to the
-  right `docs/plans/*` doc *as they happen*, and keep the recap MAP current. We lose
-  work across sessions/compaction when detail isn't written down. → detail:
-  PRIORITY #2.
-- **T9 — Finish / don't barrel.** In no-stop mode ("do it all", "keep going",
-  "don't stop"): keep going across turns, no soft "want me to continue?". Otherwise:
-  surface a genuine *user-only* decision rather than guess. Always confirm before
-  **destructive** ops (reset --hard, force-push, data loss). → detail: RULE #0.
-- **T10 — Subagents: cautious, my call, Opus never Sonnet.** *(adjusted by the
-  user 2026-06-26 — no longer a blanket ban.)* Default to inline (with full context
-  I often decide better than a spawned agent). Spawn a subagent when I judge it
-  genuinely helps — always on **this model (Opus), NEVER Sonnet**, and never to
-  dodge doing the work. The **rules-checker** subagent is the canonical use. →
-  detail: RULE #2 (adjusted).
-- **T11 — Docs ship with features.** Does a doc land in the *same change* as this
-  feature / endpoint / config knob — not deferred to "polish"? → detail: Working
-  style.
-- **T12 — Stack defaults.** Plain JS (no TS unless asked). Shared **Vue 3 + Tauri 2**
-  standard: folder layout, `tokens.css`/`styles.css`, vue-router (hash), origin-aware
-  `services/serverApi.js`, per-domain Pinia, `height:100%` shell chain (never
-  `100vh`), exactly one scroller per area, Biome, server-side seed, connection-gate
-  boot. → detail: Code defaults + the app standard.
+**One law for all gates: check an ACT, never a WORD.** A gate keyed on my prose is
+satisfied by my prose. Acts: a real Read, a typed flag, a harness-authored verdict,
+the staged tree.
 
 ## Plan protocol — chat plan vs real plan
-- **Chat plan** = exploring an approach in conversation before committing. Encouraged;
-  no formal artifact; the gates don't fire on talk.
-- **Real plan** = triggered when the user asks for "a full plan" / "the plan before
-  code" / "finalize the plan". That means: ENTER PLAN MODE and write a DETAILED,
-  TASK-BASED plan — real tasks, each with the file:line touch-list + the WHY, NEVER
-  just bullets — run the rules-checker PANEL on it (T4), and present via `ExitPlanMode`
-  for approval. On approval the plan's tasks become tracked **Task entries** (so the
-  task begin/end checks fire) and the plan is saved to `docs/plans/*` (T8). Never ship
-  a chat plan as if it were the real plan.
+- **Chat plan** = exploring an approach in conversation. Encouraged; no artifact.
+- **Real plan** = the user asks for "a full plan" / "plan before code": ENTER PLAN MODE,
+  write a DETAILED task-based plan (each task: file:line touch-list + the WHY, never
+  bare bullets), run the TIERED plan check — ONE rules-checker for a routine plan;
+  THREE lenses (architecture-fit · reuse · grounding), compared, when LOAD-BEARING
+  (wrong = rewrite: storage/schema, architecture, cross-repo, large deletions) — then
+  `ExitPlanMode` for approval and save the plan to `docs/plans/*`. Checkers never catch
+  wrong INTENT — ask the user the doubt you wrote down.
 
 ## Report style
 Terse and factual — no padding (the user reads the diff + tool output). State what
@@ -91,99 +50,31 @@ changed + the verification result, then stop.
 
 ---
 
-## Enforcement — where the tests fire (mechanical, not willpower)
+## Enforcement — what fires mechanically (stripped 2026-07-15, the user's named go)
 
-The tests work because they're checked at **boundaries triggered by events**, not
-by me remembering mid-task. The rules are defined ONCE in `~/.claude/hooks/_rules.py`
-(the regexes + turn-scan + the rule registry: each rule's `id`/`events`/`detect`/
-`inject`); every hook imports it and runs `run_rules(event, ctx)` — the `id` is also
-the gate-stats log-key (one source). All of this is provisioned from the
-`justwrite-app/claude-config/` bundle by `install.sh` (see that folder's README).
+**The law: a gate may check an ACT, never a WORD.** Everything word-keyed was deleted
+on its lifetime logs; the full record is `rules-detail.md` ("THE STRIP") + the
+EFFECTIVENESS.md ledger. Provisioned from the `claude-config` repo by `install.sh`.
 
-- **PreToolUse hook** — `~/.claude/hooks/pre-action-check.py`, wired in
-  `settings.json` for `Edit`/`Write`/`MultiEdit`/`ExitPlanMode`:
-  - **Pre-task (the FIRST code change of a turn): DENY** unless the plan was already
-    rules-checked this turn (the rules-checker ran, the tests are cited) AND — **#237,
-    the think-twice check (2026-07-09)** — the turn's own text already cites the
-    plan/spec line being executed (doc.md:line / §-section / the queue-plan doc item /
-    the user's words) plus one **`RISK:`** line on what could be wrong: the second look
-    at the keyboard, BEFORE the write. Forces the plan-check before the first file is
-    written (catch a bad plan before it's 10 bad files). A first edit to a **`.md`**
-    doc is EXEMPT (the cry-wolf narrowing); trivial needs the EXPLICIT word "trivial".
-  - **Every edit: NUDGE** (non-blocking, one line) — the rule-tests stay salient.
-  - **SUBAGENT BYPASS** — a delegated agent's edit skips the pre-task DENY (it cannot
-    clear it: its checker verdict lands in the COORDINATOR's transcript, never its
-    own). *I* run the checker/panel BEFORE delegating; Stop + commit-gate still bind.
-    Keyed on the payload's `agent_id` (present only for an agent's call — captured
-    live 2026-07-15). **The 2026-07-15 incident:** the original detection read
-    `isSidechain` from the transcript the hook receives, but the harness passes the
-    MAIN transcript even for an agent's call — so the bypass NEVER fired, every
-    builder's Edit/Write was denied, and builders fell back to python-patch-scripts
-    via Bash: a ~2-3× wall-clock multiplier on delegated builds, unnoticed for days
-    because a workaround existed. **The lesson (user, verbatim): "you should have let
-    me know this is a prob and fix it it should be we dont just say ok thats fine and
-    waste time"** — a working-but-degraded path is a BUG to surface, not to absorb.
-  - On `ExitPlanMode` ("here is the plan" — a literal event): injects a reminder to
-    run the **rules-checker PANEL** on the plan (2–3 independent, compare).
-- **Commit boundary** — `~/.claude/hooks/commit-gate.py`, wired in `settings.json` as a
-  SEPARATE `PreToolUse` `Bash` block. On a CODE `git commit` it is a **HARD DENY** until
-  BOTH a doc was updated/cited AND a **GENUINE independent rules-checker AGENT verdict**
-  reads all-pass this turn. "Genuine" is the point: the gate reads the verdict from the
-  AGENT's own result (a harness-authored `<task-notification>`), NOT from text I type — a
-  self-written "VERDICT: PASS" does **not** clear it (that was the self-certification hole:
-  a gate that checks my words can be satisfied by my words; only one keyed on a real
-  action/agent-output binds). So a **HIGH-risk** code commit forces: spawn the rules-checker → it scores
-  every rule (incl. "are ALL docs current?") → fix any FAIL → re-run until its result is
-  PASS. **RISK-TIERED (2026-07-14):** that requirement is HIGH-risk only; a LOW-risk commit
-  (every code file test infra or copy DATA, nothing under the gate's own tree) full-escapes
-  it — a GENERIC `LOW_RISK` allowlist in `_rules.py` (names no task), default-HIGH on
-  mixed/unknown so storage/DB/Rust/migrations/product code always stay HIGH. Escapes: `git
-  commit --amend`, a doc-only commit, an attested "trivial", a low-risk (tests/copy) commit. Anti-loop
-  sentinel fail-safes after repeated denies. Honest ceiling: the agent can still miss — this
-  makes the check non-skippable, not infallible. LAYERS on Stop; never replaces it.
-- **Stop gate** — `~/.claude/hooks/verify-gate.py` (blocks the turn until satisfied):
-  - **Block 0** — after a compact/clear, re-read this file + the project `CLAUDE.md`
-    + `MORNING_RECAP.md` (Read tool, IN FULL) before finishing.
-  - **Block 1** — a code claim with zero file reads this turn.
-  - **Block 2** — a storage/architecture recommendation with no cited precedent.
-  - **Block 3** — a "done / shipped" claim that edited code but updated/cited no doc.
-  - **Block 4** — a "here's the plan / locked the plan / decided to" turn with no
-    **GENUINE agent verdict** (#237 hardened 2026-07-09: a self-typed tests citation
-    or 'trivial' no longer clears a design LOCK — the gate reads `agent_pass` from the
-    agent's own result, the commit-gate mechanism). A turn that merely RECORDS the
-    user's own decision and attributes it ("the user's decision/word") passes.
-  - **Block 5** — POST-TASK: a turn that edited code but ran no rules-pass (the
-    result was never checked against the rules). Escapes: run the checker, cite the
-    tests, or hedge.
-  - **Block 6** — SECOND PASS (#237): a PROPOSAL turn ("I propose/recommend", "here's
-    the design", or un-attributed lock language) that does not end with an explicit
-    **"SECOND PASS —"** section: what the second look CHANGED or confirmed · what it
-    re-verified at file:line · the sharpest remaining doubt. Born from the user's
-    2026-07-09 finding that an ordered second pass changed five locked-looking
-    decisions; a text rule alone decays, so the section is gated, not remembered.
-- **Task gate** — `~/.claude/hooks/task-gate.py`, wired for `TaskCreated` /
-  `TaskCompleted` (the TRUE task begin/end events, when plan tasks are tracked as Task
-  entries): `task-begin-check` blocks creating, `task-completeness` blocks completing,
-  without a rules-pass this turn (run the checker, cite the tests, or attest trivial).
-  **Anti-skim:** `task-completeness`'s instruction is to run the checker on the FULL
-  acceptance criteria of the task — read from the plan doc, NOT the task summary — so the
-  checker reads the detail I might have skimmed (prereq: plan tasks carry explicit
-  acceptance criteria). This is the task-grain pre/post check; the PreToolUse first-edit
-  deny + Block 5 are the turn-grain backstop. Standing rule that makes it fire: **every
-  plan task = one Task entry** (a "real plan" = Plan mode + detailed Task entries).
-- **rules-checker subagent** — `~/.claude/agents/rules-checker.md` (Opus; its own
-  discarded context = true "load rules → check → unload"): given a plan or a diff,
-  scores each of T1–T12 PASS/FAIL/NA + one-line why, adversarial (defaults to FAIL
-  if uncertain), returns the failures. **For a load-bearing DESIGN/ARCHITECTURE
-  decision (where wrong = a rewrite — "design" = both the whole-plan architecture AND
-  component choices like T3 reuse-vs-copy), run a PANEL: 2–3 independent checkers with
-  diverse lenses (architecture-fit · reuse/convergence · grounding) and COMPARE — any
-  FAIL, or disagreement between them, = stop and resolve before locking. The extra
-  checkers are cheap next to a rewrite.** For a routine code-diff post-task check, a
-  single checker suffices. Invoke before finalizing a plan and before a non-trivial
-  commit.
-- **SessionStart hook** — `~/.claude/hooks/arm-rules-gate.sh`: arms the Block-0
-  sentinel on compact / clear / startup (NOT resume — that reloads context intact).
-
-**Full WHY, every incident, and the worked examples: `~/.claude/rules-detail.md`.**
-When a test is ambiguous, open it — don't guess the intent.
+- **Stop → Block 0** (`verify-gate.py`): after a compact/clear/startup, the turn blocks
+  until the global rules + project `CLAUDE.md` + `MORNING_RECAP.md` are each actually
+  READ (a real tool call). Lifetime: 4 fires, 4 fixes, 0 false positives.
+- **Stop → Block 1**: a turn that CLAIMS code (a filename / file:line) with ZERO
+  evidence tools run that turn blocks until the file is actually read — or the claim is
+  honestly hedged. Kept at the user's call ("you often check docs or memory which we
+  find don't align with actual code"); satisfied only by an ACT (the evidence count).
+- **Stop → Block 6**: a PROPOSAL turn must end with a "SECOND PASS —" section — what the
+  re-derivation changed · what it re-verified · the sharpest doubt. Lifetime: 3 fires,
+  3 materially changed answers.
+- **PreToolUse nudges** (`pre-action-check.py`): one R1–R5 line at every edit; the
+  tiered plan reminder at `ExitPlanMode`. Salience only — nothing blocks.
+- **Commit gate — DELEGATED agents only** (`commit-gate.py` exits unless the payload
+  carries `agent_id`): a builder's code commit requires docs + a genuine rules-checker
+  verdict read from the BUILDER's own transcript. Main-session commits are ungated;
+  the main session's discipline is the once-per-task checker + tests.
+- **Voluntary cadence**: ONE rules-checker per task, on the final diff; the test fleet
+  (~2.6 min) runs freely. Subagents always run on **Opus, never Sonnet**. Stack
+  defaults (plain JS; the shared Vue 3 + Tauri 2 standard): `rules-detail.md`.
+- `hooks/test_gates.py` pins the machinery: every ledger file:line ref, every escape
+  proven to FIRE, and the SIZE of each context-loaded surface (this file, the checker
+  charter, the nudge strings) — **prose regrowth fails the suite**.

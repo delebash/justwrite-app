@@ -49,6 +49,68 @@ tally + add any notable catches/misses to the ledger.
 
 ## Catch / miss ledger (detailed — newest first)
 
+### 2026-07-15 — THE STRIP (user's named go): 7 gates -> 2 blocks + a subagent commit gate
+
+What changed: Stop blocks 1-5, the task gates, and the pre-action DENY are deleted;
+Block 0 + Block 6 kept; commit-gate now exits unless the payload carries `agent_id`
+(delegated builders only); rules cut 12 -> 5 (R1-R5) with every unit's substance
+dispositioned (the 12->5 mapping lives in rules-detail.md "THE STRIP"). Why: lifetime
+logs — commit-gate: 15 of 25 decisions were its own word-escape bug; task-gate: 29 of
+39 log lines were its own test suite; blocks 1-5: 15 fires, all prose-regex. How to
+verify: `python hooks/test_gates.py` (pins the kept behavior, the deleted behavior
+staying deleted, and the loaded-surface size budgets). What reverses it: git revert of
+this commit + `FORCE=1 bash install.sh`.
+
+### 2026-07-15 — MISS, the worst kind: the commit gate was OPEN all session, on a word
+
+**What happened.** The trivial escape read my turn TEXT via `TRIVIAL_EXPLICIT` = `trivial`
+— which matches a MENTION, not an attestation. The session's topic *was* this escape, so
+every commit self-cleared: `commit-gate.log` shows **12 consecutive `ALLOW commit (trivial
+attested)`** and only 2 real BLOCKs all day. Even *"this is **not** a trivial change"*
+cleared it. The rules-checker verdicts I was spending 3-5 min each to produce were real and
+caught real holes — but they are **not what let those commits through**. Had I skipped every
+checker, nothing would have stopped me.
+
+**Why it matters more than the time.** This is the self-certification hole v3 closed,
+reborn one channel over: *a gate keyed on my words is satisfied by my words*. It survived
+because the same day I NARROWED this channel (loose `TRIVIAL` → `TRIVIAL_EXPLICIT`) and
+called it hardened — a fix that made the sentence shorter without making it an attestation.
+
+**Fix (user's go).** The commit MESSAGE is the only trivial channel: `trivial =
+TRIVIAL.search(_commit_message(cmd))`. You type `-m 'trivial: typo'` on purpose; you cannot
+type it by discussing it. A `-F -`/heredoc commit can no longer attest trivial at all — by
+design, and it binds on me first (I write commits via heredoc). Pinned by tests that assert
+the exact sentences which cleared the gate all day are now DENIED.
+
+**How it was found:** not by a checker — by re-deriving a proposal under the Stop gate's
+second-pass law. The question "does one verdict per turn really cover every commit in it?"
+led to the log, and the log said the verdicts were never what cleared them.
+
+**Three more, found by applying that test to the survivors (user's go, same day):**
+1. The MESSAGE channel had the same defect: loose `TRIVIAL` matched `rename`/`typo` --
+   DESCRIPTIONS you type to describe the change, not claims of triviality. Now
+   `TRIVIAL_EXPLICIT`: only the word *trivial* attests. **My own test had asserted the hole
+   as intended** ("message channel stays loose by design"), so a green suite was evidence
+   the hole was enshrined, not absent.
+2. `_classify_commit` returned on the FIRST segment, so an `--amend` segment chained before
+   a real commit laundered it through as an "escape". Now every segment is evaluated and a
+   real commit wins.
+3. `_commit_messages` JOINED segments, so one attestation cleared a whole chain. Now
+   per-segment: EVERY commit segment must attest.
+
+**A false positive my own fix created, recorded honestly:** "commit wins over escape" means
+any Bash command whose TEXT contains a commit-shaped string is now classified as a commit --
+including a heredoc that merely WRITES ABOUT one (this entry tripped it twice). Pre-existing
+in kind (`_SEG.split` cannot tell a heredoc payload from a command), but my change turned it
+from a silent escape into a visible block. Workaround: put such text in a file, not a
+heredoc. Fix shape if it becomes a nuisance: strip heredoc bodies before classifying.
+
+**Lesson (the durable one):** *an escape must require an ACT, not a WORD.* `--amend` is an
+act. A `-m` message is an act. Prose is not — and prose about the escape least of all.
+**Audit every remaining escape against that test.** Also: `EFFECTIVENESS.md`'s own
+historical "the gate caught this" entries are suspect for any session that discussed
+trivial/typo/rename — the older pattern scanned the whole command too.
+
 ### 2026-07-15 — MISS: a gate whose escape hatch was welded shut (never fired; cost was absorbed, not reported)
 
 **The miss.** The SUBAGENT BYPASS (added 2026-07-12) detected a delegated agent via
@@ -81,10 +143,10 @@ scope hides the `.sh` unit — that mistake cost two checker rounds):
 
 | Gate | reads at | wired to | affected? | disposition |
 |---|---|---|---|---|
-| `pre-action-check.py` | :190 | PreToolUse Edit/Write/MultiEdit | **YES** | **BYPASSED, not read-through** — a subagent's edit skips the deny (payload `agent_id`). It still builds ctx from the MAIN transcript, so `prior_code_edits` counts the *coordinator's* edits; the bypass makes that moot (a subagent never reaches the deny), but the unit is honestly "bypassed", not "fixed" |
-| `commit-gate.py` | :299 | PreToolUse Bash | **YES, live** — a builder's commit judged on the coordinator's transcript; own verdict invisible; escaped only via `MAX_DENIES=4` | **FIXED** — reads the agent's own transcript (`_rules.agent_transcript`) |
-| `task-gate.py` | :65 | TaskCreated / TaskCompleted | **LATENT** — same mechanism | **FIXED** — same helper |
-| `verify-gate.py` | :138 | **Stop only** (`SubagentStop` not wired) | **NO** — a subagent's turn-end never invokes it | UNAFFECTED, by wiring |
+| `pre-action-check.py` | (no transcript read — nudge-only since the strip; the deny and its subagent bypass are deleted) | PreToolUse Edit/Write/MultiEdit | n/a | superseded |
+| `commit-gate.py` | :314 | PreToolUse Bash | **YES, live** — a builder's commit judged on the coordinator's transcript; own verdict invisible; escaped only via `MAX_DENIES=4` | **FIXED** — reads the agent's own transcript (`_rules.agent_transcript`) |
+| `task-gate.py` | (file DELETED at the strip — 29 of 39 log lines were its own test suite) | — | — | deleted |
+| `verify-gate.py` | :139 | **Stop only** (`SubagentStop` not wired) | **NO** — a subagent's turn-end never invokes it | UNAFFECTED, by wiring |
 | `arm-rules-gate.sh` | :44 | SessionStart | **NO** — main-session only; only counts lines into the Block-0 sentinel, never blocks | UNAFFECTED, by wiring |
 
 **The commit/task fix STRENGTHENS the gates** (user's go, 2026-07-15): they now read the

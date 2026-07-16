@@ -1,5 +1,10 @@
 #!/usr/bin/env python3
-"""PreToolUse(Bash) COMMIT GATE — the post-task heavy check, LAYERED on top of Stop.
+"""PreToolUse(Bash) COMMIT GATE — for DELEGATED-AGENT commits ONLY (2026-07-15 strip).
+
+A payload without `agent_id` (the main session) exits 0 immediately — see the guard in
+main() for the lifetime evidence. Everything below the guard applies to a subagent's
+`git commit`: docs must ship with code, and a genuine rules-checker verdict must exist
+in the AGENT'S OWN transcript (`_rules.agent_transcript`).
 
 A `git commit` is the truest "task end" the harness can see for untracked work: the
 model decided a unit of work is done and is recording it. This gate runs the shared
@@ -21,17 +26,12 @@ keep it hard). THE ESCAPES, exhaustively — this list is the contract, keep it 
     is a real change with its own blast radius — weigh it, don't sleepwalk into it.
   - a LOW-RISK commit (every code file is test infra or copy DATA, nothing under the
     gate's own tree — `_rules.commit_low_risk`)      → allowed (risk tier, 2026-07-14)
-  - an attested 'trivial' commit → allowed. Two channels, deliberately ASYMMETRIC:
-      · the commit MESSAGE ONLY (`_commit_message`, the -m/--message text): the loose
-        `TRIVIAL` family (trivial/typo/one-line/rename/dep bump/comment-only). Writing
-        it there is a deliberate attestation. It reads the MESSAGE, never the whole
-        command — until 2026-07-15 it scanned `cmd`, so `git add src/rename/index.js &&
-        git commit -m "feat: big refactor"` escaped on a PATH segment.
-      · this turn's TEXT: `TRIVIAL_EXPLICIT` — the literal word "trivial" ONLY.
-        Narrowed 2026-07-15 with the agent-transcript redirect: ctx["answer"] can now be
-        a DELEGATED AGENT's text, and a builder's whole run is ONE turn, so the loose
-        family would let an incidental "renamed the prop" full-escape this boundary.
-        This channel is INTENTIONALLY stricter than `rules_passed`'s.
+  - an attested 'trivial' commit → allowed, via ONE channel: the commit MESSAGE
+    (`_commit_message` — the -m/--message text ONLY, never the paths, never my prose).
+    The turn-TEXT channel was DELETED 2026-07-15 (see the note at the `trivial =` line):
+    it matched a mention, not an attestation, and silently opened this gate for a whole
+    session. A `-F -`/heredoc commit therefore cannot attest trivial at all — by design:
+    if it is trivial, type `-m 'trivial: …'`.
 There is NO "VERDICT" escape: a self-typed `VERDICT: PASS` does NOT clear a code commit —
 only a GENUINE agent verdict (`ctx["agent_pass"]`, read from a harness-authored result)
 satisfies `task-completeness`. That is the v3 self-certification fix; do not re-open it by
@@ -146,15 +146,20 @@ def _classify_commit(cmd: str):
     isn't a commit), and skip git GLOBAL options — including the ones that take a
     SEPARATED value (`-C <dir>`, `--git-dir <p>`, ...) — to land on the real subcommand.
     `git add -A && git commit` works because each `&&`-segment starts with `git`."""
+    # EVERY segment is evaluated and a REAL COMMIT WINS (2026-07-15, checker-caught):
+    # returning on the FIRST segment let `git commit --amend --no-edit && git commit -m
+    # "feat: rewrite storage"` classify as "escape" — segment 1's flag laundering segment
+    # 2's real commit through the entire gate.
+    seen = False
     for sub in _git_commit_argv(cmd):
-        if any(o in _ESCAPE_FLAGS for o in sub):
-            return "escape"
-        return "commit"
-    return None
+        seen = True
+        if not any(o in _ESCAPE_FLAGS for o in sub):
+            return "commit"
+    return "escape" if seen else None
 
 
-def _commit_message(cmd: str) -> str:
-    """Just the -m/--message TEXT of a `git commit`, never the rest of the command.
+def _commit_messages(cmd: str) -> list:
+    """The -m/--message TEXT of each `git commit` segment — never the paths, never prose.
 
     WHY (checker-caught 2026-07-15): the trivial escape used to run the loose `TRIVIAL`
     family (trivial/typo/one-line/rename/dep bump/comment-only) over the WHOLE Bash
@@ -173,25 +178,27 @@ def _commit_message(cmd: str) -> str:
     `-F <file>` / `-F -` (heredoc) payloads are NOT in `cmd`, so they yield no message and
     cannot escape — the safe direction.
 
-    NOTE: messages of ALL commit segments are joined, so
-    `git commit -m 'trivial' && git commit -m 'feat: rewrite storage'` escapes on the
-    first. Unchanged from the old whole-`cmd` scan, and this channel is a self-attestation
-    by design — but it is a real property of this function, so it is written down.
+    Returns ONE STRING PER commit segment, never a joined blob (2026-07-15,
+    checker-caught): the message is now the ONLY trivial channel, so joining let one
+    segment launder another — `git commit -m 'trivial: x' && git commit -m 'feat: rewrite
+    storage'` escaped BOTH. The caller requires EVERY segment to attest.
     """
     out = []
     for sub in _git_commit_argv(cmd):
+        msg = []
         j = 0
         while j < len(sub):
             t = sub[j]
             if _M_SEP.fullmatch(t) and j + 1 < len(sub):      # -m / -am / --message <msg>
-                out.append(sub[j + 1])
+                msg.append(sub[j + 1])
                 j += 2
                 continue
             glued = _M_GLUED.fullmatch(t)                      # -m"msg" / -am"msg" / --message=msg
             if glued:
-                out.append(glued.group(1))
+                msg.append(glued.group(1))
             j += 1
-    return "\n".join(out)
+        out.append("\n".join(msg))
+    return out
 
 
 def _git_cwd(cmd: str, fallback: str) -> str:
@@ -263,6 +270,14 @@ def main() -> None:
         sys.exit(0)
     if (data.get("tool_name") or "") != "Bash":
         sys.exit(0)
+    # SUBAGENT-ONLY (2026-07-15, the user's named go: "keep commit gate for sub agent").
+    # The MAIN session's commits are ungated here — lifetime record: 25 decisions, 15 of
+    # them the word-escape bug, 6 blocks ever; the coordinator's discipline is the
+    # once-per-task checker + Block 6, both of which actually worked. A DELEGATED
+    # agent's commit keeps the boundary: the coordinator cannot watch it mid-flight,
+    # and since `_rules.agent_transcript` its OWN genuine verdict is what counts.
+    if not data.get("agent_id"):
+        sys.exit(0)
     cmd = (data.get("tool_input") or {}).get("command") or ""
 
     kind = _classify_commit(cmd)
@@ -316,8 +331,21 @@ def main() -> None:
     # thousands of words of build prose would have FULL-ESCAPED this boundary (docs AND
     # verdict). The commit MESSAGE keeps the loose form: "trivial: rename" there is a
     # deliberate attestation, not an accident of narration.
-    trivial = bool(_rules.TRIVIAL.search(_commit_message(cmd))) or bool(
-        _rules.TRIVIAL_EXPLICIT.search(ctx["answer"]))
+    # THE COMMIT MESSAGE IS THE ONLY TRIVIAL ATTESTATION (2026-07-15, user's go).
+    # The answer-text channel is DELETED: it matched a MENTION, not an attestation.
+    # `TRIVIAL_EXPLICIT` is `\btrivial\b`, so any turn discussing the escape cleared the
+    # gate — even "this is NOT a trivial change". Measured that day: 12 consecutive
+    # `ALLOW commit (trivial attested)` in commit-gate.log while the session's topic WAS
+    # this escape; the checker verdicts being run were not what let those commits through.
+    # That is the self-certification hole the v3 fix closed, reborn one channel over: a
+    # gate keyed on my words, satisfied by my words. The message is deliberate — you type
+    # `-m 'trivial: typo'` on purpose; you cannot type it by discussing it.
+    # The message must ATTEST, not merely DESCRIBE. TRIVIAL_EXPLICIT (`\btrivial\b`), not
+    # the loose family: "rename"/"typo" in a message are DESCRIPTIONS you type to describe
+    # the change — `-m "refactor(store): rename the undo domains"` is not a claim that the
+    # commit is trivial. Same mention-vs-attestation defect as the deleted prose channel.
+    msgs = _commit_messages(cmd)
+    trivial = bool(msgs) and all(_rules.TRIVIAL_EXPLICIT.search(m) for m in msgs)
 
     files = _commit_files(cmd, _git_cwd(cmd, data.get("cwd") or ""))
     if files:

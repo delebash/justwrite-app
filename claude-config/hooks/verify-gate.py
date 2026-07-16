@@ -17,12 +17,13 @@ this hook is the Stop-event MECHANISM. It BLOCKS the turn ({"decision":"block",
     Read (a real Read tool call) since that reset, the turn is blocked. This is an
     EVIDENCE-recheck rule (it self-heals when the Read actually happens) and keeps its
     bespoke sentinel mechanics here — it is NOT dispatched by run_rules.
-  BLOCK 1-6 — the TEXT-recheck rules, dispatched through `_rules.run_rules("Stop", ctx)`:
-    code-claim · reco · docs-with-features · plan · post-task · second-pass (see
-    `_rules.py` for each rule's detect + message). KEPT as the turn-grain backstop (the
-    commit-gate adds the heavy semantic check on top; it does not replace these).
-    #237 (2026-07-09): `plan` now requires a GENUINE agent verdict at lock grain, and
-    Block 6 `second-pass` requires an explicit "SECOND PASS —" section on proposals.
+  BLOCK 6 (rule id `second-pass`) — the ONE remaining text rule, dispatched through
+    `_rules.run_rules("Stop", ctx)`: a PROPOSAL turn must end with an explicit
+    "SECOND PASS —" section (what changed · what was re-verified · the sharpest doubt).
+    Kept by the user's explicit call at the 2026-07-15 strip: 3 lifetime fires, 3
+    materially changed answers. Blocks 1-5 (code-claim · reco · docs · plan ·
+    post-task) were DELETED the same day — 15 lifetime fires, every one a regex over
+    the agent's own prose, plus repeated false positives (the act-not-word law).
 
 HONEST SCOPE: this catches a MISSING action (didn't read / didn't cite / didn't doc). It
 canNOT verify a read was understood, or that a citation is the RIGHT one — that stays a

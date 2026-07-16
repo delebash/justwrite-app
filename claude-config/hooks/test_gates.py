@@ -124,12 +124,35 @@ def test_ledger_refs():
     print(f"0) ledger refs ........ PASS ({len(rows)} rows verified)")
 
 
+
+
+# ==========================================================================
+# 0b) loaded surfaces stay SLIM — the mechanical fix for prose regrowth
+# ==========================================================================
+def test_loaded_surfaces():
+    """The founding law of this config: rules that live as PROSE don't fire (a salience
+    problem — more words make it worse). This was re-learned the hard way three times on
+    2026-07-15 alone, so the budgets are pinned here: if a context-loaded surface grows
+    past its budget, the suite fails and the growth gets justified or cut. Budgets carry
+    ~20%% headroom over the slimmed sizes — hitting one is a design smell, not a quota."""
+    root = os.path.dirname(HOOKS)
+    budgets = [(f"{root}/CLAUDE.md", 115), (f"{root}/agents/rules-checker.md", 130)]
+    for path, cap in budgets:
+        n = sum(1 for _ in open(path, encoding="utf-8"))
+        assert n <= cap, f"LOADED SURFACE OVER BUDGET: {os.path.basename(path)} = {n} lines (cap {cap})"
+    import importlib.util
+    spec = importlib.util.spec_from_file_location("pa_mod", f"{HOOKS}/pre-action-check.py")
+    pa_mod = importlib.util.module_from_spec(spec); spec.loader.exec_module(pa_mod)
+    assert len(pa_mod.NUDGE) <= 250, f"NUDGE grew to {len(pa_mod.NUDGE)} chars (cap 250)"
+    assert len(pa_mod.PLAN_NUDGE) <= 560, f"PLAN_NUDGE grew to {len(pa_mod.PLAN_NUDGE)} chars (cap 560)"
+    print(f"0b) loaded surfaces ... PASS (all within budget)")
+
+
 def test_registry():
     r = load_rules()
-    assert set(r.armed_events()) == {"Stop", "commit", "TaskCreated", "TaskCompleted"}, r.armed_events()
-    assert r.RULE_IDS == ["rules-gate", "code-claim", "reco", "docs-with-features",
-                          "plan", "post-task", "second-pass",
-                          "task-begin-check", "task-completeness"], r.RULE_IDS
+    assert set(r.armed_events()) == {"Stop", "commit"}, r.armed_events()   # task gates deleted 2026-07-15
+    assert r.RULE_IDS == ["rules-gate", "code-claim", "docs-with-features",
+                          "second-pass", "task-completeness"], r.RULE_IDS   # the 2026-07-15 strip
     # VERDICT: accepts real verdicts, rejects narration (the dogfood-caught hole)
     assert r.VERDICT.search("VERDICT: PASS") and r.VERDICT.search("T1 PASS, T2 FAIL")
     for s in ("I'll run the rules-checker next", "let me run the rules-checker", "the plan looks good"):
@@ -234,18 +257,19 @@ def test_registry():
     # per-event subset via run_rules
     base = r.build_ctx({"cwd": "/tmp"}, [{"type": "user", "message": {"content": "hi"}}], "Stop")
     assert r.run_rules("Stop", base) == []                 # clean
+    # post-task and plan are DELETED (2026-07-15 strip): a code edit with no
+    # rules-pass, or a plan lock with no verdict, fires NOTHING at Stop anymore.
     c = dict(base); c["code_edit"] = True; c["rules_passed"] = False
-    assert "post-task" in [i for i, _ in r.run_rules("Stop", c)]
-    c["hedged"] = True
-    assert "post-task" not in [i for i, _ in r.run_rules("Stop", c)]   # hedge exempts at Stop
-    # #237 plan hardening: a LOCK without a genuine agent verdict fires even with
-    # rules_passed True (typed tests / 'trivial' no longer clear a design lock)...
+    assert "post-task" not in [i for i, _ in r.run_rules("Stop", c)]
     p = dict(base); p["plan_lock"] = True; p["rules_passed"] = True; p["agent_pass"] = None
-    assert "plan" in [i for i, _ in r.run_rules("Stop", p)]
-    p["agent_pass"] = "pass"                       # ...a GENUINE agent PASS clears it...
     assert "plan" not in [i for i, _ in r.run_rules("Stop", p)]
-    p["agent_pass"] = None; p["user_decided"] = True   # ...and so does user-decided provenance.
-    assert "plan" not in [i for i, _ in r.run_rules("Stop", p)]
+    # code-claim is KEPT (user save): a memory code-claim fires; evidence or a hedge clears.
+    k = dict(base); k["code_claim"] = True; k["evidence"] = 0
+    assert "code-claim" in [i for i, _ in r.run_rules("Stop", k)]
+    k["evidence"] = 3
+    assert "code-claim" not in [i for i, _ in r.run_rules("Stop", k)]
+    k["evidence"] = 0; k["hedged"] = True
+    assert "code-claim" not in [i for i, _ in r.run_rules("Stop", k)]   # hedge exempts at Stop
     # #237 second-pass: a proposal without the section fires; the section clears it;
     # NOT hedge-exempt (a hedged proposal still needs its second pass).
     s = dict(base); s["proposal"] = True; s["second_pass"] = False
@@ -289,9 +313,10 @@ def test_registry():
     assert r.agent_pass(xt_stale, r.last_user_idx(xt_stale)) is None
     tc = r.build_ctx({}, [{"type": "user", "message": {"content": "hi"}}], "TaskCreated")
     tc["rules_passed"] = False
-    assert [i for i, _ in r.run_rules("TaskCreated", tc)] == ["task-begin-check"]
+    assert r.run_rules("TaskCreated", tc) == []   # task gates deleted: no rule at this event
     cm = r.build_ctx({}, [{"type": "user", "message": {"content": "hi"}}], "commit")
     cm["commit_has_code"] = True; cm["commit_docs_ok"] = False; cm["rules_passed"] = False
+    cm["agent_pass"] = None
     assert set(i for i, _ in r.run_rules("commit", cm)) == {"docs-with-features", "task-completeness"}
     cm["commit_has_code"] = False
     assert r.run_rules("commit", cm) == []                 # doc-only → inert
@@ -329,12 +354,13 @@ def test_verify_gate():
     def vg(*msgs):
         return hook("verify-gate.py", {"transcript_path": tx(*msgs), "cwd": home,
                                        "stop_hook_active": False}, env=env).stdout
-    assert blocked(vg(("user", "go"), ("edit", "x.py"), ("text", "made it")))       # post-task
-    assert not blocked(vg(("user", "go"), ("edit", "x.py"), ("text", "VERDICT: PASS")))
-    assert blocked(vg(("user", "go"), ("edit", "x.py")))                            # silent edit still gated
-    assert blocked(vg(("user", "go"), ("text", "Here's the plan: do x")))           # plan
-    # #237 FLIP: a TYPED "VERDICT: PASS" no longer clears a plan/design LOCK — only a
-    # genuine agent verdict does (the self-citation escape is closed at lock grain).
+    # Blocks 1-5 are DELETED (2026-07-15 strip): a bare code edit / code claim / plan
+    # lock no longer blocks on those rules. What still fires at Stop is Block 6 only.
+    assert not blocked(vg(("user", "go"), ("edit", "x.py"), ("text", "made it")))   # post-task: deleted
+    assert not blocked(vg(("user", "go"), ("edit", "x.py"))), "silent edit: block 5 deleted"
+    # "Here's the plan..." still blocks — but via Block 6 now (a proposal without its
+    # SECOND PASS section), not the deleted plan/verdict rule.
+    assert blocked(vg(("user", "go"), ("text", "Here's the plan: do x")))
     assert blocked(vg(("user", "go"), ("text", "Here's the plan. VERDICT: PASS")))
     NOTIF = ("<task-notification>\n<task-id>x</task-id>\n<result>\nVERDICT: PASS — all "
              "rules pass\n</result>\n</task-notification>")
@@ -380,64 +406,20 @@ def test_verify_gate():
 # 3) pre-action (PreToolUse)
 # ==========================================================================
 def test_pre_action():
-    def pa(file_path, *msgs, tool="Edit", extra=None):
-        payload = {"tool_name": tool, "tool_input": {"file_path": file_path},
-                   "transcript_path": tx(*msgs)}
-        payload.update(extra or {})
+    """NUDGE-ONLY since the 2026-07-15 strip: the pre-task DENY (and with it the
+    subagent bypass) is DELETED. Nothing this hook emits can block; regressions here
+    are 'it denied something' or 'it stopped nudging'."""
+    def pa(payload):
         return hook("pre-action-check.py", payload).stdout
-    assert denied(pa("a.py", ("user", "build")))                        # first code edit → deny
-    # SUBAGENT BYPASS (2026-07-15 regression — the bypass never fired for a YEAR of
-    # builds because it read isSidechain from the MAIN transcript the harness passes
-    # for a subagent's call). The real discriminator, live-captured from both sides:
-    # a delegated agent's payload carries agent_id; the coordinator's carries none.
-    assert not denied(pa("a.py", ("user", "build"), extra={"agent_id": "a94e6dedd"})), \
-        "a subagent's first code edit must BYPASS the pre-task deny (it cannot clear it)"
-    assert denied(pa("a.py", ("user", "build"), extra={"agent_type": "general-purpose"})), \
-        "agent_type alone must NOT bypass — only the per-call agent_id marker does"
-    assert denied(pa("a.py", ("user", "build"), extra={"agent_id": ""})), \
-        "an empty agent_id is the main session — stays gated"
-    assert not denied(pa("a.py", ("user", "build"), extra={"isSidechain": True})), \
-        "payload isSidechain fallback still bypasses"
-    # The transcript-TAIL sidechain scan was REMOVED (checker-caught): dead on this
-    # harness, and in the only harness where it would run it bypasses the deny for the
-    # COORDINATOR right after any subagent returns. Detection is payload-only now.
-    assert denied(pa("a.py", ("user", "build"), ("sidechain_text", "agent was here"))), \
-        "a sidechain entry in the TRANSCRIPT must NOT bypass — payload markers only"
-    assert not denied(pa("NOTES.md", ("user", "build")))               # .md exempt → nudge
-    # #237 FLIP: a rules-pass alone no longer clears the first code edit — the turn
-    # text must ALSO cite the plan/spec line being executed + carry a RISK line.
-    assert denied(pa("a.py", ("user", "build"), ("text", "VERDICT: PASS")))
-    assert denied(pa("a.py", ("user", "build"), ("agent", "")))
-    assert not denied(pa("a.py", ("user", "build"),
-                         ("text", "VERDICT: PASS — executing queue doc §9 QC-25. "
-                                  "RISK: the heal could clobber a deliberate downgrade.")))
-    assert not denied(pa("a.py", ("user", "build"), ("text", "trivial typo")))  # explicit trivial
-    # loose TRIVIAL words ("rename") satisfy rules_pass but NOT the explicit-trivial
-    # exemption — the think-twice check still fires without the plan-ref + RISK.
-    assert denied(pa("a.py", ("user", "build"), ("text", "rename the tab per plan")))
-    assert not denied(pa("b.py", ("user", "build"), ("edit", "a.py")))  # second CODE edit, no deny
-    # the deny window counts CODE edits only (checker-caught): a doc edit earlier in
-    # the turn must NOT open the window — the first CODE edit is still gated.
-    assert denied(pa("a.py", ("user", "build"), ("edit", "NOTES.md")))
-    # the live bug: a <task-notification> after an edit must NOT reset the window
-    assert not denied(pa("b.py", ("user", "build"), ("edit", "a.py"),
-                         ("user", "<task-notification>\n<task-id>z</task-id>")))
-    assert "PLAN BOUNDARY" in hook("pre-action-check.py", {"tool_name": "ExitPlanMode"}).stdout
+    out = pa({"tool_name": "Edit", "tool_input": {"file_path": "a.py"},
+              "transcript_path": tx(("user", "build"))})
+    assert not denied(out) and "R1-R5" in out, "a code edit gets the nudge, never a deny"
+    assert not denied(pa({"tool_name": "Write", "tool_input": {"file_path": "a.py"},
+                          "agent_id": "some-agent"})), "subagent edits: same nudge, no deny"
+    out = pa({"tool_name": "ExitPlanMode"})
+    assert "PLAN BOUNDARY" in out and "THREE" in out, "tiered plan nudge on ExitPlanMode"
+    assert pa({"tool_name": "Bash", "tool_input": {"command": "ls"}}).strip() == ""
     print("3) pre-action ......... PASS")
-
-
-# ==========================================================================
-# 4) task-gate
-# ==========================================================================
-def test_task_gate():
-    def tg(event, *msgs):
-        return hook("task-gate.py", {"hook_event_name": event, "transcript_path": tx(*msgs)}).returncode
-    assert tg("TaskCreated", ("user", "t")) == 2
-    assert tg("TaskCreated", ("user", "t"), ("text", "VERDICT: PASS")) == 0
-    assert tg("TaskCompleted", ("user", "t")) == 2
-    assert tg("TaskCompleted", ("user", "t"), ("agent", "")) == 0
-    assert tg("TaskCompleted", ("user", "t"), ("text", "trivial")) == 0
-    print("4) task-gate .......... PASS")
 
 
 # ==========================================================================
@@ -462,8 +444,13 @@ def test_commit_gate():
 
     def cg(cmd, *msgs):
         _clear_counter()
+        # agent_id present: the gate fires (2026-07-15: it exits for main-session
+        # payloads). No subagents/ dir exists beside the tx() temp file, so
+        # agent_transcript falls back to the main transcript and every boundary
+        # assertion below exercises the same logic as before the strip.
         return hook("commit-gate.py", {"tool_name": "Bash", "tool_input": {"command": cmd},
-                    "cwd": repo, "transcript_path": tx(*msgs)}, env=env).stdout
+                    "cwd": repo, "transcript_path": tx(*msgs), "agent_id": "tg-builder"},
+                    env=env).stdout
 
     def reset_stage():
         git("reset", "--hard"); git("clean", "-fd")
@@ -472,6 +459,12 @@ def test_commit_gate():
                 os.remove(f"{repo}/{f}")
 
     open(f"{repo}/foo.py", "w").write("x=1\n"); git("add", "foo.py")
+    # MAIN SESSION IS UNGATED (2026-07-15 strip): no agent_id -> exit 0, silent.
+    _clear_counter()
+    no_agent = hook("commit-gate.py", {"tool_name": "Bash",
+                    "tool_input": {"command": "git commit -m add"},
+                    "cwd": repo, "transcript_path": tx(("user", "go"))}, env=env).stdout
+    assert no_agent.strip() == "", "a main-session commit (no agent_id) must pass untouched"
     assert denied(cg("git commit -m add", ("user", "go")))                           # code/no docs/no verdict
     assert denied(cg("git commit -m add", ("user", "go"), ("text", "VERDICT: PASS")))  # docs still required
     open(f"{repo}/README.md", "w").write("# d\n"); git("add", "README.md")
@@ -556,8 +549,19 @@ def test_commit_gate():
     assert denied(cg("git commit -m add", ("user", "go"),
                      ("text", "I renamed the prop and fixed a typo in the one-line helper"))), \
         "loose trivial words in prose must NOT escape the commit gate"
-    assert not denied(cg("git commit -m add", ("user", "go"), ("text", "this one is trivial"))), \
-        "an explicit 'trivial' attestation still escapes"
+    # THE TURN-TEXT TRIVIAL ESCAPE IS GONE (2026-07-15). It matched a MENTION, not an
+    # attestation: `\btrivial\b` fires on any turn that DISCUSSES the escape — including
+    # "this is NOT a trivial change". Measured that day: 12 consecutive
+    # `ALLOW commit (trivial attested)` while the session's topic was this very escape,
+    # so the checker verdicts being run were not what cleared those commits.
+    assert denied(cg("git commit -m add", ("user", "go"), ("text", "this one is trivial"))), \
+        "turn TEXT must NOT attest trivial — only the commit message can"
+    assert denied(cg("git commit -m add", ("user", "go"),
+                     ("text", "this is NOT a trivial change, it is load-bearing"))), \
+        "the sentence that silently cleared the gate all session must now be DENIED"
+    assert denied(cg("git commit -m add", ("user", "go"),
+                     ("text", "an attested 'trivial' commit is exempt from the gate"))), \
+        "merely documenting the escape must not invoke it"
     # the MESSAGE-side loose escape reads the -m TEXT ONLY, never the whole command:
     # a trivial-family word in a staged PATH is an accident of naming, not an attestation.
     reset_stage(); os.makedirs(f"{repo}/src/rename", exist_ok=True)
@@ -566,9 +570,23 @@ def test_commit_gate():
                      ("user", "go"))), \
         "a trivial-family word in a PATH must NOT escape (only the -m message counts)"
     assert not denied(cg("git commit -m 'trivial: drop a stale comment'", ("user", "go"))), \
-        "the loose TRIVIAL family in the -m MESSAGE is still a deliberate attestation"
-    assert not denied(cg('git commit -m "rename the prop"', ("user", "go"))), \
-        "loose TRIVIAL in the message escapes (message channel stays loose by design)"
+        "the word 'trivial' in the -m MESSAGE is the one deliberate attestation"
+    # the message must ATTEST, not DESCRIBE (checker-caught): the loose family let
+    # `-m "refactor(store): rename the undo domains"` full-escape on a DESCRIPTION.
+    assert denied(cg('git commit -m "rename the prop"', ("user", "go"))), \
+        "a describing word ('rename') in the message must NOT attest trivial"
+    assert denied(cg('git commit -m "fix: typo in the header"', ("user", "go"))), \
+        "'typo' describes; only 'trivial' attests"
+    # LAUNDERING (both checker-caught): one segment must not clear another.
+    assert denied(cg("git commit --amend --no-edit && git commit -m 'feat: rewrite storage'",
+                     ("user", "go"))), \
+        "an --amend segment must NOT launder a real commit segment through as an escape"
+    assert denied(cg("git commit -m 'trivial: x' && git commit -m 'feat: rewrite storage'",
+                     ("user", "go"))), \
+        "EVERY commit segment must attest — one attestation cannot clear the chain"
+    assert not denied(cg("git commit -m 'trivial: a' && git commit -m 'trivial: b'",
+                         ("user", "go"))), \
+        "a chain where every segment attests still escapes"
     # SHORT-FLAG CLUSTERS carry the message: the first draft matched only a bare -m, so
     # `-am 'trivial: typo'` silently lost its LEGITIMATE escape (fail-safe, but a false
     # contract). getopt semantics: -m takes the cluster REMAINDER if any, else the next argv.
@@ -602,7 +620,8 @@ def test_commit_gate():
     _clear_counter()
     out = hook("commit-gate.py", {"tool_name": "Bash",
                "tool_input": {"command": f"git -C {repo} commit -m c"},
-               "cwd": "/tmp", "transcript_path": tx(("user", "go"))}, env=env).stdout
+               "cwd": "/tmp", "transcript_path": tx(("user", "go")),
+               "agent_id": "tg-builder"}, env=env).stdout
     assert denied(out), "git -C <dir> commit must be gated (panel-caught false-negative)"
     reset_stage(); open(f"{repo}/q.py", "w").write("q=4\n")
     assert denied(cg("git add -A && git commit -m q", ("user", "go")))              # chained add&&commit
@@ -611,7 +630,8 @@ def test_commit_gate():
     with open(SENT, "w") as f:
         json.dump({"denies": 9}, f)
     out_al = hook("commit-gate.py", {"tool_name": "Bash", "tool_input": {"command": "git commit -m q"},
-                  "cwd": repo, "transcript_path": tx(("user", "go"))}, env=env).stdout
+                  "cwd": repo, "transcript_path": tx(("user", "go")),
+                  "agent_id": "tg-builder"}, env=env).stdout
     assert not denied(out_al)                                                        # anti-loop fail-safe
     # RISK TIER — a low-risk commit (tests/copy only) full-escapes: no docs, no verdict.
     reset_stage(); open(f"{repo}/foo.test.js", "w").write("t\n"); git("add", "foo.test.js")
@@ -656,7 +676,7 @@ def test_gate_stats():
     out = subprocess.run([PY, f"{HOOKS}/gate-stats.py"], capture_output=True, text=True, env=env).stdout
     for rid in r.RULE_IDS:                       # EVERY id must roll up
         assert rid in out, f"gate-stats missing {rid}\n{out}"
-    assert "blocks): 9" in out, out             # 9 ids, one each
+    assert "blocks): 5" in out, out             # 5 ids (the 2026-07-15 strip), one each
     print("6) gate-stats ......... PASS")
 
 
@@ -668,7 +688,7 @@ def test_fail_open():
     # a _rules.py that explodes on import
     with open(f"{d}/_rules.py", "w") as f:
         f.write("raise RuntimeError('boom')\n")
-    for name in ("verify-gate.py", "pre-action-check.py", "task-gate.py", "commit-gate.py"):
+    for name in ("verify-gate.py", "pre-action-check.py", "commit-gate.py"):
         import shutil
         shutil.copy(f"{HOOKS}/{name}", f"{d}/{name}")
     home = tempfile.mkdtemp(); os.makedirs(f"{home}/.claude/hooks", exist_ok=True)
@@ -681,26 +701,28 @@ def test_fail_open():
     # verify-gate: must NOT block (fail-open) and must WARN
     r1 = run_broken("verify-gate.py", {"transcript_path": t, "cwd": home, "stop_hook_active": False})
     assert not blocked(r1.stdout) and "registry" in r1.stderr.lower(), (r1.stdout, r1.stderr)
-    # pre-action: must NOT deny (fail-open to nudge) and warn
+    # pre-action: nudge-only since the strip — it does not import the registry at all,
+    # so a broken _rules.py cannot touch it. It must still nudge, never deny.
     r2 = run_broken("pre-action-check.py", {"tool_name": "Edit", "tool_input": {"file_path": "a.py"},
                                             "transcript_path": t})
-    assert not denied(r2.stdout) and "registry" in r2.stderr.lower()
-    # task-gate: must allow (exit 0)
-    r3 = run_broken("task-gate.py", {"hook_event_name": "TaskCreated", "transcript_path": t})
-    assert r3.returncode == 0 and "registry" in r3.stderr.lower()
-    # commit-gate: must allow a commit (exit 0, no deny) and warn
+    assert not denied(r2.stdout) and "R1-R5" in r2.stdout
+    # commit-gate (agent_id, so it reaches its registry check): allow + warn
     r4 = run_broken("commit-gate.py", {"tool_name": "Bash", "tool_input": {"command": "git commit -m x"},
-                                       "cwd": home, "transcript_path": t})
+                                       "cwd": home, "transcript_path": t, "agent_id": "tg-x"})
     assert not denied(r4.stdout) and "registry" in r4.stderr.lower()
+    # commit-gate without agent_id: exits silently BEFORE any registry concern
+    r5 = run_broken("commit-gate.py", {"tool_name": "Bash", "tool_input": {"command": "git commit -m x"},
+                                       "cwd": home, "transcript_path": t})
+    assert r5.stdout.strip() == "" and r5.returncode == 0
     print("7) fail-open .......... PASS")
 
 
 if __name__ == "__main__":
     test_ledger_refs()
+    test_loaded_surfaces()
     test_registry()
     test_verify_gate()
     test_pre_action()
-    test_task_gate()
     test_commit_gate()
     test_gate_stats()
     test_fail_open()
