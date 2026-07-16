@@ -18,7 +18,8 @@ are per-action; presets carry NO json field. NOTHING else stores a tunable.
   • Sampler grounding (real `knob_catalog` plane-2 keys: min_p, xtc_*, dry_multiplier,
     repeat_penalty, repeat_last_n, seed): XTC only on the creative presets; DRY *or* a
     repeat penalty, never stacked; a pinned `seed` on the deterministic JSON presets.
-  • Reasoning: "Grounded chat" (p_chat) think=on/medium (2026-07-14); all others off.
+  • Reasoning: "Grounded chat" (p_chat) think=on with an EMPTY level = FOLLOW the
+    model's layered budget (2026-07-16 preset tier); all others off.
 
 Model per preset ships EMPTY ("" — QuickSetup/manual fills it, user 2026-07-06); a
 bigger rig swaps it in the Lab. Sampler values are strings (they ride the per-call
