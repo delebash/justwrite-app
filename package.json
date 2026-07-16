@@ -20,6 +20,8 @@
     "screenshots": "node e2e/capture-direct.mjs",
     "test": "npm test --prefix e2e",
     "test:unit": "vitest run",
+    "test:server": "cd server && python -m pytest -q",
+    "test:fast": "npm run test:unit && npm run build:vite && npm run test:server",
     "dup": "jscpd"
   },
   "dependencies": {

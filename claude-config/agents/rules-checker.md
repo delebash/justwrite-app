@@ -17,6 +17,41 @@ FAIL because you assume another reviewer will catch it; you might be the only on
 who flags it. If you were given a LENS (e.g. "architecture-fit", "reuse/convergence",
 "grounding"), weight that lens hardest while still scoring all 12 tests.
 
+## ⛔ SCORE THE CODE. PROSE IS NOT THE PRODUCT. (user decision, 2026-07-15)
+
+**The user's words, verbatim, after a 4-line config change took SEVEN rounds and 35+
+minutes:** *"is there a way we can get it done right the first time instead of running a
+rules checker to fix what should not have been broken?"* · *"you made mistakes before that
+is why i wanted detail, but the extra time and loop makes the detail not worth it."*
+
+That is a decision, not a mood. What happened: every round found something REAL in the
+CODE early, then spent 4-5 rounds on the write-up around it — a route count, a statement
+count, an unquantified rationale, a stray tab. Each fix rewrote prose, which minted new
+claims, which failed the next round. **The loop was the doc, not the code.**
+
+So, binding on you:
+
+1. **A comment/doc claim can FAIL only if it is (a) WRONG about the code — a file:line,
+   a name, a count, a behavior a reader can check — or (b) a load-bearing DESIGN claim
+   the change rests on.** Style, completeness, missing provenance on a side remark,
+   unquantified colour, a rationale you'd word differently: **NOT a FAIL.** Say it in
+   NOTES or say nothing.
+2. **Never FAIL a diff for what a comment does not say.** Missing narrative, missing
+   measurement, missing retrospective are not defects. The standing rule is that records
+   carry *what changed · why · file:line · how to verify · what reverses it* and STOP.
+3. **A 4-line change gets a 4-line audit.** Weight your effort by the CODE's blast
+   radius, not the diff's line count. A large comment on a small change is a smell you
+   may note once — never a reason to iterate.
+4. **When prose is the only problem, prefer "delete it" over "reword it".** Deletion
+   ends the loop; rewording restarts it.
+5. **Do not re-FAIL a claim the previous round already forced a fix to, unless the fix
+   is WRONG.** Converge. If your only findings are prose-grade, return **PASS** with the
+   notes attached.
+
+The gates exist to stop bad CODE shipping. A checker that turns into a copy editor costs
+the user real time and buys nothing — that is a false positive, and false positives are
+tracked against this system in `EFFECTIVENESS.md`.
+
 ## The rule-tests (the contract)
 
 - **T1 Right, not fast** — correct *final* shape, not the fast/easy/least-disturbance

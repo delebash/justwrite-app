@@ -16,7 +16,25 @@ npm run dev            # Tauri dev — boots Vite + native window. First run com
 npm run build          # Packaged app for the current OS
 npm run dev:vite       # Renderer only, in a plain browser tab (no Tauri APIs — project data still uses the server; images fall back to data-URLs)
 npm run build:vite     # Renderer build only (Tauri invokes this via `beforeBuildCommand`)
+
+npm run test:fast      # QUICK gate (~53s): vitest + build:vite + server pytest.
+                       # NOT the full fleet — no headless smoke (THE renderer gate), no
+                       # runner pytest, no cargo check, no biome/ruff. build:vite is a
+                       # COMPILE check, never a substitute for the smoke. Green here does
+                       # NOT clear a renderer/GUI change.
+npm run test:unit      # vitest only (157 tests, ~3s)
+npm run test:server    # server pytest only (108 tests, ~46s — parallel by default)
 ```
+
+**Test times (MEASURED 2026-07-15 — do NOT skip tests; they were never the bottleneck).**
+The five test gates below total **~2.6 min** — vitest **3s** · build:vite **2s** · server
+pytest **46s** · runner pytest **45s** · headless smoke **61s** (3s boot + 58s driving 25
+routes). *(cargo check and biome/ruff are NOT in that 2.6 min — untimed.)* The server suite
+was 147s and is now 46s by running on all cores with nothing skipped; **the full reasoning,
+the statement census, the safety argument, and the rejected alternative live in ONE place —
+`server/pyproject.toml`'s `[tool.pytest.ini_options]` comment.** Read it there before
+optimising or "fixing" the parallelism; don't restate its census or reasoning numbers here
+(a duplicated count in this file is how a wrong one propagated once already). Debug serially: `pytest -n 0`.
 
 Configured tooling (an earlier note here wrongly claimed "none" — verify against `package.json`, don't trust this line blindly): **Biome** (`biome.json` — lint + format; match the file's existing style, don't bulk-reformat unrelated code), a **vitest unit harness** (`vitest.config.js`, node environment — `npm run test:unit`; pure-JS service/composable tests like the embedApi ensure-cache + modelMeta suites; it complements, never replaces, the headless smoke below), an **`e2e/`** WebDriver harness (`tauri-driver` + `msedgedriver` driving the **built desktop binary** — `npm test` runs the smoke suite, `npm run screenshots` the marketing shots; both need a compiled `.exe` + Edge/WebView2, so it is **not** a headless or quick dev gate), and a **Playwright headless renderer smoke** (`scripts/headless-smoke.mjs`, plus `scripts/book-smoke.mjs`). **The headless smoke IS the renderer gate and it RUNS in this dev container** (a recurring wrong claim is that there's "no renderer gate / it's not runnable here" — false; run it). To run: boot `python -m justwrite_server.cli serve --port 17495` (background) + `npm run dev:vite` (:1420, background), then `node scripts/headless-smoke.mjs` — it drives headless Chromium over every hash route and asserts ZERO JS errors. Chromium is prebuilt — the binary is at `/opt/pw-browsers/chromium-<ver>/chrome-linux/chrome` (**a versioned dir**, e.g. `chromium-1194`; **NOT** `/opt/pw-browsers/chromium/`). The smoke's `findChrome()` auto-locates it; **any new Playwright script must reuse that `findChrome()` (copy it from `scripts/headless-smoke.mjs`) or set `JW_CHROME` — never hardcode the path** (a hardcoded `/opt/pw-browsers/chromium/...` silently falls over to the missing headless-shell build and the launch fails). **Run it to verify any renderer/GUI change.** Compile checks are `npm run build:vite` + `cd src-tauri && cargo check`; the **`e2e/`** WebDriver harness (`tauri-driver` + `msedgedriver` driving the **built `.exe`** — `npm test`, `npm run screenshots`; needs a compiled binary + Edge/WebView2) is the packaged-desktop check, not the quick gate. The Python **`server/`** (server-mode migration — see `docs/plans/2026-06-18-jw-server-migration.md`) uses **pytest + ruff**.
 

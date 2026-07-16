@@ -24,7 +24,7 @@ dependencies = [
 ]
 
 [project.optional-dependencies]
-dev = ["pytest>=8", "ruff>=0.7"]
+dev = ["pytest>=8", "pytest-xdist>=3", "ruff>=0.7"]
 # Bundle/CI ONLY — the frozen build pulls the shared runner from git (branch HEAD,
 # so it never goes stale). Dev does NOT use this; dev uses the editable local link
 # described in the dependencies note above.
@@ -45,6 +45,15 @@ include = ["justwrite_server*"]
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]
+# Parallel by default: the suite is ~1.3s/test, ~1.0s of it `create_all` against a fresh
+# SQLite file, x108 tests. Nothing is skipped -- the same work runs on all cores.
+# 147s -> 46s. Safe: no conftest.py, no shared state, every disk-touching test gets
+# its own tmp_path
+# (per-worker `popen-gw<N>/` subdir) and each worker is its own process.
+# Debug serially with `pytest -n 0`. Sibling just-llm-runner has no xdist on purpose --
+# its suite is 0.09s/test and not create_all-bound.
+# NOTE: addopts is unconditional but xdist is in the `dev` extra -- install `.[dev]`.
+addopts = ["-n", "auto"]
 
 [tool.ruff]
 line-length = 100
