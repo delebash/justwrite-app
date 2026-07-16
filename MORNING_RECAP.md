@@ -44,25 +44,13 @@ now:
    still carry full detail — no shortening, truncating, or bullets — after each phase or commit;
    **`MORNING_RECAP.md` and `CLAUDE.md` MAY summarize, as long as they point to those detailed
    docs.** So this map summarizing here is now explicitly sanctioned, not a tolerated exception.
-   **1b — WHAT "full detail" MEANS (scoped 2026-07-15, user's ask "does that cut the time"):**
-   the record answers exactly five questions — **what changed · WHY · file:line · how to verify ·
-   what would reverse it** — plus what is still OPEN. In full prose, no truncation. OUT:
-   retrospective narrative, measured-cost anecdotes, lessons essays, meta-commentary. Rewritten
-   to this shape a 136-line entry became 84 with every technical fact intact.
-   **⚠ HONEST GROUNDS — a second pass overturned this rule's first rationale, keep the correction
-   visible.** I originally justified the cut as "the padding is where the errors breed: all four
-   false claims lived in the narrative, zero in the file:line record." **That was itself false** —
-   an unverified claim written INTO the rule against unverified claims. The audit: essentially
-   every defect the checker caught that day lived in the TECHNICAL record — the sweep table, its
-   file:line column (stale 3×), the volatile log counts, the "Verified:" line, the docstring
-   promises, the WHY. **Zero were in the padding.** So cutting narrative saves READING cost — a
-   real but modest win — and would not have prevented a single round. The thing that actually
-   prevents them is mechanical, not editorial: **pin every claim with a test** (`test_ledger_refs`
-   re-checks each cited file:line and fails the suite on a stale one — it killed a class that had
-   cost three checker rounds, and caught the next one within minutes), **quote invariants, never
-   volatile measurements**, and **enumerate units with an unfiltered command**. Keep 1b for
-   brevity's own sake; do not believe it makes the record truer. Durable form:
-   `claude-config/EFFECTIVENESS.md`, the 2026-07-15 entry.
+   **1b — WHAT "full detail" MEANS (scoped 2026-07-15, the user's call):** the record
+   answers five questions — **what changed · WHY · file:line · how to verify · what would
+   reverse it** — plus what is OPEN, in full prose, then STOPS. No retrospective narrative,
+   cost anecdotes, lessons essays, or meta-commentary. Honest grounds: brevity saves READING
+   cost only — what actually prevents stale claims is mechanical (`test_ledger_refs`, size
+   budgets, invariants-not-measurements); full correction in `claude-config/EFFECTIVENESS.md`
+   2026-07-15 + the archive.
 2. **This file gets a SHORT pointer paragraph per go** — what shipped, the commit shas, where
    the full record lives, what's open. A few sentences, never the full narrative twice.
 3. **History never accumulates here.** When a stretch of work closes, its pointer paragraphs
@@ -73,124 +61,55 @@ now:
    in `docs/plans/2026-07-08-recap-archive.md` — open it only when a question touches that
    history and the pointers below don't answer it.
 
-## CURRENT STATE (2026-07-15)
+## CURRENT STATE (2026-07-15, end of day — everything below SHIPPED AND PUSHED)
 
-**⛔⛔ COMPACT POINT (2026-07-15, evening) — READ FIRST POST-COMPACT.** The **one-downloader
-consolidation** is **BUILT + VERIFIED + COMMITTED** (behind its own rules-checker verdict;
-PUSH held for the user's word). User's order: "regardless of what we download engine model
-whatever … reuse the control … stop repeating code". Shipped: ONE `createDownloadTask`
-composable + ONE `DownloadBar.vue` (its caption reuses the existing `progressCaption`, no
-fork); **Quick Setup adopts them fully** — three tasks (engineTask when the engine isn't
-installed, chatTask waiting on the engine, embedTask in parallel) — and the two domain
-singletons (`useEngine` · `useRunnerModels`) KEEP their pollers (merit-flagged: their poll
-subjects — a mutating models list, a 4-shape install — aren't finite self-started tasks) but
-reuse the ONE `progressCaption`, gain **cancel** (`useEngine.cancel()` → the engine panel's
-install bar; the catalog LOAD row → `/stop`), and `useRunnerModels` SPLITS its merged
-progress into `loadProgress` + `downloadProgress` (the lying shared label is dead). TWO server
-additions: NEW `POST /engine/install/cancel` (+ `_engine_cancel` worker event, `DownloadCancelled`
-→ not-installed idle) and a **true load-abort** (`cancel_check = model_id not in _resident` at the
-load's weights+MTP-draft download; `_run_load` catches cancel with no error state). Built ON TOP of
-runner `cf0fc59` / JW `af2a363`, SUBSUMING builder-1's uncommitted two-parallel-bars QuickSetup
-(fully replaced by the three-task version). Gates: runner pytest 509 (+3) · ruff · build:vite ·
-vitest **157** (+12 useDownloadTask) · headless smoke zero JS errors (pre-existing jscpd red only)
-· the extended Playwright driver **16/16 with screenshots read** (A three-bars, B engine cancel→
-retry→done, C catalog dual-channel different bytes). Shipped-as-flagged lean: embed-failure still
-advances to done with an honest note. Standing protocol (memory: [[fable-decides-opus-executes]]):
-Fable decides/plans, Opus executes code+tests+commits; **hard go-gate ON — nothing runs without the
-user's literal "go".** Full record: the plan doc's **ONE-DOWNLOADER CONSOLIDATION** section.
-
-**GO (2026-07-15) — THE SUBAGENT-HOOK GAP IS FIXED; delegated builds stop paying a ~2-3x
-tax.** The user's challenge ("1 hour 6 mins ... something is very wrong") was right: of the
-one-downloader build's 66 minutes, code work was ~30. Root cause: the PreToolUse hook's
-SUBAGENT BYPASS **never fired once** — it read `isSidechain` from the transcript it
-receives, but the harness passes the MAIN transcript even for a subagent's call. Every
-builder's first code Edit/Write was denied and no builder could clear it, so they applied
-code via python patch-scripts through Bash (3-10x the tokens of an Edit). Now keyed on the
-payload's `agent_id` (live-captured both ways). Same defect class fixed in `commit-gate.py`
-+ `task-gate.py` — they now read the agent's OWN transcript, so a builder's real checker
-verdict COUNTS instead of being invisible (it previously escaped only by burning 4 denials):
-this **strengthens** those gates. Shipped to both provisioners: claude-config `2e79f8f` +
-this repo's vendored copy (local sessions self-update; web containers install from
-`claude-config/`). **Process lesson (user, verbatim): "you should have let me know this is a
-prob and fix it it should be we dont just say ok thats fine and waste time"** — I found this
-gap in the morning, filed it as a follow-up, and ran two more builders through it. A
-working-but-degraded path is a bug to SURFACE, not absorb. **Full record + the 5-unit gate
-table + the 4 durable lessons: `claude-config/EFFECTIVENESS.md`, the 2026-07-15 entry.**
+**One session took the AI routing to the one-source model and rebuilt the guardrails on
+evidence.** Shipped + pushed, in order: the **one-source preset rewrite** (task tier deleted;
+action → preset ref → `default_preset_id`; runner `8081539`) · the **⛔ correction** after the
+user saw the UI (Presets page deleted — `Routing by feature` is the ONE surface; original
+"Use in production" restored; found+fixed the pre-existing same-origin CSRF 403) · **Quick
+Setup parallel download bars** (chat ∥ embed, cancel/retry each) · the **one-downloader
+consolidation** (ONE `createDownloadTask` + `DownloadBar` for engine/model/embed; engine
+install cancel + true load-abort server-side; runner `6602468`) · the **subagent-hook fix**
+(builders' Edit/Write no longer denied — the ~2-3× patch-script tax is gone; commit/task
+gates read the agent's OWN transcript; claude-config `2e79f8f`+`b35fc39`) · **server tests
+147s → 46s** (`pytest -n auto`, nothing skipped; `npm run test:fast` ≈53s; full fleet
+~2.6 min) · the **gate strip** below. Full records: the plan docs named in each line + the
+ACTIVE DOC INDEX; today's collapsed paragraphs are verbatim in the recap archive.
 
 **GO (2026-07-15, late) — THE GATE STRIP + RULES CUT (the user's named go).** Rules 12→5 (**R1–R5** + two habits + the act-not-word law; `~/.claude/CLAUDE.md` is now 80 lines). Gates decided by LIFETIME logs: Stop keeps **Block 0** (re-read after reset; 4 fires/4 fixes), **Block 1** (a code claim needs evidence tools that turn — the user's save: "you often check docs or memory which we find dont align with actual code"), and **Block 6** (second pass; 3 fires/3 changed answers); **commit-gate fires ONLY for delegated-agent commits** (main session ungated — 15 of its 25 lifetime decisions were its own word-escape bug); **task gates deleted** (29 of 39 log lines were its own test suite); **pre-action is nudge-only**. Checker cadence: ONE per task on the diff; plan checks tiered (1 routine / 3-lens load-bearing). **Prose regrowth now FAILS the suite** (`test_gates.py::test_loaded_surfaces` — size budgets on every context-loaded surface). Full record: claude-config `rules-detail.md` "THE STRIP" + `EFFECTIVENESS.md` 2026-07-15.
 
-> **Re-split 2026-07-15 (doc-sweep).** This section had grown to ~40 GO paragraphs
-> (2026-07-08 → 2026-07-14, all shipped + pushed) — ~4.5× the protocol's 25 KB ceiling.
-> Per the RECAP PROTOCOL above, they were collapsed into the summary below; their
-> verbatim text is appended to `docs/plans/2026-07-08-recap-archive.md` (and lives in git
-> history). Per-go detail stays in the plan docs named in the ACTIVE DOC INDEX.
-
-**⛔ CORRECTION (2026-07-15, after the user SAW the built UI) — THE PRESETS PAGE IS DELETED;
-`Routing by feature` is the ONE routing surface.** The user's verdict: *"task kind should
-not even exist anymore … it looks to me like you just renamed tasks to presets"* · *"we
-should only have routing by feature and it works the same way originally"*. They were right:
-I'd concluded "the preset IS the group" and then wrongly built it a group-management page —
-structurally TaskKinds.vue renamed. Shipped: Presets.vue + its tab deleted; the duplicate
-top preset dropdown deleted (the Lab bar is THE control); the ORIGINAL **"Use in
-production"** + `● in production` restored (my rename and the task era's both reverted —
-verified in git at `1302f88`, not memory); per-feature **Reset to default** back as a real
-red button (right-aligned, resets ref AND reloads the form); `↺ Reset presets to defaults`
-moved to the list footer; **Writing AI** tab moved beside Routing by feature; b4-probe
-deleted, presets-probe rewritten (**31/31**). **A REAL PRE-EXISTING BUG found + fixed:**
-`csrf.py` never allowlisted the server's OWN origin, so every write from the server-hosted
-(headless `serve` + browser) UI 403'd — same-origin is not a CSRF vector; now derived
-per-request (`test_csrf.py` 4/4 + a new regression). Gates: JW server **108** + ruff ·
-vitest **145** · build · FULL smoke zero JS errors · probe 31/31 · **screenshots reviewed
-by me this time.** TWO PROCESS LESSONS → memory: nobody ever LOOKED at the built UI (the
-whole pipeline was green and wrong — [[verify-ui-layout-visually]] rewritten), and I wrote
-the "maybe fold this into Routing by feature" doubt into my own approval note and never
-asked it. Full record: the plan doc's **⛔ CORRECTION** section. **QuickSetup follow-on (same
-day):** Quick Setup's apply step now shows **parallel download bars** (chat + embed at
-once, each with its own Cancel/Retry — cancelling keeps the downloaded part), the **embed
-actually downloads during Apply**, and a successful Retry now advances the wizard; full record
-in the plan doc's **QUICKSETUP FOLLOW-ON** section. **One-downloader (same day, next):** those
-bars are now the ONE shared `DownloadBar` driven by the ONE `createDownloadTask` composable, so
-engine, model, and embed downloads reuse the same control everywhere — **Quick Setup installs
-the engine too** (its own third bar on a fresh-install first run) and **every bar (engine,
-model-load, model-download, embed) cancels and retries**; full record in the plan doc's
-**ONE-DOWNLOADER CONSOLIDATION** section.
-
-**GO (2026-07-15, same day: "go" + "keep going until its done" + "push") — THE ONE-SOURCE
-PRESET REWRITE IS BUILT, VERIFIED, COMMITTED + PUSHED.** Runner `8081539`; JW = this commit +
-its claude-config sibling (rebased onto the doc-sweep). Executed by Opus subagents per the
-user's protocol, each stage spot-verified. The task tier, prompt-row params, `_effective_spec`,
-the dormant sampler + FeaturePreset systems, JW's pin plumbing, and PromptLab are GONE (no
-legacy fallbacks — the user's word); action → preset is the one source; the shared
-`FeaturePinConfig`/`resolve_pin` contract is KEPT (JustVoice-live). Gates all green: runner
-pytest 506 · JW server 107 · vitest 145 · build ✓ · FULL smoke zero JS errors (isolated temp
-DB, live data untouched) · NEW presets-probe 22/22 incl. the flattening pin · the repointed
-fleet green (3 pre-existing/environmental reds, root-caused). **Full record: the plan doc's
-BUILD RECORD — `just-llm-runner/docs/plans/2026-07-15-preset-one-source-rewrite.md`; the
-approval + panel history live there too.** Docs shipped with it: `docs/presets.md` (replaces
-tasks.md), models.md swept, CLAUDE.md pointer, the 2026-07-14 plan bannered. OPEN after this
-go: the USER's box checks (local High chat stops at the hardware cap; new-Anthropic run
-clean) · the claude-config subagent-hook bypass follow-up. (`docs/ai-providers.md`'s
-3-tier/read-only-chip sections — stale for the hours between the doc-sweep and this rewrite —
-were re-swept to the one-source model in the same push.)
-
-**Heads at this re-split:** JW `49ad7b5` · runner `493f8ef` — both clean, 0-ahead / 0-behind origin.
+**Heads at this cleanup:** JW `6ff1bc6` · runner `0ed1ef3` · claude-config `2d20135` — all
+0-ahead/0-behind their origins. **In flight:** one Opus builder fixing the catalog's
+Re-download-on-loaded gap (`LuModelCatalog.vue` — show Re-download on loaded rows, unload
+first); verify its record when it lands.
 
 ### What the app IS, in one breath
 JustWrite is a novel-writing app (Tauri 2 + Vue 3 + a Python/SQLite server) that shares its
 whole AI/LLM stack — `just-llm-runner` (Python) + `@delebash/llm-ui` (Vue) — with JustVoice.
 Persistence is **server-owned SQLite** (no browser IndexedDB); a rotating server-written disk
 autosave + per-book `.zip` export/import + whole-workspace backup are the durable nets. The
-**AI** page (sidebar → AI, `/ai`) carries the tabs Providers & models · Routing by task ·
-Routing by feature · Usage · Server console. AI routing is a **3-tier preset cascade** —
-feature override → task preset → global default.
+**AI** page (sidebar → AI, `/ai`) carries the tabs Providers & models · Routing by feature ·
+Writing AI · Usage · Server console. AI routing is **one-source** (2026-07-15): each action
+points at ONE engine preset (`feature_preset_refs`) which owns the model + every tunable;
+one `default_preset_id` catches unassigned customs; the action keeps only its prompt text +
+JSON contract.
 
 ### SHIPPED (collapsed) — the 52-item batch + every follow-up, all pushed
 Highlights, newest first (full records in the plan docs / git):
 
-- **Unit 1 — per-feature preset OVERRIDE restored (3-tier cascade)** (2026-07-14) — runner
-  `fb03302`+`419f5c3`+`493f8ef` · JW `49ad7b5`. Reverses Plan A's 2-tier collapse. Doc:
-  `just-llm-runner/docs/plans/2026-07-14-feature-override-and-reasoning-plan.md` (its Unit 2 =
-  the thinking system, being built elsewhere — see NEXT).
+- **The 2026-07-15 day** (details in CURRENT STATE above until the next re-split): one-source
+  preset rewrite + correction + CSRF fix — doc:
+  `just-llm-runner/docs/plans/2026-07-15-preset-one-source-rewrite.md` (plan · T0 audit ·
+  BUILD RECORD · ⛔ CORRECTION · QUICKSETUP FOLLOW-ON · ONE-DOWNLOADER sections) — and the
+  guardrail work (subagent-hook fix, gate strip, test speedup) — records:
+  claude-config `rules-detail.md` "THE STRIP" + `EFFECTIVENESS.md` 2026-07-15. The absorbed
+  **Unit 2 reasoning backend** (engine bump b9993, `reasoning_map`, `min(ask,cap)`, adapters,
+  Off→Max UI) shipped inside the rewrite.
+- **Unit 1 — per-feature preset OVERRIDE restored** (2026-07-14) — runner
+  `fb03302`+`419f5c3`+`493f8ef` · JW `49ad7b5`. Superseded a day later by the one-source
+  rewrite (its `feature_preset_refs` survives as THE pointer). Doc:
+  `just-llm-runner/docs/plans/2026-07-14-feature-override-and-reasoning-plan.md`.
 - **Acceleration-backend selector (CUDA / Vulkan / Auto)** — runner `b66449c`+`ae787f1`+`8215dc6`.
   Doc: `just-llm-runner/docs/plans/2026-07-14-acceleration-backend-selector.md`.
 - **Risk-tiered commit-gate** — JW `63f8318` (LOW-risk tests/copy commits skip the checker;
@@ -208,29 +127,21 @@ Highlights, newest first (full records in the plan docs / git):
 - **The 52-item batch (B1–B6) + every QC cluster** — full record:
   `just-llm-runner/docs/plans/2026-07-08-big-batch-queue.md` §3 / §7 / §9.
 
-### STAGED — awaiting the user's own move
-- **claude-config extraction** — the global rules-as-checks bundle is staged for its own repo
-  `delebash/claude-config` (bundle in `just-llm-runner/claude-config-export/`, commit `fcaceb1`).
-  The USER completes the move from their machine (this session's git proxy is scoped to the 4
-  configured repos). **SAFE-ROLLOUT:** JW's `claude-config/` copy is RETAINED as the working
-  provisioner until a fresh container proves the standalone repo provisions `~/.claude`.
+### STAGED → RESOLVED
+- **claude-config extraction — DONE.** `github.com/delebash/claude-config` is the source of
+  truth (local clone `~/.claude/claude-config`, pulled by `self-update.sh` each new session);
+  JW's `claude-config/` copy is the synced WEB provisioner (the env Setup script installs from
+  it). Still open: a fresh web container proving the standalone repo can provision `~/.claude`
+  directly, after which the vendored copy can go.
 
 ### NEXT / open
-- **Unit 2 — the thinking/reasoning system** is being built in ANOTHER session on the user's
-  local GPU box (the plan's Unit 2: engine bump + a generation-aware `reasoning_map` +
-  one `min(ask,cap)` resolver + a model-aware Anthropic adapter + the Off/Low/Med/High/XHigh/Max
-  UI). **Do not touch its files here** — `docs/models.md` reasoning section + the plan doc's Unit 2 block.
+- **Unit 2 (thinking/reasoning) is SHIPPED** — absorbed into the one-source rewrite. What
+  remains is the USER's box acceptance: one local High chat run stopping at the hardware cap,
+  one new-Anthropic run (reasoning words on the wire, no 400). Ledger §G.
 - **THE ledger** `just-llm-runner/docs/plans/2026-07-06-outstanding-master-plan.md` §F/G/I/J is
   the ONE open-work source: **F1 JustVoice convergence** (still broken — JV imports
   `LLMRolesSettings` the runner defines nowhere) is the biggest build; §G your-box checks; parked
   I2/I3/I5/I6, #256 spell-check, D5/D6, J1–J3.
-
-### THIS SESSION (2026-07-15) — doc-sweep
-Help-corpus currency sweep + this recap re-split (JW + shared stack; JustVoice excluded).
-Removed the obsolete **Writer Lab** doc + its refs; fixed **IndexedDB → server-SQLite** and the
-removed **"Send to JustVoice"** export card; rewrote `ai-providers.md`'s routing/nav/chip sections
-to the current **3-tier + read-only-chip + AI-page** model; added the missing **Reader knowledge**
-TOC entry. `whats-new.md` + `backups-and-data.md` (export/autosave) verified current.
 
 ## OPEN WORK — the ONE list and where it lives
 
@@ -239,8 +150,7 @@ TOC entry. `whats-new.md` + `backups-and-data.md` (export/autosave) verified cur
   code-verified answers · **§7.1–§7.6 the LOCKED decisions (ALL discussions decided; E parked;
   the §7.6 flagged interpretations user-BLESSED: "your decisions are fine")** · §3 batches
   B1–B6 — **B1 + B2 + B3 (incl. the B3-4/B3-10 remainder) + B4 BUILT + shipped**. **⛔ THE
-  §8 STANDING GO ON BATCHES 5+6 IS FROZEN by the user's hard stop (2026-07-08, verbatim in
-  the CURRENT STATE block above): "do nothing until i say go"** — the queue doc §9 ROUND 2
+  §8 STANDING GO ON BATCHES 5+6 IS FROZEN by the user's hard stop (2026-07-08): "do nothing until i say go"** — the queue doc §9 ROUND 2
   items (QC-10..16) are discussion-first; DL-2 stays PLAN-ONLY; B2-9 still needs its own
   word. Nothing builds until the user's go. **B1-2 CLOSED at pickup** by the user's own diagnosis (a DB-reset
   disk⇄DB disconnect; "the deleting is fine" — no code change; the disk-based sweep already
@@ -285,16 +195,16 @@ TOC entry. `whats-new.md` + `backups-and-data.md` (export/autosave) verified cur
   parallelizable grunt work can go to Opus. **The chat-window model is the USER's to set — I
   CANNOT change it; only the user does** (their window auto-flipped to Opus and they reverted it
   themselves). Opus is ONLY ever a per-*subagent* model I set on a spawned Agent (`model: "opus"`),
-  orthogonal to whatever the window runs. Never Sonnet (global T10).
+  orthogonal to whatever the window runs. Never Sonnet (global rule — the Enforcement
+  section of `~/.claude/CLAUDE.md`).
 - **DB policy:** drop + reseed, no migrations (pre-release;
   `docs/plans/2026-06-18-unified-storage-no-idb.md`). Additive-only schema changes (new
   tables) need no reset — `create_all` picks them up on boot.
-- **Verification discipline (2026-07-06/07 amendments, binding):** the FULL headless smoke
-  runs on **every UI change, waivers notwithstanding** (the usePoll runtime break the user
-  caught taught this); a green smoke alone is not proof — a Playwright probe must **observe
-  the changed surface**; checker discipline per the user's "do b": NO pre-build agent check
-  (grounding + inline T1–T12 citation before building), **ONE genuine diff rules-checker
-  verdict before each CODE commit** (doc-only commits exempt).
+- **Verification discipline (amended at the 2026-07-15 strip):** the FULL headless smoke
+  runs once per TASK that touches the renderer (a green smoke alone is not proof — a probe
+  must **observe the changed surface**, and the built UI gets LOOKED at); **ONE rules-checker
+  per task on the final diff**; plan checks tiered (1 routine / 3-lens load-bearing). The
+  test fleet (~2.6 min) runs freely — never skip it, it was never the bottleneck.
 - **Don't cram (user decree 2026-07-08, queue doc §9 QC-7):** hierarchy + breathing room on
   every surface; ONE short lede sentence max on a working surface (detail behind the help
   affordance); one fact shown once; one primary thing on screen per mode. Born from the Tune
@@ -332,9 +242,9 @@ TOC entry. `whats-new.md` + `backups-and-data.md` (export/autosave) verified cur
   — sections A–I; §I is the master-plan tail folded 2026-07-08.
 - **Providers/models surface:** `just-llm-runner/docs/plans/2026-07-06-providers-surface-redesign.md`
   — ROUNDs 1–19 full records + the parked list + per-round box checks. Banner + needed round only.
-- **Current AI-routing / preset model:** `just-llm-runner/docs/plans/2026-07-14-feature-override-and-reasoning-plan.md`
-  (3-tier cascade restored 2026-07-14: feature override → task preset → global default; the
-  2026-07-02 Plan-A doc's reset/edit-in-place story stands, its 2-tier cascade reverted).
+- **Current AI-routing / preset model:** `just-llm-runner/docs/plans/2026-07-15-preset-one-source-rewrite.md`
+  (ONE-SOURCE: action → preset ref → `default_preset_id`; the 2026-07-14 plan's Unit-2
+  reasoning backend stands, its task-tier language superseded).
 - **Model-per-hardware execution (closed):** `just-llm-runner/docs/plans/2026-07-06-model-per-hardware-plan.md`
   — the one-profile consolidation, fit-by-omission, sweep, class map, orphan-child fix; phase records.
 - **On-box tuning evidence:** `docs/plans/2026-07-06-llamacpp-config-tuning-2070s.md` +
