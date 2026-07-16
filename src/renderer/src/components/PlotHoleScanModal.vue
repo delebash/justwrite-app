@@ -141,7 +141,7 @@ const ago = (ts) => {
         <h2 class="modal-title">Continuity audit</h2>
       </div>
       <div class="ph-header-actions">
-        <AiFeatureChip feature="plotHoles" label="Plot-holes" />
+        <AiFeatureChip feature="plotHoles" label="Plot-holes" editable />
       </div>
     </template>
 

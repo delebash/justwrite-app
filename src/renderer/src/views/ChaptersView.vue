@@ -1114,7 +1114,7 @@ watch(() => project.allChapters.map((c) => `${c.id}:${(project.scenesFor(c.id) |
                  a click-to-edit popover for picking a different one. -->
             <div class="ai-strip-routing">
               <span class="ai-strip-routing-label">Running on</span>
-              <AiFeatureChip feature="writerAI" label="Writer actions" />
+              <AiFeatureChip feature="writerAI" label="Writer actions" editable />
             </div>
             <div class="ai-strip-divider"></div>
             <div class="ai-strip-section">

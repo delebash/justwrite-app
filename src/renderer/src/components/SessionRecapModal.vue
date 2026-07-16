@@ -178,7 +178,7 @@ onMounted(() => {
         <h2 class="modal-title">Wrap up your day</h2>
       </div>
       <div class="recap-header-actions">
-        <AiFeatureChip feature="recap" label="Recap" />
+        <AiFeatureChip feature="recap" label="Recap" editable />
       </div>
     </template>
 

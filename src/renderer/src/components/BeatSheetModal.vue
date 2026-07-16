@@ -114,7 +114,7 @@ if (!mapping.value) run();
         <h2 class="modal-title">Map to a narrative framework</h2>
       </div>
       <div class="bs-header-actions">
-        <AiFeatureChip feature="beatSheet" label="Beat sheet" />
+        <AiFeatureChip feature="beatSheet" label="Beat sheet" editable />
       </div>
     </template>
 

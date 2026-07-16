@@ -115,7 +115,7 @@ function formatComps(comps) {
         <h2 class="modal-title">Logline, blurbs, synopsis, pitch</h2>
       </div>
       <div class="mp-header-actions">
-        <AiFeatureChip feature="marketingPack" label="Marketing" />
+        <AiFeatureChip feature="marketingPack" label="Marketing" editable />
       </div>
     </template>
 

@@ -50,12 +50,18 @@ DEFAULT_ENGINE_PRESETS: list[dict] = [
     {"id": "p_ideation", "name": "Ideation", "provider_id": "local-llamacpp",
      "model": "", "temperature": 1.0, "top_p": 0.95, "position": 2,
      "samplers": {"min_p": "0.06", "xtc_probability": "0.5", "xtc_threshold": "0.1", "dry_multiplier": "0.8"}},
-    # p_chat is the ONE thinking preset (U2-T3, 2026-07-14): grounded book-chat's reasoning
-    # intent lives HERE — think ON at level Medium, resolved + hardware-capped by the
-    # reasoning resolver. p_character_chat stays think-off (fast in-voice dialogue).
+    # p_chat is the ONE thinking preset: grounded book-chat's reasoning intent lives HERE —
+    # think ON with an EMPTY level = FOLLOW (2026-07-16 preset tier, "feature is the end
+    # of the line"): the run resolves the thinking budget from the SELECTED MODEL's layers
+    # (your applied config → hardware class default → global launch defaults) live, nothing
+    # copied — so a fresh box thinks at its class's tested value (1024 on 8 GB), exactly the
+    # user's stated expectation. A level here would be the preset's OWN ask (the map's
+    # number locally / word on cloud), overriding every layer — seeded empty on purpose;
+    # the old "medium" seed would have asked 4096 on every fresh box, 4× the tested value.
+    # p_character_chat stays think-off (fast in-voice dialogue).
     {"id": "p_chat", "name": "Grounded chat", "name_was": "Interactive chat", "provider_id": "local-llamacpp",
      "model": "", "temperature": 0.3, "top_p": 0.90, "position": 3,
-     "think": True, "reasoning_effort": "medium",
+     "think": True, "reasoning_effort": "",
      "samplers": {"min_p": "0.05", "repeat_penalty": "1.05", "repeat_last_n": "64"}},
     {"id": "p_character_chat", "name": "Character chat", "provider_id": "local-llamacpp",
      "model": "", "temperature": 0.7, "top_p": 0.90, "position": 4,

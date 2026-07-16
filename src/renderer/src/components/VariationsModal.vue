@@ -143,7 +143,7 @@ onBeforeUnmount(cancelAll);
         <h2 class="modal-title">{{ label }}</h2>
       </div>
       <div class="va-header-actions">
-        <AiFeatureChip feature="writerAI" label="Variations" />
+        <AiFeatureChip feature="writerAI" label="Variations" editable />
       </div>
     </template>
 

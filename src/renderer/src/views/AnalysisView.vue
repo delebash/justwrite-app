@@ -859,7 +859,7 @@ const milestoneState = computed(() => {
         <div class="card-title" style="margin:0">Voice drift</div>
         <span class="t-muted" style="font-size:11.5px">Per-metric trend across chapters · outliers in red</span>
         <span style="margin-left:auto;display:flex;gap:8px;align-items:center">
-          <AiFeatureChip feature="voiceDrift" label="Voice drift" />
+          <AiFeatureChip feature="voiceDrift" label="Voice drift" editable />
           <span class="vd-pill vd-pill-hot">{{ drift.hotChapters.length }} hot chapter{{ drift.hotChapters.length === 1 ? '' : 's' }}</span>
           <span class="vd-pill vd-pill-muted">{{ Math.round(drift.driftIndex * 100) }}% of the book</span>
         </span>

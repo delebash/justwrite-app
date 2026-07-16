@@ -189,7 +189,7 @@ function jumpToChapter(chapterId) {
         </p>
       </div>
       <div class="pane-actions">
-        <AiFeatureChip feature="readerKnowledge" label="Reader knowledge" />
+        <AiFeatureChip feature="readerKnowledge" label="Reader knowledge" editable />
         <span v-if="lastRunAt && !running" class="rk-stamp">Last run {{ ago(lastRunAt) }}</span>
         <UiButton v-if="hasAny && !running" intent="ghost" @click="clearAll"
                   v-tooltip.bottom="'Discard the saved analysis'">

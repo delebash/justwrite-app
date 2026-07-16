@@ -175,7 +175,7 @@ const TRAJECTORY_COLOURS = {
         <h2 class="modal-title">How does this relationship move?</h2>
       </div>
       <div class="ra-header-actions">
-        <AiFeatureChip feature="relationshipArc" label="Relationship" />
+        <AiFeatureChip feature="relationshipArc" label="Relationship" editable />
       </div>
     </template>
 

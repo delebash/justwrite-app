@@ -155,7 +155,7 @@ function onReviewCommitted(payload) {
         <div class="modal-title">Scanning for new entities</div>
       </div>
       <div class="sweep-header-actions">
-        <AiFeatureChip feature="entitySweep" label="Entity sweep" />
+        <AiFeatureChip feature="entitySweep" label="Entity sweep" editable />
         <UiButton v-if="running" intent="ghost" size="small" @click="cancelSweep">
           <Icon name="Close" :size="12" /> Cancel
         </UiButton>

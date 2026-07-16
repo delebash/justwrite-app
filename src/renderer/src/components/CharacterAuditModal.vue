@@ -197,7 +197,7 @@ onMounted(() => {
         <h2 class="modal-title">Consistency audit</h2>
       </div>
       <div class="ca-header-actions">
-        <AiFeatureChip feature="characterAudit" label="Character audit" />
+        <AiFeatureChip feature="characterAudit" label="Character audit" editable />
       </div>
     </template>
 

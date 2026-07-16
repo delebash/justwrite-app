@@ -181,7 +181,7 @@ function clear() {
 <template>
   <div class="brainstorm-view">
     <PaneHeader eyebrow="Planning" title="Brainstorm" help-key="brainstorm">
-      <AiFeatureChip feature="brainstorm" label="Brainstorm" />
+      <AiFeatureChip feature="brainstorm" label="Brainstorm" editable />
     </PaneHeader>
 
     <div class="brainstorm-controls">

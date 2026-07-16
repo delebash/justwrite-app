@@ -86,7 +86,7 @@ function useMove(move) {
         <h2 class="modal-title">Five ways to unblock this scene</h2>
       </div>
       <div class="su-header-actions">
-        <AiFeatureChip feature="unstuck" label="Unstuck" />
+        <AiFeatureChip feature="unstuck" label="Unstuck" editable />
       </div>
     </template>
 

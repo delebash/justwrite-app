@@ -130,7 +130,7 @@ const ago = (ts) => {
         <h2 class="modal-title">The shape your book actually has</h2>
       </div>
       <div class="ro-header-actions">
-        <AiFeatureChip feature="reverseOutline" label="Reverse outline" />
+        <AiFeatureChip feature="reverseOutline" label="Reverse outline" editable />
       </div>
     </template>
 

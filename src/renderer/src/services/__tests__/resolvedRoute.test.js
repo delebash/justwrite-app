@@ -9,7 +9,7 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
 import { request } from "@delebash/llm-ui/client.js";
-import { useResolvedRoute } from "@delebash/llm-ui/composables/useResolvedRoute.js";
+import { resolvedSourceLabel, useResolvedRoute } from "@delebash/llm-ui/composables/useResolvedRoute.js";
 
 function jsonResponse(obj) {
   return {
@@ -92,11 +92,6 @@ describe("useResolvedRoute — write invalidation (chips update without a reload
   // (the action's ref → the global default preset; the task tier is gone). The
   // cache preserves the whole row verbatim (presentation is the consumer's job),
   // so a provenance chip reads the tier straight from the cached row.
-  // NB: the resolved-route SERVER endpoint also gained optional providerId/model
-  // OVERRIDE params (a Lab column asking for its pinned route's cap) — the
-  // composable's chip path never passes them (verified: no consumer forwards
-  // override through the cache), so that leg is exercised live in
-  // scripts/presets-probe.mjs against the running server, not mocked here.
   it("caches the one-source resolved-route row verbatim, presetSource included", async () => {
     const row = {
       feature: "critique", action: "", providerId: "local-llamacpp", model: "gemma",
@@ -109,5 +104,44 @@ describe("useResolvedRoute — write invalidation (chips update without a reload
     expect(routeFor("critique")).toMatchObject({
       presetId: "p_judge", presetName: "Judgment & scoring", presetSource: "assigned",
     });
+  });
+
+  // 2026-07-16: the endpoint's optional providerId/model OVERRIDE params now have a
+  // LIVE consumer — the Lab column (kit ConfigColumn) asks what ITS pinned route
+  // resolves to, so the composable forwards them and keys those rows separately.
+  // (This comment previously said "no consumer forwards override through the cache";
+  // that stopped being true when the thinking-budget line shipped.) Both halves are
+  // pinned here: the query the server receives, and the key isolation that stops a
+  // pinned column's row from overwriting the feature chip's own route.
+  it("forwards providerId/model overrides and caches them under their OWN key", async () => {
+    const fetchMock = vi.fn(async (url) =>
+      jsonResponse(String(url).includes("providerId=local-llamacpp")
+        ? { providerId: "local-llamacpp", model: "gemma", think: true, value: 4096, valueSource: "class", configured: true }
+        : { providerId: "cloud-x", model: "sonnet", configured: true }));
+    vi.stubGlobal("fetch", fetchMock);
+    await ensureRoute("critique");                                // the chip's own route (no override)
+    await ensureRoute("critique", "", "local-llamacpp", "gemma"); // a Lab column's pinned route
+    expect(fetchMock).toHaveBeenCalledTimes(2);                   // distinct keys ⇒ two fetches, no false cache hit
+    const pinnedUrl = String(fetchMock.mock.calls[1][0]);
+    expect(pinnedUrl).toContain("providerId=local-llamacpp");
+    expect(pinnedUrl).toContain("model=gemma");
+    // Neither row clobbers the other.
+    expect(routeFor("critique")).toMatchObject({ model: "sonnet" });
+    expect(routeFor("critique", "", "local-llamacpp", "gemma"))
+      .toMatchObject({ value: 4096, valueSource: "class" });
+  });
+
+  // The source-label map is USER-APPROVED copy and the ONE place both budget surfaces
+  // (the feature chip's popover + the Lab column's line) read their layer vocabulary
+  // from — pinned so a reword can't drift the two apart silently.
+  it("maps every resolved-route valueSource to its approved label", () => {
+    expect(resolvedSourceLabel("tune")).toBe("your applied config");
+    expect(resolvedSourceLabel("class")).toBe("hardware class default");
+    expect(resolvedSourceLabel("base")).toBe("global default");
+    expect(resolvedSourceLabel("default")).toBe("built-in default");
+    expect(resolvedSourceLabel("invalid")).toBe("invalid value");
+    // Cloud's "map" and the no-value "" carry no label: the budget line is local-only.
+    expect(resolvedSourceLabel("map")).toBe("");
+    expect(resolvedSourceLabel("")).toBe("");
   });
 });

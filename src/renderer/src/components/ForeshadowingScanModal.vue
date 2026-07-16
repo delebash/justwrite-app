@@ -200,7 +200,7 @@ const pinnedCount = computed(() => Object.values(pinStatus.value).filter((v) => 
         <div class="modal-title">Dangling threads</div>
       </div>
       <div class="fs-header-actions">
-        <AiFeatureChip feature="foreshadowing" label="Foreshadowing" />
+        <AiFeatureChip feature="foreshadowing" label="Foreshadowing" editable />
       </div>
     </template>
 
@@ -317,7 +317,7 @@ const pinnedCount = computed(() => Object.values(pinStatus.value).filter((v) => 
         <div class="modal-title">Reading every chapter for unresolved setups</div>
       </div>
       <div class="fs-header-actions">
-        <AiFeatureChip feature="foreshadowing" label="Foreshadowing" />
+        <AiFeatureChip feature="foreshadowing" label="Foreshadowing" editable />
         <UiButton v-if="running" intent="ghost" size="small" @click="cancelScan">
           <Icon name="Close" :size="12" /> Cancel
         </UiButton>

@@ -363,7 +363,7 @@ const strandCount = (id) => allCh.value.filter((c) => (c.strands || []).includes
       <div v-if="briefingVisible" class="card briefing-card" style="grid-column:1/-1">
         <div class="briefing-head">
           <div class="briefing-eyebrow">Previously on your novel</div>
-          <AiFeatureChip feature="briefing" label="Briefing" />
+          <AiFeatureChip feature="briefing" label="Briefing" editable />
           <button class="briefing-x" v-tooltip.bottom="'Hide until tomorrow'"
                   @click="dismissBriefing" aria-label="Dismiss briefing">
             <Icon name="Close" :size="14" />

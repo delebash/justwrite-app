@@ -100,7 +100,7 @@ const totalCount = computed(() =>
         <h2 class="modal-title">Sensory research pack</h2>
       </div>
       <div class="sr-header-actions">
-        <AiFeatureChip feature="sensory" label="Sensory" />
+        <AiFeatureChip feature="sensory" label="Sensory" editable />
       </div>
     </template>
 

@@ -155,7 +155,7 @@ const SEVERITY_META = {
         <h2 class="modal-title">{{ ch ? `Ch. ${ch.num} · ${ch.title}` : "" }}</h2>
       </div>
       <div class="ck-header-actions">
-        <AiFeatureChip feature="critique" label="Critique" />
+        <AiFeatureChip feature="critique" label="Critique" editable />
         <UiButton v-if="critique" intent="ghost" size="small" @click="clearAll">
           <Icon name="Trash" :size="12" /> Clear
         </UiButton>

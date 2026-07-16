@@ -133,7 +133,7 @@ const ago = (ts) => {
         <h2 class="modal-title">{{ ch ? `Chapter ${ch.num} — ${ch.title || "Untitled"}` : "Multi-reader panel" }}</h2>
       </div>
       <div class="mr-header-actions">
-        <AiFeatureChip feature="multiReader" label="Multi-reader" />
+        <AiFeatureChip feature="multiReader" label="Multi-reader" editable />
       </div>
     </template>
 
