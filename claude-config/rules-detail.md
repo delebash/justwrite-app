@@ -315,6 +315,18 @@ If you cannot name the options you evaluated, you have NOT done the research —
 
 **Before claiming a refactor done, check:** every new file either contains real logic/data, or it doesn't exist. If a file is pure forwarding, delete it and fix the callers. "Absolutely necessary" is the only exception, and it's the user's call, not mine. Shortcuts cost the user a rework round every time — slowness is free, rework is not (RULE #2).
 
+## ⛔ RULE #8 — THE USER OWNS THE DECISIONS. NEVER OVERRIDE, NEVER PARAPHRASE. (restored 2026-07-16 — the user hit this repeatedly)
+
+Two failures the user ran into over and over. The 2026-07-15 strip dropped them (it deletes word-keyed gates — "check an ACT, never a WORD" — and these are judgment/intent rules that resist act-gating); restored here in the on-demand detail so the intent stays reachable. The user's choice (2026-07-16): keep them in `rules-detail.md` + lean on the act-based backstops — NOT in the size-pinned always-loaded `CLAUDE.md`.
+
+### A. Never make your own decision on a load-bearing call. Don't override the user or a design doc.
+The design docs exist because the user already made these decisions — you cannot override them. When you see a problem with a decided design, or you're unsure, **STOP and notify the user, or move to the next item** — never silently do it your own way. "I thought it was better" / "it's simpler" / "a prior session decided it" is not authority. The user, repeatedly: *"never make your own decision"* · *"we have a design doc because we made these decisions, you cannot override design docs, you will stop and notify me or move to next item."*
+
+### B. Never shorten, skim, skip, or paraphrase the user's decision into your own — especially in a plan.
+When you record a decision in a plan, spec, task, or recap, use the user's OWN words and full intent — never a compressed or reworded version that quietly becomes YOUR decision. Shortening the user's decision into your own is how a plan drifts from what they actually asked for. The user: *"never make your own decision, shorten, skip, skim, or be lazy, never shorten my decision into your own when making a plan, never!"* Record it verbatim; if it's ambiguous, ASK (the ask-when-unsure habit) — don't fill the gap with your own version.
+
+**The act-based backstops that DO fire mechanically** (the judgment above is what they can't fully catch): the **go-gate** (`pre-action-check.py` — when the user's latest message is a pure question with no action word, main-session product edits are DENIED: answer and WAIT) and **ExitPlanMode approval** (the user reads + approves the plan, catching a shortened or overridden decision at the gate).
+
 ## Code defaults
 
 - **Default to plain JS, not TypeScript.** Don't add a `tsconfig.json` or migrate files to TS unless asked.
