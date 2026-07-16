@@ -61,6 +61,30 @@ now:
    in `docs/plans/2026-07-08-recap-archive.md` — open it only when a question touches that
    history and the pointers below don't answer it.
 
+## GO (2026-07-16) — THE THINKING-BUDGET REDESIGN, END TO END (unpushed on the branch)
+
+**The user's day-long design, settled and built:** thinking is a THREE-STATE preset
+control — Off · **Model default** (think on, level EMPTY = FOLLOW the selected model's
+layered `reasoning_budget`: your applied config → hardware class default → global launch
+defaults, resolved live, nothing copied) · **a level** = the preset's OWN ask ("feature
+is the end of the line"). No clamp/min() anywhere; honest sentinels (-1 unlimited ⚠ /
+0 off); `reasoning_budget` is a normal layered switch that is NEVER a launch flag (sent
+per request as JSON, labeled "per-request" in every grid); the knob-catalog `label`
+column is DELETED (exact switch names only); all 20 feature chips are `editable` (chip
+edit ≡ Routing-by-feature edit, one preset PUT); Reasoning levels = a POPUP editor on
+the provider form; p_chat seeds think-on + FOLLOW. **Three real bugs fixed:** the
+boxless chip popover (scoped CSS never reached reka's PopoverContent root), the
+think-on-no-level run-path gap, and the autoflush-OFF seed bug (every fresh boot/reset
+since 07-14 seeded an EMPTY reasoning map — proven live both paths). Full record:
+`just-llm-runner/docs/plans/2026-07-16-reasoning-budget-house-layering.md` (plan + four
+build records) · commits: runner `00c476b`→`bc3f352` (5, unpushed) · JW `d738978`+
+`752ef2c` (+ this pointer). **OPEN:** the user's box verification (visual — their call:
+no screenshots, they look) + the two box tests
+(`docs/plans/2026-07-16-think-ab-and-loop-retest.md`: think OFF/ON A/B — the day's
+original question — and the b9993 loop re-test, verdict rule declared). The loop
+provenance is CORRECTED in the tuning doc + recap archive (it was Claude's diagnosis
+from the user's pasted token counts, jointly accepted — the loop STANDS as verified).
+
 ## CURRENT STATE (2026-07-15, end of day — everything below SHIPPED AND PUSHED)
 
 **One session took the AI routing to the one-source model and rebuilt the guardrails on
