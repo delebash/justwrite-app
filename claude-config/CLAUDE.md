@@ -87,6 +87,11 @@ EFFECTIVENESS.md ledger. Provisioned from the `claude-config` repo by `install.s
   gates/contracts → full fleet + the one checker. Never "verify if possible" — an open
   clause in a spec is an instruction to engineer (2026-07-15: a 1-minute `v-if` fix ran
   15 minutes on one elastic sentence). The executor thinks about NOTHING but execution.
+  **Inline vs delegate is an economics call:** a small fix whose context the coordinator
+  already holds from diagnosing it is done INLINE (the edit is nearly free; delegating
+  it costs 10-30x — the agent re-buys context the coordinator owns). Delegation pays for
+  BULK: many files, gate/retry cycles, parallel work — cheap tokens churn, the
+  coordinator's context stays lean.
 - `hooks/test_gates.py` pins the machinery: every ledger file:line ref, every escape
   proven to FIRE, and the SIZE of each context-loaded surface (this file, the checker
   charter, the nudge strings) — **prose regrowth fails the suite**.
