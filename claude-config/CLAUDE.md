@@ -66,8 +66,12 @@ EFFECTIVENESS.md ledger. Provisioned from the `claude-config` repo by `install.s
 - **Stop → Block 6**: a PROPOSAL turn must end with a "SECOND PASS —" section — what the
   re-derivation changed · what it re-verified · the sharpest doubt. Lifetime: 3 fires,
   3 materially changed answers.
-- **PreToolUse nudges** (`pre-action-check.py`): one R1–R5 line at every edit; the
-  tiered plan reminder at `ExitPlanMode`. Salience only — nothing blocks.
+- **PreToolUse** (`pre-action-check.py`): one R1–R5 nudge line at every edit; the
+  tiered plan reminder at `ExitPlanMode`; and ONE deny — **the go-gate**: when the
+  user's LATEST message is a pure question (no action word), main-session edits to
+  product files are DENIED — answer and WAIT (rule #1, made mechanical 2026-07-15
+  after three same-day violations; keyed on the USER's own text; scratchpad
+  diagnostics + delegated agents exempt).
 - **Commit gate — DELEGATED agents only** (`commit-gate.py` exits unless the payload
   carries `agent_id`): a builder's code commit requires docs + a genuine rules-checker
   verdict read from the BUILDER's own transcript. Main-session commits are ungated;

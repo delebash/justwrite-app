@@ -419,6 +419,33 @@ def test_pre_action():
     out = pa({"tool_name": "ExitPlanMode"})
     assert "PLAN BOUNDARY" in out and "THREE" in out, "tiered plan nudge on ExitPlanMode"
     assert pa({"tool_name": "Bash", "tool_input": {"command": "ls"}}).strip() == ""
+    # THE GO-GATE (2026-07-15, the user's "fix that" — the #1 rule made mechanical):
+    # a PURE QUESTION as the user's latest message denies product-file edits. Keyed on
+    # the USER's own text (an act the agent cannot forge). The regression case is the
+    # verbatim message that slipped past three times that day.
+    Q = "how can the load as default button be styled different for embed vs main, are they using the same control the same logic?"
+    out = pa({"tool_name": "Edit", "tool_input": {"file_path": "E:/repo/src/App.vue"},
+              "transcript_path": tx(("user", Q))})
+    assert denied(out) and "GO-GATE" in out, "a pure question must deny a product edit"
+    assert not denied(pa({"tool_name": "Edit", "tool_input": {"file_path": "E:/repo/src/App.vue"},
+                          "transcript_path": tx(("user", Q)), "agent_id": "b1"})), \
+        "delegated agents execute under a spawned go — exempt"
+    assert not denied(pa({"tool_name": "Write",
+                          "tool_input": {"file_path": "C:/Users/x/Temp/claude/s/scratchpad/probe.py"},
+                          "transcript_path": tx(("user", Q))})), \
+        "scratchpad diagnostics while ANSWERING are exempt"
+    assert not denied(pa({"tool_name": "Edit", "tool_input": {"file_path": "E:/repo/src/App.vue"},
+                          "transcript_path": tx(("user", "why is it broken? fix it"))})), \
+        "a mixed message with an action word passes"
+    assert not denied(pa({"tool_name": "Edit", "tool_input": {"file_path": "E:/repo/src/App.vue"},
+                          "transcript_path": tx(("user", "cleanup morning recap"))})), \
+        "an imperative without 'go' passes"
+    assert not denied(pa({"tool_name": "Edit", "tool_input": {"file_path": "E:/repo/src/App.vue"},
+                          "transcript_path": tx(("user", "go"))})), "go passes"
+    assert not denied(pa({"tool_name": "Edit", "tool_input": {"file_path": "E:/repo/src/App.vue"},
+                          "transcript_path": tx(("user", Q),
+                                                ("user", "i take your rec, go"))})), \
+        "only the LATEST genuine message governs — an answered question does not linger"
     print("3) pre-action ......... PASS")
 
 
