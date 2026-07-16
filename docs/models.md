@@ -92,8 +92,8 @@ faster — the full sweep or the model's Tune dialog go deeper), and **Full opti
 strictly beats the current launch, and other AI features pause while one runs.
 
 That's the intent: you don't pick a model per job. One good model handles everything, and
-each preset keeps its own *settings* (temperature, samplers, reasoning) automatically. If
-you later want a faster model for specific work, swap it in on that **Preset** and use
+each preset keeps its own *settings* (temperature, samplers, thinking on/off) automatically.
+If you later want a faster model for specific work, swap it in on that **Preset** and use
 its **Lab** to measure the difference.
 
 ## The model catalog
@@ -147,11 +147,29 @@ embedding model carries an **Embedding** badge. From here you can:
 - **Engine switches belong to the model, not to presets** — that's the one rule of the
   whole tuning system. A loaded model is one engine process with one set of launch
   switches, shared by **every preset that uses it**; what a *preset* owns is how the model is
-  **asked** (temperature, max tokens, thinking, samplers — in the preset, edited in
+  **asked** (temperature, max tokens, thinking on/off, samplers — in the preset, edited in
   the Routing-by-feature Lab, no
   reload needed). So there is exactly **one place to set engine switches: the model's
   Tune & measure dialog** — opened from the model's row in the catalog, or from a Lab
   column's **Engine switches ↗** link (same dialog, same config).
+- **Thinking: the feature asks, the model provides the default.** Every preset's
+  **Thinking** control (on its chip or in the Lab — same control, same save) has three
+  states: **Off** · **Model default** — think on, following the *selected model's* own
+  budget, resolved live from its layers (your applied config → hardware class default →
+  global launch defaults), nothing copied, so switching models switches the budget
+  automatically · **a level** (Low…Max) — this preset's *own* ask, riding the preset no
+  matter which model it points at. The line under the control always shows the number
+  that will actually run and where it came from ("this preset", "hardware class
+  default", "your applied config", "global default").
+- **The model's own budget is not a launch switch.** The `reasoning_budget` value is
+  layered like any switch (global defaults → your hardware class → your applied config)
+  but **sent with every request** rather than at launch — changing it applies
+  immediately, no reload; its row carries a "per-request" note wherever it appears in
+  the Tune & measure dialog. Special values: **0** turns thinking off, **-1** means
+  unlimited — shown with a warning, because an unlimited think can run until the
+  context fills. Cloud providers ignore the layered value; their thinking comes from
+  the preset's level, translated per provider on the provider's **Reasoning levels**
+  editor (a popup on the provider's form).
 - Until you apply a config, a model **launches with the engine's automatic memory fitting**
   (it places the model across GPU/CPU for your card at the app-chosen context size); an
   applied config replaces that with your measured values.
