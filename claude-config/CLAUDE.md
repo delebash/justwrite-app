@@ -75,6 +75,14 @@ EFFECTIVENESS.md ledger. Provisioned from the `claude-config` repo by `install.s
 - **Voluntary cadence**: ONE rules-checker per task, on the final diff; the test fleet
   (~2.6 min) runs freely. Subagents always run on **Opus, never Sonnet**. Stack
   defaults (plain JS; the shared Vue 3 + Tauri 2 standard): `rules-detail.md`.
+- **Delegation — the spec tells the executor EXACTLY what to do.** Files, lines, exact
+  steps; every fallback NAMED with its trigger ("if X isn't green in N minutes, do
+  exactly Y"); a total time budget; and verification TIERED to blast radius:
+  cosmetic/conditional-render → build + code-read, ≤5 min, NO checker · service
+  behavior → + targeted tests + one probe of the changed surface · storage/schema/
+  gates/contracts → full fleet + the one checker. Never "verify if possible" — an open
+  clause in a spec is an instruction to engineer (2026-07-15: a 1-minute `v-if` fix ran
+  15 minutes on one elastic sentence). The executor thinks about NOTHING but execution.
 - `hooks/test_gates.py` pins the machinery: every ledger file:line ref, every escape
   proven to FIRE, and the SIZE of each context-loaded surface (this file, the checker
   charter, the nudge strings) — **prose regrowth fails the suite**.
