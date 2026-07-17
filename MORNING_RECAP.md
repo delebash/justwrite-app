@@ -85,6 +85,29 @@ original question — and the b9993 loop re-test, verdict rule declared). The lo
 provenance is CORRECTED in the tuning doc + recap archive (it was Claude's diagnosis
 from the user's pasted token counts, jointly accepted — the loop STANDS as verified).
 
+## GO (2026-07-17) — THREE USER-REPORTED BUGS FIXED (unpushed on the branch)
+
+Three items off the 2026-07-17 QC queue, each on its own go. (1) **Delete the
+currently-loaded book** — JW `6cf018e`: the store already did it right; the sidebar's
+trash icon sat in a `v-else` to the active-project checkmark, so the OPEN book was the
+one you couldn't remove. Ruled: after deleting the open book, land on the next project;
+none left → welcome (QC-40). Pinned by `deleteProject.test.js`. (2) **Cancel-cancels-
+everything** on multi-chapter sweeps — JW `e86af26`: both pools (entitySweep +
+foreshadowingScan), 4 defects each (no signal threaded · abort detected by string-
+sniffing "abort" when a cancel reads "…Request cancelled." · per-chapter rival task
+entries vs the QC-31 batch-owner · cancelled-as-normal-return froze rows) + the redundant
+top Cancel removed. User confirmed on box. (3) **Chip model-picker "not opening" in a
+modal** — kit `8fa0f39` + JW test `db6464e`: the `editable` chip's popover portals to
+`<body>` and at `z-index:60` painted BEHIND AppModal's scrim (overlay z 200) + backdrop
+blur — invisible on all 15 in-modal chip mounts. Fixed 60→**999** (matches
+`.ui-select-content`, the other body-portalled reka popper). DOM-probe-verified it was
+pure stacking (mounts+stays, pointer-events already auto — NOT focus-trap). Pinned by
+`chipPopoverStacking.test.js` (fails at 60, passes at 999). **Live queue** (memory
+`open-todos-2026-07-17.md`): still OPEN, need a go each — multi-click unload · "stalling"
+thresholds mislabel a 2.6 tok/s model · the cancel/progress plan
+(`docs/plans/2026-07-17-load-cancel-and-one-progress-control.md`, FAILED its 3-lens; T2
+would unload a DIFFERENT resident model — do not build as written).
+
 ## CURRENT STATE (2026-07-15, end of day — everything below SHIPPED AND PUSHED)
 
 **One session took the AI routing to the one-source model and rebuilt the guardrails on
