@@ -8,10 +8,24 @@ body. The bearer-auth middleware already emits this shape for 401/403.
 
 from __future__ import annotations
 
+import logging
+
 from fastapi import HTTPException, Request
+from fastapi.exceptions import RequestValidationError
 from fastapi.responses import JSONResponse
 
+log = logging.getLogger(__name__)
+
 _TYPE_BASE = "https://justwrite.dev/errors/"
+
+
+def _log_error(request: Request, status: int, detail: object) -> None:
+    """Every handled error reaches the log — the level scaled to the status so a
+    routine 404 doesn't shout and a 500 isn't buried (2026-07-17: a rejected write
+    used to leave ZERO server trace; the Server-console filter surfaces these). 4xx
+    = WARNING (client's fault, still worth seeing), 5xx = ERROR."""
+    lvl = logging.ERROR if status >= 500 else logging.WARNING
+    log.log(lvl, "%s %s -> %d: %s", request.method, request.url.path, status, str(detail)[:500])
 
 
 class ApiError(HTTPException):
@@ -56,6 +70,7 @@ def internal(detail: str = "An internal error occurred. See server logs for deta
 
 
 async def api_exception_handler(request: Request, exc: ApiError):
+    _log_error(request, exc.status_code, exc.detail)
     body = {
         "type": f"{_TYPE_BASE}{exc.slug}",
         "title": exc.title,
@@ -84,6 +99,7 @@ async def http_exception_handler(request: Request, exc: HTTPException):
         slug, title = "forbidden", "Forbidden"
     elif exc.status_code == 422:
         slug, title = "validation-error", "Validation Error"
+    _log_error(request, exc.status_code, exc.detail)
     body = {
         "type": f"{_TYPE_BASE}{slug}",
         "title": title,
@@ -96,3 +112,35 @@ async def http_exception_handler(request: Request, exc: HTTPException):
         content=body,
         media_type="application/problem+json",
     )
+
+
+async def validation_exception_handler(request: Request, exc: RequestValidationError):
+    """422 request-validation failures. FastAPI's DEFAULT handler returns these
+    WITHOUT logging — the exact silent-failure that made a rejected write
+    (a preset PUT with a bad field) untraceable (2026-07-17). Now they log like any
+    4xx and return the same problem+json shape as the rest."""
+    errors = exc.errors()
+    _log_error(request, 422, errors)
+    body = {
+        "type": f"{_TYPE_BASE}validation-error",
+        "title": "Validation Error",
+        "status": 422,
+        "detail": "Request body failed validation.",
+        "errors": _jsonable_errors(errors),
+        "instance": request.url.path,
+    }
+    return JSONResponse(status_code=422, content=body, media_type="application/problem+json")
+
+
+def _jsonable_errors(errors: list) -> list:
+    """RequestValidationError.errors() can carry a non-JSON `ctx` (e.g. a raw
+    exception) — keep only the JSON-safe fields so JSONResponse never 500s while
+    reporting a 422."""
+    out = []
+    for e in errors or []:
+        out.append({
+            "loc": [str(p) for p in (e.get("loc") or [])],
+            "msg": str(e.get("msg") or ""),
+            "type": str(e.get("type") or ""),
+        })
+    return out

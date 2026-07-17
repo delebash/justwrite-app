@@ -14,6 +14,7 @@ import os
 from pathlib import Path
 
 from fastapi import FastAPI, HTTPException
+from fastapi.exceptions import RequestValidationError
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse, RedirectResponse
 from fastapi.staticfiles import StaticFiles
@@ -42,7 +43,7 @@ from llm_runner.platform import install_file_log, install_log_ring, make_disk_ro
 
 from .data_admin import get_data_router
 from .database import init_db
-from .errors import ApiError, api_exception_handler, http_exception_handler
+from .errors import ApiError, api_exception_handler, http_exception_handler, validation_exception_handler
 from .paths import default_data_dir
 from .version import PRODUCT, VERSION
 
@@ -136,6 +137,8 @@ def create_app(data_dir: Path | None = None) -> FastAPI:
     # across both apps' servers (the bearer-auth middleware emits it too).
     app.add_exception_handler(ApiError, api_exception_handler)
     app.add_exception_handler(HTTPException, http_exception_handler)
+    # 422 body-validation failures — logged + problem+json (was FastAPI's silent default).
+    app.add_exception_handler(RequestValidationError, validation_exception_handler)
 
     app.include_router(health.router)
     # Mounted BEFORE projects.router so the literal /autosaves + /autosave-dir
