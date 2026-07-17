@@ -821,7 +821,13 @@ function wbDropClass(kind, id) {
               <div class="by">{{ p.author ? `by ${p.author}` : $t('sidebar.projectSwitcher.noAuthor') }}</div>
             </div>
             <Icon v-if="p.id === project.activeProjectId" name="Check" :size="13" />
-            <button v-else class="project-menu-del" v-tooltip.bottom="$t('sidebar.projectSwitcher.deleteTooltip', { title: p.title })"
+            <!-- The OPEN book is deletable too (user, 2026-07-17: "you should be able
+                 to delete currently loaded book"). Until now the trash lived in a
+                 `v-else` to the active check, so the one book you were looking at was
+                 the one you could never remove. The store already handles it correctly
+                 (project.js deleteProject: active → switchProject(next); none left →
+                 the zero-project state → /welcome) — only this gate stood in the way. -->
+            <button class="project-menu-del" v-tooltip.bottom="$t('sidebar.projectSwitcher.deleteTooltip', { title: p.title })"
               :aria-label="$t('sidebar.projectSwitcher.deleteAriaLabel', { title: p.title })"
               @click.stop="deleteProject(p.id, p.title)">
               <Icon name="Trash" :size="12" />
