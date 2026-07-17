@@ -17,6 +17,8 @@
 // label overlaps with a proposal) are filtered out so the sweep doesn't
 // surface threads the writer has already noted.
 
+import { useAiTasksStore } from "@delebash/llm-ui";
+
 import { normalizeName as norm, textMentionsTerm } from "../text.js";
 import { extractThreads } from "./threadExtraction.js";
 import { scanProjectMarkers } from "../markers.js";
@@ -84,6 +86,24 @@ export async function scanForDanglingThreads({
     return true;
   });
 
+  // QC-31 batch owner — the SAME shape as scanAllChapters + readerKnowledge:231-244
+  // (one user action → ONE task entry whose handle owns the ONE controller; every
+  // per-chapter call rides `runSignal` with task:false). Fixed 2026-07-17 alongside the
+  // entity sweep: this pool had the identical defect — no owner, a rival task per
+  // chapter, and a Cancel that reached only the first of them.
+  const aiTasks = useAiTasksStore();
+  const handle = aiTasks.start({
+    feature: "foreshadowing",
+    label: "Foreshadowing scan",
+    meta: { kind: "foreshadowing" },
+  });
+  handle.setProgress(0, allChapters.length);
+  if (signal) {
+    if (signal.aborted) handle.cancel();
+    else signal.addEventListener?.("abort", () => handle.cancel(), { once: true });
+  }
+  const runSignal = handle.signal;
+
   // Per-chapter plain-text bodies, computed once. Used both as input to
   // the LLM (via extractThreads) and for the later-mention sweep.
   const chapterTexts = new Map();
@@ -128,21 +148,29 @@ export async function scanForDanglingThreads({
         html,
         chapterTitle: ch.title,
         chapterNum: ch.num,
-        signal, provider, model,
+        signal: runSignal, provider, model,
+        // task:false — the owner handle above IS this scan's one entry (QC-31).
+        task: false,
         meta: { chapterId: ch.id, kind: "foreshadowing" },
       });
       perChapter.set(ch.id, fresh.setups || []);
       completed += 1;
+      handle.setProgress(completed, allChapters.length);
       onProgress?.({
         phase: "done",
         chapter: { id: ch.id, num: ch.num, title: ch.title },
         completed, total: allChapters.length,
       });
     } catch (err) {
+      // A CANCEL IS NOT AN ERROR — `runSignal.aborted` is the authority (the caller's
+      // `signal` was never the one the calls ride). The string sniff stays only as a
+      // belt: a cancelled call's message reads "…Request cancelled." with no "abort"
+      // in it, so the sniff ALONE painted user-requested cancels as red ERROR rows.
       const msg = String(err?.message || err || "");
-      if (signal?.aborted || /abort/i.test(msg)) throw err;
+      if (runSignal.aborted || /abort/i.test(msg)) throw err;
       skipped.push({ id: ch.id, num: ch.num, title: ch.title, reason: msg.slice(0, 200) });
       completed += 1;
+      handle.setProgress(completed, allChapters.length);
       onProgress?.({
         phase: "error",
         chapter: { id: ch.id, num: ch.num, title: ch.title },
@@ -155,14 +183,24 @@ export async function scanForDanglingThreads({
   const queue = [...allChapters];
   async function worker() {
     while (queue.length) {
-      if (signal?.aborted) return;
+      if (runSignal.aborted) return;
       const ch = queue.shift();
       try { await processChapter(ch); }
       catch { return; }
     }
   }
   const poolSize = Math.max(1, Math.min(concurrency | 0 || DEFAULT_CONCURRENCY, allChapters.length));
-  await Promise.all(Array.from({ length: poolSize }, () => worker()));
+  try {
+    await Promise.all(Array.from({ length: poolSize }, () => worker()));
+  } finally {
+    if (!runSignal.aborted) handle.finish({});
+  }
+  // A cancel stops here: the cross-reference pass below is pure JS over whatever was
+  // gathered, and running it on a half-scanned book would present partial evidence as
+  // a complete "dangling threads" verdict — the one result where absence IS the finding.
+  if (runSignal.aborted) {
+    return { proposals: [], skipped, totalChapters: allChapters.length, scanned: 0, cancelled: true };
+  }
 
   // ─── Cross-reference: which setups appear in later chapters ───────
   // Pure-JS keyTerm search. No LLM.

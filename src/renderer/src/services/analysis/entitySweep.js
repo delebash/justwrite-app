@@ -14,6 +14,8 @@
 // downside is a few wasted output tokens per duplicate. Worth it for the
 // 3-4× wall-clock speed-up on a long book.
 
+import { useAiTasksStore } from "@delebash/llm-ui";
+
 import { normalizeName as normName } from "../text.js";
 import { extractEntities } from "./entityExtraction.js";
 
@@ -86,7 +88,9 @@ function mergeProposals(into, fresh, chapter) {
  * interleaving token deltas isn't legible; per-chapter progress comes
  * through onProgress + the soFar counts instead.
  *
- * @returns {Promise<{ characters, locations, objects, scanned, skipped, totalChapters }>}
+ * @returns {Promise<{ characters, locations, objects, scanned, skipped, totalChapters,
+ *                     cancelled }>} — `cancelled` true when the user stopped it early;
+ *          the proposals gathered so far are still returned (a cancel is not a failure).
  */
 export async function scanAllChapters({
   project,
@@ -102,6 +106,30 @@ export async function scanAllChapters({
     if (chapterFilter?.ids) return chapterFilter.ids.has(c.id);
     return true;
   });
+
+  // QC-31, the sanctioned batch-owner pattern (aiTasks.js:124-128, implemented by
+  // readerKnowledge.js:231-244 — this is a COPY OF THAT SHAPE, not a new invention):
+  // the whole sweep is ONE user action → ONE task entry whose handle owns the ONE
+  // controller. Every per-chapter call rides `runSignal` and passes `task: false`, so
+  // the strip's single Cancel aborts the WHOLE pool.
+  //
+  // Before 2026-07-17 this file had NO owner: each chapter registered its own task
+  // (entityExtraction.js:81 `task: task || {…}`), so a 4-wide pool made four rival
+  // "entitySweep" entries, the modal's Cancel reached only the FIRST, and the pool
+  // marched on — every later chapter failing "Request cancelled" as a red ERROR row
+  // while the user watched. The user, 2026-07-17: "cancel should cancel everything".
+  const aiTasks = useAiTasksStore();
+  const handle = aiTasks.start({
+    feature: "entitySweep",
+    label: "Entity sweep",
+    meta: { kind: "sweep" },
+  });
+  handle.setProgress(0, all.length);
+  if (signal) {
+    if (signal.aborted) handle.cancel();
+    else signal.addEventListener?.("abort", () => handle.cancel(), { once: true });
+  }
+  const runSignal = handle.signal;
 
   const proposals = { characters: [], locations: [], objects: [] };
   const skipped = [];
@@ -148,9 +176,13 @@ export async function scanAllChapters({
         existingCharacters: baselineExisting.characters,
         existingLocations:  baselineExisting.locations,
         existingObjects:    baselineExisting.objects,
-        signal,
+        signal: runSignal,
         provider,
         model,
+        // task:false — the OWNER above is this sweep's one task entry (QC-31). Without
+        // it every chapter registered a rival "entitySweep" task and Cancel only ever
+        // reached one of them.
+        task: false,
         meta: { chapterId: ch.id, kind: "sweep" },
       });
       // mergeProposals is synchronous → atomic from concurrent workers'
@@ -158,19 +190,27 @@ export async function scanAllChapters({
       mergeProposals(proposals, fresh, ch);
       scanned += 1;
       completed += 1;
+      handle.setProgress(completed, all.length);
       onProgress?.({
         phase: "done",
         chapter: { id: ch.id, num: ch.num, title: ch.title },
         completed, total: all.length, soFar: cloneCounts(proposals),
       });
     } catch (err) {
+      // A CANCEL IS NOT AN ERROR. `runSignal.aborted` is the authority — the string
+      // sniff stays only as a belt for an abort raised without our signal. The old test
+      // was the sniff ALONE (the caller never even passed a signal), and a cancelled
+      // call's message reads "Couldn't reach the LLM. Request cancelled." — no "abort"
+      // in it — so every in-flight chapter rendered as a red ERROR row for a stop the
+      // user asked for.
       const msg = String(err?.message || err || "");
-      if (signal?.aborted || /abort/i.test(msg)) {
+      if (runSignal.aborted || /abort/i.test(msg)) {
         // Bubble so workers exit; caller already has partial proposals.
         throw err;
       }
       skipped.push({ id: ch.id, num: ch.num, title: ch.title, reason: msg.slice(0, 200) });
       completed += 1;
+      handle.setProgress(completed, all.length);
       onProgress?.({
         phase: "error",
         chapter: { id: ch.id, num: ch.num, title: ch.title },
@@ -184,12 +224,12 @@ export async function scanAllChapters({
   const queue = [...all];
   async function worker() {
     while (queue.length) {
-      if (signal?.aborted) return;
+      if (runSignal.aborted) return;
       const ch = queue.shift();
       try {
         await processChapter(ch);
       } catch (err) {
-        if (signal?.aborted || /abort/i.test(String(err?.message || err))) return;
+        if (runSignal.aborted || /abort/i.test(String(err?.message || err))) return;
         // processChapter swallows non-abort errors into `skipped`; the
         // only thing that reaches here is an abort.
       }
@@ -197,9 +237,23 @@ export async function scanAllChapters({
   }
 
   const poolSize = Math.max(1, Math.min(concurrency | 0 || DEFAULT_CONCURRENCY, all.length));
-  await Promise.all(Array.from({ length: poolSize }, () => worker()));
+  try {
+    await Promise.all(Array.from({ length: poolSize }, () => worker()));
+  } finally {
+    // Always terminate the entry — a cancelled sweep must not leave a task
+    // "streaming" forever in the strip/panel (cancel() already archived it).
+    if (!runSignal.aborted) handle.finish({});
+  }
 
-  return { ...proposals, scanned, skipped, totalChapters: all.length };
+  // CANCELLED IS A RETURN VALUE, NOT AN EXCEPTION (2026-07-17). The workers exit by
+  // RETURNING when the signal fires, so Promise.all resolves normally — which is why
+  // the caller's catch-on-abort cleanup never ran and rows froze on "scanning" forever.
+  // Say it in the result instead: the caller marks its unfinished rows and still gets
+  // every proposal gathered before the stop.
+  return {
+    ...proposals, scanned, skipped, totalChapters: all.length,
+    cancelled: runSignal.aborted,
+  };
 }
 
 function stripText(html) {

@@ -12,7 +12,7 @@
 // later chapter at least references the keyTerm). The classification
 // is a heuristic — the writer has the final say.
 
-import { ref, computed, onMounted } from "vue";
+import { ref, computed, onMounted, watch } from "vue";
 import { useProjectStore } from "../stores/project.js";
 import { useUiStore } from "../stores/ui.js";
 import { useAiTasksStore, AiTaskStrip, Icon, AppModal, EmptyState, UiButton } from "@delebash/llm-ui";
@@ -27,12 +27,16 @@ const project = useProjectStore();
 const ui = useUiStore();
 const aiTasks = useAiTasksStore();
 
+// QC-31: the scan is ONE user action → ONE task entry (started by
+// scanForDanglingThreads, which owns the controller every chapter rides).
 const myTask = computed(() => aiTasks.runningTasks.find(
   (t) => t.feature === "foreshadowing"
 ));
 const running = computed(() => !!myTask.value);
 
-function isAbort(e) { return e?.name === "AbortError" || /abort/i.test(e?.message || ""); }
+// Our controller: the ONE thing that stops the pool (see the watch below).
+let scanAbort = null;
+
 
 const rows = ref([]);
 const rowById = ref(new Map());
@@ -109,8 +113,10 @@ async function runScan() {
     return;
   }
   try {
+    scanAbort = new AbortController();
     const r = await scanForDanglingThreads({
       project,
+      signal: scanAbort.signal,
       onProgress: ({ phase: ph, chapter, completed, reason }) => {
         const row = rowById.value.get(chapter.id);
         if (row) {
@@ -122,6 +128,21 @@ async function runScan() {
         completedCount.value = completed;
       },
     });
+    // CANCEL LEAVES NO ROW BEHIND (user, 2026-07-17: "cancel should cancel everything").
+    // A cancelled scan RETURNS (the workers exit by returning, so Promise.all resolves)
+    // — it does not throw, which is why the old catch-on-abort cleanup never ran and
+    // rows froze on "scanning"/"pending". No result screen: a half-scanned book cannot
+    // answer "which threads dangle?" — absence IS the finding here, so partial evidence
+    // would read as a verdict.
+    if (r.cancelled) {
+      for (const row of rows.value) {
+        if (row.status === "scanning" || row.status === "pending") {
+          row.status = "skipped";
+          row.reason = "cancelled";
+        }
+      }
+      return;
+    }
     result.value = r;
     // If everything's mentioned-later, default the filter to "all" so
     // the list isn't empty by accident.
@@ -129,22 +150,21 @@ async function runScan() {
       filter.value = "all";
     }
   } catch (e) {
-    if (isAbort(e)) {
-      for (const row of rows.value) {
-        if (row.status === "scanning") { row.status = "skipped"; row.reason = "cancelled"; }
-      }
-    } else {
-      const msg = String(e?.message || e || "");
-      error.value = /provider|api key|configure/i.test(msg)
-        ? "Configure an AI provider in Settings → AI to run the scan."
-        : msg || "Couldn't run scan.";
-    }
+    const msg = String(e?.message || e || "");
+    error.value = /provider|api key|configure/i.test(msg)
+      ? "Configure an AI provider in Settings → AI to run the scan."
+      : msg || "Couldn't run scan.";
   }
 }
 
-function cancelScan() {
-  if (myTask.value) aiTasks.cancel(myTask.value.id);
-}
+// THE stop — the shared AiTaskStrip's Cancel is the only one now (the modal's duplicate
+// was removed 2026-07-17). It cancels the task entry, which the pool can't see; mirror
+// it onto our controller so ONE click stops every worker. Watch the DISAPPEARANCE, not
+// a "cancelled" status: aiTasks.cancel() deletes the entry (`_archiveAndRemove`), so
+// myTask goes straight to undefined and a status watch would never fire.
+watch(running, (isRunning) => {
+  if (!isRunning) scanAbort?.abort();
+});
 
 function pinThread(thread) {
   if (!thread || pinStatus.value[thread.id]) return;
@@ -316,11 +336,10 @@ const pinnedCount = computed(() => Object.values(pinStatus.value).filter((v) => 
         <div class="t-eyebrow">Foreshadowing scan</div>
         <div class="modal-title">Reading every chapter for unresolved setups</div>
       </div>
+      <!-- No Cancel here: the shared AiTaskStrip below renders THE Cancel (user,
+           2026-07-17: "top cancel button redundant" — both were live at once). -->
       <div class="fs-header-actions">
         <AiFeatureChip feature="foreshadowing" label="Foreshadowing" editable />
-        <UiButton v-if="running" intent="ghost" size="small" @click="cancelScan">
-          <Icon name="Close" :size="12" /> Cancel
-        </UiButton>
       </div>
     </template>
 

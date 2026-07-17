@@ -8,7 +8,7 @@
 // aggregate is handed to the existing EntityReviewModal for per-proposal
 // accept/reject.
 
-import { ref, computed, onMounted } from "vue";
+import { ref, computed, onMounted, watch } from "vue";
 import { useProjectStore } from "../stores/project.js";
 import { useAiTasksStore, AiTaskStrip, Icon, AppModal, UiButton } from "@delebash/llm-ui";
 import { scanAllChapters } from "../services/analysis/entitySweep.js";
@@ -26,12 +26,19 @@ const emit = defineEmits(["close", "committed"]);
 const project = useProjectStore();
 const aiTasks = useAiTasksStore();
 
+// QC-31: the sweep is ONE user action → ONE task entry (started by scanAllChapters,
+// which owns the controller every chapter rides). `find` is exact now — before
+// 2026-07-17 each chapter registered its own rival "entitySweep" task and this
+// found only the first, which is why Cancel stopped one chapter and the pool
+// marched on.
 const myTask = computed(() => aiTasks.runningTasks.find(
   (t) => t.feature === "entitySweep"
 ));
 const running = computed(() => !!myTask.value);
 
-function isAbort(e) { return e?.name === "AbortError" || /abort/i.test(e?.message || ""); }
+// Our own controller: the ONE thing that stops the pool. The task strip's Cancel
+// aborts it too (watch below), so both routes lead here.
+let sweepAbort = null;
 
 // One row per chapter, status updated as the sweep progresses.
 const rows = ref([]);
@@ -76,8 +83,10 @@ async function runSweep() {
   }
   try {
     const filter = props.chapterIds ? new Set(rows.value.map((r) => r.id)) : null;
+    sweepAbort = new AbortController();
     const result = await scanAllChapters({
       project,
+      signal: sweepAbort.signal,
       chapterFilter: filter ? { ids: filter } : undefined,
       onProgress: ({ phase: ph, chapter, completed, reason }) => {
         const row = rowById.value.get(chapter.id);
@@ -98,30 +107,46 @@ async function runSweep() {
       if (row && row.status === "scanning") { row.status = "skipped"; row.reason = s.reason || ""; }
     }
 
+    // CANCEL LEAVES NO ROW BEHIND (user, 2026-07-17: "cancel should cancel
+    // everything"). A cancelled sweep RETURNS (it does not throw — the workers exit by
+    // returning, so Promise.all resolves), which is exactly why the old catch-on-abort
+    // cleanup never ran and rows sat on "scanning"/"pending" forever. Every row that
+    // never finished is marked here, in one pass, from the one authority.
+    if (result.cancelled) {
+      for (const row of rows.value) {
+        if (row.status === "scanning" || row.status === "pending") {
+          row.status = "skipped";
+          row.reason = "cancelled";
+        }
+      }
+    }
+
+    // Partial proposals survive a cancel — whatever came back is still worth reviewing.
     proposals.value = {
       characters: result.characters || [],
       locations:  result.locations  || [],
       objects:    result.objects    || [],
     };
   } catch (e) {
-    if (isAbort(e)) {
-      // Mark any in-flight row as cancelled so the user can see what didn't finish.
-      for (const row of rows.value) {
-        if (row.status === "scanning") { row.status = "skipped"; row.reason = "cancelled"; }
-      }
-      // Surface partial results so the user can still review what came back.
-      if (!proposals.value) {
-        proposals.value = { characters: [], locations: [], objects: [] };
-      }
-    } else {
-      error.value = e?.message || String(e);
-    }
+    error.value = e?.message || String(e);
   }
 }
 
-function cancelSweep() {
-  if (myTask.value) aiTasks.cancel(myTask.value.id);
-}
+// THE stop. The shared AiTaskStrip renders the only Cancel (the modal's duplicate was
+// removed 2026-07-17 — user: "top cancel button redundant"); it cancels the TASK entry
+// in the store, which the running pool cannot see by itself. Mirroring it onto our
+// controller is what makes one click stop EVERYTHING: the workers see the signal and
+// stop pulling chapters, and the pool returns `cancelled: true` so every unfinished
+// row is marked.
+//
+// Watch the task's DISAPPEARANCE, not a "cancelled" status: aiTasks.cancel() archives
+// and DELETES the entry (`_archiveAndRemove` → `delete this.tasks[id]`), so
+// `myTask.value` goes straight to undefined and a status watch would never see
+// "cancelled". `running` flipping true→false while our own run is still awaiting means
+// the entry went away under us — cancel it here too.
+watch(running, (isRunning) => {
+  if (!isRunning) sweepAbort?.abort();
+});
 
 function onReviewClose() {
   emit("close");
@@ -154,11 +179,10 @@ function onReviewCommitted(payload) {
         <div class="t-eyebrow">Entity sweep</div>
         <div class="modal-title">Scanning for new entities</div>
       </div>
+      <!-- No Cancel here: the shared AiTaskStrip below renders THE Cancel (user,
+           2026-07-17: "top cancel button redundant" — both were live at once). -->
       <div class="sweep-header-actions">
         <AiFeatureChip feature="entitySweep" label="Entity sweep" editable />
-        <UiButton v-if="running" intent="ghost" size="small" @click="cancelSweep">
-          <Icon name="Close" :size="12" /> Cancel
-        </UiButton>
       </div>
     </template>
 
