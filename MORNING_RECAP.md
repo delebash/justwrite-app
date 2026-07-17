@@ -85,6 +85,28 @@ original question — and the b9993 loop re-test, verdict rule declared). The lo
 provenance is CORRECTED in the tuning doc + recap archive (it was Claude's diagnosis
 from the user's pasted token counts, jointly accepted — the loop STANDS as verified).
 
+## GO (2026-07-17, later) — THE ONE LOAD/UNLOAD/DOWNLOAD CONTROL, THE #4 PLAN REBUILT (unpushed)
+
+The failed cancel/progress plan was REWRITTEN (3-lens panel: 2 lenses FAILED it, findings
+folded in ◆-marked), approved, and BUILT the same day. Plan + probe outcome + build record:
+`just-llm-runner/docs/plans/2026-07-17-load-cancel-and-one-progress-control.md` (v2 banner).
+Runner commits, in order: `4c53a08` (foundation: resident-mask fix + load/stop trigger
+telemetry — the multi-click diagnosis) · `6d36880` T1 (phase set by the download itself — no
+phantom bar) · `23c34cd` T2 (per-load cancel TOKEN: stop never blocks, never evicts an
+innocent model, silently unloads a late-spawned child; confirm-unload + compare-and-pop) ·
+`7503201` T2b ("stopping"/"cancelling" on the wire) · `cb63a15` T3 (ONE DownloadBar +
+loadPhases vocabulary + taskFor adapter on slot cards/rows; QuickSetup's copy deleted) ·
+`7fbbf28` (checker's R2 comment trim). JW: `db6464e`+`e3cd1d2` (pins) + `c315ded` docs.
+**T5 (real VRAM %) honestly NOT built** — the step-0 probe proved the b10034 router's GET
+/models carries NO progress key even mid-loading (the child emits it; the router keeps it
+internal); recorded in the plan doc, re-probe at the next engine bump. Every fires-proof ran
+red-then-green (stash-runs); runner pytest 532 ✓ ruff ✓ JW vitest 197 ✓ build:vite ✓ server
+pytest 108 ✓; the headless smoke is the CONTAINER's gate (no Chromium on this box — checked);
+**OPEN: the user's box look** (load phases/words · instant cancel · "Unloading…" no-flicker ·
+QuickSetup unchanged) + 3 pre-existing Windows-box test failures (lspci + 2× ensure, proven
+pre-existing by stash-run). The morning's respawner question stays PASSIVELY armed: the
+`4c53a08` telemetry names any future reloader in justwrite.log (`load <id> (trigger=…)`).
+
 ## GO (2026-07-17) — THREE USER-REPORTED BUGS FIXED (unpushed on the branch)
 
 Three items off the 2026-07-17 QC queue, each on its own go. (1) **Delete the
