@@ -26,10 +26,13 @@ const LOCAL_ROUTE = {
   think: true, level: "", reasoningWord: "", value: 1024, valueSource: "class",
   configured: true,
 };
+// A grid-typed value matching NO level — the display-only Custom state (B ruling).
+const CUSTOM_ROUTE = { ...LOCAL_ROUTE, value: 3000 };
 
 let puts;
 let app;
 let host;
+let activeRoute = LOCAL_ROUTE;
 
 function jsonOk(obj) {
   return {
@@ -64,10 +67,11 @@ beforeEach(() => {
     if (u.includes("/v1/ai/class-tunes")) {
       return jsonOk({ classKey: CLASS_KEY, tunes: [] });
     }
-    if (u.includes("/v1/ai/resolved-route")) return jsonOk(LOCAL_ROUTE);
+    if (u.includes("/v1/ai/resolved-route")) return jsonOk(activeRoute);
     if (u.includes("/v1/ai/model-tunes")) return jsonOk({ rows: [] });
     return jsonOk({});
   }));
+  activeRoute = LOCAL_ROUTE;
   host = document.createElement("div");
   document.body.appendChild(host);
 });
@@ -88,10 +92,11 @@ function thinkingSelect() {
     [...s.options].some((o) => o.textContent.includes("(8192)")));
 }
 
-async function openPopover() {
+async function openPopover(route = LOCAL_ROUTE) {
+  activeRoute = route;
   app = createApp({
     render: () => h(LuFeatureChip, {
-      feature: "critique", label: "Critique", editable: true, route: LOCAL_ROUTE,
+      feature: "critique", label: "Critique", editable: true, route,
       resolvedProviderName: "Built-in runner", resolvedModel: "gemma",
     }),
   });
@@ -120,11 +125,25 @@ function layerWrites() {
 }
 
 describe("LuFeatureChip — the thinking save is ONE preset write", () => {
-  it("seeds the follow state as 'Model default', never Off (the collapse regression)", async () => {
+  it("seeds from the RESOLVED value: a matched level shows as that level (the B ruling)", async () => {
     await openPopover();
-    // Stored: think=true + reasoningEffort="" ⇒ the control must read "default".
-    // Collapsing it to "" (Off) wrote think=false back on the next save.
-    expect(thinkingSelect().value).toBe("default");
+    // Stored: think=true + level="" (follow), resolving to 1024 ⇒ the control reads
+    // "low" — the level whose map number matches what will actually run. NEVER Off
+    // (the collapse regression), never an uninformative "Model default".
+    expect(thinkingSelect().value).toBe("low");
+  });
+
+  it("a resolved value matching no level shows as display-only Custom, and save preserves the stored pair", async () => {
+    await openPopover(CUSTOM_ROUTE); // 3000 — typed in a grid, no level matches
+    expect(thinkingSelect().value).toBe("__custom");
+    const custom = [...thinkingSelect().options].find((o) => o.value === "__custom");
+    expect(custom.textContent).toContain("Custom (3000)");
+    await pickAndSave("__custom");
+    const presetPut = puts.find((p) => p.url.includes("/v1/ai/engine-presets/p1"));
+    // Custom is not a level — the stored pair rides through UNTOUCHED.
+    expect(presetPut.body.think).toBe(true);
+    expect(presetPut.body.reasoningEffort).toBe("");
+    expect(layerWrites()).toEqual([]);
   });
 
   it("a picked level saves to the preset as its own ask — and touches NO layer row", async () => {
@@ -142,14 +161,6 @@ describe("LuFeatureChip — the thinking save is ONE preset write", () => {
     expect(JSON.stringify(presetPut.body)).not.toContain("reasoning_budget");
   });
 
-  it("'Model default' saves think on with an EMPTY level (follow — nothing copied)", async () => {
-    await openPopover();
-    await pickAndSave("default");
-    const presetPut = puts.find((p) => p.url.includes("/v1/ai/engine-presets/p1"));
-    expect(presetPut.body.think).toBe(true);
-    expect(presetPut.body.reasoningEffort).toBe("");
-    expect(layerWrites()).toEqual([]);
-  });
 
   it("Off saves think false and writes nothing else", async () => {
     await openPopover();
