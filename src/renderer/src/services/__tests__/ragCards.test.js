@@ -93,6 +93,29 @@ describe("buildEntityCards", () => {
     expect(aria.text).toContain('Ch 1 "The customs house" — at Customs House, with Bren, POV: Limited third person');
   });
 
+  it("builds a compact main-cast roster — one line per main, non-mains excluded", () => {
+    const cast = cardById(cards, "card:cast:main");
+    expect(cast.kind).toBe("cast");
+    expect(cast.title).toBe("Main cast");
+    expect(cast.text).toContain("- Aria (protagonist) — Maps what others fear.");
+    expect(cast.text).not.toContain("Bren"); // c_bren is main:false → not in the roster
+  });
+
+  it("splits a large character card into parts; identity leads part 1", () => {
+    const p = fixtureProject();
+    p.characters.push({ id: "c_big", name: "Orin", main: true, role: "antagonist", oneLiner: "y".repeat(40) });
+    p.characterExtras.c_big = { backstory: "B".repeat(800), motivation: { want: "W".repeat(400), need: "N".repeat(400) } };
+    const cards2 = buildEntityCards(p);
+    expect(cardById(cards2, "card:character:c_big")).toBeUndefined();     // split → no unsplit id
+    const p1 = cardById(cards2, "card:character:c_big:p1");
+    const p2 = cardById(cards2, "card:character:c_big:p2");
+    expect(p1.text).toContain("Orin (main character)");                   // identity leads part 1
+    expect(p1.title).toBe("Orin (part 1 of 2)");
+    expect(p1.entityId).toBe("c_big");
+    expect(p2.entityId).toBe("c_big");
+    expect(p2.text).toContain("part 2");
+  });
+
   it("builds location/object cards with appears-in company lines", () => {
     const customs = cardById(cards, "card:location:l_customs");
     expect(customs.text).toContain("Customs House (building)");

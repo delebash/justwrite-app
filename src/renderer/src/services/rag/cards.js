@@ -35,6 +35,7 @@ export const CARD_KIND_LABELS = {
   worldbuilding: "Worldbuilding",
   note: "Note",
   strand: "Narrative strand",
+  cast: "Cast",
   architecture: "Architecture",
 };
 
@@ -123,8 +124,10 @@ function tagsLine(entity) {
 // ── per-kind builders ────────────────────────────────────────────────────
 
 function characterCards(project, index, nameOf) {
-  return (project.characters || []).map((c) => {
-    const lines = [`${c.name}${c.main ? " (main character)" : ""}`];
+  const out = [];
+  for (const c of project.characters || []) {
+    const header = `${c.name}${c.main ? " (main character)" : ""}`;
+    const lines = [header];
     const profile = buildCharacterProfile(c, project.characterExtras?.[c.id] || null, { voice: "third" });
     if (profile) lines.push(profile.trim());
     if (tagsLine(c)) lines.push(tagsLine(c));
@@ -134,8 +137,22 @@ function characterCards(project, index, nameOf) {
     if (events.length) lines.push("Timeline:", ...events);
     const refs = index.byCharacter.get(c.id) || [];
     if (refs.length) lines.push("Appears in:", ...appearanceLines(refs, c.id, nameOf));
-    return { id: `card:character:${c.id}`, kind: "character", entityId: c.id, title: c.name, text: lines.join("\n"), sha: "" };
-  });
+    // Split a rich character card the SAME way long worldbuilding splits (WB_SPLIT_CHARS,
+    // paragraph/line boundaries). profile.js orders identity + arc first, so part 1 is a
+    // clean pin/citation; backstory, timeline, and appearances fall to later parts. Without
+    // this a big card is ONE diluted vector, truncated at the excerpt cap — its depth
+    // unreachable by retrieval. Small cards stay a single unsplit chunk (id unchanged).
+    const parts = splitParts(lines.join("\n"));
+    if (parts.length <= 1) {
+      out.push({ id: `card:character:${c.id}`, kind: "character", entityId: c.id, title: c.name, text: lines.join("\n"), sha: "" });
+    } else {
+      parts.forEach((part, i) => {
+        const text = i === 0 ? part : `${header} — part ${i + 1}\n${part}`;
+        out.push({ id: `card:character:${c.id}:p${i + 1}`, kind: "character", entityId: c.id, title: `${c.name} (part ${i + 1} of ${parts.length})`, text, sha: "" });
+      });
+    }
+  }
+  return out;
 }
 
 function placeThingCards(project, index, nameOf, kind) {
@@ -278,6 +295,23 @@ function architectureCards(project) {
   return out;
 }
 
+// A compact whole-book ROSTER: one line per MAIN character (name · role · one-liner).
+// Pinned for corpus questions ("what is this book about") by entityMatcher's corpusFallback,
+// so the WHOLE cast is named even when a rich protagonist's full card would eat the pin
+// budget by itself (measured: one card was 3009 of the 4800-char budget). Per-character
+// depth rides retrieval over the split cards. Falls back to the first several characters
+// when NONE are flagged main, so a project that never set the flag still gets a cast.
+function mainCastCard(project) {
+  const chars = project.characters || [];
+  const mains = chars.filter((c) => c?.main);
+  const cast = mains.length ? mains : chars.slice(0, 8);
+  const lines = cast
+    .map((c) => (c.name ? `- ${c.name}${c.role ? ` (${c.role})` : ""}${c.oneLiner ? ` — ${c.oneLiner}` : ""}` : ""))
+    .filter(Boolean);
+  if (!lines.length) return null;
+  return { id: "card:cast:main", kind: "cast", entityId: "main", title: "Main cast", text: ["Main cast:", ...lines].join("\n"), sha: "" };
+}
+
 // ── public API ───────────────────────────────────────────────────────────
 
 // ONE entity-name resolution source — cards AND the scene chunks' links line
@@ -318,8 +352,10 @@ export function sceneLinksLine(project, scene, nameOf = entityNameResolvers(proj
 export function buildEntityCards(project) {
   const index = buildSceneIndex(project);
   const nameOf = entityNameResolvers(project);
+  const cast = mainCastCard(project);
   return [
     ...characterCards(project, index, nameOf),
+    ...(cast ? [cast] : []),
     ...placeThingCards(project, index, nameOf, "location"),
     ...placeThingCards(project, index, nameOf, "object"),
     ...groupCards(project, nameOf),

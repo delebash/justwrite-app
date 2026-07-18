@@ -150,22 +150,19 @@ export function pickPinnedCards({ question, history = [], project, cards, exclud
   // Corpus-level fallback — when the CURRENT question names no entity (a whole-book
   // question, even mid-conversation). A matched-but-unpinnable entity in the current
   // question still means "about that entity", so questionNamesEntity (not pins) is the
-  // gate. Premise first (the author's own "what this book is about"), then main-cast in
-  // the author's list order. Additive under the same budget, skipping any card a name
-  // pin already took (a main named in history is not doubled).
+  // gate. Pin the premise (the author's own "what this book is about") + the compact
+  // main-cast ROSTER (cards.js — one line per main). The roster names the WHOLE cast in
+  // ~a line each, so a rich protagonist's full card can't starve the others out of the
+  // budget (measured: one card alone was 3009 of 4800 chars). Per-character depth rides
+  // retrieval over the split cards. Additive; skips any card a name pin already took.
   if (corpusFallback && !questionNamesEntity) {
     const pinnedIds = new Set(pinned.map((c) => c.id));
-    const fallbackKeys = [
-      "architecture:premise",
-      ...(project.characters || []).filter((c) => c?.main && c.id !== excludeEntityId).map((c) => `character:${c.id}`),
-    ];
-    for (const key of fallbackKeys) {
+    for (const key of ["architecture:premise", "cast:main"]) {
       const card = byEntity.get(key);
       if (!card || pinnedIds.has(card.id)) continue;
       if (card.text.length > budget) continue;
       pinned.push(card);
       budget -= card.text.length;
-      if (budget <= 0) break;
     }
   }
   return pinned;
