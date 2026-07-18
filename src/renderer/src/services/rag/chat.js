@@ -7,7 +7,16 @@
 //   2. Embeds a query (prior user turn + current question, so follow-ups like
 //      "what about her sister?" still retrieve the right scenes).
 //   3. Builds a chat prompt with cited excerpts AND any prior turns.
-//   4. Streams the answer; returns { answer, citations, usage }.
+//   4. Streams the answer; returns { answer, citations, usage, bibleOnly }.
+//
+// BIBLE-ONLY mode (2026-07-18, user decision — chat works without an index):
+// when no index exists, retrieval + the query embed are skipped entirely (zero
+// embedding calls — works with providers that offer no embeddings at all) and
+// the answer grounds on the ask-time story-bible pins alone (named cards, or
+// premise + main-cast roster for corpus questions). `bibleOnly: true` rides the
+// result so the panel can show its "story bible only" notice. An index that
+// EXISTS but whose embed provider fails still errors loudly — that's a config
+// break the user must see, never silently downgraded.
 
 import { embedTexts, friendlyAiError, runAiFeatureStream } from "@delebash/llm-ui";
 import { useAiStore } from "../../stores/ai.js";
@@ -65,7 +74,7 @@ function buildEmbedQuery(question, history) {
  * @param {Function}    [opts.onDelta]         — (delta: string, content: string) => void
  * @param {object}      [opts.embedProvider]   — override; defaults to ai.embeddingProvider
  * @param {string}      [opts.embedModel]      — override
- * @returns {Promise<{ answer: string, citations: Array<{ index: number, chunk: object, score: number }>, usage: object | null }>}
+ * @returns {Promise<{ answer: string, citations: Array<{ index: number, chunk: object, score: number }>, usage: object | null, bibleOnly: boolean }>}
  */
 export async function askManuscript({
   question,
@@ -86,59 +95,60 @@ export async function askManuscript({
   const ai      = useAiStore();
   const project = useProjectStore();
 
-  // The LLM provider/model is NOT resolved here (B5-1, §7.2): the server run
-  // path owns it (the chat task's preset → dispatch fallback). A client-side
-  // pin resolution here used to silently bypass the task preset. Embeddings
-  // are a different rail — the embed call below is client-orchestrated, so
-  // its provider still resolves here, through the self-heal (2026-07-11: a
-  // failed routing boot fetch must not brick embeddings for the session).
-  const resolvedEmbedProvider = embedProvider || (await ai.ensureEmbeddingDefaults());
-
-  if (!resolvedEmbedProvider) {
-    throw new Error(
-      "No embedding provider configured. Open AI Settings and set an embedding provider.",
-    );
-  }
-
-  const resolvedEmbedModel = embedModel || ai.embeddingModelFor(resolvedEmbedProvider);
-
-  // ── 2. Confirm an index exists (server-side) ─────────────────────────────
+  // ── 2. Index state decides the MODE (checked FIRST — bible-only mode must
+  //      never require an embedding provider) ─────────────────────────────
   const projectId = project.activeProjectId;
   const st = await status(projectId);
-  if (!st.exists) {
-    throw new Error(
-      "No index built yet — open Ask the book and build the manuscript index first.",
-    );
-  }
+  const bibleOnly = !st.exists;
 
-  // ── 3. Embed the (history-aware) query ───────────────────────────────────
-  const embedQuery = buildEmbedQuery(question, history);
-  let queryVectors;
-  try {
-    queryVectors = await embedTexts({
-      providerId: resolvedEmbedProvider.id,
-      providerType: resolvedEmbedProvider.providerType,
-      input: embedQuery,
-      model: resolvedEmbedModel,
-      signal,
-      taskType: "query",
-    });
-  } catch (err) {
-    throw friendlyAiError(err, resolvedEmbedProvider);
-  }
+  // ── 3+4. Full mode only: resolve the embed provider, embed the query,
+  //         retrieve top-k (hybrid BM25 + cosine via RRF). Bible-only skips
+  //         all of it — zero embedding calls. ─────────────────────────────
+  let hits = [];
+  if (!bibleOnly) {
+    // The LLM provider/model is NOT resolved here (B5-1, §7.2): the server run
+    // path owns it (the chat task's preset → dispatch fallback). A client-side
+    // pin resolution here used to silently bypass the task preset. Embeddings
+    // are a different rail — the embed call below is client-orchestrated, so
+    // its provider still resolves here, through the self-heal (2026-07-11: a
+    // failed routing boot fetch must not brick embeddings for the session).
+    const resolvedEmbedProvider = embedProvider || (await ai.ensureEmbeddingDefaults());
 
-  const queryVec = Array.isArray(queryVectors?.[0]) ? queryVectors[0] : null;
-  if (!queryVec?.length) {
-    throw new Error("Embedding the question returned an empty vector.");
-  }
+    if (!resolvedEmbedProvider) {
+      throw new Error(
+        "No embedding provider configured. Open AI Settings and set an embedding provider.",
+      );
+    }
 
-  // ── 4. Retrieve top-k chunks (hybrid: BM25 + cosine, blended via RRF) ────
-  const hits = await search(projectId, queryVec, embedQuery, k);
+    const resolvedEmbedModel = embedModel || ai.embeddingModelFor(resolvedEmbedProvider);
 
-  if (!hits.length) {
-    throw new Error(
-      "No relevant passages found — the index may be empty or built with a different embedding model.",
-    );
+    const embedQuery = buildEmbedQuery(question, history);
+    let queryVectors;
+    try {
+      queryVectors = await embedTexts({
+        providerId: resolvedEmbedProvider.id,
+        providerType: resolvedEmbedProvider.providerType,
+        input: embedQuery,
+        model: resolvedEmbedModel,
+        signal,
+        taskType: "query",
+      });
+    } catch (err) {
+      throw friendlyAiError(err, resolvedEmbedProvider);
+    }
+
+    const queryVec = Array.isArray(queryVectors?.[0]) ? queryVectors[0] : null;
+    if (!queryVec?.length) {
+      throw new Error("Embedding the question returned an empty vector.");
+    }
+
+    hits = await search(projectId, queryVec, embedQuery, k);
+
+    if (!hits.length) {
+      throw new Error(
+        "No relevant passages found — the index may be empty or built with a different embedding model.",
+      );
+    }
   }
 
   // ── 4b. Deterministic entity pinning (Move 2) ────────────────────────────
@@ -154,6 +164,14 @@ export async function askManuscript({
     pickPinnedCards({ question, history, project, cards: buildEntityCards(project), corpusFallback: true }),
     hits,
   );
+
+  // Bible-only with nothing pinned = literally nothing to ground on — say so
+  // plainly instead of letting the model answer from thin air.
+  if (bibleOnly && !combined.length) {
+    throw new Error(
+      "Nothing to answer from yet — add story-bible entries (characters, a premise) or build the manuscript index.",
+    );
+  }
 
   // ── 5. Recent history — the server prepends these turns; the system + outer
   //      template are the DB "chat" prompt (Lab-editable). ───────────────────
@@ -191,5 +209,5 @@ export async function askManuscript({
     pinned: !!pinned,
   }));
 
-  return { answer, citations, usage };
+  return { answer, citations, usage, bibleOnly };
 }

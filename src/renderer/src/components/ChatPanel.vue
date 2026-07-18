@@ -6,11 +6,16 @@
 // Each user question is embedded (with the prior user turn prepended for
 // pronoun/entity context), top-K scenes are retrieved, and the LLM streams an
 // answer with citations.
+//
+// NO-INDEX mode (2026-07-18, user decision): chat is never blocked — without
+// an index the services answer from story-bible pins alone (zero embedding
+// calls), and the status strip becomes the "story bible only" notice with the
+// Build-index upgrade inline. The old EmptyState hard gate is gone.
 
 import { ref, computed, watch, nextTick, onBeforeUnmount } from "vue";
 import { useRouter } from "vue-router";
 import { useProjectStore } from "../stores/project.js";
-import { useAiTasksStore, AiTaskStrip, EmptyState, HelpTrigger, Icon, UiButton, UiTextarea, UiSelect, confirmDialog } from "@delebash/llm-ui";
+import { useAiTasksStore, AiTaskStrip, HelpTrigger, Icon, UiButton, UiTextarea, UiSelect, confirmDialog } from "@delebash/llm-ui";
 import { useUiStore } from "../stores/ui.js";
 import { askManuscript } from "../services/rag/chat.js";
 import { askAsCharacter } from "../services/rag/characterChat.js";
@@ -384,39 +389,46 @@ defineExpose({ open: () => { open.value = true; }, close });
                   :disabled="!characterOptions.length" />
       </div>
 
-      <EmptyState v-if="!hasIndex"
-        icon="Sparkle"
-        title="No index yet"
-        message="Build a manuscript index so the assistant can search and quote your scenes. One LLM call per scene."
-        action-label="Build index"
-        @action="indexModalMode = 'build'" />
+      <!-- Index status strip (indexed) OR the story-bible-only notice (no
+           index — chat still works; answers ground on bible pins alone). -->
+      <div v-if="hasIndex" class="cp-status">
+        <Icon name="Check" :size="11" />
+        <span><b>{{ status.entryCount }}</b> scenes indexed</span>
+        <span class="cp-status-sep">·</span>
+        <span class="cp-status-model"><code>{{ status.model || "?" }}</code></span>
+        <span v-if="isIndexing" class="cp-indexing" v-tooltip.bottom="'Auto-rebuild is updating the index'">
+          <span class="cp-indexing-dot"></span> indexing…
+        </span>
+        <span class="cp-status-spacer"></span>
+        <UiButton v-if="hasThread" intent="ghost" size="small" @click="newChat" v-tooltip.bottom="'Clear and start fresh'">
+          <Icon name="Plus" :size="11" /> New chat
+        </UiButton>
+        <UiButton v-if="hasThread" intent="ghost" size="small" @click="deleteChat" v-tooltip.bottom="'Delete this saved conversation'">
+          <Icon name="Trash" :size="11" /> Delete chat
+        </UiButton>
+        <UiButton intent="ghost" size="small" @click="indexModalMode = 'build'" v-tooltip.bottom="'Embed any scenes added or edited since last build'">
+          <Icon name="Refresh" :size="11" /> Update
+        </UiButton>
+        <UiButton intent="ghost" size="small" @click="indexModalMode = 'rebuild'" v-tooltip.bottom="'Wipe and re-embed everything'">
+          <Icon name="Refresh" :size="11" /> Rebuild
+        </UiButton>
+      </div>
+      <div v-else class="cp-status cp-status-bible">
+        <Icon name="Sparkle" :size="11" />
+        <span>Answering from your <b>story bible</b> only — build the index so chat can search and quote your scenes.</span>
+        <span class="cp-status-spacer"></span>
+        <UiButton v-if="hasThread" intent="ghost" size="small" @click="newChat" v-tooltip.bottom="'Clear and start fresh'">
+          <Icon name="Plus" :size="11" /> New chat
+        </UiButton>
+        <UiButton v-if="hasThread" intent="ghost" size="small" @click="deleteChat" v-tooltip.bottom="'Delete this saved conversation'">
+          <Icon name="Trash" :size="11" /> Delete chat
+        </UiButton>
+        <UiButton intent="secondary" size="small" @click="indexModalMode = 'build'" v-tooltip.bottom="'Embed your scenes so answers can quote the manuscript'">
+          <Icon name="Sparkle" :size="11" /> Build index
+        </UiButton>
+      </div>
 
-      <template v-else>
-        <!-- Index status strip -->
-        <div class="cp-status">
-          <Icon name="Check" :size="11" />
-          <span><b>{{ status.entryCount }}</b> scenes indexed</span>
-          <span class="cp-status-sep">·</span>
-          <span class="cp-status-model"><code>{{ status.model || "?" }}</code></span>
-          <span v-if="isIndexing" class="cp-indexing" v-tooltip.bottom="'Auto-rebuild is updating the index'">
-            <span class="cp-indexing-dot"></span> indexing…
-          </span>
-          <span class="cp-status-spacer"></span>
-          <UiButton v-if="hasThread" intent="ghost" size="small" @click="newChat" v-tooltip.bottom="'Clear and start fresh'">
-            <Icon name="Plus" :size="11" /> New chat
-          </UiButton>
-          <UiButton v-if="hasThread" intent="ghost" size="small" @click="deleteChat" v-tooltip.bottom="'Delete this saved conversation'">
-            <Icon name="Trash" :size="11" /> Delete chat
-          </UiButton>
-          <UiButton intent="ghost" size="small" @click="indexModalMode = 'build'" v-tooltip.bottom="'Embed any scenes added or edited since last build'">
-            <Icon name="Refresh" :size="11" /> Update
-          </UiButton>
-          <UiButton intent="ghost" size="small" @click="indexModalMode = 'rebuild'" v-tooltip.bottom="'Wipe and re-embed everything'">
-            <Icon name="Refresh" :size="11" /> Rebuild
-          </UiButton>
-        </div>
-
-        <!-- Thread (user + assistant turns) -->
+      <!-- Thread (user + assistant turns) — renders in BOTH modes -->
         <div ref="threadRef" class="cp-thread">
           <div v-if="!hasThread" class="cp-empty-hint">
             <Icon name="Sparkle" :size="14" />
@@ -444,7 +456,7 @@ defineExpose({ open: () => { open.value = true; }, close });
                     <li v-for="c in m.citations" :key="c.index" class="cp-cite" @click="openCitation(c)">
                       <span class="cp-cite-num">[{{ c.index }}]</span>
                       <span class="cp-cite-meta">{{ citationLabel(c.chunk) }}</span>
-                      <span v-if="c.pinned" class="cp-cite-score" title="Pinned from the story bible — this entity was named in your question">pinned</span>
+                      <span v-if="c.pinned" class="cp-cite-score" title="Pinned from the story bible">pinned</span>
                       <span v-else class="cp-cite-score">{{ (c.score * 100).toFixed(0) }}%</span>
                     </li>
                   </ol>
@@ -480,8 +492,7 @@ defineExpose({ open: () => { open.value = true; }, close });
           </div>
         </div>
 
-        <AiTaskStrip :task="myTask" />
-      </template>
+      <AiTaskStrip :task="myTask" />
 
       <IndexBuildModal v-if="indexModalMode"
         :mode="indexModalMode"
@@ -535,6 +546,10 @@ defineExpose({ open: () => { open.value = true; }, close });
   flex-shrink: 0;
 }
 .cp-status b { color: var(--ink); font-variant-numeric: tabular-nums; }
+/* The story-bible-only notice reuses the status strip's geometry with the
+   accent tint — an upgrade offer, not an error. */
+.cp-status-bible { background: var(--accent-soft); color: var(--accent-ink); }
+.cp-status-bible b { color: var(--accent-ink); }
 .cp-status-sep { color: var(--subtle); }
 .cp-status-spacer { flex: 1; }
 .cp-status-model code {

@@ -72,41 +72,47 @@ export async function askAsCharacter({
   if (!character) throw new Error("Character not found.");
   const extras = project.characterExtras?.[characterId] || null;
 
-  // The LLM provider/model is NOT resolved here (B5-1, §7.2): the server run
-  // path owns it (the characterChat task's preset → dispatch fallback). Only
-  // the embedding rail resolves client-side (the embed call below is
-  // client-orchestrated), through the self-heal (2026-07-11).
-  const resolvedEmbedProvider = embedProvider || (await ai.ensureEmbeddingDefaults());
-
-  if (!resolvedEmbedProvider) throw new Error("No embedding provider configured. Open AI Settings and set an embedding provider.");
-
-  const resolvedEmbedModel = embedModel || ai.embeddingModelFor(resolvedEmbedProvider);
-
+  // Index state decides the MODE (bible-only chat, 2026-07-18 — mirrors
+  // askManuscript): no index → skip the embed rail + retrieval entirely and
+  // interview from the character's profile (the system prompt) + any pinned
+  // cards alone. Empty excerpts are FINE here — unlike book chat, the persona's
+  // full profile already grounds the interview.
   const projectId = project.activeProjectId;
   const st = await status(projectId);
-  if (!st.exists) {
-    throw new Error("No index built yet — open Ask the book and build the manuscript index first.");
-  }
+  const bibleOnly = !st.exists;
 
-  const embedQuery = buildEmbedQuery(question, history, character);
-  let queryVectors;
-  try {
-    queryVectors = await embedTexts({
-      providerId: resolvedEmbedProvider.id,
-      providerType: resolvedEmbedProvider.providerType,
-      input: embedQuery,
-      model: resolvedEmbedModel,
-      signal,
-      taskType: "query",
-    });
-  } catch (err) {
-    throw friendlyAiError(err, resolvedEmbedProvider);
-  }
-  const queryVec = Array.isArray(queryVectors?.[0]) ? queryVectors[0] : null;
-  if (!queryVec?.length) throw new Error("Embedding the question returned an empty vector.");
+  let hits = [];
+  if (!bibleOnly) {
+    // The LLM provider/model is NOT resolved here (B5-1, §7.2): the server run
+    // path owns it (the characterChat task's preset → dispatch fallback). Only
+    // the embedding rail resolves client-side (the embed call below is
+    // client-orchestrated), through the self-heal (2026-07-11).
+    const resolvedEmbedProvider = embedProvider || (await ai.ensureEmbeddingDefaults());
 
-  const hits = await search(projectId, queryVec, embedQuery, k);
-  if (!hits.length) throw new Error("No relevant passages found — the index may be empty or built with a different embedding model.");
+    if (!resolvedEmbedProvider) throw new Error("No embedding provider configured. Open AI Settings and set an embedding provider.");
+
+    const resolvedEmbedModel = embedModel || ai.embeddingModelFor(resolvedEmbedProvider);
+
+    const embedQuery = buildEmbedQuery(question, history, character);
+    let queryVectors;
+    try {
+      queryVectors = await embedTexts({
+        providerId: resolvedEmbedProvider.id,
+        providerType: resolvedEmbedProvider.providerType,
+        input: embedQuery,
+        model: resolvedEmbedModel,
+        signal,
+        taskType: "query",
+      });
+    } catch (err) {
+      throw friendlyAiError(err, resolvedEmbedProvider);
+    }
+    const queryVec = Array.isArray(queryVectors?.[0]) ? queryVectors[0] : null;
+    if (!queryVec?.length) throw new Error("Embedding the question returned an empty vector.");
+
+    hits = await search(projectId, queryVec, embedQuery, k);
+    if (!hits.length) throw new Error("No relevant passages found — the index may be empty or built with a different embedding model.");
+  }
 
   // Move 2: pin cards for OTHER entities named mid-interview ("what does
   // Bren think of you?") — the interviewee is excluded; their full profile
@@ -150,5 +156,5 @@ export async function askAsCharacter({
     pinned: !!h.pinned,
   }));
 
-  return { answer, citations, usage };
+  return { answer, citations, usage, bibleOnly };
 }
