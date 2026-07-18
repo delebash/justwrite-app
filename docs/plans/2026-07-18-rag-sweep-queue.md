@@ -54,14 +54,53 @@ chat but NOT green-lit item-by-item):
   (floor ~180 s) → row "error · timed out", worker freed; "Retry failed" re-queues
   only failures. Fixes the observed stuck-SCANNING ch47 (no timeout exists anywhere
   in the chain today — verified `entitySweep.js`/`entityExtraction.js`/kit).
-- **C1. Small model for extraction** (user action now + seed decision): point
-  `p_extract` at a small dense model instead of the 26B (entitySweep/reverseOutline/
-  beatSheet/readerKnowledge/characterAudit/relationshipArc/foreshadowing all ride
-  `p_extract` — seed_presets.py:168-176). Biggest speed lever. Making it the SEEDED
-  default is a product decision needing an explicit yes.
+- **C1. Small model for extraction — REVISED 2026-07-18 (post-compact): A/B before
+  adopting, default unchanged.** The user's on-box evidence cuts against assuming
+  parity: speaker attribution, 8B = ~80% accurate where 14B was accurate (14B
+  overflowed + slow, but right). Extraction discovery is more forgiving (names are
+  on the page; recurrence re-proposes misses; the review gate catches junk) but the
+  quality-sensitive part is COREFERENCE/aliases — the 26B merged Gavin Guile with
+  "Dazen, Six, His Holiness…" and knew Number Seven = Orholam on the real Broken
+  Eye run; a small model splitting those identities makes a 563-row review WORSE.
+  So: `p_extract` stays as-is; if speed is wanted from the model, run the A/B first
+  (same ~5 chapters, both models, diff proposals for misses + split identities +
+  alias quality — ~20 min on-box, decides it with data like the embed A/B did).
+  Note the affected family: entitySweep/reverseOutline/beatSheet/readerKnowledge/
+  characterAudit/relationshipArc/foreshadowing all ride `p_extract`
+  (seed_presets.py:168-176).
 - **C2. Local concurrency honesty** (S): pool=4 buys nothing against the single-slot
   built-in server (requests serialize server-side) — drop local to 1-2 OR enable
   llama-server parallel slots (-np) via the switches system (VRAM/ctx tradeoff).
+- **D. Chapter checkboxes on the sweep** (S — user request 2026-07-18): checkbox per
+  row + All/None in EntitySweepModal's chapter list; all ticked by default EXCEPT
+  rows whose titles match obvious non-story patterns (Acknowledgments · Glossary ·
+  Appendix · Extras · "A Preview of…" · "Also by…" · "Praise for…" · "Meet the
+  Author" · "The story continues in…" · Character List) — auto-unticked but visible,
+  one click re-ticks. Evidence from the real run: the sweep scanned the Glossary,
+  praise pages, and the NEXT book's sample chapters, and the proposals contained
+  "The Broken Eye (Book)" / "The Burning White (Book)" extracted from ch 116 (the
+  praise page). Saves minutes AND keeps junk out of the bible.
+- **E. Deep-profile pass ("Fill from book")** (M — user report 2026-07-18: "got all
+  characters/locations but just one-liners"): the sweep's contract is DISCOVERY by
+  design (seed_feature_prompts.py `_ENTITY_SYSTEM`: name/role/ONE sentence/aliases/
+  quote) — per-chapter scans can't write motivation/arc, which emerge across the
+  book. New per-ENTITY action: for a chosen character, digest the scenes naming
+  them (provenance survives accept — EntityReviewModal backfills scene links via
+  the shared matcher; characterAudit.js already builds exactly this profile+scenes
+  input) and ask a full contract: real description paragraph, Wants/Needs/Lie/
+  Truth, arc Beginning/Midpoint/End, relationships, backstory — into a REVIEW/diff
+  before writing character fields (the nothing-lands-without-confirm rule). Surface:
+  button on the character page + optional "profile selected" batch for mains. Cost
+  honesty: one solid call per character — run it on the dozen that matter, not all
+  266. Feeds RAG directly (richer cards; split-cards already handle big profiles).
+- **Sweep-run post-mortem (real 114-row book, gemma-4-26b-qat, 2026-07-18)**:
+  ~1 hour for 112 real chapters (~32 s/ch avg). The "stuck SCANNING" ch resolved
+  DONE after 10+ min — consistent with C2's diagnosis: 4 rows show SCANNING but the
+  single-slot built-in server processes ONE; the rest queue server-side, so a row
+  can sit "SCANNING" for minutes of pure queue-wait. DONE is trustworthy as far as
+  it goes (the call returned + parsed; failures surface as error/skipped rows, never
+  fake DONE) — what's missing is per-chapter YIELD visibility, which A's draft rows
+  add ("found N", inspectable).
 - **Rejected**: capitalized-name prefilter to skip chapters (would miss lowercase
   entities — the Slate board proof).
 
