@@ -118,6 +118,31 @@ describe("buildEntityCards", () => {
     expect(cast.text).not.toContain("Bren"); // c_bren is main:false → not in the roster
   });
 
+  // RAG (b), 2026-07-18: the kept reverse outline becomes index cards.
+  it("emits no outline card when no reverse outline is kept", () => {
+    expect(cards.some((c) => c.kind === "outline")).toBe(false); // fixture has none
+  });
+
+  it("builds outline cards: summary + plot points head, chapter beats labeled, split when long", () => {
+    const p = fixtureProject();
+    p.reverseOutline = {
+      structureName: "3-act",
+      summary: "A mapmaker charts a forbidden coast and pays for it.",
+      actBreaks: [{ afterChapterNum: 4, name: "Act I ends" }],
+      plotPoints: [{ id: "pp_0", name: "The chart is stolen", chapterNum: 3, description: "Aria loses the original." }],
+      chapterBeats: Array.from({ length: 40 }, (_, i) => ({ chapterNum: i + 1, beat: `Beat of chapter ${i + 1}: ${"movement ".repeat(8)}` })),
+    };
+    const cards2 = buildEntityCards(p);
+    const outline = cards2.filter((c) => c.kind === "outline");
+    expect(outline.length).toBeGreaterThan(1); // 40 beats → split
+    expect(outline[0].id).toBe("card:outline:book:p1");
+    expect(outline[0].text).toContain("A mapmaker charts a forbidden coast");
+    expect(outline[0].text).toContain("Structure: 3-act");
+    expect(outline[0].text).toContain("- The chart is stolen (Ch 3): Aria loses the original.");
+    const all = outline.map((c) => c.text).join("\n");
+    expect(all).toContain("- Ch 40: Beat of chapter 40");
+  });
+
   // 2026-07-18: a runt final part folds into the previous one — measured on
   // the real book as a 147-char tail chunk that embedded to a diluted vector.
   it("merges a tiny tail part into the previous part instead of emitting a runt chunk", () => {

@@ -38,6 +38,7 @@ export const CARD_KIND_LABELS = {
   strand: "Narrative strand",
   cast: "Cast",
   architecture: "Architecture",
+  outline: "Outline",
 };
 
 // ── scene-link index ─────────────────────────────────────────────────────
@@ -386,6 +387,45 @@ export function sceneLinksLine(project, scene, nameOf = entityNameResolvers(proj
  * Pure derivation — no store writes, no persistence; the chunker shas +
  * indexes the result and the pinner injects single cards from it.
  */
+// RAG (b), 2026-07-18: the kept reverse outline as index cards. Thematic /
+// whole-arc questions ("how does the middle sag?", "what's the turn at the
+// midpoint?") had nothing mid-scale to retrieve — scenes are too fine, the
+// premise too coarse. The outline's summary/structure/plot points make one
+// card; the chapter-by-chapter beats make more (splitParts-bounded), each
+// beat labeled with its chapter so citations land somewhere real. Absent
+// until the writer generates (and keeps) a reverse outline.
+function outlineCards(project) {
+  const o = project.reverseOutline;
+  if (!o) return [];
+  const head = ["Book outline (from the reverse outline)"];
+  if (o.summary) head.push(o.summary);
+  if (o.structureName) head.push(`Structure: ${o.structureName}`);
+  for (const b of o.actBreaks || []) {
+    head.push(`- ${b.name}: after chapter ${b.afterChapterNum}`);
+  }
+  if ((o.plotPoints || []).length) {
+    head.push("Plot points:");
+    for (const p of o.plotPoints) {
+      head.push(`- ${p.name} (Ch ${p.chapterNum})${p.description ? `: ${p.description}` : ""}`);
+    }
+  }
+  const beats = (o.chapterBeats || []).map((b) => `- Ch ${b.chapterNum}: ${b.beat}`);
+  const text = [...head, ...(beats.length ? ["Chapter beats:", ...beats] : [])].join("\n");
+  if (!text.trim()) return [];
+  const parts = splitParts(text);
+  if (parts.length <= 1) {
+    return [{ id: "card:outline:book", kind: "outline", entityId: "book", title: "Book outline", text, sha: "" }];
+  }
+  return parts.map((part, i) => ({
+    id: `card:outline:book:p${i + 1}`,
+    kind: "outline",
+    entityId: "book",
+    title: `Book outline (part ${i + 1} of ${parts.length})`,
+    text: i === 0 ? part : `Book outline — part ${i + 1}\n${part}`,
+    sha: "",
+  }));
+}
+
 export function buildEntityCards(project) {
   const index = buildSceneIndex(project);
   const nameOf = entityNameResolvers(project);
@@ -400,5 +440,6 @@ export function buildEntityCards(project) {
     ...noteCards(project),
     ...strandCards(project),
     ...architectureCards(project),
+    ...outlineCards(project),
   ].filter((card) => card.text.trim().length > 0);
 }
