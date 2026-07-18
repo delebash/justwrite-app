@@ -56,8 +56,11 @@ function onKey(e) {
     ui.openProjectReplace();
     return;
   }
-  // ⌘F / Ctrl+F → jump to Search and focus its input.
+  // ⌘F / Ctrl+F → jump to Search and focus its input. Not while typing in the rich
+  // editor — TipTap owns ⌘F there (its own find-in-editor bar); mirror the ⌘Z bail
+  // below. This handler is capture-phase, so it must yield or it steals the key.
   if (key === "f") {
+    if (focusedInRichEditor()) return;
     e.preventDefault();
     if (route.path !== "/search") router.push("/search");
     return;

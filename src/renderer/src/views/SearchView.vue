@@ -12,19 +12,6 @@ const project = useProjectStore();
 const ui = useUiStore();
 const router = useRouter();
 
-// chapterId -> Set<characterId> from the explicit scene->character links
-// (was derived from Audio Studio speaker analysis; folded into chapter
-// search so a character's name finds the chapters they appear in).
-const speakersByChapter = computed(() => {
-  const out = {};
-  for (const ch of project.allChapters) {
-    const set = new Set();
-    for (const scn of project.scenesFor(ch.id)) for (const cid of scn.characters || []) set.add(cid);
-    out[ch.id] = set;
-  }
-  return out;
-});
-
 const q = ref("");
 const inputEl = ref(null);
 const selectedKinds = ref(new Set()); // empty = all kinds
@@ -33,7 +20,7 @@ const selectedKinds = ref(new Set()); // empty = all kinds
 // so referencing its arrays here makes Vue track them.
 const index = computed(() => buildIndex({
   parts: project.parts,
-  chapterBody: project.chapterBody,
+  scenes: project.scenes,
   characters: project.characters,
   characterExtras: project.characterExtras,
   locations: project.locations,
@@ -43,7 +30,7 @@ const index = computed(() => buildIndex({
   strands: project.strands,
   worldbuilding: project.worldbuilding,
   architecture: project.architecture,
-}, speakersByChapter.value));
+}));
 
 const hits = computed(() => {
   if (!q.value.trim()) return [];
@@ -197,8 +184,17 @@ const KIND_ENTRIES = Object.entries(KIND_META).sort((a, b) => a[1].order - b[1].
         <div style="display:flex;flex-direction:column">
           <button v-for="hit in g.list" :key="hit.doc.id" class="result-row" :aria-label="`Open ${hit.doc.title}`" @click="openHit(hit)">
             <div class="result-title">
-              <span>{{ hit.doc.title }}</span>
-              <span v-if="hit.doc.sub" class="result-sub">· {{ hit.doc.sub }}</span>
+              <template v-if="hit.doc.crumbs">
+                <span class="result-crumbs">
+                  <template v-for="(c, ci) in hit.doc.crumbs" :key="ci">
+                    <span v-if="ci" class="result-crumb-sep"> › </span>{{ c }}
+                  </template>
+                </span>
+              </template>
+              <template v-else>
+                <span>{{ hit.doc.title }}</span>
+                <span v-if="hit.doc.sub" class="result-sub">· {{ hit.doc.sub }}</span>
+              </template>
             </div>
             <div v-if="hit.snippet" class="result-snippet">
               <template v-for="(seg, i) in renderSnippet(hit.snippet, hit.snippetMatches)" :key="i">
@@ -296,6 +292,10 @@ const KIND_ENTRIES = Object.entries(KIND_META).sort((a, b) => a[1].order - b[1].
   font-family: var(--font-ui);
   font-style: italic;
 }
+/* Part › Chapter › Scene breadcrumb — the separator sits quieter than the crumbs;
+   the whole crumb line stays on one row and ellipsises rather than overflowing. */
+.result-crumbs { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.result-crumb-sep { color: var(--muted); font-weight: 400; }
 .result-snippet {
   font-size: 12.5px;
   color: var(--ink-2);

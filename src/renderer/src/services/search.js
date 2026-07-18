@@ -49,16 +49,17 @@ function stripHtml(html) {
  *   { docs: Map<id, doc>, postings: Map<token, Set<id>> }
  *
  * A doc looks like:
- *   { id, kind, title, body, route, sub?, sort? }
- * where `route` is the path to navigate to on click.
+ *   { id, kind, title, body, route, sub?, sort?, crumbs? }
+ * where `route` is the path to navigate to on click and `crumbs` (chapters
+ * only) is the Part › Chapter › Scene breadcrumb the result header renders.
  *
- * Optional `speakers` argument: a Map<chapterId, Set<characterId>>
- * derived from studio.scripts. When provided, character names are
- * folded into the chapter's indexed body so a "speakers: Renn" style
- * filter (or a plain name search) hits chapters where the character
- * has dialogue, even if the prose body doesn't mention them by name.
+ * Chapters are indexed PER SCENE: each scene is its own doc routed to
+ * /chapters/<ch>/<scene>, so a hit opens the exact scene, not the chapter's
+ * scene picker. A scene's linked characters (scn.characters) are folded into
+ * its body so a plain name search (or a "speakers: Renn" style query) hits the
+ * scenes the character appears in.
  */
-export function buildIndex(project, speakers = null) {
+export function buildIndex(project) {
   const docs = new Map();
   const postings = new Map();
 
@@ -82,22 +83,53 @@ export function buildIndex(project, speakers = null) {
     }
   }
 
-  // Chapters — title + body (stripped HTML) + speaker names if available.
+  // Chapters → one doc PER SCENE. A chapter with a single UNTITLED scene (the
+  // migrated shape) collapses the scene crumb and routes to the chapter, so a bare
+  // "Scene 1" is never shown; every other scene routes to itself.
   for (const part of project.parts) {
     for (const ch of part.chapters) {
-      const bodyText = stripHtml(project.chapterBody[ch.id]);
-      const speakerSet = speakers?.[ch.id];
-      const speakerNames = speakerSet
-        ? [...speakerSet].map((id) => charNameById.get(id)).filter(Boolean).join(" ")
-        : "";
-      indexDoc({
-        id: `chapter:${ch.id}`,
-        kind: "chapter",
-        title: `Ch. ${ch.num} — ${ch.title}`,
-        sub: part.title,
-        body: speakerNames ? `${bodyText}\n[speakers: ${speakerNames}]` : bodyText,
-        route: `/chapters/${ch.id}`,
-        sort: ch.num,
+      const scenes = project.scenes[ch.id] || [];
+      const chapterCrumb = `Ch. ${ch.num} ${ch.title}`;
+      // A brand-new chapter starts with NO scenes (addChapter seeds []); index it by
+      // title/number so it stays findable, routed to its overview (nothing to open yet).
+      if (scenes.length === 0) {
+        indexDoc({
+          id: `chapter:${ch.id}`,
+          kind: "chapter",
+          title: chapterCrumb,
+          sub: "",
+          crumbs: [part.title, chapterCrumb].filter(Boolean),
+          body: "",
+          route: `/chapters/${ch.id}`,
+          sort: ch.num * 100,
+        });
+        continue;
+      }
+      const soleUntitled = scenes.length === 1 && !(scenes[0]?.title || "").trim();
+      scenes.forEach((scn, i) => {
+        const num = i + 1;
+        const sceneTitle = (scn.title || "").trim();
+        const bodyText = stripHtml(scn.body);
+        const names = (scn.characters || [])
+          .map((id) => charNameById.get(id)).filter(Boolean).join(" ");
+        const sceneCrumb = sceneTitle ? `Scene ${num} · ${sceneTitle}` : `Scene ${num}`;
+        indexDoc({
+          id: `scene:${ch.id}:${scn.id}`,
+          kind: "chapter",
+          // `title` carries the chapter + scene NAMES so a title-name search still
+          // scores the scene; the header renders `crumbs`, not this.
+          title: `${chapterCrumb}${sceneTitle ? ` — ${sceneTitle}` : ""}`,
+          sub: "",
+          // Collapse the scene crumb for a lone untitled scene (a bare "Scene 1" is
+          // noise) — but STILL route to the scene so it opens the editor. The sidebar
+          // routes it the same way; /chapters/<ch> alone would show the scene picker.
+          crumbs: (soleUntitled
+            ? [part.title, chapterCrumb]
+            : [part.title, chapterCrumb, sceneCrumb]).filter(Boolean),
+          body: names ? `${bodyText}\n[speakers: ${names}]` : bodyText,
+          route: `/chapters/${ch.id}/${scn.id}`,
+          sort: ch.num * 100 + num,
+        });
       });
     }
   }
@@ -212,18 +244,25 @@ export function searchIndex(index, query, { kinds, limit = 100, snippetLen = 160
     const haystack = `${doc.title || ""}\n${doc.sub || ""}\n${doc.body || ""}`;
     const lower = haystack.toLowerCase();
     let score = 0;
-    let firstIdx = Infinity;
     for (const tok of tokens) {
       let i = 0, count = 0;
       // biome-ignore lint/suspicious/noAssignInExpressions: indexOf-walk — advances `i` past each occurrence.
-      while ((i = lower.indexOf(tok, i)) !== -1) {
-        count++; if (i < firstIdx) firstIdx = i; i += tok.length;
-      }
+      while ((i = lower.indexOf(tok, i)) !== -1) { count++; i += tok.length; }
       score += count;
       // Title hits weighted heavier.
       if ((doc.title || "").toLowerCase().includes(tok)) score += 5;
     }
-    const { text, matches } = buildSnippet(haystack, lower, tokens, firstIdx, snippetLen);
+    // The snippet is built from the BODY only — never title/sub, which the result
+    // header already shows. Prepending them re-printed the header in the excerpt
+    // whenever the first match sat near the top (the "chapter stated twice" bug).
+    const body = doc.body || "";
+    const bodyLower = body.toLowerCase();
+    let bodyFirst = Infinity;
+    for (const tok of tokens) {
+      const j = bodyLower.indexOf(tok);
+      if (j !== -1 && j < bodyFirst) bodyFirst = j;
+    }
+    const { text, matches } = buildSnippet(body, bodyLower, tokens, bodyFirst, snippetLen);
     hits.push({ doc, score, snippet: text, snippetMatches: matches });
   }
 
