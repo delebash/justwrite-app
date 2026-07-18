@@ -61,6 +61,32 @@ connect it on the **provider list** (Providers & models → add a provider) and 
 it there — the wizard never touches external providers. (The embedding always runs locally
 on the bundled runner.)
 
+> **Provider types (the cloud APIs).** Each cloud provider now talks to its vendor
+> through that vendor's own official library, so unknown-field errors from mixing
+> sampler settings across providers are gone. The pickable types are **OpenAI**,
+> **Anthropic (Claude)**, **Gemini (Google)**, **DeepSeek**, **OpenRouter**, **xAI (Grok)**,
+> **Mistral**, **Ollama (native)**, and the generic **OpenAI-compatible** (LM Studio, a
+> self-hosted server, any OpenAI-shaped gateway). Add xAI or Mistral from the preset chips
+> on the add-a-provider form, paste a key, hit **Fetch**.
+>
+> **The API key field.** On a saved provider the key sits **masked in the field** with an
+> **eye** to reveal it — edit it in place, and **Fetch** / **Test connection** now use it
+> automatically (they no longer need you to retype it). Clearing the field and saving
+> **removes** the stored key; leaving a revealed key untouched keeps it.
+>
+> **Gemini models.** New Google keys can't use the 2.5-generation models at all
+> (Google returns "no longer available to new users"), so the default is the current
+> **3.x flash-lite** tier and **Fetch** lists the bare 3.x ids (no `models/` prefix, and the
+> veo/imagen/audio-only models are filtered out). **Thinking** runs at the model's own
+> default until you turn it on for a preset; DeepSeek, xAI, and Mistral always run their
+> model's own thinking default (their **Reasoning levels** editor says so — there's nothing
+> to set per level).
+>
+> **If you already had Claude, Gemini, or Ollama connected** (from before this change),
+> their rows were seeded under the old generic type. To move them onto the native library:
+> **delete the provider → restart the app → the row reappears typed correctly → paste the
+> key again.** Nothing else migrates automatically, and no data is lost — it's a re-add.
+
 **Set as default, on any provider.** Every provider row — the built-in, a local server, or
 a cloud API — carries a **Set as default** button, and it's the same flow everywhere. The
 provider your presets currently run on is marked with a green **Default** tag on its row, and

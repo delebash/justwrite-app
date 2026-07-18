@@ -130,6 +130,30 @@ thresholds mislabel a 2.6 tok/s model · the cancel/progress plan
 (`docs/plans/2026-07-17-load-cancel-and-one-progress-control.md`, FAILED its 3-lens; T2
 would unload a DIFFERENT resident model — do not build as written).
 
+## GO (2026-07-17) — PROVIDER LAYER → OFFICIAL VENDOR SDKs (the SDK pivot; unpushed on the branch)
+
+Every cloud provider now speaks its vendor's **official SDK** behind the existing adapter
+Protocol (`openai` · `anthropic` · `google-genai`); local llama.cpp / Ollama / generic
+openai-compat stay on our httpx adapters. Kills the `min_p`-400 unknown-field bug class at
+the boundary (typed params only). Seeds retype **claude→anthropic · gemini→gemini ·
+ollama-local→native**; new **xAI + Mistral** types; a reasoning-map **cascade-delete** on
+provider remove; embeddings gain a **task_type** side (Gemini's RETRIEVAL_*); **#12** the
+saved API key is a masked field with an **eye reveal** (Fetch/Test carry it; clearing +
+Save removes it) via a POST reveal route JW opts into (JustVoice inherits the safe default —
+its server has no origin-check middleware). Gemini default is the **3.x flash-lite** tier
+(2.5 is new-user-blocked). Executed by three Opus builders VERBATIM off the plan; each
+product commit cleared the delegated commit-gate with a genuine rules-checker PASS.
+**Plan + full BUILD RECORDs (1·2·3):**
+`just-llm-runner/docs/plans/2026-07-17-provider-native-dialects-plan.md`.
+**Shas (runner):** `05013c5` C1 · `a9fe7fd` C2 · `e05e5b5` C3 · `8a1f8d9` C4 · `95ea74e`
+gemini-keyless-fix · `0bc8e49` C5 · `d3a6aee` C6 · `83ea80e` embed-fake. **JW:** `34fd0f7`
+seed · `541b50b` C6 opt-in · `d61a749` D5 render-pin. **OPEN — the user's box check** (see
+the plan's box-check list): delete→restart→re-add each of Gemini/Claude/Ollama, paste key,
+Fetch → chat/entitySweep/ask-the-book · the #12 key masks/reveals + Fetch/Test work without
+retyping · OpenAI/xAI/Mistral connect when the user has funded keys (ship tests-green,
+live-unverified). Renderer headless smoke was **not** run (must not touch the user's live
+:1420/:17495); the ProviderForm delta is covered by JW vitest mounts (key-reveal + D5).
+
 ## CURRENT STATE (2026-07-15, end of day — everything below SHIPPED AND PUSHED)
 
 **One session took the AI routing to the one-source model and rebuilt the guardrails on
