@@ -109,13 +109,18 @@ describe("the ONE vocabulary (loadPhases.js)", () => {
     expect(PHASE_WORDS.stopping).toBe("Unloading…");
   });
 
-  it("SOURCE PIN: QuickSetup imports the shared vocabulary — no local copy regrows", () => {
+  it("SOURCE PIN: QuickSetup rides the shared vocabulary — no local copy regrows", () => {
     // The chipPopoverStacking.test.js precedent: read the kit source, assert the shape.
+    // Since the channel-factory promotion (2026-07-18) QuickSetup consumes the
+    // vocabulary INDIRECTLY: it imports the factories from useDownloadTask.js,
+    // which is the one module that imports loadPhases.js.
     const HERE = dirname(fileURLToPath(import.meta.url));
     const KIT = resolve(HERE, "../../../../../../just-llm-runner/ui/src");
     const qs = readFileSync(resolve(KIT, "views/QuickSetup.vue"), "utf8");
     expect(qs).not.toMatch(/const\s+PHASE_WORDS/);
     expect(qs).not.toMatch(/function\s+friendlyPhase/);
-    expect(qs).toContain('from "../common/services/loadPhases.js"');
+    expect(qs).toContain('from "../composables/useDownloadTask.js"');
+    const dt = readFileSync(resolve(KIT, "composables/useDownloadTask.js"), "utf8");
+    expect(dt).toContain('from "../common/services/loadPhases.js"');
   });
 });
