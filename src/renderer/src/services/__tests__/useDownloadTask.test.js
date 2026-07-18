@@ -130,3 +130,39 @@ describe("createDownloadTask", () => {
     expect(task.error).toBe("");
   });
 });
+
+// The promoted channel read-mappers (2026-07-18 — QuickSetup's inline defs became
+// shared factories so LuBookSearchSetup rides the same channels; a copy is how
+// drift starts). Pure mappers — pin the terminal decisions.
+import {
+  engineInstallChannel, modelDownloadChannel, modelLoadChannel,
+  readDownloadStatus, readEngineStatus, readLoadStatus,
+} from "@delebash/llm-ui/composables/useDownloadTask.js";
+
+describe("shared channel read-mappers", () => {
+  it("engine: installed → done; error → error; else progress", () => {
+    expect(readEngineStatus({ installed: true }).terminal).toBe("done");
+    expect(readEngineStatus({ status: "installed" }).terminal).toBe("done");
+    expect(readEngineStatus({ status: "error", error: "boom" })).toEqual({ terminal: "error", error: "boom" });
+    expect(readEngineStatus({ status: "downloading", downloaded: 1, total: 2 }).terminal).toBeUndefined();
+  });
+  it("load: running → done; engine-not-installed → friendly error", () => {
+    expect(readLoadStatus({ status: "running" }).terminal).toBe("done");
+    expect(readLoadStatus({ status: "error", error: "engine-not-installed" }).error).toMatch(/isn't installed/);
+    expect(readLoadStatus({ status: "loading", downloaded: 5 }).terminal).toBeUndefined();
+  });
+  it("download: idle is the FINISHED terminal; error carries through", () => {
+    expect(readDownloadStatus({ status: "idle" }).terminal).toBe("done");
+    expect(readDownloadStatus({ status: "error", error: "404" })).toEqual({ terminal: "error", error: "404" });
+    expect(readDownloadStatus({ status: "downloading", downloaded: 9, total: 10 }).terminal).toBeUndefined();
+  });
+  it("factories wire the model channels through the live getId thunk", () => {
+    let id = "m1";
+    const dl = modelDownloadChannel(() => id);
+    const load = modelLoadChannel(() => id);
+    expect(dl.statusUrl).toBe("/v1/llm-runner/download/status");
+    expect(load.statusUrl).toBe("/v1/llm-runner/status");
+    expect(engineInstallChannel().statusUrl).toBe("/v1/llm-runner/engine/status");
+    expect(typeof dl.start).toBe("function"); // start reads `id` at CALL time (thunk)
+  });
+});
