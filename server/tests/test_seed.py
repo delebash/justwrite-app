@@ -213,9 +213,10 @@ def test_seed_presets_refs_and_samples(tmp_path):
     # every preset carries its OWN temperature (no None abstains any more).
     assert all(p.temperature is not None for p in presets)
 
-    # 37 per-action refs, exactly the mint map; each points at a real preset.
+    # 38 per-action refs, exactly the mint map; each points at a real preset.
+    # (37 → 38: +characterProfile on p_extract — E, 2026-07-18.)
     assert refs == SP.DEFAULT_FEATURE_PRESETS
-    assert len(refs) == 37
+    assert len(refs) == 38
     ids = {p.id for p in presets}
     assert all(pid in ids for pid in refs.values())
 

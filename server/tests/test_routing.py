@@ -16,7 +16,7 @@ def _c(tmp_path):
 
 def test_catalog_size(tmp_path):
     _c(tmp_path)
-    assert len(FEATURE_CATALOG) == 20
+    assert len(FEATURE_CATALOG) == 21  # +characterProfile (E, 2026-07-18)
 
 
 def test_get_routing_returns_full_catalog(tmp_path):
