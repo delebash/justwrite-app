@@ -30,7 +30,9 @@ export function citationLabel(chunk) {
     : chunk.sceneIdx != null
       ? `, scene ${chunk.sceneIdx + 1}`
       : "";
-  return `Ch. ${chunk.chapterNum} "${chunk.chapterTitle}"${sceneLabel}`;
+  // (c): two excerpts of one long scene stay distinguishable in citations.
+  const partLabel = chunk.scenePart ? ` (part ${chunk.scenePart})` : "";
+  return `Ch. ${chunk.chapterNum} "${chunk.chapterTitle}"${sceneLabel}${partLabel}`;
 }
 
 /**

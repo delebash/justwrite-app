@@ -260,6 +260,30 @@ describe("chunkProject with cards", () => {
     expect(card.links).toBeUndefined();
   });
 
+  // RAG (c), 2026-07-18: long scenes split; short scenes keep their unsplit
+  // id (and sha) so an existing index re-embeds only what actually split.
+  it("splits a long scene into sentence-boundary parts under the excerpt cap; short scenes keep their id", async () => {
+    const { splitSceneText } = await import("@renderer/services/rag/chunker.js");
+    const p = fixtureProject();
+    const scenes = p.scenesFor("ch1");
+    const longProse = Array.from({ length: 60 }, (_, i) => `Sentence number ${i + 1} carries the scene forward with steady weight.`).join(" ");
+    scenes.push({ id: "s_long", title: "The long crossing", body: `<p>${longProse}</p>`, characters: [], locations: [], objects: [] });
+    p.scenesFor = (chId) => (chId === "ch1" ? scenes : []);
+
+    const chunks = chunkProject(p);
+    expect(chunks.find((c) => c.id === "ch1:s1")).toBeTruthy();          // short scene unsplit
+    expect(chunks.find((c) => c.id === "ch1:s_long")).toBeUndefined();   // long scene → no unsplit id
+    const parts = chunks.filter((c) => c.sceneId === "s_long");
+    expect(parts.length).toBeGreaterThan(1);
+    expect(parts[0].id).toBe("ch1:s_long:p1");
+    expect(parts.every((c) => c.text.length <= 1400)).toBe(true);        // every part fits the excerpt whole
+    expect(parts.every((c) => c.scenePartCount === parts.length)).toBe(true);
+    // The full prose survives the split (no dropped sentences).
+    expect(parts.map((c) => c.text).join(" ")).toContain("Sentence number 60");
+    // A runt tail merges instead of standing alone.
+    expect(splitSceneText(`${"A solid sentence with enough length to matter here. ".repeat(40)}Tail.`).at(-1).length).toBeGreaterThan(240);
+  });
+
   it("the scene sha covers text + links: a link-only change re-shas (Move 3/F6)", async () => {
     const { chunkProjectAsync } = await import("@renderer/services/rag/chunker.js");
     const before = await chunkProjectAsync(fixtureProject());
@@ -271,6 +295,15 @@ describe("chunkProject with cards", () => {
     const shaOf = (list, id) => list.find((c) => c.id === id).sha;
     expect(shaOf(after, "ch1:s2")).not.toBe(shaOf(before, "ch1:s2")); // link edit re-uploads
     expect(shaOf(after, "ch1:s1")).toBe(shaOf(before, "ch1:s1"));     // untouched scene stable
+  });
+});
+
+describe("citationLabel scene parts (c)", () => {
+  it("labels a split scene part; unsplit scenes read as before", () => {
+    const part = { chapterNum: 4, chapterTitle: "The Crossing", sceneIdx: 1, sceneTitle: "", scenePart: 2, scenePartCount: 3 };
+    expect(citationLabel(part)).toBe('Ch. 4 "The Crossing", scene 2 (part 2)');
+    const whole = { chapterNum: 4, chapterTitle: "The Crossing", sceneIdx: 1, sceneTitle: "" };
+    expect(citationLabel(whole)).toBe('Ch. 4 "The Crossing", scene 2');
   });
 });
 
