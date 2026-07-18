@@ -203,6 +203,10 @@ def create_app(data_dir: Path | None = None) -> FastAPI:
         # The bundled runner's engine + model cache lives under the app data dir
         # (<data_dir>/ai-cache) so all on-disk data shares one portable root.
         data_dir=data_dir,
+        # #12 C6: JW guards mutating /v1 with CsrfOriginMiddleware (app.py above), so it
+        # opts IN to the POST key/reveal route (pre-fill a masked, editable key field).
+        # JV, with no origin-check middleware, leaves the safe default OFF.
+        allow_key_reveal=True,
     )
 
     # Headless UI — serve the Vite build (dist/) so `justwrite-server serve` + a
