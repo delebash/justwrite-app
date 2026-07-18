@@ -34,6 +34,7 @@ from .api import (
     rag,
     sessions,
     settings,
+    sweep_draft,
     versions,
 )
 from .app_state import AppState, set_state
@@ -146,6 +147,7 @@ def create_app(data_dir: Path | None = None) -> FastAPI:
     # registration order). The renderer already PUTs snapshots to the DB; this
     # owns the extra rotating on-disk JSON mirror (moved off Rust 2026-07-13).
     app.include_router(autosave.router)
+    app.include_router(sweep_draft.router)  # /v1/projects/{id}/sweep-draft (2-segment; order-safe)
     app.include_router(projects.router)
     app.include_router(book_transfer.router)  # per-project zip export/import (/v1/projects/*)
     app.include_router(sessions.router)

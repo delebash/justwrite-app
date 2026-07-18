@@ -12,8 +12,13 @@
 
 import { ref, computed, onMounted, watch } from "vue";
 import { useProjectStore } from "../stores/project.js";
-import { useAiTasksStore, AiTaskStrip, Icon, AppModal, UiButton, UiCheckbox } from "@delebash/llm-ui";
-import { isLikelyNonStoryTitle, scanAllChapters } from "../services/analysis/entitySweep.js";
+import { useAiTasksStore, AiTaskStrip, Icon, AppModal, UiButton, UiCheckbox, confirmDialog } from "@delebash/llm-ui";
+import { isLikelyNonStoryTitle, scanAllChapters, stripChapterText } from "../services/analysis/entitySweep.js";
+import {
+  clearSweepDraft, draftCounts, draftFoundTotal, emptyDraft, loadSweepDraft,
+  needsScan, pruneDraft, rebuildProposals, recordChapterDone, recordChapterError,
+  saveSweepDraft, textHash,
+} from "../services/analysis/sweepDraft.js";
 import EntityReviewModal from "./EntityReviewModal.vue";
 import AiFeatureChip from "./AiFeatureChip.vue";
 import StatusRow from "./StatusRow.vue";
@@ -66,6 +71,34 @@ const scanningCount = computed(() => rows.value.filter((r) => r.status === "scan
 // Auto-unticked rows stay visible; one click re-ticks. The RULE #1 precedent
 // for the shape is EntityReviewModal: UiCheckbox rows, All/None as .tb-btn,
 // footer = count · spacer · Cancel · primary action.
+//
+// A (2026-07-18): the sweep persists each chapter's raw result to a server-
+// side DRAFT the moment it finishes (services/analysis/sweepDraft.js), so a
+// crash/cancel/close never loses an hour-long run. On open the draft decides
+// the default ticks too: a chapter already done (and unchanged since) starts
+// unticked with its yield shown ("✓ N found"); pending/failed/changed
+// chapters start ticked. Review can open straight from the draft; the draft
+// clears on accept or Start over.
+const draft = ref(emptyDraft());
+const projectId = computed(() => project.activeProjectId);
+const hasDraft = computed(() => Object.keys(draft.value.chapters).length > 0);
+const resume = computed(() => draftCounts(draft.value));
+const foundTotal = computed(() => draftFoundTotal(draft.value));
+
+// Draft writes are serialized through one promise chain — per-chapter saves
+// from a 4-wide online pool must not interleave PUTs out of order.
+let saveChain = Promise.resolve();
+function queueDraftSave() {
+  const snapshot = JSON.parse(JSON.stringify(draft.value));
+  saveChain = saveChain
+    .then(() => saveSweepDraft(projectId.value, snapshot))
+    .catch(() => {}); // offline draft-save must never break the sweep itself
+}
+
+function hashFor(chapterId) {
+  return textHash(stripChapterText(project.chapterBody[chapterId] || ""));
+}
+
 const picks = ref([]);
 function initPicks() {
   const filter = props.chapterIds
@@ -73,15 +106,54 @@ function initPicks() {
     : null;
   picks.value = project.allChapters
     .filter((c) => !filter || filter.has(c.id))
-    .map((c) => ({
-      id: c.id, num: c.num, title: c.title,
-      checked: !isLikelyNonStoryTitle(c.title),
-    }));
+    .map((c) => {
+      const entry = draft.value.chapters[c.id];
+      const scanNeeded = needsScan(entry, hashFor(c.id));
+      const found = entry?.status === "done"
+        ? (entry.counts?.characters || 0) + (entry.counts?.locations || 0) + (entry.counts?.objects || 0)
+        : 0;
+      return {
+        id: c.id, num: c.num, title: c.title,
+        checked: !isLikelyNonStoryTitle(c.title) && scanNeeded,
+        draftStatus: entry?.status || "",
+        changed: entry?.status === "done" && scanNeeded,
+        found,
+      };
+    });
 }
-onMounted(initPicks);
+onMounted(async () => {
+  initPicks(); // render immediately; refreshed below once the draft arrives
+  try {
+    const d = await loadSweepDraft(projectId.value);
+    if (d?.chapters) {
+      draft.value = d;
+      // Chapters deleted from the book since the draft: drop their entries.
+      if (pruneDraft(draft.value, new Set(project.allChapters.map((c) => c.id)))) queueDraftSave();
+      initPicks();
+    }
+  } catch { /* unreachable server: the sweep still works, just without resume */ }
+});
 const checkedCount = computed(() => picks.value.filter((p) => p.checked).length);
 function setAllPicks(v) {
   for (const p of picks.value) p.checked = v;
+}
+
+async function startOver() {
+  const ok = await confirmDialog({
+    title: "Start over?",
+    message: `Discard the saved scan results (${resume.value.done} chapter${resume.value.done === 1 ? "" : "s"} of findings)? The next sweep starts from scratch.`,
+    confirmLabel: "Discard results",
+    danger: true,
+  });
+  if (!ok) return;
+  draft.value = emptyDraft();
+  clearSweepDraft(projectId.value).catch(() => {});
+  initPicks();
+}
+
+// Open the review straight from the draft — no new scanning.
+function reviewFound() {
+  proposals.value = rebuildProposals(draft.value);
 }
 
 function initRows() {
@@ -94,6 +166,7 @@ function initRows() {
       title: c.title,
       status: "pending",  // "pending" | "scanning" | "done" | "skipped" | "error"
       reason: "",
+      note: "",           // A: per-chapter yield, e.g. "done · 12 found"
     }));
   rowById.value = new Map(rows.value.map((r) => [r.id, r]));
   totalCount.value = rows.value.length;
@@ -115,13 +188,25 @@ async function runSweep() {
       project,
       signal: sweepAbort.signal,
       chapterFilter: { ids: filter },
-      onProgress: ({ phase: ph, chapter, completed, reason }) => {
+      onProgress: ({ phase: ph, chapter, completed, reason, fresh }) => {
         const row = rowById.value.get(chapter.id);
         if (row) {
           if (ph === "start") row.status = "scanning";
-          else if (ph === "done")  row.status = "done";
+          else if (ph === "done") {
+            row.status = "done";
+            const n = (fresh?.characters?.length || 0) + (fresh?.locations?.length || 0) + (fresh?.objects?.length || 0);
+            row.note = `done · ${n} found`;
+            // A: persist this chapter's raw result the moment it lands — a
+            // crash/cancel from here on can't lose it.
+            recordChapterDone(draft.value, chapter, fresh, hashFor(chapter.id));
+            queueDraftSave();
+          }
           else if (ph === "skip")  { row.status = "skipped"; row.reason = reason || ""; }
-          else if (ph === "error") { row.status = "error";   row.reason = reason || ""; }
+          else if (ph === "error") {
+            row.status = "error"; row.reason = reason || "";
+            recordChapterError(draft.value, chapter, reason, hashFor(chapter.id));
+            queueDraftSave();
+          }
         }
         completedCount.value = completed;
       },
@@ -148,12 +233,11 @@ async function runSweep() {
       }
     }
 
-    // Partial proposals survive a cancel — whatever came back is still worth reviewing.
-    proposals.value = {
-      characters: result.characters || [],
-      locations:  result.locations  || [],
-      objects:    result.objects    || [],
-    };
+    // A: the review aggregate is rebuilt from the DRAFT, not from this run's
+    // return — so it carries this run's chapters AND everything a previous
+    // (crashed/cancelled) run already banked. Partial proposals survive a
+    // cancel the same way they always did; they're in the draft too.
+    proposals.value = rebuildProposals(draft.value);
   } catch (e) {
     error.value = e?.message || String(e);
   }
@@ -179,6 +263,10 @@ function onReviewClose() {
   emit("close");
 }
 function onReviewCommitted(payload) {
+  // A: accepted → the draft's job is done; clear it so the next sweep starts
+  // clean. (Closing the review WITHOUT committing keeps the draft — resume.)
+  draft.value = emptyDraft();
+  clearSweepDraft(projectId.value).catch(() => {});
   emit("committed", payload);
 }
 
@@ -228,8 +316,16 @@ function onReviewCommitted(payload) {
 
     <AiTaskStrip :task="myTask" />
 
-    <!-- Pre-run: the chapter picker (D). -->
+    <!-- Pre-run: the chapter picker (D) + draft resume (A). -->
     <div v-if="!rows.length" class="sweep-pick">
+      <div v-if="hasDraft" class="sweep-resume">
+        <Icon name="History" :size="13" />
+        <span>
+          Saved scan found — <strong>{{ resume.done }}</strong> chapter{{ resume.done === 1 ? "" : "s" }} done<template v-if="resume.failed"> · <strong>{{ resume.failed }}</strong> failed</template>.
+          Only the ticked chapters will be scanned.
+        </span>
+        <button type="button" class="tb-btn wide" @click="startOver">Start over</button>
+      </div>
       <div class="sweep-pick-h">
         <span class="t-muted">{{ checkedCount }} of {{ picks.length }} selected</span>
         <div class="sweep-pick-h-actions">
@@ -242,6 +338,10 @@ function onReviewCommitted(payload) {
           <UiCheckbox v-model="p.checked" />
           <span class="sweep-pick-num">{{ p.num }}</span>
           <span class="sweep-pick-title">{{ p.title || 'Untitled' }}</span>
+          <span v-if="p.draftStatus === 'done'" class="sweep-pick-note">
+            ✓ {{ p.found }} found{{ p.changed ? " · text changed" : "" }}
+          </span>
+          <span v-else-if="p.draftStatus === 'error'" class="sweep-pick-note err">failed</span>
         </label>
       </div>
     </div>
@@ -251,13 +351,16 @@ function onReviewCommitted(payload) {
         :status="row.status"
         :left="row.num"
         :main="row.title || 'Untitled'"
-        :right="row.reason ? `${row.status} · ${row.reason}` : row.status" />
+        :right="row.note || (row.reason ? `${row.status} · ${row.reason}` : row.status)" />
     </div>
 
     <template v-if="!rows.length" #footer>
-      <span class="t-muted">{{ checkedCount }} of {{ picks.length }} chapters selected</span>
+      <span class="t-muted sweep-foot-count">{{ checkedCount }} of {{ picks.length }} selected</span>
       <span style="flex:1"></span>
       <UiButton intent="ghost" @click="emit('close')">Cancel</UiButton>
+      <UiButton v-if="foundTotal" intent="secondary" @click="reviewFound">
+        Review {{ foundTotal }} found
+      </UiButton>
       <UiButton intent="primary" :disabled="!checkedCount" @click="runSweep">
         <Icon name="Sparkle" :size="13" /> Scan {{ checkedCount }} chapter{{ checkedCount === 1 ? "" : "s" }}
       </UiButton>
@@ -285,6 +388,21 @@ function onReviewCommitted(payload) {
 
 /* D — the pre-run chapter picker. */
 .sweep-pick { display: flex; flex-direction: column; gap: 8px; flex: 1; min-height: 0; }
+/* A — the draft resume line. */
+.sweep-resume {
+  display: flex; align-items: center; gap: 8px;
+  padding: 8px 12px; border-radius: 6px;
+  background: var(--accent-soft); color: var(--accent-ink);
+  font-size: 12.5px; line-height: 1.45;
+}
+.sweep-resume > span { flex: 1; min-width: 0; }
+.sweep-pick-note {
+  margin-left: auto; flex-shrink: 0;
+  font-size: 11px; color: var(--muted);
+  font-family: var(--font-mono);
+}
+.sweep-pick-note.err { color: var(--danger-ink, #b91c1c); }
+.sweep-foot-count { white-space: nowrap; }
 .sweep-pick-h {
   display: flex; align-items: center; gap: 8px;
   font-size: 12px;
@@ -306,6 +424,7 @@ function onReviewCommitted(payload) {
   min-width: 2.5ch; text-align: right;
 }
 .sweep-pick-title {
+  flex: 1; min-width: 0;
   font-size: 13px; color: var(--ink-2);
   overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
 }

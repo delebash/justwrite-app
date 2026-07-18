@@ -511,6 +511,21 @@ class SessionDay(Base):
     words = Column(Integer, nullable=False, default=0)
 
 
+class SweepDraft(Base):
+    """The entity sweep's per-project working draft (A, 2026-07-18): per-chapter
+    raw extraction results written as each chapter finishes, so a crash, cancel,
+    or app close never loses an hour-long run — the modal resumes from it and
+    only re-scans pending/failed/changed chapters. NOT part of the book (nothing
+    lands in the bible until the user accepts); cleared on accept or Start-over.
+    One row per project; `data` is the whole draft document as JSON."""
+
+    __tablename__ = "sweep_drafts"
+
+    project_id = _fk_project()  # sole PK; cascades away with the project
+    data = Column(Text, nullable=False, default="{}")
+    updated_at = Column(String, nullable=False, default="")
+
+
 class SessionChapterWord(Base):
     """The last word count already attributed for a chapter — the checkpoint
     `recordChapterWords` diffs against so a re-count never double-attributes."""

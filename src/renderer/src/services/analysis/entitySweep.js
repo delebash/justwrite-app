@@ -87,7 +87,9 @@ export async function resolvePoolSize({ concurrency, provider } = {}) {
 // modal has the best available description. The evidence quote sticks
 // to whichever chapter first surfaced the entity, since that's the only
 // quote anchored to a real place.
-function mergeProposals(into, fresh, chapter) {
+// Exported since A (2026-07-18): sweepDraft.js re-merges persisted
+// per-chapter results into the review aggregate on resume.
+export function mergeProposals(into, fresh, chapter) {
   const ref = { id: chapter.id, num: chapter.num, title: chapter.title };
 
   function merge(list, incoming) {
@@ -256,6 +258,9 @@ export async function scanAllChapters({
         phase: "done",
         chapter: { id: ch.id, num: ch.num, title: ch.title },
         completed, total: all.length, soFar: cloneCounts(proposals),
+        // A: the chapter's RAW single-chapter extraction — the draft store
+        // persists it so a resume can re-merge any subset later.
+        fresh,
       });
     } catch (err) {
       // A CANCEL IS NOT AN ERROR. `runSignal.aborted` is the authority — the string
@@ -317,7 +322,9 @@ export async function scanAllChapters({
   };
 }
 
-function stripText(html) {
+// Exported since A (2026-07-18): the draft store hashes EXACTLY the text the
+// sweep scanned, so "text changed since the draft" is judged on the same bytes.
+export function stripChapterText(html) {
   if (!html) return "";
   const div = document.createElement("div");
   div.innerHTML = html;
@@ -325,6 +332,7 @@ function stripText(html) {
   div.querySelectorAll(".ai-ins").forEach((el) => { el.replaceWith(...el.childNodes); });
   return div.textContent || "";
 }
+const stripText = stripChapterText;
 
 function cloneCounts(p) {
   return {
