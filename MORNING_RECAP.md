@@ -202,6 +202,11 @@ JSON contract.
 ### SHIPPED (collapsed) — the 52-item batch + every follow-up, all pushed
 Highlights, newest first (full records in the plan docs / git):
 
+- **The 2026-07-18 RAG/sweep queue (10 items)** — off the user's real Broken-Eye import:
+  sweep honest-concurrency + chapter picker + draft/resume + watchdog/retry-failed ·
+  Fill-from-book (characterProfile) · relationship/outline cards · pin-all-parts ·
+  backstory-4000 · scene splitting · the C1 small-model A/B recipe. Doc with all commit ids:
+  `docs/plans/2026-07-18-rag-sweep-queue.md`.
 - **The 2026-07-15 day** (details in CURRENT STATE above until the next re-split): one-source
   preset rewrite + correction + CSRF fix — doc:
   `just-llm-runner/docs/plans/2026-07-15-preset-one-source-rewrite.md` (plan · T0 audit ·
@@ -239,6 +244,13 @@ Highlights, newest first (full records in the plan docs / git):
   directly, after which the vendored copy can go.
 
 ### NEXT / open
+- **⛔ QUEUED, waiting for the user's literal "go" (2026-07-18):** character-sheet v3 merge
+  + labeled hero fields + help doc + per-side relation dynamics + fill-from-book v2 +
+  sweep list refinements — full executor instructions in
+  `docs/plans/2026-07-18-character-sheet-v3-and-relations.md` (template source:
+  `docs/reference/character-template-v3.md`). Design user-approved; **execution explicitly
+  gated** ("dont have opus code until i give the go command"). Includes the confirmed
+  voice tic/sample → AI wiring bug fix (plan §2/§6).
 - **Unit 2 (thinking/reasoning) is SHIPPED** — absorbed into the one-source rewrite. What
   remains is the USER's box acceptance: one local High chat run stopping at the hardware cap,
   one new-Anthropic run (reasoning words on the wire, no 400). Ledger §G.
