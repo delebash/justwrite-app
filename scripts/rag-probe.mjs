@@ -227,7 +227,10 @@ try {
   await sleep(900);
   await page.locator('button:has-text("Entity sweep")').click();
   await sleep(500);
-  await page.locator('button:has-text("Scan the manuscript")').click();
+  // D (2026-07-18): the sweep opens on a chapter PICKER now — story-titled
+  // chapters arrive ticked, and the CTA is the footer's "Scan N chapters"
+  // (the old "Scan the manuscript" empty-state button is gone).
+  await page.getByRole("button", { name: /Scan \d+ chapter/ }).click();
   await page.locator(".er-section").first().waitFor({ timeout: 60000 });
   await sleep(300);
 

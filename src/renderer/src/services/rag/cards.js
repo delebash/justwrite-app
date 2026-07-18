@@ -15,6 +15,7 @@
 // Scene chunks carry chapter/scene fields instead of kind/entityId — the
 // `kind` field is what excerpts.js/ChatPanel key their card branches on.
 
+import { TRAJECTORY_LABELS } from "../analysis/relationshipArc.js";
 import { povLabel } from "../povOptions.js";
 import { htmlToText } from "../text.js";
 import { buildCharacterProfile } from "./profile.js";
@@ -121,6 +122,30 @@ function tagsLine(entity) {
   return (entity.tags || []).length ? `Tags: ${entity.tags.join(", ")}` : "";
 }
 
+// RAG (a), 2026-07-18: relationship edges onto character cards. The author's
+// kept relationship arcs (project.relationshipArcs, pairKey "a::b" sorted)
+// carry exactly the multi-hop truth retrieval was missing — "how do X and Y
+// stand with each other" lived nowhere in the index. One line per arc
+// involving this character: the other's name, the trajectory, the summary.
+// Sorted by the other character's name so card text (and its sha) is
+// deterministic regardless of object insertion order.
+function relationshipLines(project, characterId, nameOf) {
+  const arcs = project.relationshipArcs || {};
+  const rows = [];
+  for (const [key, arc] of Object.entries(arcs)) {
+    const [a, b] = String(key).split("::");
+    if (a !== characterId && b !== characterId) continue;
+    const other = nameOf.character(a === characterId ? b : a);
+    if (!other) continue; // the other side was deleted — stale arc, skip
+    const traj = TRAJECTORY_LABELS[arc?.trajectory] || "";
+    const summary = String(arc?.summary || "").trim();
+    if (!summary && !traj) continue;
+    rows.push({ other, line: `- With ${other}${traj ? ` (${traj.toLowerCase()})` : ""}: ${summary}` });
+  }
+  rows.sort((x, y) => x.other.localeCompare(y.other));
+  return rows.map((r) => r.line);
+}
+
 // ── per-kind builders ────────────────────────────────────────────────────
 
 function characterCards(project, index, nameOf) {
@@ -130,6 +155,10 @@ function characterCards(project, index, nameOf) {
     const lines = [header];
     const profile = buildCharacterProfile(c, project.characterExtras?.[c.id] || null, { voice: "third" });
     if (profile) lines.push(profile.trim());
+    // (a): relationships ride right after the profile — identity-adjacent, so
+    // they land in part 1 of a split card and stay reachable by pins.
+    const rels = relationshipLines(project, c.id, nameOf);
+    if (rels.length) lines.push("Relationships:", ...rels);
     if (tagsLine(c)) lines.push(tagsLine(c));
     const groups = groupMemberships(project, "character", c.id);
     if (groups.length) lines.push(`Member of: ${groups.join(", ")}`);

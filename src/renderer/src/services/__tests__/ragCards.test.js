@@ -93,6 +93,23 @@ describe("buildEntityCards", () => {
     expect(aria.text).toContain('Ch 1 "The customs house" — at Customs House, with Bren, POV: Limited third person');
   });
 
+  // RAG (a), 2026-07-18: relationship arcs land on BOTH characters' cards.
+  it("puts relationship-arc lines on both sides' cards, skipping arcs whose other side is gone", () => {
+    const p = fixtureProject();
+    p.relationshipArcs = {
+      "c_aria::c_bren": { summary: "Uneasy allies bound by the chart.", trajectory: "warming", chapters: [] },
+      "c_aria::c_gone": { summary: "Stale arc.", trajectory: "static", chapters: [] }, // deleted char
+    };
+    const cards2 = buildEntityCards(p);
+    const aria = cardById(cards2, "card:character:c_aria");
+    expect(aria.text).toContain("Relationships:");
+    expect(aria.text).toContain("- With Bren (warming): Uneasy allies bound by the chart.");
+    expect(aria.text).not.toContain("Stale arc");
+    // The same edge is retrievable from Bren's side too.
+    const bren = cardById(cards2, "card:character:c_bren");
+    expect(bren.text).toContain("- With Aria (warming): Uneasy allies bound by the chart.");
+  });
+
   it("builds a compact main-cast roster — one line per main, non-mains excluded", () => {
     const cast = cardById(cards, "card:cast:main");
     expect(cast.kind).toBe("cast");
