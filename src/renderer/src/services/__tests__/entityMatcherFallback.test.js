@@ -61,6 +61,24 @@ describe("pickPinnedCards corpusFallback", () => {
     expect(pinned).toEqual([]);
   });
 
+  it("fires on a corpus follow-up even when history named an entity (turn-2 fix)", () => {
+    // Incident: "who is Tobin?" then "so what's the book about?" — the prior turn's
+    // name used to suppress the fallback, so the protagonist stayed missing on turn 2.
+    const pinned = pickPinnedCards({
+      question: "So what's the book about?",
+      history: [
+        { role: "user", content: "Who is Tobin Ash?" },
+        { role: "assistant", content: "Tobin is a main character." },
+      ],
+      project, cards, corpusFallback: true,
+    });
+    const ids = pinned.map((c) => c.id);
+    expect(ids).toContain("card:architecture:premise");      // whole-book context
+    expect(ids).toContain("card:character:c1");              // protagonist NOW included
+    expect(ids).toContain("card:character:c2");              // Tobin still pinned from history
+    expect(ids.filter((id) => id === "card:character:c2")).toHaveLength(1); // but not doubled
+  });
+
   it("respects the pin token budget", () => {
     const huge = "X".repeat(1200 * 4 + 1); // over the whole budget
     const bigCards = [card("architecture", "premise", huge), card("character", "c1", "MARA ".repeat(20))];

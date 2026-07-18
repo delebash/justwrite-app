@@ -106,7 +106,7 @@ const CHARS_PER_TOKEN = 4;
  * @param {object} opts.project           — live store instance
  * @param {Array}  opts.cards             — buildEntityCards(project) output
  * @param {string} [opts.excludeEntityId] — e.g. the interviewee in character chat
- * @param {boolean} [opts.corpusFallback] — pin premise + main cast when no entity matched
+ * @param {boolean} [opts.corpusFallback] — pin premise + main cast when the CURRENT question names no entity
  * @returns {Array} card chunks to pin, in priority order
  */
 export function pickPinnedCards({ question, history = [], project, cards, excludeEntityId, corpusFallback = false } = {}) {
@@ -116,9 +116,16 @@ export function pickPinnedCards({ question, history = [], project, cards, exclud
     .map((m) => m.content);
   const scanText = [question, ...recentUserTurns].join("\n");
 
-  const hits = matchEntities(scanText, collectEntities(project))
+  const entities = collectEntities(project);
+  // Named pins ride the question + recent turns, so a pronoun follow-up ("what does
+  // SHE want") resolves to the name from the prior turn.
+  const hits = matchEntities(scanText, entities)
     .filter((h) => h.entityId !== excludeEntityId)
     .sort((a, b) => Number(b.exact) - Number(a.exact));
+  // The corpus fallback keys on the CURRENT question ALONE: a broad question is broad
+  // even mid-conversation, so a name carried in from history must NOT suppress it
+  // ("who is Iven?" then "so what's the book about?" still pins premise + protagonist).
+  const questionNamesEntity = matchEntities(question, entities).some((h) => h.entityId !== excludeEntityId);
 
   const byEntity = new Map();
   for (const card of cards) {
@@ -140,18 +147,21 @@ export function pickPinnedCards({ question, history = [], project, cards, exclud
     if (budget <= 0) break;
   }
 
-  // Corpus-level fallback — ONLY when nothing matched (hits, not pins: a matched
-  // entity whose card is missing/over budget still means the question was ABOUT
-  // that entity, not about the whole book). Premise first (the author's own
-  // "what this book is about"), then main-cast cards in the author's list order.
-  if (corpusFallback && !hits.length) {
+  // Corpus-level fallback — when the CURRENT question names no entity (a whole-book
+  // question, even mid-conversation). A matched-but-unpinnable entity in the current
+  // question still means "about that entity", so questionNamesEntity (not pins) is the
+  // gate. Premise first (the author's own "what this book is about"), then main-cast in
+  // the author's list order. Additive under the same budget, skipping any card a name
+  // pin already took (a main named in history is not doubled).
+  if (corpusFallback && !questionNamesEntity) {
+    const pinnedIds = new Set(pinned.map((c) => c.id));
     const fallbackKeys = [
       "architecture:premise",
       ...(project.characters || []).filter((c) => c?.main && c.id !== excludeEntityId).map((c) => `character:${c.id}`),
     ];
     for (const key of fallbackKeys) {
       const card = byEntity.get(key);
-      if (!card) continue;
+      if (!card || pinnedIds.has(card.id)) continue;
       if (card.text.length > budget) continue;
       pinned.push(card);
       budget -= card.text.length;
