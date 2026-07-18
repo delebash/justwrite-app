@@ -73,7 +73,12 @@ export function buildCharacterProfile(character, extras, { voice = "second" } = 
       if (a.end) lines.push(`${L.arcEnd}: ${a.end}`);
     }
     if (extras.backstory) {
-      lines.push(`${L.backstory}: ${String(extras.backstory).slice(0, 800)}`);
+      // Cap lifted 800 → 4000 (2026-07-18, the user's "I want to add a lot
+      // more info for my characters"): card splitting (cards.js splitParts)
+      // handles rich profiles now, so a written backstory reaches the index
+      // instead of being silently truncated. The cap that remains is a
+      // defensive bound, not a design limit.
+      lines.push(`${L.backstory}: ${String(extras.backstory).slice(0, 4000)}`);
     }
     if (Array.isArray(extras.quotes) && extras.quotes.length) {
       lines.push(L.quotes);

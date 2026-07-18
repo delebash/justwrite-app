@@ -118,6 +118,24 @@ describe("buildEntityCards", () => {
     expect(cast.text).not.toContain("Bren"); // c_bren is main:false → not in the roster
   });
 
+  // 2026-07-18: a runt final part folds into the previous one — measured on
+  // the real book as a 147-char tail chunk that embedded to a diluted vector.
+  it("merges a tiny tail part into the previous part instead of emitting a runt chunk", () => {
+    const p = fixtureProject();
+    // Two full paragraphs + one tiny trailing paragraph → without the merge,
+    // the tail would be its own ~60-char part.
+    p.worldbuilding.push({
+      id: "wb_tail", title: "Tides", category: "history", tags: [], summary: "",
+      body: `<p>${"Alpha currents. ".repeat(90)}</p><p>${"Beta straits. ".repeat(90)}</p><p>The runt tail line.</p>`,
+    });
+    const cards2 = buildEntityCards(p);
+    const parts = cards2.filter((c) => c.entityId === "wb_tail");
+    expect(parts.length).toBeGreaterThan(1);
+    const last = parts[parts.length - 1];
+    expect(last.text).toContain("The runt tail line.");
+    expect(last.text.length).toBeGreaterThanOrEqual(300); // riding the previous part, not alone
+  });
+
   it("splits a large character card into parts; identity leads part 1", () => {
     const p = fixtureProject();
     p.characters.push({ id: "c_big", name: "Orin", main: true, role: "antagonist", oneLiner: "y".repeat(40) });

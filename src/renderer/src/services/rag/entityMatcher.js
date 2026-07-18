@@ -127,23 +127,33 @@ export function pickPinnedCards({ question, history = [], project, cards, exclud
   // ("who is Iven?" then "so what's the book about?" still pins premise + protagonist).
   const questionNamesEntity = matchEntities(question, entities).some((h) => h.entityId !== excludeEntityId);
 
+  // All parts per entity, in order (2026-07-18: a NAMED entity pins its WHOLE
+  // split card while budget lasts — "who is Cael?" deserves the backstory and
+  // timeline parts, not just the identity header. Part 1 first; if part 1
+  // doesn't fit, the entity is skipped exactly as an oversized unsplit card
+  // always was).
   const byEntity = new Map();
   for (const card of cards) {
     if (!card.kind) continue;
-    // A split article pins its first part only (the header part).
-    if (!byEntity.has(`${card.kind}:${card.entityId}`)) {
-      byEntity.set(`${card.kind}:${card.entityId}`, card);
-    }
+    const key = `${card.kind}:${card.entityId}`;
+    if (!byEntity.has(key)) byEntity.set(key, []);
+    byEntity.get(key).push(card);
   }
 
   const pinned = [];
   let budget = PIN_TOKEN_BUDGET * CHARS_PER_TOKEN;
+  const pinParts = (key) => {
+    const parts = byEntity.get(key);
+    if (!parts?.length) return;
+    if (parts[0].text.length > budget) return; // part 1 must fit or the entity waits
+    for (const part of parts) {
+      if (part.text.length > budget) break; // later parts stop at the budget edge
+      pinned.push(part);
+      budget -= part.text.length;
+    }
+  };
   for (const hit of hits) {
-    const card = byEntity.get(`${hit.kind}:${hit.entityId}`);
-    if (!card) continue;
-    if (card.text.length > budget) continue;
-    pinned.push(card);
-    budget -= card.text.length;
+    pinParts(`${hit.kind}:${hit.entityId}`);
     if (budget <= 0) break;
   }
 
@@ -155,10 +165,15 @@ export function pickPinnedCards({ question, history = [], project, cards, exclud
   // ~a line each, so a rich protagonist's full card can't starve the others out of the
   // budget (measured: one card alone was 3009 of 4800 chars). Per-character depth rides
   // retrieval over the split cards. Additive; skips any card a name pin already took.
+  // Fallback order: premise (what the book is about) → cast roster (who's in
+  // it) → fabula + setting (2026-07-18: the budget had room — 741/4800 used —
+  // and whole-book questions often ask about the world or the shape of
+  // events; both are the author's own words, absent when unwritten).
   if (corpusFallback && !questionNamesEntity) {
     const pinnedIds = new Set(pinned.map((c) => c.id));
-    for (const key of ["architecture:premise", "cast:main"]) {
-      const card = byEntity.get(key);
+    for (const key of ["architecture:premise", "cast:main", "architecture:fabula", "architecture:setting"]) {
+      const parts = byEntity.get(key);
+      const card = parts?.[0]; // fallback pins stay first-part-only — breadth over depth
       if (!card || pinnedIds.has(card.id)) continue;
       if (card.text.length > budget) continue;
       pinned.push(card);

@@ -128,7 +128,10 @@ describe("pickPinnedCards", () => {
     expect(pickPinnedCards({ question: "Aria?", project, cards: hugeCards })).toEqual([]);
   });
 
-  it("a split article pins only its first part", () => {
+  // 2026-07-18: a NAMED entity pins ALL its parts while budget lasts — the
+  // question is about that entity, so its backstory/timeline parts belong in
+  // the prompt, not just the identity header.
+  it("a split article pins every part, in order, while the budget lasts", () => {
     const wbProject = {
       ...project, characters: [],
       worldbuilding: [{ id: "w1", title: "Tide Law" }],
@@ -138,7 +141,25 @@ describe("pickPinnedCards", () => {
       { id: "card:worldbuilding:w1:p2", kind: "worldbuilding", entityId: "w1", title: "Tide Law (part 2 of 2)", text: "p2" },
     ];
     const pins = pickPinnedCards({ question: "Explain Tide Law", project: wbProject, cards: wbCards });
+    expect(pins.map((c) => c.id)).toEqual(["card:worldbuilding:w1:p1", "card:worldbuilding:w1:p2"]);
+  });
+
+  it("later parts stop at the budget edge; part 1 must fit or the entity is skipped", () => {
+    const wbProject = {
+      ...project, characters: [],
+      worldbuilding: [{ id: "w1", title: "Tide Law" }],
+    };
+    const big = "x".repeat(4700);
+    const wbCards = [
+      { id: "card:worldbuilding:w1:p1", kind: "worldbuilding", entityId: "w1", title: "p1", text: big },
+      { id: "card:worldbuilding:w1:p2", kind: "worldbuilding", entityId: "w1", title: "p2", text: "y".repeat(500) },
+    ];
+    // p1 fits (4700 < 4800); p2 would exceed the remaining 100 → dropped.
+    const pins = pickPinnedCards({ question: "Explain Tide Law", project: wbProject, cards: wbCards });
     expect(pins.map((c) => c.id)).toEqual(["card:worldbuilding:w1:p1"]);
+    // An oversized part 1 skips the whole entity — exactly the old unsplit rule.
+    const over = [{ id: "card:worldbuilding:w1:p1", kind: "worldbuilding", entityId: "w1", title: "p1", text: "x".repeat(5000) }];
+    expect(pickPinnedCards({ question: "Explain Tide Law", project: wbProject, cards: over })).toEqual([]);
   });
 });
 

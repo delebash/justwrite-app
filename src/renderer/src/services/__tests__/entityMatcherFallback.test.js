@@ -45,6 +45,24 @@ describe("pickPinnedCards corpusFallback", () => {
     ]);
   });
 
+  // 2026-07-18: fabula + setting join the fallback (budget had room, 741/4800
+  // measured) — whole-book questions often ask about the world or the shape
+  // of events. Absent when unwritten (the fixture above has neither).
+  it("pins fabula + setting after premise + roster when those cards exist", () => {
+    const withArch = [
+      ...cards,
+      card("architecture", "fabula", "FABULA ".repeat(10)),
+      card("architecture", "setting", "SETTING ".repeat(10)),
+    ];
+    const pinned = pickPinnedCards({
+      question: "What is this book about?", project, cards: withArch, corpusFallback: true,
+    });
+    expect(pinned.map((c) => c.id)).toEqual([
+      "card:architecture:premise", "card:cast:main",
+      "card:architecture:fabula", "card:architecture:setting",
+    ]);
+  });
+
   it("is inert without the flag — characterChat's call shape stays empty", () => {
     expect(pickPinnedCards({ question: "What is this book about?", project, cards })).toEqual([]);
   });

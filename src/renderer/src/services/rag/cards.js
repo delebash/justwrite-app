@@ -243,6 +243,14 @@ function splitParts(text) {
     }
   }
   if (cur) parts.push(cur);
+  // Tiny-tail merge (2026-07-18): a runt final part (measured on the real
+  // book: 1491/1445/147 — the 147-char tail) is a diluted vector that earns
+  // its own embedding without carrying enough to retrieve on. Fold it into
+  // the previous part; the slight over-budget part beats the runt chunk.
+  if (parts.length > 1 && parts[parts.length - 1].length < WB_SPLIT_CHARS / 5) {
+    const tail = parts.pop();
+    parts[parts.length - 1] = `${parts[parts.length - 1]}\n${tail}`;
+  }
   return parts;
 }
 
