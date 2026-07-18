@@ -172,6 +172,7 @@ DEFAULT_FEATURE_PRESETS: dict[str, str] = {
     "beatSheet": "p_extract",
     "readerKnowledge": "p_extract",
     "characterAudit": "p_extract",
+    "characterProfile": "p_extract",
     "relationshipArc": "p_extract",
     "foreshadowing": "p_extract",
     "recap": "p_extract",
@@ -346,9 +347,10 @@ DEFAULT_TEST_SAMPLES: list[dict] = [
                                    "--- BEGIN CHAPTER ---\n"
                                    f"{_SAMPLE_CHAPTER_PROSE_2}\n"
                                    "--- END CHAPTER ---"}},
-    # characterAudit: the composeCharacterAuditInput shape — profile block +
-    # the scene digest with per-scene chapter headers.
-    {"actions": ['characterAudit'], "label": "Character audit scenes",
+    # characterAudit + characterProfile: BOTH ride composeCharacterAuditInput —
+    # profile block + the scene digest with per-scene chapter headers — so the
+    # one blob fans to both (the authored-once sample law).
+    {"actions": ['characterAudit', 'characterProfile'], "label": "Character audit scenes",
      "variables": {"user_content": "CHARACTER PROFILE\n"
                                    "Name: Mira\n"
                                    "Role: Harbor archivist\n"

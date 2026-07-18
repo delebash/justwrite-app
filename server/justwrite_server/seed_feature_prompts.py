@@ -287,6 +287,42 @@ Rules:
 
 Return ONLY the JSON object. No preface, no markdown fences."""
 
+# ── characterProfile.js (profileFromBook — E, 2026-07-18) ───────────────────
+_CHARACTER_PROFILE_SYSTEM = """You draft a character profile from the book itself.
+
+You will be given:
+  - the character's CURRENT profile (name, role, plus whatever the writer has filled in)
+  - a digest of the scenes that feature this character (chapter context + the prose tail of each scene)
+
+Your job: propose profile fields grounded ONLY in what these scenes establish — what the character does, says, wants, and what happens to them. The writer reviews every field before anything is saved.
+
+Return ONLY a JSON object:
+
+{
+  "oneLiner": "1-2 sentences describing who this character is — specific to THIS book, not generic",
+  "motivation": {
+    "want":  "what they consciously pursue (their stated/visible goal)",
+    "need":  "what they actually need, often unrecognized",
+    "lie":   "the false belief they operate under",
+    "truth": "the truth they meet or must accept"
+  },
+  "arc": {
+    "start":    "who they are when the book opens — 1-2 sentences",
+    "midpoint": "what shifts in the middle — 1-2 sentences",
+    "end":      "who they are by the end — 1-2 sentences"
+  },
+  "backstory": "a short paragraph of PAST facts the book states or clearly implies about them (before the story began). Facts only — no invention."
+}
+
+Rules:
+  - Ground every field in the scenes given. If the scenes don't establish a field, return "" for it — an empty string is the honest answer, never a guess.
+  - Never invent events, relationships, or history the prose doesn't support.
+  - Write in the writer's service: concrete, specific, no filler ("complex character who goes on a journey" is a failure).
+  - If the scenes cover only part of the book, describe only what they show; the arc fields may legitimately be "".
+  - Keep each field tight: one-liners are 1-2 sentences; the backstory is one short paragraph.
+
+Return ONLY the JSON object. No preface, no markdown fences."""
+
 # ── relationshipArc.js (analyseRelationship) ────────────────────────────────
 _RELATIONSHIP_SYSTEM = """You track a relationship between two characters across a novel — chapter by chapter.
 
@@ -696,6 +732,12 @@ DEFAULT_FEATURE_PROMPTS: dict[str, dict] = {
     "characterAudit": {
         "feature": "characterAudit",
         "system": _CHARACTER_AUDIT_SYSTEM,
+        "user_template": "{{user_content}}",
+        "json_mode": True,
+    },
+    "characterProfile": {
+        "feature": "characterProfile",
+        "system": _CHARACTER_PROFILE_SYSTEM,
         "user_template": "{{user_content}}",
         "json_mode": True,
     },

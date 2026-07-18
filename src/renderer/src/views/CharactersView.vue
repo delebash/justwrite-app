@@ -19,6 +19,7 @@ import CharacterAuditModal from "../components/CharacterAuditModal.vue";
 import RelationshipArcModal from "../components/RelationshipArcModal.vue";
 import StatusSelect from "../components/StatusSelect.vue";
 import GroupsModal from "../components/GroupsModal.vue";
+import CharacterProfileFillModal from "../components/CharacterProfileFillModal.vue";
 import TagEditor from "../components/TagEditor.vue";
 import SceneRefList from "../components/SceneRefList.vue";
 import MentionRefList from "../components/MentionRefList.vue";
@@ -432,6 +433,10 @@ function onRowClick(event) {
           v-tooltip.bottom="`Ask the book about ${ch.name}`">
           <Icon name="Chat" :size="14" /> Ask the book
         </UiButton>
+        <UiButton intent="ghost" size="small" @click="modal = 'profileFill'"
+          v-tooltip.bottom="`Draft ${ch.name}'s profile (description, motivation, arc, backstory) from the scenes that feature them — you review before anything saves`">
+          <Icon name="Book" :size="14" /> Fill from book
+        </UiButton>
         <UiButton intent="ghost" size="small" @click="modal = 'images'"><Icon name="Image" :size="14" /> Images</UiButton>
         <router-link :to="`/characters/${ch.id}/events`" custom v-slot="{ navigate }">
           <UiButton intent="ghost" size="small" @click="navigate"><Icon name="Calendar" :size="14" /> Events</UiButton>
@@ -584,6 +589,7 @@ function onRowClick(event) {
 
     <ImagesModal v-if="modal === 'images'" kind="characters" :entity-id="ch.id" :entity-name="ch.name" @close="modal = null" />
     <GroupsModal v-if="modal === 'groups'" :entity-id="ch.id" :entity-name="ch.name" entity-kind="character" @close="modal = null" />
+    <CharacterProfileFillModal v-if="modal === 'profileFill'" :character-id="ch.id" @close="modal = null" />
   </template>
 
   <!-- ── id in URL but character not found (deleted / bad link) ── -->
