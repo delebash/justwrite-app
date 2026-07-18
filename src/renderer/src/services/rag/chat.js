@@ -147,8 +147,11 @@ export async function askManuscript({
   // built by the SAME cards.js builder the index used, so a pinned card is
   // byte-identical to its indexed twin. Retrieval keeps its k (pins are
   // additive); a card that also ranked drops from the retrieved list.
+  // corpusFallback (2026-07-18): a question naming NO entity ("what is this
+  // book about?") pins the premise + main-cast cards instead — the audited
+  // protagonist-miss fix; named-entity questions are byte-identical.
   const combined = combinePinsAndHits(
-    pickPinnedCards({ question, history, project, cards: buildEntityCards(project) }),
+    pickPinnedCards({ question, history, project, cards: buildEntityCards(project), corpusFallback: true }),
     hits,
   );
 

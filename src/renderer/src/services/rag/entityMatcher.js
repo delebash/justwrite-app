@@ -92,15 +92,24 @@ const CHARS_PER_TOKEN = 4;
  * (the user's rec: no 1-hop relation fan-out — relations are already in the
  * card text). Exact-name hits outrank alias hits; the budget caps the total.
  *
+ * `corpusFallback` (book-chat only, 2026-07-18): a question that names NO
+ * bible entity ("what is this book about?") pins the premise card + the
+ * main-character cards instead — ground-truthed incident: that question
+ * retrieved a side character's card and never the protagonist's, and BOTH
+ * thinking modes misnamed the protagonist; a retrieval gap no reasoning can
+ * fix. Fallback pins ride the SAME budget and stay additive (retrieval keeps
+ * its k), so named-entity questions and every other search are byte-identical.
+ *
  * @param {object} opts
  * @param {string} opts.question
  * @param {Array<{role,content}>} [opts.history]
  * @param {object} opts.project           — live store instance
  * @param {Array}  opts.cards             — buildEntityCards(project) output
  * @param {string} [opts.excludeEntityId] — e.g. the interviewee in character chat
+ * @param {boolean} [opts.corpusFallback] — pin premise + main cast when no entity matched
  * @returns {Array} card chunks to pin, in priority order
  */
-export function pickPinnedCards({ question, history = [], project, cards, excludeEntityId } = {}) {
+export function pickPinnedCards({ question, history = [], project, cards, excludeEntityId, corpusFallback = false } = {}) {
   const recentUserTurns = history
     .filter((m) => m?.role === "user" && m.content)
     .slice(-2)
@@ -129,6 +138,25 @@ export function pickPinnedCards({ question, history = [], project, cards, exclud
     pinned.push(card);
     budget -= card.text.length;
     if (budget <= 0) break;
+  }
+
+  // Corpus-level fallback — ONLY when nothing matched (hits, not pins: a matched
+  // entity whose card is missing/over budget still means the question was ABOUT
+  // that entity, not about the whole book). Premise first (the author's own
+  // "what this book is about"), then main-cast cards in the author's list order.
+  if (corpusFallback && !hits.length) {
+    const fallbackKeys = [
+      "architecture:premise",
+      ...(project.characters || []).filter((c) => c?.main && c.id !== excludeEntityId).map((c) => `character:${c.id}`),
+    ];
+    for (const key of fallbackKeys) {
+      const card = byEntity.get(key);
+      if (!card) continue;
+      if (card.text.length > budget) continue;
+      pinned.push(card);
+      budget -= card.text.length;
+      if (budget <= 0) break;
+    }
   }
   return pinned;
 }
