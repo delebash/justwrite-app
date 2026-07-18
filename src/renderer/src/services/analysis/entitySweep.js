@@ -2,11 +2,16 @@
 // per chapter, merges + dedupes proposals across the project.
 //
 // Parallel: a bounded pool of N workers processes chapters concurrently.
-// Default N=4 balances cloud APIs (which want concurrency) and local
-// servers (which generally can't handle a dozen parallel streams). The
-// per-chapter merge is synchronous and idempotent, so workers can share
-// the running aggregate without locking — JS's single-threaded execution
-// makes each mergeProposals call atomic.
+// The pool is PROVIDER-AWARE (C2, 2026-07-18): cloud APIs get 4 workers
+// (they genuinely parallelize); the built-in llama.cpp server processes ONE
+// request at a time (no -np parallel slots), so against it a 4-wide pool
+// just parked 3 requests in its server-side queue while their rows showed
+// "scanning" — fake concurrency observed on the real 114-chapter run as a
+// row sitting "SCANNING" 10+ minutes of pure queue-wait. Local built-in →
+// 1 worker: zero throughput loss (requests serialized anyway) and SCANNING
+// means scanning. The per-chapter merge is synchronous and idempotent, so
+// workers can share the running aggregate without locking — JS's
+// single-threaded execution makes each mergeProposals call atomic.
 //
 // Cost of parallelism: workers no longer see each other's in-flight
 // proposals, so the same name may be proposed by multiple chapters. The
@@ -14,12 +19,31 @@
 // downside is a few wasted output tokens per duplicate. Worth it for the
 // 3-4× wall-clock speed-up on a long book.
 
-import { useAiTasksStore } from "@delebash/llm-ui";
+import { useAiTasksStore, useResolvedRoute } from "@delebash/llm-ui";
+import { LOCAL_RUNNER_ID } from "@delebash/llm-ui/services/modelApply.js";
 
 import { normalizeName as normName } from "../text.js";
 import { extractEntities } from "./entityExtraction.js";
 
 const DEFAULT_CONCURRENCY = 4;
+
+// C2: pick the pool width for this run. An explicit `concurrency` argument
+// wins; otherwise the provider decides — a passed provider override directly,
+// else the server-resolved route for entitySweep (the same authority the
+// modal's provenance chip shows). Built-in local → 1 (single slot); anything
+// else → DEFAULT_CONCURRENCY. Route-resolution failure falls back to the old
+// default rather than blocking the sweep. Exported for tests.
+export async function resolvePoolSize({ concurrency, provider } = {}) {
+  if (concurrency != null) return Math.max(1, concurrency | 0 || DEFAULT_CONCURRENCY);
+  let providerId = provider?.id || "";
+  if (!providerId) {
+    try {
+      const route = await useResolvedRoute().ensureRoute("entitySweep");
+      providerId = route?.providerId || "";
+    } catch { /* unreachable route endpoint — keep the old default */ }
+  }
+  return providerId === LOCAL_RUNNER_ID ? 1 : DEFAULT_CONCURRENCY;
+}
 
 // Merge a freshly-scanned chapter's proposals into the running aggregate.
 // Same-name proposals get their `originChapters` list extended; the first
@@ -70,7 +94,8 @@ function mergeProposals(into, fresh, chapter) {
  * @param {object} opts
  * @param {object} opts.project        — useProjectStore() instance
  * @param {AbortSignal} [opts.signal]  — cancels the whole sweep
- * @param {number}      [opts.concurrency=4] — max in-flight chapter calls
+ * @param {number}      [opts.concurrency] — max in-flight chapter calls; when
+ *   omitted the pool is provider-aware (C2): built-in local → 1, else 4
  * @param {(p) => void} [opts.onProgress] — fires per chapter lifecycle event
  *   p shape: { phase: "start"|"done"|"skip"|"error",
  *              chapter: { id, num, title },
@@ -99,7 +124,7 @@ export async function scanAllChapters({
   provider,
   model,
   chapterFilter,
-  concurrency = DEFAULT_CONCURRENCY,
+  concurrency,
 } = {}) {
   if (!project) throw new Error("scanAllChapters: project store is required.");
   const all = project.allChapters.filter((c) => {
@@ -236,7 +261,7 @@ export async function scanAllChapters({
     }
   }
 
-  const poolSize = Math.max(1, Math.min(concurrency | 0 || DEFAULT_CONCURRENCY, all.length));
+  const poolSize = Math.max(1, Math.min(await resolvePoolSize({ concurrency, provider }), all.length));
   try {
     await Promise.all(Array.from({ length: poolSize }, () => worker()));
   } finally {

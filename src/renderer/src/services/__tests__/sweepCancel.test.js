@@ -24,14 +24,15 @@
 //
 // The kit is imported REAL (subpath alias); only extractEntities is mocked, so the
 // pool, the owner handle and the signal wiring all execute for real.
-import { beforeEach, describe, expect, it, vi } from "vitest";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { createPinia, setActivePinia } from "pinia";
 
 vi.mock("../analysis/entityExtraction.js", () => ({ extractEntities: vi.fn() }));
 
 import { extractEntities } from "../analysis/entityExtraction.js";
-import { scanAllChapters } from "../analysis/entitySweep.js";
+import { resolvePoolSize, scanAllChapters } from "../analysis/entitySweep.js";
 import { useAiTasksStore } from "@delebash/llm-ui/stores/aiTasks.js";
+import { useResolvedRoute } from "@delebash/llm-ui/composables/useResolvedRoute.js";
 
 function projectWith(n) {
   const chapters = Array.from({ length: n }, (_, i) => ({ id: `c${i + 1}`, num: i + 1, title: `Chapter ${i + 1}` }));
@@ -136,5 +137,63 @@ describe("scanAllChapters — cancel stops EVERYTHING", () => {
     expect(r.cancelled).toBe(false);
     expect(phases).toContain("error");
     expect(r.skipped).toHaveLength(3);
+  });
+});
+
+// C2 (2026-07-18): the pool is provider-aware. Against the single-slot built-in
+// server a 4-wide pool parked 3 requests in its queue while their rows showed
+// "scanning" — observed on the real 114-chapter run as a row "SCANNING" 10+
+// minutes of pure queue-wait. Built-in local → 1 worker (zero throughput loss),
+// online providers keep 4, an explicit argument always wins.
+describe("resolvePoolSize — provider-aware pool (C2)", () => {
+  function stubRoute(row, { fail = false } = {}) {
+    vi.stubGlobal("fetch", vi.fn(async (url) => {
+      if (String(url).includes("/v1/ai/resolved-route")) {
+        if (fail) return { ok: false, status: 500, headers: { get: () => "" }, text: async () => "boom" };
+        return {
+          ok: true, status: 200,
+          headers: { get: (k) => (k.toLowerCase() === "content-type" ? "application/json" : "") },
+          json: async () => row, text: async () => JSON.stringify(row),
+        };
+      }
+      return { ok: true, status: 200, headers: { get: () => "" }, json: async () => ({}), text: async () => "{}" };
+    }));
+  }
+
+  beforeEach(() => {
+    useResolvedRoute().invalidateRoutes(); // the kit cache is module-level — drop it per case
+  });
+  afterEach(() => {
+    vi.unstubAllGlobals();
+  });
+
+  it("an explicit concurrency argument wins without touching the route endpoint", async () => {
+    const fetchSpy = vi.fn();
+    vi.stubGlobal("fetch", fetchSpy);
+    expect(await resolvePoolSize({ concurrency: 2 })).toBe(2);
+    expect(fetchSpy).not.toHaveBeenCalled();
+  });
+
+  it("a provider-object override decides directly — local built-in gets 1 worker", async () => {
+    const fetchSpy = vi.fn();
+    vi.stubGlobal("fetch", fetchSpy);
+    expect(await resolvePoolSize({ provider: { id: "local-llamacpp" } })).toBe(1);
+    expect(await resolvePoolSize({ provider: { id: "gemini" } })).toBe(4);
+    expect(fetchSpy).not.toHaveBeenCalled();
+  });
+
+  it("with nothing passed, the resolved route decides: built-in local → 1", async () => {
+    stubRoute({ providerId: "local-llamacpp", model: "gemma-4-26b-a4b-qat" });
+    expect(await resolvePoolSize()).toBe(1);
+  });
+
+  it("with nothing passed, an online route keeps the 4-wide pool", async () => {
+    stubRoute({ providerId: "gemini", model: "gemini-2.5-flash" });
+    expect(await resolvePoolSize()).toBe(4);
+  });
+
+  it("an unreachable route endpoint falls back to the old default — the sweep must never block on it", async () => {
+    stubRoute(null, { fail: true });
+    expect(await resolvePoolSize()).toBe(4);
   });
 });

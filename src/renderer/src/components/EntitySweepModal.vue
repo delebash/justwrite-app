@@ -2,9 +2,11 @@
 // Whole-book entity sweep modal.
 //
 // Kicks off scanAllChapters() with progress reporting. Chapters run in a
-// bounded-concurrency pool, so multiple rows may sit in "scanning" at the
-// same time. Each row transitions pending → scanning → done / skipped /
-// error. When the sweep finishes (or the user cancels early), the running
+// bounded-concurrency pool — provider-aware (C2): online providers run 4
+// wide so several rows may sit in "scanning" at once; the single-slot
+// built-in server runs one at a time, so exactly one row scans and
+// "scanning" always means the model is actually on it. Each row
+// transitions pending → scanning → done / skipped / error. When the sweep finishes (or the user cancels early), the running
 // aggregate is handed to the existing EntityReviewModal for per-proposal
 // accept/reject.
 
