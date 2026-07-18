@@ -25,7 +25,9 @@
 > `docs/plans/2026-07-08-recap-archive.md`. This file POINTS at them, it does not duplicate them
 > (a copy drifts, and a log here costs half a context window every session start).
 
-**Branch (all repos):** `claude/admiring-galileo-il3q0o`.
+**Branch (all repos):** `claude/admiring-galileo-il3q0o` — **PUSHED to origin 2026-07-18**
+(the per-section "unpushed on the branch" tags below are historical; everything through the
+SDK pivot + #16 is now on the remote).
 
 ---
 
@@ -153,6 +155,15 @@ Fetch → chat/entitySweep/ask-the-book · the #12 key masks/reveals + Fetch/Tes
 retyping · OpenAI/xAI/Mistral connect when the user has funded keys (ship tests-green,
 live-unverified). Renderer headless smoke was **not** run (must not touch the user's live
 :1420/:17495); the ProviderForm delta is covered by JW vitest mounts (key-reveal + D5).
+
+**Follow-up #16 (2026-07-18, coordinator-built):** the builders' dummy keys (`"no-key"`
+gemini / `"sk-no-key"` openai_sdk — needed only because those SDKs validate the key at
+`Client()` build) are DELETED by making all three SDK adapters build LAZILY on first real
+call (`_ensure_client`). A keyless seeded row now registers with no placeholder; the first
+real call surfaces the SDK's own no-key error; `models()`/`ping()` still degrade. Runner
+`69d764f` (code) + `41e669c` (docs). Fires-proof RED→GREEN; full runner pytest 572✓/2-base;
+JW `test_seed` green with ALL provider env keys cleared (the real proof); one rules-checker
+PASS. Todo #16 done; lazy also lets a keyless local gateway on the SDK path Just Work.
 
 ## CURRENT STATE (2026-07-15, end of day — everything below SHIPPED AND PUSHED)
 
