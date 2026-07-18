@@ -1,9 +1,63 @@
 # 2026-07-18 — RAG/chat state + the entity-sweep & RAG queue (compact-safe record)
 
-Written immediately before a session compact. This is THE resume point: everything
-below is either SHIPPED (with commit ids) or QUEUED AWAITING THE USER'S GO — nothing
-in the queue is started. Standing session law: **no work without the user's explicit
-go, one-line "this changes X" before anything ships.**
+Written immediately before a session compact; UPDATED same day after the user's
+"do them all you pick order, go" — the whole queue below is now SHIPPED (see the
+"Queue execution" section). Standing session law: **no work without the user's
+explicit go, one-line "this changes X" before anything ships.**
+
+## Queue execution — SHIPPED 2026-07-18 (order: C2 → D → A → B → E → a → smalls → b → c)
+
+- `29ded32` **C2** provider-aware sweep pool — 1 worker on the single-slot built-in
+  (SCANNING means scanning; zero throughput cost), online keeps 4.
+- `412ed0f` **D** pre-run chapter picker — front/back matter auto-unticked
+  (isLikelyNonStoryTitle), All/None, footer "Scan N chapters".
+- `aa00d61` **A** per-chapter draft persistence + resume — sweep_drafts table +
+  /v1/projects/{id}/sweep-draft; per-chapter raw results banked as they land;
+  reopen resumes (done rows "✓ N found", changed-text detection via hash);
+  "Review N found" straight from the draft; clears on accept/Start-over.
+- `d94caac` **B** per-chapter watchdog (max(3× rolling median, 180 s); 600 s
+  before a baseline) + finished-with-failures stays on status view with
+  "Retry N failed".
+- `8d78f45` + `0d9a2d4` **E** "Fill from book" — characterProfile action
+  (p_extract family, composeCharacterAuditInput input, honest-"" contract),
+  review modal with opt-in overwrites, button on the character header.
+- `a215b40` **(a)** relationship-arc lines on both characters' cards (+ the
+  rag-probe launcher updated to D's picker CTA).
+- `25f7e0d` **smalls** pin-all-parts for a named entity · tiny-tail merge in
+  splitParts · backstory cap 800→4000 · fabula+setting corpus-fallback pins.
+- `382ec93` **(b)** reverse-outline digest cards (kind "outline"; beats
+  labeled "- Ch N:"; absent until an outline is kept).
+- `48512b1` **(c)** scene splitting (>1800 chars → ~1200-char sentence parts,
+  ids ch:scene:pN, "(part N)" citations; short scenes' ids/shas unchanged).
+- Test fix en route: `<loadTaskAdapter source pin>` follows the vocabulary
+  through the channel factories.
+
+Gates on every item: vitest (267 end-state), server pytest 115 + ruff,
+build:vite, headless smoke, rag-probe 18/18, plus driven screenshots (sweep
+picker, resume banner, review-from-draft, Fill-from-book modal).
+
+## C1 — the small-model A/B recipe (run on the real box; default UNCHANGED)
+
+Decision standing: `p_extract` keeps the big model until an on-box A/B says
+otherwise (the user's 8B-vs-14B attribution evidence + the 26B's observed
+coreference wins: Gavin=Dazen=Six, Number Seven=Orholam). The recipe:
+
+1. Note the current model: AI → Routing by feature → the `p_extract` preset.
+2. Baseline run: Characters → Entity sweep → tick the SAME ~5 story chapters
+   (pick ones with cast churn, e.g. mid-book) → Scan. When review opens,
+   record: total proposals, character names, and the alias fields of 2-3
+   multi-name characters. **Cancel the review** (nothing imports), then
+   **Start over** in the picker (drafts must not mix between runs).
+3. Switch the `p_extract` preset's model to the small candidate (Lab / Tasks
+   tab). Repeat step 2 exactly.
+4. Diff the two lists for: **misses** (entities only the big model found),
+   **split identities** (one person as two rows — the alias columns tell),
+   **alias quality**, **junk rate**. Speed: the sweep modal's wall time.
+5. Decision rule: the small model wins ONLY if recurring-entity misses ≈ 0
+   AND no main character splits. Otherwise keep the big model — the speed
+   already came from D (junk chapters skipped) + A (never re-scan done work)
+   + honest concurrency.
+6. Restore the preset's model if the big model keeps the seat.
 
 ## Shipped today (all pushed, branch `claude/admiring-galileo-il3q0o`)
 
