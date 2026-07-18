@@ -30,7 +30,7 @@ import { createPinia, setActivePinia } from "pinia";
 vi.mock("../analysis/entityExtraction.js", () => ({ extractEntities: vi.fn() }));
 
 import { extractEntities } from "../analysis/entityExtraction.js";
-import { isLikelyNonStoryTitle, resolvePoolSize, scanAllChapters } from "../analysis/entitySweep.js";
+import { isLikelyNonStoryTitle, resolvePoolSize, scanAllChapters, watchdogTimeoutMs } from "../analysis/entitySweep.js";
 import { useAiTasksStore } from "@delebash/llm-ui/stores/aiTasks.js";
 import { useResolvedRoute } from "@delebash/llm-ui/composables/useResolvedRoute.js";
 
@@ -137,6 +137,63 @@ describe("scanAllChapters — cancel stops EVERYTHING", () => {
     expect(r.cancelled).toBe(false);
     expect(phases).toContain("error");
     expect(r.skipped).toHaveLength(3);
+  });
+});
+
+// B (2026-07-18): the per-chapter watchdog. The real 114-chapter run had NO
+// timeout anywhere in the chain — a wedged request parked its worker forever
+// (observed: a row "SCANNING" 10+ minutes). A chapter now rides its own
+// controller: max(3× rolling median, 180s) once there's a baseline, a generous
+// fixed cap before one; timeout → "error · timed out" row, worker freed;
+// a sweep cancel racing the timer stays a CANCEL, never an error row.
+describe("the per-chapter watchdog (B)", () => {
+  afterEach(() => vi.useRealTimers());
+
+  it("timeout math: generous cap with no baseline, 3× median with one, floored at 180s", () => {
+    expect(watchdogTimeoutMs([])).toBe(600_000);
+    expect(watchdogTimeoutMs([30_000, 32_000, 34_000])).toBe(180_000);   // 3×32s < floor
+    expect(watchdogTimeoutMs([90_000, 100_000, 110_000])).toBe(300_000); // 3×100s
+  });
+
+  it("a wedged chapter times out, frees its worker, and the sweep finishes the rest", async () => {
+    vi.useFakeTimers();
+    let calls = 0;
+    extractEntities.mockImplementation(({ signal }) => new Promise((resolve, reject) => {
+      calls += 1;
+      signal?.addEventListener("abort", () => reject(new Error("Couldn't reach the LLM. Request cancelled.")));
+      if (calls !== 1) resolve(NOTHING); // only the FIRST chapter wedges
+    }));
+    const phases = [];
+    const p = scanAllChapters({
+      project: projectWith(3), concurrency: 1,
+      onProgress: (e) => phases.push(e),
+    });
+    await vi.advanceTimersByTimeAsync(600_000 + 1000);
+    const r = await p;
+    expect(r.cancelled).toBe(false);
+    const err = phases.find((e) => e.phase === "error");
+    expect(err.reason).toMatch(/timed out after 600s/);
+    // The worker moved on: the other two chapters completed.
+    expect(phases.filter((e) => e.phase === "done")).toHaveLength(2);
+    expect(r.skipped).toHaveLength(1);
+  });
+
+  it("a user cancel racing the watchdog stays a CANCEL — no error rows", async () => {
+    vi.useFakeTimers();
+    const ac = new AbortController();
+    extractEntities.mockImplementation(({ signal }) => new Promise((_res, reject) => {
+      signal?.addEventListener("abort", () => reject(new Error("Request cancelled.")));
+      ac.abort(); // the user cancels while the first chapter is in flight
+    }));
+    const phases = [];
+    const p = scanAllChapters({
+      project: projectWith(4), concurrency: 1, signal: ac.signal,
+      onProgress: ({ phase }) => phases.push(phase),
+    });
+    await vi.advanceTimersByTimeAsync(1000);
+    const r = await p;
+    expect(r.cancelled).toBe(true);
+    expect(phases).not.toContain("error");
   });
 });
 

@@ -233,6 +233,14 @@ async function runSweep() {
       }
     }
 
+    // B: a sweep that finished WITH failures stays on the status view — the
+    // failed rows and a "Retry failed" affordance are the point; auto-jumping
+    // to review buried them (and fed the "was it really processed?" doubt).
+    // A clean or cancelled run goes to review as before.
+    if (!result.cancelled && rows.value.some((r) => r.status === "error")) {
+      finished.value = true;
+      return;
+    }
     // A: the review aggregate is rebuilt from the DRAFT, not from this run's
     // return — so it carries this run's chapters AND everything a previous
     // (crashed/cancelled) run already banked. Partial proposals survive a
@@ -241,6 +249,18 @@ async function runSweep() {
   } catch (e) {
     error.value = e?.message || String(e);
   }
+}
+
+// B: re-queue ONLY the failed chapters (their draft entries are status
+// "error", so initPicks would tick them anyway — this skips the picker trip).
+const finished = ref(false);
+const failedCount = computed(() => rows.value.filter((r) => r.status === "error").length);
+function retryFailed() {
+  const failedIds = new Set(rows.value.filter((r) => r.status === "error").map((r) => r.id));
+  initPicks();
+  for (const p of picks.value) p.checked = failedIds.has(p.id);
+  finished.value = false;
+  runSweep();
 }
 
 // THE stop. The shared AiTaskStrip renders the only Cancel (the modal's duplicate was
@@ -354,16 +374,29 @@ function onReviewCommitted(payload) {
         :right="row.note || (row.reason ? `${row.status} · ${row.reason}` : row.status)" />
     </div>
 
-    <template v-if="!rows.length" #footer>
-      <span class="t-muted sweep-foot-count">{{ checkedCount }} of {{ picks.length }} selected</span>
-      <span style="flex:1"></span>
-      <UiButton intent="ghost" @click="emit('close')">Cancel</UiButton>
-      <UiButton v-if="foundTotal" intent="secondary" @click="reviewFound">
-        Review {{ foundTotal }} found
-      </UiButton>
-      <UiButton intent="primary" :disabled="!checkedCount" @click="runSweep">
-        <Icon name="Sparkle" :size="13" /> Scan {{ checkedCount }} chapter{{ checkedCount === 1 ? "" : "s" }}
-      </UiButton>
+    <template v-if="!rows.length || finished" #footer>
+      <!-- Pre-run picker footer -->
+      <template v-if="!rows.length">
+        <span class="t-muted sweep-foot-count">{{ checkedCount }} of {{ picks.length }} selected</span>
+        <span style="flex:1"></span>
+        <UiButton intent="ghost" @click="emit('close')">Cancel</UiButton>
+        <UiButton v-if="foundTotal" intent="secondary" @click="reviewFound">
+          Review {{ foundTotal }} found
+        </UiButton>
+        <UiButton intent="primary" :disabled="!checkedCount" @click="runSweep">
+          <Icon name="Sparkle" :size="13" /> Scan {{ checkedCount }} chapter{{ checkedCount === 1 ? "" : "s" }}
+        </UiButton>
+      </template>
+      <!-- B: finished-with-failures footer — the failed rows stay visible. -->
+      <template v-else>
+        <span class="t-muted sweep-foot-count">{{ failedCount }} chapter{{ failedCount === 1 ? "" : "s" }} failed</span>
+        <span style="flex:1"></span>
+        <UiButton intent="ghost" @click="emit('close')">Close</UiButton>
+        <UiButton intent="secondary" @click="retryFailed">Retry {{ failedCount }} failed</UiButton>
+        <UiButton v-if="foundTotal" intent="primary" @click="reviewFound">
+          Review {{ foundTotal }} found
+        </UiButton>
+      </template>
     </template>
   </AppModal>
 </template>

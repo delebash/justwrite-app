@@ -63,6 +63,25 @@ export function isLikelyNonStoryTitle(title) {
   return NON_STORY_TITLE_PATTERNS.some((re) => re.test(t));
 }
 
+// B (2026-07-18): the per-chapter watchdog. A chapter that outlives
+// max(3 × rolling median of completed chapters, 180 s) is aborted and marked
+// "error · timed out" — its worker moves on instead of parking forever (the
+// real 114-chapter run had NO timeout anywhere in the chain; a wedged request
+// wedged its worker for good). Before any chapter has completed there is no
+// baseline, so the first chapters get a generous fixed cap instead of none —
+// a stuck FIRST chapter must not hang the sweep either.
+const WATCHDOG_FLOOR_MS = 180_000;
+const WATCHDOG_INITIAL_MS = 600_000;
+
+/** The timeout for the NEXT chapter given completed-chapter durations (ms).
+ *  Exported for tests. */
+export function watchdogTimeoutMs(durations) {
+  if (!durations?.length) return WATCHDOG_INITIAL_MS;
+  const s = [...durations].sort((a, b) => a - b);
+  const median = s[Math.floor(s.length / 2)];
+  return Math.max(WATCHDOG_FLOOR_MS, 3 * median);
+}
+
 // C2: pick the pool width for this run. An explicit `concurrency` argument
 // wins; otherwise the provider decides — a passed provider override directly,
 // else the server-resolved route for entitySweep (the same authority the
@@ -198,6 +217,7 @@ export async function scanAllChapters({
   const skipped = [];
   let completed = 0;
   let scanned = 0;
+  const durations = []; // completed-chapter wall times → the watchdog's baseline
 
   // Snapshot the project's existing bible ONCE. Workers can't see each
   // other's in-flight proposals, so the LLM may re-propose the same name
@@ -231,6 +251,17 @@ export async function scanAllChapters({
       completed, total: all.length,
     });
 
+    // B: each chapter rides its OWN controller, which mirrors the sweep signal
+    // (cancel still stops everything — QC-31 unchanged) and additionally fires
+    // on the watchdog timer, so a wedged request frees its worker.
+    const chapterAbort = new AbortController();
+    const onSweepAbort = () => chapterAbort.abort();
+    runSignal.addEventListener?.("abort", onSweepAbort, { once: true });
+    let timedOut = false;
+    const timeoutMs = watchdogTimeoutMs(durations);
+    const timer = setTimeout(() => { timedOut = true; chapterAbort.abort(); }, timeoutMs);
+    const t0 = Date.now();
+
     try {
       const fresh = await extractEntities({
         html,
@@ -239,7 +270,7 @@ export async function scanAllChapters({
         existingCharacters: baselineExisting.characters,
         existingLocations:  baselineExisting.locations,
         existingObjects:    baselineExisting.objects,
-        signal: runSignal,
+        signal: chapterAbort.signal,
         provider,
         model,
         // task:false — the OWNER above is this sweep's one task entry (QC-31). Without
@@ -248,6 +279,7 @@ export async function scanAllChapters({
         task: false,
         meta: { chapterId: ch.id, kind: "sweep" },
       });
+      durations.push(Date.now() - t0);
       // mergeProposals is synchronous → atomic from concurrent workers'
       // point of view in JS's single-thread model.
       mergeProposals(proposals, fresh, ch);
@@ -269,19 +301,29 @@ export async function scanAllChapters({
       // call's message reads "Couldn't reach the LLM. Request cancelled." — no "abort"
       // in it — so every in-flight chapter rendered as a red ERROR row for a stop the
       // user asked for.
+      //
+      // B: a WATCHDOG abort is neither — it's this chapter failing. Checked after
+      // the sweep-cancel authority (a cancel racing the timer stays a cancel) and
+      // before the /abort/ belt (the timeout's own error message says "cancelled").
       const msg = String(err?.message || err || "");
-      if (runSignal.aborted || /abort/i.test(msg)) {
+      const reason = timedOut && !runSignal.aborted
+        ? `timed out after ${Math.round(timeoutMs / 1000)}s`
+        : msg.slice(0, 200);
+      if (runSignal.aborted || (!timedOut && /abort/i.test(msg))) {
         // Bubble so workers exit; caller already has partial proposals.
         throw err;
       }
-      skipped.push({ id: ch.id, num: ch.num, title: ch.title, reason: msg.slice(0, 200) });
+      skipped.push({ id: ch.id, num: ch.num, title: ch.title, reason });
       completed += 1;
       handle.setProgress(completed, all.length);
       onProgress?.({
         phase: "error",
         chapter: { id: ch.id, num: ch.num, title: ch.title },
-        completed, total: all.length, reason: msg.slice(0, 200),
+        completed, total: all.length, reason,
       });
+    } finally {
+      clearTimeout(timer);
+      runSignal.removeEventListener?.("abort", onSweepAbort);
     }
   }
 
