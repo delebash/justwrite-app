@@ -46,10 +46,11 @@ def test_seed_creates_providers_but_no_demo(tmp_path):
     assert len(providers) == len(DEFAULT_PROVIDERS)
     by_id = {p["id"]: p for p in providers}
     assert {"local-llamacpp", "openai", "claude", "openrouter"} <= set(by_id)
-    # The shared response shape carries providerType (behavior-preserving map:
-    # claude/gemini stay openai-compat until the native adapters are verified).
+    # The shared response shape carries providerType. Native SDK adapters back
+    # claude/gemini/ollama now (#15 C1, the 2026-07-17 SDK pivot), so the seed rows
+    # carry the real types — no behavior-preserving openai-compat map any more.
     assert by_id["openai"]["providerType"] == "openai"
-    assert by_id["claude"]["providerType"] == "openai-compat"
+    assert by_id["claude"]["providerType"] == "anthropic"
     assert by_id["local-llamacpp"]["providerType"] == "local-llamacpp"
     # Seeded providers are registered into the shared adapter registry at boot.
     assert all(p["registered"] for p in providers)
