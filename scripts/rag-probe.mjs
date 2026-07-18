@@ -43,12 +43,16 @@ const { chromium } = require("playwright");
 const BASE = process.env.JW_BASE || "http://localhost:1420";
 const API = process.env.JW_API || "http://127.0.0.1:17495";
 const STUB_PORT = 8977;
-// ⛔ CONTENT-COUPLED FIXTURE (2026-07-12): the stub extraction responses,
-// scene-title matchers, and expected entities (Margaret / Brass weight) below
-// are keyed to the OLD "Cartographer's Daughter" sample. The sample is now
-// "The Ninth Facet"; the id is updated but the entity-sweep legs will FAIL
-// until re-authored to the new prose (Old Sedge / the Gattick line) OR the
-// probe is decoupled onto its own dedicated fixture book. Follow-up.
+// ⛔ CONTENT-COUPLED FIXTURE (re-authored 2026-07-18 to "The Ninth Facet" —
+// the documented follow-up of the 2026-07-12 sample swap): the stub extraction
+// responses, scene-title matchers, and expected entities are keyed to prose the
+// author wrote but never made bible entries — verified unique at re-authoring:
+//   "lantern and a ledger"  → ch2 "The road to the Nine" ONLY (Old Sedge's origin)
+//   "waiting to be chosen"  → ch1 "The slate board" ONLY (the Slate board's origin)
+//   "Old Sedge"             → ch2 road + ch4 "What they carried out" (E2's backfill)
+//   "Sedge" (alias)         → also ch2 "The candle that un-burns" (alias-driven E1 link)
+// If the sample's prose changes again, re-verify those four with a grep over
+// samples/the-ninth-facet/book.json before touching any assertion.
 const DEMO_ID = "prj_sample_ninth_facet";
 const EMBED_MODEL = "nomic-embed-text"; // seeded catalog id — its template row must fire
 
@@ -96,15 +100,17 @@ function bowVector(text) {
   return v.map((x) => x / norm);
 }
 
-// Extraction responses keyed on unique demo prose: "small brass weight" is
-// only in Ch1's "The chair, the desk, the hands"; "Mind the iron stair" only
-// in Ch5's "Mrs. Oren, on the path". Every other chapter proposes nothing.
-const BRASS_JSON = JSON.stringify({
+// Extraction responses keyed on unique demo prose (see the ⛔ banner above):
+// "waiting to be chosen" is only in Ch1's "The slate board"; "lantern and a
+// ledger" only in Ch2's "The road to the Nine". Every other chapter proposes
+// nothing. Both proposed names exist VERBATIM in the sample's prose (E1 links
+// by scanning origin-chapter scenes for name/alias mentions).
+const SLATE_JSON = JSON.stringify({
   characters: [], locations: [],
-  objects: [{ name: "Brass weight", kind: "Heirloom", note: "Holds pages open against the wind." }],
+  objects: [{ name: "Slate board", kind: "Guild fixture", note: "Where the Hall's commissions go up." }],
 });
-const MARGARET_JSON = JSON.stringify({
-  characters: [{ name: "Margaret", role: "Neighbor, deceased", oneLiner: "Spoken of in the present tense.", aliases: ["the dog's owner"] }],
+const SEDGE_JSON = JSON.stringify({
+  characters: [{ name: "Old Sedge", role: "Watchman at the Nine", oneLiner: "Keeps the ledger of who goes in — and who comes out.", aliases: ["Sedge"] }],
   locations: [], objects: [],
 });
 const EMPTY_JSON = JSON.stringify({ characters: [], locations: [], objects: [] });
@@ -143,8 +149,8 @@ const stub = createServer((req, res) => {
       const text = JSON.stringify(body.messages || []);
       let content;
       if (body.response_format) {
-        content = text.includes("small brass weight") ? BRASS_JSON
-          : text.includes("Mind the iron stair") ? MARGARET_JSON
+        content = text.includes("waiting to be chosen") ? SLATE_JSON
+          : text.includes("lantern and a ledger") ? SEDGE_JSON
           : EMPTY_JSON;
       } else {
         content = "Grounded answer from the excerpts. [1]";
@@ -229,45 +235,47 @@ try {
   // see them — read the name inputs' values instead. Exactly one character row
   // (Margaret) exists, so its section's single alias input is unambiguous.
   const proposedNames = await page.locator(".er-row .er-name").evaluateAll((els) => els.map((e) => e.value));
-  check("sweep: both canned proposals arrived (Margaret + Brass weight)",
-    proposedNames.includes("Margaret") && proposedNames.includes("Brass weight"),
+  check("sweep: both canned proposals arrived (Old Sedge + Slate board)",
+    proposedNames.includes("Old Sedge") && proposedNames.includes("Slate board"),
     JSON.stringify(proposedNames));
   const aliasVal = await page.locator('input[placeholder="aliases (comma-separated)"]')
     .first().inputValue().catch(() => "");
   check("E3: the review modal shows the proposed aliases, editable, on the character row",
-    aliasVal === "the dog's owner", aliasVal);
+    aliasVal === "Sedge", aliasVal);
 
   await page.locator('.ui-modal button:has-text("to story bible")').click();
   await sleep(900);
 
   let bk = await book();
-  const brass = entityByName(bk.objects, "Brass weight");
-  const margaret = entityByName(bk.characters, "Margaret");
+  const slate = entityByName(bk.objects, "Slate board");
+  const sedge = entityByName(bk.characters, "Old Sedge");
   check("E1: accepted entities exist in the bible with aliases kept",
-    !!brass && !!margaret && (margaret.aliases || []).includes("the dog's owner"));
-  const ch1s3 = sceneByTitle(bk, "The chair, the desk, the hands");
-  const ch5s3 = sceneByTitle(bk, "Mrs. Oren, on the path");
-  check("E1: accept LINKED each entity to its origin chapter's mentioning scene",
-    !!brass && !!margaret
-    && (ch1s3?.scene.objects || []).includes(brass.id)
-    && (ch5s3?.scene.characters || []).includes(margaret.id),
-    JSON.stringify({ ch1s3: ch1s3?.scene.objects, ch5s3: ch5s3?.scene.characters }));
+    !!slate && !!sedge && (sedge.aliases || []).includes("Sedge"));
+  const ch1s2 = sceneByTitle(bk, "The slate board");
+  const ch2s1 = sceneByTitle(bk, "The road to the Nine");
+  const ch2s3 = sceneByTitle(bk, "The candle that un-burns");
+  check("E1: accept LINKED each entity to its origin chapter's mentioning scenes (alias-driven link included)",
+    !!slate && !!sedge
+    && (ch1s2?.scene.objects || []).includes(slate.id)
+    && (ch2s1?.scene.characters || []).includes(sedge.id)
+    && (ch2s3?.scene.characters || []).includes(sedge.id), // "Sedge said three went in" — the ALIAS hit
+    JSON.stringify({ ch1s2: ch1s2?.scene.objects, ch2s1: ch2s1?.scene.characters, ch2s3: ch2s3?.scene.characters }));
 
   // ── Leg 2: E2 — the Link-scenes backfill modal ───────────────────────────
-  // "brass weight" is also in Ch4 "A letter, half-written" (+ Ch9's plural) —
-  // scenes E1's origin scope did NOT touch. The whole-book pass proposes them.
+  // "Old Sedge" is also in Ch4 "What they carried out" — a scene E1's origin
+  // scope (ch2 only) did NOT touch. The whole-book pass proposes it.
   await page.locator('button:has-text("Link scenes")').click();
   await page.locator(".lb-group").first().waitFor({ timeout: 15000 });
-  check("E2: the backfill modal groups proposals per entity (Brass weight group present)",
-    (await page.locator('.lb-group:has-text("Brass weight")').count()) === 1);
-  check("E2: the group lists the unlinked mentioning scene (Ch4 'A letter, half-written')",
-    (await page.locator('.lb-group:has-text("Brass weight") .lb-row:has-text("A letter, half-written")').count()) === 1);
+  check("E2: the backfill modal groups proposals per entity (Old Sedge group present)",
+    (await page.locator('.lb-group:has-text("Old Sedge")').count()) === 1);
+  check("E2: the group lists the unlinked mentioning scene (Ch4 'What they carried out')",
+    (await page.locator('.lb-group:has-text("Old Sedge") .lb-row:has-text("What they carried out")').count()) === 1);
   await page.locator('.ui-modal button:has-text("Link ")').click();
   await sleep(900);
   bk = await book();
-  const ch4s4 = sceneByTitle(bk, "A letter, half-written");
+  const ch4s3 = sceneByTitle(bk, "What they carried out");
   check("E2: applying set the proposed link on the scene record",
-    (ch4s4?.scene.objects || []).includes(brass.id), JSON.stringify(ch4s4?.scene.objects));
+    (ch4s3?.scene.characters || []).includes(sedge.id), JSON.stringify(ch4s3?.scene.characters));
 
   // ── Leg 3: index build — document-side template + cards in the index ─────
   await page.evaluate(() => { window.location.hash = "#/chapters"; });
@@ -327,43 +335,56 @@ try {
   }
 
   // ── Leg 4: "Who is X?" — deterministic pin as [1] ────────────────────────
+  // Odeline Marran on purpose: her card is small enough to stay UNSPLIT (the
+  // 2026-07-18 card splitting), so the citation label is the plain entity name.
   const embedsBefore = stubState.embedInputs.length;
-  const askErr = await askAndSettle("Who is Halvard Renn?");
+  const askErr = await askAndSettle("Who is Odeline Marran?");
   check("ask: the question settled with citations (no panel error)", !askErr, askErr);
 
   const firstCite = page.locator(".cp-cite").first();
   check("Move 2: the named character's bible card is pinned as [1]",
     (await firstCite.locator(".cp-cite-score").textContent())?.trim() === "pinned"
-    && (await firstCite.locator(".cp-cite-meta").textContent())?.trim() === "Story Bible — Character: Halvard Renn");
+    && (await firstCite.locator(".cp-cite-meta").textContent())?.trim() === "Story Bible — Character: Odeline Marran");
 
   const queryInputs = stubState.embedInputs.slice(embedsBefore);
   check("Move 0 (query side): the ask-time embed input carries the query prefix",
     queryInputs.length > 0 && queryInputs.every((t) => t.startsWith("search_query: "))
-    && queryInputs.some((t) => t.includes("Who is Halvard Renn?")));
+    && queryInputs.some((t) => t.includes("Who is Odeline Marran?")));
 
   const lastChat = [...stubState.chatBodies].reverse().find((b) => !b.response_format);
   const promptText = JSON.stringify(lastChat?.messages || []);
   check("Move 1: the LLM prompt carried the card excerpt under its Story-Bible header",
-    promptText.includes("Story Bible — Character: Halvard Renn"));
-  check("Move 3: a scene excerpt in the prompt carried its links line",
-    promptText.includes("(Characters: "));
+    promptText.includes("Story Bible — Character: Odeline Marran"));
+  // (Move 3 is asserted on leg 6's prompt below: a NAME query's top hits are all
+  // bible cards since the 2026-07-18 card splitting, so this prompt legitimately
+  // may carry no scene excerpt at all.)
 
   // ── Leg 5: card citation click-through → the entity page ────────────────
-  const renn = entityByName(bk.characters, "Halvard Renn");
+  const ode = entityByName(bk.characters, "Odeline Marran");
   await firstCite.click();
   await sleep(700);
   const hash = await page.evaluate(() => window.location.hash);
   check("Move 1: clicking the card citation lands on the entity's page",
-    !!renn && hash === `#/characters/${renn.id}`, hash);
+    !!ode && hash === `#/characters/${ode.id}`, hash);
 
-  // ── Leg 6: un-named-entity phrasing still surfaces a bible card ──────────
+  // ── Leg 6: an entity-free question still surfaces bible cards ────────────
+  // Since the corpus fallback (2026-07-18) a no-name question ALWAYS pins the
+  // premise + main-cast roster, so this leg now proves pins + retrieval + the
+  // citation pipeline together (it can no longer distinguish which surfaced it).
   await page.locator('[data-chat-toggle]:has-text("Ask the book")').first().click();
   await sleep(600);
-  const askErr2 = await askAndSettle("who runs the customs house");
+  const askErr2 = await askAndSettle("who signed the ledger at the watch-hut");
   check("ask: the follow-up question settled (no panel error)", !askErr2, askErr2);
   const lastLabels = await page.locator(".cp-msg-assistant:last-of-type .cp-cite-meta").allTextContents();
-  check("un-named entity: a story-bible card is among the citations (Customs House — 'Renn's office')",
+  check("entity-free question: story-bible cards are among the citations (premise/roster pins + retrieval)",
     lastLabels.some((t) => t.trim().startsWith("Story Bible —")), JSON.stringify(lastLabels.slice(0, 3)));
+  // Move 3 on THIS prompt: "signed/ledger/watch-hut" are road-scene PROSE words
+  // (bow-hash retrieval is lexical), so that linked scene is in the top-k and
+  // its entity-links line rides under its excerpt header.
+  const lastChat2 = [...stubState.chatBodies].reverse().find((b) => !b.response_format);
+  const promptText2 = JSON.stringify(lastChat2?.messages || []);
+  check("Move 3: a scene excerpt in the prompt carried its links line",
+    promptText2.includes("(Characters: "));
 } finally {
   // ── Restore the DB exactly as found ──────────────────────────────────────
   try {
