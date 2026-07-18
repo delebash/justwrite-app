@@ -12,8 +12,8 @@
 
 import { ref, computed, onMounted, watch } from "vue";
 import { useProjectStore } from "../stores/project.js";
-import { useAiTasksStore, AiTaskStrip, Icon, AppModal, UiButton } from "@delebash/llm-ui";
-import { scanAllChapters } from "../services/analysis/entitySweep.js";
+import { useAiTasksStore, AiTaskStrip, Icon, AppModal, UiButton, UiCheckbox } from "@delebash/llm-ui";
+import { isLikelyNonStoryTitle, scanAllChapters } from "../services/analysis/entitySweep.js";
 import EntityReviewModal from "./EntityReviewModal.vue";
 import AiFeatureChip from "./AiFeatureChip.vue";
 import StatusRow from "./StatusRow.vue";
@@ -58,12 +58,36 @@ const phase = computed(() => {
 
 const scanningCount = computed(() => rows.value.filter((r) => r.status === "scanning").length);
 
-function initRows() {
+// D (2026-07-18, user request off the real 114-chapter import): a pre-run
+// chapter PICKER — checkbox per chapter, everything ticked by default except
+// titles that look like front/back matter (glossary, acknowledgments, praise
+// pages, the next book's preview chapters — all of which that run scanned,
+// polluting the proposals with "The Broken Eye (Book)" from the praise page).
+// Auto-unticked rows stay visible; one click re-ticks. The RULE #1 precedent
+// for the shape is EntityReviewModal: UiCheckbox rows, All/None as .tb-btn,
+// footer = count · spacer · Cancel · primary action.
+const picks = ref([]);
+function initPicks() {
   const filter = props.chapterIds
     ? (props.chapterIds instanceof Set ? props.chapterIds : new Set(props.chapterIds))
     : null;
-  rows.value = project.allChapters
+  picks.value = project.allChapters
     .filter((c) => !filter || filter.has(c.id))
+    .map((c) => ({
+      id: c.id, num: c.num, title: c.title,
+      checked: !isLikelyNonStoryTitle(c.title),
+    }));
+}
+onMounted(initPicks);
+const checkedCount = computed(() => picks.value.filter((p) => p.checked).length);
+function setAllPicks(v) {
+  for (const p of picks.value) p.checked = v;
+}
+
+function initRows() {
+  const ids = new Set(picks.value.filter((p) => p.checked).map((p) => p.id));
+  rows.value = project.allChapters
+    .filter((c) => ids.has(c.id))
     .map((c) => ({
       id: c.id,
       num: c.num,
@@ -80,16 +104,17 @@ async function runSweep() {
   if (running.value) return;
   initRows();
   if (!rows.value.length) {
-    error.value = "No chapters to scan.";
+    error.value = "No chapters selected.";
     return;
   }
   try {
-    const filter = props.chapterIds ? new Set(rows.value.map((r) => r.id)) : null;
+    // The picker's selection IS the universe now — always pass it.
+    const filter = new Set(rows.value.map((r) => r.id));
     sweepAbort = new AbortController();
     const result = await scanAllChapters({
       project,
       signal: sweepAbort.signal,
-      chapterFilter: filter ? { ids: filter } : undefined,
+      chapterFilter: { ids: filter },
       onProgress: ({ phase: ph, chapter, completed, reason }) => {
         const row = rowById.value.get(chapter.id);
         if (row) {
@@ -157,10 +182,10 @@ function onReviewCommitted(payload) {
   emit("committed", payload);
 }
 
-// Deliberately no auto-run on mount: the user should see the AI
-// routing chip in the header and have the option to change provider
-// or model before spending tokens on every chapter. The empty-state
-// CTA below kicks off the run when they're ready.
+// Deliberately no auto-run on mount (only the picker list is built): the
+// user should see the AI routing chip in the header, untick chapters, and
+// have the option to change provider or model before spending tokens on
+// every chapter. The footer CTA kicks off the run when they're ready.
 </script>
 
 <template>
@@ -189,9 +214,12 @@ function onReviewCommitted(payload) {
     </template>
 
     <p class="sweep-desc">
-      Reads every chapter and asks the model for any <strong>characters, locations, and objects</strong>
+      Reads the ticked chapters and asks the model for any <strong>characters, locations, and objects</strong>
       not already in your story bible. Same-name proposals from multiple chapters are merged into one,
       with the originating chapters listed. Nothing is added yet — you review and tick what to keep on the next screen.
+      <template v-if="!rows.length">
+        Front &amp; back matter (glossary, acknowledgments, previews…) is unticked for you — tick anything you do want scanned.
+      </template>
     </p>
 
     <div v-if="error" class="sweep-error">
@@ -200,15 +228,22 @@ function onReviewCommitted(payload) {
 
     <AiTaskStrip :task="myTask" />
 
-    <div v-if="!running && !rows.length" class="sweep-empty">
-      <Icon name="Sparkle" :size="20" />
-      <p class="sweep-empty-text">
-        Scan every chapter for new characters, locations, and objects. Change the provider
-        in the chip above first if you want.
-      </p>
-      <UiButton intent="primary" @click="runSweep">
-        <Icon name="Sparkle" :size="13" /> Scan the manuscript
-      </UiButton>
+    <!-- Pre-run: the chapter picker (D). -->
+    <div v-if="!rows.length" class="sweep-pick">
+      <div class="sweep-pick-h">
+        <span class="t-muted">{{ checkedCount }} of {{ picks.length }} selected</span>
+        <div class="sweep-pick-h-actions">
+          <button type="button" class="tb-btn wide" @click="setAllPicks(true)">All</button>
+          <button type="button" class="tb-btn wide" @click="setAllPicks(false)">None</button>
+        </div>
+      </div>
+      <div class="sweep-list sweep-pick-list">
+        <label v-for="p in picks" :key="p.id" class="sweep-pick-row" :class="{ off: !p.checked }">
+          <UiCheckbox v-model="p.checked" />
+          <span class="sweep-pick-num">{{ p.num }}</span>
+          <span class="sweep-pick-title">{{ p.title || 'Untitled' }}</span>
+        </label>
+      </div>
     </div>
 
     <div v-else class="sweep-list">
@@ -218,6 +253,15 @@ function onReviewCommitted(payload) {
         :main="row.title || 'Untitled'"
         :right="row.reason ? `${row.status} · ${row.reason}` : row.status" />
     </div>
+
+    <template v-if="!rows.length" #footer>
+      <span class="t-muted">{{ checkedCount }} of {{ picks.length }} chapters selected</span>
+      <span style="flex:1"></span>
+      <UiButton intent="ghost" @click="emit('close')">Cancel</UiButton>
+      <UiButton intent="primary" :disabled="!checkedCount" @click="runSweep">
+        <Icon name="Sparkle" :size="13" /> Scan {{ checkedCount }} chapter{{ checkedCount === 1 ? "" : "s" }}
+      </UiButton>
+    </template>
   </AppModal>
 </template>
 
@@ -239,21 +283,31 @@ function onReviewCommitted(payload) {
   font-size: 12.5px;
 }
 
-.sweep-empty {
-  display: flex; flex-direction: column; align-items: center;
-  gap: 14px; padding: 32px 18px;
-  background: var(--surface-2);
-  border-radius: 10px;
-  text-align: center;
+/* D — the pre-run chapter picker. */
+.sweep-pick { display: flex; flex-direction: column; gap: 8px; flex: 1; min-height: 0; }
+.sweep-pick-h {
+  display: flex; align-items: center; gap: 8px;
+  font-size: 12px;
 }
-/* Direct child only — without `>`, this also matched the first child of
-   the UiButton's label span (which IS the slot content), recoloring the
-   button text to the same accent as the button background → invisible
-   text. The intent is to color just the big Sparkle icon at the top. */
-.sweep-empty > :first-child { color: var(--accent); }
-.sweep-empty-text {
-  margin: 0; max-width: 56ch;
-  font-size: 13px; line-height: 1.55; color: var(--ink-2);
+.sweep-pick-h-actions { display: flex; gap: 4px; margin-left: auto; }
+.sweep-pick-list { flex: 1; }
+.sweep-pick-row {
+  display: flex; align-items: center; gap: 10px;
+  padding: 6px 12px;
+  border-bottom: 1px solid var(--border-soft);
+  cursor: pointer;
+  transition: opacity .15s;
+}
+.sweep-pick-row:last-child { border-bottom: none; }
+.sweep-pick-row:hover { background: var(--surface-3); }
+.sweep-pick-row.off { opacity: 0.5; }
+.sweep-pick-num {
+  font-family: var(--font-mono); font-size: 11px; color: var(--muted);
+  min-width: 2.5ch; text-align: right;
+}
+.sweep-pick-title {
+  font-size: 13px; color: var(--ink-2);
+  overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
 }
 
 .sweep-list {

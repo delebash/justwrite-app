@@ -27,6 +27,42 @@ import { extractEntities } from "./entityExtraction.js";
 
 const DEFAULT_CONCURRENCY = 4;
 
+// D (2026-07-18): titles that are almost certainly front/back matter, not
+// story — the sweep modal unticks them by default (visible, one click
+// re-ticks; this list only picks a DEFAULT, it never excludes anything on
+// its own). From the real 114-chapter import: the sweep scanned the
+// Glossary, the praise pages, and the NEXT book's preview chapters, and
+// the proposals contained "The Broken Eye (Book)" extracted from the
+// praise page.
+const NON_STORY_TITLE_PATTERNS = [
+  /^acknowledg/i,             // Acknowledgments / Acknowledgements
+  /^glossary\b/i,
+  /^appendix\b/i,
+  /^extras?\b/i,
+  /^about the author/i,
+  /^meet the author/i,
+  /^also by\b/i,
+  /^praise for\b/i,
+  /preview of\b/i,            // "A Preview of …"
+  /^the story continues/i,
+  /^character list\b/i,
+  /^dramatis personae/i,
+  /^copyright\b/i,
+  /^dedication\b/i,
+  /^(table of )?contents\b/i,
+  /^title page\b/i,
+  /^index\b/i,
+];
+
+/** True when a chapter title looks like front/back matter (glossary,
+ *  acknowledgments, previews of other books…) — used only to pick the
+ *  DEFAULT tick state in the sweep's chapter picker. */
+export function isLikelyNonStoryTitle(title) {
+  const t = String(title || "").trim();
+  if (!t) return false;
+  return NON_STORY_TITLE_PATTERNS.some((re) => re.test(t));
+}
+
 // C2: pick the pool width for this run. An explicit `concurrency` argument
 // wins; otherwise the provider decides — a passed provider override directly,
 // else the server-resolved route for entitySweep (the same authority the

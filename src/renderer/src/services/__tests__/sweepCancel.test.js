@@ -30,7 +30,7 @@ import { createPinia, setActivePinia } from "pinia";
 vi.mock("../analysis/entityExtraction.js", () => ({ extractEntities: vi.fn() }));
 
 import { extractEntities } from "../analysis/entityExtraction.js";
-import { resolvePoolSize, scanAllChapters } from "../analysis/entitySweep.js";
+import { isLikelyNonStoryTitle, resolvePoolSize, scanAllChapters } from "../analysis/entitySweep.js";
 import { useAiTasksStore } from "@delebash/llm-ui/stores/aiTasks.js";
 import { useResolvedRoute } from "@delebash/llm-ui/composables/useResolvedRoute.js";
 
@@ -137,6 +137,35 @@ describe("scanAllChapters — cancel stops EVERYTHING", () => {
     expect(r.cancelled).toBe(false);
     expect(phases).toContain("error");
     expect(r.skipped).toHaveLength(3);
+  });
+});
+
+// D (2026-07-18): the default tick state of the sweep's chapter picker. The
+// real Broken Eye run scanned the Glossary, praise pages, and the next book's
+// preview chapters — junk proposals ("The Broken Eye (Book)" from the praise
+// page) plus wasted minutes. The heuristic only picks a DEFAULT — nothing is
+// excluded without being visible in the list.
+describe("isLikelyNonStoryTitle — the picker's default tick", () => {
+  it("unticks the observed front/back matter from the real import", () => {
+    for (const t of [
+      "Acknowledgments", "Acknowledgements", "Glossary", "Appendix", "Extras",
+      "Meet the Author", "About the Author", "Also by Brent Weeks",
+      "Praise for Brent Weeks", "A Preview of \"The Blood Mirror\"",
+      "A Preview of \"Gods of the Wyrdwood\"", "The story continues in…",
+      "Character List", "Dramatis Personae", "Copyright", "Dedication",
+      "Contents", "Table of Contents", "Title Page",
+    ]) {
+      expect(isLikelyNonStoryTitle(t), t).toBe(true);
+    }
+  });
+
+  it("keeps real story chapters ticked — including lowercase and framing titles", () => {
+    for (const t of [
+      "Chapter 1", "Epilogue 1", "Prologue", "the slate board waits", // lowercase-entity proof
+      "What They Carried Out", "", "Untitled", null,
+    ]) {
+      expect(isLikelyNonStoryTitle(t), String(t)).toBe(false);
+    }
   });
 });
 
