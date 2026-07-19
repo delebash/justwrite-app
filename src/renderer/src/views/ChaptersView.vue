@@ -14,6 +14,7 @@ import MultiReaderPanelModal from "../components/MultiReaderPanelModal.vue";
 import SceneNotesPanel from "../components/SceneNotesPanel.vue";
 import StuckDiagnosticModal from "../components/StuckDiagnosticModal.vue";
 import SensoryResearchModal from "../components/SensoryResearchModal.vue";
+import EntitySweepModal from "../components/EntitySweepModal.vue";
 import { EmptyState } from "@delebash/llm-ui";
 import StatusSelect from "../components/StatusSelect.vue";
 import { Breadcrumb } from "@delebash/llm-ui";
@@ -76,6 +77,7 @@ const linksOpen = ref(false);
 const versionsOpen = ref(false);
 const critiqueOpen = ref(false);
 const multiReaderOpen = ref(false);
+const sweepOpen = ref(false);
 const notesPanelOpen = ref(false);
 // The docked notes panel's fixed scope: "scene" (the active scene's notes) or
 // "chapter" (chapter-level + a section per scene). The chapter/scene it renders
@@ -801,6 +803,10 @@ watch(() => project.allChapters.map((c) => `${c.id}:${(project.scenesFor(c.id) |
           <span>{{ option.label }}</span>
         </template>
       </UiSegmented>
+      <UiButton intent="ghost" size="small" class="chapter-sweep-btn" @click="sweepOpen = true"
+        v-tooltip.bottom="'Entity sweep — scan the whole manuscript for new characters, locations, and objects'">
+        <Icon name="Sparkle" :size="13" /> Entity sweep
+      </UiButton>
     </div>
   </header>
   <PaneHeader v-else :eyebrow="$t('panes.chapters.eyebrow')" :title="$t('panes.chapters.emptyTitle')" help-key="writing#chapters">
@@ -1328,6 +1334,10 @@ watch(() => project.allChapters.map((c) => `${c.id}:${(project.scenesFor(c.id) |
     :subject="sensorySubject"
     @close="closeSensory"
     @insert="onSensoryInsert" />
+
+  <EntitySweepModal v-if="sweepOpen"
+    @close="sweepOpen = false"
+    @committed="sweepOpen = false" />
 </template>
 
 <style scoped>
@@ -1348,6 +1358,9 @@ watch(() => project.allChapters.map((c) => `${c.id}:${(project.scenesFor(c.id) |
   grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr);
 }
 .chapter-pane-header .pane-actions { grid-column: 2; }
+/* Entity sweep sits to the right of the Edit/Outline/Read control with a
+   little breathing room so it doesn't read as part of the segmented group. */
+.chapter-sweep-btn { margin-left: 6px; }
 
 /* ── Edit-mode layout: editor column + docked notes panel ──────
    The card is a flex column by default; .chapters-edit-main fills it and
