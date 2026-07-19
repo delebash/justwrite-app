@@ -67,6 +67,59 @@ now:
    in `docs/plans/2026-07-08-recap-archive.md` — open it only when a question touches that
    history and the pointers below don't answer it.
 
+## GO (2026-07-19) — THE AI-SURFACE PASS: PROVIDER TABS · MODAL FEEL · PANEL DISMISS (unpushed)
+
+**Six user gos in one session, all shipped, NONE looked at.** (1) **Local/Online tabs** on
+Providers & models — the two stacked eyebrow groups became ONE `UiSegmented` strip over ONE
+row template (the near-duplicate rows are gone); the first-run AI setup dialog's "Connect an
+online provider" deep-links `?providers=online`, and a Quick Setup run that the deep link
+AUTO-OPENED exits to Home while a button-opened one stays put (kit `fa34291` · JW `5f7b5dc`;
+doc `docs/plans/2026-07-19-provider-tabs-and-setup-landing.md`). (2) **Modal feel** — scrim
+dim AND backdrop blur both OFF, modals draggable by the header via VueUse `useDraggable`
+(adopted, not hand-rolled; already present transitively under reka-ui). `AppModal`'s
+`dismissable: false` data-loss lock is UNTOUCHED (kit `c1ba1dd` · JW `1dee2b0`; doc
+`just-llm-runner/docs/plans/2026-07-19-modal-scrim-and-drag.md`). (3) **LM Studio seeded**
+as a local provider — it was already REACHABLE (preset chip + detect-local probe) but never
+PRESENT; stays on the generic `openai-compat` adapter, a dedicated type would buy a label and
+cost ~8 parallel type lists (runner `db837a6` · JW `4f11516`). (4) **The built-in provider
+COLLAPSED** into a normal first row of the Local list with inline Edit — this REVERSES
+QC-39(b)'s promotion, because the Local tab now supplies the findability the promotion
+existed to give; Quick Setup lifted OUT to the top of the Local tab (`v-show`, never `v-if` —
+unmounting dangles `qsRef`), copy now reads "Sets up the built-in llama.cpp provider only",
+"(your machine)" dropped, `Built-in` badge added, `ProviderForm`'s `permanent` mode deleted
+with its only caller (kit `d857146` · JW `c7b944c`; doc
+`just-llm-runner/docs/plans/2026-07-19-builtin-provider-collapse.md`). (5) **Panels: no dim,
+off-focus closes, nav toggles** — every remaining backdrop dim killed (HelpDrawer,
+CommandPalette, SceneLinks) and the DEAD `.modal-overlay` blur rule deleted from
+`styles.css`; ONE shared `usePanelDismiss` composable replaces ChatPanel's local copy AND
+AiStatusPanel's divergent second copy; `data-chat-toggle` → `data-panel-toggle`, 19
+occurrences across 15 files (kit `a61d299` · JW `39c966c`; doc
+`just-llm-runner/docs/plans/2026-07-19-panel-dismiss-and-no-dim.md`). (6) **The AI page's
+missing help button** — `help-key="ai-providers"`; the doc and its TOC entry already existed,
+only the prop was absent (JW `d43cfad`).
+
+**⛔ OPEN — the user's box look is the REAL gate and none of it has happened.** jsdom asserts
+presence, never geometry, and three of these changes are pure look/feel. The list: each panel
+opened + closed from its nav trigger TWICE · click-outside and Esc on each · no dimming
+anywhere · modals still do NOT close on outside click · a Select opened inside chat picks an
+option WITHOUT closing the panel (the mousedown-vs-click edge `usePanelDismiss` exists for) ·
+a modal dragged — jump on grab, clamp at each screen edge · the tab strip's GUESSED
+`max-width: 520px` · the `.lu-qs-band` seating · the built-in row's density with its third badge.
+
+**⛔ OPEN — two decisions a builder flagged rather than owned.** (a) `AGENTS.md` §5 was
+AMENDED: it banned document-level handlers and named `ChatPanel.vue` an exception to migrate
+away; it now scopes that ban to dropdowns/popovers and carves out slide-in panels, because a
+full-inset backdrop SWALLOWS the dismissing click (with chat open you could not click a nav
+item and have the navigation land). Reasoning is in the file with its revert cost — needs the
+user's blessing or reversal. (b) ONE shared toggle attribute means clicking one panel's
+trigger no longer closes a DIFFERENT open panel (the AI-tasks chip used to close chat); it
+fell out of "one vocabulary", was never ruled, and per-panel toggle values would restore it.
+
+**Also open:** `tests/test_lifecycle.py::test_ensure_model_ready_raises_on_failed_load` is
+FLAKY (passed/failed/failed on three identical isolated runs) and now sits indistinguishable
+from the two genuinely pre-existing Windows-box failures — it will be waved through until it
+hides a real regression.
+
 ## GO (2026-07-16) — THE THINKING-BUDGET REDESIGN, END TO END (unpushed on the branch)
 
 **The user's day-long design, settled and built:** thinking is a THREE-STATE preset
