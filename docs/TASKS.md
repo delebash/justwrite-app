@@ -137,7 +137,11 @@
   Wake on need. Detail: ledger §I5.
 - **claude-config standalone provisioning** — prove a fresh web container can provision
   `~/.claude` directly from `github.com/delebash/claude-config`, after which JW's
-  vendored `claude-config/` copy can go. Detail: recap "STAGED → RESOLVED".
+  vendored `claude-config/` copy can go. Context (was the recap's "STAGED → RESOLVED",
+  deleted 2026-07-19): the extraction itself is DONE — `github.com/delebash/claude-config`
+  is the source of truth, local clone `~/.claude/claude-config`, pulled by `self-update.sh`
+  each new session; JW's `claude-config/` copy is the synced WEB provisioner that the env
+  Setup script installs from. Only the fresh-container proof is outstanding.
 - **F3 — audiobook converters + speaker-attribution deep research** (JV) — parked
   research TODO. Detail: ledger §F3.
 - **I6 — the JV tail beyond F1–F5** — gated on F1; F1's own scope discovers the

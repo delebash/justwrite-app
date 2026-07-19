@@ -59,167 +59,67 @@ now:
    2026-07-15 + the archive.
 2. **This file gets a SHORT pointer paragraph per go** — what shipped, the commit shas, where
    the full record lives, what's open. A few sentences, never the full narrative twice.
-3. **History never accumulates here.** When a stretch of work closes, its pointer paragraphs
-   collapse into the CURRENT STATE section and the detail stays in the plan docs. If this file
-   ever exceeds ~25 KB, that's the signal it has drifted back into a log — re-split.
+3. **History never accumulates here.** A finished stretch of work becomes ONE LINE under
+   **RECENT WORK** — what it was, the shas, the doc that holds the record — and the narrative
+   stays in that doc. If this file ever exceeds ~25 KB, that's the signal it has drifted back
+   into a log — re-split. *(Amended 2026-07-19: this rule used to say the paragraphs collapse
+   into a CURRENT STATE section. It was written 2026-07-08, before `docs/TASKS.md` existed, and
+   the collapse was never once performed — so CURRENT STATE grew into the file's biggest block
+   while holding four different kinds of content: history, durable facts, open work already
+   duplicated in the tracker, and stale commit heads. It is gone. Open work → `docs/TASKS.md`;
+   durable architecture → `CLAUDE.md`; history → the plan docs + git; only hour-stale facts
+   live in **SESSION PICKUP**.)*
 4. The complete pre-split text (every SESSION STATE back to 2026-06-27, all twelve GO
    paragraphs of the 2026-07-07 marathon, all standing-rule history) is preserved **verbatim**
    in `docs/plans/2026-07-08-recap-archive.md` — open it only when a question touches that
    history and the pointers below don't answer it.
 
-## GO (2026-07-19) — THE AI-SURFACE PASS: PROVIDER TABS · MODAL FEEL · PANEL DISMISS (unpushed)
 
-**Six user gos in one session, all shipped, NONE looked at.** (1) **Local/Online tabs** on
-Providers & models — the two stacked eyebrow groups became ONE `UiSegmented` strip over ONE
-row template (the near-duplicate rows are gone); the first-run AI setup dialog's "Connect an
-online provider" deep-links `?providers=online`, and a Quick Setup run that the deep link
-AUTO-OPENED exits to Home while a button-opened one stays put (kit `fa34291` · JW `5f7b5dc`;
-doc `docs/plans/2026-07-19-provider-tabs-and-setup-landing.md`). (2) **Modal feel** — scrim
-dim AND backdrop blur both OFF, modals draggable by the header via VueUse `useDraggable`
-(adopted, not hand-rolled; already present transitively under reka-ui). `AppModal`'s
-`dismissable: false` data-loss lock is UNTOUCHED (kit `c1ba1dd` · JW `1dee2b0`; doc
-`just-llm-runner/docs/plans/2026-07-19-modal-scrim-and-drag.md`). (3) **LM Studio seeded**
-as a local provider — it was already REACHABLE (preset chip + detect-local probe) but never
-PRESENT; stays on the generic `openai-compat` adapter, a dedicated type would buy a label and
-cost ~8 parallel type lists (runner `db837a6` · JW `4f11516`). (4) **The built-in provider
-COLLAPSED** into a normal first row of the Local list with inline Edit — this REVERSES
-QC-39(b)'s promotion, because the Local tab now supplies the findability the promotion
-existed to give; Quick Setup lifted OUT to the top of the Local tab (`v-show`, never `v-if` —
-unmounting dangles `qsRef`), copy now reads "Sets up the built-in llama.cpp provider only",
-"(your machine)" dropped, `Built-in` badge added, `ProviderForm`'s `permanent` mode deleted
-with its only caller (kit `d857146` · JW `c7b944c`; doc
-`just-llm-runner/docs/plans/2026-07-19-builtin-provider-collapse.md`). (5) **Panels: no dim,
-off-focus closes, nav toggles** — every remaining backdrop dim killed (HelpDrawer,
-CommandPalette, SceneLinks) and the DEAD `.modal-overlay` blur rule deleted from
-`styles.css`; ONE shared `usePanelDismiss` composable replaces ChatPanel's local copy AND
-AiStatusPanel's divergent second copy; `data-chat-toggle` → `data-panel-toggle`, 19
-occurrences across 15 files (kit `a61d299` · JW `39c966c`; doc
-`just-llm-runner/docs/plans/2026-07-19-panel-dismiss-and-no-dim.md`). (6) **The AI page's
-missing help button** — `help-key="ai-providers"`; the doc and its TOC entry already existed,
-only the prop was absent (JW `d43cfad`).
+## RECENT WORK — pointers only (full records live in the docs named)
 
-**⛔ OPEN → `docs/TASKS.md`** (per this file's charter, open work is tracked there, not here):
-the whole box-look list under *Your-box checks* (NOTHING in this pass has been looked at —
-three of the six changes are pure look/feel and jsdom asserts presence, never geometry), plus
-two decisions a builder flagged rather than owned (the `AGENTS.md` §5 amendment; the unruled
-cross-panel toggle change) and one flaky runner test, all under *Now / near-term*.
+Newest first. **The narrative, the file:line touch-lists and the verification results live in
+the plan doc on each line — never twice.** Commit shas resolve in git; `git show <sha>` is the
+record. Collapse a line into one word once it stops mattering.
 
-## GO (2026-07-16) — THE THINKING-BUDGET REDESIGN, END TO END (unpushed on the branch)
+- **2026-07-19 — the AI-surface pass.** Local/Online provider tabs + first-run landing · modal
+  scrim/blur off + header-drag · LM Studio seeded local · the built-in provider collapsed to a
+  normal row (reverses QC-39(b)) · panels: no dim, off-focus closes, nav toggles, ONE
+  `usePanelDismiss` · the AI page's help button. Kit `fa34291` `c1ba1dd` `db837a6` `d857146`
+  `a61d299` · JW `5f7b5dc` `1dee2b0` `4f11516` `c7b944c` `39c966c` `d43cfad`. Docs: the four
+  `2026-07-19-*` plan docs (2 in each repo). **NONE of it has been looked at — see TASKS.md.**
+- **2026-07-17 — provider layer → official vendor SDKs** (the SDK pivot) + #16 lazy clients.
+  Doc: `just-llm-runner/docs/plans/2026-07-17-provider-native-dialects-plan.md`.
+- **2026-07-17 — the one load/unload/download control** (T5 honestly not built; re-probe at the
+  next engine bump). Doc: `just-llm-runner/docs/plans/2026-07-17-load-cancel-and-one-progress-control.md`.
+- **2026-07-17 — three user-reported bugs** (delete the open book · cancel-cancels-everything ·
+  chip popover z-index). Doc: `just-llm-runner/docs/plans/2026-07-08-big-batch-queue.md` §9.
+- **2026-07-16 — the thinking-budget redesign** (three-state preset control; no clamp; honest
+  sentinels). Doc: `just-llm-runner/docs/plans/2026-07-16-reasoning-budget-house-layering.md`.
+- **2026-07-15 — AI routing to the one-source preset model** + the gate strip + server tests
+  147s→46s. Docs: `just-llm-runner/docs/plans/2026-07-15-preset-one-source-rewrite.md` ·
+  claude-config `rules-detail.md` "THE STRIP".
+- **Older** (the 52-item batch, RAG story-bible, page-related undo, sample novels, character
+  sheet v3, batch fill-from-book, …): `docs/plans/*` in both repos, each with its own record;
+  everything before 2026-07-08 is verbatim in `docs/plans/2026-07-08-recap-archive.md`.
 
-**The user's day-long design, settled and built:** thinking is a THREE-STATE preset
-control — Off · **Model default** (think on, level EMPTY = FOLLOW the selected model's
-layered `reasoning_budget`: your applied config → hardware class default → global launch
-defaults, resolved live, nothing copied) · **a level** = the preset's OWN ask ("feature
-is the end of the line"). No clamp/min() anywhere; honest sentinels (-1 unlimited ⚠ /
-0 off); `reasoning_budget` is a normal layered switch that is NEVER a launch flag (sent
-per request as JSON, labeled "per-request" in every grid); the knob-catalog `label`
-column is DELETED (exact switch names only); all 20 feature chips are `editable` (chip
-edit ≡ Routing-by-feature edit, one preset PUT); Reasoning levels = a POPUP editor on
-the provider form; p_chat seeds think-on + FOLLOW. **Three real bugs fixed:** the
-boxless chip popover (scoped CSS never reached reka's PopoverContent root), the
-think-on-no-level run-path gap, and the autoflush-OFF seed bug (every fresh boot/reset
-since 07-14 seeded an EMPTY reasoning map — proven live both paths). Full record:
-`just-llm-runner/docs/plans/2026-07-16-reasoning-budget-house-layering.md` (plan + four
-build records) · commits: runner `00c476b`→`bc3f352` (5, unpushed) · JW `d738978`+
-`752ef2c` (+ this pointer). Box-checks → `docs/TASKS.md`. (Loop provenance corrected in
-the tuning doc + recap archive — Claude's diagnosis from the user's pasted token counts,
-jointly accepted; the loop STANDS as verified.)
+## SESSION PICKUP — what is true RIGHT NOW
 
-## GO (2026-07-17, later) — THE ONE LOAD/UNLOAD/DOWNLOAD CONTROL, THE #4 PLAN REBUILT (unpushed)
+**This is the only section that goes stale by the hour. Everything else here is a pointer.**
 
-The failed cancel/progress plan was REWRITTEN (3-lens panel: 2 lenses FAILED it, findings
-folded in ◆-marked), approved, and BUILT the same day. Plan + probe outcome + build record:
-`just-llm-runner/docs/plans/2026-07-17-load-cancel-and-one-progress-control.md` (v2 banner).
-Runner commits, in order: `4c53a08` (foundation: resident-mask fix + load/stop trigger
-telemetry — the multi-click diagnosis) · `6d36880` T1 (phase set by the download itself — no
-phantom bar) · `23c34cd` T2 (per-load cancel TOKEN: stop never blocks, never evicts an
-innocent model, silently unloads a late-spawned child; confirm-unload + compare-and-pop) ·
-`7503201` T2b ("stopping"/"cancelling" on the wire) · `cb63a15` T3 (ONE DownloadBar +
-loadPhases vocabulary + taskFor adapter on slot cards/rows; QuickSetup's copy deleted) ·
-`7fbbf28` (checker's R2 comment trim). JW: `db6464e`+`e3cd1d2` (pins) + `c315ded` docs.
-**T5 (real VRAM %) honestly NOT built** — the step-0 probe proved the b10034 router's GET
-/models carries NO progress key even mid-loading (the child emits it; the router keeps it
-internal); recorded in the plan doc, re-probe at the next engine bump. Every fires-proof ran
-red-then-green (stash-runs); runner pytest 532 ✓ ruff ✓ JW vitest 197 ✓ build:vite ✓ server
-pytest 108 ✓; the headless smoke is the CONTAINER's gate (no Chromium on this box — checked).
-Box-checks → `docs/TASKS.md`. The morning's respawner question stays PASSIVELY armed: the
-`4c53a08` telemetry names any future reloader in justwrite.log (`load <id> (trigger=…)`).
+- **Branch:** `claude/admiring-galileo-il3q0o` in all repos. As of 2026-07-19: JW **ahead 8**,
+  runner **ahead 5**, neither behind. **FETCH AT SESSION START** — a stale base is how the
+  2026-07-19 recap edit got written against a structure that had already been replaced.
+- **Uncommitted, the user's own in-flight work:** the logs-panel probe + `logLines`/`LogsPanel`
+  changes in both repos. Not agent work — leave it alone.
+- **Known-bad on the user's Windows box:** `test_hardware.py::test_pci_gpus_linux_lspci_name_match`
+  and `test_lifecycle.py::test_ensure_model_ready_loads_then_returns` fail (pre-existing, proven
+  by pathspec stash-run); `test_lifecycle.py::test_ensure_model_ready_raises_on_failed_load` is
+  **flaky**, not pre-existing. Don't wave a fourth failure through as "known".
+- **The renderer gate does NOT run on the user's box** (no Chromium) and must never touch their
+  live `:1420`/`:17495`. So renderer work ships compile-verified only, and **their eyes are the
+  gate** — every unlooked-at change is listed in `docs/TASKS.md` → Your-box checks.
 
-## GO (2026-07-17) — THREE USER-REPORTED BUGS FIXED (unpushed on the branch)
-
-Three items off the 2026-07-17 QC queue, each on its own go. (1) **Delete the
-currently-loaded book** — JW `6cf018e`: the store already did it right; the sidebar's
-trash icon sat in a `v-else` to the active-project checkmark, so the OPEN book was the
-one you couldn't remove. Ruled: after deleting the open book, land on the next project;
-none left → welcome (QC-40). Pinned by `deleteProject.test.js`. (2) **Cancel-cancels-
-everything** on multi-chapter sweeps — JW `e86af26`: both pools (entitySweep +
-foreshadowingScan), 4 defects each (no signal threaded · abort detected by string-
-sniffing "abort" when a cancel reads "…Request cancelled." · per-chapter rival task
-entries vs the QC-31 batch-owner · cancelled-as-normal-return froze rows) + the redundant
-top Cancel removed. User confirmed on box. (3) **Chip model-picker "not opening" in a
-modal** — kit `8fa0f39` + JW test `db6464e`: the `editable` chip's popover portals to
-`<body>` and at `z-index:60` painted BEHIND AppModal's scrim (overlay z 200) + backdrop
-blur — invisible on all 15 in-modal chip mounts. Fixed 60→**999** (matches
-`.ui-select-content`, the other body-portalled reka popper). DOM-probe-verified it was
-pure stacking (mounts+stays, pointer-events already auto — NOT focus-trap). Pinned by
-`chipPopoverStacking.test.js` (fails at 60, passes at 999). Live runner queue (multi-click
-unload · "stalling" mislabels a 2.6 tok/s model · the cancel/progress plan that FAILED its
-3-lens) → `docs/TASKS.md`.
-
-## GO (2026-07-17) — PROVIDER LAYER → OFFICIAL VENDOR SDKs (the SDK pivot; unpushed on the branch)
-
-Every cloud provider now speaks its vendor's **official SDK** behind the existing adapter
-Protocol (`openai` · `anthropic` · `google-genai`); local llama.cpp / Ollama / generic
-openai-compat stay on our httpx adapters. Kills the `min_p`-400 unknown-field bug class at
-the boundary (typed params only). Seeds retype **claude→anthropic · gemini→gemini ·
-ollama-local→native**; new **xAI + Mistral** types; a reasoning-map **cascade-delete** on
-provider remove; embeddings gain a **task_type** side (Gemini's RETRIEVAL_*); **#12** the
-saved API key is a masked field with an **eye reveal** (Fetch/Test carry it; clearing +
-Save removes it) via a POST reveal route JW opts into (JustVoice inherits the safe default —
-its server has no origin-check middleware). Gemini default is the **3.x flash-lite** tier
-(2.5 is new-user-blocked). Executed by three Opus builders VERBATIM off the plan; each
-product commit cleared the delegated commit-gate with a genuine rules-checker PASS.
-**Plan + full BUILD RECORDs (1·2·3):**
-`just-llm-runner/docs/plans/2026-07-17-provider-native-dialects-plan.md`.
-**Shas (runner):** `05013c5` C1 · `a9fe7fd` C2 · `e05e5b5` C3 · `8a1f8d9` C4 · `95ea74e`
-gemini-keyless-fix · `0bc8e49` C5 · `d3a6aee` C6 · `83ea80e` embed-fake. **JW:** `34fd0f7`
-seed · `541b50b` C6 opt-in · `d61a749` D5 render-pin. Box-checks → `docs/TASKS.md`.
-Renderer headless smoke was **not** run (must not touch the user's live
-:1420/:17495); the ProviderForm delta is covered by JW vitest mounts (key-reveal + D5).
-
-**Follow-up #16 (2026-07-18, coordinator-built):** the builders' dummy keys (`"no-key"`
-gemini / `"sk-no-key"` openai_sdk — needed only because those SDKs validate the key at
-`Client()` build) are DELETED by making all three SDK adapters build LAZILY on first real
-call (`_ensure_client`). A keyless seeded row now registers with no placeholder; the first
-real call surfaces the SDK's own no-key error; `models()`/`ping()` still degrade. Runner
-`69d764f` (code) + `41e669c` (docs). Fires-proof RED→GREEN; full runner pytest 572✓/2-base;
-JW `test_seed` green with ALL provider env keys cleared (the real proof); one rules-checker
-PASS. Todo #16 done; lazy also lets a keyless local gateway on the SDK path Just Work.
-
-## CURRENT STATE (2026-07-15, end of day — everything below SHIPPED AND PUSHED)
-
-**One session took the AI routing to the one-source model and rebuilt the guardrails on
-evidence.** Shipped + pushed, in order: the **one-source preset rewrite** (task tier deleted;
-action → preset ref → `default_preset_id`; runner `8081539`) · the **⛔ correction** after the
-user saw the UI (Presets page deleted — `Routing by feature` is the ONE surface; original
-"Use in production" restored; found+fixed the pre-existing same-origin CSRF 403) · **Quick
-Setup parallel download bars** (chat ∥ embed, cancel/retry each) · the **one-downloader
-consolidation** (ONE `createDownloadTask` + `DownloadBar` for engine/model/embed; engine
-install cancel + true load-abort server-side; runner `6602468`) · the **subagent-hook fix**
-(builders' Edit/Write no longer denied — the ~2-3× patch-script tax is gone; commit/task
-gates read the agent's OWN transcript; claude-config `2e79f8f`+`b35fc39`) · **server tests
-147s → 46s** (`pytest -n auto`, nothing skipped; `npm run test:fast` ≈53s; full fleet
-~2.6 min) · the **gate strip** below. Full records: the plan docs named in each line + the
-ACTIVE DOC INDEX; today's collapsed paragraphs are verbatim in the recap archive.
-
-**GO (2026-07-15, late) — THE GATE STRIP + RULES CUT (the user's named go).** Rules 12→5 (**R1–R5** + two habits + the act-not-word law; `~/.claude/CLAUDE.md` is now 80 lines). Gates decided by LIFETIME logs: Stop keeps **Block 0** (re-read after reset; 4 fires/4 fixes), **Block 1** (a code claim needs evidence tools that turn — the user's save: "you often check docs or memory which we find dont align with actual code"), and **Block 6** (second pass; 3 fires/3 changed answers); **commit-gate fires ONLY for delegated-agent commits** (main session ungated — 15 of its 25 lifetime decisions were its own word-escape bug); **task gates deleted** (29 of 39 log lines were its own test suite); **pre-action is nudge-only**. Checker cadence: ONE per task on the diff; plan checks tiered (1 routine / 3-lens load-bearing). **Prose regrowth now FAILS the suite** (`test_gates.py::test_loaded_surfaces` — size budgets on every context-loaded surface). Full record: claude-config `rules-detail.md` "THE STRIP" + `EFFECTIVENESS.md` 2026-07-15.
-
-**Heads at this cleanup:** JW `6ff1bc6` · runner `0ed1ef3` · claude-config `2d20135` — all
-0-ahead/0-behind their origins. **In flight:** one Opus builder fixing the catalog's
-Re-download-on-loaded gap (`LuModelCatalog.vue` — show Re-download on loaded rows, unload
-first); verify its record when it lands.
-
-### What the app IS, in one breath
+## What the app IS, in one breath
 JustWrite is a novel-writing app (Tauri 2 + Vue 3 + a Python/SQLite server) that shares its
 whole AI/LLM stack — `just-llm-runner` (Python) + `@delebash/llm-ui` (Vue) — with JustVoice.
 Persistence is **server-owned SQLite** (no browser IndexedDB); a rotating server-written disk
@@ -230,71 +130,6 @@ points at ONE engine preset (`feature_preset_refs`) which owns the model + every
 one `default_preset_id` catches unassigned customs; the action keeps only its prompt text +
 JSON contract.
 
-### SHIPPED (collapsed) — the 52-item batch + every follow-up, all pushed
-Highlights, newest first (full records in the plan docs / git):
-
-- **Batch Fill-from-book + sweep chaining + auto-apply toggle (2026-07-19)** — "Fill from
-  book" on the Characters LIST: checklist (mains pre-checked, zero-scene disabled), sequential
-  two-pass run under the sweep watchdog, grouped end review, and an opt-in auto-apply-empty-only
-  toggle (never overwrites). After a sweep accept, a "Draft profiles now?" offer opens it
-  pre-checked. Zero server changes; the field/row/apply layer is shared with the single modal
-  (WS-A refactor). Commits `d7a66e4`/`75d182c`/`f1f4736`. Doc:
-  `docs/plans/2026-07-19-batch-fill-from-book.md`. Also: character-sheet fields all carry
-  `e.g.` examples now, + `docs/IDEAS.md` (docs-derived hints idea) + the GUI content-token
-  sizing fix. Kit: UiNumber `width` prop + `--w-num` token (`439f018`).
-- **Character sheet v3 + richer relations + fill-from-book v2 + sweep list-aware (2026-07-19,
-  7 WS)** — the v3 dossier (collapsible sections, per-field hints, labeled hero, help doc) ·
-  per-side relationship dynamics (wants/fears/speaks-like, on both cards) · Fill-from-book now
-  drafts identity + fear/contradiction/stakes/constants · list-aware entity extraction + no
-  backfill from reference pages. **Also fixed two latent AI-wiring bugs**: voice tic/sample
-  never reached the model, and `characterAudit` fed `[object Object]` profiles (converged to
-  the canonical builder, QC-35). Commits `8134df7`→`dd9e8c5`. Doc:
-  `docs/plans/2026-07-18-character-sheet-v3-and-relations.md` (§Execution record).
-- **The 2026-07-18 RAG/sweep queue (10 items)** — off the user's real Broken-Eye import:
-  sweep honest-concurrency + chapter picker + draft/resume + watchdog/retry-failed ·
-  Fill-from-book (characterProfile) · relationship/outline cards · pin-all-parts ·
-  backstory-4000 · scene splitting · the C1 small-model A/B recipe. Doc with all commit ids:
-  `docs/plans/2026-07-18-rag-sweep-queue.md`.
-- **The 2026-07-15 day** (details in CURRENT STATE above until the next re-split): one-source
-  preset rewrite + correction + CSRF fix — doc:
-  `just-llm-runner/docs/plans/2026-07-15-preset-one-source-rewrite.md` (plan · T0 audit ·
-  BUILD RECORD · ⛔ CORRECTION · QUICKSETUP FOLLOW-ON · ONE-DOWNLOADER sections) — and the
-  guardrail work (subagent-hook fix, gate strip, test speedup) — records:
-  claude-config `rules-detail.md` "THE STRIP" + `EFFECTIVENESS.md` 2026-07-15. The absorbed
-  **Unit 2 reasoning backend** (engine bump b9993, `reasoning_map`, `min(ask,cap)`, adapters,
-  Off→Max UI) shipped inside the rewrite.
-- **Unit 1 — per-feature preset OVERRIDE restored** (2026-07-14) — runner
-  `fb03302`+`419f5c3`+`493f8ef` · JW `49ad7b5`. Superseded a day later by the one-source
-  rewrite (its `feature_preset_refs` survives as THE pointer). Doc:
-  `just-llm-runner/docs/plans/2026-07-14-feature-override-and-reasoning-plan.md`.
-- **Acceleration-backend selector (CUDA / Vulkan / Auto)** — runner `b66449c`+`ae787f1`+`8215dc6`.
-  Doc: `just-llm-runner/docs/plans/2026-07-14-acceleration-backend-selector.md`.
-- **Risk-tiered commit-gate** — JW `63f8318` (LOW-risk tests/copy commits skip the checker;
-  default-HIGH). Doc: `docs/plans/2026-07-14-risk-tiered-commit-gate.md`.
-- **Rust-minimization + autosave-to-server + folder choosers + samples-to-data-dir** — JW
-  `8b92c58`/`eea1bc2`/`925fe30`/`0857317` · kit `84b3d72`. Doc:
-  `docs/plans/2026-07-13-rust-minimization-and-choosers.md`.
-- **Data-driven sample novels** — the *Ninth Facet* tutorial + the *Salt-Iron Road* bulk
-  stress book; per-book `.zip` export/import + CSRF guard + the JV live-POST removed — JW
-  `c538bfc` · runner `727f162`. Doc: `docs/plans/2026-07-12-sample-novel-the-ninth-facet.md`.
-- **RAG story-bible** (scene + bible-card chunks, entity pinning, scene links, E-extraction) —
-  Doc: `docs/plans/2026-07-11-rag-story-bible-build.md`.
-- **#235 page-related undo · #237 think-twice hooks · I1 cleanup (voiceDrift/CSS/popup audit)** —
-  Docs: `docs/plans/2026-07-10-page-related-undo.md`, `docs/plans/2026-07-12-i1-css-popup-voicedrift.md`.
-- **The 52-item batch (B1–B6) + every QC cluster** — full record:
-  `just-llm-runner/docs/plans/2026-07-08-big-batch-queue.md` §3 / §7 / §9.
-
-### STAGED → RESOLVED
-- **claude-config extraction — DONE.** `github.com/delebash/claude-config` is the source of
-  truth (local clone `~/.claude/claude-config`, pulled by `self-update.sh` each new session);
-  JW's `claude-config/` copy is the synced WEB provisioner (the env Setup script installs from
-  it). Still open: a fresh web container proving the standalone repo can provision `~/.claude`
-  directly, after which the vendored copy can go.
-
-### NEXT / open
-Open work now lives in **`docs/TASKS.md`** (the live tracker); ideas in **`docs/IDEAS.md`**.
-Headlines: **F1 JustVoice convergence** (the biggest build) · the your-box checks · Unit 2
-reasoning acceptance. The runner **ledger** stays the twice-verified detail the tracker points to.
 
 ## OPEN WORK → `docs/TASKS.md`
 
