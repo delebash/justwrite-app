@@ -180,7 +180,7 @@ new visual variants are added as intents in the kit.
 
 ### Shells / services (all from `@delebash/llm-ui`)
 
-- `AppModal` — body-scrolling modal (eyebrow/title/wide/noPadding/closable/`dismissable`/`maxWidth` + `header`/`header-extra`/`footer` slots). Backdrop locked unless `dismissable`.
+- `AppModal` — body-scrolling modal (eyebrow/title/wide/noPadding/closable/`dismissable`/`maxWidth`/`draggable` + `header`/`header-extra`/`footer` slots). Backdrop locked unless `dismissable`. Drags by the header (`draggable`, default true; position resets on reopen); the overlay neither dims nor blurs.
 - `AppDialog` + `promptDialog()`/`confirmDialog()` (`dialog.js`) — imperative prompt/confirm host, built on `AppModal`. Default labels via `configureDialog({labels})` (wired in `main.js` from en.json).
 - `HelpDrawer` + `HelpTrigger` + `openHelp`/`closeHelp` (`help.js`) — the `?` affordance + slide-in docs panel. JW wires the content adapter + `onOpenFull`/`onOpenWeb` via `configureHelp()` in `main.js`; the docs corpus stays JW-local (`services/helpDocs.js`).
 - `Toast` + `pushToast`/`clearToasts` (`toastBridge.js`) — vue-sonner host; `ui.showToast({message, action})` delegates to it. JW themes the `.ui-toaster` class in `styles.css`.

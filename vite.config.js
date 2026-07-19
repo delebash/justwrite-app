@@ -35,7 +35,9 @@ export default defineConfig({
     // app's node_modules (Reka provide/inject + Vue reactivity break with two
     // instances). marked rides the shared HelpDrawer renderer; @tanstack/vue-table
     // is what the shared UiTable needs.
-    dedupe: ["vue", "reka-ui", "@floating-ui/dom", "pinia", "vue-router", "vue-i18n", "marked", "vue-sonner", "@tanstack/vue-table"],
+    // @vueuse/core rides AppModal's header-drag (useDraggable). The kit has no
+    // node_modules of its own, so its bare import must resolve to THIS app's copy.
+    dedupe: ["vue", "reka-ui", "@floating-ui/dom", "pinia", "vue-router", "vue-i18n", "marked", "vue-sonner", "@tanstack/vue-table", "@vueuse/core"],
   },
   plugins: [vue()],
   clearScreen: false,
