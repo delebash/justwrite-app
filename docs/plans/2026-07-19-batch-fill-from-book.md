@@ -1,6 +1,11 @@
 # Batch Fill-from-book (character list) + sweep chaining + auto-apply toggle — Opus execution plan
 
-**Date:** 2026-07-19 · **Status: QUEUED — execute on the user's "go"**
+**Date:** 2026-07-19 · **Status: ✅ SHIPPED 2026-07-19** — WS-A `d7a66e4` · WS-B `75d182c` ·
+WS-C `f1f4736`. Gates: vitest 286 (+7 WS-A property tests) · build · headless smoke 0 errors ·
+rag-probe 18/18 (0 page errors, with the WS-C "Later"-decline). Container has no model, so
+the PICK phase + the full run→fail→retry machinery were screenshotted; the review phase +
+auto-apply write get their first live run on the user's box (built from unit-tested pieces —
+draftRows / emptyOnlyPicks / applyProfileDrafts).
 **Authorization:** user approved the design incl. the toggle, verbatim: *"build the toggle
 go, make sure opus has the details so it doesnt need to decide you do"* / *"or at least opus
 does not need to decide big things"*. **Every BIG decision is made in this doc.** If

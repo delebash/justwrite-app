@@ -202,6 +202,15 @@ JSON contract.
 ### SHIPPED (collapsed) — the 52-item batch + every follow-up, all pushed
 Highlights, newest first (full records in the plan docs / git):
 
+- **Batch Fill-from-book + sweep chaining + auto-apply toggle (2026-07-19)** — "Fill from
+  book" on the Characters LIST: checklist (mains pre-checked, zero-scene disabled), sequential
+  two-pass run under the sweep watchdog, grouped end review, and an opt-in auto-apply-empty-only
+  toggle (never overwrites). After a sweep accept, a "Draft profiles now?" offer opens it
+  pre-checked. Zero server changes; the field/row/apply layer is shared with the single modal
+  (WS-A refactor). Commits `d7a66e4`/`75d182c`/`f1f4736`. Doc:
+  `docs/plans/2026-07-19-batch-fill-from-book.md`. Also: character-sheet fields all carry
+  `e.g.` examples now, + `docs/IDEAS.md` (docs-derived hints idea) + the GUI content-token
+  sizing fix. Kit: UiNumber `width` prop + `--w-num` token (`439f018`).
 - **Character sheet v3 + richer relations + fill-from-book v2 + sweep list-aware (2026-07-19,
   7 WS)** — the v3 dossier (collapsible sections, per-field hints, labeled hero, help doc) ·
   per-side relationship dynamics (wants/fears/speaks-like, on both cards) · Fill-from-book now
