@@ -383,4 +383,47 @@ describe("buildCharacterProfile voice parameter", () => {
     expect(third).toContain("Lines they've said in the novel:");
     expect(third).not.toMatch(/\byou\b/i);
   });
+
+  // Bug fix (2026-07-18): the character page saves the speech tic under `tic`
+  // and the sample under `sample`, but the builder read `speechTic`/`sampleLine`
+  // — so neither ever reached the AI. Guard the page's real keys.
+  it("reads the page's voice keys (tic/sample), not just the legacy speechTic/sampleLine", () => {
+    const c = { name: "Bo", oneLiner: "x" };
+    const out = buildCharacterProfile(c, { voice: { tic: "you know", sample: "We sail at dawn." } });
+    expect(out).toContain("speech tic: you know");
+    expect(out).toContain('Sample of your speech: "We sail at dawn."');
+  });
+
+  // v3 fields (2026-07-18) reach the profile — every filled sheet field flows
+  // to chat / audit / RAG card, grouped with its kin.
+  it("appends filled v3 fields (identity, core engine, function, continuity, depth)", () => {
+    const c = { name: "Bo", oneLiner: "x" };
+    const rich = {
+      identity: { classOrigin: "gutter to guild" },
+      motivation: { fear: "being seen", contradiction: "kind but cruel", stakes: "the city burns" },
+      function: { buttons: "mention his brother", cornered: "he runs" },
+      continuity: { physicalConstants: "burn scar, left hand" },
+      depth: { regrets: "the letter he never sent" },
+    };
+    const out = buildCharacterProfile(c, rich, { voice: "third" });
+    expect(out).toContain("Class origin → now: gutter to guild");
+    expect(out).toContain("Core fear: being seen");
+    expect(out).toContain("Central contradiction: kind but cruel");
+    expect(out).toContain("Stakes: the city burns");
+    expect(out).toContain("Buttons: mention his brother");
+    expect(out).toContain("Cornered behavior: he runs");
+    expect(out).toContain("Physical constants: burn scar, left hand");
+    expect(out).toContain("Regrets: the letter he never sent");
+    // core engine ahead of the depth tail (part-1 pinning of a split card).
+    expect(out.indexOf("Core fear")).toBeLessThan(out.indexOf("Regrets"));
+  });
+
+  // No v3 data → output unchanged (its RAG-card sha doesn't move → no re-embed).
+  it("adds nothing when no v3 fields are filled", () => {
+    const c = { name: "Bo", role: "sailor", oneLiner: "x" };
+    const base = { motivation: { want: "home" } };
+    expect(buildCharacterProfile(c, base, { voice: "third" })).toBe(
+      '\nRole: sailor\nIn one line: x\nWhat they want: home',
+    );
+  });
 });

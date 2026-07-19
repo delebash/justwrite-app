@@ -10,6 +10,7 @@
 // evidence quote, and a one-line reasoning. The shape mirrors
 // chapter.critique.notes so the existing UI patterns translate.
 
+import { buildCharacterProfile } from "../rag/profile.js";
 import { runJsonAnalysis } from "../runJson.js";
 import { htmlToText, tailWords } from "../text.js";
 
@@ -18,33 +19,19 @@ import { htmlToText, tailWords } from "../text.js";
 const SEVERITY_LIST = ["flag", "suggest", "info"];
 
 /**
- * Build the character profile block for the prompt. Pulls the canonical
- * fields plus any non-empty extras the writer has filled in.
+ * Build the character profile block for the prompt.
+ *
+ * QC-35 (one source, no copies): this now reuses the canonical
+ * buildCharacterProfile (rag/profile.js) instead of a local copy. The old copy
+ * stringified the voice / arc / motivation OBJECTS — it emitted
+ * "Voice: [object Object]" etc. and never saw the extras subfields at all, so
+ * the audit + Fill-from-book have been fed a broken profile. Reusing the
+ * canonical builder fixes that AND brings every v3 sheet field into both. We
+ * prepend the name because buildCharacterProfile omits it (chat sets the
+ * persona name separately); the third-person voice reads as reference prose.
  */
 function buildProfileText(character, extras) {
-  const parts = [];
-  parts.push(`Name: ${character.name || ""}`);
-  if (character.role) parts.push(`Role: ${character.role}`);
-  if (character.gender) parts.push(`Gender: ${character.gender}`);
-  if (character.pronouns) parts.push(`Pronouns: ${character.pronouns}`);
-  if (character.lifeStatus) parts.push(`Life status: ${character.lifeStatus}`);
-  if ((character.aliases || []).length) parts.push(`Also known as: ${character.aliases.join(", ")}`);
-  if (character.age) parts.push(`Age: ${character.age}`);
-  if (character.oneLiner) parts.push(`One-liner: ${character.oneLiner}`);
-
-  if (extras) {
-    if (extras.voice) parts.push(`Voice: ${extras.voice}`);
-    if (extras.arc) parts.push(`Arc: ${extras.arc}`);
-    if (extras.motivation) parts.push(`Motivation: ${extras.motivation}`);
-    if (extras.backstory) parts.push(`Backstory: ${String(extras.backstory).slice(0, 600)}`);
-    if (Array.isArray(extras.skills) && extras.skills.length) parts.push(`Skills: ${extras.skills.join(", ")}`);
-    if (Array.isArray(extras.weaknesses) && extras.weaknesses.length) parts.push(`Weaknesses: ${extras.weaknesses.join(", ")}`);
-    if (Array.isArray(extras.quotes) && extras.quotes.length) {
-      parts.push(`Established voice samples:`);
-      for (const q of extras.quotes.slice(0, 3)) parts.push(`  - "${q}"`);
-    }
-  }
-  return parts.join("\n");
+  return `Name: ${character.name || ""}${buildCharacterProfile(character, extras, { voice: "third" })}`;
 }
 
 /**
