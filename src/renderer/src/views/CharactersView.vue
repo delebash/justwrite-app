@@ -44,12 +44,16 @@ const extras = computed(() => project.characterExtras[ch.value?.id]);
 const modal = ref(null);
 
 const MOTIVATIONS = [
-  { k: "want",  label: "Wants",            color: "var(--trait-want-ink)",  bg: "var(--trait-want-bg)" },
-  { k: "need",  label: "Needs",            color: "var(--trait-need-ink)",  bg: "var(--trait-need-bg)" },
-  { k: "lie",   label: "Lie they believe", color: "var(--trait-lie-ink)",   bg: "var(--trait-lie-bg)" },
-  { k: "truth", label: "Truth they meet",  color: "var(--trait-truth-ink)", bg: "var(--trait-truth-bg)" },
+  { k: "want",  label: "Wants",            ex: "e.g. win the guild seat; get her sister out of debt",   color: "var(--trait-want-ink)",  bg: "var(--trait-want-bg)" },
+  { k: "need",  label: "Needs",            ex: "e.g. to forgive himself; to stop performing for everyone", color: "var(--trait-need-ink)",  bg: "var(--trait-need-bg)" },
+  { k: "lie",   label: "Lie they believe", ex: "e.g. “love has to be earned”; “fear gets you killed”",   color: "var(--trait-lie-ink)",   bg: "var(--trait-lie-bg)" },
+  { k: "truth", label: "Truth they meet",  ex: "e.g. “they stayed anyway”; “needing people isn't weakness”", color: "var(--trait-truth-ink)", bg: "var(--trait-truth-bg)" },
 ];
-const ARC_STEPS = [{ k: "start", label: "Beginning" }, { k: "midpoint", label: "Midpoint" }, { k: "end", label: "End" }];
+const ARC_STEPS = [
+  { k: "start",    label: "Beginning", ex: "e.g. hiding the gift, keeping her head down" },
+  { k: "midpoint", label: "Midpoint",  ex: "e.g. forced to use it in the open" },
+  { k: "end",      label: "End",       ex: "e.g. leads openly — or doubles down and loses them" },
+];
 const LIFE_STATUS_OPTIONS = [
   // The empty sentinel — a neutral "unset", NOT a repeat of the field label
   // (the label above already says "Life status"; "Life status…" here read as
@@ -173,67 +177,67 @@ function countExtras(pairs) {
 // The existing colored Motivation grid, Arc card, Voice grid, and Backstory
 // keep their bespoke rendering; these are the NEW v3 fields that join them.
 const IDENTITY_FIELDS = [
-  { group: "identity", k: "classOrigin", label: "Class origin → now", hint: "Where they started vs. where they are — the gap is characterization.", type: "input" },
-  { group: "identity", k: "education", label: "Education", hint: "Formal or otherwise — sets vocabulary, assumptions, what they notice.", type: "input" },
+  { group: "identity", k: "classOrigin", label: "Class origin → now", hint: "Where they started vs. where they are — the gap is characterization. e.g. dockworker's kid → guild master.", type: "input" },
+  { group: "identity", k: "education", label: "Education", hint: "Formal or otherwise — it sets vocabulary and what they notice. e.g. street-taught; convent schooling; self-read.", type: "input" },
 ];
 const CORE_ENGINE_FIELDS = [
-  { group: "motivation", k: "fear", label: "Core fear", hint: "What they organize their life to avoid — the lie's shadow.", type: "textarea" },
-  { group: "motivation", k: "lieOrigin", label: "Where the lie began", hint: "Write it as a scene: where, who said what, what they decided.", type: "textarea" },
-  { group: "motivation", k: "contradiction", label: "Central contradiction", hint: "Two things both true about them that don't fit.", type: "textarea" },
-  { group: "motivation", k: "values", label: "Values under pressure", hint: "Three values, ranked — the higher wins until the crisis tests the ranking.", type: "input" },
-  { group: "motivation", k: "heuristic", label: "Decision heuristic", hint: "“Under pressure, they choose ___ over ___.”", type: "input" },
-  { group: "motivation", k: "stakes", label: "Stakes", hint: "What breaks — for them and others — if they fail.", type: "textarea" },
+  { group: "motivation", k: "fear", label: "Core fear", hint: "What they organize their life to avoid — the lie's shadow. e.g. being exposed as a fraud; being left again.", type: "textarea" },
+  { group: "motivation", k: "lieOrigin", label: "Where the lie began", hint: "Write it as a scene: where, who said what, what they decided. e.g. the night her father called her gift a curse.", type: "textarea" },
+  { group: "motivation", k: "contradiction", label: "Central contradiction", hint: "Two things both true about them that don't fit. e.g. brutally honest with strangers, lies to those she loves.", type: "textarea" },
+  { group: "motivation", k: "values", label: "Values under pressure", hint: "Three values, ranked — the higher wins until the crisis tests it. e.g. loyalty > truth > safety.", type: "input" },
+  { group: "motivation", k: "heuristic", label: "Decision heuristic", hint: "One line: “under pressure, they choose ___ over ___.” e.g. protects the crew over the mission.", type: "input" },
+  { group: "motivation", k: "stakes", label: "Stakes", hint: "What breaks — for them and others — if they fail. e.g. the harbor floods; his daughter loses her name.", type: "textarea" },
 ];
 const VOICE_FIELDS = [
-  { group: "voice", k: "register", label: "Register", hint: "Formal ↔ casual — where they sit, and when they slip.", type: "input" },
-  { group: "voice", k: "rhythm", label: "Rhythm", hint: "Clipped or flowing; do they interrupt or trail off?", type: "input" },
-  { group: "voice", k: "forbidden", label: "Forbidden words", hint: "Words this character would never say.", type: "input" },
-  { group: "voice", k: "subtext", label: "Subtext habit", hint: "Deflects with jokes; answers questions with questions.", type: "input" },
-  { group: "voice", k: "humor", label: "Humor style", hint: "Dry / absent / cruel / self-deprecating — “none” is a choice too.", type: "input" },
-  { group: "voice", k: "languages", label: "Languages", hint: "Who can they understand that others can't?", type: "input" },
-  { group: "voice", k: "sampleAngry", label: "Sample line — angry", hint: "", type: "textarea" },
-  { group: "voice", k: "sampleLying", label: "Sample line — lying", hint: "", type: "textarea" },
+  { group: "voice", k: "register", label: "Register", hint: "Formal ↔ casual — where they sit, and when they slip. e.g. courtly in public, gutter-blunt alone.", type: "input" },
+  { group: "voice", k: "rhythm", label: "Rhythm", hint: "Clipped or flowing; do they interrupt or trail off? e.g. short sentences, always interrupting.", type: "input" },
+  { group: "voice", k: "forbidden", label: "Forbidden words", hint: "Words this character would never say. e.g. never “sorry”, never “please”.", type: "input" },
+  { group: "voice", k: "subtext", label: "Subtext habit", hint: "How they avoid saying the real thing. e.g. answers a hard question with a joke.", type: "input" },
+  { group: "voice", k: "humor", label: "Humor style", hint: "Dry / absent / cruel / self-deprecating — “none” is a choice too. e.g. deadpan, never laughs at his own.", type: "input" },
+  { group: "voice", k: "languages", label: "Languages", hint: "What they speak or read — who can they understand that others can't? e.g. reads Old Parian; speaks the trade cant.", type: "input" },
+  { group: "voice", k: "sampleAngry", label: "Sample line — angry", hint: "An actual furious line they'd say. e.g. “You had one job. One.”", type: "textarea" },
+  { group: "voice", k: "sampleLying", label: "Sample line — lying", hint: "A line they say while covering or deflecting. e.g. “I was never near the place.”", type: "textarea" },
 ];
 const PRESENCE_FIELDS = [
-  { group: "presence", k: "physicality", label: "How they occupy space", hint: "Posture, gait, stillness or motion — one line a scene can borrow.", type: "textarea" },
-  { group: "presence", k: "presentation", label: "Presentation", hint: "What their appearance choices signal — the message, not the looks.", type: "textarea" },
-  { group: "presence", k: "stressTells", label: "Baseline & stress tells", hint: "Their normal state, and how fear or lying leaks through.", type: "textarea" },
+  { group: "presence", k: "physicality", label: "How they occupy space", hint: "Posture, gait, stillness or motion — one line a scene can borrow. e.g. still and watchful; takes up no space.", type: "textarea" },
+  { group: "presence", k: "presentation", label: "Presentation", hint: "What their appearance choices signal — the message, not the looks. e.g. an expensive coat kept deliberately shabby.", type: "textarea" },
+  { group: "presence", k: "stressTells", label: "Baseline & stress tells", hint: "Their normal state, and how fear or lying leaks through. e.g. over-precise hands; goes very quiet.", type: "textarea" },
 ];
 const FUNCTION_FIELDS = [
-  { group: "function", k: "theme", label: "Thematic argument", hint: "The position they embody in the story's central question.", type: "textarea" },
-  { group: "function", k: "protagonistRelation", label: "Relation to protagonist", hint: "Opposition / mirror / temptation / ally / measuring stick.", type: "input" },
-  { group: "function", k: "selfImage", label: "Self-image", hint: "Who they believe they are.", type: "textarea" },
-  { group: "function", k: "persona", label: "Public persona", hint: "Who they perform being.", type: "textarea" },
-  { group: "function", k: "privateTruth", label: "Private truth", hint: "Who they actually are — the gaps between these three are engines.", type: "textarea" },
-  { group: "function", k: "buttons", label: "Buttons", hint: "What reliably provokes them — levers other characters can pull.", type: "textarea" },
-  { group: "function", k: "allegiances", label: "Allegiances & obligations", hint: "Groups they belong to — and what membership demands.", type: "textarea" },
-  { group: "function", k: "escalation", label: "How they escalate", hint: "Aggression, withdrawal, sabotage, going over heads…", type: "input" },
-  { group: "function", k: "cornered", label: "Cornered behavior", hint: "What they do with no good options — who they really are.", type: "textarea" },
+  { group: "function", k: "theme", label: "Thematic argument", hint: "The side of the story's central question they embody. e.g. lives out “mercy is weakness” — and is proven wrong.", type: "textarea" },
+  { group: "function", k: "protagonistRelation", label: "Relation to protagonist", hint: "Opposition / mirror / temptation / ally / measuring stick. e.g. mirror — same wound, opposite choice.", type: "input" },
+  { group: "function", k: "selfImage", label: "Self-image", hint: "Who they believe they are. e.g. “a realist” (really a coward).", type: "textarea" },
+  { group: "function", k: "persona", label: "Public persona", hint: "Who they perform being. e.g. the unflappable captain.", type: "textarea" },
+  { group: "function", k: "privateTruth", label: "Private truth", hint: "Who they actually are — the gaps between these three are engines. e.g. terrified he's becoming his father.", type: "textarea" },
+  { group: "function", k: "buttons", label: "Buttons", hint: "What reliably provokes them — levers other characters can pull. e.g. mention his brother; call her naive.", type: "textarea" },
+  { group: "function", k: "allegiances", label: "Allegiances & obligations", hint: "Groups they belong to — and what membership demands. e.g. sworn to the Order; owes a smuggler a life.", type: "textarea" },
+  { group: "function", k: "escalation", label: "How they escalate", hint: "Aggression, withdrawal, sabotage, going over heads… e.g. goes cold and starts quietly planning.", type: "input" },
+  { group: "function", k: "cornered", label: "Cornered behavior", hint: "What they do with no good options — who they really are. e.g. burns it down rather than kneel.", type: "textarea" },
 ];
 const CAPABILITY_FIELDS = [
-  { group: "capabilities", k: "abilities", label: "Abilities", hint: "Magic, tech, training — what can they actually do?", type: "textarea" },
-  { group: "capabilities", k: "costs", label: "Costs", hint: "What each use takes — energy, sanity, time, moral weight.", type: "textarea" },
-  { group: "capabilities", k: "limits", label: "Hard limits", hint: "What they can never do — limits generate more plot than powers.", type: "textarea" },
-  { group: "capabilities", k: "conditions", label: "Conditions", hint: "What the ability requires — tools, materials, states.", type: "input" },
-  { group: "capabilities", k: "whoKnows", label: "Who knows", hint: "Who is aware of these capabilities.", type: "input" },
+  { group: "capabilities", k: "abilities", label: "Abilities", hint: "Magic, tech, training — what can they actually do? e.g. reads emotions; deadly with a thrown knife.", type: "textarea" },
+  { group: "capabilities", k: "costs", label: "Costs", hint: "What each use takes — energy, sanity, time, moral weight. e.g. every casting costs a day of her life.", type: "textarea" },
+  { group: "capabilities", k: "limits", label: "Hard limits", hint: "What they can never do — limits make more plot than powers. e.g. can't lie while touching cold iron.", type: "textarea" },
+  { group: "capabilities", k: "conditions", label: "Conditions", hint: "What the ability requires — tools, materials, states. e.g. needs moonlight; needs the true name.", type: "input" },
+  { group: "capabilities", k: "whoKnows", label: "Who knows", hint: "Who is aware of these capabilities. e.g. only her old mentor knows.", type: "input" },
 ];
 const CONTINUITY_FIELDS = [
-  { group: "continuity", k: "physicalConstants", label: "Physical constants", hint: "Only features that appear on the page — scar, limp, tattoo.", type: "textarea" },
-  { group: "continuity", k: "health", label: "Conditions & disabilities", hint: "Anything that changes what's possible in a scene.", type: "textarea" },
-  { group: "continuity", k: "timelineAnchors", label: "Timeline anchors", hint: "Birth year + dated events — do the math once.", type: "input" },
-  { group: "continuity", k: "knows", label: "Knows at story start", hint: "", type: "textarea" },
-  { group: "continuity", k: "doesntKnow", label: "Doesn't know", hint: "", type: "textarea" },
-  { group: "continuity", k: "believesWrongly", label: "Believes wrongly", hint: "The top source of continuity errors and POV leaks.", type: "textarea" },
-  { group: "continuity", k: "secrets", label: "Secrets", hint: "One per line: the secret — who else knows — what forces the reveal.", type: "textarea" },
-  { group: "continuity", k: "possessions", label: "Possessions with story weight", hint: "Objects that will matter — and where each one is.", type: "textarea" },
+  { group: "continuity", k: "physicalConstants", label: "Physical constants", hint: "Only features that appear on the page. e.g. burn scar on the left hand; limps in the cold.", type: "textarea" },
+  { group: "continuity", k: "health", label: "Conditions & disabilities", hint: "Anything that changes what's possible in a scene. e.g. deaf in one ear; needs the tonic daily.", type: "textarea" },
+  { group: "continuity", k: "timelineAnchors", label: "Timeline anchors", hint: "Birth year + dated events — do the math once. e.g. born 1147; the fire was year 12.", type: "input" },
+  { group: "continuity", k: "knows", label: "Knows at story start", hint: "What they already know as the story opens. e.g. knows the king is dead; knows who the traitor is.", type: "textarea" },
+  { group: "continuity", k: "doesntKnow", label: "Doesn't know", hint: "What they don't know yet — and might act against. e.g. doesn't know she's being followed.", type: "textarea" },
+  { group: "continuity", k: "believesWrongly", label: "Believes wrongly", hint: "The top source of continuity errors and POV leaks. e.g. believes her brother is still alive.", type: "textarea" },
+  { group: "continuity", k: "secrets", label: "Secrets", hint: "One per line: the secret — who else knows — the reveal. e.g. “killed the steward — only Mira suspects”.", type: "textarea" },
+  { group: "continuity", k: "possessions", label: "Possessions with story weight", hint: "Objects that will matter — and where each one is. e.g. the dead brother's watch (in her coat).", type: "textarea" },
 ];
 const DEPTH_FIELDS = [
-  { group: "depth", k: "regrets", label: "Regrets", hint: "Compressed backstory plus motivation in one line.", type: "textarea" },
-  { group: "depth", k: "family", label: "Family / upbringing", hint: "", type: "textarea" },
-  { group: "depth", k: "skills", label: "Skills & ceiling", hint: "Competence AND its limit, so solutions stay fair.", type: "textarea" },
-  { group: "depth", k: "routines", label: "Routines & habits", hint: "Useful mainly for disruption.", type: "input" },
-  { group: "depth", k: "appearance", label: "Appearance beyond the constants", hint: "", type: "textarea" },
-  { group: "depth", k: "tastes", label: "Tastes & quirks", hint: "", type: "input" },
+  { group: "depth", k: "regrets", label: "Regrets", hint: "Compressed backstory plus motivation in one line. e.g. the letter he never sent.", type: "textarea" },
+  { group: "depth", k: "family", label: "Family / upbringing", hint: "Who raised them and what it cost. e.g. estranged from a father who runs the guild.", type: "textarea" },
+  { group: "depth", k: "skills", label: "Skills & ceiling", hint: "Competence AND its ceiling, so solutions stay fair. e.g. brilliant tactician, hopeless liar.", type: "textarea" },
+  { group: "depth", k: "routines", label: "Routines & habits", hint: "Useful mainly for disruption when broken. e.g. tea at dawn, always the same cracked cup.", type: "input" },
+  { group: "depth", k: "appearance", label: "Appearance beyond the constants", hint: "The changeable look, beyond the fixed constants. e.g. tall, ink-stained fingers, never quite still.", type: "textarea" },
+  { group: "depth", k: "tastes", label: "Tastes & quirks", hint: "Small preferences that make them a person. e.g. hates music; collects old maps.", type: "input" },
 ];
 
 // Per-section filled-field counts — drive the header count chip + initial open
@@ -659,7 +663,8 @@ function onRowClick(event) {
           <div class="motivation-grid" style="display:grid;gap:10px;margin-top:16px">
             <div v-for="i in MOTIVATIONS" :key="i.k"
               :style="`padding:14px;border-radius:10px;background:${i.bg};border:1px solid color-mix(in oklab, ${i.color}, white 60%)`">
-              <div :style="`font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:0.06em;color:${i.color};margin-bottom:6px`">{{ i.label }}</div>
+              <div :style="`font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:0.06em;color:${i.color};margin-bottom:2px`">{{ i.label }}</div>
+              <div class="ch-field-hint" style="margin-bottom:6px">{{ i.ex }}</div>
               <UiTextarea rows="2" style="background:transparent;border:0;font-family:var(--font-serif);font-size:14.5px;line-height:1.5"
                 :model-value="extras?.motivation?.[i.k] || ''" @update:model-value="updateMotivation(i.k, $event)" />
             </div>
@@ -681,10 +686,11 @@ function onRowClick(event) {
             <div class="arc-grid" style="display:grid">
               <div v-for="(s, i) in ARC_STEPS" :key="s.k"
                 :style="`padding:14px;${i < 2 ? 'border-right:1px solid var(--border);' : ''}`">
-                <div style="display:flex;align-items:center;gap:8px;margin-bottom:6px">
+                <div style="display:flex;align-items:center;gap:8px;margin-bottom:4px">
                   <span :style="`width:18px;height:18px;border-radius:50%;background:${i === 0 ? 'var(--surface-3)' : i === 1 ? 'var(--accent-soft)' : 'var(--accent)'};color:${i === 2 ? 'white' : 'var(--ink-2)'};display:grid;place-items:center;font-family:var(--font-serif);font-style:italic;font-size:11px;font-weight:600`">{{ i + 1 }}</span>
                   <span class="t-eyebrow">{{ s.label }}</span>
                 </div>
+                <div class="ch-field-hint" style="margin-bottom:6px">{{ s.ex }}</div>
                 <UiTextarea rows="3" style="background:transparent;border:0;font-family:var(--font-serif);font-size:14px;line-height:1.55"
                   :model-value="extras?.arc?.[s.k] || ''" @update:model-value="updateArc(s.k, $event)" />
               </div>
@@ -699,18 +705,22 @@ function onRowClick(event) {
           <div class="card tight voice-grid" style="padding:16px;gap:10px 18px;font-size:12.5px">
             <div>
               <div class="t-muted">Accent</div>
+              <div class="ch-field-hint" style="margin:2px 0 4px">e.g. soft Southern drawl; clipped city vowels; none</div>
               <UiInput :model-value="extras?.voice?.accent || ''" @update:model-value="updateVoice('accent', $event)" />
             </div>
             <div>
               <div class="t-muted">Vocabulary</div>
+              <div class="ch-field-hint" style="margin:2px 0 4px">words they favor. e.g. nautical slang; courtroom Latin</div>
               <UiInput :model-value="extras?.voice?.vocabulary || ''" @update:model-value="updateVoice('vocabulary', $event)" />
             </div>
             <div style="grid-column:1/-1">
               <div class="t-muted">Speech tic</div>
+              <div class="ch-field-hint" style="margin:2px 0 4px">a verbal habit. e.g. starts sentences with “Look,”</div>
               <UiInput :model-value="extras?.voice?.tic || ''" @update:model-value="updateVoice('tic', $event)" />
             </div>
             <div style="grid-column:1/-1">
               <div class="t-muted">Sample line — calm</div>
+              <div class="ch-field-hint" style="margin:2px 0 4px">an ordinary line, in their voice. e.g. “Chart it or lose it.”</div>
               <UiTextarea rows="2" :model-value="extras?.voice?.sample || ''" @update:model-value="updateVoice('sample', $event)" />
             </div>
           </div>

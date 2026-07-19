@@ -52,15 +52,18 @@ The engine of the character. Fill this before anything else.
 - **Education** — formal or otherwise. This and class are voice inputs: they set
   vocabulary, assumptions, and what the character notices.
 - **Wants** (external) — what they are concretely pursuing. Must be checkable:
-  you can point at the page and say "achieved" or "failed".
+  you can point at the page and say "achieved" or "failed". *e.g. win the guild
+  seat; get her sister out of debt.*
 - **Needs** (internal) — what would actually make them whole. Usually invisible
   to them, and often the opposite of the strategy they use to chase the want.
+  *e.g. to forgive himself; to stop performing for everyone.*
 - **Lie they believe** — the misbelief driving their bad decisions ("love must
   be earned", "safety requires control").
-- **Truth they meet** — the truth the arc drives them toward.
+- **Truth they meet** — the truth the arc drives them toward. *e.g. "they stayed
+  anyway"; "needing people isn't weakness".*
 - **Core fear** — what they organize their life to avoid. Want drives pursuit;
   fear drives avoidance — scenes need both engines. The fear is usually the
-  lie's shadow.
+  lie's shadow. *e.g. being exposed as a fraud; being left again.*
 - **Where the lie began** — write it as a *scene*, not a summary. Where were
   they, who said what, what did they decide about the world in that moment?
 - **Central contradiction** — two things that are both true about them and don't
@@ -73,7 +76,8 @@ The engine of the character. Fill this before anything else.
 - **Decision heuristic** — "Under pressure, they choose ___ over ___." One line
   that mechanically generates in-character choices when you're stuck.
 - **Stakes** — what specifically breaks, for them and for others, if they fail
-  to get the want. If nothing breaks, they don't belong in the story.
+  to get the want. If nothing breaks, they don't belong in the story. *e.g. the
+  harbor floods; his daughter loses her name.*
 
 ---
 
@@ -81,11 +85,14 @@ The engine of the character. Fill this before anything else.
 
 Frame the arc as evidence for and against the lie, not as plot slots.
 
-- **Beginning** — the lie, operationalized as behavior.
+- **Beginning** — the lie, operationalized as behavior. *e.g. hiding the gift,
+  keeping her head down.*
 - **Midpoint** — the moment the lie first fails to explain something, or the
-  scene where lie and truth demand opposite actions.
+  scene where lie and truth demand opposite actions. *e.g. forced to use the
+  gift in the open.*
 - **End** — adopted the truth, doubled down on the lie (a negative arc), or never
-  needed to change and instead changed the world (a flat arc).
+  needed to change and instead changed the world (a flat arc). *e.g. leads
+  openly — or doubles down and loses them.*
 
 ---
 
@@ -93,28 +100,40 @@ Frame the arc as evidence for and against the lie, not as plot slots.
 
 How they sound and move — the calibration set.
 
-- **Accent** / **Vocabulary** / **Speech tic** — the surface texture of their
-  speech.
-- **Sample line — calm / angry / lying** — write these three. They're the
+- **Accent** — the sound of their speech: *a soft Southern drawl; clipped city
+  vowels; a faint lisp; none at all.* Note it once for reference — you don't
+  spell dialect out phonetically on every line.
+- **Vocabulary** — the words they reach for that others don't: *nautical slang;
+  courtroom Latin; gutter cant; corporate buzzwords; archaic formal address.*
+- **Speech tic** — a repeatable verbal habit: *starts sentences with "Look,";
+  overuses "frankly"; never quite finishes a sentence; calls everyone "friend".*
+- **Sample line — calm / angry / lying** — write these three; they're the
   calibration set an AI feature (or you) matches when writing the character's
-  dialogue.
+  dialogue. *Calm:* "Chart it or lose it." *Angry:* "You had one job. One."
+  *Lying:* "I was never near the place."
 - **Register** — formal ↔ casual; where do they sit, and when do they slip?
-- **Rhythm** — clipped or flowing; do they interrupt; do they trail off?
+  *e.g. courtly in public, gutter-blunt with the people they trust.*
+- **Rhythm** — clipped or flowing; do they interrupt; do they trail off? *e.g.
+  short and always interrupting; or long, trailing, never quite landing.*
 - **Forbidden words** — words this character would *never* say. As useful as the
-  tells.
+  tells. *e.g. never says "sorry"; never swears; never uses a contraction.*
 - **Subtext habit** — deflects with jokes; answers questions with questions;
-  agrees then does the opposite.
+  agrees then does the opposite. *e.g. laughs off anything that gets too close.*
 - **Humor style** — dry / absent / cruel / self-deprecating. "No humor" is a
-  choice too.
+  choice too. *e.g. deadpan, never laughs at his own jokes.*
 - **Languages** — what they speak, and who they can understand that others
-  can't. That's a plot capability.
+  can't. That's a plot capability. *e.g. reads Old Parian; speaks the trade cant
+  no one else at court knows.*
 - **How they occupy space** — posture, gait, stillness or motion; one or two
-  lines a scene can borrow anytime.
+  lines a scene can borrow anytime. *e.g. still and watchful; takes up no space;
+  all restless motion.*
 - **Presentation** — what their appearance *choices* signal, not what they look
-  like.
+  like. *e.g. an expensive coat kept deliberately shabby; armor polished past
+  regulation.*
 - **Baseline & stress tells** — their normal physical state, and how being
   rattled, afraid, or lying leaks through. The tell only reads if the baseline
-  is established.
+  is established. *e.g. normally still — but the hands get over-precise when
+  she's lying.*
 
 > **Tip — register shifts.** A strong exercise the sheet doesn't force into
 > fields: note how the character speaks to a superior, to someone with less
