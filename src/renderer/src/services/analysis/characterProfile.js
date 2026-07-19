@@ -15,7 +15,9 @@ import { composeCharacterAuditInput } from "./characterAudit.js";
 
 // The prompt lives server-side (seed_feature_prompts.py, action "characterProfile").
 
-const MOTIVATION_KEYS = ["want", "need", "lie", "truth"];
+// v2 (2026-07-18): the draft now also covers the identity basics
+// (gender/pronouns/age/role) + fear/contradiction/stakes + physical constants.
+const MOTIVATION_KEYS = ["want", "need", "lie", "truth", "fear", "contradiction", "stakes"];
 const ARC_KEYS = ["start", "midpoint", "end"];
 
 /** Clamp a model field to a clean bounded string ("" when absent/garbage). */
@@ -23,13 +25,31 @@ function s(v, max) {
   return typeof v === "string" ? v.trim().slice(0, max) : "";
 }
 
+/** Age → an integer in [0, 500], or null. The model is told to return null
+ *  when the prose doesn't establish an age; anything non-numeric collapses to
+ *  null so the character page never gets a garbage age. */
+function ageOrNull(v) {
+  const n = typeof v === "number" ? v : typeof v === "string" ? parseInt(v, 10) : NaN;
+  if (!Number.isFinite(n)) return null;
+  const r = Math.round(n);
+  return r >= 0 && r <= 500 ? r : null;
+}
+
 /** Normalize a parsed model reply to the exact field shape the character page
- *  edits. Exported for tests — the modal trusts this, never `parsed` raw. */
+ *  edits. Exported for tests — the modal trusts this, never `parsed` raw.
+ *  Only keys the page stores are emitted (no model-invented key ever lands). */
 export function sanitizeProfile(parsed) {
   const out = {
+    identity: {
+      gender: s(parsed?.identity?.gender, 60),
+      pronouns: s(parsed?.identity?.pronouns, 40),
+      role: s(parsed?.identity?.role, 120),
+      age: ageOrNull(parsed?.identity?.age),
+    },
     oneLiner: s(parsed?.oneLiner, 400),
     motivation: {},
     arc: {},
+    continuity: { physicalConstants: s(parsed?.continuity?.physicalConstants, 500) },
     backstory: s(parsed?.backstory, 2000),
   };
   for (const k of MOTIVATION_KEYS) out.motivation[k] = s(parsed?.motivation?.[k], 300);

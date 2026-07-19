@@ -36,18 +36,28 @@ const rows = ref([]); // [{ key, label, current, proposed, accept }]
 const sceneCount = ref(0);
 
 // The character page's own field map — labels match the form exactly.
+// Identity facts (role/gender/pronouns/age) live on the character record;
+// everything else lives in extras.
 function fieldDefs() {
   const c = ch.value || {};
   const x = extras.value || {};
   return [
+    { key: "identity.role",       label: "Role",              current: c.role || "" },
+    { key: "identity.gender",     label: "Gender",            current: c.gender || "" },
+    { key: "identity.pronouns",   label: "Pronouns",          current: c.pronouns || "" },
+    { key: "identity.age",        label: "Age",               current: c.age != null ? String(c.age) : "" },
     { key: "oneLiner",            label: "Description",       current: c.oneLiner || "" },
     { key: "motivation.want",     label: "Wants",             current: x.motivation?.want || "" },
     { key: "motivation.need",     label: "Needs",             current: x.motivation?.need || "" },
     { key: "motivation.lie",      label: "Lie they believe",  current: x.motivation?.lie || "" },
     { key: "motivation.truth",    label: "Truth they meet",   current: x.motivation?.truth || "" },
+    { key: "motivation.fear",          label: "Core fear",             current: x.motivation?.fear || "" },
+    { key: "motivation.contradiction", label: "Central contradiction", current: x.motivation?.contradiction || "" },
+    { key: "motivation.stakes",        label: "Stakes",                current: x.motivation?.stakes || "" },
     { key: "arc.start",           label: "Arc — Beginning",   current: x.arc?.start || "" },
     { key: "arc.midpoint",        label: "Arc — Midpoint",    current: x.arc?.midpoint || "" },
     { key: "arc.end",             label: "Arc — End",         current: x.arc?.end || "" },
+    { key: "continuity.physicalConstants", label: "Physical constants", current: x.continuity?.physicalConstants || "" },
     { key: "backstory",           label: "Backstory",         current: x.backstory || "" },
   ];
 }
@@ -98,21 +108,32 @@ const acceptCount = computed(() => rows.value.filter((r) => r.accept).length);
 function apply() {
   const picked = rows.value.filter((r) => r.accept);
   if (!picked.length) return;
+  const charPatch = {};       // role/gender/pronouns/age/oneLiner live on the record
   const motivation = {};
   const arc = {};
+  const continuity = {};
   let extrasPatch = null;
   for (const r of picked) {
-    const v = String(r.proposed || "").trim();
-    if (r.key === "oneLiner") project.updateCharacter(props.characterId, { oneLiner: v });
+    const v = String(r.proposed ?? "").trim();
+    if (r.key === "oneLiner") charPatch.oneLiner = v;
+    else if (r.key === "identity.role") charPatch.role = v;
+    else if (r.key === "identity.gender") charPatch.gender = v;
+    else if (r.key === "identity.pronouns") charPatch.pronouns = v;
+    else if (r.key === "identity.age") { const n = parseInt(v, 10); charPatch.age = Number.isFinite(n) ? n : null; }
     else if (r.key === "backstory") extrasPatch = { ...(extrasPatch || {}), backstory: v };
     else if (r.key.startsWith("motivation.")) motivation[r.key.split(".")[1]] = v;
     else if (r.key.startsWith("arc.")) arc[r.key.split(".")[1]] = v;
+    else if (r.key.startsWith("continuity.")) continuity[r.key.split(".")[1]] = v;
   }
+  if (Object.keys(charPatch).length) project.updateCharacter(props.characterId, charPatch);
   if (Object.keys(motivation).length) {
     extrasPatch = { ...(extrasPatch || {}), motivation: { ...(extras.value.motivation || {}), ...motivation } };
   }
   if (Object.keys(arc).length) {
     extrasPatch = { ...(extrasPatch || {}), arc: { ...(extras.value.arc || {}), ...arc } };
+  }
+  if (Object.keys(continuity).length) {
+    extrasPatch = { ...(extrasPatch || {}), continuity: { ...(extras.value.continuity || {}), ...continuity } };
   }
   if (extrasPatch) project.setCharacterExtras(props.characterId, extrasPatch);
   emit("close");

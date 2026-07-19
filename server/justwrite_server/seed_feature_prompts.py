@@ -299,23 +299,36 @@ Your job: propose profile fields grounded ONLY in what these scenes establish �
 Return ONLY a JSON object:
 
 {
+  "identity": {
+    "gender":   "the character's gender as the prose establishes it (free text) — \"\" if the prose never establishes it",
+    "pronouns": "the pronouns the prose uses for them, e.g. she/her — \"\" if unclear",
+    "age":      <integer years, or null when the prose doesn't state or clearly imply an age>,
+    "role":     "their occupation or role in the story"
+  },
   "oneLiner": "1-2 sentences describing who this character is — specific to THIS book, not generic",
   "motivation": {
     "want":  "what they consciously pursue (their stated/visible goal)",
     "need":  "what they actually need, often unrecognized",
     "lie":   "the false belief they operate under",
-    "truth": "the truth they meet or must accept"
+    "truth": "the truth they meet or must accept",
+    "fear":  "what they organize their life to avoid — the fear behind the lie",
+    "contradiction": "two things that are both true about them and don't fit",
+    "stakes": "what specifically breaks, for them or for others, if they fail to get the want"
   },
   "arc": {
     "start":    "who they are when the book opens — 1-2 sentences",
     "midpoint": "what shifts in the middle — 1-2 sentences",
     "end":      "who they are by the end — 1-2 sentences"
   },
+  "continuity": {
+    "physicalConstants": "physical features the prose actually states — build, coloring, scars, marks that must not drift. \"\" if none appear on the page"
+  },
   "backstory": "a short paragraph of PAST facts the book states or clearly implies about them (before the story began). Facts only — no invention."
 }
 
 Rules:
   - Ground every field in the scenes given. If the scenes don't establish a field, return "" for it — an empty string is the honest answer, never a guess.
+  - "age" is a number of years or null — never a guess. Return null unless the prose states or tightly implies it.
   - Never invent events, relationships, or history the prose doesn't support.
   - Write in the writer's service: concrete, specific, no filler ("complex character who goes on a journey" is a failure).
   - If the scenes cover only part of the book, describe only what they show; the arc fields may legitimately be "".
@@ -1066,6 +1079,45 @@ Rules:
 - Skip entities listed in the "Already in the story bible" section below — don't re-propose them.
 - If a category is empty, return [] for it.
 - Return ONLY the JSON, no preface, no markdown fences."""
+    ],
+    # Pre-v2 "characterProfile": before Fill-from-book also drafted the
+    # identity basics (gender/pronouns/age/role), fear/contradiction/stakes,
+    # and physical constants.
+    "characterProfile": [
+        """You draft a character profile from the book itself.
+
+You will be given:
+  - the character's CURRENT profile (name, role, plus whatever the writer has filled in)
+  - a digest of the scenes that feature this character (chapter context + the prose tail of each scene)
+
+Your job: propose profile fields grounded ONLY in what these scenes establish — what the character does, says, wants, and what happens to them. The writer reviews every field before anything is saved.
+
+Return ONLY a JSON object:
+
+{
+  "oneLiner": "1-2 sentences describing who this character is — specific to THIS book, not generic",
+  "motivation": {
+    "want":  "what they consciously pursue (their stated/visible goal)",
+    "need":  "what they actually need, often unrecognized",
+    "lie":   "the false belief they operate under",
+    "truth": "the truth they meet or must accept"
+  },
+  "arc": {
+    "start":    "who they are when the book opens — 1-2 sentences",
+    "midpoint": "what shifts in the middle — 1-2 sentences",
+    "end":      "who they are by the end — 1-2 sentences"
+  },
+  "backstory": "a short paragraph of PAST facts the book states or clearly implies about them (before the story began). Facts only — no invention."
+}
+
+Rules:
+  - Ground every field in the scenes given. If the scenes don't establish a field, return "" for it — an empty string is the honest answer, never a guess.
+  - Never invent events, relationships, or history the prose doesn't support.
+  - Write in the writer's service: concrete, specific, no filler ("complex character who goes on a journey" is a failure).
+  - If the scenes cover only part of the book, describe only what they show; the arc fields may legitimately be "".
+  - Keep each field tight: one-liners are 1-2 sentences; the backstory is one short paragraph.
+
+Return ONLY the JSON object. No preface, no markdown fences."""
     ],
     # Pre-sides "relationshipArc": before the standing per-character dynamic
     # (wants/fears/speaksLike) joined the per-chapter strip.
