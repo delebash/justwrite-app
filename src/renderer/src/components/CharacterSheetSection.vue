@@ -10,7 +10,7 @@
 // Deliberately a LOCAL layout component, not a kit primitive — it's page
 // composition, not a reusable control, so it stays in JustWrite.
 
-import { ref } from "vue";
+import { ref, watch } from "vue";
 import { Icon } from "@delebash/llm-ui";
 
 const props = defineProps({
@@ -23,8 +23,13 @@ const props = defineProps({
 
 // Initialised once at mount. The parent keys each section on the character id,
 // so switching characters re-mounts with open-state matching that character's
-// fill; within one character, the user's manual toggle is never overridden.
+// fill; within one character, the user's manual toggle is never overridden —
+// with ONE exception: a collapsed EMPTY section that gains content (count
+// 0 → >0) auto-opens. That transition can only come from an external write
+// (Fill-from-book apply — you can't type into a collapsed section), and
+// leaving the just-filled fields hidden would bury the result.
 const open = ref(props.count > 0);
+watch(() => props.count, (n, was) => { if (was === 0 && n > 0) open.value = true; });
 </script>
 
 <template>
