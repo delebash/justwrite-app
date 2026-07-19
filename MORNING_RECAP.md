@@ -98,27 +98,11 @@ occurrences across 15 files (kit `a61d299` · JW `39c966c`; doc
 missing help button** — `help-key="ai-providers"`; the doc and its TOC entry already existed,
 only the prop was absent (JW `d43cfad`).
 
-**⛔ OPEN — the user's box look is the REAL gate and none of it has happened.** jsdom asserts
-presence, never geometry, and three of these changes are pure look/feel. The list: each panel
-opened + closed from its nav trigger TWICE · click-outside and Esc on each · no dimming
-anywhere · modals still do NOT close on outside click · a Select opened inside chat picks an
-option WITHOUT closing the panel (the mousedown-vs-click edge `usePanelDismiss` exists for) ·
-a modal dragged — jump on grab, clamp at each screen edge · the tab strip's GUESSED
-`max-width: 520px` · the `.lu-qs-band` seating · the built-in row's density with its third badge.
-
-**⛔ OPEN — two decisions a builder flagged rather than owned.** (a) `AGENTS.md` §5 was
-AMENDED: it banned document-level handlers and named `ChatPanel.vue` an exception to migrate
-away; it now scopes that ban to dropdowns/popovers and carves out slide-in panels, because a
-full-inset backdrop SWALLOWS the dismissing click (with chat open you could not click a nav
-item and have the navigation land). Reasoning is in the file with its revert cost — needs the
-user's blessing or reversal. (b) ONE shared toggle attribute means clicking one panel's
-trigger no longer closes a DIFFERENT open panel (the AI-tasks chip used to close chat); it
-fell out of "one vocabulary", was never ruled, and per-panel toggle values would restore it.
-
-**Also open:** `tests/test_lifecycle.py::test_ensure_model_ready_raises_on_failed_load` is
-FLAKY (passed/failed/failed on three identical isolated runs) and now sits indistinguishable
-from the two genuinely pre-existing Windows-box failures — it will be waved through until it
-hides a real regression.
+**⛔ OPEN → `docs/TASKS.md`** (per this file's charter, open work is tracked there, not here):
+the whole box-look list under *Your-box checks* (NOTHING in this pass has been looked at —
+three of the six changes are pure look/feel and jsdom asserts presence, never geometry), plus
+two decisions a builder flagged rather than owned (the `AGENTS.md` §5 amendment; the unruled
+cross-panel toggle change) and one flaky runner test, all under *Now / near-term*.
 
 ## GO (2026-07-16) — THE THINKING-BUDGET REDESIGN, END TO END (unpushed on the branch)
 

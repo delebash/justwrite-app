@@ -23,7 +23,21 @@
   model's *effective* (tuned) context as "reads ~N words at once". Deferred from that build
   because the effective ctx isn't plumbed into the wizard yet — the catalog's trained 256k
   would mislead. kit `QuickSetup.vue`.
-- **#256 — spell-check** — carried in the recap's NEXT/open; not yet scoped.
+- **⛔ Two decisions from 2026-07-19 that a builder flagged rather than owned — need a
+  ruling.** (a) **`AGENTS.md` §5 was AMENDED** — it banned document-level handlers and named
+  `ChatPanel.vue` an exception to migrate away; it now scopes that ban to dropdowns/popovers
+  and carves out slide-in panels, because a full-inset backdrop SWALLOWS the dismissing click
+  (with chat open you could not click a nav item and have the navigation land). Reasoning +
+  revert cost are in the file. Bless it or reverse it. (b) **Cross-panel toggle behaviour
+  changed unruled** — one shared `data-panel-toggle` means clicking one panel's trigger no
+  longer closes a DIFFERENT open panel (the AI-tasks chip used to close chat); it fell out of
+  "one vocabulary". Per-panel toggle values would restore the old behaviour. Detail:
+  `just-llm-runner/docs/plans/2026-07-19-panel-dismiss-and-no-dim.md`.
+- **Flaky runner test** — `tests/test_lifecycle.py::test_ensure_model_ready_raises_on_failed_load`
+  passed/failed/failed on three identical isolated runs (2026-07-19). It now sits
+  indistinguishable from the two genuinely pre-existing Windows-box failures (lspci + ensure),
+  so it will be waved through until it hides a real regression. Either pin it or quarantine it.
+- **#256 — spell-check** — not yet scoped.
 - **I1 tail (3 small legs)** — SettingsView's `.wb-search*` fragment → fold into the
   shared `.entity-*` family · CommandPalette entity-creates lack the `?new` focus
   parity · promote the popup-probe from scratchpad to `scripts/` if a standing guard
@@ -98,6 +112,14 @@
   spot-check (G6). Detail: ledger §G.
 - **Providers-surface rounds** — the per-round box checks (ROUNDs 9–19; newest is
   ROUND 19's four). Detail: `just-llm-runner/docs/plans/2026-07-06-providers-surface-redesign.md`.
+- **AI-surface pass (2026-07-19) — NOTHING in it has been looked at.** Six shipped changes,
+  three of them pure look/feel, verified only by jsdom (asserts presence, never geometry).
+  Each panel opened + closed from its nav trigger TWICE · click-outside and Esc on each · no
+  dimming on any surface · modals still do NOT close on outside click · a Select opened inside
+  chat picks an option WITHOUT closing the panel (the mousedown-vs-click edge `usePanelDismiss`
+  exists for) · a modal dragged: jump on grab, clamp at each screen edge · the tab strip's
+  GUESSED `max-width: 520px` · the `.lu-qs-band` seating · the built-in row's density with its
+  third badge. Detail: the four `2026-07-19-*` plan docs (recap GO section names them).
 
 ## Parked (wakes on a trigger or a fresh user ask — not active work)
 
