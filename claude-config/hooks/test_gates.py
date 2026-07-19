@@ -324,7 +324,14 @@ def test_registry():
     # file is test infra / copy DATA and nothing is under the gate's own tree.
     assert r.commit_low_risk(["server/tests/test_x.py", "docs/a.md"])       # tests (+doc) → low
     assert r.commit_low_risk(["src/renderer/src/__tests__/a.test.js"])      # __tests__ → low
-    assert r.commit_low_risk(["scripts/rag-probe.mjs"])                     # harness script → low
+    # Harness scripts, BOTH extensions. JustWrite converted scripts/ from .mjs to
+    # .js on 2026-07-19 (the repo is type:module, so the extension carried no
+    # meaning); a regex pinned to .mjs would have silently reclassified every
+    # probe + smoke as HIGH the moment they were renamed.
+    assert r.commit_low_risk(["scripts/rag-probe.js"])                      # harness script → low
+    assert r.commit_low_risk(["scripts/rag-probe.mjs"])                     # legacy extension → low
+    assert r.commit_low_risk(["scripts/headless-smoke.js"])                 # smoke → low
+    assert not r.commit_low_risk(["scripts/bench/run.js"])                  # NOT a -probe/-smoke → high
     assert r.commit_low_risk(["src/renderer/src/i18n/en.json"])            # copy DATA → low
     assert not r.commit_low_risk(["latest.py"])            # substring trap: not a test → high
     assert not r.commit_low_risk(["src/renderer/src/i18n/index.js"])       # logic under i18n → high

@@ -1,0 +1,98 @@
+{
+  "name": "example",
+  "_doc": [
+    "Annotated reference config — every field the bench understands, with its default.",
+    "Copy this, delete what you don't need. Keys starting with _ are ignored.",
+    "",
+    "A LEG = one (model × launch switches × request tunables) combination. Legs run in",
+    "order against the same book and the same features, so they are comparable.",
+    "",
+    "Run:  npm run bench -- --config scripts/bench/configs/example.json --dry"
+  ],
+
+  "_band": "Which standing question this config answers — the real configs are the two bands, gpu.json and cpu.json. Cosmetic label in summaries + used for the run-hint commands.",
+  "band": "gpu",
+
+  "_baselineRefs": "Leg ids from ANOTHER band shown as comparison rows, recalled from stored results and NEVER run by this config (e.g. cpu.json lists the GPU baseline). Default [].",
+  "baselineRefs": [],
+
+  "_book": "Project id to activate first. Omit or \"\" to use whatever project is already open. The book actually measured is stamped into every result; a later run against a different book gets a ⚠ on recalled rows.",
+  "book": "prj_sample_ninth_facet",
+
+  "_features": "Which app features to exercise. Validated at run time against window.__jwBench.features().",
+  "features": ["chat", "characterChat", "entitySweep", "critique", "writerAI.continue", "writerAI.rewrite"],
+
+  "_repeats": "Samples per feature per leg. 1 is not a measurement — this workload carries ~±10% run-to-run noise. Default 2.",
+  "repeats": 2,
+
+  "_timeoutMinutes": "Per feature RUN. A hit timeout is recorded as a finding, not a crash. Default 10.",
+  "timeoutMinutes": 10,
+
+  "_sweepChapterCap": "entitySweep runs once per chapter — this caps how many. Default 3.",
+  "sweepChapterCap": 3,
+
+  "_ensureIndex": "Build the RAG index first if missing. Without it, chat/characterChat silently run in bible-only mode, which is a DIFFERENT prompt. Default true.",
+  "ensureIndex": true,
+
+  "_presetName": "The engine preset the bench writes each leg's tunables into. It stays in the DB and is visible on the AI page. Default \"Bench\".",
+  "presetName": "Bench",
+
+  "_featureArgs": "Per-feature run args. Merged with per-leg featureArgs (leg wins).",
+  "featureArgs": {
+    "chat": { "question": "What is this book about, and who is the protagonist?", "k": 6 },
+    "characterChat": { "question": "What do you want most right now?", "characterId": "" },
+    "critique": { "chapterId": "" },
+    "entitySweep": { "chapterCap": 3, "concurrency": 1 },
+    "writerAI.continue": { "passageChars": 2000 },
+    "writerAI.rewrite": { "passageChars": 1200 }
+  },
+
+  "legs": [
+    {
+      "_id": "Required, unique. Names the results subfolder.",
+      "id": "example-leg",
+      "label": "Human-readable — shows up in summary.md",
+
+      "_model": "Required. A CATALOG model id (the same id the app's model list shows), NOT a file path.",
+      "model": "gemma-4-26b-a4b-qat",
+
+      "_gguf": "Optional explicit .gguf path for llama-bench. Empty → auto-resolved from the HF cache beside the engine.",
+      "gguf": "",
+      "_quant": "Optional quant substring to disambiguate when a repo ships several (e.g. \"Q4_K_XL\").",
+      "quant": "",
+
+      "_tunables": "REQUEST params — written into the Bench preset. This is the one-source model: the preset owns the model + every tunable.",
+      "tunables": {
+        "temperature": 0.7,
+        "topP": null,
+        "maxTokens": 0,
+        "think": false,
+        "reasoningEffort": "",
+        "samplers": [{ "flagName": "top_k", "flagValue": "40" }]
+      },
+
+      "_launch": "ENGINE switches for this leg's model load. Sent EPHEMERALLY on POST /v1/llm-runner/load — never saved, so your tune rows are untouched. Named fields map 1:1 to LoadRequest; anything else goes in `switches`.",
+      "launch": {
+        "nGpuLayers": 99,
+        "nCpuMoe": 21,
+        "ctxLen": 32768,
+        "batchSize": 512,
+        "ubatchSize": 512,
+        "threads": 8,
+        "cacheTypeK": "q8_0",
+        "cacheTypeV": "q8_0",
+        "flashAttn": "on",
+        "switches": {}
+      },
+
+      "_llamaBench": "Raw engine matrix for this leg, or false to skip it. p = prompt sizes, n = tokens generated, reps = llama-bench's own repeats.",
+      "llamaBench": { "p": [512, 2048, 8192], "n": 128, "reps": 2 },
+
+      "_overrides": "Any of these override the run-level value for this leg only.",
+      "features": null,
+      "repeats": null,
+      "timeoutMinutes": null,
+      "featureArgs": null
+    }
+  ]
+}

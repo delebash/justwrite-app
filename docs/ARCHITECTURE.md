@@ -271,7 +271,7 @@ detection.
 - `/` Overview — Hero · Yours · Sketches · Colophon · Find it
 - `/features` Features — Features · Inside · FAQ
 - `/docs/` Docs — built from `justwrite-app/docs/*.md` via
-  `scripts/sync-docs.mjs` at prebuild
+  `scripts/sync-docs.js` at prebuild
 
 ### Docs flow
 
@@ -330,7 +330,7 @@ repository\_dispatch to `delebash/justwrite-website` so its CI rebuilds).
   `Contents: read and write`.
 - `justwrite-app` made public via `gh repo edit ... --visibility public` —
   the anonymous `/releases/latest` GitHub API returns 404 for private repos,
-  which made `sync-docs.mjs` silently no-op even when releases existed.
+  which made `sync-docs.js` silently no-op even when releases existed.
 
 ### Skipped intentionally
 
@@ -362,7 +362,7 @@ version (downloaded from `https://msedgedriver.microsoft.com/<version>/
 edgedriver_win64.zip`). Talks raw W3C WebDriver HTTP from Node — **no
 WebdriverIO** (v9 fails with `UND_ERR_INVALID_ARG` on session create; v8
 hangs at session handshake with no diagnostic). Wrapper is
-`lib/driver.mjs` (~150 lines); tests via Node's built-in `node --test`.
+`lib/driver.js` (~150 lines); tests via Node's built-in `node --test`.
 
 **Why this matters:** earlier attempts to capture views by driving the
 renderer in browser-mode (`npm run dev:vite` + Playwright + IDB injection)
@@ -374,10 +374,10 @@ run in vanilla browser. The Tauri harness gets all of them.
 
 - `cd e2e && npm run capture` — drives the production binary at
   `src-tauri/target/release/justwrite.exe` through routes listed in
-  `capture-direct.mjs:TARGETS` and saves PNGs to
+  `capture-direct.js:TARGETS` and saves PNGs to
   `../../justwrite-website/public/screenshots/`. Add routes by appending to
   the array.
-- `cd e2e && npm test` — runs `tests/*.test.mjs` against the same binary.
+- `cd e2e && npm test` — runs `tests/*.test.js` against the same binary.
   7 passing smoke tests, 1 skipped (theme switcher — needs `data-testid` on
   the reka-ui appearance cards before it can drive that widget).
 - The production binary is whatever was last built. If source has drifted,

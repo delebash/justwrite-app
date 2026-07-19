@@ -6,6 +6,10 @@ dist/
 .vscode/
 .idea/
 
+# Bench harness output. Raw captures + timings stay local; the CONCLUSIONS get
+# written into the relevant docs/plans/* doc, which is what ships.
+bench-results/
+
 # Audit tool output (jscpd report dir, biome scratch dumps)
 report/
 biome_output.json

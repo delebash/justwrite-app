@@ -5,10 +5,10 @@
   "type": "module",
   "description": "E2E tests and screenshot capture for JustWrite via tauri-driver + msedgedriver (raw W3C WebDriver from Node)",
   "scripts": {
-    "postinstall": "node scripts/fetch-driver.mjs",
-    "fetch-driver": "node scripts/fetch-driver.mjs --force",
-    "test": "node --test --test-reporter=spec tests/*.test.mjs",
-    "capture": "node capture-direct.mjs"
+    "postinstall": "node scripts/fetch-driver.js",
+    "fetch-driver": "node scripts/fetch-driver.js --force",
+    "test": "node --test --test-reporter=spec tests/*.test.js",
+    "capture": "node capture-direct.js"
   },
   "devDependencies": {
     "@wdio/cli": "^8.46.0",

@@ -32,6 +32,9 @@ export default defineConfig({
   },
   test: {
     environment: "node",
-    include: ["src/renderer/src/**/*.test.js"],
+    // scripts/** carries the bench harness's pure-JS units (config validation,
+    // llama-bench output parsing, summary rendering, restore round-trip) — the
+    // parts of the harness that can be gated without models or a box.
+    include: ["src/renderer/src/**/*.test.js", "scripts/**/*.test.js"],
   },
 });

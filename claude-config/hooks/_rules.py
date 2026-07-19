@@ -76,7 +76,7 @@ LOW_RISK = re.compile(
     r"(^|/)tests?/|(^|/)__tests__/|(^|/)e2e/"                          # test dirs
     r"|(^|/)test_[^/]+\.py$|(^|/)[^/]+_test\.py$|(^|/)conftest\.py$"    # python tests
     r"|\.(test|spec)\.[cm]?[jt]sx?$"                                   # js/ts tests
-    r"|(^|/)[^/]*-(probe|smoke)\.mjs$"                                 # harness scripts
+    r"|(^|/)[^/]*-(probe|smoke)\.[cm]?js$"                             # harness scripts (.js|.mjs|.cjs)
     r"|(^|/)(locales?|i18n|lang)/[^/]*\.(json|po|pot|ftl|csv|ya?ml|txt)$",  # copy DATA only
     re.I,
 )

@@ -181,11 +181,15 @@ configureHelp({
 
   app.mount("#app");
 
-  // Dev-only test seam: expose the project store so the headless harness can
-  // drive deterministic edits (stripped from production builds by the
-  // import.meta.env.DEV guard — esbuild dead-code-eliminates the branch).
+  // Dev-only test seams: the project store (deterministic edits for book-smoke)
+  // and the bench hook (the LLM bench harness drives real feature runs through
+  // it). Both are stripped from production builds by the import.meta.env.DEV
+  // guard — esbuild dead-code-eliminates the branch, and benchHook.js is
+  // imported DYNAMICALLY so its module graph never enters a prod bundle.
   if (import.meta.env.DEV) {
     window.__jwProject = useProjectStore(pinia);
+    const { installBenchHook } = await import("./services/benchHook.js");
+    installBenchHook();
   }
 
   // Subscribe to project mutations and silently re-embed scenes a minute

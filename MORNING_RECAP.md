@@ -117,9 +117,18 @@ record. Collapse a line into one word once it stops mattering.
   and `test_lifecycle.py::test_ensure_model_ready_loads_then_returns` fail (pre-existing, proven
   by pathspec stash-run); `test_lifecycle.py::test_ensure_model_ready_raises_on_failed_load` is
   **flaky**, not pre-existing. Don't wave a fourth failure through as "known".
-- **The renderer gate does NOT run on the user's box** (no Chromium) and must never touch their
-  live `:1420`/`:17495`. So renderer work ships compile-verified only, and **their eyes are the
-  gate** — every unlooked-at change is listed in `docs/TASKS.md` → Your-box checks.
+- **Never touch the user's live `:1420`/`:17495`** — that rule stands absolutely (2026-07-19:
+  a probe drove `:1420` seconds after the user started their app; no data changed, but they
+  may have seen a stray toast. Check the ports, and use an isolated server + temp data dir).
+  Their eyes remain the gate for look/feel — every unlooked-at change is listed in
+  `docs/TASKS.md` → Your-box checks.
+- **CORRECTED 2026-07-19: Chromium IS installed on the user's box.** This section used to say
+  the renderer gate can't run there for lack of Chromium — false. Playwright 1.61 + its
+  browsers are present (`%LOCALAPPDATA%\ms-playwright\chromium-1228\chrome-win64\chrome.exe`,
+  launched successfully). The real cause was `findChrome()` scanning **Linux paths only**;
+  it now lives once in `scripts/lib/smoke-common.js` and handles Windows/macOS layouts.
+  The renderer gate has still never actually been RUN on that box — but it is no longer
+  known-impossible, and that is worth re-testing before repeating the old claim.
 
 ## What the app IS, in one breath
 JustWrite is a novel-writing app (Tauri 2 + Vue 3 + a Python/SQLite server) that shares its
