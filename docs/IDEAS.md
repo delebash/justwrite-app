@@ -38,34 +38,52 @@ evidence-not-press-release law), plus a watch row in
 `just-llm-runner/docs/llama-cpp-watch.md`. *(from the 2026-07-19 LocalProse-comparison
 review.)*
 
-### Docs-derived control hints — one source of truth for field help (2026-07-19)
+### Single-source text system: docs → help/labels → translation (2026-07-19)
 
-**The itch (user):** right now every field's inline hint/example on the character
-sheet is hand-written in `CharactersView.vue`, *and* the same guidance is written
-again, longer, in `docs/character-sheet.md`. Two copies of the same knowledge →
-they drift. Every new field means editing both by hand.
+> Tracked as the **Research** item in `docs/TASKS.md` — this is the detail it points to.
 
-**Rough shape:** make the **docs the single source**, and derive the in-app
-control text from them.
+**The itch (user):** two problems that likely share ONE fix. **(1)** Every field's
+inline hint/example on the character sheet is hand-written in `CharactersView.vue`
+*and* again, longer, in `docs/character-sheet.md` — two copies that drift; every new
+field means editing both. **(2)** The app isn't really translatable yet — no in-app
+language switcher, partial coverage. Both point at the same want: **one authored source
+of truth for text**, feeding the in-app help, the labels, and the translations.
 
-- Author each field's guidance once, in the help doc (or a structured sidecar —
-  e.g. front-matter or a small `docs/field-hints.yml` keyed by `group.key`).
-- A build/generate script (`scripts/gen-field-hints.mjs`) reads that source and
-  emits the short label-hint + example the form renders (a generated JS/JSON
-  module the view imports, or a checked-in artifact validated in CI).
-- The form stops carrying literal hint strings; it looks them up by field key.
-- A test/CI guard fails if a field exists in the form but has no doc entry (and
-  vice-versa) — so the two can never silently diverge again.
+**Current i18n state (grounded 2026-07-19):**
 
-**Why it matters:** kills the drift class the user keeps hitting, makes "add a
-field" a one-file change, and means the `?` help drawer and the inline hint are
-provably the same words. Natural extension: the same source could feed the AI
-extraction prompts' field descriptions (fill-from-book), so prompt + UI + docs
-are all one authored text.
+- JW renders text via **vue-i18n ^11.4.6** + `src/renderer/src/i18n/locales/en.json`
+  (389 lines); many views use `$t()`. The kit follows locale via `setUiLocale` (Intl
+  number formatting) and takes dialog/help labels via `configureDialog`/`configureHelp`.
+  JV has its own i18n (Settings → Appearance already exposes a **Language** select).
+- **Gaps:** only English is authored (no other locale files); coverage is partial — many
+  strings are hardcoded (e.g. the character-sheet field hints live in `CharactersView.vue`,
+  not en.json); **no in-app language switcher in the title bar**; JW's vue-i18n and JV's
+  i18n aren't unified (the kit carries no i18n lib of its own).
 
-**Scope note:** medium. The generate-script + guard is the real work; the content
-migration (move existing hints into the doc source) is mechanical. Do it when the
-field set stabilizes — churning fields mid-migration wastes the move.
+**Rough shape / the questions the research answers:**
+
+- **The single source.** Author each field's guidance once — in the help doc
+  (front-matter or a small `docs/field-hints.yml` keyed by `group.key`) — and derive the
+  short inline hint + example (a generated module or a checked-in artifact validated in
+  CI). The form stops carrying literal hint strings; it looks them up by key. The same
+  source could feed the AI extraction prompts' field descriptions (fill-from-book), so
+  prompt + UI + docs are one authored text. How does that source reconcile with the
+  vue-i18n locale JSON — is it the source, or a sibling the locale is generated from?
+- **Coverage audit.** How much is `$t()` vs hardcoded — the drift class the user keeps
+  hitting. A real census before committing to a format.
+- **Translation tooling.** **json-autotranslate** (free DeepL / **local-AI** backend) ·
+  **json-translator** (easiest/free) — and can our OWN bundled runner translate locally
+  (on-brand: no cloud, no cost)? With a human-review step for quality.
+- **In-app language switcher** in the title bar + persist the choice; match JV's existing
+  Language select so both apps behave the same (kit-level, not a per-app fork).
+- **CI guard.** A key exists in the form ⇔ in the source ⇔ translated — so nothing
+  silently regresses (the same guard idea covers both the hint-drift and missing
+  translations).
+
+**Why it matters:** kills the hint-drift the user keeps hitting, makes "add a field" and
+"add a language" one-source changes, and gives real multi-language support. **Scope:**
+research → plan → build, each on its own go; do the coverage audit before committing to a
+source format, and do it when the field set has stabilized (churn mid-migration wastes the move).
 
 ### Defaults-drift notice beyond the Tune modal (was ledger §J3)
 

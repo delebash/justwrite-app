@@ -35,6 +35,16 @@
 - **I4 follow-up** — per-model GGUF delete on the catalog surface (the disk-reclaim
   panel shipped; this was the deliberate v1-excluded follow-up). Detail: ledger §I4.
 
+## Research (needs a research pass → plan → build, each on its own go)
+
+- **Single-source text system + i18n / translation** — one authored source (the docs)
+  that feeds the `?` help drawer, the inline field hints/labels, **and** the translations,
+  so they can't drift; plus a real translation story: an **in-app language switcher in the
+  title bar**, a `$t()`-vs-hardcoded coverage audit, and tooling (json-autotranslate ·
+  json-translator · possibly our own local runner for on-box translation). Whole-system
+  (JW + JV + kit). Current-state grounding + the questions to answer:
+  `docs/IDEAS.md` → "Single-source text system + i18n".
+
 ## Open — awaiting a go (shared AI stack)
 
 - **Batches 5 + 6 (§8) — FROZEN** by the user's hard stop ("do nothing until i say
