@@ -93,6 +93,13 @@
 
 ## Your-box checks (only the Windows / 2070S machine can finish these)
 
+- **CPU-only band test (2026-07-19)** — measure prefill + generation pure-CPU
+  (`-ngl 0`, prompt 512/2k/8k) for the catalog MoEs + the 12B dense, against the GPU
+  tune as baseline; numbers decide whether a CPU chat band (for no-dGPU users) joins
+  fit/QuickSetup and whether the no-GPU empty-state copy softens. Recipe + results
+  table: `just-llm-runner/docs/plans/2026-07-19-cpu-only-band-test.md`; the
+  Google-answer fact-check behind it:
+  `just-llm-runner/docs/plans/2026-07-19-cpu-inference-research.md`.
 - **Thinking-budget redesign (2026-07-16)** — the visual look (your call) + two box
   tests: think OFF/ON A/B (the day's original question) and the b9993 loop re-test.
   Detail: `just-llm-runner/docs/plans/2026-07-16-think-ab-and-loop-retest.md`.
