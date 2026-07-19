@@ -202,6 +202,14 @@ JSON contract.
 ### SHIPPED (collapsed) — the 52-item batch + every follow-up, all pushed
 Highlights, newest first (full records in the plan docs / git):
 
+- **Character sheet v3 + richer relations + fill-from-book v2 + sweep list-aware (2026-07-19,
+  7 WS)** — the v3 dossier (collapsible sections, per-field hints, labeled hero, help doc) ·
+  per-side relationship dynamics (wants/fears/speaks-like, on both cards) · Fill-from-book now
+  drafts identity + fear/contradiction/stakes/constants · list-aware entity extraction + no
+  backfill from reference pages. **Also fixed two latent AI-wiring bugs**: voice tic/sample
+  never reached the model, and `characterAudit` fed `[object Object]` profiles (converged to
+  the canonical builder, QC-35). Commits `8134df7`→`dd9e8c5`. Doc:
+  `docs/plans/2026-07-18-character-sheet-v3-and-relations.md` (§Execution record).
 - **The 2026-07-18 RAG/sweep queue (10 items)** — off the user's real Broken-Eye import:
   sweep honest-concurrency + chapter picker + draft/resume + watchdog/retry-failed ·
   Fill-from-book (characterProfile) · relationship/outline cards · pin-all-parts ·
@@ -244,13 +252,6 @@ Highlights, newest first (full records in the plan docs / git):
   directly, after which the vendored copy can go.
 
 ### NEXT / open
-- **⛔ QUEUED, waiting for the user's literal "go" (2026-07-18):** character-sheet v3 merge
-  + labeled hero fields + help doc + per-side relation dynamics + fill-from-book v2 +
-  sweep list refinements — full executor instructions in
-  `docs/plans/2026-07-18-character-sheet-v3-and-relations.md` (template source:
-  `docs/reference/character-template-v3.md`). Design user-approved; **execution explicitly
-  gated** ("dont have opus code until i give the go command"). Includes the confirmed
-  voice tic/sample → AI wiring bug fix (plan §2/§6).
 - **Unit 2 (thinking/reasoning) is SHIPPED** — absorbed into the one-source rewrite. What
   remains is the USER's box acceptance: one local High chat run stopping at the hardware cap,
   one new-Anthropic run (reasoning words on the wire, no 400). Ledger §G.

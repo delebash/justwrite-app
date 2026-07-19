@@ -1,6 +1,49 @@
 # Character sheet v3 merge · richer relation edges · sweep list refinements — Opus execution plan
 
-**Date:** 2026-07-18 · **Status: QUEUED — DO NOT EXECUTE UNTIL THE USER TYPES "go"**
+**Date:** 2026-07-18 · **Status: ✅ SHIPPED 2026-07-19** (user typed "go on plan"; executed
+by Opus one workstream at a time per RULE #2).
+
+## Execution record — SHIPPED
+
+All seven workstreams built, verified, and pushed on `claude/admiring-galileo-il3q0o`:
+
+| WS | What | Commit |
+|----|------|--------|
+| WS1 | Labeled hero fields (labels on top, placeholders gone) | `8134df7` |
+| WS2 | v3 sectioned sheet + `CharacterSheetSection.vue` (collapsible, empty-collapsed) | `3decfb3` |
+| WS3 | `docs/character-sheet.md` help doc + page `?` trigger | `85c4728` |
+| WS4 | v3 fields → AI profile block **+ two found bugs fixed** | `7be73e3` |
+| WS5 | Per-side dynamics on relationship arcs (wants/fears/speaks-like) | `5a03da4` |
+| WS6 | Fill-from-book v2 (identity + fear/contradiction/stakes + constants) | `8cd0b9f` |
+| WS7 | List-aware extraction + no backfill from reference pages | `dd9e8c5` |
+
+**Two bugs found + fixed during WS4 (beyond the plan's scope — the plan's §2/§6
+assumption that the audit rode `buildCharacterProfile` was WRONG):**
+1. `buildCharacterProfile` read `voice.speechTic`/`voice.sampleLine`, but the page saves
+   `voice.tic`/`voice.sample` — the speech tic + sample line had **never** reached any AI
+   surface. Fixed (reads the page keys, legacy names as fallback).
+2. `characterAudit.buildProfileText` stringified the voice/arc/motivation OBJECTS
+   (`Voice: [object Object]`) — the audit + Fill-from-book had been fed a broken profile.
+   Converged onto the canonical `buildCharacterProfile` (QC-35).
+
+**Verification (all green):** vitest 275 (+ new WS4/WS5/WS6 cases) · server pytest 115 +
+ruff · build:vite · headless smoke (0 JS errors) · rag-probe 18/18 (0 page errors — proves
+the profile/card/relationship changes didn't break retrieval). Prompt heals verified
+byte-exact against HEAD for `characterProfile`, `relationshipArc`, and the second
+`entitySweep` string.
+
+**Re-embed note for the user:** filled v3 fields + relationship sides change card text →
+those cards re-embed on the next index update (partial, expected). Characters with no new
+data produce byte-identical profile output → no re-embed.
+
+**Not done (deliberately, still needs a separate go):** C1-style smaller extraction model;
+fill-from-book for voice/function/arc-belief fields (§12 phase-2 candidate); the
+register-shift table + Part 8 prompt card stayed help-doc guidance (the RAG card IS the
+prompt card).
+
+---
+
+**Original plan status when queued: QUEUED — DO NOT EXECUTE UNTIL THE USER TYPES "go"**
 (user, verbatim, 2026-07-18: *"dont have opus code until i give the go command"*).
 
 **Authorization trail:** user approved the design ("i agree with your recs, plan it and have
