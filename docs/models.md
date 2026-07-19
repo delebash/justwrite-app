@@ -10,10 +10,10 @@ tune models yourself.
 A fresh install (and a factory reset — they are the same state) ships the catalog **full**
 but every choice **empty**: no chat model, no embedding. The "Your setup" strip shows both
 slots as **Not set**, and anything that needs a model before setup answers with "run Quick
-Setup" guidance instead of an error. The **Built-in provider** is the permanent section at
-the top of the **Providers & models** tab — its whole control panel is always on the page
-(no Edit click) — and the **Run Quick Setup** band at its top (marked **For the Local
-built-in provider**) does the whole first-time setup:
+Setup" guidance instead of an error. The **Run Quick Setup** band sits at the top of the
+**Local** tab on the **Providers & models** page (marked **Sets up the built-in llama.cpp
+provider only**) and does the whole first-time setup — the **Built-in provider** itself is
+the first row in that Local list, and its control panel opens when you click **Edit** on it:
 
 1. It detects your hardware (GPU, VRAM, RAM).
 2. It picks the **most capable model that still runs fast on your box** — not just the
@@ -126,8 +126,8 @@ its **Lab** to measure the difference.
 
 ## The model catalog
 
-The catalog lives inside the **Built-in provider** section — always on the **Providers &
-models** page, nothing to open. A
+The catalog lives inside the **Built-in provider** — the first row on the **Local** tab of
+the **Providers & models** page; click **Edit** on that row to open it. A
 **"Your setup"** strip at the top shows the two slots the app needs filled — your **General
 model** (writes prose, chats, extracts) and your **Embedding model** (powers semantic search
 and grounded chat). The app runs these two **side by side**, and each card is that pair's
@@ -249,7 +249,7 @@ embedding model carries an **Embedding** badge. From here you can:
   config prefilled with your class — no list to click through; a
   **"Global launch defaults ↗"** link beside it opens the always-on switch bundles the
   same way, so nothing is edited embedded in the Tune dialog itself. The full **library**
-  lives on the Built-in provider section — the **"Hardware/model class defaults…"** button
+  lives inside the Built-in provider (Edit its row) — the **"Hardware/model class defaults…"** button
   there opens every saved config in one table where **each row is one model × one PC
   class** (there is no single tune covering all models; adding a config there starts with
   picking the model), with **Copy**/**Import** to share a config between users as a small

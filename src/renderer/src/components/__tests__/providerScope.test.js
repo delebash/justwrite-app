@@ -75,12 +75,17 @@ async function mountArea(props = {}) {
 }
 
 const rowNames = () => [...document.querySelectorAll(".lu-prow .lu-prow-name b")].map((b) => b.textContent.trim());
-const builtinCard = () => document.querySelector(".lu-builtin");
-// v-show, not v-if — the card hides but STAYS mounted (see below).
-const builtinVisible = () => {
-  const el = builtinCard();
+// 2026-07-19: the promoted `.lu-builtin` card is DELETED — the built-in is a normal
+// row and the Quick-Setup band stands on its own at the top of the Local scope.
+const qsBand = () => document.querySelector(".lu-qs-band");
+// v-show, not v-if — the band hides but STAYS mounted (see the qsRef pin below).
+const qsBandVisible = () => {
+  const el = qsBand();
   return !!el && el.style.display !== "none";
 };
+const rowFor = (name) => [...document.querySelectorAll(".lu-prow")]
+  .find((r) => r.querySelector(".lu-prow-name b")?.textContent.trim() === name) || null;
+const capsOf = (row) => [...(row?.querySelectorAll(".lu-cap") || [])].map((c) => c.textContent.trim());
 const scopeButtons = () => [...document.querySelectorAll(".lu-scope button")];
 const activeScope = () => scopeButtons().find((b) => b.classList.contains("active"))?.textContent || "";
 
@@ -99,14 +104,14 @@ describe("provider scope tabs (2026-07-19)", () => {
     expect(rowNames()).not.toContain("Claude");
   });
 
-  it("the promoted built-in section shows on LOCAL and is hidden on ONLINE", async () => {
+  it("the Quick-Setup band shows on LOCAL and is hidden on ONLINE", async () => {
     await mountArea();
-    expect(builtinVisible(), "built-in card is visible on the local tab").toBe(true);
+    expect(qsBandVisible(), "Quick-Setup band is visible on the local tab").toBe(true);
     // click through to the online tab — the same mount, so this proves the switch,
     // not just the initial prop.
     scopeButtons().find((b) => b.textContent.includes("Online")).click();
     await flush();
-    expect(builtinVisible(), "built-in card is hidden on the online tab").toBe(false);
+    expect(qsBandVisible(), "Quick-Setup band is hidden on the online tab").toBe(false);
     expect(rowNames()).toEqual(["Claude"]);
   });
 
@@ -116,18 +121,74 @@ describe("provider scope tabs (2026-07-19)", () => {
   // ?quicksetup=1 auto-open — and a v-if unmounts QuickSetup on the Online tab,
   // turning both into silent `?.()` no-ops. Asserting the wizard's markup SURVIVES
   // the hide is what proves the ref is still live.
-  it("hiding the built-in card keeps QuickSetup MOUNTED (qsRef stays live off-tab)", async () => {
+  it("hiding the Quick-Setup band keeps QuickSetup MOUNTED (qsRef stays live off-tab)", async () => {
     await mountArea({ initialProviderScope: "online" });
-    expect(builtinVisible(), "hidden on the online tab").toBe(false);
-    expect(builtinCard(), "…but still in the DOM, so its QuickSetup ref survives").toBeTruthy();
-    expect(document.querySelector(".lu-builtin-qs"), "the QuickSetup mount is still there").toBeTruthy();
+    expect(qsBandVisible(), "hidden on the online tab").toBe(false);
+    expect(qsBand(), "…but still in the DOM, so its QuickSetup ref survives").toBeTruthy();
+    expect(qsBand().querySelector(".lu-qs"), "the QuickSetup mount is still there").toBeTruthy();
+  });
+});
+
+// ── 2026-07-19: the built-in provider COLLAPSES into the Local list ───────────
+// The user reversed the QC-39 (b) promotion: no more permanent top card — the
+// built-in is an ordinary row with the same inline Edit as every other provider,
+// marked only by a "Built-in" tag, and Quick Setup stands on its own above the list.
+describe("built-in provider is a normal row in the Local list", () => {
+  it("renders as a ROW, and the promoted .lu-builtin card is gone", async () => {
+    await mountArea();
+    expect(document.querySelector(".lu-builtin"), "the promoted card is deleted").toBeNull();
+    expect(rowFor("Built-in provider — llama.cpp"), "…and the built-in is a row instead").toBeTruthy();
+  });
+
+  it("is the FIRST row in the local list", async () => {
+    await mountArea();
+    expect(rowNames()).toEqual(["Built-in provider — llama.cpp", "My Ollama"]);
+  });
+
+  it("carries a Built-in tag; a non-built-in local row does not", async () => {
+    await mountArea();
+    expect(capsOf(rowFor("Built-in provider — llama.cpp"))).toContain("Built-in");
+    expect(capsOf(rowFor("My Ollama"))).not.toContain("Built-in");
+  });
+
+  it("omits the misleading 'no key' clause (it needs no API key)", async () => {
+    await mountArea();
+    const meta = rowFor("Built-in provider — llama.cpp").querySelector(".lu-prow-meta").textContent;
+    expect(meta).not.toContain("no key");
+    // the ordinary local row keeps its meta exactly as it was
+    expect(rowFor("My Ollama").querySelector(".lu-prow-meta").textContent).toContain("no key");
+  });
+
+  it("does NOT appear on the online scope", async () => {
+    await mountArea({ initialProviderScope: "online" });
+    expect(rowNames()).toEqual(["Claude"]);
+  });
+
+  // The deleted promotion was the ONLY consumer of ProviderForm's `permanent` mode
+  // (bare chrome + no Cancel), so that mode is gone too. Edit on the built-in must
+  // therefore expand the SAME card-chromed, cancellable form every other row gets.
+  it("Edit expands a normal ProviderForm — card chrome, with a Cancel", async () => {
+    await mountArea();
+    [...rowFor("Built-in provider — llama.cpp").querySelectorAll("button")]
+      .find((b) => b.textContent.trim() === "Edit").click();
+    await flush();
+    const form = document.querySelector(".lu-pform");
+    expect(form, "the form expanded in place").toBeTruthy();
+    expect(form.classList.contains("lu-pform--bare"), "not the deleted bare variant").toBe(false);
+    expect([...form.querySelectorAll("button")].some((b) => b.textContent.trim() === "Cancel"),
+      "a collapsible form offers Cancel").toBe(true);
+  });
+
+  it("drops the '(your machine)' title tail everywhere", async () => {
+    await mountArea();
+    expect(document.body.textContent).not.toContain("(your machine)");
   });
 });
 
 // ── ProviderForm: the new-provider WHERE default follows the tab ──────────────
-// The WHERE control is the UiSegmented at ProviderForm.vue:256, bound to the WHERE
-// options array at ProviderForm.vue:87 —
-// [{ true: "Local · free" }, { false: "Online · metered" }].
+// The WHERE control is the UiSegmented bound to ProviderForm's WHERE options array —
+// [{ true: "Local · free" }, { false: "Online · metered" }]. (Located by that text
+// below rather than by line number, which drifts.)
 function whereActive() {
   const segs = [...document.querySelectorAll(".ui-seg")];
   const where = segs.find((s) => s.textContent.includes("Local · free") && s.textContent.includes("Online · metered"));
