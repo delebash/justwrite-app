@@ -528,6 +528,9 @@ pub fn run() {
         .plugin(tauri_plugin_dialog::init())
         .plugin(tauri_plugin_fs::init())
         .plugin(tauri_plugin_http::init())
+        // Remember the window size + position across launches — the plugin saves
+        // on close and restores on start automatically (no JS/capability needed).
+        .plugin(tauri_plugin_window_state::Builder::default().build())
         .setup(|app| {
             // Resolve the (portable, user-settable) data root with Tauri's OWN
             // path resolver — that needs the AppHandle, so it runs here rather
