@@ -29,6 +29,10 @@
 (the per-section "unpushed on the branch" tags below are historical; everything through the
 SDK pivot + #16 is now on the remote).
 
+> **Open work → `docs/TASKS.md`** (the live tracker) · **Ideas → `docs/IDEAS.md`**.
+> This file is the boot-map: rules, current state, and the doc index. It POINTS at the
+> tracker; it no longer holds live open-work lists (restoring its "a map, not a log" charter).
+
 ---
 
 ## ⛔ THE RECAP PROTOCOL (user-approved 2026-07-08 — keeps this file readable in one gulp)
@@ -80,12 +84,9 @@ think-on-no-level run-path gap, and the autoflush-OFF seed bug (every fresh boot
 since 07-14 seeded an EMPTY reasoning map — proven live both paths). Full record:
 `just-llm-runner/docs/plans/2026-07-16-reasoning-budget-house-layering.md` (plan + four
 build records) · commits: runner `00c476b`→`bc3f352` (5, unpushed) · JW `d738978`+
-`752ef2c` (+ this pointer). **OPEN:** the user's box verification (visual — their call:
-no screenshots, they look) + the two box tests
-(`docs/plans/2026-07-16-think-ab-and-loop-retest.md`: think OFF/ON A/B — the day's
-original question — and the b9993 loop re-test, verdict rule declared). The loop
-provenance is CORRECTED in the tuning doc + recap archive (it was Claude's diagnosis
-from the user's pasted token counts, jointly accepted — the loop STANDS as verified).
+`752ef2c` (+ this pointer). Box-checks → `docs/TASKS.md`. (Loop provenance corrected in
+the tuning doc + recap archive — Claude's diagnosis from the user's pasted token counts,
+jointly accepted; the loop STANDS as verified.)
 
 ## GO (2026-07-17, later) — THE ONE LOAD/UNLOAD/DOWNLOAD CONTROL, THE #4 PLAN REBUILT (unpushed)
 
@@ -103,10 +104,8 @@ loadPhases vocabulary + taskFor adapter on slot cards/rows; QuickSetup's copy de
 /models carries NO progress key even mid-loading (the child emits it; the router keeps it
 internal); recorded in the plan doc, re-probe at the next engine bump. Every fires-proof ran
 red-then-green (stash-runs); runner pytest 532 ✓ ruff ✓ JW vitest 197 ✓ build:vite ✓ server
-pytest 108 ✓; the headless smoke is the CONTAINER's gate (no Chromium on this box — checked);
-**OPEN: the user's box look** (load phases/words · instant cancel · "Unloading…" no-flicker ·
-QuickSetup unchanged) + 3 pre-existing Windows-box test failures (lspci + 2× ensure, proven
-pre-existing by stash-run). The morning's respawner question stays PASSIVELY armed: the
+pytest 108 ✓; the headless smoke is the CONTAINER's gate (no Chromium on this box — checked).
+Box-checks → `docs/TASKS.md`. The morning's respawner question stays PASSIVELY armed: the
 `4c53a08` telemetry names any future reloader in justwrite.log (`load <id> (trigger=…)`).
 
 ## GO (2026-07-17) — THREE USER-REPORTED BUGS FIXED (unpushed on the branch)
@@ -126,11 +125,9 @@ modal** — kit `8fa0f39` + JW test `db6464e`: the `editable` chip's popover por
 blur — invisible on all 15 in-modal chip mounts. Fixed 60→**999** (matches
 `.ui-select-content`, the other body-portalled reka popper). DOM-probe-verified it was
 pure stacking (mounts+stays, pointer-events already auto — NOT focus-trap). Pinned by
-`chipPopoverStacking.test.js` (fails at 60, passes at 999). **Live queue** (memory
-`open-todos-2026-07-17.md`): still OPEN, need a go each — multi-click unload · "stalling"
-thresholds mislabel a 2.6 tok/s model · the cancel/progress plan
-(`docs/plans/2026-07-17-load-cancel-and-one-progress-control.md`, FAILED its 3-lens; T2
-would unload a DIFFERENT resident model — do not build as written).
+`chipPopoverStacking.test.js` (fails at 60, passes at 999). Live runner queue (multi-click
+unload · "stalling" mislabels a 2.6 tok/s model · the cancel/progress plan that FAILED its
+3-lens) → `docs/TASKS.md`.
 
 ## GO (2026-07-17) — PROVIDER LAYER → OFFICIAL VENDOR SDKs (the SDK pivot; unpushed on the branch)
 
@@ -149,11 +146,8 @@ product commit cleared the delegated commit-gate with a genuine rules-checker PA
 `just-llm-runner/docs/plans/2026-07-17-provider-native-dialects-plan.md`.
 **Shas (runner):** `05013c5` C1 · `a9fe7fd` C2 · `e05e5b5` C3 · `8a1f8d9` C4 · `95ea74e`
 gemini-keyless-fix · `0bc8e49` C5 · `d3a6aee` C6 · `83ea80e` embed-fake. **JW:** `34fd0f7`
-seed · `541b50b` C6 opt-in · `d61a749` D5 render-pin. **OPEN — the user's box check** (see
-the plan's box-check list): delete→restart→re-add each of Gemini/Claude/Ollama, paste key,
-Fetch → chat/entitySweep/ask-the-book · the #12 key masks/reveals + Fetch/Test work without
-retyping · OpenAI/xAI/Mistral connect when the user has funded keys (ship tests-green,
-live-unverified). Renderer headless smoke was **not** run (must not touch the user's live
+seed · `541b50b` C6 opt-in · `d61a749` D5 render-pin. Box-checks → `docs/TASKS.md`.
+Renderer headless smoke was **not** run (must not touch the user's live
 :1420/:17495); the ProviderForm delta is covered by JW vitest mounts (key-reveal + D5).
 
 **Follow-up #16 (2026-07-18, coordinator-built):** the builders' dummy keys (`"no-key"`
@@ -261,42 +255,24 @@ Highlights, newest first (full records in the plan docs / git):
   directly, after which the vendored copy can go.
 
 ### NEXT / open
-- **Unit 2 (thinking/reasoning) is SHIPPED** — absorbed into the one-source rewrite. What
-  remains is the USER's box acceptance: one local High chat run stopping at the hardware cap,
-  one new-Anthropic run (reasoning words on the wire, no 400). Ledger §G.
-- **THE ledger** `just-llm-runner/docs/plans/2026-07-06-outstanding-master-plan.md` §F/G/I/J is
-  the ONE open-work source: **F1 JustVoice convergence** (still broken — JV imports
-  `LLMRolesSettings` the runner defines nowhere) is the biggest build; §G your-box checks; parked
-  I2/I3/I5/I6, #256 spell-check, D5/D6, J1–J3.
+Open work now lives in **`docs/TASKS.md`** (the live tracker); ideas in **`docs/IDEAS.md`**.
+Headlines: **F1 JustVoice convergence** (the biggest build) · the your-box checks · Unit 2
+reasoning acceptance. The runner **ledger** stays the twice-verified detail the tracker points to.
 
-## OPEN WORK — the ONE list and where it lives
+## OPEN WORK → `docs/TASKS.md`
 
-- **THE ACTIVE BATCH (2026-07-08):** the user's 52-item list, organized and grounded in
-  `just-llm-runner/docs/plans/2026-07-08-big-batch-queue.md` — §0 the list verbatim · §1 the
-  code-verified answers · **§7.1–§7.6 the LOCKED decisions (ALL discussions decided; E parked;
-  the §7.6 flagged interpretations user-BLESSED: "your decisions are fine")** · §3 batches
-  B1–B6 — **B1 + B2 + B3 (incl. the B3-4/B3-10 remainder) + B4 BUILT + shipped**. **⛔ THE
-  §8 STANDING GO ON BATCHES 5+6 IS FROZEN by the user's hard stop (2026-07-08): "do nothing until i say go"** — the queue doc §9 ROUND 2
-  items (QC-10..16) are discussion-first; DL-2 stays PLAN-ONLY; B2-9 still needs its own
-  word. Nothing builds until the user's go. **B1-2 CLOSED at pickup** by the user's own diagnosis (a DB-reset
-  disk⇄DB disconnect; "the deleting is fine" — no code change; the disk-based sweep already
-  self-heals at the next install, note + code cites in queue §8). **The queue doc §9 is the
-  LIVE QC queue** — the user is QC-ing shipped batches on their box and dropping findings while
-  the standing go executes ("this should not stop your tasks"); QC-1 (badge wording → the real
-  editor names) is recorded there. No-tests posture on (container gates still run at ship).
-- **THE ledger:** `just-llm-runner/docs/plans/2026-07-06-outstanding-master-plan.md` — every
-  genuinely open item across all three repos, twice-verified, sections A–I. **Do not maintain a
-  second backlog anywhere, including here.** §I (added 2026-07-08) folds in the 2026-06-28
-  master plan's tail, so the old 513 KB master never needs to be opened as a tracker again.
-- **Your-box checks (user's Windows/2070S machine):** ledger §G, plus the per-round box-check
-  lists in the providers-surface doc (ROUNDs 9–19; ROUND 19's four are the newest: the
-  measurement drawer renders under the class library · a measure survives a restart · sweep
-  trials appear labeled · Clear empties only that model's history).
-- **Parked — each stays parked until the user wakes it:** C9's research half (Gryphe +
-  HauhauCS ablated-build Lab A/Bs), D5 remote curated catalog (parked), D6 HF Discover +
-  the TurboLLM feature study, the models-folder import idea, and the ledger §I tail items.
-- **JustVoice:** ledger F1–F5 — F1 (convergence onto the current shared stack) is the single
-  biggest outstanding item; JV can't import today's `llm_runner` until it runs.
+The live open-work tracker for the whole system (**JustWrite · shared AI stack · JustVoice ·
+your-box checks**) is **`docs/TASKS.md`**; unscheduled ideas are in **`docs/IDEAS.md`**. Both
+point to the detail docs, which stay the authoritative depth:
+
+- the runner **ledger** `just-llm-runner/docs/plans/2026-07-06-outstanding-master-plan.md`
+  (§A–J, twice-verified — every genuinely open AI-stack item),
+- the **big-batch queue** `just-llm-runner/docs/plans/2026-07-08-big-batch-queue.md`
+  (§8 batches 5+6 **FROZEN** by the user's hard stop · §9 the live QC findings),
+- the **providers-surface** rounds (per-round box checks).
+
+**Maintain open work in `TASKS.md`, not here.** (Supersedes the old "do not maintain a second
+backlog" line — the ledger is now the *detail* the tracker indexes, not a rival list.)
 
 ## STANDING RULES (load-bearing — do not re-litigate)
 
@@ -364,8 +340,10 @@ Highlights, newest first (full records in the plan docs / git):
 
 ## ACTIVE DOC INDEX (open on demand, not at boot)
 
-- **Open work (THE ledger):** `just-llm-runner/docs/plans/2026-07-06-outstanding-master-plan.md`
-  — sections A–I; §I is the master-plan tail folded 2026-07-08.
+- **The live tracker:** `docs/TASKS.md` — whole-system open work (JustWrite · shared AI
+  stack · JustVoice · your-box checks); one line per item + a pointer. **Ideas:** `docs/IDEAS.md`.
+- **AI-stack open-work detail (THE ledger):** `just-llm-runner/docs/plans/2026-07-06-outstanding-master-plan.md`
+  — sections A–J, twice-verified; the depth `TASKS.md` points to for AI-stack items.
 - **Providers/models surface:** `just-llm-runner/docs/plans/2026-07-06-providers-surface-redesign.md`
   — ROUNDs 1–19 full records + the parked list + per-round box checks. Banner + needed round only.
 - **Current AI-routing / preset model:** `just-llm-runner/docs/plans/2026-07-15-preset-one-source-rewrite.md`
@@ -387,5 +365,7 @@ Highlights, newest first (full records in the plan docs / git):
 ## Where detail lives
 
 Architecture + conventions → this repo's `CLAUDE.md` + the global `~/.claude/CLAUDE.md`.
-Open work → the outstanding ledger (nowhere else). Per-feature/per-go history → the plan doc
-named in the index above, and the recap archive for anything older than this split.
+Open work → **`docs/TASKS.md`** (the live tracker); ideas → **`docs/IDEAS.md`**; the
+twice-verified AI-stack detail the tracker points to → the outstanding ledger. Per-feature/
+per-go history → the plan doc named in the index above, and the recap archive for anything
+older than this split.

@@ -5,7 +5,8 @@
 ## Read first (every session)
 
 - **Global rules:** `~/.claude/CLAUDE.md` — the five checks **R1–R5** + the two habits (ask when unsure · look at what you built) + the act-not-word law; detail + the shared Vue 3 + Tauri 2 app standard in `~/.claude/rules-detail.md`. They govern; this file does NOT restate them.
-- **`MORNING_RECAP.md`** (this repo) — current + future tasks and the live list of active plan docs. Read it before acting; don't re-litigate decisions recorded there.
+- **`MORNING_RECAP.md`** (this repo) — the boot-map: rules, current state, and the doc index. Read it before acting; don't re-litigate decisions recorded there. It POINTS at the two live lists below (it no longer holds open-work lists itself).
+- **`docs/TASKS.md`** — the live open-work tracker for the whole system (JustWrite · shared AI stack · JustVoice · your-box checks). One line per item + a pointer to its detail doc. **`docs/IDEAS.md`** — the ideas backlog. Maintain open work in `TASKS.md`, not the recap.
 - The memory index (auto-loaded) — open a specific memory file when the task touches it.
 
 ## Commands
@@ -56,9 +57,10 @@ one sanctioned exception to per-domain stores.
 
 > **AI/LLM stack is shared** — `just-llm-runner` (Python) + `@delebash/llm-ui`
 > (Vue), consumed by both apps; only TTS and each app's feature catalog differ.
-> The current cutover state lives in `MORNING_RECAP.md`; OPEN AI-stack work lives in
-> `just-llm-runner/docs/plans/2026-07-06-outstanding-master-plan.md` (THE one ledger,
-> sections A–I), and the **current AI-routing / preset model** is
+> The current cutover state lives in `MORNING_RECAP.md`; open AI-stack work is tracked in
+> `docs/TASKS.md` (the whole-system live tracker), which points to
+> `just-llm-runner/docs/plans/2026-07-06-outstanding-master-plan.md` (THE ledger, sections
+> A–J, twice-verified) for the detail; and the **current AI-routing / preset model** is
 > `just-llm-runner/docs/plans/2026-07-15-preset-one-source-rewrite.md`
 > (**one-source model**, 2026-07-15: the task tier is DELETED — each action points at ONE
 > engine preset (`feature_preset_refs`, seeded full) which owns the model + every tunable
