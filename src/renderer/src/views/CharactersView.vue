@@ -473,33 +473,52 @@ function onRowClick(event) {
             <div v-else-if="dropSaving > 0" class="avatar-drop-overlay saving">Saving…</div>
           </div>
           <div class="character-hero-fields">
-            <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap">
-              <UiInput fluid style="max-width:200px" placeholder="Role"
-                :model-value="ch.role" @update:model-value="updateField('role', $event)" />
-              <label class="chip" style="cursor:pointer;gap:6px">
+            <!-- Labels on top for every hero field (the Voice-grid `t-muted`
+                 label idiom, promoted to `.ch-field` so the whole sheet shares
+                 one field shape — RULE #1 precedent). Placeholders removed. -->
+            <div class="ch-hero-row">
+              <div class="ch-field" style="max-width:200px">
+                <span class="ch-field-label">Role</span>
+                <UiInput :model-value="ch.role" @update:model-value="updateField('role', $event)" />
+              </div>
+              <div class="ch-field" style="max-width:150px">
+                <span class="ch-field-label">Gender</span>
+                <UiInput :model-value="ch.gender" @update:model-value="updateField('gender', $event)" />
+              </div>
+              <div class="ch-field" style="max-width:150px">
+                <span class="ch-field-label">Pronouns</span>
+                <UiInput :model-value="ch.pronouns" @update:model-value="updateField('pronouns', $event)" />
+              </div>
+              <div class="ch-field" style="max-width:90px">
+                <span class="ch-field-label">Age</span>
+                <UiNumber :use-grouping="false"
+                  :model-value="ch.age ?? null" @update:model-value="updateField('age', $event ?? null)" />
+              </div>
+              <div class="ch-field" style="max-width:150px">
+                <span class="ch-field-label">Life status</span>
+                <UiSelect
+                  :model-value="ch.lifeStatus || ''"
+                  @update:model-value="(v) => updateField('lifeStatus', v)"
+                  :options="LIFE_STATUS_OPTIONS"
+                  aria-label="Life status" />
+              </div>
+              <label class="chip ch-hero-chip" style="cursor:pointer;gap:6px">
                 <UiCheckbox :model-value="ch.main" @update:model-value="updateField('main', $event)" />
                 Main character
               </label>
-              <label class="chip" style="cursor:pointer;gap:6px"
+              <label class="chip ch-hero-chip" style="cursor:pointer;gap:6px"
                 v-tooltip.bottom="'Hides this entity from any AI feature that pulls in story-world context.'">
                 <UiCheckbox :model-value="!!ch.excludeFromAi" @update:model-value="(v) => updateField('excludeFromAi', v)" />
                 Exclude from AI
               </label>
-              <UiInput fluid style="max-width:140px" placeholder="Gender"
-                :model-value="ch.gender" @update:model-value="updateField('gender', $event)" />
-              <UiInput fluid style="max-width:140px" placeholder="Pronouns (she/her…)"
-                :model-value="ch.pronouns" @update:model-value="updateField('pronouns', $event)" />
-              <UiNumber style="max-width:80px" placeholder="Age" :use-grouping="false"
-                :model-value="ch.age ?? null" @update:model-value="updateField('age', $event ?? null)" />
-              <UiSelect style="max-width:140px"
-                :model-value="ch.lifeStatus || ''"
-                @update:model-value="(v) => updateField('lifeStatus', v)"
-                :options="LIFE_STATUS_OPTIONS"
-                aria-label="Life status" />
             </div>
-            <UiTextarea fluid rows="2" style="margin-top:14px;font-family:var(--font-serif);font-style:italic"
-              placeholder="One-liner"
-              :model-value="ch.oneLiner" @update:model-value="updateField('oneLiner', $event)" />
+            <div class="ch-field" style="margin-top:14px">
+              <span class="ch-field-label">One-liner
+                <span class="ch-field-hint">Not traits — tension. "A pacifist who keeps ending up in fights."</span>
+              </span>
+              <UiTextarea rows="2" style="font-family:var(--font-serif);font-style:italic"
+                :model-value="ch.oneLiner" @update:model-value="updateField('oneLiner', $event)" />
+            </div>
           </div>
         </div>
 
@@ -669,6 +688,20 @@ function onRowClick(event) {
   align-items: flex-start;
 }
 .character-hero-fields { flex: 1; min-width: 0; }
+
+/* ── The canonical character-sheet field: label on top, optional muted
+      hint next to the label, control below. Shared by the hero row and
+      every v3 section so the whole page reads as one form. ─────────── */
+.ch-field { display: flex; flex-direction: column; gap: 4px; min-width: 0; }
+.ch-field-label {
+  font-size: 11px; font-weight: 600; color: var(--ink-2);
+  display: flex; gap: 7px; align-items: baseline; flex-wrap: wrap;
+  line-height: 1.35;
+}
+.ch-field-hint { font-weight: 400; color: var(--muted); font-size: 11px; }
+.ch-hero-row { display: flex; gap: 12px 14px; align-items: flex-end; flex-wrap: wrap; }
+.ch-hero-row .ch-field { flex: 0 1 auto; }
+.ch-hero-chip { align-self: flex-end; margin-bottom: 4px; }
 
 .motivation-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
 .arc-grid { grid-template-columns: repeat(3, minmax(0, 1fr)); }
