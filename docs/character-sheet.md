@@ -14,9 +14,12 @@ it's your working memory for the character.
 
 > **Fill from book** (button in the page header) drafts many of these fields
 > for you from the scenes that actually feature the character — one-liner,
-> motivation, arc, backstory, and the identity basics. It reads the prose,
-> proposes values, and lets you review every one before anything saves. Use it
-> once a character has scenes linked to them.
+> motivation (including fear, contradiction, and stakes), arc, backstory, the
+> identity basics, physical constants, **and their voice**: register, rhythm,
+> vocabulary tells, subtext habit, humor, plus the three sample lines lifted
+> *verbatim* from dialogue they actually speak. It reads the prose, proposes
+> values, and lets you review every one before anything saves. Use it once a
+> character has scenes linked to them.
 
 ---
 
@@ -117,6 +120,12 @@ How they sound and move — the calibration set.
 > fields: note how the character speaks to a superior, to someone with less
 > power, to an intimate, to a stranger, to an enemy. The "less power" row is the
 > reveal — how they treat a waiter, a junior, a child.
+
+> **Fill from book covers most of this section** — it reads the character's
+> actual dialogue and drafts register, rhythm, vocabulary, subtext, humor,
+> languages, tic, stress tells, and the three sample lines (verbatim quotes,
+> never composed). Two fields stay yours alone: **forbidden words** (proving a
+> negative needs the whole book) and **accent** (rarely stated in prose).
 
 ---
 

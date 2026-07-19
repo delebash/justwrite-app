@@ -5,7 +5,7 @@
 // fear/contradiction/stakes, and physical constants.
 import { describe, expect, it } from "vitest";
 
-import { sanitizeProfile } from "../analysis/characterProfile.js";
+import { sanitizeProfile, sanitizeVoice } from "../analysis/characterProfile.js";
 
 const MOTIVATION_KEYS = ["contradiction", "fear", "lie", "need", "stakes", "truth", "want"];
 
@@ -73,5 +73,55 @@ describe("sanitizeProfile", () => {
     expect(Object.keys(p.identity).sort()).toEqual(["age", "gender", "pronouns", "role"]);
     expect(Object.keys(p.motivation).sort()).toEqual(MOTIVATION_KEYS);
     expect(Object.keys(p.continuity)).toEqual(["physicalConstants"]);
+  });
+});
+
+// WS8 (2026-07-19) — the voice pass: a flat 11-key model reply mapped onto the
+// exact extras shape the page edits (sampleCalm → voice.sample, the page's
+// pre-v3 calm-sample key; stressTells → presence).
+describe("sanitizeVoice", () => {
+  it("maps the flat reply onto the page's extras shape", () => {
+    const v = sanitizeVoice({
+      register: " formal, slips when angry ",
+      rhythm: "clipped",
+      vocabulary: "chart, reckon, leeward",
+      subtext: "answers questions with questions",
+      humor: "dry",
+      languages: "Trade tongue, old Parian",
+      tic: "hm",
+      sampleCalm: "Chart it or lose it.",
+      sampleAngry: "You had ONE watch.",
+      sampleLying: "I was nowhere near the customs house.",
+      stressTells: "Goes still; over-precise hands.",
+    });
+    expect(v.voice.register).toBe("formal, slips when angry");
+    expect(v.voice.sample).toBe("Chart it or lose it.");       // calm → the page's `sample` key
+    expect(v.voice.sampleAngry).toBe("You had ONE watch.");
+    expect(v.voice.sampleLying).toBe("I was nowhere near the customs house.");
+    expect(v.presence.stressTells).toBe("Goes still; over-precise hands.");
+  });
+
+  it("honest-\"\" for missing / garbage fields, and clamps lengths", () => {
+    const empty = sanitizeVoice(null);
+    expect(empty.voice.register).toBe("");
+    expect(empty.voice.sample).toBe("");
+    expect(empty.presence.stressTells).toBe("");
+    const long = "x".repeat(1000);
+    const v = sanitizeVoice({ register: long, sampleCalm: long, stressTells: long, rhythm: 42 });
+    expect(v.voice.register).toHaveLength(200);
+    expect(v.voice.sample).toHaveLength(300);
+    expect(v.presence.stressTells).toHaveLength(300);
+    expect(v.voice.rhythm).toBe("");
+  });
+
+  it("never leaks model-invented keys", () => {
+    const v = sanitizeVoice({ register: "ok", accent: "cockney", forbidden: "never", evil: "x" });
+    expect(Object.keys(v).sort()).toEqual(["presence", "voice"]);
+    expect(Object.keys(v.voice).sort()).toEqual(
+      ["humor", "languages", "register", "rhythm", "sample", "sampleAngry", "sampleLying", "subtext", "tic", "vocabulary"],
+    );
+    expect(Object.keys(v.presence)).toEqual(["stressTells"]);
+    // accent + forbidden are deliberately NOT drafted (unprovable / rarely stated).
+    expect(v.voice.accent).toBeUndefined();
   });
 });

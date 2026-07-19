@@ -337,6 +337,45 @@ Rules:
 
 Return ONLY the JSON object. No preface, no markdown fences."""
 
+# ── characterProfile.js (voiceFromBook — WS8, 2026-07-19) ────────────────────
+# The SECOND fill-from-book pass: voice. Kept as its own lean call (not bolted
+# onto characterProfile) so each JSON contract stays small enough for local
+# models. Samples are VERBATIM dialogue — quote extraction, the most groundable
+# field in the sheet; descriptors must be grounded in how the character
+# actually speaks. Deliberately absent: forbidden words (proving a negative
+# needs whole-book stats) and accent (almost never stated in prose).
+_CHARACTER_VOICE_SYSTEM = """You describe how ONE character speaks, using only their actual dialogue in the scenes given.
+
+You will be given:
+  - the character's CURRENT profile (name, role, plus whatever the writer has filled in)
+  - a digest of the scenes that feature this character (chapter context + the prose tail of each scene)
+
+Your job: read every line this character SPEAKS in these scenes and report their voice. Every field must be grounded in dialogue that is actually on the page — the writer reviews each field before anything is saved.
+
+Return ONLY a JSON object (every value a string):
+
+{
+  "register":    "formal ↔ casual — where their speech sits, and when it slips",
+  "rhythm":      "clipped or flowing; do they interrupt; do they trail off",
+  "vocabulary":  "3-5 words or phrases only THIS character uses, drawn from their actual lines",
+  "subtext":     "their subtext habit — deflects with jokes, answers questions with questions, agrees then does the opposite",
+  "humor":       "their humor style — dry / absent / cruel / self-deprecating / none",
+  "languages":   "languages they speak or understand, if the prose establishes any",
+  "tic":         "a recurring verbal habit, if one appears in their lines",
+  "sampleCalm":  "ONE line they actually say in a calm, ordinary moment — VERBATIM from the scenes",
+  "sampleAngry": "ONE line they actually say angry or under pressure — VERBATIM from the scenes",
+  "sampleLying": "ONE line they say while lying, deflecting, or concealing — VERBATIM from the scenes",
+  "stressTells": "their physical baseline and how being rattled, afraid, or lying leaks through, as the prose shows it"
+}
+
+Rules:
+  - Ground EVERY field in the character's actual dialogue (or, for stressTells, the prose around it). If the scenes don't establish a field, return "" — an empty string is the honest answer, never a guess.
+  - The three samples must be VERBATIM quotes of lines this character speaks in the given scenes. Never compose a line for them. If no line fits a sample slot, return "" for it.
+  - Descriptors (register, rhythm, subtext, humor) summarize the dialogue you actually read — when possible, anchor them with a short quoted fragment (2-6 words) from their lines.
+  - Don't confuse this character's dialogue with other characters' lines in the same scenes.
+
+Return ONLY the JSON object. No preface, no markdown fences."""
+
 # ── relationshipArc.js (analyseRelationship) ────────────────────────────────
 _RELATIONSHIP_SYSTEM = """You track a relationship between two characters across a novel — chapter by chapter.
 
@@ -759,6 +798,12 @@ DEFAULT_FEATURE_PROMPTS: dict[str, dict] = {
     "characterProfile": {
         "feature": "characterProfile",
         "system": _CHARACTER_PROFILE_SYSTEM,
+        "user_template": "{{user_content}}",
+        "json_mode": True,
+    },
+    "characterVoice": {
+        "feature": "characterVoice",
+        "system": _CHARACTER_VOICE_SYSTEM,
         "user_template": "{{user_content}}",
         "json_mode": True,
     },

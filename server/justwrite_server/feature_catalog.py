@@ -42,6 +42,7 @@ FEATURE_CATALOG: list[FeatureCatalogEntry] = [
     FeatureCatalogEntry("entitySweep", "Entity sweep", "Scans chapters for new characters / locations / objects to add to the story bible.", "Characters"),
     FeatureCatalogEntry("characterAudit", "Character audit", "Per-character consistency audit (profile + their scenes → flagged actions) on the Characters view.", "Characters"),
     FeatureCatalogEntry("characterProfile", "Character profile", "Drafts a character's profile fields (description, motivation, arc, backstory) from their scenes — reviewed before anything saves.", "Characters"),
+    FeatureCatalogEntry("characterVoice", "Character voice", "Drafts how a character speaks (register, rhythm, verbatim sample lines) from their actual dialogue — reviewed before anything saves.", "Characters"),
     FeatureCatalogEntry("relationshipArc", "Relationship arc", "Chapter-by-chapter warmth / tension / power tracking for a pair of characters.", "Characters"),
     # ── Chat ──
     FeatureCatalogEntry("chat", "Ask the book", "RAG question/answer over your manuscript — the chat panel's “Ask the book” mode.", "Chat"),

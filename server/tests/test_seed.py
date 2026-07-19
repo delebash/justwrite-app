@@ -216,7 +216,7 @@ def test_seed_presets_refs_and_samples(tmp_path):
     # 38 per-action refs, exactly the mint map; each points at a real preset.
     # (37 → 38: +characterProfile on p_extract — E, 2026-07-18.)
     assert refs == SP.DEFAULT_FEATURE_PRESETS
-    assert len(refs) == 38
+    assert len(refs) == 39
     ids = {p.id for p in presets}
     assert all(pid in ids for pid in refs.values())
 

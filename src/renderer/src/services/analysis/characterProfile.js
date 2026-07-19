@@ -57,6 +57,54 @@ export function sanitizeProfile(parsed) {
   return out;
 }
 
+// ── WS8 (2026-07-19): the voice pass — a SECOND lean call, not more keys on
+// the profile contract (two small JSON schemas beat one bloated one on local
+// models). Flat 11-key model reply, mapped here onto the exact extras shape
+// the character page edits: voice.{register,rhythm,vocabulary,subtext,humor,
+// languages,tic,sample,sampleAngry,sampleLying} + presence.stressTells.
+// sampleCalm → voice.sample (the page's pre-v3 calm-sample key).
+
+const VOICE_KEYS = ["register", "rhythm", "vocabulary", "subtext", "humor", "languages", "tic"];
+
+/** Normalize a parsed characterVoice reply to the extras shape the page edits.
+ *  Exported for tests — the modal trusts this, never `parsed` raw. */
+export function sanitizeVoice(parsed) {
+  const voice = {};
+  for (const k of VOICE_KEYS) voice[k] = s(parsed?.[k], 200);
+  voice.sample = s(parsed?.sampleCalm, 300);
+  voice.sampleAngry = s(parsed?.sampleAngry, 300);
+  voice.sampleLying = s(parsed?.sampleLying, 300);
+  return { voice, presence: { stressTells: s(parsed?.stressTells, 300) } };
+}
+
+/**
+ * Draft voice fields for one character from their actual dialogue in the
+ * scenes that feature them. Same composer + null-when-no-scenes contract as
+ * profileFromBook (QC-35: one input source for audit/profile/voice).
+ */
+export async function voiceFromBook({ project, characterId, signal, provider, model, task } = {}) {
+  if (!project) throw new Error("voiceFromBook: project store is required.");
+  const composed = composeCharacterAuditInput(project, characterId);
+  if (!composed) return null;
+
+  const meta = { characterId, kind: "character-voice" };
+  const { result, parsed } = await runJsonAnalysis({
+    action: "characterVoice",
+    feature: "characterVoice",
+    variables: composed.variables,
+    signal, provider, model, meta,
+    task: task || { label: `Voice: ${composed.character?.name || "character"}`, meta },
+  });
+
+  return {
+    character: { id: composed.character.id, name: composed.character.name },
+    sceneCount: composed.sceneCount,
+    fields: sanitizeVoice(parsed),
+    model: result.model,
+    providerId: result.providerId,
+  };
+}
+
 /**
  * Draft profile fields for one character from the scenes that feature them.
  * Returns null when no scenes are linked to the character (nothing to ground
