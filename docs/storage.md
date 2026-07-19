@@ -42,6 +42,22 @@ updated, and removed on the AI page; the **server logs** have their own
 retention controls in **Settings → Logs**; and the **database** is your actual
 work — it's never cleared from here.
 
+### Log timestamps
+
+On screen — in **Settings → Logs** and in the **Server console** under AI — log
+times are shown in **your computer's own date and time format**, so a US machine
+reads `07/19/2026, 12:06:22 AM` and a European one reads its local convention.
+The day list you pick a stored log from follows the same format. Nothing to
+configure: JustWrite follows whatever the machine it's running on is set to.
+
+Inside the saved log **files** — and in anything you **Download** or **Copy** out
+of the Logs panel — timestamps are written in the international
+`2026-07-19T00:06:22.169` form instead. That's deliberate —
+it sorts correctly, it's unambiguous no matter whose machine opens the file, and
+it keeps the millisecond precision that's useful when you're sending a log in for
+diagnosis. Both are the same moment on your local clock; only the presentation
+differs.
+
 ## The local AI engine
 
 The bundled local models run on a small **llama.cpp engine**. Installing it is
