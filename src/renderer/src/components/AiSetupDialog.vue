@@ -9,7 +9,8 @@
 //   • Run Quick Setup → /ai?quicksetup=1 (the shared AiModelsArea auto-opens the
 //     QuickSetup wizard; a project now exists, so /ai renders inside the real app
 //     shell — no dead end).
-//   • Connect an online provider → /ai (Providers & models tab).
+//   • Connect an online provider → /ai?providers=online (Providers & models, landing
+//     on the ONLINE tab of the provider list — the metered/API-key half).
 //   • Skip for now → just dismiss.
 import { ref } from "vue";
 import { useRouter } from "vue-router";
@@ -28,7 +29,7 @@ function onQuickSetup() {
   dismiss();
 }
 function onConnectProvider() {
-  router.push("/ai");
+  router.push("/ai?providers=online");
   dismiss();
 }
 </script>

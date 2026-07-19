@@ -28,7 +28,7 @@ export default defineConfig({
     // imports its peer deps by bare specifier from its OWN dir, which has no
     // node_modules — without this a mounted kit SFC fails to resolve "reka-ui". Keep
     // the two lists in lock-step.
-    dedupe: ["vue", "reka-ui", "@floating-ui/dom", "pinia", "vue-router", "vue-i18n", "marked", "vue-sonner", "@tanstack/vue-table"],
+    dedupe: ["vue", "reka-ui", "@floating-ui/dom", "pinia", "vue-router", "vue-i18n", "marked", "vue-sonner", "@tanstack/vue-table", "@vueuse/core"],
   },
   test: {
     environment: "node",

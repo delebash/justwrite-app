@@ -5,7 +5,7 @@
 // control JustVoice mounts in its own page chrome. (Boundary, per the user:
 // "jw has its card layout, we just put the control in it.")
 import { onUnmounted } from "vue";
-import { useRoute } from "vue-router";
+import { useRoute, useRouter } from "vue-router";
 import PaneHeader from "../components/PaneHeader.vue";
 import { AiModelsArea, runAiFeatureStream } from "@delebash/llm-ui";
 import WritingAiSettings from "../components/WritingAiSettings.vue";
@@ -14,6 +14,7 @@ import { useAiStore } from "../stores/ai.js";
 // QC-46 — the welcome screen's "Run Quick Setup" deep-links /ai?quicksetup=1;
 // pass the flag to the shared area so it opens the wizard once after loading.
 const route = useRoute();
+const router = useRouter();
 
 // The shared AI control writes routing (default LLM/embedding + model + pins)
 // straight to the server. Re-sync the renderer's AI store on the way out so the
@@ -41,8 +42,13 @@ function runStream(opts) {
     <!-- Flex-fill (NOT the scrolling .scrollarea): the AI area scrolls its own
          nav + content panes internally; the page itself doesn't scroll. -->
     <div class="ai-fill">
+      <!-- ?providers=online deep-links the Online tab (the first-run AI setup dialog's
+           "Connect an online provider"). @quick-setup-closed fires ONLY for a wizard the
+           deep link auto-opened — a first-run local setup ends on Home, not on this page. -->
       <AiModelsArea app-tab-label="Writing AI" :run-stream="runStream"
-        :auto-open-quick-setup="route.query.quicksetup === '1'">
+        :auto-open-quick-setup="route.query.quicksetup === '1'"
+        :initial-provider-scope="route.query.providers === 'online' ? 'online' : ''"
+        @quick-setup-closed="router.push('/')">
         <template #app-tab><WritingAiSettings /></template>
       </AiModelsArea>
     </div>
