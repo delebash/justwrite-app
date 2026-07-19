@@ -189,26 +189,37 @@ function buildEdges(known) {
   }));
 }
 
-// Live (filtered) edges — feeds the rendered graph.
-const edges = computed(() => buildEdges(nodeById.value));
+// Every character/location/object id — the domain the edge graph is built
+// over ONCE. Kept separate so the full build and the legend counts share it.
+const allIds = computed(() => {
+  const s = new Set();
+  for (const c of (project.characters || [])) s.add(c.id);
+  for (const l of (project.locations  || [])) s.add(l.id);
+  for (const o of (project.objects    || [])) s.add(o.id);
+  return s;
+});
 
-// Defensive: only emit edges whose both endpoints are still visible.
-// The add() guard inside buildEdges already enforces this, but keeping
-// an explicit filter makes the dependency on the visibility flags
-// obvious at the render site.
+// THE edge build — done ONCE over every entity, not per kind-filter and not
+// per hover. visibleEdges + the legend counts + the adjacency map all derive
+// from this single pass, so a real book (thousands of pairwise relations after
+// an entity sweep) builds the graph one time instead of two full
+// O(scenes·pairs) walks.
+const allEdges = computed(() => buildEdges(allIds.value));
+
+// Edges whose BOTH endpoints are currently visible (kind toggles). Derived
+// from the single build — no second buildEdges pass.
 const visibleEdges = computed(() =>
-  edges.value.filter((e) => nodeById.value.has(e.a) && nodeById.value.has(e.b))
+  allEdges.value.filter((e) => nodeById.value.has(e.a) && nodeById.value.has(e.b))
 );
 
-// Unfiltered edges over every character/location/object — used to
-// label each legend row with its "total reachable" edge count so the
-// number is stable as the user toggles filters.
-const allEdges = computed(() => {
-  const all = new Set();
-  for (const c of (project.characters || [])) all.add(c.id);
-  for (const l of (project.locations  || [])) all.add(l.id);
-  for (const o of (project.objects    || [])) all.add(o.id);
-  return buildEdges(all);
+// Adjacency over the visible edges: id → its incident edges. Built once per
+// data change so focus (hover/pin) is O(degree), not an O(all-edges) scan on
+// every mouse-move — the fix for the "hovering locks the machine" report.
+const adjacency = computed(() => {
+  const m = new Map();
+  const push = (id, e) => { let a = m.get(id); if (!a) { a = []; m.set(id, a); } a.push(e); };
+  for (const e of visibleEdges.value) { push(e.a, e); push(e.b, e); }
+  return m;
 });
 
 const allEntityKind = computed(() => {
@@ -264,14 +275,18 @@ const hoveredId = ref(null);
 const pinnedId = ref(null);
 const focusedId = computed(() => pinnedId.value || hoveredId.value);
 
+// Focus-driven edges: at rest we draw NO edges (an unreadable hairball once a
+// book has many relations); focusing a node reveals just its incident edges.
+const focusEdges = computed(() => {
+  const id = focusedId.value;
+  return id ? (adjacency.value.get(id) || []) : [];
+});
+
 const connectedIds = computed(() => {
   const id = focusedId.value;
   if (!id) return null; // null = no focus, everything full opacity
   const set = new Set([id]);
-  for (const e of visibleEdges.value) {
-    if (e.a === id) set.add(e.b);
-    else if (e.b === id) set.add(e.a);
-  }
+  for (const e of focusEdges.value) set.add(e.a === id ? e.b : e.a);
   return set;
 });
 
@@ -285,16 +300,18 @@ const focusedNeighborCount = computed(() =>
 function isNodeDim(n) {
   return connectedIds.value ? !connectedIds.value.has(n.id) : false;
 }
-function isEdgeOnFocus(e) {
-  const id = focusedId.value;
-  return !!id && (e.a === id || e.b === id);
-}
-function isEdgeDim(e) {
-  return connectedIds.value ? !isEdgeOnFocus(e) : false;
-}
 
-function onNodeEnter(n) { hoveredId.value = n.id; }
-function onNodeLeave(n) { if (hoveredId.value === n.id) hoveredId.value = null; }
+// Coalesce hover changes to one update per frame so sweeping the cursor across
+// many nodes can't queue a burst of re-renders.
+let hoverRaf = null;
+let pendingHover = null;
+function flushHover() { hoverRaf = null; hoveredId.value = pendingHover; }
+function setHover(id) {
+  pendingHover = id;
+  if (hoverRaf == null) hoverRaf = requestAnimationFrame(flushHover);
+}
+function onNodeEnter(n) { setHover(n.id); }
+function onNodeLeave(n) { if ((pendingHover ?? hoveredId.value) === n.id) setHover(null); }
 function onNodeClick(n) {
   // Second click on the pinned node → open its page.
   if (pinnedId.value === n.id) { openNode(n); return; }
@@ -419,7 +436,10 @@ function onKey(e) {
   else if (e.key === "Escape" && pinnedId.value) { e.preventDefault(); clearPin(); }
 }
 onMounted(() => window.addEventListener("keydown", onKey));
-onBeforeUnmount(() => window.removeEventListener("keydown", onKey));
+onBeforeUnmount(() => {
+  window.removeEventListener("keydown", onKey);
+  if (hoverRaf != null) cancelAnimationFrame(hoverRaf);
+});
 </script>
 
 <template>
@@ -440,8 +460,9 @@ onBeforeUnmount(() => window.removeEventListener("keydown", onKey));
     <strong>Relations</strong> is a diagnostic graph of how every character, location, and
     object in your project connects. Edges come from shared scenes, shared groups, and shared
     strands — you don't draw them here, they appear automatically from the work you do
-    elsewhere. Use it to ask whether your protagonist is really at the centre of the story,
-    or whether a major character is isolated.
+    elsewhere. <strong>Hover or click a node</strong> to light up its connections. Use it to
+    ask whether your protagonist is really at the centre of the story, or whether a major
+    character is isolated.
   </p>
 
   <div ref="wrapRef" class="pane-card relations-canvas" tabindex="0"
@@ -458,13 +479,12 @@ onBeforeUnmount(() => window.removeEventListener("keydown", onKey));
       @pointerup="onPointerUp"
       @pointercancel="onPointerUp">
       <g :transform="`translate(${tx} ${ty}) scale(${zoom})`">
-        <!-- Edges -->
-        <line v-for="e in visibleEdges" :key="`${e.a}|${e.b}`"
+        <!-- Edges — only the focused node's, drawn on hover/pin (see focusEdges). -->
+        <line v-for="e in focusEdges" :key="`${e.a}|${e.b}`"
           :x1="nodeById.get(e.a)?.x" :y1="nodeById.get(e.a)?.y"
           :x2="nodeById.get(e.b)?.x" :y2="nodeById.get(e.b)?.y"
           :stroke-width="Math.min(3, 1 + e.reasonList.length * 0.6)"
-          class="relations-edge"
-          :class="{ dim: isEdgeDim(e), focused: isEdgeOnFocus(e) }">
+          class="relations-edge focused">
           <title>{{ edgeTitle(e) }}</title>
         </line>
 
