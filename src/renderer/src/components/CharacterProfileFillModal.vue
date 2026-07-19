@@ -154,6 +154,9 @@ watch(running, (isRunning, was) => {
 });
 
 const acceptCount = computed(() => rows.value.filter((r) => r.accept).length);
+// All / None over every proposed field (mirrors the sweep + entity-review
+// modals' select-all affordance).
+function setAll(on) { for (const r of rows.value) r.accept = on; }
 
 function apply() {
   const picked = rows.value.filter((r) => r.accept);
@@ -217,6 +220,12 @@ function onClose() {
     </div>
 
     <div v-else class="cpf-rows">
+      <div v-if="rows.length" class="cpf-selectbar">
+        <span class="t-muted">{{ acceptCount }} of {{ rows.length }} selected</span>
+        <span class="cpf-spacer" />
+        <UiButton intent="ghost" size="small" @click="setAll(true)">All</UiButton>
+        <UiButton intent="ghost" size="small" @click="setAll(false)">None</UiButton>
+      </div>
       <div v-if="voiceNotice" class="cpf-notice">{{ voiceNotice }}</div>
       <template v-for="g in groupedRows" :key="g.section">
         <div class="cpf-section">{{ g.section }}</div>
@@ -235,7 +244,6 @@ function onClose() {
     </div>
 
     <template #footer>
-      <span class="t-muted" v-if="rows.length">{{ acceptCount }} of {{ rows.length }} fields selected</span>
       <span style="flex:1"></span>
       <UiButton intent="ghost" @click="onClose">{{ rows.length ? "Cancel" : "Close" }}</UiButton>
       <UiButton v-if="rows.length" intent="primary" :disabled="!acceptCount" @click="apply">
@@ -260,6 +268,8 @@ function onClose() {
   font-size: 13px; color: var(--ink-2); line-height: 1.55;
 }
 .cpf-rows { display: flex; flex-direction: column; gap: 8px; }
+.cpf-selectbar { display: flex; align-items: center; gap: 8px; padding: 0 2px 2px; }
+.cpf-spacer { flex: 1; }
 .cpf-section {
   font-family: var(--font-mono); font-size: 10px;
   letter-spacing: 0.16em; text-transform: uppercase; color: var(--muted);

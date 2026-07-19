@@ -51,7 +51,10 @@ const MOTIVATIONS = [
 ];
 const ARC_STEPS = [{ k: "start", label: "Beginning" }, { k: "midpoint", label: "Midpoint" }, { k: "end", label: "End" }];
 const LIFE_STATUS_OPTIONS = [
-  { value: "",          label: "Life status…" },
+  // The empty sentinel — a neutral "unset", NOT a repeat of the field label
+  // (the label above already says "Life status"; "Life status…" here read as
+  // both redundant and truncated).
+  { value: "",          label: "Not set" },
   { value: "alive",     label: "Alive" },
   { value: "deceased",  label: "Deceased" },
   { value: "missing",   label: "Missing" },
@@ -577,27 +580,31 @@ function onRowClick(event) {
             <!-- Labels on top for every hero field (the Voice-grid `t-muted`
                  label idiom, promoted to `.ch-field` so the whole sheet shares
                  one field shape — RULE #1 precedent). Placeholders removed. -->
+            <!-- Every control sized by the kit's content-width tokens (the
+                 `width` prop → .ui-w-*), never inline pixels. The select is
+                 capped wide enough for its longest option so its value never
+                 truncates. -->
             <div class="ch-hero-row">
-              <div class="ch-field" style="max-width:200px">
+              <div class="ch-field">
                 <span class="ch-field-label">Role</span>
-                <UiInput :model-value="ch.role" @update:model-value="updateField('role', $event)" />
+                <UiInput width="id" :model-value="ch.role" @update:model-value="updateField('role', $event)" />
               </div>
-              <div class="ch-field" style="max-width:150px">
+              <div class="ch-field">
                 <span class="ch-field-label">Gender</span>
-                <UiInput :model-value="ch.gender" @update:model-value="updateField('gender', $event)" />
+                <UiInput width="token" :model-value="ch.gender" @update:model-value="updateField('gender', $event)" />
               </div>
-              <div class="ch-field" style="max-width:150px">
+              <div class="ch-field">
                 <span class="ch-field-label">Pronouns</span>
-                <UiInput :model-value="ch.pronouns" @update:model-value="updateField('pronouns', $event)" />
+                <UiInput width="token" :model-value="ch.pronouns" @update:model-value="updateField('pronouns', $event)" />
               </div>
-              <div class="ch-field" style="max-width:90px">
+              <div class="ch-field">
                 <span class="ch-field-label">Age</span>
-                <UiNumber :use-grouping="false"
+                <UiNumber width="num" :use-grouping="false"
                   :model-value="ch.age ?? null" @update:model-value="updateField('age', $event ?? null)" />
               </div>
-              <div class="ch-field" style="max-width:150px">
+              <div class="ch-field">
                 <span class="ch-field-label">Life status</span>
-                <UiSelect
+                <UiSelect width="id"
                   :model-value="ch.lifeStatus || ''"
                   @update:model-value="(v) => updateField('lifeStatus', v)"
                   :options="LIFE_STATUS_OPTIONS"
