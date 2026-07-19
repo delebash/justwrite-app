@@ -20,6 +20,7 @@ import RelationshipArcModal from "../components/RelationshipArcModal.vue";
 import StatusSelect from "../components/StatusSelect.vue";
 import GroupsModal from "../components/GroupsModal.vue";
 import CharacterProfileFillModal from "../components/CharacterProfileFillModal.vue";
+import CharacterBatchFillModal from "../components/CharacterBatchFillModal.vue";
 import CharacterSheetSection from "../components/CharacterSheetSection.vue";
 import TagEditor from "../components/TagEditor.vue";
 import SceneRefList from "../components/SceneRefList.vue";
@@ -37,6 +38,8 @@ const route = useRoute();
 const sweepOpen = ref(false);
 const auditOpen = ref(false);
 const relationshipArcOpen = ref(false);
+const batchFillOpen = ref(false);
+const batchFillIds = ref(null);
 
 // When id is present → detail mode. When absent → list mode.
 const ch = computed(() => props.id ? project.characterById(props.id) : null);
@@ -381,6 +384,9 @@ function onRowClick(event) {
       </UiButton>
       <UiButton intent="ghost" size="small" @click="relationshipArcOpen = true" v-tooltip.bottom="'Track how the relationship between two characters moves across the book'">
         <Icon name="Network" :size="13" /> Relationship arc
+      </UiButton>
+      <UiButton intent="ghost" size="small" @click="batchFillOpen = true" v-tooltip.bottom="'Draft profiles and voice for several characters at once from the scenes that feature them — review before anything saves, or opt into auto-fill of empty fields'">
+        <Icon name="Book" :size="13" /> Fill from book
       </UiButton>
       <UiButton label="New character" intent="primary" size="small" @click="addCharacter">
         <template #icon><Icon name="Plus" :size="14" /></template>
@@ -840,6 +846,10 @@ function onRowClick(event) {
 
   <RelationshipArcModal v-if="relationshipArcOpen"
     @close="relationshipArcOpen = false" />
+
+  <CharacterBatchFillModal v-if="batchFillOpen"
+    :pre-checked-ids="batchFillIds"
+    @close="batchFillOpen = false; batchFillIds = null" />
 </template>
 
 <style scoped>
