@@ -133,6 +133,16 @@ export async function analyseRelationship({
   const summary = typeof parsed.summary === "string" ? parsed.summary.trim().slice(0, 600) : "";
   const trajectory = VALID_TRAJECTORIES.has(parsed.trajectory) ? parsed.trajectory : "static";
 
+  // WS5 (2026-07-18): the standing per-character dynamic. The model returns
+  // sides.a / sides.b (a = Profile A, b = Profile B); we key by REAL character
+  // id so a later A/B swap in the modal never scrambles them. Empty sides drop
+  // out (nothing lands unless grounded).
+  const sides = {};
+  const sideA = sanitizeSide(parsed?.sides?.a);
+  const sideB = sanitizeSide(parsed?.sides?.b);
+  if (sideA) sides[characterAId] = sideA;
+  if (sideB) sides[characterBId] = sideB;
+
   const rawChapters = Array.isArray(parsed.chapters) ? parsed.chapters : [];
   const chapters = rawChapters
     .map((c) => {
@@ -152,6 +162,7 @@ export async function analyseRelationship({
     characterBId, characterBName: chB.name,
     summary, trajectory,
     chapters,
+    sides,
     sharedScenes: digest.reduce((s, d) => s + d.scenes, 0),
     raw: result.content,
     model: result.model,
@@ -164,4 +175,14 @@ function clamp1to10(v) {
   const n = typeof v === "number" ? v : parseInt(v, 10);
   if (!Number.isFinite(n)) return 5;
   return Math.max(1, Math.min(10, Math.round(n)));
+}
+
+// One character's side of the standing dynamic — three short strings, "" when
+// the model couldn't ground a field. Returns null if all three are empty (so
+// an ungrounded side never lands). Exported for the unit test.
+export function sanitizeSide(raw) {
+  if (!raw || typeof raw !== "object") return null;
+  const s = (v) => (typeof v === "string" ? v.trim().slice(0, 300) : "");
+  const out = { wants: s(raw.wants), fears: s(raw.fears), speaksLike: s(raw.speaksLike) };
+  return out.wants || out.fears || out.speaksLike ? out : null;
 }

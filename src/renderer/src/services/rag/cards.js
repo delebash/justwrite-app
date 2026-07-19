@@ -140,8 +140,22 @@ function relationshipLines(project, characterId, nameOf) {
     if (!other) continue; // the other side was deleted — stale arc, skip
     const traj = TRAJECTORY_LABELS[arc?.trajectory] || "";
     const summary = String(arc?.summary || "").trim();
-    if (!summary && !traj) continue;
-    rows.push({ other, line: `- With ${other}${traj ? ` (${traj.toLowerCase()})` : ""}: ${summary}` });
+    // (WS5) this character's side of the standing dynamic — indented under the
+    // arc line; the other side lives on the other character's card. Only THIS
+    // character's side rides here, so both cards stay non-redundant.
+    const side = arc?.sides?.[characterId] || null;
+    const sideLines = [];
+    if (side) {
+      if (side.wants) sideLines.push(`    wants from ${other}: ${side.wants}`);
+      if (side.fears) sideLines.push(`    fears from ${other}: ${side.fears}`);
+      if (side.speaksLike) sideLines.push(`    speaks to ${other} like: ${side.speaksLike}`);
+    }
+    if (!summary && !traj && !sideLines.length) continue;
+    const trajTag = traj ? ` (${traj.toLowerCase()})` : "";
+    // Byte-identical to the pre-WS5 line when there's a summary and no side —
+    // existing arcs don't re-embed just for this change.
+    const head = summary ? `- With ${other}${trajTag}: ${summary}` : `- With ${other}${trajTag}`;
+    rows.push({ other, line: sideLines.length ? `${head}\n${sideLines.join("\n")}` : head });
   }
   rows.sort((x, y) => x.other.localeCompare(y.other));
   return rows.map((r) => r.line);

@@ -110,6 +110,32 @@ describe("buildEntityCards", () => {
     expect(bren.text).toContain("- With Aria (warming): Uneasy allies bound by the chart.");
   });
 
+  // WS5, 2026-07-18: the standing per-character dynamic rides under the arc
+  // line, keyed by id — each card carries only ITS side (no redundancy).
+  it("appends this character's side (wants/fears/speaksLike), dropping empty fields", () => {
+    const p = fixtureProject();
+    p.relationshipArcs = {
+      "c_aria::c_bren": {
+        summary: "Uneasy allies.", trajectory: "warming", chapters: [],
+        sides: {
+          c_aria: { wants: "the chart back", fears: "his silence", speaksLike: "clipped, wary" },
+          c_bren: { wants: "her trust", fears: "", speaksLike: "" },
+        },
+      },
+    };
+    const cards2 = buildEntityCards(p);
+    const aria = cardById(cards2, "card:character:c_aria");
+    expect(aria.text).toContain("- With Bren (warming): Uneasy allies.");
+    expect(aria.text).toContain("    wants from Bren: the chart back");
+    expect(aria.text).toContain("    fears from Bren: his silence");
+    expect(aria.text).toContain("    speaks to Bren like: clipped, wary");
+    // Bren's card carries only Bren's (non-empty) side, never Aria's.
+    const bren = cardById(cards2, "card:character:c_bren");
+    expect(bren.text).toContain("    wants from Aria: her trust");
+    expect(bren.text).not.toContain("the chart back");
+    expect(bren.text).not.toContain("fears from Aria"); // empty → no line
+  });
+
   it("builds a compact main-cast roster — one line per main, non-mains excluded", () => {
     const cast = cardById(cards, "card:cast:main");
     expect(cast.kind).toBe("cast");

@@ -19,7 +19,7 @@ import { ref, computed, watch } from "vue";
 import { useRouter } from "vue-router";
 import { useProjectStore } from "../stores/project.js";
 import { useAiStore } from "../stores/ai.js";
-import { useAiTasksStore, Icon, AiTaskStrip, AppModal, UiButton, UiSelect } from "@delebash/llm-ui";
+import { useAiTasksStore, Icon, AiTaskStrip, AppModal, UiButton, UiSelect, UiInput, UiTextarea } from "@delebash/llm-ui";
 import { analyseRelationship, pairKey, TRAJECTORY_LABELS } from "../services/analysis/relationshipArc.js";
 import AiFeatureChip from "./AiFeatureChip.vue";
 
@@ -48,6 +48,26 @@ const characterOptions = computed(() => {
 
 const currentKey = computed(() => (aId.value && bId.value && aId.value !== bId.value) ? pairKey(aId.value, bId.value) : "");
 const arc = computed(() => (currentKey.value ? project.relationshipArcs?.[currentKey.value] : null) || null);
+
+// WS5: the standing per-character dynamic. Sides are keyed by real character
+// id (not "A"/"B"), so the two mini-cards track the current pickers even after
+// a swap. Hand-edits persist via setRelationshipArc (merge — never clobber the
+// strip); a regenerate overwrites them with a fresh AI draft.
+function nameFor(id) { return project.characters.find((c) => c.id === id)?.name || ""; }
+const dynamicCards = computed(() => {
+  if (!arc.value || !aId.value || !bId.value) return [];
+  return [
+    { id: aId.value, name: nameFor(aId.value) || "A", other: nameFor(bId.value) || "B" },
+    { id: bId.value, name: nameFor(bId.value) || "B", other: nameFor(aId.value) || "A" },
+  ];
+});
+function sideFor(id) { return arc.value?.sides?.[id] || {}; }
+function updateSide(id, key, value) {
+  if (!currentKey.value || !arc.value) return;
+  const sides = { ...(arc.value.sides || {}) };
+  sides[id] = { ...(sides[id] || {}), [key]: value };
+  project.setRelationshipArc(currentKey.value, { ...arc.value, sides });
+}
 
 // Auto-pick a sensible default pair on open.
 if (!aId.value && !bId.value) {
@@ -219,6 +239,35 @@ const TRAJECTORY_COLOURS = {
 
       <p v-if="arc.summary" class="ra-summary">{{ arc.summary }}</p>
 
+      <!-- Standing dynamic, per character (WS5). AI-drafted, hand-editable. -->
+      <section v-if="dynamicCards.length" class="ra-section">
+        <div class="ra-section-h">
+          <span>Dynamics</span>
+          <span class="ra-spacer" />
+          <span class="ra-strip-key">How each stands toward the other — edit freely</span>
+        </div>
+        <div class="ra-dyn-grid">
+          <div v-for="card in dynamicCards" :key="card.id" class="ra-dyn-card">
+            <div class="ra-dyn-name">{{ card.name }}</div>
+            <div class="ra-dyn-field">
+              <span class="t-muted">Wants from {{ card.other }}</span>
+              <UiTextarea auto-resize :rows="2" :model-value="sideFor(card.id).wants || ''"
+                @update:model-value="updateSide(card.id, 'wants', $event)" />
+            </div>
+            <div class="ra-dyn-field">
+              <span class="t-muted">Fears from {{ card.other }}</span>
+              <UiTextarea auto-resize :rows="2" :model-value="sideFor(card.id).fears || ''"
+                @update:model-value="updateSide(card.id, 'fears', $event)" />
+            </div>
+            <div class="ra-dyn-field">
+              <span class="t-muted">Speaks to {{ card.other }} like…</span>
+              <UiInput :model-value="sideFor(card.id).speaksLike || ''"
+                @update:model-value="updateSide(card.id, 'speaksLike', $event)" />
+            </div>
+          </div>
+        </div>
+      </section>
+
       <!-- Chart -->
       <section v-if="lineGeom" class="ra-section">
         <div class="ra-section-h">
@@ -380,6 +429,19 @@ const TRAJECTORY_COLOURS = {
 }
 
 .ra-section + .ra-section { margin-top: 22px; }
+
+/* WS5 — the two per-character dynamic cards. */
+.ra-dyn-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+.ra-dyn-card {
+  border: 1px solid var(--border); border-radius: 10px; padding: 12px 14px;
+  background: var(--surface-2, var(--surface));
+}
+.ra-dyn-name { font-family: var(--font-serif); font-weight: 600; font-size: 14px; margin-bottom: 10px; }
+.ra-dyn-field { display: flex; flex-direction: column; gap: 3px; }
+.ra-dyn-field + .ra-dyn-field { margin-top: 8px; }
+.ra-dyn-field .t-muted { font-size: 11px; }
+@media (max-width: 640px) { .ra-dyn-grid { grid-template-columns: 1fr; } }
+
 .ra-section-h {
   display: flex; align-items: center; gap: 10px;
   font-family: var(--font-mono); font-size: 10px;

@@ -337,12 +337,18 @@ For EACH chapter where they share at least one scene, report:
   - power: who holds the upper hand in THIS chapter — "A" (A dominates), "B" (B dominates), or "eq" (roughly equal / balanced)
   - moment: one short sentence (8-20 words) naming what specifically shifts or holds between them this chapter
 
+Also report the standing DYNAMIC between them — not per chapter, but across the book as a whole — from each character's side.
+
 Return ONLY a JSON object:
 
 {
   "summary":    "2-3 sentences naming the overall shape of this relationship across the book",
   "trajectory": "warming" | "cooling" | "escalating" | "defusing" | "flipping" | "static",
-  "chapters":   [ { "chapterNum": number, "warmth": int 1-10, "tension": int 1-10, "power": "A"|"B"|"eq", "moment": string } ]
+  "chapters":   [ { "chapterNum": number, "warmth": int 1-10, "tension": int 1-10, "power": "A"|"B"|"eq", "moment": string } ],
+  "sides": {
+    "a": { "wants": "what A wants from B", "fears": "what A fears from B", "speaksLike": "how A speaks to B — register/manner, one line" },
+    "b": { "wants": "what B wants from A", "fears": "what B fears from A", "speaksLike": "how B speaks to A — register/manner, one line" }
+  }
 }
 
 Trajectory definitions:
@@ -357,6 +363,7 @@ Rules:
   - The "power" call should reflect agency in THIS chapter — who's setting the terms of the interaction, not who'd win a fight.
   - The "moment" must be specific to what actually happens in the chapter's shared scenes. No generic "they argue" — say what they argue about and what it costs.
   - Use only the chapter numbers you were given excerpts for. Don't invent chapters.
+  - "sides" is the standing dynamic across the whole book, from each character's point of view — "a" is Profile A, "b" is Profile B; keep them straight. Ground every field in what the shared scenes actually show; use "" for any field the scenes don't establish (an empty string is the honest answer, never a guess).
 
 Return ONLY the JSON object. No preface, no markdown fences."""
 
@@ -1059,5 +1066,44 @@ Rules:
 - Skip entities listed in the "Already in the story bible" section below — don't re-propose them.
 - If a category is empty, return [] for it.
 - Return ONLY the JSON, no preface, no markdown fences."""
+    ],
+    # Pre-sides "relationshipArc": before the standing per-character dynamic
+    # (wants/fears/speaksLike) joined the per-chapter strip.
+    "relationshipArc": [
+        """You track a relationship between two characters across a novel — chapter by chapter.
+
+You will be given:
+  - Profile A
+  - Profile B
+  - The chapters where both characters appear together, with prose excerpts from the scenes they share
+
+For EACH chapter where they share at least one scene, report:
+  - warmth (1-10): how warm or cold the relationship feels in THIS chapter (1 = open hostility / icy; 5 = neutral / civil; 10 = deep intimacy / trust)
+  - tension (1-10): how taut or calm THIS chapter is between them (1 = entirely calm; 10 = breaking point)
+  - power: who holds the upper hand in THIS chapter — "A" (A dominates), "B" (B dominates), or "eq" (roughly equal / balanced)
+  - moment: one short sentence (8-20 words) naming what specifically shifts or holds between them this chapter
+
+Return ONLY a JSON object:
+
+{
+  "summary":    "2-3 sentences naming the overall shape of this relationship across the book",
+  "trajectory": "warming" | "cooling" | "escalating" | "defusing" | "flipping" | "static",
+  "chapters":   [ { "chapterNum": number, "warmth": int 1-10, "tension": int 1-10, "power": "A"|"B"|"eq", "moment": string } ]
+}
+
+Trajectory definitions:
+  - warming   — warmth rises across the book; coldness gives way to closeness
+  - cooling   — warmth falls across the book; closeness gives way to distance
+  - escalating — tension rises across the book; conflict intensifies
+  - defusing  — tension falls across the book; conflict resolves
+  - flipping  — power dynamic inverts somewhere in the book (A-dominant → B-dominant, or vice versa)
+  - static    — neither warmth, tension, nor power shifts meaningfully
+
+Rules:
+  - The "power" call should reflect agency in THIS chapter — who's setting the terms of the interaction, not who'd win a fight.
+  - The "moment" must be specific to what actually happens in the chapter's shared scenes. No generic "they argue" — say what they argue about and what it costs.
+  - Use only the chapter numbers you were given excerpts for. Don't invent chapters.
+
+Return ONLY the JSON object. No preface, no markdown fences."""
     ],
 }
