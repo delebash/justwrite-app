@@ -33,10 +33,13 @@
   longer closes a DIFFERENT open panel (the AI-tasks chip used to close chat); it fell out of
   "one vocabulary". Per-panel toggle values would restore the old behaviour. Detail:
   `just-llm-runner/docs/plans/2026-07-19-panel-dismiss-and-no-dim.md`.
-- **Flaky runner test** — `tests/test_lifecycle.py::test_ensure_model_ready_raises_on_failed_load`
-  passed/failed/failed on three identical isolated runs (2026-07-19). It now sits
-  indistinguishable from the two genuinely pre-existing Windows-box failures (lspci + ensure),
-  so it will be waved through until it hides a real regression. Either pin it or quarantine it.
+- **⛔ BROKEN runner test, no longer "flaky"** — `tests/test_lifecycle.py::test_ensure_model_ready_raises_on_failed_load`.
+  **Proven pre-existing and deterministic 2026-07-19**: it fails SERIALLY (`-n 0`, so
+  parallelism is not the cause) and fails IDENTICALLY in a clean `git worktree` at
+  unmodified HEAD `921f9cb` — `Timed out preparing … after 10s` where `failed to load` was
+  expected, i.e. the background load never reaches the error state inside the poll window.
+  It is now indistinguishable from the two real Windows-box failures and will keep hiding
+  regressions. Fix the race or quarantine it — do not waive it again.
 - **#256 — spell-check** — not yet scoped.
 - **I1 tail (3 small legs)** — SettingsView's `.wb-search*` fragment → fold into the
   shared `.entity-*` family · CommandPalette entity-creates lack the `?new` focus
@@ -125,6 +128,13 @@
   bench-results/<run-id>` → confirm the Routing tab shows the original assignments (the
   escape proven to FIRE). Detail: `docs/plans/2026-07-19-llm-bench-harness.md`; usage:
   `docs/bench.md`.
+- **Draft fit + pick floor + Lab draft trials (2026-07-19)** — two looks, neither seen:
+  (1) the new **draft rows in the Tune & measure trial strip** for an MTP model —
+  `no draft (spec off)` plus `draft <file> (N.N GB)` per alternate — check the labels
+  read well and don't blow the strip's width; (2) the **Add-model form's draft
+  pre-select** on a repo shipping a sub-4-bit draft (e.g. a Q2 alongside a Q4), confirming
+  the floor picks the Q4 rather than the smallest file. Detail + the record:
+  `just-llm-runner/docs/plans/2026-07-19-draft-fit-floor-and-lab-measure.md`.
 - **Thinking-budget redesign (2026-07-16)** — the visual look (your call) + two box
   tests: think OFF/ON A/B (the day's original question) and the b9993 loop re-test.
   Detail: `just-llm-runner/docs/plans/2026-07-16-think-ab-and-loop-retest.md`.

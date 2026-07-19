@@ -81,6 +81,16 @@ Newest first. **The narrative, the file:line touch-lists and the verification re
 the plan doc on each line — never twice.** Commit shas resolve in git; `git show <sha>` is the
 record. Collapse a line into one word once it stops mattering.
 
+- **2026-07-19 — the MTP draft: VRAM fit, pick floor, and measured draft trials**
+  (runner `c14e8d0`). A draft GGUF was never charged to `compute_fit`, so it silently ate
+  budget promised to main layers; it now comes off the budget at all three fit sites and
+  rides in the arbiter reservation. "Smallest draft wins" gained a 4-bit floor (one
+  predicate, both pickers), and Tune & measure gained a draft phase — a saveable "no draft
+  (spec off)" trial plus informational per-file trials that can never be saved. The
+  rules-checker returned **FAIL (4)**, the sharpest being a Pydantic `response_model` that
+  stripped the new floor flag at the wire, making the UI feature a no-op while every test
+  stayed green; all four fixed, both new escapes proven to fire. Doc:
+  `just-llm-runner/docs/plans/2026-07-19-draft-fit-floor-and-lab-measure.md`.
 - **2026-07-19 — MTP drafter detection + quant-token boundaries** (runner `c27586f` `bd91f89`).
   Own-repo `dspark` drafters are now detected (exhibit: `prism-ml/Ternary-Bonsai-27B-gguf`, whose
   drafter our MTP-only name rule missed, so tier-C borrowed a Qwen drafter and picked a BF16 split

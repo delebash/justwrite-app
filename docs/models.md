@@ -243,7 +243,13 @@ embedding model carries an **Embedding** badge. From here you can:
   the switch does and which values it accepts** (the KV cache types, for example, accept
   f32, f16, bf16, q8_0, q4_0, q4_1, iq4_nl, q5_0, q5_1). Speculative decoding (**MTP**)
   turns on automatically for models that support it; set *spec_type* to none (or remove
-  its rows) and Apply if you don't want it. After a measurement, **Save for
+  its rows) and Apply if you don't want it. For an MTP model, Auto-tune also **times
+  speculative decoding itself**: one trial with it **switched off**, so you can see
+  whether it actually pays on your machine (it doesn't always — on a CPU-only box the
+  drafting can cost more than it saves), plus one trial per **alternative draft file**
+  the model's repo publishes. The draft trials are shown for information only and are
+  never saved on their own — if a different draft wins on your box, set it on the model
+  itself under **Edit → MTP draft**. After a measurement, **Save for
   hardware class** keeps the config as the shared starting point for **every PC with the
   same video memory and RAM** (a machine with its own applied config still wins), and the
   **"Hardware/model class defaults ↗"** link in the same dialog opens **this model's class
@@ -269,8 +275,14 @@ embedding model carries an **Embedding** badge. From here you can:
   *Custom…* to type your own), and fills the model's details from the file — all before
   downloading. If the repo ships a **separate MTP draft model** (some models, like Gemma,
   keep speculative decoding in its own small file), the form detects it and pre-selects the
-  smallest draft; the draft downloads alongside the model on its first MTP load. This is how
-  you run a model outside the built-in list.
+  **smallest draft that isn't too compressed** — a draft only makes generation *faster*, it
+  can never change what the model writes (the main model checks every word the draft
+  proposes), so a small file is the right default on every machine, big graphics card
+  included: a bigger draft is re-read on every token and takes video memory the main model
+  wants. Every draft the repo ships stays selectable, and **Tune & measure** can time them
+  on your box if you want to compare. The draft downloads alongside the model, and the app
+  reserves video memory for it when working out how much of the model fits on the card.
+  This is how you run a model outside the built-in list.
 - **Edit** a model's details. The **description** belongs to the file: **Load model info
   from HF** regenerates it from what the model actually is (parameters, context, MTP, quant,
   size) — and your own **Notes** field sits beside it for anything personal (measured
