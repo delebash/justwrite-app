@@ -208,6 +208,15 @@ watch(() => [props.id, props.sceneId], ([_newId, newSceneId], [_oldId, oldSceneI
   if (mode.value === "outline") mode.value = "edit";
 });
 
+// Record the scene the writer is viewing as their last-edited position, so
+// Home's Resume and the sidebar chapter-row landing return here (persisted via
+// ui → /v1/settings). Immediate so a direct scene URL is captured on arrival.
+watch(() => [props.id, props.sceneId], ([id, sceneId]) => {
+  if (id && sceneId && project.scenesFor(id).some((s) => s.id === sceneId)) {
+    ui.noteScene(id, sceneId);
+  }
+}, { immediate: true });
+
 // Live counts for the Notes badges on the chapter header + scene strip.
 const chapterNotesCount = computed(() => ch.value
   ? project.notesForChapter(ch.value.id).length

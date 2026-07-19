@@ -10,7 +10,7 @@
 // file.
 
 import { computed, nextTick, onMounted, ref } from "vue";
-import { useRouter } from "vue-router";
+import { useWritingNav } from "../composables/useWritingNav.js";
 import { useProjectStore } from "../stores/project.js";
 import { useUiStore } from "../stores/ui.js";
 import { useSessionsStore, reorderForMonday } from "../stores/sessions.js";
@@ -18,10 +18,10 @@ import { scanProjectMarkers } from "../services/markers.js";
 import { UiButton } from "@delebash/llm-ui";
 import { Icon } from "@delebash/llm-ui";
 
-const router = useRouter();
 const project = useProjectStore();
 const ui = useUiStore();
 const sessions = useSessionsStore();
+const nav = useWritingNav();
 const P = project.project;
 
 const railEl = ref(null);
@@ -30,13 +30,12 @@ const allCh = computed(() => project.allChapters);
 const totalWords = computed(() => allCh.value.reduce((s, c) => s + (c.words || 0), 0));
 const pct = computed(() => Math.round((totalWords.value / (P.wordsGoal || 1)) * 100));
 
-const resumeId = computed(
-  () => sessions.todayChapterId || ui.selections.chapters || allCh.value[0]?.id || null,
-);
+const resumeId = computed(() => {
+  const g = ui.lastScene;
+  if (g?.chapterId && project.chapterById(g.chapterId)) return g.chapterId;
+  return sessions.todayChapterId || ui.selections.chapters || allCh.value[0]?.id || null;
+});
 const resumeCh = computed(() => (resumeId.value ? project.chapterById(resumeId.value) : null));
-const resumeFirstScene = computed(
-  () => (resumeId.value ? project.scenesFor(resumeId.value)[0] : null) || null,
-);
 
 function firstParagraph(html, max = 200) {
   if (!html) return "";
@@ -117,22 +116,11 @@ function statusLabelFor(ch) {
 function pad(n) { return String(n).padStart(2, "0"); }
 
 function openChapter(ch) {
-  if (!ch) return;
-  ui.select("chapters", ch.id);
-  const sid = project.scenesFor(ch.id)?.[0]?.id;
-  router.push(sid ? `/chapters/${ch.id}/${sid}` : `/chapters/${ch.id}`);
+  if (ch) nav.openChapter(ch.id);
 }
 
 function resume() {
-  if (!resumeCh.value) { router.push("/chapters"); return; }
-  ui.select("chapters", resumeCh.value.id);
-  const sid = resumeFirstScene.value?.id;
-  router.push(sid ? `/chapters/${resumeCh.value.id}/${sid}` : `/chapters/${resumeCh.value.id}`);
-}
-
-function goToday() {
-  const id = sessions.todayChapterId || ui.selections.chapters;
-  router.push(id ? `/chapters/${id}` : "/chapters");
+  nav.resume();
 }
 
 // ── Colophon (right rail)
@@ -233,13 +221,10 @@ const formLine = computed(() => {
       />
     </div>
     <div class="pane-actions">
-      <UiButton intent="ghost" @click="goToday"><Icon name="Calendar" :size="14" /> Today</UiButton>
       <router-link to="/import" custom v-slot="{ navigate }">
         <UiButton intent="ghost" @click="navigate"><Icon name="Plus" :size="14" /> Import</UiButton>
       </router-link>
-      <router-link to="/chapters" custom v-slot="{ navigate }">
-        <UiButton intent="primary" @click="navigate"><Icon name="Plus" :size="14" /> Quick write</UiButton>
-      </router-link>
+      <UiButton intent="primary" @click="nav.quickWrite()"><Icon name="Plus" :size="14" /> Quick write</UiButton>
     </div>
   </header>
 

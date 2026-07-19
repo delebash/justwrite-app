@@ -58,6 +58,11 @@ export const useUiStore = defineStore("ui", {
         notes: "n1",
         worldbuilding: null,
       },
+      // True-resume pointers: the scene the writer was last editing — globally
+      // (drives Home's Resume) and per chapter (drives the sidebar chapter-row
+      // landing). Persisted, so "pick up where you left off" survives a reload.
+      lastScene: null,          // { chapterId, sceneId } | null
+      lastSceneByChapter: {},   // { chapterId: sceneId }
       // User-saved appearance presets: { id, name, patch }.
       // The `appearance` slice itself is set further down via
       // migrateAppearance(saved) so legacy keys get folded in.
@@ -155,6 +160,20 @@ export const useUiStore = defineStore("ui", {
     },
     select(section, id) {
       this.selections = { ...this.selections, [section]: id };
+      this._persist();
+    },
+
+    // Record the scene the writer is currently editing — the truth behind
+    // "resume where you left off" (Home) and the sidebar chapter-row landing.
+    // No-ops when unchanged so it doesn't churn the settings write on every
+    // scene-to-scene move.
+    noteScene(chapterId, sceneId) {
+      if (!chapterId || !sceneId) return;
+      if (this.lastScene?.chapterId === chapterId
+        && this.lastScene?.sceneId === sceneId
+        && this.lastSceneByChapter[chapterId] === sceneId) return;
+      this.lastScene = { chapterId, sceneId };
+      this.lastSceneByChapter = { ...this.lastSceneByChapter, [chapterId]: sceneId };
       this._persist();
     },
 
@@ -335,6 +354,8 @@ export const useUiStore = defineStore("ui", {
         sidebarWidth: this.sidebarWidth,
         expanded: this.expanded,
         selections: this.selections,
+        lastScene: this.lastScene,
+        lastSceneByChapter: this.lastSceneByChapter,
         appearance: this.appearance,
         customPresets: this.customPresets,
         editorSettings: this.editorSettings,

@@ -7,6 +7,7 @@ import { useSessionsStore, DOW_LABELS_MONDAY_FIRST, reorderForMonday } from "../
 import { useAiStore } from "../stores/ai.js";
 import { useAiTasksStore, Icon, AiTaskStrip, UiButton, HelpTrigger } from "@delebash/llm-ui";
 import { generateResumeBriefing, buildBriefingContext } from "../services/resumeBriefing.js";
+import { useWritingNav } from "../composables/useWritingNav.js";
 import AiFeatureChip from "../components/AiFeatureChip.vue";
 import SessionRecapModal from "../components/SessionRecapModal.vue";
 
@@ -16,6 +17,7 @@ const ui = useUiStore();
 const sessions = useSessionsStore();
 const ai = useAiStore();
 const aiTasks = useAiTasksStore();
+const nav = useWritingNav();
 const P = project.project;
 
 // Local copy of sessions.js's todayKey shape (yyyy-mm-dd, local time).
@@ -33,13 +35,6 @@ const allCh = computed(() => project.allChapters);
 // Live word total — derived from chapter sums, so it reflects edits.
 const totalWords = computed(() => allCh.value.reduce((s, c) => s + (c.words || 0), 0));
 const pct = computed(() => Math.round((totalWords.value / (P.wordsGoal || 1)) * 100));
-
-// "Today" — open the chapter written in today; otherwise resume the
-// last-open chapter, falling back to the chapter list.
-function goToday() {
-  const id = sessions.todayChapterId || ui.selections.chapters;
-  router.push(id ? `/chapters/${id}` : "/chapters");
-}
 
 const done   = computed(() => allCh.value.filter((c) => c.status === "done").length);
 const draft  = computed(() => allCh.value.filter((c) => c.status === "draft").length);
@@ -74,11 +69,15 @@ const ringDashoffset = computed(() => {
 });
 
 // ── Resume — "pick up where you left off" ────────────────
-// Same target the Today button resolves: the chapter written in today,
-// else the last-selected chapter, else the first chapter.
-const resumeId = computed(() => sessions.todayChapterId || ui.selections.chapters || allCh.value[0]?.id);
+// Prefer the scene you were last editing (persisted via ui.lastScene); else
+// today's chapter, the last-selected chapter, then chapter one. resume() lands
+// on the EXACT last scene — see useWritingNav.
+const resumeId = computed(() => {
+  const g = ui.lastScene;
+  if (g?.chapterId && project.chapterById(g.chapterId)) return g.chapterId;
+  return sessions.todayChapterId || ui.selections.chapters || allCh.value[0]?.id;
+});
 const resumeCh = computed(() => (resumeId.value ? project.chapterById(resumeId.value) : null));
-const resumeFirstScene = computed(() => (resumeId.value ? project.scenesFor(resumeId.value)[0] : null) || null);
 const resumedToday = computed(() => !!sessions.todayChapterId && sessions.todayChapterId === resumeId.value);
 const resumeStatus = computed(() => {
   const s = resumeCh.value ? project.statusById(resumeCh.value.status) : null;
@@ -101,10 +100,7 @@ function firstParagraph(html) {
 const resumeTeaser = computed(() => firstParagraph(project.chapterBody[resumeId.value]));
 
 function resume() {
-  if (!resumeCh.value) { router.push("/chapters"); return; }
-  ui.select("chapters", resumeCh.value.id);
-  const sid = resumeFirstScene.value?.id;
-  router.push(sid ? `/chapters/${resumeCh.value.id}/${sid}` : `/chapters/${resumeCh.value.id}`);
+  nav.resume();
 }
 
 // ── "Previously on your novel" briefing ──────────────────
@@ -265,13 +261,10 @@ const strandCount = (id) => allCh.value.filter((c) => (c.strands || []).includes
         @input="project.updateProjectMeta({ title: $event.target.value })" />
     </div>
     <div class="pane-actions">
-      <UiButton intent="ghost" @click="goToday"><Icon name="Calendar" :size="14" /> Today</UiButton>
       <router-link to="/import" custom v-slot="{ navigate }">
         <UiButton intent="ghost" @click="navigate"><Icon name="Plus" :size="14" /> Import manuscript</UiButton>
       </router-link>
-      <router-link to="/chapters" custom v-slot="{ navigate }">
-        <UiButton intent="primary" @click="navigate"><Icon name="Plus" :size="14" /> Quick write</UiButton>
-      </router-link>
+      <UiButton intent="primary" @click="nav.quickWrite()"><Icon name="Plus" :size="14" /> Quick write</UiButton>
     </div>
     <HelpTrigger slug="writing#home" label="Home" class="pane-help" />
   </header>
