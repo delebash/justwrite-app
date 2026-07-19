@@ -87,6 +87,8 @@ record. Collapse a line into one word once it stops mattering.
   `usePanelDismiss` · the AI page's help button. Kit `fa34291` `c1ba1dd` `db837a6` `d857146`
   `a61d299` · JW `5f7b5dc` `1dee2b0` `4f11516` `c7b944c` `39c966c` `d43cfad`. Docs: the four
   `2026-07-19-*` plan docs (2 in each repo). **NONE of it has been looked at — see TASKS.md.**
+- **2026-07-19 — QuickSetup copy: friendly verdict + QAT note + the no-GPU path routed to
+  online providers** (runner `54fcfff`; the effective-context follow-up is in TASKS.md).
 - **2026-07-17 — provider layer → official vendor SDKs** (the SDK pivot) + #16 lazy clients.
   Doc: `just-llm-runner/docs/plans/2026-07-17-provider-native-dialects-plan.md`.
 - **2026-07-17 — the one load/unload/download control** (T5 honestly not built; re-probe at the
