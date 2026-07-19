@@ -10,6 +10,7 @@ import { ref, computed, watch } from "vue";
 import { useProjectStore } from "../stores/project.js";
 import { useUiStore } from "../stores/ui.js";
 import { proposeSceneLinks } from "../services/rag/entityMatcher.js";
+import { isLikelyNonStoryTitle } from "../services/analysis/entitySweep.js";
 import { Icon } from "@delebash/llm-ui";
 import { AppModal } from "@delebash/llm-ui";
 import { EmptyState } from "@delebash/llm-ui";
@@ -88,7 +89,13 @@ function commit() {
     added++;
   }
 
-  const originIds = new Set(accepted.flatMap((a) => a.origins.map((oc) => oc.id)));
+  // Scene-link backfill scans the origin chapters for the accepted names, but
+  // NOT reference pages: linking "Gavin Guile" to the Character-List chapter's
+  // scenes is provenance noise. Accepted entities keep every origin for display
+  // (the chips) — only the link scan drops the non-story ones (WS7, 2026-07-18).
+  const originIds = new Set(
+    accepted.flatMap((a) => a.origins.filter((oc) => !isLikelyNonStoryTitle(oc.title)).map((oc) => oc.id)),
+  );
   let linked = 0;
   if (originIds.size) {
     const proposals = proposeSceneLinks(project, accepted, { chapterIds: originIds });

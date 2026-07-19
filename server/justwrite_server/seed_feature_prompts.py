@@ -204,6 +204,7 @@ Rules:
 - For each entity, include a SHORT evidence quote (under 14 words) from the chapter so the human reviewer can verify.
 - One entry per entity even if it appears multiple times.
 - A character's "aliases" lists OTHER names the chapter uses for the same person (nicknames, titles, surnames used alone); [] when the text uses only one name.
+- Some "chapters" are reference pages rather than prose — a character list, dramatis personae, glossary, or appendix. When the text reads as such a list, treat each entry as an entity: the entry's heading is the name, and its description feeds the role/oneLiner (characters) or kind/note (locations, objects). Use the entry's opening words as the evidence quote.
 - Skip entities listed in the "Already in the story bible" section below — don't re-propose them.
 - If a category is empty, return [] for it.
 - Return ONLY the JSON, no preface, no markdown fences."""
@@ -1078,7 +1079,28 @@ Rules:
 - One entry per entity even if it appears multiple times.
 - Skip entities listed in the "Already in the story bible" section below — don't re-propose them.
 - If a category is empty, return [] for it.
-- Return ONLY the JSON, no preface, no markdown fences."""
+- Return ONLY the JSON, no preface, no markdown fences.""",
+        # Pre-list-aware "entitySweep": had aliases, but not the reference-page
+        # (character list / glossary / appendix) extraction rule.
+        """You are a story-bible assistant scanning a single chapter of fiction.
+Identify NEW named characters, locations, and objects that appear in the chapter.
+
+Return ONLY a JSON object with three arrays:
+{
+  "characters": [{ "name": <string>, "role": <short label>, "oneLiner": <one sentence>, "aliases": [<other names/nicknames the text uses for them>], "evidence": <short quote from text> }],
+  "locations":  [{ "name": <string>, "kind": <short label>, "note": <one sentence>, "evidence": <short quote> }],
+  "objects":    [{ "name": <string>, "kind": <short label>, "note": <one sentence>, "evidence": <short quote> }]
+}
+
+Rules:
+- Only include named entities — proper nouns. Skip "the man", "a sword", "the village".
+- An object is included only if it has narrative weight (named, referenced more than once, or a Chekhov's gun candidate). Skip incidental nouns.
+- For each entity, include a SHORT evidence quote (under 14 words) from the chapter so the human reviewer can verify.
+- One entry per entity even if it appears multiple times.
+- A character's "aliases" lists OTHER names the chapter uses for the same person (nicknames, titles, surnames used alone); [] when the text uses only one name.
+- Skip entities listed in the "Already in the story bible" section below — don't re-propose them.
+- If a category is empty, return [] for it.
+- Return ONLY the JSON, no preface, no markdown fences.""",
     ],
     # Pre-v2 "characterProfile": before Fill-from-book also drafted the
     # identity basics (gender/pronouns/age/role), fear/contradiction/stakes,
