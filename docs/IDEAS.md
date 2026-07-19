@@ -104,6 +104,15 @@ menu — their contents and order. A power-user affordance over the existing men
 
 ## Infra / tooling
 
+### Tier-C drafter loadability guard (2026-07-19)
+
+Before tier-C discovery offers a borrowed speculative-decode drafter, verify our pinned
+llama.cpp can actually LOAD it — exhibit: Ternary Bonsai's own DSpark drafter is GGUF
+arch `dspark` (unknown to mainline; the card claims the speedup on the CUDA serving path
+only), so even correct detection must not auto-enable it. Needs a remote GGUF header
+read (or an engine arch allow-list) at inspect time. Follow-on ("Fix C") to the
+2026-07-19 drafter-detection fixes A+B in `just-llm-runner` `llm_runner/runner/models.py`.
+
 ### Multi-model co-residency VRAM budgeting (was ledger §J2)
 
 For big-VRAM boxes running 2–3 resident models, the fit calculation must count the

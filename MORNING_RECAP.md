@@ -81,6 +81,15 @@ Newest first. **The narrative, the file:line touch-lists and the verification re
 the plan doc on each line — never twice.** Commit shas resolve in git; `git show <sha>` is the
 record. Collapse a line into one word once it stops mattering.
 
+- **2026-07-19 — MTP drafter detection + quant-token boundaries** (runner `c27586f` `bd91f89`).
+  Own-repo `dspark` drafters are now detected (exhibit: `prism-ml/Ternary-Bonsai-27B-gguf`, whose
+  drafter our MTP-only name rule missed, so tier-C borrowed a Qwen drafter and picked a BF16 split
+  SHARD); the inherited-drafter pick now excludes shards + fp16; and quant tokens are word-bounded,
+  so `PQ2_0` stops merging into `Q2_0`. That last one also closed a live wrong-weights load path
+  (`_main_gguf` would sort a co-cached `PQ2_0` file first for quant `Q2_0`) — found by the
+  rules-checker, not by me. Doc: `just-llm-runner/docs/plans/2026-07-19-dspark-drafter-detection.md`.
+  Open: Fix C (verify a suggested drafter's arch is loadable — `dspark` is unknown to mainline)
+  is logged in `docs/IDEAS.md`, not built.
 - **2026-07-19 — the AI-surface pass.** Local/Online provider tabs + first-run landing · modal
   scrim/blur off + header-drag · LM Studio seeded local · the built-in provider collapsed to a
   normal row (reverses QC-39(b)) · panels: no dim, off-focus closes, nav toggles, ONE
@@ -108,11 +117,17 @@ record. Collapse a line into one word once it stops mattering.
 
 **This is the only section that goes stale by the hour. Everything else here is a pointer.**
 
-- **Branch:** `claude/admiring-galileo-il3q0o` in all repos. As of 2026-07-19: JW **ahead 8**,
-  runner **ahead 5**, neither behind. **FETCH AT SESSION START** — a stale base is how the
-  2026-07-19 recap edit got written against a structure that had already been replaced.
-- **Uncommitted, the user's own in-flight work:** the logs-panel probe + `logLines`/`LogsPanel`
-  changes in both repos. Not agent work — leave it alone.
+- **Branch:** `claude/admiring-galileo-il3q0o` in all repos. **FETCH AT SESSION START and read
+  ahead/behind FROM GIT, never from this line** — a stale base is how the 2026-07-19 recap edit
+  got written against a structure that had already been replaced. *(The hardcoded "JW ahead 8 /
+  runner ahead 5" that used to sit here was wrong within hours — and on 2026-07-19 both repos
+  turned out to be BEHIND origin, with work pushed from the user's box. Counts do not belong in
+  this file; the invariant is: fetch, then look.)*
+- **Working trees: clean in both repos** (verified 2026-07-19 by `git status` in each). The
+  line that used to claim uncommitted `logLines`/`LogsPanel` in-flight work was **stale** — that
+  work is committed. It survived here long enough to be passed into two builder specs as a
+  warning about files that no longer existed; a claim like this gets re-verified, not relayed.
+  Only `.agentbridge/` (untracked, agentbridge's own DB) sits in both trees.
 - **Known-bad on the user's Windows box:** `test_hardware.py::test_pci_gpus_linux_lspci_name_match`
   and `test_lifecycle.py::test_ensure_model_ready_loads_then_returns` fail (pre-existing, proven
   by pathspec stash-run); `test_lifecycle.py::test_ensure_model_ready_raises_on_failed_load` is
