@@ -27,6 +27,7 @@ import SceneRefList from "../components/SceneRefList.vue";
 import MentionRefList from "../components/MentionRefList.vue";
 import { Breadcrumb } from "@delebash/llm-ui";
 import { HelpTrigger } from "@delebash/llm-ui";
+import { confirmDialog } from "@delebash/llm-ui";
 import PaneHeader from "../components/PaneHeader.vue";
 import { saveImage } from "../services/imageStore.js";
 
@@ -40,6 +41,22 @@ const auditOpen = ref(false);
 const relationshipArcOpen = ref(false);
 const batchFillOpen = ref(false);
 const batchFillIds = ref(null);
+
+// WS-C: after an entity-sweep accept, offer to draft the new characters'
+// profiles in one batch (their scene links are already backfilled by the
+// review-commit, so the picker rows show scenes > 0).
+async function onSweepCommitted(payload) {
+  sweepOpen.value = false;
+  const ids = payload?.characterIds || [];
+  if (!ids.length) return;
+  const ok = await confirmDialog({
+    title: "Draft profiles now?",
+    message: `${ids.length} character${ids.length === 1 ? "" : "s"} joined the story bible with scene links. Run Fill from book on ${ids.length === 1 ? "it" : "them"} now — profile + voice, 2 calls each?`,
+    confirmLabel: "Draft now",
+    cancelLabel: "Later",
+  });
+  if (ok) { batchFillIds.value = ids; batchFillOpen.value = true; }
+}
 
 // When id is present → detail mode. When absent → list mode.
 const ch = computed(() => props.id ? project.characterById(props.id) : null);
@@ -839,7 +856,7 @@ function onRowClick(event) {
 
   <EntitySweepModal v-if="sweepOpen"
     @close="sweepOpen = false"
-    @committed="sweepOpen = false" />
+    @committed="onSweepCommitted" />
 
   <CharacterAuditModal v-if="auditOpen"
     @close="auditOpen = false" />

@@ -249,6 +249,10 @@ try {
   await page.locator('.ui-modal button:has-text("to story bible")').click();
   await sleep(900);
 
+  // WS-C chained batch-fill offer — decline; the probe tests the sweep, not the batch.
+  await page.locator('button:has-text("Later")').click({ timeout: 2000 }).catch(() => {});
+  await sleep(300);
+
   let bk = await book();
   const slate = entityByName(bk.objects, "Slate board");
   const sedge = entityByName(bk.characters, "Old Sedge");

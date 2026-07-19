@@ -19,7 +19,10 @@ it's your working memory for the character.
 > vocabulary tells, subtext habit, humor, plus the three sample lines lifted
 > *verbatim* from dialogue they actually speak. It reads the prose, proposes
 > values, and lets you review every one before anything saves. Use it once a
-> character has scenes linked to them.
+> character has scenes linked to them. You can also run it for **many
+> characters at once** — Fill from book on the Characters list — with an
+> optional auto-apply that fills only *empty* fields (it never overwrites
+> anything you've written).
 
 ---
 

@@ -106,7 +106,10 @@ function commit() {
     message: `Added ${added} ${added === 1 ? "entity" : "entities"} to the story bible.` +
       (linked ? ` Linked to ${linked} scene${linked === 1 ? "" : "s"}.` : ""),
   });
-  emit("committed", { added, linked });
+  // WS-C: the accepted characters' ids so the caller can offer to draft their
+  // profiles in one batch (Fill from book) right after the sweep.
+  const characterIds = accepted.filter((a) => a.kind === "character").map((a) => a.entityId);
+  emit("committed", { added, linked, characterIds });
   emit("close");
 }
 

@@ -43,7 +43,8 @@ The character page carries a deeper, collapsible dossier — identity & core
 engine, voice & presence, function in the story, capabilities, a continuity
 ledger, and backstory. Each field explains itself on the page; the **[Character
 sheet](character-sheet)** guide covers all of them, and **Fill from book**
-drafts many of them from the character's own scenes.
+drafts many of them from the character's own scenes. After an entity-sweep
+accept, JustWrite offers to draft the new characters' profiles in one batch.
 
 ### Why a writer would use the Motivation panel
 
