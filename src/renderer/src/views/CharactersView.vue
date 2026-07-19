@@ -20,6 +20,7 @@ import RelationshipArcModal from "../components/RelationshipArcModal.vue";
 import StatusSelect from "../components/StatusSelect.vue";
 import GroupsModal from "../components/GroupsModal.vue";
 import CharacterProfileFillModal from "../components/CharacterProfileFillModal.vue";
+import CharacterSheetSection from "../components/CharacterSheetSection.vue";
 import TagEditor from "../components/TagEditor.vue";
 import SceneRefList from "../components/SceneRefList.vue";
 import MentionRefList from "../components/MentionRefList.vue";
@@ -151,6 +152,104 @@ function updateMotivation(k, v) { project.setCharacterExtras(ch.value.id, { moti
 function updateArc(k, v) { project.setCharacterExtras(ch.value.id, { arc: { ...(extras.value?.arc || {}), [k]: v } }); }
 function updateVoice(k, v) { project.setCharacterExtras(ch.value.id, { voice: { ...(extras.value?.voice || {}), [k]: v } }); }
 function updateBackstory(v) { project.setCharacterExtras(ch.value.id, { backstory: v }); }
+
+// ── v3 sheet: generic extras-group access (the pattern above, one helper) ──
+// `group` is the extras top-level key; `_top` reads a top-level string field.
+function extraVal(group, k) { return (group === "_top" ? extras.value?.[k] : extras.value?.[group]?.[k]) || ""; }
+function updateExtrasGroup(group, k, v) {
+  project.setCharacterExtras(ch.value.id, { [group]: { ...(extras.value?.[group] || {}), [k]: v } });
+}
+function countExtras(pairs) {
+  return pairs.filter(([g, k]) => String((g === "_top" ? extras.value?.[k] : extras.value?.[g]?.[k]) || "").trim()).length;
+}
+
+// v3 field descriptors — plain fields grouped by section. Rendered as a
+// labeled .ch-field (UiInput for single-line facts, UiTextarea for anything
+// sentence-shaped); `hint` is the one-line summary shown muted by the label.
+// The existing colored Motivation grid, Arc card, Voice grid, and Backstory
+// keep their bespoke rendering; these are the NEW v3 fields that join them.
+const IDENTITY_FIELDS = [
+  { group: "identity", k: "classOrigin", label: "Class origin → now", hint: "Where they started vs. where they are — the gap is characterization.", type: "input" },
+  { group: "identity", k: "education", label: "Education", hint: "Formal or otherwise — sets vocabulary, assumptions, what they notice.", type: "input" },
+];
+const CORE_ENGINE_FIELDS = [
+  { group: "motivation", k: "fear", label: "Core fear", hint: "What they organize their life to avoid — the lie's shadow.", type: "textarea" },
+  { group: "motivation", k: "lieOrigin", label: "Where the lie began", hint: "Write it as a scene: where, who said what, what they decided.", type: "textarea" },
+  { group: "motivation", k: "contradiction", label: "Central contradiction", hint: "Two things both true about them that don't fit.", type: "textarea" },
+  { group: "motivation", k: "values", label: "Values under pressure", hint: "Three values, ranked — the higher wins until the crisis tests the ranking.", type: "input" },
+  { group: "motivation", k: "heuristic", label: "Decision heuristic", hint: "“Under pressure, they choose ___ over ___.”", type: "input" },
+  { group: "motivation", k: "stakes", label: "Stakes", hint: "What breaks — for them and others — if they fail.", type: "textarea" },
+];
+const VOICE_FIELDS = [
+  { group: "voice", k: "register", label: "Register", hint: "Formal ↔ casual — where they sit, and when they slip.", type: "input" },
+  { group: "voice", k: "rhythm", label: "Rhythm", hint: "Clipped or flowing; do they interrupt or trail off?", type: "input" },
+  { group: "voice", k: "forbidden", label: "Forbidden words", hint: "Words this character would never say.", type: "input" },
+  { group: "voice", k: "subtext", label: "Subtext habit", hint: "Deflects with jokes; answers questions with questions.", type: "input" },
+  { group: "voice", k: "humor", label: "Humor style", hint: "Dry / absent / cruel / self-deprecating — “none” is a choice too.", type: "input" },
+  { group: "voice", k: "languages", label: "Languages", hint: "Who can they understand that others can't?", type: "input" },
+  { group: "voice", k: "sampleAngry", label: "Sample line — angry", hint: "", type: "textarea" },
+  { group: "voice", k: "sampleLying", label: "Sample line — lying", hint: "", type: "textarea" },
+];
+const PRESENCE_FIELDS = [
+  { group: "presence", k: "physicality", label: "How they occupy space", hint: "Posture, gait, stillness or motion — one line a scene can borrow.", type: "textarea" },
+  { group: "presence", k: "presentation", label: "Presentation", hint: "What their appearance choices signal — the message, not the looks.", type: "textarea" },
+  { group: "presence", k: "stressTells", label: "Baseline & stress tells", hint: "Their normal state, and how fear or lying leaks through.", type: "textarea" },
+];
+const FUNCTION_FIELDS = [
+  { group: "function", k: "theme", label: "Thematic argument", hint: "The position they embody in the story's central question.", type: "textarea" },
+  { group: "function", k: "protagonistRelation", label: "Relation to protagonist", hint: "Opposition / mirror / temptation / ally / measuring stick.", type: "input" },
+  { group: "function", k: "selfImage", label: "Self-image", hint: "Who they believe they are.", type: "textarea" },
+  { group: "function", k: "persona", label: "Public persona", hint: "Who they perform being.", type: "textarea" },
+  { group: "function", k: "privateTruth", label: "Private truth", hint: "Who they actually are — the gaps between these three are engines.", type: "textarea" },
+  { group: "function", k: "buttons", label: "Buttons", hint: "What reliably provokes them — levers other characters can pull.", type: "textarea" },
+  { group: "function", k: "allegiances", label: "Allegiances & obligations", hint: "Groups they belong to — and what membership demands.", type: "textarea" },
+  { group: "function", k: "escalation", label: "How they escalate", hint: "Aggression, withdrawal, sabotage, going over heads…", type: "input" },
+  { group: "function", k: "cornered", label: "Cornered behavior", hint: "What they do with no good options — who they really are.", type: "textarea" },
+];
+const CAPABILITY_FIELDS = [
+  { group: "capabilities", k: "abilities", label: "Abilities", hint: "Magic, tech, training — what can they actually do?", type: "textarea" },
+  { group: "capabilities", k: "costs", label: "Costs", hint: "What each use takes — energy, sanity, time, moral weight.", type: "textarea" },
+  { group: "capabilities", k: "limits", label: "Hard limits", hint: "What they can never do — limits generate more plot than powers.", type: "textarea" },
+  { group: "capabilities", k: "conditions", label: "Conditions", hint: "What the ability requires — tools, materials, states.", type: "input" },
+  { group: "capabilities", k: "whoKnows", label: "Who knows", hint: "Who is aware of these capabilities.", type: "input" },
+];
+const CONTINUITY_FIELDS = [
+  { group: "continuity", k: "physicalConstants", label: "Physical constants", hint: "Only features that appear on the page — scar, limp, tattoo.", type: "textarea" },
+  { group: "continuity", k: "health", label: "Conditions & disabilities", hint: "Anything that changes what's possible in a scene.", type: "textarea" },
+  { group: "continuity", k: "timelineAnchors", label: "Timeline anchors", hint: "Birth year + dated events — do the math once.", type: "input" },
+  { group: "continuity", k: "knows", label: "Knows at story start", hint: "", type: "textarea" },
+  { group: "continuity", k: "doesntKnow", label: "Doesn't know", hint: "", type: "textarea" },
+  { group: "continuity", k: "believesWrongly", label: "Believes wrongly", hint: "The top source of continuity errors and POV leaks.", type: "textarea" },
+  { group: "continuity", k: "secrets", label: "Secrets", hint: "One per line: the secret — who else knows — what forces the reveal.", type: "textarea" },
+  { group: "continuity", k: "possessions", label: "Possessions with story weight", hint: "Objects that will matter — and where each one is.", type: "textarea" },
+];
+const DEPTH_FIELDS = [
+  { group: "depth", k: "regrets", label: "Regrets", hint: "Compressed backstory plus motivation in one line.", type: "textarea" },
+  { group: "depth", k: "family", label: "Family / upbringing", hint: "", type: "textarea" },
+  { group: "depth", k: "skills", label: "Skills & ceiling", hint: "Competence AND its limit, so solutions stay fair.", type: "textarea" },
+  { group: "depth", k: "routines", label: "Routines & habits", hint: "Useful mainly for disruption.", type: "input" },
+  { group: "depth", k: "appearance", label: "Appearance beyond the constants", hint: "", type: "textarea" },
+  { group: "depth", k: "tastes", label: "Tastes & quirks", hint: "", type: "input" },
+];
+
+// Per-section filled-field counts — drive the header count chip + initial open
+// state. Include the bespoke fields (motivation/arc/voice/backstory) so the
+// count reflects the whole section, not just the new plain rows.
+const identityCount = computed(() => countExtras([
+  ["identity", "classOrigin"], ["identity", "education"],
+  ["motivation", "want"], ["motivation", "need"], ["motivation", "lie"], ["motivation", "truth"],
+  ...CORE_ENGINE_FIELDS.map((f) => [f.group, f.k]),
+]));
+const arcCount = computed(() => countExtras([["arc", "start"], ["arc", "midpoint"], ["arc", "end"]]));
+const voiceCount = computed(() => countExtras([
+  ["voice", "accent"], ["voice", "vocabulary"], ["voice", "tic"], ["voice", "sample"],
+  ...VOICE_FIELDS.map((f) => [f.group, f.k]),
+  ...PRESENCE_FIELDS.map((f) => [f.group, f.k]),
+]));
+const functionCount = computed(() => countExtras(FUNCTION_FIELDS.map((f) => [f.group, f.k])));
+const capabilitiesCount = computed(() => countExtras(CAPABILITY_FIELDS.map((f) => [f.group, f.k])));
+const continuityCount = computed(() => countExtras(CONTINUITY_FIELDS.map((f) => [f.group, f.k])));
+const depthCount = computed(() => countExtras([["_top", "backstory"], ...DEPTH_FIELDS.map((f) => [f.group, f.k])]));
 
 const tagPool = computed(() => {
   const out = [];
@@ -534,20 +633,41 @@ function onRowClick(event) {
           :pool="aliasPool"
           @update:model-value="(v) => updateField('aliases', v)" />
 
-        <div style="margin-top:22px">
-          <div class="t-eyebrow" style="margin-bottom:10px">Motivation</div>
-          <div class="motivation-grid" style="display:grid;gap:10px">
+        <!-- v3 sectioned sheet. The existing colored Motivation grid, Arc card,
+             Voice grid, and Backstory are kept verbatim inside their sections;
+             new v3 fields are labeled .ch-field rows. Each section is keyed on
+             ch.id so an empty character opens collapsed, a filled one expands. -->
+        <CharacterSheetSection :key="`identity-${ch.id}`"
+          title="Identity & core engine"
+          hint="The engine — fill this before anything else."
+          :count="identityCount">
+          <div class="ch-grid-2">
+            <div v-for="f in IDENTITY_FIELDS" :key="f.k" class="ch-field">
+              <span class="ch-field-label">{{ f.label }}<span v-if="f.hint" class="ch-field-hint">{{ f.hint }}</span></span>
+              <UiInput :model-value="extraVal(f.group, f.k)" @update:model-value="updateExtrasGroup(f.group, f.k, $event)" />
+            </div>
+          </div>
+          <div class="motivation-grid" style="display:grid;gap:10px;margin-top:16px">
             <div v-for="i in MOTIVATIONS" :key="i.k"
               :style="`padding:14px;border-radius:10px;background:${i.bg};border:1px solid color-mix(in oklab, ${i.color}, white 60%)`">
               <div :style="`font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:0.06em;color:${i.color};margin-bottom:6px`">{{ i.label }}</div>
-              <UiTextarea fluid rows="2" style="background:transparent;border:0;font-family:var(--font-serif);font-size:14.5px;line-height:1.5"
+              <UiTextarea rows="2" style="background:transparent;border:0;font-family:var(--font-serif);font-size:14.5px;line-height:1.5"
                 :model-value="extras?.motivation?.[i.k] || ''" @update:model-value="updateMotivation(i.k, $event)" />
             </div>
           </div>
-        </div>
+          <div class="ch-fieldset">
+            <div v-for="f in CORE_ENGINE_FIELDS" :key="f.k" class="ch-field">
+              <span class="ch-field-label">{{ f.label }}<span v-if="f.hint" class="ch-field-hint">{{ f.hint }}</span></span>
+              <UiTextarea v-if="f.type === 'textarea'" auto-resize :rows="2" :model-value="extraVal(f.group, f.k)" @update:model-value="updateExtrasGroup(f.group, f.k, $event)" />
+              <UiInput v-else :model-value="extraVal(f.group, f.k)" @update:model-value="updateExtrasGroup(f.group, f.k, $event)" />
+            </div>
+          </div>
+        </CharacterSheetSection>
 
-        <div style="margin-top:22px">
-          <div class="t-eyebrow" style="margin-bottom:10px">Arc</div>
+        <CharacterSheetSection :key="`arc-${ch.id}`"
+          title="Arc"
+          hint="Frame it as evidence for and against the lie."
+          :count="arcCount">
           <div class="card tight" style="padding:0;overflow:hidden">
             <div class="arc-grid" style="display:grid">
               <div v-for="(s, i) in ARC_STEPS" :key="s.k"
@@ -556,42 +676,104 @@ function onRowClick(event) {
                   <span :style="`width:18px;height:18px;border-radius:50%;background:${i === 0 ? 'var(--surface-3)' : i === 1 ? 'var(--accent-soft)' : 'var(--accent)'};color:${i === 2 ? 'white' : 'var(--ink-2)'};display:grid;place-items:center;font-family:var(--font-serif);font-style:italic;font-size:11px;font-weight:600`">{{ i + 1 }}</span>
                   <span class="t-eyebrow">{{ s.label }}</span>
                 </div>
-                <UiTextarea fluid rows="3" style="background:transparent;border:0;font-family:var(--font-serif);font-size:14px;line-height:1.55"
+                <UiTextarea rows="3" style="background:transparent;border:0;font-family:var(--font-serif);font-size:14px;line-height:1.55"
                   :model-value="extras?.arc?.[s.k] || ''" @update:model-value="updateArc(s.k, $event)" />
               </div>
             </div>
           </div>
-        </div>
+        </CharacterSheetSection>
 
-        <div style="margin-top:22px">
-          <div class="t-eyebrow" style="margin-bottom:10px">Voice & dialect</div>
+        <CharacterSheetSection :key="`voice-${ch.id}`"
+          title="Voice & presence"
+          hint="How they sound and move — the calibration set."
+          :count="voiceCount">
           <div class="card tight voice-grid" style="padding:16px;gap:10px 18px;font-size:12.5px">
             <div>
               <div class="t-muted">Accent</div>
-              <UiInput fluid :model-value="extras?.voice?.accent || ''" @update:model-value="updateVoice('accent', $event)" />
+              <UiInput :model-value="extras?.voice?.accent || ''" @update:model-value="updateVoice('accent', $event)" />
             </div>
             <div>
               <div class="t-muted">Vocabulary</div>
-              <UiInput fluid :model-value="extras?.voice?.vocabulary || ''" @update:model-value="updateVoice('vocabulary', $event)" />
+              <UiInput :model-value="extras?.voice?.vocabulary || ''" @update:model-value="updateVoice('vocabulary', $event)" />
             </div>
             <div style="grid-column:1/-1">
               <div class="t-muted">Speech tic</div>
-              <UiInput fluid :model-value="extras?.voice?.tic || ''" @update:model-value="updateVoice('tic', $event)" />
+              <UiInput :model-value="extras?.voice?.tic || ''" @update:model-value="updateVoice('tic', $event)" />
             </div>
             <div style="grid-column:1/-1">
-              <div class="t-muted">Sample line</div>
-              <UiTextarea fluid rows="2" :model-value="extras?.voice?.sample || ''" @update:model-value="updateVoice('sample', $event)" />
+              <div class="t-muted">Sample line — calm</div>
+              <UiTextarea rows="2" :model-value="extras?.voice?.sample || ''" @update:model-value="updateVoice('sample', $event)" />
             </div>
           </div>
-        </div>
+          <div class="ch-fieldset">
+            <div v-for="f in VOICE_FIELDS" :key="f.k" class="ch-field">
+              <span class="ch-field-label">{{ f.label }}<span v-if="f.hint" class="ch-field-hint">{{ f.hint }}</span></span>
+              <UiTextarea v-if="f.type === 'textarea'" auto-resize :rows="2" :model-value="extraVal(f.group, f.k)" @update:model-value="updateExtrasGroup(f.group, f.k, $event)" />
+              <UiInput v-else :model-value="extraVal(f.group, f.k)" @update:model-value="updateExtrasGroup(f.group, f.k, $event)" />
+            </div>
+            <div v-for="f in PRESENCE_FIELDS" :key="f.k" class="ch-field">
+              <span class="ch-field-label">{{ f.label }}<span v-if="f.hint" class="ch-field-hint">{{ f.hint }}</span></span>
+              <UiTextarea auto-resize :rows="2" :model-value="extraVal(f.group, f.k)" @update:model-value="updateExtrasGroup(f.group, f.k, $event)" />
+            </div>
+          </div>
+        </CharacterSheetSection>
 
-        <div style="margin-top:22px">
-          <div class="t-eyebrow" style="margin-bottom:10px">Backstory</div>
-          <div class="card tight" style="padding:16px">
-            <UiTextarea fluid rows="5" style="font-family:var(--font-serif);font-size:15px;line-height:1.65"
+        <CharacterSheetSection :key="`function-${ch.id}`"
+          title="Function in the story"
+          hint="What they're FOR in the cast."
+          :count="functionCount">
+          <div class="ch-fieldset">
+            <div v-for="f in FUNCTION_FIELDS" :key="f.k" class="ch-field">
+              <span class="ch-field-label">{{ f.label }}<span v-if="f.hint" class="ch-field-hint">{{ f.hint }}</span></span>
+              <UiTextarea v-if="f.type === 'textarea'" auto-resize :rows="2" :model-value="extraVal(f.group, f.k)" @update:model-value="updateExtrasGroup(f.group, f.k, $event)" />
+              <UiInput v-else :model-value="extraVal(f.group, f.k)" @update:model-value="updateExtrasGroup(f.group, f.k, $event)" />
+            </div>
+          </div>
+        </CharacterSheetSection>
+
+        <CharacterSheetSection :key="`capabilities-${ch.id}`"
+          title="Capabilities & limits"
+          hint="Genre module — skip for realist fiction."
+          :count="capabilitiesCount">
+          <div class="ch-fieldset">
+            <div v-for="f in CAPABILITY_FIELDS" :key="f.k" class="ch-field">
+              <span class="ch-field-label">{{ f.label }}<span v-if="f.hint" class="ch-field-hint">{{ f.hint }}</span></span>
+              <UiTextarea v-if="f.type === 'textarea'" auto-resize :rows="2" :model-value="extraVal(f.group, f.k)" @update:model-value="updateExtrasGroup(f.group, f.k, $event)" />
+              <UiInput v-else :model-value="extraVal(f.group, f.k)" @update:model-value="updateExtrasGroup(f.group, f.k, $event)" />
+            </div>
+          </div>
+        </CharacterSheetSection>
+
+        <CharacterSheetSection :key="`continuity-${ch.id}`"
+          title="Continuity ledger"
+          hint="Facts that must never drift."
+          :count="continuityCount">
+          <div class="ch-fieldset">
+            <div v-for="f in CONTINUITY_FIELDS" :key="f.k" class="ch-field">
+              <span class="ch-field-label">{{ f.label }}<span v-if="f.hint" class="ch-field-hint">{{ f.hint }}</span></span>
+              <UiTextarea v-if="f.type === 'textarea'" auto-resize :rows="2" :model-value="extraVal(f.group, f.k)" @update:model-value="updateExtrasGroup(f.group, f.k, $event)" />
+              <UiInput v-else :model-value="extraVal(f.group, f.k)" @update:model-value="updateExtrasGroup(f.group, f.k, $event)" />
+            </div>
+          </div>
+        </CharacterSheetSection>
+
+        <CharacterSheetSection :key="`depth-${ch.id}`"
+          title="Backstory & depth"
+          hint="Fill only what will surface on the page."
+          :count="depthCount">
+          <div class="ch-field">
+            <span class="ch-field-label">Backstory<span class="ch-field-hint">Past facts only — beats that will surface on the page.</span></span>
+            <UiTextarea rows="5" style="font-family:var(--font-serif);font-size:15px;line-height:1.65"
               :model-value="extras?.backstory || ''" @update:model-value="updateBackstory($event)" />
           </div>
-        </div>
+          <div class="ch-fieldset">
+            <div v-for="f in DEPTH_FIELDS" :key="f.k" class="ch-field">
+              <span class="ch-field-label">{{ f.label }}<span v-if="f.hint" class="ch-field-hint">{{ f.hint }}</span></span>
+              <UiTextarea v-if="f.type === 'textarea'" auto-resize :rows="2" :model-value="extraVal(f.group, f.k)" @update:model-value="updateExtrasGroup(f.group, f.k, $event)" />
+              <UiInput v-else :model-value="extraVal(f.group, f.k)" @update:model-value="updateExtrasGroup(f.group, f.k, $event)" />
+            </div>
+          </div>
+        </CharacterSheetSection>
 
         <div style="margin-top:22px">
           <div class="t-eyebrow" style="margin-bottom:10px">Appears in scenes</div>
@@ -703,6 +885,11 @@ function onRowClick(event) {
 .ch-hero-row .ch-field { flex: 0 1 auto; }
 .ch-hero-chip { align-self: flex-end; margin-bottom: 4px; }
 
+/* v3 section bodies: a vertical stack of fields, and a 2-up grid for the
+   short identity pair. */
+.ch-fieldset { display: flex; flex-direction: column; gap: 14px; margin-top: 16px; }
+.ch-grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 12px 18px; }
+
 .motivation-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
 .arc-grid { grid-template-columns: repeat(3, minmax(0, 1fr)); }
 .voice-grid { display: grid; grid-template-columns: 1fr 1fr; }
@@ -715,6 +902,7 @@ function onRowClick(event) {
   .arc-grid > div { border-right: 0 !important; border-bottom: 1px solid var(--border); }
   .arc-grid > div:last-child { border-bottom: 0; }
   .voice-grid { grid-template-columns: 1fr; }
+  .ch-grid-2 { grid-template-columns: 1fr; }
 }
 
 /* ── List view (shared shape = the global .entity-* family; only the
