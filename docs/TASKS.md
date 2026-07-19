@@ -18,15 +18,11 @@
 
 ## Now / near-term (JustWrite)
 
-- **QuickSetup copy polish** — a verdict headline on the confirm step ("This machine
-  runs the full setup"), the context window said in writer terms ("reads ~24,000
-  words at once" — we already run 32k on the 8GB class and never surface it), and one
-  "Good to know" line explaining QAT. Copy only, no mechanics. *(from the 2026-07-19
-  LocalProse-comparison review; kit `QuickSetup.vue`.)*
-- **No-GPU empty state → provider setup** — the confirm step's "CPU-only is too slow"
-  dead end should route to the online-provider setup (cloud prose + local CPU embeds
-  is the honest no-GPU answer for a writing app) instead of stopping flat. *(same
-  review; kit `QuickSetup.vue` empty-state.)*
+- **QuickSetup: effective context in writer terms** — a small follow-up to the verdict +
+  QAT-note + no-GPU-routing polish that **SHIPPED 2026-07-19** (runner `54fcfff`): show the
+  model's *effective* (tuned) context as "reads ~N words at once". Deferred from that build
+  because the effective ctx isn't plumbed into the wizard yet — the catalog's trained 256k
+  would mislead. kit `QuickSetup.vue`.
 - **#256 — spell-check** — carried in the recap's NEXT/open; not yet scoped.
 - **I1 tail (3 small legs)** — SettingsView's `.wb-search*` fragment → fold into the
   shared `.entity-*` family · CommandPalette entity-creates lack the `?new` focus
