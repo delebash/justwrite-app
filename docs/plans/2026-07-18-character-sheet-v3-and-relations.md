@@ -37,9 +37,32 @@ those cards re-embed on the next index update (partial, expected). Characters wi
 data produce byte-identical profile output → no re-embed.
 
 **Not done (deliberately, still needs a separate go):** C1-style smaller extraction model;
-fill-from-book for voice/function/arc-belief fields (§12 phase-2 candidate); the
-register-shift table + Part 8 prompt card stayed help-doc guidance (the RAG card IS the
-prompt card).
+fill-from-book for the FUNCTION fields (thematic argument / perception triad / buttons /
+cornered — held until the voice pass proves out on the user's box); the register-shift
+table + Part 8 prompt card stayed help-doc guidance (the RAG card IS the prompt card).
+
+## Follow-up round — SHIPPED 2026-07-19 (user: "ok do it, but before that do a rethink")
+
+**Rethink pass over WS1–WS7** (`40a4744`): one real gap found + fixed — fill-apply into a
+collapsed empty section left the new content hidden; sections now auto-open on the
+0→positive count transition (only reachable via external writes). Re-verified clean, no
+changes needed: biome on all ten changed files; Dynamics keystrokes ride the debounced
+snapshot path; arcs stay outside undo history (pre-existing semantics, unchanged); the
+audit-profile convergence dropped only dead legacy keys (nothing writes skills/weaknesses
+arrays). Known accepted limits: Dynamics require an arc to exist first; a very long card
+could theoretically split between a relationship head and its indented side lines.
+
+**WS8 — the fill-from-book VOICE pass** (`c93509c`; recommendation rethought and approved:
+a second lean call beats bolting fields onto the profile contract). New action
+`characterVoice` (preset `p_extract`, json_mode, plain seed insert — verified live on an
+existing DB via resolved-route): drafts register / rhythm / vocabulary tells / subtext /
+humor / languages / tic / stress tells + the three sample lines (calm / angry / lying)
+lifted VERBATIM from dialogue the character actually speaks. Excluded on purpose: forbidden
+words (unprovable negative) and accent (rarely stated) — documented in the help doc. Modal
+runs Profile → Voice back-to-back with one grouped review; voice failure non-fatal.
+`sanitizeVoice` maps the flat reply onto the page's extras keys (sampleCalm →
+`voice.sample`). Catalog/refs pins updated WITH the change (22 / 39). Gates: vitest 279 ·
+server pytest 115 + ruff · build · headless smoke 0 errors · modal render verified.
 
 ---
 
