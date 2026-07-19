@@ -12,6 +12,7 @@
     "section": "Planning your story",
     "items": [
       { "slug": "story-bible",       "title": "Story bible",       "hint": "Characters, Locations, Objects, Groups, Relations" },
+      { "slug": "character-sheet",   "title": "Character sheet",    "hint": "Every field of the character dossier, explained" },
       { "slug": "plot-and-time",     "title": "Plot and time",     "hint": "Narrative strands, Plot Board, Timeline, Events" },
       { "slug": "worldbuilding",     "title": "Worldbuilding",     "hint": "Architecture + the Worldbuilding library" },
       { "slug": "notes-and-search",  "title": "Notes and search",  "hint": "Notes scratch-pad and full-text search" },

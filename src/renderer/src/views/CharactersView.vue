@@ -25,6 +25,7 @@ import TagEditor from "../components/TagEditor.vue";
 import SceneRefList from "../components/SceneRefList.vue";
 import MentionRefList from "../components/MentionRefList.vue";
 import { Breadcrumb } from "@delebash/llm-ui";
+import { HelpTrigger } from "@delebash/llm-ui";
 import PaneHeader from "../components/PaneHeader.vue";
 import { saveImage } from "../services/imageStore.js";
 
@@ -544,6 +545,7 @@ function onRowClick(event) {
         <UiButton intent="ghost" size="small" @click="deleteCharacter">Delete</UiButton>
         <UiButton intent="primary" size="small" @click="addCharacter"><Icon name="Plus" :size="14" /> New character</UiButton>
         <StatusSelect :model-value="ch.status || ''" @update:model-value="(v) => updateField('status', v)" />
+        <HelpTrigger slug="character-sheet" label="Character sheet" />
       </div>
     </header>
 

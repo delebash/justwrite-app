@@ -39,6 +39,12 @@ The page also shows two reverse indexes:
 - **Appears in scenes** — every scene that has linked this character via its Links panel.
 - **Mentioned in prose** — every scene where the character's name was inserted with `@`, with a short snippet and a mention count.
 
+The character page carries a deeper, collapsible dossier — identity & core
+engine, voice & presence, function in the story, capabilities, a continuity
+ledger, and backstory. Each field explains itself on the page; the **[Character
+sheet](character-sheet)** guide covers all of them, and **Fill from book**
+drafts many of them from the character's own scenes.
+
 ### Why a writer would use the Motivation panel
 
 > *"I'm stuck on what my protagonist would do here. I know what the plot needs to happen — but I don't know what she'd actually do."*
