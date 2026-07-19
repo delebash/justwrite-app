@@ -14,7 +14,10 @@
 import { computed, onMounted, ref, watch } from "vue";
 import { useProjectStore } from "../stores/project.js";
 import { useAiTasksStore, AiTaskStrip, AppModal, Icon, UiButton, UiCheckbox, UiTextarea } from "@delebash/llm-ui";
-import { profileFromBook, voiceFromBook } from "../services/analysis/characterProfile.js";
+import {
+  profileFromBook, voiceFromBook,
+  profileFieldDefs, voiceFieldDefs, draftRows, applyProfileDrafts,
+} from "../services/analysis/characterProfile.js";
 import AiFeatureChip from "./AiFeatureChip.vue";
 
 const props = defineProps({
@@ -35,57 +38,6 @@ const noScenes = ref(false);
 const error = ref("");
 const rows = ref([]); // [{ key, label, current, proposed, accept }]
 const sceneCount = ref(0);
-
-// The character page's own field map — labels match the form exactly.
-// Identity facts (role/gender/pronouns/age) live on the character record;
-// everything else lives in extras.
-function fieldDefs() {
-  const c = ch.value || {};
-  const x = extras.value || {};
-  return [
-    { key: "identity.role",       label: "Role",              current: c.role || "" },
-    { key: "identity.gender",     label: "Gender",            current: c.gender || "" },
-    { key: "identity.pronouns",   label: "Pronouns",          current: c.pronouns || "" },
-    { key: "identity.age",        label: "Age",               current: c.age != null ? String(c.age) : "" },
-    { key: "oneLiner",            label: "Description",       current: c.oneLiner || "" },
-    { key: "motivation.want",     label: "Wants",             current: x.motivation?.want || "" },
-    { key: "motivation.need",     label: "Needs",             current: x.motivation?.need || "" },
-    { key: "motivation.lie",      label: "Lie they believe",  current: x.motivation?.lie || "" },
-    { key: "motivation.truth",    label: "Truth they meet",   current: x.motivation?.truth || "" },
-    { key: "motivation.fear",          label: "Core fear",             current: x.motivation?.fear || "" },
-    { key: "motivation.contradiction", label: "Central contradiction", current: x.motivation?.contradiction || "" },
-    { key: "motivation.stakes",        label: "Stakes",                current: x.motivation?.stakes || "" },
-    { key: "arc.start",           label: "Arc — Beginning",   current: x.arc?.start || "" },
-    { key: "arc.midpoint",        label: "Arc — Midpoint",    current: x.arc?.midpoint || "" },
-    { key: "arc.end",             label: "Arc — End",         current: x.arc?.end || "" },
-    { key: "continuity.physicalConstants", label: "Physical constants", current: x.continuity?.physicalConstants || "" },
-    { key: "backstory",           label: "Backstory",         current: x.backstory || "" },
-  ];
-}
-
-// WS8: the voice pass's field map — labels match the Voice & presence section.
-function voiceFieldDefs() {
-  const x = extras.value || {};
-  const v = x.voice || {};
-  return [
-    { key: "voice.register",       label: "Register",                current: v.register || "" },
-    { key: "voice.rhythm",         label: "Rhythm",                  current: v.rhythm || "" },
-    { key: "voice.vocabulary",     label: "Vocabulary",              current: v.vocabulary || "" },
-    { key: "voice.subtext",        label: "Subtext habit",           current: v.subtext || "" },
-    { key: "voice.humor",          label: "Humor style",             current: v.humor || "" },
-    { key: "voice.languages",      label: "Languages",               current: v.languages || "" },
-    { key: "voice.tic",            label: "Speech tic",              current: v.tic || "" },
-    { key: "voice.sample",         label: "Sample line — calm",      current: v.sample || "" },
-    { key: "voice.sampleAngry",    label: "Sample line — angry",     current: v.sampleAngry || "" },
-    { key: "voice.sampleLying",    label: "Sample line — lying",     current: v.sampleLying || "" },
-    { key: "presence.stressTells", label: "Baseline & stress tells", current: x.presence?.stressTells || "" },
-  ];
-}
-
-function proposedFor(fields, key) {
-  const [a, b] = key.split(".");
-  return b ? fields[a]?.[b] || "" : fields[a] || "";
-}
 
 let abort = null;
 // Two passes, one review (WS8): the profile call, then the voice call — each a
@@ -109,18 +61,14 @@ async function run() {
       return;
     }
     sceneCount.value = r.sceneCount;
-    const toRows = (defs, fields, section) => defs
-      .map((d) => {
-        const proposed = proposedFor(fields, d.key);
-        return { ...d, section, proposed, accept: !!proposed && !d.current };
-      })
-      .filter((d) => d.proposed); // fields the model left "" have nothing to review
-    rows.value = toRows(fieldDefs(), r.fields, "Profile");
+    const toRows = (defs, fields, section) =>
+      draftRows(defs, fields).map((row) => ({ ...row, section }));
+    rows.value = toRows(profileFieldDefs(ch.value, extras.value), r.fields, "Profile");
 
     phase.value = "voice";
     try {
       const v = await voiceFromBook({ project, characterId: props.characterId, signal: abort.signal });
-      if (v) rows.value = [...rows.value, ...toRows(voiceFieldDefs(), v.fields, "Voice")];
+      if (v) rows.value = [...rows.value, ...toRows(voiceFieldDefs(extras.value), v.fields, "Voice")];
     } catch (e) {
       const msg = e?.message || String(e);
       if (/abort|cancel/i.test(msg)) return;
@@ -161,28 +109,7 @@ function setAll(on) { for (const r of rows.value) r.accept = on; }
 function apply() {
   const picked = rows.value.filter((r) => r.accept);
   if (!picked.length) return;
-  const charPatch = {};       // role/gender/pronouns/age/oneLiner live on the record
-  const groups = { motivation: {}, arc: {}, continuity: {}, voice: {}, presence: {} };
-  let extrasPatch = null;
-  for (const r of picked) {
-    const v = String(r.proposed ?? "").trim();
-    if (r.key === "oneLiner") charPatch.oneLiner = v;
-    else if (r.key === "identity.role") charPatch.role = v;
-    else if (r.key === "identity.gender") charPatch.gender = v;
-    else if (r.key === "identity.pronouns") charPatch.pronouns = v;
-    else if (r.key === "identity.age") { const n = parseInt(v, 10); charPatch.age = Number.isFinite(n) ? n : null; }
-    else if (r.key === "backstory") extrasPatch = { ...(extrasPatch || {}), backstory: v };
-    else {
-      const [g, k] = r.key.split(".");
-      if (groups[g]) groups[g][k] = v;
-    }
-  }
-  if (Object.keys(charPatch).length) project.updateCharacter(props.characterId, charPatch);
-  for (const [g, patch] of Object.entries(groups)) {
-    if (!Object.keys(patch).length) continue;
-    extrasPatch = { ...(extrasPatch || {}), [g]: { ...(extras.value[g] || {}), ...patch } };
-  }
-  if (extrasPatch) project.setCharacterExtras(props.characterId, extrasPatch);
+  applyProfileDrafts(project, props.characterId, picked);
   emit("close");
 }
 

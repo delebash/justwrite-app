@@ -35,6 +35,22 @@ function buildProfileText(character, extras) {
 }
 
 /**
+ * Cheap count of the scenes that feature a character — NO text extraction.
+ * The batch fill-from-book picker uses it to disable characters with nothing
+ * to draft from (0 linked scenes) and show a scene count per row.
+ */
+export function characterSceneCount(project, characterId) {
+  let n = 0;
+  for (const ch of project.allChapters || []) {
+    for (const scn of project.scenesFor(ch.id) || []) {
+      const chars = Array.isArray(scn.characters) ? scn.characters : [];
+      if (chars.includes(characterId)) n++;
+    }
+  }
+  return n;
+}
+
+/**
  * Collect a digest of the scenes that feature this character.
  * For each scene, includes the chapter context + a tail of the scene
  * prose (because the character's actions usually live in the latter

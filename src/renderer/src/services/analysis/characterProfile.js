@@ -132,3 +132,121 @@ export async function profileFromBook({ project, characterId, signal, provider, 
     providerId: result.providerId,
   };
 }
+
+// ── Shared field-defs + apply layer (WS-A, 2026-07-19) ──────────────────────
+// The single Fill-from-book modal AND the batch modal build their review rows
+// and write their drafts through THESE (QC-35: one source, no copies). Field
+// defs take the raw character record + extras object (not Vue refs).
+
+/** The profile pass's field map — labels match the character page exactly.
+ *  Identity facts (role/gender/pronouns/age) live on the character record;
+ *  everything else lives in extras. */
+export function profileFieldDefs(character, extras) {
+  const c = character || {};
+  const x = extras || {};
+  return [
+    { key: "identity.role",       label: "Role",              current: c.role || "" },
+    { key: "identity.gender",     label: "Gender",            current: c.gender || "" },
+    { key: "identity.pronouns",   label: "Pronouns",          current: c.pronouns || "" },
+    { key: "identity.age",        label: "Age",               current: c.age != null ? String(c.age) : "" },
+    { key: "oneLiner",            label: "Description",       current: c.oneLiner || "" },
+    { key: "motivation.want",     label: "Wants",             current: x.motivation?.want || "" },
+    { key: "motivation.need",     label: "Needs",             current: x.motivation?.need || "" },
+    { key: "motivation.lie",      label: "Lie they believe",  current: x.motivation?.lie || "" },
+    { key: "motivation.truth",    label: "Truth they meet",   current: x.motivation?.truth || "" },
+    { key: "motivation.fear",          label: "Core fear",             current: x.motivation?.fear || "" },
+    { key: "motivation.contradiction", label: "Central contradiction", current: x.motivation?.contradiction || "" },
+    { key: "motivation.stakes",        label: "Stakes",                current: x.motivation?.stakes || "" },
+    { key: "arc.start",           label: "Arc — Beginning",   current: x.arc?.start || "" },
+    { key: "arc.midpoint",        label: "Arc — Midpoint",    current: x.arc?.midpoint || "" },
+    { key: "arc.end",             label: "Arc — End",         current: x.arc?.end || "" },
+    { key: "continuity.physicalConstants", label: "Physical constants", current: x.continuity?.physicalConstants || "" },
+    { key: "backstory",           label: "Backstory",         current: x.backstory || "" },
+  ];
+}
+
+/** The voice pass's field map — labels match the Voice & presence section. */
+export function voiceFieldDefs(extras) {
+  const x = extras || {};
+  const v = x.voice || {};
+  return [
+    { key: "voice.register",       label: "Register",                current: v.register || "" },
+    { key: "voice.rhythm",         label: "Rhythm",                  current: v.rhythm || "" },
+    { key: "voice.vocabulary",     label: "Vocabulary",              current: v.vocabulary || "" },
+    { key: "voice.subtext",        label: "Subtext habit",           current: v.subtext || "" },
+    { key: "voice.humor",          label: "Humor style",             current: v.humor || "" },
+    { key: "voice.languages",      label: "Languages",               current: v.languages || "" },
+    { key: "voice.tic",            label: "Speech tic",              current: v.tic || "" },
+    { key: "voice.sample",         label: "Sample line — calm",      current: v.sample || "" },
+    { key: "voice.sampleAngry",    label: "Sample line — angry",     current: v.sampleAngry || "" },
+    { key: "voice.sampleLying",    label: "Sample line — lying",     current: v.sampleLying || "" },
+    { key: "presence.stressTells", label: "Baseline & stress tells", current: x.presence?.stressTells || "" },
+  ];
+}
+
+/** The proposed value for a field key out of a sanitized draft. Handles both
+ *  1-level (oneLiner, backstory) and 2-level (motivation.fear) keys. Private. */
+function proposedFor(fields, key) {
+  const [a, b] = key.split(".");
+  return b ? fields?.[a]?.[b] || "" : fields?.[a] || "";
+}
+
+/** Build reviewable rows from field defs + a sanitized draft: one row per field
+ *  the model actually grounded, ticked by default ONLY when the current value
+ *  is empty. Shared by the single + batch review UIs.
+ *  @returns {Array<{ key, label, current, proposed, accept }>} */
+export function draftRows(defs, fields) {
+  const out = [];
+  for (const d of defs) {
+    const proposed = proposedFor(fields, d.key);
+    if (!proposed) continue; // fields the model left "" have nothing to review
+    out.push({ key: d.key, label: d.label, current: d.current, proposed, accept: !d.current });
+  }
+  return out;
+}
+
+/** Auto-apply selector (the batch toggle): a field is picked ONLY when the
+ *  model grounded it AND the writer's current value is empty — so this can
+ *  NEVER overwrite anything the writer wrote. @returns {Array<{key,label,proposed}>} */
+export function emptyOnlyPicks(defs, fields) {
+  const out = [];
+  for (const d of defs) {
+    const proposed = proposedFor(fields, d.key);
+    if (proposed && !d.current) out.push({ key: d.key, label: d.label, proposed });
+  }
+  return out;
+}
+
+/** Route accepted drafts onto a character. `picks` = [{ key, proposed }].
+ *  Identity facts + oneLiner batch into ONE updateCharacter; every other key
+ *  (group.field) merges into its extras group without clobbering siblings.
+ *  THE one apply path — the single modal AND the batch modal both call this.
+ *  @returns {number} fields written */
+export function applyProfileDrafts(project, characterId, picks) {
+  if (!project || !characterId || !picks?.length) return 0;
+  const extras = project.characterExtras?.[characterId] || {};
+  const charPatch = {};
+  const groups = { motivation: {}, arc: {}, continuity: {}, voice: {}, presence: {} };
+  let backstory;
+  for (const p of picks) {
+    const v = String(p.proposed ?? "").trim();
+    if (p.key === "oneLiner") charPatch.oneLiner = v;
+    else if (p.key === "identity.role") charPatch.role = v;
+    else if (p.key === "identity.gender") charPatch.gender = v;
+    else if (p.key === "identity.pronouns") charPatch.pronouns = v;
+    else if (p.key === "identity.age") { const n = parseInt(v, 10); charPatch.age = Number.isFinite(n) ? n : null; }
+    else if (p.key === "backstory") backstory = v;
+    else { const [g, k] = p.key.split("."); if (groups[g]) groups[g][k] = v; }
+  }
+  if (Object.keys(charPatch).length) project.updateCharacter(characterId, charPatch);
+  let extrasPatch = null;
+  if (backstory !== undefined) extrasPatch = { backstory };
+  for (const [g, patch] of Object.entries(groups)) {
+    if (!Object.keys(patch).length) continue;
+    extrasPatch = { ...(extrasPatch || {}), [g]: { ...(extras[g] || {}), ...patch } };
+  }
+  if (extrasPatch) project.setCharacterExtras(characterId, extrasPatch);
+  let written = Object.keys(charPatch).length + (backstory !== undefined ? 1 : 0);
+  for (const patch of Object.values(groups)) written += Object.keys(patch).length;
+  return written;
+}
