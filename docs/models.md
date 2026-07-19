@@ -57,8 +57,10 @@ built-in provider**) does the whole first-time setup:
 Quick Setup is **local-only**: it configures the **bundled runner** — the local engine that
 downloads and runs models on your machine — and nothing else. If you'd rather run models
 through another provider (**Ollama** or **LM Studio** on your machine, or a cloud API),
-connect it on the **provider list** (Providers & models → add a provider) and point presets at
-it there — the wizard never touches external providers. (The embedding always runs locally
+set it up on the **provider list** and point presets at it there — the wizard never touches
+external providers. Ollama and LM Studio are **already listed** under **Local**, pointing at
+their default ports (`localhost:11434` and `localhost:1234`); start the app you want and hit
+**Test** on its row. Anything else is **add a provider**. (The embedding always runs locally
 on the bundled runner.)
 
 > **Provider types (the cloud APIs).** Each cloud provider now talks to its vendor
