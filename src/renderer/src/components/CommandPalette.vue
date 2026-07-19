@@ -296,7 +296,11 @@ function pick(item) {
 <style scoped>
 .cp-overlay {
   position: fixed; inset: 0; z-index: 200;
-  background: color-mix(in oklab, black 35%, transparent);
+  /* No dim, no blur — the user ruled backdrop dimming + blur off app-wide
+     (2026-07-19). The palette's own border + shadow do the separating. The
+     element STAYS: it is the @click.self click-outside catcher and the
+     flex-centering container. */
+  background: transparent;
   display: flex; justify-content: center; align-items: flex-start;
   padding-top: 12vh;
 }

@@ -287,7 +287,7 @@ try {
   // ── Leg 3: index build — document-side template + cards in the index ─────
   await page.evaluate(() => { window.location.hash = "#/chapters"; });
   await sleep(700);
-  await page.locator('[data-chat-toggle]:has-text("Ask the book")').first().click();
+  await page.locator('[data-panel-toggle]:has-text("Ask the book")').first().click();
   await sleep(600);
   await page.locator('.chat-panel button:has-text("Build index")').click();
   await page.locator('[role="dialog"] button:has-text("Done")').waitFor({ timeout: 120000 });
@@ -378,7 +378,7 @@ try {
   // Since the corpus fallback (2026-07-18) a no-name question ALWAYS pins the
   // premise + main-cast roster, so this leg now proves pins + retrieval + the
   // citation pipeline together (it can no longer distinguish which surfaced it).
-  await page.locator('[data-chat-toggle]:has-text("Ask the book")').first().click();
+  await page.locator('[data-panel-toggle]:has-text("Ask the book")').first().click();
   await sleep(600);
   const askErr2 = await askAndSettle("who signed the ledger at the watch-hut");
   check("ask: the follow-up question settled (no panel error)", !askErr2, askErr2);

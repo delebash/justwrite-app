@@ -116,7 +116,7 @@ try {
   try { await page.click('button:has-text("Got it")', { timeout: 1500 }); } catch { /* none */ }
 
   // ── B5-4: Ask-the-book nav prominence ──────────────────────────────────────
-  const askNav = page.locator('.nav-item[data-chat-toggle]');
+  const askNav = page.locator('.nav-item[data-panel-toggle]');
   const navStyle = await askNav.evaluate((el) => {
     const cs = getComputedStyle(el);
     return { weight: cs.fontWeight, accent: el.classList.contains("nav-item-accent") };

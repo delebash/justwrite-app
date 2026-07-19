@@ -776,7 +776,7 @@ watch(() => project.allChapters.map((c) => `${c.id}:${(project.scenesFor(c.id) |
       </template>
     </div>
     <div class="pane-actions">
-      <UiButton intent="ghost" size="small" data-chat-toggle @click="askTheBook"
+      <UiButton intent="ghost" size="small" data-panel-toggle @click="askTheBook"
         v-tooltip.bottom="`Ask the book about chapter ${ch.num}`">
         <Icon name="Chat" :size="14" /> Ask the book
       </UiButton>

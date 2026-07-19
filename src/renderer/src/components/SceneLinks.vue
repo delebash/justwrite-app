@@ -247,7 +247,9 @@ function onBackdrop(e) {
 <style scoped>
 .links-overlay {
   position: fixed; inset: 0;
-  background: color-mix(in oklab, var(--ink), transparent 55%);
+  /* No dim, no blur — the user ruled backdrop dimming + blur off app-wide
+     (2026-07-19). The panel's own border + shadow do the separating. */
+  background: transparent;
   z-index: 200;
   display: grid; place-items: center;
   padding: 24px;

@@ -555,11 +555,11 @@ function onRowClick(event) {
           @input="updateField('name', $event.target.value)" />
       </div>
       <div class="pane-actions">
-        <UiButton intent="ghost" size="small" data-chat-toggle @click="talkToCharacter"
+        <UiButton intent="ghost" size="small" data-panel-toggle @click="talkToCharacter"
           v-tooltip.bottom="`Open chat in character mode, pre-set to ${ch.name}`">
           <Icon name="Sparkle" :size="14" /> Talk to {{ ch.name?.split(/\s+/)[0] || "character" }}
         </UiButton>
-        <UiButton intent="ghost" size="small" data-chat-toggle @click="askTheBook"
+        <UiButton intent="ghost" size="small" data-panel-toggle @click="askTheBook"
           v-tooltip.bottom="`Ask the book about ${ch.name}`">
           <Icon name="Chat" :size="14" /> Ask the book
         </UiButton>

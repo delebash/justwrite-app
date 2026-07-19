@@ -12,10 +12,10 @@
 // calls), and the status strip becomes the "story bible only" notice with the
 // Build-index upgrade inline. The old EmptyState hard gate is gone.
 
-import { ref, computed, watch, nextTick, onBeforeUnmount } from "vue";
+import { ref, computed, watch, nextTick } from "vue";
 import { useRouter } from "vue-router";
 import { useProjectStore } from "../stores/project.js";
-import { useAiTasksStore, AiTaskStrip, HelpTrigger, Icon, UiButton, UiTextarea, UiSelect, confirmDialog } from "@delebash/llm-ui";
+import { useAiTasksStore, AiTaskStrip, HelpTrigger, Icon, UiButton, UiTextarea, UiSelect, confirmDialog, usePanelDismiss } from "@delebash/llm-ui";
 import { useUiStore } from "../stores/ui.js";
 import { askManuscript } from "../services/rag/chat.js";
 import { askAsCharacter } from "../services/rag/characterChat.js";
@@ -285,40 +285,12 @@ function close() {
   ui.closeChatPanel();
 }
 
-function onDocKeydown(e) {
-  if (e.key === "Escape" && open.value) {
-    e.stopPropagation();
-    close();
-  }
-}
-// Click-outside dismissal. Listens on mousedown rather than click because
-// Reka's Select removes the dropdown content from the DOM synchronously on
-// selection — by the time a click bubbles to document, target.closest()
-// returns null because the option's ancestors are detached. Mousedown fires
-// before Reka's handler so closest() still walks an intact tree.
-// Exemptions:
-//   - [data-chat-toggle] — toggle triggers (sidebar Ask, TitleBar Chat, per-
-//     entity "Talk to …" buttons). Without this, clicking a toggle while the
-//     panel is open would immediately close it before its own handler ran.
-//   - [role="dialog"]    — portaled modals (IndexBuildModal via AppModal)
-//     teleport outside the panel; clicks inside them aren't "outside".
-//   - .ui-select-content / [data-reka-popper-content-wrapper] — Reka Select
-//     popover content (character/model pickers) is portaled outside panelRef.
-function onDocClick(e) {
-  if (!open.value) return;
-  const target = e.target;
-  if (!target || !panelRef.value) return;
-  if (panelRef.value.contains(target)) return;
-  if (target.closest?.("[data-chat-toggle]")) return;
-  if (target.closest?.('[role="dialog"], [role="listbox"], .ui-select-content, [data-reka-popper-content-wrapper]')) return;
-  close();
-}
-document.addEventListener("keydown", onDocKeydown);
-document.addEventListener("mousedown", onDocClick);
-onBeforeUnmount(() => {
-  document.removeEventListener("keydown", onDocKeydown);
-  document.removeEventListener("mousedown", onDocClick);
-});
+// Esc + click-outside dismissal comes from the shared kit composable
+// (usePanelDismiss, extracted from THIS component 2026-07-19 so the AI-tasks
+// panel and every future panel dismiss identically). The mousedown-not-click
+// reasoning and the toggle / portal exemptions live in the composable's own
+// comments — read them there; this panel needs no extra exemptions.
+usePanelDismiss(open, panelRef, close);
 
 function onIndexBuilt() {
   // Don't auto-close the modal — yanking it via v-if before the leave

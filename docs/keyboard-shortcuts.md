@@ -20,6 +20,10 @@ These work from anywhere in the app.
 | **Ctrl/⌘ + Shift + Z** | Redo |
 | **Ctrl + Y** | Redo (Windows alternative) |
 
+### Closing panels
+
+Every slide-in panel — "Ask the book", AI tasks, and the Help drawer — closes the same three ways: press **Esc**, click anywhere outside it, or click the same nav entry / trigger button again. Clicking a *different* Help "?" while the drawer is open switches it to that article rather than closing it. Dialogs are deliberately different: they stay put until you use their own buttons, so an accidental click can't lose your edits.
+
 Undo and redo are disabled when the focus is inside the rich manuscript editor — the editor has its own undo history (`Ctrl/⌘ + Z` inside the editor undoes typing).
 
 ---

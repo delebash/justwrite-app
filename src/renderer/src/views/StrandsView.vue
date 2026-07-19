@@ -358,7 +358,7 @@ const tableRows = computed(() =>
         </div>
       </div>
       <div class="pane-actions">
-        <UiButton intent="ghost" size="small" data-chat-toggle @click="askTheBook"
+        <UiButton intent="ghost" size="small" data-panel-toggle @click="askTheBook"
           v-tooltip.bottom="`Ask the book about ${s.name}`">
           <Icon name="Chat" :size="14" /> Ask the book
         </UiButton>

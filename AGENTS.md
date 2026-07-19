@@ -213,10 +213,37 @@ Esc-to-close still uses a `keydown` listener (that one is rock-solid).
 **Reference shipper:** `AiFeatureChip.vue` (the chip + popover for
 provider/model routing).
 
-**Known exception**: `ChatPanel.vue` does use a document-level handler with
-`[data-chat-toggle]` and `.jw-select-content` exemptions. It pre-dates this
-rule. If you touch it, don't add more exemption selectors — migrate to the
-backdrop pattern.
+**Scope: this rule governs DROPDOWNS and POPOVERS, not slide-in PANELS.**
+(Narrowed 2026-07-19 — it previously read as universal, and named `ChatPanel.vue`
+a "known exception" to be migrated to the backdrop pattern.)
+
+Slide-in panels — Ask-the-book, AI tasks, the Help drawer — use the shared kit
+composable `usePanelDismiss` (`@delebash/llm-ui`) instead, which IS a
+document-level `mousedown` + `keydown` handler. The backdrop pattern is wrong
+for them for a concrete reason: a full-inset backdrop **swallows** the click
+that dismisses. That is exactly what a dropdown wants, and exactly what a panel
+does not — with the chat panel open you must be able to click a nav item and
+have it both close the panel *and* navigate, in one click. A backdrop would
+close the panel and eat the navigation. Panels also stay open while you keep
+working behind them, which a click-blocking overlay contradicts.
+
+Two consequences worth knowing:
+
+- It listens on **`mousedown`, not `click`**: Reka's Select removes dropdown
+  content from the DOM synchronously on selection, so by the time a `click`
+  bubbles to `document`, `target.closest()` walks a detached tree and returns
+  `null`.
+- Its exemption selectors live in ONE place (the composable), so "don't add more
+  exemption selectors" now means *don't add them at the call site* — a new
+  exemption is either a kit-wide portal case or a genuinely panel-specific one
+  passed via the `exempt` option, and both are visible in a single file.
+
+Panel triggers carry **`data-panel-toggle`** (one vocabulary since 2026-07-19;
+the old `data-chat-toggle` / `data-ai-status-toggle` names are gone) so the
+handler doesn't close a panel just before its own trigger re-opens it.
+
+Full reasoning + the user's rulings:
+`just-llm-runner/docs/plans/2026-07-19-panel-dismiss-and-no-dim.md`.
 
 ---
 

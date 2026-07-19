@@ -158,7 +158,7 @@ function toggleChat() {
       <span class="titlebar-divider" />
       <AiStatusButton />
       <span class="titlebar-divider" />
-      <button data-chat-toggle @click="toggleChat" :class="{ active: ui.chatPanelOpen }" v-tooltip.bottom="'Ask the book · ⌘J'">
+      <button data-panel-toggle @click="toggleChat" :class="{ active: ui.chatPanelOpen }" v-tooltip.bottom="'Ask the book · ⌘J'">
         <Icon name="Chat" :size="13" />
       </button>
       <button @click="ui.toggleSidebar" v-tooltip.bottom="ui.sidebarCollapsed ? 'Expand sidebar · ⌘\\' : 'Collapse sidebar · ⌘\\'">

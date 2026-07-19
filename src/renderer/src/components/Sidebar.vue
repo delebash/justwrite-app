@@ -208,6 +208,16 @@ function isNavActive(n) {
   return activeSection.value === (n.activeName || n.id).toLowerCase();
 }
 
+// Nav rows that TOGGLE a panel (Ask-the-book, AI tasks) carry
+// [data-panel-toggle] so the shared usePanelDismiss composable exempts them:
+// without it the outside-mousedown would close the panel before this row's own
+// click handler ran, and the row would look dead. ONE attribute for every
+// panel since 2026-07-19 (was data-chat-toggle / data-ai-status-toggle), hence
+// one binding here rather than two — two bindings of the same name is a Vue
+// "Duplicate attribute" compile error.
+const PANEL_NAV_IDS = new Set(["ask", "ai-tasks"]);
+const panelToggleAttr = (n) => (PANEL_NAV_IDS.has(n.id) ? "" : null);
+
 // QC-38: the AI-tasks nav row carries the same live signal as the titlebar
 // chip — the unseen-error count wins (red), else the running count.
 const aiTasks = useAiTasksStore();
@@ -852,8 +862,7 @@ function wbDropClass(kind, id) {
             :class="{ active: isNavActive(n), 'nav-item-accent': n.id === 'ask' }"
             :aria-expanded="n.expandable ? !!ui.expanded[n.id] : undefined"
             :aria-current="isNavActive(n) ? 'page' : undefined"
-            :data-chat-toggle="n.id === 'ask' ? '' : null"
-            :data-ai-status-toggle="n.id === 'ai-tasks' ? '' : null"
+            :data-panel-toggle="panelToggleAttr(n)"
             @click="clickParent(n)">
             <span class="nav-icon"><Icon :name="n.icon" :size="15" /></span>
             <span class="nav-label">{{ $t(n.label) }}</span>
@@ -1088,8 +1097,7 @@ function wbDropClass(kind, id) {
       class="rail-item" :class="{ active: isNavActive(n), 'nav-item-accent': n.id === 'ask' }"
       v-tooltip.bottom="$t(n.label)" :aria-label="$t(n.label)"
       :aria-current="isNavActive(n) ? 'page' : undefined"
-      :data-chat-toggle="n.id === 'ask' ? '' : null"
-      :data-ai-status-toggle="n.id === 'ai-tasks' ? '' : null"
+      :data-panel-toggle="panelToggleAttr(n)"
       @click="clickParent(n)">
       <Icon :name="n.icon" :size="16" />
       <span v-if="n.id === 'ai-tasks' && aiTasksBadge" class="rail-dot"
