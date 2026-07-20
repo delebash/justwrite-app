@@ -400,7 +400,8 @@ try {
       await api(`/v1/ai/engine-presets/${p.id}`, { method: "PUT", body: p }).catch(() => {});
     }
     await api("/v1/ai/routing", { method: "PUT", body: { default: origRouting.default, pins: origRouting.pins || {} } }).catch(() => {});
-    await api(`/v1/chat?projectId=${DEMO_ID}&mode=book&characterId=`, { method: "DELETE" }).catch(() => {});
+    // (No explicit chat cleanup: deleting the demo project below cascades its
+    // chat sessions away via the project_id FK — 2026-07-20 sessions rewrite.)
     await api(`/v1/rag/${DEMO_ID}`, { method: "DELETE" }).catch(() => {});
     await api(`/v1/projects/${DEMO_ID}`, { method: "DELETE" }).catch(() => {});
     if (demoWasPresent) await api("/v1/projects/demo", { method: "POST" }).catch(() => {});

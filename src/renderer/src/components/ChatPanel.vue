@@ -1,59 +1,42 @@
 <script setup>
 // Manuscript-RAG chat panel.
 //
-// Slide-in panel from the right. Maintains a multi-turn thread per project,
-// persisted server-side (/v1/chat) so closing the panel doesn't lose context.
-// Each user question is embedded (with the prior user turn prepended for
-// pronoun/entity context), top-K scenes are retrieved, and the LLM streams an
-// answer with citations.
+// Slide-in panel from the right. A project holds a flat LIST of chat sessions
+// (the claude.ai / ChatGPT History pattern), persisted server-side
+// (/v1/chat/sessions). "New chat" MINTS a new session — the previous
+// conversation stays in History instead of being wiped (2026-07-20: fixes the
+// destructive New-chat/Delete-chat defect where the combo's only thread was the
+// only thread). Each user question is embedded, top-K scenes are retrieved, and
+// the LLM streams an answer with citations.
 //
-// NO-INDEX mode (2026-07-18, user decision): chat is never blocked — without
-// an index the services answer from story-bible pins alone (zero embedding
-// calls), and the status strip becomes the "story bible only" notice with the
-// Build-index upgrade inline. The old EmptyState hard gate is gone.
+// SESSIONS ARE STORAGE ONLY — they change nothing about per-request cost. The
+// context a run sees is still the last 8 turns + retrieval (rag/chat.js
+// MAX_HISTORY_MESSAGES); there is no "context management" layer here.
+//
+// NO-INDEX mode (2026-07-18): chat is never blocked — without an index the
+// services answer from story-bible pins alone (zero embedding calls), and the
+// status strip becomes the "story bible only" notice with the Build-index
+// upgrade inline.
 
 import { ref, computed, watch, nextTick } from "vue";
 import { useRouter } from "vue-router";
 import { useProjectStore } from "../stores/project.js";
-import { useAiTasksStore, AiTaskStrip, HelpTrigger, Icon, UiButton, UiTextarea, UiSelect, confirmDialog, usePanelDismiss } from "@delebash/llm-ui";
+import { useAiTasksStore, AiTaskStrip, HelpTrigger, Icon, UiButton, UiTextarea, UiSelect, confirmDialog, promptDialog, usePanelDismiss } from "@delebash/llm-ui";
 import { useUiStore } from "../stores/ui.js";
 import { askManuscript } from "../services/rag/chat.js";
 import { askAsCharacter } from "../services/rag/characterChat.js";
 import { citationLabel } from "../services/rag/excerpts.js";
 import { indexStatus } from "../services/rag/indexer.js";
 import { autoIndexRunning } from "../services/rag/autoIndex.js";
-import { fetchThread, putThread, deleteThread } from "../services/chatApi.js";
+import {
+  listSessions, fetchSession, putSession, deleteSession, mintSessionId, deriveSessionTitle,
+} from "../services/chatApi.js";
 import IndexBuildModal from "./IndexBuildModal.vue";
 import AiFeatureChip from "./AiFeatureChip.vue";
 
-// One thread per (project, mode, character) combo, persisted server-side
-// (/v1/chat) so closing the panel doesn't lose context. Book mode uses an
-// empty character id.
-//
-// Cap persisted threads at the last 30 messages — long threads waste storage
-// and the model already truncates history to MAX_HISTORY_MESSAGES.
+// Cap persisted turns at the last 30 — long threads waste storage and the model
+// already truncates history to MAX_HISTORY_MESSAGES. (Enforced server-side too.)
 const MAX_PERSISTED = 30;
-
-async function loadThread(projectId, mode, characterId) {
-  if (!projectId) return [];
-  if (mode === "character" && !characterId) return [];
-  try {
-    return await fetchThread({ projectId, mode, characterId: characterId || "" });
-  } catch (err) {
-    console.error("ChatPanel.loadThread failed:", err);
-    return [];
-  }
-}
-
-// Persist a settled thread (replace-all). Only completed turns are stored — a
-// half-streamed assistant message (pending) is never written, so a mid-stream
-// close just restores the last settled state on reload (no "in flight" turn).
-function persistThread(projectId, mode, characterId, items) {
-  if (!projectId) return;
-  if (mode === "character" && !characterId) return;
-  const messages = items.filter((m) => !m.pending).slice(-MAX_PERSISTED);
-  putThread({ projectId, mode, characterId: characterId || "", messages });
-}
 
 const props = defineProps({
   modelValue: { type: Boolean, default: false },
@@ -80,10 +63,8 @@ const question = ref("");
 const chatMode = ref("book");
 const selectedCharacterId = ref(null);
 
-// The in-panel provider+model PICKER is gone (B5-1, §7.2 — the user: "i am
-// not sure if we even want a provider model selector in the app besides what
-// we have for task and feature" → REMOVE). The header AiFeatureChip is now a
-// read-only "runs on" provenance chip; routing is edited on the Tasks tab.
+// The in-panel provider+model PICKER is gone (B5-1, §7.2). The header
+// AiFeatureChip is a read-only "runs on" provenance chip.
 const MODE_OPTIONS = [
   { value: "book", label: "Ask the book" },
   { value: "character", label: "Talk to a character" },
@@ -96,38 +77,190 @@ const characterOptions = computed(() => {
 const selectedCharacter = computed(
   () => (project.characters || []).find((c) => c.id === selectedCharacterId.value) || null,
 );
+// A session whose character was deleted is still viewable, but you can't add to
+// it — the input is disabled with a hint and the character select shows its
+// placeholder (the deleted id isn't in the options).
+const orphanedCharacter = computed(
+  () => chatMode.value === "character" && !!selectedCharacterId.value && !selectedCharacter.value,
+);
 
 // thread items:
 //   { role: "user",      content }
 //   { role: "assistant", content, citations: [...], pending?: bool, error?: string }
 const thread = ref([]);
+// The project's session list — light rows { id, mode, characterId, title,
+// updatedAt, messageCount }, no messages. `currentSessionId` is null while an
+// unsaved (empty) session is in the thread view; it is minted + persisted only
+// once the first turn settles (empty sessions are never persisted).
+const sessions = ref([]);
+const currentSessionId = ref(null);
+const view = ref("thread"); // "thread" | "history"
 const indexModalMode = ref(null); // "build" | "rebuild" | null
 const inputRef = ref(null);
 const threadRef = ref(null);
 const panelRef = ref(null);
 
-// Thread hydration is async (a server fetch) and the user can switch
-// project/mode/character faster than a fetch resolves — a stale load must not
-// clobber a newer one. A monotonic token guards the assignment: only the most
-// recent hydrate writes to `thread`.
-let loadToken = 0;
-async function hydrateThread() {
-  const my = ++loadToken;
-  const loaded = await loadThread(project.activeProjectId, chatMode.value, selectedCharacterId.value);
-  if (my === loadToken) thread.value = loaded;
+const hasThread = computed(() => thread.value.length > 0);
+const sortedSessions = computed(() =>
+  [...sessions.value].sort((a, b) => (b.updatedAt || "").localeCompare(a.updatedAt || "")),
+);
+const inputDisabled = computed(() => running.value || orphanedCharacter.value);
+
+// ── Session list bookkeeping ───────────────────────────────────────────────
+function upsertSessionRow(row) {
+  const rest = sessions.value.filter((s) => s.id !== row.id);
+  sessions.value = [row, ...rest];
 }
-hydrateThread();
+function removeSessionRow(id) {
+  sessions.value = sessions.value.filter((s) => s.id !== id);
+}
+function latestSessionForScope() {
+  const mode = chatMode.value;
+  const cid = mode === "character" ? (selectedCharacterId.value || "") : "";
+  return sortedSessions.value.find((s) => s.mode === mode && (s.characterId || "") === cid) || null;
+}
+function scopeLabel(s) {
+  if (s.mode !== "character") return "Book";
+  const c = (project.characters || []).find((x) => x.id === s.characterId);
+  return c ? c.name : "removed character";
+}
+
+// Relative time, Intl-based (matches the app's toLocale* formatting elsewhere):
+// recent items read "3h ago", older ones fall back to an absolute date.
+const RELATIVE = new Intl.RelativeTimeFormat(undefined, { numeric: "auto" });
+function relativeTime(iso) {
+  if (!iso) return "";
+  const then = new Date(iso).getTime();
+  if (Number.isNaN(then)) return "";
+  const diff = then - Date.now(); // negative = past
+  const abs = Math.abs(diff);
+  const MIN = 60_000, HOUR = 60 * MIN, DAY = 24 * HOUR;
+  if (abs < MIN) return "just now";
+  if (abs < HOUR) return RELATIVE.format(Math.round(diff / MIN), "minute");
+  if (abs < DAY) return RELATIVE.format(Math.round(diff / HOUR), "hour");
+  if (abs < 7 * DAY) return RELATIVE.format(Math.round(diff / DAY), "day");
+  return new Date(iso).toLocaleDateString(undefined, { month: "short", day: "numeric", year: "numeric" });
+}
+
+// ── Async load guards ──────────────────────────────────────────────────────
+// A monotonic token guards message hydration: the user can switch sessions /
+// scopes faster than a fetch resolves, and a stale load must not clobber a
+// newer one. `scopeSetByCode` suppresses the scope watcher while we set the
+// dropdowns programmatically (opening a session from History), so it doesn't
+// fight us by resuming the scope's LATEST session over the one we just opened.
+let loadToken = 0;
+let scopeSetByCode = false;
+
+async function reloadSessions() {
+  try {
+    sessions.value = await listSessions(project.activeProjectId);
+  } catch (err) {
+    console.error("ChatPanel.reloadSessions failed:", err);
+    sessions.value = [];
+  }
+}
+
+async function loadSessionMessages(id) {
+  const my = ++loadToken;
+  try {
+    const full = await fetchSession(id);
+    if (my !== loadToken) return;
+    thread.value = full.messages || [];
+    currentSessionId.value = id;
+  } catch (err) {
+    console.error("ChatPanel.loadSessionMessages failed:", err);
+    if (my === loadToken) { thread.value = []; currentSessionId.value = id; }
+  }
+}
+
+// The messenger rule: switching scope loads the MOST RECENT session for it (or
+// an empty unsaved thread if none) — preserving today's "reopen where you were".
+function resumeLatestForScope() {
+  const latest = latestSessionForScope();
+  if (latest) { loadSessionMessages(latest.id); return; }
+  ++loadToken; // cancel any in-flight load
+  currentSessionId.value = null;
+  thread.value = [];
+}
+
+async function openFromHistory(s) {
+  scopeSetByCode = true;
+  chatMode.value = s.mode;
+  selectedCharacterId.value = s.characterId || null;
+  await nextTick();
+  scopeSetByCode = false;
+  await loadSessionMessages(s.id);
+  view.value = "thread";
+  nextTick(() => inputRef.value?.focus());
+}
+
+// "New chat": start a FRESH unsaved session for the current scope. The previous
+// conversation is already persisted and stays in History — nothing is wiped.
+function newChat() {
+  ++loadToken; // cancel any in-flight load
+  currentSessionId.value = null;
+  thread.value = [];
+  question.value = "";
+  view.value = "thread";
+  nextTick(() => inputRef.value?.focus());
+}
+
+function toggleHistory() {
+  view.value = view.value === "history" ? "thread" : "history";
+}
+
+async function renameSession(s) {
+  const title = await promptDialog({
+    title: "Rename chat",
+    label: "Chat name",
+    defaultValue: s.title,
+    confirmLabel: "Rename",
+  });
+  if (title == null) return;
+  const trimmed = title.trim();
+  if (!trimmed || trimmed === s.title) return;
+  // Meta-only PUT (no `messages`) — the stored turns stay put, updatedAt kept so
+  // a rename doesn't reorder the list. A renamed title never auto-regenerates.
+  putSession({
+    id: s.id, projectId: project.activeProjectId, mode: s.mode,
+    characterId: s.characterId || "", title: trimmed, updatedAt: s.updatedAt,
+  });
+  const idx = sessions.value.findIndex((x) => x.id === s.id);
+  if (idx >= 0) sessions.value[idx] = { ...sessions.value[idx], title: trimmed };
+}
+
+async function deleteSessionRow(s) {
+  const yes = await confirmDialog({
+    title: "Delete this chat?",
+    message: `Delete "${s.title || "this chat"}"? This can't be undone.`,
+    confirmLabel: "Delete chat",
+    danger: true,
+  });
+  if (!yes) return;
+  deleteSession(s.id);
+  removeSessionRow(s.id);
+  if (currentSessionId.value === s.id) resumeLatestForScope();
+}
+
+// ── Boot + scope changes ───────────────────────────────────────────────────
+async function initPanel() {
+  await reloadSessions();
+  resumeLatestForScope();
+}
+initPanel();
 
 const open = computed({
   get: () => props.modelValue,
   set: (v) => emit("update:modelValue", v),
 });
 
-// Pre-scoping: openChatPanelFor() stages a target on the ui store and
-// opens the panel. Watching the target itself (not `open`) means the
-// switch lands even when the panel was already open.
+// Pre-scoping: openChatPanelFor() stages a target on the ui store and opens the
+// panel. Watching the target (not `open`) lands the switch even when the panel
+// was already open. Setting the scope triggers the scope watcher below, which
+// resumes that scope's latest session (today's "chat with X" behavior).
 watch(() => ui.chatRequestedTarget, (target) => {
   if (!target) return;
+  view.value = "thread";
   if (target.mode === "character" && target.characterId) {
     chatMode.value = "character";
     selectedCharacterId.value = target.characterId;
@@ -141,31 +274,33 @@ watch(() => ui.chatRequestedTarget, (target) => {
   ui.consumeChatRequestedTarget();
 }, { immediate: true });
 
-// indexStatus() now queries the server, so `status` is a ref refreshed on the
-// triggers that change the index (project switch / build / rebuild / clear /
-// auto-rebuild finish) rather than a recomputed local cache read.
+// indexStatus() queries the server; `status` is a ref refreshed on the triggers
+// that change the index rather than a recomputed local cache read.
 const status = ref({ exists: false, entryCount: 0, model: "", dims: 0 });
 async function refreshStatus() { status.value = await indexStatus(); }
 const hasIndex = computed(() => status.value.exists && status.value.entryCount > 0);
-const hasThread = computed(() => thread.value.length > 0);
 const isIndexing = computed(() => autoIndexRunning.value);
 watch(autoIndexRunning, (running) => { if (!running) refreshStatus(); });
 refreshStatus();
 
-// Reset (and rehydrate) the thread whenever the active project, mode,
-// or selected character changes — each combo has its own persisted
-// thread so closing and re-opening preserves wherever the writer was.
-watch(() => project.activeProjectId, () => {
-  hydrateThread();
+// Switching project reloads its session list and resumes the current scope.
+watch(() => project.activeProjectId, async () => {
+  await reloadSessions();
+  resumeLatestForScope();
   refreshStatus();
 });
+
+// Switching mode/character resumes the most recent session for the new scope —
+// unless we set the dropdowns ourselves (opening a session from History).
 watch([chatMode, selectedCharacterId], () => {
-  hydrateThread();
+  if (scopeSetByCode) return;
   question.value = "";
+  resumeLatestForScope();
 });
 
-// Auto-pick a default character on first switch into character mode so
-// the writer doesn't have to fish through the dropdown to start chatting.
+// Auto-pick a default character on first switch into character mode so the
+// writer doesn't have to fish through the dropdown. (A deleted-character id is
+// truthy, so opening an orphaned session is left untouched.)
 watch(chatMode, (mode) => {
   if (mode !== "character") return;
   if (selectedCharacterId.value) return;
@@ -180,9 +315,7 @@ watch(open, (v) => {
 });
 
 // Auto-scroll to the bottom on new content (new turns or streamed deltas).
-// Persistence is NOT here: a streamed delta fires this on every token, and a
-// thread save is a whole-thread replace — we persist only when a turn settles
-// (see ask / newThread) so streaming doesn't hammer the server.
+// Persistence is NOT here: we persist only when a turn settles (see ask).
 watch(thread, () => {
   nextTick(() => {
     const el = threadRef.value;
@@ -190,35 +323,51 @@ watch(thread, () => {
   });
 }, { deep: true });
 
+// Persist a settled turn under a CAPTURED session id + items array (race-proof):
+// a mid-stream session switch reassigns thread.value but not `items`, so the
+// turn lands on the right session. Empty sessions are never persisted.
+function persistSettledTurn({ pid, sessionId, mode, cid, items }) {
+  const messages = items.filter((m) => !m.pending).slice(-MAX_PERSISTED);
+  if (!messages.length) return;
+  const existing = sessions.value.find((s) => s.id === sessionId);
+  const title = existing?.title || deriveSessionTitle(messages);
+  const updatedAt = new Date().toISOString();
+  putSession({ id: sessionId, projectId: pid, mode, characterId: cid || "", title, updatedAt, messages });
+  upsertSessionRow({ id: sessionId, projectId: pid, mode, characterId: cid || "", title, updatedAt, messageCount: messages.length });
+}
+
 async function ask() {
   const q = question.value.trim();
-  if (!q || running.value) return;
+  if (!q || running.value || orphanedCharacter.value) return;
   if (chatMode.value === "character" && !selectedCharacterId.value) {
-    // Defensive: shouldn't happen since the dropdown auto-selects, but
-    // surface a clear hint if it does rather than failing silently.
+    // Defensive: shouldn't happen (the dropdown auto-selects), but surface a
+    // clear hint if it does rather than failing silently.
     thread.value.push({ role: "assistant", content: "", error: "Pick a character first.", pending: false });
     return;
   }
 
-  // Identity of the thread this turn belongs to — captured now so a mid-stream
-  // switch to another thread doesn't persist this turn under the wrong key.
+  // Identity captured now. The session id is minted here for an unsaved session
+  // so the first settled turn can persist it (the captured-sessionId guard —
+  // simpler + race-proof vs. the old pid/mode/cid guard).
   const pid = project.activeProjectId;
   const mode = chatMode.value;
   const cid = selectedCharacterId.value;
+  const sessionId = currentSessionId.value || mintSessionId();
+  if (!currentSessionId.value) currentSessionId.value = sessionId;
+  const charName = (project.characters || []).find((c) => c.id === cid)?.name || "Character";
 
-  // Snapshot history (everything sent BEFORE this turn) for the API call.
-  const history = thread.value
+  // The array this turn is pushed into — captured so a mid-stream switch (which
+  // reassigns thread.value) still persists THIS session's turns.
+  const items = thread.value;
+  const history = items
     .filter((m) => !m.pending && !m.error)
     .map((m) => ({ role: m.role, content: m.content }));
 
-  thread.value.push({ role: "user", content: q });
-  thread.value.push({ role: "assistant", content: "", citations: [], pending: true });
-  // Mutate the turn through the array's REACTIVE proxy: writes on the raw
-  // pushed object bypass Vue's set trap, so the settle (citations/pending)
-  // could land without ever triggering a re-render — the answer then looked
-  // stuck "pending, no citations" until some unrelated update repainted
-  // (surfaced by the rag-probe's instant stub stream, 2026-07-11).
-  const assistantMsg = thread.value[thread.value.length - 1];
+  items.push({ role: "user", content: q });
+  items.push({ role: "assistant", content: "", citations: [], pending: true });
+  // Mutate the turn through the array's REACTIVE proxy so the settle triggers a
+  // re-render (raw-object writes bypass Vue's set trap — see the rag-probe note).
+  const assistantMsg = items[items.length - 1];
   question.value = "";
 
   try {
@@ -226,16 +375,14 @@ async function ask() {
       question: q,
       history,
       k: 6,
-      onDelta: (_delta, content) => {
-        assistantMsg.content = content;
+      onDelta: (_delta, content) => { assistantMsg.content = content; },
+      task: {
+        label: mode === "character" ? `Character chat · ${charName}` : "Ask the book",
+        meta: { mode, characterId: cid },
       },
-      task: { label: chatMode.value === "character"
-        ? `Character chat · ${(project.characters || []).find(c => c.id === selectedCharacterId.value)?.name || "Character"}`
-        : "Ask the book",
-        meta: { mode: chatMode.value, characterId: selectedCharacterId.value } },
     };
-    const result = chatMode.value === "character"
-      ? await askAsCharacter({ ...askArgs, characterId: selectedCharacterId.value })
+    const result = mode === "character"
+      ? await askAsCharacter({ ...askArgs, characterId: cid })
       : await askManuscript(askArgs);
     assistantMsg.content   = result.answer || assistantMsg.content;
     assistantMsg.citations = result.citations || [];
@@ -244,41 +391,8 @@ async function ask() {
     assistantMsg.pending = false;
     if (!isAbort(e)) assistantMsg.error = e?.message || String(e);
   } finally {
-    // Persist only if the user hasn't switched threads mid-stream — otherwise
-    // thread.value now belongs to a different thread (this turn's array is
-    // detached) and persisting it would clobber the wrong key.
-    if (pid === project.activeProjectId && mode === chatMode.value && cid === selectedCharacterId.value) {
-      persistThread(pid, mode, cid, thread.value);
-    }
+    persistSettledTurn({ pid, sessionId, mode, cid, items });
   }
-}
-
-// "New chat" (#46 — renamed from "New thread"): clear and start fresh.
-function newChat() {
-  thread.value = [];
-  question.value = "";
-  // Wipe the persisted copy too, so the empty state survives a panel close.
-  persistThread(project.activeProjectId, chatMode.value, selectedCharacterId.value, []);
-  nextTick(() => inputRef.value?.focus());
-}
-
-// "Delete chat" (#46): remove this conversation's stored record entirely —
-// destructive, so it confirms first. One chat per (project, mode, character)
-// combo today, so this deletes the CURRENT combo's conversation.
-async function deleteChat() {
-  const yes = await confirmDialog({
-    title: "Delete this chat?",
-    message: chatMode.value === "character"
-      ? `Delete the saved conversation with ${selectedCharacter.value?.name || "this character"}? This can't be undone.`
-      : "Delete the saved Ask-the-book conversation? This can't be undone.",
-    confirmLabel: "Delete chat",
-    danger: true,
-  });
-  if (!yes) return;
-  thread.value = [];
-  question.value = "";
-  deleteThread({ projectId: project.activeProjectId, mode: chatMode.value, characterId: selectedCharacterId.value });
-  nextTick(() => inputRef.value?.focus());
 }
 
 function close() {
@@ -286,25 +400,17 @@ function close() {
 }
 
 // Esc + click-outside dismissal comes from the shared kit composable
-// (usePanelDismiss, extracted from THIS component 2026-07-19 so the AI-tasks
-// panel and every future panel dismiss identically). The mousedown-not-click
-// reasoning and the toggle / portal exemptions live in the composable's own
-// comments — read them there; this panel needs no extra exemptions.
+// (usePanelDismiss). The mousedown-not-click reasoning and the toggle / portal
+// exemptions live in the composable's own comments.
 usePanelDismiss(open, panelRef, close);
 
 function onIndexBuilt() {
-  // Don't auto-close the modal — yanking it via v-if before the leave
-  // transition finishes skips AppModal's close timing dance (see
-  // AppModal.vue). The user dismisses with the Done button.
-  //
-  // Refresh status against the freshly written server index — otherwise
-  // hasIndex stays stuck at false and the chat panel keeps showing the
-  // "No index yet" empty state under the modal.
+  // Refresh status against the freshly written server index (the user dismisses
+  // the modal with Done — see AppModal close timing).
   refreshStatus();
 }
 
-// A story-bible card citation navigates to the entity's own page (Move 1);
-// architecture doc ids ARE the route param (/architecture/premise). Scene
+// A story-bible card citation navigates to the entity's own page; scene
 // citations keep the chapter navigation.
 const CARD_ROUTES = {
   character: "characters", location: "locations", object: "objects",
@@ -342,6 +448,15 @@ defineExpose({ open: () => { open.value = true; }, close });
         <div class="cp-head-actions">
           <AiFeatureChip v-if="chatMode === 'character'" feature="characterChat" label="Talk to character" editable />
           <AiFeatureChip v-else feature="chat" label="Ask the book" editable />
+          <UiButton intent="ghost" size="small" :aria-pressed="view === 'history'"
+            :class="{ 'cp-head-on': view === 'history' }"
+            v-tooltip.bottom="'Chat history'" aria-label="Chat history" @click="toggleHistory">
+            <Icon name="History" :size="13" />
+          </UiButton>
+          <UiButton intent="ghost" size="small"
+            v-tooltip.bottom="'New chat'" aria-label="New chat" @click="newChat">
+            <Icon name="Plus" :size="13" />
+          </UiButton>
           <UiButton intent="ghost" size="small" @click="close">
             <Icon name="Close" :size="12" /> Close
           </UiButton>
@@ -349,9 +464,8 @@ defineExpose({ open: () => { open.value = true; }, close });
         </div>
       </header>
 
-      <!-- Mode + character picker. The character dropdown only shows
-           in character mode. Switching either resets the thread to the
-           one persisted under that (mode, character) combo. -->
+      <!-- Mode + character picker. Switching either resumes that scope's most
+           recent session (or an empty unsaved thread if none). -->
       <div class="cp-mode-row">
         <UiSelect v-model="chatMode" :options="MODE_OPTIONS" />
         <UiSelect v-if="chatMode === 'character'"
@@ -361,8 +475,9 @@ defineExpose({ open: () => { open.value = true; }, close });
                   :disabled="!characterOptions.length" />
       </div>
 
-      <!-- Index status strip (indexed) OR the story-bible-only notice (no
-           index — chat still works; answers ground on bible pins alone). -->
+      <!-- Index status strip (indexed) OR the story-bible-only notice (no index).
+           New chat / Delete chat / History are header + per-row now — the strip
+           is index-only again. -->
       <div v-if="hasIndex" class="cp-status">
         <Icon name="Check" :size="11" />
         <span><b>{{ status.entryCount }}</b> scenes indexed</span>
@@ -372,12 +487,6 @@ defineExpose({ open: () => { open.value = true; }, close });
           <span class="cp-indexing-dot"></span> indexing…
         </span>
         <span class="cp-status-spacer"></span>
-        <UiButton v-if="hasThread" intent="ghost" size="small" @click="newChat" v-tooltip.bottom="'Clear and start fresh'">
-          <Icon name="Plus" :size="11" /> New chat
-        </UiButton>
-        <UiButton v-if="hasThread" intent="ghost" size="small" @click="deleteChat" v-tooltip.bottom="'Delete this saved conversation'">
-          <Icon name="Trash" :size="11" /> Delete chat
-        </UiButton>
         <UiButton intent="ghost" size="small" @click="indexModalMode = 'build'" v-tooltip.bottom="'Embed any scenes added or edited since last build'">
           <Icon name="Refresh" :size="11" /> Update
         </UiButton>
@@ -389,18 +498,42 @@ defineExpose({ open: () => { open.value = true; }, close });
         <Icon name="Sparkle" :size="11" />
         <span>Answering from your <b>story bible</b> only — build the index so chat can search and quote your scenes.</span>
         <span class="cp-status-spacer"></span>
-        <UiButton v-if="hasThread" intent="ghost" size="small" @click="newChat" v-tooltip.bottom="'Clear and start fresh'">
-          <Icon name="Plus" :size="11" /> New chat
-        </UiButton>
-        <UiButton v-if="hasThread" intent="ghost" size="small" @click="deleteChat" v-tooltip.bottom="'Delete this saved conversation'">
-          <Icon name="Trash" :size="11" /> Delete chat
-        </UiButton>
         <UiButton intent="secondary" size="small" @click="indexModalMode = 'build'" v-tooltip.bottom="'Embed your scenes so answers can quote the manuscript'">
           <Icon name="Sparkle" :size="11" /> Build index
         </UiButton>
       </div>
 
-      <!-- Thread (user + assistant turns) — renders in BOTH modes -->
+      <!-- HISTORY VIEW — replaces the thread + input area (the list↔conversation
+           pattern; 440px is too narrow for a popover). -->
+      <div v-if="view === 'history'" ref="threadRef" class="cp-history">
+        <div v-if="!sortedSessions.length" class="cp-empty-hint">
+          <Icon name="History" :size="14" />
+          <span>No saved chats yet. Ask a question to start one — every conversation lands here.</span>
+        </div>
+        <ul v-else class="cp-hist-list">
+          <li v-for="s in sortedSessions" :key="s.id"
+            class="cp-hist-row" :class="{ current: s.id === currentSessionId }"
+            :aria-current="s.id === currentSessionId ? 'true' : undefined"
+            @click="openFromHistory(s)">
+            <span class="cp-hist-badge" :class="{ char: s.mode === 'character' }">{{ scopeLabel(s) }}</span>
+            <span class="cp-hist-title">{{ s.title || "Untitled chat" }}</span>
+            <span class="cp-hist-time">{{ relativeTime(s.updatedAt) }}</span>
+            <span class="cp-hist-actions">
+              <UiButton intent="ghost" size="small" aria-label="Rename chat"
+                v-tooltip.bottom="'Rename'" @click.stop="renameSession(s)">
+                <Icon name="Pencil" :size="12" />
+              </UiButton>
+              <UiButton intent="ghost" size="small" aria-label="Delete chat"
+                v-tooltip.bottom="'Delete'" @click.stop="deleteSessionRow(s)">
+                <Icon name="Trash" :size="12" />
+              </UiButton>
+            </span>
+          </li>
+        </ul>
+      </div>
+
+      <!-- THREAD VIEW (user + assistant turns) + input — renders in BOTH modes -->
+      <template v-else>
         <div ref="threadRef" class="cp-thread">
           <div v-if="!hasThread" class="cp-empty-hint">
             <Icon name="Sparkle" :size="14" />
@@ -422,9 +555,6 @@ defineExpose({ open: () => { open.value = true; }, close });
                 <div class="cp-bubble cp-bubble-assistant">{{ m.content || (m.pending ? "…" : "") }}</div>
                 <div v-if="m.citations && m.citations.length" class="cp-cites">
                   <ol class="cp-cite-list">
-                    <!-- ONE label source: citationLabel(chunk) — the same string the
-                         LLM saw before its excerpt (the old inline chapter template
-                         was a drifted duplicate; converged, Move 1). -->
                     <li v-for="c in m.citations" :key="c.index" class="cp-cite" @click="openCitation(c)">
                       <span class="cp-cite-num">[{{ c.index }}]</span>
                       <span class="cp-cite-meta">{{ citationLabel(c.chunk) }}</span>
@@ -438,6 +568,11 @@ defineExpose({ open: () => { open.value = true; }, close });
           </template>
         </div>
 
+        <!-- Orphaned-character notice (the session's character was deleted). -->
+        <div v-if="orphanedCharacter" class="cp-orphan-hint">
+          <Icon name="Alert" :size="13" /> This character was deleted — start a new chat.
+        </div>
+
         <!-- Question input (pinned to the bottom of the panel) -->
         <div class="cp-input-row">
           <UiTextarea
@@ -445,6 +580,7 @@ defineExpose({ open: () => { open.value = true; }, close });
             v-model="question"
             class="cp-textarea"
             :rows="2"
+            :disabled="inputDisabled"
             :placeholder="hasThread ? 'Ask a follow-up…' : 'Ask anything about your book — characters, scenes, threads…'"
             auto-resize
             @keydown.enter.exact.prevent="ask"
@@ -456,13 +592,14 @@ defineExpose({ open: () => { open.value = true; }, close });
               <span class="cp-hint-sep">·</span>
               <kbd class="cp-kbd">⇧⏎</kbd> for newline
             </span>
-            <UiButton intent="primary" size="small" :disabled="!question.trim() || running"
+            <UiButton intent="primary" size="small" :disabled="!question.trim() || inputDisabled"
               v-tooltip.bottom="question.trim() ? 'Send your question' : 'Type a question to ask'"
               @click="ask">
               <Icon name="Sparkle" :size="12" /> Ask
             </UiButton>
           </div>
         </div>
+      </template>
 
       <AiTaskStrip :task="myTask" />
 
@@ -500,10 +637,17 @@ defineExpose({ open: () => { open.value = true; }, close });
   font-family: var(--font-serif); font-size: 18px; font-weight: 600; margin: 3px 0 0;
   white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
 }
-/* Actions row sits next to the title when there's space, wraps onto its
-   own line when the chip + Close button can't share the row with the
-   ~120px headline. flex-wrap on .cp-head handles the layout flip. */
-.cp-head-actions { display: flex; align-items: center; gap: 6px; flex-shrink: 0; flex-wrap: wrap; }
+/* Actions take their own full-width row under the title (the panel is only
+   440px — the chip + History + New chat + Close + Help don't fit beside a
+   headline). `flex: 1 1 100%` bounds the row to the header width so the inner
+   flex-wrap actually engages instead of overflowing the panel edge; children
+   right-align and wrap as needed. */
+.cp-head-actions {
+  display: flex; align-items: center; gap: 6px;
+  flex: 1 1 100%; min-width: 0; flex-wrap: wrap; justify-content: flex-end;
+}
+/* The History toggle reads "pressed" while the list is showing. */
+.cp-head-on { color: var(--accent-ink); background: var(--accent-soft); }
 .cp-mode-row {
   display: grid; grid-template-columns: 1fr 1fr; gap: 8px;
   margin-top: 12px; flex-shrink: 0;
@@ -518,8 +662,6 @@ defineExpose({ open: () => { open.value = true; }, close });
   flex-shrink: 0;
 }
 .cp-status b { color: var(--ink); font-variant-numeric: tabular-nums; }
-/* The story-bible-only notice reuses the status strip's geometry with the
-   accent tint — an upgrade offer, not an error. */
 .cp-status-bible { background: var(--accent-soft); color: var(--accent-ink); }
 .cp-status-bible b { color: var(--accent-ink); }
 .cp-status-sep { color: var(--subtle); }
@@ -545,11 +687,7 @@ defineExpose({ open: () => { open.value = true; }, close });
   50%      { opacity: 1;    transform: scale(1.1); }
 }
 
-/* Thread — scrollable area between the status strip and the input row.
-   min-height: 0 lets flex shrink this past its content's natural size so
-   the input row + progress bar stay pinned to the bottom regardless of how
-   many turns are in the thread (without it the thread's content-min would
-   push them out of the panel). */
+/* Thread — scrollable area between the status strip and the input row. */
 .cp-thread {
   flex: 1 1 auto;
   min-height: 0;
@@ -565,6 +703,38 @@ defineExpose({ open: () => { open.value = true; }, close });
   background: var(--surface-2); border-radius: 8px;
 }
 .cp-empty-hint :first-child { flex-shrink: 0; margin-top: 2px; }
+
+/* History list — session rows (badge · title · time · rename · delete). */
+.cp-history {
+  flex: 1 1 auto; min-height: 0; overflow-y: auto;
+  padding: 4px 2px 8px;
+}
+.cp-hist-list { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 4px; }
+.cp-hist-row {
+  display: grid;
+  grid-template-columns: auto 1fr auto auto;
+  align-items: center; gap: 8px;
+  padding: 8px 10px; border-radius: 8px;
+  border: 1px solid transparent;
+  cursor: pointer;
+}
+.cp-hist-row:hover { background: var(--surface-2); border-color: var(--border-soft); }
+.cp-hist-row.current { background: var(--accent-soft); border-color: var(--accent-line); }
+.cp-hist-badge {
+  flex: none;
+  font-family: var(--font-mono); font-size: 9.5px; font-weight: 600;
+  letter-spacing: .03em; text-transform: uppercase;
+  padding: 2px 6px; border-radius: 5px;
+  background: var(--surface-3); color: var(--ink-2);
+  max-width: 108px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+}
+.cp-hist-badge.char { background: var(--accent-soft); color: var(--accent-ink); }
+.cp-hist-title {
+  min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+  font-size: 13px; color: var(--ink);
+}
+.cp-hist-time { flex: none; font-size: 10.5px; color: var(--muted); font-variant-numeric: tabular-nums; }
+.cp-hist-actions { display: inline-flex; align-items: center; gap: 2px; flex: none; }
 
 .cp-msg { display: flex; flex-direction: column; gap: 6px; }
 .cp-msg-user      { align-items: flex-end;   }
@@ -590,6 +760,13 @@ defineExpose({ open: () => { open.value = true; }, close });
   font-size: 14px;
   line-height: 1.6;
   width: 100%; max-width: 100%; box-sizing: border-box;
+}
+
+.cp-orphan-hint {
+  display: flex; gap: 8px; align-items: center;
+  padding: 8px 12px; border-radius: 6px; flex-shrink: 0;
+  background: var(--surface-2); color: var(--muted);
+  font-size: 12px;
 }
 
 .cp-input-row {

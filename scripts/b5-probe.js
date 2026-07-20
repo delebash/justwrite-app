@@ -83,11 +83,17 @@ const origSceneBody = sceneList[0].body;
 sceneList[0].body = SEED_BODY;
 await api(`/v1/projects/${projectId}/book`, { method: "PUT", body: bookCopy });
 
-// Seed a book-mode chat thread so Delete chat has something real to delete.
-await api("/v1/chat", { method: "PUT", body: { projectId, mode: "book", characterId: "", messages: [
-  { role: "user", content: "probe question" },
-  { role: "assistant", content: "probe answer", citations: [] },
-] } });
+// Seed a book-mode chat SESSION so History has a real row to delete (2026-07-20
+// sessions rewrite — chat is a per-project list of sessions, not one thread).
+// Make projectId the active project so the panel lists this session.
+const origActive = (await api("/v1/settings").catch(() => ({})))?.activeProjectId;
+const PROBE_SESSION_ID = "chat_b5probe";
+await api(`/v1/chat/sessions/${PROBE_SESSION_ID}`, { method: "PUT", body: {
+  projectId, mode: "book", characterId: "", title: "probe question", messages: [
+    { role: "user", content: "probe question" },
+    { role: "assistant", content: "probe answer", citations: [] },
+  ] } });
+await api("/v1/settings", { method: "PATCH", body: { activeProjectId: projectId } });
 
 const routeTruth = await api("/v1/ai/resolved-route?feature=chat");
 
@@ -96,9 +102,9 @@ const page = await browser.newPage({ viewport: { width: 1440, height: 980 } });
 const errors = [];
 page.on("pageerror", (e) => errors.push(e.message.slice(0, 200)));
 
-// The chat panel's thread strip (New chat / Delete chat home) renders only
-// when a manuscript index exists — this dev DB has none, so stub the status
-// read. The chat-thread round-trip below still hits the REAL /v1/chat API.
+// The chat panel's index status strip renders only when a manuscript index
+// exists — this dev DB has none, so stub the status read. The chat-session
+// round-trip below still hits the REAL /v1/chat/sessions API.
 // NB: the renderer (:1420) fetches the API (:17495) CROSS-ORIGIN — a fulfilled
 // route must carry CORS headers or the browser silently blocks it.
 const CORS = {
@@ -116,7 +122,10 @@ try {
   try { await page.click('button:has-text("Got it")', { timeout: 1500 }); } catch { /* none */ }
 
   // ── B5-4: Ask-the-book nav prominence ──────────────────────────────────────
-  const askNav = page.locator('.nav-item[data-panel-toggle]');
+  // The Ask-the-book nav row is the ACCENT one (B5-4 asserts this below). Scope
+  // to it — the AI-tasks nav row also carries data-panel-toggle now (the shared
+  // panel-dismiss refactor), so a bare [data-panel-toggle] is ambiguous.
+  const askNav = page.locator('.nav-item-accent[data-panel-toggle]');
   const navStyle = await askNav.evaluate((el) => {
     const cs = getComputedStyle(el);
     return { weight: cs.fontWeight, accent: el.classList.contains("nav-item-accent") };
@@ -166,21 +175,28 @@ try {
   await askNav.click();
   await sleep(1200);
 
-  check("B5-3 #46: 'New chat' replaces 'New thread'",
-    (await panel.locator('button:has-text("New chat")').count()) === 1
+  // #46: "New chat" is now a header action (moved off the status strip, 2026-07-20).
+  check("B5-3 #46: 'New chat' replaces 'New thread' (header action)",
+    (await panel.locator('[aria-label="New chat"]').count()) === 1
     && (await panel.locator('button:has-text("New thread")').count()) === 0);
-  const delBtn = panel.locator('button:has-text("Delete chat")');
-  check("B5-3 #46: a 'Delete chat' control exists", (await delBtn.count()) === 1);
 
-  await delBtn.click();
+  // #46: "Delete chat" moved to a per-row control in the History view (each saved
+  // conversation is its own session now). Open History, delete the seeded row.
+  await panel.locator('[aria-label="Chat history"]').first().click({ force: true });
+  await panel.locator(".cp-history").waitFor({ timeout: 5000 });
+  const delRow = panel.locator('.cp-hist-row:has-text("probe question") [aria-label="Delete chat"]');
+  check("B5-3 #46: History rows carry a per-row Delete control", (await delRow.count()) >= 1);
+  await delRow.first().click({ force: true });
   await sleep(400);
+  // The confirm dialog is `.ui-modal`; the chat panel is also role="dialog", so
+  // scope to .ui-modal to stay unambiguous.
   const dlgText = await page.locator(".ui-modal").textContent();
   check("B5-3 delete confirms first", /Delete this chat\?/.test(dlgText));
-  await page.locator('.ui-modal button:has-text("Delete chat")').click();
+  await page.locator('.ui-modal button:has-text("Delete chat")').first().click();
   await sleep(900);
-  const threadAfter = await api(`/v1/chat?projectId=${encodeURIComponent(projectId)}&mode=book`);
+  const sessionsAfter = await api(`/v1/chat/sessions?projectId=${encodeURIComponent(projectId)}`);
   check("B5-3 the stored conversation is really deleted (server round-trip)",
-    (threadAfter.messages || []).length === 0);
+    !(sessionsAfter || []).some((s) => s.id === PROBE_SESSION_ID));
   await page.keyboard.press("Escape");
   await sleep(400);
 
@@ -310,7 +326,10 @@ try {
     sceneList[0].body = origSceneBody;
     await api(`/v1/projects/${projectId}/book`, { method: "PUT", body: bookCopy });
   } catch { /* keep going */ }
-  try { await api(`/v1/chat?projectId=${encodeURIComponent(projectId)}&mode=book`, { method: "DELETE" }); } catch { /* */ }
+  try { await api(`/v1/chat/sessions/${PROBE_SESSION_ID}`, { method: "DELETE" }); } catch { /* */ }
+  if (origActive !== undefined) {
+    try { await api("/v1/settings", { method: "PATCH", body: { activeProjectId: origActive } }); } catch { /* */ }
+  }
   await browser.close();
 }
 
