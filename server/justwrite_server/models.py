@@ -430,17 +430,60 @@ class RagVector(Base):
     chunk = Column(Text, nullable=False, default="{}")   # JSON chunk metadata
 
 
-# ── Chat (manuscript-RAG threads) ───────────────────────────────────────
+# ── Chat (manuscript-RAG sessions) ──────────────────────────────────────
+#
+# 2026-07-20: chat moved from ONE thread per (project, mode, character) to a
+# per-project list of SESSIONS (the claude.ai / ChatGPT History pattern). "New
+# chat" now MINTS a new session instead of wiping the only thread — the previous
+# conversation stays in History (the destructive-New-chat defect this fixes).
+# `ChatSession` is the metadata row (one per conversation); `ChatSessionMessage`
+# holds its ordered settled turns. The legacy `ChatMessage` table below is kept
+# ONLY as the read source for the one-time lazy migration in api/chat.py — a
+# pre-sessions thread becomes one session per (mode, character) on first list.
+
+
+class ChatSession(Base):
+    """One chat conversation. `mode` ∈ book|character (character_id '' for book);
+    `title` derives from the first user turn (or a user rename — a renamed title
+    is never auto-regenerated); `updated_at` is an ISO string (best-effort for
+    migrated threads). Its turns live in ChatSessionMessage, ordered by position.
+    A save replaces those turns wholesale (delete-all-then-insert) — the same
+    idiom the old single thread used. project_id FKs projects so deleting a book
+    cascades its sessions (and their messages) away. Empty sessions are NEVER
+    persisted (a session exists only once it has ≥1 settled turn)."""
+
+    __tablename__ = "chat_sessions"
+
+    project_id = _fk_project()
+    id = Column(String, primary_key=True)
+    mode = Column(String, nullable=False, default="book")         # book | character
+    character_id = Column(String, nullable=False, default="")     # '' for book mode
+    title = Column(String, nullable=False, default="")
+    updated_at = Column(String, nullable=False, default="")       # ISO string
+
+
+class ChatSessionMessage(Base):
+    """One settled turn in a ChatSession, ordered by position. Persistence is a
+    replace-all for the session id when a turn settles (see ChatSession)."""
+
+    __tablename__ = "chat_session_messages"
+
+    project_id = _fk_project()
+    session_id = Column(String, primary_key=True)
+    position = Column(Integer, primary_key=True)
+    role = Column(String, nullable=False, default="user")         # user | assistant
+    content = Column(Text, nullable=False, default="")
+    citations = Column(Text, nullable=False, default="[]")        # JSON citation[]
+    error = Column(Text, nullable=True)
 
 
 class ChatMessage(Base):
-    """One turn in a manuscript-RAG chat thread. A thread is identified by
-    (project_id, mode, character_id) — `mode` ∈ book|character, character_id is
-    '' for book mode — and its turns are ordered rows by `position`. The
-    ChatPanel loads a thread on open and replaces it wholesale when a turn
-    settles, so a save is a delete-all-then-insert for that thread key. Replaces
-    the renderer's `justwrite:rag:thread:*` kv blobs; project_id FKs projects so
-    deleting a book cascades its threads away."""
+    """LEGACY (pre-2026-07-20) — one turn of the old single thread per
+    (project_id, mode, character_id), ordered by `position`. NO LONGER WRITTEN:
+    kept solely so the one-time lazy migration in api/chat.py can lift each old
+    thread into a ChatSession, then delete these rows. A fresh install creates it
+    empty and never touches it. project_id FKs projects so a book delete cascades
+    it away (as it always did)."""
 
     __tablename__ = "chat_messages"
 

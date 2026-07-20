@@ -24,7 +24,8 @@ def test_reset_clears_user_data(tmp_path):
     c.put("/v1/projects/prj1", json={"project": {"title": "Book"}})
     c.patch("/v1/settings", json={"ui": {"x": 1}})
     c.post("/v1/sessions/record", json={"chapterId": "ch1", "words": 100, "day": "2026-06-18"})
-    c.put("/v1/chat", json={"projectId": "prj1", "mode": "book", "messages": [{"role": "user", "content": "hi"}]})
+    c.put("/v1/chat/sessions/s1", json={"projectId": "prj1", "mode": "book", "title": "hi",
+                                        "messages": [{"role": "user", "content": "hi"}]})
     c.put("/v1/versions", json={"projectId": "prj1", "chapterId": "ch1",
                                 "versions": [{"id": "v1", "savedAt": "x", "scenes": []}]})
 
@@ -34,7 +35,7 @@ def test_reset_clears_user_data(tmp_path):
     assert c.get("/v1/projects").json() == []
     assert "ui" not in c.get("/v1/settings").json()
     assert c.get("/v1/sessions").json() == {"days": {}, "chapterWords": {}, "lastWrite": None}
-    assert c.get("/v1/chat", params={"projectId": "prj1", "mode": "book"}).json() == {"messages": []}
+    assert c.get("/v1/chat/sessions", params={"projectId": "prj1"}).json() == []
     assert c.get("/v1/versions", params={"projectId": "prj1"}).json() == {}
 
 
