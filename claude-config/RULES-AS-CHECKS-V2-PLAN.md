@@ -1,3 +1,7 @@
+> **⚠ HISTORICAL (pre-extraction).** This design doc predates `claude-config` becoming
+> its own repo (2026-07-14); any `justwrite-app/claude-config/` paths below refer to the
+> old vendored layout — the bundle is now the root of the `claude-config` repo.
+>
 > **PLAN 1 of 2 — the rules-as-checks / dev-process track.** (Plan 2 = the app work,
 > `docs/plans/2026-06-25-jobs-architecture-design.md`.) **Status: BUILT + SHIPPED
 > (2026-06-26, commit `b43411e`).** Approved → built → verified (committed harness 7/7 +

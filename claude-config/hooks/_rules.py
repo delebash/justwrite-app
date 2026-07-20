@@ -76,7 +76,7 @@ LOW_RISK = re.compile(
     r"(^|/)tests?/|(^|/)__tests__/|(^|/)e2e/"                          # test dirs
     r"|(^|/)test_[^/]+\.py$|(^|/)[^/]+_test\.py$|(^|/)conftest\.py$"    # python tests
     r"|\.(test|spec)\.[cm]?[jt]sx?$"                                   # js/ts tests
-    r"|(^|/)[^/]*-(probe|smoke)\.[cm]?js$"                             # harness scripts (.js|.mjs|.cjs)
+    r"|(^|/)[^/]*-(probe|smoke)\.mjs$"                                 # harness scripts
     r"|(^|/)(locales?|i18n|lang)/[^/]*\.(json|po|pot|ftl|csv|ya?ml|txt)$",  # copy DATA only
     re.I,
 )
@@ -478,51 +478,6 @@ def agent_pass(entries: list, start: int):
     return verdict
 
 
-# A harness agent id, strictly. No separators, no dots — so it can never traverse out of
-# the subagents/ dir when interpolated into a path (see agent_transcript's docstring).
-_ID_OK = re.compile(r"[A-Za-z0-9_-]+")
-
-
-def agent_transcript(data: dict) -> str:
-    """The OWN transcript of the delegated agent making this call, or "".
-
-    THE shared fix for the 2026-07-15 defect class — *a hook reads `transcript_path`
-    assuming it belongs to the caller*. It does not: the harness passes the MAIN session
-    transcript even for a subagent's tool call, while the agent's own turns land at
-    `<session-dir>/subagents/agent-<agent_id>.jsonl` (live-captured; see
-    pre-action-check.py's docstring).
-
-    A gate that judges the AGENT's own work — its text, its doc edits, its checker
-    verdict — must read THIS file; on the main transcript all of it is invisible, which
-    made the commit boundary un-clearable for a builder (it could run checkers all day
-    while `agent_pass` read the coordinator's turn, escaping only by burning the
-    anti-loop counter). Reading the right file PRESERVES the check rather than bypassing
-    it: exactly ONE diff-checker before a commit — the user's rule — now actually
-    enforced against the agent doing the committing.
-
-    Every caller is one line:  `agent_transcript(data) or data.get("transcript_path")`.
-    The path derives ONLY from the payload's own session transcript + agent_id, is
-    format-checked, and must exist — a missing/rogue id falls back to prior behavior,
-    never to another agent's verdict.
-
-    The `_ID_OK` guard is why that last clause is TRUE rather than merely asserted
-    (checker-caught 2026-07-15): `agent_id` is interpolated into a path, and on Windows
-    `..` canonicalizes LEXICALLY without the intermediate dirs existing — so a
-    separator-bearing id like `a/../agent-<other>` would resolve to ANOTHER agent's
-    transcript and pass isfile(). Not reachable today (agent_id is harness-generated, not
-    model-controllable; forging the payload implies code execution already), but this
-    file's whole thesis is that a gate keyed on words can be satisfied by words — an
-    unenforced "never" in a security docstring is that same failure in miniature. So the
-    code enforces it.
-    """
-    agent_id = data.get("agent_id")
-    tpath = data.get("transcript_path") or ""
-    if not agent_id or not _ID_OK.fullmatch(str(agent_id)) or not tpath.endswith(".jsonl"):
-        return ""
-    p = os.path.join(tpath[: -len(".jsonl")], "subagents", f"agent-{agent_id}.jsonl")
-    return p if os.path.isfile(p) else ""
-
-
 def build_ctx(data: dict, entries: list, event: str) -> dict:
     """The full context every rule's detect() reads. Pure: no side effects."""
     start = last_user_idx(entries)
@@ -587,25 +542,52 @@ def build_ctx(data: dict, entries: list, event: str) -> dict:
 # --------------------------------------------------------------------------
 
 def _detect_docs(ctx: dict) -> bool:
-    """Docs ship with the code. COMMIT-only since the 2026-07-15 strip (its Stop leg was
-    a prose-scan; the commit leg reads the STAGED TREE — an act)."""
-    return ctx["commit_has_code"] and not ctx["commit_docs_ok"]
+    """Docs ship with the code. At commit: code staged but no doc handled. At Stop:
+    a done/shipped claim that edited code without touching/citing a doc."""
+    if ctx["event"] == "commit":
+        return ctx["commit_has_code"] and not ctx["commit_docs_ok"]
+    return ctx["done_claim"] and ctx["code_edit"] and not ctx["doc_ok"]
 
 
 def _detect_task_completeness(ctx: dict) -> bool:
-    """A code commit requires an INDEPENDENT agent's PASS verdict — `ctx["agent_pass"]
-    == "pass"`, read from a harness-authored task-notification (an act; a self-typed
-    "VERDICT: PASS" does not clear it). COMMIT-only since the 2026-07-15 strip, and the
-    commit gate itself fires only for a DELEGATED agent's commit."""
-    return ctx["commit_has_code"] and ctx.get("agent_pass") != "pass"
+    """The result was never independently checked.
+
+    At COMMIT (the genuine boundary): a code commit requires an INDEPENDENT agent's PASS
+    verdict — `ctx["agent_pass"] == "pass"`, read from a harness-authored task-notification.
+    A self-typed "VERDICT: PASS" does NOT clear it (that was the self-certification hole).
+    A doc-only commit / trivial commit is escaped earlier in commit-gate, so this only
+    bites a non-trivial CODE commit.
+
+    At TaskCompleted (finer grain, lighter): the existing rules_passed escape still applies
+    — the commit is the hard boundary."""
+    if ctx["event"] == "commit":
+        return ctx["commit_has_code"] and ctx.get("agent_pass") != "pass"
+    return not ctx["rules_passed"]
 
 
-# The five deleted rules' message constants (_CODE, _RECO, _PLAN, _POST, _TBEGIN) went
-# with them — 2026-07-15 strip, the user's named go. See CLAUDE.md "Enforcement".
-_DOCS = ("COMMIT GATE (docs) — this delegated commit stages code but no doc was updated or "
-         "cited. Docs ship WITH the feature: update the recap + the relevant docs/plans/*.md "
-         "(what changed · why · file:line · how to verify · what reverses it), or cite the "
-         "doc:line that already covers it. Then retry the commit.")
+_CODE = ("VERIFY-GATE (code) — this turn claims code (a filename or file:line) but used NO "
+         "evidence tool this turn (Read/Grep/Glob/WebFetch/Write/Edit/read-Bash) and did not "
+         "hedge. The exact failure the user is sick of: answering from memory. STOP. Open the "
+         "file, read it per line, re-answer with file:line for every code claim — or say what "
+         "you have NOT checked.")
+_RECO = ("VERIFY-GATE (decision) — this turn RECOMMENDS a storage/architecture choice (where "
+         "data lives / what shape) without grounding it: no precedent cited and/or nothing read "
+         "this turn. Before recommending, OPEN how the app ALREADY does this class (the seeder, "
+         "the existing store/table, the manifest loader) and CITE it file:line — or state plainly "
+         "there is no precedent. Do NOT decide before reading the deciding code. (Honest limit: "
+         "this checks you cited A precedent, not that it's the RIGHT one — that's still on you.)")
+_DOCS = ("VERIFY-GATE (docs) — code changed but NO doc was updated or cited. Docs ship WITH the "
+         "feature, in DETAIL (full prose, not headers): update MORNING_RECAP.md + the relevant "
+         "docs/plans/*.md now — what changed, WHY, file:line, how to verify, what would reverse "
+         "it — or cite the doc:line that already covers it. Then finish.")
+_PLAN = ("VERIFY-GATE (plan) — this turn LOCKS a plan/decision ('here's the plan' / 'locked' / "
+         "'we've decided') without a GENUINE rules-checker AGENT verdict this turn. Think-twice "
+         "law (#237): for a design lock, self-citing the tests no longer clears this — SPAWN the "
+         "rules-checker (Agent tool, subagent_type 'rules-checker'; a 2-3 PANEL for load-bearing "
+         "design) and address any FAIL. The gate reads the verdict from the AGENT's own result, "
+         "not from text you type. Also END the proposal with its 'SECOND PASS —' section (Block "
+         "6). If this turn merely RECORDS the user's own decision, attribute it explicitly "
+         "('the user's decision/word'). Then finish.")
 _SECOND = ("VERIFY-GATE (second pass) — this turn puts a PROPOSAL to the user without an "
            "explicit second pass. Think-twice law (#237): re-derive the proposal from scratch "
            "before shipping it, then END it with a 'SECOND PASS —' section stating (a) what the "
@@ -613,55 +595,71 @@ _SECOND = ("VERIFY-GATE (second pass) — this turn puts a PROPOSAL to the user 
            "sharpest remaining doubt. Evidence this pays: the 2026-07-09 rethink changed five "
            "locked-looking decisions. Write the section honestly — a pasted marker with no "
            "re-derivation defeats its own purpose. Then finish.")
-_TDONE = ("COMMIT GATE — INDEPENDENT CHECK REQUIRED. This delegated code commit has no "
-          "genuine all-pass verdict from an independent rules-checker in YOUR transcript. "
-          "SPAWN the rules-checker subagent (Agent tool, subagent_type 'rules-checker') on "
-          "your diff and address any FAIL. The gate reads the verdict from the AGENT'S OWN "
-          "result, NOT from text you type — a self-written 'VERDICT: PASS' will NOT clear "
-          "it. (A doc-only commit, or `-m 'trivial: …'` in the commit message, is exempt.)")
-
-# THE 2026-07-15 STRIP (the user's named go). Was 9 rules across 4 events; now 5 across 2.
-# Scored by LIFETIME logs, not theory: `rules-gate` fired 4x and fixed all 4 (keeps);
-# `second-pass` fired 3x and changed the answer all 3 times (keeps — the user's call);
-# the commit rules keep ONLY their commit leg, and commit-gate itself now fires only for
-# a DELEGATED agent's commit (main-session lifetime record: 15 of 25 decisions were the
-# word-escape bug). DELETED: code-claim, reco, plan, post-task, task-begin-check — 15
-# lifetime fires between them, every one a regex over my own prose (the act-not-word
-# law), plus repeated false positives. What replaces them is R1-R5 + tests + one
-# voluntary checker per task; see CLAUDE.md "Enforcement".
-_CODE = ("VERIFY-GATE (code) — this turn claims code (a filename or file:line) but used NO "
-         "evidence tool this turn (Read/Grep/Glob/WebFetch/Write/Edit/read-Bash) and did not "
-         "hedge. The exact failure the user is sick of: answering from memory. STOP. Open the "
-         "file, read it per line, re-answer with file:line for every code claim — or say what "
-         "you have NOT checked.")
+_POST = ("VERIFY-GATE (post-task) — this turn edited code but ran no rules-pass. Before finishing, "
+         "run the rules-checker subagent on the diff against T1-T12 (Agent tool, subagent_type "
+         "'rules-checker') and address any FAIL — or cite the tests the change passes (at least "
+         "three T-numbers with reasons, e.g. 'T1 … T2 … T5 …'; for a trivial change, say so). "
+         "Then finish.")
+_TBEGIN = ("TASK GATE — BEGIN (TaskCreated). No rules-pass this turn. Run the rules-checker "
+           "subagent on this task's plan (Agent tool, subagent_type 'rules-checker') and address "
+           "any FAIL — or cite the tests it passes (at least three T-numbers with reasons, e.g. "
+           "'T1 … T2 … T5 …', or 'T1 PASS, T2 PASS') / say 'trivial' — IN A MESSAGE BEFORE the "
+           "gated call (same-message text may not be flushed to the transcript when this gate "
+           "runs) — before starting this task.")
+_TDONE = ("RULES GATE — INDEPENDENT CHECK REQUIRED. This is a commit/task-completion with no "
+          "genuine all-pass verdict from an independent rules-checker this turn. SPAWN the "
+          "rules-checker subagent (Agent tool, subagent_type 'rules-checker') and have it score "
+          "EVERY rule against the diff AND the FULL acceptance criteria — including 'are ALL "
+          "relevant docs current (the recap + the plan doc's own status), not merely touched'. "
+          "The gate reads the verdict from the AGENT'S OWN result, NOT from text you type — a "
+          "self-written 'VERDICT: PASS' will NOT clear it. If the agent returns FAIL, fix it and "
+          "re-run until its result reads VERDICT: PASS. (Trivial / doc-only commits are exempt.)")
 
 RULES = [
     {"id": "rules-gate", "label": "re-read rules/recap after a reset",
      "events": ["Stop"], "kind": "structural", "recheck": "evidence", "hedge_exempt": False,
      "detect": lambda ctx: bool(ctx.get("missing")),
      "inject": "<Block 0 — handled by verify-gate sentinel mechanics>"},
-    # Block 1 KEPT at the strip — the user's save ("very useful: you often check docs or
-    # memory which we find don't align with actual code"). Trigger is words, but
-    # SATISFACTION is an ACT: evidence tools ran this turn (or an honest hedge) — my
-    # prose alone cannot clear it. Its fire on 2026-07-15 exposed a false claim.
     {"id": "code-claim", "label": "code claim with zero reads (memory answer)",
      "events": ["Stop"], "kind": "structural", "recheck": "text", "hedge_exempt": True,
      "detect": lambda ctx: ctx["code_claim"] and ctx["evidence"] == 0,
      "inject": _CODE},
-    {"id": "docs-with-features", "label": "delegated commit stages code with no doc",
-     "events": ["commit"], "kind": "structural", "recheck": "text", "hedge_exempt": True,
+    {"id": "reco", "label": "storage/arch reco with no cited precedent",
+     "events": ["Stop"], "kind": "structural", "recheck": "text", "hedge_exempt": True,
+     "detect": lambda ctx: ctx["reco_arch"] and (not ctx["has_cite"] or ctx["evidence"] == 0),
+     "inject": _RECO},
+    {"id": "docs-with-features", "label": "code changed with no doc",
+     "events": ["Stop", "commit"], "kind": "structural", "recheck": "text", "hedge_exempt": True,
      "detect": _detect_docs,
      "inject": _DOCS},
-    # Block 6: every proposal ends with an explicit "SECOND PASS —" section. Structural
-    # (the section's PRESENCE is checkable); its honesty stays semantic. Kept by the
-    # user's explicit call: 3 lifetime fires, 3 materially changed answers — including
-    # the discovery that the commit gate had been open all day. Not hedge-exempt.
+    # #237 hardening: a plan/design LOCK requires the GENUINE independent-agent
+    # verdict (same agent_pass mechanism as the commit gate) — the typed-tests /
+    # 'trivial' self-citation escape is CLOSED at lock grain. A turn recording
+    # the USER's own decision (user_decided provenance) is not my design → pass.
+    {"id": "plan", "label": "plan/design locked with no genuine agent verdict",
+     "events": ["Stop"], "kind": "semantic", "recheck": "text", "hedge_exempt": True,
+     "detect": lambda ctx: (ctx["plan_lock"] and not ctx.get("user_decided")
+                            and ctx.get("agent_pass") != "pass"),
+     "inject": _PLAN},
+    {"id": "post-task", "label": "code edit with no rules-pass",
+     "events": ["Stop"], "kind": "semantic", "recheck": "text", "hedge_exempt": True,
+     "detect": lambda ctx: ctx["code_edit"] and not ctx["rules_passed"],
+     "inject": _POST},
+    # #237 Block 6: every proposal ends with an explicit "SECOND PASS —" section.
+    # Structural (the section's PRESENCE is checkable); its honesty stays semantic.
+    # Not hedge-exempt: a proposal the user will read needs its second pass even
+    # when the turn hedges elsewhere. Sits AFTER post-task so the historical
+    # Block 0-5 numbering in incident records stays truthful.
     {"id": "second-pass", "label": "proposal without an explicit second pass",
      "events": ["Stop"], "kind": "structural", "recheck": "text", "hedge_exempt": False,
      "detect": lambda ctx: bool(ctx.get("proposal")) and not ctx.get("second_pass"),
      "inject": _SECOND},
-    {"id": "task-completeness", "label": "delegated commit without a genuine verdict",
-     "events": ["commit"], "kind": "semantic", "recheck": "text", "hedge_exempt": False,
+    {"id": "task-begin-check", "label": "task begin with no rules-pass",
+     "events": ["TaskCreated"], "kind": "semantic", "recheck": "text", "hedge_exempt": False,
+     "detect": lambda ctx: not ctx["rules_passed"],
+     "inject": _TBEGIN},
+    {"id": "task-completeness", "label": "task/commit done without full-criteria check",
+     "events": ["TaskCompleted", "commit"], "kind": "semantic", "recheck": "text", "hedge_exempt": False,
      "detect": _detect_task_completeness,
      "inject": _TDONE},
 ]

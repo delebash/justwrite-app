@@ -1,0 +1,8 @@
+# Python bytecode
+__pycache__/
+*.pyc
+
+# Runtime artifacts — created in the INSTALLED ~/.claude/hooks, never committed
+*.log
+.rules_gate
+.commit_gate

@@ -1,6 +1,6 @@
 # claude-config — the global rules-as-checks system, provisioned per container
 
-This folder is the **restore source** for the global `~/.claude` configuration: the
+This **repo** is the **restore source** for the global `~/.claude` configuration: the
 rules, the enforcement hooks, the rules-checker subagent, and the effectiveness
 ledger. It exists because **`~/.claude` does not survive a fresh
 Claude-Code-on-the-web container** — only the cloned repo and the org's
@@ -58,8 +58,9 @@ and misses), so it can be tuned — and shared with other developers who hit the
 | `hooks/task-gate.py` | `~/.claude/hooks/` | **TaskCreated/TaskCompleted** gate: `task-begin-check` / `task-completeness` via `run_rules` (exit 2). |
 | `hooks/commit-gate.py` | `~/.claude/hooks/` | **PreToolUse(Bash)** commit boundary: HARD-DENY a **HIGH-risk** CODE `git commit` until docs **and** a checker-verdict are present; escapes for `--amend` / doc-only / trivial / low-risk (tests·copy); anti-loop sentinel. |
 | `hooks/arm-rules-gate.sh` | `~/.claude/hooks/` | **SessionStart** hook: arms the Block-0 sentinel on compact/clear/startup (not resume). |
+| `hooks/self-update.sh` | `~/.claude/hooks/` | **SessionStart** hook (LOCAL clone only): `git pull`s the `claude-config` repo + re-provisions on a new session (`source=startup`); hang-proofed; inert in the cloud env. |
 | `hooks/gate-stats.py` | `~/.claude/hooks/` | Rolls up the gate logs into a tally for `EFFECTIVENESS.md` (imports the rule ids from `_rules.py`). |
-| `hooks/test_gates.py` | (bundle only) | The committed harness — `python3 claude-config/hooks/test_gates.py`. Not installed to `~/.claude`. |
+| `hooks/test_gates.py` | (bundle only) | The committed harness — `python3 hooks/test_gates.py`. Not installed to `~/.claude`. |
 | `EFFECTIVENESS.md` | `~/.claude/EFFECTIVENESS.md` | The durable ledger: catches / false positives / misses. |
 | `settings.json` | `~/.claude/settings.json` | Wires the hooks: `SessionStart`, `Stop`, and `PreToolUse` (Edit/Write/MultiEdit/ExitPlanMode). |
 
@@ -76,7 +77,7 @@ the hooks are just the per-event mechanism.
 
 | Event | When | What fires |
 |---|---|---|
-| `SessionStart` | startup / compact / clear | 💬 arm the "context reset → re-read rules" sentinel |
+| `SessionStart` | startup / compact / clear | 💬 arm the "context reset → re-read rules" sentinel · 💬 (local clone) self-update: pull + re-provision on `startup` |
 | `PreToolUse` (Edit/Write/MultiEdit) | before a code change | ✋ **pre-task DENY** (first **code** edit: needs a rules-pass AND — #237 — a cited plan/spec line + a `RISK:` doubt in the turn text; `.md`/explicit-"trivial" exempt) · 💬 **per-edit NUDGE** |
 | `PreToolUse` (ExitPlanMode) | before "here is the plan" | 💬 reminder to run the rules-checker **panel** |
 | `PreToolUse` (Bash `git commit`) | before a commit | ✋ **commit boundary** — HARD-DENY a **HIGH-risk** CODE commit until docs **+** a *genuine agent* all-pass verdict (parsed from the agent's result, not self-typed; risk tier: low-risk tests/copy full-escape, default-HIGH; escapes: `--amend`, doc-only, trivial, low-risk; anti-loop) |
@@ -158,36 +159,47 @@ ledger (the logs are per-container and get wiped). The ledger records **catches*
 misses is the honest part: it's how we tell if the system is actually getting better,
 and each miss becomes the spec for the next gate.
 
-## How to wire it (one-time, in the environment settings)
+## How to use it — local machine and Claude Code on the web
 
-Set the **Setup script** field to:
+This is its own repo, so it has to reach each place you run Claude Code. `install.sh`
+copies the bundle into `~/.claude/` and is **idempotent** + **cloud-only by default**
+(skips unless `CLAUDE_CODE_REMOTE=true`; override with `FORCE=1`, so it never clobbers a
+real local `~/.claude` by accident).
 
-```bash
-bash "$CLAUDE_PROJECT_DIR/claude-config/install.sh"
-```
+### Local machine (desktop / CLI)
 
-It runs once before Claude Code launches; the filesystem is snapshot-cached so later
-sessions start with `~/.claude` already in place. Idempotent and **cloud-only by
-default** (skips unless `CLAUDE_CODE_REMOTE=true`; override with `FORCE=1` — never
-clobbers a real local `~/.claude`).
-
-### Windows local install (the interpreter difference)
-
-The web container runs **Linux**, where the hooks correctly invoke `python3`. On a
-**local Windows** machine `python3` resolves only to the Microsoft-Store
-App-Execution-Alias stub (`WindowsApps\python3.exe`) — it prints *"Python was not
-found…"* and exits non-zero, so every gate silently fails. The real interpreter there
-is `python`. `install.sh` therefore detects Windows (`uname -s` → `MINGW*`/`MSYS*`/
-`CYGWIN*`) and **rewrites `python3`→`python`** in the two provisioned files that invoke
-it (`settings.json` + `hooks/arm-rules-gate.sh`) while leaving the committed bundle as
-`python3` for its Linux target. So the local path is just:
+Clone it once into `~/.claude`, then install:
 
 ```bash
-FORCE=1 bash claude-config/install.sh   # Windows: auto-sets the hook interpreter to `python`
+git clone https://github.com/delebash/claude-config "$HOME/.claude/claude-config"
+FORCE=1 bash "$HOME/.claude/claude-config/install.sh"
 ```
 
-(The one manual command not covered by the rewrite is the bundle-only harness on
-line 62 — run it as `python claude-config/hooks/test_gates.py` on Windows.)
+That provisions `~/.claude/` AND wires a `SessionStart` hook (`hooks/self-update.sh`)
+which, on each **new** session, `git pull`s this clone and re-provisions — so rule
+changes you push land automatically, no manual step. The hook is hang-proofed
+(`timeout` + `GIT_TERMINAL_PROMPT=0` + a final `exit 0`) and only fires on
+`source=startup`, never on compact/clear, so it can't slow a session down.
+
+### Claude Code on the web (remote)
+
+Containers are re-created fresh each session and only clone the repos configured in the
+environment, so a standalone config repo is NOT automatically present. Two one-time steps:
+
+1. In the environment settings, **add `delebash/claude-config` as a repository** (alongside
+   your project repo). Each fresh container then checks it out.
+2. Set the environment's **Setup script** to run the checked-out installer, e.g.
+   ```bash
+   bash "$HOME/claude-config/install.sh"
+   ```
+   The exact path depends on where the multi-repo checkout lands — confirm it in your
+   environment (it may be a sibling of the project dir). The Setup script runs once before
+   Claude Code launches and the filesystem is snapshot-cached, so later sessions start with
+   `~/.claude` already in place. No auto-pull is needed here — a fresh container always
+   re-provisions from the fresh checkout.
+
+> **The self-update hook is a local-machine convenience only.** In the remote env it is
+> inert (there is no persistent clone to pull; the container reprovisions from scratch).
 
 ## Maintenance — the bundle vs live can drift
 
@@ -197,14 +209,14 @@ re-sync into the bundle and commit:
 ```bash
 for f in CLAUDE.md rules-detail.md EFFECTIVENESS.md settings.json \
          agents/rules-checker.md hooks/_rules.py hooks/arm-rules-gate.sh \
-         hooks/verify-gate.py hooks/pre-action-check.py hooks/task-gate.py \
-         hooks/commit-gate.py hooks/gate-stats.py; do
-  cp -f "$HOME/.claude/$f" "claude-config/$f"
+         hooks/self-update.sh hooks/verify-gate.py hooks/pre-action-check.py \
+         hooks/task-gate.py hooks/commit-gate.py hooks/gate-stats.py; do
+  cp -f "$HOME/.claude/$f" "$f"     # run from the repo root
 done
 ```
 
 And the reverse — to apply a bundle change to the live session immediately (so it
-takes effect without waiting for a new container): `FORCE=1 bash claude-config/install.sh`.
+takes effect without waiting for a new container): `FORCE=1 bash install.sh`.
 
 ## Both grains are wired — task-grain + the standing rule
 
@@ -225,3 +237,11 @@ subagent + panel add judgment but aren't infallible. The "trivial" escape on the
 pre-task deny is the model's own attestation and could be abused — which is exactly
 why `EFFECTIVENESS.md` tracks misses. The system lowers the failure rate by moving
 checks to boundaries; it does not make the model perfect.
+
+## 2026-07-20 update (added in place)
+- `agents/executor.md` — the pinned plan-executor agent (Opus @ medium effort,
+  stop-don't-decide contract). install.sh provisions it.
+- `CLAUDE.md` — new "Planner/executor split" section (plan on the session model,
+  execute via the executor agent on literal "go", planner diff-reviews before done).
+If the standalone claude-config repo is already live, apply these two files +
+the install.sh line there too (or re-transport this whole bundle).
