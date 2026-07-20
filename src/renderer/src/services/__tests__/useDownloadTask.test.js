@@ -165,4 +165,16 @@ describe("shared channel read-mappers", () => {
     expect(engineInstallChannel().statusUrl).toBe("/v1/llm-runner/engine/status");
     expect(typeof dl.start).toBe("function"); // start reads `id` at CALL time (thunk)
   });
+
+  it("modelDownloadChannel.read extracts THIS model's entry from the per-model map", () => {
+    // Downloads are concurrent now: /download/status is {downloads: {modelId: {...}}}, so the
+    // channel's read must pluck its own id's entry. Absent == finished == the done terminal.
+    const dl = modelDownloadChannel(() => "m1");
+    expect(dl.read({ downloads: { m1: { status: "downloading", downloaded: 3, total: 9 } } }))
+      .toMatchObject({ done: 3, total: 9, status: "downloading" });
+    expect(dl.read({ downloads: { other: { status: "downloading" } } }).terminal).toBe("done");
+    expect(dl.read({ downloads: {} }).terminal).toBe("done");   // absent → idle → done
+    expect(dl.read({ downloads: { m1: { status: "error", error: "boom" } } }))
+      .toEqual({ terminal: "error", error: "boom" });
+  });
 });
