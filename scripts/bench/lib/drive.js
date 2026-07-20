@@ -1,21 +1,17 @@
-// The three drive modes. All three end up holding a Playwright `page` whose
-// window has `window.__jwBench` on it; the orchestrator doesn't care which.
-//
-//   headless  — Playwright Chromium against the vite dev server (default; the
-//               overnight mode).
-//   headed    — the same, visible, so the user can watch a run.
-//   tauri     — the REAL desktop app. Tauri 2 renders in WebView2 on Windows,
-//               and Playwright attaches to any WebView2 over CDP when the app
-//               is launched with WEBVIEW2_ADDITIONAL_BROWSER_ARGUMENTS=
-//               --remote-debugging-port=<port> (Playwright's own webview2 doc,
-//               fetched 2026-07-19). This is the mode where the Bench preset is
-//               visible in the user's actual GUI while the script drives it.
+// ONE drive mode: headless Chromium against the vite dev server (2026-07-20,
+// the user's ruling — "drop headed"). The bench calls the app's services
+// directly through window.__jwBench, so a visible window has nothing to show;
+// progress is watched in the TERMINAL (the runner logs every leg + feature
+// run). The old --headed (visible browser) and --tauri (CDP attach to the real
+// WebView2 window) modes were deleted here — git history holds them if a
+// watch-in-the-real-app mode is ever wanted again.
 //
 // The browser launch reuses the SHARED findChrome() (scripts/lib) — never a
 // hardcoded path.
 
 import { spawn } from "node:child_process";
 import { createRequire } from "node:module";
+import { resolveAppDataRoot } from "./dataRoot.js";
 import { findChrome, isUp, sleep, waitReady } from "../../lib/smoke-common.js";
 
 const require = createRequire(import.meta.url);
@@ -29,8 +25,8 @@ async function waitForHook(page, tries = 60) {
     await sleep(500);
   }
   throw new Error(
-    "window.__jwBench never appeared — the bench hook is DEV-only (import.meta.env.DEV). " +
-    "In --tauri mode the app must be running `npm run dev`, not a production build.",
+    "window.__jwBench never appeared — the bench hook is DEV-only (import.meta.env.DEV); " +
+    "the bench needs the dev renderer (vite), never a production build.",
   );
 }
 
@@ -61,10 +57,17 @@ function startProcess(label, cmd, args, { env, cwd, onLog } = {}) {
  */
 async function ensureBrowserStack({ app, server, autostart, repoRoot, onLog }) {
   const started = [];
+  let dataRoot = ""; // set only when WE start the server — an already-up server's root is its own
   if (!(await isUp(`${server}/v1/health`))) {
-    if (!autostart) throw new Error(`no JustWrite server at ${server} (start it, or pass --autostart)`);
-    onLog?.(`starting server (nothing answering at ${server})`);
-    started.push(startProcess("server", "python", ["-m", "justwrite_server.cli", "serve", "--port", new URL(server).port || "17495"], { cwd: `${repoRoot}/server`, onLog }));
+    if (!autostart) throw new Error(`no JustWrite server at ${server} — start your app (npm run dev), or pass --autostart`);
+    // The autostarted server must see the APP's data root (engine + models +
+    // books), not the bare-CLI platformdirs default — that mismatch is the
+    // "engine is not installed" trap. resolveAppDataRoot mirrors the shell.
+    dataRoot = resolveAppDataRoot(repoRoot);
+    onLog?.(`starting server (nothing answering at ${server}) — data root: ${dataRoot}`);
+    started.push(startProcess("server", "python", ["-m", "justwrite_server.cli", "serve", "--port", new URL(server).port || "17495"], {
+      cwd: `${repoRoot}/server`, env: { JUSTWRITE_DATA_DIR: dataRoot }, onLog,
+    }));
     await waitReady(`${server}/v1/health`, "server", 120);
   } else {
     onLog?.(`server already up at ${server}`);
@@ -78,18 +81,16 @@ async function ensureBrowserStack({ app, server, autostart, repoRoot, onLog }) {
   } else {
     onLog?.(`vite already up at ${app}`);
   }
-  return started;
+  return { started, dataRoot };
 }
 
 /**
- * Open a driven page in the requested mode.
- * Returns { page, hookVersion, close() }.
+ * Open the driven page (headless Chromium on the vite renderer).
+ * Returns { page, hookVersion, pageErrors, dataRoot, close() }.
  */
 export async function openDriver({
-  mode = "headless",
   app = process.env.JW_APP || "http://localhost:1420",
   server = process.env.JW_SERVER || "http://127.0.0.1:17495",
-  cdpPort = Number(process.env.JW_CDP_PORT) || 9223,
   autostart = false,
   repoRoot = process.cwd(),
   onLog,
@@ -105,53 +106,13 @@ export async function openDriver({
     }
   };
 
-  if (mode === "tauri") {
-    // The dev app, with WebView2's remote debugging turned on. `npm run dev`
-    // compiles/starts vite itself, so we do NOT pre-start one here.
-    if (!(await isUp(`${server}/v1/health`))) {
-      onLog?.(`note: no server at ${server} — the Tauri app normally spawns its own; continuing`);
-    }
-    onLog?.(`launching the Tauri dev app with CDP on :${cdpPort}`);
-    spawned.push(startProcess("tauri", "npm", ["run", "dev"], {
-      cwd: repoRoot,
-      env: {
-        WEBVIEW2_ADDITIONAL_BROWSER_ARGUMENTS: `--remote-debugging-port=${cdpPort}`,
-      },
-      onLog,
-    }));
-
-    // A dev build compiles the Rust crate first — that can be minutes, and the
-    // CDP port only opens once the webview exists. Poll the port rather than
-    // scraping stdout for a marker the dev server does not promise to print.
-    let browser = null;
-    const deadline = Date.now() + 900000;
-    while (Date.now() < deadline && !browser) {
-      await sleep(2000);
-      browser = await chromium.connectOverCDP(`http://127.0.0.1:${cdpPort}`).catch(() => null);
-    }
-    if (!browser) {
-      closeSpawned();
-      throw new Error(`could not attach to the Tauri webview on :${cdpPort} within 15 min`);
-    }
-    const context = browser.contexts()[0];
-    const page = context.pages()[0] || (await context.waitForEvent("page"));
-    const hookVersion = await waitForHook(page);
-    return {
-      page, hookVersion, mode,
-      async close() {
-        await browser.close().catch(() => {});
-        closeSpawned();
-      },
-    };
-  }
-
-  // Browser modes.
-  spawned.push(...(await ensureBrowserStack({ app, server, autostart, repoRoot, onLog })));
+  const stack = await ensureBrowserStack({ app, server, autostart, repoRoot, onLog });
+  spawned.push(...stack.started);
   const exe = findChrome();
-  onLog?.(`launching Chromium (${mode})${exe ? ` at ${exe}` : " — Playwright's own build"}`);
+  onLog?.(`launching headless Chromium${exe ? ` at ${exe}` : " — Playwright's own build"}`);
   const browser = await chromium.launch({
     ...(exe ? { executablePath: exe } : {}),
-    headless: mode !== "headed",
+    headless: true,
     args: ["--no-sandbox"],
   });
   const page = await browser.newPage();
@@ -160,7 +121,7 @@ export async function openDriver({
   await page.goto(app, { waitUntil: "networkidle" });
   const hookVersion = await waitForHook(page);
   return {
-    page, hookVersion, mode, pageErrors: errors,
+    page, hookVersion, pageErrors: errors, dataRoot: stack.dataRoot,
     async close() {
       await browser.close().catch(() => {});
       closeSpawned();

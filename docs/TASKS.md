@@ -96,8 +96,8 @@
   (`-ngl 0`, prompt 512/2k/8k) for the catalog MoEs + the 12B dense, against the GPU
   tune as baseline; numbers decide whether a CPU chat band (for no-dGPU users) joins
   fit/QuickSetup and whether the no-GPU empty-state copy softens. **Now automated —
-  run `npm run bench:gpu` once for the baseline, then `npm run bench:cpu`** (add
-  `--tauri` to watch it in the real app, `--legs cpu-gemma-26b` for the one leg needing
+  run `npm run bench:gpu` once for the baseline, then `npm run bench:cpu`** (always
+  headless — watch the terminal; `--legs cpu-gemma-26b` for the one leg needing
   no download), then hand back `bench-results/<run-id>/summary.md`. The CPU band recalls
   the GPU baseline from the store rather than re-running it. `cpu-gemma-12b`,
   `cpu-qwen-35b` and `cpu-bonsai-27b` each need a download first (Bonsai also needs a
@@ -118,12 +118,13 @@
   occupied by the live app all session. One run when 1420 is free closes it.
 - **Bench harness — first real run + the restore fire-test (2026-07-19).** The harness
   is built and unit-green but has **never run end-to-end**: no feature run has reached a
-  live model through it, `--tauri` has never attached to a real window, and `--restore`
-  is proven only against a fake client. Owed: one full run (the CPU-band config above),
-  one `--tauri` attach, and one deliberate mid-leg kill → `npm run bench -- --restore
-  bench-results/<run-id>` → confirm the Routing tab shows the original assignments (the
-  escape proven to FIRE). Detail: `docs/plans/2026-07-19-llm-bench-harness.md`; usage:
-  `docs/bench.md`.
+  live model through it, and `--restore` is proven only against a fake client. Owed: one
+  full run (the CPU-band config above) and one deliberate mid-leg kill → `npm run bench --
+  --restore bench-results/<run-id>` → confirm the Routing tab shows the original
+  assignments (the escape proven to FIRE). *(2026-07-20: the `--headed`/`--tauri` watch
+  modes were removed — the bench is headless-only, the terminal is the view — so the old
+  "one `--tauri` attach" leg of this check no longer exists.)* Detail:
+  `docs/plans/2026-07-19-llm-bench-harness.md`; usage: `docs/bench.md`.
 - **Thinking-budget redesign (2026-07-16)** — the visual look (your call) + two box
   tests: think OFF/ON A/B (the day's original question) and the b9993 loop re-test.
   Detail: `just-llm-runner/docs/plans/2026-07-16-think-ab-and-loop-retest.md`.

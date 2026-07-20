@@ -7,18 +7,26 @@ the analysis happens by reading that folder.
 
 ```bash
 npm run bench:gpu -- --dry                   # print the plan, touch nothing
-npm run bench:gpu                            # run the GPU band, headless
+npm run bench:gpu                            # run the GPU band
 npm run bench:cpu -- --legs cpu-gemma-26b    # measure ONE leg
 npm run bench:cpu -- --missing               # measure only legs never measured yet
 npm run bench:cpu -- --report                # print the band's table — runs nothing
-npm run bench:cpu -- --tauri                 # drive the REAL app window
-npm run bench:cpu -- --headed                # watch it in a browser
 npm run bench -- --restore bench-results/2026-07-19_21-04-11-cpu   # crash recovery
 ```
 
-The three drive modes are **flags**, not separate commands — `--headless`
-(default), `--headed`, `--tauri` — so they combine freely with any band and any
-leg selection.
+**The bench always runs headless — the terminal is the view.** It drives the
+app's services directly through the bench hook, so a window would have nothing
+to show; instead the runner prints every leg and every feature run as it goes,
+and `summary.md` holds the tables at the end. (The old `--headed`/`--tauri`
+watch modes were removed 2026-07-20 for exactly that reason — there was nothing
+to watch.)
+
+**The simplest setup: have your app running (`npm run dev`).** The bench then
+connects to *its* server — your data root, your installed engine, your models.
+Installing the engine (and a model) is a one-time job you do **in the app**
+(Quick Setup, or AI page → Install engine); the bench never installs anything.
+If the server it reaches has no engine, the run **stops with an error** telling
+you exactly that — it does not limp through a run that can't load a model.
 
 ## Two bands
 
@@ -88,20 +96,15 @@ each leg, in order:
    nothing resident to compete for VRAM/RAM.
 6. Writes the leg's results and moves on. At the end, assignments are restored.
 
-## The three modes
+## How it runs
 
-| Mode | What it drives | Use it for |
-|---|---|---|
-| `--headless` (default) | Playwright Chromium against the vite dev server | Long/overnight runs |
-| `--headed` | The same, visible | Watching a run go by |
-| `--tauri` | The **real desktop app**, attached over WebView2 CDP | Seeing the Bench preset and the AI task strip in your actual GUI while it runs |
-
-`--tauri` launches the app itself (`npm run dev`) with remote debugging enabled
-and attaches to its webview. It needs a **DEV** build — the bench hook is
-stripped from production builds.
-
-Browser modes expect the server and vite to already be up; pass `--autostart` to
-have the bench start whatever is missing.
+Headless Chromium drives the DEV renderer (vite) — the bench hook is stripped
+from production builds. The bench expects the server and vite to already be up
+(they both are whenever your app is running); pass `--autostart` to have it
+start whatever is missing. An autostarted server runs on **your app's data
+root** (the same `dataroot.txt` / dev-default resolution the app uses), so it
+sees the engine and models you installed in the app — a server you start by
+hand does *not* do this unless you set `JUSTWRITE_DATA_DIR` yourself.
 
 ## What a run changes, and what it never touches
 

@@ -25,6 +25,22 @@ const BENCH_EXE = process.platform === "win32" ? "llama-bench.exe" : "llama-benc
  * levels, walk up to the "llamacpp" marker — cacheRoot is its parent, and the
  * model cache is <cacheRoot>/hf (verified on this box 2026-07-19).
  */
+/**
+ * The message for the HARD engine gate (run.js): no engine on the server the
+ * bench is talking to means NO local leg can run at all — model loads go through
+ * the server, which needs the engine to spawn llama-server. Erroring out loudly
+ * (the user's ruling, 2026-07-20) beats a warning + a run that limps to nothing.
+ */
+export function engineMissingError({ server, dataRoot } = {}) {
+  return [
+    `the server at ${server || "(unknown)"} has no engine installed — no local model can load, so nothing can be benched.`,
+    dataRoot ? `The bench started this server on data root: ${dataRoot}` : "",
+    "Fix: open the app (`npm run dev`) and install the engine there (AI page → Install engine, or Quick Setup), then re-run —",
+    "with your app running, the bench connects to ITS server and engine. If you started a server by hand, it may be on the",
+    "wrong data folder: set JUSTWRITE_DATA_DIR to your app's data root, or just let the app (or the bench) start the server.",
+  ].filter(Boolean).join("\n");
+}
+
 export function enginePaths(engineStatus) {
   const serverExe = engineStatus?.serverExe || "";
   if (!serverExe) return { ok: false, reason: "the engine is not installed (no serverExe)" };

@@ -2,10 +2,12 @@
 // The LLM bench runner.
 //
 //   npm run bench -- --config scripts/bench/configs/cpu-band.json
-//   npm run bench -- --config <cfg> --headed          # watch it in a browser
-//   npm run bench -- --config <cfg> --tauri           # drive the REAL app window
 //   npm run bench -- --config <cfg> --dry             # print the plan, touch nothing
 //   npm run bench -- --restore bench-results/<run-id> # crash recovery
+//
+// Always HEADLESS (2026-07-20, the user's ruling): the bench drives services
+// through the bench hook, so a window has nothing to show — progress is watched
+// in this terminal. The old --headed/--tauri modes are deleted (git history).
 //
 // WHAT IT DOES, per leg: point the features under test at the Bench preset
 // (carrying that leg's request tunables), load the leg's model with that leg's
@@ -23,7 +25,7 @@ import { execFileSync } from "node:child_process";
 
 import { ConfigError, featureArgsFor, loadConfig } from "./lib/config.js";
 import { callHook, openDriver } from "./lib/drive.js";
-import { enginePaths, resolveGguf, runLlamaBench } from "./lib/llamaBench.js";
+import { engineMissingError, enginePaths, resolveGguf, runLlamaBench } from "./lib/llamaBench.js";
 import { ensureDir, legDir, renderSummary, runId, writeJson } from "./lib/results.js";
 import { applyAssignments, readRestoreFile, snapshotAssignments, writeRestoreFile } from "./lib/restore.js";
 import { gpuInfo, startSampler, waitEngineQuiet } from "./lib/sampler.js";
@@ -36,16 +38,17 @@ const REPO_ROOT = resolve(dirname(fileURLToPath(import.meta.url)), "..", "..");
 // ── args ────────────────────────────────────────────────────────────────────
 function parseArgs(argv) {
   const out = {
-    config: "", mode: "headless", dry: false, restore: "", legs: null,
+    config: "", dry: false, restore: "", legs: null,
     resume: "", outDir: join(REPO_ROOT, "bench-results"), autostart: false,
     report: false, missing: false,
   };
   for (let i = 0; i < argv.length; i++) {
     const a = argv[i];
     if (a === "--config" || a === "-c") out.config = argv[++i];
-    else if (a === "--headed") out.mode = "headed";
-    else if (a === "--headless") out.mode = "headless";
-    else if (a === "--tauri") out.mode = "tauri";
+    else if (a === "--headless") { /* the only mode — accepted for old muscle memory */ }
+    else if (a === "--headed" || a === "--tauri") {
+      throw new ConfigError(`${a} was removed — the bench always runs headless; watch progress in this terminal, and open your app yourself if you want it open (its server gets used either way).`);
+    }
     else if (a === "--dry" || a === "--dry-run") out.dry = true;
     else if (a === "--restore") out.restore = argv[++i];
     else if (a === "--resume") out.resume = argv[++i];
@@ -99,7 +102,7 @@ function loadBody(leg) {
 
 function printDryRun(cfg, args) {
   console.log(`\nBENCH DRY RUN — ${cfg.name}  (${cfg.source})`);
-  console.log(`  mode: ${args.mode}   band: ${cfg.band || "(none)"}   book: ${cfg.book || "(active project)"}   preset: ${cfg.presetName}`);
+  console.log(`  band: ${cfg.band || "(none)"}   book: ${cfg.book || "(active project)"}   preset: ${cfg.presetName}`);
   if (cfg.baselineRefs.length) console.log(`  baselineRefs: ${cfg.baselineRefs.join(", ")} — recalled from the store, never run here`);
   console.log(`  ensureIndex: ${cfg.ensureIndex}   sweep cap: ${cfg.sweepChapterCap} chapters`);
   console.log(`  results → ${args.outDir}/<run-id>/`);
@@ -127,14 +130,15 @@ async function main() {
 JustWrite LLM bench — run models × switches through the real app, capture everything.
 
   --config <path>   bench config — a BAND (scripts/bench/configs/gpu.json | cpu.json)
-  --headless        Playwright Chromium, no window (default)
-  --headed          visible browser — watch the run
-  --tauri           drive the REAL desktop app (needs \`npm run dev\`-style DEV build)
   --legs a,b        measure only these leg ids (the rest are recalled from the store)
   --missing         measure only legs that have no stored result yet
   --report          print the band's table from stored results — runs NOTHING
   --dry             print the plan and exit — touches nothing
-  --autostart       start server/vite if they are not already up (browser modes)
+  --autostart       start server/vite if they are not already up (the server on YOUR app's data root)
+
+Always headless — the bench drives services through the app's bench hook, so there
+is nothing to watch in a window; progress prints here. Simplest setup: have your
+app running (npm run dev) and the bench connects to its server + engine.
   --out <dir>       results root (default: bench-results/)
   --restore <dir>   re-apply the assignment snapshot from a previous run and exit
 
@@ -211,37 +215,18 @@ date, and flagged if the engine build or the leg's config has changed since.
   log(`run ${id} → ${root}`);
   writeJson(join(root, "config.json"), cfg);
 
-  // ── environment record ────────────────────────────────────────────────────
-  const engine = await client.engineStatus().catch((e) => ({ error: String(e.message || e) }));
-  const paths = enginePaths(engine);
-  const env = {
-    capturedAt: startedAt,
-    cpu: cpus()[0]?.model || "",
-    cores: cpus().length,
-    totalRamMb: Math.round(totalmem() / 1048576),
-    platform: process.platform,
-    gpus: await gpuInfo(),
-    engineBuild: engine?.build || "",
-    engineGpu: engine?.gpu || "",
-    serverExe: engine?.serverExe || "",
-    benchExe: paths.ok ? paths.benchExe : "",
-    benchExeProblem: paths.ok ? "" : paths.reason,
-    hfCache: paths.hfCache || "",
-    appSha: appSha(),
-    node: process.version,
-    server: client.base,
-  };
-  writeJson(join(root, "env.json"), env);
-  if (!paths.ok) log(`WARNING: ${paths.reason} — llama-bench legs will be skipped`);
-
-  // ── snapshot BEFORE the first write ───────────────────────────────────────
-  const snapshot = await snapshotAssignments(client);
-  const restorePath = join(root, "restore.json");
-  writeRestoreFile(restorePath, snapshot);
-  log(`assignments snapshotted → ${restorePath}`);
+  // The env record, the engine gate and the assignment snapshot all need the
+  // server ANSWERING — which, with --autostart, only happens once the driver
+  // is up. So they moved INSIDE the try, after openDriver. (The old order probed the engine
+  // and snapshotted before autostart — a cold `--autostart` run crashed on the
+  // snapshot, and the engine probe mis-read "server not up yet" as "engine not
+  // installed".)
+  let env = null;       // used by the summary block after the try
+  let snapshot = null;  // restoreNow no-ops until the snapshot exists
 
   let restoreResult = null;
   const restoreNow = async (why) => {
+    if (!snapshot) return null; // nothing was written — nothing to put back
     if (restoreResult) return restoreResult;
     log(`restoring assignments (${why})`);
     restoreResult = await applyAssignments(client, snapshot, { onLog: log });
@@ -265,9 +250,45 @@ date, and flagged if the engine build or the leg's config has changed since.
 
   try {
     driver = await openDriver({
-      mode: args.mode, autostart: args.autostart, repoRoot: REPO_ROOT, onLog: log,
+      autostart: args.autostart, repoRoot: REPO_ROOT, onLog: log,
     });
-    log(`driver ready (${driver.mode}) — bench hook v${driver.hookVersion}`);
+    log(`driver ready — bench hook v${driver.hookVersion}`);
+
+    // ── environment record + THE ENGINE GATE ──────────────────────────────────
+    const engine = await client.engineStatus().catch((e) => ({ error: String(e.message || e) }));
+    const paths = enginePaths(engine); // the legs loop below shares this try-block scope
+    env = {
+      capturedAt: startedAt,
+      cpu: cpus()[0]?.model || "",
+      cores: cpus().length,
+      totalRamMb: Math.round(totalmem() / 1048576),
+      platform: process.platform,
+      gpus: await gpuInfo(),
+      engineBuild: engine?.build || "",
+      engineGpu: engine?.gpu || "",
+      serverExe: engine?.serverExe || "",
+      benchExe: paths.ok ? paths.benchExe : "",
+      benchExeProblem: paths.ok ? "" : paths.reason,
+      hfCache: paths.hfCache || "",
+      appSha: appSha(),
+      node: process.version,
+      server: client.base,
+    };
+    writeJson(join(root, "env.json"), env);
+    // No engine on this server = NO local leg can run (loads need it to spawn) —
+    // fail loudly and name the fix instead of limping (user ruling, 2026-07-20).
+    // A PARTIAL problem (engine present, llama-bench exe missing) only skips the
+    // raw-matrix legs, so that stays a warning.
+    if (!engine?.serverExe) {
+      throw new ConfigError(engineMissingError({ server: client.base, dataRoot: driver.dataRoot }));
+    }
+    if (!paths.ok) log(`WARNING: ${paths.reason} — llama-bench legs will be skipped`);
+
+    // ── snapshot BEFORE the first write ───────────────────────────────────────
+    snapshot = await snapshotAssignments(client);
+    const restorePath = join(root, "restore.json");
+    writeRestoreFile(restorePath, snapshot);
+    log(`assignments snapshotted → ${restorePath}`);
 
     const hookFeatures = await callHook(driver.page, "features");
     const unknown = [...new Set(legs.flatMap((l) => l.effectiveFeatures))].filter((f) => !hookFeatures.includes(f));
