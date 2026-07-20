@@ -96,6 +96,18 @@
 
 ## Your-box checks (only the Windows / 2070S machine can finish these)
 
+- **Model dropdown auto-populates on Edit-open (2026-07-20)** — open a saved online
+  provider (with a key) → its chat/embedding dropdowns fill **without** clicking Fetch;
+  reopen and confirm it's instant (cache) + refreshes; edit the key then Fetch → the list
+  reflects the new creds. A keyless online row does NOT auto-fetch. Kit `ProviderForm.vue`
+  + `useProviderModels.js`; pinned by `ProviderForm.autoLoadModels.test.js` (4 cases).
+- **Online default-model change repoints on Save (2026-07-20)** — on the provider that IS
+  your default, open its Edit form, change the **Default model** (and/or embedding) in the
+  dropdown, Save → confirm your features now run on the new model **without** clicking **Set
+  as default** again (a toast says "Tasks now run on …"). Then confirm a **non-default**
+  provider's model change on Save does NOT move routing (stays a stored preference). Kit
+  `ProviderForm.vue`; pinned by `ProviderForm.defaultOnSave.test.js` (4 cases, fires-proven).
+
 - **CPU-only band test (2026-07-19)** — measure prefill + generation pure-CPU
   (`-ngl 0`, prompt 512/2k/8k) for the catalog MoEs + the 12B dense, against the GPU
   tune as baseline; numbers decide whether a CPU chat band (for no-dGPU users) joins

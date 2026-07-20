@@ -76,6 +76,12 @@ on the bundled runner.)
 > automatically (they no longer need you to retype it). Clearing the field and saving
 > **removes** the stored key; leaving a revealed key untouched keeps it.
 >
+> **The model dropdowns fill themselves.** When you reopen a saved provider that has a key
+> (or a local server), its chat/embedding lists load automatically — no need to press
+> **Fetch** first. The list refreshes each time you open, so it keeps up as a provider adds
+> or retires models; **Fetch** / **Refresh** re-pulls it on demand (use it after you change
+> the key or URL), and you can always just type a model id the list doesn't show.
+>
 > **Gemini models.** New Google keys can't use the 2.5-generation models at all
 > (Google returns "no longer available to new users"), so the default is the current
 > **3.x flash-lite** tier and **Fetch** lists the bare 3.x ids (no `models/` prefix, and the
@@ -102,6 +108,11 @@ customized: leave them on their own models (the default), or tick **Also overwri
 customized** to repoint everything. The built-in needs an assigned chat model first (pick
 one in the catalog, or run Quick Setup); any other provider needs its **Default model**
 filled in on its Edit form.
+
+Once a provider is your default, changing its **Default model** (or embedding model) on the
+Edit form and saving re-points your features onto the new model right away — you don't need
+to press **Set as default** again. A provider that isn't your default keeps a changed model
+as its own stored setting until you make it the default.
 
 When you click **Apply**, that one model becomes the default for **every preset** — writing,
 chat, extraction, judgment — and it downloads and loads right away. If you've already
