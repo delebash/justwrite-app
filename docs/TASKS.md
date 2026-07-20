@@ -169,13 +169,13 @@
   write REST · RAG sqlite-vec ANN index · spawn boot/splash UX · extract kit `common/`
   → a `@delebash/ui` package · llama-swap optional layer · the Tauri/package rename PR.
   Wake on need. Detail: ledger §I5.
-- **claude-config standalone provisioning** — prove a fresh web container can provision
-  `~/.claude` directly from `github.com/delebash/claude-config`, after which JW's
-  vendored `claude-config/` copy can go. Context (was the recap's "STAGED → RESOLVED",
-  deleted 2026-07-19): the extraction itself is DONE — `github.com/delebash/claude-config`
-  is the source of truth, local clone `~/.claude/claude-config`, pulled by `self-update.sh`
-  each new session; JW's `claude-config/` copy is the synced WEB provisioner that the env
-  Setup script installs from. Only the fresh-container proof is outstanding.
+- **claude-config standalone provisioning — DONE 2026-07-20.** The fresh-container proof
+  passed (this session provisioned from `github.com/delebash/claude-config` added as a
+  per-session source repo), so JW's vendored `claude-config/` copy was **removed** — the
+  standalone repo is now the sole source of truth (local clone `~/.claude/claude-config`
+  pulled by `self-update.sh` each new session; on the web, the env adds the repo + points
+  its Setup script at the standalone `install.sh`). **Env dependency:** the web env's Setup
+  script must install from the standalone repo's `install.sh`, not the deleted JW copy.
 - **F3 — audiobook converters + speaker-attribution deep research** (JV) — parked
   research TODO. Detail: ledger §F3.
 - **I6 — the JV tail beyond F1–F5** — gated on F1; F1's own scope discovers the
