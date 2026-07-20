@@ -1,14 +1,25 @@
 <script setup>
-// Shared status picker. Reads the project-wide, user-definable status
-// palette and lets any entity detail view set its status. Renders a
-// colored pill; the menu lists every defined status (in its color), an
-// Unset option, and a quick "New status…" that adds to the palette and
-// selects it. Recolor/rename/delete live in Settings → Project.
+// Shared status picker. Reads the project-wide, user-definable status palette and
+// lets any entity detail view set its status. Renders a colored pill; the menu
+// lists every defined status (in its color), an Unset option, and a quick "New
+// status…" that adds to the palette and selects it. Recolor/rename/delete live
+// in Settings → Project.
+//
+// Built on Reka UI Select primitives (2026-07-20) — the hand-rolled listbox +
+// raw document-mousedown dismissal it replaced had NO keyboard support. Reka
+// gives arrow-key nav, type-ahead, Enter/Esc, focus management, and full ARIA
+// for free. Visual parity is preserved (color dots, colored labels, the
+// "New status…" footer). The create action is a sentinel-valued item: selecting
+// it (mouse OR keyboard) opens the prompt instead of setting a status — the same
+// pattern the kit's own shells use to compose behavior onto Reka primitives.
 
-import { ref, computed, onBeforeUnmount } from "vue";
+import { computed } from "vue";
+import {
+  SelectRoot, SelectTrigger, SelectPortal, SelectContent, SelectViewport,
+  SelectItem, SelectItemText, SelectItemIndicator,
+} from "reka-ui";
+import { promptDialog, Icon } from "@delebash/llm-ui";
 import { useProjectStore } from "../stores/project.js";
-import { promptDialog } from "@delebash/llm-ui";
-import { Icon } from "@delebash/llm-ui";
 
 const props = defineProps({
   modelValue: { type: String, default: "" },
@@ -16,14 +27,27 @@ const props = defineProps({
 const emit = defineEmits(["update:modelValue"]);
 const project = useProjectStore();
 
-const open = ref(false);
-const rootEl = ref(null);
-// "Unset" is a synthetic, non-editable status: items with no status id
-// still display a real value ("Unset") in the pill and the sidebar
-// rather than a placeholder hint. It never appears in Settings.
+// Reka reserves "" as its no-selection value, so "Unset" rides an internal
+// sentinel; "New status…" rides another (selecting it opens the prompt).
+const UNSET_SENTINEL = "__status_unset__";
+const NEW_SENTINEL = "__status_new__";
+
+// "Unset" is a synthetic, non-editable status: items with no status id still
+// display a real value ("Unset") in the pill rather than a placeholder hint.
 const UNSET = { label: "Status Unset", color: "var(--muted)" };
 const real = computed(() => project.statusById(props.modelValue));
 const current = computed(() => real.value || UNSET);
+
+// Round-trip the model through the sentinel for the empty ("unset") value.
+const selected = computed({
+  get() {
+    return props.modelValue ? String(props.modelValue) : UNSET_SENTINEL;
+  },
+  set(v) {
+    if (v === NEW_SENTINEL) { addNew(); return; }          // don't change the value
+    emit("update:modelValue", v === UNSET_SENTINEL ? "" : v);
+  },
+});
 
 // Curated, legible hues for newly-added statuses (defaults keep their
 // theme-adaptive CSS vars).
@@ -33,9 +57,6 @@ const PALETTE = [
   "oklch(0.64 0.14 290)", "oklch(0.7 0.12 120)",
 ];
 
-function toggle() { open.value = !open.value; }
-function close() { open.value = false; }
-function pick(id) { emit("update:modelValue", id); close(); }
 async function addNew() {
   const label = await promptDialog({
     title: "New status",
@@ -47,53 +68,48 @@ async function addNew() {
   const color = PALETTE[project.statuses.length % PALETTE.length];
   const id = project.addStatusDef({ label, color });
   emit("update:modelValue", id);
-  close();
 }
-
-function onDocClick(e) {
-  if (open.value && rootEl.value && !rootEl.value.contains(e.target)) close();
-}
-document.addEventListener("mousedown", onDocClick);
-onBeforeUnmount(() => document.removeEventListener("mousedown", onDocClick));
 </script>
 
 <template>
-  <div class="status-select" ref="rootEl">
-    <button type="button" class="status-pill" :class="{ open }" :aria-expanded="open" aria-haspopup="listbox" @click="toggle">
+  <SelectRoot v-model="selected">
+    <SelectTrigger class="status-pill" aria-label="Status" aria-haspopup="listbox">
       <span class="status-pill-dot" :class="{ 'status-pill-dot--empty': !real }" :style="real ? { background: current.color } : null" />
       <span class="status-pill-label" :style="{ color: current.color }">{{ current.label }}</span>
       <Icon name="ChevDown" :size="13" class="status-pill-chev" />
-    </button>
+    </SelectTrigger>
 
-    <div v-if="open" class="status-menu" role="listbox" :aria-label="`Status for item`">
-      <button type="button" role="option" :aria-selected="!modelValue" class="status-opt status-opt-muted" :class="{ active: !modelValue }" @click="pick('')">
-        <span class="status-pill-dot status-pill-dot--empty" />
-        <span class="status-opt-label">Status Unset</span>
-        <Icon v-if="!modelValue" name="Check" :size="13" class="status-opt-check" />
-      </button>
+    <SelectPortal>
+      <SelectContent class="status-menu" position="popper" align="end" :side-offset="4" :collision-padding="8">
+        <SelectViewport>
+          <SelectItem :value="UNSET_SENTINEL" class="status-opt status-opt-muted">
+            <span class="status-pill-dot status-pill-dot--empty" />
+            <SelectItemText class="status-opt-label">Status Unset</SelectItemText>
+            <SelectItemIndicator class="status-opt-check"><Icon name="Check" :size="13" /></SelectItemIndicator>
+          </SelectItem>
 
-      <div class="status-menu-sep" />
+          <div class="status-menu-sep" />
 
-      <button v-for="s in project.statuses" :key="s.id" type="button"
-        role="option" :aria-selected="s.id === modelValue"
-        class="status-opt" :class="{ active: s.id === modelValue }" @click="pick(s.id)">
-        <span class="status-pill-dot" :style="{ background: s.color }" />
-        <span class="status-opt-label" :style="{ color: s.color }">{{ s.label }}</span>
-        <Icon v-if="s.id === modelValue" name="Check" :size="13" class="status-opt-check" />
-      </button>
+          <SelectItem v-for="s in project.statuses" :key="s.id" :value="s.id"
+            class="status-opt" :style="{ color: s.color }">
+            <span class="status-pill-dot" :style="{ background: s.color }" />
+            <SelectItemText class="status-opt-label">{{ s.label }}</SelectItemText>
+            <SelectItemIndicator class="status-opt-check"><Icon name="Check" :size="13" /></SelectItemIndicator>
+          </SelectItem>
 
-      <div class="status-menu-sep" />
+          <div class="status-menu-sep" />
 
-      <button type="button" class="status-opt status-opt-muted" @click="addNew">
-        <Icon name="Plus" :size="13" /> <span>New status…</span>
-      </button>
-    </div>
-  </div>
+          <SelectItem :value="NEW_SENTINEL" class="status-opt status-opt-muted">
+            <Icon name="Plus" :size="13" />
+            <SelectItemText class="status-opt-label">New status…</SelectItemText>
+          </SelectItem>
+        </SelectViewport>
+      </SelectContent>
+    </SelectPortal>
+  </SelectRoot>
 </template>
 
 <style scoped>
-.status-select { position: relative; display: inline-block; }
-
 .status-pill {
   appearance: none; cursor: pointer;
   display: inline-flex; align-items: center; gap: 7px;
@@ -103,15 +119,15 @@ onBeforeUnmount(() => document.removeEventListener("mousedown", onDocClick));
   color: var(--ink);
 }
 .status-pill:hover { border-color: var(--border-strong); background: var(--surface-2); }
-.status-pill.open { border-color: var(--accent); box-shadow: 0 0 0 3px var(--accent-soft); }
+.status-pill[data-state="open"] { border-color: var(--accent); box-shadow: 0 0 0 3px var(--accent-soft); }
 .status-pill-dot { width: 9px; height: 9px; border-radius: 50%; background: var(--border-strong); flex: none; }
 .status-pill-dot--empty { background: transparent; border: 1px dashed var(--border-strong); }
 .status-pill-label { font-weight: 500; }
 .status-pill-chev { color: var(--muted); transition: transform .15s ease; }
-.status-pill.open .status-pill-chev { transform: rotate(180deg); }
+.status-pill[data-state="open"] .status-pill-chev { transform: rotate(180deg); }
 
 .status-menu {
-  position: absolute; top: calc(100% + 4px); right: 0; z-index: 40;
+  z-index: 40;
   min-width: 180px; padding: 4px;
   background: var(--surface); border: 1px solid var(--border-strong);
   border-radius: 9px; box-shadow: 0 8px 28px rgba(0, 0, 0, .18);
@@ -121,12 +137,14 @@ onBeforeUnmount(() => document.removeEventListener("mousedown", onDocClick));
   display: flex; align-items: center; gap: 9px;
   padding: 7px 9px; border: 0; border-radius: 6px;
   background: none; font: inherit; font-size: 13px; text-align: left;
-  color: var(--ink);
+  color: var(--ink); outline: none;
+  user-select: none;
 }
-.status-opt:hover { background: var(--surface-2); }
-.status-opt.active { background: var(--surface-2); }
+.status-opt[data-highlighted] { background: var(--surface-2); }
+.status-opt[data-state="checked"] { background: var(--surface-2); }
 .status-opt-label { flex: 1; font-weight: 500; }
-.status-opt-check { color: var(--accent); }
+.status-opt-check { color: var(--accent); display: inline-flex; }
 .status-opt-muted { color: var(--muted); font-size: 12.5px; }
+.status-opt-muted .status-opt-label { font-weight: 500; }
 .status-menu-sep { height: 1px; background: var(--border-soft); margin: 4px 2px; }
 </style>

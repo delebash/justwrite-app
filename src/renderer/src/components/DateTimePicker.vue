@@ -6,7 +6,7 @@
 // fiddly native spinner, so arbitrary years (past or far future) are easy.
 import { ref, computed, watch, nextTick, onBeforeUnmount } from "vue";
 import { computePosition, autoUpdate, offset, flip, shift, size } from "@floating-ui/dom";
-import { Icon } from "@delebash/llm-ui";
+import { Icon, usePanelDismiss } from "@delebash/llm-ui";
 
 const props = defineProps({
   modelValue: { type: String, default: "" },
@@ -194,30 +194,26 @@ function clearAll() {
 
 function toggle() { open.value = !open.value; }
 function close() { open.value = false; }
-function onDocClick(e) {
-  if (!open.value) return;
-  const inRoot = rootEl.value?.contains(e.target);
-  const inPop  = popEl.value?.contains(e.target);
-  if (!inRoot && !inPop) close();
-}
-function onKeydown(e) { if (e.key === "Escape" && open.value) { close(); e.stopPropagation(); } }
-document.addEventListener("mousedown", onDocClick);
-onBeforeUnmount(() => {
-  document.removeEventListener("mousedown", onDocClick);
-  tearDownPos();
-});
+// Esc + click-outside dismissal comes from the shared kit composable
+// (usePanelDismiss) — the calendar popover is a PANEL for dismissal purposes.
+// The popover teleports to <body> (outside rootEl), so `.dtp-pop` is an exempt
+// selector: a click inside it (a day, the steppers) is NOT "outside". The
+// trigger carries data-panel-toggle so clicking it while open doesn't
+// close-then-reopen.
+usePanelDismiss(open, rootEl, close, { exempt: [".dtp-pop"] });
+onBeforeUnmount(tearDownPos);
 </script>
 
 <template>
-  <div class="dtp" ref="rootEl" @keydown="onKeydown">
-    <button ref="triggerEl" :id="inputId" type="button" class="dtp-trigger" :class="{ open, empty: triggerLabel.empty }" :aria-expanded="open" @click="toggle">
+  <div class="dtp" ref="rootEl">
+    <button ref="triggerEl" :id="inputId" type="button" class="dtp-trigger" data-panel-toggle :class="{ open, empty: triggerLabel.empty }" :aria-expanded="open" @click="toggle">
       <Icon name="Calendar" :size="14" class="dtp-trigger-ico" />
       <span class="dtp-trigger-label" :class="{ raw: triggerLabel.raw }">{{ triggerLabel.text }}</span>
       <Icon name="ChevDown" :size="13" class="dtp-trigger-chev" />
     </button>
 
     <Teleport to="body">
-    <div v-if="open" ref="popEl" class="dtp-pop" @keydown="onKeydown">
+    <div v-if="open" ref="popEl" class="dtp-pop">
       <div class="dtp-nav">
         <button type="button" class="dtp-ico-btn" v-tooltip.bottom="'Previous month'" @click="stepMonth(-1)">
           <Icon name="ChevLeft" :size="15" />
