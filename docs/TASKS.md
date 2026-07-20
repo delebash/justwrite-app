@@ -23,19 +23,11 @@
   model's *effective* (tuned) context as "reads ~N words at once". Deferred from that build
   because the effective ctx isn't plumbed into the wizard yet — the catalog's trained 256k
   would mislead. kit `QuickSetup.vue`.
-- **✅ (a) BLESSED 2026-07-20 (user) — `AGENTS.md` §5 amendment stands, no code change.**
-  The user confirmed the shipped behavior on their box: with Ask-the-book open, clicking a
-  nav tab closes the panel AND navigates in one click — exactly what `usePanelDismiss`
-  (document `mousedown`, `usePanelDismiss.js:58-66`) produces. The §5 rewrite only DOCUMENTS
-  this (panels use the document-listener, not a backdrop that would swallow the nav click);
-  a backdrop revert is the only thing that would break it, so it is off the table. This was
-  fixed during the 2026-07-19 chat-panel work and is verified good.
-- **⛔ (b) STILL NEEDS A RULING — cross-panel toggle behaviour changed unruled.** One shared
-  `data-panel-toggle` means clicking one panel's trigger no longer closes a DIFFERENT open
-  panel (the AI-tasks chip used to close chat); it fell out of "one vocabulary". This is a
-  panel→panel case, distinct from the panel→nav case in (a), which is fine. Per-panel toggle
-  values would restore the old behaviour. Detail:
-  `just-llm-runner/docs/plans/2026-07-19-panel-dismiss-and-no-dim.md`.
+- **Panel-dismiss decisions (2026-07-19) — both resolved 2026-07-20, no code change.**
+  (a) `AGENTS.md` §5 amendment BLESSED (panels use `usePanelDismiss`, not a backdrop —
+  the shipped panel-closes-and-nav-lands behavior is correct). (b) Cross-panel toggle
+  WON'T DO (the two-panels-open scenario doesn't arise; revisit if it does). Rulings +
+  the revert path: `just-llm-runner/docs/plans/2026-07-19-panel-dismiss-and-no-dim.md`.
 - **⛔ BROKEN runner test, no longer "flaky"** — `tests/test_lifecycle.py::test_ensure_model_ready_raises_on_failed_load`.
   **Proven pre-existing and deterministic 2026-07-19**: it fails SERIALLY (`-n 0`, so
   parallelism is not the cause) and fails IDENTICALLY in a clean `git worktree` at
