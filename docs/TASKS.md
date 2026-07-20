@@ -28,13 +28,6 @@
   the shipped panel-closes-and-nav-lands behavior is correct). (b) Cross-panel toggle
   WON'T DO (the two-panels-open scenario doesn't arise; revisit if it does). Rulings +
   the revert path: `just-llm-runner/docs/plans/2026-07-19-panel-dismiss-and-no-dim.md`.
-- **⛔ BROKEN runner test, no longer "flaky"** — `tests/test_lifecycle.py::test_ensure_model_ready_raises_on_failed_load`.
-  **Proven pre-existing and deterministic 2026-07-19**: it fails SERIALLY (`-n 0`, so
-  parallelism is not the cause) and fails IDENTICALLY in a clean `git worktree` at
-  unmodified HEAD `921f9cb` — `Timed out preparing … after 10s` where `failed to load` was
-  expected, i.e. the background load never reaches the error state inside the poll window.
-  It is now indistinguishable from the two real Windows-box failures and will keep hiding
-  regressions. Fix the race or quarantine it — do not waive it again.
 - **#256 — spell-check** — not yet scoped.
 - **I1 tail (3 small legs)** — SettingsView's `.wb-search*` fragment → fold into the
   shared `.entity-*` family · CommandPalette entity-creates lack the `?new` focus
@@ -66,6 +59,14 @@
 - **I2 — cloud prompt caching** — the Anthropic/Gemini adapters send no caching hints;
   never built, never decided. A cloud-cost optimization — worth a decision only when
   cloud usage matters. Detail: ledger §I2.
+- **1b-F4 bounces the engine on a guaranteed-to-fail load (flagged 2026-07-20, needs a
+  ruling)** — a fit-placed load whose child reports `failed` for a NON-OOM reason (corrupt
+  GGUF, a rejected flag) hits the `n_gpu_layers is None` retry (`lifecycle.py:2159`), which
+  re-emits with explicit placement and calls `_bounce_router` — a full engine restart that
+  knocks down + reloads every healthy co-resident model — before failing fast on the retry.
+  So one bad model can bounce the whole engine once. Surfaced by the rules-checker during
+  the ensure-test fix; not built/decided. Cheap guard: skip the bounce when the failure tail
+  isn't OOM. Discussion-first.
 - **Recap live-queue (runner):** multi-click unload · "stalling" thresholds mislabel a
   2.6 tok/s model as stalled · the cancel/progress plan (⚠ it FAILED its 3-lens review —
   do **not** build as written; T2 would unload a different resident model). Detail:
@@ -127,8 +128,9 @@
   tests: think OFF/ON A/B (the day's original question) and the b9993 loop re-test.
   Detail: `just-llm-runner/docs/plans/2026-07-16-think-ab-and-loop-retest.md`.
 - **Load / unload / download control (2026-07-17)** — the look: load phases/words ·
-  instant cancel · "Unloading…" no-flicker · QuickSetup unchanged. Plus 3 pre-existing
-  Windows test failures (lspci + 2× ensure). Detail:
+  instant cancel · "Unloading…" no-flicker · QuickSetup unchanged. Plus the pre-existing
+  Windows **lspci** test failure (Linux-only path; the 2× `ensure_model_ready` GIL-starvation
+  races were FIXED 2026-07-20 — `_yield_poll`, runner `tests/test_lifecycle.py`). Detail:
   `just-llm-runner/docs/plans/2026-07-17-load-cancel-and-one-progress-control.md`.
 - **Provider SDK pivot — OpenAI/xAI/Mistral only (2026-07-17)** — the re-add flow
   (Gemini/Claude/Ollama delete→restart→re-add, key, Fetch → chat/entitySweep/ask-the-book)
