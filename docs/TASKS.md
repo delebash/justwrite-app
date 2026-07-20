@@ -23,15 +23,18 @@
   model's *effective* (tuned) context as "reads ~N words at once". Deferred from that build
   because the effective ctx isn't plumbed into the wizard yet — the catalog's trained 256k
   would mislead. kit `QuickSetup.vue`.
-- **⛔ Two decisions from 2026-07-19 that a builder flagged rather than owned — need a
-  ruling.** (a) **`AGENTS.md` §5 was AMENDED** — it banned document-level handlers and named
-  `ChatPanel.vue` an exception to migrate away; it now scopes that ban to dropdowns/popovers
-  and carves out slide-in panels, because a full-inset backdrop SWALLOWS the dismissing click
-  (with chat open you could not click a nav item and have the navigation land). Reasoning +
-  revert cost are in the file. Bless it or reverse it. (b) **Cross-panel toggle behaviour
-  changed unruled** — one shared `data-panel-toggle` means clicking one panel's trigger no
-  longer closes a DIFFERENT open panel (the AI-tasks chip used to close chat); it fell out of
-  "one vocabulary". Per-panel toggle values would restore the old behaviour. Detail:
+- **✅ (a) BLESSED 2026-07-20 (user) — `AGENTS.md` §5 amendment stands, no code change.**
+  The user confirmed the shipped behavior on their box: with Ask-the-book open, clicking a
+  nav tab closes the panel AND navigates in one click — exactly what `usePanelDismiss`
+  (document `mousedown`, `usePanelDismiss.js:58-66`) produces. The §5 rewrite only DOCUMENTS
+  this (panels use the document-listener, not a backdrop that would swallow the nav click);
+  a backdrop revert is the only thing that would break it, so it is off the table. This was
+  fixed during the 2026-07-19 chat-panel work and is verified good.
+- **⛔ (b) STILL NEEDS A RULING — cross-panel toggle behaviour changed unruled.** One shared
+  `data-panel-toggle` means clicking one panel's trigger no longer closes a DIFFERENT open
+  panel (the AI-tasks chip used to close chat); it fell out of "one vocabulary". This is a
+  panel→panel case, distinct from the panel→nav case in (a), which is fine. Per-panel toggle
+  values would restore the old behaviour. Detail:
   `just-llm-runner/docs/plans/2026-07-19-panel-dismiss-and-no-dim.md`.
 - **⛔ BROKEN runner test, no longer "flaky"** — `tests/test_lifecycle.py::test_ensure_model_ready_raises_on_failed_load`.
   **Proven pre-existing and deterministic 2026-07-19**: it fails SERIALLY (`-n 0`, so
@@ -96,18 +99,6 @@
 
 ## Your-box checks (only the Windows / 2070S machine can finish these)
 
-- **Model dropdown auto-populates on Edit-open (2026-07-20)** — open a saved online
-  provider (with a key) → its chat/embedding dropdowns fill **without** clicking Fetch;
-  reopen and confirm it's instant (cache) + refreshes; edit the key then Fetch → the list
-  reflects the new creds. A keyless online row does NOT auto-fetch. Kit `ProviderForm.vue`
-  + `useProviderModels.js`; pinned by `ProviderForm.autoLoadModels.test.js` (4 cases).
-- **Online default-model change repoints on Save (2026-07-20)** — on the provider that IS
-  your default, open its Edit form, change the **Default model** (and/or embedding) in the
-  dropdown, Save → confirm your features now run on the new model **without** clicking **Set
-  as default** again (a toast says "Tasks now run on …"). Then confirm a **non-default**
-  provider's model change on Save does NOT move routing (stays a stored preference). Kit
-  `ProviderForm.vue`; pinned by `ProviderForm.defaultOnSave.test.js` (4 cases, fires-proven).
-
 - **CPU-only band test (2026-07-19)** — measure prefill + generation pure-CPU
   (`-ngl 0`, prompt 512/2k/8k) for the catalog MoEs + the 12B dense, against the GPU
   tune as baseline; numbers decide whether a CPU chat band (for no-dGPU users) joins
@@ -140,13 +131,6 @@
   bench-results/<run-id>` → confirm the Routing tab shows the original assignments (the
   escape proven to FIRE). Detail: `docs/plans/2026-07-19-llm-bench-harness.md`; usage:
   `docs/bench.md`.
-- **Draft fit + pick floor + Lab draft trials (2026-07-19)** — two looks, neither seen:
-  (1) the new **draft rows in the Tune & measure trial strip** for an MTP model —
-  `no draft (spec off)` plus `draft <file> (N.N GB)` per alternate — check the labels
-  read well and don't blow the strip's width; (2) the **Add-model form's draft
-  pre-select** on a repo shipping a sub-4-bit draft (e.g. a Q2 alongside a Q4), confirming
-  the floor picks the Q4 rather than the smallest file. Detail + the record:
-  `just-llm-runner/docs/plans/2026-07-19-draft-fit-floor-and-lab-measure.md`.
 - **Thinking-budget redesign (2026-07-16)** — the visual look (your call) + two box
   tests: think OFF/ON A/B (the day's original question) and the b9993 loop re-test.
   Detail: `just-llm-runner/docs/plans/2026-07-16-think-ab-and-loop-retest.md`.
@@ -154,9 +138,10 @@
   instant cancel · "Unloading…" no-flicker · QuickSetup unchanged. Plus 3 pre-existing
   Windows test failures (lspci + 2× ensure). Detail:
   `just-llm-runner/docs/plans/2026-07-17-load-cancel-and-one-progress-control.md`.
-- **Provider SDK pivot (2026-07-17)** — delete→restart→re-add each of Gemini/Claude/
-  Ollama, paste key, Fetch → chat/entitySweep/ask-the-book · the #12 key masks/reveals ·
-  OpenAI/xAI/Mistral connect when you have funded keys. Detail:
+- **Provider SDK pivot — OpenAI/xAI/Mistral only (2026-07-17)** — the re-add flow
+  (Gemini/Claude/Ollama delete→restart→re-add, key, Fetch → chat/entitySweep/ask-the-book)
+  and the #12 key mask/reveal were **box-checked good 2026-07-20**. Remaining: OpenAI, xAI
+  and Mistral stay live-unverified until you have funded keys — connect them then. Detail:
   `just-llm-runner/docs/plans/2026-07-17-provider-native-dialects-plan.md`.
 - **Unit 2 reasoning acceptance** — one local High chat run stopping at the hardware
   cap · one new-Anthropic run with reasoning words on the wire, no 400. Ledger §G.
