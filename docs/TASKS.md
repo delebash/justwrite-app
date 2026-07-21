@@ -126,6 +126,33 @@
 
 ## Your-box checks (only the Windows / 2070S machine can finish these)
 
+- **Warm the default local model into VRAM on startup (2026-07-21, user).** New
+  `src/renderer/src/services/warmDefault.js`, fired fire-and-forget at the `main.js`
+  boot tail. Self-gated: the `warmDefaultOnStartup` engine-config flag (default ON;
+  toggle in the Local-engine panel) + the built-in provider being the routing default
+  with a DOWNLOADED chat model + engine installed + not already resident — else a no-op
+  (so cloud-default users + fresh/CI boxes never trigger a load/pull). Shows as an AI
+  task ("Loading your writing model") in the TitleBar chip + status panel. The
+  server/setting/toggle side is in the shared runner. **Full record + touch-list:**
+  `just-llm-runner/docs/plans/2026-07-21-builtin-row-engine-update-and-warm-load.md`
+  (Part 2). **Box check:** with the engine installed + the default model downloaded +
+  built-in as default, launch and confirm the model is resident by first chat with the
+  task visible during load; toggle it off → confirm a cold start. (Can't be exercised
+  in-container — no engine/GPU; the gate was proven by the smoke no-oping.)
+- **Ask-the-book chat panel — header + button colour pass (2026-07-21, user-driven).**
+  `src/renderer/src/components/ChatPanel.vue`. Header: "New chat" / "Chat history"
+  text labels restored beside their icons; Help **?** moved to the top-right corner
+  (aligned with the title); "Close" reduced to a bare **✕**; icon↔label gap fixed
+  (icons moved into `UiButton`'s `#icon` slot — the inline `<Icon/> text` form put both
+  in one label span, so the button `gap` never applied). Buttons re-coloured to SOLID
+  fills (user rejected ghost/outlined "clear" buttons and the red-only monotony):
+  **New chat = success (green)** · **Chat history = info (blue)** · **Close = primary
+  (accent)** · **Build index = primary** · **Update = success** · **Rebuild = info** ·
+  Rename row = info · **Delete row = danger (red)**. Verified in-container by screenshot
+  (thread view: header + Build-index strip) + headless smoke (0 JS errors) + `build:vite`;
+  **the history-view rows (Rename/Delete colours) could NOT be screenshot here** (a fresh
+  container has no active project → no saved sessions), so give the History list one look
+  on your box. Colours are a taste call — say the word to retune any.
 - **CPU-only band test (2026-07-19)** — measure prefill + generation pure-CPU
   (`-ngl 0`, prompt 512/2k/8k) for the catalog MoEs + the 12B dense, against the GPU
   tune as baseline; numbers decide whether a CPU chat band (for no-dGPU users) joins
