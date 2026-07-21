@@ -38,7 +38,9 @@
 - **I4 follow-up — SHIPPED 2026-07-21.** Per-model "Free disk" row action on the catalog
   (`LuModelCatalog.vue`): deletes a model's downloaded weights while KEEPING its catalog
   row (models-cache/delete keeps the row) → re-downloads on demand; unloads first if
-  resident. Verified: build:vite + smoke 0 JS errors on #/ai. Detail: ledger §I4.
+  resident. Shows on any DOWNLOADED row (incl. errored-but-downloaded — checker T5 parity),
+  gated on `m.downloaded`, hidden mid-load/unload. Verified: build:vite + smoke 0 JS errors
+  on #/ai. Detail: ledger §I4.
 
 ## Research (needs a research pass → plan → build, each on its own go)
 
@@ -73,7 +75,13 @@
   ("error: invalid argument:", "error while handling argument", "unknown model
   architecture") — fail fast, no bounce; drafts + bare "invalid argument" excluded. NB the
   original "skip bounce when not OOM" idea was WRONG (it'd regress the #18066 fit-bug the
-  retry exists for — those exit non-OOM). Verified: ruff + 3/3 fit-placed tests.
+  retry exists for — those exit non-OOM). **Watermark hardening (2026-07-21):** every
+  failure-signature read (the unfixable gate, OOM shed, draft crash, child-exit) now reads
+  only THIS attempt's log bytes via `_log_appended_since(log_offset)`, so a stale line from a
+  previous attempt/model in the shared router log can't false-match — this fixed the
+  PRE-EXISTING OOM/draft-shed twin too. Verified: ruff + 7/7 fit-placed+draft+stale-line
+  tests (new `test_fit_placed_stale_log_line_does_not_suppress_retry`); the 4 other lifecycle
+  failures are pre-existing (0-VRAM container, stash-run-proven).
 - **"Stalling" thresholds mislabel a slow model (runner)** — a 2.6 tok/s model reads as
   "stalled"; the load-cancel plan doc lists this out-of-scope ("own go"), not built (verified
   2026-07-21 — no stall-detector in the runner). *(The two other former live-queue items are
