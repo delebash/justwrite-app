@@ -168,8 +168,13 @@ embedding model carries an **Embedding** badge. From here you can:
 
 - **Download** a model — fetches the weights onto your machine. Your chat default and the
   embedding can run together, and a model also loads on demand when a feature needs it.
-  For an MTP-enabled model (speculative decoding, e.g. Gemma), Download also fetches its
-  speculative-decode draft, so **Downloaded** includes it and the first load never surprises you with an extra fetch.
+  For an MTP-enabled model (speculative decoding), there are two shapes. Most carry a
+  **separate draft file** (e.g. Gemma's `MTP/mtp-…gguf`) — Download fetches it too, so
+  **Downloaded** includes it and the first load never surprises you with an extra fetch.
+  A few carry MTP **built into the main weights** (e.g. Qwen3.6-A3B-MTP) — there's no
+  separate file; the model self-drafts from its own head. Either way the app turns
+  speculative decoding on automatically; whether it's actually *accepting* drafts (the win)
+  is measurable — the bench reports the acceptance rate.
 - **Load as default** — makes a downloaded model the one **every preset** uses (the same effect
   as Quick Setup; any preset you've re-pointed yourself under **Routing by feature** keeps
   its own model) **and loads it into memory right away**, so your first write doesn't pay

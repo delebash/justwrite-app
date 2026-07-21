@@ -77,7 +77,10 @@ export function renderSummary({ id, config, env, legs, startedAt, finishedAt, re
   if (!reportOnly) out.push(`- **Started / finished:** ${startedAt} → ${finishedAt || "(incomplete)"}`);
   out.push(`- **Config:** \`${config.source}\` — ${legs.length} leg(s) shown, ${freshCount} measured now, features: ${config.features.join(", ")}`);
   out.push(`- **Box:** ${env.cpu || "?"} · ${env.totalRamMb ? `${Math.round(env.totalRamMb / 1024)} GB RAM` : "? RAM"} · ${(env.gpus || []).map((g) => `${g.name} ${g.totalMb}MB (driver ${g.driver})`).join(" + ") || "no NVIDIA GPU detected"}`);
-  out.push(`- **Engine:** build ${env.engineBuild || "?"} (${env.engineGpu || "?"}) · app ${env.appSha || "?"}`);
+  const buildNote = env.engineBuildMismatch
+    ? ` ⚠ the binary self-reports **${env.engineBinaryBuild}** but sits in a **${env.engineDirBuild}** dir — the folder name lies; staleness uses the binary build`
+    : "";
+  out.push(`- **Engine:** build ${env.engineBuild || "?"} (${env.engineGpu || "?"}) · app ${env.appSha || "?"}${buildNote}`);
   if (restore) {
     out.push(`- **Restore:** ${restore.ok ? "assignments restored + verified" : `⚠ INCOMPLETE — ${JSON.stringify(restore.mismatched || restore.failed)}`}`);
   }
@@ -159,6 +162,60 @@ export function renderSummary({ id, config, env, legs, startedAt, finishedAt, re
     }
   }
   out.push("");
+
+  // ── MTP acceptance, per leg ──────────────────────────────────────────────
+  // Draft acceptance is from the per-leg `measure` probe (T3): `— (no spec)` or
+  // `0.0% ⚠ never engaged` means a model configured for MTP did NOT speculate — the
+  // exact silent failure this bench exists to catch.
+  const shownLegs = legs.filter((l) => l.source !== "missing");
+  const anySpec = shownLegs.some((l) => l.measure?.draftN !== undefined);
+  if (shownLegs.length && anySpec) {
+    out.push("## MTP acceptance (per leg)");
+    out.push("");
+    out.push("| Leg | model | measure tok/s | draft acceptance | drafted→accepted |");
+    out.push("|---|---|--:|--:|--:|");
+    for (const l of shownLegs) {
+      const mz = l.measure || {};
+      const acc = typeof mz.draftAcceptance === "number"
+        ? `${(mz.draftAcceptance * 100).toFixed(1)}%${mz.draftN === 0 ? " ⚠ never engaged" : ""}`
+        : "— (no spec)";
+      const da = typeof mz.draftN === "number" ? `${mz.draftN}→${mz.draftNAccepted}` : "—";
+      out.push(`| ${l.legId} | ${l.leg?.model || "?"} | ${n(mz.tokensPerSec)} | ${acc} | ${da} |`);
+    }
+    out.push("");
+    out.push("_Acceptance is one representative generation (the measure probe), not every run. Read the router log for per-request detail._");
+    out.push("");
+  }
+
+  // ── A/B blocks: a model with 2+ legs (e.g. think on vs off) ───────────────
+  const byModel = new Map();
+  for (const l of shownLegs) {
+    const k = l.leg?.model || "";
+    if (!byModel.has(k)) byModel.set(k, []);
+    byModel.get(k).push(l);
+  }
+  for (const [model, group] of byModel) {
+    if (group.length < 2) continue;
+    out.push(`## A/B — ${model}`);
+    out.push("");
+    out.push(`Legs: ${group.map((l) => `\`${l.legId}\` (think ${l.leg?.tunables?.think ? "on" : "off"})`).join(" · ")}`);
+    out.push("");
+    out.push(`| Feature | ${group.map((l) => l.legId).join(" | ")} |`);
+    out.push(`|---|${group.map(() => "---:").join("|")}|`);
+    const feats = [...new Set(group.flatMap((l) => (l.runs || []).map((r) => r.featureKey)))];
+    for (const f of feats) {
+      const cells = group.map((l) => {
+        const rs = (l.runs || []).filter((r) => r.ok && r.featureKey === f);
+        if (!rs.length) return "—";
+        const ct = median(rs.map((r) => r.usage?.completionTokens ?? r.usage?.completion_tokens));
+        return `${ms(median(rs.map((r) => r.wallMs)))} · ${ct ?? "—"}tok`;
+      });
+      out.push(`| ${f} | ${cells.join(" | ")} |`);
+    }
+    out.push("");
+    out.push(`_Cells: wall (median) · completion tokens. The numbers show the COST of the difference (e.g. thinking); QUALITY is judged by reading the captures side by side — \`bench-results/${id}/<NN>-<legId>/<feature>-<n>.json\` for each leg._`);
+    out.push("");
+  }
 
   // ── per-feature gaps on recalled rows ────────────────────────────────────
   // The fingerprint deliberately ignores the feature list (adding a feature must

@@ -139,10 +139,20 @@ bench-results/<run-id>/
   01-<leg>/<feature>-1.json   one capture per feature run
 ```
 
-`summary.md` holds two tables — the raw engine matrix (pp/tg/TTFT/peak VRAM/peak
-RAM per leg) and the feature matrix (median TTFT, wall time, output size, token
-usage, flags) — plus every failure spelled out. Per-feature captures hold the
-**full model output** and, for chat, the retrieved citation chunk ids.
+`summary.md` holds the tables — the raw engine matrix (pp/tg/TTFT/peak VRAM/peak
+RAM per leg), the feature matrix (median TTFT, wall time, output size, token
+usage, flags), an **MTP acceptance** table per leg (draft acceptance from the
+leg's measure probe — `⚠ never engaged` when a spec-configured model didn't
+actually speculate), and, when a model has two or more legs, an **A/B block**
+comparing them feature-by-feature (wall · tokens) — plus every failure spelled
+out. Per-feature captures hold the **full model output** and, for chat, the
+retrieved citation chunk ids.
+
+**Think A/B workflow.** To measure what thinking costs and whether it helps, add
+a second leg with the same model + `"tunables": { "think": true }` (see
+`gpu-gemma-26b-think` in `configs/gpu.json`), run it (`npm run bench:gpu -- --legs
+gpu-gemma-26b-think`) — the baseline is recalled from the store — and read the
+A/B block for the cost, the two legs' captured answers side by side for the quality.
 
 Nothing is scored automatically. Accuracy is judged by reading the captures;
 that is what keeps the harness token-free.
