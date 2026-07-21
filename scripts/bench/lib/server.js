@@ -106,10 +106,14 @@ export function makeClient(base = process.env.JW_SERVER || "http://127.0.0.1:174
     stop: (modelId) => call("POST", "/v1/llm-runner/stop", modelId ? { modelId } : {}),
     load: (body) => call("POST", "/v1/llm-runner/load", body),
     // NOTE: /measure takes QUERY params, not a JSON body (api.py:350-354).
-    measure: ({ prompt, maxTokens } = {}) => {
+    // `modelId` names the leg's model explicitly — the endpoint's `_last_id` default
+    // guesses, and a stale internal ledger made both 2026-07-21 legs' measures refuse
+    // while the model served fine. The bench always knows its model; say so.
+    measure: ({ prompt, maxTokens, modelId } = {}) => {
       const q = new URLSearchParams();
       if (prompt) q.set("prompt", prompt);
       if (Number(maxTokens) > 0) q.set("max_tokens", String(Number(maxTokens)));
+      if (modelId) q.set("model_id", modelId);
       const qs = q.toString();
       return call("POST", `/v1/llm-runner/measure${qs ? `?${qs}` : ""}`);
     },

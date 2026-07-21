@@ -30,9 +30,14 @@
   the dir-name-lies fix, b9993-in-a-b10069-dir (T4) · comment/doc fixes (T5) · human-readable
   `summary.md` with the MTP + A/B tables (T-SUM). The reasoning-TEXT capture (T2) was built
   then REVERTED on the user's call — over-scoped: the A/B only needs the two answers, which
-  the bench already captured. **Still owed:** the user runs `npm run bench:gpu` (I read the
-  results); the renderer headless smoke was never needed (T2 reverted, no renderer change
-  left). Detail: `docs/plans/2026-07-20-mtp-verify-think-ab-bench.md`.
+  the bench already captured. **First A/B run 2026-07-21:** think-off validated ON EASY
+  PROMPTS at the 1024 cap (TTFT ~40s with think on = disqualifying as the interactive
+  default) — but the run could not test the user's real question, so the **robustness fix**
+  shipped same day (§6 of the plan doc): 4 hard-question chat legs with ANSWER KEYS
+  (`gpu-gemma-26b-hq*`, think A/B at the 8192 budget, n=3) + the measure bug fixed
+  (router-authority fallback — this is why the MTP-acceptance table was empty). **Still
+  owed:** the user runs `npm run bench:gpu -- --legs gpu-gemma-26b-hq1,gpu-gemma-26b-hq1-think,gpu-gemma-26b-hq2,gpu-gemma-26b-hq2-think`;
+  the captures get judged against the keys. Detail: `docs/plans/2026-07-20-mtp-verify-think-ab-bench.md` §6.
 - **Panel-dismiss decisions (2026-07-19) — both resolved 2026-07-20, no code change.**
   (a) `AGENTS.md` §5 amendment BLESSED (panels use `usePanelDismiss`, not a backdrop —
   the shipped panel-closes-and-nav-lands behavior is correct). (b) Cross-panel toggle

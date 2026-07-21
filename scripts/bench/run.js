@@ -264,12 +264,7 @@ date, and flagged if the engine build or the leg's config has changed since.
       totalRamMb: Math.round(totalmem() / 1048576),
       platform: process.platform,
       gpus: await gpuInfo(),
-      // T4: the TRUE build the binary self-reports drives staleness — the dir NAME can
-      // LIE (a rolling asset unpacked into a pin-named dir). Both kept + mismatch flagged.
-      engineBuild: engine?.binaryBuild || engine?.build || "",
-      engineDirBuild: engine?.build || "",
-      engineBinaryBuild: engine?.binaryBuild || "",
-      engineBuildMismatch: !!engine?.buildMismatch,
+      engineBuild: engine?.build || "",
       engineGpu: engine?.gpu || "",
       serverExe: engine?.serverExe || "",
       benchExe: paths.ok ? paths.benchExe : "",
@@ -382,7 +377,7 @@ date, and flagged if the engine build or the leg's config has changed since.
       log(`loaded in ${Math.round(legRecord.load.waitedMs / 1000)}s`);
 
       // 5. the server's own probe + the route it says a run will take
-      legRecord.measure = await client.measure({ maxTokens: 192 }).catch((e) => ({ ok: false, error: String(e.message || e) }));
+      legRecord.measure = await client.measure({ maxTokens: 192, modelId: leg.model }).catch((e) => ({ ok: false, error: String(e.message || e) }));
       if (legRecord.measure?.ok) log(`measure: ${legRecord.measure.tokensPerSec} tok/s decode`);
       legRecord.routes = {};
       for (const featureKey of leg.effectiveFeatures) {

@@ -154,6 +154,17 @@ a second leg with the same model + `"tunables": { "think": true }` (see
 gpu-gemma-26b-think`) — the baseline is recalled from the store — and read the
 A/B block for the cost, the two legs' captured answers side by side for the quality.
 
+**Hard-question legs (the quality instrument).** An easy retrieval question cannot
+show a thinking gain — its answer sits in the excerpts. The `gpu-gemma-26b-hq*`
+leg pairs ask questions that require CONNECTING facts across chapters, with a
+written **answer key in each leg's `_why`** (full prose keys in the plan doc), so
+the A/B is judged as correctness-against-the-key, not vibes. Think legs run
+`reasoningEffort: "high"` (the seeded local map's 8192-token budget) so the test
+isn't cap-limited, and `repeats: 3` (run 1 is prompt-cache-cold — a timing note
+only; quality is unaffected). Adding your own: same pattern — one question, two
+legs differing ONLY in tunables, an answer key in `_why`, `features: ["chat"]`,
+`llamaBench: null`.
+
 Nothing is scored automatically. Accuracy is judged by reading the captures;
 that is what keeps the harness token-free.
 

@@ -77,10 +77,7 @@ export function renderSummary({ id, config, env, legs, startedAt, finishedAt, re
   if (!reportOnly) out.push(`- **Started / finished:** ${startedAt} → ${finishedAt || "(incomplete)"}`);
   out.push(`- **Config:** \`${config.source}\` — ${legs.length} leg(s) shown, ${freshCount} measured now, features: ${config.features.join(", ")}`);
   out.push(`- **Box:** ${env.cpu || "?"} · ${env.totalRamMb ? `${Math.round(env.totalRamMb / 1024)} GB RAM` : "? RAM"} · ${(env.gpus || []).map((g) => `${g.name} ${g.totalMb}MB (driver ${g.driver})`).join(" + ") || "no NVIDIA GPU detected"}`);
-  const buildNote = env.engineBuildMismatch
-    ? ` ⚠ the binary self-reports **${env.engineBinaryBuild}** but sits in a **${env.engineDirBuild}** dir — the folder name lies; staleness uses the binary build`
-    : "";
-  out.push(`- **Engine:** build ${env.engineBuild || "?"} (${env.engineGpu || "?"}) · app ${env.appSha || "?"}${buildNote}`);
+  out.push(`- **Engine:** build ${env.engineBuild || "?"} (${env.engineGpu || "?"}) · app ${env.appSha || "?"}`);
   if (restore) {
     out.push(`- **Restore:** ${restore.ok ? "assignments restored + verified" : `⚠ INCOMPLETE — ${JSON.stringify(restore.mismatched || restore.failed)}`}`);
   }
@@ -187,16 +184,25 @@ export function renderSummary({ id, config, env, legs, startedAt, finishedAt, re
     out.push("");
   }
 
-  // ── A/B blocks: a model with 2+ legs (e.g. think on vs off) ───────────────
+  // ── A/B blocks: same model + same features + same questions, 2+ legs ──────
+  // The group key includes the feature set AND the feature args (the question), so
+  // a hard-question pair never lands in the same table as the full-feature pair —
+  // an A/B is only meaningful when the ONLY difference is the tunables (think).
   const byModel = new Map();
   for (const l of shownLegs) {
-    const k = l.leg?.model || "";
+    const k = `${l.leg?.model || ""}|${JSON.stringify(l.leg?.effectiveFeatures || [])}|${JSON.stringify(l.leg?.effectiveFeatureArgs || {})}`;
     if (!byModel.has(k)) byModel.set(k, []);
     byModel.get(k).push(l);
   }
-  for (const [model, group] of byModel) {
+  for (const [, group] of byModel) {
     if (group.length < 2) continue;
-    out.push(`## A/B — ${model}`);
+    const model = group[0].leg?.model || "";
+    // A single-feature chat group is a QUESTION A/B — put the question in the heading
+    // so the two hard-question tables are tellable apart at a glance.
+    const q = group[0].leg?.effectiveFeatureArgs?.chat?.question || "";
+    const groupFeats = group[0].leg?.effectiveFeatures || [];
+    const tag = groupFeats.length === 1 && q ? ` — ${groupFeats[0]}: “${q.length > 70 ? `${q.slice(0, 70)}…` : q}”` : "";
+    out.push(`## A/B — ${model}${tag}`);
     out.push("");
     out.push(`Legs: ${group.map((l) => `\`${l.legId}\` (think ${l.leg?.tunables?.think ? "on" : "off"})`).join(" · ")}`);
     out.push("");

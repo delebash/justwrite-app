@@ -460,7 +460,74 @@ Surgical (removed the reasoning bits, kept the rest): `run.js` (the metrics stri
 report, minus think-chars). Verified: runner 258 passed, JW 414 passed (pre-T2 baseline),
 build clean, `--report` renders with no think-chars and the MTP/A-B tables intact.
 
-## 6. OPEN AFTER THIS BATCH
+## 6. THE ROBUSTNESS FIX (2026-07-21, user: "fix it" → plan → "you rec" → "go")
+
+**Why:** the first A/B run (2026-07-21_06-45-46) could not have detected the quality
+difference the user saw in a manual test: the chat question was retrieval-summary (its
+answer sits in the excerpts — thinking has nothing to add), the judgment features force
+think off (JSON guardrail — their identical walls across legs, 18.8/17.8s and 40.8/43.2s,
+are the run-to-run noise control), thinking was capped at 1024, and n=2. The honest verdict
+of that run is "no gain visible on easy prompts at the 1024 cap" — NOT "thinking doesn't
+help." Latency stands regardless: TTFT ~37–43s with think on is disqualifying as the
+interactive default.
+
+**P1 — hard-question legs (`gpu.json`, user's rulings: 2 questions · high budget).** Four
+chat-only legs, `repeats: 3`, llamaBench off: `gpu-gemma-26b-hq1`/`-hq1-think` and
+`gpu-gemma-26b-hq2`/`-hq2-think`. Think legs carry `reasoningEffort: "high"` → the seeded
+local map's 8192-token budget through the real cascade (reasoning.py:80-85 "the PRESET'S
+OWN ask"; map row `local-llamacpp high = 8192`, reasoning_map_api.py:41) — zero new
+mechanism. Questions authored from the FULL book text (all scenes read; the live DB book is
+ch1–ch3, both bench runs report 3 chapters, so the questions use ch1–ch3 facts only).
+
+ANSWER KEY, HQ1 ("what early signs connect the commission-token to what is inside the
+Nine…"): the shop lamp was tuned to a deeper-Facet note — the fork rang near it unstruck,
+"a note that leaned" (ch1 sc1); the token hums "exactly the note the lamp had leaned toward
+all morning" (ch1 sc2); corroboration — a street lamp gutters as the token passes on Kettle
+Lane (ch1 sc3) and the wrapped fork gives a muffled ring approaching the Nine (ch2 sc1);
+IMPLICATION (the reasoning step no single scene states): the token resonates with a
+deep-Facet source inside the Nine, so the "routine structural clearance" is a deep-Facet
+site the Concern wants papered over — confirmed ch2 sc2 ("certify a deep-Facet wound as an
+empty warehouse"). Strong = all three connections + the implication; weak = retells one scene.
+
+ANSWER KEY, HQ2 ("why did the three earlier parties never come out, and why can Ode
+remember…"): the Nine loops ~one hour — starts at seven past (Ode's stopped watch), resets
+at the top (ch3 sc2); the reset pulls matter AND memory back, so anyone who can't feel the
+deep Facets "forgets the whole turn and lives it fresh" (ch3 sc1); therefore the three
+parties (Sedge's ledger count, ch2 sc1) never left — "they're not dead… still walking in.
+Every hour. For nine years" (ch3 sc1), the third party sitting in the east gallery
+believing it's arrival day (ch3 sc2); Ode remembers because deep-Facet sensitives stand
+"slightly outside the loom" and are not reset (ch3 sc1) — the exemption Cael and Nettle
+share. Strong = loop mechanism + forget rule + Ode's exemption; weak = "they were trapped"
+with no memory-reset mechanism.
+
+**P2 — A/B grouping (`results.js`).** Group key = model + effectiveFeatures +
+effectiveFeatureArgs (an A/B is only meaningful when the ONLY difference is tunables);
+single-feature chat groups get the question in the block heading. Verified: `--report`
+renders, the main pair still groups, hq legs list as never-measured.
+
+**P3 — the measure bug, root-caused + fixed (runner).** The gate trusted the INTERNAL
+ledger (`_resident[mid].status == "running"`) while the ROUTER — the documented authority
+(`resident()` reads the router's live `GET /models`; the bench polls the same) — was
+serving every feature run fine; no load-thread error in the app log, so the entry had gone
+stale/reconciled. Fix in `measure()`: when the internal entry is missing/not-running,
+consult `_parse_router_models(self._router_models(...))` — loaded/sleeping → proceed (with
+an info log naming the divergence), absent → refuse as before. Plus the bench now names its
+model explicitly end-to-end: `api.py` measure gains `model_id`, `server.js` sends it,
+`run.js` passes `leg.model` — no more `_last_id` guessing. Regression test:
+`test_measure_falls_back_to_router_authority_when_ledger_stale`. (The WHY of the stale
+ledger itself — which reconcile popped or froze the entry — is the known awaiting-go
+ledger-reconcile item; measure no longer depends on it.)
+
+**P4 — docs.** bench.md: the hard-question protocol (+ answer-key rule + how to add one);
+this section. Verified (all green): runner measure tests 7/7 + ruff clean; `--dry` lists
+6 legs; `--report` renders with correct grouping.
+
+**The run (the user's):** `npm run bench:gpu` (full band) or
+`npm run bench:gpu -- --legs gpu-gemma-26b-hq1,gpu-gemma-26b-hq1-think,gpu-gemma-26b-hq2,gpu-gemma-26b-hq2-think`
+(the hard-question A/B only, ~15–25 min: think-at-8192 runs are long). Then the captures are
+judged against the keys.
+
+## 7. OPEN AFTER THIS BATCH
 
 - The planner's first `judgment.md` on the Gemma think A/B (feature-by-feature verdict).
 - Qwen think A/B (deferred by ruling #2) once the proof run lands.
@@ -469,3 +536,67 @@ build clean, `--report` renders with no think-chars and the MTP/A-B tables intac
 - The engine-dir repair on the user's box (T4 reports it; the user blesses it).
 - T6 results may reopen the context-shift question — only with engine support + a real
   overflow symptom.
+
+## 8. ENGINE-BUILD: ONE SOURCE (the pin), CONCRETE URLs, REACTIVE GUI (2026-07-21)
+
+**The bug + why the first two attempts were wrong.** The engine build lived in two DB
+places: the `pinned_build` runner_setting AND a build tag baked into every stored
+`runner_binary` URL. The install folder is named for the pin while the download used the
+stored URL — so a b9993 binary landed in a b10075-named folder, and after the user's app
+reset, changing the pin in the UI changed nothing on screen. First attempt (`_url_for_build`,
+re-point at download only) was a half-measure — the stale value still sat in the DB and the
+GUI. Second attempt (store `{build}` TEMPLATES + a server-side `LlamacppSpec` validator that
+composed URLs) was ALSO wrong for a reason the user had stated repeatedly and I kept missing:
+it put a `{build}` placeholder in the editable GUI field and composed on the SERVER. The
+user's actual design (stated four times): the field shows the REAL path; changing the pin
+re-derives the real path reactively (that's what Vue is FOR); the whole real URL is saved to
+the DB; the server just fetches it and never composes.
+
+**The design shipped.** The pin is the single build source. URLs are CONCRETE in the DB
+(no templates, no `{build}` anywhere the user sees or the DB stores). The pin→URL
+substitution lives in ONE JS helper, `applyBuildToUrl` (`ui/src/common/services/engineUrl.js`),
+reused by both writers so they can't drift: (1) the Binaries panel (`LuRunnerBinaries.vue`)
+holds a `watch(pinnedBuild, …)` — change the pin (even mid-typing) and every row's URL field
+re-points to the real path for that build, shown live; on load it resolves once so a stale or
+legacy-`{build}` DB value never displays a placeholder; Save persists the concrete URLs; (2)
+the update-to-latest flow (`useEngine.js`) bumps the pin AND re-points every stored URL via
+the SAME helper before PUTting, so the DB holds the real URL for the new build and the folder
+(named for the pin) matches the binary. The server does NOT compose — `acquire_binary` fetches
+the stored concrete `asset_url` verbatim (`binary.py`). `config.py` seeds concrete URLs at
+`DEFAULT_PINNED_BUILD` (bumping it produces the concrete URLs for that build, for fresh installs
++ "reset to defaults"). The QC-25 `_heal_pin_upward` + its whole `save_pin` seam stay DELETED
+(constructor param, `configure_service` pass-through, `install.py` writer): the pin is only ever
+user-written; its DB-reset scenario is covered by drop+reseed+reinstall.
+
+**file:line.** NEW `ui/src/common/services/engineUrl.js` (`applyBuildToUrl` — the one
+substitution site; handles `bNNNN` tag swap, legacy `{build}` resolve, custom-URL passthrough) ·
+`LuRunnerBinaries.vue` (`_resolveRowsToPin` + `watch(pinnedBuild)`; `_apply` resolves on load;
+`{build}` placeholder + the resolved-preview line + help copy removed — the field IS the real
+path) · `useEngine.js` `updateToLatest` (re-points stored URLs via the helper, PUTs pin+binaries) ·
+runner `config.py` (concrete seed URLs + comment) · `schema.py` (validator + `url_for_build` +
+`re`/`model_validator` imports removed) · `binary.py` (plain fetch; docstring/comment) ·
+`lifecycle.py` (heal + save_pin deleted; engine_status comment) · `llm/install.py` (save_pin_fn
+gone) · `llm/stores.py` (get_config serves the DB rows). Tests: `test_binary.py`
+(`test_acquire_fetches_stored_url_into_pin_folder` — concrete, no template leak);
+`test_lifecycle.py` (heal tests deleted; `test_deliberate_downgrade_survives_install` kept).
+
+**How verified.** ruff clean; runner pytest **643 passed / 1 pre-existing known-bad**
+(`test_pci_gpus_linux_lspci_name_match`); `build:vite` green; biome clean on the 3 changed
+JS/Vue files; the `applyBuildToUrl` helper unit-checked out-of-band (6/6: tag swap on path
+AND filename, cudart path-only, legacy `{build}` resolve, custom-URL passthrough, empty/blank).
+The headless smoke ran on an ISOLATED stack (vite :1421 → server :17496, temp data dir): the
+AI page + the engine panel MOUNT and fire their real `/v1/ai/engine-config` fetch with **zero
+reactivity JS errors** (the only console error was a CORS network refusal, not a code throw).
+**The live pin-drive in a browser (type pin → field re-points) was NOT observed** — every dev-
+stack layer is hardwired to port 1420 (vite `strictPort`, `serverApi.js` origin resolver's
+`devPorts:["1420"]`, the server CORS allowlist), so the isolated copy on 1421/17496 was
+rejected while the user's live app held 1420. Per the user's explicit call ("b" = push now on
+the current verification), the live-panel smoke is DEFERRED to the next time the app is closed;
+committing on unit + compile + clean-mount. A throwaway 2-line `serverApi.js` patch used to
+reach the isolated server was reverted before commit (tree confirmed clean).
+
+**What would reverse it.** Re-introducing a build tag as a second stored source, moving the
+compose to the server, or any writer that edits the pin behind the user's back.
+
+**Open.** Renderer smoke (above) before commit. On the user's box: restart + reinstall the
+engine once so the on-disk folder/binary rebuild under the pin.
