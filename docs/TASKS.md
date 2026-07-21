@@ -29,12 +29,16 @@
   WON'T DO (the two-panels-open scenario doesn't arise; revisit if it does). Rulings +
   the revert path: `just-llm-runner/docs/plans/2026-07-19-panel-dismiss-and-no-dim.md`.
 - **#256 — spell-check** — not yet scoped.
-- **I1 tail (3 small legs)** — SettingsView's `.wb-search*` fragment → fold into the
-  shared `.entity-*` family · CommandPalette entity-creates lack the `?new` focus
-  parity · promote the popup-probe from scratchpad to `scripts/` if a standing guard
-  is wanted. Detail: ledger §I1 + `docs/plans/2026-07-12-i1-css-popup-voicedrift.md`.
-- **I4 follow-up** — per-model GGUF delete on the catalog surface (the disk-reclaim
-  panel shipped; this was the deliberate v1-excluded follow-up). Detail: ledger §I4.
+- **I1 tail — legs 1+2 SHIPPED 2026-07-21, leg 3 dropped.** (1) SettingsView's `.wb-*`
+  fragment removed — it was dead CSS (no template ref), a delete not a repoint; the
+  shared `.entity-*` family is the live source. (2) CommandPalette entity-creates now
+  pass `?new=1` for character/location/object/note/strand (worldbuilding excluded,
+  popup-kept). (3) popup-probe → `scripts/` DROPPED (user). Verified: build:vite +
+  headless smoke (0 JS errors, all routes). Detail: ledger §I1 + `docs/plans/2026-07-12-i1-css-popup-voicedrift.md`.
+- **I4 follow-up — SHIPPED 2026-07-21.** Per-model "Free disk" row action on the catalog
+  (`LuModelCatalog.vue`): deletes a model's downloaded weights while KEEPING its catalog
+  row (models-cache/delete keeps the row) → re-downloads on demand; unloads first if
+  resident. Verified: build:vite + smoke 0 JS errors on #/ai. Detail: ledger §I4.
 
 ## Research (needs a research pass → plan → build, each on its own go)
 
@@ -61,14 +65,15 @@
 - **I2 — cloud prompt caching** — the Anthropic/Gemini adapters send no caching hints;
   never built, never decided. A cloud-cost optimization — worth a decision only when
   cloud usage matters. Detail: ledger §I2.
-- **1b-F4 bounces the engine on a guaranteed-to-fail load (flagged 2026-07-20, needs a
-  ruling)** — a fit-placed load whose child reports `failed` for a NON-OOM reason (corrupt
-  GGUF, a rejected flag) hits the `n_gpu_layers is None` retry (`lifecycle.py:2159`), which
-  re-emits with explicit placement and calls `_bounce_router` — a full engine restart that
-  knocks down + reloads every healthy co-resident model — before failing fast on the retry.
-  So one bad model can bounce the whole engine once. Surfaced by the rules-checker during
-  the ensure-test fix; not built/decided. Cheap guard: skip the bounce when the failure tail
-  isn't OOM. Discussion-first.
+- **1b-F4 — SHIPPED 2026-07-21 (option A).** A fit-placed load (`n_gpu_layers is None`)
+  that failed for ANY reason hit the explicit-placement retry + `_bounce_router` (a full
+  engine restart knocking down every healthy co-resident model), even for an UNFIXABLE
+  failure the retry can't fix. Fix: `_looks_like_unfixable` (process.py, beside
+  `_looks_like_oom`) gates the retry on a TIGHT grounded set of llama.cpp stderr signatures
+  ("error: invalid argument:", "error while handling argument", "unknown model
+  architecture") — fail fast, no bounce; drafts + bare "invalid argument" excluded. NB the
+  original "skip bounce when not OOM" idea was WRONG (it'd regress the #18066 fit-bug the
+  retry exists for — those exit non-OOM). Verified: ruff + 3/3 fit-placed tests.
 - **"Stalling" thresholds mislabel a slow model (runner)** — a 2.6 tok/s model reads as
   "stalled"; the load-cancel plan doc lists this out-of-scope ("own go"), not built (verified
   2026-07-21 — no stall-detector in the runner). *(The two other former live-queue items are

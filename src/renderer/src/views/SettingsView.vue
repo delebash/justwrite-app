@@ -1981,16 +1981,6 @@ async function deleteCategory(c) {
   .provider-row .provider-actions { grid-column: 1 / -1; display: flex; gap: 8px; justify-content: flex-end; }
 }
 
-/* wb-toolbar / wb-search reused from WorldbuildingView pattern */
-.wb-toolbar { display: flex; align-items: center; gap: 10px; }
-.wb-search { position: relative; flex: 1; max-width: 360px; }
-.wb-search-icon {
-  position: absolute; left: 10px; top: 50%;
-  transform: translateY(-50%);
-  color: var(--muted); pointer-events: none;
-}
-.wb-search-input { width: 100%; padding-left: 30px !important; }
-
 .set-desc {
   font-size: 14px; line-height: 1.55; color: var(--muted);
   margin: 0 0 18px;
