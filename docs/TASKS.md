@@ -121,6 +121,20 @@
 
 ## Your-box checks (only the Windows / 2070S machine can finish these)
 
+- **Ask-the-book chat panel — header + button colour pass (2026-07-21, user-driven).**
+  `src/renderer/src/components/ChatPanel.vue`. Header: "New chat" / "Chat history"
+  text labels restored beside their icons; Help **?** moved to the top-right corner
+  (aligned with the title); "Close" reduced to a bare **✕**; icon↔label gap fixed
+  (icons moved into `UiButton`'s `#icon` slot — the inline `<Icon/> text` form put both
+  in one label span, so the button `gap` never applied). Buttons re-coloured to SOLID
+  fills (user rejected ghost/outlined "clear" buttons and the red-only monotony):
+  **New chat = success (green)** · **Chat history = info (blue)** · **Close = primary
+  (accent)** · **Build index = primary** · **Update = success** · **Rebuild = info** ·
+  Rename row = info · **Delete row = danger (red)**. Verified in-container by screenshot
+  (thread view: header + Build-index strip) + headless smoke (0 JS errors) + `build:vite`;
+  **the history-view rows (Rename/Delete colours) could NOT be screenshot here** (a fresh
+  container has no active project → no saved sessions), so give the History list one look
+  on your box. Colours are a taste call — say the word to retune any.
 - **CPU-only band test (2026-07-19)** — measure prefill + generation pure-CPU
   (`-ngl 0`, prompt 512/2k/8k) for the catalog MoEs + the 12B dense, against the GPU
   tune as baseline; numbers decide whether a CPU chat band (for no-dGPU users) joins

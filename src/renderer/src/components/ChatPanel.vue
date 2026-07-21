@@ -445,22 +445,26 @@ defineExpose({ open: () => { open.value = true; }, close });
             <template v-else>Chat with your book</template>
           </h2>
         </div>
+        <!-- Help sits at the top-right corner, aligned with the title (user
+             ruling 2026-07-21). The action row wraps to its own line below. -->
+        <HelpTrigger slug="notes-and-search" label="Ask the book" />
         <div class="cp-head-actions">
           <AiFeatureChip v-if="chatMode === 'character'" feature="characterChat" label="Talk to character" editable />
           <AiFeatureChip v-else feature="chat" label="Ask the book" editable />
-          <UiButton intent="ghost" size="small" :aria-pressed="view === 'history'"
-            :class="{ 'cp-head-on': view === 'history' }"
+          <UiButton intent="info" size="small" :aria-pressed="view === 'history'"
             v-tooltip.bottom="'Chat history'" aria-label="Chat history" @click="toggleHistory">
-            <Icon name="History" :size="13" />
+            <template #icon><Icon name="History" :size="13" /></template>
+            Chat history
           </UiButton>
-          <UiButton intent="ghost" size="small"
+          <UiButton intent="success" size="small"
             v-tooltip.bottom="'New chat'" aria-label="New chat" @click="newChat">
-            <Icon name="Plus" :size="13" />
+            <template #icon><Icon name="Plus" :size="13" /></template>
+            New chat
           </UiButton>
-          <UiButton intent="ghost" size="small" @click="close">
-            <Icon name="Close" :size="12" /> Close
+          <UiButton intent="primary" size="small"
+            v-tooltip.bottom="'Close'" aria-label="Close" @click="close">
+            <template #icon><Icon name="Close" :size="12" /></template>
           </UiButton>
-          <HelpTrigger slug="notes-and-search" label="Ask the book" />
         </div>
       </header>
 
@@ -487,19 +491,22 @@ defineExpose({ open: () => { open.value = true; }, close });
           <span class="cp-indexing-dot"></span> indexing…
         </span>
         <span class="cp-status-spacer"></span>
-        <UiButton intent="ghost" size="small" @click="indexModalMode = 'build'" v-tooltip.bottom="'Embed any scenes added or edited since last build'">
-          <Icon name="Refresh" :size="11" /> Update
+        <UiButton intent="success" size="small" @click="indexModalMode = 'build'" v-tooltip.bottom="'Embed any scenes added or edited since last build'">
+          <template #icon><Icon name="Refresh" :size="11" /></template>
+          Update
         </UiButton>
-        <UiButton intent="ghost" size="small" @click="indexModalMode = 'rebuild'" v-tooltip.bottom="'Wipe and re-embed everything'">
-          <Icon name="Refresh" :size="11" /> Rebuild
+        <UiButton intent="info" size="small" @click="indexModalMode = 'rebuild'" v-tooltip.bottom="'Wipe and re-embed everything'">
+          <template #icon><Icon name="Refresh" :size="11" /></template>
+          Rebuild
         </UiButton>
       </div>
       <div v-else class="cp-status cp-status-bible">
         <Icon name="Sparkle" :size="11" />
         <span>Answering from your <b>story bible</b> only — build the index so chat can search and quote your scenes.</span>
         <span class="cp-status-spacer"></span>
-        <UiButton intent="secondary" size="small" @click="indexModalMode = 'build'" v-tooltip.bottom="'Embed your scenes so answers can quote the manuscript'">
-          <Icon name="Sparkle" :size="11" /> Build index
+        <UiButton intent="primary" size="small" @click="indexModalMode = 'build'" v-tooltip.bottom="'Embed your scenes so answers can quote the manuscript'">
+          <template #icon><Icon name="Sparkle" :size="11" /></template>
+          Build index
         </UiButton>
       </div>
 
@@ -519,13 +526,13 @@ defineExpose({ open: () => { open.value = true; }, close });
             <span class="cp-hist-title">{{ s.title || "Untitled chat" }}</span>
             <span class="cp-hist-time">{{ relativeTime(s.updatedAt) }}</span>
             <span class="cp-hist-actions">
-              <UiButton intent="ghost" size="small" aria-label="Rename chat"
+              <UiButton intent="info" size="small" aria-label="Rename chat"
                 v-tooltip.bottom="'Rename'" @click.stop="renameSession(s)">
-                <Icon name="Pencil" :size="12" />
+                <template #icon><Icon name="Pencil" :size="12" /></template>
               </UiButton>
-              <UiButton intent="ghost" size="small" aria-label="Delete chat"
+              <UiButton intent="danger" size="small" aria-label="Delete chat"
                 v-tooltip.bottom="'Delete'" @click.stop="deleteSessionRow(s)">
-                <Icon name="Trash" :size="12" />
+                <template #icon><Icon name="Trash" :size="12" /></template>
               </UiButton>
             </span>
           </li>
@@ -595,7 +602,8 @@ defineExpose({ open: () => { open.value = true; }, close });
             <UiButton intent="primary" size="small" :disabled="!question.trim() || inputDisabled"
               v-tooltip.bottom="question.trim() ? 'Send your question' : 'Type a question to ask'"
               @click="ask">
-              <Icon name="Sparkle" :size="12" /> Ask
+              <template #icon><Icon name="Sparkle" :size="12" /></template>
+              Ask
             </UiButton>
           </div>
         </div>
@@ -637,17 +645,17 @@ defineExpose({ open: () => { open.value = true; }, close });
   font-family: var(--font-serif); font-size: 18px; font-weight: 600; margin: 3px 0 0;
   white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
 }
-/* Actions take their own full-width row under the title (the panel is only
-   440px — the chip + History + New chat + Close + Help don't fit beside a
-   headline). `flex: 1 1 100%` bounds the row to the header width so the inner
-   flex-wrap actually engages instead of overflowing the panel edge; children
-   right-align and wrap as needed. */
+/* Help rides the title row at the top-right corner (space-between pushes it to
+   the far edge). The rest of the actions take their own full-width row under the
+   title (the panel is only 440px — the chip + labelled History/New chat/Close
+   don't fit beside a headline). `flex: 1 1 100%` bounds the row to the header
+   width so the inner flex-wrap actually engages instead of overflowing the panel
+   edge; the wide chip claims its own line and the labelled buttons wrap below it,
+   right-aligned. */
 .cp-head-actions {
   display: flex; align-items: center; gap: 6px;
   flex: 1 1 100%; min-width: 0; flex-wrap: wrap; justify-content: flex-end;
 }
-/* The History toggle reads "pressed" while the list is showing. */
-.cp-head-on { color: var(--accent-ink); background: var(--accent-soft); }
 .cp-mode-row {
   display: grid; grid-template-columns: 1fr 1fr; gap: 8px;
   margin-top: 12px; flex-shrink: 0;
