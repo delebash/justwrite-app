@@ -264,7 +264,12 @@ date, and flagged if the engine build or the leg's config has changed since.
       totalRamMb: Math.round(totalmem() / 1048576),
       platform: process.platform,
       gpus: await gpuInfo(),
-      engineBuild: engine?.build || "",
+      // T4: the TRUE build the binary self-reports drives staleness — the dir NAME can
+      // LIE (a rolling asset unpacked into a pin-named dir). Both kept + mismatch flagged.
+      engineBuild: engine?.binaryBuild || engine?.build || "",
+      engineDirBuild: engine?.build || "",
+      engineBinaryBuild: engine?.binaryBuild || "",
+      engineBuildMismatch: !!engine?.buildMismatch,
       engineGpu: engine?.gpu || "",
       serverExe: engine?.serverExe || "",
       benchExe: paths.ok ? paths.benchExe : "",

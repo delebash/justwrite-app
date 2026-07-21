@@ -23,6 +23,16 @@
   post-setup number that informs no decision wasn't worth building. Confirm-step display is
   impossible for the fresh-box case regardless — `preview_fit` refuses an un-downloaded model
   (`lifecycle.py:1046`) and the models endpoint carries no ctx. Won't-do.
+- **MTP-verify + think A/B + bench report (2026-07-20/21, SHIPPED — committing)** — MTP
+  proven live (acceptance 0.47–0.91; was broken pre-07-15 exactly as the user suspected).
+  Shipped: think-ON A/B leg in `gpu.json` (T1) · MTP draft-acceptance in the bench report,
+  from the measure probe's completion timings (T3) · true engine binary-build reporting +
+  the dir-name-lies fix, b9993-in-a-b10069-dir (T4) · comment/doc fixes (T5) · human-readable
+  `summary.md` with the MTP + A/B tables (T-SUM). The reasoning-TEXT capture (T2) was built
+  then REVERTED on the user's call — over-scoped: the A/B only needs the two answers, which
+  the bench already captured. **Still owed:** the user runs `npm run bench:gpu` (I read the
+  results); the renderer headless smoke was never needed (T2 reverted, no renderer change
+  left). Detail: `docs/plans/2026-07-20-mtp-verify-think-ab-bench.md`.
 - **Panel-dismiss decisions (2026-07-19) — both resolved 2026-07-20, no code change.**
   (a) `AGENTS.md` §5 amendment BLESSED (panels use `usePanelDismiss`, not a backdrop —
   the shipped panel-closes-and-nav-lands behavior is correct). (b) Cross-panel toggle
