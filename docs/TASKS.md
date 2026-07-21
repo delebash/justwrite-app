@@ -18,11 +18,11 @@
 
 ## Now / near-term (JustWrite)
 
-- **QuickSetup: effective context in writer terms** — a small follow-up to the verdict +
-  QAT-note + no-GPU-routing polish that **SHIPPED 2026-07-19** (runner `54fcfff`): show the
-  model's *effective* (tuned) context as "reads ~N words at once". Deferred from that build
-  because the effective ctx isn't plumbed into the wizard yet — the catalog's trained 256k
-  would mislead. kit `QuickSetup.vue`.
+- **QuickSetup effective-context line — DROPPED 2026-07-21 (user's call).** The only honest
+  form is done-step-only (the loaded model's real `n_ctx` → "reads ~N words"); a once-seen
+  post-setup number that informs no decision wasn't worth building. Confirm-step display is
+  impossible for the fresh-box case regardless — `preview_fit` refuses an un-downloaded model
+  (`lifecycle.py:1046`) and the models endpoint carries no ctx. Won't-do.
 - **Panel-dismiss decisions (2026-07-19) — both resolved 2026-07-20, no code change.**
   (a) `AGENTS.md` §5 amendment BLESSED (panels use `usePanelDismiss`, not a backdrop —
   the shipped panel-closes-and-nav-lands behavior is correct). (b) Cross-panel toggle
@@ -53,9 +53,11 @@
   §8. Nothing builds until a fresh go.
 - **QC queue (§9)** — the live findings the user drops while QC-ing shipped batches on
   their box; discussion-first, each needs its own go. Detail: the same queue doc §9.
-- **A5-1 — "Update available" names the target build** — the engine-row affordance
-  must read "Update available · bNNNN → bMMMM" (the TurboLLM shape) so a click's target
-  is visible before committing. Small copy/data on A5's existing check. Detail: ledger §A5-1.
+- **A5-1 — "Update available" names the target build — ✅ verified DONE 2026-07-21.** The
+  button reads "Update to {latest}" with tooltip "…to {latest} (you have {current})"
+  (`LuRunnerEngine.vue:221-222`); the row's "Installed · {current}" subtitle carries the
+  current build. Goal met (see the target before you click); the literal "bNNNN → bMMMM"
+  one-string was never needed. Detail: ledger §A5-1 (marked done to match, 2026-07-21).
 - **I2 — cloud prompt caching** — the Anthropic/Gemini adapters send no caching hints;
   never built, never decided. A cloud-cost optimization — worth a decision only when
   cloud usage matters. Detail: ledger §I2.
@@ -67,9 +69,13 @@
   So one bad model can bounce the whole engine once. Surfaced by the rules-checker during
   the ensure-test fix; not built/decided. Cheap guard: skip the bounce when the failure tail
   isn't OOM. Discussion-first.
-- **Recap live-queue (runner):** multi-click unload · "stalling" thresholds mislabel a
-  2.6 tok/s model as stalled · the cancel/progress plan (⚠ it FAILED its 3-lens review —
-  do **not** build as written; T2 would unload a different resident model). Detail:
+- **"Stalling" thresholds mislabel a slow model (runner)** — a 2.6 tok/s model reads as
+  "stalled"; the load-cancel plan doc lists this out-of-scope ("own go"), not built (verified
+  2026-07-21 — no stall-detector in the runner). *(The two other former live-queue items are
+  RESOLVED: **multi-click unload — FIXED** by the shipped cancel/progress control (`lifecycle.py`
+  cancelling/stopping statuses; `LuModelCatalog.vue:918` "Unloading…"; user-confirmed 2026-07-21);
+  **the cancel/progress "do not build as written" warning — STALE**, it described the v1 plan,
+  v2 SHIPPED — T1/T2/T2b/T3 all present.)* Detail:
   `just-llm-runner/docs/plans/2026-07-17-load-cancel-and-one-progress-control.md`.
 
 ## JustVoice
