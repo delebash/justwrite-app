@@ -652,3 +652,38 @@ adapter's own contract; WinError-32 locked part-file → bounded retry + gc; pos
 final sweep + logged-straggler assert); ruff clean; full runner suite 644 passed / 1
 pre-existing known-bad. **Reverse:** revert download.py + test_download.py (the 4→8 default
 constants revert separately).
+
+## 10. ENGINE UPDATE BRICKED THE ENGINE → atomic + launch-verified install (2026-07-21)
+
+**The bug (user report).** Clicking the built-in row's "update engine" (merged from the web
+branch) left the engine unable to launch on every backend — `router failed to become healthy
+(exit 3221225781)` = `0xC0000135` `STATUS_DLL_NOT_FOUND`; it SURVIVED a restart (the broken
+build was on disk) and only a manual uninstall→reinstall fixed it.
+
+**Root cause (two compounding flaws in the install path, both pre-existing; the merged update
+button exposed them).** (1) `_run_install` on `force` did `shutil.rmtree(binary_dir(pin))` —
+**deleting the live build BEFORE downloading the replacement** (lifecycle.py, the old
+1388-1391); a download that then failed/partialled left no working engine. (2) `acquire_binary`
+declared success on the exe FILE existing, never on it LAUNCHING — so a build missing a runtime
+DLL (cudart, or any companion that 404'd on an unverified `latest`) passed as "installed", and
+the stale-build sweep then deleted the previous working build. Result: a broken engine on disk,
+permanent across restarts.
+
+**The fix.** `acquire_binary` is now ATOMIC + VERIFIED (binary.py): it downloads + unpacks into
+a sibling `.staging-<gpu>` dir, launch-verifies the unpacked exe (`_verify_exe_launches` runs
+`<exe> --version`; a loader failure — Windows NTSTATUS ≥ 0xC0000000 / Unix exit 127 / OSError —
+raises), and only then `_swap_into_place` atomically retires the old variant and moves the new
+one in (same-volume renames, rolled back on a mid-swap failure). A `finally` discards the staging
+on any failure, so the live engine is **never touched until a verified build is ready**. `force`
+(threaded through, replacing the pre-delete) makes it re-fetch even when a variant exists.
+`_run_install` no longer pre-deletes; the stale-build sweep still runs, but only AFTER a good
+build is verified in place. So a failed/partial/DLL-missing update leaves the working engine
+intact and simply reports an error.
+
+**file:line.** `binary.py` (`_verify_exe_launches`, `_swap_into_place`, `acquire_binary`
+staging/verify/swap + `force` param; +`import shutil`/`subprocess`) · `lifecycle.py:_run_install`
+(force pre-delete removed, `force=force` passed). **Verify:** `test_binary.py` — verify flags a
+missing DLL / passes a real launch; a failed download leaves the working engine; a
+fails-to-launch build is discarded; force reinstalls via swap. `test_lifecycle.py` fakes accept
+`force`. Ran: ruff clean; full runner suite **648 passed** / 1 pre-existing known-bad.
+**Reverse:** revert binary.py + lifecycle.py + the two test files.
