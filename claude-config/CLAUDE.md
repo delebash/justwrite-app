@@ -85,21 +85,6 @@ PreToolUse hook, the Stop gate, and a rules-checker subagent). See "Enforcement"
   task begin/end checks fire) and the plan is saved to `docs/plans/*` (T8). Never ship
   a chat plan as if it were the real plan.
 
-## Planner/executor split — who thinks, who types (2026-07-20)
-
-Quality is bought by BOOKENDING, not by running everything on the expensive model:
-- **Plan + decide** on the session model (the planner, at high effort): design,
-  risk-spotting, the rethink pass. Plans close every DECISION; they may delegate
-  DISCOVERY (find-the-consumers, verify file:line) to the executor.
-- **Execute** via the `executor` agent (`~/.claude/agents/executor.md` — pinned
-  Opus @ medium effort regardless of session settings). It verifies the plan's
-  facts, runs every gate, and STOPS on any genuinely undecided question instead of
-  improvising (stop-don't-decide). Launched ONLY on the user's literal "go".
-- **Diff-review before "done"**: after the executor reports, the planner reads the
-  ACTUAL DIFF against the plan and orders fixes. Gates catch mechanical errors; the
-  diff review catches judgment errors. Reviewing a diff costs ~10x less than
-  executing inline — that is where planner-tier quality is bought cheaply.
-
 ## Report style
 Terse and factual — no padding (the user reads the diff + tool output). State what
 changed + the verification result, then stop.

@@ -237,11 +237,3 @@ subagent + panel add judgment but aren't infallible. The "trivial" escape on the
 pre-task deny is the model's own attestation and could be abused — which is exactly
 why `EFFECTIVENESS.md` tracks misses. The system lowers the failure rate by moving
 checks to boundaries; it does not make the model perfect.
-
-## 2026-07-20 update (added in place)
-- `agents/executor.md` — the pinned plan-executor agent (Opus @ medium effort,
-  stop-don't-decide contract). install.sh provisions it.
-- `CLAUDE.md` — new "Planner/executor split" section (plan on the session model,
-  execute via the executor agent on literal "go", planner diff-reviews before done).
-If the standalone claude-config repo is already live, apply these two files +
-the install.sh line there too (or re-transport this whole bundle).
