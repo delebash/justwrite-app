@@ -266,8 +266,10 @@ backlog" line — the ledger is now the *detail* the tracker indexes, not a riva
   archive — bannered fully historical 2026-07-08; its outstanding tail lives in the ledger §I)
   · every other `docs/plans/*` in both repos is historical/evidence, most carry their own
   supersession banner.
-- **Live non-plan docs:** `claude-config/README.md` + `EFFECTIVENESS.md` (the rules-as-checks
-  system) · `docs/models.md` (the user-facing models doc — update it whenever a models-surface
+- **Live non-plan docs:** the rules-as-checks system → the standalone
+  `github.com/delebash/claude-config` repo (`README.md` + `EFFECTIVENESS.md`; local clone
+  `~/.claude/claude-config/` — JW no longer vendors a `claude-config/` copy) · `docs/models.md`
+  (the user-facing models doc — update it whenever a models-surface
   behavior changes) · the JW↔JV HTTP boundary → `CONTRACT.md` (JustVoice repo).
 
 ## Where detail lives
