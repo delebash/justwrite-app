@@ -24,6 +24,7 @@ import "./styles.css";
 import { tooltipDirective } from "@delebash/llm-ui";
 import { i18n, detectLocale, setLocale as setI18nLocale } from "./i18n/index.js";
 import { startAutoRebuildWatcher } from "./services/rag/autoIndex.js";
+import { warmDefaultModel } from "./services/warmDefault.js";
 
 // Shared LLM UI (@delebash/llm-ui) — configure its origin-aware client ONCE with
 // the base the app already resolved, so the shared AI views call the same server
@@ -196,4 +197,9 @@ configureHelp({
   // after the last edit when ai.autoRebuildRagIndex is on. Safe to call
   // unconditionally — the watcher itself checks the setting before firing.
   startAutoRebuildWatcher();
+
+  // Warm the default local chat model into VRAM (fire-and-forget) — self-gated on
+  // the warmDefaultOnStartup flag + built-in-is-default + downloaded; a no-op
+  // otherwise, and it never throws into boot. See services/warmDefault.js.
+  warmDefaultModel();
 })();

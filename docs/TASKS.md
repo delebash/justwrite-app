@@ -121,6 +121,19 @@
 
 ## Your-box checks (only the Windows / 2070S machine can finish these)
 
+- **Warm the default local model into VRAM on startup (2026-07-21, user).** New
+  `src/renderer/src/services/warmDefault.js`, fired fire-and-forget at the `main.js`
+  boot tail. Self-gated: the `warmDefaultOnStartup` engine-config flag (default ON;
+  toggle in the Local-engine panel) + the built-in provider being the routing default
+  with a DOWNLOADED chat model + engine installed + not already resident — else a no-op
+  (so cloud-default users + fresh/CI boxes never trigger a load/pull). Shows as an AI
+  task ("Loading your writing model") in the TitleBar chip + status panel. The
+  server/setting/toggle side is in the shared runner. **Full record + touch-list:**
+  `just-llm-runner/docs/plans/2026-07-21-builtin-row-engine-update-and-warm-load.md`
+  (Part 2). **Box check:** with the engine installed + the default model downloaded +
+  built-in as default, launch and confirm the model is resident by first chat with the
+  task visible during load; toggle it off → confirm a cold start. (Can't be exercised
+  in-container — no engine/GPU; the gate was proven by the smoke no-oping.)
 - **Ask-the-book chat panel — header + button colour pass (2026-07-21, user-driven).**
   `src/renderer/src/components/ChatPanel.vue`. Header: "New chat" / "Chat history"
   text labels restored beside their icons; Help **?** moved to the top-right corner
