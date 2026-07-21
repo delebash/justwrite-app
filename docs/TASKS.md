@@ -35,7 +35,7 @@
   pass `?new=1` for character/location/object/note/strand (worldbuilding excluded,
   popup-kept). (3) popup-probe → `scripts/` DROPPED (user). Verified: build:vite +
   headless smoke (0 JS errors, all routes). Detail: ledger §I1 + `docs/plans/2026-07-12-i1-css-popup-voicedrift.md`.
-- **I4 follow-up — SHIPPED 2026-07-21.** Per-model "Free disk" row action on the catalog
+- **I4 follow-up — SHIPPED 2026-07-21.** Per-model "Delete downloaded model" row action on the catalog
   (`LuModelCatalog.vue`): deletes a model's downloaded weights while KEEPING its catalog
   row (models-cache/delete keeps the row) → re-downloads on demand; unloads first if
   resident. Shows on any DOWNLOADED row (incl. errored-but-downloaded — checker T5 parity),
