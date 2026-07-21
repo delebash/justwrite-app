@@ -601,3 +601,54 @@ compose to the server, or any writer that edits the pin behind the user's back.
 
 **Open.** (Live pin-drive renderer smoke: WON'T-DO, user's call — see above.) On the user's box:
 restart + reinstall the engine once so the on-disk folder/binary rebuild under the pin.
+
+## 9. Download parallelism default 4→8 + the pypdl auto-scale gap (2026-07-21)
+
+**What changed.** `DEFAULT_DOWNLOAD_SEGMENT_COUNT` 4→8 (`config.py:71`; the two fallback
+declarations kept in step, `schema.py:147` + `runner_config_api.py:46`). **Why:** origins that
+throttle PER-CONNECTION (GitHub releases → Azure blob is the confirmed exhibit — a Range probe
+returned `206 Partial Content` + `Accept-Ranges: bytes`) hand back roughly N× with N connections,
+so 8 beats 4 there; cost is more CDN load, no-op when the cap is per-IP or the local link.
+**Verify:** no test asserts the default was 4 (`test_download.py` clamp tests use 6/200/0); a
+fresh seed / "reset to defaults" now gives 8, but an EXISTING DB keeps its 4 until the user sets
+it in the GUI field or reseeds. **Reverse:** set the three constants back to 4. NOT committed yet.
+
+**Finding (grounded in our vendored pypdl 1.5.7 source — the AI-search claim, verified).** pypdl
+does NOT auto-scale the segment count down under load. It drops to a SINGLE stream ONLY when the
+server advertises no Range support (`producer.py:149-151`, size 0 or no `accept-ranges`). If Range
+IS supported but the origin blocks / rate-limits some of the N connections, pypdl retries the
+blocked segments (the `retries` knob) and then FAILS the whole file (`consumer.py:70` puts the
+task on the failed queue → `download.py:161` raises `RuntimeError`) — it does not degrade to fewer
+segments. So a high count is only as safe as the origin's per-IP tolerance; for a robust CDN
+(GitHub/Azure blob, HF) 8 concurrent is modest and normally fine, but it is not self-healing.
+
+**BUILT (2026-07-21, the user's go: "your rec no rules checker but you can run tests, go").**
+The DEGRADE LADDER is in `stream_download` (`download.py`): a multi-segment failure retries at
+HALF the segments (8→4→2→1; 1 = a plain single stream); only the exhausted ladder raises; a
+cancel never degrades. Each step-down clears pypdl's segment state (`_clear_segment_state`) —
+REQUIRED, because `create_segment_table` (pypdl utils.py:487) reuses the count recorded in
+`<dest>.json` whenever url+etag match, which would silently pin the old count; part boundaries
+also shift with the count, so stale part-files must never be reused. The clear is best-effort
+with a bounded retry + a `gc.collect()` nudge (a torn-down worker's aiofiles handle can hold a
+Windows lock until finalization); a straggler is logged and swept again after a degraded ladder
+succeeds. Options considered: pySmartDL (dead upstream, fork is one person, still no
+adaptation), aria2c (best-in-class but dormant upstream + per-OS binary + process integration),
+PyFastDL (1 commit, 0 stars — someone else's unreviewed rolled-own) — receipts in the chat
+research; pypdl stays, the ladder closes its one gap.
+
+**REAL BUG FOUND BY THE LADDER'S TESTS — silent corruption on single-stream retry.** pypdl's
+task-level `overwrite=False` makes the retry of a FAILED single-stream download bless the
+partial `dest` the failed try just wrote as "already complete" (consumer.py:100) — a corrupt
+half-file reported as success. Latent in production for ANY no-Range server (and the ladder's
+final rung). The flag never bought us resume — part-file resume is governed by the
+progress-file/etag match in `create_segment_table`, NOT the task flag (proven:
+`test_resume_after_cancel` passes with True). Fix: `overwrite=True` (+ the existing dest-unlink
+belt). Tests: `test_ladder_degrades_to_single_stream_and_completes` (asserts bytes + the logged
+degrade sequence 4→2→1 + the plain GET + the honest no-litter contract),
+`test_failure_after_retries_raises_runtimeerror` reshaped (plain stream fails too → the
+exhausted ladder raises RuntimeError). Verified: the download file 8/8 consecutive green
+(three flake modes found and fixed: pypdl-internal request-string assert → replaced with the
+adapter's own contract; WinError-32 locked part-file → bounded retry + gc; post-success litter →
+final sweep + logged-straggler assert); ruff clean; full runner suite 644 passed / 1
+pre-existing known-bad. **Reverse:** revert download.py + test_download.py (the 4→8 default
+constants revert separately).
