@@ -19,3 +19,6 @@ biome_parsed.json
 __pycache__/
 *.pyc
 server/build/
+
+# Python virtualenv (local, never committed)
+.venv/

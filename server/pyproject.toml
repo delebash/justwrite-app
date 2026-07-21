@@ -14,6 +14,8 @@ dependencies = [
     "typer>=0.12",
     "platformdirs>=4",
     "httpx>=0.27",
+    "numpy>=1.26",           # rag_search.py BM25/vector math (`import numpy as np`)
+    "python-multipart>=0.0.9",  # FastAPI multipart form parsing (image upload + backup restore endpoints)
     # `llm-runner` (the shared local-LLM core — sibling repo) is deliberately NOT a
     # hard dependency here, so `pip install -e .` can never clobber a local editable
     # link with a frozen git copy. In dev it's a LIVE editable link — install ONCE:
