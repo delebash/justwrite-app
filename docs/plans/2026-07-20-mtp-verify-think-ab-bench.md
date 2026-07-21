@@ -590,13 +590,14 @@ reactivity JS errors** (the only console error was a CORS network refusal, not a
 **The live pin-drive in a browser (type pin → field re-points) was NOT observed** — every dev-
 stack layer is hardwired to port 1420 (vite `strictPort`, `serverApi.js` origin resolver's
 `devPorts:["1420"]`, the server CORS allowlist), so the isolated copy on 1421/17496 was
-rejected while the user's live app held 1420. Per the user's explicit call ("b" = push now on
-the current verification), the live-panel smoke is DEFERRED to the next time the app is closed;
-committing on unit + compile + clean-mount. A throwaway 2-line `serverApi.js` patch used to
-reach the isolated server was reverted before commit (tree confirmed clean).
+rejected while the user's live app held 1420. Per the user's explicit call (2026-07-21) the live
+pin-drive smoke is **WON'T-DO / not owed** — the change stands on unit(6/6) + compile + biome +
+clean-mount; it is not a blocker and won't be run. A throwaway 2-line `serverApi.js` patch used
+to reach the isolated server was reverted before commit (tree confirmed clean). Shipped: JW
+`7ef63ac`, runner `4c2c4d5`.
 
 **What would reverse it.** Re-introducing a build tag as a second stored source, moving the
 compose to the server, or any writer that edits the pin behind the user's back.
 
-**Open.** Renderer smoke (above) before commit. On the user's box: restart + reinstall the
-engine once so the on-disk folder/binary rebuild under the pin.
+**Open.** (Live pin-drive renderer smoke: WON'T-DO, user's call — see above.) On the user's box:
+restart + reinstall the engine once so the on-disk folder/binary rebuild under the pin.
