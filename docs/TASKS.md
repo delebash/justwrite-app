@@ -18,6 +18,17 @@
 
 ## Now / near-term (JustWrite)
 
+- **Boot splash restyle (2026-07-21, SHIPPED)** — the loading screen redone to a warm CREAM
+  ground (not near-white) with the brand **JW** mark + a thin green ring instead of a bare
+  spinner, on a barely-there warm wash; a reassurance line ("runs entirely on your computer").
+  The model-load control (DownloadBar) is kept fully functional, restyled via CSS only. Lives
+  in `index.html #app-boot` (pre-JS, inline SVG mark) + `App.vue .jw-bootwarm` (post-mount warm
+  overlay), kept in sync. build:vite + headless smoke clean (no new JS errors).
+- **Model catalog — benchmark column + sortable columns + fit-to-data width (QUEUED, 2026-07-21).**
+  Add a Benchmark (`qualityRank`) column; make each column sortable — move the fit-grouped card
+  list + Sort dropdown to a sortable table (kit `UiTable`); size columns to content with the kit
+  width standards (`.ui-w-*` / the `width` prop), not hand-set px — the table is currently too
+  wide. Not started; needs a quick design pass first. `just-llm-runner ui/src/components/LuModelCatalog.vue`.
 - **QuickSetup effective-context line — DROPPED 2026-07-21 (user's call).** The only honest
   form is done-step-only (the loaded model's real `n_ctx` → "reads ~N words"); a once-seen
   post-setup number that informs no decision wasn't worth building. Confirm-step display is

@@ -156,9 +156,27 @@ onBeforeUnmount(() => window.removeEventListener("keydown", onKey, { capture: tr
          engine panel uses, below the circle, while the default local model loads into VRAM.
          Never traps — "Continue" enters the app and the load keeps running in the background. -->
     <div v-if="warmModelId" class="jw-bootwarm">
-      <div class="jw-bootwarm__spin" />
+      <div class="jw-bootwarm__mark">
+        <div class="jw-bootwarm__ring" />
+        <svg class="jw-bootwarm__glyph" viewBox="0 0 52 52" aria-hidden="true">
+          <defs>
+            <linearGradient id="jwbootmark" x1="0" y1="0" x2="1" y2="1">
+              <stop offset="0" stop-color="#7a2532" />
+              <stop offset="1" stop-color="#3d2350" />
+            </linearGradient>
+          </defs>
+          <rect width="52" height="52" rx="13" fill="url(#jwbootmark)" />
+          <text x="50%" y="55%" text-anchor="middle" dominant-baseline="middle"
+            font-family="Georgia, 'Iowan Old Style', serif" font-style="italic" font-weight="700"
+            font-size="22" fill="#fff">JW</text>
+        </svg>
+      </div>
       <div class="jw-bootwarm__name">JustWrite</div>
       <DownloadBar v-if="warmTask" class="jw-bootwarm__bar" :task="warmTask" title="Loading your writing model" />
+      <div class="jw-bootwarm__info">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 2 4 6v6c0 5 3.5 7.5 8 10 4.5-2.5 8-5 8-10V6z" /></svg>
+        Runs entirely on your computer — your words never leave it.
+      </div>
       <button type="button" class="jw-bootwarm__skip" @click="dismissWarm">Continue without waiting</button>
     </div>
     <TitleBar :title="barTitle" />
@@ -194,36 +212,60 @@ onBeforeUnmount(() => window.removeEventListener("keydown", onKey, { capture: tr
 </template>
 
 <style scoped>
-/* Boot warm overlay — continues the static index.html #app-boot splash (same cream/dark
-   surface, same green spinner) so the hand-off is seamless, then adds the shared DownloadBar
-   below the circle. Theme-agnostic like the splash (prefers-color-scheme only); the app's
-   full appearance takes over the instant the overlay dismisses.
+/* Boot warm overlay — continues the static index.html #app-boot splash (warm CREAM ground,
+   the brand JW mark + green ring, subtle warm wash) so the hand-off is seamless, then adds
+   the shared DownloadBar + a reassurance line below the mark. Theme-agnostic like the splash
+   (prefers-color-scheme only); the app's full appearance takes over the instant it dismisses.
    KEEP IN SYNC with index.html #app-boot: a pre-JS splash can't import bundle tokens, so the
-   surface/spinner literals below are duplicated by necessity — retune both together. */
+   cream/mark/ring literals below are duplicated by necessity — retune both together. */
 .jw-bootwarm {
-  position: fixed; inset: 0; z-index: 3000;
-  display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 16px;
-  background: #fbfaf7; color: #9a938a;
+  position: fixed; inset: 0; z-index: 3000; overflow: hidden;
+  display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 18px;
+  background: #f4f0e6; color: #9a938a;
   font: 500 14px/1.4 ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-serif;
   letter-spacing: 0.02em;
 }
-.jw-bootwarm__spin {
-  width: 30px; height: 30px; border-radius: 50%;
-  border: 3px solid rgba(0, 0, 0, 0.10); border-top-color: #2f8f63;
-  animation: jw-bootwarm-spin 0.8s linear infinite;
+.jw-bootwarm::before {
+  content: ""; position: absolute; inset: 0; pointer-events: none;
+  background:
+    radial-gradient(58% 55% at 28% 22%, rgba(236, 214, 188, 0.30), transparent 62%),
+    radial-gradient(52% 52% at 82% 84%, rgba(236, 214, 188, 0.20), transparent 62%);
 }
-@keyframes jw-bootwarm-spin { to { transform: rotate(360deg); } }
-.jw-bootwarm__name { font-size: 14px; }
+.jw-bootwarm > * { position: relative; }
+.jw-bootwarm__mark { position: relative; width: 76px; height: 76px; display: grid; place-items: center; }
+.jw-bootwarm__ring {
+  position: absolute; inset: 0; border-radius: 50%;
+  border: 2.5px solid rgba(47, 143, 99, 0.16); border-top-color: #2f8f63;
+  animation: jw-bootwarm-spin 0.9s linear infinite;
+}
+.jw-bootwarm__glyph { width: 52px; height: 52px; filter: drop-shadow(0 4px 12px rgba(61, 35, 80, 0.28)); }
+.jw-bootwarm__name { font-family: "Fraunces", Georgia, "Times New Roman", serif; font-size: 20px; font-weight: 600; color: #4a453e; letter-spacing: 0.01em; }
 /* The bar keeps its own themed look (kit tokens); constrain its width so it reads as a card
-   under the spinner, not a full-bleed strip. */
-.jw-bootwarm__bar { width: min(440px, 86vw); }
+   under the mark, not a full-bleed strip. */
+.jw-bootwarm__bar { width: min(420px, 88vw); }
+.jw-bootwarm__info {
+  display: flex; align-items: center; gap: 6px;
+  font-size: 11.5px; color: #b9b2a7; letter-spacing: 0.02em;
+}
+.jw-bootwarm__info svg { width: 13px; height: 13px; flex: none; }
 .jw-bootwarm__skip {
   margin-top: 2px; background: none; border: 0; cursor: pointer;
-  font-size: 12px; color: inherit; opacity: 0.8; text-decoration: underline;
+  font-size: 12px; color: #9a938a; text-decoration: underline; text-underline-offset: 2px;
 }
-.jw-bootwarm__skip:hover { opacity: 1; }
+.jw-bootwarm__skip:hover { color: #2f8f63; }
+@keyframes jw-bootwarm-spin { to { transform: rotate(360deg); } }
+@media (prefers-reduced-motion: reduce) { .jw-bootwarm__ring { animation-duration: 2.4s; } }
 @media (prefers-color-scheme: dark) {
   .jw-bootwarm { background: #1b1917; color: #8c857c; }
-  .jw-bootwarm__spin { border-color: rgba(255, 255, 255, 0.12); border-top-color: #3fa978; }
+  .jw-bootwarm::before {
+    background:
+      radial-gradient(58% 55% at 28% 22%, rgba(236, 214, 188, 0.10), transparent 62%),
+      radial-gradient(52% 52% at 82% 84%, rgba(236, 214, 188, 0.07), transparent 62%);
+  }
+  .jw-bootwarm__ring { border-color: rgba(63, 169, 120, 0.18); border-top-color: #3fa978; }
+  .jw-bootwarm__name { color: #cfc8bd; }
+  .jw-bootwarm__info { color: #6f695f; }
+  .jw-bootwarm__skip { color: #8c857c; }
+  .jw-bootwarm__skip:hover { color: #3fa978; }
 }
 </style>
