@@ -298,6 +298,9 @@ embedding model carries an **Embedding** badge. From here you can:
   wants. Every draft the repo ships stays selectable, and **Tune & measure** can time them
   on your box if you want to compare. The draft downloads alongside the model, and the app
   reserves video memory for it when working out how much of the model fits on the card.
+  If a repo's only draft uses a format the built-in engine can't run (some models publish a
+  draft that only works on other hardware), the form leaves speculative decoding **off** and
+  says so, rather than setting up a draft that would fail to load.
   This is how you run a model outside the built-in list.
 - **Edit** a model's details. The **description** belongs to the file: **Load model info
   from HF** regenerates it from what the model actually is (parameters, context, MTP, quant,
