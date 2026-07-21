@@ -1,15 +1,17 @@
 <script setup>
-import { computed, onMounted, onBeforeUnmount, watchEffect, ref } from "vue";
+import { computed, onMounted, onBeforeUnmount, watch, watchEffect, ref } from "vue";
 import { useRoute, useRouter } from "vue-router";
 import { useUiStore } from "./stores/ui.js";
 import { useProjectStore } from "./stores/project.js";
 import { applyAppearance } from "./services/appearance.js";
 import { applyEditorSettings } from "./services/editorSettings.js";
+import { warmModelId } from "./services/warmStartup.js";
 import TitleBar from "./components/TitleBar.vue";
 import Sidebar from "./components/Sidebar.vue";
 import OnboardingShell from "./components/OnboardingShell.vue";
 import { Toast } from "@delebash/llm-ui";
 import { AppDialog } from "@delebash/llm-ui";
+import { DownloadBar, useRunnerModels } from "@delebash/llm-ui";
 import CommandPalette from "./components/CommandPalette.vue";
 import ProjectReplaceModal from "./components/ProjectReplaceModal.vue";
 import AiSetupDialog from "./components/AiSetupDialog.vue";
@@ -24,6 +26,25 @@ const route = useRoute();
 const router = useRouter();
 const ui = useUiStore();
 const project = useProjectStore();
+
+// Boot warm overlay (2026-07-21): when the "load model on startup" toggle warmed the default
+// local model, show the SAME DownloadBar the engine panel uses (the runner-models singleton's
+// per-model task) below the splash spinner, until the model is resident. Reuse only — no new
+// load path, no new bar. `warmModelId` is set by warmStartup.startWarmOnBoot before mount.
+const rm = useRunnerModels();
+const warmTask = computed(() => (warmModelId.value ? rm.taskFor(warmModelId.value) : null));
+const warmRowStatus = computed(() =>
+  warmModelId.value ? (rm.models.value.find((m) => m.id === warmModelId.value)?.status || "") : "");
+// Auto-dismiss shortly after the model goes resident — a 700ms beat (taskFor emits only
+// running/error/empty, never a "done" state, so the bar just stops; there is no "Ready ✓").
+// Cancel/error leave the overlay showing the bar's Retry; the always-present Continue is the
+// universal escape, so a slow or failed load never traps the user on the boot screen.
+watch(warmRowStatus, (s) => {
+  if (warmModelId.value && (s === "loaded" || s === "sleeping")) {
+    setTimeout(() => { warmModelId.value = ""; }, 700);
+  }
+});
+function dismissWarm() { warmModelId.value = ""; }
 
 const screenLabel = computed(() => String(route.name || ""));
 
@@ -130,6 +151,16 @@ onBeforeUnmount(() => window.removeEventListener("keydown", onKey, { capture: tr
 
 <template>
   <div class="app-stage">
+    <!-- Boot warm overlay (2026-07-21, user "put it below the loading circle on front page"):
+         continues the index.html splash (spinner + name) and shows the SAME DownloadBar the
+         engine panel uses, below the circle, while the default local model loads into VRAM.
+         Never traps — "Continue" enters the app and the load keeps running in the background. -->
+    <div v-if="warmModelId" class="jw-bootwarm">
+      <div class="jw-bootwarm__spin" />
+      <div class="jw-bootwarm__name">JustWrite</div>
+      <DownloadBar v-if="warmTask" class="jw-bootwarm__bar" :task="warmTask" title="Loading your writing model" />
+      <button type="button" class="jw-bootwarm__skip" @click="dismissWarm">Continue without waiting</button>
+    </div>
     <TitleBar :title="barTitle" />
     <!-- The project shell (Sidebar + data nav) mounts ONLY with a project loaded;
          otherwise the projectless onboarding shell renders the same routed view
@@ -161,3 +192,38 @@ onBeforeUnmount(() => window.removeEventListener("keydown", onKey, { capture: tr
     <WhatsNewModal />
   </div>
 </template>
+
+<style scoped>
+/* Boot warm overlay — continues the static index.html #app-boot splash (same cream/dark
+   surface, same green spinner) so the hand-off is seamless, then adds the shared DownloadBar
+   below the circle. Theme-agnostic like the splash (prefers-color-scheme only); the app's
+   full appearance takes over the instant the overlay dismisses.
+   KEEP IN SYNC with index.html #app-boot: a pre-JS splash can't import bundle tokens, so the
+   surface/spinner literals below are duplicated by necessity — retune both together. */
+.jw-bootwarm {
+  position: fixed; inset: 0; z-index: 3000;
+  display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 16px;
+  background: #fbfaf7; color: #9a938a;
+  font: 500 14px/1.4 ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-serif;
+  letter-spacing: 0.02em;
+}
+.jw-bootwarm__spin {
+  width: 30px; height: 30px; border-radius: 50%;
+  border: 3px solid rgba(0, 0, 0, 0.10); border-top-color: #2f8f63;
+  animation: jw-bootwarm-spin 0.8s linear infinite;
+}
+@keyframes jw-bootwarm-spin { to { transform: rotate(360deg); } }
+.jw-bootwarm__name { font-size: 14px; }
+/* The bar keeps its own themed look (kit tokens); constrain its width so it reads as a card
+   under the spinner, not a full-bleed strip. */
+.jw-bootwarm__bar { width: min(440px, 86vw); }
+.jw-bootwarm__skip {
+  margin-top: 2px; background: none; border: 0; cursor: pointer;
+  font-size: 12px; color: inherit; opacity: 0.8; text-decoration: underline;
+}
+.jw-bootwarm__skip:hover { opacity: 1; }
+@media (prefers-color-scheme: dark) {
+  .jw-bootwarm { background: #1b1917; color: #8c857c; }
+  .jw-bootwarm__spin { border-color: rgba(255, 255, 255, 0.12); border-top-color: #3fa978; }
+}
+</style>
