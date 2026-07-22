@@ -242,7 +242,10 @@ export async function runLlamaBench({ benchExe, gguf, spec, launch = {}, timeout
   if (Number(launch.nCpuMoe) > 0) args.push("--n-cpu-moe", String(launch.nCpuMoe));
   if (Number(launch.batchSize) > 0) args.push("-b", String(launch.batchSize));
   if (Number(launch.ubatchSize) > 0) args.push("-ub", String(launch.ubatchSize));
-  if (Number(launch.ctxLen) > 0) args.push("-c", String(launch.ctxLen));
+  // NO -c: llama-bench has no context flag (b10079/b10083 reject it FATALLY —
+  // "invalid parameter for argument: -c", which silently killed every CPU-band
+  // matrix on 2026-07-22 because CPU legs set launch.ctxLen and GPU legs don't).
+  // The -p prompt sizes ARE the context exercise; ctxLen stays a server-load knob.
   for (const extra of spec.extraArgs || []) args.push(String(extra));
 
   onLog?.(`llama-bench ${args.map((a) => (String(a).includes(" ") ? `"${a}"` : a)).join(" ")}`);

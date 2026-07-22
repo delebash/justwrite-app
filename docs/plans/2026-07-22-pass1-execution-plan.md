@@ -543,3 +543,23 @@ text changes; every task stands as written.
 - Smoke: **6 passed + 1 passed + 1 xfailed (upstream)** with env set; all-skip without.
 - Commits: still deferred per the baseline note — one reviewable diff across both repos awaits the
   user's review before Pass 3.
+
+### PASS 3 (2026-07-22, the user's "go" — planner-executed inline)
+- **Committed Pass 1:** runner `cc62d92`, JW `836e8bf` (docs ride with the code).
+- **The owed legs re-ran** (run `2026-07-22_14-04-05-cpu`, ~43 min): bonsai loads in **13 s**
+  (defect A's typo was the whole "won't load" story) but is unusable — first chat blew the 10-min
+  ceiling, the child wedged, 0/10 runs, every failure fast + named (defect B working). qwen at the
+  honest ctx 8192: loads 28 s, decode **6.8 tok/s** (vs 4.6 thrashing), chat cold 66.7 s / warm
+  0.55 s, ~21 GB resident, ALL runs clean **with the embed co-loaded — defect C's fix held in
+  production** (the killed run died exactly here at a bounced ctx 131072). Assignments restored
+  clean at run end (the T9 reseed made the snapshot honest). Band verdict recorded in the
+  recovery doc §7: pure CPU not viable for interactive book-chat; the iGPU target stands.
+- **llama-bench matrices failed on ALL legs → root-caused by ONE hand-run:** llama-bench has no
+  `-c` flag (fatal on these builds); the harness passed `launch.ctxLen` as `-c` (`llamaBench.js`,
+  CPU legs only — GPU legs don't set ctxLen). FIXED (mapping removed + comment); bench units
+  43/43. My earlier "backend-load error" label in the recovery doc was WRONG (truncated capture)
+  — corrected there. CPU matrices stay unmeasured pending the user's word (box-time cost).
+- **Engine reverted to CUDA** (`preferred_gpu=''`, cpu row deleted — before/after printed; the
+  b10083/cpu dir stays on disk, ignored). Next app boot is CUDA.
+- Remaining Pass-3 tail: the rag/bible wiring (`forceBibleOnly` + permanent `-bible` legs) + the
+  GPU-only run of the new legs.

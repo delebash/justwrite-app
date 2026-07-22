@@ -230,13 +230,30 @@ hard-question legs, judged by reading. Speed picks the shortlist; **the user's e
 
 ## 7. OPEN (the whole queue, in order)
 
-0. **FIRST: the lifecycle/bench defect fixes + the runner integration smoke — §8.** Everything
-   below runs through the same load path; fixing it and building the smoke that would have caught
-   it precedes re-running anything.
-1. **CPU big-model band — 2 of 4 legs clean (2026-07-22).** gemma-26b (9.4 tok/s · 53 s TTFT) and
-   gemma-12b (96–130 s TTFT) stand. **Bonsai leg OWED** (never attempted — §8 defect A) and
-   **qwen-35b leg TAINTED** (ran at ctx 131072, not the leg's 8192 — §8 defect C) — both re-run
-   after the §8 fixes. Interim verdict from the clean legs: not viable for interactive book-chat.
+0. **DONE 2026-07-22 (Pass 1, committed runner cc62d92 + JW 836e8bf):** defects A–G fixed + the
+   real-router smoke (8 cases green live). Full log: the execution plan doc.
+1. **CPU big-model band — COMPLETE, 4/4 legs read (run `2026-07-22_14-04-05-cpu`, summary.md).**
+   - gemma-26b (MoE): decode 9.4 · chat med TTFT 26.9 s · the band's best.
+   - gemma-12b (dense): chat med TTFT 48.5 s, characterChat 65.6 s — dense prefill pain.
+   - **bonsai: loads in 13 s (the "won't load" claim was defect A's typo) but is UNUSABLE** —
+     first chat blew the 10-min ceiling, the child wedged, 0/10 runs completed, every failure
+     recorded with its reason (the fixed bench failing FAST and loud, as designed).
+   - **qwen-35b (honest re-run at ctx 8192, T3 holding through the embed co-load):** loads 28 s ·
+     decode 6.8 (was 4.6 thrashing) · chat cold 66.7 s / warm 0.55 s (med 33.6 s) · ~21 GB
+     resident (no_mmap) — fits 32 GB at the honest ctx, completed all 10 runs.
+   **VERDICT: pure CPU is not viable for interactive book-chat on this box** (cold first-token
+   27–67 s best-case, decode ok) — the floor is real; the target stays iGPU (§5–§6).
+2. *(routing reseeded — T9, done)*.
+3. **Engine REVERTED to CUDA (2026-07-22, post-re-runs):** `preferred_gpu=''`, cpu binary row
+   deleted; `b10083/cpu` stays on disk, ignored. Next app boot is CUDA.
+4. **llama-bench matrix failures ROOT-CAUSED + FIXED (supersedes the earlier "backend-load
+   error" label — that was wrong, from a truncated capture):** llama-bench has NO `-c` flag
+   (fatal "invalid parameter" on b10079/b10083); the harness passed the leg's `ctxLen` as `-c`,
+   so every CPU leg's matrix died instantly (GPU legs don't set ctxLen — that's why the GPU band
+   worked). Fixed at `llamaBench.js` (the `-c` mapping removed, comment records it). The CPU
+   band's raw pp/tg matrices remain UNMEASURED — refill is a targeted per-leg re-run on the
+   user's word (each pp8192 rep is many minutes of box time on CPU); the feature TTFTs already
+   answer the viability question.
 2. **Reseed the dirty routing** — five `feature_preset_refs` keys stuck on the Bench preset
    `9d4ebeddeb96` (`chat`/`characterChat`/`critique`/`writerAI.continue`/`writerAI.rewrite`); reseed
    to the runner seed's defaults (NOT hand-picked). See §3 "ROUTING IS DIRTY". Held for a go.

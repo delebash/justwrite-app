@@ -18,6 +18,15 @@
 
 ## Now / near-term (JustWrite)
 
+- **UPDATE 2026-07-22 (later): Pass 1 SHIPPED (runner `cc62d92` + JW `836e8bf` — defects A–G +
+  the real-router smoke, 8 cases green live) · CPU band COMPLETE 4/4** (run `…_14-04-05-cpu`:
+  bonsai loads 13 s but unusable, 0/10 runs; qwen honest at ctx 8192 — 6.8 tok/s, cold 66.7 s /
+  warm 0.55 s, defect-C fix held through the embed co-load; verdict: pure CPU not viable for
+  interactive book-chat) · **engine REVERTED to CUDA** · routing reseeded clean · llama-bench
+  matrix failures root-caused (the harness's invalid `-c` flag — fixed; CPU matrices refill on
+  the user's word). REMAINING: the rag/bible legs (wiring next) · the iGPU laptop kit ·
+  Pass 2 (backend columns) · Pass 4 (class-system redesign). Detail: the recovery doc §7 + the
+  execution plan's Pass-3 log. The original entry below stands as history:
 - **Runner lifecycle defects + CPU band + iGPU research (2026-07-22, OPEN — the live queue).**
   The interrupted CPU band exposed FIVE real lifecycle/bench defects, root-caused in the lifecycle
   log (recovery doc §8): (A) bench `cpu.json` names `ternary-bonsai-27b` but the catalog id is
