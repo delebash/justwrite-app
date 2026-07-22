@@ -31,11 +31,15 @@
   manuscript/pattern motif, richer typography, etc.). Deliver as multiple preview artifacts to pick
   from, THEN wire the chosen one into `index.html #app-boot` + `App.vue .jw-bootwarm`. After the
   catalog task.
-- **Model catalog — benchmark column + sortable columns + fit-to-data width (QUEUED, 2026-07-21).**
-  Add a Benchmark (`qualityRank`) column; make each column sortable — move the fit-grouped card
-  list + Sort dropdown to a sortable table (kit `UiTable`); size columns to content with the kit
-  width standards (`.ui-w-*` / the `width` prop), not hand-set px — the table is currently too
-  wide. Not started; needs a quick design pass first. `just-llm-runner ui/src/components/LuModelCatalog.vue`.
+- **Model catalog — benchmark column + sortable columns + fit-to-data width (2026-07-22, SHIPPED).**
+  `LuModelCatalog.vue`: a right-aligned **Bench** column (pulled out of the meta line), **click-to-sort
+  column headers** (arrow shows the active column + direction; the Sort dropdown retired), and
+  **fit-to-data width** (`width:auto` + `white-space:nowrap` on the narrow columns, only Model grows
+  within a cap — no hand-set px). The crowded actions collapse into a **⋯** menu (Reka `DropdownMenu`,
+  portaled so it escapes the list's `overflow:auto` clip): Tune · Unload · Re-download · Delete-downloaded ·
+  Delete; **Edit + the Set-as-default/Default ✓/Download toggle stay inline** (Load ≡ set-default =
+  `makeDefault`, so no separate "Load" item). Smoke's stale `search` assertion updated to the new headers.
+  build:vite + headless smoke clean (13-row catalog renders, `errors=0`).
 - **QuickSetup effective-context line — DROPPED 2026-07-21 (user's call).** The only honest
   form is done-step-only (the loaded model's real `n_ctx` → "reads ~N words"); a once-seen
   post-setup number that informs no decision wasn't worth building. Confirm-step display is

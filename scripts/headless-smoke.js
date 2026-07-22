@@ -203,7 +203,9 @@ try {
     const pf = await page.evaluate(() => ({
       engine: !!document.querySelector(".lu-eng"),
       catalog: !!document.querySelector(".lu-mcat"),
-      search: !!document.querySelector(".lu-mcat-bar input") && !!document.querySelector(".lu-mcat-bar .ui-select-trigger"),
+      // Search box + the sortable column headers (2026-07-22: the Sort dropdown was replaced
+      // by click-to-sort <th> buttons — .lu-th-btn — so the toolbar no longer has a select).
+      search: !!document.querySelector(".lu-mcat-bar input") && !!document.querySelector(".lu-mgrid .lu-th-btn"),
       noPointer: !document.querySelector(".lu-pf-modelsptr"),
     }));
     await page.evaluate(() => [...document.querySelectorAll(".lu-mcat button, .lu-mcat .lu-btn")].find((b) => /add model/i.test(b.textContent))?.click());
