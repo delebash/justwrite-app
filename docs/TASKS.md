@@ -24,6 +24,13 @@
   The model-load control (DownloadBar) is kept fully functional, restyled via CSS only. Lives
   in `index.html #app-boot` (pre-JS, inline SVG mark) + `App.vue .jw-bootwarm` (post-mount warm
   overlay), kept in sync. build:vite + headless smoke clean (no new JS errors).
+- **Boot splash v2 — richer, less sparse (QUEUED, 2026-07-22, user).** The shipped cream + JW-mark
+  splash is good but still a little bare; the user wants "something more, maybe something new,
+  inspired from the app + the website," and **several mockups** to choose from. Explore the app's
+  Home/editor surfaces + the website hero/features for material (a rotating writerly line, a faint
+  manuscript/pattern motif, richer typography, etc.). Deliver as multiple preview artifacts to pick
+  from, THEN wire the chosen one into `index.html #app-boot` + `App.vue .jw-bootwarm`. After the
+  catalog task.
 - **Model catalog — benchmark column + sortable columns + fit-to-data width (QUEUED, 2026-07-21).**
   Add a Benchmark (`qualityRank`) column; make each column sortable — move the fit-grouped card
   list + Sort dropdown to a sortable table (kit `UiTable`); size columns to content with the kit
