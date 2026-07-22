@@ -24,13 +24,21 @@
   The model-load control (DownloadBar) is kept fully functional, restyled via CSS only. Lives
   in `index.html #app-boot` (pre-JS, inline SVG mark) + `App.vue .jw-bootwarm` (post-mount warm
   overlay), kept in sync. build:vite + headless smoke clean (no new JS errors).
-- **Boot splash v2 — richer, less sparse (QUEUED, 2026-07-22, user).** The shipped cream + JW-mark
-  splash is good but still a little bare; the user wants "something more, maybe something new,
-  inspired from the app + the website," and **several mockups** to choose from. Explore the app's
-  Home/editor surfaces + the website hero/features for material (a rotating writerly line, a faint
-  manuscript/pattern motif, richer typography, etc.). Deliver as multiple preview artifacts to pick
-  from, THEN wire the chosen one into `index.html #app-boot` + `App.vue .jw-bootwarm`. After the
-  catalog task.
+- **Boot splash v2 — the "book plate" (2026-07-22, SHIPPED).** The bare cream splash was replaced
+  with an ornate **aged-parchment book plate** (user pick after several mockups — artifact
+  `a46689e9`, "keep the center as-is, fill the four empty corners"): a double-rule frame, a filigree
+  flourish mirrored into every corner (one `<symbol>` + four `<use>`), and four themed corners —
+  **The Book** (active title · author · words · chapters), **This Week** (a 7-day sparkline · week
+  words · streak), **The Instrument** (feature list, with **"Audiobooks in JustVoice"** — the
+  companion app, not a JW feature), and **While You Wait** (a tip). The center is unchanged in intent:
+  JW mark + green ring + **JustWrite** wordmark moved up, a small banner ribbon **"A quiet room for the
+  long form"**, the untouched model-load **DownloadBar**, the privacy line, and the always-present
+  Continue. Lives in `App.vue .jw-bootwarm` (post-mount, live store data via `useSessionsStore` +
+  `project` getters; the two DATA corners gate on `hasBook`) + its pre-JS twin `index.html #app-boot`
+  (frame + the two STATIC corners only — no store — matching `.jw-bootwarm`'s no-book state, KEEP IN
+  SYNC comment on both). Light + dark. build:vite + headless smoke clean (every route `errors=0`; the
+  lone `shell-structure` fail is the pre-existing empty-DB onboarding-shell case, proven identical at
+  clean HEAD).
 - **Model catalog — benchmark column + sortable columns + fit-to-data width (2026-07-22, SHIPPED).**
   `LuModelCatalog.vue`: a right-aligned **Bench** column (pulled out of the meta line), **click-to-sort
   column headers** (arrow shows the active column + direction; the Sort dropdown retired), and
