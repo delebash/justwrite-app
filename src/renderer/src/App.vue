@@ -246,7 +246,6 @@ onBeforeUnmount(() => window.removeEventListener("keydown", onKey, { capture: tr
 
       <div class="jw-bw-center">
         <div class="jw-bw-mark">
-          <div class="jw-bw-ring" />
           <svg class="jw-bw-glyph" viewBox="0 0 52 52" aria-hidden="true">
             <defs><linearGradient id="jwbootmark" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#7a2532" /><stop offset="1" stop-color="#3d2350" /></linearGradient></defs>
             <rect width="52" height="52" rx="13" fill="url(#jwbootmark)" />
@@ -262,18 +261,20 @@ onBeforeUnmount(() => window.removeEventListener("keydown", onKey, { capture: tr
           </svg>
           <span>A quiet room for the long form</span>
         </div>
-        <!-- Engine-gate first (a no-engine box installs it before the load — ONE workflow),
-             then the model-load bar; both the SAME shared DownloadBar. -->
-        <DownloadBar v-if="engineTask" class="jw-bw-bar" :task="engineTask" title="Setting up the AI engine" />
-        <DownloadBar v-else-if="warmTask && warmTask.state" class="jw-bw-bar" :task="warmTask" title="Loading your writing model" />
-        <!-- Centrepiece art BELOW the loader (user, 2026-07-22): the "Write your story" pencil
-             plate (bundled asset, imported above). Replaces the earlier line-art open book. -->
+        <!-- Loader control + its "Continue" escape show ONLY while a load is active (user,
+             2026-07-22): "Continue without waiting" is tied to the model loader, grouped with it.
+             Engine-gate bar first (install-before-load, ONE workflow), else the model-load bar. -->
+        <div v-if="engineTask || (warmTask && warmTask.state)" class="jw-bw-loadgroup">
+          <DownloadBar v-if="engineTask" class="jw-bw-bar" :task="engineTask" title="Setting up the AI engine" />
+          <DownloadBar v-else class="jw-bw-bar" :task="warmTask" title="Loading your writing model" />
+          <button type="button" class="jw-bw-skip" @click="dismissWarm">Continue without waiting</button>
+        </div>
+        <!-- Centrepiece art (user, 2026-07-22): the "Write your story" pencil plate. -->
         <img class="jw-bw-book" :src="splashBook" alt="Write your story" />
         <div class="jw-bw-info">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 2 4 6v6c0 5 3.5 7.5 8 10 4.5-2.5 8-5 8-10V6z" /></svg>
           Runs entirely on your computer — your words never leave it.
         </div>
-        <button type="button" class="jw-bw-skip" @click="dismissWarm">Continue without waiting</button>
       </div>
     </div>
     <TitleBar :title="barTitle" />
@@ -363,7 +364,6 @@ onBeforeUnmount(() => window.removeEventListener("keydown", onKey, { capture: tr
 
 .jw-bw-center { position: absolute; inset: 0; z-index: 4; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 14px; text-align: center; }
 .jw-bw-mark { position: relative; width: 132px; height: 132px; display: grid; place-items: center; }
-.jw-bw-ring { position: absolute; inset: 0; border-radius: 50%; border: 3px solid rgba(47, 143, 99, 0.16); border-top-color: #2f8f63; animation: jw-bootwarm-spin .9s linear infinite; }
 .jw-bw-glyph { width: 94px; height: 94px; filter: drop-shadow(0 5px 14px rgba(61, 35, 80, 0.3)); }
 .jw-bw-name { font-family: "Fraunces", Georgia, "Times New Roman", serif; font-size: 56px; font-weight: 600; color: var(--pk-ink); letter-spacing: .005em; line-height: 1; }
 .jw-bw-ribbon { position: relative; width: 360px; max-width: 64vw; height: 44px; display: grid; place-items: center; }
@@ -372,6 +372,8 @@ onBeforeUnmount(() => window.removeEventListener("keydown", onKey, { capture: tr
 .jw-bw-rb-tail { fill: var(--orn2); }
 .jw-bw-ribbon span { position: relative; z-index: 1; font-family: "Fraunces", Georgia, serif; font-style: italic; font-size: 17px; font-weight: 600; color: var(--pk-ink2); letter-spacing: .02em; }
 .jw-bw-bar { width: min(430px, 74vw); }
+/* Loader group — the bar + its "Continue" escape, shown together only while loading. */
+.jw-bw-loadgroup { display: flex; flex-direction: column; align-items: center; gap: 8px; }
 /* Open-book centrepiece BELOW the loader — LARGE, filled draped pages in the ornate gold,
    filling the lower space (user, 2026-07-22). */
 /* The centrepiece art plate — capped by width AND height so it never overflows a short window;
@@ -381,14 +383,11 @@ onBeforeUnmount(() => window.removeEventListener("keydown", onKey, { capture: tr
 .jw-bw-info svg { width: 15px; height: 15px; flex: none; }
 .jw-bw-skip { margin-top: 2px; background: none; border: 0; cursor: pointer; font-size: 13px; color: var(--pk-muted); text-decoration: underline; text-underline-offset: 2px; }
 .jw-bw-skip:hover { color: #2f8f63; }
-@keyframes jw-bootwarm-spin { to { transform: rotate(360deg); } }
-@media (prefers-reduced-motion: reduce) { .jw-bw-ring { animation-duration: 2.4s; } }
 @media (prefers-color-scheme: dark) {
   .jw-bootwarm { background: #1b1810; color: #c6b892;
     --orn: #b8975c; --orn2: #caa968; --gold: #cba55e;
     --pk-ink: #ece2c9; --pk-ink2: #c6b892; --pk-muted: #94876a; --pk-faint: #6f6349; --pk-surf: #25200f; }
   .jw-bootwarm::before { background: radial-gradient(130% 100% at 50% 40%, transparent 52%, rgba(0, 0, 0, 0.28)); }
-  .jw-bw-ring { border-color: rgba(63, 169, 120, 0.2); border-top-color: #3fa978; }
   .jw-bw-spark span { background: rgba(63, 169, 120, 0.22); }
   .jw-bw-spark span.on { background: #3fa978; }
   .jw-bw-skip:hover { color: #3fa978; }
