@@ -561,5 +561,44 @@ text changes; every task stands as written.
   — corrected there. CPU matrices stay unmeasured pending the user's word (box-time cost).
 - **Engine reverted to CUDA** (`preferred_gpu=''`, cpu row deleted — before/after printed; the
   b10083/cpu dir stays on disk, ignored). Next app boot is CUDA.
-- Remaining Pass-3 tail: the rag/bible wiring (`forceBibleOnly` + permanent `-bible` legs) + the
-  GPU-only run of the new legs.
+- **Rag/bible A/B — WIRED + RUN (commit `e89e212`, run `2026-07-22_14-53-06-gpu`).** Exactly the
+  §4 spec: `askManuscript` gains `forceBibleOnly` (OR'd into the mode decision), the bench hook
+  forwards `args.bibleOnly`, gpu.json gains the two permanent `-bible` legs (chat only — planner
+  decision in the leg `_why`; identical baseline question so the A/B is single-variable). First
+  numbers (GPU, chat): retrieval costs gemma **+5 s TTFT** (6.0→1.0) / **+1449 prompt tok**
+  (1915→466), qwen **+11.3 s TTFT** (13.6→2.3); indexed answers are longer (212 vs 119 completion
+  tok). The bible capture verifies the mechanism (extra.bibleOnly=true, citations point at
+  story-bible sections). QUALITY = the user reads the captures. Noted for later: a bible variant
+  of the HARD questions (hq1/hq2) would show where the index truly earns its keep — the broad
+  baseline question is answerable from the bible alone. Assignments restored; the run doubled as
+  the CUDA-revert verification (gemma 25.2 tok/s / qwen 23.4 through the reverted engine).
+
+**PASS 3 COMPLETE.** Commits: `cc62d92` (runner) · `836e8bf` · `9de7d27` · `e89e212` (JW).
+Open next: Pass 2 (backend columns) · Pass 4 (class-system redesign) · the iGPU laptop kit ·
+optional CPU matrices refill · the hq-bible variants (user's call).
+
+### PASS 2 (2026-07-22, the user's "go" — planner-executed inline; runner `e36a901` + `76a9825`)
+The settled "two columns and one filter" design, shipped in two commits:
+1. **Knob backend applicability (`e36a901`).** `knob_catalog.backends` (additive column via the
+   `_ADDED_COLUMNS` registry — the per_request precedent; boot-sync HEALS existing DBs); the four
+   GPU-only knobs seeded `cuda,rocm,vulkan,metal` (`n_gpu_layers` / `n_cpu_moe` / `no_mmap` /
+   `no_kv_offload`; mlock stays universal — its Windows issue is the pair strip rule); the runner
+   drops inapplicable flags at BOTH section-construction seams (`_apply_backend_applicability` +
+   `_active_backend()` — the engine_status derivation, family-normalized; wired via the injected
+   `knob_backends_fn`, None = no filtering, standalone/tests unchanged). Dropped = omitted =
+   fit-by-omission. Tests: cpu drops the GPU knobs / cuda keeps them (the ngl-99 first draft hit
+   compute_fit's 24-layer clamp in the fixture — test uses 12) + seed/heal/accessor pins.
+2. **Backend-stamped tunes (`76a9825`).** `model_tunes.backend` + `model_measurements.backend`
+   (additive, NON-PK — deliberate: the PK stays (model,hw,flag), a re-tune under another family
+   REPLACES the set; per-backend CO-EXISTENCE would widen the PK = a reset, deferred and
+   documented in the column comment). Saves stamp the active family (`switch_resolve.
+   active_backend`, wired install-side from the runner via the set_ensure_local_model closure
+   pattern — llm/ never imports runner/); resolution's tune layer + the Tune display refuse rows
+   from a different family (`tune_row_applies`; legacy `""` reads as **cuda**; unwired context →
+   pre-Pass-2 behavior everywhere). This is the product fix behind the incident: the qwen
+   ctx-131072 CUDA tune can never again follow the model onto cpu/vulkan.
+Verify: runner **669 passed** (666+3 stamp/predicate/legacy tests; commit-1 round was 666 = 663+3)
+/ 9 skipped / the known lspci; ruff clean; JW build+vitest 429 green (the knob wire's added
+`backends` field is additive — KnobGrid reads named fields).
+**PASS 2 COMPLETE.** Open next: Pass 4 (class-system redesign) · the iGPU laptop kit · optional
+CPU matrices refill · hq-bible variants.
