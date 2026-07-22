@@ -653,6 +653,107 @@ final sweep + logged-straggler assert); ruff clean; full runner suite 644 passed
 pre-existing known-bad. **Reverse:** revert download.py + test_download.py (the 4→8 default
 constants revert separately).
 
+## 11. STUCK DOWNLOAD (per-connection crawl) + UNINSTALL THAT "DID NOTHING" (2026-07-21)
+
+**Two user reports, one session (user: "i can download the engine by cliking on link in browser
+and it doesnt slow down … but with our download it gets stuck 3/4 way through … also engine
+uninstall does not work"). Both root-caused from the LIVE server log
+(`src-tauri/target/debug/data/logs/justwrite.log`), the user's DB read directly, and the vendored
+pypdl 1.5.7 + our own source. Neither is GitHub's fault.** The user gave "go" on items 1–3; item
+4 is surfaced OPEN (its stated precedent doesn't hold — see below).
+
+### The stuck download — WHY (verified)
+The cudart fetch at 13:03:42 ran ~3 MB/s then collapsed to ~430 KB/s for the last quarter (the
+user's three screenshots: 79%→91% at 449→417 KB/s); the user killed it at ~91% (the log's "cannot
+schedule new futures after shutdown" IS that kill, not a real fault), and the retry minutes later
+ran ~1.8 MB/s end-to-end and finished — SAME server, SAME file. pypdl's ONLY defense is a
+60 s TOTAL-SILENCE timeout (`sock_read=60`, vendored `pypdl/pypdl.py:152`); a connection that
+trickles even a few KB/s never times out, is never restarted, and pypdl never re-issues a slow
+segment. So a CDN edge that shapes one of the N connections leaves the finished segments idle,
+waiting on the slowest — "stuck at 3/4." A browser click opens a FRESH connection and gets a fast
+path. §9's degrade ladder does NOT cover this: the ladder fires on a hard FAILURE (a segment
+pypdl gives up on → RuntimeError); a connection that stays alive-but-slow never fails, so nothing
+in our stack made a fresh connection. This is the gap §9 explicitly left ("it is not
+self-healing").
+
+### Item 1 — the stall/collapse WATCHDOG (BUILT). `download.py`.
+A `_DownloadWatchdog` (pure, clock-injected so its thresholds unit-test without real waits)
+observes `(current_size, size)` each poll and returns a restart reason:
+- **stall** — `current_size` unchanged for `STALL_SECONDS` (20 s).
+- **collapse** — rolling rate (trailing `RATE_WINDOW_SECONDS`=8 s) below `COLLAPSE_FRACTION`
+  (0.25) of THIS download's own best rate, sustained `COLLAPSE_SECONDS` (30 s), and only once
+  best ≥ `COLLAPSE_MIN_BEST_RATE` (1 MB/s) with remaining > `COLLAPSE_MIN_REMAINING` (8 MB). The
+  best-rate gate is what makes a genuinely-slow line NOT loop (its best never reaches 1 MB/s → no
+  collapse; and a progressing slow line never stalls).
+- Never fires while `size` is unknown or in the combine/finalize phase (`current_size >= size`).
+
+On a fire, `_attempt` calls `dl.stop()` and raises a private `_Restart`; `stream_download` catches
+it SEPARATELY from the ladder's `RuntimeError`: **same segment count, part-files KEPT (resume),
+`_clear_segment_state` NOT called** — a restart resumes from `<dest>.N`+`<dest>.json` exactly like
+`test_resume_after_cancel` (the ladder step-down is the ONLY path that clears, because its
+boundaries shift). Cap `MAX_DOWNLOAD_RESTARTS` (5); after that ONE final attempt runs with the
+watchdog OFF so a slow finish always beats an error. Each restart logs a WARNING with the reason +
+byte position. Existing tests stay green untouched (a ~2 MB test completes in <1 s — 20 s/30 s
+thresholds never fire).
+
+### Item 2 — UNINSTALL rewrite (BUILT). `lifecycle.py` `uninstall_engine`.
+Three real defects, all confirmed by the log/DB: (1) it removed only the ONE resolved build dir —
+this morning the box had `b9993` AND `b10075`, so uninstall deleted one, status re-resolved the
+other, and the UI stayed "Installed" (the user's exact "uninstall button remained, no install
+button"; now only `b10076` is on disk so it removes cleanly — their "works now"). (2)
+`shutil.rmtree(..., ignore_errors=True)` swallowed Windows lock failures silently (the log's
+06:11:47 `WARNING: old engine build b9993 still present after cleanup (files in use?)` proves the
+race). (3) it refused while `status=="installing"` with "wait for it to finish" — during a
+crawling download that is never. The rewrite: signal `_engine_cancel` + JOIN the install thread
+(bounded `ENGINE_INSTALL_JOIN_TIMEOUT`≈20 s, OUTSIDE `self._lock` — the installer thread takes it)
+→ `self.stop()` to free exe locks → delete EVERY build dir under `llamacpp/` (keeping `logs/` +
+loose `models.ini`) via `_rmtree_with_retry` (bounded retry for Windows lock-release lag) → VERIFY
+what's left and return an HONEST `error` naming any still-locked dir instead of a silent success →
+LOG what was removed (uninstall logged nothing before).
+
+### Item 3 — the `{build}` placeholder guard (BUILT). `binary.py` `_fetch` + `runner_config_api.py`.
+A leftover `{build}` template URL 404'd an install at 06:02 (the log). The user's DB is CLEAN now
+(read directly: all 8 rows concrete `b10076`, pin `b10076`). Belt so it can never be a silent
+4-retry 404 again: `_fetch` refuses any URL containing `{` with a clear message BEFORE the network;
+the engine-config PUT rejects a binary `assetUrl`/`runtimeUrl` containing `{` with a 400.
+
+### Item 4 — seed default count 4→8 on existing DBs (OPEN — NOT built; the precedent doesn't hold).
+The user blessed 8 as the default (§9), but seeding is insert-if-missing (`seed.py:1047-1055`), so
+the user's existing DB still reads `download_segment_count=4` (verified in the DB dump, `built_in=1`).
+I proposed the `model_list_rules` built-in-refresh convention — **but that convention does NOT
+translate here.** `set_model_list_rules` flips `built_in=False` on a user edit; the engine-config
+PUT saves scalars via `store.set_setting()` (`runner_config_api.py:132-136`) which does NOT flip
+`built_in` (`stores.py:797-807`). So a user who deliberately sets the count to 4 in the GUI leaves
+the row `built_in=True`, and a built-in-keyed refresh would clobber their choice every boot.
+DECISION for the user: (a) make `set_setting` flip `built_in=False` (correct + general, but changes
+`built_in` semantics for every runner setting — pinned_build, models_max, … — broader than asked),
+then refresh; or (b) DROP the auto-bump — the WATCHDOG (item 1) is the real fix for the stuck
+download, count is secondary, and "reset to defaults" or the GUI field already give 8. Leaning (b).
+
+### Rules-checker refinements (2026-07-21, single checker on the final diff → VERDICT PASS)
+Two notes acted on (neither a contract FAIL): (i) **T3 convergence** — the pre-existing
+`_run_install` stale-build sweep still used bare `shutil.rmtree(..., ignore_errors=True)` +
+swallow-and-warn — the SAME silent Windows-lock race defect #2 fixes, and its "still present
+after cleanup (files in use?)" warning is literally the b9993 line in the user's log. Converged it
+onto `_rmtree_with_retry` (ONE source for "robustly remove a build dir"); only a genuine survivor
+now warns, so the spurious lock-lag warnings stop. (ii) **Doc precision** — the "KEEPING the
+part-files → resume" claim holds for a MULTI-SEGMENT restart; a single-stream rung (segments
+disabled, or the fully-degraded ladder tail) has no part-files, so its rare restart re-fetches
+from zero — correct, not data loss, and outside the multi-connection "stuck 3/4" case this
+targets. Docstring corrected to say so.
+
+**file:line.** `download.py` (`_DownloadWatchdog`, `_Restart`, `_attempt` watchdog wiring +
+`stream_download` restart branch; module constants `STALL_SECONDS`/`COLLAPSE_*`/
+`MAX_DOWNLOAD_RESTARTS`) · `lifecycle.py` (`uninstall_engine` rewrite, `_rmtree_with_retry`,
+`ENGINE_INSTALL_JOIN_TIMEOUT`) · `binary.py:_fetch` (placeholder guard) ·
+`runner_config_api.py` (binaries-loop `{`-reject). **Verify:** `test_download.py` — watchdog unit
+cases (stall fires · collapse fires · no-fire on uniform-slow · no-fire near end · recovery resets
+· finalize phase) + integration (a fired watchdog RESTARTS + resumes, `_clear_segment_state` NOT
+called; MAX_RESTARTS cap → uncapped final attempt completes; cancel still propagates) ·
+`test_lifecycle.py` — removes ALL builds · cancels a live install · reports a locked dir honestly ·
+`test_binary.py` — `_fetch` refuses a `{`-URL. Then full runner pytest + ruff. **Reverse:** revert
+`download.py` + `lifecycle.py` + `binary.py` + `runner_config_api.py` + the three test files.
+
 ## 10. ENGINE UPDATE BRICKED THE ENGINE → atomic + launch-verified install (2026-07-21)
 
 **The bug (user report).** Clicking the built-in row's "update engine" (merged from the web
@@ -687,3 +788,384 @@ missing DLL / passes a real launch; a failed download leaves the working engine;
 fails-to-launch build is discarded; force reinstalls via swap. `test_lifecycle.py` fakes accept
 `force`. Ran: ruff clean; full runner suite **648 passed** / 1 pre-existing known-bad.
 **Reverse:** revert binary.py + lifecycle.py + the two test files.
+
+## 14. FINISH THE DOWNLOAD-BAR CONSOLIDATION + self-heal stuck "Unloading…" (2026-07-21)
+
+**The user, furious:** *"why does every download ui look different — model, quicksetup, engine …
+it is simple, reuse ui, ui has cancel/resume buttons in it, not separate cancel … we already
+spent massive time on consolidation, why wasn't it done."* Correct: the 2026-07-15 ONE-DOWNLOADER
+consolidation shipped `DownloadBar` (title/role · header Cancel/Retry/Ready · shared `UiProgress`
+with % · size · speed · ETA) and migrated QuickSetup + the catalog strip CARDS + (this session)
+the boot splash — but LEFT two surfaces hand-rolling a bare `UiProgress` + a SEPARATE Cancel: the
+**Local engine panel** (`LuRunnerEngine.vue`, its own `UiProgress` + `Cancel` button) and the
+**catalog model ROWS** (`LuModelCatalog.vue`, bare `UiProgress`, "Unloading…"/"failed" as text).
+So the engine bar behind the QuickSetup modal was literally a different control on screen.
+
+**What changed.**
+- `DownloadBar.vue` gained a `compact` prop (inline for a table row: no card chrome, the bar +
+  its Cancel/Retry on one line; a `compact` error shows the message + Retry). Full mode unchanged.
+- `LuRunnerEngine.vue`: the install progress is now `<DownloadBar :task="engineTask" title="The
+  engine" role="…">` (an `engineTask` computed = a task-shaped view of the `useEngine` install
+  state; `progressLabel` already carries % · size · speed · ETA). Deleted the bare `UiProgress` +
+  the separate Cancel button + its stale CSS + the `UiProgress` import.
+- `LuModelCatalog.vue` rows: the loading/stopping/error status cell is now `<DownloadBar compact
+  :task="taskFor(m.id)">` (the SAME per-model adapter the cards already use) — deleted the bare
+  `UiProgress`, the "Unloading…" text span, the "install engine ↑/failed" text span, and the
+  `UiProgress` import. Cancel/Retry are the bar's own.
+  Now EVERY download/load surface is the one `DownloadBar`.
+- **Stuck "Unloading…" (the user's screenshot: a model frozen on unload after a cancelled load).**
+  Root cause in `lifecycle.py`'s status overlay (~1228): a `stopping` ledger entry FORCED the row
+  to "stopping" even when the router no longer reported the model live — and the entry is only
+  popped by `stop()`'s compare-and-pop, which runs AFTER `stop()` acquires `_router_lock`, a lock a
+  slow/hung load holds; so a cancelled/evicted model showed "Unloading…" indefinitely. Fix
+  (display-only, no concurrency change): once the router confirms the model is gone (absent, or
+  listed "unloaded"), DON'T paint "stopping" — the UI clears at once; a genuinely-tearing-down
+  child (router still "loaded") still shows "stopping" as before. (The permanent-stick itself was
+  a downstream symptom of the broken engine hanging loads — now fixed; this makes the UI self-heal
+  regardless.)
+
+**file:line.** `ui/src/common/components/DownloadBar.vue` (compact) · `ui/src/components/
+LuRunnerEngine.vue` (engineTask + DownloadBar, drop UiProgress) · `ui/src/components/
+LuModelCatalog.vue` (rows → compact DownloadBar, drop UiProgress) · `llm_runner/runner/
+lifecycle.py` (~1228 status self-heal). **Verify:** ruff clean; `build:vite` green; full runner
+suite **650 passed** / 1 pre-existing known-bad; vitest **417 passed**; 39 stop/status tests green
+(the reconciliation didn't regress). **NOT visually verified** — the user's app holds :1420/:17495
+and I won't drive it; the one thing to eyeball is the compact bar's label length inside the tight
+catalog STATUS column (truncates with ellipsis; widen the column or shorten the row label if
+cramped). **Reverse:** revert the four files.
+
+## 12. THE DOWNLOAD WAS SLOW BECAUSE OF **THE SEGMENT COUNT PER HOST** — ladder + watchdog REMOVED (2026-07-21)
+
+**⚠ SUPERSEDES §9's degrade ladder and §11's stall/collapse watchdog — both DELETED.** The slow
+engine download had one cause and one fix; the ladder and watchdog were band-aids for a problem I
+created by using the wrong segment count.
+
+**Measured on the user's Windows box across SEVERAL runs (no proxy; single-connection GET = the
+browser). CORRECTED 2026-07-21 after a frustrated user pointed at an AI-generated pypdl demo:**
+| | single stream | 8 segments |
+|---|---|---|
+| GitHub releases → Azure blob (**engine**) | **~21 MB/s, STEADY (every run)** | 1.6 · 4.2 · 21 · 32 MB/s — **wildly variable** |
+| HuggingFace (**models**) | ~4 MB/s, steady-slow | **~31–41 MB/s, steady-fast** |
+The real finding is NOT "8 is always slow" — my first number (1.6 MB/s) was skewed by CONTENTION
+(the app's own 8-segment download was running during the test, so 16 parallel connections got
+throttled). More runs show the true pattern: on GitHub/Azure a SINGLE stream is rock-steady ~21
+MB/s (the browser's speed), while 8 segments is a GAMBLE (1.6 to 32 MB/s run to run) — the user's
+original ~0.7 MB/s was a bad roll. On HuggingFace the opposite: 8 segments is reliably ~5–10×
+faster (per-connection throttle). So the engine downloads single-stream for RELIABILITY, not peak;
+models keep multi-segment. (The AI demo hardcodes 8 everywhere — fine on HF, a gamble on GitHub.)
+
+**FINAL fix (2026-07-21, the user's call after pointing at the working reference).** I flip-flopped
+on the segment count and the user rightly stopped it: *"did you actually think about the working
+code i gave you vs the 10 times you keep trying to fix your code?"* Their reference is dead simple —
+`pypdl.start(segments=8, retries=5, overwrite=False, block=False, display=False)` + a poll loop —
+and it works. So we do the SAME: **both the engine and the models use plain multi-segment pypdl via
+`download_kwargs`** (segment count + retries from config, default 8). No single-stream special case,
+no per-host branching. The engine's original ~0.7 MB/s was a transient network/CDN slow patch (my
+40 MB samples showed high variance run-to-run, not a reproducible config problem); pypdl's own
+`retries` cover that class of thing, exactly as the reference relies on. **REMOVED** the whole
+invented apparatus from `download.py` — `_DownloadWatchdog`, `_Restart`, `_clear_segment_state`, the
+degrade-ladder loop, the `STALL_*/COLLAPSE_*/MAX_DOWNLOAD_RESTARTS/RATE_WINDOW_SECONDS` constants +
+the `gc`/`deque` imports — so `stream_download` is a plain single-attempt pypdl adapter. Kept the
+two REAL fixes: the `overwrite=True` corruption guard (a failed SINGLE-stream partial being blessed
+as complete — a real edge, and harmless for multi-segment since we unlink dest first) and, separately
+(§10), the atomic launch-verified install.
+
+**LESSON (for me):** when the user hands over working reference code, DIFF against it FIRST and adopt
+its shape — don't keep patching my own. Ten tweaks chasing a mis-measured, likely-transient slowdown
+cost far more than reading 40 lines of theirs would have.
+
+**FINAL-FINAL (2026-07-21, later the same day — the revert above was WRONG and the user's live
+screen proved it).** After the revert to multi-segment, the very next real engine download crawled
+again at ~1.0–1.1 MB/s (user screenshots at 53% and 87%) while a simultaneous single-connection
+test ran 25.7 MB/s and pypdl-8-segments ran 3.2 MB/s — the same moment, same box. Across every
+observation this session, ONE connection to GitHub/Azure was fast and steady (20–26 MB/s, six of
+six runs) while 8 parallel segments were slow in five of seven (1.0/1.6/3.2/4.2 MB/s, incl. BOTH
+real app downloads); the "transient network patch" story was me explaining the data away. So the
+engine download is back on **`segments=1` — one connection, exactly what the browser does**
+(`binary.py:_fetch`; the `download_kwargs` import dropped again), and the models keep multi-segment
+8 via `download_kwargs` (HuggingFace rewards parallel; model downloads were never the complaint).
+Comments in `config.py` + `download.py` state the split truthfully. **Verify:** ruff clean; the 32
+binary+download tests pass; the user must RESTART the app so the sidecar reloads the code — the
+in-flight 87% download finishes on the old path. **Reverse:** pass `**download_kwargs(config)` in
+`binary.py:_fetch` again — but don't: two real-world engine downloads crawled on multi-segment and
+none did on a single connection.
+
+**file:line.** `download.py` (plain adapter; watchdog/ladder/per-host all gone) ·
+`binary.py:_fetch` (`**download_kwargs(config)`, multi-segment like the models path) · `config.py`
+(comment: both paths use multi-segment) · `test_download.py` (watchdog + ladder tests removed; core
+adapter tests kept + a simplified failure test). **Verify:** ruff clean; download+binary+lifecycle =
+**191 passed**; full runner suite **650** (1 pre-existing known-bad). **Reverse:** the removed
+apparatus is in git history if ever needed — it should not be.
+
+## 13. THE ACTUAL FIX — pypdl REPLACED by the industry-standard CHUNK-QUEUE downloader (2026-07-21)
+
+**The user's rulings, verbatim:** *"create a downloader that does concurrency just like any other
+downloader … it is known and coded many times and it works"* and *"you should not hardcode a
+solution for github alone or hf alone — no other downloader does this."* Both applied. The single-
+stream-vs-8-segment flip-flopping above (§12) chased the wrong variable: the problem was never the
+CONNECTION COUNT, it was pypdl's STATIC segmentation — each connection owns a fixed 1/N slice of
+the file, so ONE slow connection drags the whole download (GitHub's CDN hands out fast and slow
+connections unpredictably; the user's engine downloads crawled at 0.7–1.1 MB/s twice while their
+browser was fast). Professional downloaders (IDM "dynamic segmentation", aria2, Steam, hf_transfer)
+use a CHUNK QUEUE instead: the file becomes many fixed-size chunks (8 MB) on a work queue and N
+connections PULL chunks as they finish — a slow connection only delays the one chunk it holds, so
+the aggregate is the SUM of the connections, never hostage to the slowest. That design needs no
+per-host tuning, which is exactly why "any other downloader just works".
+
+**What shipped.** `runner/download.py` REWRITTEN as that chunk-queue downloader on `requests`
+(already a dependency; ~230 lines, pypdl dropped from `pyproject.toml` — no more aiohttp/aiofiles):
+`stream_download` keeps its exact signature (`segments`/`retries` via `download_kwargs`, progress +
+cancel callbacks, `poll_interval`; new `chunk_size` kw, default 8 MB). Range-probe (1-byte ranged
+GET) → total+etag; N worker threads pull chunk indexes off a `queue.Queue`, each GETs its byte
+range on its own connection and writes at its offset into a preallocated sparse `<dest>.part`;
+per-chunk RETRIES on fresh connections (a stalled connection dies at the 60 s read timeout and the
+chunk re-queues — stall recovery built in, no watchdog needed); completed chunks persist to
+`<dest>.json` (atomic tmp+replace, etag-validated) so a cancel/crash RESUMES past them; all chunks
+done → `os.replace(part, dest)`. Single-stream fallback when Range is unsupported, the size is
+unknown, the file fits in one chunk, or `segments=1`. BOTH callers use the SAME config — engine
+(`binary.py:_fetch` `**download_kwargs(config)`) and models (`models.acquire_model`) — no per-host
+anything. Multi-FILE concurrency is unchanged (per-model threads + `download_max_concurrent` in
+lifecycle.py). Stale pypdl comment mentions swept (schema/config/seed/runner_config_api/models).
+
+**Verify (the user's box, real CDNs, our actual code, 8 connections):** GitHub 17.2 MB/s ·
+HuggingFace 14.8 MB/s — fast on BOTH with the one config. ruff clean; `test_download.py` reshaped
+to the chunk contract (chunked bytes-identical incl. request-count, resume-from-completed-chunks,
+exhausted-chunk → RuntimeError, cancel, fallbacks, clamps) — 32 download+binary tests green; FULL
+runner suite **650 passed / 1 skipped / 1 pre-existing known-bad** (`test_pci_gpus_linux_lspci_
+name_match`). **Reverse:** restore pypdl in pyproject + revert download.py/test_download.py —
+don't; this is the design every working downloader uses.
+
+## 15. ONE MECHANISM for every model bar — `taskFor` projection DELETED, catalog FEEDS `createDownloadTask` (2026-07-21)
+
+**Supersedes §14.** §14 shared the `DownloadBar` *component* but left the catalog on a SECOND
+task machine — the hand-rolled `taskFor` projection inside `useRunnerModels` (states `""`/`running`/
+`error` only, no `cancelled`/`done`). QuickSetup rendered a real `createDownloadTask`; the catalog
+rendered the projection. Two machines → the user's report: the card said "starting…" where
+QuickSetup said "Loading it into your graphics card", and the bar kept moving after Cancel (the
+projection had no cancelled state, and the poller kept feeding `loadProgress`). The user's ruling
+(verbatim): *"same mech, same function — delete the two mechanisms… one control, no matter size in
+grid — same same same."*
+
+**What changed (WHY · file:line · verify · reverse).**
+- **`createDownloadTask` gains an external-feed pair** (`ui/src/composables/useDownloadTask.js`):
+  `apply(reading)` (the poll-body EXTRACTED — no-ops unless `running`, so a cancel/terminal is
+  never overwritten: the freeze-on-cancel) and `arm(phase)` (a running bar with no self-poll).
+  WHY: QuickSetup DRIVES its task (`start()` self-polls); the catalog can't — a model may be
+  loading because a feature run / warm-boot / another surface asked (server-driven), with no local
+  `start()` to own a loop. So the singleton FEEDS the SAME machine. `_poll` now calls `apply(read(st))`
+  (no logic fork). Also a `finalizing` field (below).
+- **`useRunnerModels` rewritten** (`ui/src/composables/useRunnerModels.js`): the hand-rolled
+  `loadProgress`/`loadRate`/`_feedLoad`/`downloadMap`/`_feedDownloads`/`cancellingIds`/`downloadingIds`/
+  `cancelLoad`/`cancelDownload`/`loadErr`/`needsEngine` + the `taskFor` projection are DELETED. New:
+  ONE `loadTask` = `createDownloadTask(modelLoadChannel(() => activeLoadId))` (the `/status` channel
+  is single-model — one spawn-load at a time) + a per-model `downloadTasks` map =
+  `createDownloadTask(modelDownloadChannel(id))` (concurrent, `/download/status` map). `_syncTasks`
+  (called by `refresh`) fetches `/status` + `/download/status` and FEEDS the tasks: a "loading" model
+  present in the download map is a standalone download → its `downloadTask`; else the spawn-load →
+  `loadTask` (via `activeLoadId`). Followers are `arm`ed at the trigger (`retryLoad`/`download`) and
+  by the poll as a safety net; a finished/absent one is reset/reaped. `taskFor(id)` returns
+  `loadTask`/the `downloadTask`/`IDLE`. `loadTask.retry` is overridden to run the ONE workflow
+  (`retryLoad` — engine-check-first, unchanged). `error` (shared) replaces `loadErr` for load-failure
+  surfacing.
+- **`DownloadBar`** (`ui/src/common/components/DownloadBar.vue`): the `compact` prop + variant
+  templates/CSS are GONE — ONE look, sized by its container (the user: "same, no matter size").
+- **`LuModelCatalog.vue`**: slot cards + rows render the full `DownloadBar` via `taskFor(id)`;
+  `stopping` is a plain "Unloading…" pill (not the bar — an unload isn't a download); the per-row
+  Cancel buttons are removed (Cancel lives in the bar); the load/download CTAs hide while loading.
+- **Retry-during-teardown race → `finalizing`** (the user's follow-up: *"retry should only be enabled
+  after cancel complete"*): `createDownloadTask` gains a `finalizing` field (cleared by `arm`/`reset`);
+  `DownloadBar` disables Retry while `task.finalizing`; `useRunnerModels` overrides `loadTask.cancel`/
+  `downloadTask.cancel` to set it the instant the user clicks, and it clears when `_syncTasks` resets
+  the task (the model left loading/stopping — teardown done). So Retry can't re-race a still-tearing-
+  down load. QuickSetup is untouched (its `cancel()` doesn't set `finalizing`).
+- **Cancel LABEL keys on the same flag** (follow-up: *"says cancelled instead of cancelling"* — while
+  Retry is disabled the teardown is still running, so the word must say so): the `label` computed in
+  `useDownloadTask.js` returns **"Cancelling…"** for `state==="cancelled" && finalizing`, **"Cancelled"**
+  once `finalizing` clears — off the SAME flag that gates Retry, so the word and the button can never
+  disagree. (Supersedes my earlier read of "say cancelled not cancelling" — with the disabled-Retry
+  in-progress state now visible, "Cancelling…" is the honest word while it's still tearing down.)
+
+**"Getting ready" lag — ROOT CAUSE (verified, NOT changed here — the load path is load-bearing):**
+`POST /load` returns instantly (a background thread — `lifecycle.py:892`) and marks the model
+`downloading`/`queued`; the thread then sets `detail="preparing"` (`lifecycle.py:1686`) and calls
+`_acquire_and_identify` → `_acquire_model` (`lifecycle.py:1571`), which RESOLVES the HF repo/quant file
+and probes its size BEFORE the first byte — only the first download chunk flips the phase to
+"model weights"/"Downloading the model" (`lifecycle.py:1671`). Both `queued`+`preparing` map to
+"Getting ready" (`loadPhases.js` PHASE_WORDS), so the client faithfully shows exactly the server's
+pre-byte HF resolve. It is NOT a client poll lag or a detection failure. Speeding it up = optimizing
+that resolve on the server (the corrupt-download gate + MTP-draft resolve + integrity check ride it) —
+left OPEN pending the user's go + a measurement of where the resolve time actually goes.
+
+## 16. "GETTING READY" SPEEDUP — profiled to `select_files`' two serial HF calls (2026-07-21, RESEARCHED, not yet built)
+
+**Profiled (verified in source).** The pre-byte wait is `select_files` (`models.py:85`) making TWO
+**sequential** HF API round-trips before any download starts: `_revision_sha` (`models.py:99→60`,
+`GET /api/models/{repo}/revision/{rev}` → commit sha) then `_tree` (`models.py:100→66`,
+`GET …/tree/{rev}?recursive=true` → file list + sizes/oids). Only after both does `acquire_model`
+begin streaming (`models.py:474`), which is what flips the phase to "model weights". Both key ONLY on
+`revision` — neither needs the other's result.
+
+**RESEARCH: are those calls needed for an already-downloaded model? (the user's "don't break anything")**
+Traced every consumer of `select_files`'s `(commit_sha, entries)`:
+- `entries` → ONLY the download decision (which files + sizes, `acquire_model:459-495`). Nothing to
+  download when cached.
+- `commit_sha` → ONLY the snapshot-dir path + the `refs/<rev>` pin.
+- The LOAD does NOT use either: `_run_load` resolves the GGUF via `_main_gguf` (`lifecycle.py:1575→1326`)
+  — a network-free `rglob` over the on-disk snapshot + the shared quant-match — and the router `.ini`
+  gets that ABSOLUTE path (never the HF ref resolver). Other callers of `select_files` are the INSPECT
+  path (`gguf_remote.py:62`, Add/Edit form) — unrelated to load.
+- **Verdict: skipping the calls for on-disk weights is SAFE for correctness.** It costs exactly two
+  things: (1) **upstream freshness** — the current re-resolve-every-load picks up a repo that pushed a
+  new GGUF (changed oid → re-download); a skip uses the on-disk file (Re-download is the forced-refresh
+  escape); (2) **size auto-heal** of a truncated blob — but the chunk-queue's atomic `os.replace` means a
+  blob at its final path is complete, and `_verify_gguf` stays as the integrity gate.
+
+**TWO independent pieces — piece 1 SHIPPED, piece 2 HELD:**
+1. **Parallelize `select_files`' two calls — SHIPPED (2026-07-21).** A 2-worker `ThreadPoolExecutor`,
+   both `.result()`-ed (`models.py:99-106` + the `concurrent.futures` import). PURE WIN, zero behavior
+   change — same `(sha, files)`, same errors (a bad repo/quant still raises from `.result()`), keeps
+   freshness + auto-heal — and ~halves the pre-download resolve wait. This directly addresses the
+   REPORTED case (loading a NOT-downloaded model — the deleted-then-reload in the user's screenshots).
+   **Verify:** ruff clean; `test_models.py` + `test_lifecycle.py` **180 passed**. **Reverse:** revert
+   `select_files` to the two serial calls.
+2. **Cached fast-path in `_acquire_and_identify` — SHIPPED 2026-07-21** (the user: *"do 1 and 3, do
+   it right"* — the fixture surgery below got done). Full shipped detail in **§17**. The HELD note
+   below is kept as the sequencing history (why it wasn't rushed into the first pass). The
+   design (gate on `_model_downloaded` → `cached_gguf_path` + `_cached_draft_path`, keep `_verify_gguf`,
+   return without `select_files`/download) is correct for LOADING, but building it revealed a
+   test-infrastructure conflict, NOT a product bug: the `test_lifecycle.py` fixture (`_service_for:120`)
+   injects a fake `acquire_model` that RETURNS the pre-seeded snapshot, and the seed at `:77-79` is BOTH
+   "the cache" `cached_gguf_path` matches AND the input `_main_gguf` needs post-load. So 8 download /
+   download-during-load tests seed an on-disk file yet exercise a download — the fast path (correctly)
+   skips it, and they fail. Making it right = restructuring that fixture (the fake acquire should WRITE
+   the file, not pre-seed) + gating the fast path to the LOAD path only (the download endpoint's job is
+   to download; `_run_download:2457` keeps the full acquire). That is careful surgery on the download
+   path the user asked to protect ("don't want to break anything, we just redid the downloader"), so it
+   is sequenced as its OWN focused pass rather than rushed into this one. **Open decision:** do piece 2
+   as a focused task (with the fixture fix) — the user's call; the freshness tradeoff (no auto-pickup of
+   upstream updates; Re-download forces it) is also theirs, and acceptable for a pinned catalog.
+
+**Verify:** `npm run build:vite` green; `npm run test:unit` **421 passed (44 files)** —
+`loadTaskAdapter.test.js` rewritten for the fed-follower contract (spawn-load fed from `/status`,
+standalone download fed from the map, stopping → no bar, download error → retry), `useDownloadTask.test.js`
+gains arm/apply/finalizing coverage, `engineGateLoad.test.js` reads the shared `error` (was `loadErr`).
+No consumer references any removed export (grep, whole tree). Renderer NOT visually verified (the
+user's live app holds :1420/:17495 — never touched). **Reverse:** revert the four kit files + the
+three JW test files; the projection was the second mechanism, so reverting reintroduces the drift.
+
+**STILL OPEN (needs a clean repro before touching — NOT fixed here):** a state-desync the user hit
+with a rapid *delete model → change the General dropdown (loads) → cancel* sequence — dropdown vs
+card disagree, "Unloading…" stuck, a deleted model's Download path unclear. Likely CAUSED by the
+retry-during-teardown race the `finalizing` fix now prevents; re-test that exact sequence before
+diagnosing the delete/swap/stop lifecycle (a blind rewrite there risks worse breakage).
+
+## 17. "do 1 and 3, do it right" — cached-skip SHIPPED + Fix C (MTP drafter loadability) (2026-07-21)
+
+**Piece 3 (cached fast-path) — SHIPPED.** `_acquire_and_identify` gains `skip_if_cached` (default
+False); `_run_load` passes True, so a LOAD whose weights are already on disk resolves the cached
+GGUF (+ the draft when wanted) via the network-free `cached_gguf_path`/`_cached_draft_path`, runs
+`_verify_gguf`, and returns WITHOUT `select_files` or a download — no two HF API calls, no
+"Getting ready" wait for a cached load. The DOWNLOAD endpoint (`_run_download`) is unaffected
+(default False → always the full acquire; "Download" means download). **Test surgery done right:**
+the `test_lifecycle.py` `_service_for` fixture gained `seed_cache` + a fake `acquire_model` that now
+WRITES the gguf (keyed on the repo's registered quant, never the passed arg — the MTP draft leg
+passes a file path there), so a not-cached download-during-load test actually exercises the
+download; four such tests pass `seed_cache=False`, and a new `test_cached_load_skips_the_hf_resolve`
+pins zero-acquire on a cached load. **Verify:** ruff + full runner **651 passed, 1 skipped, 1
+pre-existing lspci known-bad**. **Reverse:** drop `skip_if_cached` + the fixture's write/`seed_cache`.
+
+**Piece 1 (Fix C — MTP drafter loadability) — dspark half SHIPPED; the tier-C auto-enable is a
+DECISION, OPEN.** `_UNLOADABLE_DRAFTER_MARKERS = ("dspark",)` + `_drafter_loadable(path)`
+(`models.py`) is ONE source shared by: `classify_gguf_entries` (draft rows gain `loadable`),
+`_gguf_drafter_in_repo` (never returns an unloadable candidate), the wire `RepoDraftRow.loadable`
+(declared — the q4OrBetter trap), and the form (`LuModelCatalog.vue`: the auto-pick skips
+unloadable drafts, `onDraftPick` doesn't auto-enable MTP for one, the dropdown labels it "not
+supported by the built-in engine"). So the OWN-repo dspark draft no longer auto-enables MTP.
+`test_models.py`: gemma MTP draft `loadable is True`, bonsai dspark `loadable is False`,
+`test_drafter_excludes_unloadable_dspark` (reverses the old dspark-pick test). Verify: ruff + full
+suite green; build:vite + vitest 421.
+**THE MTP-enable RULE (the user's, 2026-07-21 — RESOLVED, SHIPPED).** Excluding dspark exposed that
+the form was auto-*applying* the tier-C borrow (`find_inherited_mtp_drafter`, `models.py:377`, fires
+on ARCH alone) and turning MTP on with a GUESS. The user's rule: **enable MTP only when CERTAIN —
+built-in prediction heads, or an own draft file the built-in engine can LOAD; if we can't verify (an
+own draft the engine can't load, e.g. dspark) or it's only a base-model guess (the borrow), leave MTP
+OFF and NOTE it in text — the user can paste a draft repo/file (the manual fields already exist).**
+Implemented in `LuModelCatalog.vue`: `inspectLink` no longer copies `r.mtpInherited*` into the draft
+fields (the borrow is never auto-applied — it only rides on `inspected` to power the note), so
+`e.mtp = !!r.mtpBuiltin || !!e.mtpDraftFile` is true ONLY for built-in or an own LOADABLE draft (the
+`loadRepoFiles` auto-pick already filters to loadable). `mtpFact` gains two note cases: own draft(s)
+present but none loadable → "may be MTP-capable, but no draft the built-in engine can run — check MTP
+below to paste your own"; a base-family drafter discovered (no own drafts) → "the base family may
+support MTP — check MTP below to paste a draft repo/file". Net for Ternary Bonsai: MTP UNCHECKED + the
+first note, dropdown shows its (labeled) drafts, manual paste unchanged. Verify: build:vite green;
+full runner still 651/1-skip/1-known-bad (server unchanged this round — the rule is form-only over the
+existing `loadable` signal). Reverse: restore the `inspectLink` borrow-apply + the old `mtpFact`
+"borrows" fallback.
+
+**FINAL form rule (iterated with the user 2026-07-21).** The borrow is pre-filled ONLY when the model
+ships NO own drafts (`hasOwnDrafts` gate in `inspectLink`) — a model that ships its OWN drafts (even
+ones the engine can't load, e.g. dspark) is MTP-capable "but not for our machine": MTP stays OFF, its
+own drafts stay in the dropdown, and `mtpFact` reads "this model ships an MTP draft, but none the
+built-in engine can load — check MTP below to paste a compatible draft." When there ARE no own drafts,
+a base-family drafter is PRE-FILLED (repo/file) but never auto-enables MTP — `mtpFact` says "the base
+family may support MTP — a drafter is pre-filled; check MTP below to try it or paste your own"; the
+Draft-file field becomes a free-type input when a foreign draft-repo is set (its file isn't in this
+repo's dropdown). MTP auto-enables ONLY for the CERTAIN cases — built-in heads or an own LOADABLE draft
+(`e.mtp = !!r.mtpBuiltin || ownLoadableDraft`). **Honest scope (the user accepted "conservative guess
+for now"):** loadability is a NAME heuristic (`dspark` marker), NOT verified by reading the draft's arch
+— a false-conservative just leaves MTP off and the user pastes the right repo; the truly-non-hardcoded
+fix (range-read the draft GGUF's `general.architecture` + check it) is logged as the real follow-up.
+
+**RUNTIME failure IS surfaced — verified + gap closed (2026-07-21, the user's "make sure if MTP won't
+load we tell them").** Chain: a draft that can't load fails the router spawn → `_run_load` sets
+`status="error"` with the message → a chat/AI run's `ensure_model_ready` (`lifecycle.py:1313`) raises
+`The local model "X" failed to load: <message>` → the UI shows it. For the recognized co-load-race
+draft crash there was already an actionable `RuntimeError` ("turn MTP off in the model's tune, or
+re-download the draft", `:2399`). GAP found + fixed: an UNKNOWN-ARCHITECTURE draft (dspark) is
+*unfixable*, but the fast-fail at `:2323` was exempted for ANY `_looks_like_draft_failure`, so it either
+wasted two engine restarts on the race-recovery path or fell through to a generic message with no MTP
+guidance. Fix: drop the `and not _looks_like_draft_failure` exemption (the race is `invalid vector
+subscript`, which is NOT unfixable, so it still gets solo-escalation) and, when a draft is configured,
+the fast-fail message now names MTP — "turn MTP off for this model or set a draft the built-in engine
+can load." Test: `test_unfixable_draft_arch_fails_fast_with_mtp_hint` (spawns once, no restart detour,
+error carries the MTP hint). **Verify:** ruff clean; full runner **652 passed / 1 skip / 1 pre-existing
+lspci known-bad**; build:vite green. **Reverse:** restore the `and not _looks_like_draft_failure` guard
++ the generic message; drop the test.
+
+## 18. TWO-SESSION SYNC — pull the cloud session's work, re-apply this session's on top (2026-07-21)
+
+**The situation.** A parallel cloud session pushed to the same branch while this session's work sat
+uncommitted: JW got 5 commits (`1dcf82b` their Fix C docs/vitest · `85ce88d`+`d7a7257` the ornate
+"book plate" boot splash · `f313b9d`+`666f280` TASKS/smoke), the runner 3 (`4408856` plan doc ·
+`c4c8fce` their Fix C — arch DENY-set + `unsupportedArch` + `draftSelect.js` + autotune coverage ·
+`f823c4f` the catalog rework: Bench column, sortable headers, fit-to-data width, ⋯ actions menu).
+Both sessions had independently built Fix C, and both had reworked `LuModelCatalog.vue`.
+
+**The user's rulings.** Their splash (keep ALL functionality) · their catalog table/⋯-menu is the
+BASE, redo the one-mechanism against it · Fix C: their server half; the form keeps THIS session's
+enable policy (their form, committed before the day's rulings, still auto-applied + auto-enabled the
+tier-C borrow — the exact behavior rejected at the image-24 review) · one pass.
+
+**What was done (verified per step).** Uncommitted work stashed (`wip-opus-session-2026-07-21`, both
+repos) → `git pull --ff-only` both. Then, re-applied from the stash: every file the cloud commits did
+NOT touch restored byte-exact (runner: chunk-queue `download.py` + `binary/config/schema/seed/
+runner_config_api/pyproject` + `lifecycle.py` (cached fast-path · MTP fail-fast hint · stuck-unload
+self-heal · uninstall/atomic-install) + the one-mechanism kit files (`useDownloadTask/useRunnerModels/
+DownloadBar/LuRunnerEngine/AiModelsArea`) + my test files; JW: `warmStartup.js`, `gpu.json`,
+`CLAUDE.md`, this doc, the 3 task-machine tests). DROPPED as superseded: this session's server Fix C
+(`models.py` marker set, `model_catalog_api.loadable`, my Fix-C tests) — theirs is a superset.
+Hand-merged: `models.py` (their Fix C + ONLY my `select_files` parallelize hunk re-applied);
+`LuModelCatalog.vue` (their base: destructure→one-mechanism + `retryLoad` one-workflow restored,
+status cell → the ONE `DownloadBar` (`.lu-mgrid-dlbar`), stopping→"Unloading…" pill, per-row Cancels
+deleted (Cancel lives in the bar), CTAs hidden while loading, form = their `draftSelect` scaffolding +
+the day's enable policy: `e.mtp = builtin || ownLoadableDraft`, borrow pre-filled ONLY when no own
+drafts, `mtpFact` honest branches, free-type Draft-file when a foreign draft-repo is set);
+`App.vue` (their splash + the engine-gate `DownloadBar` restored above the model bar); `TASKS.md`
+(their entries + the Qwen-bench note; this session's MTP task entry NOT re-added — Fix C shipped).
+
+**Verify:** ruff clean; full runner **654 passed / 1 skip / 1 pre-existing lspci known-bad** (their
+autotune+Fix-C tests and this session's task-machine/cached-load/MTP-hint tests coexist); JW
+`build:vite` green; vitest **429 passed (45 files)** incl. their `draftSelect.test.js`. **Reverse:**
+the stashes still exist (`git stash list`) — the pre-merge state of either repo is recoverable from
+`stash@{0}` until dropped. **Open:** the smoke's catalog sort-header assertion (their `666f280`) was
+not re-run here (:1420 may be held by the live app); the redo kept the header DOM intact.

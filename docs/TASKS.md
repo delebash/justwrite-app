@@ -68,6 +68,11 @@
   (router-authority fallback — this is why the MTP-acceptance table was empty). **Still
   owed:** the user runs `npm run bench:gpu -- --legs gpu-gemma-26b-hq1,gpu-gemma-26b-hq1-think,gpu-gemma-26b-hq2,gpu-gemma-26b-hq2-think`;
   the captures get judged against the keys. Detail: `docs/plans/2026-07-20-mtp-verify-think-ab-bench.md` §6.
+  **Qwen head-to-head added 2026-07-21 (user):** `gpu-qwen-35b` + `-think`/`-hq1`/`-hq1-think`/`-hq2`/`-hq2-think`
+  mirror the Gemma battery on `qwen3.6-35b-a3b-mtp` (same questions + ANSWER KEYS) so the two catalog
+  flagships compare directly — run `--legs gpu-qwen-35b,gpu-qwen-35b-hq1,gpu-qwen-35b-hq1-think,gpu-qwen-35b-hq2,gpu-qwen-35b-hq2-think`
+  (needs a ~23 GB download first). The CPU band already carries `cpu-bonsai-27b` (Ternary Bonsai · Q2_g64 —
+  Smart-Add first; known load-risk noted). Both configs self-document in `scripts/bench/configs/{gpu,cpu}.json`.
 - **Panel-dismiss decisions (2026-07-19) — both resolved 2026-07-20, no code change.**
   (a) `AGENTS.md` §5 amendment BLESSED (panels use `usePanelDismiss`, not a backdrop —
   the shipped panel-closes-and-nav-lands behavior is correct). (b) Cross-panel toggle
