@@ -116,6 +116,12 @@ export async function openDriver({
     args: ["--no-sandbox"],
   });
   const page = await browser.newPage();
+  // Defect F (2026-07-22 pass-1 plan T6): the driven renderer must NOT warm-boot the
+  // default chat model — the warm load rode along EVERY bench leg (a 14 GB co-resident)
+  // and could evict a leg's model via the arbiter. Init scripts run before any page
+  // script, so warmStartup sees the flag on boot. Bench-leg loads go through the API
+  // and are unaffected.
+  await page.addInitScript(() => { window.__JW_BENCH__ = true; });
   const errors = [];
   page.on("pageerror", (e) => errors.push(String(e.message).slice(0, 200)));
   await page.goto(app, { waitUntil: "networkidle" });

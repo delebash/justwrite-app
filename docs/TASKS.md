@@ -18,6 +18,24 @@
 
 ## Now / near-term (JustWrite)
 
+- **Runner lifecycle defects + CPU band + iGPU research (2026-07-22, OPEN — the live queue).**
+  The interrupted CPU band exposed FIVE real lifecycle/bench defects, root-caused in the lifecycle
+  log (recovery doc §8): (A) bench `cpu.json` names `ternary-bonsai-27b` but the catalog id is
+  `ternary-bonsai-27b-q2-g64` → 114 ms `unknown model` failure, no model-id validation · (B) the
+  bench can't see `status="error"` → 30-min dead wait · (C) a later co-load re-emits `models.ini`
+  from DB, dropping ephemeral launch switches — qwen respawned at ctx 131072 instead of 8192 →
+  the 21 GB RAM exhaustion · (D) a zombie in-flight request re-loads a just-stopped model via
+  `ensure-ready` (the real "stop gets undone") · (E) ledger↔router drift errors ("model is already
+  running" 400) instead of idempotent adoption. Bonsai itself loads fine (user-proven, 5.7 s raw).
+  **PLAN: fix A–E + build the real-router integration SMOKE** (tiny model; load/unload/switch/ctx
+  echo/stop-stays-stopped assertions — the user's "testing system" ask) **before re-running the
+  owed legs** (bonsai never ran; qwen tainted by C). **⛔ Leftover box state: DB still flipped to
+  the CPU engine** (`preferred_gpu='cpu'` + cpu binary row) **and routing still bench-dirty on 5
+  keys — needs a reseed, not a restore** (nested un-restored runs; detail §3). Clean legs stand:
+  gemma-26b 9.4 tok/s / 53 s TTFT · gemma-12b 96–130 s TTFT. Then: GPU rag/bible legs · CPU rag
+  (gated) · the iGPU band (laptop; portable speed kit). The GPU Qwen head-to-head completed
+  overnight (`bench-results/2026-07-22_03-28-55-gpu/summary.md`) — answer-key judging still owed.
+  Full record: `docs/plans/2026-07-22-igpu-research-and-cpu-band-recovery.md`.
 - **Boot splash restyle (2026-07-21, SHIPPED)** — the loading screen redone to a warm CREAM
   ground (not near-white) with the brand **JW** mark + a thin green ring instead of a bare
   spinner, on a barely-there warm wash; a reassurance line ("runs entirely on your computer").

@@ -17,6 +17,13 @@ import { get, useModelApply, useRunnerModels } from "@delebash/llm-ui";
 export const warmModelId = ref("");
 
 export async function startWarmOnBoot() {
+  // The bench drives this renderer headless and loads its leg models itself — a warm
+  // co-load rode along every leg (defect F, 2026-07-22 pass-1 plan T6). The driver
+  // sets the flag via an init script before any page script runs.
+  if (typeof window !== "undefined" && window.__JW_BENCH__) {
+    console.info("[bench] warm-boot suppressed");
+    return;
+  }
   try {
     const cfg = await get("/v1/ai/engine-config");
     if (!cfg?.warmDefaultOnStartup) return; // 1. toggle off → nothing to do

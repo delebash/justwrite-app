@@ -296,6 +296,24 @@ date, and flagged if the engine build or the leg's config has changed since.
       throw new ConfigError(`config names features the app does not expose: ${unknown.join(", ")} (available: ${hookFeatures.join(", ")})`);
     }
 
+    // Mirror the feature check for MODEL ids (defect A, 2026-07-22): a leg naming a
+    // model the catalog doesn't have — an un-Smart-Added id or a typo — must fail in
+    // SECONDS naming it, not a 30-min dead wait on a load the runner rejects in 114 ms.
+    // (baselineRefs are NOT validated here: they are leg ids from ANOTHER band recalled
+    // from the store, never loaded — so they carry no catalog model to check.)
+    const catalog = await client.models().catch((e) => ({ error: String(e.message || e) }));
+    if (catalog?.error) {
+      throw new ConfigError(`could not fetch the model catalog to validate leg models: ${catalog.error}`);
+    }
+    const knownModels = new Set((catalog.models || []).map((m) => m.id));
+    const unknownModels = [...new Set(legs.map((l) => l.model))].filter((m) => !knownModels.has(m));
+    if (unknownModels.length) {
+      throw new ConfigError(
+        `config names model id(s) not in the catalog: ${unknownModels.join(", ")} — ` +
+        `Smart-Add them in the app or fix the id. Known ids: ${[...knownModels].sort().join(", ")}`,
+      );
+    }
+
     if (cfg.book) {
       log(`activating book ${cfg.book}`);
       await callHook(driver.page, "activate", cfg.book);

@@ -5,7 +5,11 @@
   "_doc": [
     "THE CPU BAND — 'is a no-dGPU box usable for writing?'",
     "",
-    "Every leg is pure CPU (nGpuLayers 0 forces it even on the CUDA build). The GPU",
+    "Every leg sets nGpuLayers 0 — but a TRUE pure-CPU measurement REQUIRES the CPU",
+    "engine build: on the CUDA build, ngl 0 still GPU-offloads large-batch matmuls",
+    "(measured 2026-07-06, docs/plans/2026-07-06-llamacpp-config-tuning-2070s.md:176 —",
+    "prefill would read falsely fast). Flip the server to an installed cpu engine",
+    "first; the 2026-07-22 runs did exactly that (recovery doc §2). The GPU",
     "bar is NOT re-run here: `baselineRefs` recalls gpu-gemma-26b's stored result",
     "into the table, so a CPU run never spends time re-measuring the GPU.",
     "(Run the GPU band once first, or that row shows as 'never run'.)",
@@ -78,7 +82,7 @@
         "since. Users there also report only ~1-2 tok/s on CPU. If it fails, the bench",
         "records a load failure naming the model rather than producing junk."
       ],
-      "model": "ternary-bonsai-27b",
+      "model": "ternary-bonsai-27b-q2-g64",
       "quant": "Q2_g64",
       "tunables": { "temperature": 0.7, "think": false },
       "launch": { "nGpuLayers": 0, "ctxLen": 8192, "threads": 8 },

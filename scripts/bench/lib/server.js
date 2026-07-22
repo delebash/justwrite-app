@@ -103,6 +103,12 @@ export function makeClient(base = process.env.JW_SERVER || "http://127.0.0.1:174
     // (RunnerResidentResponse, schema.py:187-215). This — not /status — is the
     // authority on "is MY model up".
     resident: () => call("GET", "/v1/llm-runner/resident"),
+    // The model CATALOG (all known model ids + coarse Fit/status), NOT the resident
+    // set — RunnerModelsResponse {vramMb, ramMb, safetyMarginMb, models:[{id, name,
+    // tier, status, …}]} (schema.py:158-180). Used to validate leg model ids up front
+    // (defect A): an un-Smart-Added / mistyped id must fail in seconds, not a 30-min
+    // dead wait on a load the runner rejects in 114 ms.
+    models: () => call("GET", "/v1/llm-runner/models"),
     stop: (modelId) => call("POST", "/v1/llm-runner/stop", modelId ? { modelId } : {}),
     load: (body) => call("POST", "/v1/llm-runner/load", body),
     // NOTE: /measure takes QUERY params, not a JSON body (api.py:350-354).
@@ -134,11 +140,25 @@ export function makeClient(base = process.env.JW_SERVER || "http://127.0.0.1:174
         if (/^(loaded|sleeping)$/i.test(state)) {
           return { ok: true, waitedMs: Date.now() - t0, model: mine, resident: last };
         }
-        if (/^(failed|unloaded)$/i.test(state)) {
+        if (/^(failed|unloaded|error)$/i.test(state)) {
           const detail = await api.runnerStatus().catch(() => null);
           return {
             ok: false, waitedMs: Date.now() - t0, resident: last,
             error: detail?.error || detail?.detail || `router reported ${state}`,
+          };
+        }
+        // Belt-and-braces: /status carries the same failure (load() seeds the resident
+        // entry BEFORE the load thread — lifecycle.py:885 — so EVERY load failure,
+        // including an unknown-id raised in _acquire_and_identify, lands as
+        // status="error" on the _last_id primary). The "error" arm in the regex above
+        // is the primary catch; this poll also covers a failure whose /resident row
+        // was reconciled away before a tick saw it (defect B, 2026-07-22).
+        const st = await api.runnerStatus().catch(() => null);
+        if (st && String(st.status || "").toLowerCase() === "error"
+            && (!st.modelId || st.modelId === modelId)) {
+          return {
+            ok: false, waitedMs: Date.now() - t0, resident: last,
+            error: st.error || st.detail || "the model failed to load",
           };
         }
         onTick?.(last);
