@@ -1,23 +1,20 @@
-// T3 (2026-07-17 approved plan) — the ONE load/unload/download control's data layer.
+// ONE mechanism (2026-07-21, the user's ruling: "same mech, same function"): taskFor(modelId)
+// returns the SAME createDownloadTask the QuickSetup bars use — FED by the useRunnerModels
+// singleton's /models poll. QuickSetup DRIVES its tasks (start() self-polls); the catalog must
+// reflect server-driven loads (a feature run / warm-boot / another surface), so it feeds via
+// task.arm()/task.apply() from the ONE poll. These pin: idle for loaded/disk, a spawn-LOAD fed
+// from /status with the friendly words + cancel, a standalone DOWNLOAD fed from the per-model
+// /download/status map, stopping shows NO bar (a pill), a download error carries a retry, and
+// the no-local-PHASE_WORDS source pin on QuickSetup.
 //
-// taskFor(modelId) is the per-model task-shaped projection over the useRunnerModels
-// singleton that DownloadBar renders on the catalog's slot cards and drives the rows'
-// compact bars. These pin its contract: per-model gating from the model's OWN row
-// status (the first plan's killer was gating on the single-channel loadingId), channel
-// choice (standalone download ↔ spawn-load), the friendly vocabulary, the
-// stopping-has-no-cancel rule (DownloadBar's Cancel renders only when task.cancel
-// exists), and the no-local-PHASE_WORDS source pin on QuickSetup.
-//
-// The kit modules are imported REAL (subpath alias); fetch is stubbed so refresh()
-// populates the singleton with a crafted /v1/llm-runner/models body.
+// The kit modules are imported REAL (subpath alias); fetch is stubbed so refresh() populates the
+// singleton from crafted /models + /status + /download/status bodies.
 import { readFileSync } from "fs";
 import { dirname, resolve } from "path";
 import { fileURLToPath } from "url";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
-import {
-  refresh, taskFor, loadProgress,
-} from "@delebash/llm-ui/composables/useRunnerModels.js";
+import { refresh, taskFor } from "@delebash/llm-ui/composables/useRunnerModels.js";
 import { PHASE_WORDS, friendlyPhase } from "@delebash/llm-ui/common/services/loadPhases.js";
 
 function jsonOk(obj) {
@@ -31,14 +28,16 @@ function jsonOk(obj) {
 
 let modelsBody;
 let statusBody;
+let downloadsBody;
 
 beforeEach(() => {
   modelsBody = { models: [], vramMb: 8192 };
   statusBody = { status: "idle" };
+  downloadsBody = { downloads: {} };
   vi.stubGlobal("fetch", vi.fn(async (url) => {
     const u = String(url);
+    if (u.includes("/v1/llm-runner/download/status")) return jsonOk(downloadsBody);
     if (u.includes("/v1/llm-runner/models")) return jsonOk(modelsBody);
-    if (u.includes("/v1/llm-runner/download/status")) return jsonOk({ status: "idle" });
     if (u.includes("/v1/llm-runner/status")) return jsonOk(statusBody);
     return jsonOk({});
   }));
@@ -50,7 +49,7 @@ afterEach(() => {
 
 const row = (id, status) => ({ id, name: id, tier: "mid", fit: "ok", status, downloaded: true });
 
-describe("taskFor — the per-model task projection", () => {
+describe("taskFor — one createDownloadTask, fed by the singleton poll", () => {
   it("is idle (state '') for loaded/disk models — the card shows its pill, no bar", async () => {
     modelsBody.models = [row("a", "loaded"), row("b", "disk")];
     await refresh();
@@ -58,7 +57,7 @@ describe("taskFor — the per-model task projection", () => {
     expect(taskFor("b").state).toBe("");
   });
 
-  it("a LOADING model is running with the load channel's bytes + friendly words, cancel wired", async () => {
+  it("a spawn-LOAD is fed from /status: running with the load bytes + friendly words, cancel wired", async () => {
     modelsBody.models = [row("a", "loading"), row("b", "disk")];
     statusBody = { status: "downloading", modelId: "a", detail: "model weights", downloaded: 512, total: 2048 };
     await refresh();
@@ -68,11 +67,11 @@ describe("taskFor — the per-model task projection", () => {
     expect(t.total).toBe(2048);
     expect(t.label).toContain("Downloading the model");   // QuickSetup's words, not "model weights"
     expect(typeof t.cancel).toBe("function");
-    // Per-model gating: the OTHER model shows nothing (the loadingId-gating bug's pin).
+    // Per-model gating: the OTHER model shows nothing.
     expect(taskFor("b").state).toBe("");
   });
 
-  it("T1's neutral phase reads 'Getting ready', never a download announcement", async () => {
+  it("the neutral phase reads 'Getting ready', never a download announcement", async () => {
     modelsBody.models = [row("a", "loading")];
     statusBody = { status: "downloading", modelId: "a", detail: "preparing", downloaded: 0, total: 0 };
     await refresh();
@@ -80,21 +79,32 @@ describe("taskFor — the per-model task projection", () => {
     expect(taskFor("a").label).not.toContain("Downloading the model");
   });
 
-  it("a STOPPING model is running with 'Unloading…' and NO cancel (an unload isn't cancellable)", async () => {
+  it("a STOPPING model shows NO bar (state '') — the card/row renders an 'Unloading…' pill instead", async () => {
     modelsBody.models = [row("a", "stopping")];
+    await refresh();
+    expect(taskFor("a").state).toBe("");
+  });
+
+  it("a standalone DOWNLOAD is fed from the /download/status map, with cancel + retry", async () => {
+    // A downloading model reports status 'loading' from /models; the download map disambiguates it.
+    modelsBody.models = [row("a", "loading")];
+    downloadsBody = { downloads: { a: { status: "downloading", detail: "model weights", downloaded: 100, total: 400 } } };
     await refresh();
     const t = taskFor("a");
     expect(t.state).toBe("running");
-    expect(t.label).toBe("Unloading…");
-    expect(t.cancel).toBeUndefined();   // DownloadBar's Cancel gates on task.cancel
+    expect(t.done).toBe(100);
+    expect(t.total).toBe(400);
+    expect(typeof t.cancel).toBe("function");
+    expect(typeof t.retry).toBe("function");
   });
 
-  it("an ERROR row is state error with a retry", async () => {
+  it("a DOWNLOAD error is state error with a retry", async () => {
     modelsBody.models = [row("a", "error")];
-    statusBody = { status: "error", modelId: "a", error: "spawn refused" };
+    downloadsBody = { downloads: { a: { status: "error", error: "404 from Hugging Face" } } };
     await refresh();
     const t = taskFor("a");
     expect(t.state).toBe("error");
+    expect(t.error).toContain("404");
     expect(typeof t.retry).toBe("function");
   });
 });

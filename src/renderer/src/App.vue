@@ -34,6 +34,11 @@ const project = useProjectStore();
 // load path, no new bar. `warmModelId` is set by warmStartup.startWarmOnBoot before mount.
 const rm = useRunnerModels();
 const warmTask = computed(() => (warmModelId.value ? rm.taskFor(warmModelId.value) : null));
+// ONE workflow (2026-07-21): a boot warm with no engine installs it FIRST via retryLoad, which
+// exposes that install as `engineGateTask` — show ITS bar during the install phase (the same
+// shared DownloadBar), then the model bar takes over when the load begins.
+const engineTask = computed(() =>
+  rm.engineGateTask.value && rm.engineGateTask.value.state === "running" ? rm.engineGateTask.value : null);
 const warmRowStatus = computed(() =>
   warmModelId.value ? (rm.models.value.find((m) => m.id === warmModelId.value)?.status || "") : "");
 // Auto-dismiss shortly after the model goes resident — a 700ms beat (taskFor emits only
@@ -251,7 +256,10 @@ onBeforeUnmount(() => window.removeEventListener("keydown", onKey, { capture: tr
           </svg>
           <span>A quiet room for the long form</span>
         </div>
-        <DownloadBar v-if="warmTask" class="jw-bw-bar" :task="warmTask" title="Loading your writing model" />
+        <!-- Engine-gate first (a no-engine box installs it before the load — ONE workflow),
+             then the model-load bar; both the SAME shared DownloadBar. -->
+        <DownloadBar v-if="engineTask" class="jw-bw-bar" :task="engineTask" title="Setting up the AI engine" />
+        <DownloadBar v-else-if="warmTask && warmTask.state" class="jw-bw-bar" :task="warmTask" title="Loading your writing model" />
         <div class="jw-bw-info">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 2 4 6v6c0 5 3.5 7.5 8 10 4.5-2.5 8-5 8-10V6z" /></svg>
           Runs entirely on your computer — your words never leave it.

@@ -1,51 +1,39 @@
-// Warm the default local chat model into VRAM on startup — REUSE, not new code
-// (2026-07-21, user: "just call the same function as the load button … delete warmDefault
-// … reuse that loading control with the progress bar and put it below the loading circle").
-//
-// No hand-rolled poll loop (the deleted warmDefault.js had one). This just:
-//   1. reads the warmDefaultOnStartup flag,
-//   2. resolves the default LOCAL chat model the SAME way the catalog's Default badge /
-//      "Load now" button does (useModelApply → currentDefaultId; empty ⇒ default isn't
-//      local ⇒ no-op, so a cloud-default user never triggers a local load),
-//   3. only for a model whose weights are ALREADY on disk (never a multi-GB pull at boot),
-//   4. calls the SAME load the "Load now" button runs — useRunnerModels().retryLoad —
-//      which drives the shared load progress the DownloadBar renders.
-//
-// `warmModelId` is exported so App.vue can show that shared DownloadBar (via
-// useRunnerModels().taskFor(warmModelId)) below the boot spinner while it loads.
+// SPDX-License-Identifier: GPL-3.0-or-later
+// On startup, run the SAME workflow every load button runs — nothing bespoke (user, 2026-07-21:
+// "on start call the engine install, it either installs or passes, then call load model. run
+// existing function 1 2 3, no new fancy warm boot function"). So this holds NO load logic:
+//   1. read the warmDefaultOnStartup toggle,
+//   2. resolve the default LOCAL chat model (empty ⇒ the default isn't a local model ⇒ no-op —
+//      so a cloud-default user never triggers a local load OR an engine install at boot),
+//   3. call useRunnerModels().retryLoad — which itself does the engine check → install-if-missing
+//      → load (the ONE workflow; see useRunnerModels.js).
+// `warmModelId` is exported so App.vue renders the SHARED engine + load DownloadBars on the boot
+// splash while it runs (reuse only — no new bar, no new poller).
 
 import { ref } from "vue";
-import { get, useModelApply, useRunnerModels, refreshRunnerModels } from "@delebash/llm-ui";
+import { get, useModelApply, useRunnerModels } from "@delebash/llm-ui";
 
-// The model being warmed ("" = none). App.vue renders the boot DownloadBar for it.
+// The model being warmed ("" = none). App.vue renders the boot bars for it.
 export const warmModelId = ref("");
-
-const READY = new Set(["loaded", "sleeping"]);
 
 export async function startWarmOnBoot() {
   try {
     const cfg = await get("/v1/ai/engine-config");
-    if (!cfg?.warmDefaultOnStartup) return;
+    if (!cfg?.warmDefaultOnStartup) return; // 1. toggle off → nothing to do
 
-    // The default LOCAL chat model — the SAME resolution the catalog Default badge uses.
+    // 2. The default LOCAL chat model — the SAME resolution the catalog's Default badge uses.
+    //    Empty ⇒ the default provider isn't the local runner ⇒ no-op (cloud-default user).
     const { refreshApplied, currentDefaultId } = useModelApply();
     await refreshApplied();
     const modelId = currentDefaultId.value;
-    if (!modelId) return; // default provider isn't the local runner → nothing to warm
+    if (!modelId) return;
 
-    // Only warm weights that are ALREADY downloaded — never kick a pull at boot. Refresh the
-    // catalog once so the row status is current, then read the shared singleton's list.
-    await refreshRunnerModels();
-    const rm = useRunnerModels();
-    const row = rm.models.value.find((m) => m.id === modelId);
-    if (!row || !row.downloaded) return;
-    if (READY.has(row.status)) return; // already resident → nothing to do
-
-    // Show it on the boot screen + run the SAME load the "Load now" button runs. Fire-and-
-    // forget: the runner-models singleton polls it and feeds the DownloadBar; App.vue clears
-    // warmModelId when the model goes resident (or the user hits Continue).
+    // 3. Show it on the boot splash + run the SAME load a button runs — the engine check +
+    //    install-if-missing + load all live inside retryLoad. Fire-and-forget: the runner-models
+    //    singleton drives the load bar, engineGateTask drives the engine bar, and App.vue clears
+    //    warmModelId when the model goes resident (or the user hits Continue).
     warmModelId.value = modelId;
-    rm.retryLoad(modelId);
+    useRunnerModels().retryLoad(modelId);
   } catch {
     // best-effort — the on-demand load on first use still covers a miss
     warmModelId.value = "";

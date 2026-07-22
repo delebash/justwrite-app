@@ -129,6 +129,40 @@ describe("createDownloadTask", () => {
     expect(task.done).toBe(0);
     expect(task.error).toBe("");
   });
+
+  // ── external feed (arm + apply) — the catalog's fed-task path (2026-07-21): the SAME machine
+  //    QuickSetup self-drives, driven instead by useRunnerModels' ONE /models poll. ──
+  it("arm() shows a running bar with no poll of its own; apply() advances then terminates it", () => {
+    const fetch = vi.fn(async () => ({}));
+    const task = mkTask({ fetch, friendly: (d) => d || "Working" });
+    task.arm("Getting ready");
+    expect(task.state).toBe("running");
+    expect(fetch).not.toHaveBeenCalled();          // no self-poll — the singleton feeds it
+    task.apply({ detail: "model weights", done: 5 * MB, total: 10 * MB, status: "downloading" });
+    expect(task.done).toBe(5 * MB);
+    expect(task.total).toBe(10 * MB);
+    task.apply({ terminal: "done" });
+    expect(task.state).toBe("done");
+  });
+
+  it("apply() no-ops once not running — a cancelled bar stays FROZEN (the moving-bar bug's fix)", async () => {
+    const task = mkTask({ cancel: async () => {} });
+    task.arm("Getting ready");
+    task.apply({ done: 3 * MB, total: 10 * MB, status: "downloading" });
+    await task.cancel();                            // → cancelled (flips state first)
+    task.apply({ done: 9 * MB, total: 10 * MB, status: "downloading" }); // a late poll arrives
+    expect(task.state).toBe("cancelled");
+    expect(task.done).toBe(3 * MB);                 // frozen — NOT advanced to 9 MB
+  });
+
+  it("finalizing defaults false and arm/reset clear it (the Retry-during-teardown gate)", () => {
+    const task = mkTask();
+    expect(task.finalizing).toBe(false);            // DownloadBar reads this to disable Retry
+    task.arm("Getting ready");
+    task.finalizing = true;                         // the catalog sets this on a cancel it owns
+    task.reset();
+    expect(task.finalizing).toBe(false);            // reset (teardown complete) re-enables Retry
+  });
 });
 
 // The promoted channel read-mappers (2026-07-18 — QuickSetup's inline defs became
