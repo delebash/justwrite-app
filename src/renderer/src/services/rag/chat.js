@@ -86,6 +86,11 @@ export async function askManuscript({
   embedModel,
   task,
   meta,
+  // Force story-bible-only mode even when an index EXISTS — the bench's rag A/B
+  // (bible-vs-index leg pairs, 2026-07-22; recovery doc §4). Mode is otherwise
+  // decided solely by index existence below, so without this flag the comparison
+  // could never be measured on an indexed book.
+  forceBibleOnly = false,
 } = {}) {
   // ── 1. Validate ──────────────────────────────────────────────────────────
   if (!question?.trim()) {
@@ -99,7 +104,7 @@ export async function askManuscript({
   //      never require an embedding provider) ─────────────────────────────
   const projectId = project.activeProjectId;
   const st = await status(projectId);
-  const bibleOnly = !st.exists;
+  const bibleOnly = forceBibleOnly || !st.exists;
 
   // ── 3+4. Full mode only: resolve the embed provider, embed the query,
   //         retrieve top-k (hybrid BM25 + cosine via RRF). Bible-only skips

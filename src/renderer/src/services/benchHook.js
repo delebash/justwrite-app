@@ -125,7 +125,12 @@ const FEATURES = {
     async run(args, ctx) {
       const question = args.question || DEFAULT_QUESTION;
       const k = args.k ?? 6;
-      const r = await askManuscript({ question, k, signal: ctx.signal, onDelta: ctx.onFirstToken });
+      // args.bibleOnly → forceBibleOnly: the rag A/B's bible leg (2026-07-22;
+      // recovery doc §4). The capture already records which mode ran (extra.bibleOnly).
+      const r = await askManuscript({
+        question, k, signal: ctx.signal, onDelta: ctx.onFirstToken,
+        forceBibleOnly: !!args.bibleOnly,
+      });
       return ragChatResult(r, question, k, {
         // Kept in full for chat only: which passages were retrieved is how a
         // reader judges whether an answer was actually grounded.

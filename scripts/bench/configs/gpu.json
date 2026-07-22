@@ -286,6 +286,45 @@
           "k": 6
         }
       }
+    },
+    {
+      "id": "gpu-gemma-26b-bible",
+      "label": "BIBLE-ONLY — Gemma 26B chat with retrieval FORCED OFF (A/B vs gpu-gemma-26b)",
+      "_why": [
+        "The rag A/B the band always lacked (user, 2026-07-22: 'i cant believe we did",
+        "not do that in the first place — it was pointless not to test it with index').",
+        "SAME model + question as the baseline; the ONLY difference is",
+        "featureArgs.chat.bibleOnly = true → askManuscript(forceBibleOnly) skips",
+        "retrieval and answers from the story bible alone. The summary's A/B block +",
+        "the two captures side by side show what the retrieved excerpts actually BUY.",
+        "chat only (planner decision 2026-07-22): the mechanism question lives here;",
+        "characterChat can clone the pattern later if this delta proves interesting.",
+        "llamaBench null — the raw matrix is retrieval-independent."
+      ],
+      "model": "gemma-4-26b-a4b-qat",
+      "tunables": { "temperature": 0.7, "think": false },
+      "launch": {},
+      "llamaBench": null,
+      "features": ["chat"],
+      "featureArgs": {
+        "chat": { "question": "What is this book about, and who is the protagonist?", "k": 6, "bibleOnly": true }
+      }
+    },
+    {
+      "id": "gpu-qwen-35b-bible",
+      "label": "BIBLE-ONLY — Qwen 35B chat with retrieval FORCED OFF (A/B vs gpu-qwen-35b)",
+      "_why": [
+        "The Qwen arm of the same rag A/B — same question as gpu-qwen-35b's chat,",
+        "bibleOnly forced. See gpu-gemma-26b-bible for the full rationale."
+      ],
+      "model": "qwen3.6-35b-a3b-mtp",
+      "tunables": { "temperature": 0.7, "think": false },
+      "launch": {},
+      "llamaBench": null,
+      "features": ["chat"],
+      "featureArgs": {
+        "chat": { "question": "What is this book about, and who is the protagonist?", "k": 6, "bibleOnly": true }
+      }
     }
   ]
 }
