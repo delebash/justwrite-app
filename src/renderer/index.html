@@ -29,14 +29,14 @@
          Georgia carries the mark + wordmark until it does. */
       #app-boot {
         position: fixed; inset: 0; overflow: hidden;
-        background: #efe6cf; color: #6a5c43;
+        background: oklch(0.985 0.004 85); color: #6a5c43;
         font: 500 14px/1.45 ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-serif;
         --orn: #96774a; --orn2: #7d6238; --gold: #9c7735;
         --pk-ink: #382f22; --pk-ink2: #6a5c43; --pk-muted: #948468; --pk-faint: #b3a582; --pk-surf: #f6efdc;
       }
       #app-boot::before {
         content: ""; position: absolute; inset: 0; pointer-events: none;
-        background: radial-gradient(130% 100% at 50% 40%, transparent 52%, rgba(70, 52, 22, 0.14));
+        background: radial-gradient(130% 100% at 50% 40%, transparent 60%, rgba(70, 52, 22, 0.05));
       }
       #app-boot::after {
         content: ""; position: absolute; inset: 0; pointer-events: none; opacity: .045; mix-blend-mode: multiply;
@@ -44,35 +44,50 @@
       }
       #app-boot .ab-rule { position: absolute; z-index: 1; pointer-events: none; border: 1.5px solid var(--orn); opacity: .7; border-radius: 3px; inset: 18px; }
       #app-boot .ab-rule.ab-rule--in { inset: 24px; border-width: .75px; opacity: .45; }
-      #app-boot .ab-flo { position: absolute; z-index: 2; width: 138px; height: 138px; color: var(--orn); pointer-events: none; }
+      #app-boot .ab-flo { position: absolute; z-index: 2; width: 192px; height: 192px; color: var(--orn); pointer-events: none; }
       #app-boot .ab-flo.tl { top: 18px; left: 18px; }
       #app-boot .ab-flo.tr { top: 18px; right: 18px; transform: scaleX(-1); }
       #app-boot .ab-flo.bl { bottom: 18px; left: 18px; transform: scaleY(-1); }
       #app-boot .ab-flo.br { bottom: 18px; right: 18px; transform: scale(-1, -1); }
-      #app-boot .ab-corner { position: absolute; z-index: 3; max-width: 214px; font-family: "Fraunces", Georgia, serif; }
-      #app-boot .ab-corner.bl { bottom: 56px; left: 62px; }
-      #app-boot .ab-corner.br { bottom: 56px; right: 62px; text-align: right; }
-      #app-boot .ab-ico { color: var(--orn2); margin-bottom: 8px; }
-      #app-boot .ab-ico svg { width: 20px; height: 20px; }
+      #app-boot .ab-corner { position: absolute; z-index: 3; max-width: 320px; font-family: "Fraunces", Georgia, serif; }
+      #app-boot .ab-corner.bl { bottom: 104px; left: 98px; }
+      #app-boot .ab-corner.br { bottom: 104px; right: 98px; text-align: right; }
+      #app-boot .ab-ico { color: var(--orn2); margin-bottom: 11px; }
+      #app-boot .ab-ico svg { width: 30px; height: 30px; }
       #app-boot .ab-corner.br .ab-ico { display: flex; justify-content: flex-end; }
-      #app-boot .ab-eb { font-size: 10px; letter-spacing: .26em; text-transform: uppercase; color: var(--gold); font-weight: 600; margin-bottom: 6px; }
-      #app-boot .ab-feat { display: flex; flex-direction: column; gap: 5px; font-size: 12px; color: var(--pk-muted); }
+      #app-boot .ab-eb { font-size: 14px; letter-spacing: .26em; text-transform: uppercase; color: var(--gold); font-weight: 600; margin-bottom: 10px; }
+      #app-boot .ab-feat { display: flex; flex-direction: column; gap: 8px; font-size: 17px; color: var(--pk-muted); }
       #app-boot .ab-feat b { color: var(--pk-ink); font-weight: 600; }
-      #app-boot .ab-comp { color: var(--pk-faint); font-size: 10.5px; margin-top: 3px; font-style: italic; }
-      #app-boot .ab-tip { font-style: italic; font-size: 12.5px; line-height: 1.5; color: var(--pk-ink2); }
-      #app-boot .ab-center { position: absolute; inset: 0; z-index: 4; display: flex; flex-direction: column; align-items: center; justify-content: flex-start; padding-top: 84px; gap: 12px; text-align: center; }
-      #app-boot .ab-mark { position: relative; width: 78px; height: 78px; display: grid; place-items: center; }
-      #app-boot .ab-ring { position: absolute; inset: 0; border-radius: 50%; border: 2.5px solid rgba(47, 143, 99, 0.16); border-top-color: #2f8f63; animation: app-boot-spin .9s linear infinite; }
-      #app-boot .ab-glyph { width: 54px; height: 54px; filter: drop-shadow(0 4px 12px rgba(61, 35, 80, 0.3)); }
-      #app-boot .ab-name { font-family: "Fraunces", Georgia, "Times New Roman", serif; font-size: 24px; font-weight: 600; color: var(--pk-ink); letter-spacing: .01em; }
-      #app-boot .ab-ribbon { position: relative; width: 236px; max-width: 64vw; height: 29px; display: grid; place-items: center; }
+      #app-boot .ab-comp { color: var(--pk-faint); font-size: 14px; margin-top: 5px; font-style: italic; }
+      #app-boot .ab-tip { font-style: italic; font-size: 17px; line-height: 1.5; color: var(--pk-ink2); }
+      /* Top corners are STATIC decoration here too (mirror App.vue's frozen values) so all four
+         corners paint in the first pre-JS frame — no late pop-in when App.vue takes over. */
+      #app-boot .ab-corner.tl { top: 104px; left: 98px; }
+      #app-boot .ab-corner.tr { top: 104px; right: 98px; text-align: right; }
+      #app-boot .ab-corner.tr .ab-ico { display: flex; justify-content: flex-end; }
+      #app-boot .ab-bt { font-size: 24px; font-weight: 600; color: var(--pk-ink); line-height: 1.12; }
+      #app-boot .ab-ba { font-style: italic; color: var(--pk-ink2); font-size: 16px; margin-top: 2px; }
+      #app-boot .ab-st { margin-top: 9px; font-size: 14px; color: var(--pk-muted); }
+      #app-boot .ab-st b { color: var(--pk-ink2); font-weight: 600; font-variant-numeric: tabular-nums; }
+      #app-boot .ab-spark { display: flex; gap: 4px; align-items: flex-end; height: 34px; margin-bottom: 8px; }
+      #app-boot .ab-corner.tr .ab-spark { justify-content: flex-end; }
+      #app-boot .ab-spark span { width: 7px; border-radius: 1px; background: rgba(47, 143, 99, 0.22); }
+      #app-boot .ab-spark span.on { background: #2f8f63; }
+      #app-boot .ab-center { position: absolute; inset: 0; z-index: 4; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 14px; text-align: center; }
+      #app-boot .ab-mark { position: relative; width: 132px; height: 132px; display: grid; place-items: center; }
+      #app-boot .ab-ring { position: absolute; inset: 0; border-radius: 50%; border: 3px solid rgba(47, 143, 99, 0.16); border-top-color: #2f8f63; animation: app-boot-spin .9s linear infinite; }
+      #app-boot .ab-glyph { width: 94px; height: 94px; filter: drop-shadow(0 5px 14px rgba(61, 35, 80, 0.3)); }
+      #app-boot .ab-name { font-family: "Fraunces", Georgia, "Times New Roman", serif; font-size: 56px; font-weight: 600; color: var(--pk-ink); letter-spacing: .005em; line-height: 1; }
+      #app-boot .ab-ribbon { position: relative; width: 360px; max-width: 64vw; height: 44px; display: grid; place-items: center; }
       #app-boot .ab-ribbon svg { position: absolute; inset: 0; width: 100%; height: 100%; }
       #app-boot .ab-rb-band { fill: var(--pk-surf); stroke: var(--orn); stroke-width: 1; }
       #app-boot .ab-rb-tail { fill: var(--orn2); }
-      #app-boot .ab-ribbon span { position: relative; z-index: 1; font-family: "Fraunces", Georgia, serif; font-style: italic; font-size: 10.5px; color: var(--pk-ink2); letter-spacing: .03em; }
-      #app-boot .ab-msg { margin-top: 4px; font-size: 12.5px; color: var(--pk-muted); }
-      #app-boot .ab-info { display: flex; align-items: center; gap: 6px; font-size: 11px; color: var(--pk-faint); }
-      #app-boot .ab-info svg { width: 13px; height: 13px; flex: none; }
+      #app-boot .ab-ribbon span { position: relative; z-index: 1; font-family: "Fraunces", Georgia, serif; font-style: italic; font-size: 17px; font-weight: 600; color: var(--pk-ink2); letter-spacing: .02em; }
+      #app-boot .ab-msg { margin-top: 2px; font-size: 14px; color: var(--pk-muted); }
+      /* Open-book centrepiece BELOW the message — LARGE, filled draped pages (user, 2026-07-22). */
+      #app-boot .ab-book { max-width: min(340px, 58vw); max-height: 46vh; width: auto; height: auto; margin-top: 12px; border-radius: 10px; box-shadow: 0 10px 34px rgba(60, 40, 15, 0.20); }
+      #app-boot .ab-info { display: flex; align-items: center; gap: 7px; font-size: 14px; color: var(--pk-faint); }
+      #app-boot .ab-info svg { width: 15px; height: 15px; flex: none; }
       @keyframes app-boot-spin { to { transform: rotate(360deg); } }
       @media (prefers-reduced-motion: reduce) { #app-boot .ab-ring { animation-duration: 2.4s; } }
       @media (prefers-color-scheme: dark) {
@@ -110,6 +125,19 @@
         <svg class="ab-flo bl" viewBox="0 0 150 150"><use href="#ab-flourish" /></svg>
         <svg class="ab-flo br" viewBox="0 0 150 150"><use href="#ab-flourish" /></svg>
 
+        <div class="ab-corner tl">
+          <div class="ab-ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.4"><path d="M8 3h8a2 2 0 012 2v12a2 2 0 002 2H8a2 2 0 01-2-2V5a2 2 0 012-2z" /><path d="M6 7H4M6 12H4M6 17H4M11 8h5M11 12h5" /></svg></div>
+          <div class="ab-eb">The Book</div>
+          <div class="ab-bt">The Ninth Facet</div>
+          <div class="ab-ba">by Tamsin Vale</div>
+          <div class="ab-st"><b>10,200</b> words · <b>4</b> chapters</div>
+        </div>
+        <div class="ab-corner tr">
+          <div class="ab-ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.3"><circle cx="12" cy="10" r="7" /><path d="M12 6l1.3 3 3 .2-2.3 2 .8 3-2.8-1.7L9.2 14l.8-3-2.3-2 3-.2z" /><path d="M9 17l-1.5 5 4.5-2.5L16.5 22 15 17" /></svg></div>
+          <div class="ab-eb">This Week</div>
+          <div class="ab-spark"><span style="height:9px"></span><span style="height:15px"></span><span style="height:11px"></span><span style="height:20px"></span><span style="height:14px"></span><span style="height:23px"></span><span class="on" style="height:30px"></span></div>
+          <div class="ab-st"><b>1,240</b> words · <b>3-day</b> streak</div>
+        </div>
         <div class="ab-corner bl">
           <div class="ab-ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.3"><path d="M12 6C10 4.5 7 4 4 4v14c3 0 6 .5 8 2M12 6c2-1.5 5-2 8-2v14c-3 0-6 .5-8 2M12 6v12" /></svg></div>
           <div class="ab-eb">The Instrument</div>
@@ -153,6 +181,9 @@
             <span>A quiet room for the long form</span>
           </div>
           <div class="ab-msg">Your writing studio is opening…</div>
+          <!-- Same centrepiece art as App.vue's .jw-bw-book — one shared bundled asset. Relative
+               path so Vite rewrites it to the hashed dist URL (publicDir is false). -->
+          <img class="ab-book" src="./src/assets/splash-book.jpg" alt="Write your story" />
           <div class="ab-info">
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 2 4 6v6c0 5 3.5 7.5 8 10 4.5-2.5 8-5 8-10V6z" /></svg>
             Runs entirely on your computer — your words never leave it.
