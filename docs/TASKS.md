@@ -18,6 +18,15 @@
 
 ## Now / near-term (JustWrite)
 
+- **UPDATE 2026-07-22 (evening): Pass 4 SHIPPED** — the class-system rebuild to the user's §9
+  final ruled shape (hidden pick table DELETED; the visible class-tunes library IS the
+  recommendation; `class_key_override` = "detection proposes, never dictates"; Copy in the
+  per-model editor; key suggestions on Add; the "2-minute optimize" rename). Full record: the
+  execution plan doc's PASS 4 section. NEW OPEN items it leaves: **(a) the headless smoke needs
+  a splash-aware wait** — `shell-structure` fires during the new splash gate's boot window and
+  fails before the shell mounts (pre-existing on this branch; every route + AI tab passes with
+  0 JS errors) · **(b) your-box look**: the class panel's "Your PC" line + Change…/Use
+  auto-detect, the editor Copy, the Add key suggestions, and the rename strings.
 - **UPDATE 2026-07-22 (later): Pass 1 SHIPPED (runner `cc62d92` + JW `836e8bf` — defects A–G +
   the real-router smoke, 8 cases green live) · CPU band COMPLETE 4/4** (run `…_14-04-05-cpu`:
   bonsai loads 13 s but unusable, 0/10 runs; qwen honest at ctx 8192 — 6.8 tok/s, cold 66.7 s /

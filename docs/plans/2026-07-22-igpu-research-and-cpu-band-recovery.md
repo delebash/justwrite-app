@@ -444,6 +444,28 @@ is exactly why the bench-as-row-producer matters (their box row · the laptop's 
 research rows). QuickSetup already consumes the map-first pick + class tunes today, so the
 redesign lands in the existing flow rather than adding one.
 
+**⛔ FINAL RULED SHAPE (the user, 2026-07-22 evening — SUPERSEDES the earlier §9 redesign where
+they conflict, esp. the flat re-keyed pick table, which is now DELETED, not re-keyed):**
+After the user audited the whole class subsystem ("you have a hidden table doing the same
+thing"), the converged design — their original vision confirmed ("exactly why we built it…
+1 row now, more rows as we test more… copy config so other users with their hardware test and
+share config"):
+- **ONE table: the class configs** — (hardware class · model · switches · a "recommended" mark
+  when a class has configs for several models). **`model_class_picks` is DELETED/ABSORBED** —
+  the recommendation IS the config row; a research-only recommendation is a row with a model
+  and no switches. No second table, no hidden anything.
+- **One panel = the visible list**: plain-language hardware labels, model name, settings,
+  Copy/Import per row (exists), Add-with-model-picker (exists), "this PC" tag.
+- **Detection proposes, never dictates**: the PC's bucket is a detected DEFAULT with a visible
+  override (the preferred_gpu pattern); the detected raw facts stay visible so a lying sensor
+  is diagnosable at a glance (the ram0 lesson).
+- **QuickSetup reads the SAME rows the user sees**; no matching row → the fit formula as the
+  fallback suggestion. Growth = tested rows accumulate (the user's box row exists · the iGPU
+  laptop row next · other users via share).
+Context that forced the audit: the RAM sensor read 0 on Windows for the system's entire life
+(fixed, runner `816004a`), so the user's hand-measured config never applied and the whole
+subsystem produced zero user value to date — their scoring, accepted as accurate.
+
 **Decisions — state as of 2026-07-22 (later the same day):**
 - **Class-ID format: APPROVED by the user** ("id is fine as long as user understands what it
   means") **with the plain-language condition**: the UI always shows the translated label — the

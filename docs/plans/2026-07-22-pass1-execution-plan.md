@@ -602,3 +602,91 @@ Verify: runner **669 passed** (666+3 stamp/predicate/legacy tests; commit-1 roun
 `backends` field is additive — KnobGrid reads named fields).
 **PASS 2 COMPLETE.** Open next: Pass 4 (class-system redesign) · the iGPU laptop kit · optional
 CPU matrices refill · hq-bible variants.
+
+### PASS 4 — IN FLIGHT at compact (2026-07-22 evening; the user's "just do what you recommend")
+**The design being built = the §9 FINAL RULED SHAPE** (recovery doc — the user's words) **+ the
+evening's additions:** Copy wherever a config is visible (incl. the per-model editor — the
+per-model mount is direct-edit-only BY DESIGN, `LuClassTunes.vue:47-50`, so Copy joins the
+editor) · plain words via the EXISTING `classKeyLabel` (`classTunes.js:47-53`) on the panel's
+"this PC" line · the `class_key_override` setting ("detection proposes, never dictates";
+choke point = `install.py:55-60 _current_class_key`, which feeds EVERY consumer) · **manual
+class authoring confirmed first-class** (Add picks model + free-typed key — kept; PLUS
+key-input suggestions while typing, free text still allowed — **provenance corrected
+post-compact:** this was MY proposal, first written here unasked as a "NEW requirement"
+— the user called it out ("never approved never presented to me you just decided"),
+then approved the idea on its merits, their words 2026-07-22: "implement the idea it
+is good, that is not the point")
+· recommendation = models with a config for YOUR class ranked by the EXISTING §10 comparator
+(`pickLowestQuality`) — no mark column, no new schema; fallback = plain §10.
+
+**EXECUTED (2026-07-22 evening, post-compact, on the user's "go"). The full record.**
+
+What changed and why: the hidden class→model pick table is gone and the visible class-tunes
+library is now the single source that answers both "which model for this hardware" and
+"which launch config" — the user's §9 ruling that a second, invisible table duplicating the
+visible one was the defect. The box's class key became overridable ("detection proposes,
+never dictates" — after the ram0 sensor bug proved a wrong sensor must cost one setting,
+not a dead subsystem), manual class authoring stays first-class with typo-guarding key
+suggestions, and Copy now reaches the per-model editor view where the table never renders.
+
+File:line, runner python side (all verified by the suites below): `stores.py:1310-1334`
+`list_class_tune_refs()` (distinct (model, class) pairs) + `get_class_key_override()`
+(runner_setting row, the preferred_gpu precedent) replacing the deleted `list_class_picks`;
+`stores.py` get_config serves `classKeyOverride` and `reset_to_defaults` clears it;
+`model_catalog_api.py:80-95` `ClassTuneRef` + `CatalogResponse.classTuneRefs/myClassKey`,
+router params `class_tune_refs_fn`/`class_key_fn`; `install.py:55-65` `_current_class_key()`
+returns `stores.get_class_key_override() or current_class_key()` — THE choke point every
+consumer reads through — and the catalog router wiring at `install.py:177-183` passes the
+new fns; `runner_config_api.py` EngineConfig/EngineConfigUpdate gain `classKeyOverride`
+(free text, trimmed — the class-tunes PUT precedent, no format whitelist) and the PUT
+persists it; `db.py` `ModelClassPick` deleted (retirement comment, the hardware_switches
+precedent — orphan table until next reset, create_all never drops); `seed.py`
+`DEFAULT_MODEL_CLASS_PICKS` + `seed_default_class_picks` + its seed_llm call deleted.
+Tests: `tests/test_class_picks.py` DELETED, replaced by `tests/test_class_tune_refs.py`
+(distinct-pairs, manual-class-as-ref, catalog-response shape, override absent=auto,
+override-wins-at-the-choke-point) + `test_runner_config_store.py`
+`test_engine_config_put_round_trips_class_key_override` (trim, GET, reset-clears).
+
+File:line, kit side: `modelPick.js` — `pickByClassMap` deleted, `pickByClassConfig(refs,
+myClassKey, models, {fitSet, qualityOf, isEmbed, isUseLimited})` added (candidates = models
+with a config for MY class, passed through the §10 candidate guards — runnable fit, never
+the embedding model, never use-limited ("never an auto-default", the seeded license law) —
+ranked by the ONE shared `pickLowestQuality`); `recommendedModelId` signature is now
+`{classTuneRefs, myClassKey, typeOf, qualityOf, isEmbed, isUseLimited, runnable}` (vramMb +
+byId arms dropped); `useCatalogMeta.js` serves `classTuneRefs` + `myClassKey` off the one
+catalog fetch; `QuickSetup.vue` `bestFittingId()` and `LuModelCatalog.vue` `recommendedId`
+both call the new shape (LuModelCatalog's `totalVramMb` ref STAYS — the #274 embed-leftover
+math still needs it; only its stale comment changed). `LuClassTunes.vue`: the "Your PC:
+<plain words> (raw key) [set manually]" line with "Change…" (promptDialog, defaultValue =
+current key → PUT engine-config) and "Use auto-detect" (clears the override; separate button
+because promptDialog can't distinguish cancel from empty); Copy in the editor action bar
+once the row is saved (`keyLocked`); key-input `<datalist>` suggestions from the whole
+library's distinct keys + this box's key (free text still allowed). `verify-model-pick.mjs`
+class sections rewritten (8 classConfig cases + 3 composed-rule cases). `README.md` §
+"Which model QuickSetup picks" rewritten to the §9 shape.
+
+Rode along on the same go (the user's separately-ruled rename, "yeah rename" + go): the
+capped sweep variant is now "2-minute optimize" everywhere in QuickSetup (button, running
+title, copy, self-diagnosis line), the stray user-facing "Quick tune" in LuModelCatalog's
+MoE help note now says "Tune & measure", and QuickSetup's untuned-branch copy states both
+buttons are the same measured sweep as Tune & measure with the winner saved automatically
+(this sentence REPLACED "Deeper control lives in the model's Tune dialog" in that one
+line-740 caption — flagged for veto; the modal pointer survives in the same sentence).
+
+How verified: runner pytest **673 passed, 1 failed** — the failure is
+`test_pci_gpus_linux_lspci_name_match`, the recap's documented pre-existing known-bad on
+this box, untouched by this diff. `verify-model-pick.mjs` **39/39**. vitest **429/429**.
+`build:vite` green. Headless smoke: **all 25 routes + all 5 AI tabs + provider-form +
+sampler-order pass with zero JS errors** (the changed kit surfaces all rendered); the ONE
+failing check is `shell-structure` (.app-stage missing), which fires during the NEW splash
+gate's boot window (today's earlier splash commits) before the shell mounts — pre-existing
+on this branch, no JW renderer file is in this diff. The smoke needs a splash-aware wait;
+queued in TASKS.md, deliberately not scope-crept into this pass.
+
+What would reverse it: restoring the pick table would mean reverting the runner commit
+(db/seed/stores/api/install) + the kit commit together — the wire shape (`classTuneRefs`)
+and the pick signature changed in lock-step, so a partial revert leaves the badge/wizard
+reading an absent field (empty refs → the §10 fallback — degraded, not broken).
+
+Open: the smoke's splash-aware wait (TASKS.md) · the user's box-look at the new panel line,
+editor Copy, override flow, and the rename · the iGPU laptop kit (unchanged queue).
