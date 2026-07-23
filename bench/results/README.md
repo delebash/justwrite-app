@@ -1,12 +1,12 @@
-# bench-results — ALL results live in git (user ruling 2026-07-23)
+# bench/results — ALL results live in git (user ruling 2026-07-23)
 
 One folder per MACHINE, split by result KIND (also the user's ruling):
 
-- `<machine>/bench/` — the STANDARD bench harness (`scripts/bench/run.js`):
+- `<machine>/bench/` — the STANDARD bench harness (`bench/harness/run.js`):
   feature-level runs through the app pipeline (TTFT/tok-s with cache effects).
   The harness always runs on the desktop, so it writes new dated runs into
   `desktop-rtx-2070s/bench/` by default (`-gpu`/`-cpu` suffix per config).
-- `<machine>/kit/` — the PORTABLE SPEED KIT (`E:\laptop-speed-kit`): raw
+- `<machine>/kit/` — the PORTABLE SPEED KIT (`bench/speed-kit/`, its ONE home): raw
   llama-bench matrices + detect-facts, comparable across machines (same build,
   same models, same script). Copy a machine's returned `results*.jsonl` +
   `bench-log*.txt` + `detect-facts.txt` here and commit.

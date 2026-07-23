@@ -1,6 +1,6 @@
 // Unit-test harness (ledger E2) — pure-JS service/composable tests, node
 // environment, NO browser. The renderer gate stays the Playwright headless
-// smoke (scripts/headless-smoke.mjs); this covers logic the smoke can't reach
+// smoke (tests/smoke/headless-smoke.js); this covers logic the smoke can't reach
 // deterministically (cache seams, parsers, mappers). Run: npm run test:unit
 //
 // COMPONENT tests (2026-07-16): the vue plugin lets a single SFC be MOUNTED for a
@@ -35,6 +35,6 @@ export default defineConfig({
     // scripts/** carries the bench harness's pure-JS units (config validation,
     // llama-bench output parsing, summary rendering, restore round-trip) — the
     // parts of the harness that can be gated without models or a box.
-    include: ["src/renderer/src/**/*.test.js", "scripts/**/*.test.js"],
+    include: ["src/renderer/src/**/*.test.js", "bench/harness/**/*.test.js"],
   },
 });

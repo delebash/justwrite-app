@@ -665,3 +665,58 @@ closed); or a real Mac/Linux port (adds kit-common.sh mirrors of the facts file)
 OPEN from this pass: E2B/E4B not yet downloaded into the stocked master kit (~6.4 GB — one
 `run.ps1` there, or on the laptop itself); the 16 GB laptop run itself; its results folder name
 under `bench-results/<machine>/kit/` (user's naming call when the results come back).
+
+## 11. THE REPO REORG + THE CROSS-PLATFORM KIT — bench/ + tests/ roots, sh mirrors, one home (2026-07-23)
+
+What changed and why. The user's ruling ("things should be labeled and organized, instead of
+lumped in scripts folder … tests in test folder, bench in bench … scripts is for app function"):
+the repo grew two labeled roots. `bench/` holds `harness/` (was `scripts/bench/` — the
+app-pipeline bench), `speed-kit/` (was `scripts/speed-kit/` — the portable kit), and `results/`
+(was `bench-results/`). `tests/` holds `smoke/` (headless-smoke.js + book-smoke.js, was loose in
+`scripts/`), `lib/` (smoke-common.js, was `scripts/lib/`), and `probes/` (the 19 one-off probe/
+verification scripts that had accumulated in `scripts/`). `scripts/` is back to app function only
+(bump.js, release.js). `e2e/` stays at root — the user cited it as the good example, and no
+ruling moved it. All moves are `git mv` (history preserved). Every live reference was
+grep-enumerated and updated in the same commit: package.json (bench/bench:gpu/bench:cpu),
+vitest.config.js (the include pattern `bench/harness/**/*.test.js` + its stale `.mjs` comment),
+the harness's own outDir/usage strings (`bench/harness/run.js`), the real imports
+(`bench/harness/lib/drive.js`/`server.js` → `../../../tests/lib/smoke-common.js`; the smokes →
+`../lib/smoke-common.js`), config self-doc strings, CLAUDE.md's tooling paragraph,
+MORNING_RECAP.md, docs/TASKS.md live lines, docs/bench.md, and both READMEs. Historical
+summary.md files inside results keep their old-path text (they are generated history).
+
+The kit's ONE home + retirement. `E:\laptop-speed-kit` is GONE (the user: "we are not using the
+e:\laptop speed kit, confusing to use both"). Before deletion: the laptop's raw `results.jsonl`
+(75,092 B) + `bench-log.txt` (36,608 B) — which existed ONLY there — were salvaged into
+`bench/results/laptop-core-ultra-7/kit/` (its detect-facts.txt proved byte-identical to the git
+copy modulo CRLF); the two stocked models (12B 6.7 GB, MoE 14.2 GB) and the engine zip moved into
+the repo kit's git-ignored `models/`/`engine/` (the ignore guard re-proven at the new path);
+everything else was script copies or the rebuildable unpacked engine. The kit README, TASKS.md
+and bench/results/README.md now name `bench/speed-kit/` as the one home.
+
+Cross-platform (the user's directive I had wrongly deferred: "bat for windows, sh for mac
+linux"). The kit gained the sh face: `kit-common.sh` (THE SAME FACTS as kit-common.ps1 — pin,
+model list, fit rule as integer math, curl-HEAD sizing, kit_log; cross-referenced headers both
+ways: change one, change both), `run.sh` (detect → PLAN → [Y/n/s] confirm → run; --yes /
+--plan-only / --ram-gb / --build; KIT_OS/KIT_ARCH env overrides for off-target testing),
+`download-models.sh` (.part + size-check + rename, per-build engine dir, failure summary + exit
+1), `detect-facts.sh`, `run-bench.sh` (3 phases, grep-based resume on the printf'd JSON lines,
+RAM-guard backstop). Engine assets were HEAD-verified against the b10083 release API — the
+guessed names were WRONG (.zip) and the real ones are .tar.gz (`ubuntu-vulkan-{x64,arm64}`,
+`macos-{arm64,x64}`); a `.gitattributes` forces `.sh`=LF / `.ps1`/`.bat`=CRLF so a kit copied
+from any machine runs on any other. Bash 3.2-safe throughout (macOS stock bash).
+
+How it was verified. 429 vitest tests pass from the new paths (the bench harness suites
+discovered under `bench/harness/`), build:vite green, all five ps1 parse-clean from the new home,
+all five sh parse-clean (`bash -n`), and TWO live plan runs: `run.ps1 -PlanOnly` (32 GB real:
+stocked models show "have", engine "zip here - will unpack", download 6.37 GB) and
+`KIT_OS=linux KIT_ARCH=x64 bash run.sh --plan-only --ram-gb 16` (Git Bash: the verified
+ubuntu-vulkan asset named, MoE SKIP at 11.2 GB, test 2 auto-skipped — the sh logic runs end-to-end
+on the plan path). A final grep sweep shows zero stale `scripts/bench|bench-results|scripts/
+speed-kit` references outside generated history and the probes' historical comments. NOT tested:
+a real Mac/Linux box (first run there is the sh side's true test — honest caveat in the README),
+the full bench, the interactive keystrokes.
+
+What would reverse it. A ruling to move `e2e/` under `tests/` (one git mv + package.json line);
+un-retiring a stocked master copy outside the repo (re-opens two-home drift — don't); a kit model
+whose filename gains spaces (run-bench.sh's word-split model loop would need quoting rework).

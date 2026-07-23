@@ -3,27 +3,34 @@
 Measures any Windows machine's real LLM speed (iGPU/GPU via Vulkan + CPU) with
 raw llama-bench — same build, same models, same script everywhere, so numbers
 compare across machines. Results are committed under
-`bench-results/<machine>/kit/` (see that README).
+`bench/results/<machine>/kit/` (see that README).
 
-## Run it (any Windows machine, no dev tools needed)
+## Run it (no dev tools needed)
 
-0. PREREQUISITE: Microsoft Visual C++ Redistributable x64
-   (aka.ms/vs/17/release/vc_redist.x64.exe) — a missing VCRUNTIME140 dll error
-   on launch means this. Vulkan itself ships inside the normal GPU driver.
-1. Copy this folder to the machine.
-2. **Double-click `run.bat`.** It detects the machine, prints the PLAN — RAM +
-   GPU, the engine build, every model with its size and have/download/SKIP
-   status, total download vs free disk, and the three tests — then asks
-   `Proceed? [Y/n/s]` before a byte is downloaded (detection proposes, never
-   dictates). `s` picks a subset of tests. Then it downloads what fits, runs
-   detect-facts, and benches. Hours on slow machines; fully RESUMABLE — rerun
-   skips finished combos, failed combos retry, existing probes skip.
-3. Send back `results.jsonl` + `bench-log.txt` + `quality-probe-*.txt` +
-   `detect-facts.txt` → they get committed to `bench-results/<machine>/kit/`.
+**Windows:** copy this folder → **double-click `run.bat`**. (Prerequisite:
+Microsoft Visual C++ Redistributable x64 — aka.ms/vs/17/release/vc_redist.x64.exe;
+a missing VCRUNTIME140 dll error means this. Vulkan ships inside the GPU driver.)
 
-Flags (pass to `run.bat` or `run.ps1`): `-PlanOnly` print the plan and stop ·
-`-Yes` no prompt (unattended) · `-RamGB 16` override detected RAM (bad detection,
-or dry-running another machine's fit) · `-Build b10xxx` deliberate engine re-test.
+**Mac / Linux:** copy this folder → `bash run.sh`. Same flow, `--flag` spelling
+(`--plan-only` · `--yes` · `--ram-gb 16` · `--build b10xxx`). Engine assets:
+ubuntu-vulkan / macos (Metal), names verified against the release. HONEST CAVEAT:
+the sh side is logic-tested from this repo but has not yet run on a real Mac/Linux
+box — first run there is its real test.
+
+Either entry detects the machine, prints the PLAN — RAM + GPU, the engine build,
+every model with its size and have/download/SKIP status, total download vs free
+disk, and the three tests — then asks `Proceed? [Y/n/s]` before a byte is
+downloaded (detection proposes, never dictates). `s` picks a subset of tests.
+Then it downloads what fits, runs detect-facts, and benches. Hours on slow
+machines; fully RESUMABLE — rerun skips finished combos, failed combos retry,
+existing probes skip. When done, send back `results.jsonl` + `bench-log.txt` +
+`quality-probe-*.txt` + `detect-facts.txt` → committed to
+`bench/results/<machine>/kit/`.
+
+Windows flags (pass to `run.bat` or `run.ps1`): `-PlanOnly` print the plan and
+stop · `-Yes` no prompt (unattended) · `-RamGB 16` override detected RAM (bad
+detection, or dry-running another machine's fit) · `-Build b10xxx` deliberate
+engine re-test.
 
 ## The tests
 
@@ -59,20 +66,23 @@ are **downloaded per machine** by `download-models.ps1`, never committed (see
 `.gitignore`).
 
 ```
-scripts/speed-kit/
+bench/speed-kit/
   README.md            this file
-  run.bat              DOUBLE-CLICK THIS — launcher for run.ps1
+  run.bat              Windows: DOUBLE-CLICK THIS — launcher for run.ps1
   run.ps1              the one click: detect → PLAN → confirm → download → bench
-  kit-common.ps1       ONE source: engine pin, model list, fit rule, log helper
+  kit-common.ps1       ONE source (Windows face): engine pin, model list, fit rule, log
   download-models.ps1  fit-filtered fetch of engine + models (standalone-safe)
   detect-facts.ps1     hardware facts + what Vulkan sees
   run-bench.ps1        the 3-phase benchmark (standalone-safe; -Phases subset)
-  models/              (git-ignored) the .gguf set lands here
-  engine/<build>/      (git-ignored) the pinned llama.cpp Vulkan build, per-build dir
+  run.sh               Mac/Linux: the same one click (bash run.sh)
+  kit-common.sh        the SAME facts, sh face — change one, change BOTH
+  download-models.sh   } sh mirrors of the ps1 scripts
+  detect-facts.sh      }
+  run-bench.sh         }
+  .gitattributes       forces .sh=LF, .ps1/.bat=CRLF (copies must run anywhere)
+  models/              (git-ignored) the .gguf set lands here — SHARED by both faces
+  engine/<build>/      (git-ignored) the per-OS engine build, per-build dir
 ```
 
 If PowerShell blocks scripts run by hand: `powershell -ExecutionPolicy Bypass -File .\<script>`
-(`run.bat` already does this for you). Mac/Linux `.sh` runners are deliberately
-NOT here yet — Windows first (the user's sequencing ruling, 2026-07-22); the port
-is mechanical when its turn comes (llama.cpp ships ubuntu-vulkan + macos-arm64
-assets; every kit fact lives in kit-common.ps1).
+(`run.bat` already does this for you).

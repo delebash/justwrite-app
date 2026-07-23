@@ -22,9 +22,9 @@
     "test:unit": "vitest run",
     "test:server": "cd server && python -m pytest -q",
     "test:fast": "npm run test:unit && npm run build:vite && npm run test:server",
-    "bench": "node scripts/bench/run.js",
-    "bench:gpu": "npm run bench -- --config scripts/bench/configs/gpu.json --autostart",
-    "bench:cpu": "npm run bench -- --config scripts/bench/configs/cpu.json --autostart",
+    "bench": "node bench/harness/run.js",
+    "bench:gpu": "npm run bench -- --config bench/harness/configs/gpu.json --autostart",
+    "bench:cpu": "npm run bench -- --config bench/harness/configs/cpu.json --autostart",
     "dup": "jscpd"
   },
   "dependencies": {

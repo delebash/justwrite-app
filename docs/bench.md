@@ -11,7 +11,7 @@ npm run bench:gpu                            # run the GPU band
 npm run bench:cpu -- --legs cpu-gemma-26b    # measure ONE leg
 npm run bench:cpu -- --missing               # measure only legs never measured yet
 npm run bench:cpu -- --report                # print the band's table — runs nothing
-npm run bench -- --restore bench-results/2026-07-19_21-04-11-cpu   # crash recovery
+npm run bench -- --restore bench/results/2026-07-19_21-04-11-cpu   # crash recovery
 ```
 
 **The bench always runs headless — the terminal is the view.** It drives the
@@ -115,7 +115,7 @@ hand does *not* do this unless you set `JUSTWRITE_DATA_DIR` yourself.
   **snapshotted to `restore.json` before the first write** and restored at the
   end, on Ctrl-C, and via `--restore`.
 - Model weights it had to download (a normal product action).
-- The `bench-results/` folder (git-ignored).
+- The `bench/results/` folder (git-ignored).
 
 **Never touched:** tune rows, switch bundles, hardware rows, the engine
 directory, `models.ini`, and — emphatically — **there is no DB reset anywhere in
@@ -129,7 +129,7 @@ the bench**. A reset would delete Smart-Add model rows, tunes and measurements.
 ## Reading the results
 
 ```
-bench-results/<run-id>/
+bench/results/<run-id>/
   summary.md                  ← start here
   config.json                 the resolved config (defaults applied)
   env.json                    engine build · GPU/driver · CPU/RAM · app sha
@@ -189,7 +189,7 @@ that is what keeps the harness token-free.
 
 ## Writing a config
 
-`scripts/bench/configs/example.json` documents every field with its default.
+`bench/harness/configs/example.json` documents every field with its default.
 `gpu.json` and `cpu.json` are the two real ones.
 
 Feature keys are the app's action ids — `chat`, `characterChat`, `entitySweep`,
@@ -204,7 +204,7 @@ if a model is ambiguous (the resolver refuses to guess between equal matches).
 ## If a run dies
 
 ```bash
-npm run bench -- --restore bench-results/<run-id>
+npm run bench -- --restore bench/results/<run-id>
 ```
 
 Re-applies the assignment snapshot and verifies it by re-reading. Everything

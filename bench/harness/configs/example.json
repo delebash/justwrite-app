@@ -7,7 +7,7 @@
     "A LEG = one (model × launch switches × request tunables) combination. Legs run in",
     "order against the same book and the same features, so they are comparable.",
     "",
-    "Run:  npm run bench -- --config scripts/bench/configs/example.json --dry"
+    "Run:  npm run bench -- --config bench/harness/configs/example.json --dry"
   ],
 
   "_band": "Which standing question this config answers — the real configs are the two bands, gpu.json and cpu.json. Cosmetic label in summaries + used for the run-hint commands.",

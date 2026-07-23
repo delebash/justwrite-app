@@ -20,7 +20,7 @@ import { fileURLToPath } from "node:url";
 // findChrome/waitReady/sleep are SHARED (extracted 2026-07-19) — this script,
 // book-smoke, and the bench harness all launch Chromium the same way, and
 // CLAUDE.md forbids a hand-rolled/hardcoded browser path. One copy: scripts/lib.
-import { findChrome, sleep, waitReady } from "./lib/smoke-common.js";
+import { findChrome, sleep, waitReady } from "../lib/smoke-common.js";
 
 const require = createRequire(import.meta.url);
 const { chromium } = require("playwright");

@@ -5,7 +5,7 @@
 // wrong. Nothing is scored here — accuracy is judged by reading the captured
 // outputs, which is the whole point of a token-free harness.
 //
-//   bench-results/<run-id>/
+//   bench/results/<run-id>/
 //     config.json            the resolved config (defaults applied)
 //     env.json               engine build · GPU/driver · CPU/RAM · app sha
 //     restore.json           the pre-run assignment map
@@ -219,7 +219,7 @@ export function renderSummary({ id, config, env, legs, startedAt, finishedAt, re
       out.push(`| ${f} | ${cells.join(" | ")} |`);
     }
     out.push("");
-    out.push(`_Cells: wall (median) · completion tokens. The numbers show the COST of the difference (e.g. thinking); QUALITY is judged by reading the captures side by side — \`bench-results/${id}/<NN>-<legId>/<feature>-<n>.json\` for each leg._`);
+    out.push(`_Cells: wall (median) · completion tokens. The numbers show the COST of the difference (e.g. thinking); QUALITY is judged by reading the captures side by side — \`bench/results/${id}/<NN>-<legId>/<feature>-<n>.json\` for each leg._`);
     out.push("");
   }
 

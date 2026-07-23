@@ -12,7 +12,7 @@
 import { spawn } from "node:child_process";
 import { createRequire } from "node:module";
 import { resolveAppDataRoot } from "./dataRoot.js";
-import { findChrome, isUp, sleep, waitReady } from "../../lib/smoke-common.js";
+import { findChrome, isUp, sleep, waitReady } from "../../../tests/lib/smoke-common.js";
 
 const require = createRequire(import.meta.url);
 const { chromium } = require("playwright");

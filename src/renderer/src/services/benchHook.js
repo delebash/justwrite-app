@@ -1,4 +1,4 @@
-// Bench hook — the DEV-only seam the bench harness (`scripts/bench/`) drives.
+// Bench hook — the DEV-only seam the bench harness (`bench/harness/`) drives.
 //
 // WHY A HOOK AND NOT UI CLICKS: chat, character chat and the sweep assemble
 // their prompts CLIENT-side (retrieval → cited excerpts → runAiFeatureStream),

@@ -28,9 +28,10 @@ $gpus = @(Get-CimInstance Win32_VideoController -ErrorAction SilentlyContinue | 
 if (-not $gpus) { $gpus = @("(no display adapter reported)") }
 $cpu = (Get-CimInstance Win32_Processor -ErrorAction SilentlyContinue | Select-Object -First 1).Name
 
-$engineZipHave = $false
+$engineState = "will download (~32 MB)"
 $engineExe = Get-ChildItem -Recurse (Join-Path $root "engine") -Filter "llama-bench.exe" -ErrorAction SilentlyContinue | Select-Object -First 1
-if ($engineExe) { $engineZipHave = $true }
+if ($engineExe) { $engineState = "already present" }
+elseif (Test-Path (Join-Path $root ("engine\llama-$KitBuild-bin-win-vulkan-x64.zip"))) { $engineState = "zip here - will unpack" }
 
 Write-Host "Sizing models (local file or HTTP HEAD - nothing is downloaded)..."
 $fit = @(Get-KitFit $ramBytes $root)
@@ -42,11 +43,7 @@ Write-Host ""
 Write-Host "================ PLAN ================"
 Write-Host ("Machine : {0:N0} GB RAM{1} - {2}" -f ($ramBytes/1GB), $ramNote, $cpu)
 foreach ($g in $gpus) { Write-Host ("GPU     : {0}" -f $g) }
-if ($engineZipHave) {
-  Write-Host ("Engine  : {0} win-vulkan - already present" -f $KitBuild)
-} else {
-  Write-Host ("Engine  : {0} win-vulkan - will download (~32 MB)" -f $KitBuild)
-}
+Write-Host ("Engine  : {0} win-vulkan - {1}" -f $KitBuild, $engineState)
 Write-Host ("Fit rule: model file <= {0} GB ({1} x RAM)" -f [math]::Round($fitMax/1GB,1), $KitFitFactor)
 Write-Host "Models  :"
 foreach ($m in $fit) {
@@ -76,7 +73,7 @@ if ($moeFits) {
 }
 Write-Host "  [3] quality probe     one short generation per model (minutes)"
 Write-Host "Results : results.jsonl + bench-log.txt + quality-probe-*.txt + detect-facts.txt"
-Write-Host "          -> copy back into bench-results/<machine>/kit/ in the repo"
+Write-Host "          -> copy back into bench/results/<machine>/kit/ in the repo"
 Write-Host "======================================"
 Write-Host ""
 if ($PlanOnly) { Write-Host "(-PlanOnly: stopping here.)"; exit 0 }

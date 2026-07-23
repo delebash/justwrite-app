@@ -24,11 +24,17 @@
   `[Y/n/s(elect)]` → fit-filtered downloads (`.part` + size-check, no corrupt masquerade,
   everything logged to bench-log.txt) → detect-facts → bench. `kit-common.ps1` = the ONE source
   (pin b10083 · 0.7 fit factor · model list incl. E2B/E4B). Flags: `-Yes/-PlanOnly/-RamGB/-Build`.
-  16 GB path proven by dry-run (`-RamGB 16`: MoE skipped, 12.6 GB download). Master kit synced.
-  **USER ACTION (16 GB laptop): copy `E:\laptop-speed-kit` (or just the scripts) → double-click
-  `run.bat` → Y → bring back the four files.** OPEN: E2B/E4B not yet in the stocked kit (~6.4 GB);
+  16 GB path proven by dry-run (`-RamGB 16`: MoE skipped, 12.6 GB download).
+  **2026-07-23 reorg: the kit's ONE home is `bench/speed-kit/`** (root `bench/` = harness ·
+  speed-kit · results; root `tests/` = smoke · probes · lib; `E:\laptop-speed-kit` RETIRED —
+  models moved into the repo kit's git-ignored `models/`, raw laptop results salvaged into
+  `bench/results/laptop-core-ultra-7/kit/`). Cross-platform: `run.sh` + `kit-common.sh` etc.
+  for Mac/Linux (untested on a real Mac/Linux box — honest caveat).
+  **USER ACTION (16 GB laptop): copy `bench/speed-kit/` → double-click `run.bat` → Y →
+  bring back the four files.** OPEN: E2B/E4B not yet downloaded into the kit (~6.4 GB);
   results-folder name for the new machine (your naming call when files return).
-- **UPDATE 2026-07-22 (latest): the LAPTOP SPEED KIT IS BUILT** — `E:\laptop-speed-kit` (20 GB,
+- **UPDATE 2026-07-22 (latest): the LAPTOP SPEED KIT IS BUILT** — was `E:\laptop-speed-kit`
+  (RETIRED 2026-07-23 — one home now: `bench/speed-kit/`; entry kept as history) (20 GB,
   desktop-verified; full record in the recovery doc §6). USER ACTION: copy the folder to the
   Core Ultra 7 laptop, unzip the engine, run the two scripts, bring back `detect-facts.txt` +
   `results.jsonl` + `bench-log.txt`. Those three files then decide: the iGPU speed verdict,
@@ -78,7 +84,7 @@
   keys — needs a reseed, not a restore** (nested un-restored runs; detail §3). Clean legs stand:
   gemma-26b 9.4 tok/s / 53 s TTFT · gemma-12b 96–130 s TTFT. Then: GPU rag/bible legs · CPU rag
   (gated) · the iGPU band (laptop; portable speed kit). The GPU Qwen head-to-head completed
-  overnight (`bench-results/2026-07-22_03-28-55-gpu/summary.md`) — answer-key judging still owed.
+  overnight (`bench/results/desktop-rtx-2070s/bench/2026-07-22_03-28-55-gpu/summary.md`) — answer-key judging still owed.
   Full record: `docs/plans/2026-07-22-igpu-research-and-cpu-band-recovery.md`.
 - **Boot splash restyle (2026-07-21, SHIPPED)** — the loading screen redone to a warm CREAM
   ground (not near-white) with the brand **JW** mark + a thin green ring instead of a bare
@@ -134,7 +140,7 @@
   mirror the Gemma battery on `qwen3.6-35b-a3b-mtp` (same questions + ANSWER KEYS) so the two catalog
   flagships compare directly — run `--legs gpu-qwen-35b,gpu-qwen-35b-hq1,gpu-qwen-35b-hq1-think,gpu-qwen-35b-hq2,gpu-qwen-35b-hq2-think`
   (needs a ~23 GB download first). The CPU band already carries `cpu-bonsai-27b` (Ternary Bonsai · Q2_g64 —
-  Smart-Add first; known load-risk noted). Both configs self-document in `scripts/bench/configs/{gpu,cpu}.json`.
+  Smart-Add first; known load-risk noted). Both configs self-document in `bench/harness/configs/{gpu,cpu}.json`.
 - **Panel-dismiss decisions (2026-07-19) — both resolved 2026-07-20, no code change.**
   (a) `AGENTS.md` §5 amendment BLESSED (panels use `usePanelDismiss`, not a backdrop —
   the shipped panel-closes-and-nav-lands behavior is correct). (b) Cross-panel toggle
@@ -256,7 +262,7 @@
   fit/QuickSetup and whether the no-GPU empty-state copy softens. **Now automated —
   run `npm run bench:gpu` once for the baseline, then `npm run bench:cpu`** (always
   headless — watch the terminal; `--legs cpu-gemma-26b` for the one leg needing
-  no download), then hand back `bench-results/<run-id>/summary.md`. The CPU band recalls
+  no download), then hand back `bench/results/<run-id>/summary.md`. The CPU band recalls
   the GPU baseline from the store rather than re-running it. `cpu-gemma-12b`,
   `cpu-qwen-35b` and `cpu-bonsai-27b` each need a download first (Bonsai also needs a
   Smart Add — repo `prism-ml/Ternary-Bonsai-27B-gguf`, file
@@ -266,7 +272,7 @@
   `just-llm-runner/docs/plans/2026-07-19-cpu-inference-research.md`.
 - **19 probe scripts still carry a Linux-only `findChrome()` (2026-07-19).** An unfiltered
   grep found 20 copies of it under `scripts/`; the two GATES (`headless-smoke`,
-  `book-smoke`) plus the bench now import the shared `scripts/lib/smoke-common.js`, which
+  `book-smoke`) plus the bench now import the shared `tests/lib/smoke-common.js`, which
   also handles Windows/macOS layouts. The remaining 19 (`rag-probe`, `chip-probe`,
   `switch-probe`, `shot.js`, `reset-ui-test.js`, …) are one-off probes for shipped work
   and **cannot find a browser on Windows at all**. Convert them to the shared import, or
@@ -278,7 +284,7 @@
   is built and unit-green but has **never run end-to-end**: no feature run has reached a
   live model through it, and `--restore` is proven only against a fake client. Owed: one
   full run (the CPU-band config above) and one deliberate mid-leg kill → `npm run bench --
-  --restore bench-results/<run-id>` → confirm the Routing tab shows the original
+  --restore bench/results/<run-id>` → confirm the Routing tab shows the original
   assignments (the escape proven to FIRE). *(2026-07-20: the `--headed`/`--tauri` watch
   modes were removed — the bench is headless-only, the terminal is the view — so the old
   "one `--tauri` attach" leg of this check no longer exists.)* Detail:

@@ -151,7 +151,7 @@ record. Collapse a line into one word once it stops mattering.
   the renderer gate can't run there for lack of Chromium — false. Playwright 1.61 + its
   browsers are present (`%LOCALAPPDATA%\ms-playwright\chromium-1228\chrome-win64\chrome.exe`,
   launched successfully). The real cause was `findChrome()` scanning **Linux paths only**;
-  it now lives once in `scripts/lib/smoke-common.js` and handles Windows/macOS layouts.
+  it now lives once in `tests/lib/smoke-common.js` and handles Windows/macOS layouts.
   The renderer gate has still never actually been RUN on that box — but it is no longer
   known-impossible, and that is worth re-testing before repeating the old claim.
 

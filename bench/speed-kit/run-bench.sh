@@ -1,0 +1,112 @@
+#!/usr/bin/env bash
+# run-bench.sh - sh mirror of run-bench.ps1: PHASE 1 the 16-combo matrix,
+# PHASE 2 the n_cpu_moe sweep (MoE only), PHASE 3 the quality probe. One JSON
+# line per combo appended to results.jsonl (resumable: successful combos are
+# skipped on rerun, failures retry). Human log in bench-log.txt.
+#   --phases "1,3"  run a subset (default all)
+#   --ram-gb 16     override detected RAM for the fit guard
+set -u
+ROOT="$(cd "$(dirname "$0")" && pwd)"
+. "$ROOT/kit-common.sh"
+
+PHASES="1,2,3"; RAM_GB=0
+while [ $# -gt 0 ]; do
+  case "$1" in
+    --phases) shift; PHASES="$1" ;;
+    --ram-gb) shift; RAM_GB="$1" ;;
+    *) echo "unknown flag: $1"; exit 2 ;;
+  esac
+  shift
+done
+RESULTS="$ROOT/results.jsonl"
+LOG="$ROOT/bench-log.txt"
+phase_on() { case ",$PHASES," in *,"$1",*) return 0 ;; *) return 1 ;; esac; }
+
+# Prefer the pinned build's dir; fall back to any engine binary (legacy kits).
+BENCH="$(find "$ROOT/engine/$KIT_BUILD" -name llama-bench -type f 2>/dev/null | head -1)"
+[ -n "$BENCH" ] || BENCH="$(find "$ROOT/engine" -name llama-bench -type f 2>/dev/null | head -1)"
+if [ -z "$BENCH" ]; then echo "llama-bench not found - run download-models.sh first (see README)"; exit 1; fi
+
+# Model set = files on disk, smallest first, RAM-fit guarded (mirror of the ps1
+# guard - the backstop for hand-copied models; download-models filters too).
+RAM_BYTES="$(kit_ram_bytes "$RAM_GB")"
+MODELS=""
+for f in $(ls -Sr "$ROOT"/models/*.gguf 2>/dev/null); do
+  SIZE="$(kit_file_size "$f")"
+  if [ "$(kit_fits "$SIZE" "$RAM_BYTES")" = 0 ]; then
+    kit_log "$ROOT" "SKIPPED (ram-fit): $(basename "$f")"
+  else
+    MODELS="$MODELS $f"
+  fi
+done
+if [ -z "$MODELS" ]; then echo "no fitting .gguf files in models/"; exit 1; fi
+
+echo "=== run-bench $(date -u '+%Y-%m-%dT%H:%M:%SZ') - engine $BENCH - phases $PHASES ===" >> "$LOG"
+
+run_combo() {  # $1 file, $2 ngl, $3 ub, $4 fa
+  local base key raw
+  base="$(basename "$1")"
+  key="\"kitModel\":\"$base\",\"kitNgl\":$2,\"kitUb\":$3,\"kitFa\":$4"
+  if grep -Fq "{$key,\"rows\":" "$RESULTS" 2>/dev/null; then
+    echo "skip (done): $base ngl=$2 ub=$3 fa=$4"; return
+  fi
+  echo "RUN: $base ngl=$2 ub=$3 fa=$4  (pp512/2048/8192 + tg128)"
+  echo "--- $base|$2|$3|$4 $(date -u '+%Y-%m-%dT%H:%M:%SZ')" >> "$LOG"
+  raw="$("$BENCH" -m "$1" -ngl "$2" -ub "$3" -fa "$4" -p "512,2048,8192" -n 128 -o json 2>>"$LOG")"
+  if [ $? -ne 0 ] || [ -z "$raw" ]; then
+    echo "FAILED: $base|$2|$3|$4" >> "$LOG"
+    printf '{%s,"failed":true}\n' "$key" >> "$RESULTS"
+    return
+  fi
+  printf '{%s,"rows":%s}\n' "$key" "$(echo "$raw" | tr -d '\n')" >> "$RESULTS"
+}
+
+if phase_on 1; then
+  for f in $MODELS; do
+    for ngl in 99 0; do for ub in 512 2048; do for fa in 1 0; do
+      run_combo "$f" "$ngl" "$ub" "$fa"
+    done; done; done
+  done
+else echo "phase 1 (matrix): not selected - skipped"; fi
+
+# PHASE 2: ncmoe sweep - experts to CPU at the known-good shape (ngl 99, fa 0, ub 512).
+if phase_on 2; then
+  MOE=""
+  for f in $MODELS; do case "$f" in *A4B*) MOE="$f"; break ;; esac; done
+  if [ -n "$MOE" ]; then
+    for nc in 0 8 16 24 32 40 48; do
+      if grep -Fq "{\"kitNcmoe\":$nc,\"rows\":" "$RESULTS" 2>/dev/null; then
+        echo "skip (done): ncmoe=$nc"; continue
+      fi
+      echo "RUN sweep: $(basename "$MOE") ngl=99 fa=0 ub=512 ncmoe=$nc  (pp8192 + tg128)"
+      echo "--- ncmoe=$nc $(date -u '+%Y-%m-%dT%H:%M:%SZ')" >> "$LOG"
+      raw="$("$BENCH" -m "$MOE" -ngl 99 -fa 0 -ub 512 -ncmoe "$nc" -p 8192 -n 128 -o json 2>>"$LOG")"
+      if [ $? -ne 0 ] || [ -z "$raw" ]; then
+        echo "FAILED: ncmoe=$nc" >> "$LOG"
+        printf '{"kitNcmoe":%s,"failed":true}\n' "$nc" >> "$RESULTS"
+        continue
+      fi
+      printf '{"kitNcmoe":%s,"rows":%s}\n' "$nc" "$(echo "$raw" | tr -d '\n')" >> "$RESULTS"
+    done
+  else echo "no MoE (*A4B*) model fits - sweep phase skipped"; fi
+else echo "phase 2 (ncmoe sweep): not selected - skipped"; fi
+
+# PHASE 3: the quality probe - one short generation per model, for human eyes
+# (a broken backend writes garbage at full speed; llama-bench discards all text).
+if phase_on 3; then
+  CLI="$(find "$ROOT/engine/$KIT_BUILD" -name llama-cli -type f 2>/dev/null | head -1)"
+  [ -n "$CLI" ] || CLI="$(find "$ROOT/engine" -name llama-cli -type f 2>/dev/null | head -1)"
+  if [ -n "$CLI" ]; then
+    for f in $MODELS; do
+      base="$(basename "$f" .gguf)"
+      PROBE="$ROOT/quality-probe-$base.txt"
+      if [ -f "$PROBE" ]; then echo "skip (done): probe $base"; continue; fi
+      echo "PROBE: $base (ngl 99, ~120 tokens)"
+      "$CLI" -m "$f" -ngl 99 --single-turn --temp 0.2 -n 120 \
+        -p "Write a short paragraph describing an old lighthouse at dusk." > "$PROBE" 2>>"$LOG" \
+        || echo "PROBE FAILED: $base" >> "$LOG"
+    done
+  else echo "llama-cli not found - quality probe skipped"; fi
+else echo "phase 3 (quality probe): not selected - skipped"; fi
+
+echo "Done. Send back: results.jsonl + bench-log.txt + quality-probe-*.txt (+ detect-facts.txt)."

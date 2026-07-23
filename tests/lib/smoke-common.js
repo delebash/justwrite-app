@@ -1,6 +1,6 @@
 // Shared boot/browser helpers for every JW script that drives the renderer with
 // Playwright — `headless-smoke.js`, `book-smoke.js`, and the bench harness
-// (`scripts/bench/`).
+// (`bench/harness/`).
 //
 // WHY: CLAUDE.md's law is "any new Playwright script must reuse that
 // findChrome() ... never hardcode the path" — a hardcoded path silently falls

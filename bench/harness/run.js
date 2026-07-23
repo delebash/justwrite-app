@@ -1,9 +1,9 @@
 #!/usr/bin/env node
 // The LLM bench runner.
 //
-//   npm run bench -- --config scripts/bench/configs/cpu-band.json
+//   npm run bench -- --config bench/harness/configs/cpu-band.json
 //   npm run bench -- --config <cfg> --dry             # print the plan, touch nothing
-//   npm run bench -- --restore bench-results/<run-id> # crash recovery
+//   npm run bench -- --restore bench/results/<run-id> # crash recovery
 //
 // Always HEADLESS (2026-07-20, the user's ruling): the bench drives services
 // through the bench hook, so a window has nothing to show — progress is watched
@@ -41,8 +41,8 @@ function parseArgs(argv) {
     config: "", dry: false, restore: "", legs: null,
     // Machine-organized results (user ruling 2026-07-23): the harness always runs
     // on THIS box, so its runs file under the desktop machine folder's bench/;
-    // kit returns from other machines go under <machine>/kit/ (bench-results/README.md).
-    resume: "", outDir: join(REPO_ROOT, "bench-results", "desktop-rtx-2070s", "bench"), autostart: false,
+    // kit returns from other machines go under <machine>/kit/ (bench/results/README.md).
+    resume: "", outDir: join(REPO_ROOT, "bench", "results", "desktop-rtx-2070s", "bench"), autostart: false,
     report: false, missing: false,
   };
   for (let i = 0; i < argv.length; i++) {
@@ -132,7 +132,7 @@ async function main() {
     console.log(`
 JustWrite LLM bench — run models × switches through the real app, capture everything.
 
-  --config <path>   bench config — a BAND (scripts/bench/configs/gpu.json | cpu.json)
+  --config <path>   bench config — a BAND (bench/harness/configs/gpu.json | cpu.json)
   --legs a,b        measure only these leg ids (the rest are recalled from the store)
   --missing         measure only legs that have no stored result yet
   --report          print the band's table from stored results — runs NOTHING
@@ -142,7 +142,7 @@ JustWrite LLM bench — run models × switches through the real app, capture eve
 Always headless — the bench drives services through the app's bench hook, so there
 is nothing to watch in a window; progress prints here. Simplest setup: have your
 app running (npm run dev) and the bench connects to its server + engine.
-  --out <dir>       results root (default: bench-results/desktop-rtx-2070s/bench/)
+  --out <dir>       results root (default: bench/results/desktop-rtx-2070s/bench/)
   --restore <dir>   re-apply the assignment snapshot from a previous run and exit
 
 Results are keyed by LEG ID and accumulate across runs, so measuring one new leg

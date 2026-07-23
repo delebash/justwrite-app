@@ -9,7 +9,7 @@
 //   /v1/llm-runner/measure           runner/api.py:350
 //   /v1/llm-runner/engine/status     runner/api.py:272
 
-import { sleep } from "../../lib/smoke-common.js";
+import { sleep } from "../../../tests/lib/smoke-common.js";
 
 export class ServerError extends Error {
   constructor(method, path, status, body) {

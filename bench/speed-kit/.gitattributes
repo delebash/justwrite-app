@@ -1,0 +1,7 @@
+# Line endings are load-bearing here: the kit folder gets file-copied from any
+# machine to any machine. A CRLF .sh breaks bash on Mac/Linux ("\r: command not
+# found"); .bat/.ps1 are safest CRLF on Windows. Force both, regardless of the
+# copying machine's git config.
+*.sh  text eol=lf
+*.ps1 text eol=crlf
+*.bat text eol=crlf

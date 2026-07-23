@@ -13,7 +13,7 @@
 import { createRequire } from "node:module";
 // Shared with headless-smoke + the bench harness (extracted 2026-07-19) — one
 // findChrome(), never a hardcoded browser path (the CLAUDE.md law).
-import { findChrome, sleep, waitReady } from "./lib/smoke-common.js";
+import { findChrome, sleep, waitReady } from "../lib/smoke-common.js";
 
 const require = createRequire(import.meta.url);
 const { chromium } = require("playwright");

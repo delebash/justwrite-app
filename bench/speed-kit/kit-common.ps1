@@ -1,5 +1,7 @@
 # kit-common.ps1 - the ONE source for the kit's shared facts + fit logic.
 # Dot-sourced by run.ps1 / download-models.ps1 / run-bench.ps1 - never run directly.
+# kit-common.sh is the Mac/Linux FACE OF THE SAME FACTS (pin, model list, fit
+# rule) - when one changes, change BOTH.
 # THE ENGINE PIN LIVES HERE AND ONLY HERE. Pinned (not "latest") because the kit's
 # job is cross-machine comparison: the build is a controlled variable (llama.cpp
 # lands several builds a day and Vulkan perf moves between them). Bumping = edit
