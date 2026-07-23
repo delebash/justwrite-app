@@ -5,6 +5,24 @@ raw llama-bench — same build, same models, same script everywhere, so numbers
 compare across machines. Results are committed under
 `bench-results/<machine>/kit/` (see that README).
 
+## Folder layout
+
+Only the scripts + the empty folder skeleton live in git — the models and engine
+are **downloaded per machine** by `download-models.ps1`, never committed (see
+`.gitignore`).
+
+```
+scripts/speed-kit/
+  README.md            this file
+  detect-facts.ps1     hardware facts + what Vulkan sees
+  download-models.ps1  fetches the pinned engine + model set into engine/ + models/
+  run-bench.ps1        the 3-phase benchmark (RAM-fit guard skips models too big for the box)
+  models/              (git-ignored) the .gguf set lands here
+  engine/              (git-ignored) the pinned llama.cpp Vulkan build is unzipped here
+```
+
+Outputs go to `bench-results/<machine>/kit/` in the repo (results ARE committed).
+
 ## Setup on a new machine (no dev tools needed)
 
 0. PREREQUISITE: Microsoft Visual C++ Redistributable x64

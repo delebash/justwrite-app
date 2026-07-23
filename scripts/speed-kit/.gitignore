@@ -1,0 +1,9 @@
+# Speed-kit runtime artifacts are DOWNLOADED by download-models.ps1, never committed.
+# Ruling: kit-in-repo = scripts + empty folder structure only, no model/engine binaries
+# (commit f1ce5bc "kit-in-repo + results-in-git rulings"). The script fetches the models
+# on each target machine; results go to bench-results/<machine>/kit/.
+/models/*
+/engine/*
+# ...but keep the empty folders so the intended layout is visible in the repo:
+!/models/.gitkeep
+!/engine/.gitkeep
