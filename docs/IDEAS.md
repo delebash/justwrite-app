@@ -32,6 +32,11 @@ M4→M5); no x86 numbers, and a dense 27B still touches every weight per token. 
 areas are instruction-following + tool use — exactly our JSON-extraction path. Zero
 independent evals.
 
+**Demo-repo findings (2026-07-23):** `github.com/PrismML-Eng/Bonsai-demo` is their official
+launcher (same fork release we staged, `prism-b9596-9fcaed7`); it RAM-tiers ctx (never `-c 0`),
+excludes g64 files by design, and reveals **ternary 8B / 4B / 1.7B + a 1-bit family** — a
+ternary 8B might fit the 8/16 GB classes outright. Full flag extraction: the recovery doc §12.
+
 **Trigger to promote:** the CUDA PR merges into a release we can pin **and** first
 independent evals appear → a 2070S **Lab A/B vs 26B-A4B** (the catalog's
 evidence-not-press-release law), plus a watch row in

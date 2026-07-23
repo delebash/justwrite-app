@@ -727,3 +727,45 @@ the full bench, the interactive keystrokes.
 What would reverse it. A ruling to move `e2e/` under `tests/` (one git mv + package.json line);
 un-retiring a stocked master copy outside the repo (re-opens two-home drift — don't); a kit model
 whose filename gains spaces (run-bench.sh's word-split model loop would need quoting rework).
+
+## 12. THE PRISM-FORK TEST — their own launcher's recipe, adopted (2026-07-23)
+
+Context. The 2026-07-23 pre-reboot session staged the PrismML fork test (their release
+`prism-b9596-9fcaed7`, CUDA + CPU builds, and the card-canonical `Ternary-Bonsai-27B-Q2_0.gguf`,
+7,165,121,600 bytes — all surviving in the dead session's scratchpad `prism-engine/`) and crashed
+the box on the first CUDA load: `-ngl 99` + auto ctx put 7.17 GB + KV onto the 8 GB 2070S,
+Windows WDDM oversubscription paged it into system RAM, an orphaned llama-cli thrashed, lockup.
+Two findings survived: our long-held `Q2_g64` is STRANDED (their current builds reject it —
+tensor-offset mismatch from an older converter; mainline still reads it but a dense 27B on the
+5700X blew the 10-minute ceiling, 0/10 runs), and the Q2_0 is the current-format file.
+
+The user pointed at `github.com/PrismML-Eng/Bonsai-demo` — their official launcher — and ruled
+"go" on adopting its recipe (the adopt-working-reference-code rule). Extracted, with receipts:
+`scripts/common.sh:157-195` — ctx is RAM-TIERED, never `-c 0`, their comment describing our crash
+verbatim ("memory-unaware, so with -ngl it picks the maximum and OOMs constrained machines");
+tiers ≤11 GB→8192 / ≤23→16384 / ≤35→32768 / ≤71→65536 / else 131072 (27B only).
+`common.sh:212-228` — ngl auto is BINARY (nvidia-smi→99, else 0), no partial split.
+`start_llama_server.sh:147-149` — 27B sampling: temp 0.7, top-p 0.95, top-k 20, min-p 0,
+`--jinja`, `-fa on`; a thinking model (`--reasoning-budget N` available).
+`start_llama_server.sh:26,30` — their picker EXCLUDES g64 by comment and code ("a leftover F16
+or g64 file must never be picked up") — the g64 question is closed in their own words.
+Tight-machine levers: opt-in 4-bit KV (`--cache-type-k q4_0 --cache-type-v q4_0`,
+`start:120-140`; optional kv-bias + `LLAMA_ATTN_ROT_DISABLE=1`), mmproj-to-CPU frees ~0.9 GiB
+(27B is a VLM; text-only needs no mmproj), opt-in dspark speculative (`-md *dspark-Q4_1*
+--spec-type draft-dspark --spec-draft-n-max <block_size> -ngld 999 -np 1`, ~1.8-2x decode,
+kills prompt cache). `scripts/download_binaries.sh:13` pins `prism-b9596-9fcaed7` — exactly
+what we staged; nothing re-downloads. NEW for the watch: ternary 8B/4B/1.7B (+ 1-bit family)
+exist — a ternary 8B could fit the 8/16 GB classes (IDEAS updated).
+
+The honest gap in their defaults for OUR card: tiers key on SYSTEM RAM, so their auto on this
+box would pick `-ngl 99 -c 32768` — the same oversubscription crash. The 2070S needs the budget
+keyed on VRAM.
+
+THE QUEUED RE-RUN (awaiting the user's "run leg 1"): LEG 1 = CPU quality probe, zero lockup
+risk — their CPU build, `-ngl 0 -c 8192`, THEIR sampling, lighthouse + two book-ish prompts,
+`-n` capped, file-redirected, background with a taskkill guard. LEG 2 (only if quality passes) =
+their CUDA build, `-c 8192` (VRAM-keyed tier), KV4 on, EXPLICIT partial `-ngl` from ~36 stepping
+up (~150 MB/layer, total ≤~7 GB), never 99/auto on 8 GB. Then llama-bench legs → results to
+`bench/results/desktop-rtx-2070s/prism-fork/`. What would reverse this: mainline CUDA PR #25707
+merging (the IDEAS promote-trigger — then the fork path is moot and the Lab A/B runs on a
+pinnable mainline release).
