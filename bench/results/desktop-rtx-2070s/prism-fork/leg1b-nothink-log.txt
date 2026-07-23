@@ -1,0 +1,8 @@
+=== prism leg 1b (thinking OFF) 2026-07-23 16:54:46 ===
+--- probe lighthouse start 16:54:46 ---
+--- probe lighthouse exit=0 17:03:09 (124=timeout) ---
+--- probe continuation start 17:03:09 ---
+--- probe continuation exit=0 17:12:08 (124=timeout) ---
+--- probe json-extract start 17:12:08 ---
+--- probe json-extract exit=0 17:20:49 (124=timeout) ---
+=== leg 1b done 2026-07-23 17:20:50 ===

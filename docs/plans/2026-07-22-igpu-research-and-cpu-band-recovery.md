@@ -806,3 +806,19 @@ the kit pin deliberately → add Bonsai-g64 → the laptops top-up (~8 combos + 
 The fork-on-laptops alternative (their win-vulkan builds, a second engine, numbers not
 kit-comparable) stays available but was not chosen — awaiting the desktop quality gate (leg 1b)
 before it's worth anyone's hours.
+
+**LEG 1b RAN (2026-07-23 16:54–17:20; artifacts committed).** The thinking-OFF re-probe using
+their non-27B flag set — and the flags DON'T WORK on the 27B: all three probes show
+`[Start thinking]` again and truncate in-thinking at -n 700 (their own script's comment said it:
+"The 27B is a thinking model and thinking stays on", start_llama_server.sh:83-84 — the
+`enable_thinking` template knob evidently doesn't exist in the 27B's template, and
+`--reasoning-budget 0` doesn't force-stop it on their b9596 build). What the six probes (1+1b)
+establish anyway: ZERO garbage across all runs (backend numerically sane); the JSON probe
+produced a COMPLETE, VALID, CORRECT array (all three characters, right roles) — inside thinking;
+prose drafts consistently competent. What remains impossible on CPU: ever seeing a FINAL emitted
+answer — 1.4-1.5 tok/s x an unstoppable ≥700-token thinking pass means every probe truncates;
+a complete answer needs -n ~2500 ≈ 30+ min per probe. VERDICT: the quality gate cannot be closed
+efficiently on CPU; LEG 2 (their CUDA build, the §12 safe recipe: -c 8192, KV4, explicit partial
+-ngl from ~36 stepping up, never 99/auto) is now ALSO the cheapest way to see final answers
+(~10-20 tok/s → full think+answer in minutes) and yields the GPU speed numbers regardless.
+Garbage-risk low (six coherent transcripts). Awaiting the user's word on leg 2.
