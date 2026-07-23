@@ -87,4 +87,19 @@ if ($moe) {
     }
   }
 } else { Write-Host "no MoE (*A4B*) model in models\ - sweep phase skipped" }
-Write-Host "Done. Send back: results.jsonl + bench-log.txt (+ detect-facts.txt)."
+# ── PHASE 3: the quality probe (user "ok", 2026-07-23) — one short generation per
+# model on the GPU path (ngl 99), saved for HUMAN eyeballing. Not a score: it only
+# makes a numerically-broken backend VISIBLE (a backend with bad kernels writes
+# garbage at full speed — the Bonsai lesson; llama-bench discards all text).
+$cli = Get-ChildItem -Recurse (Join-Path $root "engine") -Filter "llama-cli.exe" -ErrorAction SilentlyContinue | Select-Object -First 1
+if ($cli) {
+  foreach ($m in $models) {
+    $probe = Join-Path $root "quality-probe-$($m.BaseName).txt"
+    if (Test-Path $probe) { Write-Host "skip (done): probe $($m.Name)"; continue }
+    Write-Host "PROBE: $($m.Name) (ngl 99, ~120 tokens)"
+    & $cli.FullName -m $m.FullName -ngl 99 --single-turn --temp 0.2 -n 120 `
+      -p "Write a short paragraph describing an old lighthouse at dusk." 1>$probe 2>>$log
+    if ($LASTEXITCODE -ne 0) { "PROBE FAILED exit=$LASTEXITCODE : $($m.Name)" | Add-Content $log }
+  }
+} else { Write-Host "llama-cli.exe not found - quality probe skipped" }
+Write-Host "Done. Send back: results.jsonl + bench-log.txt + quality-probe-*.txt (+ detect-facts.txt)."
