@@ -23,8 +23,10 @@ through).
 a trained speculative drafter) self-reports 94.6% of FP16 and beats sub-4-bit quants by
 7+ points at a third the size — it could rival our 26B-A4B pick for the 8 GB class.
 
-**Why a watch, not a buy:** no NVIDIA path on mainline llama.cpp yet — CPU (#24448) +
-Metal + Vulkan Q2_0 merged, but **CUDA (#25707) is still an open PR**, and PrismML's own
+**Why a watch, not a buy:** no GPU path on mainline llama.cpp yet — CPU (#24448) merged
+Jul 7; **Vulkan is NOT merged (corrected 2026-07-23 — #25850 open, opened Jul 18;
+box-proven: b10083 win-vulkan loads the g64 but silently runs every ternary layer on CPU,
+VRAM flat at 597 MiB through a -ngl 40 run)**; CUDA #25188 abandoned, #25707 open. PrismML's own
 docs say stock builds can't run it (GPU = their fork, which we'd never ship as our
 engine). The format is mid-churn (fork's g128 files → mainline standardized on
 `_Q2_0_g64.gguf`, renames pending). All published speed is Apple Silicon (18–44 tok/s,

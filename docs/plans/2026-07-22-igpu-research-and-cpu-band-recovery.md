@@ -788,3 +788,21 @@ probe, same zero-risk path; awaiting the user's word. Verify: the three
 `quality-probe-*.txt` + `leg1-cpu-log.txt` (per-probe timings + exit codes). What would reverse
 the CPU disqualification: nothing plausible on this box — it restates the CPU-band verdict for
 dense 27Bs; the model's remaining chance here is leg 2 (GPU) or the smaller ternary sizes.
+
+**THE LAPTOP-BONSAI QUESTION (2026-07-23, the user's "go for bonsai" — verification FAILED the
+premise, model NOT added to the kit).** The plan was to add Bonsai as a fifth kit model so both
+laptops bench it on the kit's mainline b10083 win-vulkan engine. The load-bearing fact ("Vulkan
+Q2_0 merged" — the IDEAS entry) was box-tested first and is FALSE: mainline b10083 REJECTS the
+fork's Q2_0 file outright (`gguf_init_from_reader: failed to read tensor data` — the format churn
+cuts both ways: mainline reads only the g64 generation, the fork reads only Q2_0), and while the
+Vulkan build LOADS the g64 and generates coherently (the "[Start thinking]" block — template
+applied, no garbage), a VRAM watch proved SILENT CPU FALLBACK: 597 MiB flat through a -ngl 40 run
+with Vulkan0 enumerating fine. Upstream confirms: CPU #24448 merged Jul 7; Vulkan TQ2_0 = #25850
+OPEN (Jul 18); CUDA #25188 abandoned, #25707 open. So mainline ternary is CPU-only everywhere
+today, and CPU is already disqualified (leg 1: 1.5 tok/s on the desktop's stronger CPU) — kit
+inclusion would measure a dead path. IDEAS corrected with the PR numbers + box proof. The watch
+trigger is now PRECISE: when #25850 (Vulkan) or a CUDA PR merges into a pinnable release → bump
+the kit pin deliberately → add Bonsai-g64 → the laptops top-up (~8 combos + a probe via resume).
+The fork-on-laptops alternative (their win-vulkan builds, a second engine, numbers not
+kit-comparable) stays available but was not chosen — awaiting the desktop quality gate (leg 1b)
+before it's worth anyone's hours.
