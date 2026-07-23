@@ -18,6 +18,15 @@
 
 ## Now / near-term (JustWrite)
 
+- **UPDATE 2026-07-22 (late): hardware class = NAMED, TYPE-FIRST entity SHIPPED** (runner
+  `ec693f6` backend + `0340231` UI). After the iGPU/unified-memory discussion, the class is no
+  longer VRAM+RAM-only: three types (discrete VRAM+RAM · integrated one-pool · unified one-pool),
+  a free NAME, detection by platform/vendor (macOS→unified fixes the Mac-as-CPU bug), the panel
+  rebuilt as a class-list-holding-configs with one add/edit form per thing and no popup. Full
+  record + verification: `docs/plans/2026-07-22-hardware-class-named-entity.md`. OPEN: the user's
+  eyeball on the two-editor form shape (their app was live on :1420/:17495, so no headless smoke —
+  their own hot-reloaded view is the gate) · a splash-aware smoke on alternate ports · a
+  known-unified-device list for DGX-Spark auto-detect (override covers it for now).
 - **UPDATE 2026-07-22 (evening): Pass 4 SHIPPED** — the class-system rebuild to the user's §9
   final ruled shape (hidden pick table DELETED; the visible class-tunes library IS the
   recommendation; `class_key_override` = "detection proposes, never dictates"; Copy in the
