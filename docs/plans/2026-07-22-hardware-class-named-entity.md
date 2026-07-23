@@ -132,6 +132,40 @@ Open: (a) the flagged UI form-shape guess — the user's eyeball on the two-edit
 (vs a single mega-form); (b) a splash-aware headless smoke on alternate ports; (c) a
 known-unified-device-name list for DGX-Spark-class auto-detect (deferred — override covers it).
 
+## THE LAPTOP FACTS + THE DETECTION FIX PACKAGE (2026-07-23, user's "your rec go")
+
+The Core Ultra 7 laptop's `detect-facts.txt` (the kit's first return) settled the parked
+decisions with evidence: the display registry names the iGPU plain **"Intel(R) Graphics"**
+(no "Arc" — Intel's control panel brands it Arc, the registry doesn't) and reports
+**`qwMemorySize: (absent)`**, while the engine's own Vulkan device serves an **18 GB shared
+pool** (18361 MiB) on a 31.5 GB-RAM machine. Consequences, shipped as runner **`ea36b0d`**:
+
+- **① Name regex DELETED** (`_INTEL_ARC_RE`): classification keys on dedicated VRAM only —
+  ≥4 GB = discrete, small/absent = integrated (the laptop's absent-VRAM case classifies
+  correctly; an iGPU whose DriverDesc DOES say "Arc(TM)" — Lunar-Lake style — is now pinned
+  integrated by test). **③ resolved: NO DXGI needed** — the feared registry-reports-shared-
+  memory case did not materialize (it reports nothing), so the threshold stands.
+- **② A2 WIDENED**: any detected Intel GPU + the Vulkan loader → the `vulkan` runtime (the
+  old Arc-name gate left this laptop CPU/online-only with a working 18 GB Vulkan device
+  idle). The loader still gates (no `vulkan-1.dll` → the online-provider path); the A3
+  spawn chain still falls back. Old pin `test_detect_intel_igpu_stays_cpu` REVERSED into
+  `test_detect_intel_igpu_routes_vulkan` + a no-loader-stays-cpu guard.
+- **④ RAM LADDER (new problem the facts exposed)**: the laptop's 31.5 GB rounded to 31,
+  the desktop's 31.9 GB to 32 — two nominal-32 GB machines in different classes from OEM
+  reserve jitter. `snap_ram_gb` snaps system RAM to the standard-capacity ladder
+  (2…1024, ties take the lower rung); both machines now land in 32. VRAM is deliberately
+  NOT snapped (10/11/20 GB boards are real sizes). Exact laptop/desktop byte counts pinned
+  in `test_snap_ram_gb_standard_ladder`.
+- Kit corrections from the run: the resume logic retries failed combos (the first run
+  failed everything on the missing VC++ redistributable and then skipped them as "done" —
+  fixed), and the README's prerequisite is the **VC++ redist only** (the laptop already had
+  the Arc driver, which carries Vulkan; the extra driver install was almost certainly
+  unnecessary).
+
+Verified: runner pytest **689 passed / 1 pre-existing lspci known-bad**. STILL PENDING from
+the laptop: `results.jsonl` + `bench-log.txt` (the speed verdict + the `uma:` flag
+confirmation — the bench was running when this shipped).
+
 ## Acceptance
 
 - Add a class "My PC" 16/16 → appears; add a Gemma config under it → resolves for a 16/16 box.
