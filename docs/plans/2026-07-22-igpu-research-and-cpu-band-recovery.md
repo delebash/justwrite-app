@@ -769,3 +769,22 @@ up (~150 MB/layer, total ≤~7 GB), never 99/auto on 8 GB. Then llama-bench legs
 `bench/results/desktop-rtx-2070s/prism-fork/`. What would reverse this: mainline CUDA PR #25707
 merging (the IDEAS promote-trigger — then the fork path is moot and the Lab A/B runs on a
 pinnable mainline release).
+
+**LEG 1 RAN (2026-07-23 16:24–16:50, the user's "go"; artifacts committed under
+`bench/results/desktop-rtx-2070s/prism-fork/`).** Three probes (lighthouse · literary
+continuation · JSON extraction) on their CPU build, their exact 27B sampling, `-ngl 0 -c 8192
+-n 700`, 20-min timeout each, file-redirected, llama-cli-only kill guard — no lockup, box fine.
+What it proved: the backend is SANE (coherent, structured, self-critiquing reasoning; zero
+garbage/repetition — the fast-garbage failure mode is absent), the embedded draft prose is
+genuinely promising (the lighthouse "bruised purples" draft; the Margaret "sharp as promises"
+line), and the JSON reasoning identified all three characters correctly. What it disqualified:
+CPU — 1.5 tok/s generation AND a thinking model that spent the ENTIRE 700-token budget
+deliberating on all three probes, so no probe emitted a final answer (time-to-first-answer-token
+would be 8+ minutes interactively). The leg-2 gate question (final-answer quality) is therefore
+STILL OPEN — the queued cheap step is a thinking-OFF re-probe using their own non-27B flag set
+(`--reasoning-budget 0 --reasoning-format none --chat-template-kwargs '{"enable_thinking":
+false}'`, their `start_llama_server.sh:161-162` — flags proven in their build), ~3–4 min per
+probe, same zero-risk path; awaiting the user's word. Verify: the three
+`quality-probe-*.txt` + `leg1-cpu-log.txt` (per-probe timings + exit codes). What would reverse
+the CPU disqualification: nothing plausible on this box — it restates the CPU-band verdict for
+dense 27Bs; the model's remaining chance here is leg 2 (GPU) or the smaller ternary sizes.

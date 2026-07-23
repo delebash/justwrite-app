@@ -1,0 +1,9 @@
+=== prism leg 1 (CPU quality probe) 2026-07-23 16:24:28 ===
+engine: prism-b9596-9fcaed7 cpu | model: Ternary-Bonsai-27B-Q2_0.gguf | flags: -ngl 0 -c 8192, their 27B sampling
+--- probe lighthouse start 16:24:28 ---
+--- probe lighthouse exit=0 16:32:57 (124=timeout) ---
+--- probe continuation start 16:32:57 ---
+--- probe continuation exit=0 16:41:26 (124=timeout) ---
+--- probe json-extract start 16:41:26 ---
+--- probe json-extract exit=0 16:50:09 (124=timeout) ---
+=== leg 1 done 2026-07-23 16:50:09 ===
