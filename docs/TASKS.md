@@ -18,6 +18,13 @@
 
 ## Now / near-term (JustWrite)
 
+- **UPDATE 2026-07-22 (latest): the LAPTOP SPEED KIT IS BUILT** — `E:\laptop-speed-kit` (20 GB,
+  desktop-verified; full record in the recovery doc §6). USER ACTION: copy the folder to the
+  Core Ultra 7 laptop, unzip the engine, run the two scripts, bring back `detect-facts.txt` +
+  `results.jsonl` + `bench-log.txt`. Those three files then decide: the iGPU speed verdict,
+  detection decision ③ (qwMemorySize for "Arc Graphics" → threshold vs DXGI), and decision ②
+  (the A2 Vulkan-for-iGPU revisit) — plus the newly found `uma:` flag as an engine-native
+  unified/integrated signal. Detection fixes ①–③ are deliberately WAITING on these facts.
 - **UPDATE 2026-07-22 (late): hardware class = NAMED, TYPE-FIRST entity SHIPPED** (runner
   `ec693f6` backend + `0340231` UI). After the iGPU/unified-memory discussion, the class is no
   longer VRAM+RAM-only: three types (discrete VRAM+RAM · integrated one-pool · unified one-pool),

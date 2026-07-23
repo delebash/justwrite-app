@@ -265,7 +265,26 @@ hard-question legs, judged by reading. Speed picks the shortlist; **the user's e
    + Qwen3.5-9B (12B QAT already on disk), add `cpu-*` legs, run on the CPU engine. Small models
    won't hit the RAM wall. Gives floor numbers **+ captured prose** (prose is hardware-independent —
    judged from these desktop captures; the laptop then only measures speed).
-6. **The laptop iGPU test — the portable speed kit (the user's "easy way to test on my laptop").**
+6. **BUILT 2026-07-22 (late; the user's go after naming the laptop: Core Ultra 7 / 32 GB).**
+   The kit sits at **`E:\laptop-speed-kit`** (20 GB): the b10083 win-vulkan zip (URL verified by
+   HTTP; b10083 = the desktop's own installed CPU-leg engine, so builds are comparable) ·
+   the two on-disk GGUFs (gemma-12B QAT Q4_K_XL 6.7 GB + gemma-26B-A4B QAT Q4_K_XL 14.2 GB; the
+   §5 small models E2B/E4B/9B were never downloaded — add later if wanted) · `run-bench.ps1`
+   (the §6 matrix: models × ngl 99/0 × ub 512/2048 × fa 1/0 → pp512/2048/8192 + tg128, one JSON
+   line per combo into results.jsonl, RESUMABLE — reruns skip finished combos, failures recorded
+   so they don't repeat) · `detect-facts.ps1` (the user-approved addition: display-class registry
+   DriverDesc + qwMemorySize decode, RAM/CPU/OS, and the engine's own `--list-devices`) ·
+   README.txt (copy over → unzip engine → run two scripts → send back three files). VERIFIED on
+   the desktop: both scripts parse clean; detect-facts ran end-to-end (2070S / 8 GB qwMemorySize
+   decoded correctly; `--list-devices` works at b10083); the exact llama-bench flag set
+   (`-ngl -ub -fa -p -n -o json`) validated with a tiny live run — valid JSON, exit 0. BONUS
+   detection signal discovered in that run: the Vulkan device line prints **`uma: 0/1`**
+   (unified-memory flag) per device — on the laptop's iGPU it should read `uma: 1`, an
+   engine-native integrated/unified signal beside the registry numbers. What the laptop's three
+   returned files answer: iGPU speed (the matrix), the `qwMemorySize`-for-Arc-Graphics unknown
+   (detection decision ③), and Vulkan-on-iGPU viability (the A2 revisit, decision ②).
+   The original ruled shape, for reference:
+   **The laptop iGPU test — the portable speed kit (the user's "easy way to test on my laptop").**
    Since the laptop only needs SPEED (prose judged from desktop captures), the right shape is NOT the
    full node/app harness and NOT the packaged installer for numbers: it's a self-contained folder —
    the llama.cpp **Vulkan** build (same b-release) + the small GGUFs copied from the desktop (no
