@@ -283,6 +283,22 @@ hard-question legs, judged by reading. Speed picks the shortlist; **the user's e
    engine-native integrated/unified signal beside the registry numbers. What the laptop's three
    returned files answer: iGPU speed (the matrix), the `qwMemorySize`-for-Arc-Graphics unknown
    (detection decision ③), and Vulkan-on-iGPU viability (the A2 revisit, decision ②).
+   **LAPTOP RESULTS (2026-07-23, the full 16-combo matrix, ~5.7 h overnight; raw
+   llama-bench full-prompt numbers — NOT feature-level TTFT, which a warm KV cache makes
+   far smaller).** Core Ultra 7 165U · 32 GB · Arc iGPU (`uma: 1` in every device line —
+   the engine-native unified/integrated signal CONFIRMED on both boxes: laptop 1, 2070S 0).
+   **gemma-26B-A4B (MoE, the main writing model):** the iGPU wins PREFILL — best pp8192
+   **117 tok/s** at ngl99/fa0/ub512 (≈70 s to ingest 8k cold) vs CPU's 55–63 (≈130–148 s);
+   the CPU wins DECODE — **15.3–16.7 tok/s** at ngl0 vs the iGPU's 10.8–11.5. Both decode
+   figures clear reading speed; the laptop's CPU decode BEATS the desktop Ryzen 5700X's
+   9.4. **gemma-12B dense:** decode CPU 5.7–6.0 vs iGPU 3.7–4.3 — marginal either way; the
+   MoE is the laptop model. **flash-attn HURTS this iGPU's prefill badly** (26B pp8192:
+   117→65.6 with fa1; 12B: 61.4→37.1) — fa OFF is the Intel-iGPU-Vulkan rule; ubatch 512
+   edges 2048. VERDICT: the laptop is **borderline-usable for local book-chat on the MoE
+   only** — recommended class config for `igpu-mem32` + gemma-26B-A4B: **ngl 99 · fa 0 ·
+   ub 512** (prefill-optimal, decode 11.5 still above reading speed); pure-generation use
+   would prefer ngl 0. A future refinement worth testing: n_cpu_moe on UMA (the matrix
+   didn't sweep it). Raw data: `E:\cpu\results.jsonl` + `bench-log.txt`.
    The original ruled shape, for reference:
    **The laptop iGPU test — the portable speed kit (the user's "easy way to test on my laptop").**
    Since the laptop only needs SPEED (prose judged from desktop captures), the right shape is NOT the
