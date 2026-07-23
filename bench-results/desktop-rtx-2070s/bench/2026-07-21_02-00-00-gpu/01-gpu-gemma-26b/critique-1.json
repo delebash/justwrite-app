@@ -1,0 +1,102 @@
+{
+  "runId": "2026-07-21_02-00-00-gpu",
+  "leg": "gpu-gemma-26b",
+  "model": "gemma-4-26b-a4b-qat",
+  "attempt": 1,
+  "args": {
+    "timeoutMs": 1200000
+  },
+  "preset": {
+    "id": "d275d86236e9",
+    "name": "Bench",
+    "providerId": "",
+    "model": "gemma-4-26b-a4b-qat",
+    "temperature": 0.7,
+    "topP": null,
+    "maxTokens": 0,
+    "reasoningEffort": "",
+    "think": false,
+    "samplers": [],
+    "builtIn": false,
+    "position": 10,
+    "factoryModel": ""
+  },
+  "route": {
+    "feature": "critique",
+    "action": "critique",
+    "providerId": "local-llamacpp",
+    "model": "gemma-4-26b-a4b-qat",
+    "presetId": "d275d86236e9",
+    "presetName": "Bench",
+    "presetSource": "assigned",
+    "think": false,
+    "level": "",
+    "reasoningWord": "",
+    "value": null,
+    "valueSource": "",
+    "configured": true,
+    "detail": ""
+  },
+  "featureKey": "critique",
+  "ok": true,
+  "started": "2026-07-21T02:02:55.692Z",
+  "label": "Chapter critique",
+  "wallMs": 21680,
+  "ttftMs": null,
+  "output": "{\n  \"notes\": [\n    {\n      \"severity\": \"info\",\n      \"category\": \"voice\",\n      \"message\": \"The prose is exceptionally rhythmic and atmospheric, particularly the opening metaphor of the lamp 'trying to remember a name.'\"\n    },\n    {\n      \"severity\": \"suggest\",\n      \"category\": \"show-don't-tell\",\n      \"message\": \"In the scene with Brick, 'he had never once mentioned knowing' feels a bit too on-the-nose for character intimacy; let the gesture speak for itself.\"\n    },\n    {\n      \"severity\": \"suggest\",\n      \"category\": \"pacing\",\n      \"message\": \"The transition from the workshop to the Commission Hall is abrupt; a brief sentence grounding Cael's physical movement or the change in atmosphere would smooth the jump.\"\n    },\n    {\n      \"severity\": \"flag\",\n      \"category\": \"redundancy\",\n      \"message\": \"The phrase 'under the back teeth' is used twice in a short span; consider varying the sensory description of her intuition to avoid repetition.\"\n    },\n    {\n      \"severity\": \"info\",\n      \"category\": \"characterization\",\n      \"message\": \"The 'Company' dynamics are established effectively through dialogue, giving a clear sense of their hierarchy and history without a heavy info-dump.\"\n    },\n    {\n      \"severity\": \"suggest\",\n      \"category\": \"clarity\",\n      \"message\": \"The distinction between 'Concern' and 'Lumen Concern' could be slightly clearer to ensure the reader understands the specific stakes of the seal.\"\n    },\n    {\n      \"severity\": \"info\",\n      \"category\": \"closing\",\n      \"message\": \"The final image of the lamp guttering as Nettle disappears provides a beautiful, haunting bookend to the opening scene.\"\n    }\n  ]\n}",
+  "outputChars": 1659,
+  "usage": null,
+  "flags": [],
+  "extra": {
+    "chapterId": "ch1",
+    "chapterNum": 1,
+    "chapterWords": 2600,
+    "noteCount": 7,
+    "notes": [
+      {
+        "id": "note_mru0ejuj_0",
+        "severity": "info",
+        "category": "voice",
+        "message": "The prose is exceptionally rhythmic and atmospheric, particularly the opening metaphor of the lamp 'trying to remember a name.'"
+      },
+      {
+        "id": "note_mru0ejuj_1",
+        "severity": "suggest",
+        "category": "show-don't-tell",
+        "message": "In the scene with Brick, 'he had never once mentioned knowing' feels a bit too on-the-nose for character intimacy; let the gesture speak for itself."
+      },
+      {
+        "id": "note_mru0ejuj_2",
+        "severity": "suggest",
+        "category": "pacing",
+        "message": "The transition from the workshop to the Commission Hall is abrupt; a brief sentence grounding Cael's physical movement or the change in atmosphere would smooth the jump."
+      },
+      {
+        "id": "note_mru0ejuj_3",
+        "severity": "flag",
+        "category": "redundancy",
+        "message": "The phrase 'under the back teeth' is used twice in a short span; consider varying the sensory description of her intuition to avoid repetition."
+      },
+      {
+        "id": "note_mru0ejuj_4",
+        "severity": "info",
+        "category": "characterization",
+        "message": "The 'Company' dynamics are established effectively through dialogue, giving a clear sense of their hierarchy and history without a heavy info-dump."
+      },
+      {
+        "id": "note_mru0ejuj_5",
+        "severity": "suggest",
+        "category": "clarity",
+        "message": "The distinction between 'Concern' and 'Lumen Concern' could be slightly clearer to ensure the reader understands the specific stakes of the seal."
+      },
+      {
+        "id": "note_mru0ejuj_6",
+        "severity": "info",
+        "category": "closing",
+        "message": "The final image of the lamp guttering as Nettle disappears provides a beautiful, haunting bookend to the opening scene."
+      }
+    ],
+    "model": "gemma-4-26b-a4b-qat"
+  },
+  "error": null
+}

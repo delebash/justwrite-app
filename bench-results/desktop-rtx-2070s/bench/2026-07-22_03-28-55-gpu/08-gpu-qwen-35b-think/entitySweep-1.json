@@ -1,0 +1,69 @@
+{
+  "runId": "2026-07-22_03-28-55-gpu",
+  "leg": "gpu-qwen-35b-think",
+  "model": "qwen3.6-35b-a3b-mtp",
+  "attempt": 1,
+  "args": {
+    "timeoutMs": 1200000,
+    "chapterCap": 3
+  },
+  "preset": {
+    "id": "9d4ebeddeb96",
+    "name": "Bench",
+    "providerId": "",
+    "model": "qwen3.6-35b-a3b-mtp",
+    "temperature": 0.7,
+    "topP": null,
+    "maxTokens": 0,
+    "reasoningEffort": "",
+    "think": true,
+    "samplers": [],
+    "builtIn": false,
+    "position": 10,
+    "factoryModel": ""
+  },
+  "route": {
+    "feature": "entitySweep",
+    "action": "entitySweep",
+    "providerId": "local-llamacpp",
+    "model": "qwen3.6-35b-a3b-mtp",
+    "presetId": "9d4ebeddeb96",
+    "presetName": "Bench",
+    "presetSource": "assigned",
+    "think": true,
+    "level": "",
+    "reasoningWord": "",
+    "value": 1024,
+    "valueSource": "base",
+    "configured": true,
+    "detail": ""
+  },
+  "featureKey": "entitySweep",
+  "ok": true,
+  "started": "2026-07-22T04:09:17.180Z",
+  "label": "Entity sweep",
+  "wallMs": 92061,
+  "ttftMs": 23045,
+  "output": "{\n  \"characters\": [\n    {\n      \"name\": \"Sedge\",\n      \"role\": \"Road-warden\",\n      \"kind\": \"\",\n      \"oneLiner\": \"An old pensioner sitting in a watch-hut who maintains the ledger of travelers entering the Ash District.\",\n      \"note\": \"\",\n      \"evidence\": \"Old Sedge, the plate on the hut said\",\n      \"aliases\": [],\n      \"originChapters\": [\n        {\n          \"id\": \"ch2\",\n          \"num\": 2,\n          \"title\": \"Bigger Inside\"\n        }\n      ]\n    },\n    {\n      \"name\": \"Threll\",\n      \"role\": \"Warden superior\",\n      \"kind\": \"\",\n      \"oneLiner\": \"The Warden who sent the party to certify Manufactory Nine, unaware of its spatial anomalies.\",\n      \"note\": \"\",\n      \"evidence\": \"Threll sent us to certify a deep-Facet wound\",\n      \"aliases\": [],\n      \"originChapters\": [\n        {\n          \"id\": \"ch2\",\n          \"num\": 2,\n          \"title\": \"Bigger Inside\"\n        }\n      ]\n    },\n    {\n      \"name\": \"The Concern\",\n      \"role\": \"Organization\",\n      \"kind\": \"\",\n      \"oneLiner\": \"The governing body that employs the party and maintains the manufactories of Threnn.\",\n      \"note\": \"\",\n      \"evidence\": \"back when the Concern's manufactories ran day and night\",\n      \"aliases\": [],\n      \"originChapters\": [\n        {\n          \"id\": \"ch2\",\n          \"num\": 2,\n          \"title\": \"Bigger Inside\"\n        }\n      ]\n    },\n    {\n      \"name\": \"Ode\",\n      \"role\": \"Surveyor trapped in the loop\",\n      \"kind\": \"\",\n      \"oneLiner\": \"A woman who has survived nine years of temporal loops in Manufactory Nine and guides the new arrivals.\",\n      \"note\": \"\",\n      \"evidence\": \"\\\"Odeline Marran,\\\" she said. \\\"Ode.\\\"\",\n      \"aliases\": [\n        \"Odeline Marran\"\n      ],\n      \"originChapters\": [\n        {\n          \"id\": \"ch3\",\n          \"num\": 3,\n          \"title\": \"The Same Hour\"\n        }\n      ]\n    },\n    {\n      \"name\": \"Third party\",\n      \"role\": \"Previous group of victims\",\n      \"kind\": \"\",\n      \"oneLiner\": \"A group of four people who are still trapped in the loop and believe it is the day they arrived.\",\n      \"note\": \"\",\n      \"evidence\": \"They went the way the third party went... There were four of them.\",\n      \"aliases\": [],\n      \"originChapters\": [\n        {\n          \"id\": \"ch3\",\n          \"num\": 3,\n          \"title\": \"The Same Hour\"\n        }\n      ]\n    }\n  ],\n  \"locations\": [\n    {\n      \"name\": \"Ash District\",\n      \"role\": \"\",\n      \"kind\": \"District\",\n      \"oneLiner\": \"\",\n      \"note\": \"A location within the city of Threnn, noted for being dull, dangerous, and paying in scrip.\",\n      \"evidence\": \"Manufactory Nine, Ash District. Structural survey & clearance.\",\n      \"aliases\": [],\n      \"originChapters\": [\n        {\n          \"id\": \"ch1\",\n          \"num\": 1,\n          \"title\": \"Brass Rank\"\n        },\n        {\n          \"id\": \"ch3\",\n          \"num\": 3,\n          \"title\": \"The Same Hour\"\n        }\n      ]\n    },\n    {\n      \"name\": \"Kettle Lane\",\n      \"role\": \"\",\n      \"kind\": \"Street\",\n      \"oneLiner\": \"\",\n      \"note\": \"A lane near the harbor where Nettle walks Cael home after dark.\",\n      \"evidence\": \"Nettle walked her home, which meant Nettle appeared beside her on Kettle Lane\",\n      \"aliases\": [],\n      \"originChapters\": [\n        {\n          \"id\": \"ch1\",\n          \"num\": 1,\n          \"title\": \"Brass Rank\"\n        }\n      ]\n    },\n    {\n      \"name\": \"The Ash District\",\n      \"role\": \"\",\n      \"kind\": \"District\",\n      \"oneLiner\": \"\",\n      \"note\": \"A formerly bright quarter of Threnn that has fallen into disrepair and darkness.\",\n      \"evidence\": \"The Ash District had been the bright edge of Threnn once\",\n      \"aliases\": [],\n      \"originChapters\": [\n        {\n          \"id\": \"ch2\",\n          \"num\": 2,\n          \"title\": \"Bigger Inside\"\n        }\n      ]\n    },\n    {\n      \"name\": \"The Nine Road\",\n      \"role\": \"\",\n      \"kind\": \"Road\",\n      \"oneLiner\": \"\",\n      \"note\": \"The route leading to Manufactory Nine, characterized by thinning and dark lumen-lamps.\",\n      \"evidence\": \"the lumen-lamps along the Nine Road stood at long intervals\",\n      \"aliases\": [],\n      \"originChapters\": [\n        {\n          \"id\": \"ch2\",\n          \"num\": 2,\n          \"title\": \"Bigger Inside\"\n        }\n      ]\n    },\n    {\n      \"name\": \"East gallery\",\n      \"role\": \"\",\n      \"kind\": \"Location\",\n      \"oneLiner\": \"\",\n      \"note\": \"A part of the manufactory where the third party is currently trapped in a loop.\",\n      \"evidence\": \"They're still in the east gallery.\",\n      \"aliases\": [],\n      \"originChapters\": [\n        {\n          \"id\": \"ch3\",\n          \"num\": 3,\n          \"title\": \"The Same Hour\"\n        }\n      ]\n    }\n  ],\n  \"objects\": [\n    {\n      \"name\": \"Resonance fork\",\n      \"role\": \"\",\n      \"kind\": \"Tool\",\n      \"oneLiner\": \"\",\n      \"note\": \"A grey steel instrument wrapped in cloth that screams and acts as a compass in the Fold.\",\n      \"evidence\": \"The grey steel tines were blurred with the speed of their own shaking\",\n      \"aliases\": [\n        \"the fork\",\n        \"fork\"\n      ],\n      \"originChapters\": [\n        {\n          \"id\": \"ch2\",\n          \"num\": 2,\n          \"title\": \"Bigger Inside\"\n        },\n        {\n          \"id\": \"ch3\",\n          \"num\": 3,\n          \"title\": \"The Same Hour\"\n        }\n      ]\n    },\n    {\n      \"name\": \"The candle\",\n      \"role\": \"\",\n      \"kind\": \"Anomaly\",\n      \"oneLiner\": \"\",\n      \"note\": \"A tallow candle that un-burns, serving as a temporal anchor and lure in the Fold.\",\n      \"evidence\": \"the wax climbed. And out beyond the ring of their light\",\n      \"aliases\": [],\n      \"originChapters\": [\n        {\n          \"id\": \"ch2\",\n          \"num\": 2,\n          \"title\": \"Bigger Inside\"\n        }\n      ]\n    },\n    {\n      \"name\": \"Stopped pocket-watch\",\n      \"role\": \"\",\n      \"kind\": \"Object\",\n      \"oneLiner\": \"\",\n      \"note\": \"A watch frozen at seven minutes past, marking the start and end of the temporal loop.\",\n      \"evidence\": \"She had a stopped pocket-watch open in one hand\",\n      \"aliases\": [],\n      \"originChapters\": [\n        {\n          \"id\": \"ch3\",\n          \"num\": 3,\n          \"title\": \"The Same Hour\"\n        }\n      ]\n    }\n  ]\n}",
+  "outputChars": 6111,
+  "usage": null,
+  "flags": [],
+  "extra": {
+    "counts": {
+      "characters": 5,
+      "locations": 5,
+      "objects": 3
+    },
+    "scanned": 3,
+    "totalChapters": 3,
+    "skipped": [],
+    "cancelled": false,
+    "chapterIds": [
+      "ch1",
+      "ch2",
+      "ch3"
+    ],
+    "chapterCap": 3
+  },
+  "error": null
+}

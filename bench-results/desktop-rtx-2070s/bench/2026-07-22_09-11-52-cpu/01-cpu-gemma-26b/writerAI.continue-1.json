@@ -1,0 +1,61 @@
+{
+  "runId": "2026-07-22_09-11-52-cpu",
+  "leg": "cpu-gemma-26b",
+  "model": "gemma-4-26b-a4b-qat",
+  "attempt": 1,
+  "args": {
+    "passageChars": 2000,
+    "timeoutMs": 1200000
+  },
+  "preset": {
+    "id": "9d4ebeddeb96",
+    "name": "Bench",
+    "providerId": "",
+    "model": "gemma-4-26b-a4b-qat",
+    "temperature": 0.7,
+    "topP": null,
+    "maxTokens": 0,
+    "reasoningEffort": "",
+    "think": false,
+    "samplers": [],
+    "builtIn": false,
+    "position": 10,
+    "factoryModel": ""
+  },
+  "route": {
+    "feature": "writerAI.continue",
+    "action": "writerAI.continue",
+    "providerId": "local-llamacpp",
+    "model": "gemma-4-26b-a4b-qat",
+    "presetId": "9d4ebeddeb96",
+    "presetName": "Bench",
+    "presetSource": "assigned",
+    "think": false,
+    "level": "",
+    "reasoningWord": "",
+    "value": null,
+    "valueSource": "",
+    "configured": true,
+    "detail": ""
+  },
+  "featureKey": "writerAI.continue",
+  "ok": true,
+  "started": "2026-07-22T09:18:02.150Z",
+  "label": "Continue",
+  "wallMs": 37704,
+  "ttftMs": 11079,
+  "output": "Cael stood in the dim hallway, the silence of the glimmerworks pressing against her ears like heavy velvet. The token’s hum had shifted, losing its frantic vibration and settling into a low, rhythmic thrum that pulsed in time with her own heartbeat. It was no longer just a piece of metal; it felt like a living thing, a small, trapped animal pacing the confines of her pocket.\n\nShe turned the key, the mechanism clicking with a sharp, final sound that echoed too loudly in the narrow corridor. The door swung open to reveal her room, a cramped space that smelled of tallow and stale rain, but she barely noticed the gloom. Her eyes were fixed on the window, where the blue light of the district was fading into a bruised, ink-stained purple.\n\nThe darkness outside felt thinner tonight, as if the shadows themselves were stretched too tight. She thought of Nettle’s grin and the way she had stepped into that nothingness, and she wondered if the gaps were getting wider, or if she was simply getting smaller. The token gave one final, violent shudder against her thigh, a silent warning that the winter would be longer and much, much louder than they had planned.",
+  "outputChars": 1163,
+  "usage": {
+    "promptTokens": 636,
+    "completionTokens": 245,
+    "model": "gemma-4-26b-a4b-qat",
+    "cost": 0
+  },
+  "flags": [],
+  "extra": {
+    "chapterId": "ch1",
+    "passageChars": 2000
+  },
+  "error": null
+}

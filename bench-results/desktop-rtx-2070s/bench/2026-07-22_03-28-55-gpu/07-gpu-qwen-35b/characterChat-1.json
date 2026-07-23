@@ -1,0 +1,67 @@
+{
+  "runId": "2026-07-22_03-28-55-gpu",
+  "leg": "gpu-qwen-35b",
+  "model": "qwen3.6-35b-a3b-mtp",
+  "attempt": 1,
+  "args": {
+    "question": "What do you want most right now, and what are you afraid of?",
+    "timeoutMs": 1200000
+  },
+  "preset": {
+    "id": "9d4ebeddeb96",
+    "name": "Bench",
+    "providerId": "",
+    "model": "qwen3.6-35b-a3b-mtp",
+    "temperature": 0.7,
+    "topP": null,
+    "maxTokens": 0,
+    "reasoningEffort": "",
+    "think": false,
+    "samplers": [],
+    "builtIn": false,
+    "position": 10,
+    "factoryModel": ""
+  },
+  "route": {
+    "feature": "characterChat",
+    "action": "characterChat",
+    "providerId": "local-llamacpp",
+    "model": "qwen3.6-35b-a3b-mtp",
+    "presetId": "9d4ebeddeb96",
+    "presetName": "Bench",
+    "presetSource": "assigned",
+    "think": false,
+    "level": "",
+    "reasoningWord": "",
+    "value": null,
+    "valueSource": "",
+    "configured": true,
+    "detail": ""
+  },
+  "featureKey": "characterChat",
+  "ok": true,
+  "started": "2026-07-22T03:54:02.991Z",
+  "label": "Character chat",
+  "wallMs": 16641,
+  "ttftMs": 13461,
+  "output": "I want to get back to the Hall, to my bench, and to a life where I don’t have to listen to the world screaming in a key that doesn’t exist.\n\nI’m afraid of the Warden’s eyes—of them realizing that the silence I’ve been selling isn’t peace, it’s just me holding my breath until I pass out.",
+  "outputChars": 287,
+  "usage": {
+    "promptTokens": 2542,
+    "completionTokens": 74,
+    "model": "qwen3.6-35b-a3b-mtp",
+    "cost": 0
+  },
+  "flags": [
+    "temperature-fixed-by-caller"
+  ],
+  "extra": {
+    "bibleOnly": false,
+    "question": "What do you want most right now, and what are you afraid of?",
+    "k": 6,
+    "characterId": "c1",
+    "character": "Cael Ferren",
+    "citationCount": 6
+  },
+  "error": null
+}

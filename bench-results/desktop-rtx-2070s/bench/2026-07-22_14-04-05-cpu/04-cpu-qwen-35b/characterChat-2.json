@@ -1,0 +1,67 @@
+{
+  "runId": "2026-07-22_14-04-05-cpu",
+  "leg": "cpu-qwen-35b",
+  "model": "qwen3.6-35b-a3b-mtp",
+  "attempt": 2,
+  "args": {
+    "question": "What do you want most right now, and what are you afraid of?",
+    "timeoutMs": 1200000
+  },
+  "preset": {
+    "id": "9d4ebeddeb96",
+    "name": "Bench",
+    "providerId": "",
+    "model": "qwen3.6-35b-a3b-mtp",
+    "temperature": 0.7,
+    "topP": null,
+    "maxTokens": 0,
+    "reasoningEffort": "",
+    "think": false,
+    "samplers": [],
+    "builtIn": false,
+    "position": 10,
+    "factoryModel": ""
+  },
+  "route": {
+    "feature": "characterChat",
+    "action": "characterChat",
+    "providerId": "local-llamacpp",
+    "model": "qwen3.6-35b-a3b-mtp",
+    "presetId": "9d4ebeddeb96",
+    "presetName": "Bench",
+    "presetSource": "assigned",
+    "think": false,
+    "level": "",
+    "reasoningWord": "",
+    "value": null,
+    "valueSource": "",
+    "configured": true,
+    "detail": ""
+  },
+  "featureKey": "characterChat",
+  "ok": true,
+  "started": "2026-07-22T14:40:02.017Z",
+  "label": "Character chat",
+  "wallMs": 14827,
+  "ttftMs": 617,
+  "output": "I want a quiet, paid, unremarkable career at the Commission Hall, where the work is dull, the pay is in scrip, and no one looks too closely at my hands.\n\nBut what I’m afraid of... that’s the hum. It’s the sickness in my teeth, the note that isn’t there anymore, the thing the Wardens are right to cut out if they ever find out I’m still breathing it in.",
+  "outputChars": 353,
+  "usage": {
+    "promptTokens": 2542,
+    "completionTokens": 91,
+    "model": "qwen3.6-35b-a3b-mtp",
+    "cost": 0
+  },
+  "flags": [
+    "temperature-fixed-by-caller"
+  ],
+  "extra": {
+    "bibleOnly": false,
+    "question": "What do you want most right now, and what are you afraid of?",
+    "k": 6,
+    "characterId": "c1",
+    "character": "Cael Ferren",
+    "citationCount": 6
+  },
+  "error": null
+}

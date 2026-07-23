@@ -1,0 +1,109 @@
+{
+  "runId": "2026-07-22_03-28-55-gpu",
+  "leg": "gpu-qwen-35b-hq1-think",
+  "model": "qwen3.6-35b-a3b-mtp",
+  "attempt": 3,
+  "args": {
+    "question": "Before the party ever reaches Manufactory Nine, what early signs connect the commission-token to what is inside the Nine, and what do those signs imply about the job? Cite the excerpts.",
+    "k": 6,
+    "timeoutMs": 1200000
+  },
+  "preset": {
+    "id": "9d4ebeddeb96",
+    "name": "Bench",
+    "providerId": "",
+    "model": "qwen3.6-35b-a3b-mtp",
+    "temperature": 0.7,
+    "topP": null,
+    "maxTokens": 0,
+    "reasoningEffort": "high",
+    "think": true,
+    "samplers": [],
+    "builtIn": false,
+    "position": 10,
+    "factoryModel": ""
+  },
+  "route": {
+    "feature": "chat",
+    "action": "chat",
+    "providerId": "local-llamacpp",
+    "model": "qwen3.6-35b-a3b-mtp",
+    "presetId": "9d4ebeddeb96",
+    "presetName": "Bench",
+    "presetSource": "assigned",
+    "think": true,
+    "level": "high",
+    "reasoningWord": "",
+    "value": 8192,
+    "valueSource": "preset",
+    "configured": true,
+    "detail": ""
+  },
+  "featureKey": "chat",
+  "ok": true,
+  "started": "2026-07-22T04:23:57.331Z",
+  "label": "Ask the book",
+  "wallMs": 127916,
+  "ttftMs": 113458,
+  "output": "Before the party reaches Manufactory Nine, the early signs connecting the commission-token to the conditions inside are:\n- **The Token’s Anomalous Resonance:** When Threll hands Cael the brass commission-token, it immediately \"hummed. Low, and level, and wrong, exactly the note the lamp had leaned toward all morning\" [5]. This shared acoustic signature suggests the token is physically attuned to the unnatural phenomenon awaiting them inside the Nine.\n- **The Concern Seal:** The token bears the Concern seal on one face [5], matching the \"Lumen Concern, sealed\" designation on the slate board [3]. \n\nThese signs imply the following about the true nature of the job:\n- **It is a cover-up, not a routine clearance:** Cael immediately notes she \"did not like the seal\" [3]. The narrative explains that a Concern seal on a clearance job means the organization \"wanted a receipt more than it wanted the work — wanted to be able to say, later, to someone, that a licensed party had gone in and found nothing\" [3]. \n- **The assignment is being actively suppressed:** Despite the double pay, the job has lingered for eleven weeks because it is unglamorous, located in the Ash District, and pays in deferred scrip [4]. Nettle correctly observes that a double-paying brass job sitting this long is \"a job somebody wants gone\" [3].\n- **The \"straightforward\" description is a deliberate misdirection:** Threll insists the task is simple: walk the collapsed glimmerworks, \"certify it empty and safe, sign the token, collect double\" [4]. However, the token’s \"wrong\" hum and the Concern’s urgency imply the party is being sent in to sanitize a hidden truth or dangerous anomaly inside the Nine, rather than to perform actual structural work [3], [5].",
+  "outputChars": 1740,
+  "usage": {
+    "promptTokens": 1736,
+    "completionTokens": 3095,
+    "model": "qwen3.6-35b-a3b-mtp",
+    "cost": 0
+  },
+  "flags": [
+    "temperature-fixed-by-caller"
+  ],
+  "extra": {
+    "bibleOnly": false,
+    "question": "Before the party ever reaches Manufactory Nine, what early signs connect the commission-token to what is inside the Nine, and what do those signs imply about the job? Cite the excerpts.",
+    "k": 6,
+    "citations": [
+      {
+        "index": 1,
+        "chunkId": "card:location:l4",
+        "score": 0,
+        "pinned": true
+      },
+      {
+        "index": 2,
+        "chunkId": "card:strand:s1",
+        "score": 0,
+        "pinned": true
+      },
+      {
+        "index": 3,
+        "chunkId": "ch1:scn_ch1_2:p1",
+        "score": 0.665230799717057,
+        "pinned": false
+      },
+      {
+        "index": 4,
+        "chunkId": "ch1:scn_ch1_2:p2",
+        "score": 0.5097602097408444,
+        "pinned": false
+      },
+      {
+        "index": 5,
+        "chunkId": "ch1:scn_ch1_2:p3",
+        "score": 0.5335553628908148,
+        "pinned": false
+      },
+      {
+        "index": 6,
+        "chunkId": "card:architecture:fabula",
+        "score": 0.5527244931892231,
+        "pinned": false
+      },
+      {
+        "index": 7,
+        "chunkId": "ch4:scn_ch4_3:p1",
+        "score": 0.5411688216943835,
+        "pinned": false
+      }
+    ]
+  },
+  "error": null
+}

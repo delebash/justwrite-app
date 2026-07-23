@@ -1,0 +1,61 @@
+{
+  "runId": "2026-07-22_03-28-55-gpu",
+  "leg": "gpu-qwen-35b-think",
+  "model": "qwen3.6-35b-a3b-mtp",
+  "attempt": 2,
+  "args": {
+    "passageChars": 2000,
+    "timeoutMs": 1200000
+  },
+  "preset": {
+    "id": "9d4ebeddeb96",
+    "name": "Bench",
+    "providerId": "",
+    "model": "qwen3.6-35b-a3b-mtp",
+    "temperature": 0.7,
+    "topP": null,
+    "maxTokens": 0,
+    "reasoningEffort": "",
+    "think": true,
+    "samplers": [],
+    "builtIn": false,
+    "position": 10,
+    "factoryModel": ""
+  },
+  "route": {
+    "feature": "writerAI.continue",
+    "action": "writerAI.continue",
+    "providerId": "local-llamacpp",
+    "model": "qwen3.6-35b-a3b-mtp",
+    "presetId": "9d4ebeddeb96",
+    "presetName": "Bench",
+    "presetSource": "assigned",
+    "think": true,
+    "level": "",
+    "reasoningWord": "",
+    "value": 1024,
+    "valueSource": "base",
+    "configured": true,
+    "detail": ""
+  },
+  "featureKey": "writerAI.continue",
+  "ok": true,
+  "started": "2026-07-22T04:14:43.109Z",
+  "label": "Continue",
+  "wallMs": 59578,
+  "ttftMs": 48268,
+  "output": "The latch fell with a dull click, sealing the hum inside. Cael hung her coat on the iron peg by the threshold and let the damp chill of the lane bleed out of her shoulders. The glimmerworks smelled of ozone and cold slag, the kind of quiet that settles after a shift ends but before the dark truly takes hold. She pressed her palm flat against the doorframe, feeling the faint vibration of the token through wool and bone, and exhaled.\n\nInside, the workbenches stood like sleeping beasts under the dormant mains. Cael moved past them to the heavy oak table where the job ledgers lay stacked, their pages warped from last winter’s damp. She didn’t open them. She just ran a thumb along the edge of the top one, feeling the grain, grounding herself in the familiar geometry of paper and ink. The token’s song shifted pitch, climbing a half-step as it sensed the iron nails in the walls, then settling back into its low, persistent thrum. It wanted distance. It wanted the job done. So did she.\n\nShe drew a chair out, sat, and let the quiet wrap around her. Somewhere above, the district’s night lights flickered in sequence, a slow pulse through the brick and mortar. Cael closed her eyes and matched her breathing to the token’s rhythm, steady and unbroken. Tomorrow would bring ash and grit and the kind of work that left fingerprints you couldn’t wash out. Tonight, there was only the hum, the dark, and the long, necessary wait.",
+  "outputChars": 1430,
+  "usage": {
+    "promptTokens": 624,
+    "completionTokens": 1341,
+    "model": "qwen3.6-35b-a3b-mtp",
+    "cost": 0
+  },
+  "flags": [],
+  "extra": {
+    "chapterId": "ch1",
+    "passageChars": 2000
+  },
+  "error": null
+}

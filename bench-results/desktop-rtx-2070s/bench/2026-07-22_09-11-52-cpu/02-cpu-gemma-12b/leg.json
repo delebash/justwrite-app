@@ -1,0 +1,728 @@
+{
+  "leg": {
+    "label": "Dense 12B QAT, pure CPU — the dense control (recipe leg C)",
+    "gguf": "",
+    "tunables": {
+      "temperature": 0.7,
+      "think": false
+    },
+    "launch": {
+      "nGpuLayers": 0,
+      "ctxLen": 8192,
+      "threads": 8
+    },
+    "llamaBench": {
+      "p": [
+        512,
+        2048,
+        8192
+      ],
+      "n": 128,
+      "reps": 2
+    },
+    "features": null,
+    "repeats": null,
+    "timeoutMinutes": null,
+    "featureArgs": null,
+    "id": "cpu-gemma-12b",
+    "_why": "What the Google answer recommended, and the only catalog chat model that fits a 16 GB-RAM laptop (~6.7 GB). Needs a download.",
+    "model": "gemma-4-12b-qat",
+    "effectiveFeatures": [
+      "chat",
+      "characterChat",
+      "critique",
+      "writerAI.continue",
+      "writerAI.rewrite"
+    ],
+    "effectiveRepeats": 2,
+    "effectiveTimeoutMs": 1200000,
+    "effectiveFeatureArgs": {
+      "chat": {
+        "question": "What is this book about, and who is the protagonist?",
+        "k": 6
+      },
+      "characterChat": {
+        "question": "What do you want most right now, and what are you afraid of?"
+      },
+      "writerAI.continue": {
+        "passageChars": 2000
+      },
+      "writerAI.rewrite": {
+        "passageChars": 1200
+      }
+    }
+  },
+  "runId": "2026-07-22_09-11-52-cpu",
+  "band": "cpu",
+  "fingerprint": "08e038345380",
+  "env": {
+    "engineBuild": "b10083",
+    "engineGpu": "cpu",
+    "appSha": "d65e652",
+    "cpu": "AMD Ryzen 7 5700X 8-Core Processor             ",
+    "gpus": [
+      {
+        "name": "NVIDIA GeForce RTX 2070 SUPER",
+        "totalMb": 8192,
+        "driver": "610.62"
+      }
+    ],
+    "book": "prj_sample_ninth_facet"
+  },
+  "startedAt": "2026-07-22T09:20:19.159Z",
+  "runs": [
+    {
+      "featureKey": "chat",
+      "ok": true,
+      "started": "2026-07-22T09:21:11.977Z",
+      "label": "Ask the book",
+      "wallMs": 135418,
+      "ttftMs": 96371,
+      "outputChars": 805,
+      "usage": {
+        "promptTokens": 1915,
+        "completionTokens": 205,
+        "model": "gemma-4-12b-qat",
+        "cost": 0
+      },
+      "flags": [
+        "temperature-fixed-by-caller"
+      ],
+      "extra": {
+        "bibleOnly": false,
+        "question": "What is this book about, and who is the protagonist?",
+        "k": 6,
+        "citations": [
+          {
+            "index": 1,
+            "chunkId": "card:architecture:premise",
+            "score": 0,
+            "pinned": true
+          },
+          {
+            "index": 2,
+            "chunkId": "card:cast:main",
+            "score": 0,
+            "pinned": true
+          },
+          {
+            "index": 3,
+            "chunkId": "card:architecture:fabula",
+            "score": 0,
+            "pinned": true
+          },
+          {
+            "index": 4,
+            "chunkId": "card:architecture:setting",
+            "score": 0,
+            "pinned": true
+          },
+          {
+            "index": 5,
+            "chunkId": "card:character:c1:p1",
+            "score": 0.41417458891880066,
+            "pinned": false
+          },
+          {
+            "index": 6,
+            "chunkId": "card:character:c2:p1",
+            "score": 0.28537888950408624,
+            "pinned": false
+          },
+          {
+            "index": 7,
+            "chunkId": "ch2:scn_ch2_1:p3",
+            "score": 0.2920420648919857,
+            "pinned": false
+          },
+          {
+            "index": 8,
+            "chunkId": "ch2:scn_ch2_2:p3",
+            "score": 0.27214857612874854,
+            "pinned": false
+          },
+          {
+            "index": 9,
+            "chunkId": "ch3:scn_ch3_3:p3",
+            "score": 0.28726964002957167,
+            "pinned": false
+          }
+        ]
+      },
+      "error": null
+    },
+    {
+      "featureKey": "chat",
+      "ok": true,
+      "started": "2026-07-22T09:23:27.398Z",
+      "label": "Ask the book",
+      "wallMs": 38602,
+      "ttftMs": 660,
+      "outputChars": 826,
+      "usage": {
+        "promptTokens": 1915,
+        "completionTokens": 199,
+        "model": "gemma-4-12b-qat",
+        "cost": 0
+      },
+      "flags": [
+        "temperature-fixed-by-caller"
+      ],
+      "extra": {
+        "bibleOnly": false,
+        "question": "What is this book about, and who is the protagonist?",
+        "k": 6,
+        "citations": [
+          {
+            "index": 1,
+            "chunkId": "card:architecture:premise",
+            "score": 0,
+            "pinned": true
+          },
+          {
+            "index": 2,
+            "chunkId": "card:cast:main",
+            "score": 0,
+            "pinned": true
+          },
+          {
+            "index": 3,
+            "chunkId": "card:architecture:fabula",
+            "score": 0,
+            "pinned": true
+          },
+          {
+            "index": 4,
+            "chunkId": "card:architecture:setting",
+            "score": 0,
+            "pinned": true
+          },
+          {
+            "index": 5,
+            "chunkId": "card:character:c1:p1",
+            "score": 0.41417458891880066,
+            "pinned": false
+          },
+          {
+            "index": 6,
+            "chunkId": "card:character:c2:p1",
+            "score": 0.28537888950408624,
+            "pinned": false
+          },
+          {
+            "index": 7,
+            "chunkId": "ch2:scn_ch2_1:p3",
+            "score": 0.2920420648919857,
+            "pinned": false
+          },
+          {
+            "index": 8,
+            "chunkId": "ch2:scn_ch2_2:p3",
+            "score": 0.27214857612874854,
+            "pinned": false
+          },
+          {
+            "index": 9,
+            "chunkId": "ch3:scn_ch3_3:p3",
+            "score": 0.28726964002957167,
+            "pinned": false
+          }
+        ]
+      },
+      "error": null
+    },
+    {
+      "featureKey": "characterChat",
+      "ok": true,
+      "started": "2026-07-22T09:24:06.003Z",
+      "label": "Character chat",
+      "wallMs": 169437,
+      "ttftMs": 130531,
+      "outputChars": 671,
+      "usage": {
+        "promptTokens": 2565,
+        "completionTokens": 170,
+        "model": "gemma-4-12b-qat",
+        "cost": 0
+      },
+      "flags": [
+        "temperature-fixed-by-caller"
+      ],
+      "extra": {
+        "bibleOnly": false,
+        "question": "What do you want most right now, and what are you afraid of?",
+        "k": 6,
+        "characterId": "c1",
+        "character": "Cael Ferren",
+        "citationCount": 6
+      },
+      "error": null
+    },
+    {
+      "featureKey": "characterChat",
+      "ok": true,
+      "started": "2026-07-22T09:26:55.443Z",
+      "label": "Character chat",
+      "wallMs": 39790,
+      "ttftMs": 636,
+      "outputChars": 664,
+      "usage": {
+        "promptTokens": 2565,
+        "completionTokens": 180,
+        "model": "gemma-4-12b-qat",
+        "cost": 0
+      },
+      "flags": [
+        "temperature-fixed-by-caller"
+      ],
+      "extra": {
+        "bibleOnly": false,
+        "question": "What do you want most right now, and what are you afraid of?",
+        "k": 6,
+        "characterId": "c1",
+        "character": "Cael Ferren",
+        "citationCount": 6
+      },
+      "error": null
+    },
+    {
+      "featureKey": "critique",
+      "ok": true,
+      "started": "2026-07-22T09:27:35.270Z",
+      "label": "Chapter critique",
+      "wallMs": 220158,
+      "ttftMs": null,
+      "outputChars": 1861,
+      "usage": null,
+      "flags": [],
+      "extra": {
+        "chapterId": "ch1",
+        "chapterNum": 1,
+        "chapterWords": 2600,
+        "noteCount": 8,
+        "notes": [
+          {
+            "id": "note_mrvvuhr7_0",
+            "severity": "info",
+            "category": "opening",
+            "message": "The opening imagery of the 'lying' lamp is evocative and establishes a sophisticated, moody atmosphere immediately."
+          },
+          {
+            "id": "note_mrvvuhr7_1",
+            "severity": "suggest",
+            "category": "show-don't-tell",
+            "message": "In the first scene, the phrase 'the way she knew the weather was about to turn' is a bit of a cliché; consider a more specific sensory detail unique to her craft."
+          },
+          {
+            "id": "note_mrvvuhr7_2",
+            "severity": "info",
+            "category": "characterization",
+            "message": "The dynamic between Brick and Cael—specifically the detail about the seedless apple middle—is a lovely, subtle way to show their bond."
+          },
+          {
+            "id": "note_mrvvuhr7_3",
+            "severity": "suggest",
+            "category": "dialogue",
+            "message": "Threll's dialogue feels slightly over-written with exposition; let her 'read' Cael through actions or shorter, sharper commands."
+          },
+          {
+            "id": "note_mrvvuhr7_4",
+            "severity": "flag",
+            "category": "pacing",
+            "message": "The transition from the shop to the Commission Hall feels abrupt; a single sentence of travel or atmospheric shift would smooth the jump."
+          },
+          {
+            "id": "note_mrvvuhr7_5",
+            "severity": "info",
+            "category": "tension",
+            "message": "The humming token provides an excellent physical anchor for the supernatural tension building in the second half of the chapter."
+          },
+          {
+            "id": "note_mrvvuhr7_6",
+            "severity": "flag",
+            "category": "voice",
+            "message": "The internal monologue 'Because you and I are the same... one of us has learned to hide it' is a bit heavy-handed for a character who is supposedly hiding her nature."
+          },
+          {
+            "id": "note_mrvvuhr7_7",
+            "severity": "suggest",
+            "category": "closing",
+            "message": "The final sentence is strong, but ensure the 'gap' metaphor doesn't overstay its welcome since it was just discussed in the preceding paragraph."
+          }
+        ],
+        "model": "gemma-4-12b-qat"
+      },
+      "error": null
+    },
+    {
+      "featureKey": "critique",
+      "ok": true,
+      "started": "2026-07-22T09:31:15.432Z",
+      "label": "Chapter critique",
+      "wallMs": 95610,
+      "ttftMs": null,
+      "outputChars": 1874,
+      "usage": null,
+      "flags": [],
+      "extra": {
+        "chapterId": "ch1",
+        "chapterNum": 1,
+        "chapterWords": 2600,
+        "noteCount": 8,
+        "notes": [
+          {
+            "id": "note_mrvvwjj6_0",
+            "severity": "info",
+            "category": "opening",
+            "message": "The opening description of the lamp and the 'lying' metaphor establishes a sophisticated, atmospheric tone immediately."
+          },
+          {
+            "id": "note_mrvvwjj6_1",
+            "severity": "suggest",
+            "category": "show-don't-tell",
+            "message": "In the phrase 'the habit had outlived him,' consider showing one specific physical action Cael mimics her father's to ground the memory."
+          },
+          {
+            "id": "note_mrvvwjj6_2",
+            "severity": "info",
+            "category": "characterization",
+            "message": "Brick’s gesture of handing Cael the specific piece of apple she likes is a subtle, effective way to establish their bond."
+          },
+          {
+            "id": "note_mrvvwjj6_3",
+            "severity": "flag",
+            "category": "pacing",
+            "message": "The transition from the workshop to the Commission Hall feels abrupt; a brief beat of travel or a change in sensory atmosphere would smooth the jump."
+          },
+          {
+            "id": "note_mrvvwjj6_4",
+            "severity": "suggest",
+            "category": "dialogue",
+            "message": "Threll's dialogue is very polished; giving her one slightly more jagged or practical sentence might make her feel less like a literary device and more like a bureaucrat."
+          },
+          {
+            "id": "note_mrvvwjj6_5",
+            "severity": "info",
+            "category": "tension",
+            "message": "The recurring motif of the 'hum' and the 'pressure under the back teeth' creates a consistent sense of mounting dread."
+          },
+          {
+            "id": "note_mrvvwjj6_6",
+            "severity": "flag",
+            "category": "exposition",
+            "message": "The internal monologue about the Schools and the Wardens feels a bit heavy on 'info-dumping'—try to weave those stakes into her specific fear of the current job."
+          },
+          {
+            "id": "note_mrvvwjj6_7",
+            "severity": "suggest",
+            "category": "closing",
+            "message": "The final sentence is poetic, but ensuring Nettle's 'disappearance' doesn't feel too magical vs. physical will help clarify the world-building rules."
+          }
+        ],
+        "model": "gemma-4-12b-qat"
+      },
+      "error": null
+    },
+    {
+      "featureKey": "writerAI.continue",
+      "ok": true,
+      "started": "2026-07-22T09:32:51.046Z",
+      "label": "Continue",
+      "wallMs": 117374,
+      "ttftMs": 27989,
+      "outputChars": 1798,
+      "usage": {
+        "promptTokens": 636,
+        "completionTokens": 394,
+        "model": "gemma-4-12b-qat",
+        "cost": 0
+      },
+      "flags": [],
+      "extra": {
+        "chapterId": "ch1",
+        "passageChars": 2000
+      },
+      "error": null
+    },
+    {
+      "featureKey": "writerAI.continue",
+      "ok": true,
+      "started": "2026-07-22T09:34:48.423Z",
+      "label": "Continue",
+      "wallMs": 60651,
+      "ttftMs": 672,
+      "outputChars": 1194,
+      "usage": {
+        "promptTokens": 636,
+        "completionTokens": 267,
+        "model": "gemma-4-12b-qat",
+        "cost": 0
+      },
+      "flags": [],
+      "extra": {
+        "chapterId": "ch1",
+        "passageChars": 2000
+      },
+      "error": null
+    },
+    {
+      "featureKey": "writerAI.rewrite",
+      "ok": true,
+      "started": "2026-07-22T09:35:49.076Z",
+      "label": "Rewrite",
+      "wallMs": 66350,
+      "ttftMs": 15304,
+      "outputChars": 1258,
+      "usage": {
+        "promptTokens": 420,
+        "completionTokens": 310,
+        "model": "gemma-4-12b-qat",
+        "cost": 0
+      },
+      "flags": [],
+      "extra": {
+        "chapterId": "ch1",
+        "passageChars": 1200
+      },
+      "error": null
+    },
+    {
+      "featureKey": "writerAI.rewrite",
+      "ok": true,
+      "started": "2026-07-22T09:36:55.429Z",
+      "label": "Rewrite",
+      "wallMs": 53060,
+      "ttftMs": 763,
+      "outputChars": 1244,
+      "usage": {
+        "promptTokens": 420,
+        "completionTokens": 310,
+        "model": "gemma-4-12b-qat",
+        "cost": 0
+      },
+      "flags": [],
+      "extra": {
+        "chapterId": "ch1",
+        "passageChars": 1200
+      },
+      "error": null
+    }
+  ],
+  "preset": {
+    "id": "9d4ebeddeb96",
+    "name": "Bench",
+    "providerId": "",
+    "model": "gemma-4-12b-qat",
+    "temperature": 0.7,
+    "topP": null,
+    "maxTokens": 0,
+    "reasoningEffort": "",
+    "think": false,
+    "samplers": [],
+    "builtIn": false,
+    "position": 10,
+    "factoryModel": ""
+  },
+  "load": {
+    "ok": true,
+    "waitedMs": 17119,
+    "model": {
+      "id": "gemma-4-12b-qat",
+      "status": "loaded",
+      "nParams": 11907350576,
+      "sizeBytes": 6700531904,
+      "nCtx": 8192,
+      "vramMb": 549
+    },
+    "resident": {
+      "router": true,
+      "modelsMax": 2,
+      "sleepIdleSeconds": 900,
+      "vramTotalMb": 8192,
+      "committedMb": 549,
+      "remainingMb": 7643,
+      "models": [
+        {
+          "id": "gemma-4-12b-qat",
+          "status": "loaded",
+          "nParams": 11907350576,
+          "sizeBytes": 6700531904,
+          "nCtx": 8192,
+          "vramMb": 549
+        },
+        {
+          "id": "gemma-4-26b-a4b-qat",
+          "status": "unloaded",
+          "nParams": null,
+          "sizeBytes": null,
+          "nCtx": null,
+          "vramMb": null
+        },
+        {
+          "id": "qwen3-embedding-4b",
+          "status": "unloaded",
+          "nParams": null,
+          "sizeBytes": null,
+          "nCtx": null,
+          "vramMb": null
+        },
+        {
+          "id": "qwen3.6-35b-a3b-mtp",
+          "status": "unloaded",
+          "nParams": null,
+          "sizeBytes": null,
+          "nCtx": null,
+          "vramMb": null
+        },
+        {
+          "id": "ternary-bonsai-27b-q2-g64",
+          "status": "unloaded",
+          "nParams": null,
+          "sizeBytes": null,
+          "nCtx": null,
+          "vramMb": null
+        }
+      ]
+    }
+  },
+  "measure": {
+    "ok": true,
+    "modelId": "gemma-4-12b-qat",
+    "tokensPerSec": 5.4,
+    "completionTokens": 192,
+    "ms": 35390,
+    "vramTotalMb": 8192,
+    "ramTotalMb": 0,
+    "draftN": 175,
+    "draftNAccepted": 103,
+    "draftAcceptance": 0.5886
+  },
+  "routes": {
+    "chat": {
+      "feature": "chat",
+      "action": "chat",
+      "providerId": "local-llamacpp",
+      "model": "gemma-4-12b-qat",
+      "presetId": "9d4ebeddeb96",
+      "presetName": "Bench",
+      "presetSource": "assigned",
+      "think": false,
+      "level": "",
+      "reasoningWord": "",
+      "value": null,
+      "valueSource": "",
+      "configured": true,
+      "detail": ""
+    },
+    "characterChat": {
+      "feature": "characterChat",
+      "action": "characterChat",
+      "providerId": "local-llamacpp",
+      "model": "gemma-4-12b-qat",
+      "presetId": "9d4ebeddeb96",
+      "presetName": "Bench",
+      "presetSource": "assigned",
+      "think": false,
+      "level": "",
+      "reasoningWord": "",
+      "value": null,
+      "valueSource": "",
+      "configured": true,
+      "detail": ""
+    },
+    "critique": {
+      "feature": "critique",
+      "action": "critique",
+      "providerId": "local-llamacpp",
+      "model": "gemma-4-12b-qat",
+      "presetId": "9d4ebeddeb96",
+      "presetName": "Bench",
+      "presetSource": "assigned",
+      "think": false,
+      "level": "",
+      "reasoningWord": "",
+      "value": null,
+      "valueSource": "",
+      "configured": true,
+      "detail": ""
+    },
+    "writerAI.continue": {
+      "feature": "writerAI.continue",
+      "action": "writerAI.continue",
+      "providerId": "local-llamacpp",
+      "model": "gemma-4-12b-qat",
+      "presetId": "9d4ebeddeb96",
+      "presetName": "Bench",
+      "presetSource": "assigned",
+      "think": false,
+      "level": "",
+      "reasoningWord": "",
+      "value": null,
+      "valueSource": "",
+      "configured": true,
+      "detail": ""
+    },
+    "writerAI.rewrite": {
+      "feature": "writerAI.rewrite",
+      "action": "writerAI.rewrite",
+      "providerId": "local-llamacpp",
+      "model": "gemma-4-12b-qat",
+      "presetId": "9d4ebeddeb96",
+      "presetName": "Bench",
+      "presetSource": "assigned",
+      "think": false,
+      "level": "",
+      "reasoningWord": "",
+      "value": null,
+      "valueSource": "",
+      "configured": true,
+      "detail": ""
+    }
+  },
+  "engineQuiet": {
+    "quiet": true,
+    "waitedMs": 2155,
+    "lastRssMb": null
+  },
+  "llamaBench": {
+    "ok": false,
+    "args": [
+      "-m",
+      "E:\\Dev\\Web\\justwrite-app\\src-tauri\\target\\debug\\data\\ai-cache\\hf\\models--unsloth--gemma-4-12B-it-qat-GGUF\\snapshots\\980b060c40a8539ac159e0501a3e0f66a6365af3\\gemma-4-12B-it-qat-UD-Q4_K_XL.gguf",
+      "-p",
+      "512,2048,8192",
+      "-n",
+      "128",
+      "-r",
+      "2",
+      "-o",
+      "json",
+      "-ngl",
+      "0",
+      "-t",
+      "8",
+      "-c",
+      "8192"
+    ],
+    "retriedWithout": [
+      "-o json"
+    ],
+    "exitCode": 1,
+    "timedOut": false,
+    "wallMs": 102,
+    "format": "unparsed",
+    "rows": [],
+    "derived": {},
+    "error": "Command failed: E:\\Dev\\Web\\justwrite-app\\src-tauri\\target\\debug\\data\\ai-cache\\llamacpp\\b10083\\cpu\\llama-bench.exe -m E:\\Dev\\Web\\justwrite-app\\src-tauri\\target\\debug\\data\\ai-cache\\hf\\models--unsloth--gemma-4-12B-it-qat-GGUF\\snapshots\\980b060c40a8539ac159e0501a3e0f66a6365af3\\gemma-4-12B-it-qat-UD-Q4_K_XL.gguf -p 512,2048,8192 -n 128 -r 2 -ngl 0 -t 8 -c 8192\nload_backend: loaded RPC backend from E:\\D",
+    "stdout": "usage: E:\\Dev\\Web\\justwrite-app\\src-tauri\\target\\debug\\data\\ai-cache\\llamacpp\\b10083\\cpu\\llama-bench.exe [options]\r\n\r\noptions:\r\n  -h, --help\r\n  --numa <distribute|isolate|numactl>         numa mode (default: disabled)\r\n  -r, --repetitions <n>                       number of times to repeat each test (default: 5)\r\n  --prio <-1|0|1|2|3>                         process/thread priority (default: 0)\r\n  --delay <0...N> (seconds)                   delay between each test (default: 0)\r\n  -o, --output <csv|json|jsonl|md|sql>        output format printed to stdout (default: md)\r\n  -oe, --output-err <csv|json|jsonl|md|sql>   output format printed to stderr (default: none)\r\n  --list-devices                              list available devices and exit\r\n  -v, --verbose                               verbose output\r\n  --progress                                  print test progress indicators\r\n  --no-warmup                                 skip warmup runs before benchmarking\r\n  -fitt, --fit-target <MiB>                   fit model to device memory with this margin per device in MiB (default: off)\r\n  -fitc, --fit-ctx <n>                        minimum ctx size for --fit-target (default: 4096)\r\n  -rpc, --rpc <rpc_servers>                   register RPC devices (comma separated)\r\n\r\ntest parameters:\r\n  -m, --model <filename>                      (default: models/7B/ggml-model-q4_0.gguf)\r\n  -hf, -hfr, --hf-repo <user>/<model>[:quant] Hugging Face model repository; quant is optional, case-insensitive\r\n                                              default to Q4_K_M, or falls back to the first file in the repo if Q4_K_M doesn't exist.\r\n                                              example: ggml-org/GLM-4.7-Flash-GGUF:Q4_K_M\r\n                                              (default: unused)\r\n  -hff, --hf-file <file>                      Hugging Face model file. If specified, it will override the quant in --hf-repo\r\n                                              (default: unused)\r\n  -hft, --hf-token <token>                    Hugging Face access token\r\n                                              (default: value from HF_TOKEN environment variable)\r\n  --offline                                   Offline mode: forces use of cache, prevents network access\r\n                                              (default: disabled)\r\n  -p, --n-prompt <n>                          (default: 512)\r\n  -n, --n-gen <n>                             (default: 128)\r\n  -pg <pp,tg>                                 (default: )\r\n  -d, --n-depth <n>                           (default: 0)\r\n  -b, --batch-size <n>                        (default: 2048)\r\n  -ub, --ubatch-size <n>                      (default: 512)\r\n  -ctk, --cache-type-k <t>                    (default: f16)\r\n  -ctv, --cache-type-v <t>                    (default: f16)\r\n  -t, --threads <n>                           (default: 8)\r\n  -C, --cpu-mask <hex,hex>                    (default: 0x0)\r\n  --cpu-strict <0|1>                          (default: 0)\r\n  --poll <0...100>                            (default: 50)\r\n  -ngl, --n-gpu-layers <n>                    (default: -1)\r\n  -ncmoe, --n-cpu-moe <n>                     (default: 0)\r\n  -sm, --split-mode <none|layer|row|tensor>   (default: layer)\r\n  -mg, --main-gpu <i>                         (default: 0)\r\n  -nkvo, --no-kv-offload <0|1>                (default: 0)\r\n  -fa, --flash-attn <on|off|auto>             (default: auto)\r\n  -dev, --device <dev0/dev1/...>              (default: auto)\r\n  -mmp, --mmap <0|1>                          (default: 1)\r\n  -dio, --direct-io <0|1>                     (default: 0)\r\n  -embd, --embeddings <0|1>                   (default: 0)\r\n  -ts, --tensor-split <ts0/ts1/..>            (default: 0)\r\n  -ot --override-tensor <tensor name pattern>=<buffer type>;...\r\n                                              (default: disabled)\r\n  -nopo, --no-op-offload <0|1>                (default: 0)\r\n  --no-host <0|1>                             (default: 0)\r\n\r\nMultiple values can be given for each parameter by separating them with ','\r\nor by specifying the parameter multiple times. Ranges can be given as\r\n'first-last' or 'first-last+step' or 'first-last*mult'.\r\n",
+    "stderr": "load_backend: loaded RPC backend from E:\\Dev\\Web\\justwrite-app\\src-tauri\\target\\debug\\data\\ai-cache\\llamacpp\\b10083\\cpu\\ggml-rpc.dll\r\nload_backend: loaded CPU backend from E:\\Dev\\Web\\justwrite-app\\src-tauri\\target\\debug\\data\\ai-cache\\llamacpp\\b10083\\cpu\\ggml-cpu-haswell.dll\r\nerror: invalid parameter for argument: -c\r\n",
+    "gguf": "gemma-4-12B-it-qat-UD-Q4_K_XL.gguf",
+    "ggufPath": "E:\\Dev\\Web\\justwrite-app\\src-tauri\\target\\debug\\data\\ai-cache\\hf\\models--unsloth--gemma-4-12B-it-qat-GGUF\\snapshots\\980b060c40a8539ac159e0501a3e0f66a6365af3\\gemma-4-12B-it-qat-UD-Q4_K_XL.gguf"
+  },
+  "peaks": {
+    "peakVramMb": 601,
+    "peakRssMb": 21122,
+    "samples": 524
+  },
+  "finishedAt": "2026-07-22T09:37:50.965Z"
+}

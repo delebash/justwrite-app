@@ -1,0 +1,768 @@
+{
+  "name": "gpu",
+  "band": "gpu",
+  "baselineRefs": [],
+  "book": "prj_sample_ninth_facet",
+  "features": [
+    "chat",
+    "characterChat",
+    "entitySweep",
+    "critique",
+    "writerAI.continue",
+    "writerAI.rewrite"
+  ],
+  "repeats": 2,
+  "timeoutMinutes": 20,
+  "sweepChapterCap": 3,
+  "ensureIndex": true,
+  "presetName": "Bench",
+  "featureArgs": {
+    "chat": {
+      "question": "What is this book about, and who is the protagonist?",
+      "k": 6
+    },
+    "characterChat": {
+      "question": "What do you want most right now, and what are you afraid of?"
+    },
+    "writerAI.continue": {
+      "passageChars": 2000
+    },
+    "writerAI.rewrite": {
+      "passageChars": 1200
+    }
+  },
+  "legs": [
+    {
+      "label": "BASELINE — Gemma 4 26B-A4B QAT, as the app resolves it today",
+      "gguf": "",
+      "tunables": {
+        "temperature": 0.7,
+        "think": false
+      },
+      "launch": {},
+      "llamaBench": {
+        "p": [
+          512,
+          2048,
+          8192
+        ],
+        "n": 128,
+        "reps": 2
+      },
+      "features": null,
+      "repeats": null,
+      "timeoutMinutes": null,
+      "featureArgs": null,
+      "id": "gpu-gemma-26b",
+      "_why": [
+        "The bar every other leg is measured against, and deliberately the ONLY leg",
+        "with no launch overrides: it loads exactly the way the app would load it",
+        "for you right now (computed fit + whatever tunes exist), so the baseline is",
+        "'the system as it works', not a hand-pinned config. What it resolved to is",
+        "recorded in the leg's load/measure output.",
+        "Every seeded preset points at this model, and its weights are already on disk."
+      ],
+      "model": "gemma-4-26b-a4b-qat",
+      "effectiveFeatures": [
+        "chat",
+        "characterChat",
+        "entitySweep",
+        "critique",
+        "writerAI.continue",
+        "writerAI.rewrite"
+      ],
+      "effectiveRepeats": 2,
+      "effectiveTimeoutMs": 1200000,
+      "effectiveFeatureArgs": {
+        "chat": {
+          "question": "What is this book about, and who is the protagonist?",
+          "k": 6
+        },
+        "characterChat": {
+          "question": "What do you want most right now, and what are you afraid of?"
+        },
+        "writerAI.continue": {
+          "passageChars": 2000
+        },
+        "writerAI.rewrite": {
+          "passageChars": 1200
+        }
+      }
+    },
+    {
+      "label": "THINK ON — Gemma 4 26B-A4B QAT, reasoning enabled (A/B vs gpu-gemma-26b)",
+      "gguf": "",
+      "tunables": {
+        "temperature": 0.7,
+        "think": true
+      },
+      "launch": {},
+      "llamaBench": null,
+      "features": null,
+      "repeats": null,
+      "timeoutMinutes": null,
+      "featureArgs": null,
+      "id": "gpu-gemma-26b-think",
+      "_why": [
+        "The A/B partner to gpu-gemma-26b: SAME model, features and book — the only",
+        "difference is tunables.think = true. So the summary's A/B block isolates what",
+        "thinking COSTS (wall, tokens, draft acceptance) and, read against the baseline's",
+        "captures, what it CHANGES in the output. reasoning_budget = 1024 (seeded at the",
+        "base bundle + this box's hardware class) bounds it through the normal request",
+        "cascade — never a launch flag. llamaBench is null: the raw pp/tg matrix is",
+        "think-independent, so there is no point paying its ~5 min twice."
+      ],
+      "model": "gemma-4-26b-a4b-qat",
+      "effectiveFeatures": [
+        "chat",
+        "characterChat",
+        "entitySweep",
+        "critique",
+        "writerAI.continue",
+        "writerAI.rewrite"
+      ],
+      "effectiveRepeats": 2,
+      "effectiveTimeoutMs": 1200000,
+      "effectiveFeatureArgs": {
+        "chat": {
+          "question": "What is this book about, and who is the protagonist?",
+          "k": 6
+        },
+        "characterChat": {
+          "question": "What do you want most right now, and what are you afraid of?"
+        },
+        "writerAI.continue": {
+          "passageChars": 2000
+        },
+        "writerAI.rewrite": {
+          "passageChars": 1200
+        }
+      }
+    },
+    {
+      "label": "HARD Q1, think OFF — the token↔Nine connection (multi-hop inference)",
+      "gguf": "",
+      "tunables": {
+        "temperature": 0.7,
+        "think": false
+      },
+      "launch": {},
+      "llamaBench": null,
+      "features": [
+        "chat"
+      ],
+      "repeats": 3,
+      "timeoutMinutes": null,
+      "featureArgs": {
+        "chat": {
+          "question": "Before the party ever reaches Manufactory Nine, what early signs connect the commission-token to what is inside the Nine, and what do those signs imply about the job? Cite the excerpts.",
+          "k": 6
+        }
+      },
+      "id": "gpu-gemma-26b-hq1",
+      "_why": [
+        "The think A/B on a question that actually NEEDS reasoning (2026-07-21 robustness",
+        "fix): the original chat question was retrieval-summary — its answer sits in the",
+        "excerpts, so thinking had nothing to add. This one requires CONNECTING facts from",
+        "three ch1 scenes + ch2, none of which states the conclusion.",
+        "",
+        "ANSWER KEY (judge against this, not vibes — full prose key in",
+        "docs/plans/2026-07-20-mtp-verify-think-ab-bench.md §7):",
+        " 1. The shop lamp was tuned to / listening for a deeper-Facet note (the fork rang",
+        "    near it, 'a note that leaned') — ch1 scene 1.",
+        " 2. The commission-token hums 'exactly the note the lamp had leaned toward all",
+        "    morning' — ch1 scene 2.",
+        " 3. Corroboration: a street lamp gutters as the token passes on Kettle Lane (ch1",
+        "    scene 3); the wrapped fork gives a muffled ring approaching the Nine (ch2 sc 1).",
+        " 4. IMPLICATION (the reasoning step): the token resonates with a deep-Facet source",
+        "    at/inside the Nine, so the 'routine structural clearance' is a deep-Facet site",
+        "    — confirmed in ch2 scene 2 ('certify a deep-Facet wound as an empty warehouse').",
+        "A strong answer makes all three connections + the implication; a weak one retells",
+        "one scene. Runs 1..3: run 1 is cache-cold (timing only; quality unaffected)."
+      ],
+      "model": "gemma-4-26b-a4b-qat",
+      "effectiveFeatures": [
+        "chat"
+      ],
+      "effectiveRepeats": 3,
+      "effectiveTimeoutMs": 1200000,
+      "effectiveFeatureArgs": {
+        "chat": {
+          "question": "Before the party ever reaches Manufactory Nine, what early signs connect the commission-token to what is inside the Nine, and what do those signs imply about the job? Cite the excerpts.",
+          "k": 6
+        },
+        "characterChat": {
+          "question": "What do you want most right now, and what are you afraid of?"
+        },
+        "writerAI.continue": {
+          "passageChars": 2000
+        },
+        "writerAI.rewrite": {
+          "passageChars": 1200
+        }
+      }
+    },
+    {
+      "label": "HARD Q1, think ON (high = 8192 budget) — A/B vs gpu-gemma-26b-hq1",
+      "gguf": "",
+      "tunables": {
+        "temperature": 0.7,
+        "think": true,
+        "reasoningEffort": "high"
+      },
+      "launch": {},
+      "llamaBench": null,
+      "features": [
+        "chat"
+      ],
+      "repeats": 3,
+      "timeoutMinutes": null,
+      "featureArgs": {
+        "chat": {
+          "question": "Before the party ever reaches Manufactory Nine, what early signs connect the commission-token to what is inside the Nine, and what do those signs imply about the job? Cite the excerpts.",
+          "k": 6
+        }
+      },
+      "id": "gpu-gemma-26b-hq1-think",
+      "_why": [
+        "Same question, thinking on with reasoningEffort 'high' → the seeded local map's",
+        "8192-token budget (the 1024 class cap was the original A/B's third hole; 'high'",
+        "≈ the unconstrained manual conditions). Judge BOTH arms against the hq1 ANSWER KEY."
+      ],
+      "model": "gemma-4-26b-a4b-qat",
+      "effectiveFeatures": [
+        "chat"
+      ],
+      "effectiveRepeats": 3,
+      "effectiveTimeoutMs": 1200000,
+      "effectiveFeatureArgs": {
+        "chat": {
+          "question": "Before the party ever reaches Manufactory Nine, what early signs connect the commission-token to what is inside the Nine, and what do those signs imply about the job? Cite the excerpts.",
+          "k": 6
+        },
+        "characterChat": {
+          "question": "What do you want most right now, and what are you afraid of?"
+        },
+        "writerAI.continue": {
+          "passageChars": 2000
+        },
+        "writerAI.rewrite": {
+          "passageChars": 1200
+        }
+      }
+    },
+    {
+      "label": "HARD Q2, think OFF — why the parties never came out (mechanism synthesis)",
+      "gguf": "",
+      "tunables": {
+        "temperature": 0.7,
+        "think": false
+      },
+      "launch": {},
+      "llamaBench": null,
+      "features": [
+        "chat"
+      ],
+      "repeats": 3,
+      "timeoutMinutes": null,
+      "featureArgs": {
+        "chat": {
+          "question": "Why did the three earlier parties never come out of Manufactory Nine, and why can Ode Marran remember every turn of the loop when they cannot? Explain the mechanism. Cite the excerpts.",
+          "k": 6
+        }
+      },
+      "id": "gpu-gemma-26b-hq2",
+      "_why": [
+        "Second hard question, different reasoning shape: MECHANISM synthesis across ch2+ch3",
+        "(the doc-2026-07-16 contradiction-finding style adapted to what the book contains).",
+        "",
+        "ANSWER KEY (full prose in the plan doc §7):",
+        " 1. The Nine loops one ~hour stretch — starts at seven past (Ode's stopped watch),",
+        "    resets at the top of the hour — ch3 scene 2.",
+        " 2. The reset pulls matter AND memory back: anyone who can't feel the deep Facets",
+        "    'forgets the whole turn and lives it fresh' — ch3 scene 1.",
+        " 3. So the three parties (Sedge's ledger, ch2 scene 1) never left: 'they're not",
+        "    dead... still walking in. Every hour. For nine years' (ch3 sc 1); the third",
+        "    party is in the east gallery believing it's the day they arrived (ch3 sc 2).",
+        " 4. Ode remembers because deep-Facet sensitives stand 'slightly outside the loom'",
+        "    and are NOT reset (ch3 sc 1) — the same exemption as Cael and Nettle.",
+        "A strong answer gives the loop mechanism + the forget rule + Ode's exemption; a",
+        "weak one says 'they were trapped' without the memory-reset mechanism."
+      ],
+      "model": "gemma-4-26b-a4b-qat",
+      "effectiveFeatures": [
+        "chat"
+      ],
+      "effectiveRepeats": 3,
+      "effectiveTimeoutMs": 1200000,
+      "effectiveFeatureArgs": {
+        "chat": {
+          "question": "Why did the three earlier parties never come out of Manufactory Nine, and why can Ode Marran remember every turn of the loop when they cannot? Explain the mechanism. Cite the excerpts.",
+          "k": 6
+        },
+        "characterChat": {
+          "question": "What do you want most right now, and what are you afraid of?"
+        },
+        "writerAI.continue": {
+          "passageChars": 2000
+        },
+        "writerAI.rewrite": {
+          "passageChars": 1200
+        }
+      }
+    },
+    {
+      "label": "HARD Q2, think ON (high = 8192 budget) — A/B vs gpu-gemma-26b-hq2",
+      "gguf": "",
+      "tunables": {
+        "temperature": 0.7,
+        "think": true,
+        "reasoningEffort": "high"
+      },
+      "launch": {},
+      "llamaBench": null,
+      "features": [
+        "chat"
+      ],
+      "repeats": 3,
+      "timeoutMinutes": null,
+      "featureArgs": {
+        "chat": {
+          "question": "Why did the three earlier parties never come out of Manufactory Nine, and why can Ode Marran remember every turn of the loop when they cannot? Explain the mechanism. Cite the excerpts.",
+          "k": 6
+        }
+      },
+      "id": "gpu-gemma-26b-hq2-think",
+      "_why": [
+        "Same question, thinking on at the 8192 budget. Judge BOTH arms against the hq2",
+        "ANSWER KEY."
+      ],
+      "model": "gemma-4-26b-a4b-qat",
+      "effectiveFeatures": [
+        "chat"
+      ],
+      "effectiveRepeats": 3,
+      "effectiveTimeoutMs": 1200000,
+      "effectiveFeatureArgs": {
+        "chat": {
+          "question": "Why did the three earlier parties never come out of Manufactory Nine, and why can Ode Marran remember every turn of the loop when they cannot? Explain the mechanism. Cite the excerpts.",
+          "k": 6
+        },
+        "characterChat": {
+          "question": "What do you want most right now, and what are you afraid of?"
+        },
+        "writerAI.continue": {
+          "passageChars": 2000
+        },
+        "writerAI.rewrite": {
+          "passageChars": 1200
+        }
+      }
+    },
+    {
+      "label": "Qwen3.6 35B-A3B (MTP), as the app resolves it today — the head-to-head vs Gemma",
+      "gguf": "",
+      "tunables": {
+        "temperature": 0.7,
+        "think": false
+      },
+      "launch": {},
+      "llamaBench": {
+        "p": [
+          512,
+          2048,
+          8192
+        ],
+        "n": 128,
+        "reps": 2
+      },
+      "features": null,
+      "repeats": null,
+      "timeoutMinutes": null,
+      "featureArgs": null,
+      "id": "gpu-qwen-35b",
+      "_why": [
+        "The SAME battery as gpu-gemma-26b, on the other catalog flagship, so the summary",
+        "compares the two on THIS box head-to-head. Like the Gemma baseline it carries NO",
+        "launch overrides — it loads exactly as the app would (computed fit + whatever tunes",
+        "exist), so this is 'the system as it works', not a hand-pinned config. Qwen is a",
+        "35B-A3B MoE (~23 GB UD-Q4_K_XL) that offloads experts to system RAM on an 8 GB card,",
+        "so the delta vs Gemma 26B-A4B shows what the bigger-but-sparser model buys here.",
+        "Its weights need a ~23 GB download on first run (32 GB-RAM box)."
+      ],
+      "model": "qwen3.6-35b-a3b-mtp",
+      "effectiveFeatures": [
+        "chat",
+        "characterChat",
+        "entitySweep",
+        "critique",
+        "writerAI.continue",
+        "writerAI.rewrite"
+      ],
+      "effectiveRepeats": 2,
+      "effectiveTimeoutMs": 1200000,
+      "effectiveFeatureArgs": {
+        "chat": {
+          "question": "What is this book about, and who is the protagonist?",
+          "k": 6
+        },
+        "characterChat": {
+          "question": "What do you want most right now, and what are you afraid of?"
+        },
+        "writerAI.continue": {
+          "passageChars": 2000
+        },
+        "writerAI.rewrite": {
+          "passageChars": 1200
+        }
+      }
+    },
+    {
+      "label": "THINK ON — Qwen3.6 35B-A3B (MTP), reasoning enabled (A/B vs gpu-qwen-35b)",
+      "gguf": "",
+      "tunables": {
+        "temperature": 0.7,
+        "think": true
+      },
+      "launch": {},
+      "llamaBench": null,
+      "features": null,
+      "repeats": null,
+      "timeoutMinutes": null,
+      "featureArgs": null,
+      "id": "gpu-qwen-35b-think",
+      "_why": [
+        "The think A/B partner to gpu-qwen-35b: SAME model, features and book — the only",
+        "difference is tunables.think = true, so the summary isolates what thinking costs and",
+        "changes on Qwen exactly as the Gemma pair does. llamaBench is null (the raw pp/tg",
+        "matrix is think-independent)."
+      ],
+      "model": "qwen3.6-35b-a3b-mtp",
+      "effectiveFeatures": [
+        "chat",
+        "characterChat",
+        "entitySweep",
+        "critique",
+        "writerAI.continue",
+        "writerAI.rewrite"
+      ],
+      "effectiveRepeats": 2,
+      "effectiveTimeoutMs": 1200000,
+      "effectiveFeatureArgs": {
+        "chat": {
+          "question": "What is this book about, and who is the protagonist?",
+          "k": 6
+        },
+        "characterChat": {
+          "question": "What do you want most right now, and what are you afraid of?"
+        },
+        "writerAI.continue": {
+          "passageChars": 2000
+        },
+        "writerAI.rewrite": {
+          "passageChars": 1200
+        }
+      }
+    },
+    {
+      "label": "HARD Q1, think OFF — Qwen (the token↔Nine multi-hop; A/B partner to gpu-gemma-26b-hq1)",
+      "gguf": "",
+      "tunables": {
+        "temperature": 0.7,
+        "think": false
+      },
+      "launch": {},
+      "llamaBench": null,
+      "features": [
+        "chat"
+      ],
+      "repeats": 3,
+      "timeoutMinutes": null,
+      "featureArgs": {
+        "chat": {
+          "question": "Before the party ever reaches Manufactory Nine, what early signs connect the commission-token to what is inside the Nine, and what do those signs imply about the job? Cite the excerpts.",
+          "k": 6
+        }
+      },
+      "id": "gpu-qwen-35b-hq1",
+      "_why": [
+        "The same hard Q1 as gpu-gemma-26b-hq1, on Qwen, so the two models are judged on the",
+        "SAME multi-hop reasoning question. Judge every arm against the gpu-gemma-26b-hq1",
+        "ANSWER KEY (identical question + book; full prose key there and in",
+        "docs/plans/2026-07-20-mtp-verify-think-ab-bench.md §7). Runs 1..3: run 1 is cache-cold",
+        "(timing only)."
+      ],
+      "model": "qwen3.6-35b-a3b-mtp",
+      "effectiveFeatures": [
+        "chat"
+      ],
+      "effectiveRepeats": 3,
+      "effectiveTimeoutMs": 1200000,
+      "effectiveFeatureArgs": {
+        "chat": {
+          "question": "Before the party ever reaches Manufactory Nine, what early signs connect the commission-token to what is inside the Nine, and what do those signs imply about the job? Cite the excerpts.",
+          "k": 6
+        },
+        "characterChat": {
+          "question": "What do you want most right now, and what are you afraid of?"
+        },
+        "writerAI.continue": {
+          "passageChars": 2000
+        },
+        "writerAI.rewrite": {
+          "passageChars": 1200
+        }
+      }
+    },
+    {
+      "label": "HARD Q1, think ON (high = 8192 budget) — Qwen A/B vs gpu-qwen-35b-hq1",
+      "gguf": "",
+      "tunables": {
+        "temperature": 0.7,
+        "think": true,
+        "reasoningEffort": "high"
+      },
+      "launch": {},
+      "llamaBench": null,
+      "features": [
+        "chat"
+      ],
+      "repeats": 3,
+      "timeoutMinutes": null,
+      "featureArgs": {
+        "chat": {
+          "question": "Before the party ever reaches Manufactory Nine, what early signs connect the commission-token to what is inside the Nine, and what do those signs imply about the job? Cite the excerpts.",
+          "k": 6
+        }
+      },
+      "id": "gpu-qwen-35b-hq1-think",
+      "_why": [
+        "Same question, thinking on with reasoningEffort 'high' → the seeded 8192-token budget.",
+        "Judge BOTH arms against the gpu-gemma-26b-hq1 ANSWER KEY."
+      ],
+      "model": "qwen3.6-35b-a3b-mtp",
+      "effectiveFeatures": [
+        "chat"
+      ],
+      "effectiveRepeats": 3,
+      "effectiveTimeoutMs": 1200000,
+      "effectiveFeatureArgs": {
+        "chat": {
+          "question": "Before the party ever reaches Manufactory Nine, what early signs connect the commission-token to what is inside the Nine, and what do those signs imply about the job? Cite the excerpts.",
+          "k": 6
+        },
+        "characterChat": {
+          "question": "What do you want most right now, and what are you afraid of?"
+        },
+        "writerAI.continue": {
+          "passageChars": 2000
+        },
+        "writerAI.rewrite": {
+          "passageChars": 1200
+        }
+      }
+    },
+    {
+      "label": "HARD Q2, think OFF — Qwen (the loop mechanism; A/B partner to gpu-gemma-26b-hq2)",
+      "gguf": "",
+      "tunables": {
+        "temperature": 0.7,
+        "think": false
+      },
+      "launch": {},
+      "llamaBench": null,
+      "features": [
+        "chat"
+      ],
+      "repeats": 3,
+      "timeoutMinutes": null,
+      "featureArgs": {
+        "chat": {
+          "question": "Why did the three earlier parties never come out of Manufactory Nine, and why can Ode Marran remember every turn of the loop when they cannot? Explain the mechanism. Cite the excerpts.",
+          "k": 6
+        }
+      },
+      "id": "gpu-qwen-35b-hq2",
+      "_why": [
+        "The same hard Q2 as gpu-gemma-26b-hq2, on Qwen. Judge every arm against the",
+        "gpu-gemma-26b-hq2 ANSWER KEY (identical question + book; full key there and in the",
+        "plan doc §7)."
+      ],
+      "model": "qwen3.6-35b-a3b-mtp",
+      "effectiveFeatures": [
+        "chat"
+      ],
+      "effectiveRepeats": 3,
+      "effectiveTimeoutMs": 1200000,
+      "effectiveFeatureArgs": {
+        "chat": {
+          "question": "Why did the three earlier parties never come out of Manufactory Nine, and why can Ode Marran remember every turn of the loop when they cannot? Explain the mechanism. Cite the excerpts.",
+          "k": 6
+        },
+        "characterChat": {
+          "question": "What do you want most right now, and what are you afraid of?"
+        },
+        "writerAI.continue": {
+          "passageChars": 2000
+        },
+        "writerAI.rewrite": {
+          "passageChars": 1200
+        }
+      }
+    },
+    {
+      "label": "HARD Q2, think ON (high = 8192 budget) — Qwen A/B vs gpu-qwen-35b-hq2",
+      "gguf": "",
+      "tunables": {
+        "temperature": 0.7,
+        "think": true,
+        "reasoningEffort": "high"
+      },
+      "launch": {},
+      "llamaBench": null,
+      "features": [
+        "chat"
+      ],
+      "repeats": 3,
+      "timeoutMinutes": null,
+      "featureArgs": {
+        "chat": {
+          "question": "Why did the three earlier parties never come out of Manufactory Nine, and why can Ode Marran remember every turn of the loop when they cannot? Explain the mechanism. Cite the excerpts.",
+          "k": 6
+        }
+      },
+      "id": "gpu-qwen-35b-hq2-think",
+      "_why": [
+        "Same question, thinking on at the 8192 budget. Judge BOTH arms against the",
+        "gpu-gemma-26b-hq2 ANSWER KEY."
+      ],
+      "model": "qwen3.6-35b-a3b-mtp",
+      "effectiveFeatures": [
+        "chat"
+      ],
+      "effectiveRepeats": 3,
+      "effectiveTimeoutMs": 1200000,
+      "effectiveFeatureArgs": {
+        "chat": {
+          "question": "Why did the three earlier parties never come out of Manufactory Nine, and why can Ode Marran remember every turn of the loop when they cannot? Explain the mechanism. Cite the excerpts.",
+          "k": 6
+        },
+        "characterChat": {
+          "question": "What do you want most right now, and what are you afraid of?"
+        },
+        "writerAI.continue": {
+          "passageChars": 2000
+        },
+        "writerAI.rewrite": {
+          "passageChars": 1200
+        }
+      }
+    },
+    {
+      "label": "BIBLE-ONLY — Gemma 26B chat with retrieval FORCED OFF (A/B vs gpu-gemma-26b)",
+      "gguf": "",
+      "tunables": {
+        "temperature": 0.7,
+        "think": false
+      },
+      "launch": {},
+      "llamaBench": null,
+      "features": [
+        "chat"
+      ],
+      "repeats": null,
+      "timeoutMinutes": null,
+      "featureArgs": {
+        "chat": {
+          "question": "What is this book about, and who is the protagonist?",
+          "k": 6,
+          "bibleOnly": true
+        }
+      },
+      "id": "gpu-gemma-26b-bible",
+      "_why": [
+        "The rag A/B the band always lacked (user, 2026-07-22: 'i cant believe we did",
+        "not do that in the first place — it was pointless not to test it with index').",
+        "SAME model + question as the baseline; the ONLY difference is",
+        "featureArgs.chat.bibleOnly = true → askManuscript(forceBibleOnly) skips",
+        "retrieval and answers from the story bible alone. The summary's A/B block +",
+        "the two captures side by side show what the retrieved excerpts actually BUY.",
+        "chat only (planner decision 2026-07-22): the mechanism question lives here;",
+        "characterChat can clone the pattern later if this delta proves interesting.",
+        "llamaBench null — the raw matrix is retrieval-independent."
+      ],
+      "model": "gemma-4-26b-a4b-qat",
+      "effectiveFeatures": [
+        "chat"
+      ],
+      "effectiveRepeats": 2,
+      "effectiveTimeoutMs": 1200000,
+      "effectiveFeatureArgs": {
+        "chat": {
+          "question": "What is this book about, and who is the protagonist?",
+          "k": 6,
+          "bibleOnly": true
+        },
+        "characterChat": {
+          "question": "What do you want most right now, and what are you afraid of?"
+        },
+        "writerAI.continue": {
+          "passageChars": 2000
+        },
+        "writerAI.rewrite": {
+          "passageChars": 1200
+        }
+      }
+    },
+    {
+      "label": "BIBLE-ONLY — Qwen 35B chat with retrieval FORCED OFF (A/B vs gpu-qwen-35b)",
+      "gguf": "",
+      "tunables": {
+        "temperature": 0.7,
+        "think": false
+      },
+      "launch": {},
+      "llamaBench": null,
+      "features": [
+        "chat"
+      ],
+      "repeats": null,
+      "timeoutMinutes": null,
+      "featureArgs": {
+        "chat": {
+          "question": "What is this book about, and who is the protagonist?",
+          "k": 6,
+          "bibleOnly": true
+        }
+      },
+      "id": "gpu-qwen-35b-bible",
+      "_why": [
+        "The Qwen arm of the same rag A/B — same question as gpu-qwen-35b's chat,",
+        "bibleOnly forced. See gpu-gemma-26b-bible for the full rationale."
+      ],
+      "model": "qwen3.6-35b-a3b-mtp",
+      "effectiveFeatures": [
+        "chat"
+      ],
+      "effectiveRepeats": 2,
+      "effectiveTimeoutMs": 1200000,
+      "effectiveFeatureArgs": {
+        "chat": {
+          "question": "What is this book about, and who is the protagonist?",
+          "k": 6,
+          "bibleOnly": true
+        },
+        "characterChat": {
+          "question": "What do you want most right now, and what are you afraid of?"
+        },
+        "writerAI.continue": {
+          "passageChars": 2000
+        },
+        "writerAI.rewrite": {
+          "passageChars": 1200
+        }
+      }
+    }
+  ],
+  "source": "E:\\Dev\\Web\\justwrite-app\\scripts\\bench\\configs\\gpu.json"
+}

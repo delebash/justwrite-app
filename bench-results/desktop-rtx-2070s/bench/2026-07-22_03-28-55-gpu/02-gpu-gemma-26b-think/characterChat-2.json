@@ -1,0 +1,67 @@
+{
+  "runId": "2026-07-22_03-28-55-gpu",
+  "leg": "gpu-gemma-26b-think",
+  "model": "gemma-4-26b-a4b-qat",
+  "attempt": 2,
+  "args": {
+    "question": "What do you want most right now, and what are you afraid of?",
+    "timeoutMs": 1200000
+  },
+  "preset": {
+    "id": "9d4ebeddeb96",
+    "name": "Bench",
+    "providerId": "",
+    "model": "gemma-4-26b-a4b-qat",
+    "temperature": 0.7,
+    "topP": null,
+    "maxTokens": 0,
+    "reasoningEffort": "",
+    "think": true,
+    "samplers": [],
+    "builtIn": false,
+    "position": 10,
+    "factoryModel": ""
+  },
+  "route": {
+    "feature": "characterChat",
+    "action": "characterChat",
+    "providerId": "local-llamacpp",
+    "model": "gemma-4-26b-a4b-qat",
+    "presetId": "9d4ebeddeb96",
+    "presetName": "Bench",
+    "presetSource": "assigned",
+    "think": true,
+    "level": "",
+    "reasoningWord": "",
+    "value": 1024,
+    "valueSource": "base",
+    "configured": true,
+    "detail": ""
+  },
+  "featureKey": "characterChat",
+  "ok": true,
+  "started": "2026-07-22T03:40:05.286Z",
+  "label": "Character chat",
+  "wallMs": 39549,
+  "ttftMs": 36344,
+  "output": "I used to want a quiet life—just a dull job at the Hall where the only thing I had to listen to was a steady lamp or a clean gear [3]. But right now? I'm holding something that isn't just a tool; it's the whole mechanism of everything, and it's bleeding [5]. I'm afraid that if I answer this note, the quiet I've spent my whole life building is going to shatter like a lens hit by a hammer, and there won't be any way to mend the pieces.",
+  "outputChars": 437,
+  "usage": {
+    "promptTokens": 2563,
+    "completionTokens": 1143,
+    "model": "gemma-4-26b-a4b-qat",
+    "cost": 0
+  },
+  "flags": [
+    "temperature-fixed-by-caller"
+  ],
+  "extra": {
+    "bibleOnly": false,
+    "question": "What do you want most right now, and what are you afraid of?",
+    "k": 6,
+    "characterId": "c1",
+    "character": "Cael Ferren",
+    "citationCount": 6
+  },
+  "error": null
+}

@@ -1,0 +1,61 @@
+{
+  "runId": "2026-07-21_02-00-00-gpu",
+  "leg": "gpu-gemma-26b",
+  "model": "gemma-4-26b-a4b-qat",
+  "attempt": 1,
+  "args": {
+    "passageChars": 2000,
+    "timeoutMs": 1200000
+  },
+  "preset": {
+    "id": "d275d86236e9",
+    "name": "Bench",
+    "providerId": "",
+    "model": "gemma-4-26b-a4b-qat",
+    "temperature": 0.7,
+    "topP": null,
+    "maxTokens": 0,
+    "reasoningEffort": "",
+    "think": false,
+    "samplers": [],
+    "builtIn": false,
+    "position": 10,
+    "factoryModel": ""
+  },
+  "route": {
+    "feature": "writerAI.continue",
+    "action": "writerAI.continue",
+    "providerId": "local-llamacpp",
+    "model": "gemma-4-26b-a4b-qat",
+    "presetId": "d275d86236e9",
+    "presetName": "Bench",
+    "presetSource": "assigned",
+    "think": false,
+    "level": "",
+    "reasoningWord": "",
+    "value": null,
+    "valueSource": "",
+    "configured": true,
+    "detail": ""
+  },
+  "featureKey": "writerAI.continue",
+  "ok": true,
+  "started": "2026-07-21T02:03:34.761Z",
+  "label": "Continue",
+  "wallMs": 12378,
+  "ttftMs": 1959,
+  "output": "Cael stood alone in the dim hallway, the silence of the glimmerworks pressing against her ears. The token in her pocket pulsed, a rhythmic vibration that felt less like a sound and more like a heartbeat borrowed from something much larger and much colder. She waited, half-expecting the shadows in the corner to ripple or for Nettle to step back into the light with a sharp retort, but the corridor remained still.\n\nShe turned the key, the metal biting into the lock with a heavy, mechanical click. The warmth of the room she had just left felt like a memory from a different life, a brief reprieve from the damp chill that always seemed to seep out of the stone walls. As she stepped inside, the hum of the token intensified, rising in pitch until it was a needle-fine whine against her thigh.\n\nThe apartment was dark, save for the pale, filtered light of the harbor lamps bleeding through the grime on the windowpane. Cael didn't reach for the switch. Instead, she leaned her forehead against the cool wood of the door and closed her eyes, letting the token's vibration travel up through her bones. She wasn't listening for the city, or the wind, or the distant slap of the tide against the piers. She was listening for the hollow resonance beneath the floorboards, the sound of the world breathing through its cracks.",
+  "outputChars": 1320,
+  "usage": {
+    "promptTokens": 636,
+    "completionTokens": 280,
+    "model": "gemma-4-26b-a4b-qat",
+    "cost": 0
+  },
+  "flags": [],
+  "extra": {
+    "chapterId": "ch1",
+    "passageChars": 2000
+  },
+  "error": null
+}

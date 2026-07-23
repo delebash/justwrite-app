@@ -1,0 +1,67 @@
+{
+  "runId": "2026-07-22_10-24-23-cpu",
+  "leg": "cpu-qwen-35b",
+  "model": "qwen3.6-35b-a3b-mtp",
+  "attempt": 1,
+  "args": {
+    "question": "What do you want most right now, and what are you afraid of?",
+    "timeoutMs": 1200000
+  },
+  "preset": {
+    "id": "9d4ebeddeb96",
+    "name": "Bench",
+    "providerId": "",
+    "model": "qwen3.6-35b-a3b-mtp",
+    "temperature": 0.7,
+    "topP": null,
+    "maxTokens": 0,
+    "reasoningEffort": "",
+    "think": false,
+    "samplers": [],
+    "builtIn": false,
+    "position": 10,
+    "factoryModel": ""
+  },
+  "route": {
+    "feature": "characterChat",
+    "action": "characterChat",
+    "providerId": "local-llamacpp",
+    "model": "qwen3.6-35b-a3b-mtp",
+    "presetId": "9d4ebeddeb96",
+    "presetName": "Bench",
+    "presetSource": "assigned",
+    "think": false,
+    "level": "",
+    "reasoningWord": "",
+    "value": null,
+    "valueSource": "",
+    "configured": true,
+    "detail": ""
+  },
+  "featureKey": "characterChat",
+  "ok": true,
+  "started": "2026-07-22T10:58:57.971Z",
+  "label": "Character chat",
+  "wallMs": 73409,
+  "ttftMs": 55770,
+  "output": "I want the brass chit, the quiet hours, and a job where the only thing I have to fix is a broken latch. I want to be the woman who collects dull commissions and goes home to Kettle Lane to eat and sleep without her teeth ringing like struck forks.\n\nWhat I’m afraid of is that the hum isn’t a sickness to be cut out, but a compass I’ve been pretending not to see for nine years. I’m afraid that if I stop hiding it, I’ll have to admit the world is broken on purpose, and that I’m the only one who can hear the note it’s tuned to.",
+  "outputChars": 528,
+  "usage": {
+    "promptTokens": 2542,
+    "completionTokens": 129,
+    "model": "qwen3.6-35b-a3b-mtp",
+    "cost": 0
+  },
+  "flags": [
+    "temperature-fixed-by-caller"
+  ],
+  "extra": {
+    "bibleOnly": false,
+    "question": "What do you want most right now, and what are you afraid of?",
+    "k": 6,
+    "characterId": "c1",
+    "character": "Cael Ferren",
+    "citationCount": 6
+  },
+  "error": null
+}

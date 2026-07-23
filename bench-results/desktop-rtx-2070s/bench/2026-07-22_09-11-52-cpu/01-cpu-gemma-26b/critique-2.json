@@ -1,0 +1,108 @@
+{
+  "runId": "2026-07-22_09-11-52-cpu",
+  "leg": "cpu-gemma-26b",
+  "model": "gemma-4-26b-a4b-qat",
+  "attempt": 2,
+  "args": {
+    "timeoutMs": 1200000
+  },
+  "preset": {
+    "id": "9d4ebeddeb96",
+    "name": "Bench",
+    "providerId": "",
+    "model": "gemma-4-26b-a4b-qat",
+    "temperature": 0.7,
+    "topP": null,
+    "maxTokens": 0,
+    "reasoningEffort": "",
+    "think": false,
+    "samplers": [],
+    "builtIn": false,
+    "position": 10,
+    "factoryModel": ""
+  },
+  "route": {
+    "feature": "critique",
+    "action": "critique",
+    "providerId": "local-llamacpp",
+    "model": "gemma-4-26b-a4b-qat",
+    "presetId": "9d4ebeddeb96",
+    "presetName": "Bench",
+    "presetSource": "assigned",
+    "think": false,
+    "level": "",
+    "reasoningWord": "",
+    "value": null,
+    "valueSource": "",
+    "configured": true,
+    "detail": ""
+  },
+  "featureKey": "critique",
+  "ok": true,
+  "started": "2026-07-22T09:17:13.719Z",
+  "label": "Chapter critique",
+  "wallMs": 48427,
+  "ttftMs": null,
+  "output": "{\n  \"notes\": [\n    {\n      \"severity\": \"info\",\n      \"category\": \"opening\",\n      \"message\": \"The opening hook regarding the 'lying lamp' is evocative and immediately establishes the magical tension of the world.\"\n    },\n    {\n      \"severity\": \"suggest\",\n      \"category\": \"show-don't-tell\",\n      \"message\": \"The phrase 'the way people brought things they were embarrassed to be attached to' is a brilliant bit of characterization via object.\"\n    },\n    {\n      \"severity\": \"suggest\",\n      \"category\": \"voice\",\n      \"message\": \"Cael's internal monologue is strong, but watch for over-explaining her motivations, such as 'a woman who could not afford to be interesting'.\"\n    },\n    {\n      \"severity\": \"info\",\n      \"category\": \"characterization\",\n      \"message\": \"The 'Company' dynamics are established quickly through dialogue; Brick's apple-quartering is a great way to show his grounded nature.\"\n    },\n    {\n      \"severity\": \"flag\",\n      \"category\": \"pacing\",\n      \"message\": \"The transition between the shop and the Commission Hall feels slightly abrupt; a small connective beat or a clearer time jump would smooth the shift.\"\n    },\n    {\n      \"severity\": \"suggest\",\n      \"category\": \"dialogue\",\n      \"message\": \"The dialogue in the Hall is very efficient, but Nettle's 'vanishing' act at the end feels a bit close to a trope; ensure her supernatural abilities feel distinct from simple speed.\"\n    },\n    {\n      \"severity\": \"info\",\n      \"category\": \"tension\",\n      \"message\": \"The recurring motif of the 'humming' token creates excellent, mounting dread that connects the two halves of the chapter.\"\n    },\n    {\n      \"severity\": \"suggest\",\n      \"category\": \"clarity\",\n      \"message\": \"The 'Facet' mentioned in the shop scene is a new term; a tiny bit of context regarding its nature would help ground the reader.\"\n    }\n  ]\n}",
+  "outputChars": 1852,
+  "usage": null,
+  "flags": [],
+  "extra": {
+    "chapterId": "ch1",
+    "chapterNum": 1,
+    "chapterWords": 2600,
+    "noteCount": 8,
+    "notes": [
+      {
+        "id": "note_mrvvdhnm_0",
+        "severity": "info",
+        "category": "opening",
+        "message": "The opening hook regarding the 'lying lamp' is evocative and immediately establishes the magical tension of the world."
+      },
+      {
+        "id": "note_mrvvdhnm_1",
+        "severity": "suggest",
+        "category": "show-don't-tell",
+        "message": "The phrase 'the way people brought things they were embarrassed to be attached to' is a brilliant bit of characterization via object."
+      },
+      {
+        "id": "note_mrvvdhnm_2",
+        "severity": "suggest",
+        "category": "voice",
+        "message": "Cael's internal monologue is strong, but watch for over-explaining her motivations, such as 'a woman who could not afford to be interesting'."
+      },
+      {
+        "id": "note_mrvvdhnm_3",
+        "severity": "info",
+        "category": "characterization",
+        "message": "The 'Company' dynamics are established quickly through dialogue; Brick's apple-quartering is a great way to show his grounded nature."
+      },
+      {
+        "id": "note_mrvvdhnm_4",
+        "severity": "flag",
+        "category": "pacing",
+        "message": "The transition between the shop and the Commission Hall feels slightly abrupt; a small connective beat or a clearer time jump would smooth the shift."
+      },
+      {
+        "id": "note_mrvvdhnm_5",
+        "severity": "suggest",
+        "category": "dialogue",
+        "message": "The dialogue in the Hall is very efficient, but Nettle's 'vanishing' act at the end feels a bit close to a trope; ensure her supernatural abilities feel distinct from simple speed."
+      },
+      {
+        "id": "note_mrvvdhnm_6",
+        "severity": "info",
+        "category": "tension",
+        "message": "The recurring motif of the 'humming' token creates excellent, mounting dread that connects the two halves of the chapter."
+      },
+      {
+        "id": "note_mrvvdhnm_7",
+        "severity": "suggest",
+        "category": "clarity",
+        "message": "The 'Facet' mentioned in the shop scene is a new term; a tiny bit of context regarding its nature would help ground the reader."
+      }
+    ],
+    "model": "gemma-4-26b-a4b-qat"
+  },
+  "error": null
+}

@@ -1,0 +1,69 @@
+{
+  "runId": "2026-07-22_03-28-55-gpu",
+  "leg": "gpu-qwen-35b",
+  "model": "qwen3.6-35b-a3b-mtp",
+  "attempt": 1,
+  "args": {
+    "timeoutMs": 1200000,
+    "chapterCap": 3
+  },
+  "preset": {
+    "id": "9d4ebeddeb96",
+    "name": "Bench",
+    "providerId": "",
+    "model": "qwen3.6-35b-a3b-mtp",
+    "temperature": 0.7,
+    "topP": null,
+    "maxTokens": 0,
+    "reasoningEffort": "",
+    "think": false,
+    "samplers": [],
+    "builtIn": false,
+    "position": 10,
+    "factoryModel": ""
+  },
+  "route": {
+    "feature": "entitySweep",
+    "action": "entitySweep",
+    "providerId": "local-llamacpp",
+    "model": "qwen3.6-35b-a3b-mtp",
+    "presetId": "9d4ebeddeb96",
+    "presetName": "Bench",
+    "presetSource": "assigned",
+    "think": false,
+    "level": "",
+    "reasoningWord": "",
+    "value": null,
+    "valueSource": "",
+    "configured": true,
+    "detail": ""
+  },
+  "featureKey": "entitySweep",
+  "ok": true,
+  "started": "2026-07-22T03:54:24.815Z",
+  "label": "Entity sweep",
+  "wallMs": 106293,
+  "ttftMs": 40439,
+  "output": "{\n  \"characters\": [\n    {\n      \"name\": \"Sedge\",\n      \"role\": \"Road-warden\",\n      \"kind\": \"\",\n      \"oneLiner\": \"An old pensioner road-warden who guards the entrance to Manufactory Nine and keeps a ledger of visitors.\",\n      \"note\": \"\",\n      \"evidence\": \"Old Sedge, the plate on the hut said\",\n      \"aliases\": [\n        \"Old Sedge\"\n      ],\n      \"originChapters\": [\n        {\n          \"id\": \"ch2\",\n          \"num\": 2,\n          \"title\": \"Bigger Inside\"\n        }\n      ]\n    },\n    {\n      \"name\": \"Threll\",\n      \"role\": \"Warden superior\",\n      \"kind\": \"\",\n      \"oneLiner\": \"A Warden superior who assigned the commission team to Manufactory Nine.\",\n      \"note\": \"\",\n      \"evidence\": \"Threll sent us to certify a deep-Facet wound\",\n      \"aliases\": [],\n      \"originChapters\": [\n        {\n          \"id\": \"ch2\",\n          \"num\": 2,\n          \"title\": \"Bigger Inside\"\n        }\n      ]\n    }\n  ],\n  \"locations\": [\n    {\n      \"name\": \"Kettle Lane\",\n      \"role\": \"\",\n      \"kind\": \"Street\",\n      \"oneLiner\": \"\",\n      \"note\": \"A lane near the harbor where Nettle walks Cael home.\",\n      \"evidence\": \"Nettle appeared beside her on Kettle Lane without having been there a moment before.\",\n      \"aliases\": [],\n      \"originChapters\": [\n        {\n          \"id\": \"ch1\",\n          \"num\": 1,\n          \"title\": \"Brass Rank\"\n        }\n      ]\n    },\n    {\n      \"name\": \"Ash District\",\n      \"role\": \"\",\n      \"kind\": \"District\",\n      \"oneLiner\": \"\",\n      \"note\": \"A district where the dangerous Manufactory Nine is located.\",\n      \"evidence\": \"Manufactory Nine, Ash District. Structural survey & clearance.\",\n      \"aliases\": [],\n      \"originChapters\": [\n        {\n          \"id\": \"ch1\",\n          \"num\": 1,\n          \"title\": \"Brass Rank\"\n        },\n        {\n          \"id\": \"ch3\",\n          \"num\": 3,\n          \"title\": \"The Same Hour\"\n        }\n      ]\n    },\n    {\n      \"name\": \"The Cutwater\",\n      \"role\": \"\",\n      \"kind\": \"Geographic feature\",\n      \"oneLiner\": \"\",\n      \"note\": \"A gap or waterway that Nettle famously crossed last spring.\",\n      \"evidence\": \"the one over the Cutwater last spring\",\n      \"aliases\": [],\n      \"originChapters\": [\n        {\n          \"id\": \"ch1\",\n          \"num\": 1,\n          \"title\": \"Brass Rank\"\n        }\n      ]\n    },\n    {\n      \"name\": \"The Ash District\",\n      \"role\": \"\",\n      \"kind\": \"District\",\n      \"oneLiner\": \"\",\n      \"note\": \"A former bright quarter of Threnn that has fallen into disrepair and darkness.\",\n      \"evidence\": \"The Ash District had been the bright edge of Threnn once\",\n      \"aliases\": [],\n      \"originChapters\": [\n        {\n          \"id\": \"ch2\",\n          \"num\": 2,\n          \"title\": \"Bigger Inside\"\n        }\n      ]\n    },\n    {\n      \"name\": \"Nine Road\",\n      \"role\": \"\",\n      \"kind\": \"Road\",\n      \"oneLiner\": \"\",\n      \"note\": \"The road leading to Manufactory Nine, lined with failing lumen-lamps.\",\n      \"evidence\": \"the lumen-lamps along the Nine Road stood at long intervals\",\n      \"aliases\": [],\n      \"originChapters\": [\n        {\n          \"id\": \"ch2\",\n          \"num\": 2,\n          \"title\": \"Bigger Inside\"\n        }\n      ]\n    },\n    {\n      \"name\": \"East gallery\",\n      \"role\": \"\",\n      \"kind\": \"Location within manufactory\",\n      \"oneLiner\": \"\",\n      \"note\": \"Where the third party of explorers is currently trapped in an earlier loop.\",\n      \"evidence\": \"\\\"They're still in the east gallery.\\\"\",\n      \"aliases\": [],\n      \"originChapters\": [\n        {\n          \"id\": \"ch3\",\n          \"num\": 3,\n          \"title\": \"The Same Hour\"\n        }\n      ]\n    },\n    {\n      \"name\": \"Warden Cloister\",\n      \"role\": \"\",\n      \"kind\": \"Institutional location\",\n      \"oneLiner\": \"\",\n      \"note\": \"Referenced as the source of histories calling the event the Sundering.\",\n      \"evidence\": \"\\\"The histories in the Cloister call it the Sundering.\\\"\",\n      \"aliases\": [],\n      \"originChapters\": [\n        {\n          \"id\": \"ch3\",\n          \"num\": 3,\n          \"title\": \"The Same Hour\"\n        }\n      ]\n    }\n  ],\n  \"objects\": [\n    {\n      \"name\": \"resonance fork\",\n      \"role\": \"\",\n      \"kind\": \"Tool\",\n      \"oneLiner\": \"\",\n      \"note\": \"A grey steel fork that screams when near the anomaly, previously wrapped in cloth.\",\n      \"evidence\": \"The fork in her satchel — wrapped, deafened, silent for a decade\",\n      \"aliases\": [\n        \"the fork\"\n      ],\n      \"originChapters\": [\n        {\n          \"id\": \"ch2\",\n          \"num\": 2,\n          \"title\": \"Bigger Inside\"\n        }\n      ]\n    },\n    {\n      \"name\": \"tallow candle\",\n      \"role\": \"\",\n      \"kind\": \"Object\",\n      \"oneLiner\": \"\",\n      \"note\": \"A self-repairing candle that burns without consuming wax, found on an overturned crate.\",\n      \"evidence\": \"a plain tallow candle burned down to a thumb's width\",\n      \"aliases\": [\n        \"the candle\"\n      ],\n      \"originChapters\": [\n        {\n          \"id\": \"ch2\",\n          \"num\": 2,\n          \"title\": \"Bigger Inside\"\n        }\n      ]\n    },\n    {\n      \"name\": \"Pocket-watch\",\n      \"role\": \"\",\n      \"kind\": \"Timepiece\",\n      \"oneLiner\": \"\",\n      \"note\": \"A stopped watch that froze at seven past, marking the start of the loop.\",\n      \"evidence\": \"\\\"She had a stopped pocket-watch open in one hand\\\"\",\n      \"aliases\": [],\n      \"originChapters\": [\n        {\n          \"id\": \"ch3\",\n          \"num\": 3,\n          \"title\": \"The Same Hour\"\n        }\n      ]\n    }\n  ]\n}",
+  "outputChars": 5411,
+  "usage": null,
+  "flags": [],
+  "extra": {
+    "counts": {
+      "characters": 2,
+      "locations": 7,
+      "objects": 3
+    },
+    "scanned": 3,
+    "totalChapters": 3,
+    "skipped": [],
+    "cancelled": false,
+    "chapterIds": [
+      "ch1",
+      "ch2",
+      "ch3"
+    ],
+    "chapterCap": 3
+  },
+  "error": null
+}

@@ -1,0 +1,109 @@
+{
+  "runId": "2026-07-22_03-28-55-gpu",
+  "leg": "gpu-gemma-26b-hq2",
+  "model": "gemma-4-26b-a4b-qat",
+  "attempt": 2,
+  "args": {
+    "question": "Why did the three earlier parties never come out of Manufactory Nine, and why can Ode Marran remember every turn of the loop when they cannot? Explain the mechanism. Cite the excerpts.",
+    "k": 6,
+    "timeoutMs": 1200000
+  },
+  "preset": {
+    "id": "9d4ebeddeb96",
+    "name": "Bench",
+    "providerId": "",
+    "model": "gemma-4-26b-a4b-qat",
+    "temperature": 0.7,
+    "topP": null,
+    "maxTokens": 0,
+    "reasoningEffort": "",
+    "think": false,
+    "samplers": [],
+    "builtIn": false,
+    "position": 10,
+    "factoryModel": ""
+  },
+  "route": {
+    "feature": "chat",
+    "action": "chat",
+    "providerId": "local-llamacpp",
+    "model": "gemma-4-26b-a4b-qat",
+    "presetId": "9d4ebeddeb96",
+    "presetName": "Bench",
+    "presetSource": "assigned",
+    "think": false,
+    "level": "",
+    "reasoningWord": "",
+    "value": null,
+    "valueSource": "",
+    "configured": true,
+    "detail": ""
+  },
+  "featureKey": "chat",
+  "ok": true,
+  "started": "2026-07-22T03:49:49.507Z",
+  "label": "Ask the book",
+  "wallMs": 11053,
+  "ttftMs": 388,
+  "output": "The three earlier parties never left Manufactory Nine because they are caught in a time loop that lasts just under an hour [2]. When the loop ends, anyone inside who cannot \"feel\" it forgets the entire turn and is reset to the threshold to live the hour fresh [2]. Consequently, these parties are not dead, but are instead \"still walking in\" every hour [2]. Because the loop resets the participants, they have been walking in for nine years [2].\n\nThe mechanism of the loop is as follows:\n*   **The Cause:** The Lumen Concern was digging for lumen when they struck \"the Whole,\" causing it to \"bleed\" [5]. This caused space to fold and time to catch [5].\n*   **The Effect:** The building collapsed during the first turn of the loop and has been \"coming down every turn since\" [5]. Inside the loop, time is a single hour that turns repeatedly, while no time passes on the outside [3].\n*   **The Reset:** When the hour turns, those who cannot \"hold the deep Facets back\" are reset to the top of the stairs or the threshold, forgetting their previous attempts [3, 7].\n\nOde Marran is able to remember every turn because she is one of the few people the loop cannot reset [7]. While others forget the turn, she has been living the same hour for nine years [6].",
+  "outputChars": 1253,
+  "usage": {
+    "promptTokens": 2039,
+    "completionTokens": 292,
+    "model": "gemma-4-26b-a4b-qat",
+    "cost": 0
+  },
+  "flags": [
+    "temperature-fixed-by-caller"
+  ],
+  "extra": {
+    "bibleOnly": false,
+    "question": "Why did the three earlier parties never come out of Manufactory Nine, and why can Ode Marran remember every turn of the loop when they cannot? Explain the mechanism. Cite the excerpts.",
+    "k": 6,
+    "citations": [
+      {
+        "index": 1,
+        "chunkId": "card:location:l4",
+        "score": 0,
+        "pinned": true
+      },
+      {
+        "index": 2,
+        "chunkId": "ch3:scn_ch3_1:p3",
+        "score": 0.609180849576534,
+        "pinned": false
+      },
+      {
+        "index": 3,
+        "chunkId": "ch4:scn_ch4_3:p1",
+        "score": 0.604829651025461,
+        "pinned": false
+      },
+      {
+        "index": 4,
+        "chunkId": "ch2:scn_ch2_2:p1",
+        "score": 0.6021870793362113,
+        "pinned": false
+      },
+      {
+        "index": 5,
+        "chunkId": "ch3:scn_ch3_3:p2",
+        "score": 0.5302186893282422,
+        "pinned": false
+      },
+      {
+        "index": 6,
+        "chunkId": "card:character:c5",
+        "score": 0.5908284332865832,
+        "pinned": false
+      },
+      {
+        "index": 7,
+        "chunkId": "ch4:scn_ch4_1:p1",
+        "score": 0.5153975291314494,
+        "pinned": false
+      }
+    ]
+  },
+  "error": null
+}

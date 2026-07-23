@@ -1,0 +1,61 @@
+{
+  "runId": "2026-07-22_09-11-52-cpu",
+  "leg": "cpu-gemma-12b",
+  "model": "gemma-4-12b-qat",
+  "attempt": 1,
+  "args": {
+    "passageChars": 2000,
+    "timeoutMs": 1200000
+  },
+  "preset": {
+    "id": "9d4ebeddeb96",
+    "name": "Bench",
+    "providerId": "",
+    "model": "gemma-4-12b-qat",
+    "temperature": 0.7,
+    "topP": null,
+    "maxTokens": 0,
+    "reasoningEffort": "",
+    "think": false,
+    "samplers": [],
+    "builtIn": false,
+    "position": 10,
+    "factoryModel": ""
+  },
+  "route": {
+    "feature": "writerAI.continue",
+    "action": "writerAI.continue",
+    "providerId": "local-llamacpp",
+    "model": "gemma-4-12b-qat",
+    "presetId": "9d4ebeddeb96",
+    "presetName": "Bench",
+    "presetSource": "assigned",
+    "think": false,
+    "level": "",
+    "reasoningWord": "",
+    "value": null,
+    "valueSource": "",
+    "configured": true,
+    "detail": ""
+  },
+  "featureKey": "writerAI.continue",
+  "ok": true,
+  "started": "2026-07-22T09:32:51.046Z",
+  "label": "Continue",
+  "wallMs": 117374,
+  "ttftMs": 27989,
+  "output": "Cael stood in the hallway, the silence of the corridor rushing in to fill the space Nettle had vacated. The air here tasted of ozone and old grease, a stark contrast to the sharp, brine-heavy wind of the harbor. She pressed her palm against the doorframe, feeling the vibration of the building’s pulse, and let the hum of the token settle into her marrow. It was a heavy thing, a weight of responsibility that felt like a physical bruise against her thigh.\n\nShe pulled the token out again, holding it between her thumb and forefinger. In the dim light of the landing, the metal seemed to drink the shadows. It wasn't just a seal; it was a tether. If she could just find the right frequency, the right rhythm in the hum, she could bridge the gap between what they were and what they needed to be. She closed her eyes, trying to find that place Nettle spoke of—the space behind her eyelids where the world became a series of vibrations rather than sights.\n\nThe glimmerworks groaned as the furnace shifted beneath the floorboards, sending a wave of dry heat up through the soles of her boots. Cael leaned her head against the wood and listened. Far below, the machinery was churning, a rhythmic grinding that mirrored the token’s steady thrum. She thought of Nettle’s grin and the way she moved, a ghost in the architecture of the city. They were both navigating the same invisible geometry, just using different maps to find the way through.\n\nShe took a breath, the warmth of the room blooming in her lungs, and turned toward the interior. The job in the Ash District awaited, a labyrinth of soot and secrets. She would find the gap, she would cross it, and she would bring back the coin. For now, she let the token hum against her skin, a private song for a private thief, and stepped into the heat.",
+  "outputChars": 1798,
+  "usage": {
+    "promptTokens": 636,
+    "completionTokens": 394,
+    "model": "gemma-4-12b-qat",
+    "cost": 0
+  },
+  "flags": [],
+  "extra": {
+    "chapterId": "ch1",
+    "passageChars": 2000
+  },
+  "error": null
+}

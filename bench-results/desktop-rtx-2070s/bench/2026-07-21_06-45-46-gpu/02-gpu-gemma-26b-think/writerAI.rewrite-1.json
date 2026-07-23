@@ -1,0 +1,61 @@
+{
+  "runId": "2026-07-21_06-45-46-gpu",
+  "leg": "gpu-gemma-26b-think",
+  "model": "gemma-4-26b-a4b-qat",
+  "attempt": 1,
+  "args": {
+    "passageChars": 1200,
+    "timeoutMs": 1200000
+  },
+  "preset": {
+    "id": "17693095dfb1",
+    "name": "Bench",
+    "providerId": "",
+    "model": "gemma-4-26b-a4b-qat",
+    "temperature": 0.7,
+    "topP": null,
+    "maxTokens": 0,
+    "reasoningEffort": "",
+    "think": true,
+    "samplers": [],
+    "builtIn": false,
+    "position": 10,
+    "factoryModel": ""
+  },
+  "route": {
+    "feature": "writerAI.rewrite",
+    "action": "writerAI.rewrite",
+    "providerId": "local-llamacpp",
+    "model": "gemma-4-26b-a4b-qat",
+    "presetId": "17693095dfb1",
+    "presetName": "Bench",
+    "presetSource": "assigned",
+    "think": true,
+    "level": "",
+    "reasoningWord": "",
+    "value": 1024,
+    "valueSource": "base",
+    "configured": true,
+    "detail": ""
+  },
+  "featureKey": "writerAI.rewrite",
+  "ok": true,
+  "started": "2026-07-21T07:02:16.401Z",
+  "label": "Rewrite",
+  "wallMs": 44950,
+  "ttftMs": 35032,
+  "output": "\"...the ones on the rooftops, the one over the Cutwater last spring—six feet of nothing but empty air, and you were already on the far side before your boots even knew they'd left the ledge.\"\n\nNettle's stride faltered, a microscopic tremor, the first ungraceful thing Cael had ever witnessed in her. \"Luck,\" she said. \"Good feet. My gran's bead.\" She brushed the river-smooth charm at her throat, an instinct so deep it seemed etched into her skin. \"Why.\"\n\n\"No reason. Long day.\" *Because you and I are the same,* Cael did not say. Because whatever vertigo you feel when you step across a void that isn't there, I feel when my palm meets a lamp that is listening to the tremors beneath the world, and neither of us is meant to possess such things—and one of us has learned to bury it, while the other hasn't even realized she's hiding.\n\nThey walked. The token thrummed against her hip, a low vibration in the bone. Somewhere behind them, a lamp cast a pale, frigid blue light that caught the edge of the token; it guttered once, a frantic spasm of flame, then steadied, keeping its secrets.\n\n\"Ash District tomorrow,\" Nettle said, standing at the threshold of the glimmerworks. She grinned, and then she was gone before Cael could even turn the key in the lock—not vanished, nothing so theatrical, just around a corner with a speed that defied the human frame, slipping into a seam in the twilight that closed behind her like a ripple in water.",
+  "outputChars": 1443,
+  "usage": {
+    "promptTokens": 418,
+    "completionTokens": 1369,
+    "model": "gemma-4-26b-a4b-qat",
+    "cost": 0
+  },
+  "flags": [],
+  "extra": {
+    "chapterId": "ch1",
+    "passageChars": 1200
+  },
+  "error": null
+}

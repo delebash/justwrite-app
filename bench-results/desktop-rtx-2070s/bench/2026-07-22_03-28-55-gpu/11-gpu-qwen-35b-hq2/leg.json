@@ -1,0 +1,379 @@
+{
+  "leg": {
+    "label": "HARD Q2, think OFF — Qwen (the loop mechanism; A/B partner to gpu-gemma-26b-hq2)",
+    "gguf": "",
+    "tunables": {
+      "temperature": 0.7,
+      "think": false
+    },
+    "launch": {},
+    "llamaBench": null,
+    "features": [
+      "chat"
+    ],
+    "repeats": 3,
+    "timeoutMinutes": null,
+    "featureArgs": {
+      "chat": {
+        "question": "Why did the three earlier parties never come out of Manufactory Nine, and why can Ode Marran remember every turn of the loop when they cannot? Explain the mechanism. Cite the excerpts.",
+        "k": 6
+      }
+    },
+    "id": "gpu-qwen-35b-hq2",
+    "_why": [
+      "The same hard Q2 as gpu-gemma-26b-hq2, on Qwen. Judge every arm against the",
+      "gpu-gemma-26b-hq2 ANSWER KEY (identical question + book; full key there and in the",
+      "plan doc §7)."
+    ],
+    "model": "qwen3.6-35b-a3b-mtp",
+    "effectiveFeatures": [
+      "chat"
+    ],
+    "effectiveRepeats": 3,
+    "effectiveTimeoutMs": 1200000,
+    "effectiveFeatureArgs": {
+      "chat": {
+        "question": "Why did the three earlier parties never come out of Manufactory Nine, and why can Ode Marran remember every turn of the loop when they cannot? Explain the mechanism. Cite the excerpts.",
+        "k": 6
+      },
+      "characterChat": {
+        "question": "What do you want most right now, and what are you afraid of?"
+      },
+      "writerAI.continue": {
+        "passageChars": 2000
+      },
+      "writerAI.rewrite": {
+        "passageChars": 1200
+      }
+    }
+  },
+  "runId": "2026-07-22_03-28-55-gpu",
+  "band": "gpu",
+  "fingerprint": "d3dc2a6dddf3",
+  "env": {
+    "engineBuild": "b10079",
+    "engineGpu": "cuda12",
+    "appSha": "d65e652",
+    "cpu": "AMD Ryzen 7 5700X 8-Core Processor             ",
+    "gpus": [
+      {
+        "name": "NVIDIA GeForce RTX 2070 SUPER",
+        "totalMb": 8192,
+        "driver": "610.62"
+      }
+    ],
+    "book": "prj_sample_ninth_facet"
+  },
+  "startedAt": "2026-07-22T04:26:05.252Z",
+  "runs": [
+    {
+      "featureKey": "chat",
+      "ok": true,
+      "started": "2026-07-22T04:26:13.669Z",
+      "label": "Ask the book",
+      "wallMs": 30972,
+      "ttftMs": 11186,
+      "outputChars": 1935,
+      "usage": {
+        "promptTokens": 2038,
+        "completionTokens": 433,
+        "model": "qwen3.6-35b-a3b-mtp",
+        "cost": 0
+      },
+      "flags": [
+        "temperature-fixed-by-caller"
+      ],
+      "extra": {
+        "bibleOnly": false,
+        "question": "Why did the three earlier parties never come out of Manufactory Nine, and why can Ode Marran remember every turn of the loop when they cannot? Explain the mechanism. Cite the excerpts.",
+        "k": 6,
+        "citations": [
+          {
+            "index": 1,
+            "chunkId": "card:location:l4",
+            "score": 0,
+            "pinned": true
+          },
+          {
+            "index": 2,
+            "chunkId": "ch3:scn_ch3_1:p3",
+            "score": 0.608908312600809,
+            "pinned": false
+          },
+          {
+            "index": 3,
+            "chunkId": "ch4:scn_ch4_3:p1",
+            "score": 0.6045136887932692,
+            "pinned": false
+          },
+          {
+            "index": 4,
+            "chunkId": "ch2:scn_ch2_2:p1",
+            "score": 0.6021205789986583,
+            "pinned": false
+          },
+          {
+            "index": 5,
+            "chunkId": "ch3:scn_ch3_3:p2",
+            "score": 0.5300476281294432,
+            "pinned": false
+          },
+          {
+            "index": 6,
+            "chunkId": "card:character:c5",
+            "score": 0.5901837813806269,
+            "pinned": false
+          },
+          {
+            "index": 7,
+            "chunkId": "ch4:scn_ch4_1:p1",
+            "score": 0.5150065096548487,
+            "pinned": false
+          }
+        ]
+      },
+      "error": null
+    },
+    {
+      "featureKey": "chat",
+      "ok": true,
+      "started": "2026-07-22T04:26:44.644Z",
+      "label": "Ask the book",
+      "wallMs": 20734,
+      "ttftMs": 438,
+      "outputChars": 2068,
+      "usage": {
+        "promptTokens": 2038,
+        "completionTokens": 443,
+        "model": "qwen3.6-35b-a3b-mtp",
+        "cost": 0
+      },
+      "flags": [
+        "temperature-fixed-by-caller"
+      ],
+      "extra": {
+        "bibleOnly": false,
+        "question": "Why did the three earlier parties never come out of Manufactory Nine, and why can Ode Marran remember every turn of the loop when they cannot? Explain the mechanism. Cite the excerpts.",
+        "k": 6,
+        "citations": [
+          {
+            "index": 1,
+            "chunkId": "card:location:l4",
+            "score": 0,
+            "pinned": true
+          },
+          {
+            "index": 2,
+            "chunkId": "ch3:scn_ch3_1:p3",
+            "score": 0.609180849576534,
+            "pinned": false
+          },
+          {
+            "index": 3,
+            "chunkId": "ch4:scn_ch4_3:p1",
+            "score": 0.604829651025461,
+            "pinned": false
+          },
+          {
+            "index": 4,
+            "chunkId": "ch2:scn_ch2_2:p1",
+            "score": 0.6021870793362113,
+            "pinned": false
+          },
+          {
+            "index": 5,
+            "chunkId": "ch3:scn_ch3_3:p2",
+            "score": 0.5302186893282422,
+            "pinned": false
+          },
+          {
+            "index": 6,
+            "chunkId": "card:character:c5",
+            "score": 0.5908284332865832,
+            "pinned": false
+          },
+          {
+            "index": 7,
+            "chunkId": "ch4:scn_ch4_1:p1",
+            "score": 0.5153975291314494,
+            "pinned": false
+          }
+        ]
+      },
+      "error": null
+    },
+    {
+      "featureKey": "chat",
+      "ok": true,
+      "started": "2026-07-22T04:27:05.384Z",
+      "label": "Ask the book",
+      "wallMs": 22882,
+      "ttftMs": 467,
+      "outputChars": 2157,
+      "usage": {
+        "promptTokens": 2038,
+        "completionTokens": 490,
+        "model": "qwen3.6-35b-a3b-mtp",
+        "cost": 0
+      },
+      "flags": [
+        "temperature-fixed-by-caller"
+      ],
+      "extra": {
+        "bibleOnly": false,
+        "question": "Why did the three earlier parties never come out of Manufactory Nine, and why can Ode Marran remember every turn of the loop when they cannot? Explain the mechanism. Cite the excerpts.",
+        "k": 6,
+        "citations": [
+          {
+            "index": 1,
+            "chunkId": "card:location:l4",
+            "score": 0,
+            "pinned": true
+          },
+          {
+            "index": 2,
+            "chunkId": "ch3:scn_ch3_1:p3",
+            "score": 0.609180849576534,
+            "pinned": false
+          },
+          {
+            "index": 3,
+            "chunkId": "ch4:scn_ch4_3:p1",
+            "score": 0.604829651025461,
+            "pinned": false
+          },
+          {
+            "index": 4,
+            "chunkId": "ch2:scn_ch2_2:p1",
+            "score": 0.6021870793362113,
+            "pinned": false
+          },
+          {
+            "index": 5,
+            "chunkId": "ch3:scn_ch3_3:p2",
+            "score": 0.5302186893282422,
+            "pinned": false
+          },
+          {
+            "index": 6,
+            "chunkId": "card:character:c5",
+            "score": 0.5908284332865832,
+            "pinned": false
+          },
+          {
+            "index": 7,
+            "chunkId": "ch4:scn_ch4_1:p1",
+            "score": 0.5153975291314494,
+            "pinned": false
+          }
+        ]
+      },
+      "error": null
+    }
+  ],
+  "preset": {
+    "id": "9d4ebeddeb96",
+    "name": "Bench",
+    "providerId": "",
+    "model": "qwen3.6-35b-a3b-mtp",
+    "temperature": 0.7,
+    "topP": null,
+    "maxTokens": 0,
+    "reasoningEffort": "",
+    "think": false,
+    "samplers": [],
+    "builtIn": false,
+    "position": 10,
+    "factoryModel": ""
+  },
+  "load": {
+    "ok": true,
+    "waitedMs": 94,
+    "model": {
+      "id": "qwen3.6-35b-a3b-mtp",
+      "status": "loaded",
+      "nParams": 35505251456,
+      "sizeBytes": 22842671616,
+      "nCtx": 131072,
+      "vramMb": 5461
+    },
+    "resident": {
+      "router": true,
+      "modelsMax": 2,
+      "sleepIdleSeconds": 900,
+      "vramTotalMb": 8192,
+      "committedMb": 5461,
+      "remainingMb": 2731,
+      "models": [
+        {
+          "id": "gemma-4-12b-qat",
+          "status": "unloaded",
+          "nParams": null,
+          "sizeBytes": null,
+          "nCtx": null,
+          "vramMb": null
+        },
+        {
+          "id": "gemma-4-26b-a4b-qat",
+          "status": "unloaded",
+          "nParams": null,
+          "sizeBytes": null,
+          "nCtx": null,
+          "vramMb": null
+        },
+        {
+          "id": "qwen3-embedding-4b",
+          "status": "loaded",
+          "nParams": 4021774336,
+          "sizeBytes": 2490754804,
+          "nCtx": 8192,
+          "vramMb": null
+        },
+        {
+          "id": "qwen3.6-35b-a3b-mtp",
+          "status": "loaded",
+          "nParams": 35505251456,
+          "sizeBytes": 22842671616,
+          "nCtx": 131072,
+          "vramMb": 5461
+        }
+      ]
+    }
+  },
+  "measure": {
+    "ok": true,
+    "modelId": "qwen3.6-35b-a3b-mtp",
+    "tokensPerSec": 23.6,
+    "completionTokens": 192,
+    "ms": 8140,
+    "vramTotalMb": 8192,
+    "ramTotalMb": 0,
+    "draftN": 154,
+    "draftNAccepted": 114,
+    "draftAcceptance": 0.7403
+  },
+  "routes": {
+    "chat": {
+      "feature": "chat",
+      "action": "chat",
+      "providerId": "local-llamacpp",
+      "model": "qwen3.6-35b-a3b-mtp",
+      "presetId": "9d4ebeddeb96",
+      "presetName": "Bench",
+      "presetSource": "assigned",
+      "think": false,
+      "level": "",
+      "reasoningWord": "",
+      "value": null,
+      "valueSource": "",
+      "configured": true,
+      "detail": ""
+    }
+  },
+  "peaks": {
+    "peakVramMb": 6625,
+    "peakRssMb": 24864,
+    "samples": 41
+  },
+  "finishedAt": "2026-07-22T04:27:28.268Z"
+}

@@ -1,0 +1,61 @@
+{
+  "runId": "2026-07-22_10-24-23-cpu",
+  "leg": "cpu-qwen-35b",
+  "model": "qwen3.6-35b-a3b-mtp",
+  "attempt": 2,
+  "args": {
+    "timeoutMs": 1200000
+  },
+  "preset": {
+    "id": "9d4ebeddeb96",
+    "name": "Bench",
+    "providerId": "",
+    "model": "qwen3.6-35b-a3b-mtp",
+    "temperature": 0.7,
+    "topP": null,
+    "maxTokens": 0,
+    "reasoningEffort": "",
+    "think": false,
+    "samplers": [],
+    "builtIn": false,
+    "position": 10,
+    "factoryModel": ""
+  },
+  "route": {
+    "feature": "critique",
+    "action": "critique",
+    "providerId": "local-llamacpp",
+    "model": "qwen3.6-35b-a3b-mtp",
+    "presetId": "9d4ebeddeb96",
+    "presetName": "Bench",
+    "presetSource": "assigned",
+    "think": false,
+    "level": "",
+    "reasoningWord": "",
+    "value": null,
+    "valueSource": "",
+    "configured": true,
+    "detail": ""
+  },
+  "featureKey": "critique",
+  "ok": true,
+  "started": "2026-07-22T11:00:58.919Z",
+  "label": "Chapter critique",
+  "wallMs": 110002,
+  "ttftMs": null,
+  "output": "{\n  \"notes\": [\n    {\n      \"severity\": \"info\",\n      \"category\": \"voice\",\n      \"message\": \"The opening personification of the lamp ('lying, and it was doing it beautifully') immediately establishes a compelling, tactile voice that grounds the magical realism.\"\n    },\n    {\n      \"severity\": \"info\",\n      \"category\": \"setting\",\n      \"message\": \"The sensory details of the Commission Hall ('chalk and wet wool') effectively contrast with the sterile, metallic atmosphere",
+  "outputChars": 472,
+  "usage": null,
+  "flags": [
+    "json-contract-unparsed"
+  ],
+  "extra": {
+    "chapterId": "ch1",
+    "chapterNum": 1,
+    "chapterWords": 2600,
+    "noteCount": 0,
+    "notes": [],
+    "model": "qwen3.6-35b-a3b-mtp"
+  },
+  "error": null
+}

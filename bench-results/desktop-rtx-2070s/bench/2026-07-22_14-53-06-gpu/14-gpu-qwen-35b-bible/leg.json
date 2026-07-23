@@ -1,0 +1,284 @@
+{
+  "leg": {
+    "label": "BIBLE-ONLY — Qwen 35B chat with retrieval FORCED OFF (A/B vs gpu-qwen-35b)",
+    "gguf": "",
+    "tunables": {
+      "temperature": 0.7,
+      "think": false
+    },
+    "launch": {},
+    "llamaBench": null,
+    "features": [
+      "chat"
+    ],
+    "repeats": null,
+    "timeoutMinutes": null,
+    "featureArgs": {
+      "chat": {
+        "question": "What is this book about, and who is the protagonist?",
+        "k": 6,
+        "bibleOnly": true
+      }
+    },
+    "id": "gpu-qwen-35b-bible",
+    "_why": [
+      "The Qwen arm of the same rag A/B — same question as gpu-qwen-35b's chat,",
+      "bibleOnly forced. See gpu-gemma-26b-bible for the full rationale."
+    ],
+    "model": "qwen3.6-35b-a3b-mtp",
+    "effectiveFeatures": [
+      "chat"
+    ],
+    "effectiveRepeats": 2,
+    "effectiveTimeoutMs": 1200000,
+    "effectiveFeatureArgs": {
+      "chat": {
+        "question": "What is this book about, and who is the protagonist?",
+        "k": 6,
+        "bibleOnly": true
+      },
+      "characterChat": {
+        "question": "What do you want most right now, and what are you afraid of?"
+      },
+      "writerAI.continue": {
+        "passageChars": 2000
+      },
+      "writerAI.rewrite": {
+        "passageChars": 1200
+      }
+    }
+  },
+  "runId": "2026-07-22_14-53-06-gpu",
+  "band": "gpu",
+  "fingerprint": "d3dc2a6dddf3",
+  "env": {
+    "engineBuild": "b10079",
+    "engineGpu": "cuda12",
+    "appSha": "9de7d27",
+    "cpu": "AMD Ryzen 7 5700X 8-Core Processor             ",
+    "gpus": [
+      {
+        "name": "NVIDIA GeForce RTX 2070 SUPER",
+        "totalMb": 8192,
+        "driver": "610.62"
+      }
+    ],
+    "book": "prj_sample_ninth_facet"
+  },
+  "startedAt": "2026-07-22T14:53:48.639Z",
+  "runs": [
+    {
+      "featureKey": "chat",
+      "ok": true,
+      "started": "2026-07-22T14:54:20.542Z",
+      "label": "Ask the book",
+      "wallMs": 9844,
+      "ttftMs": 4393,
+      "outputChars": 638,
+      "usage": {
+        "promptTokens": 464,
+        "completionTokens": 146,
+        "model": "qwen3.6-35b-a3b-mtp",
+        "cost": 0
+      },
+      "flags": [
+        "temperature-fixed-by-caller"
+      ],
+      "extra": {
+        "bibleOnly": true,
+        "question": "What is this book about, and who is the protagonist?",
+        "k": 6,
+        "citations": [
+          {
+            "index": 1,
+            "chunkId": "card:architecture:premise",
+            "score": 0,
+            "pinned": true
+          },
+          {
+            "index": 2,
+            "chunkId": "card:cast:main",
+            "score": 0,
+            "pinned": true
+          },
+          {
+            "index": 3,
+            "chunkId": "card:architecture:fabula",
+            "score": 0,
+            "pinned": true
+          },
+          {
+            "index": 4,
+            "chunkId": "card:architecture:setting",
+            "score": 0,
+            "pinned": true
+          }
+        ]
+      },
+      "error": null
+    },
+    {
+      "featureKey": "chat",
+      "ok": true,
+      "started": "2026-07-22T14:54:30.389Z",
+      "label": "Ask the book",
+      "wallMs": 5722,
+      "ttftMs": 195,
+      "outputChars": 581,
+      "usage": {
+        "promptTokens": 464,
+        "completionTokens": 137,
+        "model": "qwen3.6-35b-a3b-mtp",
+        "cost": 0
+      },
+      "flags": [
+        "temperature-fixed-by-caller"
+      ],
+      "extra": {
+        "bibleOnly": true,
+        "question": "What is this book about, and who is the protagonist?",
+        "k": 6,
+        "citations": [
+          {
+            "index": 1,
+            "chunkId": "card:architecture:premise",
+            "score": 0,
+            "pinned": true
+          },
+          {
+            "index": 2,
+            "chunkId": "card:cast:main",
+            "score": 0,
+            "pinned": true
+          },
+          {
+            "index": 3,
+            "chunkId": "card:architecture:fabula",
+            "score": 0,
+            "pinned": true
+          },
+          {
+            "index": 4,
+            "chunkId": "card:architecture:setting",
+            "score": 0,
+            "pinned": true
+          }
+        ]
+      },
+      "error": null
+    }
+  ],
+  "preset": {
+    "id": "9d4ebeddeb96",
+    "name": "Bench",
+    "providerId": "",
+    "model": "qwen3.6-35b-a3b-mtp",
+    "temperature": 0.7,
+    "topP": null,
+    "maxTokens": 0,
+    "reasoningEffort": "",
+    "think": false,
+    "samplers": [],
+    "builtIn": false,
+    "position": 10,
+    "factoryModel": ""
+  },
+  "load": {
+    "ok": true,
+    "waitedMs": 23529,
+    "model": {
+      "id": "qwen3.6-35b-a3b-mtp",
+      "status": "loaded",
+      "nParams": 35505251456,
+      "sizeBytes": 22842671616,
+      "nCtx": 131072,
+      "vramMb": 549
+    },
+    "resident": {
+      "router": true,
+      "modelsMax": 2,
+      "sleepIdleSeconds": 900,
+      "vramTotalMb": 8192,
+      "committedMb": 549,
+      "remainingMb": 7643,
+      "models": [
+        {
+          "id": "gemma-4-12b-qat",
+          "status": "unloaded",
+          "nParams": null,
+          "sizeBytes": null,
+          "nCtx": null,
+          "vramMb": null
+        },
+        {
+          "id": "gemma-4-26b-a4b-qat",
+          "status": "unloaded",
+          "nParams": null,
+          "sizeBytes": null,
+          "nCtx": null,
+          "vramMb": null
+        },
+        {
+          "id": "qwen3-embedding-4b",
+          "status": "unloaded",
+          "nParams": null,
+          "sizeBytes": null,
+          "nCtx": null,
+          "vramMb": null
+        },
+        {
+          "id": "qwen3.6-35b-a3b-mtp",
+          "status": "loaded",
+          "nParams": 35505251456,
+          "sizeBytes": 22842671616,
+          "nCtx": 131072,
+          "vramMb": 549
+        },
+        {
+          "id": "ternary-bonsai-27b-q2-g64",
+          "status": "unloaded",
+          "nParams": null,
+          "sizeBytes": null,
+          "nCtx": null,
+          "vramMb": null
+        }
+      ]
+    }
+  },
+  "measure": {
+    "ok": true,
+    "modelId": "qwen3.6-35b-a3b-mtp",
+    "tokensPerSec": 23.4,
+    "completionTokens": 192,
+    "ms": 8219,
+    "vramTotalMb": 8192,
+    "ramTotalMb": 0,
+    "draftN": 157,
+    "draftNAccepted": 112,
+    "draftAcceptance": 0.7134
+  },
+  "routes": {
+    "chat": {
+      "feature": "chat",
+      "action": "chat",
+      "providerId": "local-llamacpp",
+      "model": "qwen3.6-35b-a3b-mtp",
+      "presetId": "9d4ebeddeb96",
+      "presetName": "Bench",
+      "presetSource": "assigned",
+      "think": false,
+      "level": "",
+      "reasoningWord": "",
+      "value": null,
+      "valueSource": "",
+      "configured": true,
+      "detail": ""
+    }
+  },
+  "peaks": {
+    "peakVramMb": 7110,
+    "peakRssMb": 20780,
+    "samples": 24
+  },
+  "finishedAt": "2026-07-22T14:54:36.113Z"
+}

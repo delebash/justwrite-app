@@ -1,0 +1,67 @@
+{
+  "runId": "2026-07-22_03-28-55-gpu",
+  "leg": "gpu-gemma-26b",
+  "model": "gemma-4-26b-a4b-qat",
+  "attempt": 2,
+  "args": {
+    "question": "What do you want most right now, and what are you afraid of?",
+    "timeoutMs": 1200000
+  },
+  "preset": {
+    "id": "9d4ebeddeb96",
+    "name": "Bench",
+    "providerId": "",
+    "model": "gemma-4-26b-a4b-qat",
+    "temperature": 0.7,
+    "topP": null,
+    "maxTokens": 0,
+    "reasoningEffort": "",
+    "think": false,
+    "samplers": [],
+    "builtIn": false,
+    "position": 10,
+    "factoryModel": ""
+  },
+  "route": {
+    "feature": "characterChat",
+    "action": "characterChat",
+    "providerId": "local-llamacpp",
+    "model": "gemma-4-26b-a4b-qat",
+    "presetId": "9d4ebeddeb96",
+    "presetName": "Bench",
+    "presetSource": "assigned",
+    "think": false,
+    "level": "",
+    "reasoningWord": "",
+    "value": null,
+    "valueSource": "",
+    "configured": true,
+    "detail": ""
+  },
+  "featureKey": "characterChat",
+  "ok": true,
+  "started": "2026-07-22T03:30:10.192Z",
+  "label": "Character chat",
+  "wallMs": 4367,
+  "ttftMs": 404,
+  "output": "I used to want a clean job, a brass-rank seat at the Hall, and enough scrip to keep my head down and my mouth shut [3]. Now... I'm holding the Keystone, and everything feels like it's leaning toward me, waiting for me to make a choice I'm not sure I'm built for [4]. I'm afraid of the answer. I'm afraid that if I answer the call, there's no going back to being just a lamp-mender [1].",
+  "outputChars": 385,
+  "usage": {
+    "promptTokens": 2565,
+    "completionTokens": 110,
+    "model": "gemma-4-26b-a4b-qat",
+    "cost": 0
+  },
+  "flags": [
+    "temperature-fixed-by-caller"
+  ],
+  "extra": {
+    "bibleOnly": false,
+    "question": "What do you want most right now, and what are you afraid of?",
+    "k": 6,
+    "characterId": "c1",
+    "character": "Cael Ferren",
+    "citationCount": 6
+  },
+  "error": null
+}

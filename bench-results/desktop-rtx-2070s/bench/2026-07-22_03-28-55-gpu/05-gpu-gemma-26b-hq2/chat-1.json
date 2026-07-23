@@ -1,0 +1,109 @@
+{
+  "runId": "2026-07-22_03-28-55-gpu",
+  "leg": "gpu-gemma-26b-hq2",
+  "model": "gemma-4-26b-a4b-qat",
+  "attempt": 1,
+  "args": {
+    "question": "Why did the three earlier parties never come out of Manufactory Nine, and why can Ode Marran remember every turn of the loop when they cannot? Explain the mechanism. Cite the excerpts.",
+    "k": 6,
+    "timeoutMs": 1200000
+  },
+  "preset": {
+    "id": "9d4ebeddeb96",
+    "name": "Bench",
+    "providerId": "",
+    "model": "gemma-4-26b-a4b-qat",
+    "temperature": 0.7,
+    "topP": null,
+    "maxTokens": 0,
+    "reasoningEffort": "",
+    "think": false,
+    "samplers": [],
+    "builtIn": false,
+    "position": 10,
+    "factoryModel": ""
+  },
+  "route": {
+    "feature": "chat",
+    "action": "chat",
+    "providerId": "local-llamacpp",
+    "model": "gemma-4-26b-a4b-qat",
+    "presetId": "9d4ebeddeb96",
+    "presetName": "Bench",
+    "presetSource": "assigned",
+    "think": false,
+    "level": "",
+    "reasoningWord": "",
+    "value": null,
+    "valueSource": "",
+    "configured": true,
+    "detail": ""
+  },
+  "featureKey": "chat",
+  "ok": true,
+  "started": "2026-07-22T03:49:33.984Z",
+  "label": "Ask the book",
+  "wallMs": 15520,
+  "ttftMs": 4803,
+  "output": "The three earlier parties never left Manufactory Nine because they are trapped in a temporal loop that lasts slightly less than one hour [2]. When the loop ends, anyone inside who cannot \"feel\" the loop forgets the entire turn and is reset to the threshold, effectively living the same hour over and over again [2, 3]. Consequently, these parties are not dead, but are \"still walking in\" every hour [2].\n\nThe mechanism of this phenomenon is as follows:\n*   **The Cause:** The Lumen Concern was digging for lumen when they struck \"the Whole,\" causing space to fold and time to \"catch\" [5]. This \"splinter\" is known as the Keystone [5].\n*   **The Effect:** The interior of the building is a \"Fold,\" where space is bent back on itself, making the inside larger than the outside [4]. Because of the Keystone, time is caught in a loop; the building collapsed during the first turn of the loop and has been \"coming down every turn since\" [5].\n*   **The Reset:** Every time the hour turns, anyone who cannot \"hold the deep Facets back\" is reset to the top of the stairs or the threshold, losing all memory of the previous turn [3, 7].\n\nOdeline Marran (Ode) is able to remember every turn because she is one of the few who can \"feel\" or \"hold\" the loop [2, 7]. While others are reset, she has been living the same hour for nine years [5, 6].",
+  "outputChars": 1333,
+  "usage": {
+    "promptTokens": 2039,
+    "completionTokens": 324,
+    "model": "gemma-4-26b-a4b-qat",
+    "cost": 0
+  },
+  "flags": [
+    "temperature-fixed-by-caller"
+  ],
+  "extra": {
+    "bibleOnly": false,
+    "question": "Why did the three earlier parties never come out of Manufactory Nine, and why can Ode Marran remember every turn of the loop when they cannot? Explain the mechanism. Cite the excerpts.",
+    "k": 6,
+    "citations": [
+      {
+        "index": 1,
+        "chunkId": "card:location:l4",
+        "score": 0,
+        "pinned": true
+      },
+      {
+        "index": 2,
+        "chunkId": "ch3:scn_ch3_1:p3",
+        "score": 0.608908312600809,
+        "pinned": false
+      },
+      {
+        "index": 3,
+        "chunkId": "ch4:scn_ch4_3:p1",
+        "score": 0.6045136887932692,
+        "pinned": false
+      },
+      {
+        "index": 4,
+        "chunkId": "ch2:scn_ch2_2:p1",
+        "score": 0.6021205789986583,
+        "pinned": false
+      },
+      {
+        "index": 5,
+        "chunkId": "ch3:scn_ch3_3:p2",
+        "score": 0.5300476281294432,
+        "pinned": false
+      },
+      {
+        "index": 6,
+        "chunkId": "card:character:c5",
+        "score": 0.5901837813806269,
+        "pinned": false
+      },
+      {
+        "index": 7,
+        "chunkId": "ch4:scn_ch4_1:p1",
+        "score": 0.5150065096548487,
+        "pinned": false
+      }
+    ]
+  },
+  "error": null
+}

@@ -1,0 +1,121 @@
+{
+  "runId": "2026-07-22_03-28-55-gpu",
+  "leg": "gpu-gemma-26b-think",
+  "model": "gemma-4-26b-a4b-qat",
+  "attempt": 2,
+  "args": {
+    "question": "What is this book about, and who is the protagonist?",
+    "k": 6,
+    "timeoutMs": 1200000
+  },
+  "preset": {
+    "id": "9d4ebeddeb96",
+    "name": "Bench",
+    "providerId": "",
+    "model": "gemma-4-26b-a4b-qat",
+    "temperature": 0.7,
+    "topP": null,
+    "maxTokens": 0,
+    "reasoningEffort": "",
+    "think": true,
+    "samplers": [],
+    "builtIn": false,
+    "position": 10,
+    "factoryModel": ""
+  },
+  "route": {
+    "feature": "chat",
+    "action": "chat",
+    "providerId": "local-llamacpp",
+    "model": "gemma-4-26b-a4b-qat",
+    "presetId": "9d4ebeddeb96",
+    "presetName": "Bench",
+    "presetSource": "assigned",
+    "think": true,
+    "level": "",
+    "reasoningWord": "",
+    "value": 1024,
+    "valueSource": "base",
+    "configured": true,
+    "detail": ""
+  },
+  "featureKey": "chat",
+  "ok": true,
+  "started": "2026-07-22T03:38:41.125Z",
+  "label": "Ask the book",
+  "wallMs": 40246,
+  "ttftMs": 35283,
+  "output": "The protagonist is Cael Ferren, a 26-year-old brass-rank artificer [5]. She has spent her life hiding the fact that she can feel the deep, forbidden Facets of magic [1, 2, 5].\n\nThe book follows Cael as she takes a routine guild job in a ruin that is folded out of space and stuck in a single looping hour [1]. The story's progression involves the party taking \"the Nine\" and finding it wrong, followed by \"The Hour,\" which involves a loop, a survivor, a Keystone, and a choice [3]. While Cael has spent her life treating the \"hum\" she feels as a sickness to be hidden, she eventually discovers that the hum is actually a compass to a magic that the world broke on purpose [5].",
+  "outputChars": 676,
+  "usage": {
+    "promptTokens": 1913,
+    "completionTokens": 1196,
+    "model": "gemma-4-26b-a4b-qat",
+    "cost": 0
+  },
+  "flags": [
+    "temperature-fixed-by-caller"
+  ],
+  "extra": {
+    "bibleOnly": false,
+    "question": "What is this book about, and who is the protagonist?",
+    "k": 6,
+    "citations": [
+      {
+        "index": 1,
+        "chunkId": "card:architecture:premise",
+        "score": 0,
+        "pinned": true
+      },
+      {
+        "index": 2,
+        "chunkId": "card:cast:main",
+        "score": 0,
+        "pinned": true
+      },
+      {
+        "index": 3,
+        "chunkId": "card:architecture:fabula",
+        "score": 0,
+        "pinned": true
+      },
+      {
+        "index": 4,
+        "chunkId": "card:architecture:setting",
+        "score": 0,
+        "pinned": true
+      },
+      {
+        "index": 5,
+        "chunkId": "card:character:c1:p1",
+        "score": 0.4085825975344678,
+        "pinned": false
+      },
+      {
+        "index": 6,
+        "chunkId": "card:character:c2:p1",
+        "score": 0.2772897997144751,
+        "pinned": false
+      },
+      {
+        "index": 7,
+        "chunkId": "ch2:scn_ch2_1:p3",
+        "score": 0.28100798436242475,
+        "pinned": false
+      },
+      {
+        "index": 8,
+        "chunkId": "ch2:scn_ch2_2:p3",
+        "score": 0.26534497605996854,
+        "pinned": false
+      },
+      {
+        "index": 9,
+        "chunkId": "ch3:scn_ch3_3:p3",
+        "score": 0.2809671815063008,
+        "pinned": false
+      }
+    ]
+  },
+  "error": null
+}

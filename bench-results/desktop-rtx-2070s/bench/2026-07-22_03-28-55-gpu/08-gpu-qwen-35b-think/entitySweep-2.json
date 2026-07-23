@@ -1,0 +1,69 @@
+{
+  "runId": "2026-07-22_03-28-55-gpu",
+  "leg": "gpu-qwen-35b-think",
+  "model": "qwen3.6-35b-a3b-mtp",
+  "attempt": 2,
+  "args": {
+    "timeoutMs": 1200000,
+    "chapterCap": 3
+  },
+  "preset": {
+    "id": "9d4ebeddeb96",
+    "name": "Bench",
+    "providerId": "",
+    "model": "qwen3.6-35b-a3b-mtp",
+    "temperature": 0.7,
+    "topP": null,
+    "maxTokens": 0,
+    "reasoningEffort": "",
+    "think": true,
+    "samplers": [],
+    "builtIn": false,
+    "position": 10,
+    "factoryModel": ""
+  },
+  "route": {
+    "feature": "entitySweep",
+    "action": "entitySweep",
+    "providerId": "local-llamacpp",
+    "model": "qwen3.6-35b-a3b-mtp",
+    "presetId": "9d4ebeddeb96",
+    "presetName": "Bench",
+    "presetSource": "assigned",
+    "think": true,
+    "level": "",
+    "reasoningWord": "",
+    "value": 1024,
+    "valueSource": "base",
+    "configured": true,
+    "detail": ""
+  },
+  "featureKey": "entitySweep",
+  "ok": true,
+  "started": "2026-07-22T04:10:49.244Z",
+  "label": "Entity sweep",
+  "wallMs": 57130,
+  "ttftMs": 11673,
+  "output": "{\n  \"characters\": [\n    {\n      \"name\": \"Sedge\",\n      \"role\": \"Road-warden\",\n      \"kind\": \"\",\n      \"oneLiner\": \"An old, pensioned road-warden sitting outside a watch-hut who warns the group about previous expeditions.\",\n      \"note\": \"\",\n      \"evidence\": \"Old Sedge, the plate on the hut said\",\n      \"aliases\": [\n        \"Old Sedge\",\n        \"warden\"\n      ],\n      \"originChapters\": [\n        {\n          \"id\": \"ch2\",\n          \"num\": 2,\n          \"title\": \"Bigger Inside\"\n        }\n      ]\n    },\n    {\n      \"name\": \"Threll\",\n      \"role\": \"Supervisor\",\n      \"kind\": \"\",\n      \"oneLiner\": \"The person who sent the party to certify the deep-Facet wound as an empty warehouse.\",\n      \"note\": \"\",\n      \"evidence\": \"Threll sent us to certify a deep-Facet wound\",\n      \"aliases\": [],\n      \"originChapters\": [\n        {\n          \"id\": \"ch2\",\n          \"num\": 2,\n          \"title\": \"Bigger Inside\"\n        }\n      ]\n    },\n    {\n      \"name\": \"Gattick\",\n      \"role\": \"Person of Interest\",\n      \"kind\": \"\",\n      \"oneLiner\": \"An individual associated with a line that Ode requests information about during their journey.\",\n      \"note\": \"\",\n      \"evidence\": \"I'll want to know about the Gattick line while we walk\",\n      \"aliases\": [\n        \"Gattick line\"\n      ],\n      \"originChapters\": [\n        {\n          \"id\": \"ch3\",\n          \"num\": 3,\n          \"title\": \"The Same Hour\"\n        }\n      ]\n    }\n  ],\n  \"locations\": [\n    {\n      \"name\": \"Ash District\",\n      \"role\": \"\",\n      \"kind\": \"District\",\n      \"oneLiner\": \"\",\n      \"note\": \"A district in Threnn where Manufactory Nine is located, described as dull and paying in Concern scrip.\",\n      \"evidence\": \"Manufactory Nine, Ash District.\",\n      \"aliases\": [],\n      \"originChapters\": [\n        {\n          \"id\": \"ch1\",\n          \"num\": 1,\n          \"title\": \"Brass Rank\"\n        },\n        {\n          \"id\": \"ch2\",\n          \"num\": 2,\n          \"title\": \"Bigger Inside\"\n        },\n        {\n          \"id\": \"ch3\",\n          \"num\": 3,\n          \"title\": \"The Same Hour\"\n        }\n      ]\n    },\n    {\n      \"name\": \"Kettle Lane\",\n      \"role\": \"\",\n      \"kind\": \"Street\",\n      \"oneLiner\": \"\",\n      \"note\": \"A lane near the harbor where Cael walks home at night.\",\n      \"evidence\": \"Nettle walked her home, which meant Nettle appeared beside her on Kettle Lane\",\n      \"aliases\": [],\n      \"originChapters\": [\n        {\n          \"id\": \"ch1\",\n          \"num\": 1,\n          \"title\": \"Brass Rank\"\n        }\n      ]\n    },\n    {\n      \"name\": \"The Cutwater\",\n      \"role\": \"\",\n      \"kind\": \"Geographic Feature\",\n      \"oneLiner\": \"\",\n      \"note\": \"A location with a gap or bridge that Nettle has crossed previously.\",\n      \"evidence\": \"the one over the Cutwater last spring\",\n      \"aliases\": [],\n      \"originChapters\": [\n        {\n          \"id\": \"ch1\",\n          \"num\": 1,\n          \"title\": \"Brass Rank\"\n        }\n      ]\n    },\n    {\n      \"name\": \"Nine Road\",\n      \"role\": \"\",\n      \"kind\": \"Road\",\n      \"oneLiner\": \"\",\n      \"note\": \"The road leading to the Manufactory, noted for thinning and dark lamps.\",\n      \"evidence\": \"the lumen-lamps along the Nine Road stood at long intervals\",\n      \"aliases\": [],\n      \"originChapters\": [\n        {\n          \"id\": \"ch2\",\n          \"num\": 2,\n          \"title\": \"Bigger Inside\"\n        }\n      ]\n    },\n    {\n      \"name\": \"watch-hut\",\n      \"role\": \"\",\n      \"kind\": \"Structure\",\n      \"oneLiner\": \"\",\n      \"note\": \"A small hut outside the inhabited corner where Sedge sits with a lantern and ledger.\",\n      \"evidence\": \"an old road-warden sat outside a watch-hut\",\n      \"aliases\": [],\n      \"originChapters\": [\n        {\n          \"id\": \"ch2\",\n          \"num\": 2,\n          \"title\": \"Bigger Inside\"\n        }\n      ]\n    },\n    {\n      \"name\": \"East Gallery\",\n      \"role\": \"\",\n      \"kind\": \"Location\",\n      \"oneLiner\": \"\",\n      \"note\": \"A part of the manufactory where a previous party of four remains stuck in the loop.\",\n      \"evidence\": \"They're still in the east gallery.\",\n      \"aliases\": [],\n      \"originChapters\": [\n        {\n          \"id\": \"ch3\",\n          \"num\": 3,\n          \"title\": \"The Same Hour\"\n        }\n      ]\n    }\n  ],\n  \"objects\": [\n    {\n      \"name\": \"tallow candle\",\n      \"role\": \"\",\n      \"kind\": \"Object\",\n      \"oneLiner\": \"\",\n      \"note\": \"A candle that un-burns, with wax climbing back up the wick, indicating a time loop.\",\n      \"evidence\": \"a plain tallow candle burned down to a thumb's width\",\n      \"aliases\": [],\n      \"originChapters\": [\n        {\n          \"id\": \"ch2\",\n          \"num\": 2,\n          \"title\": \"Bigger Inside\"\n        }\n      ]\n    },\n    {\n      \"name\": \"knife\",\n      \"role\": \"\",\n      \"kind\": \"Object\",\n      \"oneLiner\": \"\",\n      \"note\": \"Found beside the candle, suggesting a previous occupant made a camp there.\",\n      \"evidence\": \"Beside it lay a knife, a tin cup, a heel of bread\",\n      \"aliases\": [],\n      \"originChapters\": [\n        {\n          \"id\": \"ch2\",\n          \"num\": 2,\n          \"title\": \"Bigger Inside\"\n        }\n      ]\n    },\n    {\n      \"name\": \"tin cup\",\n      \"role\": \"\",\n      \"kind\": \"Object\",\n      \"oneLiner\": \"\",\n      \"note\": \"Found beside the candle as part of a small camp setup.\",\n      \"evidence\": \"Beside it lay a knife, a tin cup, a heel of bread\",\n      \"aliases\": [],\n      \"originChapters\": [\n        {\n          \"id\": \"ch2\",\n          \"num\": 2,\n          \"title\": \"Bigger Inside\"\n        }\n      ]\n    },\n    {\n      \"name\": \"bread\",\n      \"role\": \"\",\n      \"kind\": \"Object\",\n      \"oneLiner\": \"\",\n      \"note\": \"A heel of hard bread found at the camp, indicating recent occupation.\",\n      \"evidence\": \"Beside it lay a knife, a tin cup, a heel of bread gone hard\",\n      \"aliases\": [],\n      \"originChapters\": [\n        {\n          \"id\": \"ch2\",\n          \"num\": 2,\n          \"title\": \"Bigger Inside\"\n        }\n      ]\n    },\n    {\n      \"name\": \"fallen gate\",\n      \"role\": \"\",\n      \"kind\": \"Object\",\n      \"oneLiner\": \"\",\n      \"note\": \"A gate Nettle passes through, which later scratches Brick's hand.\",\n      \"evidence\": \"on the far side of a fallen gate that a person would have had to climb\",\n      \"aliases\": [],\n      \"originChapters\": [\n        {\n          \"id\": \"ch2\",\n          \"num\": 2,\n          \"title\": \"Bigger Inside\"\n        }\n      ]\n    },\n    {\n      \"name\": \"Stopped pocket-watch\",\n      \"role\": \"\",\n      \"kind\": \"Object\",\n      \"oneLiner\": \"\",\n      \"note\": \"A watch frozen at seven minutes past, which stopped when the time loop began.\",\n      \"evidence\": \"She had a stopped pocket-watch open in one hand\",\n      \"aliases\": [],\n      \"originChapters\": [\n        {\n          \"id\": \"ch3\",\n          \"num\": 3,\n          \"title\": \"The Same Hour\"\n        }\n      ]\n    }\n  ]\n}",
+  "outputChars": 6736,
+  "usage": null,
+  "flags": [],
+  "extra": {
+    "counts": {
+      "characters": 3,
+      "locations": 6,
+      "objects": 6
+    },
+    "scanned": 3,
+    "totalChapters": 3,
+    "skipped": [],
+    "cancelled": false,
+    "chapterIds": [
+      "ch1",
+      "ch2",
+      "ch3"
+    ],
+    "chapterCap": 3
+  },
+  "error": null
+}

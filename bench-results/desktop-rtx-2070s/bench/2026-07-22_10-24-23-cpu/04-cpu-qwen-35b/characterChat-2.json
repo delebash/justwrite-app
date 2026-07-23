@@ -1,0 +1,67 @@
+{
+  "runId": "2026-07-22_10-24-23-cpu",
+  "leg": "cpu-qwen-35b",
+  "model": "qwen3.6-35b-a3b-mtp",
+  "attempt": 2,
+  "args": {
+    "question": "What do you want most right now, and what are you afraid of?",
+    "timeoutMs": 1200000
+  },
+  "preset": {
+    "id": "9d4ebeddeb96",
+    "name": "Bench",
+    "providerId": "",
+    "model": "qwen3.6-35b-a3b-mtp",
+    "temperature": 0.7,
+    "topP": null,
+    "maxTokens": 0,
+    "reasoningEffort": "",
+    "think": false,
+    "samplers": [],
+    "builtIn": false,
+    "position": 10,
+    "factoryModel": ""
+  },
+  "route": {
+    "feature": "characterChat",
+    "action": "characterChat",
+    "providerId": "local-llamacpp",
+    "model": "qwen3.6-35b-a3b-mtp",
+    "presetId": "9d4ebeddeb96",
+    "presetName": "Bench",
+    "presetSource": "assigned",
+    "think": false,
+    "level": "",
+    "reasoningWord": "",
+    "value": null,
+    "valueSource": "",
+    "configured": true,
+    "detail": ""
+  },
+  "featureKey": "characterChat",
+  "ok": true,
+  "started": "2026-07-22T11:00:11.384Z",
+  "label": "Character chat",
+  "wallMs": 16034,
+  "ttftMs": 575,
+  "output": "I want the same thing I wanted when I took the brass chit: a quiet job, steady pay, and the silence that comes from being small enough to be ignored. [2]\n\nBut I’m afraid of the fork. Not the one in my bag, but the one in my teeth—the one that rings every time I look at the world and see how it’s built wrong. I’m afraid that if I stop pretending it’s a sickness, I’ll have to admit the Wardens are the ones who are broken. [3]",
+  "outputChars": 427,
+  "usage": {
+    "promptTokens": 2542,
+    "completionTokens": 111,
+    "model": "qwen3.6-35b-a3b-mtp",
+    "cost": 0
+  },
+  "flags": [
+    "temperature-fixed-by-caller"
+  ],
+  "extra": {
+    "bibleOnly": false,
+    "question": "What do you want most right now, and what are you afraid of?",
+    "k": 6,
+    "characterId": "c1",
+    "character": "Cael Ferren",
+    "citationCount": 6
+  },
+  "error": null
+}

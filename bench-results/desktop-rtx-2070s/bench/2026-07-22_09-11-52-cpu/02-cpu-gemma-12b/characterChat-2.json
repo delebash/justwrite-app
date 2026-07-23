@@ -1,0 +1,67 @@
+{
+  "runId": "2026-07-22_09-11-52-cpu",
+  "leg": "cpu-gemma-12b",
+  "model": "gemma-4-12b-qat",
+  "attempt": 2,
+  "args": {
+    "question": "What do you want most right now, and what are you afraid of?",
+    "timeoutMs": 1200000
+  },
+  "preset": {
+    "id": "9d4ebeddeb96",
+    "name": "Bench",
+    "providerId": "",
+    "model": "gemma-4-12b-qat",
+    "temperature": 0.7,
+    "topP": null,
+    "maxTokens": 0,
+    "reasoningEffort": "",
+    "think": false,
+    "samplers": [],
+    "builtIn": false,
+    "position": 10,
+    "factoryModel": ""
+  },
+  "route": {
+    "feature": "characterChat",
+    "action": "characterChat",
+    "providerId": "local-llamacpp",
+    "model": "gemma-4-12b-qat",
+    "presetId": "9d4ebeddeb96",
+    "presetName": "Bench",
+    "presetSource": "assigned",
+    "think": false,
+    "level": "",
+    "reasoningWord": "",
+    "value": null,
+    "valueSource": "",
+    "configured": true,
+    "detail": ""
+  },
+  "featureKey": "characterChat",
+  "ok": true,
+  "started": "2026-07-22T09:26:55.443Z",
+  "label": "Character chat",
+  "wallMs": 39790,
+  "ttftMs": 636,
+  "output": "I want a quiet life. I want to finish my shift at the Hall, collect my scrip, and find a job that doesn't make my teeth ring like a struck fork every time I pick up a tool. I just want to be a lamp-mender who keeps her head down and does what she's told [2].\n\nAs for what I'm afraid of... I'm afraid of the hum. I've spent my whole life trying to treat it like a sickness, something to be muffled or tuned out, but it's getting harder to ignore [3]. I'm afraid that if I let it out—if I actually answer what it's calling for—there won't be anything left of the quiet life I've worked so hard to build. I'm afraid of what happens when the note finally resolves [1].",
+  "outputChars": 664,
+  "usage": {
+    "promptTokens": 2565,
+    "completionTokens": 180,
+    "model": "gemma-4-12b-qat",
+    "cost": 0
+  },
+  "flags": [
+    "temperature-fixed-by-caller"
+  ],
+  "extra": {
+    "bibleOnly": false,
+    "question": "What do you want most right now, and what are you afraid of?",
+    "k": 6,
+    "characterId": "c1",
+    "character": "Cael Ferren",
+    "citationCount": 6
+  },
+  "error": null
+}

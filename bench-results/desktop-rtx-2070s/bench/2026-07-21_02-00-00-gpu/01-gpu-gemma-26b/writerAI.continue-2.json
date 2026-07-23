@@ -1,0 +1,61 @@
+{
+  "runId": "2026-07-21_02-00-00-gpu",
+  "leg": "gpu-gemma-26b",
+  "model": "gemma-4-26b-a4b-qat",
+  "attempt": 2,
+  "args": {
+    "passageChars": 2000,
+    "timeoutMs": 1200000
+  },
+  "preset": {
+    "id": "d275d86236e9",
+    "name": "Bench",
+    "providerId": "",
+    "model": "gemma-4-26b-a4b-qat",
+    "temperature": 0.7,
+    "topP": null,
+    "maxTokens": 0,
+    "reasoningEffort": "",
+    "think": false,
+    "samplers": [],
+    "builtIn": false,
+    "position": 10,
+    "factoryModel": ""
+  },
+  "route": {
+    "feature": "writerAI.continue",
+    "action": "writerAI.continue",
+    "providerId": "local-llamacpp",
+    "model": "gemma-4-26b-a4b-qat",
+    "presetId": "d275d86236e9",
+    "presetName": "Bench",
+    "presetSource": "assigned",
+    "think": false,
+    "level": "",
+    "reasoningWord": "",
+    "value": null,
+    "valueSource": "",
+    "configured": true,
+    "detail": ""
+  },
+  "featureKey": "writerAI.continue",
+  "ok": true,
+  "started": "2026-07-21T02:03:47.142Z",
+  "label": "Continue",
+  "wallMs": 16272,
+  "ttftMs": 239,
+  "output": "Cael stood alone in the dim hallway, the key cold and heavy in her hand. The silence of the glimmerworks pressed against her ears, thick and stifling, stripped of the rhythm of Nettle’s boots and the low thrum of the district's breathing. She leaned her forehead against the wood of the door, closing her eyes, but the darkness behind her eyelids was no sanctuary. The token in her pocket pulsed against her thigh, a rhythmic, insistent vibration that seemed to sync with the heavy beating of her own heart.\n\nShe stepped inside, the floorboards groaning under her weight as she navigated the shadows toward the small cot in the corner. The air in the room was stale, smelling of old grease and the metallic tang of spent fuel, but it was hers. She didn't light the lamp. Instead, she sat on the edge of the bed and drew the token out, letting it rest in her open palm. It glowed with a faint, sickly translucence, a light that didn't illuminate the room so much as it seemed to swallow the surrounding gloom.\n\nThe humming was louder now, a low-frequency drone that vibrated through her bones, traveling up her arm and settling in the base of her skull. It wasn't just a sound; it was a presence, a weight that made the very air feel crowded. Cael stared at the small, etched surface of the seal, wondering if Nettle was out there in the blue-lit streets, listening to the shadows, or if she was already somewhere else entirely, drifting through the gaps between things.\n\nShe lay back, pulling the thin quilt to her chin, but sleep was a distant country. Every time she drifted toward the edge, the token would twitch, a tiny, electric shudder that jerked her back to the waking world. It was waiting. It was always waiting for the moment she finally stopped fighting the pull, waiting for the moment she realized that the humming wasn't coming from the metal, but from the void it was trying to bridge.",
+  "outputChars": 1902,
+  "usage": {
+    "promptTokens": 636,
+    "completionTokens": 420,
+    "model": "gemma-4-26b-a4b-qat",
+    "cost": 0
+  },
+  "flags": [],
+  "extra": {
+    "chapterId": "ch1",
+    "passageChars": 2000
+  },
+  "error": null
+}

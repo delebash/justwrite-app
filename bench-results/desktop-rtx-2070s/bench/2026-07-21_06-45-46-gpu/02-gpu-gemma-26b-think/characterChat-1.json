@@ -1,0 +1,67 @@
+{
+  "runId": "2026-07-21_06-45-46-gpu",
+  "leg": "gpu-gemma-26b-think",
+  "model": "gemma-4-26b-a4b-qat",
+  "attempt": 1,
+  "args": {
+    "question": "What do you want most right now, and what are you afraid of?",
+    "timeoutMs": 1200000
+  },
+  "preset": {
+    "id": "17693095dfb1",
+    "name": "Bench",
+    "providerId": "",
+    "model": "gemma-4-26b-a4b-qat",
+    "temperature": 0.7,
+    "topP": null,
+    "maxTokens": 0,
+    "reasoningEffort": "",
+    "think": true,
+    "samplers": [],
+    "builtIn": false,
+    "position": 10,
+    "factoryModel": ""
+  },
+  "route": {
+    "feature": "characterChat",
+    "action": "characterChat",
+    "providerId": "local-llamacpp",
+    "model": "gemma-4-26b-a4b-qat",
+    "presetId": "17693095dfb1",
+    "presetName": "Bench",
+    "presetSource": "assigned",
+    "think": true,
+    "level": "",
+    "reasoningWord": "",
+    "value": 1024,
+    "valueSource": "base",
+    "configured": true,
+    "detail": ""
+  },
+  "featureKey": "characterChat",
+  "ok": true,
+  "started": "2026-07-21T06:57:03.863Z",
+  "label": "Character chat",
+  "wallMs": 47245,
+  "ttftMs": 43917,
+  "output": "I used to want a clean job and a quiet life, something with no friction, just a steady rotation at the Commission Hall [3]. But right now? I'm holding the Keystone, and it feels less like a tool and more like the whole world's mechanism is missing its timing, and I'm the only one left who can feel the gears grinding [4]. I'm afraid that if I answer that note—the one I've heard under everything since I was a girl—I won't be able to ever find the quiet again [1].",
+  "outputChars": 465,
+  "usage": {
+    "promptTokens": 2563,
+    "completionTokens": 1145,
+    "model": "gemma-4-26b-a4b-qat",
+    "cost": 0
+  },
+  "flags": [
+    "temperature-fixed-by-caller"
+  ],
+  "extra": {
+    "bibleOnly": false,
+    "question": "What do you want most right now, and what are you afraid of?",
+    "k": 6,
+    "characterId": "c1",
+    "character": "Cael Ferren",
+    "citationCount": 6
+  },
+  "error": null
+}

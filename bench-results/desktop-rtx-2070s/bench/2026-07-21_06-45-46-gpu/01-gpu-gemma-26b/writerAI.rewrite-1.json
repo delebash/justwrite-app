@@ -1,0 +1,61 @@
+{
+  "runId": "2026-07-21_06-45-46-gpu",
+  "leg": "gpu-gemma-26b",
+  "model": "gemma-4-26b-a4b-qat",
+  "attempt": 1,
+  "args": {
+    "passageChars": 1200,
+    "timeoutMs": 1200000
+  },
+  "preset": {
+    "id": "17693095dfb1",
+    "name": "Bench",
+    "providerId": "",
+    "model": "gemma-4-26b-a4b-qat",
+    "temperature": 0.7,
+    "topP": null,
+    "maxTokens": 0,
+    "reasoningEffort": "",
+    "think": false,
+    "samplers": [],
+    "builtIn": false,
+    "position": 10,
+    "factoryModel": ""
+  },
+  "route": {
+    "feature": "writerAI.rewrite",
+    "action": "writerAI.rewrite",
+    "providerId": "local-llamacpp",
+    "model": "gemma-4-26b-a4b-qat",
+    "presetId": "17693095dfb1",
+    "presetName": "Bench",
+    "presetSource": "assigned",
+    "think": false,
+    "level": "",
+    "reasoningWord": "",
+    "value": null,
+    "valueSource": "",
+    "configured": true,
+    "detail": ""
+  },
+  "featureKey": "writerAI.rewrite",
+  "ok": true,
+  "started": "2026-07-21T06:49:46.875Z",
+  "label": "Rewrite",
+  "wallMs": 10839,
+  "ttftMs": 1113,
+  "output": "\"The ones on the rooftops, the one over the Cutwater last spring—six feet of nothing but empty air, and you were already halfway across the void before you even realized you'd jumped.\"\n\nNettle's stride hitched, a microscopic tremor, the first ungraceful thing Cael had ever seen her do. \"Luck,\" she said. \"Good feet. My gran's bead.\" She brushed the river-worn charm at her throat, a gesture so ingrained it seemed less a choice and more a reflex. \"Why.\"\n\n\"No reason. Long day.\" Because you and I are the same, Cael did not say. Because whatever you feel when you leap across a gap that isn't there, I feel when I press my palm to a lamp that’s listening to something breathing under the world, and neither of us is supposed to be able to, and one of us has learned to hide it and the other hasn't noticed she has anything to hide.\n\nThey walked. The token hummed a low, vibrating note against her hip. Somewhere behind them, a soft, cold blue lamp caught the edge of the light and guttered, once, and steadied, and told no one anything.\n\n\"Ash District tomorrow,\" Nettle said, at the threshold of the glimmerworks, and grinned, and was gone before Cael's key could find the lock—not vanished, nothing so grand, just around a corner faster than any person could go, slipping into a gap in the evening that closed behind her like water.",
+  "outputChars": 1333,
+  "usage": {
+    "promptTokens": 420,
+    "completionTokens": 320,
+    "model": "gemma-4-26b-a4b-qat",
+    "cost": 0
+  },
+  "flags": [],
+  "extra": {
+    "chapterId": "ch1",
+    "passageChars": 1200
+  },
+  "error": null
+}

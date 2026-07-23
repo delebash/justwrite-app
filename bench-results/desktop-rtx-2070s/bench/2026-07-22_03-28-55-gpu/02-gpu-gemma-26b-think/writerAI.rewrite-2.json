@@ -1,0 +1,61 @@
+{
+  "runId": "2026-07-22_03-28-55-gpu",
+  "leg": "gpu-gemma-26b-think",
+  "model": "gemma-4-26b-a4b-qat",
+  "attempt": 2,
+  "args": {
+    "passageChars": 1200,
+    "timeoutMs": 1200000
+  },
+  "preset": {
+    "id": "9d4ebeddeb96",
+    "name": "Bench",
+    "providerId": "",
+    "model": "gemma-4-26b-a4b-qat",
+    "temperature": 0.7,
+    "topP": null,
+    "maxTokens": 0,
+    "reasoningEffort": "",
+    "think": true,
+    "samplers": [],
+    "builtIn": false,
+    "position": 10,
+    "factoryModel": ""
+  },
+  "route": {
+    "feature": "writerAI.rewrite",
+    "action": "writerAI.rewrite",
+    "providerId": "local-llamacpp",
+    "model": "gemma-4-26b-a4b-qat",
+    "presetId": "9d4ebeddeb96",
+    "presetName": "Bench",
+    "presetSource": "assigned",
+    "think": true,
+    "level": "",
+    "reasoningWord": "",
+    "value": 1024,
+    "valueSource": "base",
+    "configured": true,
+    "detail": ""
+  },
+  "featureKey": "writerAI.rewrite",
+  "ok": true,
+  "started": "2026-07-22T03:44:45.054Z",
+  "label": "Rewrite",
+  "wallMs": 43460,
+  "ttftMs": 33774,
+  "output": "\"...the ones on the rooftops, that one over the Cutwater last spring—six feet of nothingness, and you were on the far side of the void before your boots even left the slate.\"\n\nNettle's stride faltered, a microscopic stumble, the first ungraceful thing Cael had ever witnessed in her. \"Luck,\" she said, her voice clipped. \"Good feet. My gran's bead.\" She reached for the river-smoothed charm at her throat, a gesture so instinctive it seemed part of her anatomy. \"Why.\"\n\n\"No reason. Long day.\" Because we are cut from the same cloth, Cael did not say. Because the vertigo of stepping across a void that shouldn't exist is the same hollow ache I feel when my palm brushes a lamp that is listening to the secrets beneath the world—and neither of us is meant to feel the pulse, yet one of us has learned to mask the tremor and the other hasn't realized she's shaking.\n\nThey walked. The token thrummed a low, steady vibration against her hip. Somewhere in the shadows behind them, a pale, cobalt lamp caught the token's glint; it guttered once, a sudden gasp of light, then steadied, guarding its silence.\n\n\"Ash District tomorrow,\" Nettle said, at the mouth of the glimmerworks. She flashed a grin and was gone before Cael's key could find the lock—not vanished, nothing so grand, just around a corner faster than humanly possible, slipping into a seam in the evening that closed behind her like water.",
+  "outputChars": 1397,
+  "usage": {
+    "promptTokens": 418,
+    "completionTokens": 1357,
+    "model": "gemma-4-26b-a4b-qat",
+    "cost": 0
+  },
+  "flags": [],
+  "extra": {
+    "chapterId": "ch1",
+    "passageChars": 1200
+  },
+  "error": null
+}

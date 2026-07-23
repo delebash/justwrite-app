@@ -1,0 +1,61 @@
+{
+  "runId": "2026-07-22_03-28-55-gpu",
+  "leg": "gpu-qwen-35b-think",
+  "model": "qwen3.6-35b-a3b-mtp",
+  "attempt": 2,
+  "args": {
+    "passageChars": 1200,
+    "timeoutMs": 1200000
+  },
+  "preset": {
+    "id": "9d4ebeddeb96",
+    "name": "Bench",
+    "providerId": "",
+    "model": "qwen3.6-35b-a3b-mtp",
+    "temperature": 0.7,
+    "topP": null,
+    "maxTokens": 0,
+    "reasoningEffort": "",
+    "think": true,
+    "samplers": [],
+    "builtIn": false,
+    "position": 10,
+    "factoryModel": ""
+  },
+  "route": {
+    "feature": "writerAI.rewrite",
+    "action": "writerAI.rewrite",
+    "providerId": "local-llamacpp",
+    "model": "qwen3.6-35b-a3b-mtp",
+    "presetId": "9d4ebeddeb96",
+    "presetName": "Bench",
+    "presetSource": "assigned",
+    "think": true,
+    "level": "",
+    "reasoningWord": "",
+    "value": 1024,
+    "valueSource": "base",
+    "configured": true,
+    "detail": ""
+  },
+  "featureKey": "writerAI.rewrite",
+  "ok": true,
+  "started": "2026-07-22T04:18:08.620Z",
+  "label": "Rewrite",
+  "wallMs": 52936,
+  "ttftMs": 42106,
+  "output": "\"The ones on the roofs, the one over the Cutwater last spring — six feet of open air, and you were on the far side of it before you jumped.\"\nNettle’s stride caught, a fractional stutter—the first ungraceful thing Cael had ever witnessed. \"Luck,\" she said. \"Good feet. My gran's bead.\" Her fingers drifted to the river-smoothed charm resting against her collarbone, rubbing it in a rhythm so ingrained she barely registered the motion. \"Why.\"\n\"No reason. Long day.\" Because you and I are the same, Cael did not say. Because whatever you feel when you cross a gap that isn't there, I feel when I press my palm to a lamp that's listening to something breathing under the world, and neither of us is supposed to be able to, and one of us has learned to bury it while the other hasn't noticed she carries anything at all.\nThey walked. The token hummed against her hip. Somewhere behind them, a soft cold blue lamp caught the edge of it and guttered, once, and steadied, and told no one anything.\n\"Ash District tomorrow,\" Nettle said, at the door of the glimmerworks, and grinned, and was gone before Cael's key was in the lock — not vanished, nothing so grand, just around a corner faster than a person could go, into a gap in the evening that closed behind her like water.",
+  "outputChars": 1268,
+  "usage": {
+    "promptTokens": 414,
+    "completionTokens": 1327,
+    "model": "qwen3.6-35b-a3b-mtp",
+    "cost": 0
+  },
+  "flags": [],
+  "extra": {
+    "chapterId": "ch1",
+    "passageChars": 1200
+  },
+  "error": null
+}

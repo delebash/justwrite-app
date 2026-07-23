@@ -1,0 +1,67 @@
+{
+  "runId": "2026-07-22_14-04-05-cpu",
+  "leg": "cpu-qwen-35b",
+  "model": "qwen3.6-35b-a3b-mtp",
+  "attempt": 1,
+  "args": {
+    "question": "What do you want most right now, and what are you afraid of?",
+    "timeoutMs": 1200000
+  },
+  "preset": {
+    "id": "9d4ebeddeb96",
+    "name": "Bench",
+    "providerId": "",
+    "model": "qwen3.6-35b-a3b-mtp",
+    "temperature": 0.7,
+    "topP": null,
+    "maxTokens": 0,
+    "reasoningEffort": "",
+    "think": false,
+    "samplers": [],
+    "builtIn": false,
+    "position": 10,
+    "factoryModel": ""
+  },
+  "route": {
+    "feature": "characterChat",
+    "action": "characterChat",
+    "providerId": "local-llamacpp",
+    "model": "qwen3.6-35b-a3b-mtp",
+    "presetId": "9d4ebeddeb96",
+    "presetName": "Bench",
+    "presetSource": "assigned",
+    "think": false,
+    "level": "",
+    "reasoningWord": "",
+    "value": null,
+    "valueSource": "",
+    "configured": true,
+    "detail": ""
+  },
+  "featureKey": "characterChat",
+  "ok": true,
+  "started": "2026-07-22T14:38:48.976Z",
+  "label": "Character chat",
+  "wallMs": 73038,
+  "ttftMs": 57375,
+  "output": "What I want is a brass chit, a quiet desk, and a life where the hum doesn’t ring in my teeth every time I touch a tool. I want to be the kind of artificer who fixes lamps and goes home, not the one who holds the thing that’s breaking the world.\n\nBut I’m terrified that if I stop hiding it, they’ll come for it. Or worse, that I’ll realize I’ve been listening to a compass for twenty years and just pretended it was a sickness so I wouldn’t have to steer.",
+  "outputChars": 454,
+  "usage": {
+    "promptTokens": 2542,
+    "completionTokens": 112,
+    "model": "qwen3.6-35b-a3b-mtp",
+    "cost": 0
+  },
+  "flags": [
+    "temperature-fixed-by-caller"
+  ],
+  "extra": {
+    "bibleOnly": false,
+    "question": "What do you want most right now, and what are you afraid of?",
+    "k": 6,
+    "characterId": "c1",
+    "character": "Cael Ferren",
+    "citationCount": 6
+  },
+  "error": null
+}

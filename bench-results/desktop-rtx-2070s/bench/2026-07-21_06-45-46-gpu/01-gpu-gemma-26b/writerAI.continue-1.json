@@ -1,0 +1,61 @@
+{
+  "runId": "2026-07-21_06-45-46-gpu",
+  "leg": "gpu-gemma-26b",
+  "model": "gemma-4-26b-a4b-qat",
+  "attempt": 1,
+  "args": {
+    "passageChars": 2000,
+    "timeoutMs": 1200000
+  },
+  "preset": {
+    "id": "17693095dfb1",
+    "name": "Bench",
+    "providerId": "",
+    "model": "gemma-4-26b-a4b-qat",
+    "temperature": 0.7,
+    "topP": null,
+    "maxTokens": 0,
+    "reasoningEffort": "",
+    "think": false,
+    "samplers": [],
+    "builtIn": false,
+    "position": 10,
+    "factoryModel": ""
+  },
+  "route": {
+    "feature": "writerAI.continue",
+    "action": "writerAI.continue",
+    "providerId": "local-llamacpp",
+    "model": "gemma-4-26b-a4b-qat",
+    "presetId": "17693095dfb1",
+    "presetName": "Bench",
+    "presetSource": "assigned",
+    "think": false,
+    "level": "",
+    "reasoningWord": "",
+    "value": null,
+    "valueSource": "",
+    "configured": true,
+    "detail": ""
+  },
+  "featureKey": "writerAI.continue",
+  "ok": true,
+  "started": "2026-07-21T06:49:18.444Z",
+  "label": "Continue",
+  "wallMs": 15172,
+  "ttftMs": 2004,
+  "output": "Cael stood in the dim hallway, the heavy iron of the key biting into her palm. The silence that followed Nettle’s departure was heavier than the darkness, a thick, expectant quiet that seemed to press against her eardrums. The token gave a sudden, sharp vibration against her thigh, a frantic little pulse that felt less like a mechanical tremor and more like a heartbeat quickening in fear.\n\nShe stepped into her room and leaned her back against the door, letting the lock click home. The air in the room was stale, smelling of damp stone and the faint, metallic tang of the river. She reached into her pocket and pulled the token out. It wasn't just humming now; it was singing, a low-frequency thrum that she felt in her teeth and at the base of her skull.\n\nShe sat on the edge of her cot, watching the shadows stretch across the floor as the blue light from the lane flickered through the high, narrow window. The token was glowing, a dull, sickly amber light bleeding through the cracks in her fingers. It was hungry. She could feel it pulling at the edges of her perception, tugging at the seams of the room, as if the very walls were nothing more than a thin veil held up by sheer willpower.\n\nTomorrow was the Ash District. Tomorrow they would be deep in the soot and the smoke, where the vents were larger and the furnace-breath was thick enough to choke a man. She wondered if Nettle’s luck would hold when the air itself started to listen. She closed her eyes, trying to find that place behind her own eyes, but the token’s song was too loud, and the dark was already starting to move.",
+  "outputChars": 1595,
+  "usage": {
+    "promptTokens": 636,
+    "completionTokens": 352,
+    "model": "gemma-4-26b-a4b-qat",
+    "cost": 0
+  },
+  "flags": [],
+  "extra": {
+    "chapterId": "ch1",
+    "passageChars": 2000
+  },
+  "error": null
+}

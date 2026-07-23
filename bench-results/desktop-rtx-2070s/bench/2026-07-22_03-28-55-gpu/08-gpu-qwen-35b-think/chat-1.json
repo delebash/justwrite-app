@@ -1,0 +1,121 @@
+{
+  "runId": "2026-07-22_03-28-55-gpu",
+  "leg": "gpu-qwen-35b-think",
+  "model": "qwen3.6-35b-a3b-mtp",
+  "attempt": 1,
+  "args": {
+    "question": "What is this book about, and who is the protagonist?",
+    "k": 6,
+    "timeoutMs": 1200000
+  },
+  "preset": {
+    "id": "9d4ebeddeb96",
+    "name": "Bench",
+    "providerId": "",
+    "model": "qwen3.6-35b-a3b-mtp",
+    "temperature": 0.7,
+    "topP": null,
+    "maxTokens": 0,
+    "reasoningEffort": "",
+    "think": true,
+    "samplers": [],
+    "builtIn": false,
+    "position": 10,
+    "factoryModel": ""
+  },
+  "route": {
+    "feature": "chat",
+    "action": "chat",
+    "providerId": "local-llamacpp",
+    "model": "qwen3.6-35b-a3b-mtp",
+    "presetId": "9d4ebeddeb96",
+    "presetName": "Bench",
+    "presetSource": "assigned",
+    "think": true,
+    "level": "",
+    "reasoningWord": "",
+    "value": 1024,
+    "valueSource": "base",
+    "configured": true,
+    "detail": ""
+  },
+  "featureKey": "chat",
+  "ok": true,
+  "started": "2026-07-22T04:05:20.894Z",
+  "label": "Ask the book",
+  "wallMs": 63273,
+  "ttftMs": 54890,
+  "output": "Based on the provided excerpts, the protagonist is **Cael Ferren**, a 26-year-old brass-rank artificer who has spent her life secretly hiding her ability to sense the deep, forbidden Facets of magic [2], [5]. \n\nThe book is about Cael taking a routine guild commission to investigate a location called Manufactory Nine, only to discover it is a ruin folded out of normal space and trapped in a single, repeating hour [1], [3]. As she navigates this temporal loop alongside her guild party, she encounters a survivor who has been living through the same hour for years [2], [8]. The narrative follows Cael's journey from treating her magical sensitivity as a defect to be hidden, to realizing it is actually a vital compass to a broken world [5]. Ultimately, the story centers on her confronting the loop's heart (the Keystone), making a pivotal choice about whether to answer its call, and inheriting the responsibility of fixing the fractured magic of the world [3], [8].",
+  "outputChars": 971,
+  "usage": {
+    "promptTokens": 1899,
+    "completionTokens": 1237,
+    "model": "qwen3.6-35b-a3b-mtp",
+    "cost": 0
+  },
+  "flags": [
+    "temperature-fixed-by-caller"
+  ],
+  "extra": {
+    "bibleOnly": false,
+    "question": "What is this book about, and who is the protagonist?",
+    "k": 6,
+    "citations": [
+      {
+        "index": 1,
+        "chunkId": "card:architecture:premise",
+        "score": 0,
+        "pinned": true
+      },
+      {
+        "index": 2,
+        "chunkId": "card:cast:main",
+        "score": 0,
+        "pinned": true
+      },
+      {
+        "index": 3,
+        "chunkId": "card:architecture:fabula",
+        "score": 0,
+        "pinned": true
+      },
+      {
+        "index": 4,
+        "chunkId": "card:architecture:setting",
+        "score": 0,
+        "pinned": true
+      },
+      {
+        "index": 5,
+        "chunkId": "card:character:c1:p1",
+        "score": 0.40488342852794756,
+        "pinned": false
+      },
+      {
+        "index": 6,
+        "chunkId": "card:character:c2:p1",
+        "score": 0.2753121776768573,
+        "pinned": false
+      },
+      {
+        "index": 7,
+        "chunkId": "ch2:scn_ch2_1:p3",
+        "score": 0.28189390404565895,
+        "pinned": false
+      },
+      {
+        "index": 8,
+        "chunkId": "ch3:scn_ch3_3:p3",
+        "score": 0.28102924869900703,
+        "pinned": false
+      },
+      {
+        "index": 9,
+        "chunkId": "ch2:scn_ch2_2:p3",
+        "score": 0.2643302530668414,
+        "pinned": false
+      }
+    ]
+  },
+  "error": null
+}

@@ -1,0 +1,61 @@
+{
+  "runId": "2026-07-22_03-28-55-gpu",
+  "leg": "gpu-qwen-35b",
+  "model": "qwen3.6-35b-a3b-mtp",
+  "attempt": 1,
+  "args": {
+    "passageChars": 2000,
+    "timeoutMs": 1200000
+  },
+  "preset": {
+    "id": "9d4ebeddeb96",
+    "name": "Bench",
+    "providerId": "",
+    "model": "qwen3.6-35b-a3b-mtp",
+    "temperature": 0.7,
+    "topP": null,
+    "maxTokens": 0,
+    "reasoningEffort": "",
+    "think": false,
+    "samplers": [],
+    "builtIn": false,
+    "position": 10,
+    "factoryModel": ""
+  },
+  "route": {
+    "feature": "writerAI.continue",
+    "action": "writerAI.continue",
+    "providerId": "local-llamacpp",
+    "model": "qwen3.6-35b-a3b-mtp",
+    "presetId": "9d4ebeddeb96",
+    "presetName": "Bench",
+    "presetSource": "assigned",
+    "think": false,
+    "level": "",
+    "reasoningWord": "",
+    "value": null,
+    "valueSource": "",
+    "configured": true,
+    "detail": ""
+  },
+  "featureKey": "writerAI.continue",
+  "ok": true,
+  "started": "2026-07-22T03:58:56.913Z",
+  "label": "Continue",
+  "wallMs": 20078,
+  "ttftMs": 4484,
+  "output": "Cael stood in the threshold, the key cold and heavy in her hand. The silence of the hallway was thick, pressing against her eardrums with a physical weight. She could still hear the faint, rhythmic thrum of the token, a heartbeat that didn’t belong to her, syncing with the pulse in her neck. It was a dangerous companion, one that grew louder when fear spiked and quieter when she was calm, but it never slept. She turned the lock, the click sounding obscenely loud in the quiet building, and stepped into the dark.\n\nInside, the air was stale, smelling of old paper and dried ink. Cael didn’t light a lamp; the ambient glow from the streetlamps bleeding through the high, grimy windows was enough to navigate by. She moved to her desk, where a single sheet of parchment lay waiting, its edges curled from humidity. The message was brief, written in a hand she didn’t recognize, scrawled in haste. *The seal is broken. They know.* She traced the letters with a trembling finger, the ink slightly raised, as if the words themselves had bled through from some other side of the paper.\n\nOutside, the wind picked up, rattling the windowpanes in their frames. Cael closed her eyes, trying to push back the rising tide of panic, to find that same quiet space Nettle had described. But there was no silence here, only the increasing volume of the token’s hum, vibrating through her bones, warning her that the job was already turning to ash, and that she was no longer the hunter, but the prey.",
+  "outputChars": 1487,
+  "usage": {
+    "promptTokens": 626,
+    "completionTokens": 335,
+    "model": "qwen3.6-35b-a3b-mtp",
+    "cost": 0
+  },
+  "flags": [],
+  "extra": {
+    "chapterId": "ch1",
+    "passageChars": 2000
+  },
+  "error": null
+}

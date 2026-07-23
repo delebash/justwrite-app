@@ -1,0 +1,69 @@
+{
+  "runId": "2026-07-22_03-28-55-gpu",
+  "leg": "gpu-gemma-26b-think",
+  "model": "gemma-4-26b-a4b-qat",
+  "attempt": 1,
+  "args": {
+    "timeoutMs": 1200000,
+    "chapterCap": 3
+  },
+  "preset": {
+    "id": "9d4ebeddeb96",
+    "name": "Bench",
+    "providerId": "",
+    "model": "gemma-4-26b-a4b-qat",
+    "temperature": 0.7,
+    "topP": null,
+    "maxTokens": 0,
+    "reasoningEffort": "",
+    "think": true,
+    "samplers": [],
+    "builtIn": false,
+    "position": 10,
+    "factoryModel": ""
+  },
+  "route": {
+    "feature": "entitySweep",
+    "action": "entitySweep",
+    "providerId": "local-llamacpp",
+    "model": "gemma-4-26b-a4b-qat",
+    "presetId": "9d4ebeddeb96",
+    "presetName": "Bench",
+    "presetSource": "assigned",
+    "think": true,
+    "level": "",
+    "reasoningWord": "",
+    "value": 1024,
+    "valueSource": "base",
+    "configured": true,
+    "detail": ""
+  },
+  "featureKey": "entitySweep",
+  "ok": true,
+  "started": "2026-07-22T03:40:44.839Z",
+  "label": "Entity sweep",
+  "wallMs": 43112,
+  "ttftMs": 15638,
+  "output": "{\n  \"characters\": [\n    {\n      \"name\": \"Old Sedge\",\n      \"role\": \"road-warden\",\n      \"kind\": \"\",\n      \"oneLiner\": \"A pensioner who keeps a ledger of travelers passing the Nine Road.\",\n      \"note\": \"\",\n      \"evidence\": \"Old Sedge, the plate on the hut, said\",\n      \"aliases\": [],\n      \"originChapters\": [\n        {\n          \"id\": \"ch2\",\n          \"num\": 2,\n          \"title\": \"Bigger Inside\"\n        }\n      ]\n    }\n  ],\n  \"locations\": [\n    {\n      \"name\": \"Ash District\",\n      \"role\": \"\",\n      \"kind\": \"District\",\n      \"oneLiner\": \"\",\n      \"note\": \"The area where Manufactory Nine is located.\",\n      \"evidence\": \"Manufactory Nine, Ash District.\",\n      \"aliases\": [],\n      \"originChapters\": [\n        {\n          \"id\": \"ch1\",\n          \"num\": 1,\n          \"title\": \"Brass Rank\"\n        },\n        {\n          \"id\": \"ch2\",\n          \"num\": 2,\n          \"title\": \"Bigger Inside\"\n        },\n        {\n          \"id\": \"ch3\",\n          \"num\": 3,\n          \"title\": \"The Same Hour\"\n        }\n      ]\n    },\n    {\n      \"name\": \"Kettle Lane\",\n      \"role\": \"\",\n      \"kind\": \"Street\",\n      \"oneLiner\": \"\",\n      \"note\": \"A lane where Nettle walks Cael home.\",\n      \"evidence\": \"Kettle Lane, after dark\",\n      \"aliases\": [],\n      \"originChapters\": [\n        {\n          \"id\": \"ch1\",\n          \"num\": 1,\n          \"title\": \"Brass Rank\"\n        }\n      ]\n    },\n    {\n      \"name\": \"Nine Road\",\n      \"role\": \"\",\n      \"kind\": \"road\",\n      \"oneLiner\": \"\",\n      \"note\": \"A road leading to the Ash District, characterized by failing lumen-lamps.\",\n      \"evidence\": \"the lumen-lamps along the Nine Road stood at long intervals\",\n      \"aliases\": [],\n      \"originChapters\": [\n        {\n          \"id\": \"ch2\",\n          \"num\": 2,\n          \"title\": \"Bigger Inside\"\n        }\n      ]\n    },\n    {\n      \"name\": \"East Gallery\",\n      \"role\": \"\",\n      \"kind\": \"Location\",\n      \"oneLiner\": \"\",\n      \"note\": \"A place where the members of the third party are still walking, unaware of the loop.\",\n      \"evidence\": \"They're still in the east gallery.\",\n      \"aliases\": [],\n      \"originChapters\": [\n        {\n          \"id\": \"ch3\",\n          \"num\": 3,\n          \"title\": \"The Same Hour\"\n        }\n      ]\n    }\n  ],\n  \"objects\": [\n    {\n      \"name\": \"Lumen-cell\",\n      \"role\": \"\",\n      \"kind\": \"Power source\",\n      \"oneLiner\": \"\",\n      \"note\": \"The component inside the lamp that Cael inspects.\",\n      \"evidence\": \"the lumen-cell seated square.\",\n      \"aliases\": [],\n      \"originChapters\": [\n        {\n          \"id\": \"ch1\",\n          \"num\": 1,\n          \"title\": \"Brass Rank\"\n        }\n      ]\n    },\n    {\n      \"name\": \"Concern seal\",\n      \"role\": \"\",\n      \"kind\": \"Sigil\",\n      \"oneLiner\": \"\",\n      \"note\": \"A seal used by the Concern on official documents and tokens.\",\n      \"evidence\": \"A Concern seal on a clearance meant...\",\n      \"aliases\": [],\n      \"originChapters\": [\n        {\n          \"id\": \"ch1\",\n          \"num\": 1,\n          \"title\": \"Brass Rank\"\n        }\n      ]\n    },\n    {\n      \"name\": \"glimmer-looms\",\n      \"role\": \"\",\n      \"kind\": \"machinery\",\n      \"oneLiner\": \"\",\n      \"note\": \"Dead machines that line the floor of the folded manufactory.\",\n      \"evidence\": \"Ranks of dead glimmer-looms marched off\",\n      \"aliases\": [],\n      \"originChapters\": [\n        {\n          \"id\": \"ch2\",\n          \"num\": 2,\n          \"title\": \"Bigger Inside\"\n        }\n      ]\n    },\n    {\n      \"name\": \"The Whole\",\n      \"role\": \"\",\n      \"kind\": \"Metaphysical concept\",\n      \"oneLiner\": \"\",\n      \"note\": \"A primordial, singular art that was broken into the distinct Facets during the Sundering.\",\n      \"evidence\": \"It was a wheel, one art, whole, turning\",\n      \"aliases\": [],\n      \"originChapters\": [\n        {\n          \"id\": \"ch3\",\n          \"num\": 3,\n          \"title\": \"The Same Hour\"\n        }\n      ]\n    }\n  ]\n}",
+  "outputChars": 3857,
+  "usage": null,
+  "flags": [],
+  "extra": {
+    "counts": {
+      "characters": 1,
+      "locations": 4,
+      "objects": 4
+    },
+    "scanned": 3,
+    "totalChapters": 3,
+    "skipped": [],
+    "cancelled": false,
+    "chapterIds": [
+      "ch1",
+      "ch2",
+      "ch3"
+    ],
+    "chapterCap": 3
+  },
+  "error": null
+}

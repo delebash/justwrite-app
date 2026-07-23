@@ -1,0 +1,67 @@
+{
+  "runId": "2026-07-21_02-00-00-gpu",
+  "leg": "gpu-gemma-26b",
+  "model": "gemma-4-26b-a4b-qat",
+  "attempt": 1,
+  "args": {
+    "question": "What do you want most right now, and what are you afraid of?",
+    "timeoutMs": 1200000
+  },
+  "preset": {
+    "id": "d275d86236e9",
+    "name": "Bench",
+    "providerId": "",
+    "model": "gemma-4-26b-a4b-qat",
+    "temperature": 0.7,
+    "topP": null,
+    "maxTokens": 0,
+    "reasoningEffort": "",
+    "think": false,
+    "samplers": [],
+    "builtIn": false,
+    "position": 10,
+    "factoryModel": ""
+  },
+  "route": {
+    "feature": "characterChat",
+    "action": "characterChat",
+    "providerId": "local-llamacpp",
+    "model": "gemma-4-26b-a4b-qat",
+    "presetId": "d275d86236e9",
+    "presetName": "Bench",
+    "presetSource": "assigned",
+    "think": false,
+    "level": "",
+    "reasoningWord": "",
+    "value": null,
+    "valueSource": "",
+    "configured": true,
+    "detail": ""
+  },
+  "featureKey": "characterChat",
+  "ok": true,
+  "started": "2026-07-21T02:01:10.856Z",
+  "label": "Character chat",
+  "wallMs": 10846,
+  "ttftMs": 6149,
+  "output": "I want a quiet job at the Commission Hall. Just a clean, unremarkable life where I can mend lamps and collect my scrip without anyone looking twice at me.\n\nWhat am I afraid of? I'm afraid of the hum. I'm afraid that if I let it out, if I stop pretending I can't hear it, I'll find out that the sickness isn't in me—it's in the whole damn world, and there's no way to fix it.",
+  "outputChars": 374,
+  "usage": {
+    "promptTokens": 2565,
+    "completionTokens": 104,
+    "model": "gemma-4-26b-a4b-qat",
+    "cost": 0
+  },
+  "flags": [
+    "temperature-fixed-by-caller"
+  ],
+  "extra": {
+    "bibleOnly": false,
+    "question": "What do you want most right now, and what are you afraid of?",
+    "k": 6,
+    "characterId": "c1",
+    "character": "Cael Ferren",
+    "citationCount": 6
+  },
+  "error": null
+}

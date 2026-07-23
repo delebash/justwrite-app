@@ -1,0 +1,61 @@
+{
+  "runId": "2026-07-21_06-45-46-gpu",
+  "leg": "gpu-gemma-26b-think",
+  "model": "gemma-4-26b-a4b-qat",
+  "attempt": 1,
+  "args": {
+    "passageChars": 2000,
+    "timeoutMs": 1200000
+  },
+  "preset": {
+    "id": "17693095dfb1",
+    "name": "Bench",
+    "providerId": "",
+    "model": "gemma-4-26b-a4b-qat",
+    "temperature": 0.7,
+    "topP": null,
+    "maxTokens": 0,
+    "reasoningEffort": "",
+    "think": true,
+    "samplers": [],
+    "builtIn": false,
+    "position": 10,
+    "factoryModel": ""
+  },
+  "route": {
+    "feature": "writerAI.continue",
+    "action": "writerAI.continue",
+    "providerId": "local-llamacpp",
+    "model": "gemma-4-26b-a4b-qat",
+    "presetId": "17693095dfb1",
+    "presetName": "Bench",
+    "presetSource": "assigned",
+    "think": true,
+    "level": "",
+    "reasoningWord": "",
+    "value": 1024,
+    "valueSource": "base",
+    "configured": true,
+    "detail": ""
+  },
+  "featureKey": "writerAI.continue",
+  "ok": true,
+  "started": "2026-07-21T07:00:40.224Z",
+  "label": "Continue",
+  "wallMs": 45770,
+  "ttftMs": 38176,
+  "output": "Cael stood in the doorway for a moment, the silence of the glimmerworks pressing against her ears where Nettle’s voice had been. The air inside was thick with the scent of cold iron and the metallic tang of spent lumen, a sharp contrast to the damp evening. The token’s vibration intensified, a frantic, rhythmic thrumming against her thigh that seemed to sync with her own heartbeat, insistent and demanding.\n\nShe moved through the dim corridors, her footsteps heavy on the metal grating. Every time she passed a lamp, the light seemed to flicker, not with wind, but in recognition—a brief, stuttering pulse of luminescence that made the hair on her arms stand up. The token wasn't just humming now; it was singing, a low, dissonant chord that vibrated through the bone of her hip, pulling at her, tethering her to the very floorboards.\n\nSettling onto her cot, Cael pressed her palm flat against the table to steady herself, but the tremor traveled up her arm, unyielding. She thought of the others, their faces pale in the dim light of the district, and the long, hungry months of winter ahead. The token was a promise and a curse, a heavy, vibrating anchor that kept her moored to a world that was constantly, quietly, trying to speak.",
+  "outputChars": 1238,
+  "usage": {
+    "promptTokens": 634,
+    "completionTokens": 1300,
+    "model": "gemma-4-26b-a4b-qat",
+    "cost": 0
+  },
+  "flags": [],
+  "extra": {
+    "chapterId": "ch1",
+    "passageChars": 2000
+  },
+  "error": null
+}

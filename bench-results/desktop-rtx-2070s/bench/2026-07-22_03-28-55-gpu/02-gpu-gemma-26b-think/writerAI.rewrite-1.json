@@ -1,0 +1,61 @@
+{
+  "runId": "2026-07-22_03-28-55-gpu",
+  "leg": "gpu-gemma-26b-think",
+  "model": "gemma-4-26b-a4b-qat",
+  "attempt": 1,
+  "args": {
+    "passageChars": 1200,
+    "timeoutMs": 1200000
+  },
+  "preset": {
+    "id": "9d4ebeddeb96",
+    "name": "Bench",
+    "providerId": "",
+    "model": "gemma-4-26b-a4b-qat",
+    "temperature": 0.7,
+    "topP": null,
+    "maxTokens": 0,
+    "reasoningEffort": "",
+    "think": true,
+    "samplers": [],
+    "builtIn": false,
+    "position": 10,
+    "factoryModel": ""
+  },
+  "route": {
+    "feature": "writerAI.rewrite",
+    "action": "writerAI.rewrite",
+    "providerId": "local-llamacpp",
+    "model": "gemma-4-26b-a4b-qat",
+    "presetId": "9d4ebeddeb96",
+    "presetName": "Bench",
+    "presetSource": "assigned",
+    "think": true,
+    "level": "",
+    "reasoningWord": "",
+    "value": 1024,
+    "valueSource": "base",
+    "configured": true,
+    "detail": ""
+  },
+  "featureKey": "writerAI.rewrite",
+  "ok": true,
+  "started": "2026-07-22T03:44:02.120Z",
+  "label": "Rewrite",
+  "wallMs": 42915,
+  "ttftMs": 33414,
+  "output": "\"The ones on the rooftops, the one over the Cutwater last spring—six feet of nothing but empty space, and you were on the far side of it before your boots even hit the edge.\"\n\nNettle's stride hitched, a microscopic tremor that was the first ungraceful thing Cael had ever seen her do. \"Luck,\" she said, her voice clipping the air. \"Good feet. My gran's bead.\" Her fingers drifted to the river-worn charm at her throat, a reflex so deep it seemed etched into her skin. \"Why.\"\n\n\"No reason. Long day.\" Because you and I are made of the same shadow, Cael did not say. Because whatever vertigo strikes when you leap across a void that isn't there, I feel when my palm presses against a lamp that is listening to something churning beneath the world—and neither of us is meant to hear it, and one of us has learned to mask the sound while the other hasn't realized she is listening.\n\nThey walked on. The token thrummed a low, rhythmic heat against her hip. Somewhere in the gloom behind them, a lamp of soft, cold blue caught the light of the charm; it guttered once, a dying gasp of flame, then steadied, keeping its secrets.\n\n\"Ash District tomorrow,\" Nettle said, at the door of the glimmerworks, and grinned, and was gone before Cael's key was even in the lock—not vanished, nothing so grand, just around a corner faster than a person should be able to move, into a gap in the evening that closed behind her like water.",
+  "outputChars": 1416,
+  "usage": {
+    "promptTokens": 418,
+    "completionTokens": 1365,
+    "model": "gemma-4-26b-a4b-qat",
+    "cost": 0
+  },
+  "flags": [],
+  "extra": {
+    "chapterId": "ch1",
+    "passageChars": 1200
+  },
+  "error": null
+}

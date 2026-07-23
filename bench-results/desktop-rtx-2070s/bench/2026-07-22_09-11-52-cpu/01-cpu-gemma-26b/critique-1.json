@@ -1,0 +1,102 @@
+{
+  "runId": "2026-07-22_09-11-52-cpu",
+  "leg": "cpu-gemma-26b",
+  "model": "gemma-4-26b-a4b-qat",
+  "attempt": 1,
+  "args": {
+    "timeoutMs": 1200000
+  },
+  "preset": {
+    "id": "9d4ebeddeb96",
+    "name": "Bench",
+    "providerId": "",
+    "model": "gemma-4-26b-a4b-qat",
+    "temperature": 0.7,
+    "topP": null,
+    "maxTokens": 0,
+    "reasoningEffort": "",
+    "think": false,
+    "samplers": [],
+    "builtIn": false,
+    "position": 10,
+    "factoryModel": ""
+  },
+  "route": {
+    "feature": "critique",
+    "action": "critique",
+    "providerId": "local-llamacpp",
+    "model": "gemma-4-26b-a4b-qat",
+    "presetId": "9d4ebeddeb96",
+    "presetName": "Bench",
+    "presetSource": "assigned",
+    "think": false,
+    "level": "",
+    "reasoningWord": "",
+    "value": null,
+    "valueSource": "",
+    "configured": true,
+    "detail": ""
+  },
+  "featureKey": "critique",
+  "ok": true,
+  "started": "2026-07-22T09:15:33.236Z",
+  "label": "Chapter critique",
+  "wallMs": 100480,
+  "ttftMs": null,
+  "output": "{\n  \"notes\": [\n    {\n      \"severity\": \"info\",\n      \"category\": \"opening\",\n      \"message\": \"The opening line, \\\"A lamp that will not lie,\\\" is a fantastic hook that immediately establishes the thematic tension.\"\n    },\n    {\n      \"severity\": \"suggest\",\n      \"category\": \"show-don't-tell\",\n      \"message\": \"The phrase \\\"a woman who could not afford to be interesting\\\" is strong, but you might let her actions in the workshop convey her caution even more sharply before explicitly stating it.\"\n    },\n    {\n      \"severity\": \"info\",\n      \"category\": \"characterization\",\n      \"message\": \"The 'Company' dynamic feels lived-in and natural; Brick's apple-quartering is a great way to show their intimacy without a page of backstory.\"\n    },\n    {\n      \"severity\": \"suggest\",\n      \"category\": \"pacing\",\n      \"message\": \"The transition between the workshop and the Commission Hall is a bit abrupt; a small sensory beat to ground the change in setting could smooth the leap.\"\n    },\n    {\n      \"severity\": \"info\",\n      \"category\": \"voice\",\n      \"message\": \"Your prose has a wonderful, rhythmic quality, especially in the description of the resonance fork: \\\"two tines of grey steel on a stub of horn.\\\"\"\n    },\n    {\n      \"severity\": \"flag\",\n      \"category\": \"POV\",\n      \"message\": \"The sudden jump to \\\"Nettle walked her home\\\" at the start of the final section feels like a slight perspective shift; ensure the transition back to Cael's internal experience is seamless.\"\n    },\n    {\n      \"severity\": \"suggest\",\n      \"category\": \"tension\",\n      \"message\": \"The connection between the lamp's 'note' and the token's 'hum' is excellent, but consider making the physical sensation of the token's hum even more disruptive to Cael's composure.\"\n    }\n  ]\n}",
+  "outputChars": 1763,
+  "usage": null,
+  "flags": [],
+  "extra": {
+    "chapterId": "ch1",
+    "chapterNum": 1,
+    "chapterWords": 2600,
+    "noteCount": 7,
+    "notes": [
+      {
+        "id": "note_mrvvcgac_0",
+        "severity": "info",
+        "category": "opening",
+        "message": "The opening line, \"A lamp that will not lie,\" is a fantastic hook that immediately establishes the thematic tension."
+      },
+      {
+        "id": "note_mrvvcgac_1",
+        "severity": "suggest",
+        "category": "show-don't-tell",
+        "message": "The phrase \"a woman who could not afford to be interesting\" is strong, but you might let her actions in the workshop convey her caution even more sharply before explicitly stating it."
+      },
+      {
+        "id": "note_mrvvcgac_2",
+        "severity": "info",
+        "category": "characterization",
+        "message": "The 'Company' dynamic feels lived-in and natural; Brick's apple-quartering is a great way to show their intimacy without a page of backstory."
+      },
+      {
+        "id": "note_mrvvcgac_3",
+        "severity": "suggest",
+        "category": "pacing",
+        "message": "The transition between the workshop and the Commission Hall is a bit abrupt; a small sensory beat to ground the change in setting could smooth the leap."
+      },
+      {
+        "id": "note_mrvvcgac_4",
+        "severity": "info",
+        "category": "voice",
+        "message": "Your prose has a wonderful, rhythmic quality, especially in the description of the resonance fork: \"two tines of grey steel on a stub of horn.\""
+      },
+      {
+        "id": "note_mrvvcgac_5",
+        "severity": "flag",
+        "category": "POV",
+        "message": "The sudden jump to \"Nettle walked her home\" at the start of the final section feels like a slight perspective shift; ensure the transition back to Cael's internal experience is seamless."
+      },
+      {
+        "id": "note_mrvvcgac_6",
+        "severity": "suggest",
+        "category": "tension",
+        "message": "The connection between the lamp's 'note' and the token's 'hum' is excellent, but consider making the physical sensation of the token's hum even more disruptive to Cael's composure."
+      }
+    ],
+    "model": "gemma-4-26b-a4b-qat"
+  },
+  "error": null
+}

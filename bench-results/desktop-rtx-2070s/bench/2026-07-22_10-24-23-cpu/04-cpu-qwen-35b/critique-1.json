@@ -1,0 +1,61 @@
+{
+  "runId": "2026-07-22_10-24-23-cpu",
+  "leg": "cpu-qwen-35b",
+  "model": "qwen3.6-35b-a3b-mtp",
+  "attempt": 1,
+  "args": {
+    "timeoutMs": 1200000
+  },
+  "preset": {
+    "id": "9d4ebeddeb96",
+    "name": "Bench",
+    "providerId": "",
+    "model": "qwen3.6-35b-a3b-mtp",
+    "temperature": 0.7,
+    "topP": null,
+    "maxTokens": 0,
+    "reasoningEffort": "",
+    "think": false,
+    "samplers": [],
+    "builtIn": false,
+    "position": 10,
+    "factoryModel": ""
+  },
+  "route": {
+    "feature": "critique",
+    "action": "critique",
+    "providerId": "local-llamacpp",
+    "model": "qwen3.6-35b-a3b-mtp",
+    "presetId": "9d4ebeddeb96",
+    "presetName": "Bench",
+    "presetSource": "assigned",
+    "think": false,
+    "level": "",
+    "reasoningWord": "",
+    "value": null,
+    "valueSource": "",
+    "configured": true,
+    "detail": ""
+  },
+  "featureKey": "critique",
+  "ok": true,
+  "started": "2026-07-22T11:00:27.423Z",
+  "label": "Chapter critique",
+  "wallMs": 31493,
+  "ttftMs": null,
+  "output": "",
+  "outputChars": 0,
+  "usage": null,
+  "flags": [
+    "empty-output"
+  ],
+  "extra": {
+    "chapterId": "ch1",
+    "chapterNum": 1,
+    "chapterWords": 2600,
+    "noteCount": 0,
+    "notes": [],
+    "model": "qwen3.6-35b-a3b-mtp"
+  },
+  "error": null
+}

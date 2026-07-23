@@ -1,0 +1,108 @@
+{
+  "runId": "2026-07-22_09-11-52-cpu",
+  "leg": "cpu-gemma-12b",
+  "model": "gemma-4-12b-qat",
+  "attempt": 2,
+  "args": {
+    "timeoutMs": 1200000
+  },
+  "preset": {
+    "id": "9d4ebeddeb96",
+    "name": "Bench",
+    "providerId": "",
+    "model": "gemma-4-12b-qat",
+    "temperature": 0.7,
+    "topP": null,
+    "maxTokens": 0,
+    "reasoningEffort": "",
+    "think": false,
+    "samplers": [],
+    "builtIn": false,
+    "position": 10,
+    "factoryModel": ""
+  },
+  "route": {
+    "feature": "critique",
+    "action": "critique",
+    "providerId": "local-llamacpp",
+    "model": "gemma-4-12b-qat",
+    "presetId": "9d4ebeddeb96",
+    "presetName": "Bench",
+    "presetSource": "assigned",
+    "think": false,
+    "level": "",
+    "reasoningWord": "",
+    "value": null,
+    "valueSource": "",
+    "configured": true,
+    "detail": ""
+  },
+  "featureKey": "critique",
+  "ok": true,
+  "started": "2026-07-22T09:31:15.432Z",
+  "label": "Chapter critique",
+  "wallMs": 95610,
+  "ttftMs": null,
+  "output": "{\n  \"notes\": [\n    {\n      \"severity\": \"info\",\n      \"category\": \"opening\",\n      \"message\": \"The opening description of the lamp and the 'lying' metaphor establishes a sophisticated, atmospheric tone immediately.\"\n    },\n    {\n      \"severity\": \"suggest\",\n      \"category\": \"show-don't-tell\",\n      \"message\": \"In the phrase 'the habit had outlived him,' consider showing one specific physical action Cael mimics her father's to ground the memory.\"\n    },\n    {\n      \"severity\": \"info\",\n      \"category\": \"characterization\",\n      \"message\": \"Brick’s gesture of handing Cael the specific piece of apple she likes is a subtle, effective way to establish their bond.\"\n    },\n    {\n      \"severity\": \"flag\",\n      \"category\": \"pacing\",\n      \"message\": \"The transition from the workshop to the Commission Hall feels abrupt; a brief beat of travel or a change in sensory atmosphere would smooth the jump.\"\n    },\n    {\n      \"severity\": \"suggest\",\n      \"category\": \"dialogue\",\n      \"message\": \"Threll's dialogue is very polished; giving her one slightly more jagged or practical sentence might make her feel less like a literary device and more like a bureaucrat.\"\n    },\n    {\n      \"severity\": \"info\",\n      \"category\": \"tension\",\n      \"message\": \"The recurring motif of the 'hum' and the 'pressure under the back teeth' creates a consistent sense of mounting dread.\"\n    },\n    {\n      \"severity\": \"flag\",\n      \"category\": \"exposition\",\n      \"message\": \"The internal monologue about the Schools and the Wardens feels a bit heavy on 'info-dumping'—try to weave those stakes into her specific fear of the current job.\"\n    },\n    {\n      \"severity\": \"suggest\",\n      \"category\": \"closing\",\n      \"message\": \"The final sentence is poetic, but ensuring Nettle's 'disappearance' doesn't feel too magical vs. physical will help clarify the world-building rules.\"\n    }\n  ]\n}",
+  "outputChars": 1874,
+  "usage": null,
+  "flags": [],
+  "extra": {
+    "chapterId": "ch1",
+    "chapterNum": 1,
+    "chapterWords": 2600,
+    "noteCount": 8,
+    "notes": [
+      {
+        "id": "note_mrvvwjj6_0",
+        "severity": "info",
+        "category": "opening",
+        "message": "The opening description of the lamp and the 'lying' metaphor establishes a sophisticated, atmospheric tone immediately."
+      },
+      {
+        "id": "note_mrvvwjj6_1",
+        "severity": "suggest",
+        "category": "show-don't-tell",
+        "message": "In the phrase 'the habit had outlived him,' consider showing one specific physical action Cael mimics her father's to ground the memory."
+      },
+      {
+        "id": "note_mrvvwjj6_2",
+        "severity": "info",
+        "category": "characterization",
+        "message": "Brick’s gesture of handing Cael the specific piece of apple she likes is a subtle, effective way to establish their bond."
+      },
+      {
+        "id": "note_mrvvwjj6_3",
+        "severity": "flag",
+        "category": "pacing",
+        "message": "The transition from the workshop to the Commission Hall feels abrupt; a brief beat of travel or a change in sensory atmosphere would smooth the jump."
+      },
+      {
+        "id": "note_mrvvwjj6_4",
+        "severity": "suggest",
+        "category": "dialogue",
+        "message": "Threll's dialogue is very polished; giving her one slightly more jagged or practical sentence might make her feel less like a literary device and more like a bureaucrat."
+      },
+      {
+        "id": "note_mrvvwjj6_5",
+        "severity": "info",
+        "category": "tension",
+        "message": "The recurring motif of the 'hum' and the 'pressure under the back teeth' creates a consistent sense of mounting dread."
+      },
+      {
+        "id": "note_mrvvwjj6_6",
+        "severity": "flag",
+        "category": "exposition",
+        "message": "The internal monologue about the Schools and the Wardens feels a bit heavy on 'info-dumping'—try to weave those stakes into her specific fear of the current job."
+      },
+      {
+        "id": "note_mrvvwjj6_7",
+        "severity": "suggest",
+        "category": "closing",
+        "message": "The final sentence is poetic, but ensuring Nettle's 'disappearance' doesn't feel too magical vs. physical will help clarify the world-building rules."
+      }
+    ],
+    "model": "gemma-4-12b-qat"
+  },
+  "error": null
+}

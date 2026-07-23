@@ -1,0 +1,120 @@
+{
+  "runId": "2026-07-22_03-28-55-gpu",
+  "leg": "gpu-qwen-35b",
+  "model": "qwen3.6-35b-a3b-mtp",
+  "attempt": 1,
+  "args": {
+    "timeoutMs": 1200000
+  },
+  "preset": {
+    "id": "9d4ebeddeb96",
+    "name": "Bench",
+    "providerId": "",
+    "model": "qwen3.6-35b-a3b-mtp",
+    "temperature": 0.7,
+    "topP": null,
+    "maxTokens": 0,
+    "reasoningEffort": "",
+    "think": false,
+    "samplers": [],
+    "builtIn": false,
+    "position": 10,
+    "factoryModel": ""
+  },
+  "route": {
+    "feature": "critique",
+    "action": "critique",
+    "providerId": "local-llamacpp",
+    "model": "qwen3.6-35b-a3b-mtp",
+    "presetId": "9d4ebeddeb96",
+    "presetName": "Bench",
+    "presetSource": "assigned",
+    "think": false,
+    "level": "",
+    "reasoningWord": "",
+    "value": null,
+    "valueSource": "",
+    "configured": true,
+    "detail": ""
+  },
+  "featureKey": "critique",
+  "ok": true,
+  "started": "2026-07-22T03:57:46.700Z",
+  "label": "Chapter critique",
+  "wallMs": 41033,
+  "ttftMs": null,
+  "output": "{\n  \"notes\": [\n    {\n      \"severity\": \"info\",\n      \"category\": \"voice\",\n      \"message\": \"The opening metaphor 'A lamp that will not lie' is strong, but the immediate explanation 'the lamp... was lying' feels slightly redundant; consider trusting the reader to infer the personification from the description of the flickering.\"\n    },\n    {\n      \"severity\": \"suggest\",\n      \"category\": \"characterization\",\n      \"message\": \"Cael’s internal justification for hiding her ability ('a woman who could not afford to be interesting') is a bit on-the-nose; show her fear through a physical hesitation or a glance at the door rather than stating her motivation so explicitly.\"\n    },\n    {\n      \"severity\": \"flag\",\n      \"category\": \"pacing\",\n      \"message\": \"The transition to Commission Hall is abrupt; a brief transitional sentence indicating the passage of time or Cael’s travel would help ground the shift from the intimate shop scene to the public arena.\"\n    },\n    {\n      \"severity\": \"suggest\",\n      \"category\": \"dialogue\",\n      \"message\": \"Iven’s argument about 'structural clearance' vs 'brass work' is dense; trimming his line to focus on the wage discrepancy would sharpen the conflict and keep the scene moving faster.\"\n    },\n    {\n      \"severity\": \"info\",\n      \"category\": \"worldbuilding\",\n      \"message\": \"The detail about Threll producing the token 'warm from her pocket' is excellent tactile world-building that reinforces the magic system without exposition.\"\n    },\n    {\n      \"severity\": \"flag\",\n      \"category\": \"clarity\",\n      \"message\": \"The phrase 'Concern scrip' appears without context; if this is a specific currency, a brief hint of its value or instability relative to standard coin would clarify why parties avoid it.\"\n    },\n    {\n      \"severity\": \"suggest\",\n      \"category\": \"show-don't-tell\",\n      \"message\": \"Instead of stating 'Cael’s mouth had gone dry,' describe the physical sensation of the token’s hum interacting with her own senses to heighten the tension of the recognition.\"\n    },\n    {\n      \"severity\": \"info\",\n      \"category\": \"tension\",\n      \"message\": \"The parallel between the Warden watching and Cael’s secret ability creates effective dramatic irony; this is a strong hook that promises immediate conflict.\"\n    },\n    {\n      \"severity\": \"suggest\",\n      \"category\": \"redundancy\",\n      \"message\": \"Nettle’s explanation of her gap-crossing ('Luck... Good feet...') feels slightly too convenient; consider having her deflect with a joke or a non-answer to maintain her mysterious edge.\"\n    },\n    {\n      \"severity\": \"info\",\n      \"category\": \"closing\",\n      \"message\": \"The final image of the lamp gutturing once and steadying is a perfect thematic bookend that mirrors Cael’s suppression of her gift, providing a satisfying emotional closure to the chapter.\"\n    }\n  ]\n}",
+  "outputChars": 2840,
+  "usage": null,
+  "flags": [],
+  "extra": {
+    "chapterId": "ch1",
+    "chapterNum": 1,
+    "chapterWords": 2600,
+    "noteCount": 10,
+    "notes": [
+      {
+        "id": "note_mrvjyil1_0",
+        "severity": "info",
+        "category": "voice",
+        "message": "The opening metaphor 'A lamp that will not lie' is strong, but the immediate explanation 'the lamp... was lying' feels slightly redundant; consider trusting the reader to infer the personification from the description of the flickering."
+      },
+      {
+        "id": "note_mrvjyil1_1",
+        "severity": "suggest",
+        "category": "characterization",
+        "message": "Cael’s internal justification for hiding her ability ('a woman who could not afford to be interesting') is a bit on-the-nose; show her fear through a physical hesitation or a glance at the door rather than stating her motivation so explicitly."
+      },
+      {
+        "id": "note_mrvjyil1_2",
+        "severity": "flag",
+        "category": "pacing",
+        "message": "The transition to Commission Hall is abrupt; a brief transitional sentence indicating the passage of time or Cael’s travel would help ground the shift from the intimate shop scene to the public arena."
+      },
+      {
+        "id": "note_mrvjyil1_3",
+        "severity": "suggest",
+        "category": "dialogue",
+        "message": "Iven’s argument about 'structural clearance' vs 'brass work' is dense; trimming his line to focus on the wage discrepancy would sharpen the conflict and keep the scene moving faster."
+      },
+      {
+        "id": "note_mrvjyil1_4",
+        "severity": "info",
+        "category": "worldbuilding",
+        "message": "The detail about Threll producing the token 'warm from her pocket' is excellent tactile world-building that reinforces the magic system without exposition."
+      },
+      {
+        "id": "note_mrvjyil1_5",
+        "severity": "flag",
+        "category": "clarity",
+        "message": "The phrase 'Concern scrip' appears without context; if this is a specific currency, a brief hint of its value or instability relative to standard coin would clarify why parties avoid it."
+      },
+      {
+        "id": "note_mrvjyil1_6",
+        "severity": "suggest",
+        "category": "show-don't-tell",
+        "message": "Instead of stating 'Cael’s mouth had gone dry,' describe the physical sensation of the token’s hum interacting with her own senses to heighten the tension of the recognition."
+      },
+      {
+        "id": "note_mrvjyil1_7",
+        "severity": "info",
+        "category": "tension",
+        "message": "The parallel between the Warden watching and Cael’s secret ability creates effective dramatic irony; this is a strong hook that promises immediate conflict."
+      },
+      {
+        "id": "note_mrvjyil1_8",
+        "severity": "suggest",
+        "category": "redundancy",
+        "message": "Nettle’s explanation of her gap-crossing ('Luck... Good feet...') feels slightly too convenient; consider having her deflect with a joke or a non-answer to maintain her mysterious edge."
+      },
+      {
+        "id": "note_mrvjyil1_9",
+        "severity": "info",
+        "category": "closing",
+        "message": "The final image of the lamp gutturing once and steadying is a perfect thematic bookend that mirrors Cael’s suppression of her gift, providing a satisfying emotional closure to the chapter."
+      }
+    ],
+    "model": "qwen3.6-35b-a3b-mtp"
+  },
+  "error": null
+}

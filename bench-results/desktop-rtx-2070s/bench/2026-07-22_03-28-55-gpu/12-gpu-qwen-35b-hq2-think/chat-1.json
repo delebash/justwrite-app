@@ -1,0 +1,109 @@
+{
+  "runId": "2026-07-22_03-28-55-gpu",
+  "leg": "gpu-qwen-35b-hq2-think",
+  "model": "qwen3.6-35b-a3b-mtp",
+  "attempt": 1,
+  "args": {
+    "question": "Why did the three earlier parties never come out of Manufactory Nine, and why can Ode Marran remember every turn of the loop when they cannot? Explain the mechanism. Cite the excerpts.",
+    "k": 6,
+    "timeoutMs": 1200000
+  },
+  "preset": {
+    "id": "9d4ebeddeb96",
+    "name": "Bench",
+    "providerId": "",
+    "model": "qwen3.6-35b-a3b-mtp",
+    "temperature": 0.7,
+    "topP": null,
+    "maxTokens": 0,
+    "reasoningEffort": "high",
+    "think": true,
+    "samplers": [],
+    "builtIn": false,
+    "position": 10,
+    "factoryModel": ""
+  },
+  "route": {
+    "feature": "chat",
+    "action": "chat",
+    "providerId": "local-llamacpp",
+    "model": "qwen3.6-35b-a3b-mtp",
+    "presetId": "9d4ebeddeb96",
+    "presetName": "Bench",
+    "presetSource": "assigned",
+    "think": true,
+    "level": "high",
+    "reasoningWord": "",
+    "value": 8192,
+    "valueSource": "preset",
+    "configured": true,
+    "detail": ""
+  },
+  "featureKey": "chat",
+  "ok": true,
+  "started": "2026-07-22T04:27:37.949Z",
+  "label": "Ask the book",
+  "wallMs": 104548,
+  "ttftMs": 87309,
+  "output": "Based on the provided excerpts, the mechanism trapping the parties and Ode Marran's unique ability to remember the loop can be explained as follows:\n\n**The Mechanism (Origin & Structure)**\nThe loop began when the Lumen Concern struck a fragment of the \"Whole\" while mining for lumen, causing reality's \"Facets [to] bleed back into each other\" [5]. This event folded space and caught time, creating a \"Fold\" where the interior geometry no longer matches the exterior, making the room larger than the building itself [4]. Time became trapped in a repeating cycle of just under an hour that activates the moment anyone crosses the threshold [2]. Within this cycle, the building repeatedly collapses and resets [5].\n\n**Why the Earlier Parties Never Came Out**\nThe earlier parties are not dead; they are trapped in an endless temporal reset [2]. At the end of each hour, the loop turns and resets anyone inside who \"can't feel it\" or \"couldn't hold the deep Facets back\" to the entrance, erasing their memory of that turn and forcing them to walk in again fresh [2], [7]. Because they lack the ability to perceive the loop's underlying structure, they are forced to relive the same hour repeatedly for nine years, never reaching the exit before the reset occurs [2], [7].\n\n**Why Ode Marran Remembers Every Turn**\nOde Marran remembers each cycle because she has been inside since the loop began nine years ago, and she possesses the ability to perceive and \"hold the deep Facets\" [6], [7]. Because she can feel the loop's structure, the reset mechanism does not apply to her; instead, she retains her memories across every cycle, having watched the spatial folds and timing repeat thousands of times [2], [7]. This exemption allows her to memorize the precise timing of the shifts and guide the current party out before \"the door remembers being a door\" [3], [7].",
+  "outputChars": 1857,
+  "usage": {
+    "promptTokens": 2036,
+    "completionTokens": 2474,
+    "model": "qwen3.6-35b-a3b-mtp",
+    "cost": 0
+  },
+  "flags": [
+    "temperature-fixed-by-caller"
+  ],
+  "extra": {
+    "bibleOnly": false,
+    "question": "Why did the three earlier parties never come out of Manufactory Nine, and why can Ode Marran remember every turn of the loop when they cannot? Explain the mechanism. Cite the excerpts.",
+    "k": 6,
+    "citations": [
+      {
+        "index": 1,
+        "chunkId": "card:location:l4",
+        "score": 0,
+        "pinned": true
+      },
+      {
+        "index": 2,
+        "chunkId": "ch3:scn_ch3_1:p3",
+        "score": 0.609180849576534,
+        "pinned": false
+      },
+      {
+        "index": 3,
+        "chunkId": "ch4:scn_ch4_3:p1",
+        "score": 0.604829651025461,
+        "pinned": false
+      },
+      {
+        "index": 4,
+        "chunkId": "ch2:scn_ch2_2:p1",
+        "score": 0.6021870793362113,
+        "pinned": false
+      },
+      {
+        "index": 5,
+        "chunkId": "ch3:scn_ch3_3:p2",
+        "score": 0.5302186893282422,
+        "pinned": false
+      },
+      {
+        "index": 6,
+        "chunkId": "card:character:c5",
+        "score": 0.5908284332865832,
+        "pinned": false
+      },
+      {
+        "index": 7,
+        "chunkId": "ch4:scn_ch4_1:p1",
+        "score": 0.5153975291314494,
+        "pinned": false
+      }
+    ]
+  },
+  "error": null
+}

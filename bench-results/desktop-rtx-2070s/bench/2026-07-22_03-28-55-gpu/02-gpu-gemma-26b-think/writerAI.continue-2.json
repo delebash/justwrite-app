@@ -1,0 +1,61 @@
+{
+  "runId": "2026-07-22_03-28-55-gpu",
+  "leg": "gpu-gemma-26b-think",
+  "model": "gemma-4-26b-a4b-qat",
+  "attempt": 2,
+  "args": {
+    "passageChars": 2000,
+    "timeoutMs": 1200000
+  },
+  "preset": {
+    "id": "9d4ebeddeb96",
+    "name": "Bench",
+    "providerId": "",
+    "model": "gemma-4-26b-a4b-qat",
+    "temperature": 0.7,
+    "topP": null,
+    "maxTokens": 0,
+    "reasoningEffort": "",
+    "think": true,
+    "samplers": [],
+    "builtIn": false,
+    "position": 10,
+    "factoryModel": ""
+  },
+  "route": {
+    "feature": "writerAI.continue",
+    "action": "writerAI.continue",
+    "providerId": "local-llamacpp",
+    "model": "gemma-4-26b-a4b-qat",
+    "presetId": "9d4ebeddeb96",
+    "presetName": "Bench",
+    "presetSource": "assigned",
+    "think": true,
+    "level": "",
+    "reasoningWord": "",
+    "value": 1024,
+    "valueSource": "base",
+    "configured": true,
+    "detail": ""
+  },
+  "featureKey": "writerAI.continue",
+  "ok": true,
+  "started": "2026-07-22T03:43:15.462Z",
+  "label": "Continue",
+  "wallMs": 46655,
+  "ttftMs": 37861,
+  "output": "Cael stood in the sudden, hollow space Nettle had left behind. The silence was heavier than the dark, thick with the scent of ozone and cooling grease. The token’s hum had shifted, rising from a steady vibration to a frantic, uneven thrum that bit into her hip. It was no longer just a tool; it was a heartbeat, insistent and demanding, echoing the restlessness she felt in the marrow of her bones.\n\nInside, the glimmerworks felt cavernous and cold, the air still holding the phantom heat of the day’s labor. Shadows stretched long and bruised across the floor, cast by the dying embers in the hearths. Cael moved toward the back rooms, her boots clicking softly on the stone, the sound swallowed almost instantly by the heavy, grease-scented dark. Every shadow felt weighted, as if the darkness itself had mass, pressing against her skin with the weight of things unseen.\n\nShe reached for the latch of the inner door, but her hand hesitated. The token was louder now, a low, resonant drone that she felt in her teeth. It was a tether, pulling her toward a center she wasn't sure she wanted to find. She thought of Nettle’s \"luck\" and the way she jumped through empty air, and wondered if Nettle’s secret was simply a refusal to acknowledge the things that lived in the gaps. Cael wasn't sure she could manage that kind of denial.",
+  "outputChars": 1330,
+  "usage": {
+    "promptTokens": 634,
+    "completionTokens": 1325,
+    "model": "gemma-4-26b-a4b-qat",
+    "cost": 0
+  },
+  "flags": [],
+  "extra": {
+    "chapterId": "ch1",
+    "passageChars": 2000
+  },
+  "error": null
+}

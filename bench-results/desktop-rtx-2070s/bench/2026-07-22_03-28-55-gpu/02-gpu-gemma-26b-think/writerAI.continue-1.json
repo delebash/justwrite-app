@@ -1,0 +1,61 @@
+{
+  "runId": "2026-07-22_03-28-55-gpu",
+  "leg": "gpu-gemma-26b-think",
+  "model": "gemma-4-26b-a4b-qat",
+  "attempt": 1,
+  "args": {
+    "passageChars": 2000,
+    "timeoutMs": 1200000
+  },
+  "preset": {
+    "id": "9d4ebeddeb96",
+    "name": "Bench",
+    "providerId": "",
+    "model": "gemma-4-26b-a4b-qat",
+    "temperature": 0.7,
+    "topP": null,
+    "maxTokens": 0,
+    "reasoningEffort": "",
+    "think": true,
+    "samplers": [],
+    "builtIn": false,
+    "position": 10,
+    "factoryModel": ""
+  },
+  "route": {
+    "feature": "writerAI.continue",
+    "action": "writerAI.continue",
+    "providerId": "local-llamacpp",
+    "model": "gemma-4-26b-a4b-qat",
+    "presetId": "9d4ebeddeb96",
+    "presetName": "Bench",
+    "presetSource": "assigned",
+    "think": true,
+    "level": "",
+    "reasoningWord": "",
+    "value": 1024,
+    "valueSource": "base",
+    "configured": true,
+    "detail": ""
+  },
+  "featureKey": "writerAI.continue",
+  "ok": true,
+  "started": "2026-07-22T03:42:31.511Z",
+  "label": "Continue",
+  "wallMs": 43947,
+  "ttftMs": 37009,
+  "output": "Cael stood with the key halfway to the lock, the sudden silence of the street pressing against her ears. Nettle left a wake of movement and warmth, but the alleyway was already still, having swallowed the ghost of her stride. The token's vibration grew sharper, a frantic, rhythmic thrumming that pulsed against her thigh, as if it were trying to sync its heartbeat to her own.\n\nShe turned the key. The lock was heavy, resisting with the familiar, stubborn grit of iron that had seen too many winters. Inside, the glimmerworks smelled of ozone and burnt wick, a dry, electric scent that prickled the back of her throat. The darkness here was thicker, more intentional, pooling in the corners like spilled ink.\n\nShe didn't light a lamp. Not yet. She moved through the shadows, her boots making no sound on the floorboards, guided by the pull of the token. As she passed a dormant lumen-conduit, she felt that familiar, nauseating tug in her solar plexus—the sensation of a vast, hollow space breathing just beneath the floorboards. It wasn't a wind, and it wasn't a sound, but a pressure, a weight of something waiting to be heard.",
+  "outputChars": 1130,
+  "usage": {
+    "promptTokens": 634,
+    "completionTokens": 1282,
+    "model": "gemma-4-26b-a4b-qat",
+    "cost": 0
+  },
+  "flags": [],
+  "extra": {
+    "chapterId": "ch1",
+    "passageChars": 2000
+  },
+  "error": null
+}

@@ -1,0 +1,61 @@
+{
+  "runId": "2026-07-22_14-04-05-cpu",
+  "leg": "cpu-qwen-35b",
+  "model": "qwen3.6-35b-a3b-mtp",
+  "attempt": 2,
+  "args": {
+    "passageChars": 2000,
+    "timeoutMs": 1200000
+  },
+  "preset": {
+    "id": "9d4ebeddeb96",
+    "name": "Bench",
+    "providerId": "",
+    "model": "qwen3.6-35b-a3b-mtp",
+    "temperature": 0.7,
+    "topP": null,
+    "maxTokens": 0,
+    "reasoningEffort": "",
+    "think": false,
+    "samplers": [],
+    "builtIn": false,
+    "position": 10,
+    "factoryModel": ""
+  },
+  "route": {
+    "feature": "writerAI.continue",
+    "action": "writerAI.continue",
+    "providerId": "local-llamacpp",
+    "model": "qwen3.6-35b-a3b-mtp",
+    "presetId": "9d4ebeddeb96",
+    "presetName": "Bench",
+    "presetSource": "assigned",
+    "think": false,
+    "level": "",
+    "reasoningWord": "",
+    "value": null,
+    "valueSource": "",
+    "configured": true,
+    "detail": ""
+  },
+  "featureKey": "writerAI.continue",
+  "ok": true,
+  "started": "2026-07-22T14:44:57.753Z",
+  "label": "Continue",
+  "wallMs": 41712,
+  "ttftMs": 267,
+  "output": "Cael stood in the doorway for a long moment, listening to the silence that Nettle left behind. It was not an empty silence, but a heavy one, pressurized and thick with the things unsaid. The token’s hum seemed louder now, vibrating through the soles of her boots, a constant reminder of the debt hanging over their heads. She stepped inside, letting the door click shut, sealing out the cooling evening air and the distant glow of the harbor lamps. The room smelled of ozone and old dust, the scent of machinery that had been running too hot for too long.\n\nShe moved to the small table in the corner, her hands trembling slightly as she pulled the token from her pocket. It pulsed against her palm, warm and alive, like a bird trapped in a cage. Cael closed her fingers around it, forcing the vibration to still, or at least to quiet to a whisper. She couldn’t afford distractions. Not tonight. Not when the Ash District required precision, not when Nettle’s luck was the only thing standing between them and starvation. She placed the token in the lead-lined box she kept for such moments, watching the light fade from its surface until it was just cold metal again.\n\nOutside, the city breathed in its sleep, unaware of the small, desperate heart beating in the glimmerworks. Cael sat in the dark, counting the seconds until morning, knowing that tomorrow would demand more than just skill. It would demand trust. And trust, she knew, was a currency far more dangerous than tokens or lumen.",
+  "outputChars": 1491,
+  "usage": {
+    "promptTokens": 626,
+    "completionTokens": 320,
+    "model": "qwen3.6-35b-a3b-mtp",
+    "cost": 0
+  },
+  "flags": [],
+  "extra": {
+    "chapterId": "ch1",
+    "passageChars": 2000
+  },
+  "error": null
+}

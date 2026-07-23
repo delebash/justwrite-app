@@ -1,0 +1,85 @@
+{
+  "version": 1,
+  "projectId": "prj_sample_ninth_facet",
+  "title": "The Ninth Facet",
+  "projects": [],
+  "chapters": [
+    {
+      "id": "ch1",
+      "num": 1,
+      "title": "Brass Rank",
+      "words": 2600,
+      "hasBody": true
+    },
+    {
+      "id": "ch2",
+      "num": 2,
+      "title": "Bigger Inside",
+      "words": 2500,
+      "hasBody": true
+    },
+    {
+      "id": "ch3",
+      "num": 3,
+      "title": "The Same Hour",
+      "words": 2700,
+      "hasBody": true
+    },
+    {
+      "id": "ch4",
+      "num": 4,
+      "title": "The Keystone",
+      "words": 2400,
+      "hasBody": true
+    }
+  ],
+  "characters": [
+    {
+      "id": "c1",
+      "name": "Cael Ferren"
+    },
+    {
+      "id": "c2",
+      "name": "Iven Sarraz"
+    },
+    {
+      "id": "c3",
+      "name": "Brick Halvorn"
+    },
+    {
+      "id": "c4",
+      "name": "Nettle"
+    },
+    {
+      "id": "c5",
+      "name": "Odeline Marran"
+    },
+    {
+      "id": "c6",
+      "name": "Haldane Threll"
+    },
+    {
+      "id": "c7",
+      "name": "Auberon Vasht"
+    },
+    {
+      "id": "c8",
+      "name": "Ophra Kell"
+    }
+  ],
+  "features": [
+    "chat",
+    "characterChat",
+    "entitySweep",
+    "critique",
+    "writerAI.continue",
+    "writerAI.rewrite"
+  ],
+  "index": {
+    "projectId": "prj_sample_ninth_facet",
+    "exists": false,
+    "entryCount": 0,
+    "model": "",
+    "dims": 0
+  }
+}

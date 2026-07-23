@@ -1,0 +1,144 @@
+{
+  "name": "gpu",
+  "band": "gpu",
+  "baselineRefs": [],
+  "book": "prj_sample_ninth_facet",
+  "features": [
+    "chat",
+    "characterChat",
+    "entitySweep",
+    "critique",
+    "writerAI.continue",
+    "writerAI.rewrite"
+  ],
+  "repeats": 2,
+  "timeoutMinutes": 20,
+  "sweepChapterCap": 3,
+  "ensureIndex": true,
+  "presetName": "Bench",
+  "featureArgs": {
+    "chat": {
+      "question": "What is this book about, and who is the protagonist?",
+      "k": 6
+    },
+    "characterChat": {
+      "question": "What do you want most right now, and what are you afraid of?"
+    },
+    "writerAI.continue": {
+      "passageChars": 2000
+    },
+    "writerAI.rewrite": {
+      "passageChars": 1200
+    }
+  },
+  "legs": [
+    {
+      "label": "BASELINE — Gemma 4 26B-A4B QAT, as the app resolves it today",
+      "gguf": "",
+      "tunables": {
+        "temperature": 0.7,
+        "think": false
+      },
+      "launch": {},
+      "llamaBench": {
+        "p": [
+          512,
+          2048,
+          8192
+        ],
+        "n": 128,
+        "reps": 2
+      },
+      "features": null,
+      "repeats": null,
+      "timeoutMinutes": null,
+      "featureArgs": null,
+      "id": "gpu-gemma-26b",
+      "_why": [
+        "The bar every other leg is measured against, and deliberately the ONLY leg",
+        "with no launch overrides: it loads exactly the way the app would load it",
+        "for you right now (computed fit + whatever tunes exist), so the baseline is",
+        "'the system as it works', not a hand-pinned config. What it resolved to is",
+        "recorded in the leg's load/measure output.",
+        "Every seeded preset points at this model, and its weights are already on disk."
+      ],
+      "model": "gemma-4-26b-a4b-qat",
+      "effectiveFeatures": [
+        "chat",
+        "characterChat",
+        "entitySweep",
+        "critique",
+        "writerAI.continue",
+        "writerAI.rewrite"
+      ],
+      "effectiveRepeats": 2,
+      "effectiveTimeoutMs": 1200000,
+      "effectiveFeatureArgs": {
+        "chat": {
+          "question": "What is this book about, and who is the protagonist?",
+          "k": 6
+        },
+        "characterChat": {
+          "question": "What do you want most right now, and what are you afraid of?"
+        },
+        "writerAI.continue": {
+          "passageChars": 2000
+        },
+        "writerAI.rewrite": {
+          "passageChars": 1200
+        }
+      }
+    },
+    {
+      "label": "THINK ON — Gemma 4 26B-A4B QAT, reasoning enabled (A/B vs gpu-gemma-26b)",
+      "gguf": "",
+      "tunables": {
+        "temperature": 0.7,
+        "think": true
+      },
+      "launch": {},
+      "llamaBench": null,
+      "features": null,
+      "repeats": null,
+      "timeoutMinutes": null,
+      "featureArgs": null,
+      "id": "gpu-gemma-26b-think",
+      "_why": [
+        "The A/B partner to gpu-gemma-26b: SAME model, features and book — the only",
+        "difference is tunables.think = true. So the summary's A/B block isolates what",
+        "thinking COSTS (wall, tokens, draft acceptance) and, read against the baseline's",
+        "captures, what it CHANGES in the output. reasoning_budget = 1024 (seeded at the",
+        "base bundle + this box's hardware class) bounds it through the normal request",
+        "cascade — never a launch flag. llamaBench is null: the raw pp/tg matrix is",
+        "think-independent, so there is no point paying its ~5 min twice."
+      ],
+      "model": "gemma-4-26b-a4b-qat",
+      "effectiveFeatures": [
+        "chat",
+        "characterChat",
+        "entitySweep",
+        "critique",
+        "writerAI.continue",
+        "writerAI.rewrite"
+      ],
+      "effectiveRepeats": 2,
+      "effectiveTimeoutMs": 1200000,
+      "effectiveFeatureArgs": {
+        "chat": {
+          "question": "What is this book about, and who is the protagonist?",
+          "k": 6
+        },
+        "characterChat": {
+          "question": "What do you want most right now, and what are you afraid of?"
+        },
+        "writerAI.continue": {
+          "passageChars": 2000
+        },
+        "writerAI.rewrite": {
+          "passageChars": 1200
+        }
+      }
+    }
+  ],
+  "source": "E:\\Dev\\Web\\justwrite-app\\scripts\\bench\\configs\\gpu.json"
+}

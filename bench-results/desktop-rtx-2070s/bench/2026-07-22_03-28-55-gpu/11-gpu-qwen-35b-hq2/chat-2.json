@@ -1,0 +1,109 @@
+{
+  "runId": "2026-07-22_03-28-55-gpu",
+  "leg": "gpu-qwen-35b-hq2",
+  "model": "qwen3.6-35b-a3b-mtp",
+  "attempt": 2,
+  "args": {
+    "question": "Why did the three earlier parties never come out of Manufactory Nine, and why can Ode Marran remember every turn of the loop when they cannot? Explain the mechanism. Cite the excerpts.",
+    "k": 6,
+    "timeoutMs": 1200000
+  },
+  "preset": {
+    "id": "9d4ebeddeb96",
+    "name": "Bench",
+    "providerId": "",
+    "model": "qwen3.6-35b-a3b-mtp",
+    "temperature": 0.7,
+    "topP": null,
+    "maxTokens": 0,
+    "reasoningEffort": "",
+    "think": false,
+    "samplers": [],
+    "builtIn": false,
+    "position": 10,
+    "factoryModel": ""
+  },
+  "route": {
+    "feature": "chat",
+    "action": "chat",
+    "providerId": "local-llamacpp",
+    "model": "qwen3.6-35b-a3b-mtp",
+    "presetId": "9d4ebeddeb96",
+    "presetName": "Bench",
+    "presetSource": "assigned",
+    "think": false,
+    "level": "",
+    "reasoningWord": "",
+    "value": null,
+    "valueSource": "",
+    "configured": true,
+    "detail": ""
+  },
+  "featureKey": "chat",
+  "ok": true,
+  "started": "2026-07-22T04:26:44.644Z",
+  "label": "Ask the book",
+  "wallMs": 20734,
+  "ttftMs": 438,
+  "output": "Based on the provided excerpts, the mechanism of Manufactory Nine and the reason for the differing outcomes for the parties can be explained as follows:\n\n**Why the earlier parties never came out:**\nThe earlier parties were trapped in a temporal loop caused by a spatial anomaly. When the Lumen Concern dug for lumen, they struck \"the Whole,\" causing space to fold and time to catch [5]. This created a loop that lasts \"a little under\" an hour [2]. The loop resets anyone inside who \"can't feel it,\" causing them to forget the turn and live it fresh, starting again at the threshold [2]. Consequently, the earlier parties were not dead; they were still trapped inside, walking in and experiencing the same hour repeatedly for nine years [2]. Furthermore, the building itself collapses during the first turn of the loop and \"has been coming down every turn since,\" meaning the environment is unstable and resetting [5].\n\n**Why Ode Marran remembers every turn:**\nOde Marran is unique because she \"can hear exactly where the note is\" and can \"hold the deep Facets back\" [7]. The Story Bible identifies her as the \"survivor\" who has been living the same hour since the loop caught her, noting that her pocket watch stopped at seven minutes past [6]. Because she is sensitive to the \"deep Facets\" of the anomaly, the loop cannot reset her memory or position like it does for others [7]. While others are reset to the threshold forgetting their actions, Ode retains her memory of previous loops, allowing her to coordinate the team's actions based on prior attempts [7].\n\n**The Mechanism of Escape:**\nEscape is possible only if the group moves fast enough to exit before the hour turns, specifically while \"the door remembers being a door\" [3]. The door is part of the folded space, and once the loop resets, the exit becomes inaccessible or resets to the entry point [3]. Ode’s ability to remember allows her to time the extraction correctly, ensuring they leave before the reset occurs, whereas the earlier parties failed because they were reset before they could exit [7].",
+  "outputChars": 2068,
+  "usage": {
+    "promptTokens": 2038,
+    "completionTokens": 443,
+    "model": "qwen3.6-35b-a3b-mtp",
+    "cost": 0
+  },
+  "flags": [
+    "temperature-fixed-by-caller"
+  ],
+  "extra": {
+    "bibleOnly": false,
+    "question": "Why did the three earlier parties never come out of Manufactory Nine, and why can Ode Marran remember every turn of the loop when they cannot? Explain the mechanism. Cite the excerpts.",
+    "k": 6,
+    "citations": [
+      {
+        "index": 1,
+        "chunkId": "card:location:l4",
+        "score": 0,
+        "pinned": true
+      },
+      {
+        "index": 2,
+        "chunkId": "ch3:scn_ch3_1:p3",
+        "score": 0.609180849576534,
+        "pinned": false
+      },
+      {
+        "index": 3,
+        "chunkId": "ch4:scn_ch4_3:p1",
+        "score": 0.604829651025461,
+        "pinned": false
+      },
+      {
+        "index": 4,
+        "chunkId": "ch2:scn_ch2_2:p1",
+        "score": 0.6021870793362113,
+        "pinned": false
+      },
+      {
+        "index": 5,
+        "chunkId": "ch3:scn_ch3_3:p2",
+        "score": 0.5302186893282422,
+        "pinned": false
+      },
+      {
+        "index": 6,
+        "chunkId": "card:character:c5",
+        "score": 0.5908284332865832,
+        "pinned": false
+      },
+      {
+        "index": 7,
+        "chunkId": "ch4:scn_ch4_1:p1",
+        "score": 0.5153975291314494,
+        "pinned": false
+      }
+    ]
+  },
+  "error": null
+}

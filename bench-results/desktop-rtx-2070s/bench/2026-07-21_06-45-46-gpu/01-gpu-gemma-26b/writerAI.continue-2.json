@@ -1,0 +1,61 @@
+{
+  "runId": "2026-07-21_06-45-46-gpu",
+  "leg": "gpu-gemma-26b",
+  "model": "gemma-4-26b-a4b-qat",
+  "attempt": 2,
+  "args": {
+    "passageChars": 2000,
+    "timeoutMs": 1200000
+  },
+  "preset": {
+    "id": "17693095dfb1",
+    "name": "Bench",
+    "providerId": "",
+    "model": "gemma-4-26b-a4b-qat",
+    "temperature": 0.7,
+    "topP": null,
+    "maxTokens": 0,
+    "reasoningEffort": "",
+    "think": false,
+    "samplers": [],
+    "builtIn": false,
+    "position": 10,
+    "factoryModel": ""
+  },
+  "route": {
+    "feature": "writerAI.continue",
+    "action": "writerAI.continue",
+    "providerId": "local-llamacpp",
+    "model": "gemma-4-26b-a4b-qat",
+    "presetId": "17693095dfb1",
+    "presetName": "Bench",
+    "presetSource": "assigned",
+    "think": false,
+    "level": "",
+    "reasoningWord": "",
+    "value": null,
+    "valueSource": "",
+    "configured": true,
+    "detail": ""
+  },
+  "featureKey": "writerAI.continue",
+  "ok": true,
+  "started": "2026-07-21T06:49:33.618Z",
+  "label": "Continue",
+  "wallMs": 13254,
+  "ttftMs": 243,
+  "output": "Cael stood alone in the dim hallway, the heavy scent of grease and ozone clinging to the stones. The silence that rushed in to replace Nettle was more deafening than the river’s roar. She leaned her forehead against the cool wood of the door, listening to the rhythm of her own breath, waiting for the token to settle. It didn't. It vibrated with a frantic, high-pitched thrum that seemed to sync with the pulse in her fingertips.\n\nShe pushed inside, the lock clicking home with a finality that felt too heavy for the small space. The glimmerworks was dark, save for the faint, ghostly luminescence of the cooling vents. The air here was thick and tasted of copper. Every shadow seemed to stretch toward her, reaching out from the corners where the light couldn't quite find purchase.\n\nShe moved toward the small cot in the corner, her movements deliberate and slow. The token's hum was a constant, insistent pressure against her thigh, a reminder of the debt and the danger. She sat on the edge of the mattress, the springs groaning under her weight, and stared at the floorboards. Somewhere beneath the foundation, something shifted—a deep, tectonic groan that had nothing to do with the tide and everything to do with the thing she was carrying.\n\nCael closed her eyes, trying to find that quiet place behind her lids, but the hum followed her there, too. It wasn't just a sound; it was a pull, a gravity that threatened to drag her eyes open and pull her straight through the floor. She gripped her knees and waited for sleep, knowing that even in the dark, she would be listening.",
+  "outputChars": 1584,
+  "usage": {
+    "promptTokens": 636,
+    "completionTokens": 345,
+    "model": "gemma-4-26b-a4b-qat",
+    "cost": 0
+  },
+  "flags": [],
+  "extra": {
+    "chapterId": "ch1",
+    "passageChars": 2000
+  },
+  "error": null
+}

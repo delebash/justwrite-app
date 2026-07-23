@@ -1,0 +1,61 @@
+{
+  "runId": "2026-07-22_14-04-05-cpu",
+  "leg": "cpu-qwen-35b",
+  "model": "qwen3.6-35b-a3b-mtp",
+  "attempt": 1,
+  "args": {
+    "passageChars": 2000,
+    "timeoutMs": 1200000
+  },
+  "preset": {
+    "id": "9d4ebeddeb96",
+    "name": "Bench",
+    "providerId": "",
+    "model": "qwen3.6-35b-a3b-mtp",
+    "temperature": 0.7,
+    "topP": null,
+    "maxTokens": 0,
+    "reasoningEffort": "",
+    "think": false,
+    "samplers": [],
+    "builtIn": false,
+    "position": 10,
+    "factoryModel": ""
+  },
+  "route": {
+    "feature": "writerAI.continue",
+    "action": "writerAI.continue",
+    "providerId": "local-llamacpp",
+    "model": "qwen3.6-35b-a3b-mtp",
+    "presetId": "9d4ebeddeb96",
+    "presetName": "Bench",
+    "presetSource": "assigned",
+    "think": false,
+    "level": "",
+    "reasoningWord": "",
+    "value": null,
+    "valueSource": "",
+    "configured": true,
+    "detail": ""
+  },
+  "featureKey": "writerAI.continue",
+  "ok": true,
+  "started": "2026-07-22T14:43:52.271Z",
+  "label": "Continue",
+  "wallMs": 65479,
+  "ttftMs": 11848,
+  "output": "Cael stood in the threshold for a long moment, listening to the silence that followed Nettle’s departure. It was a different kind of quiet than the usual hum of the district, a hollowed-out stillness that made the token in her pocket feel heavier, more insistent. She stepped inside and locked the door, the click of the bolt sounding too loud in the empty room. The air here was thick with the scent of old paper and dried herbs, a sharp contrast to the damp, metallic tang of the harbor she had just left. She moved to the table where their meager supper lay waiting, untouched, and pushed a plate toward herself, though her stomach twisted with a knot that food would not loosen.\n\nThe token vibrated against her thigh, a rhythmic pulse that matched the beating of her own heart. She pulled it out, holding it up to the dim light of the single lamp on her desk. It was no larger than a fingernail, carved from a stone that seemed to drink the light rather than reflect it. As she stared at it, the humming shifted pitch, rising into a whine that set her teeth on edge. She knew what it meant. The job was not just a means to an end; it was a tether, and the other end was pulling tight. If she let go, the four of them would starve. If she held on, she might lose something far more valuable than her life.\n\nShe closed her fingers around the stone, squeezing until the edges bit into her palm. The pain was grounding, real. Outside, the blue lamps of the harbor continued their slow descent into the night, one by one, like stars falling into the sea. Cael blew out her lamp, plunging the room into darkness, and sat in the quiet, waiting for the morning that would bring Ash District and the choices that came with it.",
+  "outputChars": 1721,
+  "usage": {
+    "promptTokens": 626,
+    "completionTokens": 384,
+    "model": "qwen3.6-35b-a3b-mtp",
+    "cost": 0
+  },
+  "flags": [],
+  "extra": {
+    "chapterId": "ch1",
+    "passageChars": 2000
+  },
+  "error": null
+}

@@ -1,0 +1,121 @@
+{
+  "runId": "2026-07-22_08-36-08-cpu",
+  "leg": "cpu-gemma-26b",
+  "model": "gemma-4-26b-a4b-qat",
+  "attempt": 1,
+  "args": {
+    "question": "What is this book about, and who is the protagonist?",
+    "k": 6,
+    "timeoutMs": 1200000
+  },
+  "preset": {
+    "id": "9d4ebeddeb96",
+    "name": "Bench",
+    "providerId": "",
+    "model": "gemma-4-26b-a4b-qat",
+    "temperature": 0.7,
+    "topP": null,
+    "maxTokens": 0,
+    "reasoningEffort": "",
+    "think": false,
+    "samplers": [],
+    "builtIn": false,
+    "position": 10,
+    "factoryModel": ""
+  },
+  "route": {
+    "feature": "chat",
+    "action": "chat",
+    "providerId": "local-llamacpp",
+    "model": "gemma-4-26b-a4b-qat",
+    "presetId": "9d4ebeddeb96",
+    "presetName": "Bench",
+    "presetSource": "assigned",
+    "think": false,
+    "level": "",
+    "reasoningWord": "",
+    "value": null,
+    "valueSource": "",
+    "configured": true,
+    "detail": ""
+  },
+  "featureKey": "chat",
+  "ok": true,
+  "started": "2026-07-22T08:36:38.895Z",
+  "label": "Ask the book",
+  "wallMs": 14006,
+  "ttftMs": 7660,
+  "output": "The book follows a magitech artificer who secretly possesses the ability to feel the deep, forbidden Facets of magic [1]. The story involves the protagonist taking a routine guild job in a ruin that is stuck in a single looping hour and is folded out of space [1]. The narrative structure is divided into two parts: \"The Commission,\" where a party takes the Nine and finds it is wrong, and \"The Hour,\" which involves the loop, a survivor, a Keystone, and a choice [3].\n\nThe protagonist is **Cael Ferren**, a 26-year-old brass-rank artificer [2, 5]. She has spent her life hiding her ability to feel the \"hum\" of the deep Facets, believing it to be a sickness that the Wardens are right to cut out [5]. Her goal is to maintain a quiet, unremarkable career at the Commission Hall, but she eventually uses her deep Facet on purpose to save her companions [5].",
+  "outputChars": 856,
+  "usage": {
+    "promptTokens": 1915,
+    "completionTokens": 203,
+    "model": "gemma-4-26b-a4b-qat",
+    "cost": 0
+  },
+  "flags": [
+    "temperature-fixed-by-caller"
+  ],
+  "extra": {
+    "bibleOnly": false,
+    "question": "What is this book about, and who is the protagonist?",
+    "k": 6,
+    "citations": [
+      {
+        "index": 1,
+        "chunkId": "card:architecture:premise",
+        "score": 0,
+        "pinned": true
+      },
+      {
+        "index": 2,
+        "chunkId": "card:cast:main",
+        "score": 0,
+        "pinned": true
+      },
+      {
+        "index": 3,
+        "chunkId": "card:architecture:fabula",
+        "score": 0,
+        "pinned": true
+      },
+      {
+        "index": 4,
+        "chunkId": "card:architecture:setting",
+        "score": 0,
+        "pinned": true
+      },
+      {
+        "index": 5,
+        "chunkId": "card:character:c1:p1",
+        "score": 0.40488342852794756,
+        "pinned": false
+      },
+      {
+        "index": 6,
+        "chunkId": "card:character:c2:p1",
+        "score": 0.2753121776768573,
+        "pinned": false
+      },
+      {
+        "index": 7,
+        "chunkId": "ch2:scn_ch2_1:p3",
+        "score": 0.28189390404565895,
+        "pinned": false
+      },
+      {
+        "index": 8,
+        "chunkId": "ch3:scn_ch3_3:p3",
+        "score": 0.28102924869900703,
+        "pinned": false
+      },
+      {
+        "index": 9,
+        "chunkId": "ch2:scn_ch2_2:p3",
+        "score": 0.2643302530668414,
+        "pinned": false
+      }
+    ]
+  },
+  "error": null
+}

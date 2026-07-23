@@ -1,0 +1,114 @@
+{
+  "runId": "2026-07-22_14-04-05-cpu",
+  "leg": "cpu-qwen-35b",
+  "model": "qwen3.6-35b-a3b-mtp",
+  "attempt": 1,
+  "args": {
+    "timeoutMs": 1200000
+  },
+  "preset": {
+    "id": "9d4ebeddeb96",
+    "name": "Bench",
+    "providerId": "",
+    "model": "qwen3.6-35b-a3b-mtp",
+    "temperature": 0.7,
+    "topP": null,
+    "maxTokens": 0,
+    "reasoningEffort": "",
+    "think": false,
+    "samplers": [],
+    "builtIn": false,
+    "position": 10,
+    "factoryModel": ""
+  },
+  "route": {
+    "feature": "critique",
+    "action": "critique",
+    "providerId": "local-llamacpp",
+    "model": "qwen3.6-35b-a3b-mtp",
+    "presetId": "9d4ebeddeb96",
+    "presetName": "Bench",
+    "presetSource": "assigned",
+    "think": false,
+    "level": "",
+    "reasoningWord": "",
+    "value": null,
+    "valueSource": "",
+    "configured": true,
+    "detail": ""
+  },
+  "featureKey": "critique",
+  "ok": true,
+  "started": "2026-07-22T14:40:16.847Z",
+  "label": "Chapter critique",
+  "wallMs": 141272,
+  "ttftMs": null,
+  "output": "{\n  \"notes\": [\n    {\n      \"severity\": \"flag\",\n      \"category\": \"opening\",\n      \"message\": \"The opening line 'A lamp that will not lie' is a clever thematic hook, but the immediate follow-up 'The lamp on Cael's bench was lying' creates a jarring syntactic stumble that breaks the reader's immersion before the scene is established.\"\n    },\n    {\n      \"severity\": \"suggest\",\n      \"category\": \"show-don't-tell\",\n      \"message\": \"In the description of the lamp's inheritance, 'the habit had outlived him the way the salt smell of the harbor outlived the tide' is a bit abstract; consider grounding the emotional weight in a physical detail, such as the specific wear pattern on her father's stool.\"\n    },\n    {\n      \"severity\": \"info\",\n      \"category\": \"world-building\",\n      \"message\": \"The mechanics of 'resonance' and 'concerns' are introduced organically through action rather than exposition, effectively establishing the magical system's rules without halting the narrative pace.\"\n    },\n    {\n      \"severity\": \"suggest\",\n      \"category\": \"characterization\",\n      \"message\": \"Cael's internal monologue regarding the 'pressure under the back teeth' is repeated three times in close succession; vary the physical sensation or internal reaction to avoid redundancy and maintain tension.\"\n    },\n    {\n      \"severity\": \"flag\",\n      \"category\": \"pacing\",\n      \"message\": \"The dialogue with Threll feels slightly expository, particularly when she explains why the job has been on the board for eleven weeks, which risks telling the reader what they should already infer from the context.\"\n    },\n    {\n      \"severity\": \"info\",\n      \"category\": \"voice\",\n      \"message\": \"The banter between Iven and Brick regarding the 'brass vs. silver' distinction provides excellent character contrast and establishes the company dynamic efficiently within a short word count.\"\n    },\n    {\n      \"severity\": \"suggest\",\n      \"category\": \"clarity\",\n      \"message\": \"The phrase 'grey on grey' to describe the Warden is visually vague; specify the texture or cut of the clothing to help the reader distinguish this figure from the background noise of the Commission Hall.\"\n    },\n    {\n      \"severity\": \"info\",\n      \"category\": \"tension\",\n      \"message\": \"The parallel between the lamp's 'leaning note' and the token's hum is a strong narrative thread that successfully ties the personal mystery to the professional stakes of the plot.\"\n    },\n    {\n      \"severity\": \"suggest\",\n      \"category\": \"dialogue\",\n      \"message\": \"Nettle's explanation of her 'gaps' ('Luck. Good feet. My gran's bead.') feels slightly too tidy; consider having her deflect with more ambiguity or a sharper retort to maintain her enigmatic edge.\"\n    }\n  ]\n}",
+  "outputChars": 2738,
+  "usage": null,
+  "flags": [],
+  "extra": {
+    "chapterId": "ch1",
+    "chapterNum": 1,
+    "chapterWords": 2600,
+    "noteCount": 9,
+    "notes": [
+      {
+        "id": "note_mrw6yxev_0",
+        "severity": "flag",
+        "category": "opening",
+        "message": "The opening line 'A lamp that will not lie' is a clever thematic hook, but the immediate follow-up 'The lamp on Cael's bench was lying' creates a jarring syntactic stumble that breaks the reader's immersion before the scene is established."
+      },
+      {
+        "id": "note_mrw6yxev_1",
+        "severity": "suggest",
+        "category": "show-don't-tell",
+        "message": "In the description of the lamp's inheritance, 'the habit had outlived him the way the salt smell of the harbor outlived the tide' is a bit abstract; consider grounding the emotional weight in a physical detail, such as the specific wear pattern on her father's stool."
+      },
+      {
+        "id": "note_mrw6yxev_2",
+        "severity": "info",
+        "category": "world-building",
+        "message": "The mechanics of 'resonance' and 'concerns' are introduced organically through action rather than exposition, effectively establishing the magical system's rules without halting the narrative pace."
+      },
+      {
+        "id": "note_mrw6yxev_3",
+        "severity": "suggest",
+        "category": "characterization",
+        "message": "Cael's internal monologue regarding the 'pressure under the back teeth' is repeated three times in close succession; vary the physical sensation or internal reaction to avoid redundancy and maintain tension."
+      },
+      {
+        "id": "note_mrw6yxev_4",
+        "severity": "flag",
+        "category": "pacing",
+        "message": "The dialogue with Threll feels slightly expository, particularly when she explains why the job has been on the board for eleven weeks, which risks telling the reader what they should already infer from the context."
+      },
+      {
+        "id": "note_mrw6yxev_5",
+        "severity": "info",
+        "category": "voice",
+        "message": "The banter between Iven and Brick regarding the 'brass vs. silver' distinction provides excellent character contrast and establishes the company dynamic efficiently within a short word count."
+      },
+      {
+        "id": "note_mrw6yxev_6",
+        "severity": "suggest",
+        "category": "clarity",
+        "message": "The phrase 'grey on grey' to describe the Warden is visually vague; specify the texture or cut of the clothing to help the reader distinguish this figure from the background noise of the Commission Hall."
+      },
+      {
+        "id": "note_mrw6yxev_7",
+        "severity": "info",
+        "category": "tension",
+        "message": "The parallel between the lamp's 'leaning note' and the token's hum is a strong narrative thread that successfully ties the personal mystery to the professional stakes of the plot."
+      },
+      {
+        "id": "note_mrw6yxev_8",
+        "severity": "suggest",
+        "category": "dialogue",
+        "message": "Nettle's explanation of her 'gaps' ('Luck. Good feet. My gran's bead.') feels slightly too tidy; consider having her deflect with more ambiguity or a sharper retort to maintain her enigmatic edge."
+      }
+    ],
+    "model": "qwen3.6-35b-a3b-mtp"
+  },
+  "error": null
+}

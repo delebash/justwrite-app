@@ -1,0 +1,61 @@
+{
+  "runId": "2026-07-22_10-24-23-cpu",
+  "leg": "cpu-qwen-35b",
+  "model": "qwen3.6-35b-a3b-mtp",
+  "attempt": 1,
+  "args": {
+    "passageChars": 2000,
+    "timeoutMs": 1200000
+  },
+  "preset": {
+    "id": "9d4ebeddeb96",
+    "name": "Bench",
+    "providerId": "",
+    "model": "qwen3.6-35b-a3b-mtp",
+    "temperature": 0.7,
+    "topP": null,
+    "maxTokens": 0,
+    "reasoningEffort": "",
+    "think": false,
+    "samplers": [],
+    "builtIn": false,
+    "position": 10,
+    "factoryModel": ""
+  },
+  "route": {
+    "feature": "writerAI.continue",
+    "action": "writerAI.continue",
+    "providerId": "local-llamacpp",
+    "model": "qwen3.6-35b-a3b-mtp",
+    "presetId": "9d4ebeddeb96",
+    "presetName": "Bench",
+    "presetSource": "assigned",
+    "think": false,
+    "level": "",
+    "reasoningWord": "",
+    "value": null,
+    "valueSource": "",
+    "configured": true,
+    "detail": ""
+  },
+  "featureKey": "writerAI.continue",
+  "ok": true,
+  "started": "2026-07-22T11:02:48.928Z",
+  "label": "Continue",
+  "wallMs": 101726,
+  "ttftMs": 40683,
+  "output": "The lock clicked with a heavy, final thud, sealing the sound of the harbor out. Cael stood in the dark for a long moment, listening to the hum of the token vibrate through her palm until her fingers went numb. It was a strange comfort, that relentless vibration, a reminder that the world was still connected, still breathing, even if she was the only one who could feel its pulse. She finally moved to the stove, striking a match with a trembling hand. The flame caught, small and orange, and for a second, the blue glow of the streetlamps outside seemed to retreat, afraid of the warmth.\n\nShe poured water into the pot, watching the steam rise in thin, ghostly ribbons. The apartment was quiet, but it was a full quiet, filled with the sleeping breaths of Jory and the twins in the back room. They were safe. They were warm. And tomorrow, they would be hungry again. Cael wrapped her hands around the mug, feeling the heat seep into her bones, trying to shake the image of Nettle’s hitched stride. She had seen it, too, in the way Nettle’s eyes sometimes glazed over when the wind blew from the east. It wasn’t just luck. It was a hunger, sharp and specific, that neither of them had the language to name.\n\nOutside, the city continued its slow, mechanical breath. Lumen lamps flickered in sequence, a chain of blue eyes blinking shut one by one. Cael drank her tea, bitter and weak, and waited for the silence to settle into something she could live with. The token stopped humming, just for a heartbeat, as if it, too, was holding its breath. Then it started again, steady and low, and Cael set the mug down. Sleep would come when it came. Until then, she would keep watch, not over the door, but over the space between the floorboards, where the heat of the furnace whispered secrets she was learning to ignore.",
+  "outputChars": 1815,
+  "usage": {
+    "promptTokens": 626,
+    "completionTokens": 413,
+    "model": "qwen3.6-35b-a3b-mtp",
+    "cost": 0
+  },
+  "flags": [],
+  "extra": {
+    "chapterId": "ch1",
+    "passageChars": 2000
+  },
+  "error": null
+}

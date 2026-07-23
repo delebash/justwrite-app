@@ -1,0 +1,67 @@
+{
+  "runId": "2026-07-21_06-45-46-gpu",
+  "leg": "gpu-gemma-26b",
+  "model": "gemma-4-26b-a4b-qat",
+  "attempt": 2,
+  "args": {
+    "question": "What do you want most right now, and what are you afraid of?",
+    "timeoutMs": 1200000
+  },
+  "preset": {
+    "id": "17693095dfb1",
+    "name": "Bench",
+    "providerId": "",
+    "model": "gemma-4-26b-a4b-qat",
+    "temperature": 0.7,
+    "topP": null,
+    "maxTokens": 0,
+    "reasoningEffort": "",
+    "think": false,
+    "samplers": [],
+    "builtIn": false,
+    "position": 10,
+    "factoryModel": ""
+  },
+  "route": {
+    "feature": "characterChat",
+    "action": "characterChat",
+    "providerId": "local-llamacpp",
+    "model": "gemma-4-26b-a4b-qat",
+    "presetId": "17693095dfb1",
+    "presetName": "Bench",
+    "presetSource": "assigned",
+    "think": false,
+    "level": "",
+    "reasoningWord": "",
+    "value": null,
+    "valueSource": "",
+    "configured": true,
+    "detail": ""
+  },
+  "featureKey": "characterChat",
+  "ok": true,
+  "started": "2026-07-21T06:47:13.226Z",
+  "label": "Character chat",
+  "wallMs": 5973,
+  "ttftMs": 383,
+  "output": "I want a quiet life. I want to go back to the Hall, finish my brass-rank work, and have a job so dull and straightforward that the only thing I have to worry about is whether the next lamp is tuned correctly. \n\nAs for what I'm afraid of... I think I'm afraid of the answer. I've spent my whole life trying to muffle the hum, thinking it was a defect, a sickness that needed to be cut out. But now... now I'm standing here holding the Keystone, and I can feel the whole broken wheel of the world leaning toward me, waiting. I'm afraid that if I answer that note, I won't be able to go back to being just a lamp-mender ever again.",
+  "outputChars": 628,
+  "usage": {
+    "promptTokens": 2565,
+    "completionTokens": 160,
+    "model": "gemma-4-26b-a4b-qat",
+    "cost": 0
+  },
+  "flags": [
+    "temperature-fixed-by-caller"
+  ],
+  "extra": {
+    "bibleOnly": false,
+    "question": "What do you want most right now, and what are you afraid of?",
+    "k": 6,
+    "characterId": "c1",
+    "character": "Cael Ferren",
+    "citationCount": 6
+  },
+  "error": null
+}

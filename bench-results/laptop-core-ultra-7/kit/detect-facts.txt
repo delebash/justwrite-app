@@ -1,0 +1,27 @@
+=== detect-facts 2026-07-23T00:26:29.4949902-04:00 ===
+--- OS / CPU / RAM ---
+
+
+Caption        : Microsoft Windows 11 Pro
+Version        : 10.0.26200
+OSArchitecture : 64-bit
+
+
+
+
+
+
+Name                      : Intel(R) Core(TM) Ultra 7 165U
+NumberOfCores             : 12
+NumberOfLogicalProcessors : 14
+
+
+
+
+TotalPhysicalMemory: 33777467392 bytes (31.5 GB)
+--- Display-class registry (what JustWrite's detection reads) ---
+[0000] DriverDesc: Intel(R) Graphics
+         qwMemorySize: (absent)
+--- Vulkan devices (what the engine sees) ---
+Available devices:
+  Vulkan0: Intel(R) Graphics (18361 MiB, 17593 MiB free)

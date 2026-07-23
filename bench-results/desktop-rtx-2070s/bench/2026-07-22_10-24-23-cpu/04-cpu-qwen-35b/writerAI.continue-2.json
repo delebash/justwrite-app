@@ -1,0 +1,61 @@
+{
+  "runId": "2026-07-22_10-24-23-cpu",
+  "leg": "cpu-qwen-35b",
+  "model": "qwen3.6-35b-a3b-mtp",
+  "attempt": 2,
+  "args": {
+    "passageChars": 2000,
+    "timeoutMs": 1200000
+  },
+  "preset": {
+    "id": "9d4ebeddeb96",
+    "name": "Bench",
+    "providerId": "",
+    "model": "qwen3.6-35b-a3b-mtp",
+    "temperature": 0.7,
+    "topP": null,
+    "maxTokens": 0,
+    "reasoningEffort": "",
+    "think": false,
+    "samplers": [],
+    "builtIn": false,
+    "position": 10,
+    "factoryModel": ""
+  },
+  "route": {
+    "feature": "writerAI.continue",
+    "action": "writerAI.continue",
+    "providerId": "local-llamacpp",
+    "model": "qwen3.6-35b-a3b-mtp",
+    "presetId": "9d4ebeddeb96",
+    "presetName": "Bench",
+    "presetSource": "assigned",
+    "think": false,
+    "level": "",
+    "reasoningWord": "",
+    "value": null,
+    "valueSource": "",
+    "configured": true,
+    "detail": ""
+  },
+  "featureKey": "writerAI.continue",
+  "ok": true,
+  "started": "2026-07-22T11:04:30.661Z",
+  "label": "Continue",
+  "wallMs": 36179,
+  "ttftMs": 298,
+  "output": "Cael stood in the threshold, the key cold and heavy in her palm, listening to the silence that Nettle had left behind. It wasn’t truly empty; it was the kind of silence that held its breath, waiting for the next move. She stepped inside, the air thick with the scent of ozone and burnt sugar, and locked the door. The hum from the token seemed louder here, vibrating up through the soles of her boots, a frantic heartbeat demanding motion. She couldn’t stay. The glimmerworks were safe for now, but the Ash District didn’t sleep, and neither did the things that lived in its shadows.\n\nShe pulled her coat tighter, though the warmth of the lumen furnace still clung to her skin, and moved toward the back exit. The token burned against her hip, a compass pointing toward trouble. Outside, the harbor lights were winking out one by one, leaving the city to the darker, older magic that thrived in the gaps between the gas lamps. Cael touched the charm at her throat, the river-worn bead smooth and cool, and took a breath that tasted of salt and impending rain. She wasn’t going to look back. There was no point. The gap was already opening, and she had to be ready to cross it.",
+  "outputChars": 1176,
+  "usage": {
+    "promptTokens": 626,
+    "completionTokens": 264,
+    "model": "qwen3.6-35b-a3b-mtp",
+    "cost": 0
+  },
+  "flags": [],
+  "extra": {
+    "chapterId": "ch1",
+    "passageChars": 2000
+  },
+  "error": null
+}

@@ -1,0 +1,61 @@
+{
+  "runId": "2026-07-22_03-28-55-gpu",
+  "leg": "gpu-gemma-26b",
+  "model": "gemma-4-26b-a4b-qat",
+  "attempt": 1,
+  "args": {
+    "passageChars": 2000,
+    "timeoutMs": 1200000
+  },
+  "preset": {
+    "id": "9d4ebeddeb96",
+    "name": "Bench",
+    "providerId": "",
+    "model": "gemma-4-26b-a4b-qat",
+    "temperature": 0.7,
+    "topP": null,
+    "maxTokens": 0,
+    "reasoningEffort": "",
+    "think": false,
+    "samplers": [],
+    "builtIn": false,
+    "position": 10,
+    "factoryModel": ""
+  },
+  "route": {
+    "feature": "writerAI.continue",
+    "action": "writerAI.continue",
+    "providerId": "local-llamacpp",
+    "model": "gemma-4-26b-a4b-qat",
+    "presetId": "9d4ebeddeb96",
+    "presetName": "Bench",
+    "presetSource": "assigned",
+    "think": false,
+    "level": "",
+    "reasoningWord": "",
+    "value": null,
+    "valueSource": "",
+    "configured": true,
+    "detail": ""
+  },
+  "featureKey": "writerAI.continue",
+  "ok": true,
+  "started": "2026-07-22T03:32:06.994Z",
+  "label": "Continue",
+  "wallMs": 10956,
+  "ttftMs": 1976,
+  "output": "Cael stood in the sudden silence of the hallway, the heavy door having swallowed Nettle's presence whole. The silence here wasn't truly silent; it was thick with the grinding of the district, the distant groan of the tide against the pilings, and the persistent, rhythmic thrumming of the token against her thigh. It was a low-frequency vibration that she felt in her teeth more than her skin.\n\nShe turned the key in the lock, the metal biting into the tumblers with a familiar, heavy resistance. As the door creaked open, the warmth of the room spilled out—that artificial, furnace-fed heat Nettle had mentioned. It smelled of scorched oil and old dust, a dry heat that did nothing to soothe the sudden chill settling in Cael's marrow.\n\nShe stepped inside and leaned her back against the door, letting her eyes close. The token's hum intensified, vibrating through her hip and up her spine, syncing itself to the beat of her own heart. It wasn't just a sound; it was a pull, a gravitational tugging that whispered of things buried deep beneath the stone and the silt, waiting for someone to listen.",
+  "outputChars": 1099,
+  "usage": {
+    "promptTokens": 636,
+    "completionTokens": 244,
+    "model": "gemma-4-26b-a4b-qat",
+    "cost": 0
+  },
+  "flags": [],
+  "extra": {
+    "chapterId": "ch1",
+    "passageChars": 2000
+  },
+  "error": null
+}

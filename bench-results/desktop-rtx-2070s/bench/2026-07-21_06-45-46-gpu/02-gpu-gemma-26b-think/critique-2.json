@@ -1,0 +1,108 @@
+{
+  "runId": "2026-07-21_06-45-46-gpu",
+  "leg": "gpu-gemma-26b-think",
+  "model": "gemma-4-26b-a4b-qat",
+  "attempt": 2,
+  "args": {
+    "timeoutMs": 1200000
+  },
+  "preset": {
+    "id": "17693095dfb1",
+    "name": "Bench",
+    "providerId": "",
+    "model": "gemma-4-26b-a4b-qat",
+    "temperature": 0.7,
+    "topP": null,
+    "maxTokens": 0,
+    "reasoningEffort": "",
+    "think": true,
+    "samplers": [],
+    "builtIn": false,
+    "position": 10,
+    "factoryModel": ""
+  },
+  "route": {
+    "feature": "critique",
+    "action": "critique",
+    "providerId": "local-llamacpp",
+    "model": "gemma-4-26b-a4b-qat",
+    "presetId": "17693095dfb1",
+    "presetName": "Bench",
+    "presetSource": "assigned",
+    "think": true,
+    "level": "",
+    "reasoningWord": "",
+    "value": 1024,
+    "valueSource": "base",
+    "configured": true,
+    "detail": ""
+  },
+  "featureKey": "critique",
+  "ok": true,
+  "started": "2026-07-21T07:00:22.523Z",
+  "label": "Chapter critique",
+  "wallMs": 17698,
+  "ttftMs": null,
+  "output": "{\n  \"notes\": [\n    {\n      \"severity\": \"info\",\n      \"category\": \"opening\",\n      \"message\": \"The opening hook 'A lamp that will not lie' is striking and immediately establishes the central conceit of the world.\"\n    },\n    {\n      \"severity\": \"suggest\",\n      \"category\": \"show-don't-tell\",\n      \"message\": \"The phrase 'a woman who could not afford to be interesting' is a brilliant piece of characterization, but the internal monologue about the Schools and Wardens feels slightly heavy-handed in explaining the stakes too early.\"\n    },\n    {\n      \"severity\": \"info\",\n      \"category\": \"voice\",\n      \"message\": \"The prose has a wonderful, rhythmic quality, particularly in the description of the father's stool and the salt smell of the harbor.\"\n    },\n    {\n      \"severity\": \"suggest\",\n      \"category\": \"pacing\",\n      \"message\": \"The transition between the shop scene and the Commission Hall is abrupt; a small sensory bridge (the change in smell or temperature) could smooth the jump.\"\n    },\n    {\n      \"severity\": \"info\",\n      \"category\": \"characterization\",\n      \"message\": \"The 'Company' dynamics are established efficiently through dialogue, making the group feel lived-in without a massive info-dump.\"\n    },\n    {\n      \"severity\": \"suggest\",\n      \"category\": \"clarity\",\n      \"message\": \"The distinction between 'Concern' (the entity) and 'Concern' (the type of work/seal) gets slightly muddy in the Commission Hall section.\"\n    },\n    {\n      \"severity\": \"info\",\n      \"category\": \"tension\",\n      \"message\": \"The humming token provides an excellent physical manifestation of the mounting dread as the chapter concludes.\"\n    },\n    {\n      \"severity\": \"suggest\",\n      \"category\": \"dialogue\",\n      \"message\": \"Nettle's dialogue in the final scene is a bit too 'on the nose' regarding Cael's secrets; consider making her observations more oblique to maintain her mystery.\"\n    }\n  ]\n}",
+  "outputChars": 1910,
+  "usage": null,
+  "flags": [],
+  "extra": {
+    "chapterId": "ch1",
+    "chapterNum": 1,
+    "chapterWords": 2600,
+    "noteCount": 8,
+    "notes": [
+      {
+        "id": "note_mrub0zh8_0",
+        "severity": "info",
+        "category": "opening",
+        "message": "The opening hook 'A lamp that will not lie' is striking and immediately establishes the central conceit of the world."
+      },
+      {
+        "id": "note_mrub0zh8_1",
+        "severity": "suggest",
+        "category": "show-don't-tell",
+        "message": "The phrase 'a woman who could not afford to be interesting' is a brilliant piece of characterization, but the internal monologue about the Schools and Wardens feels slightly heavy-handed in explaining the stakes too early."
+      },
+      {
+        "id": "note_mrub0zh8_2",
+        "severity": "info",
+        "category": "voice",
+        "message": "The prose has a wonderful, rhythmic quality, particularly in the description of the father's stool and the salt smell of the harbor."
+      },
+      {
+        "id": "note_mrub0zh8_3",
+        "severity": "suggest",
+        "category": "pacing",
+        "message": "The transition between the shop scene and the Commission Hall is abrupt; a small sensory bridge (the change in smell or temperature) could smooth the jump."
+      },
+      {
+        "id": "note_mrub0zh8_4",
+        "severity": "info",
+        "category": "characterization",
+        "message": "The 'Company' dynamics are established efficiently through dialogue, making the group feel lived-in without a massive info-dump."
+      },
+      {
+        "id": "note_mrub0zh8_5",
+        "severity": "suggest",
+        "category": "clarity",
+        "message": "The distinction between 'Concern' (the entity) and 'Concern' (the type of work/seal) gets slightly muddy in the Commission Hall section."
+      },
+      {
+        "id": "note_mrub0zh8_6",
+        "severity": "info",
+        "category": "tension",
+        "message": "The humming token provides an excellent physical manifestation of the mounting dread as the chapter concludes."
+      },
+      {
+        "id": "note_mrub0zh8_7",
+        "severity": "suggest",
+        "category": "dialogue",
+        "message": "Nettle's dialogue in the final scene is a bit too 'on the nose' regarding Cael's secrets; consider making her observations more oblique to maintain her mystery."
+      }
+    ],
+    "model": "gemma-4-26b-a4b-qat"
+  },
+  "error": null
+}

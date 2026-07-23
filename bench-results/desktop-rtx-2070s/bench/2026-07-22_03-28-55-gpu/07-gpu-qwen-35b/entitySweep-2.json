@@ -1,0 +1,69 @@
+{
+  "runId": "2026-07-22_03-28-55-gpu",
+  "leg": "gpu-qwen-35b",
+  "model": "qwen3.6-35b-a3b-mtp",
+  "attempt": 2,
+  "args": {
+    "timeoutMs": 1200000,
+    "chapterCap": 3
+  },
+  "preset": {
+    "id": "9d4ebeddeb96",
+    "name": "Bench",
+    "providerId": "",
+    "model": "qwen3.6-35b-a3b-mtp",
+    "temperature": 0.7,
+    "topP": null,
+    "maxTokens": 0,
+    "reasoningEffort": "",
+    "think": false,
+    "samplers": [],
+    "builtIn": false,
+    "position": 10,
+    "factoryModel": ""
+  },
+  "route": {
+    "feature": "entitySweep",
+    "action": "entitySweep",
+    "providerId": "local-llamacpp",
+    "model": "qwen3.6-35b-a3b-mtp",
+    "presetId": "9d4ebeddeb96",
+    "presetName": "Bench",
+    "presetSource": "assigned",
+    "think": false,
+    "level": "",
+    "reasoningWord": "",
+    "value": null,
+    "valueSource": "",
+    "configured": true,
+    "detail": ""
+  },
+  "featureKey": "entitySweep",
+  "ok": true,
+  "started": "2026-07-22T03:56:11.112Z",
+  "label": "Entity sweep",
+  "wallMs": 95583,
+  "ttftMs": 29746,
+  "output": "{\n  \"characters\": [\n    {\n      \"name\": \"Sedge\",\n      \"role\": \"Road-warden\",\n      \"kind\": \"\",\n      \"oneLiner\": \"An old pensioner warden who keeps the ledger for the Nine Road and warns the group about previous missing parties.\",\n      \"note\": \"\",\n      \"evidence\": \"Old Sedge, the plate on the hut said\",\n      \"aliases\": [],\n      \"originChapters\": [\n        {\n          \"id\": \"ch2\",\n          \"num\": 2,\n          \"title\": \"Bigger Inside\"\n        }\n      ]\n    },\n    {\n      \"name\": \"Threll\",\n      \"role\": \"Colleague/Superior\",\n      \"kind\": \"\",\n      \"oneLiner\": \"A character referred to as having sent the group to certify the Manufactory, implying a superior or colleague role.\",\n      \"note\": \"\",\n      \"evidence\": \"Threll sent us to certify a deep-Facet wound\",\n      \"aliases\": [\n        \"Haldane Threll\"\n      ],\n      \"originChapters\": [\n        {\n          \"id\": \"ch2\",\n          \"num\": 2,\n          \"title\": \"Bigger Inside\"\n        }\n      ]\n    },\n    {\n      \"name\": \"Unknown Voice\",\n      \"role\": \"Mysterious Entity\",\n      \"kind\": \"\",\n      \"oneLiner\": \"A person or entity in the folded dark who claims to have left the candle lit for the group every time they arrive.\",\n      \"note\": \"\",\n      \"evidence\": \"You always find the candle first. Every time.\",\n      \"aliases\": [],\n      \"originChapters\": [\n        {\n          \"id\": \"ch2\",\n          \"num\": 2,\n          \"title\": \"Bigger Inside\"\n        }\n      ]\n    }\n  ],\n  \"locations\": [\n    {\n      \"name\": \"Ash District\",\n      \"role\": \"\",\n      \"kind\": \"District\",\n      \"oneLiner\": \"\",\n      \"note\": \"A district in the city where the problematic Manufactory Nine is located.\",\n      \"evidence\": \"Manufactory Nine, Ash District. Structural survey\",\n      \"aliases\": [],\n      \"originChapters\": [\n        {\n          \"id\": \"ch1\",\n          \"num\": 1,\n          \"title\": \"Brass Rank\"\n        }\n      ]\n    },\n    {\n      \"name\": \"Kettle Lane\",\n      \"role\": \"\",\n      \"kind\": \"Street\",\n      \"oneLiner\": \"\",\n      \"note\": \"A lane near the harbor where Cael walks home at night.\",\n      \"evidence\": \"Nettle walked her home, which meant Nettle appeared beside her on Kettle Lane\",\n      \"aliases\": [],\n      \"originChapters\": [\n        {\n          \"id\": \"ch1\",\n          \"num\": 1,\n          \"title\": \"Brass Rank\"\n        }\n      ]\n    },\n    {\n      \"name\": \"The Cutwater\",\n      \"role\": \"\",\n      \"kind\": \"Geographic Feature\",\n      \"oneLiner\": \"\",\n      \"note\": \"A body of water or canal that features a gap Nettle previously crossed.\",\n      \"evidence\": \"the one over the Cutwater last spring\",\n      \"aliases\": [],\n      \"originChapters\": [\n        {\n          \"id\": \"ch1\",\n          \"num\": 1,\n          \"title\": \"Brass Rank\"\n        }\n      ]\n    },\n    {\n      \"name\": \"The Ash District\",\n      \"role\": \"\",\n      \"kind\": \"District\",\n      \"oneLiner\": \"\",\n      \"note\": \"A formerly bright area of Threnn that has fallen into disrepair and darkness.\",\n      \"evidence\": \"The Ash District had been the bright edge of Threnn once\",\n      \"aliases\": [],\n      \"originChapters\": [\n        {\n          \"id\": \"ch2\",\n          \"num\": 2,\n          \"title\": \"Bigger Inside\"\n        }\n      ]\n    },\n    {\n      \"name\": \"The Nine Road\",\n      \"role\": \"\",\n      \"kind\": \"Road\",\n      \"oneLiner\": \"\",\n      \"note\": \"The path leading to Manufactory Nine, characterized by thinning and dark lumen-lamps.\",\n      \"evidence\": \"the lumen-lamps along the Nine Road stood at long intervals\",\n      \"aliases\": [],\n      \"originChapters\": [\n        {\n          \"id\": \"ch2\",\n          \"num\": 2,\n          \"title\": \"Bigger Inside\"\n        }\n      ]\n    },\n    {\n      \"name\": \"Watch-hut\",\n      \"role\": \"\",\n      \"kind\": \"Structure\",\n      \"oneLiner\": \"\",\n      \"note\": \"A small shelter where the road-warden Sedge sits with a lantern and ledger.\",\n      \"evidence\": \"an old road-warden sat outside a watch-hut\",\n      \"aliases\": [],\n      \"originChapters\": [\n        {\n          \"id\": \"ch2\",\n          \"num\": 2,\n          \"title\": \"Bigger Inside\"\n        }\n      ]\n    }\n  ],\n  \"objects\": [\n    {\n      \"name\": \"Resonance fork\",\n      \"role\": \"\",\n      \"kind\": \"Tool\",\n      \"oneLiner\": \"\",\n      \"note\": \"Already in the story bible — skipped.\",\n      \"evidence\": \"The fork in her satchel... gave a single, muffled ring\",\n      \"aliases\": [],\n      \"originChapters\": [\n        {\n          \"id\": \"ch2\",\n          \"num\": 2,\n          \"title\": \"Bigger Inside\"\n        }\n      ]\n    },\n    {\n      \"name\": \"Tallow candle\",\n      \"role\": \"\",\n      \"kind\": \"Object\",\n      \"oneLiner\": \"\",\n      \"note\": \"A magical candle that un-burns, reversing its consumption of wax and serving as a temporal marker.\",\n      \"evidence\": \"the wax... drew back up... and the candle was a hair taller\",\n      \"aliases\": [],\n      \"originChapters\": [\n        {\n          \"id\": \"ch2\",\n          \"num\": 2,\n          \"title\": \"Bigger Inside\"\n        }\n      ]\n    },\n    {\n      \"name\": \"Knife\",\n      \"role\": \"\",\n      \"kind\": \"Object\",\n      \"oneLiner\": \"\",\n      \"note\": \"Found beside the candle, part of a small, recent camp setup.\",\n      \"evidence\": \"Beside it lay a knife, a tin cup, a heel of bread\",\n      \"aliases\": [],\n      \"originChapters\": [\n        {\n          \"id\": \"ch2\",\n          \"num\": 2,\n          \"title\": \"Bigger Inside\"\n        }\n      ]\n    },\n    {\n      \"name\": \"Tin cup\",\n      \"role\": \"\",\n      \"kind\": \"Object\",\n      \"oneLiner\": \"\",\n      \"note\": \"Found beside the candle, part of a small, recent camp setup.\",\n      \"evidence\": \"Beside it lay a knife, a tin cup, a heel of bread\",\n      \"aliases\": [],\n      \"originChapters\": [\n        {\n          \"id\": \"ch2\",\n          \"num\": 2,\n          \"title\": \"Bigger Inside\"\n        }\n      ]\n    }\n  ]\n}",
+  "outputChars": 5699,
+  "usage": null,
+  "flags": [],
+  "extra": {
+    "counts": {
+      "characters": 3,
+      "locations": 6,
+      "objects": 4
+    },
+    "scanned": 3,
+    "totalChapters": 3,
+    "skipped": [],
+    "cancelled": false,
+    "chapterIds": [
+      "ch1",
+      "ch2",
+      "ch3"
+    ],
+    "chapterCap": 3
+  },
+  "error": null
+}

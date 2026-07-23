@@ -1,0 +1,69 @@
+{
+  "runId": "2026-07-21_06-45-46-gpu",
+  "leg": "gpu-gemma-26b",
+  "model": "gemma-4-26b-a4b-qat",
+  "attempt": 1,
+  "args": {
+    "timeoutMs": 1200000,
+    "chapterCap": 3
+  },
+  "preset": {
+    "id": "17693095dfb1",
+    "name": "Bench",
+    "providerId": "",
+    "model": "gemma-4-26b-a4b-qat",
+    "temperature": 0.7,
+    "topP": null,
+    "maxTokens": 0,
+    "reasoningEffort": "",
+    "think": false,
+    "samplers": [],
+    "builtIn": false,
+    "position": 10,
+    "factoryModel": ""
+  },
+  "route": {
+    "feature": "entitySweep",
+    "action": "entitySweep",
+    "providerId": "local-llamacpp",
+    "model": "gemma-4-26b-a4b-qat",
+    "presetId": "17693095dfb1",
+    "presetName": "Bench",
+    "presetSource": "assigned",
+    "think": false,
+    "level": "",
+    "reasoningWord": "",
+    "value": null,
+    "valueSource": "",
+    "configured": true,
+    "detail": ""
+  },
+  "featureKey": "entitySweep",
+  "ok": true,
+  "started": "2026-07-21T06:47:19.201Z",
+  "label": "Entity sweep",
+  "wallMs": 48747,
+  "ttftMs": 19366,
+  "output": "{\n  \"characters\": [\n    {\n      \"name\": \"Cael\",\n      \"role\": \"artificer\",\n      \"kind\": \"\",\n      \"oneLiner\": \"A brass-rank artificer who can sense vibrations and notes that shouldn't be there.\",\n      \"note\": \"\",\n      \"evidence\": \"Any brass-rank artificer in Threnn could do it blind.\",\n      \"aliases\": [\n        \"Ferren\"\n      ],\n      \"originChapters\": [\n        {\n          \"id\": \"ch1\",\n          \"num\": 1,\n          \"title\": \"Brass Rank\"\n        }\n      ]\n    },\n    {\n      \"name\": \"Sedge\",\n      \"role\": \"road-warden\",\n      \"kind\": \"\",\n      \"oneLiner\": \"An old pensioner who keeps a ledger of travelers near the Nine.\",\n      \"note\": \"\",\n      \"evidence\": \"Old Sedge, the plate on the hut, said\",\n      \"aliases\": [],\n      \"originChapters\": [\n        {\n          \"id\": \"ch2\",\n          \"num\": 2,\n          \"title\": \"Bigger Inside\"\n        }\n      ]\n    }\n  ],\n  \"locations\": [\n    {\n      \"name\": \"Ash District\",\n      \"role\": \"\",\n      \"kind\": \"district\",\n      \"oneLiner\": \"\",\n      \"note\": \"A district where Manufactory Nine is located.\",\n      \"evidence\": \"Manufactory Nine, Ash District.\",\n      \"aliases\": [],\n      \"originChapters\": [\n        {\n          \"id\": \"ch1\",\n          \"num\": 1,\n          \"title\": \"Brass Rank\"\n        },\n        {\n          \"id\": \"ch2\",\n          \"num\": 2,\n          \"title\": \"Bigger Inside\"\n        },\n        {\n          \"id\": \"ch3\",\n          \"num\": 3,\n          \"title\": \"The Same Hour\"\n        }\n      ]\n    },\n    {\n      \"name\": \"Kettle Lane\",\n      \"role\": \"\",\n      \"kind\": \"street\",\n      \"oneLiner\": \"\",\n      \"note\": \"A lane where Nettle walks Cael home.\",\n      \"evidence\": \"Kettle Lane, after dark\",\n      \"aliases\": [],\n      \"originChapters\": [\n        {\n          \"id\": \"ch1\",\n          \"num\": 1,\n          \"title\": \"Brass Rank\"\n        }\n      ]\n    },\n    {\n      \"name\": \"Nine Road\",\n      \"role\": \"\",\n      \"kind\": \"road\",\n      \"oneLiner\": \"\",\n      \"note\": \"A road in the Ash District of Threnn where the lamps are failing.\",\n      \"evidence\": \"the lumen-lamps along the Nine Road stood at long intervals\",\n      \"aliases\": [],\n      \"originChapters\": [\n        {\n          \"id\": \"ch2\",\n          \"num\": 2,\n          \"title\": \"Bigger Inside\"\n        }\n      ]\n    },\n    {\n      \"name\": \"East Gallery\",\n      \"role\": \"\",\n      \"kind\": \"Location\",\n      \"oneLiner\": \"\",\n      \"note\": \"A place where members of previous parties remain trapped in a loop.\",\n      \"evidence\": \"They're still in the east gallery.\",\n      \"aliases\": [],\n      \"originChapters\": [\n        {\n          \"id\": \"ch3\",\n          \"num\": 3,\n          \"title\": \"The Same Hour\"\n        }\n      ]\n    }\n  ],\n  \"objects\": [\n    {\n      \"name\": \"Concern-made lamp\",\n      \"role\": \"\",\n      \"kind\": \"artifact\",\n      \"oneLiner\": \"\",\n      \"note\": \"A brass lamp that flickers in response to an unseen note.\",\n      \"evidence\": \"It was a good lamp — Concern-made\",\n      \"aliases\": [],\n      \"originChapters\": [\n        {\n          \"id\": \"ch1\",\n          \"num\": 1,\n          \"title\": \"Brass Rank\"\n        }\n      ]\n    },\n    {\n      \"name\": \"The Whole\",\n      \"role\": \"\",\n      \"kind\": \"Metaphysical Concept\",\n      \"oneLiner\": \"\",\n      \"note\": \"The original, unbroken state of the Facets before the Sundering.\",\n      \"evidence\": \"It was a wheel. One art, whole, turning\",\n      \"aliases\": [],\n      \"originChapters\": [\n        {\n          \"id\": \"ch3\",\n          \"num\": 3,\n          \"title\": \"The Same Hour\"\n        }\n      ]\n    },\n    {\n      \"name\": \"The Sundering\",\n      \"role\": \"\",\n      \"kind\": \"Historical Event\",\n      \"oneLiner\": \"\",\n      \"note\": \"The historical event where the single art of the Whole was broken into separate Facets.\",\n      \"evidence\": \"The histories in the Cloister call it the Sundering.\",\n      \"aliases\": [],\n      \"originChapters\": [\n        {\n          \"id\": \"ch3\",\n          \"num\": 3,\n          \"title\": \"The Same Hour\"\n        }\n      ]\n    }\n  ]\n}",
+  "outputChars": 3921,
+  "usage": null,
+  "flags": [],
+  "extra": {
+    "counts": {
+      "characters": 2,
+      "locations": 4,
+      "objects": 3
+    },
+    "scanned": 3,
+    "totalChapters": 3,
+    "skipped": [],
+    "cancelled": false,
+    "chapterIds": [
+      "ch1",
+      "ch2",
+      "ch3"
+    ],
+    "chapterCap": 3
+  },
+  "error": null
+}

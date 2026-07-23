@@ -39,7 +39,10 @@ const REPO_ROOT = resolve(dirname(fileURLToPath(import.meta.url)), "..", "..");
 function parseArgs(argv) {
   const out = {
     config: "", dry: false, restore: "", legs: null,
-    resume: "", outDir: join(REPO_ROOT, "bench-results"), autostart: false,
+    // Machine-organized results (user ruling 2026-07-23): the harness always runs
+    // on THIS box, so its runs file under the desktop machine folder's bench/;
+    // kit returns from other machines go under <machine>/kit/ (bench-results/README.md).
+    resume: "", outDir: join(REPO_ROOT, "bench-results", "desktop-rtx-2070s", "bench"), autostart: false,
     report: false, missing: false,
   };
   for (let i = 0; i < argv.length; i++) {
@@ -139,7 +142,7 @@ JustWrite LLM bench — run models × switches through the real app, capture eve
 Always headless — the bench drives services through the app's bench hook, so there
 is nothing to watch in a window; progress prints here. Simplest setup: have your
 app running (npm run dev) and the bench connects to its server + engine.
-  --out <dir>       results root (default: bench-results/)
+  --out <dir>       results root (default: bench-results/desktop-rtx-2070s/bench/)
   --restore <dir>   re-apply the assignment snapshot from a previous run and exit
 
 Results are keyed by LEG ID and accumulate across runs, so measuring one new leg

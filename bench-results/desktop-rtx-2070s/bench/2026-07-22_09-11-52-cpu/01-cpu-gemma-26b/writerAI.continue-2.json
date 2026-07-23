@@ -1,0 +1,61 @@
+{
+  "runId": "2026-07-22_09-11-52-cpu",
+  "leg": "cpu-gemma-26b",
+  "model": "gemma-4-26b-a4b-qat",
+  "attempt": 2,
+  "args": {
+    "passageChars": 2000,
+    "timeoutMs": 1200000
+  },
+  "preset": {
+    "id": "9d4ebeddeb96",
+    "name": "Bench",
+    "providerId": "",
+    "model": "gemma-4-26b-a4b-qat",
+    "temperature": 0.7,
+    "topP": null,
+    "maxTokens": 0,
+    "reasoningEffort": "",
+    "think": false,
+    "samplers": [],
+    "builtIn": false,
+    "position": 10,
+    "factoryModel": ""
+  },
+  "route": {
+    "feature": "writerAI.continue",
+    "action": "writerAI.continue",
+    "providerId": "local-llamacpp",
+    "model": "gemma-4-26b-a4b-qat",
+    "presetId": "9d4ebeddeb96",
+    "presetName": "Bench",
+    "presetSource": "assigned",
+    "think": false,
+    "level": "",
+    "reasoningWord": "",
+    "value": null,
+    "valueSource": "",
+    "configured": true,
+    "detail": ""
+  },
+  "featureKey": "writerAI.continue",
+  "ok": true,
+  "started": "2026-07-22T09:18:39.857Z",
+  "label": "Continue",
+  "wallMs": 41747,
+  "ttftMs": 346,
+  "output": "Cael stood in the dim threshold, the silence of the hallway pressing against her ears where Nettle’s presence had been only a heartbeat before. The token’s vibration had intensified, a frantic, rhythmic thrumming that seemed to sync with the heavy beating of her own heart. It wasn't just humming anymore; it was singing, a low-frequency drone that vibrated through her thigh and up into her spine, making her teeth ache.\n\nShe turned the key, the metal clicking with a sound like a bone snapping in the quiet. The lock gave way, and she stepped into the room, pulling the door shut behind her. The air inside was stale, smelling of damp plaster and the metallic tang of the harbor wind, but as the door latched, the hum of the token didn't diminish. Instead, it seemed to draw the silence into itself, swallowing the ambient noise of the street until there was nothing left but the vibration and her own shallow breathing.\n\nShe moved toward the window, her boots heavy on the floorboards. Outside, the blue lamps were flickering in a sequence that didn't match the wind. One, two, three—a slow, deliberate pulse that felt less like a mechanical failure and more like a response. The token gave a sudden, sharp jolt against her hip, a silent command that sent a cold spike of dread through her chest.\n\nShe didn't go behind her eyes. She couldn't. The sensation was already there, a pressure behind her temples, a phantom weight pressing against the back of her skull. The world felt thin, as if the floorboards and the walls were merely a veil draped over something vast and hungry, and for the first time, Cael realized the token wasn't just a seal. It was an anchor.",
+  "outputChars": 1667,
+  "usage": {
+    "promptTokens": 636,
+    "completionTokens": 369,
+    "model": "gemma-4-26b-a4b-qat",
+    "cost": 0
+  },
+  "flags": [],
+  "extra": {
+    "chapterId": "ch1",
+    "passageChars": 2000
+  },
+  "error": null
+}

@@ -1,0 +1,61 @@
+{
+  "runId": "2026-07-22_14-04-05-cpu",
+  "leg": "cpu-qwen-35b",
+  "model": "qwen3.6-35b-a3b-mtp",
+  "attempt": 1,
+  "args": {
+    "passageChars": 1200,
+    "timeoutMs": 1200000
+  },
+  "preset": {
+    "id": "9d4ebeddeb96",
+    "name": "Bench",
+    "providerId": "",
+    "model": "qwen3.6-35b-a3b-mtp",
+    "temperature": 0.7,
+    "topP": null,
+    "maxTokens": 0,
+    "reasoningEffort": "",
+    "think": false,
+    "samplers": [],
+    "builtIn": false,
+    "position": 10,
+    "factoryModel": ""
+  },
+  "route": {
+    "feature": "writerAI.rewrite",
+    "action": "writerAI.rewrite",
+    "providerId": "local-llamacpp",
+    "model": "qwen3.6-35b-a3b-mtp",
+    "presetId": "9d4ebeddeb96",
+    "presetName": "Bench",
+    "presetSource": "assigned",
+    "think": false,
+    "level": "",
+    "reasoningWord": "",
+    "value": null,
+    "valueSource": "",
+    "configured": true,
+    "detail": ""
+  },
+  "featureKey": "writerAI.rewrite",
+  "ok": true,
+  "started": "2026-07-22T14:45:39.469Z",
+  "label": "Rewrite",
+  "wallMs": 36942,
+  "ttftMs": 6335,
+  "output": "“The ones on the roofs, the one over the Cutwater last spring — six feet of open air, and you were on the far side of it before you jumped.”\n\nNettle’s stride hitched, a microscopic stutter, the first ungraceful motion Cael had ever witnessed. “Luck,” she said. “Good feet. My gran’s bead.” She touched the river-worn charm at her throat, a gesture so ingrained she plainly didn’t know she was making it. “Why.”\n\n“No reason. Long day.” *Because you and I are the same,* Cael did not say. *Because whatever you feel when you cross a gap that isn’t there, I feel when I put my hand on a lamp that’s listening to something under the world, and neither of us is supposed to be able to, and one of us has learned to hide it and the other hasn’t noticed she has anything to hide.*\n\nThey walked. The token hummed against her hip. Somewhere behind them, a soft cold blue lamp caught the edge of it, guttered once, steadied, and told no one anything.\n\n“Ash District tomorrow,” Nettle said at the door of the glimmerworks, grinned, and was gone before Cael’s key was in the lock — not vanished, nothing so grand, just around a corner faster than a person could go, into a gap in the evening that closed behind her like water.",
+  "outputChars": 1214,
+  "usage": {
+    "promptTokens": 416,
+    "completionTokens": 297,
+    "model": "qwen3.6-35b-a3b-mtp",
+    "cost": 0
+  },
+  "flags": [],
+  "extra": {
+    "chapterId": "ch1",
+    "passageChars": 1200
+  },
+  "error": null
+}

@@ -1,0 +1,69 @@
+{
+  "runId": "2026-07-21_02-00-00-gpu",
+  "leg": "gpu-gemma-26b",
+  "model": "gemma-4-26b-a4b-qat",
+  "attempt": 1,
+  "args": {
+    "timeoutMs": 1200000,
+    "chapterCap": 3
+  },
+  "preset": {
+    "id": "d275d86236e9",
+    "name": "Bench",
+    "providerId": "",
+    "model": "gemma-4-26b-a4b-qat",
+    "temperature": 0.7,
+    "topP": null,
+    "maxTokens": 0,
+    "reasoningEffort": "",
+    "think": false,
+    "samplers": [],
+    "builtIn": false,
+    "position": 10,
+    "factoryModel": ""
+  },
+  "route": {
+    "feature": "entitySweep",
+    "action": "entitySweep",
+    "providerId": "local-llamacpp",
+    "model": "gemma-4-26b-a4b-qat",
+    "presetId": "d275d86236e9",
+    "presetName": "Bench",
+    "presetSource": "assigned",
+    "think": false,
+    "level": "",
+    "reasoningWord": "",
+    "value": null,
+    "valueSource": "",
+    "configured": true,
+    "detail": ""
+  },
+  "featureKey": "entitySweep",
+  "ok": true,
+  "started": "2026-07-21T02:01:27.546Z",
+  "label": "Entity sweep",
+  "wallMs": 47595,
+  "ttftMs": 16649,
+  "output": "{\n  \"characters\": [\n    {\n      \"name\": \"Mistress of Commissions\",\n      \"role\": \"official\",\n      \"kind\": \"\",\n      \"oneLiner\": \"A grey-coated official with a face like a closed ledger who manages the job board.\",\n      \"note\": \"\",\n      \"evidence\": \"Mistress of Commissions, grey-coated, a face like a closed ledger.\",\n      \"aliases\": [\n        \"Threll\"\n      ],\n      \"originChapters\": [\n        {\n          \"id\": \"ch1\",\n          \"num\": 1,\n          \"title\": \"Brass Rank\"\n        }\n      ]\n    },\n    {\n      \"name\": \"Sedge\",\n      \"role\": \"road-warden\",\n      \"kind\": \"\",\n      \"oneLiner\": \"An old pensioner sitting outside a watch-hut who observes those traveling the Nine Road.\",\n      \"note\": \"\",\n      \"evidence\": \"Old Sedge, the plate on the hut said\",\n      \"aliases\": [],\n      \"originChapters\": [\n        {\n          \"id\": \"ch2\",\n          \"num\": 2,\n          \"title\": \"Bigger Inside\"\n        }\n      ]\n    }\n  ],\n  \"locations\": [\n    {\n      \"name\": \"Ash District\",\n      \"role\": \"\",\n      \"kind\": \"district\",\n      \"oneLiner\": \"\",\n      \"note\": \"A district where Manufactory Nine is located.\",\n      \"evidence\": \"Manufactory Nine, Ash District.\",\n      \"aliases\": [],\n      \"originChapters\": [\n        {\n          \"id\": \"ch1\",\n          \"num\": 1,\n          \"title\": \"Brass Rank\"\n        },\n        {\n          \"id\": \"ch2\",\n          \"num\": 2,\n          \"title\": \"Bigger Inside\"\n        },\n        {\n          \"id\": \"ch3\",\n          \"num\": 3,\n          \"title\": \"The Same Hour\"\n        }\n      ]\n    },\n    {\n      \"name\": \"Kettle Lane\",\n      \"role\": \"\",\n      \"kind\": \"street\",\n      \"oneLiner\": \"\",\n      \"note\": \"A lane where lamps bloom with soft cold blue light.\",\n      \"evidence\": \"Kettle Lane, after dark\",\n      \"aliases\": [],\n      \"originChapters\": [\n        {\n          \"id\": \"ch1\",\n          \"num\": 1,\n          \"title\": \"Brass Rank\"\n        }\n      ]\n    },\n    {\n      \"name\": \"Nine Road\",\n      \"role\": \"\",\n      \"kind\": \"road\",\n      \"oneLiner\": \"\",\n      \"note\": \"A road in the Ash District that used to be bright but is now poorly maintained.\",\n      \"evidence\": \"the lumen-lamps along the Nine Road\",\n      \"aliases\": [],\n      \"originChapters\": [\n        {\n          \"id\": \"ch2\",\n          \"num\": 2,\n          \"title\": \"Bigger Inside\"\n        }\n      ]\n    },\n    {\n      \"name\": \"East Gallery\",\n      \"role\": \"\",\n      \"kind\": \"Location\",\n      \"oneLiner\": \"\",\n      \"note\": \"A place where members of the third party remain trapped.\",\n      \"evidence\": \"They're still in the east gallery.\",\n      \"aliases\": [],\n      \"originChapters\": [\n        {\n          \"id\": \"ch3\",\n          \"num\": 3,\n          \"title\": \"The Same Hour\"\n        }\n      ]\n    }\n  ],\n  \"objects\": [\n    {\n      \"name\": \"Concern seal\",\n      \"role\": \"\",\n      \"kind\": \"mark\",\n      \"oneLiner\": \"\",\n      \"note\": \"A seal used by Concerns to certify or request work.\",\n      \"evidence\": \"A Concern seal on a clearance meant the Concern wanted a receipt.\",\n      \"aliases\": [],\n      \"originChapters\": [\n        {\n          \"id\": \"ch1\",\n          \"num\": 1,\n          \"title\": \"Brass Rank\"\n        }\n      ]\n    },\n    {\n      \"name\": \"Concern scrip\",\n      \"role\": \"\",\n      \"kind\": \"currency\",\n      \"oneLiner\": \"\",\n      \"note\": \"A form of payment used by Concerns.\",\n      \"evidence\": \"It pays in Concern scrip until certification.\",\n      \"aliases\": [],\n      \"originChapters\": [\n        {\n          \"id\": \"ch1\",\n          \"num\": 1,\n          \"title\": \"Brass Rank\"\n        }\n      ]\n    },\n    {\n      \"name\": \"glimmer-looms\",\n      \"role\": \"\",\n      \"kind\": \"machinery\",\n      \"oneLiner\": \"\",\n      \"note\": \"Ranks of dead machines located within the folded space of Manufactory Nine.\",\n      \"evidence\": \"Ranks of dead glimmer-looms marched off\",\n      \"aliases\": [],\n      \"originChapters\": [\n        {\n          \"id\": \"ch2\",\n          \"num\": 2,\n          \"title\": \"Bigger Inside\"\n        }\n      ]\n    },\n    {\n      \"name\": \"The Whole\",\n      \"role\": \"\",\n      \"kind\": \"Cosmological Concept\",\n      \"oneLiner\": \"\",\n      \"note\": \"The original, unbroken state of the Facets before the Sundering.\",\n      \"evidence\": \"It was a wheel. One art, whole, turning\",\n      \"aliases\": [],\n      \"originChapters\": [\n        {\n          \"id\": \"ch3\",\n          \"num\": 3,\n          \"title\": \"The Same Hour\"\n        }\n      ]\n    }\n  ]\n}",
+  "outputChars": 4335,
+  "usage": null,
+  "flags": [],
+  "extra": {
+    "counts": {
+      "characters": 2,
+      "locations": 4,
+      "objects": 4
+    },
+    "scanned": 3,
+    "totalChapters": 3,
+    "skipped": [],
+    "cancelled": false,
+    "chapterIds": [
+      "ch1",
+      "ch2",
+      "ch3"
+    ],
+    "chapterCap": 3
+  },
+  "error": null
+}

@@ -1,0 +1,69 @@
+{
+  "runId": "2026-07-22_03-28-55-gpu",
+  "leg": "gpu-gemma-26b-think",
+  "model": "gemma-4-26b-a4b-qat",
+  "attempt": 2,
+  "args": {
+    "timeoutMs": 1200000,
+    "chapterCap": 3
+  },
+  "preset": {
+    "id": "9d4ebeddeb96",
+    "name": "Bench",
+    "providerId": "",
+    "model": "gemma-4-26b-a4b-qat",
+    "temperature": 0.7,
+    "topP": null,
+    "maxTokens": 0,
+    "reasoningEffort": "",
+    "think": true,
+    "samplers": [],
+    "builtIn": false,
+    "position": 10,
+    "factoryModel": ""
+  },
+  "route": {
+    "feature": "entitySweep",
+    "action": "entitySweep",
+    "providerId": "local-llamacpp",
+    "model": "gemma-4-26b-a4b-qat",
+    "presetId": "9d4ebeddeb96",
+    "presetName": "Bench",
+    "presetSource": "assigned",
+    "think": true,
+    "level": "",
+    "reasoningWord": "",
+    "value": 1024,
+    "valueSource": "base",
+    "configured": true,
+    "detail": ""
+  },
+  "featureKey": "entitySweep",
+  "ok": true,
+  "started": "2026-07-22T03:41:27.954Z",
+  "label": "Entity sweep",
+  "wallMs": 30294,
+  "ttftMs": 8278,
+  "output": "{\n  \"characters\": [\n    {\n      \"name\": \"Sedge\",\n      \"role\": \"road-warden\",\n      \"kind\": \"\",\n      \"oneLiner\": \"An old road-warden who keeps a ledger of travelers passing through the Ash District.\",\n      \"note\": \"\",\n      \"evidence\": \"Old Sedge, the plate on the hut, said\",\n      \"aliases\": [],\n      \"originChapters\": [\n        {\n          \"id\": \"ch2\",\n          \"num\": 2,\n          \"title\": \"Bigger Inside\"\n        }\n      ]\n    }\n  ],\n  \"locations\": [\n    {\n      \"name\": \"Ash District\",\n      \"role\": \"\",\n      \"kind\": \"district\",\n      \"oneLiner\": \"\",\n      \"note\": \"A location where Manufactory Nine is located.\",\n      \"evidence\": \"Manufactory Nine, Ash District.\",\n      \"aliases\": [],\n      \"originChapters\": [\n        {\n          \"id\": \"ch1\",\n          \"num\": 1,\n          \"title\": \"Brass Rank\"\n        },\n        {\n          \"id\": \"ch2\",\n          \"num\": 2,\n          \"title\": \"Bigger Inside\"\n        },\n        {\n          \"id\": \"ch3\",\n          \"num\": 3,\n          \"title\": \"The Same Hour\"\n        }\n      ]\n    },\n    {\n      \"name\": \"Kettle Lane\",\n      \"role\": \"\",\n      \"kind\": \"street\",\n      \"oneLiner\": \"\",\n      \"note\": \"The lane where Cael and Nettle walk home.\",\n      \"evidence\": \"Kettle Lane, after dark\",\n      \"aliases\": [],\n      \"originChapters\": [\n        {\n          \"id\": \"ch1\",\n          \"num\": 1,\n          \"title\": \"Brass Rank\"\n        }\n      ]\n    },\n    {\n      \"name\": \"Nine Road\",\n      \"role\": \"\",\n      \"kind\": \"road\",\n      \"oneLiner\": \"\",\n      \"note\": \"A street within the Ash District where lumen-lamps line the path.\",\n      \"evidence\": \"the lumen-lamps along the Nine Road stood\",\n      \"aliases\": [],\n      \"originChapters\": [\n        {\n          \"id\": \"ch2\",\n          \"num\": 2,\n          \"title\": \"Bigger Inside\"\n        }\n      ]\n    },\n    {\n      \"name\": \"East gallery\",\n      \"role\": \"\",\n      \"kind\": \"Location\",\n      \"oneLiner\": \"\",\n      \"note\": \"A place within the loop where members of the third party are stuck.\",\n      \"evidence\": \"They're still in the east gallery.\",\n      \"aliases\": [],\n      \"originChapters\": [\n        {\n          \"id\": \"ch3\",\n          \"num\": 3,\n          \"title\": \"The Same Hour\"\n        }\n      ]\n    }\n  ],\n  \"objects\": [\n    {\n      \"name\": \"Lumen-cell\",\n      \"role\": \"\",\n      \"kind\": \"power source\",\n      \"oneLiner\": \"\",\n      \"note\": \"A component in a lamp that can be swapped.\",\n      \"evidence\": \"the lumen-cell seated square.\",\n      \"aliases\": [],\n      \"originChapters\": [\n        {\n          \"id\": \"ch1\",\n          \"num\": 1,\n          \"title\": \"Brass Rank\"\n        }\n      ]\n    },\n    {\n      \"name\": \"Concern scrip\",\n      \"role\": \"\",\n      \"kind\": \"currency\",\n      \"oneLiner\": \"\",\n      \"note\": \"The currency used to pay for the job in the Ash District.\",\n      \"evidence\": \"pays in Concern scrip until certification\",\n      \"aliases\": [],\n      \"originChapters\": [\n        {\n          \"id\": \"ch1\",\n          \"num\": 1,\n          \"title\": \"Brass Rank\"\n        }\n      ]\n    },\n    {\n      \"name\": \"glimmer-looms\",\n      \"role\": \"\",\n      \"kind\": \"machinery\",\n      \"oneLiner\": \"\",\n      \"note\": \"Decommissioned machines that line the expansive floor of Manufactory Nine.\",\n      \"evidence\": \"Ranks of dead glimmer-looms marched off\",\n      \"aliases\": [],\n      \"originChapters\": [\n        {\n          \"id\": \"ch2\",\n          \"num\": 2,\n          \"title\": \"Bigger Inside\"\n        }\n      ]\n    },\n    {\n      \"name\": \"The Whole\",\n      \"role\": \"\",\n      \"kind\": \"Metaphysical Concept\",\n      \"oneLiner\": \"\",\n      \"note\": \"An original, unbroken art that was divided into the Facets during the Sundering.\",\n      \"evidence\": \"It was a wheel. One art, whole, turning\",\n      \"aliases\": [],\n      \"originChapters\": [\n        {\n          \"id\": \"ch3\",\n          \"num\": 3,\n          \"title\": \"The Same Hour\"\n        }\n      ]\n    },\n    {\n      \"name\": \"The Sundering\",\n      \"role\": \"\",\n      \"kind\": \"Historical Event\",\n      \"oneLiner\": \"\",\n      \"note\": \"The historical event where the singular art was broken into separate disciplines.\",\n      \"evidence\": \"The histories in the Cloister call it the Sundering.\",\n      \"aliases\": [],\n      \"originChapters\": [\n        {\n          \"id\": \"ch3\",\n          \"num\": 3,\n          \"title\": \"The Same Hour\"\n        }\n      ]\n    }\n  ]\n}",
+  "outputChars": 4281,
+  "usage": null,
+  "flags": [],
+  "extra": {
+    "counts": {
+      "characters": 1,
+      "locations": 4,
+      "objects": 5
+    },
+    "scanned": 3,
+    "totalChapters": 3,
+    "skipped": [],
+    "cancelled": false,
+    "chapterIds": [
+      "ch1",
+      "ch2",
+      "ch3"
+    ],
+    "chapterCap": 3
+  },
+  "error": null
+}

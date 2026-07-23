@@ -1,0 +1,61 @@
+{
+  "runId": "2026-07-22_03-28-55-gpu",
+  "leg": "gpu-gemma-26b",
+  "model": "gemma-4-26b-a4b-qat",
+  "attempt": 2,
+  "args": {
+    "passageChars": 2000,
+    "timeoutMs": 1200000
+  },
+  "preset": {
+    "id": "9d4ebeddeb96",
+    "name": "Bench",
+    "providerId": "",
+    "model": "gemma-4-26b-a4b-qat",
+    "temperature": 0.7,
+    "topP": null,
+    "maxTokens": 0,
+    "reasoningEffort": "",
+    "think": false,
+    "samplers": [],
+    "builtIn": false,
+    "position": 10,
+    "factoryModel": ""
+  },
+  "route": {
+    "feature": "writerAI.continue",
+    "action": "writerAI.continue",
+    "providerId": "local-llamacpp",
+    "model": "gemma-4-26b-a4b-qat",
+    "presetId": "9d4ebeddeb96",
+    "presetName": "Bench",
+    "presetSource": "assigned",
+    "think": false,
+    "level": "",
+    "reasoningWord": "",
+    "value": null,
+    "valueSource": "",
+    "configured": true,
+    "detail": ""
+  },
+  "featureKey": "writerAI.continue",
+  "ok": true,
+  "started": "2026-07-22T03:32:17.953Z",
+  "label": "Continue",
+  "wallMs": 10134,
+  "ttftMs": 218,
+  "output": "Cael stood alone in the doorway, the iron key cold against her palm. The silence of the glimmerworks was heavy, smelling of grease and stale ozone, a stark contrast to the biting salt air of the lane. She leaned her head against the doorframe and closed her eyes, waiting for the hum to subside, but the token only vibrated harder, a frantic, rhythmic pulse that seemed to sync with the beating of her own heart.\n\nShe turned the key and stepped into the dim warmth of their quarters. The floorboards groaned under her weight, a familiar, comforting sound that felt thin and fragile compared to the resonance vibrating through her pocket. She didn't light the lamps. She didn't need them to find the small, scarred table in the center of the room, or the way the shadows pooled in the corners like spilled ink.\n\nSitting at the table, she pulled the token out. In the dark, it threw a faint, sickly light against her knuckles, a glow that didn't belong to the lamps or the moon. It wasn't just humming now; it was singing, a low, discordant note that sat at the very edge of hearing, vibrating in her teeth. Cael stared at it, wondering if Nettle’s \"good feet\" were actually just a way of walking between the notes.",
+  "outputChars": 1213,
+  "usage": {
+    "promptTokens": 636,
+    "completionTokens": 272,
+    "model": "gemma-4-26b-a4b-qat",
+    "cost": 0
+  },
+  "flags": [],
+  "extra": {
+    "chapterId": "ch1",
+    "passageChars": 2000
+  },
+  "error": null
+}

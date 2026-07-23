@@ -1,0 +1,67 @@
+{
+  "runId": "2026-07-22_03-28-55-gpu",
+  "leg": "gpu-gemma-26b",
+  "model": "gemma-4-26b-a4b-qat",
+  "attempt": 1,
+  "args": {
+    "question": "What do you want most right now, and what are you afraid of?",
+    "timeoutMs": 1200000
+  },
+  "preset": {
+    "id": "9d4ebeddeb96",
+    "name": "Bench",
+    "providerId": "",
+    "model": "gemma-4-26b-a4b-qat",
+    "temperature": 0.7,
+    "topP": null,
+    "maxTokens": 0,
+    "reasoningEffort": "",
+    "think": false,
+    "samplers": [],
+    "builtIn": false,
+    "position": 10,
+    "factoryModel": ""
+  },
+  "route": {
+    "feature": "characterChat",
+    "action": "characterChat",
+    "providerId": "local-llamacpp",
+    "model": "gemma-4-26b-a4b-qat",
+    "presetId": "9d4ebeddeb96",
+    "presetName": "Bench",
+    "presetSource": "assigned",
+    "think": false,
+    "level": "",
+    "reasoningWord": "",
+    "value": null,
+    "valueSource": "",
+    "configured": true,
+    "detail": ""
+  },
+  "featureKey": "characterChat",
+  "ok": true,
+  "started": "2026-07-22T03:29:58.817Z",
+  "label": "Character chat",
+  "wallMs": 11372,
+  "ttftMs": 5747,
+  "output": "I used to want a clean job and a quiet life at the Hall—just a brass-rank mender who could fix a lamp and be left alone without anyone looking too closely at how my hands shake [3]. But right now... I don't know. I'm standing here with the Keystone, and the whole broken wheel of the world seems to be leaning toward me, waiting for an answer [4].\n\nI'm afraid of what happens if I answer it. I've spent my whole life trying to muffle the hum, thinking it was a sickness that needed cutting out, but now I'm holding the thing that's been calling to me since I was a girl [1]. I'm afraid that if I open my hand, I won't be able to close it again.",
+  "outputChars": 644,
+  "usage": {
+    "promptTokens": 2565,
+    "completionTokens": 168,
+    "model": "gemma-4-26b-a4b-qat",
+    "cost": 0
+  },
+  "flags": [
+    "temperature-fixed-by-caller"
+  ],
+  "extra": {
+    "bibleOnly": false,
+    "question": "What do you want most right now, and what are you afraid of?",
+    "k": 6,
+    "characterId": "c1",
+    "character": "Cael Ferren",
+    "citationCount": 6
+  },
+  "error": null
+}

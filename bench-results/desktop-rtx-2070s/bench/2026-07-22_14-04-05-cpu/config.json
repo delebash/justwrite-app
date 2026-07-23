@@ -1,0 +1,272 @@
+{
+  "name": "cpu",
+  "band": "cpu",
+  "baselineRefs": [
+    "gpu-gemma-26b"
+  ],
+  "book": "prj_sample_ninth_facet",
+  "features": [
+    "chat",
+    "characterChat",
+    "critique",
+    "writerAI.continue",
+    "writerAI.rewrite"
+  ],
+  "repeats": 2,
+  "timeoutMinutes": 20,
+  "sweepChapterCap": 2,
+  "ensureIndex": true,
+  "presetName": "Bench",
+  "featureArgs": {
+    "chat": {
+      "question": "What is this book about, and who is the protagonist?",
+      "k": 6
+    },
+    "characterChat": {
+      "question": "What do you want most right now, and what are you afraid of?"
+    },
+    "writerAI.continue": {
+      "passageChars": 2000
+    },
+    "writerAI.rewrite": {
+      "passageChars": 1200
+    }
+  },
+  "legs": [
+    {
+      "label": "26B-A4B MoE, pure CPU — the A4B class (recipe leg B)",
+      "gguf": "",
+      "tunables": {
+        "temperature": 0.7,
+        "think": false
+      },
+      "launch": {
+        "nGpuLayers": 0,
+        "ctxLen": 8192,
+        "threads": 8
+      },
+      "llamaBench": {
+        "p": [
+          512,
+          2048,
+          8192
+        ],
+        "n": 128,
+        "reps": 2
+      },
+      "features": null,
+      "repeats": null,
+      "timeoutMinutes": null,
+      "featureArgs": null,
+      "id": "cpu-gemma-26b",
+      "_why": "Weights already on disk, so this is the CPU datapoint available with zero downloads. Same model as the GPU baseline, which makes the GPU-vs-CPU delta a clean single-variable comparison.",
+      "model": "gemma-4-26b-a4b-qat",
+      "effectiveFeatures": [
+        "chat",
+        "characterChat",
+        "critique",
+        "writerAI.continue",
+        "writerAI.rewrite"
+      ],
+      "effectiveRepeats": 2,
+      "effectiveTimeoutMs": 1200000,
+      "effectiveFeatureArgs": {
+        "chat": {
+          "question": "What is this book about, and who is the protagonist?",
+          "k": 6
+        },
+        "characterChat": {
+          "question": "What do you want most right now, and what are you afraid of?"
+        },
+        "writerAI.continue": {
+          "passageChars": 2000
+        },
+        "writerAI.rewrite": {
+          "passageChars": 1200
+        }
+      }
+    },
+    {
+      "label": "Dense 12B QAT, pure CPU — the dense control (recipe leg C)",
+      "gguf": "",
+      "tunables": {
+        "temperature": 0.7,
+        "think": false
+      },
+      "launch": {
+        "nGpuLayers": 0,
+        "ctxLen": 8192,
+        "threads": 8
+      },
+      "llamaBench": {
+        "p": [
+          512,
+          2048,
+          8192
+        ],
+        "n": 128,
+        "reps": 2
+      },
+      "features": null,
+      "repeats": null,
+      "timeoutMinutes": null,
+      "featureArgs": null,
+      "id": "cpu-gemma-12b",
+      "_why": "What the Google answer recommended, and the only catalog chat model that fits a 16 GB-RAM laptop (~6.7 GB). Needs a download.",
+      "model": "gemma-4-12b-qat",
+      "effectiveFeatures": [
+        "chat",
+        "characterChat",
+        "critique",
+        "writerAI.continue",
+        "writerAI.rewrite"
+      ],
+      "effectiveRepeats": 2,
+      "effectiveTimeoutMs": 1200000,
+      "effectiveFeatureArgs": {
+        "chat": {
+          "question": "What is this book about, and who is the protagonist?",
+          "k": 6
+        },
+        "characterChat": {
+          "question": "What do you want most right now, and what are you afraid of?"
+        },
+        "writerAI.continue": {
+          "passageChars": 2000
+        },
+        "writerAI.rewrite": {
+          "passageChars": 1200
+        }
+      }
+    },
+    {
+      "label": "Ternary Bonsai 27B, pure CPU — a model DESIGNED for CPU (recipe leg E)",
+      "gguf": "",
+      "tunables": {
+        "temperature": 0.7,
+        "think": false
+      },
+      "launch": {
+        "nGpuLayers": 0,
+        "ctxLen": 8192,
+        "threads": 8
+      },
+      "llamaBench": {
+        "p": [
+          512,
+          2048,
+          8192
+        ],
+        "n": 128,
+        "reps": 2
+      },
+      "features": null,
+      "repeats": null,
+      "timeoutMinutes": null,
+      "featureArgs": null,
+      "id": "cpu-bonsai-27b",
+      "_why": [
+        "Ternary weights, ~7.6 GB, built for CPU rather than squeezed onto it — the one",
+        "leg that could beat the general-purpose models on this band's own terms.",
+        "",
+        "⚠ BEFORE THIS LEG CAN RUN — it is NOT in the catalog. Smart Add it from HF:",
+        "  repo: prism-ml/Ternary-Bonsai-27B-gguf",
+        "  file: Ternary-Bonsai-27B-Q2_g64.gguf   (note: Q2_g64, NOT Q2_0_g64)",
+        "Then set `model` below to whatever catalog id the Smart Add creates.",
+        "",
+        "⚠ `quant` IS PINNED ON PURPOSE. The repo also ships an F16 (53.8 GB); without",
+        "the quant filter the GGUF resolver takes the largest file and llama-bench would",
+        "measure the F16 by mistake.",
+        "",
+        "⚠ ONLY the g64 file runs on mainline llama.cpp, and only on CPU/Metal — Q2_0",
+        "needs the PrismML fork, so there is no GPU leg for this model on our engine.",
+        "",
+        "⚠ KNOWN RISK, verified 2026-07-19: HF discussion #3 reports this exact file",
+        "failing to load — \"tensor 'output_norm.weight' has offset 357580800, expected",
+        "337715200\" — on both mainline and the fork. Unclear whether it was re-uploaded",
+        "since. Users there also report only ~1-2 tok/s on CPU. If it fails, the bench",
+        "records a load failure naming the model rather than producing junk."
+      ],
+      "model": "ternary-bonsai-27b-q2-g64",
+      "quant": "Q2_g64",
+      "effectiveFeatures": [
+        "chat",
+        "characterChat",
+        "critique",
+        "writerAI.continue",
+        "writerAI.rewrite"
+      ],
+      "effectiveRepeats": 2,
+      "effectiveTimeoutMs": 1200000,
+      "effectiveFeatureArgs": {
+        "chat": {
+          "question": "What is this book about, and who is the protagonist?",
+          "k": 6
+        },
+        "characterChat": {
+          "question": "What do you want most right now, and what are you afraid of?"
+        },
+        "writerAI.continue": {
+          "passageChars": 2000
+        },
+        "writerAI.rewrite": {
+          "passageChars": 1200
+        }
+      }
+    },
+    {
+      "label": "35B-A3B MoE, pure CPU — smallest active params (recipe leg A)",
+      "gguf": "",
+      "tunables": {
+        "temperature": 0.7,
+        "think": false
+      },
+      "launch": {
+        "nGpuLayers": 0,
+        "ctxLen": 8192,
+        "threads": 8
+      },
+      "llamaBench": {
+        "p": [
+          512,
+          2048,
+          8192
+        ],
+        "n": 128,
+        "reps": 2
+      },
+      "features": null,
+      "repeats": null,
+      "timeoutMinutes": null,
+      "featureArgs": null,
+      "id": "cpu-qwen-35b",
+      "_why": "Best-case CPU generation in the catalog (A3.6B active). Needs ~24 GB free RAM and a ~23 GB download — 32 GB box only.",
+      "model": "qwen3.6-35b-a3b-mtp",
+      "effectiveFeatures": [
+        "chat",
+        "characterChat",
+        "critique",
+        "writerAI.continue",
+        "writerAI.rewrite"
+      ],
+      "effectiveRepeats": 2,
+      "effectiveTimeoutMs": 1200000,
+      "effectiveFeatureArgs": {
+        "chat": {
+          "question": "What is this book about, and who is the protagonist?",
+          "k": 6
+        },
+        "characterChat": {
+          "question": "What do you want most right now, and what are you afraid of?"
+        },
+        "writerAI.continue": {
+          "passageChars": 2000
+        },
+        "writerAI.rewrite": {
+          "passageChars": 1200
+        }
+      }
+    }
+  ],
+  "source": "E:\\Dev\\Web\\justwrite-app\\scripts\\bench\\configs\\cpu.json"
+}

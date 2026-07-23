@@ -1,0 +1,61 @@
+{
+  "runId": "2026-07-22_03-28-55-gpu",
+  "leg": "gpu-qwen-35b",
+  "model": "qwen3.6-35b-a3b-mtp",
+  "attempt": 2,
+  "args": {
+    "passageChars": 2000,
+    "timeoutMs": 1200000
+  },
+  "preset": {
+    "id": "9d4ebeddeb96",
+    "name": "Bench",
+    "providerId": "",
+    "model": "qwen3.6-35b-a3b-mtp",
+    "temperature": 0.7,
+    "topP": null,
+    "maxTokens": 0,
+    "reasoningEffort": "",
+    "think": false,
+    "samplers": [],
+    "builtIn": false,
+    "position": 10,
+    "factoryModel": ""
+  },
+  "route": {
+    "feature": "writerAI.continue",
+    "action": "writerAI.continue",
+    "providerId": "local-llamacpp",
+    "model": "qwen3.6-35b-a3b-mtp",
+    "presetId": "9d4ebeddeb96",
+    "presetName": "Bench",
+    "presetSource": "assigned",
+    "think": false,
+    "level": "",
+    "reasoningWord": "",
+    "value": null,
+    "valueSource": "",
+    "configured": true,
+    "detail": ""
+  },
+  "featureKey": "writerAI.continue",
+  "ok": true,
+  "started": "2026-07-22T03:59:17.010Z",
+  "label": "Continue",
+  "wallMs": 18489,
+  "ttftMs": 195,
+  "output": "Cael stood in the sudden silence, the key cold and heavy in her hand. The hum of the token had dropped to a whisper, a vibration that traveled up her arm and settled in her teeth, a reminder of the debt she hadn’t paid and the job that demanded she go back. She turned the key. The lock tumbled with a satisfying click, but the sound felt hollow, swallowed by the weight of the evening. Inside, the glimmerworks smelled of ozone and old dust, the air still charged from the day’s labor. She didn’t turn on the lights. The darkness was safer, or at least, it was the only place where the humming didn’t feel like a scream.\n\nShe walked to the small table in the corner, where the four bowls sat waiting, empty and clean. Winter was coming, and with it, the hunger that always seemed to follow the lumen furnaces when they ran low on fuel. She touched the rim of the first bowl, then the second, imagining the weight of grain, the warmth of broth. It was a fantasy, brittle and thin, but it was all they had. The token pulsed again, a sharp, insistent throb against her thigh, and she flinched. It was no longer just a seal; it was a compass, pointing her toward the Ash District, toward the dark gaps and the listening lamps.\n\nOutside, the city breathed its slow, mechanical breath, the lamps blinking out one by one as the night deepened. Cael closed her eyes and let the darkness take her, but the hum remained, a constant companion in the quiet room. She knew Nettle was safe, wherever her gaps took her, but Cael was still here, bound by the token and the promise of survival. She reached out and touched the cold glass of a window, feeling the city’s pulse beneath her fingertips, and waited for the morning that would bring another chance to disappear.",
+  "outputChars": 1756,
+  "usage": {
+    "promptTokens": 626,
+    "completionTokens": 398,
+    "model": "qwen3.6-35b-a3b-mtp",
+    "cost": 0
+  },
+  "flags": [],
+  "extra": {
+    "chapterId": "ch1",
+    "passageChars": 2000
+  },
+  "error": null
+}

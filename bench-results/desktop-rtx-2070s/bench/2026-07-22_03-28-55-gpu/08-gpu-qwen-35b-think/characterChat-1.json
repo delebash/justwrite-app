@@ -1,0 +1,67 @@
+{
+  "runId": "2026-07-22_03-28-55-gpu",
+  "leg": "gpu-qwen-35b-think",
+  "model": "qwen3.6-35b-a3b-mtp",
+  "attempt": 1,
+  "args": {
+    "question": "What do you want most right now, and what are you afraid of?",
+    "timeoutMs": 1200000
+  },
+  "preset": {
+    "id": "9d4ebeddeb96",
+    "name": "Bench",
+    "providerId": "",
+    "model": "qwen3.6-35b-a3b-mtp",
+    "temperature": 0.7,
+    "topP": null,
+    "maxTokens": 0,
+    "reasoningEffort": "",
+    "think": true,
+    "samplers": [],
+    "builtIn": false,
+    "position": 10,
+    "factoryModel": ""
+  },
+  "route": {
+    "feature": "characterChat",
+    "action": "characterChat",
+    "providerId": "local-llamacpp",
+    "model": "qwen3.6-35b-a3b-mtp",
+    "presetId": "9d4ebeddeb96",
+    "presetName": "Bench",
+    "presetSource": "assigned",
+    "think": true,
+    "level": "",
+    "reasoningWord": "",
+    "value": 1024,
+    "valueSource": "base",
+    "configured": true,
+    "detail": ""
+  },
+  "featureKey": "characterChat",
+  "ok": true,
+  "started": "2026-07-22T04:07:16.249Z",
+  "label": "Character chat",
+  "wallMs": 67491,
+  "ttftMs": 60715,
+  "output": "I want the brass chit. The kind that pays in scrip and don't ask what's under the floorboards. I want a desk that doesn't lean toward a note that isn't there anymore [1]. I want to finish a commission and walk home without the Wardens watching my hands.\n\nWhat I'm afraid of? The scalpel. They build their wards to cut the hum out, call it a sickness, and I've spent my life treating it like a cracked gear—I just want to oil it and keep it running quiet. But now I'm holding the thing that's been ringing in my teeth for twenty years, and I'm afraid I'll answer it. I'm afraid the hum isn't a defect. I'm afraid it's the only true compass left, and I don't know how to hold the weight without breaking the world again.",
+  "outputChars": 718,
+  "usage": {
+    "promptTokens": 2540,
+    "completionTokens": 1201,
+    "model": "qwen3.6-35b-a3b-mtp",
+    "cost": 0
+  },
+  "flags": [
+    "temperature-fixed-by-caller"
+  ],
+  "extra": {
+    "bibleOnly": false,
+    "question": "What do you want most right now, and what are you afraid of?",
+    "k": 6,
+    "characterId": "c1",
+    "character": "Cael Ferren",
+    "citationCount": 6
+  },
+  "error": null
+}

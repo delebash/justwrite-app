@@ -1,0 +1,61 @@
+{
+  "runId": "2026-07-22_09-11-52-cpu",
+  "leg": "cpu-gemma-12b",
+  "model": "gemma-4-12b-qat",
+  "attempt": 2,
+  "args": {
+    "passageChars": 2000,
+    "timeoutMs": 1200000
+  },
+  "preset": {
+    "id": "9d4ebeddeb96",
+    "name": "Bench",
+    "providerId": "",
+    "model": "gemma-4-12b-qat",
+    "temperature": 0.7,
+    "topP": null,
+    "maxTokens": 0,
+    "reasoningEffort": "",
+    "think": false,
+    "samplers": [],
+    "builtIn": false,
+    "position": 10,
+    "factoryModel": ""
+  },
+  "route": {
+    "feature": "writerAI.continue",
+    "action": "writerAI.continue",
+    "providerId": "local-llamacpp",
+    "model": "gemma-4-12b-qat",
+    "presetId": "9d4ebeddeb96",
+    "presetName": "Bench",
+    "presetSource": "assigned",
+    "think": false,
+    "level": "",
+    "reasoningWord": "",
+    "value": null,
+    "valueSource": "",
+    "configured": true,
+    "detail": ""
+  },
+  "featureKey": "writerAI.continue",
+  "ok": true,
+  "started": "2026-07-22T09:34:48.423Z",
+  "label": "Continue",
+  "wallMs": 60651,
+  "ttftMs": 672,
+  "output": "Cael stood in the doorway, the heavy scent of ozone and wet soot clinging to the air. The glimmerworks loomed ahead, a jagged silhouette against the bruised purple of the sky, its windows flickering with the rhythmic pulse of the presses. She felt the token vibrate against her ribs, a frantic, low-frequency thrum that seemed to sync with the beating of her own heart.\n\nShe took a breath, pulling the cold air deep into her lungs, trying to find that place behind her eyes where Nettle lived. It was a quiet, grey space, stripped of the city’s noise, where she could map the architecture of the coming night. She needed to find the seam in the glimmerworks' security, the one place where the light didn't reach and the hum of the furnace was loud enough to drown out the sound of a lock yielding.\n\nThe token gave a sharp, sudden jerk, a needle-prick of sensation against her skin. It wasn't just humming anymore; it was pointing. Cael adjusted her cloak, pulled the collar high against the rising chill, and stepped out of the doorway. She didn't look back at the empty space where Nettle had been. She simply moved into the shadows, a ghost following a ghost, toward the heart of the machine.",
+  "outputChars": 1194,
+  "usage": {
+    "promptTokens": 636,
+    "completionTokens": 267,
+    "model": "gemma-4-12b-qat",
+    "cost": 0
+  },
+  "flags": [],
+  "extra": {
+    "chapterId": "ch1",
+    "passageChars": 2000
+  },
+  "error": null
+}

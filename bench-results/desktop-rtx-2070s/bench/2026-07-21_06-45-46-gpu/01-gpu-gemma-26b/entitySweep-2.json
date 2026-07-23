@@ -1,0 +1,69 @@
+{
+  "runId": "2026-07-21_06-45-46-gpu",
+  "leg": "gpu-gemma-26b",
+  "model": "gemma-4-26b-a4b-qat",
+  "attempt": 2,
+  "args": {
+    "timeoutMs": 1200000,
+    "chapterCap": 3
+  },
+  "preset": {
+    "id": "17693095dfb1",
+    "name": "Bench",
+    "providerId": "",
+    "model": "gemma-4-26b-a4b-qat",
+    "temperature": 0.7,
+    "topP": null,
+    "maxTokens": 0,
+    "reasoningEffort": "",
+    "think": false,
+    "samplers": [],
+    "builtIn": false,
+    "position": 10,
+    "factoryModel": ""
+  },
+  "route": {
+    "feature": "entitySweep",
+    "action": "entitySweep",
+    "providerId": "local-llamacpp",
+    "model": "gemma-4-26b-a4b-qat",
+    "presetId": "17693095dfb1",
+    "presetName": "Bench",
+    "presetSource": "assigned",
+    "think": false,
+    "level": "",
+    "reasoningWord": "",
+    "value": null,
+    "valueSource": "",
+    "configured": true,
+    "detail": ""
+  },
+  "featureKey": "entitySweep",
+  "ok": true,
+  "started": "2026-07-21T06:48:07.952Z",
+  "label": "Entity sweep",
+  "wallMs": 32929,
+  "ttftMs": 12353,
+  "output": "{\n  \"characters\": [\n    {\n      \"name\": \"Sedge\",\n      \"role\": \"road-warden\",\n      \"kind\": \"\",\n      \"oneLiner\": \"An old road-warden who keeps a ledger of those passing through the Ash District.\",\n      \"note\": \"\",\n      \"evidence\": \"Old Sedge, the plate on the hut, said\",\n      \"aliases\": [],\n      \"originChapters\": [\n        {\n          \"id\": \"ch2\",\n          \"num\": 2,\n          \"title\": \"Bigger Inside\"\n        }\n      ]\n    }\n  ],\n  \"locations\": [\n    {\n      \"name\": \"Ash District\",\n      \"role\": \"\",\n      \"kind\": \"District\",\n      \"oneLiner\": \"\",\n      \"note\": \"A location where Manufactory Nine is situated, noted for being dull.\",\n      \"evidence\": \"Manufactory Nine, Ash District.\",\n      \"aliases\": [],\n      \"originChapters\": [\n        {\n          \"id\": \"ch1\",\n          \"num\": 1,\n          \"title\": \"Brass Rank\"\n        },\n        {\n          \"id\": \"ch3\",\n          \"num\": 3,\n          \"title\": \"The Same Hour\"\n        }\n      ]\n    },\n    {\n      \"name\": \"Kettle Lane\",\n      \"role\": \"\",\n      \"kind\": \"Street\",\n      \"oneLiner\": \"\",\n      \"note\": \"The street where Nettle walks Cael home.\",\n      \"evidence\": \"Kettle Lane, after dark\",\n      \"aliases\": [],\n      \"originChapters\": [\n        {\n          \"id\": \"ch1\",\n          \"num\": 1,\n          \"title\": \"Brass Rank\"\n        }\n      ]\n    },\n    {\n      \"name\": \"The Ash District\",\n      \"role\": \"\",\n      \"kind\": \"district\",\n      \"oneLiner\": \"\",\n      \"note\": \"A once-bright part of Threnn that has fallen into decay.\",\n      \"evidence\": \"The road to the NineThe Ash District had been\",\n      \"aliases\": [],\n      \"originChapters\": [\n        {\n          \"id\": \"ch2\",\n          \"num\": 2,\n          \"title\": \"Bigger Inside\"\n        }\n      ]\n    },\n    {\n      \"name\": \"Nine Road\",\n      \"role\": \"\",\n      \"kind\": \"road\",\n      \"oneLiner\": \"\",\n      \"note\": \"The thoroughfare running through the Ash District.\",\n      \"evidence\": \"the lumen-lamps along the Nine Road stood\",\n      \"aliases\": [],\n      \"originChapters\": [\n        {\n          \"id\": \"ch2\",\n          \"num\": 2,\n          \"title\": \"Bigger Inside\"\n        }\n      ]\n    },\n    {\n      \"name\": \"East Gallery\",\n      \"role\": \"\",\n      \"kind\": \"location\",\n      \"oneLiner\": \"\",\n      \"note\": \"A place where members of the third party are still walking, unaware of the loop.\",\n      \"evidence\": \"They're still in the east gallery.\",\n      \"aliases\": [],\n      \"originChapters\": [\n        {\n          \"id\": \"ch3\",\n          \"num\": 3,\n          \"title\": \"The Same Hour\"\n        }\n      ]\n    }\n  ],\n  \"objects\": [\n    {\n      \"name\": \"Concern seal\",\n      \"role\": \"\",\n      \"kind\": \"Seal\",\n      \"oneLiner\": \"\",\n      \"note\": \"A seal used by the Concern to certify documents or buildings.\",\n      \"evidence\": \"A Concern seal on a clearance meant the Concern wanted a receipt\",\n      \"aliases\": [],\n      \"originChapters\": [\n        {\n          \"id\": \"ch1\",\n          \"num\": 1,\n          \"title\": \"Brass Rank\"\n        }\n      ]\n    },\n    {\n      \"name\": \"The Whole\",\n      \"role\": \"\",\n      \"kind\": \"metaphysical concept\",\n      \"oneLiner\": \"\",\n      \"note\": \"The original, unbroken state of art that was broken into the Facets.\",\n      \"evidence\": \"It was a wheel. One art, whole, turning\",\n      \"aliases\": [],\n      \"originChapters\": [\n        {\n          \"id\": \"ch3\",\n          \"num\": 3,\n          \"title\": \"The Same Hour\"\n        }\n      ]\n    },\n    {\n      \"name\": \"The Sundering\",\n      \"role\": \"\",\n      \"kind\": \"historical event\",\n      \"oneLiner\": \"\",\n      \"note\": \"The historical event where the Whole was broken into separate Facets.\",\n      \"evidence\": \"The histories in the Cloister call it the Sundering.\",\n      \"aliases\": [],\n      \"originChapters\": [\n        {\n          \"id\": \"ch3\",\n          \"num\": 3,\n          \"title\": \"The Same Hour\"\n        }\n      ]\n    }\n  ]\n}",
+  "outputChars": 3814,
+  "usage": null,
+  "flags": [],
+  "extra": {
+    "counts": {
+      "characters": 1,
+      "locations": 5,
+      "objects": 3
+    },
+    "scanned": 3,
+    "totalChapters": 3,
+    "skipped": [],
+    "cancelled": false,
+    "chapterIds": [
+      "ch1",
+      "ch2",
+      "ch3"
+    ],
+    "chapterCap": 3
+  },
+  "error": null
+}

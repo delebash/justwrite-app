@@ -1,0 +1,476 @@
+{
+  "leg": {
+    "label": "Ternary Bonsai 27B, pure CPU — a model DESIGNED for CPU (recipe leg E)",
+    "gguf": "",
+    "tunables": {
+      "temperature": 0.7,
+      "think": false
+    },
+    "launch": {
+      "nGpuLayers": 0,
+      "ctxLen": 8192,
+      "threads": 8
+    },
+    "llamaBench": {
+      "p": [
+        512,
+        2048,
+        8192
+      ],
+      "n": 128,
+      "reps": 2
+    },
+    "features": null,
+    "repeats": null,
+    "timeoutMinutes": null,
+    "featureArgs": null,
+    "id": "cpu-bonsai-27b",
+    "_why": [
+      "Ternary weights, ~7.6 GB, built for CPU rather than squeezed onto it — the one",
+      "leg that could beat the general-purpose models on this band's own terms.",
+      "",
+      "⚠ BEFORE THIS LEG CAN RUN — it is NOT in the catalog. Smart Add it from HF:",
+      "  repo: prism-ml/Ternary-Bonsai-27B-gguf",
+      "  file: Ternary-Bonsai-27B-Q2_g64.gguf   (note: Q2_g64, NOT Q2_0_g64)",
+      "Then set `model` below to whatever catalog id the Smart Add creates.",
+      "",
+      "⚠ `quant` IS PINNED ON PURPOSE. The repo also ships an F16 (53.8 GB); without",
+      "the quant filter the GGUF resolver takes the largest file and llama-bench would",
+      "measure the F16 by mistake.",
+      "",
+      "⚠ ONLY the g64 file runs on mainline llama.cpp, and only on CPU/Metal — Q2_0",
+      "needs the PrismML fork, so there is no GPU leg for this model on our engine.",
+      "",
+      "⚠ KNOWN RISK, verified 2026-07-19: HF discussion #3 reports this exact file",
+      "failing to load — \"tensor 'output_norm.weight' has offset 357580800, expected",
+      "337715200\" — on both mainline and the fork. Unclear whether it was re-uploaded",
+      "since. Users there also report only ~1-2 tok/s on CPU. If it fails, the bench",
+      "records a load failure naming the model rather than producing junk."
+    ],
+    "model": "ternary-bonsai-27b-q2-g64",
+    "quant": "Q2_g64",
+    "effectiveFeatures": [
+      "chat",
+      "characterChat",
+      "critique",
+      "writerAI.continue",
+      "writerAI.rewrite"
+    ],
+    "effectiveRepeats": 2,
+    "effectiveTimeoutMs": 1200000,
+    "effectiveFeatureArgs": {
+      "chat": {
+        "question": "What is this book about, and who is the protagonist?",
+        "k": 6
+      },
+      "characterChat": {
+        "question": "What do you want most right now, and what are you afraid of?"
+      },
+      "writerAI.continue": {
+        "passageChars": 2000
+      },
+      "writerAI.rewrite": {
+        "passageChars": 1200
+      }
+    }
+  },
+  "runId": "2026-07-22_14-04-05-cpu",
+  "band": "cpu",
+  "fingerprint": "15f7f8b4bbf5",
+  "env": {
+    "engineBuild": "b10083",
+    "engineGpu": "cpu",
+    "appSha": "836e8bf",
+    "cpu": "AMD Ryzen 7 5700X 8-Core Processor             ",
+    "gpus": [
+      {
+        "name": "NVIDIA GeForce RTX 2070 SUPER",
+        "totalMb": 8192,
+        "driver": "610.62"
+      }
+    ],
+    "book": "prj_sample_ninth_facet"
+  },
+  "startedAt": "2026-07-22T14:04:14.884Z",
+  "runs": [
+    {
+      "featureKey": "chat",
+      "ok": false,
+      "started": "2026-07-22T14:06:28.089Z",
+      "label": "Ask the book",
+      "wallMs": 1200010,
+      "ttftMs": null,
+      "outputChars": 0,
+      "usage": null,
+      "flags": [
+        "timeout"
+      ],
+      "extra": {
+        "timeoutMs": 1200000
+      },
+      "error": "BodyStreamBuffer was aborted"
+    },
+    {
+      "featureKey": "chat",
+      "ok": false,
+      "started": "2026-07-22T14:26:28.105Z",
+      "label": "Ask the book",
+      "wallMs": 64804,
+      "ttftMs": null,
+      "outputChars": 0,
+      "usage": null,
+      "flags": [
+        "error"
+      ],
+      "extra": {
+        "timeoutMs": 1200000
+      },
+      "error": "Couldn't reach the LLM — Timed out — local models often need to load before the first call."
+    },
+    {
+      "featureKey": "characterChat",
+      "ok": false,
+      "started": "2026-07-22T14:27:32.913Z",
+      "label": "Character chat",
+      "wallMs": 60855,
+      "ttftMs": null,
+      "outputChars": 0,
+      "usage": null,
+      "flags": [
+        "error"
+      ],
+      "extra": {
+        "timeoutMs": 1200000
+      },
+      "error": "Couldn't reach the LLM — Timed out — local models often need to load before the first call."
+    },
+    {
+      "featureKey": "characterChat",
+      "ok": false,
+      "started": "2026-07-22T14:28:33.771Z",
+      "label": "Character chat",
+      "wallMs": 60284,
+      "ttftMs": null,
+      "outputChars": 0,
+      "usage": null,
+      "flags": [
+        "error"
+      ],
+      "extra": {
+        "timeoutMs": 1200000
+      },
+      "error": "Couldn't reach the LLM — Timed out — local models often need to load before the first call."
+    },
+    {
+      "featureKey": "critique",
+      "ok": false,
+      "started": "2026-07-22T14:29:34.058Z",
+      "label": "Chapter critique",
+      "wallMs": 60030,
+      "ttftMs": null,
+      "outputChars": 0,
+      "usage": null,
+      "flags": [
+        "error"
+      ],
+      "extra": {
+        "timeoutMs": 1200000
+      },
+      "error": "Couldn't reach the LLM — Timed out — local models often need to load before the first call."
+    },
+    {
+      "featureKey": "critique",
+      "ok": false,
+      "started": "2026-07-22T14:30:34.091Z",
+      "label": "Chapter critique",
+      "wallMs": 60032,
+      "ttftMs": null,
+      "outputChars": 0,
+      "usage": null,
+      "flags": [
+        "error"
+      ],
+      "extra": {
+        "timeoutMs": 1200000
+      },
+      "error": "Couldn't reach the LLM — Timed out — local models often need to load before the first call."
+    },
+    {
+      "featureKey": "writerAI.continue",
+      "ok": false,
+      "started": "2026-07-22T14:31:34.127Z",
+      "label": "Continue",
+      "wallMs": 60027,
+      "ttftMs": null,
+      "outputChars": 0,
+      "usage": null,
+      "flags": [
+        "error"
+      ],
+      "extra": {
+        "timeoutMs": 1200000
+      },
+      "error": "Couldn't reach the LLM — Timed out — local models often need to load before the first call."
+    },
+    {
+      "featureKey": "writerAI.continue",
+      "ok": false,
+      "started": "2026-07-22T14:32:34.160Z",
+      "label": "Continue",
+      "wallMs": 60027,
+      "ttftMs": null,
+      "outputChars": 0,
+      "usage": null,
+      "flags": [
+        "error"
+      ],
+      "extra": {
+        "timeoutMs": 1200000
+      },
+      "error": "Couldn't reach the LLM — Timed out — local models often need to load before the first call."
+    },
+    {
+      "featureKey": "writerAI.rewrite",
+      "ok": false,
+      "started": "2026-07-22T14:33:34.192Z",
+      "label": "Rewrite",
+      "wallMs": 60027,
+      "ttftMs": null,
+      "outputChars": 0,
+      "usage": null,
+      "flags": [
+        "error"
+      ],
+      "extra": {
+        "timeoutMs": 1200000
+      },
+      "error": "Couldn't reach the LLM — Timed out — local models often need to load before the first call."
+    },
+    {
+      "featureKey": "writerAI.rewrite",
+      "ok": false,
+      "started": "2026-07-22T14:34:34.222Z",
+      "label": "Rewrite",
+      "wallMs": 60031,
+      "ttftMs": null,
+      "outputChars": 0,
+      "usage": null,
+      "flags": [
+        "error"
+      ],
+      "extra": {
+        "timeoutMs": 1200000
+      },
+      "error": "Couldn't reach the LLM — Timed out — local models often need to load before the first call."
+    }
+  ],
+  "preset": {
+    "id": "9d4ebeddeb96",
+    "name": "Bench",
+    "providerId": "",
+    "model": "ternary-bonsai-27b-q2-g64",
+    "temperature": 0.7,
+    "topP": null,
+    "maxTokens": 0,
+    "reasoningEffort": "",
+    "think": false,
+    "samplers": [],
+    "builtIn": false,
+    "position": 10,
+    "factoryModel": ""
+  },
+  "load": {
+    "ok": true,
+    "waitedMs": 12946,
+    "model": {
+      "id": "ternary-bonsai-27b-q2-g64",
+      "status": "loaded",
+      "nParams": 26895998464,
+      "sizeBytes": 7574337536,
+      "nCtx": 8192,
+      "vramMb": null
+    },
+    "resident": {
+      "router": true,
+      "modelsMax": 2,
+      "sleepIdleSeconds": 900,
+      "vramTotalMb": 8192,
+      "committedMb": 0,
+      "remainingMb": 8192,
+      "models": [
+        {
+          "id": "gemma-4-12b-qat",
+          "status": "unloaded",
+          "nParams": null,
+          "sizeBytes": null,
+          "nCtx": null,
+          "vramMb": null
+        },
+        {
+          "id": "gemma-4-26b-a4b-qat",
+          "status": "unloaded",
+          "nParams": null,
+          "sizeBytes": null,
+          "nCtx": null,
+          "vramMb": null
+        },
+        {
+          "id": "qwen3-embedding-4b",
+          "status": "unloaded",
+          "nParams": null,
+          "sizeBytes": null,
+          "nCtx": null,
+          "vramMb": null
+        },
+        {
+          "id": "qwen3.6-35b-a3b-mtp",
+          "status": "unloaded",
+          "nParams": null,
+          "sizeBytes": null,
+          "nCtx": null,
+          "vramMb": null
+        },
+        {
+          "id": "ternary-bonsai-27b-q2-g64",
+          "status": "loaded",
+          "nParams": 26895998464,
+          "sizeBytes": 7574337536,
+          "nCtx": 8192,
+          "vramMb": null
+        }
+      ]
+    }
+  },
+  "measure": {
+    "ok": false,
+    "error": "HTTPConnectionPool(host='127.0.0.1', port=8080): Read timed out. (read timeout=120)"
+  },
+  "routes": {
+    "chat": {
+      "feature": "chat",
+      "action": "chat",
+      "providerId": "local-llamacpp",
+      "model": "ternary-bonsai-27b-q2-g64",
+      "presetId": "9d4ebeddeb96",
+      "presetName": "Bench",
+      "presetSource": "assigned",
+      "think": false,
+      "level": "",
+      "reasoningWord": "",
+      "value": null,
+      "valueSource": "",
+      "configured": true,
+      "detail": ""
+    },
+    "characterChat": {
+      "feature": "characterChat",
+      "action": "characterChat",
+      "providerId": "local-llamacpp",
+      "model": "ternary-bonsai-27b-q2-g64",
+      "presetId": "9d4ebeddeb96",
+      "presetName": "Bench",
+      "presetSource": "assigned",
+      "think": false,
+      "level": "",
+      "reasoningWord": "",
+      "value": null,
+      "valueSource": "",
+      "configured": true,
+      "detail": ""
+    },
+    "critique": {
+      "feature": "critique",
+      "action": "critique",
+      "providerId": "local-llamacpp",
+      "model": "ternary-bonsai-27b-q2-g64",
+      "presetId": "9d4ebeddeb96",
+      "presetName": "Bench",
+      "presetSource": "assigned",
+      "think": false,
+      "level": "",
+      "reasoningWord": "",
+      "value": null,
+      "valueSource": "",
+      "configured": true,
+      "detail": ""
+    },
+    "writerAI.continue": {
+      "feature": "writerAI.continue",
+      "action": "writerAI.continue",
+      "providerId": "local-llamacpp",
+      "model": "ternary-bonsai-27b-q2-g64",
+      "presetId": "9d4ebeddeb96",
+      "presetName": "Bench",
+      "presetSource": "assigned",
+      "think": false,
+      "level": "",
+      "reasoningWord": "",
+      "value": null,
+      "valueSource": "",
+      "configured": true,
+      "detail": ""
+    },
+    "writerAI.rewrite": {
+      "feature": "writerAI.rewrite",
+      "action": "writerAI.rewrite",
+      "providerId": "local-llamacpp",
+      "model": "ternary-bonsai-27b-q2-g64",
+      "presetId": "9d4ebeddeb96",
+      "presetName": "Bench",
+      "presetSource": "assigned",
+      "think": false,
+      "level": "",
+      "reasoningWord": "",
+      "value": null,
+      "valueSource": "",
+      "configured": true,
+      "detail": ""
+    }
+  },
+  "engineQuiet": {
+    "quiet": true,
+    "waitedMs": 2092,
+    "lastRssMb": null
+  },
+  "llamaBench": {
+    "ok": false,
+    "args": [
+      "-m",
+      "E:\\Dev\\Web\\justwrite-app\\src-tauri\\target\\debug\\data\\ai-cache\\hf\\models--prism-ml--Ternary-Bonsai-27B-gguf\\snapshots\\abbae723028d71be674e71e1a71201a6f43fab22\\Ternary-Bonsai-27B-Q2_g64.gguf",
+      "-p",
+      "512,2048,8192",
+      "-n",
+      "128",
+      "-r",
+      "2",
+      "-o",
+      "json",
+      "-ngl",
+      "0",
+      "-t",
+      "8",
+      "-c",
+      "8192"
+    ],
+    "retriedWithout": [
+      "-o json"
+    ],
+    "exitCode": 1,
+    "timedOut": false,
+    "wallMs": 109,
+    "format": "unparsed",
+    "rows": [],
+    "derived": {},
+    "error": "Command failed: E:\\Dev\\Web\\justwrite-app\\src-tauri\\target\\debug\\data\\ai-cache\\llamacpp\\b10083\\cpu\\llama-bench.exe -m E:\\Dev\\Web\\justwrite-app\\src-tauri\\target\\debug\\data\\ai-cache\\hf\\models--prism-ml--Ternary-Bonsai-27B-gguf\\snapshots\\abbae723028d71be674e71e1a71201a6f43fab22\\Ternary-Bonsai-27B-Q2_g64.gguf -p 512,2048,8192 -n 128 -r 2 -ngl 0 -t 8 -c 8192\nload_backend: loaded RPC backend from E:\\Dev\\",
+    "stdout": "usage: E:\\Dev\\Web\\justwrite-app\\src-tauri\\target\\debug\\data\\ai-cache\\llamacpp\\b10083\\cpu\\llama-bench.exe [options]\r\n\r\noptions:\r\n  -h, --help\r\n  --numa <distribute|isolate|numactl>         numa mode (default: disabled)\r\n  -r, --repetitions <n>                       number of times to repeat each test (default: 5)\r\n  --prio <-1|0|1|2|3>                         process/thread priority (default: 0)\r\n  --delay <0...N> (seconds)                   delay between each test (default: 0)\r\n  -o, --output <csv|json|jsonl|md|sql>        output format printed to stdout (default: md)\r\n  -oe, --output-err <csv|json|jsonl|md|sql>   output format printed to stderr (default: none)\r\n  --list-devices                              list available devices and exit\r\n  -v, --verbose                               verbose output\r\n  --progress                                  print test progress indicators\r\n  --no-warmup                                 skip warmup runs before benchmarking\r\n  -fitt, --fit-target <MiB>                   fit model to device memory with this margin per device in MiB (default: off)\r\n  -fitc, --fit-ctx <n>                        minimum ctx size for --fit-target (default: 4096)\r\n  -rpc, --rpc <rpc_servers>                   register RPC devices (comma separated)\r\n\r\ntest parameters:\r\n  -m, --model <filename>                      (default: models/7B/ggml-model-q4_0.gguf)\r\n  -hf, -hfr, --hf-repo <user>/<model>[:quant] Hugging Face model repository; quant is optional, case-insensitive\r\n                                              default to Q4_K_M, or falls back to the first file in the repo if Q4_K_M doesn't exist.\r\n                                              example: ggml-org/GLM-4.7-Flash-GGUF:Q4_K_M\r\n                                              (default: unused)\r\n  -hff, --hf-file <file>                      Hugging Face model file. If specified, it will override the quant in --hf-repo\r\n                                              (default: unused)\r\n  -hft, --hf-token <token>                    Hugging Face access token\r\n                                              (default: value from HF_TOKEN environment variable)\r\n  --offline                                   Offline mode: forces use of cache, prevents network access\r\n                                              (default: disabled)\r\n  -p, --n-prompt <n>                          (default: 512)\r\n  -n, --n-gen <n>                             (default: 128)\r\n  -pg <pp,tg>                                 (default: )\r\n  -d, --n-depth <n>                           (default: 0)\r\n  -b, --batch-size <n>                        (default: 2048)\r\n  -ub, --ubatch-size <n>                      (default: 512)\r\n  -ctk, --cache-type-k <t>                    (default: f16)\r\n  -ctv, --cache-type-v <t>                    (default: f16)\r\n  -t, --threads <n>                           (default: 8)\r\n  -C, --cpu-mask <hex,hex>                    (default: 0x0)\r\n  --cpu-strict <0|1>                          (default: 0)\r\n  --poll <0...100>                            (default: 50)\r\n  -ngl, --n-gpu-layers <n>                    (default: -1)\r\n  -ncmoe, --n-cpu-moe <n>                     (default: 0)\r\n  -sm, --split-mode <none|layer|row|tensor>   (default: layer)\r\n  -mg, --main-gpu <i>                         (default: 0)\r\n  -nkvo, --no-kv-offload <0|1>                (default: 0)\r\n  -fa, --flash-attn <on|off|auto>             (default: auto)\r\n  -dev, --device <dev0/dev1/...>              (default: auto)\r\n  -mmp, --mmap <0|1>                          (default: 1)\r\n  -dio, --direct-io <0|1>                     (default: 0)\r\n  -embd, --embeddings <0|1>                   (default: 0)\r\n  -ts, --tensor-split <ts0/ts1/..>            (default: 0)\r\n  -ot --override-tensor <tensor name pattern>=<buffer type>;...\r\n                                              (default: disabled)\r\n  -nopo, --no-op-offload <0|1>                (default: 0)\r\n  --no-host <0|1>                             (default: 0)\r\n\r\nMultiple values can be given for each parameter by separating them with ','\r\nor by specifying the parameter multiple times. Ranges can be given as\r\n'first-last' or 'first-last+step' or 'first-last*mult'.\r\n",
+    "stderr": "load_backend: loaded RPC backend from E:\\Dev\\Web\\justwrite-app\\src-tauri\\target\\debug\\data\\ai-cache\\llamacpp\\b10083\\cpu\\ggml-rpc.dll\r\nload_backend: loaded CPU backend from E:\\Dev\\Web\\justwrite-app\\src-tauri\\target\\debug\\data\\ai-cache\\llamacpp\\b10083\\cpu\\ggml-cpu-haswell.dll\r\nerror: invalid parameter for argument: -c\r\n",
+    "gguf": "Ternary-Bonsai-27B-Q2_g64.gguf",
+    "ggufPath": "E:\\Dev\\Web\\justwrite-app\\src-tauri\\target\\debug\\data\\ai-cache\\hf\\models--prism-ml--Ternary-Bonsai-27B-gguf\\snapshots\\abbae723028d71be674e71e1a71201a6f43fab22\\Ternary-Bonsai-27B-Q2_g64.gguf"
+  },
+  "peaks": {
+    "peakVramMb": 1193,
+    "peakRssMb": 13703,
+    "samples": 938
+  },
+  "finishedAt": "2026-07-22T14:35:36.795Z"
+}

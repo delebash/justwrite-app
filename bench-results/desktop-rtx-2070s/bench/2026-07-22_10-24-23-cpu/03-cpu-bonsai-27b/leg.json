@@ -1,0 +1,172 @@
+{
+  "leg": {
+    "label": "Ternary Bonsai 27B, pure CPU — a model DESIGNED for CPU (recipe leg E)",
+    "gguf": "",
+    "tunables": {
+      "temperature": 0.7,
+      "think": false
+    },
+    "launch": {
+      "nGpuLayers": 0,
+      "ctxLen": 8192,
+      "threads": 8
+    },
+    "llamaBench": {
+      "p": [
+        512,
+        2048,
+        8192
+      ],
+      "n": 128,
+      "reps": 2
+    },
+    "features": null,
+    "repeats": null,
+    "timeoutMinutes": null,
+    "featureArgs": null,
+    "id": "cpu-bonsai-27b",
+    "_why": [
+      "Ternary weights, ~7.6 GB, built for CPU rather than squeezed onto it — the one",
+      "leg that could beat the general-purpose models on this band's own terms.",
+      "",
+      "⚠ BEFORE THIS LEG CAN RUN — it is NOT in the catalog. Smart Add it from HF:",
+      "  repo: prism-ml/Ternary-Bonsai-27B-gguf",
+      "  file: Ternary-Bonsai-27B-Q2_g64.gguf   (note: Q2_g64, NOT Q2_0_g64)",
+      "Then set `model` below to whatever catalog id the Smart Add creates.",
+      "",
+      "⚠ `quant` IS PINNED ON PURPOSE. The repo also ships an F16 (53.8 GB); without",
+      "the quant filter the GGUF resolver takes the largest file and llama-bench would",
+      "measure the F16 by mistake.",
+      "",
+      "⚠ ONLY the g64 file runs on mainline llama.cpp, and only on CPU/Metal — Q2_0",
+      "needs the PrismML fork, so there is no GPU leg for this model on our engine.",
+      "",
+      "⚠ KNOWN RISK, verified 2026-07-19: HF discussion #3 reports this exact file",
+      "failing to load — \"tensor 'output_norm.weight' has offset 357580800, expected",
+      "337715200\" — on both mainline and the fork. Unclear whether it was re-uploaded",
+      "since. Users there also report only ~1-2 tok/s on CPU. If it fails, the bench",
+      "records a load failure naming the model rather than producing junk."
+    ],
+    "model": "ternary-bonsai-27b",
+    "quant": "Q2_g64",
+    "effectiveFeatures": [
+      "chat",
+      "characterChat",
+      "critique",
+      "writerAI.continue",
+      "writerAI.rewrite"
+    ],
+    "effectiveRepeats": 2,
+    "effectiveTimeoutMs": 1200000,
+    "effectiveFeatureArgs": {
+      "chat": {
+        "question": "What is this book about, and who is the protagonist?",
+        "k": 6
+      },
+      "characterChat": {
+        "question": "What do you want most right now, and what are you afraid of?"
+      },
+      "writerAI.continue": {
+        "passageChars": 2000
+      },
+      "writerAI.rewrite": {
+        "passageChars": 1200
+      }
+    }
+  },
+  "runId": "2026-07-22_10-24-23-cpu",
+  "band": "cpu",
+  "fingerprint": "b4fa2a2800f5",
+  "env": {
+    "engineBuild": "b10083",
+    "engineGpu": "cpu",
+    "appSha": "d65e652",
+    "cpu": "AMD Ryzen 7 5700X 8-Core Processor             ",
+    "gpus": [
+      {
+        "name": "NVIDIA GeForce RTX 2070 SUPER",
+        "totalMb": 8192,
+        "driver": "610.62"
+      }
+    ],
+    "book": "prj_sample_ninth_facet"
+  },
+  "startedAt": "2026-07-22T10:24:26.353Z",
+  "runs": [],
+  "preset": {
+    "id": "9d4ebeddeb96",
+    "name": "Bench",
+    "providerId": "",
+    "model": "ternary-bonsai-27b",
+    "temperature": 0.7,
+    "topP": null,
+    "maxTokens": 0,
+    "reasoningEffort": "",
+    "think": false,
+    "samplers": [],
+    "builtIn": false,
+    "position": 10,
+    "factoryModel": ""
+  },
+  "load": {
+    "ok": false,
+    "waitedMs": 1801365,
+    "resident": {
+      "router": true,
+      "modelsMax": 2,
+      "sleepIdleSeconds": 900,
+      "vramTotalMb": 8192,
+      "committedMb": 549,
+      "remainingMb": 7643,
+      "models": [
+        {
+          "id": "gemma-4-12b-qat",
+          "status": "unloaded",
+          "nParams": null,
+          "sizeBytes": null,
+          "nCtx": null,
+          "vramMb": null
+        },
+        {
+          "id": "gemma-4-26b-a4b-qat",
+          "status": "sleeping",
+          "nParams": 25233142046,
+          "sizeBytes": 14233222264,
+          "nCtx": 16384,
+          "vramMb": 549
+        },
+        {
+          "id": "qwen3-embedding-4b",
+          "status": "unloaded",
+          "nParams": null,
+          "sizeBytes": null,
+          "nCtx": null,
+          "vramMb": null
+        },
+        {
+          "id": "qwen3.6-35b-a3b-mtp",
+          "status": "unloaded",
+          "nParams": null,
+          "sizeBytes": null,
+          "nCtx": null,
+          "vramMb": null
+        },
+        {
+          "id": "ternary-bonsai-27b-q2-g64",
+          "status": "unloaded",
+          "nParams": null,
+          "sizeBytes": null,
+          "nCtx": null,
+          "vramMb": null
+        }
+      ]
+    },
+    "error": "timed out waiting for the model to load"
+  },
+  "peaks": {
+    "peakVramMb": 609,
+    "peakRssMb": 14388,
+    "samples": 898
+  },
+  "finishedAt": "2026-07-22T10:54:27.875Z"
+}

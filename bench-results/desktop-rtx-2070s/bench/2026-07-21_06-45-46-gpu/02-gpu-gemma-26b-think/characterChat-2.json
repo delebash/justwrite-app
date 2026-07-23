@@ -1,0 +1,67 @@
+{
+  "runId": "2026-07-21_06-45-46-gpu",
+  "leg": "gpu-gemma-26b-think",
+  "model": "gemma-4-26b-a4b-qat",
+  "attempt": 2,
+  "args": {
+    "question": "What do you want most right now, and what are you afraid of?",
+    "timeoutMs": 1200000
+  },
+  "preset": {
+    "id": "17693095dfb1",
+    "name": "Bench",
+    "providerId": "",
+    "model": "gemma-4-26b-a4b-qat",
+    "temperature": 0.7,
+    "topP": null,
+    "maxTokens": 0,
+    "reasoningEffort": "",
+    "think": true,
+    "samplers": [],
+    "builtIn": false,
+    "position": 10,
+    "factoryModel": ""
+  },
+  "route": {
+    "feature": "characterChat",
+    "action": "characterChat",
+    "providerId": "local-llamacpp",
+    "model": "gemma-4-26b-a4b-qat",
+    "presetId": "17693095dfb1",
+    "presetName": "Bench",
+    "presetSource": "assigned",
+    "think": true,
+    "level": "",
+    "reasoningWord": "",
+    "value": 1024,
+    "valueSource": "base",
+    "configured": true,
+    "detail": ""
+  },
+  "featureKey": "characterChat",
+  "ok": true,
+  "started": "2026-07-21T06:57:51.112Z",
+  "label": "Character chat",
+  "wallMs": 47104,
+  "ttftMs": 41683,
+  "output": "I want a clean job and to be left alone. I want a steady bench at the Hall, a lamp that stays lit, and a life built as straight and level as a well-milled gear. But right now... I just want the ringing in my teeth to stop.\n\nAs for fear? It's like a mechanism with a stripped tooth—it's catching on everything, and I can't find the seam to fix it. I'm afraid that if I answer this note, if I actually choose to answer it, I'll never be able to go back to being just a brass-rank mender. I'm afraid of the weight of the whole world leaning on me.",
+  "outputChars": 544,
+  "usage": {
+    "promptTokens": 2563,
+    "completionTokens": 1173,
+    "model": "gemma-4-26b-a4b-qat",
+    "cost": 0
+  },
+  "flags": [
+    "temperature-fixed-by-caller"
+  ],
+  "extra": {
+    "bibleOnly": false,
+    "question": "What do you want most right now, and what are you afraid of?",
+    "k": 6,
+    "characterId": "c1",
+    "character": "Cael Ferren",
+    "citationCount": 6
+  },
+  "error": null
+}

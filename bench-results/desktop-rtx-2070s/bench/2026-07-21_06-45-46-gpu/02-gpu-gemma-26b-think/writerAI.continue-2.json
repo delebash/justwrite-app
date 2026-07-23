@@ -1,0 +1,61 @@
+{
+  "runId": "2026-07-21_06-45-46-gpu",
+  "leg": "gpu-gemma-26b-think",
+  "model": "gemma-4-26b-a4b-qat",
+  "attempt": 2,
+  "args": {
+    "passageChars": 2000,
+    "timeoutMs": 1200000
+  },
+  "preset": {
+    "id": "17693095dfb1",
+    "name": "Bench",
+    "providerId": "",
+    "model": "gemma-4-26b-a4b-qat",
+    "temperature": 0.7,
+    "topP": null,
+    "maxTokens": 0,
+    "reasoningEffort": "",
+    "think": true,
+    "samplers": [],
+    "builtIn": false,
+    "position": 10,
+    "factoryModel": ""
+  },
+  "route": {
+    "feature": "writerAI.continue",
+    "action": "writerAI.continue",
+    "providerId": "local-llamacpp",
+    "model": "gemma-4-26b-a4b-qat",
+    "presetId": "17693095dfb1",
+    "presetName": "Bench",
+    "presetSource": "assigned",
+    "think": true,
+    "level": "",
+    "reasoningWord": "",
+    "value": 1024,
+    "valueSource": "base",
+    "configured": true,
+    "detail": ""
+  },
+  "featureKey": "writerAI.continue",
+  "ok": true,
+  "started": "2026-07-21T07:01:25.997Z",
+  "label": "Continue",
+  "wallMs": 50402,
+  "ttftMs": 41840,
+  "output": "Cael stood in the sudden stillness, the silence left by Nettle’s departure feeling heavier than the evening air. The token’s hum had changed, shifting from a steady drone to a rhythmic, urgent thrum that pulsed against her hip like a trapped bird. She waited, half-expecting Nettle to step back out from the shadows, but the lane remained empty, the blue light of the lamps casting long, unblinking eyes across the cobblestones.\n\nShe pushed into the glimmerworks, the door clicking shut with a finality that echoed too loudly in the hollow space. The air inside was thick with the scent of cold grease and ozone, a stillness that felt less like peace and more like a held breath. She didn't reach for a lamp; she knew the geography of the dark by heart, the way the shadows pooled in the corners like spilled ink, waiting for a light to give them shape.\n\nSitting at her workbench, she pulled the token from her pocket. It didn't just hum now; it vibrated with a frantic, high-pitched keening that she felt in her marrow. The metal felt unnaturally warm, almost feverish, and as she stared at it, the darkness in the corners of the room seemed to lean in, drawn toward the tiny, pulsing thing in her hand. She wondered, not for the first time, if the things that lived in the gaps were the only ones truly listening.",
+  "outputChars": 1315,
+  "usage": {
+    "promptTokens": 634,
+    "completionTokens": 1323,
+    "model": "gemma-4-26b-a4b-qat",
+    "cost": 0
+  },
+  "flags": [],
+  "extra": {
+    "chapterId": "ch1",
+    "passageChars": 2000
+  },
+  "error": null
+}

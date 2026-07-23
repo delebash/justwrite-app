@@ -1,0 +1,57 @@
+{
+  "runId": "2026-07-22_14-04-05-cpu",
+  "leg": "cpu-bonsai-27b",
+  "model": "ternary-bonsai-27b-q2-g64",
+  "attempt": 1,
+  "args": {
+    "passageChars": 2000,
+    "timeoutMs": 1200000
+  },
+  "preset": {
+    "id": "9d4ebeddeb96",
+    "name": "Bench",
+    "providerId": "",
+    "model": "ternary-bonsai-27b-q2-g64",
+    "temperature": 0.7,
+    "topP": null,
+    "maxTokens": 0,
+    "reasoningEffort": "",
+    "think": false,
+    "samplers": [],
+    "builtIn": false,
+    "position": 10,
+    "factoryModel": ""
+  },
+  "route": {
+    "feature": "writerAI.continue",
+    "action": "writerAI.continue",
+    "providerId": "local-llamacpp",
+    "model": "ternary-bonsai-27b-q2-g64",
+    "presetId": "9d4ebeddeb96",
+    "presetName": "Bench",
+    "presetSource": "assigned",
+    "think": false,
+    "level": "",
+    "reasoningWord": "",
+    "value": null,
+    "valueSource": "",
+    "configured": true,
+    "detail": ""
+  },
+  "featureKey": "writerAI.continue",
+  "ok": false,
+  "started": "2026-07-22T14:31:34.127Z",
+  "label": "Continue",
+  "wallMs": 60027,
+  "ttftMs": null,
+  "output": "",
+  "outputChars": 0,
+  "usage": null,
+  "flags": [
+    "error"
+  ],
+  "extra": {
+    "timeoutMs": 1200000
+  },
+  "error": "Couldn't reach the LLM — Timed out — local models often need to load before the first call."
+}

@@ -1,0 +1,748 @@
+{
+  "leg": {
+    "label": "THINK ON — Qwen3.6 35B-A3B (MTP), reasoning enabled (A/B vs gpu-qwen-35b)",
+    "gguf": "",
+    "tunables": {
+      "temperature": 0.7,
+      "think": true
+    },
+    "launch": {},
+    "llamaBench": null,
+    "features": null,
+    "repeats": null,
+    "timeoutMinutes": null,
+    "featureArgs": null,
+    "id": "gpu-qwen-35b-think",
+    "_why": [
+      "The think A/B partner to gpu-qwen-35b: SAME model, features and book — the only",
+      "difference is tunables.think = true, so the summary isolates what thinking costs and",
+      "changes on Qwen exactly as the Gemma pair does. llamaBench is null (the raw pp/tg",
+      "matrix is think-independent)."
+    ],
+    "model": "qwen3.6-35b-a3b-mtp",
+    "effectiveFeatures": [
+      "chat",
+      "characterChat",
+      "entitySweep",
+      "critique",
+      "writerAI.continue",
+      "writerAI.rewrite"
+    ],
+    "effectiveRepeats": 2,
+    "effectiveTimeoutMs": 1200000,
+    "effectiveFeatureArgs": {
+      "chat": {
+        "question": "What is this book about, and who is the protagonist?",
+        "k": 6
+      },
+      "characterChat": {
+        "question": "What do you want most right now, and what are you afraid of?"
+      },
+      "writerAI.continue": {
+        "passageChars": 2000
+      },
+      "writerAI.rewrite": {
+        "passageChars": 1200
+      }
+    }
+  },
+  "runId": "2026-07-22_03-28-55-gpu",
+  "band": "gpu",
+  "fingerprint": "3a9681cac679",
+  "env": {
+    "engineBuild": "b10079",
+    "engineGpu": "cuda12",
+    "appSha": "d65e652",
+    "cpu": "AMD Ryzen 7 5700X 8-Core Processor             ",
+    "gpus": [
+      {
+        "name": "NVIDIA GeForce RTX 2070 SUPER",
+        "totalMb": 8192,
+        "driver": "610.62"
+      }
+    ],
+    "book": "prj_sample_ninth_facet"
+  },
+  "startedAt": "2026-07-22T04:04:42.823Z",
+  "runs": [
+    {
+      "featureKey": "chat",
+      "ok": true,
+      "started": "2026-07-22T04:05:20.894Z",
+      "label": "Ask the book",
+      "wallMs": 63273,
+      "ttftMs": 54890,
+      "outputChars": 971,
+      "usage": {
+        "promptTokens": 1899,
+        "completionTokens": 1237,
+        "model": "qwen3.6-35b-a3b-mtp",
+        "cost": 0
+      },
+      "flags": [
+        "temperature-fixed-by-caller"
+      ],
+      "extra": {
+        "bibleOnly": false,
+        "question": "What is this book about, and who is the protagonist?",
+        "k": 6,
+        "citations": [
+          {
+            "index": 1,
+            "chunkId": "card:architecture:premise",
+            "score": 0,
+            "pinned": true
+          },
+          {
+            "index": 2,
+            "chunkId": "card:cast:main",
+            "score": 0,
+            "pinned": true
+          },
+          {
+            "index": 3,
+            "chunkId": "card:architecture:fabula",
+            "score": 0,
+            "pinned": true
+          },
+          {
+            "index": 4,
+            "chunkId": "card:architecture:setting",
+            "score": 0,
+            "pinned": true
+          },
+          {
+            "index": 5,
+            "chunkId": "card:character:c1:p1",
+            "score": 0.40488342852794756,
+            "pinned": false
+          },
+          {
+            "index": 6,
+            "chunkId": "card:character:c2:p1",
+            "score": 0.2753121776768573,
+            "pinned": false
+          },
+          {
+            "index": 7,
+            "chunkId": "ch2:scn_ch2_1:p3",
+            "score": 0.28189390404565895,
+            "pinned": false
+          },
+          {
+            "index": 8,
+            "chunkId": "ch3:scn_ch3_3:p3",
+            "score": 0.28102924869900703,
+            "pinned": false
+          },
+          {
+            "index": 9,
+            "chunkId": "ch2:scn_ch2_2:p3",
+            "score": 0.2643302530668414,
+            "pinned": false
+          }
+        ]
+      },
+      "error": null
+    },
+    {
+      "featureKey": "chat",
+      "ok": true,
+      "started": "2026-07-22T04:06:24.177Z",
+      "label": "Ask the book",
+      "wallMs": 52069,
+      "ttftMs": 44117,
+      "outputChars": 1045,
+      "usage": {
+        "promptTokens": 1899,
+        "completionTokens": 1243,
+        "model": "qwen3.6-35b-a3b-mtp",
+        "cost": 0
+      },
+      "flags": [
+        "temperature-fixed-by-caller"
+      ],
+      "extra": {
+        "bibleOnly": false,
+        "question": "What is this book about, and who is the protagonist?",
+        "k": 6,
+        "citations": [
+          {
+            "index": 1,
+            "chunkId": "card:architecture:premise",
+            "score": 0,
+            "pinned": true
+          },
+          {
+            "index": 2,
+            "chunkId": "card:cast:main",
+            "score": 0,
+            "pinned": true
+          },
+          {
+            "index": 3,
+            "chunkId": "card:architecture:fabula",
+            "score": 0,
+            "pinned": true
+          },
+          {
+            "index": 4,
+            "chunkId": "card:architecture:setting",
+            "score": 0,
+            "pinned": true
+          },
+          {
+            "index": 5,
+            "chunkId": "card:character:c1:p1",
+            "score": 0.4085825975344678,
+            "pinned": false
+          },
+          {
+            "index": 6,
+            "chunkId": "card:character:c2:p1",
+            "score": 0.2772897997144751,
+            "pinned": false
+          },
+          {
+            "index": 7,
+            "chunkId": "ch2:scn_ch2_1:p3",
+            "score": 0.28100798436242475,
+            "pinned": false
+          },
+          {
+            "index": 8,
+            "chunkId": "ch2:scn_ch2_2:p3",
+            "score": 0.26534497605996854,
+            "pinned": false
+          },
+          {
+            "index": 9,
+            "chunkId": "ch3:scn_ch3_3:p3",
+            "score": 0.2809671815063008,
+            "pinned": false
+          }
+        ]
+      },
+      "error": null
+    },
+    {
+      "featureKey": "characterChat",
+      "ok": true,
+      "started": "2026-07-22T04:07:16.249Z",
+      "label": "Character chat",
+      "wallMs": 67491,
+      "ttftMs": 60715,
+      "outputChars": 718,
+      "usage": {
+        "promptTokens": 2540,
+        "completionTokens": 1201,
+        "model": "qwen3.6-35b-a3b-mtp",
+        "cost": 0
+      },
+      "flags": [
+        "temperature-fixed-by-caller"
+      ],
+      "extra": {
+        "bibleOnly": false,
+        "question": "What do you want most right now, and what are you afraid of?",
+        "k": 6,
+        "characterId": "c1",
+        "character": "Cael Ferren",
+        "citationCount": 6
+      },
+      "error": null
+    },
+    {
+      "featureKey": "characterChat",
+      "ok": true,
+      "started": "2026-07-22T04:08:23.743Z",
+      "label": "Character chat",
+      "wallMs": 53435,
+      "ttftMs": 46359,
+      "outputChars": 722,
+      "usage": {
+        "promptTokens": 2540,
+        "completionTokens": 1213,
+        "model": "qwen3.6-35b-a3b-mtp",
+        "cost": 0
+      },
+      "flags": [
+        "temperature-fixed-by-caller"
+      ],
+      "extra": {
+        "bibleOnly": false,
+        "question": "What do you want most right now, and what are you afraid of?",
+        "k": 6,
+        "characterId": "c1",
+        "character": "Cael Ferren",
+        "citationCount": 6
+      },
+      "error": null
+    },
+    {
+      "featureKey": "entitySweep",
+      "ok": true,
+      "started": "2026-07-22T04:09:17.180Z",
+      "label": "Entity sweep",
+      "wallMs": 92061,
+      "ttftMs": 23045,
+      "outputChars": 6111,
+      "usage": null,
+      "flags": [],
+      "extra": {
+        "counts": {
+          "characters": 5,
+          "locations": 5,
+          "objects": 3
+        },
+        "scanned": 3,
+        "totalChapters": 3,
+        "skipped": [],
+        "cancelled": false,
+        "chapterIds": [
+          "ch1",
+          "ch2",
+          "ch3"
+        ],
+        "chapterCap": 3
+      },
+      "error": null
+    },
+    {
+      "featureKey": "entitySweep",
+      "ok": true,
+      "started": "2026-07-22T04:10:49.244Z",
+      "label": "Entity sweep",
+      "wallMs": 57130,
+      "ttftMs": 11673,
+      "outputChars": 6736,
+      "usage": null,
+      "flags": [],
+      "extra": {
+        "counts": {
+          "characters": 3,
+          "locations": 6,
+          "objects": 6
+        },
+        "scanned": 3,
+        "totalChapters": 3,
+        "skipped": [],
+        "cancelled": false,
+        "chapterIds": [
+          "ch1",
+          "ch2",
+          "ch3"
+        ],
+        "chapterCap": 3
+      },
+      "error": null
+    },
+    {
+      "featureKey": "critique",
+      "ok": true,
+      "started": "2026-07-22T04:11:46.377Z",
+      "label": "Chapter critique",
+      "wallMs": 32186,
+      "ttftMs": null,
+      "outputChars": 1992,
+      "usage": null,
+      "flags": [],
+      "extra": {
+        "chapterId": "ch1",
+        "chapterNum": 1,
+        "chapterWords": 2600,
+        "noteCount": 8,
+        "notes": [
+          {
+            "id": "note_mrvkgbnm_0",
+            "severity": "info",
+            "category": "voice",
+            "message": "The opening line 'A lamp that will not lie' creates an effective, rhythmic hook that immediately establishes the protagonist’s unique sensory perception."
+          },
+          {
+            "id": "note_mrvkgbnm_1",
+            "severity": "suggest",
+            "category": "show-don't-tell",
+            "message": "Replace the explicit explanation 'She did not like the seal' with a physical reaction or a sharper internal observation to maintain the immersive, sensory-focused tone."
+          },
+          {
+            "id": "note_mrvkgbnm_2",
+            "severity": "flag",
+            "category": "clarity",
+            "message": "The phrase 'silver work' is ambiguous; clarify whether this refers to a specific material grade, a rank tier, or a different magical discipline to avoid reader confusion."
+          },
+          {
+            "id": "note_mrvkgbnm_3",
+            "severity": "info",
+            "category": "characterization",
+            "message": "Brick’s silent gesture of handing Cael the 'seedless middle' of the apple is a excellent, understated way to demonstrate their long-standing bond without dialogue."
+          },
+          {
+            "id": "note_mrvkgbnm_4",
+            "severity": "suggest",
+            "category": "dialogue",
+            "message": "Trim Threll’s exposition about the Ash District collapse; the core conflict (the job is dangerous but pays well) is clear without the specific nine-year timeline."
+          },
+          {
+            "id": "note_mrvkgbnm_5",
+            "severity": "flag",
+            "category": "tension",
+            "message": "The Warden’s presence feels slightly passive; consider having them make eye contact or react to the token’s hum to raise the immediate stakes for Cael."
+          },
+          {
+            "id": "note_mrvkgbnm_6",
+            "severity": "info",
+            "category": "setting",
+            "message": "The sensory details of the Commission Hall ('chalk and wet wool') effectively ground the fantasy elements in a tangible, gritty reality."
+          },
+          {
+            "id": "note_mrvkgbnm_7",
+            "severity": "suggest",
+            "category": "pacing",
+            "message": "The transition to Kettle Lane is abrupt; a brief transitional sentence linking the token’s hum to the walk home would smooth the scene change."
+          }
+        ],
+        "model": "qwen3.6-35b-a3b-mtp"
+      },
+      "error": null
+    },
+    {
+      "featureKey": "critique",
+      "ok": true,
+      "started": "2026-07-22T04:12:18.566Z",
+      "label": "Chapter critique",
+      "wallMs": 19099,
+      "ttftMs": null,
+      "outputChars": 1759,
+      "usage": null,
+      "flags": [],
+      "extra": {
+        "chapterId": "ch1",
+        "chapterNum": 1,
+        "chapterWords": 2600,
+        "noteCount": 8,
+        "notes": [
+          {
+            "id": "note_mrvkgqe9_0",
+            "severity": "info",
+            "category": "voice",
+            "message": "The opening metaphor 'A lamp... was lying' effectively establishes Cael's unique sensory perception without immediate exposition."
+          },
+          {
+            "id": "note_mrvkgqe9_1",
+            "severity": "suggest",
+            "category": "pacing",
+            "message": "Trim the internal monologue about her father's stool to let the transition to the Commission Hall feel less delayed."
+          },
+          {
+            "id": "note_mrvkgqe9_2",
+            "severity": "flag",
+            "category": "clarity",
+            "message": "The distinction between 'brass' and 'silver' ranks is unclear; clarify if this is a hierarchy of skill, pay, or social status early on."
+          },
+          {
+            "id": "note_mrvkgqe9_3",
+            "severity": "info",
+            "category": "characterization",
+            "message": "Brick’s silent gesture of giving Cael the best apple slice is a strong, efficient character beat that requires no dialogue."
+          },
+          {
+            "id": "note_mrvkgqe9_4",
+            "severity": "suggest",
+            "category": "show-don't-tell",
+            "message": "Replace 'Cael tried not to read anything into and read everything into anyway' with a physical reaction to show her suspicion."
+          },
+          {
+            "id": "note_mrvkgqe9_5",
+            "severity": "flag",
+            "category": "pacing",
+            "message": "The dialogue with Nettle feels slightly expository, specifically when Cael lists Nettle’s past feats rather than just observing them."
+          },
+          {
+            "id": "note_mrvkgqe9_6",
+            "severity": "info",
+            "category": "setting",
+            "message": "The sensory details of the Commission Hall ('chalk and wet wool') ground the scene well before the political tension rises."
+          },
+          {
+            "id": "note_mrvkgqe9_7",
+            "severity": "suggest",
+            "category": "redundancy",
+            "message": "The token's hum is mentioned three times in close proximity; consolidate to maintain tension without over-stating the obvious."
+          }
+        ],
+        "model": "qwen3.6-35b-a3b-mtp"
+      },
+      "error": null
+    },
+    {
+      "featureKey": "writerAI.continue",
+      "ok": true,
+      "started": "2026-07-22T04:12:37.669Z",
+      "label": "Continue",
+      "wallMs": 125437,
+      "ttftMs": 48741,
+      "outputChars": 8178,
+      "usage": {
+        "promptTokens": 624,
+        "completionTokens": 2877,
+        "model": "qwen3.6-35b-a3b-mtp",
+        "cost": 0
+      },
+      "flags": [],
+      "extra": {
+        "chapterId": "ch1",
+        "passageChars": 2000
+      },
+      "error": null
+    },
+    {
+      "featureKey": "writerAI.continue",
+      "ok": true,
+      "started": "2026-07-22T04:14:43.109Z",
+      "label": "Continue",
+      "wallMs": 59578,
+      "ttftMs": 48268,
+      "outputChars": 1430,
+      "usage": {
+        "promptTokens": 624,
+        "completionTokens": 1341,
+        "model": "qwen3.6-35b-a3b-mtp",
+        "cost": 0
+      },
+      "flags": [],
+      "extra": {
+        "chapterId": "ch1",
+        "passageChars": 2000
+      },
+      "error": null
+    },
+    {
+      "featureKey": "writerAI.rewrite",
+      "ok": true,
+      "started": "2026-07-22T04:15:42.690Z",
+      "label": "Rewrite",
+      "wallMs": 145926,
+      "ttftMs": 42485,
+      "outputChars": 11086,
+      "usage": {
+        "promptTokens": 414,
+        "completionTokens": 3730,
+        "model": "qwen3.6-35b-a3b-mtp",
+        "cost": 0
+      },
+      "flags": [],
+      "extra": {
+        "chapterId": "ch1",
+        "passageChars": 1200
+      },
+      "error": null
+    },
+    {
+      "featureKey": "writerAI.rewrite",
+      "ok": true,
+      "started": "2026-07-22T04:18:08.620Z",
+      "label": "Rewrite",
+      "wallMs": 52936,
+      "ttftMs": 42106,
+      "outputChars": 1268,
+      "usage": {
+        "promptTokens": 414,
+        "completionTokens": 1327,
+        "model": "qwen3.6-35b-a3b-mtp",
+        "cost": 0
+      },
+      "flags": [],
+      "extra": {
+        "chapterId": "ch1",
+        "passageChars": 1200
+      },
+      "error": null
+    }
+  ],
+  "preset": {
+    "id": "9d4ebeddeb96",
+    "name": "Bench",
+    "providerId": "",
+    "model": "qwen3.6-35b-a3b-mtp",
+    "temperature": 0.7,
+    "topP": null,
+    "maxTokens": 0,
+    "reasoningEffort": "",
+    "think": true,
+    "samplers": [],
+    "builtIn": false,
+    "position": 10,
+    "factoryModel": ""
+  },
+  "load": {
+    "ok": true,
+    "waitedMs": 29623,
+    "model": {
+      "id": "qwen3.6-35b-a3b-mtp",
+      "status": "loaded",
+      "nParams": 35505251456,
+      "sizeBytes": 22842671616,
+      "nCtx": 131072,
+      "vramMb": 5461
+    },
+    "resident": {
+      "router": true,
+      "modelsMax": 2,
+      "sleepIdleSeconds": 900,
+      "vramTotalMb": 8192,
+      "committedMb": 5461,
+      "remainingMb": 2731,
+      "models": [
+        {
+          "id": "gemma-4-12b-qat",
+          "status": "unloaded",
+          "nParams": null,
+          "sizeBytes": null,
+          "nCtx": null,
+          "vramMb": null
+        },
+        {
+          "id": "gemma-4-26b-a4b-qat",
+          "status": "unloaded",
+          "nParams": null,
+          "sizeBytes": null,
+          "nCtx": null,
+          "vramMb": null
+        },
+        {
+          "id": "qwen3-embedding-4b",
+          "status": "unloaded",
+          "nParams": null,
+          "sizeBytes": null,
+          "nCtx": null,
+          "vramMb": null
+        },
+        {
+          "id": "qwen3.6-35b-a3b-mtp",
+          "status": "loaded",
+          "nParams": 35505251456,
+          "sizeBytes": 22842671616,
+          "nCtx": 131072,
+          "vramMb": 5461
+        }
+      ]
+    }
+  },
+  "measure": {
+    "ok": true,
+    "modelId": "qwen3.6-35b-a3b-mtp",
+    "tokensPerSec": 23.7,
+    "completionTokens": 192,
+    "ms": 8094,
+    "vramTotalMb": 8192,
+    "ramTotalMb": 0,
+    "draftN": 158,
+    "draftNAccepted": 112,
+    "draftAcceptance": 0.7089
+  },
+  "routes": {
+    "chat": {
+      "feature": "chat",
+      "action": "chat",
+      "providerId": "local-llamacpp",
+      "model": "qwen3.6-35b-a3b-mtp",
+      "presetId": "9d4ebeddeb96",
+      "presetName": "Bench",
+      "presetSource": "assigned",
+      "think": true,
+      "level": "",
+      "reasoningWord": "",
+      "value": 1024,
+      "valueSource": "base",
+      "configured": true,
+      "detail": ""
+    },
+    "characterChat": {
+      "feature": "characterChat",
+      "action": "characterChat",
+      "providerId": "local-llamacpp",
+      "model": "qwen3.6-35b-a3b-mtp",
+      "presetId": "9d4ebeddeb96",
+      "presetName": "Bench",
+      "presetSource": "assigned",
+      "think": true,
+      "level": "",
+      "reasoningWord": "",
+      "value": 1024,
+      "valueSource": "base",
+      "configured": true,
+      "detail": ""
+    },
+    "entitySweep": {
+      "feature": "entitySweep",
+      "action": "entitySweep",
+      "providerId": "local-llamacpp",
+      "model": "qwen3.6-35b-a3b-mtp",
+      "presetId": "9d4ebeddeb96",
+      "presetName": "Bench",
+      "presetSource": "assigned",
+      "think": true,
+      "level": "",
+      "reasoningWord": "",
+      "value": 1024,
+      "valueSource": "base",
+      "configured": true,
+      "detail": ""
+    },
+    "critique": {
+      "feature": "critique",
+      "action": "critique",
+      "providerId": "local-llamacpp",
+      "model": "qwen3.6-35b-a3b-mtp",
+      "presetId": "9d4ebeddeb96",
+      "presetName": "Bench",
+      "presetSource": "assigned",
+      "think": true,
+      "level": "",
+      "reasoningWord": "",
+      "value": 1024,
+      "valueSource": "base",
+      "configured": true,
+      "detail": ""
+    },
+    "writerAI.continue": {
+      "feature": "writerAI.continue",
+      "action": "writerAI.continue",
+      "providerId": "local-llamacpp",
+      "model": "qwen3.6-35b-a3b-mtp",
+      "presetId": "9d4ebeddeb96",
+      "presetName": "Bench",
+      "presetSource": "assigned",
+      "think": true,
+      "level": "",
+      "reasoningWord": "",
+      "value": 1024,
+      "valueSource": "base",
+      "configured": true,
+      "detail": ""
+    },
+    "writerAI.rewrite": {
+      "feature": "writerAI.rewrite",
+      "action": "writerAI.rewrite",
+      "providerId": "local-llamacpp",
+      "model": "qwen3.6-35b-a3b-mtp",
+      "presetId": "9d4ebeddeb96",
+      "presetName": "Bench",
+      "presetSource": "assigned",
+      "think": true,
+      "level": "",
+      "reasoningWord": "",
+      "value": 1024,
+      "valueSource": "base",
+      "configured": true,
+      "detail": ""
+    }
+  },
+  "peaks": {
+    "peakVramMb": 6634,
+    "peakRssMb": 24754,
+    "samples": 428
+  },
+  "finishedAt": "2026-07-22T04:19:01.558Z"
+}
