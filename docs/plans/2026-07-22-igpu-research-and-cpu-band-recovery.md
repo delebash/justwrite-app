@@ -306,6 +306,15 @@ hard-question legs, judged by reading. Speed picks the shortlist; **the user's e
    per-request switching is off the table). `-ncmoe` flag verified against the b10083
    binary. The user copies just this script into the laptop kit folder and returns
    `results-2.jsonl` + `bench-log-2.txt`.
+   **KIT → REPO + RESULTS → GIT (user rulings 2026-07-23, JW `3abd8c7`):** the kit's four
+   scripts live at `scripts/speed-kit/` (models/engine NOT committed — `download-models.ps1`
+   fetches them, BITS-resumable, URLs HEAD-verified); `run-bench.ps1` is ONE full script
+   (phase 1 matrix + phase 2 ncmoe sweep, one resumable results file); ALL bench results are
+   committed under `bench-results/<machine>/{bench,kit}/` (un-ignored; layout in its README);
+   the harness defaults its output there (`run.js`). The laptop's raw `results.jsonl` +
+   36 KB `bench-log.txt` still need re-copying from the laptop into
+   `bench-results/laptop-core-ultra-7/kit/` (the desktop copy was deleted after parsing;
+   the parsed table is committed as that folder's `summary.md`).
    The original ruled shape, for reference:
    **The laptop iGPU test — the portable speed kit (the user's "easy way to test on my laptop").**
    Since the laptop only needs SPEED (prose judged from desktop captures), the right shape is NOT the
