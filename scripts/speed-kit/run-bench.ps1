@@ -1,23 +1,37 @@
 # run-bench.ps1 - THE one full test script (merged 2026-07-23, user's call):
-# PHASE 1 the 16-combo matrix, PHASE 2 the n_cpu_moe sweep (MoE model only).
-# Runs llama-bench over models x knobs, appending one JSON line per combo to
-# results.jsonl (resumable: combos already present are skipped). Also writes a
-# human log to bench-log.txt. Expects the engine unzipped under .\engine\.
+# PHASE 1 the 16-combo matrix, PHASE 2 the n_cpu_moe sweep (MoE model only),
+# PHASE 3 the quality probe. Runs llama-bench over models x knobs, appending one
+# JSON line per combo to results.jsonl (resumable: combos already present are
+# skipped). Also writes a human log to bench-log.txt. Expects the engine
+# unzipped under .\engine\ (download-models.ps1 does that).
+#   -Phases "1,3"  run a subset (default all; run.ps1's s(elect) passes this)
+#   -RamGB 16      override detected RAM for the fit guard (see run.ps1)
+param(
+  [string]$Phases = "1,2,3",
+  [double]$RamGB = 0
+)
 $ErrorActionPreference = "Continue"
 $root = $PSScriptRoot
+. (Join-Path $root "kit-common.ps1")
+$phaseSet = @($Phases -split '[,\s]+' | Where-Object { $_ })
 $results = Join-Path $root "results.jsonl"
 $log = Join-Path $root "bench-log.txt"
 
-$bench = Get-ChildItem -Recurse (Join-Path $root "engine") -Filter "llama-bench.exe" -ErrorAction SilentlyContinue | Select-Object -First 1
-if (-not $bench) { Write-Host "llama-bench.exe not found - unzip engine\llama-*.zip first (see README)"; exit 1 }
+# Prefer the pinned build's own dir (engine\<build>\ - see download-models.ps1);
+# fall back to any exe under engine\ for kits stocked before the per-build layout.
+$bench = Get-ChildItem -Recurse (Join-Path $root ("engine\" + $KitBuild)) -Filter "llama-bench.exe" -ErrorAction SilentlyContinue | Select-Object -First 1
+if (-not $bench) { $bench = Get-ChildItem -Recurse (Join-Path $root "engine") -Filter "llama-bench.exe" -ErrorAction SilentlyContinue | Select-Object -First 1 }
+if (-not $bench) { Write-Host "llama-bench.exe not found - run download-models.ps1 first (see README)"; exit 1 }
 
 $models = Get-ChildItem (Join-Path $root "models") -Filter "*.gguf" | Sort-Object Length
 if (-not $models) { Write-Host "no .gguf files in models\"; exit 1 }
 # RAM-FIT GUARD (2026-07-23, the 16 GB-laptop case): a model whose weights exceed
-# ~70% of this machine's RAM would page-thrash for hours on a one-pool box and
-# produce garbage numbers - skip it loudly rather than measure the pagefile.
-$ramBytes = (Get-CimInstance Win32_ComputerSystem).TotalPhysicalMemory
-$fit = @($models | Where-Object { $_.Length -le 0.7 * $ramBytes })
+# $KitFitFactor x this machine's RAM would page-thrash for hours on a one-pool box
+# and produce garbage numbers - skip it loudly rather than measure the pagefile.
+# (Same rule download-models.ps1 applies, both from kit-common.ps1 - this one stays
+# as the backstop for hand-copied models.)
+$ramBytes = Get-KitRamBytes $RamGB
+$fit = @($models | Where-Object { $_.Length -le $KitFitFactor * $ramBytes })
 foreach ($m in $models) { if ($fit -notcontains $m) {
   Write-Host "SKIP (too big for this machine's $([math]::Round($ramBytes/1GB)) GB RAM): $($m.Name) ($([math]::Round($m.Length/1GB,1)) GB)"
   "SKIPPED (ram-fit): $($m.Name)" | Add-Content $log
@@ -43,7 +57,8 @@ if (Test-Path $results) {
   }
 }
 
-"=== run-bench $(Get-Date -Format o) - engine $($bench.FullName) ===" | Add-Content $log
+"=== run-bench $(Get-Date -Format o) - engine $($bench.FullName) - phases $Phases ===" | Add-Content $log
+if ($phaseSet -contains '1') {
 foreach ($m in $models) {
   foreach ($ngl in $ngls) { foreach ($ub in $ubs) { foreach ($fa in $fas) {
     $key = "$($m.Name)|$ngl|$ub|$fa"
@@ -73,10 +88,12 @@ foreach ($m in $models) {
     }
   } } }
 }
+} else { Write-Host "phase 1 (matrix): not selected - skipped" }
 # ── PHASE 2: the n_cpu_moe sweep (MoE model only) — experts to CPU, attention on
 # the GPU, hunting one config with the iGPU's prompt speed AND the CPU's writing
 # speed. Base combo fixed at the known-good iGPU shape (ngl 99, fa 0, ub 512);
 # pp8192 + tg128 only. ncmoe 0 = the in-run baseline; 48+ = all experts on CPU.
+if ($phaseSet -contains '2') {
 $moe = @($models | Where-Object { $_.Name -like "*A4B*" }) | Select-Object -First 1
 if ($moe) {
   foreach ($nc in @(0, 8, 16, 24, 32, 40, 48)) {
@@ -98,11 +115,14 @@ if ($moe) {
     }
   }
 } else { Write-Host "no MoE (*A4B*) model in models\ - sweep phase skipped" }
+} else { Write-Host "phase 2 (ncmoe sweep): not selected - skipped" }
 # ── PHASE 3: the quality probe (user "ok", 2026-07-23) — one short generation per
 # model on the GPU path (ngl 99), saved for HUMAN eyeballing. Not a score: it only
 # makes a numerically-broken backend VISIBLE (a backend with bad kernels writes
 # garbage at full speed — the Bonsai lesson; llama-bench discards all text).
-$cli = Get-ChildItem -Recurse (Join-Path $root "engine") -Filter "llama-cli.exe" -ErrorAction SilentlyContinue | Select-Object -First 1
+if ($phaseSet -contains '3') {
+$cli = Get-ChildItem -Recurse (Join-Path $root ("engine\" + $KitBuild)) -Filter "llama-cli.exe" -ErrorAction SilentlyContinue | Select-Object -First 1
+if (-not $cli) { $cli = Get-ChildItem -Recurse (Join-Path $root "engine") -Filter "llama-cli.exe" -ErrorAction SilentlyContinue | Select-Object -First 1 }
 if ($cli) {
   foreach ($m in $models) {
     $probe = Join-Path $root "quality-probe-$($m.BaseName).txt"
@@ -113,4 +133,5 @@ if ($cli) {
     if ($LASTEXITCODE -ne 0) { "PROBE FAILED exit=$LASTEXITCODE : $($m.Name)" | Add-Content $log }
   }
 } else { Write-Host "llama-cli.exe not found - quality probe skipped" }
+} else { Write-Host "phase 3 (quality probe): not selected - skipped" }
 Write-Host "Done. Send back: results.jsonl + bench-log.txt + quality-probe-*.txt (+ detect-facts.txt)."

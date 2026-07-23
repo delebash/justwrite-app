@@ -18,6 +18,16 @@
 
 ## Now / near-term (JustWrite)
 
+- **UPDATE 2026-07-23: the KIT IS ONE-CLICK — detect → PLAN → confirm → run** (full record:
+  recovery doc §10). `run.bat` double-click (ExecutionPolicy bypassed per-run) → `run.ps1`
+  prints the PLAN (machine · engine · every model size + have/download/SKIP · disk · tests) →
+  `[Y/n/s(elect)]` → fit-filtered downloads (`.part` + size-check, no corrupt masquerade,
+  everything logged to bench-log.txt) → detect-facts → bench. `kit-common.ps1` = the ONE source
+  (pin b10083 · 0.7 fit factor · model list incl. E2B/E4B). Flags: `-Yes/-PlanOnly/-RamGB/-Build`.
+  16 GB path proven by dry-run (`-RamGB 16`: MoE skipped, 12.6 GB download). Master kit synced.
+  **USER ACTION (16 GB laptop): copy `E:\laptop-speed-kit` (or just the scripts) → double-click
+  `run.bat` → Y → bring back the four files.** OPEN: E2B/E4B not yet in the stocked kit (~6.4 GB);
+  results-folder name for the new machine (your naming call when files return).
 - **UPDATE 2026-07-22 (latest): the LAPTOP SPEED KIT IS BUILT** — `E:\laptop-speed-kit` (20 GB,
   desktop-verified; full record in the recovery doc §6). USER ACTION: copy the folder to the
   Core Ultra 7 laptop, unzip the engine, run the two scripts, bring back `detect-facts.txt` +

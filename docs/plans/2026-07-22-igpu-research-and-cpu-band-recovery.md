@@ -610,3 +610,58 @@ MTP off-model emits no draft args, on-model emits a file that EXISTS (the MTP ru
 BENCH stays the measurement instrument; preflight correctness lives in the smoke, plus the bench's
 own new model-id validation (A). Open decisions for the user: which tiny model; whether the suite
 may auto-download it; the command name.
+
+## 10. THE KIT ONE-CLICK REDESIGN — detect → PLAN → confirm → run (2026-07-23, post-reboot session)
+
+What changed and why. The kit grew from four independent scripts into a confirmed one-click
+instrument after the user's morning rulings: it stays ONE portable kit (their word — "why can't
+it be one portable kit"; the per-machine-type folder idea was examined and rejected because its
+duplicate model lists would silently break cross-machine comparability), detection proposes and
+never dictates (the same law as the product's class_key_override), the plan shows the models,
+sizes and disk cost before anything runs (their ask), downloads are fit-filtered so a 16 GB box
+never pulls the 14 GB MoE it cannot bench (their "add guard and skip model download that are not
+necessary for machine type"), and errors are logged like a real tool (their "normal debug and
+error handling"). The engine stays PINNED (b10083) after an explicit latest-vs-pin decision: the
+kit's job is cross-machine comparison, so the build is a controlled variable; every results row
+self-labels (`build_commit 846e991ec` / `build_number 10083` — verified in the laptop's real
+results.jsonl), so a deliberate `-Build` re-test stays readable. Windows gets a `run.bat`
+double-click launcher (stock Windows opens .ps1 in Notepad; ExecutionPolicy bypassed per-run);
+Mac/Linux `.sh` runners are deliberately deferred per the user's Windows-first sequencing ruling
+(2026-07-22) — stock Windows 11 does not execute .sh natively, so .bat is the honest Windows path.
+
+The shape. `kit-common.ps1` is the ONE source (engine pin `$KitBuild`, fit factor
+`$KitFitFactor = 0.7`, the model list `$KitModels`, HEAD-based `Get-KitModelSize` with the
+local-file-first rule, `Get-KitFit`, and the `Add-KitLog` timestamped logger writing to the same
+bench-log.txt the human sends back). `run.ps1` (+`run.bat`) detects RAM/CPU/GPU, prints the PLAN
+(machine · engine presence · per-model size + have/download/SKIP · total download vs free disk ·
+the three tests), then prompts Proceed? [Y/n/s(elect tests)] — flags `-Yes` (unattended),
+`-PlanOnly` (look without committing), `-RamGB` (override/dry-run another machine's fit),
+`-Build` (deliberate re-test). `download-models.ps1` fit-filters BEFORE downloading, lands files
+as `.part`, size-checks against the HEAD answer, renames only on success (a failed download can
+never masquerade as a complete model — the hole the user's error-handling ask exposed), deletes
+a corrupt engine zip so a rerun refetches, exits 1 with a logged failure summary. It unzips into
+`engine/<build>/` so a `-Build` override can never silently run an older exe (run-bench prefers
+that dir, falls back to any exe for pre-existing stocked kits). `run-bench.ps1` gained
+`-Phases "1,2,3"` (the select plumbing) + `-RamGB`, and now sources the shared factor — the 0.7
+lives once. `detect-facts.ps1` unchanged.
+
+How it was verified. All five scripts parse-clean (PS language parser). Live `-PlanOnly` on the
+real 32 GB desktop: all four models fit (real HEAD sizes 2.44/3.93/6.26/13.27 GB), download total
+25.89 GB, disk free shown. Live `-PlanOnly -RamGB 16` (the laptop's exact path): MoE SKIPped
+"over the 11.2 GB fit", test 2 "auto-skipped - no MoE model fits", download total 12.62 GB.
+`run.bat -PlanOnly -RamGB 16` through cmd renders the same plan (the double-click path works).
+`run-bench.ps1 -Phases 3 -RamGB 16` exits cleanly with the no-engine message in the repo's
+model-less copy. The stocked master kit (`E:\laptop-speed-kit`) was synced and its own PlanOnly
+shows engine "already present" + 12B/MoE "have" + E2B/E4B "download ~6.37 GB" — the legacy
+flat-engine fallback proven live. NOT tested: a full bench run (hours, needs models beside the
+scripts) and the interactive prompt's keystrokes (non-interactive shell; logic is three literal
+regex branches). The repo kit keeps zero binaries (.gitignore proven earlier with a fake .gguf).
+
+What would reverse it. A ruling that the kit should track the app's engine build instead of its
+own pin (breaks comparability with the committed b10083 matrices — re-run everything or accept
+mixed builds); a per-machine-type kit split (re-opens the duplicate-list drift this design
+closed); or a real Mac/Linux port (adds kit-common.sh mirrors of the facts file).
+
+OPEN from this pass: E2B/E4B not yet downloaded into the stocked master kit (~6.4 GB — one
+`run.ps1` there, or on the laptop itself); the 16 GB laptop run itself; its results folder name
+under `bench-results/<machine>/kit/` (user's naming call when the results come back).

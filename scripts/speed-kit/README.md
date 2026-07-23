@@ -5,6 +5,53 @@ raw llama-bench — same build, same models, same script everywhere, so numbers
 compare across machines. Results are committed under
 `bench-results/<machine>/kit/` (see that README).
 
+## Run it (any Windows machine, no dev tools needed)
+
+0. PREREQUISITE: Microsoft Visual C++ Redistributable x64
+   (aka.ms/vs/17/release/vc_redist.x64.exe) — a missing VCRUNTIME140 dll error
+   on launch means this. Vulkan itself ships inside the normal GPU driver.
+1. Copy this folder to the machine.
+2. **Double-click `run.bat`.** It detects the machine, prints the PLAN — RAM +
+   GPU, the engine build, every model with its size and have/download/SKIP
+   status, total download vs free disk, and the three tests — then asks
+   `Proceed? [Y/n/s]` before a byte is downloaded (detection proposes, never
+   dictates). `s` picks a subset of tests. Then it downloads what fits, runs
+   detect-facts, and benches. Hours on slow machines; fully RESUMABLE — rerun
+   skips finished combos, failed combos retry, existing probes skip.
+3. Send back `results.jsonl` + `bench-log.txt` + `quality-probe-*.txt` +
+   `detect-facts.txt` → they get committed to `bench-results/<machine>/kit/`.
+
+Flags (pass to `run.bat` or `run.ps1`): `-PlanOnly` print the plan and stop ·
+`-Yes` no prompt (unattended) · `-RamGB 16` override detected RAM (bad detection,
+or dry-running another machine's fit) · `-Build b10xxx` deliberate engine re-test.
+
+## The tests
+
+- **[1] 16-combo matrix** — models × ngl 99/0 × ubatch 512/2048 × flash-attn
+  on/off; pp512/2048/8192 + tg128 per combo.
+- **[2] n_cpu_moe sweep** — MoE model only (auto-skips if none fits): experts to
+  CPU, attention on GPU; ncmoe 0..48 at the known-good iGPU shape.
+- **[3] quality probe** — one short generation per model on the GPU path, saved
+  as `quality-probe-<model>.txt` for human eyeballing (speed numbers can look
+  perfect while a broken backend writes garbage; the probe makes that visible).
+
+## Rules the kit enforces (so numbers stay honest)
+
+- **RAM-fit** (`kit-common.ps1` `$KitFitFactor`, one place): a model over
+  0.7 × RAM is skipped LOUDLY at download AND at bench — never downloaded just
+  to thrash, never silently missing.
+- **Pinned engine** (`kit-common.ps1` `$KitBuild`, one place): cross-machine
+  comparison needs the build as a controlled variable (llama.cpp lands several
+  builds a day and Vulkan perf moves between them). Every results row
+  self-labels with `build_commit`/`build_number`, so a deliberate `-Build`
+  re-test stays readable in history. Bump the pin = edit one line.
+- **No corrupt downloads**: files land as `.part`, are size-checked against the
+  server's answer, then renamed — a failed download can never masquerade as a
+  complete model on the next run.
+- **Everything logged**: downloads, skips, failures, every bench combo → one
+  timestamped `bench-log.txt` (the file you send back). Failures are loud and
+  the kit stops before benching on a broken download.
+
 ## Folder layout
 
 Only the scripts + the empty folder skeleton live in git — the models and engine
@@ -14,37 +61,18 @@ are **downloaded per machine** by `download-models.ps1`, never committed (see
 ```
 scripts/speed-kit/
   README.md            this file
+  run.bat              DOUBLE-CLICK THIS — launcher for run.ps1
+  run.ps1              the one click: detect → PLAN → confirm → download → bench
+  kit-common.ps1       ONE source: engine pin, model list, fit rule, log helper
+  download-models.ps1  fit-filtered fetch of engine + models (standalone-safe)
   detect-facts.ps1     hardware facts + what Vulkan sees
-  download-models.ps1  fetches the pinned engine + model set into engine/ + models/
-  run-bench.ps1        the 3-phase benchmark (RAM-fit guard skips models too big for the box)
+  run-bench.ps1        the 3-phase benchmark (standalone-safe; -Phases subset)
   models/              (git-ignored) the .gguf set lands here
-  engine/              (git-ignored) the pinned llama.cpp Vulkan build is unzipped here
+  engine/<build>/      (git-ignored) the pinned llama.cpp Vulkan build, per-build dir
 ```
 
-Outputs go to `bench-results/<machine>/kit/` in the repo (results ARE committed).
-
-## Setup on a new machine (no dev tools needed)
-
-0. PREREQUISITE: Microsoft Visual C++ Redistributable x64
-   (aka.ms/vs/17/release/vc_redist.x64.exe) — a missing VCRUNTIME140 dll error
-   on launch means this. Vulkan itself ships inside the normal GPU driver.
-1. Copy this folder (4 small files) to the machine — or copy an already-stocked
-   kit folder with models included.
-2. Run `download-models.ps1` — fetches the pinned Vulkan engine (b10083) + the
-   model set (resumable via BITS; skips anything already present):
-   gemma-4 E2B QAT (~2 GB) · E4B QAT (4.2 GB) · 12B QAT (6.7 GB) ·
-   26B-A4B QAT MoE (14.2 GB). run-bench auto-SKIPS any model too big for the
-   machine's RAM (>70%), so one kit serves 16 GB and 32 GB boxes alike —
-   the skip is printed and logged, never silent.
-3. Run `detect-facts.ps1` (seconds) — hardware facts + what Vulkan sees.
-4. Run `run-bench.ps1` — PHASE 1: the 16-combo matrix (models x ngl 99/0 x
-   ubatch 512/2048 x flash-attn on/off; pp512/2048/8192 + tg128). PHASE 2: the
-   n_cpu_moe sweep on the MoE (ngl 99 / fa 0 / ub 512; ncmoe 0..48). PHASE 3:
-   a quality probe — one short generation per model on the GPU path, saved as
-   `quality-probe-<model>.txt` for human eyeballing (speed numbers can look
-   perfect while a broken backend writes garbage; the probe makes that visible).
-   Hours on slow machines; RESUMABLE — rerun skips finished combos, failed
-   combos retry, existing probes skip.
-   If PowerShell blocks scripts: `powershell -ExecutionPolicy Bypass -File .\<script>`
-5. Copy back `results.jsonl` + `bench-log.txt` + `quality-probe-*.txt` +
-   `detect-facts.txt` into `bench-results/<machine>/kit/` and commit.
+If PowerShell blocks scripts run by hand: `powershell -ExecutionPolicy Bypass -File .\<script>`
+(`run.bat` already does this for you). Mac/Linux `.sh` runners are deliberately
+NOT here yet — Windows first (the user's sequencing ruling, 2026-07-22); the port
+is mechanical when its turn comes (llama.cpp ships ubuntu-vulkan + macos-arm64
+assets; every kit fact lives in kit-common.ps1).
