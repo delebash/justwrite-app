@@ -306,6 +306,13 @@ hard-question legs, judged by reading. Speed picks the shortlist; **the user's e
    per-request switching is off the table). `-ncmoe` flag verified against the b10083
    binary. The user copies just this script into the laptop kit folder and returns
    `results-2.jsonl` + `bench-log-2.txt`.
+   **RESULT (returned + committed 2026-07-23): the sweep CLOSES the question — ncmoe 0 wins
+   on both axes** (pp8192 108.9 t/s · tg128 10.98 t/s; every offload step worse, tg bottoming
+   at 4.83 @ ncmoe 24, never recovering past baseline). On a UMA one-pool box the experts
+   "on CPU" still share the iGPU's RAM bandwidth — offload swaps iGPU compute for slower CPU
+   compute plus sync; the dGPU technique does not transfer to integrated graphics. The matrix
+   pick stands: ngl 99 / fa 0 / ub 512, ncmoe 0. Data + table:
+   `bench/results/laptop-core-ultra-7/kit/` (results-2.jsonl · bench-log-2.txt · summary.md).
    **KIT → REPO + RESULTS → GIT (user rulings 2026-07-23, JW `3abd8c7`):** the kit's four
    scripts live at `scripts/speed-kit/` (models/engine NOT committed — `download-models.ps1`
    fetches them, BITS-resumable, URLs HEAD-verified); `run-bench.ps1` is ONE full script
