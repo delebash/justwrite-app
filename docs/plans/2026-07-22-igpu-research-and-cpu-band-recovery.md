@@ -299,6 +299,13 @@ hard-question legs, judged by reading. Speed picks the shortlist; **the user's e
    ub 512** (prefill-optimal, decode 11.5 still above reading speed); pure-generation use
    would prefer ngl 0. A future refinement worth testing: n_cpu_moe on UMA (the matrix
    didn't sweep it). Raw data: `E:\cpu\results.jsonl` + `bench-log.txt`.
+   **FOLLOW-UP QUEUED (user "yes", 2026-07-23): `run-bench-2.ps1`** — the n_cpu_moe sweep
+   (26B MoE only · ngl 99/fa 0/ub 512 fixed · ncmoe 0/8/16/24/32/40/48 · pp8192+tg128 only,
+   ~1–2 h): hunting ONE config with the iGPU's prompt speed AND the CPU's writing speed
+   (experts on CPU, attention on iGPU — no reload trade-off; ngl is launch-time, so
+   per-request switching is off the table). `-ncmoe` flag verified against the b10083
+   binary. The user copies just this script into the laptop kit folder and returns
+   `results-2.jsonl` + `bench-log-2.txt`.
    The original ruled shape, for reference:
    **The laptop iGPU test — the portable speed kit (the user's "easy way to test on my laptop").**
    Since the laptop only needs SPEED (prose judged from desktop captures), the right shape is NOT the
