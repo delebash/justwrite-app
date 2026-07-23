@@ -13,7 +13,11 @@ compare across machines. Results are committed under
 1. Copy this folder (4 small files) to the machine — or copy an already-stocked
    kit folder with models included.
 2. Run `download-models.ps1` — fetches the pinned Vulkan engine (b10083) + the
-   two GGUFs (~21 GB, resumable via BITS; skips anything already present).
+   model set (resumable via BITS; skips anything already present):
+   gemma-4 E2B QAT (~2 GB) · E4B QAT (4.2 GB) · 12B QAT (6.7 GB) ·
+   26B-A4B QAT MoE (14.2 GB). run-bench auto-SKIPS any model too big for the
+   machine's RAM (>70%), so one kit serves 16 GB and 32 GB boxes alike —
+   the skip is printed and logged, never silent.
 3. Run `detect-facts.ps1` (seconds) — hardware facts + what Vulkan sees.
 4. Run `run-bench.ps1` — PHASE 1: the 16-combo matrix (models x ngl 99/0 x
    ubatch 512/2048 x flash-attn on/off; pp512/2048/8192 + tg128). PHASE 2: the

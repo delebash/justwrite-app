@@ -9,6 +9,10 @@ New-Item -ItemType Directory -Force (Join-Path $root "engine") | Out-Null
 $files = @(
   @{ url = "https://github.com/ggml-org/llama.cpp/releases/download/b10083/llama-b10083-bin-win-vulkan-x64.zip";
      out = "engine\llama-b10083-bin-win-vulkan-x64.zip" },
+  @{ url = "https://huggingface.co/unsloth/gemma-4-E4B-it-qat-GGUF/resolve/main/gemma-4-E4B-it-qat-UD-Q4_K_XL.gguf";
+     out = "models\gemma-4-E4B-it-qat-UD-Q4_K_XL.gguf" },
+  @{ url = "https://huggingface.co/unsloth/gemma-4-E2B-it-qat-GGUF/resolve/main/gemma-4-E2B-it-qat-UD-Q4_K_XL.gguf";
+     out = "models\gemma-4-E2B-it-qat-UD-Q4_K_XL.gguf" },
   @{ url = "https://huggingface.co/unsloth/gemma-4-12B-it-qat-GGUF/resolve/main/gemma-4-12B-it-qat-UD-Q4_K_XL.gguf";
      out = "models\gemma-4-12B-it-qat-UD-Q4_K_XL.gguf" },
   @{ url = "https://huggingface.co/unsloth/gemma-4-26B-A4B-it-qat-GGUF/resolve/main/gemma-4-26B-A4B-it-qat-UD-Q4_K_XL.gguf";

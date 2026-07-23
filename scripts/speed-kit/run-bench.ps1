@@ -13,6 +13,17 @@ if (-not $bench) { Write-Host "llama-bench.exe not found - unzip engine\llama-*.
 
 $models = Get-ChildItem (Join-Path $root "models") -Filter "*.gguf" | Sort-Object Length
 if (-not $models) { Write-Host "no .gguf files in models\"; exit 1 }
+# RAM-FIT GUARD (2026-07-23, the 16 GB-laptop case): a model whose weights exceed
+# ~70% of this machine's RAM would page-thrash for hours on a one-pool box and
+# produce garbage numbers - skip it loudly rather than measure the pagefile.
+$ramBytes = (Get-CimInstance Win32_ComputerSystem).TotalPhysicalMemory
+$fit = @($models | Where-Object { $_.Length -le 0.7 * $ramBytes })
+foreach ($m in $models) { if ($fit -notcontains $m) {
+  Write-Host "SKIP (too big for this machine's $([math]::Round($ramBytes/1GB)) GB RAM): $($m.Name) ($([math]::Round($m.Length/1GB,1)) GB)"
+  "SKIPPED (ram-fit): $($m.Name)" | Add-Content $log
+} }
+$models = $fit
+if (-not $models) { Write-Host "nothing fits this machine's RAM"; exit 1 }
 
 # The section-6 matrix: -ngl 99 vs 0 (iGPU offload vs CPU) x ubatch 512/2048 x flash-attn on/off.
 $ngls = @(99, 0)
@@ -66,7 +77,7 @@ foreach ($m in $models) {
 # the GPU, hunting one config with the iGPU's prompt speed AND the CPU's writing
 # speed. Base combo fixed at the known-good iGPU shape (ngl 99, fa 0, ub 512);
 # pp8192 + tg128 only. ncmoe 0 = the in-run baseline; 48+ = all experts on CPU.
-$moe = Get-ChildItem (Join-Path $root "models") -Filter "*A4B*.gguf" | Select-Object -First 1
+$moe = @($models | Where-Object { $_.Name -like "*A4B*" }) | Select-Object -First 1
 if ($moe) {
   foreach ($nc in @(0, 8, 16, 24, 32, 40, 48)) {
     if ($done["ncmoe|$nc"]) { Write-Host "skip (done): ncmoe=$nc"; continue }
