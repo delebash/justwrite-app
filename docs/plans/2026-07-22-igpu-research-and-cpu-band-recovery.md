@@ -822,3 +822,20 @@ efficiently on CPU; LEG 2 (their CUDA build, the §12 safe recipe: -c 8192, KV4,
 -ngl from ~36 stepping up, never 99/auto) is now ALSO the cheapest way to see final answers
 (~10-20 tok/s → full think+answer in minutes) and yields the GPU speed numbers regardless.
 Garbage-risk low (six coherent transcripts). Awaiting the user's word on leg 2.
+
+**LEG 2 LAUNCHED (2026-07-23 ~18:15, the user's "go").** The GPU leg is running in the
+background per the §12 recipe, with the anti-thrash mechanism the crashed run lacked: STEP 1
+loads at `-ngl 36 -c 8192` + KV4 and MEASURES (real layer count parsed from the load output,
+real VRAM peak from a 20 s sampler), then the probe `-ngl` is projected as
+peak + extra-layers × measured-per-layer-weight, CAPPED at ≤6900 MiB (≥500 MiB headroom on the
+8 GB card) — never 99/auto. Then the same three probes (lighthouse · continuation ·
+JSON-extract) at `-n 2500` (room for the full think + the final answer the CPU legs could never
+reach), their 27B sampling, 25-min timeout each, VRAM sampled to the log throughout; the kill
+guard targets the leg-2-only exe copy (`llama-cli-leg2.exe`) so the app's llama-server is
+untouchable. Runner: the session scratchpad `prism-leg2.sh` (throwaway); outputs →
+`bench/results/desktop-rtx-2070s/prism-fork/` (`quality-probe-*-gpu.txt` + `leg2-gpu-log.txt`
+with the chosen ngl, VRAM peaks, and per-probe exit codes). Verify when it lands: the log's
+"chosen -ngl" + "peak VRAM" lines and three complete final answers. What would reverse the
+approach: a measured per-layer cost so high that ≤6900 MiB keeps ngl at 36 and decode stays
+CPU-bound-slow — then the honest fallback is fewer GPU probes (lighthouse only) or accepting
+the timeout as the answer that the 27B doesn't fit this card usefully.
