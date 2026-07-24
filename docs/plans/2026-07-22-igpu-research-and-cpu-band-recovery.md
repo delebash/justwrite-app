@@ -1118,3 +1118,49 @@ flag) - not added, because the quick screen is ~1 min and always informative, ma
 philosophy. Wanting the continuation to auto-run winners with no prompt (fewer keystrokes) - one edit,
 drop the Read-Host and always use the winners. OPEN: the user's live run on a real box is the true test;
 whether -FullOnly is ever wanted.
+
+## 17. THE iGPU CLASS + CONFIG WIRED INTO THE APP (2026-07-24, the user's go)
+
+What the user asked. "Lock in the models/configs for the RTX (8 GB VRAM / 32 GB) and the Core Ultra 7
+iGPU (32 GB) and set it up to work correctly in the app — detection, hardware config, downloading the
+correct version." Both boxes run the SAME model (gemma-4-26B-A4B MoE); the machine-specific parts are the
+engine (CUDA vs Vulkan) and the laptop's tuning. Design discussion first settled that the class should be
+GENERIC — "Intel Xe iGPU + RAM tier", NOT iris-vs-arc — because the two U-series iGPUs are only ~15-20%
+apart (Iris Xe 96 EU / 102 GB/s vs Meteor Lake Arc 64 EU-Xe-LPG / 120 GB/s; web-checked), and the seed
+principle already lets each machine MEASURE its own numbers, so a slightly-slower Iris Xe gets its own
+speed rather than the Arc's. The big cliffs to encode are RAM (fits the model or not) and real-Xe-vs-
+ancient-UHD, not Iris-vs-Arc.
+
+What was ALREADY built (verified in code, not memory). The §9 redesign is done: `hardware.py` classifies
+arch-first — `mem_arch()` → discrete|integrated|unified, `format_class_key()` → `dgpu-vram8|ram32` /
+`igpu-mem32` / `unified-mem<M>`, RAM snapped to a standard ladder, the Intel-Arc NAME regex DELETED so an
+iGPU keys on dedicated-VRAM<4 GB (not marketing), Intel→Vulkan detection widened (A2). The engine pick
+rides `binary.py`'s `_gpu_preference` (runtimes → build). The schema is done: `hardware_classes` +
+`class_tunes` (arch-aware), `model_class_picks` already deleted. So detection, class keys, engine pick,
+and model download were all in place.
+
+The gap (all that was missing). Only the DISCRETE class was seeded. Added TWO seed rows in
+`just-llm-runner/llm_runner/llm/seed.py`: (1) `DEFAULT_HARDWARE_CLASSES` gains `igpu-mem32`
+(mem_type integrated, ram 32, vram 0, blank name → UI shows "Integrated GPU · 32 GB"); (2)
+`DEFAULT_CLASS_TUNES` gains the (gemma-4-26b-a4b-qat, igpu-mem32) row from the kit matrix:
+`n_gpu_layers=99`, `flash_attn=off`, `ubatch_size=512`, `n_cpu_moe=0` (MEASURED — fa hurts this iGPU,
+UMA offload is closed), `ctx_len=32768`/`batch_size=512`/`reasoning_budget=1024` (mirror the blessed
+discrete row), `threads` OMITTED (machine-specific, derived per box from cpu_cores). flash_attn=off
+overrides the base bundle's "on" because class_tunes resolve above the bundles — right, since "on" is a
+CUDA-only win. Two seed tests updated to the new count + strengthened to assert the iGPU row
+(`test_class_tune_refs.py`, `test_switch_resolve.py`).
+
+How it was verified (all with the app venv python, real code). Runner suite 689 passed / 9 skipped / 1
+failed, the one failure being the PRE-EXISTING Windows known-bad `test_pci_gpus_linux_lspci_name_match`
+(a Linux `/sys` path test), untouched by this change. A standalone check (in the scratchpad, not the repo)
+seeded an in-memory DB and asserted: both rows present with the right values; and detection classifies
+RTX→`dgpu-vram8|ram32`, Core 7 (Arc iGPU)→`igpu-mem32`, AND an Iris Xe 32 GB→`igpu-mem32` too — the SAME
+class as the Arc, proving the generic no-iris-vs-arc design. Engine pick proven: Core 7 →
+`['vulkan','cpu']`, RTX → `['cuda12','vulkan','cpu']` — the correct version each.
+
+What would reverse it / OPEN. If a machine's own measurement shows the class default is wrong for it, its
+per-machine ModelTune overrides (resolves above class_tunes) — the class is a starting point, not a
+lock. The Iris Xe 16 GB box still has no class row because the 26B MoE does not fit 16 GB (the fit rule
+skips it) — a smaller model for `igpu-mem16` is a future row once benched. Not verified end-to-end on a
+real box: the actual Vulkan-engine + model DOWNLOAD (needs the machine + network) — only the selection
+logic is proven here.
