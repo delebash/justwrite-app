@@ -18,6 +18,15 @@
 
 ## Now / near-term (JustWrite)
 
+- **AI page: the three-dot (⋯) action menu has a see-through background** (user, 2026-07-24,
+  screenshot): the catalog row's ⋯ dropdown (Tune & measure / Unload / Re-download / Edit /
+  Delete… ) renders with no opaque backdrop — the table text behind it bleeds through and it's
+  hard to read. Needs a solid surface + shadow (the kit's popover/menu component). Kit surface:
+  the model-catalog row actions menu (`LuModelCatalog.vue` / the shared menu primitive).
+- **AI page: the Model Catalog layout needs fixing** (user, 2026-07-24, screenshot): the catalog
+  table + rows read cramped/misaligned (the long notes line, the TYPE/LICENSE/BENCH/FIT/STATUS
+  columns, the actions column) — a layout pass. Kit surface: `LuModelCatalog.vue`.
+
 - **Tune modal: Measurement history needs a visible affordance + a Clear button** (user,
   2026-07-24, screenshot): the history section doesn't look clickable — you can't tell you
   have to click it to open — so it needs a real button/disclosure look; and once open it

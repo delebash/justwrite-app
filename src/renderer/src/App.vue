@@ -273,7 +273,7 @@ onBeforeUnmount(() => window.removeEventListener("keydown", onKey, { capture: tr
         <img class="jw-bw-book" :src="splashBook" alt="Write your story" />
         <div class="jw-bw-info">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 2 4 6v6c0 5 3.5 7.5 8 10 4.5-2.5 8-5 8-10V6z" /></svg>
-          Runs entirely on your computer — your words never leave it.
+          Runs entirely on your computer.
         </div>
       </div>
     </div>
