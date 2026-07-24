@@ -1223,6 +1223,43 @@ seeding the winning spec_type/spec_n_max (and a drafter-acquisition story akin t
 separate designed change, not this one. OPEN: the user's measurements; eagle3 (a Gemma-4 EAGLE
 drafter is reported to exist — same test shape if/when a GGUF is located).
 
+RESULTS (2026-07-24, the user's desktop runs; reconstructed from the router logs at
+`src-tauri/target/debug/data/ai-cache/llamacpp/logs/router-20260724-*.log` — the SERVER eval tok/s,
+which is the same metric as the bench's 28.6; the UI's number is wall-based and reads lower).
+VERDICT: DFlash is DEAD on this box; draft-mtp n2 stays the config; NOTHING regressed.
+
+| run | config | draft loaded | eval tok/s | acceptance |
+|---|---|---|---|---|
+| 102814 | mtp n2 | yes | 26.63 | 53.7% |
+| 103236 | dflash n6 | yes | 15.95 | (prefill 1.79 t/s!) |
+| 103356 | mtp n6 | yes | 26.36 | 37.3% |
+| 103451 | "dflash n6" | NO — ran as none | 27.48 | — |
+| 103607 | dflash n6 | yes | 17.32 | 19.5% |
+| 103724 | mtp n2 | yes | 28.33 | 58.6% |
+| 103816/29 | spec_type "nobe" (typo) | — | LOAD FAILED | — |
+| 103838/103919 | none | — | 26.80 / 24.90 | — |
+| 104111 | mtp n6 | yes | 23.70 | 33.2% |
+| 104349 | dflash n2 | yes | 22.20 | — |
+| 105100 | mtp n2 | yes | 30.42 | — |
+
+The findings, in order of importance. (1) MTP n2 remains the WINNER (26.6-30.4 eval, acceptance
+54-59%) with a real ~2-4 tok/s edge over none (24.9-26.8) — the earlier "MTP ≈ none" scare came from
+comparing the UI's wall-based number to the bench's server-eval 28.6; server-side, 28.3-30.4 ≈ the
+b10079 record, so the ENGINE UPDATE REGRESSED NOTHING. (2) DFlash with the drafter actually loaded:
+acceptance 19.5% (n6), eval 15.9-22.2, and one run's PREFILL collapsed to 1.79 t/s (13.4 s for 24
+tokens) — the community drafter does not fit our QAT model; the laptop test is CANCELLED (the
+drafter, not the hardware, is the problem). (3) Two of the user's six pasted numbers were phantoms:
+run 103451 launched spec-type=draft-dflash with NO --model-draft (the switch row was briefly
+absent) and llama-server SILENTLY ran unspeculated — a no-op that looked like a dflash datapoint;
+runs 103816/103829 carried a typo ("nobe" for "none") and the server REFUSED the load ("unknown
+speculative type") — the error visible only in the router log. (4) The recurring
+"[spec] failed to measure draft model memory" warning on every draft load is COSMETIC — speculation
+demonstrably engages (the acceptance lines above). Follow-ups OFFERED, not built: seed SwitchChoice
+enum rows for spec_type (db.py:551 mechanism) so the dropdown prevents the typo class; the
+ncmoe-aware fit term (the §-known arbiter over-booking, its 2026-07-11 six-item plan still awaiting
+the user's go). ACTION for the user: delete the three test rows from the Gemma machine tune —
+the seeded draft-mtp/n2 config stands.
+
 ## 19. THE DEV SIDECAR PREFERS THE REPO VENV (2026-07-24, the user's go)
 
 What broke. Restarting the app for the DFlash setup, the user ran `npm run dev` from a plain
