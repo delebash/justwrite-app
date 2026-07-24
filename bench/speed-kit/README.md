@@ -100,6 +100,12 @@ engine re-test.
 - **No corrupt downloads**: files land as `.part`, are size-checked against the
   server's answer, then renamed — a failed download can never masquerade as a
   complete model on the next run.
+- **Downloads retry, they don't flash-and-quit**: GitHub's release CDN throws
+  transient 504s. The fetch retries with backoff across `curl.exe` (primary — the
+  Win10/11 built-in, fastest, follows the signed redirect, has its own `--retry`),
+  BITS, then `Invoke-WebRequest`; only after all of them fail does it stop, LOUDLY,
+  before the bench. This killed the old "the engine flashes like it's going to
+  download and doesn't" bug (one BITS + one IWR attempt, both caught the same blip).
 - **Everything logged**: downloads, skips, failures, every bench combo → one
   timestamped `bench-log.txt` (the file you send back). Failures are loud and
   the kit stops before benching on a broken download. The log is written in ONE

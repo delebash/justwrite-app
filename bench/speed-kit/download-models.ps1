@@ -27,25 +27,51 @@ New-Item -ItemType Directory -Force (Join-Path $root "engine") | Out-Null
 # Download to .part, verify size when known, then rename - so a failed/aborted
 # download can NEVER masquerade as a complete file (Test-Path on the real name
 # only sees finished, size-checked files). Throws on any failure; caller catches.
+#
+# RETRIES WITH BACKOFF across multiple transports. GitHub's release CDN
+# (release-assets.githubusercontent.com) throws transient 504 Gateway Timeouts that
+# a single attempt can't ride through - that WAS the "flashes like it's going to and
+# doesn't download" bug: one BITS + one IWR attempt, both caught the same blip, the
+# script bailed. curl.exe (bundled on Win10 1803+/Win11) is primary: fastest by far,
+# follows the signed redirect cleanly, and has its OWN --retry for 5xx/timeouts.
+# BITS (resumable) and Invoke-WebRequest are fallbacks for boxes without curl.exe.
 function Get-KitFile([string]$Url, [string]$Dest, [int64]$ExpectedSize) {
   $part = "$Dest.part"
   if (Test-Path $part) { Remove-Item $part -Force }
-  try {
-    try {
-      Start-BitsTransfer -Source $Url -Destination $part   # resumable, preinstalled
-    } catch {
-      Write-Host "BITS failed ($_) - falling back to Invoke-WebRequest"
-      Invoke-WebRequest -Uri $Url -OutFile $part -UseBasicParsing
+  $curl = (Get-Command curl.exe -ErrorAction SilentlyContinue).Source
+  $methods = @()
+  if ($curl) { $methods += @{ name = "curl"; tries = 2 } }   # own --retry, so few outer tries
+  $methods += @{ name = "bits"; tries = 3 }
+  $methods += @{ name = "iwr";  tries = 2 }
+  $lastErr = $null
+  foreach ($m in $methods) {
+    for ($try = 1; $try -le $m.tries; $try++) {
+      try {
+        switch ($m.name) {
+          # --fail: nonzero exit on HTTP 4xx/5xx so a CDN error page is NEVER saved
+          # as the file. --retry*: curl rides transient 504s itself before giving up.
+          "curl" {
+            & $curl -sS -L --fail --retry 5 --retry-delay 2 --retry-all-errors --retry-connrefused -o $part $Url
+            if ($LASTEXITCODE -ne 0) { throw "curl exit $LASTEXITCODE" }
+          }
+          "bits" { Start-BitsTransfer -Source $Url -Destination $part -ErrorAction Stop }   # resumable, preinstalled
+          "iwr"  { Invoke-WebRequest -Uri $Url -OutFile $part -UseBasicParsing }
+        }
+        $got = (Get-Item $part).Length
+        if ($ExpectedSize -gt 0 -and $got -ne $ExpectedSize) {
+          throw "size mismatch: got $got bytes, expected $ExpectedSize"
+        }
+        Move-Item $part $Dest -Force
+        return
+      } catch {
+        $lastErr = $_
+        Write-Host ("  {0} attempt {1}/{2} failed: {3}" -f $m.name, $try, $m.tries, $_)
+        if (Test-Path $part) { Remove-Item $part -Force -ErrorAction SilentlyContinue }
+        Start-Sleep -Seconds (2 * $try)
+      }
     }
-    $got = (Get-Item $part).Length
-    if ($ExpectedSize -gt 0 -and $got -ne $ExpectedSize) {
-      throw "size mismatch: got $got bytes, expected $ExpectedSize"
-    }
-    Move-Item $part $Dest -Force
-  } catch {
-    if (Test-Path $part) { Remove-Item $part -Force }
-    throw
   }
+  throw "all download methods failed after retries - last error: $lastErr"
 }
 
 $failed = @()

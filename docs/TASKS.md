@@ -26,14 +26,30 @@
   table + rows read cramped/misaligned (the long notes line, the TYPE/LICENSE/BENCH/FIT/STATUS
   columns, the actions column) — a layout pass. Kit surface: `LuModelCatalog.vue`.
 
-- **Tune modal: Measurement history needs a visible affordance + a Clear button** (user,
-  2026-07-24, screenshot): the history section doesn't look clickable — you can't tell you
-  have to click it to open — so it needs a real button/disclosure look; and once open it
-  needs a **Clear** button (the DELETE /v1/ai/model-measurements endpoint already exists —
-  it's the wired-up UI that's missing). Surface: the kit's `TuneMeasureModal.vue`
-  measurement-history block.
+- **Tune modal: Measurement history affordance — IMPLEMENTED 2026-07-24, awaiting QC + commit.**
+  `LuMeasureHistory.vue`: the `<summary>` now reads as a real disclosure — a rotating `ChevRight`
+  caret (the shared `Icon`), a hover row + padding, and a count pill once loaded — so you can tell
+  it opens (the user: "you can't tell you have to click it to open"). **The Clear button was already
+  present and wired** to `DELETE /v1/ai/model-measurements` (`clearMeasurements`); the reason it read
+  as "missing" is that the disclosure never looked openable, so it was never revealed. Verified:
+  `build:vite` clean + headless-Edge screenshot of the collapsed/open states. Uncommitted for the
+  user's box QC (the kit hot-reloads into the live app).
 
-- **UPDATE 2026-07-23: the KIT IS ONE-CLICK — detect → PLAN → confirm → run** (full record:
+- **Speed-kit: fitting-offload quick screen + committed download fix (2026-07-24, the user's go
+  "corrected kit so we can pick for 16gb laptop").** PLAN: (1) the quick screen's hardcoded
+  `-ngl 99` (`run-bench.ps1:127`) gains an OOM-retry ladder — on a matched device-OOM signature
+  (`ErrorOutOfDeviceMemory` / `Device memory allocation of size` / `failed to allocate`, the exact
+  lines the 16 GB Iris Xe laptop produced) it walks `$KitScreenNgls = 99→32→16→8→0` (ONE source in
+  `kit-common.ps1`; sh face mirrors) until a load succeeds, labeling the used ngl on every verdict
+  line so a partial-offload speed never claims full offload; non-OOM failures keep the loud
+  SCREEN FAILED stop. Why a ladder, not a computed cap: llama-cli hides `n_layer` at default
+  verbosity (the laptop's log shows only the alloc-error lines), so the engine's own load attempt
+  is the honest fit test. (2) The engine-download retry fix (curl→BITS→IWR, verified under PS 5.1:
+  b10107 fetched + unzipped, exit 0) gets COMMITTED — it was repo-only, which is why the user's
+  fresh-copied kit still failed. (3) Then: user copies `bench/speed-kit/` over the laptop's old
+  copy, re-runs the quick screen; the 12B's partial-offload number decides 16 GB-laptop model
+  (12B if ≥7 tok/s, else E4B) and seeds the new integrated/16GB hardware class (seed.py — needs
+  its own verify-then-build pass; not this change).
   recovery doc §10). `run.bat` double-click (ExecutionPolicy bypassed per-run) → `run.ps1`
   prints the PLAN (machine · engine · every model size + have/download/SKIP · disk · tests) →
   `[Y/n/s(elect)]` → fit-filtered downloads (`.part` + size-check, no corrupt masquerade,

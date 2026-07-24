@@ -22,11 +22,14 @@ mkdir -p "$ROOT/models" "$ROOT/engine"
 FAILED=""
 
 # curl download to .part, size-check when expected>0, rename on success.
+# --retry* mirrors the ps1 side: GitHub's release CDN throws transient 504s that a
+# single attempt can't ride through (the "flashes and doesn't download" bug); curl
+# retries 5xx/timeouts itself before giving up. --fail: never save an error page.
 kit_fetch() {  # $1 url, $2 dest, $3 expected size (0 = skip check) -> 0/1
   local part got
   part="$2.part"
   rm -f "$part"
-  if ! curl -L --fail --max-redirs 5 -o "$part" "$1"; then rm -f "$part"; return 1; fi
+  if ! curl -L --fail --max-redirs 5 --retry 5 --retry-delay 2 --retry-all-errors --retry-connrefused -o "$part" "$1"; then rm -f "$part"; return 1; fi
   got="$(kit_file_size "$part")"
   if [ "$3" -gt 0 ] 2>/dev/null && [ "$got" != "$3" ]; then
     kit_log "$ROOT" "size mismatch: got $got bytes, expected $3"
