@@ -18,11 +18,10 @@
 
 ## Now / near-term (JustWrite)
 
-- **AI page: the three-dot (⋯) action menu has a see-through background** (user, 2026-07-24,
-  screenshot): the catalog row's ⋯ dropdown (Tune & measure / Unload / Re-download / Edit /
-  Delete… ) renders with no opaque backdrop — the table text behind it bleeds through and it's
-  hard to read. Needs a solid surface + shadow (the kit's popover/menu component). Kit surface:
-  the model-catalog row actions menu (`LuModelCatalog.vue` / the shared menu primitive).
+- ~~**AI page: the three-dot (⋯) action menu has a see-through background**~~ **SHIPPED
+  2026-07-24 (runner `5da79bc`):** the portaled `.lu-mmenu` styles lived in a `<style scoped>`
+  block that couldn't reach Reka's `<body>`-teleported content → no fill. Moved them to global
+  `common/styles.css` beside `.ui-select-content` (the same fix UiSelect already had).
 - **AI page: the Model Catalog layout needs fixing** (user, 2026-07-24, screenshot): the catalog
   table + rows read cramped/misaligned (the long notes line, the TYPE/LICENSE/BENCH/FIT/STATUS
   columns, the actions column) — a layout pass. Kit surface: `LuModelCatalog.vue`.
