@@ -1222,3 +1222,23 @@ What would reverse it. If dflash loses or fails to load on both boxes, the rows 
 seeding the winning spec_type/spec_n_max (and a drafter-acquisition story akin to mtp_draft_*) — a
 separate designed change, not this one. OPEN: the user's measurements; eagle3 (a Gemma-4 EAGLE
 drafter is reported to exist — same test shape if/when a GGUF is located).
+
+## 19. THE DEV SIDECAR PREFERS THE REPO VENV (2026-07-24, the user's go)
+
+What broke. Restarting the app for the DFlash setup, the user ran `npm run dev` from a plain
+terminal and the Python sidecar died: the dev spawn arm (`src-tauri/src/lib.rs` spawn_sidecar)
+tried PATH `justwrite-server` (absent — no venv on PATH), then fell back to PATH `python -m
+justwrite_server.cli` — which resolved a bare `F:\Python312` that lacks the package
+(ModuleNotFoundError; the app booted into the connection-error screen). It had always worked
+before only because VS Code's terminal auto-activates `.venv`, putting the venv's Scripts dir on
+PATH — an invisible dependency on WHICH shell launched the dev app.
+
+The fix (the user's go). The dev arm now resolves the repo's OWN venv entry point FIRST, from the
+compile-time crate path (repo root = `CARGO_MANIFEST_DIR/..` → `.venv/Scripts/justwrite-server.exe`
+on Windows, `.venv/bin/justwrite-server` elsewhere), guarded by `.exists()`; the old PATH →
+`python -m` chain stays as the fallback and the release arm (bundled exe beside the binary) is
+untouched. Verified: `.venv` has both `justwrite-server.exe` and an importable `llm_runner`
+(checked live before the fix); `cargo check` clean after it. What would reverse it: moving the dev
+server out of `.venv` (the compile-time path only affects debug builds, recomputed per build).
+OPEN: JustVoice's sidecar is documented as kept in lock-step (`lib.rs` sidecar section) — the same
+preference belongs there; not applied (separate repo, needs its own go).

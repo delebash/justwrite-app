@@ -397,16 +397,42 @@ fn spawn_sidecar(data_root: &std::path::Path) -> std::io::Result<Option<Child>> 
     // The server reads its data dir from JUSTWRITE_DATA_DIR (cli.py serve envvar) —
     // uniform across all spawn arms, so all app data lands under the portable root.
     let child = if cfg!(debug_assertions) {
-        match Command::new("justwrite-server")
-            .arg("serve")
-            .env("JUSTWRITE_DATA_DIR", data_root)
-            .spawn()
-        {
-            Ok(child) => child,
-            Err(_) => Command::new("python")
-                .args(["-m", "justwrite_server.cli", "serve"])
+        // Prefer the repo's OWN venv entry point, resolved from the compile-time
+        // crate path (repo root = CARGO_MANIFEST_DIR/..) — `npm run dev` must work
+        // from ANY shell, not only one with .venv activated (2026-07-24: a plain
+        // terminal made the PATH fallback resolve a bare F:\Python312 that lacks
+        // justwrite_server, and the app booted into the connection-error screen).
+        // PATH `justwrite-server`, then `python -m`, stay as the fallbacks.
+        let venv_server = std::path::Path::new(env!("CARGO_MANIFEST_DIR"))
+            .parent()
+            .map(|repo| {
+                if cfg!(windows) {
+                    repo.join(".venv").join("Scripts").join("justwrite-server.exe")
+                } else {
+                    repo.join(".venv").join("bin").join("justwrite-server")
+                }
+            })
+            .filter(|p| p.exists());
+        let venv_child = venv_server.and_then(|p| {
+            Command::new(p)
+                .arg("serve")
                 .env("JUSTWRITE_DATA_DIR", data_root)
-                .spawn()?,
+                .spawn()
+                .ok()
+        });
+        match venv_child {
+            Some(child) => child,
+            None => match Command::new("justwrite-server")
+                .arg("serve")
+                .env("JUSTWRITE_DATA_DIR", data_root)
+                .spawn()
+            {
+                Ok(child) => child,
+                Err(_) => Command::new("python")
+                    .args(["-m", "justwrite_server.cli", "serve"])
+                    .env("JUSTWRITE_DATA_DIR", data_root)
+                    .spawn()?,
+            },
         }
     } else {
         let exe = std::env::current_exe()?;
