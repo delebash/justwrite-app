@@ -22,6 +22,12 @@ $root = $PSScriptRoot
 $KitBuild = $Build
 if (-not $KitBuild) { $KitBuild = Get-KitLatestBuild $root }
 $phaseSet = @($Phases -split '[,\s]+' | Where-Object { $_ })
+# NOTE: PowerShell variable names are CASE-INSENSITIVE, so the [string]$Models
+# parameter and a local $models would be the SAME variable - and the parameter's
+# [string] type constraint silently coerces every later assignment back to a
+# string. That bug shipped once (the file list became the filter string and the
+# bench aborted with "none of the selected models are present"). The local is
+# $modelFiles for that reason - do not rename it back.
 $modelFilter = @($Models -split '[,]+' | Where-Object { $_ } | ForEach-Object { $_.Trim() })
 $results = Join-Path $root "results.jsonl"
 $log = Join-Path $root "bench-log.txt"
@@ -32,27 +38,27 @@ $bench = Get-ChildItem -Recurse (Join-Path $root ("engine\" + $KitBuild)) -Filte
 if (-not $bench) { $bench = Get-ChildItem -Recurse (Join-Path $root "engine") -Filter "llama-bench.exe" -ErrorAction SilentlyContinue | Select-Object -First 1 }
 if (-not $bench) { Write-Host "llama-bench.exe not found - run download-models.ps1 first (see README)"; exit 1 }
 
-$models = Get-ChildItem (Join-Path $root "models") -Filter "*.gguf" | Sort-Object Length
-if (-not $models) { Write-Host "no .gguf files in models\"; exit 1 }
+$modelFiles = Get-ChildItem (Join-Path $root "models") -Filter "*.gguf" | Sort-Object Length
+if (-not $modelFiles) { Write-Host "no .gguf files in models\"; exit 1 }
 # RAM-FIT GUARD (2026-07-23, the 16 GB-laptop case): a model whose weights exceed
 # $KitFitFactor x this machine's RAM would page-thrash for hours on a one-pool box
 # and produce garbage numbers - skip it loudly rather than measure the pagefile.
 # (Same rule download-models.ps1 applies, both from kit-common.ps1 - this one stays
 # as the backstop for hand-copied models.)
 $ramBytes = Get-KitRamBytes $RamGB
-$fit = @($models | Where-Object { $_.Length -le $KitFitFactor * $ramBytes })
-foreach ($m in $models) { if ($fit -notcontains $m) {
+$fit = @($modelFiles | Where-Object { $_.Length -le $KitFitFactor * $ramBytes })
+foreach ($m in $modelFiles) { if ($fit -notcontains $m) {
   Write-Host "SKIP (too big for this machine's $([math]::Round($ramBytes/1GB)) GB RAM): $($m.Name) ($([math]::Round($m.Length/1GB,1)) GB)"
   "SKIPPED (ram-fit): $($m.Name)" | Add-Content $log
 } }
-$models = $fit
-if (-not $models) { Write-Host "nothing fits this machine's RAM"; exit 1 }
+$modelFiles = $fit
+if (-not $modelFiles) { Write-Host "nothing fits this machine's RAM"; exit 1 }
 
 # Model selection (run.ps1's m(odels) picker passes filenames). Empty = all.
 if ($modelFilter.Count -gt 0) {
-  $models = @($models | Where-Object { $modelFilter -contains $_.Name })
-  if (-not $models) { Write-Host "none of the selected models are present/fitting"; exit 1 }
-  Write-Host ("Selected models: {0}" -f (($models | ForEach-Object { $_.Name }) -join ", "))
+  $modelFiles = @($modelFiles | Where-Object { $modelFilter -contains $_.Name })
+  if (-not $modelFiles) { Write-Host "none of the selected models are present/fitting"; exit 1 }
+  Write-Host ("Selected models: {0}" -f (($modelFiles | ForEach-Object { $_.Name }) -join ", "))
 }
 
 # The matrix comes from kit-common (ONE definition; run.ps1 sizes "N/8 done" from it).
@@ -86,7 +92,7 @@ if ($Force) { Write-Host "-Force: ignoring prior results, re-running everything 
 
 "=== run-bench $(Get-Date -Format o) - engine $($bench.FullName) - build $KitBuild - phases $Phases ===" | Add-Content $log
 if ($phaseSet -contains '1') {
-foreach ($m in $models) {
+foreach ($m in $modelFiles) {
   foreach ($ngl in $ngls) { foreach ($ub in $ubs) { foreach ($fa in $fas) {
     $key = Get-KitComboKey $KitBuild $m.Name $ngl $ub $fa
     if ($done[$key]) { Write-Host "skip (done on $KitBuild): $($m.Name)|$ngl|$ub|$fa"; continue }
@@ -123,7 +129,7 @@ foreach ($m in $models) {
 # speed. Base combo fixed at the known-good iGPU shape (ngl 99, fa 0, ub 512);
 # pp8192 + tg128 only. ncmoe 0 = the in-run baseline; 48+ = all experts on CPU.
 if ($phaseSet -contains '2') {
-$moe = @($models | Where-Object { $_.Name -like "*A4B*" }) | Select-Object -First 1
+$moe = @($modelFiles | Where-Object { $_.Name -like "*A4B*" }) | Select-Object -First 1
 if ($moe) {
   foreach ($nc in @(0, 8, 16, 24, 32, 40, 48)) {
     if ($done["$KitBuild|ncmoe|$nc"]) { Write-Host "skip (done on $KitBuild): ncmoe=$nc"; continue }
@@ -153,7 +159,7 @@ if ($phaseSet -contains '3') {
 $cli = Get-ChildItem -Recurse (Join-Path $root ("engine\" + $KitBuild)) -Filter "llama-cli.exe" -ErrorAction SilentlyContinue | Select-Object -First 1
 if (-not $cli) { $cli = Get-ChildItem -Recurse (Join-Path $root "engine") -Filter "llama-cli.exe" -ErrorAction SilentlyContinue | Select-Object -First 1 }
 if ($cli) {
-  foreach ($m in $models) {
+  foreach ($m in $modelFiles) {
     # build in the filename for the same reason it is in the resume key: a new
     # engine can change what the model writes (fixed kernels -> different output),
     # so an old probe must not stand in for the current build's.
