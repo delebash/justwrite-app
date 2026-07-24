@@ -118,12 +118,15 @@ if ($PlanOnly) { Write-Host "(-PlanOnly: stopping here.)"; exit 0 }
 $phases = "1,2,3"
 $pickedModels = ""
 if (-not $Yes) {
-  $ans = Read-Host "Proceed? [Y=all / n=abort / m=pick models / t=pick tests]"
+  $ans = Read-Host "Proceed? [Y = run everything / n = abort / s = choose models + tests]"
   if ($ans -match '^[nN]') { Write-Host "Aborted - nothing downloaded, nothing run."; exit 0 }
-  if ($ans -match '^[mM]') {
-    $sel = Read-Host ("Models to run (e.g. 1,3-5 or 'all') [1-{0}]" -f $n)
-    if ($sel -match '^\s*all\s*$') { $pickedModels = "" }
-    else {
+  # ONE customise path asking BOTH questions in order (the user's shape: narrow
+  # models, then it asks for tests, then it downloads and runs). m/t as separate
+  # either-or branches could only narrow ONE axis per run and read as a choice
+  # between two things you want both of - they still enter here for muscle memory.
+  if ($ans -match '^[sSmMtT]') {
+    $sel = Read-Host ("Models to run (e.g. 1,3-5 - blank or 'all' = all) [1-{0}]" -f $n)
+    if ($sel -and $sel -notmatch '^\s*all\s*$') {
       $nums = @()
       foreach ($tok in ($sel -split '[,\s]+' | Where-Object { $_ })) {
         if ($tok -match '^(\d+)-(\d+)$') { $nums += ([int]$matches[1])..([int]$matches[2]) }
@@ -133,15 +136,18 @@ if (-not $Yes) {
       foreach ($i in ($nums | Sort-Object -Unique)) { if ($pick.ContainsKey($i)) { $files += $pick[$i] } }
       if ($files.Count -eq 0) { Write-Host "No valid models picked - aborting."; exit 0 }
       $pickedModels = ($files -join ",")
-      Write-Host ("Running models: {0}" -f $pickedModels)
     }
-  }
-  elseif ($ans -match '^[tTsS]') {
-    $sel = Read-Host "Tests to run (e.g. 1,3)"
-    $tokens = @($sel -split '[,\s]+' | Where-Object { $_ -match '^[123]$' })
-    if ($tokens.Count -eq 0) { Write-Host "No valid tests picked - aborting."; exit 0 }
-    $phases = ($tokens -join ",")
-    Write-Host ("Running tests: {0}" -f $phases)
+    $tsel = Read-Host "Tests to run (1=matrix 2=MoE sweep 3=quality probe - blank or 'all' = all)"
+    if ($tsel -and $tsel -notmatch '^\s*all\s*$') {
+      $tokens = @($tsel -split '[,\s]+' | Where-Object { $_ -match '^[123]$' })
+      if ($tokens.Count -eq 0) { Write-Host "No valid tests picked - aborting."; exit 0 }
+      $phases = ($tokens -join ",")
+    }
+    $mTxt = "all"; if ($pickedModels) { $mTxt = $pickedModels }
+    Write-Host ""
+    Write-Host ("Will run:  models = {0}" -f $mTxt)
+    Write-Host ("           tests  = {0}" -f $phases)
+    Write-Host ""
   }
 }
 

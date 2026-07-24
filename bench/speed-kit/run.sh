@@ -133,29 +133,32 @@ if [ "$PLAN_ONLY" = 1 ]; then echo "(--plan-only: stopping here.)"; exit 0; fi
 # ---- confirm ---------------------------------------------------------------
 PHASES="1,2,3"; MODELS_SEL=""
 if [ "$YES" != 1 ]; then
-  printf "Proceed? [Y=all / n=abort / m=pick models / t=pick tests] "
+  printf "Proceed? [Y = run everything / n = abort / s = choose models + tests] "
   read -r ans || ans=""
   case "$ans" in
     n*|N*) echo "Aborted - nothing downloaded, nothing run."; exit 0 ;;
-    m*|M*)
-      printf "Models to run (e.g. 1,3 or 'all') [1-%d] " "$n"
+    s*|S*|m*|M*|t*|T*)
+      # ONE customise path asking BOTH questions in order (mirror of run.ps1)
+      printf "Models to run (e.g. 1,3 - blank or 'all' = all) [1-%d] " "$n"
       read -r msel || msel=""
-      if ! echo "$msel" | grep -qi '^[[:space:]]*all[[:space:]]*$'; then
+      if [ -n "$msel" ] && ! echo "$msel" | grep -qi '^[[:space:]]*all[[:space:]]*$'; then
         sel_files=""
         for tok in $(echo "$msel" | tr ',' ' '); do
           case "$tok" in [0-9]*) f="${PICK_FILES[$tok]:-}"; [ -n "$f" ] && sel_files="$sel_files${sel_files:+,}$f" ;; esac
         done
         if [ -z "$sel_files" ]; then echo "No valid models picked - aborting."; exit 0; fi
         MODELS_SEL="$sel_files"
-        echo "Running models: $MODELS_SEL"
       fi
-      ;;
-    t*|T*|s*|S*)
-      printf "Tests to run (e.g. 1,3) "
-      read -r sel || sel=""
-      PHASES="$(echo "$sel" | tr -cs '123' ',' | sed 's/^,//; s/,$//')"
-      if [ -z "$PHASES" ]; then echo "No valid tests picked - aborting."; exit 0; fi
-      echo "Running tests: $PHASES"
+      printf "Tests to run (1=matrix 2=MoE sweep 3=quality probe - blank or 'all' = all) "
+      read -r tsel || tsel=""
+      if [ -n "$tsel" ] && ! echo "$tsel" | grep -qi '^[[:space:]]*all[[:space:]]*$'; then
+        PHASES="$(echo "$tsel" | tr -cs '123' ',' | sed 's/^,//; s/,$//')"
+        if [ -z "$PHASES" ]; then echo "No valid tests picked - aborting."; exit 0; fi
+      fi
+      echo ""
+      echo "Will run:  models = ${MODELS_SEL:-all}"
+      echo "           tests  = $PHASES"
+      echo ""
       ;;
   esac
 fi
