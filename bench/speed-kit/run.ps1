@@ -146,7 +146,7 @@ if (-not $Yes) {
 }
 
 # ---- run -------------------------------------------------------------------
-& (Join-Path $root "download-models.ps1") -RamGB $RamGB -Build $KitBuild
+& (Join-Path $root "download-models.ps1") -RamGB $RamGB -Build $KitBuild -Models $pickedModels
 if ($LASTEXITCODE -ne 0 -and $null -ne $LASTEXITCODE) {
   Add-KitLog $root "download step FAILED - stopping before the bench (see the DOWNLOAD FAILED lines above; rerun run.ps1 to retry)."
   exit 1

@@ -7,9 +7,12 @@
 # a partial file to refetch. Runs standalone or from run.ps1.
 #   -RamGB 16      override detected RAM (see run.ps1)
 #   -Build b10xxx  engine override (default: the pin in kit-common.ps1)
+#   -Models "a.gguf,b.gguf"  only fetch these (run.ps1's m picker passes them);
+#                            empty = every model that fits
 param(
   [double]$RamGB = 0,
-  [string]$Build = ""
+  [string]$Build = "",
+  [string]$Models = ""
 )
 $ErrorActionPreference = "Stop"
 $root = $PSScriptRoot
@@ -81,7 +84,12 @@ if (Test-Path $zip) {
 # ---- models (fit-filtered) -------------------------------------------------
 $ramBytes = Get-KitRamBytes $RamGB
 Write-Host ("RAM-fit: {0:N0} GB RAM -> keeping models <= {1} GB ({2} x RAM)" -f ($ramBytes/1GB), [math]::Round($KitFitFactor*$ramBytes/1GB,1), $KitFitFactor)
+$modelFilter = @($Models -split '[,]+' | Where-Object { $_ } | ForEach-Object { $_.Trim() })
+if ($modelFilter.Count -gt 0) { Write-Host ("Only fetching selected: {0}" -f ($modelFilter -join ", ")) }
 foreach ($m in (Get-KitFit $ramBytes $root)) {
+  # honour the m picker: don't fetch models the user didn't select (same leaf
+  # filename the bench filters on, so the two can't disagree)
+  if ($modelFilter.Count -gt 0 -and $modelFilter -notcontains (Split-Path $m.out -Leaf)) { continue }
   $dest = Join-Path $root $m.out
   if (-not $m.fits) {
     $szTxt = "?"

@@ -161,7 +161,7 @@ if [ "$YES" != 1 ]; then
 fi
 
 # ---- run -------------------------------------------------------------------
-bash "$ROOT/download-models.sh" --ram-gb "$RAM_GB" --build "$KIT_BUILD"
+bash "$ROOT/download-models.sh" --ram-gb "$RAM_GB" --build "$KIT_BUILD" --models "$MODELS_SEL"
 if [ $? -ne 0 ]; then
   kit_log "$ROOT" "download step FAILED - stopping before the bench (see the DOWNLOAD FAILED lines above; rerun run.sh to retry)."
   exit 1

@@ -8,10 +8,11 @@ set -u
 ROOT="$(cd "$(dirname "$0")" && pwd)"
 . "$ROOT/kit-common.sh"
 
-RAM_GB=0
+RAM_GB=0; MODELS_SEL=""
 while [ $# -gt 0 ]; do
   case "$1" in
     --ram-gb) shift; RAM_GB="$1" ;;
+    --models) shift; MODELS_SEL="$1" ;;
     --build)  shift; KIT_BUILD="$1" ;;
     *) echo "unknown flag: $1"; exit 2 ;;
   esac
@@ -66,6 +67,11 @@ echo "RAM-fit: $(gb "$RAM_BYTES") GB RAM -> keeping models <= $(gb $(( RAM_BYTES
 i=0
 while [ $i -lt ${#KIT_MODEL_NAMES[@]} ]; do
   DEST="$ROOT/${KIT_MODEL_OUTS[$i]}"
+  # honour the m picker: skip models the user didn't select (same leaf filename
+  # the bench filters on, so the two can't disagree)
+  if [ -n "$MODELS_SEL" ]; then
+    case ",$MODELS_SEL," in *",$(basename "${KIT_MODEL_OUTS[$i]}"),"*) : ;; *) i=$(( i + 1 )); continue ;; esac
+  fi
   SIZE="$(kit_model_size $i "$ROOT")"
   if [ "$(kit_fits "$SIZE" "$RAM_BYTES")" = 0 ]; then
     kit_log "$ROOT" "SKIP (too big for this machine): ${KIT_MODEL_NAMES[$i]} ($(gb "${SIZE:-0}") GB) - not downloaded"
