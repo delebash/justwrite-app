@@ -110,68 +110,91 @@ if ($null -ne $free) { $freeTxt = [math]::Round($free/1GB,1) }
 Write-Host ("Disk    : download needed ~{0} GB - free on {1}: {2} GB" -f [math]::Round($dlBytes/1GB,2), $root.Substring(0,2), $freeTxt)
 $moeFits = @($fit | Where-Object { $_.fits -and $_.out -like "*A4B*" }).Count -gt 0
 Write-Host "Tests   :"
-Write-Host "  QUICK SCREEN (default) : one generation per model - you SEE speed + sample"
-Write-Host "                           text and decide (minutes). Nothing is thrown out."
-Write-Host "  FULL MATRIX  (opt-in)  : the 16-combo tuning sweep$(if ($moeFits) { ' + MoE ncmoe sweep' })"
-Write-Host "                           (HOURS) - only worth it on a model you've confirmed."
+Write-Host "  1. QUICK SCREEN : one generation per model - you SEE the speed + verdict"
+Write-Host "                    (run full / skip) in minutes. Nothing is thrown out."
+Write-Host "  2. FULL MATRIX  : offered right after the quick screen, on the models that"
+Write-Host "                    cleared the bar - SAME session, no restart. The 16-combo"
+Write-Host "                    sweep$(if ($moeFits) { ' + MoE ncmoe sweep' }) (HOURS). Accept the pick, choose your own, or skip."
 Write-Host "Results : results.jsonl + bench-log.txt + quality-probe-*.txt + detect-facts.txt"
 Write-Host "          -> copy back into bench/results/<machine>/kit/ in the repo"
 Write-Host "======================================"
 Write-Host ""
 if ($PlanOnly) { Write-Host "(-PlanOnly: stopping here.)"; exit 0 }
 
-# ---- confirm ---------------------------------------------------------------
-# Numbered multi-select rather than a toggle-UI: same idiom as the tests picker,
-# survives -Yes and piped/non-interactive runs, no TUI to break.
-$phases = "1,2,3"
+# ---- confirm: pick MODELS. The full-test decision comes AFTER the quick screen,
+# where the recommendations exist - you should never answer "run full?" blind.
+# (Numbered multi-select: survives -Yes / piped runs, no TUI to break.) -----------
 $pickedModels = ""
 if (-not $Yes) {
-  # ALWAYS ask BOTH choices before anything happens - no letter to guess, no
-  # either-or. The user's requirement (2026-07-23): "i can choose m and then t or
-  # choose all models and all tests ... i just want to make the choices before it
-  # actually tries to do anything". Blank = all at either question; -Yes bypasses
-  # all three prompts for unattended runs.
   $sel = Read-Host ("1) Which MODELS? (e.g. 1,3-5 - blank or 'all' = all) [1-{0}]" -f $n)
   if ($sel -match '^\s*n\s*$') { Write-Host "Aborted - nothing downloaded, nothing run."; exit 0 }
   if ($sel -and $sel -notmatch '^\s*all\s*$') {
-    $nums = @()
-    foreach ($tok in ($sel -split '[,\s]+' | Where-Object { $_ })) {
-      if ($tok -match '^(\d+)-(\d+)$') { $nums += ([int]$matches[1])..([int]$matches[2]) }
-      elseif ($tok -match '^\d+$') { $nums += [int]$tok }
-    }
-    $files = @()
-    foreach ($i in ($nums | Sort-Object -Unique)) { if ($pick.ContainsKey($i)) { $files += $pick[$i] } }
+    $files = @(Resolve-KitNumbers $sel $pick)
     if ($files.Count -eq 0) { Write-Host "No valid models picked - aborting."; exit 0 }
     $pickedModels = ($files -join ",")
   }
-
-  # Quick screen is ALWAYS run (phase 3). The hours-long matrix is opt-in only -
-  # the user's flow: "the only time we run full tests for hours is after we
-  # determine the model will actually run at decent speed" (quick screen first).
-  $full = Read-Host "2) Also run the FULL tuning matrix? (HOURS - only for a model you've confirmed) [y/N]"
-  if ($full -match '^[yY]') { $phases = "1,2,3" } else { $phases = "3" }
-
-  $mTxt = "ALL that fit"; if ($pickedModels) { $mTxt = ($pickedModels -replace ',', "`n                ") }
-  $tTxt = "QUICK SCREEN only (speed + sample per model)"
-  if ($phases -match '1') { $tTxt = "QUICK SCREEN first, THEN the full matrix (hours)" }
   Write-Host ""
   Write-Host "-------------- ABOUT TO RUN --------------"
-  Write-Host ("  models =  {0}" -f $mTxt)
-  Write-Host ("  run    =  {0}" -f $tTxt)
-  Write-Host "  (downloads only those models)"
+  Write-Host ("  quick-screen: {0}" -f $(if ($pickedModels) { $pickedModels -replace ',', ', ' } else { "ALL that fit" }))
+  Write-Host "  then it OFFERS the full matrix on whatever clears the bar - same session, no restart."
   Write-Host "------------------------------------------"
   $go = Read-Host "Proceed? [Y/n]"
   if ($go -match '^[nN]') { Write-Host "Aborted - nothing downloaded, nothing run."; exit 0 }
   Write-Host ""
 }
 
-# ---- run -------------------------------------------------------------------
+# ---- run: download -> detect -> QUICK SCREEN -> (offer) FULL MATRIX on winners ----
 & (Join-Path $root "download-models.ps1") -RamGB $RamGB -Build $KitBuild -Models $pickedModels
 if ($LASTEXITCODE -ne 0 -and $null -ne $LASTEXITCODE) {
   Add-KitLog $root "download step FAILED - stopping before the bench (see the DOWNLOAD FAILED lines above; rerun run.ps1 to retry)."
   exit 1
 }
 & (Join-Path $root "detect-facts.ps1")
-& (Join-Path $root "run-bench.ps1") -Phases $phases -Models $pickedModels -RamGB $RamGB -Build $KitBuild -Force:$Force
+
+# STEP 1 - the quick screen (phase 3), ALWAYS, exactly once.
+& (Join-Path $root "run-bench.ps1") -Phases "3" -Models $pickedModels -RamGB $RamGB -Build $KitBuild -Force:$Force
+
+# STEP 2 - read the FRESH verdicts for the models just screened, number them, mark
+# the winners (cleared the cutoff). This is the "no restart" continuation.
+$screened = if ($pickedModels) { @($pickedModels -split ',') } else { @($fit | Where-Object { $_.fits } | ForEach-Object { Split-Path $_.out -Leaf }) }
+$qs = Get-KitQuickStatus $root $KitBuild
+$rank = @{}; $k = 0; $winners = @(); $winNums = @()
 Write-Host ""
-Write-Host "All done. Send back: results.jsonl + bench-log.txt + quality-probe-*.txt + detect-facts.txt"
+Write-Host "============ full test? (same session - no restart) ============"
+foreach ($f in $screened) {
+  $k++; $rank[$k] = $f
+  $tg = $null; if ($qs.ContainsKey($f)) { $tg = $qs[$f].tg }
+  $v = Get-KitQuickVerdict $tg
+  if ($v -eq 'run full') { $winners += $f; $winNums += $k }
+  $tgTxt = if ($null -ne $tg) { "{0:N1} tok/s" -f $tg } else { "no speed" }
+  Write-Host ("  [{0}] {1,-32} {2,-11} {3}" -f $k, $f, $tgTxt, $v)
+}
+
+# STEP 3 - offer the full matrix: recommended winners by default, your own pick, or skip.
+$runFull = @()
+if ($winners.Count -gt 0) {
+  Write-Host ("Cleared {0} tok/s (recommended): {1}" -f $KitQuickMinTg, ($winNums -join ','))
+  if ($Yes) { $runFull = $winners }
+  else {
+    $ans = Read-Host "Run the FULL tuning matrix (HOURS) now?  [Enter]=recommended  |  e.g. 1,2=your pick  |  n=stop"
+    if ($ans -match '^\s*n\s*$') { $runFull = @() }
+    elseif ($ans -match '\S') { $runFull = @(Resolve-KitNumbers $ans $rank) }
+    else { $runFull = $winners }
+  }
+} else {
+  Write-Host ("Nothing cleared {0} tok/s - no full test recommended (you can still pick one)." -f $KitQuickMinTg)
+  if (-not $Yes) {
+    $ans = Read-Host "Run the full matrix anyway on any?  e.g. 1,2  |  Enter/n = stop"
+    if ($ans -match '\S' -and $ans -notmatch '^\s*n\s*$') { $runFull = @(Resolve-KitNumbers $ans $rank) }
+  }
+}
+
+if ($runFull.Count -gt 0) {
+  Write-Host ("FULL MATRIX on: {0}" -f ($runFull -join ', '))
+  & (Join-Path $root "run-bench.ps1") -Phases "1,2" -Models ($runFull -join ',') -RamGB $RamGB -Build $KitBuild -Force:$Force
+} else {
+  Write-Host "No full test - stopping after the quick screen."
+}
+
+Write-Host ""
+Write-Host "All done. Send back: results.jsonl + bench-log.txt + quick-summary.txt + quality-probe-*.txt + detect-facts.txt"

@@ -27,18 +27,17 @@ every model with its size, have/download/SKIP status, **what the quick screen ha
 already recorded on this engine** (`quick screen: 12.0 tok/s -> run full` /
 `not yet run`) **and what the full matrix has benched** (`8/8 done @b10099 tg 9.1
 -> skip` / `-- not run --`), total download vs free disk, and the two tests — then
-asks **quick screen first, full matrix only if you opt in.** After the PLAN it asks:
-`1) Which MODELS?` then `2) Also run the FULL tuning matrix? [y/N]`. By default it
-runs a **quick screen** — one generation per model, shown live with the tok/s;
-the kit then judges each model against the speed cutoff and prints a verdict
-(`run full` / `SKIP too slow`), also written to `quick-summary.txt` — so you (or a
-glance at that one file) know which models are worth a full test in minutes,
-without eyeballing anything. **Whatever you pick RUNS** — the quick screen never
-skips a model for having been screened before; you saw its cached result in the
-PLAN and chose. Nothing is thrown out — every selected model is screened. The
-hours-long 16-combo tuning matrix runs **only if you answer y** — for a model the
-quick screen (or you) confirmed. `-Yes` runs the full thing unattended.
-(detection proposes, never dictates).
+asks only **`1) Which MODELS?`** — nothing else up front, because the full-test
+decision comes AFTER the quick screen, where the recommendations exist. It runs the
+**quick screen** — one generation per model, shown live with the tok/s; the kit
+judges each against the cutoff and prints a verdict (`run full` / `SKIP too slow`),
+also written to `quick-summary.txt`. **Then, in the SAME session — no restart — it
+offers the full matrix on the models that cleared the bar**, defaulting to the
+recommended winners; you press Enter to accept, type your own numbers for a custom
+pick, or `n` to stop. **Whatever you pick RUNS** — the quick screen never skips a
+model for having been screened before; you saw its cached result in the PLAN and
+chose. Nothing is thrown out. `-Yes` runs unattended (quick screen, then the
+winners' full matrix). (detection proposes, never dictates).
 Then it downloads what fits, runs detect-facts, and benches. Hours on slow
 machines; the **full matrix** is RESUMABLE — rerun skips finished combos, failed
 combos retry — but the **quick screen always re-runs** what you pick. When done,
@@ -65,9 +64,12 @@ engine re-test.
   runs** — it is never skipped for having been screened before (the PLAN shows each
   model's last quick-screen result, so you choose with that in front of you). The
   verdict is advice, it never blocks a run.
-- **FULL MATRIX (opt-in, hours)** — only when you answer y. The 16-combo tuning
-  sweep (ngl 99/0 × ubatch 512/2048 × flash-attn on/off; pp512/2048/8192 + tg128)
-  plus the MoE ncmoe sweep. Worth it only on a model the quick screen confirmed.
+- **FULL MATRIX (offered after the quick screen)** — the kit lists the models that
+  cleared the cutoff and offers to run the matrix on them right away, same session,
+  no restart: **Enter** = the recommended winners, **your own numbers** = a custom
+  pick, **n** = stop. The 16-combo tuning sweep (ngl 99/0 × ubatch 512/2048 ×
+  flash-attn on/off; pp512/2048/8192 + tg128) plus the MoE ncmoe sweep. Runs only on
+  the models you chose — and never re-runs the quick screen.
 
 ## Rules the kit enforces (so numbers stay honest)
 

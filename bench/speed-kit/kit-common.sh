@@ -163,16 +163,26 @@ kit_quick_verdict() {  # $1 = tg (may be empty)
   if awk -v a="$1" -v c="$KIT_QUICK_MIN_TG" 'BEGIN{exit !(a+0 >= c+0)}'; then echo "run full"; else echo "SKIP too slow"; fi
 }
 
+# Cached quick-screen decode tok/s for a model on this build (empty = none/garbage).
+# Used by the winner-detection in run.sh's post-quick continuation.
+kit_quick_tg() {  # $1 = model filename leaf, $2 = build, $3 = root
+  local base probe speed
+  base="${1%.gguf}"
+  probe="$3/quality-probe-$base-$2.txt"
+  [ -f "$probe" ] || return 0
+  speed="$(grep -oE '\[ Prompt:.*Generation:[^]]*\]' "$probe" | head -1)"
+  printf '%s' "$speed" | sed -n 's/.*Generation:[[:space:]]*\([0-9.]*\).*/\1/p'
+}
+
 # Cached quick-screen status for the PLAN (mirror of Get-KitQuickStatus, per model):
 # "not yet run" | "no speed line ..." | "<tg> tok/s -> <verdict>". Read from the
 # per-model probe file so the PLAN shows what's cached BEFORE you pick.
 kit_quick_status() {  # $1 = model filename leaf (X.gguf), $2 = build, $3 = root
-  local base probe speed tg
+  local base probe tg
   base="${1%.gguf}"
   probe="$3/quality-probe-$base-$2.txt"
   if [ ! -f "$probe" ]; then echo "not yet run"; return; fi
-  speed="$(grep -oE '\[ Prompt:.*Generation:[^]]*\]' "$probe" | head -1)"
-  tg="$(printf '%s' "$speed" | sed -n 's/.*Generation:[[:space:]]*\([0-9.]*\).*/\1/p')"
+  tg="$(kit_quick_tg "$1" "$2" "$3")"
   if [ -z "$tg" ]; then echo "no speed line (last run left no speed line)"; return; fi
   printf '%s tok/s -> %s\n' "$tg" "$(kit_quick_verdict "$tg")"
 }

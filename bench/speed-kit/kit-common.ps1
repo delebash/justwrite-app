@@ -136,6 +136,21 @@ function Get-KitQuickStatus([string]$Root, [string]$CurrentBuild) {
   $status
 }
 
+# Parse a numbered multi-select like "1,3-5" into its mapped values. $Map is a
+# hashtable number -> value. ONE parser, shared by run.ps1's model picker AND the
+# post-quick "which to full-test" picker, so the two behave identically. Empty when
+# nothing valid is picked - callers treat that as "none", never "all".
+function Resolve-KitNumbers([string]$Sel, $Map) {
+  $chosen = @()
+  foreach ($tok in ($Sel -split '[,\s]+' | Where-Object { $_ })) {
+    if ($tok -match '^(\d+)-(\d+)$') { $chosen += ([int]$matches[1])..([int]$matches[2]) }
+    elseif ($tok -match '^\d+$') { $chosen += [int]$tok }
+  }
+  $files = @()
+  foreach ($i in ($chosen | Sort-Object -Unique)) { if ($Map.ContainsKey($i)) { $files += $Map[$i] } }
+  $files
+}
+
 function Get-KitRamBytes([double]$OverrideGB) {
   if ($OverrideGB -gt 0) { return [int64]($OverrideGB * 1GB) }
   (Get-CimInstance Win32_ComputerSystem).TotalPhysicalMemory

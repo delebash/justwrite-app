@@ -1073,3 +1073,48 @@ hours - one word flips it). A ruling that the log should be UTF-8 even on 5.1 wo
 `2>>` for a captured-and-rewritten stderr path (heavier; not done because it risks the timing
 parse). OPEN: the user's box runs on b10099 (delete `engine\b10083\` first); whether auto-gating
 the full run to only `run full` models is wanted.
+
+## 16. QUICK -> FULL IN ONE SESSION — the continuation flow (2026-07-24, the user's go)
+
+What was wrong. The user: "when I run quick test it tells me what to run full test, but then it exits,
+so I restart and have to remember which ones were recommended ... I make my pick then it asks if I want
+to run full test, and I say yes, and it runs quick test AGAIN, why!!!" Two defects, one root cause: the
+full-test decision was asked BEFORE the quick screen existed to inform it, and the two phases were
+bolted together. Verified: `run.ps1:152` set `$phases="1,2,3"` on a "yes"; `run-bench.ps1` runs phase 3
+(quick) THEN phase 1 (matrix) - so "yes, full" = quick screen AGAIN then matrix (the double-run). And the
+default `$phases="3"` ended the run after the quick screen, forcing a restart-and-re-pick to do the full
+test. The user's instruction: "think twice on the design and do it right how a user would expect ... not
+having to restart after quick test. Professional programming 101."
+
+What changed and why. The orchestration moved into `run.ps1`/`run.sh` (the UI layer); `run-bench` is
+unchanged (it already runs whatever phases it is handed - the right primitive). The new flow: (1) ask
+ONLY "which models" up front - the upfront "run the full matrix?" question is DELETED, because a user
+can't answer it before seeing results. (2) Run the quick screen once (phase 3). (3) Read the FRESH
+verdicts, print a numbered list of the just-screened models with their tok/s + verdict, mark the winners
+(cleared the cutoff), and OFFER the full matrix in the SAME session: Enter = the recommended winners,
+your own numbers = a custom pick (including a model that did not clear - you decide), n = stop. (4) If a
+set is chosen, run the matrix (phases "1,2" only - the quick screen NEVER re-runs) on exactly that set.
+`-Yes` auto-continues to the winners' matrix; if nothing cleared, it stops (nothing worth hours). The
+number-pick parsing is now ONE shared function - `Resolve-KitNumbers` (ps1) / `pick_rank` over a `RANK`
+array (sh) - used by both the model picker and the full-test picker so they behave identically; the
+winner read reuses `Get-KitQuickStatus`/`kit_quick_tg` + the shared `Get-KitQuickVerdict`/
+`kit_quick_verdict`.
+
+file:line. Removed upfront question + continuation: `run.ps1` confirm+run tail (the STEP 1/2/3 block)
+and `run.sh` (same, with `pick_rank` + a bash `RANK` array). Shared parser: `kit-common.ps1`
+`Resolve-KitNumbers`. Winner tok/s read: `kit-common.sh` `kit_quick_tg` (+ `kit_quick_status` refactored
+to use it). PLAN "Tests" wording updated in both faces. `run-bench` untouched.
+
+How it was verified. All ps1 + sh parse clean. Scratchpad logic tests (not the repo): `Resolve-KitNumbers`
+handles ranges/dedup/out-of-range/empty; the winner+rank computation over a mocked quick-status gives
+winners=[8B] #1 (only the >=cutoff model), Enter-default = winners, custom "1,3" maps through the rank to
+the right files; `pick_rank` mirrors it in sh; both faces ASSERT: PASS, byte-consistent. `run.ps1
+-PlanOnly` renders the new "offered right after the quick screen ... SAME session, no restart" Tests
+text, no error, nothing written. NOT run: the live end-to-end interactive flow (no engine/model in this
+env) - every logic piece is unit-tested and the phase split is a `run-bench` behaviour already proven.
+
+What would reverse it. Wanting a way to skip the quick screen and go straight to the matrix (a -FullOnly
+flag) - not added, because the quick screen is ~1 min and always informative, matching the user's
+philosophy. Wanting the continuation to auto-run winners with no prompt (fewer keystrokes) - one edit,
+drop the Read-Host and always use the winners. OPEN: the user's live run on a real box is the true test;
+whether -FullOnly is ever wanted.

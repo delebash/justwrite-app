@@ -118,11 +118,13 @@ done
 FREE="$(df -k "$ROOT" 2>/dev/null | awk 'NR==2 {printf "%.1f", $4/1048576}')"
 echo "Disk    : download needed ~$(gb "$DL_BYTES") GB - free here: ${FREE:-?} GB"
 echo "Tests   :"
-echo "  QUICK SCREEN (default) : one generation/model - you SEE speed + sample (minutes)"
+echo "  1. QUICK SCREEN : one generation/model - you SEE the speed + verdict (minutes)"
 if [ "$MOE_FITS" = 1 ]; then
-  echo "  FULL MATRIX  (opt-in)  : 16-combo tuning sweep + MoE ncmoe sweep (HOURS - keepers)"
+  echo "  2. FULL MATRIX  : offered after the quick screen, on models that cleared the"
+  echo "                    bar - same session, no restart. 16-combo sweep + MoE (HOURS)"
 else
-  echo "  FULL MATRIX  (opt-in)  : 16-combo tuning sweep (HOURS - only for a keeper)"
+  echo "  2. FULL MATRIX  : offered after the quick screen, on models that cleared the"
+  echo "                    bar - same session, no restart. 16-combo sweep (HOURS)"
 fi
 echo "Results : results.jsonl + bench-log.txt + quality-probe-*.txt + detect-facts.txt"
 echo "          -> copy back into bench/results/<machine>/kit/ in the repo"
@@ -130,10 +132,10 @@ echo "======================================"
 echo ""
 if [ "$PLAN_ONLY" = 1 ]; then echo "(--plan-only: stopping here.)"; exit 0; fi
 
-# ---- confirm ---------------------------------------------------------------
-PHASES="1,2,3"; MODELS_SEL=""
+# ---- confirm: pick MODELS. The full-test decision comes AFTER the quick screen,
+# where the recommendations exist (mirror of run.ps1). -----------------------
+MODELS_SEL=""
 if [ "$YES" != 1 ]; then
-  # ALWAYS ask BOTH choices before anything happens (mirror of run.ps1).
   printf "1) Which MODELS? (e.g. 1,3 - blank or 'all' = all) [1-%d] " "$n"
   read -r msel || msel=""
   case "$msel" in n|N) echo "Aborted - nothing downloaded, nothing run."; exit 0 ;; esac
@@ -145,19 +147,10 @@ if [ "$YES" != 1 ]; then
     if [ -z "$sel_files" ]; then echo "No valid models picked - aborting."; exit 0; fi
     MODELS_SEL="$sel_files"
   fi
-
-  # Quick screen always runs (phase 3); the hours-long matrix is opt-in only.
-  printf "2) Also run the FULL tuning matrix? (HOURS - only for a model you've confirmed) [y/N] "
-  read -r full || full=""
-  case "$full" in y*|Y*) PHASES="1,2,3" ;; *) PHASES="3" ;; esac
-
-  RUNTXT="QUICK SCREEN only (speed + sample per model)"
-  case ",$PHASES," in *,1,*) RUNTXT="QUICK SCREEN first, THEN the full matrix (hours)" ;; esac
   echo ""
   echo "-------------- ABOUT TO RUN --------------"
-  echo "  models =  ${MODELS_SEL:-ALL that fit}"
-  echo "  run    =  $RUNTXT"
-  echo "  (downloads only those models)"
+  echo "  quick-screen: ${MODELS_SEL:-ALL that fit}"
+  echo "  then it OFFERS the full matrix on whatever clears the bar - same session, no restart."
   echo "------------------------------------------"
   printf "Proceed? [Y/n] "
   read -r go || go=""
@@ -165,13 +158,78 @@ if [ "$YES" != 1 ]; then
   echo ""
 fi
 
-# ---- run -------------------------------------------------------------------
+# ---- run: download -> detect -> QUICK SCREEN -> (offer) FULL MATRIX on winners ---
 bash "$ROOT/download-models.sh" --ram-gb "$RAM_GB" --build "$KIT_BUILD" --models "$MODELS_SEL"
 if [ $? -ne 0 ]; then
   kit_log "$ROOT" "download step FAILED - stopping before the bench (see the DOWNLOAD FAILED lines above; rerun run.sh to retry)."
   exit 1
 fi
 bash "$ROOT/detect-facts.sh"
-bash "$ROOT/run-bench.sh" --phases "$PHASES" --models "$MODELS_SEL" --ram-gb "$RAM_GB" --build "$KIT_BUILD" --force "$FORCE"
+
+# STEP 1 - the quick screen (phase 3), ALWAYS, exactly once.
+bash "$ROOT/run-bench.sh" --phases "3" --models "$MODELS_SEL" --ram-gb "$RAM_GB" --build "$KIT_BUILD" --force "$FORCE"
+
+# STEP 2 - the models just screened, with fresh verdicts + winners (>= cutoff).
+if [ -n "$MODELS_SEL" ]; then
+  SCREENED="$(echo "$MODELS_SEL" | tr ',' ' ')"
+else
+  SCREENED=""
+  i=0
+  while [ $i -lt ${#KIT_MODEL_OUTS[@]} ]; do
+    [ "${FITS[$i]}" = 1 ] && SCREENED="$SCREENED $(basename "${KIT_MODEL_OUTS[$i]}")"
+    i=$(( i + 1 ))
+  done
+fi
+
+pick_rank() {  # $1 = "1,2" -> comma-joined files looked up in RANK (1-indexed)
+  local sel="" t f
+  for t in $(echo "$1" | tr ',' ' '); do
+    case "$t" in [0-9]*) f="${RANK[$t]:-}"; [ -n "$f" ] && sel="$sel${sel:+,}$f" ;; esac
+  done
+  echo "$sel"
+}
+
 echo ""
-echo "All done. Send back: results.jsonl + bench-log.txt + quality-probe-*.txt + detect-facts.txt"
+echo "============ full test? (same session - no restart) ============"
+RANK=(); WINNERS=""; WNUMS=""; k=0
+for f in $SCREENED; do
+  k=$(( k + 1 )); RANK[$k]="$f"
+  tg="$(kit_quick_tg "$f" "$KIT_BUILD" "$ROOT")"
+  v="$(kit_quick_verdict "$tg")"
+  if [ -n "$tg" ]; then tgtxt="$tg tok/s"; else tgtxt="no speed"; fi
+  printf "  [%d] %-32s %-11s %s\n" "$k" "$f" "$tgtxt" "$v"
+  if [ "$v" = "run full" ]; then WINNERS="$WINNERS${WINNERS:+,}$f"; WNUMS="$WNUMS${WNUMS:+,}$k"; fi
+done
+
+# STEP 3 - offer the full matrix: winners by default, your own pick, or skip.
+RUN_FULL=""
+if [ -n "$WINNERS" ]; then
+  echo "Cleared $KIT_QUICK_MIN_TG tok/s (recommended): $WNUMS"
+  if [ "$YES" = 1 ]; then RUN_FULL="$WINNERS"
+  else
+    printf "Run the FULL tuning matrix (HOURS) now?  [Enter]=recommended  |  e.g. 1,2=your pick  |  n=stop  "
+    read -r ans || ans=""
+    case "$ans" in
+      n|N) RUN_FULL="" ;;
+      "")  RUN_FULL="$WINNERS" ;;
+      *)   RUN_FULL="$(pick_rank "$ans")" ;;
+    esac
+  fi
+else
+  echo "Nothing cleared $KIT_QUICK_MIN_TG tok/s - no full test recommended (you can still pick one)."
+  if [ "$YES" != 1 ]; then
+    printf "Run the full matrix anyway on any?  e.g. 1,2  |  Enter/n = stop  "
+    read -r ans || ans=""
+    case "$ans" in ""|n|N) RUN_FULL="" ;; *) RUN_FULL="$(pick_rank "$ans")" ;; esac
+  fi
+fi
+
+if [ -n "$RUN_FULL" ]; then
+  echo "FULL MATRIX on: $RUN_FULL"
+  bash "$ROOT/run-bench.sh" --phases "1,2" --models "$RUN_FULL" --ram-gb "$RAM_GB" --build "$KIT_BUILD" --force "$FORCE"
+else
+  echo "No full test - stopping after the quick screen."
+fi
+
+echo ""
+echo "All done. Send back: results.jsonl + bench-log.txt + quick-summary.txt + quality-probe-*.txt + detect-facts.txt"
