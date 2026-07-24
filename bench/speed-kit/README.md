@@ -26,9 +26,10 @@ Either entry detects the machine, prints the PLAN — RAM + GPU, the engine buil
 every model with its size, have/download/SKIP status, **and what has already been
 benched on this engine** (`8/8 done @b10099 tg 9.1 -> skip` / `-- not run --`),
 total download vs free disk, and the three tests — then asks
-`Proceed? [Y = run everything / n = abort / s = choose models + tests]` before a byte
-is downloaded — `s` asks which models, then which tests, then downloads only what
-you picked and runs
+**two questions, always, before anything happens** — `1) Which MODELS?` then
+`2) Which TESTS?` (blank or `all` = all at either), then a final `Proceed? [Y/n]`
+showing exactly what will download and run. `-Yes` skips all three for unattended
+runs. Only the models you pick get downloaded; only the tests you pick get run.
 (detection proposes, never dictates).
 Then it downloads what fits, runs detect-facts, and benches. Hours on slow
 machines; fully RESUMABLE — rerun skips finished combos, failed combos retry,

@@ -133,34 +133,37 @@ if [ "$PLAN_ONLY" = 1 ]; then echo "(--plan-only: stopping here.)"; exit 0; fi
 # ---- confirm ---------------------------------------------------------------
 PHASES="1,2,3"; MODELS_SEL=""
 if [ "$YES" != 1 ]; then
-  printf "Proceed? [Y = run everything / n = abort / s = choose models + tests] "
-  read -r ans || ans=""
-  case "$ans" in
-    n*|N*) echo "Aborted - nothing downloaded, nothing run."; exit 0 ;;
-    s*|S*|m*|M*|t*|T*)
-      # ONE customise path asking BOTH questions in order (mirror of run.ps1)
-      printf "Models to run (e.g. 1,3 - blank or 'all' = all) [1-%d] " "$n"
-      read -r msel || msel=""
-      if [ -n "$msel" ] && ! echo "$msel" | grep -qi '^[[:space:]]*all[[:space:]]*$'; then
-        sel_files=""
-        for tok in $(echo "$msel" | tr ',' ' '); do
-          case "$tok" in [0-9]*) f="${PICK_FILES[$tok]:-}"; [ -n "$f" ] && sel_files="$sel_files${sel_files:+,}$f" ;; esac
-        done
-        if [ -z "$sel_files" ]; then echo "No valid models picked - aborting."; exit 0; fi
-        MODELS_SEL="$sel_files"
-      fi
-      printf "Tests to run (1=matrix 2=MoE sweep 3=quality probe - blank or 'all' = all) "
-      read -r tsel || tsel=""
-      if [ -n "$tsel" ] && ! echo "$tsel" | grep -qi '^[[:space:]]*all[[:space:]]*$'; then
-        PHASES="$(echo "$tsel" | tr -cs '123' ',' | sed 's/^,//; s/,$//')"
-        if [ -z "$PHASES" ]; then echo "No valid tests picked - aborting."; exit 0; fi
-      fi
-      echo ""
-      echo "Will run:  models = ${MODELS_SEL:-all}"
-      echo "           tests  = $PHASES"
-      echo ""
-      ;;
-  esac
+  # ALWAYS ask BOTH choices before anything happens (mirror of run.ps1).
+  printf "1) Which MODELS? (e.g. 1,3 - blank or 'all' = all) [1-%d] " "$n"
+  read -r msel || msel=""
+  case "$msel" in n|N) echo "Aborted - nothing downloaded, nothing run."; exit 0 ;; esac
+  if [ -n "$msel" ] && ! echo "$msel" | grep -qi '^[[:space:]]*all[[:space:]]*$'; then
+    sel_files=""
+    for tok in $(echo "$msel" | tr ',' ' '); do
+      case "$tok" in [0-9]*) f="${PICK_FILES[$tok]:-}"; [ -n "$f" ] && sel_files="$sel_files${sel_files:+,}$f" ;; esac
+    done
+    if [ -z "$sel_files" ]; then echo "No valid models picked - aborting."; exit 0; fi
+    MODELS_SEL="$sel_files"
+  fi
+
+  printf "2) Which TESTS?  (1=matrix  2=MoE sweep  3=quality probe - blank or 'all' = all) "
+  read -r tsel || tsel=""
+  case "$tsel" in n|N) echo "Aborted - nothing downloaded, nothing run."; exit 0 ;; esac
+  if [ -n "$tsel" ] && ! echo "$tsel" | grep -qi '^[[:space:]]*all[[:space:]]*$'; then
+    PHASES="$(echo "$tsel" | tr -cs '123' ',' | sed 's/^,//; s/,$//')"
+    if [ -z "$PHASES" ]; then echo "No valid tests picked - aborting."; exit 0; fi
+  fi
+
+  echo ""
+  echo "-------------- ABOUT TO RUN --------------"
+  echo "  models =  ${MODELS_SEL:-ALL that fit}"
+  echo "  tests  =  $PHASES"
+  echo "  (downloads only those models, then runs only those tests)"
+  echo "------------------------------------------"
+  printf "Proceed? [Y/n] "
+  read -r go || go=""
+  case "$go" in n*|N*) echo "Aborted - nothing downloaded, nothing run."; exit 0 ;; esac
+  echo ""
 fi
 
 # ---- run -------------------------------------------------------------------

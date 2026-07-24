@@ -118,37 +118,43 @@ if ($PlanOnly) { Write-Host "(-PlanOnly: stopping here.)"; exit 0 }
 $phases = "1,2,3"
 $pickedModels = ""
 if (-not $Yes) {
-  $ans = Read-Host "Proceed? [Y = run everything / n = abort / s = choose models + tests]"
-  if ($ans -match '^[nN]') { Write-Host "Aborted - nothing downloaded, nothing run."; exit 0 }
-  # ONE customise path asking BOTH questions in order (the user's shape: narrow
-  # models, then it asks for tests, then it downloads and runs). m/t as separate
-  # either-or branches could only narrow ONE axis per run and read as a choice
-  # between two things you want both of - they still enter here for muscle memory.
-  if ($ans -match '^[sSmMtT]') {
-    $sel = Read-Host ("Models to run (e.g. 1,3-5 - blank or 'all' = all) [1-{0}]" -f $n)
-    if ($sel -and $sel -notmatch '^\s*all\s*$') {
-      $nums = @()
-      foreach ($tok in ($sel -split '[,\s]+' | Where-Object { $_ })) {
-        if ($tok -match '^(\d+)-(\d+)$') { $nums += ([int]$matches[1])..([int]$matches[2]) }
-        elseif ($tok -match '^\d+$') { $nums += [int]$tok }
-      }
-      $files = @()
-      foreach ($i in ($nums | Sort-Object -Unique)) { if ($pick.ContainsKey($i)) { $files += $pick[$i] } }
-      if ($files.Count -eq 0) { Write-Host "No valid models picked - aborting."; exit 0 }
-      $pickedModels = ($files -join ",")
+  # ALWAYS ask BOTH choices before anything happens - no letter to guess, no
+  # either-or. The user's requirement (2026-07-23): "i can choose m and then t or
+  # choose all models and all tests ... i just want to make the choices before it
+  # actually tries to do anything". Blank = all at either question; -Yes bypasses
+  # all three prompts for unattended runs.
+  $sel = Read-Host ("1) Which MODELS? (e.g. 1,3-5 - blank or 'all' = all) [1-{0}]" -f $n)
+  if ($sel -match '^\s*n\s*$') { Write-Host "Aborted - nothing downloaded, nothing run."; exit 0 }
+  if ($sel -and $sel -notmatch '^\s*all\s*$') {
+    $nums = @()
+    foreach ($tok in ($sel -split '[,\s]+' | Where-Object { $_ })) {
+      if ($tok -match '^(\d+)-(\d+)$') { $nums += ([int]$matches[1])..([int]$matches[2]) }
+      elseif ($tok -match '^\d+$') { $nums += [int]$tok }
     }
-    $tsel = Read-Host "Tests to run (1=matrix 2=MoE sweep 3=quality probe - blank or 'all' = all)"
-    if ($tsel -and $tsel -notmatch '^\s*all\s*$') {
-      $tokens = @($tsel -split '[,\s]+' | Where-Object { $_ -match '^[123]$' })
-      if ($tokens.Count -eq 0) { Write-Host "No valid tests picked - aborting."; exit 0 }
-      $phases = ($tokens -join ",")
-    }
-    $mTxt = "all"; if ($pickedModels) { $mTxt = $pickedModels }
-    Write-Host ""
-    Write-Host ("Will run:  models = {0}" -f $mTxt)
-    Write-Host ("           tests  = {0}" -f $phases)
-    Write-Host ""
+    $files = @()
+    foreach ($i in ($nums | Sort-Object -Unique)) { if ($pick.ContainsKey($i)) { $files += $pick[$i] } }
+    if ($files.Count -eq 0) { Write-Host "No valid models picked - aborting."; exit 0 }
+    $pickedModels = ($files -join ",")
   }
+
+  $tsel = Read-Host "2) Which TESTS?  (1=matrix  2=MoE sweep  3=quality probe - blank or 'all' = all)"
+  if ($tsel -match '^\s*n\s*$') { Write-Host "Aborted - nothing downloaded, nothing run."; exit 0 }
+  if ($tsel -and $tsel -notmatch '^\s*all\s*$') {
+    $tokens = @($tsel -split '[,\s]+' | Where-Object { $_ -match '^[123]$' })
+    if ($tokens.Count -eq 0) { Write-Host "No valid tests picked - aborting."; exit 0 }
+    $phases = ($tokens -join ",")
+  }
+
+  $mTxt = "ALL that fit"; if ($pickedModels) { $mTxt = ($pickedModels -replace ',', "`n                ") }
+  Write-Host ""
+  Write-Host "-------------- ABOUT TO RUN --------------"
+  Write-Host ("  models =  {0}" -f $mTxt)
+  Write-Host ("  tests  =  {0}" -f $phases)
+  Write-Host "  (downloads only those models, then runs only those tests)"
+  Write-Host "------------------------------------------"
+  $go = Read-Host "Proceed? [Y/n]"
+  if ($go -match '^[nN]') { Write-Host "Aborted - nothing downloaded, nothing run."; exit 0 }
+  Write-Host ""
 }
 
 # ---- run -------------------------------------------------------------------
