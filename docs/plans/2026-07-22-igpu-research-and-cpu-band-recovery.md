@@ -1258,7 +1258,61 @@ demonstrably engages (the acceptance lines above). Follow-ups OFFERED, not built
 enum rows for spec_type (db.py:551 mechanism) so the dropdown prevents the typo class; the
 ncmoe-aware fit term (the §-known arbiter over-booking, its 2026-07-11 six-item plan still awaiting
 the user's go). ACTION for the user: delete the three test rows from the Gemma machine tune —
-the seeded draft-mtp/n2 config stands.
+the seeded draft-mtp/n2 config stands. (Superseded same day: the user never clicked
+Apply — the test rows were modal-state only, nothing to delete. That also explains the
+phantom runs: unsaved modal state mid-iteration.)
+
+## 20. THE HONEST FIT — ncmoe-aware weights + iSWA-aware KV + the spec_type dropdown (2026-07-24, the user's go)
+
+CORRECTION FIRST. I twice told the user the 2026-07-11 six-item fix plan was "awaiting go" — the
+memory INDEX line said so, but the memory body records it SHIPPED the same night (rounds 1-6, pushed
+runner 29a193e/c0016c1/f7e87f2). What genuinely remained was exactly one root: item 2's fix was the
+measured TRUE-UP after load; the PRE-load estimate still over-booked. Today's go built that, plus the
+spec_type dropdown from the DFlash test's "nobe" incident.
+
+THE TWO ESTIMATE DEFECTS, both fixed from GGUF-header facts (no constants invented):
+(1) ncmoe-blind weights: `compute_fit`'s forward estimate booked the FULL file per GPU layer.
+New: `GgufMeta.expert_byte_share()` (runner gguf.py) computes the routed-expert byte share
+structurally (experts 3·n_embd·exp_ff·E vs attention n_embd²·(2+2·kv_ratio) + dense + shared FFN;
+missing dims → 0 → old behavior; MHA fallback deliberately UNDERSTATES the share = conservative), and
+`fit.moe_gpu_size_share()` scales the size term: of g GPU layers, min(ncmoe, g) keep only non-expert
+bytes (the overlap semantics the box MEASURED — ngl 30/ncmoe 21 ≈ 6.5 GB real).
+(2) iSWA-blind KV: the regression projects full-ctx KV per layer, but Gemma-4 is interleaved
+sliding-window — the REAL header (dumped live): head_count_kv is a PER-LAYER ARRAY [8,8,8,8,8,2,...],
+sliding_window=1024, a 30-bool pattern (25 windowed / 5 global), key/value_length 512 (256 _swa). Real
+KV at 32k ctx ≈ 440 MB vs ~5,450 projected. New: gguf.py materialises exactly those two per-layer
+arrays (everything else still skips — the tokenizer-array guard stands), `GgufMeta.kv_mb_at_ctx()`
+sums per-layer KV with the window clamp (None unless the FULL iSWA picture is present — uniform
+full-attention models stay on the fitted regression ON PURPOSE, its KV factor is part of the
+calibration), and `fit.estimate_vram_mb(kv_mb=...)` swaps the fitted KV term for the real one.
+Both apply ONLY to the forward reservation estimate; the inverse split (max_gpu_layers) stays
+undiscounted (a placement behavior change needing its own measurement round). Guarded getattr-style
+for duck-typed metas (the first full-suite run caught 73 failures from SimpleNamespace metas — fixed
+to the same pattern as the existing context_length getattr).
+
+GOLD VERIFICATION (the real Gemma-4 26B GGUF on this box, the exact incident config ngl 30/ncmoe 21/
+ctx 32768/q8_0): expert_byte_share = 0.9389; size-share on GPU 0.343; precise KV 440 MB.
+OLD estimate 19,758 MB (the arbiter warned "needs 20638" — the delta is the MTP draft's marginal);
+NEW estimate **6,456 MB** vs measured reality 6.5-7.9 GB. The recurring "over budget ... proceeding"
+warning stops firing for this config because the estimate now fits the 8 GB card, and co-load
+admissions (the ask-the-book embed flow) now run on real numbers pre-load, not post-true-up.
+
+THE DROPDOWN (QC-18 amended, recorded in code + tests): spec_type seeds KnobOption rows
+(none/draft-mtp/draft-dflash/draft-eagle3/ngram-mod); the kit's `plane1SwitchCatalog` passes options
+through and KnobGrid's add-row mode renders a UiSelect for option-carrying knobs ONLY — every other
+knob stays a free text box, so a new llama.cpp param still needs no code. The pinning test
+(`test_plane1_carries_no_engine_default_claims`) now asserts spec_type's exact option list and
+no-options for everything else.
+
+Gates: runner pytest **694 passed** / 9 skipped / 1 failed = the pre-existing Windows known-bad
+lspci test; ruff clean; JW vitest + build:vite clean (the kit UI change). New tests:
+moe_gpu_size_share boundaries · expert_byte_share math (incl. the conservative MHA fallback) · the
+iSWA array round-trip + kv_mb_at_ctx hand-sum + guards · the kv_mb override · the compute_fit
+discount integration (discounted < 0.55× undiscounted; ncmoe-0 byte-identical) · the spec_type
+options pin. What would reverse it: a model whose n-cpu-moe semantics DON'T overlap-from-the-front
+would need the overlap term revisited (the measured evidence pinned it); extending the discount to
+the inverse split is the recorded follow-up if untuned-MoE placement should improve too. The user
+must RESTART the app server to load the new estimate + seed the dropdown.
 
 ## 19. THE DEV SIDECAR PREFERS THE REPO VENV (2026-07-24, the user's go)
 

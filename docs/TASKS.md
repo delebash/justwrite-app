@@ -18,6 +18,13 @@
 
 ## Now / near-term (JustWrite)
 
+- **Tune modal: Measurement history needs a visible affordance + a Clear button** (user,
+  2026-07-24, screenshot): the history section doesn't look clickable — you can't tell you
+  have to click it to open — so it needs a real button/disclosure look; and once open it
+  needs a **Clear** button (the DELETE /v1/ai/model-measurements endpoint already exists —
+  it's the wired-up UI that's missing). Surface: the kit's `TuneMeasureModal.vue`
+  measurement-history block.
+
 - **UPDATE 2026-07-23: the KIT IS ONE-CLICK — detect → PLAN → confirm → run** (full record:
   recovery doc §10). `run.bat` double-click (ExecutionPolicy bypassed per-run) → `run.ps1`
   prints the PLAN (machine · engine · every model size + have/download/SKIP · disk · tests) →
