@@ -25,18 +25,21 @@ box — first run there is its real test.
 Either entry detects the machine, prints the PLAN — RAM + GPU, the engine build,
 every model with its size, have/download/SKIP status, **and what has already been
 benched on this engine** (`8/8 done @b10099 tg 9.1 -> skip` / `-- not run --`),
-total download vs free disk, and the three tests — then asks
+total download vs free disk, and the two tests — then asks
 **quick screen first, full matrix only if you opt in.** After the PLAN it asks:
 `1) Which MODELS?` then `2) Also run the FULL tuning matrix? [y/N]`. By default it
-runs a **quick screen** — one generation per model, shown live with the tok/s, so
-you judge speed AND quality in minutes (exactly a hand test) and nothing is thrown
-out. The hours-long 16-combo tuning matrix runs **only if you answer y** — for a
-model you've already confirmed is a keeper. `-Yes` runs the full thing unattended.
+runs a **quick screen** — one generation per model, shown live with the tok/s;
+the kit then judges each model against the speed cutoff and prints a verdict
+(`run full` / `SKIP too slow`), also written to `quick-summary.txt` — so you (or a
+glance at that one file) know which models are worth a full test in minutes,
+without eyeballing anything. Nothing is thrown out — every selected model is
+screened. The hours-long 16-combo tuning matrix runs **only if you answer y** — for
+a model the quick screen (or you) confirmed. `-Yes` runs the full thing unattended.
 (detection proposes, never dictates).
 Then it downloads what fits, runs detect-facts, and benches. Hours on slow
 machines; fully RESUMABLE — rerun skips finished combos, failed combos retry,
 existing probes skip. When done, send back `results.jsonl` + `bench-log.txt` +
-`quality-probe-*.txt` + `detect-facts.txt` → committed to
+`quick-summary.txt` + `quality-probe-*.txt` + `detect-facts.txt` → committed to
 `bench/results/<machine>/kit/`.
 
 Windows flags (pass to `run.bat` or `run.ps1`): `-PlanOnly` print the plan and
@@ -47,9 +50,15 @@ engine re-test.
 ## The tests
 
 - **QUICK SCREEN (default)** — one short generation per model, shown live with the
-  tok/s and saved to `quality-probe-<model>.txt`. This is the go/no-go: you see
-  speed AND whether the output is real prose (a broken backend writes garbage at
-  full speed — this makes that visible), in minutes. Runs first, on every model.
+  tok/s and saved to `quality-probe-<model>.txt`. The kit reads the decode speed
+  and prints a **verdict** per model — `run full` if it clears the cutoff
+  (`kit-common` `$KitQuickMinTg`, default 7 tok/s decode), `SKIP too slow` below
+  it — and writes them all, fastest first, to `quick-summary.txt` (the one file to
+  glance at, or send back). This is the go/no-go: the kit *tells you* which models
+  are worth a full test, and the live text still shows whether the output is real
+  prose (a broken backend writes garbage at full speed — this makes that visible),
+  in minutes. Runs first, on every selected model; the verdict is advice, it never
+  blocks a run.
 - **FULL MATRIX (opt-in, hours)** — only when you answer y. The 16-combo tuning
   sweep (ngl 99/0 × ubatch 512/2048 × flash-attn on/off; pp512/2048/8192 + tg128)
   plus the MoE ncmoe sweep. Worth it only on a model the quick screen confirmed.
@@ -59,6 +68,10 @@ engine re-test.
 - **RAM-fit** (`kit-common.ps1` `$KitFitFactor`, one place): a model over
   0.7 × RAM is skipped LOUDLY at download AND at bench — never downloaded just
   to thrash, never silently missing.
+- **Quick-screen cutoff** (`kit-common.ps1` `$KitQuickMinTg`, one place): the
+  decode tok/s below which the quick screen flags a model `SKIP too slow` (the
+  user's call, default 7). Advice only — it never blocks a run. Both faces share
+  the one value; edit it in one place.
 - **LATEST engine, resolved per run** (the user's ruling 2026-07-23): llama.cpp
   ships real fixes fast and a pin hid one — b10083 could not read the current
   ternary files and had no Vulkan ternary kernels; b10099 reads them and offloads.
@@ -91,7 +104,7 @@ bench/speed-kit/
   README.md            this file
   run.bat              Windows: DOUBLE-CLICK THIS — launcher for run.ps1
   run.ps1              the one click: detect → PLAN → confirm → download → bench
-  kit-common.ps1       ONE source (Windows face): engine pin, model list, fit rule, log
+  kit-common.ps1       ONE source (Windows face): engine pin, model list, fit rule, quick-screen cutoff, log
   download-models.ps1  fit-filtered fetch of engine + models (standalone-safe)
   detect-facts.ps1     hardware facts + what Vulkan sees
   run-bench.ps1        the 3-phase benchmark (standalone-safe; -Phases subset)

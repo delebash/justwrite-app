@@ -102,22 +102,56 @@ if ($phaseSet -contains '3') {
   if (-not $cli) { Write-Host "llama-cli.exe not found - quick screen skipped" }
   else {
     Write-Host ""
-    Write-Host "============ QUICK SCREEN (speed + sample per model) ============"
+    Write-Host "============ QUICK SCREEN (speed + verdict per model) ============"
+    Write-Host ("cutoff: decode >= {0} tok/s -> worth a full test; below -> skip" -f $KitQuickMinTg)
+    # Accumulate one row per model so the summary can name every one - the file
+    # the human sends back instead of eyeballing N probe files (the user's ask).
+    $screen = @()
     foreach ($m in $modelFiles) {
       $probe = Join-Path $root "quality-probe-$($m.BaseName)-$KitBuild.txt"
-      if ((Test-Path $probe) -and -not $Force) {
-        $prev = (Select-String -Path $probe -Pattern 'Prompt:.*Generation:' | Select-Object -First 1).Line
-        Write-Host ("  have (skip): {0}   {1}" -f $m.Name, ($prev -replace '^\s+',''))
-        continue
+      $cached = (Test-Path $probe) -and (-not $Force)
+      if ($cached) {
+        Write-Host ""
+        Write-Host ("  have (cached): {0}" -f $m.Name)
+      } else {
+        Write-Host ""
+        Write-Host (">>> {0}  (generating ~120 tokens; verdict prints at the end)" -f $m.Name)
+        & $cli.FullName -m $m.FullName -ngl 99 --single-turn --temp 0.2 -n 120 -p "Write a short paragraph describing an old lighthouse at dusk." 2>>$log | Tee-Object -FilePath $probe
+        if ($LASTEXITCODE -ne 0) { "SCREEN FAILED exit=$LASTEXITCODE : $($m.Name)" | Add-Content $log; Write-Host "  (screen failed - see bench-log.txt)" }
       }
-      Write-Host ""
-      Write-Host (">>> {0}  (generating ~120 tokens; speed prints at the end)" -f $m.Name)
-      & $cli.FullName -m $m.FullName -ngl 99 --single-turn --temp 0.2 -n 120 -p "Write a short paragraph describing an old lighthouse at dusk." 2>>$log | Tee-Object -FilePath $probe
-      if ($LASTEXITCODE -ne 0) { "SCREEN FAILED exit=$LASTEXITCODE : $($m.Name)" | Add-Content $log; Write-Host "  (screen failed - see bench-log.txt)" }
-      $speed = (Select-String -Path $probe -Pattern 'Prompt:.*Generation:' | Select-Object -First 1).Line
-      if ($speed) { Write-Host ("  >>> SPEED  {0}:  {1}" -f $m.Name, ($speed.Trim())) }
+      # Decode tok/s from llama-cli's timing line; $tg = $null if it never printed
+      # one (model error / different format) -> an explicit "no speed line" verdict,
+      # never a false "skip".
+      $speed = ""
+      if (Test-Path $probe) { $speed = (Select-String -Path $probe -Pattern 'Prompt:.*Generation:' | Select-Object -First 1).Line }
+      $tg = $null
+      if ($speed -match 'Generation:\s*([\d.]+)') { $tg = [double]$matches[1] }
+      if ($null -ne $tg) {
+        $verdict = if ($tg -ge $KitQuickMinTg) { "run full" } else { "SKIP too slow" }
+        Write-Host ("  >>> {0}   {1:N1} tok/s decode   -> {2}" -f $m.Name, $tg, $verdict)
+      } else {
+        $verdict = "no speed line"
+        Write-Host ("  >>> {0}   (no speed line - see bench-log.txt)" -f $m.Name)
+      }
+      $screen += [pscustomobject]@{ Name = $m.Name; Tg = $tg; Verdict = $verdict }
     }
-    Write-Host "================================================================="
+    # ONE file the human can send back: which models are worth the full matrix,
+    # fastest decode first. Same lines are echoed to the console.
+    $summaryFile = Join-Path $root "quick-summary.txt"
+    $out = @()
+    $out += ("QUICK SCREEN SUMMARY  -  engine {0}  -  cutoff {1} tok/s decode" -f $KitBuild, $KitQuickMinTg)
+    $out += "(which models are worth the hours-long full test; decode = streaming speed)"
+    $out += ""
+    foreach ($r in ($screen | Sort-Object -Property @{ Expression = { if ($null -eq $_.Tg) { -1 } else { $_.Tg } } } -Descending)) {
+      $tgTxt = "   n/a"
+      if ($null -ne $r.Tg) { $tgTxt = ("{0,6:N1}" -f $r.Tg) }
+      $out += ("  {0,-14}{1} tok/s   {2}" -f $r.Verdict, $tgTxt, $r.Name)
+    }
+    $out | Set-Content $summaryFile
+    Write-Host ""
+    $out | ForEach-Object { Write-Host $_ }
+    Write-Host ("  -> saved to {0}" -f (Split-Path $summaryFile -Leaf))
+    Write-Host "=================================================================="
     Write-Host ""
   }
 } else { Write-Host "quick screen: not selected" }

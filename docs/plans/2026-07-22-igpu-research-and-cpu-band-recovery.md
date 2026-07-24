@@ -938,3 +938,68 @@ and matched runs become the default rather than the `-Build` escape); or PrismML
 27B with mainline packing under the plain `Q2_0` name, which would make the g64 rule obsolete.
 OPEN: whether to re-baseline the existing b10083 gemma matrices at latest (recommended: leave
 them — rows self-label, so mixed history stays interpretable) and the user's laptop runs.
+
+## 14. QUICK SCREEN FIRST, THEN THE KIT JUDGES IT (2026-07-24, the user's go)
+
+What changed and why — two linked corrections in one arc. FIRST, the whole test methodology was
+inverted and the user named it: "the only time we run full tests for hours is after we determine
+the model will actually run at decent speed ... you made me waste all this time running tests we
+shouldn't run." The kit had brute-forced the 16-combo tuning matrix on every fitting model and
+buried the one-shot quality probe last. That was reordered (commit `40d7d7c`): the single
+generation became the DEFAULT and runs FIRST (phase 3 moved above phase 1, made live via
+`Tee-Object`/`tee`), and the hours-long matrix runs only on the opt-in `2) Also run the FULL
+tuning matrix? [y/N]`. `run.ps1`/`run.sh` default phases to `3`; `1,2,3` only on the y answer.
+Nothing is auto-thrown-out — every selected model that fits RAM is screened, including the
+ternary 27B (the user's explicit instruction: it may run fine on a 32 GB unified-memory iGPU even
+though it crawled on the 8 GB desktop card).
+
+SECOND, and the reason for this section: showing the speed was not enough. The user corrected a
+mis-read — that they had judged the ternary model "by hand" only because they are a person, not
+because they want to keep doing it: "I did not mean for me to determine manually ... I am not a
+computer." So the kit must DECIDE, not just display. Also clarified for the record (the user
+noticed the quick screen calls a different binary): the quick screen runs `llama-cli` (which
+generates real text AND prints a timing line), NOT `llama-bench` (which emits only numbers and no
+readable prose); neither has a built-in "quick test" — that mode is the kit's own. The full
+matrix still uses `llama-bench`.
+
+The verdict layer. A single editable cutoff was added to the ONE source — `kit-common.ps1`
+`$KitQuickMinTg = 7` and `kit-common.sh` `KIT_QUICK_MIN_TG=7` (same home as `$KitFitFactor`, one
+tier, one number). WHY 7: decode tok/s is the speed a reader watches prose stream on screen, and
+~7 keeps pace with reading (below ~5 is painful — that is the ternary-27B "it didn't work"); the
+value is the user's call ("your rec"), advisory only, and never blocks a run. In `run-bench`'s
+quick-screen block (both faces) the decode number is parsed from the `llama-cli` timing line
+(`[ Prompt: … | Generation: N t/s ]`) and each model gets a verdict printed inline —
+`run full` at/above the cutoff (inclusive), `SKIP too slow` below it, and `no speed line` when
+the model errored or printed no timing (never a false "skip"). All rows are written, fastest
+decode first, to `quick-summary.txt` — the ONE file the user glances at or sends back instead of
+eyeballing N probe files, which was the literal ask ("are there results to file ... to tell me
+which models to run full tests on or can that be built into kit?"). Two options were offered and
+deliberately deferred to keep it simple: a second (batch) tier, and auto-gating the full run to
+only the `run full` models.
+
+file:line. Cutoff constant: `bench/speed-kit/kit-common.ps1` `$KitQuickMinTg` · `kit-common.sh`
+`KIT_QUICK_MIN_TG`. Verdict + summary: the `phase 3` quick-screen block in
+`bench/speed-kit/run-bench.ps1` and `run-bench.sh`. Flow default: `run.ps1`/`run.sh` (`phases`
+default `3`, full on the y opt-in). Docs: `bench/speed-kit/README.md` (the two-test description,
+the QUICK SCREEN bullet, the cutoff rule, the folder-layout line, the send-back list).
+
+How it was verified. All four edited scripts parse clean (`Parser::ParseFile` for the two ps1;
+`bash -n` for the two sh, plus `run.sh`/`download-models.sh`). The new extraction → verdict →
+summary logic was unit-tested in the scratchpad (never in the repo — the standing rule) against
+synthetic probe lines for four cases: fast 18.3 (`run full`), slow 2.1 (`SKIP too slow`), edge
+7.0 == cutoff (`run full`, proving `>=` is inclusive), and a probe with no timing line
+(`no speed line`, sorted last). Both the ps1 and the sh face returned `ASSERT: PASS` with
+byte-identical output and the fastest-first order `FAST,EDGE,SLOW,NONE`. NOT yet tested: a real
+model quick screen on the user's boxes — the `Tee`/extraction against a REAL `llama-cli` was
+proven last session (it streamed, saved, and yielded `Generation: 1.7 t/s`), but the verdict +
+`quick-summary.txt` layer is new and only synthetic-tested here; and no Mac/Linux box has run the
+sh face.
+
+What would reverse it. A different cutoff is one constant edit in `kit-common` (both faces share
+the value). If the user later wants the full run auto-gated to the `run full` models, or a second
+batch tier, both were scoped here and can be added without disturbing this layer. A ruling that
+the quick screen should judge on prompt/prefill speed rather than decode would change which number
+the parse targets.
+
+OPEN: the user's box runs (quick screen on both laptops + the desktop, then send `quick-summary.txt`
+back); whether to add auto-gating; whether a second batch tier is wanted.

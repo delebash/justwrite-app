@@ -81,21 +81,51 @@ if phase_on 3; then
   [ -n "$CLI" ] || CLI="$(find "$ROOT/engine" -name llama-cli -type f 2>/dev/null | head -1)"
   if [ -n "$CLI" ]; then
     echo ""
-    echo "============ QUICK SCREEN (speed + sample per model) ============"
+    echo "============ QUICK SCREEN (speed + verdict per model) ============"
+    echo "cutoff: decode >= $KIT_QUICK_MIN_TG tok/s -> worth a full test; below -> skip"
+    SUMMARY="$ROOT/quick-summary.txt"
+    : > "$SUMMARY.tmp"
+    TAB="$(printf '\t')"
     for f in $MODELS; do
       base="$(basename "$f" .gguf)"
       PROBE="$ROOT/quality-probe-$base-$KIT_BUILD.txt"
       if [ -f "$PROBE" ] && [ "$FORCE" != 1 ]; then
-        echo "  have (skip): $base   $(grep -oE '\[ Prompt:.*Generation:[^]]*\]' "$PROBE" | head -1)"
-        continue
+        echo ""
+        echo "  have (cached): $base"
+      else
+        echo ""
+        echo ">>> $base  (generating ~120 tokens; verdict prints at the end)"
+        "$CLI" -m "$f" -ngl 99 --single-turn --temp 0.2 -n 120 \
+          -p "Write a short paragraph describing an old lighthouse at dusk." 2>>"$LOG" | tee "$PROBE"
       fi
-      echo ""
-      echo ">>> $base  (generating ~120 tokens; speed prints at the end)"
-      "$CLI" -m "$f" -ngl 99 --single-turn --temp 0.2 -n 120         -p "Write a short paragraph describing an old lighthouse at dusk." 2>>"$LOG" | tee "$PROBE"
-      speed="$(grep -oE '\[ Prompt:.*Generation:[^]]*\]' "$PROBE" | head -1)"
-      [ -n "$speed" ] && echo "  >>> SPEED  $base:  $speed"
+      # decode tok/s from the timing line; empty -> explicit "no speed line", not a false skip
+      speed=""
+      [ -f "$PROBE" ] && speed="$(grep -oE '\[ Prompt:.*Generation:[^]]*\]' "$PROBE" | head -1)"
+      tg="$(printf '%s' "$speed" | sed -n 's/.*Generation:[[:space:]]*\([0-9.]*\).*/\1/p')"
+      if [ -n "$tg" ]; then
+        if awk -v a="$tg" -v c="$KIT_QUICK_MIN_TG" 'BEGIN{exit !(a+0 >= c+0)}'; then verdict="run full"; else verdict="SKIP too slow"; fi
+        printf "  >>> %s   %s tok/s decode   -> %s\n" "$base" "$tg" "$verdict"
+        printf "%s${TAB}%s${TAB}%s\n" "$tg" "$verdict" "$base" >> "$SUMMARY.tmp"
+      else
+        printf "  >>> %s   (no speed line - see bench-log.txt)\n" "$base"
+        printf "%s${TAB}%s${TAB}%s\n" "-1" "no speed line" "$base" >> "$SUMMARY.tmp"
+      fi
     done
-    echo "================================================================="
+    # ONE file the human can send back: fastest decode first
+    {
+      echo "QUICK SCREEN SUMMARY  -  engine $KIT_BUILD  -  cutoff $KIT_QUICK_MIN_TG tok/s decode"
+      echo "(which models are worth the hours-long full test; decode = streaming speed)"
+      echo ""
+      sort -t"$TAB" -k1 -nr "$SUMMARY.tmp" | while IFS="$TAB" read -r tg verdict name; do
+        if [ "$tg" = "-1" ]; then tgtxt="   n/a"; else tgtxt="$(awk -v t="$tg" 'BEGIN{printf "%6.1f", t}')"; fi
+        printf "  %-14s%s tok/s   %s\n" "$verdict" "$tgtxt" "$name"
+      done
+    } > "$SUMMARY"
+    rm -f "$SUMMARY.tmp"
+    echo ""
+    cat "$SUMMARY"
+    echo "  -> saved to $(basename "$SUMMARY")"
+    echo "=================================================================="
     echo ""
   else echo "llama-cli not found - quick screen skipped"; fi
 else echo "quick screen: not selected"; fi

@@ -19,6 +19,12 @@ KIT_FALLBACK_BUILD="b10099"
 KIT_FIT_NUM=7
 KIT_FIT_DEN=10
 
+# QUICK-SCREEN cutoff (the user's ruling 2026-07-24) - decode tok/s below this is
+# flagged "SKIP too slow" (not worth the full matrix), at/above it "run full". ONE
+# number, ONE tier; run-bench reads it, never hardcodes it. Advisory - it prints a
+# verdict + writes quick-summary.txt, it blocks nothing. Same value as $KitQuickMinTg.
+KIT_QUICK_MIN_TG=7
+
 # The matrix - defined HERE so run.sh can size "N/8 done" without duplicating
 # run-bench's loop bounds.
 KIT_NGLS="99 0"

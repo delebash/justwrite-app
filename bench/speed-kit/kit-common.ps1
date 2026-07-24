@@ -22,6 +22,15 @@ $KitFallbackBuild = "b10099"
 # so it is skipped LOUDLY at download AND at bench (same factor, same RAM source).
 $KitFitFactor = 0.7
 
+# QUICK-SCREEN cutoff (the user's ruling 2026-07-24, "your rec"): after the quick
+# screen generates once per model, a model whose DECODE speed is below this many
+# tokens/sec is flagged "SKIP too slow" (not worth the hours-long full matrix);
+# at/above it, "run full". ONE number, ONE tier - decode tok/s is the speed a
+# reader watches prose stream on screen (~7 keeps pace with reading; below ~5 is
+# painful). Edit HERE (one source); run-bench reads it, never hardcodes it.
+# ADVISORY: it prints a verdict + writes quick-summary.txt, it does not block a run.
+$KitQuickMinTg = 7
+
 # The 16-combo matrix - defined HERE so run.ps1 can size "N/8 done" without
 # duplicating run-bench's loop bounds.
 $KitNgls = @(99, 0)
