@@ -26,10 +26,12 @@ Either entry detects the machine, prints the PLAN — RAM + GPU, the engine buil
 every model with its size, have/download/SKIP status, **and what has already been
 benched on this engine** (`8/8 done @b10099 tg 9.1 -> skip` / `-- not run --`),
 total download vs free disk, and the three tests — then asks
-**two questions, always, before anything happens** — `1) Which MODELS?` then
-`2) Which TESTS?` (blank or `all` = all at either), then a final `Proceed? [Y/n]`
-showing exactly what will download and run. `-Yes` skips all three for unattended
-runs. Only the models you pick get downloaded; only the tests you pick get run.
+**quick screen first, full matrix only if you opt in.** After the PLAN it asks:
+`1) Which MODELS?` then `2) Also run the FULL tuning matrix? [y/N]`. By default it
+runs a **quick screen** — one generation per model, shown live with the tok/s, so
+you judge speed AND quality in minutes (exactly a hand test) and nothing is thrown
+out. The hours-long 16-combo tuning matrix runs **only if you answer y** — for a
+model you've already confirmed is a keeper. `-Yes` runs the full thing unattended.
 (detection proposes, never dictates).
 Then it downloads what fits, runs detect-facts, and benches. Hours on slow
 machines; fully RESUMABLE — rerun skips finished combos, failed combos retry,
@@ -44,13 +46,13 @@ engine re-test.
 
 ## The tests
 
-- **[1] 16-combo matrix** — models × ngl 99/0 × ubatch 512/2048 × flash-attn
-  on/off; pp512/2048/8192 + tg128 per combo.
-- **[2] n_cpu_moe sweep** — MoE model only (auto-skips if none fits): experts to
-  CPU, attention on GPU; ncmoe 0..48 at the known-good iGPU shape.
-- **[3] quality probe** — one short generation per model on the GPU path, saved
-  as `quality-probe-<model>.txt` for human eyeballing (speed numbers can look
-  perfect while a broken backend writes garbage; the probe makes that visible).
+- **QUICK SCREEN (default)** — one short generation per model, shown live with the
+  tok/s and saved to `quality-probe-<model>.txt`. This is the go/no-go: you see
+  speed AND whether the output is real prose (a broken backend writes garbage at
+  full speed — this makes that visible), in minutes. Runs first, on every model.
+- **FULL MATRIX (opt-in, hours)** — only when you answer y. The 16-combo tuning
+  sweep (ngl 99/0 × ubatch 512/2048 × flash-attn on/off; pp512/2048/8192 + tg128)
+  plus the MoE ncmoe sweep. Worth it only on a model the quick screen confirmed.
 
 ## Rules the kit enforces (so numbers stay honest)
 

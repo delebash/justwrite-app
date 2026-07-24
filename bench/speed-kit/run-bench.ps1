@@ -91,7 +91,39 @@ if ((Test-Path $results) -and (-not $Force)) {
 if ($Force) { Write-Host "-Force: ignoring prior results, re-running everything selected" }
 
 "=== run-bench $(Get-Date -Format o) - engine $($bench.FullName) - build $KitBuild - phases $Phases ===" | Add-Content $log
+
+# QUICK SCREEN (runs FIRST): one generation per model, shown LIVE + the tok/s -
+# exactly a hand test. The go/no-go: judge speed AND quality here; the hours-long
+# matrix (phase 1) only runs if you opted in. Nothing is thrown out - every
+# selected model that fits RAM gets screened (the user's flow, 2026-07-24).
+if ($phaseSet -contains '3') {
+  $cli = Get-ChildItem -Recurse (Join-Path $root ("engine\" + $KitBuild)) -Filter "llama-cli.exe" -ErrorAction SilentlyContinue | Select-Object -First 1
+  if (-not $cli) { $cli = Get-ChildItem -Recurse (Join-Path $root "engine") -Filter "llama-cli.exe" -ErrorAction SilentlyContinue | Select-Object -First 1 }
+  if (-not $cli) { Write-Host "llama-cli.exe not found - quick screen skipped" }
+  else {
+    Write-Host ""
+    Write-Host "============ QUICK SCREEN (speed + sample per model) ============"
+    foreach ($m in $modelFiles) {
+      $probe = Join-Path $root "quality-probe-$($m.BaseName)-$KitBuild.txt"
+      if ((Test-Path $probe) -and -not $Force) {
+        $prev = (Select-String -Path $probe -Pattern 'Prompt:.*Generation:' | Select-Object -First 1).Line
+        Write-Host ("  have (skip): {0}   {1}" -f $m.Name, ($prev -replace '^\s+',''))
+        continue
+      }
+      Write-Host ""
+      Write-Host (">>> {0}  (generating ~120 tokens; speed prints at the end)" -f $m.Name)
+      & $cli.FullName -m $m.FullName -ngl 99 --single-turn --temp 0.2 -n 120 -p "Write a short paragraph describing an old lighthouse at dusk." 2>>$log | Tee-Object -FilePath $probe
+      if ($LASTEXITCODE -ne 0) { "SCREEN FAILED exit=$LASTEXITCODE : $($m.Name)" | Add-Content $log; Write-Host "  (screen failed - see bench-log.txt)" }
+      $speed = (Select-String -Path $probe -Pattern 'Prompt:.*Generation:' | Select-Object -First 1).Line
+      if ($speed) { Write-Host ("  >>> SPEED  {0}:  {1}" -f $m.Name, ($speed.Trim())) }
+    }
+    Write-Host "================================================================="
+    Write-Host ""
+  }
+} else { Write-Host "quick screen: not selected" }
+
 if ($phaseSet -contains '1') {
+  Write-Host "FULL MATRIX (hours) - only run this on a model you've confirmed above."
 foreach ($m in $modelFiles) {
   foreach ($ngl in $ngls) { foreach ($ub in $ubs) { foreach ($fa in $fas) {
     $key = Get-KitComboKey $KitBuild $m.Name $ngl $ub $fa
@@ -151,25 +183,5 @@ if ($moe) {
   }
 } else { Write-Host "no MoE (*A4B*) model in models\ - sweep phase skipped" }
 } else { Write-Host "phase 2 (ncmoe sweep): not selected - skipped" }
-# ── PHASE 3: the quality probe (user "ok", 2026-07-23) — one short generation per
-# model on the GPU path (ngl 99), saved for HUMAN eyeballing. Not a score: it only
-# makes a numerically-broken backend VISIBLE (a backend with bad kernels writes
-# garbage at full speed — the Bonsai lesson; llama-bench discards all text).
-if ($phaseSet -contains '3') {
-$cli = Get-ChildItem -Recurse (Join-Path $root ("engine\" + $KitBuild)) -Filter "llama-cli.exe" -ErrorAction SilentlyContinue | Select-Object -First 1
-if (-not $cli) { $cli = Get-ChildItem -Recurse (Join-Path $root "engine") -Filter "llama-cli.exe" -ErrorAction SilentlyContinue | Select-Object -First 1 }
-if ($cli) {
-  foreach ($m in $modelFiles) {
-    # build in the filename for the same reason it is in the resume key: a new
-    # engine can change what the model writes (fixed kernels -> different output),
-    # so an old probe must not stand in for the current build's.
-    $probe = Join-Path $root "quality-probe-$($m.BaseName)-$KitBuild.txt"
-    if ((Test-Path $probe) -and -not $Force) { Write-Host "skip (done on $KitBuild): probe $($m.Name)"; continue }
-    Write-Host "PROBE: $($m.Name) (ngl 99, ~120 tokens)"
-    & $cli.FullName -m $m.FullName -ngl 99 --single-turn --temp 0.2 -n 120 `
-      -p "Write a short paragraph describing an old lighthouse at dusk." 1>$probe 2>>$log
-    if ($LASTEXITCODE -ne 0) { "PROBE FAILED exit=$LASTEXITCODE : $($m.Name)" | Add-Content $log }
-  }
-} else { Write-Host "llama-cli.exe not found - quality probe skipped" }
-} else { Write-Host "phase 3 (quality probe): not selected - skipped" }
+# (the quality probe now runs FIRST as the QUICK SCREEN above - see top of file)
 Write-Host "Done. Send back: results.jsonl + bench-log.txt + quality-probe-*.txt (+ detect-facts.txt)."

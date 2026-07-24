@@ -74,6 +74,32 @@ run_combo() {  # $1 file, $2 ngl, $3 ub, $4 fa
   printf '{%s,"rows":%s}\n' "$key" "$(echo "$raw" | tr -d '\n')" >> "$RESULTS"
 }
 
+# QUICK SCREEN (runs FIRST): one generation per model, shown LIVE + the tok/s -
+# a hand test. The go/no-go; the hours-long matrix only runs if opted in.
+if phase_on 3; then
+  CLI="$(find "$ROOT/engine/$KIT_BUILD" -name llama-cli -type f 2>/dev/null | head -1)"
+  [ -n "$CLI" ] || CLI="$(find "$ROOT/engine" -name llama-cli -type f 2>/dev/null | head -1)"
+  if [ -n "$CLI" ]; then
+    echo ""
+    echo "============ QUICK SCREEN (speed + sample per model) ============"
+    for f in $MODELS; do
+      base="$(basename "$f" .gguf)"
+      PROBE="$ROOT/quality-probe-$base-$KIT_BUILD.txt"
+      if [ -f "$PROBE" ] && [ "$FORCE" != 1 ]; then
+        echo "  have (skip): $base   $(grep -oE '\[ Prompt:.*Generation:[^]]*\]' "$PROBE" | head -1)"
+        continue
+      fi
+      echo ""
+      echo ">>> $base  (generating ~120 tokens; speed prints at the end)"
+      "$CLI" -m "$f" -ngl 99 --single-turn --temp 0.2 -n 120         -p "Write a short paragraph describing an old lighthouse at dusk." 2>>"$LOG" | tee "$PROBE"
+      speed="$(grep -oE '\[ Prompt:.*Generation:[^]]*\]' "$PROBE" | head -1)"
+      [ -n "$speed" ] && echo "  >>> SPEED  $base:  $speed"
+    done
+    echo "================================================================="
+    echo ""
+  else echo "llama-cli not found - quick screen skipped"; fi
+else echo "quick screen: not selected"; fi
+
 if phase_on 1; then
   for f in $MODELS; do
     for ngl in 99 0; do for ub in 512 2048; do for fa in 1 0; do
@@ -104,22 +130,6 @@ if phase_on 2; then
   else echo "no MoE (*A4B*) model fits - sweep phase skipped"; fi
 else echo "phase 2 (ncmoe sweep): not selected - skipped"; fi
 
-# PHASE 3: the quality probe - one short generation per model, for human eyes
-# (a broken backend writes garbage at full speed; llama-bench discards all text).
-if phase_on 3; then
-  CLI="$(find "$ROOT/engine/$KIT_BUILD" -name llama-cli -type f 2>/dev/null | head -1)"
-  [ -n "$CLI" ] || CLI="$(find "$ROOT/engine" -name llama-cli -type f 2>/dev/null | head -1)"
-  if [ -n "$CLI" ]; then
-    for f in $MODELS; do
-      base="$(basename "$f" .gguf)"
-      PROBE="$ROOT/quality-probe-$base-$KIT_BUILD.txt"
-      if [ -f "$PROBE" ] && [ "$FORCE" != 1 ]; then echo "skip (done on $KIT_BUILD): probe $base"; continue; fi
-      echo "PROBE: $base (ngl 99, ~120 tokens)"
-      "$CLI" -m "$f" -ngl 99 --single-turn --temp 0.2 -n 120 \
-        -p "Write a short paragraph describing an old lighthouse at dusk." > "$PROBE" 2>>"$LOG" \
-        || echo "PROBE FAILED: $base" >> "$LOG"
-    done
-  else echo "llama-cli not found - quality probe skipped"; fi
-else echo "phase 3 (quality probe): not selected - skipped"; fi
+# (the quality probe now runs FIRST as the QUICK SCREEN above)
 
 echo "Done. Send back: results.jsonl + bench-log.txt + quality-probe-*.txt (+ detect-facts.txt)."

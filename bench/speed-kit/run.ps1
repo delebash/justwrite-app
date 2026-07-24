@@ -99,13 +99,10 @@ if ($null -ne $free) { $freeTxt = [math]::Round($free/1GB,1) }
 Write-Host ("Disk    : download needed ~{0} GB - free on {1}: {2} GB" -f [math]::Round($dlBytes/1GB,2), $root.Substring(0,2), $freeTxt)
 $moeFits = @($fit | Where-Object { $_.fits -and $_.out -like "*A4B*" }).Count -gt 0
 Write-Host "Tests   :"
-Write-Host "  [1] 16-combo matrix   pp512/2048/8192 + tg128 per combo (hours on slow boxes)"
-if ($moeFits) {
-  Write-Host "  [2] MoE ncmoe sweep   experts to CPU, 7 points (tens of minutes)"
-} else {
-  Write-Host "  [2] MoE ncmoe sweep   auto-skipped - no MoE model fits this machine"
-}
-Write-Host "  [3] quality probe     one short generation per model (minutes)"
+Write-Host "  QUICK SCREEN (default) : one generation per model - you SEE speed + sample"
+Write-Host "                           text and decide (minutes). Nothing is thrown out."
+Write-Host "  FULL MATRIX  (opt-in)  : the 16-combo tuning sweep$(if ($moeFits) { ' + MoE ncmoe sweep' })"
+Write-Host "                           (HOURS) - only worth it on a model you've confirmed."
 Write-Host "Results : results.jsonl + bench-log.txt + quality-probe-*.txt + detect-facts.txt"
 Write-Host "          -> copy back into bench/results/<machine>/kit/ in the repo"
 Write-Host "======================================"
@@ -137,20 +134,20 @@ if (-not $Yes) {
     $pickedModels = ($files -join ",")
   }
 
-  $tsel = Read-Host "2) Which TESTS?  (1=matrix  2=MoE sweep  3=quality probe - blank or 'all' = all)"
-  if ($tsel -match '^\s*n\s*$') { Write-Host "Aborted - nothing downloaded, nothing run."; exit 0 }
-  if ($tsel -and $tsel -notmatch '^\s*all\s*$') {
-    $tokens = @($tsel -split '[,\s]+' | Where-Object { $_ -match '^[123]$' })
-    if ($tokens.Count -eq 0) { Write-Host "No valid tests picked - aborting."; exit 0 }
-    $phases = ($tokens -join ",")
-  }
+  # Quick screen is ALWAYS run (phase 3). The hours-long matrix is opt-in only -
+  # the user's flow: "the only time we run full tests for hours is after we
+  # determine the model will actually run at decent speed" (quick screen first).
+  $full = Read-Host "2) Also run the FULL tuning matrix? (HOURS - only for a model you've confirmed) [y/N]"
+  if ($full -match '^[yY]') { $phases = "1,2,3" } else { $phases = "3" }
 
   $mTxt = "ALL that fit"; if ($pickedModels) { $mTxt = ($pickedModels -replace ',', "`n                ") }
+  $tTxt = "QUICK SCREEN only (speed + sample per model)"
+  if ($phases -match '1') { $tTxt = "QUICK SCREEN first, THEN the full matrix (hours)" }
   Write-Host ""
   Write-Host "-------------- ABOUT TO RUN --------------"
   Write-Host ("  models =  {0}" -f $mTxt)
-  Write-Host ("  tests  =  {0}" -f $phases)
-  Write-Host "  (downloads only those models, then runs only those tests)"
+  Write-Host ("  run    =  {0}" -f $tTxt)
+  Write-Host "  (downloads only those models)"
   Write-Host "------------------------------------------"
   $go = Read-Host "Proceed? [Y/n]"
   if ($go -match '^[nN]') { Write-Host "Aborted - nothing downloaded, nothing run."; exit 0 }

@@ -117,13 +117,12 @@ done
 FREE="$(df -k "$ROOT" 2>/dev/null | awk 'NR==2 {printf "%.1f", $4/1048576}')"
 echo "Disk    : download needed ~$(gb "$DL_BYTES") GB - free here: ${FREE:-?} GB"
 echo "Tests   :"
-echo "  [1] 16-combo matrix   pp512/2048/8192 + tg128 per combo (hours on slow boxes)"
+echo "  QUICK SCREEN (default) : one generation/model - you SEE speed + sample (minutes)"
 if [ "$MOE_FITS" = 1 ]; then
-  echo "  [2] MoE ncmoe sweep   experts to CPU, 7 points (tens of minutes)"
+  echo "  FULL MATRIX  (opt-in)  : 16-combo tuning sweep + MoE ncmoe sweep (HOURS - keepers)"
 else
-  echo "  [2] MoE ncmoe sweep   auto-skipped - no MoE model fits this machine"
+  echo "  FULL MATRIX  (opt-in)  : 16-combo tuning sweep (HOURS - only for a keeper)"
 fi
-echo "  [3] quality probe     one short generation per model (minutes)"
 echo "Results : results.jsonl + bench-log.txt + quality-probe-*.txt + detect-facts.txt"
 echo "          -> copy back into bench/results/<machine>/kit/ in the repo"
 echo "======================================"
@@ -146,19 +145,18 @@ if [ "$YES" != 1 ]; then
     MODELS_SEL="$sel_files"
   fi
 
-  printf "2) Which TESTS?  (1=matrix  2=MoE sweep  3=quality probe - blank or 'all' = all) "
-  read -r tsel || tsel=""
-  case "$tsel" in n|N) echo "Aborted - nothing downloaded, nothing run."; exit 0 ;; esac
-  if [ -n "$tsel" ] && ! echo "$tsel" | grep -qi '^[[:space:]]*all[[:space:]]*$'; then
-    PHASES="$(echo "$tsel" | tr -cs '123' ',' | sed 's/^,//; s/,$//')"
-    if [ -z "$PHASES" ]; then echo "No valid tests picked - aborting."; exit 0; fi
-  fi
+  # Quick screen always runs (phase 3); the hours-long matrix is opt-in only.
+  printf "2) Also run the FULL tuning matrix? (HOURS - only for a model you've confirmed) [y/N] "
+  read -r full || full=""
+  case "$full" in y*|Y*) PHASES="1,2,3" ;; *) PHASES="3" ;; esac
 
+  RUNTXT="QUICK SCREEN only (speed + sample per model)"
+  case ",$PHASES," in *,1,*) RUNTXT="QUICK SCREEN first, THEN the full matrix (hours)" ;; esac
   echo ""
   echo "-------------- ABOUT TO RUN --------------"
   echo "  models =  ${MODELS_SEL:-ALL that fit}"
-  echo "  tests  =  $PHASES"
-  echo "  (downloads only those models, then runs only those tests)"
+  echo "  run    =  $RUNTXT"
+  echo "  (downloads only those models)"
   echo "------------------------------------------"
   printf "Proceed? [Y/n] "
   read -r go || go=""
