@@ -9,15 +9,19 @@ set -u
 ROOT="$(cd "$(dirname "$0")" && pwd)"
 . "$ROOT/kit-common.sh"
 
-PHASES="1,2,3"; RAM_GB=0
+PHASES="1,2,3"; RAM_GB=0; MODELS_SEL=""; KIT_BUILD=""; FORCE=0
 while [ $# -gt 0 ]; do
   case "$1" in
     --phases) shift; PHASES="$1" ;;
+    --models) shift; MODELS_SEL="$1" ;;
     --ram-gb) shift; RAM_GB="$1" ;;
+    --build)  shift; KIT_BUILD="$1" ;;
+    --force)  shift; FORCE="$1" ;;
     *) echo "unknown flag: $1"; exit 2 ;;
   esac
   shift
 done
+[ -n "$KIT_BUILD" ] || KIT_BUILD="$(kit_latest_build "$ROOT")"
 RESULTS="$ROOT/results.jsonl"
 LOG="$ROOT/bench-log.txt"
 phase_on() { case ",$PHASES," in *,"$1",*) return 0 ;; *) return 1 ;; esac; }
@@ -40,14 +44,23 @@ for f in $(ls -Sr "$ROOT"/models/*.gguf 2>/dev/null); do
   fi
 done
 if [ -z "$MODELS" ]; then echo "no fitting .gguf files in models/"; exit 1; fi
+# model selection (run.sh's m picker passes filenames); empty = all
+if [ -n "$MODELS_SEL" ]; then
+  SEL=""
+  for f in $MODELS; do
+    case ",$MODELS_SEL," in *",$(basename "$f"),"*) SEL="$SEL $f" ;; esac
+  done
+  MODELS="$SEL"
+  [ -n "$MODELS" ] || { echo "none of the selected models are present/fitting"; exit 1; }
+fi
 
 echo "=== run-bench $(date -u '+%Y-%m-%dT%H:%M:%SZ') - engine $BENCH - phases $PHASES ===" >> "$LOG"
 
 run_combo() {  # $1 file, $2 ngl, $3 ub, $4 fa
   local base key raw
   base="$(basename "$1")"
-  key="\"kitModel\":\"$base\",\"kitNgl\":$2,\"kitUb\":$3,\"kitFa\":$4"
-  if grep -Fq "{$key,\"rows\":" "$RESULTS" 2>/dev/null; then
+  key="\"kitBuild\":\"$KIT_BUILD\",\"kitModel\":\"$base\",\"kitNgl\":$2,\"kitUb\":$3,\"kitFa\":$4"
+  if [ "$FORCE" != 1 ] && grep -Fq "{$key," "$RESULTS" 2>/dev/null; then
     echo "skip (done): $base ngl=$2 ub=$3 fa=$4"; return
   fi
   echo "RUN: $base ngl=$2 ub=$3 fa=$4  (pp512/2048/8192 + tg128)"
@@ -75,7 +88,7 @@ if phase_on 2; then
   for f in $MODELS; do case "$f" in *A4B*) MOE="$f"; break ;; esac; done
   if [ -n "$MOE" ]; then
     for nc in 0 8 16 24 32 40 48; do
-      if grep -Fq "{\"kitNcmoe\":$nc,\"rows\":" "$RESULTS" 2>/dev/null; then
+      if [ "$FORCE" != 1 ] && grep -Fq "{\"kitBuild\":\"$KIT_BUILD\",\"kitNcmoe\":$nc," "$RESULTS" 2>/dev/null; then
         echo "skip (done): ncmoe=$nc"; continue
       fi
       echo "RUN sweep: $(basename "$MOE") ngl=99 fa=0 ub=512 ncmoe=$nc  (pp8192 + tg128)"
@@ -83,10 +96,10 @@ if phase_on 2; then
       raw="$("$BENCH" -m "$MOE" -ngl 99 -fa 0 -ub 512 -ncmoe "$nc" -p 8192 -n 128 -o json 2>>"$LOG")"
       if [ $? -ne 0 ] || [ -z "$raw" ]; then
         echo "FAILED: ncmoe=$nc" >> "$LOG"
-        printf '{"kitNcmoe":%s,"failed":true}\n' "$nc" >> "$RESULTS"
+        printf '{"kitBuild":"%s","kitNcmoe":%s,"failed":true}\n' "$KIT_BUILD" "$nc" >> "$RESULTS"
         continue
       fi
-      printf '{"kitNcmoe":%s,"rows":%s}\n' "$nc" "$(echo "$raw" | tr -d '\n')" >> "$RESULTS"
+      printf '{"kitBuild":"%s","kitNcmoe":%s,"rows":%s}\n' "$KIT_BUILD" "$nc" "$(echo "$raw" | tr -d '\n')" >> "$RESULTS"
     done
   else echo "no MoE (*A4B*) model fits - sweep phase skipped"; fi
 else echo "phase 2 (ncmoe sweep): not selected - skipped"; fi
@@ -99,8 +112,8 @@ if phase_on 3; then
   if [ -n "$CLI" ]; then
     for f in $MODELS; do
       base="$(basename "$f" .gguf)"
-      PROBE="$ROOT/quality-probe-$base.txt"
-      if [ -f "$PROBE" ]; then echo "skip (done): probe $base"; continue; fi
+      PROBE="$ROOT/quality-probe-$base-$KIT_BUILD.txt"
+      if [ -f "$PROBE" ] && [ "$FORCE" != 1 ]; then echo "skip (done on $KIT_BUILD): probe $base"; continue; fi
       echo "PROBE: $base (ngl 99, ~120 tokens)"
       "$CLI" -m "$f" -ngl 99 --single-turn --temp 0.2 -n 120 \
         -p "Write a short paragraph describing an old lighthouse at dusk." > "$PROBE" 2>>"$LOG" \

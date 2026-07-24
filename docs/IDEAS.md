@@ -23,10 +23,17 @@ through).
 a trained speculative drafter) self-reports 94.6% of FP16 and beats sub-4-bit quants by
 7+ points at a third the size — it could rival our 26B-A4B pick for the 8 GB class.
 
-**Why a watch, not a buy:** no GPU path on mainline llama.cpp yet — CPU (#24448) merged
-Jul 7; **Vulkan is NOT merged (corrected 2026-07-23 — #25850 open, opened Jul 18;
-box-proven: b10083 win-vulkan loads the g64 but silently runs every ternary layer on CPU,
-VRAM flat at 597 MiB through a -ngl 40 run)**; CUDA #25188 abandoned, #25707 open. PrismML's own
+**Why a watch, not a buy — RE-CORRECTED 2026-07-23 (my earlier correction was itself
+wrong on two counts).** Mainline Vulkan DOES run PrismML ternary: b10099 win-vulkan loads
+`Ternary-Bonsai-27B-Q2_g64.gguf` and offloads to the GPU (VRAM 565 -> 4188 MiB, measured on
+a 2070S). My "Vulkan not merged" claim came from testing only b10083 — 16 builds stale — and
+citing **#25850, which is TQ2_0 (BitNet/TriLM ternary, tensor type 35), NOT PrismML's Q2_0
+(type 42)**. Two separate formats, two separate PRs. What IS true: **use the g64 variant** —
+mainline rejects the plain `*-Q2_0.gguf` (the fork's packing) on both b10083 and b10099.
+The remaining reason it stays a watch is speed, not support: the dense 27B ran 1.4 tok/s at
+partial offload on an 8 GB card, and on a box that fits the gemma 26B-A4B MoE (~4B active of
+25.2B) a dense ternary model is architecturally dominated. Both Bonsai g64 models are now in
+the speed kit, so the laptops measure this rather than us arguing it. PrismML's own
 docs say stock builds can't run it (GPU = their fork, which we'd never ship as our
 engine). The format is mid-churn (fork's g128 files → mainline standardized on
 `_Q2_0_g64.gguf`, renames pending). All published speed is Apple Silicon (18–44 tok/s,

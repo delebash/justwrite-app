@@ -7,6 +7,11 @@ compare across machines. Results are committed under
 
 ## Run it (no dev tools needed)
 
+**Updating the kit:** copy the new scripts **over** the existing folder — do NOT
+delete it. The scripts overwrite; `models/`, `engine/`, and `results.jsonl` survive,
+so you keep ~20 GB of downloads and every prior result. Deleting the folder means
+re-downloading everything and losing the resume history.
+
 **Windows:** copy this folder → **double-click `run.bat`**. (Prerequisite:
 Microsoft Visual C++ Redistributable x64 — aka.ms/vs/17/release/vc_redist.x64.exe;
 a missing VCRUNTIME140 dll error means this. Vulkan ships inside the GPU driver.)
@@ -18,9 +23,11 @@ the sh side is logic-tested from this repo but has not yet run on a real Mac/Lin
 box — first run there is its real test.
 
 Either entry detects the machine, prints the PLAN — RAM + GPU, the engine build,
-every model with its size and have/download/SKIP status, total download vs free
-disk, and the three tests — then asks `Proceed? [Y/n/s]` before a byte is
-downloaded (detection proposes, never dictates). `s` picks a subset of tests.
+every model with its size, have/download/SKIP status, **and what has already been
+benched on this engine** (`8/8 done @b10099 tg 9.1 -> skip` / `-- not run --`),
+total download vs free disk, and the three tests — then asks
+`Proceed? [Y=all / n / m=pick models / t=pick tests]` before a byte is downloaded
+(detection proposes, never dictates).
 Then it downloads what fits, runs detect-facts, and benches. Hours on slow
 machines; fully RESUMABLE — rerun skips finished combos, failed combos retry,
 existing probes skip. When done, send back `results.jsonl` + `bench-log.txt` +
@@ -47,11 +54,20 @@ engine re-test.
 - **RAM-fit** (`kit-common.ps1` `$KitFitFactor`, one place): a model over
   0.7 × RAM is skipped LOUDLY at download AND at bench — never downloaded just
   to thrash, never silently missing.
-- **Pinned engine** (`kit-common.ps1` `$KitBuild`, one place): cross-machine
-  comparison needs the build as a controlled variable (llama.cpp lands several
-  builds a day and Vulkan perf moves between them). Every results row
-  self-labels with `build_commit`/`build_number`, so a deliberate `-Build`
-  re-test stays readable in history. Bump the pin = edit one line.
+- **LATEST engine, resolved per run** (the user's ruling 2026-07-23): llama.cpp
+  ships real fixes fast and a pin hid one — b10083 could not read the current
+  ternary files and had no Vulkan ternary kernels; b10099 reads them and offloads.
+  Production runs latest, so the bench runs latest. The resolved tag is shown in
+  the PLAN before you confirm, and cached so an offline rerun knows what it used.
+  `-Build bXXXXX` pins deliberately when you want two machines matched.
+- **Comparability by DATA, not by freezing**: every results row self-labels
+  `build_commit`/`build_number`, and **the resume key includes the build** — a new
+  engine re-runs its combos instead of silently mixing two builds in one matrix.
+  `-Force` re-runs even what this build already did.
+- **Ternary models use the g64 variant** (`Ternary-Bonsai-8B-Q2_0_g64.gguf`,
+  `Ternary-Bonsai-27B-Q2_g64.gguf`). The plain `*-Q2_0.gguf` files are the
+  PrismML fork's packing — mainline rejects them outright. Filenames are kept
+  TRUE (never renamed) so a result can't claim one packing while holding another.
 - **No corrupt downloads**: files land as `.part`, are size-checked against the
   server's answer, then renamed — a failed download can never masquerade as a
   complete model on the next run.

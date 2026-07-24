@@ -882,3 +882,59 @@ cross-machine comparison. OPEN, one cheap test: download that 31.6 MB zip, load 
 same SPIR-V shaders serve Intel Arc), watch VRAM. Climbs = laptop path live; flat = the fork's
 Vulkan lags its CUDA target and the path really is closed. What would reverse the desktop
 verdict: nothing plausible — the MoE's active-param advantage is architectural.
+
+## 13. THE KIT GOES LATEST-ENGINE + THE TERNARY MODELS LAND (2026-07-23, the user's go)
+
+What changed and why. The user proved on their 32 GB laptop that MAINLINE llama.cpp runs
+Ternary-Bonsai — replacing the fork's Vulkan with mainstream and running the 8B at 12.0 tok/s —
+which overturned three of my conclusions and exposed that the kit's b10083 pin was hiding a
+fixed bug. Verified here before rebuilding: b10099 is the latest release (published 2026-07-23
+23:34) and its win-vulkan build LOADS `Ternary-Bonsai-27B-Q2_g64.gguf` and OFFLOADS it (VRAM
+565 -> 4188 MiB on the 2070S), while REJECTING `Ternary-Bonsai-27B-Q2_0.gguf` with the same
+error b10083 gave. So the variable was never the build, it was the FILE: the plain `*-Q2_0.gguf`
+files are the fork's packing; the g64 variants are mainline's. The repos label the same format
+inconsistently (8B `Q2_0_g64`, 27B `Q2_g64`), and the demo launcher's picker globs `*-Q2_0.gguf`
+while its own comment says a g64 file "must never be picked up" — which is why the user had to
+RENAME files to run them, silently destroying the provenance of which packing a result used.
+My earlier IDEAS correction was wrong on two counts and is now re-corrected: #25850 is TQ2_0
+(BitNet, tensor type 35), not PrismML's Q2_0 (type 42, confirmed by parsing both GGUF headers).
+
+The build policy is now LATEST, not pinned (the user's ruling: "llama changes so fast with bug
+fixes ... in prod we use latest"). Comparability is preserved by DATA rather than by freezing:
+`Get-KitLatestBuild` / `kit_latest_build` resolve the newest release at run time (cached in
+`.latest-build` so an offline or rate-limited rerun knows what it used; `$KitFallbackBuild` only
+when there is neither network nor cache), the resolved tag is printed in the PLAN BEFORE the
+confirm prompt, and `-Build`/`--build` pins deliberately when two machines must be matched.
+Critically, THE RESUME KEY NOW INCLUDES THE BUILD (`Get-KitComboKey` = build|model|ngl|ub|fa) —
+without that, latest-per-run plus the old build-free key would have silently skipped combos
+measured on an older engine and produced a mixed-build matrix with no indication. Quality-probe
+filenames carry the build for the same reason. `-Force` re-runs even what the current build did.
+
+The plan gained a prior-results status column (the user's idea, and it is a DEPENDENCY of
+persistence, not a nicety — invisible state is worse than none): each fitting model is numbered
+and annotated `8/8 done @b10099 tg 9.1 -> skip (current)` / `3/8 done -> resume 5` /
+`8/8 done @b10083 -> RE-RUN (build changed)` / `-- not run --`, and the confirm became
+`[Y=all / n=abort / m=pick models / t=pick tests]` with numbered multi-select (not a toggle-UI,
+which would break under -Yes and when piped). Both Bonsai g64 models are in `$KitModels` with
+TRUE filenames; both clear the 16 GB box's 11.2 GB ceiling, so the same set benches on both
+laptops. Data stays inside the kit folder per the user's ruling (a data-dir split was designed
+and dropped as machinery for a short-lived tool); the README now says to paste new scripts OVER
+the folder rather than delete it, which is what preserves ~20 GB of models and the resume history.
+
+How it was verified. All five ps1 and all five sh scripts parse clean. A synthetic results.jsonl
+seeded with three cases proved the status column: 12B 8/8 on b10099 -> "skip (current)", E4B 3/8
+-> "resume 5", E2B 8/8 on b10083 -> "RE-RUN (build changed)"; re-reading the same file as though
+the current build were b10083 flipped E2B to done=8 and 12B to done=0, proving build-sensitivity
+rather than a cosmetic label. One runtime bug was caught that the parser could not see:
+`if (Test-Path $results -and -not $Force)` binds `-and` as a Test-Path parameter — fixed to
+parenthesised operands. Live plan runs: ps1 resolved b10099 from the API and listed all six
+models (35.11 GB total on the 32 GB box, MoE included); `-Build b10083` correctly showed
+"(PINNED via -Build)"; the sh face resolved b10099 and selected the correct per-OS asset
+(`llama-b10099-bin-ubuntu-vulkan-x64.tar.gz`) with the MoE SKIPped at the 16 GB fit. NOT tested:
+a full bench (hours), the interactive keystrokes, and any real Mac/Linux or Intel Arc run.
+
+What would reverse it. A ruling back to a fixed pin (then the build drops out of the resume key
+and matched runs become the default rather than the `-Build` escape); or PrismML republishing the
+27B with mainline packing under the plain `Q2_0` name, which would make the g64 rule obsolete.
+OPEN: whether to re-baseline the existing b10083 gemma matrices at latest (recommended: leave
+them — rows self-label, so mixed history stays interpretable) and the user's laptop runs.

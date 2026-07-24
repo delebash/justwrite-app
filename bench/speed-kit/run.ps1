@@ -1,24 +1,35 @@
 # run.ps1 - THE one click. Detection proposes, never dictates (the house law):
 # it detects the machine, prints the full PLAN (machine - engine - each model with
-# size + have/download/skip - disk needed vs free - the tests), then asks before a
-# byte is downloaded or an hour is burned. Y runs everything; n aborts; s(elect)
-# picks tests. Everything it decides is visible and vetoable.
+# size, have/download/skip, AND what has already been benched on this engine -
+# disk needed vs free - the tests), then asks before a byte is downloaded or an
+# hour is burned. Y runs everything; n aborts; m picks models; t picks tests.
 #   -Yes       skip the prompt (unattended/overnight)
 #   -PlanOnly  print the plan and exit (look without committing)
 #   -RamGB 16  override detected RAM (wrong detection, or dry-running another
 #              machine's fit - e.g. the 16 GB path on a 32 GB box)
-#   -Build b10xxx  engine override for a deliberate re-test (default: the pin)
+#   -Build b10xxx  pin a specific engine (default: LATEST, resolved at run time -
+#                  use this when you want two machines on one matched build)
+#   -Force     re-run combos already done on this build
 # PS 5.1-compatible on purpose.
 param(
   [switch]$Yes,
   [switch]$PlanOnly,
   [double]$RamGB = 0,
-  [string]$Build = ""
+  [string]$Build = "",
+  [switch]$Force
 )
 $ErrorActionPreference = "Stop"
 $root = $PSScriptRoot
 . (Join-Path $root "kit-common.ps1")
-if ($Build) { $KitBuild = $Build }
+
+# ---- engine: LATEST by default (the user's ruling), shown before you confirm --
+$buildNote = ""
+if ($Build) { $KitBuild = $Build; $buildNote = " (PINNED via -Build)" }
+else {
+  Write-Host "Resolving latest llama.cpp release..."
+  $KitBuild = Get-KitLatestBuild $root
+  $buildNote = " (latest, resolved just now)"
+}
 
 # ---- detect ----------------------------------------------------------------
 $ramBytes = Get-KitRamBytes $RamGB
@@ -29,12 +40,13 @@ if (-not $gpus) { $gpus = @("(no display adapter reported)") }
 $cpu = (Get-CimInstance Win32_Processor -ErrorAction SilentlyContinue | Select-Object -First 1).Name
 
 $engineState = "will download (~32 MB)"
-$engineExe = Get-ChildItem -Recurse (Join-Path $root "engine") -Filter "llama-bench.exe" -ErrorAction SilentlyContinue | Select-Object -First 1
+$engineExe = Get-ChildItem -Recurse (Join-Path $root ("engine\" + $KitBuild)) -Filter "llama-bench.exe" -ErrorAction SilentlyContinue | Select-Object -First 1
 if ($engineExe) { $engineState = "already present" }
 elseif (Test-Path (Join-Path $root ("engine\llama-$KitBuild-bin-win-vulkan-x64.zip"))) { $engineState = "zip here - will unpack" }
 
 Write-Host "Sizing models (local file or HTTP HEAD - nothing is downloaded)..."
 $fit = @(Get-KitFit $ramBytes $root)
+$status = Get-KitResultsStatus $root $KitBuild
 
 # ---- the PLAN --------------------------------------------------------------
 $fitMax = [int64]($KitFitFactor * $ramBytes)
@@ -43,21 +55,43 @@ Write-Host ""
 Write-Host "================ PLAN ================"
 Write-Host ("Machine : {0:N0} GB RAM{1} - {2}" -f ($ramBytes/1GB), $ramNote, $cpu)
 foreach ($g in $gpus) { Write-Host ("GPU     : {0}" -f $g) }
-Write-Host ("Engine  : {0} win-vulkan - {1}" -f $KitBuild, $engineState)
+Write-Host ("Engine  : {0} win-vulkan{1} - {2}" -f $KitBuild, $buildNote, $engineState)
 Write-Host ("Fit rule: model file <= {0} GB ({1} x RAM)" -f [math]::Round($fitMax/1GB,1), $KitFitFactor)
 Write-Host "Models  :"
+# $pick maps the number the human types -> the model's FILENAME (what run-bench
+# filters on). Only fitting models get a number; skipped ones can't be selected.
+$pick = @{}
+$n = 0
 foreach ($m in $fit) {
   $szTxt = "size unknown"
   if ($null -ne $m.size) { $szTxt = ("{0} GB" -f [math]::Round($m.size/1GB,2)) }
   $local = Join-Path $root $m.out
+  $file = Split-Path $m.out -Leaf
   if (-not $m.fits) {
-    Write-Host ("  SKIP     {0}  {1}  (over the {2} GB fit)" -f $m.name, $szTxt, [math]::Round($fitMax/1GB,1))
-  } elseif (Test-Path $local) {
-    Write-Host ("  have     {0}  {1}" -f $m.name, $szTxt)
-  } else {
-    Write-Host ("  download {0}  {1}" -f $m.name, $szTxt)
-    if ($null -ne $m.size) { $dlBytes += $m.size }
+    Write-Host ("      SKIP      {0,-24} {1,9}  (over the {2} GB fit)" -f $m.name, $szTxt, [math]::Round($fitMax/1GB,1))
+    continue
   }
+  $n++
+  $pick[$n] = $file
+  $state = "download"
+  if (Test-Path $local) { $state = "have" } elseif ($null -ne $m.size) { $dlBytes += $m.size }
+  # prior-results column: what this engine has already benched, and what a
+  # different engine benched before it (which will RE-RUN under the build-keyed
+  # resume rather than silently standing in for the current build).
+  $hist = "-- not run --"
+  $s = $status[$file]
+  if ($s) {
+    $tg = ""
+    if ($null -ne $s.lastTg) { $tg = ("  tg {0:N1}" -f $s.lastTg) }
+    if ($s.done -ge $KitCombosPerModel) {
+      $hist = ("{0}/{1} done @{2}{3}  -> skip (current)" -f $s.done, $KitCombosPerModel, $KitBuild, $tg)
+    } elseif ($s.done -gt 0) {
+      $hist = ("{0}/{1} done @{2}{3}  -> resume {4}" -f $s.done, $KitCombosPerModel, $KitBuild, $tg, ($KitCombosPerModel - $s.done))
+    } else {
+      $hist = ("{0}/{1} done @{2}{3}  -> RE-RUN (build changed)" -f $s.doneAny, $KitCombosPerModel, $s.lastBuild, $tg)
+    }
+  }
+  Write-Host ("  [{0}] {1,-9} {2,-24} {3,9}   {4}" -f $n, $state, $m.name, $szTxt, $hist)
 }
 $free = (Get-PSDrive -Name ($root.Substring(0,1)) -ErrorAction SilentlyContinue).Free
 $freeTxt = "?"
@@ -79,11 +113,30 @@ Write-Host ""
 if ($PlanOnly) { Write-Host "(-PlanOnly: stopping here.)"; exit 0 }
 
 # ---- confirm ---------------------------------------------------------------
+# Numbered multi-select rather than a toggle-UI: same idiom as the tests picker,
+# survives -Yes and piped/non-interactive runs, no TUI to break.
 $phases = "1,2,3"
+$pickedModels = ""
 if (-not $Yes) {
-  $ans = Read-Host "Proceed? [Y/n/s(elect tests)]"
+  $ans = Read-Host "Proceed? [Y=all / n=abort / m=pick models / t=pick tests]"
   if ($ans -match '^[nN]') { Write-Host "Aborted - nothing downloaded, nothing run."; exit 0 }
-  if ($ans -match '^[sS]') {
+  if ($ans -match '^[mM]') {
+    $sel = Read-Host ("Models to run (e.g. 1,3-5 or 'all') [1-{0}]" -f $n)
+    if ($sel -match '^\s*all\s*$') { $pickedModels = "" }
+    else {
+      $nums = @()
+      foreach ($tok in ($sel -split '[,\s]+' | Where-Object { $_ })) {
+        if ($tok -match '^(\d+)-(\d+)$') { $nums += ([int]$matches[1])..([int]$matches[2]) }
+        elseif ($tok -match '^\d+$') { $nums += [int]$tok }
+      }
+      $files = @()
+      foreach ($i in ($nums | Sort-Object -Unique)) { if ($pick.ContainsKey($i)) { $files += $pick[$i] } }
+      if ($files.Count -eq 0) { Write-Host "No valid models picked - aborting."; exit 0 }
+      $pickedModels = ($files -join ",")
+      Write-Host ("Running models: {0}" -f $pickedModels)
+    }
+  }
+  elseif ($ans -match '^[tTsS]') {
     $sel = Read-Host "Tests to run (e.g. 1,3)"
     $tokens = @($sel -split '[,\s]+' | Where-Object { $_ -match '^[123]$' })
     if ($tokens.Count -eq 0) { Write-Host "No valid tests picked - aborting."; exit 0 }
@@ -99,6 +152,6 @@ if ($LASTEXITCODE -ne 0 -and $null -ne $LASTEXITCODE) {
   exit 1
 }
 & (Join-Path $root "detect-facts.ps1")
-& (Join-Path $root "run-bench.ps1") -Phases $phases -RamGB $RamGB
+& (Join-Path $root "run-bench.ps1") -Phases $phases -Models $pickedModels -RamGB $RamGB -Build $KitBuild -Force:$Force
 Write-Host ""
 Write-Host "All done. Send back: results.jsonl + bench-log.txt + quality-probe-*.txt + detect-facts.txt"

@@ -8,30 +8,70 @@
 #   linux x64/arm64 -> llama-<b>-bin-ubuntu-vulkan-{x64,arm64}.tar.gz
 #   macos arm64/x64 -> llama-<b>-bin-macos-{arm64,x64}.tar.gz   (Metal built in)
 
-KIT_BUILD="${KIT_BUILD:-b10083}"
+# ENGINE POLICY: LATEST, not pinned (the user's ruling 2026-07-23) - a pin hid a
+# real fix (b10083 could not read the current ternary files and had no Vulkan
+# ternary kernels; b10099 reads them and offloads). Comparability is preserved by
+# DATA: every results row self-labels the build, and the resume key includes it,
+# so a new engine re-runs rather than silently mixing builds. --build pins.
+KIT_FALLBACK_BUILD="b10099"
 
 # fit rule: model file must be <= 0.7 x RAM. Integer math (size*10 <= ram*7).
 KIT_FIT_NUM=7
 KIT_FIT_DEN=10
 
+# The matrix - defined HERE so run.sh can size "N/8 done" without duplicating
+# run-bench's loop bounds.
+KIT_NGLS="99 0"
+KIT_UBS="512 2048"
+KIT_FAS="1 0"
+KIT_COMBOS_PER_MODEL=8
+
+# TERNARY FILE RULE (verified 2026-07-23): use the *g64* variant of each Bonsai
+# model. The plain *-Q2_0.gguf files are the FORK's packing - mainline rejects
+# them ("failed to read tensor data"). The repos label the same g64 format
+# inconsistently: 8B "Q2_0_g64", 27B "Q2_g64". Filenames stay TRUE (never
+# renamed) so a results row can't claim one packing while holding another.
 KIT_MODEL_NAMES=(
   "gemma-4 E2B QAT"
   "gemma-4 E4B QAT"
   "gemma-4 12B QAT"
   "gemma-4 26B-A4B QAT MoE"
+  "Ternary-Bonsai 8B g64"
+  "Ternary-Bonsai 27B g64"
 )
 KIT_MODEL_URLS=(
   "https://huggingface.co/unsloth/gemma-4-E2B-it-qat-GGUF/resolve/main/gemma-4-E2B-it-qat-UD-Q4_K_XL.gguf"
   "https://huggingface.co/unsloth/gemma-4-E4B-it-qat-GGUF/resolve/main/gemma-4-E4B-it-qat-UD-Q4_K_XL.gguf"
   "https://huggingface.co/unsloth/gemma-4-12B-it-qat-GGUF/resolve/main/gemma-4-12B-it-qat-UD-Q4_K_XL.gguf"
   "https://huggingface.co/unsloth/gemma-4-26B-A4B-it-qat-GGUF/resolve/main/gemma-4-26B-A4B-it-qat-UD-Q4_K_XL.gguf"
+  "https://huggingface.co/prism-ml/Ternary-Bonsai-8B-gguf/resolve/main/Ternary-Bonsai-8B-Q2_0_g64.gguf"
+  "https://huggingface.co/prism-ml/Ternary-Bonsai-27B-gguf/resolve/main/Ternary-Bonsai-27B-Q2_g64.gguf"
 )
 KIT_MODEL_OUTS=(
   "models/gemma-4-E2B-it-qat-UD-Q4_K_XL.gguf"
   "models/gemma-4-E4B-it-qat-UD-Q4_K_XL.gguf"
   "models/gemma-4-12B-it-qat-UD-Q4_K_XL.gguf"
   "models/gemma-4-26B-A4B-it-qat-UD-Q4_K_XL.gguf"
+  "models/Ternary-Bonsai-8B-Q2_0_g64.gguf"
+  "models/Ternary-Bonsai-27B-Q2_g64.gguf"
 )
+
+# Resolve the newest mainline release tag; cache so an offline/rate-limited rerun
+# still knows what it used. Falls back only with no network AND no cache.
+kit_latest_build() {  # $1 = kit root
+  local cache tag
+  cache="$1/.latest-build"
+  tag="$(curl -sL --max-time 30 https://api.github.com/repos/ggml-org/llama.cpp/releases/latest 2>/dev/null \
+        | sed -n 's/.*"tag_name"[[:space:]]*:[[:space:]]*"\([^"]*\)".*/\1/p' | head -1)"
+  if [ -n "$tag" ]; then printf '%s\n' "$tag" > "$cache"; echo "$tag"; return; fi
+  if [ -f "$cache" ]; then head -1 "$cache"; return; fi
+  echo "$KIT_FALLBACK_BUILD"
+}
+
+# THE RESUME KEY - build included, same format as the ps1 side.
+kit_combo_key() {  # $1 build, $2 model file, $3 ngl, $4 ub, $5 fa
+  echo "$1|$2|$3|$4|$5"
+}
 
 # OS/arch detection. KIT_OS / KIT_ARCH env overrides exist for testing the
 # logic on a box that isn't the target (e.g. Git Bash on Windows).

@@ -14,7 +14,10 @@ param(
 $ErrorActionPreference = "Stop"
 $root = $PSScriptRoot
 . (Join-Path $root "kit-common.ps1")
-if ($Build) { $KitBuild = $Build }
+# Latest by default (the user's ruling) - run.ps1 passes the tag it resolved and
+# showed you in the PLAN, so both steps use exactly the same engine.
+$KitBuild = $Build
+if (-not $KitBuild) { $KitBuild = Get-KitLatestBuild $root }
 New-Item -ItemType Directory -Force (Join-Path $root "models") | Out-Null
 New-Item -ItemType Directory -Force (Join-Path $root "engine") | Out-Null
 

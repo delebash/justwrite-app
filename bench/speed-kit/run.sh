@@ -6,22 +6,30 @@
 #   --plan-only   print the plan and exit
 #   --ram-gb 16   override detected RAM (wrong detection, or dry-running
 #                 another machine's fit)
-#   --build bXXX  engine override for a deliberate re-test (default: the pin)
+#   --build bXXX  pin a specific engine (default: LATEST, resolved at run time)
+#   --force       re-run combos already done on this build
 set -u
 ROOT="$(cd "$(dirname "$0")" && pwd)"
 . "$ROOT/kit-common.sh"
 
-YES=0; PLAN_ONLY=0; RAM_GB=0
+YES=0; PLAN_ONLY=0; RAM_GB=0; FORCE=0; KIT_BUILD=""; BUILD_NOTE=""
 while [ $# -gt 0 ]; do
   case "$1" in
     --yes)       YES=1 ;;
     --plan-only) PLAN_ONLY=1 ;;
+    --force)     FORCE=1 ;;
     --ram-gb)    shift; RAM_GB="$1" ;;
-    --build)     shift; KIT_BUILD="$1" ;;
+    --build)     shift; KIT_BUILD="$1"; BUILD_NOTE=" (PINNED via --build)" ;;
     *) echo "unknown flag: $1 (see header)"; exit 2 ;;
   esac
   shift
 done
+# Engine: LATEST by default (the user's ruling), resolved and shown before confirm.
+if [ -z "$KIT_BUILD" ]; then
+  echo "Resolving latest llama.cpp release..."
+  KIT_BUILD="$(kit_latest_build "$ROOT")"
+  BUILD_NOTE=" (latest, resolved just now)"
+fi
 
 # ---- detect ----------------------------------------------------------------
 RAM_BYTES="$(kit_ram_bytes "$RAM_GB")"
@@ -74,23 +82,36 @@ echo "================ PLAN ================"
 echo "Machine : $(gb "$RAM_BYTES") GB RAM$RAM_NOTE - $CPU"
 echo "GPU     : $GPU"
 echo "OS      : $OS $ARCH"
-echo "Engine  : $KIT_BUILD $(kit_engine_asset) - $ENGINE_STATE"
+echo "Engine  : $KIT_BUILD$BUILD_NOTE $(kit_engine_asset) - $ENGINE_STATE"
 echo "Fit rule: model file <= $(gb "$FIT_MAX") GB (0.7 x RAM)"
 echo "Models  :"
+# combos already done on THIS build, per model filename (build-keyed resume)
+kit_done_count() {  # $1 = model filename
+  [ -f "$ROOT/results.jsonl" ] || { echo 0; return; }
+  grep -F "\"kitBuild\":\"$KIT_BUILD\"" "$ROOT/results.jsonl" 2>/dev/null     | grep -F "\"kitModel\":\"$1\"" | grep -vF '"failed":true' | wc -l | tr -d ' '
+}
 MOE_FITS=0
+PICK_FILES=()
+n=0
 i=0
 while [ $i -lt ${#KIT_MODEL_NAMES[@]} ]; do
   sz="size unknown"; [ -n "${SIZES[$i]}" ] && sz="$(gb "${SIZES[$i]}") GB"
+  file="$(basename "${KIT_MODEL_OUTS[$i]}")"
   if [ "${FITS[$i]}" = 0 ]; then
-    echo "  SKIP     ${KIT_MODEL_NAMES[$i]}  $sz  (over the $(gb "$FIT_MAX") GB fit)"
-  elif [ "${HAVES[$i]}" = 1 ]; then
-    echo "  have     ${KIT_MODEL_NAMES[$i]}  $sz"
-  else
-    echo "  download ${KIT_MODEL_NAMES[$i]}  $sz"
+    printf "      SKIP      %-24s %9s  (over the %s GB fit)
+" "${KIT_MODEL_NAMES[$i]}" "$sz" "$(gb "$FIT_MAX")"
+    i=$(( i + 1 )); continue
   fi
-  if [ "${FITS[$i]}" = 1 ]; then
-    case "${KIT_MODEL_OUTS[$i]}" in *A4B*) MOE_FITS=1 ;; esac
-  fi
+  n=$(( n + 1 ))
+  PICK_FILES[$n]="$file"
+  state="download"; [ "${HAVES[$i]}" = 1 ] && state="have"
+  d="$(kit_done_count "$file")"
+  if [ "$d" -ge "$KIT_COMBOS_PER_MODEL" ]; then hist="$d/$KIT_COMBOS_PER_MODEL done @$KIT_BUILD -> skip (current)"
+  elif [ "$d" -gt 0 ]; then hist="$d/$KIT_COMBOS_PER_MODEL done @$KIT_BUILD -> resume $(( KIT_COMBOS_PER_MODEL - d ))"
+  else hist="-- not run on $KIT_BUILD --"; fi
+  printf "  [%d] %-9s %-24s %9s   %s
+" "$n" "$state" "${KIT_MODEL_NAMES[$i]}" "$sz" "$hist"
+  case "${KIT_MODEL_OUTS[$i]}" in *A4B*) MOE_FITS=1 ;; esac
   i=$(( i + 1 ))
 done
 FREE="$(df -k "$ROOT" 2>/dev/null | awk 'NR==2 {printf "%.1f", $4/1048576}')"
@@ -110,13 +131,26 @@ echo ""
 if [ "$PLAN_ONLY" = 1 ]; then echo "(--plan-only: stopping here.)"; exit 0; fi
 
 # ---- confirm ---------------------------------------------------------------
-PHASES="1,2,3"
+PHASES="1,2,3"; MODELS_SEL=""
 if [ "$YES" != 1 ]; then
-  printf "Proceed? [Y/n/s(elect tests)] "
+  printf "Proceed? [Y=all / n=abort / m=pick models / t=pick tests] "
   read -r ans || ans=""
   case "$ans" in
     n*|N*) echo "Aborted - nothing downloaded, nothing run."; exit 0 ;;
-    s*|S*)
+    m*|M*)
+      printf "Models to run (e.g. 1,3 or 'all') [1-%d] " "$n"
+      read -r msel || msel=""
+      if ! echo "$msel" | grep -qi '^[[:space:]]*all[[:space:]]*$'; then
+        sel_files=""
+        for tok in $(echo "$msel" | tr ',' ' '); do
+          case "$tok" in [0-9]*) f="${PICK_FILES[$tok]:-}"; [ -n "$f" ] && sel_files="$sel_files${sel_files:+,}$f" ;; esac
+        done
+        if [ -z "$sel_files" ]; then echo "No valid models picked - aborting."; exit 0; fi
+        MODELS_SEL="$sel_files"
+        echo "Running models: $MODELS_SEL"
+      fi
+      ;;
+    t*|T*|s*|S*)
       printf "Tests to run (e.g. 1,3) "
       read -r sel || sel=""
       PHASES="$(echo "$sel" | tr -cs '123' ',' | sed 's/^,//; s/,$//')"
@@ -133,6 +167,6 @@ if [ $? -ne 0 ]; then
   exit 1
 fi
 bash "$ROOT/detect-facts.sh"
-bash "$ROOT/run-bench.sh" --phases "$PHASES" --ram-gb "$RAM_GB"
+bash "$ROOT/run-bench.sh" --phases "$PHASES" --models "$MODELS_SEL" --ram-gb "$RAM_GB" --build "$KIT_BUILD" --force "$FORCE"
 echo ""
 echo "All done. Send back: results.jsonl + bench-log.txt + quality-probe-*.txt + detect-facts.txt"
