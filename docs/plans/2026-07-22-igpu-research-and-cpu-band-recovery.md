@@ -1164,3 +1164,61 @@ lock. The Iris Xe 16 GB box still has no class row because the 26B MoE does not 
 skips it) — a smaller model for `igpu-mem16` is a future row once benched. Not verified end-to-end on a
 real box: the actual Vulkan-engine + model DOWNLOAD (needs the machine + network) — only the selection
 logic is proven here.
+
+## 18. THE DFLASH DRAFT TEST — setup for both boxes (2026-07-24, the user's go)
+
+What the user asked. "Further fine-tune and test our 2 top models — set up the tweaks and the DFlash
+for our two systems." Context: b10094 taught mainline llama.cpp to recognize `mtp-/dflash-/eagle3-`
+draft sidecars (priority mtp > dflash > eagle3; an explicit `--spec-type` overrides), and community-
+trained DFlash drafters EXIST for both our models (live-checked 2026-07-24):
+`Alittlehammmer/gemma-4-26B-A4B-it-DFlash-GGUF-llama.cpp` (Q4_K_M 266 MB · Q5_K 315 · Q6_K 367 ·
+Q8_0 471 · BF16 874) and `lym00/Qwen3.6-35B-A3B-DFlash-GGUF-Test` (q8_0 421 MB · bf16/f16 783 MB —
+"Test" in the name, treat accordingly). DFlash drafts a whole token block in one forward pass (block
+diffusion) — a small drafter targeting exactly our weak spot (Gemma MTP acceptance ~67%), WITHOUT the
+2.4 GB VRAM cost of the earlier E2B-as-draft idea (demoted in the Fable re-evaluation: on the laptop
+E2B decodes 18.7 vs the 26B's 10.2 — a ~1.7x draft/target ratio too poor for speculation).
+
+Why the runner change is TINY (verified at file:line, not assumed). The launch path is already
+generic: `process.py:186-189` emits `--spec-type <value>` verbatim and picks `--spec-draft-n-max`
+for any non-ngram type; `model_draft` -> `--model-draft` (`:129`); the Overrides builder setattr's ANY
+switch row whose name matches an Overrides field (`lifecycle.py:247` + `:297-304`), so
+spec_type/spec_n_max/model_draft rows flow end-to-end with no new plumbing. `_wants_draft`
+(`lifecycle.py:333-345`) only auto-fills the MTP sidecar when spec_type=draft-mtp AND no explicit
+model_draft — an explicit DFlash path bypasses it cleanly. And the 2026-07-19 draft-fit fix is
+generic — `_draft_fit_inputs` is "keyed on ov.model_draft" (`lifecycle.py:1480-1488`), so a hand-set
+drafter IS charged to the VRAM budget (no silent over-booking). What was actually missing: the
+spec_type help still said "MTP GGUF only; Values: none, draft-mtp, ngram-mod", and model_draft was a
+hidden power-user escape you had to know the name of.
+
+What changed (runner `llm_runner/llm/seed.py`, DEFAULT_KNOBS): spec_type's help now lists
+draft-dflash + draft-eagle3 (+ the engine >= b10094 note); spec_n_max's help records the measured
+mtp best (2) and the DFlash author's guidance (6); and `model_draft` is promoted to a first-class
+ADVANCED-tier knob with help (same shape as its spec_type sibling), so testing an alternate drafter
+is a visible switch row, not a guessed name. No schema change, no new mechanism.
+
+How it was verified. Full runner suite: 689 passed / 9 skipped / 1 failed = the pre-existing Windows
+known-bad `test_pci_gpus_linux_lspci_name_match` (untouched). Direct assertion: the model_draft knob
+row seeds with the right shape, spec_type's help mentions draft-dflash, and the flag name aligns with
+the Overrides dataclass field (ASSERT: PASS). NOT verified here (needs the boxes): that the CURRENT
+llama.cpp release actually accepts `--spec-type draft-dflash` (b10094's commit text names the type in
+mainline, but the desktop app engine is b10079 — the FIRST instruction below is the engine update,
+and an "unknown spec type" error means the build is still too old); and whether the community
+drafters' acceptance is any good — that is the measurement itself.
+
+THE TEST PROTOCOL (what the user runs, per box — the A/B is 3-way per model:
+baseline draft-mtp / draft-dflash / spec_type=none, each via the Lab's Load & measure):
+- DESKTOP (RTX 2070S, CUDA): 1) update the app engine to the latest release (>= b10100s; b10079 is
+  too old for dflash). 2) download `gemma-4-26B-A4B-it-DFlash-Q4_K_M.gguf` (266 MB — the small quant;
+  VRAM is tight beside ncmoe 21) into the data root's models folder. 3) Gemma 26B -> Tune: add rows
+  spec_type=draft-dflash · spec_n_max=6 · model_draft=<full path> (a machine tune outranks the mtp
+  bundle: ModelTune > ClassTune > bundles). 4) Load & measure; note tok/s (+ acceptance in the router
+  log). Baseline to beat: 28.6 (MTP, b10079). 5) optional Qwen arm: same rows with
+  `Qwen3.6-35B-A3B-DFlash-q8_0.gguf` (421 MB); Qwen baseline 23.4.
+- LAPTOP (Core Ultra 7, Vulkan, 32 GB): same steps with `...DFlash-Q8_0.gguf` (471 MB — the pool is
+  ample); ALSO measure draft-mtp once (never measured on this box — raw is 10.2-11.5). Qwen is not
+  tested here (22.8 GB file does not fit the pool sensibly).
+What would reverse it. If dflash loses or fails to load on both boxes, the rows revert to draft-mtp
+(one switch row) and the knob simply remains documented. If it WINS, the productization follow-up is
+seeding the winning spec_type/spec_n_max (and a drafter-acquisition story akin to mtp_draft_*) — a
+separate designed change, not this one. OPEN: the user's measurements; eagle3 (a Gemma-4 EAGLE
+drafter is reported to exist — same test shape if/when a GGUF is located).
