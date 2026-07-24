@@ -23,23 +23,27 @@ the sh side is logic-tested from this repo but has not yet run on a real Mac/Lin
 box — first run there is its real test.
 
 Either entry detects the machine, prints the PLAN — RAM + GPU, the engine build,
-every model with its size, have/download/SKIP status, **and what has already been
-benched on this engine** (`8/8 done @b10099 tg 9.1 -> skip` / `-- not run --`),
-total download vs free disk, and the two tests — then asks
-**quick screen first, full matrix only if you opt in.** After the PLAN it asks:
+every model with its size, have/download/SKIP status, **what the quick screen has
+already recorded on this engine** (`quick screen: 12.0 tok/s -> run full` /
+`not yet run`) **and what the full matrix has benched** (`8/8 done @b10099 tg 9.1
+-> skip` / `-- not run --`), total download vs free disk, and the two tests — then
+asks **quick screen first, full matrix only if you opt in.** After the PLAN it asks:
 `1) Which MODELS?` then `2) Also run the FULL tuning matrix? [y/N]`. By default it
 runs a **quick screen** — one generation per model, shown live with the tok/s;
 the kit then judges each model against the speed cutoff and prints a verdict
 (`run full` / `SKIP too slow`), also written to `quick-summary.txt` — so you (or a
 glance at that one file) know which models are worth a full test in minutes,
-without eyeballing anything. Nothing is thrown out — every selected model is
-screened. The hours-long 16-combo tuning matrix runs **only if you answer y** — for
-a model the quick screen (or you) confirmed. `-Yes` runs the full thing unattended.
+without eyeballing anything. **Whatever you pick RUNS** — the quick screen never
+skips a model for having been screened before; you saw its cached result in the
+PLAN and chose. Nothing is thrown out — every selected model is screened. The
+hours-long 16-combo tuning matrix runs **only if you answer y** — for a model the
+quick screen (or you) confirmed. `-Yes` runs the full thing unattended.
 (detection proposes, never dictates).
 Then it downloads what fits, runs detect-facts, and benches. Hours on slow
-machines; fully RESUMABLE — rerun skips finished combos, failed combos retry,
-existing probes skip. When done, send back `results.jsonl` + `bench-log.txt` +
-`quick-summary.txt` + `quality-probe-*.txt` + `detect-facts.txt` → committed to
+machines; the **full matrix** is RESUMABLE — rerun skips finished combos, failed
+combos retry — but the **quick screen always re-runs** what you pick. When done,
+send back `results.jsonl` + `bench-log.txt` + `quick-summary.txt` +
+`quality-probe-*.txt` + `detect-facts.txt` → committed to
 `bench/results/<machine>/kit/`.
 
 Windows flags (pass to `run.bat` or `run.ps1`): `-PlanOnly` print the plan and
@@ -57,8 +61,10 @@ engine re-test.
   glance at, or send back). This is the go/no-go: the kit *tells you* which models
   are worth a full test, and the live text still shows whether the output is real
   prose (a broken backend writes garbage at full speed — this makes that visible),
-  in minutes. Runs first, on every selected model; the verdict is advice, it never
-  blocks a run.
+  in minutes. Runs first, on every selected model, and **a model you pick always
+  runs** — it is never skipped for having been screened before (the PLAN shows each
+  model's last quick-screen result, so you choose with that in front of you). The
+  verdict is advice, it never blocks a run.
 - **FULL MATRIX (opt-in, hours)** — only when you answer y. The 16-combo tuning
   sweep (ngl 99/0 × ubatch 512/2048 × flash-attn on/off; pp512/2048/8192 + tg128)
   plus the MoE ncmoe sweep. Worth it only on a model the quick screen confirmed.
@@ -77,7 +83,10 @@ engine re-test.
   ternary files and had no Vulkan ternary kernels; b10099 reads them and offloads.
   Production runs latest, so the bench runs latest. The resolved tag is shown in
   the PLAN before you confirm, and cached so an offline rerun knows what it used.
-  `-Build bXXXXX` pins deliberately when you want two machines matched.
+  `-Build bXXXXX` pins deliberately when you want two machines matched. The bench
+  runs ONLY the resolved build — if it isn't on the box it **downloads it**, and it
+  **never silently falls back** to an older engine lying around in `engine\` (that
+  hole once ran b10083 and produced garbage tokens).
 - **Comparability by DATA, not by freezing**: every results row self-labels
   `build_commit`/`build_number`, and **the resume key includes the build** — a new
   engine re-runs its combos instead of silently mixing two builds in one matrix.
@@ -91,7 +100,10 @@ engine re-test.
   complete model on the next run.
 - **Everything logged**: downloads, skips, failures, every bench combo → one
   timestamped `bench-log.txt` (the file you send back). Failures are loud and
-  the kit stops before benching on a broken download.
+  the kit stops before benching on a broken download. The log is written in ONE
+  consistent encoding so it always opens readable — an earlier mix of UTF-16
+  redirects and ANSI writes made it show up as a wall of CJK ("why is the log in
+  Chinese"); if you have an old garbled `bench-log.txt`, delete it and rerun.
 
 ## Folder layout
 

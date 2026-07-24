@@ -111,6 +111,7 @@ while [ $i -lt ${#KIT_MODEL_NAMES[@]} ]; do
   else hist="-- not run on $KIT_BUILD --"; fi
   printf "  [%d] %-9s %-24s %9s   %s
 " "$n" "$state" "${KIT_MODEL_NAMES[$i]}" "$sz" "$hist"
+  printf "        quick screen: %s\n" "$(kit_quick_status "$file" "$KIT_BUILD" "$ROOT")"
   case "${KIT_MODEL_OUTS[$i]}" in *A4B*) MOE_FITS=1 ;; esac
   i=$(( i + 1 ))
 done

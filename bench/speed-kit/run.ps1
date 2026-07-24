@@ -47,6 +47,7 @@ elseif (Test-Path (Join-Path $root ("engine\llama-$KitBuild-bin-win-vulkan-x64.z
 Write-Host "Sizing models (local file or HTTP HEAD - nothing is downloaded)..."
 $fit = @(Get-KitFit $ramBytes $root)
 $status = Get-KitResultsStatus $root $KitBuild
+$quick = Get-KitQuickStatus $root $KitBuild   # what the quick screen already recorded, per model, on this build
 
 # ---- the PLAN --------------------------------------------------------------
 $fitMax = [int64]($KitFitFactor * $ramBytes)
@@ -92,6 +93,16 @@ foreach ($m in $fit) {
     }
   }
   Write-Host ("  [{0}] {1,-9} {2,-24} {3,9}   {4}" -f $n, $state, $m.name, $szTxt, $hist)
+  # quick-screen status cached on THIS build - shown so you decide WITH the info in
+  # front of you; picking a model ALWAYS re-runs it (no skip). "not yet run" = never
+  # quick-screened on this engine.
+  $q = $quick[$file]
+  if ($null -eq $q) { Write-Host "        quick screen: not yet run" }
+  else {
+    $qv = Get-KitQuickVerdict $q.tg
+    if ($null -ne $q.tg) { Write-Host ("        quick screen: {0:N1} tok/s -> {1}" -f $q.tg, $qv) }
+    else { Write-Host ("        quick screen: {0} (last run left no speed line)" -f $qv) }
+  }
 }
 $free = (Get-PSDrive -Name ($root.Substring(0,1)) -ErrorAction SilentlyContinue).Free
 $freeTxt = "?"

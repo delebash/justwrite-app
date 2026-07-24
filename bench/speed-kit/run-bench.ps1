@@ -19,6 +19,10 @@ param(
 $ErrorActionPreference = "Continue"
 $root = $PSScriptRoot
 . (Join-Path $root "kit-common.ps1")
+# Decode llama.cpp's UTF-8 output correctly so it isn't mojibake in the log (paired
+# with $KitTextEnc's uniform file encoding - see kit-common). Guarded: a headless
+# host may have no console.
+try { [Console]::OutputEncoding = [System.Text.Encoding]::UTF8 } catch {}
 $KitBuild = $Build
 if (-not $KitBuild) { $KitBuild = Get-KitLatestBuild $root }
 $phaseSet = @($Phases -split '[,\s]+' | Where-Object { $_ })
@@ -32,11 +36,18 @@ $modelFilter = @($Models -split '[,]+' | Where-Object { $_ } | ForEach-Object { 
 $results = Join-Path $root "results.jsonl"
 $log = Join-Path $root "bench-log.txt"
 
-# Prefer this build's own dir (engine\<build>\ - see download-models.ps1);
-# fall back to any exe under engine\ for kits stocked before the per-build layout.
-$bench = Get-ChildItem -Recurse (Join-Path $root ("engine\" + $KitBuild)) -Filter "llama-bench.exe" -ErrorAction SilentlyContinue | Select-Object -First 1
-if (-not $bench) { $bench = Get-ChildItem -Recurse (Join-Path $root "engine") -Filter "llama-bench.exe" -ErrorAction SilentlyContinue | Select-Object -First 1 }
-if (-not $bench) { Write-Host "llama-bench.exe not found - run download-models.ps1 first (see README)"; exit 1 }
+# THE ENGINE IS THE RESOLVED-LATEST BUILD ONLY - no silent fallback to some older
+# build lying around in engine\ (that once silently ran b10083 and made garbage).
+# If this build's binaries aren't here, DOWNLOAD them (the user's ruling 2026-07-24:
+# "if missing just download"), then look again; only a failed download stops the run.
+$engDir = Join-Path $root ("engine\" + $KitBuild)
+$bench = Get-ChildItem -Recurse $engDir -Filter "llama-bench.exe" -ErrorAction SilentlyContinue | Select-Object -First 1
+if (-not $bench) {
+  Write-Host ("engine {0} not present - downloading it..." -f $KitBuild)
+  & (Join-Path $root "download-models.ps1") -Build $KitBuild -Models $Models -RamGB $RamGB
+  $bench = Get-ChildItem -Recurse $engDir -Filter "llama-bench.exe" -ErrorAction SilentlyContinue | Select-Object -First 1
+}
+if (-not $bench) { Write-Host ("llama-bench.exe for {0} still missing after download - see bench-log.txt" -f $KitBuild); exit 1 }
 
 $modelFiles = Get-ChildItem (Join-Path $root "models") -Filter "*.gguf" | Sort-Object Length
 if (-not $modelFiles) { Write-Host "no .gguf files in models\"; exit 1 }
@@ -49,7 +60,7 @@ $ramBytes = Get-KitRamBytes $RamGB
 $fit = @($modelFiles | Where-Object { $_.Length -le $KitFitFactor * $ramBytes })
 foreach ($m in $modelFiles) { if ($fit -notcontains $m) {
   Write-Host "SKIP (too big for this machine's $([math]::Round($ramBytes/1GB)) GB RAM): $($m.Name) ($([math]::Round($m.Length/1GB,1)) GB)"
-  "SKIPPED (ram-fit): $($m.Name)" | Add-Content $log
+  "SKIPPED (ram-fit): $($m.Name)" | Add-Content $log -Encoding $KitTextEnc
 } }
 $modelFiles = $fit
 if (-not $modelFiles) { Write-Host "nothing fits this machine's RAM"; exit 1 }
@@ -90,16 +101,15 @@ if ((Test-Path $results) -and (-not $Force)) {
 }
 if ($Force) { Write-Host "-Force: ignoring prior results, re-running everything selected" }
 
-"=== run-bench $(Get-Date -Format o) - engine $($bench.FullName) - build $KitBuild - phases $Phases ===" | Add-Content $log
+"=== run-bench $(Get-Date -Format o) - engine $($bench.FullName) - build $KitBuild - phases $Phases ===" | Add-Content $log -Encoding $KitTextEnc
 
 # QUICK SCREEN (runs FIRST): one generation per model, shown LIVE + the tok/s -
 # exactly a hand test. The go/no-go: judge speed AND quality here; the hours-long
 # matrix (phase 1) only runs if you opted in. Nothing is thrown out - every
 # selected model that fits RAM gets screened (the user's flow, 2026-07-24).
 if ($phaseSet -contains '3') {
-  $cli = Get-ChildItem -Recurse (Join-Path $root ("engine\" + $KitBuild)) -Filter "llama-cli.exe" -ErrorAction SilentlyContinue | Select-Object -First 1
-  if (-not $cli) { $cli = Get-ChildItem -Recurse (Join-Path $root "engine") -Filter "llama-cli.exe" -ErrorAction SilentlyContinue | Select-Object -First 1 }
-  if (-not $cli) { Write-Host "llama-cli.exe not found - quick screen skipped" }
+  $cli = Get-ChildItem -Recurse $engDir -Filter "llama-cli.exe" -ErrorAction SilentlyContinue | Select-Object -First 1
+  if (-not $cli) { Write-Host ("llama-cli.exe for {0} not found - quick screen skipped" -f $KitBuild) }
   else {
     Write-Host ""
     Write-Host "============ QUICK SCREEN (speed + verdict per model) ============"
@@ -109,16 +119,13 @@ if ($phaseSet -contains '3') {
     $screen = @()
     foreach ($m in $modelFiles) {
       $probe = Join-Path $root "quality-probe-$($m.BaseName)-$KitBuild.txt"
-      $cached = (Test-Path $probe) -and (-not $Force)
-      if ($cached) {
-        Write-Host ""
-        Write-Host ("  have (cached): {0}" -f $m.Name)
-      } else {
-        Write-Host ""
-        Write-Host (">>> {0}  (generating ~120 tokens; verdict prints at the end)" -f $m.Name)
-        & $cli.FullName -m $m.FullName -ngl 99 --single-turn --temp 0.2 -n 120 -p "Write a short paragraph describing an old lighthouse at dusk." 2>>$log | Tee-Object -FilePath $probe
-        if ($LASTEXITCODE -ne 0) { "SCREEN FAILED exit=$LASTEXITCODE : $($m.Name)" | Add-Content $log; Write-Host "  (screen failed - see bench-log.txt)" }
-      }
+      # PICKED = RUNS, always (the user's ruling 2026-07-24: cached NEVER means
+      # skipped - you saw what's cached in the PLAN and chose; Tee overwrites the
+      # probe with this fresh run). No -Force needed here; -Force is a matrix knob.
+      Write-Host ""
+      Write-Host (">>> {0}  (generating ~120 tokens; verdict prints at the end)" -f $m.Name)
+      & $cli.FullName -m $m.FullName -ngl 99 --single-turn --temp 0.2 -n 120 -p "Write a short paragraph describing an old lighthouse at dusk." 2>>$log | Tee-Object -FilePath $probe
+      if ($LASTEXITCODE -ne 0) { "SCREEN FAILED exit=$LASTEXITCODE : $($m.Name)" | Add-Content $log -Encoding $KitTextEnc; Write-Host "  (screen failed - see bench-log.txt)" }
       # Decode tok/s from llama-cli's timing line; $tg = $null if it never printed
       # one (model error / different format) -> an explicit "no speed line" verdict,
       # never a false "skip".
@@ -126,13 +133,9 @@ if ($phaseSet -contains '3') {
       if (Test-Path $probe) { $speed = (Select-String -Path $probe -Pattern 'Prompt:.*Generation:' | Select-Object -First 1).Line }
       $tg = $null
       if ($speed -match 'Generation:\s*([\d.]+)') { $tg = [double]$matches[1] }
-      if ($null -ne $tg) {
-        $verdict = if ($tg -ge $KitQuickMinTg) { "run full" } else { "SKIP too slow" }
-        Write-Host ("  >>> {0}   {1:N1} tok/s decode   -> {2}" -f $m.Name, $tg, $verdict)
-      } else {
-        $verdict = "no speed line"
-        Write-Host ("  >>> {0}   (no speed line - see bench-log.txt)" -f $m.Name)
-      }
+      $verdict = Get-KitQuickVerdict $tg
+      if ($null -ne $tg) { Write-Host ("  >>> {0}   {1:N1} tok/s decode   -> {2}" -f $m.Name, $tg, $verdict) }
+      else { Write-Host ("  >>> {0}   (no speed line - see bench-log.txt)" -f $m.Name) }
       $screen += [pscustomobject]@{ Name = $m.Name; Tg = $tg; Verdict = $verdict }
     }
     # ONE file the human can send back: which models are worth the full matrix,
@@ -147,7 +150,7 @@ if ($phaseSet -contains '3') {
       if ($null -ne $r.Tg) { $tgTxt = ("{0,6:N1}" -f $r.Tg) }
       $out += ("  {0,-14}{1} tok/s   {2}" -f $r.Verdict, $tgTxt, $r.Name)
     }
-    $out | Set-Content $summaryFile
+    $out | Set-Content $summaryFile -Encoding $KitTextEnc
     Write-Host ""
     $out | ForEach-Object { Write-Host $_ }
     Write-Host ("  -> saved to {0}" -f (Split-Path $summaryFile -Leaf))
@@ -163,10 +166,10 @@ foreach ($m in $modelFiles) {
     $key = Get-KitComboKey $KitBuild $m.Name $ngl $ub $fa
     if ($done[$key]) { Write-Host "skip (done on $KitBuild): $($m.Name)|$ngl|$ub|$fa"; continue }
     Write-Host "RUN: $($m.Name) ngl=$ngl ub=$ub fa=$fa  (pp512/2048/8192 + tg128)"
-    "--- $key $(Get-Date -Format o)" | Add-Content $log
+    "--- $key $(Get-Date -Format o)" | Add-Content $log -Encoding $KitTextEnc
     $raw = & $bench.FullName -m $m.FullName -ngl $ngl -ub $ub -fa $fa -p "512,2048,8192" -n 128 -o json 2>>$log
     if ($LASTEXITCODE -ne 0 -or -not $raw) {
-      "FAILED exit=$LASTEXITCODE : $key" | Add-Content $log
+      "FAILED exit=$LASTEXITCODE : $key" | Add-Content $log -Encoding $KitTextEnc
       # record the failure for the report; reruns RETRY it (see the skip filter above)
       (@{ kitBuild=$KitBuild; kitModel=$m.Name; kitNgl=$ngl; kitUb=$ub; kitFa=$fa; failed=$true } | ConvertTo-Json -Compress) | Add-Content $results
       continue
@@ -184,7 +187,7 @@ foreach ($m in $modelFiles) {
       # build-keyed resume and run.ps1's status column read.
       (@{ kitBuild=$KitBuild; kitModel=$m.Name; kitNgl=$ngl; kitUb=$ub; kitFa=$fa; rows=$rows } | ConvertTo-Json -Compress -Depth 6) | Add-Content $results
     } catch {
-      "PARSE FAILED: $key : $_" | Add-Content $log
+      "PARSE FAILED: $key : $_" | Add-Content $log -Encoding $KitTextEnc
       (@{ kitBuild=$KitBuild; kitModel=$m.Name; kitNgl=$ngl; kitUb=$ub; kitFa=$fa; failed=$true; parse=$true } | ConvertTo-Json -Compress) | Add-Content $results
     }
   } } }
@@ -200,10 +203,10 @@ if ($moe) {
   foreach ($nc in @(0, 8, 16, 24, 32, 40, 48)) {
     if ($done["$KitBuild|ncmoe|$nc"]) { Write-Host "skip (done on $KitBuild): ncmoe=$nc"; continue }
     Write-Host "RUN sweep: $($moe.Name) ngl=99 fa=0 ub=512 ncmoe=$nc  (pp8192 + tg128)"
-    "--- ncmoe=$nc $(Get-Date -Format o)" | Add-Content $log
+    "--- ncmoe=$nc $(Get-Date -Format o)" | Add-Content $log -Encoding $KitTextEnc
     $raw = & $bench.FullName -m $moe.FullName -ngl 99 -fa 0 -ub 512 -ncmoe $nc -p 8192 -n 128 -o json 2>>$log
     if ($LASTEXITCODE -ne 0 -or -not $raw) {
-      "FAILED exit=$LASTEXITCODE : ncmoe=$nc" | Add-Content $log
+      "FAILED exit=$LASTEXITCODE : ncmoe=$nc" | Add-Content $log -Encoding $KitTextEnc
       (@{ kitBuild=$KitBuild; kitNcmoe=$nc; failed=$true } | ConvertTo-Json -Compress) | Add-Content $results
       continue
     }
@@ -211,7 +214,7 @@ if ($moe) {
       $rows = ($raw -join "`n") | ConvertFrom-Json
       (@{ kitBuild=$KitBuild; kitNcmoe=$nc; rows=$rows } | ConvertTo-Json -Compress -Depth 6) | Add-Content $results
     } catch {
-      "PARSE FAILED: ncmoe=$nc : $_" | Add-Content $log
+      "PARSE FAILED: ncmoe=$nc : $_" | Add-Content $log -Encoding $KitTextEnc
       (@{ kitBuild=$KitBuild; kitNcmoe=$nc; failed=$true; parse=$true } | ConvertTo-Json -Compress) | Add-Content $results
     }
   }

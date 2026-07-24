@@ -26,10 +26,18 @@ RESULTS="$ROOT/results.jsonl"
 LOG="$ROOT/bench-log.txt"
 phase_on() { case ",$PHASES," in *,"$1",*) return 0 ;; *) return 1 ;; esac; }
 
-# Prefer the pinned build's dir; fall back to any engine binary (legacy kits).
-BENCH="$(find "$ROOT/engine/$KIT_BUILD" -name llama-bench -type f 2>/dev/null | head -1)"
-[ -n "$BENCH" ] || BENCH="$(find "$ROOT/engine" -name llama-bench -type f 2>/dev/null | head -1)"
-if [ -z "$BENCH" ]; then echo "llama-bench not found - run download-models.sh first (see README)"; exit 1; fi
+# THE ENGINE IS THE RESOLVED-LATEST BUILD ONLY - no silent fallback to an older
+# build lying around in engine/ (that once silently ran b10083 and made garbage).
+# If this build isn't here, DOWNLOAD it (the user's ruling 2026-07-24: "if missing
+# just download"), then look again; only a failed download stops the run.
+ENGDIR="$ROOT/engine/$KIT_BUILD"
+BENCH="$(find "$ENGDIR" -name llama-bench -type f 2>/dev/null | head -1)"
+if [ -z "$BENCH" ]; then
+  echo "engine $KIT_BUILD not present - downloading it..."
+  bash "$ROOT/download-models.sh" --ram-gb "$RAM_GB" --build "$KIT_BUILD" --models "$MODELS_SEL"
+  BENCH="$(find "$ENGDIR" -name llama-bench -type f 2>/dev/null | head -1)"
+fi
+if [ -z "$BENCH" ]; then echo "llama-bench for $KIT_BUILD still missing after download - see bench-log.txt"; exit 1; fi
 
 # Model set = files on disk, smallest first, RAM-fit guarded (mirror of the ps1
 # guard - the backstop for hand-copied models; download-models filters too).
@@ -77,8 +85,7 @@ run_combo() {  # $1 file, $2 ngl, $3 ub, $4 fa
 # QUICK SCREEN (runs FIRST): one generation per model, shown LIVE + the tok/s -
 # a hand test. The go/no-go; the hours-long matrix only runs if opted in.
 if phase_on 3; then
-  CLI="$(find "$ROOT/engine/$KIT_BUILD" -name llama-cli -type f 2>/dev/null | head -1)"
-  [ -n "$CLI" ] || CLI="$(find "$ROOT/engine" -name llama-cli -type f 2>/dev/null | head -1)"
+  CLI="$(find "$ENGDIR" -name llama-cli -type f 2>/dev/null | head -1)"
   if [ -n "$CLI" ]; then
     echo ""
     echo "============ QUICK SCREEN (speed + verdict per model) ============"
@@ -89,26 +96,23 @@ if phase_on 3; then
     for f in $MODELS; do
       base="$(basename "$f" .gguf)"
       PROBE="$ROOT/quality-probe-$base-$KIT_BUILD.txt"
-      if [ -f "$PROBE" ] && [ "$FORCE" != 1 ]; then
-        echo ""
-        echo "  have (cached): $base"
-      else
-        echo ""
-        echo ">>> $base  (generating ~120 tokens; verdict prints at the end)"
-        "$CLI" -m "$f" -ngl 99 --single-turn --temp 0.2 -n 120 \
-          -p "Write a short paragraph describing an old lighthouse at dusk." 2>>"$LOG" | tee "$PROBE"
-      fi
+      # PICKED = RUNS, always (the user's ruling 2026-07-24: cached NEVER means
+      # skipped - you saw what's cached in the PLAN and chose; tee overwrites the probe).
+      echo ""
+      echo ">>> $base  (generating ~120 tokens; verdict prints at the end)"
+      "$CLI" -m "$f" -ngl 99 --single-turn --temp 0.2 -n 120 \
+        -p "Write a short paragraph describing an old lighthouse at dusk." 2>>"$LOG" | tee "$PROBE"
       # decode tok/s from the timing line; empty -> explicit "no speed line", not a false skip
       speed=""
       [ -f "$PROBE" ] && speed="$(grep -oE '\[ Prompt:.*Generation:[^]]*\]' "$PROBE" | head -1)"
       tg="$(printf '%s' "$speed" | sed -n 's/.*Generation:[[:space:]]*\([0-9.]*\).*/\1/p')"
+      verdict="$(kit_quick_verdict "$tg")"
       if [ -n "$tg" ]; then
-        if awk -v a="$tg" -v c="$KIT_QUICK_MIN_TG" 'BEGIN{exit !(a+0 >= c+0)}'; then verdict="run full"; else verdict="SKIP too slow"; fi
         printf "  >>> %s   %s tok/s decode   -> %s\n" "$base" "$tg" "$verdict"
         printf "%s${TAB}%s${TAB}%s\n" "$tg" "$verdict" "$base" >> "$SUMMARY.tmp"
       else
         printf "  >>> %s   (no speed line - see bench-log.txt)\n" "$base"
-        printf "%s${TAB}%s${TAB}%s\n" "-1" "no speed line" "$base" >> "$SUMMARY.tmp"
+        printf "%s${TAB}%s${TAB}%s\n" "-1" "$verdict" "$base" >> "$SUMMARY.tmp"
       fi
     done
     # ONE file the human can send back: fastest decode first

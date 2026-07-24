@@ -31,6 +31,19 @@ $KitFitFactor = 0.7
 # ADVISORY: it prints a verdict + writes quick-summary.txt, it does not block a run.
 $KitQuickMinTg = 7
 
+# TEXT-FILE ENCODING (fixes the "why is the log in Chinese" bug 2026-07-24). The
+# kit's human-readable text files (bench-log.txt, detect-facts.txt, quick-summary.txt)
+# were written by TWO mechanisms with DIFFERENT encodings: the `2>>` redirect (which
+# captures llama.cpp's own output) and `Add-Content`. On Windows PowerShell 5.1 the
+# redirect writes UTF-16 while Add-Content writes ANSI - so half the file was one
+# encoding, half the other, and an editor that picks one turns the rest into a wall
+# of CJK. The fix: make Add-Content/Set-Content MATCH the redirect's per-version
+# encoding, so each file is uniform and always opens readable. (PS 7 uses UTF-8 for
+# both; 5.1 uses UTF-16 for the redirect - so we follow suit per version.) Paired
+# with [Console]::OutputEncoding=UTF8 at each script's top so llama.cpp's UTF-8
+# output DECODES correctly before it is written.
+$KitTextEnc = if ($PSVersionTable.PSVersion.Major -ge 6) { 'utf8' } else { 'unicode' }
+
 # The 16-combo matrix - defined HERE so run.ps1 can size "N/8 done" without
 # duplicating run-bench's loop bounds.
 $KitNgls = @(99, 0)
@@ -90,7 +103,37 @@ function Get-KitLatestBuild([string]$Root) {
 function Add-KitLog([string]$Root, [string]$Message) {
   $line = "[{0}] {1}" -f (Get-Date -Format "yyyy-MM-dd HH:mm:ss"), $Message
   Write-Host $line
-  $line | Add-Content (Join-Path $Root "bench-log.txt")
+  $line | Add-Content (Join-Path $Root "bench-log.txt") -Encoding $KitTextEnc
+}
+
+# ONE definition of the quick-screen verdict (run-bench PRINTS it after a run;
+# run.ps1's PLAN shows the CACHED one before you pick) - so the two can never
+# disagree. $null tg = the run left no parseable timing line.
+function Get-KitQuickVerdict($Tg) {
+  if ($null -eq $Tg) { return "no speed line" }
+  if ($Tg -ge $KitQuickMinTg) { return "run full" }
+  "SKIP too slow"
+}
+
+# What the quick screen already recorded for each model ON THIS BUILD, read from
+# the per-model quality-probe files - so the PLAN can show what's cached BEFORE you
+# pick (the user's ruling 2026-07-24: show it; picking always re-runs anyway).
+# Keyed by model FILENAME -> @{ tg = <double or $null> }. A model with no probe is
+# simply absent from the map (the PLAN shows "not yet run"); a probe that exists but
+# has no timing line yields tg=$null (-> "no speed line").
+function Get-KitQuickStatus([string]$Root, [string]$CurrentBuild) {
+  $status = @{}
+  foreach ($m in $KitModels) {
+    $file = Split-Path $m.out -Leaf
+    $base = [System.IO.Path]::GetFileNameWithoutExtension($file)
+    $probe = Join-Path $Root ("quality-probe-{0}-{1}.txt" -f $base, $CurrentBuild)
+    if (-not (Test-Path $probe)) { continue }
+    $tg = $null
+    $speed = (Select-String -Path $probe -Pattern 'Prompt:.*Generation:' -ErrorAction SilentlyContinue | Select-Object -First 1).Line
+    if ($speed -match 'Generation:\s*([\d.]+)') { $tg = [double]$matches[1] }
+    $status[$file] = @{ tg = $tg }
+  }
+  $status
 }
 
 function Get-KitRamBytes([double]$OverrideGB) {

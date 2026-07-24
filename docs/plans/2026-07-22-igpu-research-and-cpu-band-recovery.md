@@ -1003,3 +1003,73 @@ the parse targets.
 
 OPEN: the user's box runs (quick screen on both laptops + the desktop, then send `quick-summary.txt`
 back); whether to add auto-gating; whether a second batch tier is wanted.
+
+## 15. THE 16 GB-LAPTOP FALLOUT — cached≠skipped, download-if-missing, the "Chinese" log (2026-07-24, the user's go)
+
+What triggered it. The user ran the updated kit on the 16 GB i7-1355U (Iris Xe) laptop and hit
+three things at once, shown in one screenshot of `bench-log.txt`: (1) the log rendered as a wall
+of CJK; (2) the 27B ternary printed `have (cached)` then `no speed line`; (3) the paths were all
+`engine\b10083`, the OLD broken engine. Each was a real defect, and the user named the right
+designs for all three - I had made the kit decide where it should have informed.
+
+What changed and why.
+
+CACHED NEVER MEANS SKIPPED (the core one). The quick screen used to skip a model whose probe file
+already existed (`$cached = (Test-Path $probe) -and (-not $Force)`), so a prior broken run's empty
+probe was re-shown as `no speed line` instead of being re-run. The user: "just because cached
+doesn't mean I want them skipped - I decide, not you ... show what is cached before I choose ...
+that way what I pick just runs no matter what." So: the skip is DELETED - a picked model ALWAYS
+runs (Tee overwrites its probe); and the PLAN now shows each model's cached quick-screen result
+BEFORE the picker (`quick screen: 12.0 tok/s -> run full` / `no speed line` / `not yet run`), read
+from the probe files, so the choice is made with the info in front of you. `-Force` is no longer a
+quick-screen knob (it stays a full-matrix knob). The verdict logic is now ONE function
+(`Get-KitQuickVerdict` / `kit_quick_verdict`) shared by the run-time print and the PLAN's cached
+read, so the two can't disagree; the PLAN's per-model read is `Get-KitQuickStatus` /
+`kit_quick_status`.
+
+DOWNLOAD IF MISSING, NEVER SILENTLY FALL BACK (the b10083 cause). `run-bench` looked for the
+resolved build's binary and, if absent, fell back to ANY `llama-{cli,bench}` under `engine\` - which
+silently ran b10083 on that laptop and produced garbage. The user: "always download latest engine
+... if missing just download." So the fallback line is DELETED on both binaries and both faces; if
+the resolved build isn't present, `run-bench` invokes `download-models` for it (with the same
+`-Models`/`--models` filter) and looks again; only a failed download stops the run. The engine dir
+is now computed once (`$engDir` / `$ENGDIR`) and both `llama-bench` and `llama-cli` resolve from it
+alone.
+
+THE "CHINESE" LOG (encoding). `bench-log.txt` was written by two mechanisms with different
+encodings: the `2>>` redirect (Windows PowerShell 5.1 = UTF-16) and `Add-Content` (5.1 = ANSI). A
+half-and-half file can't display in one encoding, so an editor that picked UTF-16 turned the ANSI
+half into CJK. Fix: a per-version `$KitTextEnc` (`unicode` on 5.1 to MATCH the redirect, `utf8` on
+PS 7 where both are already UTF-8) applied to every kit-owned `Add-Content`/`Set-Content` in the
+human-read text files (bench-log, quick-summary, detect-facts), plus `[Console]::OutputEncoding =
+UTF8` at each script's top so llama.cpp's UTF-8 output decodes correctly before it is written.
+`results.jsonl` is left as-is (ASCII JSON, machine-read, never displayed). The model ALSO genuinely
+produced garbage on b10083+Intel-Vulkan+ternary - that is a real broken-combo signal, separate from
+the encoding, and the download-latest fix addresses it.
+
+file:line. Skip deleted + always-run + shared verdict: `bench/speed-kit/run-bench.ps1` and
+`run-bench.sh` quick-screen loop. Engine download-if-missing (no fallback): the `$engDir`/`$ENGDIR`
+block near the top of both `run-bench` faces + the cli lookup in the quick-screen block. PLAN cached
+column: `run.ps1` (`$quick = Get-KitQuickStatus` + the per-model sub-line) and `run.sh` (the
+`kit_quick_status` printf). Shared helpers + `$KitTextEnc`: `kit-common.ps1`
+(`Get-KitQuickVerdict`/`Get-KitQuickStatus`/`$KitTextEnc`, Add-KitLog encoding) and `kit-common.sh`
+(`kit_quick_verdict`/`kit_quick_status`). Encoding on the other writers: `run-bench.ps1` log lines +
+summary, `detect-facts.ps1` (now dot-sources kit-common for `$KitTextEnc`). Docs: `README.md`.
+
+How it was verified. All five ps1 and all four sh scripts parse clean (`Parser::ParseFile` /
+`bash -n`). The verdict + cached-status helpers were unit-tested in the scratchpad (not the repo)
+against synthetic probes: a present-with-speed probe (18.3 -> `run full`), a present-without-timing
+probe (-> `no speed line`), and an absent probe (-> `not yet run`); plus the inclusive cutoff
+(7 -> run full, 6.9 -> SKIP). Both faces returned `ASSERT: PASS`, byte-consistent. `run.ps1
+-PlanOnly` rendered the PLAN with the new `quick screen: not yet run` sub-line under all six models,
+no runtime error, nothing written. NOT run: a real quick screen with a model (no engine/model in
+this env); the PS 5.1 encoding branch (`$KitTextEnc = unicode`) - reasoned from documented 5.1
+redirection behaviour, confirmed `utf8` on PS 7.6.3 here; and the `run.sh` PLAN render (Git Bash
+reports "unknown OS"; `kit_quick_status` was tested directly).
+
+What would reverse it. Wanting the quick screen to resume-skip again (it doesn't; deliberate).
+Wanting the full matrix to also "just run what I pick" (its combo-resume is kept because it saves
+hours - one word flips it). A ruling that the log should be UTF-8 even on 5.1 would mean dropping
+`2>>` for a captured-and-rewritten stderr path (heavier; not done because it risks the timing
+parse). OPEN: the user's box runs on b10099 (delete `engine\b10083\` first); whether auto-gating
+the full run to only `run full` models is wanted.
