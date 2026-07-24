@@ -7,3 +7,6 @@
 # ...but keep the empty folders so the intended layout is visible in the repo:
 !/models/.gitkeep
 !/engine/.gitkeep
+
+# resolved-build cache (written at run time, machine-local)
+/.latest-build
