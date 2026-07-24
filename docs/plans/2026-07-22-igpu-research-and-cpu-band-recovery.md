@@ -839,3 +839,46 @@ with the chosen ngl, VRAM peaks, and per-probe exit codes). Verify when it lands
 approach: a measured per-layer cost so high that ≤6900 MiB keeps ngl at 36 and decode stays
 CPU-bound-slow — then the honest fallback is fewer GPU probes (lighthouse only) or accepting
 the timeout as the answer that the 27B doesn't fit this card usefully.
+
+**LEG 2 COMPLETE (2026-07-23 20:10–21:03; artifacts committed).** The GPU leg answered the
+quality gate and closed the speed question — but only at a partial offload, and it exposed a bug
+in my own runner. QUALITY: PASSED, decisively. All three probes emitted COMPLETE final answers
+(the first in the whole test): the lighthouse paragraph is genuinely good prose whose visible
+reasoning self-critiques a weak first draft ("Too simple... 'purple sky' is okay, but 'bruised
+purple' might be better"); the JSON probe emitted a VALID, CORRECT array — all three characters,
+right roles, raw JSON exactly as instructed. Zero garbage across nine probes now (legs 1+1b+2).
+SPEED: 1.4 tok/s generation on all three probes — no better than CPU's 1.5 — with prompt
+processing 0.7/14.5/20.9 t/s. Each probe took 11-21 min. BUG (mine): the runner's layer-count
+regex (`offloaded N/M`) does not match their fork's load output, so NTOT never parsed, the
+step-up projection never ran, and -ngl stayed pinned at the starting 36 (log reads
+"step1:  layers" and "of ? layers"). Peak VRAM was 4765 MiB against the 6900 MiB cap — ~2.1 GB
+left unused. So 1.4 tok/s is a FLOOR from partial offload, not the 2070S's verdict on this model;
+the un-offloaded tail (roughly 7.17 GB file - 4.77 GB resident ≈ 2.4 GB) is slightly more than
+the headroom, so a fixed re-run would approach but probably not reach full offload — the honest
+expectation is a few tok/s, not a usable model. Verify: leg2-gpu-log.txt (chosen ngl, VRAM peaks,
+per-probe timings) + the three quality-probe-*-gpu.txt.
+
+**THE DESKTOP VERDICT (why the prism track stops here on this box).** gemma-4-26B-A4B is a MoE
+with ~4B ACTIVE params per token out of 25,233,142,046 total (its own results row) — it already
+delivers 26B-class capacity at ~4B-dense inference cost, measured at 117 tok/s pp8192 / ~11 tok/s
+tg on the laptop's weaker Arc iGPU. A dense ternary model of ANY size is strictly dominated here:
+more compute per token for less capacity. That also kills the ternary-8B idea I floated earlier
+(8B dense active vs 4B active MoE, 8B capacity vs 25B) — withdrawn on the arithmetic. Q1_0 (the
+1-bit family, `common.sh:27`) is likewise not worth testing: strictly lower fidelity than ternary
+by construction (2 weight states vs 3, no "off" state), and quality was never the failing axis.
+
+**⚠️ CORRECTION — the laptop path is NOT closed (the user caught this).** I tested MAINLINE
+b10083 Vulkan (no ternary kernels, #25850 open, VRAM flat 597 MiB) and then over-generalized to
+"Vulkan". PrismML's fork ships its OWN `llama-bin-win-vulkan-x64.zip` (31.6 MB) in the same
+release we already pulled from — verified against the GitHub release API this session. The
+naming trap: their Windows assets are UN-PREFIXED while Linux/macOS carry the prism tag, so the
+Windows Vulkan zip looks like a vanilla upstream artifact — but it is not: our CPU build came
+from that same un-prefixed pattern and its banner reads `build : b9596-9fcaed763`. So the 16 GB
+laptop case is genuinely reopened: the gemma MoE is auto-skipped there (13.27 GB > the 11.2 GB
+fit ceiling) while a 7.17 GB ternary 27B fits, and a plausible GPU backend now exists for it.
+Caveat that stands: it would be THEIR engine, not b10083, so any numbers sit outside the kit's
+cross-machine comparison. OPEN, one cheap test: download that 31.6 MB zip, load Q2_0 at a modest
+-ngl on the 2070S (a valid Vulkan device — `Vulkan0: NVIDIA GeForce RTX 2070 SUPER`, and the
+same SPIR-V shaders serve Intel Arc), watch VRAM. Climbs = laptop path live; flat = the fork's
+Vulkan lags its CUDA target and the path really is closed. What would reverse the desktop
+verdict: nothing plausible — the MoE's active-param advantage is architectural.

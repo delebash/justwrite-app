@@ -1,0 +1,14 @@
+=== prism leg 2 (GPU, their CUDA build) 2026-07-23 20:10:43 ===
+baseline VRAM: 614 MiB
+--- step1: -ngl 36 -n 16 probe 20:10:43 ---
+step1 exit=0 
+step1:  layers | peak VRAM during step1: 4765 MiB
+chosen -ngl for probes: 36 (of ? layers; perLayer~? MiB)
+--- probe lighthouse (-ngl 36) start 20:11:14 vram=614 ---
+--- probe lighthouse exit=0 end 20:22:55 vram=614 (124=timeout) ---
+--- probe continuation (-ngl 36) start 20:22:55 vram=614 ---
+--- probe continuation exit=0 end 20:44:12 vram=614 (124=timeout) ---
+--- probe json-extract (-ngl 36) start 20:44:13 vram=614 ---
+--- probe json-extract exit=0 end 21:03:25 vram=565 (124=timeout) ---
+peak VRAM sample over the whole leg: 20:58:37 4765
+=== leg 2 done 2026-07-23 21:03:25 final vram=565 ===
