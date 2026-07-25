@@ -12,7 +12,7 @@
 import { spawn } from "node:child_process";
 import { createRequire } from "node:module";
 import { resolveAppDataRoot } from "./dataRoot.js";
-import { findChrome, isUp, sleep, waitReady } from "../../../tests/lib/smoke-common.js";
+import { findChrome, findPython, isUp, sleep, waitReady } from "../../../tests/lib/smoke-common.js";
 
 const require = createRequire(import.meta.url);
 const { chromium } = require("playwright");
@@ -65,7 +65,12 @@ async function ensureBrowserStack({ app, server, autostart, repoRoot, onLog }) {
     // "engine is not installed" trap. resolveAppDataRoot mirrors the shell.
     dataRoot = resolveAppDataRoot(repoRoot);
     onLog?.(`starting server (nothing answering at ${server}) — data root: ${dataRoot}`);
-    started.push(startProcess("server", "python", ["-m", "justwrite_server.cli", "serve", "--port", new URL(server).port || "17495"], {
+    // findPython, not bare "python": PATH's first interpreter is a stock install
+    // with none of this project's deps, so this line died with "No module named
+    // 'llm_runner'". It hid for a long time because the branch above only reaches
+    // here when NOTHING is already answering — every bench run made while the
+    // app was up skipped it, and it broke the first time the bench ran cold.
+    started.push(startProcess("server", findPython(repoRoot), ["-m", "justwrite_server.cli", "serve", "--port", new URL(server).port || "17495"], {
       cwd: `${repoRoot}/server`, env: { JUSTWRITE_DATA_DIR: dataRoot }, onLog,
     }));
     await waitReady(`${server}/v1/health`, "server", 120);

@@ -20,26 +20,17 @@
 // Hardcoding .venv/Scripts/python.exe would fix Windows and break the Linux dev
 // container, which has no .venv and runs the interpreter straight off PATH — so
 // the venv is PREFERRED and PATH is the documented fallback, per platform.
+//
+// The resolution itself lives in tests/lib/smoke-common.js beside findChrome(),
+// which is this repo's one home for "find a platform-specific executable" — that
+// file exists because findChrome() had been COPIED into 20 scripts. A second copy
+// of the same idea here is how that starts again, so this is a thin CLI wrapper
+// over findPython() and nothing more.
 
 import { spawn } from "node:child_process";
-import { existsSync } from "node:fs";
-import { resolve, dirname } from "node:path";
-import { fileURLToPath } from "node:url";
+import { findPython } from "../tests/lib/smoke-common.js";
 
-const ROOT = resolve(dirname(fileURLToPath(import.meta.url)), "..");
-const WIN = process.platform === "win32";
-
-// The project venv first (Windows and POSIX layouts differ), then PATH.
-const CANDIDATES = [
-  resolve(ROOT, WIN ? ".venv/Scripts/python.exe" : ".venv/bin/python"),
-];
-
-function interpreter() {
-  for (const c of CANDIDATES) if (existsSync(c)) return c;
-  return WIN ? "python" : "python3"; // dev container / no venv
-}
-
-const python = interpreter();
+const python = findPython();
 const args = process.argv.slice(2);
 if (!args.length) {
   console.error("scripts/py.js: no arguments — expected e.g. `-m pytest -q`");

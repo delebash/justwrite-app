@@ -17,7 +17,8 @@
 // `docs/TASKS.md`, not silently assumed done. Import from this file; never re-fork.
 
 import { existsSync, readdirSync } from "node:fs";
-import { join } from "node:path";
+import { dirname, join } from "node:path";
+import { fileURLToPath } from "node:url";
 
 export const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
 
@@ -74,6 +75,39 @@ export function findChrome() {
     }
   }
   return undefined;
+}
+
+// Project venv layouts, in probe order. Windows puts the interpreter in
+// Scripts/, POSIX in bin/.
+const VENV_PYTHON = [".venv/Scripts/python.exe", ".venv/bin/python"];
+
+/**
+ * Path to THIS PROJECT'S Python interpreter — the venv if there is one, else
+ * whatever PATH offers. `JW_PYTHON` overrides everything.
+ *
+ * WHY this is not just the string "python": bare `python` resolves to whatever
+ * is first on PATH, which on the user's Windows box is a stock F:\Python312 with
+ * none of this project's dependencies installed. Every symptom it produced read
+ * as a broken config rather than a missing install:
+ *   - `npm run test:server` -> "unrecognized arguments: -n" (no pytest-xdist,
+ *     which server/pyproject.toml's addopts requires), which also took
+ *     `npm run test:fast` down, since it chains test:server;
+ *   - the bench harness's autostart -> "No module named 'llm_runner'". That one
+ *     hid for a long time: drive.js only spawns a server when nothing is already
+ *     answering, so every run made while the user's app was up skipped the line
+ *     entirely, and it failed the first time the bench ran against a closed app.
+ *
+ * The venv is PREFERRED rather than required, because the Linux dev container
+ * has no .venv and runs the interpreter straight off PATH.
+ */
+export function findPython(repoRoot) {
+  if (process.env.JW_PYTHON && existsSync(process.env.JW_PYTHON)) return process.env.JW_PYTHON;
+  const root = repoRoot || join(dirname(fileURLToPath(import.meta.url)), "..", "..");
+  for (const rel of VENV_PYTHON) {
+    const exe = join(root, ...rel.split("/"));
+    if (existsSync(exe)) return exe;
+  }
+  return process.platform === "win32" ? "python" : "python3";
 }
 
 /** One probe: is something answering at `url` right now? (404 counts — the
