@@ -1342,3 +1342,39 @@ untouched. Verified: `.venv` has both `justwrite-server.exe` and an importable `
 server out of `.venv` (the compile-time path only affects debug builds, recomputed per build).
 OPEN: JustVoice's sidecar is documented as kept in lock-step (`lib.rs` sidecar section) — the same
 preference belongs there; not applied (separate repo, needs its own go).
+
+## 21. THE E-SERIES ROWS + THE integrated-16 CLASS (2026-07-25, the user's go — "your rec, think twice on it, go")
+
+What shipped (runner, one commit). The two E-series catalog rows — `gemma-4-e2b-qat` and
+`gemma-4-e4b-qat`, unsloth QAT UD-Q4_K_XL, the repos this doc named at line 201 — and the
+`igpu-mem16` hardware-class row (integrated, ram 16, vram 0; the i7-1355U / Iris Xe laptop). The
+header-derived facts were GENERATED, not typed: `scripts/refresh-seed-facts.py --only … --write`
+ran the same `inspect_model_from_link` path Read-from-link uses and wrote trained_ctx 131072,
+size_label 4.6B / 7.5B, size_bytes 2,620,370,976 / 4,215,695,776, est_vram_mb 3711 / 5411 for
+E2B / E4B respectively; samplers curated in from its report (the family's top_k 64 / top_p 0.95 /
+temperature 1). Positions: both share position 0 with the 12B rung (catalog order is
+(position, id)), deliberately NOT renumbering the ladder — the JW extras sit at position 20 and
+their relative order was chosen against the current numbering.
+
+The one deliberate divergence from Read-from-link parity, and why. The tier-C probe found only
+THIRD-PARTY assistant heads for both rows — E2B: `Radamanthys11/Gemma-4-E2B-it-assistant-GGUF`
+(the same publisher and `-it-assistant-Q8_0` naming as StyleTune's seeded drafter, which made
+that model UNLOADABLE for nineteen days and was fixed only this same morning); E4B:
+`AtomicChat/gemma-4-E4B-it-assistant-GGUF`. Neither head has ever been loaded against these
+weights. So both rows RECORD the drafter fields but ship `mtp: False` — capability documented,
+enablement off until one verified load per head on a real box. The row comment is the stop sign:
+a future `refresh-seed-facts --write` will mechanically propose `mtp: True` again and must not
+be accepted without that load.
+
+What is deliberately NOT seeded. The (E4B, igpu-mem16) class TUNE — this doc's own §17 rule
+stands ("a smaller model for igpu-mem16 is a future row once benched"; the seed principle: no
+un-measured tune) — and the dGPU 8/12/16/24+ band classes: no written blessed shape exists (both
+repos' plan docs searched 2026-07-25; the June "8/12/16/24" hits are catalog-tier language, not
+class-row seeds), detection computes a box's class key without a library row
+(`format_class_key`), and an empty band row with no tune does nothing. Recommendation given to
+the user: close the clause rather than seed scaffolding; their word decides.
+
+Verified by running: full runner suite 704 passed / 1 documented Windows lspci known-bad / 9
+skipped — the same baseline as before the rows. What would reverse it: a verified drafter load
+flips a row's mtp True; the laptop speed-kit run creates the igpu-mem16 tune; a user blessing
+seeds the dGPU bands.
