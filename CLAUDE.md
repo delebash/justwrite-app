@@ -23,8 +23,28 @@ npm run test:fast      # QUICK gate (~53s): vitest + build:vite + server pytest.
                        # runner pytest, no cargo check, no biome/ruff. build:vite is a
                        # COMPILE check, never a substitute for the smoke. Green here does
                        # NOT clear a renderer/GUI change.
-npm run test:unit      # vitest only (157 tests, ~3s)
-npm run test:server    # server pytest only (108 tests, ~46s — parallel by default)
+npm run test:unit      # vitest only (429 tests, ~8s)
+npm run test:server    # server pytest only (121 tests, ~38s — parallel by default)
+```
+
+**Which Python runs.** Every npm script that needs an interpreter goes through
+`scripts/py.js`, which prefers this project's venv (`.venv/Scripts/python.exe` on Windows,
+`.venv/bin/python` on POSIX) and falls back to PATH. Do **not** put bare `python` back in a
+script: it resolves to whatever is first on PATH, which on the user's Windows box is a stock
+`F:\Python312` with none of this project's dependencies — that is why `npm run test:server`
+used to die with `unrecognized arguments: -n` (no pytest-xdist, which `server/pyproject.toml`'s
+addopts requires), taking `npm run test:fast` down with it, and why the runner's suite died at
+collection with `No module named 'google'`. Both read as broken config; both were a missing
+install. `scripts/py.js` preserves the child's exit code, so a failing suite still fails the
+script.
+
+The shared **runner** has no venv of its own — `llm_runner` is editable-installed into THIS
+project's venv, so its suite runs on the same interpreter, from the runner repo:
+
+```bash
+cd ../just-llm-runner && ../justwrite-app/.venv/Scripts/python.exe -m pytest -q
+# 703 passed; the one failure, test_hardware.py::test_pci_gpus_linux_lspci_name_match,
+# is a Linux lspci path test and is known-bad on Windows.
 ```
 
 **Test times (MEASURED 2026-07-15 — do NOT skip tests; they were never the bottleneck).**
