@@ -43,10 +43,42 @@
 
 ### B. Open — needs your go
 
-- **Migrate the six hand-rolled kit tables to `UiTable` (TanStack).** The kit already wraps it and
-  JW's own views use it; `LuModelCatalog`, `LuClassTunes`, `LuMeasureHistory`, `LuRunnerBinaries`,
-  `AiModelsArea`, `PricingEditor` each hand-roll a `<table>` with their own sort state and width
-  guesses. **This is also the real fix for the catalog still breaking at ≤1440.** §25, §27.
+- ~~**Migrate the six hand-rolled kit tables to `UiTable` (TanStack).**~~ **DONE 2026-07-24** —
+  but as THREE migrations, not six. Reading all six showed they are two different things:
+  - *Real data tables → migrated.* `LuMeasureHistory`, `LuModelCatalog`, and the two usage
+    breakdowns in `AiModelsArea` (which were the same five-column table written out twice, now
+    one shared `usageColumns()` config). The catalog keeps its own ORDERING — it groups into
+    sections and sorts within each, which a row-model sort would flatten — so it mounts with
+    TanStack's `manualSorting` and owns only the order; the table owns the header, the sort
+    state and the caret.
+  - *Editable form grids → NOT migrated, deliberately.* `PricingEditor`, `LuRunnerBinaries`:
+    every cell is an input, each row has its own Save, and a trailing row ADDS an entry. No
+    sort, no filter, no pagination, a handful of rows. Routing a form through a headless
+    data-table library buys indirection and costs the inline add-row. What they actually needed
+    was to stop looking different from each other, so they now share the new `.ui-formgrid`
+    class in `common/styles.css` — same header treatment and rhythm as `.ui-table`, none of the
+    machinery. `LuClassTunes` was left alone entirely: a headerless sub-list nested per hardware
+    class, using top-borders and top-aligned cells, sharing nothing but the `<table>` element.
+
+  `UiTable` grew five additive options, every one defaulting to today's behaviour so no existing
+  table moved: `full-width-row` (a predicate that may return a CLASS — the catalog's section
+  bands and its doesn't-fit divider), `manual-sorting` + `@update:sort`, `disable-sort-removal`,
+  a functional `data-key` (one list mixing records with sentinels), and three opt-in look classes
+  `ui-table-fixed` / `ui-table-sticky` / `ui-table-top`. Those three are what fixed the catalog:
+  **shares, not content demands**, so it can never outgrow its panel. Two latent bugs surfaced on
+  the way — `tableColumns` silently dropped `meta`, so `meta.headerClass` never reached a header;
+  and a `sortable` column with no `accessorKey` renders as a DEAD header, because TanStack's
+  `getCanSort()` is `enableSorting && accessorFn`. Both fixed, the second documented in the API
+  comment.
+
+  Verified by RENDERING, not by reading CSS (this grid broke three times on 2026-07-24):
+  a scratchpad harness mounts the real components against stubbed endpoints and measures —
+  `table-layout: fixed`, sticky header, top-aligned cells, table 1100px inside a 1100px panel,
+  **zero clipped cells**, section + divider rows spanning all 7 columns, six live sort headers
+  with Actions correctly dead, clicking Bench re-sorts, no JS errors. Usage tables likewise, with
+  their original calls-descending order preserved. Gates: `build:vite` ✓, 429 unit tests ✓,
+  headless smoke unchanged against a stashed baseline (its 5 failures are the empty isolated data
+  dir, not this change).
 - **Boot, biggest remaining lever:** the app kills + respawns the server on EVERY launch
   (`lib.rs:377-391`), so every start pays ~2.3 s. Have `/v1/health` report a build stamp and reuse
   a healthy matching server. Cheaper wins: listen before seeding; parallelise the two independent

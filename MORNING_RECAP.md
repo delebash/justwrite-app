@@ -127,13 +127,21 @@ record. Collapse a line into one word once it stops mattering.
 
 **This is the only section that goes stale by the hour. Everything else here is a pointer.**
 
-- **Branch:** `claude/admiring-galileo-il3q0o` in all repos. **FETCH AT SESSION START and read
+- **Branch:** `claude/book-layout-chat-history-ui-5yjjr9` in both repos (verified 2026-07-24 by
+  `git rev-parse --abbrev-ref HEAD` in each — the line here still said
+  `claude/admiring-galileo-il3q0o`, which is exactly the staleness this bullet warns about).
+  **FETCH AT SESSION START and read
   ahead/behind FROM GIT, never from this line** — a stale base is how the 2026-07-19 recap edit
   got written against a structure that had already been replaced. *(The hardcoded "JW ahead 8 /
   runner ahead 5" that used to sit here was wrong within hours — and on 2026-07-19 both repos
   turned out to be BEHIND origin, with work pushed from the user's box. Counts do not belong in
   this file; the invariant is: fetch, then look.)*
-- **Working trees: clean in both repos** (verified 2026-07-19 by `git status` in each). The
+- **Working trees (2026-07-25): committed + pushed.** The table convergence (runner `40737fe`)
+  and the download Cancel/Dismiss work (runner `825b9af`) are in; JW's own change was docs only.
+  Still UNTRACKED and deliberately left alone in JW: four `bench/speed-kit/*.txt`
+  run outputs — yours to keep, ignore, or bin. **Read this from `git status`, never from this
+  line:** it claimed "clean in both repos" from 2026-07-19 while the runner held 11 uncommitted
+  files, and a stale line here once got relayed into two builder specs. The
   line that used to claim uncommitted `logLines`/`LogsPanel` in-flight work was **stale** — that
   work is committed. It survived here long enough to be passed into two builder specs as a
   warning about files that no longer existed; a claim like this gets re-verified, not relayed.
