@@ -215,9 +215,10 @@ committed and pushed — JW `b78337e`, runner `825b9af` + `40737fe`.)*
   being an unusually small 13.27 GB.
   | candidate | verdict |
   |---|---|
-  | **Goetia v1.3 (Naphula)** — `i1-IQ4_XS` **14.0 GB** | **the only viable one**; tagged roleplay/creative writing; no drafter of its own; claims apache-2.0 |
+  | **Goetia v1.3 (Naphula)** — `i1-IQ4_XS` 12.96 GB | **TESTED 2026-07-25 → REJECTED: broken chat template.** Fastest of all three on this box (fits **11/30** layers, more than the flagship's 10/30, at 16.3-16.4 tok/s vs StyleTune's 10.9-11.7) and the prose is good — but raw `/completion` leaks `<\|channel>thought` control tokens into the manuscript, and `/v1/chat/completions` returns an EMPTY message (the parser strips the channel markers and nothing survives). Both paths broken ⇒ unusable. A common `mergekit moe_della` artifact. The drafter does not transfer either (16.35 mean without vs 16.04 with). Not seeded — shipping a model that emits control tokens into a novelist's prose is not acceptable, and stripping them client-side would hide a broken template rather than fix it. |
   | SuperGemma4-26B-Uncensored v2 (Jiunsong) | **OUT** — Q4_K_M 16.8 GB, its own card wants 18–22 GB VRAM; "0/100 refusals / 90% faster" claims are X hype, not a card benchmark; claims MIT |
   | Animus V14.1-FFT (Darkhn) | **OUT for now** — safetensors only, no GGUF exists to test |
+  | **NET RESULT** | **no new catalog row.** Flagship stays default; `…uncensored-ez` is the uncensored row; StyleTune is the prose specialist (second-tier). Every named candidate is now tested or excluded on stated grounds. |
   | `mlx-community/…-OptiQ-4bit` | **OUT** — MLX/Apple-only (breaks the cross-platform rule), 21.9 GB, and it is **our own `gemma-4-26B-A4B-it-qat` weights requantised**, not a new finetune |
 
   **Licence flag, not resolved:** Goetia claims apache-2.0 and SuperGemma claims MIT, but both are
