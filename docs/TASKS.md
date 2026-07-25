@@ -127,15 +127,26 @@ committed and pushed — JW `b78337e`, runner `825b9af` + `40737fe`.)*
   **`mtp: False`** — the only available heads are third-party (E2B: Radamanthys11, the same
   publisher/naming as StyleTune's fatal drafter; E4B: AtomicChat) and neither has ever been
   loaded against these weights. Still open, in order:
-  - **(E4B, igpu-mem16) class tune** — waits on the speed-kit bench on the Iris Xe laptop
-    (recovery doc §17's own rule: "a future row once benched"). Your run.
-  - **Drafter verification** — one load each with the recorded head on a real box; flip
-    `mtp: True` only on a clean load (the row comment is the stop sign).
-  - **dGPU 8/12/16/24+ band seeds** — NO written blessed shape exists (searched both repos'
-    plan docs 2026-07-25; the June hits are catalog-tier language, not class rows). REC:
-    don't seed empty band classes at all — detection computes a box's key without a library
-    row (`format_class_key`), and a class row with no measured tune does nothing. Say the
-    word and this clause closes; or bless a shape and they get seeded.
+  - ✅ **(E4B, igpu-mem16) class tune — SEEDED 2026-07-25** (runner `f6428e3`): the laptop's
+    kit run had already happened — its files sat on that machine (`E:\Dev\Web\test`), now
+    preserved at `bench/results/laptop-iris-xe-16gb/speed-kit-2026-07-24/`. ngl 99 from
+    E4B's own 9.8 tok/s quick screen (12B's probe is EMPTY on that box — the E4B pick
+    confirmed); fa off + ub 512 from the box's own matrix (fa-off wins pp8192 53.5 vs 40.2;
+    ub 2048 collapses depth to 22.7). A 16 GB integrated box now resolves to E4B + this
+    config with zero setup.
+  - **E-row drafters stay `mtp: False`** — settled rec: revisit only on a measured need
+    (E4B's 9.8 tok/s is where a draft could plausibly help, but both heads are unverified
+    third-party — the StyleTune class); any future laptop session adds one `-md` load leg
+    first. The row comment is the stop sign.
+  - **dGPU 12/16/24 band seeds — via the widened PER-BAND survey** (supersedes both the old
+    "shape you blessed" clause and the separate "higher-tier 24 GB+ survey" research item):
+    each band gets named GGUF-only candidates + the carried-model baseline, and its class
+    row + recommendation seed TOGETHER with a decided model — never as empty scaffolding.
+    Part 1 (carried models, estimator-grounded) delivered in-session 2026-07-25; Part 2
+    (the per-band web survey) next, on its go. One design ruling needed from you first:
+    the discrete key carries RAM (`dgpu-vram12|ram32` ≠ `|ram64`, `hardware.py:150-172`) —
+    seed per-band tunes at ram32 only, at ram16/32/64 variants, or add a nearest-rung
+    matching rule.
 - ✅ **Model download Cancel/Dismiss in the failed + "Getting ready" states — SHIPPED**
   (runner `825b9af`; sat here as open while the same file's section-A header named the sha as
   pushed — tracker staleness the 2026-07-25 audit caught. Verified: the server drops terminal
@@ -245,10 +256,14 @@ committed and pushed — JW `b78337e`, runner `825b9af` + `40737fe`.)*
   `?` help drawer, inline hints, **and** translations so they can't drift; plus a language
   switcher, a `$t()`-vs-hardcoded coverage audit, and tooling. Whole-system (JW + JV + kit).
   Grounding + the open questions: `docs/IDEAS.md` → "Single-source text system + i18n".
-- **Higher-tier model survey** — for the 24 GB+ band, don't limit to what we already carry;
-  named candidates with URLs against explicit criteria (fits the tier at ctx 32K · QAT or a
-  proven quant · prose quality, not coding benchmarks · clean license for bundling · MTP a
-  bonus). Feeds the catalog curation above.
+- **The PER-BAND model survey (widened 2026-07-25 from "24 GB+ only" — the user's ruling
+  that every dGPU band should resolve to appropriate models)** — for each band (12 / 16 /
+  24 GB+): named GGUF-only candidates with URLs against the explicit criteria (fits the
+  band at ctx 32K · QAT or a proven quant · prose quality, not coding benchmarks · clean
+  license for bundling · MTP a bonus), compared against the carried-model baseline. Output
+  = each band's class row + recommendation + minimal honest config, seeded TOGETHER (the
+  section-B band item). Part 1 (carried baseline) delivered in-session 2026-07-25; Part 2
+  is this survey — next, on its go, after the RAM-rung ruling.
 
 ## Open — awaiting a go (shared AI stack)
 

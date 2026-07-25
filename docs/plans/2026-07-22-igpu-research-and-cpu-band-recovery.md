@@ -1378,3 +1378,25 @@ Verified by running: full runner suite 704 passed / 1 documented Windows lspci k
 skipped — the same baseline as before the rows. What would reverse it: a verified drafter load
 flips a row's mtp True; the laptop speed-kit run creates the igpu-mem16 tune; a user blessing
 seeds the dGPU bands.
+
+### §21 addendum (2026-07-25, same day): the (E4B, igpu-mem16) tune SEEDED — the laptop's numbers existed all along
+
+The user pointed at `E:\Dev\Web\test`: the 16 GB laptop's complete speed-kit output set from
+2026-07-24 (detect-facts names the i7-1355U / Iris Xe / 15.6 GB box; engine b10099) — the run
+this doc's §17 was waiting on had already happened, its files just never left that machine. So
+"a future row once benched" closed the same day the class row seeded: runner `f6428e3` adds
+`(gemma-4-e4b-qat, igpu-mem16)` to `DEFAULT_CLASS_TUNES`, grounded line-by-line in those files
+(now preserved at `bench/results/laptop-iris-xe-16gb/speed-kit-2026-07-24/`): ngl 99 from E4B's
+own quick screen (9.8 tok/s decode, resident; quality probe non-empty, while the 12B probe is
+EMPTY and 12B fell below the 7 tok/s cutoff — the user's "16 GB Iris Xe = E4B" pick confirmed as
+the top viable rung); flash_attn off + ubatch 512 from the box's own full matrix (dense
+Ternary-8B, same Vulkan backend — a backend-property transfer, stated in the seed comment: at
+pp8192 fa-off wins 53.5 vs 40.2 tok/s and ub 2048 collapses depth to 22.7, the same signature
+as the Arc box); ctx 32768 / batch 512 / reasoning_budget 1024 mirror the blessed rows. With
+the §9 ruled shape ("the ref IS the recommendation") a 16 GB integrated box now resolves to
+E4B + this config with zero setup. Suite 704 passed / 1 known-bad / 9 skipped. Still open from
+§21: the drafter mtp flip (leave OFF; revisit only if a measured need appears — E4B decodes at
+9.8 tok/s where a draft could plausibly help, but the only heads are unverified third-party;
+any future laptop session can add one `-md` load leg) and the dGPU band map (the widened
+survey — Part 1 from carried models delivered in-session 2026-07-25; Part 2, the per-band web
+survey, next on its own go).
