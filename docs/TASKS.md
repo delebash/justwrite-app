@@ -48,8 +48,9 @@ committed and pushed — JW `b78337e`, runner `825b9af` + `40737fe`.)*
   silently loses resume, and `HF_TOKEN` support. 61/61 + ruff. §20.
 - **Model Catalog layout** — top-aligned cells, proportional column shares, no magic px. Verified
   0 overflow at 1000/1440/1920. §22, §25, §27, §29.
-- **ChatPanel buttons** — Update/Rebuild back to outline, ✕ de-coloured. *Flagged: I read "normal
-  x" as text-only (`ghost`) — say if you meant outlined.*
+- ✅ **ChatPanel buttons** — Update/Rebuild back to outline, ✕ de-coloured. QC'd good
+  2026-07-25 (your word — the ghost ✕ stands). The Pricing + engine-binaries formgrid
+  tables got the same "good", closing the audit's last render check.
 
 ### B. Open — needs your go
 
@@ -145,12 +146,16 @@ committed and pushed — JW `b78337e`, runner `825b9af` + `40737fe`.)*
     exact-match lookup stays, no fallback machinery. Panel-typed classes band the same
     way and store key-consistent numbers. iGPU/unified keys + all seeded tunes unchanged;
     707 tests. Record: recovery doc §22.
-  - **dGPU 12/16/24+ band seeds — via the widened PER-BAND survey** (supersedes both the
-    old "shape you blessed" clause and the separate "higher-tier 24 GB+ survey" research
-    item): each band gets named GGUF-only candidates + the carried-model baseline, and its
-    class row + recommendation seed TOGETHER with a decided model — never as empty
-    scaffolding. Part 1 (carried models, estimator-grounded) delivered in-session
-    2026-07-25; Part 2 (the per-band web survey) is UNBLOCKED and next, on its go.
+  - ✅ **dGPU band seeds + the per-band survey — SHIPPED 2026-07-25** (Part 2 done same
+    day; full record + candidate table: `docs/plans/2026-07-25-per-band-model-survey.md`).
+    Eight band class rows + eight recommendations from carried, tested models: 12B on the
+    12-band rungs and `vram16|ram16` (the flagship's ~24 GB RAM appetite excludes 16 GB-RAM
+    boxes); the flagship on `vram16|ram32/64` (placement left to `--fit`) and `vram24|
+    ram32/64` (ngl 99/ncmoe 0 — resident, estimator-grounded, sidesteps #24350). Suite 707.
+    **Two decisions left, yours:** ① `vram8|ram16` (the budget build): 12B-offloaded vs
+    E4B-resident — one row either way; ② **Qwen3.6-27B's trial** (the real 24+ contender:
+    Apache-2.0, dense, built-in MTP, 16.8 GB Q4_K_M, unsloth GGUF live) — slow quality-probe
+    on the 2070S, wait for a 24 GB box, or skip. Until tried, the flagship keeps 24+.
 - ✅ **Model download Cancel/Dismiss in the failed + "Getting ready" states — SHIPPED**
   (runner `825b9af`; sat here as open while the same file's section-A header named the sha as
   pushed — tracker staleness the 2026-07-25 audit caught. Verified: the server drops terminal
@@ -167,10 +172,21 @@ committed and pushed — JW `b78337e`, runner `825b9af` + `40737fe`.)*
 
 ### C. Waiting on you to run
 
-- **The full-catalog test campaign.** Reseed the runner DB (owed anyway — the box is still flipped
-  to the CPU engine with routing bench-dirty on 5 keys) → runner pytest + `npm run test:server` →
-  the two bible legs → the overnight battery (~65 GB). Then I judge and we do the final catalog
-  curation + the higher-tier model survey. §19.
+- **The full-catalog test campaign — READY, and now cheaper (updated 2026-07-25).** Steps:
+  1. Close the app, then your usual DB reset: delete `justwrite.db` in the dev data root
+     (`src-tauri\target\debug\data\` — `database.py:42`). ⚠ That one file also holds your
+     BOOKS — the autosave JSONs + your exports are the nets, per your usual drill. The
+     fresh seed brings everything from this week in one shot: E4B/E2B rows, band
+     recommendations, the healed StyleTune drafter, spec_type dropdown, the ez rename.
+  2. Relaunch → `runner pytest` + `npm run test:server` green.
+  3. The two bible legs: `npm run bench:gpu -- --legs gpu-gemma-26b-bible,gpu-qwen-35b-bible`
+     (minutes). Running any leg with the app CLOSED via `--autostart` also closes the
+     audit's last drive.js check for free.
+  4. The battery — the hh legs are GONE (A/B settled) and StyleTune/EZ/31B are already on
+     disk, so this is now hours of compute, ~zero new download:
+     `npm run bench:gpu -- --legs gpu-styletune,gpu-styletune-hq1,gpu-styletune-hq2,gpu-uncensored-ez,gpu-uncensored-ez-hq1,gpu-uncensored-ez-hq2,gpu-gemma-31b,gpu-gemma-31b-hq1,gpu-gemma-31b-hq2`
+  5. Hand back the run dir → I judge → the final catalog curation (31B as a 24-tier
+     alternative or not · 70B/GLM keep-or-remove · the survey's two open decisions). §19.
 - **Headless smoke needs a splash-aware wait** — one known-false failure every run.
 - ✅ **UNCENSORED A/B — CLOSED 2026-07-25: EZForever kept, HauhauCS removed.** Your "test
   both, keep the winner" ruling, settled on the deflection evidence (run
@@ -260,15 +276,12 @@ committed and pushed — JW `b78337e`, runner `825b9af` + `40737fe`.)*
   `?` help drawer, inline hints, **and** translations so they can't drift; plus a language
   switcher, a `$t()`-vs-hardcoded coverage audit, and tooling. Whole-system (JW + JV + kit).
   Grounding + the open questions: `docs/IDEAS.md` → "Single-source text system + i18n".
-- **The PER-BAND model survey (widened 2026-07-25 from "24 GB+ only" — the user's ruling
-  that every dGPU band should resolve to appropriate models)** — for each band (12 / 16 /
-  24 GB+): named GGUF-only candidates with URLs against the explicit criteria (fits the
-  band at ctx 32K · QAT or a proven quant · prose quality, not coding benchmarks · clean
-  license for bundling · MTP a bonus), compared against the carried-model baseline. Output
-  = each band's class row + recommendation + minimal honest config, seeded TOGETHER (the
-  section-B band item). Part 1 (carried baseline) delivered in-session 2026-07-25; the
-  band-key ruling is BUILT (recovery doc §22 — keys are bands now, exact match stays), so
-  Part 2 is this survey — next, on its go.
+- ✅ **The PER-BAND model survey — DONE 2026-07-25** (Parts 1+2; the record, candidate
+  table with URLs, and the two open user decisions live in
+  `docs/plans/2026-07-25-per-band-model-survey.md`; the seeds are the section-B band
+  item). Net: no outside candidate seeds untested (the A/B law); Qwen3.6-27B is THE 24+
+  test candidate; Mistral Small Creative — the one prose-purpose-built official model
+  found — is API-only and deprecated, OUT.
 
 ## Open — awaiting a go (shared AI stack)
 
