@@ -46,12 +46,31 @@ export default defineConfig({
     strictPort: true,
     host: process.env.TAURI_DEV_HOST || false,
     fs: {
-      // Allow reading docs/*.md from the repo root for the in-app Help
-      // viewer — the vite root is `src/renderer/`, so docs/ sits one
-      // level up. import.meta.glob in services/helpDocs.js picks them
-      // up at build time; this entry keeps the dev server able to
-      // serve them too.
-      allow: [resolve(__dirname, "src/renderer"), resolve(__dirname, "docs"), resolve(__dirname, "../just-llm-runner/ui")],
+      // The vite root is `src/renderer/`, so anything the dev server must READ from
+      // outside it needs an entry here (the production build is unaffected — this is
+      // the dev server's file-serving guard only):
+      //   docs/            — docs/*.md for the in-app Help viewer (import.meta.glob in
+      //                      services/helpDocs.js bundles them at build time; this lets
+      //                      the dev server serve them too).
+      //   ../just-llm-runner/ui — the shared kit, consumed from source for HMR.
+      //   node_modules/    — dependency ASSETS referenced from bundled CSS. Added
+      //                      2026-07-24: self-hosting the fonts made main.js import
+      //                      @fontsource CSS whose url()s point at
+      //                      node_modules/@fontsource/*/files/*.woff2 — outside the
+      //                      root, so `npm run dev` refused every font file ("is
+      //                      outside of Vite serving allow list") and the app silently
+      //                      fell back to system fonts. It only broke in DEV: `vite
+      //                      preview` serves the built bundle and never consults this
+      //                      list, which is exactly why verifying against preview
+      //                      missed it. Allowing the dependency ROOT (not just
+      //                      @fontsource) so the next dependency that ships an asset
+      //                      does not fail the same way.
+      allow: [
+        resolve(__dirname, "src/renderer"),
+        resolve(__dirname, "docs"),
+        resolve(__dirname, "node_modules"),
+        resolve(__dirname, "../just-llm-runner/ui"),
+      ],
     },
   },
   envPrefix: ["VITE_", "TAURI_"],

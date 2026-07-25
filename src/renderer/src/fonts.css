@@ -1,0 +1,117 @@
+/* SELF-HOSTED FONTS — the whole type system, bundled (2026-07-24, the user's "self host fonts").
+ *
+ * WHY. index.html used to pull 15 families from fonts.googleapis.com in a render-blocking
+ * <link>. For a local-first desktop app that is the worst possible first-paint dependency:
+ * the window cannot paint until DNS + TLS + a Google round trip complete, and on a cold or
+ * OFFLINE boot it waits for that request to time out — the user's "the initial loading of the
+ * app is slow, not counting the model load". It also caused the splash FLICKER: the boot
+ * screen asks for Fraunces, paints in the Georgia fallback until the network answers, then
+ * re-lays-out. And it quietly contradicted the splash's own "Runs entirely on your computer".
+ * Bundled, the fonts are a local disk read — available at first paint, no network, no FOUT.
+ *
+ * WHICH. Every family the Appearance picker offers, because each one is user-selectable and a
+ * missing file silently falls back to a system font: the 8 UI_FONTS + 7 DISPLAY_FONTS in the
+ * shared kit's `common/services/appearance.js`, plus Spline Sans Mono for `--font-mono`. The
+ * per-family weights below mirror EXACTLY what the old Google URL requested, so rendering is
+ * unchanged — plus Inter, which the picker offered but the Google link never actually loaded
+ * (a latent bug: choosing Inter silently got you the system sans).
+ *
+ * STATIC, not variable. @fontsource-variable declares its families as 'Fraunces Variable',
+ * 'Geist Variable', … — but every font stack in the SHARED kit (appearance.js) and in
+ * tokens.css names the plain family. Variable packages would mean renaming those stacks in
+ * code JustVoice also consumes, which is a shared-contract change and the user's call, not a
+ * side effect of self-hosting. The static packages declare the plain names, so nothing else
+ * changes. The one cost, flagged: the old URL requested optical-size axes for Fraunces
+ * (9..144), Newsreader (6..72) and Source Serif 4 (8..60); static cuts carry no opsz axis, so
+ * very large display text is fractionally less optically tuned. Say the word to switch.
+ *
+ * `font-display: swap` and the unicode-range subsetting come from @fontsource itself.
+ * Imported once from main.js so Vite emits ONE extracted stylesheet in the build — present in
+ * <head> at first paint, which is the whole point.
+ */
+
+/* ── UI families (UI_FONTS — appearance.js) ──────────────────────────────────── */
+@import "@fontsource/inter/400.css";
+@import "@fontsource/inter/500.css";
+@import "@fontsource/inter/600.css";
+@import "@fontsource/inter/700.css";
+
+@import "@fontsource/spline-sans/400.css";
+@import "@fontsource/spline-sans/500.css";
+@import "@fontsource/spline-sans/600.css";
+
+@import "@fontsource/geist/400.css";
+@import "@fontsource/geist/500.css";
+@import "@fontsource/geist/600.css";
+@import "@fontsource/geist/700.css";
+
+@import "@fontsource/hanken-grotesk/400.css";
+@import "@fontsource/hanken-grotesk/500.css";
+@import "@fontsource/hanken-grotesk/600.css";
+
+@import "@fontsource/albert-sans/400.css";
+@import "@fontsource/albert-sans/500.css";
+@import "@fontsource/albert-sans/600.css";
+
+@import "@fontsource/manrope/400.css";
+@import "@fontsource/manrope/500.css";
+@import "@fontsource/manrope/600.css";
+@import "@fontsource/manrope/700.css";
+
+@import "@fontsource/dm-sans/400.css";
+@import "@fontsource/dm-sans/500.css";
+@import "@fontsource/dm-sans/600.css";
+@import "@fontsource/dm-sans/700.css";
+
+/* Atkinson Hyperlegible — the accessibility face; italic is part of its point. */
+@import "@fontsource/atkinson-hyperlegible/400.css";
+@import "@fontsource/atkinson-hyperlegible/400-italic.css";
+@import "@fontsource/atkinson-hyperlegible/700.css";
+
+/* ── Display families (DISPLAY_FONTS — appearance.js) ────────────────────────── */
+/* Fraunces is the default display face AND the boot splash's — the flicker fix lives here. */
+@import "@fontsource/fraunces/300.css";
+@import "@fontsource/fraunces/400.css";
+@import "@fontsource/fraunces/500.css";
+@import "@fontsource/fraunces/600.css";
+@import "@fontsource/fraunces/300-italic.css";
+@import "@fontsource/fraunces/400-italic.css";
+@import "@fontsource/fraunces/500-italic.css";
+@import "@fontsource/fraunces/600-italic.css";
+
+@import "@fontsource/source-serif-4/400.css";
+@import "@fontsource/source-serif-4/500.css";
+@import "@fontsource/source-serif-4/600.css";
+@import "@fontsource/source-serif-4/400-italic.css";
+@import "@fontsource/source-serif-4/500-italic.css";
+
+@import "@fontsource/newsreader/400.css";
+@import "@fontsource/newsreader/500.css";
+@import "@fontsource/newsreader/600.css";
+@import "@fontsource/newsreader/400-italic.css";
+@import "@fontsource/newsreader/500-italic.css";
+@import "@fontsource/newsreader/600-italic.css";
+
+@import "@fontsource/libre-caslon-text/400.css";
+@import "@fontsource/libre-caslon-text/400-italic.css";
+@import "@fontsource/libre-caslon-text/700.css";
+
+@import "@fontsource/playfair-display/400.css";
+@import "@fontsource/playfair-display/600.css";
+@import "@fontsource/playfair-display/400-italic.css";
+@import "@fontsource/playfair-display/600-italic.css";
+
+@import "@fontsource/eb-garamond/400.css";
+@import "@fontsource/eb-garamond/500.css";
+@import "@fontsource/eb-garamond/600.css";
+@import "@fontsource/eb-garamond/400-italic.css";
+
+@import "@fontsource/spectral/400.css";
+@import "@fontsource/spectral/500.css";
+@import "@fontsource/spectral/600.css";
+@import "@fontsource/spectral/400-italic.css";
+
+/* ── Mono (--font-mono in tokens.css: model ids, code, figures) ──────────────── */
+@import "@fontsource/spline-sans-mono/400.css";
+@import "@fontsource/spline-sans-mono/500.css";
+

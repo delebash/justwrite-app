@@ -2,6 +2,11 @@
 // Loads the Tauri ↔︎ window.justwrite bridge before mounting Vue so the
 // stores find the IPC adapter the moment they spin up.
 
+// The bundled type system, FIRST so it lands earliest in the emitted stylesheet — every
+// font the Appearance picker offers, self-hosted. This replaced the render-blocking
+// fonts.googleapis.com <link> in index.html (2026-07-24): a local-first app must not wait
+// on a network round trip to paint its first frame. Full reasoning: fonts.css's own header.
+import "./fonts.css";
 import "./services/tauri-bridge.js";
 // Apply the default appearance synchronously so we don't render with the wrong
 // colour scheme during the boot tick below. The real persisted appearance is
