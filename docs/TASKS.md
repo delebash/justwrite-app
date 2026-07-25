@@ -176,6 +176,16 @@ committed and pushed — JW `b78337e`, runner `825b9af` + `40737fe`.)*
   remains: a unified-memory NVIDIA box (DGX Spark) falls through to "discrete"; the engine
   already reports `uma: 0/1` (confirmed laptop 1 / 2070S 0) and nothing reads it
   (`hardware.py`: zero refs).
+- ✅ **The catalog trim + embed re-survey — SHIPPED 2026-07-25** (your rulings, full record
+  in the survey doc's closing sections): 35B MoE and E2B dropped; embeds reshaped 5 → 3
+  (**4B default everywhere · 8B proven big-card · KaLM-Gemma3-12B as the 2026 contender**,
+  header-verified `gemma-embedding` arch — you found its GGUF after my first survey missed
+  it); all twelve seeded `notes` rewritten box-independent (they rendered as "Your notes"
+  over MY bench numbers — your catch); the class-default chip now NAMES its class via
+  `classKeyLabel`; and the wizard embed floor you asked me to fix was **already built**
+  (#274, `modelPick.js:134-145`) — my "still open" claim was stale. Catalog: 8 chat + 3
+  embeds. WATCHLIST: Harrier-27B (MIT, real, no GGUF yet); the KaLM trial fits your 32 GB
+  card when it arrives.
 - **#256 spell-check** — not yet scoped.
 
 ### C. Waiting on you to run
@@ -189,9 +199,10 @@ committed and pushed — JW `b78337e`, runner `825b9af` + `40737fe`.)*
      E4B/E2B rows, the 27B row, band recommendations, the healed StyleTune drafter, the
      spec_type dropdown, the ez rename.
   2. Relaunch → `runner pytest` + `npm run test:server` green.
-  3. The two bible legs: `npm run bench:gpu -- --legs gpu-gemma-26b-bible,gpu-qwen-35b-bible`
-     (minutes). Running any leg with the app CLOSED via `--autostart` also closes the
-     audit's last drive.js check for free.
+  3. The bible leg: `npm run bench:gpu -- --legs gpu-gemma-26b-bible` (minutes — the qwen
+     bible leg left with the 35B's catalog row in the 2026-07-25 trim). Running any leg
+     with the app CLOSED via `--autostart` also closes the audit's last drive.js check
+     for free.
   4. The battery — the hh legs are GONE (A/B settled) and StyleTune/EZ/31B are already on
      disk, so this is now hours of compute, ~zero new download:
      `npm run bench:gpu -- --legs gpu-styletune,gpu-styletune-hq1,gpu-styletune-hq2,gpu-uncensored-ez,gpu-uncensored-ez-hq1,gpu-uncensored-ez-hq2,gpu-gemma-31b,gpu-gemma-31b-hq1,gpu-gemma-31b-hq2`

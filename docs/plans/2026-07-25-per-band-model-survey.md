@@ -104,3 +104,41 @@ Runner suite after the seeds: 707 passed / 1 documented Windows lspci known-bad 
 The eight band rows + eight band class rows follow the shapes verified in recovery doc §21-22;
 the refs list (the visible recommendation library) now carries 12 seeded rows and the wire-shape
 test asserts membership rather than position.
+
+## THE TRIM EXECUTED + the embed re-survey (same day, the user's rulings)
+
+Chat: **Qwen3.6-35B-A3B REMOVED** (its all-round-alternative job measured ~2x slower than the
+flagship on this box everywhere it applies; the 27B covers the family slot) and **E2B REMOVED**
+(every served box has >=16 GB RAM and runs E4B; the CPU band was already ruled not viable —
+added in the morning, its job erased by the same day's measurements). Seven qwen legs left
+`gpu.json` with the row (leg ids are durable; their stored results remain history).
+
+Embeds, after the user forced a REDO of my first survey (they found
+`mradermacher/KaLM-Embedding-Gemma3-12B-2511-GGUF` in one search after my absence-of-evidence
+claim; and the "Ailog" blog numbers needed primary-source verification — Harrier turned out
+REAL, Bing team, MIT, April 2026, but sized 270M/0.6B/27B with no GGUF found): the set is now
+**Qwen3-4B (the default everywhere — won the 2026-07-12 on-box A/B vs the 0.6B; +6.6 English
+retrieval over it on the family's own card) + Qwen3-8B (the proven big-card rung) + KaLM-Gemma3-12B
+(the 2026 MMTEB leader as the big-card CONTENDER — availability, not recommendation; rank 52
+keeps it below the proven 8B so the pick rule never auto-recommends it; header verified:
+arch `gemma-embedding`, ctx 131072, 7.3 GB Q4_K_M)**. Cut: 0.6B, nomic v1.5, BGE-M3.
+WATCHLIST: Harrier-27B if a GGUF lands; the KaLM trial belongs on the user's 32 GB card.
+
+Two more corrections the user caught, both fixed with the trim:
+- **The wizard embed floor was ALREADY BUILT** (#274 — `pickBestEmbedId`,
+  `ui/src/common/services/modelPick.js:134-145`: CPU-tier always eligible, else
+  minVram <= leftover-after-chat-pick). My "still tracked, pull it forward" was stale
+  doc-memory; nothing needed building.
+- **Seeded `notes` were box-hardcoded** — the catalog rendered "Your notes:" over MY bench
+  numbers ("Measured on the 8 GB floor: writer TTFT 1.5-1.7s...") and internal jargon
+  ("Lab A/B", "never auto-picked"), meaningless on any other machine. All twelve notes
+  fields (11 runner + the JW flagship extra) rewritten as box-independent plain words;
+  the measurements stay in the seed comments, plan docs, and bench results where they
+  belong. And the "Hardware/model class default" chip now NAMES the class it means,
+  via the classes panel's own formatter (`classKeyLabel`) — e.g.
+  "Hardware/model class default · 8 GB VRAM · 32 GB RAM".
+
+Final catalog: **8 chat + 3 embeds**. Every row's job in one line each: flagship (default),
+12B (small dense), E4B (iGPU laptops), 31B/70B/GLM (big-rig curation trio, campaign decides),
+27B (24 GB native option), StyleTune (prose voice), EZ (uncensored) · 4B (embed default),
+8B (embed big-card), KaLM (embed contender).

@@ -121,11 +121,13 @@ DEFAULT_MODEL_CATALOG_EXTRA: list[dict] = [
      "tier": "low-vram-moe", "license": "Apache-2.0", "quality_rank": 5, "position": 20,
      "architecture": "gemma4", "experts": 128,
      # description = the file-facts compose (the 2026-07-07 decree: Read-from-link owns
-     # it); the owner's measured numbers live in `notes` — user-owned, never auto-written.
+     # it). notes are USER-FACING seeded text ("Your notes", editable) — the user's ruling
+     # 2026-07-25: box-independent plain words only, no author-box measurements, no
+     # internal jargon (the old text shipped the author's TTFT/prefill numbers, which
+     # read as nonsense on any other machine; those live in the plan docs + bench results).
      "description": "26B mixture-of-experts model · 256k context · MTP draft for faster generation · UD-Q4_K_XL (QAT)",
-     "notes": "One config serves writing AND research/chat: 32k launch context, thinking toggled "
-              "per task at request time, reasoning capped engine-side. Measured on the 8 GB floor: "
-              "writer TTFT 1.5-1.7 s at ~31 t/s; 8k-corpus chat TTFT 15 s, prefill 551 t/s sustained to 28k."},
+     "notes": "The recommended all-rounder — one setup covers writing, chat, and research. "
+              "Runs on 8 GB graphics cards and up; thinking is managed per task automatically."},
 ]
 
 # TUNE ROWS ARE NOT SEEDED (user, 2026-07-06: "i agree it should not be a defualt
