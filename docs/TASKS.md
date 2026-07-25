@@ -152,10 +152,14 @@ committed and pushed — JW `b78337e`, runner `825b9af` + `40737fe`.)*
     12-band rungs and `vram16|ram16` (the flagship's ~24 GB RAM appetite excludes 16 GB-RAM
     boxes); the flagship on `vram16|ram32/64` (placement left to `--fit`) and `vram24|
     ram32/64` (ngl 99/ncmoe 0 — resident, estimator-grounded, sidesteps #24350). Suite 707.
-    **Two decisions left, yours:** ① `vram8|ram16` (the budget build): 12B-offloaded vs
-    E4B-resident — one row either way; ② **Qwen3.6-27B's trial** (the real 24+ contender:
-    Apache-2.0, dense, built-in MTP, 16.8 GB Q4_K_M, unsloth GGUF live) — slow quality-probe
-    on the 2070S, wait for a 24 GB box, or skip. Until tried, the flagship keeps 24+.
+    **CORRECTED same day (your ruling — availability ≠ recommendation):** the
+    **`qwen3.6-27b` catalog row is SEEDED** (`unsloth/Qwen3.6-27B-MTP-GGUF` UD-Q4_K_XL,
+    17.9 GB, mtp_builtin — the qwen35 shape; the plain repo was a generator-exposed trap
+    that "borrowed" a 15 GB full model as a draft, caught before commit). 24 GB users now
+    have the tier-native option to download; the band RECOMMENDATION stays with the
+    flagship (the catalog's own rank-5 best writer, resident at 24) — one word flips it
+    after any prose trial. **One decision left, yours:** `vram8|ram16` (the budget
+    build): 12B-offloaded vs E4B-resident — one row either way.
 - ✅ **Model download Cancel/Dismiss in the failed + "Getting ready" states — SHIPPED**
   (runner `825b9af`; sat here as open while the same file's section-A header named the sha as
   pushed — tracker staleness the 2026-07-25 audit caught. Verified: the server drops terminal
@@ -173,11 +177,13 @@ committed and pushed — JW `b78337e`, runner `825b9af` + `40737fe`.)*
 ### C. Waiting on you to run
 
 - **The full-catalog test campaign — READY, and now cheaper (updated 2026-07-25).** Steps:
-  1. Close the app, then your usual DB reset: delete `justwrite.db` in the dev data root
-     (`src-tauri\target\debug\data\` — `database.py:42`). ⚠ That one file also holds your
-     BOOKS — the autosave JSONs + your exports are the nets, per your usual drill. The
-     fresh seed brings everything from this week in one shot: E4B/E2B rows, band
-     recommendations, the healed StyleTune drafter, spec_type dropdown, the ez rename.
+  1. **The in-app Reset workspace button** (your catch — it IS the full drill and better
+     than a hand-delete: `POST /v1/data/reset` stops the runner first, true DROP+CREATE so
+     schema drift heals too, reseeds, and preserves your folder-path settings —
+     `data_admin.py:_reset`). ⚠ Books reset with the workspace as always — autosave JSONs
+     + exports are the nets. The fresh seed brings everything from this week in one shot:
+     E4B/E2B rows, the 27B row, band recommendations, the healed StyleTune drafter, the
+     spec_type dropdown, the ez rename.
   2. Relaunch → `runner pytest` + `npm run test:server` green.
   3. The two bible legs: `npm run bench:gpu -- --legs gpu-gemma-26b-bible,gpu-qwen-35b-bible`
      (minutes). Running any leg with the app CLOSED via `--autostart` also closes the

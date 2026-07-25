@@ -58,12 +58,30 @@ QAT/proven quant, clean license); Qwen3.5-9B exists (MTP drafts, ~5.5 GB) but si
 [EQ-Bench creative writing](https://eqbench.com/creative_writing.html) (JS-rendered; table not
 retrievable headlessly — worth a manual look for the 27B when deciding its test).
 
-## Open decisions (the user's)
+## CORRECTED same day — availability vs recommendation (the user's ruling)
+
+My first rec gated the 27B's CATALOG ROW on a test no box of ours can run — a catch-22 the
+user caught at once ("the goal is to have a model available to download for the users
+hardware"). The test-gate belongs to RECOMMENDATION changes (the A/B law, on our test box);
+AVAILABILITY follows the 70B/GLM precedent — research-grounded rows for hardware we don't
+own, so bigger boxes have something to download. So:
+
+- **`qwen3.6-27b` is SEEDED** (same day): `unsloth/Qwen3.6-27B-MTP-GGUF` UD-Q4_K_XL —
+  deliberately the -MTP- variant, the qwen35 row's exact shape (nextn layers baked in,
+  `mtp_builtin`, no external draft). The PLAIN repo was a trap the generator exposed: its
+  tier-C probe "borrowed" a 15 GB full-model IQ4_XS from the MTP sibling as a "draft" —
+  caught before commit. Facts from the real header: 17.9 GB, est_vram 19,594 MB → fully
+  resident on 24 GB. quality_rank 14 (bottom of the chat rows) + a notes caveat carry the
+  honesty: prose untested, never auto-picked, "try it against the default".
+- **The 24-band class recommendation stays with the flagship** — not because the 27B is
+  untested per se, but because the flagship is the catalog's own best-rated writer
+  (quality_rank 5) and fully resident at 24 GB. A 24 GB user now has BOTH: the recommended
+  flagship and the tier-native 27B one click away. One word flips the band recommendation
+  if a prose trial (any 24 GB user's, or a slow 2070S quality probe) favors the 27B.
+
+## Open decision (the user's, one left)
 
 1. **`dgpu-vram8|ram16`** — 12B-offloaded vs E4B-resident; one row either way.
-2. **Qwen3.6-27B's trial** — quality-probe it slowly on the 2070S (prose judgment only, speed
-   meaningless there), wait for a 24 GB box, or skip until a user reports. Until tried, the
-   flagship keeps the 24+ recommendation.
 
 ## Verification
 
