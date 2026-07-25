@@ -129,6 +129,37 @@ committed and pushed — JW `b78337e`, runner `825b9af` + `40737fe`.)*
   the two bible legs → the overnight battery (~65 GB). Then I judge and we do the final catalog
   curation + the higher-tier model survey. §19.
 - **Headless smoke needs a splash-aware wait** — one known-false failure every run.
+- **Refusal probe — BUILT 2026-07-25, ready to run.** `npm run bench:gpu -- --autostart --legs
+  gpu-refusal-stock,gpu-refusal-hh,gpu-refusal-ez` (~10 min: 4 probes × 2 repeats × 3 models).
+  **Read `gpu-refusal-stock` FIRST** — it is the control, and if stock QAT also complies on all
+  four the probes are too soft and prove nothing about the uncensored rows.
+
+  *Why it exists:* the 26-leg GPU run compared the two uncensored variants on speed and on a
+  quiet hallway scene. Not one of its six features can PRODUCE a refusal, so the property those
+  catalog rows exist to provide went untested — `gpu-uncensored-hh`'s own `_why` admitted this
+  and deferred it to "a manual in-app probe… by hand afterwards". This automates that.
+  *What it is:* a `refusalProbe` feature (`services/benchHook.js`) driving `continueFrom` — the
+  same action the Continue button calls — over four manuscript stubs whose continuations enter
+  violence / intimacy / despair / an in-world poison. `refused` is an ADVISORY first-240-char
+  string match; every completion is captured in full because a model that complies in a
+  sanitised way still scores as compliant. Judge the text, not the count.
+- ✅ **HauhauCS is llama-benchable again.** Its id tied with EZForever's, so it produced no raw
+  engine rows at all. Fixed with a new portable `repo` leg field that narrows candidate cache
+  dirs BEFORE scoring — `gguf` was the only existing lever and it wants an absolute path that
+  exists on one machine, which cannot live in a shared config; `quant` can't help because the
+  ambiguity is which repo. Two tests cover it, including that a hint matching nothing FAILS
+  rather than falling back to the unfiltered scan (that would bench wrong weights under the
+  right name).
+- ⚠ **StyleTune V2 — needs a change ON YOUR BOX; I can't make it from here.** It has never been
+  benchmarked because it never loads: `load.ok: false`, 0 runs, engine "exiting due to model
+  loading error". Root cause found in the cache — its repo
+  (`mradermacher/Gemma-4-26B-A4B-StyleTune-V2-GGUF`) ships **only** the Q4_K_M weights and no MTP
+  draft, so the architecture-inherited (tier C) logic handed it a draft from an unrelated repo,
+  `Radamanthys11/…/gemma-4-26B-A4B-it-assistant-Q8_0.gguf`, which the engine cannot load
+  alongside it. **Fix: open the Model Catalog → Edit StyleTune V2 → turn MTP OFF** (or pin a
+  draft the engine can load). MTP is a catalog DB column (`db.py:90`), not a bench knob, which
+  is why no config change can work around it. Its catalog rank has been waiting on this A/B
+  since 2026-07-06 and stays blocked until that toggle is flipped.
 
 ## Research (each needs a research pass → plan → build, on its own go)
 

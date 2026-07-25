@@ -372,7 +372,7 @@ date, and flagged if the engine build or the leg's config has changed since.
       //    legs a new model most needs it. llama-bench therefore runs AFTER the
       //    feature runs, once the model is stopped again (step 7).
       const onDisk = paths.ok
-        ? resolveGguf({ hfCache: paths.hfCache, model: leg.model, explicit: leg.gguf, quant: leg.quant || "" })
+        ? resolveGguf({ hfCache: paths.hfCache, model: leg.model, explicit: leg.gguf, quant: leg.quant || "", repo: leg.repo || "" })
         : { ok: false, reason: paths.reason };
       // A first download is tens of GB; the normal load ceiling would call a
       // perfectly healthy fetch a failure.
@@ -444,7 +444,7 @@ date, and flagged if the engine build or the leg's config has changed since.
           log(`WARNING: an engine process was still resident ${Math.round(quiet.waitedMs / 1000)}s after stop (${quiet.lastRssMb} MB) — llama-bench readings may be contaminated`);
         }
         const gguf = paths.ok
-          ? resolveGguf({ hfCache: paths.hfCache, model: leg.model, explicit: leg.gguf, quant: leg.quant || "" })
+          ? resolveGguf({ hfCache: paths.hfCache, model: leg.model, explicit: leg.gguf, quant: leg.quant || "", repo: leg.repo || "" })
           : { ok: false, reason: paths.reason };
         if (!gguf.ok) {
           log(`llama-bench skipped: ${gguf.reason}`);

@@ -194,6 +194,32 @@ describe("engine + model resolution", () => {
     expect(r.reason).toMatch(/matches several cached repos/);
   });
 
+  // The real case (2026-07-25): two uncensored Gemma forks both matched the id
+  // "gemma-4-26b-a4b-uncensored" equally, so the leg could not be llama-benched at
+  // all. `quant` cannot fix it — the ambiguity is WHICH REPO — and the only other
+  // lever, `gguf`, wants an absolute path that exists on one machine, which cannot
+  // live in a shared config.
+  it("narrows by repo when one model id fits two cached repos equally", () => {
+    const cache = fakeCache({
+      "models--EZForever--gemma-4-26B-A4B-it-qat-uncensored-heretic-GGUF": { "ez.gguf": 10 },
+      "models--HauhauCS--Gemma4-26B-A4B-QAT-Uncensored-Balanced-MTP": { "hh.gguf": 10 },
+    });
+    // Ambiguous without the hint …
+    expect(resolveGguf({ hfCache: cache, model: "gemma-4-26b-a4b-uncensored" }).ok).toBe(false);
+    // … and decided by it, case-insensitively.
+    const hh = resolveGguf({ hfCache: cache, model: "gemma-4-26b-a4b-uncensored", repo: "hauhaucs" });
+    expect(hh.ok).toBe(true);
+    expect(hh.path).toMatch(/hh\.gguf$/);
+  });
+
+  // A repo hint that matches nothing must FAIL, never silently fall back to the
+  // unfiltered scan — that would bench the wrong weights under the right name.
+  it("fails rather than falling back when the repo hint matches nothing", () => {
+    const cache = fakeCache({ "models--x--solo-model-GGUF": { "solo-model.gguf": 10 } });
+    expect(resolveGguf({ hfCache: cache, model: "solo-model" }).ok).toBe(true);
+    expect(resolveGguf({ hfCache: cache, model: "solo-model", repo: "not-here" }).ok).toBe(false);
+  });
+
   it("narrows by quant when a repo ships several", () => {
     const cache = fakeCache({
       "models--x--gemma-4-12b-qat-GGUF": {

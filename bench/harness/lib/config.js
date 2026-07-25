@@ -30,6 +30,8 @@ const RUN_DEFAULTS = {
 const LEG_DEFAULTS = {
   label: "",
   gguf: "",                 // "" → resolved from the HF cache by model id
+  repo: "",                 // substring of the `models--…` cache dir; narrows candidates BEFORE
+                            // matching, for when one model id fits two cached repos equally
   tunables: {},
   launch: {},
   llamaBench: null,         // null/false → skip the raw pp/tg matrix for this leg

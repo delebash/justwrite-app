@@ -102,7 +102,7 @@ function walkGgufs(dir, out = [], depth = 0) {
  * the base weights), and take the largest remaining file. `quant` narrows it
  * when a repo ships several quantisations.
  */
-export function resolveGguf({ hfCache, model, explicit = "", quant = "" }) {
+export function resolveGguf({ hfCache, model, explicit = "", quant = "", repo = "" }) {
   if (explicit) {
     return existsSync(explicit)
       ? { ok: true, path: explicit, source: "config" }
@@ -123,8 +123,19 @@ export function resolveGguf({ hfCache, model, explicit = "", quant = "" }) {
   if (!tokens.length) return { ok: false, reason: `model id ${JSON.stringify(model)} has nothing to match on` };
   const needed = Math.max(1, Math.ceil(tokens.length / 2));
 
-  const scored = readdirSync(hfCache)
+  // `repo` narrows the CANDIDATE REPOS before scoring — the portable way to break
+  // a tie. Two uncensored Gemma forks both matched the id
+  // "gemma-4-26b-a4b-uncensored" equally, and the only other lever, `gguf`, wants
+  // an absolute path that exists on THIS machine, which cannot live in a config
+  // shared across boxes. `quant` cannot help: the ambiguity is which repo, not
+  // which quantisation inside one. A `repo` that matches nothing falls through to
+  // the normal error rather than silently benching the wrong weights.
+  const repoNeedle = String(repo).toLowerCase();
+  const candidates = readdirSync(hfCache)
     .filter((d) => d.startsWith("models--"))
+    .filter((d) => !repoNeedle || d.toLowerCase().includes(repoNeedle));
+
+  const scored = candidates
     .map((d) => {
       const hay = d.slice("models--".length).replace(/--/g, "-").toLowerCase();
       return { dir: d, score: tokens.filter((t) => hay.includes(t)).length };
