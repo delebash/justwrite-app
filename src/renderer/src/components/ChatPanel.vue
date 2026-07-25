@@ -461,7 +461,7 @@ defineExpose({ open: () => { open.value = true; }, close });
             <template #icon><Icon name="Plus" :size="13" /></template>
             New chat
           </UiButton>
-          <UiButton intent="primary" size="small"
+          <UiButton intent="ghost" size="small"
             v-tooltip.bottom="'Close'" aria-label="Close" @click="close">
             <template #icon><Icon name="Close" :size="12" /></template>
           </UiButton>
@@ -491,11 +491,11 @@ defineExpose({ open: () => { open.value = true; }, close });
           <span class="cp-indexing-dot"></span> indexing…
         </span>
         <span class="cp-status-spacer"></span>
-        <UiButton intent="success" size="small" @click="indexModalMode = 'build'" v-tooltip.bottom="'Embed any scenes added or edited since last build'">
+        <UiButton intent="secondary" size="small" @click="indexModalMode = 'build'" v-tooltip.bottom="'Embed any scenes added or edited since last build'">
           <template #icon><Icon name="Refresh" :size="11" /></template>
           Update
         </UiButton>
-        <UiButton intent="info" size="small" @click="indexModalMode = 'rebuild'" v-tooltip.bottom="'Wipe and re-embed everything'">
+        <UiButton intent="secondary" size="small" @click="indexModalMode = 'rebuild'" v-tooltip.bottom="'Wipe and re-embed everything'">
           <template #icon><Icon name="Refresh" :size="11" /></template>
           Rebuild
         </UiButton>
