@@ -1,0 +1,61 @@
+{
+  "runId": "2026-07-25_13-46-12-gpu",
+  "leg": "gpu-styletune",
+  "model": "gryphe-styletune-v2",
+  "attempt": 2,
+  "args": {
+    "passageChars": 2000,
+    "timeoutMs": 1200000
+  },
+  "preset": {
+    "id": "eac9214a3b26",
+    "name": "Bench",
+    "providerId": "",
+    "model": "gryphe-styletune-v2",
+    "temperature": 0.7,
+    "topP": null,
+    "maxTokens": 0,
+    "reasoningEffort": "",
+    "think": false,
+    "samplers": [],
+    "builtIn": false,
+    "position": 10,
+    "factoryModel": ""
+  },
+  "route": {
+    "feature": "writerAI.continue",
+    "action": "writerAI.continue",
+    "providerId": "local-llamacpp",
+    "model": "gryphe-styletune-v2",
+    "presetId": "eac9214a3b26",
+    "presetName": "Bench",
+    "presetSource": "assigned",
+    "think": false,
+    "level": "",
+    "reasoningWord": "",
+    "value": null,
+    "valueSource": "",
+    "configured": true,
+    "detail": ""
+  },
+  "featureKey": "writerAI.continue",
+  "ok": true,
+  "started": "2026-07-25T13:51:36.928Z",
+  "label": "Continue",
+  "wallMs": 12726,
+  "ttftMs": 249,
+  "output": "Cael stood alone in the doorway, the key biting cold against her palm. The silence that followed Nettle's departure felt heavier than the noise of the street, pressed tight by the weight of the district's closing hours. The humming from her pocket had shifted, growing sharper, a needle-prick vibration that seemed to pulse in time with the guttering blue lamps lining the lane.\n\nInside, the glimmerworks smelled of burnt oil and stale copper. She didn't light a lamp. Instead, she moved through the familiar shadows of the workshop, guided by the memory of where every tool and scrap lay. The darkness here was different from the evening outside; it was a solid thing, thick with the residue of previous labors and the quiet residue of things that had been dismantled.\n\nReaching the workbench, she pulled the token from her pocket. In the absence of lamplight, it glowed with a faint, sickly phosphorescence, casting dancing distortions across the scarred wood. The vibration was stronger now, dragging at the marrow of her bones. Cael stared at the seal, watching how the edges seemed to blur, as if the object itself couldn't quite decide where it ended and the air began.",
+  "outputChars": 1175,
+  "usage": {
+    "promptTokens": 636,
+    "completionTokens": 249,
+    "model": "gryphe-styletune-v2",
+    "cost": 0
+  },
+  "flags": [],
+  "extra": {
+    "chapterId": "ch1",
+    "passageChars": 2000
+  },
+  "error": null
+}

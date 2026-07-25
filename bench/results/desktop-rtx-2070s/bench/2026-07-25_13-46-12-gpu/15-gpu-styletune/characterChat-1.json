@@ -1,0 +1,67 @@
+{
+  "runId": "2026-07-25_13-46-12-gpu",
+  "leg": "gpu-styletune",
+  "model": "gryphe-styletune-v2",
+  "attempt": 1,
+  "args": {
+    "question": "What do you want most right now, and what are you afraid of?",
+    "timeoutMs": 1200000
+  },
+  "preset": {
+    "id": "eac9214a3b26",
+    "name": "Bench",
+    "providerId": "",
+    "model": "gryphe-styletune-v2",
+    "temperature": 0.7,
+    "topP": null,
+    "maxTokens": 0,
+    "reasoningEffort": "",
+    "think": false,
+    "samplers": [],
+    "builtIn": false,
+    "position": 10,
+    "factoryModel": ""
+  },
+  "route": {
+    "feature": "characterChat",
+    "action": "characterChat",
+    "providerId": "local-llamacpp",
+    "model": "gryphe-styletune-v2",
+    "presetId": "eac9214a3b26",
+    "presetName": "Bench",
+    "presetSource": "assigned",
+    "think": false,
+    "level": "",
+    "reasoningWord": "",
+    "value": null,
+    "valueSource": "",
+    "configured": true,
+    "detail": ""
+  },
+  "featureKey": "characterChat",
+  "ok": true,
+  "started": "2026-07-25T13:47:45.240Z",
+  "label": "Character chat",
+  "wallMs": 14448,
+  "ttftMs": 6340,
+  "output": "Right now? I just want to get back to the Hall. I want a clean job in the Ash District that pays in proper scrip, a quiet workshop where the only thing I have to worry about is a loose screw or a cracked lens, and enough coin to keep eating—maybe even some apple seeds from Brick if I'm lucky. I want to be left alone, with no one asking me to explain things that shouldn't be there.\n\nAs for what I'm afraid of... it's the noise. Not just the noise in the streets, but the way the world starts to ring when I stop pretending. I'm afraid of what happens when the hum becomes too loud to ignore, and that the Wardens—or worse, the Consortium—will see it as something that needs to be cut out of me instead of something I can hold.",
+  "outputChars": 728,
+  "usage": {
+    "promptTokens": 2565,
+    "completionTokens": 178,
+    "model": "gryphe-styletune-v2",
+    "cost": 0
+  },
+  "flags": [
+    "temperature-fixed-by-caller"
+  ],
+  "extra": {
+    "bibleOnly": false,
+    "question": "What do you want most right now, and what are you afraid of?",
+    "k": 6,
+    "characterId": "c1",
+    "character": "Cael Ferren",
+    "citationCount": 6
+  },
+  "error": null
+}

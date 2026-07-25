@@ -1,0 +1,61 @@
+{
+  "runId": "2026-07-25_13-46-12-gpu",
+  "leg": "gpu-styletune",
+  "model": "gryphe-styletune-v2",
+  "attempt": 1,
+  "args": {
+    "passageChars": 2000,
+    "timeoutMs": 1200000
+  },
+  "preset": {
+    "id": "eac9214a3b26",
+    "name": "Bench",
+    "providerId": "",
+    "model": "gryphe-styletune-v2",
+    "temperature": 0.7,
+    "topP": null,
+    "maxTokens": 0,
+    "reasoningEffort": "",
+    "think": false,
+    "samplers": [],
+    "builtIn": false,
+    "position": 10,
+    "factoryModel": ""
+  },
+  "route": {
+    "feature": "writerAI.continue",
+    "action": "writerAI.continue",
+    "providerId": "local-llamacpp",
+    "model": "gryphe-styletune-v2",
+    "presetId": "eac9214a3b26",
+    "presetName": "Bench",
+    "presetSource": "assigned",
+    "think": false,
+    "level": "",
+    "reasoningWord": "",
+    "value": null,
+    "valueSource": "",
+    "configured": true,
+    "detail": ""
+  },
+  "featureKey": "writerAI.continue",
+  "ok": true,
+  "started": "2026-07-25T13:51:22.547Z",
+  "label": "Continue",
+  "wallMs": 14378,
+  "ttftMs": 2193,
+  "output": "Cael stood alone in the doorway, the click of the bolt echoing too loudly in the empty street. The cold air of the harbor seeped under the threshold, carrying the sharp tang of salt and something metallic, something like the smell of lightning before it strikes. The token in her pocket gave a fresh pulse, warm enough to sear through the thin fabric of her trousers, vibrating against her thigh with an insistent, rhythmic hunger.\n\nShe fumbled with the lantern on the wall, twisting the wick until the flame steadied. The light cast long, dancing shadows across the floorboards of the workshop, stretching the tools—the picks, the files, the delicate brass calipers—into skeletal fingers. In the dim glow, the workbench looked less like a place of honest labor and more like an altar.\n\nCael didn't undress. Instead, she set the token on the scarred wood of the table, where it sat between a rusted wrench and a spool of wire. Without her movement to mask it, the hum became audible, a low-frequency thrum that seemed to vibrate through the bones of her teeth. She watched it, waiting for the blue light of the streetlamps to fade entirely, watching for the moment when the boundary between the room and the thing beneath it would begin to blur.",
+  "outputChars": 1245,
+  "usage": {
+    "promptTokens": 636,
+    "completionTokens": 264,
+    "model": "gryphe-styletune-v2",
+    "cost": 0
+  },
+  "flags": [],
+  "extra": {
+    "chapterId": "ch1",
+    "passageChars": 2000
+  },
+  "error": null
+}

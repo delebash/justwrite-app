@@ -1,0 +1,109 @@
+{
+  "runId": "2026-07-25_13-46-12-gpu",
+  "leg": "gpu-styletune-hq2",
+  "model": "gryphe-styletune-v2",
+  "attempt": 1,
+  "args": {
+    "question": "Why did the three earlier parties never come out of Manufactory Nine, and why can Ode Marran remember every turn of the loop when they cannot? Explain the mechanism. Cite the excerpts.",
+    "k": 6,
+    "timeoutMs": 1200000
+  },
+  "preset": {
+    "id": "eac9214a3b26",
+    "name": "Bench",
+    "providerId": "",
+    "model": "gryphe-styletune-v2",
+    "temperature": 0.7,
+    "topP": null,
+    "maxTokens": 0,
+    "reasoningEffort": "",
+    "think": false,
+    "samplers": [],
+    "builtIn": false,
+    "position": 10,
+    "factoryModel": ""
+  },
+  "route": {
+    "feature": "chat",
+    "action": "chat",
+    "providerId": "local-llamacpp",
+    "model": "gryphe-styletune-v2",
+    "presetId": "eac9214a3b26",
+    "presetName": "Bench",
+    "presetSource": "assigned",
+    "think": false,
+    "level": "",
+    "reasoningWord": "",
+    "value": null,
+    "valueSource": "",
+    "configured": true,
+    "detail": ""
+  },
+  "featureKey": "chat",
+  "ok": true,
+  "started": "2026-07-25T13:58:29.104Z",
+  "label": "Ask the book",
+  "wallMs": 14030,
+  "ttftMs": 5160,
+  "output": "The three earlier parties never left Manufactory Nine because they are not dead, but rather \"still walking in\" every hour [2]. The mechanism of the loop is that it lasts approximately one hour, beginning when someone crosses the threshold [2]. At the end of this hour, the loop resets, and anyone inside who is unable to \"feel it\" forgets the entire turn and lives it fresh [2]. Because the hour turned before these parties could exit, they were reset to the threshold, unaware that they had already reached further into the interior [3].\n\nOdeline Marran is able to remember every turn because she is one of the few who can \"hold the deep Facets back\" from being reset by the loop [7]. While others forget the turn when the hour resets, she has been living the same hour for nine years, allowing her to observe the shaft fold and unfold \"a thousand times\" [5, 7].",
+  "outputChars": 863,
+  "usage": {
+    "promptTokens": 2039,
+    "completionTokens": 191,
+    "model": "gryphe-styletune-v2",
+    "cost": 0
+  },
+  "flags": [
+    "temperature-fixed-by-caller"
+  ],
+  "extra": {
+    "bibleOnly": false,
+    "question": "Why did the three earlier parties never come out of Manufactory Nine, and why can Ode Marran remember every turn of the loop when they cannot? Explain the mechanism. Cite the excerpts.",
+    "k": 6,
+    "citations": [
+      {
+        "index": 1,
+        "chunkId": "card:location:l4",
+        "score": 0,
+        "pinned": true
+      },
+      {
+        "index": 2,
+        "chunkId": "ch3:scn_ch3_1:p3",
+        "score": 0.608908312600809,
+        "pinned": false
+      },
+      {
+        "index": 3,
+        "chunkId": "ch4:scn_ch4_3:p1",
+        "score": 0.6045136887932692,
+        "pinned": false
+      },
+      {
+        "index": 4,
+        "chunkId": "ch2:scn_ch2_2:p1",
+        "score": 0.6021205789986583,
+        "pinned": false
+      },
+      {
+        "index": 5,
+        "chunkId": "ch3:scn_ch3_3:p2",
+        "score": 0.5300476281294432,
+        "pinned": false
+      },
+      {
+        "index": 6,
+        "chunkId": "card:character:c5",
+        "score": 0.5901837813806269,
+        "pinned": false
+      },
+      {
+        "index": 7,
+        "chunkId": "ch4:scn_ch4_1:p1",
+        "score": 0.5150065096548487,
+        "pinned": false
+      }
+    ]
+  },
+  "error": null
+}

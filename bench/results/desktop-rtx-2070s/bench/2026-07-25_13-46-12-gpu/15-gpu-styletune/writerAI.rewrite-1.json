@@ -1,0 +1,61 @@
+{
+  "runId": "2026-07-25_13-46-12-gpu",
+  "leg": "gpu-styletune",
+  "model": "gryphe-styletune-v2",
+  "attempt": 1,
+  "args": {
+    "passageChars": 1200,
+    "timeoutMs": 1200000
+  },
+  "preset": {
+    "id": "eac9214a3b26",
+    "name": "Bench",
+    "providerId": "",
+    "model": "gryphe-styletune-v2",
+    "temperature": 0.7,
+    "topP": null,
+    "maxTokens": 0,
+    "reasoningEffort": "",
+    "think": false,
+    "samplers": [],
+    "builtIn": false,
+    "position": 10,
+    "factoryModel": ""
+  },
+  "route": {
+    "feature": "writerAI.rewrite",
+    "action": "writerAI.rewrite",
+    "providerId": "local-llamacpp",
+    "model": "gryphe-styletune-v2",
+    "presetId": "eac9214a3b26",
+    "presetName": "Bench",
+    "presetSource": "assigned",
+    "think": false,
+    "level": "",
+    "reasoningWord": "",
+    "value": null,
+    "valueSource": "",
+    "configured": true,
+    "detail": ""
+  },
+  "featureKey": "writerAI.rewrite",
+  "ok": true,
+  "started": "2026-07-25T13:51:49.656Z",
+  "label": "Rewrite",
+  "wallMs": 15734,
+  "ttftMs": 1176,
+  "output": "\"The ones on the rooftops, the one over the Cutwater last spring—six feet of empty air, and you were already on the far side before you even jumped.\"\n\nNettle's stride hitched, a minute fracture in her rhythm, the first ungraceful thing Cael had ever witnessed her do. \"Luck,\" she said. \"Good feet. My gran's bead.\" She pressed the river-worn charm against her throat, a gesture so ingrained she clearly lacked the awareness of it. \"Why.\"\n\n\"No reason. Long day.\" Because you and I are cut from the same cloth, Cael did not say. Because whatever vertigo you feel when you cross a gap that doesn't exist, I feel when I press my palm against a lamp that is eavesdropping on something beneath the world, and neither of us is supposed to be capable of it—and one of us has learned to mask the truth while the other hasn't yet noticed she has anything to hide.\n\nThey walked. The token thrummed against her hip. Somewhere behind them, a soft, cobalt lamp caught the edge of the metal and guttered, once, then steadied, and told no one anything.\n\n\"Ash District tomorrow,\" Nettle said, at the threshold of the glimmerworks. She grinned and vanished before Cael's key could find the lock—not vanished, nothing so theatrical, just around a corner swifter than any human could move, into a seam in the evening that sealed behind her like water.",
+  "outputChars": 1331,
+  "usage": {
+    "promptTokens": 420,
+    "completionTokens": 313,
+    "model": "gryphe-styletune-v2",
+    "cost": 0
+  },
+  "flags": [],
+  "extra": {
+    "chapterId": "ch1",
+    "passageChars": 1200
+  },
+  "error": null
+}

@@ -1,0 +1,69 @@
+{
+  "runId": "2026-07-25_13-46-12-gpu",
+  "leg": "gpu-styletune",
+  "model": "gryphe-styletune-v2",
+  "attempt": 1,
+  "args": {
+    "timeoutMs": 1200000,
+    "chapterCap": 3
+  },
+  "preset": {
+    "id": "eac9214a3b26",
+    "name": "Bench",
+    "providerId": "",
+    "model": "gryphe-styletune-v2",
+    "temperature": 0.7,
+    "topP": null,
+    "maxTokens": 0,
+    "reasoningEffort": "",
+    "think": false,
+    "samplers": [],
+    "builtIn": false,
+    "position": 10,
+    "factoryModel": ""
+  },
+  "route": {
+    "feature": "entitySweep",
+    "action": "entitySweep",
+    "providerId": "local-llamacpp",
+    "model": "gryphe-styletune-v2",
+    "presetId": "eac9214a3b26",
+    "presetName": "Bench",
+    "presetSource": "assigned",
+    "think": false,
+    "level": "",
+    "reasoningWord": "",
+    "value": null,
+    "valueSource": "",
+    "configured": true,
+    "detail": ""
+  },
+  "featureKey": "entitySweep",
+  "ok": true,
+  "started": "2026-07-25T13:48:07.252Z",
+  "label": "Entity sweep",
+  "wallMs": 76268,
+  "ttftMs": 32472,
+  "output": "{\n  \"characters\": [\n    {\n      \"name\": \"Old Sedge\",\n      \"role\": \"Road-warden\",\n      \"kind\": \"\",\n      \"oneLiner\": \"A pensioner who maintains a ledger of travelers passing through the Ash District.\",\n      \"note\": \"\",\n      \"evidence\": \"Old Sedge, the plate on the hut, said\",\n      \"aliases\": [\n        \"Sedge\"\n      ],\n      \"originChapters\": [\n        {\n          \"id\": \"ch2\",\n          \"num\": 2,\n          \"title\": \"Bigger Inside\"\n        }\n      ]\n    }\n  ],\n  \"locations\": [\n    {\n      \"name\": \"Ash District\",\n      \"role\": \"\",\n      \"kind\": \"District\",\n      \"oneLiner\": \"\",\n      \"note\": \"The location of the upcoming structural survey job.\",\n      \"evidence\": \"\\\"Ash District tomorrow,\\\"\",\n      \"aliases\": [],\n      \"originChapters\": [\n        {\n          \"id\": \"ch1\",\n          \"num\": 1,\n          \"title\": \"Brass Rank\"\n        },\n        {\n          \"id\": \"ch2\",\n          \"num\": 2,\n          \"title\": \"Bigger Inside\"\n        },\n        {\n          \"id\": \"ch3\",\n          \"num\": 3,\n          \"title\": \"The Same Hour\"\n        }\n      ]\n    },\n    {\n      \"name\": \"Kettle Lane\",\n      \"role\": \"\",\n      \"kind\": \"Street\",\n      \"oneLiner\": \"\",\n      \"note\": \"A street where Cael and Nettle walk after dark.\",\n      \"evidence\": \"Nettle walked her home, which meant Nettle appeared beside her on Kettle Lane\",\n      \"aliases\": [],\n      \"originChapters\": [\n        {\n          \"id\": \"ch1\",\n          \"num\": 1,\n          \"title\": \"Brass Rank\"\n        }\n      ]\n    },\n    {\n      \"name\": \"Nine Road\",\n      \"role\": \"\",\n      \"kind\": \"Road\",\n      \"oneLiner\": \"\",\n      \"note\": \"A road lined with failing lumen-lamps leading to the Nine.\",\n      \"evidence\": \"the lumen-lamps along the Nine Road stood at long intervals\",\n      \"aliases\": [],\n      \"originChapters\": [\n        {\n          \"id\": \"ch2\",\n          \"num\": 2,\n          \"title\": \"Bigger Inside\"\n        }\n      ]\n    },\n    {\n      \"name\": \"East Gallery\",\n      \"role\": \"\",\n      \"kind\": \"Gallery\",\n      \"oneLiner\": \"\",\n      \"note\": \"A location where members of the third party remain trapped in time.\",\n      \"evidence\": \"They're still in the east gallery.\",\n      \"aliases\": [],\n      \"originChapters\": [\n        {\n          \"id\": \"ch3\",\n          \"num\": 3,\n          \"title\": \"The Same Hour\"\n        }\n      ]\n    },\n    {\n      \"name\": \"Lumen Concern\",\n      \"role\": \"\",\n      \"kind\": \"Organization\",\n      \"oneLiner\": \"\",\n      \"note\": \"A surveying body responsible for digging lumen-wells.\",\n      \"evidence\": \"Fourth survey, Lumen Concern\",\n      \"aliases\": [],\n      \"originChapters\": [\n        {\n          \"id\": \"ch3\",\n          \"num\": 3,\n          \"title\": \"The Same Hour\"\n        }\n      ]\n    }\n  ],\n  \"objects\": [\n    {\n      \"name\": \"Concern scrip\",\n      \"role\": \"\",\n      \"kind\": \"Currency\",\n      \"oneLiner\": \"\",\n      \"note\": \"The form of payment offered for the job in the Ash District.\",\n      \"evidence\": \"That's why it pays in Concern scrip until certification.\",\n      \"aliases\": [],\n      \"originChapters\": [\n        {\n          \"id\": \"ch1\",\n          \"num\": 1,\n          \"title\": \"Brass Rank\"\n        }\n      ]\n    },\n    {\n      \"name\": \"The Nine\",\n      \"role\": \"\",\n      \"kind\": \"Historical Event/Entity\",\n      \"oneLiner\": \"\",\n      \"note\": \"A catastrophic event that predates the current timeline and involved 'coming down'.\",\n      \"evidence\": \"the year the Nine came down.\",\n      \"aliases\": [],\n      \"originChapters\": [\n        {\n          \"id\": \"ch3\",\n          \"num\": 3,\n          \"title\": \"The Same Hour\"\n        }\n      ]\n    },\n    {\n      \"name\": \"The Sundering\",\n      \"role\": \"\",\n      \"kind\": \"Historical Event\",\n      \"oneLiner\": \"\",\n      \"note\": \"The historical term used in Cloister histories to describe the breaking of the Whole.\",\n      \"evidence\": \"call it the Sundering.\",\n      \"aliases\": [],\n      \"originChapters\": [\n        {\n          \"id\": \"ch3\",\n          \"num\": 3,\n          \"title\": \"The Same Hour\"\n        }\n      ]\n    },\n    {\n      \"name\": \"The Whole\",\n      \"role\": \"\",\n      \"kind\": \"Metaphysical concept\",\n      \"oneLiner\": \"\",\n      \"note\": \"The original, unbroken state of artifice, space, and time before it was severed into Facets.\",\n      \"evidence\": \"So no one would ever again hold the Whole.\",\n      \"aliases\": [],\n      \"originChapters\": [\n        {\n          \"id\": \"ch3\",\n          \"num\": 3,\n          \"title\": \"The Same Hour\"\n        }\n      ]\n    }\n  ]\n}",
+  "outputChars": 4406,
+  "usage": null,
+  "flags": [],
+  "extra": {
+    "counts": {
+      "characters": 1,
+      "locations": 5,
+      "objects": 4
+    },
+    "scanned": 3,
+    "totalChapters": 3,
+    "skipped": [],
+    "cancelled": false,
+    "chapterIds": [
+      "ch1",
+      "ch2",
+      "ch3"
+    ],
+    "chapterCap": 3
+  },
+  "error": null
+}

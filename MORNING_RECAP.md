@@ -25,9 +25,9 @@
 > `docs/plans/2026-07-08-recap-archive.md`. This file POINTS at them, it does not duplicate them
 > (a copy drifts, and a log here costs half a context window every session start).
 
-**Branch (all repos):** `claude/admiring-galileo-il3q0o` — **PUSHED to origin 2026-07-18**
-(the per-section "unpushed on the branch" tags below are historical; everything through the
-SDK pivot + #16 is now on the remote).
+**Branch (all repos):** `claude/book-layout-chat-history-ui-5yjjr9` (corrected 2026-07-25 —
+this line sat stale on the previous branch name for a week while SESSION PICKUP below carried
+the right one; per that section's own rule, read the branch FROM GIT, never from this line).
 
 > **Open work → `docs/TASKS.md`** (the live tracker) · **Ideas → `docs/IDEAS.md`**.
 > This file is the boot-map: rules, current state, and the doc index. It POINTS at the

@@ -1,0 +1,96 @@
+{
+  "runId": "2026-07-25_13-46-12-gpu",
+  "leg": "gpu-styletune",
+  "model": "gryphe-styletune-v2",
+  "attempt": 2,
+  "args": {
+    "timeoutMs": 1200000
+  },
+  "preset": {
+    "id": "eac9214a3b26",
+    "name": "Bench",
+    "providerId": "",
+    "model": "gryphe-styletune-v2",
+    "temperature": 0.7,
+    "topP": null,
+    "maxTokens": 0,
+    "reasoningEffort": "",
+    "think": false,
+    "samplers": [],
+    "builtIn": false,
+    "position": 10,
+    "factoryModel": ""
+  },
+  "route": {
+    "feature": "critique",
+    "action": "critique",
+    "providerId": "local-llamacpp",
+    "model": "gryphe-styletune-v2",
+    "presetId": "eac9214a3b26",
+    "presetName": "Bench",
+    "presetSource": "assigned",
+    "think": false,
+    "level": "",
+    "reasoningWord": "",
+    "value": null,
+    "valueSource": "",
+    "configured": true,
+    "detail": ""
+  },
+  "featureKey": "critique",
+  "ok": true,
+  "started": "2026-07-25T13:50:58.163Z",
+  "label": "Chapter critique",
+  "wallMs": 24380,
+  "ttftMs": null,
+  "output": "{\n  \"notes\": [\n    {\n      \"severity\": \"info\",\n      \"category\": \"voice\",\n      \"message\": \"The prose has a lovely, melancholic texture, particularly in the opening metaphor: 'like a person trying to remember a name.'\"\n    },\n    {\n      \"severity\": \"info\",\n      \"category\": \"characterization\",\n      \"message\": \"Cael's internal conflict—the tension between her instinct to investigate and her need for safety—is established with immediate clarity.\"\n    },\n    {\n      \"severity\": \"suggest\",\n      \"category\": \"clarity\",\n      \"message\": \"In the opening paragraph, 'The lamp on Cael's bench was lying' is a striking hook, but consider briefly clarifying if the lamp is physically malfunctioning or if it's a metaphor for Cael's perception.\"\n    },\n    {\n      \"severity\": \"suggest\",\n      \"category\": \"pacing\",\n      \"message\": \"The transition between scenes ('The slate board') feels abrupt; a small sensory anchor—like the smell of chalk—could soften the jump from the workshop to the Hall.\"\n    },\n    {\n      \"severity\": \"flag\",\n      \"category\": \"POV\",\n      \"message\": \"The line 'which Cael tried not to read anything into and read everything into anyway' slips into a slightly omniscient narration that pulls away from Cael's immediate sensory experience.\"\n    },\n    {\n      \"severity\": \"suggest\",\n      \"category\": \"dialogue\",\n      \"message\": \"Brick's dialogue is excellent for world-building, but ensure his 'apple quartering' doesn't become a distraction during the more serious negotiation with Threll.\"\n    },\n    \"'You went white.'\"\n    ],\n    \"severity\": \"info\",\n      \"category\": \"characterization\",\n      \"message\": \"Nettle's supernatural introduction ('without having been there a moment before') is handled with a subtle enough hand that it feels atmospheric rather than expositional.\"\n    }",
+  "outputChars": 1812,
+  "usage": null,
+  "flags": [],
+  "extra": {
+    "chapterId": "ch1",
+    "chapterNum": 1,
+    "chapterWords": 2600,
+    "noteCount": 6,
+    "notes": [
+      {
+        "id": "note_ms0fgka8_0",
+        "severity": "info",
+        "category": "voice",
+        "message": "The prose has a lovely, melancholic texture, particularly in the opening metaphor: 'like a person trying to remember a name.'"
+      },
+      {
+        "id": "note_ms0fgka8_1",
+        "severity": "info",
+        "category": "characterization",
+        "message": "Cael's internal conflict—the tension between her instinct to investigate and her need for safety—is established with immediate clarity."
+      },
+      {
+        "id": "note_ms0fgka8_2",
+        "severity": "suggest",
+        "category": "clarity",
+        "message": "In the opening paragraph, 'The lamp on Cael's bench was lying' is a striking hook, but consider briefly clarifying if the lamp is physically malfunctioning or if it's a metaphor for Cael's perception."
+      },
+      {
+        "id": "note_ms0fgka8_3",
+        "severity": "suggest",
+        "category": "pacing",
+        "message": "The transition between scenes ('The slate board') feels abrupt; a small sensory anchor—like the smell of chalk—could soften the jump from the workshop to the Hall."
+      },
+      {
+        "id": "note_ms0fgka8_4",
+        "severity": "flag",
+        "category": "POV",
+        "message": "The line 'which Cael tried not to read anything into and read everything into anyway' slips into a slightly omniscient narration that pulls away from Cael's immediate sensory experience."
+      },
+      {
+        "id": "note_ms0fgka8_5",
+        "severity": "suggest",
+        "category": "dialogue",
+        "message": "Brick's dialogue is excellent for world-building, but ensure his 'apple quartering' doesn't become a distraction during the more serious negotiation with Threll."
+      }
+    ],
+    "model": "gryphe-styletune-v2"
+  },
+  "error": null
+}

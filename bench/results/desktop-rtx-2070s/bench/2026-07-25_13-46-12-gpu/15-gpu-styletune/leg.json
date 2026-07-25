@@ -1,0 +1,838 @@
+{
+  "leg": {
+    "label": "StyleTune V2 (Gryphe) — the Lab A/B its catalog rank has waited on since 2026-07-06",
+    "gguf": "",
+    "repo": "",
+    "tunables": {
+      "temperature": 0.7,
+      "think": false
+    },
+    "launch": {},
+    "llamaBench": {
+      "p": [
+        512,
+        2048,
+        8192
+      ],
+      "n": 128,
+      "reps": 2
+    },
+    "features": null,
+    "repeats": null,
+    "timeoutMinutes": null,
+    "featureArgs": null,
+    "id": "gpu-styletune",
+    "_why": [
+      "The community prose-tune of the 26B-A4B, seeded 'ranked below the trusted set until",
+      "a Lab A/B earns them a real rank' (seed.py community-tunes block). This IS that A/B:",
+      "the same battery as gpu-gemma-26b, judged against the same captures. Its handicap is",
+      "honest — a Q4_K_M quant of a non-QAT finetune; if the prose does not beat the flagship",
+      "in the side-by-side reads, the row is REMOVED (user ruling 2026-07-24: every catalog",
+      "row earns its seat by test). ~17.2 GB download on first run. Think-off only — the",
+      "think A/B was settled on the flagship battery (no quality gain, 4-10x TTFT)."
+    ],
+    "model": "gryphe-styletune-v2",
+    "effectiveFeatures": [
+      "chat",
+      "characterChat",
+      "entitySweep",
+      "critique",
+      "writerAI.continue",
+      "writerAI.rewrite"
+    ],
+    "effectiveRepeats": 2,
+    "effectiveTimeoutMs": 1200000,
+    "effectiveFeatureArgs": {
+      "chat": {
+        "question": "What is this book about, and who is the protagonist?",
+        "k": 6
+      },
+      "characterChat": {
+        "question": "What do you want most right now, and what are you afraid of?"
+      },
+      "writerAI.continue": {
+        "passageChars": 2000
+      },
+      "writerAI.rewrite": {
+        "passageChars": 1200
+      }
+    }
+  },
+  "runId": "2026-07-25_13-46-12-gpu",
+  "band": "gpu",
+  "fingerprint": "b1d9ad84b781",
+  "env": {
+    "engineBuild": "b10107",
+    "engineGpu": "cuda12",
+    "appSha": "4106966",
+    "cpu": "AMD Ryzen 7 5700X 8-Core Processor             ",
+    "gpus": [
+      {
+        "name": "NVIDIA GeForce RTX 2070 SUPER",
+        "totalMb": 8192,
+        "driver": "610.62"
+      }
+    ],
+    "book": "prj_sample_ninth_facet"
+  },
+  "startedAt": "2026-07-25T13:46:17.613Z",
+  "runs": [
+    {
+      "featureKey": "chat",
+      "ok": true,
+      "started": "2026-07-25T13:46:51.169Z",
+      "label": "Ask the book",
+      "wallMs": 37844,
+      "ttftMs": 28776,
+      "outputChars": 815,
+      "usage": {
+        "promptTokens": 1915,
+        "completionTokens": 197,
+        "model": "gryphe-styletune-v2",
+        "cost": 0
+      },
+      "flags": [
+        "temperature-fixed-by-caller"
+      ],
+      "extra": {
+        "bibleOnly": false,
+        "question": "What is this book about, and who is the protagonist?",
+        "k": 6,
+        "citations": [
+          {
+            "index": 1,
+            "chunkId": "card:architecture:premise",
+            "score": 0,
+            "pinned": true
+          },
+          {
+            "index": 2,
+            "chunkId": "card:cast:main",
+            "score": 0,
+            "pinned": true
+          },
+          {
+            "index": 3,
+            "chunkId": "card:architecture:fabula",
+            "score": 0,
+            "pinned": true
+          },
+          {
+            "index": 4,
+            "chunkId": "card:architecture:setting",
+            "score": 0,
+            "pinned": true
+          },
+          {
+            "index": 5,
+            "chunkId": "card:character:c1:p1",
+            "score": 0.40488342852794756,
+            "pinned": false
+          },
+          {
+            "index": 6,
+            "chunkId": "card:character:c2:p1",
+            "score": 0.2753121776768573,
+            "pinned": false
+          },
+          {
+            "index": 7,
+            "chunkId": "ch2:scn_ch2_1:p3",
+            "score": 0.28189390404565895,
+            "pinned": false
+          },
+          {
+            "index": 8,
+            "chunkId": "ch3:scn_ch3_3:p3",
+            "score": 0.28102924869900703,
+            "pinned": false
+          },
+          {
+            "index": 9,
+            "chunkId": "ch2:scn_ch2_2:p3",
+            "score": 0.2643302530668414,
+            "pinned": false
+          }
+        ]
+      },
+      "error": null
+    },
+    {
+      "featureKey": "chat",
+      "ok": true,
+      "started": "2026-07-25T13:47:29.019Z",
+      "label": "Ask the book",
+      "wallMs": 16218,
+      "ttftMs": 1533,
+      "outputChars": 1294,
+      "usage": {
+        "promptTokens": 1915,
+        "completionTokens": 308,
+        "model": "gryphe-styletune-v2",
+        "cost": 0
+      },
+      "flags": [
+        "temperature-fixed-by-caller"
+      ],
+      "extra": {
+        "bibleOnly": false,
+        "question": "What is this book about, and who is the protagonist?",
+        "k": 6,
+        "citations": [
+          {
+            "index": 1,
+            "chunkId": "card:architecture:premise",
+            "score": 0,
+            "pinned": true
+          },
+          {
+            "index": 2,
+            "chunkId": "card:cast:main",
+            "score": 0,
+            "pinned": true
+          },
+          {
+            "index": 3,
+            "chunkId": "card:architecture:fabula",
+            "score": 0,
+            "pinned": true
+          },
+          {
+            "index": 4,
+            "chunkId": "card:architecture:setting",
+            "score": 0,
+            "pinned": true
+          },
+          {
+            "index": 5,
+            "chunkId": "card:character:c1:p1",
+            "score": 0.4085825975344678,
+            "pinned": false
+          },
+          {
+            "index": 6,
+            "chunkId": "card:character:c2:p1",
+            "score": 0.2772897997144751,
+            "pinned": false
+          },
+          {
+            "index": 7,
+            "chunkId": "ch2:scn_ch2_1:p3",
+            "score": 0.28100798436242475,
+            "pinned": false
+          },
+          {
+            "index": 8,
+            "chunkId": "ch2:scn_ch2_2:p3",
+            "score": 0.26534497605996854,
+            "pinned": false
+          },
+          {
+            "index": 9,
+            "chunkId": "ch3:scn_ch3_3:p3",
+            "score": 0.2809671815063008,
+            "pinned": false
+          }
+        ]
+      },
+      "error": null
+    },
+    {
+      "featureKey": "characterChat",
+      "ok": true,
+      "started": "2026-07-25T13:47:45.240Z",
+      "label": "Character chat",
+      "wallMs": 14448,
+      "ttftMs": 6340,
+      "outputChars": 728,
+      "usage": {
+        "promptTokens": 2565,
+        "completionTokens": 178,
+        "model": "gryphe-styletune-v2",
+        "cost": 0
+      },
+      "flags": [
+        "temperature-fixed-by-caller"
+      ],
+      "extra": {
+        "bibleOnly": false,
+        "question": "What do you want most right now, and what are you afraid of?",
+        "k": 6,
+        "characterId": "c1",
+        "character": "Cael Ferren",
+        "citationCount": 6
+      },
+      "error": null
+    },
+    {
+      "featureKey": "characterChat",
+      "ok": true,
+      "started": "2026-07-25T13:47:59.690Z",
+      "label": "Character chat",
+      "wallMs": 7560,
+      "ttftMs": 391,
+      "outputChars": 526,
+      "usage": {
+        "promptTokens": 2565,
+        "completionTokens": 142,
+        "model": "gryphe-styletune-v2",
+        "cost": 0
+      },
+      "flags": [
+        "temperature-fixed-by-caller"
+      ],
+      "extra": {
+        "bibleOnly": false,
+        "question": "What do you want most right now, and what are you afraid of?",
+        "k": 6,
+        "characterId": "c1",
+        "character": "Cael Ferren",
+        "citationCount": 6
+      },
+      "error": null
+    },
+    {
+      "featureKey": "entitySweep",
+      "ok": true,
+      "started": "2026-07-25T13:48:07.252Z",
+      "label": "Entity sweep",
+      "wallMs": 76268,
+      "ttftMs": 32472,
+      "outputChars": 4406,
+      "usage": null,
+      "flags": [],
+      "extra": {
+        "counts": {
+          "characters": 1,
+          "locations": 5,
+          "objects": 4
+        },
+        "scanned": 3,
+        "totalChapters": 3,
+        "skipped": [],
+        "cancelled": false,
+        "chapterIds": [
+          "ch1",
+          "ch2",
+          "ch3"
+        ],
+        "chapterCap": 3
+      },
+      "error": null
+    },
+    {
+      "featureKey": "entitySweep",
+      "ok": true,
+      "started": "2026-07-25T13:49:23.523Z",
+      "label": "Entity sweep",
+      "wallMs": 64829,
+      "ttftMs": 30194,
+      "outputChars": 2758,
+      "usage": null,
+      "flags": [],
+      "extra": {
+        "counts": {
+          "characters": 1,
+          "locations": 3,
+          "objects": 2
+        },
+        "scanned": 3,
+        "totalChapters": 3,
+        "skipped": [],
+        "cancelled": false,
+        "chapterIds": [
+          "ch1",
+          "ch2",
+          "ch3"
+        ],
+        "chapterCap": 3
+      },
+      "error": null
+    },
+    {
+      "featureKey": "critique",
+      "ok": true,
+      "started": "2026-07-25T13:50:28.355Z",
+      "label": "Chapter critique",
+      "wallMs": 29805,
+      "ttftMs": null,
+      "outputChars": 1980,
+      "usage": null,
+      "flags": [],
+      "extra": {
+        "chapterId": "ch1",
+        "chapterNum": 1,
+        "chapterWords": 2600,
+        "noteCount": 8,
+        "notes": [
+          {
+            "id": "note_ms0fg1gw_0",
+            "severity": "info",
+            "category": "voice",
+            "message": "The prose is exceptionally tight; phrases like 'the way the salt smell of the harbor outlived the tide' establish a strong, melancholic atmosphere."
+          },
+          {
+            "id": "note_ms0fg1gw_1",
+            "severity": "info",
+            "category": "characterization",
+            "message": "Cael's competence and her defensive posture ('a woman who could not afford to be interesting') are established immediately through action."
+          },
+          {
+            "id": "note_ms0fg1gw_2",
+            "severity": "suggest",
+            "category": "opening",
+            "message": "Consider removing the first line ('A lamp that will not lie') as a standalone header; the opening paragraph already executes that metaphor more effectively."
+          },
+          {
+            "id": "note_ms0fg1gw_3",
+            "severity": "suggest",
+            "category": "clarity",
+            "message": "Clarify the physical relationship between Cael and the 'Company'—it's slightly ambiguous if they are mercenaries, guild members, or family until Brick speaks."
+          },
+          {
+            "id": "note_ms0fg1gw_4",
+            "severity": "flag",
+            "category": "pacing",
+            "message": "The transition to the second scene ('The slate board') feels abrupt because the 'Company' appears to be arguing in a room Cael enters without any sensory buildup of the Hall's scale."
+          },
+          {
+            "id": "note_ms0fg1gw_5",
+            "severity": "suggest",
+            "category": "show-don't-tell",
+            "message": "Instead of stating Nettle 'appeared... without having been there a moment before,' try showing her presence through a sound or a sudden shift in the wind to heighten the supernatural implication."
+          },
+          {
+            "id": "note_ms0fg1gw_6",
+            "severity": "info",
+            "category": "tension",
+            "message": "The parallel between the humming token and the guttering lamp creates excellent thematic and narrative cohesion."
+          },
+          {
+            "id": "note_ms0fg1gw_7",
+            "severity": "flag",
+            "category": "dialogue",
+            "message": "Iven's dialogue about 'Manufactory Nine' feels slightly exposition-heavy, bordering on 'info-dumping' for the sake of explaining the Guild ranks."
+          }
+        ],
+        "model": "gryphe-styletune-v2"
+      },
+      "error": null
+    },
+    {
+      "featureKey": "critique",
+      "ok": true,
+      "started": "2026-07-25T13:50:58.163Z",
+      "label": "Chapter critique",
+      "wallMs": 24380,
+      "ttftMs": null,
+      "outputChars": 1812,
+      "usage": null,
+      "flags": [],
+      "extra": {
+        "chapterId": "ch1",
+        "chapterNum": 1,
+        "chapterWords": 2600,
+        "noteCount": 6,
+        "notes": [
+          {
+            "id": "note_ms0fgka8_0",
+            "severity": "info",
+            "category": "voice",
+            "message": "The prose has a lovely, melancholic texture, particularly in the opening metaphor: 'like a person trying to remember a name.'"
+          },
+          {
+            "id": "note_ms0fgka8_1",
+            "severity": "info",
+            "category": "characterization",
+            "message": "Cael's internal conflict—the tension between her instinct to investigate and her need for safety—is established with immediate clarity."
+          },
+          {
+            "id": "note_ms0fgka8_2",
+            "severity": "suggest",
+            "category": "clarity",
+            "message": "In the opening paragraph, 'The lamp on Cael's bench was lying' is a striking hook, but consider briefly clarifying if the lamp is physically malfunctioning or if it's a metaphor for Cael's perception."
+          },
+          {
+            "id": "note_ms0fgka8_3",
+            "severity": "suggest",
+            "category": "pacing",
+            "message": "The transition between scenes ('The slate board') feels abrupt; a small sensory anchor—like the smell of chalk—could soften the jump from the workshop to the Hall."
+          },
+          {
+            "id": "note_ms0fgka8_4",
+            "severity": "flag",
+            "category": "POV",
+            "message": "The line 'which Cael tried not to read anything into and read everything into anyway' slips into a slightly omniscient narration that pulls away from Cael's immediate sensory experience."
+          },
+          {
+            "id": "note_ms0fgka8_5",
+            "severity": "suggest",
+            "category": "dialogue",
+            "message": "Brick's dialogue is excellent for world-building, but ensure his 'apple quartering' doesn't become a distraction during the more serious negotiation with Threll."
+          }
+        ],
+        "model": "gryphe-styletune-v2"
+      },
+      "error": null
+    },
+    {
+      "featureKey": "writerAI.continue",
+      "ok": true,
+      "started": "2026-07-25T13:51:22.547Z",
+      "label": "Continue",
+      "wallMs": 14378,
+      "ttftMs": 2193,
+      "outputChars": 1245,
+      "usage": {
+        "promptTokens": 636,
+        "completionTokens": 264,
+        "model": "gryphe-styletune-v2",
+        "cost": 0
+      },
+      "flags": [],
+      "extra": {
+        "chapterId": "ch1",
+        "passageChars": 2000
+      },
+      "error": null
+    },
+    {
+      "featureKey": "writerAI.continue",
+      "ok": true,
+      "started": "2026-07-25T13:51:36.928Z",
+      "label": "Continue",
+      "wallMs": 12726,
+      "ttftMs": 249,
+      "outputChars": 1175,
+      "usage": {
+        "promptTokens": 636,
+        "completionTokens": 249,
+        "model": "gryphe-styletune-v2",
+        "cost": 0
+      },
+      "flags": [],
+      "extra": {
+        "chapterId": "ch1",
+        "passageChars": 2000
+      },
+      "error": null
+    },
+    {
+      "featureKey": "writerAI.rewrite",
+      "ok": true,
+      "started": "2026-07-25T13:51:49.656Z",
+      "label": "Rewrite",
+      "wallMs": 15734,
+      "ttftMs": 1176,
+      "outputChars": 1331,
+      "usage": {
+        "promptTokens": 420,
+        "completionTokens": 313,
+        "model": "gryphe-styletune-v2",
+        "cost": 0
+      },
+      "flags": [],
+      "extra": {
+        "chapterId": "ch1",
+        "passageChars": 1200
+      },
+      "error": null
+    },
+    {
+      "featureKey": "writerAI.rewrite",
+      "ok": true,
+      "started": "2026-07-25T13:52:05.393Z",
+      "label": "Rewrite",
+      "wallMs": 15852,
+      "ttftMs": 238,
+      "outputChars": 1300,
+      "usage": {
+        "promptTokens": 420,
+        "completionTokens": 312,
+        "model": "gryphe-styletune-v2",
+        "cost": 0
+      },
+      "flags": [],
+      "extra": {
+        "chapterId": "ch1",
+        "passageChars": 1200
+      },
+      "error": null
+    }
+  ],
+  "preset": {
+    "id": "eac9214a3b26",
+    "name": "Bench",
+    "providerId": "",
+    "model": "gryphe-styletune-v2",
+    "temperature": 0.7,
+    "topP": null,
+    "maxTokens": 0,
+    "reasoningEffort": "",
+    "think": false,
+    "samplers": [],
+    "builtIn": false,
+    "position": 10,
+    "factoryModel": ""
+  },
+  "load": {
+    "ok": true,
+    "waitedMs": 23505,
+    "model": {
+      "id": "gryphe-styletune-v2",
+      "status": "loaded",
+      "nParams": 25971339550,
+      "sizeBytes": 17195428984,
+      "nCtx": 16384,
+      "vramMb": null
+    },
+    "resident": {
+      "router": true,
+      "modelsMax": 2,
+      "sleepIdleSeconds": 900,
+      "vramTotalMb": 8192,
+      "committedMb": 549,
+      "remainingMb": 7643,
+      "models": [
+        {
+          "id": "gemma-4-12b-qat",
+          "status": "unloaded",
+          "nParams": null,
+          "sizeBytes": null,
+          "nCtx": null,
+          "vramMb": null
+        },
+        {
+          "id": "gemma-4-26b-a4b-qat",
+          "status": "unloaded",
+          "nParams": null,
+          "sizeBytes": null,
+          "nCtx": null,
+          "vramMb": null
+        },
+        {
+          "id": "gemma-4-26b-a4b-uncensored",
+          "status": "unloaded",
+          "nParams": null,
+          "sizeBytes": null,
+          "nCtx": null,
+          "vramMb": null
+        },
+        {
+          "id": "gemma-4-26b-a4b-uncensored-ez",
+          "status": "sleeping",
+          "nParams": 25233142046,
+          "sizeBytes": 14313962616,
+          "nCtx": 16384,
+          "vramMb": 549
+        },
+        {
+          "id": "gemma-4-31b-qat",
+          "status": "unloaded",
+          "nParams": null,
+          "sizeBytes": null,
+          "nCtx": null,
+          "vramMb": null
+        },
+        {
+          "id": "gryphe-styletune-v2",
+          "status": "loaded",
+          "nParams": 25971339550,
+          "sizeBytes": 17195428984,
+          "nCtx": 16384,
+          "vramMb": null
+        },
+        {
+          "id": "qwen3-embedding-4b",
+          "status": "unloaded",
+          "nParams": null,
+          "sizeBytes": null,
+          "nCtx": null,
+          "vramMb": null
+        },
+        {
+          "id": "qwen3.6-35b-a3b-mtp",
+          "status": "unloaded",
+          "nParams": null,
+          "sizeBytes": null,
+          "nCtx": null,
+          "vramMb": null
+        }
+      ]
+    }
+  },
+  "measure": {
+    "ok": true,
+    "modelId": "gryphe-styletune-v2",
+    "tokensPerSec": 19.8,
+    "completionTokens": 192,
+    "ms": 9688,
+    "vramTotalMb": 8192,
+    "ramTotalMb": 32692
+  },
+  "routes": {
+    "chat": {
+      "feature": "chat",
+      "action": "chat",
+      "providerId": "local-llamacpp",
+      "model": "gryphe-styletune-v2",
+      "presetId": "eac9214a3b26",
+      "presetName": "Bench",
+      "presetSource": "assigned",
+      "think": false,
+      "level": "",
+      "reasoningWord": "",
+      "value": null,
+      "valueSource": "",
+      "configured": true,
+      "detail": ""
+    },
+    "characterChat": {
+      "feature": "characterChat",
+      "action": "characterChat",
+      "providerId": "local-llamacpp",
+      "model": "gryphe-styletune-v2",
+      "presetId": "eac9214a3b26",
+      "presetName": "Bench",
+      "presetSource": "assigned",
+      "think": false,
+      "level": "",
+      "reasoningWord": "",
+      "value": null,
+      "valueSource": "",
+      "configured": true,
+      "detail": ""
+    },
+    "entitySweep": {
+      "feature": "entitySweep",
+      "action": "entitySweep",
+      "providerId": "local-llamacpp",
+      "model": "gryphe-styletune-v2",
+      "presetId": "eac9214a3b26",
+      "presetName": "Bench",
+      "presetSource": "assigned",
+      "think": false,
+      "level": "",
+      "reasoningWord": "",
+      "value": null,
+      "valueSource": "",
+      "configured": true,
+      "detail": ""
+    },
+    "critique": {
+      "feature": "critique",
+      "action": "critique",
+      "providerId": "local-llamacpp",
+      "model": "gryphe-styletune-v2",
+      "presetId": "eac9214a3b26",
+      "presetName": "Bench",
+      "presetSource": "assigned",
+      "think": false,
+      "level": "",
+      "reasoningWord": "",
+      "value": null,
+      "valueSource": "",
+      "configured": true,
+      "detail": ""
+    },
+    "writerAI.continue": {
+      "feature": "writerAI.continue",
+      "action": "writerAI.continue",
+      "providerId": "local-llamacpp",
+      "model": "gryphe-styletune-v2",
+      "presetId": "eac9214a3b26",
+      "presetName": "Bench",
+      "presetSource": "assigned",
+      "think": false,
+      "level": "",
+      "reasoningWord": "",
+      "value": null,
+      "valueSource": "",
+      "configured": true,
+      "detail": ""
+    },
+    "writerAI.rewrite": {
+      "feature": "writerAI.rewrite",
+      "action": "writerAI.rewrite",
+      "providerId": "local-llamacpp",
+      "model": "gryphe-styletune-v2",
+      "presetId": "eac9214a3b26",
+      "presetName": "Bench",
+      "presetSource": "assigned",
+      "think": false,
+      "level": "",
+      "reasoningWord": "",
+      "value": null,
+      "valueSource": "",
+      "configured": true,
+      "detail": ""
+    }
+  },
+  "engineQuiet": {
+    "quiet": true,
+    "waitedMs": 2135,
+    "lastRssMb": null
+  },
+  "llamaBench": {
+    "ok": true,
+    "args": [
+      "-m",
+      "E:\\Dev\\Web\\justwrite-app\\src-tauri\\target\\debug\\data\\ai-cache\\hf\\models--mradermacher--Gemma-4-26B-A4B-StyleTune-V2-GGUF\\snapshots\\07de6a203b664c630a217c9cef7f3e20867feb41\\Gemma-4-26B-A4B-StyleTune-V2.Q4_K_M.gguf",
+      "-p",
+      "512,2048,8192",
+      "-n",
+      "128",
+      "-r",
+      "2",
+      "-o",
+      "json"
+    ],
+    "retriedWithout": [],
+    "exitCode": 0,
+    "timedOut": false,
+    "wallMs": 273281,
+    "format": "json",
+    "rows": [
+      {
+        "test": "pp512",
+        "tokensPerSec": 193.175437,
+        "stddev": 1.60429,
+        "model": "E:\\Dev\\Web\\justwrite-app\\src-tauri\\target\\debug\\data\\ai-cache\\hf\\models--mradermacher--Gemma-4-26B-A4B-StyleTune-V2-GGUF\\snapshots\\07de6a203b664c630a217c9cef7f3e20867feb41\\Gemma-4-26B-A4B-StyleTune-V2.Q4_K_M.gguf"
+      },
+      {
+        "test": "pp2048",
+        "tokensPerSec": 172.911873,
+        "stddev": 0.687434,
+        "model": "E:\\Dev\\Web\\justwrite-app\\src-tauri\\target\\debug\\data\\ai-cache\\hf\\models--mradermacher--Gemma-4-26B-A4B-StyleTune-V2-GGUF\\snapshots\\07de6a203b664c630a217c9cef7f3e20867feb41\\Gemma-4-26B-A4B-StyleTune-V2.Q4_K_M.gguf"
+      },
+      {
+        "test": "pp8192",
+        "tokensPerSec": 137.497721,
+        "stddev": 0.518272,
+        "model": "E:\\Dev\\Web\\justwrite-app\\src-tauri\\target\\debug\\data\\ai-cache\\hf\\models--mradermacher--Gemma-4-26B-A4B-StyleTune-V2-GGUF\\snapshots\\07de6a203b664c630a217c9cef7f3e20867feb41\\Gemma-4-26B-A4B-StyleTune-V2.Q4_K_M.gguf"
+      },
+      {
+        "test": "tg128",
+        "tokensPerSec": 9.18349,
+        "stddev": 0.007018,
+        "model": "E:\\Dev\\Web\\justwrite-app\\src-tauri\\target\\debug\\data\\ai-cache\\hf\\models--mradermacher--Gemma-4-26B-A4B-StyleTune-V2-GGUF\\snapshots\\07de6a203b664c630a217c9cef7f3e20867feb41\\Gemma-4-26B-A4B-StyleTune-V2.Q4_K_M.gguf"
+      }
+    ],
+    "derived": {
+      "ttft512Ms": 2650,
+      "ttft2048Ms": 11844,
+      "ttft8192Ms": 59579
+    },
+    "error": null,
+    "stdout": "[\r\n  {\r\n    \"build_commit\": \"c0bc8591e\",\r\n    \"build_number\": 10107,\r\n    \"cpu_info\": \"AMD Ryzen 7 5700X 8-Core Processor             \",\r\n    \"gpu_info\": \"NVIDIA GeForce RTX 2070 SUPER\",\r\n    \"backends\": \"CUDA\",\r\n    \"model_filename\": \"E:\\\\Dev\\\\Web\\\\justwrite-app\\\\src-tauri\\\\target\\\\debug\\\\data\\\\ai-cache\\\\hf\\\\models--mradermacher--Gemma-4-26B-A4B-StyleTune-V2-GGUF\\\\snapshots\\\\07de6a203b664c630a217c9cef7f3e20867feb41\\\\Gemma-4-26B-A4B-StyleTune-V2.Q4_K_M.gguf\",\r\n    \"model_type\": \"gemma4 26B.A4B Q4_K - Medium\",\r\n    \"model_size\": 17195428984,\r\n    \"model_n_params\": 25971339550,\r\n    \"n_batch\": 2048,\r\n    \"n_ubatch\": 512,\r\n    \"n_threads\": 8,\r\n    \"cpu_mask\": \"0x0\",\r\n    \"cpu_strict\": false,\r\n    \"poll\": 50,\r\n    \"type_k\": \"f16\",\r\n    \"type_v\": \"f16\",\r\n    \"n_gpu_layers\": -1,\r\n    \"n_cpu_moe\": 0,\r\n    \"split_mode\": \"layer\",\r\n    \"main_gpu\": 0,\r\n    \"no_kv_offload\": false,\r\n    \"flash_attn\": -1,\r\n    \"devices\": \"auto\",\r\n    \"tensor_split\": \"0.00\",\r\n    \"tensor_buft_overrides\": \"none\",\r\n    \"load_mode\": \"mmap\",\r\n    \"embeddings\": false,\r\n    \"no_op_offload\": 0,\r\n    \"no_host\": false,\r\n    \"fit_target\": 0,\r\n    \"fit_min_ctx\": 0,\r\n    \"n_prompt\": 512,\r\n    \"n_gen\": 0,\r\n    \"n_depth\": 0,\r\n    \"test_time\": \"2026-07-25T13:52:41Z\",\r\n    \"avg_ns\": 2650531900,\r\n    \"stddev_ns\": 22012234,\r\n    \"avg_ts\": 193.175437,\r\n    \"stddev_ts\": 1.604290,\r\n    \"samples_ns\": [ 2666096900, 2634966900 ],\r\n    \"samples_ts\": [ 192.041, 194.31 ]\r\n  },\r\n  {\r\n    \"build_commit\": \"c0bc8591e\",\r\n    \"build_number\": 10107,\r\n    \"cpu_info\": \"AMD Ryzen 7 5700X 8-Core Processor             \",\r\n    \"gpu_info\": \"NVIDIA GeForce RTX 2070 SUPER\",\r\n    \"backends\": \"CUDA\",\r\n    \"model_filename\": \"E:\\\\Dev\\\\Web\\\\justwrite-app\\\\src-tauri\\\\target\\\\debug\\\\data\\\\ai-cache\\\\hf\\\\models--mradermacher--Gemma-4-26B-A4B-StyleTune-V2-GGUF\\\\snapshots\\\\07de6a203b664c630a217c9cef7f3e20867feb41\\\\Gemma-4-26B-A4B-StyleTune-V2.Q4_K_M.gguf\",\r\n    \"model_type\": \"gemma4 26B.A4B Q4_K - Medium\",\r\n    \"model_size\": 17195428984,\r\n    \"model_n_params\": 25971339550,\r\n    \"n_batch\": 2048,\r\n    \"n_ubatch\": 512,\r\n    \"n_threads\": 8,\r\n    \"cpu_mask\": \"0x0\",\r\n    \"cpu_strict\": false,\r\n    \"poll\": 50,\r\n    \"type_k\": \"f16\",\r\n    \"type_v\": \"f16\",\r\n    \"n_gpu_layers\": -1,\r\n    \"n_cpu_moe\": 0,\r\n    \"split_mode\": \"layer\",\r\n    \"main_gpu\": 0,\r\n    \"no_kv_offload\": false,\r\n    \"flash_attn\": -1,\r\n    \"devices\": \"auto\",\r\n    \"tensor_split\": \"0.00\",\r\n    \"tensor_buft_overrides\": \"none\",\r\n    \"load_mode\": \"mmap\",\r\n    \"embeddings\": false,\r\n    \"no_op_offload\": 0,\r\n    \"no_host\": false,\r\n    \"fit_target\": 0,\r\n    \"fit_min_ctx\": 0,\r\n    \"n_prompt\": 2048,\r\n    \"n_gen\": 0,\r\n    \"n_depth\": 0,\r\n    \"test_time\": \"2026-07-25T13:52:50Z\",\r\n    \"avg_ns\": 11844277400,\r\n    \"stddev_ns\": 47088503,\r\n    \"avg_ts\": 172.911873,\r\n    \"stddev_ts\": 0.687434,\r\n    \"samples_ns\": [ 11810980800, 11877574000 ],\r\n    \"samples_ts\": [ 173.398, 172.426 ]\r\n  },\r\n  {\r\n    \"build_commit\": \"c0bc8591e\",\r\n    \"build_number\": 10107,\r\n    \"cpu_info\": \"AMD Ryzen 7 5700X 8-Core Processor             \",\r\n    \"gpu_info\": \"NVIDIA GeForce RTX 2070 SUPER\",\r\n    \"backends\": \"CUDA\",\r\n    \"model_filename\": \"E:\\\\Dev\\\\Web\\\\justwrite-app\\\\src-tauri\\\\target\\\\debug\\\\data\\\\ai-cache\\\\hf\\\\models--mradermacher--Gemma-4-26B-A4B-StyleTune-V2-GGUF\\\\snapshots\\\\07de6a203b664c630a217c9cef7f3e20867feb41\\\\Gemma-4-26B-A4B-StyleTune-V2.Q4_K_M.gguf\",\r\n    \"model_type\": \"gemma4 26B.A4B Q4_K - Medium\",\r\n    \"model_size\": 17195428984,\r\n    \"model_n_params\": 25971339550,\r\n    \"n_batch\": 2048,\r\n    \"n_ubatch\": 512,\r\n    \"n_threads\": 8,\r\n    \"cpu_mask\": \"0x0\",\r\n    \"cpu_strict\": false,\r\n    \"poll\": 50,\r\n    \"type_k\": \"f16\",\r\n    \"type_v\": \"f16\",\r\n    \"n_gpu_layers\": -1,\r\n    \"n_cpu_moe\": 0,\r\n    \"split_mode\": \"layer\",\r\n    \"main_gpu\": 0,\r\n    \"no_kv_offload\": false,\r\n    \"flash_attn\": -1,\r\n    \"devices\": \"auto\",\r\n    \"tensor_split\": \"0.00\",\r\n    \"tensor_buft_overrides\": \"none\",\r\n    \"load_mode\": \"mmap\",\r\n    \"embeddings\": false,\r\n    \"no_op_offload\": 0,\r\n    \"no_host\": false,\r\n    \"fit_target\": 0,\r\n    \"fit_min_ctx\": 0,\r\n    \"n_prompt\": 8192,\r\n    \"n_gen\": 0,\r\n    \"n_depth\": 0,\r\n    \"test_time\": \"2026-07-25T13:53:26Z\",\r\n    \"avg_ns\": 59579592550,\r\n    \"stddev_ns\": 224574355,\r\n    \"avg_ts\": 137.497721,\r\n    \"stddev_ts\": 0.518272,\r\n    \"samples_ns\": [ 59738390600, 59420794500 ],\r\n    \"samples_ts\": [ 137.131, 137.864 ]\r\n  },\r\n  {\r\n    \"build_commit\": \"c0bc8591e\",\r\n    \"build_number\": 10107,\r\n    \"cpu_info\": \"AMD Ryzen 7 5700X 8-Core Processor             \",\r\n    \"gpu_info\": \"NVIDIA GeForce RTX 2070 SUPER\",\r\n    \"backends\": \"CUDA\",\r\n    \"model_filename\": \"E:\\\\Dev\\\\Web\\\\justwrite-app\\\\src-tauri\\\\target\\\\debug\\\\data\\\\ai-cache\\\\hf\\\\models--mradermacher--Gemma-4-26B-A4B-StyleTune-V2-GGUF\\\\snapshots\\\\07de6a203b664c630a217c9cef7f3e20867feb41\\\\Gemma-4-26B-A4B-StyleTune-V2.Q4_K_M.gguf\",\r\n    \"model_type\": \"gemma4 26B.A4B Q4_K - Medium\",\r\n    \"model_size\": 17195428984,\r\n    \"model_n_params\": 25971339550,\r\n    \"n_batch\": 2048,\r\n    \"n_ubatch\": 512,\r\n    \"n_threads\": 8,\r\n    \"cpu_mask\": \"0x0\",\r\n    \"cpu_strict\": false,\r\n    \"poll\": 50,\r\n    \"type_k\": \"f16\",\r\n    \"type_v\": \"f16\",\r\n    \"n_gpu_layers\": -1,\r\n    \"n_cpu_moe\": 0,\r\n    \"split_mode\": \"layer\",\r\n    \"main_gpu\": 0,\r\n    \"no_kv_offload\": false,\r\n    \"flash_attn\": -1,\r\n    \"devices\": \"auto\",\r\n    \"tensor_split\": \"0.00\",\r\n    \"tensor_buft_overrides\": \"none\",\r\n    \"load_mode\": \"mmap\",\r\n    \"embeddings\": false,\r\n    \"no_op_offload\": 0,\r\n    \"no_host\": false,\r\n    \"fit_target\": 0,\r\n    \"fit_min_ctx\": 0,\r\n    \"n_prompt\": 0,\r\n    \"n_gen\": 128,\r\n    \"n_depth\": 0,\r\n    \"test_time\": \"2026-07-25T13:56:25Z\",\r\n    \"avg_ns\": 13938059750,\r\n    \"stddev_ns\": 10651078,\r\n    \"avg_ts\": 9.183490,\r\n    \"stddev_ts\": 0.007018,\r\n    \"samples_ns\": [ 13945591200, 13930528300 ],\r\n    \"samples_ts\": [ 9.17853, 9.18845 ]\r\n  }\r\n]\r\n",
+    "stderr": "ggml_cuda_init: found 1 CUDA devices (Total VRAM: 8191 MiB):\r\n  Device 0: NVIDIA GeForce RTX 2070 SUPER, compute capability 7.5, VMM: yes, VRAM: 8191 MiB\r\nload_backend: loaded CUDA backend from E:\\Dev\\Web\\justwrite-app\\src-tauri\\target\\debug\\data\\ai-cache\\llamacpp\\b10107\\cuda12\\ggml-cuda.dll\r\nload_backend: loaded RPC backend from E:\\Dev\\Web\\justwrite-app\\src-tauri\\target\\debug\\data\\ai-cache\\llamacpp\\b10107\\cuda12\\ggml-rpc.dll\r\nload_backend: loaded CPU backend from E:\\Dev\\Web\\justwrite-app\\src-tauri\\target\\debug\\data\\ai-cache\\llamacpp\\b10107\\cuda12\\ggml-cpu-haswell.dll\r\n",
+    "gguf": "Gemma-4-26B-A4B-StyleTune-V2.Q4_K_M.gguf",
+    "ggufPath": "E:\\Dev\\Web\\justwrite-app\\src-tauri\\target\\debug\\data\\ai-cache\\hf\\models--mradermacher--Gemma-4-26B-A4B-StyleTune-V2-GGUF\\snapshots\\07de6a203b664c630a217c9cef7f3e20867feb41\\Gemma-4-26B-A4B-StyleTune-V2.Q4_K_M.gguf"
+  },
+  "peaks": {
+    "peakVramMb": 7645,
+    "peakRssMb": 22456,
+    "samples": 319
+  },
+  "finishedAt": "2026-07-25T13:56:56.683Z"
+}

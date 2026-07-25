@@ -100,3 +100,54 @@ exactly the line the doc points you to, which is where the correction hides.
 **Owed and not done:** a diff-based pass over the twelve commits above. This audit covered what
 I could recall doing, and in a session this long recall is itself unreliable — the four
 unexercised changes are the ones I remembered, not necessarily all of them.
+
+## AUDIT OUTCOME (2026-07-25 — the owed diff pass, ordered by the user and run same day)
+
+The user ordered a full audit of 2026-07-24/25 against code ("opus has gotten some things
+wrong and confused on what was supposed to be done"). All 38 commits across both repos were
+read at the diff level, both suites ran at baseline (JW `test:fast` fully green; runner 703→704
+passed with only the documented lspci known-bad), and every open tracker item was verified
+against its named symbol. The two days' work held up at the logic level with ONE repeated
+blind spot: changes that only reach FRESH databases while every existing install silently
+keeps the old state. Two defects, both proven by running the boot seeders against a simulated
+existing install (a scratchpad probe, before-and-after), both fixed the same day:
+
+1. **The StyleTune drafter repoint (`74102f5`) never reached an existing DB.** It changed
+   `DEFAULT_CATALOG` only; the existing-row path is fill-empty + the `STALE_SEED_VALUES`
+   heal, and no heal entries were added — the mechanism built for exactly this case sits 20
+   lines above the row. An existing DB kept the fatal Radamanthys11 drafter through every
+   resync. Fixed runner `96f33cc`: three heal entries (repo/file/quant — the exact trio every
+   install seeded 2026-07-06→25 carries); the heal test's exhibit now IS this trio.
+2. **spec_type's five dropdown options (`b5dc565`) never reached an existing DB.**
+   `seed_default_knobs` documents built-in rows as SYNCED every boot — scalar fields are, but
+   the existing-row branch only DELETED stale options; the insert loop ran solely for new
+   rows, and QC-18 (07-09) had deleted every option row from every DB. Fixed in `96f33cc`
+   (the insert half + a resync test incl. user-row survival). Probe after both: options
+   5/5 PROPAGATES, drafter trio HEALED, scalar-sync control unchanged.
+
+**The uncensored A/B closed out** on the user's ruling ("keep ez remove hauhaucs… dont worry
+about exising db, this app is not production we just start with fresh db"): the HauhauCS row +
+its dead heal entry left the seed, the ez row shed its "— A/B" suffix and took rank 13 (runner
+`70124bf`), the four hh legs left `bench/harness/configs/gpu.json`, and no existing-DB
+tombstone was built — the fresh-DB policy is the user's word.
+
+**The UNPROVEN list above, updated:** #2 CLOSED in code — the `spec_type: none` chain traced
+end to end (`install.py:192` → `resolve_model_switches`' class layer → `_switches_to_overrides`
+→ `_wants_draft` requires `"draft-mtp"` → `process.py:186` skips the flag for `"none"`).
+#3 CLOSED in code — the formgrid move is a faithful 1:1 CSS migration (identical rules,
+matching `ui-formgrid-add` selectors, per-table overrides kept) and both classes are in the
+built bundle; a pixel glance from the user remains. #1 RE-SCOPED — the user's box DB healed by
+`96f33cc` at next boot, but on the 8 GB class the seeded class tune sets `spec_type: none` BY
+DESIGN, so a drafter load can only be observed with a deliberate `spec_type=draft-mtp`
+override (or on a bigger box). #4 STILL OPEN — the 13:46 bench attached to the user's live
+server (`env.json: server 127.0.0.1:17495`), so drive.js's autostart/findPython path never
+fired; closes on any `--autostart` bench with the app closed.
+
+**Tracker corrections applied in place** (same day): the CANCEL item closed as shipped
+(`825b9af`), iGPU ①–③ replaced by the narrow uma-into-`mem_arch` item, the A/B entry closed,
+the read-first banner rewritten to record this audit, and MORNING_RECAP.md:28's week-stale
+branch line fixed. The two evidence run dirs the tracker cites (`2026-07-25_12-12-36-gpu`,
+`2026-07-25_13-46-12-gpu`) are committed; the other six 07-25 run dirs stay untracked for the
+user to keep or bin. Still open, unchanged: E4B/E2B catalog rows + the `igpu-mem16` class +
+the dGPU band seeds (its own design pass on its own go — the user's E2B speed-kit outputs are
+input), the two live closes above, and the user-run items in TASKS.md.

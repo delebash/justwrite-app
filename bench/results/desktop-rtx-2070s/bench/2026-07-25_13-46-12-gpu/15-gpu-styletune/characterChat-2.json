@@ -1,0 +1,67 @@
+{
+  "runId": "2026-07-25_13-46-12-gpu",
+  "leg": "gpu-styletune",
+  "model": "gryphe-styletune-v2",
+  "attempt": 2,
+  "args": {
+    "question": "What do you want most right now, and what are you afraid of?",
+    "timeoutMs": 1200000
+  },
+  "preset": {
+    "id": "eac9214a3b26",
+    "name": "Bench",
+    "providerId": "",
+    "model": "gryphe-styletune-v2",
+    "temperature": 0.7,
+    "topP": null,
+    "maxTokens": 0,
+    "reasoningEffort": "",
+    "think": false,
+    "samplers": [],
+    "builtIn": false,
+    "position": 10,
+    "factoryModel": ""
+  },
+  "route": {
+    "feature": "characterChat",
+    "action": "characterChat",
+    "providerId": "local-llamacpp",
+    "model": "gryphe-styletune-v2",
+    "presetId": "eac9214a3b26",
+    "presetName": "Bench",
+    "presetSource": "assigned",
+    "think": false,
+    "level": "",
+    "reasoningWord": "",
+    "value": null,
+    "valueSource": "",
+    "configured": true,
+    "detail": ""
+  },
+  "featureKey": "characterChat",
+  "ok": true,
+  "started": "2026-07-25T13:47:59.690Z",
+  "label": "Character chat",
+  "wallMs": 7560,
+  "ttftMs": 391,
+  "output": "Right now? I want to be back at the Hall, finishing a straightforward job in the Ash District where the only thing that hums is a dull commission-token [2]. I want a clean job, payment in scrip that'll last through the month, and to be left alone to my own tools.\n\nWhat I'm afraid of... I'm afraid that I can't stop listening. I'm afraid that the note I've been hearing my whole life—the one that's been calling to me even when I tried to deafen it [1]—is something I can't just un-hear, no matter how tightly I close my fist.",
+  "outputChars": 526,
+  "usage": {
+    "promptTokens": 2565,
+    "completionTokens": 142,
+    "model": "gryphe-styletune-v2",
+    "cost": 0
+  },
+  "flags": [
+    "temperature-fixed-by-caller"
+  ],
+  "extra": {
+    "bibleOnly": false,
+    "question": "What do you want most right now, and what are you afraid of?",
+    "k": 6,
+    "characterId": "c1",
+    "character": "Cael Ferren",
+    "citationCount": 6
+  },
+  "error": null
+}

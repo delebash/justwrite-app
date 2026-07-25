@@ -1,0 +1,108 @@
+{
+  "runId": "2026-07-25_13-46-12-gpu",
+  "leg": "gpu-styletune",
+  "model": "gryphe-styletune-v2",
+  "attempt": 1,
+  "args": {
+    "timeoutMs": 1200000
+  },
+  "preset": {
+    "id": "eac9214a3b26",
+    "name": "Bench",
+    "providerId": "",
+    "model": "gryphe-styletune-v2",
+    "temperature": 0.7,
+    "topP": null,
+    "maxTokens": 0,
+    "reasoningEffort": "",
+    "think": false,
+    "samplers": [],
+    "builtIn": false,
+    "position": 10,
+    "factoryModel": ""
+  },
+  "route": {
+    "feature": "critique",
+    "action": "critique",
+    "providerId": "local-llamacpp",
+    "model": "gryphe-styletune-v2",
+    "presetId": "eac9214a3b26",
+    "presetName": "Bench",
+    "presetSource": "assigned",
+    "think": false,
+    "level": "",
+    "reasoningWord": "",
+    "value": null,
+    "valueSource": "",
+    "configured": true,
+    "detail": ""
+  },
+  "featureKey": "critique",
+  "ok": true,
+  "started": "2026-07-25T13:50:28.355Z",
+  "label": "Chapter critique",
+  "wallMs": 29805,
+  "ttftMs": null,
+  "output": "{\n  \"notes\": [\n    {\n      \"severity\": \"info\",\n      \"category\": \"voice\",\n      \"message\": \"The prose is exceptionally tight; phrases like 'the way the salt smell of the harbor outlived the tide' establish a strong, melancholic atmosphere.\"\n    },\n    {\n      \"severity\": \"info\",\n      \"category\": \"characterization\",\n      \"message\": \"Cael's competence and her defensive posture ('a woman who could not afford to be interesting') are established immediately through action.\"\n    },\n    {\n      \"severity\": \"suggest\",\n      \"category\": \"opening\",\n      \"message\": \"Consider removing the first line ('A lamp that will not lie') as a standalone header; the opening paragraph already executes that metaphor more effectively.\"\n    },\n    {\n      \"severity\": \"suggest\",\n      \"category\": \"clarity\",\n      \"message\": \"Clarify the physical relationship between Cael and the 'Company'—it's slightly ambiguous if they are mercenaries, guild members, or family until Brick speaks.\"\n    },\n    {\n      \"severity\": \"flag\",\n      \"category\": \"pacing\",\n      \"message\": \"The transition to the second scene ('The slate board') feels abrupt because the 'Company' appears to be arguing in a room Cael enters without any sensory buildup of the Hall's scale.\"\n    },\n    {\n      \"severity\": \"suggest\",\n      \"category\": \"show-don't-tell\",\n      \"message\": \"Instead of stating Nettle 'appeared... without having been there a moment before,' try showing her presence through a sound or a sudden shift in the wind to heighten the supernatural implication.\"\n    },\n    {\n      \"severity\": \"info\",\n      \"category\": \"tension\",\n      \"message\": \"The parallel between the humming token and the guttering lamp creates excellent thematic and narrative cohesion.\"\n    },\n    {\n      \"severity\": \"flag\",\n      \"category\": \"dialogue\",\n      \"message\": \"Iven's dialogue about 'Manufactory Nine' feels slightly exposition-heavy, bordering on 'info-dumping' for the sake of explaining the Guild ranks.\"\n    }\n  ]\n}",
+  "outputChars": 1980,
+  "usage": null,
+  "flags": [],
+  "extra": {
+    "chapterId": "ch1",
+    "chapterNum": 1,
+    "chapterWords": 2600,
+    "noteCount": 8,
+    "notes": [
+      {
+        "id": "note_ms0fg1gw_0",
+        "severity": "info",
+        "category": "voice",
+        "message": "The prose is exceptionally tight; phrases like 'the way the salt smell of the harbor outlived the tide' establish a strong, melancholic atmosphere."
+      },
+      {
+        "id": "note_ms0fg1gw_1",
+        "severity": "info",
+        "category": "characterization",
+        "message": "Cael's competence and her defensive posture ('a woman who could not afford to be interesting') are established immediately through action."
+      },
+      {
+        "id": "note_ms0fg1gw_2",
+        "severity": "suggest",
+        "category": "opening",
+        "message": "Consider removing the first line ('A lamp that will not lie') as a standalone header; the opening paragraph already executes that metaphor more effectively."
+      },
+      {
+        "id": "note_ms0fg1gw_3",
+        "severity": "suggest",
+        "category": "clarity",
+        "message": "Clarify the physical relationship between Cael and the 'Company'—it's slightly ambiguous if they are mercenaries, guild members, or family until Brick speaks."
+      },
+      {
+        "id": "note_ms0fg1gw_4",
+        "severity": "flag",
+        "category": "pacing",
+        "message": "The transition to the second scene ('The slate board') feels abrupt because the 'Company' appears to be arguing in a room Cael enters without any sensory buildup of the Hall's scale."
+      },
+      {
+        "id": "note_ms0fg1gw_5",
+        "severity": "suggest",
+        "category": "show-don't-tell",
+        "message": "Instead of stating Nettle 'appeared... without having been there a moment before,' try showing her presence through a sound or a sudden shift in the wind to heighten the supernatural implication."
+      },
+      {
+        "id": "note_ms0fg1gw_6",
+        "severity": "info",
+        "category": "tension",
+        "message": "The parallel between the humming token and the guttering lamp creates excellent thematic and narrative cohesion."
+      },
+      {
+        "id": "note_ms0fg1gw_7",
+        "severity": "flag",
+        "category": "dialogue",
+        "message": "Iven's dialogue about 'Manufactory Nine' feels slightly exposition-heavy, bordering on 'info-dumping' for the sake of explaining the Guild ranks."
+      }
+    ],
+    "model": "gryphe-styletune-v2"
+  },
+  "error": null
+}
