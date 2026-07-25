@@ -95,12 +95,18 @@ configureHelp({
   // Pull the registry + active book into projectApi's cache (the /v1/projects
   // domain API) so the project store's synchronous bootstrap can read them.
   await hydrateProjects();
-  // Pull the configured LLM provider list off the server (/v1/llm-providers)
-  // so the AI store's synchronous bootstrap reads it.
-  await bootProviders();
-  // Pull the routing config (default provider + per-feature pins) off the server
-  // (/v1/ai/routing) into its cache so the AI store reads it synchronously too.
-  await bootRouting();
+  // The provider list (/v1/llm-providers) and the routing config (/v1/ai/routing),
+  // both into their own boot caches so the AI store's synchronous bootstrap can read
+  // them. Run CONCURRENTLY: they are independent — each writes only its own
+  // module-local cache and neither reads the other's, so the "after bootProviders"
+  // in routingBackend's docstring means "before mount", not a data dependency.
+  //
+  // Measured 2026-07-25, and worth being honest about: on the happy path this saves
+  // about 4 ms (each GET is 3-4 ms warm against localhost). The reason to do it is the
+  // FAILURE path. Both functions retry 3× with 700 ms backoff to survive a cold boot
+  // racing the server's own seeding — so a server that is up but not yet answering
+  // these two routes cost 2 × 2.8 s sequentially, and now costs 2.8 s once, overlapped.
+  await Promise.all([bootProviders(), bootRouting()]);
 
   // Now that settings are loaded, re-apply the persisted appearance (migrating
   // any legacy { theme, accentHue } shape) and resolve the active i18n locale

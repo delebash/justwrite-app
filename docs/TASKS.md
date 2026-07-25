@@ -19,7 +19,10 @@
 
 ## Now / near-term (JustWrite)
 
-### A. Done today — uncommitted, needs your QC then a commit
+### A. Shipped + pushed 2026-07-24/25 — your QC is the only thing outstanding
+
+*(This header used to read "uncommitted, needs your QC then a commit"; everything below is now
+committed and pushed — JW `b78337e`, runner `825b9af` + `40737fe`.)*
 
 - **Boot splash → your illustration.** The artwork carries the whole design; only the loader is
   HTML, parked in the blank left parchment. Ships `splash-plate.jpg` (275 KB) + the lossless
@@ -43,8 +46,10 @@
 
 ### B. Open — needs your go
 
-- ~~**Migrate the six hand-rolled kit tables to `UiTable` (TanStack).**~~ **DONE 2026-07-24** —
-  but as THREE migrations, not six. Reading all six showed they are two different things:
+- ~~**Migrate the six hand-rolled kit tables to `UiTable` (TanStack).**~~ **DONE 2026-07-24,
+  CONFIRMED GOOD ON YOUR BOX 2026-07-25** ("the whole table sweep all good") — shipped as runner
+  `40737fe`. The your-box look check this needed is now closed. It shipped as THREE migrations,
+  not six — reading all six showed they are two different things:
   - *Real data tables → migrated.* `LuMeasureHistory`, `LuModelCatalog`, and the two usage
     breakdowns in `AiModelsArea` (which were the same five-column table written out twice, now
     one shared `usageColumns()` config). The catalog keeps its own ORDERING — it groups into
@@ -79,10 +84,36 @@
   their original calls-descending order preserved. Gates: `build:vite` ✓, 429 unit tests ✓,
   headless smoke unchanged against a stashed baseline (its 5 failures are the empty isolated data
   dir, not this change).
-- **Boot, biggest remaining lever:** the app kills + respawns the server on EVERY launch
-  (`lib.rs:377-391`), so every start pays ~2.3 s. Have `/v1/health` report a build stamp and reuse
-  a healthy matching server. Cheaper wins: listen before seeding; parallelise the two independent
-  boot fetches; guard the latent 2.8 s retry trap in `providerBackend.js:29` / `routingBackend.js:27`.
+- **Boot — MEASURED 2026-07-25, and the two "cheap items" turned out not to be worth much.**
+  Numbers first, on your venv, warm (i.e. every launch after the very first):
+
+  | pre-listen step | warm cost |
+  |---|---|
+  | `import justwrite_server.app` | **895 ms** |
+  | `create_app` (init_db + routers) | 43 ms |
+  | `seed_workspace` | **36 ms** |
+
+  So *"serve `/health` before `seed_workspace()`"* — the item as approved — buys **36 ms of a
+  ~975 ms pre-listen window**. **Recommend DROPPING it.** The window is dominated by importing
+  FastAPI (331 ms) + SQLAlchemy (257 ms) + `llm_runner` (122 ms), which must all load before any
+  HTTP can be served at all, so unlike the cloud-SDK deferral (which won 2.1 s) there is no lazy
+  trick here — you cannot defer the web framework in a web app. The 1,168 ms `create_all` DDL in
+  the profile is FIRST-RUN ONLY; on an existing DB it collapses into that 43 ms.
+  *(Reversal: re-measure with the snippet in the 2026-07-25 session — a future SQLAlchemy or
+  FastAPI version could shift these.)*
+- ✅ **Parallelise the two boot fetches — SHIPPED.** `main.js` now runs `bootProviders()` and
+  `bootRouting()` under one `Promise.all`. Verified independent at `providerBackend.js:17-39` /
+  `routingBackend.js:14-37`: each writes only its own module-local cache and neither reads the
+  other's, so the "after bootProviders" in the docstring meant "before mount", not a data
+  dependency. Honest value: **~4 ms** on the happy path (each GET is 3-4 ms warm). The real win is
+  the FAILURE path — both retry 3× with 700 ms backoff to survive a cold boot racing the server's
+  seeding, so a server up-but-not-yet-answering cost 2 × 2.8 s sequentially and now costs 2.8 s
+  once, overlapped. That also closes the "latent 2.8 s retry trap" line this entry used to carry.
+- **The only real remaining boot lever is server REUSE** — the app kills + respawns the server
+  every launch (`lib.rs:377-391`), paying that ~975 ms import plus uvicorn startup each time.
+  **You vetoed it** ("i am affraid of a server running when it shouldnt") and that veto stands;
+  noting it only so the file stops implying cheaper alternatives exist. They were measured; they
+  don't.
 - **Hardware classes + missing catalog rows.** All three machines decided (16 GB Iris Xe = **E4B**).
   Owed: E4B/E2B have no catalog rows at all, plus the integrated-16 class seed and the dGPU
   8/12/16/24+ band seeds in the shape you blessed.
