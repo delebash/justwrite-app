@@ -138,15 +138,19 @@ committed and pushed — JW `b78337e`, runner `825b9af` + `40737fe`.)*
     (E4B's 9.8 tok/s is where a draft could plausibly help, but both heads are unverified
     third-party — the StyleTune class); any future laptop session adds one `-md` load leg
     first. The row comment is the stop sign.
-  - **dGPU 12/16/24 band seeds — via the widened PER-BAND survey** (supersedes both the old
-    "shape you blessed" clause and the separate "higher-tier 24 GB+ survey" research item):
-    each band gets named GGUF-only candidates + the carried-model baseline, and its class
-    row + recommendation seed TOGETHER with a decided model — never as empty scaffolding.
-    Part 1 (carried models, estimator-grounded) delivered in-session 2026-07-25; Part 2
-    (the per-band web survey) next, on its go. One design ruling needed from you first:
-    the discrete key carries RAM (`dgpu-vram12|ram32` ≠ `|ram64`, `hardware.py:150-172`) —
-    seed per-band tunes at ram32 only, at ram16/32/64 variants, or add a nearest-rung
-    matching rule.
+  - ✅ **The band-key ruling — BUILT 2026-07-25** (your "I never thought exact matches
+    should be used" + "don't over-engineer"): the discrete class key now IS the band —
+    VRAM down-snaps {4,6,8,12,16,24} after the jitter round (10/11 GB → the 8 band; a
+    4090's 24 and a 5090's 32 are ONE 24+ band), discrete RAM down-snaps {16,32,64,128};
+    exact-match lookup stays, no fallback machinery. Panel-typed classes band the same
+    way and store key-consistent numbers. iGPU/unified keys + all seeded tunes unchanged;
+    707 tests. Record: recovery doc §22.
+  - **dGPU 12/16/24+ band seeds — via the widened PER-BAND survey** (supersedes both the
+    old "shape you blessed" clause and the separate "higher-tier 24 GB+ survey" research
+    item): each band gets named GGUF-only candidates + the carried-model baseline, and its
+    class row + recommendation seed TOGETHER with a decided model — never as empty
+    scaffolding. Part 1 (carried models, estimator-grounded) delivered in-session
+    2026-07-25; Part 2 (the per-band web survey) is UNBLOCKED and next, on its go.
 - ✅ **Model download Cancel/Dismiss in the failed + "Getting ready" states — SHIPPED**
   (runner `825b9af`; sat here as open while the same file's section-A header named the sha as
   pushed — tracker staleness the 2026-07-25 audit caught. Verified: the server drops terminal
@@ -262,8 +266,9 @@ committed and pushed — JW `b78337e`, runner `825b9af` + `40737fe`.)*
   band at ctx 32K · QAT or a proven quant · prose quality, not coding benchmarks · clean
   license for bundling · MTP a bonus), compared against the carried-model baseline. Output
   = each band's class row + recommendation + minimal honest config, seeded TOGETHER (the
-  section-B band item). Part 1 (carried baseline) delivered in-session 2026-07-25; Part 2
-  is this survey — next, on its go, after the RAM-rung ruling.
+  section-B band item). Part 1 (carried baseline) delivered in-session 2026-07-25; the
+  band-key ruling is BUILT (recovery doc §22 — keys are bands now, exact match stays), so
+  Part 2 is this survey — next, on its go.
 
 ## Open — awaiting a go (shared AI stack)
 

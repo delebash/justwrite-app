@@ -1400,3 +1400,44 @@ E4B + this config with zero setup. Suite 704 passed / 1 known-bad / 9 skipped. S
 any future laptop session can add one `-md` load leg) and the dGPU band map (the widened
 survey — Part 1 from carried models delivered in-session 2026-07-25; Part 2, the per-band web
 survey, next on its own go).
+
+## 22. THE BAND RULING — the discrete class key IS the band (2026-07-25, the user's go)
+
+What changed and why. The user's two rulings settled the dGPU-band design: "I never thought
+exact matches should be used" (a 5090's vram32 missing a vram24 seed is absurd) and "don't
+over-engineer" (which killed my first answer — a two-dimensional nearest-lower-rung fallback
+matcher with tie-breaks and borrowed-origin UI). The simple shape the code itself endorsed:
+`class_key`'s own charter says COARSE, and per-machine fidelity already lives in a different
+layer (`model_tunes` by exact `machine_key`) — so the fix is to make the key BE the band and
+keep plain exact-match lookup forever. `runner/hardware.py`: VRAM now down-snaps the
+`_VRAM_BANDS` ladder (4, 6, 8, 12, 16, 24) AFTER the nearest-GB jitter round — a 3080's 10 GB
+and a 2080 Ti's 11 GB are the 8 band, 20 GB is the 16 band, and everything ≥ 24 (4090's 24,
+5090's 32) is ONE 24+ band; discrete system RAM down-snaps the coarse `_DGPU_RAM_RUNGS`
+(16, 32, 64, 128) after `snap_ram_gb`'s fine jitter snap (24 → 16, 48 → 32, 96 → 64). DOWN on
+both dimensions because it can never overstate a box — a config keyed at the band floor fits
+every box above it, never the reverse (the flagship's ~24 GB RAM appetite on a 16 GB-RAM box
+is the miss the direction prevents). Sub-band values pass through unchanged (a 6 GB card
+honestly matches no band seed). Integrated/unified keys untouched — the pool is the identity
+(`igpu-mem16`/`igpu-mem32` unchanged, so both laptops' seeded tunes keep matching, as does the
+2070S box: vram8/ram32 are already band values).
+
+The two consistency seams closed with it. `install.py` now wires the panel's create-class
+derive through the new `banded_class_key` (a hand-typed vram 10 lands in the 8 band instead of
+minting a class detection can never match), and the PUT handler re-reads the stored row's
+numbers FROM the banded key via `parse_key_fn` (`class_tunes_api.py`) so a row's own numbers
+can never disagree with its key. The stale "VRAM is NOT snapped" comment above `_RAM_LADDER`
+was corrected in place — it described the pre-band design.
+
+How verified: full runner suite 707 passed (three new tests: the band table incl. the 5090 →
+24+ case and jitter-first ordering; the banded builder incl. one-pool passthrough; the PUT
+banding with key-derived row numbers) / 1 documented Windows lspci known-bad / 9 skipped. No
+other test pinned a fine-grained discrete key.
+
+What would reverse it: a future card class that deserves its own band adds ONE ladder value
+(e.g. 32 when a 32 GB-band config exists that a 24-band config wastes); if per-band duplicated
+rows for dense picks ever grate, a five-line lower-RAM-rung convenience could return — as a
+convenience, not the 2-D engine.
+
+OPEN: Part 2 — the per-band survey — is UNBLOCKED (no RAM-rung ruling needed; the ruling
+became the design): pick each band's model, seed each band's class row + config at its honest
+RAM rung, on its go.
