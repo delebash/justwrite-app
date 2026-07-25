@@ -166,16 +166,56 @@ committed and pushed — JW `b78337e`, runner `825b9af` + `40737fe`.)*
   ambiguity is which repo. Two tests cover it, including that a hint matching nothing FAILS
   rather than falling back to the unfiltered scan (that would bench wrong weights under the
   right name).
-- ⚠ **StyleTune V2 — needs a change ON YOUR BOX; I can't make it from here.** It has never been
-  benchmarked because it never loads: `load.ok: false`, 0 runs, engine "exiting due to model
-  loading error". Root cause found in the cache — its repo
-  (`mradermacher/Gemma-4-26B-A4B-StyleTune-V2-GGUF`) ships **only** the Q4_K_M weights and no MTP
-  draft, so the architecture-inherited (tier C) logic handed it a draft from an unrelated repo,
-  `Radamanthys11/…/gemma-4-26B-A4B-it-assistant-Q8_0.gguf`, which the engine cannot load
-  alongside it. **Fix: open the Model Catalog → Edit StyleTune V2 → turn MTP OFF** (or pin a
-  draft the engine can load). MTP is a catalog DB column (`db.py:90`), not a bench knob, which
-  is why no config change can work around it. Its catalog rank has been waiting on this A/B
-  since 2026-07-06 and stays blocked until that toggle is flipped.
+- ✅ **StyleTune V2 — SETTLED 2026-07-25: keep as a SECOND-TIER prose row, never the default.**
+  Unblocked by turning MTP off in the catalog (your change), then benched clean: `load.ok: true`,
+  12 runs, run `2026-07-25_13-46-12-gpu`.
+  - **Prose: better than the flagship.** Richer concrete imagery on `writerAI.continue` (the
+    workshop tools as "skeletal fingers", the bench "less like a place of honest labor and more
+    like an altar" vs the baseline's more conventional close). This is what the row is FOR.
+  - **Comprehension: no style-tax.** On hard Q1 it gets the central chain (token's note matches
+    the lamp's) and cites excerpts properly; it caught ONE signal fewer than the baseline (the
+    eleven-weeks/pays-double thread) and neither found the answer key's corroborating signs.
+  - **Speed: materially slower, and structurally so.** chat 27.0s vs 12.7s · entitySweep 70.5s
+    vs 39.4s · rewrite 15.8s vs 9.5s. Two independent causes, both measured:
+    1. **Layer fit.** `runner/fit.py`'s own estimator, run against the two cached GGUFs at ctx
+       32K on a 7,373 MB budget: baseline (UD-Q4_K_XL, 13.27 GB) fits **10/30 layers** on the
+       GPU; StyleTune (Q4_K_M, 16.03 GB) fits **8/30**. Unsloth's UD dynamic quant is SMALLER
+       than a standard Q4_K_M despite the "XL" name — that is the whole 20% file-size gap. No
+       download was needed to learn this; the estimator reads cached headers.
+    2. **No usable speculative decode.** Measured directly, same prompt/seed/`-ngl 8`/`--fit
+       off`, differing only in `-md`: **10.77 tok/s with the MTP draft vs 10.56 without** — 2%,
+       i.e. noise, where the baseline gets 66.9% acceptance from that same drafter file. An MTP
+       head is trained against specific base weights; the finetune moved them, so the head loads
+       fine and simply predicts wrong.
+  - **Reversal:** a ~13 GB quant of StyleTune would buy back the layer-fit half (not the
+    drafter half). Not downloaded — the estimator answered the question for free.
+- **⚠ Upstream: `--fit` silently kills Gemma-4 MTP drafts** — [llama.cpp
+  #24350](https://github.com/ggml-org/llama.cpp/issues/24350). Loading a `gemma4_mtp` draft under
+  memory fitting fails with `Gemma4Assistant requires ctx_other to be set (this is normal during
+  memory fitting)` → `[spec] failed to measure draft model memory: failed to create llama_context
+  from model`. Reproduced on b10107 and **confirmed fixed by `--fit off`** (warning gone, both
+  models load). Not our bug, but **our placement strategy walks into it**: `process.py:111` and
+  `lifecycle.py:2034` deliberately OMIT ngl/n_cpu_moe on untuned models so the engine's own
+  `--fit` places tensors ("fit-by-omission"). So any UNTUNED Gemma-4 row whose drafter would
+  genuinely help may be silently running without it. The flagship is safe — it is tuned, with
+  explicit ngl. **Not fixed here:** trading `--fit` away is a real VRAM/placement decision, and on
+  StyleTune it would buy 2%. Worth an audit of which catalog rows are untuned + MTP-expecting;
+  also worth re-testing on a build newer than b10107 ([#24795](https://github.com/ggml-org/llama.cpp/issues/24795)
+  shows this family regressing and being fixed across builds).
+- **Prose/style model survey 2026-07-25 — screened on numbers, only ONE candidate survives.**
+  Constraint recorded: **GGUF/cross-platform only** (your ruling — no MLX/runtime-specific rows).
+  The binding limit on 8 GB is FILE SIZE, since it sets the layer-fit above; the flagship wins by
+  being an unusually small 13.27 GB.
+  | candidate | verdict |
+  |---|---|
+  | **Goetia v1.3 (Naphula)** — `i1-IQ4_XS` **14.0 GB** | **the only viable one**; tagged roleplay/creative writing; no drafter of its own; claims apache-2.0 |
+  | SuperGemma4-26B-Uncensored v2 (Jiunsong) | **OUT** — Q4_K_M 16.8 GB, its own card wants 18–22 GB VRAM; "0/100 refusals / 90% faster" claims are X hype, not a card benchmark; claims MIT |
+  | Animus V14.1-FFT (Darkhn) | **OUT for now** — safetensors only, no GGUF exists to test |
+  | `mlx-community/…-OptiQ-4bit` | **OUT** — MLX/Apple-only (breaks the cross-platform rule), 21.9 GB, and it is **our own `gemma-4-26B-A4B-it-qat` weights requantised**, not a new finetune |
+
+  **Licence flag, not resolved:** Goetia claims apache-2.0 and SuperGemma claims MIT, but both are
+  Gemma-4 derivatives and Google's Gemma Terms of Use propagate. Matters only if we BUNDLE rather
+  than have users download. Your call, not mine.
 
 ## Research (each needs a research pass → plan → build, on its own go)
 
