@@ -1169,3 +1169,657 @@ autotune+Fix-C tests and this session's task-machine/cached-load/MTP-hint tests 
 the stashes still exist (`git stash list`) — the pre-merge state of either repo is recoverable from
 `stash@{0}` until dropped. **Open:** the smoke's catalog sort-header assertion (their `666f280`) was
 not re-run here (:1420 may be held by the live app); the redo kept the header DOM intact.
+
+## 19. THE OWED ANSWER-KEY JUDGING (done) + THE FULL-CATALOG TEST CAMPAIGN (2026-07-24)
+
+**What happened.** The 2026-07-22_03-28-55-gpu run's twelve hard-question legs were finally
+judged against the §7 answer keys — all twenty-four chat captures read in full
+(`bench/results/desktop-rtx-2070s/bench/2026-07-22_03-28-55-gpu/{03..06,09..12}-*/chat-*.json`).
+Verdicts, with the receipts in the captures themselves:
+
+**HQ1 (token↔Nine multi-hop).** Retrieval at k=6 never surfaced the ch1-scene-3/ch2
+corroboration chunks (the citation lists in every capture show the same seven chunks), so
+key point 3 was unreachable for BOTH models — a retrieval ceiling, not a model difference.
+Within what retrieval allowed: Gemma think-off makes the fee/seal/hum connections cleanly
+but stops at a generic "not routine" implication (≈2.5/4 on the key, consistent across all
+three runs). Qwen think-off makes the same connections AND the inferential step to the
+temporal anomaly/Keystone (≈3/4) — but its run 3 over-reaches ("the token is the instrument
+of concealment… allows the party to interact with the loop" — not in the text). Gemma never
+confabulated but under-infers; Qwen infers further and occasionally past the text.
+
+**HQ2 (loop-mechanism synthesis).** Gemma think-off is a clean 4/4 (loop + matter-AND-memory
+reset + still-walking-in-nine-years + Ode's deep-Facet exemption + the Whole/Keystone cause)
+in every run, ~10-15 s wall. Qwen think-off is also 4/4 and richer — run 2 even surfaces the
+stopped-watch-at-seven-past detail from the key — at ~21-31 s wall.
+
+**Think-on, both models: NOT worth it as a default.** On Gemma it adds nothing (hq1 run 3 is
+actually THINNER than think-off — 352 chars) for 4-10× the TTFT (38-70 s vs sub-second warm);
+on Qwen it adds polish for 87-119 s TTFTs. This confirms the think-off default; think stays a
+per-request option.
+
+**Head-to-head verdict.** Reasoning quality: Qwen ≥ Gemma by a real but modest margin, with a
+verbosity + mild-confabulation tradeoff; cost: Qwen is ~2× slower on this box (tg128 6.9 vs
+13.4 t/s; leg peak RAM 24.4 vs 21.5 GB). The 8 GB-class default stays Gemma 26B. Whether Qwen
+earns the 24 GB+ tier default is decided by the 31B's quality captures from the campaign below
+(and the catalog's published-evals note at seed.py:211-216 stands).
+
+**The campaign (user ruling 2026-07-24: "all testing done, all models we want to use tested",
+run on the user's box, judged here).** Changes shipped in this change-set:
+
+1. **`just-llm-runner/llm_runner/llm/seed.py`** — a TEMPORARY A/B twin row
+   `gemma-4-26b-a4b-uncensored-ez` (EZForever's QAT UD-merge, Q4_K_XXL, Apache-2.0, exact
+   size_bytes 14,329,791,488 from the HF tree API; drafter = unsloth's own MTP file, already
+   on disk wherever the flagship is). The user's ruling: test both uncensored rows, KEEP THE
+   WINNER — the loser's row is removed afterwards. HauhauCS row untouched. Reverse: delete
+   the -ez row (and its bench legs) if EZForever loses.
+2. **`bench/harness/configs/gpu.json`** — twelve new think-off legs: `gpu-styletune{,-hq1,-hq2}`
+   (the Lab A/B the StyleTune rank has waited on since 2026-07-06 — if its prose does not beat
+   the flagship side-by-side, the row is removed), `gpu-uncensored-hh{,-hq1,-hq2}` +
+   `gpu-uncensored-ez{,-hq1,-hq2}` (the two uncensored arms), and `gpu-gemma-31b{,-hq1,-hq2}`
+   (BEST-EFFORT quality probe: 31B dense partially offloaded on the 8 GB card — quality is
+   speed-independent; if the load refuses, fall back to a manual llama-cli probe). All clone
+   the existing battery/hq shapes verbatim; judged against the same §7 keys.
+
+**Also decided this day (context):** the 16 GB Iris Xe laptop = **E4B** (12B partial-offload
+hand-run measured 4.0 tok/s < the 7 tok/s bar; E4B's 9.8 stands). Untestable-on-owned-hardware
+catalog rows (Llama-70B ~42 GB, GLM-4.5-Air ~67 GB vs 32 GB RAM max) are keep-or-remove
+decisions still owed to the user after the campaign returns.
+
+**How to verify / what the user runs (downloads ~65 GB total on top of what's on disk; disk
+check first):**
+
+```
+# 0) one-time: reseed the runner DB (owed anyway from the CPU-band leftovers — restores
+#    routing + engine prefs AND creates the -ez row), then:
+cd E:\Dev\Web\just-llm-runner && python -m pytest -q      # seed tests green
+npm run test:server        # server suite green
+# 1) the never-run rag A/B legs (minutes):
+npm run bench:gpu -- --legs gpu-gemma-26b-bible,gpu-qwen-35b-bible
+# 2) the overnight battery (downloads StyleTune 17.2 + HauhauCS 16.8 + EZ 14.3 + 31B 17.3 GB):
+npm run bench:gpu -- --legs gpu-styletune,gpu-styletune-hq1,gpu-styletune-hq2,gpu-uncensored-hh,gpu-uncensored-hh-hq1,gpu-uncensored-hh-hq2,gpu-uncensored-ez,gpu-uncensored-ez-hq1,gpu-uncensored-ez-hq2,gpu-gemma-31b,gpu-gemma-31b-hq1,gpu-gemma-31b-hq2
+# 3) hand back bench/results/<run-id>/ — the judging happens against the §7 keys here.
+```
+
+**Open after this section:** the campaign run + its judging → the final catalog curation pass
+(StyleTune keep/remove · uncensored winner · 31B as the 24 GB-tier default or not · the 70B/GLM
+keep-or-remove ruling · the E4B/E2B catalog rows + the integrated-16 hardware class seed · the
+dGPU 12/16/24+ class seeds with estimated-badge provenance — each needs its own go), and the
+higher-tier "better models out there" web survey the user asked for.
+
+## 20. THE DOWNLOADER RATE-LIMIT FIX — request-count discipline + the 429 gate (2026-07-24)
+
+**What broke.** The campaign's first download (StyleTune, mradermacher) died with
+`429 Too Many Requests after 3 retries`. Root causes, each verified: the chunk-queue
+downloader spent ONE HTTP REQUEST PER 8 MB CHUNK (~1,775 requests for a 14 GB GGUF —
+`download.py`'s old fixed `DEFAULT_CHUNK_SIZE`), and HuggingFace rate-limits by REQUEST
+COUNT per 5-minute window (anonymous: 3,000 resolver / 500 API hits per IP —
+https://huggingface.co/docs/hub/rate-limits, fetched 2026-07-24); the retry backoff was
+capped at 2 SECONDS (all three retries landed inside the same 5-minute window — failure
+by construction); the Range probe swallowed the 429 into `(0, "")`, silently downgrading
+to the single-stream path, which is why the user's error text shows the bare HTTPError
+form AND why the partial could not resume (single-stream partials are discarded); and
+every request was anonymous (no token support anywhere — HF calls the missing token "the
+number one reason users get rate limited").
+
+**Why not huggingface_hub.** Surveyed first (their doc recommends it, 1.2+ parses the
+`RateLimit` header): rejected THIS round because it has no cancellation API — our shipped
+DownloadBar contract (instant cancel + per-byte progress + resume, the 2026-07-15/21
+consolidations) would regress. We keep our transport and mirror THEIR semantics instead.
+
+**What shipped (runner, all in `llm_runner/runner/`):**
+1. `download.py` — chunk size is now a FLOOR that scales so a file costs ≤ `segments × 4`
+   requests (~32 at the default 8, vs ~1,775); ONE `_RateGate` per download parks EVERY
+   connection on a 429/503 for the server-declared wait (`_rate_limit_wait`: the IETF
+   `RateLimit` header's `t=` → `Retry-After` delta-seconds → exponential, floor 1 s, cap
+   300 s); rate-limit waits never consume transport retries (shared 6-strike cap →
+   `_RateLimitExceeded`, a loud RuntimeError naming HF_TOKEN); the probe waits + re-probes
+   on 429 instead of downgrading to the non-resumable single stream; `stream_download`
+   gained an optional `headers=` param; cancel stays instant (the gate polls
+   `cancel_check` at 0.25 s).
+2. `models.py` — `_hf_headers()` (Bearer from the standard `HF_TOKEN` /
+   `HUGGING_FACE_HUB_TOKEN` env) on EVERY huggingface.co call: `_revision_sha`, `_tree`,
+   `_model_card`, `_search_models`, and `acquire_model`'s `stream_download`. NOT covered
+   (flagged, not silent): `identity.py`'s own HF reads (Smart-Add / read-from-link —
+   user-triggered, low volume) — fold in on a future pass.
+3. `config.py` — the wrong "safe on any CDN" comment corrected to the request-count
+   reality.
+
+**How verified.** `tests/test_download.py` extended in its own harness (the in-process
+HTTP server gained 429 modes + auth capture): probe-429 stays chunked · chunk-429 recovers ·
+single-stream-429 recovers · persistent 429 fails loudly (not forever) · `_rate_limit_wait`
+parses `RateLimit` t=/`Retry-After`/date-fallback/cap · headers ride every request · chunk
+count bounded. Run in-sandbox: **test_download 17/17 · test_models 22/22 · test_binary
+22/22 (61 total, green)**; ruff on the five touched files — the only new finding (an
+import sort) fixed; the 6 pre-existing findings left untouched. The full runner suite
+still runs on the user's box (sandbox lacks the rest of the deps).
+
+**What would reverse it.** If HF changes header semantics the gate falls back to
+exponential waits (still bounded); if a CDN mis-handles very large Range chunks the floor
+scaling would need a per-host cap — no evidence today.
+
+**User-facing:** set `HF_TOKEN` (any free HF account token) in the environment the server
+runs under to lift the anonymous limits; anonymous still works at 3,000 resolver
+hits/5 min — which the fixed request counts now stay far under (~32/file).
+
+**OPEN (user, 2026-07-24, screenshot):** the catalog row's failed/"Getting ready" download
+state offers Retry but NO CANCEL — tracked in TASKS.md.
+
+## 21. SELF-HOSTED FONTS — the splash flicker + slow first paint, root-caused (2026-07-24)
+
+**The report.** "splash page flickers on load" + "first splash load takes awhile before loading
+model even comes up, so just the initial loading of the app is slow not counting the model load".
+
+**Root cause — ONE, for both.** `index.html` pulled **15 font families from
+fonts.googleapis.com in a render-blocking `<link>`**, plus two `preconnect` hints, and the repo
+contained **zero local font files** (verified: no woff/ttf anywhere, no @fontsource dep). So the
+window could not paint its first frame until DNS + TLS + a Google round trip completed — and on
+a cold or OFFLINE boot, until that request timed out. That is the slow first paint. The flicker
+is the same cause: the boot splash declares `font-family: "Fraunces", Georgia, …`, so it painted
+in Georgia and re-laid-out when Fraunces finally arrived (FOUT), compounded by the 245 KB
+`splash-book.jpg` arriving late and by Vue wiping the pre-JS `#app-boot` when it mounts into
+`#app`. It also quietly contradicted the splash's own "Runs entirely on your computer".
+
+**Fix (the user's go: "self host fonts, index.html").** `src/renderer/src/fonts.css` — a new
+single entry point importing all 16 families from `@fontsource` (the maintained ecosystem
+package set for self-hosting Google fonts), imported FIRST from `main.js` so Vite emits one
+extracted stylesheet that is in `<head>` at first paint. The font `<link>` and both `preconnect`
+hints are gone from `index.html`, replaced by comments recording why nothing external may go back.
+
+**Which families + why all of them:** every family the Appearance picker offers is
+user-selectable, and a missing file silently degrades to a system font — so the set is the kit's
+8 `UI_FONTS` + 7 `DISPLAY_FONTS` (`common/services/appearance.js:29-48`) plus Spline Sans Mono
+for `--font-mono`. Per-family weights mirror EXACTLY what the old Google URL requested, so
+rendering is unchanged. **Inter was added:** the picker offered it but the Google link never
+loaded it — choosing Inter silently got you the system sans. A latent bug, now closed.
+
+**STATIC packages, not variable — the load-bearing call.** `@fontsource-variable/*` declares its
+families as `'Fraunces Variable'`, `'Geist Variable'`, … while every stack in the SHARED kit
+(`appearance.js`) and in `tokens.css` names the plain family. Variable packages would mean
+renaming those stacks in code **JustVoice also consumes** — a shared-contract change that is the
+user's decision, not a side effect of self-hosting. Static packages declare the plain names, so
+nothing else changed. **The cost, flagged not buried:** the old URL requested optical-size axes
+for Fraunces (9..144), Newsreader (6..72) and Source Serif 4 (8..60); static cuts carry no opsz
+axis, so very large display text is fractionally less optically tuned. Reversible: switch the
+packages and rename the stacks in the kit (+ JV parity).
+
+**How verified (production build, headless Chromium against `vite preview`):**
+- **0 external requests** on load — measured on the request event, not inferred.
+- **16/16 families actually RENDER from the bundle** — each `document.fonts.load()`ed then
+  width-probed against a forced fallback (a first probe that skipped the explicit load raced the
+  lazy unicode-range load and reported false negatives; the honest method is load-then-measure).
+- 256 `@font-face` rules registered, 242 woff2 files emitted, 20 woff responses on the splash
+  route — all local.
+- `dist/index.html` contains **zero** googleapis/gstatic references outside comments; the only
+  two `<link rel=stylesheet>` are local assets. `build:vite` clean.
+
+**Also fixed in this pass:** `index.html` still carried the false "your words never leave it"
+privacy claim that commit `7b71572` removed from its `App.vue` twin — it was shipping in the
+first thing a user sees, from a file that was simultaneously calling Google.
+
+**Still open (own go):** the 245 KB `splash-book.jpg` (encode smaller / preload) and the
+`#app-boot` → `.jw-bootwarm` mount handoff. With fonts local the dominant cause is gone; whether
+any flicker remains is the user's next look.
+
+## 22. MODEL CATALOG LAYOUT (2026-07-24) — and a regression this pass caused
+
+Four defects behind "the catalog reads cramped/misaligned" (`LuModelCatalog.vue`): cells were
+`vertical-align: middle`, so one-line Type/License/Bench/Fit badges floated mid-row against
+5-7-line Model cells, level with nothing → **top-aligned** to the model name; the Status cell's
+`DownloadBar` had a min-width and no max, so a failed download's ~120-char unbroken URL forced
+the column far past 210 px and swamped the row → **capped at 300 px with break-anywhere**,
+scoped to the grid (the shared control is untouched); the list scroller's 260 px showed barely
+1.5 tall rows → `min(58vh, 680px)`, the `AppModal.vue:221` precedent.
+
+**The regression, recorded because it matters more than the fix.** The fourth defect was
+description + notes each carrying their own `max-width: 46ch` while the cell carried `320px` —
+two caps deciding one wrap point. I "consolidated" them onto the cell. **That broke wrapping
+entirely**: `max-width` on a `<td>` is only advisory under `table-layout: auto`, so the notes ran
+as one unwrapped line that shoved every other column into truncation — the user caught it on
+their box within the hour ("row still truncates"). The children were carrying the cap *because
+that is the only place it binds*. Corrected shape: `--mn-cap` declared once on the cell, applied
+to the block children (one number, at the level that actually enforces it) + `overflow-wrap`.
+Lesson worth keeping: "one source of truth" is a rule about VALUES, not about which element the
+value is written on — collapsing a duplicated number onto an element that cannot enforce it is
+not consolidation, it is deletion.
+
+## 23. THE SLOW BOOT, MEASURED — eager httpx clients loading TLS roots (2026-07-24)
+
+**The complaint.** "still 5 seconds before model loading dialog… the load before the model
+should be fairly quick, unless it is doing something i do not know about" — and the user's own
+hypothesis, which was RIGHT to question: "i thought ai stuff was load on demand async".
+
+**Correction to §21 first.** Self-hosting the fonts fixed FIRST PAINT (splash appearing). It did
+NOT address this: the gap between splash and the model dialog. Two different measurements; §21
+targeted the wrong one for this symptom.
+
+**Measured, on this box, isolated server + fresh process (never the user's live :17495):**
+
+```
+server cold start → first /v1/health 200      3813 ms
+  ├─ import justwrite_server.cli              1039 ms   (fastapi 482 · sqlalchemy 283 · llm_runner 154)
+  ├─ create_app()  (DB init + routers)          79 ms
+  ├─ seed_workspace()                          ~900 ms   ← every launch, nothing to insert
+  └─ interpreter + uvicorn listen              remainder
+```
+
+**cProfile on `seed_workspace()` named the culprit exactly:** `_register_seeded_providers` →
+`registry.load_from_configs()` → constructs an adapter for EVERY configured provider →
+4 × `OpenAICompatAdapter.__init__` → `httpx.Client()` → `ssl.create_default_context()` →
+**`load_verify_locations` = 0.844 s across 4 calls.** The server was loading the system CA
+bundle four separate times, at every launch, for adapters whose own charter is LOCAL
+`http://127.0.0.1` servers (llama.cpp / LM Studio / vLLM / Ollama) that never speak TLS.
+
+**Fix.** `_client` becomes a lazily-built property in `openai_compat.py` and `ollama.py` — the
+same #16 lazy-client treatment the cloud SDK adapters already had; these two were simply missed.
+Zero call-site changes (six `self._client.…` uses are unaffected by the property).
+
+**Result, same measurement path:**
+
+```
+seed_workspace()      ~900 ms → 86 ms first call, 7 ms subsequent   (-99%)
+server cold start     3813 ms → 2153 ms                             (-1660 ms, -44%)
+adapter construction  ~210 ms each → 0.0 ms; the cost moves to first request (283 ms, then cached)
+```
+
+**Verified:** runner suite **659 passed**, 1 failure = the known pre-existing Windows
+`test_pci_gpus_linux_lspci_name_match` (Linux-only lspci path, recorded in MORNING_RECAP);
+`test_adapter_extra.py` uncollectable in this sandbox for a missing optional `google` SDK
+(environment gap, not the change). Lazy property proven to defer, cache, and return a real
+client for both adapters.
+
+**Answering the user's architecture question honestly: they were half right.** AI *models* load
+on demand, but AI *config* is on the critical path — `main.js` awaits FIVE calls serially before
+Vue mounts at all: `checkServer` → `bootSettings` → `hydrateProjects` → `bootProviders` →
+`bootRouting`. Each is ~5 ms against a healthy server, so this is not today's bottleneck, but:
+- `bootSettings` → `hydrateProjects` is a REAL dependency (`hydrateProjects` reads the active
+  project id from the settings cache — `stores/project.js:53`). `bootProviders` and
+  `bootRouting` are independent of both and of each other, so those two could run in parallel.
+- **Latent trap:** `providerBackend.js:29` and `routingBackend.js:27` each retry **3× with a
+  700 ms sleep** while their cache stays null. On a healthy box the first attempt succeeds, but
+  any response that fails their shape check silently costs **2.8 s of boot** with no error
+  surfaced — a rig misconfiguration reproduced exactly that here. Worth a guard.
+
+**Still open (own go):** the two renderer items above; ~1 s of unavoidable-looking Python
+imports (fastapi + sqlalchemy dominate); and whether the remaining ~2.1 s can be cut by serving
+`/health` before `seed_workspace()` runs, so the window connects while seeding finishes.
+
+## 24. THE FONT SELF-HOST BROKE `npm run dev` — vite fs.allow (2026-07-24)
+
+**What the user saw.** After §21 shipped, their `npm run dev` console filled with:
+`The request id "…/node_modules/@fontsource/fraunces/files/fraunces-latin-600-normal.woff2" is
+outside of Vite serving allow list` — one per font file. So in DEV the fonts never loaded at
+all, the app fell back to system fonts, and the splash flicker §21 set out to fix was still
+there. The self-host made dev WORSE than the Google link it replaced.
+
+**Cause.** `vite.config.js` sets `root: src/renderer`, and `server.fs.allow` listed only
+`src/renderer`, `docs/` and the kit. Self-hosting made `main.js` import `@fontsource` CSS whose
+`url()`s resolve into `node_modules/@fontsource/*/files/*.woff2` — outside the root, so the dev
+server refused them. Fixed by adding the dependency ROOT (`node_modules`) to the allow list —
+not just `@fontsource`, so the next dependency shipping an asset doesn't fail identically.
+
+**The process failure worth recording.** §21 claimed "verified: 0 external requests, 16/16
+families render". That verification ran against **`vite preview`** — the built bundle, which
+never consults `server.fs.allow`. The user runs **`npm run dev`**. I verified a mode nobody uses
+and reported it as proof. This is the same class of error as testing a copied script instead of
+the real one: the check must run in the configuration the user actually runs.
+
+**Re-verified in DEV this time** (`vite` dev server, headless Chromium, `/v1` routed to an
+isolated server — never the user's :17495): **10 woff2 responses, all HTTP 200, zero allow-list
+errors**, app renders with correct typography.
+
+**NOTE FOR THE USER: `vite.config.js` changes need `npm run dev` RESTARTED** — HMR does not
+reload the dev-server config.
+
+**Catalog layout — still unverified visually, honestly.** The CSS is confirmed correct by
+reading the live file (`--mn-cap: 46ch` on `.lu-mn`; `max-width: var(--mn-cap)` on `.lu-mdesc`
+and `.lu-mnotes`, LuModelCatalog.vue:1247-1258) but the Model Catalog only renders once an
+engine is installed, which the isolated test instance has not got. Two candidate explanations
+for the user still seeing truncation: (a) their session predates the CSS reaching them, or (b)
+the failing `@fontsource` imports disrupted the dev style pipeline while the allow-list bug was
+live. A restart settles it; if it still truncates after one, the CSS is wrong and gets treated
+as such rather than re-explained.
+
+## 25. THE CATALOG TRUNCATION — and the real finding: we hand-rolled a table we already had (2026-07-24)
+
+**The user's question, which is the important part of this section:** *"why dont we use a css
+layout there are so many professional css layout systems without you hand-rolling stuff — i
+asked about this before."* They had asked before (the 2026-07-17 "you keep rolling your own"
+ruling). They are right, and the evidence is worse than they knew:
+
+- The kit ALREADY adopted a professional table: `common/components/UiTable.vue`, a wrapper over
+  **TanStack Vue Table** — headless sort / global filter / pagination, per-column `headerStyle`
+  and `cellStyle`, cell slots, `#empty`, `@row-click`. It is documented in `CLAUDE.md` as a kit
+  primitive.
+- JustWrite's OWN views use it correctly: `AnalysisView.vue`, `ArchitectureView.vue`,
+  `CharactersView.vue`.
+- But **six kit components hand-roll `<table>` instead**: `LuModelCatalog`, `LuClassTunes`,
+  `LuMeasureHistory`, `LuRunnerBinaries`, `AiModelsArea`, `PricingEditor` — each with its own
+  hand-written sort state (`sortKey`/`sortDir`/`toggleSort`) and its own hand-guessed column
+  widths. The catalog's truncation bug is a SYMPTOM of that choice, not an isolated CSS slip.
+
+**What the truncation actually was (measured, after two wrong diagnoses).** Not the notes
+wrapping — those were capping correctly at 287px. The `<table>` had `width: auto` with every
+cell `white-space: nowrap`, so its natural width (measured **1238px**) exceeded its
+`overflow:auto` panel (**1106px**); the right-hand columns were simply pushed out of view and
+the Type badges clipped mid-word. Adding `max-width: 100%` did nothing, because the nowrap
+columns' combined minimum width wins over it.
+
+**Interim fix — proportional, no magic numbers** (the user: *"hardcoding px width height is bad
+coding"*). `table-layout: fixed` + `width: 100%` + per-column SHARES declared once in the
+`COLUMNS` array (34/11/11/7/8/13% + 16% actions). Cells wrap; chips keep their own `nowrap`.
+DELETED in the process: `max-width: 320px`, `max-width: 46ch`/`--mn-cap`, `min-width: 160px`,
+the DownloadBar's `min-width: 210px`/`max-width: 300px`, and the scroller's `260px`
+(→ `58vh`). **Verified by measurement: table 1105px inside a 1106px container — fits exactly,
+`TABLE_WIDER_THAN_CONTAINER: false` — and the notes now wrap to 2-4 lines.**
+
+**The real fix, needing its own go: migrate these six to `UiTable`.** It already provides
+everything each one hand-wrote (sort, filter, column config, empty state). That deletes six
+copies of sort logic and six sets of width guesses, and puts the AI surface on the same
+maintained component the rest of the app uses. Sequence it catalog-first (the most complex —
+section rows, divider rows, the ⋯ menu, per-row DownloadBar), because if UiTable can carry the
+catalog it can carry the other five.
+
+**Process note, recorded because it cost the user three rounds.** I "fixed" this twice on
+reasoning and reported it fixed both times; only the third attempt measured the rendered DOM
+(container vs table width, per-column widths) and found the actual cause. For a layout bug the
+first move is to render it and measure, not to read the CSS and infer. The measurement rig that
+finally worked: isolated server + `vite` dev + Playwright with `/v1` routed to the isolated
+port and the Origin header rewritten (the server's cross-origin guard 403s otherwise), then
+click the built-in provider's **Edit** — the catalog lives inside `ProviderForm.vue:433`, which
+is why earlier probes on `#/ai` never rendered it.
+
+## 26. THE BOOT, MEASURED IN THE USER'S OWN VENV — and why the fix isn't felt (2026-07-24)
+
+**Is the §23 fix even in their code path? YES — verified, not assumed.** The app spawns
+`<repo>/.venv/Scripts/justwrite-server.exe` (`src-tauri/src/lib.rs:406-421`), and that venv's
+`llm_runner` resolves to **`E:\Dev\Web\just-llm-runner\llm_runner`** — the live local repo, an
+editable install. Local source edits are live after a server restart; nothing comes from GitHub
+(the `bundle` extra in `server/pyproject.toml:33` is NOT what this box uses).
+
+**But the numbers differ sharply by interpreter, which is why the fix isn't felt:**
+
+```
+                        sandbox python     USER'S VENV
+cold start → /health      2153 ms           5180 ms
+  imports (cli)           1039 ms           1967 ms   (cold FS cache; ~1030 ms warm)
+  create_app()              79 ms            112 ms
+  seed_workspace()           7 ms            703 ms   (first-time seed = real inserts)
+  interpreter start        144 ms            257 ms
+  uvicorn → listening        —               128 ms
+  exe shim (typer+imports)   —              1424 ms
+```
+
+**So the §23 lazy-client win (~845 ms of CA-bundle loading) is real but is ~16 % of the user's
+5.2 s — invisible in use.** The DOMINANT cost is Python IMPORT time (~2 s: fastapi 208 ms,
+sqlalchemy 226 ms via `api.autosave` 260 ms, llm_runner 134 ms, uvicorn 124 ms, typer 112 ms,
+`data_admin` 105 ms), which is inherent to the stack, not to our code.
+
+**THE BIGGEST LEVER, not yet built (needs a go).** `lib.rs:377-391`: on every launch the app
+**kills any listener on the port and spawns a fresh server** — so every single start pays the
+full ~5.2 s. It evicts deliberately (a stale server would serve stale code), but the check is
+"is the port busy", not "does the running server match this build". If `/v1/health` reported a
+build/version stamp and the app REUSED a healthy matching server, a restart would be near-
+instant. That single change is worth more than everything else here combined.
+
+**Two cheaper wins, also un-built:** (a) start uvicorn listening BEFORE `seed_workspace()` and
+run the seed as a startup task — the window connects ~0.7 s sooner; (b) lazy-import the route
+modules (`api.autosave`, `data_admin`) behind the app factory.
+
+**Sequencing note:** on THIS user's box the seed also fails and retries every boot (§ the stale
+schema finding — 13 failures in one log), so their real-world seed cost is worse than the 703 ms
+measured against a clean data dir.
+
+## 27. RESPONSIVE: the catalog fix was verified at ONE width — the sweep says it isn't fixed (2026-07-24)
+
+The user asked the right question: *"fits exactly no overflow for what screen size? is this app
+progressive?"* §25 claimed "fits exactly" from a SINGLE 1500 px viewport. Sweeping the real
+range (the app's own window floor is `minWidth: 1000`, default 1440×900 —
+`src-tauri/tauri.conf.json:16-19`):
+
+```
+viewport  container  table   verdict        narrowest col   cells overflowing
+ 1000        606      680    OVERFLOW +74      42 px          24
+ 1100        706      764    OVERFLOW +58      49 px          23
+ 1280        886      916    OVERFLOW +30      62 px          14
+ 1440       1046     1050    OVERFLOW +4       73 px          14   ← the DEFAULT window
+ 1600       1206     1205    ok                84 px          none
+ 1920       1526     1525    ok               107 px          none
+ 2560       2166     2165    ok               152 px          none
+```
+
+So the proportional rewrite fixed ≥1600 px and left the **default and minimum window sizes
+still broken**. Cause: `table-layout: fixed` sizes the COLUMNS, but content that cannot shrink
+(the Actions buttons `Edit` / `Load as default` / `⋯`, the status pills) overflows its cell —
+the table box obeys 100 %, the CONTENT does not.
+
+**Responsive posture, for the record:** 17 media queries across 6 ad-hoc breakpoints (600, 640,
+720, 900, 940, 1100) — and three of those (600/640/720) are BELOW the app's own 1000 px minimum
+window, so they can never fire in the desktop app at all. There is no responsive scale, just
+accumulated one-offs.
+
+**This is the case FOR the `UiTable` migration in §25, not a reason to add more CSS:** a
+maintained table gives column sizing, overflow and (if wanted) horizontal scroll as solved
+behaviour instead of six hand-rolled variants each guessing again. Do not paper over the
+≤1440 overflow with more per-column tweaking — that is the loop this bug has already run three
+times.
+
+## 28. OPTION A SHIPPED — deferred vendor-SDK imports: boot 4.1 s → 2.3 s (2026-07-24)
+
+**The finding (from §26's measurement chain).** `registry.load_from_configs()` constructs an
+adapter for EVERY configured provider at boot. The #16 work had made the cloud adapters'
+CLIENTS lazy (`self._client = None`), but each module still imported its vendor SDK at module
+scope, so constructing the adapter pulled in the whole SDK. The server's own log, per provider:
+
+```
+local-llamacpp / openai-compat-local / lmstudio    instant   (already-lazy httpx, §23)
+openai                                            +586 ms   openai_sdk.py:38  import openai
+claude                                            +584 ms   anthropic.py:25   import anthropic
+gemini                                            +918 ms   gemini.py:32-34   from google import genai
+                                                  ────────
+                                                   2,088 ms  of a ~4,100 ms cold start
+```
+
+**The user chose Option A** (defer the imports) over Option B (a lazy registry), because B
+would have moved provider errors from boot to first use and changed what the `registered` flag
+on `/v1/llm-providers` means (`provider_api.py:160` derives it from `registry.ids()`) — a
+product decision, and their call.
+
+**Shipped.** New `llm_runner/llm/_lazy.py` — ONE shared `lazy_module(name)` proxy that imports
+on first ATTRIBUTE ACCESS. The three adapters swap their import line for a proxy assignment;
+**all ~29 vendor call sites are unchanged**, including the `except openai.APIStatusError`
+clauses (an `except` expression is evaluated when an exception is raised, by which point the
+adapter has built its client and the proxy is a cached lookup). `gemini.py`'s
+`-> list[gtypes.Content]` signature is safe because the module has `from __future__ import
+annotations`, so annotations are strings.
+
+**Measured result, user's own venv, same method as the baseline:**
+
+```
+server cold start → /v1/health     4,091-4,327 ms  →  2,212-2,346 ms   (-45%)
+provider registration               2,088 ms       →  all 10 in the SAME millisecond
+```
+
+**Verified:** runner suite on the USER'S VENV — **701 passed**, 1 failed (the known
+pre-existing Windows `test_pci_gpus_linux_lspci_name_match`), identical to the pre-change
+baseline. `ruff` clean on all four touched files.
+
+**What remains of the boot, honestly:** ~1,650 ms is interpreter start plus fastapi /
+sqlalchemy / llm_runner imports before any app code runs. That is inherent to the stack; the
+only way not to pay it per launch is to stop restarting Python every launch (`lib.rs:377-391`
+kills and respawns the server on every start). Unbuilt, and a bigger conversation.
+
+## 29. CATALOG COLUMN SHARES — retuned on the user's read (2026-07-24)
+
+User: *"first column wrap it more, the bench is 2 digits but it is wide"*. Shares in the
+`COLUMNS` array (the one place widths live now):
+
+```
+            before   after
+Model         34%      29%    prose wraps happily; a narrower share just costs a line
+Type          11%      11%
+License       11%      11%
+Bench          7%       5%    two digits; its FLOOR is the "Bench" header + sort caret,
+                              not the data — which is why it cannot go lower
+Fit            8%       7%
+Status        13%      17%
+Actions       16%      20%
+```
+
+**Verified at three widths** (0 overflowing cells, no horizontal scrollbar at any):
+
+```
+1000px   MODEL 257 | TYPE  97 | LICENSE  97 | BENCH 44 | FIT  62 | STATUS 150 | ACTIONS 177
+1440px   MODEL 384 | TYPE 146 | LICENSE 146 | BENCH 66 | FIT  93 | STATUS 225 | ACTIONS 265
+1920px   MODEL 523 | TYPE 198 | LICENSE 198 | BENCH 90 | FIT 126 | STATUS 307 | ACTIONS 361
+```
+
+Screenshot at 1440 confirms the intended read: Model wraps to more lines, Bench is tight.
+**Open to the user's eye:** Type and License still carry visible slack at wide windows (their
+content is one chip each) — say the word and those shares move to Model.
+
+## 30. THE BOOT PLATE — the user's illustration, with the type laid back over it (2026-07-24)
+
+**What the user wanted.** They supplied a finished splash design of their own (an aged-parchment
+title page: dragon, castle, compass, quill + inkwell, stacked books, a JW wax crest) and asked
+for it to BE the splash, with the JW in the brand red. They then supplied the same plate with
+every word removed, and finally with both seals re-struck in **#7a2532** — the JW red already
+in use (`App.vue`'s mark gradient). Recolouring the seals was left to them deliberately: the
+wax has moulded relief and gold highlights baked into a raster, so a CSS overlay would either
+flatten it or need pixel-perfect alignment holding at every window size; a regenerated seal is
+native.
+
+**What shipped.** `src/renderer/src/assets/splash-plate.jpg` (1400x752, **227 KB**, re-encoded
+from a 2.2 MB PNG) is the artwork; every word is HTML on top. The old hand-built plate is gone:
+~90 lines of SVG filigree, the double-rule frame, four positioned corner blocks — and a whole
+block of DEAD computeds (`bookTitle`, `bookAuthor`, `chapterCount`, `bookWords`, `week7`,
+`weekWords`, `weekMax`, `streak`, `fmtNum`, plus the `useSessionsStore` import). Each of those
+had exactly ONE reference — its own definition — because the corners had been frozen to sample
+literals by the 2026-07-22 ruling; they had been computing values nothing rendered ever since.
+`splash-book.jpg` (245 KB) is deleted with the centrepiece it served.
+
+**How the type was placed — measured, not eyeballed.** The first attempt positioned blocks from
+a busyness map of the art (luminance std-dev over a 20x12 grid) and put The Instrument at 55%
+when the design has it at 67.6%. The user then pointed out that the with-text and without-text
+plates are the same composition — so the right method was to **diff them**: align to 1 px,
+threshold the luminance difference at 4 px cells, run connected components, and read off the
+exact box of every original text run. That yielded the transcribed coordinates now in the CSS
+(The Book eyebrow at 17.0%, This Week at 16.5%, wordmark at 28.2%, tagline 35.6%, calligraphy
+41.5%, The Instrument icon 67.6% / eyebrow 72.3% / rows every 3.2%, While You Wait 82.4%,
+privacy line 94.1%). **If the art is ever re-cut, re-run that diff — do not nudge by eye.**
+
+**No px anywhere.** The plate is a container (`container-type: size`); all type is `cqw` (a
+share of the plate's width) and all positions are %, so the page scales as one object. It
+letterboxes against its own sampled edge tone (#d6b689) rather than cropping, so the printed
+frame and corner motifs are never cut.
+
+**The pre-JS twin is GENERATED.** `index.html`'s `#app-boot` CSS is now a mechanical
+translation of `App.vue`'s rules (class rename, then one `#app-boot` prefix per selector), so
+the first paint and the mounted app cannot drift. A hand-rolled first pass produced
+`#app-boot .ab-block.tr #app-boot .ab-ico` — a nested id that can never match, which silently
+dropped the right-aligned icons; caught by rendering the BUILT page with its JS blocked.
+
+**Verified by looking, at both window extremes:** rendered at 1440x900 and at the app's 1000 px
+minimum, plus the built pre-JS page with `assets/*.js` aborted (the true first frame). All four
+corner blocks, both seals, the sparkline and the loader panel sit clear of the illustration.
+`build:vite` clean; no dangling references to the removed classes or asset.
+
+**Honest deviation:** "Write your story" is Fraunces italic, not the copperplate script of the
+mock-up — no script face is bundled and adding one would be a 16th font family, its own call.
+It is the single element that reads differently from the design.
+
+## 31. THE PLATE, CORRECTED AGAINST THE TARGET (2026-07-24)
+
+Three rounds of the user's screenshots drove three fixes. Recording the CAUSES, because each
+was a measuring failure rather than a taste disagreement:
+
+**(a) "you see border you still have it."** The plate was letterboxed (`contain`) and the
+surround filled with a blurred copy of itself. Sampling the user's actual screenshot proved the
+strips were already parchment (#d1ae84 / #dab382) — so the complaint was the SEAM, not the
+colour, and my blur fix had addressed the wrong thing. Now the art is a true `cover` fill: no
+surround exists. **Accepted trade, stated to the user:** `cover` crops, so the text is
+positioned against the WINDOW rather than the artwork's edges — text can never be cropped
+off-screen, but at window shapes far from the art's 1.86 aspect it drifts from where the
+illustration intends it (1.3% at their 1920x1005; ~8% each side at the 1440 default).
+
+**(b) "your text is running into the images."** Cause: my type was 10-20% oversized and the
+heading icons were 2.1cqw against the design's ~1.3cqw, so every block grew and pushed down
+into the illustration. Fixed by measuring the target's actual type off the reference image and
+transcribing it: eyebrow .79cqw, title 1.57, by .93, stat .86, wordmark 2.86, tagline 1.0,
+features .93, tip .93, privacy .86, icons 1.3. Collisions gone at 1920.
+
+**(c) "you didnt even make just write in the same font style."** Two separate faces were wrong.
+The plate's "Write your story" is a formal English roundhand; I had rendered it in Fraunces
+italic, which is a slanted book serif — not the same category of thing. Now **Great Vibes**
+(`@fontsource/great-vibes`, added to `fonts.css`; one extra file, splash-only). The wordmark
+was Fraunces 600 — chunky and low-contrast next to the plate's drawn lettering — now **Playfair
+Display**, a high-contrast display serif already bundled for the Appearance picker, so it costs
+nothing extra.
+
+**Loader** moved twice on the user's direction: from bottom-centre (covering the inkwell) to
+upper-left, then narrower (16.5%) and lower (top 47%) into the open parchment down the left
+side, clear of the castle above and the compass below.
+
+**Verified** at 1920x1005 (the user's window) against their reference side by side. The pre-JS
+twin is regenerated mechanically from App.vue after every change, so the two cannot drift; the
+bundled stylesheet Vite injects into index.html carries both new faces, so the first paint has
+them too.
+
+## 32. FINAL SHAPE — the artwork carries the type; only the loader is HTML (2026-07-24)
+
+**The user's call, after three rounds of trying to rebuild the lettering in HTML:** *"lets just
+try the image with the text already on it since you cant match it, then just put the model in
+the proper place."* Correct call — no bundled face matches the drawn roundhand, and every type
+size had to be reverse-engineered from the reference.
+
+**Their question — "is there any dynamic text in the load that would cause a problem?" —
+answered from the code, not from memory:** no. A grep of `App.vue` shows the ONLY bindings on
+the splash are `:src="splashPlate"` and the loader (`engineTask` / `warmTask` / `DownloadBar` /
+`dismissWarm`). Every word was a static literal, because the 2026-07-22 ruling froze the corners
+to sample text. So baking the lettering into the artwork loses nothing that was ever live.
+
+**What ships.** `splash-plate.jpg` (1400x752, 275 KB) is the whole design. `App.vue` and
+`index.html` hold only: fill the window with the plate, and place the loader. The HTML type
+layer, its four corner blocks, the heading icons and the whole measured type scale are DELETED,
+along with `@fontsource/great-vibes` (added an hour earlier for the script, now unused — removed
+from `fonts.css` and uninstalled). **The lossless original is kept in-repo as
+`splash-plate.source.png`** at the user's instruction, with `assets/README.md` recording the
+re-encode command and why the type is baked.
+
+**The constraint this creates, and the reversal it forced.** With the lettering in the artwork,
+`cover` is no longer safe: at the 1440x900 DEFAULT window it crops ~8% a side, which sliced
+"THE BOOK" to "E BOOK" and clipped "THIS WEEK" — proven by rendering it. That crop was harmless
+while the type was HTML (the type stayed in the viewport); it destroys the design once the type
+is pixels. So the plate is shown WHOLE (`contain`), and the leftover area is filled with the
+same plate over-scaled and blurred, so the surround is more of the same paper rather than a
+flat band. Leftover is 24px a side at 1920x1005 and 63px top/bottom at 1440x900.
+
+**The honest ledger of this whole splash exercise:** cover-vs-contain flipped twice because the
+right answer depends on whether the type is HTML or pixels — a dependency neither of us named
+up front. Once the type moved into the artwork, contain became mandatory, not a preference.
+
+**Verified** at 1920x1005 and 1440x900: whole design visible, loader clear of the illustration
+in the left-hand gap between "The Book" and "The Instrument". `build:vite` clean; no dangling
+references to the removed classes, icons or font.
+
+
+## 33. THE FIT, SETTLED — stretch, not letterbox, not crop (2026-07-24)
+
+The plate's fit flipped three times because each option loses something different, and which
+loss is acceptable changed the moment the lettering moved into the artwork. Recording all three
+so this is never re-litigated:
+
+| fit | band? | crops? | distorts? | verdict |
+|---|---|---|---|---|
+| `contain` | **yes** — 24px a side at 1920x1005, 63px top/bottom at 1440x900 | no | no | rejected by the user three times |
+| `cover` | no | **yes** — ~8% a side at 1440x900, which sliced "THE BOOK" to "E BOOK" | no | unusable once the type is baked into the art |
+| `fill` | no | no | **yes** — 2.6% at 1920x1005, ~14% at 1440x900 | **chosen** |
+
+`fill` is the only one of the three that never loses content. The distortion is imperceptible
+at the user's window (a 2.6% horizontal stretch on a hand-drawn illustration) and grows as the
+window departs from the art's 1.86 aspect; at the 1440x900 default the compass reads slightly
+oval. That was judged the least-bad cost, because the alternatives are a visible band or
+missing words.
+
+**If the oval ever matters:** cut a second plate at the target window's aspect and swap
+`splash-plate.jpg` — `splash-plate.source.png` is in-repo for exactly that, and nothing in the
+code needs to change.

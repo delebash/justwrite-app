@@ -325,6 +325,224 @@
       "featureArgs": {
         "chat": { "question": "What is this book about, and who is the protagonist?", "k": 6, "bibleOnly": true }
       }
+    },
+    {
+      "id": "gpu-styletune",
+      "label": "StyleTune V2 (Gryphe) — the Lab A/B its catalog rank has waited on since 2026-07-06",
+      "_why": [
+        "The community prose-tune of the 26B-A4B, seeded 'ranked below the trusted set until",
+        "a Lab A/B earns them a real rank' (seed.py community-tunes block). This IS that A/B:",
+        "the same battery as gpu-gemma-26b, judged against the same captures. Its handicap is",
+        "honest — a Q4_K_M quant of a non-QAT finetune; if the prose does not beat the flagship",
+        "in the side-by-side reads, the row is REMOVED (user ruling 2026-07-24: every catalog",
+        "row earns its seat by test). ~17.2 GB download on first run. Think-off only — the",
+        "think A/B was settled on the flagship battery (no quality gain, 4-10x TTFT)."
+      ],
+      "model": "gryphe-styletune-v2",
+      "tunables": { "temperature": 0.7, "think": false },
+      "launch": {},
+      "llamaBench": { "p": [512, 2048, 8192], "n": 128, "reps": 2 }
+    },
+    {
+      "id": "gpu-styletune-hq1",
+      "label": "HARD Q1, think OFF — StyleTune (judge vs the gpu-gemma-26b-hq1 ANSWER KEY)",
+      "_why": [
+        "Same hard Q1 + key as gpu-gemma-26b-hq1. Runs 1..3: run 1 is cache-cold (timing only)."
+      ],
+      "model": "gryphe-styletune-v2",
+      "tunables": { "temperature": 0.7, "think": false },
+      "launch": {},
+      "llamaBench": null,
+      "features": ["chat"],
+      "repeats": 3,
+      "featureArgs": {
+        "chat": {
+          "question": "Before the party ever reaches Manufactory Nine, what early signs connect the commission-token to what is inside the Nine, and what do those signs imply about the job? Cite the excerpts.",
+          "k": 6
+        }
+      }
+    },
+    {
+      "id": "gpu-styletune-hq2",
+      "label": "HARD Q2, think OFF — StyleTune (judge vs the gpu-gemma-26b-hq2 ANSWER KEY)",
+      "_why": [
+        "Same hard Q2 + key as gpu-gemma-26b-hq2."
+      ],
+      "model": "gryphe-styletune-v2",
+      "tunables": { "temperature": 0.7, "think": false },
+      "launch": {},
+      "llamaBench": null,
+      "features": ["chat"],
+      "repeats": 3,
+      "featureArgs": {
+        "chat": {
+          "question": "Why did the three earlier parties never come out of Manufactory Nine, and why can Ode Marran remember every turn of the loop when they cannot? Explain the mechanism. Cite the excerpts.",
+          "k": 6
+        }
+      }
+    },
+    {
+      "id": "gpu-uncensored-hh",
+      "label": "Uncensored A/B arm 1 — HauhauCS Q4_K_M (vs gpu-uncensored-ez; winner keeps the catalog row)",
+      "_why": [
+        "The user's 2026-07-24 ruling: 'test both, keep the winner.' Same battery as the",
+        "flagship baseline so refusal behaviour AND ordinary quality are both visible in the",
+        "captures. ~16.8 GB download (its own in-repo MTP drafter adds a small pull).",
+        "Judge ordinary quality vs the gpu-gemma-26b captures; the uncensored PURPOSE",
+        "(dark/gory/adult fiction scenes) needs a manual in-app probe — the bench book has",
+        "no such scene, so do one Writer-AI continue on a dark passage by hand afterwards."
+      ],
+      "model": "gemma-4-26b-a4b-uncensored",
+      "tunables": { "temperature": 0.7, "think": false },
+      "launch": {},
+      "llamaBench": { "p": [512, 2048, 8192], "n": 128, "reps": 2 }
+    },
+    {
+      "id": "gpu-uncensored-hh-hq1",
+      "label": "HARD Q1, think OFF — HauhauCS uncensored (judge vs the gpu-gemma-26b-hq1 ANSWER KEY)",
+      "_why": [
+        "Same hard Q1 + key as gpu-gemma-26b-hq1 — does the ablation cost reasoning?"
+      ],
+      "model": "gemma-4-26b-a4b-uncensored",
+      "tunables": { "temperature": 0.7, "think": false },
+      "launch": {},
+      "llamaBench": null,
+      "features": ["chat"],
+      "repeats": 3,
+      "featureArgs": {
+        "chat": {
+          "question": "Before the party ever reaches Manufactory Nine, what early signs connect the commission-token to what is inside the Nine, and what do those signs imply about the job? Cite the excerpts.",
+          "k": 6
+        }
+      }
+    },
+    {
+      "id": "gpu-uncensored-hh-hq2",
+      "label": "HARD Q2, think OFF — HauhauCS uncensored (judge vs the gpu-gemma-26b-hq2 ANSWER KEY)",
+      "_why": [
+        "Same hard Q2 + key as gpu-gemma-26b-hq2."
+      ],
+      "model": "gemma-4-26b-a4b-uncensored",
+      "tunables": { "temperature": 0.7, "think": false },
+      "launch": {},
+      "llamaBench": null,
+      "features": ["chat"],
+      "repeats": 3,
+      "featureArgs": {
+        "chat": {
+          "question": "Why did the three earlier parties never come out of Manufactory Nine, and why can Ode Marran remember every turn of the loop when they cannot? Explain the mechanism. Cite the excerpts.",
+          "k": 6
+        }
+      }
+    },
+    {
+      "id": "gpu-uncensored-ez",
+      "label": "Uncensored A/B arm 2 — EZForever QAT UD-merge Q4_K_XXL (vs gpu-uncensored-hh)",
+      "_why": [
+        "The other arm of the user's 'test both, keep the winner' ruling. EZForever grafts the",
+        "heretic abliteration onto unsloth's own QAT GGUF (the flagship's exact base) — card-",
+        "published KL 0.0291 / refusal 16%. ~14.3 GB download; its MTP drafter is unsloth's own",
+        "file, ALREADY on disk if the flagship is downloaded. Same judging notes as the hh arm."
+      ],
+      "model": "gemma-4-26b-a4b-uncensored-ez",
+      "tunables": { "temperature": 0.7, "think": false },
+      "launch": {},
+      "llamaBench": { "p": [512, 2048, 8192], "n": 128, "reps": 2 }
+    },
+    {
+      "id": "gpu-uncensored-ez-hq1",
+      "label": "HARD Q1, think OFF — EZForever uncensored (judge vs the gpu-gemma-26b-hq1 ANSWER KEY)",
+      "_why": [
+        "Same hard Q1 + key as gpu-gemma-26b-hq1 — does the ablation cost reasoning?"
+      ],
+      "model": "gemma-4-26b-a4b-uncensored-ez",
+      "tunables": { "temperature": 0.7, "think": false },
+      "launch": {},
+      "llamaBench": null,
+      "features": ["chat"],
+      "repeats": 3,
+      "featureArgs": {
+        "chat": {
+          "question": "Before the party ever reaches Manufactory Nine, what early signs connect the commission-token to what is inside the Nine, and what do those signs imply about the job? Cite the excerpts.",
+          "k": 6
+        }
+      }
+    },
+    {
+      "id": "gpu-uncensored-ez-hq2",
+      "label": "HARD Q2, think OFF — EZForever uncensored (judge vs the gpu-gemma-26b-hq2 ANSWER KEY)",
+      "_why": [
+        "Same hard Q2 + key as gpu-gemma-26b-hq2."
+      ],
+      "model": "gemma-4-26b-a4b-uncensored-ez",
+      "tunables": { "temperature": 0.7, "think": false },
+      "launch": {},
+      "llamaBench": null,
+      "features": ["chat"],
+      "repeats": 3,
+      "featureArgs": {
+        "chat": {
+          "question": "Why did the three earlier parties never come out of Manufactory Nine, and why can Ode Marran remember every turn of the loop when they cannot? Explain the mechanism. Cite the excerpts.",
+          "k": 6
+        }
+      }
+    },
+    {
+      "id": "gpu-gemma-31b",
+      "label": "Gemma 4 31B dense — QUALITY probe on the 8 GB card (the 24 GB tier's default question)",
+      "_why": [
+        "BEST-EFFORT (flagged 2026-07-24): a 31B dense (~17.3 GB) on an 8 GB card runs mostly",
+        "on CPU via computed partial offload — expect single-digit tok/s and LONG walls. That",
+        "is fine: QUALITY is speed-independent, and this leg's captures are what decide whether",
+        "the 31B earns the 24 GB-tier default over the 26B MoE ('Writing rank pending a Lab A/B",
+        "against the 26B-A4B' — its own seed note). Speed on a real 24 GB card is NOT measured",
+        "here (fully-resident dense will be far faster); the fit engine's honest partial-offload",
+        "number is still recorded by llamaBench. If the load refuses outright, this leg fails",
+        "loudly — fall back to a manual llama-cli probe and tell the planner. ~17.3 GB download."
+      ],
+      "model": "gemma-4-31b-qat",
+      "tunables": { "temperature": 0.7, "think": false },
+      "launch": {},
+      "llamaBench": { "p": [512, 2048], "n": 128, "reps": 2 }
+    },
+    {
+      "id": "gpu-gemma-31b-hq1",
+      "label": "HARD Q1, think OFF — 31B dense (judge vs the gpu-gemma-26b-hq1 ANSWER KEY)",
+      "_why": [
+        "Same hard Q1 + key as gpu-gemma-26b-hq1 — the 31B's reasoning vs the 26B MoE's.",
+        "Slow leg (partial offload); repeats 3 like the other hq legs, run overnight."
+      ],
+      "model": "gemma-4-31b-qat",
+      "tunables": { "temperature": 0.7, "think": false },
+      "launch": {},
+      "llamaBench": null,
+      "features": ["chat"],
+      "repeats": 3,
+      "featureArgs": {
+        "chat": {
+          "question": "Before the party ever reaches Manufactory Nine, what early signs connect the commission-token to what is inside the Nine, and what do those signs imply about the job? Cite the excerpts.",
+          "k": 6
+        }
+      }
+    },
+    {
+      "id": "gpu-gemma-31b-hq2",
+      "label": "HARD Q2, think OFF — 31B dense (judge vs the gpu-gemma-26b-hq2 ANSWER KEY)",
+      "_why": [
+        "Same hard Q2 + key as gpu-gemma-26b-hq2."
+      ],
+      "model": "gemma-4-31b-qat",
+      "tunables": { "temperature": 0.7, "think": false },
+      "launch": {},
+      "llamaBench": null,
+      "features": ["chat"],
+      "repeats": 3,
+      "featureArgs": {
+        "chat": {
+          "question": "Why did the three earlier parties never come out of Manufactory Nine, and why can Ode Marran remember every turn of the loop when they cannot? Explain the mechanism. Cite the excerpts.",
+          "k": 6
+        }
+      }
     }
   ]
 }
