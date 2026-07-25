@@ -1,5 +1,14 @@
 # 2026-07-22 — iGPU model research + the CPU-band run: recovered session record
 
+> **⚠ SUPERSEDED IN PART (2026-07-25) — §"The real structural flaw" + "THE REDESIGN" (lines
+> ~462-490) are STALE.** All five parts are done or moot: the pick map was DELETED 2026-07-22
+> (`just-llm-runner/llm_runner/llm/db.py:312-318`), the architecture token exists
+> (`runner/hardware.py:80-90` + the Hardware-type dropdown), and there is **no pending "EXACT
+> GRAMMAR" decision** — users never see the key, they pick a type and type two numbers.
+> Detection is also NOT broken (`hardware.py:123-133`). Detail:
+> `docs/plans/2026-07-25-session-handoff-and-verification-debt.md`.
+
+
 **Provenance.** The morning session of 2026-07-22 (Claude session `ff8f9629-2a8a-4d9a-93fa-c27a4dd6e324`,
 ~09:00–09:59 UTC / ~5:00–6:00 AM local) was accidentally closed by the user before its findings were
 persisted. This doc is the recovery: the full record was extracted from the session transcript on disk

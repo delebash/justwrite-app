@@ -17,6 +17,12 @@
 
 ---
 
+> **⚠ READ FIRST (2026-07-25): this file has NOT been verified against code.** A spot-check of
+> three open items found all three wrong or mischaracterised. The corrections owed — plus every
+> commit from 2026-07-25, what is VERIFIED, and four shipped changes that were never exercised —
+> are in **`docs/plans/2026-07-25-session-handoff-and-verification-debt.md`**. Read that before
+> planning work off this file, and verify each item against the named symbol before trusting it.
+
 ## Now / near-term (JustWrite)
 
 ### A. Shipped + pushed 2026-07-24/25 — your QC is the only thing outstanding
