@@ -196,10 +196,17 @@ committed and pushed — JW `b78337e`, runner `825b9af` + `40737fe`.)*
   from model`. Reproduced on b10107 and **confirmed fixed by `--fit off`** (warning gone, both
   models load). Not our bug, but **our placement strategy walks into it**: `process.py:111` and
   `lifecycle.py:2034` deliberately OMIT ngl/n_cpu_moe on untuned models so the engine's own
-  `--fit` places tensors ("fit-by-omission"). So any UNTUNED Gemma-4 row whose drafter would
-  genuinely help may be silently running without it. The flagship is safe — it is tuned, with
-  explicit ngl. **Not fixed here:** trading `--fit` away is a real VRAM/placement decision, and on
-  StyleTune it would buy 2%. Worth an audit of which catalog rows are untuned + MTP-expecting;
+  `--fit` places tensors ("fit-by-omission").
+  **AUDITED 2026-07-25 — and my first reading of this was WRONG, corrected here.** I wrote that
+  any untuned Gemma-4 row "may be silently running without" its MTP. The catalog says otherwise:
+  `model_tunes` is EMPTY (0 rows) and all 14 `class_tunes` rows belong to `gemma-4-26b-a4b-qat`,
+  so every other row is untuned — yet the untuned `…uncensored-ez` and `…uncensored` measured
+  **60.5%** and **58.9%** draft acceptance. Untuned rows are NOT losing MTP. The real
+  discriminator is WHICH drafter file: every row using its OWN repo's drafter works, `…ez` borrows
+  unsloth's `mtp-…-Q4_0.gguf` and works, and only StyleTune's borrowed
+  `Radamanthys11/…-it-assistant-Q8_0.gguf` was fatal. `--fit` is a real upstream bug and the
+  `--fit off` cure is verified, but it is NOT what was breaking our catalog. **Not fixed here:**
+  trading `--fit` away is a real VRAM/placement decision, and on StyleTune it would buy 2%;
   also worth re-testing on a build newer than b10107 ([#24795](https://github.com/ggml-org/llama.cpp/issues/24795)
   shows this family regressing and being fixed across builds).
 - **Prose/style model survey 2026-07-25 — screened on numbers, only ONE candidate survives.**
