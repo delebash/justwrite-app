@@ -1,0 +1,45 @@
+
+
+Loading model... 
+
+▄▄ ▄▄
+██ ██
+██ ██  ▀▀█▄ ███▄███▄  ▀▀█▄    ▄████ ████▄ ████▄
+██ ██ ▄█▀██ ██ ██ ██ ▄█▀██    ██    ██ ██ ██ ██
+██ ██ ▀█▄██ ██ ██ ██ ▀█▄██ ██ ▀████ ████▀ ████▀
+                                    ██    ██
+                                    ▀▀    ▀▀
+
+build      : b10107-c0bc8591e
+model      : E:\Dev\Web\justwrite-app\bench\speed-kit\models\gemma-4-12B-it-qat-UD-Q4_K_XL.gguf
+ftype      : Q4_0
+modalities : text
+
+available commands:
+  /exit or Ctrl+C     stop or exit
+  /regen              regenerate the last response
+  /clear              clear the chat history
+  /read <file>        add a text file
+  /glob <pattern>     add text files using globbing pattern
+
+
+
+> Write a short paragraph describing an old lighthouse at dusk.
+
+[Start thinking]
+
+An old lighthouse at dusk.
+Short paragraph.
+Evocative, atmospheric, descriptive.
+
+    *   *Lighthouse:* Weathered stone, peeling paint, towering, solitary, beacon, lantern room, iron railing.
+    *   *Dusk:* Twilight, golden hour, indigo, violet, fading light, shadows, mist, salt spray.
+    *   *Setting:* Craggy cliffs, crashing waves, restless ocean, gulls, solitude.
+    *   *Mood:* Melancholy, stoic, watchful, timeless.
+
+    The old
+
+[ Prompt: 68.0 t/s | Generation: 39.1 t/s ]
+
+
+Exiting...

@@ -1,0 +1,43 @@
+
+
+Loading model... 
+
+▄▄ ▄▄
+██ ██
+██ ██  ▀▀█▄ ███▄███▄  ▀▀█▄    ▄████ ████▄ ████▄
+██ ██ ▄█▀██ ██ ██ ██ ▄█▀██    ██    ██ ██ ██ ██
+██ ██ ▀█▄██ ██ ██ ██ ▀█▄██ ██ ▀████ ████▀ ████▀
+                                    ██    ██
+                                    ▀▀    ▀▀
+
+build      : b10107-c0bc8591e
+model      : E:\Dev\Web\justwrite-app\bench\speed-kit\models\gemma-4-E4B-it-qat-UD-Q4_K_XL.gguf
+ftype      : Q4_0
+modalities : text
+
+available commands:
+  /exit or Ctrl+C     stop or exit
+  /regen              regenerate the last response
+  /clear              clear the chat history
+  /read <file>        add a text file
+  /glob <pattern>     add text files using globbing pattern
+
+
+
+> Write a short paragraph describing an old lighthouse at dusk.
+
+[Start thinking]
+
+Here's a thinking process that leads to the suggested paragraph:
+
+1.  **Analyze the Request:** The goal is to write a *short paragraph* describing an *old lighthouse* at *dusk*.
+
+2.  **Identify Key Elements & Sensory Details:**
+    *   **Lighthouse:** Old, sturdy, weathered, stone, tower, spiral staircase, lantern.
+    *   **Dusk:** Transition, fading light, colors (orange, purple, gray), shadows lengthening, cooling air, quiet.
+    *   **Mood:** Melancholy
+
+[ Prompt: 239.8 t/s | Generation: 82.3 t/s ]
+
+
+Exiting...

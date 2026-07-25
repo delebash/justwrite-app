@@ -79,9 +79,24 @@ own, so bigger boxes have something to download. So:
   flagship and the tier-native 27B one click away. One word flips the band recommendation
   if a prose trial (any 24 GB user's, or a slow 2070S quality probe) favors the 27B.
 
-## Open decision (the user's, one left)
+## The last decision — CLOSED same day, by measurement ("jsut do it")
 
-1. **`dgpu-vram8|ram16`** — 12B-offloaded vs E4B-resident; one row either way.
+**`dgpu-vram8|ram16` → the 12B.** The matchup had never been tested anywhere (checked: E4B's
+only number was the Iris Xe laptop's 9.8 tok/s; 12B's only record was FAILING on that same
+weak box; the desktop had screened E2B alone). One quick-screen run on the author's actual
+8 GB card (2070S, b10107) settled it: **12B 39.1 tok/s decode at ngl 99** (6.7 GB — nearly
+resident; the "offloaded and slow" worry was wrong) vs **E4B 82.3 tok/s**. The decision rule
+was the house quality-first precedent — the 8|32 class accepts ~13 tok/s for the better
+writer — and 12B clears that bar 3×, so the better writer takes the row; E4B remains the
+speed rung below it in the catalog. Evidence:
+`bench/results/desktop-rtx-2070s/speed-kit-2026-07-25/`. RAM transfer is clean (dense,
+~1-2 GB spill → honest at ram16). Kit note from the run: the `-Models` filter wants EXACT
+leaf filenames (`download-models.ps1:118`), and `run-bench.ps1` only auto-invokes the
+downloader when the ENGINE is missing — by-hand runs call `download-models.ps1` first.
+
+**The band arc is COMPLETE**: every dGPU band 8→24+, both iGPU classes, and the budget build
+all resolve to a model + config; the 27B is downloadable for 24 GB users; no open decisions
+remain from this survey.
 
 ## Verification
 

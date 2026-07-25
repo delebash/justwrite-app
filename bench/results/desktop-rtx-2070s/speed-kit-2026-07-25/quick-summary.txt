@@ -1,0 +1,5 @@
+QUICK SCREEN SUMMARY  -  engine b10107  -  cutoff 7 tok/s decode
+(which models are worth the hours-long full test; decode = streaming speed)
+
+  run full        82.3 tok/s   gemma-4-E4B-it-qat-UD-Q4_K_XL.gguf
+  run full        39.1 tok/s   gemma-4-12B-it-qat-UD-Q4_K_XL.gguf

@@ -158,8 +158,12 @@ committed and pushed — JW `b78337e`, runner `825b9af` + `40737fe`.)*
     that "borrowed" a 15 GB full model as a draft, caught before commit). 24 GB users now
     have the tier-native option to download; the band RECOMMENDATION stays with the
     flagship (the catalog's own rank-5 best writer, resident at 24) — one word flips it
-    after any prose trial. **One decision left, yours:** `vram8|ram16` (the budget
-    build): 12B-offloaded vs E4B-resident — one row either way.
+    after any prose trial. **The last decision CLOSED by measurement same day
+    ("jsut do it"): `vram8|ram16` → the 12B** — 39.1 tok/s at ngl 99 on the author's
+    actual 8 GB card (nearly resident; E4B did 82.3 but the quality-first bar is ~13),
+    evidence in `bench/results/desktop-rtx-2070s/speed-kit-2026-07-25/`. **The band arc
+    is COMPLETE** — every dGPU band 8→24+, both iGPU classes, and the budget build
+    resolve to a model + config; no open decisions remain from the survey.
 - ✅ **Model download Cancel/Dismiss in the failed + "Getting ready" states — SHIPPED**
   (runner `825b9af`; sat here as open while the same file's section-A header named the sha as
   pushed — tracker staleness the 2026-07-25 audit caught. Verified: the server drops terminal
