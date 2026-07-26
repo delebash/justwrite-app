@@ -12,7 +12,7 @@ import TagEditor from "../components/TagEditor.vue";
 import { promptDialog } from "@delebash/llm-ui";
 import { NEW_ENTITY_META } from "../services/entityMeta.js";
 
-import { UiTable } from "@delebash/llm-ui";
+import EntityIndex from "../components/EntityIndex.vue";
 import { UiInput } from "@delebash/llm-ui";
 import { UiTag } from "@delebash/llm-ui";
 import { UiButton } from "@delebash/llm-ui";
@@ -86,28 +86,6 @@ const rows = computed(() =>
   }),
 );
 
-// Global search + per-facet filter chips. Category and Status are
-// single-select (a row matches if it's in the selected value); Tags is
-// multi-select with ANY-match semantics. Chips live above the table; the
-// table sees pre-filtered rows so UiTable doesn't have to model facets.
-const globalQuery = ref("");
-const selectedCategory = ref(null);
-const selectedStatus = ref(null);
-const selectedTags = ref(new Set());
-
-function onGlobalInput(e) { globalQuery.value = e.target.value; }
-function toggleTag(t) {
-  const next = new Set(selectedTags.value);
-  if (next.has(t)) next.delete(t); else next.add(t);
-  selectedTags.value = next;
-}
-function clearAllFilters() {
-  globalQuery.value = "";
-  selectedCategory.value = null;
-  selectedStatus.value = null;
-  selectedTags.value = new Set();
-}
-
 const categoryOptions = computed(() =>
   project.worldbuildingCategories.map((c) => ({ value: c.id, label: c.label })),
 );
@@ -120,26 +98,20 @@ const allTags = computed(() => {
   return [...set].sort();
 });
 
-// Pre-filter rows by the three facets before handing to UiTable. Global
-// text search stays in UiTable's hands so its filteredRowModel still works.
-const filteredRows = computed(() => {
-  const rs = rows.value;
-  if (!selectedCategory.value && !selectedStatus.value && selectedTags.value.size === 0) return rs;
-  return rs.filter((r) => {
-    if (selectedCategory.value && r.category !== selectedCategory.value) return false;
-    if (selectedStatus.value && r.status !== selectedStatus.value) return false;
-    if (selectedTags.value.size > 0) {
-      const rt = r.tags || [];
-      const hit = rt.some((t) => selectedTags.value.has(t));
-      if (!hit) return false;
-    }
-    return true;
-  });
-});
-
-const hasActiveFacets = computed(() =>
-  !!selectedCategory.value || !!selectedStatus.value || selectedTags.value.size > 0,
-);
+// Declarative facets for the shared EntityIndex — Category and Status are
+// single-select, Tags is multi-select with ANY-match semantics. The filtering,
+// the chip markup and the clear-all live in components/EntityIndex.vue now, not
+// in a private copy per view; global text search stays in UiTable's hands so its
+// filteredRowModel still works.
+const facets = computed(() => [
+  { key: "category", label: "Category", options: categoryOptions.value },
+  { key: "status", label: "Status", options: statusOptions.value },
+  {
+    key: "tags", label: "Tags", multi: true,
+    options: allTags.value.map((t) => ({ value: t, label: t })),
+    match: (row, tag) => (row.tags || []).includes(tag),
+  },
+]);
 
 // UiTable column definitions. Each column's accessorKey ties into the
 // matching slot below (#title, #category, #tags, #status, #words).
@@ -183,8 +155,15 @@ function onRowClick(event) {
       </div>
     </div>
 
-    <div v-else class="pane-card">
-      <div class="scrollarea" style="padding:18px 22px 40px">
+    <EntityIndex v-else
+      :rows="rows"
+      :columns="columns"
+      :facets="facets"
+      :search-fields="['title', 'summary', 'tags']"
+      search-placeholder="Search articles…"
+      empty-text="No articles match your search."
+      @row-click="onRowClick">
+      <template #intro>
         <p class="entity-desc wb-desc" style="padding: 0; margin: 0 0 18px">
           A <strong>worldbuilding article</strong> is long-form reference that doesn't belong on
           a character, location, or object sheet — a magic system, a kingdom's history, an
@@ -192,98 +171,37 @@ function onRowClick(event) {
           freely; AI features that draw on story-world context will reach for the article when
           it's relevant.
         </p>
+      </template>
 
-        <!-- Global search + filter reset -->
-        <div class="entity-toolbar">
-          <span class="entity-search">
-            <Icon name="Search" :size="13" class="entity-search-icon" />
-            <UiInput
-              :value="globalQuery"
-              placeholder="Search articles…"
-              @input="onGlobalInput"
-              class="entity-search-input"
-            />
-          </span>
-          <UiButton v-if="globalQuery || hasActiveFacets" label="Clear filters" intent="ghost" size="small" @click="clearAllFilters" />
-          <span class="entity-count">{{ filteredRows.length }} of {{ rows.length }}</span>
+      <template #title="{ row }">
+        <div class="entity-cell-title">
+          <span class="entity-cell-title-text">{{ row.title }}</span>
+          <span v-if="row.summary" class="wb-cell-title-sum">{{ row.summary }}</span>
         </div>
+      </template>
 
-        <!-- Facet filter chips: Category (single), Status (single), Tags (multi). -->
-        <div class="entity-facets" v-if="categoryOptions.length || statusOptions.length || allTags.length">
-          <div v-if="categoryOptions.length" class="entity-facet">
-            <span class="entity-facet-label">Category</span>
-            <button class="entity-chip" :class="{ active: !selectedCategory }" @click="selectedCategory = null">All</button>
-            <button v-for="c in categoryOptions" :key="c.value"
-              class="entity-chip" :class="{ active: selectedCategory === c.value }"
-              @click="selectedCategory = selectedCategory === c.value ? null : c.value">
-              {{ c.label }}
-            </button>
-          </div>
-          <div v-if="statusOptions.length" class="entity-facet">
-            <span class="entity-facet-label">Status</span>
-            <button class="entity-chip" :class="{ active: !selectedStatus }" @click="selectedStatus = null">All</button>
-            <button v-for="s in statusOptions" :key="s.value"
-              class="entity-chip" :class="{ active: selectedStatus === s.value }"
-              @click="selectedStatus = selectedStatus === s.value ? null : s.value">
-              {{ s.label }}
-            </button>
-          </div>
-          <div v-if="allTags.length" class="entity-facet">
-            <span class="entity-facet-label">Tags</span>
-            <button v-for="t in allTags" :key="t"
-              class="entity-chip" :class="{ active: selectedTags.has(t) }"
-              @click="toggleTag(t)">
-              {{ t }}
-            </button>
-          </div>
+      <template #category="{ row }">
+        <span class="wb-cat" :style="`--h:${row.categoryHue}`">
+          <Icon :name="row.categoryIcon" :size="11" />
+          {{ row.categoryLabel }}
+        </span>
+      </template>
+
+      <template #tags="{ row }">
+        <div class="entity-tags">
+          <UiTag v-for="t in row.tags" :key="t" :value="t" intent="secondary" />
         </div>
+      </template>
 
-        <UiTable
-          :data="filteredRows"
-          :columns="columns"
-          data-key="id"
-          row-hover
-          :global-filter="globalQuery"
-          :global-filter-fields="['title', 'summary', 'tags']"
-          :pagination="{ pageSize: 20, pageSizeOptions: [10, 20, 50, 100] }"
-          class="entity-table"
-          @row-click="onRowClick"
-        >
-          <template #empty>
-            <div class="entity-empty">No articles match your search.</div>
-          </template>
+      <template #status="{ row }">
+        <UiTag v-if="row.status" :value="statusLabel(row.status)" :intent="statusSeverity(row.status)" />
+        <span v-else class="entity-status-empty">—</span>
+      </template>
 
-          <template #title="{ row }">
-            <div class="entity-cell-title">
-              <span class="entity-cell-title-text">{{ row.title }}</span>
-              <span v-if="row.summary" class="wb-cell-title-sum">{{ row.summary }}</span>
-            </div>
-          </template>
-
-          <template #category="{ row }">
-            <span class="wb-cat" :style="`--h:${row.categoryHue}`">
-              <Icon :name="row.categoryIcon" :size="11" />
-              {{ row.categoryLabel }}
-            </span>
-          </template>
-
-          <template #tags="{ row }">
-            <div class="entity-tags">
-              <UiTag v-for="t in row.tags" :key="t" :value="t" intent="secondary" />
-            </div>
-          </template>
-
-          <template #status="{ row }">
-            <UiTag v-if="row.status" :value="statusLabel(row.status)" :intent="statusSeverity(row.status)" />
-            <span v-else class="entity-status-empty">—</span>
-          </template>
-
-          <template #words="{ row }">
-            <span class="wb-words">{{ (row.words || 0).toLocaleString() }}</span>
-          </template>
-        </UiTable>
-      </div>
-    </div>
+      <template #words="{ row }">
+        <span class="wb-words">{{ (row.words || 0).toLocaleString() }}</span>
+      </template>
+    </EntityIndex>
   </template>
 
   <template v-else>

@@ -7,7 +7,7 @@ import { Icon } from "@delebash/llm-ui";
 import { UiButton } from "@delebash/llm-ui";
 import { UiInput } from "@delebash/llm-ui";
 import { UiTag } from "@delebash/llm-ui";
-import { UiTable } from "@delebash/llm-ui";
+import EntityIndex from "../components/EntityIndex.vue";
 import { UiCheckbox } from "@delebash/llm-ui";
 import ImagesModal from "../components/ImagesModal.vue";
 import RichEditor from "../components/RichEditor.vue";
@@ -86,26 +86,16 @@ function deleteGroup() {
 // ── List mode: table + facets ────────────────────────────────────────
 const rows = computed(() => project.groups);
 
-const globalQuery = ref("");
-const selectedStatus = ref(null);
-
-function onGlobalInput(e) { globalQuery.value = e.target.value; }
-function clearAllFilters() {
-  globalQuery.value = "";
-  selectedStatus.value = null;
-}
-
 const statusOptions = computed(() =>
   project.statuses.map((s) => ({ value: s.id, label: s.label })),
 );
 
-const filteredRows = computed(() => {
-  const rs = rows.value;
-  if (!selectedStatus.value) return rs;
-  return rs.filter((r) => r.status === selectedStatus.value);
-});
-
-const hasActiveFacets = computed(() => !!selectedStatus.value);
+// Declarative facets for the shared EntityIndex — the filtering, the chip markup
+// and the clear-all now live there (components/EntityIndex.vue), not in a private
+// copy per view.
+const facets = computed(() => [
+  { key: "status", label: "Status", options: statusOptions.value },
+]);
 
 const columns = [
   { accessorKey: "name",    header: "Name",    sortable: true,  headerStyle: "min-width: 200px" },
@@ -146,75 +136,39 @@ function onRowClick(event) {
       </div>
     </div>
 
-    <div v-else class="pane-card">
-      <div class="scrollarea" style="padding:18px 22px 40px">
+    <EntityIndex v-else
+      :rows="rows"
+      :columns="columns"
+      :facets="facets"
+      :search-fields="['name']"
+      search-placeholder="Search groups…"
+      empty-text="No groups match your search."
+      @row-click="onRowClick">
+      <template #intro>
         <p class="entity-desc" style="margin: 0 0 18px">
           A <strong>group</strong> is a cluster of characters, locations, objects, or narrative
           strands that belong together — a faction, a family, a crew. Members are added from each
           entity's own <strong>Groups</strong> button; shared membership draws edges between
           members in the <strong>Relations</strong> graph.
         </p>
-        <!-- Toolbar -->
-        <div class="entity-toolbar">
-          <span class="entity-search">
-            <Icon name="Search" :size="13" class="entity-search-icon" />
-            <UiInput
-              :value="globalQuery"
-              placeholder="Search groups…"
-              @input="onGlobalInput"
-              class="entity-search-input"
-            />
-          </span>
-          <UiButton v-if="globalQuery || hasActiveFacets" label="Clear filters" intent="ghost" size="small" @click="clearAllFilters" />
-          <span class="entity-count">{{ filteredRows.length }} of {{ rows.length }}</span>
+      </template>
+
+      <template #name="{ row }">
+        <div class="entity-cell-inline">
+          <span v-if="row.color" class="gr-color-dot" :style="{ background: row.color }"></span>
+          <span class="entity-cell-title-text">{{ row.name }}</span>
         </div>
+      </template>
 
-        <!-- Facets -->
-        <div class="entity-facets" v-if="statusOptions.length">
-          <div class="entity-facet">
-            <span class="entity-facet-label">Status</span>
-            <button class="entity-chip" :class="{ active: selectedStatus === null }" @click="selectedStatus = null">All</button>
-            <button v-for="s in statusOptions" :key="s.value"
-              class="entity-chip" :class="{ active: selectedStatus === s.value }"
-              @click="selectedStatus = selectedStatus === s.value ? null : s.value">
-              {{ s.label }}
-            </button>
-          </div>
-        </div>
+      <template #members="{ row }">
+        <span class="gr-member-count">{{ (row.members || []).length }}</span>
+      </template>
 
-        <UiTable
-          :data="filteredRows"
-          :columns="columns"
-          data-key="id"
-          row-hover
-          :global-filter="globalQuery"
-          :global-filter-fields="['name']"
-          :pagination="{ pageSize: 20, pageSizeOptions: [10, 20, 50, 100] }"
-          class="entity-table"
-          @row-click="onRowClick"
-        >
-          <template #empty>
-            <div class="entity-empty">No groups match your search.</div>
-          </template>
-
-          <template #name="{ row }">
-            <div class="entity-cell-inline">
-              <span v-if="row.color" class="gr-color-dot" :style="{ background: row.color }"></span>
-              <span class="entity-cell-title-text">{{ row.name }}</span>
-            </div>
-          </template>
-
-          <template #members="{ row }">
-            <span class="gr-member-count">{{ (row.members || []).length }}</span>
-          </template>
-
-          <template #status="{ row }">
-            <UiTag v-if="row.status" :value="statusLabel(row.status)" :intent="statusSeverity(row.status)" />
-            <span v-else class="entity-status-empty">—</span>
-          </template>
-        </UiTable>
-      </div>
-    </div>
+      <template #status="{ row }">
+        <UiTag v-if="row.status" :value="statusLabel(row.status)" :intent="statusSeverity(row.status)" />
+        <span v-else class="entity-status-empty">—</span>
+      </template>
+    </EntityIndex>
   </template>
 
   <!-- ── Detail mode (id present, group found) ─────────────────── -->

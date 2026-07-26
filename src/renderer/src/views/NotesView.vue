@@ -4,7 +4,7 @@ import { UiInput } from "@delebash/llm-ui";
 import { UiButton } from "@delebash/llm-ui";
 import { UiSelect } from "@delebash/llm-ui";
 import { UiTag } from "@delebash/llm-ui";
-import { UiTable } from "@delebash/llm-ui";
+import EntityIndex from "../components/EntityIndex.vue";
 import { useProjectStore } from "../stores/project.js";
 import { useUiStore } from "../stores/ui.js";
 import { useRoute, useRouter } from "vue-router";
@@ -186,22 +186,6 @@ function deleteNote() {
 }
 
 // ── List mode ────────────────────────────────────────────────────────
-const globalQuery = ref("");
-const selectedTags = ref(new Set());
-const selectedAnchor = ref(null);
-
-function onGlobalInput(e) { globalQuery.value = e.target.value; }
-function toggleTag(t) {
-  const next = new Set(selectedTags.value);
-  if (next.has(t)) next.delete(t); else next.add(t);
-  selectedTags.value = next;
-}
-function clearAllFilters() {
-  globalQuery.value = "";
-  selectedTags.value = new Set();
-  selectedAnchor.value = null;
-}
-
 const allTags = computed(() => {
   const set = new Set();
   for (const note of project.notes) if (note.tag) set.add(note.tag);
@@ -209,20 +193,25 @@ const allTags = computed(() => {
 });
 
 const rows = computed(() => project.notes);
-const filteredRows = computed(() => {
-  const rs = rows.value;
-  if (selectedTags.value.size === 0 && !selectedAnchor.value) return rs;
-  return rs.filter((r) => {
-    if (selectedTags.value.size > 0 && !selectedTags.value.has(r.tag)) return false;
-    if (selectedAnchor.value === "storywide" && r.anchor) return false;
-    if (selectedAnchor.value === "anchored" && !r.anchor) return false;
-    return true;
-  });
-});
-
-const hasActiveFacets = computed(() =>
-  selectedTags.value.size > 0 || !!selectedAnchor.value,
-);
+// Declarative facets for the shared EntityIndex — the filtering, the chip markup
+// and the clear-all now live there (components/EntityIndex.vue), not in a private
+// copy per view. Anchor's options are static, so its row always renders; a note
+// carries ONE `tag`, so the multi-select tests equality, not array membership.
+const facets = computed(() => [
+  {
+    key: "anchor", label: "Anchor",
+    options: [
+      { value: "storywide", label: "Story-wide" },
+      { value: "anchored", label: "Anchored" },
+    ],
+    match: (row, v) => (v === "storywide" ? !row.anchor : !!row.anchor),
+  },
+  {
+    key: "tags", label: "Tags", multi: true,
+    options: allTags.value.map((t) => ({ value: t, label: t })),
+    match: (row, tag) => row.tag === tag,
+  },
+]);
 
 const columns = [
   { accessorKey: "title",   header: "Title",   sortable: true,  headerStyle: "min-width: 200px" },
@@ -261,75 +250,33 @@ function onRowClick(event) {
       </div>
     </div>
 
-    <div v-else class="pane-card">
-      <div class="scrollarea" style="padding:18px 22px 40px">
-        <div class="entity-toolbar">
-          <span class="entity-search">
-            <Icon name="Search" :size="13" class="entity-search-icon" />
-            <UiInput
-              :value="globalQuery"
-              placeholder="Search notes…"
-              @input="onGlobalInput"
-              class="entity-search-input"
-            />
-          </span>
-          <UiButton v-if="globalQuery || hasActiveFacets" label="Clear filters" intent="ghost" size="small" @click="clearAllFilters" />
-          <span class="entity-count">{{ filteredRows.length }} of {{ rows.length }}</span>
+    <EntityIndex v-else
+      :rows="rows"
+      :columns="columns"
+      :facets="facets"
+      :search-fields="['title', 'tag']"
+      search-placeholder="Search notes…"
+      empty-text="No notes match your search."
+      @row-click="onRowClick">
+      <template #title="{ row }">
+        <div class="entity-cell-title">
+          <span class="entity-cell-title-text">{{ row.title }}</span>
         </div>
+      </template>
 
-        <div class="entity-facets">
-          <div class="entity-facet">
-            <span class="entity-facet-label">Anchor</span>
-            <button class="entity-chip" :class="{ active: selectedAnchor === null }" @click="selectedAnchor = null">All</button>
-            <button class="entity-chip" :class="{ active: selectedAnchor === 'storywide' }" @click="selectedAnchor = selectedAnchor === 'storywide' ? null : 'storywide'">Story-wide</button>
-            <button class="entity-chip" :class="{ active: selectedAnchor === 'anchored' }" @click="selectedAnchor = selectedAnchor === 'anchored' ? null : 'anchored'">Anchored</button>
-          </div>
-          <div v-if="allTags.length" class="entity-facet">
-            <span class="entity-facet-label">Tags</span>
-            <button v-for="t in allTags" :key="t"
-              class="entity-chip" :class="{ active: selectedTags.has(t) }"
-              @click="toggleTag(t)">
-              {{ t }}
-            </button>
-          </div>
-        </div>
+      <template #tag="{ row }">
+        <UiTag v-if="row.tag" :value="row.tag" intent="secondary" />
+        <span v-else class="entity-status-empty">—</span>
+      </template>
 
-        <UiTable
-          :data="filteredRows"
-          :columns="columns"
-          data-key="id"
-          row-hover
-          :global-filter="globalQuery"
-          :global-filter-fields="['title', 'tag']"
-          :pagination="{ pageSize: 20, pageSizeOptions: [10, 20, 50, 100] }"
-          class="entity-table"
-          @row-click="onRowClick"
-        >
-          <template #empty>
-            <div class="entity-empty">No notes match your search.</div>
-          </template>
+      <template #anchor="{ row }">
+        <span class="notes-anchor-cell">{{ anchorLabelFor(row) }}</span>
+      </template>
 
-          <template #title="{ row }">
-            <div class="entity-cell-title">
-              <span class="entity-cell-title-text">{{ row.title }}</span>
-            </div>
-          </template>
-
-          <template #tag="{ row }">
-            <UiTag v-if="row.tag" :value="row.tag" intent="secondary" />
-            <span v-else class="entity-status-empty">—</span>
-          </template>
-
-          <template #anchor="{ row }">
-            <span class="notes-anchor-cell">{{ anchorLabelFor(row) }}</span>
-          </template>
-
-          <template #updated="{ row }">
-            <span>{{ row.updated }}</span>
-          </template>
-        </UiTable>
-      </div>
-    </div>
+      <template #updated="{ row }">
+        <span>{{ row.updated }}</span>
+      </template>
+    </EntityIndex>
   </template>
 
   <!-- ── Detail mode (id present, note found) ─────────────────── -->

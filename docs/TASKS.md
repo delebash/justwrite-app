@@ -300,8 +300,23 @@ cell is not an error. Verified to bite: deleting the forwarding fails exactly th
 It also pins a bug the copies would have had — a falsy selection check treats a legitimate
 `false` facet value (Characters' "Main") as "All".
 
-**Remaining.** Migrate Objects · Groups · Notes · Strands · Worldbuilding · Characters, then
-give Chapters its index: `/chapters` with no id → the grid (**# · Title · Part · Status ·
+**Phase 2 — ALL SEVEN VIEWS NOW RUN ON IT.** Locations 359→283 · Objects 357→281 · Groups
+362→316 · Notes 459→406 · Strands 647→600 · Worldbuilding 372→290 · Characters 982→903.
+**~700 lines of duplicated markup and filter logic deleted.** Each view now declares its
+facets as data and keeps only its columns and cell rendering. Two views needed real thought
+rather than a copy: **Strands** bound `tableRows` (a decorated projection of `filteredRows`) —
+now it decorates the RAW rows, since filtering moved inside the component; identical output,
+and the per-row beat/scene counts are computed once per data change instead of per filter.
+**Notes** stores ONE `tag` per row, not an array, so its multi-select facet tests equality
+rather than array membership. Characters exercises the whole surface — five facet rows
+including the boolean `main`.
+⚠ **The renderer smoke did NOT run for this batch** — your app held port 1420 throughout.
+Build, 458 unit tests, the 8 EntityIndex mount tests and i18n lint are all green, and every
+view's intro-paragraph count was diffed against pre-refactor HEAD to prove nothing was
+dropped, but **seven list pages want a human click-through**. They are live in your running
+app via HMR.
+
+**Remaining.** Give Chapters its index: `/chapters` with no id → the grid (**# · Title · Part · Status ·
 Scenes · Words**, facets Status + Part — `allChapters` already decorates rows with `partId`,
 `partTitle` and a live `scenes` count, `project.js:675-682`). The surface description moves
 there, matching `characters.intro`, and Outline keeps a short line of its own. **Sidebar and

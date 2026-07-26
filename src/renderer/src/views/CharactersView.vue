@@ -13,7 +13,7 @@ import { UiNumber } from "@delebash/llm-ui";
 import { UiButton } from "@delebash/llm-ui";
 import { UiSelect } from "@delebash/llm-ui";
 import { UiTag } from "@delebash/llm-ui";
-import { UiTable } from "@delebash/llm-ui";
+import EntityIndex from "../components/EntityIndex.vue";
 import ImagesModal from "../components/ImagesModal.vue";
 import EntitySweepModal from "../components/EntitySweepModal.vue";
 import CharacterAuditModal from "../components/CharacterAuditModal.vue";
@@ -310,28 +310,6 @@ const rows = computed(() =>
   }),
 );
 
-const globalQuery = ref("");
-const selectedStatus = ref(null);
-const selectedMain = ref(null);   // null = All, true = Yes, false = No
-const selectedGender = ref(null);
-const selectedLifeStatus = ref(null);
-const selectedTags = ref(new Set());
-
-function onGlobalInput(e) { globalQuery.value = e.target.value; }
-function toggleTag(t) {
-  const next = new Set(selectedTags.value);
-  if (next.has(t)) next.delete(t); else next.add(t);
-  selectedTags.value = next;
-}
-function clearAllFilters() {
-  globalQuery.value = "";
-  selectedStatus.value = null;
-  selectedMain.value = null;
-  selectedGender.value = null;
-  selectedLifeStatus.value = null;
-  selectedTags.value = new Set();
-}
-
 const statusOptions = computed(() =>
   project.statuses.map((s) => ({ value: s.id, label: s.label })),
 );
@@ -346,25 +324,38 @@ const allTags = computed(() => {
   return [...set].sort();
 });
 
-const filteredRows = computed(() => {
-  const rs = rows.value;
-  if (selectedStatus.value === null && selectedMain.value === null && selectedGender.value === null && selectedLifeStatus.value === null && selectedTags.value.size === 0) return rs;
-  return rs.filter((r) => {
-    if (selectedStatus.value !== null && r.status !== selectedStatus.value) return false;
-    if (selectedMain.value !== null && !!r.main !== selectedMain.value) return false;
-    if (selectedGender.value !== null && r.gender !== selectedGender.value) return false;
-    if (selectedLifeStatus.value !== null && (r.lifeStatus || "") !== selectedLifeStatus.value) return false;
-    if (selectedTags.value.size > 0) {
-      const rt = r.tags || [];
-      if (!rt.some((t) => selectedTags.value.has(t))) return false;
-    }
-    return true;
-  });
-});
-
-const hasActiveFacets = computed(() =>
-  selectedStatus.value !== null || selectedMain.value !== null || selectedGender.value !== null || selectedLifeStatus.value !== null || selectedTags.value.size > 0,
-);
+// Declarative facets for the shared EntityIndex — the filtering, the chip markup
+// and the clear-all live there (components/EntityIndex.vue), not in a private copy
+// per view. This is the busiest facet set in the app (five rows, one of them
+// boolean, one multi-select), which is why EntityIndex was designed against it.
+// NOTE the `main` facet: its values are `true`/`false`, and `false` is a REAL
+// selection, not "All" — EntityIndex compares selections with `=== null` for
+// exactly this reason.
+const facets = computed(() => [
+  { key: "status", label: t("characters.facets.status"), options: statusOptions.value },
+  {
+    key: "main", label: t("characters.facets.main"),
+    options: [
+      { value: true, label: t("common.yes") },
+      { value: false, label: t("common.no") },
+    ],
+    match: (row, v) => !!row.main === v,
+  },
+  {
+    key: "gender", label: t("characters.facets.gender"),
+    options: allGenders.value.map((g) => ({ value: g, label: g })),
+  },
+  {
+    key: "lifeStatus", label: t("characters.facets.lifeStatus"),
+    options: allLifeStatuses.value,
+    match: (row, v) => (row.lifeStatus || "") === v,
+  },
+  {
+    key: "tags", label: t("characters.facets.tags"), multi: true,
+    options: allTags.value.map((tag) => ({ value: tag, label: tag })),
+    match: (row, tag) => (row.tags || []).includes(tag),
+  },
+]);
 
 const allLifeStatuses = computed(() => {
   const set = new Set();
@@ -429,8 +420,15 @@ function onRowClick(event) {
       </div>
     </div>
 
-    <div v-else class="pane-card">
-      <div class="scrollarea" style="padding:18px 22px 40px">
+    <EntityIndex v-else
+      :rows="rows"
+      :columns="columns"
+      :facets="facets"
+      :search-fields="['name', 'role', 'gender', 'pronouns', 'aliases', 'oneLiner', 'tags']"
+      :search-placeholder="$t('characters.list.searchPlaceholder')"
+      :empty-text="$t('characters.list.noMatches')"
+      @row-click="onRowClick">
+      <template #intro>
         <!-- i18n-t + named slots (the user's ruling, 2026-07-26: "i18n-t with slots, no
              html in messages"). The sentence stays ONE translatable unit — the emphasis
              is markup supplied by the template, not by the message. -->
@@ -439,123 +437,46 @@ function onRowClick(event) {
           <template #relations><strong>{{ $t("sidebar.nav.relations") }}</strong></template>
           <template #castPresence><strong>{{ $t("characters.introTerms.castPresence") }}</strong></template>
         </i18n-t>
-        <!-- Toolbar -->
-        <div class="entity-toolbar">
-          <span class="entity-search">
-            <Icon name="Search" :size="13" class="entity-search-icon" />
-            <UiInput
-              :value="globalQuery"
-              :placeholder="$t('characters.list.searchPlaceholder')"
-              @input="onGlobalInput"
-              class="entity-search-input"
-            />
-          </span>
-          <UiButton v-if="globalQuery || hasActiveFacets" :label="$t('common.clearFilters')" intent="ghost" size="small" @click="clearAllFilters" />
-          <span class="entity-count">{{ $t("common.countOf", { shown: filteredRows.length, total: rows.length }) }}</span>
-        </div>
+      </template>
 
-        <!-- Facets -->
-        <div class="entity-facets" v-if="statusOptions.length || allTags.length">
-          <div v-if="statusOptions.length" class="entity-facet">
-            <span class="entity-facet-label">{{ $t("characters.facets.status") }}</span>
-            <button class="entity-chip" :class="{ active: selectedStatus === null }" @click="selectedStatus = null">{{ $t("common.all") }}</button>
-            <button v-for="s in statusOptions" :key="s.value"
-              class="entity-chip" :class="{ active: selectedStatus === s.value }"
-              @click="selectedStatus = selectedStatus === s.value ? null : s.value">
-              {{ s.label }}
-            </button>
-          </div>
-          <div class="entity-facet">
-            <span class="entity-facet-label">{{ $t("characters.facets.main") }}</span>
-            <button class="entity-chip" :class="{ active: selectedMain === null }" @click="selectedMain = null">{{ $t("common.all") }}</button>
-            <button class="entity-chip" :class="{ active: selectedMain === true }" @click="selectedMain = selectedMain === true ? null : true">{{ $t("common.yes") }}</button>
-            <button class="entity-chip" :class="{ active: selectedMain === false }" @click="selectedMain = selectedMain === false ? null : false">{{ $t("common.no") }}</button>
-          </div>
-          <div v-if="allGenders.length" class="entity-facet">
-            <span class="entity-facet-label">{{ $t("characters.facets.gender") }}</span>
-            <button class="entity-chip" :class="{ active: selectedGender === null }" @click="selectedGender = null">{{ $t("common.all") }}</button>
-            <button v-for="g in allGenders" :key="g"
-              class="entity-chip" :class="{ active: selectedGender === g }"
-              @click="selectedGender = selectedGender === g ? null : g">
-              {{ g }}
-            </button>
-          </div>
-          <div v-if="allLifeStatuses.length" class="entity-facet">
-            <span class="entity-facet-label">{{ $t("characters.facets.lifeStatus") }}</span>
-            <button class="entity-chip" :class="{ active: selectedLifeStatus === null }" @click="selectedLifeStatus = null">{{ $t("common.all") }}</button>
-            <button v-for="o in allLifeStatuses" :key="o.value"
-              class="entity-chip" :class="{ active: selectedLifeStatus === o.value }"
-              @click="selectedLifeStatus = selectedLifeStatus === o.value ? null : o.value">
-              {{ o.label }}
-            </button>
-          </div>
-          <div v-if="allTags.length" class="entity-facet">
-            <span class="entity-facet-label">{{ $t("characters.facets.tags") }}</span>
-            <!-- `v-for="t in allTags"` SHADOWS the setup `t` — anything inside this
-                 loop must use $t, never the destructured t (build:vite won't catch it). -->
-            <button v-for="t in allTags" :key="t"
-              class="entity-chip" :class="{ active: selectedTags.has(t) }"
-              @click="toggleTag(t)">
-              {{ t }}
-            </button>
+      <template #name="{ row }">
+        <div class="ch-cell-name">
+          <Avatar :name="row.name" :image="row._avatarImage" :size="28" />
+          <div class="ch-cell-name-text">
+            <span class="ch-cell-name-main">{{ row.name }}</span>
+            <span v-if="row.oneLiner" class="ch-cell-name-sub">{{ row.oneLiner }}</span>
           </div>
         </div>
+      </template>
 
-        <UiTable
-          :data="filteredRows"
-          :columns="columns"
-          data-key="id"
-          row-hover
-          :global-filter="globalQuery"
-          :global-filter-fields="['name', 'role', 'gender', 'pronouns', 'aliases', 'oneLiner', 'tags']"
-          :pagination="{ pageSize: 20, pageSizeOptions: [10, 20, 50, 100] }"
-          class="entity-table"
-          @row-click="onRowClick"
-        >
-          <template #empty>
-            <div class="entity-empty">{{ $t("characters.list.noMatches") }}</div>
-          </template>
+      <template #role="{ row }">
+        <span class="entity-cell-sub">{{ row.role || '' }}</span>
+      </template>
 
-          <template #name="{ row }">
-            <div class="ch-cell-name">
-              <Avatar :name="row.name" :image="row._avatarImage" :size="28" />
-              <div class="ch-cell-name-text">
-                <span class="ch-cell-name-main">{{ row.name }}</span>
-                <span v-if="row.oneLiner" class="ch-cell-name-sub">{{ row.oneLiner }}</span>
-              </div>
-            </div>
-          </template>
+      <template #gender="{ row }">
+        <span class="entity-cell-sub">{{ row.gender || '' }}</span>
+      </template>
 
-          <template #role="{ row }">
-            <span class="entity-cell-sub">{{ row.role || '' }}</span>
-          </template>
+      <template #pronouns="{ row }">
+        <span class="entity-cell-sub">{{ row.pronouns || '' }}</span>
+      </template>
 
-          <template #gender="{ row }">
-            <span class="entity-cell-sub">{{ row.gender || '' }}</span>
-          </template>
+      <template #tags="{ row }">
+        <div class="entity-tags">
+          <UiTag v-for="t in row.tags" :key="t" :value="t" intent="secondary" />
+        </div>
+      </template>
 
-          <template #pronouns="{ row }">
-            <span class="entity-cell-sub">{{ row.pronouns || '' }}</span>
-          </template>
+      <template #status="{ row }">
+        <UiTag v-if="row.status" :value="statusLabel(row.status)" :intent="statusSeverity(row.status)" />
+        <span v-else class="entity-status-empty">—</span>
+      </template>
 
-          <template #tags="{ row }">
-            <div class="entity-tags">
-              <UiTag v-for="t in row.tags" :key="t" :value="t" intent="secondary" />
-            </div>
-          </template>
-
-          <template #status="{ row }">
-            <UiTag v-if="row.status" :value="statusLabel(row.status)" :intent="statusSeverity(row.status)" />
-            <span v-else class="entity-status-empty">—</span>
-          </template>
-
-          <template #main="{ row }">
-            <UiTag v-if="row.main" :value="$t('common.yes')" intent="info" />
-            <span v-else class="entity-status-empty">—</span>
-          </template>
-        </UiTable>
-      </div>
-    </div>
+      <template #main="{ row }">
+        <UiTag v-if="row.main" :value="$t('common.yes')" intent="info" />
+        <span v-else class="entity-status-empty">—</span>
+      </template>
+    </EntityIndex>
   </template>
 
   <!-- ── Detail mode (id present, character found) ────────────── -->

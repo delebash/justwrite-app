@@ -7,7 +7,7 @@ import { Icon } from "@delebash/llm-ui";
 import { UiInput } from "@delebash/llm-ui";
 import { UiButton } from "@delebash/llm-ui";
 import { UiTag } from "@delebash/llm-ui";
-import { UiTable } from "@delebash/llm-ui";
+import EntityIndex from "../components/EntityIndex.vue";
 import { UiCheckbox } from "@delebash/llm-ui";
 import ImagesModal from "../components/ImagesModal.vue";
 import EntitySweepModal from "../components/EntitySweepModal.vue";
@@ -73,24 +73,6 @@ function deleteObject() {
 // ── List mode: table + facets ────────────────────────────────────────
 const rows = computed(() => project.objects);
 
-const globalQuery = ref("");
-const selectedStatus = ref(null);
-const selectedKind = ref(null);
-const selectedTags = ref(new Set());
-
-function onGlobalInput(e) { globalQuery.value = e.target.value; }
-function toggleTag(t) {
-  const next = new Set(selectedTags.value);
-  if (next.has(t)) next.delete(t); else next.add(t);
-  selectedTags.value = next;
-}
-function clearAllFilters() {
-  globalQuery.value = "";
-  selectedStatus.value = null;
-  selectedKind.value = null;
-  selectedTags.value = new Set();
-}
-
 const statusOptions = computed(() =>
   project.statuses.map((s) => ({ value: s.id, label: s.label })),
 );
@@ -106,23 +88,18 @@ const allTags = computed(() => {
   return [...set].sort();
 });
 
-const filteredRows = computed(() => {
-  const rs = rows.value;
-  if (!selectedStatus.value && !selectedKind.value && selectedTags.value.size === 0) return rs;
-  return rs.filter((r) => {
-    if (selectedStatus.value && r.status !== selectedStatus.value) return false;
-    if (selectedKind.value && r.kind !== selectedKind.value) return false;
-    if (selectedTags.value.size > 0) {
-      const rt = r.tags || [];
-      if (!rt.some((t) => selectedTags.value.has(t))) return false;
-    }
-    return true;
-  });
-});
-
-const hasActiveFacets = computed(() =>
-  !!selectedStatus.value || !!selectedKind.value || selectedTags.value.size > 0,
-);
+// Declarative facets for the shared EntityIndex — the filtering, the chip markup
+// and the clear-all now live there (components/EntityIndex.vue), not in a private
+// copy per view. `match` is only needed where the test isn't `row[key] === value`.
+const facets = computed(() => [
+  { key: "kind", label: "Kind", options: allKinds.value.map((k) => ({ value: k, label: k })) },
+  { key: "status", label: "Status", options: statusOptions.value },
+  {
+    key: "tags", label: "Tags", multi: true,
+    options: allTags.value.map((t) => ({ value: t, label: t })),
+    match: (row, tag) => (row.tags || []).includes(tag),
+  },
+]);
 
 const columns = [
   { accessorKey: "name",   header: "Name",   sortable: true,  headerStyle: "min-width: 200px" },
@@ -167,97 +144,44 @@ function onRowClick(event) {
       </div>
     </div>
 
-    <div v-else class="pane-card">
-      <div class="scrollarea" style="padding:18px 22px 40px">
+    <EntityIndex v-else
+      :rows="rows"
+      :columns="columns"
+      :facets="facets"
+      :search-fields="['name', 'tags']"
+      search-placeholder="Search objects…"
+      empty-text="No objects match your search."
+      @row-click="onRowClick">
+      <template #intro>
         <p class="entity-desc" style="margin: 0 0 18px">
           An <strong>object</strong> is a significant prop — a weapon, a letter, a relic, a
           vehicle. File one when the thing carries weight in the plot or recurs across scenes;
           throwaway items don't need an entry. Objects feed the <strong>Relations</strong>
           graph and AI features that draw on story-world context.
         </p>
-        <!-- Toolbar -->
-        <div class="entity-toolbar">
-          <span class="entity-search">
-            <Icon name="Search" :size="13" class="entity-search-icon" />
-            <UiInput
-              :value="globalQuery"
-              placeholder="Search objects…"
-              @input="onGlobalInput"
-              class="entity-search-input"
-            />
-          </span>
-          <UiButton v-if="globalQuery || hasActiveFacets" label="Clear filters" intent="ghost" size="small" @click="clearAllFilters" />
-          <span class="entity-count">{{ filteredRows.length }} of {{ rows.length }}</span>
+      </template>
+
+      <template #name="{ row }">
+        <div class="entity-cell-title">
+          <span class="entity-cell-title-text">{{ row.name }}</span>
         </div>
+      </template>
 
-        <!-- Facets -->
-        <div class="entity-facets" v-if="allKinds.length || statusOptions.length || allTags.length">
-          <div v-if="allKinds.length" class="entity-facet">
-            <span class="entity-facet-label">Kind</span>
-            <button class="entity-chip" :class="{ active: selectedKind === null }" @click="selectedKind = null">All</button>
-            <button v-for="k in allKinds" :key="k"
-              class="entity-chip" :class="{ active: selectedKind === k }"
-              @click="selectedKind = selectedKind === k ? null : k">
-              {{ k }}
-            </button>
-          </div>
-          <div v-if="statusOptions.length" class="entity-facet">
-            <span class="entity-facet-label">Status</span>
-            <button class="entity-chip" :class="{ active: selectedStatus === null }" @click="selectedStatus = null">All</button>
-            <button v-for="s in statusOptions" :key="s.value"
-              class="entity-chip" :class="{ active: selectedStatus === s.value }"
-              @click="selectedStatus = selectedStatus === s.value ? null : s.value">
-              {{ s.label }}
-            </button>
-          </div>
-          <div v-if="allTags.length" class="entity-facet">
-            <span class="entity-facet-label">Tags</span>
-            <button v-for="t in allTags" :key="t"
-              class="entity-chip" :class="{ active: selectedTags.has(t) }"
-              @click="toggleTag(t)">
-              {{ t }}
-            </button>
-          </div>
+      <template #kind="{ row }">
+        <span class="entity-cell-sub">{{ row.kind || '' }}</span>
+      </template>
+
+      <template #tags="{ row }">
+        <div class="entity-tags">
+          <UiTag v-for="t in row.tags" :key="t" :value="t" intent="secondary" />
         </div>
+      </template>
 
-        <UiTable
-          :data="filteredRows"
-          :columns="columns"
-          data-key="id"
-          row-hover
-          :global-filter="globalQuery"
-          :global-filter-fields="['name', 'tags']"
-          :pagination="{ pageSize: 20, pageSizeOptions: [10, 20, 50, 100] }"
-          class="entity-table"
-          @row-click="onRowClick"
-        >
-          <template #empty>
-            <div class="entity-empty">No objects match your search.</div>
-          </template>
-
-          <template #name="{ row }">
-            <div class="entity-cell-title">
-              <span class="entity-cell-title-text">{{ row.name }}</span>
-            </div>
-          </template>
-
-          <template #kind="{ row }">
-            <span class="entity-cell-sub">{{ row.kind || '' }}</span>
-          </template>
-
-          <template #tags="{ row }">
-            <div class="entity-tags">
-              <UiTag v-for="t in row.tags" :key="t" :value="t" intent="secondary" />
-            </div>
-          </template>
-
-          <template #status="{ row }">
-            <UiTag v-if="row.status" :value="statusLabel(row.status)" :intent="statusSeverity(row.status)" />
-            <span v-else class="entity-status-empty">—</span>
-          </template>
-        </UiTable>
-      </div>
-    </div>
+      <template #status="{ row }">
+        <UiTag v-if="row.status" :value="statusLabel(row.status)" :intent="statusSeverity(row.status)" />
+        <span v-else class="entity-status-empty">—</span>
+      </template>
+    </EntityIndex>
   </template>
 
   <!-- ── Detail mode (id present, object found) ───────────────── -->

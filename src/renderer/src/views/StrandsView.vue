@@ -10,7 +10,7 @@ import { UiInput } from "@delebash/llm-ui";
 import { UiSelect } from "@delebash/llm-ui";
 import { UiTextarea } from "@delebash/llm-ui";
 import { UiTag } from "@delebash/llm-ui";
-import { UiTable } from "@delebash/llm-ui";
+import EntityIndex from "../components/EntityIndex.vue";
 import RichEditor from "../components/RichEditor.vue";
 import { EDITOR_TOOLBAR_DOC } from "../services/editorToolbars.js";
 import StatusSelect from "../components/StatusSelect.vue";
@@ -199,26 +199,16 @@ const sortedBeats = computed(() => {
 // ── List mode ────────────────────────────────────────────────────────
 const rows = computed(() => project.strands);
 
-const globalQuery = ref("");
-const selectedStatus = ref(null);
-
-function onGlobalInput(e) { globalQuery.value = e.target.value; }
-function clearAllFilters() {
-  globalQuery.value = "";
-  selectedStatus.value = null;
-}
-
 const statusOptions = computed(() =>
   project.statuses.map((s) => ({ value: s.id, label: s.label })),
 );
 
-const filteredRows = computed(() => {
-  const rs = rows.value;
-  if (!selectedStatus.value) return rs;
-  return rs.filter((r) => r.status === selectedStatus.value);
-});
-
-const hasActiveFacets = computed(() => !!selectedStatus.value);
+// Declarative facets for the shared EntityIndex — the filtering, the chip markup
+// and the clear-all now live there (components/EntityIndex.vue), not in a private
+// copy per view.
+const facets = computed(() => [
+  { key: "status", label: "Status", options: statusOptions.value },
+]);
 
 function scenesCountFor(strandId) {
   let count = 0;
@@ -252,7 +242,7 @@ function onRowClick(event) {
 }
 
 const tableRows = computed(() =>
-  filteredRows.value.map((r) => ({
+  rows.value.map((r) => ({
     ...r,
     beats: (r.beats || []).length,
     scenes: scenesCountFor(r.id),
@@ -277,71 +267,34 @@ const tableRows = computed(() =>
       </div>
     </div>
 
-    <div v-else class="pane-card">
-      <div class="scrollarea" style="padding:18px 22px 40px">
-        <div class="entity-toolbar">
-          <span class="entity-search">
-            <Icon name="Search" :size="13" class="entity-search-icon" />
-            <UiInput
-              :value="globalQuery"
-              placeholder="Search narrative strands…"
-              @input="onGlobalInput"
-              class="entity-search-input"
-            />
-          </span>
-          <UiButton v-if="globalQuery || hasActiveFacets" label="Clear filters" intent="ghost" size="small" @click="clearAllFilters" />
-          <span class="entity-count">{{ filteredRows.length }} of {{ rows.length }}</span>
+    <EntityIndex v-else
+      :rows="tableRows"
+      :columns="columns"
+      :facets="facets"
+      :search-fields="['name', 'blurb']"
+      search-placeholder="Search narrative strands…"
+      empty-text="No narrative strands match your search."
+      @row-click="onRowClick">
+      <template #name="{ row }">
+        <div class="entity-cell-inline">
+          <span v-if="row.color" class="strand-name-dot" :style="{ background: row.color }" />
+          <span class="entity-cell-title-text">{{ row.name }}</span>
         </div>
+      </template>
 
-        <div class="entity-facets" v-if="statusOptions.length">
-          <div class="entity-facet">
-            <span class="entity-facet-label">Status</span>
-            <button class="entity-chip" :class="{ active: selectedStatus === null }" @click="selectedStatus = null">All</button>
-            <button v-for="st in statusOptions" :key="st.value"
-              class="entity-chip" :class="{ active: selectedStatus === st.value }"
-              @click="selectedStatus = selectedStatus === st.value ? null : st.value">
-              {{ st.label }}
-            </button>
-          </div>
-        </div>
+      <template #beats="{ row }">
+        <span class="strands-num">{{ row.beats }}</span>
+      </template>
 
-        <UiTable
-          :data="tableRows"
-          :columns="columns"
-          data-key="id"
-          row-hover
-          :global-filter="globalQuery"
-          :global-filter-fields="['name', 'blurb']"
-          :pagination="{ pageSize: 20, pageSizeOptions: [10, 20, 50, 100] }"
-          class="entity-table"
-          @row-click="onRowClick"
-        >
-          <template #empty>
-            <div class="entity-empty">No narrative strands match your search.</div>
-          </template>
+      <template #scenes="{ row }">
+        <span class="strands-num">{{ row.scenes }}</span>
+      </template>
 
-          <template #name="{ row }">
-            <div class="entity-cell-inline">
-              <span v-if="row.color" class="strand-name-dot" :style="{ background: row.color }" />
-              <span class="entity-cell-title-text">{{ row.name }}</span>
-            </div>
-          </template>
-
-          <template #beats="{ row }">
-            <span class="strands-num">{{ row.beats }}</span>
-          </template>
-
-          <template #scenes="{ row }">
-            <span class="strands-num">{{ row.scenes }}</span>
-          </template>
-
-          <template #status="{ row }">
-            <UiTag v-if="row.status" :value="statusLabel(row.status)" :intent="statusSeverity(row.status)" />
-            <span v-else class="entity-status-empty">—</span>
-          </template>
-        </UiTable>
-      </div>
-    </div>
+      <template #status="{ row }">
+        <UiTag v-if="row.status" :value="statusLabel(row.status)" :intent="statusSeverity(row.status)" />
+        <span v-else class="entity-status-empty">—</span>
+      </template>
+    </EntityIndex>
   </template>
 
   <!-- ── Detail mode (id present, strand found) ───────────────── -->
