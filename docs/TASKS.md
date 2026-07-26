@@ -31,7 +31,7 @@
 > server-respawn citation (`lib.rs:377-391`, the port-eviction block). **Not verifiable from
 > code, still open by nature:** B5-2 (a sweep), B5-4 (a visual call), the headless-smoke splash
 > failure (needs a run — the box was busy benching), #256 spell-check (a bare issue reference
-> with no scope anywhere). Earlier record: `docs/plans/2026-07-25-session-handoff-and-verification-debt.md`.
+> with no scope anywhere — since scoped, 2026-07-26: `docs/plans/2026-07-26-writers-editor-gap-research.md`). Earlier record: `docs/plans/2026-07-25-session-handoff-and-verification-debt.md`.
 > The standing rule stands: a tracker line is a claim, not evidence.
 
 ## Now / near-term (JustWrite)
@@ -201,21 +201,25 @@ committed and pushed — JW `b78337e`, runner `825b9af` + `40737fe`.)*
   (#274, `modelPick.js:134-145`) — my "still open" claim was stale. Catalog: 8 chat + 3
   embeds. WATCHLIST: Harrier-27B (MIT, real, no GGUF yet); the KaLM trial fits your 32 GB
   card when it arrives.
-- **THE WRITER'S-EDITOR FEATURE AUDIT (expanded from "#256 spell-check" on the user's ruling,
-  2026-07-26: "that should be expanded to what our editor has and what a writer might need,
-  Word has a bunch of features for our novel writing software — do we need to add any
-  features, like the missing spell check, any AI features that might be missing").** A
-  research pass, findings-first, no building: (a) inventory what OUR editor actually does
-  today (read `RichEditor.vue` + the scene strip + the AI menu — not from memory); (b) compare
-  against what novelists expect from Word/Scrivener/Atticus-class tools — spell-check as the
-  known gap, plus grammar/style, find-and-replace across a book, word-count goals, comments/
-  annotations, track-changes (we have AI strikethroughs — how far do they go?), autocorrect,
-  dictionary/custom words for invented names, readability, focus/typewriter mode, snapshots;
-  (c) the AI side — what a writing AI should offer that we don't (continuity checking,
-  character-voice consistency, pacing analysis, repetition/crutch-word detection, timeline
-  sanity); (d) for each gap: does it belong in a novel tool, is there a maintained library
-  (the survey-first rule), and what would it cost. Output = a ranked gap table for the user to
-  pick from, NOT a build. Feeds `docs/IDEAS.md`.
+- **THE WRITER'S-EDITOR FEATURE AUDIT — RESEARCH DONE 2026-07-26, awaiting your picks.**
+  (Expanded from "#256 spell-check" on your ruling: "what our editor has and what a writer
+  might need, Word has a bunch of features".) Full findings in
+  `docs/plans/2026-07-26-writers-editor-gap-research.md`; the 6 candidate rows are parked in
+  `docs/IDEAS.md` until you pick. The headline: the inventory came back far stronger than
+  the task assumed — find/replace, inline comments, version history, focus/typewriter,
+  goals ring, and a 19-service analysis suite ALL exist (each verified at file:line in the
+  doc), and **no AI-side gap vs the Sudowrite/NovelCrafter class was found**. The real gaps,
+  ranked: **1) spelling+grammar that knows the story bible** (adopt Harper — Apache-2.0
+  offline WASM, `importWords()` fed from the project's own characters/places/coined words;
+  the one medium-effort item; also dissolves today's two-clicks-deep native suggestions,
+  RichEditor.vue:808,822-838), **2) thesaurus** (local public-domain `moby` + AI
+  synonyms-in-context; Datamuse rejected — non-commercial-only license), **3) prose
+  highlights** (surface the styleMetrics/aiTellScanner catalogs we already own as editor
+  decorations — smallest work, highest craft value), **4) name generator** (tiny, on the
+  runner), **5) session/per-chapter targets** (small), **6) dictation** (whisper.cpp —
+  parked). Rejected-with-reasons in doc §5 (autocorrect, track changes, footnotes,
+  read-aloud→JV). All rows are renderer work: bench-gated, and strings/hints ride the i18n
+  machinery once Phase 1 merges.
 
 ### C. Waiting on you to run
 

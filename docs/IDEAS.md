@@ -16,6 +16,22 @@ through).
 
 ## AI / authoring
 
+### The writer's-editor gap table — 6 ranked candidates awaiting picks (2026-07-26)
+
+**The itch:** finish the editor to Word/Scrivener parity where it actually matters for
+novelists. The research is DONE — full inventory + field survey + adoption table in
+`docs/plans/2026-07-26-writers-editor-gap-research.md`; these are its rows, held here
+until the user picks (none scheduled): **1)** spelling+grammar that knows the story bible
+(adopt Harper — Apache-2.0, offline WASM, `importWords()` auto-fed from the project's
+characters/locations/coined words; medium), **2)** thesaurus (local public-domain `moby`
+dataset + an AI "synonyms in context" escalation on the runner; small-medium), **3)**
+prose highlights / linguistic focus (surface the styleMetrics + aiTellScanner catalogs we
+already own as toggleable editor decorations; small, best value-per-work on the list),
+**4)** name generator (tiny writerAI-style feature, saves into Characters), **5)**
+session/per-chapter word targets (small UI over data we already record), **6)** dictation
+(whisper.cpp — parked, unscheduled). Rejected-with-reasons (autocorrect, track changes,
+footnotes, read-aloud→JV) are in the doc §5 so they don't come back as "missing".
+
 ### Ternary Bonsai-27B — a model WATCH, not a buy yet (2026-07-19)
 
 **The itch:** 27B-class quality that fits an 8 GB card. PrismML's Ternary Bonsai-27B
