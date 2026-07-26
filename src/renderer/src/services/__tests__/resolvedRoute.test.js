@@ -134,9 +134,15 @@ describe("useResolvedRoute — write invalidation (chips update without a reload
   // The source-label map is USER-APPROVED copy and the ONE place both budget surfaces
   // (the feature chip's popover + the Lab column's line) read their layer vocabulary
   // from — pinned so a reword can't drift the two apart silently.
+  // The class layer was RENAMED 2026-07-26 ("hardware class default" → "PC class config")
+  // and its literal now lives in kit tuneState.js as CLASS_LAYER_LABEL, imported by
+  // RESOLVED_SOURCE_LABELS — this map had drifted from the catalog badge's wording, which
+  // is what the one-source move fixed. Updating this expectation is the POINT of that
+  // change, not a symptom: the pin still guards the two budget surfaces against drifting
+  // apart, it just guards the new approved words.
   it("maps every resolved-route valueSource to its approved label", () => {
     expect(resolvedSourceLabel("tune")).toBe("your applied config");
-    expect(resolvedSourceLabel("class")).toBe("hardware class default");
+    expect(resolvedSourceLabel("class")).toBe("PC class config");
     expect(resolvedSourceLabel("base")).toBe("global default");
     expect(resolvedSourceLabel("default")).toBe("built-in default");
     expect(resolvedSourceLabel("invalid")).toBe("invalid value");

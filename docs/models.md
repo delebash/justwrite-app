@@ -121,7 +121,7 @@ Setup leaves that preset alone.
 
 After Apply, the done step tells you which launch settings this machine got — **no sweep
 ever starts on its own**. A machine with its **own saved tune** keeps it (a **Re-optimize**
-button asks before overwriting). A machine matching a **built-in hardware class** — a memory
+button asks before overwriting). A machine matching a **built-in PC class** — a memory
 *range* that includes a machine the config was measured on — starts pre-tuned with
 no sweep. A machine with neither runs on the engine's automatic memory fitting and gets two
 optional measured passes: **Quick optimize (~2 min)**, which tries the most likely settings
@@ -163,7 +163,15 @@ this box. Each row shows the model's **type** (*Dense* or *MoE*, plus **MTP** fo
 with multi-token prediction and **Embed** for embedding models), license, live **Fit**
 badge (*Fits* / *Tight* / *CPU* / *Won't fit*), whether it's **Downloaded** or **Not
 downloaded**, and a short description (the parameter count lives in the name and
-description). The model every preset currently uses carries a **Default** badge; the
+description). Under the name, beside the download size, each chat row **states the hardware
+it needs** — *"5.6 GB · needs ~11 GB VRAM + 14 GB RAM"* — so the list answers "what would
+this run on?" without hovering anything. Those are the model's minimum figures, printed as
+real numbers rather than a class name (a class rounds *down*, which would understate a
+requirement). The **Fit** badge's hover says **"Estimated"** in as many words, because a fit
+grade is those figures measured against your card, never a run on your box — and on a model
+nobody has tuned for your class it adds *"not yet tested on your PC class"*. Embedding rows
+are excluded from the needs line: their hover tells the placement story instead (policy runs
+them on the CPU). The model every preset currently uses carries a **Default** badge; the
 embedding model carries an **Embedding** badge. From here you can:
 
 - **Download** a model — fetches the weights onto your machine. Your chat default and the
@@ -201,14 +209,14 @@ embedding model carries an **Embedding** badge. From here you can:
 - **Thinking: the feature asks, the model provides the default.** Every preset's
   **Thinking** control (on its chip or in the Lab — same control, same save) has three
   states: **Off** · **Model default** — think on, following the *selected model's* own
-  budget, resolved live from its layers (your applied config → hardware class default →
+  budget, resolved live from its layers (your applied config → PC class config →
   global launch defaults), nothing copied, so switching models switches the budget
   automatically · **a level** (Low…Max) — this preset's *own* ask, riding the preset no
   matter which model it points at. The line under the control always shows the number
-  that will actually run and where it came from ("this preset", "hardware class
-  default", "your applied config", "global default").
+  that will actually run and where it came from ("this preset", "PC class
+  config", "your applied config", "global default").
 - **The model's own budget is not a launch switch.** The `reasoning_budget` value is
-  layered like any switch (global defaults → your hardware class → your applied config)
+  layered like any switch (global defaults → your PC class config → your applied config)
   but **sent with every request** rather than at launch — changing it applies
   immediately, no reload; its row carries a "per-request" note wherever it appears in
   the Tune & measure dialog. Special values: **0** turns thinking off, **-1** means
@@ -227,7 +235,7 @@ embedding model carries an **Embedding** badge. From here you can:
   Every later load uses it automatically (and each machine keeps its own config, so a data
   folder moved to another computer never applies the wrong numbers). **Applying is a
   deliberate snapshot: the model takes ownership of everything you see.** From that moment
-  it stops following later changes to the global or hardware/model class defaults — what you
+  it stops following later changes to the global launch defaults or the PC class config — what you
   measured is what keeps running (both defaults libraries say so right in their help text).
   If the defaults DO change under an applied config, the dialog tells you the next time you
   open it — *"Defaults have changed since you applied this config — N values differ"* —
@@ -236,9 +244,11 @@ embedding model carries an **Embedding** badge. From here you can:
   **how** the model got its config: **Auto-tuned on this PC ✓** (the sweep's winner, applied
   unedited), **Hand-tuned on this PC ✓**, or **Untuned — using the layered defaults** (the
   badge never claims the config comes from one single layer — the rows themselves show which
-  layer set each value). A model with no config of its own but a saved class config shows a
-  **Hardware/model class default** badge on its **row in the catalog** (tuned rows show their
-  Auto-/Hand-tuned badge there; untuned rows just carry none).
+  layer set each value). A model with no config of its own but a saved PC class config shows a
+  **PC class config** badge on its **row in the catalog** — the badge names your class after it
+  (*"PC class config · 8 GB VRAM · 32 GB RAM"*), and its hover spells the class out as the full
+  range it covers (tuned rows show their Auto-/Hand-tuned badge there; untuned rows just carry
+  none).
   **Remove applied
   config** sits right beside Apply in the dialog's footer — it returns the model to its
   live defaults, also reloading a running model. In the dialog, only the **switch grid scrolls**
@@ -251,8 +261,8 @@ embedding model carries an **Embedding** badge. From here you can:
   **✕ to remove the row**. A removed switch simply isn't sent — the engine handles it its
   own way, exactly like leaving a flag off the command line — and **＋ Add switch** puts
   one in (any engine flag can be typed, even one the catalog doesn't list). Rows sit
-  **grouped under a heading per source** — *Your applied config* · *Hardware/model class
-  default* · *Global launch defaults* · *Computed for this PC* — so "what set this
+  **grouped under a heading per source** — *Your applied config* · *PC class
+  config* · *Global launch defaults* · *Computed for this PC* — so "what set this
   switch?" is answered by the section it sits in (values the engine works out for your
   machine, like GPU layers, are ordinary rows under *Computed for this PC*, and Apply
   keeps them with the rest). Values are plain text or numbers — **hover a row for what
@@ -266,19 +276,26 @@ embedding model carries an **Embedding** badge. From here you can:
   the model's repo publishes. The draft trials are shown for information only and are
   never saved on their own — if a different draft wins on your box, set it on the model
   itself under **Edit → MTP draft**. After a measurement, **Save for
-  hardware class** keeps the config as the shared starting point for **every PC in the same
+  PC class** keeps the config as the shared starting point for **every PC in the same
   memory class** (a machine with its own applied config still wins), and the
-  **"Hardware/model class defaults ↗"** link in the same dialog opens **this model's class
+  **"PC class configs ↗"** link in the same dialog opens **this model's PC class
   config straight in its editor** — your PC's class row when one exists, otherwise a new
   config prefilled with your class — no list to click through; a
   **"Global launch defaults ↗"** link beside it opens the always-on switch bundles the
   same way, so nothing is edited embedded in the Tune dialog itself. The full **library**
-  lives inside the Built-in provider (Edit its row) — the **"Hardware/model class defaults…"** button
+  lives inside the Built-in provider (Edit its row) — the **"PC class configs…"** button
   there opens every saved config in one table where **each row is one model × one PC
   class** (there is no single tune covering all models; adding a config there starts with
   picking the model), with **Copy**/**Import** to share a config between users as a small
   piece of text; while you edit or import there, the editor takes the screen by itself and
-  Cancel brings the table back. **A class is a memory *range*, not one exact machine** —
+  Cancel brings the table back. **Every other chat model is listed under the class too**,
+  behind one line — *"N more models — not tested on this class"* — that opens to show each
+  one reading plainly **no switches**, with an **Add switches** button that opens the same
+  editor already pointed at that model and class. Nothing is created by listing them: a
+  config *is* its switch rows, so a model with none genuinely has nothing stored, and the
+  panel now says so instead of leaving the model out. (Embedding models are left out on
+  purpose — policy places them on the CPU, so a memory-class config would not apply.)
+  **A class is a memory *range*, not one exact machine** —
   the panel names the range it covers (*"8–11 GB VRAM · 32 or 48 GB RAM"*), and the top
   one reads *"24 GB VRAM and above"*, so a 10 GB card and a 32 GB card each land in a
   class without needing one of their own. Your PC is matched to the nearest class at or
@@ -288,7 +305,7 @@ embedding model carries an **Embedding** badge. From here you can:
   good**: the
   **Measurement history** drawer in the same dialog lists each **Load & measure** run and
   each auto-tune trial — when, with which settings, and how fast — and survives closing the
-  dialog and restarting the app; **Clear history** empties it (applied configs and class
+  dialog and restarting the app; **Clear history** empties it (applied configs and PC class
   configs are never touched by a clear).
 - **Add model** — point at any Hugging Face GGUF repo and click **Load model info from HF**
   (right under the repo field, above the quant picker): the form lists the repo's
@@ -370,7 +387,7 @@ one empty and that side embeds raw. If you edit a template after building an ind
 > a server that hasn't loaded anything yet (models load on first use by design).
 >
 > Under the catalog, two buttons open the other editable libraries as dialogs:
-> **Hardware/model class defaults…** (the shared per-PC-class launch configs) and **Global launch
+> **PC class configs…** (the shared per-PC-class launch configs) and **Global launch
 > defaults…** — the always-on switch bundles (all models · MoE · dense · speculative decode)
 > that sit underneath every tune, visible and editable with a Reset. Both libraries carry
 > the same standing note: **models with an applied config keep their saved values** — a

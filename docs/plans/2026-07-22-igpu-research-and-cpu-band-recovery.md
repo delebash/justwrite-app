@@ -1521,3 +1521,180 @@ unaffected either way.
 OPEN: the range labels have not been LOOKED at in the running app (the user's eyes remain the
 look gate); and the §22 escape hatch is now cheaper to exercise — adding a 32 band is one value
 in `hardware.py` plus the JS copy the guard will name.
+
+## 24. "PC CLASS CONFIG" — the rename, the visible floors, and every model listed (2026-07-26, the user's go — "your rec have opus do the work")
+
+What changed, and why it had to. The user hit the same chip three days running and named the
+cause themselves on 2026-07-26: "we keep getting it wrong". Two faults sat on top of each
+other. The catalog is a CHOOSER surface — it is where you decide what to run — and it was
+speaking a TUNER's word, "Hardware/model class default", which describes the storage layer
+rather than anything a chooser needs to know. And the word "default" was triple-booked on one
+screen: Load as default, Hardware/model class default, and Global launch defaults are three
+unrelated things sharing a noun. The user's direction across that conversation was to rename
+the whole thing everywhere ("PC class config"), to make each catalog row's hardware story
+visible without hovering ("when i look at list i have no idea what hardware it might run on"),
+to show EVERY model under a class with the untested ones honestly bare ("just for those not
+tested they have no switches"), to present correct information and simply inform ("long as we
+present user with correct info … we just need to inform user") — and, mid-turn, "dont over
+engineer", which killed the provenance-schema branch outright. This pass therefore changed
+COPY and DISPLAY only: no schema, no server, no wire, no recommendation-logic change. It
+supersedes the user's own QC-19 anchor wording from 2026-07-08 (their 2026-07-26 direction
+overrides their 2026-07-08 anchor) and it is the resolution of the long-open question of
+whether that chip wording stays.
+
+The rename, and the one-source catch that made it more than a find-and-replace. The
+user-facing noun is now "PC class"; the thing a class holds per model is a "PC class config".
+INTERNALS ARE UNTOUCHED — `class_key`, the `/v1/ai/hardware-class` and `/v1/ai/class-tunes`
+routes, `saveHardwareClass`, the table names, every Python identifier and test name still
+speak the hardware-class vocabulary, and the kit's dev comments about the DATA concept were
+deliberately left alone for that reason. What the rename exposed is that the class layer's
+words existed as TWO independent literals that had ALREADY drifted apart:
+`ui/src/tuneState.js:26` said "Hardware/model class default" while
+`ui/src/composables/useResolvedRoute.js:51` said "hardware class default" — two spellings of
+one layer, in a file whose own comment (`:43-47`) demands one-source for exactly this
+vocabulary. Both now read from a single export, `CLASS_LAYER_LABEL = "PC class config"` in
+`tuneState.js:25`, which `useResolvedRoute.js` imports and which `TuneMeasureModal.vue`'s
+`TUNE_GROUPS` heading also took (that was a THIRD copy of the same words, found while
+editing). The QC-1 law — tags use the real editor name, never an invented shorthand — is
+unchanged and still satisfied, because the library button, both modal titles and the badge all
+renamed in the same pass.
+
+The catalog rows now state their hardware. `LuModelCatalog.vue`'s `rowMeta` appends
+` · needs ~X GB VRAM + Y GB RAM` to the size line of every non-embedding row that carries both
+floors, using the existing `gb()` formatter on `m.minVramMb`/`m.minRamMb` — fields that
+already rode the fit-shaped rows, which is why this needed no wire change at all. The numbers
+are RAW, never a class key: a class band rounds DOWN, which is safe when describing a PC but
+would UNDERSTATE a requirement. Embedding rows are excluded because their line has a different
+story to tell (policy places them on the CPU). The cell's `title="Download size"` was falsified
+by the addition and became "Download size, and the minimum hardware it runs on". In the same
+spirit of not overclaiming, the Fit hover's needs-VRAM branch now opens with "Estimated —" and,
+on an untuned non-embedding row, closes with " · not yet tested on your PC class". That prefix
+and suffix apply to that ONE branch: the cpu, unknown, no-floor and embed-placement returns
+above it are already whole sentences, and appending a fragment to them would splice against
+Ruling 6. The stale Recommended tooltip — still describing the curated hardware-class map
+DELETED on 2026-07-22 — was rewritten to what the rule actually is now.
+
+Every model, listed under every class. `LuClassTunes.vue` previously rendered only the models
+that HAD a config, which made a class look like it held a short fixed roster. It now shows the
+rest behind one collapsed line — "N more models — not tested on this class" — that opens to a
+row per model reading "no switches" plus an Add switches button opening the EXISTING config
+editor already pointed at (model, class); `startAddConfig` gained an optional `modelId`
+parameter rather than growing a second flow, and the picker stays unlocked because the user
+chose that row, not the app. This creates nothing: a config IS its per-switch rows keyed
+(model_id, class_key, flag_name) — `llm_runner/llm/db.py:435-441`, there is no config-level
+entity — so "not tested = no switches" was ALREADY the stored truth and every model × class was
+already an addressable slot. The panel was merely hiding the empty ones. No floors appear in
+the panel (that would have required a wire change, and "dont over engineer" ruled). Embedding
+models are excluded, and the predicate is the shared singleton's STRICT flag,
+`useCatalogMeta().embeddingById` — never an `/embed/i` name guess, which `bge-m3` defeats.
+
+The one place execution adapted the plan's mechanics. The plan told the executor to read
+`embeddingById` from the `useCatalogMeta` singleton while `LuClassTunes` kept its OWN
+`/v1/ai/model-catalog` fetch for the model list. An independent rules-checker caught what that
+would mean: two live copies of one wire response driving one derived list, with the flag map
+populated only because `ProviderForm.vue:433` happens to co-mount `LuModelCatalog` (which
+refreshes it) under the same `v-if` as the button — so in the per-model mount the map could be
+empty and EVERY embedding model would silently read as "not an embedding", with no error
+anywhere. The fix keeps the closed decision and removes the split: `LuClassTunes` now takes BOTH
+the rows and the flag from the singleton (`const models = catalogRows`), calling its `refresh()`
+only when the shared rows are empty, so the fetch count is unchanged and the component no longer
+depends on a sibling having mounted first. The not-tested list is also gated to the GLOBAL mount:
+in the per-model mount `tunes` is filtered to one model, so every OTHER model would falsely read
+as untested.
+
+How verified. Biome exit 0 on all twelve changed kit files. JustWrite vitest **458 passed / 50
+files, zero failures** — one pinned string was updated as part of the change and that update is
+the POINT, not a symptom: `resolvedRoute.test.js:139` pinned `resolvedSourceLabel("class")` to
+"hardware class default", the very literal whose drift from the badge motivated the one-source
+move, and it now pins "PC class config" with a comment recording why. `npm run build:vite` green.
+Runner pytest **667 passed / 9 skipped / 1 failed**, that one failure being the documented Windows
+`test_pci_gpus_linux_lspci_name_match` known-bad; `tests/test_adapter_extra.py` could not be
+COLLECTED at all on this box (`ModuleNotFoundError: No module named 'google'`, a missing optional
+SDK in the global interpreter, on a file this pass never touched) and was excluded from the run —
+a pre-existing environment gap, recorded here rather than waved through. The widened sweep pattern
+`hardware[ /-]?(model )?class|class (default|config|tune)s?` was re-run over `ui/src` after the
+edits: every remaining hit is an internal identifier, an API route, a dated historical user quote,
+or a dev comment about the DATA concept — no user-visible string survives in the old vocabulary.
+
+The per-site rename table (file:line → old → new → kind). `tuneState.js:26` "Hardware/model class
+default" → `CLASS_LAYER_LABEL` = "PC class config" (visible); `tuneState.js:7,21-22` QC-1 comment →
+records the rename (comment). `useResolvedRoute.js:51` "hardware class default" → imported
+`CLASS_LAYER_LABEL` (visible), `:43-47` one-source comment extended (comment).
+`LuModelCatalog.vue:403` class badge title → "No applied config on this PC — launches start from
+the PC class config for your class (<range>)" (visible); `:274-275` fit hover → "Estimated — …"
+plus the not-tested suffix (visible); `:294-298` `rowMeta` → floors appended (visible); `:1039`
+Recommended tooltip → the real rule (visible); `:1042`, `:1046`, `:406-411` comments → new
+vocabulary (comment); `:1047` cell title → "Download size, and the minimum hardware it runs on"
+(visible). `ProviderForm.vue:438` button → "PC class configs…", `:442` modal title → "PC class
+configs — the library" (visible); `:440` caption kept — already correct; `:197` historical user
+quote kept (historical). `TuneMeasureModal.vue:90` group label → `CLASS_LAYER_LABEL` (visible);
+`:344` error → "Couldn't save the PC class config."; `:543` link → "PC class configs ↗" and its
+`:542` title harmonized; `:584` "Saved as the default for PCs like this one" → "Saved as the PC
+class config…"; `:590` button → "Save for PC class"; `:601` popup title → "PC class configs — …"
+(all visible); `:13`, `:17`, `:311`, `:504` comments updated (comment); `:116` historical user
+quote kept (historical). `LuGlobalSwitches.vue:94` and `:126` → "PC class config(s)" (visible);
+`:10` comment kept (data concept). `LuMeasureHistory.vue:73`, `:127` → "PC class configs"
+(visible). `LuClassTunes.vue` — `:302` "Hardware classes" → "PC classes", `:303` caption, `:308`
+definition sentence, `:402-403` empty state (incl. the "Save for PC class" quote, which pins the
+button's new words), `:440` "＋ Add PC class", `:193`/`:205` class errors, `:198-199` delete-class
+confirm, `:122` load error, `:234` toast, `:244-245` delete-config confirm (all visible); `:3-12`
+header comment records the copy/internal split (comment). `ConfigColumn.vue:615` budget-line title
+→ "…→ PC class config →…" (visible); `:23`, `:227` comments (comment). `KnobGrid.vue:20`, `:309`
+comments (comment). `LuFeatureChip.vue:221` comment (comment). `classTunes.js:4`, `:35` quoted
+button copy, `:63` label description (comment); `:2`, `:16`, `:27-29` API/route mentions kept
+(internal). `QuickSetup.vue:62,176,417,504,509,765` and `modelPick.js:151` kept — dev comments
+about the DATA concept, and `modelPick.js` is explicitly out of scope. JW `docs/models.md` — the
+catalog-row paragraph (`:162-167`), `:124`, `:204-209`, `:211`, `:230`, `:239-241`, `:254-255`,
+`:268-279`, `:291-292`, `:373` all converted, plus new prose for the floors line and the
+not-tested listing.
+
+The DOC sweep, both repos, enumerated (the post-task checker's T5 catch — the first cut of this
+table reported only `ui/src` and `models.md`, leaving the runner side unstated). The widened
+pattern was run over BOTH `docs/` roots. **just-llm-runner:** `docs/` holds exactly two things —
+`llama-cpp-watch.md` (no hits) and `docs/plans/`, whose seven hits
+(`2026-07-08-big-batch-queue.md`, `2026-07-16-reasoning-budget-house-layering.md`,
+`2026-07-14-feature-override-and-reasoning-plan.md`, `2026-07-14-thinking-budget-design-discussion.md`,
+`2026-07-06-providers-surface-redesign.md`, `2026-07-04-serving-vram-manager-implementation.md`,
+plus this pass's own plan doc) are all dated historical records and stay untouched by charter. The
+one LIVE runner doc carrying the old shorthand is `README.md:19`, outside `docs/` and therefore
+missed by a `docs/`-rooted grep: it read "a model with a **class config for THIS box's class**
+wins — the visible class-tunes library IS the recommendation" and is now converted to "**PC class
+config**" / "the visible PC-class-config library" (visible-doc), while the identifiers around it
+(`classTuneRefs`, `myClassKey`, `classKeyOverride`, the route names) stay internal.
+**justwrite-app:** nine files hit; three are LIVE and all three were handled — `docs/models.md`
+(converted, above), `docs/TASKS.md` (new tracker line + your-box look item), and this recovery doc
+(§24). `docs/ARCHITECTURE.md`'s single hit is the false-positive analysed under OPEN below. The
+remaining five (`2026-07-20-mtp-verify-think-ab-bench.md`, `2026-07-25-per-band-model-survey.md`,
+`2026-07-25-session-handoff-and-verification-debt.md`, `2026-07-22-hardware-class-named-entity.md`,
+`2026-07-08-recap-archive.md`) are historical plan docs, deliberately kept as written records.
+
+One reconciliation on the test baseline: the plan predicted JW vitest at 450 passed / 49 files
+(the §23 figure) and the run reported 458 / 50. The extra file is
+`src/renderer/src/components/__tests__/EntityIndex.test.js`, added by the EntityIndex extraction
+in commit `be258c8` (2026-07-26) — another session's committed work, not anything this pass added.
+No test file was created here, and the only test line touched is the one pin named above.
+
+What would reverse it. The rename is a copy change with one structural piece: `CLASS_LAYER_LABEL`
+in `tuneState.js` is imported by `useResolvedRoute.js` and `TuneMeasureModal.vue`, so reverting
+the words means reverting that export and its three consumers together, plus the JW test pin.
+The catalog floors are self-contained in `rowMeta` + the cell title; the Fit-hover wording is
+self-contained in `fitTitle`'s last return. The not-tested list is the only behavioral addition:
+removing `untestedByClass`, `showUntested`, the template block and the optional `modelId`
+parameter restores the previous panel exactly — but the `useCatalogMeta` row-source convergence
+should NOT be reverted with it, since it removes a duplicate fetch that was a drift hazard on its
+own merits.
+
+OPEN. Nothing here has been LOOKED at in the running app — the user's eyes remain the look gate,
+and the new surfaces (the floors on the row, the "Estimated" hover, the collapsed not-tested line
+and its Add switches prefill) are exactly the kind of change that reads differently in place. Two
+of the plan's own doc claims turned out to be factually wrong and were NOT acted on, and both need
+the planner's call: `justwrite-app/docs/ARCHITECTURE.md:198` "### Model class defaults" is not
+about PC classes at all — it is the per-model-FAMILY thinking-defaults table (reasoning-first /
+hybrid / non-reasoning), so renaming it to the PC vocabulary would have made the doc lie; it was
+left untouched, though the heading now collides with retired wording and may deserve a
+disambiguating rename of its own ("Model family thinking defaults") as a separate decision. And
+`docs/TASKS.md` has no item #214 — the chip-wording question was never tracked as a numbered item
+(the nearest relative is the SHIPPED 2026-07-25 bullet noting the class-default chip now names its
+class), so the resolution was recorded as a new tracker line pointing here instead of editing a
+non-existent one. Finally, nothing in this pass is committed: the planner diff-reviews first and
+the user owns the commit word.
