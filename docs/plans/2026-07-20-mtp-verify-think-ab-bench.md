@@ -1823,3 +1823,103 @@ missing words.
 **If the oval ever matters:** cut a second plate at the target window's aspect and swap
 `splash-plate.jpg` — `splash-plate.source.png` is in-repo for exactly that, and nothing in the
 code needs to change.
+
+## 34. THE CAMPAIGN JUDGED — the 31B verdict + the curation recommendations (2026-07-26)
+
+**What happened.** The full-catalog battery finished on the user's box as four resume runs of
+one leg sequence (07 bible · 08-10 StyleTune · 11-13 EZ · 14-16 31B):
+`2026-07-26_09-13-45` → `09-15-04` → `09-37-45` (died 10:11 with `BENCH ERROR: TypeError:
+fetch failed` after "Couldn't reach the LLM" from 10:04 — nothing was listening on :17495) →
+`2026-07-26_10-13-07-gpu`, which autostarted the server itself and closed the last three legs
+clean: `BENCH DONE — 3 leg(s), 0 failed feature run(s)`, 18/18 feature runs ok, engine b10107
+(cuda12), app `dc43be6`. StyleTune and the uncensored A/B were already SETTLED 2026-07-25
+(TASKS.md ✅ items: StyleTune = second-tier prose row; EZForever kept, HauhauCS removed), so
+this section judges only what remained: **the 31B**, and the big-rig curation decisions.
+
+**The autostart proof (the audit's last drive.js check) — CLOSED.** The Opus bench manager
+verified the "nothing answering" branch fired: PID 15704 `cmd /c .venv\Scripts\python.exe -m
+justwrite_server.cli serve --port 17495` with PPID 21100 = the harness `node bench/harness/run.js
+… --autostart`, created 10:13:07 — the same second as `env.json capturedAt` — and only the
+autostart branch spawns a python child (`bench/harness/lib/drive.js:61-79`). `findPython`
+resolved the project venv, not the stock `F:\Python312` first on PATH, and `/v1/health`
+answered `dbReady: true`. Caveat recorded honestly: the literal log line is RECONSTRUCTED, not
+quoted — the task-output file buffers until process exit and keeps only ~2 KB of tail, so the
+head (where the autostart line printed) was lost in both runs' output files.
+
+**One oddity flagged, cause unverified:** the autostarted venv python (PID 14288) had a child
+PID 23384 running `F:\Python312\python.exe -m justwrite_server.cli serve --port 17495` — the
+stock PATH interpreter — and THAT child owned the three llama-server processes. `cli.py` has no
+reload/re-exec code, so this is most likely a venv trampoline re-exec, and everything ran green
+(the runner imported fine, so the stock interpreter can see the venv's site-packages in this
+arrangement or the re-exec preserved the env) — but it sits directly on the "which Python runs"
+trap in CLAUDE.md and deserves a look before it bites something that DOES depend on the venv.
+
+**The 31B numbers (fresh, `2026-07-26_10-13-07-gpu`).** llama-bench: pp512 60.1 · pp2048 48.8 ·
+tg128 **1.2 tok/s** (partial offload on the 8 GB card; leg peak 7,773 MB VRAM / 24.6 GB RAM).
+MTP acceptance 60.1-65.5% across the three legs. Feature walls: chat 121.0s · characterChat
+106.6s · entitySweep 358.8s · critique 208.9s · continue 191.7s · rewrite 130.3s; hq chat walls
+90-155s at ~1.1s warm TTFT. Interactive use on the 8 GB class is out of the question — but the
+31B question was always QUALITY (speed-independent best-effort probe, §19 item 2), judged
+against the §7 answer keys with the flagship's own judged baseline (§19) as the comparator.
+
+**HQ1 (token↔Nine multi-hop), three runs read in full
+(`15-gpu-gemma-31b-hq1/chat-{1,2,3}.json`): ≈2.5/4, a TIE with the flagship.** All three runs
+make the same three connections — the token's hum "low, and level, and wrong", the
+Concern-seal/receipt suspicion, the eleven-weeks-at-double-pay thread — and every run stops at
+a generic implication ("hidden agenda", "certification of emptiness for a site the Concern
+wants handled quietly"). **None of the three makes the key's central chain — the token hums the
+same note the shop lamp had leaned toward all morning** — which retrieval demonstrably surfaces
+(StyleTune's judged run got exactly that chain, TASKS.md StyleTune verdict). Zero confabulation
+in any run, matching the flagship's character. The key's corroboration point stays unreachable
+for every model (the §19 retrieval-ceiling finding, k=6 chunk lists identical).
+
+**HQ2 (loop-mechanism synthesis), three runs read in full
+(`16-gpu-gemma-31b-hq2/chat-{1,2,3}.json`): ~4/4, a TIE.** Every run has the loop mechanism,
+the forget rule ("anyone who can't feel it forgets the whole turn"), the still-walking-in-nine-
+years consequence, and Ode's deep-Facet exemption; run 1 adds the shard-of-the-Whole/Keystone
+cause, runs 2-3 omit the origin but add the shaft-fold observation detail. The flagship's
+baseline is a clean 4/4 in every run at ~10-15s wall — the 31B matches it at 90-155s.
+
+**Prose, side-by-side vs the flagship's captures (`writerAI.continue-{1,2}`,
+`writerAI.rewrite-1`; flagship baseline `2026-07-22_03-28-55-gpu/01-gpu-gemma-26b`).**
+`continue`: the 31B is modestly richer and more forward-moving — run 1's synesthetic beat ("a
+map of frequencies … a screaming point of light in a sea of gray") is a genuinely better line
+than the flagship's conventional close; run 2 pushes invention further (a vault, the building
+breathing) — more ambitious, also more willing to add scene furniture the excerpt didn't
+establish. `rewrite`: near line-for-line IDENTICAL output to the flagship (both tight rewrites
+of the same passage; "microscopic fracture in her poise" vs "microscopic tremor" is the scale
+of the difference) — at 127.0s vs 9.0s. `characterChat`: clean, in-voice, cited. Net: a real
+but small prose edge on the open-ended feature only, nothing on constrained features.
+
+**RECOMMENDATIONS (presented for the user's ruling — none executed):**
+
+1. **31B as a 24-tier alternative: NO — recommend REMOVE the row.** The evidence: quality TIES
+   the flagship on both hard keys (and misses the one inference StyleTune found), the prose
+   edge is small and confined to `continue`, and at 24 GB the flagship is also fully resident
+   AND far faster (MoE ~4B active vs dense 31B touching every weight). The 24 GB band already
+   has the flagship (recommended) + the tier-native 27B (availability, seeded 2026-07-25). The
+   31B is the same family as the flagship with no measured advantage — unlike the 70B/GLM it
+   was TESTED, so an availability-keep cannot lean on "unknown, research-grounded".
+   Counter-case honestly stated: it is the only tested-clean dense >30B in the catalog, and a
+   24 GB user might value dense-model steadiness; if kept, its notes must say "tested: ties the
+   default on quality".
+2. **70B/GLM: recommend KEEP — the user's own availability ruling covers them.** The
+   2026-07-25 survey correction (per-band survey doc, "CORRECTED same day") established
+   availability-vs-recommendation with the 70B/GLM rows as the NAMED precedent: research-
+   grounded rows for hardware we don't own so bigger boxes have something to download; the
+   campaign produced no evidence against them because no owned box can run them (42 / 67 GB vs
+   32 GB RAM max). Removing them would leave the >24 GB classes nothing, reversing that ruling.
+3. **"The survey's two open decisions" (TASKS.md:257) is a STALE pointer** — both closed the
+   same day the line was written: the 27B row was seeded (availability) and the
+   `dgpu-vram8|ram16` band went to the 12B by measurement; the survey doc's own words: "The
+   band arc is COMPLETE … no open decisions remain from this survey" (survey doc:97-99). What
+   actually remains open from the surveys: the **licence flag** (Goetia/SuperGemma claim
+   apache/MIT but are Gemma-4 derivatives under Google's Gemma ToU — matters only if we BUNDLE;
+   explicitly the user's call) and the **watchlist** (Harrier-27B if a GGUF lands · the KaLM
+   trial on the 32 GB card when it arrives) — watches, not decisions.
+
+**Verify:** every capture cited is in the committed run dirs under
+`bench/results/desktop-rtx-2070s/bench/`; the flagship hq baseline is §19's judged record; the
+StyleTune/EZ verdicts are the TASKS.md ✅ items of 2026-07-25. **Reverse:** the user's rulings
+overwrite recommendations 1-2; a future GGUF/hardware change reopens 3's watches.
+**Open:** the three rulings above; the venv re-exec oddity look; the licence flag on bundling.

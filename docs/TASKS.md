@@ -237,24 +237,23 @@ committed and pushed — JW `b78337e`, runner `825b9af` + `40737fe`.)*
 
 ### C. Waiting on you to run
 
-- **The full-catalog test campaign — READY, and now cheaper (updated 2026-07-25).** Steps:
-  1. **The in-app Reset workspace button** (your catch — it IS the full drill and better
-     than a hand-delete: `POST /v1/data/reset` stops the runner first, true DROP+CREATE so
-     schema drift heals too, reseeds, and preserves your folder-path settings —
-     `data_admin.py:_reset`). ⚠ Books reset with the workspace as always — autosave JSONs
-     + exports are the nets. The fresh seed brings everything from this week in one shot:
-     E4B/E2B rows, the 27B row, band recommendations, the healed StyleTune drafter, the
-     spec_type dropdown, the ez rename.
-  2. Relaunch → `runner pytest` + `npm run test:server` green.
-  3. The bible leg: `npm run bench:gpu -- --legs gpu-gemma-26b-bible` (minutes — the qwen
-     bible leg left with the 35B's catalog row in the 2026-07-25 trim). Running any leg
-     with the app CLOSED via `--autostart` also closes the audit's last drive.js check
-     for free.
-  4. The battery — the hh legs are GONE (A/B settled) and StyleTune/EZ/31B are already on
-     disk, so this is now hours of compute, ~zero new download:
-     `npm run bench:gpu -- --legs gpu-styletune,gpu-styletune-hq1,gpu-styletune-hq2,gpu-uncensored-ez,gpu-uncensored-ez-hq1,gpu-uncensored-ez-hq2,gpu-gemma-31b,gpu-gemma-31b-hq1,gpu-gemma-31b-hq2`
-  5. Hand back the run dir → I judge → the final catalog curation (31B as a 24-tier
-     alternative or not · 70B/GLM keep-or-remove · the survey's two open decisions). §19.
+- **The full-catalog test campaign — RUN + JUDGED 2026-07-26; awaiting your rulings.** The
+  battery ran on your box as four resume runs (bible · StyleTune · EZ · 31B; final run
+  `2026-07-26_10-13-07-gpu`: `BENCH DONE — 3 leg(s), 0 failed feature run(s)`, 18/18 ok,
+  engine b10107). Full judging record: the bench doc §34
+  (`docs/plans/2026-07-20-mtp-verify-think-ab-bench.md`). The `--autostart` drive.js check
+  is CLOSED — the "nothing answering" branch verifiably fired (process tree: the harness
+  owns the server cmd, same-second spawn; `findPython` picked the venv). **Your three
+  rulings owed (§34 recommendations, nothing executed):** ① **31B** — rec REMOVE (quality
+  TIES the flagship on both §7 keys across all six hq captures, prose edge small and
+  `continue`-only; the 24 GB band already holds flagship + the 27B); ② **70B/GLM** — rec
+  KEEP (your availability-vs-recommendation ruling names these rows as its precedent; no
+  owned box can test them); ③ the old "survey's two open decisions" pointer here was STALE
+  — both closed 2026-07-25 (27B seeded · 8|16 band → 12B by measurement); genuinely open
+  instead: the LICENCE flag (Gemma-ToU propagation — matters only if we bundle) + the
+  watchlist (Harrier-27B GGUF · the KaLM trial on your 32 GB card). Also flagged (§34): the
+  autostarted venv python re-exec'd into a `F:\Python312` child that owned the
+  llama-servers — ran green, cause unverified, sits on the "which Python runs" trap.
 - ✅ **Headless smoke splash-aware wait — FIXED 2026-07-26.** The blind `sleep(1500)` raced
   boot, and since the splash landed it could measure the overlay instead of the app. Now
   `waitForBoot()` resolves on a real settled state — the shell (`.app`) or onboarding
