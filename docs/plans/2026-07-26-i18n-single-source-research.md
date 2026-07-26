@@ -113,6 +113,27 @@ the system prompt) — and judge: placeholder survival, glossary obedience, leng
 (UI fit), and read-quality. The verdict decides the default engine; the loser stays as the
 documented alternative.
 
+## THE SHAPE RULING (the user, 2026-07-26, mid-research): a SHARED autotranslate system
+
+*"We should build an autotranslate system that works with any app with this stack or Vue —
+we should be able to use this on JV."* So the pipeline is NOT a JW script: it is a small,
+app-agnostic package living in the shared-stack repo (`just-llm-runner`, beside the kit —
+working name `tools/autotranslate/`), and any Vue app points it at its `i18n/locales/` dir.
+What it owns, ONCE, for every consumer:
+
+- a one-file config per app (locales dir · source lang · target langs · glossary path ·
+  engine endpoint — the bundled runner's OpenAI-compatible URL by default, DeepL-free as
+  the alternative);
+- the shared GLOSSARY format (do-not-translate terms: brand, canonical feature names,
+  per-app additions);
+- delta-only translation (only keys changed since the last run — the idea taken from the
+  GitHub-Actions class);
+- the KEY-PARITY guard (every locale has every key; fail loud) — runnable in any app's CI;
+- orchestration of the actual translation via json-autotranslate's machinery (adopt, don't
+  rewrite: placeholder protection and engine backends are its job).
+
+JW is consumer #1; JV becomes consumer #2 during its convergence pass with zero new design.
+
 ## The build order (falls out of the census)
 
 1. **Coverage first** — convert the ~1,719 JW strings to keys (mechanical, view-by-view,
