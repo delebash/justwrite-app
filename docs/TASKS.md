@@ -354,6 +354,29 @@ committed and pushed — JW `b78337e`, runner `825b9af` + `40737fe`.)*
 
 ## Research (each needs a research pass → plan → build, on its own go)
 
+- **i18n PHASE 1a — 2 of 3 views SHIPPED 2026-07-26** (tooling `7dba767` · SettingsView
+  `078ed88` · ChaptersView `f198229`). Tooling: `i18n:lint` (@intlify no-raw-text),
+  `i18n:report` (vue-i18n-extract), `i18n:pseudo` (the maintained `pseudo-localization`
+  package wrapped so `{…}`/`<…>` survive — pinned by `scripts/i18n-pseudo.test.js`).
+  Baselines: lint 1879 warnings / 70 files; report 0 missing / 111 unused. SettingsView
+  190→8 leftover warnings, ChaptersView 112→1 (all deliberate: decorative glyphs, keycaps,
+  one component-in-sentence block). **REMAINING: CharactersView** (83 template warnings +
+  the 8 script field-descriptor arrays, ~47 entries × label+hint, which must become
+  `computed()`). Plan + all seven rulings:
+  `docs/plans/2026-07-26-i18n-phase1-coverage-plan.md`. **Your veto is still open on the
+  key-naming style and on the first `|` plural pipes now in `en.json`.**
+- ⚠ **THE HEADLESS SMOKE HAS A COVERAGE HOLE — found 2026-07-26, not yet fixed.** It runs
+  against an EMPTY isolated data dir, and with no project the app renders the WELCOME
+  screen for every plain hash route — which is why nearly every route reports the same
+  `chars=1024`. Its per-route `errors=0` therefore proves "no JS error on the welcome
+  screen", NOT that the route's view mounted. Proven by probe: asserting converted
+  SettingsView/ChaptersView text failed on all four checks against the empty dir and passed
+  on all six once the tutorial project was loaded first (click "Try the tutorial project",
+  wait for `.app`). **Fix to consider:** have the smoke seed the tutorial project before the
+  route sweep, so the gate actually exercises the views. Until then a green smoke is weaker
+  evidence than it reads, and any renderer change needs a seeded probe alongside it — the
+  one used here is in the session scratchpad (`i18n-nonempty-probe.mjs`), promote it to
+  `tests/` if this becomes a standing guard.
 - 🎯 **Single-source text system + i18n / translation — THE NEXT BIG TASK** (the user's
   roadmap ruling 2026-07-26: "the main goal is to completely finish JW and all AI stuff,
   then we will work on JV… 12 we need to do and do the full translation research on how we
