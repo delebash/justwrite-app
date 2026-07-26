@@ -208,10 +208,21 @@ additions the industry runs that we hadn't named:
    kit-peer model, and tooling bridges both. Added to the decision sheet rather than
    decided here.
 
-Placed honestly: the docs→hints bridge has no mainstream off-the-shelf equivalent — the
-industry keeps docs and UI strings apart and translates both through the TMS. Ours is a
-small custom extractor justified by a real, recurring drift; everything around it is
-standard practice with named tools.
+Placed honestly — CORRECTED after a dedicated help-industry check (2026-07-26; the first
+pass surveyed translation only and I said so when asked): the help design maps onto THREE
+named, established practices rather than being custom. (1) **Docs-as-code** — help as
+markdown in the repo, built and validated like code: our drawer corpus already is this.
+(2) **Single-sourcing** — a recognized technical-writing discipline (content
+snippets/variables reused across outputs — the [ClickHelp/DITA world](https://medium.com/level-up-web/versioning-of-technical-documents-the-single-sourcing-approach-fd49e249296d)):
+our docs→hints/lede extraction IS single-sourcing at small scale. (3) **Contextual in-app
+help** — [an established pattern](https://document360.com/blog/contextual-in-app-documentation/):
+tag help content with context identifiers so the app surfaces the right article — exactly
+our key⇒anchor deep-link, done in-repo instead of via the SaaS help widgets
+(Docsie/Document360) that sell this to web apps and that a local-first offline desktop app
+could never use. So: no off-the-shelf package to adopt (the packaged versions are
+cloud widgets), but the SHAPE is industry practice with names, not an invention. The only
+piece without any external precedent found is generating the hints INTO the locale files
+specifically so translation composes — and that is a composition choice, not a system.
 
 ## The build order (falls out of the census)
 
