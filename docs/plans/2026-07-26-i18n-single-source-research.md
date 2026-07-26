@@ -113,6 +113,37 @@ the system prompt) — and judge: placeholder survival, glossary obedience, leng
 (UI fit), and read-quality. The verdict decides the default engine; the loser stays as the
 documented alternative.
 
+## THE HELP-SYSTEM HALF, DESIGNED (the user, 2026-07-26: "we also talked about updating
+## the help system, maybe pulling info from docs for the text in the apps — think on this")
+
+The refinement of R2's bridge, by TEXT CLASS — each class has one natural authoring home:
+
+| class | natural source | mechanism |
+|---|---|---|
+| micro-copy (buttons/headers/menus) | locale JSON | plain `$t()` keys — docs would never carry these |
+| **field hints + examples** | **the surface's help DOC** | front-matter `hints:` map → build-time extraction into `hints.*` locale keys |
+| **surface ledes** (the one-sentence page explainer, the don't-cram law) | **the same doc** | front-matter `lede:` → `lede.*` keys — a lede IS the doc's summary, so they can never disagree |
+| help articles | markdown, unchanged | the drawer keeps glob-loading; per-locale docs dirs become possible later |
+| errors/toasts/DB-seeded | code/seed → keys | already on the decision sheet |
+
+The extractor is a SECOND small tool beside autotranslate in the shared tools, under the
+same genericity contract (config = docs dir + front-matter schema + output path; any app
+with a docs folder uses it). It runs at BUILD time — runtime stays plain vue-i18n, no
+markdown parsing in the app. CI contract: a form referencing hint key X fails the build
+unless the doc defines X — form ⇔ doc ⇔ every locale, one chain.
+
+Why generate INTO the locale source: perfect composition with translation, zero special
+cases — docs → extract → `en.json` → autotranslate → `es.json`; a changed hint re-translates
+as an ordinary key delta. The translator never knows docs exist.
+
+THE FREE UPGRADE this buys: once a hint and its doc section share a key, the hint's
+"more…" deep-links the help drawer to that exact doc anchor AUTOMATICALLY — the inline
+hint, the drawer section, and their translations are provably one text family, and the
+"Learn more" affordance can never point at the wrong article.
+
+Deliberately NOT done: no CMS, no runtime markdown parsing, no button labels migrating
+into prose docs. Sequencing unchanged — this IS phase 2 of the build order below.
+
 ## THE SHAPE RULING (the user, 2026-07-26, mid-research): a SHARED autotranslate system
 
 *"We should build an autotranslate system that works with any app with this stack or Vue —
@@ -146,15 +177,55 @@ What the package owns, ONCE, for every consumer:
 
 JW is consumer #1; JV becomes consumer #2 during its convergence pass with zero new design.
 
+## WHAT THE INDUSTRY ACTUALLY DOES (the user, 2026-07-26: "I am sure they have systems
+## that work together so things are repeated and automated as much as possible")
+
+Verified 2026-07-26, and the answer maps almost one-to-one onto the plan — with three
+additions the industry runs that we hadn't named:
+
+1. **Nobody hand-maintains the key inventory.** Static analysis owns it:
+   [`vue-i18n-extract`](https://github.com/Spittal/vue-i18n-extract) scans the code and
+   reports (and can AUTO-ADD) missing keys and flags unused ones; the same intlify lint
+   family has [`no-unused-keys`](https://eslint-plugin-vue-i18n.intlify.dev/rules/no-unused-keys)
+   / [`no-missing-keys`](https://eslint-plugin-vue-i18n.intlify.dev/rules/no-missing-keys)
+   beside `no-raw-text`. ADOPTED: my one-off census retires; extraction tooling becomes the
+   permanent inventory (it also mechanizes a chunk of the 1,719-string conversion —
+   the tool writes the missing keys, the human writes the English).
+2. **Pseudo-localization is the standard pre-translation test** ([practice](https://simplelocalize.io/blog/posts/vue-i18n-localization/)):
+   generate a fake locale (accented, ~30% longer, bracketed) and run the app in it —
+   every hardcoded string glows as plain English, and German-length overflow breaks
+   BEFORE any real translation is bought. ADOPTED as a build-order step between coverage
+   and translation; it is also the honest completion test for the coverage phase.
+3. **At scale the hub is a TMS** (Lokalise/Crowdin/Phrase; self-hosted: Tolgee, Weblate)
+   — code ⇄ TMS ⇄ human translators, MT pretranslation, glossaries, in-context editing.
+   NOT ADOPTED at our scale (solo, local-first, MT+review): the shared autotranslate
+   package IS our hub. Tolgee (self-hostable, in-context click-to-edit) is the recorded
+   upgrade path if human translators ever join.
+4. One real fork in the road the industry splits on — WHERE English lives: central
+   catalogs (our current shape) vs CO-LOCATED messages (per-component `<i18n>` SFC blocks
+   / formatjs-style inline defaults, merged at build). Co-location makes the conversion
+   friendlier (text stays beside its use); central is simpler for the pipeline and the
+   kit-peer model, and tooling bridges both. Added to the decision sheet rather than
+   decided here.
+
+Placed honestly: the docs→hints bridge has no mainstream off-the-shelf equivalent — the
+industry keeps docs and UI strings apart and translates both through the TMS. Ours is a
+small custom extractor justified by a real, recurring drift; everything around it is
+standard practice with named tools.
+
 ## The build order (falls out of the census)
 
-1. **Coverage first** — convert the ~1,719 JW strings to keys (mechanical, view-by-view,
-   the lint guard landing FIRST so progress can't regress). The kit's 613 ride the peer-dep
-   decision. JV's 1,551 wait for the JV pass (the user's roadmap: JV comes after JW).
-2. **Single-source hints second** (the C-bridge) — kills the CharactersView/docs drift.
-3. **Translation third** — pipeline + glossary + languages. Translating before coverage
-   would translate ~12% of the product.
-4. Language switcher (title-bar vs Settings — JV precedent is Settings) + `setUiLocale`
+1. **Coverage first** — convert the ~1,719 JW strings to keys (view-by-view, MECHANIZED:
+   the lint guard lands FIRST so progress can't regress, and `vue-i18n-extract` auto-adds
+   the missing keys so the human work is writing English, not bookkeeping). The kit's 613
+   ride the peer-dep decision. JV's 1,551 wait for the JV pass (the user's roadmap).
+2. **Pseudo-locale gate** — generate the fake locale, run the app in it: remaining
+   hardcoded strings glow as plain English, and length-overflow breaks now instead of
+   after paying for translations. This IS the completion test for phase 1.
+3. **Single-source hints/ledes third** (the docs bridge) — kills the CharactersView/docs
+   drift and buys the automatic "Learn more" deep-links.
+4. **Translation fourth** — the shared autotranslate package + glossary + languages.
+5. Language switcher (title-bar vs Settings — JV precedent is Settings) + `setUiLocale`
    re-call wiring, last.
 
 ## The decision sheet (the user's calls, needed before the BUILD — not before the prototype)
@@ -168,6 +239,10 @@ JW is consumer #1; JV becomes consumer #2 during its convergence pass with zero 
 5. **Server-string policy:** translate in Python (error catalogs) vs map status→key in the
    UI (the `friendlyAiError` layer already intercepts — the cheap path).
 6. **Engine default** — decided by the prototype, blessed by them.
+7. **Where English lives** — central catalogs (today's shape, simpler pipeline) vs
+   co-located per-component messages (`<i18n>` SFC blocks — friendlier authoring during
+   the big conversion; tooling merges them into catalogs either way). The industry splits
+   on this; our call can too.
 
 ## Verification
 
