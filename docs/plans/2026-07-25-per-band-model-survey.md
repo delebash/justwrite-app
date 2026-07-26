@@ -142,3 +142,31 @@ Final catalog: **8 chat + 3 embeds**. Every row's job in one line each: flagship
 12B (small dense), E4B (iGPU laptops), 31B/70B/GLM (big-rig curation trio, campaign decides),
 27B (24 GB native option), StyleTune (prose voice), EZ (uncensored) · 4B (embed default),
 8B (embed big-card), KaLM (embed contender).
+
+## EMBED PLACEMENT HONESTY (same day, the user's "your rec go" after their design review)
+
+The user caught the badge contradiction (an 8B embed chip reading "Fits · needs ~6.8 GB VRAM"
+on a box whose policy forces it onto the CPU) and then pressure-tested the placement rule
+itself ("surely we can tell when to load embed vs main"). Verdict: sequence-aware/live
+tracking rejected — it needs the same predicted chat footprint the static rule already uses,
+plus state machinery, for one rare cloud-default edge. What shipped instead (runner):
+
+1. **The chat-first baseline swap** — `_embed_gpu_leftover_mb` now subtracts the chat
+   default's CLAIM (`est_vram_mb`, falling back to `min_vram_mb`) instead of the bare floor.
+   The proof case is a 16 GB card: floor math computed 10+ GB of "leftover" and handed the
+   8B embed a GPU claim beside a flagship whose est is ~17.7 GB; est math yields 0 → CPU,
+   chat-first. `est_vram_mb` rides `RecommendedFor` (additive; JV deferred to the later
+   integration per the user).
+2. **ONE placement source** — new `RunnerService.embed_placement(model, hardware)` →
+   ("cpu"|"gpu", leftover): `_apply_embed_placement` enforces it at load, and the models
+   endpoint ships it per embed row (`embedPlacement` / `embedLeftoverMb`), so the UI can
+   never promise a placement the loader refuses.
+3. **Honest surfaces** — the catalog fit chip on embedding rows now reads CPU/GPU with a
+   plain-words title (RAM-based for CPU placement); `m.fit` itself is untouched underneath
+   (section grouping still reads it). Quick Setup's embed hint states where the selected
+   embed will run, and the wizard's own leftover uses the same est-based claim
+   (`wizardLeftoverMb` — pick and load can no longer disagree on baseline semantics).
+
+Tests: the placement block's fixtures now carry the real est/min shape; the 16 GB proof
+case is pinned; `embed_placement` verdicts pinned as the one source. Runner 708 passed /
+1 documented lspci known-bad; JW gates fully green.
