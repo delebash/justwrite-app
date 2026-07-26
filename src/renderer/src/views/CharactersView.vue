@@ -431,9 +431,14 @@ function onRowClick(event) {
 
     <div v-else class="pane-card">
       <div class="scrollarea" style="padding:18px 22px 40px">
-        <!-- v-html: the sentence carries inline <strong> emphasis, so it stays ONE
-             translatable unit rather than being split around the markup. -->
-        <p class="entity-desc ch-desc" v-html="$t('characters.intro')"></p>
+        <!-- i18n-t + named slots (the user's ruling, 2026-07-26: "i18n-t with slots, no
+             html in messages"). The sentence stays ONE translatable unit — the emphasis
+             is markup supplied by the template, not by the message. -->
+        <i18n-t keypath="characters.intro" tag="p" class="entity-desc ch-desc" scope="global">
+          <template #character><strong>{{ $t("characters.introTerms.character") }}</strong></template>
+          <template #relations><strong>{{ $t("sidebar.nav.relations") }}</strong></template>
+          <template #castPresence><strong>{{ $t("characters.introTerms.castPresence") }}</strong></template>
+        </i18n-t>
         <!-- Toolbar -->
         <div class="entity-toolbar">
           <span class="entity-search">
@@ -590,9 +595,14 @@ function onRowClick(event) {
 
     <div class="pane-card">
       <div class="scrollarea" style="padding:24px 28px 40px">
-        <!-- v-html: the sentence carries inline <strong> emphasis, so it stays ONE
-             translatable unit rather than being split around the markup. -->
-        <p class="entity-desc ch-desc" v-html="$t('characters.intro')"></p>
+        <!-- i18n-t + named slots (the user's ruling, 2026-07-26: "i18n-t with slots, no
+             html in messages"). The sentence stays ONE translatable unit — the emphasis
+             is markup supplied by the template, not by the message. -->
+        <i18n-t keypath="characters.intro" tag="p" class="entity-desc ch-desc" scope="global">
+          <template #character><strong>{{ $t("characters.introTerms.character") }}</strong></template>
+          <template #relations><strong>{{ $t("sidebar.nav.relations") }}</strong></template>
+          <template #castPresence><strong>{{ $t("characters.introTerms.castPresence") }}</strong></template>
+        </i18n-t>
         <div class="character-hero">
           <div
             class="avatar-drop"

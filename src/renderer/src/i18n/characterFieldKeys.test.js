@@ -4,8 +4,10 @@
 // its ~200 field labels with a computed key —
 //   $t(`characters.fields.${f.group}.${f.k}.label`)
 // — and nothing else in the toolchain can see through that template literal.
-//   · `npm run i18n:report` (vue-i18n-extract) matches STATIC $t('literal')
-//     calls, so it reports none of these as missing and all of them as unused;
+//   · `npm run i18n:report` (vue-i18n-extract) only matches keys written as plain
+//     string literals, so it reports none of these as missing and all as unused
+//     — and note it scans .js too: spelling a translate-call out longhand in this
+//     comment made the report invent a missing key named "literal";
 //   · `npm run i18n:lint` only finds raw text, and there is none left here;
 //   · `npm run build:vite` compiles the SFC without resolving any key;
 //   · the headless smoke asserts zero JS errors — and a missing key is NOT an

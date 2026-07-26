@@ -208,7 +208,10 @@
   "settings": {
     "title": "Settings",
     "eyebrow": "Project",
-    "intro": "<strong>Settings</strong> is divided into sections — <strong>Project</strong> (metadata, goals, statuses, deadlines), <strong>Appearance</strong> (themes, fonts, colours, density), <strong>General</strong> (data location &amp; connection), and <strong>Backups</strong> (autosave, full backup / restore, and workspace reset). AI providers, routing, usage, and writing-AI settings live in the <strong>AI</strong> menu. Nothing here touches your manuscript prose.",
+    "intro": "{settings} is divided into sections — {project} (metadata, goals, statuses, deadlines), {appearance} (themes, fonts, colours, density), {general} (data location & connection), and {backups} (autosave, full backup / restore, and workspace reset). AI providers, routing, usage, and writing-AI settings live in the {ai} menu. Nothing here touches your manuscript prose.",
+    "introTerms": {
+      "ai": "AI"
+    },
     "sections": {
       "project": "Project",
       "appearance": "Appearance",
@@ -278,9 +281,15 @@
       "dangerLabel": "Danger",
       "infoLabel": "Info",
       "buttonIntentsCardTitle": "Buttons",
-      "buttonIntentsHint": "Each button has a single <b>intent</b> that encodes both colour and visual style. <b>Primary</b> (solid accent) is the main affordance. <b>Secondary</b> is outlined neutral for supporting actions. <b>Ghost</b> is quiet text-only for utility. <b>Danger / Success / Info</b> follow the functional colours above, <b>Accent 2</b> follows your second accent — all solid fills for clear status. Re-tinting any colour above re-skins them all.",
+      "buttonIntentsHint": "Each button has a single {intent} that encodes both colour and visual style. {primary} (solid accent) is the main affordance. {secondary} is outlined neutral for supporting actions. {ghost} is quiet text-only for utility. {functional} follow the functional colours above, {accent2} follows your second accent — all solid fills for clear status. Re-tinting any colour above re-skins them all.",
+      "buttonIntentsTerms": {
+        "intent": "intent"
+      },
       "backgroundsCardTitle": "Backgrounds",
-      "backgroundsHint": "Tint each area independently — every option is tuned to stay legible. Pick a curated swatch or click <b>Custom</b> for any colour. The <b>Text</b> row picks the text-colour family used across the app.",
+      "backgroundsHint": "Tint each area independently — every option is tuned to stay legible. Pick a curated swatch or click {custom} for any colour. The {text} row picks the text-colour family used across the app.",
+      "backgroundsTerms": {
+        "custom": "Custom"
+      },
       "bgAppLabel": "App",
       "bgSidebarLabel": "Sidebar",
       "bgEditorPaperLabel": "Editor paper",
@@ -294,7 +303,10 @@
       "editorLayoutFullWidthHint": "Edge-to-edge writing surface.",
       "editorLayoutPage": "Page",
       "editorLayoutPageHint": "Centered sheet with margins and running head.",
-      "editorLayoutOverrideNote": "Per-document overrides for any of these live in the editor's ⚙ Writing settings — pick <em>theme</em> there to fall back to the theme default.",
+      "editorLayoutOverrideNote": "Per-document overrides for any of these live in the editor's ⚙ Writing settings — pick {theme} there to fall back to the theme default.",
+      "editorLayoutOverrideTerms": {
+        "theme": "theme"
+      },
       "editorWritingCardTitle": "Editor writing",
       "editorWritingHint": "Defaults for the manuscript prose — font size, line spacing, paragraph spacing, and first-line indent. Per-document choices in the editor's ⚙ Writing settings override these.",
       "editorFontSizeLabel": "Font size",
@@ -349,12 +361,12 @@
       "sectionHeadingLabel": "Section heading",
       "shStyleAriaLabel": "Sidebar heading style",
       "shSizeAriaLabel": "Sidebar heading size",
-      "sectionHeadingHint": "The small labels that group the sidebar nav (e.g. <em>Manuscript</em>, <em>Story world</em>).",
+      "sectionHeadingHint": "The small labels that group the sidebar nav (e.g. {manuscript}, {storyWorld}).",
       "menuItemLabel": "Menu item",
       "navStyleAriaLabel": "Menu item style",
       "navSizeAriaLabel": "Menu item size",
-      "menuItemHint": "Each sidebar entry — <em>Home</em>, <em>Chapters</em>, <em>Characters</em>, and so on.",
-      "accentsHint": "Accent drives selection, the active nav item, buttons and links. Accent 2 is the secondary — rings, rules, peak markers, and the <code>accent2</code> intent on buttons and tags.",
+      "menuItemHint": "Each sidebar entry — {home}, {chapters}, {characters}, and so on.",
+      "accentsHint": "Accent drives selection, the active nav item, buttons and links. Accent 2 is the secondary — rings, rules, peak markers, and the {accent2Intent} intent on buttons and tags.",
       "accentLabel": "Accent",
       "accent2Label": "Accent 2",
       "tagDone": "Done",
@@ -395,17 +407,23 @@
       "generationPrevious": "Previous",
       "generationEarlier": "Earlier",
       "autosavePending": "Pending — will fire within 10s of the next edit.",
-      "autosaveHint": "Every edit is also mirrored to a JSON file on disk within ~10s. Two prior generations are kept (<code>.prev.json</code> / <code>.prev2.json</code>) so a bad write or accidental reset can be recovered without a manual export. Each file is a full workspace bundle — project, AI providers, sessions — so restoring one file brings everything back. By default it lives inside your data folder (shown below); anything OneDrive / Time Machine / your backup tool watches in this folder will pick it up automatically.",
+      "autosaveHint": "Every edit is also mirrored to a JSON file on disk within ~10s. Two prior generations are kept ({prev} / {prev2}) so a bad write or accidental reset can be recovered without a manual export. Each file is a full workspace bundle — project, AI providers, sessions — so restoring one file brings everything back. By default it lives inside your data folder (shown below); anything OneDrive / Time Machine / your backup tool watches in this folder will pick it up automatically.",
       "lastAutosaveLabel": "Last autosave",
       "hideAutosaves": "Hide autosaves",
       "showAutosaves": "Restore from autosave…",
       "emptyList": "No autosaves on disk yet. They start appearing after the first edit.",
       "deleteSelectedButton": "Delete selected",
       "dataFolderTitle": "Data folder",
+      "dataFolderHint": "Everything JustWrite saves lives here — your books, images, the AI engine and models, and logs — and the autosave folder above sits inside it by default. Move it from {link}.",
+      "dataFolderLinkLabel": "Settings → Storage",
       "portableSuffix": "· portable, beside the app",
       "userFolderSuffix": "· user folder",
       "thisBookTitle": "This book",
-      "thisBookHint": "<strong>Export</strong> the current book as a single <code>.zip</code> — its text, structure, and images — to move it to another computer or share it, then <strong>Import</strong> a <code>.zip</code> back as a new book. Each chooser remembers where you last saved.",
+      "thisBookHint": "{export} the current book as a single {zip} — its text, structure, and images — to move it to another computer or share it, then {import} a {zip2} back as a new book. Each chooser remembers where you last saved.",
+      "thisBookTerms": {
+        "export": "Export",
+        "import": "Import"
+      },
       "exporting": "Exporting…",
       "exportButton": "Export this book…",
       "importing": "Importing…",
@@ -554,7 +572,10 @@
       "read": "Read"
     },
     "outline": {
-      "intro": "<strong>Chapters</strong> is the writing surface — the editor itself, with <strong>Outline</strong> / <strong>Cards</strong> / <strong>Read</strong> view modes that switch your lens on the same manuscript. Type <code>@</code> to mention any Story Bible entity; the <strong>AI</strong> button in the scene strip opens rewrite, continue, and line-edit actions; the <strong>Links</strong> panel ties each scene to its characters, location, and strands.",
+      "intro": "{chapters} is the writing surface — the editor itself, with {outline} / {cards} / {read} view modes that switch your lens on the same manuscript. Type {at} to mention any Story Bible entity; the {ai} button in the scene strip opens rewrite, continue, and line-edit actions; the {links} panel ties each scene to its characters, location, and strands.",
+      "introTerms": {
+        "cards": "Cards"
+      },
       "partN": "Part {n}",
       "alreadyFirstPart": "Already the first part",
       "movePartUp": "Move part up",
@@ -710,7 +731,11 @@
       "fillFromBookTooltip": "Draft profiles and voice for several characters at once from the scenes that feature them — review before anything saves, or opt into auto-fill of empty fields",
       "newCharacter": "New character"
     },
-    "intro": "A <strong>character</strong> is anyone in your story worth tracking — protagonist, antagonist, side cast. Fill in motivation, arc, voice, and backstory as you need them; every field is optional. Characters feed the <strong>Relations</strong> graph, the <strong>Cast presence</strong> heatmap, and AI features that draw on story-world context.",
+    "intro": "A {character} is anyone in your story worth tracking — protagonist, antagonist, side cast. Fill in motivation, arc, voice, and backstory as you need them; every field is optional. Characters feed the {relations} graph, the {castPresence} heatmap, and AI features that draw on story-world context.",
+    "introTerms": {
+      "character": "character",
+      "castPresence": "Cast presence"
+    },
     "empty": {
       "title": "No characters yet.",
       "message": "Characters appear across your chapters and story bible, and link scenes to who's in them.",

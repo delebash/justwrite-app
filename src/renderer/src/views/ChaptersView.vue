@@ -829,7 +829,18 @@ watch(() => project.allChapters.map((c) => `${c.id}:${(project.scenesFor(c.id) |
   <!-- ── OUTLINE MODE ─────────────────────────────────────────── -->
   <div v-if="ch && mode === 'outline'" class="pane-card">
    <div class="scrollarea outline-pane">
-    <p class="chap-desc" v-html="$t('chapters.outline.intro')"></p>
+    <!-- i18n-t + named slots (the user's ruling, 2026-07-26). `@` is a slot rather than
+         literal message text on purpose: in vue-i18n's message syntax `@:key` is a linked
+         message, so a bare @ is a metacharacter. -->
+    <i18n-t keypath="chapters.outline.intro" tag="p" class="chap-desc" scope="global">
+      <template #chapters><strong>{{ $t("nav.chapters") }}</strong></template>
+      <template #outline><strong>{{ $t("chapters.modes.outline") }}</strong></template>
+      <template #cards><strong>{{ $t("chapters.outline.introTerms.cards") }}</strong></template>
+      <template #read><strong>{{ $t("chapters.modes.read") }}</strong></template>
+      <template #at><code>@</code></template>
+      <template #ai><strong>{{ $t("chapters.ai.badge") }}</strong></template>
+      <template #links><strong>{{ $t("chapters.sceneStrip.links") }}</strong></template>
+    </i18n-t>
     <div class="outline-tree">
       <section v-for="(part, pi) in project.parts" :key="part.id" class="ol-part">
         <div class="ol-part-row">

@@ -38,7 +38,14 @@ export default [
           // Double backslashes on purpose: this is a JS string handed to
           // `new RegExp(..., "u")` inside the rule — single ones collapse.
           ignorePattern: "^[\\d\\s\\p{P}]*$",
-          ignoreNodes: ["Icon"],
+          // `code` joins Icon (2026-07-26, the i18n-t conversion): a <code>
+          // element's content is a code identifier — `.zip`, `accent2`,
+          // `.prev.json` — and CLAUDE.md's i18n rules put data values and ids
+          // firmly outside translation. Before this, converting the HTML-in-
+          // message hints to i18n-t slots would have traded 11 intlify warnings
+          // for a dozen bogus no-raw-text ones. This is the rule's own option
+          // for the case, not a workaround.
+          ignoreNodes: ["Icon", "code"],
         },
       ],
     },

@@ -460,14 +460,36 @@ committed and pushed — JW `b78337e`, runner `825b9af` + `40737fe`.)*
   renders `<th class="is-sortable">`. So the gate had been red for two days for a reason that
   was not a bug — the real damage being that a gate which cries wolf gets ignored. Selector
   updated to `.lu-mgrid th.is-sortable`; the line is green and still asserts the same thing.
-- ⚠ **`[intlify] Detected HTML in '…' message` — two warnings, by design, worth your ruling.**
-  `settings.intro` and `characters.intro` are rendered with `v-html` so the inline `<strong>`
-  emphasis keeps the sentence as ONE translatable unit instead of splitting it around markup.
-  vue-i18n warns because HTML in a message is an XSS vector *when the message is
-  user-supplied* — these are ours, from the shipped catalog, so the risk is nil today. The
-  alternative is i18n-t with named slots (no HTML in the message, more markup per sentence).
-  Flagging rather than deciding: it is a house-style call, and it will multiply as more
-  intro paragraphs convert.
+- ✅ **NO HTML IN MESSAGES — your ruling 2026-07-26 ("i18n-t with slots, no html in
+  messages"), executed in full.** The smoke warned about two messages; the catalog actually
+  had **eleven** (the other nine sit behind Appearance/Backups tabs the sweep never clicked,
+  so they never warned). All eleven converted to `<i18n-t keypath tag scope="global">` with
+  named slots; **zero catalog values contain a tag now**, and there is no `v-html="$t(…)"`
+  left in the renderer.
+  **Reuse over minting** — each emphasised term points at the key that already names that
+  thing: `settings.sections.*` (so the Settings intro can never drift from its own tab
+  strip), `chapters.modes.*`, `nav.*`, `sidebar.sections.*`, `settings.appearance.intent*` /
+  `*Label`, `chapters.sceneStrip.links`, `chapters.ai.badge`. Only 9 term leaves were minted,
+  for words with no existing key of the same MEANING (an aria-label is not a noun in prose).
+  **Code identifiers stay out of the catalog** — `accent2`, `.zip`, `.prev.json`, `@` are
+  data values, which the i18n rules never translate; they live in the template inside
+  `<code>`, and `eslint.i18n.config.mjs` gained `code` in `ignoreNodes` (the rule's own
+  option for this, not a workaround).
+  **Bonus, same pattern:** `settings.backups.dataFolderHint` — the last documented
+  "deliberate leftover", a sentence wrapped around a `<UiButton>` — is now one keypath with a
+  `{link}` slot. SettingsView+ChaptersView+CharactersView lint warnings 9 → 7.
+  **Verified by rendering, not by building.** A wrong slot name renders literal `{braces}`
+  and a wrong keypath renders EMPTY (missingWarn/fallbackWarn are off), so a probe derived
+  the expected text from the PRE-conversion catalog (tags stripped, `&amp;` decoded) and
+  compared it to the live page: **11/11 sentences byte-identical, 0 stray placeholders, 0
+  intlify warnings, 0 JS errors**, then `HEADLESS SMOKE PASSED` again. `dataFolderHint` is
+  behind `v-if="storageRoot"` (needs the Tauri bridge) so it was verified separately with a
+  stubbed bridge. 439 unit tests, clean build, 0 missing keys.
+  **⚠ A COPY BUG found while converting, NOT fixed — yours to call.**
+  `chapters.outline.intro` says "with **Outline** / **Cards** / **Read** view modes", but
+  `MODES` is Edit / Outline / Read (`ChaptersView.vue:105-109`) — "Cards" is an `editStyle`
+  toggle INSIDE Edit mode (`chapters.edit.cardView`), not a view mode, and Edit itself goes
+  unmentioned. The sentence was preserved word-for-word rather than silently rewritten.
 - 🎯 **Single-source text system + i18n / translation — THE NEXT BIG TASK** (the user's
   roadmap ruling 2026-07-26: "the main goal is to completely finish JW and all AI stuff,
   then we will work on JV… 12 we need to do and do the full translation research on how we

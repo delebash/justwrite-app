@@ -658,7 +658,18 @@ async function deleteCategory(c) {
   <PaneHeader :eyebrow="$t('settings.eyebrow')" :title="$t('settings.title')" help-key="appearance" />
   <div class="pane-card">
     <div class="scrollarea" style="padding:22px">
-    <p class="set-desc" v-html="$t('settings.intro')"></p>
+    <!-- i18n-t + named slots (the user's ruling, 2026-07-26: "i18n-t with slots, no html
+         in messages"). Each emphasised term reuses the key that already names that thing —
+         the section names come from settings.sections.*, so the intro can never drift from
+         the tab strip it describes. -->
+    <i18n-t keypath="settings.intro" tag="p" class="set-desc" scope="global">
+      <template #settings><strong>{{ $t("settings.title") }}</strong></template>
+      <template #project><strong>{{ $t("settings.sections.project") }}</strong></template>
+      <template #appearance><strong>{{ $t("settings.sections.appearance") }}</strong></template>
+      <template #general><strong>{{ $t("settings.sections.general") }}</strong></template>
+      <template #backups><strong>{{ $t("settings.sections.backups") }}</strong></template>
+      <template #ai><strong>{{ $t("settings.introTerms.ai") }}</strong></template>
+    </i18n-t>
     <div class="settings-layout">
       <!-- Section tabs — horizontal strip, full width (matches JV's settings) -->
       <nav class="set-tabs">
@@ -1031,7 +1042,10 @@ async function deleteCategory(c) {
               :options="SH_SIZE_OPTIONS"
               :aria-label="$t('settings.appearance.shSizeAriaLabel')"
               @update:model-value="setAp({ sidebarHeadingSize: $event })" />
-            <p class="size-hint" v-html="$t('settings.appearance.sectionHeadingHint')"></p>
+            <i18n-t keypath="settings.appearance.sectionHeadingHint" tag="p" class="size-hint" scope="global">
+              <template #manuscript><em>{{ $t("sidebar.sections.manuscript") }}</em></template>
+              <template #storyWorld><em>{{ $t("sidebar.sections.storyWorld") }}</em></template>
+            </i18n-t>
           </div>
           <div class="size-row">
             <span class="field-l">{{ $t('settings.appearance.menuItemLabel') }}</span>
@@ -1047,14 +1061,21 @@ async function deleteCategory(c) {
               :options="NAV_SIZE_OPTIONS"
               :aria-label="$t('settings.appearance.navSizeAriaLabel')"
               @update:model-value="setAp({ navItemSize: $event })" />
-            <p class="size-hint" v-html="$t('settings.appearance.menuItemHint')"></p>
+            <i18n-t keypath="settings.appearance.menuItemHint" tag="p" class="size-hint" scope="global">
+              <template #home><em>{{ $t("nav.home") }}</em></template>
+              <template #chapters><em>{{ $t("nav.chapters") }}</em></template>
+              <template #characters><em>{{ $t("nav.characters") }}</em></template>
+            </i18n-t>
           </div>
         </div>
 
         <!-- Accents (primary + second) -->
         <div class="card">
           <div class="card-title">{{ $t('settings.appearance.accentsCardTitle') }}</div>
-          <p class="t-muted" style="font-size:12px;margin:0 0 12px" v-html="$t('settings.appearance.accentsHint')"></p>
+          <i18n-t keypath="settings.appearance.accentsHint" tag="p" class="t-muted" style="font-size:12px;margin:0 0 12px" scope="global">
+            <!-- a button-intent id, not copy — never translated (see the lint's ignoreNodes) -->
+            <template #accent2Intent><code>accent2</code></template>
+          </i18n-t>
           <div class="swatch-row" role="radiogroup" :aria-label="$t('settings.appearance.accentLabel')">
             <span class="swatch-label">{{ $t('settings.appearance.accentLabel') }}</span>
             <button v-for="p in ACCENT_PRESETS" :key="p.hue"
@@ -1141,7 +1162,15 @@ async function deleteCategory(c) {
         <!-- Buttons — every intent the app uses, one of each. -->
         <div class="card">
           <div class="card-title">{{ $t('settings.appearance.buttonIntentsCardTitle') }}</div>
-          <p class="t-muted" style="font-size:12px;margin:0 0 12px" v-html="$t('settings.appearance.buttonIntentsHint')"></p>
+          <i18n-t keypath="settings.appearance.buttonIntentsHint" tag="p" class="t-muted" style="font-size:12px;margin:0 0 12px" scope="global">
+            <template #intent><b>{{ $t("settings.appearance.buttonIntentsTerms.intent") }}</b></template>
+            <template #primary><b>{{ $t("settings.appearance.intentPrimary") }}</b></template>
+            <template #secondary><b>{{ $t("settings.appearance.intentSecondary") }}</b></template>
+            <template #ghost><b>{{ $t("settings.appearance.intentGhost") }}</b></template>
+            <!-- one <b> in the original spanned all three, so it stays one slot -->
+            <template #functional><b>{{ $t("settings.appearance.dangerLabel") }} / {{ $t("settings.appearance.successLabel") }} / {{ $t("settings.appearance.infoLabel") }}</b></template>
+            <template #accent2><b>{{ $t("settings.appearance.accent2Label") }}</b></template>
+          </i18n-t>
           <div style="display:flex;flex-wrap:wrap;gap:8px;align-items:center">
             <UiButton intent="primary"   size="small" :label="$t('settings.appearance.intentPrimary')" />
             <UiButton intent="secondary" size="small" :label="$t('settings.appearance.intentSecondary')" />
@@ -1156,7 +1185,10 @@ async function deleteCategory(c) {
         <!-- Backgrounds -->
         <div class="card">
           <div class="card-title">{{ $t('settings.appearance.backgroundsCardTitle') }}</div>
-          <p class="t-muted" style="font-size:12px;margin:0 0 12px" v-html="$t('settings.appearance.backgroundsHint')"></p>
+          <i18n-t keypath="settings.appearance.backgroundsHint" tag="p" class="t-muted" style="font-size:12px;margin:0 0 12px" scope="global">
+            <template #custom><b>{{ $t("settings.appearance.backgroundsTerms.custom") }}</b></template>
+            <template #text><b>{{ $t("settings.appearance.bgTextColourLabel") }}</b></template>
+          </i18n-t>
           <div class="swatch-row" role="radiogroup" :aria-label="$t('settings.appearance.bgAppLabel')">
             <span class="swatch-label">{{ $t('settings.appearance.bgAppLabel') }}</span>
             <button v-for="t in SURFACE_TINT_LIST" :key="t.key"
@@ -1234,7 +1266,9 @@ async function deleteCategory(c) {
               <b>{{ $t('settings.appearance.editorLayoutPage') }}</b><span>{{ $t('settings.appearance.editorLayoutPageHint') }}</span>
             </button>
           </div>
-          <p class="t-muted" style="font-size:11px;margin:12px 0 0" v-html="$t('settings.appearance.editorLayoutOverrideNote')"></p>
+          <i18n-t keypath="settings.appearance.editorLayoutOverrideNote" tag="p" class="t-muted" style="font-size:11px;margin:12px 0 0" scope="global">
+            <template #theme><em>{{ $t("settings.appearance.editorLayoutOverrideTerms.theme") }}</em></template>
+          </i18n-t>
         </div>
 
         <!-- Editor writing -->
@@ -1423,7 +1457,11 @@ async function deleteCategory(c) {
       <div v-else-if="active === 'backups'" style="display:flex;flex-direction:column;gap:14px">
         <div v-if="autosaveDir" class="card">
           <div class="card-title">{{ $t('settings.backups.autosaveCardTitle') }}</div>
-          <p class="t-muted" style="font-size:12.5px;margin:0 0 12px;line-height:1.55" v-html="$t('settings.backups.autosaveHint')"></p>
+          <i18n-t keypath="settings.backups.autosaveHint" tag="p" class="t-muted" style="font-size:12.5px;margin:0 0 12px;line-height:1.55" scope="global">
+            <!-- on-disk filenames — data, never translated -->
+            <template #prev><code>.prev.json</code></template>
+            <template #prev2><code>.prev2.json</code></template>
+          </i18n-t>
           <div style="display:grid;grid-template-columns:140px 1fr;gap:10px 14px;font-size:13px;align-items:center;margin-bottom:12px">
             <span class="t-muted">{{ $t('settings.storage.folderLabel') }}</span>
             <code style="word-break:break-all">{{ autosaveDir }}</code>
@@ -1476,11 +1514,16 @@ async function deleteCategory(c) {
             <code style="word-break:break-all">{{ storageRoot.root }}</code>
             <span class="t-muted" style="font-size:11px;margin-left:6px">{{ storageRoot.portable ? $t('settings.backups.portableSuffix') : $t('settings.backups.userFolderSuffix') }}</span>
           </p>
-          <p class="t-muted" style="font-size:12.5px;margin:0;line-height:1.5">
-            Everything JustWrite saves lives here — your books, images, the AI engine and models, and
-            logs — and the autosave folder above sits inside it by default. Move it from
-            <UiButton intent="ghost" size="small" style="vertical-align:baseline" @click="active = 'storage'">Settings → Storage</UiButton>.
-          </p>
+          <!-- The other shape i18n-t is for: a COMPONENT inside a sentence. This was the
+               last "deliberate leftover" in the view — a paragraph left unconverted because
+               splitting it around the button would have handed a translator two fragments.
+               As one keypath with a {link} slot it is a single translatable sentence again,
+               and the button can move within it in any language. -->
+          <i18n-t keypath="settings.backups.dataFolderHint" tag="p" class="t-muted" style="font-size:12.5px;margin:0;line-height:1.5" scope="global">
+            <template #link>
+              <UiButton intent="ghost" size="small" style="vertical-align:baseline" @click="active = 'storage'">{{ $t("settings.backups.dataFolderLinkLabel") }}</UiButton>
+            </template>
+          </i18n-t>
         </div>
 
         <!-- Per-project export / import — a book travels as a single <title>.zip
@@ -1488,7 +1531,13 @@ async function deleteCategory(c) {
              the browser shows a note. -->
         <div class="card">
           <div class="card-title">{{ $t('settings.backups.thisBookTitle') }}</div>
-          <p class="t-muted" style="font-size:12.5px;margin:0 0 12px;line-height:1.55" v-html="$t('settings.backups.thisBookHint')"></p>
+          <i18n-t keypath="settings.backups.thisBookHint" tag="p" class="t-muted" style="font-size:12.5px;margin:0 0 12px;line-height:1.55" scope="global">
+            <template #export><strong>{{ $t("settings.backups.thisBookTerms.export") }}</strong></template>
+            <template #import><strong>{{ $t("settings.backups.thisBookTerms.import") }}</strong></template>
+            <!-- a file extension — data, never translated; the sentence names it twice -->
+            <template #zip><code>.zip</code></template>
+            <template #zip2><code>.zip</code></template>
+          </i18n-t>
           <div v-if="transferErr" class="banner danger" style="margin-bottom:10px">{{ transferErr }}</div>
           <div v-if="canTransferBooks" style="display:flex;gap:10px;flex-wrap:wrap">
             <UiButton intent="primary" :disabled="!!transferBusy || !project._activeId" @click="exportThisProject()">
