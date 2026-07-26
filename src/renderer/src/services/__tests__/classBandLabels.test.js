@@ -42,6 +42,16 @@ describe("classKeyRangeLabel", () => {
     expect(classKeyRangeLabel("unified-mem192")).toBe("Unified memory · 192 GB");
   });
 
+  it("cannot render a FRACTIONAL key — which is why the editor truncates before building one", () => {
+    // The number box hands back a raw string, so "3.5" would reach the key template
+    // untruncated. No regex matches a fractional key, so it would print verbatim and leak
+    // internal syntax into copy. LuClassTunes.vue's `wholeGb` (Math.trunc, mirroring
+    // Python's int()) is what keeps this branch unreachable — pinned here so removing the
+    // truncation shows up as a visible contract, not just a 422 at save time.
+    expect(classKeyRangeLabel("dgpu-vram3.5|ram16")).toBe("dgpu-vram3.5|ram16");
+    expect(bandOf(3.5, VRAM_BANDS)).toBe(3.5);   // below the floor → no snap to hide it
+  });
+
   it("keeps the free name winning, and an unknown shape verbatim", () => {
     expect(classKeyRangeLabel("dgpu-vram8|ram32", "My Laptop")).toBe("My Laptop");
     expect(classKeyRangeLabel("something-else")).toBe("something-else");

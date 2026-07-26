@@ -1455,7 +1455,7 @@ detection wrong rather than as a class covering a range. `ui/src/classTunes.js` 
 covers ("8–11 GB VRAM"), the open top band as "24 GB VRAM and above", and a below-floor key
 stays exact because `hardware.py:183-184` passes it through unbanded and a range there would
 invent coverage. The classes panel and its editor use the range form; the catalog badge
-(`LuModelCatalog.vue:411`) and the Tune modal's running sentences (`TuneMeasureModal.vue:584,
+(`LuModelCatalog.vue:413`) and the Tune modal's running sentences (`TuneMeasureModal.vue:584,
 588`) keep the short form — the user's call, since both are tight spots where the long form
 would swamp the sentence it sits in.
 
@@ -1491,14 +1491,27 @@ strings DO honor is Ruling 6 (`:151-158`): each phrase is a complete sentence pe
 "and above" is its own message and never a suffix glued onto another — the join of the two
 halves is a documented list separator, recorded in the code comment as a named choice.
 
+The post-task checker then found two things worth recording. The first was a REACHABLE break in
+the very affordance this change adds: the number box hands back a raw string, so a typed "3.5"
+reached the key template untruncated, no regex matches a fractional key, and the preview printed
+`dgpu-vram3.5|ram16` — internal key syntax leaked into copy that `classTunes.js:67` explicitly
+forbids — after which the save would 422 on the server's int field. Both the preview and the save
+now truncate through one `wholeGb` helper, mirroring Python's own `int()` at `hardware.py:194`, so
+the two can never disagree; a vitest case pins that a fractional key is unrenderable, which is what
+makes the truncation load-bearing rather than decorative. The second was T9: `git checkout --` is a
+destructive op that was run without confirming, and the standing practice is now that a scratch
+revert on a file holding uncommitted work takes a BACKUP COPY, never git. The residue was checked
+rather than assumed — `git diff --stat -- ui/src/classTunes.js` reports 61 insertions and ZERO
+deletions, so the file held no other uncommitted edit that the revert could have taken.
+
 How verified: the new `test_class_label_ladders.py` PROVEN TO BITE — adding a bogus 32 to the
 JS `VRAM_BANDS` failed it, then the file was restored. (Restoring it with `git checkout --`
-also discarded the uncommitted feature edit in that file, which had to be re-applied; a scratch
-revert on a file with uncommitted work takes a backup copy, not git.) JustWrite vitest **449
-passed / 49 files** including the 10 new label cases (`classBandLabels.test.js` — the 3080, the
-5090 top rung, both RAM rung shapes, a below-floor key, both one-pool types, name-wins, and the
-short form pinned UNCHANGED as the badge contract); `build:vite` green; runner pytest **709
-passed / 1 documented Windows lspci known-bad / 9 skipped**.
+also discarded the uncommitted feature edit in that file, which had to be re-applied.) JustWrite
+vitest **450 passed / 49 files** including the 11 new label cases (`classBandLabels.test.js` — the
+3080, the 5090 top rung, both RAM rung shapes, a below-floor key, the fractional key, both one-pool
+types, name-wins, and the short form pinned UNCHANGED as the badge contract); `build:vite` green;
+Biome exit 0 on all three changed kit files; runner pytest **709 passed / 1 documented Windows
+lspci known-bad / 9 skipped**.
 
 What would reverse it: revert the `classTunes.js` addition and the `LuClassTunes.vue` call-site
 swap together — the panel imports `classKeyRangeLabel` and no longer imports `classKeyLabel`,

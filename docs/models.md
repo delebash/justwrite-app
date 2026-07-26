@@ -283,8 +283,8 @@ embedding model carries an **Embedding** badge. From here you can:
   one reads *"24 GB VRAM and above"*, so a 10 GB card and a 32 GB card each land in a
   class without needing one of their own. Your PC is matched to the nearest class at or
   below its size, which is why a config never promises more memory than a machine has;
-  type any numbers when adding a class and the form tells you which class they'll be
-  saved as before you save. Every measured speed is also **saved for
+  when you add a class, the form tells you which class your numbers will be saved as
+  before you save. Every measured speed is also **saved for
   good**: the
   **Measurement history** drawer in the same dialog lists each **Load & measure** run and
   each auto-tune trial — when, with which settings, and how fast — and survives closing the
